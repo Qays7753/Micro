@@ -1,0 +1,458 @@
+{
+  "title": "Micro pre-build experiment simulation v1",
+  "method": "deterministic desk simulation; no random or market data",
+  "experiments": {
+    "financial_truth": [
+      {
+        "id": "FT-01",
+        "name": "شراء مخزون ثم استهلاك جزء",
+        "inputs": {
+          "cash_before": 500,
+          "quantity": 10,
+          "unit_price": 5,
+          "consumed": 2
+        },
+        "expected": {
+          "cash_after_purchase": 450,
+          "inventory_value_after_purchase": 50,
+          "recognized_cost_at_purchase": 0,
+          "recognized_cost_after_consumption": 10,
+          "inventory_value_after_consumption": 40
+        },
+        "checks": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "يظهر للمستخدم أن الشراء زاد المخزون وخفض الكاش، وأن الجزء المستهلك فقط دخل التكلفة."
+      },
+      {
+        "id": "FT-02",
+        "name": "عربون قبل التسليم",
+        "inputs": {
+          "agreed_price": 100,
+          "planned_cost": 60,
+          "deposit": 30
+        },
+        "expected": {
+          "cash_increase": 30,
+          "recognized_revenue_before_delivery": 0,
+          "final_profit_before_delivery": null,
+          "remaining_receivable_after_deposit": 70
+        },
+        "checks": [
+          true,
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "يُعرض العربون ككاش محصل مرتبط بطلب، لا كربح نهائي."
+      },
+      {
+        "id": "FT-03",
+        "name": "تسليم ثم تحصيل المتبقي",
+        "inputs": {
+          "agreed_price": 100,
+          "planned_cost": 60,
+          "deposit": 30,
+          "remaining_collection": 70
+        },
+        "expected": {
+          "recognized_revenue_at_delivery": 100,
+          "recognized_cost_at_delivery": 60,
+          "profit_indicator": 40,
+          "cash_total_after_collection": 100,
+          "receivable_after_collection": 0
+        },
+        "checks": [
+          true,
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "بعد التحصيل، يراجع المستخدم نتيجة الطلب والفعل التالي."
+      },
+      {
+        "id": "FT-04",
+        "name": "تسليم بالدين",
+        "inputs": {
+          "agreed_price": 100,
+          "planned_cost": 60,
+          "cash_collected": 0
+        },
+        "expected": {
+          "cash_increase": 0,
+          "receivable": 100,
+          "profit_indicator": 40
+        },
+        "checks": [
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "يضع النظام الدين في المتابعة ولا يصفه بأنه كاش."
+      },
+      {
+        "id": "FT-05",
+        "name": "سحب شخصي",
+        "inputs": {
+          "cash_before": 500,
+          "withdrawal": 100,
+          "operating_profit_before": 200
+        },
+        "expected": {
+          "cash_after": 400,
+          "operating_profit_after": 200,
+          "owner_equity_change": -100
+        },
+        "checks": [
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "يظهر أثر السحب على الكاش ومال المالك دون خفض ربح التشغيل."
+      },
+      {
+        "id": "FT-06",
+        "name": "مصروف مشترك للكهرباء",
+        "inputs": {
+          "bill_paid": 100,
+          "business_share": 0.4
+        },
+        "expected": {
+          "cash_outflow": 100,
+          "business_expense_for_result": 40,
+          "knowledge_state": "estimated_or_known_by_policy"
+        },
+        "checks": [
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "يسأل النظام عن النسبة أو يقبل «غير متأكد»، ولا يحمل الفاتورة كاملة أو يستبعدها بصمت."
+      },
+      {
+        "id": "FT-07",
+        "name": "تغير سعر خامة بعد اعتماد الطلب",
+        "inputs": {
+          "old_material_cost": 20,
+          "new_material_cost": 30
+        },
+        "expected": {
+          "old_order_cost": 20,
+          "new_revision_cost": 30,
+          "historical_order_changed_silently": false
+        },
+        "checks": [
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "ينشئ النظام Snapshot أو Revision جديدًا ويطلب مراجعة السعر والمواصفات."
+      },
+      {
+        "id": "FT-08",
+        "name": "إلغاء طلب ذي عربون",
+        "inputs": {
+          "deposit": 30,
+          "cancellation_reason": "تغيير العميل للمواصفات"
+        },
+        "expected": {
+          "status": "cancelled",
+          "settlement": "needs_review",
+          "automatic_refund": false,
+          "automatic_retention": false
+        },
+        "checks": [
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "يعرض النظام خيار رد العربون أو الاحتفاظ به مع سبب، ولا يقرر بدل المستخدم."
+      },
+      {
+        "id": "FT-09",
+        "name": "نقطة التعادل مع الافتراضات",
+        "inputs": {
+          "fixed_costs": 120,
+          "price_per_unit": 50,
+          "variable_cost": 30
+        },
+        "expected": {
+          "contribution_per_unit": 20,
+          "break_even_units": 6,
+          "formula": "fixed_costs / contribution_margin"
+        },
+        "checks": [
+          true,
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "يعرض الفترة والهامش والافتراضات، ويعيد الحساب عند تغير السعر أو التكلفة."
+      },
+      {
+        "id": "FT-10",
+        "name": "الأكثر مبيعًا مقابل الأكثر ربحًا",
+        "inputs": {
+          "A": {
+            "units": 10,
+            "margin": 5
+          },
+          "B": {
+            "units": 4,
+            "margin": 15
+          }
+        },
+        "expected": {
+          "best_seller": "A",
+          "best_profit": "B",
+          "profit_A": 50,
+          "profit_B": 60
+        },
+        "checks": [
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "يفصل التقرير الكمية عن الهامش ولا يساوي بين الأكثر مبيعًا والأكثر ربحًا."
+      },
+      {
+        "id": "FT-11",
+        "name": "إعادة إرسال حدث قبض",
+        "inputs": {
+          "event_key": "payment-001",
+          "attempts": 2,
+          "amount": 30
+        },
+        "expected": {
+          "financial_effect_count": 1,
+          "cash_increase": 30
+        },
+        "checks": [
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "لا يتضاعف الأثر المالي عند إعادة المحاولة."
+      },
+      {
+        "id": "FT-12",
+        "name": "يوم بلا طلب",
+        "inputs": {
+          "orders_today": 0,
+          "cash_known": 350,
+          "receivables": 80,
+          "upcoming_commitment": 120
+        },
+        "expected": {
+          "project_status": "needs_attention",
+          "cash_known": 350,
+          "receivables": 80,
+          "next_action": "راجع التحصيل أو الالتزام القريب"
+        },
+        "checks": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "status": "PASS",
+        "next": "لا تظهر رسالة «لا يوجد طلب» فقط؛ تظهر صورة الوضع والفعل القريب."
+      }
+    ],
+    "prototype": {
+      "status": "DESK_PASS",
+      "meaning": "فحص مكتبي لتسلسل المسار، وليس إثباتًا لفهم مستخدم حقيقي.",
+      "steps": [
+        {
+          "step": "إنشاء قطعة",
+          "minimum_input": "اسم القطعة، المواصفات، الكمية",
+          "output": "مسودة قطعة",
+          "next_action": "أدخل الخامات والوقت"
+        },
+        {
+          "step": "إدخال التكلفة",
+          "minimum_input": "الخامات، الوقت، التغليف، التوصيل، الهدر إن عرف",
+          "output": "تكلفة وحالة معرفة",
+          "next_action": "راجع النقص أو اعتمد السعر"
+        },
+        {
+          "step": "اعتماد السعر",
+          "minimum_input": "سعر متفق أو سعر حماية مقترح",
+          "output": "سعر وSnapshot",
+          "next_action": "سجل الاتفاق والموعد"
+        },
+        {
+          "step": "تسجيل الاتفاق",
+          "minimum_input": "الزبون، الموعد، العربون إن وجد",
+          "output": "طلب بحالة واضحة",
+          "next_action": "ابدأ التنفيذ أو راجع التحذير"
+        },
+        {
+          "step": "التسليم والتحصيل",
+          "minimum_input": "تسليم، قبض أو دين",
+          "output": "نتيجة الطلب والذمم",
+          "next_action": "راجع النتيجة والفعل التالي"
+        }
+      ],
+      "checks": {
+        "rtl_mobile_path_defined": true,
+        "each_step_has_minimum_input": true,
+        "each_step_has_output": true,
+        "each_step_has_next_action": true,
+        "no_independent_lesson_required": true,
+        "unknown_value_can_continue": true
+      },
+      "result": "المسار قابل للتحويل إلى Prototype؛ ما يزال يحتاج اختبار مهام مع أصحاب مشاريع."
+    },
+    "user_sessions": {
+      "status": "SCRIPT_READY_NOT_USER_EVIDENCE",
+      "meaning": "هذه محاكاة لبروتوكول المهمة والناتج المتوقع؛ لا يمكن للبرنامج محاكاة فهم أو تردد أو ثقة إنسان حقيقي.",
+      "tasks": [
+        {
+          "id": "US-01",
+          "task": "تسعير طلب حرفة مخصص",
+          "expected_observable": "يحدد المستخدم إن كان السعر يغطي التكلفة والوقت",
+          "scripted_result": "PASS_DESK"
+        },
+        {
+          "id": "US-02",
+          "task": "تسجيل شراء خامات للمخزون",
+          "expected_observable": "يفهم أن الشراء ليس كله تكلفة بيع فورية",
+          "scripted_result": "PASS_DESK"
+        },
+        {
+          "id": "US-03",
+          "task": "تفسير عربون مقابل ربح",
+          "expected_observable": "يفصل الكاش المحصل عن الربح النهائي",
+          "scripted_result": "PASS_DESK"
+        },
+        {
+          "id": "US-04",
+          "task": "تسجيل مصروف مشترك",
+          "expected_observable": "يختار نسبة أو غير متأكد ويعرف أثر النقص",
+          "scripted_result": "PASS_DESK"
+        },
+        {
+          "id": "US-05",
+          "task": "قراءة يوم بلا طلب",
+          "expected_observable": "يحدد فعلًا قريبًا بدل اعتبار اليوم بلا قيمة",
+          "scripted_result": "PASS_DESK"
+        }
+      ],
+      "required_real_test": "5–8 أصحاب مشاريع، تسجيل الزمن والأخطاء، وطلب شرح ماذا حدث وما أثره وما الفعل التالي."
+    },
+    "no_order": {
+      "status": "DESK_PASS",
+      "meaning": "محاكاة مخرجات يوم بلا طلب، وليست قياسًا لعودة المستخدم.",
+      "snapshots": [
+        {
+          "name": "يوم بلا طلب مع تحصيل متأخر",
+          "cash": 350,
+          "receivables": 80,
+          "payables": 0,
+          "inventory_risk": "لا يوجد",
+          "next_action": "راجع التحصيل"
+        },
+        {
+          "name": "يوم بلا طلب مع التزام مواد",
+          "cash": 350,
+          "receivables": 0,
+          "payables": 120,
+          "inventory_risk": "شراء مطلوب",
+          "next_action": "قيّم الالتزام قبل الشراء"
+        },
+        {
+          "name": "يوم بلا طلب مع منتج جديد",
+          "cash": 350,
+          "receivables": 0,
+          "payables": 0,
+          "inventory_risk": "تقدير أولي",
+          "next_action": "احسب تكلفة المنتج الجديد"
+        }
+      ],
+      "checks": [
+        true,
+        true,
+        true
+      ],
+      "result": "النموذج يستطيع تقديم قيمة خارج وجود الطلب إذا توفرت أحداث وبيانات كافية."
+    },
+    "pilot": {
+      "status": "DESIGN_READY_NOT_EXECUTED",
+      "meaning": "لا توجد بيانات بشرية يمكن توليدها بأمان؛ المحاكاة هنا تجهز التصميم ولا تختلق نتائج.",
+      "sample": "5–8 مشاريع، 30 يومًا",
+      "metrics": [
+        {
+          "metric": "زمن أول قيمة",
+          "definition": "من البدء إلى أول تكلفة/نتيجة مفهومة",
+          "measurement": "يُقاس لكل مشروع"
+        },
+        {
+          "metric": "إكمال أول تكلفة",
+          "definition": "هل اكتملت دون مساعدة زائدة؟",
+          "measurement": "نعم/لا + سبب"
+        },
+        {
+          "metric": "فهم الربح والكاش",
+          "definition": "شرح المستخدم الفرق بلسانه",
+          "measurement": "مهمة فهم"
+        },
+        {
+          "metric": "الفعل التالي",
+          "definition": "هل نفذ قرارًا أو متابعة بعد النتيجة؟",
+          "measurement": "حدث قابل للملاحظة"
+        },
+        {
+          "metric": "العودة",
+          "definition": "هل عاد في اليوم 7 و14 و30؟",
+          "measurement": "سجل استخدام"
+        },
+        {
+          "metric": "الثقة والأخطاء",
+          "definition": "ما الذي لم يصدقه أو سجله خطأ؟",
+          "measurement": "مقابلة + سجل"
+        },
+        {
+          "metric": "الالتزام التجاري",
+          "definition": "استمرار أو استعداد دفع لاحق",
+          "measurement": "لا يقاس بالمجاملة"
+        }
+      ],
+      "schedule": [
+        {
+          "period": "قبل البدء",
+          "activity": "موافقة، تعريف المشروع، baseline، ومهمة مالية قصيرة"
+        },
+        {
+          "period": "اليوم 1",
+          "activity": "أول قيمة ومسار الحرفة أو حالة واقعية"
+        },
+        {
+          "period": "اليوم 7",
+          "activity": "عودة ومراجعة فهم النتيجة"
+        },
+        {
+          "period": "اليوم 14",
+          "activity": "مراجعة تكرار التسجيل والفعل التالي"
+        },
+        {
+          "period": "اليوم 30",
+          "activity": "مقابلة قرار الاستمرار والقيمة والتكلفة"
+        }
+      ],
+      "decision_rule": "لا نقرر العودة أو الدفع أو التوسع من المحاكاة؛ نقررها من Pilot حقيقي."
+    }
+  },
+  "summary": {
+    "financial_cases": 12,
+    "financial_passes": 12,
+    "prototype_status": "DESK_PASS",
+    "user_session_status": "SCRIPT_READY_NOT_USER_EVIDENCE",
+    "no_order_status": "DESK_PASS",
+    "pilot_status": "DESIGN_READY_NOT_EXECUTED"
+  }
+}
