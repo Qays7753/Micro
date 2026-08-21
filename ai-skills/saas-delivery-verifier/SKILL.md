@@ -13,12 +13,14 @@ description: حارس تنفيذ وتسليم SaaS للمشاريع المنزل
 
 قبل تعديل مستودع أو إنشاء مشروع:
 
-1. اقرأ Problem Statement وقرار الميزة وبطاقة الفرضية.
-2. حدد الـVertical Slice والبيانات والمدخلات والنتيجة والفعل التالي.
-3. تأكد أن القرار مستقل عن Accounting وzman-app وأي مشروع مرجعي.
-4. ارسم الحدود: Presentation → Application → Domain → Ports → Adapters.
-5. اكتب invariants المالية، حالات الفشل، وخطة الترحيل أو التراجع.
-6. لا تبدأ إذا كان المطلوب مجرد تجميع ميزات بلا معيار قبول.
+1. اقرأ `../../docs/product/problem-statement-v3.md` و`../../docs/product/system-definition-v1.md` وقرار الميزة وبطاقة الفرضية.
+2. اقرأ `../../docs/product/user-operating-model-v1.md` و`../../docs/product/financial-operating-model-v1.md` و`../../docs/product/guidance-interaction-policy-v1.md` قبل اختيار المدخلات أو المخرجات.
+3. حدد الـVertical Slice والبيانات والمدخلات والنتيجة والفعل التالي، واربطه بشخصيات وحالات من `../../docs/scenarios/scenario-test-set-v1.md`.
+4. تأكد أن القرار مستقل عن Accounting وzman-app وأي مشروع مرجعي.
+5. ارسم الحدود: Presentation → Application → Domain → Ports → Adapters.
+6. اكتب invariants المالية، حالات الفشل، وخطة الترحيل أو التراجع.
+7. افحص `../../docs/quality/scenario-coverage-matrix-v1.md` وحدد ما الذي يثبته الكود وما الذي يحتاج Prototype أو Pilot.
+8. لا تبدأ إذا كان المطلوب مجرد تجميع ميزات بلا معيار قبول.
 
 ## المعمارية
 
@@ -71,10 +73,10 @@ SaaS هو طريقة تشغيل وبيع المنتج، لا وظيفة يحتا
 | Data/authorization | العزل، الصلاحيات، migrations، وتكرار الطلب |
 | Sync | انقطاع، إعادة محاولة، تعارض، ترتيب، idempotency |
 | UI/mobile | عرض 320–480px، لوحة مفاتيح، RTL، لمس، قراءة الأرقام |
-| Acceptance | مستخدم غير محاسبي ينجز أول قيمة دون مساعدة زائدة |
+| Acceptance | مستخدم غير محاسبي ينجز أول قيمة دون مساعدة زائدة، ويجيب عن سؤال من مجموعة السيناريوهات |
 | Recovery | export، restore، انتهاء الحساب، فشل الشبكة، حذف أو تراجع |
 
-لا تقبل بناءً ناجحًا فقط. لا تقبل اختبارًا يمر لأنه لم يختبر الحالة الصعبة.
+لا تقبل بناءً ناجحًا فقط. لا تقبل اختبارًا يمر لأنه لم يختبر الحالة الصعبة. لا تقبل Prototype أو إصدارًا إذا لم يوضح أثره على الشخصيات والحالات والأسئلة ذات الصلة.
 
 ## فحص الإصدار
 
@@ -93,3 +95,6 @@ SaaS هو طريقة تشغيل وبيع المنتج، لا وظيفة يحتا
 - `references/verification_matrix.md` لمصفوفة الاختبارات والقبول.
 - `references/release_runbook.md` للإصدار والترحيل والتراجع.
 - `references/external_code_policy.md` لتقييم GitHub والتراخيص.
+- `../../docs/product/problem-statement-v3.md` و`../../docs/product/system-definition-v1.md` لتعريف النظام.
+- `../../docs/product/financial-operating-model-v1.md` للنموذج المالي.
+- `../../docs/scenarios/scenario-test-set-v1.md` و`../../docs/quality/scenario-coverage-matrix-v1.md` للاختبار والقبول.

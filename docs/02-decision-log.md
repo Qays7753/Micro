@@ -21,6 +21,8 @@
 | D-013 | لا يكون مؤشر النتيجة ربحًا نهائيًا إلا عندما تكون `knowledgeState` مساوية لـ`known`؛ ويُحمل الطلب `resultStatus` يميز النهائي والتقديري والناقص والمراجعة المطلوبة | `docs/contracts/01-financial-result-contract.md` وDomain Core |
 | D-014 | إلغاء طلب ذي عربون لا يُسوّى تلقائيًا؛ يبدأ بـ`needs_review` وتنفذ عملية رد أو احتفاظ مستقلة قابلة لإعادة المحاولة | `docs/contracts/02-order-lifecycle-contract.md` وDomain Core |
 | D-015 | لا تُستخدم حالة `stale` بلا سياسة حداثة صريحة قابلة للاختبار، وSnapshot الحرفة المخصصة بلا مكونات مؤثرة يكون `incomplete` | `docs/contracts/03-cost-snapshot-contract.md` وDomain Core |
+| D-016 | مجموعة السيناريوهات ذات 10 شخصيات و100 حالة و100 سؤال عائلة اختبار دائمة؛ تثبت أن الطلب أول Vertical Slice داخل نظام إدارة مالية مستمر، ولا تختزل المنتج في طلب أو مصروف | `docs/decisions/03-scenario-validation-and-system-scope.md` |
+| D-017 | الوثائق canonical الجديدة تفصل Problem Statement وتعريف النظام ونموذج الاستخدام والنموذج المالي والتوجيه والأدلة والسيناريوهات؛ التدرج في التنفيذ لا يلغي اكتمال تعريف النظام | `docs/00-document-index.md` وحوكمة الوثائق |
 
 ## قرارات مسحوبة أو غير معتمدة
 

@@ -19,6 +19,20 @@
 | 11 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
 | 12 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 13 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
+| 14 | `docs/product/problem-statement-v3.md` | CURRENT | المشكلة والأضرار والأسئلة التي يجب حلها |
+| 15 | `docs/product/system-definition-v1.md` | CURRENT | تعريف Micro وحدوده وقيمته ونواته |
+| 16 | `docs/product/user-operating-model-v1.md` | CURRENT | الاستخدام اليومي والأسبوعي والشهري |
+| 17 | `docs/product/financial-operating-model-v1.md` | CURRENT | النموذج المالي الداخلي للأحداث والنتائج |
+| 18 | `docs/product/guidance-interaction-policy-v1.md` | CURRENT | التوجيه داخل سير العمل دون تعليم قسري |
+| 19 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | الشخصيات العشر والحالات والأسئلة المئة |
+| 20 | `docs/scenarios/scenario-test-results-v1.md` | CURRENT | نتائج التغطية والفجوات |
+| 21 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
+| 22 | `docs/research/jordan-financial-problems-evidence.md` | SUPPORTING | الأدلة المحلية والخارجية وحدودها |
+| 23 | `ai-skills/micro-scenario-validation/` | CURRENT | اختبار القرارات على الشخصيات والحالات والأسئلة |
+
+## الوثائق التنفيذية الإلزامية
+
+قبل أي قرار منتج أو تصميم تجربة، اقرأ `docs/product/problem-statement-v3.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/scenarios/scenario-test-set-v1.md`. قبل أي قرار مالي أو Domain، اقرأ `docs/product/financial-operating-model-v1.md` ومصفوفة التغطية. هذه الملفات لا تلغي المرجع الأساسي؛ بل تفصّل تطبيقه وتثبت حدوده.
 
 ## العقود التنفيذية الإلزامية
 
@@ -31,13 +45,14 @@
 | بحث عالمي أو GitHub | `docs/06-reference-library.md`، `docs/research/github-global-research-round2.md`، `docs/research/github-global-research.md` |
 | تكلفة وربح وطلبات | مراجع `ai-skills/microbusiness-finance-operations/` داخل المستودع |
 | كود وأمن ومزامنة ونشر | مراجع `ai-skills/saas-delivery-verifier/` داخل المستودع |
-| قرار UX أو MVP | `docs/decisions/01-first-vertical-slice.md` ثم مراجع `ai-skills/saas-product-guardian/` داخل المستودع |
+| قرار UX أو MVP | `docs/decisions/01-first-vertical-slice.md` ثم مراجع `ai-skills/saas-product-guardian/` و`ai-skills/micro-scenario-validation/` داخل المستودع |
+| تغيير المفهوم أو النموذج المالي أو التدفق | `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md` ثم `ai-skills/micro-scenario-validation/` |
 | تنفيذ Domain Core | `docs/implementation/01-execution-roadmap.md` والعقود ثم `ai-skills/saas-delivery-verifier/` |
 | مراجعة Accounting أو zman-app | افتح المرجع الحالي أولًا، ثم ملف الحالة المطلوب فقط |
 
 ## ملفات داعمة غير سلطوية
 
-`docs/research/architecture-and-stack-decision.md`، `docs/research/architecture-decision-reassessment.md`، `docs/research/architecture-decision-matrix.md`، `docs/research/order-tracking-case-study.md`، وملفات المهارات داخل `ai-skills/`.
+`docs/research/architecture-and-stack-decision.md`، `docs/research/architecture-decision-reassessment.md`، `docs/research/architecture-decision-matrix.md`، `docs/research/order-tracking-case-study.md`، وملفات المهارات داخل `ai-skills/`. أما الوثائق canonical الجديدة داخل `docs/product/` و`docs/scenarios/` و`docs/quality/` فهي CURRENT ويجب عدم معاملتها كدراسات داعمة.
 
 هذه الملفات مفيدة عند الحاجة، لكن خلاصتها لا تتجاوز المرجع الأساسي. إذا تعارضت، سجّل التعارض ولا تختر الصياغة الأطول تلقائيًا.
 
