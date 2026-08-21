@@ -10,13 +10,15 @@
 | 2 | `docs/02-decision-log.md` | CURRENT / AUTHORITY | معرفة القرار المعتمد والقرار المسحوب |
 | 3 | `docs/03-hypothesis-register.md` | CURRENT | فرضية أو ميزة أو اختبار |
 | 4 | `docs/04-product-truth-map.md` | CURRENT | وزن الدليل وما هو مجهول |
-| 5 | `ai-skills/README.ar.md` | CURRENT | تشغيل مهارات الذكاء الاصطناعي |
-| 6 | `docs/05-documentation-governance.md` | CURRENT | إدارة الوثائق وتعارضاتها |
-| 7 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
-| 8 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
-| 9 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة |
-| 10 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
-| 11 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+| 5 | `docs/07-field-evidence-map.md` | CURRENT | الدليل الميداني وحدود ما تثبته خبرة المؤسس |
+| 6 | `ai-skills/README.ar.md` | CURRENT | تشغيل مهارات الذكاء الاصطناعي |
+| 7 | `docs/05-documentation-governance.md` | CURRENT | إدارة الوثائق وتعارضاتها |
+| 8 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
+| 9 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
+| 10 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة |
+| 11 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
+| 12 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+| 13 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 
 ## العقود التنفيذية الإلزامية
 

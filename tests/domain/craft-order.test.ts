@@ -7,6 +7,8 @@ import {
   createCraftOrder,
   registerDebt,
   reviseOrderCost,
+  settleDepositRefund,
+  settleDepositRetain,
   transitionOrder,
   type CostSnapshot,
   type CraftOrder,
@@ -123,6 +125,55 @@ describe('craft-order domain core', () => {
     expect(estimated.knowledgeState).toBe('variable');
   });
 
+  it('marks a custom-order snapshot with no effective cost components as incomplete', () => {
+    const incomplete = calculateCostSnapshot('cost-incomplete', {
+      currency: 'JOD',
+      materialItems: [],
+      time: null,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: '2026-08-21T09:00:00Z',
+      source: 'draft',
+    });
+
+    expect(incomplete.knowledgeState).toBe('incomplete');
+    expect(makeOrder({ costSnapshot: incomplete }).resultStatus).toBe('incomplete');
+  });
+
+  it('rejects negative values and invalid quantities', () => {
+    expect(() =>
+      calculateCostSnapshot('cost-negative', {
+        ...costSnapshot.input,
+        materialItems: costSnapshot.input.materialItems.map((item, index) =>
+          index === 0 ? { ...item, unitPriceMinor: -1 } : item,
+        ),
+      }),
+    ).toThrow('unitPriceMinor');
+
+    expect(() =>
+      calculateCostSnapshot('cost-zero-quantity', {
+        ...costSnapshot.input,
+        quantity: 0,
+      }),
+    ).toThrow('quantity must be greater than zero');
+  });
+
+  it('marks stale prices only when an explicit freshness policy is supplied', () => {
+    const stale = calculateCostSnapshot('cost-stale', {
+      ...costSnapshot.input,
+      freshnessDays: 30,
+      materialItems: costSnapshot.input.materialItems.map((item) => ({
+        ...item,
+        priceDate: '2026-01-01',
+      })),
+    });
+
+    expect(stale.knowledgeState).toBe('stale');
+  });
+
   it('keeps deposit, delivery, collection, and profit separate', () => {
     let order = makeOrder();
     order = collectDeposit(order, 1000, 'deposit-1', '2026-08-21T09:20:00Z');
@@ -134,6 +185,7 @@ describe('craft-order domain core', () => {
 
     order = confirmAndDeliver(order);
     expect(order.status).toBe('delivered');
+    expect(order.resultStatus).toBe('final');
     expect(order.collectedMinor).toBe(1000);
     expect(order.recognizedRevenueMinor).toBe(4000);
     expect(order.recognizedCostMinor).toBe(3000);
@@ -144,6 +196,23 @@ describe('craft-order domain core', () => {
     expect(order.settlementStatus).toBe('paid');
     expect(order.collectedMinor).toBe(4000);
     expect(order.receivableMinor).toBe(0);
+  });
+
+  it('does not expose a final profit when delivery uses a non-known cost', () => {
+    const estimated = calculateCostSnapshot('cost-estimated-delivery', {
+      ...costSnapshot.input,
+      materialItems: costSnapshot.input.materialItems.map((item, index) =>
+        index === 0
+          ? { ...item, source: 'estimate' as const, confidence: 'estimated' as const }
+          : item,
+      ),
+    });
+
+    const delivered = confirmAndDeliver(makeOrder({ costSnapshot: estimated }));
+    expect(delivered.resultStatus).toBe('review_required');
+    expect(delivered.recognizedRevenueMinor).toBe(4000);
+    expect(delivered.recognizedCostMinor).toBe(3000);
+    expect(delivered.profitIndicatorMinor).toBeNull();
   });
 
   it('registers a debt without increasing cash', () => {
@@ -170,7 +239,115 @@ describe('craft-order domain core', () => {
       '2026-08-21T09:51:00Z',
     );
     expect(cancelled.status).toBe('cancelled');
+    expect(cancelled.settlementStatus).toBe('cancelled');
     expect(cancelled.events.at(-1)?.type).toBe('cancelled');
+  });
+
+  it('marks cancellation with a deposit as needing explicit settlement', () => {
+    const withDeposit = collectDeposit(
+      makeOrder(),
+      500,
+      'deposit-cancel',
+      '2026-08-21T09:52:00Z',
+    );
+    const cancelled = cancelOrder(
+      withDeposit,
+      'تغيير قرار الزبون',
+      'cancel-with-deposit',
+      '2026-08-21T09:53:00Z',
+    );
+
+    expect(cancelled.depositSettlement).toBe('needs_review');
+    expect(cancelled.settlementStatus).toBe('cancelled_pending');
+    expect(cancelled.nextAction).toContain('العربون');
+  });
+
+  it('supports an explicit deposit refund and makes retry idempotent', () => {
+    const cancelled = cancelOrder(
+      collectDeposit(makeOrder(), 500, 'deposit-refund', '2026-08-21T10:00:00Z'),
+      'إلغاء قبل التنفيذ',
+      'cancel-refund',
+      '2026-08-21T10:01:00Z',
+    );
+    const refunded = settleDepositRefund(
+      cancelled,
+      500,
+      'اتفاق على رد العربون',
+      'refund-1',
+      '2026-08-21T10:02:00Z',
+    );
+    const retried = settleDepositRefund(
+      refunded,
+      500,
+      'إعادة الإرسال',
+      'refund-1',
+      '2026-08-21T10:03:00Z',
+    );
+
+    expect(refunded.depositSettlement).toBe('refund_deposit');
+    expect(refunded.settlementStatus).toBe('cancelled_refunded');
+    expect(refunded.collectedMinor).toBe(0);
+    expect(refunded.events).toHaveLength(cancelled.events.length + 1);
+    expect(retried).toEqual(refunded);
+  });
+
+  it('supports an explicit deposit retention and rejects contradictory settlement', () => {
+    const cancelled = cancelOrder(
+      collectDeposit(makeOrder(), 500, 'deposit-retain', '2026-08-21T10:10:00Z'),
+      'تكلفة مواد غير قابلة للاسترجاع',
+      'cancel-retain',
+      '2026-08-21T10:11:00Z',
+    );
+    expect(() =>
+      settleDepositRefund(
+        cancelled,
+        600,
+        'مبلغ أكبر من العربون',
+        'refund-too-large',
+        '2026-08-21T10:11:30Z',
+      ),
+    ).toThrow('settlement amount must equal the collected deposit');
+
+    const retained = settleDepositRetain(
+      cancelled,
+      500,
+      'احتفاظ متفق عليه',
+      'retain-1',
+      '2026-08-21T10:12:00Z',
+    );
+
+    expect(retained.depositSettlement).toBe('retain_deposit');
+    expect(retained.settlementStatus).toBe('cancelled_retained');
+    expect(retained.collectedMinor).toBe(500);
+    expect(() =>
+      settleDepositRefund(
+        retained,
+        500,
+        'محاولة قرار متناقض',
+        'refund-after-retain',
+        '2026-08-21T10:13:00Z',
+      ),
+    ).toThrow('already decided');
+  });
+
+  it('prevents deposit collection after delivery or cancellation', () => {
+    const delivered = confirmAndDeliver(makeOrder());
+    expect(() =>
+      collectDeposit(delivered, 100, 'late-deposit', '2026-08-21T10:20:00Z'),
+    ).toThrow('cannot collect deposit in delivered status');
+
+    const cancelled = cancelOrder(
+      makeOrder(),
+      'إلغاء',
+      'cancel-late-deposit',
+      '2026-08-21T10:21:00Z',
+    );
+    expect(() =>
+      collectDeposit(cancelled, 100, 'cancelled-deposit', '2026-08-21T10:22:00Z'),
+    ).toThrow('cannot collect deposit in cancelled status');
+    expect(() =>
+      collectRemaining(cancelled, 100, 'cancelled-collection', '2026-08-21T10:23:00Z'),
+    ).toThrow('remaining collection requires a delivered order');
   });
 
   it('preserves the old cost snapshot when specifications change', () => {
@@ -194,6 +371,8 @@ describe('craft-order domain core', () => {
     );
 
     expect(revised.status).toBe('needs_review');
+    expect(revised.resultStatus).toBe('review_required');
+    expect(revised.profitIndicatorMinor).toBeNull();
     expect(revised.costSnapshot.id).toBe('cost-2');
     expect(revised.costSnapshots.map((snapshot) => snapshot.id)).toEqual(['cost-1', 'cost-2']);
     expect(revised.events.at(-1)?.type).toBe('specification_revised');

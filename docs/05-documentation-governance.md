@@ -1,6 +1,6 @@
 # حوكمة وثائق مشروع SaaS
 
-**الإصدار:** 1.0 — قبل بدء التنفيذ البرمجي
+**الإصدار:** 1.1 — بعد إغلاق Foundation/Domain Core
 
 ## 1. قاعدة السلطة
 
@@ -25,17 +25,19 @@
 | 1 | `docs/01-product-and-technical-blueprint.md` | CURRENT | Problem Statement، Product Goal، الفئات، MVP، الطلبات، المال، SaaS، التقنية |
 | 2 | `docs/03-hypothesis-register.md` | CURRENT | سجل الفرضيات ومعايير تحويل المجهول إلى قرار |
 | 3 | `docs/04-product-truth-map.md` | CURRENT | ما هو مثبت ومرجح ومجهول ومصدر الدليل |
-| 4 | `docs/06-reference-library.md` | SUPPORTING | مكتبة مشاريع GitHub والأنماط والتراخيص |
-| 5 | `ai-skills/README.ar.md` | CURRENT | طريقة تشغيل المهارات مع أي ذكاء اصطناعي |
-| 6 | `docs/research/architecture-and-stack-decision.md` | SUPPORTING | مقارنة أولية للـStack؛ لا يتجاوز قرار الملف الأساسي |
-| 7 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING | سجل قرار النواة المستقلة ومبرراته |
-| 8 | `docs/research/github-global-research-round2.md` | SUPPORTING | تقرير البحث العالمي الثاني |
-| 9 | `docs/research/github-global-research.md` | SUPPORTING | تقرير البحث العالمي الأول |
-| 10 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
-| 11 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
-| 12 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
-| 13 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
-| 14 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+| 4 | `docs/07-field-evidence-map.md` | CURRENT | الدليل الميداني وحدود ما تثبته خبرة المؤسس |
+| 5 | `docs/06-reference-library.md` | SUPPORTING | مكتبة مشاريع GitHub والأنماط والتراخيص |
+| 6 | `ai-skills/README.ar.md` | CURRENT | طريقة تشغيل المهارات مع أي ذكاء اصطناعي |
+| 7 | `docs/research/architecture-and-stack-decision.md` | SUPPORTING | مقارنة أولية للـStack؛ لا يتجاوز قرار الملف الأساسي |
+| 8 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING | سجل قرار النواة المستقلة ومبرراته |
+| 9 | `docs/research/github-global-research-round2.md` | SUPPORTING | تقرير البحث العالمي الثاني |
+| 10 | `docs/research/github-global-research.md` | SUPPORTING | تقرير البحث العالمي الأول |
+| 11 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
+| 12 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
+| 13 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
+| 14 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
+| 15 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+| 16 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 
 ## 4. ترتيب القراءة حسب المهمة
 
@@ -50,7 +52,7 @@
 
 ## 5. قواعد التحديث
 
-كل تعديل جوهري يحدّث الإصدار أو تاريخ المراجعة، ويذكر الملفات المتأثرة. لا تُنشأ وثيقة جديدة إذا كان التغيير تصحيحًا مباشرًا للمرجع الأساسي. إذا احتجنا دراسة طويلة، تُحفظ كـSUPPORTING وتُضاف خلاصة قرارها إلى المرجع الأساسي.
+كل تعديل جوهري يحدّث الإصدار أو تاريخ المراجعة، ويذكر الملفات المتأثرة. لا تُنشأ وثيقة جديدة إذا كان التغيير تصحيحًا مباشرًا للمرجع الأساسي. إذا احتجنا دراسة طويلة، تُحفظ كـSUPPORTING وتُضاف خلاصة قرارها إلى المرجع الأساسي. ملف الدليل الميداني وجدول مطابقة العقود هما ملفان CURRENT لأنهما يثبتان حدود الدليل وحالة التنفيذ، ويجب إدراجهما في الفهرس عند إنشائهما.
 
 لا تحذف وثيقة تاريخية نهائيًا قبل التأكد من عدم وجود قرار أو دليل غير منقول. انقلها إلى الأرشيف مع ملف يشرح سبب الأرشفة والمرجع البديل.
 

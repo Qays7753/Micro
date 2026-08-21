@@ -3,11 +3,14 @@ import type {
   CostSnapshotInput,
   CraftOrder,
   CreateCraftOrderInput,
+  DepositSettlementDecision,
   KnowledgeState,
   MoneyMinor,
   OrderEvent,
+  OrderEventType,
   OrderStatus,
   OrderTransitionInput,
+  ResultStatus,
 } from './types.js';
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
@@ -41,10 +44,25 @@ function assertValidQuantity(value: number): void {
   }
 }
 
+function assertValidDate(value: string, field: string): void {
+  if (!value.trim() || Number.isNaN(Date.parse(value))) {
+    throw new Error(`${field} must be a valid date`);
+  }
+}
+
+function assertFreshnessDays(value: number | null | undefined): void {
+  if (value !== null && value !== undefined && (!Number.isInteger(value) || value < 0)) {
+    throw new Error('freshnessDays must be a non-negative integer');
+  }
+}
+
 function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
-  const hasMissingMaterial = input.materialItems.some(
-    (item) => !item.name.trim() || !item.unit.trim() || item.quantity <= 0,
-  );
+  const hasNoCostComponent =
+    input.materialItems.length === 0 &&
+    input.time === null &&
+    input.packagingMinor === 0 &&
+    input.deliveryMinor === 0 &&
+    input.wasteMinor === 0;
   const hasEstimate =
     input.materialItems.some((item) => item.confidence === 'estimated') ||
     input.time?.confidence === 'estimated';
@@ -52,7 +70,17 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
     (item) => item.source === 'estimate',
   );
 
-  if (hasMissingMaterial) return 'incomplete';
+  if (hasNoCostComponent) return 'incomplete';
+
+  if (input.freshnessDays !== null && input.freshnessDays !== undefined) {
+    const createdAt = Date.parse(input.createdAt);
+    const oldestAllowed = createdAt - input.freshnessDays * 24 * 60 * 60 * 1000;
+    const hasStaleMaterial = input.materialItems.some(
+      (item) => Date.parse(item.priceDate) < oldestAllowed,
+    );
+    if (hasStaleMaterial) return 'stale';
+  }
+
   if (hasVariableCost) return 'variable';
   if (hasEstimate) return 'estimated';
   return 'known';
@@ -65,6 +93,8 @@ export function calculateCostSnapshot(
   if (!id.trim()) throw new Error('snapshot id is required');
   if (input.currency !== 'JOD') throw new Error('only JOD is supported in the first slice');
   assertValidQuantity(input.quantity);
+  assertValidDate(input.createdAt, 'createdAt');
+  assertFreshnessDays(input.freshnessDays);
   assertNonNegativeInteger(input.packagingMinor, 'packagingMinor');
   assertNonNegativeInteger(input.deliveryMinor, 'deliveryMinor');
   assertNonNegativeInteger(input.wasteMinor, 'wasteMinor');
@@ -78,6 +108,7 @@ export function calculateCostSnapshot(
       throw new Error(`material quantity must be greater than zero: ${item.name}`);
     }
     assertNonNegativeInteger(item.unitPriceMinor, `unitPriceMinor for ${item.name}`);
+    assertValidDate(item.priceDate, `priceDate for ${item.name}`);
     return total + Math.round(item.quantity * item.unitPriceMinor);
   }, 0);
 
@@ -122,10 +153,7 @@ function eventExists(order: CraftOrder, idempotencyKey: string): boolean {
   return order.events.some((event) => event.idempotencyKey === idempotencyKey);
 }
 
-function appendEvent(
-  order: CraftOrder,
-  event: OrderEvent,
-): CraftOrder {
+function appendEvent(order: CraftOrder, event: OrderEvent): CraftOrder {
   if (eventExists(order, event.idempotencyKey)) return order;
   return { ...order, events: [...order.events, event] };
 }
@@ -142,6 +170,17 @@ function withSettlement(order: CraftOrder): CraftOrder {
   return { ...order, receivableMinor, settlementStatus };
 }
 
+function resultStatusForKnowledge(knowledgeState: KnowledgeState): ResultStatus {
+  if (knowledgeState === 'known') return 'final';
+  if (knowledgeState === 'incomplete' || knowledgeState === 'partial') {
+    return 'incomplete';
+  }
+  if (knowledgeState === 'stale' || knowledgeState === 'variable') {
+    return 'review_required';
+  }
+  return 'estimated';
+}
+
 export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
   if (!input.id.trim()) throw new Error('order id is required');
   if (!input.customerName.trim()) throw new Error('customer name is required');
@@ -149,6 +188,9 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
   if (!input.specifications.trim()) throw new Error('specifications are required');
   assertValidQuantity(input.quantity);
   assertPositiveInteger(input.agreedPriceMinor, 'agreedPriceMinor');
+  if (input.costSnapshot.quantity !== input.quantity) {
+    throw new Error('cost snapshot quantity must match order quantity');
+  }
 
   const order: CraftOrder = {
     id: input.id,
@@ -163,11 +205,13 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
     status: 'draft',
     settlementStatus: 'unpaid',
     depositCollectedMinor: 0,
+    depositSettlement: null,
     collectedMinor: 0,
     receivableMinor: input.agreedPriceMinor,
     recognizedRevenueMinor: 0,
     recognizedCostMinor: 0,
     profitIndicatorMinor: null,
+    resultStatus: 'incomplete',
     nextAction: 'سجل الاتفاق أو راجع المواصفات',
     events: [],
     createdAt: input.createdAt,
@@ -189,6 +233,13 @@ export function transitionOrder(
   if (!ALLOWED_TRANSITIONS[order.status].includes(input.to)) {
     throw new Error(`invalid transition: ${order.status} -> ${input.to}`);
   }
+  if (
+    input.to === 'settled' &&
+    order.receivableMinor > 0 &&
+    order.settlementStatus !== 'debt'
+  ) {
+    throw new Error('settled order requires zero receivable or a registered debt');
+  }
 
   const nextActionByStatus: Record<OrderStatus, string> = {
     draft: 'سجل الاتفاق أو راجع المواصفات',
@@ -199,7 +250,7 @@ export function transitionOrder(
     delivered: 'حصّل المتبقي أو سجل الدين',
     settled: 'راجع النتيجة والفعل التالي',
     postponed: 'حدد موعد متابعة',
-    cancelled: 'راجع تسوية العربون والمواد',
+    cancelled: 'راجع إغلاق الطلب وتسوية العربون إن وجدت',
     needs_review: 'راجع التعارض أو النقص',
   };
 
@@ -211,13 +262,20 @@ export function transitionOrder(
 
   const recognized =
     input.to === 'delivered' || input.to === 'settled'
-      ? {
-          ...next,
-          recognizedRevenueMinor: next.agreedPriceMinor,
-          recognizedCostMinor: next.costSnapshot.plannedCostMinor,
-          profitIndicatorMinor:
-            next.agreedPriceMinor - next.costSnapshot.plannedCostMinor,
-        }
+      ? (() => {
+          const resultStatus = resultStatusForKnowledge(next.costSnapshot.knowledgeState);
+          const profitIndicatorMinor =
+            resultStatus === 'final'
+              ? next.agreedPriceMinor - next.costSnapshot.plannedCostMinor
+              : null;
+          return {
+            ...next,
+            recognizedRevenueMinor: next.agreedPriceMinor,
+            recognizedCostMinor: next.costSnapshot.plannedCostMinor,
+            profitIndicatorMinor,
+            resultStatus,
+          };
+        })()
       : next;
 
   return appendEvent(recognized, {
@@ -250,6 +308,8 @@ export function reviseOrderCost(
     costSnapshot: nextCostSnapshot,
     costSnapshots: [...order.costSnapshots, nextCostSnapshot],
     status: 'needs_review',
+    resultStatus: 'review_required',
+    profitIndicatorMinor: null,
     nextAction: 'راجع السعر والمواصفات مع الزبون',
   };
 
@@ -269,6 +329,9 @@ export function collectDeposit(
   createdAt: string,
 ): CraftOrder {
   if (eventExists(order, idempotencyKey)) return order;
+  if (order.status === 'delivered' || order.status === 'settled' || order.status === 'cancelled') {
+    throw new Error(`cannot collect deposit in ${order.status} status`);
+  }
   assertPositiveInteger(amountMinor, 'deposit amount');
   if (amountMinor + order.collectedMinor > order.agreedPriceMinor) {
     throw new Error('deposit cannot exceed the agreed price');
@@ -362,10 +425,18 @@ export function cancelOrder(
   }
   if (!reason.trim()) throw new Error('cancellation reason is required');
 
-  const next = {
+  const hasDeposit = order.depositCollectedMinor > 0;
+  const next: CraftOrder = {
     ...order,
-    status: 'cancelled' as const,
-    nextAction: 'راجع تسوية العربون والمواد',
+    status: 'cancelled',
+    settlementStatus: hasDeposit ? 'cancelled_pending' : 'cancelled',
+    depositSettlement: hasDeposit ? 'needs_review' : null,
+    receivableMinor: 0,
+    resultStatus: 'review_required',
+    profitIndicatorMinor: null,
+    nextAction: hasDeposit
+      ? 'راجع قرار رد العربون أو الاحتفاظ به'
+      : 'أرشف سبب الإلغاء وراجع أي مواد مرتبطة',
   };
 
   return appendEvent(next, {
@@ -375,4 +446,82 @@ export function cancelOrder(
     createdAt,
     note: reason,
   });
+}
+
+function settleDeposit(
+  order: CraftOrder,
+  decision: Exclude<DepositSettlementDecision, 'needs_review'>,
+  eventType: Extract<OrderEventType, 'deposit_refunded' | 'deposit_retained'>,
+  amountMinor: MoneyMinor,
+  reason: string,
+  idempotencyKey: string,
+  createdAt: string,
+): CraftOrder {
+  if (eventExists(order, idempotencyKey)) return order;
+  if (order.status !== 'cancelled') {
+    throw new Error('deposit settlement requires a cancelled order');
+  }
+  if (order.depositSettlement !== 'needs_review') {
+    throw new Error('deposit settlement is already decided');
+  }
+  if (!reason.trim()) throw new Error('deposit settlement reason is required');
+  assertPositiveInteger(amountMinor, 'settlement amount');
+  if (amountMinor !== order.depositCollectedMinor) {
+    throw new Error('settlement amount must equal the collected deposit');
+  }
+
+  const isRefund = decision === 'refund_deposit';
+  const next: CraftOrder = {
+    ...order,
+    depositSettlement: decision,
+    settlementStatus: isRefund ? 'cancelled_refunded' : 'cancelled_retained',
+    collectedMinor: isRefund ? order.collectedMinor - amountMinor : order.collectedMinor,
+    receivableMinor: 0,
+    nextAction: 'أرشف قرار تسوية الإلغاء',
+  };
+
+  return appendEvent(next, {
+    id: `${order.id}:${idempotencyKey}`,
+    type: eventType,
+    idempotencyKey,
+    createdAt,
+    amountMinor,
+    note: reason,
+  });
+}
+
+export function settleDepositRefund(
+  order: CraftOrder,
+  amountMinor: MoneyMinor,
+  reason: string,
+  idempotencyKey: string,
+  createdAt: string,
+): CraftOrder {
+  return settleDeposit(
+    order,
+    'refund_deposit',
+    'deposit_refunded',
+    amountMinor,
+    reason,
+    idempotencyKey,
+    createdAt,
+  );
+}
+
+export function settleDepositRetain(
+  order: CraftOrder,
+  amountMinor: MoneyMinor,
+  reason: string,
+  idempotencyKey: string,
+  createdAt: string,
+): CraftOrder {
+  return settleDeposit(
+    order,
+    'retain_deposit',
+    'deposit_retained',
+    amountMinor,
+    reason,
+    idempotencyKey,
+    createdAt,
+  );
 }

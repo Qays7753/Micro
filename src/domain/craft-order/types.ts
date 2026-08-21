@@ -9,6 +9,17 @@ export type KnowledgeState =
   | 'stale'
   | 'variable';
 
+export type ResultStatus =
+  | 'final'
+  | 'estimated'
+  | 'incomplete'
+  | 'review_required';
+
+export type DepositSettlementDecision =
+  | 'refund_deposit'
+  | 'retain_deposit'
+  | 'needs_review';
+
 export type CostSource = 'user_input' | 'historical_price' | 'estimate';
 export type CostConfidence = 'known' | 'estimated';
 
@@ -39,6 +50,7 @@ export interface CostSnapshotInput {
   quantity: number;
   createdAt: string;
   source: 'draft' | 'price_approval' | 'order_confirmation' | 'revision';
+  freshnessDays?: number | null;
 }
 
 export interface CostSnapshot {
@@ -74,13 +86,19 @@ export type SettlementStatus =
   | 'unpaid'
   | 'partially_paid'
   | 'paid'
-  | 'debt';
+  | 'debt'
+  | 'cancelled'
+  | 'cancelled_pending'
+  | 'cancelled_refunded'
+  | 'cancelled_retained';
 
 export type OrderEventType =
   | 'created'
   | 'price_approved'
   | 'status_changed'
   | 'deposit_collected'
+  | 'deposit_refunded'
+  | 'deposit_retained'
   | 'collection_recorded'
   | 'debt_registered'
   | 'specification_revised'
@@ -110,11 +128,13 @@ export interface CraftOrder {
   status: OrderStatus;
   settlementStatus: SettlementStatus;
   depositCollectedMinor: MoneyMinor;
+  depositSettlement: DepositSettlementDecision | null;
   collectedMinor: MoneyMinor;
   receivableMinor: MoneyMinor;
   recognizedRevenueMinor: MoneyMinor;
   recognizedCostMinor: MoneyMinor;
   profitIndicatorMinor: MoneyMinor | null;
+  resultStatus: ResultStatus;
   nextAction: string;
   events: OrderEvent[];
   createdAt: string;
