@@ -12,6 +12,15 @@
 | 4 | `docs/04-product-truth-map.md` | CURRENT | وزن الدليل وما هو مجهول |
 | 5 | `ai-skills/README.ar.md` | CURRENT | تشغيل مهارات الذكاء الاصطناعي |
 | 6 | `docs/05-documentation-governance.md` | CURRENT | إدارة الوثائق وتعارضاتها |
+| 7 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
+| 8 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
+| 9 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة |
+| 10 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
+| 11 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+
+## العقود التنفيذية الإلزامية
+
+قبل كتابة كود أو واجهة، اقرأ `docs/decisions/01-first-vertical-slice.md` ثم العقود الموجودة في `docs/contracts/`. لا يجوز أن يحسم الكود معنى العربون أو التسليم أو التكلفة أو المزامنة بدل العقد.
 
 ## اقرأ حسب نوع المهمة
 
@@ -20,7 +29,8 @@
 | بحث عالمي أو GitHub | `docs/06-reference-library.md`، `docs/research/github-global-research-round2.md`، `docs/research/github-global-research.md` |
 | تكلفة وربح وطلبات | مراجع `ai-skills/microbusiness-finance-operations/` داخل المستودع |
 | كود وأمن ومزامنة ونشر | مراجع `ai-skills/saas-delivery-verifier/` داخل المستودع |
-| قرار UX أو MVP | مراجع `ai-skills/saas-product-guardian/` داخل المستودع |
+| قرار UX أو MVP | `docs/decisions/01-first-vertical-slice.md` ثم مراجع `ai-skills/saas-product-guardian/` داخل المستودع |
+| تنفيذ Domain Core | `docs/implementation/01-execution-roadmap.md` والعقود ثم `ai-skills/saas-delivery-verifier/` |
 | مراجعة Accounting أو zman-app | افتح المرجع الحالي أولًا، ثم ملف الحالة المطلوب فقط |
 
 ## ملفات داعمة غير سلطوية

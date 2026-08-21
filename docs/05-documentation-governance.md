@@ -31,6 +31,11 @@
 | 7 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING | سجل قرار النواة المستقلة ومبرراته |
 | 8 | `docs/research/github-global-research-round2.md` | SUPPORTING | تقرير البحث العالمي الثاني |
 | 9 | `docs/research/github-global-research.md` | SUPPORTING | تقرير البحث العالمي الأول |
+| 10 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
+| 11 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
+| 12 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
+| 13 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
+| 14 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 
 ## 4. ترتيب القراءة حسب المهمة
 
@@ -38,7 +43,8 @@
 |---|---|---|
 | قرار منتج أو ميزة | الملف الأساسي + حارس المنتج | سجل الفرضيات وTruth Map |
 | تكلفة أو ربح أو طلب | الملف الأساسي + حارس المجال | قواعد المجال والاختبارات |
-| كود أو قاعدة بيانات أو نشر | الملف الأساسي + حارس التنفيذ | قرار Stack، الأمان، ومصفوفة التحقق |
+| كود أو قاعدة بيانات أو نشر | الملف الأساسي + قرار الشريحة + العقود + حارس التنفيذ | قرار Stack، الأمان، ومصفوفة التحقق |
+| Domain Core | قرار الشريحة + العقود + خارطة التنفيذ | `src/domain/` و`tests/domain/` |
 | بحث خارجي أو GitHub | Truth Map + مكتبة المراجع | تقارير البحث وسجل التراخيص |
 | مراجعة نظام Accounting القديم | الملف الأساسي فقط لتحديد المطلوب | ملفات LEGACY المحددة فقط |
 
