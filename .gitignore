@@ -23,6 +23,7 @@ coverage/
 
 # Logs and temporary files
 *.log
+.manus-logs/
 tmp/
 temp/
 .cache/

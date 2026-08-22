@@ -124,18 +124,20 @@ PWA manifest / Service Worker / Cloudflare deployment
 
 ## 11. تنظيم المستودع
 
-لا يوضع كود التطبيق داخل `docs/`، ولا توضع قواعد المال داخل مكونات الواجهة. البنية المستهدفة هي:
+لا يوضع كود التطبيق داخل `docs/`، ولا توضع قواعد المال داخل مكونات الواجهة. في هذا المستودع، ينفذ التطبيق كـworkspace مستقل في `apps/prototype-web/` بدل `src/prototype/`؛ لأن `tsconfig.json` الجذري مقيد بنمط `NodeNext` ويشمل Domain Core واختباراته، بينما يحتاج Vite/React حدود TypeScript وDOM مستقلة. البنية المعتمدة هي:
 
 ```text
 src/
-├── domain/                     # Domain Core الحالي
-└── prototype/
-    ├── app/                    # App shell وrouting وproviders
-    ├── pages/                  # شاشات Prototype
-    ├── components/             # مكونات UI المشتركة
-    ├── application/            # Use Cases وView Models
-    ├── storage/                # LocalStore وexport/import
-    └── styles/                 # tokens وRTL وLight/Dark
+└── domain/                     # Domain Core الحالي
+
+apps/
+└── prototype-web/
+    ├── client/src/app/         # App shell وrouting وproviders
+    ├── client/src/pages/       # شاشات Prototype
+    ├── client/src/components/  # مكونات UI المشتركة
+    ├── client/src/application/ # Use Cases وView Models عند بنائها
+    ├── client/src/storage/     # LocalStore وexport/import عند بنائها
+    └── client/src/index.css    # tokens وRTL وLight/Dark
 
 tests/
 ├── domain/                     # اختبارات Domain
