@@ -300,6 +300,28 @@ profit = recognized_revenue - recognized_cost - applicable_expenses
 | التوجيه السياقي | شرح قصير في اللحظة، لا دورة تعليمية |
 | بساطة متدرجة | الحقول الأساسية أولًا، التفصيل عند الحاجة |
 
+## 11.5 منطق Web-first وAndroid-like وPWA-ready
+
+### 11.5.1 قرار المنصة
+
+Prototype Micro هو **Web App بملء الشاشة** يعمل من المتصفح، لكنه يُصمم بسلوك Android-like: App Shell، تنقل محدود، Bottom Sheets، رجوع آمن، حالات لمس، لوحة مفاتيح، Safe Areas، ونماذج قصيرة. لا نستخدم عبارة Native Web App بوصفها نوعًا تقنيًا مستقلًا؛ الوصف التشغيلي هو **Web-first Android-like App**.
+
+PWA طبقة تشغيل لاحقة أو موازية بعد استقرار المسار: manifest، Service Worker، App Shell، installability، وOffline UX صادق. لا يعني PWA أن كل Native APIs أو الإشعارات الخلفية متاحة على كل جهاز، ولا يعني أن البيانات أصبحت متزامنة مركزيًا.
+
+### 11.5.2 الاستضافة
+
+Cloudflare هو Deployment Target للتطبيق الويب، وليس قرارًا ببناء Backend أو SaaS. في Prototype يكفي نشر ملفات Web App عبر Cloudflare Pages أو هدف ثابت مكافئ، مع HTTPS وSPA fallback وإعدادات cache لا تعرض نسخة قديمة بعد نشر تحديث.
+
+لا نضيف Workers أو D1 أو R2 أو Auth أو Sync لأن التطبيق مستضاف على Cloudflare. هذه طبقات لاحقة تحتاج قرارًا ماليًا وأمنيًا وWorkspace وعقد مزامنة. يبقى LocalStore مصدر حالة Prototype المحلية.
+
+### 11.5.3 قابلية Native لاحقًا
+
+إذا أثبت Web App قيمته واحتجنا متجرًا أو APIs أصلية، ندرس تغليف التطبيق نفسه عبر Capacitor أو بناء Native client مستقل فوق نفس Domain وApplication contracts. لا نبني Web وNative كتطبيقين مستقلين في Prototype، ولا نضع قواعد المال داخل wrapper.
+
+### 11.5.4 قاعدة التحويل إلى تجربة الشاشة
+
+كل شاشة تبدأ من حدث وقرار، لا من قالب dashboard. تستخدم Figma وMaterial 3 كمرجع هيكلي وسلوكي، وتستخدم مكتبة مكونات accessible اختيارية عند الحاجة، لكنها لا تغير Micro branding. يجب أن ينتهي التدفق بنتيجة أو فعل تالٍ، وأن تكون الحالات loading وempty وno-results وerror وneeds_review صريحة.
+
 ## 12. منطق الأمان والخصوصية
 
 بيانات صاحب المشروع المالية حساسة حتى في Prototype. لذلك يجب أن يحدد البناء:
@@ -439,9 +461,15 @@ ERP كامل، POS عام، CRM، WhatsApp automation، AI يتخذ قرارًا
 - [`../quality/scenario-coverage-matrix-v1.md`](../quality/scenario-coverage-matrix-v1.md)
 - [`../06-reference-library.md`](../06-reference-library.md)
 - [`../implementation/03-pre-build-alignment-v1.md`](../implementation/03-pre-build-alignment-v1.md)
+- [`../implementation/prototype-build-charter-v1.md`](../implementation/prototype-build-charter-v1.md)
+- [`../../ai-skills/micro-web-native-ux/SKILL.md`](../../ai-skills/micro-web-native-ux/SKILL.md)
+- [`../../ai-skills/micro-design-system/SKILL.md`](../../ai-skills/micro-design-system/SKILL.md)
+- [`../../ai-skills/micro-local-first-prototype/SKILL.md`](../../ai-skills/micro-local-first-prototype/SKILL.md)
+- [`../../ai-skills/micro-prototype-qa/SKILL.md`](../../ai-skills/micro-prototype-qa/SKILL.md)
 
 ## 20. سجل المراجعة
 
 | الإصدار | التاريخ | التغيير |
 |---|---|---|
 | v1 | 2026-08-22 | إنشاء منطق تحويل المصادر العالمية إلى Domain وUX وPrototype وMVP لاحق، مع معايير القبول والتأجيل والرفض |
+| v1.1 | 2026-08-22 | تثبيت Web-first Android-like App، PWA-ready، Cloudflare كهدف نشر، وحدود Native-ready مع ربط Skills التشغيلية |

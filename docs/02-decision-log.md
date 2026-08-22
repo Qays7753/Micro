@@ -28,6 +28,7 @@
 | D-020 | نتائج البحث العالمي المحفوظة في مكتبة واحدة ومنطق البناء مستقلان عن تقارير البحث التاريخية؛ تستعمل المصادر للاستلهام أو الدراسة أو الـSpike أو التأجيل، ولا يدخل كود خارجي دون provenance وترخيص وفحص جودة | `docs/research/global-build-reference-library-v1.md` و`docs/research/micro-build-logic-v1.md` |
 | D-021 | سياسات المال P0 هي المرجع التنفيذي لنتيجة الطلب والتكلفة والسعر والتقريب والمصاريف المشتركة وحدود Prototype؛ لا يخترع Agent سياسة مالية غير موثقة ولا يعرض نتيجة مشروع كاملة من `CraftOrder` | `docs/contracts/05-financial-p0-policies.md` و`docs/implementation/03-pre-build-alignment-v1.md` |
 | D-022 | بعد مراجعة Cloud Code، يمنع Domain Core الوقت المعروف الصفري من إنتاج `known`، ويحجب نتيجة الطلب عند مراجعة طلب مسلّم ويمنع التراجع حتى Use Case تصحيح موثق، ويسجل حدث `status_changed` عند التسوية؛ أما `on_hold` والسعر غير المكتمل وتصحيح التسليم نفسه فقرارات عقدية مؤجلة | `src/domain/craft-order/policies.ts` و`tests/domain/craft-order.test.ts` و`docs/implementation/02-domain-contract-coverage.md` |
+| D-023 | Prototype المرحلة 2 هو Web-first Android-like App بملء الشاشة يعمل من المتصفح، ببيانات محلية، ويستهدف Cloudflare للنشر ويكون PWA-ready؛ لا تُبنى Native أو SaaS أو Backend مركزي الآن، وNative wrapper يبقى خيار توسع بعد إثبات القيمة | `docs/implementation/prototype-build-charter-v1.md` و`docs/implementation/01-execution-roadmap.md` و`docs/01-product-and-technical-blueprint.md` |
 
 ## قرارات مسحوبة أو غير معتمدة
 

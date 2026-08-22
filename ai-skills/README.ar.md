@@ -12,20 +12,24 @@
 | `microbusiness-finance-operations` | تكلفة، سعر، ربح، كاش، طلب، مخزون، خدمة أو اختبار مالي | يحرس المعنى الاقتصادي والتشغيلي والفروق بين الطعام والحرفة والخدمة |
 | `micro-scenario-validation` | تغيير المفهوم أو Problem Statement أو النموذج المالي أو تجربة المستخدم أو ميزة | يختبر القرار على الشخصيات والحالات والأسئلة canonical قبل البناء |
 | `saas-delivery-verifier` | كود، قاعدة بيانات، مزامنة، أمن، نشر، ترحيل أو اختبار | يحرس المعمارية، العزل، local-first، الاستعادة، الجودة والتسليم |
+| `micro-web-native-ux` | Web App بملء الشاشة، Android-like UX، RTL، PWA UX، شاشات أو تنقل | يحرس سلوك الويب والطبقات والرجوع ولوحة المفاتيح والحالات |
+| `micro-design-system` | ألوان، خطوط، مسافات، مكونات، Light/Dark، Figma-to-code أو tokens | يحرس الهوية المثبتة والتوكنات والتباين وعدم وجود قيم خام |
+| `micro-local-first-prototype` | LocalStore، IndexedDB، مسودات، Snapshots، أحداث، Export/Import أو offline | يحرس حدود التخزين المحلي والإصدارات والاستعادة وعدم التكرار |
+| `micro-prototype-qa` | قبول Slice أو PR، اختبار UI والتدفقات والمالية واللقطات | يحرس RTL، 360/390/430، Light/Dark، حالات الواجهة والحقيقة المالية |
 
 ## ترتيب الاستخدام
 
-ابدأ دائمًا بـ`saas-product-guardian`. أضف `microbusiness-finance-operations` عندما يمس الطلب المال أو التكلفة أو التشغيل. أضف `micro-scenario-validation` عند تغيير المفهوم أو Problem Statement أو النموذج المالي أو تجربة المستخدم أو أي ميزة. أضف `saas-delivery-verifier` عند الانتقال إلى كود أو بنية أو إصدار. يمكن تفعيل المهارات الأربع معًا في الميزات الحساسة.
+ابدأ دائمًا بـ`saas-product-guardian`. أضف `microbusiness-finance-operations` عندما يمس الطلب المال أو التكلفة أو التشغيل. أضف `micro-scenario-validation` عند تغيير المفهوم أو Problem Statement أو النموذج المالي أو تجربة المستخدم أو أي ميزة. أضف `saas-delivery-verifier` عند الانتقال إلى كود أو بنية أو إصدار. عند بناء واجهة Web App فعّل `micro-web-native-ux` و`micro-design-system`. عند بناء التخزين المحلي فعّل `micro-local-first-prototype`. عند قبول Slice أو PR فعّل `micro-prototype-qa`. يمكن تفعيل المهارات المتخصصة مع مهارات المنتج والمال والتنفيذ عند الحاجة.
 
 ## مراجع Micro الثابتة
 
-قبل أي قرار منتج أو تجربة، اقرأ `../docs/product/problem-statement-v3.md` و`../docs/product/system-definition-v1.md` و`../docs/product/user-operating-model-v1.md` و`../docs/implementation/03-pre-build-alignment-v1.md`. قبل أي قرار مالي، اقرأ `../docs/product/financial-operating-model-v1.md`. عند استخدام مصدر عالمي أو اختيار نمط أو مكتبة، اقرأ `../docs/research/global-build-reference-library-v1.md` ثم `../docs/research/micro-build-logic-v1.md`. عند تغيير المفهوم أو تجربة المستخدم، فعّل `micro-scenario-validation` واختبر التغيير على `../docs/scenarios/scenario-test-set-v1.md` و`../docs/quality/scenario-coverage-matrix-v1.md`. هذه الوثائق هي مصدر الحقيقة داخل GitHub؛ المهارات تفرض طريقة استخدامها ولا تستبدلها.
+قبل أي قرار منتج أو تجربة، اقرأ `../docs/product/problem-statement-v3.md` و`../docs/product/system-definition-v1.md` و`../docs/product/user-operating-model-v1.md` و`../docs/implementation/03-pre-build-alignment-v1.md`. قبل أي قرار مالي، اقرأ `../docs/product/financial-operating-model-v1.md`. عند استخدام مصدر عالمي أو اختيار نمط أو مكتبة، اقرأ `../docs/research/global-build-reference-library-v1.md` ثم `../docs/research/micro-build-logic-v1.md`. عند تنفيذ Prototype اقرأ `../docs/implementation/prototype-build-charter-v1.md` و`../docs/product/mobile-ui-ux-reference-v1.md` و`../docs/implementation/mobile-prototype-spec-v1.md`، ثم فعّل المهارة المناسبة للواجهة أو التخزين أو الجودة. عند تغيير المفهوم أو تجربة المستخدم، فعّل `micro-scenario-validation` واختبر التغيير على `../docs/scenarios/scenario-test-set-v1.md` و`../docs/quality/scenario-coverage-matrix-v1.md`. هذه الوثائق هي مصدر الحقيقة داخل GitHub؛ المهارات تفرض طريقة استخدامها ولا تستبدلها.
 
 ## رسالة بدء محمولة
 
 عند استخدام مساعد لا يقرأ مجلد المهارات تلقائيًا، أرسل له:
 
-> استخدم حزمة مهارات Micro المرفقة. ابدأ بـsaas-product-guardian، واقرأ Pre-build Alignment قبل الكود، واقرأ مكتبة `docs/research/global-build-reference-library-v1.md` ومنطق `docs/research/micro-build-logic-v1.md` عند أي بحث أو اختيار نمط أو مكتبة، ثم أضف مهارة المجال وmicro-scenario-validation أو التنفيذ حسب نوع المهمة. لا تعتبر أي نظام قديم أو مشروع GitHub مصدر حقيقة. اربط كل قرار بـProblem Statement والسيناريوهات canonical، افصل الدليل عن الفرضية، اختر أقل Vertical Slice، واذكر التوصية والمخاطر ومعيار القبول والفشل. لا تعرض ربحًا عند نقص التكلفة، ولا تبنِ Billing في تطبيق المستخدم في MVP التجاري اللاحق، ولا تنقل كودًا بلا ترخيص واضح.
+> استخدم حزمة مهارات Micro المرفقة. ابدأ بـsaas-product-guardian، واقرأ Pre-build Alignment وBuild Charter قبل الكود، واقرأ مكتبة `docs/research/global-build-reference-library-v1.md` ومنطق `docs/research/micro-build-logic-v1.md` عند أي بحث أو اختيار نمط أو مكتبة، ثم فعّل مهارة Web UX وDesign System عند الواجهة، ومهارة Local-first عند التخزين، ومهارة Prototype QA عند قبول Slice. لا تعتبر أي نظام قديم أو مشروع GitHub مصدر حقيقة. اربط كل قرار بـProblem Statement والسيناريوهات canonical، افصل الدليل عن الفرضية، اختر أقل Vertical Slice، واذكر التوصية والمخاطر ومعيار القبول والفشل. لا تعرض ربحًا عند نقص التكلفة، ولا تبنِ Billing في تطبيق المستخدم في MVP التجاري اللاحق، ولا تنقل كودًا بلا ترخيص واضح.
 
 ثم أرفق مجلدات المهارات كما هي، لا ملف SKILL.md وحده إذا أردت أن يقرأ المراجع الداخلية.
 

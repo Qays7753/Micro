@@ -1,6 +1,6 @@
 # حوكمة وثائق مشروع SaaS
 
-**الإصدار:** 1.1 — بعد إغلاق Foundation/Domain Core
+**الإصدار:** 1.2 — بعد تثبيت Web-first Prototype وBuild Charter
 
 ## 1. قاعدة السلطة
 
@@ -12,9 +12,11 @@
 | هوية Micro وProblem Statement والمعمارية التجارية | `docs/01-product-and-technical-blueprint.md` |
 | المرحلة وما يدخل التنفيذ الحالي | `docs/implementation/01-execution-roadmap.md` و`03-pre-build-alignment-v1.md` |
 | المشكلة والتشغيل والتوجيه | وثائق `docs/product/` |
-| تجربة الهاتف وواجهة المستخدم | `docs/product/mobile-ui-ux-reference-v1.md`، بوصفه مرجع عقد التجربة لا تنفيذًا |
+| تجربة الهاتف وواجهة المستخدم | `docs/product/mobile-ui-ux-reference-v1.md`، بوصفه مرجع عقد التجربة لا تنفيذًا، مع `ai-skills/micro-web-native-ux/` و`ai-skills/micro-design-system/` كإرشادات تشغيلية لا سلطة منتجية |
 | نطاق وسلوك Prototype الهاتف | `docs/implementation/mobile-prototype-spec-v1.md`، بوصفه مواصفة بناء واختبار لا قدرة منفذة |
+| منصة Prototype وخطة البناء | `docs/implementation/prototype-build-charter-v1.md`، بوصفه ميثاق تنفيذ يثبت Web-first وAndroid-like وPWA-ready وCloudflare وخطة الشرائح، ولا يتغلب على العقود |
 | تحويل المصادر إلى قرارات بناء | `docs/research/micro-build-logic-v1.md` ثم المكتبة العالمية |
+| تشغيل مهارات الوكلاء | `ai-skills/README.ar.md` والمهارات المتخصصة، مع بقاء الوثائق والعقود مصدر الحقيقة |
 | تتبع القرارات | `docs/02-decision-log.md` |
 
 عند وجود تعارض حقيقي، يُعتمد المرجع الحاكم في مجاله ويُسجل التعارض والملفات المتأثرة في `docs/02-decision-log.md` بدل ترك القارئ يختار بنفسه. لا يجوز للـBlueprint أن يغيّر معنى عقد مالي، ولا لعقد مالي أن يعيد تعريف هوية المنتج.
@@ -60,6 +62,8 @@
 | 22 | `docs/quality/simulated-first-read-cloud-code-v1.md` | CURRENT / QUALITY REVIEW | محاكاة قراءة Agent جديد قبل القراءة الفعلية لـCloud Code |
 | 23A | `docs/product/mobile-ui-ux-reference-v1.md` | CURRENT / CANONICAL / PHONE-FIRST | عقد تجربة الهاتف، المرئيات، المكونات، الحالات، والصدق المالي |
 | 23B | `docs/implementation/mobile-prototype-spec-v1.md` | CURRENT / CANONICAL / PROTOTYPE | مواصفة الشاشات، الرحلات، الحالات، الربط، والحدود |
+| 23C | `docs/implementation/prototype-build-charter-v1.md` | CURRENT / CANONICAL / BUILD CHARTER | قرار Web-first وAndroid-like وPWA-ready وCloudflare وخطة الشرائح وملكية المسارات |
+| 23D | `ai-skills/micro-web-native-ux/` و`ai-skills/micro-design-system/` و`ai-skills/micro-local-first-prototype/` و`ai-skills/micro-prototype-qa/` | CURRENT / OPERATIONAL SKILLS | إرشادات تشغيلية متخصصة لا تستبدل الوثائق أو العقود |
 | 23 | `docs/quality/cloud-code-first-read-findings-v1.md` | CURRENT / QUALITY REVIEW | نتائج القراءة الفعلية من Cloud Code والتحقق من ملاحظاتها |
 
 ## 4. ترتيب القراءة حسب المهمة
@@ -70,13 +74,13 @@
 | تكلفة أو ربح أو طلب | الملف الأساسي + حارس المجال | قواعد المجال والاختبارات |
 | كود أو قاعدة بيانات أو نشر | الملف الأساسي + قرار الشريحة + العقود + حارس التنفيذ | قرار Stack، الأمان، ومصفوفة التحقق |
 | Domain Core | قرار الشريحة + العقود + خارطة التنفيذ + بوابة Pre-build | `src/domain/` و`tests/domain/` |
-| Prototype الهاتف | بوابة Pre-build + المحاكاة + خارطة التنفيذ + العقود + `docs/product/mobile-ui-ux-reference-v1.md` + `docs/implementation/mobile-prototype-spec-v1.md` | النموذج التشغيلي وسياسة التوجيه ومصفوفة السيناريوهات |
+| Prototype Web-first Android-like | بوابة Pre-build + المحاكاة + خارطة التنفيذ + العقود + `docs/product/mobile-ui-ux-reference-v1.md` + `docs/implementation/mobile-prototype-spec-v1.md` + `docs/implementation/prototype-build-charter-v1.md` | النموذج التشغيلي وسياسة التوجيه ومصفوفة السيناريوهات والمهارات الأربع المتخصصة |
 | بحث خارجي أو GitHub | Truth Map + `global-build-reference-library-v1.md` + `micro-build-logic-v1.md` | `docs/06-reference-library.md` وتقارير البحث التاريخية وسجل التراخيص |
 | مراجعة نظام Accounting القديم | الملف الأساسي فقط لتحديد المطلوب | ملفات LEGACY المحددة فقط |
 
 ## 5. قواعد التحديث
 
-كل تعديل جوهري يحدّث الإصدار أو تاريخ المراجعة، ويذكر الملفات المتأثرة. لا تُنشأ وثيقة جديدة إذا كان التغيير تصحيحًا مباشرًا للمرجع الأساسي. إذا احتجنا دراسة طويلة، تُحفظ كـSUPPORTING وتُضاف خلاصة قرارها إلى المرجع الأساسي. ملف الدليل الميداني وجدول مطابقة العقود ومرجع UI/UX ومواصفة Prototype ملفات CURRENT لأنهما يثبتان حدود الدليل أو عقد التجربة أو نطاق البناء، ويجب إدراجها في الفهرس عند إنشائها.
+كل تعديل جوهري يحدّث الإصدار أو تاريخ المراجعة، ويذكر الملفات المتأثرة. لا تُنشأ وثيقة جديدة إذا كان التغيير تصحيحًا مباشرًا للمرجع الأساسي. إذا احتجنا دراسة طويلة، تُحفظ كـSUPPORTING وتُضاف خلاصة قرارها إلى المرجع الأساسي. ملف الدليل الميداني وجدول مطابقة العقود ومرجع UI/UX ومواصفة Prototype وBuild Charter ملفات CURRENT لأنهما يثبتان حدود الدليل أو عقد التجربة أو نطاق البناء، ويجب إدراجها في الفهرس عند إنشائها. المهارات المتخصصة CURRENT/OPERATIONAL؛ تشرح طريقة التنفيذ ولا تنشئ سلطة مستقلة على المنتج أو المال.
 
 لا تحذف وثيقة تاريخية نهائيًا قبل التأكد من عدم وجود قرار أو دليل غير منقول. انقلها إلى الأرشيف مع ملف يشرح سبب الأرشفة والمرجع البديل.
 
@@ -86,7 +90,7 @@
 
 ## 7. بوابة قبل الكود
 
-قبل أي تنفيذ، يجب أن يذكر المطور أو الذكاء الاصطناعي: الملف الأساسي المعتمد، الفرضية، النطاق، الملفات التي سيعدلها، الملفات التي لن يقرأها، ومعيار القبول. قبل Adapter أو واجهة Prototype، يجب أيضًا اجتياز `docs/implementation/03-pre-build-alignment-v1.md` وتوثيق نتائج المحاكاة. إذا احتاج ملفًا مؤرشفًا، يذكر السبب والجزء المطلوب فقط.
+قبل أي تنفيذ، يجب أن يذكر المطور أو الذكاء الاصطناعي: الملف الأساسي المعتمد، الفرضية، النطاق، الملفات التي سيعدلها، الملفات التي لن يقرأها، ومعيار القبول. قبل Adapter أو واجهة Prototype، يجب أيضًا اجتياز `docs/implementation/03-pre-build-alignment-v1.md`، وقراءة `docs/implementation/prototype-build-charter-v1.md`، وتفعيل المهارة المتخصصة المناسبة، وتوثيق نتائج المحاكاة. إذا احتاج ملفًا مؤرشفًا، يذكر السبب والجزء المطلوب فقط.
 
 
 ## 8. الوثائق canonical بعد اختبار السيناريوهات
@@ -105,9 +109,11 @@
 | `docs/quality/scenario-coverage-matrix-v1.md` | مطابقة المشكلات بالقدرات والاختبارات |
 | `docs/research/jordan-financial-problems-evidence.md` | الأدلة المحلية والخارجية وحدودها |
 | `docs/implementation/03-pre-build-alignment-v1.md` | بوابة الفرق بين Prototype وMVP وخطة المحاكاة قبل الكود |
+| `docs/implementation/prototype-build-charter-v1.md` | ميثاق Web-first وAndroid-like وPWA-ready وCloudflare وخطة الشرائح والحوكمة قبل الكود |
 | `docs/quality/pre-build-experiment-simulation-v1.md` | نتائج المحاكاة وحدودها |
 | `docs/research/global-build-reference-library-v1.md` | المعرفة العالمية المحفوظة وقرارات المصادر |
 | `docs/research/micro-build-logic-v1.md` | منطق تحويل المصادر إلى بناء واختبار |
+| `ai-skills/` المتخصصة الأربع | إرشادات تشغيلية للواجهة والتصميم والتخزين والـQA؛ لا تتغلب على الوثائق أو العقود |
 | `docs/quality/simulated-first-read-cloud-code-v1.md` | مراجعة محاكية لقابلية القراءة الأولى وحدود التنفيذ |
 | `docs/quality/cloud-code-first-read-findings-v1.md` | نتائج القراءة الفعلية من Cloud Code والتحقق والإجراءات التابعة |
 

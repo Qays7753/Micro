@@ -442,6 +442,12 @@
 
 نبني نواة مستقلة كـModular Monolith وVertical Slice. لا نضعها داخل `Accounting` ولا `zman-app`. الموجودان مراجع انتقائية، لا مصادر هوية أو نموذج مجال.
 
+### 12.1.1 منصة Prototype
+
+Prototype المرحلة 2 هو **Web-first Android-like App**: Web App بملء الشاشة يعمل من المتصفح، RTL، وتفاصيله وسلوكه قريبان من تطبيقات Android الحديثة. يكون PWA-ready، ويستهدف Cloudflare Pages للنشر، بينما تبقى البيانات محلية في Prototype. لا تعني الاستضافة السحابية وجود Backend أو SaaS أو مزامنة مركزية.
+
+Native wrapper مثل Capacitor أو Native client مستقل خيار لاحق بعد إثبات القيمة والحاجة إلى متجر أو APIs أصلية. لا نبني Web وNative كمنتجين منفصلين في Prototype، ولا نخلط طبقة النشر أو wrapper مع Domain Core أو القواعد المالية.
+
 ```text
 Presentation
   ↓
@@ -465,15 +471,15 @@ Adapters
 
 | الطبقة | القرار |
 |---|---|
-| Frontend | React + TypeScript + Vite |
+| Frontend | React + TypeScript + Vite للـWeb App الأول، مع إبقاء Domain/Application مستقلين عن الواجهة |
 | Styling | Tailwind أو نظام مكونات ثابت Mobile-first |
-| PWA | Service Worker وManifest وcache واضح |
+| PWA | Service Worker وManifest وcache واضح بعد استقرار المسار؛ PWA-ready في Prototype دون ادعاء دعم Native كامل |
 | Local | IndexedDB عبر adapter، مثل Dexie، للمسودات والكاش والانتظار المحدود |
 | Backend الـMVP التجاري اللاحق | Supabase Data API أو API رقيقة فوقه |
 | Database التجارية اللاحقة | Supabase Postgres |
 | Auth في MVP التجاري اللاحق | Supabase Auth |
 | Authorization في MVP التجاري اللاحق | Postgres RLS + workspace membership |
-| Frontend hosting | Cloudflare Pages |
+| Frontend hosting | Cloudflare Pages كهدف نشر Web App؛ لا يعني Backend أو SaaS في Prototype |
 | Tests عبر المراحل | Vitest، اختبارات المجال، ثم RLS والبيانات والمزامنة والسيناريوهات المالية والتشغيلية |
 | Billing لاحقًا | Adapter لمزود خارجي، خارج Financial Domain |
 

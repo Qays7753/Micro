@@ -32,8 +32,13 @@
 | 22 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
 | 23 | `docs/research/jordan-financial-problems-evidence.md` | SUPPORTING | الأدلة المحلية والخارجية وحدودها |
 | 24 | `ai-skills/micro-scenario-validation/` | CURRENT | اختبار القرارات على الشخصيات والحالات والأسئلة |
+| 24A | `ai-skills/micro-web-native-ux/` | CURRENT | تجربة Web App بملء الشاشة وسلوك Android-like وRTL وPWA UX |
+| 24B | `ai-skills/micro-design-system/` | CURRENT | تطبيق الهوية والتوكنات وLight/Dark على التصميم والكود |
+| 24C | `ai-skills/micro-local-first-prototype/` | CURRENT | LocalStore والمسودات وSnapshots وlocal export/import |
+| 24D | `ai-skills/micro-prototype-qa/` | CURRENT | اختبار التدفقات والواجهة والحقيقة المالية واللقطات |
 | 25 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف المراحل وبوابة المحاكاة قبل البناء |
 | 26A | `docs/implementation/mobile-prototype-spec-v1.md` | CURRENT / CANONICAL / PROTOTYPE | مواصفة الشاشات والمسارات والحالات والحدود للـPrototype المحلي |
+| 26B | `docs/implementation/prototype-build-charter-v1.md` | CURRENT / CANONICAL / BUILD CHARTER | قرار Web-first وAndroid-like وPWA-ready وCloudflare وخطة البناء المرحلية وحوكمة الوكلاء |
 | 26 | `docs/quality/pre-build-experiment-simulation-v1.md` | CURRENT / EVIDENCE | نتائج المحاكاة الحتمية لتجارب ما قبل البناء |
 | 27 | `docs/quality/pre-build-experiment-simulation-v1.json` | SUPPORTING DATA | البيانات القابلة لإعادة الفحص للمحاكاة |
 | 28 | `docs/research/global-build-reference-library-v1.md` | CURRENT / RESEARCH AUTHORITY | المعرفة العالمية المحفوظة والمفاهيم والتراخيص وقرارات build/study/defer/reject |
@@ -44,7 +49,7 @@
 
 ## الوثائق التنفيذية الإلزامية
 
-قبل أي قرار منتج أو تصميم تجربة، اقرأ `docs/product/problem-statement-v3.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/product/guidance-interaction-policy-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` و`docs/scenarios/scenario-test-set-v1.md` و`docs/implementation/03-pre-build-alignment-v1.md`. عند تنفيذ Prototype الهاتف اقرأ أيضًا `docs/implementation/mobile-prototype-spec-v1.md`. قبل أي قرار مالي أو Domain، اقرأ `docs/product/financial-operating-model-v1.md` و`docs/contracts/05-financial-p0-policies.md` ومصفوفة التغطية. عند مراجعة تقرير Agent أو قبل بدء Prototype، اقرأ `docs/quality/unified-audit-resolution-v1.md` بعد نتائج Cloud Code. لا يبدأ الكود قبل اجتياز بوابة Pre-build وقراءة `docs/quality/pre-build-experiment-simulation-v1.md` وبياناتها.
+قبل أي قرار منتج أو تصميم تجربة، اقرأ `docs/product/problem-statement-v3.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/product/guidance-interaction-policy-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` و`docs/scenarios/scenario-test-set-v1.md` و`docs/implementation/03-pre-build-alignment-v1.md`. عند تنفيذ Prototype اقرأ أيضًا `docs/implementation/mobile-prototype-spec-v1.md` و`docs/implementation/prototype-build-charter-v1.md` وفعّل `ai-skills/micro-web-native-ux/` و`ai-skills/micro-design-system/` عند تغيير الواجهة. قبل أي قرار مالي أو Domain، اقرأ `docs/product/financial-operating-model-v1.md` و`docs/contracts/05-financial-p0-policies.md` ومصفوفة التغطية. عند مراجعة تقرير Agent أو قبل بدء Prototype، اقرأ `docs/quality/unified-audit-resolution-v1.md` بعد نتائج Cloud Code. لا يبدأ الكود قبل اجتياز بوابة Pre-build وقراءة `docs/quality/pre-build-experiment-simulation-v1.md` وبياناتها.
 
 ## العقود التنفيذية الإلزامية
 
@@ -54,17 +59,20 @@
 
 | نوع المهمة | ملفات إضافية |
 |---|---|
-| بحث عالمي أو GitHub | `docs/research/global-build-reference-library-v1.md` ثم `docs/research/micro-build-logic-v1.md`؛ وللتاريخ `docs/06-reference-library.md` وملفات البحث السابقة |
+| بحث عالمي أو GitHub أو Figma | `docs/research/global-build-reference-library-v1.md` ثم `docs/research/micro-build-logic-v1.md`؛ وللتاريخ `docs/06-reference-library.md` وملفات البحث السابقة |
+| Web App وPWA وAndroid-like UX | `docs/implementation/prototype-build-charter-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` ثم `ai-skills/micro-web-native-ux/` و`ai-skills/micro-design-system/` |
 | تكلفة وربح وطلبات | مراجع `ai-skills/microbusiness-finance-operations/` داخل المستودع |
-| كود وأمن ومزامنة ونشر | مراجع `ai-skills/saas-delivery-verifier/` داخل المستودع |
+| كود وأمن ومزامنة ونشر | مراجع `ai-skills/saas-delivery-verifier/` داخل المستودع، و`prototype-build-charter-v1.md` عند النشر على Cloudflare أو إضافة PWA |
+| LocalStore وExport/Import | `docs/implementation/prototype-build-charter-v1.md` ثم `ai-skills/micro-local-first-prototype/` و`ai-skills/saas-delivery-verifier/` |
 | قرار UX أو MVP | `docs/decisions/01-first-vertical-slice.md` ثم `docs/product/mobile-ui-ux-reference-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` ومراجع `ai-skills/saas-product-guardian/` و`ai-skills/micro-scenario-validation/` داخل المستودع |
 | تغيير المفهوم أو النموذج المالي أو التدفق | `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md` و`docs/quality/pre-build-experiment-simulation-v1.md` ثم `ai-skills/micro-scenario-validation/` |
-| تنفيذ Domain Core أو Prototype | `docs/implementation/01-execution-roadmap.md` و`docs/implementation/03-pre-build-alignment-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` والعقود ثم `ai-skills/saas-delivery-verifier/` |
+| تنفيذ Domain Core أو Prototype | `docs/implementation/01-execution-roadmap.md` و`docs/implementation/03-pre-build-alignment-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` و`docs/implementation/prototype-build-charter-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` والعقود ثم `ai-skills/saas-delivery-verifier/` و`ai-skills/micro-local-first-prototype/` |
+| قبول Slice أو PR للواجهة | `ai-skills/micro-prototype-qa/` مع `docs/quality/scenario-coverage-matrix-v1.md` و`docs/implementation/prototype-build-charter-v1.md` |
 | مراجعة Accounting أو zman-app | افتح المرجع الحالي أولًا، ثم ملف الحالة المطلوب فقط |
 
 ## ملفات داعمة غير سلطوية
 
-`docs/research/architecture-and-stack-decision.md`، `docs/research/architecture-decision-reassessment.md`، `docs/research/architecture-decision-matrix.md`، `docs/research/order-tracking-case-study.md`، وملفات المهارات داخل `ai-skills/`. أما الوثائق canonical الجديدة داخل `docs/product/` و`docs/scenarios/` و`docs/quality/` فهي CURRENT ويجب عدم معاملتها كدراسات داعمة.
+`docs/research/architecture-and-stack-decision.md`، `docs/research/architecture-decision-reassessment.md`، `docs/research/architecture-decision-matrix.md`، `docs/research/order-tracking-case-study.md`، والمهارات القديمة أو العامة داخل `ai-skills/` هي ملفات داعمة عند الحاجة. أما `micro-web-native-ux` و`micro-design-system` و`micro-local-first-prototype` و`micro-prototype-qa` فهي CURRENT/OPERATIONAL ضمن نطاق التنفيذ، ولا تتغلب على الوثائق أو العقود. الوثائق canonical الجديدة داخل `docs/product/` و`docs/scenarios/` و`docs/quality/` هي CURRENT ويجب عدم معاملتها كدراسات داعمة.
 
 هذه الملفات مفيدة عند الحاجة، لكن خلاصتها لا تتجاوز المرجع الأساسي. إذا تعارضت، سجّل التعارض ولا تختر الصياغة الأطول تلقائيًا.
 
@@ -82,7 +90,7 @@
 
 ## بروتوكول الإغلاق
 
-بعد العمل، حدّث المرجع المناسب وسجل القرار أو الفرضية. لا تنشئ ملفًا جديدًا لمجرد تسجيل فقرة صغيرة. إذا أنشأت دراسة جديدة، أضفها إلى هذا الفهرس مع تصنيفها. عند بحث مصدر عالمي، لا يكفي حفظ الرابط؛ يجب تحديث مكتبة المصادر ومنطق البناء أو تسجيل سبب عدم الاعتماد.
+بعد العمل، حدّث المرجع المناسب وسجل القرار أو الفرضية. لا تنشئ ملفًا جديدًا لمجرد تسجيل فقرة صغيرة. إذا أنشأت دراسة جديدة، أضفها إلى هذا الفهرس مع تصنيفها. عند بحث مصدر عالمي، لا يكفي حفظ الرابط؛ يجب تحديث مكتبة المصادر ومنطق البناء أو تسجيل سبب عدم الاعتماد. عند تعديل Web App أو Skill، شغّل فحوص المهارة وفحوص الواجهة المناسبة وسجّل ما بقي مجهولًا.
 
 ## لا تلمس
 
