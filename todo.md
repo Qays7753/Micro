@@ -11,8 +11,8 @@
 - [x] بناء Slice 3: الاتفاق والتاريخ والعربون وحالة الطلب وخط الزمن.
 - [x] تشغيل الفحوص وCI لـSlice 3 ثم commit موثق بـ`Manus Agent 1` وpush ودمج في `main` قبل بدء Slice 4.
 - [x] بناء Slice 4: التنفيذ والتسليم والتحصيل والدين ونتيجة الطلب والفعل التالي.
-- [ ] تشغيل الفحوص وCI لـSlice 4 ثم commit موثق بـ`Manus Agent 1` وpush ودمج في `main` قبل بدء Slice 5.
-- [ ] بناء Slice 5: LocalStore Port وIndexedDB migrations وexport/import الآمن والتحقق قبل الكتابة.
+- [x] تشغيل الفحوص وCI لـSlice 4 ثم commit موثق بـ`Manus Agent 1` وpush ودمج في `main` قبل بدء Slice 5.
+- [x] بناء Slice 5: LocalStore Port وIndexedDB migrations وexport/import الآمن والتحقق قبل الكتابة.
 - [ ] تشغيل الفحوص وCI لـSlice 5 ثم commit موثق بـ`Manus Agent 1` وpush ودمج في `main` قبل QA النهائي.
 - [ ] تنفيذ فحوص RTL و360/390/430 وLight/Dark ولوحة المفاتيح والرجوع والحالات المالية والتخزين.
 - [ ] **مؤجل لما بعد تسليم Prototype:** إجراء بحث عميق موثق عن مؤشرات Vibe Coding والواجهات المولدة التي تضعف الثقة أو تفضح القالب العام.

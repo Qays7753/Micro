@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getNavigationLabel, primaryNavigation } from "./navigation";
+import { isPublicLocalRecoveryRoute } from "./StartupGate";
 
 describe("Prototype navigation contract", () => {
   it("keeps the four Android-like destinations in the approved order", () => {
@@ -15,5 +16,11 @@ describe("Prototype navigation contract", () => {
 
   it("falls back to the product identity for an unknown route", () => {
     expect(getNavigationLabel("/missing")).toBe("مايكرو");
+  });
+
+  it("allows local import settings before a first activity profile exists", () => {
+    expect(isPublicLocalRecoveryRoute("/settings")).toBe(true);
+    expect(isPublicLocalRecoveryRoute("/setup")).toBe(true);
+    expect(isPublicLocalRecoveryRoute("/orders")).toBe(false);
   });
 });

@@ -9,15 +9,14 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="system"
-        switchable
-      >
-        <PrototypeServicesProvider><TooltipProvider>
+      <PrototypeServicesProvider>
+        <ThemeProvider defaultTheme="system" switchable>
+          <TooltipProvider>
           <Toaster position="top-center" closeButton dir="rtl" />
           <MicroRouter />
-        </TooltipProvider></PrototypeServicesProvider>
-      </ThemeProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </PrototypeServicesProvider>
     </ErrorBoundary>
   );
 }

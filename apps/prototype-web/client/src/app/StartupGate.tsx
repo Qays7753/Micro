@@ -3,6 +3,8 @@ import { type ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 
+export const isPublicLocalRecoveryRoute = (path: string) => path === "/setup" || path === "/settings";
+
 export function StartupGate({ children }: { children: ReactNode }) {
   const { profiles, dataVersion } = usePrototypeServices();
   const [location, navigate] = useLocation();
@@ -12,7 +14,7 @@ export function StartupGate({ children }: { children: ReactNode }) {
     profiles.load().then(result => {
       if (!active) return;
       if (!result.ok) { setState("error"); return; }
-      if (!result.value && location !== "/setup") navigate("/setup", { replace: true });
+      if (!result.value && !isPublicLocalRecoveryRoute(location)) navigate("/setup", { replace: true });
       setState("ready");
     });
     return () => { active = false; };
