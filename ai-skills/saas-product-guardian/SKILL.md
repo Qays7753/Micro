@@ -31,8 +31,9 @@ description: حارس المنتج والقرارات لـSaaS مالي وتشغ
 6. اذكر البدائل: بناء مستقل، إعادة استخدام انتقائي، تأجيل، أو رفض.
 7. قيّم مخاطر التعقيد، الثقة، الخصوصية، الدقة الزائفة، التبني، والتكلفة التشغيلية.
 8. ضع معيار قبول وفشل واختبارًا سلوكيًا أو تقنيًا.
-9. مرّر القرار على `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md`، ولا تعتبر السيناريوهات دليلًا إحصائيًا.
-10. سجّل القرار، سببه، ما قد يغيره، وتاريخ مراجعته.
+9. قبل Prototype أو الكود، اجتز `docs/implementation/03-pre-build-alignment-v1.md` وراجع نتيجة المحاكاة في `docs/quality/pre-build-experiment-simulation-v1.md`.
+10. مرّر القرار على `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md`، ولا تعتبر السيناريوهات دليلًا إحصائيًا.
+11. سجّل القرار، سببه، ما قد يغيره، وتاريخ مراجعته.
 
 ## حواجز منع الانحياز
 
@@ -86,6 +87,8 @@ description: حارس المنتج والقرارات لـSaaS مالي وتشغ
 - `../../docs/product/user-operating-model-v1.md` للاستخدام اليومي والأسبوعي والشهري.
 - `../../docs/scenarios/scenario-test-set-v1.md` للشخصيات والحالات والأسئلة.
 - `../../docs/quality/scenario-coverage-matrix-v1.md` لمطابقة المشكلة بالقدرة والاختبار.
+- `../../docs/implementation/03-pre-build-alignment-v1.md` لحدود Prototype وMVP وبوابة ما قبل الكود.
+- `../../docs/quality/pre-build-experiment-simulation-v1.md` لنتائج المحاكاة وحدودها.
 - `references/product_context.md` لسياق المنتج المختصر.
 - `references/hypothesis_and_research.md` لسجل الفرضيات وقواعد البحث.
 - `references/decision_template.md` لتوثيق القرار والميزة.
