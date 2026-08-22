@@ -209,6 +209,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@micro-domain": path.resolve(import.meta.dirname, "..", "..", "src", "domain"),
     },
   },
   envDir: path.resolve(import.meta.dirname),
@@ -241,6 +242,7 @@ export default defineConfig({
     ],
     fs: {
       strict: true,
+      allow: [path.resolve(import.meta.dirname, "client"), path.resolve(import.meta.dirname, "..", "..", "src")],
       deny: ["**/.*"],
     },
   },

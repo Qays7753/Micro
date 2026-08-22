@@ -2,7 +2,9 @@
  * Micro architecture reminder: persistence records are local-only and separate
  * from Domain aggregates. Slice 1 stores setup and pre-domain drafts only.
  */
-export const localSchemaVersion = 2;
+import type { CraftOrder } from "../../../../../../src/domain/craft-order/index.js";
+
+export const localSchemaVersion = 4;
 export const localProfileId = "local-profile";
 
 export type ActivityProfile = {
@@ -41,6 +43,16 @@ export type OrderDraft = {
   quantity: number;
   costSnapshots: readonly DraftCostSnapshot[];
   activeCostSnapshotId: string | null;
+  linkedOrderId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StoredCraftOrder = {
+  id: string;
+  order: CraftOrder;
+  deliveryDate: string;
+  agreementSource: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -60,4 +72,8 @@ export interface PrototypeLocalStore {
   listDrafts(): Promise<StorageResult<readonly OrderDraft[]>>;
   getDraft(id: string): Promise<StorageResult<OrderDraft | null>>;
   saveDraft(draft: OrderDraft): Promise<StorageResult<OrderDraft>>;
+  listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>>;
+  getOrder(id: string): Promise<StorageResult<StoredCraftOrder | null>>;
+  saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>>;
+  commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft }>>;
 }
