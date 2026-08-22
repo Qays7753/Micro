@@ -69,9 +69,14 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   const hasVariableCost = input.materialItems.some(
     (item) => item.source === 'estimate',
   );
-  const hasMissingTime = input.time === null;
+  const hasZeroKnownTime =
+    input.time !== null &&
+    input.time.confidence === 'known' &&
+    (input.time.minutes === 0 || input.time.hourlyRateMinor === 0);
+  const hasMissingTime = input.time === null || hasZeroKnownTime;
 
   if (hasNoCostComponent) return 'incomplete';
+  if (hasMissingTime) return 'incomplete';
 
   if (input.freshnessDays !== null && input.freshnessDays !== undefined) {
     const createdAt = Date.parse(input.createdAt);
@@ -83,7 +88,6 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   }
 
   if (hasVariableCost) return 'variable';
-  if (hasMissingTime) return 'incomplete';
   if (hasEstimate) return 'estimated';
   return 'known';
 }
@@ -153,6 +157,12 @@ export function calculateCostSnapshot(
 
 function eventExists(order: CraftOrder, idempotencyKey: string): boolean {
   return order.events.some((event) => event.idempotencyKey === idempotencyKey);
+}
+
+function hasDeliveredEvent(order: CraftOrder): boolean {
+  return order.events.some(
+    (event) => event.type === 'status_changed' && event.toStatus === 'delivered',
+  );
 }
 
 function appendEvent(order: CraftOrder, event: OrderEvent): CraftOrder {
@@ -232,6 +242,9 @@ export function transitionOrder(
   input: OrderTransitionInput,
 ): CraftOrder {
   if (eventExists(order, input.idempotencyKey)) return order;
+  if (order.status === 'needs_review' && hasDeliveredEvent(order)) {
+    throw new Error('delivered order requires an explicit correction before leaving needs_review');
+  }
   if (!ALLOWED_TRANSITIONS[order.status].includes(input.to)) {
     throw new Error(`invalid transition: ${order.status} -> ${input.to}`);
   }
@@ -261,24 +274,28 @@ export function transitionOrder(
     status: input.to,
     nextAction: nextActionByStatus[input.to],
   };
+  const reviewSafe =
+    input.to === 'needs_review'
+      ? { ...next, resultStatus: 'review_required' as const, profitIndicatorMinor: null }
+      : next;
 
   const recognized =
     input.to === 'delivered' || input.to === 'settled'
       ? (() => {
-          const resultStatus = resultStatusForKnowledge(next.costSnapshot.knowledgeState);
+          const resultStatus = resultStatusForKnowledge(reviewSafe.costSnapshot.knowledgeState);
           const profitIndicatorMinor =
             resultStatus === 'final'
-              ? next.agreedPriceMinor - next.costSnapshot.plannedCostMinor
+              ? reviewSafe.agreedPriceMinor - reviewSafe.costSnapshot.plannedCostMinor
               : null;
           return {
-            ...next,
-            recognizedRevenueMinor: next.agreedPriceMinor,
-            recognizedCostMinor: next.costSnapshot.plannedCostMinor,
+            ...reviewSafe,
+            recognizedRevenueMinor: reviewSafe.agreedPriceMinor,
+            recognizedCostMinor: reviewSafe.costSnapshot.plannedCostMinor,
             profitIndicatorMinor,
             resultStatus,
           };
         })()
-      : next;
+      : reviewSafe;
 
   return appendEvent(recognized, {
     id: `${order.id}:${input.idempotencyKey}`,
@@ -379,8 +396,19 @@ export function collectRemaining(
     nextAction: 'راجع النتيجة والفعل التالي',
   });
   const settled = next.receivableMinor === 0 ? { ...next, status: 'settled' as const } : next;
+  const withStatusEvent =
+    settled.status === order.status
+      ? settled
+      : appendEvent(settled, {
+          id: `${order.id}:status:${idempotencyKey}`,
+          type: 'status_changed',
+          idempotencyKey: `status:${idempotencyKey}`,
+          createdAt,
+          fromStatus: order.status,
+          toStatus: settled.status,
+        });
 
-  return appendEvent(settled, {
+  return appendEvent(withStatusEvent, {
     id: `${order.id}:${idempotencyKey}`,
     type: 'collection_recorded',
     idempotencyKey,
@@ -408,8 +436,16 @@ export function registerDebt(
     settlementStatus: 'debt',
     nextAction: 'تابع تحصيل الدين',
   };
+  const withStatusEvent = appendEvent(next, {
+    id: `${order.id}:status:${idempotencyKey}`,
+    type: 'status_changed',
+    idempotencyKey: `status:${idempotencyKey}`,
+    createdAt,
+    fromStatus: order.status,
+    toStatus: 'settled',
+  });
 
-  return appendEvent(next, {
+  return appendEvent(withStatusEvent, {
     id: `${order.id}:${idempotencyKey}`,
     type: 'debt_registered',
     idempotencyKey,

@@ -98,7 +98,7 @@ describe('craft-order domain core', () => {
     expect(costSnapshot.knowledgeState).toBe('known');
   });
 
-  it('marks an estimated cost instead of pretending it is exact', () => {
+  it('marks a variable cost when an estimated material is supplied', () => {
     const estimated = calculateCostSnapshot('cost-estimated', {
       currency: 'JOD',
       materialItems: [
@@ -112,7 +112,7 @@ describe('craft-order domain core', () => {
           confidence: 'estimated',
         },
       ],
-      time: null,
+      time: { minutes: 60, hourlyRateMinor: 600, confidence: 'known' },
       packagingMinor: 0,
       deliveryMinor: 0,
       wasteMinor: 0,
@@ -123,6 +123,43 @@ describe('craft-order domain core', () => {
     });
 
     expect(estimated.knowledgeState).toBe('variable');
+  });
+
+  it('marks missing time as incomplete even when another cost is variable', () => {
+    const missingTime = calculateCostSnapshot('cost-missing-time-variable', {
+      ...costSnapshot.input,
+      time: null,
+      materialItems: costSnapshot.input.materialItems.map((item, index) =>
+        index === 0 ? { ...item, source: 'estimate' as const, confidence: 'estimated' as const } : item,
+      ),
+    });
+
+    expect(missingTime.knowledgeState).toBe('incomplete');
+  });
+
+  it('marks missing time as incomplete even when a material is stale', () => {
+    const missingTime = calculateCostSnapshot('cost-missing-time-stale', {
+      ...costSnapshot.input,
+      time: null,
+      freshnessDays: 30,
+      materialItems: costSnapshot.input.materialItems.map((item) => ({
+        ...item,
+        priceDate: '2026-01-01',
+      })),
+    });
+
+    expect(missingTime.knowledgeState).toBe('incomplete');
+  });
+
+  it('does not treat known zero time as a complete cost', () => {
+    const zeroTime = calculateCostSnapshot('cost-zero-known-time', {
+      ...costSnapshot.input,
+      time: { minutes: 0, hourlyRateMinor: 0, confidence: 'known' },
+    });
+
+    expect(zeroTime.knowledgeState).toBe('incomplete');
+    expect(makeOrder({ costSnapshot: zeroTime }).resultStatus).toBe('incomplete');
+    expect(confirmAndDeliver(makeOrder({ costSnapshot: zeroTime })).resultStatus).toBe('incomplete');
   });
 
   it('marks a custom-order snapshot with no effective cost components as incomplete', () => {
@@ -184,6 +221,25 @@ describe('craft-order domain core', () => {
     expect(stale.knowledgeState).toBe('stale');
   });
 
+  it('does not reopen a delivered order from review without an explicit correction', () => {
+    const delivered = confirmAndDeliver(makeOrder());
+    const reviewed = transitionOrder(delivered, {
+      to: 'needs_review',
+      idempotencyKey: 'delivery-review',
+      createdAt: '2026-08-21T09:15:00Z',
+    });
+
+    expect(reviewed.resultStatus).toBe('review_required');
+    expect(reviewed.profitIndicatorMinor).toBeNull();
+    expect(() =>
+      transitionOrder(reviewed, {
+        to: 'confirmed',
+        idempotencyKey: 'unsafe-reopen',
+        createdAt: '2026-08-21T09:16:00Z',
+      }),
+    ).toThrow('explicit correction');
+  });
+
   it('keeps deposit, delivery, collection, and profit separate', () => {
     let order = makeOrder();
     order = collectDeposit(order, 1000, 'deposit-1', '2026-08-21T09:20:00Z');
@@ -205,6 +261,13 @@ describe('craft-order domain core', () => {
     expect(order.status).toBe('settled');
     expect(order.settlementStatus).toBe('paid');
     expect(order.collectedMinor).toBe(4000);
+    expect(order.events).toContainEqual(
+      expect.objectContaining({
+        type: 'status_changed',
+        fromStatus: 'delivered',
+        toStatus: 'settled',
+      }),
+    );
     expect(order.receivableMinor).toBe(0);
   });
 
@@ -234,6 +297,13 @@ describe('craft-order domain core', () => {
     expect(order.collectedMinor).toBe(0);
     expect(order.receivableMinor).toBe(4000);
     expect(order.recognizedRevenueMinor).toBe(4000);
+    expect(order.events).toContainEqual(
+      expect.objectContaining({
+        type: 'status_changed',
+        fromStatus: 'delivered',
+        toStatus: 'settled',
+      }),
+    );
   });
 
   it('requires a reason and preserves a cancellation event', () => {

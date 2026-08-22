@@ -1,11 +1,12 @@
 # فهرس وثائق SaaS — اقرأ هذا أولًا
 
-**حالة الفهرس:** المرجع التشغيلي قبل بدء التطوير.
+**حالة الفهرس:** المرجع التشغيلي قبل الانتقال إلى Prototype المرحلة 2.
 
 ## ابدأ بهذه الملفات فقط
 
 | الترتيب | الملف | الحالة | متى يُقرأ؟ |
 |---:|---|---|---|
+| 0 | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
 | 1 | `docs/01-product-and-technical-blueprint.md` | CURRENT / AUTHORITY | كل قرار منتج أو تقنية أو تنفيذ |
 | 2 | `docs/02-decision-log.md` | CURRENT / AUTHORITY | معرفة القرار المعتمد والقرار المسحوب |
 | 3 | `docs/03-hypothesis-register.md` | CURRENT | فرضية أو ميزة أو اختبار |
@@ -15,26 +16,28 @@
 | 7 | `docs/05-documentation-governance.md` | CURRENT | إدارة الوثائق وتعارضاتها |
 | 8 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
 | 9 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
-| 10 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة وسياسات المال P0، ومنها `05-financial-p0-policies.md` |
-| 11 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
-| 12 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
-| 13 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
-| 14 | `docs/product/problem-statement-v3.md` | CURRENT | المشكلة والأضرار والأسئلة التي يجب حلها |
-| 15 | `docs/product/system-definition-v1.md` | CURRENT | تعريف Micro وحدوده وقيمته ونواته |
-| 16 | `docs/product/user-operating-model-v1.md` | CURRENT | الاستخدام اليومي والأسبوعي والشهري |
-| 17 | `docs/product/financial-operating-model-v1.md` | CURRENT | النموذج المالي الداخلي للأحداث والنتائج |
-| 18 | `docs/product/guidance-interaction-policy-v1.md` | CURRENT | التوجيه داخل سير العمل دون تعليم قسري |
-| 19 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | الشخصيات العشر والحالات والأسئلة المئة |
-| 20 | `docs/scenarios/scenario-test-results-v1.md` | CURRENT | نتائج التغطية والفجوات |
-| 21 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
-| 22 | `docs/research/jordan-financial-problems-evidence.md` | SUPPORTING | الأدلة المحلية والخارجية وحدودها |
-| 23 | `ai-skills/micro-scenario-validation/` | CURRENT | اختبار القرارات على الشخصيات والحالات والأسئلة |
-| 24 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف المراحل وبوابة المحاكاة قبل البناء |
-| 25 | `docs/quality/pre-build-experiment-simulation-v1.md` | CURRENT / EVIDENCE | نتائج المحاكاة الحتمية لتجارب ما قبل البناء |
-| 26 | `docs/quality/pre-build-experiment-simulation-v1.json` | SUPPORTING DATA | البيانات القابلة لإعادة الفحص للمحاكاة |
-| 27 | `docs/research/global-build-reference-library-v1.md` | CURRENT / RESEARCH AUTHORITY | المعرفة العالمية المحفوظة والمفاهيم والتراخيص وقرارات build/study/defer/reject |
-| 28 | `docs/research/micro-build-logic-v1.md` | CURRENT / BUILD LOGIC | تحويل المصادر إلى منطق Domain وUX وPrototype ومراحل البناء اللاحقة |
-| 29 | `docs/quality/simulated-first-read-cloud-code-v1.md` | CURRENT / QUALITY REVIEW | محاكاة قراءة Agent جديد وحدود ما يفهمه قبل القراءة الفعلية لـCloud Code |
+| 10 | `docs/decisions/03-scenario-validation-and-system-scope.md` | CURRENT | قرار مجموعة السيناريوهات وحدود النظام |
+| 11 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة وسياسات المال P0، ومنها `05-financial-p0-policies.md` |
+| 12 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
+| 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+| 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
+| 15 | `docs/product/problem-statement-v3.md` | CURRENT | المشكلة والأضرار والأسئلة التي يجب حلها |
+| 16 | `docs/product/system-definition-v1.md` | CURRENT | تعريف Micro وحدوده وقيمته ونواته |
+| 17 | `docs/product/user-operating-model-v1.md` | CURRENT | الاستخدام اليومي والأسبوعي والشهري |
+| 18 | `docs/product/financial-operating-model-v1.md` | CURRENT | النموذج المالي الداخلي للأحداث والنتائج |
+| 19 | `docs/product/guidance-interaction-policy-v1.md` | CURRENT | التوجيه داخل سير العمل دون تعليم قسري |
+| 20 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | الشخصيات العشر والحالات والأسئلة المئة |
+| 21 | `docs/scenarios/scenario-test-results-v1.md` | CURRENT | نتائج التغطية والفجوات |
+| 22 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
+| 23 | `docs/research/jordan-financial-problems-evidence.md` | SUPPORTING | الأدلة المحلية والخارجية وحدودها |
+| 24 | `ai-skills/micro-scenario-validation/` | CURRENT | اختبار القرارات على الشخصيات والحالات والأسئلة |
+| 25 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف المراحل وبوابة المحاكاة قبل البناء |
+| 26 | `docs/quality/pre-build-experiment-simulation-v1.md` | CURRENT / EVIDENCE | نتائج المحاكاة الحتمية لتجارب ما قبل البناء |
+| 27 | `docs/quality/pre-build-experiment-simulation-v1.json` | SUPPORTING DATA | البيانات القابلة لإعادة الفحص للمحاكاة |
+| 28 | `docs/research/global-build-reference-library-v1.md` | CURRENT / RESEARCH AUTHORITY | المعرفة العالمية المحفوظة والمفاهيم والتراخيص وقرارات build/study/defer/reject |
+| 29 | `docs/research/micro-build-logic-v1.md` | CURRENT / BUILD LOGIC | تحويل المصادر إلى منطق Domain وUX وPrototype ومراحل البناء اللاحقة |
+| 30 | `docs/quality/simulated-first-read-cloud-code-v1.md` | CURRENT / QUALITY REVIEW | محاكاة قراءة Agent جديد وحدود ما يفهمه قبل القراءة الفعلية لـCloud Code |
+| 31 | `docs/quality/cloud-code-first-read-findings-v1.md` | CURRENT / QUALITY REVIEW | نتائج قراءة Cloud Code الفعلية والتحقق من ملاحظاتها |
 
 ## الوثائق التنفيذية الإلزامية
 

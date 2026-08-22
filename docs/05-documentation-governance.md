@@ -22,6 +22,7 @@
 
 | الأولوية | الملف | التصنيف | الوظيفة |
 |---:|---|---|---|
+| 0 | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
 | 1 | `docs/01-product-and-technical-blueprint.md` | CURRENT | Problem Statement، Product Goal، الفئات، MVP التجاري اللاحق، الطلبات، المال، SaaS، التقنية |
 | 2 | `docs/03-hypothesis-register.md` | CURRENT | سجل الفرضيات ومعايير تحويل المجهول إلى قرار |
 | 3 | `docs/04-product-truth-map.md` | CURRENT | ما هو مثبت ومرجح ومجهول ومصدر الدليل |
@@ -31,17 +32,20 @@
 | 7 | `docs/research/micro-build-logic-v1.md` | CURRENT / BUILD LOGIC | تحويل المصادر إلى منطق Domain وUX وPrototype ومراحل مستقبلية |
 | 8 | `ai-skills/README.ar.md` | CURRENT | طريقة تشغيل المهارات مع أي ذكاء اصطناعي |
 | 9 | `docs/research/architecture-and-stack-decision.md` | SUPPORTING | مقارنة أولية للـStack؛ لا يتجاوز قرار الملف الأساسي |
-| 10 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING | سجل قرار النواة المستقلة ومبرراته |
+| 10 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING / HISTORY | سجل قرار النواة المستقلة ومبرراته التاريخية |
 | 11 | `docs/research/github-global-research-round2.md` | SUPPORTING / HISTORY | تقرير البحث العالمي الثاني؛ يُقرأ لتتبع التاريخ لا كمرجع تجميعي أحدث |
 | 12 | `docs/research/github-global-research.md` | SUPPORTING / HISTORY | تقرير البحث العالمي الأول؛ يُقرأ لتتبع التاريخ لا كمرجع تجميعي أحدث |
 | 13 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
 | 14 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
-| 15 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
-| 16 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
-| 17 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
-| 18 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
-| 19 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف Prototype وMVP وبوابة المحاكاة قبل البناء |
-| 20 | `docs/quality/pre-build-experiment-simulation-v1.md` | CURRENT / EVIDENCE | نتائج المحاكاة الحتمية وحدودها |
+| 15 | `docs/decisions/03-scenario-validation-and-system-scope.md` | CURRENT | قرار السيناريوهات وحدود النظام |
+| 16 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
+| 17 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
+| 18 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+| 19 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
+| 20 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف Prototype وMVP وبوابة المحاكاة قبل البناء |
+| 21 | `docs/quality/pre-build-experiment-simulation-v1.md` | CURRENT / EVIDENCE | نتائج المحاكاة الحتمية وحدودها |
+| 22 | `docs/quality/simulated-first-read-cloud-code-v1.md` | CURRENT / QUALITY REVIEW | محاكاة قراءة Agent جديد قبل القراءة الفعلية لـCloud Code |
+| 23 | `docs/quality/cloud-code-first-read-findings-v1.md` | CURRENT / QUALITY REVIEW | نتائج القراءة الفعلية من Cloud Code والتحقق من ملاحظاتها |
 
 ## 4. ترتيب القراءة حسب المهمة
 
@@ -90,6 +94,7 @@
 | `docs/research/global-build-reference-library-v1.md` | المعرفة العالمية المحفوظة وقرارات المصادر |
 | `docs/research/micro-build-logic-v1.md` | منطق تحويل المصادر إلى بناء واختبار |
 | `docs/quality/simulated-first-read-cloud-code-v1.md` | مراجعة محاكية لقابلية القراءة الأولى وحدود التنفيذ |
+| `docs/quality/cloud-code-first-read-findings-v1.md` | نتائج القراءة الفعلية من Cloud Code والتحقق والإجراءات التابعة |
 
 هذه الملفات تحفظ المعرفة التي تم تثبيتها خارج المحادثة. ويُضاف `docs/contracts/05-financial-p0-policies.md` إلى القراءة الإلزامية عند أي قرار مالي؛ فهو لا يوسع Prototype، بل يمنع ترك معنى النتيجة والتكلفة والسعر ضمنيًا. لا تُرفع نسخ مراحل أو تقارير محادثة بأسماء متعددة إذا كان محتواها قد دُمج في هذه المراجع. إذا تغيّر مضمون جوهري، يُحدّث الملف canonical وتُسجّل الإحالة في سجل القرارات بدل إنشاء نسخة منافسة.
 
