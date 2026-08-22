@@ -2,7 +2,7 @@
  * Micro architecture reminder: persistence records are local-only and separate
  * from Domain aggregates. Slice 1 stores setup and pre-domain drafts only.
  */
-export const localSchemaVersion = 1;
+export const localSchemaVersion = 2;
 export const localProfileId = "local-profile";
 
 export type ActivityProfile = {
@@ -16,6 +16,22 @@ export type ActivityProfile = {
 
 export type DraftIntent = "customer_order" | "planned_design";
 
+export type DraftCostMaterial = { name: string; quantity: number; unit: string; unitPriceMinor: number; confidence: "known" | "estimated" };
+export type DraftCostTime = { minutes: number; hourlyRateMinor: number; confidence: "known" | "estimated" };
+export type DraftCostSnapshot = {
+  id: string;
+  revision: number;
+  currency: "JOD";
+  materialItems: readonly DraftCostMaterial[];
+  time: DraftCostTime | null;
+  packagingMinor: number;
+  deliveryMinor: number;
+  wasteMinor: number;
+  safetyBufferMinor: number;
+  quantity: number;
+  createdAt: string;
+};
+
 export type OrderDraft = {
   id: string;
   intent: DraftIntent;
@@ -23,6 +39,8 @@ export type OrderDraft = {
   itemName: string;
   specifications: string;
   quantity: number;
+  costSnapshots: readonly DraftCostSnapshot[];
+  activeCostSnapshotId: string | null;
   createdAt: string;
   updatedAt: string;
 };

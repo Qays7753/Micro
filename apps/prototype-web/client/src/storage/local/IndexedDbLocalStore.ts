@@ -18,12 +18,24 @@ function openDatabase(): Promise<IDBDatabase> {
     const request = indexedDB.open(databaseName, localSchemaVersion);
     request.onerror = () => reject(request.error ?? new Error("تعذر فتح التخزين المحلي."));
     request.onblocked = () => reject(new Error("التخزين المحلي مفتوح في نافذة أخرى."));
-    request.onupgradeneeded = () => {
+    request.onupgradeneeded = event => {
       const database = request.result;
       if (!database.objectStoreNames.contains(profileStore)) database.createObjectStore(profileStore, { keyPath: "id" });
       if (!database.objectStoreNames.contains(draftStore)) {
         const drafts = database.createObjectStore(draftStore, { keyPath: "id" });
         drafts.createIndex("updatedAt", "updatedAt");
+      }
+      if (event.oldVersion < 2) {
+        const drafts = request.transaction?.objectStore(draftStore);
+        if (!drafts) return;
+        const cursor = drafts.openCursor();
+        cursor.onsuccess = () => {
+          const current = cursor.result;
+          if (!current) return;
+          const legacy = current.value as Partial<OrderDraft>;
+          current.update({ ...legacy, costSnapshots: Array.isArray(legacy.costSnapshots) ? legacy.costSnapshots : [], activeCostSnapshotId: legacy.activeCostSnapshotId ?? null });
+          current.continue();
+        };
       }
     };
     request.onsuccess = () => resolve(request.result);
