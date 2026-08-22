@@ -717,6 +717,200 @@ single binary يقلل تكلفة التشغيل الأولية، لكنه ين�
 
 ---
 
+## 6.28 SRC-WEB-01 — Progressive Web Apps وWeb App App Shell
+
+**المصدر:** [36]
+
+**المجال:** Web App قابل للتثبيت والعمل دون اتصال.
+
+### المفهوم
+
+تقدم PWA تجربة تطبيق مبنية ومنشورة على الويب، مع manifest وService Worker وApp Shell ومسارات للتثبيت والعمل دون اتصال وإدارة التنقل داخل التطبيق المثبت. القيمة ليست في تسمية التطبيق PWA، بل في جعل الويب سريعًا وقابلًا للاستمرار عند ضعف الاتصال.
+
+### ما يدخل Micro
+
+يدخل Web App بملء الشاشة، وApp Shell، وmanifest، وحالة Offline صادقة، وحفظ المسودة محليًا، ثم Service Worker بعد استقرار المسار. يجب أن يرى المستخدم «محفوظ على هذا الجهاز» بدل ادعاء المزامنة المركزية.
+
+### ما نتركه
+
+نترك الوعود العامة بأن PWA يساوي Native على كل جهاز، والإشعارات الخلفية المضمونة، والمزامنة السحابية، وأي API لا يثبت على المتصفح المستهدف.
+
+### القرار
+
+**Build independently ثم Defer بعض القدرات.** نعيد بناء الحد الأدنى من App Shell وOffline UX وفق Micro، ولا نضيف تعقيدًا قبل اختبار المتصفح والجهاز.
+
+## 6.29 SRC-WEB-02 — Capacitor Web Native Runtime
+
+**المصدر:** [37] و[38]
+
+**المجال:** تغليف Web App كتطبيق iOS/Android لاحقًا.
+
+### المفهوم
+
+يسمح Capacitor بإضافة Native runtime إلى مشروع JavaScript حديث، مع إبقاء التطبيق قريبًا من معايير الويب وإتاحة APIs أصلية عبر Plugins عند الحاجة. هذا يجعله مسار توسع محتملًا لتطبيق Web-first.
+
+### ما يدخل Micro
+
+نحافظ على استقلال Domain وApplication وDesign Tokens عن المتصفح، ونضع حدودًا تسمح أن يكون Web App عميلًا أولًا وNative wrapper عميلًا ثانيًا لاحقًا.
+
+### ما نتركه
+
+نترك إضافة Capacitor إلى Prototype قبل إثبات القيمة، وبناء مشروعين مستقلين، وخلط Native APIs مع قواعد المال.
+
+### الترخيص والقرار
+
+Capacitor مفتوح المصدر بحسب مستودعه؛ يجب فحص LICENSE والإصدار عند إدخاله. القرار الحالي **Defer + Architecture boundary**، وليس dependency في Prototype الأول.
+
+## 6.30 SRC-WEB-03 — React Aria وAccessible Headless Components
+
+**المصدر:** [39] و[40]
+
+**المجال:** سلوك مكونات React القابلة للوصول مع تصميم مخصص.
+
+### المفهوم
+
+توفر React Aria مكونات وسلوكيات بدون نمط بصري مفروض، مع حالات وslots وتخصيص عبر CSS أو Tailwind أو حلول أخرى. يفصل ذلك الوصول والسلوك عن هوية Micro.
+
+### ما يدخل Micro
+
+نأخذ مبدأ headless/accessible للمكونات الحساسة مثل الحقول، القوائم، dialogs، menus، tabs، والـcombobox عندما يقلل أخطاء لوحة المفاتيح والتركيز وRTL.
+
+### ما نتركه
+
+لا نضيف المكتبة تلقائيًا إذا كانت مكونات Micro المخصصة أبسط، ولا نترك المكتبة تفرض tokens أو شكلًا عامًا. القرار التقني يمر بفحص حجم الاعتماديات والتوافق مع scaffold والترخيص.
+
+### القرار
+
+**Study + optional dependency.** إعادة التنفيذ المستقلة مقبولة، والمكتبة ليست مصدر هوية أو قرار منتج.
+
+## 6.31 SRC-WEB-04 — Material 3 Navigation وBottom Sheets
+
+**المصدر:** [41] و[42]
+
+**المجال:** سلوك التنقل والطبقات في التطبيقات ذات الشاشات الصغيرة.
+
+### المفهوم
+
+يشرح Material 3 Navigation Bar للتنقل بين وجهات على الشاشات الصغيرة، وBottom Sheets للمحتوى الثانوي أو الطبقي مع فصل modal عن standard. هذه الأنماط تعطي Web App سلوكًا قريبًا من Android دون أن تحدد هوية المنتج.
+
+### ما يدخل Micro
+
+نأخذ التنقل السفلي المحدود، ترتيب الوجهات، حالات الرجوع، الطبقات، focus، والإغلاق الآمن. نعيد رسمها بتوكنات Micro وألفاظه ومساره المالي.
+
+### ما نتركه
+
+نترك نسخ Material 3 كاملًا، كثرة الوجهات، أو جعل كل إجراء Sheet. لا نستخدم اللون أو الشكل Material لفرض معنى مالي.
+
+### القرار
+
+**Build independently as UX pattern.**
+
+## 6.32 SRC-DESIGN-01 — W3C Design Tokens
+
+**المصدر:** [43]
+
+**المجال:** تبادل Design Tokens بين أدوات التصميم والكود.
+
+### المفهوم
+
+تسعى المواصفة المستقرة إلى مصدر قابل للتشغيل البيني بين أدوات التصميم والكود، وتدعم الثيمات وألوانًا متقدمة وملفات متعددة. هذا مناسب للفصل بين Primitive وSemantic Tokens وLight/Dark.
+
+### ما يدخل Micro
+
+نحافظ على ملف أو طبقة Tokens واحدة تربط الألوان والخطوط والمسافات والحالات بين Figma والكود، مع بقاء UI/UX Reference مصدر القرار.
+
+### ما نتركه
+
+لا نضيف نظام تحويل أو أداة كبيرة قبل وجود Prototype يحتاجها. لا يسمح DTCG بتغيير Micro branding أو القواعد المالية.
+
+### القرار
+
+**Build independently now; consider DTCG-compatible export later.**
+
+## 6.33 SRC-DESIGN-02 — Figma Material 3 وFinancial Web UI Kits
+
+**المصدر:** [44] و[45]
+
+**المجال:** مراجع تصميم ومكونات Web App مالية.
+
+### المفهوم
+
+توضح Kits مثل Material 3 وMaglo تقسيم الشاشات، Auto Layout، حالات المكونات، dashboards، تفاصيل المعاملات، الفواتير، والمحافظ. لكنها غالبًا تفترض منتجًا ماليًا عامًا أو SaaS ماليًا.
+
+### ما يدخل Micro
+
+ندرس الهرمية، تنظيم المكونات، responsive frames، حالات Light/Dark، وفصل الملخص عن التفاصيل. نعيد التصميم بهوية Micro ومسار الحرفة المخصصة.
+
+### ما نتركه
+
+نترك Wallets وInvoices وSign in وRBAC وDashboard الاستثماري والمصطلحات المالية العامة. لا ننسخ ملفات Figma أو صورها أو كودها قبل فحص الترخيص وشروط الاستخدام.
+
+### الترخيص والقرار
+
+Maglo يذكر CC BY 4.0 في صفحة Figma؛ يجب حفظ الإسناد إذا استُخدم أصلًا. أما Material 3 Kit فتظل مرجعًا للمقارنة ولا تدخل كأصل منقول. القرار **Study only**.
+
+## 6.34 SRC-DESIGN-03 — Material Web
+
+**المصدر:** [46] و[47]
+
+**المجال:** Web Components تتبع Material 3.
+
+### المفهوم
+
+يوفر عناصر Web مثل Buttons وChips وDialogs وFAB وLists وMenus وTabs وText fields، لكن موقعه الرسمي يذكر أنه في maintenance mode بانتظار maintainers جدد.
+
+### ما يدخل Micro
+
+نستفيد من أسماء الحالات وتركيب المكونات كمرجع، لا من dependency مباشرة.
+
+### القرار
+
+**Study only + Reject as current dependency** بسبب حالة الصيانة، مع إبقاء هوية Micro مستقلة.
+
+## 6.35 SRC-QUALITY-01 — Storybook وPlaywright Visual Comparisons
+
+**المصدر:** [48] و[49]
+
+**المجال:** عزل مكونات Web App واختبار السلوك والمظهر.
+
+### المفهوم
+
+يسمح Storybook بعرض المكونات والصفحات معزولة وكتابة قصص للتفاعلات والحالات. يتيح Playwright إنشاء لقطات مرجعية ومقارنتها لاحقًا، مع الحاجة إلى تثبيت بيئة التصيير لأن اختلاف النظام والمتصفح قد يغير الصور.
+
+### ما يدخل Micro
+
+نستخدم Storybook اختياريًا للمكونات المالية الحساسة، ونستخدم Playwright لتدفقات Prototype واللقطات في 360 و390 و430px وLight/Dark عندما تكون الأداة مهيأة. تبقى المراجعة البشرية واختبار المستخدم ضروريين.
+
+### القرار
+
+**Build/Adopt as quality tooling when justified.** لا نجعل Storybook شرطًا قبل أن يوفر وقتًا فعليًا.
+
+## 6.36 SRC-SKILL-01 — Agent Skills Open Standard وGoogle Skills
+
+**المصدر:** [50] و[51] و[52]
+
+**المجال:** مهارات قابلة للنقل بين وكلاء الذكاء الاصطناعي.
+
+### المفهوم
+
+المهارة مجلد يحوي `SKILL.md` وmetadata وتعليمات، ويمكن أن يضم scripts وreferences وassets. التحميل تدريجي من الاكتشاف إلى التفعيل ثم التنفيذ، ما يجعل المهارة قابلة للإصدار والمشاركة دون تحميل كل السياق دائمًا.
+
+### ما يدخل Micro
+
+نستخدم المعيار لبناء Skills صغيرة داخل `ai-skills/`، مثل UX، Design System، Local-first، وPrototype QA، مع ربطها بوثائق Micro واختبارات وحدود واضحة. تبقى `AGENTS.md` والوثائق Canonical مصدر القواعد الدائمة.
+
+### ما نتركه
+
+لا ننسخ مستودعات Skills كاملة، ولا نحول كل قرار منتج إلى Skill، ولا نسمح لمهارة خارجية بتغيير Problem Statement أو السياسة المالية أو النطاق.
+
+### الترخيص والقرار
+
+Agent Skills معيار مفتوح. مستودع Google يذكر Apache-2.0. يفحص كل مصدر أو تكييف على مستوى LICENSE والنسخة قبل الإضافة.
+
+### القرار
+
+**Build independently.** مهارات Micro المحلية هي أداة حوكمة، وليست dependency runtime.
+
 # 7. المنطق المشترك الذي يجمع هذه المصادر
 
 ## 7.1 من الحدث إلى النتيجة
@@ -955,6 +1149,40 @@ RemoteStore عند وجوده
 
 [35]: https://developer.android.com/training/data-storage "Android Developers — data and file storage"
 
+[36]: https://web.dev/explore/progressive-web-apps "web.dev — Progressive Web Apps"
+
+[37]: https://capacitorjs.com/docs/ "Capacitor — Cross-platform Native Runtime for Web Apps"
+
+[38]: https://github.com/ionic-team/capacitor "GitHub — Ionic Capacitor"
+
+[39]: https://react-aria.adobe.com/ "Adobe React Aria"
+
+[40]: https://github.com/adobe/react-spectrum "GitHub — Adobe React Spectrum"
+
+[41]: https://m3.material.io/components/navigation-bar "Material 3 — Navigation Bar"
+
+[42]: https://m3.material.io/components/bottom-sheets "Material 3 — Bottom Sheets"
+
+[43]: https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/ "W3C Design Tokens Community Group — Stable Specification"
+
+[44]: https://www.figma.com/community/file/1035203688168086460/material-3-design-kit "Figma — Material 3 Design Kit"
+
+[45]: https://www.figma.com/community/file/1496029882992276524/maglo-financial-management-web-ui-kit "Figma — Maglo Financial Management Web UI Kit"
+
+[46]: https://material-web.dev/ "Material Web"
+
+[47]: https://github.com/material-components/material-web "GitHub — Material Web"
+
+[48]: https://storybook.js.org/docs/writing-tests/integrations/stories-in-end-to-end-tests "Storybook — Stories in End-to-End Tests"
+
+[49]: https://playwright.dev/docs/test-snapshots "Playwright — Visual Comparisons"
+
+[50]: https://agentskills.io/home "Agent Skills — Open Standard Overview"
+
+[51]: https://code.visualstudio.com/docs/agent-customization/agent-skills "VS Code — Use Agent Skills"
+
+[52]: https://github.com/google/skills "GitHub — Google Agent Skills"
+
 # 13. مراجع Micro الداخلية
 
 - [`docs/product/problem-statement-v3.md`](../product/problem-statement-v3.md)
@@ -980,3 +1208,4 @@ RemoteStore عند وجوده
 | الإصدار | التاريخ | التغيير |
 | --- | --- | --- |
 | v1 | 2026-08-22 | دمج نتائج البحث العالمي السابق والجولة الحالية في مكتبة مفاهيم ومنطق وقرارات، مع حفظ حدود الترخيص والمرحلة |
+| v1.1 | 2026-08-22 | إضافة مراجع Web-first وPWA وCapacitor وReact Aria وMaterial 3 وW3C Design Tokens وFigma وStorybook وPlaywright وAgent Skills، مع قرارات Build/Study/Defer/Reject وحدود الترخيص |
