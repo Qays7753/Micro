@@ -15,5 +15,5 @@ export const primaryNavigation: readonly NavigationItem[] = [
 ];
 
 export function getNavigationLabel(pathname: string) {
-  return primaryNavigation.find(item => item.href === pathname)?.label ?? "Micro";
+  return primaryNavigation.find(item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)))?.label ?? "مايكرو";
 }

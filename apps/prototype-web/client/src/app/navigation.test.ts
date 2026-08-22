@@ -14,6 +14,6 @@ describe("Prototype navigation contract", () => {
   });
 
   it("falls back to the product identity for an unknown route", () => {
-    expect(getNavigationLabel("/missing")).toBe("Micro");
+    expect(getNavigationLabel("/missing")).toBe("مايكرو");
   });
 });
