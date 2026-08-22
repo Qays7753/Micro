@@ -25,7 +25,7 @@ export default function CostEditor() {
   const preview = useMemo(() => form ? costs.preview(form) : null, [costs, form]);
   if (state === "loading" || !form) return <div className="micro-route-loading" role="status">جارٍ فتح تكلفة المسودة…</div>;
   if (state === "error" || !draft) return <section className="micro-page micro-not-found"><h1>تعذر فتح التكلفة</h1><p>ارجع للمسودة ثم أعد المحاولة.</p><button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/orders")}>الطلبات</button></section>;
-  const status = preview?.ok ? knowledgeCopy[preview.snapshot.knowledgeState] : null;
+  const status = preview?.ok ? knowledgeCopy[preview.snapshot.knowledgeState as keyof typeof knowledgeCopy] : null;
   function setMaterial(index: number, patch: Partial<DraftCostMaterial>) { setForm(current => current ? { ...current, materialItems: current.materialItems.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item) } : current); }
   function addMaterial() { setForm(current => current ? { ...current, materialItems: [...current.materialItems, { name: "", quantity: 1, unit: "قطعة", unitPriceMinor: 0, confidence: "known" }] } : current); }
   async function saveSnapshot() { if (!draft || !form) return; setMessage(null); setIsSaving(true); const result = await costs.saveSnapshot(draft, form); setIsSaving(false); if (!result.ok) { setMessage(result.message); return; } setDraft(result.draft!); notifyDataChanged(); setMessage(`تم حفظ نسخة التكلفة ${result.draft!.costSnapshots.length} على هذا الجهاز.`); }
