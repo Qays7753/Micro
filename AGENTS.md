@@ -18,9 +18,11 @@
 6. `docs/product/problem-statement-v3.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/product/financial-operating-model-v1.md` و`docs/product/guidance-interaction-policy-v1.md`.
 7. `docs/contracts/`، وبالأخص `docs/contracts/05-financial-p0-policies.md` عند أي قرار متعلق بالتكلفة أو السعر أو الربح أو الكاش أو المصاريف.
 8. `docs/implementation/02-domain-contract-coverage.md` لمعرفة الفرق بين العقد الكامل وما ينفذه Domain Core حاليًا.
-9. `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md` ونتائج المحاكاة قبل تغيير المفهوم أو التدفق.
-10. `docs/quality/cloud-code-first-read-findings-v1.md` عند مراجعة نتيجة Agent سابقة أو أي ملاحظة على النواة والوثائق.
-11. `docs/quality/unified-audit-resolution-v1.md` لمعرفة ما ثبت من التدقيق، وما أُصلح، وما يجب تأجيله قبل Prototype.
+9. `docs/product/mobile-ui-ux-reference-v1.md` لتثبيت عقد الهاتف والـRTL والمكونات والحالات والصدق المالي في الواجهة.
+10. `docs/implementation/mobile-prototype-spec-v1.md` لمعرفة الشاشات والمسارات والحالات وحدود Prototype المحلي.
+11. `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md` ونتائج المحاكاة قبل تغيير المفهوم أو التدفق.
+12. `docs/quality/cloud-code-first-read-findings-v1.md` عند مراجعة نتيجة Agent سابقة أو أي ملاحظة على النواة والوثائق.
+13. `docs/quality/unified-audit-resolution-v1.md` لمعرفة ما ثبت من التدقيق، وما أُصلح، وما يجب تأجيله قبل Prototype.
 
 لا تقرأ تقارير البحث التاريخية أو ملفات النظام القديم بوصفها سلطة حالية. استخدمها فقط إذا ذكرت سبب الحاجة إليها.
 
@@ -34,7 +36,7 @@
 4. `docs/product/` لتعريف المشكلة والنموذج المالي والتشغيلي والتوجيه.
 5. `docs/research/micro-build-logic-v1.md` و`docs/research/global-build-reference-library-v1.md` لتحويل المصادر إلى قرارات.
 6. `docs/02-decision-log.md` لتتبع القرارات وتواريخها.
-7. `docs/quality/unified-audit-resolution-v1.md` كحارس جودة تنفيذي قبل Prototype، ثم الملفات الداعمة والتاريخية؛ ولا يجوز للأخيرة أن تتغلب على ما سبق.
+7. `docs/quality/unified-audit-resolution-v1.md` كحارس جودة تنفيذي قبل Prototype، ثم `docs/product/mobile-ui-ux-reference-v1.md` كمرجع تجربة و`docs/implementation/mobile-prototype-spec-v1.md` كمواصفة نطاق وسلوك؛ ولا يجوز للأخيرة أو للملفات الداعمة والتاريخية أن تتغلب على العقود أو هوية المنتج.
 
 إذا ظهر تعارض حقيقي، لا تخمّن. سجله، حدّد الملفات المتأثرة، وأوقف التنفيذ عند النقطة التي قد تغيّر معنى المال أو المرحلة أو هوية المنتج.
 
@@ -87,9 +89,9 @@ Micro ليس تطبيق طلبات فقط، وليس تطبيقًا تعليمي
 
 ## 8. الحالة الحالية وما يليها
 
-الحالة الحالية هي تقوية Domain Core والعقود بعد تدقيق المسارات العامة، ثم الانتقال إلى Prototype محلي محدود لمسار الحرفة المخصصة. الكود الحالي لا يحتوي بعد على واجهة الهاتف أو Adapter أو LocalStore أو Workspace أو Auth أو RLS أو Ledger مالي عام أو تقارير المشروع العامة.
+الحالة الحالية هي Domain Core والعقود مع مرجعي تجربة وPrototype Canonical قبل البناء. الكود الحالي لا يحتوي بعد على واجهة الهاتف أو Adapter أو LocalStore أو Workspace أو Auth أو RLS أو Ledger مالي عام أو تقارير المشروع العامة. المرجعان يصفان ما يجب بناؤه واختباره، ولا يحولان الهدف إلى قدرة منفذة.
 
-الخطوة التالية الصحيحة هي تصميم وبناء أقل مسار محلي يثبت: إدخال الحرفة والمواد والوقت، نتيجة التكلفة ودرجة معرفتها، سعر الحماية، الاتفاق والموعد، العربون، التنفيذ، التسليم، التحصيل أو الدين، والنتيجة والفعل التالي. بعد ذلك تُختبر المهام مع أصحاب مشاريع حقيقيين؛ لا تعتبر المحاكاة أو نجاح الاختبارات التقنية دليلًا على التبني أو الدفع.
+الخطوة التالية الصحيحة هي بناء أقل مسار محلي وفق `docs/implementation/mobile-prototype-spec-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md`، بما يثبت: إدخال الحرفة والمواد والوقت، نتيجة التكلفة ودرجة معرفتها، سعر الحماية، الاتفاق والموعد، العربون، التنفيذ، التسليم، التحصيل أو الدين، والنتيجة والفعل التالي، مع LocalStore و`local export/import`. بعد ذلك تُختبر المهام مع أصحاب مشاريع حقيقيين؛ لا تعتبر المحاكاة أو نجاح الاختبارات التقنية دليلًا على التبني أو الدفع.
 
 ## 9. بروتوكول الإغلاق
 
