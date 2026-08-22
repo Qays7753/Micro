@@ -2,10 +2,13 @@
  * Micro architecture reminder: persistence records are local-only and separate
  * from Domain aggregates. Slice 1 stores setup and pre-domain drafts only.
  */
-import type { CraftOrder } from "../../../../../../src/domain/craft-order/index.js";
+import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 
-export const localSchemaVersion = 4;
+export const localSchemaVersion = 5;
 export const localProfileId = "local-profile";
+export const localPreferencesId = "local-preferences";
+export const localExportFormat = "micro-prototype-local-export";
+export const localExportVersion = 1;
 
 export type ActivityProfile = {
   id: typeof localProfileId;
@@ -13,6 +16,12 @@ export type ActivityProfile = {
   currency: "JOD";
   activityType: "custom_craft";
   createdAt: string;
+  updatedAt: string;
+};
+
+export type LocalPreferences = {
+  id: typeof localPreferencesId;
+  theme: "light" | "dark" | "system";
   updatedAt: string;
 };
 
@@ -57,6 +66,21 @@ export type StoredCraftOrder = {
   updatedAt: string;
 };
 
+export type LocalStoreSnapshot = {
+  profile: ActivityProfile | null;
+  preferences: LocalPreferences | null;
+  drafts: readonly OrderDraft[];
+  orders: readonly StoredCraftOrder[];
+};
+
+export type LocalExportFile = {
+  format: typeof localExportFormat;
+  version: typeof localExportVersion;
+  schemaVersion: typeof localSchemaVersion;
+  exportedAt: string;
+  data: LocalStoreSnapshot;
+};
+
 export type StorageFailure = {
   ok: false;
   code: "storage_unavailable" | "storage_error";
@@ -69,6 +93,8 @@ export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
 export interface PrototypeLocalStore {
   getProfile(): Promise<StorageResult<ActivityProfile | null>>;
   saveProfile(profile: ActivityProfile): Promise<StorageResult<ActivityProfile>>;
+  getPreferences(): Promise<StorageResult<LocalPreferences | null>>;
+  savePreferences(preferences: LocalPreferences): Promise<StorageResult<LocalPreferences>>;
   listDrafts(): Promise<StorageResult<readonly OrderDraft[]>>;
   getDraft(id: string): Promise<StorageResult<OrderDraft | null>>;
   saveDraft(draft: OrderDraft): Promise<StorageResult<OrderDraft>>;
@@ -76,4 +102,6 @@ export interface PrototypeLocalStore {
   getOrder(id: string): Promise<StorageResult<StoredCraftOrder | null>>;
   saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>>;
   commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft }>>;
+  readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
+  replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
 }

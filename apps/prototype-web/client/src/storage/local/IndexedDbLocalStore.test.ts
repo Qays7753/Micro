@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it } from "vitest";
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
-import { localProfileId, type ActivityProfile, type OrderDraft, type StoredCraftOrder } from "./types";
+import { localPreferencesId, localProfileId, type ActivityProfile, type OrderDraft, type StoredCraftOrder } from "./types";
 
 const databaseName = "micro-prototype-local";
 function clearDatabase() {
@@ -39,9 +39,11 @@ describe("IndexedDbLocalStore", () => {
     const draft: OrderDraft = { id: "draft-1", intent: "customer_order", customerName: "سارة", itemName: "صندوق خشبي", specifications: "نقش", quantity: 2, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:01:00.000Z" };
     const first = new IndexedDbLocalStore();
     await expect(first.saveProfile(profile)).resolves.toMatchObject({ ok: true, value: profile });
+    await expect(first.savePreferences({ id: localPreferencesId, theme: "dark", updatedAt: "2026-08-22T00:00:00.000Z" })).resolves.toMatchObject({ ok: true, value: { theme: "dark" } });
     await expect(first.saveDraft(draft)).resolves.toMatchObject({ ok: true, value: draft });
     const resumed = new IndexedDbLocalStore();
     await expect(resumed.getProfile()).resolves.toMatchObject({ ok: true, value: profile });
+    await expect(resumed.getPreferences()).resolves.toMatchObject({ ok: true, value: { theme: "dark" } });
     await expect(resumed.getDraft("draft-1")).resolves.toMatchObject({ ok: true, value: draft });
   });
 
@@ -70,5 +72,17 @@ describe("IndexedDbLocalStore", () => {
     const resumed = new IndexedDbLocalStore();
     await expect(resumed.listOrders()).resolves.toMatchObject({ ok: true, value: [{ id: "order-1" }] });
     await expect(resumed.getDraft("draft-linked")).resolves.toMatchObject({ ok: true, value: { linkedOrderId: "order-1" } });
+  });
+
+  it("replaces the full local snapshot in one IndexedDB transaction", async () => {
+    const store = new IndexedDbLocalStore();
+    const oldDraft: OrderDraft = { id: "old", intent: "customer_order", customerName: "", itemName: "قديم", specifications: "", quantity: 1, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
+    await store.saveProfile({ id: localProfileId, activityName: "قديم", currency: "JOD", activityType: "custom_craft", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" }); await store.saveDraft(oldDraft);
+    const replacement: ActivityProfile = { id: localProfileId, activityName: "مستورد", currency: "JOD", activityType: "custom_craft", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" };
+    const replacementDraft: OrderDraft = { ...oldDraft, id: "imported", itemName: "مستورد", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" };
+    const importedPreferences = { id: localPreferencesId, theme: "light" as const, updatedAt: "2026-08-22T01:00:00.000Z" };
+    await expect(store.replaceSnapshot({ profile: replacement, preferences: importedPreferences, drafts: [replacementDraft], orders: [] })).resolves.toMatchObject({ ok: true, value: { profile: replacement, preferences: importedPreferences, drafts: [{ id: "imported" }], orders: [] } });
+    const resumed = new IndexedDbLocalStore();
+    await expect(resumed.getProfile()).resolves.toMatchObject({ ok: true, value: replacement }); await expect(resumed.getPreferences()).resolves.toMatchObject({ ok: true, value: importedPreferences }); await expect(resumed.listDrafts()).resolves.toMatchObject({ ok: true, value: [{ id: "imported" }] }); await expect(resumed.getDraft("old")).resolves.toMatchObject({ ok: true, value: null });
   });
 });
