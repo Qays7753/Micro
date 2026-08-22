@@ -69,6 +69,7 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   const hasVariableCost = input.materialItems.some(
     (item) => item.source === 'estimate',
   );
+  const hasMissingTime = input.time === null;
 
   if (hasNoCostComponent) return 'incomplete';
 
@@ -82,6 +83,7 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   }
 
   if (hasVariableCost) return 'variable';
+  if (hasMissingTime) return 'incomplete';
   if (hasEstimate) return 'estimated';
   return 'known';
 }
@@ -298,6 +300,9 @@ export function reviseOrderCost(
 ): CraftOrder {
   if (eventExists(order, idempotencyKey)) return order;
   if (!specifications.trim()) throw new Error('revised specifications are required');
+  if (nextCostSnapshot.quantity !== order.quantity) {
+    throw new Error('revised cost snapshot quantity must match order quantity');
+  }
   if (order.status === 'delivered' || order.status === 'settled' || order.status === 'cancelled') {
     throw new Error(`cannot revise order in ${order.status} status`);
   }

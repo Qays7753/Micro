@@ -13,14 +13,17 @@ description: حارس تنفيذ وتسليم SaaS للمشاريع المنزل
 
 قبل تعديل مستودع أو إنشاء مشروع:
 
+0. اقرأ `../../docs/research/global-build-reference-library-v1.md` و`../../docs/research/micro-build-logic-v1.md` قبل اختيار أي مكتبة أو نمط خارجي؛ يجب أن تفهم المنطق والحدود والمرحلة والترخيص، لا أن تنقل Feature من README.
+
 1. اقرأ `../../docs/product/problem-statement-v3.md` و`../../docs/product/system-definition-v1.md` وقرار الميزة وبطاقة الفرضية.
 2. اقرأ `../../docs/product/user-operating-model-v1.md` و`../../docs/product/financial-operating-model-v1.md` و`../../docs/product/guidance-interaction-policy-v1.md` قبل اختيار المدخلات أو المخرجات.
-3. حدد الـVertical Slice والبيانات والمدخلات والنتيجة والفعل التالي، واربطه بشخصيات وحالات من `../../docs/scenarios/scenario-test-set-v1.md`.
-4. تأكد أن القرار مستقل عن Accounting وzman-app وأي مشروع مرجعي.
-5. ارسم الحدود: Presentation → Application → Domain → Ports → Adapters.
-6. اكتب invariants المالية، حالات الفشل، وخطة الترحيل أو التراجع.
-7. افحص `../../docs/quality/scenario-coverage-matrix-v1.md` وحدد ما الذي يثبته الكود وما الذي يحتاج Prototype أو Pilot.
-8. لا تبدأ إذا كان المطلوب مجرد تجميع ميزات بلا معيار قبول.
+3. اجتز `../../docs/implementation/03-pre-build-alignment-v1.md` وراجع `../../docs/quality/pre-build-experiment-simulation-v1.md` قبل إنشاء Adapter أو واجهة Prototype.
+4. حدد الـVertical Slice والبيانات والمدخلات والنتيجة والفعل التالي، واربطه بشخصيات وحالات من `../../docs/scenarios/scenario-test-set-v1.md`.
+5. تأكد أن القرار مستقل عن Accounting وzman-app وأي مشروع مرجعي.
+6. ارسم الحدود: Presentation → Application → Domain → Ports → Adapters.
+7. اكتب invariants المالية، حالات الفشل، وخطة الترحيل أو التراجع.
+8. افحص `../../docs/quality/scenario-coverage-matrix-v1.md` وحدد ما الذي يثبته الكود وما الذي يحتاج Prototype أو Pilot.
+9. لا تبدأ إذا كان المطلوب مجرد تجميع ميزات بلا معيار قبول.
 
 ## المعمارية
 
@@ -86,7 +89,7 @@ SaaS هو طريقة تشغيل وبيع المنتج، لا وظيفة يحتا
 
 ## الكود الخارجي
 
-قبل استخدام أي مشروع أو مكتبة خارجية، سجّل الرابط، الإصدار أو commit، الترخيص الفعلي، التعديلات، الاعتماديات، وسبب الملاءمة. إذا غاب الترخيص أو كان copyleft أو BSL، لا تدمج الكود قبل مراجعة قانونية. افصل الاستلهام عن النسخ.
+قبل استخدام أي مشروع أو مكتبة خارجية، ارجع إلى بطاقة المصدر في `../../docs/research/global-build-reference-library-v1.md` وسجل الرابط، الإصدار أو commit، الترخيص الفعلي، التعديلات، الاعتماديات، وسبب الملاءمة. إذا غاب الترخيص أو كان copyleft أو BSL، لا تدمج الكود قبل مراجعة قانونية. افصل الاستلهام عن النسخ.
 
 ## مراجع المهارة
 
@@ -98,3 +101,4 @@ SaaS هو طريقة تشغيل وبيع المنتج، لا وظيفة يحتا
 - `../../docs/product/problem-statement-v3.md` و`../../docs/product/system-definition-v1.md` لتعريف النظام.
 - `../../docs/product/financial-operating-model-v1.md` للنموذج المالي.
 - `../../docs/scenarios/scenario-test-set-v1.md` و`../../docs/quality/scenario-coverage-matrix-v1.md` للاختبار والقبول.
+- `../../docs/implementation/03-pre-build-alignment-v1.md` و`../../docs/quality/pre-build-experiment-simulation-v1.md` لبوابة ما قبل التنفيذ وحدود المحاكاة.

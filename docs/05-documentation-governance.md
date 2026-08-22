@@ -22,22 +22,26 @@
 
 | الأولوية | الملف | التصنيف | الوظيفة |
 |---:|---|---|---|
-| 1 | `docs/01-product-and-technical-blueprint.md` | CURRENT | Problem Statement، Product Goal، الفئات، MVP، الطلبات، المال، SaaS، التقنية |
+| 1 | `docs/01-product-and-technical-blueprint.md` | CURRENT | Problem Statement، Product Goal، الفئات، MVP التجاري اللاحق، الطلبات، المال، SaaS، التقنية |
 | 2 | `docs/03-hypothesis-register.md` | CURRENT | سجل الفرضيات ومعايير تحويل المجهول إلى قرار |
 | 3 | `docs/04-product-truth-map.md` | CURRENT | ما هو مثبت ومرجح ومجهول ومصدر الدليل |
 | 4 | `docs/07-field-evidence-map.md` | CURRENT | الدليل الميداني وحدود ما تثبته خبرة المؤسس |
-| 5 | `docs/06-reference-library.md` | SUPPORTING | مكتبة مشاريع GitHub والأنماط والتراخيص |
-| 6 | `ai-skills/README.ar.md` | CURRENT | طريقة تشغيل المهارات مع أي ذكاء اصطناعي |
-| 7 | `docs/research/architecture-and-stack-decision.md` | SUPPORTING | مقارنة أولية للـStack؛ لا يتجاوز قرار الملف الأساسي |
-| 8 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING | سجل قرار النواة المستقلة ومبرراته |
-| 9 | `docs/research/github-global-research-round2.md` | SUPPORTING | تقرير البحث العالمي الثاني |
-| 10 | `docs/research/github-global-research.md` | SUPPORTING | تقرير البحث العالمي الأول |
-| 11 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
-| 12 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
-| 13 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
-| 14 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
-| 15 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
-| 16 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
+| 5 | `docs/06-reference-library.md` | SUPPORTING | فهرس مشاريع GitHub والأنماط والتراخيص |
+| 6 | `docs/research/global-build-reference-library-v1.md` | CURRENT / RESEARCH AUTHORITY | المعرفة العالمية المحفوظة، المفاهيم، المنطق، التراخيص، وقرارات build/study/defer/reject |
+| 7 | `docs/research/micro-build-logic-v1.md` | CURRENT / BUILD LOGIC | تحويل المصادر إلى منطق Domain وUX وPrototype ومراحل مستقبلية |
+| 8 | `ai-skills/README.ar.md` | CURRENT | طريقة تشغيل المهارات مع أي ذكاء اصطناعي |
+| 9 | `docs/research/architecture-and-stack-decision.md` | SUPPORTING | مقارنة أولية للـStack؛ لا يتجاوز قرار الملف الأساسي |
+| 10 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING | سجل قرار النواة المستقلة ومبرراته |
+| 11 | `docs/research/github-global-research-round2.md` | SUPPORTING / HISTORY | تقرير البحث العالمي الثاني؛ يُقرأ لتتبع التاريخ لا كمرجع تجميعي أحدث |
+| 12 | `docs/research/github-global-research.md` | SUPPORTING / HISTORY | تقرير البحث العالمي الأول؛ يُقرأ لتتبع التاريخ لا كمرجع تجميعي أحدث |
+| 13 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
+| 14 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
+| 15 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
+| 16 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
+| 17 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+| 18 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
+| 19 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف Prototype وMVP وبوابة المحاكاة قبل البناء |
+| 20 | `docs/quality/pre-build-experiment-simulation-v1.md` | CURRENT / EVIDENCE | نتائج المحاكاة الحتمية وحدودها |
 
 ## 4. ترتيب القراءة حسب المهمة
 
@@ -46,8 +50,9 @@
 | قرار منتج أو ميزة | الملف الأساسي + حارس المنتج | سجل الفرضيات وTruth Map |
 | تكلفة أو ربح أو طلب | الملف الأساسي + حارس المجال | قواعد المجال والاختبارات |
 | كود أو قاعدة بيانات أو نشر | الملف الأساسي + قرار الشريحة + العقود + حارس التنفيذ | قرار Stack، الأمان، ومصفوفة التحقق |
-| Domain Core | قرار الشريحة + العقود + خارطة التنفيذ | `src/domain/` و`tests/domain/` |
-| بحث خارجي أو GitHub | Truth Map + مكتبة المراجع | تقارير البحث وسجل التراخيص |
+| Domain Core | قرار الشريحة + العقود + خارطة التنفيذ + بوابة Pre-build | `src/domain/` و`tests/domain/` |
+| Prototype الهاتف | بوابة Pre-build + المحاكاة + خارطة التنفيذ + العقود | النموذج التشغيلي وسياسة التوجيه ومصفوفة السيناريوهات |
+| بحث خارجي أو GitHub | Truth Map + `global-build-reference-library-v1.md` + `micro-build-logic-v1.md` | `docs/06-reference-library.md` وتقارير البحث التاريخية وسجل التراخيص |
 | مراجعة نظام Accounting القديم | الملف الأساسي فقط لتحديد المطلوب | ملفات LEGACY المحددة فقط |
 
 ## 5. قواعد التحديث
@@ -62,10 +67,10 @@
 
 ## 7. بوابة قبل الكود
 
-قبل أي تنفيذ، يجب أن يذكر المطور أو الذكاء الاصطناعي: الملف الأساسي المعتمد، الفرضية، النطاق، الملفات التي سيعدلها، الملفات التي لن يقرأها، ومعيار القبول. إذا احتاج ملفًا مؤرشفًا، يذكر السبب والجزء المطلوب فقط.
+قبل أي تنفيذ، يجب أن يذكر المطور أو الذكاء الاصطناعي: الملف الأساسي المعتمد، الفرضية، النطاق، الملفات التي سيعدلها، الملفات التي لن يقرأها، ومعيار القبول. قبل Adapter أو واجهة Prototype، يجب أيضًا اجتياز `docs/implementation/03-pre-build-alignment-v1.md` وتوثيق نتائج المحاكاة. إذا احتاج ملفًا مؤرشفًا، يذكر السبب والجزء المطلوب فقط.
 
 
-## 3.1 الوثائق canonical بعد اختبار السيناريوهات
+## 8. الوثائق canonical بعد اختبار السيناريوهات
 
 تضاف المجلدات التالية إلى طبقة `CURRENT` في هذا المستودع:
 
@@ -75,11 +80,17 @@
 | `docs/product/system-definition-v1.md` | تعريف Micro وحدوده وقيمته |
 | `docs/product/user-operating-model-v1.md` | الاستخدام اليومي والأسبوعي والشهري |
 | `docs/product/financial-operating-model-v1.md` | المعالجة المالية الداخلية وحدودها |
+| `docs/contracts/05-financial-p0-policies.md` | سياسات المال التنفيذية لنتيجة الطلب والتكلفة والسعر وحدود Prototype |
 | `docs/product/guidance-interaction-policy-v1.md` | التوجيه داخل العمل دون تعليم قسري |
 | `docs/scenarios/` | الشخصيات والحالات والأسئلة ونتائج الاختبار |
 | `docs/quality/scenario-coverage-matrix-v1.md` | مطابقة المشكلات بالقدرات والاختبارات |
 | `docs/research/jordan-financial-problems-evidence.md` | الأدلة المحلية والخارجية وحدودها |
+| `docs/implementation/03-pre-build-alignment-v1.md` | بوابة الفرق بين Prototype وMVP وخطة المحاكاة قبل الكود |
+| `docs/quality/pre-build-experiment-simulation-v1.md` | نتائج المحاكاة وحدودها |
+| `docs/research/global-build-reference-library-v1.md` | المعرفة العالمية المحفوظة وقرارات المصادر |
+| `docs/research/micro-build-logic-v1.md` | منطق تحويل المصادر إلى بناء واختبار |
+| `docs/quality/simulated-first-read-cloud-code-v1.md` | مراجعة محاكية لقابلية القراءة الأولى وحدود التنفيذ |
 
-هذه الملفات تحفظ المعرفة التي تم تثبيتها خارج المحادثة. لا تُرفع نسخ مراحل أو تقارير محادثة بأسماء متعددة إذا كان محتواها قد دُمج في هذه المراجع. إذا تغيّر مضمون جوهري، يُحدّث الملف canonical وتُسجّل الإحالة في سجل القرارات بدل إنشاء نسخة منافسة.
+هذه الملفات تحفظ المعرفة التي تم تثبيتها خارج المحادثة. ويُضاف `docs/contracts/05-financial-p0-policies.md` إلى القراءة الإلزامية عند أي قرار مالي؛ فهو لا يوسع Prototype، بل يمنع ترك معنى النتيجة والتكلفة والسعر ضمنيًا. لا تُرفع نسخ مراحل أو تقارير محادثة بأسماء متعددة إذا كان محتواها قد دُمج في هذه المراجع. إذا تغيّر مضمون جوهري، يُحدّث الملف canonical وتُسجّل الإحالة في سجل القرارات بدل إنشاء نسخة منافسة.
 
 مجموعة السيناريوهات اختبار اصطناعي وليست دليلًا إحصائيًا للسوق. وخبرة المؤسس والدراسات الخارجية تُصنف وفق قوتها وحدودها في Truth Map، ولا تتحول تلقائيًا إلى ميزات أو ادعاءات تجارية.

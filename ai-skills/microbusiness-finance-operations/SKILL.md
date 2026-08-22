@@ -99,9 +99,13 @@ profit = recognized_revenue - recognized_cost - applicable_expenses
 
 اقرأ عند أي قرار مالي أو تشغيلي `../../docs/product/financial-operating-model-v1.md`، واقرأ عند أي قرار يؤثر في تجربة المستخدم `../../docs/product/user-operating-model-v1.md`. يجب أن يفهم النظام المشروع بوصفه نشاطًا مستمرًا، لا طلبًا منفردًا فقط، وأن يميز بين الحدث والتصنيف والأثر والنتيجة ودرجة المعرفة والفعل التالي.
 
+## مرجع المعرفة العالمية ومنطق البناء
+
+قبل أخذ نمط من مشروع مالي أو محرك تكلفة أو نظام طلبات، اقرأ `../../docs/research/global-build-reference-library-v1.md` لمعرفة المفهوم والمنطق والحدود والترخيص، ثم اقرأ `../../docs/research/micro-build-logic-v1.md` لتحديد ما يدخل Prototype وما يؤجل. لا تحول أي مرجع إلى schema أو feature تلقائيًا.
+
 ## الاختبار الإلزامي
 
-اختبر حالات: بيع نقدي، بيع بدين، عربون ثم تسليم، إلغاء مع عربون، شراء مادة، هدر، سحب، حقن رأس مال، تغير سعر مادة، خدمة بالوقت، حرفة مخصصة، دفعة طعام، طلبان في نفس الموعد، انقطاع اتصال وإعادة مزامنة، يوم بلا طلب، مصروف مشترك، منتج جديد، نقطة تعادل، وأكثر مبيعًا مقابل الأكثر ربحًا. استخدم مجموعة `../../docs/scenarios/scenario-test-set-v1.md` ومصفوفة `../../docs/quality/scenario-coverage-matrix-v1.md`، وتحقق من invariants المالية ومن عدم التكرار ومن بقاء التاريخ. لا تعتبر السيناريوهات دليلًا إحصائيًا للسوق.
+اختبر حالات: بيع نقدي، بيع بدين، عربون ثم تسليم، إلغاء مع عربون، شراء مادة، هدر، سحب، حقن رأس مال، تغير سعر مادة، خدمة بالوقت، حرفة مخصصة، دفعة طعام، طلبان في نفس الموعد، انقطاع اتصال وإعادة مزامنة، يوم بلا طلب، مصروف مشترك، منتج جديد، نقطة تعادل، وأكثر مبيعًا مقابل الأكثر ربحًا. قبل تحويل القواعد إلى Adapter أو واجهة، اجتز `../../docs/implementation/03-pre-build-alignment-v1.md` وراجع `../../docs/quality/pre-build-experiment-simulation-v1.md`. استخدم مجموعة `../../docs/scenarios/scenario-test-set-v1.md` ومصفوفة `../../docs/quality/scenario-coverage-matrix-v1.md`، وتحقق من invariants المالية ومن عدم التكرار ومن بقاء التاريخ. لا تعتبر السيناريوهات أو المحاكاة دليلًا إحصائيًا للسوق.
 
 ## مراجع المهارة
 
@@ -110,6 +114,8 @@ profit = recognized_revenue - recognized_cost - applicable_expenses
 - `../../docs/product/user-operating-model-v1.md` للاستخدام اليومي والأسبوعي والشهري.
 - `../../docs/scenarios/scenario-test-set-v1.md` للشخصيات والحالات والأسئلة.
 - `../../docs/quality/scenario-coverage-matrix-v1.md` لمطابقة المشكلة بالقدرة والاختبار.
+- `../../docs/implementation/03-pre-build-alignment-v1.md` لحدود Prototype وMVP وبوابة Pre-build.
+- `../../docs/quality/pre-build-experiment-simulation-v1.md` لنتائج المحاكاة المالية والتشغيلية.
 - `references/domain_rules.md` للقواعد والمعادلات والحالات.
 - `references/activity_profiles.md` للفروق بين الحرفة والطعام والخدمة.
 - `references/order_lifecycle.md` للطلبات والتذكيرات والقدرة.

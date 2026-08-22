@@ -143,6 +143,16 @@ describe('craft-order domain core', () => {
     expect(makeOrder({ costSnapshot: incomplete }).resultStatus).toBe('incomplete');
   });
 
+  it('does not mark a craft cost as known when time is missing', () => {
+    const missingTime = calculateCostSnapshot('cost-missing-time', {
+      ...costSnapshot.input,
+      time: null,
+    });
+
+    expect(missingTime.knowledgeState).toBe('incomplete');
+    expect(makeOrder({ costSnapshot: missingTime }).resultStatus).toBe('incomplete');
+  });
+
   it('rejects negative values and invalid quantities', () => {
     expect(() =>
       calculateCostSnapshot('cost-negative', {
@@ -376,6 +386,26 @@ describe('craft-order domain core', () => {
     expect(revised.costSnapshot.id).toBe('cost-2');
     expect(revised.costSnapshots.map((snapshot) => snapshot.id)).toEqual(['cost-1', 'cost-2']);
     expect(revised.events.at(-1)?.type).toBe('specification_revised');
+  });
+
+  it('rejects a revised cost snapshot with a mismatched quantity', () => {
+    const order = makeOrder();
+    const mismatchedSnapshot: CostSnapshot = {
+      ...costSnapshot,
+      id: 'cost-mismatched-quantity',
+      quantity: 2,
+      input: { ...costSnapshot.input, quantity: 2, source: 'revision' },
+    };
+
+    expect(() =>
+      reviseOrderCost(
+        order,
+        'كمية مختلفة',
+        mismatchedSnapshot,
+        'revision-mismatched-quantity',
+        '2026-08-21T10:22:00Z',
+      ),
+    ).toThrow('revised cost snapshot quantity must match order quantity');
   });
 
   it('rejects invalid status transitions', () => {
