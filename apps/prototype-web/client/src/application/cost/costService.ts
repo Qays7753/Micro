@@ -2,7 +2,7 @@
  * Financial boundary: this service maps draft persistence records to the Domain
  * calculator. React never calculates planned cost, knowledge, or price floor.
  */
-import { calculateCostSnapshot, type CostSnapshot } from "../../../../../../src/domain/craft-order/index.js";
+import { calculateCostSnapshot, type CostSnapshot } from "@micro-domain/craft-order/index.js";
 import type { DraftCostSnapshot, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
 
 export type CostEditorInput = Omit<DraftCostSnapshot, "id" | "revision" | "createdAt" | "currency">;

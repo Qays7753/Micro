@@ -2,11 +2,12 @@
  * Browser adapter only. Components never import this directly; it holds no money
  * policy and only stores Slice 1 local profile and pre-domain draft records.
  */
-import { localSchemaVersion, type ActivityProfile, type OrderDraft, type PrototypeLocalStore, type StorageFailure, type StorageResult } from "./types";
+import { localSchemaVersion, type ActivityProfile, type OrderDraft, type PrototypeLocalStore, type StorageFailure, type StorageResult, type StoredCraftOrder } from "./types";
 
 const databaseName = "micro-prototype-local";
 const profileStore = "activity-profile";
 const draftStore = "order-drafts";
+const orderStore = "craft-orders";
 
 function failure(error: unknown): StorageFailure {
   return { ok: false, code: typeof indexedDB === "undefined" ? "storage_unavailable" : "storage_error", message: error instanceof Error ? error.message : "تعذر الوصول إلى التخزين المحلي." };
@@ -25,7 +26,11 @@ function openDatabase(): Promise<IDBDatabase> {
         const drafts = database.createObjectStore(draftStore, { keyPath: "id" });
         drafts.createIndex("updatedAt", "updatedAt");
       }
-      if (event.oldVersion < 2) {
+      if (!database.objectStoreNames.contains(orderStore)) {
+        const orders = database.createObjectStore(orderStore, { keyPath: "id" });
+        orders.createIndex("updatedAt", "updatedAt");
+      }
+      if (event.oldVersion < 4) {
         const drafts = request.transaction?.objectStore(draftStore);
         if (!drafts) return;
         const cursor = drafts.openCursor();
@@ -33,7 +38,7 @@ function openDatabase(): Promise<IDBDatabase> {
           const current = cursor.result;
           if (!current) return;
           const legacy = current.value as Partial<OrderDraft>;
-          current.update({ ...legacy, costSnapshots: Array.isArray(legacy.costSnapshots) ? legacy.costSnapshots : [], activeCostSnapshotId: legacy.activeCostSnapshotId ?? null });
+          current.update({ ...legacy, costSnapshots: Array.isArray(legacy.costSnapshots) ? legacy.costSnapshots : [], activeCostSnapshotId: legacy.activeCostSnapshotId ?? null, linkedOrderId: legacy.linkedOrderId ?? null });
           current.continue();
         };
       }
@@ -85,4 +90,31 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   getDraft(id: string) { return readOne<OrderDraft>(draftStore, id); }
   saveDraft(draft: OrderDraft) { return writeOne(draftStore, draft); }
+  async listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>> {
+    try {
+      const database = await openDatabase();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(orderStore, "readonly");
+        const request = transaction.objectStore(orderStore).getAll();
+        request.onerror = () => resolve(failure(request.error));
+        request.onsuccess = () => resolve({ ok: true, value: (request.result as StoredCraftOrder[]).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)) });
+        transaction.oncomplete = () => database.close();
+      });
+    } catch (error) { return failure(error); }
+  }
+  getOrder(id: string) { return readOne<StoredCraftOrder>(orderStore, id); }
+  saveOrder(order: StoredCraftOrder) { return writeOne(orderStore, order); }
+  async commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft }>> {
+    try {
+      const database = await openDatabase();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([orderStore, draftStore], "readwrite");
+        transaction.objectStore(orderStore).put(order);
+        transaction.objectStore(draftStore).put(draft);
+        transaction.onabort = () => resolve(failure(transaction.error));
+        transaction.onerror = () => resolve(failure(transaction.error));
+        transaction.oncomplete = () => { database.close(); resolve({ ok: true, value: { order, draft } }); };
+      });
+    } catch (error) { return failure(error); }
+  }
 }
