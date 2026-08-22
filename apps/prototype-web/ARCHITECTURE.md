@@ -1,25 +1,27 @@
-# Micro Prototype Web App — Architecture
+# معمارية Web App لـMicro Prototype
 
-## Scope of this package
+## نطاق الحزمة الحالي
 
-This package contains the Web UI for **Micro Prototype**. It is intentionally a client-only application shell in Slice 0. It does not create orders, calculate money, or persist business records yet.
+تحتوي هذه الحزمة Web UI للـPrototype. اكتمل فيها **Slice 0** للغلاف العربي RTL، واكتمل بناء **Slice 1** للتأسيس المحلي ومسودات الطلب. لا تنشئ هذه الطبقة طلبًا ماليًا مكتملًا، ولا تحسب مبلغًا أو تكلفة أو ربحًا أو عربونًا أو تحصيلًا.
 
-## Required flow of responsibility
+## مسار المسؤولية
 
 ```text
 React UI
-  -> application use cases and view models
-  -> ../../src/domain/craft-order public entrypoint
-  -> LocalStore port
-  -> IndexedDB adapter and local export/import
+  → Application services / view state
+  → Micro Domain Core في ../../src/domain/craft-order
+  → LocalStore port
+  → IndexedDB adapter + export/import محلي لاحقًا
 ```
 
-React components must never calculate a financial result or access IndexedDB directly. Future application code belongs in `client/src/application/`; persistence belongs in `client/src/storage/`; the existing Micro Domain Core remains in the repository root under `src/domain/`.
+لا تستورد مكونات React `IndexedDbLocalStore`، ولا تحسب قاعدة مالية. يوجد Adapter ذاكرة للاختبار وAdapter IndexedDB للمتصفح؛ وكلاهما يمران عبر `ProfileService` أو `DraftService`.
 
-## Slice 0 boundary
+## ما تنفذه Slice 1
 
-Slice 0 establishes the Android-like RTL shell, routes, semantic design tokens, Light/Dark preference, Bottom Sheet behavior, and truthful empty states. Theme preference is the only browser preference stored at this point; it is not a financial record.
+تحفظ Slice 1 ملف نشاط محليًا ومسودات قبل Domain فقط. يثبت الملف اسم النشاط وJOD ومسار الحرفة المخصصة. وتحتوي المسودة على النية والوصف والعميل الاختياري والمواصفات والكمية. لا تحتوي حقل سعر أو تكلفة أو كاش أو نتيجة؛ لذلك لا تمثل `CraftOrder` بعد، ولا تستدعي `createCraftOrder` الذي يتطلب Snapshot تكلفة مكتملًا.
 
-## Current limitations
+يستخدم Adapter إصدار مخطط IndexedDB صريحًا `schemaVersion = 1`. لا تزال migrations التاريخية وExport/Import والتحقق الذري وإعادة الضبط الآمنة نطاق **Slice 5**.
 
-There is no onboarding profile, order draft, LocalStore, financial calculation, export/import, PWA service worker, Auth, Sync, or Cloud data in this slice. Interactions that lead to a future slice state this explicitly through a local UI notice.
+## حدود لا تتغير
+
+التفضيل البصري قد يحفظ محليًا، وملف النشاط والمسودة يحفظان محليًا، لكن لا توجد Cloud Sync أو Workspace أو Auth أو صلاحيات أو Service Worker أو PWA مكتمل. لا يوصف الحفظ بأنه نسخة سحابية أو Backup حتى تنفذ دورة الحماية المحلية واختباراتها.

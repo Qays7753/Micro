@@ -3,8 +3,8 @@
 - [x] تثبيت موضع كود Prototype داخل مستودع `Qays7753/Micro` وربط scaffold به دون تعديل طبقة server.
 - [x] قراءة السلطات والوثائق والمهارات التشغيلية قبل كل جزء ذي صلة: Charter وUI/UX وP0 المالية وDomain وLocalStore وQA.
 - [x] بناء Slice 0: App Shell، RTL، التوكنات الرسمية، Light/Dark، AppBar، Bottom Navigation، FAB، والحالات الفارغة.
-- [ ] تشغيل الفحوص وCI لـSlice 0 ثم commit موثق بـ`Manus Agent 1` وpush ودمج في `main` قبل بدء Slice 1.
-- [ ] بناء Slice 1: onboarding المحلي وHome وبدء/استئناف مسودة طلب.
+- [x] تشغيل الفحوص وCI لـSlice 0 ثم commit موثق بـ`Manus Agent 1` وpush ودمج في `main` قبل بدء Slice 1.
+- [x] بناء Slice 1: onboarding المحلي وHome وبدء/استئناف مسودة طلب.
 - [ ] تشغيل الفحوص وCI لـSlice 1 ثم commit موثق بـ`Manus Agent 1` وpush ودمج في `main` قبل بدء Slice 2.
 - [ ] بناء Slice 2: Application layer لتكلفة الطلب وسعر الحماية وربط Domain Core.
 - [ ] تشغيل الفحوص وCI لـSlice 2 ثم commit موثق بـ`Manus Agent 1` وpush ودمج في `main` قبل بدء Slice 3.
