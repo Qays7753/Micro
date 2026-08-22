@@ -13,6 +13,25 @@ function clearDatabase() {
 }
 afterEach(clearDatabase);
 
+function seedVersionOneDraft() {
+  return new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open(databaseName, 1);
+    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore("activity-profile", { keyPath: "id" });
+      const drafts = request.result.createObjectStore("order-drafts", { keyPath: "id" });
+      drafts.createIndex("updatedAt", "updatedAt");
+    };
+    request.onsuccess = () => {
+      const database = request.result;
+      const transaction = database.transaction("order-drafts", "readwrite");
+      transaction.objectStore("order-drafts").put({ id: "legacy", intent: "customer_order", customerName: "", itemName: "مسودة قديمة", specifications: "", quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" });
+      transaction.oncomplete = () => { database.close(); resolve(); };
+      transaction.onerror = () => reject(transaction.error);
+    };
+  });
+}
+
 describe("IndexedDbLocalStore", () => {
   it("persists the profile and draft through a fresh adapter instance", async () => {
     const profile: ActivityProfile = { id: localProfileId, activityName: "مشغل ليان", currency: "JOD", activityType: "custom_craft", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
@@ -32,5 +51,11 @@ describe("IndexedDbLocalStore", () => {
     await store.saveDraft(early); await store.saveDraft(late);
     const listed = await store.listDrafts();
     expect(listed).toMatchObject({ ok: true, value: [{ id: "late" }, { id: "early" }] });
+  });
+
+  it("migrates a Slice 1 draft to schema 2 without dropping its pre-domain details", async () => {
+    await seedVersionOneDraft();
+    const store = new IndexedDbLocalStore();
+    await expect(store.getDraft("legacy")).resolves.toMatchObject({ ok: true, value: { id: "legacy", itemName: "مسودة قديمة", costSnapshots: [], activeCostSnapshotId: null } });
   });
 });
