@@ -8,7 +8,7 @@
 
 ## ما هذا المستودع الآن؟
 
-هذه الدفعة هي **مرجع قرار وDomain Core قابل للاختبار وSlice 3 للـPrototype**. تحتوي على عقود المجال، ونواة أولية لمسار طلب حرفة يدوية مخصصة، وحزمة Web App في `apps/prototype-web/` لواجهة RTL محلية وLight/Dark وتأسيس ومسودات وSnapshot تكلفة وسعر حماية واتفاق وموعد وعربون اختياري وبداية تنفيذ عبر Domain Core. لا تحتوي بعد على تسليم أو تحصيل متبقٍ أو دين أو نتيجة طلب أو export/import. كما لا تحتوي SaaS قابلًا للإطلاق أو استقبال بيانات حقيقية، ولا نسخة من Accounting أو zman-app أو كود خارجي منقول.
+هذه الدفعة هي **مرجع قرار وDomain Core قابل للاختبار وSlice 4 للـPrototype**. تحتوي على عقود المجال، ونواة أولية لمسار طلب حرفة يدوية مخصصة، وحزمة Web App في `apps/prototype-web/` لواجهة RTL محلية وLight/Dark وتأسيس ومسودات وSnapshot تكلفة وسعر حماية واتفاق وموعد وعربون وتنفيذ وجاهزية وتسليم وتحويل المتبقي إلى قبض أو دين ونتيجة طلب بدرجة معرفة عبر Domain Core. لا تحتوي بعد على export/import أو استعادة أو PWA أو استضافة Cloudflare أو Native أو SaaS. كما لا تحتوي استقبال بيانات حقيقية، ولا نسخة من Accounting أو zman-app أو كود خارجي منقول.
 
 ابدأ من [`docs/00-document-index.md`](docs/00-document-index.md)، ثم اقرأ [`docs/01-product-and-technical-blueprint.md`](docs/01-product-and-technical-blueprint.md). وللتعريف الحالي، راجع [`docs/product/problem-statement-v3.md`](docs/product/problem-statement-v3.md) و[`docs/product/system-definition-v1.md`](docs/product/system-definition-v1.md) و[`docs/product/user-operating-model-v1.md`](docs/product/user-operating-model-v1.md). عند استخدام أي ذكاء اصطناعي، اقرأ [`ai-skills/README.ar.md`](ai-skills/README.ar.md) وفعّل المهارة المناسبة.
 
@@ -29,7 +29,7 @@
 | `ai-skills/` | حزمة المهارات المحمولة الخاصة بالمنتج |
 | `src/domain/craft-order/` | Domain Core للشريحة الأولى |
 | `tests/domain/` | اختبارات المجال القابلة للتشغيل |
-| `apps/prototype-web/` | Web-first Prototype: App Shell وRTL وLight/Dark والتأسيس والمسودات وSnapshots تكلفة وسعر حماية واتفاق وعربون وتنفيذ، مع Application وLocalStore معزولين |
+| `apps/prototype-web/` | Web-first Prototype: App Shell وRTL وLight/Dark والتأسيس والمسودات وSnapshots تكلفة وسعر حماية واتفاق وعربون وتنفيذ وتسليم وتحصيل أو دين ونتيجة، مع Application وLocalStore معزولين |
 
 ## قواعد مهمة
 
@@ -37,4 +37,4 @@
 
 ## الحالة الحالية
 
-المرحلة الحالية هي Domain Core والعقود والاختبارات، مع **Slice 0 إلى Slice 3 من Prototype الهاتف المحلي**: Web App بملء الشاشة، RTL، App Shell، تنقل، Bottom Sheet، Light/Dark، تأسيس محلي، مسودات قبل Domain، وSnapshots تكلفة تاريخية وسعر حماية، ثم اتفاق محلي وموعد وعربون اختياري وبداية تنفيذ. لا يمثل سعر الحماية سعر سوق أو اتفاقًا أو ربحًا، والعربون كاش محصل لا ربح تلقائي ولا تسليم. الشريحة التالية هي: تسليم → قبض أو دين → نتيجة وفعل تالٍ. النواة الحالية تطبق نسخ التكلفة، حالات المعرفة، `resultStatus`، فصل العربون عن التحصيل، وإلغاء العربون بتسوية صريحة أو `needs_review`. لم تنفذ الواجهة بعد التسليم والتحصيل والدين والنتيجة أو حماية export/import أو PWA أو Cloudflare deployment أو Native wrapper أو SaaS أو استقبال بيانات مستخدمين حقيقية؛ لذلك لا يجوز الادعاء بالجاهزية التجارية.
+المرحلة الحالية هي Domain Core والعقود والاختبارات، مع **Slice 0 إلى Slice 4 من Prototype الهاتف المحلي**: Web App بملء الشاشة، RTL، App Shell، تنقل، Bottom Sheet، Light/Dark، تأسيس محلي، مسودات قبل Domain، وSnapshots تكلفة تاريخية وسعر حماية، ثم اتفاق محلي وموعد وعربون وتنفيذ وجاهزية وتسليم وتحويل المتبقي إلى قبض أو دين ونتيجة طلب. لا يمثل سعر الحماية سعر سوق أو اتفاقًا أو ربحًا، والعربون كاش محصل لا ربح تلقائي ولا تسليم، والدين لا يزيد الكاش. لا تظهر نتيجة رقمية نهائية عند نقص المعرفة. النواة الحالية تطبق نسخ التكلفة، حالات المعرفة، `resultStatus`، فصل العربون عن التحصيل، وإلغاء العربون بتسوية صريحة أو `needs_review`. لم تنفذ الواجهة بعد حماية export/import أو PWA أو Cloudflare deployment أو Native wrapper أو SaaS أو استقبال بيانات مستخدمين حقيقية؛ لذلك لا يجوز الادعاء بالجاهزية التجارية.
