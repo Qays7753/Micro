@@ -31,7 +31,7 @@ description: حارس المنتج والقرارات لـSaaS مالي وتشغ
 6. اذكر البدائل: بناء مستقل، إعادة استخدام انتقائي، تأجيل، أو رفض.
 7. قيّم مخاطر التعقيد، الثقة، الخصوصية، الدقة الزائفة، التبني، والتكلفة التشغيلية.
 8. ضع معيار قبول وفشل واختبارًا سلوكيًا أو تقنيًا.
-9. قبل Prototype أو الكود، اجتز `docs/implementation/03-pre-build-alignment-v1.md` وراجع نتيجة المحاكاة في `docs/quality/pre-build-experiment-simulation-v1.md`.
+9. قبل اقتراح Prototype أو كود، اجتز `docs/implementation/03-pre-build-alignment-v1.md` وراجع نتيجة المحاكاة في `docs/quality/pre-build-experiment-simulation-v1.md`، ثم اقرأ `docs/research/global-build-reference-library-v1.md` و`docs/research/micro-build-logic-v1.md` لتفهم المصدر والمنطق والمرحلة، ولا تحول المرجع إلى قائمة Features.
 10. مرّر القرار على `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md`، ولا تعتبر السيناريوهات دليلًا إحصائيًا.
 11. سجّل القرار، سببه، ما قد يغيره، وتاريخ مراجعته.
 
@@ -89,6 +89,8 @@ description: حارس المنتج والقرارات لـSaaS مالي وتشغ
 - `../../docs/quality/scenario-coverage-matrix-v1.md` لمطابقة المشكلة بالقدرة والاختبار.
 - `../../docs/implementation/03-pre-build-alignment-v1.md` لحدود Prototype وMVP وبوابة ما قبل الكود.
 - `../../docs/quality/pre-build-experiment-simulation-v1.md` لنتائج المحاكاة وحدودها.
+- `../../docs/research/global-build-reference-library-v1.md` للمصادر العالمية والمفاهيم والمنطق والتراخيص وقرارات build/study/defer/reject.
+- `../../docs/research/micro-build-logic-v1.md` لتحويل المعرفة الخارجية إلى منطق Product/Domain/UX/Prototype ومراحل لاحقة.
 - `references/product_context.md` لسياق المنتج المختصر.
 - `references/hypothesis_and_research.md` لسجل الفرضيات وقواعد البحث.
 - `references/decision_template.md` لتوثيق القرار والميزة.

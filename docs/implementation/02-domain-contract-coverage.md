@@ -12,6 +12,8 @@
 | customization | التخصيص يجب أن يؤثر في المواصفات والتكلفة والنسخة | `specifications` و`reviseOrderCost` ينشئان Snapshot جديدًا وحالة `needs_review` | مطبق على مستوى الشريحة، دون BOM أو Profile ثانٍ |
 | calculation version | مقارنة الحسابات عبر الإصدارات تحتاج نسخة قواعد | غير موجودة في `CostSnapshot` | مؤجل؛ لا يجوز ادعاء مقارنة نتائج عبر إصدارات مختلفة |
 | cost knowledge state | يصف صدق مدخلات التكلفة وحداثتها وتغيرها | `known` و`estimated` و`variable` و`incomplete` و`stale` مطبقة وقابلة للاختبار؛ `partial` نوع محفوظ للمرحلة اللاحقة | مطبق جزئيًا بوسم صريح؛ لا تستخدم `partial` في مسار لا يملك سياسة إدخالها بعد |
+| craft missing time | غياب وقت الحرفة المؤثر يمنع ادعاء نتيجة نهائية معروفة | `hasMissingTime` يصنف Snapshot الحرفة `incomplete`، وتبقى النتيجة بلا ربح نهائي | مطبق ومختبر؛ لا يُفترض أن غياب الوقت يساوي صفرًا |
+| revision quantity match | تعديل التكلفة يجب أن يبقى مرتبطًا بكمية الطلب الأصلية | `reviseOrderCost` يرفض Snapshot بكمية تختلف عن `order.quantity` | invariant مطبق ومختبر |
 | financial result status | يميز النهائي والتقديري والناقص والمراجعة المطلوبة | `CraftOrder.resultStatus` مطبق؛ لا يحسب `profitIndicatorMinor` إلا مع `known` عند التسليم/التسوية | مطبق |
 | cancellation settlement | الإلغاء لا يحذف التاريخ، والعربون يحتاج ردًا أو احتفاظًا أو مراجعة | `cancelOrder` يضع `needs_review` عند وجود عربون، وعمليات التسوية مستقلة وقابلة لإعادة المحاولة | مطبق على مستوى الشريحة |
 | deposit vs collection | العربون قبل التسليم، والتحصيل المتبقي بعد التسليم، والدين لا يزيد الكاش | `collectDeposit` و`collectRemaining` و`registerDebt` منفصلة مع حواجز الحالة | مطبق |

@@ -56,7 +56,7 @@
 | المخرج | الحد الأدنى المطلوب |
 |---|---|
 | Prototype Brief | مسار المرحلة 2، ما يدخل، ما لا يدخل، وما الذي يثبته أو لا يثبته. |
-| Financial P0 Policies | سياسات التكلفة والنتيجة والعربون والكاش والدين والمخزون والوقت والمصاريف المشتركة والنقص. |
+| Financial P0 Policies | `docs/contracts/05-financial-p0-policies.md`؛ سياسات التكلفة والنتيجة والعربون والكاش والدين والمخزون والوقت والمصاريف المشتركة والنقص. |
 | Golden Financial Cases | الحالات `FT-01` إلى `FT-12` في `docs/quality/pre-build-experiment-simulation-v1.md` وبياناتها في ملف JSON المرافق، مع نتائج وافتراضات معلنة. |
 | Guidance Copy Deck | نصوص الأسئلة والاقتراحات والنتائج والأفعال التالية للحالات المؤثرة فقط. |
 | User Test Protocol | مهام قابلة للملاحظة، ومقاييس الزمن والفهم والخطأ والقرار، وحدود الاستنتاج. |
@@ -92,6 +92,7 @@
 - `docs/product/system-definition-v1.md`
 - `docs/product/user-operating-model-v1.md`
 - `docs/product/financial-operating-model-v1.md`
+- `docs/contracts/05-financial-p0-policies.md`
 - `docs/product/guidance-interaction-policy-v1.md`
 - `docs/scenarios/scenario-test-set-v1.md`
 - `docs/scenarios/scenario-test-results-v1.md`

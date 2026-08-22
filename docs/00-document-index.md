@@ -15,7 +15,7 @@
 | 7 | `docs/05-documentation-governance.md` | CURRENT | إدارة الوثائق وتعارضاتها |
 | 8 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
 | 9 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
-| 10 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة |
+| 10 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة وسياسات المال P0، ومنها `05-financial-p0-policies.md` |
 | 11 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
 | 12 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 13 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
@@ -29,23 +29,26 @@
 | 21 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
 | 22 | `docs/research/jordan-financial-problems-evidence.md` | SUPPORTING | الأدلة المحلية والخارجية وحدودها |
 | 23 | `ai-skills/micro-scenario-validation/` | CURRENT | اختبار القرارات على الشخصيات والحالات والأسئلة |
-| 24 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف Prototype وMVP وبوابة المحاكاة قبل البناء |
+| 24 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف المراحل وبوابة المحاكاة قبل البناء |
 | 25 | `docs/quality/pre-build-experiment-simulation-v1.md` | CURRENT / EVIDENCE | نتائج المحاكاة الحتمية لتجارب ما قبل البناء |
 | 26 | `docs/quality/pre-build-experiment-simulation-v1.json` | SUPPORTING DATA | البيانات القابلة لإعادة الفحص للمحاكاة |
+| 27 | `docs/research/global-build-reference-library-v1.md` | CURRENT / RESEARCH AUTHORITY | المعرفة العالمية المحفوظة والمفاهيم والتراخيص وقرارات build/study/defer/reject |
+| 28 | `docs/research/micro-build-logic-v1.md` | CURRENT / BUILD LOGIC | تحويل المصادر إلى منطق Domain وUX وPrototype ومراحل البناء اللاحقة |
+| 29 | `docs/quality/simulated-first-read-cloud-code-v1.md` | CURRENT / QUALITY REVIEW | محاكاة قراءة Agent جديد وحدود ما يفهمه قبل القراءة الفعلية لـCloud Code |
 
 ## الوثائق التنفيذية الإلزامية
 
-قبل أي قرار منتج أو تصميم تجربة، اقرأ `docs/product/problem-statement-v3.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/scenarios/scenario-test-set-v1.md` و`docs/implementation/03-pre-build-alignment-v1.md`. قبل أي قرار مالي أو Domain، اقرأ `docs/product/financial-operating-model-v1.md` ومصفوفة التغطية. لا يبدأ الكود قبل اجتياز بوابة Pre-build والمحاكاة المحددة في الوثيقة الجديدة.
+قبل أي قرار منتج أو تصميم تجربة، اقرأ `docs/product/problem-statement-v3.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/scenarios/scenario-test-set-v1.md` و`docs/implementation/03-pre-build-alignment-v1.md`. قبل أي قرار مالي أو Domain، اقرأ `docs/product/financial-operating-model-v1.md` و`docs/contracts/05-financial-p0-policies.md` ومصفوفة التغطية. لا يبدأ الكود قبل اجتياز بوابة Pre-build وقراءة `docs/quality/pre-build-experiment-simulation-v1.md` وبياناتها.
 
 ## العقود التنفيذية الإلزامية
 
-قبل كتابة كود أو واجهة، اقرأ `docs/decisions/01-first-vertical-slice.md` ثم العقود الموجودة في `docs/contracts/`. لا يجوز أن يحسم الكود معنى العربون أو التسليم أو التكلفة أو المزامنة بدل العقد.
+قبل كتابة كود أو واجهة، اقرأ `docs/decisions/01-first-vertical-slice.md` ثم العقود الموجودة في `docs/contracts/`، وبالأخص `docs/contracts/05-financial-p0-policies.md` عند أي نتيجة أو تكلفة أو سعر أو مصروف. لا يجوز أن يحسم الكود معنى العربون أو التسليم أو التكلفة أو المزامنة بدل العقد.
 
 ## اقرأ حسب نوع المهمة
 
 | نوع المهمة | ملفات إضافية |
 |---|---|
-| بحث عالمي أو GitHub | `docs/06-reference-library.md`، `docs/research/github-global-research-round2.md`، `docs/research/github-global-research.md` |
+| بحث عالمي أو GitHub | `docs/research/global-build-reference-library-v1.md` ثم `docs/research/micro-build-logic-v1.md`؛ وللتاريخ `docs/06-reference-library.md` وملفات البحث السابقة |
 | تكلفة وربح وطلبات | مراجع `ai-skills/microbusiness-finance-operations/` داخل المستودع |
 | كود وأمن ومزامنة ونشر | مراجع `ai-skills/saas-delivery-verifier/` داخل المستودع |
 | قرار UX أو MVP | `docs/decisions/01-first-vertical-slice.md` ثم مراجع `ai-skills/saas-product-guardian/` و`ai-skills/micro-scenario-validation/` داخل المستودع |
@@ -73,7 +76,7 @@
 
 ## بروتوكول الإغلاق
 
-بعد العمل، حدّث المرجع المناسب وسجل القرار أو الفرضية. لا تنشئ ملفًا جديدًا لمجرد تسجيل فقرة صغيرة. إذا أنشأت دراسة جديدة، أضفها إلى هذا الفهرس مع تصنيفها.
+بعد العمل، حدّث المرجع المناسب وسجل القرار أو الفرضية. لا تنشئ ملفًا جديدًا لمجرد تسجيل فقرة صغيرة. إذا أنشأت دراسة جديدة، أضفها إلى هذا الفهرس مع تصنيفها. عند بحث مصدر عالمي، لا يكفي حفظ الرابط؛ يجب تحديث مكتبة المصادر ومنطق البناء أو تسجيل سبب عدم الاعتماد.
 
 ## لا تلمس
 
