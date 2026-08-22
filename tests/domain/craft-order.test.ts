@@ -478,6 +478,122 @@ describe('craft-order domain core', () => {
     ).toThrow('revised cost snapshot quantity must match order quantity');
   });
 
+  it('settles a fully prepaid order at delivery and shows no collection action', () => {
+    let order = collectDeposit(makeOrder(), 4000, 'full-prepaid-deposit', '2026-08-21T10:30:00Z');
+    order = confirmAndDeliver(order);
+
+    expect(order.status).toBe('settled');
+    expect(order.settlementStatus).toBe('paid');
+    expect(order.receivableMinor).toBe(0);
+    expect(order.nextAction).toBe('راجع النتيجة والفعل التالي');
+    expect(order.events).toContainEqual(
+      expect.objectContaining({
+        type: 'status_changed',
+        fromStatus: 'delivered',
+        toStatus: 'settled',
+      }),
+    );
+  });
+
+  it('blocks every public mutation after delivered review', () => {
+    const delivered = confirmAndDeliver(makeOrder());
+    const reviewed = transitionOrder(delivered, {
+      to: 'needs_review',
+      idempotencyKey: 'review-lock',
+      createdAt: '2026-08-21T10:31:00Z',
+    });
+
+    expect(() => cancelOrder(reviewed, 'محاولة إلغاء بعد التسليم', 'locked-cancel', '2026-08-21T10:32:00Z')).toThrow(
+      'explicit correction',
+    );
+    expect(() => reviseOrderCost(reviewed, 'تعديل بعد التسليم', costSnapshot, 'locked-revision', '2026-08-21T10:33:00Z')).toThrow(
+      'explicit correction',
+    );
+    expect(() => collectDeposit(reviewed, 100, 'locked-deposit', '2026-08-21T10:34:00Z')).toThrow(
+      'explicit correction',
+    );
+  });
+
+  it('does not allow generic cancellation to bypass deposit settlement', () => {
+    const withDeposit = collectDeposit(makeOrder(), 500, 'generic-cancel-deposit', '2026-08-21T10:35:00Z');
+
+    expect(() =>
+      transitionOrder(withDeposit, {
+        to: 'cancelled',
+        idempotencyKey: 'generic-cancel-transition',
+        createdAt: '2026-08-21T10:36:00Z',
+      }),
+    ).toThrow('invalid transition');
+  });
+
+  it('rejects blank idempotency keys', () => {
+    expect(() => collectDeposit(makeOrder(), 100, '   ', '2026-08-21T10:37:00Z')).toThrow(
+      'idempotencyKey must be non-blank',
+    );
+  });
+
+  it('keeps cost snapshot history immutable and self-consistent', () => {
+    const sourceInput = { ...costSnapshot.input, materialItems: costSnapshot.input.materialItems.map((item) => ({ ...item })) };
+    const snapshot = calculateCostSnapshot('cost-immutable', sourceInput);
+
+    expect(snapshot.quantity).toBe(snapshot.input.quantity);
+    expect(() => {
+      snapshot.input.materialItems[0]!.unitPriceMinor = 9999;
+    }).toThrow(TypeError);
+    expect(snapshot.input.materialItems[0]!.unitPriceMinor).toBe(500);
+  });
+
+  it('detaches external snapshot references at the order boundary', () => {
+    const externalSnapshot: CostSnapshot = {
+      ...costSnapshot,
+      id: 'cost-external',
+      input: {
+        ...costSnapshot.input,
+        materialItems: costSnapshot.input.materialItems.map((item) => ({ ...item })),
+      },
+    };
+    const order = makeOrder({ costSnapshot: externalSnapshot });
+
+    externalSnapshot.input.materialItems[0]!.unitPriceMinor = 9999;
+    expect(order.costSnapshot.input.materialItems[0]!.unitPriceMinor).toBe(500);
+    expect(() => order.costSnapshots.push(costSnapshot)).toThrow(TypeError);
+  });
+
+  it('records status_changed alongside revision and cancellation events', () => {
+    const revised = reviseOrderCost(
+      makeOrder(),
+      'مواصفات معدلة',
+      costSnapshot,
+      'status-revision',
+      '2026-08-21T10:38:00Z',
+    );
+    expect(revised.events).toContainEqual(
+      expect.objectContaining({
+        type: 'status_changed',
+        fromStatus: 'draft',
+        toStatus: 'needs_review',
+      }),
+    );
+
+    const cancelled = cancelOrder(makeOrder(), 'إلغاء موثق', 'status-cancel', '2026-08-21T10:39:00Z');
+    expect(cancelled.events).toContainEqual(
+      expect.objectContaining({
+        type: 'status_changed',
+        fromStatus: 'draft',
+        toStatus: 'cancelled',
+      }),
+    );
+  });
+
+  it('allows the same caller token across different event types without cross-operation suppression', () => {
+    const deposited = collectDeposit(makeOrder(), 500, 'shared-token', '2026-08-21T10:40:00Z');
+    const delivered = confirmAndDeliver(deposited);
+    const collected = collectRemaining(delivered, 3500, 'shared-token', '2026-08-21T10:41:00Z');
+
+    expect(collected.collectedMinor).toBe(4000);
+    expect(collected.status).toBe('settled');
+  });
+
   it('rejects invalid status transitions', () => {
     const order = makeOrder();
     expect(() =>
