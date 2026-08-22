@@ -19,13 +19,13 @@
 
 ## مراجع Micro الثابتة
 
-قبل أي قرار منتج أو تجربة، اقرأ `../docs/product/problem-statement-v3.md` و`../docs/product/system-definition-v1.md` و`../docs/product/user-operating-model-v1.md`. قبل أي قرار مالي، اقرأ `../docs/product/financial-operating-model-v1.md`. عند تغيير المفهوم أو تجربة المستخدم، فعّل `micro-scenario-validation` واختبر التغيير على `../docs/scenarios/scenario-test-set-v1.md` و`../docs/quality/scenario-coverage-matrix-v1.md`. هذه الوثائق هي مصدر الحقيقة داخل GitHub؛ المهارات تفرض طريقة استخدامها ولا تستبدلها.
+قبل أي قرار منتج أو تجربة، اقرأ `../docs/product/problem-statement-v3.md` و`../docs/product/system-definition-v1.md` و`../docs/product/user-operating-model-v1.md`. قبل أي قرار مالي، اقرأ `../docs/product/financial-operating-model-v1.md`. عند استخدام مصدر عالمي أو اختيار نمط أو مكتبة، اقرأ `../docs/research/global-build-reference-library-v1.md` ثم `../docs/research/micro-build-logic-v1.md`. عند تغيير المفهوم أو تجربة المستخدم، فعّل `micro-scenario-validation` واختبر التغيير على `../docs/scenarios/scenario-test-set-v1.md` و`../docs/quality/scenario-coverage-matrix-v1.md`. هذه الوثائق هي مصدر الحقيقة داخل GitHub؛ المهارات تفرض طريقة استخدامها ولا تستبدلها.
 
 ## رسالة بدء محمولة
 
 عند استخدام مساعد لا يقرأ مجلد المهارات تلقائيًا، أرسل له:
 
-> استخدم حزمة مهارات Micro المرفقة. ابدأ بـsaas-product-guardian، وأضف مهارة المجال وmicro-scenario-validation أو التنفيذ حسب نوع المهمة. لا تعتبر أي نظام قديم أو مشروع GitHub مصدر حقيقة. اربط كل قرار بـProblem Statement والسيناريوهات canonical، افصل الدليل عن الفرضية، اختر أقل Vertical Slice، واذكر التوصية والمخاطر ومعيار القبول والفشل. لا تعرض ربحًا عند نقص التكلفة، ولا تبنِ Billing في تطبيق المستخدم في MVP، ولا تنقل كودًا بلا ترخيص واضح.
+> استخدم حزمة مهارات Micro المرفقة. ابدأ بـsaas-product-guardian، واقرأ مكتبة `docs/research/global-build-reference-library-v1.md` ومنطق `docs/research/micro-build-logic-v1.md` عند أي بحث أو اختيار نمط أو مكتبة، ثم أضف مهارة المجال وmicro-scenario-validation أو التنفيذ حسب نوع المهمة. لا تعتبر أي نظام قديم أو مشروع GitHub مصدر حقيقة. اربط كل قرار بـProblem Statement والسيناريوهات canonical، افصل الدليل عن الفرضية، اختر أقل Vertical Slice، واذكر التوصية والمخاطر ومعيار القبول والفشل. لا تعرض ربحًا عند نقص التكلفة، ولا تبنِ Billing في تطبيق المستخدم في MVP، ولا تنقل كودًا بلا ترخيص واضح.
 
 ثم أرفق مجلدات المهارات كما هي، لا ملف SKILL.md وحده إذا أردت أن يقرأ المراجع الداخلية.
 

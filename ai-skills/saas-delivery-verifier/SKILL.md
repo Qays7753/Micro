@@ -13,6 +13,8 @@ description: حارس تنفيذ وتسليم SaaS للمشاريع المنزل
 
 قبل تعديل مستودع أو إنشاء مشروع:
 
+0. اقرأ `../../docs/research/global-build-reference-library-v1.md` و`../../docs/research/micro-build-logic-v1.md` قبل اختيار أي مكتبة أو نمط خارجي؛ يجب أن تفهم المنطق والحدود والمرحلة والترخيص، لا أن تنقل Feature من README.
+
 1. اقرأ `../../docs/product/problem-statement-v3.md` و`../../docs/product/system-definition-v1.md` وقرار الميزة وبطاقة الفرضية.
 2. اقرأ `../../docs/product/user-operating-model-v1.md` و`../../docs/product/financial-operating-model-v1.md` و`../../docs/product/guidance-interaction-policy-v1.md` قبل اختيار المدخلات أو المخرجات.
 3. حدد الـVertical Slice والبيانات والمدخلات والنتيجة والفعل التالي، واربطه بشخصيات وحالات من `../../docs/scenarios/scenario-test-set-v1.md`.
@@ -86,7 +88,7 @@ SaaS هو طريقة تشغيل وبيع المنتج، لا وظيفة يحتا
 
 ## الكود الخارجي
 
-قبل استخدام أي مشروع أو مكتبة خارجية، سجّل الرابط، الإصدار أو commit، الترخيص الفعلي، التعديلات، الاعتماديات، وسبب الملاءمة. إذا غاب الترخيص أو كان copyleft أو BSL، لا تدمج الكود قبل مراجعة قانونية. افصل الاستلهام عن النسخ.
+قبل استخدام أي مشروع أو مكتبة خارجية، ارجع إلى بطاقة المصدر في `../../docs/research/global-build-reference-library-v1.md` وسجل الرابط، الإصدار أو commit، الترخيص الفعلي، التعديلات، الاعتماديات، وسبب الملاءمة. إذا غاب الترخيص أو كان copyleft أو BSL، لا تدمج الكود قبل مراجعة قانونية. افصل الاستلهام عن النسخ.
 
 ## مراجع المهارة
 

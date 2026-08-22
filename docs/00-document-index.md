@@ -29,6 +29,8 @@
 | 21 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
 | 22 | `docs/research/jordan-financial-problems-evidence.md` | SUPPORTING | الأدلة المحلية والخارجية وحدودها |
 | 23 | `ai-skills/micro-scenario-validation/` | CURRENT | اختبار القرارات على الشخصيات والحالات والأسئلة |
+| 24 | `docs/research/global-build-reference-library-v1.md` | CURRENT / RESEARCH AUTHORITY | المعرفة العالمية المحفوظة والمفاهيم والتراخيص وقرارات build/study/defer/reject |
+| 25 | `docs/research/micro-build-logic-v1.md` | CURRENT / BUILD LOGIC | تحويل المصادر إلى منطق Domain وUX وPrototype ومراحل البناء اللاحقة |
 
 ## الوثائق التنفيذية الإلزامية
 
@@ -42,7 +44,7 @@
 
 | نوع المهمة | ملفات إضافية |
 |---|---|
-| بحث عالمي أو GitHub | `docs/06-reference-library.md`، `docs/research/github-global-research-round2.md`، `docs/research/github-global-research.md` |
+| بحث عالمي أو GitHub | `docs/research/global-build-reference-library-v1.md` ثم `docs/research/micro-build-logic-v1.md`؛ وللتاريخ `docs/06-reference-library.md` وملفات البحث السابقة |
 | تكلفة وربح وطلبات | مراجع `ai-skills/microbusiness-finance-operations/` داخل المستودع |
 | كود وأمن ومزامنة ونشر | مراجع `ai-skills/saas-delivery-verifier/` داخل المستودع |
 | قرار UX أو MVP | `docs/decisions/01-first-vertical-slice.md` ثم مراجع `ai-skills/saas-product-guardian/` و`ai-skills/micro-scenario-validation/` داخل المستودع |
@@ -70,7 +72,7 @@
 
 ## بروتوكول الإغلاق
 
-بعد العمل، حدّث المرجع المناسب وسجل القرار أو الفرضية. لا تنشئ ملفًا جديدًا لمجرد تسجيل فقرة صغيرة. إذا أنشأت دراسة جديدة، أضفها إلى هذا الفهرس مع تصنيفها.
+بعد العمل، حدّث المرجع المناسب وسجل القرار أو الفرضية. لا تنشئ ملفًا جديدًا لمجرد تسجيل فقرة صغيرة. إذا أنشأت دراسة جديدة، أضفها إلى هذا الفهرس مع تصنيفها. عند بحث مصدر عالمي، لا يكفي حفظ الرابط؛ يجب تحديث مكتبة المصادر ومنطق البناء أو تسجيل سبب عدم الاعتماد.
 
 ## لا تلمس
 

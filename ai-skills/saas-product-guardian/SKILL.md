@@ -31,8 +31,9 @@ description: حارس المنتج والقرارات لـSaaS مالي وتشغ
 6. اذكر البدائل: بناء مستقل، إعادة استخدام انتقائي، تأجيل، أو رفض.
 7. قيّم مخاطر التعقيد، الثقة، الخصوصية، الدقة الزائفة، التبني، والتكلفة التشغيلية.
 8. ضع معيار قبول وفشل واختبارًا سلوكيًا أو تقنيًا.
-9. مرّر القرار على `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md`، ولا تعتبر السيناريوهات دليلًا إحصائيًا.
-10. سجّل القرار، سببه، ما قد يغيره، وتاريخ مراجعته.
+9. قبل اقتراح Prototype أو كود، اقرأ `docs/research/global-build-reference-library-v1.md` و`docs/research/micro-build-logic-v1.md` لتفهم المصدر والمنطق والمرحلة، ولا تحول المرجع إلى قائمة Features.
+10. مرّر القرار على `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md`، ولا تعتبر السيناريوهات دليلًا إحصائيًا.
+11. سجّل القرار، سببه، ما قد يغيره، وتاريخ مراجعته.
 
 ## حواجز منع الانحياز
 
@@ -86,6 +87,8 @@ description: حارس المنتج والقرارات لـSaaS مالي وتشغ
 - `../../docs/product/user-operating-model-v1.md` للاستخدام اليومي والأسبوعي والشهري.
 - `../../docs/scenarios/scenario-test-set-v1.md` للشخصيات والحالات والأسئلة.
 - `../../docs/quality/scenario-coverage-matrix-v1.md` لمطابقة المشكلة بالقدرة والاختبار.
+- `../../docs/research/global-build-reference-library-v1.md` للمصادر العالمية والمفاهيم والمنطق والتراخيص وقرارات build/study/defer/reject.
+- `../../docs/research/micro-build-logic-v1.md` لتحويل المعرفة الخارجية إلى منطق Product/Domain/UX/Prototype ومراحل لاحقة.
 - `references/product_context.md` لسياق المنتج المختصر.
 - `references/hypothesis_and_research.md` لسجل الفرضيات وقواعد البحث.
 - `references/decision_template.md` لتوثيق القرار والميزة.

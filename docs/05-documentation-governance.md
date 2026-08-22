@@ -26,18 +26,20 @@
 | 2 | `docs/03-hypothesis-register.md` | CURRENT | سجل الفرضيات ومعايير تحويل المجهول إلى قرار |
 | 3 | `docs/04-product-truth-map.md` | CURRENT | ما هو مثبت ومرجح ومجهول ومصدر الدليل |
 | 4 | `docs/07-field-evidence-map.md` | CURRENT | الدليل الميداني وحدود ما تثبته خبرة المؤسس |
-| 5 | `docs/06-reference-library.md` | SUPPORTING | مكتبة مشاريع GitHub والأنماط والتراخيص |
-| 6 | `ai-skills/README.ar.md` | CURRENT | طريقة تشغيل المهارات مع أي ذكاء اصطناعي |
-| 7 | `docs/research/architecture-and-stack-decision.md` | SUPPORTING | مقارنة أولية للـStack؛ لا يتجاوز قرار الملف الأساسي |
-| 8 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING | سجل قرار النواة المستقلة ومبرراته |
-| 9 | `docs/research/github-global-research-round2.md` | SUPPORTING | تقرير البحث العالمي الثاني |
-| 10 | `docs/research/github-global-research.md` | SUPPORTING | تقرير البحث العالمي الأول |
-| 11 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
-| 12 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
-| 13 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
-| 14 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
-| 15 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
-| 16 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
+| 5 | `docs/06-reference-library.md` | SUPPORTING | فهرس مشاريع GitHub والأنماط والتراخيص |
+| 6 | `docs/research/global-build-reference-library-v1.md` | CURRENT / RESEARCH AUTHORITY | المعرفة العالمية المحفوظة، المفاهيم، المنطق، التراخيص، وقرارات build/study/defer/reject |
+| 7 | `docs/research/micro-build-logic-v1.md` | CURRENT / BUILD LOGIC | تحويل المصادر إلى منطق Domain وUX وPrototype ومراحل مستقبلية |
+| 8 | `ai-skills/README.ar.md` | CURRENT | طريقة تشغيل المهارات مع أي ذكاء اصطناعي |
+| 9 | `docs/research/architecture-and-stack-decision.md` | SUPPORTING | مقارنة أولية للـStack؛ لا يتجاوز قرار الملف الأساسي |
+| 10 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING | سجل قرار النواة المستقلة ومبرراته |
+| 11 | `docs/research/github-global-research-round2.md` | SUPPORTING / HISTORY | تقرير البحث العالمي الثاني؛ يُقرأ لتتبع التاريخ لا كمرجع تجميعي أحدث |
+| 12 | `docs/research/github-global-research.md` | SUPPORTING / HISTORY | تقرير البحث العالمي الأول؛ يُقرأ لتتبع التاريخ لا كمرجع تجميعي أحدث |
+| 13 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
+| 14 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
+| 15 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
+| 16 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
+| 17 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
+| 18 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 
 ## 4. ترتيب القراءة حسب المهمة
 
@@ -47,7 +49,7 @@
 | تكلفة أو ربح أو طلب | الملف الأساسي + حارس المجال | قواعد المجال والاختبارات |
 | كود أو قاعدة بيانات أو نشر | الملف الأساسي + قرار الشريحة + العقود + حارس التنفيذ | قرار Stack، الأمان، ومصفوفة التحقق |
 | Domain Core | قرار الشريحة + العقود + خارطة التنفيذ | `src/domain/` و`tests/domain/` |
-| بحث خارجي أو GitHub | Truth Map + مكتبة المراجع | تقارير البحث وسجل التراخيص |
+| بحث خارجي أو GitHub | Truth Map + `global-build-reference-library-v1.md` + `micro-build-logic-v1.md` | `docs/06-reference-library.md` وتقارير البحث التاريخية وسجل التراخيص |
 | مراجعة نظام Accounting القديم | الملف الأساسي فقط لتحديد المطلوب | ملفات LEGACY المحددة فقط |
 
 ## 5. قواعد التحديث
@@ -79,6 +81,8 @@
 | `docs/scenarios/` | الشخصيات والحالات والأسئلة ونتائج الاختبار |
 | `docs/quality/scenario-coverage-matrix-v1.md` | مطابقة المشكلات بالقدرات والاختبارات |
 | `docs/research/jordan-financial-problems-evidence.md` | الأدلة المحلية والخارجية وحدودها |
+| `docs/research/global-build-reference-library-v1.md` | المعرفة العالمية المحفوظة وقرارات المصادر |
+| `docs/research/micro-build-logic-v1.md` | منطق تحويل المصادر إلى بناء واختبار |
 
 هذه الملفات تحفظ المعرفة التي تم تثبيتها خارج المحادثة. لا تُرفع نسخ مراحل أو تقارير محادثة بأسماء متعددة إذا كان محتواها قد دُمج في هذه المراجع. إذا تغيّر مضمون جوهري، يُحدّث الملف canonical وتُسجّل الإحالة في سجل القرارات بدل إنشاء نسخة منافسة.
 
