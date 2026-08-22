@@ -14,16 +14,16 @@ import type {
 } from './types.js';
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
-  draft: ['provisional_agreement', 'cancelled', 'needs_review'],
-  provisional_agreement: ['confirmed', 'postponed', 'cancelled', 'needs_review'],
-  confirmed: ['in_progress', 'postponed', 'cancelled', 'needs_review'],
-  in_progress: ['ready', 'postponed', 'cancelled', 'needs_review'],
-  ready: ['delivered', 'postponed', 'cancelled', 'needs_review'],
+  draft: ['provisional_agreement', 'needs_review'],
+  provisional_agreement: ['confirmed', 'postponed', 'needs_review'],
+  confirmed: ['in_progress', 'postponed', 'needs_review'],
+  in_progress: ['ready', 'postponed', 'needs_review'],
+  ready: ['delivered', 'postponed', 'needs_review'],
   delivered: ['settled', 'needs_review'],
   settled: [],
-  postponed: ['provisional_agreement', 'confirmed', 'cancelled', 'needs_review'],
+  postponed: ['provisional_agreement', 'confirmed', 'needs_review'],
   cancelled: [],
-  needs_review: ['provisional_agreement', 'confirmed', 'cancelled'],
+  needs_review: ['provisional_agreement', 'confirmed'],
 };
 
 function assertPositiveInteger(value: number, field: string): void {
@@ -53,6 +53,33 @@ function assertValidDate(value: string, field: string): void {
 function assertFreshnessDays(value: number | null | undefined): void {
   if (value !== null && value !== undefined && (!Number.isInteger(value) || value < 0)) {
     throw new Error('freshnessDays must be a non-negative integer');
+  }
+}
+
+function assertIdempotencyKey(value: string): void {
+  if (!value.trim()) throw new Error('idempotencyKey must be non-blank');
+}
+
+function cloneCostSnapshotInput(input: CostSnapshotInput): CostSnapshotInput {
+  return {
+    ...input,
+    materialItems: input.materialItems.map((item) => ({ ...item })),
+    time: input.time ? { ...input.time } : null,
+  };
+}
+
+function freezeCostSnapshot(snapshot: CostSnapshot): CostSnapshot {
+  const input = cloneCostSnapshotInput(snapshot.input);
+  input.materialItems.forEach((item) => Object.freeze(item));
+  Object.freeze(input.materialItems);
+  if (input.time) Object.freeze(input.time);
+  Object.freeze(input);
+  return Object.freeze({ ...snapshot, input }) as CostSnapshot;
+}
+
+function assertSnapshotSelfConsistency(snapshot: CostSnapshot): void {
+  if (snapshot.quantity !== snapshot.input.quantity) {
+    throw new Error('cost snapshot quantity must match its input quantity');
   }
 }
 
@@ -137,7 +164,7 @@ export function calculateCostSnapshot(
   const unitCostMinor = Math.ceil(plannedCostMinor / input.quantity);
   const priceFloorMinor = unitCostMinor + input.safetyBufferMinor;
 
-  return {
+  return freezeCostSnapshot({
     id,
     currency: input.currency,
     materialCostMinor,
@@ -150,13 +177,25 @@ export function calculateCostSnapshot(
     priceFloorMinor,
     quantity: input.quantity,
     knowledgeState: determineKnowledgeState(input),
-    input,
+    input: cloneCostSnapshotInput(input),
     createdAt: input.createdAt,
-  };
+  });
 }
 
-function eventExists(order: CraftOrder, idempotencyKey: string): boolean {
-  return order.events.some((event) => event.idempotencyKey === idempotencyKey);
+function eventExists(
+  order: CraftOrder,
+  idempotencyKey: string,
+  eventType: OrderEventType,
+): boolean {
+  return order.events.some(
+    (event) => event.idempotencyKey === idempotencyKey && event.type === eventType,
+  );
+}
+
+function assertNotLockedDeliveredReview(order: CraftOrder): void {
+  if (order.status === 'needs_review' && hasDeliveredEvent(order)) {
+    throw new Error('delivered order requires an explicit correction before leaving needs_review');
+  }
 }
 
 function hasDeliveredEvent(order: CraftOrder): boolean {
@@ -166,8 +205,28 @@ function hasDeliveredEvent(order: CraftOrder): boolean {
 }
 
 function appendEvent(order: CraftOrder, event: OrderEvent): CraftOrder {
-  if (eventExists(order, event.idempotencyKey)) return order;
+  if (eventExists(order, event.idempotencyKey, event.type)) return order;
   return { ...order, events: [...order.events, event] };
+}
+
+function appendStatusChanged(
+  order: CraftOrder,
+  fromStatus: OrderStatus,
+  toStatus: OrderStatus,
+  idempotencyKey: string,
+  createdAt: string,
+  note?: string,
+): CraftOrder {
+  if (fromStatus === toStatus) return order;
+  return appendEvent(order, {
+    id: `${order.id}:status:${idempotencyKey}`,
+    type: 'status_changed',
+    idempotencyKey: `status:${idempotencyKey}`,
+    createdAt,
+    ...(note ? { note } : {}),
+    fromStatus,
+    toStatus,
+  });
 }
 
 function withSettlement(order: CraftOrder): CraftOrder {
@@ -200,9 +259,11 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
   if (!input.specifications.trim()) throw new Error('specifications are required');
   assertValidQuantity(input.quantity);
   assertPositiveInteger(input.agreedPriceMinor, 'agreedPriceMinor');
+  assertSnapshotSelfConsistency(input.costSnapshot);
   if (input.costSnapshot.quantity !== input.quantity) {
     throw new Error('cost snapshot quantity must match order quantity');
   }
+  const safeCostSnapshot = freezeCostSnapshot(input.costSnapshot);
 
   const order: CraftOrder = {
     id: input.id,
@@ -212,8 +273,8 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
     quantity: input.quantity,
     currency: 'JOD',
     agreedPriceMinor: input.agreedPriceMinor,
-    costSnapshot: input.costSnapshot,
-    costSnapshots: [input.costSnapshot],
+    costSnapshot: safeCostSnapshot,
+    costSnapshots: Object.freeze([safeCostSnapshot]) as unknown as CostSnapshot[],
     status: 'draft',
     settlementStatus: 'unpaid',
     depositCollectedMinor: 0,
@@ -241,10 +302,9 @@ export function transitionOrder(
   order: CraftOrder,
   input: OrderTransitionInput,
 ): CraftOrder {
-  if (eventExists(order, input.idempotencyKey)) return order;
-  if (order.status === 'needs_review' && hasDeliveredEvent(order)) {
-    throw new Error('delivered order requires an explicit correction before leaving needs_review');
-  }
+  assertIdempotencyKey(input.idempotencyKey);
+  if (eventExists(order, input.idempotencyKey, 'status_changed')) return order;
+  assertNotLockedDeliveredReview(order);
   if (!ALLOWED_TRANSITIONS[order.status].includes(input.to)) {
     throw new Error(`invalid transition: ${order.status} -> ${input.to}`);
   }
@@ -256,13 +316,15 @@ export function transitionOrder(
     throw new Error('settled order requires zero receivable or a registered debt');
   }
 
+  const deliveredAction =
+    order.receivableMinor > 0 ? 'حصّل المتبقي أو سجل الدين' : 'راجع النتيجة والفعل التالي';
   const nextActionByStatus: Record<OrderStatus, string> = {
     draft: 'سجل الاتفاق أو راجع المواصفات',
     provisional_agreement: 'أكد السعر والموعد',
     confirmed: 'ابدأ التنفيذ',
     in_progress: 'سجل الجاهزية أو سبب التأجيل',
     ready: 'سجل التسليم',
-    delivered: 'حصّل المتبقي أو سجل الدين',
+    delivered: deliveredAction,
     settled: 'راجع النتيجة والفعل التالي',
     postponed: 'حدد موعد متابعة',
     cancelled: 'راجع إغلاق الطلب وتسوية العربون إن وجدت',
@@ -297,7 +359,23 @@ export function transitionOrder(
         })()
       : reviewSafe;
 
-  return appendEvent(recognized, {
+  const shouldSettleAfterDelivery =
+    input.to === 'delivered' && recognized.receivableMinor === 0 && recognized.settlementStatus === 'paid';
+  const statusAfterDelivery = shouldSettleAfterDelivery
+    ? { ...recognized, status: 'settled' as const, nextAction: 'راجع النتيجة والفعل التالي' }
+    : recognized;
+  const withDeliveryStatusEvent = shouldSettleAfterDelivery
+    ? appendEvent(statusAfterDelivery, {
+        id: `${order.id}:status:${input.idempotencyKey}`,
+        type: 'status_changed',
+        idempotencyKey: `status:${input.idempotencyKey}`,
+        createdAt: input.createdAt,
+        fromStatus: 'delivered',
+        toStatus: 'settled',
+      })
+    : statusAfterDelivery;
+
+  return appendEvent(withDeliveryStatusEvent, {
     id: `${order.id}:${input.idempotencyKey}`,
     type: 'status_changed',
     idempotencyKey: input.idempotencyKey,
@@ -315,32 +393,44 @@ export function reviseOrderCost(
   idempotencyKey: string,
   createdAt: string,
 ): CraftOrder {
-  if (eventExists(order, idempotencyKey)) return order;
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, 'specification_revised')) return order;
+  assertNotLockedDeliveredReview(order);
   if (!specifications.trim()) throw new Error('revised specifications are required');
+  assertSnapshotSelfConsistency(nextCostSnapshot);
   if (nextCostSnapshot.quantity !== order.quantity) {
     throw new Error('revised cost snapshot quantity must match order quantity');
   }
   if (order.status === 'delivered' || order.status === 'settled' || order.status === 'cancelled') {
     throw new Error(`cannot revise order in ${order.status} status`);
   }
+  const safeCostSnapshot = freezeCostSnapshot(nextCostSnapshot);
 
   const next: CraftOrder = {
     ...order,
     specifications,
-    costSnapshot: nextCostSnapshot,
-    costSnapshots: [...order.costSnapshots, nextCostSnapshot],
+    costSnapshot: safeCostSnapshot,
+    costSnapshots: Object.freeze([...order.costSnapshots, safeCostSnapshot]) as unknown as CostSnapshot[],
     status: 'needs_review',
     resultStatus: 'review_required',
     profitIndicatorMinor: null,
     nextAction: 'راجع السعر والمواصفات مع الزبون',
   };
 
-  return appendEvent(next, {
+  const withStatusEvent = appendStatusChanged(
+    next,
+    order.status,
+    'needs_review',
+    idempotencyKey,
+    createdAt,
+    'specification revision requires review',
+  );
+  return appendEvent(withStatusEvent, {
     id: `${order.id}:${idempotencyKey}`,
     type: 'specification_revised',
     idempotencyKey,
     createdAt,
-    note: `cost snapshot: ${nextCostSnapshot.id}`,
+    note: `cost snapshot: ${safeCostSnapshot.id}`,
   });
 }
 
@@ -350,7 +440,9 @@ export function collectDeposit(
   idempotencyKey: string,
   createdAt: string,
 ): CraftOrder {
-  if (eventExists(order, idempotencyKey)) return order;
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, 'deposit_collected')) return order;
+  assertNotLockedDeliveredReview(order);
   if (order.status === 'delivered' || order.status === 'settled' || order.status === 'cancelled') {
     throw new Error(`cannot collect deposit in ${order.status} status`);
   }
@@ -381,7 +473,9 @@ export function collectRemaining(
   idempotencyKey: string,
   createdAt: string,
 ): CraftOrder {
-  if (eventExists(order, idempotencyKey)) return order;
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, 'collection_recorded')) return order;
+  assertNotLockedDeliveredReview(order);
   if (order.status !== 'delivered') {
     throw new Error('remaining collection requires a delivered order');
   }
@@ -396,17 +490,13 @@ export function collectRemaining(
     nextAction: 'راجع النتيجة والفعل التالي',
   });
   const settled = next.receivableMinor === 0 ? { ...next, status: 'settled' as const } : next;
-  const withStatusEvent =
-    settled.status === order.status
-      ? settled
-      : appendEvent(settled, {
-          id: `${order.id}:status:${idempotencyKey}`,
-          type: 'status_changed',
-          idempotencyKey: `status:${idempotencyKey}`,
-          createdAt,
-          fromStatus: order.status,
-          toStatus: settled.status,
-        });
+  const withStatusEvent = appendStatusChanged(
+    settled,
+    order.status,
+    settled.status,
+    idempotencyKey,
+    createdAt,
+  );
 
   return appendEvent(withStatusEvent, {
     id: `${order.id}:${idempotencyKey}`,
@@ -422,7 +512,9 @@ export function registerDebt(
   idempotencyKey: string,
   createdAt: string,
 ): CraftOrder {
-  if (eventExists(order, idempotencyKey)) return order;
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, 'debt_registered')) return order;
+  assertNotLockedDeliveredReview(order);
   if (order.status !== 'delivered') {
     throw new Error('debt requires a delivered order');
   }
@@ -436,14 +528,13 @@ export function registerDebt(
     settlementStatus: 'debt',
     nextAction: 'تابع تحصيل الدين',
   };
-  const withStatusEvent = appendEvent(next, {
-    id: `${order.id}:status:${idempotencyKey}`,
-    type: 'status_changed',
-    idempotencyKey: `status:${idempotencyKey}`,
+  const withStatusEvent = appendStatusChanged(
+    next,
+    order.status,
+    'settled',
+    idempotencyKey,
     createdAt,
-    fromStatus: order.status,
-    toStatus: 'settled',
-  });
+  );
 
   return appendEvent(withStatusEvent, {
     id: `${order.id}:${idempotencyKey}`,
@@ -460,7 +551,9 @@ export function cancelOrder(
   idempotencyKey: string,
   createdAt: string,
 ): CraftOrder {
-  if (eventExists(order, idempotencyKey)) return order;
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, 'cancelled')) return order;
+  assertNotLockedDeliveredReview(order);
   if (order.status === 'delivered' || order.status === 'settled' || order.status === 'cancelled') {
     throw new Error(`cannot cancel order in ${order.status} status`);
   }
@@ -480,7 +573,16 @@ export function cancelOrder(
       : 'أرشف سبب الإلغاء وراجع أي مواد مرتبطة',
   };
 
-  return appendEvent(next, {
+  const withStatusEvent = appendStatusChanged(
+    next,
+    order.status,
+    'cancelled',
+    idempotencyKey,
+    createdAt,
+    reason,
+  );
+
+  return appendEvent(withStatusEvent, {
     id: `${order.id}:${idempotencyKey}`,
     type: 'cancelled',
     idempotencyKey,
@@ -498,7 +600,8 @@ function settleDeposit(
   idempotencyKey: string,
   createdAt: string,
 ): CraftOrder {
-  if (eventExists(order, idempotencyKey)) return order;
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, eventType)) return order;
   if (order.status !== 'cancelled') {
     throw new Error('deposit settlement requires a cancelled order');
   }
