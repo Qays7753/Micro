@@ -16,6 +16,12 @@ describe("financial event domain core", () => {
     expect(summarizeFinancialEvents([expense, settlement])).toEqual({ cashMinor: -4000, payableMinor: 0, ownerCapitalMinor: 0, operatingExpenseMinor: 4000, eventCount: 2 });
   });
 
+  it("preserves a classified shared expense without changing its financial deltas", () => {
+    const expense = createFinancialEvent({ ...base, id: "shared", type: "operating_expense_cash", amountMinor: 1250, idempotencyKey: "shared-1", expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated" } });
+    expect(expense).toMatchObject({ expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated" }, cashDeltaMinor: -1250, payableDeltaMinor: 0, operatingExpenseDeltaMinor: 1250 });
+    expect(() => createFinancialEvent({ ...base, id: "bad-context", type: "owner_withdrawal_cash", amountMinor: 1, idempotencyKey: "bad-context", expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" } })).toThrow("expenseContext");
+  });
+
   it("rejects missing financial invariants instead of inferring zero or an unlinked payment", () => {
     expect(() => createFinancialEvent({ ...base, id: "bad", type: "operating_expense_cash", amountMinor: 0, idempotencyKey: "bad" })).toThrow("amountMinor");
     expect(() => createFinancialEvent({ ...base, id: "bad-settlement", type: "payable_settlement_cash", amountMinor: 1, idempotencyKey: "bad-settlement" })).toThrow("relatedEventId");

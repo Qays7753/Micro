@@ -1,5 +1,10 @@
 /** Project-level financial events are separate from CraftOrder result fields. All money is JOD minor units. */
 export type FinancialEventType = "owner_investment_cash" | "owner_withdrawal_cash" | "operating_expense_cash" | "operating_expense_payable" | "payable_settlement_cash";
+export type ExpenseRelationship = "project" | "shared";
+export type ExpenseBehavior = "fixed" | "variable" | "mixed" | "unknown";
+export type ExpensePurpose = "project_general" | "period" | "order" | "product" | "campaign" | "unallocated";
+export type ExpenseKnowledge = "known" | "estimated" | "needs_review";
+export type OperatingExpenseContext = { relationship: ExpenseRelationship; behavior: ExpenseBehavior; purpose: ExpensePurpose; knowledge: ExpenseKnowledge };
 export type FinancialEvent = {
   id: string;
   type: FinancialEventType;
@@ -11,6 +16,8 @@ export type FinancialEvent = {
   note: string;
   counterparty: string | null;
   relatedEventId: string | null;
+  /** Present on newly classified operating expenses; absent records are preserved as legacy local history. */
+  expenseContext?: OperatingExpenseContext | null;
   cashDeltaMinor: number;
   payableDeltaMinor: number;
   ownerCapitalDeltaMinor: number;
@@ -27,6 +34,7 @@ export type CreateFinancialEventInput = {
   note: string;
   counterparty?: string | null;
   relatedEventId?: string | null;
+  expenseContext?: OperatingExpenseContext | null;
 };
 
 export type FinancialEventTotals = {
