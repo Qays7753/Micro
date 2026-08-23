@@ -20,6 +20,8 @@ const AgreementEditor = lazy(() => import("@/pages/AgreementEditor"));
 const OrderDetail = lazy(() => import("@/pages/OrderDetail"));
 const Schedule = lazy(() => import("@/pages/Schedule"));
 const ScheduleEditor = lazy(() => import("@/pages/ScheduleEditor"));
+const Finance = lazy(() => import("@/pages/Finance"));
+const FinancialEventEditor = lazy(() => import("@/pages/FinancialEventEditor"));
 
 export function MicroRouter() {
   return (
@@ -34,6 +36,8 @@ export function MicroRouter() {
           <Route path="/orders/:id" component={OrderDetail} />
           <Route path="/schedule/:id" component={ScheduleEditor} />
           <Route path="/schedule" component={Schedule} />
+          <Route path="/finance/new/:type" component={FinancialEventEditor} />
+          <Route path="/finance" component={Finance} />
           <Route path="/" component={Home} />
           <Route path="/orders" component={Orders} />
           <Route path="/review" component={Review} />

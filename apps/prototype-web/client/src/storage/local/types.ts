@@ -3,12 +3,13 @@
  * Schedule records are local operational follow-up only; they do not create financial effects.
  */
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
+import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
-export const localSchemaVersion = 6;
+export const localSchemaVersion = 7;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 2;
+export const localExportVersion = 3;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; updatedAt: string };
@@ -24,7 +25,7 @@ export type ScheduleEventType = "created" | "postponed" | "completed" | "cancell
 export type ScheduleEvent = { id: string; type: ScheduleEventType; idempotencyKey: string; createdAt: string; previousScheduledFor: string | null; scheduledFor: string; reason: string | null };
 export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; createdAt: string; updatedAt: string };
 
-export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[] };
+export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[] };
 export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };
 export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
@@ -44,6 +45,9 @@ export interface PrototypeLocalStore {
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
   getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
   saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;
+  listFinancialEvents(): Promise<StorageResult<readonly FinancialEvent[]>>;
+  getFinancialEvent(id: string): Promise<StorageResult<FinancialEvent | null>>;
+  saveFinancialEvent(event: FinancialEvent): Promise<StorageResult<FinancialEvent>>;
   commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
