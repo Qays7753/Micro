@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ProjectFinancialService } from "./projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 
 const now = () => "2026-08-23T09:00:00.000Z";
 describe("ProjectFinancialService", () => {
@@ -56,9 +57,25 @@ describe("ProjectFinancialService", () => {
 
   it("keeps a shared estimated expense recorded once while marking the period for review", async () => {
     const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
-    const payable = await finance.record({ type: "operating_expense_payable", amountMinor: 900, occurredOn: "2026-08-12", note: "حصة تقديرية من كهرباء", counterparty: "شركة الكهرباء", relatedEventId: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated" }, idempotencyKey: "shared-payable" }); if (!payable.ok) throw new Error("shared payable should save");
+    const payable = await finance.record({ type: "operating_expense_payable", amountMinor: 900, occurredOn: "2026-08-12", note: "حصة تقديرية من كهرباء", counterparty: "شركة الكهرباء", relatedEventId: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated", sharedProjectShare: { basis: "owner_estimate", note: "تقدير المالك" } }, idempotencyKey: "shared-payable" }); if (!payable.ok) throw new Error("shared payable should save");
     await finance.record({ type: "payable_settlement_cash", amountMinor: 900, occurredOn: "2026-08-15", note: "تسديد كهرباء", counterparty: "شركة الكهرباء", relatedEventId: payable.value.id, idempotencyKey: "shared-settlement" });
     await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 900, resultMinor: -900, expenseNeedsReviewCount: 1, status: "incomplete" } });
+  });
+
+  it("separates shared project shares from legacy expense context while keeping each expense in the period exactly once", async () => {
+    const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
+    await expect(finance.record({ type: "operating_expense_cash", amountMinor: 1500, occurredOn: "2026-08-12", note: "حصة كهرباء ثابتة", counterparty: "شركة الكهرباء", relatedEventId: null, expenseContext: { relationship: "shared", behavior: "fixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "agreed_fixed_share", note: "النسبة المتفق عليها للمشروع" } }, idempotencyKey: "shared-known" })).resolves.toMatchObject({ ok: true });
+    const payable = await finance.record({ type: "operating_expense_payable", amountMinor: 800, occurredOn: "2026-08-12", note: "حصة إنترنت تقديرية", counterparty: "شركة الإنترنت", relatedEventId: null, expenseContext: { relationship: "shared", behavior: "fixed", purpose: "period", knowledge: "estimated", sharedProjectShare: { basis: "owner_estimate", note: null } }, idempotencyKey: "shared-estimated" });
+    if (!payable.ok) throw new Error("shared payable should save");
+    await finance.record({ type: "payable_settlement_cash", amountMinor: 800, occurredOn: "2026-08-15", note: "تسديد إنترنت", counterparty: "شركة الإنترنت", relatedEventId: payable.value.id, idempotencyKey: "shared-settlement" });
+    await store.saveFinancialEvent(createFinancialEvent({ id: "legacy-shared", type: "operating_expense_cash", amountMinor: 400, occurredOn: "2026-08-13", recordedAt: now(), idempotencyKey: "legacy-shared", note: "حصة قديمة بلا مصدر", counterparty: null, expenseContext: { relationship: "shared", behavior: "fixed", purpose: "period", knowledge: "known" } }));
+    await store.saveFinancialEvent(createFinancialEvent({ id: "legacy-unclassified", type: "operating_expense_cash", amountMinor: 300, occurredOn: "2026-08-13", recordedAt: now(), idempotencyKey: "legacy-unclassified", note: "مصروف قديم بلا سياق", counterparty: null }));
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 3000, projectOperatingExpenseMinor: 0, sharedProjectExpenseMinor: 2700, legacyUnclassifiedExpenseMinor: 300, sharedEstimatedExpenseCount: 1, sharedMissingBasisCount: 1, legacyUnclassifiedExpenseCount: 1, expenseNeedsReviewCount: 3, resultMinor: -3000, status: "incomplete" } });
+  });
+
+  it("rejects a newly recorded shared expense that does not declare how the project share is known", async () => {
+    const finance = new ProjectFinancialService(new MemoryLocalStore(), now);
+    await expect(finance.record({ type: "operating_expense_cash", amountMinor: 250, occurredOn: "2026-08-23", note: "حصة بلا مصدر", counterparty: null, relatedEventId: null, expenseContext: { relationship: "shared", behavior: "fixed", purpose: "period", knowledge: "known" }, idempotencyKey: "shared-missing-basis" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
   });
 
   it("derives work-name profitability, recorded cost composition, and a conservative coverage indicator", async () => {

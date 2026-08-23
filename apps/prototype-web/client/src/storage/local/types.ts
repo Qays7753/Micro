@@ -8,11 +8,11 @@ import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js"
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type { InventoryMovement, Material } from "@micro-domain/inventory-material/index.js";
 
-export const localSchemaVersion = 14;
+export const localSchemaVersion = 15;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 6;
+export const localExportVersion = 7;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; dailyScheduleCapacityMinutes: number | null; updatedAt: string };

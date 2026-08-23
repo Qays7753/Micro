@@ -16,10 +16,15 @@ describe("financial event domain core", () => {
     expect(summarizeFinancialEvents([expense, settlement])).toEqual({ cashMinor: -4000, payableMinor: 0, ownerCapitalMinor: 0, operatingExpenseMinor: 4000, eventCount: 2 });
   });
 
-  it("preserves a classified shared expense without changing its financial deltas", () => {
-    const expense = createFinancialEvent({ ...base, id: "shared", type: "operating_expense_cash", amountMinor: 1250, idempotencyKey: "shared-1", expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated" } });
-    expect(expense).toMatchObject({ expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated" }, cashDeltaMinor: -1250, payableDeltaMinor: 0, operatingExpenseDeltaMinor: 1250 });
+  it("preserves a sourced shared project share without changing its financial deltas", () => {
+    const expense = createFinancialEvent({ ...base, id: "shared", type: "operating_expense_cash", amountMinor: 1250, idempotencyKey: "shared-1", expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated", sharedProjectShare: { basis: "owner_estimate", note: "نصف فاتورة الإنترنت" } } });
+    expect(expense).toMatchObject({ expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated", sharedProjectShare: { basis: "owner_estimate", note: "نصف فاتورة الإنترنت" } }, cashDeltaMinor: -1250, payableDeltaMinor: 0, operatingExpenseDeltaMinor: 1250 });
     expect(() => createFinancialEvent({ ...base, id: "bad-context", type: "owner_withdrawal_cash", amountMinor: 1, idempotencyKey: "bad-context", expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" } })).toThrow("expenseContext");
+  });
+
+  it("rejects a shared-share basis that disagrees with knowledge or belongs to a project-only expense", () => {
+    expect(() => createFinancialEvent({ ...base, id: "bad-shared-knowledge", type: "operating_expense_cash", amountMinor: 100, idempotencyKey: "bad-shared-knowledge", expenseContext: { relationship: "shared", behavior: "fixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "owner_estimate", note: null } } })).toThrow("sharedProjectShare");
+    expect(() => createFinancialEvent({ ...base, id: "bad-project-share", type: "operating_expense_cash", amountMinor: 100, idempotencyKey: "bad-project-share", expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "agreed_fixed_share", note: null } } })).toThrow("sharedProjectShare");
   });
 
   it("rejects missing financial invariants instead of inferring zero or an unlinked payment", () => {
