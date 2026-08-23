@@ -3,7 +3,8 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 
 export type CatalogResult = { ok: true; item: CatalogItem } | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
 export type CatalogListResult = { ok: true; items: readonly CatalogItem[] } | Extract<CatalogResult, { ok: false }>;
-export type CatalogRecordedMargin = { catalogItemId: string; finalOrderCount: number; deliveredQuantity: number; recognizedRevenueMinor: number; recognizedDirectCostMinor: number; directMarginMinor: number };
+export type CatalogMaterialVariance = { recordedOrderCount: number; notRecordedOrderCount: number; needsReviewOrderCount: number; plannedMaterialMinor: number; actualMaterialMinor: number | null; varianceMinor: number | null };
+export type CatalogRecordedMargin = { catalogItemId: string; finalOrderCount: number; deliveredQuantity: number; recognizedRevenueMinor: number; recognizedDirectCostMinor: number; directMarginMinor: number; materialVariance: CatalogMaterialVariance };
 export type CatalogMarginsResult = { ok: true; items: readonly CatalogRecordedMargin[] } | Extract<CatalogResult, { ok: false }>;
 export type CreateCatalogInput = { kind: CatalogItemKind; name: string; unitLabel: string | null; operationKey: string };
 
@@ -45,16 +46,21 @@ export class CatalogService {
   }
 
   async readRecordedMargins(): Promise<CatalogMarginsResult> {
-    const [catalog, orders] = await Promise.all([this.store.listCatalogItems(), this.store.listOrders()]);
-    if (!catalog.ok || !orders.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الأعمال المرتبطة لحساب الهامش المسجل." };
+    const [catalog, orders, movements] = await Promise.all([this.store.listCatalogItems(), this.store.listOrders(), this.store.listInventoryMovements()]);
+    if (!catalog.ok || !orders.ok || !movements.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الأعمال المرتبطة لحساب الهامش المسجل." };
     const catalogIds = new Set(catalog.value.map(item => item.id));
+    const reversedMovementIds = new Set(movements.value.filter(movement => movement.type === "reversal" && movement.reversesMovementId).map(movement => movement.reversesMovementId));
     const grouped = new Map<string, CatalogRecordedMargin>();
     for (const stored of orders.value) {
       if (!stored.catalogItemId || !catalogIds.has(stored.catalogItemId) || stored.order.resultStatus !== "final") continue;
-      const current = grouped.get(stored.catalogItemId) ?? { catalogItemId: stored.catalogItemId, finalOrderCount: 0, deliveredQuantity: 0, recognizedRevenueMinor: 0, recognizedDirectCostMinor: 0, directMarginMinor: 0 };
+      const current = grouped.get(stored.catalogItemId) ?? { catalogItemId: stored.catalogItemId, finalOrderCount: 0, deliveredQuantity: 0, recognizedRevenueMinor: 0, recognizedDirectCostMinor: 0, directMarginMinor: 0, materialVariance: { recordedOrderCount: 0, notRecordedOrderCount: 0, needsReviewOrderCount: 0, plannedMaterialMinor: 0, actualMaterialMinor: null, varianceMinor: null } };
       const revenue = stored.order.recognizedRevenueMinor;
       const directCost = stored.order.recognizedCostMinor;
-      grouped.set(stored.catalogItemId, { ...current, finalOrderCount: current.finalOrderCount + 1, deliveredQuantity: current.deliveredQuantity + stored.order.quantity, recognizedRevenueMinor: current.recognizedRevenueMinor + revenue, recognizedDirectCostMinor: current.recognizedDirectCostMinor + directCost, directMarginMinor: current.directMarginMinor + revenue - directCost });
+      const consumptions = movements.value.filter(movement => movement.type === "consumption" && movement.orderId === stored.id && !reversedMovementIds.has(movement.id));
+      const materialVariance = consumptions.length === 0
+        ? { ...current.materialVariance, notRecordedOrderCount: current.materialVariance.notRecordedOrderCount + 1 }
+        : (() => { const actualMaterialMinor = consumptions.reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0); const plannedMaterialMinor = stored.order.costSnapshot.materialCostMinor; const nextActual = (current.materialVariance.actualMaterialMinor ?? 0) + actualMaterialMinor; const nextPlanned = current.materialVariance.plannedMaterialMinor + plannedMaterialMinor; return { recordedOrderCount: current.materialVariance.recordedOrderCount + 1, notRecordedOrderCount: current.materialVariance.notRecordedOrderCount, needsReviewOrderCount: current.materialVariance.needsReviewOrderCount + (stored.order.costSnapshot.knowledgeState === "known" ? 0 : 1), plannedMaterialMinor: nextPlanned, actualMaterialMinor: nextActual, varianceMinor: nextActual - nextPlanned }; })();
+      grouped.set(stored.catalogItemId, { ...current, finalOrderCount: current.finalOrderCount + 1, deliveredQuantity: current.deliveredQuantity + stored.order.quantity, recognizedRevenueMinor: current.recognizedRevenueMinor + revenue, recognizedDirectCostMinor: current.recognizedDirectCostMinor + directCost, directMarginMinor: current.directMarginMinor + revenue - directCost, materialVariance });
     }
     return { ok: true, items: Array.from(grouped.values()).sort((left, right) => right.directMarginMinor - left.directMarginMinor || left.catalogItemId.localeCompare(right.catalogItemId)) };
   }
