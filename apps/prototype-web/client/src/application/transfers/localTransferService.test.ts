@@ -4,6 +4,7 @@ import { localExportFormat, localExportVersion, localProfileId, localSchemaVersi
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 
 const profile = { id: localProfileId, activityName: "مشغل ليان", currency: "JOD" as const, activityType: "custom_craft" as const, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
 const draft = { id: "draft-1", intent: "customer_order" as const, customerName: "سارة", itemName: "صندوق", specifications: "نقش", quantity: 1, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
@@ -29,6 +30,14 @@ describe("LocalTransferService", () => {
     const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error("import should validate"); await transfers.confirmImport(preview.value);
     await expect(target.listFinancialEvents()).resolves.toMatchObject({ ok: true, value: [{ id: "classified-expense", expenseContext: { relationship: "project", knowledge: "known" } }, { id: "legacy-expense", expenseContext: null }] });
+  });
+
+  it("round-trips a material purchase and rejects a purchase whose payment total is inconsistent", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile); await source.saveSupplierPurchase(createSupplierPurchase({ id: "purchase-1", supplierName: "مورد الخشب", note: "مواد", purchasedOn: "2026-08-22", dueOn: null, totalMinor: 1000, initialPaidMinor: 400, recordedAt: "2026-08-22T01:00:00.000Z", idempotencyKey: "purchase-1" }));
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed"); const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error("import should validate"); await transfers.confirmImport(preview.value);
+    await expect(target.listSupplierPurchases()).resolves.toMatchObject({ ok: true, value: [{ id: "purchase-1", paidMinor: 400, payableMinor: 600 }] });
+    const broken = structuredClone(exported.value) as { data: { supplierPurchases: Array<{ paidMinor: number }> } }; broken.data.supplierPurchases[0]!.paidMinor = 999;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
   });
 
   it("rejects corrupt, unsupported, and partial files without touching current local data", async () => {
