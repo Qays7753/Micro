@@ -1,92 +1,32 @@
 /**
- * Micro architecture reminder: persistence records are local-only and separate
- * from Domain aggregates. Slice 1 stores setup and pre-domain drafts only.
+ * Local persistence contracts. Domain aggregates, persistence records, and view models stay separate.
+ * Schedule records are local operational follow-up only; they do not create financial effects.
  */
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 
-export const localSchemaVersion = 5;
+export const localSchemaVersion = 6;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 1;
+export const localExportVersion = 2;
 
-export type ActivityProfile = {
-  id: typeof localProfileId;
-  activityName: string;
-  currency: "JOD";
-  activityType: "custom_craft";
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type LocalPreferences = {
-  id: typeof localPreferencesId;
-  theme: "light" | "dark" | "system";
-  updatedAt: string;
-};
-
+export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
+export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; updatedAt: string };
 export type DraftIntent = "customer_order" | "planned_design";
-
 export type DraftCostMaterial = { name: string; quantity: number; unit: string; unitPriceMinor: number; confidence: "known" | "estimated" };
 export type DraftCostTime = { minutes: number; hourlyRateMinor: number; confidence: "known" | "estimated" };
-export type DraftCostSnapshot = {
-  id: string;
-  revision: number;
-  currency: "JOD";
-  materialItems: readonly DraftCostMaterial[];
-  time: DraftCostTime | null;
-  packagingMinor: number;
-  deliveryMinor: number;
-  wasteMinor: number;
-  safetyBufferMinor: number;
-  quantity: number;
-  createdAt: string;
-};
+export type DraftCostSnapshot = { id: string; revision: number; currency: "JOD"; materialItems: readonly DraftCostMaterial[]; time: DraftCostTime | null; packagingMinor: number; deliveryMinor: number; wasteMinor: number; safetyBufferMinor: number; quantity: number; createdAt: string };
+export type OrderDraft = { id: string; intent: DraftIntent; customerName: string; itemName: string; specifications: string; quantity: number; costSnapshots: readonly DraftCostSnapshot[]; activeCostSnapshotId: string | null; linkedOrderId: string | null; createdAt: string; updatedAt: string };
+export type StoredCraftOrder = { id: string; order: CraftOrder; deliveryDate: string; agreementSource: string | null; createdAt: string; updatedAt: string };
 
-export type OrderDraft = {
-  id: string;
-  intent: DraftIntent;
-  customerName: string;
-  itemName: string;
-  specifications: string;
-  quantity: number;
-  costSnapshots: readonly DraftCostSnapshot[];
-  activeCostSnapshotId: string | null;
-  linkedOrderId: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+export type ScheduleStatus = "scheduled" | "postponed" | "completed" | "cancelled";
+export type ScheduleEventType = "created" | "postponed" | "completed" | "cancelled";
+export type ScheduleEvent = { id: string; type: ScheduleEventType; idempotencyKey: string; createdAt: string; previousScheduledFor: string | null; scheduledFor: string; reason: string | null };
+export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; createdAt: string; updatedAt: string };
 
-export type StoredCraftOrder = {
-  id: string;
-  order: CraftOrder;
-  deliveryDate: string;
-  agreementSource: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type LocalStoreSnapshot = {
-  profile: ActivityProfile | null;
-  preferences: LocalPreferences | null;
-  drafts: readonly OrderDraft[];
-  orders: readonly StoredCraftOrder[];
-};
-
-export type LocalExportFile = {
-  format: typeof localExportFormat;
-  version: typeof localExportVersion;
-  schemaVersion: typeof localSchemaVersion;
-  exportedAt: string;
-  data: LocalStoreSnapshot;
-};
-
-export type StorageFailure = {
-  ok: false;
-  code: "storage_unavailable" | "storage_error";
-  message: string;
-};
-
+export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[] };
+export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };
+export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
 export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
 
@@ -101,7 +41,10 @@ export interface PrototypeLocalStore {
   listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>>;
   getOrder(id: string): Promise<StorageResult<StoredCraftOrder | null>>;
   saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>>;
-  commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft }>>;
+  listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
+  getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
+  saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;
+  commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
 }

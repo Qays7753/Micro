@@ -17,7 +17,7 @@ describe("LocalTransferService", () => {
     const target = new MemoryLocalStore(); await target.saveProfile({ ...profile, activityName: "بيانات قديمة" });
     const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error("import should validate");
     expect((await target.getProfile())).toMatchObject({ ok: true, value: { activityName: "بيانات قديمة" } });
-    await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { profile: true, preferences: false, drafts: 1, orders: 1, snapshots: 1, events: 1 } });
+    await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { profile: true, preferences: false, drafts: 1, orders: 1, schedules: 0, snapshots: 1, events: 1 } });
     await expect(target.getProfile()).resolves.toMatchObject({ ok: true, value: profile }); await expect(target.getDraft("draft-1")).resolves.toMatchObject({ ok: true, value: { linkedOrderId: "order-1" } }); await expect(target.getOrder("order-1")).resolves.toMatchObject({ ok: true, value: { order: { events: [{ type: "created" }] } } });
   });
 
@@ -25,8 +25,8 @@ describe("LocalTransferService", () => {
     const target = new MemoryLocalStore(); await target.saveProfile(profile); const transfers = new LocalTransferService(target);
     expect(transfers.prepareImport("{broken")).toMatchObject({ ok: false, code: "validation_error" });
     expect(transfers.prepareImport(JSON.stringify({ format: localExportFormat, version: 999, schemaVersion: localSchemaVersion, exportedAt: "2026-08-22T00:00:00.000Z", data: {} }))).toMatchObject({ ok: false, code: "validation_error" });
-    expect(transfers.prepareImport(JSON.stringify({ format: localExportFormat, version: localExportVersion, schemaVersion: localSchemaVersion, exportedAt: "2026-08-22T00:00:00.000Z", data: { profile: profile, preferences: null, drafts: [{ ...draft, linkedOrderId: "missing" }], orders: [] } }))).toMatchObject({ ok: false, code: "validation_error" });
-    expect(transfers.prepareImport(JSON.stringify({ format: localExportFormat, version: localExportVersion, schemaVersion: localSchemaVersion, exportedAt: "2026-08-22T00:00:00.000Z", data: { profile, preferences: null, drafts: [], orders: [{ id: "bad", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z", deliveryDate: "2026-08-30", agreementSource: null, order: { id: "bad", events: [], costSnapshots: [{}], costSnapshot: {} } }] } }))).toMatchObject({ ok: false, code: "validation_error" });
+    expect(transfers.prepareImport(JSON.stringify({ format: localExportFormat, version: localExportVersion, schemaVersion: localSchemaVersion, exportedAt: "2026-08-22T00:00:00.000Z", data: { profile: profile, preferences: null, drafts: [{ ...draft, linkedOrderId: "missing" }], orders: [], schedules: [] } }))).toMatchObject({ ok: false, code: "validation_error" });
+    expect(transfers.prepareImport(JSON.stringify({ format: localExportFormat, version: localExportVersion, schemaVersion: localSchemaVersion, exportedAt: "2026-08-22T00:00:00.000Z", data: { profile, preferences: null, drafts: [], orders: [{ id: "bad", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z", deliveryDate: "2026-08-30", agreementSource: null, order: { id: "bad", events: [], costSnapshots: [{}], costSnapshot: {} } }], schedules: [] } }))).toMatchObject({ ok: false, code: "validation_error" });
     await expect(target.getProfile()).resolves.toMatchObject({ ok: true, value: profile });
   });
 });

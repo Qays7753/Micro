@@ -81,7 +81,7 @@ describe("IndexedDbLocalStore", () => {
     const replacement: ActivityProfile = { id: localProfileId, activityName: "مستورد", currency: "JOD", activityType: "custom_craft", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" };
     const replacementDraft: OrderDraft = { ...oldDraft, id: "imported", itemName: "مستورد", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" };
     const importedPreferences = { id: localPreferencesId, theme: "light" as const, updatedAt: "2026-08-22T01:00:00.000Z" };
-    await expect(store.replaceSnapshot({ profile: replacement, preferences: importedPreferences, drafts: [replacementDraft], orders: [] })).resolves.toMatchObject({ ok: true, value: { profile: replacement, preferences: importedPreferences, drafts: [{ id: "imported" }], orders: [] } });
+    await expect(store.replaceSnapshot({ profile: replacement, preferences: importedPreferences, drafts: [replacementDraft], orders: [], schedules: [] })).resolves.toMatchObject({ ok: true, value: { profile: replacement, preferences: importedPreferences, drafts: [{ id: "imported" }], orders: [], schedules: [] } });
     const resumed = new IndexedDbLocalStore();
     await expect(resumed.getProfile()).resolves.toMatchObject({ ok: true, value: replacement }); await expect(resumed.getPreferences()).resolves.toMatchObject({ ok: true, value: importedPreferences }); await expect(resumed.listDrafts()).resolves.toMatchObject({ ok: true, value: [{ id: "imported" }] }); await expect(resumed.getDraft("old")).resolves.toMatchObject({ ok: true, value: null });
   });

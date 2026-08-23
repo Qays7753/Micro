@@ -18,6 +18,8 @@ const NewDraft = lazy(() => import("@/pages/NewDraft"));
 const CostEditor = lazy(() => import("@/pages/CostEditor"));
 const AgreementEditor = lazy(() => import("@/pages/AgreementEditor"));
 const OrderDetail = lazy(() => import("@/pages/OrderDetail"));
+const Schedule = lazy(() => import("@/pages/Schedule"));
+const ScheduleEditor = lazy(() => import("@/pages/ScheduleEditor"));
 
 export function MicroRouter() {
   return (
@@ -30,6 +32,8 @@ export function MicroRouter() {
           <Route path="/orders/draft/:id/cost" component={CostEditor} />
           <Route path="/orders/draft/:id" component={DraftEditor} />
           <Route path="/orders/:id" component={OrderDetail} />
+          <Route path="/schedule/:id" component={ScheduleEditor} />
+          <Route path="/schedule" component={Schedule} />
           <Route path="/" component={Home} />
           <Route path="/orders" component={Orders} />
           <Route path="/review" component={Review} />
