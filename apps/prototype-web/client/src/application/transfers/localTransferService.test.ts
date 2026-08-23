@@ -7,16 +7,17 @@ import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
+import { createCatalogItem } from "@micro-domain/catalog/index.js";
 
 const profile = { id: localProfileId, activityName: "مشغل ليان", currency: "JOD" as const, activityType: "custom_craft" as const, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
-const draft = { id: "draft-1", intent: "customer_order" as const, customerName: "سارة", itemName: "صندوق", specifications: "نقش", quantity: 1, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
+const draft = { id: "draft-1", intent: "customer_order" as const, customerName: "سارة", itemName: "صندوق", catalogItemId: null, specifications: "نقش", quantity: 1, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
 
 describe("LocalTransferService", () => {
   it("round-trips a valid local export with a real order and events only after confirmation", async () => {
     const source = new MemoryLocalStore(); await source.saveProfile(profile);
     const cost = calculateCostSnapshot("cost-1", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
     const order = createCraftOrder({ id: "order-1", customerName: "سارة", itemName: "صندوق", specifications: "نقش", quantity: 1, agreedPriceMinor: 2000, costSnapshot: cost, createdAt: "2026-08-22T00:00:00.000Z" });
-    await source.saveOrder({ id: "order-1", order, deliveryDate: "2026-08-30", agreementSource: "conversation", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" }); await source.saveDraft({ ...draft, linkedOrderId: "order-1" }); await source.saveFinancialEvent(createFinancialEvent({ id: "investment-1", type: "owner_investment_cash", amountMinor: 5000, occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", idempotencyKey: "investment-1", note: "رأس مال", counterparty: null }));
+    await source.saveOrder({ id: "order-1", order, catalogItemId: null, deliveryDate: "2026-08-30", agreementSource: "conversation", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" }); await source.saveDraft({ ...draft, linkedOrderId: "order-1" }); await source.saveFinancialEvent(createFinancialEvent({ id: "investment-1", type: "owner_investment_cash", amountMinor: 5000, occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", idempotencyKey: "investment-1", note: "رأس مال", counterparty: null }));
     const exported = await new LocalTransferService(source, () => "2026-08-22T03:00:00.000Z").createExport(); if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore(); await target.saveProfile({ ...profile, activityName: "بيانات قديمة" });
     const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error("import should validate");
@@ -41,6 +42,26 @@ describe("LocalTransferService", () => {
     const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number }; legacy.version = 6; legacy.schemaVersion = 14;
     const preview = new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy));
     expect(preview).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { financialEvents: [{ id: "legacy-shared", expenseContext: { relationship: "shared", sharedProjectShare: null } }] } } } });
+  });
+
+  it("upgrades a v7 export to v8 without inventing a catalog item or historical link", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile); await source.saveDraft(draft);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");
+    const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number; data: { catalogItems?: unknown; drafts: Array<Record<string, unknown>> } };
+    legacy.version = 7; legacy.schemaVersion = 15; delete legacy.data.catalogItems; delete legacy.data.drafts[0]!.catalogItemId;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { catalogItems: [], drafts: [{ catalogItemId: null }] } } } });
+  });
+
+  it("round-trips a catalog item and rejects a catalog link that has no referenced item", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const item = createCatalogItem({ id: "gift-box", kind: "product", name: "صندوق هدايا", unitLabel: "قطعة", createdAt: "2026-08-23T09:00:00.000Z", createdOperationKey: "catalog-gift-box" });
+    await source.saveCatalogItem(item); await source.saveDraft({ ...draft, catalogItemId: item.id });
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");
+    const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error("catalog export should validate");
+    await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { catalogItems: 1, drafts: 1 } });
+    await expect(target.listCatalogItems()).resolves.toMatchObject({ ok: true, value: [{ id: item.id, name: "صندوق هدايا" }] }); await expect(target.getDraft(draft.id)).resolves.toMatchObject({ ok: true, value: { catalogItemId: item.id } });
+    const broken = structuredClone(exported.value) as { data: { drafts: Array<{ catalogItemId: string | null }> } }; broken.data.drafts[0]!.catalogItemId = "missing-catalog-item";
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
   });
 
   it("round-trips a material purchase and rejects a purchase whose payment total is inconsistent", async () => {

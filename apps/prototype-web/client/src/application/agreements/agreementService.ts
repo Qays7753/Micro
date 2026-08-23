@@ -52,7 +52,7 @@ export class AgreementService {
       let order: CraftOrder = createCraftOrder({ id, customerName: draft.customerName, itemName: draft.itemName, specifications: draft.specifications, quantity: draft.quantity, agreedPriceMinor: input.agreedPriceMinor, costSnapshot: cost.snapshot, createdAt: timestamp });
       order = transitionOrder(order, { to: "provisional_agreement", idempotencyKey: `${id}:provisional-agreement`, createdAt: timestamp, note: "agreement recorded locally" });
       if (input.depositMinor > 0) order = collectDeposit(order, input.depositMinor, `${id}:initial-deposit`, timestamp);
-      const stored: StoredCraftOrder = { id, order, deliveryDate: input.deliveryDate, agreementSource: input.agreementSource?.trim() || null, createdAt: timestamp, updatedAt: timestamp };
+      const stored: StoredCraftOrder = { id, order, catalogItemId: draft.catalogItemId, deliveryDate: input.deliveryDate, agreementSource: input.agreementSource?.trim() || null, createdAt: timestamp, updatedAt: timestamp };
       const linkedDraft: OrderDraft = { ...draft, linkedOrderId: id, updatedAt: timestamp };
       const schedule: ScheduleEntry = { id: `schedule-${id}`, orderId: id, kind: "delivery", scheduledFor: input.deliveryDate, scheduledTime: null, durationMinutes: null, status: "scheduled", postponeReason: null, events: [{ id: `${id}:schedule-created`, type: "created", idempotencyKey: `${id}:schedule-created`, createdAt: timestamp, previousScheduledFor: null, scheduledFor: input.deliveryDate, previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null, reason: null }], createdAt: timestamp, updatedAt: timestamp };
       const commit = await this.store.commitOrderFromDraft(stored, linkedDraft, schedule);

@@ -92,6 +92,14 @@ describe("IndexedDbLocalStore", () => {
     const store = new IndexedDbLocalStore(); await expect(store.listMaterials()).resolves.toMatchObject({ ok: true, value: [] }); await expect(store.listInventoryMovements()).resolves.toMatchObject({ ok: true, value: [] });
   });
 
+  it("repairs schema 16 drafts and orders when its catalog store is missing, without name matching", async () => {
+    await new Promise<void>((resolve, reject) => { const request = indexedDB.open(databaseName, 16); request.onerror = () => reject(request.error); request.onupgradeneeded = () => { ["activity-profile", "local-preferences", "order-drafts", "craft-orders", "financial-events", "schedule-entries", "supplier-purchases", "cash-wallets", "cash-continuity-entries", "materials", "inventory-movements"].forEach((name) => request.result.createObjectStore(name, { keyPath: "id" })); }; request.onsuccess = () => { const database = request.result; const transaction = database.transaction(["order-drafts", "craft-orders"], "readwrite"); transaction.objectStore("order-drafts").put({ id: "legacy-draft", itemName: "صندوق هدايا" }); transaction.objectStore("craft-orders").put({ id: "legacy-order", order: { itemName: "صندوق هدايا" } }); transaction.oncomplete = () => { database.close(); resolve(); }; transaction.onerror = () => reject(transaction.error); }; });
+    const store = new IndexedDbLocalStore();
+    await expect(store.getDraft("legacy-draft")).resolves.toMatchObject({ ok: true, value: { itemName: "صندوق هدايا", catalogItemId: null } });
+    await expect(store.getOrder("legacy-order")).resolves.toMatchObject({ ok: true, value: { catalogItemId: null } });
+    await expect(store.listCatalogItems()).resolves.toMatchObject({ ok: true, value: [] });
+  });
+
   it("commits one local order and its linked draft together", async () => {
     const store = new IndexedDbLocalStore();
     const cost = calculateCostSnapshot("cost-1", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
