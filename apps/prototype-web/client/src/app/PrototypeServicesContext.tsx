@@ -13,9 +13,10 @@ import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpServi
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 
-type PrototypeServices = { profiles: ProfileService; preferences: PreferenceService; drafts: DraftService; costs: CostService; agreements: AgreementService; financialPulse: FinancialPulseService; projectFinance: ProjectFinancialService; supplierPurchases: SupplierPurchaseService; cashContinuity: CashContinuityService; dailyFollowUp: DailyFollowUpService; schedules: ScheduleService; fulfillment: FulfillmentService; transfers: LocalTransferService; dataVersion: number; notifyDataChanged: () => void };
+type PrototypeServices = { profiles: ProfileService; preferences: PreferenceService; drafts: DraftService; costs: CostService; agreements: AgreementService; financialPulse: FinancialPulseService; projectFinance: ProjectFinancialService; supplierPurchases: SupplierPurchaseService; cashContinuity: CashContinuityService; inventory: InventoryMaterialService; dailyFollowUp: DailyFollowUpService; schedules: ScheduleService; fulfillment: FulfillmentService; transfers: LocalTransferService; dataVersion: number; notifyDataChanged: () => void };
 const PrototypeServicesContext = createContext<PrototypeServices | undefined>(undefined);
 
 export function PrototypeServicesProvider({ children }: { children: ReactNode }) {
@@ -24,7 +25,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     const store = createBrowserLocalStore();
     const costs = new CostService(store);
     const schedules = new ScheduleService(store);
-    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), financialPulse: new FinancialPulseService(store), projectFinance: new ProjectFinancialService(store), supplierPurchases: new SupplierPurchaseService(store), cashContinuity: new CashContinuityService(store), dailyFollowUp: new DailyFollowUpService(store), schedules, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
+    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), financialPulse: new FinancialPulseService(store), projectFinance: new ProjectFinancialService(store), supplierPurchases: new SupplierPurchaseService(store), cashContinuity: new CashContinuityService(store), inventory: new InventoryMaterialService(store), dailyFollowUp: new DailyFollowUpService(store), schedules, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
   }, [dataVersion]);
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }

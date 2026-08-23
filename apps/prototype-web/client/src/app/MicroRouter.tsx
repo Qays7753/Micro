@@ -29,6 +29,10 @@ const CashWalletEditor = lazy(() => import("@/pages/CashWalletEditor"));
 const CashTransferEditor = lazy(() => import("@/pages/CashTransferEditor"));
 const CashAdjustmentEditor = lazy(() => import("@/pages/CashAdjustmentEditor"));
 const CashReversalEditor = lazy(() => import("@/pages/CashReversalEditor"));
+const InventoryMaterials = lazy(() => import("@/pages/InventoryMaterials"));
+const MaterialEditor = lazy(() => import("@/pages/MaterialEditor"));
+const InventoryMovementEditor = lazy(() => import("@/pages/InventoryMovementEditor"));
+const InventoryReversalEditor = lazy(() => import("@/pages/InventoryReversalEditor"));
 
 export function MicroRouter() {
   return (
@@ -52,6 +56,10 @@ export function MicroRouter() {
           <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
           <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
           <Route path="/cash" component={CashWallets} />
+          <Route path="/inventory/material/new" component={MaterialEditor} />
+          <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
+          <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
+          <Route path="/inventory" component={InventoryMaterials} />
           <Route path="/finance" component={Finance} />
           <Route path="/" component={Home} />
           <Route path="/orders" component={Orders} />

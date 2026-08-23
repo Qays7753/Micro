@@ -1,0 +1,9 @@
+/** RTL-safe quantity input: accepts ASCII decimals and emits integer thousandths, never a persisted float. */
+import { type ComponentProps, useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
+
+const parseMilli = (value: string): number | null => { if (!/^\d+(?:\.\d{0,3})?$/.test(value)) return null; const [whole, fraction = ""] = value.split("."); const major = Number(whole); const minor = Number(`${fraction}000`.slice(0, 3)); const result = major * 1000 + minor; return Number.isSafeInteger(result) ? result : null; };
+const formatMilli = (value: number) => (value / 1000).toFixed(3).replace(/\.0+$/, "");
+type Props = Omit<ComponentProps<"input">, "type" | "value" | "defaultValue" | "onChange" | "inputMode" | "dir" | "lang"> & { valueMilli: number; onMilliChange: (value: number) => void; onTextValidityChange?: (valid: boolean) => void };
+
+export function EnglishQuantityInput({ valueMilli, onMilliChange, onTextValidityChange, className, onBlur, ...props }: Props) { const committed = useRef(valueMilli); const [text, setText] = useState(() => formatMilli(valueMilli)); useEffect(() => { if (committed.current !== valueMilli) { committed.current = valueMilli; setText(formatMilli(valueMilli)); } }, [valueMilli]); return <input {...props} className={cn("micro-english-number-input", className)} type="text" inputMode="decimal" pattern="[0-9]*[.]?[0-9]{0,3}" lang="en" dir="ltr" value={text} onChange={(event) => { const next = event.target.value; if (!/^\d*(?:\.\d{0,3})?$/.test(next)) { event.currentTarget.value = text; return; } setText(next); const parsed = parseMilli(next); onTextValidityChange?.(parsed !== null); if (parsed !== null) { committed.current = parsed; onMilliChange(parsed); } }} onBlur={(event) => { const parsed = parseMilli(text); if (parsed !== null) setText(formatMilli(parsed)); else { setText(formatMilli(committed.current)); onTextValidityChange?.(true); } onBlur?.(event); }} />; }
