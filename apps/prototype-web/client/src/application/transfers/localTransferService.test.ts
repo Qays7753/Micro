@@ -5,6 +5,7 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 
 const profile = { id: localProfileId, activityName: "مشغل ليان", currency: "JOD" as const, activityType: "custom_craft" as const, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
 const draft = { id: "draft-1", intent: "customer_order" as const, customerName: "سارة", itemName: "صندوق", specifications: "نقش", quantity: 1, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
@@ -38,6 +39,15 @@ describe("LocalTransferService", () => {
     await expect(target.listSupplierPurchases()).resolves.toMatchObject({ ok: true, value: [{ id: "purchase-1", paidMinor: 400, payableMinor: 600 }] });
     const broken = structuredClone(exported.value) as { data: { supplierPurchases: Array<{ paidMinor: number }> } }; broken.data.supplierPurchases[0]!.paidMinor = 999;
     expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
+  });
+
+  it("round-trips cash wallets with a balanced transfer and rejects a one-sided transfer", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const drawer = createCashWallet({ id: "drawer", name: "درج", kind: "cash_drawer", createdAt: "2026-08-23T09:00:00.000Z", createdOperationKey: "wallet-drawer" }); const bank = createCashWallet({ id: "bank", name: "البنك", kind: "bank_account", createdAt: "2026-08-23T09:00:00.000Z", createdOperationKey: "wallet-bank" }); const transferId = "transfer-1";
+    const opening = createCashContinuityEntry({ id: "opening", walletId: drawer.id, type: "opening_balance", occurredOn: "2026-08-01", recordedAt: "2026-08-23T09:00:00.000Z", cashDeltaMinor: 10000, note: "بداية", operationKey: "opening-1" }); const out = createCashContinuityEntry({ id: "out", walletId: drawer.id, type: "transfer_out", occurredOn: "2026-08-02", recordedAt: "2026-08-23T09:01:00.000Z", cashDeltaMinor: -3000, note: "إيداع", operationKey: "transfer-1", transferId }); const into = createCashContinuityEntry({ id: "in", walletId: bank.id, type: "transfer_in", occurredOn: "2026-08-02", recordedAt: "2026-08-23T09:01:00.000Z", cashDeltaMinor: 3000, note: "إيداع", operationKey: "transfer-2", transferId });
+    await source.commitCashContinuity(drawer, [opening]); await source.commitCashContinuity(bank, [out, into]); const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");
+    const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error("import should validate"); await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { cashWallets: 2, cashContinuityEntries: 3 } }); await expect(target.listCashContinuityEntries()).resolves.toMatchObject({ ok: true, value: [{ id: "opening" }, { id: "out" }, { id: "in" }] });
+    const broken = structuredClone(exported.value) as { data: { cashContinuityEntries: Array<{ id: string }> } }; broken.data.cashContinuityEntries = broken.data.cashContinuityEntries.filter((entry) => entry.id !== "in"); expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
   });
 
   it("rejects corrupt, unsupported, and partial files without touching current local data", async () => {

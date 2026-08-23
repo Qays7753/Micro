@@ -82,6 +82,11 @@ describe("IndexedDbLocalStore", () => {
     await expect(new IndexedDbLocalStore().listSupplierPurchases()).resolves.toMatchObject({ ok: true, value: [] });
   });
 
+  it("migrates a schema 11 database missing cash stores without touching its prior stores", async () => {
+    await new Promise<void>((resolve, reject) => { const request = indexedDB.open(databaseName, 11); request.onerror = () => reject(request.error); request.onupgradeneeded = () => { ["activity-profile", "local-preferences", "order-drafts", "craft-orders", "financial-events", "schedule-entries", "supplier-purchases"].forEach((name) => request.result.createObjectStore(name, { keyPath: "id" })); }; request.onsuccess = () => { request.result.close(); resolve(); }; });
+    const store = new IndexedDbLocalStore(); await expect(store.listCashWallets()).resolves.toMatchObject({ ok: true, value: [] }); await expect(store.listCashContinuityEntries()).resolves.toMatchObject({ ok: true, value: [] });
+  });
+
   it("commits one local order and its linked draft together", async () => {
     const store = new IndexedDbLocalStore();
     const cost = calculateCostSnapshot("cost-1", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
@@ -104,5 +109,13 @@ describe("IndexedDbLocalStore", () => {
     await expect(store.replaceSnapshot({ profile: replacement, preferences: importedPreferences, drafts: [replacementDraft], orders: [], schedules: [] })).resolves.toMatchObject({ ok: true, value: { profile: replacement, preferences: importedPreferences, drafts: [{ id: "imported" }], orders: [], schedules: [] } });
     const resumed = new IndexedDbLocalStore();
     await expect(resumed.getProfile()).resolves.toMatchObject({ ok: true, value: replacement }); await expect(resumed.getPreferences()).resolves.toMatchObject({ ok: true, value: importedPreferences }); await expect(resumed.listDrafts()).resolves.toMatchObject({ ok: true, value: [{ id: "imported" }] }); await expect(resumed.getDraft("old")).resolves.toMatchObject({ ok: true, value: null });
+  });
+
+  it("keeps cash wallets and their continuity entries through a snapshot replacement", async () => {
+    const store = new IndexedDbLocalStore(); const wallet = { id: "drawer", name: "درج", kind: "cash_drawer" as const, createdAt: "2026-08-23T09:00:00.000Z", createdOperationKey: "wallet-1" }; const opening = { id: "opening", walletId: "drawer", type: "opening_balance" as const, occurredOn: "2026-08-01", recordedAt: "2026-08-23T09:00:00.000Z", cashDeltaMinor: 10000, note: "بداية", reason: null, operationKey: "opening-1", transferId: null, reversesEntryId: null };
+    await expect(store.commitCashContinuity(wallet, [opening])).resolves.toMatchObject({ ok: true, value: { wallet: { id: "drawer" }, entries: [{ id: "opening" }] } });
+    const snapshot = await store.readSnapshot(); if (!snapshot.ok) throw new Error("snapshot should read"); expect(snapshot.value).toMatchObject({ cashWallets: [{ id: "drawer" }], cashContinuityEntries: [{ id: "opening" }] });
+    await expect(store.replaceSnapshot({ profile: null, preferences: null, drafts: [], orders: [], schedules: [], financialEvents: [], supplierPurchases: [], cashWallets: [wallet], cashContinuityEntries: [opening] })).resolves.toMatchObject({ ok: true, value: { cashWallets: [{ id: "drawer" }], cashContinuityEntries: [{ id: "opening" }] } });
+    await expect(new IndexedDbLocalStore().listCashContinuityEntries()).resolves.toMatchObject({ ok: true, value: [{ id: "opening", cashDeltaMinor: 10000 }] });
   });
 });
