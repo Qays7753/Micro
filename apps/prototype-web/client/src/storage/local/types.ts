@@ -7,12 +7,13 @@ import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type { InventoryMovement, Material } from "@micro-domain/inventory-material/index.js";
+import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
-export const localSchemaVersion = 15;
+export const localSchemaVersion = 17;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 7;
+export const localExportVersion = 8;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; dailyScheduleCapacityMinutes: number | null; updatedAt: string };
@@ -20,15 +21,15 @@ export type DraftIntent = "customer_order" | "planned_design";
 export type DraftCostMaterial = { name: string; quantity: number; unit: string; unitPriceMinor: number; confidence: "known" | "estimated" };
 export type DraftCostTime = { minutes: number; hourlyRateMinor: number; confidence: "known" | "estimated" };
 export type DraftCostSnapshot = { id: string; revision: number; currency: "JOD"; materialItems: readonly DraftCostMaterial[]; time: DraftCostTime | null; packagingMinor: number; deliveryMinor: number; wasteMinor: number; safetyBufferMinor: number; quantity: number; createdAt: string };
-export type OrderDraft = { id: string; intent: DraftIntent; customerName: string; itemName: string; specifications: string; quantity: number; costSnapshots: readonly DraftCostSnapshot[]; activeCostSnapshotId: string | null; linkedOrderId: string | null; createdAt: string; updatedAt: string };
-export type StoredCraftOrder = { id: string; order: CraftOrder; deliveryDate: string; agreementSource: string | null; createdAt: string; updatedAt: string };
+export type OrderDraft = { id: string; intent: DraftIntent; customerName: string; itemName: string; catalogItemId: string | null; specifications: string; quantity: number; costSnapshots: readonly DraftCostSnapshot[]; activeCostSnapshotId: string | null; linkedOrderId: string | null; createdAt: string; updatedAt: string };
+export type StoredCraftOrder = { id: string; order: CraftOrder; catalogItemId: string | null; deliveryDate: string; agreementSource: string | null; createdAt: string; updatedAt: string };
 
 export type ScheduleStatus = "scheduled" | "postponed" | "completed" | "cancelled";
 export type ScheduleEventType = "created" | "postponed" | "timing_changed" | "completed" | "cancelled";
 export type ScheduleEvent = { id: string; type: ScheduleEventType; idempotencyKey: string; createdAt: string; previousScheduledFor: string | null; scheduledFor: string; previousScheduledTime: string | null; scheduledTime: string | null; previousDurationMinutes: number | null; durationMinutes: number | null; reason: string | null };
 export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; scheduledTime: string | null; durationMinutes: number | null; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; createdAt: string; updatedAt: string };
 
-export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[] };
+export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[] };
 export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };
 export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
@@ -60,6 +61,9 @@ export interface PrototypeLocalStore {
   listMaterials(): Promise<StorageResult<readonly Material[]>>;
   listInventoryMovements(): Promise<StorageResult<readonly InventoryMovement[]>>;
   commitInventory(material: Material | null, movements: readonly InventoryMovement[]): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>>;
+  listCatalogItems(): Promise<StorageResult<readonly CatalogItem[]>>;
+  getCatalogItem(id: string): Promise<StorageResult<CatalogItem | null>>;
+  saveCatalogItem(item: CatalogItem): Promise<StorageResult<CatalogItem>>;
   commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;

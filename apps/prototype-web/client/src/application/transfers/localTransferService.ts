@@ -1,7 +1,7 @@
 /** Slice 5 transfer boundary: parse and validate first; only an explicit confirmation may replace local IndexedDB state. */
 import { localExportFormat, localExportVersion, localProfileId, localSchemaVersion, type LocalExportFile, type LocalStoreSnapshot, type PrototypeLocalStore } from "@/storage/local/types";
 
-export type TransferSummary = { profile: boolean; preferences: boolean; drafts: number; orders: number; schedules: number; financialEvents: number; supplierPurchases: number; cashWallets: number; cashContinuityEntries: number; materials: number; inventoryMovements: number; snapshots: number; events: number; exportedAt: string };
+export type TransferSummary = { profile: boolean; preferences: boolean; drafts: number; orders: number; schedules: number; financialEvents: number; supplierPurchases: number; cashWallets: number; cashContinuityEntries: number; materials: number; inventoryMovements: number; catalogItems: number; snapshots: number; events: number; exportedAt: string };
 export type TransferPreview = { file: LocalExportFile; summary: TransferSummary };
 export type TransferResult<T> = { ok: true; value: T } | { ok: false; code: "validation_error" | "storage_error"; message: string };
 const fail = <T,>(message: string): TransferResult<T> => ({ ok: false, code: "validation_error", message });
@@ -32,6 +32,7 @@ const isMaterialUnit = (value: unknown) => value === "piece" || value === "meter
 const isInventoryMovementType = (value: unknown) => value === "opening" || value === "purchase_receipt" || value === "consumption" || value === "waste" || value === "adjustment" || value === "reversal";
 function validMaterial(value: unknown): boolean { return isRecord(value) && isString(value.id) && isString(value.name) && value.name.trim().length > 0 && isMaterialUnit(value.unit) && isDate(value.createdAt) && isString(value.createdOperationKey) && value.createdOperationKey.trim().length > 0; }
 function validInventoryMovement(value: unknown): boolean { if (!isRecord(value) || !isString(value.id) || !isString(value.materialId) || !isInventoryMovementType(value.type) || !isString(value.occurredOn) || !isDate(`${value.occurredOn}T12:00:00.000Z`) || !isDate(value.recordedAt) || !isSignedMoney(value.quantityDeltaMilli) || !isSignedMoney(value.valueDeltaMinor) || value.quantityDeltaMilli === 0 || value.valueDeltaMinor === 0 || !isString(value.note) || !value.note.trim() || !(value.reason === null || isString(value.reason)) || !isString(value.operationKey) || !value.operationKey.trim() || !(value.purchaseId === null || isString(value.purchaseId)) || !(value.orderId === null || isString(value.orderId)) || !(value.reversesMovementId === null || isString(value.reversesMovementId))) return false; const quantity = value.quantityDeltaMilli as number; const amount = value.valueDeltaMinor as number; if ((value.type === "opening" || value.type === "purchase_receipt") && (quantity < 0 || amount < 0)) return false; if ((value.type === "consumption" || value.type === "waste") && (quantity > 0 || amount > 0)) return false; if (value.type === "purchase_receipt" ? !isString(value.purchaseId) : value.purchaseId !== null) return false; if (value.type === "consumption" ? !isString(value.orderId) : value.orderId !== null) return false; if (["waste", "adjustment", "reversal"].includes(value.type as string) && (!isString(value.reason) || !value.reason.trim())) return false; return value.type === "reversal" ? isString(value.reversesMovementId) : value.reversesMovementId === null; }
+function validCatalogItem(value: unknown): boolean { return isRecord(value) && isString(value.id) && (value.kind === "product" || value.kind === "service") && isString(value.name) && value.name.trim().length > 0 && (value.unitLabel === null || isString(value.unitLabel)) && typeof value.active === "boolean" && isDate(value.createdAt) && isDate(value.updatedAt) && isString(value.createdOperationKey) && value.createdOperationKey.trim().length > 0; }
 
 function validDraftCostSnapshot(value: unknown): boolean {
   if (!isRecord(value) || !isString(value.id) || !Number.isInteger(value.revision) || !isDate(value.createdAt) || value.currency !== "JOD" || !isPositiveQuantity(value.quantity) || !Array.isArray(value.materialItems) || !isMoney(value.packagingMinor) || !isMoney(value.deliveryMinor) || !isMoney(value.wasteMinor) || !isMoney(value.safetyBufferMinor)) return false;
@@ -49,19 +50,19 @@ function validEvent(value: unknown): boolean {
 }
 
 function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
-  if (!isRecord(data) || !Array.isArray(data.drafts) || !Array.isArray(data.orders) || !Array.isArray(data.schedules) || !Array.isArray(data.financialEvents) || !Array.isArray(data.supplierPurchases) || !Array.isArray(data.cashWallets) || !Array.isArray(data.cashContinuityEntries) || !Array.isArray(data.materials) || !Array.isArray(data.inventoryMovements)) return false;
+  if (!isRecord(data) || !Array.isArray(data.drafts) || !Array.isArray(data.orders) || !Array.isArray(data.schedules) || !Array.isArray(data.financialEvents) || !Array.isArray(data.supplierPurchases) || !Array.isArray(data.cashWallets) || !Array.isArray(data.cashContinuityEntries) || !Array.isArray(data.materials) || !Array.isArray(data.inventoryMovements) || !Array.isArray(data.catalogItems)) return false;
   if (data.profile !== null && (!isRecord(data.profile) || data.profile.id !== localProfileId || !isString(data.profile.activityName) || data.profile.currency !== "JOD" || data.profile.activityType !== "custom_craft" || !isDate(data.profile.createdAt) || !isDate(data.profile.updatedAt))) return false;
   if (data.preferences !== null && (!isRecord(data.preferences) || data.preferences.id !== "local-preferences" || !(data.preferences.theme === "light" || data.preferences.theme === "dark" || data.preferences.theme === "system") || !(data.preferences.dailyScheduleCapacityMinutes === null || isScheduleDuration(data.preferences.dailyScheduleCapacityMinutes)) || !isDate(data.preferences.updatedAt))) return false;
   const orderIds = new Set<string>();
   for (const stored of data.orders) {
-    if (!isRecord(stored) || !isString(stored.id) || !isDate(stored.createdAt) || !isDate(stored.updatedAt) || !isString(stored.deliveryDate) || !(stored.agreementSource === null || isString(stored.agreementSource)) || !isRecord(stored.order)) return false;
+    if (!isRecord(stored) || !isString(stored.id) || !isDate(stored.createdAt) || !isDate(stored.updatedAt) || !isString(stored.deliveryDate) || !(stored.catalogItemId === null || isString(stored.catalogItemId)) || !(stored.agreementSource === null || isString(stored.agreementSource)) || !isRecord(stored.order)) return false;
     const order = stored.order;
     if (order.id !== stored.id || !isString(order.customerName) || !isString(order.itemName) || !isString(order.specifications) || !isPositiveQuantity(order.quantity) || order.currency !== "JOD" || !isMoney(order.agreedPriceMinor) || !isMoney(order.depositCollectedMinor) || !isMoney(order.collectedMinor) || !isMoney(order.receivableMinor) || !isMoney(order.recognizedRevenueMinor) || !isMoney(order.recognizedCostMinor) || !(order.profitIndicatorMinor === null || isMoney(order.profitIndicatorMinor)) || !isOrderStatus(order.status) || !isSettlement(order.settlementStatus) || !isResultStatus(order.resultStatus) || !Array.isArray(order.events) || !order.events.every(validEvent) || !Array.isArray(order.costSnapshots) || !order.costSnapshots.every(validDomainCostSnapshot) || !validDomainCostSnapshot(order.costSnapshot)) return false;
     if (orderIds.has(stored.id)) return false; orderIds.add(stored.id);
   }
   const draftIds = new Set<string>();
   for (const draft of data.drafts) {
-    if (!isRecord(draft) || !isString(draft.id) || !(draft.intent === "customer_order" || draft.intent === "planned_design") || !isString(draft.customerName) || !isString(draft.itemName) || !isString(draft.specifications) || !isPositiveQuantity(draft.quantity) || !Array.isArray(draft.costSnapshots) || !draft.costSnapshots.every(validDraftCostSnapshot) || !(draft.activeCostSnapshotId === null || isString(draft.activeCostSnapshotId)) || !(draft.linkedOrderId === null || isString(draft.linkedOrderId)) || !isDate(draft.createdAt) || !isDate(draft.updatedAt)) return false;
+    if (!isRecord(draft) || !isString(draft.id) || !(draft.intent === "customer_order" || draft.intent === "planned_design") || !isString(draft.customerName) || !isString(draft.itemName) || !(draft.catalogItemId === null || isString(draft.catalogItemId)) || !isString(draft.specifications) || !isPositiveQuantity(draft.quantity) || !Array.isArray(draft.costSnapshots) || !draft.costSnapshots.every(validDraftCostSnapshot) || !(draft.activeCostSnapshotId === null || isString(draft.activeCostSnapshotId)) || !(draft.linkedOrderId === null || isString(draft.linkedOrderId)) || !isDate(draft.createdAt) || !isDate(draft.updatedAt)) return false;
     if (draftIds.has(draft.id) || (isString(draft.linkedOrderId) && !orderIds.has(draft.linkedOrderId))) return false; draftIds.add(draft.id);
   }
   const scheduleIds = new Set<string>(); const scheduledOrderIds = new Set<string>();
@@ -87,13 +88,17 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   const inventoryIds = new Set<string>(); const inventoryKeys = new Set<string>(); const reversedInventoryIds = new Set<string>();
   for (const movement of data.inventoryMovements) { if (!validInventoryMovement(movement) || inventoryIds.has(movement.id) || inventoryKeys.has(movement.operationKey) || !materialIds.has(movement.materialId)) return false; if (movement.purchaseId !== null && !purchaseIds.has(movement.purchaseId)) return false; if (movement.orderId !== null && !orderIds.has(movement.orderId)) return false; if (movement.type === "reversal") { if (reversedInventoryIds.has(movement.reversesMovementId)) return false; reversedInventoryIds.add(movement.reversesMovementId); } inventoryIds.add(movement.id); inventoryKeys.add(movement.operationKey); }
   for (const movement of data.inventoryMovements) { if (movement.type === "reversal") { const target = data.inventoryMovements.find((candidate) => candidate.id === movement.reversesMovementId); if (!target || target.materialId !== movement.materialId || target.quantityDeltaMilli !== -movement.quantityDeltaMilli || target.valueDeltaMinor !== -movement.valueDeltaMinor) return false; } }
+  const catalogIds = new Set<string>(); const catalogKeys = new Set<string>(); const activeCatalogNames = new Set<string>();
+  for (const item of data.catalogItems) { if (!validCatalogItem(item) || catalogIds.has(item.id) || catalogKeys.has(item.createdOperationKey)) return false; const key = `${item.kind}:${item.name.trim().replace(/\s+/g, " ").toLocaleLowerCase("ar-JO")}`; if (item.active && activeCatalogNames.has(key)) return false; catalogIds.add(item.id); catalogKeys.add(item.createdOperationKey); if (item.active) activeCatalogNames.add(key); }
+  for (const stored of data.orders) { if (isString(stored.catalogItemId) && !catalogIds.has(stored.catalogItemId)) return false; }
+  for (const draft of data.drafts) { if (isString(draft.catalogItemId) && !catalogIds.has(draft.catalogItemId)) return false; }
   return true;
 }
 
 function summary(file: LocalExportFile): TransferSummary {
   const snapshots = file.data.drafts.reduce((count, draft) => count + draft.costSnapshots.length, 0) + file.data.orders.reduce((count, stored) => count + stored.order.costSnapshots.length, 0);
   const events = file.data.orders.reduce((count, stored) => count + stored.order.events.length, 0);
-  return { profile: file.data.profile !== null, preferences: file.data.preferences !== null, drafts: file.data.drafts.length, orders: file.data.orders.length, schedules: file.data.schedules.length, financialEvents: file.data.financialEvents.length, supplierPurchases: file.data.supplierPurchases?.length ?? 0, cashWallets: file.data.cashWallets?.length ?? 0, cashContinuityEntries: file.data.cashContinuityEntries?.length ?? 0, materials: file.data.materials?.length ?? 0, inventoryMovements: file.data.inventoryMovements?.length ?? 0, snapshots, events, exportedAt: file.exportedAt };
+  return { profile: file.data.profile !== null, preferences: file.data.preferences !== null, drafts: file.data.drafts.length, orders: file.data.orders.length, schedules: file.data.schedules.length, financialEvents: file.data.financialEvents.length, supplierPurchases: file.data.supplierPurchases?.length ?? 0, cashWallets: file.data.cashWallets?.length ?? 0, cashContinuityEntries: file.data.cashContinuityEntries?.length ?? 0, materials: file.data.materials?.length ?? 0, inventoryMovements: file.data.inventoryMovements?.length ?? 0, catalogItems: file.data.catalogItems?.length ?? 0, snapshots, events, exportedAt: file.exportedAt };
 }
 
 export class LocalTransferService {
@@ -111,9 +116,18 @@ export class LocalTransferService {
     if (!isRecord(candidate) || candidate.format !== localExportFormat) return fail("هذا ليس ملف تصدير Micro المحلي. بقيت بيانات هذا الجهاز دون تغيير.");
     const isCurrent = candidate.version === localExportVersion && candidate.schemaVersion === localSchemaVersion;
     const isG3Legacy = candidate.version === 6 && candidate.schemaVersion === 14;
-    if (!isCurrent && !isG3Legacy) return fail("إصدار الملف غير مدعوم في هذا Prototype. بقيت بيانات هذا الجهاز دون تغيير.");
-    if (!isDate(candidate.exportedAt) || !validateSnapshot(candidate.data)) return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
-    const file: LocalExportFile = isCurrent ? candidate as LocalExportFile : { format: localExportFormat, version: localExportVersion, schemaVersion: localSchemaVersion, exportedAt: candidate.exportedAt, data: candidate.data };
+    const isG3CurrentLegacy = candidate.version === 7 && candidate.schemaVersion === 15;
+    if (!isCurrent && !isG3Legacy && !isG3CurrentLegacy) return fail("إصدار الملف غير مدعوم في هذا Prototype. بقيت بيانات هذا الجهاز دون تغيير.");
+    if (!isDate(candidate.exportedAt) || !isRecord(candidate.data)) return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
+    const raw = candidate.data;
+    const migrated: LocalStoreSnapshot = {
+      ...raw,
+      drafts: Array.isArray(raw.drafts) ? raw.drafts.map(draft => isRecord(draft) ? { ...draft, catalogItemId: draft.catalogItemId ?? null } : draft) : [],
+      orders: Array.isArray(raw.orders) ? raw.orders.map(order => isRecord(order) ? { ...order, catalogItemId: order.catalogItemId ?? null } : order) : [],
+      schedules: Array.isArray(raw.schedules) ? raw.schedules : [], financialEvents: Array.isArray(raw.financialEvents) ? raw.financialEvents : [], supplierPurchases: Array.isArray(raw.supplierPurchases) ? raw.supplierPurchases : [], cashWallets: Array.isArray(raw.cashWallets) ? raw.cashWallets : [], cashContinuityEntries: Array.isArray(raw.cashContinuityEntries) ? raw.cashContinuityEntries : [], materials: Array.isArray(raw.materials) ? raw.materials : [], inventoryMovements: Array.isArray(raw.inventoryMovements) ? raw.inventoryMovements : [], catalogItems: Array.isArray(raw.catalogItems) ? raw.catalogItems : [],
+    } as unknown as LocalStoreSnapshot;
+    if (!validateSnapshot(migrated)) return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
+    const file: LocalExportFile = { format: localExportFormat, version: localExportVersion, schemaVersion: localSchemaVersion, exportedAt: candidate.exportedAt, data: migrated };
     return { ok: true, value: { file, summary: summary(file) } };
   }
 
