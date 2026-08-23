@@ -5,14 +5,14 @@
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
-export const localSchemaVersion = 7;
+export const localSchemaVersion = 8;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 3;
+export const localExportVersion = 4;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
-export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; updatedAt: string };
+export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; dailyScheduleCapacityMinutes: number | null; updatedAt: string };
 export type DraftIntent = "customer_order" | "planned_design";
 export type DraftCostMaterial = { name: string; quantity: number; unit: string; unitPriceMinor: number; confidence: "known" | "estimated" };
 export type DraftCostTime = { minutes: number; hourlyRateMinor: number; confidence: "known" | "estimated" };
@@ -21,9 +21,9 @@ export type OrderDraft = { id: string; intent: DraftIntent; customerName: string
 export type StoredCraftOrder = { id: string; order: CraftOrder; deliveryDate: string; agreementSource: string | null; createdAt: string; updatedAt: string };
 
 export type ScheduleStatus = "scheduled" | "postponed" | "completed" | "cancelled";
-export type ScheduleEventType = "created" | "postponed" | "completed" | "cancelled";
-export type ScheduleEvent = { id: string; type: ScheduleEventType; idempotencyKey: string; createdAt: string; previousScheduledFor: string | null; scheduledFor: string; reason: string | null };
-export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; createdAt: string; updatedAt: string };
+export type ScheduleEventType = "created" | "postponed" | "timing_changed" | "completed" | "cancelled";
+export type ScheduleEvent = { id: string; type: ScheduleEventType; idempotencyKey: string; createdAt: string; previousScheduledFor: string | null; scheduledFor: string; previousScheduledTime: string | null; scheduledTime: string | null; previousDurationMinutes: number | null; durationMinutes: number | null; reason: string | null };
+export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; scheduledTime: string | null; durationMinutes: number | null; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; createdAt: string; updatedAt: string };
 
 export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[] };
 export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };

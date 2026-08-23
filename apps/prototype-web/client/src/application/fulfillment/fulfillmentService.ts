@@ -1,5 +1,6 @@
 /** Slice 4 financial boundary: delivery, collection, and debt are three distinct Domain operations. */
 import { collectRemaining, registerDebt, transitionOrder } from "@micro-domain/craft-order/index.js";
+import { ScheduleService } from "@/application/scheduling/scheduleService";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 
 export type FulfillmentResult = { ok: true; stored: StoredCraftOrder } | { ok: false; code: "storage_error" | "invalid_state"; message: string };
@@ -7,7 +8,7 @@ const success = (stored: StoredCraftOrder): FulfillmentResult => ({ ok: true, st
 const failure = (code: Extract<FulfillmentResult, { ok: false }>['code'], message: string): FulfillmentResult => ({ ok: false, code, message });
 
 export class FulfillmentService {
-  constructor(private readonly store: PrototypeLocalStore, private readonly now: () => string = () => new Date().toISOString()) {}
+  constructor(private readonly store: PrototypeLocalStore, private readonly now: () => string = () => new Date().toISOString(), private readonly schedules: ScheduleService = new ScheduleService(store, now)) {}
 
   private async load(id: string): Promise<FulfillmentResult> {
     const result = await this.store.getOrder(id);
@@ -38,8 +39,9 @@ export class FulfillmentService {
     if (current.stored.order.status !== "ready") return failure("invalid_state", "لا يمكن تسجيل التسليم قبل أن يصبح الطلب جاهزًا.");
     try {
       const timestamp = this.now();
-      const order = transitionOrder(current.stored.order, { to: "delivered", idempotencyKey: `${id}:deliver`, createdAt: timestamp });
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      const order = transitionOrder(current.stored.order, { to: "delivered", idempotencyKey: `${id}:deliver`, createdAt: timestamp }); const saved = await this.persist({ ...current.stored, order, updatedAt: timestamp });
+      if (saved.ok) await this.schedules.reconcileDelivery(id);
+      return saved;
     } catch (error) { return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التسليم."); }
   }
 

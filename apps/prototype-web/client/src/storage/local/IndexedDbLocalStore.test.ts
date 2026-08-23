@@ -33,13 +33,22 @@ function seedVersionOneDraft() {
   });
 }
 
+function seedVersionSevenSchedule() {
+  return new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open(databaseName, 7);
+    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = () => { request.result.createObjectStore("activity-profile", { keyPath: "id" }); request.result.createObjectStore("local-preferences", { keyPath: "id" }); request.result.createObjectStore("order-drafts", { keyPath: "id" }); request.result.createObjectStore("craft-orders", { keyPath: "id" }); request.result.createObjectStore("financial-events", { keyPath: "id" }); request.result.createObjectStore("schedule-entries", { keyPath: "id" }); };
+    request.onsuccess = () => { const database = request.result; const transaction = database.transaction(["local-preferences", "schedule-entries"], "readwrite"); transaction.objectStore("local-preferences").put({ id: localPreferencesId, theme: "light", updatedAt: "2026-08-22T00:00:00.000Z" }); transaction.objectStore("schedule-entries").put({ id: "legacy-schedule", orderId: "legacy-order", kind: "delivery", scheduledFor: "2026-08-23", status: "scheduled", postponeReason: null, events: [{ id: "legacy-created", type: "created", idempotencyKey: "legacy-created", createdAt: "2026-08-22T00:00:00.000Z", previousScheduledFor: null, scheduledFor: "2026-08-23", reason: null }], createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" }); transaction.oncomplete = () => { database.close(); resolve(); }; transaction.onerror = () => reject(transaction.error); };
+  });
+}
+
 describe("IndexedDbLocalStore", () => {
   it("persists the profile and draft through a fresh adapter instance", async () => {
     const profile: ActivityProfile = { id: localProfileId, activityName: "مشغل ليان", currency: "JOD", activityType: "custom_craft", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
     const draft: OrderDraft = { id: "draft-1", intent: "customer_order", customerName: "سارة", itemName: "صندوق خشبي", specifications: "نقش", quantity: 2, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:01:00.000Z" };
     const first = new IndexedDbLocalStore();
     await expect(first.saveProfile(profile)).resolves.toMatchObject({ ok: true, value: profile });
-    await expect(first.savePreferences({ id: localPreferencesId, theme: "dark", updatedAt: "2026-08-22T00:00:00.000Z" })).resolves.toMatchObject({ ok: true, value: { theme: "dark" } });
+    await expect(first.savePreferences({ id: localPreferencesId, theme: "dark", dailyScheduleCapacityMinutes: null, updatedAt: "2026-08-22T00:00:00.000Z" })).resolves.toMatchObject({ ok: true, value: { theme: "dark" } });
     await expect(first.saveDraft(draft)).resolves.toMatchObject({ ok: true, value: draft });
     const resumed = new IndexedDbLocalStore();
     await expect(resumed.getProfile()).resolves.toMatchObject({ ok: true, value: profile });
@@ -62,6 +71,12 @@ describe("IndexedDbLocalStore", () => {
     await expect(store.getDraft("legacy")).resolves.toMatchObject({ ok: true, value: { id: "legacy", itemName: "مسودة قديمة", costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null } });
   });
 
+  it("migrates a Slice B schedule to explicit unknown time, duration, and daily capacity fields", async () => {
+    await seedVersionSevenSchedule(); const store = new IndexedDbLocalStore();
+    await expect(store.getPreferences()).resolves.toMatchObject({ ok: true, value: { theme: "light", dailyScheduleCapacityMinutes: null } });
+    await expect(store.getSchedule("legacy-schedule")).resolves.toMatchObject({ ok: true, value: { scheduledTime: null, durationMinutes: null, events: [{ previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null }] } });
+  });
+
   it("commits one local order and its linked draft together", async () => {
     const store = new IndexedDbLocalStore();
     const cost = calculateCostSnapshot("cost-1", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
@@ -80,7 +95,7 @@ describe("IndexedDbLocalStore", () => {
     await store.saveProfile({ id: localProfileId, activityName: "قديم", currency: "JOD", activityType: "custom_craft", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" }); await store.saveDraft(oldDraft);
     const replacement: ActivityProfile = { id: localProfileId, activityName: "مستورد", currency: "JOD", activityType: "custom_craft", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" };
     const replacementDraft: OrderDraft = { ...oldDraft, id: "imported", itemName: "مستورد", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" };
-    const importedPreferences = { id: localPreferencesId, theme: "light" as const, updatedAt: "2026-08-22T01:00:00.000Z" };
+    const importedPreferences = { id: localPreferencesId, theme: "light" as const, dailyScheduleCapacityMinutes: null, updatedAt: "2026-08-22T01:00:00.000Z" };
     await expect(store.replaceSnapshot({ profile: replacement, preferences: importedPreferences, drafts: [replacementDraft], orders: [], schedules: [] })).resolves.toMatchObject({ ok: true, value: { profile: replacement, preferences: importedPreferences, drafts: [{ id: "imported" }], orders: [], schedules: [] } });
     const resumed = new IndexedDbLocalStore();
     await expect(resumed.getProfile()).resolves.toMatchObject({ ok: true, value: replacement }); await expect(resumed.getPreferences()).resolves.toMatchObject({ ok: true, value: importedPreferences }); await expect(resumed.listDrafts()).resolves.toMatchObject({ ok: true, value: [{ id: "imported" }] }); await expect(resumed.getDraft("old")).resolves.toMatchObject({ ok: true, value: null });

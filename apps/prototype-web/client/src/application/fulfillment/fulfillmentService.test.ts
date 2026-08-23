@@ -3,6 +3,7 @@ import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService, type CostEditorInput } from "@/application/cost/costService";
 import { DraftService } from "@/application/drafts/draftService";
 import { FulfillmentService } from "./fulfillmentService";
+import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
 const costInput: CostEditorInput = { materialItems: [{ name: "خشب", quantity: 1, unit: "لوح", unitPriceMinor: 1000, confidence: "known" }], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 100, quantity: 1 };
@@ -21,6 +22,13 @@ describe("FulfillmentService", () => {
     await expect(service.markReady(orderId)).resolves.toMatchObject({ ok: true, stored: { order: { status: "ready", collectedMinor: 500 } } });
     const delivered = await service.deliver(orderId);
     expect(delivered).toMatchObject({ ok: true, stored: { order: { status: "delivered", collectedMinor: 500, receivableMinor: 1700, recognizedRevenueMinor: 2200, recognizedCostMinor: 1500, profitIndicatorMinor: 700, resultStatus: "final" } } });
+  });
+
+  it("marks the operational schedule completed when delivery is recorded without changing financial values", async () => {
+    const { store, orderId } = await activeOrder(); const schedules = new ScheduleService(store, () => "2026-08-22T02:00:00.000Z"); const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z", schedules);
+    const before = await schedules.overview(); if (!before.ok) throw new Error("schedule should load"); await service.markReady(orderId);
+    await expect(service.deliver(orderId)).resolves.toMatchObject({ ok: true, stored: { order: { collectedMinor: 500, receivableMinor: 1700, recognizedRevenueMinor: 2200 } } });
+    await expect(schedules.get(before.value.upcoming[0]!.schedule.id)).resolves.toMatchObject({ ok: true, value: { status: "completed", events: [{ type: "created" }, { type: "completed", reason: "اكتمل عند تسجيل التسليم" }] } });
   });
 
   it("collects the remaining amount after delivery and settles the order without duplicating cash on retry", async () => {
