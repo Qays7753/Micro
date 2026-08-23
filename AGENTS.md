@@ -10,8 +10,9 @@
 
 ابدأ بالترتيب التالي:
 
-1. `README.md` لفهم حالة المستودع.
-2. `docs/00-document-index.md` لمعرفة سلطة الوثائق ومسار القراءة.
+1. `docs/operations/current-state.md` لمعرفة commit المعتمد، ما اندمج، وما المسموح فعله الآن.
+2. `README.md` لفهم Micro في سطرين، لا لاستخراج حالة التنفيذ التفصيلية.
+3. `docs/00-document-index.md` لمعرفة سلطة الوثائق ومسار القراءة.
 3. `docs/01-product-and-technical-blueprint.md` لتعريف Micro والمنتج والمراحل والمعمارية.
 4. `docs/implementation/03-pre-build-alignment-v1.md` لفهم الفرق بين المنتج الكامل وPrototype المرحلة 2 وMVP التجاري اللاحق.
 5. `docs/research/global-build-reference-library-v1.md` لفهم المصادر العالمية والمنطق المستخلص والتراخيص، ثم `docs/research/micro-build-logic-v1.md` لمعرفة ما يدخل كل مرحلة.
@@ -25,8 +26,9 @@
 13. `ai-skills/micro-local-first-prototype/` عند بناء LocalStore أو المسودات أو export/import.
 14. `ai-skills/micro-prototype-qa/` عند قبول Slice أو PR أو اختبار الواجهة والتدفقات.
 15. `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md` ونتائج المحاكاة قبل تغيير المفهوم أو التدفق.
-16. `docs/quality/cloud-code-first-read-findings-v1.md` عند مراجعة نتيجة Agent سابقة أو أي ملاحظة على النواة والوثائق.
-17. `docs/quality/unified-audit-resolution-v1.md` لمعرفة ما ثبت من التدقيق، وما أُصلح، وما يجب تأجيله قبل Prototype.
+16. `docs/operations/agent-handoff-protocol-v1.md` و`docs/operations/slice-handoff-template.md` قبل استلام أو فتح Slice.
+17. `docs/quality/cloud-code-first-read-findings-v1.md` عند مراجعة نتيجة Agent سابقة أو أي ملاحظة على النواة والوثائق.
+18. `docs/quality/unified-audit-resolution-v1.md` لمعرفة ما ثبت من التدقيق، وما أُصلح، وما يجب تأجيله قبل Prototype.
 
 لا تقرأ تقارير البحث التاريخية أو ملفات النظام القديم بوصفها سلطة حالية. استخدمها فقط إذا ذكرت سبب الحاجة إليها.
 
@@ -94,10 +96,8 @@ Micro ليس تطبيق طلبات فقط، وليس تطبيقًا تعليمي
 
 ## 8. الحالة الحالية وما يليها
 
-الحالة الحالية هي Domain Core والعقود مع مرجعي تجربة وPrototype وBuild Charter Canonical قبل البناء. كود التطبيق لم يبدأ بعد، ولا يحتوي المستودع على Web UI أو Adapter أو LocalStore أو Workspace أو Auth أو RLS أو Ledger مالي عام أو تقارير المشروع العامة. الوثائق والمهارات تحدد ما يجب بناؤه واختباره، ولا تحول الهدف إلى قدرة منفذة.
-
-الخطوة التالية الصحيحة هي بناء أقل مسار محلي وفق `docs/implementation/mobile-prototype-spec-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md`، بما يثبت: إدخال الحرفة والمواد والوقت، نتيجة التكلفة ودرجة معرفتها، سعر الحماية، الاتفاق والموعد، العربون، التنفيذ، التسليم، التحصيل أو الدين، والنتيجة والفعل التالي، مع LocalStore و`local export/import`. بعد ذلك تُختبر المهام مع أصحاب مشاريع حقيقيين؛ لا تعتبر المحاكاة أو نجاح الاختبارات التقنية دليلًا على التبني أو الدفع.
+لا تضع حالة التنفيذ التفصيلية في هذا الملف؛ فهي تتغير أسرع من قواعد العمل. المرجع الحي الوحيد هو `docs/operations/current-state.md` ويجب أن يطابق `main`. افتحه قبل أي كود، ثم افتح العقد المتصل بالشريحة فقط. إذا كان في الحالة «توقف»، فالتوقف قاعدة تنفيذ لا اقتراح.
 
 ## 9. بروتوكول الإغلاق
 
-بعد كل تغيير، يجب أن يذكر Agent الملفات المتغيرة، ويحدّث سجل القرار أو الفرضية عند الحاجة، ويشغل الفحوص المناسبة، ويتحقق من عدم وجود أسرار أو تغييرات غير مقصودة. لا يدمج تغييرات في `main` دون مراجعة diff ونتائج CI وموافقة مالك المنتج عندما تكون المهمة تتطلب ذلك.
+بعد كل تغيير، يجب أن يذكر Agent الملفات المتغيرة، ويحدّث `docs/operations/current-state.md` و`todo.md` عند دمج Slice، ويحدّث سجل القرار أو الفرضية عند الحاجة، ويشغل الفحوص المناسبة، ويتحقق من عدم وجود أسرار أو تغييرات غير مقصودة. لا يدمج تغييرات في `main` دون مراجعة diff ونتائج CI وموافقة مالك المنتج عندما تكون المهمة تتطلب ذلك.
