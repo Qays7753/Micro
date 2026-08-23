@@ -10,7 +10,14 @@ function normalizeExpenseContext(value: OperatingExpenseContext | null | undefin
   if (!(["fixed", "variable", "mixed", "unknown"] as const).includes(value.behavior)) throw new Error("expenseContext.behavior is invalid");
   if (!(["project_general", "period", "order", "product", "campaign", "unallocated"] as const).includes(value.purpose)) throw new Error("expenseContext.purpose is invalid");
   if (!(["known", "estimated", "needs_review"] as const).includes(value.knowledge)) throw new Error("expenseContext.knowledge is invalid");
-  return Object.freeze({ relationship: value.relationship, behavior: value.behavior, purpose: value.purpose, knowledge: value.knowledge });
+  const share = value.sharedProjectShare;
+  if (value.relationship !== "shared" && share) throw new Error("expenseContext.sharedProjectShare is only valid for shared expenses");
+  if (!share) return Object.freeze({ relationship: value.relationship, behavior: value.behavior, purpose: value.purpose, knowledge: value.knowledge, sharedProjectShare: null });
+  if (!(["agreed_fixed_share", "owner_estimate", "needs_review"] as const).includes(share.basis)) throw new Error("expenseContext.sharedProjectShare.basis is invalid");
+  if (share.note !== null && typeof share.note !== "string") throw new Error("expenseContext.sharedProjectShare.note is invalid");
+  const expectedKnowledge = share.basis === "agreed_fixed_share" ? "known" : share.basis === "owner_estimate" ? "estimated" : "needs_review";
+  if (value.knowledge !== expectedKnowledge) throw new Error("expenseContext.sharedProjectShare does not match knowledge");
+  return Object.freeze({ relationship: value.relationship, behavior: value.behavior, purpose: value.purpose, knowledge: value.knowledge, sharedProjectShare: Object.freeze({ basis: share.basis, note: share.note?.trim() || null }) });
 }
 function deltas(type: CreateFinancialEventInput["type"], amountMinor: number) {
   switch (type) {
