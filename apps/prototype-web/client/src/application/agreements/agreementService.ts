@@ -4,7 +4,7 @@
  */
 import { collectDeposit, createCraftOrder, transitionOrder, type CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { CostService } from "@/application/cost/costService";
-import type { OrderDraft, PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { OrderDraft, PrototypeLocalStore, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
 
 export type AgreementInput = { agreedPriceMinor: number; deliveryDate: string; depositMinor: number; agreementSource: string | null };
 export type AgreementResult = { ok: true; stored: StoredCraftOrder } | { ok: false; code: "validation_error" | "storage_error" | "missing_cost" | "inconsistent_state"; message: string };
@@ -54,7 +54,8 @@ export class AgreementService {
       if (input.depositMinor > 0) order = collectDeposit(order, input.depositMinor, `${id}:initial-deposit`, timestamp);
       const stored: StoredCraftOrder = { id, order, deliveryDate: input.deliveryDate, agreementSource: input.agreementSource?.trim() || null, createdAt: timestamp, updatedAt: timestamp };
       const linkedDraft: OrderDraft = { ...draft, linkedOrderId: id, updatedAt: timestamp };
-      const commit = await this.store.commitOrderFromDraft(stored, linkedDraft);
+      const schedule: ScheduleEntry = { id: `schedule-${id}`, orderId: id, kind: "delivery", scheduledFor: input.deliveryDate, status: "scheduled", postponeReason: null, events: [{ id: `${id}:schedule-created`, type: "created", idempotencyKey: `${id}:schedule-created`, createdAt: timestamp, previousScheduledFor: null, scheduledFor: input.deliveryDate, reason: null }], createdAt: timestamp, updatedAt: timestamp };
+      const commit = await this.store.commitOrderFromDraft(stored, linkedDraft, schedule);
       return commit.ok ? { ok: true, stored: commit.value.order } : { ok: false, code: "storage_error", message: "تعذر حفظ الاتفاق محليًا. لم يتم تأكيد نجاح العملية." };
     } catch (error) { return validation(error instanceof Error ? error.message : "تعذر بناء الاتفاق."); }
   }

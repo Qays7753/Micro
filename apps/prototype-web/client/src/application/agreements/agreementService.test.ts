@@ -20,6 +20,7 @@ describe("AgreementService", () => {
     const { store, costs, draft } = await preparedDraft(); const service = new AgreementService(store, costs, () => "2026-08-22T01:00:00.000Z");
     const result = await service.createFromDraft(draft, { agreedPriceMinor: 2200, deliveryDate: "2026-08-30", depositMinor: 500, agreementSource: "in_person" });
     expect(result).toMatchObject({ ok: true, stored: { deliveryDate: "2026-08-30", order: { status: "provisional_agreement", agreedPriceMinor: 2200, depositCollectedMinor: 500, collectedMinor: 500, receivableMinor: 1700, recognizedRevenueMinor: 0, profitIndicatorMinor: null } } });
+    await expect(store.getSchedule(`schedule-${result.ok ? result.stored.id : "missing"}`)).resolves.toMatchObject({ ok: true, value: { orderId: result.ok ? result.stored.id : "missing", scheduledFor: "2026-08-30", status: "scheduled", events: [{ type: "created" }] } });
   });
 
   it("returns the existing local agreement on retry instead of duplicating events or cash", async () => {
