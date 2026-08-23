@@ -8,9 +8,9 @@
 
 ## ما هذا المستودع الآن؟
 
-هذه الدفعة هي **مرجع قرار وDomain Core قابل للاختبار وSlice 5 للـPrototype**. تحتوي على عقود المجال، ونواة أولية لمسار طلب حرفة يدوية مخصصة، وحزمة Web App في `apps/prototype-web/` لواجهة RTL محلية وLight/Dark وتأسيس ومسودات وSnapshot تكلفة وسعر حماية واتفاق وموعد وعربون وتنفيذ وجاهزية وتسليم وتحويل المتبقي إلى قبض أو دين ونتيجة طلب بدرجة معرفة عبر Domain Core، مع Export/Import محلي يتحقق من الملف قبل الاستبدال الذري وتفضيلات مظهر محفوظة ضمن الملف. لا تحتوي PWA أو استضافة Cloudflare أو Native أو SaaS أو استقبال بيانات حقيقية، ولا نسخة من Accounting أو zman-app أو كود خارجي منقول.
+هذا المستودع يحتوي عقود المجال وDomain Core وPrototype Web محليًا في `apps/prototype-web/`، ويُدار بوصفه سلسلة شرائح مستقلة لا «نسخة نهائية». الحالة المنفذة وحدودها الدقيقة ليست ثابتة داخل README؛ مصدرها الحي هو [`docs/operations/current-state.md`](docs/operations/current-state.md). لا يحتوي PWA أو استضافة Cloudflare أو Native أو SaaS أو استقبال بيانات حقيقية، ولا نسخة من Accounting أو zman-app أو كود خارجي منقول.
 
-ابدأ من [`docs/00-document-index.md`](docs/00-document-index.md)، ثم اقرأ [`docs/01-product-and-technical-blueprint.md`](docs/01-product-and-technical-blueprint.md). وللتعريف الحالي، راجع [`docs/product/problem-statement-v3.md`](docs/product/problem-statement-v3.md) و[`docs/product/system-definition-v1.md`](docs/product/system-definition-v1.md) و[`docs/product/user-operating-model-v1.md`](docs/product/user-operating-model-v1.md). عند استخدام أي ذكاء اصطناعي، اقرأ [`ai-skills/README.ar.md`](ai-skills/README.ar.md) وفعّل المهارة المناسبة.
+إذا كنت Agent جديدًا، ابدأ من [`docs/operations/current-state.md`](docs/operations/current-state.md) ثم [`AGENTS.md`](AGENTS.md) و[`docs/operations/README.md`](docs/operations/README.md). بعد ذلك اقرأ [`docs/00-document-index.md`](docs/00-document-index.md)، ثم المرجع والعقد المتصلين بالمهمة فقط. ولتعريف Micro، راجع [`docs/product/problem-statement-v3.md`](docs/product/problem-statement-v3.md) و[`docs/product/system-definition-v1.md`](docs/product/system-definition-v1.md) و[`docs/product/user-operating-model-v1.md`](docs/product/user-operating-model-v1.md).
 
 ## المراجع الأساسية
 
@@ -37,4 +37,4 @@
 
 ## الحالة الحالية
 
-المرحلة الحالية هي Domain Core والعقود والاختبارات، مع **Slice 0 إلى Slice 5 من Prototype الهاتف المحلي**: Web App بملء الشاشة، RTL، App Shell، تنقل، Bottom Sheet، Light/Dark، تأسيس محلي، مسودات قبل Domain، وSnapshots تكلفة تاريخية وسعر حماية، ثم اتفاق محلي وموعد وعربون وتنفيذ وجاهزية وتسليم وتحويل المتبقي إلى قبض أو دين ونتيجة طلب، وتصدير/استيراد محلي يتحقق قبل الاستبدال الذري. لا يمثل سعر الحماية سعر سوق أو اتفاقًا أو ربحًا، والعربون كاش محصل لا ربح تلقائي ولا تسليم، والدين لا يزيد الكاش. لا تظهر نتيجة رقمية نهائية عند نقص المعرفة. التصدير ملف محلي يختاره المستخدم وليس نسخة سحابية أو مزامنة. النواة الحالية تطبق نسخ التكلفة، حالات المعرفة، `resultStatus`، فصل العربون عن التحصيل، وإلغاء العربون بتسوية صريحة أو `needs_review`. لم تنفذ الواجهة PWA أو Cloudflare deployment أو Native wrapper أو SaaS أو استقبال بيانات مستخدمين حقيقية؛ لذلك لا يجوز الادعاء بالجاهزية التجارية.
+الحالة التنفيذية ليست ثابتة داخل README. اقرأ [`docs/operations/current-state.md`](docs/operations/current-state.md) لمعرفة ما اندمج في `main` وما توقف عمدًا وما الخطوة التالية المسموحة. لا تدّعِ PWA أو مزامنة أو SaaS أو Native أو بيانات مستخدمين حقيقية أو صافي ربح نهائي ما لم يذكرها هذا المرجع الحي مع PR واختبار مدمجين.
