@@ -24,6 +24,11 @@ const Finance = lazy(() => import("@/pages/Finance"));
 const FinancialEventEditor = lazy(() => import("@/pages/FinancialEventEditor"));
 const Suppliers = lazy(() => import("@/pages/Suppliers"));
 const SupplierPurchaseEditor = lazy(() => import("@/pages/SupplierPurchaseEditor"));
+const CashWallets = lazy(() => import("@/pages/CashWallets"));
+const CashWalletEditor = lazy(() => import("@/pages/CashWalletEditor"));
+const CashTransferEditor = lazy(() => import("@/pages/CashTransferEditor"));
+const CashAdjustmentEditor = lazy(() => import("@/pages/CashAdjustmentEditor"));
+const CashReversalEditor = lazy(() => import("@/pages/CashReversalEditor"));
 
 export function MicroRouter() {
   return (
@@ -42,6 +47,11 @@ export function MicroRouter() {
           <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />
           <Route path="/suppliers/purchase/:id" component={SupplierPurchaseEditor} />
           <Route path="/suppliers" component={Suppliers} />
+          <Route path="/cash/wallet/new" component={CashWalletEditor} />
+          <Route path="/cash/transfer" component={CashTransferEditor} />
+          <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
+          <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
+          <Route path="/cash" component={CashWallets} />
           <Route path="/finance" component={Finance} />
           <Route path="/" component={Home} />
           <Route path="/orders" component={Orders} />

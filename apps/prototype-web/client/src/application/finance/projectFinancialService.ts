@@ -16,6 +16,9 @@ export type ProjectFinancialPosition = {
   projectEventCount: number;
   supplierPurchaseCount: number;
   supplierMaterialPayablesMinor: number;
+  walletCashMinor: number;
+  unallocatedCashMinor: number;
+  cashWalletCount: number;
   truth: string;
 };
 export type RecordedPeriodResult = { from: string; to: string; recognizedRevenueMinor: number; recognizedDirectCostMinor: number; recordedOperatingExpenseMinor: number; resultMinor: number; finalOrderCount: number; excludedOrderCount: number; expenseNeedsReviewCount: number; status: "recorded_only" | "incomplete"; truth: string };
@@ -29,10 +32,10 @@ export class ProjectFinancialService {
   constructor(private readonly store: PrototypeLocalStore, private readonly now: () => string = () => new Date().toISOString()) {}
 
   async readPosition(): Promise<FinanceResult<ProjectFinancialPosition>> {
-    const [ordersResult, eventsResult, purchasesResult] = await Promise.all([this.store.listOrders(), this.store.listFinancialEvents(), this.store.listSupplierPurchases()]);
-    if (!ordersResult.ok || !eventsResult.ok || !purchasesResult.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة السجلات المالية المحلية." };
-    const orderPulse = summarizeLocalCraftOrders(ordersResult.value); const project = summarizeFinancialEvents(eventsResult.value); const supplierMaterialPayablesMinor = purchasesResult.value.reduce((sum, purchase) => sum + purchase.payableMinor, 0); const supplierPurchaseCashPaidMinor = purchasesResult.value.reduce((sum, purchase) => sum + purchase.paidMinor, 0);
-    return { ok: true, value: { recordedCashMinor: orderPulse.registeredCollectionsMinor + project.cashMinor - supplierPurchaseCashPaidMinor, customerReceivablesMinor: orderPulse.registeredDebtMinor, supplierPayablesMinor: project.payableMinor + supplierMaterialPayablesMinor, ownerCapitalRecordedMinor: project.ownerCapitalMinor, operatingExpensesRecordedMinor: project.operatingExpenseMinor, orderCollectionsMinor: orderPulse.registeredCollectionsMinor, projectEventCount: project.eventCount, supplierPurchaseCount: purchasesResult.value.length, supplierMaterialPayablesMinor, truth: "الكاش والذمم هنا مبنيان على أحداث محلية وشراء مواد مسجل فقط. شراء المواد لا يظهر مصروفًا أو مخزونًا أو صافي ربح حتى تسجل Micro الاستهلاك ضمن عقد لاحق." } };
+    const [ordersResult, eventsResult, purchasesResult, walletsResult, continuityResult] = await Promise.all([this.store.listOrders(), this.store.listFinancialEvents(), this.store.listSupplierPurchases(), this.store.listCashWallets(), this.store.listCashContinuityEntries()]);
+    if (!ordersResult.ok || !eventsResult.ok || !purchasesResult.ok || !walletsResult.ok || !continuityResult.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة السجلات المالية المحلية." };
+    const orderPulse = summarizeLocalCraftOrders(ordersResult.value); const project = summarizeFinancialEvents(eventsResult.value); const supplierMaterialPayablesMinor = purchasesResult.value.reduce((sum, purchase) => sum + purchase.payableMinor, 0); const supplierPurchaseCashPaidMinor = purchasesResult.value.reduce((sum, purchase) => sum + purchase.paidMinor, 0); const unallocatedCashMinor = orderPulse.registeredCollectionsMinor + project.cashMinor - supplierPurchaseCashPaidMinor; const walletCashMinor = continuityResult.value.reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
+    return { ok: true, value: { recordedCashMinor: unallocatedCashMinor + walletCashMinor, customerReceivablesMinor: orderPulse.registeredDebtMinor, supplierPayablesMinor: project.payableMinor + supplierMaterialPayablesMinor, ownerCapitalRecordedMinor: project.ownerCapitalMinor, operatingExpensesRecordedMinor: project.operatingExpenseMinor, orderCollectionsMinor: orderPulse.registeredCollectionsMinor, projectEventCount: project.eventCount, supplierPurchaseCount: purchasesResult.value.length, supplierMaterialPayablesMinor, walletCashMinor, unallocatedCashMinor, cashWalletCount: walletsResult.value.length, truth: "الكاش المسجل يجمع رصيد المحافظ المعلن والكاش غير الموزع من الطلبات والأحداث وشراء المواد. الافتتاح والضبط لا يمثلان دخلًا أو مصروفًا أو مال مالك، والتحويل بين المحافظ لا يغير الكاش الكلي." } };
   }
 
   async listEvents(): Promise<FinanceResult<readonly FinancialEvent[]>> { const result = await this.store.listFinancialEvents(); return result.ok ? { ok: true, value: result.value } : { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." }; }
