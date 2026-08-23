@@ -21,7 +21,8 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
   const services = useMemo(() => {
     const store = createBrowserLocalStore();
     const costs = new CostService(store);
-    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), financialPulse: new FinancialPulseService(store), projectFinance: new ProjectFinancialService(store), dailyFollowUp: new DailyFollowUpService(store), schedules: new ScheduleService(store), fulfillment: new FulfillmentService(store), transfers: new LocalTransferService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
+    const schedules = new ScheduleService(store);
+    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), financialPulse: new FinancialPulseService(store), projectFinance: new ProjectFinancialService(store), dailyFollowUp: new DailyFollowUpService(store), schedules, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
   }, [dataVersion]);
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
