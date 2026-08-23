@@ -16,5 +16,6 @@ export const primaryNavigation: readonly NavigationItem[] = [
 
 export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/schedule")) return "المواعيد";
+  if (pathname.startsWith("/finance")) return "الوضع المالي";
   return primaryNavigation.find(item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)))?.label ?? "مايكرو";
 }

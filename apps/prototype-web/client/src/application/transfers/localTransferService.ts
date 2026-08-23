@@ -1,7 +1,7 @@
 /** Slice 5 transfer boundary: parse and validate first; only an explicit confirmation may replace local IndexedDB state. */
 import { localExportFormat, localExportVersion, localProfileId, localSchemaVersion, type LocalExportFile, type LocalStoreSnapshot, type PrototypeLocalStore } from "@/storage/local/types";
 
-export type TransferSummary = { profile: boolean; preferences: boolean; drafts: number; orders: number; schedules: number; snapshots: number; events: number; exportedAt: string };
+export type TransferSummary = { profile: boolean; preferences: boolean; drafts: number; orders: number; schedules: number; financialEvents: number; snapshots: number; events: number; exportedAt: string };
 export type TransferPreview = { file: LocalExportFile; summary: TransferSummary };
 export type TransferResult<T> = { ok: true; value: T } | { ok: false; code: "validation_error" | "storage_error"; message: string };
 const fail = <T,>(message: string): TransferResult<T> => ({ ok: false, code: "validation_error", message });
@@ -16,6 +16,9 @@ const isOrderStatus = (value: unknown) => typeof value === "string" && ["draft",
 const isSettlement = (value: unknown) => typeof value === "string" && ["unpaid", "partially_paid", "paid", "debt", "cancelled", "cancelled_pending", "cancelled_refunded", "cancelled_retained"].includes(value);
 const isScheduleStatus = (value: unknown) => value === "scheduled" || value === "postponed" || value === "completed" || value === "cancelled";
 const isScheduleEvent = (value: unknown) => isRecord(value) && isString(value.id) && isString(value.idempotencyKey) && isDate(value.createdAt) && (value.type === "created" || value.type === "postponed" || value.type === "completed" || value.type === "cancelled") && (value.previousScheduledFor === null || isString(value.previousScheduledFor)) && isString(value.scheduledFor) && (value.reason === null || isString(value.reason));
+const isFinancialType = (value: unknown) => value === "owner_investment_cash" || value === "owner_withdrawal_cash" || value === "operating_expense_cash" || value === "operating_expense_payable" || value === "payable_settlement_cash";
+const isSignedMoney = (value: unknown) => typeof value === "number" && Number.isInteger(value);
+function validFinancialEvent(value: unknown): boolean { if (!isRecord(value) || !isString(value.id) || !isFinancialType(value.type) || value.currency !== "JOD" || !isMoney(value.amountMinor) || value.amountMinor === 0 || !isString(value.occurredOn) || !isDate(`${value.occurredOn}T12:00:00.000Z`) || !isDate(value.recordedAt) || !isString(value.idempotencyKey) || !isString(value.note) || !(value.counterparty === null || isString(value.counterparty)) || !(value.relatedEventId === null || isString(value.relatedEventId)) || !isSignedMoney(value.cashDeltaMinor) || !isSignedMoney(value.payableDeltaMinor) || !isSignedMoney(value.ownerCapitalDeltaMinor) || !isSignedMoney(value.operatingExpenseDeltaMinor)) return false; const amount = value.amountMinor; const expected = value.type === "owner_investment_cash" ? [amount, 0, amount, 0] : value.type === "owner_withdrawal_cash" ? [-amount, 0, -amount, 0] : value.type === "operating_expense_cash" ? [-amount, 0, 0, amount] : value.type === "operating_expense_payable" ? [0, amount, 0, amount] : [-amount, -amount, 0, 0]; return value.cashDeltaMinor === expected[0] && value.payableDeltaMinor === expected[1] && value.ownerCapitalDeltaMinor === expected[2] && value.operatingExpenseDeltaMinor === expected[3] && (value.type === "payable_settlement_cash" ? isString(value.relatedEventId) && value.relatedEventId.trim().length > 0 : value.relatedEventId === null); }
 
 function validDraftCostSnapshot(value: unknown): boolean {
   if (!isRecord(value) || !isString(value.id) || !Number.isInteger(value.revision) || !isDate(value.createdAt) || value.currency !== "JOD" || !isPositiveQuantity(value.quantity) || !Array.isArray(value.materialItems) || !isMoney(value.packagingMinor) || !isMoney(value.deliveryMinor) || !isMoney(value.wasteMinor) || !isMoney(value.safetyBufferMinor)) return false;
@@ -33,7 +36,7 @@ function validEvent(value: unknown): boolean {
 }
 
 function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
-  if (!isRecord(data) || !Array.isArray(data.drafts) || !Array.isArray(data.orders) || !Array.isArray(data.schedules)) return false;
+  if (!isRecord(data) || !Array.isArray(data.drafts) || !Array.isArray(data.orders) || !Array.isArray(data.schedules) || !Array.isArray(data.financialEvents)) return false;
   if (data.profile !== null && (!isRecord(data.profile) || data.profile.id !== localProfileId || !isString(data.profile.activityName) || data.profile.currency !== "JOD" || data.profile.activityType !== "custom_craft" || !isDate(data.profile.createdAt) || !isDate(data.profile.updatedAt))) return false;
   if (data.preferences !== null && (!isRecord(data.preferences) || data.preferences.id !== "local-preferences" || !(data.preferences.theme === "light" || data.preferences.theme === "dark" || data.preferences.theme === "system") || !isDate(data.preferences.updatedAt))) return false;
   const orderIds = new Set<string>();
@@ -53,13 +56,18 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (!isRecord(schedule) || !isString(schedule.id) || !isString(schedule.orderId) || schedule.kind !== "delivery" || !isString(schedule.scheduledFor) || !isScheduleStatus(schedule.status) || !(schedule.postponeReason === null || isString(schedule.postponeReason)) || !isDate(schedule.createdAt) || !isDate(schedule.updatedAt) || !Array.isArray(schedule.events) || !schedule.events.every(isScheduleEvent) || !orderIds.has(schedule.orderId) || scheduleIds.has(schedule.id) || scheduledOrderIds.has(schedule.orderId)) return false;
     scheduleIds.add(schedule.id); scheduledOrderIds.add(schedule.orderId);
   }
+  const financialIds = new Set<string>(); const financialKeys = new Set<string>();
+  for (const event of data.financialEvents) {
+    if (!validFinancialEvent(event) || financialIds.has(event.id) || financialKeys.has(`${event.type}:${event.idempotencyKey}`)) return false;
+    financialIds.add(event.id); financialKeys.add(`${event.type}:${event.idempotencyKey}`);
+  }
   return true;
 }
 
 function summary(file: LocalExportFile): TransferSummary {
   const snapshots = file.data.drafts.reduce((count, draft) => count + draft.costSnapshots.length, 0) + file.data.orders.reduce((count, stored) => count + stored.order.costSnapshots.length, 0);
   const events = file.data.orders.reduce((count, stored) => count + stored.order.events.length, 0);
-  return { profile: file.data.profile !== null, preferences: file.data.preferences !== null, drafts: file.data.drafts.length, orders: file.data.orders.length, schedules: file.data.schedules.length, snapshots, events, exportedAt: file.exportedAt };
+  return { profile: file.data.profile !== null, preferences: file.data.preferences !== null, drafts: file.data.drafts.length, orders: file.data.orders.length, schedules: file.data.schedules.length, financialEvents: file.data.financialEvents.length, snapshots, events, exportedAt: file.exportedAt };
 }
 
 export class LocalTransferService {

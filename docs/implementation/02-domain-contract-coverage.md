@@ -22,11 +22,12 @@
 | historical snapshots | تعديل التكلفة لا يغير الماضي بصمت | `costSnapshots` يحتفظ بالنسخ، و`reviseOrderCost` يضيف نسخة جديدة؛ Snapshot ومدخلاته ومصفوفة التاريخ تُنسخ وتُجمّد، مع تحقق تطابق الكمية داخليًا | مطبق ومختبر، دون تخزين دائم |
 | settlement transition events | كل تغيير حالة حساس يحتاج أثرًا تاريخيًا واضحًا | قبض المتبقي الكامل وتسجيل الدين، والدفع الكامل قبل التسليم، وRevision والإلغاء تضيف `status_changed` بوضوح `fromStatus/toStatus` | مطبق ومختبر داخل الكائن المحلي فقط |
 | idempotency | كل أثر مالي حساس يعاد بأمان دون تكرار | الأحداث تحمل `idempotencyKey` غير فارغ، والفحص يميز نوع الحدث حتى لا يمنع مفتاح عملية مختلفة؛ ما زال محليًا داخل الكائن | مطبق ومختبر داخل الكائن المحلي فقط |
-| ledger/workspace/sync | يحتاج سجل أحداث وتخزين وعزل ومزامنة حقيقية | لا يوجد Ledger عام أو LocalStore أو SyncQueue أو Workspace، وحالات `synced/conflict` عقد مستهدف لا تنفيذ حالي | مؤجل عمدًا إلى مراحل لاحقة |
+| أحداث المال العامة محليًا | الكاش والالتزامات ومال المالك تحتاج سجلًا مستقلًا عن الطلب | `FinancialEvent` و`ProjectFinancialService` وLocalStore محليًا تسجل الاستثمار والسحب والمصروف المدفوع أو المستحق وتسديد الالتزام مع idempotency | مطبق محليًا، وليس Ledger أو Workspace أو SyncQueue أو عزل SaaS |
+| ledger/workspace/sync | يحتاج دفترًا عامًا وتخزينًا وعزلًا ومزامنة حقيقية | لا يوجد Ledger عام أو Workspace أو SyncQueue أو حالات `synced/conflict` | مؤجل عمدًا إلى مراحل لاحقة |
 
 ## حد النموذج المالي
 
-الحقول `collectedMinor` و`receivableMinor` و`recognizedRevenueMinor` و`recognizedCostMinor` و`profitIndicatorMinor` تمثيل أولي على مستوى طلب واحد. ليست بديلًا عن سجل أحداث مالي مستقل عندما تدخل المصروفات العامة والمخزون والسحوبات وتعدد العمليات والتخزين الدائم.
+الحقول `collectedMinor` و`receivableMinor` و`recognizedRevenueMinor` و`recognizedCostMinor` و`profitIndicatorMinor` تمثيل أولي على مستوى طلب واحد. سجل `FinancialEvent` المحلي يكمل الكاش والالتزامات ومال المالك لكنه لا يحولها إلى دفتر عام أو ربح مشروع أو مخزون أو فترة محاسبية كاملة.
 
 ## معيار القراءة
 
