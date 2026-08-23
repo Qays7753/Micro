@@ -59,7 +59,7 @@ export class ScheduleService {
   async setDailyCapacity(minutes: number | null): Promise<ScheduleResult<number | null>> {
     if (minutes !== null && !validDuration(minutes)) return { ok: false, code: "validation_error", message: "سعة اليوم تكون مضاعف 15 دقيقة بين 15 و720." };
     const current = await this.store.getPreferences(); if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة تفضيلات الجدول المحلية." };
-    const saved = await this.store.savePreferences({ id: "local-preferences", theme: current.value?.theme ?? "system", dailyScheduleCapacityMinutes: minutes, updatedAt: this.now() });
+    const saved = await this.store.savePreferences({ id: "local-preferences", theme: current.value?.theme ?? "system", dailyScheduleCapacityMinutes: minutes, workMode: current.value?.workMode ?? null, actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false, updatedAt: this.now() });
     return saved.ok ? { ok: true, value: saved.value.dailyScheduleCapacityMinutes } : { ok: false, code: "storage_error", message: "تعذر حفظ سعة اليوم محليًا. لم يتم تأكيد نجاح العملية." };
   }
 
