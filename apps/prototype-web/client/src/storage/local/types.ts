@@ -8,15 +8,17 @@ import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js"
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type { InventoryMovement, Material } from "@micro-domain/inventory-material/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
+import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 
-export const localSchemaVersion = 17;
+export const localSchemaVersion = 18;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 8;
+export const localExportVersion = 9;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
-export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; dailyScheduleCapacityMinutes: number | null; updatedAt: string };
+export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
+export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; dailyScheduleCapacityMinutes: number | null; workMode: OperatingWorkMode | null; actualTimeTrackingEnabled: boolean; updatedAt: string };
 export type DraftIntent = "customer_order" | "planned_design";
 export type DraftCostMaterial = { name: string; quantity: number; unit: string; unitPriceMinor: number; confidence: "known" | "estimated" };
 export type DraftCostTime = { minutes: number; hourlyRateMinor: number; confidence: "known" | "estimated" };
@@ -29,7 +31,7 @@ export type ScheduleEventType = "created" | "postponed" | "timing_changed" | "co
 export type ScheduleEvent = { id: string; type: ScheduleEventType; idempotencyKey: string; createdAt: string; previousScheduledFor: string | null; scheduledFor: string; previousScheduledTime: string | null; scheduledTime: string | null; previousDurationMinutes: number | null; durationMinutes: number | null; reason: string | null };
 export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; scheduledTime: string | null; durationMinutes: number | null; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; createdAt: string; updatedAt: string };
 
-export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[] };
+export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[]; actualTimeRecords?: readonly ActualTimeRecord[] };
 export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };
 export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
@@ -64,6 +66,9 @@ export interface PrototypeLocalStore {
   listCatalogItems(): Promise<StorageResult<readonly CatalogItem[]>>;
   getCatalogItem(id: string): Promise<StorageResult<CatalogItem | null>>;
   saveCatalogItem(item: CatalogItem): Promise<StorageResult<CatalogItem>>;
+  listActualTimeRecords(): Promise<StorageResult<readonly ActualTimeRecord[]>>;
+  getActualTimeRecord(id: string): Promise<StorageResult<ActualTimeRecord | null>>;
+  saveActualTimeRecord(record: ActualTimeRecord): Promise<StorageResult<ActualTimeRecord>>;
   commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
