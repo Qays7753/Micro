@@ -16,10 +16,12 @@ export type ProjectFinancialPosition = {
   projectEventCount: number;
   truth: string;
 };
+export type RecordedPeriodResult = { from: string; to: string; recognizedRevenueMinor: number; recognizedDirectCostMinor: number; recordedOperatingExpenseMinor: number; resultMinor: number; finalOrderCount: number; excludedOrderCount: number; status: "recorded_only" | "incomplete"; truth: string };
 export type FinancialRecordInput = { type: FinancialEventType; amountMinor: number; occurredOn: string; note: string; counterparty: string | null; relatedEventId: string | null; idempotencyKey: string };
 export type FinanceResult<T> = { ok: true; value: T; reused?: boolean } | { ok: false; code: "validation_error" | "storage_error"; message: string };
 
 function id(): string { return globalThis.crypto?.randomUUID?.() ?? `financial-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+function ammanDate(timestamp: string): string { const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(timestamp)); const value = (type: string) => parts.find((part) => part.type === type)?.value; return `${value("year")}-${value("month")}-${value("day")}`; }
 
 export class ProjectFinancialService {
   constructor(private readonly store: PrototypeLocalStore, private readonly now: () => string = () => new Date().toISOString()) {}
@@ -32,6 +34,16 @@ export class ProjectFinancialService {
   }
 
   async listEvents(): Promise<FinanceResult<readonly FinancialEvent[]>> { const result = await this.store.listFinancialEvents(); return result.ok ? { ok: true, value: result.value } : { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." }; }
+
+  async readRecordedPeriodResult(from: string, to: string): Promise<FinanceResult<RecordedPeriodResult>> {
+    const [ordersResult, eventsResult] = await Promise.all([this.store.listOrders(), this.store.listFinancialEvents()]);
+    if (!ordersResult.ok || !eventsResult.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة نتيجة الفترة المحلية." };
+    const inPeriod = (date: string) => date >= from && date <= to;
+    const delivered = ordersResult.value.map((stored) => { const event = stored.order.events.find((candidate) => candidate.type === "status_changed" && candidate.toStatus === "delivered"); return { order: stored.order, deliveredAt: event ? ammanDate(event.createdAt) : null }; }).filter((item) => item.deliveredAt !== null && inPeriod(item.deliveredAt));
+    const finals = delivered.filter((item) => item.order.resultStatus === "final"); const excludedOrderCount = delivered.length - finals.length;
+    const recognizedRevenueMinor = finals.reduce((total, item) => total + item.order.recognizedRevenueMinor, 0); const recognizedDirectCostMinor = finals.reduce((total, item) => total + item.order.recognizedCostMinor, 0); const recordedOperatingExpenseMinor = eventsResult.value.filter((event) => inPeriod(event.occurredOn)).reduce((total, event) => total + event.operatingExpenseDeltaMinor, 0);
+    return { ok: true, value: { from, to, recognizedRevenueMinor, recognizedDirectCostMinor, recordedOperatingExpenseMinor, resultMinor: recognizedRevenueMinor - recognizedDirectCostMinor - recordedOperatingExpenseMinor, finalOrderCount: finals.length, excludedOrderCount, status: excludedOrderCount > 0 ? "incomplete" : "recorded_only", truth: excludedOrderCount > 0 ? "استبعدنا طلبات مسلّمة لا تملك نتيجة نهائية. حتى الطلبات الظاهرة لا تجعل هذا صافي ربح نهائيًا؛ المخزون والمصاريف غير المسجلة والتوزيع والضرائب خارج هذه الصورة." : "هذه نتيجة الطلبات النهائية ناقص المصاريف العامة المسجلة في الفترة. لا تؤكد اكتمال المصاريف أو المخزون أو التوزيع أو الضرائب، لذلك ليست صافي ربح نهائيًا." } };
+  }
 
   async record(input: FinancialRecordInput): Promise<FinanceResult<FinancialEvent>> {
     const existing = await this.store.listFinancialEvents(); if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر التحقق من سجل الأحداث المالية." };

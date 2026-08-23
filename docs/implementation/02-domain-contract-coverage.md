@@ -23,11 +23,12 @@
 | settlement transition events | كل تغيير حالة حساس يحتاج أثرًا تاريخيًا واضحًا | قبض المتبقي الكامل وتسجيل الدين، والدفع الكامل قبل التسليم، وRevision والإلغاء تضيف `status_changed` بوضوح `fromStatus/toStatus` | مطبق ومختبر داخل الكائن المحلي فقط |
 | idempotency | كل أثر مالي حساس يعاد بأمان دون تكرار | الأحداث تحمل `idempotencyKey` غير فارغ، والفحص يميز نوع الحدث حتى لا يمنع مفتاح عملية مختلفة؛ ما زال محليًا داخل الكائن | مطبق ومختبر داخل الكائن المحلي فقط |
 | أحداث المال العامة محليًا | الكاش والالتزامات ومال المالك تحتاج سجلًا مستقلًا عن الطلب | `FinancialEvent` و`ProjectFinancialService` وLocalStore محليًا تسجل الاستثمار والسحب والمصروف المدفوع أو المستحق وتسديد الالتزام مع idempotency | مطبق محليًا، وليس Ledger أو Workspace أو SyncQueue أو عزل SaaS |
+| نتيجة الفترة المسجلة | تجمع فقط الطلبات المسلّمة النهائية ومصاريف التشغيل العامة ضمن فترة معلنة، مع درجة معرفة | `ProjectFinancialService.readRecordedPeriodResult` يشتق الإيراد والتكلفة من طلبات `final` وفق يوم تسليم `Asia/Amman`، ويضيف دلتا المصروف التشغيلي عند `occurredOn` ويستبعد غير النهائي | مطبق محليًا كـ`recorded_only` أو `incomplete`؛ ليس صافي ربح نهائيًا أو دفتر فترة كاملًا |
 | ledger/workspace/sync | يحتاج دفترًا عامًا وتخزينًا وعزلًا ومزامنة حقيقية | لا يوجد Ledger عام أو Workspace أو SyncQueue أو حالات `synced/conflict` | مؤجل عمدًا إلى مراحل لاحقة |
 
 ## حد النموذج المالي
 
-الحقول `collectedMinor` و`receivableMinor` و`recognizedRevenueMinor` و`recognizedCostMinor` و`profitIndicatorMinor` تمثيل أولي على مستوى طلب واحد. سجل `FinancialEvent` المحلي يكمل الكاش والالتزامات ومال المالك لكنه لا يحولها إلى دفتر عام أو ربح مشروع أو مخزون أو فترة محاسبية كاملة.
+الحقول `collectedMinor` و`receivableMinor` و`recognizedRevenueMinor` و`recognizedCostMinor` و`profitIndicatorMinor` تمثيل أولي على مستوى طلب واحد. سجل `FinancialEvent` المحلي يكمل الكاش والالتزامات ومال المالك، ونتيجة الفترة المسجلة تشتق مجموعة معلنة من الطلبات النهائية والمصروفات العامة. لا يحول أي من ذلك النظام إلى دفتر عام أو ربح مشروع نهائي أو مخزون أو فترة محاسبية كاملة.
 
 ## معيار القراءة
 
