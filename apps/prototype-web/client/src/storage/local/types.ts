@@ -6,12 +6,13 @@ import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import type { InventoryMovement, Material } from "@micro-domain/inventory-material/index.js";
 
-export const localSchemaVersion = 12;
+export const localSchemaVersion = 14;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 5;
+export const localExportVersion = 6;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; dailyScheduleCapacityMinutes: number | null; updatedAt: string };
@@ -27,7 +28,7 @@ export type ScheduleEventType = "created" | "postponed" | "timing_changed" | "co
 export type ScheduleEvent = { id: string; type: ScheduleEventType; idempotencyKey: string; createdAt: string; previousScheduledFor: string | null; scheduledFor: string; previousScheduledTime: string | null; scheduledTime: string | null; previousDurationMinutes: number | null; durationMinutes: number | null; reason: string | null };
 export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; scheduledTime: string | null; durationMinutes: number | null; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; createdAt: string; updatedAt: string };
 
-export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[] };
+export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[] };
 export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };
 export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
@@ -56,6 +57,9 @@ export interface PrototypeLocalStore {
   listCashWallets(): Promise<StorageResult<readonly CashWallet[]>>;
   listCashContinuityEntries(): Promise<StorageResult<readonly CashContinuityEntry[]>>;
   commitCashContinuity(wallet: CashWallet | null, entries: readonly CashContinuityEntry[]): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>>;
+  listMaterials(): Promise<StorageResult<readonly Material[]>>;
+  listInventoryMovements(): Promise<StorageResult<readonly InventoryMovement[]>>;
+  commitInventory(material: Material | null, movements: readonly InventoryMovement[]): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>>;
   commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
