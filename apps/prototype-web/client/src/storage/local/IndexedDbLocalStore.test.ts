@@ -77,6 +77,11 @@ describe("IndexedDbLocalStore", () => {
     await expect(store.getSchedule("legacy-schedule")).resolves.toMatchObject({ ok: true, value: { scheduledTime: null, durationMinutes: null, events: [{ previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null }] } });
   });
 
+  it("migrates schema 8 by adding an empty material-purchase store", async () => {
+    await new Promise<void>((resolve, reject) => { const request = indexedDB.open(databaseName, 8); request.onerror = () => reject(request.error); request.onupgradeneeded = () => { request.result.createObjectStore("activity-profile", { keyPath: "id" }); request.result.createObjectStore("local-preferences", { keyPath: "id" }); request.result.createObjectStore("order-drafts", { keyPath: "id" }); request.result.createObjectStore("craft-orders", { keyPath: "id" }); request.result.createObjectStore("financial-events", { keyPath: "id" }); request.result.createObjectStore("schedule-entries", { keyPath: "id" }); }; request.onsuccess = () => { request.result.close(); resolve(); }; });
+    await expect(new IndexedDbLocalStore().listSupplierPurchases()).resolves.toMatchObject({ ok: true, value: [] });
+  });
+
   it("commits one local order and its linked draft together", async () => {
     const store = new IndexedDbLocalStore();
     const cost = calculateCostSnapshot("cost-1", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
