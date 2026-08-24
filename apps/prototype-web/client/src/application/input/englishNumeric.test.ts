@@ -25,5 +25,6 @@ describe("english numeric input", () => {
     expect(formatEnglishNumericValue(7, "integer")).toBe("7");
     expect(formatEnglishNumericValue(1.25, "decimal")).toBe("1.25");
     expect(formatEnglishNumericValue(1250, "money")).toBe("12.50");
+    expect(formatEnglishNumericValue(null, "money")).toBe("");
   });
 });
