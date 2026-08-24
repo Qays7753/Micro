@@ -6,7 +6,7 @@
 
 > هذا الملف يجيب عن سؤال واحد: **«إذا فتحت المستودع الآن، ما الذي أستطيع قوله أو تغييره بأمان؟»** لا يغير العقود ولا يحل محلها.
 >
-> **حالة الدمج الحالية:** PWA مدمجة على `main` عبر PR #54 وG5 عبر PR #53. G6-A حالتها التاريخية موثقة في PR #57. شريحـتا G6-B وG7-A منفذتان على فرع `g6b-g7a/recurrence-and-followup` في Draft PR #60، مفتوحة ولم تندمجا بعد؛ لذلك يظل `main` مرجع القدرات المدمجة.
+> **حالة الدمج الحالية:** PWA مدمجة على `main` عبر PR #54 وG5 عبر PR #53 وG6-A عبر PR #57، كما اندمجت G6-B وG7-A عبر PR #60. لا توجد شريحة وظيفية مفتوحة؛ `main` هو مرجع القدرات المدمجة.
 
 ## 1. قاعدة التشغيل الحالية
 
@@ -34,8 +34,8 @@
 | الاستعادة المحلية | export/import ذري مع ترحيل الإصدارات السابقة؛ لا backup سحابي أو مزامنة. |
 | PWA التشغيلية | منفذة كطبقة نشر/تشغيل فقط: Manifest RTL محلي، أيقونات محلية، App Shell precache، direct-route fallback وCloudflare headers، وتثبيت صادق Android/iOS وتحديث اختياري؛ لا تقرأ IndexedDB ولا تضيف backup أو sync. القبول الفعلي على جهاز Android/iOS وعنوان Pages الإنتاجي ما زال مطلوبًا. |
 | G6-A التقويم الشهري التشغيلي | منفذ كقراءة `MonthOverview` مشتقة من المواعيد القائمة وشبكة شهر RTL داخل `/schedule`؛ يوضح الوقت المعروف والمجهول والتحذير المشتق من التعارض/السعة، ولا ينشئ تكرارًا أو موعدًا أو تخزينًا جديدًا أو أثرًا ماليًا. |
-| G6-B التكرار المحلي المحدود | منفذ على Draft PR #60 فقط، لا على `main`: قوالب أسبوعية/شهرية محلية، 1–12 ظهورًا مستقلًا، idempotency، skips صريحة، وإيقاف الظهورات المستقبلية بسبب مكتوب؛ لا reminders أو cron أو تقويم خارجي أو حجز أو موارد. |
-| G7-A مصدر الاتفاق والمتابعة | منفذ على Draft PR #60 فقط، لا على `main`: مصدر اتفاق اختياري، ملخص متابعة مكتوب، موعد محلي، قراءة مستحق/قادم، وتاريخ تغيير بسبب مكتوب؛ لا CRM أو رسائل أو تذكيرات تلقائية أو أثر مالي. |
+| G6-B التكرار المحلي المحدود | منفذ محليًا: قوالب أسبوعية/شهرية، 1–12 ظهورًا مستقلًا، idempotency، skips صريحة، وإلغاء الظهورات المستقبلية المشتقة بسبب مكتوب؛ لا reminders أو cron أو تقويم خارجي أو حجز أو موارد. |
+| G7-A مصدر الاتفاق والمتابعة | منفذ محليًا: مصدر اتفاق اختياري، ملخص متابعة مكتوب، موعد محلي، قراءة مستحق/قادم، وتاريخ تغيير أو إزالة بسبب مكتوب؛ لا CRM أو رسائل أو تذكيرات تلقائية أو أثر مالي. |
 
 ## 3. الحدود غير القابلة للتفاوض
 
@@ -43,7 +43,7 @@
 
 ## 4. الحالة المتوقفة عمدًا
 
-**لا تبدأ أي مجموعة أو قدرة مالية/بنية جديدة الآن.** اكتملت G4-B وG5 وG6-A، وأضيفت PWA التشغيلية المصرح بها كطبقة نشر ثابتة فقط. G6-B وG7-A مفتوحتان في Draft PR #60 ولم تندمجا بعد؛ لا تعتبر قدراتهما مدمجة في `main` حتى تمر المراجعة وCI والدمج. لا توسع G6-B إلى daily/RRULE/reminders أو التقويم الخارجي أو الحجز أو الموارد. لا توسع G7-A إلى CRM أو رسائل أو تذكيرات تلقائية. لا تنتقل إلى POS أو مزامنة أو Auth أو أي معنى سحابي قبل طلب صريح جديد من مالك المنتج. لا توسّع الوقت الفعلي إلى أجر أو تكلفة أو توصية سعر، ولا توسّع G5 إلى صافي ربح نهائي أو COGS فعلي أو تنبؤ/توصية من دون عقد مستقل.
+**لا تبدأ أي مجموعة أو قدرة مالية/بنية جديدة الآن.** اكتملت G4-B وG5 وG6-A وG6-B وG7-A، وأضيفت PWA التشغيلية المصرح بها كطبقة نشر ثابتة فقط. لا توسع G6-B إلى daily/RRULE/reminders أو التقويم الخارجي أو الحجز أو الموارد. لا توسع G7-A إلى CRM أو رسائل أو تذكيرات تلقائية. لا تنتقل إلى POS أو مزامنة أو Auth أو أي معنى سحابي قبل طلب صريح جديد من مالك المنتج. لا توسّع الوقت الفعلي إلى أجر أو تكلفة أو توصية سعر، ولا توسّع G5 إلى صافي ربح نهائي أو COGS فعلي أو تنبؤ/توصية من دون عقد مستقل.
 
 ## 5. أول قراءة إلزامية حسب المهمة
 
@@ -53,7 +53,7 @@
 | مراجعة أو تعديل G4-B عند تفويض جديد | `docs/contracts/16-optional-operating-mode-and-actual-time-contract.md` ثم `src/domain/actual-time/` و`apps/prototype-web/client/src/application/time/` و`apps/prototype-web/client/src/components/presentation/ActualTimePanel.tsx` |
 | مراجعة أو تعديل G5 عند تفويض جديد | `docs/contracts/17-contribution-break-even-short-cash-g5-contract.md` ثم `src/domain/g5/` و`apps/prototype-web/client/src/application/g5/` و`apps/prototype-web/client/src/pages/Finance.tsx` |
 | مراجعة أو تعديل G6-A عند تفويض جديد | `docs/contracts/18-derived-monthly-order-schedule-g6-a-contract.md` ثم `apps/prototype-web/client/src/application/scheduling/scheduleService.ts` و`apps/prototype-web/client/src/pages/Schedule.tsx` |
-| مراجعة G6-B/G7-A المفتوحة | `docs/contracts/19-bounded-local-schedule-recurrence-g6-b-contract.md` و`docs/contracts/20-agreement-source-follow-up-g7-a-contract.md` ثم Draft PR #60؛ لا تعتمد `main` على هذه القدرات قبل الدمج |
+| مراجعة أو تعديل G6-B/G7-A عند تفويض جديد | `docs/contracts/19-bounded-local-schedule-recurrence-g6-b-contract.md` و`docs/contracts/20-agreement-source-follow-up-g7-a-contract.md` ثم خدمات recurrence/agreement context؛ لا توسع الحدود دون عقد جديد. |
 | واجهة Prototype | `docs/product/mobile-ui-ux-reference-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` والمهارات المحلية المذكورة في `AGENTS.md` |
 | LocalStore أو استعادة | `docs/contracts/16-optional-operating-mode-and-actual-time-contract.md` و`apps/prototype-web/client/src/storage/local/` و`apps/prototype-web/client/src/application/transfers/` |
 
@@ -65,7 +65,7 @@
 
 ## 7. ما يجب تحديثه عند الإغلاق القادم
 
-عند إغلاق/دمج شريحة جديدة، يعدل الوكيل هذا الملف في نفس PR ليحدث: commit/PR، جدول «ما هو منفذ»، جدول «الحالة المتوقفة عمدًا»، إصدارات schema/export إن تغيرت، ومسار القراءة التالي. PWA مدمجة على `main` عبر PR #54 وG5 عبر PR #53؛ G6-B/G7-A مفتوحتان في Draft PR #60 ولم تندمجا بعد. يظل اختبار iOS الفعلي مطلوبًا قبل إعلان قبول PWA الإنتاجي متعدد المنصات. ثم يحدث `todo.md` فقط بما يطابق الواقع المندمج.
+عند إغلاق/دمج شريحة جديدة، يعدل الوكيل هذا الملف في نفس PR ليحدث: commit/PR، جدول «ما هو منفذ»، جدول «الحالة المتوقفة عمدًا»، إصدارات schema/export إن تغيرت، ومسار القراءة التالي. PWA مدمجة على `main` عبر PR #54 وG5 عبر PR #53 وG6-B/G7-A عبر PR #60. يظل اختبار iOS الفعلي مطلوبًا قبل إعلان قبول PWA الإنتاجي متعدد المنصات. ثم يحدث `todo.md` فقط بما يطابق الواقع المندمج.
 
 ## References
 
