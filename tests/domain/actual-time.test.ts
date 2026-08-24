@@ -15,6 +15,12 @@ describe("actual time domain", () => {
     expect(() => reverseActualTimeRecord({ id: "time-reverse-2", target: record, recordedOn: "2026-08-23", createdAt: "2026-08-23T11:00:00.000Z", reason: "محاولة ثانية", operationKey: "time-reverse-2" }, [reversal])).toThrow("تم عكس سجل الوقت هذا سابقًا");
   });
 
+  it("keeps missing planned time unknown instead of treating it as zero", () => {
+    const record = createActualTimeRecord({ id: "time-missing-plan", orderId: "order-1", minutesDelta: 75, recordedOn: "2026-08-23", createdAt: "2026-08-23T09:00:00.000Z", note: null, operationKey: "time-missing-plan" });
+    expect(summarizeActualTime("order-1", null, [record], "needs_review")).toEqual({ status: "needs_review", plannedMinutes: null, actualMinutes: 75, varianceMinutes: null, recordCount: 1, reversedRecordCount: 0 });
+    expect(summarizeActualTime("order-1", null, [], "needs_review")).toEqual({ status: "not_recorded", plannedMinutes: null, actualMinutes: null, varianceMinutes: null, recordCount: 0, reversedRecordCount: 0 });
+  });
+
   it("rejects zero or fractional minutes and a reversal without its reason", () => {
     expect(() => createActualTimeRecord({ id: "bad", orderId: "order-1", minutesDelta: 0, recordedOn: "2026-08-23", createdAt: "2026-08-23T09:00:00.000Z", note: null, operationKey: "bad" })).toThrow("دقائق موجبة صحيحة");
     const record = createActualTimeRecord({ id: "time-1", orderId: "order-1", minutesDelta: 15, recordedOn: "2026-08-23", createdAt: "2026-08-23T09:00:00.000Z", note: null, operationKey: "time-1" });

@@ -1,7 +1,7 @@
 # حالة Micro الحية — مصدر الاستلام التنفيذي
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
-**آخر تحديث:** 23 أغسطس 2026
+**آخر تحديث:** 24 أغسطس 2026
 **مرجع Git:** شغّل `git switch main && git pull --ff-only origin main && git rev-parse --short HEAD`؛ لا تعتمد رقم commit ثابتًا داخل وثيقة حية.
 
 > هذا الملف يجيب عن سؤال واحد: **«إذا فتحت المستودع الآن، ما الذي أستطيع قوله أو تغييره بأمان؟»** لا يغير العقود ولا يحل محلها.
@@ -27,7 +27,7 @@
 | المادة والمخزون والاستهلاك والهدر | منفذ؛ فرق المادة للطلب تفسيري فقط. |
 | نتيجة الفترة الأوسع G3 | منفذ؛ تفصل حصة المشروع المشتركة ومصدرها وسبب النقص؛ ليست صافي ربح نهائيًا. |
 | كتالوج اختياري G4-A | منفذ؛ مرجع منتج/خدمة اختياري، ربط صريح للطلب الجديد، هامش مباشر مسجل وفرق مادة تفسيري. |
-| أساس الوقت الفعلي G4-B | منفذ داخليًا فقط: Domain، Application، LocalStore، schema 18 وexport 9؛ لا واجهة وقت أو وضع تشغيل ظاهرة للمستخدم بعد. |
+| وضع التشغيل والوقت الفعلي G4-B | منفذ محليًا وبشكل اختياري: تفضيل وضع تشغيل، تفعيل تتبع وقت، تسجيل دقائق للطلب وعكسها بسبب، وفرق وقت مخطط/منفذ تفسيري. يستند إلى Domain/Application/LocalStore وschema 18/export 9؛ لا أجر أو COGS أو تكلفة فعلية أو تسعير أو تعديل Snapshot. |
 | الاستعادة المحلية | export/import ذري مع ترحيل الإصدارات السابقة؛ لا backup سحابي أو مزامنة. |
 
 ## 3. الحدود غير القابلة للتفاوض
@@ -36,14 +36,14 @@
 
 ## 4. الحالة المتوقفة عمدًا
 
-**لا تبدأ أي مجموعة أو قدرة جديدة الآن.** طلب مالك المنتج هو التوقف بعد رفع PR #49 على `main`. العمل التالي—إذا طلبه المالك صراحة—هو فقط إكمال G4-B: واجهة محلية اختيارية لوضع التشغيل ووقت فعلي، QA، ثم PR منفصل. لا يجوز الانتقال إلى المجموعة الخامسة أو POS أو PWA أو مزامنة أو Auth.
+**لا تبدأ أي مجموعة أو قدرة جديدة الآن.** اكتملت G4-B محليًا ضمن حدودها، ولا يجوز الانتقال إلى المجموعة الخامسة أو POS أو PWA أو مزامنة أو Auth قبل طلب صريح جديد من مالك المنتج. لا توسّع معنى الوقت الفعلي إلى أجر أو تكلفة أو توصية سعر من دون عقد مستقل.
 
 ## 5. أول قراءة إلزامية حسب المهمة
 
 | إذا كان المطلوب | اقرأ بعد هذا الملف |
 |---|---|
 | مراجعة أو تعديل مالي | `docs/contracts/05-financial-p0-policies.md` ثم العقد المتصل و`docs/implementation/02-domain-contract-coverage.md` |
-| إكمال G4-B فقط عند تفويض جديد | `docs/contracts/16-optional-operating-mode-and-actual-time-contract.md` ثم `src/domain/actual-time/` و`apps/prototype-web/client/src/application/time/` |
+| مراجعة أو تعديل G4-B عند تفويض جديد | `docs/contracts/16-optional-operating-mode-and-actual-time-contract.md` ثم `src/domain/actual-time/` و`apps/prototype-web/client/src/application/time/` و`apps/prototype-web/client/src/components/presentation/ActualTimePanel.tsx` |
 | واجهة Prototype | `docs/product/mobile-ui-ux-reference-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` والمهارات المحلية المذكورة في `AGENTS.md` |
 | LocalStore أو استعادة | `docs/contracts/16-optional-operating-mode-and-actual-time-contract.md` و`apps/prototype-web/client/src/storage/local/` و`apps/prototype-web/client/src/application/transfers/` |
 

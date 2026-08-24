@@ -16,13 +16,13 @@ export function reverseActualTimeRecord(input: ReverseActualTimeRecordInput, exi
   return { id: input.id, orderId: input.target.orderId, minutesDelta: -input.target.minutesDelta, recordedOn: input.recordedOn, createdAt: input.createdAt, note: `عكس: ${input.target.note ?? "سجل وقت"}`, operationKey: input.operationKey, reversalOfId: input.target.id, reversalReason: input.reason.trim() };
 }
 
-export function summarizeActualTime(orderId: string, plannedMinutes: number, records: readonly ActualTimeRecord[], knowledge: ActualTimeKnowledge): ActualTimeComparison {
-  if (!Number.isInteger(plannedMinutes) || plannedMinutes < 0) throw new Error("وقت Snapshot المخطط غير صالح.");
+export function summarizeActualTime(orderId: string, plannedMinutes: number | null, records: readonly ActualTimeRecord[], knowledge: ActualTimeKnowledge): ActualTimeComparison {
+  if (plannedMinutes !== null && (!Number.isInteger(plannedMinutes) || plannedMinutes < 0)) throw new Error("وقت Snapshot المخطط غير صالح.");
   const orderRecords = records.filter(record => record.orderId === orderId);
   const reversedIds = new Set(orderRecords.filter(record => record.reversalOfId).map(record => record.reversalOfId));
   const active = orderRecords.filter(record => record.minutesDelta > 0 && !reversedIds.has(record.id));
   const reversedRecordCount = orderRecords.filter(record => record.reversalOfId !== null).length;
   if (active.length === 0) return { status: "not_recorded", plannedMinutes, actualMinutes: null, varianceMinutes: null, recordCount: 0, reversedRecordCount };
   const actualMinutes = active.reduce((total, record) => total + record.minutesDelta, 0);
-  return { status: knowledge === "known" ? "recorded" : "needs_review", plannedMinutes, actualMinutes, varianceMinutes: actualMinutes - plannedMinutes, recordCount: active.length, reversedRecordCount };
+  return { status: plannedMinutes !== null && knowledge === "known" ? "recorded" : "needs_review", plannedMinutes, actualMinutes, varianceMinutes: plannedMinutes === null ? null : actualMinutes - plannedMinutes, recordCount: active.length, reversedRecordCount };
 }

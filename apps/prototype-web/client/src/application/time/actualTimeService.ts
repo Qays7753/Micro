@@ -28,6 +28,13 @@ export class ActualTimeService {
     return saved.ok ? { ok: true, value: { workMode: saved.value.workMode, actualTimeTrackingEnabled: saved.value.actualTimeTrackingEnabled } } : { ok: false, code: "storage_error", message: "تعذر حفظ طريقة العمل محليًا." };
   }
 
+  async readOrderActualTimeRecords(orderId: string): Promise<ActualTimeResult<readonly ActualTimeRecord[]>> {
+    const [order, records] = await Promise.all([this.store.getOrder(orderId), this.store.listActualTimeRecords()]);
+    if (!order.ok || !records.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الوقت محليًا." };
+    if (!order.value) return { ok: false, code: "not_found", message: "الطلب غير متاح محليًا." };
+    return { ok: true, value: records.value.filter(record => record.orderId === orderId).sort((left, right) => right.createdAt.localeCompare(left.createdAt)) };
+  }
+
   async record(input: RecordActualTimeInput): Promise<ActualTimeResult<ActualTimeRecord>> {
     const [order, records] = await Promise.all([this.store.getOrder(input.orderId), this.store.listActualTimeRecords()]);
     if (!order.ok || !records.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلب أو سجل الوقت محليًا." };
@@ -60,7 +67,6 @@ export class ActualTimeService {
     if (!order.ok || !records.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة مقارنة الوقت محليًا." };
     if (!order.value) return { ok: false, code: "not_found", message: "الطلب غير متاح محليًا." };
     const snapshotTime = order.value.order.costSnapshot.input.time;
-    if (!snapshotTime) return { ok: true, value: { status: "needs_review", plannedMinutes: 0, actualMinutes: null, varianceMinutes: null, recordCount: 0, reversedRecordCount: 0 } };
-    return { ok: true, value: summarizeActualTime(orderId, snapshotTime.minutes, records.value, knowledge(order.value.order.costSnapshot.knowledgeState)) };
+    return { ok: true, value: summarizeActualTime(orderId, snapshotTime?.minutes ?? null, records.value, snapshotTime ? knowledge(order.value.order.costSnapshot.knowledgeState) : "needs_review") };
   }
 }
