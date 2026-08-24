@@ -9,8 +9,9 @@
 | الترتيب | الملف | الغرض |
 |---:|---|---|
 | 1 | [`current-state.md`](current-state.md) | الحقيقة التنفيذية الحية: `main`، ما اندمج، ما يعمل، ما توقف، والخطوة التالية المسموحة. |
-| 2 | [`agent-handoff-protocol-v1.md`](agent-handoff-protocol-v1.md) | قواعد الاستلام والتنفيذ والتسليم وحدود سلطة كل ملف. |
-| 3 | [`slice-handoff-template.md`](slice-handoff-template.md) | القالب الذي يستخدمه الوكيل عند فتح أو إغلاق Slice. |
+| 2 | [`micro-thinking-charter-v1.md`](micro-thinking-charter-v1.md) | هدف Micro وطريقة التفكير وحدود البساطة والصدق والاختيارية التي يجب فهمها قبل الكود. |
+| 3 | [`agent-handoff-protocol-v1.md`](agent-handoff-protocol-v1.md) | قواعد الاستلام والتنفيذ والتسليم وحدود سلطة كل ملف. |
+| 4 | [`slice-handoff-template.md`](slice-handoff-template.md) | القالب الذي يستخدمه الوكيل عند فتح أو إغلاق Slice. |
 
 ## قاعدة المصدر الواحد
 
@@ -25,7 +26,7 @@ git switch main
 git pull --ff-only origin main
 ```
 
-بعد ذلك اقرأ `AGENTS.md`، ثم الملفات الثلاثة أعلاه بالترتيب. لا تبدأ تعديلًا قبل كتابة بطاقة استلام داخل PR أو Issue توضّح نطاق الشريحة ومعيار قبولها وما لن يتغير.
+بعد ذلك اقرأ `AGENTS.md`، ثم الملفات الأربعة أعلاه بالترتيب. لا تبدأ تعديلًا قبل نشر بطاقة فهم وبطاقة استلام داخل PR أو Issue توضّح سياق المستخدم ونطاق الشريحة ومعيار قبولها وما لن يتغير.
 
 ## References
 

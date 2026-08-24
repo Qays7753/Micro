@@ -8,7 +8,8 @@
 |---:|---|---|---|
 | 0 | `docs/operations/current-state.md` | CURRENT / LIVE STATUS | الحالة المندمجة على `main`، بوابة التوقف، والخطوة التالية المسموحة لأي Agent جديد |
 | 0A | `docs/operations/agent-handoff-protocol-v1.md` | CURRENT / OPERATIONAL | بروتوكول الاستلام والتنفيذ والتسليم بين الوكلاء |
-| 0B | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
+| 0B | `docs/operations/micro-thinking-charter-v1.md` | CURRENT / THINKING GATE | هدف Micro وطريقة التفكير وأسئلة النقد وبطاقة الفهم قبل أي كود |
+| 0C | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
 | 1 | `docs/01-product-and-technical-blueprint.md` | CURRENT / AUTHORITY | كل قرار منتج أو تقنية أو تنفيذ |
 | 2 | `docs/02-decision-log.md` | CURRENT / AUTHORITY | معرفة القرار المعتمد والقرار المسحوب |
 | 3 | `docs/03-hypothesis-register.md` | CURRENT | فرضية أو ميزة أو اختبار |

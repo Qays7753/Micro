@@ -47,6 +47,8 @@
 | واجهة Prototype | `docs/product/mobile-ui-ux-reference-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` والمهارات المحلية المذكورة في `AGENTS.md` |
 | LocalStore أو استعادة | `docs/contracts/16-optional-operating-mode-and-actual-time-contract.md` و`apps/prototype-web/client/src/storage/local/` و`apps/prototype-web/client/src/application/transfers/` |
 
+قبل أي من هذه القراءات المتخصصة، اقرأ `docs/operations/micro-thinking-charter-v1.md` وأنشئ بطاقة فهم. لا يملك الوكيل حق البدء من نقطة تقنية فقط؛ يجب أن يربط الشريحة بموقف مستخدم وسؤال قرار وحد معرفة وبوابة قدرة.
+
 ## 6. حالة مساحة العمل المقبولة
 
 ملف `apps/prototype-web/client/public/__manus__/version.json` مولد محليًا وقد يظهر كتغيير؛ **لا يضاف إلى Git**. يجب أن يكون أي تغيير آخر مفسرًا في PR أو مُزالًا قبل التسليم.
