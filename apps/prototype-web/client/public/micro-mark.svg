@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title>Micro</title>
+  <rect width="512" height="512" rx="112" fill="#CC785C"/>
+  <path d="M142 344V181c0-23 29-32 44-13l70 90 70-90c15-19 44-10 44 13v163" fill="none" stroke="#FAF9F5" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="344" r="19" fill="#079FA0"/>
+</svg>
