@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
 import type { TransferPreview } from "@/application/transfers/localTransferService";
+import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { OperatingWorkMode } from "@/storage/local/types";
@@ -23,9 +24,11 @@ const modeOptions: Array<{ value: "" | OperatingWorkMode; label: string; descrip
 export default function SettingsPage() {
   const { theme, preference, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
-  const { actualTime, transfers, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { actualTime, transfers, guidedOpeningImport, dataVersion, notifyDataChanged } = usePrototypeServices();
   const inputRef = useRef<HTMLInputElement>(null);
+  const guidedInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<TransferPreview | null>(null);
+  const [guidedPreview, setGuidedPreview] = useState<GuidedOpeningImportPreview | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isWorking, setIsWorking] = useState(false);
   const [operatingMode, setOperatingMode] = useState<OperatingModeState>({ phase: "loading" });
@@ -123,6 +126,32 @@ export default function SettingsPage() {
     if (!result.value.profile) navigate("/setup");
   }
 
+  async function chooseGuidedOpeningImport(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setNotice(null);
+    setIsWorking(true);
+    try {
+      const prepared = await guidedOpeningImport.prepare(await file.text());
+      if (!prepared.ok) { setNotice(prepared.message); return; }
+      setGuidedPreview(prepared.value);
+    } catch { setNotice("تعذر قراءة ملف البداية. بقيت بيانات هذا الجهاز دون تغيير."); }
+    finally { setIsWorking(false); }
+  }
+
+  async function confirmGuidedOpeningImport() {
+    if (!guidedPreview) return;
+    setNotice(null);
+    setIsWorking(true);
+    const result = await guidedOpeningImport.confirm(guidedPreview);
+    setIsWorking(false);
+    if (!result.ok) { setNotice(result.message); return; }
+    setGuidedPreview(null);
+    notifyDataChanged();
+    setNotice(result.reused ? "تم التعرف على هذه المحاولة مسبقًا؛ لم يتكرر أي أثر." : "تم إدخال الموقف الافتتاحي المحدود مع إبقاء ما لم نعرفه خارج السجل.");
+  }
+
   const selectedModeDescription = modeOptions.find(option => option.value === selectedMode)?.description;
 
   return <section className="micro-page">
@@ -181,6 +210,20 @@ export default function SettingsPage() {
       <StorageRow icon={Upload} title="استيراد محلي" text="نقرأ الملف ونتحقق منه أولًا، ثم نعرض ملخصًا قبل استبدال أي بيانات." label="اختيار ملف استيراد" disabled={isWorking} onClick={() => inputRef.current?.click()} />
       <input ref={inputRef} className="micro-visually-hidden" type="file" accept="application/json,.json" onChange={chooseImport} />
     </section>
+    <section className="micro-form-card" aria-labelledby="guided-opening-title">
+      <div className="micro-section-heading"><div><span className="micro-overline">بداية محدودة</span><h2 id="guided-opening-title">إدخال موقف افتتاحي</h2></div><Upload aria-hidden="true" /></div>
+      <p>أدخل نشاطًا ومحافظ كاش وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى مبيعات أو ربح أو ديون.</p>
+      <button className="micro-button micro-button-secondary" type="button" disabled={isWorking} onClick={() => guidedInputRef.current?.click()}>اختيار ملف البداية</button>
+      <input ref={guidedInputRef} className="micro-visually-hidden" type="file" accept="application/json,.json" onChange={chooseGuidedOpeningImport} />
+    </section>
+    {guidedPreview ? <section className="micro-import-preview" aria-live="polite">
+      <span className="micro-overline"><FileCheck2 aria-hidden="true" /> مراجعة قبل الكتابة</span>
+      <h2>لم نغير بياناتك بعد</h2>
+      <p>سيُدخل الملف موقفًا افتتاحيًا محدودًا فقط:</p>
+      <ul><li>{guidedPreview.summary.acceptedWallets} محفظة كاش بقيمة {guidedPreview.summary.acceptedCashMinor} قرشًا</li><li>{guidedPreview.summary.acceptedMaterials} مادة بكمية {guidedPreview.summary.acceptedMaterialQuantityMilli} milli</li><li>{guidedPreview.summary.estimatedRecords} قيمة تقديرية تحتاج مراجعة</li></ul>
+      <p className="micro-local-truth">الاستيراد ذري على Store فارغ، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة تلقائية بعد التأكيد.</p>
+      <div className="micro-form-actions"><button className="micro-button micro-button-secondary" type="button" disabled={isWorking} onClick={() => setGuidedPreview(null)}>إلغاء</button><button className="micro-button micro-button-primary" type="button" disabled={isWorking} onClick={confirmGuidedOpeningImport}>{isWorking ? "جارٍ الإدخال…" : "تأكيد إدخال البداية"}</button></div>
+    </section> : null}
     {preview ? <section className="micro-import-preview" aria-live="polite">
       <span className="micro-overline"><FileCheck2 aria-hidden="true" /> ملف جاهز للمراجعة</span>
       <h2>لم نغير بياناتك بعد</h2>
