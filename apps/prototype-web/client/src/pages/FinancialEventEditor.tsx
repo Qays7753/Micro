@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { FinancialEvent, FinancialEventType, OperatingExpenseContext, SharedProjectShareBasis } from "@micro-domain/financial-event/index.js";
 
 const definition: Record<FinancialEventType, { title: string; description: string; effect: string; counterparty: string }> = {
@@ -15,9 +16,7 @@ const definition: Record<FinancialEventType, { title: string; description: strin
 };
 const types = new Set<FinancialEventType>(Object.keys(definition) as FinancialEventType[]);
 const ammanDate = () => {
-  const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")}`;
+  return localDateInAmman();
 };
 const knowledgeFromBasis = (basis: SharedProjectShareBasis): OperatingExpenseContext["knowledge"] => basis === "agreed_fixed_share" ? "known" : basis === "owner_estimate" ? "estimated" : "needs_review";
 const sourceDescription: Record<SharedProjectShareBasis, string> = {
@@ -33,7 +32,7 @@ export default function FinancialEventEditor() {
   const type = types.has(rawType as FinancialEventType) ? rawType as FinancialEventType : null;
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
-  const [date, setDate] = useState(ammanDate);
+  const [date, setDate] = useState(() => ammanDate());
   const [note, setNote] = useState("");
   const [counterparty, setCounterparty] = useState("");
   const [relationship, setRelationship] = useState<OperatingExpenseContext["relationship"]>("project");
@@ -92,7 +91,7 @@ export default function FinancialEventEditor() {
         sharedNote={sharedNote} setSharedNote={setSharedNote}
         sharedKnowledge={sharedKnowledge}
       /> : null}
-      {type === "payable_settlement_cash" ? <label className="micro-field"><span>الالتزام الذي تسدده</span><select value={relatedEventId} onChange={(event) => setRelatedEventId(event.target.value)}><option value="">اختر التزامًا مسجلًا</option>{payableOptions.map(({ event, remaining }) => <option key={event.id} value={event.id}>{event.note} · المتبقي {new Intl.NumberFormat("en-JO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(remaining / 100)} د.أ</option>)}</select></label> : null}
+      {type === "payable_settlement_cash" ? <label className="micro-field"><span>الالتزام الذي تسدده (المبالغ بد.أ)</span><select value={relatedEventId} onChange={(event) => setRelatedEventId(event.target.value)}><option value="">اختر التزامًا مسجلًا</option>{payableOptions.map(({ event, remaining }) => <option key={event.id} value={event.id}>{event.note} · المتبقي {formatMoneyOption(remaining)}</option>)}</select></label> : null}
       <label className="micro-field"><span>ما الذي حدث؟</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="مثال: دفعت توصيل الطلبات للأسبوع" /></label>
       {message ? <p className={message.startsWith("تم ") || message.startsWith("هذا ") ? "micro-save-note" : "micro-field-error"} role="status">{message}</p> : null}
       <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={saving} onClick={save}><Save aria-hidden="true" />{saving ? "جارٍ الحفظ…" : isOperatingExpense ? "حفظ المصروف المصنف" : "حفظ الحدث"}</button>
@@ -115,6 +114,8 @@ type ExpenseClassificationProps = {
   setSharedNote: (value: string) => void;
   sharedKnowledge: OperatingExpenseContext["knowledge"];
 };
+
+function formatMoneyOption(minor: number) { return formatMoneyMinor(minor); }
 
 function ExpenseClassification(props: ExpenseClassificationProps) {
   const { relationship, setRelationship, behavior, setBehavior, purpose, setPurpose, knowledge, setKnowledge, sharedBasis, setSharedBasis, sharedNote, setSharedNote, sharedKnowledge } = props;

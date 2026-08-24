@@ -6,6 +6,7 @@ import type { OperatingModeValue } from "@/application/time/actualTimeService";
 import type { TransferPreview } from "@/application/transfers/localTransferService";
 import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
+import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { OperatingWorkMode } from "@/storage/local/types";
 
@@ -220,24 +221,24 @@ export default function SettingsPage() {
       <span className="micro-overline"><FileCheck2 aria-hidden="true" /> مراجعة قبل الكتابة</span>
       <h2>لم نغير بياناتك بعد</h2>
       <p>سيُدخل الملف موقفًا افتتاحيًا محدودًا فقط:</p>
-      <ul><li>{guidedPreview.summary.acceptedWallets} محفظة كاش بقيمة {guidedPreview.summary.acceptedCashMinor} قرشًا</li><li>{guidedPreview.summary.acceptedMaterials} مادة بكمية {guidedPreview.summary.acceptedMaterialQuantityMilli} milli</li><li>{guidedPreview.summary.estimatedRecords} قيمة تقديرية تحتاج مراجعة</li></ul>
+      <ul><li><IntegerValue value={guidedPreview.summary.acceptedWallets} className="micro-inline-number" /> محفظة كاش بقيمة <IntegerValue value={guidedPreview.summary.acceptedCashMinor} className="micro-inline-number" /> قرشًا</li><li><IntegerValue value={guidedPreview.summary.acceptedMaterials} className="micro-inline-number" /> مادة بكمية <IntegerValue value={guidedPreview.summary.acceptedMaterialQuantityMilli} className="micro-inline-number" /> milli</li><li><IntegerValue value={guidedPreview.summary.estimatedRecords} className="micro-inline-number" /> قيمة تقديرية تحتاج مراجعة</li></ul>
       <p className="micro-local-truth">الاستيراد ذري على Store فارغ، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة تلقائية بعد التأكيد.</p>
       <div className="micro-form-actions"><button className="micro-button micro-button-secondary" type="button" disabled={isWorking} onClick={() => setGuidedPreview(null)}>إلغاء</button><button className="micro-button micro-button-primary" type="button" disabled={isWorking} onClick={confirmGuidedOpeningImport}>{isWorking ? "جارٍ الإدخال…" : "تأكيد إدخال البداية"}</button></div>
     </section> : null}
     {preview ? <section className="micro-import-preview" aria-live="polite">
       <span className="micro-overline"><FileCheck2 aria-hidden="true" /> ملف جاهز للمراجعة</span>
       <h2>لم نغير بياناتك بعد</h2>
-      <p>الملف صادر في {new Date(preview.summary.exportedAt).toLocaleString("ar-JO")} ويحتوي على:</p>
+      <p>الملف صادر في <DateTimeValue value={preview.summary.exportedAt} /> ويحتوي على:</p>
       <ul>
         <li>{preview.summary.profile ? "ملف نشاط واحد" : "لا يحتوي ملف نشاط"}</li>
         <li>{preview.summary.preferences ? "تفضيل مظهر وطريقة عمل محفوظ" : "لا يحتوي تفضيلًا محفوظًا"}</li>
-        <li>{preview.summary.drafts} مسودة</li>
-        <li>{preview.summary.orders} طلب</li>
-        <li>{preview.summary.schedules} موعد</li>
-        <li>{preview.summary.supplierPurchases} شراء مواد</li>
-        <li>{preview.summary.cashWallets} محافظ كاش و{preview.summary.cashContinuityEntries} آثار افتتاح/تحويل/تصحيح</li>
-        <li>{preview.summary.materials} مواد و{preview.summary.inventoryMovements} حركات مخزون</li>
-        <li>{preview.summary.snapshots} Snapshot تكلفة و{preview.summary.events} حدث</li>
+        <li><IntegerValue value={preview.summary.drafts} className="micro-inline-number" /> مسودة</li>
+        <li><IntegerValue value={preview.summary.orders} className="micro-inline-number" /> طلب</li>
+        <li><IntegerValue value={preview.summary.schedules} className="micro-inline-number" /> موعد</li>
+        <li><IntegerValue value={preview.summary.supplierPurchases} className="micro-inline-number" /> شراء مواد</li>
+        <li><IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ كاش و<IntegerValue value={preview.summary.cashContinuityEntries} className="micro-inline-number" /> آثار افتتاح/تحويل/تصحيح</li>
+        <li><IntegerValue value={preview.summary.materials} className="micro-inline-number" /> مواد و<IntegerValue value={preview.summary.inventoryMovements} className="micro-inline-number" /> حركات مخزون</li>
+        <li><IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> Snapshot تكلفة و<IntegerValue value={preview.summary.events} className="micro-inline-number" /> حدث</li>
       </ul>
       <p className="micro-field-error">التأكيد سيستبدل البيانات المحلية الحالية بهذا الملف. لا توجد استعادة تلقائية بعد الضغط.</p>
       <div className="micro-form-actions">

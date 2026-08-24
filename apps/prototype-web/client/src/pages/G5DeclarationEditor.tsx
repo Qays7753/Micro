@@ -2,12 +2,9 @@ import { ArrowLeft, CalendarClock, Save } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { localDateInAmman } from "@/presentation/formatters";
 
-function todayInAmman() {
-  const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
-  const value = (type: string) => parts.find((part) => part.type === type)?.value;
-  return `${value("year")}-${value("month")}-${value("day")}`;
-}
+function todayInAmman() { return localDateInAmman(); }
 
 export default function G5DeclarationEditor() {
   const [, navigate] = useLocation();
