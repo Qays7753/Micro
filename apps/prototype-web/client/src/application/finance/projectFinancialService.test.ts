@@ -46,20 +46,30 @@ describe("ProjectFinancialService", () => {
     await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recognizedRevenueMinor: 1500, recognizedDirectCostMinor: 400, finalOrderCount: 1 } });
   });
 
+  it("keeps an empty period as a known numeric zero", async () => {
+    const finance = new ProjectFinancialService(new MemoryLocalStore(), now);
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recognizedRevenueMinor: 0, recognizedDirectCostMinor: 0, recordedOperatingExpenseMinor: 0, resultMinor: 0, finalOrderCount: 0, excludedOrderCount: 0, status: "recorded_only" } });
+  });
+
+  it("returns an unavailable overall result for invalid period bounds", async () => {
+    const finance = new ProjectFinancialService(new MemoryLocalStore(), now);
+    await expect(finance.readRecordedPeriodResult("2026-02-30", "2026-02-31")).resolves.toMatchObject({ ok: true, value: { resultMinor: null, status: "invalid", reasons: ["الفترة المحلية غير صالحة؛ لا يمكن بناء نتيجة قابلة للقراءة."] } });
+  });
+
   it("excludes a delivered order without a final result and marks the period incomplete", async () => {
     const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
     const cost = calculateCostSnapshot("cost-incomplete", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 300, confidence: "estimated" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-01T09:00:00.000Z", freshnessDays: null });
     let order = createCraftOrder({ id: "incomplete-order", customerName: "عميلة", itemName: "قطعة", specifications: "اختبار نقص المعرفة", quantity: 1, agreedPriceMinor: 1200, costSnapshot: cost, createdAt: "2026-08-01T09:00:00.000Z" });
     for (const [to, stamp] of [["provisional_agreement", "2026-08-01T10:00:00.000Z"], ["confirmed", "2026-08-01T11:00:00.000Z"], ["in_progress", "2026-08-02T09:00:00.000Z"], ["ready", "2026-08-03T09:00:00.000Z"], ["delivered", "2026-08-05T09:00:00.000Z"]] as const) order = transitionOrder(order, { to, idempotencyKey: `incomplete-${to}`, createdAt: stamp });
     await store.saveOrder({ id: order.id, order, deliveryDate: "2026-08-05", agreementSource: "test", createdAt: "2026-08-01T09:00:00.000Z", updatedAt: "2026-08-05T09:00:00.000Z" });
-    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recognizedRevenueMinor: 0, recognizedDirectCostMinor: 0, resultMinor: 0, finalOrderCount: 0, excludedOrderCount: 1, status: "incomplete" } });
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recognizedRevenueMinor: 0, recognizedDirectCostMinor: 0, resultMinor: null, finalOrderCount: 0, excludedOrderCount: 1, status: "incomplete" } });
   });
 
   it("keeps a shared estimated expense recorded once while marking the period for review", async () => {
     const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
     const payable = await finance.record({ type: "operating_expense_payable", amountMinor: 900, occurredOn: "2026-08-12", note: "حصة تقديرية من كهرباء", counterparty: "شركة الكهرباء", relatedEventId: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "estimated", sharedProjectShare: { basis: "owner_estimate", note: "تقدير المالك" } }, idempotencyKey: "shared-payable" }); if (!payable.ok) throw new Error("shared payable should save");
     await finance.record({ type: "payable_settlement_cash", amountMinor: 900, occurredOn: "2026-08-15", note: "تسديد كهرباء", counterparty: "شركة الكهرباء", relatedEventId: payable.value.id, idempotencyKey: "shared-settlement" });
-    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 900, resultMinor: -900, expenseNeedsReviewCount: 1, status: "incomplete" } });
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 900, resultMinor: null, expenseNeedsReviewCount: 1, status: "incomplete" } });
   });
 
   it("separates shared project shares from legacy expense context while keeping each expense in the period exactly once", async () => {
@@ -70,7 +80,7 @@ describe("ProjectFinancialService", () => {
     await finance.record({ type: "payable_settlement_cash", amountMinor: 800, occurredOn: "2026-08-15", note: "تسديد إنترنت", counterparty: "شركة الإنترنت", relatedEventId: payable.value.id, idempotencyKey: "shared-settlement" });
     await store.saveFinancialEvent(createFinancialEvent({ id: "legacy-shared", type: "operating_expense_cash", amountMinor: 400, occurredOn: "2026-08-13", recordedAt: now(), idempotencyKey: "legacy-shared", note: "حصة قديمة بلا مصدر", counterparty: null, expenseContext: { relationship: "shared", behavior: "fixed", purpose: "period", knowledge: "known" } }));
     await store.saveFinancialEvent(createFinancialEvent({ id: "legacy-unclassified", type: "operating_expense_cash", amountMinor: 300, occurredOn: "2026-08-13", recordedAt: now(), idempotencyKey: "legacy-unclassified", note: "مصروف قديم بلا سياق", counterparty: null }));
-    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 3000, projectOperatingExpenseMinor: 0, sharedProjectExpenseMinor: 2700, legacyUnclassifiedExpenseMinor: 300, sharedEstimatedExpenseCount: 1, sharedMissingBasisCount: 1, legacyUnclassifiedExpenseCount: 1, expenseNeedsReviewCount: 3, resultMinor: -3000, status: "incomplete" } });
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 3000, projectOperatingExpenseMinor: 0, sharedProjectExpenseMinor: 2700, legacyUnclassifiedExpenseMinor: 300, sharedEstimatedExpenseCount: 1, sharedMissingBasisCount: 1, legacyUnclassifiedExpenseCount: 1, expenseNeedsReviewCount: 3, resultMinor: null, status: "incomplete" } });
   });
 
   it("rejects a newly recorded shared expense that does not declare how the project share is known", async () => {
