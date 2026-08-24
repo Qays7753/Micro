@@ -32,7 +32,8 @@ export function parseEnglishNumericText(value: string, kind: EnglishNumericKind)
   return Number.isSafeInteger(minor) ? minor : null;
 }
 
-export function formatEnglishNumericValue(value: number, kind: EnglishNumericKind) {
+export function formatEnglishNumericValue(value: number | null, kind: EnglishNumericKind) {
+  if (value === null) return "";
   if (kind === "money") return (value / 100).toFixed(2);
   return String(value);
 }

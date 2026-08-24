@@ -4,14 +4,14 @@ import { allowsEnglishNumericText, formatEnglishNumericValue, parseEnglishNumeri
 import { cn } from "@/lib/utils";
 
 type EnglishNumberInputProps = Omit<ComponentProps<"input">, "type" | "value" | "defaultValue" | "onChange" | "inputMode" | "dir" | "lang"> & {
-  value: number;
+  value: number | null;
   kind: EnglishNumericKind;
   onNumericChange: (value: number) => void;
   onTextValidityChange?: (isValid: boolean) => void;
 };
 
 export function EnglishNumberInput({ value, kind, onNumericChange, onTextValidityChange, className, onBlur, ...props }: EnglishNumberInputProps) {
-  const latestCommitted = useRef(value);
+  const latestCommitted = useRef<number | null>(value);
   const [text, setText] = useState(() => formatEnglishNumericValue(value, kind));
 
   useEffect(() => {
