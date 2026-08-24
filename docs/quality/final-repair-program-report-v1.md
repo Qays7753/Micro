@@ -7,7 +7,7 @@
 
 ## 1. الخلاصة التنفيذية
 
-اكتمل المسار التنفيذي المرحلي من A1 إلى C2 عبر PR مستقلة، وكل PR من #70 إلى #77 في حالة merged مع نجاح فحوص `checks` و`Cloudflare Pages` المسجلة في GitHub. ركزت A1–A3 على وضوح الحقيقة في الموعد والعرض المالي والفصل بين المجهول والصفر، وركزت B1–B3 على حماية قرارات المستخدم غير المحفوظة والأفعال السريعة وسعر الاتفاق، بينما أضافت C1 وC2 عقدًا وقرارات توثيقية فقط دون توسيع المنتج.
+اكتمل المسار التنفيذي المرحلي من A1 إلى C2 عبر PR مستقلة، ثم أُغلقت مرحلة QA/Pilot التوثيقية عبر PR مستقلة #78؛ كل PR من #70 إلى #78 في حالة merged مع نجاح فحوص `checks` و`Cloudflare Pages` المسجلة في GitHub. ركزت A1–A3 على وضوح الحقيقة في الموعد والعرض المالي والفصل بين المجهول والصفر، وركزت B1–B3 على حماية قرارات المستخدم غير المحفوظة والأفعال السريعة وسعر الاتفاق، بينما أضافت C1 وC2 عقدًا وقرارات توثيقية فقط دون توسيع المنتج.
 
 أثبت QA المحلي أن العرض RTL وLight/Dark والتصدير/الاستيراد preview/replace والتنظيف المحلي قابلة للفحص ببيانات اصطناعية. كما أُنشئت لقطات smoke بعروض `360×900` و`390×900` و`430×900`، ولوحظ تفعيل service worker وWorkbox precache في built preview. في المقابل، فشلت محاولة reload offline المضبوطة بعد إيقاف الخادم في عرض App Shell؛ النتيجة الصادقة هي `OFFLINE_SHELL_NOT_VERIFIED`، وليست PASS. ولا يوجد في هذا السجل قبول Android أو iOS أو عنوان Cloudflare Pages production أو Pilot بشري.
 
@@ -23,7 +23,7 @@
 | B3 | فصل سعر الحماية المشتق عن السعر المتفق عليه؛ التبني كبداية فعل صريح | [#75](https://github.com/Qays7753/Micro/pull/75) | `ad3a099` | `dcf4125` | merged؛ `checks` و`Cloudflare Pages` ناجحتان |
 | C1 | عقد وحدود تصحيح الأحداث المالية العامة فقط؛ لا وظيفة عكس/تعديل/migration | [#76](https://github.com/Qays7753/Micro/pull/76) | `6f1e3e2` | `2b060a8` | merged؛ `checks` و`Cloudflare Pages` ناجحتان |
 | C2 | قرار معنى Review وFinance فقط؛ لا Dashboard/CRM/POS | [#77](https://github.com/Qays7753/Micro/pull/77) | `fe54b2a` | `562f62e` | merged؛ `checks` و`Cloudflare Pages` ناجحتان |
-| QA/Pilot | دليل sandbox وبروتوكول قبول يدوي وتقرير فجوات؛ لا تغيير وظيفي | هذه PR | يثبت بعد push | يثبت بعد merge | قيد الفحوص والدمج النهائي |
+| QA/Pilot | دليل sandbox وبروتوكول قبول يدوي وتقرير فجوات؛ لا تغيير وظيفي | [#78](https://github.com/Qays7753/Micro/pull/78) | `5819fe7` | `8482662` | merged؛ `checks` و`Cloudflare Pages` ناجحتان؛ القبول اليدوي ما زال pending |
 
 ## 3. فحوص QA المنفذة في sandbox
 
@@ -76,3 +76,4 @@ C1 ليس تفويضًا لبناء زر عكس أو تعديل مالي. قبل
 [8]: [PR #77 — C2](https://github.com/Qays7753/Micro/pull/77)
 [9]: [`final-qa-pilot-acceptance-protocol-v1.md`](final-qa-pilot-acceptance-protocol-v1.md)
 [10]: [`qa-pilot-final-sandbox-evidence-v1.md`](qa-pilot-final-sandbox-evidence-v1.md)
+[11]: [PR #78 — QA/Pilot final documentation](https://github.com/Qays7753/Micro/pull/78)
