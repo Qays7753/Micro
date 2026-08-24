@@ -5,6 +5,7 @@ import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continu
 import type { InventoryMovement, Material } from "@micro-domain/inventory-material/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
+import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 import { localSchemaVersion, type ActivityProfile, type LocalPreferences, type LocalStoreSnapshot, type OrderDraft, type PrototypeLocalStore, type ScheduleEntry, type StorageFailure, type StorageResult, type StoredCraftOrder } from "./types";
 
 const databaseName = "micro-prototype-local";
@@ -21,6 +22,7 @@ const materialStore = "materials";
 const inventoryMovementStore = "inventory-movements";
 const catalogItemStore = "catalog-items";
 const actualTimeStore = "actual-time-records";
+const shortCashDeclarationStore = "short-cash-declarations";
 
 function failure(error: unknown): StorageFailure {
   return { ok: false, code: typeof indexedDB === "undefined" ? "storage_unavailable" : "storage_error", message: error instanceof Error ? error.message : "تعذر الوصول إلى التخزين المحلي." };
@@ -90,6 +92,13 @@ function openDatabase(): Promise<IDBDatabase> {
         records.createIndex("recordedOn", "recordedOn");
         records.createIndex("operationKey", "operationKey");
         records.createIndex("reversalOfId", "reversalOfId");
+      }
+      if (!database.objectStoreNames.contains(shortCashDeclarationStore)) {
+        const declarations = database.createObjectStore(shortCashDeclarationStore, { keyPath: "id" });
+        declarations.createIndex("dueOn", "dueOn");
+        declarations.createIndex("createdAt", "createdAt");
+        declarations.createIndex("idempotencyKey", "idempotencyKey");
+        declarations.createIndex("reversalOfId", "reversalOfId");
       }
       if (event.oldVersion < 4 || event.oldVersion < 17) {
         const drafts = request.transaction?.objectStore(draftStore);
@@ -265,6 +274,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   listActualTimeRecords() { return listAll<ActualTimeRecord>(actualTimeStore, (left, right) => right.recordedOn.localeCompare(left.recordedOn) || right.createdAt.localeCompare(left.createdAt)); }
   getActualTimeRecord(id: string) { return readOne<ActualTimeRecord>(actualTimeStore, id); }
   saveActualTimeRecord(record: ActualTimeRecord) { return writeOne(actualTimeStore, record); }
+  listShortCashDeclarations() { return listAll<ShortCashDeclaration>(shortCashDeclarationStore, (left, right) => right.createdAt.localeCompare(left.createdAt)); }
+  getShortCashDeclaration(id: string) { return readOne<ShortCashDeclaration>(shortCashDeclarationStore, id); }
+  saveShortCashDeclaration(declaration: ShortCashDeclaration) { return writeOne(shortCashDeclarationStore, declaration); }
   async commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>> {
     try {
       const database = await openDatabase();
@@ -289,7 +301,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     try {
       const database = await openDatabase();
       return await new Promise(resolve => {
-        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore], "readonly");
+        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore], "readonly");
         const profile = transaction.objectStore(profileStore).get("local-profile");
         const preferences = transaction.objectStore(preferencesStore).get("local-preferences");
         const drafts = transaction.objectStore(draftStore).getAll();
@@ -303,11 +315,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const inventoryMovements = transaction.objectStore(inventoryMovementStore).getAll();
         const catalogItems = transaction.objectStore(catalogItemStore).getAll();
         const actualTimeRecords = transaction.objectStore(actualTimeStore).getAll();
+        const shortCashDeclarations = transaction.objectStore(shortCashDeclarationStore).getAll();
         transaction.onerror = () => resolve(failure(transaction.error));
         transaction.onabort = () => resolve(failure(transaction.error));
         transaction.oncomplete = () => {
           database.close();
-          resolve({ ok: true, value: { profile: (profile.result as ActivityProfile | undefined) ?? null, preferences: (preferences.result as LocalPreferences | undefined) ?? null, drafts: drafts.result as OrderDraft[], orders: orders.result as StoredCraftOrder[], schedules: schedules.result as ScheduleEntry[], financialEvents: financialEvents.result as FinancialEvent[], supplierPurchases: supplierPurchases.result as SupplierPurchase[], cashWallets: cashWallets.result as CashWallet[], cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[], materials: materials.result as Material[], inventoryMovements: inventoryMovements.result as InventoryMovement[], catalogItems: catalogItems.result as CatalogItem[], actualTimeRecords: actualTimeRecords.result as ActualTimeRecord[] } });
+          resolve({ ok: true, value: { profile: (profile.result as ActivityProfile | undefined) ?? null, preferences: (preferences.result as LocalPreferences | undefined) ?? null, drafts: drafts.result as OrderDraft[], orders: orders.result as StoredCraftOrder[], schedules: schedules.result as ScheduleEntry[], financialEvents: financialEvents.result as FinancialEvent[], supplierPurchases: supplierPurchases.result as SupplierPurchase[], cashWallets: cashWallets.result as CashWallet[], cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[], materials: materials.result as Material[], inventoryMovements: inventoryMovements.result as InventoryMovement[], catalogItems: catalogItems.result as CatalogItem[], actualTimeRecords: actualTimeRecords.result as ActualTimeRecord[], shortCashDeclarations: shortCashDeclarations.result as ShortCashDeclaration[] } });
         };
       });
     } catch (error) {
@@ -317,9 +330,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
     try {
       const database = await openDatabase();
-      const normalized: LocalStoreSnapshot = { ...snapshot, schedules: snapshot.schedules ?? [], financialEvents: snapshot.financialEvents ?? [], supplierPurchases: snapshot.supplierPurchases ?? [], cashWallets: snapshot.cashWallets ?? [], cashContinuityEntries: snapshot.cashContinuityEntries ?? [], materials: snapshot.materials ?? [], inventoryMovements: snapshot.inventoryMovements ?? [], catalogItems: snapshot.catalogItems ?? [], actualTimeRecords: snapshot.actualTimeRecords ?? [] };
+      const normalized: LocalStoreSnapshot = { ...snapshot, schedules: snapshot.schedules ?? [], financialEvents: snapshot.financialEvents ?? [], supplierPurchases: snapshot.supplierPurchases ?? [], cashWallets: snapshot.cashWallets ?? [], cashContinuityEntries: snapshot.cashContinuityEntries ?? [], materials: snapshot.materials ?? [], inventoryMovements: snapshot.inventoryMovements ?? [], catalogItems: snapshot.catalogItems ?? [], actualTimeRecords: snapshot.actualTimeRecords ?? [], shortCashDeclarations: snapshot.shortCashDeclarations ?? [] };
       return await new Promise(resolve => {
-        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore], "readwrite");
+        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore], "readwrite");
         const profiles = transaction.objectStore(profileStore);
         const preferences = transaction.objectStore(preferencesStore);
         const drafts = transaction.objectStore(draftStore);
@@ -333,6 +346,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const inventoryMovements = transaction.objectStore(inventoryMovementStore);
         const catalogItems = transaction.objectStore(catalogItemStore);
         const actualTimeRecords = transaction.objectStore(actualTimeStore);
+        const shortCashDeclarations = transaction.objectStore(shortCashDeclarationStore);
         profiles.clear();
         preferences.clear();
         drafts.clear();
@@ -346,6 +360,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         inventoryMovements.clear();
         catalogItems.clear();
         actualTimeRecords.clear();
+        shortCashDeclarations.clear();
         if (normalized.profile) profiles.put(normalized.profile);
         if (normalized.preferences) preferences.put(normalized.preferences);
         normalized.drafts.forEach(draft => drafts.put(draft));
@@ -359,6 +374,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         normalized.inventoryMovements?.forEach(movement => inventoryMovements.put(movement));
         normalized.catalogItems?.forEach(item => catalogItems.put(item));
         normalized.actualTimeRecords?.forEach(record => actualTimeRecords.put(record));
+        normalized.shortCashDeclarations?.forEach(declaration => shortCashDeclarations.put(declaration));
         transaction.onerror = () => resolve(failure(transaction.error));
         transaction.onabort = () => resolve(failure(transaction.error));
         transaction.oncomplete = () => {

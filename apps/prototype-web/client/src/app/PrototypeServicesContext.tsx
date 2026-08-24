@@ -16,9 +16,10 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { ActualTimeService } from "@/application/time/actualTimeService";
+import { G5Service } from "@/application/g5/g5Service";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 
-type PrototypeServices = { profiles: ProfileService; preferences: PreferenceService; actualTime: ActualTimeService; drafts: DraftService; costs: CostService; agreements: AgreementService; financialPulse: FinancialPulseService; projectFinance: ProjectFinancialService; supplierPurchases: SupplierPurchaseService; cashContinuity: CashContinuityService; inventory: InventoryMaterialService; catalog: CatalogService; dailyFollowUp: DailyFollowUpService; schedules: ScheduleService; fulfillment: FulfillmentService; transfers: LocalTransferService; dataVersion: number; notifyDataChanged: () => void };
+type PrototypeServices = { profiles: ProfileService; preferences: PreferenceService; actualTime: ActualTimeService; drafts: DraftService; costs: CostService; agreements: AgreementService; financialPulse: FinancialPulseService; projectFinance: ProjectFinancialService; g5: G5Service; supplierPurchases: SupplierPurchaseService; cashContinuity: CashContinuityService; inventory: InventoryMaterialService; catalog: CatalogService; dailyFollowUp: DailyFollowUpService; schedules: ScheduleService; fulfillment: FulfillmentService; transfers: LocalTransferService; dataVersion: number; notifyDataChanged: () => void };
 const PrototypeServicesContext = createContext<PrototypeServices | undefined>(undefined);
 
 export function PrototypeServicesProvider({ children }: { children: ReactNode }) {
@@ -26,8 +27,10 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
   const services = useMemo(() => {
     const store = createBrowserLocalStore();
     const costs = new CostService(store);
+    const projectFinance = new ProjectFinancialService(store);
+    const g5 = new G5Service(store, projectFinance);
     const schedules = new ScheduleService(store);
-    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), actualTime: new ActualTimeService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), financialPulse: new FinancialPulseService(store), projectFinance: new ProjectFinancialService(store), supplierPurchases: new SupplierPurchaseService(store), cashContinuity: new CashContinuityService(store), inventory: new InventoryMaterialService(store), catalog: new CatalogService(store), dailyFollowUp: new DailyFollowUpService(store), schedules, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
+    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), actualTime: new ActualTimeService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), financialPulse: new FinancialPulseService(store), projectFinance, g5, supplierPurchases: new SupplierPurchaseService(store), cashContinuity: new CashContinuityService(store), inventory: new InventoryMaterialService(store), catalog: new CatalogService(store), dailyFollowUp: new DailyFollowUpService(store), schedules, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
   }, [dataVersion]);
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
