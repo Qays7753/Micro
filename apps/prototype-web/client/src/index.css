@@ -115,3 +115,40 @@
 @media (max-width: 380px) { .micro-actual-time-row { flex-direction: column; }.micro-actual-time-row .micro-text-action, .micro-actual-time-status { align-self: flex-start; } }
 
 .micro-actual-time-comparison { display: grid; gap: var(--space-3); border-inline-start: 3px solid var(--color-accent-primary); border-radius: 0 var(--radius-control) var(--radius-control) 0; padding: var(--space-3); background: var(--color-accent-soft); }.micro-actual-time-comparison[data-tone="warning"] { border-inline-start-color: var(--color-warning-text); background: var(--color-warning-bg); }.micro-actual-time-comparison h3 { margin: 0; color: var(--color-text-primary); font-size: 16px; }.micro-actual-time-comparison p { margin: 0; font-size: 13px; }.micro-actual-time-comparison-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }.micro-actual-time-comparison-grid > div { display: grid; gap: var(--space-1); min-width: 0; padding: var(--space-2) 0; }.micro-actual-time-comparison-grid > div:nth-child(odd) { padding-inline-end: var(--space-2); border-inline-end: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }.micro-actual-time-comparison-grid > div:nth-child(-n + 2) { border-bottom: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }.micro-actual-time-comparison-grid dt { color: var(--color-text-secondary); font-size: 11px; }.micro-actual-time-comparison-grid dd { margin: 0; font-size: 15px; }.micro-actual-time-comparison[data-tone="warning"] .micro-card-eyebrow, .micro-actual-time-comparison[data-tone="warning"] h3 { color: var(--color-warning-text); }
+
+.micro-install-control { width: min(100%, 640px); margin: 0 auto var(--space-4); }
+.micro-install-card { display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: var(--space-3); border: 1px solid var(--color-accent-primary); border-radius: var(--radius-card); padding: var(--space-3); color: var(--color-text-primary); background: var(--color-accent-soft); box-shadow: var(--elevation-1); }
+.micro-install-card[data-platform="ios"] { border-color: var(--color-brand-primary); background: var(--color-brand-soft); }
+.micro-install-icon { display: grid; width: 40px; height: 40px; place-items: center; flex: 0 0 auto; border-radius: var(--radius-control); color: var(--color-accent-text); background: color-mix(in srgb, var(--color-surface) 70%, transparent); }
+.micro-install-card[data-platform="ios"] .micro-install-icon { color: var(--color-brand-text); }
+.micro-install-icon svg { width: 20px; height: 20px; }
+.micro-install-copy { display: grid; min-width: 0; gap: var(--space-1); }
+.micro-install-copy h2 { margin: 0; color: var(--color-text-primary); font-size: 15px; line-height: 1.45; }
+.micro-install-copy p { margin: 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.65; }
+.micro-install-actions { display: flex; align-items: center; justify-content: end; gap: var(--space-1); }
+.micro-install-actions .micro-button { min-height: 44px; padding-inline: var(--space-3); font-size: 13px; white-space: nowrap; }
+.micro-install-actions .micro-icon-button { width: 44px; height: 44px; }
+@media (max-width: 420px) {
+  .micro-install-card { grid-template-columns: auto 1fr; }
+  .micro-install-actions { grid-column: 2; justify-content: start; }
+  .micro-install-actions .micro-button { flex: 1 1 auto; }
+}
+.micro-runtime-notices { display: grid; gap: var(--space-3); width: min(100%, 640px); margin: 0 auto var(--space-4); }
+.micro-runtime-card { display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: var(--space-3); border-inline-start: 3px solid var(--color-accent-primary); border-radius: var(--radius-control); padding: var(--space-3); background: var(--color-accent-soft); }
+.micro-runtime-card[data-tone="offline"] { border-inline-start-color: var(--color-warning-text); background: var(--color-warning-bg); }
+.micro-runtime-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 999px; color: var(--color-accent-text); background: color-mix(in srgb, var(--color-surface) 72%, transparent); }
+.micro-runtime-card[data-tone="offline"] .micro-runtime-icon { color: var(--color-warning-text); }
+.micro-runtime-icon svg { width: 19px; height: 19px; }
+.micro-runtime-copy { display: grid; min-width: 0; gap: var(--space-1); }
+.micro-runtime-copy h2 { margin: 0; color: var(--color-text-primary); font-size: 15px; line-height: 1.45; }
+.micro-runtime-copy p { margin: 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.65; }
+.micro-runtime-actions { display: flex; align-items: center; justify-content: end; gap: var(--space-1); }
+.micro-runtime-actions .micro-button { min-height: 44px; padding-inline: var(--space-3); font-size: 13px; white-space: nowrap; }
+.micro-runtime-actions .micro-icon-button { width: 44px; height: 44px; }
+.micro-runtime-confirmation { width: 20px; height: 20px; color: var(--color-success-text); }
+@media (max-width: 420px) {
+  .micro-runtime-card { grid-template-columns: auto 1fr; }
+  .micro-runtime-actions { grid-column: 2; justify-content: start; }
+  .micro-runtime-actions .micro-button { flex: 1 1 auto; }
+  .micro-runtime-confirmation { grid-column: 2; justify-self: start; }
+}

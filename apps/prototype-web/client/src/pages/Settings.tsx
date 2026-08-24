@@ -131,7 +131,7 @@ export default function SettingsPage() {
       <h1>الإعدادات</h1>
       <p>خيارات الواجهة وحماية البيانات على هذا الجهاز.</p>
     </div>
-    <DecisionPanel label="الحالة الآن" truth="بيانات Prototype محلية فقط." nextAction="صدّر ملفًا قبل تغيير الجهاز أو الاستيراد فوق بياناتك الحالية." tone="support" />
+    <DecisionPanel label="الحقيقة المحلية" truth="بيانات Micro محفوظة محليًا على هذا الجهاز." nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف." tone="warning" />
     <section className="micro-settings-list" aria-label="إعدادات الواجهة وطريقة العمل والبيانات">
       <article className="micro-setting-row">
         <span className="micro-setting-icon"><MoonStar aria-hidden="true" /></span>

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import { VitePWA } from "vite-plugin-pwa";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -202,7 +203,42 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
+const pwa = VitePWA({
+  registerType: "prompt",
+  injectRegister: false,
+  includeAssets: ["micro-mark.svg", "micro-mark-192.png", "micro-mark-512.png"],
+  manifest: {
+    id: "/",
+    name: "Micro — شريك مشروعك",
+    short_name: "Micro",
+    description: "Micro: شريك مالي وتشغيلي محلي لصاحب المشروع.",
+    start_url: "/",
+    scope: "/",
+    display: "standalone",
+    orientation: "portrait-primary",
+    lang: "ar",
+    dir: "rtl",
+    background_color: "#FAF9F5",
+    theme_color: "#CC785C",
+    icons: [
+      { src: "/micro-mark-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/micro-mark-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+    ],
+  },
+  workbox: {
+    cleanupOutdatedCaches: true,
+    clientsClaim: false,
+    skipWaiting: false,
+    navigateFallback: "/index.html",
+    navigateFallbackAllowlist: [/^\/(?!__manus__)/],
+    globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+    globIgnores: ["**/__manus__/**"],
+    maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+  },
+  devOptions: { enabled: false },
+});
+
+const plugins = [react(), tailwindcss(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy(), pwa];
 
 export default defineConfig({
   plugins,
