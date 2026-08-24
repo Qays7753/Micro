@@ -303,3 +303,7 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
 .micro-context-history small { color: var(--color-text-secondary); font-size: 12px; }
 @media (max-width: 380px) { .micro-context-summary { grid-template-columns: 1fr; } }
 .micro-context-summary .micro-local-date { direction: ltr; unicode-bidi: isolate; color: var(--color-text-secondary); font-family: var(--font-numeric); font-size: 12px; }
+
+/* A2 presentation contract: visible numeric/date values remain readable inside RTL copy. */
+.micro-inline-number { display: inline; direction: ltr; font-family: var(--font-numeric); font-size: inherit; font-variant-numeric: tabular-nums; line-height: inherit; unicode-bidi: isolate; }
+.micro-local-date { direction: ltr; font-family: var(--font-numeric); font-variant-numeric: tabular-nums; unicode-bidi: isolate; }
