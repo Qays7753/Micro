@@ -39,8 +39,12 @@ describe("G5 Application service", () => {
     const retry = await g5.createDeclaration(input);
     if (!first.ok || !retry.ok) throw new Error("declaration should save");
     expect(retry).toMatchObject({ ok: true, reused: true, value: { id: first.value.id } });
-    const reversed = await g5.reverseDeclaration(first.value.id, "تغير موعد التحصيل", "reverse-declaration");
-    expect(reversed).toMatchObject({ ok: true, value: { kind: "reversal", reversalOfId: first.value.id } });
+    const emptyReason = await g5.reverseDeclaration(first.value.id, "   ", "reverse-empty-reason");
+    expect(emptyReason).toMatchObject({ ok: false, code: "validation_error" });
+    await expect(g5.listDeclarations()).resolves.toMatchObject({ ok: true, value: [{ kind: "declaration", id: first.value.id }] });
+    const userReason = "العميلة أكدت موعد تحصيل مختلفًا";
+    const reversed = await g5.reverseDeclaration(first.value.id, userReason, "reverse-declaration");
+    expect(reversed).toMatchObject({ ok: true, value: { kind: "reversal", reversalOfId: first.value.id, note: userReason } });
     const secondReverse = await g5.reverseDeclaration(first.value.id, "محاولة عكس ثانية", "reverse-declaration-2");
     expect(secondReverse).toMatchObject({ ok: false, code: "validation_error" });
     const declarations = await g5.listDeclarations();

@@ -189,3 +189,7 @@
   .micro-runtime-actions .micro-button { flex: 1 1 auto; }
   .micro-runtime-confirmation { grid-column: 2; justify-self: start; }
 }
+.micro-g5-reversal-editor { display: grid; grid-column: 1 / -1; gap: var(--space-3); border-inline-start: 3px solid var(--color-warning-text); border-radius: var(--radius-control); padding: var(--space-3); background: var(--color-warning-bg); }
+.micro-g5-reversal-editor .micro-local-truth { margin: 0; border-inline-start-width: 3px; padding: 0; background: transparent; }
+.micro-g5-reversal-editor .micro-form-actions { display: grid; grid-template-columns: 1fr 1fr; }
+.micro-g5-reversal-editor .micro-button { width: 100%; }
