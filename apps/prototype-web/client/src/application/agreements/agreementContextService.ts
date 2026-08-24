@@ -31,8 +31,8 @@ function validateInput(input: AgreementContextInput, previousDate: string | null
   if (input.followUpSummary !== null && (input.followUpSummary.trim().length < 2 || input.followUpSummary.trim().length > 240)) return failure("اكتب ملخص متابعة قصيرًا من حرفين إلى 240 حرفًا، أو اتركه فارغًا.");
   if (input.followUpDate !== null && !validDate(input.followUpDate)) return failure("أدخل تاريخ متابعة محليًا صحيحًا بصيغة YYYY-MM-DD.");
   const dateChanged = input.followUpDate !== previousDate;
-  if (input.followUpDate === null && input.followUpReason !== null) return failure("سبب المتابعة لا يحفظ دون تاريخ متابعة.");
-  if (input.followUpDate !== null && !input.followUpReason) return failure("اكتب هدفًا أو سببًا قصيرًا لموعد المتابعة.");
+  if (input.followUpDate === null && previousDate === null && input.followUpReason !== null) return failure("سبب المتابعة لا يحفظ دون تاريخ متابعة.");
+  if (input.followUpDate !== null && previousDate === null && !input.followUpReason) return failure("اكتب هدفًا أو سببًا قصيرًا لموعد المتابعة.");
   if (dateChanged && previousDate !== null && !input.followUpReason) return failure("تغيير تاريخ متابعة موجود يحتاج سببًا مكتوبًا.");
   if (input.followUpReason !== null && (input.followUpReason.trim().length < 2 || input.followUpReason.trim().length > 160)) return failure("اكتب سبب متابعة قصيرًا من حرفين إلى 160 حرفًا.");
   return null;
@@ -56,14 +56,15 @@ export class AgreementContextService {
     const invalid = validateInput(next, previousDate);
     if (invalid) return invalid;
     const previousSummary = stored.followUpSummary ?? null; const previousSource = stored.agreementSource ?? null; const previousReason = stored.followUpReason ?? null;
-    if (previousSource === next.agreementSource && previousSummary === next.followUpSummary && previousDate === next.followUpDate && previousReason === next.followUpReason) return { ok: true, value: stored };
+    const effectiveReason = next.followUpDate === null ? null : next.followUpReason ?? previousReason;
+    if (previousSource === next.agreementSource && previousSummary === next.followUpSummary && previousDate === next.followUpDate && previousReason === effectiveReason) return { ok: true, value: stored };
     const timestamp = this.now();
     const events = [...(stored.followUpEvents ?? [])];
     if (previousDate !== next.followUpDate) {
       const event: FollowUpEvent = { id: `${id}:follow-up:${events.length + 1}`, type: previousDate === null ? "created" : "changed", idempotencyKey: `${id}:follow-up:${previousDate ?? "none"}:${next.followUpDate ?? "none"}`, createdAt: timestamp, previousDate, followUpDate: next.followUpDate, reason: next.followUpReason ?? "تحديث سياق المتابعة" };
       events.push(event);
     }
-    const updated: StoredCraftOrder = { ...stored, agreementSource: next.agreementSource, followUpSummary: next.followUpSummary, followUpDate: next.followUpDate, followUpReason: next.followUpDate ? next.followUpReason : null, followUpEvents: events, updatedAt: timestamp };
+    const updated: StoredCraftOrder = { ...stored, agreementSource: next.agreementSource, followUpSummary: next.followUpSummary, followUpDate: next.followUpDate, followUpReason: effectiveReason, followUpEvents: events, updatedAt: timestamp };
     const saved = await this.store.saveOrder(updated);
     return saved.ok ? { ok: true, value: saved.value } : { ok: false, code: "storage_error", message: "تعذر حفظ سياق الاتفاق محليًا. لم يتم تأكيد نجاح العملية." };
   }

@@ -12,6 +12,11 @@ export type RecurrenceResult<T> = { ok: true; value: T } | { ok: false; code: "v
 
 const isActiveSchedule = (schedule: ScheduleEntry) => schedule.status === "scheduled" || schedule.status === "postponed";
 const isActiveOrder = (order: StoredCraftOrder) => !["delivered", "settled", "cancelled"].includes(order.order.status);
+const localDateKey = (iso: string) => {
+  const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(iso));
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${value("year")}-${value("month")}-${value("day")}`;
+};
 const validDate = (value: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T12:00:00.000Z`);
@@ -109,8 +114,20 @@ export class ScheduleRecurrenceService {
     if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة قالب التكرار المحلي." };
     if (!current.value) return { ok: false, code: "not_found", message: "قالب التكرار غير متاح محليًا." };
     if (current.value.status === "cancelled") return { ok: true, value: current.value };
-    const cancelled: ScheduleRecurrence = { ...current.value, status: "cancelled", cancelledAt: this.now(), cancellationReason: reason.trim(), updatedAt: this.now() };
-    const saved = await this.store.saveRecurrence(cancelled);
-    return saved.ok ? { ok: true, value: saved.value } : { ok: false, code: "storage_error", message: "تعذر إيقاف قالب التكرار محليًا. لم يتم تأكيد نجاح العملية." };
+    const timestamp = this.now();
+    const cancellationReason = reason.trim();
+    const today = localDateKey(timestamp);
+    const schedules = await this.store.listSchedules();
+    if (!schedules.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة ظهورات التكرار المحلية." };
+    const affected = schedules.value.map((schedule) => {
+      const isFutureDerived = schedule.recurrenceId === id && schedule.scheduledFor > today && isActiveSchedule(schedule);
+      if (!isFutureDerived) return schedule;
+      const idempotencyKey = `${schedule.id}:cancelled:${id}`;
+      if (schedule.events.some((event) => event.idempotencyKey === idempotencyKey)) return schedule;
+      return { ...schedule, status: "cancelled" as const, postponeReason: cancellationReason, updatedAt: timestamp, events: [...schedule.events, { id: `${schedule.id}:cancelled:${schedule.events.length + 1}`, type: "cancelled" as const, idempotencyKey, createdAt: timestamp, previousScheduledFor: schedule.scheduledFor, scheduledFor: schedule.scheduledFor, previousScheduledTime: schedule.scheduledTime, scheduledTime: schedule.scheduledTime, previousDurationMinutes: schedule.durationMinutes, durationMinutes: schedule.durationMinutes, reason: `إلغاء قالب التكرار: ${cancellationReason}` }] };
+    });
+    const cancelled: ScheduleRecurrence = { ...current.value, status: "cancelled", cancelledAt: timestamp, cancellationReason, updatedAt: timestamp };
+    const saved = await this.store.commitRecurrence(cancelled, affected);
+    return saved.ok ? { ok: true, value: saved.value.recurrence } : { ok: false, code: "storage_error", message: "تعذر إيقاف قالب التكرار وظهوراته المستقبلية محليًا. لم يتم تأكيد نجاح العملية." };
   }
 }

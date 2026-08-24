@@ -42,6 +42,17 @@ describe("AgreementContextService", () => {
     await expect(store.getOrder("order-context")).resolves.toMatchObject({ ok: true, value: { order: { agreedPriceMinor: before.value.order.agreedPriceMinor, collectedMinor: before.value.order.collectedMinor }, deliveryDate: "2026-08-30" } });
   });
 
+  it("rejects clearing a follow-up date without a reason, then clears it with an audited reason only", async () => {
+    const store = await storedOrder("order-clear"); const service = new AgreementContextService(store, () => "2026-08-23T08:00:00.000Z");
+    await service.save("order-clear", { agreementSource: "whatsapp", followUpSummary: "تأكيد العينة", followUpDate: "2026-08-25", followUpReason: "تأكيد اللون" });
+    const beforeSchedules = await store.listSchedules(); const before = await store.getOrder("order-clear"); if (!before.ok || !before.value) throw new Error("order should exist");
+    await expect(service.save("order-clear", { agreementSource: "whatsapp", followUpSummary: "تأكيد العينة", followUpDate: null, followUpReason: " " })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    await expect(store.getOrder("order-clear")).resolves.toMatchObject({ ok: true, value: { followUpDate: "2026-08-25", followUpReason: "تأكيد اللون", followUpEvents: [{ type: "created" }] } });
+    await expect(service.save("order-clear", { agreementSource: "whatsapp", followUpSummary: "تأكيد العينة", followUpDate: null, followUpReason: "تم إلغاء المتابعة بناءً على طلب العميل" })).resolves.toMatchObject({ ok: true, value: { followUpDate: null, followUpReason: null, followUpEvents: [{ type: "created" }, { type: "changed", previousDate: "2026-08-25", followUpDate: null, reason: "تم إلغاء المتابعة بناءً على طلب العميل" }] } });
+    await expect(store.getOrder("order-clear")).resolves.toMatchObject({ ok: true, value: { order: { agreedPriceMinor: before.value.order.agreedPriceMinor, collectedMinor: before.value.order.collectedMinor }, deliveryDate: before.value.deliveryDate } });
+    await expect(store.listSchedules()).resolves.toEqual(beforeSchedules);
+  });
+
   it("returns due follow-ups separately from upcoming ones and rejects invalid local dates", async () => {
     const store = await storedOrder("order-due"); await store.saveOrder({ ...(await store.getOrder("order-due")).value as NonNullable<Awaited<ReturnType<MemoryLocalStore["getOrder"]>> extends { ok: true; value: infer T } ? T : never>, id: "order-due" });
     const secondStore = await storedOrder("order-upcoming");

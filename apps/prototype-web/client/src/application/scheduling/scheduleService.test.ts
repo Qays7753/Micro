@@ -126,11 +126,17 @@ describe("ScheduleRecurrenceService", () => {
     await expect(store.getOrder("recurring-warning")).resolves.toMatchObject({ ok: true, value: { order: { agreedPriceMinor: before.value.order.agreedPriceMinor, collectedMinor: before.value.order.collectedMinor } } });
   });
 
-  it("cancels future generation with a reason without deleting created appearances", async () => {
-    const store = await storedOrder("recurring-cancel", "2026-08-10"); await new ScheduleService(store, () => "2026-08-01T08:00:00.000Z").overview(); const { ScheduleRecurrenceService } = await import("./recurrenceService"); const service = new ScheduleRecurrenceService(store, () => "2026-08-01T08:00:00.000Z"); const source = await store.getSchedule("schedule-recurring-cancel"); if (!source.ok || !source.value) throw new Error("source schedule should exist");
-    const created = await service.create({ sourceScheduleId: source.value.id, frequency: "weekly", occurrenceCount: 2 }); if (!created.ok) throw new Error("recurrence should save");
-    await expect(service.cancel(created.value.recurrence.id, "توقف النمط مؤقتًا")).resolves.toMatchObject({ ok: true, value: { status: "cancelled", cancellationReason: "توقف النمط مؤقتًا" } });
-    await expect(service.create({ sourceScheduleId: source.value.id, frequency: "weekly", occurrenceCount: 2 })).resolves.toMatchObject({ ok: true, value: { created: [] } });
-    const listed = await service.list(); expect(listed).toMatchObject({ ok: true, value: [{ recurrence: { status: "cancelled" }, appearances: [{ recurrenceIndex: 1 }, { recurrenceIndex: 2 }] }] });
+  it("cancels only active future derived appearances and preserves source, past, and unrelated schedules", async () => {
+    const createNow = () => "2026-08-01T08:00:00.000Z"; const cancelNow = () => "2026-08-23T08:00:00.000Z";
+    const store = await storedOrder("recurring-cancel", "2026-08-10"); const scheduleService = new ScheduleService(store, createNow); await scheduleService.overview(); await saveOrder(store, "recurring-cancel-unrelated", "2026-08-30"); await scheduleService.overview();
+    const { ScheduleRecurrenceService } = await import("./recurrenceService"); const service = new ScheduleRecurrenceService(store, createNow); const cancellationService = new ScheduleRecurrenceService(store, cancelNow); const source = await store.getSchedule("schedule-recurring-cancel"); const unrelated = await store.getSchedule("schedule-recurring-cancel-unrelated"); if (!source.ok || !source.value || !unrelated.ok || !unrelated.value) throw new Error("source and unrelated schedules should exist");
+    const created = await service.create({ sourceScheduleId: source.value.id, frequency: "weekly", occurrenceCount: 3 }); if (!created.ok) throw new Error("recurrence should save");
+    await expect(cancellationService.cancel(created.value.recurrence.id, "توقف النمط نهائيًا")).resolves.toMatchObject({ ok: true, value: { status: "cancelled", cancellationReason: "توقف النمط نهائيًا" } });
+    await expect(service.create({ sourceScheduleId: source.value.id, frequency: "weekly", occurrenceCount: 3 })).resolves.toMatchObject({ ok: true, value: { created: [] } });
+    const listed = await service.list(); expect(listed).toMatchObject({ ok: true, value: [{ recurrence: { status: "cancelled" }, appearances: [{ recurrenceIndex: 1, scheduledFor: "2026-08-17", status: "scheduled" }, { recurrenceIndex: 2, scheduledFor: "2026-08-24", status: "cancelled" }, { recurrenceIndex: 3, scheduledFor: "2026-08-31", status: "cancelled" }] }] });
+    expect(listed.ok && listed.value[0]?.appearances[1]?.events.at(-1)).toMatchObject({ type: "cancelled", reason: "إلغاء قالب التكرار: توقف النمط نهائيًا" });
+    expect(listed.ok && listed.value[0]?.appearances[2]?.events.at(-1)).toMatchObject({ type: "cancelled", reason: "إلغاء قالب التكرار: توقف النمط نهائيًا" });
+    await expect(store.getSchedule(source.value.id)).resolves.toMatchObject({ ok: true, value: { status: "scheduled", recurrenceId: null, events: [{ type: "created" }] } });
+    await expect(store.getSchedule(unrelated.value.id)).resolves.toMatchObject({ ok: true, value: { status: "scheduled", recurrenceId: null, events: [{ type: "created" }] } });
   });
 });
