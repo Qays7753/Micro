@@ -67,7 +67,6 @@ export class ActualTimeService {
     if (!order.ok || !records.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة مقارنة الوقت محليًا." };
     if (!order.value) return { ok: false, code: "not_found", message: "الطلب غير متاح محليًا." };
     const snapshotTime = order.value.order.costSnapshot.input.time;
-    if (!snapshotTime) return { ok: true, value: { status: "needs_review", plannedMinutes: 0, actualMinutes: null, varianceMinutes: null, recordCount: 0, reversedRecordCount: 0 } };
-    return { ok: true, value: summarizeActualTime(orderId, snapshotTime.minutes, records.value, knowledge(order.value.order.costSnapshot.knowledgeState)) };
+    return { ok: true, value: summarizeActualTime(orderId, snapshotTime?.minutes ?? null, records.value, snapshotTime ? knowledge(order.value.order.costSnapshot.knowledgeState) : "needs_review") };
   }
 }

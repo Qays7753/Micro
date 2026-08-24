@@ -14,4 +14,4 @@ export type ActualTimeRecord = {
 
 export type CreateActualTimeRecordInput = Omit<ActualTimeRecord, "reversalOfId" | "reversalReason">;
 export type ReverseActualTimeRecordInput = { id: string; target: ActualTimeRecord; recordedOn: string; createdAt: string; reason: string; operationKey: string };
-export type ActualTimeComparison = { status: "not_recorded" | "recorded" | "needs_review"; plannedMinutes: number; actualMinutes: number | null; varianceMinutes: number | null; recordCount: number; reversedRecordCount: number };
+export type ActualTimeComparison = { status: "not_recorded" | "recorded" | "needs_review"; plannedMinutes: number | null; actualMinutes: number | null; varianceMinutes: number | null; recordCount: number; reversedRecordCount: number };

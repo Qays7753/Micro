@@ -2,16 +2,23 @@ import { Clock3, RotateCcw, Save, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import type { ActualTimeService, OperatingModeValue } from "@/application/time/actualTimeService";
+import type { ActualTimeComparison } from "@micro-domain/actual-time/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 
 type Props = { orderId: string; actualTime: ActualTimeService; dataVersion: number; notifyDataChanged: () => void };
-type LoadState = { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; mode: OperatingModeValue; records: readonly ActualTimeRecord[] };
+type LoadState = { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; mode: OperatingModeValue; records: readonly ActualTimeRecord[]; comparison: ActualTimeComparison };
 
 type Message = { tone: "error" | "success"; text: string };
 
 const ammanDate = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Amman" }).format(new Date());
 const newOperationKey = (prefix: string) => `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
 const minutesLabel = (minutes: number) => `${minutes > 0 ? "+" : ""}${minutes} دقيقة`;
+const comparisonCopy: Record<ActualTimeComparison["status"], { title: string; truth: string; tone?: "warning" }> = {
+  not_recorded: { title: "لا يوجد وقت فعلي مسجل", truth: "غياب السجل ليس صفر دقيقة؛ لا توجد مقارنة وقت بعد." },
+  recorded: { title: "فرق وقت مسجل", truth: "الفرق يشرح الوقت المسجل مقابل خطة Snapshot، ولا يغيّر نتيجة الطلب المالية." },
+  needs_review: { title: "فرق الوقت يحتاج مراجعة", truth: "يوجد وقت فعلي، لكن الوقت المخطط تقديري أو غير متاح؛ هذه ليست نتيجة مالية نهائية.", tone: "warning" },
+};
+const formatVariance = (minutes: number | null) => minutes === null ? "غير متاح" : minutesLabel(minutes);
 
 export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataChanged }: Props) {
   const [state, setState] = useState<LoadState>({ phase: "loading" });
@@ -31,7 +38,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
   useEffect(() => {
     let active = true;
     setState({ phase: "loading" });
-    Promise.all([actualTime.readOperatingMode(), actualTime.readOrderActualTimeRecords(orderId)]).then(([modeResult, recordsResult]) => {
+    Promise.all([actualTime.readOperatingMode(), actualTime.readOrderActualTimeRecords(orderId), actualTime.readOrderActualTimeComparison(orderId)]).then(([modeResult, recordsResult, comparisonResult]) => {
       if (!active) return;
       if (!modeResult.ok) {
         setState({ phase: "error", message: modeResult.message });
@@ -41,7 +48,11 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
         setState({ phase: "error", message: recordsResult.message });
         return;
       }
-      setState({ phase: "ready", mode: modeResult.value, records: recordsResult.value });
+      if (!comparisonResult.ok) {
+        setState({ phase: "error", message: comparisonResult.message });
+        return;
+      }
+      setState({ phase: "ready", mode: modeResult.value, records: recordsResult.value, comparison: comparisonResult.value });
     });
     return () => {
       active = false;
@@ -116,6 +127,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
       <Clock3 aria-hidden="true" />
     </div>
     <p>يسجل هذا دقائق التنفيذ فقط. لا يحولها إلى أجر أو تكلفة أو ربح، ولا يغيّر Snapshot أو الكاش أو الذمم.</p>
+    <ActualTimeComparisonPanel comparison={state.comparison} />
     {state.records.length === 0 ? <p className="micro-empty-inline">لا يوجد سجل وقت فعلي لهذا الطلب بعد. الغياب ليس صفر دقيقة.</p> : <div className="micro-actual-time-list" aria-label="سجلات الوقت الفعلي">
       {originalRecords.map(record => {
         const reversal = reversals.get(record.id);
@@ -154,5 +166,22 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
       <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={isSaving} onClick={saveReverse}><RotateCcw aria-hidden="true" />{isSaving ? "جارٍ حفظ العكس…" : "حفظ عكس سجل الوقت"}</button>
     </section> : null}
     {message ? <p className={message.tone === "error" ? "micro-field-error" : "micro-save-note"} role={message.tone === "error" ? "alert" : "status"}>{message.text}</p> : null}
+  </section>;
+}
+
+function ActualTimeComparisonPanel({ comparison }: { comparison: ActualTimeComparison }) {
+  const copy = comparisonCopy[comparison.status];
+  return <section className="micro-actual-time-comparison" data-tone={copy.tone} aria-label="فرق الوقت المسجل">
+    <div className="micro-card-copy">
+      <span className="micro-card-eyebrow">قراءة تفسيرية فقط</span>
+      <h3>{copy.title}</h3>
+      <p>{copy.truth}</p>
+    </div>
+    <dl className="micro-actual-time-comparison-grid">
+      <div><dt>الوقت المخطط</dt><dd className="micro-number" dir="ltr">{comparison.plannedMinutes === null ? "غير متاح" : minutesLabel(comparison.plannedMinutes)}</dd></div>
+      <div><dt>الوقت الفعلي</dt><dd className="micro-number" dir="ltr">{comparison.actualMinutes === null ? "غير مسجل" : minutesLabel(comparison.actualMinutes)}</dd></div>
+      <div><dt>فرق وقت مسجل</dt><dd className="micro-number" dir="ltr">{formatVariance(comparison.varianceMinutes)}</dd></div>
+      <div><dt>السجلات النشطة</dt><dd className="micro-number" dir="ltr">{comparison.recordCount}</dd></div>
+    </dl>
   </section>;
 }
