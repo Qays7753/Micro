@@ -77,7 +77,7 @@ export class G5Service {
     if (!declarations.ok) return { ok: false, code: "storage_error", message: "تعذر التحقق من إعلانات السيولة المحلية." };
     const repeated = declarations.value.find((declaration) => declaration.kind === "declaration" && declaration.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
-    const relatedValidation = await this.validateRelation(input);
+    const relatedValidation = await this.validateRelation(input, declarations.value);
     if (!relatedValidation.ok) return relatedValidation;
     try {
       const declaration = createShortCashDeclaration({ ...input, id: id(), createdAt: this.now() });
@@ -106,13 +106,14 @@ export class G5Service {
     }
   }
 
-  private async validateRelation(input: G5DeclarationInput): Promise<G5Result<null>> {
+  private async validateRelation(input: G5DeclarationInput, declarations: readonly ShortCashDeclaration[]): Promise<G5Result<null>> {
     if (input.relatedOrderId) {
       if (input.direction !== "collection") return { ok: false, code: "validation_error", message: "ربط الطلب مخصص لتحصيلات العملاء فقط." };
       const order = await this.store.getOrder(input.relatedOrderId);
       if (!order.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلب المرتبط." };
       if (!order.value) return { ok: false, code: "not_found", message: "الطلب المرتبط غير موجود." };
-      if (input.amountMinor > order.value.order.receivableMinor) return { ok: false, code: "validation_error", message: "لا يمكن أن يتجاوز إعلان التحصيل الذمة المسجلة للطلب." };
+      const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
+      if (alreadyDeclared + input.amountMinor > order.value.order.receivableMinor) return { ok: false, code: "validation_error", message: "لا يمكن أن يتجاوز مجموع إعلانات التحصيل الذمة المسجلة للطلب." };
     }
     if (input.relatedEventId) {
       if (input.direction !== "commitment") return { ok: false, code: "validation_error", message: "ربط الحدث مخصص للالتزامات فقط." };
@@ -122,8 +123,14 @@ export class G5Service {
       const events = await this.store.listFinancialEvents();
       if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر التحقق من رصيد الالتزام." };
       const paid = events.value.filter((candidate) => candidate.type === "payable_settlement_cash" && candidate.relatedEventId === event.value!.id).reduce((sum, candidate) => sum + candidate.amountMinor, 0);
-      if (input.amountMinor > event.value.amountMinor - paid) return { ok: false, code: "validation_error", message: "لا يمكن أن يتجاوز إعلان الالتزام الرصيد المسجل." };
+      const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
+      if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid) return { ok: false, code: "validation_error", message: "لا يمكن أن يتجاوز مجموع إعلانات الالتزام الرصيد المسجل." };
     }
     return { ok: true, value: null };
   }
+}
+
+function activeLinkedDeclarationTotal(declarations: readonly ShortCashDeclaration[], input: G5DeclarationInput): number {
+  const reversedIds = new Set(declarations.filter((declaration) => declaration.kind === "reversal" && declaration.reversalOfId).map((declaration) => declaration.reversalOfId));
+  return declarations.filter((declaration) => declaration.kind === "declaration" && !reversedIds.has(declaration.id) && declaration.direction === input.direction && ((input.relatedOrderId !== null && declaration.relatedOrderId === input.relatedOrderId) || (input.relatedEventId !== null && declaration.relatedEventId === input.relatedEventId))).reduce((sum, declaration) => sum + declaration.amountMinor, 0);
 }

@@ -50,6 +50,22 @@ describe("G5 Application service", () => {
     await expect(store.getOrder(stored.id)).resolves.toMatchObject({ ok: true, value: { order: stored.order } });
   });
 
+  it("rejects active linked collection declarations that exceed one order receivable", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const g5 = new G5Service(store, finance, now);
+    const stored = deliveredOrder("g5-over-allocation-order", 5000);
+    await store.saveOrder(stored);
+    const input = { direction: "collection" as const, amountMinor: 3000, dueOn: "2026-08-20", source: "إعلان أول", knowledge: "known" as const, note: "تحصيل معلن أول", relatedOrderId: stored.id, relatedEventId: null, idempotencyKey: "g5-over-allocation-first" };
+    const first = await g5.createDeclaration(input);
+    const second = await g5.createDeclaration({ ...input, source: "إعلان ثان", note: "تحصيل معلن ثان", idempotencyKey: "g5-over-allocation-second" });
+    expect(first).toMatchObject({ ok: true, value: { amountMinor: 3000, relatedOrderId: stored.id } });
+    expect(second).toMatchObject({ ok: false, code: "validation_error" });
+    const declarations = await g5.listDeclarations();
+    expect(declarations).toMatchObject({ ok: true, value: [{ kind: "declaration", amountMinor: 3000, relatedOrderId: stored.id }] });
+    await expect(store.getOrder(stored.id)).resolves.toMatchObject({ ok: true, value: { order: { receivableMinor: 5000 } } });
+  });
+
   it("includes a supplier due date as a recorded short commitment and leaves the purchase outside contribution cost", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
