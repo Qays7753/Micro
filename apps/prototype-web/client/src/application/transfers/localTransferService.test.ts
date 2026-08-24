@@ -120,3 +120,23 @@ describe("LocalTransferService", () => {
     expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
   });
 });
+
+
+describe("LocalTransferService G6-B recurrence migration", () => {
+  it("round-trips a recurrence template and independent appearances while accepting a pre-G6-B export", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const cost = calculateCostSnapshot("recurrence-cost", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
+    const order = createCraftOrder({ id: "recurrence-order", customerName: "سارة", itemName: "صندوق متكرر", specifications: "اختبار", quantity: 1, agreedPriceMinor: 2000, costSnapshot: cost, createdAt: "2026-08-22T00:00:00.000Z" });
+    await source.saveOrder({ id: order.id, order, catalogItemId: null, deliveryDate: "2026-08-10", agreementSource: null, followUpSummary: null, followUpDate: null, followUpReason: null, followUpEvents: [], createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" });
+    const sourceSchedule = { id: "schedule-recurrence-order", orderId: order.id, kind: "delivery" as const, scheduledFor: "2026-08-10", scheduledTime: null, durationMinutes: null, status: "scheduled" as const, postponeReason: null, events: [{ id: "source-event", type: "created" as const, idempotencyKey: "source-event", createdAt: "2026-08-22T00:00:00.000Z", previousScheduledFor: null, scheduledFor: "2026-08-10", previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null, reason: null }], recurrenceId: null, recurrenceIndex: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
+    const recurrence = { id: "recurrence-schedule-recurrence-order-weekly-2", sourceScheduleId: sourceSchedule.id, orderId: order.id, frequency: "weekly" as const, occurrenceCount: 2, status: "cancelled" as const, idempotencyKey: "recurrence-schedule-recurrence-order-weekly-2", cancelledAt: "2026-08-22T02:00:00.000Z", cancellationReason: "اختبار الإيقاف", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T02:00:00.000Z" };
+    const appearance = { ...sourceSchedule, id: `${recurrence.id}:1`, scheduledFor: "2026-08-17", recurrenceId: recurrence.id, recurrenceIndex: 1, createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z", events: [{ ...sourceSchedule.events[0], id: `${recurrence.id}:1:created`, idempotencyKey: `${recurrence.id}:1:2026-08-17`, createdAt: "2026-08-22T01:00:00.000Z", scheduledFor: "2026-08-17", reason: "ظهور من قالب تكرار محلي" }] };
+    await source.saveSchedule(sourceSchedule); await source.saveSchedule(appearance); await source.saveRecurrence(recurrence);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("recurrence export should succeed");
+    const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error("recurrence import should validate");
+    expect(preview.value.summary).toMatchObject({ recurrences: 1, schedules: 2 }); await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { recurrences: 1, schedules: 2 } });
+    await expect(target.listRecurrences()).resolves.toMatchObject({ ok: true, value: [{ id: recurrence.id, status: "cancelled", cancellationReason: "اختبار الإيقاف" }] }); await expect(target.listSchedules()).resolves.toMatchObject({ ok: true, value: [{ id: sourceSchedule.id }, { id: appearance.id, recurrenceId: recurrence.id, recurrenceIndex: 1 }] });
+    const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number; data: { recurrences?: unknown; schedules: unknown[] } }; legacy.version = 10; legacy.schemaVersion = 19; legacy.data.schedules = [sourceSchedule]; delete legacy.data.recurrences;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { recurrences: [] } } } });
+  });
+});

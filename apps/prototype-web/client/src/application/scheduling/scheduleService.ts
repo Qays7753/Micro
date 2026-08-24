@@ -25,7 +25,7 @@ const activeForOrder = (schedule: ScheduleEntry, order: StoredCraftOrder) => act
 
 function initialSchedule(order: StoredCraftOrder): ScheduleEntry {
   const timestamp = order.updatedAt;
-  return { id: `schedule-${order.id}`, orderId: order.id, kind: "delivery", scheduledFor: order.deliveryDate, scheduledTime: null, durationMinutes: null, status: "scheduled", postponeReason: null, events: [{ id: `${order.id}:schedule-created`, type: "created", idempotencyKey: `${order.id}:schedule-created`, createdAt: timestamp, previousScheduledFor: null, scheduledFor: order.deliveryDate, previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null, reason: null }], createdAt: order.createdAt, updatedAt: timestamp };
+  return { id: `schedule-${order.id}`, orderId: order.id, kind: "delivery", scheduledFor: order.deliveryDate, scheduledTime: null, durationMinutes: null, status: "scheduled", postponeReason: null, events: [{ id: `${order.id}:schedule-created`, type: "created", idempotencyKey: `${order.id}:schedule-created`, createdAt: timestamp, previousScheduledFor: null, scheduledFor: order.deliveryDate, previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null, reason: null }], recurrenceId: null, recurrenceIndex: null, createdAt: order.createdAt, updatedAt: timestamp };
 }
 
 function scheduleSort(a: ScheduledOrder, b: ScheduledOrder) { return a.schedule.scheduledFor.localeCompare(b.schedule.scheduledFor) || (a.schedule.scheduledTime ?? "99:99").localeCompare(b.schedule.scheduledTime ?? "99:99") || b.order.updatedAt.localeCompare(a.order.updatedAt); }
@@ -56,25 +56,29 @@ export class ScheduleService {
   private async all(): Promise<ScheduleResult<{ schedules: readonly ScheduleEntry[]; orders: readonly StoredCraftOrder[] }>> {
     const [schedulesResult, ordersResult] = await Promise.all([this.store.listSchedules(), this.store.listOrders()]);
     if (!schedulesResult.ok || !ordersResult.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة جدول المواعيد المحلي." };
-    const schedulesByOrder = new Map(schedulesResult.value.map((schedule) => [schedule.orderId, schedule]));
-    const missing = ordersResult.value.filter((order) => !schedulesByOrder.has(order.id)).map(initialSchedule);
-    for (const schedule of missing) { const saved = await this.store.saveSchedule(schedule); if (!saved.ok) return { ok: false, code: "storage_error", message: "تعذر تجهيز موعد محفوظ للطلب السابق." }; schedulesByOrder.set(schedule.orderId, saved.value); }
-    return { ok: true, value: { schedules: Array.from(schedulesByOrder.values()), orders: ordersResult.value } };
+    const schedules = [...schedulesResult.value];
+    const scheduledOrderIds = new Set(schedules.map((schedule) => schedule.orderId));
+    const missing = ordersResult.value.filter((order) => !scheduledOrderIds.has(order.id)).map(initialSchedule);
+    for (const schedule of missing) { const saved = await this.store.saveSchedule(schedule); if (!saved.ok) return { ok: false, code: "storage_error", message: "تعذر تجهيز موعد محفوظ للطلب السابق." }; schedules.push(saved.value); }
+    return { ok: true, value: { schedules, orders: ordersResult.value } };
   }
 
   private async reconciled(): Promise<ScheduleResult<{ schedules: readonly ScheduleEntry[]; orders: readonly StoredCraftOrder[] }>> {
     const records = await this.all(); if (!records.ok) return records;
-    const schedules = new Map(records.value.schedules.map((schedule) => [schedule.orderId, schedule]));
+    const schedules = [...records.value.schedules];
     for (const order of records.value.orders) {
       if (!["delivered", "settled"].includes(order.order.status)) continue;
-      const schedule = schedules.get(order.id); if (!schedule || !activeScheduleStatus(schedule.status)) continue;
+      const orderSchedules = schedules.filter((candidate) => candidate.orderId === order.id && activeScheduleStatus(candidate.status));
+      if (orderSchedules.length === 0) continue;
       const delivery = order.order.events.find((event) => event.type === "status_changed" && event.toStatus === "delivered");
       if (!delivery) continue;
-      const idempotencyKey = `${schedule.id}:completed:${delivery.id}`;
-      const completed = schedule.events.some((event) => event.idempotencyKey === idempotencyKey) ? schedule : { ...schedule, status: "completed" as const, updatedAt: delivery.createdAt, events: [...schedule.events, { id: `${schedule.id}:completed:${schedule.events.length + 1}`, type: "completed" as const, idempotencyKey, createdAt: delivery.createdAt, previousScheduledFor: schedule.scheduledFor, scheduledFor: schedule.scheduledFor, previousScheduledTime: schedule.scheduledTime, scheduledTime: schedule.scheduledTime, previousDurationMinutes: schedule.durationMinutes, durationMinutes: schedule.durationMinutes, reason: "اكتمل عند تسجيل التسليم" }] };
-      if (completed !== schedule) { const saved = await this.store.saveSchedule(completed); if (!saved.ok) return { ok: false, code: "storage_error", message: "تم تسجيل التسليم، لكن تعذر تحديث متابعة الموعد محليًا. افتح جدول المواعيد للمحاولة مجددًا." }; schedules.set(order.id, saved.value); }
+      for (const schedule of orderSchedules) {
+        const idempotencyKey = `${schedule.id}:completed:${delivery.id}`;
+        const completed = schedule.events.some((event) => event.idempotencyKey === idempotencyKey) ? schedule : { ...schedule, status: "completed" as const, updatedAt: delivery.createdAt, events: [...schedule.events, { id: `${schedule.id}:completed:${schedule.events.length + 1}`, type: "completed" as const, idempotencyKey, createdAt: delivery.createdAt, previousScheduledFor: schedule.scheduledFor, scheduledFor: schedule.scheduledFor, previousScheduledTime: schedule.scheduledTime, scheduledTime: schedule.scheduledTime, previousDurationMinutes: schedule.durationMinutes, durationMinutes: schedule.durationMinutes, reason: "اكتمل عند تسجيل التسليم" }] };
+        if (completed !== schedule) { const saved = await this.store.saveSchedule(completed); if (!saved.ok) return { ok: false, code: "storage_error", message: "تم تسجيل التسليم، لكن تعذر تحديث متابعة الموعد محليًا. افتح جدول المواعيد للمحاولة مجددًا." }; const index = schedules.findIndex((candidate) => candidate.id === schedule.id); if (index >= 0) schedules[index] = saved.value; }
+      }
     }
-    return { ok: true, value: { schedules: Array.from(schedules.values()), orders: records.value.orders } };
+    return { ok: true, value: { schedules, orders: records.value.orders } };
   }
 
   private async dailyCapacity(): Promise<ScheduleResult<number | null>> { const result = await this.store.getPreferences(); return result.ok ? { ok: true, value: result.value?.dailyScheduleCapacityMinutes ?? null } : { ok: false, code: "storage_error", message: "تعذر قراءة سعة اليوم المحلية." }; }
