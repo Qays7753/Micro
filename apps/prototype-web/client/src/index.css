@@ -115,3 +115,41 @@
 @media (max-width: 380px) { .micro-actual-time-row { flex-direction: column; }.micro-actual-time-row .micro-text-action, .micro-actual-time-status { align-self: flex-start; } }
 
 .micro-actual-time-comparison { display: grid; gap: var(--space-3); border-inline-start: 3px solid var(--color-accent-primary); border-radius: 0 var(--radius-control) var(--radius-control) 0; padding: var(--space-3); background: var(--color-accent-soft); }.micro-actual-time-comparison[data-tone="warning"] { border-inline-start-color: var(--color-warning-text); background: var(--color-warning-bg); }.micro-actual-time-comparison h3 { margin: 0; color: var(--color-text-primary); font-size: 16px; }.micro-actual-time-comparison p { margin: 0; font-size: 13px; }.micro-actual-time-comparison-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }.micro-actual-time-comparison-grid > div { display: grid; gap: var(--space-1); min-width: 0; padding: var(--space-2) 0; }.micro-actual-time-comparison-grid > div:nth-child(odd) { padding-inline-end: var(--space-2); border-inline-end: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }.micro-actual-time-comparison-grid > div:nth-child(-n + 2) { border-bottom: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }.micro-actual-time-comparison-grid dt { color: var(--color-text-secondary); font-size: 11px; }.micro-actual-time-comparison-grid dd { margin: 0; font-size: 15px; }.micro-actual-time-comparison[data-tone="warning"] .micro-card-eyebrow, .micro-actual-time-comparison[data-tone="warning"] h3 { color: var(--color-warning-text); }
+
+/* G5 decision surface: recorded facts and declared assumptions stay visually distinct. */
+.micro-g5-surface { gap: var(--space-4); }
+.micro-g5-card, .micro-g5-declarations { display: grid; gap: var(--space-3); border-radius: var(--radius-card); padding: var(--space-4); background: var(--color-surface); box-shadow: var(--elevation-1); }
+.micro-g5-card[data-tone="accent"] { background: var(--color-accent-soft); box-shadow: none; }
+.micro-g5-card[data-tone="warning"] { background: var(--color-warning-bg); box-shadow: none; }
+.micro-g5-card[data-tone="danger"] { background: var(--color-danger-bg); box-shadow: none; }
+.micro-g5-card[data-tone="accent"] .micro-card-eyebrow, .micro-g5-card[data-tone="accent"] h2 { color: var(--color-accent-text); }
+.micro-g5-card[data-tone="warning"] .micro-card-eyebrow, .micro-g5-card[data-tone="warning"] h2 { color: var(--color-warning-text); }
+.micro-g5-card[data-tone="danger"] .micro-card-eyebrow, .micro-g5-card[data-tone="danger"] h2 { color: var(--color-danger-text); }
+.micro-g5-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.micro-g5-metrics > div { display: grid; gap: var(--space-1); min-width: 0; border-top: 1px solid color-mix(in srgb, var(--color-text-secondary) 18%, transparent); padding-top: var(--space-2); }
+.micro-g5-metrics span, .micro-g5-break-even > span, .micro-g5-declaration small, .micro-g5-count { color: var(--color-text-secondary); font-size: 12px; }
+.micro-g5-metrics .micro-number { font-size: 20px; }
+.micro-g5-metrics-secondary { border-top: 1px dashed var(--color-divider); padding-top: var(--space-3); }
+.micro-g5-break-even { display: grid; gap: var(--space-1); border-inline-start: 3px solid var(--color-accent-primary); padding: var(--space-3); background: color-mix(in srgb, var(--color-surface) 62%, transparent); }
+.micro-g5-break-even strong { color: var(--color-text-primary); font-size: 24px; }
+.micro-g5-break-even p { font-size: 13px; }
+.micro-g5-guidance { display: grid; gap: var(--space-2); border-top: 1px solid color-mix(in srgb, var(--color-text-secondary) 18%, transparent); padding-top: var(--space-3); }
+.micro-g5-guidance > div { display: grid; gap: var(--space-1); }
+.micro-g5-guidance strong { color: var(--color-text-strong); font-size: 13px; }
+.micro-g5-guidance ul { display: grid; gap: var(--space-1); margin: 0; padding-inline-start: var(--space-4); color: var(--color-text-secondary); font-size: 13px; }
+.micro-g5-guidance .micro-decision-next { margin: 0; color: var(--color-text-strong); font-size: 13px; font-weight: 600; }
+.micro-g5-declarations { background: var(--color-bg-well); box-shadow: none; }
+.micro-g5-count { display: inline-grid; min-width: 28px; min-height: 28px; place-items: center; border-radius: 999px; color: var(--color-accent-text); background: var(--color-accent-soft); font-family: var(--font-numeric); }
+.micro-g5-declaration-list { display: grid; gap: var(--space-2); }
+.micro-g5-declaration { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); border-top: 1px solid var(--color-border); padding-top: var(--space-2); }
+.micro-g5-declaration > div { display: grid; min-width: 0; gap: var(--space-1); }
+.micro-g5-declaration strong { overflow: hidden; color: var(--color-text-primary); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.micro-g5-declaration small { direction: rtl; }
+.micro-g5-choice-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.micro-g5-choice { min-height: 48px; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: var(--space-2); color: var(--color-text-secondary); background: var(--color-surface); font-size: 13px; font-weight: 600; }
+.micro-g5-choice[data-selected="true"] { border-color: var(--color-accent-primary); color: var(--color-accent-text); background: var(--color-accent-soft); }
+.micro-g5-editor-page { gap: var(--space-4); }
+.micro-g5-editor-page .micro-form-card { gap: var(--space-4); }
+.micro-g5-mix { display: grid; gap: var(--space-1); margin: var(--space-2) 0 0; padding-inline-start: var(--space-4); color: var(--color-text-secondary); font-size: 12px; }
+.micro-g5-sources { margin: 0; border-top: 1px dashed var(--color-divider); padding-top: var(--space-2); color: var(--color-text-secondary); font-size: 12px !important; }
+.micro-g5-sources strong { color: var(--color-text-strong); }
