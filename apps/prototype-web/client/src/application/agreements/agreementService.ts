@@ -4,10 +4,12 @@
  */
 import { collectDeposit, createCraftOrder, transitionOrder, type CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { CostService } from "@/application/cost/costService";
-import type { OrderDraft, PrototypeLocalStore, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
+import type { AgreementSource, OrderDraft, PrototypeLocalStore, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
 
-export type AgreementInput = { agreedPriceMinor: number; deliveryDate: string; depositMinor: number; agreementSource: string | null };
+export type AgreementInput = { agreedPriceMinor: number; deliveryDate: string; depositMinor: number; agreementSource: AgreementSource | "conversation" | "call" | "in_person" | string | null };
 export type AgreementResult = { ok: true; stored: StoredCraftOrder } | { ok: false; code: "validation_error" | "storage_error" | "missing_cost" | "inconsistent_state"; message: string };
+const allowedAgreementSources = new Set(["instagram", "whatsapp", "referral", "walk_in", "other", "conversation", "call", "in_person"]);
+const agreementSourceIsValid = (value: string | null) => value === null || allowedAgreementSources.has(value);
 const dateIsValid = (value: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T12:00:00.000Z`);
@@ -37,6 +39,7 @@ export class AgreementService {
       return { ok: true, stored: current.value };
     }
     if (!draft.customerName.trim()) return validation("سجل اسم العميل قبل تثبيت الاتفاق.");
+    if (!agreementSourceIsValid(input.agreementSource)) return validation("اختر مصدر اتفاق من القائمة أو اتركه غير محدد.");
     if (!draft.itemName.trim() || !draft.specifications.trim()) return validation("أكمل وصف القطعة وملاحظات التخصيص قبل تثبيت الاتفاق.");
     if (!Number.isInteger(input.agreedPriceMinor) || input.agreedPriceMinor <= 0) return validation("أدخل سعرًا متفقًا عليه أكبر من صفر.");
     if (!Number.isInteger(input.depositMinor) || input.depositMinor < 0) return validation("العربون يجب أن يكون صفرًا أو مبلغًا صحيحًا.");
@@ -52,9 +55,9 @@ export class AgreementService {
       let order: CraftOrder = createCraftOrder({ id, customerName: draft.customerName, itemName: draft.itemName, specifications: draft.specifications, quantity: draft.quantity, agreedPriceMinor: input.agreedPriceMinor, costSnapshot: cost.snapshot, createdAt: timestamp });
       order = transitionOrder(order, { to: "provisional_agreement", idempotencyKey: `${id}:provisional-agreement`, createdAt: timestamp, note: "agreement recorded locally" });
       if (input.depositMinor > 0) order = collectDeposit(order, input.depositMinor, `${id}:initial-deposit`, timestamp);
-      const stored: StoredCraftOrder = { id, order, catalogItemId: draft.catalogItemId, deliveryDate: input.deliveryDate, agreementSource: input.agreementSource?.trim() || null, createdAt: timestamp, updatedAt: timestamp };
+      const stored: StoredCraftOrder = { id, order, catalogItemId: draft.catalogItemId, deliveryDate: input.deliveryDate, agreementSource: input.agreementSource?.trim() || null, followUpSummary: null, followUpDate: null, followUpReason: null, followUpEvents: [], createdAt: timestamp, updatedAt: timestamp };
       const linkedDraft: OrderDraft = { ...draft, linkedOrderId: id, updatedAt: timestamp };
-      const schedule: ScheduleEntry = { id: `schedule-${id}`, orderId: id, kind: "delivery", scheduledFor: input.deliveryDate, scheduledTime: null, durationMinutes: null, status: "scheduled", postponeReason: null, events: [{ id: `${id}:schedule-created`, type: "created", idempotencyKey: `${id}:schedule-created`, createdAt: timestamp, previousScheduledFor: null, scheduledFor: input.deliveryDate, previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null, reason: null }], createdAt: timestamp, updatedAt: timestamp };
+      const schedule: ScheduleEntry = { id: `schedule-${id}`, orderId: id, kind: "delivery", scheduledFor: input.deliveryDate, scheduledTime: null, durationMinutes: null, status: "scheduled", postponeReason: null, events: [{ id: `${id}:schedule-created`, type: "created", idempotencyKey: `${id}:schedule-created`, createdAt: timestamp, previousScheduledFor: null, scheduledFor: input.deliveryDate, previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null, reason: null }], recurrenceId: null, recurrenceIndex: null, createdAt: timestamp, updatedAt: timestamp };
       const commit = await this.store.commitOrderFromDraft(stored, linkedDraft, schedule);
       return commit.ok ? { ok: true, stored: commit.value.order } : { ok: false, code: "storage_error", message: "تعذر حفظ الاتفاق محليًا. لم يتم تأكيد نجاح العملية." };
     } catch (error) { return validation(error instanceof Error ? error.message : "تعذر بناء الاتفاق."); }

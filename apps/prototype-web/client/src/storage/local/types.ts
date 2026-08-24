@@ -11,11 +11,11 @@ import type { CatalogItem } from "@micro-domain/catalog/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 
-export const localSchemaVersion = 19;
+export const localSchemaVersion = 20;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 10;
+export const localExportVersion = 11;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
@@ -25,14 +25,19 @@ export type DraftCostMaterial = { name: string; quantity: number; unit: string; 
 export type DraftCostTime = { minutes: number; hourlyRateMinor: number; confidence: "known" | "estimated" };
 export type DraftCostSnapshot = { id: string; revision: number; currency: "JOD"; materialItems: readonly DraftCostMaterial[]; time: DraftCostTime | null; packagingMinor: number; deliveryMinor: number; wasteMinor: number; safetyBufferMinor: number; quantity: number; createdAt: string };
 export type OrderDraft = { id: string; intent: DraftIntent; customerName: string; itemName: string; catalogItemId: string | null; specifications: string; quantity: number; costSnapshots: readonly DraftCostSnapshot[]; activeCostSnapshotId: string | null; linkedOrderId: string | null; createdAt: string; updatedAt: string };
-export type StoredCraftOrder = { id: string; order: CraftOrder; catalogItemId: string | null; deliveryDate: string; agreementSource: string | null; createdAt: string; updatedAt: string };
+export type AgreementSource = "instagram" | "whatsapp" | "referral" | "walk_in" | "other";
+export type FollowUpEvent = { id: string; type: "created" | "changed"; idempotencyKey: string; createdAt: string; previousDate: string | null; followUpDate: string | null; reason: string };
+export type StoredCraftOrder = { id: string; order: CraftOrder; catalogItemId: string | null; deliveryDate: string; agreementSource: AgreementSource | string | null; followUpSummary?: string | null; followUpDate?: string | null; followUpReason?: string | null; followUpEvents?: readonly FollowUpEvent[]; createdAt: string; updatedAt: string };
 
 export type ScheduleStatus = "scheduled" | "postponed" | "completed" | "cancelled";
 export type ScheduleEventType = "created" | "postponed" | "timing_changed" | "completed" | "cancelled";
 export type ScheduleEvent = { id: string; type: ScheduleEventType; idempotencyKey: string; createdAt: string; previousScheduledFor: string | null; scheduledFor: string; previousScheduledTime: string | null; scheduledTime: string | null; previousDurationMinutes: number | null; durationMinutes: number | null; reason: string | null };
-export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; scheduledTime: string | null; durationMinutes: number | null; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; createdAt: string; updatedAt: string };
+export type ScheduleEntry = { id: string; orderId: string; kind: "delivery"; scheduledFor: string; scheduledTime: string | null; durationMinutes: number | null; status: ScheduleStatus; postponeReason: string | null; events: readonly ScheduleEvent[]; recurrenceId?: string | null; recurrenceIndex?: number | null; createdAt: string; updatedAt: string };
+export type ScheduleRecurrenceFrequency = "weekly" | "monthly";
+export type ScheduleRecurrenceStatus = "active" | "cancelled";
+export type ScheduleRecurrence = { id: string; sourceScheduleId: string; orderId: string; frequency: ScheduleRecurrenceFrequency; occurrenceCount: number; status: ScheduleRecurrenceStatus; idempotencyKey: string; cancelledAt: string | null; cancellationReason: string | null; createdAt: string; updatedAt: string };
 
-export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[]; actualTimeRecords?: readonly ActualTimeRecord[]; shortCashDeclarations?: readonly ShortCashDeclaration[] };
+export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; recurrences?: readonly ScheduleRecurrence[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[]; actualTimeRecords?: readonly ActualTimeRecord[]; shortCashDeclarations?: readonly ShortCashDeclaration[] };
 export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };
 export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
@@ -52,6 +57,10 @@ export interface PrototypeLocalStore {
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
   getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
   saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;
+  listRecurrences(): Promise<StorageResult<readonly ScheduleRecurrence[]>>;
+  getRecurrence(id: string): Promise<StorageResult<ScheduleRecurrence | null>>;
+  saveRecurrence(recurrence: ScheduleRecurrence): Promise<StorageResult<ScheduleRecurrence>>;
+  commitRecurrence(recurrence: ScheduleRecurrence, schedules: readonly ScheduleEntry[]): Promise<StorageResult<{ recurrence: ScheduleRecurrence; schedules: readonly ScheduleEntry[] }>>;
   listFinancialEvents(): Promise<StorageResult<readonly FinancialEvent[]>>;
   getFinancialEvent(id: string): Promise<StorageResult<FinancialEvent | null>>;
   saveFinancialEvent(event: FinancialEvent): Promise<StorageResult<FinancialEvent>>;

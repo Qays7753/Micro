@@ -81,3 +81,62 @@ describe("ScheduleService", () => {
     await expect(service.get(before.value.today[0]!.schedule.id)).resolves.toMatchObject({ ok: true, value: { status: "completed", events: [{ type: "created" }, { type: "completed", reason: "اكتمل عند تسجيل التسليم" }] } });
   });
 });
+
+
+describe("ScheduleRecurrenceService", () => {
+  it("creates exactly three independent weekly appearances", async () => {
+    const store = await storedOrder("recurring-weekly", "2026-08-10");
+    const scheduleService = new ScheduleService(store, () => "2026-08-01T08:00:00.000Z"); await scheduleService.overview();
+    const source = await store.getSchedule("schedule-recurring-weekly"); if (!source.ok || !source.value) throw new Error("source schedule should exist");
+    const { ScheduleRecurrenceService } = await import("./recurrenceService");
+    const recurrenceService = new ScheduleRecurrenceService(store, () => "2026-08-01T08:00:00.000Z");
+    const created = await recurrenceService.create({ sourceScheduleId: source.value.id, frequency: "weekly", occurrenceCount: 3 });
+    expect(created).toMatchObject({ ok: true, value: { created: [{ scheduledFor: "2026-08-17", recurrenceIndex: 1 }, { scheduledFor: "2026-08-24", recurrenceIndex: 2 }, { scheduledFor: "2026-08-31", recurrenceIndex: 3 }] } });
+    const schedules = await store.listSchedules(); if (!schedules.ok) throw new Error("schedules should load"); expect(schedules.value).toHaveLength(4); expect(schedules.value.filter((schedule) => schedule.recurrenceId !== null)).toHaveLength(3); expect(schedules.value.map((schedule) => schedule.recurrenceIndex)).toEqual(expect.arrayContaining([null, 1, 2, 3]));
+    await expect(scheduleService.monthOverview("2026-08")).resolves.toMatchObject({ ok: true, value: { scheduledCount: 4 } });
+  });
+
+  it("does not duplicate appearances when the same recurrence is executed again", async () => {
+    const store = await storedOrder("recurring-idempotent", "2026-08-10"); await new ScheduleService(store, () => "2026-08-01T08:00:00.000Z").overview(); const { ScheduleRecurrenceService } = await import("./recurrenceService"); const service = new ScheduleRecurrenceService(store, () => "2026-08-01T08:00:00.000Z");
+    const source = await store.getSchedule("schedule-recurring-idempotent"); if (!source.ok || !source.value) throw new Error("source schedule should exist");
+    const first = await service.create({ sourceScheduleId: source.value.id, frequency: "monthly", occurrenceCount: 2 }); if (!first.ok) throw new Error("recurrence should save");
+    const second = await service.create({ sourceScheduleId: source.value.id, frequency: "monthly", occurrenceCount: 2 });
+    expect(second).toMatchObject({ ok: true, value: { created: [], skipped: [{ reason: "existing_schedule" }, { reason: "existing_schedule" }] } });
+    const schedules = await store.listSchedules(); if (!schedules.ok) throw new Error("schedules should load"); expect(schedules.value.filter((schedule) => schedule.recurrenceId !== null)).toHaveLength(2); expect(schedules.value.map((schedule) => schedule.recurrenceIndex)).toEqual(expect.arrayContaining([null, 1, 2]));
+    const listed = await service.list(); expect(listed).toMatchObject({ ok: true, value: [{ appearances: [{ recurrenceIndex: 1 }, { recurrenceIndex: 2 }] }] });
+  });
+
+  it("keeps unknown timing visible for a bounded monthly recurrence", async () => {
+    const store = await storedOrder("recurring-unknown", "2026-01-31"); await new ScheduleService(store, () => "2026-01-01T08:00:00.000Z").overview(); const { ScheduleRecurrenceService } = await import("./recurrenceService"); const service = new ScheduleRecurrenceService(store, () => "2026-01-01T08:00:00.000Z");
+    const source = await store.getSchedule("schedule-recurring-unknown"); if (!source.ok || !source.value) throw new Error("source schedule should exist");
+    const result = await service.create({ sourceScheduleId: source.value.id, frequency: "monthly", occurrenceCount: 2 }); if (!result.ok) throw new Error("recurrence should save");
+    expect(result.value.created.map((item) => item.scheduledFor)).toEqual(["2026-02-28", "2026-03-31"]);
+    const month = await new ScheduleService(store, () => "2026-02-01T08:00:00.000Z").monthOverview("2026-02"); if (!month.ok) throw new Error("month should load");
+    expect(month.value).toMatchObject({ scheduledCount: 1, scheduledMinutes: 0, unknownTimingCount: 1 });
+    expect(month.value.days.find((day) => day.date === "2026-02-28")).toMatchObject({ unknownTimingCount: 1, scheduledMinutes: 0 });
+  });
+
+  it("keeps conflict and capacity as warnings without changing order money", async () => {
+    const store = await storedOrder("recurring-warning", "2026-08-12"); await saveOrder(store, "existing-warning", "2026-08-19"); await new ScheduleService(store, () => "2026-08-01T08:00:00.000Z").overview(); const { ScheduleRecurrenceService } = await import("./recurrenceService"); const service = new ScheduleRecurrenceService(store, () => "2026-08-01T08:00:00.000Z");
+    const source = await store.getSchedule("schedule-recurring-warning"); const other = await store.getSchedule("schedule-existing-warning"); if (!source.ok || !source.value || !other.ok || !other.value) throw new Error("schedules should exist");
+    const scheduleService = new ScheduleService(store, () => "2026-08-01T08:00:00.000Z"); await scheduleService.updateTiming(source.value.id, { scheduledFor: "2026-08-12", scheduledTime: "09:00", durationMinutes: 60, reason: "وقت معروف" }); await scheduleService.updateTiming(other.value.id, { scheduledFor: "2026-08-19", scheduledTime: "09:30", durationMinutes: 60, reason: "وقت معروف" }); await scheduleService.setDailyCapacity(90);
+    const before = await store.getOrder("recurring-warning"); if (!before.ok || !before.value) throw new Error("order should exist");
+    const recurrence = await service.create({ sourceScheduleId: source.value.id, frequency: "weekly", occurrenceCount: 1 }); if (!recurrence.ok) throw new Error("recurrence should save");
+    const month = await scheduleService.monthOverview("2026-08"); if (!month.ok) throw new Error("month should load"); expect(month.value.days.find((day) => day.date === "2026-08-19")).toMatchObject({ scheduledMinutes: 120, conflictCount: 2, overCapacity: true });
+    await expect(store.getOrder("recurring-warning")).resolves.toMatchObject({ ok: true, value: { order: { agreedPriceMinor: before.value.order.agreedPriceMinor, collectedMinor: before.value.order.collectedMinor } } });
+  });
+
+  it("cancels only active future derived appearances and preserves source, past, and unrelated schedules", async () => {
+    const createNow = () => "2026-08-01T08:00:00.000Z"; const cancelNow = () => "2026-08-23T08:00:00.000Z";
+    const store = await storedOrder("recurring-cancel", "2026-08-10"); const scheduleService = new ScheduleService(store, createNow); await scheduleService.overview(); await saveOrder(store, "recurring-cancel-unrelated", "2026-08-30"); await scheduleService.overview();
+    const { ScheduleRecurrenceService } = await import("./recurrenceService"); const service = new ScheduleRecurrenceService(store, createNow); const cancellationService = new ScheduleRecurrenceService(store, cancelNow); const source = await store.getSchedule("schedule-recurring-cancel"); const unrelated = await store.getSchedule("schedule-recurring-cancel-unrelated"); if (!source.ok || !source.value || !unrelated.ok || !unrelated.value) throw new Error("source and unrelated schedules should exist");
+    const created = await service.create({ sourceScheduleId: source.value.id, frequency: "weekly", occurrenceCount: 3 }); if (!created.ok) throw new Error("recurrence should save");
+    await expect(cancellationService.cancel(created.value.recurrence.id, "توقف النمط نهائيًا")).resolves.toMatchObject({ ok: true, value: { status: "cancelled", cancellationReason: "توقف النمط نهائيًا" } });
+    await expect(service.create({ sourceScheduleId: source.value.id, frequency: "weekly", occurrenceCount: 3 })).resolves.toMatchObject({ ok: true, value: { created: [] } });
+    const listed = await service.list(); expect(listed).toMatchObject({ ok: true, value: [{ recurrence: { status: "cancelled" }, appearances: [{ recurrenceIndex: 1, scheduledFor: "2026-08-17", status: "scheduled" }, { recurrenceIndex: 2, scheduledFor: "2026-08-24", status: "cancelled" }, { recurrenceIndex: 3, scheduledFor: "2026-08-31", status: "cancelled" }] }] });
+    expect(listed.ok && listed.value[0]?.appearances[1]?.events.at(-1)).toMatchObject({ type: "cancelled", reason: "إلغاء قالب التكرار: توقف النمط نهائيًا" });
+    expect(listed.ok && listed.value[0]?.appearances[2]?.events.at(-1)).toMatchObject({ type: "cancelled", reason: "إلغاء قالب التكرار: توقف النمط نهائيًا" });
+    await expect(store.getSchedule(source.value.id)).resolves.toMatchObject({ ok: true, value: { status: "scheduled", recurrenceId: null, events: [{ type: "created" }] } });
+    await expect(store.getSchedule(unrelated.value.id)).resolves.toMatchObject({ ok: true, value: { status: "scheduled", recurrenceId: null, events: [{ type: "created" }] } });
+  });
+});

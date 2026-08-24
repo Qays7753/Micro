@@ -6,7 +6,7 @@ import type { InventoryMovement, Material } from "@micro-domain/inventory-materi
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
-import { localSchemaVersion, type ActivityProfile, type LocalPreferences, type LocalStoreSnapshot, type OrderDraft, type PrototypeLocalStore, type ScheduleEntry, type StorageFailure, type StorageResult, type StoredCraftOrder } from "./types";
+import { localSchemaVersion, type ActivityProfile, type LocalPreferences, type LocalStoreSnapshot, type OrderDraft, type PrototypeLocalStore, type ScheduleEntry, type ScheduleRecurrence, type StorageFailure, type StorageResult, type StoredCraftOrder } from "./types";
 
 const databaseName = "micro-prototype-local";
 const profileStore = "activity-profile";
@@ -14,6 +14,7 @@ const preferencesStore = "local-preferences";
 const draftStore = "order-drafts";
 const orderStore = "craft-orders";
 const scheduleStore = "schedule-entries";
+const recurrenceStore = "schedule-recurrences";
 const financialEventStore = "financial-events";
 const supplierPurchaseStore = "supplier-purchases";
 const cashWalletStore = "cash-wallets";
@@ -53,6 +54,13 @@ function openDatabase(): Promise<IDBDatabase> {
         const schedules = database.createObjectStore(scheduleStore, { keyPath: "id" });
         schedules.createIndex("scheduledFor", "scheduledFor");
         schedules.createIndex("orderId", "orderId");
+      }
+      if (!database.objectStoreNames.contains(recurrenceStore)) {
+        const recurrences = database.createObjectStore(recurrenceStore, { keyPath: "id" });
+        recurrences.createIndex("sourceScheduleId", "sourceScheduleId");
+        recurrences.createIndex("orderId", "orderId");
+        recurrences.createIndex("status", "status");
+        recurrences.createIndex("createdAt", "createdAt");
       }
       if (!database.objectStoreNames.contains(financialEventStore)) {
         const events = database.createObjectStore(financialEventStore, { keyPath: "id" });
@@ -143,6 +151,28 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
       }
+      if (event.oldVersion < 20) {
+        const schedules = request.transaction?.objectStore(scheduleStore);
+        if (schedules) {
+          const cursor = schedules.openCursor();
+          cursor.onsuccess = () => {
+            const current = cursor.result;
+            if (!current) return;
+            current.update({ ...current.value, scheduledTime: current.value.scheduledTime ?? null, durationMinutes: current.value.durationMinutes ?? null, events: Array.isArray(current.value.events) ? current.value.events.map((entry: Record<string, unknown>) => ({ ...entry, previousScheduledTime: entry.previousScheduledTime ?? null, scheduledTime: entry.scheduledTime ?? null, previousDurationMinutes: entry.previousDurationMinutes ?? null, durationMinutes: entry.durationMinutes ?? null })) : [], recurrenceId: current.value.recurrenceId ?? null, recurrenceIndex: current.value.recurrenceIndex ?? null });
+            current.continue();
+          };
+        }
+        const orders = request.transaction?.objectStore(orderStore);
+        if (orders) {
+          const cursor = orders.openCursor();
+          cursor.onsuccess = () => {
+            const current = cursor.result;
+            if (!current) return;
+            current.update({ ...current.value, catalogItemId: current.value.catalogItemId ?? null, followUpSummary: current.value.followUpSummary ?? null, followUpDate: current.value.followUpDate ?? null, followUpReason: current.value.followUpReason ?? null, followUpEvents: Array.isArray(current.value.followUpEvents) ? current.value.followUpEvents : [] });
+            current.continue();
+          };
+        }
+      }
       if (event.oldVersion < 8 || event.oldVersion < 18) {
         const preferences = request.transaction?.objectStore(preferencesStore);
         if (preferences) {
@@ -222,6 +252,27 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   listSchedules() { return listAll<ScheduleEntry>(scheduleStore, (left, right) => left.scheduledFor.localeCompare(right.scheduledFor) || right.updatedAt.localeCompare(left.updatedAt)); }
   getSchedule(id: string) { return readOne<ScheduleEntry>(scheduleStore, id); }
   saveSchedule(schedule: ScheduleEntry) { return writeOne(scheduleStore, schedule); }
+  listRecurrences() { return listAll<ScheduleRecurrence>(recurrenceStore, (left, right) => left.createdAt.localeCompare(right.createdAt)); }
+  getRecurrence(id: string) { return readOne<ScheduleRecurrence>(recurrenceStore, id); }
+  saveRecurrence(recurrence: ScheduleRecurrence) { return writeOne(recurrenceStore, recurrence); }
+  async commitRecurrence(recurrence: ScheduleRecurrence, schedules: readonly ScheduleEntry[]): Promise<StorageResult<{ recurrence: ScheduleRecurrence; schedules: readonly ScheduleEntry[] }>> {
+    try {
+      const database = await openDatabase();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([recurrenceStore, scheduleStore], "readwrite");
+        transaction.objectStore(recurrenceStore).put(recurrence);
+        schedules.forEach(schedule => transaction.objectStore(scheduleStore).put(schedule));
+        transaction.onabort = () => resolve(failure(transaction.error));
+        transaction.onerror = () => resolve(failure(transaction.error));
+        transaction.oncomplete = () => {
+          database.close();
+          resolve({ ok: true, value: { recurrence, schedules } });
+        };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listFinancialEvents() { return listAll<FinancialEvent>(financialEventStore, (left, right) => right.recordedAt.localeCompare(left.recordedAt)); }
   getFinancialEvent(id: string) { return readOne<FinancialEvent>(financialEventStore, id); }
   saveFinancialEvent(event: FinancialEvent) { return writeOne(financialEventStore, event); }
@@ -301,12 +352,13 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     try {
       const database = await openDatabase();
       return await new Promise(resolve => {
-        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore], "readonly");
+        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore], "readonly");
         const profile = transaction.objectStore(profileStore).get("local-profile");
         const preferences = transaction.objectStore(preferencesStore).get("local-preferences");
         const drafts = transaction.objectStore(draftStore).getAll();
         const orders = transaction.objectStore(orderStore).getAll();
         const schedules = transaction.objectStore(scheduleStore).getAll();
+        const recurrences = transaction.objectStore(recurrenceStore).getAll();
         const financialEvents = transaction.objectStore(financialEventStore).getAll();
         const supplierPurchases = transaction.objectStore(supplierPurchaseStore).getAll();
         const cashWallets = transaction.objectStore(cashWalletStore).getAll();
@@ -320,7 +372,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onabort = () => resolve(failure(transaction.error));
         transaction.oncomplete = () => {
           database.close();
-          resolve({ ok: true, value: { profile: (profile.result as ActivityProfile | undefined) ?? null, preferences: (preferences.result as LocalPreferences | undefined) ?? null, drafts: drafts.result as OrderDraft[], orders: orders.result as StoredCraftOrder[], schedules: schedules.result as ScheduleEntry[], financialEvents: financialEvents.result as FinancialEvent[], supplierPurchases: supplierPurchases.result as SupplierPurchase[], cashWallets: cashWallets.result as CashWallet[], cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[], materials: materials.result as Material[], inventoryMovements: inventoryMovements.result as InventoryMovement[], catalogItems: catalogItems.result as CatalogItem[], actualTimeRecords: actualTimeRecords.result as ActualTimeRecord[], shortCashDeclarations: shortCashDeclarations.result as ShortCashDeclaration[] } });
+          resolve({ ok: true, value: { profile: (profile.result as ActivityProfile | undefined) ?? null, preferences: (preferences.result as LocalPreferences | undefined) ?? null, drafts: drafts.result as OrderDraft[], orders: orders.result as StoredCraftOrder[], schedules: schedules.result as ScheduleEntry[], recurrences: recurrences.result as ScheduleRecurrence[], financialEvents: financialEvents.result as FinancialEvent[], supplierPurchases: supplierPurchases.result as SupplierPurchase[], cashWallets: cashWallets.result as CashWallet[], cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[], materials: materials.result as Material[], inventoryMovements: inventoryMovements.result as InventoryMovement[], catalogItems: catalogItems.result as CatalogItem[], actualTimeRecords: actualTimeRecords.result as ActualTimeRecord[], shortCashDeclarations: shortCashDeclarations.result as ShortCashDeclaration[] } });
         };
       });
     } catch (error) {
@@ -330,14 +382,15 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
     try {
       const database = await openDatabase();
-      const normalized: LocalStoreSnapshot = { ...snapshot, schedules: snapshot.schedules ?? [], financialEvents: snapshot.financialEvents ?? [], supplierPurchases: snapshot.supplierPurchases ?? [], cashWallets: snapshot.cashWallets ?? [], cashContinuityEntries: snapshot.cashContinuityEntries ?? [], materials: snapshot.materials ?? [], inventoryMovements: snapshot.inventoryMovements ?? [], catalogItems: snapshot.catalogItems ?? [], actualTimeRecords: snapshot.actualTimeRecords ?? [], shortCashDeclarations: snapshot.shortCashDeclarations ?? [] };
+      const normalized: LocalStoreSnapshot = { ...snapshot, schedules: snapshot.schedules ?? [], recurrences: snapshot.recurrences ?? [], financialEvents: snapshot.financialEvents ?? [], supplierPurchases: snapshot.supplierPurchases ?? [], cashWallets: snapshot.cashWallets ?? [], cashContinuityEntries: snapshot.cashContinuityEntries ?? [], materials: snapshot.materials ?? [], inventoryMovements: snapshot.inventoryMovements ?? [], catalogItems: snapshot.catalogItems ?? [], actualTimeRecords: snapshot.actualTimeRecords ?? [], shortCashDeclarations: snapshot.shortCashDeclarations ?? [] };
       return await new Promise(resolve => {
-        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore], "readwrite");
+        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore], "readwrite");
         const profiles = transaction.objectStore(profileStore);
         const preferences = transaction.objectStore(preferencesStore);
         const drafts = transaction.objectStore(draftStore);
         const orders = transaction.objectStore(orderStore);
         const schedules = transaction.objectStore(scheduleStore);
+        const recurrences = transaction.objectStore(recurrenceStore);
         const financialEvents = transaction.objectStore(financialEventStore);
         const supplierPurchases = transaction.objectStore(supplierPurchaseStore);
         const cashWallets = transaction.objectStore(cashWalletStore);
@@ -352,6 +405,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         drafts.clear();
         orders.clear();
         schedules.clear();
+        recurrences.clear();
         financialEvents.clear();
         supplierPurchases.clear();
         cashWallets.clear();
@@ -366,6 +420,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         normalized.drafts.forEach(draft => drafts.put(draft));
         normalized.orders.forEach(order => orders.put(order));
         normalized.schedules.forEach(schedule => schedules.put(schedule));
+        normalized.recurrences?.forEach(recurrence => recurrences.put(recurrence));
         normalized.financialEvents.forEach(event => financialEvents.put(event));
         normalized.supplierPurchases?.forEach(purchase => supplierPurchases.put(purchase));
         normalized.cashWallets?.forEach(wallet => cashWallets.put(wallet));
