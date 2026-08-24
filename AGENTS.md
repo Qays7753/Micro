@@ -12,7 +12,8 @@
 
 1. `docs/operations/current-state.md` لمعرفة commit المعتمد، ما اندمج، وما المسموح فعله الآن.
 2. `README.md` لفهم Micro في سطرين، لا لاستخراج حالة التنفيذ التفصيلية.
-3. `docs/00-document-index.md` لمعرفة سلطة الوثائق ومسار القراءة.
+3. `docs/operations/micro-thinking-charter-v1.md` لإثبات فهم هدف Micro وطريقة القرار قبل التفكير في كود أو شاشة.
+4. `docs/00-document-index.md` لمعرفة سلطة الوثائق ومسار القراءة.
 3. `docs/01-product-and-technical-blueprint.md` لتعريف Micro والمنتج والمراحل والمعمارية.
 4. `docs/implementation/03-pre-build-alignment-v1.md` لفهم الفرق بين المنتج الكامل وPrototype المرحلة 2 وMVP التجاري اللاحق.
 5. `docs/research/global-build-reference-library-v1.md` لفهم المصادر العالمية والمنطق المستخلص والتراخيص، ثم `docs/research/micro-build-logic-v1.md` لمعرفة ما يدخل كل مرحلة.
@@ -45,7 +46,7 @@
 7. `docs/implementation/prototype-build-charter-v1.md` كميثاق تنفيذ للـPrototype؛ يفسر المنصة والنشر والخطة ولا يتغلب على العقود.
 8. `docs/quality/unified-audit-resolution-v1.md` كحارس جودة تنفيذي قبل Prototype، ثم `docs/product/mobile-ui-ux-reference-v1.md` كمرجع تجربة و`docs/implementation/mobile-prototype-spec-v1.md` كمواصفة نطاق وسلوك؛ ولا يجوز للأخيرة أو للمهارات أو للملفات الداعمة والتاريخية أن تتغلب على العقود أو هوية المنتج.
 
-إذا ظهر تعارض حقيقي، لا تخمّن. سجله، حدّد الملفات المتأثرة، وأوقف التنفيذ عند النقطة التي قد تغيّر معنى المال أو المرحلة أو هوية المنتج.
+إذا ظهر تعارض حقيقي، لا تخمّن. سجله، حدّد الملفات المتأثرة، وأوقف التنفيذ عند النقطة التي قد تغيّر معنى المال أو المرحلة أو هوية المنتج. ولا يبدأ Agent من فهم تقني فقط: يثبت في بطاقة الفهم أنه يعرف موقف المستخدم وسؤال القرار وحد المعرفة ولماذا لا تدخل القدرة المجاورة في الشريحة نفسها.
 
 ## 4. ما هو Micro؟
 
