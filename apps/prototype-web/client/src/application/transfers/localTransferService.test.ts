@@ -98,4 +98,25 @@ describe("LocalTransferService", () => {
     expect(transfers.prepareImport(JSON.stringify({ format: localExportFormat, version: localExportVersion, schemaVersion: localSchemaVersion, exportedAt: "2026-08-22T00:00:00.000Z", data: { profile, preferences: null, drafts: [], orders: [], schedules: [], financialEvents: [{ id: "bad-shared-basis", type: "operating_expense_cash", currency: "JOD", amountMinor: 100, occurredOn: "2026-08-22", recordedAt: "2026-08-22T00:00:00.000Z", idempotencyKey: "bad-shared-basis", note: "مصروف", counterparty: null, relatedEventId: null, expenseContext: { relationship: "shared", behavior: "fixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "owner_estimate", note: null } }, cashDeltaMinor: -100, payableDeltaMinor: 0, ownerCapitalDeltaMinor: 0, operatingExpenseDeltaMinor: 100 }] } }))).toMatchObject({ ok: false, code: "validation_error" });
     await expect(target.getProfile()).resolves.toMatchObject({ ok: true, value: profile });
   });
+
+  it("round-trips G5 declarations and migrates the previous v9/schema18 export without inventing one", async () => {
+    const source = new MemoryLocalStore();
+    const declaration = { id: "short-1", kind: "declaration" as const, direction: "collection" as const, amountMinor: 8000, dueOn: "2026-08-25", source: "عميلة", knowledge: "known" as const, note: "موعد معلن", relatedOrderId: null, relatedEventId: null, idempotencyKey: "short-1", reversalOfId: null, createdAt: "2026-08-22T01:00:00.000Z" };
+    await source.saveShortCashDeclaration(declaration);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");
+    const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error("G5 import should validate");
+    await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { shortCashDeclarations: 1 } });
+    await expect(target.listShortCashDeclarations()).resolves.toMatchObject({ ok: true, value: [{ id: "short-1", kind: "declaration" }] });
+    const previous = structuredClone(exported.value) as { version: number; schemaVersion: number; data: { shortCashDeclarations?: unknown } };
+    previous.version = 9; previous.schemaVersion = 18; delete previous.data.shortCashDeclarations;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { shortCashDeclarations: [] } } } });
+  });
+
+  it("rejects a reversal that does not match its original declaration", async () => {
+    const source = new MemoryLocalStore();
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");
+    const broken = structuredClone(exported.value) as { data: { shortCashDeclarations: unknown[] } };
+    broken.data.shortCashDeclarations = [{ id: "original", kind: "declaration", direction: "collection", amountMinor: 100, dueOn: "2026-08-25", source: "عميلة", knowledge: "known", note: "موعد", relatedOrderId: null, relatedEventId: null, idempotencyKey: "original", reversalOfId: null, createdAt: "2026-08-22T01:00:00.000Z" }, { id: "reverse", kind: "reversal", direction: "collection", amountMinor: 99, dueOn: "2026-08-25", source: "عميلة", knowledge: "known", note: "عكس", relatedOrderId: null, relatedEventId: null, idempotencyKey: "reverse", reversalOfId: "original", createdAt: "2026-08-22T02:00:00.000Z" }];
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
+  });
 });
