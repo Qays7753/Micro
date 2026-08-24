@@ -74,7 +74,8 @@ describe("IndexedDbLocalStore", () => {
   it("migrates a Slice B schedule to explicit unknown time, duration, and daily capacity fields", async () => {
     await seedVersionSevenSchedule(); const store = new IndexedDbLocalStore();
     await expect(store.getPreferences()).resolves.toMatchObject({ ok: true, value: { theme: "light", dailyScheduleCapacityMinutes: null } });
-    await expect(store.getSchedule("legacy-schedule")).resolves.toMatchObject({ ok: true, value: { scheduledTime: null, durationMinutes: null, events: [{ previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null }] } });
+    await expect(store.getSchedule("legacy-schedule")).resolves.toMatchObject({ ok: true, value: { scheduledTime: null, durationMinutes: null, recurrenceId: null, recurrenceIndex: null, events: [{ previousScheduledTime: null, scheduledTime: null, previousDurationMinutes: null, durationMinutes: null }] } });
+    await expect(store.listRecurrences()).resolves.toMatchObject({ ok: true, value: [] });
   });
 
   it("migrates schema 8 by adding an empty material-purchase store", async () => {
@@ -96,7 +97,7 @@ describe("IndexedDbLocalStore", () => {
     await new Promise<void>((resolve, reject) => { const request = indexedDB.open(databaseName, 16); request.onerror = () => reject(request.error); request.onupgradeneeded = () => { ["activity-profile", "local-preferences", "order-drafts", "craft-orders", "financial-events", "schedule-entries", "supplier-purchases", "cash-wallets", "cash-continuity-entries", "materials", "inventory-movements"].forEach((name) => request.result.createObjectStore(name, { keyPath: "id" })); }; request.onsuccess = () => { const database = request.result; const transaction = database.transaction(["order-drafts", "craft-orders"], "readwrite"); transaction.objectStore("order-drafts").put({ id: "legacy-draft", itemName: "صندوق هدايا" }); transaction.objectStore("craft-orders").put({ id: "legacy-order", order: { itemName: "صندوق هدايا" } }); transaction.oncomplete = () => { database.close(); resolve(); }; transaction.onerror = () => reject(transaction.error); }; });
     const store = new IndexedDbLocalStore();
     await expect(store.getDraft("legacy-draft")).resolves.toMatchObject({ ok: true, value: { itemName: "صندوق هدايا", catalogItemId: null } });
-    await expect(store.getOrder("legacy-order")).resolves.toMatchObject({ ok: true, value: { catalogItemId: null } });
+    await expect(store.getOrder("legacy-order")).resolves.toMatchObject({ ok: true, value: { catalogItemId: null, followUpSummary: null, followUpDate: null, followUpReason: null, followUpEvents: [] } });
     await expect(store.listCatalogItems()).resolves.toMatchObject({ ok: true, value: [] });
   });
 

@@ -3,6 +3,7 @@ import { createContext, type ReactNode, useContext, useMemo, useState } from "re
 import { DraftService } from "@/application/drafts/draftService";
 import { CostService } from "@/application/cost/costService";
 import { AgreementService } from "@/application/agreements/agreementService";
+import { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { LocalTransferService } from "@/application/transfers/localTransferService";
 import { PreferenceService } from "@/application/preferences/preferenceService";
@@ -20,7 +21,7 @@ import { ActualTimeService } from "@/application/time/actualTimeService";
 import { G5Service } from "@/application/g5/g5Service";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 
-type PrototypeServices = { profiles: ProfileService; preferences: PreferenceService; actualTime: ActualTimeService; drafts: DraftService; costs: CostService; agreements: AgreementService; financialPulse: FinancialPulseService; projectFinance: ProjectFinancialService; g5: G5Service; supplierPurchases: SupplierPurchaseService; cashContinuity: CashContinuityService; inventory: InventoryMaterialService; catalog: CatalogService; dailyFollowUp: DailyFollowUpService; schedules: ScheduleService; recurrences: ScheduleRecurrenceService; fulfillment: FulfillmentService; transfers: LocalTransferService; dataVersion: number; notifyDataChanged: () => void };
+type PrototypeServices = { profiles: ProfileService; preferences: PreferenceService; actualTime: ActualTimeService; drafts: DraftService; costs: CostService; agreements: AgreementService; agreementContext: AgreementContextService; financialPulse: FinancialPulseService; projectFinance: ProjectFinancialService; g5: G5Service; supplierPurchases: SupplierPurchaseService; cashContinuity: CashContinuityService; inventory: InventoryMaterialService; catalog: CatalogService; dailyFollowUp: DailyFollowUpService; schedules: ScheduleService; recurrences: ScheduleRecurrenceService; fulfillment: FulfillmentService; transfers: LocalTransferService; dataVersion: number; notifyDataChanged: () => void };
 const PrototypeServicesContext = createContext<PrototypeServices | undefined>(undefined);
 
 export function PrototypeServicesProvider({ children }: { children: ReactNode }) {
@@ -32,7 +33,8 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     const g5 = new G5Service(store, projectFinance);
     const schedules = new ScheduleService(store);
     const recurrences = new ScheduleRecurrenceService(store);
-    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), actualTime: new ActualTimeService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), financialPulse: new FinancialPulseService(store), projectFinance, g5, supplierPurchases: new SupplierPurchaseService(store), cashContinuity: new CashContinuityService(store), inventory: new InventoryMaterialService(store), catalog: new CatalogService(store), dailyFollowUp: new DailyFollowUpService(store), schedules, recurrences, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
+    const agreementContext = new AgreementContextService(store);
+    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), actualTime: new ActualTimeService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), agreementContext, financialPulse: new FinancialPulseService(store), projectFinance, g5, supplierPurchases: new SupplierPurchaseService(store), cashContinuity: new CashContinuityService(store), inventory: new InventoryMaterialService(store), catalog: new CatalogService(store), dailyFollowUp: new DailyFollowUpService(store), schedules, recurrences, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
   }, [dataVersion]);
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }

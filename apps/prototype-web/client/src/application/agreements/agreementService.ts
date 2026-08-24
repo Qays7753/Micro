@@ -4,10 +4,12 @@
  */
 import { collectDeposit, createCraftOrder, transitionOrder, type CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { CostService } from "@/application/cost/costService";
-import type { OrderDraft, PrototypeLocalStore, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
+import type { AgreementSource, OrderDraft, PrototypeLocalStore, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
 
-export type AgreementInput = { agreedPriceMinor: number; deliveryDate: string; depositMinor: number; agreementSource: string | null };
+export type AgreementInput = { agreedPriceMinor: number; deliveryDate: string; depositMinor: number; agreementSource: AgreementSource | "conversation" | "call" | "in_person" | string | null };
 export type AgreementResult = { ok: true; stored: StoredCraftOrder } | { ok: false; code: "validation_error" | "storage_error" | "missing_cost" | "inconsistent_state"; message: string };
+const allowedAgreementSources = new Set(["instagram", "whatsapp", "referral", "walk_in", "other", "conversation", "call", "in_person"]);
+const agreementSourceIsValid = (value: string | null) => value === null || allowedAgreementSources.has(value);
 const dateIsValid = (value: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T12:00:00.000Z`);
@@ -37,6 +39,7 @@ export class AgreementService {
       return { ok: true, stored: current.value };
     }
     if (!draft.customerName.trim()) return validation("سجل اسم العميل قبل تثبيت الاتفاق.");
+    if (!agreementSourceIsValid(input.agreementSource)) return validation("اختر مصدر اتفاق من القائمة أو اتركه غير محدد.");
     if (!draft.itemName.trim() || !draft.specifications.trim()) return validation("أكمل وصف القطعة وملاحظات التخصيص قبل تثبيت الاتفاق.");
     if (!Number.isInteger(input.agreedPriceMinor) || input.agreedPriceMinor <= 0) return validation("أدخل سعرًا متفقًا عليه أكبر من صفر.");
     if (!Number.isInteger(input.depositMinor) || input.depositMinor < 0) return validation("العربون يجب أن يكون صفرًا أو مبلغًا صحيحًا.");
