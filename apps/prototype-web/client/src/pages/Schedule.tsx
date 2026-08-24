@@ -4,6 +4,8 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { MonthOverview, ScheduleDay, ScheduleOverview, ScheduledOrder } from "@/application/scheduling/scheduleService";
 import type { RecurrenceView } from "@/application/scheduling/recurrenceService";
+import { buildCapacityDecisionViewModel } from "@/application/scheduling/capacityDecisionViewModel";
+import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 
  type ScheduleState = { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; overview: ScheduleOverview; month: MonthOverview; recurrences: readonly RecurrenceView[] };
 const orderStatus: Record<string, string> = { provisional_agreement: "اتفاق مبدئي", confirmed: "تم التأكيد", in_progress: "قيد التنفيذ", ready: "جاهز للتسليم", delivered: "تم التسليم", settled: "مغلق" };
@@ -74,11 +76,13 @@ export default function Schedule() {
   const { overview, month, recurrences: recurrenceViews } = state;
   const total = overview.overdue.length + overview.today.length + overview.upcoming.length;
   const weekWithWork = overview.week.filter((day) => day.items.length > 0);
+  const decisionDay = (selectedDate ? month.days.find((day) => day.date === selectedDate) : null) ?? overview.week[0];
   const recurrenceSources = Array.from(new Map([...overview.today, ...overview.upcoming].map((item) => [item.schedule.id, item])).values());
   return <section className="micro-page micro-schedule-page">
     <button className="micro-back-button" type="button" onClick={() => navigate("/")}><ArrowLeft aria-hidden="true" /> مشروعي الآن</button>
     <div className="micro-page-heading"><span className="micro-overline">التنظيم التشغيلي</span><h1>جدول المواعيد</h1><p>اقرأ التزامات الطلبات المسجلة في اليوم أو الأسبوع أو الشهر. الوقت والمدة يدعمان تحذيرًا فقط عندما تعرفهما؛ لا يرسل هذا الإصدار تذكيرًا خارجيًا.</p></div>
     <MonthSchedulePanel month={month} selectedDate={selectedDate} onChangeMonth={changeMonth} onSelectDate={setSelectedDate} onOpen={(item) => navigate(`/schedule/${item.schedule.id}`)} />
+    {decisionDay ? <CapacityDecisionSurface day={decisionDay} capacityMinutes={overview.dailyCapacityMinutes} /> : null}
     <RecurrencePanel service={recurrences} sources={recurrenceSources} views={recurrenceViews} onChanged={notifyDataChanged} />
     <section className="micro-schedule-capacity"><div><Timer aria-hidden="true" /><div><span className="micro-overline">قدرة اليوم</span><h2>ما المدة التي تستطيع الالتزام بها؟</h2><p>{overview.dailyCapacityMinutes === null ? "غير محددة الآن؛ لن نحكم على ضغط اليوم." : `السعة المعلنة: ${overview.dailyCapacityMinutes} دقيقة. التحذير لا يمنعك من حفظ الموعد.`}</p></div></div><label className="micro-field"><span>سعة يومية اختيارية</span><select value={capacityChoice} onChange={(event) => setCapacityChoice(event.target.value)} aria-label="سعة اليوم بالدقائق"><option value="">غير محددة الآن</option>{capacityOptions.map((minutes) => <option key={minutes} value={minutes}>{minutes} دقيقة</option>)}</select></label>{capacityMessage ? <p className={capacityMessage.startsWith("تم ") || capacityMessage.startsWith("لم ") ? "micro-save-note" : "micro-field-error"} role="status">{capacityMessage}</p> : null}<button className="micro-button micro-button-secondary" type="button" disabled={savingCapacity} onClick={saveCapacity}>{savingCapacity ? "جارٍ حفظ السعة…" : "حفظ سعة اليوم"}</button></section>
     {overview.overdue.length > 0 ? <ScheduleSection title="متأخر" description="هذه الطلبات تجاوزت موعدها المسجل وتحتاج قرارًا." tone="warning" items={overview.overdue} onOpen={(item) => navigate(`/schedule/${item.schedule.id}`)} /> : null}
@@ -87,6 +91,14 @@ export default function Schedule() {
     {total === 0 ? <section className="micro-empty-state"><span className="micro-empty-symbol"><CalendarDays aria-hidden="true" /></span><span className="micro-status-chip">لا توجد مواعيد تشغيلية</span><h2>لا توجد طلبات تحتاج موعدًا الآن</h2><p>عند تثبيت اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</p><button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/orders/new")}>بدء طلب</button></section> : null}
     {weekWithWork.length > 0 ? <section className="micro-week-agenda" aria-label="خطة الأيام السبعة"><div className="micro-week-heading"><div><span className="micro-overline">الأيام السبعة القادمة</span><h2>أين يوجد ضغط فعلي في وقتك المسجل؟</h2></div><Clock3 aria-hidden="true" /></div><div className="micro-week-list">{weekWithWork.map((day) => <WeekDay key={day.date} day={day} onOpen={(item) => navigate(`/schedule/${item.schedule.id}`)} />)}</div></section> : null}
     {overview.completedOrClosed > 0 ? <p className="micro-schedule-closed-note">يوجد {overview.completedOrClosed} موعدًا لطلبات أغلقت أو اكتملت عند التسليم ولم تعد تحتاج متابعة تشغيلية.</p> : null}
+  </section>;
+}
+
+function CapacityDecisionSurface({ day, capacityMinutes }: { day: ScheduleDay; capacityMinutes: number | null }) {
+  const decision = buildCapacityDecisionViewModel(day, capacityMinutes);
+  return <section className="micro-capacity-decision" aria-label={`قرار السعة ليوم ${dateLabel(day.date)}`}>
+    <DecisionPanel label={`${decision.label} · ${dateLabel(day.date)}`} truth={decision.truth} nextAction={decision.nextAction} tone={decision.tone} />
+    {day.conflictCount > 0 ? <p className="micro-month-warning"><CircleAlert aria-hidden="true" />التعارض مستقل عن قرار السعة: يوجد تعارض في {day.conflictCount} موعد؛ راجع الموعد القائم دون اعتبار ذلك رفضًا أو ضمانًا للتوفر.</p> : null}
   </section>;
 }
 
