@@ -1,0 +1,22 @@
+{
+  "valid": {
+    "format": "micro-guided-opening-import",
+    "version": 1,
+    "importId": "opening-2026-08-24-valid",
+    "profile": { "activityName": "مخبز صغير", "currency": "JOD", "activityType": "custom_craft", "source": "دفتر البداية", "knowledge": "known", "occurredOn": "2026-08-01", "note": "رصيد معلن عند بدء استخدام Micro" },
+    "cashWallets": [{ "id": "wallet-drawer", "name": "درج المحل", "kind": "cash_drawer", "openingMinor": 12500, "source": "عد نقدي", "knowledge": "known", "occurredOn": "2026-08-01", "note": "عدّ المالك في بداية اليوم" }],
+    "materials": [{ "id": "material-flour", "name": "طحين", "unit": "kilogram", "openingQuantityMilli": 2500, "openingValueMinor": 8750, "source": "جرد يدوي", "knowledge": "estimated", "occurredOn": "2026-08-01", "note": "الكمية تقريبية والقيمة من آخر شراء" }],
+    "openingNotes": "لا يتضمن الملف طلبات أو تاريخ مبيعات أو ديونًا سابقة."
+  },
+  "incomplete": {
+    "format": "micro-guided-opening-import",
+    "version": 1,
+    "importId": "opening-2026-08-24-incomplete",
+    "profile": { "activityName": "مخبز صغير", "currency": "JOD", "activityType": "custom_craft" },
+    "cashWallets": [{ "id": "wallet-drawer", "name": "درج المحل", "kind": "cash_drawer", "openingMinor": 12500 }]
+  },
+  "corrupt": "{not-json",
+  "unsupported": { "format": "micro-guided-opening-import", "version": 99, "importId": "opening-unsupported" },
+  "nonEmptyStore": { "sameAs": "valid", "expected": "non_empty_store" },
+  "retry": { "sameAs": "valid", "expected": "same importId returns prior result without duplicate effects" }
+}
