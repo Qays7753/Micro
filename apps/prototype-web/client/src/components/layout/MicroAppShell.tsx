@@ -10,6 +10,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { type QuickAction, QuickActionSheet } from "@/components/layout/QuickActionSheet";
 import { PwaInstallControl } from "@/pwa/PwaInstallControl";
+import { PwaRuntimeNotice } from "@/pwa/PwaRuntimeNotice";
 
 const futureActionCopy: Record<QuickAction, string> = {
   order: "سيصبح بدء مسودة الطلب متاحًا في Slice البداية المحلية.",
@@ -26,5 +27,5 @@ export function MicroAppShell({ children }: { children: ReactNode }) {
     if (action === "order") { navigate("/orders/new"); return; }
     toast.message("هذه الخطوة لم تُفعّل بعد", { description: futureActionCopy[action] });
   }
-  return <div className="micro-app" dir="rtl"><AppHeader contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)} /><main className="micro-main" key={location}><PwaInstallControl />{children}</main>{!isSetup ? <><BottomNav activePath={location} items={primaryNavigation} onNavigate={navigate} onOpenActions={() => setIsActionSheetOpen(true)} /><QuickActionSheet open={isActionSheetOpen} onOpenChange={setIsActionSheetOpen} onAction={handleQuickAction} /></> : null}</div>;
+  return <div className="micro-app" dir="rtl"><AppHeader contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)} /><main className="micro-main" key={location}><PwaInstallControl /><PwaRuntimeNotice />{children}</main>{!isSetup ? <><BottomNav activePath={location} items={primaryNavigation} onNavigate={navigate} onOpenActions={() => setIsActionSheetOpen(true)} /><QuickActionSheet open={isActionSheetOpen} onOpenChange={setIsActionSheetOpen} onAction={handleQuickAction} /></> : null}</div>;
 }

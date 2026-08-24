@@ -18,6 +18,8 @@ let state: PwaRuntimeState = {
 let started = false;
 let registration: ServiceWorkerRegistration | undefined;
 let updateServiceWorker: ((reloadPage?: boolean) => Promise<void>) | undefined;
+let visibilityHandlerRegistered = false;
+let reloadRequested = false;
 const listeners = new Set<PwaListener>();
 
 function emit() {
@@ -45,6 +47,11 @@ export function registerPwaServiceWorker() {
       state = { ...state, offlineReady: true, error: null };
       emit();
     },
+    onNeedReload() {
+      if (reloadRequested) return;
+      reloadRequested = true;
+      window.location.reload();
+    },
     onRegisteredSW(_scriptUrl, nextRegistration) {
       registration = nextRegistration;
       void registration?.update().catch(() => undefined);
@@ -55,6 +62,11 @@ export function registerPwaServiceWorker() {
       console.warn("Micro PWA registration failed", error);
     },
   });
+
+  if (!visibilityHandlerRegistered) {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    visibilityHandlerRegistered = true;
+  }
 }
 
 export function getPwaRuntimeState() {
@@ -63,7 +75,9 @@ export function getPwaRuntimeState() {
 
 export function subscribePwa(listener: PwaListener) {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export async function applyPwaUpdate() {
@@ -77,6 +91,10 @@ export async function applyPwaUpdate() {
     emit();
     console.warn("Micro PWA update failed", error);
   }
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === "visible") checkForPwaUpdate();
 }
 
 export function checkForPwaUpdate() {
