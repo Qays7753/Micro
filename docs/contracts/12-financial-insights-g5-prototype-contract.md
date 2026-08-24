@@ -1,8 +1,10 @@
 # Micro — عقد مؤشرات النتيجة والربحية والتغطية والسيولة G5
 
-**الحالة:** `CURRENT / G5 POLICY BEFORE IMPLEMENTATION`
+**الحالة:** `LEGACY / RETAINED REFERENCE — SUPERSEDED FOR G5 IMPLEMENTATION`
 **المالك:** Manus Agent 1
 **التاريخ:** 23 أغسطس 2026
+
+> هذا العقد يصف أسطح القراءة المحافظة التي سبقت تنفيذ G5. المرجع الحالي لسياسة هامش المساهمة، نقطة التعادل المفككة، وإعلانات السيولة القصيرة هو [`17-contribution-break-even-short-cash-g5-contract.md`](17-contribution-break-even-short-cash-g5-contract.md). لا تُقرأ عبارة «قبل التنفيذ» أدناه على أنها وصف لحالة `main` الحالية؛ راجع `docs/operations/current-state.md` و`docs/implementation/02-domain-contract-coverage.md`.
 
 ## الغرض والقرار الحاكم
 
