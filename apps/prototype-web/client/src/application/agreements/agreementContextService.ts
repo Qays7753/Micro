@@ -3,6 +3,7 @@
  * It never creates a ScheduleEntry, reminder, financial event, or external side effect.
  */
 import type { AgreementSource, FollowUpEvent, PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import { isValidLocalDate, localDateInAmman } from "./followUpDate";
 
 export type LegacyAgreementSource = "conversation" | "call" | "in_person";
 export type AgreementSourceValue = AgreementSource | LegacyAgreementSource;
@@ -12,16 +13,6 @@ export type FollowUpRead = { due: readonly StoredCraftOrder[]; upcoming: readonl
 export type AgreementContextResult<T> = { ok: true; value: T } | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
 
 const sources = new Set<AgreementSourceValue>(["instagram", "whatsapp", "referral", "walk_in", "other", "conversation", "call", "in_person"]);
-const validDate = (value: string) => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parsed = new Date(`${value}T12:00:00.000Z`);
-  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
-};
-const todayInAmman = (now: string) => {
-  const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(now));
-  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${value("year")}-${value("month")}-${value("day")}`;
-};
 const normalized = (value: string | null) => value?.trim() || null;
 const asView = (stored: StoredCraftOrder): AgreementContextView => ({ id: stored.id, agreementSource: stored.agreementSource ?? null, followUpSummary: stored.followUpSummary ?? null, followUpDate: stored.followUpDate ?? null, followUpReason: stored.followUpReason ?? null, followUpEvents: stored.followUpEvents ?? [] });
 const failure = (message: string): Extract<AgreementContextResult<never>, { ok: false }> => ({ ok: false, code: "validation_error", message });
@@ -29,7 +20,7 @@ const failure = (message: string): Extract<AgreementContextResult<never>, { ok: 
 function validateInput(input: AgreementContextInput, previousDate: string | null) {
   if (input.agreementSource !== null && !sources.has(input.agreementSource)) return failure("اختر مصدر اتفاق من القائمة أو اتركه غير محدد.");
   if (input.followUpSummary !== null && (input.followUpSummary.trim().length < 2 || input.followUpSummary.trim().length > 240)) return failure("اكتب ملخص متابعة قصيرًا من حرفين إلى 240 حرفًا، أو اتركه فارغًا.");
-  if (input.followUpDate !== null && !validDate(input.followUpDate)) return failure("أدخل تاريخ متابعة محليًا صحيحًا بصيغة YYYY-MM-DD.");
+  if (input.followUpDate !== null && !isValidLocalDate(input.followUpDate)) return failure("أدخل تاريخ متابعة محليًا صحيحًا بصيغة YYYY-MM-DD.");
   const dateChanged = input.followUpDate !== previousDate;
   if (input.followUpDate === null && previousDate === null && input.followUpReason !== null) return failure("سبب المتابعة لا يحفظ دون تاريخ متابعة.");
   if (input.followUpDate !== null && previousDate === null && !input.followUpReason) return failure("اكتب هدفًا أو سببًا قصيرًا لموعد المتابعة.");
@@ -72,7 +63,7 @@ export class AgreementContextService {
   async dueFollowUps(): Promise<AgreementContextResult<FollowUpRead>> {
     const result = await this.store.listOrders();
     if (!result.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة المتابعات المحلية." };
-    const today = todayInAmman(this.now());
+    const today = localDateInAmman(this.now());
     const withDate = result.value.filter((stored) => Boolean(stored.followUpDate) && stored.order.status !== "cancelled");
     return { ok: true, value: { due: withDate.filter((stored) => (stored.followUpDate ?? "") <= today).sort((left, right) => (left.followUpDate ?? "").localeCompare(right.followUpDate ?? "")), upcoming: withDate.filter((stored) => (stored.followUpDate ?? "") > today).sort((left, right) => (left.followUpDate ?? "").localeCompare(right.followUpDate ?? "")) } };
   }

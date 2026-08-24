@@ -302,3 +302,4 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
 .micro-context-history b { color: var(--color-text-primary); font-size: 13px; }
 .micro-context-history small { color: var(--color-text-secondary); font-size: 12px; }
 @media (max-width: 380px) { .micro-context-summary { grid-template-columns: 1fr; } }
+.micro-context-summary .micro-local-date { direction: ltr; unicode-bidi: isolate; color: var(--color-text-secondary); font-family: var(--font-numeric); font-size: 12px; }
