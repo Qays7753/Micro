@@ -7,17 +7,20 @@ import type { PrototypeLocalStore, ScheduleEntry, ScheduleStatus, StoredCraftOrd
 export type ScheduledOrder = { schedule: ScheduleEntry; order: StoredCraftOrder; bucket: "overdue" | "today" | "upcoming" };
 export type ScheduleDay = { date: string; items: readonly ScheduledOrder[]; scheduledMinutes: number; unknownTimingCount: number; conflictCount: number; overCapacity: boolean };
 export type ScheduleOverview = { overdue: readonly ScheduledOrder[]; today: readonly ScheduledOrder[]; upcoming: readonly ScheduledOrder[]; week: readonly ScheduleDay[]; dailyCapacityMinutes: number | null; completedOrClosed: number };
+export type MonthOverview = { month: string; days: readonly ScheduleDay[]; scheduledCount: number; overdueCount: number; scheduledMinutes: number; unknownTimingCount: number; dailyCapacityMinutes: number | null };
 export type ScheduleTimingInput = { scheduledFor: string; scheduledTime: string | null; durationMinutes: number | null; reason: string };
 export type ScheduleResult<T> = { ok: true; value: T } | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
 
 const activeScheduleStatus = (status: ScheduleStatus) => status === "scheduled" || status === "postponed";
 const orderCanAppear = (stored: StoredCraftOrder) => !["delivered", "settled", "cancelled"].includes(stored.order.status);
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T12:00:00.000Z`).valueOf());
+const validMonth = (value: string) => { const match = /^(\d{4})-(\d{2})$/.exec(value); if (!match) return false; const month = Number(match[2]); return month >= 1 && month <= 12; };
 const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 const validDuration = (value: number) => Number.isInteger(value) && value >= 15 && value <= 720 && value % 15 === 0;
 const localDateKey = (iso: string) => { const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(iso)); const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? ""; return `${part("year")}-${part("month")}-${part("day")}`; };
 const timeMinutes = (time: string) => { const [hours, minutes] = time.split(":").map(Number); return hours * 60 + minutes; };
 const plusDays = (date: string, days: number) => { const start = new Date(`${date}T12:00:00.000Z`); start.setUTCDate(start.getUTCDate() + days); return start.toISOString().slice(0, 10); };
+const daysInMonth = (month: string) => { const [year, monthNumber] = month.split("-").map(Number); return new Date(Date.UTC(year!, monthNumber!, 0)).getUTCDate(); };
 const activeForOrder = (schedule: ScheduleEntry, order: StoredCraftOrder) => activeScheduleStatus(schedule.status) && orderCanAppear(order);
 
 function initialSchedule(order: StoredCraftOrder): ScheduleEntry {
@@ -26,6 +29,26 @@ function initialSchedule(order: StoredCraftOrder): ScheduleEntry {
 }
 
 function scheduleSort(a: ScheduledOrder, b: ScheduledOrder) { return a.schedule.scheduledFor.localeCompare(b.schedule.scheduledFor) || (a.schedule.scheduledTime ?? "99:99").localeCompare(b.schedule.scheduledTime ?? "99:99") || b.order.updatedAt.localeCompare(a.order.updatedAt); }
+
+function buildScheduleDay(date: string, items: readonly ScheduledOrder[], dailyCapacityMinutes: number | null): ScheduleDay {
+  const ordered = [...items].sort(scheduleSort);
+  const timed = ordered.filter((item) => item.schedule.scheduledTime !== null && item.schedule.durationMinutes !== null);
+  const conflicts = new Set<string>();
+  for (let left = 0; left < timed.length; left += 1) {
+    for (let right = left + 1; right < timed.length; right += 1) {
+      const a = timed[left]!.schedule;
+      const b = timed[right]!.schedule;
+      const aStart = timeMinutes(a.scheduledTime!);
+      const bStart = timeMinutes(b.scheduledTime!);
+      if (aStart < bStart + b.durationMinutes! && bStart < aStart + a.durationMinutes!) {
+        conflicts.add(a.id);
+        conflicts.add(b.id);
+      }
+    }
+  }
+  const scheduledMinutes = timed.reduce((total, item) => total + item.schedule.durationMinutes!, 0);
+  return { date, items: ordered, scheduledMinutes, unknownTimingCount: ordered.length - timed.length, conflictCount: conflicts.size, overCapacity: dailyCapacityMinutes !== null && scheduledMinutes > dailyCapacityMinutes };
+}
 
 export class ScheduleService {
   constructor(private readonly store: PrototypeLocalStore, private readonly now: () => string = () => new Date().toISOString()) {}
@@ -67,8 +90,18 @@ export class ScheduleService {
     const [records, capacity] = await Promise.all([this.reconciled(), this.dailyCapacity()]); if (!records.ok) return records; if (!capacity.ok) return capacity;
     const today = localDateKey(this.now()); const byId = new Map(records.value.orders.map((order) => [order.id, order])); const overdue: ScheduledOrder[] = []; const day: ScheduledOrder[] = []; const upcoming: ScheduledOrder[] = []; let completedOrClosed = 0;
     for (const schedule of records.value.schedules) { const order = byId.get(schedule.orderId); if (!order) continue; if (!activeForOrder(schedule, order)) { completedOrClosed += 1; continue; } const item: ScheduledOrder = { schedule, order, bucket: schedule.scheduledFor < today ? "overdue" : schedule.scheduledFor === today ? "today" : "upcoming" }; if (item.bucket === "overdue") overdue.push(item); else if (item.bucket === "today") day.push(item); else upcoming.push(item); }
-    const active = [...day, ...upcoming].sort(scheduleSort); const week = Array.from({ length: 7 }, (_, index) => { const date = plusDays(today, index); const items = active.filter((item) => item.schedule.scheduledFor === date); const timed = items.filter((item) => item.schedule.scheduledTime !== null && item.schedule.durationMinutes !== null); const conflicts = new Set<string>(); for (let left = 0; left < timed.length; left += 1) for (let right = left + 1; right < timed.length; right += 1) { const a = timed[left]!.schedule; const b = timed[right]!.schedule; const aStart = timeMinutes(a.scheduledTime!); const bStart = timeMinutes(b.scheduledTime!); if (aStart < bStart + b.durationMinutes! && bStart < aStart + a.durationMinutes!) { conflicts.add(a.id); conflicts.add(b.id); } } const scheduledMinutes = timed.reduce((total, item) => total + item.schedule.durationMinutes!, 0); return { date, items, scheduledMinutes, unknownTimingCount: items.length - timed.length, conflictCount: conflicts.size, overCapacity: capacity.value !== null && scheduledMinutes > capacity.value }; });
+    const active = [...day, ...upcoming].sort(scheduleSort); const week = Array.from({ length: 7 }, (_, index) => { const date = plusDays(today, index); return buildScheduleDay(date, active.filter((item) => item.schedule.scheduledFor === date), capacity.value); });
     return { ok: true, value: { overdue: overdue.sort(scheduleSort), today: day.sort(scheduleSort), upcoming: upcoming.sort(scheduleSort), week, dailyCapacityMinutes: capacity.value, completedOrClosed } };
+  }
+
+  async monthOverview(month: string): Promise<ScheduleResult<MonthOverview>> {
+    if (!validMonth(month)) return { ok: false, code: "validation_error", message: "أدخل شهرًا بصيغة YYYY-MM صحيحة." };
+    const [records, capacity] = await Promise.all([this.reconciled(), this.dailyCapacity()]); if (!records.ok) return records; if (!capacity.ok) return capacity;
+    const today = localDateKey(this.now()); const byId = new Map(records.value.orders.map((order) => [order.id, order])); const items: ScheduledOrder[] = [];
+    for (const schedule of records.value.schedules) { const order = byId.get(schedule.orderId); if (order && activeForOrder(schedule, order) && schedule.scheduledFor.startsWith(`${month}-`)) items.push({ schedule, order, bucket: schedule.scheduledFor < today ? "overdue" : schedule.scheduledFor === today ? "today" : "upcoming" }); }
+    const firstDay = `${month}-01`; const days = Array.from({ length: daysInMonth(month) }, (_, index) => { const date = plusDays(firstDay, index); return buildScheduleDay(date, items.filter((item) => item.schedule.scheduledFor === date), capacity.value); });
+    const timed = items.filter((item) => item.schedule.scheduledTime !== null && item.schedule.durationMinutes !== null);
+    return { ok: true, value: { month, days, scheduledCount: items.length, overdueCount: items.filter((item) => item.schedule.scheduledFor < today).length, scheduledMinutes: timed.reduce((total, item) => total + item.schedule.durationMinutes!, 0), unknownTimingCount: items.length - timed.length, dailyCapacityMinutes: capacity.value } };
   }
 
   async reconcileDelivery(orderId: string): Promise<ScheduleResult<ScheduleEntry>> { const records = await this.reconciled(); if (!records.ok) return records; const schedule = records.value.schedules.find((candidate) => candidate.orderId === orderId); return schedule ? { ok: true, value: schedule } : { ok: false, code: "not_found", message: "لا يوجد موعد محلي لهذا الطلب." }; }
