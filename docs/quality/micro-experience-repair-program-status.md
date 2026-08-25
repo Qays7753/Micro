@@ -158,13 +158,13 @@
 | البند | النتيجة |
 | --- | --- |
 | الفرع | `docs/g16-pilot-decision-kit`، من رأس Bridge `1b35bf01f686c7769127255f923f18bb486cae85` |
-| PR / commit | PR #87؛ head `7bf2e69a02c2c9cfbfb6b811d0550ef4b760b1f2`؛ ينتظر CI وCloudflare ثم merge إلى Bridge؛ الفرع من رأس Bridge `1b35bf01f686c7769127255f923f18bb486cae85` |
+| PR / commit | PR #87؛ feature head `7bf2e69a02c2c9cfbfb6b811d0550ef4b760b1f2`؛ status head `76433893e68884ff031f5d34c71dea68a677b960`؛ merge إلى Bridge `530bd5549e3978396cb4e28e98fe0743d9223125`؛ الفرع من رأس Bridge `1b35bf01f686c7769127255f923f18bb486cae85` |
 | ما تغير | أضيف `docs/quality/g16-pilot-kit-and-decision-gate.md` كحزمة Pilot وبوابة قرار Finance/Review فقط |
 | التغطية | تصميم العينة، سيناريوهات أول طلب والتكلفة الناقصة والاتفاق والتسليم والتحصيل/الدين والموعد وFinance والتصحيح وexport/import، أسئلة الفهم، نموذج تسجيل بلا هوية، المقاييس، وبوابة أصغر تغيير |
 | الأثر المالي الذي لا يحدث | لا Pilot فعلي، لا بيانات حقيقية، لا Tracking أو CRM أو Sync، لا تعديل Finance/Review أو Home، ولا قرار آلي للسعر أو الربح |
 | الاختبارات | فحص توثيقي محلي و`git diff --check`؛ ستُسجل نتيجة `pnpm check` بعد التنفيذ النهائي |
 | حدود G16 | الحزمة لا تدعي قبولًا ميدانيًا أو عودة يوم 1/7/14/30؛ Pilot فعلي وموافقة المالك والقرار اللاحق خارج التنفيذ الحالي |
-| ما بقي معلقًا | CI وCloudflare ودمج G16، ثم تحديث Bridge والتقرير النهائي فقط؛ لا تبدأ مجموعة جديدة |
+| ما بقي معلقًا | G16 مؤمنة في Bridge؛ لا مجموعة جديدة ضمن هذا البرنامج، ويبقى فقط Pilot الفعلي وقبول الأجهزة/Production بيد المالك |
 
 ## سجل المجموعات
 
@@ -177,9 +177,11 @@
 | H01-A | #84 | merge `69b76eca4cd80c108b13356a8d5e2d9891b885e9` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
 | H01-B | #85 | merge `899f1beb7f7d5ea081b099b4045fcd1a957966ef` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
 | G15 | #86 | merge `9c2c9cc1b262009446d5ea313999a62d945ddc60` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط؛ قبول الجهاز وProduction ما زال للمالك |
-| G16 | #87 | head `7bf2e69a02c2c9cfbfb6b811d0550ef4b760b1f2` | حزمة Pilot وبوابة قرار منفذة؛ PR مفتوح إلى Bridge وينتظر CI وCloudflare والدمج؛ لا Pilot فعلي أو redesign بعد |
+| G16 | #87 | merge `530bd5549e3978396cb4e28e98fe0743d9223125` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط؛ لا Pilot فعلي أو redesign بعد |
 
 في G15، اكتمل بروتوكول قبول الجهاز والإنتاج، ونجحت CI وCloudflare Pages، ثم دُمجت المجموعة في Bridge عند `9c2c9cc1b262009446d5ea313999a62d945ddc60`. تبقى نتائج Android وiOS وPWA المثبت وstandalone وoffline والشبكة الحقيقية وProduction معلقة حتى ينفذها المالك على جهاز فعلي.
+
+في G16، اكتملت حزمة Pilot وبوابة قرار Finance/Review، ونجحت CI وCloudflare Pages، ثم دُمجت المجموعة في Bridge عند `530bd5549e3978396cb4e28e98fe0743d9223125`. لم يبدأ Pilot ولم يُتخذ قرار redesign؛ تبقى هذه الخطوة للمالك بعد موافقة وحفظ آمن خارج المستودع.
 
 ## مرجع القرار
 
