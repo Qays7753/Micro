@@ -76,7 +76,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
   async function saveRecord() {
     setMessage(null);
     if (!minutesValid || !Number.isInteger(minutes) || minutes <= 0 || !recordedOn) {
-      setMessage({ tone: "error", text: "أدخل عدد دقائق صحيحًا وموجبًا، مع تاريخ التسجيل، بالأرقام الإنجليزية." });
+      setMessage({ tone: "error", text: "أدخل عدد دقائق صحيحًا وموجبًا، مع تاريخ التسجيل، بالأرقام 0–9." });
       return;
     }
     setIsSaving(true);
@@ -153,7 +153,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
     <button className={guidedByPreference ? "micro-button micro-button-secondary" : "micro-text-action"} type="button" disabled={isSaving} onClick={() => { setMessage(null); setShowRecordForm(value => !value); }}>{showRecordForm ? "إخفاء نموذج الوقت" : "سجل وقتًا فعليًا"}</button>
     {!guidedByPreference ? <p className="micro-cost-disclaimer">لم تحدد طريقة عمل أو لم تفعّل التتبع؛ يبقى التسجيل متاحًا هنا عند الحاجة دون سؤال يومي أو إلزام.</p> : null}
     {showRecordForm ? <section className="micro-actual-time-form" aria-label="نموذج تسجيل الوقت">
-      <label className="micro-field"><span>الدقائق الفعلية <small>أرقام إنجليزية صحيحة</small></span><EnglishNumberInput value={minutes} kind="integer" min={1} aria-label="الدقائق الفعلية بالأرقام الإنجليزية" onNumericChange={setMinutes} onTextValidityChange={setMinutesValid} /></label>
+      <label className="micro-field"><span>الدقائق الفعلية <small>أرقام 0–9 صحيحة</small></span><EnglishNumberInput value={minutes} kind="integer" min={1} aria-label="الدقائق الفعلية بالأرقام 0–9" onNumericChange={setMinutes} onTextValidityChange={setMinutesValid} /></label>
       <label className="micro-field"><span>تاريخ التسجيل</span><input type="date" value={recordedOn} onChange={event => setRecordedOn(event.target.value)} /></label>
       <label className="micro-field"><span>ملاحظة اختيارية</span><textarea value={note} onChange={event => setNote(event.target.value)} placeholder="مثال: تنفيذ الجزء الأول" /></label>
       <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={isSaving} onClick={saveRecord}><Save aria-hidden="true" />{isSaving ? "جارٍ حفظ الوقت…" : "حفظ وقت التنفيذ"}</button>

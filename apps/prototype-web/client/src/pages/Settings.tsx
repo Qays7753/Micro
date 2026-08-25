@@ -23,7 +23,7 @@ const modeOptions: Array<{ value: "" | OperatingWorkMode; label: string; descrip
 ];
 
 export default function SettingsPage() {
-  const { theme, preference, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
   const { actualTime, transfers, guidedOpeningImport, dataVersion, notifyDataChanged } = usePrototypeServices();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -175,15 +175,8 @@ export default function SettingsPage() {
       <p>خيارات الواجهة وحماية البيانات على هذا الجهاز.</p>
     </div>
     <DecisionPanel label="الحقيقة المحلية" truth="بيانات Micro محفوظة محليًا على هذا الجهاز." nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف." tone="warning" />
-    <section className="micro-settings-list" aria-label="إعدادات الواجهة وطريقة العمل والبيانات">
-      <article className="micro-setting-row">
-        <span className="micro-setting-icon"><MoonStar aria-hidden="true" /></span>
-        <div>
-          <h2>المظهر</h2>
-          <p>المعروض الآن: {theme === "dark" ? "داكن" : "فاتح"}، والافتراضي عند البداية: {preference === "system" ? "النظام" : "اختيارك المحلي"}.</p>
-        </div>
-        <button className="micro-button micro-button-secondary" type="button" onClick={toggleTheme}>تبديل</button>
-      </article>
+    <section className="micro-settings-list" aria-labelledby="data-protection-title">
+      <div className="micro-section-heading"><div><span className="micro-overline">حماية البيانات</span><h2 id="data-protection-title">احمِ بياناتك</h2></div><Shield aria-hidden="true" /></div>
       <article className="micro-setting-row">
         <span className="micro-setting-icon"><Shield aria-hidden="true" /></span>
         <div>
@@ -191,6 +184,9 @@ export default function SettingsPage() {
           <p>لا توجد مزامنة سحابية أو تسجيل دخول أو نسخة احتياطية تلقائية هنا.</p>
         </div>
       </article>
+      <StorageRow icon={Download} title="تصدير محلي" text="ينشئ ملف JSON لبيانات Prototype الحالية دون أسرار أو مفاتيح." label="تصدير البيانات المحلية" disabled={isWorking} onClick={exportLocal} />
+      <StorageRow icon={Upload} title="استيراد محلي" text="نقرأ الملف ونتحقق منه أولًا، ثم نعرض ملخصًا قبل استبدال أي بيانات." label="اختيار ملف استيراد" disabled={isWorking} onClick={() => inputRef.current?.click()} />
+      <input ref={inputRef} className="micro-visually-hidden" type="file" accept="application/json,.json" onChange={chooseImport} />
     </section>
     <section className="micro-form-card" aria-labelledby="operating-mode-title">
       <div className="micro-section-heading">
@@ -219,10 +215,15 @@ export default function SettingsPage() {
         <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={isSavingOperatingMode} onClick={saveOperatingMode}><Save aria-hidden="true" />{isSavingOperatingMode ? "جارٍ حفظ التفضيل…" : "حفظ طريقة العمل"}</button>
       </> : null}
     </section>
-    <section className="micro-settings-list" aria-label="إدارة البيانات المحلية">
-      <StorageRow icon={Download} title="تصدير محلي" text="ينشئ ملف JSON لبيانات Prototype الحالية دون أسرار أو مفاتيح." label="تصدير البيانات المحلية" disabled={isWorking} onClick={exportLocal} />
-      <StorageRow icon={Upload} title="استيراد محلي" text="نقرأ الملف ونتحقق منه أولًا، ثم نعرض ملخصًا قبل استبدال أي بيانات." label="اختيار ملف استيراد" disabled={isWorking} onClick={() => inputRef.current?.click()} />
-      <input ref={inputRef} className="micro-visually-hidden" type="file" accept="application/json,.json" onChange={chooseImport} />
+    <section className="micro-settings-list" aria-label="إعدادات المظهر">
+      <article className="micro-setting-row">
+        <span className="micro-setting-icon"><MoonStar aria-hidden="true" /></span>
+        <div>
+          <h2>المظهر</h2>
+          <p>الوضع الحالي: {theme === "dark" ? "داكن" : "فاتح"}.</p>
+        </div>
+        <button className="micro-button micro-button-secondary" type="button" onClick={toggleTheme}>التبديل إلى {theme === "dark" ? "الفاتح" : "الداكن"}</button>
+      </article>
     </section>
     <section className="micro-form-card" aria-labelledby="guided-opening-title">
       <div className="micro-section-heading"><div><span className="micro-overline">بداية محدودة</span><h2 id="guided-opening-title">إدخال موقف افتتاحي</h2></div><Upload aria-hidden="true" /></div>
