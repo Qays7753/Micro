@@ -56,4 +56,18 @@ describe("financial event domain core", () => {
     const reversal = createFinancialReversal({ id: "reversal", sourceEvent: source, occurredOn: "2026-08-24", recordedAt: "2026-08-24T08:00:00.000Z", idempotencyKey: "reversal", reason: "سبب" });
     expect(() => createFinancialReversal({ id: "double", sourceEvent: reversal, occurredOn: "2026-08-25", recordedAt: "2026-08-25T08:00:00.000Z", idempotencyKey: "double", reason: "سبب ثان" })).toThrow("reversal");
   });
+
+  it("calculates and preserves a shared percentage in minor JOD units", () => {
+    const expense = createFinancialEvent({ ...base, id: "shared-percentage", type: "operating_expense_cash", amountMinor: 617, idempotencyKey: "shared-percentage", expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "agreed_percentage", note: "20% للمشروع", allocation: "allocated", totalAmountMinor: 3083, percentageBps: 2000, calculatedShareMinor: 617 } } });
+    expect(expense).toMatchObject({ amountMinor: 617, operatingExpenseDeltaMinor: 617, expenseContext: { sharedProjectShare: { basis: "agreed_percentage", totalAmountMinor: 3083, percentageBps: 2000, calculatedShareMinor: 617 } } });
+    expect(() => createFinancialEvent({ ...base, id: "wrong-percentage", type: "operating_expense_cash", amountMinor: 616, idempotencyKey: "wrong-percentage", expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "agreed_percentage", note: null, allocation: "allocated", totalAmountMinor: 3083, percentageBps: 2000, calculatedShareMinor: 617 } } })).toThrow("amountMinor");
+  });
+
+  it("keeps an explicitly deferred shared total in cash/payables but out of operating result", () => {
+    const deferredCash = createFinancialEvent({ ...base, id: "deferred-cash", type: "operating_expense_cash", amountMinor: 5000, idempotencyKey: "deferred-cash", expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "needs_review", sharedProjectShare: { basis: "needs_review", note: "لم أحدد حصة المشروع", allocation: "unallocated", totalAmountMinor: 5000, percentageBps: null, calculatedShareMinor: null } } });
+    const deferredPayable = createFinancialEvent({ ...base, id: "deferred-payable", type: "operating_expense_payable", amountMinor: 5000, idempotencyKey: "deferred-payable", expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "needs_review", sharedProjectShare: { basis: "needs_review", note: null, allocation: "unallocated", totalAmountMinor: 5000, percentageBps: null, calculatedShareMinor: null } } });
+    expect(deferredCash).toMatchObject({ cashDeltaMinor: -5000, operatingExpenseDeltaMinor: 0 });
+    expect(deferredPayable).toMatchObject({ payableDeltaMinor: 5000, operatingExpenseDeltaMinor: 0 });
+    expect(() => createFinancialEvent({ ...base, id: "bad-deferred", type: "operating_expense_cash", amountMinor: 0, idempotencyKey: "bad-deferred", expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "needs_review", sharedProjectShare: { basis: "needs_review", note: null, allocation: "unallocated", totalAmountMinor: 5000, percentageBps: null, calculatedShareMinor: null } } })).toThrow("amountMinor");
+  });
 });

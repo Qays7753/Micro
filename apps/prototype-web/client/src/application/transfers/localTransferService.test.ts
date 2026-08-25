@@ -61,6 +61,18 @@ describe("LocalTransferService", () => {
     expect(preview).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { financialEvents: [{ id: "legacy-shared", expenseContext: { relationship: "shared", sharedProjectShare: null } }] } } } });
   });
 
+  it("round-trips G3 percentage and deferred shared-expense fields and accepts the previous schema pair", async () => {
+    const source = new MemoryLocalStore();
+    const percentage = createFinancialEvent({ id: "percentage-event", type: "operating_expense_cash", amountMinor: 617, occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", idempotencyKey: "percentage-event", note: "كهرباء بنسبة", counterparty: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "agreed_percentage", note: "20%", allocation: "allocated", totalAmountMinor: 3083, percentageBps: 2000, calculatedShareMinor: 617 } } });
+    const deferred = createFinancialEvent({ id: "deferred-event", type: "operating_expense_cash", amountMinor: 5000, occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:01:00.000Z", idempotencyKey: "deferred-event", note: "كهرباء مؤجلة", counterparty: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "needs_review", sharedProjectShare: { basis: "needs_review", note: "لاحقًا", allocation: "unallocated", totalAmountMinor: 5000, percentageBps: null, calculatedShareMinor: null } } });
+    await source.saveFinancialEvent(percentage); await source.saveFinancialEvent(deferred);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("G3 export should succeed");
+    const transfers = new LocalTransferService(new MemoryLocalStore()); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error(`G3 import should validate: ${preview.message}`);
+    expect(preview.value.file.data.financialEvents).toMatchObject([{ id: "percentage-event", expenseContext: { sharedProjectShare: { allocation: "allocated", basis: "agreed_percentage", percentageBps: 2000, calculatedShareMinor: 617 } } }, { id: "deferred-event", operatingExpenseDeltaMinor: 0, expenseContext: { sharedProjectShare: { allocation: "unallocated", totalAmountMinor: 5000 } } }]);
+    const previous = structuredClone(exported.value) as { version: number; schemaVersion: number }; previous.version = 11; previous.schemaVersion = 20;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion } } });
+  });
+
   it("upgrades a v7 export to v8 without inventing a catalog item or historical link", async () => {
     const source = new MemoryLocalStore(); await source.saveProfile(profile); await source.saveDraft(draft);
     const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");

@@ -171,4 +171,23 @@ describe("ProjectFinancialService", () => {
     await expect(finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: "فشل اختبار ذرية", idempotencyKey: "atomic-reversal" })).resolves.toMatchObject({ ok: false, code: "storage_error" });
     const events = await finance.listEvents(); if (!events.ok) throw new Error("events should read"); expect(events.value).toHaveLength(1); expect(events.value[0]?.id).toBe(source.value.id);
   });
+
+  it("derives a percentage share in minor units and includes only the derived share once", async () => {
+    const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
+    const saved = await finance.record({ type: "operating_expense_cash", occurredOn: "2026-08-23", note: "كهرباء مشتركة", counterparty: "البيت", relatedEventId: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "agreed_percentage", note: "20%", allocation: "allocated", totalAmountMinor: null, percentageBps: null, calculatedShareMinor: null } }, sharedExpense: { mode: "percentage", sharedTotalAmountMinor: 333, sharedPercentageBps: 2000 }, idempotencyKey: "percentage-share" });
+    expect(saved).toMatchObject({ ok: true, value: { amountMinor: 67, cashDeltaMinor: -67, operatingExpenseDeltaMinor: 67, expenseContext: { sharedProjectShare: { basis: "agreed_percentage", totalAmountMinor: 333, percentageBps: 2000, calculatedShareMinor: 67 } } } });
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { sharedProjectExpenseMinor: 67, sharedUnallocatedExpenseMinor: 0, recordedOperatingExpenseMinor: 67, resultMinor: -67, status: "recorded_only" } });
+  });
+
+  it("keeps a deferred shared total visible and in cash without treating it as a result expense", async () => {
+    const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
+    const saved = await finance.record({ type: "operating_expense_cash", occurredOn: "2026-08-23", note: "فاتورة منزلية مشتركة", counterparty: "البيت", relatedEventId: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "needs_review", sharedProjectShare: { basis: "needs_review", note: "أحدد الحصة لاحقًا", allocation: "unallocated", totalAmountMinor: null, percentageBps: null, calculatedShareMinor: null } }, sharedExpense: { mode: "defer", sharedTotalAmountMinor: 500 }, idempotencyKey: "deferred-share" });
+    expect(saved).toMatchObject({ ok: true, value: { amountMinor: 500, cashDeltaMinor: -500, operatingExpenseDeltaMinor: 0, expenseContext: { sharedProjectShare: { allocation: "unallocated", totalAmountMinor: 500 } } } });
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 0, sharedProjectExpenseMinor: 0, sharedUnallocatedExpenseMinor: 500, sharedUnallocatedExpenseCount: 1, expenseNeedsReviewCount: 1, resultMinor: null, status: "incomplete" } });
+    await expect(finance.readPosition()).resolves.toMatchObject({ ok: true, value: { recordedCashMinor: -500, operatingExpensesRecordedMinor: 0 } });
+    if (!saved.ok) throw new Error("deferred share should save");
+    await expect(finance.reverse({ sourceEventId: saved.value.id, occurredOn: "2026-08-24", reason: "حصة تحددت خارج هذا الحدث", idempotencyKey: "deferred-reversal" })).resolves.toMatchObject({ ok: true });
+    await expect(finance.readRecordedPeriodResult("2026-08-23", "2026-08-23")).resolves.toMatchObject({ ok: true, value: { sharedUnallocatedExpenseMinor: 500, sharedUnallocatedExpenseCount: 1, status: "incomplete" } });
+    await expect(finance.readRecordedPeriodResult("2026-08-24", "2026-08-24")).resolves.toMatchObject({ ok: true, value: { sharedUnallocatedExpenseMinor: -500, sharedUnallocatedExpenseCount: 0, status: "recorded_only" } });
+  });
 });

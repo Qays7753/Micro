@@ -1,4 +1,5 @@
 /** Slice 5 transfer boundary: parse and validate first; only an explicit confirmation may replace local IndexedDB state. */
+import { calculateSharedProjectShareMinor } from "@micro-domain/financial-event/index.js";
 import { localExportFormat, localExportVersion, localProfileId, localSchemaVersion, type LocalExportFile, type LocalStoreSnapshot, type PrototypeLocalStore } from "@/storage/local/types";
 
 export type TransferSummary = { profile: boolean; preferences: boolean; drafts: number; orders: number; schedules: number; recurrences: number; financialEvents: number; supplierPurchases: number; cashWallets: number; cashContinuityEntries: number; materials: number; inventoryMovements: number; catalogItems: number; shortCashDeclarations: number; snapshots: number; events: number; exportedAt: string };
@@ -32,7 +33,17 @@ const isFinancialType = (value: unknown) => value === "owner_investment_cash" ||
 const isSignedMoney = (value: unknown) => typeof value === "number" && Number.isInteger(value);
 const isCorrectionType = (value: unknown) => value === undefined || value === null || value === "reverse";
 const isOptionalString = (value: unknown) => value === undefined || value === null || isString(value);
-const isSharedProjectShare = (value: unknown, knowledge: unknown) => value === undefined || value === null || (isRecord(value) && (value.basis === "agreed_fixed_share" || value.basis === "owner_estimate" || value.basis === "needs_review") && (value.note === null || isString(value.note)) && (value.basis === "agreed_fixed_share" ? knowledge === "known" : value.basis === "owner_estimate" ? knowledge === "estimated" : knowledge === "needs_review"));
+const isOptionalNonNegativeMoney = (value: unknown) => value === undefined || value === null || isMoney(value);
+const isPercentageBps = (value: unknown) => value === undefined || value === null || (typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 10_000);
+const isSharedProjectShare = (value: unknown, knowledge: unknown) => {
+  if (value === undefined || value === null) return true;
+  if (!isRecord(value) || !(value.basis === "agreed_fixed_share" || value.basis === "agreed_percentage" || value.basis === "owner_estimate" || value.basis === "needs_review") || !(value.note === null || isString(value.note))) return false;
+  const expectedKnowledge = value.basis === "agreed_fixed_share" || value.basis === "agreed_percentage" ? "known" : value.basis === "owner_estimate" ? "estimated" : "needs_review";
+  if (knowledge !== expectedKnowledge || !(value.allocation === undefined || value.allocation === "allocated" || value.allocation === "unallocated") || !isOptionalNonNegativeMoney(value.totalAmountMinor) || !isPercentageBps(value.percentageBps) || !isOptionalNonNegativeMoney(value.calculatedShareMinor)) return false;
+  if (value.basis === "agreed_percentage") return value.allocation !== "unallocated" && isMoney(value.totalAmountMinor) && value.totalAmountMinor > 0 && typeof value.percentageBps === "number" && typeof value.calculatedShareMinor === "number" && value.calculatedShareMinor === calculateSharedProjectShareMinor(value.totalAmountMinor, value.percentageBps);
+  if (value.allocation === "unallocated") return value.basis === "needs_review" && isMoney(value.totalAmountMinor) && value.totalAmountMinor > 0 && value.percentageBps === null && value.calculatedShareMinor === null;
+  return value.basis !== "needs_review" || (value.totalAmountMinor === undefined || value.totalAmountMinor === null) && value.percentageBps === null && value.calculatedShareMinor === null;
+};
 const isExpenseContext = (value: unknown) => isRecord(value) && (value.relationship === "project" || value.relationship === "shared") && (value.behavior === "fixed" || value.behavior === "variable" || value.behavior === "mixed" || value.behavior === "unknown") && (value.purpose === "project_general" || value.purpose === "period" || value.purpose === "order" || value.purpose === "product" || value.purpose === "campaign" || value.purpose === "unallocated") && (value.knowledge === "known" || value.knowledge === "estimated" || value.knowledge === "needs_review") && (value.relationship === "shared" ? isSharedProjectShare(value.sharedProjectShare, value.knowledge) : value.sharedProjectShare === undefined || value.sharedProjectShare === null);
 function validFinancialEvent(value: unknown): boolean {
   if (!isRecord(value) || !isString(value.id) || !value.id.trim() || !isFinancialType(value.type) || value.currency !== "JOD" || !isMoney(value.amountMinor) || value.amountMinor === 0 || !isString(value.occurredOn) || !isLocalDate(value.occurredOn) || !isDate(value.recordedAt) || !isString(value.idempotencyKey) || !value.idempotencyKey.trim() || !isString(value.note) || !value.note.trim() || !(value.counterparty === null || isString(value.counterparty)) || !(value.relatedEventId === null || isString(value.relatedEventId)) || !isSignedMoney(value.cashDeltaMinor) || !isSignedMoney(value.payableDeltaMinor) || !isSignedMoney(value.ownerCapitalDeltaMinor) || !isSignedMoney(value.operatingExpenseDeltaMinor) || !isCorrectionType(value.correctionType) || !isOptionalString(value.correctionOfEventId) || !isOptionalString(value.correctionReason)) return false;
@@ -48,7 +59,9 @@ function validFinancialEvent(value: unknown): boolean {
   if (value.correctionOfEventId !== undefined && value.correctionOfEventId !== null) return false;
   if (value.correctionReason !== undefined && value.correctionReason !== null) return false;
   const amount = value.amountMinor;
-  const expected = value.type === "owner_investment_cash" ? [amount, 0, amount, 0] : value.type === "owner_withdrawal_cash" ? [-amount, 0, -amount, 0] : value.type === "operating_expense_cash" ? [-amount, 0, 0, amount] : value.type === "operating_expense_payable" ? [0, amount, 0, amount] : [-amount, -amount, 0, 0];
+  const unallocatedShared = isRecord(expenseContext) && isRecord(expenseContext.sharedProjectShare) && expenseContext.sharedProjectShare.allocation === "unallocated";
+  const operatingExpense = unallocatedShared ? 0 : amount;
+  const expected = value.type === "owner_investment_cash" ? [amount, 0, amount, 0] : value.type === "owner_withdrawal_cash" ? [-amount, 0, -amount, 0] : value.type === "operating_expense_cash" ? [-amount, 0, 0, operatingExpense] : value.type === "operating_expense_payable" ? [0, amount, 0, operatingExpense] : [-amount, -amount, 0, 0];
   return value.cashDeltaMinor === expected[0] && value.payableDeltaMinor === expected[1] && value.ownerCapitalDeltaMinor === expected[2] && value.operatingExpenseDeltaMinor === expected[3] && (value.type === "payable_settlement_cash" ? isString(value.relatedEventId) && value.relatedEventId.trim().length > 0 : value.relatedEventId === null);
 }
 function validSupplierPurchase(value: unknown): boolean { if (!isRecord(value) || !isString(value.id) || !isString(value.supplierName) || !value.supplierName.trim() || !isString(value.note) || !value.note.trim() || !isString(value.purchasedOn) || !isDate(`${value.purchasedOn}T12:00:00.000Z`) || !(value.dueOn === null || isString(value.dueOn)) || (isString(value.dueOn) && !isDate(`${value.dueOn}T12:00:00.000Z`)) || !isMoney(value.totalMinor) || value.totalMinor === 0 || !isMoney(value.paidMinor) || !isMoney(value.payableMinor) || !isString(value.idempotencyKey) || !isDate(value.createdAt) || !isDate(value.updatedAt) || !Array.isArray(value.payments)) return false; const paymentKeys = new Set<string>(); const totalPaid = value.payments.reduce<number>((sum, payment) => { if (!isRecord(payment) || !isString(payment.id) || !isMoney(payment.amountMinor) || payment.amountMinor === 0 || !isString(payment.occurredOn) || !isDate(`${payment.occurredOn}T12:00:00.000Z`) || !isDate(payment.recordedAt) || !isString(payment.idempotencyKey) || !isString(payment.note) || !payment.note.trim() || paymentKeys.has(payment.idempotencyKey)) return Number.NaN; paymentKeys.add(payment.idempotencyKey); return sum + payment.amountMinor; }, 0); const status = totalPaid === 0 ? "unpaid" : totalPaid === value.totalMinor ? "paid" : "partially_paid"; return Number.isInteger(totalPaid) && totalPaid === value.paidMinor && value.payableMinor === value.totalMinor - totalPaid && value.status === status; }
@@ -177,11 +190,12 @@ export class LocalTransferService {
     try { candidate = JSON.parse(text); } catch { return fail("الملف ليس JSON صالحًا. بقيت بيانات هذا الجهاز دون تغيير."); }
     if (!isRecord(candidate) || candidate.format !== localExportFormat) return fail("هذا ليس ملف تصدير Micro المحلي. بقيت بيانات هذا الجهاز دون تغيير.");
     const isCurrent = candidate.version === localExportVersion && candidate.schemaVersion === localSchemaVersion;
+    const isPreviousG3 = candidate.version === 11 && candidate.schemaVersion === 20;
     const isG3Legacy = candidate.version === 6 && candidate.schemaVersion === 14;
     const isG3CurrentLegacy = candidate.version === 7 && candidate.schemaVersion === 15;
     const isPreviousG4 = candidate.version === 9 && candidate.schemaVersion === 18;
     const isPreviousG5 = candidate.version === 10 && candidate.schemaVersion === 19;
-    if (!isCurrent && !isG3Legacy && !isG3CurrentLegacy && !isPreviousG4 && !isPreviousG5) return fail("إصدار الملف غير مدعوم في هذا Prototype. بقيت بيانات هذا الجهاز دون تغيير.");
+    if (!isCurrent && !isPreviousG3 && !isG3Legacy && !isG3CurrentLegacy && !isPreviousG4 && !isPreviousG5) return fail("إصدار الملف غير مدعوم في هذا Prototype. بقيت بيانات هذا الجهاز دون تغيير.");
     if (!isDate(candidate.exportedAt) || !isRecord(candidate.data)) return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
     const raw = candidate.data;
     const migrated: LocalStoreSnapshot = {

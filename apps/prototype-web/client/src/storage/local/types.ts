@@ -11,11 +11,11 @@ import type { CatalogItem } from "@micro-domain/catalog/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 
-export const localSchemaVersion = 20;
+export const localSchemaVersion = 21;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 11;
+export const localExportVersion = 12;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
