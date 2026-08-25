@@ -123,7 +123,7 @@
 | البند | النتيجة |
 | --- | --- |
 | الفرع | `feat/h01b-home-control-center`، من رأس Bridge `fb92696c21e0619ae40fcf27339d768556a95f40` |
-| PR / commit | سيُسجلان بعد الاختبارات والدفع؛ عنوان PR `feat(home): add decision-led local control center` |
+| PR / commit | PR #85؛ head `94bde07c9c0b3bda6948d74c363f65e3a55ded5c`؛ ينتظر CI وCloudflare ثم merge إلى Bridge؛ الفرع من رأس Bridge `fb92696c21e0619ae40fcf27339d768556a95f40` |
 | Application | `HomeControlCenterService` يجمع الخدمات والـPort القائم فقط، ويشتق الحقائق الأربع والانتباه والـoptional modules وآخر خمسة تغيرات دون تخزين جديد أو React→IndexedDB |
 | UI | Home تعرض اسم النشاط والتاريخ المحلي، CTA واحدًا، truth line، حقائق JOD بمصدر وفترة وحالة، انتباهًا بحد أقصى 3، وحداتًا ذات صلة، وآخر تغيرات محدودة؛ كل فعل رابط لمسار قائم |
 | الاختبارات | View Model `4/4`؛ Home service `3/3`؛ `pnpm --filter @micro/prototype-web check` و`pnpm check` و`git diff --check` ناجحة محليًا |
@@ -141,7 +141,7 @@
 | G13 | #82 | `599cf80` | مدمج في Bridge البرنامج فقط |
 | G14 | #83 | merge `f56a563a18c64c447a9f6c9801d84a11172abcad`؛ CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
 | H01-A | #84 | merge `69b76eca4cd80c108b13356a8d5e2d9891b885e9` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
-| H01-B | — | — | لم تبدأ |
+| H01-B | #85 | head `94bde07c9c0b3bda6948d74c363f65e3a55ded5c` | منفذة محليًا؛ PR مفتوح إلى Bridge وينتظر CI وCloudflare والدمج |
 | G15 | — | — | لم تبدأ |
 | G16 | — | — | لم تبدأ |
 
