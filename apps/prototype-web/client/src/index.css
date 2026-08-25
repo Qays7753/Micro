@@ -310,3 +310,22 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
 /* A2 presentation contract: visible numeric/date values remain readable inside RTL copy. */
 .micro-inline-number { display: inline; direction: ltr; font-family: var(--font-numeric); font-size: inherit; font-variant-numeric: tabular-nums; line-height: inherit; unicode-bidi: isolate; }
 .micro-local-date { direction: ltr; font-family: var(--font-numeric); font-variant-numeric: tabular-nums; unicode-bidi: isolate; }
+
+/* G13: honest state hierarchy and in-flow form feedback */
+.micro-schedule-status-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.micro-schedule-status-summary > div { display: grid; gap: var(--space-1); border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: var(--space-3); background: var(--color-surface); }
+.micro-schedule-status-summary span, .micro-schedule-status-summary small { color: var(--color-text-secondary); font-size: 12px; }
+.micro-schedule-status-summary strong { color: var(--color-text-primary); font-family: var(--font-numeric); font-size: 24px; }
+.micro-schedule-status-summary > div:first-child { border-inline-start: 3px solid var(--color-accent-primary); }
+.micro-schedule-status-summary > div:last-child { border-inline-start: 3px solid var(--color-divider); }
+.micro-schedule-capacity p strong { color: var(--color-text-primary); }
+.micro-sheet-action:disabled { cursor: not-allowed; opacity: .68; filter: saturate(.65); }
+.micro-sheet-action:disabled .micro-sheet-action-icon { color: var(--color-text-secondary); background: var(--color-bg-well); }
+.micro-confirm-warning { cursor: pointer; }
+.micro-confirm-warning:focus-within { outline: 3px solid color-mix(in srgb, var(--color-accent-primary) 45%, transparent); outline-offset: 2px; }
+.micro-confirm-warning input:focus-visible { outline: 2px solid var(--color-accent-primary); outline-offset: 2px; }
+.micro-field-error { border-inline-start: 3px solid var(--color-danger-text); border-radius: var(--radius-control); padding: var(--space-2) var(--space-3); background: var(--color-danger-bg); line-height: 1.6; }
+@media (max-width: 430px) {
+  .micro-schedule-status-summary { grid-template-columns: 1fr; }
+  .micro-schedule-status-summary strong { font-size: 22px; }
+}

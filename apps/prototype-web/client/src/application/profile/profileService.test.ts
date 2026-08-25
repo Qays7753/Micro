@@ -6,7 +6,7 @@ describe("ProfileService", () => {
   it("rejects an empty local activity name before writing", async () => {
     const store = new MemoryLocalStore();
     const service = new ProfileService(store, () => "2026-08-22T00:00:00.000Z");
-    await expect(service.save("   ")).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    await expect(service.save("   ")).resolves.toMatchObject({ ok: false, code: "validation_error", message: "اسم النشاط: اكتب اسم النشاط أو اسمك أولًا، ثم أعد المحاولة." });
     await expect(store.getProfile()).resolves.toMatchObject({ ok: true, value: null });
   });
 

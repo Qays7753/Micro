@@ -8,7 +8,7 @@ export class ProfileService {
   async load() { return this.store.getProfile(); }
   async save(activityName: string): Promise<ProfileSaveResult> {
     const normalizedName = activityName.trim();
-    if (!normalizedName) return { ok: false, code: "validation_error", message: "اكتب اسم النشاط أو اسمك أولًا." };
+    if (!normalizedName) return { ok: false, code: "validation_error", message: "اسم النشاط: اكتب اسم النشاط أو اسمك أولًا، ثم أعد المحاولة." };
     const current = await this.store.getProfile();
     if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التأسيس المحلي. حاول مرة أخرى." };
     const timestamp = this.now();
