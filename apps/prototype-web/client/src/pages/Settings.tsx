@@ -1,4 +1,4 @@
-import { Download, FileCheck2, Hammer, MoonStar, Save, Shield, Upload } from "lucide-react";
+import { Download, FileCheck2, Hammer, MoonStar, Save, Shield, Trash2, Upload } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const [selectedMode, setSelectedMode] = useState<"" | OperatingWorkMode>("");
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [isSavingOperatingMode, setIsSavingOperatingMode] = useState(false);
+  const [resetArmed, setResetArmed] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -153,6 +154,18 @@ export default function SettingsPage() {
     setNotice(result.reused ? "تم التعرف على هذه المحاولة مسبقًا؛ لم يتكرر أي أثر." : "تم إدخال الموقف الافتتاحي المحدود مع إبقاء ما لم نعرفه خارج السجل.");
   }
 
+  async function resetLocalData() {
+    setNotice(null);
+    setIsWorking(true);
+    const result = await transfers.resetLocalData();
+    setIsWorking(false);
+    if (!result.ok) { setNotice(result.message); return; }
+    setResetArmed(false);
+    notifyDataChanged();
+    setNotice("تم مسح البيانات المحلية من هذا الجهاز. لا توجد نسخة سحابية يمكن استعادتها.");
+    navigate("/setup");
+  }
+
   const selectedModeDescription = modeOptions.find(option => option.value === selectedMode)?.description;
 
   return <section className="micro-page">
@@ -246,6 +259,12 @@ export default function SettingsPage() {
         <button className="micro-button micro-button-primary" type="button" disabled={isWorking} onClick={confirmImport}>{isWorking ? "جارٍ الاستيراد…" : "استبدال البيانات المحلية"}</button>
       </div>
     </section> : null}
+    <section className="micro-form-card micro-danger-zone" aria-labelledby="reset-local-data-title">
+      <div className="micro-section-heading"><div><span className="micro-overline">إجراء نهائي محلي</span><h2 id="reset-local-data-title">إعادة ضبط البيانات</h2></div><Trash2 aria-hidden="true" /></div>
+      <p>يمسح هذا الجهاز كل المسودات والطلبات والأحداث والإعدادات المحلية. صدّر نسخة JSON أولًا إذا أردت الاحتفاظ بها؛ لا توجد مزامنة أو استعادة سحابية.</p>
+      {resetArmed ? <div className="micro-confirm-warning" role="alert"><Trash2 aria-hidden="true" /><span><b>سيُحذف السجل المحلي عند التأكيد.</b> لا يمكن التراجع من داخل Micro بعد المسح، ولن تتغير أي بيانات خارج هذا الجهاز.</span></div> : null}
+      <div className="micro-form-actions"><button className="micro-button micro-button-secondary" type="button" disabled={isWorking} onClick={() => setResetArmed(current => !current)}>{resetArmed ? "إلغاء إعادة الضبط" : "إعادة ضبط محلية"}</button>{resetArmed ? <button className="micro-button micro-button-danger" type="button" disabled={isWorking} onClick={() => { void resetLocalData(); }}><Trash2 aria-hidden="true" />{isWorking ? "جارٍ مسح البيانات…" : "تأكيد مسح البيانات"}</button> : null}</div>
+    </section>
     {notice ? <p className="micro-save-note" role="status">{notice}</p> : null}
   </section>;
 }

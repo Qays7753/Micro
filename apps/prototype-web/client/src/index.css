@@ -382,3 +382,10 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
   .micro-additional-details-summary { align-items: flex-start; }
   .micro-additional-details-summary > small { max-width: 18ch; }
 }
+
+
+.micro-danger-zone { border-color: var(--color-danger-text); }
+.micro-danger-zone > .micro-section-heading > svg { width: 20px; height: 20px; color: var(--color-danger-text); }
+.micro-button-danger { color: var(--color-surface); background: var(--color-danger-text); }
+.micro-button-danger:hover { background: color-mix(in srgb, var(--color-danger-text) 86%, var(--color-text-primary)); }
+.micro-button-danger svg { width: 18px; height: 18px; }
