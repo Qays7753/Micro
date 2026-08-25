@@ -123,14 +123,14 @@
 | البند | النتيجة |
 | --- | --- |
 | الفرع | `feat/h01b-home-control-center`، من رأس Bridge `fb92696c21e0619ae40fcf27339d768556a95f40` |
-| PR / commit | PR #85؛ head `94bde07c9c0b3bda6948d74c363f65e3a55ded5c`؛ ينتظر CI وCloudflare ثم merge إلى Bridge؛ الفرع من رأس Bridge `fb92696c21e0619ae40fcf27339d768556a95f40` |
+| PR / commit | PR #85؛ feature head `94bde07c9c0b3bda6948d74c363f65e3a55ded5c`؛ status head `a0ba2d6ad621367ab2b21e02b89de5488994fe0e`؛ merge إلى Bridge `899f1beb7f7d5ea081b099b4045fcd1a957966ef`؛ الفرع من رأس Bridge `fb92696c21e0619ae40fcf27339d768556a95f40` |
 | Application | `HomeControlCenterService` يجمع الخدمات والـPort القائم فقط، ويشتق الحقائق الأربع والانتباه والـoptional modules وآخر خمسة تغيرات دون تخزين جديد أو React→IndexedDB |
 | UI | Home تعرض اسم النشاط والتاريخ المحلي، CTA واحدًا، truth line، حقائق JOD بمصدر وفترة وحالة، انتباهًا بحد أقصى 3، وحداتًا ذات صلة، وآخر تغيرات محدودة؛ كل فعل رابط لمسار قائم |
 | الاختبارات | View Model `4/4`؛ Home service `3/3`؛ `pnpm --filter @micro/prototype-web check` و`pnpm check` و`git diff --check` ناجحة محليًا |
 | QA المتصفح | جلسة اصطناعية: Setup، CTA إلى طلب جديد، حفظ مسودة، ظهور «استئناف المسودة» في الأولوية والانتباه، حقائق غير مهيأة دون أصفار، Light/Dark، reload دون تكرار، وقياس محتوى responsive؛ ثم تنظيف كامل للتخزين والـservice workers |
 | الأثر المالي الذي لا يحدث | القراءة لا تحفظ أحداثًا أو نتيجة مالية، لا تعرض صافي ربح، ولا تحول التحصيل أو الدين أو الكاش إلى KPI، ولا تغير Order أو Finance أو Inventory |
 | حدود H01-B | متصفح Chromium محلي وببيانات اصطناعية فقط؛ لا ادعاء Android/iOS أو offline فعلي أو Pilot أو Production؛ H01-B لا ينفذ redesign لـFinance/Review |
-| ما بقي معلقًا | دفع وPR وCI وCloudflare ودمج H01-B، ثم بدء G15 التوثيقي من رأس Bridge الجديد |
+| ما بقي معلقًا | H01-B مؤمنة في Bridge؛ يبدأ G15 الآن من رأس Bridge `899f1beb7f7d5ea081b099b4045fcd1a957966ef` |
 
 ## سجل المجموعات
 
@@ -141,7 +141,7 @@
 | G13 | #82 | `599cf80` | مدمج في Bridge البرنامج فقط |
 | G14 | #83 | merge `f56a563a18c64c447a9f6c9801d84a11172abcad`؛ CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
 | H01-A | #84 | merge `69b76eca4cd80c108b13356a8d5e2d9891b885e9` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
-| H01-B | #85 | head `94bde07c9c0b3bda6948d74c363f65e3a55ded5c` | منفذة محليًا؛ PR مفتوح إلى Bridge وينتظر CI وCloudflare والدمج |
+| H01-B | #85 | merge `899f1beb7f7d5ea081b099b4045fcd1a957966ef` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
 | G15 | — | — | لم تبدأ |
 | G16 | — | — | لم تبدأ |
 
@@ -149,7 +149,9 @@
 
 العقد والسياسات الحاكمة موجودة في `docs/contracts/05-financial-p0-policies.md`، وحدود التنفيذ في `docs/contracts/03-cost-snapshot-contract.md`، وواجهة الهاتف في `docs/product/mobile-ui-ux-reference-v1.md`. سجل التغيير المحلي المعتمد وقرار Home المشار إليهما في التفويض غير متاحين داخل البيئة المحلية؛ لم يُخترع بديل لهما.
 
-في H01-A، اكتمل العقد والنموذج النقي واختبارات view-model، ثم نجحت CI وCloudflare Pages ودُمجت المجموعة في Bridge عند `69b76eca4cd80c108b13356a8d5e2d9891b885e9`. لا توجد واجهة Home جديدة في هذه المجموعة؛ التنفيذ المرئي وخدمة القراءة الفعلية يبدأان الآن في H01-B.
+في H01-A، اكتمل العقد والنموذج النقي واختبارات view-model، ثم نجحت CI وCloudflare Pages ودُمجت المجموعة في Bridge عند `69b76eca4cd80c108b13356a8d5e2d9891b885e9`. لا توجد واجهة Home جديدة في هذه المجموعة؛ التنفيذ المرئي وخدمة القراءة الفعلية نُفذا في H01-B.
+
+في H01-B، اكتملت خدمة القراءة والواجهة والاختبارات وQA الاصطناعي، ثم نجحت CI وCloudflare Pages ودُمجت المجموعة في Bridge عند `899f1beb7f7d5ea081b099b4045fcd1a957966ef`.
 
 ## ملاحظات التحقق
 
