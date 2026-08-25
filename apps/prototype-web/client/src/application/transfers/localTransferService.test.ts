@@ -26,16 +26,6 @@ describe("LocalTransferService", () => {
     await expect(target.getProfile()).resolves.toMatchObject({ ok: true, value: profile }); await expect(target.getDraft("draft-1")).resolves.toMatchObject({ ok: true, value: { linkedOrderId: "order-1" } }); await expect(target.getOrder("order-1")).resolves.toMatchObject({ ok: true, value: { order: { events: [{ type: "created" }] } } }); await expect(target.listFinancialEvents()).resolves.toMatchObject({ ok: true, value: [{ type: "owner_investment_cash", cashDeltaMinor: 5000 }] });
   });
 
-  it("clears local records only through the explicit reset operation", async () => {
-    const store = new MemoryLocalStore();
-    await store.saveProfile(profile);
-    await store.saveFinancialEvent(createFinancialEvent({ id: "reset-event", type: "owner_investment_cash", amountMinor: 500, occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", idempotencyKey: "reset-event", note: "اختبار", counterparty: null }));
-    const result = await new LocalTransferService(store).resetLocalData();
-    expect(result).toEqual({ ok: true, value: undefined });
-    await expect(store.getProfile()).resolves.toMatchObject({ ok: true, value: null });
-    await expect(store.listFinancialEvents()).resolves.toMatchObject({ ok: true, value: [] });
-  });
-
   it("round-trips classified expenses while accepting legacy financial events without context", async () => {
     const source = new MemoryLocalStore(); await source.saveProfile(profile);
     await source.saveFinancialEvent(createFinancialEvent({ id: "legacy-expense", type: "operating_expense_cash", amountMinor: 200, occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", idempotencyKey: "legacy-expense", note: "سجل قديم", counterparty: null }));

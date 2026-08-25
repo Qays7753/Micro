@@ -416,4 +416,8 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
 .micro-period-range-fields input { min-width: 0; width: 100%; padding: var(--space-2); }
 .micro-period-range-label { margin: 0; color: var(--color-text-secondary); font-size: 12px; }
 .micro-g5-card-secondary { opacity: .92; box-shadow: none; }
+.micro-optional-cost-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.micro-optional-cost-actions .micro-button { min-height: 44px; }
+.micro-optional-cost-field { display: grid; gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3); }
+.micro-optional-cost-field .micro-text-action { justify-self: start; }
 @media (max-width: 380px) { .micro-period-heading { display: grid; }.micro-period-range-fields { width: 100%; }.micro-period-range-fields input { width: 100%; } }
