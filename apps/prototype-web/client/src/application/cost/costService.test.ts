@@ -24,6 +24,27 @@ describe("CostService", () => {
     expect(result).toMatchObject({ ok: true, snapshot: { knowledgeState: "estimated", priceFloorMinor: 1000 } });
   });
 
+  it("marks estimated work with a zero hourly rate as incomplete", () => {
+    const service = new CostService(new MemoryLocalStore(), () => "2026-08-22T00:00:00.000Z");
+    const result = service.preview({ ...completeInput, time: { minutes: 60, hourlyRateMinor: 0, confidence: "estimated" } });
+    expect(result).toMatchObject({ ok: true, snapshot: { knowledgeState: "incomplete", timeCostMinor: 0 } });
+  });
+
+  it("saves and reloads a partially known time entry without turning it into zero-rate known time", async () => {
+    const store = new MemoryLocalStore();
+    const drafts = new DraftService(store, () => "2026-08-22T00:00:00.000Z");
+    const created = await drafts.create("customer_order");
+    if (!created.ok) throw new Error("draft should be created");
+    const costs = new CostService(store, () => "2026-08-22T01:00:00.000Z");
+    const partialTime: CostEditorInput = { ...completeInput, time: { minutes: 45, hourlyRateMinor: null, confidence: "estimated" } };
+    const saved = await costs.saveSnapshot(created.draft, partialTime);
+    if (!saved.ok || !saved.draft) throw new Error("partial snapshot should save");
+    const reloaded = await store.getDraft(saved.draft.id);
+    expect(reloaded).toMatchObject({ ok: true, value: { costSnapshots: [{ time: { minutes: 45, hourlyRateMinor: null, confidence: "estimated" } }] } });
+    const preview = costs.previewStored(saved.draft.costSnapshots[0]);
+    expect(preview).toMatchObject({ ok: true, snapshot: { knowledgeState: "incomplete", timeCostMinor: 0 } });
+  });
+
   it("appends immutable draft cost records instead of mutating the earlier snapshot", async () => {
     const store = new MemoryLocalStore();
     const drafts = new DraftService(store, () => "2026-08-22T00:00:00.000Z");
