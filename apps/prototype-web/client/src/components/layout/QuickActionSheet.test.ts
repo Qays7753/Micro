@@ -8,11 +8,11 @@ describe("quick action contract", () => {
     expect(order?.description).toContain("مسودة طلب");
   });
 
-  it("marks unsupported design estimation as unavailable instead of a dead action", () => {
+  it("keeps the planned-design draft action enabled and truthful", () => {
     const estimate = actionItems.find(item => item.action === "estimate");
-    expect(estimate?.disabled).toBe(true);
-    expect(estimate?.label).toContain("غير متاح");
-    expect(estimate?.description).toContain("لا يوجد مسار تقدير مستقل");
+    expect(estimate?.disabled).not.toBe(true);
+    expect(estimate?.label).toBe("مسودة تصميم");
+    expect(estimate?.description).toContain("مسودة تصميم");
   });
 
   it("explains that collection starts from an existing order", () => {

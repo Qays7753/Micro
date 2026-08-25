@@ -65,7 +65,7 @@ export default function FinancialEventEditor() {
   async function save() {
     const selectedType = type;
     if (!selectedType) return;
-    if (!validAmount || amountMinor <= 0) { setMessage("أدخل مبلغًا صالحًا بالأرقام الإنجليزية قبل الحفظ."); return; }
+    if (!validAmount || amountMinor <= 0) { setMessage("أدخل مبلغًا صالحًا بالأرقام 0–9 قبل الحفظ."); return; }
     setMessage(null); setSaving(true);
     const result = await projectFinance.record({ type: selectedType, amountMinor, occurredOn: date, note, counterparty: counterparty || null, relatedEventId: selectedType === "payable_settlement_cash" ? relatedEventId || null : null, expenseContext, idempotencyKey: idempotencyKey.current });
     setSaving(false);

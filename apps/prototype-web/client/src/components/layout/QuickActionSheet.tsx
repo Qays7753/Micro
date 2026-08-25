@@ -11,7 +11,7 @@ type QuickActionSheetProps = { open: boolean; onOpenChange: (open: boolean) => v
 
 export const actionItems: readonly QuickActionItem[] = [
   { action: "order", label: "طلب مخصص", description: "ابدأ مسودة طلب واتفاق أولي.", icon: ClipboardPlus },
-  { action: "estimate", label: "تقدير مستقل — غير متاح في هذه النسخة", description: "لا يوجد مسار تقدير مستقل في هذا الإصدار؛ لا يمكن فتحه من هنا.", icon: PackagePlus, disabled: true },
+  { action: "estimate", label: "مسودة تصميم", description: "ابدأ مسودة تصميم قبل أن تتحول إلى اتفاق.", icon: PackagePlus },
   { action: "collection", label: "عربون أو تحصيل", description: "افتح طلبًا موجودًا؛ التحصيل مرتبط بطلب محدد.", icon: HandCoins },
 ];
 
