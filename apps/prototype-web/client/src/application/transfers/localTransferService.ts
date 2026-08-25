@@ -9,6 +9,8 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 const isString = (value: unknown): value is string => typeof value === "string";
 const isDate = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value));
 const isMoney = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0;
+const isOptionalMoney = (value: unknown): value is number | null => value === null || isMoney(value);
+const isTimeMinutes = (value: unknown): value is number | null => value === null || (typeof value === "number" && Number.isFinite(value) && value >= 0);
 const isPositiveQuantity = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value > 0;
 const isKnownState = (value: unknown) => value === "known" || value === "estimated" || value === "incomplete" || value === "variable" || value === "stale" || value === "partial";
 const isResultStatus = (value: unknown) => value === "final" || value === "estimated" || value === "incomplete" || value === "review_required";
@@ -28,9 +30,27 @@ const isRecurrence = (value: unknown) => isRecord(value) && isString(value.id) &
 const isScheduleEvent = (value: unknown) => isRecord(value) && isString(value.id) && isString(value.idempotencyKey) && isDate(value.createdAt) && (value.type === "created" || value.type === "postponed" || value.type === "timing_changed" || value.type === "completed" || value.type === "cancelled") && (value.previousScheduledFor === null || isString(value.previousScheduledFor)) && isString(value.scheduledFor) && (value.previousScheduledTime === null || isScheduleTime(value.previousScheduledTime)) && (value.scheduledTime === null || isScheduleTime(value.scheduledTime)) && (value.previousDurationMinutes === null || isScheduleDuration(value.previousDurationMinutes)) && (value.durationMinutes === null || isScheduleDuration(value.durationMinutes)) && (value.reason === null || isString(value.reason));
 const isFinancialType = (value: unknown) => value === "owner_investment_cash" || value === "owner_withdrawal_cash" || value === "operating_expense_cash" || value === "operating_expense_payable" || value === "payable_settlement_cash";
 const isSignedMoney = (value: unknown) => typeof value === "number" && Number.isInteger(value);
+const isCorrectionType = (value: unknown) => value === undefined || value === null || value === "reverse";
+const isOptionalString = (value: unknown) => value === undefined || value === null || isString(value);
 const isSharedProjectShare = (value: unknown, knowledge: unknown) => value === undefined || value === null || (isRecord(value) && (value.basis === "agreed_fixed_share" || value.basis === "owner_estimate" || value.basis === "needs_review") && (value.note === null || isString(value.note)) && (value.basis === "agreed_fixed_share" ? knowledge === "known" : value.basis === "owner_estimate" ? knowledge === "estimated" : knowledge === "needs_review"));
 const isExpenseContext = (value: unknown) => isRecord(value) && (value.relationship === "project" || value.relationship === "shared") && (value.behavior === "fixed" || value.behavior === "variable" || value.behavior === "mixed" || value.behavior === "unknown") && (value.purpose === "project_general" || value.purpose === "period" || value.purpose === "order" || value.purpose === "product" || value.purpose === "campaign" || value.purpose === "unallocated") && (value.knowledge === "known" || value.knowledge === "estimated" || value.knowledge === "needs_review") && (value.relationship === "shared" ? isSharedProjectShare(value.sharedProjectShare, value.knowledge) : value.sharedProjectShare === undefined || value.sharedProjectShare === null);
-function validFinancialEvent(value: unknown): boolean { if (!isRecord(value) || !isString(value.id) || !isFinancialType(value.type) || value.currency !== "JOD" || !isMoney(value.amountMinor) || value.amountMinor === 0 || !isString(value.occurredOn) || !isDate(`${value.occurredOn}T12:00:00.000Z`) || !isDate(value.recordedAt) || !isString(value.idempotencyKey) || !isString(value.note) || !(value.counterparty === null || isString(value.counterparty)) || !(value.relatedEventId === null || isString(value.relatedEventId)) || !isSignedMoney(value.cashDeltaMinor) || !isSignedMoney(value.payableDeltaMinor) || !isSignedMoney(value.ownerCapitalDeltaMinor) || !isSignedMoney(value.operatingExpenseDeltaMinor)) return false; const expenseContext = value.expenseContext; const hasExpenseContext = expenseContext !== undefined && expenseContext !== null; if (hasExpenseContext && (!isExpenseContext(expenseContext) || (value.type !== "operating_expense_cash" && value.type !== "operating_expense_payable"))) return false; const amount = value.amountMinor; const expected = value.type === "owner_investment_cash" ? [amount, 0, amount, 0] : value.type === "owner_withdrawal_cash" ? [-amount, 0, -amount, 0] : value.type === "operating_expense_cash" ? [-amount, 0, 0, amount] : value.type === "operating_expense_payable" ? [0, amount, 0, amount] : [-amount, -amount, 0, 0]; return value.cashDeltaMinor === expected[0] && value.payableDeltaMinor === expected[1] && value.ownerCapitalDeltaMinor === expected[2] && value.operatingExpenseDeltaMinor === expected[3] && (value.type === "payable_settlement_cash" ? isString(value.relatedEventId) && value.relatedEventId.trim().length > 0 : value.relatedEventId === null); }
+function validFinancialEvent(value: unknown): boolean {
+  if (!isRecord(value) || !isString(value.id) || !value.id.trim() || !isFinancialType(value.type) || value.currency !== "JOD" || !isMoney(value.amountMinor) || value.amountMinor === 0 || !isString(value.occurredOn) || !isLocalDate(value.occurredOn) || !isDate(value.recordedAt) || !isString(value.idempotencyKey) || !value.idempotencyKey.trim() || !isString(value.note) || !value.note.trim() || !(value.counterparty === null || isString(value.counterparty)) || !(value.relatedEventId === null || isString(value.relatedEventId)) || !isSignedMoney(value.cashDeltaMinor) || !isSignedMoney(value.payableDeltaMinor) || !isSignedMoney(value.ownerCapitalDeltaMinor) || !isSignedMoney(value.operatingExpenseDeltaMinor) || !isCorrectionType(value.correctionType) || !isOptionalString(value.correctionOfEventId) || !isOptionalString(value.correctionReason)) return false;
+  const expenseContext = value.expenseContext;
+  const hasExpenseContext = expenseContext !== undefined && expenseContext !== null;
+  if (hasExpenseContext && (!isExpenseContext(expenseContext) || (value.type !== "operating_expense_cash" && value.type !== "operating_expense_payable"))) return false;
+  const isReversal = value.correctionType === "reverse";
+  if (isReversal) {
+    if (!isString(value.correctionOfEventId) || !value.correctionOfEventId.trim() || !isString(value.correctionReason) || !value.correctionReason.trim()) return false;
+    if (value.relatedEventId !== null && (!isString(value.relatedEventId) || !value.relatedEventId.trim())) return false;
+    return true;
+  }
+  if (value.correctionOfEventId !== undefined && value.correctionOfEventId !== null) return false;
+  if (value.correctionReason !== undefined && value.correctionReason !== null) return false;
+  const amount = value.amountMinor;
+  const expected = value.type === "owner_investment_cash" ? [amount, 0, amount, 0] : value.type === "owner_withdrawal_cash" ? [-amount, 0, -amount, 0] : value.type === "operating_expense_cash" ? [-amount, 0, 0, amount] : value.type === "operating_expense_payable" ? [0, amount, 0, amount] : [-amount, -amount, 0, 0];
+  return value.cashDeltaMinor === expected[0] && value.payableDeltaMinor === expected[1] && value.ownerCapitalDeltaMinor === expected[2] && value.operatingExpenseDeltaMinor === expected[3] && (value.type === "payable_settlement_cash" ? isString(value.relatedEventId) && value.relatedEventId.trim().length > 0 : value.relatedEventId === null);
+}
 function validSupplierPurchase(value: unknown): boolean { if (!isRecord(value) || !isString(value.id) || !isString(value.supplierName) || !value.supplierName.trim() || !isString(value.note) || !value.note.trim() || !isString(value.purchasedOn) || !isDate(`${value.purchasedOn}T12:00:00.000Z`) || !(value.dueOn === null || isString(value.dueOn)) || (isString(value.dueOn) && !isDate(`${value.dueOn}T12:00:00.000Z`)) || !isMoney(value.totalMinor) || value.totalMinor === 0 || !isMoney(value.paidMinor) || !isMoney(value.payableMinor) || !isString(value.idempotencyKey) || !isDate(value.createdAt) || !isDate(value.updatedAt) || !Array.isArray(value.payments)) return false; const paymentKeys = new Set<string>(); const totalPaid = value.payments.reduce<number>((sum, payment) => { if (!isRecord(payment) || !isString(payment.id) || !isMoney(payment.amountMinor) || payment.amountMinor === 0 || !isString(payment.occurredOn) || !isDate(`${payment.occurredOn}T12:00:00.000Z`) || !isDate(payment.recordedAt) || !isString(payment.idempotencyKey) || !isString(payment.note) || !payment.note.trim() || paymentKeys.has(payment.idempotencyKey)) return Number.NaN; paymentKeys.add(payment.idempotencyKey); return sum + payment.amountMinor; }, 0); const status = totalPaid === 0 ? "unpaid" : totalPaid === value.totalMinor ? "paid" : "partially_paid"; return Number.isInteger(totalPaid) && totalPaid === value.paidMinor && value.payableMinor === value.totalMinor - totalPaid && value.status === status; }
 const isCashWalletKind = (value: unknown) => value === "cash_drawer" || value === "bank_account" || value === "digital_wallet" || value === "other";
 const isCashEntryType = (value: unknown) => value === "opening_balance" || value === "cash_adjustment" || value === "transfer_out" || value === "transfer_in" || value === "reversal";
@@ -45,7 +65,7 @@ function validShortCashDeclaration(value: unknown): boolean { return isRecord(va
 
 function validDraftCostSnapshot(value: unknown): boolean {
   if (!isRecord(value) || !isString(value.id) || !Number.isInteger(value.revision) || !isDate(value.createdAt) || value.currency !== "JOD" || !isPositiveQuantity(value.quantity) || !Array.isArray(value.materialItems) || !isMoney(value.packagingMinor) || !isMoney(value.deliveryMinor) || !isMoney(value.wasteMinor) || !isMoney(value.safetyBufferMinor)) return false;
-  if (!(value.time === null || (isRecord(value.time) && typeof value.time.minutes === "number" && isMoney(value.time.hourlyRateMinor) && (value.time.confidence === "known" || value.time.confidence === "estimated")))) return false;
+  if (!(value.time === null || (isRecord(value.time) && isTimeMinutes(value.time.minutes) && isOptionalMoney(value.time.hourlyRateMinor) && (value.time.confidence === "known" || value.time.confidence === "estimated")))) return false;
   return value.materialItems.every(item => isRecord(item) && isString(item.name) && isString(item.unit) && isPositiveQuantity(item.quantity) && isMoney(item.unitPriceMinor) && (item.confidence === "known" || item.confidence === "estimated"));
 }
 
@@ -94,10 +114,19 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       appearanceKeys.add(`${schedule.recurrenceId}:${schedule.recurrenceIndex}`);
     }
   }
-  const financialIds = new Set<string>(); const financialKeys = new Set<string>();
+  const financialIds = new Set<string>(); const financialKeys = new Set<string>(); const reversedFinancialIds = new Set<string>();
   for (const event of data.financialEvents) {
     if (!validFinancialEvent(event) || financialIds.has(event.id) || financialKeys.has(`${event.type}:${event.idempotencyKey}`)) return false;
     financialIds.add(event.id); financialKeys.add(`${event.type}:${event.idempotencyKey}`);
+    if (event.correctionType === "reverse") {
+      if (reversedFinancialIds.has(event.correctionOfEventId)) return false;
+      reversedFinancialIds.add(event.correctionOfEventId);
+    }
+  }
+  for (const event of data.financialEvents) {
+    if (event.correctionType !== "reverse") continue;
+    const source = data.financialEvents.find(candidate => candidate.id === event.correctionOfEventId);
+    if (!source || source.correctionType === "reverse" || source.id === event.id || source.type !== event.type || source.amountMinor !== event.amountMinor || source.relatedEventId !== event.relatedEventId || event.cashDeltaMinor !== -source.cashDeltaMinor || event.payableDeltaMinor !== -source.payableDeltaMinor || event.ownerCapitalDeltaMinor !== -source.ownerCapitalDeltaMinor || event.operatingExpenseDeltaMinor !== -source.operatingExpenseDeltaMinor) return false;
   }
   const purchaseIds = new Set<string>(); const purchaseKeys = new Set<string>();
   for (const purchase of data.supplierPurchases ?? []) { if (!validSupplierPurchase(purchase) || purchaseIds.has(purchase.id) || purchaseKeys.has(purchase.idempotencyKey)) return false; purchaseIds.add(purchase.id); purchaseKeys.add(purchase.idempotencyKey); }

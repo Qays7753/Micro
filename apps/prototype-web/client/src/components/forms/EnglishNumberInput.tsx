@@ -8,9 +8,11 @@ type EnglishNumberInputProps = Omit<ComponentProps<"input">, "type" | "value" | 
   kind: EnglishNumericKind;
   onNumericChange: (value: number) => void;
   onTextValidityChange?: (isValid: boolean) => void;
+  allowEmpty?: boolean;
+  onEmptyChange?: () => void;
 };
 
-export function EnglishNumberInput({ value, kind, onNumericChange, onTextValidityChange, className, onBlur, ...props }: EnglishNumberInputProps) {
+export function EnglishNumberInput({ value, kind, onNumericChange, onTextValidityChange, allowEmpty = false, onEmptyChange, className, onBlur, ...props }: EnglishNumberInputProps) {
   const latestCommitted = useRef<number | null>(value);
   const [text, setText] = useState(() => formatEnglishNumericValue(value, kind));
 
@@ -23,6 +25,13 @@ export function EnglishNumberInput({ value, kind, onNumericChange, onTextValidit
 
   return <input {...props} className={cn("micro-english-number-input", className)} type="text" inputMode={kind === "integer" ? "numeric" : "decimal"} pattern={kind === "integer" ? "[0-9]*" : "[0-9]*[.]?[0-9]*"} lang="en" dir="ltr" value={text} onChange={event => {
     const next = event.target.value;
+    if (allowEmpty && next === "") {
+      setText("");
+      latestCommitted.current = null;
+      onTextValidityChange?.(true);
+      onEmptyChange?.();
+      return;
+    }
     if (!allowsEnglishNumericText(next, kind)) {
       event.currentTarget.value = text;
       return;
@@ -37,7 +46,10 @@ export function EnglishNumberInput({ value, kind, onNumericChange, onTextValidit
   }} onBlur={event => {
     const parsed = parseEnglishNumericText(text, kind);
     if (parsed !== null) setText(formatEnglishNumericValue(parsed, kind));
-    else {
+    else if (allowEmpty && text === "") {
+      latestCommitted.current = null;
+      onTextValidityChange?.(true);
+    } else {
       setText(formatEnglishNumericValue(latestCommitted.current, kind));
       onTextValidityChange?.(true);
     }

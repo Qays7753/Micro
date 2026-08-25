@@ -276,6 +276,60 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   listFinancialEvents() { return listAll<FinancialEvent>(financialEventStore, (left, right) => right.recordedAt.localeCompare(left.recordedAt)); }
   getFinancialEvent(id: string) { return readOne<FinancialEvent>(financialEventStore, id); }
   saveFinancialEvent(event: FinancialEvent) { return writeOne(financialEventStore, event); }
+  async commitFinancialEventCorrection(sourceEventId: string, reversal: FinancialEvent): Promise<StorageResult<FinancialEvent>> {
+    try {
+      const database = await openDatabase();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(financialEventStore, "readwrite");
+        const store = transaction.objectStore(financialEventStore);
+        let settled = false;
+        let pendingAbortResult: StorageResult<FinancialEvent> | null = null;
+        const finish = (result: StorageResult<FinancialEvent>) => {
+          if (settled) return;
+          settled = true;
+          database.close();
+          resolve(result);
+        };
+        const abortWith = (result: StorageResult<FinancialEvent>) => {
+          pendingAbortResult = result;
+          try { transaction.abort(); } catch { finish(result); }
+        };
+        const request = store.getAll();
+        request.onerror = () => abortWith(failure(request.error));
+        request.onsuccess = () => {
+          const events = request.result as FinancialEvent[];
+          const source = events.find(event => event.id === sourceEventId);
+          if (!source) {
+            abortWith({ ok: false, code: "storage_error", message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ العكس." });
+            return;
+          }
+          if (source.correctionType === "reverse" || source.correctionOfEventId) {
+            abortWith({ ok: false, code: "storage_error", message: "لا يمكن عكس واقعة عكس سابقة." });
+            return;
+          }
+          const existing = events.find(event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse");
+          if (existing) {
+            abortWith(existing.idempotencyKey === reversal.idempotencyKey ? { ok: true, value: existing } : { ok: false, code: "storage_error", message: "تعذر حفظ العكس لأن الواقعة عُكست سابقًا بمفتاح مختلف." });
+            return;
+          }
+          if (events.some(event => event.id === reversal.id)) {
+            abortWith({ ok: false, code: "storage_error", message: "تعذر حفظ العكس بسبب تعارض هوية محلية." });
+            return;
+          }
+          if (reversal.correctionType !== "reverse" || reversal.correctionOfEventId !== source.id || reversal.type !== source.type || reversal.amountMinor !== source.amountMinor || reversal.relatedEventId !== source.relatedEventId || reversal.cashDeltaMinor !== -source.cashDeltaMinor || reversal.payableDeltaMinor !== -source.payableDeltaMinor || reversal.ownerCapitalDeltaMinor !== -source.ownerCapitalDeltaMinor || reversal.operatingExpenseDeltaMinor !== -source.operatingExpenseDeltaMinor) {
+            abortWith({ ok: false, code: "storage_error", message: "بيانات العكس لا تطابق الواقعة الأصلية؛ لم يتغير السجل." });
+            return;
+          }
+          store.put(reversal);
+        };
+        transaction.onerror = () => { if (!pendingAbortResult) pendingAbortResult = failure(transaction.error); };
+        transaction.onabort = () => finish(pendingAbortResult ?? failure(transaction.error));
+        transaction.oncomplete = () => finish({ ok: true, value: reversal });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listSupplierPurchases() { return listAll<SupplierPurchase>(supplierPurchaseStore, (left, right) => right.purchasedOn.localeCompare(left.purchasedOn) || right.updatedAt.localeCompare(left.updatedAt)); }
   getSupplierPurchase(id: string) { return readOne<SupplierPurchase>(supplierPurchaseStore, id); }
   saveSupplierPurchase(purchase: SupplierPurchase) { return writeOne(supplierPurchaseStore, purchase); }

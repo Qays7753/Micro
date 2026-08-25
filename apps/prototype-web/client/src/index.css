@@ -212,6 +212,9 @@
 .micro-month-empty > svg { width: 20px; height: 20px; flex: 0 0 auto; color: var(--color-warning-text); }
 .micro-month-empty strong { color: var(--color-text-primary); font-size: 14px; }
 .micro-month-empty p { margin: var(--space-1) 0 0; color: var(--color-text-secondary); font-size: 12px; line-height: 1.6; }
+.micro-month-calendar-scroll { min-width: 0; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-gutter: stable; }
+/* Seven 44px targets plus six 4px gaps: 7 × 44px + 6 × 4px. */
+.micro-month-calendar-scroll > .micro-month-weekdays, .micro-month-calendar-scroll > .micro-month-grid { min-width: 332px; }
 .micro-month-weekdays, .micro-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .micro-month-weekdays { color: var(--color-text-secondary); font-size: 10px; font-weight: 600; text-align: center; }
 .micro-month-weekdays span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -307,3 +310,60 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
 /* A2 presentation contract: visible numeric/date values remain readable inside RTL copy. */
 .micro-inline-number { display: inline; direction: ltr; font-family: var(--font-numeric); font-size: inherit; font-variant-numeric: tabular-nums; line-height: inherit; unicode-bidi: isolate; }
 .micro-local-date { direction: ltr; font-family: var(--font-numeric); font-variant-numeric: tabular-nums; unicode-bidi: isolate; }
+
+/* G13: honest state hierarchy and in-flow form feedback */
+.micro-schedule-status-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.micro-schedule-status-summary > div { display: grid; gap: var(--space-1); border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: var(--space-3); background: var(--color-surface); }
+.micro-schedule-status-summary span, .micro-schedule-status-summary small { color: var(--color-text-secondary); font-size: 12px; }
+.micro-schedule-status-summary strong { color: var(--color-text-primary); font-family: var(--font-numeric); font-size: 24px; }
+.micro-schedule-status-summary > div:first-child { border-inline-start: 3px solid var(--color-accent-primary); }
+.micro-schedule-status-summary > div:last-child { border-inline-start: 3px solid var(--color-divider); }
+.micro-schedule-capacity p strong { color: var(--color-text-primary); }
+.micro-sheet-action:disabled { cursor: not-allowed; opacity: .68; filter: saturate(.65); }
+.micro-sheet-action:disabled .micro-sheet-action-icon { color: var(--color-text-secondary); background: var(--color-bg-well); }
+.micro-confirm-warning { cursor: pointer; }
+.micro-confirm-warning:focus-within { outline: 3px solid color-mix(in srgb, var(--color-accent-primary) 45%, transparent); outline-offset: 2px; }
+.micro-confirm-warning input:focus-visible { outline: 2px solid var(--color-accent-primary); outline-offset: 2px; }
+.micro-field-error { border-inline-start: 3px solid var(--color-danger-text); border-radius: var(--radius-control); padding: var(--space-2) var(--space-3); background: var(--color-danger-bg); line-height: 1.6; }
+@media (max-width: 430px) {
+  .micro-schedule-status-summary { grid-template-columns: 1fr; }
+  .micro-schedule-status-summary strong { font-size: 22px; }
+}
+
+.micro-finance-event-list { display: grid; gap: var(--space-3); }.micro-finance-event-heading { display: grid; gap: var(--space-1); }.micro-finance-event-heading h2, .micro-finance-event-heading p { margin: 0; }.micro-finance-event-heading p { color: var(--color-text-secondary); font-size: 13px; }.micro-finance-event { display: grid; gap: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: var(--space-3); background: var(--color-surface); }.micro-finance-event[data-correction="reverse"] { border-inline-start: 3px solid var(--color-accent-primary); background: var(--color-accent-soft); }.micro-finance-event[data-correction="reversed"] { border-inline-start: 3px solid var(--color-success-text); }.micro-finance-event-main { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }.micro-finance-event-main > div { display: grid; min-width: 0; gap: 2px; }.micro-finance-event-main strong { color: var(--color-text-primary); font-size: 14px; }.micro-finance-event-main small, .micro-finance-event-audit { color: var(--color-text-secondary); font-size: 12px; line-height: 1.6; }.micro-finance-event-main > b { flex: 0 0 auto; color: var(--color-text-primary); direction: ltr; font-family: var(--font-numeric); font-size: 16px; font-variant-numeric: tabular-nums; unicode-bidi: isolate; }.micro-finance-event-audit { color: var(--color-accent-text); }.micro-finance-event-effects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1) var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-2); color: var(--color-text-secondary); font-size: 11px; }.micro-finance-event-effects span { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-1); }.micro-finance-event-effects bdi { direction: ltr; font-family: var(--font-numeric); unicode-bidi: isolate; }.micro-finance-event-closed { margin: 0; color: var(--color-success-text) !important; font-size: 12px !important; }.micro-finance-reversal-editor { display: grid; gap: var(--space-3); border-top: 1px solid var(--color-border); padding-top: var(--space-3); }.micro-finance-reversal-review { display: grid; gap: var(--space-2); border-radius: var(--radius-control); padding: var(--space-3); color: var(--color-warning-text); background: var(--color-warning-bg); }.micro-finance-reversal-review strong { color: var(--color-text-primary); font-size: 14px; }.micro-finance-reversal-review p { color: var(--color-text-secondary); font-size: 13px; }.micro-finance-reversal-review dl { display: grid; gap: var(--space-2); margin: 0; }.micro-finance-reversal-review dl > div { display: grid; gap: 2px; }.micro-finance-reversal-review dt { color: var(--color-text-secondary); font-size: 11px; }.micro-finance-reversal-review dd { margin: 0; color: var(--color-text-primary); font-size: 13px; }.micro-finance-reversal-review dd bdi { direction: ltr; font-family: var(--font-numeric); unicode-bidi: isolate; }.micro-finance-reversal-editor .micro-local-truth { font-size: 12px; }.micro-finance-reversal-editor .micro-local-truth p { font-size: 12px; }.micro-finance-event .micro-text-action { justify-self: start; }.micro-finance-event .micro-save-note, .micro-finance-event .micro-field-error { margin: 0; }
+
+/* H01-B: decision-led local control center */
+.micro-home-control-center { display: grid; gap: var(--space-5); }
+.micro-home-heading > p { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-text-secondary); font-size: 13px; }
+.micro-home-heading > p svg { width: 16px; height: 16px; color: var(--color-accent-text); }
+.micro-home-heading time, .micro-home-recent-item time { direction: ltr; font-family: var(--font-numeric); unicode-bidi: isolate; }
+.micro-home-truth-line { color: var(--color-text-secondary); font-size: 13px; }
+.micro-home-facts-section, .micro-home-attention-section, .micro-home-optional-section, .micro-home-recent-section { display: grid; gap: var(--space-3); }
+.micro-home-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.micro-home-fact { display: grid; gap: var(--space-2); min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: var(--space-3); background: var(--color-surface); }
+.micro-home-fact[data-state="incomplete"] { border-color: var(--color-warning-text); }
+.micro-home-fact[data-state="not_initialized"] { background: var(--color-bg-well); }
+.micro-home-fact-heading { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-secondary); font-size: 12px; }
+.micro-home-fact-heading svg { width: 17px; height: 17px; color: var(--color-accent-text); }
+.micro-home-fact > strong { min-height: 26px; color: var(--color-text-primary); font-size: 21px; }
+.micro-home-fact > strong .micro-number { font-size: 21px; }
+.micro-home-fact > small { color: var(--color-text-secondary); font-size: 10px; line-height: 1.5; }
+.micro-home-attention-list, .micro-home-optional-list, .micro-home-recent-list { display: grid; gap: var(--space-2); }
+.micro-home-attention-item, .micro-home-optional-item { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); border-inline-start: 3px solid var(--color-accent-primary); border-bottom: 1px solid var(--color-border); padding: var(--space-3); background: var(--color-surface); }
+.micro-home-attention-item p, .micro-home-optional-item p, .micro-home-quiet p { margin: var(--space-1) 0 0; color: var(--color-text-secondary); font-size: 12px; }
+.micro-home-attention-item .micro-text-action, .micro-home-optional-item .micro-text-action { flex: 0 0 auto; }
+.micro-home-quiet { border-block: 1px solid var(--color-border); padding: var(--space-4) var(--space-3); background: var(--color-bg-well); }
+.micro-home-optional-item[data-state="needs_setup"] { border-inline-start-color: var(--color-warning-text); }
+.micro-home-recent-item { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); width: 100%; border: 0; border-bottom: 1px solid var(--color-border); padding: var(--space-3) 0; color: var(--color-text-primary); background: transparent; text-align: start; cursor: pointer; }
+.micro-home-recent-item:hover { background: var(--color-bg-well); }
+.micro-home-recent-item > span { display: grid; gap: var(--space-1); min-width: 0; }
+.micro-home-recent-item strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.micro-home-recent-item small { color: var(--color-text-secondary); font-size: 11px; }
+.micro-home-recent-item svg { flex: 0 0 auto; width: 17px; height: 17px; color: var(--color-accent-text); }
+@media (max-width: 380px) {
+  .micro-home-facts { gap: var(--space-1); }
+  .micro-home-fact { padding: var(--space-2); }
+  .micro-home-fact > strong, .micro-home-fact > strong .micro-number { font-size: 18px; }
+  .micro-home-attention-item, .micro-home-optional-item { align-items: start; padding-inline: var(--space-2); }
+  .micro-home-attention-item .micro-text-action, .micro-home-optional-item .micro-text-action { font-size: 11px; }
+}

@@ -96,14 +96,15 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   const hasVariableCost = input.materialItems.some(
     (item) => item.source === 'estimate',
   );
-  const hasZeroKnownTime =
-    input.time !== null &&
-    input.time.confidence === 'known' &&
-    (input.time.minutes === 0 || input.time.hourlyRateMinor === 0);
-  const hasMissingTime = input.time === null || hasZeroKnownTime;
+  const hasIncompleteTime =
+    input.time === null ||
+    input.time.minutes === null ||
+    input.time.hourlyRateMinor === null ||
+    input.time.minutes === 0 ||
+    input.time.hourlyRateMinor === 0;
 
   if (hasNoCostComponent) return 'incomplete';
-  if (hasMissingTime) return 'incomplete';
+  if (hasIncompleteTime) return 'incomplete';
 
   if (input.freshnessDays !== null && input.freshnessDays !== undefined) {
     const createdAt = Date.parse(input.createdAt);
@@ -147,11 +148,15 @@ export function calculateCostSnapshot(
 
   const timeCostMinor = input.time
     ? (() => {
-        if (!Number.isFinite(input.time!.minutes) || input.time!.minutes < 0) {
+        const { minutes, hourlyRateMinor } = input.time!;
+        if (minutes !== null && (!Number.isFinite(minutes) || minutes < 0)) {
           throw new Error('time minutes must be non-negative');
         }
-        assertNonNegativeInteger(input.time!.hourlyRateMinor, 'hourlyRateMinor');
-        return Math.round((input.time!.minutes / 60) * input.time!.hourlyRateMinor);
+        if (hourlyRateMinor !== null) {
+          assertNonNegativeInteger(hourlyRateMinor, 'hourlyRateMinor');
+        }
+        if (minutes === null || hourlyRateMinor === null) return 0;
+        return Math.round((minutes / 60) * hourlyRateMinor);
       })()
     : 0;
 

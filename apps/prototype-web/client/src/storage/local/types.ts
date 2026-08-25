@@ -22,7 +22,7 @@ export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
 export type LocalPreferences = { id: typeof localPreferencesId; theme: "light" | "dark" | "system"; dailyScheduleCapacityMinutes: number | null; workMode: OperatingWorkMode | null; actualTimeTrackingEnabled: boolean; updatedAt: string };
 export type DraftIntent = "customer_order" | "planned_design";
 export type DraftCostMaterial = { name: string; quantity: number; unit: string; unitPriceMinor: number; confidence: "known" | "estimated" };
-export type DraftCostTime = { minutes: number; hourlyRateMinor: number; confidence: "known" | "estimated" };
+export type DraftCostTime = { minutes: number | null; hourlyRateMinor: number | null; confidence: "known" | "estimated" };
 export type DraftCostSnapshot = { id: string; revision: number; currency: "JOD"; materialItems: readonly DraftCostMaterial[]; time: DraftCostTime | null; packagingMinor: number; deliveryMinor: number; wasteMinor: number; safetyBufferMinor: number; quantity: number; createdAt: string };
 export type OrderDraft = { id: string; intent: DraftIntent; customerName: string; itemName: string; catalogItemId: string | null; specifications: string; quantity: number; costSnapshots: readonly DraftCostSnapshot[]; activeCostSnapshotId: string | null; linkedOrderId: string | null; createdAt: string; updatedAt: string };
 export type AgreementSource = "instagram" | "whatsapp" | "referral" | "walk_in" | "other";
@@ -64,6 +64,7 @@ export interface PrototypeLocalStore {
   listFinancialEvents(): Promise<StorageResult<readonly FinancialEvent[]>>;
   getFinancialEvent(id: string): Promise<StorageResult<FinancialEvent | null>>;
   saveFinancialEvent(event: FinancialEvent): Promise<StorageResult<FinancialEvent>>;
+  commitFinancialEventCorrection(sourceEventId: string, reversal: FinancialEvent): Promise<StorageResult<FinancialEvent>>;
   listSupplierPurchases(): Promise<StorageResult<readonly SupplierPurchase[]>>;
   getSupplierPurchase(id: string): Promise<StorageResult<SupplierPurchase | null>>;
   saveSupplierPurchase(purchase: SupplierPurchase): Promise<StorageResult<SupplierPurchase>>;

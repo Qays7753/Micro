@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createFinancialEvent, summarizeFinancialEvents } from "../../src/domain/financial-event/index.js";
+import { createFinancialEvent, createFinancialReversal, summarizeFinancialEvents } from "../../src/domain/financial-event/index.js";
 
 const base = { occurredOn: "2026-08-23", recordedAt: "2026-08-23T08:00:00.000Z", note: "اختبار مالي", counterparty: null };
 describe("financial event domain core", () => {
@@ -30,5 +30,30 @@ describe("financial event domain core", () => {
   it("rejects missing financial invariants instead of inferring zero or an unlinked payment", () => {
     expect(() => createFinancialEvent({ ...base, id: "bad", type: "operating_expense_cash", amountMinor: 0, idempotencyKey: "bad" })).toThrow("amountMinor");
     expect(() => createFinancialEvent({ ...base, id: "bad-settlement", type: "payable_settlement_cash", amountMinor: 1, idempotencyKey: "bad-settlement" })).toThrow("relatedEventId");
+  });
+
+  it("creates one full, linked reversal for every supported general event type without mutating the original", () => {
+    const cases = [
+      ["owner_investment_cash", null],
+      ["owner_withdrawal_cash", null],
+      ["operating_expense_cash", null],
+      ["operating_expense_payable", null],
+      ["payable_settlement_cash", "payable-source"],
+    ] as const;
+    for (const [type, relatedEventId] of cases) {
+      const source = createFinancialEvent({ ...base, id: `source-${type}`, type, amountMinor: 1250, idempotencyKey: `source-${type}`, relatedEventId });
+      const original = structuredClone(source);
+      const reversal = createFinancialReversal({ id: `reversal-${type}`, sourceEvent: source, occurredOn: "2026-08-24", recordedAt: "2026-08-24T08:00:00.000Z", idempotencyKey: `reversal-${type}`, reason: "  سبب موثق  " });
+      expect(reversal).toMatchObject({ type, amountMinor: source.amountMinor, occurredOn: "2026-08-24", correctionType: "reverse", correctionOfEventId: source.id, correctionReason: "سبب موثق", relatedEventId, cashDeltaMinor: -source.cashDeltaMinor, payableDeltaMinor: -source.payableDeltaMinor, ownerCapitalDeltaMinor: -source.ownerCapitalDeltaMinor, operatingExpenseDeltaMinor: -source.operatingExpenseDeltaMinor });
+      expect(source).toEqual(original);
+    }
+  });
+
+  it("rejects blank reversal reasons, invalid dates, and reversing an already reversed source", () => {
+    const source = createFinancialEvent({ ...base, id: "source", type: "operating_expense_cash", amountMinor: 500, idempotencyKey: "source" });
+    expect(() => createFinancialReversal({ id: "blank-reason", sourceEvent: source, occurredOn: "2026-08-24", recordedAt: "2026-08-24T08:00:00.000Z", idempotencyKey: "blank-reason", reason: " " })).toThrow("reason");
+    expect(() => createFinancialReversal({ id: "bad-date", sourceEvent: source, occurredOn: "2026-02-30", recordedAt: "2026-08-24T08:00:00.000Z", idempotencyKey: "bad-date", reason: "سبب" })).toThrow("occurredOn");
+    const reversal = createFinancialReversal({ id: "reversal", sourceEvent: source, occurredOn: "2026-08-24", recordedAt: "2026-08-24T08:00:00.000Z", idempotencyKey: "reversal", reason: "سبب" });
+    expect(() => createFinancialReversal({ id: "double", sourceEvent: reversal, occurredOn: "2026-08-25", recordedAt: "2026-08-25T08:00:00.000Z", idempotencyKey: "double", reason: "سبب ثان" })).toThrow("reversal");
   });
 });

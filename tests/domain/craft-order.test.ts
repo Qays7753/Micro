@@ -162,6 +162,28 @@ describe('craft-order domain core', () => {
     expect(confirmAndDeliver(makeOrder({ costSnapshot: zeroTime })).resultStatus).toBe('incomplete');
   });
 
+  it('keeps estimated work with a zero rate incomplete', () => {
+    const zeroRate = calculateCostSnapshot('cost-zero-estimated-rate', {
+      ...costSnapshot.input,
+      time: { minutes: 60, hourlyRateMinor: 0, confidence: 'estimated' },
+    });
+
+    expect(zeroRate.timeCostMinor).toBe(0);
+    expect(zeroRate.knowledgeState).toBe('incomplete');
+    expect(zeroRate.priceFloorMinor).toBe(2300);
+  });
+
+  it('keeps a partially entered time record incomplete without inventing its missing component', () => {
+    const partialTime = calculateCostSnapshot('cost-partial-time', {
+      ...costSnapshot.input,
+      time: { minutes: 45, hourlyRateMinor: null, confidence: 'estimated' },
+    });
+
+    expect(partialTime.timeCostMinor).toBe(0);
+    expect(partialTime.knowledgeState).toBe('incomplete');
+    expect(partialTime.input.time).toEqual({ minutes: 45, hourlyRateMinor: null, confidence: 'estimated' });
+  });
+
   it('marks a custom-order snapshot with no effective cost components as incomplete', () => {
     const incomplete = calculateCostSnapshot('cost-incomplete', {
       currency: 'JOD',
