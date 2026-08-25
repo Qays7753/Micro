@@ -25,6 +25,7 @@ function ShellContent({ location, children }: { location: string; children: Reac
   function handleQuickAction(action: QuickAction) {
     setIsActionSheetOpen(false);
     if (action === "order") { requestNavigation("/orders/new"); return; }
+    if (action === "estimate") { requestNavigation("/orders/new"); return; }
     if (action === "collection") { requestNavigation("/orders"); }
   }
   return <div className="micro-app" dir="rtl"><AppHeader contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)} /><main className="micro-main" key={location}><PwaInstallControl /><PwaRuntimeNotice />{children}</main>{!isSetup ? <><BottomNav activePath={location} items={primaryNavigation} onNavigate={requestNavigation} onOpenActions={() => setIsActionSheetOpen(true)} /><QuickActionSheet open={isActionSheetOpen} onOpenChange={setIsActionSheetOpen} onAction={handleQuickAction} /></> : null}</div>;
