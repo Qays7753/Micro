@@ -7,6 +7,7 @@ export type ExpenseKnowledge = "known" | "estimated" | "needs_review";
 export type SharedProjectShareBasis = "agreed_fixed_share" | "owner_estimate" | "needs_review";
 export type SharedProjectShare = { basis: SharedProjectShareBasis; note: string | null };
 export type OperatingExpenseContext = { relationship: ExpenseRelationship; behavior: ExpenseBehavior; purpose: ExpensePurpose; knowledge: ExpenseKnowledge; sharedProjectShare?: SharedProjectShare | null };
+export type FinancialEventCorrectionType = "reverse";
 export type FinancialEvent = {
   id: string;
   type: FinancialEventType;
@@ -20,6 +21,10 @@ export type FinancialEvent = {
   relatedEventId: string | null;
   /** Present on newly classified operating expenses; absent records are preserved as legacy local history. */
   expenseContext?: OperatingExpenseContext | null;
+  /** Present only on a new event that corrects an existing general financial event. */
+  correctionType?: FinancialEventCorrectionType | null;
+  correctionOfEventId?: string | null;
+  correctionReason?: string | null;
   cashDeltaMinor: number;
   payableDeltaMinor: number;
   ownerCapitalDeltaMinor: number;
@@ -37,6 +42,15 @@ export type CreateFinancialEventInput = {
   counterparty?: string | null;
   relatedEventId?: string | null;
   expenseContext?: OperatingExpenseContext | null;
+};
+
+export type CreateFinancialReversalInput = {
+  id: string;
+  sourceEvent: FinancialEvent;
+  occurredOn: string;
+  recordedAt: string;
+  idempotencyKey: string;
+  reason: string;
 };
 
 export type FinancialEventTotals = {

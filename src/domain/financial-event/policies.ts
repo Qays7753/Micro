@@ -1,9 +1,9 @@
-import type { CreateFinancialEventInput, FinancialEvent, FinancialEventTotals, OperatingExpenseContext } from "./types.js";
+import type { CreateFinancialEventInput, CreateFinancialReversalInput, FinancialEvent, FinancialEventTotals, OperatingExpenseContext } from "./types.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 function assertNonBlank(value: string, field: string) { if (!value.trim()) throw new Error(`${field} is required`); }
 function assertMinor(value: number) { if (!Number.isInteger(value) || value <= 0) throw new Error("amountMinor must be a positive integer"); }
-function assertDate(value: string, field: string) { if (!DATE_PATTERN.test(value) || Number.isNaN(new Date(`${value}T12:00:00.000Z`).valueOf())) throw new Error(`${field} must be a valid local date`); }
+function assertDate(value: string, field: string) { if (!DATE_PATTERN.test(value)) throw new Error(`${field} must be a valid local date`); const [year, month, day] = value.split("-").map(Number); const date = new Date(Date.UTC(year!, month! - 1, day!)); if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month! - 1 || date.getUTCDate() !== day) throw new Error(`${field} must be a valid local date`); }
 function normalizeExpenseContext(value: OperatingExpenseContext | null | undefined): OperatingExpenseContext | null {
   if (!value) return null;
   if (!(["project", "shared"] as const).includes(value.relationship)) throw new Error("expenseContext.relationship is invalid");
@@ -38,7 +38,17 @@ export function createFinancialEvent(input: CreateFinancialEventInput): Financia
   const counterparty = input.counterparty?.trim() || null;
   const expenseContext = normalizeExpenseContext(input.expenseContext);
   if (expenseContext && input.type !== "operating_expense_cash" && input.type !== "operating_expense_payable") throw new Error("expenseContext is only valid for operating expenses");
-  return Object.freeze({ id: input.id, type: input.type, currency: "JOD", amountMinor: input.amountMinor, occurredOn: input.occurredOn, recordedAt: input.recordedAt, idempotencyKey: input.idempotencyKey, note: input.note.trim(), counterparty, relatedEventId, expenseContext, ...deltas(input.type, input.amountMinor) });
+  return Object.freeze({ id: input.id, type: input.type, currency: "JOD", amountMinor: input.amountMinor, occurredOn: input.occurredOn, recordedAt: input.recordedAt, idempotencyKey: input.idempotencyKey, note: input.note.trim(), counterparty, relatedEventId, expenseContext, correctionType: null, correctionOfEventId: null, correctionReason: null, ...deltas(input.type, input.amountMinor) });
+}
+
+export function createFinancialReversal(input: CreateFinancialReversalInput): FinancialEvent {
+  assertNonBlank(input.id, "id");
+  assertNonBlank(input.idempotencyKey, "idempotencyKey");
+  assertNonBlank(input.reason, "reason");
+  assertDate(input.occurredOn, "occurredOn");
+  if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("recordedAt must be ISO-8601");
+  if (input.sourceEvent.correctionType === "reverse" || input.sourceEvent.correctionOfEventId) throw new Error("cannot reverse an existing reversal");
+  return Object.freeze({ id: input.id, type: input.sourceEvent.type, currency: "JOD", amountMinor: input.sourceEvent.amountMinor, occurredOn: input.occurredOn, recordedAt: input.recordedAt, idempotencyKey: input.idempotencyKey, note: `عكس: ${input.sourceEvent.note}`, counterparty: input.sourceEvent.counterparty, relatedEventId: input.sourceEvent.relatedEventId, expenseContext: input.sourceEvent.expenseContext ?? null, correctionType: "reverse", correctionOfEventId: input.sourceEvent.id, correctionReason: input.reason.trim(), cashDeltaMinor: -input.sourceEvent.cashDeltaMinor, payableDeltaMinor: -input.sourceEvent.payableDeltaMinor, ownerCapitalDeltaMinor: -input.sourceEvent.ownerCapitalDeltaMinor, operatingExpenseDeltaMinor: -input.sourceEvent.operatingExpenseDeltaMinor });
 }
 
 export function summarizeFinancialEvents(events: readonly FinancialEvent[]): FinancialEventTotals {

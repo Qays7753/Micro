@@ -47,6 +47,15 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async listFinancialEvents(): Promise<StorageResult<readonly FinancialEvent[]>> { return { ok: true, value: Array.from(this.financialEvents.values()).sort((a, b) => b.recordedAt.localeCompare(a.recordedAt)).map(clone) }; }
   async getFinancialEvent(id: string): Promise<StorageResult<FinancialEvent | null>> { const event = this.financialEvents.get(id); return { ok: true, value: event ? clone(event) : null }; }
   async saveFinancialEvent(event: FinancialEvent): Promise<StorageResult<FinancialEvent>> { this.financialEvents.set(event.id, clone(event)); return { ok: true, value: clone(event) }; }
+  async commitFinancialEventCorrection(sourceEventId: string, reversal: FinancialEvent): Promise<StorageResult<FinancialEvent>> {
+    const source = this.financialEvents.get(sourceEventId);
+    if (!source) return { ok: false, code: "storage_error", message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ العكس." };
+    const existing = Array.from(this.financialEvents.values()).find(event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse");
+    if (existing) return existing.idempotencyKey === reversal.idempotencyKey ? { ok: true, value: clone(existing) } : { ok: false, code: "storage_error", message: "تعذر حفظ العكس لأن الواقعة عُكست سابقًا بمفتاح مختلف." };
+    if (this.financialEvents.has(reversal.id)) return { ok: false, code: "storage_error", message: "تعذر حفظ العكس بسبب تعارض هوية محلية." };
+    this.financialEvents.set(reversal.id, clone(reversal));
+    return { ok: true, value: clone(reversal) };
+  }
   async listSupplierPurchases(): Promise<StorageResult<readonly SupplierPurchase[]>> { return { ok: true, value: Array.from(this.supplierPurchases.values()).sort((a, b) => b.purchasedOn.localeCompare(a.purchasedOn) || b.updatedAt.localeCompare(a.updatedAt)).map(clone) }; }
   async getSupplierPurchase(id: string): Promise<StorageResult<SupplierPurchase | null>> { const purchase = this.supplierPurchases.get(id); return { ok: true, value: purchase ? clone(purchase) : null }; }
   async saveSupplierPurchase(purchase: SupplierPurchase): Promise<StorageResult<SupplierPurchase>> { this.supplierPurchases.set(purchase.id, clone(purchase)); return { ok: true, value: clone(purchase) }; }

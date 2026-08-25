@@ -2,6 +2,7 @@ import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it } from "vitest";
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
+import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import { localPreferencesId, localProfileId, type ActivityProfile, type OrderDraft, type StoredCraftOrder } from "./types";
 
 const databaseName = "micro-prototype-local";
@@ -111,6 +112,20 @@ describe("IndexedDbLocalStore", () => {
     const resumed = new IndexedDbLocalStore();
     await expect(resumed.listOrders()).resolves.toMatchObject({ ok: true, value: [{ id: "order-1" }] });
     await expect(resumed.getDraft("draft-linked")).resolves.toMatchObject({ ok: true, value: { linkedOrderId: "order-1" } });
+  });
+
+  it("commits one financial reversal atomically and preserves it across adapter instances", async () => {
+    const store = new IndexedDbLocalStore();
+    const original = createFinancialEvent({ id: "indexed-source", type: "operating_expense_cash", amountMinor: 900, occurredOn: "2026-08-10", recordedAt: "2026-08-10T01:00:00.000Z", idempotencyKey: "indexed-source", note: "مصروف اختبار", counterparty: null, expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" } });
+    const reversal = createFinancialReversal({ id: "indexed-reversal", sourceEvent: original, occurredOn: "2026-08-20", recordedAt: "2026-08-20T01:00:00.000Z", idempotencyKey: "indexed-reversal", reason: "تصحيح ذري" });
+    await expect(store.saveFinancialEvent(original)).resolves.toMatchObject({ ok: true, value: { id: original.id } });
+    const [first, second] = await Promise.all([store.commitFinancialEventCorrection(original.id, reversal), new IndexedDbLocalStore().commitFinancialEventCorrection(original.id, reversal)]);
+    expect(first).toMatchObject({ ok: true, value: { id: reversal.id } }); expect(second).toMatchObject({ ok: true, value: { id: reversal.id } });
+    const resumed = new IndexedDbLocalStore(); await expect(resumed.listFinancialEvents()).resolves.toMatchObject({ ok: true, value: [{ id: reversal.id, correctionOfEventId: original.id, operatingExpenseDeltaMinor: -900 }, { id: original.id, operatingExpenseDeltaMinor: 900 }] });
+    const secondAttempt = createFinancialReversal({ id: "indexed-reversal-2", sourceEvent: original, occurredOn: "2026-08-21", recordedAt: "2026-08-21T01:00:00.000Z", idempotencyKey: "indexed-reversal-2", reason: "محاولة ثانية" });
+    await expect(resumed.commitFinancialEventCorrection(original.id, secondAttempt)).resolves.toMatchObject({ ok: false, code: "storage_error" });
+    await expect(resumed.commitFinancialEventCorrection("missing-source", secondAttempt)).resolves.toMatchObject({ ok: false, code: "storage_error" });
+    await expect(new IndexedDbLocalStore().listFinancialEvents()).resolves.toMatchObject({ ok: true, value: [{ id: reversal.id }, { id: original.id }] });
   });
 
   it("replaces the full local snapshot in one IndexedDB transaction", async () => {
