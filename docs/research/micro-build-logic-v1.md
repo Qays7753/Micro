@@ -451,7 +451,7 @@ ERP كامل، POS عام، CRM، WhatsApp automation، AI يتخذ قرارًا
 ## 19. المراجع الداخلية
 
 - [`global-build-reference-library-v1.md`](global-build-reference-library-v1.md)
-- [`../product/problem-statement-v3.md`](../product/problem-statement-v3.md)
+- [`../product/problem-statement-v4.md`](../product/problem-statement-v4.md)
 - [`../product/system-definition-v1.md`](../product/system-definition-v1.md)
 - [`../product/financial-operating-model-v1.md`](../product/financial-operating-model-v1.md)
 - [`../contracts/05-financial-p0-policies.md`](../contracts/05-financial-p0-policies.md)

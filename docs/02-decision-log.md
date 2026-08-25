@@ -7,7 +7,7 @@
 | المعرّف | القرار | المرجع |
 |---|---|---|
 | D-001 | المنتج خدمة SaaS يملكها المطور، والمستخدم صاحب مشروع؛ لا Billing داخل تطبيق المستخدم في Prototype أو MVP التجاري اللاحق للقيمة الأساسية | `docs/01-product-and-technical-blueprint.md` |
-| D-002 | السوق الأول الأردن والدينار الأردني، والفئات الحرف والطعام والخدمات | المرجع الأساسي |
+| D-002 | السوق الأول الأردن والدينار الأردني؛ النواة عامة وProfiles اختيارية للحرفة والطعام والخدمات والزراعة والسياحة والتجارة والمشاريع المختلطة وفق الدليل | Problem Statement v4 وقرار 25 |
 | D-003 | المشكلة المركزية هي فقدان السيطرة على التكلفة والربح والكاش والطلبات والفعل التالي | Problem Statement داخل المرجع الأساسي |
 | D-004 | النواة مستقلة عن Accounting وzman-app؛ يستفاد منهما كمراجع فقط | قسم المعمارية في المرجع الأساسي |
 | D-005 | التنفيذ يبدأ بVertical Slice وModular Monolith، لا Rewrite شامل ولا ERP | `docs/research/architecture-decision-reassessment.md` |
@@ -21,7 +21,7 @@
 | D-013 | لا يكون مؤشر النتيجة ربحًا نهائيًا إلا عندما تكون `knowledgeState` مساوية لـ`known`؛ ويُحمل الطلب `resultStatus` يميز النهائي والتقديري والناقص والمراجعة المطلوبة | `docs/contracts/01-financial-result-contract.md` وDomain Core |
 | D-014 | إلغاء طلب ذي عربون لا يُسوّى تلقائيًا؛ يبدأ بـ`needs_review` وتنفذ عملية رد أو احتفاظ مستقلة قابلة لإعادة المحاولة | `docs/contracts/02-order-lifecycle-contract.md` وDomain Core |
 | D-015 | لا تُستخدم حالة `stale` بلا سياسة حداثة صريحة قابلة للاختبار، وSnapshot الحرفة المخصصة بلا مكونات مؤثرة يكون `incomplete` | `docs/contracts/03-cost-snapshot-contract.md` وDomain Core |
-| D-016 | مجموعة السيناريوهات ذات 10 شخصيات و100 حالة و100 سؤال عائلة اختبار دائمة؛ تثبت أن الطلب أول Vertical Slice داخل نظام إدارة مالية مستمر، ولا تختزل المنتج في طلب أو مصروف | `docs/decisions/03-scenario-validation-and-system-scope.md` |
+| D-016 | مجموعة السيناريوهات ذات 12 شخصية و120 حالة و120 سؤالًا عائلة اختبار دائمة؛ تثبت أن الطلب أول Vertical Slice داخل نظام إدارة مالية مستمر، وتختبر السياحة والمشروع المختلط، ولا تختزل المنتج في طلب أو مصروف | `docs/decisions/03-scenario-validation-and-system-scope.md` |
 | D-017 | الوثائق canonical الجديدة تفصل Problem Statement وتعريف النظام ونموذج الاستخدام والنموذج المالي والتوجيه والأدلة والسيناريوهات؛ التدرج في التنفيذ لا يلغي اكتمال تعريف النظام | `docs/00-document-index.md` وحوكمة الوثائق |
 | D-018 | Prototype المرحلة 2 هو نموذج هاتف محلي محدود لإثبات أول قيمة، وليس MVP التجاري الكامل؛ Auth وSupabase وRLS وSaaS المركزي مراحل لاحقة بعد إثبات القيمة | `docs/implementation/03-pre-build-alignment-v1.md` و`docs/implementation/01-execution-roadmap.md` |
 | D-019 | المحاكاة المكتبية تثبت اتساق القواعد والتغطية والنصوص فقط؛ لا تثبت فهم المستخدم الحقيقي أو العودة أو الاستعداد للدفع، وهذه تحتاج Prototype وPilot | `docs/implementation/03-pre-build-alignment-v1.md` ونتائج المحاكاة |

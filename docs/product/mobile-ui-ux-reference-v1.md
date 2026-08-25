@@ -4,9 +4,9 @@
 
 **الإصدار:** 1.1 — مرجع ما قبل Prototype الهاتف مع نظام ألوان وقياسات Light/Dark رسمي
 
-**النطاق:** تجربة Micro المحلية الأولى لمسار الحرفة اليدوية المخصصة، مع قواعد قابلة للتوسع إلى الطعام والخدمات دون أن تتحول الواجهة إلى ثلاث تطبيقات منفصلة.
+**النطاق:** تجربة Micro المحلية الأولى لمسار الحرفة اليدوية المخصصة، مع قواعد قابلة للتوسع عبر Profiles اختيارية للطعام والخدمات والزراعة والسياحة والتجارة والمشاريع المختلطة، دون أن تتحول الواجهة إلى تطبيقات منفصلة أو تدّعي تنفيذ Profiles غير مبنية.
 
-**السلطة:** هذا الملف يحدد عقد تجربة المستخدم والواجهة. لا يغير معنى المال أو عقود Domain؛ دلالة التكلفة والسعر والقبض والتسوية يحكمها [`05-financial-p0-policies.md`](../contracts/05-financial-p0-policies.md)، وحالة التنفيذ يحكمها [`02-domain-contract-coverage.md`](../implementation/02-domain-contract-coverage.md)، وهوية المنتج يحكمها [`system-definition-v1.md`](system-definition-v1.md) و[`problem-statement-v3.md`](problem-statement-v3.md).
+**السلطة:** هذا الملف يحدد عقد تجربة المستخدم والواجهة. لا يغير معنى المال أو عقود Domain؛ دلالة التكلفة والسعر والقبض والتسوية يحكمها [`05-financial-p0-policies.md`](../contracts/05-financial-p0-policies.md)، وحالة التنفيذ يحكمها [`02-domain-contract-coverage.md`](../implementation/02-domain-contract-coverage.md)، وهوية المنتج يحكمها [`system-definition-v1.md`](system-definition-v1.md) و[`problem-statement-v4.md`](problem-statement-v4.md).
 
 > هذا مرجع تصميم وتوجيه، وليس تصريحًا بأن واجهة الهاتف أو LocalStore أو Adapter قد بُنيت. أي شيء يذكره بصيغة «يجب أن يبنى» يبقى مستهدفًا إلى حين اجتياز الاختبارات.
 
@@ -24,7 +24,7 @@ Micro ليس دفتر معاملات فقط، وليس تطبيق طلبات، �
 
 | المصدر | ما استُخرج منه | حد الاعتماد |
 |---|---|---|
-| [`problem-statement-v3.md`](problem-statement-v3.md) | الضرر، المستخدم، فجوة الفهم والقرار، ومعايير حل المشكلة | سلطة المشكلة، لا قائمة ميزات تلقائية |
+| [`problem-statement-v4.md`](problem-statement-v4.md) | الضرر، المستخدم، فجوة الفهم والقرار، ومعايير حل المشكلة والنواة/Profiles | سلطة المشكلة، لا قائمة ميزات تلقائية |
 | [`system-definition-v1.md`](system-definition-v1.md) | هوية Micro بوصفه شريكًا عميقًا في الداخل وبسيطًا في الخارج | سلطة هوية المنتج |
 | [`user-operating-model-v1.md`](user-operating-model-v1.md) | مداخل اليوم والأسبوع والشهر، يوم بلا طلب، والتوجيه بعد الحدث | سلطة نموذج الاستخدام |
 | [`financial-operating-model-v1.md`](financial-operating-model-v1.md) | فصل الكاش والنتيجة والعربون والدين والمخزون ودرجة المعرفة | مرجع معنى العرض المالي |
@@ -489,7 +489,7 @@ Prototype محلي لمستخدم واحد. لا توجد Auth أو Roles أو R
 
 ## References
 
-[1]: problem-statement-v3.md "Micro — Problem Statement v3"
+[1]: problem-statement-v4.md "Micro — Problem Statement v4"
 [2]: system-definition-v1.md "Micro — System Definition v1"
 [3]: user-operating-model-v1.md "Micro — نموذج الاستخدام التشغيلي الأول"
 [4]: financial-operating-model-v1.md "Micro — النموذج المالي التشغيلي"
