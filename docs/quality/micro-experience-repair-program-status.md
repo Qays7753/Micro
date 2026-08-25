@@ -141,13 +141,13 @@
 | البند | النتيجة |
 | --- | --- |
 | الفرع | `docs/g15-device-production-acceptance`، من رأس Bridge `1ed121064ec8a624e5e4d721f23db091f778a5f2` |
-| PR / commit | PR #86؛ head `2dbb148c3473740ba46a6fca86efa35347bfc2b2`؛ ينتظر CI وCloudflare ثم merge إلى Bridge؛ الفرع من رأس Bridge `1ed121064ec8a624e5e4d721f23db091f778a5f2` |
+| PR / commit | PR #86؛ feature head `2dbb148c3473740ba46a6fca86efa35347bfc2b2`؛ status head `8840f7f526c1fa649189d150fbcce277dfedfd6f`؛ merge إلى Bridge `9c2c9cc1b262009446d5ea313999a62d945ddc60`؛ الفرع من رأس Bridge `1ed121064ec8a624e5e4d721f23db091f778a5f2` |
 | ما تغير | أضيف `docs/quality/g15-device-production-acceptance.md` كبروتوكول PASS/FAIL عربي يفصل دليل Agent عن قبول المالك على Android/iOS |
 | التغطية | PWA والرابط والتثبيت وstandalone والتحديث وdirect route وOffline/reload وexport/import/Files واللوحة/الحقول/native date وback/dirty وfocus/touch و360/390/430 وLight/Dark والأداء والتنظيف |
 | الأثر المالي الذي لا يحدث | لا feature جديدة ولا Backend ولا Auth/Sync؛ لا بيانات حقيقية؛ البروتوكول لا يعلن دعمًا أو قبولًا غير مثبت ولا يغير المال أو التاريخ |
 | الاختبارات | فحص توثيقي محلي و`git diff --check`؛ ستُسجل نتيجة `pnpm check` بعد التنفيذ النهائي |
 | حدود G15 | قبول Android/iOS وPWA المثبت وoffline والشبكة الحقيقية وProduction يبقى للمالك؛ لا تسجل هذه المجموعة PASS بدلًا عنه |
-| ما بقي معلقًا | CI وCloudflare ودمج G15، ثم بدء G16 كحزمة Pilot وقرار فقط |
+| ما بقي معلقًا | G15 مؤمنة في Bridge؛ يبدأ G16 الآن من رأس Bridge `9c2c9cc1b262009446d5ea313999a62d945ddc60` كحزمة Pilot وقرار فقط |
 
 ## سجل المجموعات
 
@@ -159,8 +159,10 @@
 | G14 | #83 | merge `f56a563a18c64c447a9f6c9801d84a11172abcad`؛ CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
 | H01-A | #84 | merge `69b76eca4cd80c108b13356a8d5e2d9891b885e9` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
 | H01-B | #85 | merge `899f1beb7f7d5ea081b099b4045fcd1a957966ef` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
-| G15 | #86 | head `2dbb148c3473740ba46a6fca86efa35347bfc2b2` | بروتوكول قبول منفذ؛ PR مفتوح إلى Bridge وينتظر CI وCloudflare والدمج؛ لا قبول جهاز أو Production بعد |
+| G15 | #86 | merge `9c2c9cc1b262009446d5ea313999a62d945ddc60` | CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط؛ قبول الجهاز وProduction ما زال للمالك |
 | G16 | — | — | لم تبدأ |
+
+في G15، اكتمل بروتوكول قبول الجهاز والإنتاج، ونجحت CI وCloudflare Pages، ثم دُمجت المجموعة في Bridge عند `9c2c9cc1b262009446d5ea313999a62d945ddc60`. تبقى نتائج Android وiOS وPWA المثبت وstandalone وoffline والشبكة الحقيقية وProduction معلقة حتى ينفذها المالك على جهاز فعلي.
 
 ## مرجع القرار
 
