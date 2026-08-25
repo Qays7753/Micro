@@ -37,6 +37,17 @@ describe("ProjectFinancialService", () => {
     await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recognizedRevenueMinor: 2000, recognizedDirectCostMinor: 500, recordedOperatingExpenseMinor: 700, resultMinor: 800, finalOrderCount: 1, excludedOrderCount: 0, status: "recorded_only" } });
   });
 
+  it("recognizes an expense reversal in its correction period without restating the original period or touching orders and inventory", async () => {
+    const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
+    const source = await finance.record({ type: "operating_expense_cash", amountMinor: 700, occurredOn: "2026-08-10", note: "مصروف اختبار", counterparty: null, relatedEventId: null, expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" }, idempotencyKey: "period-reversal-source" }); if (!source.ok) throw new Error("source should save");
+    await expect(finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-20", reason: "تصحيح تاريخي موثق", idempotencyKey: "period-reversal" })).resolves.toMatchObject({ ok: true });
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-15")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 700, projectOperatingExpenseMinor: 700, resultMinor: -700, expenseNeedsReviewCount: 0, status: "recorded_only" } });
+    await expect(finance.readRecordedPeriodResult("2026-08-16", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: -700, projectOperatingExpenseMinor: -700, resultMinor: 700, expenseNeedsReviewCount: 0, status: "recorded_only" } });
+    await expect(finance.readFinancialInsights("2026-08-16", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { costComposition: { operatingExpenseMinor: -700 }, coverage: { fixedExpenseMinor: -700 } } });
+    await expect(finance.readPosition()).resolves.toMatchObject({ ok: true, value: { recordedCashMinor: 0, operatingExpensesRecordedMinor: 0, projectEventCount: 2 } });
+    await expect(store.listOrders()).resolves.toMatchObject({ ok: true, value: [] }); await expect(store.listInventoryMovements()).resolves.toMatchObject({ ok: true, value: [] });
+  });
+
   it("places the delivery in the Asia/Amman period instead of its previous UTC date", async () => {
     const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
     const cost = calculateCostSnapshot("cost-boundary", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 400, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-07-30T09:00:00.000Z", freshnessDays: null });
@@ -101,5 +112,63 @@ describe("ProjectFinancialService", () => {
   it("rejects a new operating expense without its required classification context", async () => {
     const finance = new ProjectFinancialService(new MemoryLocalStore(), now);
     await expect(finance.record({ type: "operating_expense_cash", amountMinor: 250, occurredOn: "2026-08-23", note: "مصروف بلا سياق", counterparty: null, relatedEventId: null, idempotencyKey: "missing-context" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+  });
+
+  it("reverses each supported general event with the opposite financial effect and preserves the original", async () => {
+    const cases = [
+      { type: "owner_investment_cash", expected: { recordedCashMinor: 0, supplierPayablesMinor: 0, ownerCapitalRecordedMinor: 0, operatingExpensesRecordedMinor: 0 } },
+      { type: "owner_withdrawal_cash", expected: { recordedCashMinor: 0, supplierPayablesMinor: 0, ownerCapitalRecordedMinor: 0, operatingExpensesRecordedMinor: 0 } },
+      { type: "operating_expense_cash", expected: { recordedCashMinor: 0, supplierPayablesMinor: 0, ownerCapitalRecordedMinor: 0, operatingExpensesRecordedMinor: 0 } },
+      { type: "operating_expense_payable", expected: { recordedCashMinor: 0, supplierPayablesMinor: 0, ownerCapitalRecordedMinor: 0, operatingExpensesRecordedMinor: 0 } },
+    ] as const;
+    for (const [index, entry] of cases.entries()) {
+      const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
+      const source = await finance.record({ type: entry.type, amountMinor: 1000, occurredOn: "2026-08-23", note: `واقعة ${index}`, counterparty: null, relatedEventId: null, expenseContext: entry.type.startsWith("operating_expense") ? { relationship: "project", behavior: "variable", purpose: "period", knowledge: "known" } : null, idempotencyKey: `source-${index}` });
+      if (!source.ok) throw new Error("source should save");
+      const original = structuredClone(source.value);
+      const reversal = await finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: "تصحيح موثق", idempotencyKey: `reverse-${index}` });
+      expect(reversal).toMatchObject({ ok: true, value: { correctionType: "reverse", correctionOfEventId: source.value.id, correctionReason: "تصحيح موثق", amountMinor: 1000, occurredOn: "2026-08-24", cashDeltaMinor: -source.value.cashDeltaMinor, payableDeltaMinor: -source.value.payableDeltaMinor, ownerCapitalDeltaMinor: -source.value.ownerCapitalDeltaMinor, operatingExpenseDeltaMinor: -source.value.operatingExpenseDeltaMinor } });
+      const events = await finance.listEvents(); if (!events.ok) throw new Error("events should read");
+      expect(events.value).toHaveLength(2); expect(events.value.find(event => event.id === source.value.id)).toEqual(original);
+      await expect(finance.readPosition()).resolves.toMatchObject({ ok: true, value: entry.expected });
+    }
+    const settlementStore = new MemoryLocalStore(); const settlementFinance = new ProjectFinancialService(settlementStore, now);
+    const payable = await settlementFinance.record({ type: "operating_expense_payable", amountMinor: 1000, occurredOn: "2026-08-23", note: "التزام", counterparty: "مورد", relatedEventId: null, expenseContext: { relationship: "project", behavior: "variable", purpose: "period", knowledge: "known" }, idempotencyKey: "settlement-payable" }); if (!payable.ok) throw new Error("payable should save");
+    const settlement = await settlementFinance.record({ type: "payable_settlement_cash", amountMinor: 1000, occurredOn: "2026-08-23", note: "تسديد", counterparty: "مورد", relatedEventId: payable.value.id, idempotencyKey: "settlement-source" }); if (!settlement.ok) throw new Error("settlement should save");
+    await expect(settlementFinance.reverse({ sourceEventId: settlement.value.id, occurredOn: "2026-08-24", reason: "عكس تسديد موثق", idempotencyKey: "settlement-reversal" })).resolves.toMatchObject({ ok: true, value: { type: "payable_settlement_cash", relatedEventId: payable.value.id, cashDeltaMinor: 1000, payableDeltaMinor: 1000 } });
+    await expect(settlementFinance.readPosition()).resolves.toMatchObject({ ok: true, value: { recordedCashMinor: 0, supplierPayablesMinor: 1000, operatingExpensesRecordedMinor: 1000 } });
+  });
+
+  it("makes reversal idempotency safe for repeated calls and rejects a second reversal or key collision", async () => {
+    const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
+    const source = await finance.record({ type: "owner_investment_cash", amountMinor: 2000, occurredOn: "2026-08-23", note: "استثمار", counterparty: null, relatedEventId: null, idempotencyKey: "idempotent-source" }); if (!source.ok) throw new Error("source should save");
+    const [first, second] = await Promise.all([finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: "تصحيح واحد", idempotencyKey: "idempotent-reversal" }), finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: "تصحيح واحد", idempotencyKey: "idempotent-reversal" })]);
+    expect(first.ok && second.ok).toBe(true); if (!first.ok || !second.ok) throw new Error("reversal should save");
+    expect(first.value.id).toBe(second.value.id); expect(first.reused || second.reused).toBe(true);
+    await expect(finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: "محاولة ثانية", idempotencyKey: "different-reversal" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    await expect(finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: "تصحيح", idempotencyKey: "idempotent-source" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    const events = await finance.listEvents(); if (!events.ok) throw new Error("events should read"); expect(events.value).toHaveLength(2);
+  });
+
+  it("rejects missing sources, blank reasons, invalid dates, and reversing a reversal without changing history", async () => {
+    const store = new MemoryLocalStore(); const finance = new ProjectFinancialService(store, now);
+    await expect(finance.reverse({ sourceEventId: "missing", occurredOn: "2026-08-24", reason: "سبب", idempotencyKey: "missing-source" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    await expect(finance.reverse({ sourceEventId: "", occurredOn: "2026-08-24", reason: "سبب", idempotencyKey: "blank-source" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    const source = await finance.record({ type: "operating_expense_cash", amountMinor: 500, occurredOn: "2026-08-23", note: "مصروف", counterparty: null, relatedEventId: null, expenseContext: { relationship: "project", behavior: "variable", purpose: "period", knowledge: "known" }, idempotencyKey: "guard-source" }); if (!source.ok) throw new Error("source should save");
+    await expect(finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: " ", idempotencyKey: "blank-reason" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    await expect(finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-02-30", reason: "سبب", idempotencyKey: "bad-date" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    const reversal = await finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: "سبب", idempotencyKey: "guard-reversal" }); if (!reversal.ok) throw new Error("reversal should save");
+    await expect(finance.reverse({ sourceEventId: reversal.value.id, occurredOn: "2026-08-25", reason: "عكس العكس", idempotencyKey: "double-reversal" })).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    const events = await finance.listEvents(); if (!events.ok) throw new Error("events should read"); expect(events.value).toHaveLength(2);
+  });
+
+  it("does not leave an orphan reversal when the atomic correction write fails", async () => {
+    class FailingCorrectionStore extends MemoryLocalStore {
+      override async commitFinancialEventCorrection() { return { ok: false as const, code: "storage_error" as const, message: "simulated write failure" }; }
+    }
+    const store = new FailingCorrectionStore(); const finance = new ProjectFinancialService(store, now);
+    const source = await finance.record({ type: "owner_withdrawal_cash", amountMinor: 700, occurredOn: "2026-08-23", note: "سحب", counterparty: null, relatedEventId: null, idempotencyKey: "atomic-source" }); if (!source.ok) throw new Error("source should save");
+    await expect(finance.reverse({ sourceEventId: source.value.id, occurredOn: "2026-08-24", reason: "فشل اختبار ذرية", idempotencyKey: "atomic-reversal" })).resolves.toMatchObject({ ok: false, code: "storage_error" });
+    const events = await finance.listEvents(); if (!events.ok) throw new Error("events should read"); expect(events.value).toHaveLength(1); expect(events.value[0]?.id).toBe(source.value.id);
   });
 });

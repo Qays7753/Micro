@@ -3,7 +3,7 @@ import { LocalTransferService } from "./localTransferService";
 import { localExportFormat, localExportVersion, localProfileId, localSchemaVersion } from "@/storage/local/types";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
-import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
@@ -33,6 +33,23 @@ describe("LocalTransferService", () => {
     const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error(`import should validate: ${preview.message}`); await transfers.confirmImport(preview.value);
     await expect(target.listFinancialEvents()).resolves.toMatchObject({ ok: true, value: [{ id: "classified-expense", expenseContext: { relationship: "project", knowledge: "known" } }, { id: "legacy-expense", expenseContext: null }] });
+  });
+
+  it("round-trips a general financial reversal chain, preserves legacy fields, and rejects broken links", async () => {
+    const source = new MemoryLocalStore();
+    const original = createFinancialEvent({ id: "transfer-source", type: "owner_investment_cash", amountMinor: 1200, occurredOn: "2026-08-10", recordedAt: "2026-08-10T01:00:00.000Z", idempotencyKey: "transfer-source", note: "استثمار", counterparty: null });
+    const reversal = createFinancialReversal({ id: "transfer-reversal", sourceEvent: original, occurredOn: "2026-08-20", recordedAt: "2026-08-20T01:00:00.000Z", idempotencyKey: "transfer-reversal", reason: "تصحيح موثق" });
+    await source.saveFinancialEvent(original); await source.saveFinancialEvent(reversal);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("reversal export should succeed");
+    const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error(`reversal import should validate: ${preview.message}`);
+    await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { financialEvents: 2 } });
+    await expect(target.listFinancialEvents()).resolves.toMatchObject({ ok: true, value: [{ id: "transfer-reversal", correctionType: "reverse", correctionOfEventId: "transfer-source", correctionReason: "تصحيح موثق", cashDeltaMinor: -1200 }, { id: "transfer-source", correctionType: null, correctionOfEventId: null, correctionReason: null, cashDeltaMinor: 1200 }] });
+    const legacy = structuredClone(exported.value) as { data: { financialEvents: Array<Record<string, unknown>> } }; legacy.data.financialEvents.forEach(event => { delete event.correctionType; delete event.correctionOfEventId; delete event.correctionReason; }); legacy.data.financialEvents = legacy.data.financialEvents.filter(event => event.id === "transfer-source");
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy))).toMatchObject({ ok: true, value: { file: { data: { financialEvents: [{ id: "transfer-source" }] } } } });
+    const broken = structuredClone(exported.value) as { data: { financialEvents: Array<{ id: string; cashDeltaMinor: number }> } }; broken.data.financialEvents.find(event => event.id === "transfer-reversal")!.cashDeltaMinor = -1199;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
+    const missingSource = structuredClone(exported.value) as { data: { financialEvents: Array<{ id: string }> } }; missingSource.data.financialEvents = missingSource.data.financialEvents.filter(event => event.id !== "transfer-source");
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(missingSource))).toMatchObject({ ok: false, code: "validation_error" });
   });
 
   it("upgrades a v6 export while preserving a legacy shared expense without inventing its source", async () => {

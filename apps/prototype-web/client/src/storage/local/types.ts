@@ -64,6 +64,7 @@ export interface PrototypeLocalStore {
   listFinancialEvents(): Promise<StorageResult<readonly FinancialEvent[]>>;
   getFinancialEvent(id: string): Promise<StorageResult<FinancialEvent | null>>;
   saveFinancialEvent(event: FinancialEvent): Promise<StorageResult<FinancialEvent>>;
+  commitFinancialEventCorrection(sourceEventId: string, reversal: FinancialEvent): Promise<StorageResult<FinancialEvent>>;
   listSupplierPurchases(): Promise<StorageResult<readonly SupplierPurchase[]>>;
   getSupplierPurchase(id: string): Promise<StorageResult<SupplierPurchase | null>>;
   saveSupplierPurchase(purchase: SupplierPurchase): Promise<StorageResult<SupplierPurchase>>;
