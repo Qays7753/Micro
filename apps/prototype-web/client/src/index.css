@@ -212,6 +212,9 @@
 .micro-month-empty > svg { width: 20px; height: 20px; flex: 0 0 auto; color: var(--color-warning-text); }
 .micro-month-empty strong { color: var(--color-text-primary); font-size: 14px; }
 .micro-month-empty p { margin: var(--space-1) 0 0; color: var(--color-text-secondary); font-size: 12px; line-height: 1.6; }
+.micro-month-calendar-scroll { min-width: 0; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-gutter: stable; }
+/* Seven 44px targets plus six 4px gaps: 7 × 44px + 6 × 4px. */
+.micro-month-calendar-scroll > .micro-month-weekdays, .micro-month-calendar-scroll > .micro-month-grid { min-width: 332px; }
 .micro-month-weekdays, .micro-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .micro-month-weekdays { color: var(--color-text-secondary); font-size: 10px; font-weight: 600; text-align: center; }
 .micro-month-weekdays span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
