@@ -9,6 +9,8 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 const isString = (value: unknown): value is string => typeof value === "string";
 const isDate = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value));
 const isMoney = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0;
+const isOptionalMoney = (value: unknown): value is number | null => value === null || isMoney(value);
+const isTimeMinutes = (value: unknown): value is number | null => value === null || (typeof value === "number" && Number.isFinite(value) && value >= 0);
 const isPositiveQuantity = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value > 0;
 const isKnownState = (value: unknown) => value === "known" || value === "estimated" || value === "incomplete" || value === "variable" || value === "stale" || value === "partial";
 const isResultStatus = (value: unknown) => value === "final" || value === "estimated" || value === "incomplete" || value === "review_required";
@@ -45,7 +47,7 @@ function validShortCashDeclaration(value: unknown): boolean { return isRecord(va
 
 function validDraftCostSnapshot(value: unknown): boolean {
   if (!isRecord(value) || !isString(value.id) || !Number.isInteger(value.revision) || !isDate(value.createdAt) || value.currency !== "JOD" || !isPositiveQuantity(value.quantity) || !Array.isArray(value.materialItems) || !isMoney(value.packagingMinor) || !isMoney(value.deliveryMinor) || !isMoney(value.wasteMinor) || !isMoney(value.safetyBufferMinor)) return false;
-  if (!(value.time === null || (isRecord(value.time) && typeof value.time.minutes === "number" && isMoney(value.time.hourlyRateMinor) && (value.time.confidence === "known" || value.time.confidence === "estimated")))) return false;
+  if (!(value.time === null || (isRecord(value.time) && isTimeMinutes(value.time.minutes) && isOptionalMoney(value.time.hourlyRateMinor) && (value.time.confidence === "known" || value.time.confidence === "estimated")))) return false;
   return value.materialItems.every(item => isRecord(item) && isString(item.name) && isString(item.unit) && isPositiveQuantity(item.quantity) && isMoney(item.unitPriceMinor) && (item.confidence === "known" || item.confidence === "estimated"));
 }
 

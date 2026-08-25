@@ -34,8 +34,8 @@ export interface MaterialCostItem {
 }
 
 export interface TimeCost {
-  minutes: number;
-  hourlyRateMinor: MoneyMinor;
+  minutes: number | null;
+  hourlyRateMinor: MoneyMinor | null;
   confidence: CostConfidence;
 }
 
