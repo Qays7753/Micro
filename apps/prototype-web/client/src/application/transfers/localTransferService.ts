@@ -163,8 +163,17 @@ function summary(file: LocalExportFile): TransferSummary {
   return { profile: file.data.profile !== null, preferences: file.data.preferences !== null, drafts: file.data.drafts.length, orders: file.data.orders.length, schedules: file.data.schedules.length, recurrences: file.data.recurrences?.length ?? 0, financialEvents: file.data.financialEvents.length, supplierPurchases: file.data.supplierPurchases?.length ?? 0, cashWallets: file.data.cashWallets?.length ?? 0, cashContinuityEntries: file.data.cashContinuityEntries?.length ?? 0, materials: file.data.materials?.length ?? 0, inventoryMovements: file.data.inventoryMovements?.length ?? 0, catalogItems: file.data.catalogItems?.length ?? 0, shortCashDeclarations: file.data.shortCashDeclarations?.length ?? 0, snapshots, events, exportedAt: file.exportedAt };
 }
 
+function emptySnapshot(): LocalStoreSnapshot {
+  return { profile: null, preferences: null, drafts: [], orders: [], schedules: [], recurrences: [], financialEvents: [], supplierPurchases: [], cashWallets: [], cashContinuityEntries: [], materials: [], inventoryMovements: [], catalogItems: [], actualTimeRecords: [], shortCashDeclarations: [] };
+}
+
 export class LocalTransferService {
   constructor(private readonly store: PrototypeLocalStore, private readonly now: () => string = () => new Date().toISOString()) {}
+
+  async resetLocalData(): Promise<TransferResult<void>> {
+    const replacement = await this.store.replaceSnapshot(emptySnapshot());
+    return replacement.ok ? { ok: true, value: undefined } : { ok: false, code: "storage_error", message: "تعذر مسح البيانات المحلية. لم تتغير بيانات هذا الجهاز." };
+  }
 
   async createExport(): Promise<TransferResult<LocalExportFile>> {
     const snapshot = await this.store.readSnapshot();
