@@ -87,11 +87,11 @@
 | البند | النتيجة |
 | --- | --- |
 | الفرع | `feat/g14-financial-reversal` |
-| PR / commit | PR #83؛ head `9c76493c91fd97c3c16175c1b51161b2a240bd7d`؛ ينتظر merge إلى Bridge؛ الفرع مستند إلى Bridge بعد G13 merge `599cf80` |
+| PR / commit | PR #83؛ head `e5a450f7b0314503c5b339ef9a1252241b6b2cf3`؛ merge إلى Bridge `f56a563a18c64c447a9f6c9801d84a11172abcad`؛ الفرع مستند إلى Bridge بعد G13 merge `599cf80` |
 | C1 | عقد proposal وقرار C1 محدثان إلى Approved for G14 داخل نفس PR |
 | Domain | `createFinancialReversal` يعكس كامل الدلتا، يرفض التاريخ غير الصالح والعكس المتسلسل، ولا يعدل الأصل |
 | Application/Storage | `ProjectFinancialService.reverse` يتحقق من المصدر والسبب والمفتاح وdouble reversal؛ `MemoryLocalStore` وIndexedDB يقدمان commit correction ذريًا |
-| UI | Finance سيعرض مراجعة الأصل، أثرًا مفككًا، سببًا إلزاميًا، تحذير immutable، ورابط الأصل/العكس؛ لا حذف ولا مبلغ حر |
+| UI | Finance يعرض مراجعة الأصل، أثرًا مفككًا، سببًا إلزاميًا، تحذير immutable، ورابط الأصل/العكس؛ لا حذف ولا مبلغ حر |
 | الاختبارات | Domain 7/7؛ Finance service 18/18؛ Transfer 14/14؛ IndexedDB 13/13؛ تغطية العكس للأنواع الخمسة، فترة التصحيح دون restatement، import/export chain، idempotency/double click، reload، guardrails، atomic failure بلا orphan؛ `pnpm --filter @micro/prototype-web check` و`pnpm check` و`git diff --check` ناجحة |
 | QA المتصفح | نجحت بيانات اصطناعية فقط: إنشاء استثمار 12.50، مراجعة الأصل، رفض السبب الفارغ، عكس كامل بسبب مكتوب، بقاء الأصل ورابط العكس والدلتا الموقعة، عودة الكاش ومال المالك إلى 0.00، Light/Dark، reload دون تكرار؛ ثم تنظيف IndexedDB وCache Storage وlocalStorage وsessionStorage وservice workers |
 | الأثر المالي الذي لا يحدث | لا تعديل للأصل، لا restatement، لا `adjust`، لا خلط مع CraftOrder أو عربون/تحصيل/دين، ولا أثر قبل تأكيد السبب |
@@ -104,7 +104,7 @@
 | G11 | #80 | `5f8839c1cde589c51a6470dcc7ca2aff32142f26` | مدمج في Bridge البرنامج فقط |
 | G12 | #81 | `7c74333931c153e5f1319fee1342e192f53d0b35` | مدمج في Bridge البرنامج فقط |
 | G13 | #82 | `599cf80` | مدمج في Bridge البرنامج فقط |
-| G14 | #83 | head `9c76493c91fd97c3c16175c1b51161b2a240bd7d`؛ CI وCloudflare Pages ناجحان؛ merge إلى Bridge ينتظر التنفيذ |
+| G14 | #83 | merge `f56a563a18c64c447a9f6c9801d84a11172abcad`؛ CI وCloudflare Pages ناجحان؛ مدمج في Bridge البرنامج فقط |
 | H01-A | — | — | لم تبدأ |
 | H01-B | — | — | لم تبدأ |
 | G15 | — | — | لم تبدأ |
@@ -122,7 +122,7 @@
 
 وفي G13، نجحت جولة متصفح اصطناعية من Setup إلى Draft وCost وAgreement ثم Schedule: ظهرت أخطاء Setup وAgreement المحددة، بقي footer Cost نصًا منسقًا، ظهر quick sheet disabled بعبارة صادقة، ثم ظهر موعد نشط واحد قبل التسليم وصفر نشط/واحد مكتمل مستبعد بعد التسليم. جرى اختبار Light/Dark وRTL والحقول الرقمية LTR ومفتاح Enter ومربع الإقرار وnative date، ثم نُظفت كل مخازن المتصفح.
 
-في G14، أثبتت الاختبارات المحلية والـQA الاصطناعي السلوك العكسي الكامل دون restatement، ونجحت CI وCloudflare Pages على PR #83؛ يبقى SHA الدمج لتُسجل بعد تنفيذ الدمج الفعلي إلى Bridge. لا يوجد في هذا السجل أي تصريح بدمج إلى `main` أو قبول جهاز فعلي أو قبول offline/production.
+في G14، أثبتت الاختبارات المحلية والـQA الاصطناعي السلوك العكسي الكامل دون restatement، ونجحت CI وCloudflare Pages على PR #83، ثم دُمجت في Bridge البرنامج فقط عند `f56a563a18c64c447a9f6c9801d84a11172abcad`. لا يوجد في هذا السجل أي تصريح بدمج إلى `main` أو قبول جهاز فعلي أو قبول offline/production.
 
 ## المراجع
 
