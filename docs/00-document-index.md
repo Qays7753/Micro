@@ -25,19 +25,23 @@
 | 12A | `docs/contracts/06-financial-event-prototype-contract.md` | CURRENT / PROTOTYPE | عقد الأحداث المالية المحلية للكاش والذمم ومال المالك وحدود «وضعي المالي» |
 | 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
-| 15 | `docs/product/problem-statement-v3.md` | CURRENT | المشكلة والأضرار والأسئلة التي يجب حلها |
+| 15 | `docs/product/problem-statement-v4.md` | CURRENT / CANONICAL | المشكلة والأضرار والأسئلة، والنواة العامة والـProfiles والمشاريع المختلطة |
+| 15A | `docs/product/problem-statement-v3.md` | SUPERSEDED | سياق تاريخي؛ لا يستخدم كمرجع قرار جديد |
 | 16 | `docs/product/system-definition-v1.md` | CURRENT | تعريف Micro وحدوده وقيمته ونواته |
 | 17 | `docs/product/user-operating-model-v1.md` | CURRENT | الاستخدام اليومي والأسبوعي والشهري |
 | 18 | `docs/product/financial-operating-model-v1.md` | CURRENT | النموذج المالي الداخلي للأحداث والنتائج |
 | 19 | `docs/product/guidance-interaction-policy-v1.md` | CURRENT | التوجيه داخل سير العمل دون تعليم قسري |
+| 19A | `docs/product/activity-profiles-and-hybrid-projects-v1.md` | CURRENT / PRODUCT ARCHITECTURE | حدود النواة والـProfiles والأنشطة المختلطة |
 | 20A | `docs/product/mobile-ui-ux-reference-v1.md` | CURRENT / CANONICAL / PHONE-FIRST | مرجع الشكل والتفاعل والحالات والصدق المالي على الهاتف، قبل بناء الواجهة |
-| 20 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | الشخصيات العشر والحالات والأسئلة المئة |
+| 20 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | 12 شخصية و120 حالة و120 سؤالًا، بما فيها السياحة والمشروع المختلط |
 | 21 | `docs/scenarios/scenario-test-results-v1.md` | CURRENT | نتائج التغطية والفجوات |
 | 22 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
 | 22A | `docs/quality/persona-context-simulation-protocol-v1.md` | CURRENT / EXECUTION PROTOCOL / DERIVED | غلاف سياق حتمي لتشغيل P01–P10 على Prototype؛ لا يستبدل مجموعة السيناريوهات canonical |
 | 22B | `docs/quality/persona-context-simulation-results-v1.md` | CURRENT / EXECUTION EVIDENCE | نتائج تشغيل P01–P10 على Prototype؛ تفصل الدليل الحي عن التشغيل المكتبي وحدود النطاق |
 | 23A | `docs/research/accounting-reference-review-v2.md` | SUPPORTING / REFERENCE REVIEW | دليل حي ومصدري لـAccounting ومصفوفة نقل مقيّدة إلى مبادئ تجربة Micro، لا كود أو هوية أو نموذج مالي |
 | 23B | `docs/product/capability-evolution-roadmap-v1.md` | CURRENT / PRODUCT ROADMAP | خارطة مرحلية للصورة المالية العامة وجدول المواعيد والقدرات المؤجلة واعتمادياتها وبوابات قرارها |
+| 23C | `docs/implementation/multi-activity-expansion-roadmap-v1.md` | CURRENT / ROADMAP | بوابات التوسع إلى Profiles والمشاريع المختلطة بعد G15/G16 |
+| 23D | `docs/research/multi-activity-profile-research-v1.md` | SUPPORTING / RESEARCH | دعم FAO/OECD لحدود النمذجة الزراعية والسياحية |
 | 23 | `docs/research/jordan-financial-problems-evidence.md` | SUPPORTING | الأدلة المحلية والخارجية وحدودها |
 | 24 | `ai-skills/micro-scenario-validation/` | CURRENT | اختبار القرارات على الشخصيات والحالات والأسئلة |
 | 24A | `ai-skills/micro-web-native-ux/` | CURRENT | تجربة Web App بملء الشاشة وسلوك Android-like وRTL وPWA UX |
@@ -57,7 +61,7 @@
 
 ## الوثائق التنفيذية الإلزامية
 
-قبل أي قرار منتج أو تصميم تجربة، اقرأ `docs/product/problem-statement-v3.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/product/guidance-interaction-policy-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` و`docs/scenarios/scenario-test-set-v1.md` و`docs/implementation/03-pre-build-alignment-v1.md`. عند تنفيذ Prototype اقرأ أيضًا `docs/implementation/mobile-prototype-spec-v1.md` و`docs/implementation/prototype-build-charter-v1.md` وفعّل `ai-skills/micro-web-native-ux/` و`ai-skills/micro-design-system/` عند تغيير الواجهة. قبل أي قرار مالي أو Domain، اقرأ `docs/product/financial-operating-model-v1.md` و`docs/contracts/05-financial-p0-policies.md` ومصفوفة التغطية. عند مراجعة تقرير Agent أو قبل بدء Prototype، اقرأ `docs/quality/unified-audit-resolution-v1.md` بعد نتائج Cloud Code. لا يبدأ الكود قبل اجتياز بوابة Pre-build وقراءة `docs/quality/pre-build-experiment-simulation-v1.md` وبياناتها.
+قبل أي قرار منتج أو تصميم تجربة، اقرأ `docs/product/problem-statement-v4.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/product/guidance-interaction-policy-v1.md` و`docs/product/activity-profiles-and-hybrid-projects-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` و`docs/scenarios/scenario-test-set-v1.md` و`docs/implementation/03-pre-build-alignment-v1.md`. عند تنفيذ Prototype اقرأ أيضًا `docs/implementation/mobile-prototype-spec-v1.md` و`docs/implementation/prototype-build-charter-v1.md` وفعّل `ai-skills/micro-web-native-ux/` و`ai-skills/micro-design-system/` عند تغيير الواجهة. قبل أي قرار مالي أو Domain، اقرأ `docs/product/financial-operating-model-v1.md` و`docs/contracts/05-financial-p0-policies.md` ومصفوفة التغطية. قبل Profile أو نشاط مختلط، اقرأ خارطة التوسع والبحث الداعم. عند مراجعة تقرير Agent أو قبل بدء Prototype، اقرأ `docs/quality/unified-audit-resolution-v1.md` بعد نتائج Cloud Code. لا يبدأ الكود قبل اجتياز بوابة Pre-build وقراءة `docs/quality/pre-build-experiment-simulation-v1.md` وبياناتها.
 
 ## العقود التنفيذية الإلزامية
 

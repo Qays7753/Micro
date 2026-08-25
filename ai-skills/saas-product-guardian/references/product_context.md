@@ -54,7 +54,7 @@ Micro خدمة SaaS لنظام إدارة مالية وتشغيلية عملي �
 
 ## مراجع القراءة الإلزامية
 
-- `docs/product/problem-statement-v3.md`
+- `docs/product/problem-statement-v4.md`
 - `docs/product/system-definition-v1.md`
 - `docs/product/user-operating-model-v1.md`
 - `docs/product/financial-operating-model-v1.md`

@@ -109,7 +109,7 @@ profit = recognized_revenue - recognized_cost - applicable_expenses
 
 ## مراجع المهارة
 
-- `../../docs/product/problem-statement-v3.md` للمشكلة المالية والتشغيلية.
+- `../../docs/product/problem-statement-v4.md` للمشكلة المالية والتشغيلية.
 - `../../docs/product/financial-operating-model-v1.md` للنموذج المالي المستمر.
 - `../../docs/product/user-operating-model-v1.md` للاستخدام اليومي والأسبوعي والشهري.
 - `../../docs/scenarios/scenario-test-set-v1.md` للشخصيات والحالات والأسئلة.
@@ -117,6 +117,7 @@ profit = recognized_revenue - recognized_cost - applicable_expenses
 - `../../docs/implementation/03-pre-build-alignment-v1.md` لحدود Prototype وMVP وبوابة Pre-build.
 - `../../docs/quality/pre-build-experiment-simulation-v1.md` لنتائج المحاكاة المالية والتشغيلية.
 - `references/domain_rules.md` للقواعد والمعادلات والحالات.
-- `references/activity_profiles.md` للفروق بين الحرفة والطعام والخدمة.
+- `../../docs/product/activity-profiles-and-hybrid-projects-v1.md` لحدود النواة والـProfiles والمشاريع المختلطة.
+- `references/activity_profiles.md` للفروق القطاعية التي لا تدخل التنفيذ قبل العقد والدليل.
 - `references/order_lifecycle.md` للطلبات والتذكيرات والقدرة.
 - `references/test_scenarios.md` لسيناريوهات الاختبار والـinvariants.

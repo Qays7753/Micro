@@ -1,6 +1,6 @@
 # Micro
 
-خدمة SaaS لنظام إدارة مالية وتشغيلية عملي لأصحاب المشاريع المنزلية والمتناهية الصغر، تبدأ من الأردن والدينار الأردني، وتُبنى أولًا للحرف اليدوية والأطعمة المنزلية والخدمات. يفكر النظام ماليًا ومحاسبيًا في الداخل، ويوجه المستخدم داخل سير العمل بلغة عملية.
+نظام إدارة مالية وتشغيلية عملي لأصحاب المشاريع المنزلية والمتناهية الصغر، يبدأ من الأردن والدينار الأردني. Micro عام في نواته، ويدعم مستقبلًا Profiles اختيارية للحرفة والطعام والخدمات والزراعة والسياحة والتجارة والمشاريع المختلطة، من دون فرض قالب واحد أو تحويله إلى ERP. يفكر النظام ماليًا ومحاسبيًا في الداخل، ويوجه المستخدم داخل سير العمل بلغة عملية.
 
 ## ما المشكلة التي نحلها؟
 
@@ -10,7 +10,7 @@
 
 هذا المستودع يحتوي عقود المجال وDomain Core وPrototype Web محليًا في `apps/prototype-web/`، ويُدار بوصفه سلسلة شرائح مستقلة لا «نسخة نهائية». الحالة المنفذة وحدودها الدقيقة ليست ثابتة داخل README؛ مصدرها الحي هو [`docs/operations/current-state.md`](docs/operations/current-state.md). لا يحتوي PWA أو استضافة Cloudflare أو Native أو SaaS أو استقبال بيانات حقيقية، ولا نسخة من Accounting أو zman-app أو كود خارجي منقول.
 
-إذا كنت Agent جديدًا، ابدأ من [`docs/operations/current-state.md`](docs/operations/current-state.md) ثم [`AGENTS.md`](AGENTS.md) و[`docs/operations/README.md`](docs/operations/README.md). بعد ذلك اقرأ [`docs/00-document-index.md`](docs/00-document-index.md)، ثم المرجع والعقد المتصلين بالمهمة فقط. ولتعريف Micro، راجع [`docs/product/problem-statement-v3.md`](docs/product/problem-statement-v3.md) و[`docs/product/system-definition-v1.md`](docs/product/system-definition-v1.md) و[`docs/product/user-operating-model-v1.md`](docs/product/user-operating-model-v1.md).
+إذا كنت Agent جديدًا، ابدأ من [`docs/operations/current-state.md`](docs/operations/current-state.md) ثم [`AGENTS.md`](AGENTS.md) و[`docs/operations/README.md`](docs/operations/README.md). بعد ذلك اقرأ [`docs/00-document-index.md`](docs/00-document-index.md)، ثم المرجع والعقد المتصلين بالمهمة فقط. ولتعريف Micro، راجع [`docs/product/problem-statement-v4.md`](docs/product/problem-statement-v4.md) و[`docs/product/system-definition-v1.md`](docs/product/system-definition-v1.md) و[`docs/product/user-operating-model-v1.md`](docs/product/user-operating-model-v1.md) و[`docs/product/activity-profiles-and-hybrid-projects-v1.md`](docs/product/activity-profiles-and-hybrid-projects-v1.md).
 
 ## المراجع الأساسية
 

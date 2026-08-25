@@ -13,11 +13,12 @@ description: حارس التحقق بالسيناريوهات لمشروع Micro
 
 ابدأ بقراءة:
 
-- `../../docs/product/problem-statement-v3.md`
+- `../../docs/product/problem-statement-v4.md`
 - `../../docs/product/system-definition-v1.md`
 - `../../docs/product/user-operating-model-v1.md`
 - `../../docs/product/financial-operating-model-v1.md`
 - `../../docs/product/guidance-interaction-policy-v1.md`
+- `../../docs/product/activity-profiles-and-hybrid-projects-v1.md` قبل أي Profile أو مشروع مختلط
 - `../../docs/scenarios/scenario-test-set-v1.md`
 - `../../docs/scenarios/scenario-test-results-v1.md`
 - `../../docs/quality/scenario-coverage-matrix-v1.md`

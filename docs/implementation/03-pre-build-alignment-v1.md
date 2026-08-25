@@ -84,14 +84,14 @@
 
 ## ترتيب ما بعد البوابة
 
-بعد اجتياز البوابة، يبنى Adapter محلي وUse Cases وواجهة هاتف لمسار الحرفة فقط. ثم تُشغّل الحالات المالية المرجعية واختبارات RTL والاستعادة المحلية. بعد إثبات الفهم والإنجاز، يقرر الفريق هل يضيف Profile ثانيًا أو SaaS Boundary. لا تُبنى طبقات SaaS أو تقارير عامة لمجرد أنها جزء من صورة Micro النهائية.
+بعد اجتياز البوابة، يبنى Adapter محلي وUse Cases وواجهة هاتف لمسار الحرفة فقط. ثم تُشغّل الحالات المالية المرجعية واختبارات RTL والاستعادة المحلية. بعد إثبات الفهم والإنجاز، يختار الفريق — بناءً على G15/G16 — Profile واحدًا أو SaaS Boundary؛ لا يُفترض طعام أو خدمة تلقائيًا، ولا يركب مشروع مختلط قبل عقد سياق الواقعة والمورد المشترك. لا تُبنى طبقات SaaS أو تقارير عامة لمجرد أنها جزء من صورة Micro النهائية.
 
 ## مراجع إلزامية
 
 - `docs/implementation/prototype-build-charter-v1.md`
 
 
-- `docs/product/problem-statement-v3.md`
+- `docs/product/problem-statement-v4.md`
 - `docs/product/system-definition-v1.md`
 - `docs/product/user-operating-model-v1.md`
 - `docs/product/financial-operating-model-v1.md`

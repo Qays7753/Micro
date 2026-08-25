@@ -99,7 +99,7 @@
 
 | المسار | الوظيفة |
 |---|---|
-| `docs/product/problem-statement-v3.md` | المشكلة والأضرار والأسئلة الأساسية |
+| `docs/product/problem-statement-v4.md` | المشكلة والأضرار والأسئلة الأساسية، والنواة العامة والـProfiles والمشاريع المختلطة |
 | `docs/product/system-definition-v1.md` | تعريف Micro وحدوده وقيمته |
 | `docs/product/user-operating-model-v1.md` | الاستخدام اليومي والأسبوعي والشهري |
 | `docs/product/financial-operating-model-v1.md` | المعالجة المالية الداخلية وحدودها |

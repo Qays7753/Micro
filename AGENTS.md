@@ -17,7 +17,7 @@
 3. `docs/01-product-and-technical-blueprint.md` لتعريف Micro والمنتج والمراحل والمعمارية.
 4. `docs/implementation/03-pre-build-alignment-v1.md` لفهم الفرق بين المنتج الكامل وPrototype المرحلة 2 وMVP التجاري اللاحق.
 5. `docs/research/global-build-reference-library-v1.md` لفهم المصادر العالمية والمنطق المستخلص والتراخيص، ثم `docs/research/micro-build-logic-v1.md` لمعرفة ما يدخل كل مرحلة.
-6. `docs/product/problem-statement-v3.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/product/financial-operating-model-v1.md` و`docs/product/guidance-interaction-policy-v1.md`.
+6. `docs/product/problem-statement-v4.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/product/financial-operating-model-v1.md` و`docs/product/guidance-interaction-policy-v1.md` و`docs/product/activity-profiles-and-hybrid-projects-v1.md`.
 7. `docs/contracts/`، وبالأخص `docs/contracts/05-financial-p0-policies.md` عند أي قرار متعلق بالتكلفة أو السعر أو الربح أو الكاش أو المصاريف.
 8. `docs/implementation/02-domain-contract-coverage.md` لمعرفة الفرق بين العقد الكامل وما ينفذه Domain Core حاليًا.
 9. `docs/product/mobile-ui-ux-reference-v1.md` لتثبيت عقد الهاتف والـRTL والمكونات والحالات والصدق المالي في الواجهة.
