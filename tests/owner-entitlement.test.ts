@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateOwnerEntitlement, createOwnerEntitlementOpeningBalance, createOwnerEntitlementOpeningBalanceReversal, createOwnerEntitlementPolicy, createOwnerEntitlementRecord, createOwnerEntitlementRecordReversal, createOwnerMovement, createOwnerMovementReversal } from "../src/domain/owner-entitlement/index.js";
+import { calculateOwnerEntitlement, createOwnerEntitlementOpeningBalance, createOwnerEntitlementOpeningBalanceReversal, createOwnerEntitlementPolicy, createOwnerEntitlementPolicySuccessor, createOwnerEntitlementRecord, createOwnerEntitlementRecordReversal, createOwnerMovement, createOwnerMovementReversal, ownerEntitlementPolicyFamilyForKind } from "../src/domain/owner-entitlement/index.js";
 
 const basePolicy = { id: "policy-1", version: 1, family: "time_period" as const, kind: "monthly" as const, amountMinor: 1500, percentageBps: null, unitLabel: null, startsOn: "2026-08-01", endsOn: null, source: "اتفاق المالك", note: "استحقاق شهري", status: "active" as const, idempotencyKey: "policy-1", createdAt: "2026-08-01T08:00:00.000Z" };
 
@@ -10,6 +10,13 @@ describe("owner entitlement Domain", () => {
     const policy = createOwnerEntitlementPolicy(basePolicy);
     expect(policy.seriesId).toBe(policy.id);
     expect(calculateOwnerEntitlement(policy, { periodFrom: "2026-08-01", periodTo: "2026-08-31" })).toMatchObject({ amountMinor: 1500, knowledge: "known", calculationBasis: "time_period" });
+  });
+
+  it("derives the family from edited successor kind and validates its terms", () => {
+    const successor = createOwnerEntitlementPolicySuccessor({ id: "successor-sale", seriesId: "policy-1", successorOfPolicyId: "policy-1", version: 2, kind: "sale_percentage", amountMinor: null, percentageBps: 1000, unitLabel: null, startsOn: "2026-09-01", endsOn: null, source: "تعديل", note: "نسبة بيع", status: "active", idempotencyKey: "successor-sale", createdAt: "2026-09-01T08:00:00.000Z" });
+    expect(successor).toMatchObject({ family: "completed_sale_percentage", kind: "sale_percentage", amountMinor: null, percentageBps: 1000 });
+    expect(ownerEntitlementPolicyFamilyForKind("per_unit")).toBe("unit");
+    expect(() => createOwnerEntitlementPolicySuccessor({ id: "successor-unit", seriesId: "policy-1", successorOfPolicyId: "policy-1", version: 2, kind: "per_unit", amountMinor: 100, percentageBps: null, unitLabel: null, startsOn: "2026-09-01", endsOn: null, source: "تعديل", note: "بدون وحدة", status: "active", idempotencyKey: "successor-unit", createdAt: "2026-09-01T08:00:00.000Z" })).toThrow("unitLabel");
   });
 
   it("requires complete local periods for monthly, weekly, and daily policies", () => {

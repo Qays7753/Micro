@@ -43,17 +43,49 @@ describe("OwnerEntitlementService", () => {
     expect(await movement(service, { kind: "draw", amountMinor: 1001, walletId: "wallet-1", occurredOn: "2026-08-31", reason: "entitlement_settlement", note: "سحب زائد", idempotencyKey: "draw-too-much", relatedEntitlementId: entitlement.value.id })).toMatchObject({ ok: false, code: "validation_error" });
   });
 
-  it("creates a dated successor without changing the old policy or its entitlement", async () => {
+  it("creates a successor with a changed amount and calculates only the new future period", async () => {
     const { service } = await setup();
     const independent = await service.createPolicy({ ...monthlyPolicy, id: "policy-independent", idempotencyKey: "policy-independent-op", source: "اتفاق مستقل", note: "سلسلة مستقلة" }); expect(independent.ok).toBe(true);
     const oldEntitlement = await service.recordEntitlement({ policyId: "policy-1", periodFrom: "2026-08-01", periodTo: "2026-08-31", occurredOn: "2026-08-31", note: "حق النسخة القديمة", idempotencyKey: "old-entitlement" }); if (!oldEntitlement.ok) throw new Error("old entitlement should succeed");
-    const successor = await service.createPolicySuccessor("policy-1", { startsOn: "2026-09-01", source: "تعديل اتفاق", note: "زيادة من أيلول", idempotencyKey: "successor-op" });
-    expect(successor).toMatchObject({ ok: true, value: { version: 2, successorOfPolicyId: "policy-1", startsOn: "2026-09-01" } });
-    const repeated = await service.createPolicySuccessor("policy-1", { startsOn: "2026-09-01", source: "تعديل اتفاق", note: "زيادة من أيلول", idempotencyKey: "successor-op" }); expect(repeated).toMatchObject({ ok: true, reused: true });
-    const policies = await service.readOverview(); if (!policies.ok || !successor.ok) throw new Error("overview should succeed");
-    expect(policies.value.policies.find(policy => policy.id === "policy-1")).toMatchObject({ status: "ended", endsOn: "2026-08-31" });
-    expect(policies.value.entitlements.find(record => record.id === oldEntitlement.value.id)).toMatchObject({ policyId: "policy-1", policyVersion: 1 });
-    expect(await service.createPolicySuccessor("policy-1", { startsOn: "2026-09-01", source: "تعديل ثان", note: "يجب رفضه", idempotencyKey: "successor-2" })).toMatchObject({ ok: false, code: "validation_error" });
+    const successor = await service.createPolicySuccessor("policy-1", { kind: "monthly", amountMinor: 2000, percentageBps: null, unitLabel: null, endsOn: null, startsOn: "2026-09-01", source: "تعديل اتفاق", note: "رفع مبلغ أيلول", idempotencyKey: "successor-op" });
+    expect(successor).toMatchObject({ ok: true, value: { version: 2, successorOfPolicyId: "policy-1", startsOn: "2026-09-01", amountMinor: 2000, kind: "monthly", family: "time_period" } }); if (!successor.ok) throw new Error("successor should succeed");
+    const repeated = await service.createPolicySuccessor("policy-1", { kind: "monthly", amountMinor: 2000, percentageBps: null, unitLabel: null, endsOn: null, startsOn: "2026-09-01", source: "تعديل اتفاق", note: "رفع مبلغ أيلول", idempotencyKey: "successor-op" }); expect(repeated).toMatchObject({ ok: true, reused: true });
+    const policies = await service.readOverview(); if (!policies.ok) throw new Error("overview should succeed");
+    expect(policies.value.policies.find(policy => policy.id === "policy-1")).toMatchObject({ status: "ended", endsOn: "2026-08-31", amountMinor: 1500 });
+    expect(policies.value.entitlements.find(record => record.id === oldEntitlement.value.id)).toMatchObject({ policyId: "policy-1", policyVersion: 1, amountMinor: 1500 });
+    expect(await service.calculate(successor.value.id, "2026-09-01", "2026-09-30")).toMatchObject({ ok: true, value: { amountMinor: 2000, knowledge: "known" } });
+    expect(await service.createPolicySuccessor("policy-1", { kind: "monthly", amountMinor: 2500, percentageBps: null, unitLabel: null, endsOn: null, startsOn: "2026-09-01", source: "تعديل ثان", note: "يجب رفضه", idempotencyKey: "successor-2" })).toMatchObject({ ok: false, code: "validation_error" });
+  });
+
+  it("supports changing the successor family to sale percentage and profit share without using cash", async () => {
+    const saleSetup = await setup();
+    const sale = await saleSetup.service.createPolicySuccessor("policy-1", { kind: "sale_percentage", amountMinor: null, percentageBps: 1000, unitLabel: null, endsOn: null, startsOn: "2026-09-01", source: "تعديل نسبة البيع", note: "نسبة من البيع المكتمل", idempotencyKey: "sale-successor" });
+    expect(sale).toMatchObject({ ok: true, value: { kind: "sale_percentage", family: "completed_sale_percentage", amountMinor: null, percentageBps: 1000 } });
+    const profitSetup = await setup();
+    const profit = await profitSetup.service.createPolicySuccessor("policy-1", { kind: "profit_share", amountMinor: null, percentageBps: 2500, unitLabel: null, endsOn: null, startsOn: "2026-09-01", source: "تعديل مشاركة الربح", note: "نسبة من نتيجة G3", idempotencyKey: "profit-successor" }); if (!profit.ok) throw new Error("profit successor should succeed");
+    expect(profit.value.family).toBe("profit_share");
+    expect(await profitSetup.service.calculate(profit.value.id, "2026-09-01", "2026-09-30")).toMatchObject({ ok: true, value: { amountMinor: 250, baseMinor: 1000, calculationBasis: "profit_share" } });
+  });
+
+  it("requires explicit fixed-period and unit terms and keeps missing evidence incomplete", async () => {
+    const fixedSetup = await setup();
+    expect(await fixedSetup.service.createPolicySuccessor("policy-1", { kind: "fixed_period", amountMinor: 2200, percentageBps: null, unitLabel: null, endsOn: null, startsOn: "2026-09-01", source: "فترة ثابتة", note: "ينقصها نطاق", idempotencyKey: "fixed-missing-end" })).toMatchObject({ ok: false, code: "validation_error" });
+    const fixed = await fixedSetup.service.createPolicySuccessor("policy-1", { kind: "fixed_period", amountMinor: 2200, percentageBps: null, unitLabel: null, endsOn: "2026-09-30", startsOn: "2026-09-01", source: "فترة ثابتة", note: "نطاق أيلول المعلن", idempotencyKey: "fixed-successor" }); if (!fixed.ok) throw new Error("fixed successor should succeed");
+    expect(await fixedSetup.service.calculate(fixed.value.id, "2026-09-01", "2026-09-30")).toMatchObject({ ok: true, value: { amountMinor: 2200, knowledge: "known" } });
+    const unitSetup = await setup();
+    expect(await unitSetup.service.createPolicySuccessor("policy-1", { kind: "per_unit", amountMinor: 100, percentageBps: null, unitLabel: null, endsOn: null, startsOn: "2026-09-01", source: "تعديل وحدة", note: "ينقصها تعريف الوحدة", idempotencyKey: "unit-missing" })).toMatchObject({ ok: false, code: "validation_error" });
+    const unit = await unitSetup.service.createPolicySuccessor("policy-1", { kind: "per_unit", amountMinor: 100, percentageBps: null, unitLabel: "قطعة مكتملة", endsOn: null, startsOn: "2026-09-01", source: "تعديل وحدة", note: "مبلغ لكل قطعة", idempotencyKey: "unit-successor" }); if (!unit.ok) throw new Error("unit successor should succeed");
+    expect(unit.value.family).toBe("unit");
+    expect(await unitSetup.service.calculate(unit.value.id, "2026-09-01", "2026-09-30")).toMatchObject({ ok: true, value: { amountMinor: null, knowledge: "incomplete" } });
+  });
+
+  it("rejects invalid successor dates, ended origins, and malformed edited values without mutation", async () => {
+    const { service } = await setup();
+    expect(await service.createPolicySuccessor("policy-1", { kind: "monthly", amountMinor: 2000, percentageBps: null, unitLabel: null, endsOn: null, startsOn: "2026-07-01", source: "تعديل", note: "بداية غير صالحة", idempotencyKey: "bad-start" })).toMatchObject({ ok: false, code: "validation_error" });
+    expect(await service.createPolicySuccessor("policy-1", { kind: "monthly", amountMinor: 2000, percentageBps: null, unitLabel: null, endsOn: "2026-08-31", startsOn: "2026-09-01", source: "تعديل", note: "نهاية غير صالحة", idempotencyKey: "bad-end" })).toMatchObject({ ok: false, code: "validation_error" });
+    const valid = await service.createPolicySuccessor("policy-1", { kind: "monthly", amountMinor: 2000, percentageBps: null, unitLabel: null, endsOn: null, startsOn: "2026-09-01", source: "تعديل", note: "خليفة صحيحة", idempotencyKey: "valid-successor" }); if (!valid.ok) throw new Error("valid successor should succeed");
+    expect(await service.createPolicySuccessor("policy-1", { kind: "monthly", amountMinor: 3000, percentageBps: null, unitLabel: null, endsOn: null, startsOn: "2026-10-01", source: "تعديل", note: "الأصل منته", idempotencyKey: "ended-origin" })).toMatchObject({ ok: false, code: "validation_error" });
+    const policies = await service.readOverview(); if (!policies.ok) throw new Error("overview should succeed"); expect(policies.value.policies).toHaveLength(2);
   });
 
   it("settles positive opening balances partially and fully, with source bounds", async () => {

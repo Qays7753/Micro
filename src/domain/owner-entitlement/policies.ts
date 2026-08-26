@@ -1,9 +1,10 @@
-import type { OwnerEntitlementKnowledge, OwnerEntitlementOpeningBalance, OwnerEntitlementOpeningBalanceReversalInput, OwnerEntitlementPolicy, OwnerEntitlementPolicyFamily, OwnerEntitlementPolicyKind, OwnerEntitlementRecord, OwnerEntitlementRecordReversalInput, OwnerMovement, CreateOwnerEntitlementPolicyInput, CreateOwnerMovementInput, CreateOwnerMovementReversalInput } from "./types.js";
+import type { OwnerEntitlementKnowledge, OwnerEntitlementOpeningBalance, OwnerEntitlementOpeningBalanceReversalInput, OwnerEntitlementPolicy, OwnerEntitlementPolicyFamily, OwnerEntitlementPolicyKind, OwnerEntitlementRecord, OwnerEntitlementRecordReversalInput, OwnerMovement, CreateOwnerEntitlementPolicyInput, CreateOwnerEntitlementPolicySuccessorInput, CreateOwnerMovementInput, CreateOwnerMovementReversalInput } from "./types.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const policyKinds = ["monthly", "weekly", "daily", "hourly", "fixed_period", "fixed_shift", "per_completed_work", "profit_share", "sale_percentage", "per_unit"] as const;
 const policyFamilies = ["time_period", "fixed_amount", "completed_work", "profit_share", "completed_sale_percentage", "unit"] as const;
 const movementReasons = ["entitlement_settlement", "opening_balance_settlement", "pre_entitlement_draw", "owner_draw", "settlement_of_prior_draw", "new_capital_investment"] as const;
+const familyByKind: Record<OwnerEntitlementPolicyKind, OwnerEntitlementPolicyFamily> = { monthly: "time_period", weekly: "time_period", daily: "time_period", hourly: "time_period", fixed_period: "fixed_amount", fixed_shift: "fixed_amount", per_completed_work: "completed_work", profit_share: "profit_share", sale_percentage: "completed_sale_percentage", per_unit: "unit" };
 
 function nonBlank(value: string, field: string) { if (!value.trim()) throw new Error(`${field} is required`); }
 function date(value: string, field: string) { if (!DATE_PATTERN.test(value)) throw new Error(`${field} must be a valid local date`); const [year, month, day] = value.split("-").map(Number); const parsed = new Date(Date.UTC(year!, month! - 1, day)); if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month! - 1 || parsed.getUTCDate() !== day) throw new Error(`${field} must be a valid local date`); }
@@ -11,10 +12,11 @@ function iso(value: string, field: string) { if (Number.isNaN(Date.parse(value))
 function positiveMinor(value: number | null, field: string) { if (value === null || !Number.isInteger(value) || value <= 0) throw new Error(`${field} must be a positive integer or null`); }
 function optionalPositiveMinor(value: number | null, field: string) { if (value !== null && (!Number.isInteger(value) || value <= 0)) throw new Error(`${field} must be a positive integer or null`); }
 function bps(value: number | null, field: string) { if (value !== null && (!Number.isInteger(value) || value < 1 || value > 10_000)) throw new Error(`${field} must be between 1 and 10000 or null`); }
-function assertPolicyFamily(kind: OwnerEntitlementPolicyKind, family: OwnerEntitlementPolicyFamily) {
-  const expected: Record<OwnerEntitlementPolicyKind, OwnerEntitlementPolicyFamily> = { monthly: "time_period", weekly: "time_period", daily: "time_period", hourly: "time_period", fixed_period: "fixed_amount", fixed_shift: "fixed_amount", per_completed_work: "completed_work", profit_share: "profit_share", sale_percentage: "completed_sale_percentage", per_unit: "unit" };
-  if (expected[kind] !== family) throw new Error("policy family does not match kind");
+export function ownerEntitlementPolicyFamilyForKind(kind: OwnerEntitlementPolicyKind): OwnerEntitlementPolicyFamily {
+  if (!(policyKinds as readonly string[]).includes(kind)) throw new Error("policy kind is invalid");
+  return familyByKind[kind];
 }
+function assertPolicyFamily(kind: OwnerEntitlementPolicyKind, family: OwnerEntitlementPolicyFamily) { if (ownerEntitlementPolicyFamilyForKind(kind) !== family) throw new Error("policy family does not match kind"); }
 function sourceKeys(value: readonly string[] | undefined | null, field: string) {
   const keys = value ?? [];
   if (!Array.isArray(keys) || keys.some(key => typeof key !== "string" || !key.trim()) || new Set(keys).size !== keys.length) throw new Error(`${field} must contain unique non-empty strings`);
@@ -50,8 +52,8 @@ export function createOwnerEntitlementPolicy(input: CreateOwnerEntitlementPolicy
   return Object.freeze({ ...input, seriesId, successorOfPolicyId, amountMinor: input.amountMinor ?? null, percentageBps: input.percentageBps ?? null, unitLabel: input.unitLabel?.trim() || null, source: input.source.trim(), note: input.note.trim() });
 }
 
-export function createOwnerEntitlementPolicySuccessor(input: CreateOwnerEntitlementPolicyInput): OwnerEntitlementPolicy {
-  const successor = createOwnerEntitlementPolicy(input);
+export function createOwnerEntitlementPolicySuccessor(input: CreateOwnerEntitlementPolicySuccessorInput): OwnerEntitlementPolicy {
+  const successor = createOwnerEntitlementPolicy({ ...input, family: ownerEntitlementPolicyFamilyForKind(input.kind) });
   if (!successor.successorOfPolicyId) throw new Error("policy successor requires successorOfPolicyId");
   return successor;
 }
