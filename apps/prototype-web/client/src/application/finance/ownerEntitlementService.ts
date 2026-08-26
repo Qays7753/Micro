@@ -1,5 +1,5 @@
 import { createCashContinuityEntry, type CashContinuityEntry, type CashWallet } from "@micro-domain/cash-continuity/index.js";
-import { calculateOwnerEntitlement, createOwnerEntitlementOpeningBalance, createOwnerEntitlementOpeningBalanceReversal, createOwnerEntitlementPolicy, createOwnerEntitlementRecord, createOwnerEntitlementRecordReversal, createOwnerMovement, createOwnerMovementReversal, isPolicyEffective, type OwnerEntitlementEvidence, type OwnerEntitlementOpeningBalance, type OwnerEntitlementPolicy, type OwnerEntitlementRecord, type OwnerMovement, type OwnerMovementReason, type CreateOwnerEntitlementPolicyInput } from "@micro-domain/owner-entitlement/index.js";
+import { calculateOwnerEntitlement, createOwnerEntitlementOpeningBalance, createOwnerEntitlementOpeningBalanceReversal, createOwnerEntitlementPolicy, createOwnerEntitlementPolicySuccessor, createOwnerEntitlementRecord, createOwnerEntitlementRecordReversal, createOwnerMovement, createOwnerMovementReversal, isPolicyEffective, type OwnerEntitlementEvidence, type OwnerEntitlementOpeningBalance, type OwnerEntitlementPolicy, type OwnerEntitlementRecord, type OwnerMovement, type OwnerMovementReason, type CreateOwnerEntitlementPolicyInput, type OwnerEntitlementPolicyTerms } from "@micro-domain/owner-entitlement/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
 export type OwnerEntitlementResult<T> = { ok: true; value: T; reused?: boolean } | { ok: false; code: "validation_error" | "storage_error"; message: string };
@@ -26,7 +26,7 @@ export type OwnerEntitlementOverview = {
   nextAction: string;
 };
 export type OwnerPolicyInput = Omit<CreateOwnerEntitlementPolicyInput, "createdAt">;
-export type OwnerPolicySuccessorInput = { startsOn: string; source: string; note: string; idempotencyKey: string };
+export type OwnerPolicySuccessorInput = OwnerEntitlementPolicyTerms & { startsOn: string; source: string; note: string; idempotencyKey: string };
 export type OwnerEntitlementRecordInput = { policyId: string; periodFrom: string; periodTo: string; occurredOn: string; note: string; idempotencyKey: string; evidence?: OwnerEntitlementEvidence };
 export type OwnerOpeningBalanceInput = Omit<OwnerEntitlementOpeningBalance, "recordedAt" | "reversalOfId" | "reversalReason">;
 export type OwnerMovementInput = { kind: "draw" | "return"; amountMinor: number; walletId: string; occurredOn: string; reason: OwnerMovementReason; note: string; idempotencyKey: string; relatedEntitlementId?: string | null; relatedOpeningBalanceId?: string | null; relatedMovementId?: string | null };
@@ -40,6 +40,7 @@ const failure = <T,>(message = "تعذر قراءة السجل المحلي."): 
 const localDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T12:00:00.000Z`).getTime()) && new Date(`${value}T12:00:00.000Z`).toISOString().slice(0, 10) === value;
 const ammanDate = (timestamp: string) => { const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(timestamp)); const part = (type: string) => parts.find(entry => entry.type === type)?.value; return `${part("year")}-${part("month")}-${part("day")}`; };
 const dayBefore = (value: string) => { const date = new Date(`${value}T12:00:00.000Z`); date.setUTCDate(date.getUTCDate() - 1); return date.toISOString().slice(0, 10); };
+const dayAfter = (value: string) => { const date = new Date(`${value}T12:00:00.000Z`); date.setUTCDate(date.getUTCDate() + 1); return date.toISOString().slice(0, 10); };
 const rangesOverlap = (leftFrom: string, leftTo: string | null, rightFrom: string, rightTo: string | null) => leftFrom <= (rightTo ?? "9999-12-31") && rightFrom <= (leftTo ?? "9999-12-31");
 const periodExclusive = (kind: OwnerEntitlementPolicy["kind"]) => kind === "monthly" || kind === "weekly" || kind === "daily" || kind === "fixed_period" || kind === "profit_share";
 const activeOriginals = <T extends { id: string; reversalOfId: string | null }>(values: readonly T[]) => { const reversed = new Set(values.filter(value => value.reversalOfId !== null).map(value => value.reversalOfId)); return values.filter(value => value.reversalOfId === null && !reversed.has(value.id)); };
@@ -87,16 +88,23 @@ export class OwnerEntitlementService {
     const repeated = policies.value.find(policy => policy.idempotencyKey === input.idempotencyKey); if (repeated) return { ok: true, value: repeated, reused: true };
     const previous = policies.value.find(policy => policy.id === policyId); if (!previous) return { ok: false, code: "validation_error", message: "لم نجد السياسة الأصلية لإنشاء خليفة لها." };
     if (previous.status !== "active") return { ok: false, code: "validation_error", message: "لا يمكن إنشاء خليفة من سياسة منتهية؛ اختر النسخة الفعالة الأخيرة." };
+    if (previous.endsOn !== null && ammanDate(this.now()) > previous.endsOn) return { ok: false, code: "validation_error", message: "انتهت السياسة تاريخيًا؛ لا يوسّع النظام سياسة منتهية بصمت. أنشئ سياسة مستقلة بقرار جديد." };
     if (!localDate(input.startsOn) || input.startsOn <= previous.startsOn) return { ok: false, code: "validation_error", message: "تاريخ نفاذ الخليفة يجب أن يكون محليًا وبعد بداية السياسة الأصلية." };
+    if (previous.endsOn !== null && input.startsOn > dayAfter(previous.endsOn)) return { ok: false, code: "validation_error", message: "تاريخ الخليفة يتجاوز نهاية السياسة الأصلية ويترك فجوة؛ اختر تاريخ النهاية التالي أو أنشئ سياسة مستقلة." };
+    if (!input.source.trim() || !input.note.trim()) return { ok: false, code: "validation_error", message: "سبب التعديل وملاحظة الخليفة إلزاميان." };
     const later = policies.value.find(policy => policy.seriesId === previous.seriesId && policy.id !== previous.id && policy.startsOn >= input.startsOn);
     if (later) return { ok: false, code: "validation_error", message: "توجد نسخة لاحقة في السلسلة من هذا التاريخ؛ لا ينشئ النظام خليفة متداخلًا." };
     try {
-      const successor = createOwnerEntitlementPolicy({ id: id("owner-policy"), seriesId: previous.seriesId, successorOfPolicyId: previous.id, version: previous.version + 1, family: previous.family, kind: previous.kind, amountMinor: previous.amountMinor, percentageBps: previous.percentageBps, unitLabel: previous.unitLabel, startsOn: input.startsOn, endsOn: null, source: input.source, note: input.note, status: "active", idempotencyKey: input.idempotencyKey, createdAt: this.now() });
+      const successor = createOwnerEntitlementPolicySuccessor({ id: id("owner-policy"), seriesId: previous.seriesId, successorOfPolicyId: previous.id, version: previous.version + 1, kind: input.kind, amountMinor: input.amountMinor, percentageBps: input.percentageBps, unitLabel: input.unitLabel, startsOn: input.startsOn, endsOn: input.endsOn, source: input.source, note: input.note, status: "active", idempotencyKey: input.idempotencyKey, createdAt: this.now() });
       const ended = createOwnerEntitlementPolicy({ ...previous, endsOn: dayBefore(input.startsOn), status: "ended" });
-      if (ended.endsOn! < ended.startsOn) return { ok: false, code: "validation_error", message: "تاريخ نفاذ الخليفة يقع قبل بداية السياسة الأصلية." };
+      if (ended.endsOn! < ended.startsOn) return { ok: false, code: "validation_error", message: "تاريخ نفاذ الخليفة يقع قبل بداية السياسة الأصلية؛ لم تتغير السلسلة." };
       const saved = await this.store.commitOwnerEntitlementPolicySuccessor(ended, successor);
       return saved.ok ? { ok: true, value: saved.value.successor } : failure("تعذر حفظ خليفة السياسة ذريًا؛ بقيت السلسلة دون تغيير.");
-    } catch (error) { return { ok: false, code: "validation_error", message: error instanceof Error ? error.message : "بيانات خليفة السياسة غير صالحة." }; }
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : "";
+      const message = raw.includes("fixed_period") ? "الخليفة من نوع مبلغ ثابت للفترة تحتاج تاريخ نهاية معلنًا." : raw.includes("unitLabel") ? "الخليفة لكل وحدة أو عمل مكتمل تحتاج تسمية وحدة صريحة." : raw.includes("percentageBps") ? "أدخل نسبة صحيحة بين 0.01% و100%." : raw.includes("amountMinor") ? "أدخل مبلغًا موجبًا بوحدة JOD minor." : raw.includes("policy kind") ? "نوع الخليفة غير مدعوم أو لا يملك دليلًا مكتملًا في O1." : "بيانات خليفة السياسة غير صالحة؛ لم تتغير النسخة السابقة.";
+      return { ok: false, code: "validation_error", message };
+    }
   }
 
   async calculate(policyId: string, periodFrom: string, periodTo: string): Promise<OwnerEntitlementResult<ReturnType<typeof calculateOwnerEntitlement>>> {

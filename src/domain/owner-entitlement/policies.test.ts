@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateOwnerEntitlement, createOwnerEntitlementPolicy, createOwnerMovement, createOwnerMovementReversal } from "./index.js";
+import { calculateOwnerEntitlement, createOwnerEntitlementPolicy, createOwnerEntitlementPolicySuccessor, createOwnerMovement, createOwnerMovementReversal, ownerEntitlementPolicyFamilyForKind } from "./index.js";
 
 const basePolicy = { id: "policy-1", version: 1, family: "time_period" as const, kind: "monthly" as const, amountMinor: 1500, percentageBps: null, unitLabel: null, startsOn: "2026-08-01", endsOn: null, source: "اتفاق المالك", note: "استحقاق شهري", status: "active" as const, idempotencyKey: "policy-1", createdAt: "2026-08-01T08:00:00.000Z" };
 
@@ -11,6 +11,13 @@ describe("owner entitlement Domain", () => {
     const bounded = createOwnerEntitlementPolicy({ ...basePolicy, id: "bounded", endsOn: "2026-08-25", idempotencyKey: "bounded" });
     expect(calculateOwnerEntitlement(bounded, { periodFrom: "2026-08-01", periodTo: "2026-08-31" })).toMatchObject({ amountMinor: null, knowledge: "incomplete" });
     expect(() => createOwnerEntitlementPolicy({ ...basePolicy, id: "policy-2", version: 2, startsOn: "2026-09-01", amountMinor: 2000, idempotencyKey: "policy-2" })).not.toThrow();
+  });
+
+  it("derives successor family from the new kind and requires an explicit unit", () => {
+    const successor = createOwnerEntitlementPolicySuccessor({ id: "successor-sale", seriesId: "policy-1", successorOfPolicyId: "policy-1", version: 2, kind: "sale_percentage", amountMinor: null, percentageBps: 1000, unitLabel: null, startsOn: "2026-09-01", endsOn: null, source: "تعديل", note: "نسبة بيع", status: "active", idempotencyKey: "successor-sale", createdAt: "2026-09-01T08:00:00.000Z" });
+    expect(successor.family).toBe("completed_sale_percentage");
+    expect(ownerEntitlementPolicyFamilyForKind("fixed_period")).toBe("fixed_amount");
+    expect(() => createOwnerEntitlementPolicySuccessor({ id: "successor-unit", seriesId: "policy-1", successorOfPolicyId: "policy-1", version: 2, kind: "per_unit", amountMinor: 100, percentageBps: null, unitLabel: null, startsOn: "2026-09-01", endsOn: null, source: "تعديل", note: "بدون وحدة", status: "active", idempotencyKey: "successor-unit", createdAt: "2026-09-01T08:00:00.000Z" })).toThrow("unitLabel");
   });
 
   it("does not turn missing hourly time or missing units into zero", () => {

@@ -29,6 +29,13 @@ export type CreateOwnerEntitlementPolicyInput = Omit<OwnerEntitlementPolicy, "cr
   successorOfPolicyId?: string | null;
 };
 
+/** Terms that a dated successor may change without rewriting its predecessor. */
+export type OwnerEntitlementPolicyTerms = Pick<OwnerEntitlementPolicy, "kind" | "amountMinor" | "percentageBps" | "unitLabel" | "endsOn">;
+
+export type CreateOwnerEntitlementPolicySuccessorInput = Omit<OwnerEntitlementPolicy, "family" | "createdAt"> & {
+  createdAt: string;
+};
+
 export type OwnerEntitlementRecord = {
   id: string;
   policyId: string;
