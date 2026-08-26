@@ -11,6 +11,7 @@ import { PreferenceService } from "@/application/preferences/preferenceService";
 import { ProfileService } from "@/application/profile/profileService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import { HomeControlCenterService } from "@/application/home/homeControlCenterService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
@@ -23,7 +24,7 @@ import { ActualTimeService } from "@/application/time/actualTimeService";
 import { G5Service } from "@/application/g5/g5Service";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 
-type PrototypeServices = { profiles: ProfileService; preferences: PreferenceService; actualTime: ActualTimeService; drafts: DraftService; costs: CostService; agreements: AgreementService; agreementContext: AgreementContextService; financialPulse: FinancialPulseService; projectFinance: ProjectFinancialService; g5: G5Service; supplierPurchases: SupplierPurchaseService; cashContinuity: CashContinuityService; inventory: InventoryMaterialService; catalog: CatalogService; dailyFollowUp: DailyFollowUpService; homeControlCenter: HomeControlCenterService; schedules: ScheduleService; recurrences: ScheduleRecurrenceService; fulfillment: FulfillmentService; transfers: LocalTransferService; guidedOpeningImport: GuidedOpeningImportService; dataVersion: number; notifyDataChanged: () => void };
+type PrototypeServices = { profiles: ProfileService; preferences: PreferenceService; actualTime: ActualTimeService; drafts: DraftService; costs: CostService; agreements: AgreementService; agreementContext: AgreementContextService; financialPulse: FinancialPulseService; projectFinance: ProjectFinancialService; ownerEntitlement: OwnerEntitlementService; g5: G5Service; supplierPurchases: SupplierPurchaseService; cashContinuity: CashContinuityService; inventory: InventoryMaterialService; catalog: CatalogService; dailyFollowUp: DailyFollowUpService; homeControlCenter: HomeControlCenterService; schedules: ScheduleService; recurrences: ScheduleRecurrenceService; fulfillment: FulfillmentService; transfers: LocalTransferService; guidedOpeningImport: GuidedOpeningImportService; dataVersion: number; notifyDataChanged: () => void };
 const PrototypeServicesContext = createContext<PrototypeServices | undefined>(undefined);
 
 export function PrototypeServicesProvider({ children }: { children: ReactNode }) {
@@ -32,6 +33,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     const store = createBrowserLocalStore();
     const costs = new CostService(store);
     const projectFinance = new ProjectFinancialService(store);
+    const ownerEntitlement = new OwnerEntitlementService(store, (from, to) => projectFinance.readRecordedPeriodResult(from, to));
     const g5 = new G5Service(store, projectFinance);
     const schedules = new ScheduleService(store);
     const recurrences = new ScheduleRecurrenceService(store);
@@ -39,7 +41,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     const dailyFollowUp = new DailyFollowUpService(store);
     const supplierPurchases = new SupplierPurchaseService(store);
     const inventory = new InventoryMaterialService(store);
-    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), actualTime: new ActualTimeService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), agreementContext, financialPulse: new FinancialPulseService(store), projectFinance, g5, supplierPurchases, cashContinuity: new CashContinuityService(store), inventory, catalog: new CatalogService(store), dailyFollowUp, homeControlCenter: new HomeControlCenterService(store, dailyFollowUp, projectFinance, supplierPurchases, inventory), schedules, recurrences, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), guidedOpeningImport: new GuidedOpeningImportService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
+    return { profiles: new ProfileService(store), preferences: new PreferenceService(store), actualTime: new ActualTimeService(store), drafts: new DraftService(store), costs, agreements: new AgreementService(store, costs), agreementContext, financialPulse: new FinancialPulseService(store), projectFinance, ownerEntitlement, g5, supplierPurchases, cashContinuity: new CashContinuityService(store), inventory, catalog: new CatalogService(store), dailyFollowUp, homeControlCenter: new HomeControlCenterService(store, dailyFollowUp, projectFinance, supplierPurchases, inventory), schedules, recurrences, fulfillment: new FulfillmentService(store, undefined, schedules), transfers: new LocalTransferService(store), guidedOpeningImport: new GuidedOpeningImportService(store), dataVersion, notifyDataChanged: () => setDataVersion(version => version + 1) };
   }, [dataVersion]);
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }

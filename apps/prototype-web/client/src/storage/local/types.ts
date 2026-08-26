@@ -10,12 +10,13 @@ import type { InventoryMovement, Material } from "@micro-domain/inventory-materi
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
+import type { OwnerEntitlementOpeningBalance, OwnerEntitlementPolicy, OwnerEntitlementRecord, OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 
-export const localSchemaVersion = 21;
+export const localSchemaVersion = 22;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 12;
+export const localExportVersion = 13;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
@@ -37,7 +38,7 @@ export type ScheduleRecurrenceFrequency = "weekly" | "monthly";
 export type ScheduleRecurrenceStatus = "active" | "cancelled";
 export type ScheduleRecurrence = { id: string; sourceScheduleId: string; orderId: string; frequency: ScheduleRecurrenceFrequency; occurrenceCount: number; status: ScheduleRecurrenceStatus; idempotencyKey: string; cancelledAt: string | null; cancellationReason: string | null; createdAt: string; updatedAt: string };
 
-export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; recurrences?: readonly ScheduleRecurrence[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[]; actualTimeRecords?: readonly ActualTimeRecord[]; shortCashDeclarations?: readonly ShortCashDeclaration[] };
+export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; recurrences?: readonly ScheduleRecurrence[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[]; actualTimeRecords?: readonly ActualTimeRecord[]; shortCashDeclarations?: readonly ShortCashDeclaration[]; ownerEntitlementPolicies?: readonly OwnerEntitlementPolicy[]; ownerEntitlementRecords?: readonly OwnerEntitlementRecord[]; ownerEntitlementOpeningBalances?: readonly OwnerEntitlementOpeningBalance[]; ownerMovements?: readonly OwnerMovement[] };
 export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };
 export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
@@ -81,6 +82,17 @@ export interface PrototypeLocalStore {
   listShortCashDeclarations(): Promise<StorageResult<readonly ShortCashDeclaration[]>>;
   getShortCashDeclaration(id: string): Promise<StorageResult<ShortCashDeclaration | null>>;
   saveShortCashDeclaration(declaration: ShortCashDeclaration): Promise<StorageResult<ShortCashDeclaration>>;
+  listOwnerEntitlementPolicies(): Promise<StorageResult<readonly OwnerEntitlementPolicy[]>>;
+  getOwnerEntitlementPolicy(id: string): Promise<StorageResult<OwnerEntitlementPolicy | null>>;
+  saveOwnerEntitlementPolicy(policy: OwnerEntitlementPolicy): Promise<StorageResult<OwnerEntitlementPolicy>>;
+  listOwnerEntitlementRecords(): Promise<StorageResult<readonly OwnerEntitlementRecord[]>>;
+  getOwnerEntitlementRecord(id: string): Promise<StorageResult<OwnerEntitlementRecord | null>>;
+  saveOwnerEntitlementRecord(record: OwnerEntitlementRecord): Promise<StorageResult<OwnerEntitlementRecord>>;
+  listOwnerEntitlementOpeningBalances(): Promise<StorageResult<readonly OwnerEntitlementOpeningBalance[]>>;
+  saveOwnerEntitlementOpeningBalance(balance: OwnerEntitlementOpeningBalance): Promise<StorageResult<OwnerEntitlementOpeningBalance>>;
+  listOwnerMovements(): Promise<StorageResult<readonly OwnerMovement[]>>;
+  getOwnerMovement(id: string): Promise<StorageResult<OwnerMovement | null>>;
+  commitOwnerMovement(movement: OwnerMovement, cashEntry: CashContinuityEntry): Promise<StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }>>;
   getActualTimeRecord(id: string): Promise<StorageResult<ActualTimeRecord | null>>;
   saveActualTimeRecord(record: ActualTimeRecord): Promise<StorageResult<ActualTimeRecord>>;
   commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;

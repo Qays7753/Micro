@@ -6,6 +6,7 @@ import type { InventoryMovement, Material } from "@micro-domain/inventory-materi
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
+import type { OwnerEntitlementOpeningBalance, OwnerEntitlementPolicy, OwnerEntitlementRecord, OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 import { localSchemaVersion, type ActivityProfile, type LocalPreferences, type LocalStoreSnapshot, type OrderDraft, type PrototypeLocalStore, type ScheduleEntry, type ScheduleRecurrence, type StorageFailure, type StorageResult, type StoredCraftOrder } from "./types";
 
 const databaseName = "micro-prototype-local";
@@ -24,6 +25,10 @@ const inventoryMovementStore = "inventory-movements";
 const catalogItemStore = "catalog-items";
 const actualTimeStore = "actual-time-records";
 const shortCashDeclarationStore = "short-cash-declarations";
+const ownerEntitlementPolicyStore = "owner-entitlement-policies";
+const ownerEntitlementRecordStore = "owner-entitlement-records";
+const ownerEntitlementOpeningBalanceStore = "owner-entitlement-opening-balances";
+const ownerMovementStore = "owner-movements";
 
 function failure(error: unknown): StorageFailure {
   return { ok: false, code: typeof indexedDB === "undefined" ? "storage_unavailable" : "storage_error", message: error instanceof Error ? error.message : "تعذر الوصول إلى التخزين المحلي." };
@@ -107,6 +112,32 @@ function openDatabase(): Promise<IDBDatabase> {
         declarations.createIndex("createdAt", "createdAt");
         declarations.createIndex("idempotencyKey", "idempotencyKey");
         declarations.createIndex("reversalOfId", "reversalOfId");
+      }
+      if (!database.objectStoreNames.contains(ownerEntitlementPolicyStore)) {
+        const policies = database.createObjectStore(ownerEntitlementPolicyStore, { keyPath: "id" });
+        policies.createIndex("startsOn", "startsOn");
+        policies.createIndex("status", "status");
+        policies.createIndex("idempotencyKey", "idempotencyKey");
+      }
+      if (!database.objectStoreNames.contains(ownerEntitlementRecordStore)) {
+        const records = database.createObjectStore(ownerEntitlementRecordStore, { keyPath: "id" });
+        records.createIndex("occurredOn", "occurredOn");
+        records.createIndex("policyId", "policyId");
+        records.createIndex("idempotencyKey", "idempotencyKey");
+      }
+      if (!database.objectStoreNames.contains(ownerEntitlementOpeningBalanceStore)) {
+        const balances = database.createObjectStore(ownerEntitlementOpeningBalanceStore, { keyPath: "id" });
+        balances.createIndex("occurredOn", "occurredOn");
+        balances.createIndex("idempotencyKey", "idempotencyKey");
+      }
+      if (!database.objectStoreNames.contains(ownerMovementStore)) {
+        const movements = database.createObjectStore(ownerMovementStore, { keyPath: "id" });
+        movements.createIndex("occurredOn", "occurredOn");
+        movements.createIndex("walletId", "walletId");
+        movements.createIndex("idempotencyKey", "idempotencyKey");
+        movements.createIndex("relatedEntitlementId", "relatedEntitlementId");
+        movements.createIndex("relatedMovementId", "relatedMovementId");
+        movements.createIndex("reversalOfId", "reversalOfId");
       }
       if (event.oldVersion < 4 || event.oldVersion < 17) {
         const drafts = request.transaction?.objectStore(draftStore);
@@ -382,6 +413,43 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   listShortCashDeclarations() { return listAll<ShortCashDeclaration>(shortCashDeclarationStore, (left, right) => right.createdAt.localeCompare(left.createdAt)); }
   getShortCashDeclaration(id: string) { return readOne<ShortCashDeclaration>(shortCashDeclarationStore, id); }
   saveShortCashDeclaration(declaration: ShortCashDeclaration) { return writeOne(shortCashDeclarationStore, declaration); }
+  listOwnerEntitlementPolicies() { return listAll<OwnerEntitlementPolicy>(ownerEntitlementPolicyStore, (left, right) => right.startsOn.localeCompare(left.startsOn) || right.version - left.version); }
+  getOwnerEntitlementPolicy(id: string) { return readOne<OwnerEntitlementPolicy>(ownerEntitlementPolicyStore, id); }
+  saveOwnerEntitlementPolicy(policy: OwnerEntitlementPolicy) { return writeOne(ownerEntitlementPolicyStore, policy); }
+  listOwnerEntitlementRecords() { return listAll<OwnerEntitlementRecord>(ownerEntitlementRecordStore, (left, right) => right.occurredOn.localeCompare(left.occurredOn) || right.recordedAt.localeCompare(left.recordedAt)); }
+  getOwnerEntitlementRecord(id: string) { return readOne<OwnerEntitlementRecord>(ownerEntitlementRecordStore, id); }
+  saveOwnerEntitlementRecord(record: OwnerEntitlementRecord) { return writeOne(ownerEntitlementRecordStore, record); }
+  listOwnerEntitlementOpeningBalances() { return listAll<OwnerEntitlementOpeningBalance>(ownerEntitlementOpeningBalanceStore, (left, right) => right.occurredOn.localeCompare(left.occurredOn) || right.recordedAt.localeCompare(left.recordedAt)); }
+  saveOwnerEntitlementOpeningBalance(balance: OwnerEntitlementOpeningBalance) { return writeOne(ownerEntitlementOpeningBalanceStore, balance); }
+  listOwnerMovements() { return listAll<OwnerMovement>(ownerMovementStore, (left, right) => right.recordedAt.localeCompare(left.recordedAt)); }
+  getOwnerMovement(id: string) { return readOne<OwnerMovement>(ownerMovementStore, id); }
+  async commitOwnerMovement(movement: OwnerMovement, cashEntry: CashContinuityEntry): Promise<StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }>> {
+    try {
+      const database = await openDatabase();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([ownerMovementStore, cashContinuityEntryStore], "readwrite");
+        const movements = transaction.objectStore(ownerMovementStore);
+        const cashEntries = transaction.objectStore(cashContinuityEntryStore);
+        const existingRequest = movements.getAll();
+        let pending: StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }> | null = null;
+        const finish = (result: StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }>) => { database.close(); resolve(result); };
+        existingRequest.onerror = () => { pending = failure(existingRequest.error); try { transaction.abort(); } catch { if (pending) finish(pending); } };
+        existingRequest.onsuccess = () => {
+          const existing = (existingRequest.result as OwnerMovement[]).find(candidate => candidate.idempotencyKey === movement.idempotencyKey);
+          if (existing) {
+            const cashRequest = cashEntries.getAll();
+            cashRequest.onerror = () => { pending = failure(cashRequest.error); try { transaction.abort(); } catch { if (pending) finish(pending); } };
+            cashRequest.onsuccess = () => { const matching = (cashRequest.result as CashContinuityEntry[]).find(entry => entry.operationKey === cashEntry.operationKey); if (!matching) { pending = { ok: false, code: "storage_error", message: "وجدت حركة مالك بلا أثر كاش مطابق؛ لم يتغير السجل." }; try { transaction.abort(); } catch { if (pending) finish(pending); } } else { pending = { ok: true, value: { movement: existing, cashEntry: matching } }; try { transaction.abort(); } catch { if (pending) finish(pending); } } };
+            return;
+          }
+          movements.put(movement); cashEntries.put(cashEntry);
+        };
+        transaction.onerror = () => { if (!pending) pending = failure(transaction.error); };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.oncomplete = () => finish({ ok: true, value: { movement, cashEntry } });
+      });
+    } catch (error) { return failure(error); }
+  }
   async commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>> {
     try {
       const database = await openDatabase();
@@ -406,7 +474,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     try {
       const database = await openDatabase();
       return await new Promise(resolve => {
-        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore], "readonly");
+        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore, ownerEntitlementPolicyStore, ownerEntitlementRecordStore, ownerEntitlementOpeningBalanceStore, ownerMovementStore], "readonly");
         const profile = transaction.objectStore(profileStore).get("local-profile");
         const preferences = transaction.objectStore(preferencesStore).get("local-preferences");
         const drafts = transaction.objectStore(draftStore).getAll();
@@ -422,11 +490,15 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const catalogItems = transaction.objectStore(catalogItemStore).getAll();
         const actualTimeRecords = transaction.objectStore(actualTimeStore).getAll();
         const shortCashDeclarations = transaction.objectStore(shortCashDeclarationStore).getAll();
+        const ownerEntitlementPolicies = transaction.objectStore(ownerEntitlementPolicyStore).getAll();
+        const ownerEntitlementRecords = transaction.objectStore(ownerEntitlementRecordStore).getAll();
+        const ownerEntitlementOpeningBalances = transaction.objectStore(ownerEntitlementOpeningBalanceStore).getAll();
+        const ownerMovements = transaction.objectStore(ownerMovementStore).getAll();
         transaction.onerror = () => resolve(failure(transaction.error));
         transaction.onabort = () => resolve(failure(transaction.error));
         transaction.oncomplete = () => {
           database.close();
-          resolve({ ok: true, value: { profile: (profile.result as ActivityProfile | undefined) ?? null, preferences: (preferences.result as LocalPreferences | undefined) ?? null, drafts: drafts.result as OrderDraft[], orders: orders.result as StoredCraftOrder[], schedules: schedules.result as ScheduleEntry[], recurrences: recurrences.result as ScheduleRecurrence[], financialEvents: financialEvents.result as FinancialEvent[], supplierPurchases: supplierPurchases.result as SupplierPurchase[], cashWallets: cashWallets.result as CashWallet[], cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[], materials: materials.result as Material[], inventoryMovements: inventoryMovements.result as InventoryMovement[], catalogItems: catalogItems.result as CatalogItem[], actualTimeRecords: actualTimeRecords.result as ActualTimeRecord[], shortCashDeclarations: shortCashDeclarations.result as ShortCashDeclaration[] } });
+          resolve({ ok: true, value: { profile: (profile.result as ActivityProfile | undefined) ?? null, preferences: (preferences.result as LocalPreferences | undefined) ?? null, drafts: drafts.result as OrderDraft[], orders: orders.result as StoredCraftOrder[], schedules: schedules.result as ScheduleEntry[], recurrences: recurrences.result as ScheduleRecurrence[], financialEvents: financialEvents.result as FinancialEvent[], supplierPurchases: supplierPurchases.result as SupplierPurchase[], cashWallets: cashWallets.result as CashWallet[], cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[], materials: materials.result as Material[], inventoryMovements: inventoryMovements.result as InventoryMovement[], catalogItems: catalogItems.result as CatalogItem[], actualTimeRecords: actualTimeRecords.result as ActualTimeRecord[], shortCashDeclarations: shortCashDeclarations.result as ShortCashDeclaration[], ownerEntitlementPolicies: ownerEntitlementPolicies.result as OwnerEntitlementPolicy[], ownerEntitlementRecords: ownerEntitlementRecords.result as OwnerEntitlementRecord[], ownerEntitlementOpeningBalances: ownerEntitlementOpeningBalances.result as OwnerEntitlementOpeningBalance[], ownerMovements: ownerMovements.result as OwnerMovement[] } });
         };
       });
     } catch (error) {
@@ -436,9 +508,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
     try {
       const database = await openDatabase();
-      const normalized: LocalStoreSnapshot = { ...snapshot, schedules: snapshot.schedules ?? [], recurrences: snapshot.recurrences ?? [], financialEvents: snapshot.financialEvents ?? [], supplierPurchases: snapshot.supplierPurchases ?? [], cashWallets: snapshot.cashWallets ?? [], cashContinuityEntries: snapshot.cashContinuityEntries ?? [], materials: snapshot.materials ?? [], inventoryMovements: snapshot.inventoryMovements ?? [], catalogItems: snapshot.catalogItems ?? [], actualTimeRecords: snapshot.actualTimeRecords ?? [], shortCashDeclarations: snapshot.shortCashDeclarations ?? [] };
+      const normalized: LocalStoreSnapshot = { ...snapshot, schedules: snapshot.schedules ?? [], recurrences: snapshot.recurrences ?? [], financialEvents: snapshot.financialEvents ?? [], supplierPurchases: snapshot.supplierPurchases ?? [], cashWallets: snapshot.cashWallets ?? [], cashContinuityEntries: snapshot.cashContinuityEntries ?? [], materials: snapshot.materials ?? [], inventoryMovements: snapshot.inventoryMovements ?? [], catalogItems: snapshot.catalogItems ?? [], actualTimeRecords: snapshot.actualTimeRecords ?? [], shortCashDeclarations: snapshot.shortCashDeclarations ?? [], ownerEntitlementPolicies: snapshot.ownerEntitlementPolicies ?? [], ownerEntitlementRecords: snapshot.ownerEntitlementRecords ?? [], ownerEntitlementOpeningBalances: snapshot.ownerEntitlementOpeningBalances ?? [], ownerMovements: snapshot.ownerMovements ?? [] };
       return await new Promise(resolve => {
-        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore], "readwrite");
+        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, actualTimeStore, shortCashDeclarationStore, ownerEntitlementPolicyStore, ownerEntitlementRecordStore, ownerEntitlementOpeningBalanceStore, ownerMovementStore], "readwrite");
         const profiles = transaction.objectStore(profileStore);
         const preferences = transaction.objectStore(preferencesStore);
         const drafts = transaction.objectStore(draftStore);
@@ -454,6 +526,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const catalogItems = transaction.objectStore(catalogItemStore);
         const actualTimeRecords = transaction.objectStore(actualTimeStore);
         const shortCashDeclarations = transaction.objectStore(shortCashDeclarationStore);
+        const ownerEntitlementPolicies = transaction.objectStore(ownerEntitlementPolicyStore);
+        const ownerEntitlementRecords = transaction.objectStore(ownerEntitlementRecordStore);
+        const ownerEntitlementOpeningBalances = transaction.objectStore(ownerEntitlementOpeningBalanceStore);
+        const ownerMovements = transaction.objectStore(ownerMovementStore);
         profiles.clear();
         preferences.clear();
         drafts.clear();
@@ -469,6 +545,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         catalogItems.clear();
         actualTimeRecords.clear();
         shortCashDeclarations.clear();
+        ownerEntitlementPolicies.clear();
+        ownerEntitlementRecords.clear();
+        ownerEntitlementOpeningBalances.clear();
+        ownerMovements.clear();
         if (normalized.profile) profiles.put(normalized.profile);
         if (normalized.preferences) preferences.put(normalized.preferences);
         normalized.drafts.forEach(draft => drafts.put(draft));
@@ -484,6 +564,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         normalized.catalogItems?.forEach(item => catalogItems.put(item));
         normalized.actualTimeRecords?.forEach(record => actualTimeRecords.put(record));
         normalized.shortCashDeclarations?.forEach(declaration => shortCashDeclarations.put(declaration));
+        normalized.ownerEntitlementPolicies?.forEach(policy => ownerEntitlementPolicies.put(policy));
+        normalized.ownerEntitlementRecords?.forEach(record => ownerEntitlementRecords.put(record));
+        normalized.ownerEntitlementOpeningBalances?.forEach(balance => ownerEntitlementOpeningBalances.put(balance));
+        normalized.ownerMovements?.forEach(movement => ownerMovements.put(movement));
         transaction.onerror = () => resolve(failure(transaction.error));
         transaction.onabort = () => resolve(failure(transaction.error));
         transaction.oncomplete = () => {
