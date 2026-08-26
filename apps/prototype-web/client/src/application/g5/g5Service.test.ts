@@ -4,6 +4,7 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import { createCatalogItem, createDirectConversion, createMeasurementUnit } from "@micro-domain/catalog/index.js";
 
 const now = () => "2026-08-01T09:00:00.000Z";
 
@@ -77,5 +78,38 @@ describe("G5 Application service", () => {
     await store.saveSupplierPurchase(createSupplierPurchase({ id: "g5-purchase", supplierName: "مورد", note: "مواد", purchasedOn: "2026-08-01", dueOn: "2026-08-18", totalMinor: 14000, initialPaidMinor: 0, recordedAt: now(), idempotencyKey: "g5-purchase" }));
     const decision = await g5.readDecision("2026-08-01", "2026-08-31");
     expect(decision).toMatchObject({ ok: true, value: { period: { totalVariableCostMinor: 0 }, shortCash: { status: "available", declaredCommitmentsMinor: 14000, projectedCashMinor: -14000 } } });
+  });
+
+  it("normalizes compatible catalog units through an exact G4-A conversion before G5 aggregation", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const g5 = new G5Service(store, finance, now);
+    const piece = createMeasurementUnit({ id: "unit-piece", nameAr: "قطعة", dimension: "count", symbol: null, createdAt: now(), createdOperationKey: "unit-piece" });
+    const box = createMeasurementUnit({ id: "unit-box", nameAr: "صندوق", dimension: "count", symbol: null, createdAt: now(), createdOperationKey: "unit-box" });
+    const pieceItem = createCatalogItem({ id: "item-piece", kind: "product", name: "قطعة", unitLabel: "قطعة", unitId: piece.id, createdAt: now(), createdOperationKey: "item-piece" });
+    const boxItem = createCatalogItem({ id: "item-box", kind: "product", name: "صندوق", unitLabel: "صندوق", unitId: box.id, createdAt: now(), createdOperationKey: "item-box" });
+    const conversion = createDirectConversion({ id: "box-to-piece", fromUnitId: box.id, toUnitId: piece.id, dimension: "count", numerator: 2, denominator: 1, note: "الصندوق وحدتان", createdAt: now(), createdOperationKey: "box-to-piece" });
+    await store.saveMeasurementUnit(piece); await store.saveMeasurementUnit(box); await store.saveCatalogItem(pieceItem); await store.saveCatalogItem(boxItem); await store.saveDirectConversion(conversion);
+    const pieceOrder = deliveredOrder("g5-piece-order"); const boxOrder = deliveredOrder("g5-box-order");
+    await store.saveOrder({ ...pieceOrder, catalogItemId: pieceItem.id }); await store.saveOrder({ ...boxOrder, catalogItemId: boxItem.id });
+    await finance.record({ type: "operating_expense_cash", amountMinor: 1000, occurredOn: "2026-08-06", note: "ثابت معروف", counterparty: null, relatedEventId: null, expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" }, idempotencyKey: "g5-conversion-fixed" });
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    expect(decision).toMatchObject({ ok: true, value: { period: { status: "available", totalQuantityMilli: 6000, quantityUnitKey: "unit-piece", breakEvenUnits: 1 } } });
+  });
+
+  it("offers only outstanding linkable sources and makes reversal retry idempotent", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const g5 = new G5Service(store, finance, now);
+    const stored = deliveredOrder("g5-link-options");
+    await store.saveOrder(stored);
+    const options = await g5.listLinkOptions();
+    expect(options).toMatchObject({ ok: true, value: { orders: [{ id: stored.id, amountMinor: stored.order.receivableMinor }], payableEvents: [] } });
+    const created = await g5.createDeclaration({ direction: "collection", amountMinor: stored.order.receivableMinor, dueOn: "2026-08-20", source: "عميلة", knowledge: "known", note: "موعد معلن", relatedOrderId: stored.id, relatedEventId: null, idempotencyKey: "g5-link-declaration" });
+    if (!created.ok) throw new Error("declaration should save");
+    const first = await g5.reverseDeclaration(created.value.id, "تغير الموعد", "g5-link-reversal");
+    const retry = await g5.reverseDeclaration(created.value.id, "تغير الموعد", "g5-link-reversal");
+    expect(first).toMatchObject({ ok: true, value: { kind: "reversal" } });
+    expect(retry).toMatchObject({ ok: true, reused: true, value: { kind: "reversal" } });
   });
 });

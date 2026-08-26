@@ -93,6 +93,7 @@ export interface PrototypeLocalStore {
   listShortCashDeclarations(): Promise<StorageResult<readonly ShortCashDeclaration[]>>;
   getShortCashDeclaration(id: string): Promise<StorageResult<ShortCashDeclaration | null>>;
   saveShortCashDeclaration(declaration: ShortCashDeclaration): Promise<StorageResult<ShortCashDeclaration>>;
+  commitShortCashDeclarationReversal(sourceId: string, reversal: ShortCashDeclaration): Promise<StorageResult<ShortCashDeclaration>>;
   listOwnerEntitlementPolicies(): Promise<StorageResult<readonly OwnerEntitlementPolicy[]>>;
   getOwnerEntitlementPolicy(id: string): Promise<StorageResult<OwnerEntitlementPolicy | null>>;
   saveOwnerEntitlementPolicy(policy: OwnerEntitlementPolicy): Promise<StorageResult<OwnerEntitlementPolicy>>;
