@@ -2,11 +2,11 @@
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
 **آخر تحديث:** 26 أغسطس 2026
-**مرجع Git:** `main` الحالي هو `76bd42116dcaf454bafa594d3d77852d1ce48439`. برنامج Bridge المالي هو `bridge/financial-decision-core-g3-g5` ورأسه الحالي بعد PR #104 هو `311c777` (تحقق منه بـ`git fetch origin --prune` قبل أي عمل لاحق). PR #102 دمجت O1 الأولية إلى الـBridge فقط، ثم دمجت PR #103 تصحيح قبول O1 الأول إلى الـBridge فقط. افحص دائمًا المرجع البعيد قبل العمل؛ هذه الوثيقة لا تغني عن `git fetch`.
+**مرجع Git:** `main` الحالي هو `76bd42116dcaf454bafa594d3d77852d1ce48439`. برنامج Bridge المالي هو `bridge/financial-decision-core-g3-g5` ورأسه بعد دمج PR #105 هو `f2d90c874f9f9c5b65b7c9bda8678768678838f1` (تحقق منه بـ`git fetch origin --prune` قبل أي عمل لاحق). PR #102 دمجت O1 الأولية إلى الـBridge فقط، ثم دمجت PR #103 تصحيح قبول O1 الأول إلى الـBridge فقط. افحص دائمًا المرجع البعيد قبل العمل؛ هذه الوثيقة لا تغني عن `git fetch`.
 
 > هذا الملف يجيب عن سؤال واحد: **«إذا فتحت المستودع الآن، ما الذي أستطيع قوله أو تغييره بأمان؟»** لا يغير العقود ولا يحل محلها.
 >
-> **حالة الدمج الحالية:** القدرات السابقة وبرنامج إصلاح القرار البصري V1–V6 وتصحيح قبوله مدمجة على `main`. أما G3 الأساسية وتصحيح قبولها فمدمجان على Bridge عبر PR #98 وPR #99، وصُححت حالة التوثيق في PR #100 فقط، ثم دمجت O1 الأولية عبر PR #102 إلى Bridge فقط، ثم دمج تصحيح قبول O1 عبر PR #103 إلى Bridge فقط. لا يوجد Profile طعام أو خدمة أو زراعة أو سياحة منفذ؛ G4-A مفوضة الآن على فرع مستقل، ولا يبدأ G4-B قبل مراجعة وقبول G4-A وPrompt مستقل.
+> **حالة الدمج الحالية:** القدرات السابقة وبرنامج إصلاح القرار البصري V1–V6 وتصحيح قبوله مدمجة على `main`. أما G3 الأساسية وتصحيح قبولها فمدمجان على Bridge عبر PR #98 وPR #99، وصُححت حالة التوثيق في PR #100 فقط، ثم دمجت O1 الأولية عبر PR #102 إلى Bridge فقط، ثم دمج تصحيح قبول O1 عبر PR #103 إلى Bridge فقط. لا يوجد Profile طعام أو خدمة أو زراعة أو سياحة منفذ؛ G4-A مدمجة الآن على Bridge عبر PR #105، ولا يبدأ G4-B قبل مراجعة وقبول G4-A وPrompt مستقل.
 
 ## 1. قاعدة التشغيل الحالية
 
@@ -154,13 +154,13 @@ QA/Pilot مدمج عبر PR #78 كتقرير وبروتوكول قبول وفج�
 
 | العنصر | الحالة الحالية | الحد |
 |---|---|---|
-| فرع التنفيذ | `agent3/g4a-core-catalog-foundation` مبني من الرأس الفعلي `311c777` للـBridge | لم يُفتح أو يُدمج PR بعد؛ `main` لم يتغير |
+| فرع التنفيذ | `agent3/g4a-core-catalog-foundation` دُمج إلى `bridge/financial-decision-core-g3-g5` عبر PR #105، وSHA الدمج `f2d90c874f9f9c5b65b7c9bda8678768678838f1` | `main` لم يتغير؛ قبول G4-A النهائي ما زال لـManus Agent 1 والمالك |
 | Domain/Application | `CatalogItem.unitId` اختياري، ووحدات `count/mass/volume/time/distance/area`، وتحويل مباشر دقيق داخل البعد، وقالب components/yield اختياري مع `not_configured/ready/needs_conversion` ومراجعة مؤرخة | لا Profile قطاعي، ولا graph أو تحويل متعدد الخطوات أو كثافة أو BOM أو إنتاج |
 | التخزين والاستعادة | Memory/IndexedDB والمنافذ وschema `24` وexport `15`، migration تضيف `unitId: null` ومصفوفات جديدة فارغة فقط، والتحقق قبل replacement الذري | لا Auth/Sync/Cloud/Backend أو استعادة بين الأجهزة |
 | الواجهة | `/catalog` امتداد اختياري: حفظ المرجع أولًا، قياس/تحويلات في لوحة فرعية، والقالب عند الطلب؛ RTL وLight/Dark وأرقام ASCII/LTR وempty/needs-conversion | لم يُتحقق بعد على هاتف فعلي أو Pages production أو Pilot |
-| الأدلة المحلية | `pnpm install --frozen-lockfile` و`pnpm check` ناجحان، بما فيه Domain/Application/Storage/Transfer/UI build؛ اختبارات G4-A تشمل 16 حالة مستهدفة ضمن suite المشروع | يلزم CI/Cloudflare ومراجعة Agent 1 قبل إعلان القبول |
+| الأدلة المحلية/CI | `pnpm install --frozen-lockfile` و`pnpm check` ناجحان، بما فيه Domain/Application/Storage/Transfer/UI build؛ اختبارات G4-A تشمل 16 حالة مستهدفة ضمن suite المشروع؛ Cloudflare Pages check في PR #105 ناجح | قبول G4-A النهائي ومراجعة Agent 1 ما زالا مطلوبين؛ لم يُختبر هاتف فعلي أو Production أو Pilot |
 
-G4-A لا تغير طلبًا تاريخيًا أو اتفاقًا أو `CostSnapshot` أو `recognizedCostMinor` أو نتيجة الفترة، ولا تحول القالب إلى Purchase أو Inventory أو Consumption أو COGS أو كاش. الخطوة التالية المسموحة هي commit/PR واحدة إلى `bridge/financial-decision-core-g3-g5` بعد مراجعة diff؛ لا PR إلى `main` ولا بدء G4-B في هذه المهمة.
+G4-A لا تغير طلبًا تاريخيًا أو اتفاقًا أو `CostSnapshot` أو `recognizedCostMinor` أو نتيجة الفترة، ولا تحول القالب إلى Purchase أو Inventory أو Consumption أو COGS أو كاش. دُمجت عبر PR #105 إلى `bridge/financial-decision-core-g3-g5` فقط؛ لا PR إلى `main` ولا بدء G4-B قبل قبول Manus Agent 1 وPrompt مستقل.
 
 ## References
 

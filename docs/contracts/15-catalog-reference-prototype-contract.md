@@ -1,6 +1,6 @@
 # عقد مرجع الكتالوج ونواة G4-A
 
-**الحالة:** `IMPLEMENTED ON agent3/g4a-core-catalog-foundation / PENDING REVIEW AND PR MERGE`
+**الحالة:** `MERGED TO bridge/financial-decision-core-g3-g5 VIA PR #105 / PENDING FINAL ACCEPTANCE`
 **المالك:** Manus Agent 1
 **تاريخ التحديث:** 26 أغسطس 2026
 

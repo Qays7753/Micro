@@ -37,7 +37,7 @@
 
 ## نطاق G4-A الحالي
 
-توسّع فرع `agent3/g4a-core-catalog-foundation` أساس الكتالوج القائم دون إنشاء مسار منافس: `CatalogItem.unitId` اختياري، والوحدات محصورة في `count | mass | volume | time | distance | area`، والتحويلات مباشرة وصريحة داخل البعد نفسه، والقوالب والمكونات و`yield` اختيارية للتخطيط فقط. لا ينشئ أي منها سعرًا أو Purchase أو Inventory أو Consumption أو COGS أو إيرادًا أو كاشًا، ولا يعيد ربط طلب تاريخي أو يغير `CostSnapshot`. تفاصيل العقد والاختبارات في [`docs/contracts/15-catalog-reference-prototype-contract.md`](docs/contracts/15-catalog-reference-prototype-contract.md) ومطابقة التنفيذ في [`docs/implementation/02-domain-contract-coverage.md`](docs/implementation/02-domain-contract-coverage.md). الحالة على الفرع: منفذة محليًا وفحوصها ناجحة، لكنها تنتظر مراجعة/CI/Cloudflare وقرار القبول؛ لا تُعلن قبول جهاز أو Production أو Pilot.
+توسّعت نواة الكتالوج القائمة في G4-A دون إنشاء مسار منافس، ثم دُمجت إلى `bridge/financial-decision-core-g3-g5` عبر PR #105: `CatalogItem.unitId` اختياري، والوحدات محصورة في `count | mass | volume | time | distance | area`، والتحويلات مباشرة وصريحة داخل البعد نفسه، والقوالب والمكونات و`yield` اختيارية للتخطيط فقط. لا ينشئ أي منها سعرًا أو Purchase أو Inventory أو Consumption أو COGS أو إيرادًا أو كاشًا، ولا يعيد ربط طلب تاريخي أو يغير `CostSnapshot`. تفاصيل العقد والاختبارات في [`docs/contracts/15-catalog-reference-prototype-contract.md`](docs/contracts/15-catalog-reference-prototype-contract.md) ومطابقة التنفيذ في [`docs/implementation/02-domain-contract-coverage.md`](docs/implementation/02-domain-contract-coverage.md). فحوص CI/Cloudflare ناجحة، بينما قبول الجهاز وProduction وPilot والقرار النهائي ما زالت خارج هذا التسليم.
 
 ## الحالة الحالية
 
