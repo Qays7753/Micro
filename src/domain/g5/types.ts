@@ -2,6 +2,7 @@ export type G5Status = "available" | "incomplete" | "invalid" | "needs_review";
 export type G5Knowledge = "known" | "estimated" | "needs_review";
 export type G5Direction = "collection" | "commitment";
 export type ShortCashDeclarationKind = "declaration" | "reversal";
+export type G5QuantityIssue = "needs_conversion" | "invalid";
 
 export type ShortCashDeclaration = {
   id: string;
@@ -46,7 +47,10 @@ export type G5OrderInput = {
   itemName: string;
   deliveredOn: string;
   resultStatus: "final" | "estimated" | "incomplete" | "review_required";
-  quantity: number;
+  quantityMilli: number | null;
+  unitKey: string | null;
+  unitLabel: string | null;
+  quantityIssue?: G5QuantityIssue | null;
   recognizedRevenueMinor: number;
   recognizedCostMinor: number;
 };
@@ -65,7 +69,9 @@ export type G5ExpenseInput = {
 export type G5MixItem = {
   itemName: string;
   orderCount: number;
-  quantity: number;
+  quantityMilli: number | null;
+  unitKey: string | null;
+  unitLabel: string | null;
   revenueMinor: number;
   variableCostMinor: number;
   contributionMarginMinor: number;
@@ -79,6 +85,9 @@ export type ContributionMarginResult = {
   totalVariableCostMinor: number;
   contributionMarginMinor: number;
   contributionMarginPerUnitMinor: number | null;
+  totalQuantityMilli: number | null;
+  quantityUnitKey: string | null;
+  quantityUnitLabel: string | null;
   fixedExpenseMinor: number;
   finalOrderCount: number;
   excludedOrderCount: number;

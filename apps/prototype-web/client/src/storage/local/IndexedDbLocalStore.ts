@@ -563,6 +563,33 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   getShortCashDeclaration(id: string) { return readOne<ShortCashDeclaration>(shortCashDeclarationStore, id); }
   saveShortCashDeclaration(declaration: ShortCashDeclaration) { return writeOne(shortCashDeclarationStore, declaration); }
+  async commitShortCashDeclarationReversal(sourceId: string, reversal: ShortCashDeclaration): Promise<StorageResult<ShortCashDeclaration>> {
+    try {
+      const database = await openDatabase();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(shortCashDeclarationStore, "readwrite");
+        const store = transaction.objectStore(shortCashDeclarationStore);
+        let pending: StorageResult<ShortCashDeclaration> | null = null;
+        const finish = (result: StorageResult<ShortCashDeclaration>) => { database.close(); resolve(result); };
+        const request = store.getAll();
+        request.onerror = () => { pending = failure(request.error); try { transaction.abort(); } catch { if (pending) finish(pending); } };
+        request.onsuccess = () => {
+          const declarations = request.result as ShortCashDeclaration[];
+          const source = declarations.find(candidate => candidate.id === sourceId && candidate.kind === "declaration");
+          if (!source) { pending = { ok: false, code: "storage_error", message: "لم يعد الإعلان الأصلي موجودًا؛ لم يُحفظ العكس." }; try { transaction.abort(); } catch { if (pending) finish(pending); } return; }
+          const existing = declarations.find(candidate => candidate.kind === "reversal" && candidate.reversalOfId === sourceId);
+          if (existing) { pending = existing.idempotencyKey === reversal.idempotencyKey ? { ok: true, value: existing } : { ok: false, code: "storage_error", message: "هذا الإعلان عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل." }; try { transaction.abort(); } catch { if (pending) finish(pending); } return; }
+          const repeated = declarations.find(candidate => candidate.kind === "reversal" && candidate.idempotencyKey === reversal.idempotencyKey);
+          if (repeated) { pending = { ok: true, value: repeated }; try { transaction.abort(); } catch { if (pending) finish(pending); } return; }
+          if (declarations.some(candidate => candidate.id === reversal.id)) { pending = { ok: false, code: "storage_error", message: "تعارض هوية عكس إعلان السيولة؛ لم يتغير السجل." }; try { transaction.abort(); } catch { if (pending) finish(pending); } return; }
+          store.put(reversal);
+        };
+        transaction.onerror = () => { if (!pending) pending = failure(transaction.error); };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.oncomplete = () => finish({ ok: true, value: reversal });
+      });
+    } catch (error) { return failure(error); }
+  }
   listOwnerEntitlementPolicies() { return listAll<OwnerEntitlementPolicy>(ownerEntitlementPolicyStore, (left, right) => right.startsOn.localeCompare(left.startsOn) || right.version - left.version); }
   getOwnerEntitlementPolicy(id: string) { return readOne<OwnerEntitlementPolicy>(ownerEntitlementPolicyStore, id); }
   saveOwnerEntitlementPolicy(policy: OwnerEntitlementPolicy) { return writeOne(ownerEntitlementPolicyStore, policy); }

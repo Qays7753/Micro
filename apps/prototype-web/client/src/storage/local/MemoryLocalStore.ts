@@ -97,7 +97,24 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async saveAllocationPolicy(policy: AllocationPolicy): Promise<StorageResult<AllocationPolicy>> { this.allocationPolicies.set(policy.id, clone(policy)); return { ok: true, value: clone(policy) }; }
   async commitAllocationPolicySuccessor(previous: AllocationPolicy, successor: AllocationPolicy): Promise<StorageResult<{ previous: AllocationPolicy; successor: AllocationPolicy }>> { const repeated = Array.from(this.allocationPolicies.values()).find(policy => policy.idempotencyKey === successor.idempotencyKey); if (repeated) return { ok: true, value: { previous: clone(this.allocationPolicies.get(previous.id) ?? previous), successor: clone(repeated) } }; const current = this.allocationPolicies.get(previous.id); if (!current || current.status !== "active") return { ok: false, code: "storage_error", message: "لم تعد سياسة التحميل الأصلية فعالة؛ لم تتغير السلسلة." }; if (this.allocationPolicies.has(successor.id)) return { ok: false, code: "storage_error", message: "تعارض هوية نسخة سياسة التحميل؛ لم تتغير البيانات." }; this.allocationPolicies.set(previous.id, clone(previous)); this.allocationPolicies.set(successor.id, clone(successor)); return { ok: true, value: { previous: clone(previous), successor: clone(successor) } }; }
   async getShortCashDeclaration(id: string): Promise<StorageResult<ShortCashDeclaration | null>> { const declaration = this.shortCashDeclarations.get(id); return { ok: true, value: declaration ? clone(declaration) : null }; }
-  async saveShortCashDeclaration(declaration: ShortCashDeclaration): Promise<StorageResult<ShortCashDeclaration>> { this.shortCashDeclarations.set(declaration.id, clone(declaration)); return { ok: true, value: clone(declaration) }; }
+  async saveShortCashDeclaration(declaration: ShortCashDeclaration): Promise<StorageResult<ShortCashDeclaration>> {
+    const repeated = Array.from(this.shortCashDeclarations.values()).find(candidate => candidate.idempotencyKey === declaration.idempotencyKey && candidate.kind === declaration.kind);
+    if (repeated) return { ok: true, value: clone(repeated) };
+    if (this.shortCashDeclarations.has(declaration.id)) return { ok: false, code: "storage_error", message: "تعارض هوية إعلان السيولة؛ لم تتغير البيانات." };
+    this.shortCashDeclarations.set(declaration.id, clone(declaration));
+    return { ok: true, value: clone(declaration) };
+  }
+  async commitShortCashDeclarationReversal(sourceId: string, reversal: ShortCashDeclaration): Promise<StorageResult<ShortCashDeclaration>> {
+    const source = this.shortCashDeclarations.get(sourceId);
+    if (!source || source.kind !== "declaration") return { ok: false, code: "storage_error", message: "لم يعد الإعلان الأصلي موجودًا؛ لم يُحفظ العكس." };
+    const existing = Array.from(this.shortCashDeclarations.values()).find(candidate => candidate.kind === "reversal" && candidate.reversalOfId === sourceId);
+    if (existing) return existing.idempotencyKey === reversal.idempotencyKey ? { ok: true, value: clone(existing) } : { ok: false, code: "storage_error", message: "هذا الإعلان عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل." };
+    const repeated = Array.from(this.shortCashDeclarations.values()).find(candidate => candidate.kind === "reversal" && candidate.idempotencyKey === reversal.idempotencyKey);
+    if (repeated) return { ok: true, value: clone(repeated) };
+    if (this.shortCashDeclarations.has(reversal.id)) return { ok: false, code: "storage_error", message: "تعارض هوية عكس إعلان السيولة؛ لم يتغير السجل." };
+    this.shortCashDeclarations.set(reversal.id, clone(reversal));
+    return { ok: true, value: clone(reversal) };
+  }
   async listOwnerEntitlementPolicies(): Promise<StorageResult<readonly OwnerEntitlementPolicy[]>> { return { ok: true, value: Array.from(this.ownerEntitlementPolicies.values()).sort((a, b) => b.startsOn.localeCompare(a.startsOn) || b.version - a.version).map(clone) }; }
   async getOwnerEntitlementPolicy(id: string): Promise<StorageResult<OwnerEntitlementPolicy | null>> { const policy = this.ownerEntitlementPolicies.get(id); return { ok: true, value: policy ? clone(policy) : null }; }
   async saveOwnerEntitlementPolicy(policy: OwnerEntitlementPolicy): Promise<StorageResult<OwnerEntitlementPolicy>> { this.ownerEntitlementPolicies.set(policy.id, clone(policy)); return { ok: true, value: clone(policy) }; }
