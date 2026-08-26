@@ -7,6 +7,7 @@ import type { CatalogItem, CatalogTemplate, DirectConversion, MeasurementUnit } 
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 import type { OwnerEntitlementOpeningBalance, OwnerEntitlementPolicy, OwnerEntitlementRecord, OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
+import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import { localSchemaVersion, type ActivityProfile, type LocalPreferences, type LocalStoreSnapshot, type OrderDraft, type PrototypeLocalStore, type ScheduleEntry, type ScheduleRecurrence, type StorageFailure, type StorageResult, type StoredCraftOrder } from "./types";
 
 const databaseName = "micro-prototype-local";
@@ -32,6 +33,7 @@ const ownerEntitlementPolicyStore = "owner-entitlement-policies";
 const ownerEntitlementRecordStore = "owner-entitlement-records";
 const ownerEntitlementOpeningBalanceStore = "owner-entitlement-opening-balances";
 const ownerMovementStore = "owner-movements";
+const allocationPolicyStore = "allocation-policies";
 
 function failure(error: unknown): StorageFailure {
   return { ok: false, code: typeof indexedDB === "undefined" ? "storage_unavailable" : "storage_error", message: error instanceof Error ? error.message : "تعذر الوصول إلى التخزين المحلي." };
@@ -161,6 +163,14 @@ function openDatabase(): Promise<IDBDatabase> {
         movements.createIndex("relatedMovementId", "relatedMovementId");
         movements.createIndex("reversalOfId", "reversalOfId");
       }
+      if (!database.objectStoreNames.contains(allocationPolicyStore)) {
+        const policies = database.createObjectStore(allocationPolicyStore, { keyPath: "id" });
+        policies.createIndex("catalogItemId", "catalogItemId");
+        policies.createIndex("startsOn", "startsOn");
+        policies.createIndex("status", "status");
+        policies.createIndex("idempotencyKey", "idempotencyKey");
+        policies.createIndex("seriesId", "seriesId");
+      }
       const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
       if (policyStore && !policyStore.indexNames.contains("seriesId")) policyStore.createIndex("seriesId", "seriesId");
       if (policyStore && !policyStore.indexNames.contains("successorOfPolicyId")) policyStore.createIndex("successorOfPolicyId", "successorOfPolicyId");
@@ -175,6 +185,19 @@ function openDatabase(): Promise<IDBDatabase> {
         if (recordStore) { const cursor = recordStore.openCursor(); cursor.onsuccess = () => { const current = cursor.result; if (!current) return; const value = current.value as Record<string, unknown>; current.update({ ...value, sourceKeys: Array.isArray(value.sourceKeys) && value.sourceKeys.length > 0 ? value.sourceKeys : [`legacy:record:${value.id}`], reversalOfId: typeof value.reversalOfId === "string" ? value.reversalOfId : null, reversalReason: typeof value.reversalReason === "string" ? value.reversalReason : null }); current.continue(); }; }
         if (openingStore) { const cursor = openingStore.openCursor(); cursor.onsuccess = () => { const current = cursor.result; if (!current) return; const value = current.value as Record<string, unknown>; current.update({ ...value, reversalOfId: typeof value.reversalOfId === "string" ? value.reversalOfId : null, reversalReason: typeof value.reversalReason === "string" ? value.reversalReason : null }); current.continue(); }; }
         if (movementStore) { const cursor = movementStore.openCursor(); cursor.onsuccess = () => { const current = cursor.result; if (!current) return; const value = current.value as Record<string, unknown>; current.update({ ...value, relatedOpeningBalanceId: typeof value.relatedOpeningBalanceId === "string" ? value.relatedOpeningBalanceId : null, openingBalanceDeltaMinor: typeof value.openingBalanceDeltaMinor === "number" ? value.openingBalanceDeltaMinor : 0, reversalOfId: typeof value.reversalOfId === "string" ? value.reversalOfId : null, reversalReason: typeof value.reversalReason === "string" ? value.reversalReason : null }); current.continue(); }; }
+      }
+      if (event.oldVersion < 25) {
+        const movements = request.transaction?.objectStore(inventoryMovementStore);
+        if (movements) {
+          const cursor = movements.openCursor();
+          cursor.onsuccess = () => {
+            const current = cursor.result;
+            if (!current) return;
+            const legacy = current.value as Record<string, unknown>;
+            current.update({ ...legacy, wasteContext: legacy.type === "waste" ? (legacy.wasteContext ?? { kind: "general_project" }) : null });
+            current.continue();
+          };
+        }
       }
       if (event.oldVersion < 24) {
         const catalogItems = request.transaction?.objectStore(catalogItemStore);
@@ -496,6 +519,34 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   getActualTimeRecord(id: string) { return readOne<ActualTimeRecord>(actualTimeStore, id); }
   saveActualTimeRecord(record: ActualTimeRecord) { return writeOne(actualTimeStore, record); }
   listShortCashDeclarations() { return listAll<ShortCashDeclaration>(shortCashDeclarationStore, (left, right) => right.createdAt.localeCompare(left.createdAt)); }
+  async listAllocationPolicies(catalogItemId?: string): Promise<StorageResult<readonly AllocationPolicy[]>> { const result = await listAll<AllocationPolicy>(allocationPolicyStore, (left, right) => right.startsOn.localeCompare(left.startsOn) || right.version - left.version); return result.ok ? { ok: true, value: result.value.filter(policy => !catalogItemId || policy.catalogItemId === catalogItemId) } : result; }
+  getAllocationPolicy(id: string) { return readOne<AllocationPolicy>(allocationPolicyStore, id); }
+  saveAllocationPolicy(policy: AllocationPolicy) { return writeOne(allocationPolicyStore, policy); }
+  async commitAllocationPolicySuccessor(previous: AllocationPolicy, successor: AllocationPolicy): Promise<StorageResult<{ previous: AllocationPolicy; successor: AllocationPolicy }>> {
+    try {
+      const database = await openDatabase();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(allocationPolicyStore, "readwrite");
+        const store = transaction.objectStore(allocationPolicyStore);
+        let pending: StorageResult<{ previous: AllocationPolicy; successor: AllocationPolicy }> | null = null;
+        const finish = (result: StorageResult<{ previous: AllocationPolicy; successor: AllocationPolicy }>) => { database.close(); resolve(result); };
+        const request = store.getAll();
+        request.onerror = () => { pending = failure(request.error); try { transaction.abort(); } catch { if (pending) finish(pending); } };
+        request.onsuccess = () => {
+          const policies = request.result as AllocationPolicy[];
+          const repeated = policies.find(policy => policy.idempotencyKey === successor.idempotencyKey);
+          if (repeated) { pending = { ok: true, value: { previous: policies.find(policy => policy.id === previous.id) ?? previous, successor: repeated } }; try { transaction.abort(); } catch { if (pending) finish(pending); } return; }
+          const current = policies.find(policy => policy.id === previous.id);
+          if (!current || current.status !== "active") { pending = { ok: false, code: "storage_error", message: "لم تعد سياسة التحميل الأصلية فعالة؛ لم تتغير السلسلة." }; try { transaction.abort(); } catch { if (pending) finish(pending); } return; }
+          if (policies.some(policy => policy.id === successor.id)) { pending = { ok: false, code: "storage_error", message: "تعارض هوية نسخة سياسة التحميل؛ لم تتغير البيانات." }; try { transaction.abort(); } catch { if (pending) finish(pending); } return; }
+          store.put(previous); store.put(successor);
+        };
+        transaction.onerror = () => { if (!pending) pending = failure(transaction.error); };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.oncomplete = () => finish({ ok: true, value: { previous, successor } });
+      });
+    } catch (error) { return failure(error); }
+  }
   getShortCashDeclaration(id: string) { return readOne<ShortCashDeclaration>(shortCashDeclarationStore, id); }
   saveShortCashDeclaration(declaration: ShortCashDeclaration) { return writeOne(shortCashDeclarationStore, declaration); }
   listOwnerEntitlementPolicies() { return listAll<OwnerEntitlementPolicy>(ownerEntitlementPolicyStore, (left, right) => right.startsOn.localeCompare(left.startsOn) || right.version - left.version); }
@@ -562,7 +613,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     try {
       const database = await openDatabase();
       return await new Promise(resolve => {
-        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, measurementUnitStore, directConversionStore, catalogTemplateStore, actualTimeStore, shortCashDeclarationStore, ownerEntitlementPolicyStore, ownerEntitlementRecordStore, ownerEntitlementOpeningBalanceStore, ownerMovementStore], "readonly");
+        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, measurementUnitStore, directConversionStore, catalogTemplateStore, actualTimeStore, shortCashDeclarationStore, ownerEntitlementPolicyStore, ownerEntitlementRecordStore, ownerEntitlementOpeningBalanceStore, ownerMovementStore, allocationPolicyStore], "readonly");
         const profile = transaction.objectStore(profileStore).get("local-profile");
         const preferences = transaction.objectStore(preferencesStore).get("local-preferences");
         const drafts = transaction.objectStore(draftStore).getAll();
@@ -585,11 +636,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const ownerEntitlementRecords = transaction.objectStore(ownerEntitlementRecordStore).getAll();
         const ownerEntitlementOpeningBalances = transaction.objectStore(ownerEntitlementOpeningBalanceStore).getAll();
         const ownerMovements = transaction.objectStore(ownerMovementStore).getAll();
+        const allocationPolicies = transaction.objectStore(allocationPolicyStore).getAll();
         transaction.onerror = () => resolve(failure(transaction.error));
         transaction.onabort = () => resolve(failure(transaction.error));
         transaction.oncomplete = () => {
           database.close();
-          resolve({ ok: true, value: { profile: (profile.result as ActivityProfile | undefined) ?? null, preferences: (preferences.result as LocalPreferences | undefined) ?? null, drafts: drafts.result as OrderDraft[], orders: orders.result as StoredCraftOrder[], schedules: schedules.result as ScheduleEntry[], recurrences: recurrences.result as ScheduleRecurrence[], financialEvents: financialEvents.result as FinancialEvent[], supplierPurchases: supplierPurchases.result as SupplierPurchase[], cashWallets: cashWallets.result as CashWallet[], cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[], materials: materials.result as Material[], inventoryMovements: inventoryMovements.result as InventoryMovement[], catalogItems: catalogItems.result as CatalogItem[], measurementUnits: measurementUnits.result as MeasurementUnit[], directConversions: directConversions.result as DirectConversion[], catalogTemplates: catalogTemplates.result as CatalogTemplate[], actualTimeRecords: actualTimeRecords.result as ActualTimeRecord[], shortCashDeclarations: shortCashDeclarations.result as ShortCashDeclaration[], ownerEntitlementPolicies: ownerEntitlementPolicies.result as OwnerEntitlementPolicy[], ownerEntitlementRecords: ownerEntitlementRecords.result as OwnerEntitlementRecord[], ownerEntitlementOpeningBalances: ownerEntitlementOpeningBalances.result as OwnerEntitlementOpeningBalance[], ownerMovements: ownerMovements.result as OwnerMovement[] } });
+          resolve({ ok: true, value: { profile: (profile.result as ActivityProfile | undefined) ?? null, preferences: (preferences.result as LocalPreferences | undefined) ?? null, drafts: drafts.result as OrderDraft[], orders: orders.result as StoredCraftOrder[], schedules: schedules.result as ScheduleEntry[], recurrences: recurrences.result as ScheduleRecurrence[], financialEvents: financialEvents.result as FinancialEvent[], supplierPurchases: supplierPurchases.result as SupplierPurchase[], cashWallets: cashWallets.result as CashWallet[], cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[], materials: materials.result as Material[], inventoryMovements: inventoryMovements.result as InventoryMovement[], catalogItems: catalogItems.result as CatalogItem[], measurementUnits: measurementUnits.result as MeasurementUnit[], directConversions: directConversions.result as DirectConversion[], catalogTemplates: catalogTemplates.result as CatalogTemplate[], actualTimeRecords: actualTimeRecords.result as ActualTimeRecord[], shortCashDeclarations: shortCashDeclarations.result as ShortCashDeclaration[], ownerEntitlementPolicies: ownerEntitlementPolicies.result as OwnerEntitlementPolicy[], ownerEntitlementRecords: ownerEntitlementRecords.result as OwnerEntitlementRecord[], ownerEntitlementOpeningBalances: ownerEntitlementOpeningBalances.result as OwnerEntitlementOpeningBalance[], ownerMovements: ownerMovements.result as OwnerMovement[], allocationPolicies: allocationPolicies.result as AllocationPolicy[] } });
         };
       });
     } catch (error) {
@@ -599,9 +651,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
     try {
       const database = await openDatabase();
-      const normalized: LocalStoreSnapshot = { ...snapshot, schedules: snapshot.schedules ?? [], recurrences: snapshot.recurrences ?? [], financialEvents: snapshot.financialEvents ?? [], supplierPurchases: snapshot.supplierPurchases ?? [], cashWallets: snapshot.cashWallets ?? [], cashContinuityEntries: snapshot.cashContinuityEntries ?? [], materials: snapshot.materials ?? [], inventoryMovements: snapshot.inventoryMovements ?? [], catalogItems: snapshot.catalogItems ?? [], measurementUnits: snapshot.measurementUnits ?? [], directConversions: snapshot.directConversions ?? [], catalogTemplates: snapshot.catalogTemplates ?? [], actualTimeRecords: snapshot.actualTimeRecords ?? [], shortCashDeclarations: snapshot.shortCashDeclarations ?? [], ownerEntitlementPolicies: snapshot.ownerEntitlementPolicies ?? [], ownerEntitlementRecords: snapshot.ownerEntitlementRecords ?? [], ownerEntitlementOpeningBalances: snapshot.ownerEntitlementOpeningBalances ?? [], ownerMovements: snapshot.ownerMovements ?? [] };
+      const normalized: LocalStoreSnapshot = { ...snapshot, schedules: snapshot.schedules ?? [], recurrences: snapshot.recurrences ?? [], financialEvents: snapshot.financialEvents ?? [], supplierPurchases: snapshot.supplierPurchases ?? [], cashWallets: snapshot.cashWallets ?? [], cashContinuityEntries: snapshot.cashContinuityEntries ?? [], materials: snapshot.materials ?? [], inventoryMovements: snapshot.inventoryMovements ?? [], catalogItems: snapshot.catalogItems ?? [], measurementUnits: snapshot.measurementUnits ?? [], directConversions: snapshot.directConversions ?? [], catalogTemplates: snapshot.catalogTemplates ?? [], actualTimeRecords: snapshot.actualTimeRecords ?? [], shortCashDeclarations: snapshot.shortCashDeclarations ?? [], ownerEntitlementPolicies: snapshot.ownerEntitlementPolicies ?? [], ownerEntitlementRecords: snapshot.ownerEntitlementRecords ?? [], ownerEntitlementOpeningBalances: snapshot.ownerEntitlementOpeningBalances ?? [], ownerMovements: snapshot.ownerMovements ?? [], allocationPolicies: snapshot.allocationPolicies ?? [] };
       return await new Promise(resolve => {
-        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, measurementUnitStore, directConversionStore, catalogTemplateStore, actualTimeStore, shortCashDeclarationStore, ownerEntitlementPolicyStore, ownerEntitlementRecordStore, ownerEntitlementOpeningBalanceStore, ownerMovementStore], "readwrite");
+        const transaction = database.transaction([profileStore, preferencesStore, draftStore, orderStore, scheduleStore, recurrenceStore, financialEventStore, supplierPurchaseStore, cashWalletStore, cashContinuityEntryStore, materialStore, inventoryMovementStore, catalogItemStore, measurementUnitStore, directConversionStore, catalogTemplateStore, actualTimeStore, shortCashDeclarationStore, ownerEntitlementPolicyStore, ownerEntitlementRecordStore, ownerEntitlementOpeningBalanceStore, ownerMovementStore, allocationPolicyStore], "readwrite");
         const profiles = transaction.objectStore(profileStore);
         const preferences = transaction.objectStore(preferencesStore);
         const drafts = transaction.objectStore(draftStore);
@@ -624,6 +676,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const ownerEntitlementRecords = transaction.objectStore(ownerEntitlementRecordStore);
         const ownerEntitlementOpeningBalances = transaction.objectStore(ownerEntitlementOpeningBalanceStore);
         const ownerMovements = transaction.objectStore(ownerMovementStore);
+        const allocationPolicies = transaction.objectStore(allocationPolicyStore);
         profiles.clear();
         preferences.clear();
         drafts.clear();
@@ -646,6 +699,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ownerEntitlementRecords.clear();
         ownerEntitlementOpeningBalances.clear();
         ownerMovements.clear();
+        allocationPolicies.clear();
         if (normalized.profile) profiles.put(normalized.profile);
         if (normalized.preferences) preferences.put(normalized.preferences);
         normalized.drafts.forEach(draft => drafts.put(draft));
@@ -668,6 +722,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         normalized.ownerEntitlementRecords?.forEach(record => ownerEntitlementRecords.put(record));
         normalized.ownerEntitlementOpeningBalances?.forEach(balance => ownerEntitlementOpeningBalances.put(balance));
         normalized.ownerMovements?.forEach(movement => ownerMovements.put(movement));
+        normalized.allocationPolicies?.forEach(policy => allocationPolicies.put(policy));
         transaction.onerror = () => resolve(failure(transaction.error));
         transaction.onabort = () => resolve(failure(transaction.error));
         transaction.oncomplete = () => {

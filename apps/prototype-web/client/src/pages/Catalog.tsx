@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import type { CatalogItem, CatalogItemKind, CatalogTemplate, DirectConversion, MeasurementUnit, UnitDimension } from "@micro-domain/catalog/index.js";
-import type { CatalogRecordedMargin } from "@/application/catalog/catalogService";
+import type { RecurringWorkPolicyInput, RecurringWorkReading, RecurringWorkReadings } from "@/application/recurring-work/recurringWorkService";
 
 const jod = (minor: number) => `${(minor / 100).toFixed(2)} د.أ`;
 const dimensions: readonly { value: UnitDimension; label: string }[] = [
@@ -45,22 +45,43 @@ export const buildCatalogConversionPreview = (fromName: string, toName: string, 
 export const catalogYieldReadinessLabel = (value: CatalogTemplate["yieldReadiness"]) => value === "ready" ? "مهيأ" : value === "needs_conversion" ? "يحتاج تحويلًا صريحًا" : "غير مهيأ اختياريًا";
 export const isCatalogTemplateDirty = (fingerprint: string, baseline: string | null, hasDraft: boolean) => baseline === null ? hasDraft : fingerprint !== baseline;
 const operationKey = (prefix: string) => `${prefix}:${crypto.randomUUID()}`;
+const currentMonth = () => { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, "0"); const lastDay = new Date(year, now.getMonth() + 1, 0).getDate(); return { from: `${year}-${month}-01`, to: `${year}-${month}-${String(lastDay).padStart(2, "0")}` }; };
+const nextDay = (value: string) => { const date = new Date(`${value}T12:00:00.000Z`); date.setUTCDate(date.getUTCDate() + 1); return date.toISOString().slice(0, 10); };
+const monthEndDate = (year: number, month: number) => new Date(Date.UTC(year, month, 0)).getUTCDate();
+export const parseCatalogJodMinor = (value: string) => { const match = value.trim().match(/^(\d+)(?:\.(\d{1,2}))?$/); if (!match) return null; const minor = Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0")); return Number.isSafeInteger(minor) && minor > 0 ? minor : null; };
+export const parseCatalogPercentageBps = (value: string) => { const match = value.trim().match(/^(\d+)(?:\.(\d{1,2}))?$/); if (!match) return null; const bps = Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0")); return Number.isSafeInteger(bps) && bps >= 1 && bps <= 10_000 ? bps : null; };
+export const catalogAllocationKindLabel = (kind: RecurringWorkReading["policies"][number]["kind"]) => ({ manual_amount: "مبلغ يدوي للفترة", per_output_unit: "مبلغ لكل وحدة ناتج", actual_time: "معدل لكل دقيقة فعلية", completed_revenue_percentage: "نسبة من الإيراد المكتمل" })[kind];
+export const catalogAllocationStatusLabel = (status: "known" | "needs_review" | "incomplete" | null) => status === "known" ? "مكتمل" : status === "needs_review" ? "يحتاج مراجعة" : status === "incomplete" ? "ناقص" : "غير محسوب";
 
 export default function Catalog() {
   const [, navigate] = useLocation();
-  const { catalog, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { catalog, recurringWork, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [kind, setKind] = useState<CatalogItemKind>("product");
   const [name, setName] = useState("");
   const [unitLabel, setUnitLabel] = useState("");
   const [unitId, setUnitId] = useState("");
   const [items, setItems] = useState<readonly CatalogItem[]>([]);
-  const [margins, setMargins] = useState<readonly CatalogRecordedMargin[]>([]);
+  const month = useMemo(currentMonth, []);
+  const [periodFrom, setPeriodFrom] = useState(month.from);
+  const [periodTo, setPeriodTo] = useState(month.to);
+  const [policyPeriodFrom, setPolicyPeriodFrom] = useState(month.from);
+  const [policyPeriodTo, setPolicyPeriodTo] = useState(month.to);
+  const [policyRevisionId, setPolicyRevisionId] = useState<string | null>(null);
+  const [readings, setReadings] = useState<RecurringWorkReadings | null>(null);
   const [units, setUnits] = useState<readonly MeasurementUnit[]>([]);
   const [conversions, setConversions] = useState<readonly DirectConversion[]>([]);
   const [templates, setTemplates] = useState<readonly CatalogTemplate[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showMeasurements, setShowMeasurements] = useState(false);
+  const [policyKind, setPolicyKind] = useState<RecurringWorkPolicyInput["kind"]>("manual_amount");
+  const [policyAmount, setPolicyAmount] = useState("");
+  const [policyRate, setPolicyRate] = useState("");
+  const [policyPercentage, setPolicyPercentage] = useState("");
+  const [policyUnitId, setPolicyUnitId] = useState("");
+  const [policySource, setPolicySource] = useState("");
+  const [policyReason, setPolicyReason] = useState("");
+  const [policyNote, setPolicyNote] = useState("");
 
   const [unitName, setUnitName] = useState("");
   const [unitDimension, setUnitDimension] = useState<UnitDimension>("count");
@@ -89,25 +110,26 @@ export default function Catalog() {
   const selectedTemplates = templates.filter(template => template.catalogItemId === selectedItemId);
 
   async function load() {
-    const [itemResult, marginResult, unitResult, conversionResult, templateResult] = await Promise.all([
+    const [itemResult, readingResult, unitResult, conversionResult, templateResult] = await Promise.all([
       catalog.list({ includeInactive: true }),
-      catalog.readRecordedMargins(),
+      recurringWork.readRecurringWork(periodFrom, periodTo),
       catalog.listUnits({ includeInactive: true }),
       catalog.listConversions({ includeInactive: true }),
       catalog.listTemplates(undefined, { includeInactive: true }),
     ]);
     if (itemResult.ok) setItems(itemResult.items); else setMessage(itemResult.message);
-    if (marginResult.ok) setMargins(marginResult.items); else setMessage(marginResult.message);
+    if (readingResult.ok) setReadings(readingResult.value); else setMessage(readingResult.message);
     if (unitResult.ok) setUnits(unitResult.units); else setMessage(unitResult.message);
     if (conversionResult.ok) setConversions(conversionResult.conversions); else setMessage(conversionResult.message);
     if (templateResult.ok) setTemplates(templateResult.templates); else setMessage(templateResult.message);
   }
 
-  useEffect(() => { void load(); }, [catalog, dataVersion]);
+  useEffect(() => { void load(); }, [catalog, recurringWork, dataVersion, periodFrom, periodTo]);
   useEffect(() => {
     if (!selectedItemId && items.some(item => item.active)) setSelectedItemId(items.find(item => item.active)?.id ?? "");
     if (!componentUnitId && activeUnits[0]) setComponentUnitId(activeUnits[0].id);
     if (!yieldUnitId && activeUnits[0]) setYieldUnitId(activeUnits[0].id);
+    if (!policyUnitId && selectedItem?.unitId) setPolicyUnitId(selectedItem.unitId);
   }, [items, activeUnits, selectedItemId, componentUnitId, yieldUnitId]);
 
   async function create() {
@@ -119,6 +141,29 @@ export default function Catalog() {
   }
 
   async function deactivate(id: string) { const result = await catalog.deactivate(id); if (!result.ok) { setMessage(result.message); return; } notifyDataChanged(); await load(); setMessage("تم إيقاف المرجع للطلبات الجديدة مع بقاء تاريخه محفوظًا."); }
+
+  function startPolicyRevision(policy: RecurringWorkReading["policies"][number]) {
+    const start = policy.endsOn ? nextDay(policy.endsOn) : month.from;
+    const [year, monthNumber] = start.split("-").map(Number);
+    setSelectedItemId(policy.catalogItemId); setPolicyRevisionId(policy.id); setPolicyKind(policy.kind); setPolicyAmount(policy.amountMinor === null ? "" : (policy.amountMinor / 100).toFixed(2)); setPolicyRate(policy.rateMinor === null ? "" : (policy.rateMinor / 100).toFixed(2)); setPolicyPercentage(policy.percentageBps === null ? "" : (policy.percentageBps / 100).toFixed(2)); setPolicyUnitId(policy.unitId ?? ""); setPolicySource(policy.source); setPolicyReason(policy.reason); setPolicyNote(policy.note); setPolicyPeriodFrom(start); setPolicyPeriodTo(policy.endsOn ? `${year}-${String(monthNumber).padStart(2, "0")}-${String(monthEndDate(year!, monthNumber!)).padStart(2, "0")}` : month.to); setMessage("أنت تعدل نسخة جديدة؛ ستبقى السياسة السابقة محفوظة وتنتهي قبل بداية النسخة الجديدة.");
+  }
+
+  async function savePolicy() {
+    if (!selectedItemId) { setMessage("اختر مرجع عمل قبل إضافة سياسة تحميل."); return; }
+    const amountMinor = policyKind === "manual_amount" ? parseCatalogJodMinor(policyAmount) : null;
+    const rateMinor = policyKind === "per_output_unit" || policyKind === "actual_time" ? parseCatalogJodMinor(policyRate) : null;
+    const percentageBps = policyKind === "completed_revenue_percentage" ? parseCatalogPercentageBps(policyPercentage) : null;
+    if ((policyKind === "manual_amount" && amountMinor === null) || ((policyKind === "per_output_unit" || policyKind === "actual_time") && rateMinor === null) || (policyKind === "completed_revenue_percentage" && percentageBps === null)) { setMessage("أدخل أساس التحميل بصيغة موجبة واضحة؛ لا نستخدم صفرًا بدل البيانات الناقصة."); return; }
+    if (policyKind === "per_output_unit" && (!policyUnitId || !selectedItem?.unitId || policyUnitId !== selectedItem.unitId)) { setMessage("اختر وحدة ناتج منظمة متوافقة مع وحدة مرجع العمل؛ لا نحول yield تلقائيًا."); return; }
+    if (!policySource.trim() || !policyReason.trim() || !policyNote.trim()) { setMessage("مصدر السياسة وسببها وملاحظتها حقول إلزامية."); return; }
+    setSaving(true); setMessage(null);
+    const input: RecurringWorkPolicyInput = { catalogItemId: selectedItemId, kind: policyKind, amountMinor, rateMinor, percentageBps, unitId: policyKind === "per_output_unit" ? policyUnitId : null, periodFrom: policyPeriodFrom, periodTo: policyPeriodTo, startsOn: policyPeriodFrom, endsOn: policyPeriodTo, source: policySource, reason: policyReason, note: policyNote, idempotencyKey: operationKey("allocation-policy") };
+    const { catalogItemId: _catalogItemId, ...successorInput } = input;
+    const result = policyRevisionId ? await recurringWork.createPolicySuccessor(policyRevisionId, successorInput) : await recurringWork.createPolicy(input);
+    setSaving(false);
+    if (!result.ok) { setMessage(result.message); return; }
+    setPolicyAmount(""); setPolicyRate(""); setPolicyPercentage(""); setPolicySource(""); setPolicyReason(""); setPolicyNote(""); setPolicyRevisionId(null); notifyDataChanged(); await load(); setMessage("تم حفظ سياسة التحميل كقراءة تفسيرية مؤرخة؛ لم ينشأ منها قيد مالي أو تغيير في Snapshot.");
+  }
 
   async function createUnit() {
     setMessage(null);
@@ -225,7 +270,14 @@ export default function Catalog() {
       {selectedItem ? <div className="micro-subsection-stack"><div className="micro-subsection"><div className="micro-subsection-heading"><div><h3>{editingTemplateId ? "مراجعة القالب" : "قالب جديد"}</h3><p>{selectedItemUnit ? `مخرج المرجع: ${selectedItemUnit.nameAr} · ${dimensionLabel(selectedItemUnit.dimension)}` : "لا توجد وحدة مخرج منظمة؛ يمكن حفظ القالب دون yield."}</p></div></div><div className="micro-form-grid"><label className="micro-field"><span>عنوان أو مصدر <small>اختياري</small></span><input value={templateTitle} onChange={event => setTemplateTitle(event.target.value)} placeholder="مثال: تجهيز الطلب المعتاد" /></label><label className="micro-field micro-field-wide"><span>ملاحظة <small>اختيارية</small></span><input value={templateNote} onChange={event => setTemplateNote(event.target.value)} placeholder="ملاحظة تساعدني في التكرار" /></label></div><div className="micro-inline-heading"><h4>المكونات</h4><span>{templateComponents.length} مكوّن</span></div><div className="micro-form-grid"><label className="micro-field"><span>اسم المكوّن</span><input value={componentName} onChange={event => setComponentName(event.target.value)} placeholder="مثال: شمع" /></label><label className="micro-field"><span>الكمية <small>حتى 3 منازل</small></span><input dir="ltr" inputMode="decimal" value={componentQuantity} onChange={event => setComponentQuantity(event.target.value)} placeholder="1.250" /></label><label className="micro-field"><span>الوحدة</span><select value={componentUnitId} onChange={event => setComponentUnitId(event.target.value)}><option value="">اختر وحدة</option>{activeUnits.map(unit => <option key={unit.id} value={unit.id}>{unit.nameAr} · {dimensionLabel(unit.dimension)}</option>)}</select></label></div><button className="micro-button micro-button-secondary" type="button" onClick={addComponent}><Plus aria-hidden="true" /> أضف مكوّنًا للقالب</button>{templateComponents.length ? <div className="micro-list micro-list-compact">{templateComponents.map(component => <div className="micro-list-item" key={component.id}><div><strong>{component.name}</strong><p dir="ltr">{quantityLabel(component.quantityMilli)} · {units.find(unit => unit.id === component.unitId)?.nameAr ?? "وحدة محفوظة"}</p></div><button className="micro-icon-button" type="button" aria-label={`إزالة ${component.name}`} onClick={() => setTemplateComponents(current => current.filter(entry => entry.id !== component.id))}><X aria-hidden="true" /></button></div>)}</div> : <p className="micro-empty-copy">لم تضف مكونات بعد. يمكنك حفظ قالب فارغ كملاحظة تخطيطية، أو إضافة ما تكرره عادةً.</p>}<label className="micro-checkbox"><input type="checkbox" checked={yieldEnabled} onChange={event => setYieldEnabled(event.target.checked)} /><span>أضيف ناتجًا متوقعًا لهذا القالب</span></label>{yieldEnabled ? <div className="micro-form-grid"><label className="micro-field"><span>كمية الناتج</span><input dir="ltr" inputMode="decimal" value={yieldQuantity} onChange={event => setYieldQuantity(event.target.value)} placeholder="12.000" /></label><label className="micro-field"><span>وحدة الناتج</span><select value={yieldUnitId} onChange={event => setYieldUnitId(event.target.value)}><option value="">اختر وحدة الناتج</option>{activeUnits.map(unit => <option key={unit.id} value={unit.id}>{unit.nameAr} · {dimensionLabel(unit.dimension)}</option>)}</select></label></div> : null}<div className="micro-action-row"><button className="micro-button micro-button-primary" type="button" disabled={saving || !selectedItemId} onClick={saveTemplate}>{editingTemplateId ? <RotateCcw aria-hidden="true" /> : <Check aria-hidden="true" />} {saving ? "جارٍ الحفظ…" : editingTemplateId ? "احفظ المراجعة" : "احفظ القالب"}</button>{editingTemplateId ? <button className="micro-button micro-button-secondary" type="button" onClick={resetTemplateForm}>إلغاء المراجعة</button> : null}</div></div><div className="micro-subsection"><div className="micro-subsection-heading"><div><span className="micro-overline">المراجعات المحفوظة</span><h3>قالب هذا المرجع</h3></div><p>التعديل ينشئ مراجعة جديدة؛ لا يعيد حساب طلب سابق.</p></div>{selectedTemplates.length ? <div className="micro-list">{selectedTemplates.map(template => <article className="micro-list-item" key={template.id}><div><strong>{template.title || "قالب بلا عنوان"} · مراجعة {template.revision}</strong><p>{template.components.length} مكوّن{template.yield ? ` · الناتج ${quantityLabel(template.yield.quantityMilli)}` : " · بلا yield"}{template.active ? "" : " · موقوف"}</p>{template.yieldReadiness === "needs_conversion" ? <p className="micro-warning-copy">الناتج غير مهيأ: أضف تحويلًا صريحًا داخل البعد نفسه، ولن نخمّن أو نقرب.</p> : template.yieldReadiness === "ready" ? <p className="micro-success-copy">الناتج متوافق مع وحدة المرجع.</p> : null}<details className="micro-inline-disclosure"><summary>حدود القالب</summary><p>هذا تذكّر تخطيطي فقط؛ لا Purchase ولا Inventory ولا Consumption ولا COGS ولا إيراد ولا هامش ينشأ منه.</p></details></div><div className="micro-action-column">{template.active ? <><button className="micro-button micro-button-secondary" type="button" onClick={() => startRevision(template)}><RotateCcw aria-hidden="true" /> مراجعة</button><button className="micro-button micro-button-secondary" type="button" onClick={() => deactivateTemplate(template.id)}><ArchiveX aria-hidden="true" /> إيقاف</button></> : null}</div></article>)}</div> : <p className="micro-empty-copy">لا يوجد قالب لهذا المرجع. وهذا مسار صحيح للخدمة أو العمل المخصص.</p>}</div></div> : <p className="micro-empty-copy">اختر مرجعًا إن أردت إضافة مكونات أو ناتجًا متكررًا. لا يلزم إعداد أي قالب للحفظ.</p>}
     </section>
 
-    <section className="micro-form-card"><div className="micro-page-heading"><span className="micro-overline">المراجع المسجلة</span><h2>أعمال متكررة</h2></div>{items.length ? <div className="micro-list">{items.map(item => { const margin = margins.find(entry => entry.catalogItemId === item.id); const variance = margin?.materialVariance; const organizedUnit = item.unitId ? units.find(unit => unit.id === item.unitId) : null; return <article key={item.id} className="micro-list-item"><div><strong>{item.name}</strong><p>{item.kind === "product" ? "منتج" : "خدمة"}{item.unitLabel ? ` · ${item.unitLabel}` : ""}{organizedUnit ? ` · ${organizedUnit.nameAr}` : ""}{item.active ? "" : " · موقوف للطلبات الجديدة"}</p>{margin ? <><p><strong>هامش مباشر مسجل: {jod(margin.directMarginMinor)}</strong> · {margin.finalOrderCount} طلب نهائي</p>{variance?.recordedOrderCount ? <p>فرق مادة مسجل: {jod(variance.varianceMinor ?? 0)} مقارنة بالمخطط · {variance.recordedOrderCount} طلب</p> : null}{variance?.notRecordedOrderCount ? <p>لا توجد مادة منفذة مسجلة لـ {variance.notRecordedOrderCount} طلب؛ لا يعني ذلك صفر مادة.</p> : null}</> : <p>لا توجد طلبات نهائية مرتبطة بهذا المرجع بعد.</p>}<details className="micro-inline-disclosure"><summary>لماذا؟</summary><p>الهامش وفرق المادة قراءتان تفسيريتان؛ لا يشملان تكلفة فعلية كاملة أو كهرباء أو تسويقًا أو وقتًا غير مسجل.</p></details></div>{item.active ? <button className="micro-button micro-button-secondary" type="button" onClick={() => deactivate(item.id)}><ArchiveX aria-hidden="true" /> إيقاف</button> : null}</article>; })}</div> : <p className="micro-empty-copy">لا يوجد مرجع بعد. أضف فقط العمل الذي يتكرر كي يصبح تحليله منظمًا لاحقًا.</p>}</section>
+    <section className="micro-form-card">
+      <div className="micro-page-heading"><span className="micro-overline">4 · فترة القراءة والسياسة</span><h2>اقرأ قبل أن تقرر</h2><p>حدد فترة معلنة، ثم اعرض الهامش المباشر المسجل. أي تحميل اختياري يحتاج سياسة مؤرخة ومصدرًا وسببًا واضحًا.</p></div>
+      <div className="micro-form-grid"><label className="micro-field"><span>من</span><input type="date" value={periodFrom} onChange={event => setPeriodFrom(event.target.value)} /></label><label className="micro-field"><span>إلى</span><input type="date" value={periodTo} onChange={event => setPeriodTo(event.target.value)} /></label></div>
+      <p className="micro-muted-copy">الهامش المباشر هو الإيراد المعترف به للطلبات <bdi dir="ltr">final</bdi> ناقص التكلفة المباشرة المحفوظة في Snapshot. الوقت والهدر وCOGS قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا تلقائيًا.</p>
+      <div className="micro-subsection"><div className="micro-subsection-heading"><div><span className="micro-overline">سياسة اختيارية</span><h3>أضف تحميلًا واضحًا</h3></div><p>لا تُنشئ السياسة قيدًا ماليًا ولا تعيد كتابة الماضي؛ وتبقى قابلة للمراجعة عبر تاريخها ومصدرها.</p></div><label className="micro-field"><span>مرجع العمل</span><select value={selectedItemId} onChange={event => { setSelectedItemId(event.target.value); resetTemplateForm(); }}><option value="">اختر مرجعًا</option>{items.filter(item => item.active).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>{selectedItem ? <><div className="micro-form-grid"><label className="micro-field"><span>بداية السياسة</span><input type="date" value={policyPeriodFrom} onChange={event => setPolicyPeriodFrom(event.target.value)} /></label><label className="micro-field"><span>نهاية السياسة</span><input type="date" value={policyPeriodTo} onChange={event => setPolicyPeriodTo(event.target.value)} /></label><label className="micro-field"><span>أساس التحميل</span><select value={policyKind} onChange={event => setPolicyKind(event.target.value as RecurringWorkPolicyInput["kind"])}><option value="manual_amount">مبلغ يدوي للفترة</option><option value="per_output_unit">مبلغ لكل وحدة ناتج</option><option value="actual_time">معدل لكل دقيقة فعلية</option><option value="completed_revenue_percentage">نسبة من الإيراد المكتمل</option></select></label>{policyKind === "manual_amount" ? <label className="micro-field"><span>المبلغ <small>د.أ</small></span><input dir="ltr" inputMode="decimal" value={policyAmount} onChange={event => setPolicyAmount(event.target.value)} placeholder="25.00" /></label> : null}{policyKind === "per_output_unit" || policyKind === "actual_time" ? <label className="micro-field"><span>المعدل <small>د.أ</small></span><input dir="ltr" inputMode="decimal" value={policyRate} onChange={event => setPolicyRate(event.target.value)} placeholder="0.50" /></label> : null}{policyKind === "per_output_unit" ? <label className="micro-field"><span>وحدة الناتج</span><select value={policyUnitId} onChange={event => setPolicyUnitId(event.target.value)}><option value="">اختر وحدة المرجع</option>{activeUnits.map(unit => <option key={unit.id} value={unit.id}>{unit.nameAr} · {dimensionLabel(unit.dimension)}</option>)}</select></label> : null}{policyKind === "completed_revenue_percentage" ? <label className="micro-field"><span>النسبة <small>%</small></span><input dir="ltr" inputMode="decimal" value={policyPercentage} onChange={event => setPolicyPercentage(event.target.value)} placeholder="5.00" /></label> : null}</div><div className="micro-form-grid"><label className="micro-field"><span>المصدر</span><input value={policySource} onChange={event => setPolicySource(event.target.value)} placeholder="مثال: فاتورة كهرباء شهرية" /></label><label className="micro-field"><span>السبب</span><input value={policyReason} onChange={event => setPolicyReason(event.target.value)} placeholder="مثال: توزيع تكلفة تشغيل مشتركة" /></label><label className="micro-field micro-field-wide"><span>ملاحظة القرار</span><textarea value={policyNote} onChange={event => setPolicyNote(event.target.value)} placeholder="لماذا اخترت هذا الأساس لهذه الفترة؟" /></label></div><button className="micro-button micro-button-secondary" type="button" disabled={saving} onClick={savePolicy}><Check aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "احفظ السياسة"}</button></> : <p className="micro-empty-copy">اختر مرجع عمل إذا أردت تسجيل سياسة تحميل اختيارية.</p>}</div>
+    </section>
+
+    <section className="micro-form-card"><div className="micro-page-heading"><span className="micro-overline">المراجع المسجلة</span><h2>أعمال متكررة وقراءة القرار</h2><p>{readings ? `الفترة المعلنة: ${readings.from} → ${readings.to}` : "جارٍ تحميل القراءة المحلية…"}</p></div>{items.length ? <div className="micro-list">{items.map(item => { const reading = readings?.items.find(entry => entry.catalogItemId === item.id); const organizedUnit = item.unitId ? units.find(unit => unit.id === item.unitId) : null; const allocation = reading?.allocation ?? null; return <article key={item.id} className="micro-list-item"><div><strong>{item.name}</strong><p>{item.kind === "product" ? "منتج" : "خدمة"}{item.unitLabel ? ` · ${item.unitLabel}` : ""}{organizedUnit ? ` · ${organizedUnit.nameAr}` : ""}{item.active ? "" : " · موقوف للطلبات الجديدة"}</p>{reading?.directStatus === "recorded" ? <p><strong>الهامش المباشر المسجل: {jod(reading.directMarginMinor ?? 0)}</strong> · {reading.finalOrderCount} طلب نهائي · كمية {reading.deliveredQuantity}</p> : <p>لا توجد طلبات final مرتبطة بهذا المرجع في الفترة؛ لا تعرض القراءة صفرًا بدل دليل ناقص.</p>}{reading ? <><p>المادة: {reading.material.actualMaterialMinor === null ? "غير مسجلة بعد" : jod(reading.material.actualMaterialMinor)}{reading.material.varianceMinor === null ? "" : ` · الفرق ${jod(reading.material.varianceMinor)}`} · {reading.material.recordedOrderCount} مسجل / {reading.material.notRecordedOrderCount} بلا سجل</p><p>الوقت: {reading.time.actualMinutes === null ? "غير مسجل بعد" : `${reading.time.actualMinutes} دقيقة`}{reading.time.varianceMinutes === null ? "" : ` · الفرق ${reading.time.varianceMinutes} دقيقة`} · {reading.time.recordedOrderCount} مسجل / {reading.time.notRecordedOrderCount} بلا سجل</p><p>الهدر المرتبط بهذا المرجع: {jod(reading.waste.orderWasteMinor + reading.waste.catalogItemWasteMinor + reading.waste.catalogTemplateWasteMinor)} · الهدر العام/غير الموزع منفصل: {jod(reading.waste.generalProjectWasteMinor + reading.waste.unallocatedWasteMinor)}</p>{allocation ? <p><strong>الربح بعد التحميل: {allocation.resultMinor === null ? "غير مكتمل" : jod(allocation.resultMinor)}</strong> · {catalogAllocationKindLabel(allocation.kind)} · {catalogAllocationStatusLabel(allocation.status)}</p> : <p>لا توجد سياسة تحميل فعالة تغطي الفترة؛ الهامش المباشر هو القراءة الأساسية.</p>}{reading.reasons.map(reason => <p className="micro-warning-copy" key={reason}>{reason}</p>)}{reading.policies.length ? <details className="micro-inline-disclosure"><summary>سياسات هذا المرجع</summary>{reading.policies.map(policy => <p key={policy.id}>{catalogAllocationKindLabel(policy.kind)} · {policy.status === "active" ? "فعالة" : "غير فعالة"} · {policy.periodFrom} → {policy.periodTo} · {policy.source} · السبب: {policy.reason} · {policy.note}{policy.status === "active" ? <button className="micro-button micro-button-secondary" type="button" onClick={() => startPolicyRevision(policy)}>أنشئ مراجعة</button> : null}</p>)}</details> : null}<details className="micro-inline-disclosure"><summary>الحقيقة والحدود</summary><p>{reading.truth}</p><p>الهدر لا يدخل COGS ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا، ولا توصية سعر، ولا تتضمن تكاليف لم تُسجل.</p></details></> : <p className="micro-empty-copy">لا تتوفر قراءة لهذا المرجع بعد.</p>}</div>{item.active ? <button className="micro-button micro-button-secondary" type="button" onClick={() => deactivate(item.id)}><ArchiveX aria-hidden="true" /> إيقاف</button> : null}</article>; })}</div> : <p className="micro-empty-copy">لا يوجد مرجع بعد. أضف فقط العمل الذي يتكرر كي يصبح تحليله منظمًا لاحقًا.</p>}</section>
     {message ? <p className="micro-save-note" role="status">{message}</p> : null}
   </section>;
 }

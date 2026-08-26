@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalogConversionPreview, catalogConversionDirectionText, catalogConversionExactnessWarning, catalogDimensionOptions, catalogYieldReadinessLabel, isCatalogTemplateDirty, parseCatalogPositiveSafeInteger, parseCatalogQuantityMilli } from "./Catalog";
+import { buildCatalogConversionPreview, catalogAllocationKindLabel, catalogAllocationStatusLabel, catalogConversionDirectionText, catalogConversionExactnessWarning, catalogDimensionOptions, catalogYieldReadinessLabel, isCatalogTemplateDirty, parseCatalogJodMinor, parseCatalogPercentageBps, parseCatalogPositiveSafeInteger, parseCatalogQuantityMilli } from "./Catalog";
 
 describe("Catalog G4-A UI capability model", () => {
   it("exposes only the six general dimensions in Arabic", () => {
@@ -47,5 +47,23 @@ describe("Catalog G4-A UI capability model", () => {
     expect(catalogYieldReadinessLabel("not_configured")).toBe("غير مهيأ اختياريًا");
     expect(catalogYieldReadinessLabel("ready")).toBe("مهيأ");
     expect(catalogYieldReadinessLabel("needs_conversion")).toBe("يحتاج تحويلًا صريحًا");
+  });
+
+  it("accepts only explicit positive JOD and percentage values", () => {
+    expect(parseCatalogJodMinor("25.00")).toBe(2500);
+    expect(parseCatalogJodMinor("0")).toBeNull();
+    expect(parseCatalogJodMinor("25.123")).toBeNull();
+    expect(parseCatalogPercentageBps("5.00")).toBe(500);
+    expect(parseCatalogPercentageBps("100.01")).toBeNull();
+    expect(parseCatalogPercentageBps("0")).toBeNull();
+  });
+
+  it("keeps the four policy labels and incomplete state explicit", () => {
+    expect(catalogAllocationKindLabel("manual_amount")).toBe("مبلغ يدوي للفترة");
+    expect(catalogAllocationKindLabel("per_output_unit")).toBe("مبلغ لكل وحدة ناتج");
+    expect(catalogAllocationKindLabel("actual_time")).toBe("معدل لكل دقيقة فعلية");
+    expect(catalogAllocationKindLabel("completed_revenue_percentage")).toBe("نسبة من الإيراد المكتمل");
+    expect(catalogAllocationStatusLabel("incomplete")).toBe("ناقص");
+    expect(catalogAllocationStatusLabel(null)).toBe("غير محسوب");
   });
 });

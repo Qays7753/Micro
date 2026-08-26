@@ -11,12 +11,13 @@ import type { CatalogItem, CatalogTemplate, DirectConversion, MeasurementUnit } 
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 import type { OwnerEntitlementOpeningBalance, OwnerEntitlementPolicy, OwnerEntitlementRecord, OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
+import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 
-export const localSchemaVersion = 24;
+export const localSchemaVersion = 25;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 15;
+export const localExportVersion = 16;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
@@ -38,7 +39,7 @@ export type ScheduleRecurrenceFrequency = "weekly" | "monthly";
 export type ScheduleRecurrenceStatus = "active" | "cancelled";
 export type ScheduleRecurrence = { id: string; sourceScheduleId: string; orderId: string; frequency: ScheduleRecurrenceFrequency; occurrenceCount: number; status: ScheduleRecurrenceStatus; idempotencyKey: string; cancelledAt: string | null; cancellationReason: string | null; createdAt: string; updatedAt: string };
 
-export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; recurrences?: readonly ScheduleRecurrence[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[]; measurementUnits?: readonly MeasurementUnit[]; directConversions?: readonly DirectConversion[]; catalogTemplates?: readonly CatalogTemplate[]; actualTimeRecords?: readonly ActualTimeRecord[]; shortCashDeclarations?: readonly ShortCashDeclaration[]; ownerEntitlementPolicies?: readonly OwnerEntitlementPolicy[]; ownerEntitlementRecords?: readonly OwnerEntitlementRecord[]; ownerEntitlementOpeningBalances?: readonly OwnerEntitlementOpeningBalance[]; ownerMovements?: readonly OwnerMovement[] };
+export type LocalStoreSnapshot = { profile: ActivityProfile | null; preferences: LocalPreferences | null; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[]; schedules: readonly ScheduleEntry[]; recurrences?: readonly ScheduleRecurrence[]; financialEvents: readonly FinancialEvent[]; supplierPurchases?: readonly SupplierPurchase[]; cashWallets?: readonly CashWallet[]; cashContinuityEntries?: readonly CashContinuityEntry[]; materials?: readonly Material[]; inventoryMovements?: readonly InventoryMovement[]; catalogItems?: readonly CatalogItem[]; measurementUnits?: readonly MeasurementUnit[]; directConversions?: readonly DirectConversion[]; catalogTemplates?: readonly CatalogTemplate[]; actualTimeRecords?: readonly ActualTimeRecord[]; shortCashDeclarations?: readonly ShortCashDeclaration[]; ownerEntitlementPolicies?: readonly OwnerEntitlementPolicy[]; ownerEntitlementRecords?: readonly OwnerEntitlementRecord[]; ownerEntitlementOpeningBalances?: readonly OwnerEntitlementOpeningBalance[]; ownerMovements?: readonly OwnerMovement[]; allocationPolicies?: readonly AllocationPolicy[] };
 export type LocalExportFile = { format: typeof localExportFormat; version: typeof localExportVersion; schemaVersion: typeof localSchemaVersion; exportedAt: string; data: LocalStoreSnapshot };
 export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
@@ -108,6 +109,10 @@ export interface PrototypeLocalStore {
   commitOwnerMovement(movement: OwnerMovement, cashEntry: CashContinuityEntry): Promise<StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }>>;
   getActualTimeRecord(id: string): Promise<StorageResult<ActualTimeRecord | null>>;
   saveActualTimeRecord(record: ActualTimeRecord): Promise<StorageResult<ActualTimeRecord>>;
+  listAllocationPolicies(catalogItemId?: string): Promise<StorageResult<readonly AllocationPolicy[]>>;
+  getAllocationPolicy(id: string): Promise<StorageResult<AllocationPolicy | null>>;
+  saveAllocationPolicy(policy: AllocationPolicy): Promise<StorageResult<AllocationPolicy>>;
+  commitAllocationPolicySuccessor(previous: AllocationPolicy, successor: AllocationPolicy): Promise<StorageResult<{ previous: AllocationPolicy; successor: AllocationPolicy }>>;
   commitOrderFromDraft(order: StoredCraftOrder, draft: OrderDraft, schedule?: ScheduleEntry): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
