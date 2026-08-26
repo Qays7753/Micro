@@ -21,6 +21,15 @@ export function formatQuantityMilli(value: number | null | undefined) {
   return (value / 1000).toFixed(3).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
 }
 
+export type BreakEvenDisplay = { number: string; scale: string };
+
+export function formatBreakEvenDisplay(value: number | null, unitKey: string | null, unitLabel: string | null): BreakEvenDisplay | null {
+  if (value === null || !Number.isSafeInteger(value) || value <= 0) return null;
+  const normalizedLabel = unitLabel?.trim();
+  const scale = unitKey === "legacy:recorded-mix" || !unitKey || !normalizedLabel ? "من المزيج المسجل" : normalizedLabel;
+  return { number: integerFormatter.format(value), scale };
+}
+
 export function isValidLocalDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T12:00:00.000Z`);
