@@ -12,11 +12,11 @@ import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 import type { OwnerEntitlementOpeningBalance, OwnerEntitlementPolicy, OwnerEntitlementRecord, OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 
-export const localSchemaVersion = 22;
+export const localSchemaVersion = 23;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 13;
+export const localExportVersion = 14;
 
 export type ActivityProfile = { id: typeof localProfileId; activityName: string; currency: "JOD"; activityType: "custom_craft"; createdAt: string; updatedAt: string };
 export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
@@ -85,11 +85,14 @@ export interface PrototypeLocalStore {
   listOwnerEntitlementPolicies(): Promise<StorageResult<readonly OwnerEntitlementPolicy[]>>;
   getOwnerEntitlementPolicy(id: string): Promise<StorageResult<OwnerEntitlementPolicy | null>>;
   saveOwnerEntitlementPolicy(policy: OwnerEntitlementPolicy): Promise<StorageResult<OwnerEntitlementPolicy>>;
+  commitOwnerEntitlementPolicySuccessor(previous: OwnerEntitlementPolicy, successor: OwnerEntitlementPolicy): Promise<StorageResult<{ previous: OwnerEntitlementPolicy; successor: OwnerEntitlementPolicy }>>;
   listOwnerEntitlementRecords(): Promise<StorageResult<readonly OwnerEntitlementRecord[]>>;
   getOwnerEntitlementRecord(id: string): Promise<StorageResult<OwnerEntitlementRecord | null>>;
   saveOwnerEntitlementRecord(record: OwnerEntitlementRecord): Promise<StorageResult<OwnerEntitlementRecord>>;
+  commitOwnerEntitlementRecordReversal(sourceId: string, reversal: OwnerEntitlementRecord): Promise<StorageResult<OwnerEntitlementRecord>>;
   listOwnerEntitlementOpeningBalances(): Promise<StorageResult<readonly OwnerEntitlementOpeningBalance[]>>;
   saveOwnerEntitlementOpeningBalance(balance: OwnerEntitlementOpeningBalance): Promise<StorageResult<OwnerEntitlementOpeningBalance>>;
+  commitOwnerEntitlementOpeningBalanceReversal(sourceId: string, reversal: OwnerEntitlementOpeningBalance): Promise<StorageResult<OwnerEntitlementOpeningBalance>>;
   listOwnerMovements(): Promise<StorageResult<readonly OwnerMovement[]>>;
   getOwnerMovement(id: string): Promise<StorageResult<OwnerMovement | null>>;
   commitOwnerMovement(movement: OwnerMovement, cashEntry: CashContinuityEntry): Promise<StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }>>;

@@ -457,4 +457,3 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
 .micro-owner-page bdi[dir="ltr"] { direction: ltr; unicode-bidi: isolate; }
 .micro-owner-page .micro-button svg { width: 17px; height: 17px; }
 @media (max-width: 520px) { .micro-owner-decision-grid, .micro-owner-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .micro-owner-list-row { flex-direction: column; } .micro-owner-list-row > b, .micro-owner-list-actions { align-self: stretch; justify-items: start; } .micro-owner-list-actions { display: flex; align-items: center; justify-content: space-between; } }
-

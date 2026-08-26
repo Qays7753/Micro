@@ -8,14 +8,18 @@ describe("owner entitlement Domain", () => {
     const policy = createOwnerEntitlementPolicy(basePolicy);
     expect(policy.amountMinor).toBe(1500);
     expect(calculateOwnerEntitlement(policy, { periodFrom: "2026-08-01", periodTo: "2026-08-31" })).toMatchObject({ amountMinor: 1500, knowledge: "known", calculationBasis: "time_period" });
+    const bounded = createOwnerEntitlementPolicy({ ...basePolicy, id: "bounded", endsOn: "2026-08-25", idempotencyKey: "bounded" });
+    expect(calculateOwnerEntitlement(bounded, { periodFrom: "2026-08-01", periodTo: "2026-08-31" })).toMatchObject({ amountMinor: null, knowledge: "incomplete" });
     expect(() => createOwnerEntitlementPolicy({ ...basePolicy, id: "policy-2", version: 2, startsOn: "2026-09-01", amountMinor: 2000, idempotencyKey: "policy-2" })).not.toThrow();
   });
 
   it("does not turn missing hourly time or missing units into zero", () => {
     const hourly = createOwnerEntitlementPolicy({ ...basePolicy, id: "hourly", kind: "hourly", amountMinor: 600, idempotencyKey: "hourly" });
     expect(calculateOwnerEntitlement(hourly, { periodFrom: "2026-08-01", periodTo: "2026-08-31" })).toMatchObject({ amountMinor: null, knowledge: "incomplete" });
+    expect(calculateOwnerEntitlement(hourly, { periodFrom: "2026-08-01", periodTo: "2026-08-31", timeQuantity: 60 })).toMatchObject({ amountMinor: null, knowledge: "incomplete" });
+    expect(calculateOwnerEntitlement(hourly, { periodFrom: "2026-08-01", periodTo: "2026-08-31", timeQuantity: 60, timeSourceKeys: ["time-1"] })).toMatchObject({ amountMinor: 600, knowledge: "known" });
     const unit = createOwnerEntitlementPolicy({ ...basePolicy, id: "unit", family: "unit", kind: "per_unit", amountMinor: 25, unitLabel: "قطعة", idempotencyKey: "unit" });
-    expect(calculateOwnerEntitlement(unit, { periodFrom: "2026-08-01", periodTo: "2026-08-31", unitQuantity: 4 })).toMatchObject({ amountMinor: 100, quantity: 4 });
+    expect(calculateOwnerEntitlement(unit, { periodFrom: "2026-08-01", periodTo: "2026-08-31", unitQuantity: 4, unitSourceKeys: ["order-1"] })).toMatchObject({ amountMinor: 100, quantity: 4 });
   });
 
   it("does not claim a fixed-shift amount without shift evidence", () => {
@@ -28,7 +32,7 @@ describe("owner entitlement Domain", () => {
     expect(calculateOwnerEntitlement(profit, { periodFrom: "2026-08-01", periodTo: "2026-08-31", recognizedProfitMinor: 1000, recognizedProfitStatus: "incomplete" })).toMatchObject({ amountMinor: null, knowledge: "incomplete" });
     expect(calculateOwnerEntitlement(profit, { periodFrom: "2026-08-01", periodTo: "2026-08-31", recognizedProfitMinor: 1000, recognizedProfitStatus: "recorded_only" })).toMatchObject({ amountMinor: 250, knowledge: "known" });
     const sale = createOwnerEntitlementPolicy({ ...basePolicy, id: "sale", family: "completed_sale_percentage", kind: "sale_percentage", amountMinor: null, percentageBps: 1000, idempotencyKey: "sale" });
-    expect(calculateOwnerEntitlement(sale, { periodFrom: "2026-08-01", periodTo: "2026-08-31", completedSaleMinor: 8000 })).toMatchObject({ amountMinor: 800 });
+    expect(calculateOwnerEntitlement(sale, { periodFrom: "2026-08-01", periodTo: "2026-08-31", completedSaleMinor: 8000, completedSaleKeys: ["sale-1"] })).toMatchObject({ amountMinor: 800 });
   });
 
   it("separates entitlement settlement, owner draw, capital return, and prior-draw return", () => {
