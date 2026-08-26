@@ -239,7 +239,8 @@ export default function SettingsPage() {
         <li><IntegerValue value={preview.summary.supplierPurchases} className="micro-inline-number" /> شراء مواد</li>
         <li><IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ كاش و<IntegerValue value={preview.summary.cashContinuityEntries} className="micro-inline-number" /> آثار افتتاح/تحويل/تصحيح</li>
         <li><IntegerValue value={preview.summary.materials} className="micro-inline-number" /> مواد و<IntegerValue value={preview.summary.inventoryMovements} className="micro-inline-number" /> حركات مخزون</li>
-        <li><IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> Snapshot تكلفة و<IntegerValue value={preview.summary.events} className="micro-inline-number" /> حدث</li>
+        <li><IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> Snapshot تكلفة و<IntegerValue value={preview.summary.events} className="micro-inline-number" /> حدث مالي/تشغيلي داخل الطلب</li>
+        <li><IntegerValue value={preview.summary.actualTimeRecords} className="micro-inline-number" /> سجل وقت فعلي تفسيري مستقل عن المال</li>
       </ul>
       <p className="micro-field-error">التأكيد سيستبدل البيانات المحلية الحالية بهذا الملف. لا توجد استعادة تلقائية بعد الضغط.</p>
       <div className="micro-form-actions">
