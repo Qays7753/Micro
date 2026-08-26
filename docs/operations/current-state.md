@@ -52,8 +52,8 @@
 |---|---|---|
 | G3 — نتيجة الفترة الأوسع والمصاريف المشتركة | مدمج على `bridge/financial-decision-core-g3-g5` عبر PR #98 ثم تصحيح PR #99؛ حدّثت PR #100 الحالة التوثيقية فقط ولا تنسب إليها ميزة مالية | يدعم مبلغ الحصة الثابت، والنسبة المعلنة، وتقدير المالك، والتأجيل غير المحمل؛ ويعرض «صافي الربح التشغيلي المسجل للفترة» ضمن فترة صالحة مع الأسباب. |
 | G3 — COGS الاختيارية | مدمجة ضمن PR #99 على Bridge | تظهر فقط من استهلاك مثبت القيمة مرتبط بطلب `final` وغير معكوس؛ Snapshot بديل معلن عند غياب الدليل. ليست COGS كاملة أو قانونية، ولا توزيعًا على منتج، ولا صافي ربح نهائيًا. |
-| O1 — استحقاق المالك والحركات الفعلية | التنفيذ الأولي مدمج على Bridge عبر PR #102، وتصحيح القبول مدمج عبر PR #103؛ يشمل قفل نطاق الأهلية، successor مؤرخًا، مصادر افتتاح مرتبطة، وعكسًا غير حاذف | دفتر محلي RTL فقط؛ لا راتب موظف، ولا ضرائب، ولا تعدد ملاك قانوني، ولا Auth/Sync/Cloud/Banking. G4-A مدمجة الآن عبر PR #105؛ لا يبدأ G4-B قبل مراجعة وقبول G4-A وPrompt مستقل من Manus Agent 1. |
-| حدود الدمج والتسلسل | Bridge فقط؛ G4-A مدمجة عبر PR #105، و`main` عند `76bd42116dcaf454bafa594d3d77852d1ce48439` لم يتغير | التسلسل المعتمد على Bridge هو G3 → O1 → G4-A → G4-B → G5. G4-A مدمجة على Bridge فقط، ولا يبدأ G4-B قبل مراجعة وقبول Manus Agent 1 وPrompt مستقل. PR إلى `main` لا تكون إلا بعد اكتمال الحزمة كلها ومراجعة قبول مستقلة وتفويض تجميعي صريح من المالك. |
+| O1 — استحقاق المالك والحركات الفعلية | التنفيذ الأولي مدمج على Bridge عبر PR #102، وتصحيح القبول مدمج عبر PR #103؛ يشمل قفل نطاق الأهلية، successor مؤرخًا، مصادر افتتاح مرتبطة، وعكسًا غير حاذف | دفتر محلي RTL فقط؛ لا راتب موظف، ولا ضرائب، ولا تعدد ملاك قانوني، ولا Auth/Sync/Cloud/Banking. G4-A مدمجة الآن عبر PR #105؛ G4-B قيد التنفيذ على فرع مستقل فوق رأس Bridge الفعلي؛ لا يبدأ G5. |
+| حدود الدمج والتسلسل | Bridge فقط؛ G4-A مدمجة عبر PR #105، و`main` عند `76bd42116dcaf454bafa594d3d77852d1ce48439` لم يتغير | التسلسل المعتمد على Bridge هو G3 → O1 → G4-A → G4-B → G5. G4-A مدمجة على Bridge فقط، G4-B قيد التنفيذ على فرع مستقل فوق رأس Bridge الفعلي؛ لا يبدأ G5. PR إلى `main` لا تكون إلا بعد اكتمال الحزمة كلها ومراجعة قبول مستقلة وتفويض تجميعي صريح من المالك. |
 
 ## 3. الحدود غير القابلة للتفاوض
 
@@ -160,7 +160,20 @@ QA/Pilot مدمج عبر PR #78 كتقرير وبروتوكول قبول وفج�
 | الواجهة | `/catalog` امتداد اختياري: حفظ المرجع أولًا، قياس/تحويلات في لوحة فرعية، والقالب عند الطلب؛ RTL وLight/Dark وأرقام ASCII/LTR وempty/needs-conversion | لم يُتحقق بعد على هاتف فعلي أو Pages production أو Pilot |
 | الأدلة المحلية/CI | `pnpm install --frozen-lockfile` و`pnpm check` ناجحان، بما فيه Domain/Application/Storage/Transfer/UI build؛ اختبارات G4-A تشمل 16 حالة مستهدفة ضمن suite المشروع؛ Cloudflare Pages check في PR #105 ناجح | قبول G4-A النهائي ومراجعة Agent 1 ما زالا مطلوبين؛ لم يُختبر هاتف فعلي أو Production أو Pilot |
 
-G4-A لا تغير طلبًا تاريخيًا أو اتفاقًا أو `CostSnapshot` أو `recognizedCostMinor` أو نتيجة الفترة، ولا تحول القالب إلى Purchase أو Inventory أو Consumption أو COGS أو كاش. دُمجت عبر PR #105 إلى `bridge/financial-decision-core-g3-g5` فقط؛ لا PR إلى `main` ولا بدء G4-B قبل قبول Manus Agent 1 وPrompt مستقل.
+G4-A لا تغير طلبًا تاريخيًا أو اتفاقًا أو `CostSnapshot` أو `recognizedCostMinor` أو نتيجة الفترة، ولا تحول القالب إلى Purchase أو Inventory أو Consumption أو COGS أو كاش. دُمجت عبر PR #105 إلى `bridge/financial-decision-core-g3-g5` فقط؛ لا PR إلى `main`، وG4-B تملك الآن فرعًا مستقلًا وPrompt مستقلًا فوق هذا الرأس.
+
+## 16A. حالة G4-B على Bridge
+
+| العنصر | الحالة الحالية | الحد |
+|---|---|---|
+| فرع التنفيذ | `agent4/g4b-explainable-margin-allocation` فوق `origin/bridge/financial-decision-core-g3-g5` عند رأس `0a8d6131991fb185cc920d655b7c0801960c3408` قبل دمج هذه الشريحة | PR واحدة إلى Bridge فقط؛ لا تغيير لـ`main` ولا بدء G5 |
+| Domain/Application | قراءة مشتقة حسب Catalog Item وفترة محلية معلنة: `directMarginMinor` من final/recognized وSnapshot، فرق مادة ووقت، هدر سياقي، وسياسات `manual_amount`/`per_output_unit`/`actual_time`/`completed_revenue_percentage` مع حالة معرفة وفعل تالٍ | لا محرك تسعير، ولا COGS كاملة/قانونية، ولا صافي ربح نهائي، ولا أجر أو تكلفة فعلية للوقت |
+| الهدر | توسعة `InventoryMovement` بسياق واحد من خمسة مع تحقق علاقات الطلب/Catalog/Template؛ الهدر العام وغير المحمل يظهر منفصلًا ولا يُخصم تلقائيًا | لا جدول هدر منافس، ولا توزيع خفي، ولا ربط مفقود بالتخمين |
+| التخزين والاستعادة | Memory/IndexedDB وLocalTransfer مع schema `25` وexport `16`، migration للهدر القديم إلى `general_project` فقط، وسياسات مؤرخة لا تُنشأ للبيانات القديمة | replacement ذري؛ لا Auth/Sync/Cloud أو backup سحابي |
+| الواجهة | `/catalog` يعرض الفترة، القراءة المباشرة، الأدلة الناقصة، سياسة مصدرها وسببها، ونسخة successor غير حاذفة؛ محرر الهدر يعرض سياقه الصريح | RTL/phone-first محلي؛ لم يُختبر هاتف فعلي أو Pages production أو Pilot |
+| الأدلة | اختبارات Domain `71`، واختبارات Prototype `215`، و`typecheck` و`prototype:check` و`prototype:build` ناجحة في هذه الجولة | يلزم CI/Cloudflare ثم مراجعة Manus Agent 1 والمالك؛ لا إعلان قبول 100% |
+
+هذه الشريحة لا تغيّر `CostSnapshot` أو `recognizedCostMinor` أو `directMarginMinor` أو نتيجة G3 أو الكاش أو الذمم عند تسجيل الوقت/الهدر/السياسة. لم تُفتح PR بعد في لحظة كتابة هذه الحالة؛ ستُحدّث أرقام PR وSHA ورأس Bridge بعد نجاح CI والدمج.
 
 ## References
 

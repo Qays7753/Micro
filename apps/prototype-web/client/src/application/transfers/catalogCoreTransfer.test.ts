@@ -85,6 +85,6 @@ describe("G4-A catalog transfer boundary", () => {
     delete previous.data.directConversions;
     delete previous.data.catalogTemplates;
     const preview = new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous));
-    expect(preview).toMatchObject({ ok: true, value: { file: { version: 15, schemaVersion: 24, data: { catalogItems: [{ id: item.item.id, unitId: null }], measurementUnits: [], directConversions: [], catalogTemplates: [] } } } });
+    expect(preview).toMatchObject({ ok: true, value: { file: { version: 16, schemaVersion: 25, data: { catalogItems: [{ id: item.item.id, unitId: null }], measurementUnits: [], directConversions: [], catalogTemplates: [], allocationPolicies: [] } } } });
   });
 });

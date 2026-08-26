@@ -8,6 +8,7 @@ import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
 import { createCatalogItem } from "@micro-domain/catalog/index.js";
+import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 
 const profile = { id: localProfileId, activityName: "مشغل ليان", currency: "JOD" as const, activityType: "custom_craft" as const, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
 const draft = { id: "draft-1", intent: "customer_order" as const, customerName: "سارة", itemName: "صندوق", catalogItemId: null, specifications: "نقش", quantity: 1, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
@@ -139,6 +140,15 @@ describe("LocalTransferService", () => {
     const previous = structuredClone(exported.value) as { version: number; schemaVersion: number; data: { shortCashDeclarations?: unknown } };
     previous.version = 9; previous.schemaVersion = 18; delete previous.data.shortCashDeclarations;
     expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { shortCashDeclarations: [] } } } });
+  });
+
+  it("round-trips explicit waste context and allocation policy evidence, but rejects missing references", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const item = createCatalogItem({ id: "catalog-waste", kind: "product", name: "صندوق هدر", unitLabel: "قطعة", unitId: null, createdAt: "2026-08-22T00:00:00.000Z", createdOperationKey: "catalog-waste" }); await source.saveCatalogItem(item);
+    const material = createMaterial({ id: "material-waste", name: "خشب", unit: "piece", createdAt: "2026-08-22T00:00:00.000Z", createdOperationKey: "material-waste" }); const movement = createInventoryMovement({ id: "waste-context", materialId: material.id, type: "waste", occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", quantityDeltaMilli: -1000, valueDeltaMinor: -400, note: "هدر مرتبط", reason: "قص", operationKey: "waste-context", wasteContext: { kind: "catalog_item", catalogItemId: item.id } }); await source.commitInventory(material, [movement]);
+    await source.saveAllocationPolicy(createAllocationPolicy({ id: "allocation-transfer", seriesId: "allocation-series-transfer", successorOfPolicyId: null, version: 1, catalogItemId: item.id, kind: "manual_amount", amountMinor: 500, rateMinor: null, percentageBps: null, unitId: null, periodFrom: "2026-08-01", periodTo: "2026-08-31", startsOn: "2026-08-01", endsOn: "2026-08-31", source: "فاتورة", reason: "توزيع", note: "اختبار نقل", status: "active", idempotencyKey: "allocation-transfer", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" }));
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("G4-B export should succeed"); const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error(`G4-B import should validate: ${preview.message}`); expect(preview.value.summary).toMatchObject({ allocationPolicies: 1, inventoryMovements: 1 }); await transfers.confirmImport(preview.value); await expect(target.listAllocationPolicies()).resolves.toMatchObject({ ok: true, value: [{ id: "allocation-transfer" }] }); await expect(target.listInventoryMovements()).resolves.toMatchObject({ ok: true, value: [{ wasteContext: { kind: "catalog_item", catalogItemId: item.id } }] });
+    const broken = structuredClone(exported.value); broken.data.inventoryMovements = broken.data.inventoryMovements?.map(movement => movement.id === "waste-context" ? { ...movement, wasteContext: { kind: "catalog_item", catalogItemId: "missing-catalog" } } : movement); expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
   });
 
   it("rejects a reversal that does not match its original declaration", async () => {
