@@ -6,6 +6,8 @@ export type OwnerEntitlementCalculationBasis = "time_period" | "fixed_amount" | 
 
 export type OwnerEntitlementPolicy = {
   id: string;
+  seriesId: string;
+  successorOfPolicyId: string | null;
   version: number;
   family: OwnerEntitlementPolicyFamily;
   kind: OwnerEntitlementPolicyKind;
@@ -21,7 +23,11 @@ export type OwnerEntitlementPolicy = {
   createdAt: string;
 };
 
-export type CreateOwnerEntitlementPolicyInput = Omit<OwnerEntitlementPolicy, "createdAt"> & { createdAt: string };
+export type CreateOwnerEntitlementPolicyInput = Omit<OwnerEntitlementPolicy, "createdAt" | "seriesId" | "successorOfPolicyId"> & {
+  createdAt: string;
+  seriesId?: string | null;
+  successorOfPolicyId?: string | null;
+};
 
 export type OwnerEntitlementRecord = {
   id: string;
@@ -36,8 +42,11 @@ export type OwnerEntitlementRecord = {
   calculationBasis: OwnerEntitlementCalculationBasis;
   baseMinor: number | null;
   quantity: number | null;
+  sourceKeys: readonly string[];
   note: string;
   idempotencyKey: string;
+  reversalOfId: string | null;
+  reversalReason: string | null;
 };
 
 export type OwnerEntitlementOpeningBalance = {
@@ -48,10 +57,12 @@ export type OwnerEntitlementOpeningBalance = {
   reason: string;
   note: string;
   idempotencyKey: string;
+  reversalOfId: string | null;
+  reversalReason: string | null;
 };
 
 export type OwnerMovementKind = "draw" | "return";
-export type OwnerMovementReason = "entitlement_settlement" | "pre_entitlement_draw" | "owner_draw" | "settlement_of_prior_draw" | "new_capital_investment";
+export type OwnerMovementReason = "entitlement_settlement" | "opening_balance_settlement" | "pre_entitlement_draw" | "owner_draw" | "settlement_of_prior_draw" | "new_capital_investment";
 
 export type OwnerMovement = {
   id: string;
@@ -64,11 +75,13 @@ export type OwnerMovement = {
   note: string;
   idempotencyKey: string;
   relatedEntitlementId: string | null;
+  relatedOpeningBalanceId: string | null;
   relatedMovementId: string | null;
   reversalOfId: string | null;
   reversalReason: string | null;
   cashDeltaMinor: number;
   entitlementDeltaMinor: number;
+  openingBalanceDeltaMinor: number;
   ownerCapitalDeltaMinor: number;
 };
 
@@ -83,12 +96,31 @@ export type CreateOwnerMovementInput = {
   note: string;
   idempotencyKey: string;
   relatedEntitlementId?: string | null;
+  relatedOpeningBalanceId?: string | null;
   relatedMovementId?: string | null;
 };
 
 export type CreateOwnerMovementReversalInput = {
   id: string;
   source: OwnerMovement;
+  occurredOn: string;
+  recordedAt: string;
+  reason: string;
+  idempotencyKey: string;
+};
+
+export type OwnerEntitlementRecordReversalInput = {
+  id: string;
+  source: OwnerEntitlementRecord;
+  occurredOn: string;
+  recordedAt: string;
+  reason: string;
+  idempotencyKey: string;
+};
+
+export type OwnerEntitlementOpeningBalanceReversalInput = {
+  id: string;
+  source: OwnerEntitlementOpeningBalance;
   occurredOn: string;
   recordedAt: string;
   reason: string;
