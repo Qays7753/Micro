@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalogConversionPreview, catalogAllocationKindLabel, catalogAllocationStatusLabel, catalogConversionDirectionText, catalogConversionExactnessWarning, catalogDimensionOptions, catalogYieldReadinessLabel, isCatalogTemplateDirty, parseCatalogJodMinor, parseCatalogPercentageBps, parseCatalogPositiveSafeInteger, parseCatalogQuantityMilli } from "./Catalog";
+import { buildCatalogConversionPreview, buildCatalogPerUnitPreview, catalogAllocationKindLabel, catalogAllocationStatusLabel, catalogConversionDirectionText, catalogConversionExactnessWarning, catalogDimensionOptions, catalogPerUnitRateLabel, catalogPerUnitRoundingNote, catalogYieldReadinessLabel, isCatalogTemplateDirty, parseCatalogJodMinor, parseCatalogPercentageBps, parseCatalogPositiveSafeInteger, parseCatalogQuantityMilli } from "./Catalog";
 
 describe("Catalog G4-A UI capability model", () => {
   it("exposes only the six general dimensions in Arabic", () => {
@@ -60,10 +60,18 @@ describe("Catalog G4-A UI capability model", () => {
 
   it("keeps the four policy labels and incomplete state explicit", () => {
     expect(catalogAllocationKindLabel("manual_amount")).toBe("مبلغ يدوي للفترة");
-    expect(catalogAllocationKindLabel("per_output_unit")).toBe("مبلغ لكل وحدة ناتج");
+    expect(catalogAllocationKindLabel("per_output_unit")).toBe("معدل لكل 1.000 وحدة كاملة");
     expect(catalogAllocationKindLabel("actual_time")).toBe("معدل لكل دقيقة فعلية");
     expect(catalogAllocationKindLabel("completed_revenue_percentage")).toBe("نسبة من الإيراد المكتمل");
     expect(catalogAllocationStatusLabel("incomplete")).toBe("ناقص");
     expect(catalogAllocationStatusLabel(null)).toBe("غير محسوب");
+  });
+
+  it("makes the per-unit scale and one-time rounding visible in the preview", () => {
+    expect(catalogPerUnitRateLabel("قطعة")).toBe("المعدل لكل 1.000 قطعة · د.أ");
+    expect(catalogPerUnitRoundingNote).toContain("مرة واحدة");
+    expect(buildCatalogPerUnitPreview(12_000, 50, "قطعة")).toMatchObject({ allocationMinor: 600, text: "12.000 قطعة × 0.50 د.أ لكل 1.000 قطعة = 6.00 د.أ" });
+    expect(buildCatalogPerUnitPreview(1, 1, "قطعة")).toMatchObject({ allocationMinor: 0, warning: expect.stringContaining("نتيجة حسابية معلنة") });
+    expect(buildCatalogPerUnitPreview(Number.MAX_SAFE_INTEGER, 2, "قطعة")).toMatchObject({ allocationMinor: null, warning: expect.stringContaining("لا يمكن الحساب بأمان") });
   });
 });

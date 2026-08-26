@@ -45,6 +45,15 @@ function seedVersionTwentyFourLegacyMovement() {
   });
 }
 
+function seedVersionTwentyFiveLegacyPolicy() {
+  return new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open(databaseName, 25);
+    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = () => { const policies = request.result.createObjectStore("allocation-policies", { keyPath: "id" }); policies.put({ id: "legacy-per-unit", seriesId: "legacy-series", successorOfPolicyId: null, version: 1, catalogItemId: "catalog-legacy", kind: "per_output_unit", amountMinor: null, rateMinor: 50, percentageBps: null, unitId: "unit-piece", periodFrom: "2026-08-01", periodTo: "2026-08-31", startsOn: "2026-08-01", endsOn: "2026-08-31", source: "سجل قديم", reason: "اختبار ترحيل", note: "معدل لكل وحدة", status: "active", idempotencyKey: "legacy-per-unit", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" }); };
+    request.onsuccess = () => { request.result.close(); resolve(); };
+  });
+}
+
 function seedVersionSevenSchedule() {
   return new Promise<void>((resolve, reject) => {
     const request = indexedDB.open(databaseName, 7);
@@ -117,6 +126,12 @@ describe("IndexedDbLocalStore", () => {
     await seedVersionTwentyFourLegacyMovement();
     const store = new IndexedDbLocalStore();
     await expect(store.listInventoryMovements()).resolves.toMatchObject({ ok: true, value: [{ id: "legacy-waste", wasteContext: { kind: "general_project" } }] });
+  });
+
+  it("migrates schema-25 per-unit policies to the explicit whole-unit rate field", async () => {
+    await seedVersionTwentyFiveLegacyPolicy();
+    const store = new IndexedDbLocalStore();
+    await expect(store.listAllocationPolicies()).resolves.toMatchObject({ ok: true, value: [{ id: "legacy-per-unit", kind: "per_output_unit", rateMinorPerWholeUnit: 50, rateMinor: null }] });
   });
 
   it("persists allocation policies through a fresh adapter and full snapshot replacement", async () => {

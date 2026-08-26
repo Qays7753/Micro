@@ -20,13 +20,14 @@ export function createAllocationPolicy(input: CreateAllocationPolicyInput): Allo
   if (endsOn !== null && endsOn < periodFrom) throw new Error("نهاية السياسة تسبق نطاق العمل المقصود.");
   if (startsOn > periodTo) throw new Error("تاريخ نفاذ السياسة يأتي بعد نطاق العمل المقصود.");
   const amountMinor = kind === "manual_amount" ? positiveMinor(input.amountMinor, "المبلغ اليدوي") : null;
-  const rateMinor = kind === "per_output_unit" || kind === "actual_time" ? positiveMinor(input.rateMinor, "معدل التحميل") : null;
+  const rateMinorPerWholeUnit = kind === "per_output_unit" ? positiveMinor(input.rateMinorPerWholeUnit ?? input.rateMinor, "معدل التحميل لكل 1.000 وحدة كاملة") : null;
+  const rateMinor = kind === "actual_time" ? positiveMinor(input.rateMinor, "معدل التحميل لكل دقيقة فعلية") : null;
   const percentageBps = kind === "completed_revenue_percentage" ? percentage(input.percentageBps) : null;
   const unitId = kind === "per_output_unit" ? required(input.unitId ?? "", "سياسة التحميل لكل وحدة تحتاج وحدة منظمة.") : null;
   if (!required(input.source, "مصدر سياسة التحميل مطلوب.") || !required(input.reason, "سبب سياسة التحميل مطلوب.") || !required(input.note, "ملاحظة سياسة التحميل مطلوبة.")) throw new Error("مصدر وسبب وملاحظة سياسة التحميل مطلوبة.");
   if (!required(input.id, "معرف سياسة التحميل مطلوب.") || !required(input.seriesId, "سلسلة سياسة التحميل مطلوبة.") || !required(input.idempotencyKey, "مفتاح سياسة التحميل مطلوب.")) throw new Error("معرف ومفتاح سياسة التحميل مطلوبان.");
   if (input.version < 1 || !Number.isSafeInteger(input.version)) throw new Error("إصدار سياسة التحميل غير صالح.");
-  return { id: input.id.trim(), seriesId: input.seriesId.trim(), successorOfPolicyId: input.successorOfPolicyId, version: input.version, catalogItemId, kind, amountMinor, rateMinor, percentageBps, unitId, periodFrom, periodTo, startsOn, endsOn, source: input.source.trim(), reason: input.reason.trim(), note: input.note.trim(), status: input.status, idempotencyKey: input.idempotencyKey.trim(), createdAt: input.createdAt, updatedAt: input.updatedAt };
+  return { id: input.id.trim(), seriesId: input.seriesId.trim(), successorOfPolicyId: input.successorOfPolicyId, version: input.version, catalogItemId, kind, amountMinor, rateMinorPerWholeUnit, rateMinor, percentageBps, unitId, periodFrom, periodTo, startsOn, endsOn, source: input.source.trim(), reason: input.reason.trim(), note: input.note.trim(), status: input.status, idempotencyKey: input.idempotencyKey.trim(), createdAt: input.createdAt, updatedAt: input.updatedAt };
 }
 
 export function createAllocationPolicySuccessor(previous: AllocationPolicy, terms: AllocationPolicyTerms & { id: string; seriesId: string; successorOfPolicyId: string; version: number; status: "active"; idempotencyKey: string; createdAt: string; updatedAt: string }): AllocationPolicy {
@@ -40,7 +41,7 @@ export function isAllocationPolicyEffective(policy: AllocationPolicy, catalogIte
   return policy.status === "active" && policy.catalogItemId === catalogItemId && policy.startsOn <= to && (policy.endsOn === null || policy.endsOn >= from) && policy.periodFrom <= from && policy.periodTo >= to;
 }
 
-const incomplete = (policy: AllocationPolicy, evidence: AllocationEvidence, reasons: readonly string[], nextAction: string): AllocationCalculation => ({ policyId: policy.id, catalogItemId: policy.catalogItemId, kind: policy.kind, periodFrom: evidence.periodFrom, periodTo: evidence.periodTo, status: reasons.some(reason => reason.includes("مراجعة")) ? "needs_review" : "incomplete", amountMinor: null, resultMinor: null, directMarginMinor: evidence.directMarginMinor, source: policy.source, reason: policy.reason, note: policy.note, evidence, excluded: [], reasons, nextAction, truth: "لا يمكن عرض الربح بعد التحميل كرقم كامل قبل اكتمال أساس السياسة والأدلة الداخلة؛ لم يتحول النقص إلى صفر." });
+const incomplete = (policy: AllocationPolicy, evidence: AllocationEvidence, reasons: readonly string[], nextAction: string): AllocationCalculation => ({ policyId: policy.id, catalogItemId: policy.catalogItemId, kind: policy.kind, periodFrom: evidence.periodFrom, periodTo: evidence.periodTo, status: reasons.some(reason => reason.includes("مراجعة")) ? "needs_review" : "incomplete", amountMinor: null, resultMinor: null, directMarginMinor: evidence.directMarginMinor, source: policy.source, reason: policy.reason, note: policy.note, evidence, excluded: [], reasons, nextAction, truth: "لا يمكن عرض الربح بعد التحميل كرقم كامل قبل اكتمال أساس السياسة والأدلة الداخلة؛ لم يتحول النقص إلى صفر.", calculationNote: "التحميل غير محسوب لأن دليل السياسة غير مكتمل." });
 
 export function calculateAllocationPolicy(policy: AllocationPolicy, evidence: AllocationEvidence): AllocationCalculation {
   if (policy.catalogItemId !== evidence.catalogItemId || policy.periodFrom > evidence.periodFrom || policy.periodTo < evidence.periodTo) return incomplete(policy, evidence, ["نطاق السياسة لا يغطي الفترة أو مرجع العمل المطلوب."], "أنشئ أو راجع سياسة مؤرخة تغطي مرجع العمل والفترة كاملة.");
@@ -50,11 +51,14 @@ export function calculateAllocationPolicy(policy: AllocationPolicy, evidence: Al
   const excluded: string[] = [...evidence.excludedOrderIds];
   if (policy.kind === "manual_amount") amountMinor = policy.amountMinor;
   if (policy.kind === "per_output_unit") {
-    if (policy.unitId === null || evidence.outputQuantity === null || evidence.outputQuantity <= 0 || evidence.outputUnitId === null || policy.unitId !== evidence.outputUnitId) {
+    if (policy.unitId === null || evidence.outputQuantityMilli === null || evidence.outputQuantityMilli <= 0 || evidence.outputUnitId === null || policy.unitId !== evidence.outputUnitId) {
       reasons.push("أكمل كمية الناتج بوحدة منظمة متوافقة مع سياسة التحميل لكل وحدة؛ لا نحول أو نخمن yield.");
+    } else if (policy.rateMinorPerWholeUnit === null || policy.rateMinorPerWholeUnit > Number.MAX_SAFE_INTEGER / evidence.outputQuantityMilli) {
+      reasons.push("معدل الوحدة أو كمية الناتج يتجاوزان الدقة الآمنة؛ راجع النطاق قبل الحساب.");
     } else {
-      const calculated = policy.rateMinor !== null ? policy.rateMinor * evidence.outputQuantity : Number.NaN;
-      if (!Number.isSafeInteger(calculated) || calculated <= 0) reasons.push("معدل أو كمية الناتج يتجاوزان الدقة الآمنة."); else amountMinor = calculated;
+      const rawMinor = policy.rateMinorPerWholeUnit * evidence.outputQuantityMilli;
+      if (!Number.isSafeInteger(rawMinor) || rawMinor > Number.MAX_SAFE_INTEGER - 500) reasons.push("مجموع معدل الوحدة والكمية يتجاوز الدقة الآمنة قبل التقريب.");
+      else amountMinor = Math.floor((rawMinor + 500) / 1000);
     }
   }
   if (policy.kind === "actual_time") {
@@ -72,14 +76,15 @@ export function calculateAllocationPolicy(policy: AllocationPolicy, evidence: Al
     }
   }
   if (amountMinor === null || reasons.length > 0) return incomplete(policy, evidence, reasons, reasons[0] ?? "أكمل دليل أساس سياسة التحميل قبل الاعتماد على القراءة.");
-  return { policyId: policy.id, catalogItemId: policy.catalogItemId, kind: policy.kind, periodFrom: evidence.periodFrom, periodTo: evidence.periodTo, status: "known", amountMinor, resultMinor: evidence.directMarginMinor - amountMinor, directMarginMinor: evidence.directMarginMinor, source: policy.source, reason: policy.reason, note: policy.note, evidence, excluded, reasons: [], nextAction: "راجع السياسة والمصادر الداخلة قبل اتخاذ قرار جديد؛ هذا الرقم ليس صافي ربح نهائيًا أو توصية سعر.", truth: "هذا الربح بعد التحميل حسب سياستك، وليس صافي ربح نهائيًا أو توصية سعر." };
+  const calculationNote = policy.kind === "per_output_unit" ? `إجمالي الناتج ${((evidence.outputQuantityMilli ?? 0) / 1000).toFixed(3)} وحدة كاملة؛ المعدل ${((policy.rateMinorPerWholeUnit ?? 0) / 100).toFixed(2)} د.أ لكل 1.000 وحدة؛ قُرّب مجموع الفترة مرة واحدة إلى أقرب قرش${amountMinor === 0 ? "؛ الصفر نتيجة حسابية معلنة وليس غياب بيانات." : "."}` : policy.kind === "actual_time" ? `المعدل ${((policy.rateMinor ?? 0) / 100).toFixed(2)} د.أ لكل دقيقة فعلية.` : policy.kind === "completed_revenue_percentage" ? `النسبة ${((policy.percentageBps ?? 0) / 100).toFixed(2)}% من الإيراد المكتمل/المعترف به.` : "مبلغ يدوي معلن للفترة.";
+  return { policyId: policy.id, catalogItemId: policy.catalogItemId, kind: policy.kind, periodFrom: evidence.periodFrom, periodTo: evidence.periodTo, status: "known", amountMinor, resultMinor: evidence.directMarginMinor - amountMinor, directMarginMinor: evidence.directMarginMinor, source: policy.source, reason: policy.reason, note: policy.note, evidence, excluded, reasons: amountMinor === 0 ? ["الناتج صفر minor بعد تقريب مجموع الفترة؛ هذه نتيجة حسابية معلنة وليست نقص معرفة."] : [], nextAction: "راجع السياسة والمصادر الداخلة قبل اتخاذ قرار جديد؛ هذا الرقم ليس صافي ربح نهائيًا أو توصية سعر.", truth: "هذا الربح بعد التحميل حسب سياستك، وليس صافي ربح نهائيًا أو توصية سعر.", calculationNote };
 }
 
 export function isValidAllocationPolicy(value: unknown): value is AllocationPolicy {
   if (!value || typeof value !== "object") return false;
   const policy = value as Partial<AllocationPolicy>;
   try {
-    createAllocationPolicy({ ...policy, id: policy.id ?? "", seriesId: policy.seriesId ?? "", successorOfPolicyId: policy.successorOfPolicyId ?? null, version: policy.version ?? 0, catalogItemId: policy.catalogItemId ?? "", kind: policy.kind ?? "manual_amount", amountMinor: policy.amountMinor ?? null, rateMinor: policy.rateMinor ?? null, percentageBps: policy.percentageBps ?? null, unitId: policy.unitId ?? null, periodFrom: policy.periodFrom ?? "", periodTo: policy.periodTo ?? "", startsOn: policy.startsOn ?? "", endsOn: policy.endsOn ?? null, source: policy.source ?? "", reason: policy.reason ?? "", note: policy.note ?? "", status: policy.status ?? "inactive", idempotencyKey: policy.idempotencyKey ?? "", createdAt: policy.createdAt ?? "", updatedAt: policy.updatedAt ?? "" });
+    createAllocationPolicy({ ...policy, id: policy.id ?? "", seriesId: policy.seriesId ?? "", successorOfPolicyId: policy.successorOfPolicyId ?? null, version: policy.version ?? 0, catalogItemId: policy.catalogItemId ?? "", kind: policy.kind ?? "manual_amount", amountMinor: policy.amountMinor ?? null, rateMinorPerWholeUnit: policy.rateMinorPerWholeUnit ?? policy.rateMinor ?? null, rateMinor: policy.rateMinor ?? null, percentageBps: policy.percentageBps ?? null, unitId: policy.unitId ?? null, periodFrom: policy.periodFrom ?? "", periodTo: policy.periodTo ?? "", startsOn: policy.startsOn ?? "", endsOn: policy.endsOn ?? null, source: policy.source ?? "", reason: policy.reason ?? "", note: policy.note ?? "", status: policy.status ?? "inactive", idempotencyKey: policy.idempotencyKey ?? "", createdAt: policy.createdAt ?? "", updatedAt: policy.updatedAt ?? "" });
     return policy.status === "active" || policy.status === "inactive";
   } catch { return false; }
 }

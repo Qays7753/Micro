@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCatalogItem } from "@micro-domain/catalog/index.js";
+import { createCatalogItem, createMeasurementUnit } from "@micro-domain/catalog/index.js";
 import { createActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
@@ -8,9 +8,9 @@ import { RecurringWorkService } from "./recurringWorkService";
 
 const now = () => "2026-08-23T09:00:00.000Z";
 
-function finalOrder(id: string, catalogItemId: string, knowledge: "known" | "estimated" = "known") {
-  const cost = calculateCostSnapshot(`${id}-cost`, { currency: "JOD", materialItems: [{ name: "خشب", quantity: 1, unit: "قطعة", unitPriceMinor: 1000, priceDate: "2026-08-01", source: "user_input", confidence: knowledge === "known" ? "known" : "estimated" }], time: { minutes: 60, hourlyRateMinor: 500, confidence: knowledge === "known" ? "known" : "estimated" }, packagingMinor: 100, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 2, createdAt: "2026-08-01T09:00:00.000Z", freshnessDays: null });
-  let order = createCraftOrder({ id, customerName: "عميلة تجريبية", itemName: "صندوق", specifications: "اختبار G4-B", quantity: 2, agreedPriceMinor: 5000, costSnapshot: cost, createdAt: "2026-08-01T09:00:00.000Z" });
+function finalOrder(id: string, catalogItemId: string, knowledge: "known" | "estimated" = "known", quantity = 2) {
+  const cost = calculateCostSnapshot(`${id}-cost`, { currency: "JOD", materialItems: [{ name: "خشب", quantity: 1, unit: "قطعة", unitPriceMinor: 1000, priceDate: "2026-08-01", source: "user_input", confidence: knowledge === "known" ? "known" : "estimated" }], time: { minutes: 60, hourlyRateMinor: 500, confidence: knowledge === "known" ? "known" : "estimated" }, packagingMinor: 100, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity, createdAt: "2026-08-01T09:00:00.000Z", freshnessDays: null });
+  let order = createCraftOrder({ id, customerName: "عميلة تجريبية", itemName: "صندوق", specifications: "اختبار G4-B", quantity, agreedPriceMinor: 5000, costSnapshot: cost, createdAt: "2026-08-01T09:00:00.000Z" });
   for (const [to, stamp] of [["provisional_agreement", "2026-08-01T10:00:00.000Z"], ["confirmed", "2026-08-01T11:00:00.000Z"], ["in_progress", "2026-08-02T09:00:00.000Z"], ["ready", "2026-08-03T09:00:00.000Z"], ["delivered", "2026-08-05T09:00:00.000Z"]] as const) order = transitionOrder(order, { to, idempotencyKey: `${id}-${to}`, createdAt: stamp });
   return { id: order.id, order, catalogItemId, deliveryDate: "2026-08-05", agreementSource: "test" as const, createdAt: "2026-08-01T09:00:00.000Z", updatedAt: "2026-08-05T09:00:00.000Z" };
 }
@@ -22,6 +22,17 @@ async function baseStore() {
   const stored = finalOrder("order-box", item.id);
   await store.saveOrder(stored);
   return { store, item, stored };
+}
+
+async function perUnitStore(quantities: readonly number[]) {
+  const store = new MemoryLocalStore();
+  const unit = createMeasurementUnit({ id: "unit-piece", nameAr: "قطعة", dimension: "count", symbol: null, createdAt: now(), createdOperationKey: "unit-piece-create" });
+  const item = createCatalogItem({ id: "catalog-piece", kind: "product", name: "قطعة مخصصة", unitLabel: "قطعة", unitId: unit.id, createdAt: now(), createdOperationKey: "catalog-piece-create" });
+  await store.saveMeasurementUnit(unit);
+  await store.saveCatalogItem(item);
+  const orders = quantities.map((quantity, index) => finalOrder(`order-piece-${index + 1}`, item.id, "known", quantity));
+  for (const order of orders) await store.saveOrder(order);
+  return { store, item, orders };
 }
 
 describe("RecurringWorkService G4-B", () => {
@@ -41,6 +52,24 @@ describe("RecurringWorkService G4-B", () => {
     expect(events).toMatchObject({ ok: true, value: [] });
     const unchanged = await store.getOrder(stored.id);
     expect(unchanged).toMatchObject({ ok: true, value: { order: { recognizedCostMinor: 1600, costSnapshot: { materialCostMinor: 1000 } } } });
+  });
+
+  it("calculates per-output-unit allocation from final quantityMilli once per period without mutating financial facts", async () => {
+    const { store, item, orders } = await perUnitStore([0.333, 0.333, 0.334]);
+    const service = new RecurringWorkService(store, now);
+    await expect(service.createPolicy({ catalogItemId: item.id, kind: "per_output_unit", amountMinor: null, rateMinor: null, rateMinorPerWholeUnit: 50, percentageBps: null, unitId: "unit-piece", periodFrom: "2026-08-01", periodTo: "2026-08-31", startsOn: "2026-08-01", endsOn: "2026-08-31", source: "سجل الإنتاج", reason: "توزيع لكل قطعة", note: "المعدل لكل وحدة كاملة", idempotencyKey: "policy-per-piece" })).resolves.toMatchObject({ ok: true });
+    const before = await store.getOrder(orders[0]!.id);
+    const reading = await service.readRecurringWork("2026-08-01", "2026-08-31");
+    expect(reading).toMatchObject({ ok: true, value: { items: [{ outputQuantityMilli: 1_000, allocation: { status: "known", amountMinor: 50, resultMinor: 10_150, calculationNote: expect.stringContaining("مرة واحدة") } }] } });
+    expect(await store.listFinancialEvents()).toMatchObject({ ok: true, value: [] });
+    expect(await store.getOrder(orders[0]!.id)).toEqual(before);
+  });
+
+  it("shows 12.000 units at 0.50 JOD per whole unit as 6.00 JOD", async () => {
+    const { store, item } = await perUnitStore([12]);
+    const service = new RecurringWorkService(store, now);
+    await expect(service.createPolicy({ catalogItemId: item.id, kind: "per_output_unit", amountMinor: null, rateMinor: null, rateMinorPerWholeUnit: 50, percentageBps: null, unitId: "unit-piece", periodFrom: "2026-08-01", periodTo: "2026-08-31", startsOn: "2026-08-01", endsOn: "2026-08-31", source: "سجل الإنتاج", reason: "توزيع لكل قطعة", note: "المعدل لكل وحدة كاملة", idempotencyKey: "policy-per-piece-12" })).resolves.toMatchObject({ ok: true });
+    await expect(service.readRecurringWork("2026-08-01", "2026-08-31")).resolves.toMatchObject({ ok: true, value: { items: [{ outputQuantityMilli: 12_000, allocation: { status: "known", amountMinor: 600 } }] } });
   });
 
   it("returns incomplete instead of zero when actual time evidence is missing", async () => {

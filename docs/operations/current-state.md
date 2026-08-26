@@ -2,7 +2,7 @@
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
 **آخر تحديث:** 26 أغسطس 2026
-**مرجع Git:** `main` الحالي هو `76bd42116dcaf454bafa594d3d77852d1ce48439` ولم يتغير. برنامج Bridge المالي هو `bridge/financial-decision-core-g3-g5`؛ دُمجت G4-B عبر PR #108، ومرجع الدمج الحالي هو `21f15f79f71e6eaf230b152767eb6cc4c8f76a90` فوق رأس G4-A السابق `0a8d6131991fb185cc920d655b7c0801960c3408`. تحقق دائمًا من المرجع البعيد بـ`git fetch origin --prune` قبل أي عمل لاحق؛ هذه الوثيقة لا تغني عن `git fetch`.
+**مرجع Git:** `main` الحالي هو `76bd42116dcaf454bafa594d3d77852d1ce48439` ولم يتغير. برنامج Bridge المالي هو `bridge/financial-decision-core-g3-g5`؛ SHA دمج G4-B التاريخي هو `21f15f79f71e6eaf230b152767eb6cc4c8f76a90` عبر PR #108، وليس رأس الـBridge الحالي إذا وُجدت commits لاحقة. يجب جلب رأس الـBridge البعيد قبل أي عمل؛ لا يعتمد سجل الحالة على SHA ذاتي بعد merge. تحقق دائمًا من المرجع البعيد بـ`git fetch origin --prune` قبل أي عمل لاحق؛ هذه الوثيقة لا تغني عن `git fetch`.
 
 > هذا الملف يجيب عن سؤال واحد: **«إذا فتحت المستودع الآن، ما الذي أستطيع قوله أو تغييره بأمان؟»** لا يغير العقود ولا يحل محلها.
 >
@@ -166,14 +166,14 @@ G4-A لا تغير طلبًا تاريخيًا أو اتفاقًا أو `CostSna
 
 | العنصر | الحالة الحالية | الحد |
 |---|---|---|
-| فرع التنفيذ | `agent4/g4b-explainable-margin-allocation` دُمج إلى `bridge/financial-decision-core-g3-g5` عبر PR #108؛ SHA الدمج `21f15f79f71e6eaf230b152767eb6cc4c8f76a90`، ورأس Bridge الحالي هو نفسه | `main` بقي عند `76bd42116dcaf454bafa594d3d77852d1ce48439`؛ لا يبدأ G5 |
-| Domain/Application | قراءة مشتقة حسب Catalog Item وفترة محلية معلنة: `directMarginMinor` من final/recognized وSnapshot، فرق مادة ووقت، هدر سياقي، وسياسات `manual_amount`/`per_output_unit`/`actual_time`/`completed_revenue_percentage` مع حالة معرفة وفعل تالٍ | لا محرك تسعير، ولا COGS كاملة/قانونية، ولا صافي ربح نهائي، ولا أجر أو تكلفة فعلية للوقت |
+| فرع التنفيذ | `agent4/g4b-explainable-margin-allocation` دُمج إلى `bridge/financial-decision-core-g3-g5` عبر PR #108؛ SHA الدمج `21f15f79f71e6eaf230b152767eb6cc4c8f76a90` ليس مرجعًا لرأس Bridge الحالي؛ يجب جلب الرأس البعيد قبل أي عمل | `main` بقي عند `76bd42116dcaf454bafa594d3d77852d1ce48439`؛ لا يبدأ G5 |
+| Domain/Application | قراءة مشتقة حسب Catalog Item وفترة محلية معلنة: `directMarginMinor` من final/recognized وSnapshot، فرق مادة ووقت، هدر سياقي، وسياسات `manual_amount`/`per_output_unit`/`actual_time`/`completed_revenue_percentage` مع حالة معرفة وفعل تالٍ؛ `per_output_unit` يستخدم `rateMinorPerWholeUnit` لكل `1.000` ويجمع `outputQuantityMilli` ثم يطبق half-up مرة واحدة | لا محرك تسعير، ولا COGS كاملة/قانونية، ولا صافي ربح نهائي، ولا أجر أو تكلفة فعلية للوقت |
 | الهدر | توسعة `InventoryMovement` بسياق واحد من خمسة مع تحقق علاقات الطلب/Catalog/Template؛ الهدر العام وغير المحمل يظهر منفصلًا ولا يُخصم تلقائيًا | لا جدول هدر منافس، ولا توزيع خفي، ولا ربط مفقود بالتخمين |
-| التخزين والاستعادة | Memory/IndexedDB وLocalTransfer مع schema `25` وexport `16`، migration للهدر القديم إلى `general_project` فقط، وسياسات مؤرخة لا تُنشأ للبيانات القديمة | replacement ذري؛ لا Auth/Sync/Cloud أو backup سحابي |
+| التخزين والاستعادة | Memory/IndexedDB وLocalTransfer مع schema `26` وexport `17`؛ migration للهدر القديم إلى `general_project` فقط وترحيل `rateMinor` القديم إلى `rateMinorPerWholeUnit` لسياسات `per_output_unit` دون تغيير Snapshot أو الهامش | replacement ذري؛ لا Auth/Sync/Cloud أو backup سحابي |
 | الواجهة | `/catalog` يعرض الفترة، القراءة المباشرة، الأدلة الناقصة، سياسة مصدرها وسببها، ونسخة successor غير حاذفة؛ محرر الهدر يعرض سياقه الصريح | RTL/phone-first محلي؛ لم يُختبر هاتف فعلي أو Pages production أو Pilot |
-| الأدلة | اختبارات Domain `71`، واختبارات Prototype `215`، و`typecheck` و`prototype:check` و`prototype:build` ناجحة محليًا؛ CI وCloudflare Pages نجحا في PR #108 | مراجعة Manus Agent 1 والمالك؛ لم يُختبر هاتف فعلي أو Production أو Pilot، ولا إعلان قبول 100% |
+| الأدلة | اختبارات Domain `75`، واختبارات Prototype `219`، و`typecheck` و`prototype:check` و`prototype:build` ناجحة محليًا؛ قواعد الحساب والترحيل مغطاة اختباريًا، وتبقى CI وCloudflare لهذه الشريحة بوابة مستقلة | مراجعة Manus Agent 1 والمالك؛ لم يُختبر هاتف فعلي أو Production أو Pilot، ولا إعلان قبول 100% |
 
-هذه الشريحة لا تغيّر `CostSnapshot` أو `recognizedCostMinor` أو `directMarginMinor` أو نتيجة G3 أو الكاش أو الذمم عند تسجيل الوقت/الهدر/السياسة. دُمجت PR #108 إلى Bridge بعد نجاح CI وCloudflare؛ لا يعلن ذلك قبولًا نهائيًا قبل مراجعة Manus Agent 1 والمالك.
+هذه الشريحة لا تغيّر `CostSnapshot` أو `recognizedCostMinor` أو `directMarginMinor` أو نتيجة G3 أو الكاش أو الذمم عند تسجيل الوقت/الهدر/السياسة. SHA دمج G4-B هو PR #108، ولا يُوصف بأنه رأس Bridge الحالي إذا وُجدت commits لاحقة؛ يجب جلب رأس الـBridge البعيد قبل أي عمل. لا يعلن الدمج قبولًا نهائيًا قبل مراجعة Manus Agent 1 والمالك، ولا يبدأ G5.
 
 ## References
 

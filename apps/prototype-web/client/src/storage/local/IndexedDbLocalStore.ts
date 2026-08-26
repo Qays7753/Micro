@@ -199,6 +199,20 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
       }
+      if (event.oldVersion < 26) {
+        const allocationPolicies = request.transaction?.objectStore(allocationPolicyStore);
+        if (allocationPolicies) {
+          const cursor = allocationPolicies.openCursor();
+          cursor.onsuccess = () => {
+            const current = cursor.result;
+            if (!current) return;
+            const legacy = current.value as Record<string, unknown>;
+            const isPerOutputUnit = legacy.kind === "per_output_unit";
+            current.update({ ...legacy, rateMinorPerWholeUnit: isPerOutputUnit ? (typeof legacy.rateMinorPerWholeUnit === "number" ? legacy.rateMinorPerWholeUnit : typeof legacy.rateMinor === "number" ? legacy.rateMinor : null) : null, rateMinor: isPerOutputUnit ? null : (typeof legacy.rateMinor === "number" ? legacy.rateMinor : null) });
+            current.continue();
+          };
+        }
+      }
       if (event.oldVersion < 24) {
         const catalogItems = request.transaction?.objectStore(catalogItemStore);
         if (catalogItems) {

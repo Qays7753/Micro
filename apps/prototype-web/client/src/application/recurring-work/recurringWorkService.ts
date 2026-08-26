@@ -10,6 +10,7 @@ export type RecurringWorkPolicyInput = {
   kind: AllocationPolicyKind;
   amountMinor: number | null;
   rateMinor: number | null;
+  rateMinorPerWholeUnit?: number | null;
   percentageBps: number | null;
   unitId: string | null;
   periodFrom: string;
@@ -31,6 +32,7 @@ export type RecurringWorkReading = {
   periodTo: string;
   finalOrderCount: number;
   deliveredQuantity: number;
+  outputQuantityMilli: number | null;
   recognizedRevenueMinor: number | null;
   recognizedDirectCostMinor: number | null;
   directMarginMinor: number | null;
@@ -55,6 +57,8 @@ const dayAfter = (value: string) => { const date = new Date(`${value}T12:00:00.0
 const rangesOverlap = (leftFrom: string, leftTo: string | null, rightFrom: string, rightTo: string | null) => leftFrom <= (rightTo ?? "9999-12-31") && rightFrom <= (leftTo ?? "9999-12-31");
 const activeMovements = (movements: readonly InventoryMovement[]) => { const reversed = new Set(movements.filter(movement => movement.type === "reversal" && movement.reversesMovementId).map(movement => movement.reversesMovementId)); return movements.filter(movement => movement.type !== "reversal" && !reversed.has(movement.id)); };
 const wasteValue = (context: WasteContext | null) => context?.kind === "unallocated" || context?.kind === "general_project" || context?.kind === "order" || context?.kind === "catalog_item" || context?.kind === "catalog_template";
+const toQuantityMilli = (quantity: number): number | null => { if (!Number.isFinite(quantity) || quantity <= 0) return null; const quantityMilli = quantity * 1000; return Number.isSafeInteger(quantityMilli) && Math.abs(quantity - quantityMilli / 1000) < Number.EPSILON ? quantityMilli : null; };
+const sumSafeIntegers = (values: readonly number[]): number | null => { let total = 0; for (const value of values) { if (!Number.isSafeInteger(value) || value < 0 || total > Number.MAX_SAFE_INTEGER - value) return null; total += value; } return total; };
 
 export class RecurringWorkService {
   constructor(private readonly store: PrototypeLocalStore, private readonly now: () => string = () => new Date().toISOString()) {}
@@ -143,11 +147,13 @@ export class RecurringWorkService {
       waste.totalWasteMinor = waste.orderWasteMinor + waste.catalogItemWasteMinor + waste.catalogTemplateWasteMinor + waste.generalProjectWasteMinor + waste.unallocatedWasteMinor;
       const directMarginMinor = finalOrders.length ? finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedRevenueMinor - candidate.stored.order.recognizedCostMinor, 0) : null;
       const activePolicies = policies.value.filter(policy => policy.status === "active" && isAllocationPolicyEffective(policy, item.id, from, to));
-      const evidence: AllocationEvidence = { catalogItemId: item.id, periodFrom: from, periodTo: to, finalOrderIds: finalOrders.map(candidate => candidate.stored.id), excludedOrderIds, outputQuantity: finalOrders.length ? finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.quantity, 0) : null, outputUnitId: finalOrders.length ? item.unitId ?? null : null, actualTimeMinutes: timeRecordedOrderCount ? actualMinutes : null, missingTimeOrderIds, recognizedRevenueMinor: finalOrders.length ? finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedRevenueMinor, 0) : null, missingRevenueOrderIds: [], directMarginMinor: directMarginMinor ?? 0 };
+      const quantityMillis = finalOrders.map(candidate => toQuantityMilli(candidate.stored.order.quantity));
+      const outputQuantityMilli = finalOrders.length && quantityMillis.every((value): value is number => value !== null) ? sumSafeIntegers(quantityMillis as number[]) : null;
+      const evidence: AllocationEvidence = { catalogItemId: item.id, periodFrom: from, periodTo: to, finalOrderIds: finalOrders.map(candidate => candidate.stored.id), excludedOrderIds, outputQuantityMilli, outputUnitId: finalOrders.length ? item.unitId ?? null : null, actualTimeMinutes: timeRecordedOrderCount ? actualMinutes : null, missingTimeOrderIds, recognizedRevenueMinor: finalOrders.length ? finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedRevenueMinor, 0) : null, missingRevenueOrderIds: [], directMarginMinor: directMarginMinor ?? 0 };
       const allocation = activePolicies.length === 1 ? calculateAllocationPolicy(activePolicies[0]!, evidence) : null;
       const reasons = [...(excludedOrderIds.length ? ["توجد طلبات مسلّمة مستبعدة من القراءة لأنها ليست final؛ لم تتحول إلى صفر أو هامش مكتمل."] : []), ...(material.notRecordedOrderCount ? ["لم تسجل مادة فعلية لبعض الطلبات؛ هذا لا يعني صفر مادة."] : []), ...(time.notRecordedOrderCount ? ["لم تسجل وقتًا فعليًا لبعض الطلبات؛ هذا لا يعني صفر وقت."] : []), ...(waste.totalWasteMinor ? ["الهدر المسجل ظاهر كدليل منفصل ولم يخصم من الهامش أو COGS تلقائيًا."] : []), ...(activePolicies.length > 1 ? ["توجد سياسات فعالة متداخلة؛ لا تعرض قراءة تحميل مركبة قبل مراجعة النطاق والمصدر."] : [])];
       const nextAction = allocation?.status === "known" ? allocation.nextAction : material.notRecordedOrderCount > 0 ? "سجل المادة الفعلية للطلبات الناقصة قبل تفسير فرق المادة." : activePolicies.length === 0 ? "لا توجد سياسة تحميل؛ يظهر الهامش المباشر المسجل فقط." : allocation?.nextAction ?? "راجع نطاق سياسة التحميل ومصدرها وأكمل الدليل الناقص قبل الاعتماد على الرقم.";
-      return { catalogItemId: item.id, periodFrom: from, periodTo: to, finalOrderCount: finalOrders.length, deliveredQuantity: finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.quantity, 0), recognizedRevenueMinor: directMarginMinor === null ? null : finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedRevenueMinor, 0), recognizedDirectCostMinor: directMarginMinor === null ? null : finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedCostMinor, 0), directMarginMinor, directStatus: directMarginMinor === null ? "not_recorded" : "recorded", material, time, waste, policies: policies.value.filter(policy => policy.catalogItemId === item.id), allocation, reasons, nextAction, truth: "الهامش المباشر المسجل هو الإيراد المعترف به للطلبات final المرتبطة صراحة ناقص التكلفة المباشرة المحفوظة في Snapshot. وقت التنفيذ والهدر وسياسة التحميل أدلة منفصلة؛ لا تغيّر الكاش أو Snapshot أو نتيجة G3." } satisfies RecurringWorkReading;
+      return { catalogItemId: item.id, periodFrom: from, periodTo: to, finalOrderCount: finalOrders.length, deliveredQuantity: finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.quantity, 0), outputQuantityMilli, recognizedRevenueMinor: directMarginMinor === null ? null : finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedRevenueMinor, 0), recognizedDirectCostMinor: directMarginMinor === null ? null : finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedCostMinor, 0), directMarginMinor, directStatus: directMarginMinor === null ? "not_recorded" : "recorded", material, time, waste, policies: policies.value.filter(policy => policy.catalogItemId === item.id), allocation, reasons, nextAction, truth: "الهامش المباشر المسجل هو الإيراد المعترف به للطلبات final المرتبطة صراحة ناقص التكلفة المباشرة المحفوظة في Snapshot. وقت التنفيذ والهدر وسياسة التحميل أدلة منفصلة؛ لا تغيّر الكاش أو Snapshot أو نتيجة G3." } satisfies RecurringWorkReading;
     });
     return { ok: true, value: { from, to, items, truth: "هذه قراءة محلية حسب مرجع العمل وفترة معلنة. الربح بعد التحميل حسب سياسة المالك ليس صافي ربح نهائيًا أو توصية سعر، ولا يطغى على الهامش المباشر المسجل." } };
   }
