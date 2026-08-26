@@ -9,6 +9,7 @@ import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
 import { createCatalogItem, createMeasurementUnit } from "@micro-domain/catalog/index.js";
 import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import { createActualTimeRecord, reverseActualTimeRecord } from "@micro-domain/actual-time/index.js";
 
 const profile = { id: localProfileId, activityName: "مشغل ليان", currency: "JOD" as const, activityType: "custom_craft" as const, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
 const draft = { id: "draft-1", intent: "customer_order" as const, customerName: "سارة", itemName: "صندوق", catalogItemId: null, specifications: "نقش", quantity: 1, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
@@ -158,6 +159,48 @@ describe("LocalTransferService", () => {
     const broken = structuredClone(exported.value) as { data: { shortCashDeclarations: unknown[] } };
     broken.data.shortCashDeclarations = [{ id: "original", kind: "declaration", direction: "collection", amountMinor: 100, dueOn: "2026-08-25", source: "عميلة", knowledge: "known", note: "موعد", relatedOrderId: null, relatedEventId: null, idempotencyKey: "original", reversalOfId: null, createdAt: "2026-08-22T01:00:00.000Z" }, { id: "reverse", kind: "reversal", direction: "collection", amountMinor: 99, dueOn: "2026-08-25", source: "عميلة", knowledge: "known", note: "عكس", relatedOrderId: null, relatedEventId: null, idempotencyKey: "reverse", reversalOfId: "original", createdAt: "2026-08-22T02:00:00.000Z" }];
     expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
+  });
+
+  it("round-trips actual-time origin and reversal, summarizes the count, and initializes absent legacy arrays", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const cost = calculateCostSnapshot("actual-time-cost", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
+    const order = createCraftOrder({ id: "actual-time-order", customerName: "سارة", itemName: "صندوق وقت", specifications: "اختبار", quantity: 1, agreedPriceMinor: 2000, costSnapshot: cost, createdAt: "2026-08-22T00:00:00.000Z" });
+    await source.saveOrder({ id: order.id, order, catalogItemId: null, deliveryDate: "2026-08-30", agreementSource: "conversation", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" });
+    const original = createActualTimeRecord({ id: "actual-time-origin", orderId: order.id, minutesDelta: 60, recordedOn: "2026-08-22", createdAt: "2026-08-22T01:00:00.000Z", note: "وقت فعلي", operationKey: "actual-time-origin" });
+    const reversal = reverseActualTimeRecord({ id: "actual-time-reversal", target: original, recordedOn: "2026-08-23", createdAt: "2026-08-23T01:00:00.000Z", reason: "تصحيح موثق", operationKey: "actual-time-reversal" }, [original]);
+    await source.saveActualTimeRecord(original); await source.saveActualTimeRecord(reversal);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("actual-time export should succeed");
+    const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error(`actual-time import should validate: ${preview.message}`);
+    expect(preview.value.summary).toMatchObject({ actualTimeRecords: 2 }); await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { actualTimeRecords: 2 } });
+    await expect(target.listActualTimeRecords()).resolves.toMatchObject({ ok: true, value: [{ id: "actual-time-reversal", orderId: order.id, minutesDelta: -60, reversalOfId: original.id, reversalReason: "تصحيح موثق" }, { id: original.id, orderId: order.id, minutesDelta: 60, reversalOfId: null, reversalReason: null }] });
+    const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number; data: { actualTimeRecords?: unknown } }; legacy.version = 7; legacy.schemaVersion = 15; delete legacy.data.actualTimeRecords;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { actualTimeRecords: [] } } } });
+  });
+
+  it("rejects corrupt actual-time records before replacement and preserves the current Store", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const cost = calculateCostSnapshot("actual-time-invalid-cost", { currency: "JOD", materialItems: [], time: { minutes: 30, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
+    const order = createCraftOrder({ id: "actual-time-invalid-order", customerName: "سارة", itemName: "صندوق", specifications: "اختبار", quantity: 1, agreedPriceMinor: 2000, costSnapshot: cost, createdAt: "2026-08-22T00:00:00.000Z" });
+    await source.saveOrder({ id: order.id, order, catalogItemId: null, deliveryDate: "2026-08-30", agreementSource: "conversation", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" });
+    const original = createActualTimeRecord({ id: "invalid-time-origin", orderId: order.id, minutesDelta: 60, recordedOn: "2026-08-22", createdAt: "2026-08-22T01:00:00.000Z", note: null, operationKey: "invalid-time-origin" });
+    const reversal = reverseActualTimeRecord({ id: "invalid-time-reversal", target: original, recordedOn: "2026-08-23", createdAt: "2026-08-23T01:00:00.000Z", reason: "تصحيح", operationKey: "invalid-time-reversal" }, [original]);
+    await source.saveActualTimeRecord(original); await source.saveActualTimeRecord(reversal);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("actual-time export should succeed");
+    const cases: Array<(records: Array<Record<string, unknown>>) => void> = [
+      records => { records[0]!.orderId = "missing-order"; },
+      records => { records[0]!.minutesDelta = 0; },
+      records => { records[0]!.minutesDelta = -60; },
+      records => { records[1]!.reversalReason = null; },
+      records => { records[1]!.minutesDelta = -59; },
+      records => { records.push({ ...records[1], id: "second-reversal", operationKey: "second-reversal" }); },
+      records => { records[1]!.operationKey = records[0]!.operationKey; },
+    ];
+    for (const mutate of cases) {
+      const broken = structuredClone(exported.value) as unknown as { data: { actualTimeRecords: Array<Record<string, unknown>> } }; mutate(broken.data.actualTimeRecords);
+      const target = new MemoryLocalStore(); await target.saveProfile({ ...profile, activityName: "بيانات قائمة" }); const before = await target.readSnapshot();
+      expect(new LocalTransferService(target).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
+      await expect(target.readSnapshot()).resolves.toEqual(before);
+    }
   });
 });
 
