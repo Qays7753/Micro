@@ -20,6 +20,7 @@ describe("catalog core domain", () => {
   it("rejects invalid quantities and never allows a zero or negative conversion factor", () => {
     expect(() => createMeasurementUnit({ id: "bad", nameAr: " ", dimension: "mass", symbol: null, createdAt: at, createdOperationKey: "unit:bad" })).toThrow("اسم الوحدة مطلوب");
     expect(() => createDirectConversion({ id: "bad", fromUnitId: "kg", toUnitId: "g", dimension: "mass", numerator: 0, denominator: 1, note: "غير صالح", createdAt: at, createdOperationKey: "conversion:bad" })).toThrow("بسط عامل التحويل");
+    expect(() => createDirectConversion({ id: "bad-dimension", fromUnitId: "kg", toUnitId: "g", dimension: "unsupported" as "mass", numerator: 1, denominator: 1, note: "غير صالح", createdAt: at, createdOperationKey: "conversion:bad-dimension" })).toThrow("بُعد التحويل غير مدعوم");
     expect(() => convertQuantityMilli(0, createDirectConversion({ id: "good", fromUnitId: "kg", toUnitId: "g", dimension: "mass", numerator: 1, denominator: 1, note: "صريح", createdAt: at, createdOperationKey: "conversion:good" }))).toThrow("الكمية");
   });
 
@@ -41,6 +42,29 @@ describe("CatalogService G4-A", () => {
     const retry = await service.create({ kind: "product", name: "اسم آخر لا يبدل السابق", unitLabel: null, operationKey: "catalog:gift" });
     expect(created).toMatchObject({ ok: true, item: { unitId: createdUnit.unit.id } });
     expect(retry).toMatchObject({ ok: true, item: { id: created.ok ? created.item.id : "missing" } });
+  });
+
+  it("keeps unit, conversion, and template creation idempotent on retry", async () => {
+    const store = new MemoryLocalStore();
+    const service = new CatalogService(store, () => at);
+    const firstUnit = await service.createUnit({ nameAr: "قطعة", dimension: "count", operationKey: "unit:idempotent" });
+    const retriedUnit = await service.createUnit({ nameAr: "اسم لا يبدل العملية", dimension: "count", operationKey: "unit:idempotent" });
+    if (!firstUnit.ok || !retriedUnit.ok) throw new Error("unit should be idempotent");
+    expect(retriedUnit.unit.id).toBe(firstUnit.unit.id);
+    const firstConversion = await service.createConversion({ fromUnitId: firstUnit.unit.id, toUnitId: "other-unit", numerator: 1, denominator: 1, note: "لن تحفظ", operationKey: "conversion:invalid" });
+    expect(firstConversion).toMatchObject({ ok: false });
+    const otherUnit = await service.createUnit({ nameAr: "دزينة", dimension: "count", operationKey: "unit:dozen:idempotent" });
+    if (!otherUnit.ok) throw new Error("second unit should be created");
+    const conversion = await service.createConversion({ fromUnitId: firstUnit.unit.id, toUnitId: otherUnit.unit.id, numerator: 12, denominator: 1, note: "قطعة إلى دزينة", operationKey: "conversion:idempotent" });
+    const retriedConversion = await service.createConversion({ fromUnitId: firstUnit.unit.id, toUnitId: otherUnit.unit.id, numerator: 99, denominator: 1, note: "لا يبدل العامل", operationKey: "conversion:idempotent" });
+    if (!conversion.ok || !retriedConversion.ok) throw new Error("conversion should be idempotent");
+    expect(retriedConversion.conversion.id).toBe(conversion.conversion.id);
+    const item = await service.create({ kind: "service", name: "تجهيز", unitLabel: null, operationKey: "catalog:idempotent" });
+    if (!item.ok) throw new Error("catalog should be created");
+    const template = await service.createTemplate({ catalogItemId: item.item.id, title: "قالب", note: null, components: [], yield: null, operationKey: "template:idempotent" });
+    const retriedTemplate = await service.createTemplate({ catalogItemId: item.item.id, title: "عنوان لا يبدل العملية", note: null, components: [], yield: null, operationKey: "template:idempotent" });
+    if (!template.ok || !retriedTemplate.ok) throw new Error("template should be idempotent");
+    expect(retriedTemplate.template.id).toBe(template.template.id);
   });
 
   it("rejects cross-dimension conversion and duplicate active pairs while preserving an inactive revision path", async () => {

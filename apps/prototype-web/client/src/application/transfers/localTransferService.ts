@@ -170,11 +170,32 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   const unitIds = new Set<string>(); const unitKeys = new Set<string>(); const activeUnitNames = new Set<string>();
   for (const unit of data.measurementUnits) { if (!validMeasurementUnit(unit) || unitIds.has(unit.id) || unitKeys.has(unit.createdOperationKey)) return false; const nameKey = `${unit.dimension}:${unit.nameAr.trim().replace(/\s+/g, " ").toLocaleLowerCase("ar-JO")}`; if (unit.active && activeUnitNames.has(nameKey)) return false; unitIds.add(unit.id); unitKeys.add(unit.createdOperationKey); if (unit.active) activeUnitNames.add(nameKey); }
   for (const item of data.catalogItems) { if (isString(item.unitId) && !unitIds.has(item.unitId)) return false; }
-  const conversionIds = new Set<string>(); const conversionKeys = new Set<string>(); const activeConversionPairs = new Set<string>();
-  for (const conversion of data.directConversions) { if (!validDirectConversion(conversion, unitIds, data.measurementUnits.filter(isRecord)) || conversionIds.has(conversion.id) || conversionKeys.has(conversion.createdOperationKey)) return false; const pair = `${conversion.fromUnitId}:${conversion.toUnitId}`; if (conversion.active && activeConversionPairs.has(pair)) return false; conversionIds.add(conversion.id); conversionKeys.add(conversion.createdOperationKey); if (conversion.active) activeConversionPairs.add(pair); }
+  const conversionIds = new Set<string>(); const conversionKeys = new Set<string>(); const activeConversionPairs = new Set<string>(); const conversionPairs = new Set<string>();
+  for (const conversion of data.directConversions) { if (!validDirectConversion(conversion, unitIds, data.measurementUnits.filter(isRecord)) || conversionIds.has(conversion.id) || conversionKeys.has(conversion.createdOperationKey)) return false; const pair = `${conversion.fromUnitId}:${conversion.toUnitId}`; if (conversion.active && activeConversionPairs.has(pair)) return false; conversionIds.add(conversion.id); conversionKeys.add(conversion.createdOperationKey); conversionPairs.add(pair); if (conversion.active) activeConversionPairs.add(pair); }
   const templateIds = new Set<string>(); const templateKeys = new Set<string>(); const activeTemplateItems = new Set<string>();
   for (const template of data.catalogTemplates) { if (!validCatalogTemplate(template, catalogIds, unitIds) || templateIds.has(template.id) || templateKeys.has(template.createdOperationKey)) return false; templateIds.add(template.id); templateKeys.add(template.createdOperationKey); }
-  for (const template of data.catalogTemplates) { if (template.active && activeTemplateItems.has(template.catalogItemId)) return false; if (template.sourceTemplateId !== null) { const source = data.catalogTemplates.find(candidate => isRecord(candidate) && candidate.id === template.sourceTemplateId); if (!source || source.catalogItemId !== template.catalogItemId || source.revision + 1 !== template.revision || source.active) return false; } if (template.active) activeTemplateItems.add(template.catalogItemId); if (template.yieldReadiness === "ready" && template.yield !== null) { const item = data.catalogItems.find(candidate => isRecord(candidate) && candidate.id === template.catalogItemId); const itemUnit = item && isString(item.unitId) ? data.measurementUnits.find(candidate => isRecord(candidate) && candidate.id === item.unitId) : undefined; const outputUnit = data.measurementUnits.find(candidate => isRecord(candidate) && candidate.id === template.yield.unitId); if (!item || !itemUnit || !outputUnit || itemUnit.dimension !== outputUnit.dimension || (itemUnit.id !== outputUnit.id && !activeConversionPairs.has(`${outputUnit.id}:${itemUnit.id}`))) return false; } if (template.yieldReadiness === "needs_conversion" && template.yield === null) return false; }
+  for (const template of data.catalogTemplates) {
+    if (template.active && activeTemplateItems.has(template.catalogItemId)) return false;
+    if (template.sourceTemplateId !== null) {
+      const source = data.catalogTemplates.find(candidate => isRecord(candidate) && candidate.id === template.sourceTemplateId);
+      if (!source || source.catalogItemId !== template.catalogItemId || source.revision + 1 !== template.revision || source.active) return false;
+    }
+    if (template.active) activeTemplateItems.add(template.catalogItemId);
+    const item = data.catalogItems.find(candidate => isRecord(candidate) && candidate.id === template.catalogItemId);
+    const itemUnit = item && isString(item.unitId) ? data.measurementUnits.find(candidate => isRecord(candidate) && candidate.id === item.unitId) : undefined;
+    const outputUnit = template.yield ? data.measurementUnits.find(candidate => isRecord(candidate) && candidate.id === template.yield?.unitId) : undefined;
+    if (template.yield === null) {
+      if (template.yieldReadiness !== "not_configured") return false;
+    } else if (!itemUnit) {
+      if (template.yieldReadiness !== "ready") return false;
+    } else if (!outputUnit || itemUnit.dimension !== outputUnit.dimension) {
+      return false;
+    } else if (itemUnit.id === outputUnit.id) {
+      if (template.yieldReadiness !== "ready") return false;
+    } else if (template.yieldReadiness === "ready" && !conversionPairs.has(`${outputUnit.id}:${itemUnit.id}`)) {
+      return false;
+    }
+  }
   const declarationIds = new Set<string>(); const declarationKeys = new Set<string>(); const reversedDeclarationIds = new Set<string>();
   for (const declaration of data.shortCashDeclarations) {
     if (!validShortCashDeclaration(declaration) || declarationIds.has(declaration.id) || declarationKeys.has(`${declaration.kind}:${declaration.idempotencyKey}`)) return false;

@@ -52,6 +52,24 @@ describe("G4-A catalog transfer boundary", () => {
     await expect(target.readSnapshot()).resolves.toMatchObject({ ok: true, value: { catalogItems: [], measurementUnits: [], catalogTemplates: [] } });
   });
 
+  it("rejects a tampered compatible yield marked needs-conversion before writing anything", async () => {
+    const source = new MemoryLocalStore();
+    const catalog = new CatalogService(source, () => now);
+    const unit = await catalog.createUnit({ nameAr: "قطعة", dimension: "count", operationKey: "unit:piece:readiness" });
+    if (!unit.ok) throw new Error("unit should be created");
+    const item = await catalog.create({ kind: "product", name: "علبة", unitLabel: "قطعة", unitId: unit.unit.id, operationKey: "catalog:box:readiness" });
+    if (!item.ok) throw new Error("item should be created");
+    await catalog.createTemplate({ catalogItemId: item.item.id, title: "قالب", note: null, components: [], yield: { quantityMilli: 1000, unitId: unit.unit.id }, operationKey: "template:box:readiness" });
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    const tampered = structuredClone(exported.value);
+    tampered.data.catalogTemplates = tampered.data.catalogTemplates?.map(template => ({ ...template, yieldReadiness: "needs_conversion" }));
+    const target = new MemoryLocalStore();
+    const transfers = new LocalTransferService(target);
+    expect(transfers.prepareImport(JSON.stringify(tampered))).toMatchObject({ ok: false, code: "validation_error" });
+    await expect(target.readSnapshot()).resolves.toMatchObject({ ok: true, value: { catalogItems: [], measurementUnits: [], catalogTemplates: [] } });
+  });
+
   it("migrates the previous catalog schema by adding empty G4-A arrays and a null organized unit", async () => {
     const source = new MemoryLocalStore();
     const catalog = new CatalogService(source, () => now);
