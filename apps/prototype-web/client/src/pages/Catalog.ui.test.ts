@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { catalogDimensionOptions, catalogYieldReadinessLabel, parseCatalogQuantityMilli } from "./Catalog";
+import { catalogDimensionOptions, catalogYieldReadinessLabel, isCatalogTemplateDirty, parseCatalogPositiveSafeInteger, parseCatalogQuantityMilli } from "./Catalog";
 
 describe("Catalog G4-A UI capability model", () => {
   it("exposes only the six general dimensions in Arabic", () => {
@@ -19,6 +19,21 @@ describe("Catalog G4-A UI capability model", () => {
     expect(parseCatalogQuantityMilli("1.2345")).toBeNull();
     expect(parseCatalogQuantityMilli("0")).toBeNull();
     expect(parseCatalogQuantityMilli("-1")).toBeNull();
+  });
+
+  it("rejects conversion factors with non-digit text, zero, or unsafe values", () => {
+    expect(parseCatalogPositiveSafeInteger("1000")).toBe(1000);
+    expect(parseCatalogPositiveSafeInteger("1000x")).toBeNull();
+    expect(parseCatalogPositiveSafeInteger("0")).toBeNull();
+    expect(parseCatalogPositiveSafeInteger("-1")).toBeNull();
+    expect(parseCatalogPositiveSafeInteger("9007199254740992")).toBeNull();
+  });
+
+  it("does not mark an unchanged revision dirty, but protects a new draft", () => {
+    expect(isCatalogTemplateDirty("same", "same", true)).toBe(false);
+    expect(isCatalogTemplateDirty("changed", "same", true)).toBe(true);
+    expect(isCatalogTemplateDirty("new", null, false)).toBe(false);
+    expect(isCatalogTemplateDirty("new", null, true)).toBe(true);
   });
 
   it("keeps unconfigured and needs-conversion states visible in Arabic", () => {

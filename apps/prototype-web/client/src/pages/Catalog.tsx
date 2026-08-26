@@ -22,9 +22,16 @@ const parseQuantityMilli = (value: string) => {
   const result = Math.round(Number(value) * 1000);
   return Number.isSafeInteger(result) && result > 0 ? result : null;
 };
+const parsePositiveSafeInteger = (value: string) => {
+  if (!/^\d+$/.test(value.trim())) return null;
+  const result = Number(value);
+  return Number.isSafeInteger(result) && result > 0 ? result : null;
+};
 export const catalogDimensionOptions = dimensions;
 export const parseCatalogQuantityMilli = parseQuantityMilli;
+export const parseCatalogPositiveSafeInteger = parsePositiveSafeInteger;
 export const catalogYieldReadinessLabel = (value: CatalogTemplate["yieldReadiness"]) => value === "ready" ? "مهيأ" : value === "needs_conversion" ? "يحتاج تحويلًا صريحًا" : "غير مهيأ اختياريًا";
+export const isCatalogTemplateDirty = (fingerprint: string, baseline: string | null, hasDraft: boolean) => baseline === null ? hasDraft : fingerprint !== baseline;
 const operationKey = (prefix: string) => `${prefix}:${crypto.randomUUID()}`;
 
 export default function Catalog() {
@@ -62,6 +69,7 @@ export default function Catalog() {
   const [yieldQuantity, setYieldQuantity] = useState("");
   const [yieldUnitId, setYieldUnitId] = useState("");
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [templateBaseline, setTemplateBaseline] = useState<string | null>(null);
 
   const activeUnits = useMemo(() => units.filter(unit => unit.active), [units]);
   const selectedItem = items.find(item => item.id === selectedItemId) ?? null;
@@ -111,8 +119,12 @@ export default function Catalog() {
 
   async function createConversion(): Promise<boolean> {
     setMessage(null);
-    const numerator = Number.parseInt(conversionNumerator, 10);
-    const denominator = Number.parseInt(conversionDenominator, 10);
+    const numerator = parsePositiveSafeInteger(conversionNumerator);
+    const denominator = parsePositiveSafeInteger(conversionDenominator);
+    if (numerator === null || denominator === null) {
+      setMessage("أدخل بسطًا ومقامًا صحيحين موجبين بالأرقام 0–9 فقط، من دون تقريب أو نص إضافي.");
+      return false;
+    }
     const result = await catalog.createConversion({ fromUnitId: conversionFrom, toUnitId: conversionTo, numerator, denominator, note: conversionNote, operationKey: operationKey("conversion") });
     if (!result.ok) { setMessage(result.message); return false; }
     setConversionFrom(""); setConversionTo(""); setConversionNumerator(""); setConversionDenominator(""); setConversionNote(""); notifyDataChanged(); await load(); setMessage("تم حفظ التحويل المباشر الصريح. لن نمر عبر وحدات أخرى تلقائيًا.");
@@ -129,11 +141,13 @@ export default function Catalog() {
   }
 
   function resetTemplateForm() {
-    setEditingTemplateId(null); setTemplateTitle(""); setTemplateNote(""); setTemplateComponents([]); setYieldEnabled(false); setYieldQuantity("");
+    setEditingTemplateId(null); setTemplateBaseline(null); setTemplateTitle(""); setTemplateNote(""); setTemplateComponents([]); setYieldEnabled(false); setYieldQuantity("");
   }
 
   function startRevision(template: CatalogTemplate) {
-    setEditingTemplateId(template.id); setSelectedItemId(template.catalogItemId); setTemplateTitle(template.title ?? ""); setTemplateNote(template.note ?? ""); setTemplateComponents(template.components); setYieldEnabled(template.yield !== null); setYieldQuantity(template.yield ? quantityLabel(template.yield.quantityMilli) : ""); setYieldUnitId(template.yield?.unitId ?? activeUnits[0]?.id ?? ""); setMessage(`تعديل مراجعة القالب ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
+    const revisionYieldQuantity = template.yield ? quantityLabel(template.yield.quantityMilli) : "";
+    const revisionYieldUnitId = template.yield?.unitId ?? activeUnits[0]?.id ?? "";
+    setEditingTemplateId(template.id); setSelectedItemId(template.catalogItemId); setTemplateTitle(template.title ?? ""); setTemplateNote(template.note ?? ""); setTemplateComponents(template.components); setYieldEnabled(template.yield !== null); setYieldQuantity(revisionYieldQuantity); setYieldUnitId(revisionYieldUnitId); setTemplateBaseline(JSON.stringify({ title: (template.title ?? "").trim(), note: (template.note ?? "").trim(), components: template.components, yield: template.yield ? { quantity: revisionYieldQuantity, unitId: revisionYieldUnitId } : null })); setMessage(`تعديل مراجعة القالب ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
   }
 
   async function saveTemplate(): Promise<boolean> {
@@ -151,9 +165,18 @@ export default function Catalog() {
 
   async function deactivateTemplate(id: string) { const result = await catalog.deactivateTemplate(id); if (!result.ok) { setMessage(result.message); return; } notifyDataChanged(); await load(); setMessage("تم إيقاف القالب، وبقيت مراجعته السابقة محفوظة."); }
 
-  const templateDirty = Boolean(templateTitle.trim() || templateNote.trim() || templateComponents.length || yieldEnabled || yieldQuantity.trim() || editingTemplateId);
+  const currentTemplateFingerprint = JSON.stringify({ title: templateTitle.trim(), note: templateNote.trim(), components: templateComponents, yield: yieldEnabled ? { quantity: yieldQuantity.trim(), unitId: yieldUnitId } : null });
+  const hasTemplateDraft = Boolean(templateTitle.trim() || templateNote.trim() || templateComponents.length || yieldEnabled || yieldQuantity.trim());
+  const templateDirty = isCatalogTemplateDirty(currentTemplateFingerprint, templateBaseline, hasTemplateDraft);
   const conversionDirty = Boolean(conversionFrom || conversionTo || conversionNumerator || conversionDenominator || conversionNote.trim());
-  const requestSafeNavigation = useUnsavedChangesGuard({ isDirty: templateDirty || conversionDirty, onSave: async () => templateDirty ? saveTemplate() : conversionDirty ? createConversion() : true });
+  const requestSafeNavigation = useUnsavedChangesGuard({
+    isDirty: templateDirty || conversionDirty,
+    onSave: async () => {
+      if (templateDirty && !(await saveTemplate())) return false;
+      if (conversionDirty && !(await createConversion())) return false;
+      return true;
+    },
+  });
 
   return <section className="micro-page">
     <button className="micro-back-button" type="button" onClick={() => requestSafeNavigation("/orders")}><ArrowRight aria-hidden="true" /> العودة للطلبات</button>

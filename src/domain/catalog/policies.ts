@@ -67,6 +67,7 @@ export function assertSameDimension(from: MeasurementUnit, to: MeasurementUnit):
 }
 
 export function createDirectConversion(input: CreateDirectConversionInput): DirectConversion {
+  if (!unitDimensions.includes(input.dimension)) throw new Error("بُعد التحويل غير مدعوم.");
   const timestamp = validTimestamp(input.createdAt, "وقت إنشاء التحويل");
   const numerator = positiveSafeInteger(input.numerator, "بسط عامل التحويل");
   const denominator = positiveSafeInteger(input.denominator, "مقام عامل التحويل");
