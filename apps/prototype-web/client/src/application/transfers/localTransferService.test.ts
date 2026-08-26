@@ -7,7 +7,9 @@ import { createFinancialEvent, createFinancialReversal } from "@micro-domain/fin
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
-import { createCatalogItem } from "@micro-domain/catalog/index.js";
+import { createCatalogItem, createMeasurementUnit } from "@micro-domain/catalog/index.js";
+import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import { createActualTimeRecord, reverseActualTimeRecord } from "@micro-domain/actual-time/index.js";
 
 const profile = { id: localProfileId, activityName: "مشغل ليان", currency: "JOD" as const, activityType: "custom_craft" as const, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
 const draft = { id: "draft-1", intent: "customer_order" as const, customerName: "سارة", itemName: "صندوق", catalogItemId: null, specifications: "نقش", quantity: 1, costSnapshots: [], activeCostSnapshotId: null, linkedOrderId: null, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" };
@@ -59,6 +61,18 @@ describe("LocalTransferService", () => {
     const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number }; legacy.version = 6; legacy.schemaVersion = 14;
     const preview = new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy));
     expect(preview).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { financialEvents: [{ id: "legacy-shared", expenseContext: { relationship: "shared", sharedProjectShare: null } }] } } } });
+  });
+
+  it("round-trips G3 percentage and deferred shared-expense fields and accepts the previous schema pair", async () => {
+    const source = new MemoryLocalStore();
+    const percentage = createFinancialEvent({ id: "percentage-event", type: "operating_expense_cash", amountMinor: 617, occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", idempotencyKey: "percentage-event", note: "كهرباء بنسبة", counterparty: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "known", sharedProjectShare: { basis: "agreed_percentage", note: "20%", allocation: "allocated", totalAmountMinor: 3083, percentageBps: 2000, calculatedShareMinor: 617 } } });
+    const deferred = createFinancialEvent({ id: "deferred-event", type: "operating_expense_cash", amountMinor: 5000, occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:01:00.000Z", idempotencyKey: "deferred-event", note: "كهرباء مؤجلة", counterparty: null, expenseContext: { relationship: "shared", behavior: "mixed", purpose: "period", knowledge: "needs_review", sharedProjectShare: { basis: "needs_review", note: "لاحقًا", allocation: "unallocated", totalAmountMinor: 5000, percentageBps: null, calculatedShareMinor: null } } });
+    await source.saveFinancialEvent(percentage); await source.saveFinancialEvent(deferred);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("G3 export should succeed");
+    const transfers = new LocalTransferService(new MemoryLocalStore()); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error(`G3 import should validate: ${preview.message}`);
+    expect(preview.value.file.data.financialEvents).toMatchObject([{ id: "percentage-event", expenseContext: { sharedProjectShare: { allocation: "allocated", basis: "agreed_percentage", percentageBps: 2000, calculatedShareMinor: 617 } } }, { id: "deferred-event", operatingExpenseDeltaMinor: 0, expenseContext: { sharedProjectShare: { allocation: "unallocated", totalAmountMinor: 5000 } } }]);
+    const previous = structuredClone(exported.value) as { version: number; schemaVersion: number }; previous.version = 11; previous.schemaVersion = 20;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion } } });
   });
 
   it("upgrades a v7 export to v8 without inventing a catalog item or historical link", async () => {
@@ -129,12 +143,64 @@ describe("LocalTransferService", () => {
     expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { shortCashDeclarations: [] } } } });
   });
 
+  it("round-trips explicit waste context and allocation policy evidence, but rejects missing references", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const unit = createMeasurementUnit({ id: "unit-waste", nameAr: "قطعة", dimension: "count", symbol: null, createdAt: "2026-08-22T00:00:00.000Z", createdOperationKey: "unit-waste" }); const item = createCatalogItem({ id: "catalog-waste", kind: "product", name: "صندوق هدر", unitLabel: "قطعة", unitId: unit.id, createdAt: "2026-08-22T00:00:00.000Z", createdOperationKey: "catalog-waste" }); await source.saveMeasurementUnit(unit); await source.saveCatalogItem(item);
+    const material = createMaterial({ id: "material-waste", name: "خشب", unit: "piece", createdAt: "2026-08-22T00:00:00.000Z", createdOperationKey: "material-waste" }); const movement = createInventoryMovement({ id: "waste-context", materialId: material.id, type: "waste", occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", quantityDeltaMilli: -1000, valueDeltaMinor: -400, note: "هدر مرتبط", reason: "قص", operationKey: "waste-context", wasteContext: { kind: "catalog_item", catalogItemId: item.id } }); await source.commitInventory(material, [movement]);
+    await source.saveAllocationPolicy(createAllocationPolicy({ id: "allocation-transfer", seriesId: "allocation-series-transfer", successorOfPolicyId: null, version: 1, catalogItemId: item.id, kind: "per_output_unit", amountMinor: null, rateMinor: null, rateMinorPerWholeUnit: 50, percentageBps: null, unitId: unit.id, periodFrom: "2026-08-01", periodTo: "2026-08-31", startsOn: "2026-08-01", endsOn: "2026-08-31", source: "سجل الإنتاج", reason: "توزيع لكل قطعة", note: "المعدل لكل وحدة كاملة", status: "active", idempotencyKey: "allocation-transfer", createdAt: "2026-08-22T01:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" }));
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("G4-B export should succeed"); const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error(`G4-B import should validate: ${preview.message}`); expect(preview.value.summary).toMatchObject({ allocationPolicies: 1, inventoryMovements: 1 }); await transfers.confirmImport(preview.value); await expect(target.listAllocationPolicies()).resolves.toMatchObject({ ok: true, value: [{ id: "allocation-transfer", kind: "per_output_unit", rateMinorPerWholeUnit: 50, rateMinor: null }] }); await expect(target.listInventoryMovements()).resolves.toMatchObject({ ok: true, value: [{ wasteContext: { kind: "catalog_item", catalogItemId: item.id } }] });
+    const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number; data: { allocationPolicies: Array<Record<string, unknown>> } }; legacy.version = 16; legacy.schemaVersion = 25; legacy.data.allocationPolicies = legacy.data.allocationPolicies.map(policy => { const { rateMinorPerWholeUnit, ...oldPolicy } = policy; return { ...oldPolicy, rateMinor: rateMinorPerWholeUnit }; }); const migrated = new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy)); expect(migrated).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { allocationPolicies: [{ rateMinorPerWholeUnit: 50, rateMinor: null }] } } } });
+    const broken = structuredClone(exported.value); broken.data.inventoryMovements = broken.data.inventoryMovements?.map(movement => movement.id === "waste-context" ? { ...movement, wasteContext: { kind: "catalog_item", catalogItemId: "missing-catalog" } } : movement); expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
+  });
+
   it("rejects a reversal that does not match its original declaration", async () => {
     const source = new MemoryLocalStore();
     const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed");
     const broken = structuredClone(exported.value) as { data: { shortCashDeclarations: unknown[] } };
     broken.data.shortCashDeclarations = [{ id: "original", kind: "declaration", direction: "collection", amountMinor: 100, dueOn: "2026-08-25", source: "عميلة", knowledge: "known", note: "موعد", relatedOrderId: null, relatedEventId: null, idempotencyKey: "original", reversalOfId: null, createdAt: "2026-08-22T01:00:00.000Z" }, { id: "reverse", kind: "reversal", direction: "collection", amountMinor: 99, dueOn: "2026-08-25", source: "عميلة", knowledge: "known", note: "عكس", relatedOrderId: null, relatedEventId: null, idempotencyKey: "reverse", reversalOfId: "original", createdAt: "2026-08-22T02:00:00.000Z" }];
     expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
+  });
+
+  it("round-trips actual-time origin and reversal, summarizes the count, and initializes absent legacy arrays", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const cost = calculateCostSnapshot("actual-time-cost", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
+    const order = createCraftOrder({ id: "actual-time-order", customerName: "سارة", itemName: "صندوق وقت", specifications: "اختبار", quantity: 1, agreedPriceMinor: 2000, costSnapshot: cost, createdAt: "2026-08-22T00:00:00.000Z" });
+    await source.saveOrder({ id: order.id, order, catalogItemId: null, deliveryDate: "2026-08-30", agreementSource: "conversation", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" });
+    const original = createActualTimeRecord({ id: "actual-time-origin", orderId: order.id, minutesDelta: 60, recordedOn: "2026-08-22", createdAt: "2026-08-22T01:00:00.000Z", note: "وقت فعلي", operationKey: "actual-time-origin" });
+    const reversal = reverseActualTimeRecord({ id: "actual-time-reversal", target: original, recordedOn: "2026-08-23", createdAt: "2026-08-23T01:00:00.000Z", reason: "تصحيح موثق", operationKey: "actual-time-reversal" }, [original]);
+    await source.saveActualTimeRecord(original); await source.saveActualTimeRecord(reversal);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("actual-time export should succeed");
+    const target = new MemoryLocalStore(); const transfers = new LocalTransferService(target); const preview = transfers.prepareImport(JSON.stringify(exported.value)); if (!preview.ok) throw new Error(`actual-time import should validate: ${preview.message}`);
+    expect(preview.value.summary).toMatchObject({ actualTimeRecords: 2 }); await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({ ok: true, value: { actualTimeRecords: 2 } });
+    await expect(target.listActualTimeRecords()).resolves.toMatchObject({ ok: true, value: [{ id: "actual-time-reversal", orderId: order.id, minutesDelta: -60, reversalOfId: original.id, reversalReason: "تصحيح موثق" }, { id: original.id, orderId: order.id, minutesDelta: 60, reversalOfId: null, reversalReason: null }] });
+    const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number; data: { actualTimeRecords?: unknown } }; legacy.version = 7; legacy.schemaVersion = 15; delete legacy.data.actualTimeRecords;
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy))).toMatchObject({ ok: true, value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { actualTimeRecords: [] } } } });
+  });
+
+  it("rejects corrupt actual-time records before replacement and preserves the current Store", async () => {
+    const source = new MemoryLocalStore(); await source.saveProfile(profile);
+    const cost = calculateCostSnapshot("actual-time-invalid-cost", { currency: "JOD", materialItems: [], time: { minutes: 30, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
+    const order = createCraftOrder({ id: "actual-time-invalid-order", customerName: "سارة", itemName: "صندوق", specifications: "اختبار", quantity: 1, agreedPriceMinor: 2000, costSnapshot: cost, createdAt: "2026-08-22T00:00:00.000Z" });
+    await source.saveOrder({ id: order.id, order, catalogItemId: null, deliveryDate: "2026-08-30", agreementSource: "conversation", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" });
+    const original = createActualTimeRecord({ id: "invalid-time-origin", orderId: order.id, minutesDelta: 60, recordedOn: "2026-08-22", createdAt: "2026-08-22T01:00:00.000Z", note: null, operationKey: "invalid-time-origin" });
+    const reversal = reverseActualTimeRecord({ id: "invalid-time-reversal", target: original, recordedOn: "2026-08-23", createdAt: "2026-08-23T01:00:00.000Z", reason: "تصحيح", operationKey: "invalid-time-reversal" }, [original]);
+    await source.saveActualTimeRecord(original); await source.saveActualTimeRecord(reversal);
+    const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("actual-time export should succeed");
+    const cases: Array<(records: Array<Record<string, unknown>>) => void> = [
+      records => { records[0]!.orderId = "missing-order"; },
+      records => { records[0]!.minutesDelta = 0; },
+      records => { records[0]!.minutesDelta = -60; },
+      records => { records[1]!.reversalReason = null; },
+      records => { records[1]!.minutesDelta = -59; },
+      records => { records.push({ ...records[1], id: "second-reversal", operationKey: "second-reversal" }); },
+      records => { records[1]!.operationKey = records[0]!.operationKey; },
+    ];
+    for (const mutate of cases) {
+      const broken = structuredClone(exported.value) as unknown as { data: { actualTimeRecords: Array<Record<string, unknown>> } }; mutate(broken.data.actualTimeRecords);
+      const target = new MemoryLocalStore(); await target.saveProfile({ ...profile, activityName: "بيانات قائمة" }); const before = await target.readSnapshot();
+      expect(new LocalTransferService(target).prepareImport(JSON.stringify(broken))).toMatchObject({ ok: false, code: "validation_error" });
+      await expect(target.readSnapshot()).resolves.toEqual(before);
+    }
   });
 });
 

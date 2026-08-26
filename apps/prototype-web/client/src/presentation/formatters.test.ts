@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatLocalDate, formatLocalDateTime, formatMoneyMinor, formatMonthLabel, localDateInAmman } from "./formatters";
+import { formatBreakEvenDisplay, formatLocalDate, formatLocalDateTime, formatMoneyMinor, formatMonthLabel, localDateInAmman } from "./formatters";
 
 describe("presentation formatters", () => {
   it("formats positive, negative, and zero JOD minor units with ASCII digits", () => {
@@ -23,5 +23,23 @@ describe("presentation formatters", () => {
   it("renders month context in Arabic while preserving the underlying YYYY-MM value elsewhere", () => {
     expect(formatMonthLabel("2026-08")).toContain("2026");
     expect(formatMonthLabel("not-a-month")).toBe("not-a-month");
+  });
+
+  it("labels break-even with the organized unit instead of generic وحدة", () => {
+    expect(formatBreakEvenDisplay(3, "dozen", "دزينة")).toEqual({ number: "3", scale: "دزينة" });
+    expect(formatBreakEvenDisplay(3, "piece", " قطعة ")).toEqual({ number: "3", scale: "قطعة" });
+  });
+
+  it("labels legacy recorded mix explicitly and never falls back to generic وحدة", () => {
+    const display = formatBreakEvenDisplay(3, "legacy:recorded-mix", "قطعة");
+    expect(display).toEqual({ number: "3", scale: "من المزيج المسجل" });
+    expect(display?.scale).not.toBe("وحدة");
+    expect(formatBreakEvenDisplay(3, null, null)?.scale).toBe("من المزيج المسجل");
+    expect(formatBreakEvenDisplay(3, null, "دزينة")?.scale).toBe("من المزيج المسجل");
+  });
+
+  it("keeps unavailable break-even as null so the UI can show غير متاحة with its reason", () => {
+    expect(formatBreakEvenDisplay(null, "piece", "قطعة")).toBeNull();
+    expect(formatBreakEvenDisplay(0, "piece", "قطعة")).toBeNull();
   });
 });

@@ -5,7 +5,7 @@ describe("catalog domain core", () => {
   it("creates an optional product or service reference without price, stock, or cost semantics", () => {
     const product = createCatalogItem({ id: "gift-box", kind: "product", name: " صندوق هدايا ", unitLabel: " قطعة ", createdAt: "2026-08-23T10:00:00.000Z", createdOperationKey: "catalog-gift-box" });
     const service = createCatalogItem({ id: "gift-wrap", kind: "service", name: "تغليف هدايا", unitLabel: null, createdAt: "2026-08-23T10:00:00.000Z", createdOperationKey: "catalog-gift-wrap" });
-    expect(product).toEqual({ id: "gift-box", kind: "product", name: "صندوق هدايا", unitLabel: "قطعة", active: true, createdAt: "2026-08-23T10:00:00.000Z", updatedAt: "2026-08-23T10:00:00.000Z", createdOperationKey: "catalog-gift-box" });
+    expect(product).toEqual({ id: "gift-box", kind: "product", name: "صندوق هدايا", unitLabel: "قطعة", unitId: null, active: true, createdAt: "2026-08-23T10:00:00.000Z", updatedAt: "2026-08-23T10:00:00.000Z", createdOperationKey: "catalog-gift-box" });
     expect(service).toMatchObject({ kind: "service", unitLabel: null, active: true });
     expect(product).not.toHaveProperty("priceMinor");
     expect(product).not.toHaveProperty("stock");

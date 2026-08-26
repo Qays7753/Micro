@@ -86,3 +86,21 @@
 ## نتيجة الاختبارات
 
 نجحت اختبارات Domain وApplication لحالات `recorded` و`needs_review` و`not_recorded`، بما في ذلك Snapshot تقديري ووقت مخطط ناقص، ونجح `pnpm check` و`git diff --check` قبل الفحص الحي. لم يتغير `schemaVersion` أو `localExportVersion`.
+
+## تصحيح مقياس `per_output_unit`
+
+أضيفت تغطية قبول مستقلة للتصحيح الحسابي: `rateMinorPerWholeUnit` يعني JOD minor لكل وحدة كاملة `1.000`، و`outputQuantityMilli` يخزن ويجمع الكمية بالألفيات. تثبت اختبارات Domain/Application الحالات `1.000 × 0.50 = 0.50` د.أ، و`12.000 × 0.50 = 6.00` د.أ، وتجميع `0.333 + 0.333 + 0.334` إلى `1.000` قبل الحساب.
+
+يطبق Domain التقريب half-up مرة واحدة على مجموع الفترة بعد فحص `Number.isSafeInteger` قبل الضرب والإضافة. وتثبت الاختبارات أن الناتج `0` minor يبقى `known` ومفسرًا، وأن تجاوز الدقة الآمنة ينتج `incomplete` دون رقم مضلل، وأن `actual_time` يبقى محسوبًا لكل دقيقة فعلية. لا يتغير `directMarginMinor` أو `CostSnapshot` أو `recognizedCostMinor` أو نتيجة G3 أو الكاش أو الذمم؛ القراءة المشتقة ليست حدثًا ماليًا.
+
+يهاجر IndexedDB schema `25` إلى `26`، وLocalTransfer export `16` إلى `17`، مع تحويل `rateMinor` القديم لسياسات `per_output_unit` إلى `rateMinorPerWholeUnit` مع جعل `rateMinor` فارغًا لذلك النوع. تغطي اختبارات Transfer وIndexedDB round-trip والترحيل والتحقق قبل replacement الذري.
+
+تتضمن واجهة `/catalog` تسمية «المعدل لكل 1.000 [الوحدة] · د.أ»، ومعاينة ASCII/LTR بصيغة `12.000 قطعة × 0.50 د.أ لكل 1.000 قطعة = 6.00 د.أ`، ونص «يُقرب مجموع الفترة مرة واحدة إلى أقرب قرش»، مع تفسير صريح للصفر المحسوب والتحذير عند عدم إمكان الحساب بأمان.
+
+## حدود الفحص الحي لهذا التصحيح
+
+تنجح فحوص المصدر والاختبارات المحلية، لكن لم يُنفذ في هذه الجولة إدخال يدوي فعلي على هاتف Android أو iOS أو عنوان Cloudflare Pages الإنتاجي. لذلك تبقى لقطات 360/390/430 في Chromium/Light/Dark وRTL فحصًا مطلوبًا خارجياً قبل إعلان قبول الجهاز أو Production أو Pilot. يجب بعد أي فحص حي تنظيف IndexedDB وCache Storage وlocalStorage وsessionStorage وService Workers؛ لا يحتوي هذا التسليم على بيانات QA عربية حقيقية.
+
+## نتيجة التصحيح الآلية
+
+بعد التصحيح نجحت اختبارات Domain بعدد `75` واختبارات Prototype بعدد `219`، بما فيها UI وApplication وStorage وTransfer. بقيت حدود القبول اليدوي والجهاز الفعلي وProduction وPilot صريحة، ولا يعلن هذا السجل قبول G4-B بنسبة `100%`.

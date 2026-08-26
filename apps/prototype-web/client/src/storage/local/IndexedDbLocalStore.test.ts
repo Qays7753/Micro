@@ -2,6 +2,8 @@ import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it } from "vitest";
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
+import { createCatalogItem } from "@micro-domain/catalog/index.js";
+import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import { localPreferencesId, localProfileId, type ActivityProfile, type OrderDraft, type StoredCraftOrder } from "./types";
 
@@ -31,6 +33,24 @@ function seedVersionOneDraft() {
       transaction.oncomplete = () => { database.close(); resolve(); };
       transaction.onerror = () => reject(transaction.error);
     };
+  });
+}
+
+function seedVersionTwentyFourLegacyMovement() {
+  return new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open(databaseName, 24);
+    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = () => { const movements = request.result.createObjectStore("inventory-movements", { keyPath: "id" }); movements.put({ id: "legacy-waste", materialId: "material", type: "waste", occurredOn: "2026-08-22", recordedAt: "2026-08-22T01:00:00.000Z", quantityDeltaMilli: -1000, valueDeltaMinor: -400, note: "هدر قديم", reason: "تلف", operationKey: "legacy-waste", purchaseId: null, orderId: null, reversesMovementId: null }); };
+    request.onsuccess = () => { request.result.close(); resolve(); };
+  });
+}
+
+function seedVersionTwentyFiveLegacyPolicy() {
+  return new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open(databaseName, 25);
+    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = () => { const policies = request.result.createObjectStore("allocation-policies", { keyPath: "id" }); policies.put({ id: "legacy-per-unit", seriesId: "legacy-series", successorOfPolicyId: null, version: 1, catalogItemId: "catalog-legacy", kind: "per_output_unit", amountMinor: null, rateMinor: 50, percentageBps: null, unitId: "unit-piece", periodFrom: "2026-08-01", periodTo: "2026-08-31", startsOn: "2026-08-01", endsOn: "2026-08-31", source: "سجل قديم", reason: "اختبار ترحيل", note: "معدل لكل وحدة", status: "active", idempotencyKey: "legacy-per-unit", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" }); };
+    request.onsuccess = () => { request.result.close(); resolve(); };
   });
 }
 
@@ -102,6 +122,29 @@ describe("IndexedDbLocalStore", () => {
     await expect(store.listCatalogItems()).resolves.toMatchObject({ ok: true, value: [] });
   });
 
+  it("migrates a schema-24 waste movement to an explicit general-project context", async () => {
+    await seedVersionTwentyFourLegacyMovement();
+    const store = new IndexedDbLocalStore();
+    await expect(store.listInventoryMovements()).resolves.toMatchObject({ ok: true, value: [{ id: "legacy-waste", wasteContext: { kind: "general_project" } }] });
+  });
+
+  it("migrates schema-25 per-unit policies to the explicit whole-unit rate field", async () => {
+    await seedVersionTwentyFiveLegacyPolicy();
+    const store = new IndexedDbLocalStore();
+    await expect(store.listAllocationPolicies()).resolves.toMatchObject({ ok: true, value: [{ id: "legacy-per-unit", kind: "per_output_unit", rateMinorPerWholeUnit: 50, rateMinor: null }] });
+  });
+
+  it("persists allocation policies through a fresh adapter and full snapshot replacement", async () => {
+    const store = new IndexedDbLocalStore();
+    const item = createCatalogItem({ id: "indexed-catalog", kind: "product", name: "صندوق", unitLabel: "قطعة", unitId: null, createdAt: "2026-08-22T00:00:00.000Z", createdOperationKey: "indexed-catalog" });
+    const policy = createAllocationPolicy({ id: "indexed-policy", seriesId: "indexed-series", successorOfPolicyId: null, version: 1, catalogItemId: item.id, kind: "manual_amount", amountMinor: 500, rateMinor: null, percentageBps: null, unitId: null, periodFrom: "2026-08-01", periodTo: "2026-08-31", startsOn: "2026-08-01", endsOn: "2026-08-31", source: "فاتورة", reason: "توزيع", note: "اختبار IndexedDB", status: "active", idempotencyKey: "indexed-policy", createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T00:00:00.000Z" });
+    await store.saveCatalogItem(item); await store.saveAllocationPolicy(policy);
+    await expect(new IndexedDbLocalStore().listAllocationPolicies()).resolves.toMatchObject({ ok: true, value: [{ id: policy.id, catalogItemId: item.id }] });
+    const snapshot = await store.readSnapshot(); if (!snapshot.ok) throw new Error("snapshot should read"); expect(snapshot.value.allocationPolicies).toEqual([expect.objectContaining({ id: policy.id })]);
+    await expect(store.replaceSnapshot({ ...snapshot.value, allocationPolicies: [policy] })).resolves.toMatchObject({ ok: true, value: { allocationPolicies: [{ id: policy.id }] } });
+    await expect(new IndexedDbLocalStore().listAllocationPolicies()).resolves.toMatchObject({ ok: true, value: [{ id: policy.id }] });
+  });
+
   it("commits one local order and its linked draft together", async () => {
     const store = new IndexedDbLocalStore();
     const cost = calculateCostSnapshot("cost-1", { currency: "JOD", materialItems: [], time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" }, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity: 1, createdAt: "2026-08-22T00:00:00.000Z", freshnessDays: null });
@@ -149,7 +192,7 @@ describe("IndexedDbLocalStore", () => {
   });
 
   it("keeps materials and inventory movements through a snapshot replacement", async () => {
-    const store = new IndexedDbLocalStore(); const material = { id: "wood", name: "خشب", unit: "piece" as const, createdAt: "2026-08-23T09:00:00.000Z", createdOperationKey: "material-wood" }; const opening = { id: "material-opening", materialId: material.id, type: "opening" as const, occurredOn: "2026-08-01", recordedAt: "2026-08-23T09:00:00.000Z", quantityDeltaMilli: 10000, valueDeltaMinor: 4000, note: "افتتاح", reason: null, operationKey: "opening-wood", purchaseId: null, orderId: null, reversesMovementId: null };
+    const store = new IndexedDbLocalStore(); const material = { id: "wood", name: "خشب", unit: "piece" as const, createdAt: "2026-08-23T09:00:00.000Z", createdOperationKey: "material-wood" }; const opening = { id: "material-opening", materialId: material.id, type: "opening" as const, occurredOn: "2026-08-01", recordedAt: "2026-08-23T09:00:00.000Z", quantityDeltaMilli: 10000, valueDeltaMinor: 4000, note: "افتتاح", reason: null, operationKey: "opening-wood", purchaseId: null, orderId: null, reversesMovementId: null, wasteContext: null };
     await expect(store.commitInventory(material, [opening])).resolves.toMatchObject({ ok: true, value: { material: { id: "wood" }, movements: [{ id: "material-opening" }] } });
     const snapshot = await store.readSnapshot(); if (!snapshot.ok) throw new Error("snapshot should read"); expect(snapshot.value).toMatchObject({ materials: [{ id: "wood" }], inventoryMovements: [{ id: "material-opening" }] });
     await expect(store.replaceSnapshot({ profile: null, preferences: null, drafts: [], orders: [], schedules: [], financialEvents: [], supplierPurchases: [], cashWallets: [], cashContinuityEntries: [], materials: [material], inventoryMovements: [opening] })).resolves.toMatchObject({ ok: true, value: { materials: [{ id: "wood" }], inventoryMovements: [{ id: "material-opening" }] } });
