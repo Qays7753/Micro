@@ -55,9 +55,11 @@ describe("CatalogService G4-A", () => {
     expect(firstConversion).toMatchObject({ ok: false });
     const otherUnit = await service.createUnit({ nameAr: "دزينة", dimension: "count", operationKey: "unit:dozen:idempotent" });
     if (!otherUnit.ok) throw new Error("second unit should be created");
-    const conversion = await service.createConversion({ fromUnitId: firstUnit.unit.id, toUnitId: otherUnit.unit.id, numerator: 12, denominator: 1, note: "قطعة إلى دزينة", operationKey: "conversion:idempotent" });
+    const conversion = await service.createConversion({ fromUnitId: firstUnit.unit.id, toUnitId: otherUnit.unit.id, numerator: 1, denominator: 12, note: "12 قطعة = 1 دزينة", operationKey: "conversion:idempotent" });
     const retriedConversion = await service.createConversion({ fromUnitId: firstUnit.unit.id, toUnitId: otherUnit.unit.id, numerator: 99, denominator: 1, note: "لا يبدل العامل", operationKey: "conversion:idempotent" });
     if (!conversion.ok || !retriedConversion.ok) throw new Error("conversion should be idempotent");
+    expect(conversion.conversion).toMatchObject({ fromUnitId: firstUnit.unit.id, toUnitId: otherUnit.unit.id, numerator: 1, denominator: 12 });
+    expect(convertQuantityMilli(12_000, conversion.conversion)).toEqual({ quantityMilli: 1_000, exact: true });
     expect(retriedConversion.conversion.id).toBe(conversion.conversion.id);
     const item = await service.create({ kind: "service", name: "تجهيز", unitLabel: null, operationKey: "catalog:idempotent" });
     if (!item.ok) throw new Error("catalog should be created");
