@@ -1,6 +1,6 @@
 # تحقق السيناريو — G5 مؤشرات النتيجة والربحية والتغطية والسيولة
 
-**الحالة:** `VERIFIED AGAINST CONTRACT / G3 acceptance correction pending Bridge PR`
+**الحالة:** `VERIFIED AGAINST CONTRACT / G3 correction merged on Bridge; not on main`
 **التاريخ:** 23 أغسطس 2026
 **العقد:** [`12-financial-insights-g5-prototype-contract.md`](../contracts/12-financial-insights-g5-prototype-contract.md)
 

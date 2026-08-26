@@ -6,7 +6,7 @@
 
 | الترتيب | الملف | الحالة | متى يُقرأ؟ |
 |---:|---|---|---|
-| 0 | `docs/operations/current-state.md` | CURRENT / LIVE STATUS | الحالة المندمجة على `main`، بوابة التوقف، والخطوة التالية المسموحة لأي Agent جديد |
+| 0 | `docs/operations/current-state.md` | CURRENT / LIVE STATUS | الحالة المندمجة على `main`، وحالة برنامج Bridge المعلنة، وبوابة التوقف، والخطوة التالية المسموحة لأي Agent جديد |
 | 0A | `docs/operations/agent-handoff-protocol-v1.md` | CURRENT / OPERATIONAL | بروتوكول الاستلام والتنفيذ والتسليم بين الوكلاء |
 | 0B | `docs/operations/micro-thinking-charter-v1.md` | CURRENT / THINKING GATE | هدف Micro وطريقة التفكير وأسئلة النقد وبطاقة الفهم قبل أي كود |
 | 0C | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
