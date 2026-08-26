@@ -188,6 +188,8 @@ G4-A لا تغير طلبًا تاريخيًا أو اتفاقًا أو `CostSna
 
 نفذت الشريحة وفق المسار `React → Application Service → G5 Domain → PrototypeLocalStore → IndexedDB`. لم تُضف `apps/prototype-web/client/public/__manus__/version.json`، ولم تُغيّر `main` أو تاريخ المال. بعد نجاح CI وCloudflare Pages ودمج PR #111، يبدأ أي عمل لاحق من `git fetch origin --prune` والتحقق من رأس Bridge البعيد، ولا يُعامل هذا التنفيذ كقبول نهائي قبل مراجعة Manus Agent 1 والمالك.
 
+تصحيح القبول الحالي في PR #112 يقتصر على عرض وحدة/مقياس `breakEvenUnits` في Finance: يستخدم `quantityUnitLabel` المنظم عند وجوده، ويعرض «من المزيج المسجل» عند غياب الوحدة المنظمة أو الموحدة، ويبقي `null` بصيغة «غير متاحة» مع سببها. لا يغيّر هذا التصحيح الحساب أو العتبات أو التخزين أو schema/export أو المال. لا تبدأ مراجعة الحزمة أو PR إلى `main` قبل قبول Manus Agent 1 والمالك؛ يصل كل شيء إلى Bridge عبر PR فقط ولا يوجد push مباشر.
+
 ## References
 
 [1]: [قائمة التنفيذ](../../todo.md)
