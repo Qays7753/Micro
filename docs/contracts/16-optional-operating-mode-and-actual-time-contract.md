@@ -1,6 +1,6 @@
 # Micro — عقد وضع التشغيل الاختياري والوقت الفعلي للطلب G4-B
 
-**الحالة:** `CURRENT / IMPLEMENTED ON BRIDGE — PR PENDING`
+**الحالة:** `CURRENT / IMPLEMENTED AND MERGED ON BRIDGE — PR #108`
 **المالك:** Manus Agent 1
 **تاريخ القرار:** 23 أغسطس 2026
 
