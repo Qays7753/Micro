@@ -45,6 +45,6 @@ describe("O1 local transfer boundary", () => {
 
   it("accepts the previous O1 schema pair and initializes absent O1 arrays empty", async () => {
     const source = new MemoryLocalStore(); const exported = await new LocalTransferService(source).createExport(); if (!exported.ok) throw new Error("export should succeed"); const previous = structuredClone(exported.value) as { version: number; schemaVersion: number; data: Record<string, unknown> }; previous.version = 12; previous.schemaVersion = 21; delete previous.data.ownerEntitlementPolicies; delete previous.data.ownerEntitlementRecords; delete previous.data.ownerEntitlementOpeningBalances; delete previous.data.ownerMovements;
-    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous))).toMatchObject({ ok: true, value: { file: { version: 14, schemaVersion: 23, data: { ownerEntitlementPolicies: [], ownerEntitlementRecords: [], ownerEntitlementOpeningBalances: [], ownerMovements: [] } } } });
+    expect(new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous))).toMatchObject({ ok: true, value: { file: { version: 15, schemaVersion: 24, data: { ownerEntitlementPolicies: [], ownerEntitlementRecords: [], ownerEntitlementOpeningBalances: [], ownerMovements: [] } } } });
   });
 });

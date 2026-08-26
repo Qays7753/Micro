@@ -29,11 +29,15 @@
 | `ai-skills/` | حزمة المهارات المحمولة الخاصة بالمنتج |
 | `src/domain/craft-order/` | Domain Core للشريحة الأولى |
 | `tests/domain/` | اختبارات المجال القابلة للتشغيل |
-| `apps/prototype-web/` | Web-first Prototype: App Shell وRTL وLight/Dark والتأسيس والمسودات وSnapshots تكلفة وسعر حماية واتفاق وعربون وتنفيذ وتسليم وتحصيل أو دين ونتيجة وحماية محلية Export/Import، مع Application وLocalStore معزولين |
+| `apps/prototype-web/` | Web-first Prototype: App Shell وRTL وLight/Dark والتأسيس والمسودات وSnapshots تكلفة وسعر حماية واتفاق وعربون وتنفيذ وتسليم وتحصيل أو دين ونتيجة وحماية محلية Export/Import، مع Application وLocalStore معزولين. على فرع G4-A أضيفت نواة كتالوج اختيارية تشمل وحدات ذات بُعد، تحويلات مباشرة دقيقة، وقوالب مكونات/yield تخطيطية بلا أثر مالي أو مخزني. |
 
 ## قواعد مهمة
 
 لا تعتبر وجود ميزة في نظام قديم أو مشروع مفتوح المصدر دليلًا على ضرورتها. لا تغيّر قرارًا معتمدًا دون دليل وسجل قرار. لا تعرض ربحًا نهائيًا عند نقص أو تغير أو قدم التكلفة؛ النواة تحمل `resultStatus` لتوضيح ذلك. لا تخلط حالة اشتراك SaaS بمالية صاحب المشروع. لا تضف بوابة دفع للمستخدم في MVP. لا تدخل كودًا خارجيًا قبل فحص الترخيص والمصدر والملاءمة. عند إلغاء طلب ذي عربون، لا تُفترض سياسة رد أو احتفاظ؛ يبدأ الطلب بـ`needs_review` وتنفذ التسوية كعملية مستقلة.
+
+## نطاق G4-A الحالي
+
+توسّع فرع `agent3/g4a-core-catalog-foundation` أساس الكتالوج القائم دون إنشاء مسار منافس: `CatalogItem.unitId` اختياري، والوحدات محصورة في `count | mass | volume | time | distance | area`، والتحويلات مباشرة وصريحة داخل البعد نفسه، والقوالب والمكونات و`yield` اختيارية للتخطيط فقط. لا ينشئ أي منها سعرًا أو Purchase أو Inventory أو Consumption أو COGS أو إيرادًا أو كاشًا، ولا يعيد ربط طلب تاريخي أو يغير `CostSnapshot`. تفاصيل العقد والاختبارات في [`docs/contracts/15-catalog-reference-prototype-contract.md`](docs/contracts/15-catalog-reference-prototype-contract.md) ومطابقة التنفيذ في [`docs/implementation/02-domain-contract-coverage.md`](docs/implementation/02-domain-contract-coverage.md). الحالة على الفرع: منفذة محليًا وفحوصها ناجحة، لكنها تنتظر مراجعة/CI/Cloudflare وقرار القبول؛ لا تُعلن قبول جهاز أو Production أو Pilot.
 
 ## الحالة الحالية
 
