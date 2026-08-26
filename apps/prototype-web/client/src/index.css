@@ -505,3 +505,14 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
 @media (prefers-reduced-motion: reduce) {
   .micro-page { animation: none; }
 }
+
+.micro-conversion-preview { display: grid; gap: var(--space-1); border-inline-start: 3px solid var(--color-accent-primary); border-radius: var(--radius-control); padding: var(--space-3); background: color-mix(in srgb, var(--color-accent-primary) 8%, var(--color-surface)); }
+.micro-conversion-preview strong { color: var(--color-text-primary); font-size: 13px; }
+.micro-conversion-preview p { margin: 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.micro-conversion-preview-warning { border-inline-start-color: var(--color-warning-text); background: var(--color-warning-bg); }
+.micro-conversion-preview-warning strong, .micro-conversion-preview-warning p { color: var(--color-warning-text); }
+@media (max-width: 380px) { .micro-conversion-preview p { font-size: 13px; } }
+
+.micro-conversion-equation { display: inline-flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-start; gap: 0.28rem; direction: ltr; unicode-bidi: isolate; font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
+.micro-conversion-equation bdi { direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
+.micro-conversion-equation .micro-conversion-unit { direction: rtl; unicode-bidi: isolate; font-family: inherit; white-space: nowrap; }
