@@ -41,7 +41,8 @@ export function parseEnglishQuantityText(value: string): number | null {
   const [whole, fraction = ""] = normalized.split(".");
   const major = Number(whole);
   const thousandths = Number(`${fraction}000`.slice(0, 3));
-  if (!Number.isSafeInteger(major) || major > Math.floor((Number.MAX_SAFE_INTEGER - thousandths) / 1000)) return null;
+  if (!Number.isSafeInteger(major) || major > Math.floor((Number.MAX_SAFE_INTEGER - thousandths) / 1000))
+    return null;
   const result = major * 1000 + thousandths;
   return Number.isSafeInteger(result) ? result : null;
 }
@@ -59,7 +60,12 @@ export function focusEnglishNumericText(
   hasUserEdited: boolean,
   clearDefaultZeroOnFocus: boolean,
 ) {
-  return clearDefaultZeroOnFocus && value === 0 && !hasUserEdited && text === formatEnglishNumericValue(0, kind) ? "" : text;
+  return clearDefaultZeroOnFocus &&
+    value === 0 &&
+    !hasUserEdited &&
+    text === formatEnglishNumericValue(0, kind)
+    ? ""
+    : text;
 }
 
 export function blurEnglishNumericText(
@@ -69,7 +75,8 @@ export function blurEnglishNumericText(
   allowEmpty: boolean,
 ) {
   const parsed = parseEnglishNumericText(text, kind);
-  if (parsed !== null) return { text: formatEnglishNumericValue(parsed, kind), committed: parsed, empty: false, valid: true };
+  if (parsed !== null)
+    return { text: formatEnglishNumericValue(parsed, kind), committed: parsed, empty: false, valid: true };
   if (allowEmpty && text === "") return { text: "", committed: null, empty: true, valid: true };
   if (text !== "") return { text, committed, empty: false, valid: false };
   return { text: formatEnglishNumericValue(committed, kind), committed, empty: false, valid: true };

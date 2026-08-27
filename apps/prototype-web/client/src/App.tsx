@@ -12,8 +12,8 @@ function App() {
       <PrototypeServicesProvider>
         <ThemeProvider defaultTheme="system" switchable>
           <TooltipProvider>
-          <Toaster position="top-center" closeButton dir="rtl" />
-          <MicroRouter />
+            <Toaster position="top-center" closeButton dir="rtl" />
+            <MicroRouter />
           </TooltipProvider>
         </ThemeProvider>
       </PrototypeServicesProvider>

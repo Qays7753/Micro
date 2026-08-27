@@ -14,10 +14,13 @@ import { type QuickAction, QuickActionSheet } from "@/components/layout/QuickAct
 import { PwaInstallControl } from "@/pwa/PwaInstallControl";
 import { PwaRuntimeNotice } from "@/pwa/PwaRuntimeNotice";
 
-
 export function MicroAppShell({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
-  return <UnsavedChangesProvider navigate={navigate}><ShellContent location={location}>{children}</ShellContent></UnsavedChangesProvider>;
+  return (
+    <UnsavedChangesProvider navigate={navigate}>
+      <ShellContent location={location}>{children}</ShellContent>
+    </UnsavedChangesProvider>
+  );
 }
 
 function ShellContent({ location, children }: { location: string; children: ReactNode }) {
@@ -28,9 +31,41 @@ function ShellContent({ location, children }: { location: string; children: Reac
   const showGlobalChrome = showsGlobalChrome(location);
   function handleQuickAction(action: QuickAction) {
     setIsActionSheetOpen(false);
-    if (action === "order") { requestNavigation("/orders/new"); return; }
-    if (action === "estimate") { requestNavigation("/orders/new"); return; }
-    if (action === "collection") { requestNavigation("/orders"); }
+    if (action === "order") {
+      requestNavigation("/orders/new");
+      return;
+    }
+    if (action === "estimate") {
+      requestNavigation("/orders/new");
+      return;
+    }
+    if (action === "collection") {
+      requestNavigation("/orders");
+    }
   }
-  return <div className="micro-app" data-route-kind={routeKind} dir="rtl"><AppHeader contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)} /><main className="micro-main" data-route-kind={routeKind} key={location}><PwaInstallControl /><PwaRuntimeNotice />{children}</main>{showGlobalChrome ? <><BottomNav activePath={location} items={primaryNavigation} onNavigate={requestNavigation} onOpenActions={() => setIsActionSheetOpen(true)} /><QuickActionSheet open={isActionSheetOpen} onOpenChange={setIsActionSheetOpen} onAction={handleQuickAction} /></> : null}</div>;
+  return (
+    <div className="micro-app" data-route-kind={routeKind} dir="rtl">
+      <AppHeader contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)} />
+      <main className="micro-main" data-route-kind={routeKind} key={location}>
+        <PwaInstallControl />
+        <PwaRuntimeNotice />
+        {children}
+      </main>
+      {showGlobalChrome ? (
+        <>
+          <BottomNav
+            activePath={location}
+            items={primaryNavigation}
+            onNavigate={requestNavigation}
+            onOpenActions={() => setIsActionSheetOpen(true)}
+          />
+          <QuickActionSheet
+            open={isActionSheetOpen}
+            onOpenChange={setIsActionSheetOpen}
+            onAction={handleQuickAction}
+          />
+        </>
+      ) : null}
+    </div>
+  );
 }

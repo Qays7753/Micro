@@ -15,9 +15,23 @@ export type LocalFinancialPulse = {
   resultsAwaitingKnowledgeCount: number;
 };
 
-export type FinancialPulseResult = { ok: true; pulse: LocalFinancialPulse; orders: readonly StoredCraftOrder[] } | { ok: false; code: "storage_error"; message: string };
+export type FinancialPulseResult =
+  | { ok: true; pulse: LocalFinancialPulse; orders: readonly StoredCraftOrder[] }
+  | { ok: false; code: "storage_error"; message: string };
 
-const zeroPulse = (): LocalFinancialPulse => ({ source: "local_craft_orders", currency: "JOD", totalOrderCount: 0, activeOrderCount: 0, deliveredOrSettledOrderCount: 0, registeredCollectionsMinor: 0, registeredDebtMinor: 0, finalResultOrderCount: 0, recognizedRevenueFromFinalOrdersMinor: 0, recognizedCostFromFinalOrdersMinor: 0, resultsAwaitingKnowledgeCount: 0 });
+const zeroPulse = (): LocalFinancialPulse => ({
+  source: "local_craft_orders",
+  currency: "JOD",
+  totalOrderCount: 0,
+  activeOrderCount: 0,
+  deliveredOrSettledOrderCount: 0,
+  registeredCollectionsMinor: 0,
+  registeredDebtMinor: 0,
+  finalResultOrderCount: 0,
+  recognizedRevenueFromFinalOrdersMinor: 0,
+  recognizedCostFromFinalOrdersMinor: 0,
+  resultsAwaitingKnowledgeCount: 0,
+});
 
 export function summarizeLocalCraftOrders(orders: readonly StoredCraftOrder[]): LocalFinancialPulse {
   return orders.reduce<LocalFinancialPulse>((pulse, stored) => {
@@ -27,14 +41,29 @@ export function summarizeLocalCraftOrders(orders: readonly StoredCraftOrder[]): 
     return {
       ...pulse,
       totalOrderCount: pulse.totalOrderCount + 1,
-      activeOrderCount: order.status === "settled" || order.status === "cancelled" ? pulse.activeOrderCount : pulse.activeOrderCount + 1,
-      deliveredOrSettledOrderCount: isDeliveredOrSettled ? pulse.deliveredOrSettledOrderCount + 1 : pulse.deliveredOrSettledOrderCount,
+      activeOrderCount:
+        order.status === "settled" || order.status === "cancelled"
+          ? pulse.activeOrderCount
+          : pulse.activeOrderCount + 1,
+      deliveredOrSettledOrderCount: isDeliveredOrSettled
+        ? pulse.deliveredOrSettledOrderCount + 1
+        : pulse.deliveredOrSettledOrderCount,
       registeredCollectionsMinor: pulse.registeredCollectionsMinor + order.collectedMinor,
-      registeredDebtMinor: order.settlementStatus === "debt" ? pulse.registeredDebtMinor + order.receivableMinor : pulse.registeredDebtMinor,
+      registeredDebtMinor:
+        order.settlementStatus === "debt"
+          ? pulse.registeredDebtMinor + order.receivableMinor
+          : pulse.registeredDebtMinor,
       finalResultOrderCount: hasFinalResult ? pulse.finalResultOrderCount + 1 : pulse.finalResultOrderCount,
-      recognizedRevenueFromFinalOrdersMinor: hasFinalResult ? pulse.recognizedRevenueFromFinalOrdersMinor + order.recognizedRevenueMinor : pulse.recognizedRevenueFromFinalOrdersMinor,
-      recognizedCostFromFinalOrdersMinor: hasFinalResult ? pulse.recognizedCostFromFinalOrdersMinor + order.recognizedCostMinor : pulse.recognizedCostFromFinalOrdersMinor,
-      resultsAwaitingKnowledgeCount: isDeliveredOrSettled && !hasFinalResult ? pulse.resultsAwaitingKnowledgeCount + 1 : pulse.resultsAwaitingKnowledgeCount,
+      recognizedRevenueFromFinalOrdersMinor: hasFinalResult
+        ? pulse.recognizedRevenueFromFinalOrdersMinor + order.recognizedRevenueMinor
+        : pulse.recognizedRevenueFromFinalOrdersMinor,
+      recognizedCostFromFinalOrdersMinor: hasFinalResult
+        ? pulse.recognizedCostFromFinalOrdersMinor + order.recognizedCostMinor
+        : pulse.recognizedCostFromFinalOrdersMinor,
+      resultsAwaitingKnowledgeCount:
+        isDeliveredOrSettled && !hasFinalResult
+          ? pulse.resultsAwaitingKnowledgeCount + 1
+          : pulse.resultsAwaitingKnowledgeCount,
     };
   }, zeroPulse());
 }

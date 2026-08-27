@@ -24,7 +24,13 @@ export function LocalDateField({ label, description, value, id, ...inputProps }:
       </span>
       <input {...inputProps} id={id} type="date" value={localValue} aria-describedby={describedBy} />
       <small id={displayId} className="micro-selected-date" data-empty={!readableDate} aria-live="polite">
-        {readableDate ? <>التاريخ المحدد: <bdi dir="rtl">{readableDate}</bdi></> : "لم يُحدد تاريخ بعد."}
+        {readableDate ? (
+          <>
+            التاريخ المحدد: <bdi dir="rtl">{readableDate}</bdi>
+          </>
+        ) : (
+          "لم يُحدد تاريخ بعد."
+        )}
       </small>
     </label>
   );

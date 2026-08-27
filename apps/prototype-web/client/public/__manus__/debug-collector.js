@@ -27,15 +27,7 @@
       ui: 500,
     },
     reportInterval: 2000,
-    sensitiveFields: [
-      "password",
-      "token",
-      "secret",
-      "key",
-      "authorization",
-      "cookie",
-      "session",
-    ],
+    sensitiveFields: ["password", "token", "secret", "key", "authorization", "cookie", "session"],
     maxBodyLength: 10240,
     // UI event logging privacy policy:
     // - inputs matching sensitiveFields or type=password are masked by default
@@ -172,13 +164,9 @@
     var ariaLabel = getAttr("aria-label") || null;
 
     var dataLoc = getAttr("data-loc") || null;
-    var testId =
-      getAttr("data-testid") ||
-      getAttr("data-test-id") ||
-      getAttr("data-test") ||
-      null;
+    var testId = getAttr("data-testid") || getAttr("data-test-id") || getAttr("data-test") || null;
 
-    var type = tag === "input" ? (getAttr("type") || "text") : null;
+    var type = tag === "input" ? getAttr("type") || "text" : null;
     var href = tag === "a" ? getAttr("href") || null : null;
 
     // a small, stable hint for agents (avoid building full CSS paths)
@@ -262,7 +250,7 @@
           y: e.clientY,
         });
       },
-      true
+      true,
     );
 
     // Typing "commit" events
@@ -276,7 +264,7 @@
           value: getInputValueSafe(t),
         });
       },
-      true
+      true,
     );
 
     document.addEventListener(
@@ -286,7 +274,7 @@
         if (shouldIgnoreTarget(t)) return;
         logUiEvent("focusin", { target: describeElement(t) });
       },
-      true
+      true,
     );
 
     document.addEventListener(
@@ -299,7 +287,7 @@
           value: getInputValueSafe(t),
         });
       },
-      true
+      true,
     );
 
     // Enter/Escape are useful for form flows & modals
@@ -311,7 +299,7 @@
         if (shouldIgnoreTarget(t)) return;
         logUiEvent("keydown", { key: e.key, target: describeElement(t) });
       },
-      true
+      true,
     );
 
     // Form submissions
@@ -322,7 +310,7 @@
         if (shouldIgnoreTarget(t)) return;
         logUiEvent("submit", { target: describeElement(t) });
       },
-      true
+      true,
     );
 
     // Throttled scroll events
@@ -340,7 +328,7 @@
           viewportHeight: window.innerHeight,
         });
       },
-      { passive: true }
+      { passive: true },
     );
 
     // Navigation tracking for SPAs
@@ -456,9 +444,7 @@
     init = init || {};
     var startTime = Date.now();
     // Handle string, Request object, or URL object
-    var url = typeof input === "string"
-      ? input
-      : (input && (input.url || input.href || String(input))) || "";
+    var url = typeof input === "string" ? input : (input && (input.url || input.href || String(input))) || "";
     var method = init.method || (input && input.method) || "GET";
 
     // Don't intercept internal requests
@@ -516,9 +502,10 @@
         }
 
         // Skip body capture for streaming responses (SSE, etc.) to avoid memory leaks
-        var isStreaming = contentType.indexOf("text/event-stream") !== -1 ||
-                          contentType.indexOf("application/stream") !== -1 ||
-                          contentType.indexOf("application/x-ndjson") !== -1;
+        var isStreaming =
+          contentType.indexOf("text/event-stream") !== -1 ||
+          contentType.indexOf("application/stream") !== -1 ||
+          contentType.indexOf("application/x-ndjson") !== -1;
         if (isStreaming) {
           entry.response.body = "[Streaming response - not captured]";
           store.networkRequests.push(entry);
@@ -535,12 +522,13 @@
         }
 
         // Skip body capture for binary content types
-        var isBinary = contentType.indexOf("image/") !== -1 ||
-                       contentType.indexOf("video/") !== -1 ||
-                       contentType.indexOf("audio/") !== -1 ||
-                       contentType.indexOf("application/octet-stream") !== -1 ||
-                       contentType.indexOf("application/pdf") !== -1 ||
-                       contentType.indexOf("application/zip") !== -1;
+        var isBinary =
+          contentType.indexOf("image/") !== -1 ||
+          contentType.indexOf("video/") !== -1 ||
+          contentType.indexOf("audio/") !== -1 ||
+          contentType.indexOf("application/octet-stream") !== -1 ||
+          contentType.indexOf("application/pdf") !== -1 ||
+          contentType.indexOf("application/zip") !== -1;
         if (isBinary) {
           entry.response.body = "[Binary content: " + contentType + "]";
           store.networkRequests.push(entry);
@@ -609,11 +597,7 @@
   XMLHttpRequest.prototype.send = function (body) {
     var xhr = this;
 
-    if (
-      xhr._manusData &&
-      xhr._manusData.url &&
-      xhr._manusData.url.indexOf("/__manus__/") !== 0
-    ) {
+    if (xhr._manusData && xhr._manusData.url && xhr._manusData.url.indexOf("/__manus__/") !== 0) {
       xhr._manusData.startTime = Date.now();
       xhr._manusData.requestBody = body ? sanitizeValue(tryParseJson(body)) : null;
 
@@ -622,17 +606,19 @@
         var responseBody = null;
 
         // Skip body capture for streaming responses
-        var isStreaming = contentType.indexOf("text/event-stream") !== -1 ||
-                          contentType.indexOf("application/stream") !== -1 ||
-                          contentType.indexOf("application/x-ndjson") !== -1;
+        var isStreaming =
+          contentType.indexOf("text/event-stream") !== -1 ||
+          contentType.indexOf("application/stream") !== -1 ||
+          contentType.indexOf("application/x-ndjson") !== -1;
 
         // Skip body capture for binary content types
-        var isBinary = contentType.indexOf("image/") !== -1 ||
-                       contentType.indexOf("video/") !== -1 ||
-                       contentType.indexOf("audio/") !== -1 ||
-                       contentType.indexOf("application/octet-stream") !== -1 ||
-                       contentType.indexOf("application/pdf") !== -1 ||
-                       contentType.indexOf("application/zip") !== -1;
+        var isBinary =
+          contentType.indexOf("image/") !== -1 ||
+          contentType.indexOf("video/") !== -1 ||
+          contentType.indexOf("audio/") !== -1 ||
+          contentType.indexOf("application/octet-stream") !== -1 ||
+          contentType.indexOf("application/pdf") !== -1 ||
+          contentType.indexOf("application/zip") !== -1;
 
         if (isStreaming) {
           responseBody = "[Streaming response - not captured]";
@@ -719,11 +705,7 @@
     var uiEvents = store.uiEvents.splice(0);
 
     // Skip if no new data
-    if (
-      consoleLogs.length === 0 &&
-      networkRequests.length === 0 &&
-      uiEvents.length === 0
-    ) {
+    if (consoleLogs.length === 0 && networkRequests.length === 0 && uiEvents.length === 0) {
       return Promise.resolve();
     }
 
@@ -762,11 +744,7 @@
     var networkRequests = store.networkRequests;
     var uiEvents = store.uiEvents;
 
-    if (
-      consoleLogs.length === 0 &&
-      networkRequests.length === 0 &&
-      uiEvents.length === 0
-    ) {
+    if (consoleLogs.length === 0 && networkRequests.length === 0 && uiEvents.length === 0) {
       return;
     }
 

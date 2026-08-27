@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalogConversionPreview, buildCatalogPerUnitPreview, catalogAllocationKindLabel, catalogAllocationStatusLabel, catalogConversionDirectionText, catalogConversionExactnessWarning, catalogDimensionOptions, catalogPerUnitRateLabel, catalogPerUnitRoundingNote, catalogYieldReadinessLabel, isCatalogTemplateDirty, parseCatalogJodMinor, parseCatalogPercentageBps, parseCatalogPositiveSafeInteger, parseCatalogQuantityMilli } from "./Catalog";
+import {
+  buildCatalogConversionPreview,
+  buildCatalogPerUnitPreview,
+  catalogAllocationKindLabel,
+  catalogAllocationStatusLabel,
+  catalogConversionDirectionText,
+  catalogConversionExactnessWarning,
+  catalogDimensionOptions,
+  catalogPerUnitRateLabel,
+  catalogPerUnitRoundingNote,
+  catalogYieldReadinessLabel,
+  isCatalogTemplateDirty,
+  parseCatalogJodMinor,
+  parseCatalogPercentageBps,
+  parseCatalogPositiveSafeInteger,
+  parseCatalogQuantityMilli,
+} from "./Catalog";
 
 describe("Catalog G4-A UI capability model", () => {
   it("exposes only the six general dimensions in Arabic", () => {
@@ -31,9 +47,19 @@ describe("Catalog G4-A UI capability model", () => {
 
   it("keeps source/destination wording and exact preview aligned with the conversion equation", () => {
     expect(catalogConversionDirectionText("قطعة", "دزينة")).toBe("المصدر: قطعة | الوجهة: دزينة");
-    expect(buildCatalogConversionPreview("قطعة", "دزينة", 1, 12)).toMatchObject({ exact: true, text: "12.000 قطعة × 1 ÷ 12 = 1.000 دزينة" });
-    expect(buildCatalogConversionPreview("كيلوغرام", "غرام", 1000, 1, 1_000)).toMatchObject({ exact: true, text: "1.000 كيلوغرام × 1000 ÷ 1 = 1000.000 غرام" });
-    expect(buildCatalogConversionPreview("قطعة", "دزينة", 1, 3, 1_000)).toMatchObject({ exact: false, text: null, warning: catalogConversionExactnessWarning });
+    expect(buildCatalogConversionPreview("قطعة", "دزينة", 1, 12)).toMatchObject({
+      exact: true,
+      text: "12.000 قطعة × 1 ÷ 12 = 1.000 دزينة",
+    });
+    expect(buildCatalogConversionPreview("كيلوغرام", "غرام", 1000, 1, 1_000)).toMatchObject({
+      exact: true,
+      text: "1.000 كيلوغرام × 1000 ÷ 1 = 1000.000 غرام",
+    });
+    expect(buildCatalogConversionPreview("قطعة", "دزينة", 1, 3, 1_000)).toMatchObject({
+      exact: false,
+      text: null,
+      warning: catalogConversionExactnessWarning,
+    });
   });
 
   it("does not mark an unchanged revision dirty, but protects a new draft", () => {
@@ -70,8 +96,17 @@ describe("Catalog G4-A UI capability model", () => {
   it("makes the per-unit scale and one-time rounding visible in the preview", () => {
     expect(catalogPerUnitRateLabel("قطعة")).toBe("المعدل لكل 1.000 قطعة · د.أ");
     expect(catalogPerUnitRoundingNote).toContain("مرة واحدة");
-    expect(buildCatalogPerUnitPreview(12_000, 50, "قطعة")).toMatchObject({ allocationMinor: 600, text: "12.000 قطعة × 0.50 د.أ لكل 1.000 قطعة = 6.00 د.أ" });
-    expect(buildCatalogPerUnitPreview(1, 1, "قطعة")).toMatchObject({ allocationMinor: 0, warning: expect.stringContaining("نتيجة حسابية معلنة") });
-    expect(buildCatalogPerUnitPreview(Number.MAX_SAFE_INTEGER, 2, "قطعة")).toMatchObject({ allocationMinor: null, warning: expect.stringContaining("لا يمكن الحساب بأمان") });
+    expect(buildCatalogPerUnitPreview(12_000, 50, "قطعة")).toMatchObject({
+      allocationMinor: 600,
+      text: "12.000 قطعة × 0.50 د.أ لكل 1.000 قطعة = 6.00 د.أ",
+    });
+    expect(buildCatalogPerUnitPreview(1, 1, "قطعة")).toMatchObject({
+      allocationMinor: 0,
+      warning: expect.stringContaining("نتيجة حسابية معلنة"),
+    });
+    expect(buildCatalogPerUnitPreview(Number.MAX_SAFE_INTEGER, 2, "قطعة")).toMatchObject({
+      allocationMinor: null,
+      warning: expect.stringContaining("لا يمكن الحساب بأمان"),
+    });
   });
 });
