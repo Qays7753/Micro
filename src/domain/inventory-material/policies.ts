@@ -1,3 +1,4 @@
+import { roundHalfUp } from "../shared/index.js";
 import {
   materialUnits,
   type CreateInventoryMovementInput,
@@ -132,8 +133,8 @@ export function consumptionValueMinor(quantityMilli: number, position: MaterialI
   positive(quantityMilli, "كمية الاستهلاك");
   if (quantityMilli > position.quantityMilli) throw new Error("كمية المادة غير كافية للحركة المطلوبة.");
   if (quantityMilli === position.quantityMilli) return position.valueMinor;
-  const result = Math.round((quantityMilli * position.valueMinor) / position.quantityMilli);
-  if (result <= 0 || result >= position.valueMinor)
+  const result = roundHalfUp(quantityMilli * position.valueMinor, position.quantityMilli);
+  if (result === null || result <= 0 || result >= position.valueMinor)
     throw new Error("لا يمكن توزيع قيمة المادة المتاحة بهذه الكمية.");
   return result;
 }

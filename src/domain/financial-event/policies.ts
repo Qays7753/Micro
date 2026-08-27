@@ -6,6 +6,7 @@ import type {
   OperatingExpenseContext,
   SharedProjectShare,
 } from "./types.js";
+import { JOD, roundHalfUp } from "../shared/index.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 function assertNonBlank(value: string, field: string) {
@@ -27,7 +28,9 @@ export function calculateSharedProjectShareMinor(totalAmountMinor: number, perce
   assertPositiveMinor(totalAmountMinor, "totalAmountMinor");
   if (!Number.isInteger(percentageBps) || percentageBps < 1 || percentageBps > 10_000)
     throw new Error("percentageBps must be between 1 and 10000");
-  return Math.floor((totalAmountMinor * percentageBps + 5_000) / 10_000);
+  const rounded = roundHalfUp(totalAmountMinor * percentageBps, 10_000);
+  if (rounded === null) throw new Error("shared project share exceeds safe integer range");
+  return rounded;
 }
 
 function assertOptionalMinor(value: number | null | undefined, field: string) {
@@ -224,7 +227,7 @@ export function createFinancialEvent(input: CreateFinancialEventInput): Financia
   return Object.freeze({
     id: input.id,
     type: input.type,
-    currency: "JOD",
+    currency: JOD,
     amountMinor: input.amountMinor,
     occurredOn: input.occurredOn,
     recordedAt: input.recordedAt,
@@ -251,7 +254,7 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
   return Object.freeze({
     id: input.id,
     type: input.sourceEvent.type,
-    currency: "JOD",
+    currency: JOD,
     amountMinor: input.sourceEvent.amountMinor,
     occurredOn: input.occurredOn,
     recordedAt: input.recordedAt,

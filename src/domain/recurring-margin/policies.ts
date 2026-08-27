@@ -9,6 +9,7 @@ import {
   type AllocationPolicyTerms,
   type WasteContext,
 } from "./types.js";
+import { roundHalfUp } from "../shared/index.js";
 
 const required = (value: string, message: string) => {
   if (!value.trim()) throw new Error(message);
@@ -227,7 +228,7 @@ export function calculateAllocationPolicy(
       const rawMinor = policy.rateMinorPerWholeUnit * evidence.outputQuantityMilli;
       if (!Number.isSafeInteger(rawMinor) || rawMinor > Number.MAX_SAFE_INTEGER - 500)
         reasons.push("مجموع معدل الوحدة والكمية يتجاوز الدقة الآمنة قبل التقريب.");
-      else amountMinor = Math.floor((rawMinor + 500) / 1000);
+      else amountMinor = roundHalfUp(rawMinor, 1_000);
     }
   }
   if (policy.kind === "actual_time") {
@@ -254,10 +255,8 @@ export function calculateAllocationPolicy(
         "أكمل الإيراد final/المعترف به للطلبات الداخلة قبل تطبيق نسبة التحميل؛ توجد مبيعات ناقصة أو غير مكتملة.",
       );
     else {
-      const calculated = Math.floor(
-        (evidence.recognizedRevenueMinor * policy.percentageBps + 5_000) / 10_000,
-      );
-      if (!Number.isSafeInteger(calculated) || calculated <= 0)
+      const calculated = roundHalfUp(evidence.recognizedRevenueMinor * policy.percentageBps, 10_000);
+      if (calculated === null || calculated <= 0)
         reasons.push("النسبة المعلنة لم تنتج مبلغ تحميل موجبًا من الإيراد المكتمل.");
       else amountMinor = calculated;
     }

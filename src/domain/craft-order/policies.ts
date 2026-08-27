@@ -12,6 +12,7 @@ import type {
   OrderTransitionInput,
   ResultStatus,
 } from "./types.js";
+import { JOD, assertNonNegativeInteger } from "../shared/index.js";
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   draft: ["provisional_agreement", "needs_review"],
@@ -29,12 +30,6 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
 function assertPositiveInteger(value: number, field: string): void {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${field} must be a positive integer in minor currency units`);
-  }
-}
-
-function assertNonNegativeInteger(value: number, field: string): void {
-  if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`${field} must be a non-negative integer in minor currency units`);
   }
 }
 
@@ -118,7 +113,7 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
 
 export function calculateCostSnapshot(id: string, input: CostSnapshotInput): CostSnapshot {
   if (!id.trim()) throw new Error("snapshot id is required");
-  if (input.currency !== "JOD") throw new Error("only JOD is supported in the first slice");
+  if (input.currency !== JOD) throw new Error("only JOD is supported in the first slice");
   assertValidQuantity(input.quantity);
   assertValidDate(input.createdAt, "createdAt");
   assertFreshnessDays(input.freshnessDays);
@@ -253,7 +248,7 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
     itemName: input.itemName,
     specifications: input.specifications,
     quantity: input.quantity,
-    currency: "JOD",
+    currency: input.costSnapshot.currency,
     agreedPriceMinor: input.agreedPriceMinor,
     costSnapshot: safeCostSnapshot,
     costSnapshots: Object.freeze([safeCostSnapshot]) as unknown as CostSnapshot[],

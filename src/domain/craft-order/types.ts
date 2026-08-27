@@ -1,5 +1,6 @@
-export type Currency = "JOD";
-export type MoneyMinor = number;
+import type { Currency, MoneyMinor } from "../shared/index.js";
+
+export type { Currency, MoneyMinor } from "../shared/index.js";
 
 export type KnowledgeState = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
 
