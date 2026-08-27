@@ -28,6 +28,7 @@ import {
   type ScheduleEntry,
   type ScheduleRecurrence,
   type StorageFailure,
+  type StorageFailureCode,
   type StorageResult,
   type StoredCraftOrder,
 } from "./types";
@@ -57,12 +58,73 @@ const ownerEntitlementOpeningBalanceStore = "owner-entitlement-opening-balances"
 const ownerMovementStore = "owner-movements";
 const allocationPolicyStore = "allocation-policies";
 
-function failure(error: unknown): StorageFailure {
+class StorageOpenError extends Error {
+  constructor(
+    readonly code: Extract<
+      StorageFailureCode,
+      "storage_upgrade_failed" | "storage_blocked" | "storage_stale"
+    >,
+    message: string,
+  ) {
+    super(message);
+    this.name = "StorageOpenError";
+  }
+}
+
+const staleConnections = new WeakSet<IDBDatabase>();
+const upgradeErrors = new WeakMap<IDBOpenDBRequest, StorageOpenError>();
+
+function failure(error: unknown, database?: IDBDatabase): StorageFailure {
+  if (database && staleConnections.has(database)) {
+    return {
+      ok: false,
+      code: "storage_stale",
+      message: "هذه النسخة قديمة. أعد تحميل Micro قبل إدخال بيانات جديدة.",
+    };
+  }
+  if (error instanceof StorageOpenError) return { ok: false, code: error.code, message: error.message };
   return {
     ok: false,
     code: typeof indexedDB === "undefined" ? "storage_unavailable" : "storage_error",
     message: error instanceof Error ? error.message : "تعذر الوصول إلى التخزين المحلي.",
   };
+}
+
+function guardUpgradeCursor(
+  cursor: IDBRequest<IDBCursorWithValue | null>,
+  request: IDBOpenDBRequest,
+  label: string,
+): IDBRequest<IDBCursorWithValue | null> {
+  cursor.onerror = () => {
+    let cause = "سبب غير معروف";
+    try {
+      const cursorError = cursor.error;
+      if (cursorError) cause = cursorError.message;
+    } catch {
+      // Some test doubles expose the error only while the request is active.
+    }
+    upgradeErrors.set(
+      request,
+      new StorageOpenError(
+        "storage_upgrade_failed",
+        `تعذر ترقية التخزين المحلي أثناء ترحيل ${label}: ${cause}. أغلق النسخ الأخرى ثم أعد المحاولة.`,
+      ),
+    );
+    try {
+      request.transaction?.abort();
+    } catch {
+      // The upgrade transaction may already be aborting.
+    }
+  };
+  return cursor;
+}
+
+function attachVersionChangeRecovery(database: IDBDatabase): IDBDatabase {
+  database.onversionchange = () => {
+    staleConnections.add(database);
+    database.close();
+  };
+  return database;
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -72,8 +134,15 @@ function openDatabase(): Promise<IDBDatabase> {
       return;
     }
     const request = indexedDB.open(databaseName, localSchemaVersion);
-    request.onerror = () => reject(request.error ?? new Error("تعذر فتح التخزين المحلي."));
-    request.onblocked = () => reject(new Error("التخزين المحلي مفتوح في نافذة أخرى."));
+    request.onerror = () =>
+      reject(upgradeErrors.get(request) ?? request.error ?? new Error("تعذر فتح التخزين المحلي."));
+    request.onblocked = () =>
+      reject(
+        new StorageOpenError(
+          "storage_blocked",
+          "Micro مفتوح في نافذة أخرى. أغلق النوافذ الأخرى ثم أعد المحاولة.",
+        ),
+      );
     request.onupgradeneeded = event => {
       const database = request.result;
       if (!database.objectStoreNames.contains(profileStore))
@@ -217,7 +286,7 @@ function openDatabase(): Promise<IDBDatabase> {
         movementStore.createIndex("relatedOpeningBalanceId", "relatedOpeningBalanceId");
       if (event.oldVersion < 23) {
         if (policyStore) {
-          const cursor = policyStore.openCursor();
+          const cursor = guardUpgradeCursor(policyStore.openCursor(), request, "سياسات استحقاق المالك");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -232,7 +301,7 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
         if (recordStore) {
-          const cursor = recordStore.openCursor();
+          const cursor = guardUpgradeCursor(recordStore.openCursor(), request, "سجلات استحقاق المالك");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -250,7 +319,11 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
         if (openingStore) {
-          const cursor = openingStore.openCursor();
+          const cursor = guardUpgradeCursor(
+            openingStore.openCursor(),
+            request,
+            "أرصدة افتتاح استحقاق المالك",
+          );
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -264,7 +337,7 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
         if (movementStore) {
-          const cursor = movementStore.openCursor();
+          const cursor = guardUpgradeCursor(movementStore.openCursor(), request, "حركات المالك");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -285,7 +358,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 25) {
         const movements = request.transaction?.objectStore(inventoryMovementStore);
         if (movements) {
-          const cursor = movements.openCursor();
+          const cursor = guardUpgradeCursor(movements.openCursor(), request, "حركات المخزون");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -302,7 +375,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 26) {
         const allocationPolicies = request.transaction?.objectStore(allocationPolicyStore);
         if (allocationPolicies) {
-          const cursor = allocationPolicies.openCursor();
+          const cursor = guardUpgradeCursor(allocationPolicies.openCursor(), request, "سياسات التحميل");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -330,7 +403,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 24) {
         const catalogItems = request.transaction?.objectStore(catalogItemStore);
         if (catalogItems) {
-          const cursor = catalogItems.openCursor();
+          const cursor = guardUpgradeCursor(catalogItems.openCursor(), request, "عناصر الكتالوج");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -346,7 +419,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 4 || event.oldVersion < 17) {
         const drafts = request.transaction?.objectStore(draftStore);
         if (drafts) {
-          const cursor = drafts.openCursor();
+          const cursor = guardUpgradeCursor(drafts.openCursor(), request, "المسودات");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -370,7 +443,7 @@ function openDatabase(): Promise<IDBDatabase> {
         const transaction = request.transaction;
         const schedules = transaction?.objectStore(scheduleStore);
         if (schedules) {
-          const cursor = schedules.openCursor();
+          const cursor = guardUpgradeCursor(schedules.openCursor(), request, "المواعيد");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -396,7 +469,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 17) {
         const orders = request.transaction?.objectStore(orderStore);
         if (orders) {
-          const cursor = orders.openCursor();
+          const cursor = guardUpgradeCursor(orders.openCursor(), request, "الطلبات");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -408,7 +481,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 20) {
         const schedules = request.transaction?.objectStore(scheduleStore);
         if (schedules) {
-          const cursor = schedules.openCursor();
+          const cursor = guardUpgradeCursor(schedules.openCursor(), request, "المواعيد");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -433,7 +506,7 @@ function openDatabase(): Promise<IDBDatabase> {
         }
         const orders = request.transaction?.objectStore(orderStore);
         if (orders) {
-          const cursor = orders.openCursor();
+          const cursor = guardUpgradeCursor(orders.openCursor(), request, "الطلبات");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -452,7 +525,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 8 || event.oldVersion < 18) {
         const preferences = request.transaction?.objectStore(preferencesStore);
         if (preferences) {
-          const cursor = preferences.openCursor();
+          const cursor = guardUpgradeCursor(preferences.openCursor(), request, "التفضيلات");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -473,8 +546,13 @@ function openDatabase(): Promise<IDBDatabase> {
         }
       }
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => resolve(attachVersionChangeRecovery(request.result));
   });
+}
+
+/** @internal Test seam for exercising the adapter’s versionchange recovery with fake-indexeddb. */
+export function __openDatabaseForTesting(): Promise<IDBDatabase> {
+  return openDatabase();
 }
 
 async function readOne<T>(storeName: string, key: string): Promise<StorageResult<T | null>> {
@@ -483,7 +561,7 @@ async function readOne<T>(storeName: string, key: string): Promise<StorageResult
     return await new Promise(resolve => {
       const transaction = database.transaction(storeName, "readonly");
       const request = transaction.objectStore(storeName).get(key);
-      request.onerror = () => resolve(failure(request.error));
+      request.onerror = () => resolve(failure(request.error, database));
       request.onsuccess = () => resolve({ ok: true, value: (request.result as T | undefined) ?? null });
       transaction.oncomplete = () => database.close();
     });
@@ -498,8 +576,8 @@ async function writeOne<T>(storeName: string, value: T): Promise<StorageResult<T
     return await new Promise(resolve => {
       const transaction = database.transaction(storeName, "readwrite");
       const request = transaction.objectStore(storeName).put(value);
-      request.onerror = () => resolve(failure(request.error));
-      transaction.onabort = () => resolve(failure(transaction.error));
+      request.onerror = () => resolve(failure(request.error, database));
+      transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.oncomplete = () => {
         database.close();
         resolve({ ok: true, value });
@@ -519,7 +597,7 @@ async function listAll<T>(
     return await new Promise(resolve => {
       const transaction = database.transaction(storeName, "readonly");
       const request = transaction.objectStore(storeName).getAll();
-      request.onerror = () => resolve(failure(request.error));
+      request.onerror = () => resolve(failure(request.error, database));
       request.onsuccess = () => resolve({ ok: true, value: (request.result as T[]).sort(sort) });
       transaction.oncomplete = () => database.close();
     });
@@ -595,8 +673,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([recurrenceStore, scheduleStore], "readwrite");
         transaction.objectStore(recurrenceStore).put(recurrence);
         schedules.forEach(schedule => transaction.objectStore(scheduleStore).put(schedule));
-        transaction.onabort = () => resolve(failure(transaction.error));
-        transaction.onerror = () => resolve(failure(transaction.error));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           database.close();
           resolve({ ok: true, value: { recurrence, schedules } });
@@ -643,7 +721,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           }
         };
         const request = store.getAll();
-        request.onerror = () => abortWith(failure(request.error));
+        request.onerror = () => abortWith(failure(request.error, database));
         request.onsuccess = () => {
           const events = request.result as FinancialEvent[];
           const source = events.find(event => event.id === sourceEventId);
@@ -699,9 +777,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           store.put(reversal);
         };
         transaction.onerror = () => {
-          if (!pendingAbortResult) pendingAbortResult = failure(transaction.error);
+          if (!pendingAbortResult) pendingAbortResult = failure(transaction.error, database);
         };
-        transaction.onabort = () => finish(pendingAbortResult ?? failure(transaction.error));
+        transaction.onabort = () => finish(pendingAbortResult ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: reversal });
       });
     } catch (error) {
@@ -743,8 +821,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([cashWalletStore, cashContinuityEntryStore], "readwrite");
         if (wallet) transaction.objectStore(cashWalletStore).put(wallet);
         entries.forEach(entry => transaction.objectStore(cashContinuityEntryStore).put(entry));
-        transaction.onerror = () => resolve(failure(transaction.error));
-        transaction.onabort = () => resolve(failure(transaction.error));
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           database.close();
           resolve({ ok: true, value: { wallet, entries } });
@@ -774,8 +852,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([materialStore, inventoryMovementStore], "readwrite");
         if (material) transaction.objectStore(materialStore).put(material);
         movements.forEach(movement => transaction.objectStore(inventoryMovementStore).put(movement));
-        transaction.onerror = () => resolve(failure(transaction.error));
-        transaction.onabort = () => resolve(failure(transaction.error));
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           database.close();
           resolve({ ok: true, value: { material, movements } });
@@ -854,7 +932,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         const request = store.getAll();
         request.onerror = () => {
-          pending = failure(request.error);
+          pending = failure(request.error, database);
           try {
             transaction.abort();
           } catch {
@@ -906,9 +984,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           store.put(next);
         };
         transaction.onerror = () => {
-          if (!pending) pending = failure(transaction.error);
+          if (!pending) pending = failure(transaction.error, database);
         };
-        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: { previous, next } });
       });
     } catch (error) {
@@ -969,7 +1047,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         const request = store.getAll();
         request.onerror = () => {
-          pending = failure(request.error);
+          pending = failure(request.error, database);
           try {
             transaction.abort();
           } catch {
@@ -1025,9 +1103,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           store.put(successor);
         };
         transaction.onerror = () => {
-          if (!pending) pending = failure(transaction.error);
+          if (!pending) pending = failure(transaction.error, database);
         };
-        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: { previous, successor } });
       });
     } catch (error) {
@@ -1056,7 +1134,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         const request = store.getAll();
         request.onerror = () => {
-          pending = failure(request.error);
+          pending = failure(request.error, database);
           try {
             transaction.abort();
           } catch {
@@ -1129,9 +1207,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           store.put(reversal);
         };
         transaction.onerror = () => {
-          if (!pending) pending = failure(transaction.error);
+          if (!pending) pending = failure(transaction.error, database);
         };
-        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: reversal });
       });
     } catch (error) {
@@ -1171,7 +1249,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         const request = store.getAll();
         request.onerror = () => {
-          pending = failure(request.error);
+          pending = failure(request.error, database);
           try {
             transaction.abort();
           } catch {
@@ -1222,9 +1300,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           store.put(successor);
         };
         transaction.onerror = () => {
-          if (!pending) pending = failure(transaction.error);
+          if (!pending) pending = failure(transaction.error, database);
         };
-        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: { previous, successor } });
       });
     } catch (error) {
@@ -1260,7 +1338,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         const request = store.getAll();
         request.onerror = () => {
-          pending = failure(request.error);
+          pending = failure(request.error, database);
           try {
             transaction.abort();
           } catch {
@@ -1316,9 +1394,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           store.put(reversal);
         };
         transaction.onerror = () => {
-          if (!pending) pending = failure(transaction.error);
+          if (!pending) pending = failure(transaction.error, database);
         };
-        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: reversal });
       });
     } catch (error) {
@@ -1351,7 +1429,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         const request = store.getAll();
         request.onerror = () => {
-          pending = failure(request.error);
+          pending = failure(request.error, database);
           try {
             transaction.abort();
           } catch {
@@ -1407,9 +1485,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           store.put(reversal);
         };
         transaction.onerror = () => {
-          if (!pending) pending = failure(transaction.error);
+          if (!pending) pending = failure(transaction.error, database);
         };
-        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: reversal });
       });
     } catch (error) {
@@ -1443,7 +1521,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           resolve(result);
         };
         existingRequest.onerror = () => {
-          pending = failure(existingRequest.error);
+          pending = failure(existingRequest.error, database);
           try {
             transaction.abort();
           } catch {
@@ -1457,7 +1535,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (existing) {
             const cashRequest = cashEntries.getAll();
             cashRequest.onerror = () => {
-              pending = failure(cashRequest.error);
+              pending = failure(cashRequest.error, database);
               try {
                 transaction.abort();
               } catch {
@@ -1494,9 +1572,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           cashEntries.put(cashEntry);
         };
         transaction.onerror = () => {
-          if (!pending) pending = failure(transaction.error);
+          if (!pending) pending = failure(transaction.error, database);
         };
-        transaction.onabort = () => finish(pending ?? failure(transaction.error));
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: { movement, cashEntry } });
       });
     } catch (error) {
@@ -1516,8 +1594,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.objectStore(orderStore).put(order);
         transaction.objectStore(draftStore).put(draft);
         if (schedule) transaction.objectStore(scheduleStore).put(schedule);
-        transaction.onabort = () => resolve(failure(transaction.error));
-        transaction.onerror = () => resolve(failure(transaction.error));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           database.close();
           resolve({ ok: true, value: { order, draft, schedule: schedule ?? null } });
@@ -1584,8 +1662,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           .getAll();
         const ownerMovements = transaction.objectStore(ownerMovementStore).getAll();
         const allocationPolicies = transaction.objectStore(allocationPolicyStore).getAll();
-        transaction.onerror = () => resolve(failure(transaction.error));
-        transaction.onabort = () => resolve(failure(transaction.error));
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           database.close();
           resolve({
@@ -1748,8 +1826,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         );
         normalized.ownerMovements?.forEach(movement => ownerMovements.put(movement));
         normalized.allocationPolicies?.forEach(policy => allocationPolicies.put(policy));
-        transaction.onerror = () => resolve(failure(transaction.error));
-        transaction.onabort = () => resolve(failure(transaction.error));
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           database.close();
           resolve({ ok: true, value: normalized });

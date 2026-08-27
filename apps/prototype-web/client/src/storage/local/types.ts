@@ -188,7 +188,9 @@ export type LocalExportFile = {
   exportedAt: string;
   data: LocalStoreSnapshot;
 };
-export type StorageFailure = { ok: false; code: "storage_unavailable" | "storage_error"; message: string };
+export type StorageFailureCode =
+  "storage_unavailable" | "storage_error" | "storage_upgrade_failed" | "storage_blocked" | "storage_stale";
+export type StorageFailure = { ok: false; code: StorageFailureCode; message: string };
 export type StorageSuccess<T> = { ok: true; value: T };
 export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
 

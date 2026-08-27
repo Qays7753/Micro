@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
-import { afterEach, describe, expect, it } from "vitest";
-import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { __openDatabaseForTesting, IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
 import { createCatalogItem } from "@micro-domain/catalog/index.js";
 import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
@@ -8,6 +8,7 @@ import { createFinancialEvent, createFinancialReversal } from "@micro-domain/fin
 import {
   localPreferencesId,
   localProfileId,
+  localSchemaVersion,
   type ActivityProfile,
   type OrderDraft,
   type StoredCraftOrder,
@@ -712,6 +713,62 @@ describe("IndexedDbLocalStore", () => {
       ok: true,
       value: [{ id: "opening", cashDeltaMinor: 10000 }],
     });
+  });
+
+  it("fails a migration on cursor error without partially writing the legacy record", async () => {
+    await seedVersionTwentyFiveLegacyPolicy();
+    const originalOpenCursor = IDBObjectStore.prototype.openCursor;
+    const cursorSpy = vi
+      .spyOn(IDBObjectStore.prototype, "openCursor")
+      .mockImplementation(function (query?, direction?) {
+        const request = originalOpenCursor.call(this, query, direction);
+        if (this.name === "allocation-policies") queueMicrotask(() => request.onerror?.(new Event("error")));
+        return request;
+      });
+
+    await expect(new IndexedDbLocalStore().listAllocationPolicies()).resolves.toMatchObject({
+      ok: false,
+      code: "storage_upgrade_failed",
+      message: expect.stringContaining("ترقية التخزين المحلي"),
+    });
+    cursorSpy.mockRestore();
+
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open(databaseName, 25);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const database = request.result;
+        const read = database
+          .transaction("allocation-policies", "readonly")
+          .objectStore("allocation-policies")
+          .get("legacy-per-unit");
+        read.onerror = () => reject(read.error);
+        read.onsuccess = () => {
+          expect(read.result.rateMinor).toBe(50);
+          expect(read.result.rateMinorPerWholeUnit).toBeUndefined();
+          database.close();
+          resolve();
+        };
+      };
+    });
+  });
+
+  it("closes an old connection on versionchange and allows an explicit retry", async () => {
+    const oldConnection = await __openDatabaseForTesting();
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open(databaseName, localSchemaVersion + 1);
+      request.onerror = () => reject(request.error);
+      request.onupgradeneeded = () => undefined;
+      request.onsuccess = () => {
+        request.result.close();
+        const cleanup = indexedDB.deleteDatabase(databaseName);
+        cleanup.onerror = () => reject(cleanup.error);
+        cleanup.onsuccess = () => resolve();
+      };
+    });
+
+    expect(() => oldConnection.transaction("activity-profile", "readonly")).toThrow();
+    await expect(new IndexedDbLocalStore().listDrafts()).resolves.toMatchObject({ ok: true, value: [] });
   });
 
   it("keeps materials and inventory movements through a snapshot replacement", async () => {
