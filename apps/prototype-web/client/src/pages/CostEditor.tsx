@@ -8,7 +8,14 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 
-const defaultInput = (quantity: number): CostEditorInput => ({ materialItems: [], time: null, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity });
+type EditableCostMaterial = DraftCostMaterial & { uiId: string };
+type EditableCostInput = Omit<CostEditorInput, "materialItems"> & { materialItems: EditableCostMaterial[] };
+
+const newUiId = () => globalThis.crypto?.randomUUID?.() ?? `material-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const newMaterial = (): EditableCostMaterial => ({ uiId: newUiId(), name: "", quantity: 1, unit: "قطعة", unitPriceMinor: 0, confidence: "known" });
+const defaultInput = (quantity: number): EditableCostInput => ({ materialItems: [], time: null, packagingMinor: 0, deliveryMinor: 0, wasteMinor: 0, safetyBufferMinor: 0, quantity });
+const toEditableInput = (input: CostEditorInput): EditableCostInput => ({ ...input, materialItems: input.materialItems.map(item => ({ ...item, uiId: newUiId() })) });
+const toServiceInput = (input: EditableCostInput): CostEditorInput => ({ ...input, materialItems: input.materialItems.map(({ uiId: _uiId, ...item }) => item) });
 const knowledgeCopy = { known: ["تكلفة معروفة", "كل بنود الوقت والتكلفة المدخلة معروفة."], estimated: ["تكلفة تقديرية", "هناك بند أدخلته كتقدير، فراجع افتراضه قبل تثبيت السعر."], incomplete: ["تكلفة ناقصة", "وقت العمل غير مكتمل؛ لا يظهر سعر حماية كامل ولا نتيجة نهائية."], partial: ["تكلفة جزئية", "بعض البنود متاحة فقط؛ لا توجد نتيجة نهائية هنا."], stale: ["تكلفة تحتاج مراجعة", "بعض أسعار المواد لم تعد ضمن مدة الحداثة."], variable: ["تكلفة متغيرة", "هناك بند تقديري يحتاج مراجعة قبل تثبيت السعر."] } as const;
 const optionalCostFields = [
   { field: "packagingMinor", label: "تغليف" },
@@ -18,10 +25,10 @@ const optionalCostFields = [
 ] as const;
 type OptionalCostField = (typeof optionalCostFields)[number]["field"];
 
-function toInput(draft: OrderDraft, activeId: string | null): CostEditorInput {
+function toInput(draft: OrderDraft, activeId: string | null): EditableCostInput {
   const record = draft.costSnapshots.find(snapshot => snapshot.id === activeId);
   if (!record) return defaultInput(draft.quantity);
-  return { materialItems: record.materialItems.map(item => ({ ...item })), time: record.time ? { ...record.time } : null, packagingMinor: record.packagingMinor, deliveryMinor: record.deliveryMinor, wasteMinor: record.wasteMinor, safetyBufferMinor: record.safetyBufferMinor, quantity: draft.quantity };
+  return toEditableInput({ materialItems: record.materialItems.map(item => ({ ...item })), time: record.time ? { ...record.time } : null, packagingMinor: record.packagingMinor, deliveryMinor: record.deliveryMinor, wasteMinor: record.wasteMinor, safetyBufferMinor: record.safetyBufferMinor, quantity: draft.quantity });
 }
 
 function equalCostInputs(left: CostEditorInput | null, right: CostEditorInput | null) {
@@ -43,7 +50,7 @@ export default function CostEditor() {
   const [, navigate] = useLocation();
   const { drafts, costs, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [draft, setDraft] = useState<OrderDraft | null>(null);
-  const [form, setForm] = useState<CostEditorInput | null>(null);
+  const [form, setForm] = useState<EditableCostInput | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -67,13 +74,17 @@ export default function CostEditor() {
     return () => { active = false; };
   }, [dataVersion, drafts, params.id]);
 
-  const preview = useMemo(() => form ? costs.preview(form) : null, [costs, form]);
+  const preview = useMemo(() => form ? costs.preview(toServiceInput(form)) : null, [costs, form]);
   const hasInvalidNumericInput = Object.values(numericValidity).some(isValid => !isValid);
   const isDirty = Boolean(form && initialFormRef.current && !equalCostInputs(form, initialFormRef.current));
 
   function setValidity(key: string, isValid: boolean) { setNumericValidity(current => current[key] === isValid ? current : { ...current, [key]: isValid }); }
   function setMaterial(index: number, patch: Partial<DraftCostMaterial>) { setForm(current => current ? { ...current, materialItems: current.materialItems.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item) } : current); }
-  function addMaterial() { setForm(current => current ? { ...current, materialItems: [...current.materialItems, { name: "", quantity: 1, unit: "قطعة", unitPriceMinor: 0, confidence: "known" }] } : current); }
+  function addMaterial() { setForm(current => current ? { ...current, materialItems: [...current.materialItems, newMaterial()] } : current); }
+  function removeMaterial(index: number, uiId: string) {
+    setForm(current => current ? { ...current, materialItems: current.materialItems.filter((_, itemIndex) => itemIndex !== index) } : current);
+    setNumericValidity(current => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`material-${uiId}-`))));
+  }
   function revealOptionalCost(field: OptionalCostField) { setVisibleOptionalCosts(current => ({ ...current, [field]: true })); }
   function excludeOptionalCost(field: OptionalCostField) {
     setVisibleOptionalCosts(current => ({ ...current, [field]: false }));
@@ -86,7 +97,7 @@ export default function CostEditor() {
     if (hasInvalidNumericInput) { setMessage("أكمل أو صحح الحقل العددي. استخدم أرقام 0–9 فقط."); return false; }
     if (!preview?.ok) { setMessage(preview?.message ?? "راجع المدخلات قبل الحفظ."); return false; }
     setIsSaving(true);
-    const result = await costs.saveSnapshot(draft, form);
+    const result = await costs.saveSnapshot(draft, toServiceInput(form));
     setIsSaving(false);
     if (!result.ok) { setMessage(result.message); return false; }
     initialFormRef.current = form;
@@ -106,7 +117,8 @@ export default function CostEditor() {
     <button className="micro-back-button" type="button" onClick={() => requestNavigation(`/orders/draft/${draft.id}`)}><ArrowRight aria-hidden="true" /> العودة للمسودة</button>
     <div className="micro-page-heading"><span className="micro-overline">نسخة تكلفة محفوظة</span><h1>{draft.itemName || "وصف القطعة"}</h1><p>أدخل ما تعرفه. الصفر ليس بديلًا عن وقت أو تكلفة لا تعرفها.</p></div>
     {preview?.ok ? <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}><span>سعر الحماية لكل قطعة (د.أ)</span><strong>{canShowProtectionPrice ? <MoneyValue minor={preview.snapshot.priceFloorMinor} /> : "غير متاح بعد"}</strong><small>{canShowProtectionPrice ? <>تكلفة القطعة <MoneyValue minor={preview.snapshot.unitCostMinor} className="micro-inline-number" /> + هامش الحماية الذي أدخلته.</> : "هذه قراءة جزئية من البنود المعروفة؛ أكمل المدة وسعر الساعة لقراءة سعر حماية أدق."}</small><div><b>{status?.[0]}</b><p>{status?.[1]}</p></div></section> : <p className="micro-field-error" role="alert">{preview?.message ?? "راجع المدخلات."}</p>}
-    <section className="micro-form-card"><div className="micro-cost-section-heading"><div><h2>المواد</h2><p>المادة الموجودة ليست مجانية؛ أدخل تكلفتها أو اتركها كتقدير واضح.</p></div><button className="micro-icon-button" type="button" aria-label="إضافة مادة" onClick={addMaterial}><Plus aria-hidden="true" /></button></div>{form.materialItems.length === 0 ? <p className="micro-empty-inline">لم تضف مادة بعد. قد تبقى التكلفة ناقصة إن لم تدخل وقت العمل وبنودًا مؤثرة.</p> : form.materialItems.map((item, index) => <div className="micro-material-row" key={`${index}-${item.name}`}><label className="micro-field"><span>المادة</span><input value={item.name} onChange={event => setMaterial(index, { name: event.target.value })} /></label><label className="micro-field"><span>الكمية <small>أرقام 0–9</small></span><EnglishNumberInput value={item.quantity} kind="decimal" min="0" aria-label={`كمية المادة ${index + 1} بالأرقام 0–9`} onNumericChange={quantity => setMaterial(index, { quantity })} onTextValidityChange={isValid => setValidity(`material-${index}-quantity`, isValid)} /></label><label className="micro-field"><span>الوحدة</span><input value={item.unit} onChange={event => setMaterial(index, { unit: event.target.value })} /></label><label className="micro-field"><span>تكلفة الوحدة (د.أ) <small>أرقام 0–9</small></span><EnglishNumberInput value={item.unitPriceMinor} kind="money" min="0" aria-label={`تكلفة وحدة المادة ${index + 1} بالأرقام 0–9`} onNumericChange={unitPriceMinor => setMaterial(index, { unitPriceMinor })} onTextValidityChange={isValid => setValidity(`material-${index}-price`, isValid)} /></label><label className="micro-field"><span>درجة المعرفة</span><select value={item.confidence} onChange={event => setMaterial(index, { confidence: event.target.value as DraftCostMaterial["confidence"] })}><option value="known">معروف</option><option value="estimated">تقديري</option></select></label><button className="micro-delete-row" type="button" aria-label="حذف المادة" onClick={() => setForm(current => current ? { ...current, materialItems: current.materialItems.filter((_, itemIndex) => itemIndex !== index) } : current)}><Trash2 aria-hidden="true" /></button></div>)}</section>
+    <section className="micro-form-card"><div className="micro-cost-section-heading"><div><h2>المواد</h2><p>المادة الموجودة ليست مجانية؛ أدخل تكلفتها أو اتركها كتقدير واضح.</p></div><button className="micro-icon-button" type="button" aria-label="إضافة مادة" onClick={addMaterial}><Plus aria-hidden="true" /></button></div>{form.materialItems.length === 0 ? <p className="micro-empty-inline">لم تضف مادة بعد. قد تبقى التكلفة ناقصة إن لم تدخل وقت العمل وبنودًا مؤثرة.</p> : form.materialItems.map((item, index) => <div className="micro-material-row" key={item.uiId}>
+<label className="micro-field"><span>المادة</span><input value={item.name} onChange={event => setMaterial(index, { name: event.target.value })} /></label><label className="micro-field"><span>الكمية <small>أرقام 0–9</small></span><EnglishNumberInput value={item.quantity} kind="decimal" min="0" aria-label={`كمية المادة ${index + 1} بالأرقام 0–9`} onNumericChange={quantity => setMaterial(index, { quantity })} onTextValidityChange={isValid => setValidity(`material-${item.uiId}-quantity`, isValid)} /></label><label className="micro-field"><span>الوحدة</span><input value={item.unit} onChange={event => setMaterial(index, { unit: event.target.value })} /></label><label className="micro-field"><span>تكلفة الوحدة (د.أ) <small>أرقام 0–9</small></span><EnglishNumberInput value={item.unitPriceMinor} kind="money" min="0" aria-label={`تكلفة وحدة المادة ${index + 1} بالأرقام 0–9`} onNumericChange={unitPriceMinor => setMaterial(index, { unitPriceMinor })} onTextValidityChange={isValid => setValidity(`material-${item.uiId}-price`, isValid)} /></label><label className="micro-field"><span>درجة المعرفة</span><select value={item.confidence} onChange={event => setMaterial(index, { confidence: event.target.value as DraftCostMaterial["confidence"] })}><option value="known">معروف</option><option value="estimated">تقديري</option></select></label><button className="micro-delete-row" type="button" aria-label="حذف المادة" onClick={() => removeMaterial(index, item.uiId)}><Trash2 aria-hidden="true" /></button></div>)}</section>
     <section className="micro-form-card"><div className="micro-cost-section-heading"><div><h2>وقت العمل</h2><p>إذا كنت لا تعرف المدة أو سعر الساعة، اترك الوقت غير مكتمل. يمكنك إضافة تقدير واضح لاحقًا.</p></div><button className="micro-text-action" type="button" onClick={() => setForm(current => current ? { ...current, time: current.time ? null : { minutes: null, hourlyRateMinor: null, confidence: "estimated" } } : current)}>{form.time ? "اترك الوقت غير مكتمل" : "إضافة وقت"}</button></div>{form.time ? <div className="micro-field-grid"><label className="micro-field"><span>الدقائق <small>أرقام 0–9</small></span><EnglishNumberInput value={form.time.minutes} kind="integer" min="0" allowEmpty aria-label="دقائق الوقت بالأرقام 0–9" onNumericChange={minutes => setForm(current => current?.time ? { ...current, time: { ...current.time, minutes } } : current)} onEmptyChange={() => setForm(current => current?.time ? { ...current, time: { ...current.time, minutes: null } } : current)} onTextValidityChange={isValid => setValidity("time-minutes", isValid)} /></label><label className="micro-field"><span>سعر الساعة (د.أ) <small>أرقام 0–9</small></span><EnglishNumberInput value={form.time.hourlyRateMinor} kind="money" min="0" allowEmpty aria-label="سعر الساعة بالأرقام 0–9" onNumericChange={hourlyRateMinor => setForm(current => current?.time ? { ...current, time: { ...current.time, hourlyRateMinor } } : current)} onEmptyChange={() => setForm(current => current?.time ? { ...current, time: { ...current.time, hourlyRateMinor: null } } : current)} onTextValidityChange={isValid => setValidity("time-rate", isValid)} /></label><label className="micro-field"><span>درجة المعرفة</span><select value={form.time.confidence} onChange={event => setForm(current => current?.time ? { ...current, time: { ...current.time, confidence: event.target.value as DraftCostMaterial["confidence"] } } : current)}><option value="known">معروف</option><option value="estimated">تقديري</option></select></label></div> : <p className="micro-missing-time"><CircleAlert aria-hidden="true" /> وقت العمل غير معروف؛ ستبقى النتيجة ناقصة حتى تسجله.</p>}</section>
     <section className="micro-form-card"><div className="micro-cost-section-heading"><div><h2>بنود أخرى وحماية السعر</h2><p>أضف بندًا فقط عندما ينطبق؛ البند غير المضاف لا يظهر كصفر مدخل أو تكلفة مجهولة.</p></div></div><div className="micro-optional-cost-actions">{optionalCostFields.filter(({ field }) => !visibleOptionalCosts[field]).map(({ field, label }) => <button className="micro-button micro-button-secondary" type="button" key={field} onClick={() => revealOptionalCost(field)}>أضف {label}</button>)}</div><div className="micro-field-grid">{optionalCostFields.filter(({ field }) => visibleOptionalCosts[field]).map(({ field, label }) => <div className="micro-optional-cost-field" key={field}><label className="micro-field"><span>{label} (د.أ) <small>أرقام 0–9</small></span><EnglishNumberInput value={form[field]} kind="money" min="0" aria-label={`${label} بالأرقام 0–9`} onNumericChange={value => setForm(current => current ? { ...current, [field]: value } : current)} onTextValidityChange={isValid => setValidity(field, isValid)} /></label><button className="micro-text-action" type="button" onClick={() => excludeOptionalCost(field)}>لا ينطبق الآن — احتسبه صفرًا</button></div>)}</div>{optionalCostFields.every(({ field }) => !visibleOptionalCosts[field]) ? <p className="micro-empty-inline">لا توجد بنود إضافية معلنة الآن. هذا لا يعني أن Micro افترض تكلفة مجهولة بصفر.</p> : null}</section>
     {message ? <p className={message.startsWith("تم ") ? "micro-save-note" : "micro-field-error"} role={message.startsWith("تم ") ? "status" : "alert"}>{message}</p> : null}
