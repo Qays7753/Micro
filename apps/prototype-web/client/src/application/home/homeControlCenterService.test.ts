@@ -132,4 +132,60 @@ describe("HomeControlCenterService", () => {
     expect(result.value.optionalModules.map(module => module.id)).not.toContain("supplier_commitments");
     expect(result.value.recentChanges.length).toBeLessThanOrEqual(5);
   });
+
+  it("promotes a closed incomplete result above the generic history action", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const id = "home-incomplete-settled";
+    const cost = calculateCostSnapshot(`cost-${id}`, {
+      currency: "JOD",
+      materialItems: [],
+      time: null,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-24T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    const baseOrder = createCraftOrder({
+      id,
+      customerName: "عميل مراجعة",
+      itemName: "طلب يحتاج مراجعة",
+      specifications: "تكلفة غير مكتملة",
+      quantity: 1,
+      agreedPriceMinor: 8000,
+      costSnapshot: cost,
+      createdAt: "2026-08-24T09:00:00.000Z",
+    });
+    const order = {
+      ...baseOrder,
+      status: "settled" as const,
+      settlementStatus: "paid" as const,
+      resultStatus: "incomplete" as const,
+      nextAction: "راجع نتيجة الطلب",
+    };
+    await store.saveOrder({
+      id,
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-08-28",
+      agreementSource: "test",
+      createdAt: order.createdAt,
+      updatedAt: order.createdAt,
+    });
+
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    expect(result.value.primaryAction).toMatchObject({
+      href: `/orders/${id}`,
+      label: "مراجعة النتيجة",
+    });
+    expect(result.value.attention[0]).toMatchObject({
+      kind: "result_review",
+      title: "راجع نتيجة طلب يحتاج مراجعة",
+      action: { href: `/orders/${id}`, label: "مراجعة النتيجة" },
+    });
+  });
 });
