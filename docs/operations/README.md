@@ -8,7 +8,7 @@
 
 | الترتيب | الملف | الغرض |
 |---:|---|---|
-| 1 | [`current-state.md`](current-state.md) | الحقيقة التنفيذية الحية: رأس `main`، وبرامج Bridge المعلنة، وما اندمج، وما يعمل، وما توقف، والخطوة التالية المسموحة. |
+| 1 | [`current-state.md`](current-state.md) | الحقيقة التنفيذية الحية: رأس `main`، وما اندمج، وما يعمل، وما توقف، والخطوة التالية المسموحة. |
 | 2 | [`micro-thinking-charter-v1.md`](micro-thinking-charter-v1.md) | هدف Micro وطريقة التفكير وحدود البساطة والصدق والاختيارية التي يجب فهمها قبل الكود. |
 | 3 | [`agent-handoff-protocol-v1.md`](agent-handoff-protocol-v1.md) | قواعد الاستلام والتنفيذ والتسليم وحدود سلطة كل ملف. |
 | 4 | [`slice-handoff-template.md`](slice-handoff-template.md) | القالب الذي يستخدمه الوكيل عند فتح أو إغلاق Slice. |
@@ -27,6 +27,8 @@ git pull --ff-only origin main
 ```
 
 بعد ذلك اقرأ `AGENTS.md`، ثم الملفات الأربعة أعلاه بالترتيب. لا تبدأ تعديلًا قبل نشر بطاقة فهم وبطاقة استلام داخل PR أو Issue توضّح سياق المستخدم ونطاق الشريحة ومعيار قبولها وما لن يتغير.
+
+إذا كانت المهمة تخص `الخدمات` أو Market أو Delivery أو بوابات المورد/شركة التوصيل/Admin، اقرأ قبل بطاقة الفهم أيضًا [`docs/expansion/README.md`](../expansion/README.md) ثم `DECISIONS.md` و`TRACKER.md` داخل المجلد نفسه. لا تستخدم `historical-source/` كتعليمات تنفيذ، ولا تتجاوز تجربة Local-first إلى هوية أو قاعدة بيانات متصلة أو دعوات حقيقية بلا بوابة تفعيل موثقة.
 
 ## References
 
