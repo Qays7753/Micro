@@ -17,6 +17,7 @@
 | Moderation/Consent/Audit | عقد 22 وMatrix الدور. | S-07/S-11/S-18. | L-03 simulator ثم A. | لا Admin مالي أو حذف صامت. |
 | Offline/duplicate/recovery | عقد 23 وHome Trial SOP. | S-12 إلى S-17. | L-01 إلى L-05/A-06. | لا مزامنة أو آخر كتابة صامتة. |
 | أخلاقيات/شفافية/Pilot | Activation SOP وPartner Pilot SOP. | بوابة A/B والمراجعة الأسبوعية. | قبل أول دعوة. | لا شريك/Review/Rating مزيف أو توسع بسبب vanity metrics. |
+| قبول E-00 التوثيقي | `E00-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` وTracker وChecklist المراجعة. | مراجعة مستقلة لرأس موثق وروابط/نطاق وفحوص مشروع. | مكتمل توثيقيًا؛ L-00 ما زالت مشروطة. | لا يساوي قبول وثائق بتجربة بيت أو A أو Pilot. |
 
 ## Action Points
 
