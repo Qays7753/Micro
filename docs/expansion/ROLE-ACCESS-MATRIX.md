@@ -56,6 +56,17 @@
 
 يُنشأ على الأقل Owner A وOwner B وSupplier X وSupplier Y وCourier X وCourier Y وAdmin محدود. يختبر كل واحد UI وAPI وSearch وNotification وFile URL وExport. يجب أن تفشل المحاولات غير المخولة بأمان، وألا تظهر تفاصيل أكثر من سبب رفض عام حيث يكشف السبب وجود سجل حساس.
 
+## 6. استعادة الوصول لا توسع Scope
+
+| حالة الاستعادة المستقبلية | ما يعود للشخص | ما لا يعود أو يتغير | دليل القبول |
+|---|---|---|---|
+| Owner يستعيد هوية الشبكة | هويته وMemberships السارية فقط. | Manage المحلي أو Workspace غير مثبت أو مال Owner آخر. | لا يتجاوز UI/API/Search/File/Export Scope بعد الاستعادة. |
+| Supplier/Courier يستعيد هوية | بوابة جهته وScope تفاعلاتها فقط. | جهة منافسة أو معلومات Owner الخاصة. | اختبار رفض مباشر ومحاولة Search/URL/File. |
+| Admin يستعيد حسابه | Queue/Policy/Audit المحدودة حسب عضويته. | Admin أوسع، Manage، أو انتحال دور تجاري. | MFA/تحقق إضافي وAudit وسبب ومراجعة. |
+| طوارئ إدارة المنصة | إدارة المنصة المحدودة ضمن سياسة R-04. | جلسة Owner أو Export أو مال أو تعديل تاريخ. | سجل استخدام الطوارئ ومراجعة لاحقة. |
+
+الآلية التقنية للاستخراج أو Password/OTP/Passkey ليست قرارًا لهذا الجدول؛ المرجع الحاكم لها هو `FOUR-PARTY-PORTAL-AND-ACCESS-RECOVERY-GATE.md` وقرار A-01.
+
 ## Action Points
 
 - [ ] قبل E-01، يحول هذا الجدول إلى حالات Use Case واختبارات رفض وإيجابيات لكل Endpoint/Query/File.

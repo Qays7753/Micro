@@ -17,6 +17,7 @@
 | Delivery | هل Request/Quote/Assignment/Status/Exception تفصل النية عن الحقيقة ولا تكشف بيانات مبكرًا؟ |  | [ ] |
 | Admin | هل Admin محدود بالسياسة والمراجعة وله سبب وتاريخ بلا حق مالي؟ |  | [ ] |
 | الوصول | هل تشرح Matrix URL/Search/File/Notification/Export/Mutation؟ |  | [ ] |
+| استعادة الوصول | هل تفصل استعادة Export/Import المحلي عن هوية الشبكة والعضوية، وهل يبقى Admin محدودًا بحساب فردي/Audit وطوارئ بلا دخول Manage؟ |  | [ ] |
 | الأخلاقيات | هل لا توجد سمعة أو تقييمات أو بيانات/شركاء مزيفون أو تفضيل خفي؟ |  | [ ] |
 | المنزل L | هل يوسم Role Simulator بأنه QA محلي وليس أمنًا، وله SOP وExport/Restore؟ |  | [ ] |
 | التفعيل A | هل توجد بوابة identity/access/storage/audit/incident قبل دعوة طرف حقيقي؟ |  | [ ] |
