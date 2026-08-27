@@ -23,10 +23,15 @@ export type DailyFollowUpReadResult =
   | { ok: true; followUp: DailyFollowUp; drafts: readonly OrderDraft[]; orders: readonly StoredCraftOrder[] }
   | { ok: false; code: "storage_error"; message: string };
 
-const isActive = (stored: FollowUpOrder) => stored.order.status !== "settled" && stored.order.status !== "cancelled";
-const hasRecordedDebt = (stored: FollowUpOrder) => stored.order.settlementStatus === "debt" && stored.order.receivableMinor > 0;
+const isActive = (stored: FollowUpOrder) =>
+  stored.order.status !== "settled" && stored.order.status !== "cancelled";
+const hasRecordedDebt = (stored: FollowUpOrder) =>
+  stored.order.settlementStatus === "debt" && stored.order.receivableMinor > 0;
 
-export function deriveDailyFollowUp(orders: readonly FollowUpOrder[], drafts: readonly FollowUpDraft[]): DailyFollowUp {
+export function deriveDailyFollowUp(
+  orders: readonly FollowUpOrder[],
+  drafts: readonly FollowUpDraft[],
+): DailyFollowUp {
   const activeOrder = orders.find(isActive);
   if (activeOrder) {
     return {
@@ -51,7 +56,7 @@ export function deriveDailyFollowUp(orders: readonly FollowUpOrder[], drafts: re
     };
   }
 
-  const draft = drafts.find((candidate) => !candidate.linkedOrderId);
+  const draft = drafts.find(candidate => !candidate.linkedOrderId);
   if (draft) {
     return {
       kind: "draft",
@@ -89,8 +94,14 @@ export class DailyFollowUpService {
 
   async read(): Promise<DailyFollowUpReadResult> {
     const [drafts, orders] = await Promise.all([this.store.listDrafts(), this.store.listOrders()]);
-    if (!drafts.ok || !orders.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة المتابعة اليومية المحلية." };
-    const openDrafts = drafts.value.filter((draft) => !draft.linkedOrderId);
-    return { ok: true, followUp: deriveDailyFollowUp(orders.value, openDrafts), drafts: openDrafts, orders: orders.value };
+    if (!drafts.ok || !orders.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة المتابعة اليومية المحلية." };
+    const openDrafts = drafts.value.filter(draft => !draft.linkedOrderId);
+    return {
+      ok: true,
+      followUp: deriveDailyFollowUp(orders.value, openDrafts),
+      drafts: openDrafts,
+      orders: orders.value,
+    };
   }
 }

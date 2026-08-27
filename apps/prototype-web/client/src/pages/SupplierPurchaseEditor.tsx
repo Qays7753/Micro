@@ -13,12 +13,236 @@ import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js"
 const ammanDate = () => localDateInAmman();
 
 export default function SupplierPurchaseEditor() {
-  const { id } = useParams<{ id?: string }>(); const isNew = id === "new"; const [, navigate] = useLocation(); const { supplierPurchases, notifyDataChanged } = usePrototypeServices(); const [purchase, setPurchase] = useState<SupplierPurchase | null>(null); const [loading, setLoading] = useState(!isNew); const [supplierName, setSupplierName] = useState(""); const [note, setNote] = useState(""); const [purchasedOn, setPurchasedOn] = useState(() => ammanDate()); const [dueOn, setDueOn] = useState(""); const [totalMinor, setTotalMinor] = useState(0); const [initialPaidMinor, setInitialPaidMinor] = useState(0); const [paymentMinor, setPaymentMinor] = useState(0); const [validMoney, setValidMoney] = useState(true); const [message, setMessage] = useState<string | null>(null); const [saving, setSaving] = useState(false); const idempotencyKey = useRef(`supplier-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
-  useEffect(() => { if (isNew || !id) return; supplierPurchases.list().then((result) => { if (result.ok) setPurchase(result.value.find((item) => item.id === id) ?? null); setLoading(false); }); }, [id, isNew, supplierPurchases]);
-  async function savePurchase() { if (!validMoney || totalMinor <= 0 || initialPaidMinor < 0) { setMessage("أدخل إجماليًا صالحًا بالأرقام 0–9."); return; } if (initialPaidMinor > totalMinor) { setMessage("لا يمكن أن يتجاوز المدفوع الآن إجمالي الشراء."); return; } setSaving(true); setMessage(null); const result = await supplierPurchases.recordPurchase({ supplierName, note, purchasedOn, dueOn: dueOn || null, totalMinor, initialPaidMinor, idempotencyKey: idempotencyKey.current }); setSaving(false); if (!result.ok) { setMessage(result.message); return; } notifyDataChanged(); setMessage(result.reused ? "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ شراء المواد محليًا."); if (!result.reused) navigate("/suppliers"); }
-  async function savePayment() { if (!purchase || !validMoney || paymentMinor <= 0) { setMessage("أدخل دفعة صالحة بالأرقام 0–9."); return; } setSaving(true); setMessage(null); const result = await supplierPurchases.recordPayment({ purchaseId: purchase.id, amountMinor: paymentMinor, occurredOn: purchasedOn, note: note || "دفعة مورد", idempotencyKey: idempotencyKey.current }); setSaving(false); if (!result.ok) { setMessage(result.message); return; } notifyDataChanged(); setMessage(result.reused ? "هذه الدفعة محفوظة سابقًا؛ لم نكرر أثرها." : "تم حفظ دفعة المورد محليًا."); if (!result.reused) navigate("/suppliers"); }
-  if (loading) return <div className="micro-route-loading" role="status">جارٍ فتح شراء المورد…</div>;
-  if (!isNew && !purchase) return <section className="micro-page micro-not-found"><h1>شراء المواد غير موجود</h1><p>قد يكون السجل حُذف من هذا الجهاز أو لم يعد متاحًا.</p><button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/suppliers")}>مشتريات المواد</button></section>;
+  const { id } = useParams<{ id?: string }>();
+  const isNew = id === "new";
+  const [, navigate] = useLocation();
+  const { supplierPurchases, notifyDataChanged } = usePrototypeServices();
+  const [purchase, setPurchase] = useState<SupplierPurchase | null>(null);
+  const [loading, setLoading] = useState(!isNew);
+  const [supplierName, setSupplierName] = useState("");
+  const [note, setNote] = useState("");
+  const [purchasedOn, setPurchasedOn] = useState(() => ammanDate());
+  const [dueOn, setDueOn] = useState("");
+  const [totalMinor, setTotalMinor] = useState(0);
+  const [initialPaidMinor, setInitialPaidMinor] = useState(0);
+  const [paymentMinor, setPaymentMinor] = useState(0);
+  const [validMoney, setValidMoney] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const idempotencyKey = useRef(`supplier-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+  useEffect(() => {
+    if (isNew || !id) return;
+    supplierPurchases.list().then(result => {
+      if (result.ok) setPurchase(result.value.find(item => item.id === id) ?? null);
+      setLoading(false);
+    });
+  }, [id, isNew, supplierPurchases]);
+  async function savePurchase() {
+    if (!validMoney || totalMinor <= 0 || initialPaidMinor < 0) {
+      setMessage("أدخل إجماليًا صالحًا بالأرقام 0–9.");
+      return;
+    }
+    if (initialPaidMinor > totalMinor) {
+      setMessage("لا يمكن أن يتجاوز المدفوع الآن إجمالي الشراء.");
+      return;
+    }
+    setSaving(true);
+    setMessage(null);
+    const result = await supplierPurchases.recordPurchase({
+      supplierName,
+      note,
+      purchasedOn,
+      dueOn: dueOn || null,
+      totalMinor,
+      initialPaidMinor,
+      idempotencyKey: idempotencyKey.current,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    notifyDataChanged();
+    setMessage(result.reused ? "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ شراء المواد محليًا.");
+    if (!result.reused) navigate("/suppliers");
+  }
+  async function savePayment() {
+    if (!purchase || !validMoney || paymentMinor <= 0) {
+      setMessage("أدخل دفعة صالحة بالأرقام 0–9.");
+      return;
+    }
+    setSaving(true);
+    setMessage(null);
+    const result = await supplierPurchases.recordPayment({
+      purchaseId: purchase.id,
+      amountMinor: paymentMinor,
+      occurredOn: purchasedOn,
+      note: note || "دفعة مورد",
+      idempotencyKey: idempotencyKey.current,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    notifyDataChanged();
+    setMessage(result.reused ? "هذه الدفعة محفوظة سابقًا؛ لم نكرر أثرها." : "تم حفظ دفعة المورد محليًا.");
+    if (!result.reused) navigate("/suppliers");
+  }
+  if (loading)
+    return (
+      <div className="micro-route-loading" role="status">
+        جارٍ فتح شراء المورد…
+      </div>
+    );
+  if (!isNew && !purchase)
+    return (
+      <section className="micro-page micro-not-found">
+        <h1>شراء المواد غير موجود</h1>
+        <p>قد يكون السجل حُذف من هذا الجهاز أو لم يعد متاحًا.</p>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate("/suppliers")}
+        >
+          مشتريات المواد
+        </button>
+      </section>
+    );
   const paymentMode = !isNew && purchase;
-  return <section className="micro-page micro-finance-page"><button className="micro-back-button" type="button" onClick={() => navigate("/suppliers")}><ArrowRight aria-hidden="true" /> مشتريات المواد</button><div className="micro-page-heading"><span className="micro-overline">{paymentMode ? "دفعة مورد" : "شراء مواد"}</span><h1>{paymentMode ? `دفعة إلى ${purchase.supplierName}` : "سجل شراء مواد"}</h1><p>{paymentMode ? "الدفع يخفض ما بقي لهذا الشراء ولا يسجل مصروفًا مرة ثانية." : "سجل واقع الشراء والدفع المتفق عليه. لن تحوله Micro إلى تكلفة بيع أو مخزون حتى المرحلة التالية."}</p></div>{paymentMode ? <section className="micro-decision-card"><span>المتبقي قبل هذه الدفعة (د.أ)</span><strong><MoneyValue minor={purchase.payableMinor} /></strong><p>{purchase.note} · اشتري في <LocalDateValue value={purchase.purchasedOn} /></p></section> : <section className="micro-decision-card"><span>حد الحقيقة</span><strong>شراء المواد لا يساوي مصروف بيع</strong><p>سيظهر أثره في الكاش أو ما عليك للمورد فقط، إلى أن نبني المخزون والاستهلاك.</p></section>}<section className="micro-form-card">{isNew ? <><label className="micro-field"><span>اسم المورد</span><input value={supplierName} onChange={(event) => setSupplierName(event.target.value)} placeholder="مثال: مورد الخشب" /></label><label className="micro-field"><span>ماذا اشتريت؟</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="مثال: خامات لطلبات قادمة" /></label><LocalDateField label="تاريخ الشراء" value={purchasedOn} onChange={(event) => setPurchasedOn(event.target.value)} /><div className="micro-field-grid"><label className="micro-field"><span>إجمالي الشراء (د.أ)</span><EnglishNumberInput value={totalMinor} kind="money" onNumericChange={setTotalMinor} onTextValidityChange={setValidMoney} aria-label="إجمالي الشراء بالدينار الأردني" /></label><label className="micro-field"><span>ما دُفع الآن</span><EnglishNumberInput value={initialPaidMinor} kind="money" onNumericChange={setInitialPaidMinor} onTextValidityChange={setValidMoney} aria-label="ما دُفع الآن" /></label></div><LocalDateField label="تاريخ الاستحقاق إن عرفت" description="اتركه فارغًا إذا لم تتفق على موعد واضح." value={dueOn} onChange={(event) => setDueOn(event.target.value)} /></> : <><label className="micro-field"><span>مبلغ الدفعة (د.أ)</span><EnglishNumberInput value={paymentMinor} kind="money" onNumericChange={setPaymentMinor} onTextValidityChange={setValidMoney} aria-label="مبلغ دفعة المورد" /></label><LocalDateField label="تاريخ الدفعة" value={purchasedOn} onChange={(event) => setPurchasedOn(event.target.value)} /><label className="micro-field"><span>وصف قصير للدفعة</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="مثال: دفعة ثانية للمورد" /></label></>}{message ? <p className={message.startsWith("تم ") || message.startsWith("هذا ") ? "micro-save-note" : "micro-field-error"} role="status">{message}</p> : null}<button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={saving} onClick={paymentMode ? savePayment : savePurchase}><Save aria-hidden="true" />{saving ? "جارٍ الحفظ…" : paymentMode ? "حفظ الدفعة" : "حفظ شراء المواد"}</button></section></section>;
+  return (
+    <section className="micro-page micro-finance-page">
+      <button className="micro-back-button" type="button" onClick={() => navigate("/suppliers")}>
+        <ArrowRight aria-hidden="true" /> مشتريات المواد
+      </button>
+      <div className="micro-page-heading">
+        <span className="micro-overline">{paymentMode ? "دفعة مورد" : "شراء مواد"}</span>
+        <h1>{paymentMode ? `دفعة إلى ${purchase.supplierName}` : "سجل شراء مواد"}</h1>
+        <p>
+          {paymentMode
+            ? "الدفع يخفض ما بقي لهذا الشراء ولا يسجل مصروفًا مرة ثانية."
+            : "سجل واقع الشراء والدفع المتفق عليه. لن تحوله Micro إلى تكلفة بيع أو مخزون حتى المرحلة التالية."}
+        </p>
+      </div>
+      {paymentMode ? (
+        <section className="micro-decision-card">
+          <span>المتبقي قبل هذه الدفعة (د.أ)</span>
+          <strong>
+            <MoneyValue minor={purchase.payableMinor} />
+          </strong>
+          <p>
+            {purchase.note} · اشتري في <LocalDateValue value={purchase.purchasedOn} />
+          </p>
+        </section>
+      ) : (
+        <section className="micro-decision-card">
+          <span>حد الحقيقة</span>
+          <strong>شراء المواد لا يساوي مصروف بيع</strong>
+          <p>سيظهر أثره في الكاش أو ما عليك للمورد فقط، إلى أن نبني المخزون والاستهلاك.</p>
+        </section>
+      )}
+      <section className="micro-form-card">
+        {isNew ? (
+          <>
+            <label className="micro-field">
+              <span>اسم المورد</span>
+              <input
+                value={supplierName}
+                onChange={event => setSupplierName(event.target.value)}
+                placeholder="مثال: مورد الخشب"
+              />
+            </label>
+            <label className="micro-field">
+              <span>ماذا اشتريت؟</span>
+              <textarea
+                value={note}
+                onChange={event => setNote(event.target.value)}
+                placeholder="مثال: خامات لطلبات قادمة"
+              />
+            </label>
+            <LocalDateField
+              label="تاريخ الشراء"
+              value={purchasedOn}
+              onChange={event => setPurchasedOn(event.target.value)}
+            />
+            <div className="micro-field-grid">
+              <label className="micro-field">
+                <span>إجمالي الشراء (د.أ)</span>
+                <EnglishNumberInput
+                  value={totalMinor}
+                  kind="money"
+                  onNumericChange={setTotalMinor}
+                  onTextValidityChange={setValidMoney}
+                  aria-label="إجمالي الشراء بالدينار الأردني"
+                />
+              </label>
+              <label className="micro-field">
+                <span>ما دُفع الآن</span>
+                <EnglishNumberInput
+                  value={initialPaidMinor}
+                  kind="money"
+                  onNumericChange={setInitialPaidMinor}
+                  onTextValidityChange={setValidMoney}
+                  aria-label="ما دُفع الآن"
+                />
+              </label>
+            </div>
+            <LocalDateField
+              label="تاريخ الاستحقاق إن عرفت"
+              description="اتركه فارغًا إذا لم تتفق على موعد واضح."
+              value={dueOn}
+              onChange={event => setDueOn(event.target.value)}
+            />
+          </>
+        ) : (
+          <>
+            <label className="micro-field">
+              <span>مبلغ الدفعة (د.أ)</span>
+              <EnglishNumberInput
+                value={paymentMinor}
+                kind="money"
+                onNumericChange={setPaymentMinor}
+                onTextValidityChange={setValidMoney}
+                aria-label="مبلغ دفعة المورد"
+              />
+            </label>
+            <LocalDateField
+              label="تاريخ الدفعة"
+              value={purchasedOn}
+              onChange={event => setPurchasedOn(event.target.value)}
+            />
+            <label className="micro-field">
+              <span>وصف قصير للدفعة</span>
+              <textarea
+                value={note}
+                onChange={event => setNote(event.target.value)}
+                placeholder="مثال: دفعة ثانية للمورد"
+              />
+            </label>
+          </>
+        )}
+        {message ? (
+          <p
+            className={
+              message.startsWith("تم ") || message.startsWith("هذا ")
+                ? "micro-save-note"
+                : "micro-field-error"
+            }
+            role="status"
+          >
+            {message}
+          </p>
+        ) : null}
+        <button
+          className="micro-button micro-button-primary micro-save-cost"
+          type="button"
+          disabled={saving}
+          onClick={paymentMode ? savePayment : savePurchase}
+        >
+          <Save aria-hidden="true" />
+          {saving ? "جارٍ الحفظ…" : paymentMode ? "حفظ الدفعة" : "حفظ شراء المواد"}
+        </button>
+      </section>
+    </section>
+  );
 }

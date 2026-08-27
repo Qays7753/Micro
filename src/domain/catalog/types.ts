@@ -18,7 +18,10 @@ export type CatalogItem = {
   createdOperationKey: string;
 };
 
-export type CreateCatalogItemInput = Pick<CatalogItem, "id" | "kind" | "name" | "unitLabel" | "createdAt" | "createdOperationKey"> & { unitId?: string | null };
+export type CreateCatalogItemInput = Pick<
+  CatalogItem,
+  "id" | "kind" | "name" | "unitLabel" | "createdAt" | "createdOperationKey"
+> & { unitId?: string | null };
 
 export type MeasurementUnit = {
   id: string;
@@ -31,7 +34,10 @@ export type MeasurementUnit = {
   createdOperationKey: string;
 };
 
-export type CreateMeasurementUnitInput = Pick<MeasurementUnit, "id" | "nameAr" | "dimension" | "symbol" | "createdAt" | "createdOperationKey">;
+export type CreateMeasurementUnitInput = Pick<
+  MeasurementUnit,
+  "id" | "nameAr" | "dimension" | "symbol" | "createdAt" | "createdOperationKey"
+>;
 
 export type DirectConversion = {
   id: string;
@@ -47,7 +53,18 @@ export type DirectConversion = {
   createdOperationKey: string;
 };
 
-export type CreateDirectConversionInput = Pick<DirectConversion, "id" | "fromUnitId" | "toUnitId" | "dimension" | "numerator" | "denominator" | "note" | "createdAt" | "createdOperationKey">;
+export type CreateDirectConversionInput = Pick<
+  DirectConversion,
+  | "id"
+  | "fromUnitId"
+  | "toUnitId"
+  | "dimension"
+  | "numerator"
+  | "denominator"
+  | "note"
+  | "createdAt"
+  | "createdOperationKey"
+>;
 
 export type CatalogTemplateComponent = {
   id: string;
@@ -80,6 +97,19 @@ export type CatalogTemplate = {
   createdOperationKey: string;
 };
 
-export type CreateCatalogTemplateInput = Pick<CatalogTemplate, "id" | "catalogItemId" | "title" | "note" | "components" | "yield" | "yieldReadiness" | "revision" | "sourceTemplateId" | "createdAt" | "createdOperationKey">;
+export type CreateCatalogTemplateInput = Pick<
+  CatalogTemplate,
+  | "id"
+  | "catalogItemId"
+  | "title"
+  | "note"
+  | "components"
+  | "yield"
+  | "yieldReadiness"
+  | "revision"
+  | "sourceTemplateId"
+  | "createdAt"
+  | "createdOperationKey"
+>;
 
 export type QuantityConversionResult = { quantityMilli: number; exact: true };

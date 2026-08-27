@@ -6,5 +6,7 @@ export const supportedInventoryMovementTypes = ["receipt", "consume", "waste", "
 export type InventoryMovementRouteType = (typeof supportedInventoryMovementTypes)[number];
 
 export function resolveInventoryMovementType(value: string | undefined): InventoryMovementRouteType | null {
-  return supportedInventoryMovementTypes.includes(value as InventoryMovementRouteType) ? value as InventoryMovementRouteType : null;
+  return supportedInventoryMovementTypes.includes(value as InventoryMovementRouteType)
+    ? (value as InventoryMovementRouteType)
+    : null;
 }

@@ -1,11 +1,16 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 export type UnsavedExitChoice = "save" | "discard" | "cancel";
 export type UnsavedGuardRegistration = { isDirty: boolean; onSave: () => Promise<boolean> };
-export type UnsavedExitDecision =
-  | { kind: "save" | "discard"; target: string }
-  | { kind: "cancel" };
+export type UnsavedExitDecision = { kind: "save" | "discard"; target: string } | { kind: "cancel" };
 
 type RegisteredGuard = UnsavedGuardRegistration & { token: symbol };
 type UnsavedChangesContextValue = {
@@ -24,13 +29,23 @@ export function resolveUnsavedExit(choice: UnsavedExitChoice, target: string): U
   return { kind: choice, target };
 }
 
-export async function completeSaveNavigation(onSave: () => Promise<boolean>, navigate: (target: string) => void, target: string) {
+export async function completeSaveNavigation(
+  onSave: () => Promise<boolean>,
+  navigate: (target: string) => void,
+  target: string,
+) {
   const saved = await onSave();
   if (saved) navigate(target);
   return saved;
 }
 
-export function UnsavedChangesProvider({ navigate, children }: { navigate: (target: string) => void; children: ReactNode }) {
+export function UnsavedChangesProvider({
+  navigate,
+  children,
+}: {
+  navigate: (target: string) => void;
+  children: ReactNode;
+}) {
   const guardRef = useRef<RegisteredGuard | null>(null);
   const [pendingTarget, setPendingTarget] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -42,15 +57,18 @@ export function UnsavedChangesProvider({ navigate, children }: { navigate: (targ
       if (guardRef.current?.token === token) guardRef.current = null;
     };
   }, []);
-  const requestNavigation = useCallback((target: string) => {
-    const guard = guardRef.current;
-    if (!guard || !guard.isDirty) {
-      navigate(target);
-      return;
-    }
-    setPendingTarget(target);
-    setIsOpen(true);
-  }, [navigate]);
+  const requestNavigation = useCallback(
+    (target: string) => {
+      const guard = guardRef.current;
+      if (!guard || !guard.isDirty) {
+        navigate(target);
+        return;
+      }
+      setPendingTarget(target);
+      setIsOpen(true);
+    },
+    [navigate],
+  );
   const close = useCallback(() => {
     if (isSaving) return;
     setIsOpen(false);
@@ -68,32 +86,67 @@ export function UnsavedChangesProvider({ navigate, children }: { navigate: (targ
     if (isSaving || !guard || !pendingTarget) return;
     setIsSaving(true);
     const target = pendingTarget;
-    const saved = await completeSaveNavigation(guard.onSave, nextTarget => {
-      setIsSaving(false);
-      setIsOpen(false);
-      setPendingTarget(null);
-      navigate(nextTarget);
-    }, target);
+    const saved = await completeSaveNavigation(
+      guard.onSave,
+      nextTarget => {
+        setIsSaving(false);
+        setIsOpen(false);
+        setPendingTarget(null);
+        navigate(nextTarget);
+      },
+      target,
+    );
     setIsSaving(false);
     if (!saved) return;
   }, [isSaving, navigate, pendingTarget]);
 
-  return <UnsavedChangesContext.Provider value={{ registerGuard, requestNavigation }}>
-    {children}
-    <Drawer open={isOpen} onOpenChange={open => { if (!open) close(); }} direction="bottom">
-      <DrawerContent dir="rtl" data-testid="unsaved-changes-drawer">
-        <DrawerHeader>
-          <DrawerTitle>لديك تعديلات غير محفوظة</DrawerTitle>
-          <DrawerDescription>اختر كيف تتابع. لن يُحفظ شيء تلقائيًا، ولن يُفقد عملك ما لم تختر الخروج.</DrawerDescription>
-        </DrawerHeader>
-        <DrawerFooter>
-          <button className="micro-button micro-button-primary" type="button" disabled={isSaving} onClick={saveAndContinue}>{isSaving ? "جارٍ الحفظ…" : "احفظ واستمر"}</button>
-          <button className="micro-button micro-button-secondary" type="button" disabled={isSaving} onClick={discard}>اخرج دون حفظ</button>
-          <button className="micro-button micro-button-secondary" type="button" disabled={isSaving} onClick={close}>إلغاء</button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
-  </UnsavedChangesContext.Provider>;
+  return (
+    <UnsavedChangesContext.Provider value={{ registerGuard, requestNavigation }}>
+      {children}
+      <Drawer
+        open={isOpen}
+        onOpenChange={open => {
+          if (!open) close();
+        }}
+        direction="bottom"
+      >
+        <DrawerContent dir="rtl" data-testid="unsaved-changes-drawer">
+          <DrawerHeader>
+            <DrawerTitle>لديك تعديلات غير محفوظة</DrawerTitle>
+            <DrawerDescription>
+              اختر كيف تتابع. لن يُحفظ شيء تلقائيًا، ولن يُفقد عملك ما لم تختر الخروج.
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
+            <button
+              className="micro-button micro-button-primary"
+              type="button"
+              disabled={isSaving}
+              onClick={saveAndContinue}
+            >
+              {isSaving ? "جارٍ الحفظ…" : "احفظ واستمر"}
+            </button>
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              disabled={isSaving}
+              onClick={discard}
+            >
+              اخرج دون حفظ
+            </button>
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              disabled={isSaving}
+              onClick={close}
+            >
+              إلغاء
+            </button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </UnsavedChangesContext.Provider>
+  );
 }
 
 export function useUnsavedChangesGuard(guard: UnsavedGuardRegistration) {

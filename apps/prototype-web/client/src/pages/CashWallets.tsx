@@ -1,5 +1,13 @@
 /** Style: Micro «مسار القرار» — cash places are explicit local facts, never a hidden pooled balance. */
-import { ArrowLeft, ArrowRightLeft, Landmark, Plus, RotateCcw, SlidersHorizontal, WalletCards } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRightLeft,
+  Landmark,
+  Plus,
+  RotateCcw,
+  SlidersHorizontal,
+  WalletCards,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -7,13 +15,207 @@ import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
-type State = { phase: "loading" } | { phase: "error" } | { phase: "ready"; overview: CashContinuityOverview; entries: readonly CashContinuityEntry[]; position: ProjectFinancialPosition };
-const label = (type: CashContinuityEntry["type"]) => ({ opening_balance: "رصيد بداية", cash_adjustment: "ضبط كاش", transfer_out: "تحويل صادر", transfer_in: "تحويل وارد", reversal: "عكس أثر" })[type];
+type State =
+  | { phase: "loading" }
+  | { phase: "error" }
+  | {
+      phase: "ready";
+      overview: CashContinuityOverview;
+      entries: readonly CashContinuityEntry[];
+      position: ProjectFinancialPosition;
+    };
+const label = (type: CashContinuityEntry["type"]) =>
+  ({
+    opening_balance: "رصيد بداية",
+    cash_adjustment: "ضبط كاش",
+    transfer_out: "تحويل صادر",
+    transfer_in: "تحويل وارد",
+    reversal: "عكس أثر",
+  })[type];
 
 export default function CashWallets() {
-  const [, navigate] = useLocation(); const { cashContinuity, projectFinance, dataVersion } = usePrototypeServices(); const [state, setState] = useState<State>({ phase: "loading" });
-  useEffect(() => { let active = true; Promise.all([cashContinuity.overview(), cashContinuity.entries(), projectFinance.readPosition()]).then(([overview, entries, position]) => { if (!active) return; if (!overview.ok || !entries.ok || !position.ok) { setState({ phase: "error" }); return; } setState({ phase: "ready", overview: overview.value, entries: entries.value, position: position.value }); }); return () => { active = false; }; }, [cashContinuity, projectFinance, dataVersion]);
-  if (state.phase === "loading") return <div className="micro-route-loading" role="status">جارٍ قراءة محافظ الكاش المحلية…</div>;
-  if (state.phase === "error") return <section className="micro-page micro-not-found"><h1>تعذر قراءة محافظ الكاش</h1><p>لم يتغير أي سجل. أعد فتح التطبيق للمحاولة.</p><button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/finance")}>الوضع المالي</button></section>;
-  return <section className="micro-page micro-finance-page"><button className="micro-back-button" type="button" onClick={() => navigate("/finance")}><ArrowLeft aria-hidden="true" /> الوضع المالي</button><div className="micro-page-heading"><span className="micro-overline">استمرارية السجل</span><h1>محافظ الكاش</h1><p>ابدأ من الأماكن التي تعرف أن الكاش موجود فيها، ثم انقل أو اضبط أثرًا بسبب. لا يحول Micro أي افتتاح إلى ربح أو دخل.</p></div><section className="micro-decision-card"><WalletCards aria-hidden="true" /><div><span>كاش المحافظ المعلن (د.أ)</span><strong><MoneyValue minor={state.overview.totalWalletCashMinor} /></strong><p>{state.overview.truth}</p></div></section><section className="micro-cash-facts"><div><span>الكاش غير الموزع (د.أ)</span><strong><MoneyValue minor={state.position.unallocatedCashMinor} /></strong><small>طلب أو حدث أو شراء مواد لم يربطه النظام بمحفظة بعد.</small></div><div><span>الكاش المسجل الكلي (د.أ)</span><strong><MoneyValue minor={state.position.recordedCashMinor} /></strong><small>المحافظ المعلنة + الكاش غير الموزع.</small></div></section><div className="micro-cash-actions"><button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash/wallet/new")}><Plus aria-hidden="true" /> محفظة ورصيد بداية</button><button className="micro-button micro-button-secondary" type="button" disabled={state.overview.wallets.length < 2} onClick={() => navigate("/cash/transfer")}><ArrowRightLeft aria-hidden="true" /> تحويل بين المحافظ</button></div><section className="micro-supplier-list"><div className="micro-finance-event-heading"><span className="micro-overline">الأماكن المعلنة</span><h2>{state.overview.wallets.length ? `${state.overview.wallets.length} محافظ كاش` : "لم تسجل محفظة بعد"}</h2></div>{state.overview.wallets.length ? state.overview.wallets.map((wallet) => <article key={wallet.id}><div><strong><Landmark aria-hidden="true" /> {wallet.name}</strong><small>{wallet.kind === "cash_drawer" ? "درج" : wallet.kind === "bank_account" ? "حساب بنكي" : wallet.kind === "digital_wallet" ? "محفظة رقمية" : "مكان كاش آخر"} · {wallet.entryCount} آثار محفوظة</small></div><div className="micro-supplier-balance"><b><MoneyValue minor={wallet.balanceMinor} /></b><button className="micro-button micro-button-secondary" type="button" onClick={() => navigate(`/cash/wallet/${wallet.id}/adjust`)}><SlidersHorizontal aria-hidden="true" /> ضبط بسبب</button></div></article>) : <p>لا تجعل الكاش المسجل بداية غامضة. أضف درجًا أو حسابًا ورصيده في يوم البدء.</p>}</section>{state.entries.length ? <section className="micro-supplier-list micro-cash-history"><div className="micro-finance-event-heading"><span className="micro-overline">أحدث الآثار · المبالغ بد.أ</span><h2>سجل لا يحذف بصمت</h2></div>{state.entries.slice().reverse().slice(0, 8).map((entry) => <article key={entry.id}><div><strong>{label(entry.type)}</strong><small><LocalDateValue value={entry.occurredOn} /> · {entry.note}{entry.reason ? ` · السبب: ${entry.reason}` : ""}</small></div><div className="micro-supplier-balance"><b><MoneyValue minor={entry.cashDeltaMinor} showPlus /></b>{entry.type !== "reversal" ? <button className="micro-button micro-button-quiet" type="button" onClick={() => navigate(`/cash/entry/${entry.id}/reverse`)}><RotateCcw aria-hidden="true" /> عكس</button> : null}</div></article>)}</section> : null}</section>;
+  const [, navigate] = useLocation();
+  const { cashContinuity, projectFinance, dataVersion } = usePrototypeServices();
+  const [state, setState] = useState<State>({ phase: "loading" });
+  useEffect(() => {
+    let active = true;
+    Promise.all([cashContinuity.overview(), cashContinuity.entries(), projectFinance.readPosition()]).then(
+      ([overview, entries, position]) => {
+        if (!active) return;
+        if (!overview.ok || !entries.ok || !position.ok) {
+          setState({ phase: "error" });
+          return;
+        }
+        setState({
+          phase: "ready",
+          overview: overview.value,
+          entries: entries.value,
+          position: position.value,
+        });
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [cashContinuity, projectFinance, dataVersion]);
+  if (state.phase === "loading")
+    return (
+      <div className="micro-route-loading" role="status">
+        جارٍ قراءة محافظ الكاش المحلية…
+      </div>
+    );
+  if (state.phase === "error")
+    return (
+      <section className="micro-page micro-not-found">
+        <h1>تعذر قراءة محافظ الكاش</h1>
+        <p>لم يتغير أي سجل. أعد فتح التطبيق للمحاولة.</p>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate("/finance")}
+        >
+          الوضع المالي
+        </button>
+      </section>
+    );
+  return (
+    <section className="micro-page micro-finance-page">
+      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+        <ArrowLeft aria-hidden="true" /> الوضع المالي
+      </button>
+      <div className="micro-page-heading">
+        <span className="micro-overline">استمرارية السجل</span>
+        <h1>محافظ الكاش</h1>
+        <p>
+          ابدأ من الأماكن التي تعرف أن الكاش موجود فيها، ثم انقل أو اضبط أثرًا بسبب. لا يحول Micro أي افتتاح
+          إلى ربح أو دخل.
+        </p>
+      </div>
+      <section className="micro-decision-card">
+        <WalletCards aria-hidden="true" />
+        <div>
+          <span>كاش المحافظ المعلن (د.أ)</span>
+          <strong>
+            <MoneyValue minor={state.overview.totalWalletCashMinor} />
+          </strong>
+          <p>{state.overview.truth}</p>
+        </div>
+      </section>
+      <section className="micro-cash-facts">
+        <div>
+          <span>الكاش غير الموزع (د.أ)</span>
+          <strong>
+            <MoneyValue minor={state.position.unallocatedCashMinor} />
+          </strong>
+          <small>طلب أو حدث أو شراء مواد لم يربطه النظام بمحفظة بعد.</small>
+        </div>
+        <div>
+          <span>الكاش المسجل الكلي (د.أ)</span>
+          <strong>
+            <MoneyValue minor={state.position.recordedCashMinor} />
+          </strong>
+          <small>المحافظ المعلنة + الكاش غير الموزع.</small>
+        </div>
+      </section>
+      <div className="micro-cash-actions">
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate("/cash/wallet/new")}
+        >
+          <Plus aria-hidden="true" /> محفظة ورصيد بداية
+        </button>
+        <button
+          className="micro-button micro-button-secondary"
+          type="button"
+          disabled={state.overview.wallets.length < 2}
+          onClick={() => navigate("/cash/transfer")}
+        >
+          <ArrowRightLeft aria-hidden="true" /> تحويل بين المحافظ
+        </button>
+      </div>
+      <section className="micro-supplier-list">
+        <div className="micro-finance-event-heading">
+          <span className="micro-overline">الأماكن المعلنة</span>
+          <h2>
+            {state.overview.wallets.length
+              ? `${state.overview.wallets.length} محافظ كاش`
+              : "لم تسجل محفظة بعد"}
+          </h2>
+        </div>
+        {state.overview.wallets.length ? (
+          state.overview.wallets.map(wallet => (
+            <article key={wallet.id}>
+              <div>
+                <strong>
+                  <Landmark aria-hidden="true" /> {wallet.name}
+                </strong>
+                <small>
+                  {wallet.kind === "cash_drawer"
+                    ? "درج"
+                    : wallet.kind === "bank_account"
+                      ? "حساب بنكي"
+                      : wallet.kind === "digital_wallet"
+                        ? "محفظة رقمية"
+                        : "مكان كاش آخر"}{" "}
+                  · {wallet.entryCount} آثار محفوظة
+                </small>
+              </div>
+              <div className="micro-supplier-balance">
+                <b>
+                  <MoneyValue minor={wallet.balanceMinor} />
+                </b>
+                <button
+                  className="micro-button micro-button-secondary"
+                  type="button"
+                  onClick={() => navigate(`/cash/wallet/${wallet.id}/adjust`)}
+                >
+                  <SlidersHorizontal aria-hidden="true" /> ضبط بسبب
+                </button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>لا تجعل الكاش المسجل بداية غامضة. أضف درجًا أو حسابًا ورصيده في يوم البدء.</p>
+        )}
+      </section>
+      {state.entries.length ? (
+        <section className="micro-supplier-list micro-cash-history">
+          <div className="micro-finance-event-heading">
+            <span className="micro-overline">أحدث الآثار · المبالغ بد.أ</span>
+            <h2>سجل لا يحذف بصمت</h2>
+          </div>
+          {state.entries
+            .slice()
+            .reverse()
+            .slice(0, 8)
+            .map(entry => (
+              <article key={entry.id}>
+                <div>
+                  <strong>{label(entry.type)}</strong>
+                  <small>
+                    <LocalDateValue value={entry.occurredOn} /> · {entry.note}
+                    {entry.reason ? ` · السبب: ${entry.reason}` : ""}
+                  </small>
+                </div>
+                <div className="micro-supplier-balance">
+                  <b>
+                    <MoneyValue minor={entry.cashDeltaMinor} showPlus />
+                  </b>
+                  {entry.type !== "reversal" ? (
+                    <button
+                      className="micro-button micro-button-quiet"
+                      type="button"
+                      onClick={() => navigate(`/cash/entry/${entry.id}/reverse`)}
+                    >
+                      <RotateCcw aria-hidden="true" /> عكس
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+        </section>
+      ) : null}
+    </section>
+  );
 }

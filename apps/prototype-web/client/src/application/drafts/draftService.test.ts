@@ -6,7 +6,10 @@ describe("DraftService", () => {
   it("creates a pre-domain customer draft without price, cash, or result fields", async () => {
     const service = new DraftService(new MemoryLocalStore(), () => "2026-08-22T00:00:00.000Z");
     const created = await service.create("customer_order");
-    expect(created).toMatchObject({ ok: true, draft: { intent: "customer_order", customerName: "", itemName: "", specifications: "", quantity: 1 } });
+    expect(created).toMatchObject({
+      ok: true,
+      draft: { intent: "customer_order", customerName: "", itemName: "", specifications: "", quantity: 1 },
+    });
     if (created.ok) expect(created.draft).not.toHaveProperty("agreedPriceMinor");
   });
 
@@ -17,9 +20,23 @@ describe("DraftService", () => {
     const created = await service.create("planned_design");
     if (!created.ok) throw new Error("draft should be created");
     timestamp = "2026-08-22T01:00:00.000Z";
-    const saved = await service.save({ ...created.draft, itemName: "  صندوق خشبي  ", specifications: "  نقش بسيط  ", quantity: 2 });
+    const saved = await service.save({
+      ...created.draft,
+      itemName: "  صندوق خشبي  ",
+      specifications: "  نقش بسيط  ",
+      quantity: 2,
+    });
     const resumed = await service.get(created.draft.id);
-    expect(saved).toMatchObject({ ok: true, draft: { itemName: "صندوق خشبي", specifications: "نقش بسيط", quantity: 2, createdAt: "2026-08-22T00:00:00.000Z", updatedAt: "2026-08-22T01:00:00.000Z" } });
+    expect(saved).toMatchObject({
+      ok: true,
+      draft: {
+        itemName: "صندوق خشبي",
+        specifications: "نقش بسيط",
+        quantity: 2,
+        createdAt: "2026-08-22T00:00:00.000Z",
+        updatedAt: "2026-08-22T01:00:00.000Z",
+      },
+    });
     expect(resumed).toMatchObject({ ok: true, value: { itemName: "صندوق خشبي", quantity: 2 } });
   });
 

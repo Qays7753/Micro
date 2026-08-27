@@ -7,13 +7,140 @@ import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js"
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 
-type PageState = { phase: "loading" } | { phase: "error" } | { phase: "ready"; purchases: readonly SupplierPurchase[]; summary: SupplierPurchaseSummary };
+type PageState =
+  | { phase: "loading" }
+  | { phase: "error" }
+  | { phase: "ready"; purchases: readonly SupplierPurchase[]; summary: SupplierPurchaseSummary };
 
 export default function Suppliers() {
-  const [, navigate] = useLocation(); const { supplierPurchases, dataVersion } = usePrototypeServices(); const [state, setState] = useState<PageState>({ phase: "loading" });
-  useEffect(() => { let active = true; Promise.all([supplierPurchases.list(), supplierPurchases.readSummary()]).then(([purchases, summary]) => { if (!active) return; if (!purchases.ok || !summary.ok) { setState({ phase: "error" }); return; } setState({ phase: "ready", purchases: purchases.value, summary: summary.value }); }); return () => { active = false; }; }, [dataVersion, supplierPurchases]);
-  if (state.phase === "loading") return <div className="micro-route-loading" role="status">جارٍ قراءة شراء المواد المحلي…</div>;
-  if (state.phase === "error") return <section className="micro-page micro-not-found"><h1>تعذر قراءة مشتريات الموردين</h1><p>لم يتم تغيير أي سجل. أعد فتح التطبيق للمحاولة.</p><button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/finance")}>الوضع المالي</button></section>;
-  const open = state.purchases.filter((purchase) => purchase.payableMinor > 0);
-  return <section className="micro-page micro-finance-page"><button className="micro-back-button" type="button" onClick={() => navigate("/finance")}><ArrowLeft aria-hidden="true" /> الوضع المالي</button><div className="micro-page-heading"><span className="micro-overline">مواد وموردون</span><h1>مشتريات المواد</h1><p>سجّل ما اشتريته للمشروع وما دُفع وما بقي.</p></div><section className="micro-decision-card"><WalletCards aria-hidden="true" /><div><span>ما عليك للموردين من شراء مواد (د.أ)</span><strong><MoneyValue minor={state.summary.supplierPayablesMinor} /></strong><p>{state.summary.truth}</p></div></section><button className="micro-button micro-button-primary micro-full-action" type="button" onClick={() => navigate("/suppliers/purchase/new")}><Plus aria-hidden="true" /> سجل شراء مواد</button><section className="micro-supplier-list"><div className="micro-finance-event-heading"><span className="micro-overline">المشتريات المفتوحة</span><h2>{open.length ? `${open.length} شراء يحتاج متابعة` : "لا توجد مشتريات مفتوحة"}</h2></div>{open.length ? open.map((purchase) => <article key={purchase.id}><div><strong>{purchase.supplierName}</strong><small><LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}</small>{purchase.dueOn ? <small>الاستحقاق: <LocalDateValue value={purchase.dueOn} /></small> : <small>لا يوجد تاريخ استحقاق مسجل</small>}</div><div className="micro-supplier-balance"><b className="micro-number">المتبقي (د.أ): <MoneyValue minor={purchase.payableMinor} className="micro-inline-number" /></b><button className="micro-button micro-button-secondary" type="button" onClick={() => navigate(`/suppliers/purchase/${purchase.id}/payment`)}>سجل دفعة</button></div></article>) : <p>لا تسجل شراء مواد كمصروف تشغيل. ابدأ من هذا السجل ليظهر الكاش والمتبقي بصدق.</p>}</section>{state.purchases.length > open.length ? <section className="micro-supplier-list micro-supplier-settled"><div className="micro-finance-event-heading"><span className="micro-overline">مكتملة الدفع</span><h2>آخر المشتريات المسددة</h2></div>{state.purchases.filter((purchase) => purchase.payableMinor === 0).slice(0, 4).map((purchase) => <article key={purchase.id}><div><strong>{purchase.supplierName}</strong><small><LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}</small></div><b><MoneyValue minor={purchase.totalMinor} /></b></article>)}</section> : null}</section>;
+  const [, navigate] = useLocation();
+  const { supplierPurchases, dataVersion } = usePrototypeServices();
+  const [state, setState] = useState<PageState>({ phase: "loading" });
+  useEffect(() => {
+    let active = true;
+    Promise.all([supplierPurchases.list(), supplierPurchases.readSummary()]).then(([purchases, summary]) => {
+      if (!active) return;
+      if (!purchases.ok || !summary.ok) {
+        setState({ phase: "error" });
+        return;
+      }
+      setState({ phase: "ready", purchases: purchases.value, summary: summary.value });
+    });
+    return () => {
+      active = false;
+    };
+  }, [dataVersion, supplierPurchases]);
+  if (state.phase === "loading")
+    return (
+      <div className="micro-route-loading" role="status">
+        جارٍ قراءة شراء المواد المحلي…
+      </div>
+    );
+  if (state.phase === "error")
+    return (
+      <section className="micro-page micro-not-found">
+        <h1>تعذر قراءة مشتريات الموردين</h1>
+        <p>لم يتم تغيير أي سجل. أعد فتح التطبيق للمحاولة.</p>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate("/finance")}
+        >
+          الوضع المالي
+        </button>
+      </section>
+    );
+  const open = state.purchases.filter(purchase => purchase.payableMinor > 0);
+  return (
+    <section className="micro-page micro-finance-page">
+      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+        <ArrowLeft aria-hidden="true" /> الوضع المالي
+      </button>
+      <div className="micro-page-heading">
+        <span className="micro-overline">مواد وموردون</span>
+        <h1>مشتريات المواد</h1>
+        <p>سجّل ما اشتريته للمشروع وما دُفع وما بقي.</p>
+      </div>
+      <section className="micro-decision-card">
+        <WalletCards aria-hidden="true" />
+        <div>
+          <span>ما عليك للموردين من شراء مواد (د.أ)</span>
+          <strong>
+            <MoneyValue minor={state.summary.supplierPayablesMinor} />
+          </strong>
+          <p>{state.summary.truth}</p>
+        </div>
+      </section>
+      <button
+        className="micro-button micro-button-primary micro-full-action"
+        type="button"
+        onClick={() => navigate("/suppliers/purchase/new")}
+      >
+        <Plus aria-hidden="true" /> سجل شراء مواد
+      </button>
+      <section className="micro-supplier-list">
+        <div className="micro-finance-event-heading">
+          <span className="micro-overline">المشتريات المفتوحة</span>
+          <h2>{open.length ? `${open.length} شراء يحتاج متابعة` : "لا توجد مشتريات مفتوحة"}</h2>
+        </div>
+        {open.length ? (
+          open.map(purchase => (
+            <article key={purchase.id}>
+              <div>
+                <strong>{purchase.supplierName}</strong>
+                <small>
+                  <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
+                </small>
+                {purchase.dueOn ? (
+                  <small>
+                    الاستحقاق: <LocalDateValue value={purchase.dueOn} />
+                  </small>
+                ) : (
+                  <small>لا يوجد تاريخ استحقاق مسجل</small>
+                )}
+              </div>
+              <div className="micro-supplier-balance">
+                <b className="micro-number">
+                  المتبقي (د.أ): <MoneyValue minor={purchase.payableMinor} className="micro-inline-number" />
+                </b>
+                <button
+                  className="micro-button micro-button-secondary"
+                  type="button"
+                  onClick={() => navigate(`/suppliers/purchase/${purchase.id}/payment`)}
+                >
+                  سجل دفعة
+                </button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>لا تسجل شراء مواد كمصروف تشغيل. ابدأ من هذا السجل ليظهر الكاش والمتبقي بصدق.</p>
+        )}
+      </section>
+      {state.purchases.length > open.length ? (
+        <section className="micro-supplier-list micro-supplier-settled">
+          <div className="micro-finance-event-heading">
+            <span className="micro-overline">مكتملة الدفع</span>
+            <h2>آخر المشتريات المسددة</h2>
+          </div>
+          {state.purchases
+            .filter(purchase => purchase.payableMinor === 0)
+            .slice(0, 4)
+            .map(purchase => (
+              <article key={purchase.id}>
+                <div>
+                  <strong>{purchase.supplierName}</strong>
+                  <small>
+                    <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
+                  </small>
+                </div>
+                <b>
+                  <MoneyValue minor={purchase.totalMinor} />
+                </b>
+              </article>
+            ))}
+        </section>
+      ) : null}
+    </section>
+  );
 }

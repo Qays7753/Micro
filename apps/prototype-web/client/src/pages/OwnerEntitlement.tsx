@@ -7,19 +7,70 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
-import { ownerEntitlementPolicyFamilyForKind, type OwnerEntitlementPolicy, type OwnerMovementReason } from "@micro-domain/owner-entitlement/index.js";
+import {
+  ownerEntitlementPolicyFamilyForKind,
+  type OwnerEntitlementPolicy,
+  type OwnerMovementReason,
+} from "@micro-domain/owner-entitlement/index.js";
 
 type Notice = { tone: "success" | "error"; text: string } | null;
-const amountPolicyKinds = new Set(["monthly", "weekly", "daily", "hourly", "fixed_period", "fixed_shift", "per_completed_work", "per_unit"]);
+const amountPolicyKinds = new Set([
+  "monthly",
+  "weekly",
+  "daily",
+  "hourly",
+  "fixed_period",
+  "fixed_shift",
+  "per_completed_work",
+  "per_unit",
+]);
 const percentagePolicyKinds = new Set(["profit_share", "sale_percentage"]);
-const policyLabels: Record<OwnerEntitlementPolicy["kind"], string> = { monthly: "مبلغ شهري", weekly: "مبلغ أسبوعي", daily: "مبلغ يومي", hourly: "مبلغ بالساعة", fixed_period: "مبلغ ثابت للفترة", fixed_shift: "مبلغ ثابت للوردية (غير متاح بلا دليل وردية)", per_completed_work: "مبلغ لكل عمل مكتمل", profit_share: "نسبة من نتيجة G3 المسجلة", sale_percentage: "نسبة من بيع مكتمل", per_unit: "مبلغ لكل وحدة مكتملة" };
-const policyFamilyLabels: Record<OwnerEntitlementPolicy["family"], string> = { time_period: "زمن/فترة", fixed_amount: "مبلغ ثابت", completed_work: "عمل مكتمل", profit_share: "مشاركة نتيجة", completed_sale_percentage: "نسبة بيع مكتمل", unit: "وحدة" };
-const movementReasonLabels: Record<OwnerMovementReason, string> = { entitlement_settlement: "تسوية استحقاق مسجل", opening_balance_settlement: "تسوية رصيد افتتاحي", pre_entitlement_draw: "سحب قبل الاستحقاق", owner_draw: "سحب مالك غير مرتبط بسياسة", settlement_of_prior_draw: "إرجاع لتسوية سحب سابق", new_capital_investment: "إرجاع/حقن كرأس مال جديد" };
-export const supportedOwnerEntitlementPolicyKinds = ["monthly", "weekly", "daily", "hourly", "fixed_period", "per_completed_work", "profit_share", "sale_percentage", "per_unit"] as const;
-export const ownerMovementReasonsForKind = (kind: "draw" | "return"): readonly OwnerMovementReason[] => kind === "draw" ? ["entitlement_settlement", "opening_balance_settlement", "pre_entitlement_draw", "owner_draw"] : ["opening_balance_settlement", "settlement_of_prior_draw", "new_capital_investment"];
+const policyLabels: Record<OwnerEntitlementPolicy["kind"], string> = {
+  monthly: "مبلغ شهري",
+  weekly: "مبلغ أسبوعي",
+  daily: "مبلغ يومي",
+  hourly: "مبلغ بالساعة",
+  fixed_period: "مبلغ ثابت للفترة",
+  fixed_shift: "مبلغ ثابت للوردية (غير متاح بلا دليل وردية)",
+  per_completed_work: "مبلغ لكل عمل مكتمل",
+  profit_share: "نسبة من نتيجة G3 المسجلة",
+  sale_percentage: "نسبة من بيع مكتمل",
+  per_unit: "مبلغ لكل وحدة مكتملة",
+};
+const policyFamilyLabels: Record<OwnerEntitlementPolicy["family"], string> = {
+  time_period: "زمن/فترة",
+  fixed_amount: "مبلغ ثابت",
+  completed_work: "عمل مكتمل",
+  profit_share: "مشاركة نتيجة",
+  completed_sale_percentage: "نسبة بيع مكتمل",
+  unit: "وحدة",
+};
+const movementReasonLabels: Record<OwnerMovementReason, string> = {
+  entitlement_settlement: "تسوية استحقاق مسجل",
+  opening_balance_settlement: "تسوية رصيد افتتاحي",
+  pre_entitlement_draw: "سحب قبل الاستحقاق",
+  owner_draw: "سحب مالك غير مرتبط بسياسة",
+  settlement_of_prior_draw: "إرجاع لتسوية سحب سابق",
+  new_capital_investment: "إرجاع/حقن كرأس مال جديد",
+};
+export const supportedOwnerEntitlementPolicyKinds = [
+  "monthly",
+  "weekly",
+  "daily",
+  "hourly",
+  "fixed_period",
+  "per_completed_work",
+  "profit_share",
+  "sale_percentage",
+  "per_unit",
+] as const;
+export const ownerMovementReasonsForKind = (kind: "draw" | "return"): readonly OwnerMovementReason[] =>
+  kind === "draw"
+    ? ["entitlement_settlement", "opening_balance_settlement", "pre_entitlement_draw", "owner_draw"]
+    : ["opening_balance_settlement", "settlement_of_prior_draw", "new_capital_investment"];
 export const successorPolicyFormRequirements = (kind: OwnerEntitlementPolicy["kind"]) => ({
   family: ownerEntitlementPolicyFamilyForKind(kind),
-  valueKind: percentagePolicyKinds.has(kind) ? "percentage" as const : "amount" as const,
+  valueKind: percentagePolicyKinds.has(kind) ? ("percentage" as const) : ("amount" as const),
   requiresUnit: kind === "per_unit" || kind === "per_completed_work",
   requiresEndDate: kind === "fixed_period",
   supported: (supportedOwnerEntitlementPolicyKinds as readonly string[]).includes(kind),
@@ -57,10 +108,17 @@ export default function OwnerEntitlement() {
   const [successorNote, setSuccessorNote] = useState("");
   const [selectedEntitlementId, setSelectedEntitlementId] = useState("");
   const [periodFrom, setPeriodFrom] = useState(monthStart);
-  const [periodTo, setPeriodTo] = useState(() => `${localDateInAmman().slice(0, 7)}-${new Date(Date.UTC(Number(localDateInAmman().slice(0, 4)), Number(localDateInAmman().slice(5, 7)), 0)).getUTCDate()}`);
+  const [periodTo, setPeriodTo] = useState(
+    () =>
+      `${localDateInAmman().slice(0, 7)}-${new Date(Date.UTC(Number(localDateInAmman().slice(0, 4)), Number(localDateInAmman().slice(5, 7)), 0)).getUTCDate()}`,
+  );
   const [entitlementDate, setEntitlementDate] = useState(localDateInAmman);
   const [entitlementNote, setEntitlementNote] = useState("");
-  const [calculation, setCalculation] = useState<{ amountMinor: number | null; knowledge: string; nextAction: string } | null>(null);
+  const [calculation, setCalculation] = useState<{
+    amountMinor: number | null;
+    knowledge: string;
+    nextAction: string;
+  } | null>(null);
   const [openingAmount, setOpeningAmount] = useState<number | null>(null);
   const [openingAmountValid, setOpeningAmountValid] = useState(true);
   const [openingDate, setOpeningDate] = useState(localDateInAmman);
@@ -76,7 +134,10 @@ export default function OwnerEntitlement() {
   const [relatedEntitlementId, setRelatedEntitlementId] = useState("");
   const [relatedOpeningBalanceId, setRelatedOpeningBalanceId] = useState("");
   const [relatedMovementId, setRelatedMovementId] = useState("");
-  const [reversalTarget, setReversalTarget] = useState<{ kind: "movement" | "entitlement" | "opening"; id: string } | null>(null);
+  const [reversalTarget, setReversalTarget] = useState<{
+    kind: "movement" | "entitlement" | "opening";
+    id: string;
+  } | null>(null);
   const [reversalReason, setReversalReason] = useState("");
   const [saving, setSaving] = useState(false);
   const policyOperation = useRef(idempotency("owner-policy"));
@@ -85,98 +146,1287 @@ export default function OwnerEntitlement() {
   const openingOperation = useRef(idempotency("owner-opening"));
   const movementOperation = useRef(idempotency("owner-movement"));
 
-  useEffect(() => { let active = true; setLoading(true); ownerEntitlement.readOverview().then(result => { if (!active) return; if (!result.ok) { setError(result.message); setLoading(false); return; } setOverview(result.value); setMovementWalletId(current => current || result.value.walletBalances[0]?.id || ""); setSelectedPolicyId(current => current || result.value.activePolicies[0]?.id || ""); setSuccessorPolicyId(current => current || result.value.activePolicies[0]?.id || ""); setLoading(false); }); return () => { active = false; }; }, [ownerEntitlement, dataVersion]);
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    ownerEntitlement.readOverview().then(result => {
+      if (!active) return;
+      if (!result.ok) {
+        setError(result.message);
+        setLoading(false);
+        return;
+      }
+      setOverview(result.value);
+      setMovementWalletId(current => current || result.value.walletBalances[0]?.id || "");
+      setSelectedPolicyId(current => current || result.value.activePolicies[0]?.id || "");
+      setSuccessorPolicyId(current => current || result.value.activePolicies[0]?.id || "");
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [ownerEntitlement, dataVersion]);
 
-  const selectedPolicy = useMemo(() => overview?.policies.find(policy => policy.id === selectedPolicyId) ?? null, [overview, selectedPolicyId]);
-  const successorPolicy = useMemo(() => overview?.policies.find(policy => policy.id === successorPolicyId) ?? null, [overview, successorPolicyId]);
-  const reversedEntitlementIds = new Set((overview?.entitlements ?? []).filter(record => record.reversalOfId !== null).map(record => record.reversalOfId));
-  const reversedOpeningIds = new Set((overview?.openingBalances ?? []).filter(balance => balance.reversalOfId !== null).map(balance => balance.reversalOfId));
-  const reversedMovementIds = new Set((overview?.movements ?? []).filter(movement => movement.reversalOfId !== null).map(movement => movement.reversalOfId));
-  const activeEntitlements = overview?.entitlements.filter(record => record.reversalOfId === null && !reversedEntitlementIds.has(record.id)) ?? [];
-  const activeOpeningBalances = overview?.openingBalances.filter(balance => balance.reversalOfId === null && !reversedOpeningIds.has(balance.id)) ?? [];
-  const priorDraws = overview?.movements.filter(movement => movement.kind === "draw" && movement.reversalOfId === null && !reversedMovementIds.has(movement.id) && movement.reason !== "entitlement_settlement" && movement.reason !== "opening_balance_settlement") ?? [];
+  const selectedPolicy = useMemo(
+    () => overview?.policies.find(policy => policy.id === selectedPolicyId) ?? null,
+    [overview, selectedPolicyId],
+  );
+  const successorPolicy = useMemo(
+    () => overview?.policies.find(policy => policy.id === successorPolicyId) ?? null,
+    [overview, successorPolicyId],
+  );
+  const reversedEntitlementIds = new Set(
+    (overview?.entitlements ?? [])
+      .filter(record => record.reversalOfId !== null)
+      .map(record => record.reversalOfId),
+  );
+  const reversedOpeningIds = new Set(
+    (overview?.openingBalances ?? [])
+      .filter(balance => balance.reversalOfId !== null)
+      .map(balance => balance.reversalOfId),
+  );
+  const reversedMovementIds = new Set(
+    (overview?.movements ?? [])
+      .filter(movement => movement.reversalOfId !== null)
+      .map(movement => movement.reversalOfId),
+  );
+  const activeEntitlements =
+    overview?.entitlements.filter(
+      record => record.reversalOfId === null && !reversedEntitlementIds.has(record.id),
+    ) ?? [];
+  const activeOpeningBalances =
+    overview?.openingBalances.filter(
+      balance => balance.reversalOfId === null && !reversedOpeningIds.has(balance.id),
+    ) ?? [];
+  const priorDraws =
+    overview?.movements.filter(
+      movement =>
+        movement.kind === "draw" &&
+        movement.reversalOfId === null &&
+        !reversedMovementIds.has(movement.id) &&
+        movement.reason !== "entitlement_settlement" &&
+        movement.reason !== "opening_balance_settlement",
+    ) ?? [];
   const reasonOptions = ownerMovementReasonsForKind(movementKind);
   const successorRequirements = successorPolicyFormRequirements(successorKind);
 
-  useEffect(() => { if (!reasonOptions.includes(movementReason as never)) setMovementReason(reasonOptions[0]); }, [movementKind]);
+  useEffect(() => {
+    if (!reasonOptions.includes(movementReason as never)) setMovementReason(reasonOptions[0]);
+  }, [movementKind]);
   useEffect(() => {
     if (!successorPolicy) return;
     setSuccessorKind(successorPolicy.kind);
     setSuccessorAmount(successorPolicy.amountMinor ?? 0);
     setSuccessorPercentage((successorPolicy.percentageBps ?? 0) / 100);
     setSuccessorUnitLabel(successorPolicy.unitLabel ?? "");
-    setSuccessorEndsOn(successorPolicy.kind === "fixed_period" ? successorPolicy.endsOn ?? "" : "");
+    setSuccessorEndsOn(successorPolicy.kind === "fixed_period" ? (successorPolicy.endsOn ?? "") : "");
   }, [successorPolicy?.id]);
-  useEffect(() => { if (!selectedPolicy) { setCalculation(null); return; } ownerEntitlement.calculate(selectedPolicy.id, periodFrom, periodTo).then(result => setCalculation(result.ok ? result.value : { amountMinor: null, knowledge: "incomplete", nextAction: result.message })); }, [ownerEntitlement, selectedPolicy, periodFrom, periodTo, dataVersion]);
+  useEffect(() => {
+    if (!selectedPolicy) {
+      setCalculation(null);
+      return;
+    }
+    ownerEntitlement
+      .calculate(selectedPolicy.id, periodFrom, periodTo)
+      .then(result =>
+        setCalculation(
+          result.ok
+            ? result.value
+            : { amountMinor: null, knowledge: "incomplete", nextAction: result.message },
+        ),
+      );
+  }, [ownerEntitlement, selectedPolicy, periodFrom, periodTo, dataVersion]);
 
-  if (loading) return <div className="micro-route-loading" role="status">جارٍ قراءة دفتر استحقاق المالك…</div>;
-  if (error || !overview) return <section className="micro-page micro-not-found"><h1>تعذر قراءة دفتر المالك</h1><p>{error ?? "لم تتوفر بيانات محلية."}</p><button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/finance")}>الوضع المالي</button></section>;
+  if (loading)
+    return (
+      <div className="micro-route-loading" role="status">
+        جارٍ قراءة دفتر استحقاق المالك…
+      </div>
+    );
+  if (error || !overview)
+    return (
+      <section className="micro-page micro-not-found">
+        <h1>تعذر قراءة دفتر المالك</h1>
+        <p>{error ?? "لم تتوفر بيانات محلية."}</p>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate("/finance")}
+        >
+          الوضع المالي
+        </button>
+      </section>
+    );
 
   async function savePolicy() {
     const fixedPeriodIncomplete = policyKind === "fixed_period" && !policyEndsOn;
-    if (!policySource.trim() || !policyNote.trim() || (amountPolicyKinds.has(policyKind) && (!policyAmountValid || policyAmount <= 0)) || (percentagePolicyKinds.has(policyKind) && (!policyPercentageValid || policyPercentage <= 0 || policyPercentage > 100)) || fixedPeriodIncomplete) { setNotice({ tone: "error", text: fixedPeriodIncomplete ? "المبلغ الثابت يحتاج تاريخ نهاية معلنًا." : "أكمل مصدر السياسة وملاحظتها وأدخل مبلغًا أو نسبة صحيحة." }); return; }
-    setSaving(true); const result = await ownerEntitlement.createPolicy({ id: idempotency("policy-id"), version: 1, family: ownerEntitlementPolicyFamilyForKind(policyKind), kind: policyKind, amountMinor: amountPolicyKinds.has(policyKind) ? policyAmount : null, percentageBps: percentagePolicyKinds.has(policyKind) ? Math.round(policyPercentage * 100) : null, unitLabel: policyKind === "per_unit" || policyKind === "per_completed_work" ? "وحدة/عمل" : null, startsOn: policyStartsOn, endsOn: policyEndsOn || null, source: policySource, note: policyNote, status: "active", idempotencyKey: policyOperation.current }); setSaving(false); if (!result.ok) { setNotice({ tone: "error", text: result.message }); return; } setNotice({ tone: "success", text: result.reused ? "السياسة محفوظة سابقًا؛ لم تتكرر." : "تم حفظ السياسة كإصدار أول. استخدم إجراء الخليفة لأي تعديل مؤرخ." }); policyOperation.current = idempotency("owner-policy"); setPolicySource(""); setPolicyNote(""); notifyDataChanged();
+    if (
+      !policySource.trim() ||
+      !policyNote.trim() ||
+      (amountPolicyKinds.has(policyKind) && (!policyAmountValid || policyAmount <= 0)) ||
+      (percentagePolicyKinds.has(policyKind) &&
+        (!policyPercentageValid || policyPercentage <= 0 || policyPercentage > 100)) ||
+      fixedPeriodIncomplete
+    ) {
+      setNotice({
+        tone: "error",
+        text: fixedPeriodIncomplete
+          ? "المبلغ الثابت يحتاج تاريخ نهاية معلنًا."
+          : "أكمل مصدر السياسة وملاحظتها وأدخل مبلغًا أو نسبة صحيحة.",
+      });
+      return;
+    }
+    setSaving(true);
+    const result = await ownerEntitlement.createPolicy({
+      id: idempotency("policy-id"),
+      version: 1,
+      family: ownerEntitlementPolicyFamilyForKind(policyKind),
+      kind: policyKind,
+      amountMinor: amountPolicyKinds.has(policyKind) ? policyAmount : null,
+      percentageBps: percentagePolicyKinds.has(policyKind) ? Math.round(policyPercentage * 100) : null,
+      unitLabel: policyKind === "per_unit" || policyKind === "per_completed_work" ? "وحدة/عمل" : null,
+      startsOn: policyStartsOn,
+      endsOn: policyEndsOn || null,
+      source: policySource,
+      note: policyNote,
+      status: "active",
+      idempotencyKey: policyOperation.current,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.message });
+      return;
+    }
+    setNotice({
+      tone: "success",
+      text: result.reused
+        ? "السياسة محفوظة سابقًا؛ لم تتكرر."
+        : "تم حفظ السياسة كإصدار أول. استخدم إجراء الخليفة لأي تعديل مؤرخ.",
+    });
+    policyOperation.current = idempotency("owner-policy");
+    setPolicySource("");
+    setPolicyNote("");
+    notifyDataChanged();
   }
 
   async function saveSuccessor() {
-    const invalidValue = successorRequirements.valueKind === "amount" ? !successorAmountValid || successorAmount <= 0 : !successorPercentageValid || successorPercentage <= 0 || successorPercentage > 100;
+    const invalidValue =
+      successorRequirements.valueKind === "amount"
+        ? !successorAmountValid || successorAmount <= 0
+        : !successorPercentageValid || successorPercentage <= 0 || successorPercentage > 100;
     const missingUnit = successorRequirements.requiresUnit && !successorUnitLabel.trim();
     const missingEnd = successorRequirements.requiresEndDate && !successorEndsOn;
-    if (!successorPolicy || !successorSource.trim() || !successorNote.trim() || !successorStartsOn) { setNotice({ tone: "error", text: "اختر سياسة فعالة وحدد تاريخ النفاذ واكتب سببًا وملاحظة للتعديل." }); return; }
-    if (!successorRequirements.supported || successorKind === "fixed_shift") { setNotice({ tone: "error", text: "هذا النوع غير متاح في O1 لغياب الدليل التشغيلي؛ اختر نوعًا مدعومًا." }); return; }
-    if (invalidValue) { setNotice({ tone: "error", text: successorRequirements.valueKind === "amount" ? "أدخل مبلغ الخليفة موجبًا بوحدة JOD minor." : "أدخل نسبة الخليفة بين 0.01% و100%." }); return; }
-    if (missingUnit) { setNotice({ tone: "error", text: "أدخل اسم الوحدة أو العمل صراحة؛ لا نخفي معنى الوحدة بقيمة ثابتة." }); return; }
-    if (missingEnd) { setNotice({ tone: "error", text: "الخليفة من نوع مبلغ ثابت للفترة تحتاج تاريخ نهاية معلنًا." }); return; }
-    setSaving(true); const result = await ownerEntitlement.createPolicySuccessor(successorPolicy.id, { kind: successorKind, amountMinor: successorRequirements.valueKind === "amount" ? successorAmount : null, percentageBps: successorRequirements.valueKind === "percentage" ? Math.round(successorPercentage * 100) : null, unitLabel: successorRequirements.requiresUnit ? successorUnitLabel : null, endsOn: successorRequirements.requiresEndDate ? successorEndsOn : null, startsOn: successorStartsOn, source: successorSource, note: successorNote, idempotencyKey: successorOperation.current }); setSaving(false); if (!result.ok) { setNotice({ tone: "error", text: result.message }); return; } setNotice({ tone: "success", text: result.reused ? "خليفة السياسة محفوظة سابقًا؛ لم يتكرر التعديل." : "تم حفظ إعدادات الخليفة الجديدة وإنهاء النسخة السابقة؛ لا تتغير الاستحقاقات المسجلة سابقًا." }); successorOperation.current = idempotency("owner-successor"); setSuccessorSource(""); setSuccessorNote(""); notifyDataChanged();
+    if (!successorPolicy || !successorSource.trim() || !successorNote.trim() || !successorStartsOn) {
+      setNotice({ tone: "error", text: "اختر سياسة فعالة وحدد تاريخ النفاذ واكتب سببًا وملاحظة للتعديل." });
+      return;
+    }
+    if (!successorRequirements.supported || successorKind === "fixed_shift") {
+      setNotice({
+        tone: "error",
+        text: "هذا النوع غير متاح في O1 لغياب الدليل التشغيلي؛ اختر نوعًا مدعومًا.",
+      });
+      return;
+    }
+    if (invalidValue) {
+      setNotice({
+        tone: "error",
+        text:
+          successorRequirements.valueKind === "amount"
+            ? "أدخل مبلغ الخليفة موجبًا بوحدة JOD minor."
+            : "أدخل نسبة الخليفة بين 0.01% و100%.",
+      });
+      return;
+    }
+    if (missingUnit) {
+      setNotice({ tone: "error", text: "أدخل اسم الوحدة أو العمل صراحة؛ لا نخفي معنى الوحدة بقيمة ثابتة." });
+      return;
+    }
+    if (missingEnd) {
+      setNotice({ tone: "error", text: "الخليفة من نوع مبلغ ثابت للفترة تحتاج تاريخ نهاية معلنًا." });
+      return;
+    }
+    setSaving(true);
+    const result = await ownerEntitlement.createPolicySuccessor(successorPolicy.id, {
+      kind: successorKind,
+      amountMinor: successorRequirements.valueKind === "amount" ? successorAmount : null,
+      percentageBps:
+        successorRequirements.valueKind === "percentage" ? Math.round(successorPercentage * 100) : null,
+      unitLabel: successorRequirements.requiresUnit ? successorUnitLabel : null,
+      endsOn: successorRequirements.requiresEndDate ? successorEndsOn : null,
+      startsOn: successorStartsOn,
+      source: successorSource,
+      note: successorNote,
+      idempotencyKey: successorOperation.current,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.message });
+      return;
+    }
+    setNotice({
+      tone: "success",
+      text: result.reused
+        ? "خليفة السياسة محفوظة سابقًا؛ لم يتكرر التعديل."
+        : "تم حفظ إعدادات الخليفة الجديدة وإنهاء النسخة السابقة؛ لا تتغير الاستحقاقات المسجلة سابقًا.",
+    });
+    successorOperation.current = idempotency("owner-successor");
+    setSuccessorSource("");
+    setSuccessorNote("");
+    notifyDataChanged();
   }
 
   async function saveEntitlement() {
-    if (!selectedPolicy || !calculation || calculation.amountMinor === null || !entitlementNote.trim()) { setNotice({ tone: "error", text: calculation?.nextAction ?? "اختر سياسة مؤهلة واكتب ملاحظة قبل تسجيل الاستحقاق." }); return; }
-    setSaving(true); const result = await ownerEntitlement.recordEntitlement({ policyId: selectedPolicy.id, periodFrom, periodTo, occurredOn: entitlementDate, note: entitlementNote, idempotencyKey: entitlementOperation.current }); setSaving(false); if (!result.ok) { setNotice({ tone: "error", text: result.message }); return; } setNotice({ tone: "success", text: result.reused ? "الاستحقاق محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل الاستحقاق. لم يتغير كاش المشروع." }); entitlementOperation.current = idempotency("owner-entitlement"); setEntitlementNote(""); notifyDataChanged();
+    if (!selectedPolicy || !calculation || calculation.amountMinor === null || !entitlementNote.trim()) {
+      setNotice({
+        tone: "error",
+        text: calculation?.nextAction ?? "اختر سياسة مؤهلة واكتب ملاحظة قبل تسجيل الاستحقاق.",
+      });
+      return;
+    }
+    setSaving(true);
+    const result = await ownerEntitlement.recordEntitlement({
+      policyId: selectedPolicy.id,
+      periodFrom,
+      periodTo,
+      occurredOn: entitlementDate,
+      note: entitlementNote,
+      idempotencyKey: entitlementOperation.current,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.message });
+      return;
+    }
+    setNotice({
+      tone: "success",
+      text: result.reused ? "الاستحقاق محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل الاستحقاق. لم يتغير كاش المشروع.",
+    });
+    entitlementOperation.current = idempotency("owner-entitlement");
+    setEntitlementNote("");
+    notifyDataChanged();
   }
 
   async function saveOpeningBalance() {
-    const amount = openingAmount; if (!openingAmountValid || !Number.isInteger(amount) || amount === null || amount === 0 || !openingReason.trim() || !openingNote.trim()) { setNotice({ tone: "error", text: "أدخل رصيدًا افتتاحيًا غير صفري، وسببًا وملاحظة إلزاميين." }); return; }
-    setSaving(true); const result = await ownerEntitlement.setOpeningBalance({ id: idempotency("opening-id"), amountMinor: amount, occurredOn: openingDate, reason: openingReason, note: openingNote, idempotencyKey: openingOperation.current }); setSaving(false); if (!result.ok) { setNotice({ tone: "error", text: result.message }); return; } setNotice({ tone: "success", text: result.reused ? "الرصيد الافتتاحي محفوظ سابقًا؛ لا أحداث ماضية وهمية." : "تم حفظ الرصيد الافتتاحي كمصدر مستقل قابل للتسوية والعكس." }); openingOperation.current = idempotency("owner-opening"); setOpeningAmount(null); setOpeningAmountValid(true); setOpeningReason(""); setOpeningNote(""); notifyDataChanged();
+    const amount = openingAmount;
+    if (
+      !openingAmountValid ||
+      !Number.isInteger(amount) ||
+      amount === null ||
+      amount === 0 ||
+      !openingReason.trim() ||
+      !openingNote.trim()
+    ) {
+      setNotice({ tone: "error", text: "أدخل رصيدًا افتتاحيًا غير صفري، وسببًا وملاحظة إلزاميين." });
+      return;
+    }
+    setSaving(true);
+    const result = await ownerEntitlement.setOpeningBalance({
+      id: idempotency("opening-id"),
+      amountMinor: amount,
+      occurredOn: openingDate,
+      reason: openingReason,
+      note: openingNote,
+      idempotencyKey: openingOperation.current,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.message });
+      return;
+    }
+    setNotice({
+      tone: "success",
+      text: result.reused
+        ? "الرصيد الافتتاحي محفوظ سابقًا؛ لا أحداث ماضية وهمية."
+        : "تم حفظ الرصيد الافتتاحي كمصدر مستقل قابل للتسوية والعكس.",
+    });
+    openingOperation.current = idempotency("owner-opening");
+    setOpeningAmount(null);
+    setOpeningAmountValid(true);
+    setOpeningReason("");
+    setOpeningNote("");
+    notifyDataChanged();
   }
 
   async function saveMovement() {
-    if (!movementAmountValid || movementAmount <= 0 || !movementWalletId || !movementNote.trim()) { setNotice({ tone: "error", text: "أدخل مبلغًا ومحفظة وسببًا وملاحظة قبل حفظ الحركة." }); return; }
-    if (movementReason === "entitlement_settlement" && !relatedEntitlementId) { setNotice({ tone: "error", text: "اختر الاستحقاق الذي تسويه؛ لا نخمن سبب السحب." }); return; }
-    if (movementReason === "opening_balance_settlement" && !relatedOpeningBalanceId) { setNotice({ tone: "error", text: "اختر الرصيد الافتتاحي الذي تسويه؛ لا نخمن مصدر الحركة." }); return; }
-    if (movementReason === "settlement_of_prior_draw" && !relatedMovementId) { setNotice({ tone: "error", text: "اختر السحب السابق الذي تعيده؛ لا نسجل إرجاعًا بلا أصل." }); return; }
-    setSaving(true); const result = await ownerEntitlement.recordMovement({ kind: movementKind, amountMinor: movementAmount, walletId: movementWalletId, occurredOn: movementDate, reason: movementReason, note: movementNote, idempotencyKey: movementOperation.current, relatedEntitlementId: movementReason === "entitlement_settlement" ? relatedEntitlementId : null, relatedOpeningBalanceId: movementReason === "opening_balance_settlement" ? relatedOpeningBalanceId : null, relatedMovementId: movementReason === "settlement_of_prior_draw" ? relatedMovementId : null }); setSaving(false); if (!result.ok) { setNotice({ tone: "error", text: result.message }); return; } setNotice({ tone: "success", text: result.reused ? "الحركة محفوظة سابقًا؛ لم يتكرر الكاش." : "تم تسجيل الحركة وأثرها على محفظة الكاش." }); movementOperation.current = idempotency("owner-movement"); setMovementNote(""); setRelatedEntitlementId(""); setRelatedOpeningBalanceId(""); setRelatedMovementId(""); notifyDataChanged();
+    if (!movementAmountValid || movementAmount <= 0 || !movementWalletId || !movementNote.trim()) {
+      setNotice({ tone: "error", text: "أدخل مبلغًا ومحفظة وسببًا وملاحظة قبل حفظ الحركة." });
+      return;
+    }
+    if (movementReason === "entitlement_settlement" && !relatedEntitlementId) {
+      setNotice({ tone: "error", text: "اختر الاستحقاق الذي تسويه؛ لا نخمن سبب السحب." });
+      return;
+    }
+    if (movementReason === "opening_balance_settlement" && !relatedOpeningBalanceId) {
+      setNotice({ tone: "error", text: "اختر الرصيد الافتتاحي الذي تسويه؛ لا نخمن مصدر الحركة." });
+      return;
+    }
+    if (movementReason === "settlement_of_prior_draw" && !relatedMovementId) {
+      setNotice({ tone: "error", text: "اختر السحب السابق الذي تعيده؛ لا نسجل إرجاعًا بلا أصل." });
+      return;
+    }
+    setSaving(true);
+    const result = await ownerEntitlement.recordMovement({
+      kind: movementKind,
+      amountMinor: movementAmount,
+      walletId: movementWalletId,
+      occurredOn: movementDate,
+      reason: movementReason,
+      note: movementNote,
+      idempotencyKey: movementOperation.current,
+      relatedEntitlementId: movementReason === "entitlement_settlement" ? relatedEntitlementId : null,
+      relatedOpeningBalanceId:
+        movementReason === "opening_balance_settlement" ? relatedOpeningBalanceId : null,
+      relatedMovementId: movementReason === "settlement_of_prior_draw" ? relatedMovementId : null,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.message });
+      return;
+    }
+    setNotice({
+      tone: "success",
+      text: result.reused
+        ? "الحركة محفوظة سابقًا؛ لم يتكرر الكاش."
+        : "تم تسجيل الحركة وأثرها على محفظة الكاش.",
+    });
+    movementOperation.current = idempotency("owner-movement");
+    setMovementNote("");
+    setRelatedEntitlementId("");
+    setRelatedOpeningBalanceId("");
+    setRelatedMovementId("");
+    notifyDataChanged();
   }
 
   async function reverseMovement() {
-    if (!reversalTarget || reversalTarget.kind !== "movement" || !reversalReason.trim()) { setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الحركة." }); return; }
-    setSaving(true); const result = await ownerEntitlement.reverseMovement({ movementId: reversalTarget.id, occurredOn: localDateInAmman(), reason: reversalReason, idempotencyKey: idempotency(`owner-reversal:${reversalTarget.id}`) }); setSaving(false); if (!result.ok) { setNotice({ tone: "error", text: result.message }); return; } setNotice({ tone: "success", text: result.reused ? "العكس محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل عكس كامل. الأصل محفوظ ولم يُعدّل." }); setReversalTarget(null); setReversalReason(""); notifyDataChanged();
+    if (!reversalTarget || reversalTarget.kind !== "movement" || !reversalReason.trim()) {
+      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الحركة." });
+      return;
+    }
+    setSaving(true);
+    const result = await ownerEntitlement.reverseMovement({
+      movementId: reversalTarget.id,
+      occurredOn: localDateInAmman(),
+      reason: reversalReason,
+      idempotencyKey: idempotency(`owner-reversal:${reversalTarget.id}`),
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.message });
+      return;
+    }
+    setNotice({
+      tone: "success",
+      text: result.reused ? "العكس محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل عكس كامل. الأصل محفوظ ولم يُعدّل.",
+    });
+    setReversalTarget(null);
+    setReversalReason("");
+    notifyDataChanged();
   }
 
   async function reverseEntitlement() {
-    if (!reversalTarget || reversalTarget.kind !== "entitlement" || !reversalReason.trim()) { setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الاستحقاق." }); return; }
-    setSaving(true); const result = await ownerEntitlement.reverseEntitlement({ recordId: reversalTarget.id, occurredOn: localDateInAmman(), reason: reversalReason, idempotencyKey: idempotency(`entitlement-reversal:${reversalTarget.id}`) }); setSaving(false); if (!result.ok) { setNotice({ tone: "error", text: result.message }); return; } setNotice({ tone: "success", text: result.reused ? "عكس الاستحقاق محفوظ سابقًا؛ لم يتكرر." : "تم عكس الاستحقاق كاملًا. الأصل محفوظ وقفل الفترة متاح لإعادة تسجيل صحيحة." }); setReversalTarget(null); setReversalReason(""); notifyDataChanged();
+    if (!reversalTarget || reversalTarget.kind !== "entitlement" || !reversalReason.trim()) {
+      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الاستحقاق." });
+      return;
+    }
+    setSaving(true);
+    const result = await ownerEntitlement.reverseEntitlement({
+      recordId: reversalTarget.id,
+      occurredOn: localDateInAmman(),
+      reason: reversalReason,
+      idempotencyKey: idempotency(`entitlement-reversal:${reversalTarget.id}`),
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.message });
+      return;
+    }
+    setNotice({
+      tone: "success",
+      text: result.reused
+        ? "عكس الاستحقاق محفوظ سابقًا؛ لم يتكرر."
+        : "تم عكس الاستحقاق كاملًا. الأصل محفوظ وقفل الفترة متاح لإعادة تسجيل صحيحة.",
+    });
+    setReversalTarget(null);
+    setReversalReason("");
+    notifyDataChanged();
   }
 
   async function reverseOpening() {
-    if (!reversalTarget || reversalTarget.kind !== "opening" || !reversalReason.trim()) { setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الرصيد الافتتاحي." }); return; }
-    setSaving(true); const result = await ownerEntitlement.reverseOpeningBalance({ balanceId: reversalTarget.id, occurredOn: localDateInAmman(), reason: reversalReason, idempotencyKey: idempotency(`opening-reversal:${reversalTarget.id}`) }); setSaving(false); if (!result.ok) { setNotice({ tone: "error", text: result.message }); return; } setNotice({ tone: "success", text: result.reused ? "عكس الرصيد الافتتاحي محفوظ سابقًا؛ لم يتكرر." : "تم عكس الرصيد الافتتاحي كاملًا. الأصل محفوظ ويمكن تصحيحه بسجل جديد." }); setReversalTarget(null); setReversalReason(""); notifyDataChanged();
+    if (!reversalTarget || reversalTarget.kind !== "opening" || !reversalReason.trim()) {
+      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الرصيد الافتتاحي." });
+      return;
+    }
+    setSaving(true);
+    const result = await ownerEntitlement.reverseOpeningBalance({
+      balanceId: reversalTarget.id,
+      occurredOn: localDateInAmman(),
+      reason: reversalReason,
+      idempotencyKey: idempotency(`opening-reversal:${reversalTarget.id}`),
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setNotice({ tone: "error", text: result.message });
+      return;
+    }
+    setNotice({
+      tone: "success",
+      text: result.reused
+        ? "عكس الرصيد الافتتاحي محفوظ سابقًا؛ لم يتكرر."
+        : "تم عكس الرصيد الافتتاحي كاملًا. الأصل محفوظ ويمكن تصحيحه بسجل جديد.",
+    });
+    setReversalTarget(null);
+    setReversalReason("");
+    notifyDataChanged();
   }
 
-  return <section className="micro-page micro-finance-page micro-owner-page">
-    <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}><ArrowRight aria-hidden="true" /> الوضع المالي</button>
-    <div className="micro-page-heading"><span className="micro-overline">دفتر المالك · المبالغ بد.أ</span><h1>ما حقي المسجل؟</h1><p>افصل بين الاستحقاق الذي سجلته، وما أخذته أو أعدته فعليًا، ورصيد الاستحقاق المتبقي. هذه ليست رواتب موظفين ولا دفترًا قانونيًا.</p></div>
-    {notice ? <p className={notice.tone === "success" ? "micro-save-note" : "micro-field-error"} role="status">{notice.text}</p> : null}
-    <section className="micro-owner-balance-card" data-balance={overview.balanceState}><div className="micro-owner-balance-head"><CircleDollarSign aria-hidden="true" /><div><span className="micro-overline">الرصيد بعد الحركات المسجلة</span><h2>{overview.balanceState === "positive" ? "المشروع ما زال مدينًا لك" : overview.balanceState === "negative" ? "سحبت أكثر مما سُجل لك حتى الآن" : "الرصيد مسوّى"}</h2></div></div><strong className="micro-owner-balance-value"><bdi dir="ltr">{formatMoneyMinor(overview.remainingEntitlementBalanceMinor)}</bdi> <small>JOD</small></strong><div className="micro-owner-stat-grid"><Metric label="الاستحقاق المعتمد" value={overview.approvedEntitlementMinor} /><Metric label="الافتتاح المتبقي" value={overview.openingBalanceRemainingMinor} /><Metric label="سحب لتسوية استحقاق" value={overview.drawnForEntitlementMinor} /><Metric label="إرجاع سحب سابق" value={overview.returnedForPriorDrawMinor} /></div><p>{overview.truth}</p><p className="micro-decision-next">الفعل التالي: {overview.nextAction}</p></section>
-    <section className="micro-owner-ledger"><div className="micro-section-heading"><div><span className="micro-overline">طبقة لا تغير الربح أو الكاش</span><h2>سياسات الاستحقاق</h2></div><span className="micro-g5-count">{overview.policies.length}</span></div><p>كل سياسة جديدة مستقلة تبدأ بإصدار أول. تعديل سياسة قائمة يتم فقط عبر خليفة مؤرخة تنهي النسخة السابقة؛ لا تعدّل إصدارًا محفوظًا يدويًا.</p>{overview.policies.length === 0 ? <p className="micro-empty-state">لا توجد سياسة بعد. أضف أقل سياسة تحتاجها فقط.</p> : <div className="micro-owner-list">{overview.policies.map(policy => <article key={policy.id} className="micro-owner-list-row"><div><strong>{policyLabels[policy.kind]}</strong><small>{policyFamilyLabels[policy.family]} · إصدار <bdi dir="ltr">{policy.version}</bdi> · السلسلة <bdi dir="ltr">{policy.seriesId.slice(0, 8)}</bdi> · تبدأ <bdi dir="ltr">{formatLocalDate(policy.startsOn)}</bdi>{policy.endsOn ? ` · تنتهي ${formatLocalDate(policy.endsOn)}` : " · بلا تاريخ إيقاف"}</small><small>المصدر: {policy.source} · {policy.status === "active" ? "فعالة" : "منتهية"}{policy.successorOfPolicyId ? ` · خليفة لـ ${policy.successorOfPolicyId.slice(0, 8)}` : ""}</small></div><b>{policy.amountMinor === null ? `${(policy.percentageBps ?? 0) / 100}%` : `${formatMoneyMinor(policy.amountMinor)} JOD`}</b></article>)}</div>}</section>
-    <section className="micro-form-card"><div className="micro-section-heading"><div><span className="micro-overline">إجراء واضح</span><h2>إضافة سياسة مستقلة</h2></div></div><div className="micro-field-grid"><label className="micro-field"><span>نوع السياسة</span><select value={policyKind} onChange={event => { const kind = event.target.value as OwnerEntitlementPolicy["kind"]; setPolicyKind(kind); }}>{supportedOwnerEntitlementPolicyKinds.map(kind => <option key={kind} value={kind}>{policyLabels[kind]}</option>)}</select></label></div>{amountPolicyKinds.has(policyKind) ? <label className="micro-field"><span>المبلغ بوحدة JOD minor</span><EnglishNumberInput value={policyAmount} kind="money" onNumericChange={setPolicyAmount} onTextValidityChange={setPolicyAmountValid} aria-label="مبلغ سياسة الاستحقاق" /></label> : <label className="micro-field"><span>النسبة (%)</span><EnglishNumberInput value={policyPercentage} kind="decimal" onNumericChange={setPolicyPercentage} onTextValidityChange={setPolicyPercentageValid} aria-label="نسبة سياسة الاستحقاق" /><small>تحفظ النسبة basis points صحيحة، وتحسب من نتيجة G3 المسجلة أو البيع المكتمل حسب النوع.</small></label>}<div className="micro-field-grid"><LocalDateField label="تاريخ البداية المحلي" value={policyStartsOn} onChange={event => setPolicyStartsOn(event.target.value)} /><LocalDateField label="تاريخ النهاية المعلن" description="اتركه فارغًا للسياسات المستمرة، أما المبلغ الثابت للفترة فيحتاج نهاية صريحة." value={policyEndsOn} onChange={event => setPolicyEndsOn(event.target.value)} /></div>{policyKind === "per_unit" || policyKind === "per_completed_work" ? <label className="micro-field"><span>الوحدة</span><input value="وحدة/عمل" readOnly /></label> : null}<label className="micro-field"><span>مصدر السياسة <small>مطلوب</small></span><input value={policySource} onChange={event => setPolicySource(event.target.value)} placeholder="مثال: اتفاق مالك المشروع" /></label><label className="micro-field"><span>ملاحظة السياسة <small>مطلوب</small></span><textarea value={policyNote} onChange={event => setPolicyNote(event.target.value)} placeholder="ما الذي يغطيه هذا الاستحقاق؟" /></label><button className="micro-button micro-button-primary" type="button" disabled={saving} onClick={() => void savePolicy()}><Save aria-hidden="true" /> حفظ سياسة مستقلة</button></section>
-    <section className="micro-form-card"><div className="micro-section-heading"><div><span className="micro-overline">تعديل غير رجعي</span><h2>تعديل سياسة من تاريخ جديد</h2></div></div><p>تنتهي النسخة السابقة في اليوم السابق لتاريخ النفاذ، وتنشأ نسخة جديدة بإعداداتك الجديدة. <strong>لا تتغير الاستحقاقات المسجلة سابقًا.</strong></p><label className="micro-field"><span>السياسة الفعالة المصدر</span><select value={successorPolicyId} onChange={event => setSuccessorPolicyId(event.target.value)}><option value="">اختر سياسة فعالة</option>{overview.activePolicies.map(policy => <option key={policy.id} value={policy.id}>{policyLabels[policy.kind]} · إصدار {policy.version} · تبدأ {formatLocalDate(policy.startsOn)}</option>)}</select></label>{successorPolicy ? <div className="micro-owner-calculation"><strong>ملخص النسخة السابقة</strong><p>{policyLabels[successorPolicy.kind]} · {successorPolicy.amountMinor === null ? `${(successorPolicy.percentageBps ?? 0) / 100}%` : `${formatMoneyMinor(successorPolicy.amountMinor)} JOD`} · {policyFamilyLabels[successorPolicy.family]}</p><small>سيبقى الإصدار {successorPolicy.version} واستحقاقاته الماضية ومعرّفاتها ومبالغها كما هي.</small></div> : null}<div className="micro-field-grid"><LocalDateField label="تاريخ نفاذ الخليفة" description="يبدأ أثر الإعداد الجديد من هذا التاريخ فقط." value={successorStartsOn} onChange={event => setSuccessorStartsOn(event.target.value)} /><label className="micro-field"><span>نوع الخليفة</span><select value={successorKind} onChange={event => { const kind = event.target.value as OwnerEntitlementPolicy["kind"]; setSuccessorKind(kind); if (kind !== "fixed_period") setSuccessorEndsOn(""); if (kind !== "per_unit" && kind !== "per_completed_work") setSuccessorUnitLabel(""); }}>{supportedOwnerEntitlementPolicyKinds.map(kind => <option key={kind} value={kind}>{policyLabels[kind]}</option>)}</select></label></div>{successorRequirements.valueKind === "amount" ? <label className="micro-field"><span>مبلغ الخليفة بوحدة JOD minor</span><EnglishNumberInput value={successorAmount} kind="money" onNumericChange={setSuccessorAmount} onTextValidityChange={setSuccessorAmountValid} aria-label="مبلغ خليفة سياسة الاستحقاق" /></label> : <label className="micro-field"><span>نسبة الخليفة (%)</span><EnglishNumberInput value={successorPercentage} kind="decimal" onNumericChange={setSuccessorPercentage} onTextValidityChange={setSuccessorPercentageValid} aria-label="نسبة خليفة سياسة الاستحقاق" /><small>تحسب من نتيجة G3 المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.</small></label>}{successorRequirements.requiresUnit ? <label className="micro-field"><span>الوحدة أو تعريف العمل <small>مطلوب</small></span><input value={successorUnitLabel} onChange={event => setSuccessorUnitLabel(event.target.value)} placeholder="مثال: قطعة مكتملة أو طلب خدمة" /><small>يجب أن يصف هذا الحقل دليل المصدر؛ لا يسجل النظام صفرًا عند غيابه.</small></label> : null}{successorRequirements.requiresEndDate ? <LocalDateField label="نهاية نطاق الخليفة" description="مطلوبة. المبلغ الثابت للفترة يحتاج نطاقًا معلنًا كاملًا." value={successorEndsOn} onChange={event => setSuccessorEndsOn(event.target.value)} /> : null}<label className="micro-field"><span>سبب التعديل <small>مطلوب</small></span><input value={successorSource} onChange={event => setSuccessorSource(event.target.value)} placeholder="مثال: تعديل الاتفاق من بداية أيلول" /></label><label className="micro-field"><span>ملاحظة الخليفة <small>مطلوبة</small></span><textarea value={successorNote} onChange={event => setSuccessorNote(event.target.value)} placeholder="ما الذي تغير في المبلغ أو النوع أو النطاق؟" /></label><p className="micro-decision-next">النتيجة: النسخة الجديدة تحفظ إعدادات مختلفة عند الحاجة، والحقوق التاريخية لا يعاد احتسابها. إذا احتاج النوع دليل وقت أو وحدة أو وردية غير موجود، سيبقى غير متاح بدل التخمين.</p><button className="micro-button micro-button-secondary" type="button" disabled={saving || !successorPolicy} onClick={() => void saveSuccessor()}>حفظ التعديل وإنهاء السابقة</button></section>
-    <section className="micro-form-card"><div className="micro-section-heading"><div><span className="micro-overline">استحقاق مستقل</span><h2>تسجيل حق المالك</h2></div></div><p>تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. الفترة والمصدر مقفولان ضد تكرار الحق؛ اعكس السجل فقط إذا كان خطأ.</p><label className="micro-field"><span>السياسة المصدر</span><select value={selectedPolicyId} onChange={event => setSelectedPolicyId(event.target.value)}><option value="">اختر سياسة</option>{overview.policies.map(policy => <option key={policy.id} value={policy.id}>{policyLabels[policy.kind]} · إصدار {policy.version} · تبدأ {formatLocalDate(policy.startsOn)}</option>)}</select></label><div className="micro-field-grid"><LocalDateField label="من الفترة" value={periodFrom} onChange={event => setPeriodFrom(event.target.value)} /><LocalDateField label="إلى الفترة" value={periodTo} onChange={event => setPeriodTo(event.target.value)} /></div><div className="micro-owner-calculation" data-known={calculation?.amountMinor !== null && calculation?.amountMinor !== undefined}>{calculation?.amountMinor === null || !calculation ? <><strong>الاستحقاق غير متاح بعد</strong><p>{calculation?.nextAction ?? "اختر سياسة وفترة صحيحتين."}</p></> : <><strong>الاستحقاق المقترح: <bdi dir="ltr">{formatMoneyMinor(calculation.amountMinor)} JOD</bdi></strong><p>الحالة: {calculation.knowledge === "known" ? "معروف" : "جزئي/يحتاج مراجعة"}. راجع المصدر قبل التسجيل.</p><p>{calculation.nextAction}</p></>}</div><LocalDateField label="تاريخ تسجيل الاستحقاق" value={entitlementDate} onChange={event => setEntitlementDate(event.target.value)} /><label className="micro-field"><span>ملاحظة الاستحقاق <small>مطلوبة</small></span><textarea value={entitlementNote} onChange={event => setEntitlementNote(event.target.value)} placeholder="مثال: استحقاق شهر آب حسب السياسة 1" /></label><button className="micro-button micro-button-primary" type="button" disabled={saving || !calculation || calculation.amountMinor === null} onClick={() => void saveEntitlement()}><HandCoins aria-hidden="true" /> تسجيل الاستحقاق دون قبض</button></section>
-    <section className="micro-form-card"><div className="micro-section-heading"><div><span className="micro-overline">مصدر قابل للتسوية</span><h2>إضافة رصيد افتتاحي</h2></div></div><p>هذه طبقة افتتاحية اختيارية بإشارة موجبة أو سالبة، مع سبب وملاحظة. لا تنشئ حركة ماضية، ويمكن تسويتها أو عكسها صراحة.</p><div className="micro-field-grid"><label className="micro-field"><span>الرصيد بوحدة JOD minor</span><EnglishNumberInput value={openingAmount} kind="signedInteger" onNumericChange={setOpeningAmount} onTextValidityChange={setOpeningAmountValid} onEmptyChange={() => setOpeningAmount(null)} allowEmpty placeholder="مثال: 1500 أو -500" aria-label="الرصيد الافتتاحي الموقّع" /><small>الموجب: المشروع مدين لك ويمكن تسويته بسحب. السالب: سحوبات سابقة أكثر ويمكن تسويته بإرجاع.</small></label><LocalDateField label="التاريخ المحلي" value={openingDate} onChange={event => setOpeningDate(event.target.value)} /></div><label className="micro-field"><span>السبب <small>مطلوب</small></span><input value={openingReason} onChange={event => setOpeningReason(event.target.value)} placeholder="مثال: رصيد دفتر سابق موثق" /></label><label className="micro-field"><span>ملاحظة <small>مطلوبة</small></span><textarea value={openingNote} onChange={event => setOpeningNote(event.target.value)} placeholder="اشرح مصدر الرصيد الافتتاحي" /></label><button className="micro-button micro-button-secondary" type="button" disabled={saving} onClick={() => void saveOpeningBalance()}>حفظ الرصيد الافتتاحي</button></section>
-    <section className="micro-form-card"><div className="micro-section-heading"><div><span className="micro-overline">يغير الكاش فعليًا</span><h2>تسجيل سحب أو إرجاع</h2></div></div><p>كل حركة تحتاج محفظة وسببًا وملاحظة ومصدرًا عند التسوية. السحب ليس مصروف تشغيل، والإرجاع كرأس مال جديد لا يسوي الاستحقاق.</p><div className="micro-field-grid"><label className="micro-field"><span>نوع الحركة</span><select value={movementKind} onChange={event => setMovementKind(event.target.value as "draw" | "return")}><option value="draw">سحب فعلي</option><option value="return">إرجاع فعلي</option></select></label><label className="micro-field"><span>المبلغ بوحدة JOD minor</span><EnglishNumberInput value={movementAmount} kind="money" onNumericChange={setMovementAmount} onTextValidityChange={setMovementAmountValid} aria-label="مبلغ حركة المالك" /></label></div><label className="micro-field"><span>السبب</span><select value={movementReason} onChange={event => setMovementReason(event.target.value as OwnerMovementReason)}>{reasonOptions.map(reason => <option key={reason} value={reason}>{movementReasonLabels[reason]}</option>)}</select></label>{movementReason === "entitlement_settlement" ? <label className="micro-field"><span>الاستحقاق الذي تتم تسويته</span><select value={relatedEntitlementId} onChange={event => setRelatedEntitlementId(event.target.value)}><option value="">اختر استحقاقًا مسجلًا</option>{activeEntitlements.map(record => <option key={record.id} value={record.id}>{formatLocalDate(record.occurredOn)} · {formatMoneyMinor(record.amountMinor)} JOD · {record.note}</option>)}</select></label> : null}{movementReason === "opening_balance_settlement" ? <label className="micro-field"><span>الرصيد الافتتاحي المصدر</span><select value={relatedOpeningBalanceId} onChange={event => setRelatedOpeningBalanceId(event.target.value)}><option value="">اختر رصيدًا افتتاحيًا</option>{activeOpeningBalances.filter(balance => movementKind === "draw" ? balance.amountMinor > 0 : balance.amountMinor < 0).map(balance => <option key={balance.id} value={balance.id}>{formatLocalDate(balance.occurredOn)} · {formatMoneyMinor(balance.amountMinor)} JOD · {balance.note}</option>)}</select></label> : null}{movementReason === "settlement_of_prior_draw" ? <label className="micro-field"><span>السحب السابق الذي تعيده</span><select value={relatedMovementId} onChange={event => setRelatedMovementId(event.target.value)}><option value="">اختر سحبًا سابقًا</option>{priorDraws.map(movement => <option key={movement.id} value={movement.id}>{formatLocalDate(movement.occurredOn)} · {formatMoneyMinor(movement.amountMinor)} JOD · {movement.note}</option>)}</select></label> : null}<label className="micro-field"><span>محفظة الكاش</span><select value={movementWalletId} onChange={event => setMovementWalletId(event.target.value)}><option value="">اختر محفظة</option>{overview.walletBalances.map(wallet => <option key={wallet.id} value={wallet.id}>{wallet.name} · الرصيد {formatMoneyMinor(wallet.balanceMinor)} JOD</option>)}</select></label><LocalDateField label="تاريخ الحركة" value={movementDate} onChange={event => setMovementDate(event.target.value)} /><label className="micro-field"><span>ملاحظة الحركة <small>مطلوبة</small></span><textarea value={movementNote} onChange={event => setMovementNote(event.target.value)} placeholder="مثال: سحبت مبلغًا لتسوية استحقاق آب" /></label><button className="micro-button micro-button-primary" type="button" disabled={saving} onClick={() => void saveMovement()}><WalletCards aria-hidden="true" /> حفظ الحركة وأثر الكاش</button></section>
-    <section className="micro-owner-ledger"><div className="micro-section-heading"><div><span className="micro-overline">أثر غير قابل للمحو</span><h2>الاستحقاقات والأرصدة والحركات</h2></div></div>{overview.entitlements.length === 0 && overview.openingBalances.length === 0 && overview.movements.length === 0 ? <p className="micro-empty-state">لا توجد استحقاقات أو أرصدة أو حركات مالك بعد.</p> : <div className="micro-owner-list">{overview.entitlements.map(record => <article className="micro-owner-list-row" key={record.id}><div><strong>استحقاق · {formatLocalDate(record.occurredOn)}{record.reversalOfId ? " · عكس كامل" : ""}</strong><small>{formatLocalDate(record.periodFrom)} → {formatLocalDate(record.periodTo)} · {record.knowledge === "known" ? "معروف" : "جزئي"} · {record.note}</small><small>المصدر: {record.sourceKeys.join(", ") || "فترة معلنة"}{record.reversalOfId ? ` · الأصل محفوظ: ${record.reversalOfId} · السبب: ${record.reversalReason}` : ""}</small></div><div className="micro-owner-list-actions"><b><bdi dir="ltr">{formatMoneyMinor(record.amountMinor)}</bdi> JOD</b>{!record.reversalOfId && !reversedEntitlementIds.has(record.id) ? <button className="micro-text-action" type="button" onClick={() => { setReversalTarget({ kind: "entitlement", id: record.id }); setReversalReason(""); }}><RotateCcw aria-hidden="true" /> عكس كامل</button> : null}</div>{reversalTarget?.kind === "entitlement" && reversalTarget.id === record.id ? <ReversalBox label="سبب عكس الاستحقاق" value={reversalReason} onChange={setReversalReason} onConfirm={() => void reverseEntitlement()} onCancel={() => setReversalTarget(null)} saving={saving} /> : null}</article>)}{overview.openingBalances.map(balance => <article className="micro-owner-list-row" key={balance.id}><div><strong>رصيد افتتاحي · {formatLocalDate(balance.occurredOn)}{balance.reversalOfId ? " · عكس كامل" : ""}</strong><small><bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> JOD · {balance.reason} · {balance.note}</small>{balance.reversalOfId ? <small>الأصل محفوظ: {balance.reversalOfId} · السبب: {balance.reversalReason}</small> : <small>المتبقي بعد التسويات: <bdi dir="ltr">{formatMoneyMinor(balance.amountMinor + overview.movements.filter(movement => movement.relatedOpeningBalanceId === balance.id).reduce((sum, movement) => sum + movement.openingBalanceDeltaMinor, 0))}</bdi> JOD</small>}</div><div className="micro-owner-list-actions"><b><bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> JOD</b>{!balance.reversalOfId && !reversedOpeningIds.has(balance.id) ? <button className="micro-text-action" type="button" onClick={() => { setReversalTarget({ kind: "opening", id: balance.id }); setReversalReason(""); }}><RotateCcw aria-hidden="true" /> عكس كامل</button> : null}</div>{reversalTarget?.kind === "opening" && reversalTarget.id === balance.id ? <ReversalBox label="سبب عكس الرصيد الافتتاحي" value={reversalReason} onChange={setReversalReason} onConfirm={() => void reverseOpening()} onCancel={() => setReversalTarget(null)} saving={saving} /> : null}</article>)}{overview.movements.map(movement => <article className="micro-owner-list-row" data-movement={movement.reversalOfId ? "reversal" : movement.kind} key={movement.id}><div><strong>{movement.kind === "draw" ? "سحب فعلي" : "إرجاع فعلي"}{movement.reversalOfId ? " · عكس كامل" : ""}</strong><small>{formatLocalDate(movement.occurredOn)} · {movementReasonLabels[movement.reason]} · {movement.note}</small><small>المحفظة: {overview.walletBalances.find(wallet => wallet.id === movement.walletId)?.name ?? movement.walletId} · أثر الكاش: <bdi dir="ltr">{formatMoneyMinor(movement.cashDeltaMinor)}</bdi> JOD</small>{movement.relatedOpeningBalanceId ? <small>مصدر الافتتاح: <bdi dir="ltr">{movement.relatedOpeningBalanceId}</bdi></small> : null}{movement.reversalOfId ? <small>الأصل محفوظ: <bdi dir="ltr">{movement.reversalOfId}</bdi> · السبب: {movement.reversalReason}</small> : null}</div><div className="micro-owner-list-actions"><b><bdi dir="ltr">{formatMoneyMinor(movement.amountMinor)}</bdi> JOD</b>{!movement.reversalOfId && !reversedMovementIds.has(movement.id) ? <button className="micro-text-action" type="button" onClick={() => { setReversalTarget({ kind: "movement", id: movement.id }); setReversalReason(""); }}><RotateCcw aria-hidden="true" /> عكس كامل</button> : null}</div>{reversalTarget?.kind === "movement" && reversalTarget.id === movement.id ? <ReversalBox label="سبب العكس" value={reversalReason} onChange={setReversalReason} onConfirm={() => void reverseMovement()} onCancel={() => setReversalTarget(null)} saving={saving} /> : null}</article>)}</div>}</section>
-  </section>;
+  return (
+    <section className="micro-page micro-finance-page micro-owner-page">
+      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+        <ArrowRight aria-hidden="true" /> الوضع المالي
+      </button>
+      <div className="micro-page-heading">
+        <span className="micro-overline">دفتر المالك · المبالغ بد.أ</span>
+        <h1>ما حقي المسجل؟</h1>
+        <p>
+          افصل بين الاستحقاق الذي سجلته، وما أخذته أو أعدته فعليًا، ورصيد الاستحقاق المتبقي. هذه ليست رواتب
+          موظفين ولا دفترًا قانونيًا.
+        </p>
+      </div>
+      {notice ? (
+        <p className={notice.tone === "success" ? "micro-save-note" : "micro-field-error"} role="status">
+          {notice.text}
+        </p>
+      ) : null}
+      <section className="micro-owner-balance-card" data-balance={overview.balanceState}>
+        <div className="micro-owner-balance-head">
+          <CircleDollarSign aria-hidden="true" />
+          <div>
+            <span className="micro-overline">الرصيد بعد الحركات المسجلة</span>
+            <h2>
+              {overview.balanceState === "positive"
+                ? "المشروع ما زال مدينًا لك"
+                : overview.balanceState === "negative"
+                  ? "سحبت أكثر مما سُجل لك حتى الآن"
+                  : "الرصيد مسوّى"}
+            </h2>
+          </div>
+        </div>
+        <strong className="micro-owner-balance-value">
+          <bdi dir="ltr">{formatMoneyMinor(overview.remainingEntitlementBalanceMinor)}</bdi>{" "}
+          <small>JOD</small>
+        </strong>
+        <div className="micro-owner-stat-grid">
+          <Metric label="الاستحقاق المعتمد" value={overview.approvedEntitlementMinor} />
+          <Metric label="الافتتاح المتبقي" value={overview.openingBalanceRemainingMinor} />
+          <Metric label="سحب لتسوية استحقاق" value={overview.drawnForEntitlementMinor} />
+          <Metric label="إرجاع سحب سابق" value={overview.returnedForPriorDrawMinor} />
+        </div>
+        <p>{overview.truth}</p>
+        <p className="micro-decision-next">الفعل التالي: {overview.nextAction}</p>
+      </section>
+      <section className="micro-owner-ledger">
+        <div className="micro-section-heading">
+          <div>
+            <span className="micro-overline">طبقة لا تغير الربح أو الكاش</span>
+            <h2>سياسات الاستحقاق</h2>
+          </div>
+          <span className="micro-g5-count">{overview.policies.length}</span>
+        </div>
+        <p>
+          كل سياسة جديدة مستقلة تبدأ بإصدار أول. تعديل سياسة قائمة يتم فقط عبر خليفة مؤرخة تنهي النسخة
+          السابقة؛ لا تعدّل إصدارًا محفوظًا يدويًا.
+        </p>
+        {overview.policies.length === 0 ? (
+          <p className="micro-empty-state">لا توجد سياسة بعد. أضف أقل سياسة تحتاجها فقط.</p>
+        ) : (
+          <div className="micro-owner-list">
+            {overview.policies.map(policy => (
+              <article key={policy.id} className="micro-owner-list-row">
+                <div>
+                  <strong>{policyLabels[policy.kind]}</strong>
+                  <small>
+                    {policyFamilyLabels[policy.family]} · إصدار <bdi dir="ltr">{policy.version}</bdi> ·
+                    السلسلة <bdi dir="ltr">{policy.seriesId.slice(0, 8)}</bdi> · تبدأ{" "}
+                    <bdi dir="ltr">{formatLocalDate(policy.startsOn)}</bdi>
+                    {policy.endsOn ? ` · تنتهي ${formatLocalDate(policy.endsOn)}` : " · بلا تاريخ إيقاف"}
+                  </small>
+                  <small>
+                    المصدر: {policy.source} · {policy.status === "active" ? "فعالة" : "منتهية"}
+                    {policy.successorOfPolicyId
+                      ? ` · خليفة لـ ${policy.successorOfPolicyId.slice(0, 8)}`
+                      : ""}
+                  </small>
+                </div>
+                <b>
+                  {policy.amountMinor === null
+                    ? `${(policy.percentageBps ?? 0) / 100}%`
+                    : `${formatMoneyMinor(policy.amountMinor)} JOD`}
+                </b>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+      <section className="micro-form-card">
+        <div className="micro-section-heading">
+          <div>
+            <span className="micro-overline">إجراء واضح</span>
+            <h2>إضافة سياسة مستقلة</h2>
+          </div>
+        </div>
+        <div className="micro-field-grid">
+          <label className="micro-field">
+            <span>نوع السياسة</span>
+            <select
+              value={policyKind}
+              onChange={event => {
+                const kind = event.target.value as OwnerEntitlementPolicy["kind"];
+                setPolicyKind(kind);
+              }}
+            >
+              {supportedOwnerEntitlementPolicyKinds.map(kind => (
+                <option key={kind} value={kind}>
+                  {policyLabels[kind]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {amountPolicyKinds.has(policyKind) ? (
+          <label className="micro-field">
+            <span>المبلغ بوحدة JOD minor</span>
+            <EnglishNumberInput
+              value={policyAmount}
+              kind="money"
+              onNumericChange={setPolicyAmount}
+              onTextValidityChange={setPolicyAmountValid}
+              aria-label="مبلغ سياسة الاستحقاق"
+            />
+          </label>
+        ) : (
+          <label className="micro-field">
+            <span>النسبة (%)</span>
+            <EnglishNumberInput
+              value={policyPercentage}
+              kind="decimal"
+              onNumericChange={setPolicyPercentage}
+              onTextValidityChange={setPolicyPercentageValid}
+              aria-label="نسبة سياسة الاستحقاق"
+            />
+            <small>
+              تحفظ النسبة basis points صحيحة، وتحسب من نتيجة G3 المسجلة أو البيع المكتمل حسب النوع.
+            </small>
+          </label>
+        )}
+        <div className="micro-field-grid">
+          <LocalDateField
+            label="تاريخ البداية المحلي"
+            value={policyStartsOn}
+            onChange={event => setPolicyStartsOn(event.target.value)}
+          />
+          <LocalDateField
+            label="تاريخ النهاية المعلن"
+            description="اتركه فارغًا للسياسات المستمرة، أما المبلغ الثابت للفترة فيحتاج نهاية صريحة."
+            value={policyEndsOn}
+            onChange={event => setPolicyEndsOn(event.target.value)}
+          />
+        </div>
+        {policyKind === "per_unit" || policyKind === "per_completed_work" ? (
+          <label className="micro-field">
+            <span>الوحدة</span>
+            <input value="وحدة/عمل" readOnly />
+          </label>
+        ) : null}
+        <label className="micro-field">
+          <span>
+            مصدر السياسة <small>مطلوب</small>
+          </span>
+          <input
+            value={policySource}
+            onChange={event => setPolicySource(event.target.value)}
+            placeholder="مثال: اتفاق مالك المشروع"
+          />
+        </label>
+        <label className="micro-field">
+          <span>
+            ملاحظة السياسة <small>مطلوب</small>
+          </span>
+          <textarea
+            value={policyNote}
+            onChange={event => setPolicyNote(event.target.value)}
+            placeholder="ما الذي يغطيه هذا الاستحقاق؟"
+          />
+        </label>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          disabled={saving}
+          onClick={() => void savePolicy()}
+        >
+          <Save aria-hidden="true" /> حفظ سياسة مستقلة
+        </button>
+      </section>
+      <section className="micro-form-card">
+        <div className="micro-section-heading">
+          <div>
+            <span className="micro-overline">تعديل غير رجعي</span>
+            <h2>تعديل سياسة من تاريخ جديد</h2>
+          </div>
+        </div>
+        <p>
+          تنتهي النسخة السابقة في اليوم السابق لتاريخ النفاذ، وتنشأ نسخة جديدة بإعداداتك الجديدة.{" "}
+          <strong>لا تتغير الاستحقاقات المسجلة سابقًا.</strong>
+        </p>
+        <label className="micro-field">
+          <span>السياسة الفعالة المصدر</span>
+          <select value={successorPolicyId} onChange={event => setSuccessorPolicyId(event.target.value)}>
+            <option value="">اختر سياسة فعالة</option>
+            {overview.activePolicies.map(policy => (
+              <option key={policy.id} value={policy.id}>
+                {policyLabels[policy.kind]} · إصدار {policy.version} · تبدأ {formatLocalDate(policy.startsOn)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {successorPolicy ? (
+          <div className="micro-owner-calculation">
+            <strong>ملخص النسخة السابقة</strong>
+            <p>
+              {policyLabels[successorPolicy.kind]} ·{" "}
+              {successorPolicy.amountMinor === null
+                ? `${(successorPolicy.percentageBps ?? 0) / 100}%`
+                : `${formatMoneyMinor(successorPolicy.amountMinor)} JOD`}{" "}
+              · {policyFamilyLabels[successorPolicy.family]}
+            </p>
+            <small>
+              سيبقى الإصدار {successorPolicy.version} واستحقاقاته الماضية ومعرّفاتها ومبالغها كما هي.
+            </small>
+          </div>
+        ) : null}
+        <div className="micro-field-grid">
+          <LocalDateField
+            label="تاريخ نفاذ الخليفة"
+            description="يبدأ أثر الإعداد الجديد من هذا التاريخ فقط."
+            value={successorStartsOn}
+            onChange={event => setSuccessorStartsOn(event.target.value)}
+          />
+          <label className="micro-field">
+            <span>نوع الخليفة</span>
+            <select
+              value={successorKind}
+              onChange={event => {
+                const kind = event.target.value as OwnerEntitlementPolicy["kind"];
+                setSuccessorKind(kind);
+                if (kind !== "fixed_period") setSuccessorEndsOn("");
+                if (kind !== "per_unit" && kind !== "per_completed_work") setSuccessorUnitLabel("");
+              }}
+            >
+              {supportedOwnerEntitlementPolicyKinds.map(kind => (
+                <option key={kind} value={kind}>
+                  {policyLabels[kind]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {successorRequirements.valueKind === "amount" ? (
+          <label className="micro-field">
+            <span>مبلغ الخليفة بوحدة JOD minor</span>
+            <EnglishNumberInput
+              value={successorAmount}
+              kind="money"
+              onNumericChange={setSuccessorAmount}
+              onTextValidityChange={setSuccessorAmountValid}
+              aria-label="مبلغ خليفة سياسة الاستحقاق"
+            />
+          </label>
+        ) : (
+          <label className="micro-field">
+            <span>نسبة الخليفة (%)</span>
+            <EnglishNumberInput
+              value={successorPercentage}
+              kind="decimal"
+              onNumericChange={setSuccessorPercentage}
+              onTextValidityChange={setSuccessorPercentageValid}
+              aria-label="نسبة خليفة سياسة الاستحقاق"
+            />
+            <small>تحسب من نتيجة G3 المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.</small>
+          </label>
+        )}
+        {successorRequirements.requiresUnit ? (
+          <label className="micro-field">
+            <span>
+              الوحدة أو تعريف العمل <small>مطلوب</small>
+            </span>
+            <input
+              value={successorUnitLabel}
+              onChange={event => setSuccessorUnitLabel(event.target.value)}
+              placeholder="مثال: قطعة مكتملة أو طلب خدمة"
+            />
+            <small>يجب أن يصف هذا الحقل دليل المصدر؛ لا يسجل النظام صفرًا عند غيابه.</small>
+          </label>
+        ) : null}
+        {successorRequirements.requiresEndDate ? (
+          <LocalDateField
+            label="نهاية نطاق الخليفة"
+            description="مطلوبة. المبلغ الثابت للفترة يحتاج نطاقًا معلنًا كاملًا."
+            value={successorEndsOn}
+            onChange={event => setSuccessorEndsOn(event.target.value)}
+          />
+        ) : null}
+        <label className="micro-field">
+          <span>
+            سبب التعديل <small>مطلوب</small>
+          </span>
+          <input
+            value={successorSource}
+            onChange={event => setSuccessorSource(event.target.value)}
+            placeholder="مثال: تعديل الاتفاق من بداية أيلول"
+          />
+        </label>
+        <label className="micro-field">
+          <span>
+            ملاحظة الخليفة <small>مطلوبة</small>
+          </span>
+          <textarea
+            value={successorNote}
+            onChange={event => setSuccessorNote(event.target.value)}
+            placeholder="ما الذي تغير في المبلغ أو النوع أو النطاق؟"
+          />
+        </label>
+        <p className="micro-decision-next">
+          النتيجة: النسخة الجديدة تحفظ إعدادات مختلفة عند الحاجة، والحقوق التاريخية لا يعاد احتسابها. إذا
+          احتاج النوع دليل وقت أو وحدة أو وردية غير موجود، سيبقى غير متاح بدل التخمين.
+        </p>
+        <button
+          className="micro-button micro-button-secondary"
+          type="button"
+          disabled={saving || !successorPolicy}
+          onClick={() => void saveSuccessor()}
+        >
+          حفظ التعديل وإنهاء السابقة
+        </button>
+      </section>
+      <section className="micro-form-card">
+        <div className="micro-section-heading">
+          <div>
+            <span className="micro-overline">استحقاق مستقل</span>
+            <h2>تسجيل حق المالك</h2>
+          </div>
+        </div>
+        <p>
+          تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. الفترة والمصدر مقفولان ضد تكرار الحق؛ اعكس السجل فقط
+          إذا كان خطأ.
+        </p>
+        <label className="micro-field">
+          <span>السياسة المصدر</span>
+          <select value={selectedPolicyId} onChange={event => setSelectedPolicyId(event.target.value)}>
+            <option value="">اختر سياسة</option>
+            {overview.policies.map(policy => (
+              <option key={policy.id} value={policy.id}>
+                {policyLabels[policy.kind]} · إصدار {policy.version} · تبدأ {formatLocalDate(policy.startsOn)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="micro-field-grid">
+          <LocalDateField
+            label="من الفترة"
+            value={periodFrom}
+            onChange={event => setPeriodFrom(event.target.value)}
+          />
+          <LocalDateField
+            label="إلى الفترة"
+            value={periodTo}
+            onChange={event => setPeriodTo(event.target.value)}
+          />
+        </div>
+        <div
+          className="micro-owner-calculation"
+          data-known={calculation?.amountMinor !== null && calculation?.amountMinor !== undefined}
+        >
+          {calculation?.amountMinor === null || !calculation ? (
+            <>
+              <strong>الاستحقاق غير متاح بعد</strong>
+              <p>{calculation?.nextAction ?? "اختر سياسة وفترة صحيحتين."}</p>
+            </>
+          ) : (
+            <>
+              <strong>
+                الاستحقاق المقترح: <bdi dir="ltr">{formatMoneyMinor(calculation.amountMinor)} JOD</bdi>
+              </strong>
+              <p>
+                الحالة: {calculation.knowledge === "known" ? "معروف" : "جزئي/يحتاج مراجعة"}. راجع المصدر قبل
+                التسجيل.
+              </p>
+              <p>{calculation.nextAction}</p>
+            </>
+          )}
+        </div>
+        <LocalDateField
+          label="تاريخ تسجيل الاستحقاق"
+          value={entitlementDate}
+          onChange={event => setEntitlementDate(event.target.value)}
+        />
+        <label className="micro-field">
+          <span>
+            ملاحظة الاستحقاق <small>مطلوبة</small>
+          </span>
+          <textarea
+            value={entitlementNote}
+            onChange={event => setEntitlementNote(event.target.value)}
+            placeholder="مثال: استحقاق شهر آب حسب السياسة 1"
+          />
+        </label>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          disabled={saving || !calculation || calculation.amountMinor === null}
+          onClick={() => void saveEntitlement()}
+        >
+          <HandCoins aria-hidden="true" /> تسجيل الاستحقاق دون قبض
+        </button>
+      </section>
+      <section className="micro-form-card">
+        <div className="micro-section-heading">
+          <div>
+            <span className="micro-overline">مصدر قابل للتسوية</span>
+            <h2>إضافة رصيد افتتاحي</h2>
+          </div>
+        </div>
+        <p>
+          هذه طبقة افتتاحية اختيارية بإشارة موجبة أو سالبة، مع سبب وملاحظة. لا تنشئ حركة ماضية، ويمكن تسويتها
+          أو عكسها صراحة.
+        </p>
+        <div className="micro-field-grid">
+          <label className="micro-field">
+            <span>الرصيد بوحدة JOD minor</span>
+            <EnglishNumberInput
+              value={openingAmount}
+              kind="signedInteger"
+              onNumericChange={setOpeningAmount}
+              onTextValidityChange={setOpeningAmountValid}
+              onEmptyChange={() => setOpeningAmount(null)}
+              allowEmpty
+              placeholder="مثال: 1500 أو -500"
+              aria-label="الرصيد الافتتاحي الموقّع"
+            />
+            <small>
+              الموجب: المشروع مدين لك ويمكن تسويته بسحب. السالب: سحوبات سابقة أكثر ويمكن تسويته بإرجاع.
+            </small>
+          </label>
+          <LocalDateField
+            label="التاريخ المحلي"
+            value={openingDate}
+            onChange={event => setOpeningDate(event.target.value)}
+          />
+        </div>
+        <label className="micro-field">
+          <span>
+            السبب <small>مطلوب</small>
+          </span>
+          <input
+            value={openingReason}
+            onChange={event => setOpeningReason(event.target.value)}
+            placeholder="مثال: رصيد دفتر سابق موثق"
+          />
+        </label>
+        <label className="micro-field">
+          <span>
+            ملاحظة <small>مطلوبة</small>
+          </span>
+          <textarea
+            value={openingNote}
+            onChange={event => setOpeningNote(event.target.value)}
+            placeholder="اشرح مصدر الرصيد الافتتاحي"
+          />
+        </label>
+        <button
+          className="micro-button micro-button-secondary"
+          type="button"
+          disabled={saving}
+          onClick={() => void saveOpeningBalance()}
+        >
+          حفظ الرصيد الافتتاحي
+        </button>
+      </section>
+      <section className="micro-form-card">
+        <div className="micro-section-heading">
+          <div>
+            <span className="micro-overline">يغير الكاش فعليًا</span>
+            <h2>تسجيل سحب أو إرجاع</h2>
+          </div>
+        </div>
+        <p>
+          كل حركة تحتاج محفظة وسببًا وملاحظة ومصدرًا عند التسوية. السحب ليس مصروف تشغيل، والإرجاع كرأس مال
+          جديد لا يسوي الاستحقاق.
+        </p>
+        <div className="micro-field-grid">
+          <label className="micro-field">
+            <span>نوع الحركة</span>
+            <select
+              value={movementKind}
+              onChange={event => setMovementKind(event.target.value as "draw" | "return")}
+            >
+              <option value="draw">سحب فعلي</option>
+              <option value="return">إرجاع فعلي</option>
+            </select>
+          </label>
+          <label className="micro-field">
+            <span>المبلغ بوحدة JOD minor</span>
+            <EnglishNumberInput
+              value={movementAmount}
+              kind="money"
+              onNumericChange={setMovementAmount}
+              onTextValidityChange={setMovementAmountValid}
+              aria-label="مبلغ حركة المالك"
+            />
+          </label>
+        </div>
+        <label className="micro-field">
+          <span>السبب</span>
+          <select
+            value={movementReason}
+            onChange={event => setMovementReason(event.target.value as OwnerMovementReason)}
+          >
+            {reasonOptions.map(reason => (
+              <option key={reason} value={reason}>
+                {movementReasonLabels[reason]}
+              </option>
+            ))}
+          </select>
+        </label>
+        {movementReason === "entitlement_settlement" ? (
+          <label className="micro-field">
+            <span>الاستحقاق الذي تتم تسويته</span>
+            <select
+              value={relatedEntitlementId}
+              onChange={event => setRelatedEntitlementId(event.target.value)}
+            >
+              <option value="">اختر استحقاقًا مسجلًا</option>
+              {activeEntitlements.map(record => (
+                <option key={record.id} value={record.id}>
+                  {formatLocalDate(record.occurredOn)} · {formatMoneyMinor(record.amountMinor)} JOD ·{" "}
+                  {record.note}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {movementReason === "opening_balance_settlement" ? (
+          <label className="micro-field">
+            <span>الرصيد الافتتاحي المصدر</span>
+            <select
+              value={relatedOpeningBalanceId}
+              onChange={event => setRelatedOpeningBalanceId(event.target.value)}
+            >
+              <option value="">اختر رصيدًا افتتاحيًا</option>
+              {activeOpeningBalances
+                .filter(balance =>
+                  movementKind === "draw" ? balance.amountMinor > 0 : balance.amountMinor < 0,
+                )
+                .map(balance => (
+                  <option key={balance.id} value={balance.id}>
+                    {formatLocalDate(balance.occurredOn)} · {formatMoneyMinor(balance.amountMinor)} JOD ·{" "}
+                    {balance.note}
+                  </option>
+                ))}
+            </select>
+          </label>
+        ) : null}
+        {movementReason === "settlement_of_prior_draw" ? (
+          <label className="micro-field">
+            <span>السحب السابق الذي تعيده</span>
+            <select value={relatedMovementId} onChange={event => setRelatedMovementId(event.target.value)}>
+              <option value="">اختر سحبًا سابقًا</option>
+              {priorDraws.map(movement => (
+                <option key={movement.id} value={movement.id}>
+                  {formatLocalDate(movement.occurredOn)} · {formatMoneyMinor(movement.amountMinor)} JOD ·{" "}
+                  {movement.note}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <label className="micro-field">
+          <span>محفظة الكاش</span>
+          <select value={movementWalletId} onChange={event => setMovementWalletId(event.target.value)}>
+            <option value="">اختر محفظة</option>
+            {overview.walletBalances.map(wallet => (
+              <option key={wallet.id} value={wallet.id}>
+                {wallet.name} · الرصيد {formatMoneyMinor(wallet.balanceMinor)} JOD
+              </option>
+            ))}
+          </select>
+        </label>
+        <LocalDateField
+          label="تاريخ الحركة"
+          value={movementDate}
+          onChange={event => setMovementDate(event.target.value)}
+        />
+        <label className="micro-field">
+          <span>
+            ملاحظة الحركة <small>مطلوبة</small>
+          </span>
+          <textarea
+            value={movementNote}
+            onChange={event => setMovementNote(event.target.value)}
+            placeholder="مثال: سحبت مبلغًا لتسوية استحقاق آب"
+          />
+        </label>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          disabled={saving}
+          onClick={() => void saveMovement()}
+        >
+          <WalletCards aria-hidden="true" /> حفظ الحركة وأثر الكاش
+        </button>
+      </section>
+      <section className="micro-owner-ledger">
+        <div className="micro-section-heading">
+          <div>
+            <span className="micro-overline">أثر غير قابل للمحو</span>
+            <h2>الاستحقاقات والأرصدة والحركات</h2>
+          </div>
+        </div>
+        {overview.entitlements.length === 0 &&
+        overview.openingBalances.length === 0 &&
+        overview.movements.length === 0 ? (
+          <p className="micro-empty-state">لا توجد استحقاقات أو أرصدة أو حركات مالك بعد.</p>
+        ) : (
+          <div className="micro-owner-list">
+            {overview.entitlements.map(record => (
+              <article className="micro-owner-list-row" key={record.id}>
+                <div>
+                  <strong>
+                    استحقاق · {formatLocalDate(record.occurredOn)}
+                    {record.reversalOfId ? " · عكس كامل" : ""}
+                  </strong>
+                  <small>
+                    {formatLocalDate(record.periodFrom)} → {formatLocalDate(record.periodTo)} ·{" "}
+                    {record.knowledge === "known" ? "معروف" : "جزئي"} · {record.note}
+                  </small>
+                  <small>
+                    المصدر: {record.sourceKeys.join(", ") || "فترة معلنة"}
+                    {record.reversalOfId
+                      ? ` · الأصل محفوظ: ${record.reversalOfId} · السبب: ${record.reversalReason}`
+                      : ""}
+                  </small>
+                </div>
+                <div className="micro-owner-list-actions">
+                  <b>
+                    <bdi dir="ltr">{formatMoneyMinor(record.amountMinor)}</bdi> JOD
+                  </b>
+                  {!record.reversalOfId && !reversedEntitlementIds.has(record.id) ? (
+                    <button
+                      className="micro-text-action"
+                      type="button"
+                      onClick={() => {
+                        setReversalTarget({ kind: "entitlement", id: record.id });
+                        setReversalReason("");
+                      }}
+                    >
+                      <RotateCcw aria-hidden="true" /> عكس كامل
+                    </button>
+                  ) : null}
+                </div>
+                {reversalTarget?.kind === "entitlement" && reversalTarget.id === record.id ? (
+                  <ReversalBox
+                    label="سبب عكس الاستحقاق"
+                    value={reversalReason}
+                    onChange={setReversalReason}
+                    onConfirm={() => void reverseEntitlement()}
+                    onCancel={() => setReversalTarget(null)}
+                    saving={saving}
+                  />
+                ) : null}
+              </article>
+            ))}
+            {overview.openingBalances.map(balance => (
+              <article className="micro-owner-list-row" key={balance.id}>
+                <div>
+                  <strong>
+                    رصيد افتتاحي · {formatLocalDate(balance.occurredOn)}
+                    {balance.reversalOfId ? " · عكس كامل" : ""}
+                  </strong>
+                  <small>
+                    <bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> JOD · {balance.reason} ·{" "}
+                    {balance.note}
+                  </small>
+                  {balance.reversalOfId ? (
+                    <small>
+                      الأصل محفوظ: {balance.reversalOfId} · السبب: {balance.reversalReason}
+                    </small>
+                  ) : (
+                    <small>
+                      المتبقي بعد التسويات:{" "}
+                      <bdi dir="ltr">
+                        {formatMoneyMinor(
+                          balance.amountMinor +
+                            overview.movements
+                              .filter(movement => movement.relatedOpeningBalanceId === balance.id)
+                              .reduce((sum, movement) => sum + movement.openingBalanceDeltaMinor, 0),
+                        )}
+                      </bdi>{" "}
+                      JOD
+                    </small>
+                  )}
+                </div>
+                <div className="micro-owner-list-actions">
+                  <b>
+                    <bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> JOD
+                  </b>
+                  {!balance.reversalOfId && !reversedOpeningIds.has(balance.id) ? (
+                    <button
+                      className="micro-text-action"
+                      type="button"
+                      onClick={() => {
+                        setReversalTarget({ kind: "opening", id: balance.id });
+                        setReversalReason("");
+                      }}
+                    >
+                      <RotateCcw aria-hidden="true" /> عكس كامل
+                    </button>
+                  ) : null}
+                </div>
+                {reversalTarget?.kind === "opening" && reversalTarget.id === balance.id ? (
+                  <ReversalBox
+                    label="سبب عكس الرصيد الافتتاحي"
+                    value={reversalReason}
+                    onChange={setReversalReason}
+                    onConfirm={() => void reverseOpening()}
+                    onCancel={() => setReversalTarget(null)}
+                    saving={saving}
+                  />
+                ) : null}
+              </article>
+            ))}
+            {overview.movements.map(movement => (
+              <article
+                className="micro-owner-list-row"
+                data-movement={movement.reversalOfId ? "reversal" : movement.kind}
+                key={movement.id}
+              >
+                <div>
+                  <strong>
+                    {movement.kind === "draw" ? "سحب فعلي" : "إرجاع فعلي"}
+                    {movement.reversalOfId ? " · عكس كامل" : ""}
+                  </strong>
+                  <small>
+                    {formatLocalDate(movement.occurredOn)} · {movementReasonLabels[movement.reason]} ·{" "}
+                    {movement.note}
+                  </small>
+                  <small>
+                    المحفظة:{" "}
+                    {overview.walletBalances.find(wallet => wallet.id === movement.walletId)?.name ??
+                      movement.walletId}{" "}
+                    · أثر الكاش: <bdi dir="ltr">{formatMoneyMinor(movement.cashDeltaMinor)}</bdi> JOD
+                  </small>
+                  {movement.relatedOpeningBalanceId ? (
+                    <small>
+                      مصدر الافتتاح: <bdi dir="ltr">{movement.relatedOpeningBalanceId}</bdi>
+                    </small>
+                  ) : null}
+                  {movement.reversalOfId ? (
+                    <small>
+                      الأصل محفوظ: <bdi dir="ltr">{movement.reversalOfId}</bdi> · السبب:{" "}
+                      {movement.reversalReason}
+                    </small>
+                  ) : null}
+                </div>
+                <div className="micro-owner-list-actions">
+                  <b>
+                    <bdi dir="ltr">{formatMoneyMinor(movement.amountMinor)}</bdi> JOD
+                  </b>
+                  {!movement.reversalOfId && !reversedMovementIds.has(movement.id) ? (
+                    <button
+                      className="micro-text-action"
+                      type="button"
+                      onClick={() => {
+                        setReversalTarget({ kind: "movement", id: movement.id });
+                        setReversalReason("");
+                      }}
+                    >
+                      <RotateCcw aria-hidden="true" /> عكس كامل
+                    </button>
+                  ) : null}
+                </div>
+                {reversalTarget?.kind === "movement" && reversalTarget.id === movement.id ? (
+                  <ReversalBox
+                    label="سبب العكس"
+                    value={reversalReason}
+                    onChange={setReversalReason}
+                    onConfirm={() => void reverseMovement()}
+                    onCancel={() => setReversalTarget(null)}
+                    saving={saving}
+                  />
+                ) : null}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </section>
+  );
 }
 
-function ReversalBox({ label, value, onChange, onConfirm, onCancel, saving }: { label: string; value: string; onChange: (value: string) => void; onConfirm: () => void; onCancel: () => void; saving: boolean }) { return <div className="micro-owner-reversal"><label className="micro-field"><span>{label} <small>مطلوب</small></span><textarea value={value} onChange={event => onChange(event.target.value)} autoFocus placeholder="مثال: سجلت السجل بالخطأ" /></label><div className="micro-form-actions"><button className="micro-button micro-button-primary" type="button" disabled={saving} onClick={onConfirm}>تأكيد العكس الموثق</button><button className="micro-button micro-button-secondary" type="button" disabled={saving} onClick={onCancel}>إلغاء</button></div></div>; }
-function Metric({ label, value }: { label: string; value: number }) { return <div><span>{label}</span><strong><bdi dir="ltr">{formatMoneyMinor(value)}</bdi></strong></div>; }
+function ReversalBox({
+  label,
+  value,
+  onChange,
+  onConfirm,
+  onCancel,
+  saving,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  saving: boolean;
+}) {
+  return (
+    <div className="micro-owner-reversal">
+      <label className="micro-field">
+        <span>
+          {label} <small>مطلوب</small>
+        </span>
+        <textarea
+          value={value}
+          onChange={event => onChange(event.target.value)}
+          autoFocus
+          placeholder="مثال: سجلت السجل بالخطأ"
+        />
+      </label>
+      <div className="micro-form-actions">
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          disabled={saving}
+          onClick={onConfirm}
+        >
+          تأكيد العكس الموثق
+        </button>
+        <button
+          className="micro-button micro-button-secondary"
+          type="button"
+          disabled={saving}
+          onClick={onCancel}
+        >
+          إلغاء
+        </button>
+      </div>
+    </div>
+  );
+}
+function Metric({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <span>{label}</span>
+      <strong>
+        <bdi dir="ltr">{formatMoneyMinor(value)}</bdi>
+      </strong>
+    </div>
+  );
+}

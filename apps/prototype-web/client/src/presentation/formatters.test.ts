@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { formatBreakEvenDisplay, formatLocalDate, formatLocalDateLong, formatLocalDateTime, formatMoneyMinor, formatMonthLabel, localDateInAmman } from "./formatters";
+import {
+  formatBreakEvenDisplay,
+  formatLocalDate,
+  formatLocalDateLong,
+  formatLocalDateTime,
+  formatMoneyMinor,
+  formatMonthLabel,
+  localDateInAmman,
+} from "./formatters";
 
 describe("presentation formatters", () => {
   it("formats positive, negative, and zero JOD minor units with ASCII digits", () => {

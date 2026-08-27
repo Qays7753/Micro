@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { ownerMovementReasonsForKind, successorPolicyFormRequirements, supportedOwnerEntitlementPolicyKinds } from "./OwnerEntitlement";
+import {
+  ownerMovementReasonsForKind,
+  successorPolicyFormRequirements,
+  supportedOwnerEntitlementPolicyKinds,
+} from "./OwnerEntitlement";
 
 describe("OwnerEntitlement UI capability model", () => {
   it("does not expose fixed-shift without shift evidence", () => {
@@ -8,14 +12,34 @@ describe("OwnerEntitlement UI capability model", () => {
   });
 
   it("exposes honest successor fields for changed policy terms", () => {
-    expect(successorPolicyFormRequirements("monthly")).toMatchObject({ family: "time_period", valueKind: "amount", requiresUnit: false, requiresEndDate: false });
-    expect(successorPolicyFormRequirements("sale_percentage")).toMatchObject({ family: "completed_sale_percentage", valueKind: "percentage" });
+    expect(successorPolicyFormRequirements("monthly")).toMatchObject({
+      family: "time_period",
+      valueKind: "amount",
+      requiresUnit: false,
+      requiresEndDate: false,
+    });
+    expect(successorPolicyFormRequirements("sale_percentage")).toMatchObject({
+      family: "completed_sale_percentage",
+      valueKind: "percentage",
+    });
     expect(successorPolicyFormRequirements("per_unit")).toMatchObject({ family: "unit", requiresUnit: true });
-    expect(successorPolicyFormRequirements("fixed_period")).toMatchObject({ family: "fixed_amount", requiresEndDate: true });
+    expect(successorPolicyFormRequirements("fixed_period")).toMatchObject({
+      family: "fixed_amount",
+      requiresEndDate: true,
+    });
   });
 
   it("keeps every actual movement reason explicit", () => {
-    expect(ownerMovementReasonsForKind("draw")).toEqual(["entitlement_settlement", "opening_balance_settlement", "pre_entitlement_draw", "owner_draw"]);
-    expect(ownerMovementReasonsForKind("return")).toEqual(["opening_balance_settlement", "settlement_of_prior_draw", "new_capital_investment"]);
+    expect(ownerMovementReasonsForKind("draw")).toEqual([
+      "entitlement_settlement",
+      "opening_balance_settlement",
+      "pre_entitlement_draw",
+      "owner_draw",
+    ]);
+    expect(ownerMovementReasonsForKind("return")).toEqual([
+      "opening_balance_settlement",
+      "settlement_of_prior_draw",
+      "new_capital_investment",
+    ]);
   });
 });

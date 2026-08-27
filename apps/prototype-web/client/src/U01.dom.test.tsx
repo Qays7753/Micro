@@ -1,0 +1,169 @@
+/** @vitest-environment jsdom */
+
+import React, { useState } from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import {
+  UnsavedChangesProvider,
+  useUnsavedChangesGuard,
+  useUnsavedChangesNavigation,
+} from "@/components/forms/UnsavedChangesGuard";
+import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
+import { MoneyValue } from "@/components/presentation/DisplayValue";
+import CostEditor from "@/pages/CostEditor";
+import type { OrderDraft } from "@/storage/local/types";
+
+vi.mock("@/app/PrototypeServicesContext", () => ({
+  usePrototypeServices: vi.fn(),
+}));
+
+vi.mock("wouter", () => ({
+  useLocation: () => ["/orders/draft/draft-1/cost", vi.fn()],
+  useParams: () => ({ id: "draft-1" }),
+}));
+
+const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+
+function createDraft(): OrderDraft {
+  return {
+    id: "draft-1",
+    intent: "customer_order",
+    customerName: "",
+    itemName: "قطعة اختبار",
+    catalogItemId: null,
+    specifications: "",
+    quantity: 1,
+    costSnapshots: [],
+    activeCostSnapshotId: null,
+    linkedOrderId: null,
+    createdAt: "2026-08-27T08:00:00.000Z",
+    updatedAt: "2026-08-27T08:00:00.000Z",
+  };
+}
+
+function configureIncompleteCostServices() {
+  const drafts = {
+    get: vi.fn().mockResolvedValue({ ok: true, value: createDraft() }),
+  };
+  const costs = {
+    preview: vi.fn().mockReturnValue({
+      ok: true,
+      snapshot: {
+        knowledgeState: "incomplete",
+        priceFloorMinor: null,
+        unitCostMinor: null,
+      },
+    }),
+    saveSnapshot: vi.fn(),
+  };
+  mockedUsePrototypeServices.mockReturnValue({
+    drafts,
+    costs,
+    dataVersion: 0,
+    notifyDataChanged: vi.fn(),
+  } as unknown as ReturnType<typeof usePrototypeServices>);
+}
+
+function GuardFixture({ onSave }: { onSave: () => Promise<boolean> }) {
+  useUnsavedChangesGuard({ isDirty: true, onSave });
+  const requestNavigation = useUnsavedChangesNavigation();
+  return (
+    <button type="button" onClick={() => requestNavigation("/next")}>
+      انتقل
+    </button>
+  );
+}
+
+function QuantityFixture() {
+  const [valueMilli, setValueMilli] = useState(0);
+  const [isValid, setIsValid] = useState(true);
+  return (
+    <>
+      <EnglishQuantityInput
+        aria-label="الكمية"
+        valueMilli={valueMilli}
+        onMilliChange={setValueMilli}
+        onTextValidityChange={setIsValid}
+      />
+      <output data-testid="quantity-value">{valueMilli}</output>
+      <output data-testid="quantity-validity">{String(isValid)}</output>
+    </>
+  );
+}
+
+describe("U-01 DOM guards", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders null money as غير متاح instead of manufacturing zero", () => {
+    render(<MoneyValue minor={null} />);
+    const value = screen.getByText("غير متاح");
+    expect(value).toBeTruthy();
+    expect(value.textContent).not.toContain("0.00");
+    expect(value.getAttribute("dir")).toBe("ltr");
+  });
+
+  it("isolates an ASCII financial amount inside Arabic text", () => {
+    render(
+      <p dir="rtl">
+        العربون <MoneyValue minor={12400} />
+      </p>,
+    );
+    const amount = screen.getByText("124.00");
+    expect(amount.getAttribute("dir")).toBe("ltr");
+    expect(amount.textContent).toBe("124.00");
+    expect(amount.textContent).not.toMatch(/[٠-٩]/);
+  });
+
+  it("shows the dirty-navigation drawer with all three explicit choices", async () => {
+    const user = userEvent.setup();
+    const navigate = vi.fn();
+    render(
+      <UnsavedChangesProvider navigate={navigate}>
+        <GuardFixture onSave={async () => true} />
+      </UnsavedChangesProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "انتقل" }));
+
+    expect(screen.getByTestId("unsaved-changes-drawer")).toBeTruthy();
+    expect(screen.getByText("لديك تعديلات غير محفوظة")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "احفظ واستمر" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "اخرج دون حفظ" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "إلغاء" })).toBeTruthy();
+  });
+
+  it("rejects Arabic digits visibly and accepts ASCII quantity without losing the committed value", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    render(<QuantityFixture />);
+    const input = screen.getByRole("textbox", { name: "الكمية" });
+
+    await user.type(input, "١");
+    expect(input).toHaveProperty("value", "١");
+    expect(screen.getByTestId("quantity-validity").textContent).toBe("false");
+    expect(screen.getByTestId("quantity-value").textContent).toBe("0");
+
+    await user.clear(input);
+    await user.type(input, "1");
+    expect(input).toHaveProperty("value", "1");
+    expect(screen.getByTestId("quantity-validity").textContent).toBe("true");
+    expect(screen.getByTestId("quantity-value").textContent).toBe("1000");
+  });
+
+  it("renders the incomplete-cost knowledge state without calling it profit", async () => {
+    configureIncompleteCostServices();
+    render(
+      <UnsavedChangesProvider navigate={vi.fn()}>
+        <CostEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText("تكلفة ناقصة")).toBeTruthy());
+    expect(screen.getByText("غير متاح بعد")).toBeTruthy();
+    expect(screen.getByText(/وقت العمل غير مكتمل/)).toBeTruthy();
+    expect(screen.queryByText(/ربح|صافي الربح/)).toBeNull();
+  });
+});

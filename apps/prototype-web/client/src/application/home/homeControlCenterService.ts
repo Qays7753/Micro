@@ -3,20 +3,47 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { buildHomeControlCenterViewModel, type HomeAttentionItem, type HomeControlCenterViewModel, type HomeFinancialFact, type HomeOptionalModule, type HomeRecentChange } from "./homeControlCenterModel";
+import {
+  buildHomeControlCenterViewModel,
+  type HomeAttentionItem,
+  type HomeControlCenterViewModel,
+  type HomeFinancialFact,
+  type HomeOptionalModule,
+  type HomeRecentChange,
+} from "./homeControlCenterModel";
 
-export type HomeControlCenterResult = { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
+export type HomeControlCenterResult =
+  { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
 
 function localDate(iso: string): string {
-  const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(iso));
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Amman",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(iso));
   const value = (type: string) => parts.find(part => part.type === type)?.value ?? "";
   return `${value("year")}-${value("month")}-${value("day")}`;
 }
 
-function action(id: string, label: string, href: string, reason: string) { return { id, label, href, reason }; }
-function isOpenOrder(stored: StoredCraftOrder) { return !["delivered", "settled", "cancelled"].includes(stored.order.status); }
-function hasIncompleteCost(stored: StoredCraftOrder) { return stored.order.costSnapshot.knowledgeState !== "known"; }
-function orderChange(stored: StoredCraftOrder): HomeRecentChange { return { id: `order:${stored.id}`, occurredOn: stored.updatedAt.slice(0, 10), title: `طلب: ${stored.order.itemName || "طلب بلا وصف"}`, detail: stored.order.nextAction, href: `/orders/${stored.id}` }; }
+function action(id: string, label: string, href: string, reason: string) {
+  return { id, label, href, reason };
+}
+function isOpenOrder(stored: StoredCraftOrder) {
+  return !["delivered", "settled", "cancelled"].includes(stored.order.status);
+}
+function hasIncompleteCost(stored: StoredCraftOrder) {
+  return stored.order.costSnapshot.knowledgeState !== "known";
+}
+function orderChange(stored: StoredCraftOrder): HomeRecentChange {
+  return {
+    id: `order:${stored.id}`,
+    occurredOn: stored.updatedAt.slice(0, 10),
+    title: `طلب: ${stored.order.itemName || "طلب بلا وصف"}`,
+    detail: stored.order.nextAction,
+    href: `/orders/${stored.id}`,
+  };
+}
 
 export class HomeControlCenterService {
   constructor(
@@ -38,57 +65,279 @@ export class HomeControlCenterService {
       this.supplierPurchases.readSummary(),
       this.inventory.overview(),
     ]);
-    if (!profile.ok || !followUp.ok || !position.ok || !schedules.ok || !events.ok || !purchases.ok || !inventory.ok || !profile.value) return { ok: false, code: "storage_error", message: "تعذر قراءة مركز قيادة المشروع المحلي." };
+    if (
+      !profile.ok ||
+      !followUp.ok ||
+      !position.ok ||
+      !schedules.ok ||
+      !events.ok ||
+      !purchases.ok ||
+      !inventory.ok ||
+      !profile.value
+    )
+      return { ok: false, code: "storage_error", message: "تعذر قراءة مركز قيادة المشروع المحلي." };
 
     const today = localDate(this.now());
     const orders = followUp.orders;
     const openDrafts = followUp.drafts;
     const positionValue = position.value;
-    const orderEvidence = orders.length > 0 || positionValue.orderCollectionsMinor !== 0 || positionValue.customerReceivablesMinor !== 0;
+    const orderEvidence =
+      orders.length > 0 ||
+      positionValue.orderCollectionsMinor !== 0 ||
+      positionValue.customerReceivablesMinor !== 0;
     const financeEvidence = positionValue.projectEventCount > 0;
-    const cashEvidence = financeEvidence || positionValue.orderCollectionsMinor !== 0 || positionValue.supplierPurchaseCount > 0 || positionValue.cashWalletCount > 0;
-    const capitalEvidence = events.value.some(event => event.type === "owner_investment_cash" || event.type === "owner_withdrawal_cash");
-    const payableEvidence = positionValue.supplierPurchaseCount > 0 || events.value.some(event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash");
+    const cashEvidence =
+      financeEvidence ||
+      positionValue.orderCollectionsMinor !== 0 ||
+      positionValue.supplierPurchaseCount > 0 ||
+      positionValue.cashWalletCount > 0;
+    const capitalEvidence = events.value.some(
+      event => event.type === "owner_investment_cash" || event.type === "owner_withdrawal_cash",
+    );
+    const payableEvidence =
+      positionValue.supplierPurchaseCount > 0 ||
+      events.value.some(
+        event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
+      );
     const period = `حتى ${today}`;
     const facts: HomeFinancialFact[] = [
-      { id: "cash", label: "الكاش المسجل", state: cashEvidence ? "known" : "not_initialized", valueMinor: cashEvidence ? positionValue.recordedCashMinor : null, currency: "JOD", source: "ProjectFinancialService والسجل المحلي", period, helper: "يشمل ما سُجل من محافظ وكاش الطلبات والأحداث؛ ليس ربحًا." },
-      { id: "receivables", label: "لي عند العملاء", state: orderEvidence ? "known" : "not_initialized", valueMinor: orderEvidence ? positionValue.customerReceivablesMinor : null, currency: "JOD", source: "طلبات محلية مسجلة", period, helper: "ذمة عميل مسجلة، وليست كاشًا محصلًا." },
-      { id: "payables", label: "عليّ للموردين", state: payableEvidence ? "known" : "not_initialized", valueMinor: payableEvidence ? positionValue.supplierPayablesMinor : null, currency: "JOD", source: "أحداث المصروف وشراء المواد", period, helper: "التزام مسجل، وليس دفعة كاش جديدة." },
-      { id: "owner_capital", label: "مال المالك المسجل", state: capitalEvidence ? "known" : "not_initialized", valueMinor: capitalEvidence ? positionValue.ownerCapitalRecordedMinor : null, currency: "JOD", source: "أحداث مالية عامة", period, helper: "استثمار/سحب مسجل؛ لا يتحول إلى بيع أو مصروف." },
+      {
+        id: "cash",
+        label: "الكاش المسجل",
+        state: cashEvidence ? "known" : "not_initialized",
+        valueMinor: cashEvidence ? positionValue.recordedCashMinor : null,
+        currency: "JOD",
+        source: "ProjectFinancialService والسجل المحلي",
+        period,
+        helper: "يشمل ما سُجل من محافظ وكاش الطلبات والأحداث؛ ليس ربحًا.",
+      },
+      {
+        id: "receivables",
+        label: "لي عند العملاء",
+        state: orderEvidence ? "known" : "not_initialized",
+        valueMinor: orderEvidence ? positionValue.customerReceivablesMinor : null,
+        currency: "JOD",
+        source: "طلبات محلية مسجلة",
+        period,
+        helper: "ذمة عميل مسجلة، وليست كاشًا محصلًا.",
+      },
+      {
+        id: "payables",
+        label: "عليّ للموردين",
+        state: payableEvidence ? "known" : "not_initialized",
+        valueMinor: payableEvidence ? positionValue.supplierPayablesMinor : null,
+        currency: "JOD",
+        source: "أحداث المصروف وشراء المواد",
+        period,
+        helper: "التزام مسجل، وليس دفعة كاش جديدة.",
+      },
+      {
+        id: "owner_capital",
+        label: "مال المالك المسجل",
+        state: capitalEvidence ? "known" : "not_initialized",
+        valueMinor: capitalEvidence ? positionValue.ownerCapitalRecordedMinor : null,
+        currency: "JOD",
+        source: "أحداث مالية عامة",
+        period,
+        helper: "استثمار/سحب مسجل؛ لا يتحول إلى بيع أو مصروف.",
+      },
     ];
 
     const attention: HomeAttentionItem[] = [];
-    openDrafts.forEach(draft => attention.push({ id: `draft:${draft.id}`, priority: 10, kind: "draft", title: draft.itemName || "مسودة تحتاج وصفًا", reason: "مسودة محلية لم تتحول إلى اتفاق بعد.", action: action(`draft:${draft.id}`, "استئناف المسودة", `/orders/draft/${draft.id}`, "أكمل ما تعرفه ثم احفظه." ) }));
+    openDrafts.forEach(draft =>
+      attention.push({
+        id: `draft:${draft.id}`,
+        priority: 10,
+        kind: "draft",
+        title: draft.itemName || "مسودة تحتاج وصفًا",
+        reason: "مسودة محلية لم تتحول إلى اتفاق بعد.",
+        action: action(
+          `draft:${draft.id}`,
+          "استئناف المسودة",
+          `/orders/draft/${draft.id}`,
+          "أكمل ما تعرفه ثم احفظه.",
+        ),
+      }),
+    );
     orders.filter(isOpenOrder).forEach(stored => {
       if (hasIncompleteCost(stored)) {
-        attention.push({ id: `cost:${stored.id}`, priority: 20, kind: "cost", title: `أكمل تكلفة ${stored.order.itemName || "الطلب"}`, reason: "Snapshot التكلفة غير مكتمل؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.", action: action(`cost:${stored.id}`, "مراجعة الطلب", `/orders/${stored.id}`, "راجع البنود الناقصة قبل الاعتماد." ) });
+        attention.push({
+          id: `cost:${stored.id}`,
+          priority: 20,
+          kind: "cost",
+          title: `أكمل تكلفة ${stored.order.itemName || "الطلب"}`,
+          reason: "Snapshot التكلفة غير مكتمل؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.",
+          action: action(
+            `cost:${stored.id}`,
+            "مراجعة الطلب",
+            `/orders/${stored.id}`,
+            "راجع البنود الناقصة قبل الاعتماد.",
+          ),
+        });
       } else {
-        attention.push({ id: `order:${stored.id}`, priority: 30, kind: "order", title: stored.order.itemName || "طلب قيد المتابعة", reason: stored.order.nextAction, action: action(`order:${stored.id}`, "فتح الطلب", `/orders/${stored.id}`, "أكمل الفعل التالي الظاهر في الطلب." ) });
+        attention.push({
+          id: `order:${stored.id}`,
+          priority: 30,
+          kind: "order",
+          title: stored.order.itemName || "طلب قيد المتابعة",
+          reason: stored.order.nextAction,
+          action: action(
+            `order:${stored.id}`,
+            "فتح الطلب",
+            `/orders/${stored.id}`,
+            "أكمل الفعل التالي الظاهر في الطلب.",
+          ),
+        });
       }
     });
-    orders.filter(stored => stored.order.settlementStatus === "debt" && stored.order.receivableMinor > 0 && !["cancelled"].includes(stored.order.status)).forEach(stored => attention.push({ id: `debt:${stored.id}`, priority: 15, kind: "debt", title: `دين مسجل: ${stored.order.itemName || "طلب"}`, reason: "الذمة مسجلة بعد التسليم وليست كاشًا محصلًا.", action: action(`debt:${stored.id}`, "مراجعة الدين", `/orders/${stored.id}`, "راجع التحصيل أو الدين المسجل." ) }));
-    orders.filter(stored => stored.followUpDate && stored.followUpDate <= today && !["settled", "cancelled"].includes(stored.order.status)).forEach(stored => attention.push({ id: `follow-up:${stored.id}`, priority: 25, kind: "follow_up", title: `متابعة: ${stored.order.itemName || "طلب"}`, reason: stored.followUpSummary || "يوجد موعد متابعة محفوظ لهذا الطلب.", action: action(`follow-up:${stored.id}`, "فتح المتابعة", `/orders/${stored.id}`, "راجع المتابعة المسجلة دون اختراع موعد جديد." ) }));
-    const activeSchedules = schedules.value.filter(schedule => ["scheduled", "postponed"].includes(schedule.status));
+    orders
+      .filter(
+        stored =>
+          stored.order.settlementStatus === "debt" &&
+          stored.order.receivableMinor > 0 &&
+          !["cancelled"].includes(stored.order.status),
+      )
+      .forEach(stored =>
+        attention.push({
+          id: `debt:${stored.id}`,
+          priority: 15,
+          kind: "debt",
+          title: `دين مسجل: ${stored.order.itemName || "طلب"}`,
+          reason: "الذمة مسجلة بعد التسليم وليست كاشًا محصلًا.",
+          action: action(
+            `debt:${stored.id}`,
+            "مراجعة الدين",
+            `/orders/${stored.id}`,
+            "راجع التحصيل أو الدين المسجل.",
+          ),
+        }),
+      );
+    orders
+      .filter(
+        stored =>
+          stored.followUpDate &&
+          stored.followUpDate <= today &&
+          !["settled", "cancelled"].includes(stored.order.status),
+      )
+      .forEach(stored =>
+        attention.push({
+          id: `follow-up:${stored.id}`,
+          priority: 25,
+          kind: "follow_up",
+          title: `متابعة: ${stored.order.itemName || "طلب"}`,
+          reason: stored.followUpSummary || "يوجد موعد متابعة محفوظ لهذا الطلب.",
+          action: action(
+            `follow-up:${stored.id}`,
+            "فتح المتابعة",
+            `/orders/${stored.id}`,
+            "راجع المتابعة المسجلة دون اختراع موعد جديد.",
+          ),
+        }),
+      );
+    const activeSchedules = schedules.value.filter(schedule =>
+      ["scheduled", "postponed"].includes(schedule.status),
+    );
     if (activeSchedules.length > 0) {
       const capacity = activeSchedules.filter(schedule => schedule.scheduledFor === today).length;
-      if (capacity > 1) attention.push({ id: "capacity:today", priority: 40, kind: "capacity", title: "راجع ازدحام مواعيد اليوم", reason: `يوجد ${capacity} مواعيد تشغيلية اليوم؛ السعة غير حكم رفض تلقائي.`, action: action("capacity:today", "فتح الجدول", "/schedule", "راجع التوقيت والسعة المعلنة." ) });
+      if (capacity > 1)
+        attention.push({
+          id: "capacity:today",
+          priority: 40,
+          kind: "capacity",
+          title: "راجع ازدحام مواعيد اليوم",
+          reason: `يوجد ${capacity} مواعيد تشغيلية اليوم؛ السعة غير حكم رفض تلقائي.`,
+          action: action("capacity:today", "فتح الجدول", "/schedule", "راجع التوقيت والسعة المعلنة."),
+        });
     }
 
-    const primary = action(`primary:${followUp.followUp.kind}`, followUp.followUp.actionLabel, followUp.followUp.href, followUp.followUp.nextAction);
+    const primary = action(
+      `primary:${followUp.followUp.kind}`,
+      followUp.followUp.actionLabel,
+      followUp.followUp.href,
+      followUp.followUp.nextAction,
+    );
     const optionalModules: HomeOptionalModule[] = [
-      { id: "inventory", label: "المادة والمخزون", state: inventory.value.materials.length > 0 || inventory.value.movementCount > 0 ? "available" : "empty", action: action("inventory", "فتح المخزون", "/inventory", inventory.value.truth) },
-      { id: "schedule", label: "جدول المواعيد", state: schedules.value.length > 0 ? "available" : orders.length > 0 ? "needs_setup" : "empty", action: action("schedule", schedules.value.length > 0 ? "فتح الجدول" : "إعداد الجدول", "/schedule", "الجدول تشغيلي ولا ينشئ أثرًا ماليًا." ) },
-      { id: "supplier_commitments", label: "التزامات الموردين", state: purchases.value.purchaseCount > 0 ? "available" : "empty", action: action("suppliers", "فتح الموردين", "/suppliers", purchases.value.truth) },
-      { id: "period_result", label: "نتيجة الفترة", state: orders.some(stored => ["delivered", "settled"].includes(stored.order.status)) || events.value.length > 0 ? "available" : "empty", action: action("period-result", "فتح Finance", "/finance", "نتيجة مسجلة محدودة وليست صافي ربح للمشروع." ) },
+      {
+        id: "inventory",
+        label: "المادة والمخزون",
+        state:
+          inventory.value.materials.length > 0 || inventory.value.movementCount > 0 ? "available" : "empty",
+        action: action("inventory", "فتح المخزون", "/inventory", inventory.value.truth),
+      },
+      {
+        id: "schedule",
+        label: "جدول المواعيد",
+        state: schedules.value.length > 0 ? "available" : orders.length > 0 ? "needs_setup" : "empty",
+        action: action(
+          "schedule",
+          schedules.value.length > 0 ? "فتح الجدول" : "إعداد الجدول",
+          "/schedule",
+          "الجدول تشغيلي ولا ينشئ أثرًا ماليًا.",
+        ),
+      },
+      {
+        id: "supplier_commitments",
+        label: "التزامات الموردين",
+        state: purchases.value.purchaseCount > 0 ? "available" : "empty",
+        action: action("suppliers", "فتح الموردين", "/suppliers", purchases.value.truth),
+      },
+      {
+        id: "period_result",
+        label: "نتيجة الفترة",
+        state:
+          orders.some(stored => ["delivered", "settled"].includes(stored.order.status)) ||
+          events.value.length > 0
+            ? "available"
+            : "empty",
+        action: action(
+          "period-result",
+          "فتح Finance",
+          "/finance",
+          "نتيجة مسجلة محدودة وليست صافي ربح للمشروع.",
+        ),
+      },
     ];
 
     const recentChanges: HomeRecentChange[] = [
       ...orders.map(orderChange),
-      ...openDrafts.map(draft => ({ id: `draft:${draft.id}`, occurredOn: draft.updatedAt.slice(0, 10), title: `مسودة: ${draft.itemName || "بلا وصف"}`, detail: "مسودة محلية محفوظة.", href: `/orders/draft/${draft.id}` })),
-      ...events.value.map(event => ({ id: `finance:${event.id}`, occurredOn: event.occurredOn, title: `Finance: ${event.note || event.type}`, detail: "حدث مالي مسجل؛ راجع مصدره وسياقه.", href: "/finance" })),
-      ...schedules.value.map(schedule => ({ id: `schedule:${schedule.id}`, occurredOn: schedule.scheduledFor, title: `موعد: ${schedule.scheduledFor}`, detail: schedule.status === "completed" ? "موعد مكتمل مستبعد من التشغيل." : "موعد تشغيلي محفوظ.", href: "/schedule" })),
-    ].sort((left, right) => right.occurredOn.localeCompare(left.occurredOn) || left.id.localeCompare(right.id));
+      ...openDrafts.map(draft => ({
+        id: `draft:${draft.id}`,
+        occurredOn: draft.updatedAt.slice(0, 10),
+        title: `مسودة: ${draft.itemName || "بلا وصف"}`,
+        detail: "مسودة محلية محفوظة.",
+        href: `/orders/draft/${draft.id}`,
+      })),
+      ...events.value.map(event => ({
+        id: `finance:${event.id}`,
+        occurredOn: event.occurredOn,
+        title: `Finance: ${event.note || event.type}`,
+        detail: "حدث مالي مسجل؛ راجع مصدره وسياقه.",
+        href: "/finance",
+      })),
+      ...schedules.value.map(schedule => ({
+        id: `schedule:${schedule.id}`,
+        occurredOn: schedule.scheduledFor,
+        title: `موعد: ${schedule.scheduledFor}`,
+        detail: schedule.status === "completed" ? "موعد مكتمل مستبعد من التشغيل." : "موعد تشغيلي محفوظ.",
+        href: "/schedule",
+      })),
+    ].sort(
+      (left, right) => right.occurredOn.localeCompare(left.occurredOn) || left.id.localeCompare(right.id),
+    );
 
-    return { ok: true, value: buildHomeControlCenterViewModel({ activityName: profile.value.activityName, todayLocal: today, truthLine: "هذه قراءة قيادة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.", primaryAction: primary, facts, attention, optionalModules, recentChanges }) };
+    return {
+      ok: true,
+      value: buildHomeControlCenterViewModel({
+        activityName: profile.value.activityName,
+        todayLocal: today,
+        truthLine:
+          "هذه قراءة قيادة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
+        primaryAction: primary,
+        facts,
+        attention,
+        optionalModules,
+        recentChanges,
+      }),
+    };
   }
 }

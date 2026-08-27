@@ -32,5 +32,8 @@ jobs:
       - name: Audit dependencies
         run: pnpm audit --audit-level high
 
+      - name: Lint source and tests
+        run: pnpm lint
+
       - name: Verify domain and prototype
         run: pnpm check

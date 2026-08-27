@@ -41,43 +41,49 @@ export function MicroRouter() {
   return (
     <MicroAppShell>
       <Suspense fallback={<RouteLoadingState />}>
-        <StartupGate><Switch>
-          <Route path="/setup" component={Setup} />
-          <Route path="/orders/new" component={NewDraft} />
-          <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
-          <Route path="/orders/draft/:id/cost" component={CostEditor} />
-          <Route path="/orders/draft/:id" component={DraftEditor} />
-          <Route path="/orders/:id" component={OrderDetail} />
-          <Route path="/schedule/:id" component={ScheduleEditor} />
-          <Route path="/schedule" component={Schedule} />
-          <Route path="/finance/new/:type" component={FinancialEventEditor} />
-          <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />
-          <Route path="/finance/g5/declaration" component={G5DeclarationEditor} />
-          <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />
-          <Route path="/suppliers/purchase/:id" component={SupplierPurchaseEditor} />
-          <Route path="/suppliers" component={Suppliers} />
-          <Route path="/cash/wallet/new" component={CashWalletEditor} />
-          <Route path="/cash/transfer" component={CashTransferEditor} />
-          <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
-          <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
-          <Route path="/cash" component={CashWallets} />
-          <Route path="/inventory/material/new" component={MaterialEditor} />
-          <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
-          <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
-          <Route path="/inventory" component={InventoryMaterials} />
-          <Route path="/catalog" component={Catalog} />
-          <Route path="/finance" component={Finance} />
-          <Route path="/" component={Home} />
-          <Route path="/orders" component={Orders} />
-          <Route path="/review" component={Review} />
-          <Route path="/settings" component={SettingsPage} />
-          <Route component={NotFound} />
-        </Switch></StartupGate>
+        <StartupGate>
+          <Switch>
+            <Route path="/setup" component={Setup} />
+            <Route path="/orders/new" component={NewDraft} />
+            <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
+            <Route path="/orders/draft/:id/cost" component={CostEditor} />
+            <Route path="/orders/draft/:id" component={DraftEditor} />
+            <Route path="/orders/:id" component={OrderDetail} />
+            <Route path="/schedule/:id" component={ScheduleEditor} />
+            <Route path="/schedule" component={Schedule} />
+            <Route path="/finance/new/:type" component={FinancialEventEditor} />
+            <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />
+            <Route path="/finance/g5/declaration" component={G5DeclarationEditor} />
+            <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />
+            <Route path="/suppliers/purchase/:id" component={SupplierPurchaseEditor} />
+            <Route path="/suppliers" component={Suppliers} />
+            <Route path="/cash/wallet/new" component={CashWalletEditor} />
+            <Route path="/cash/transfer" component={CashTransferEditor} />
+            <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
+            <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
+            <Route path="/cash" component={CashWallets} />
+            <Route path="/inventory/material/new" component={MaterialEditor} />
+            <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
+            <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
+            <Route path="/inventory" component={InventoryMaterials} />
+            <Route path="/catalog" component={Catalog} />
+            <Route path="/finance" component={Finance} />
+            <Route path="/" component={Home} />
+            <Route path="/orders" component={Orders} />
+            <Route path="/review" component={Review} />
+            <Route path="/settings" component={SettingsPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </StartupGate>
       </Suspense>
     </MicroAppShell>
   );
 }
 
 function RouteLoadingState() {
-  return <div className="micro-route-loading" role="status" aria-live="polite">جارٍ فتح المسار…</div>;
+  return (
+    <div className="micro-route-loading" role="status" aria-live="polite">
+      جارٍ فتح المسار…
+    </div>
+  );
 }
