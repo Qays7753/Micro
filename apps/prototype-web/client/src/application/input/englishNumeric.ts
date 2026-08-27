@@ -37,3 +37,26 @@ export function formatEnglishNumericValue(value: number | null, kind: EnglishNum
   if (kind === "money") return (value / 100).toFixed(2);
   return String(value);
 }
+
+export function focusEnglishNumericText(
+  value: number | null,
+  text: string,
+  kind: EnglishNumericKind,
+  hasUserEdited: boolean,
+  clearDefaultZeroOnFocus: boolean,
+) {
+  return clearDefaultZeroOnFocus && value === 0 && !hasUserEdited && text === formatEnglishNumericValue(0, kind) ? "" : text;
+}
+
+export function blurEnglishNumericText(
+  text: string,
+  committed: number | null,
+  kind: EnglishNumericKind,
+  allowEmpty: boolean,
+) {
+  const parsed = parseEnglishNumericText(text, kind);
+  if (parsed !== null) return { text: formatEnglishNumericValue(parsed, kind), committed: parsed, empty: false, valid: true };
+  if (allowEmpty && text === "") return { text: "", committed: null, empty: true, valid: true };
+  if (text !== "") return { text, committed, empty: false, valid: false };
+  return { text: formatEnglishNumericValue(committed, kind), committed, empty: false, valid: true };
+}

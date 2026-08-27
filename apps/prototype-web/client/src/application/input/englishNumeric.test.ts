@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allowsEnglishNumericText, formatEnglishNumericValue, parseEnglishNumericText } from "./englishNumeric";
+import { allowsEnglishNumericText, blurEnglishNumericText, focusEnglishNumericText, formatEnglishNumericValue, parseEnglishNumericText } from "./englishNumeric";
 
 describe("english numeric input", () => {
   it("accepts only editable ASCII digit forms", () => {
@@ -26,5 +26,21 @@ describe("english numeric input", () => {
     expect(formatEnglishNumericValue(1.25, "decimal")).toBe("1.25");
     expect(formatEnglishNumericValue(1250, "money")).toBe("12.50");
     expect(formatEnglishNumericValue(null, "money")).toBe("");
+  });
+
+  it("clears an untouched displayed zero on focus and restores it when left empty", () => {
+    expect(focusEnglishNumericText(0, "0.00", "money", false, true)).toBe("");
+    expect(blurEnglishNumericText("", 0, "money", false)).toEqual({ text: "0.00", committed: 0, empty: false, valid: true });
+  });
+
+  it("does not clear a real zero after the user has edited the field", () => {
+    expect(focusEnglishNumericText(0, "0.00", "money", true, true)).toBe("0.00");
+    expect(focusEnglishNumericText(0, "0", "integer", true, true)).toBe("0");
+  });
+
+  it("keeps non-zero values and permits optional numeric fields to remain empty", () => {
+    expect(focusEnglishNumericText(1250, "12.50", "money", false, true)).toBe("12.50");
+    expect(blurEnglishNumericText("", null, "money", true)).toEqual({ text: "", committed: null, empty: true, valid: true });
+    expect(blurEnglishNumericText("12.000", 1, "integer", false)).toEqual({ text: "12.000", committed: 1, empty: false, valid: false });
   });
 });

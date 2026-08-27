@@ -516,3 +516,19 @@ button.micro-month-cell:hover { border-color: var(--color-accent-primary); backg
 .micro-conversion-equation { display: inline-flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-start; gap: 0.28rem; direction: ltr; unicode-bidi: isolate; font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
 .micro-conversion-equation bdi { direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
 .micro-conversion-equation .micro-conversion-unit { direction: rtl; unicode-bidi: isolate; font-family: inherit; white-space: nowrap; }
+
+/* First-use acceptance: keep the agreement commit target clear of the fixed nav/FAB when the form is scrolled to its end. */
+.micro-agreement-page .micro-form-card { padding-bottom: calc(var(--space-4) + 88px + env(safe-area-inset-bottom)); }
+.micro-agreement-page .micro-save-cost { position: relative; z-index: 1; min-height: 52px; }
+
+/* Final-only review totals must expose the excluded delivered sources next to the scope note. */
+.micro-review-exclusions { display: grid; gap: var(--space-2); border-inline-start: 3px solid var(--color-warning-text); border-radius: var(--radius-control); padding: var(--space-3); color: var(--color-warning-text); background: var(--color-warning-bg); }
+.micro-review-exclusions > div { display: grid; gap: var(--space-1); }
+.micro-review-exclusions > div:first-child { grid-template-columns: auto 1fr; align-items: start; gap: var(--space-2); }
+.micro-review-exclusions svg { width: 18px; height: 18px; margin-top: 4px; flex: 0 0 auto; }
+.micro-review-exclusions p { margin: 0; color: var(--color-text-secondary); font-size: 12px; line-height: 1.65; }
+.micro-review-exclusions strong { color: var(--color-text-primary); }
+.micro-review-exclusions .micro-text-action { width: 100%; justify-content: flex-start; }
+
+/* Fixed navigation must not cover the last actionable control on any phone-first page. */
+.micro-main > .micro-page { padding-block-end: calc(64px + env(safe-area-inset-bottom)); }
