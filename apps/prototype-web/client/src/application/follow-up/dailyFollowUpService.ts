@@ -1,12 +1,17 @@
+/* مبدأ Micro: المتابعة اليومية تعكس الحالة والفعل التالي من نفس خريطة الاتفاق، ولا تعيد اختراع اعتماد. */
 /**
  * Daily follow-up: converts existing local orders and drafts into one honest next action.
  * It never derives project cash or profit; debt remains a recorded receivable after delivery.
  */
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { OrderDraft, PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
 type FollowUpOrder = Pick<StoredCraftOrder, "id" | "deliveryDate"> & {
-  order: Pick<CraftOrder, "itemName" | "nextAction" | "receivableMinor" | "settlementStatus" | "status">;
+  order: Pick<
+    CraftOrder,
+    "itemName" | "nextAction" | "receivableMinor" | "settlementStatus" | "status" | "agreedPriceMinor"
+  >;
 };
 type FollowUpDraft = Pick<OrderDraft, "id" | "itemName" | "linkedOrderId">;
 
@@ -34,11 +39,17 @@ export function deriveDailyFollowUp(
 ): DailyFollowUp {
   const activeOrder = orders.find(isActive);
   if (activeOrder) {
+    const agreement = getAgreementPresentation({
+      status: activeOrder.order.status,
+      agreedPriceMinor: activeOrder.order.agreedPriceMinor,
+      deliveryDate: activeOrder.deliveryDate,
+      nextAction: activeOrder.order.nextAction,
+    });
     return {
       kind: "active_order",
       title: activeOrder.order.itemName,
-      truth: activeOrder.order.nextAction,
-      nextAction: "افتح الطلب وأكمل خطوته الحالية.",
+      truth: `${agreement.label}: ${agreement.explanation}`,
+      nextAction: agreement.nextAction,
       href: `/orders/${activeOrder.id}`,
       actionLabel: "فتح الطلب",
     };

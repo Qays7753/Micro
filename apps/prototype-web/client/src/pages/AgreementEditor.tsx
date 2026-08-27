@@ -1,4 +1,4 @@
-/* مبدأ Micro: الاتفاق يثبت ما عُرف، ولا يحول العربون أو التاريخ إلى نتيجة مالية تلقائية. */
+/* مبدأ Micro: يثبت الاتفاق ما يعرفه المالك الآن، ويبقي بدء التنفيذ والتحصيل أفعالًا منفصلة. */
 import { ArrowRight, CircleAlert, Save } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
@@ -13,6 +13,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { AgreementSource, OrderDraft } from "@/storage/local/types";
+import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
 type AgreementFormValues = {
   priceMinor: number | null;
@@ -88,6 +89,11 @@ export default function AgreementEditor() {
   const protectionPriceMinor = preview?.ok ? preview.snapshot.priceFloorMinor * (draft?.quantity ?? 1) : null;
   const isBelowFloor =
     protectionPriceMinor !== null && priceMinor !== null && priceMinor < protectionPriceMinor;
+  const agreementPresentation = getAgreementPresentation({
+    status: "draft",
+    agreedPriceMinor: priceMinor,
+    deliveryDate,
+  });
   const currentValues = { priceMinor, deliveryDate, depositMinor, source, acknowledgesBelowFloor };
   const isDirty = Boolean(
     initialValuesRef.current && !equalAgreementValues(currentValues, initialValuesRef.current),
@@ -174,9 +180,9 @@ export default function AgreementEditor() {
         <ArrowRight aria-hidden="true" /> العودة للتكلفة
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">اتفاق محلي</span>
+        <span className="micro-overline">{agreementPresentation.label}</span>
         <h1>ثبّت ما اتفقت عليه</h1>
-        <p>ثبّت السعر والموعد، والعربون إن قبضته.</p>
+        <p>{agreementPresentation.explanation} ثبّت السعر والموعد، والعربون إن قبضته.</p>
       </div>
       <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
         <span>سعر الحماية المشتق من نسخة التكلفة (د.أ)</span>

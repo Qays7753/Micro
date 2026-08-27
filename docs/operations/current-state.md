@@ -92,9 +92,9 @@
 
 أي PR لاحقة يجب أن تحدّث هذا الملف داخل الـPR نفسها، وتذكر: النطاق، العقد، PR التاريخية، schema/export إن تغيرتا، أثر الاستيراد/التصدير، الحدود، والفعل التالي. لا تذكر SHA دمج PR الحالية بوصفها رأسًا لاحقًا؛ استخدم `git fetch origin --prune`. لا تضف `apps/prototype-web/client/public/__manus__/version.json` إلى Git، ولا تخلط تغييرات `todo.md` المحلي داخل commit.
 
-## 8. G18 — Safe Deep Flows قيد المراجعة
+## 8. G18 — Safe Deep Flows مدمجة
 
-بدأت G18 من رأس `origin/main` بعد دمج PR #118 عند `9dad691ea6cad6e307c7be9c0a652e5e67b19787`. هذه الشريحة تعالج UX-V2-03 وUX-V2-04 وتؤسس عرض التاريخ فقط؛ لا تبدأ G19 أو أي مجموعة لاحقة قبل مراجعة مستقلة ودمج هذه الـPR.
+بدأت G18 من رأس `origin/main` بعد دمج PR #118، ثم دُمجت عبر PR #121. رأس `origin/main` الذي بدأت منه G19 هو `9fb1b15d98ba6a04363bb95ce0fb3e64c19c49aa`; لا يُعامل هذا SHA كرأس حالي بعد أي commits لاحقة من دون `git fetch origin --prune`.
 
 | العنصر | الحقيقة الحالية |
 |---|---|
@@ -102,8 +102,22 @@
 | العقود | لم تتغير عقود Order/Agreement/Cost/Financial Event/O1/Cash/Inventory/Schedule؛ `waste` ليس default لمسار مجهول، والتاريخ الداخلي يبقى ISO محليًا. |
 | التخزين والترحيل | لا تغيير في schema أو export/import أو migration؛ التعديلات العرضية لا تصل مباشرة إلى IndexedDB ولا تعيد كتابة سجلات تاريخية. |
 | المال والحقيقة | لا تغيير في الحسابات أو معنى الكاش/الربح/الدين/المخزون أو snapshots؛ كل آثار العكس والوقت والمخزون بقيت غير هدّامة. |
-| التحقق | `pnpm check`، الاختبارات المستهدفة، `pnpm check` الكامل مع build، وQA حي محلي للمسارات العميقة والرابط `/inventory/movement/use` في Light/Dark مع RTL. |
-| الحالة التالية | تنتظر الشريحة فحوص CI وCloudflare Pages ثم مراجعة وقبول/دمج مستقلين؛ لا PR ثانية ولا G19 تلقائيًا. |
+| التحقق | فحوص G18 وQA الحي المحلي اكتملت قبل الدمج؛ لا يُرفع ذلك إلى قبول Android/iOS أو PWA/Offline أو Production أو Pilot. |
+| الحالة التالية | G18 مدمجة؛ لا يبدأ G20 أو أي مجموعة لاحقة قبل قبول مستقل للمجموعة الحالية التالية. |
+
+## 9. G19 — Order clarity and incomplete cost truth قيد المراجعة
+
+بدأت G19 من رأس `origin/main` المذكور أعلاه على الفرع المستقل `agent-ux/g19-order-clarity-cost-truth`. هذه الشريحة تعالج M-08 وM-09 فقط، مع تحقق محدود من M-10 وM-05؛ الكود غير مدمج في `main` حتى الآن.
+
+| العنصر | الحقيقة الحالية |
+|---|---|
+| سؤال القرار | هل يعرف المالك بوضوح هل الاتفاق محفوظ، وهل يعرف حدود Snapshot التكلفة الناقصة بدل افتراض المجهول صفرًا؟ |
+| النطاق المنفذ | طبقة عرض مركزية لحالات الاتفاق عبر Orders وOrderDetail وSchedule وAgreementEditor والمتابعة اليومية؛ CTA وإرشاد صريحان لحفظ Snapshot الناقصة؛ Drawer قصير لإضافة/تعديل/حذف المواد مع كميات ASCII/LTR حتى ثلاث منازل وملخص قابل للتحرير. |
+| العقود | لم تتغير Domain أو Order/Agreement/Cost/Financial Event أو سياسات الكاش/الدين/المخزون؛ العرض فقط يوضح الحالات ولا يغير transitions. |
+| التخزين والترحيل | لا تغيير في schema `26` أو export `17` أو migration/import؛ لا UI→IndexedDB مباشر؛ Snapshot history append-only ولا حذف أو restatement صامت. |
+| المال والحقيقة | missing ≠ zero؛ Snapshot الناقصة تبقى `incomplete`، والاتفاق والعربون والتحصيل والربح منفصلة. تحقق M-10 أثبت وضوح العربون ككاش مرتبط بالطلب، ومراجعة M-05 أثبتت استبعاد الطلب المسلّم غير النهائي صراحةً. |
+| التحقق | اختبارات mapper والمتابعة اليومية، `pnpm prototype:check/test/build`, lint/check، وQA حي اصطناعي للمادة والتكلفة والاتفاق وOrders/OrderDetail/Schedule وM-10/M-05؛ لم يُعلن قبول جهاز فعلي أو Production/Pilot. |
+| الحالة التالية | تشغيل الفحوص النهائية، فتح PR واحدة إلى `main`، انتظار CI وCloudflare Pages، ثم قبول مستقل؛ لا دمج ذاتي ولا بدء G20. |
 
 ## References
 
