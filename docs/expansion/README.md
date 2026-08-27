@@ -50,9 +50,12 @@
 1. [`docs/operations/current-state.md`](../operations/current-state.md) ثم `git fetch origin --prune` لمعرفة `main` والـPRات الحية.
 2. [`AGENTS.md`](../../AGENTS.md) و[`docs/00-document-index.md`](../00-document-index.md) و[`docs/operations/micro-thinking-charter-v1.md`](../operations/micro-thinking-charter-v1.md).
 3. هذا الملف، ثم [`DECISIONS.md`](DECISIONS.md) و[`TRACKER.md`](TRACKER.md).
-4. عقود Manage المالية: `docs/contracts/05-financial-p0-policies.md` و`docs/product/financial-operating-model-v1.md` و`docs/implementation/02-domain-contract-coverage.md`.
-5. `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md`، ثم بوابة `docs/implementation/03-pre-build-alignment-v1.md`.
-6. [`HISTORICAL-SOURCES.md`](HISTORICAL-SOURCES.md) فقط إذا احتاج سببًا تاريخيًا أو تفصيلًا لم يعد داخل القرار الحاكم؛ لا يستخدم أي ملف تحته كتعليمات تنفيذ.
+4. عقود E-00: `docs/contracts/18-network-identity-workspace-access-contract.md` إلى `24-network-data-classification-field-dictionary-contract.md`، ثم [`ROLE-ACCESS-MATRIX.md`](ROLE-ACCESS-MATRIX.md) و[`E00-SCENARIOS-AND-ACCEPTANCE.md`](E00-SCENARIOS-AND-ACCEPTANCE.md) و[`E00-EXECUTION-PROTOCOL.md`](E00-EXECUTION-PROTOCOL.md).
+5. عقود Manage المالية: `docs/contracts/05-financial-p0-policies.md` و`docs/product/financial-operating-model-v1.md` و`docs/implementation/02-domain-contract-coverage.md`.
+6. `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md`، ثم بوابة `docs/implementation/03-pre-build-alignment-v1.md`.
+7. [`EXPANSION-GLOSSARY.md`](EXPANSION-GLOSSARY.md) و[`E00-TRACEABILITY-MATRIX.md`](E00-TRACEABILITY-MATRIX.md) و[`E00-REVIEW-CHECKLIST.md`](E00-REVIEW-CHECKLIST.md) و[`E00-TECHNICAL-ARCHITECTURE-DECISION.md`](E00-TECHNICAL-ARCHITECTURE-DECISION.md) و[`MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md`](MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md).
+8. [`FIRST-WEDGE-AND-PILOT-DECISION-CARD.md`](FIRST-WEDGE-AND-PILOT-DECISION-CARD.md) و[`LOCAL-FIRST-HOME-TRIAL-SOP.md`](LOCAL-FIRST-HOME-TRIAL-SOP.md) و[`HOME-TRIAL-LOG-TEMPLATE.md`](HOME-TRIAL-LOG-TEMPLATE.md) و[`ACTIVATION-PRIVACY-ETHICS-SOP.md`](ACTIVATION-PRIVACY-ETHICS-SOP.md) و[`PARTNER-PILOT-SOP-AND-MEASUREMENT.md`](PARTNER-PILOT-SOP-AND-MEASUREMENT.md).
+9. [`HISTORICAL-SOURCES.md`](HISTORICAL-SOURCES.md) فقط إذا احتاج سببًا تاريخيًا أو تفصيلًا لم يعد داخل القرار الحاكم؛ لا يستخدم أي ملف تحته كتعليمات تنفيذ.
 
 ## 5. طريقة العمل على التوسعة
 

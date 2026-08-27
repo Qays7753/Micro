@@ -97,13 +97,13 @@ Market وDelivery امتدادان مستقلان ومترابطان لـMicro،
 
 ## References
 
-[1]: [Micro Problem Statement v4](../product/problem-statement-v4.md)
+[1]: [Micro Problem Statement v4](../../product/problem-statement-v4.md)
 
-[2]: [Micro Financial Operating Model v1](../product/financial-operating-model-v1.md)
+[2]: [Micro Financial Operating Model v1](../../product/financial-operating-model-v1.md)
 
-[3]: [Micro System Definition v1](../product/system-definition-v1.md)
+[3]: [Micro System Definition v1](../../product/system-definition-v1.md)
 
-[4]: [Micro Current State](../operations/current-state.md)
+[4]: [Micro Current State](../../operations/current-state.md)
 
 [5]: [OpenSooq Jordan — الصفحة الرئيسية والفئات](https://jo.opensooq.com/ar)
 

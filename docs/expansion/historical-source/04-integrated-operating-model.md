@@ -216,8 +216,8 @@ Market وDelivery ينتجان مراجع وأحداثًا تشغيلية. لا 
 
 ## References
 
-[1]: [Micro Financial Operating Model v1](../product/financial-operating-model-v1.md)
+[1]: [Micro Financial Operating Model v1](../../product/financial-operating-model-v1.md)
 
-[2]: [Micro System Definition v1](../product/system-definition-v1.md)
+[2]: [Micro System Definition v1](../../product/system-definition-v1.md)
 
-[3]: [Micro Problem Statement v4](../product/problem-statement-v4.md)
+[3]: [Micro Problem Statement v4](../../product/problem-statement-v4.md)

@@ -195,12 +195,12 @@ RTL Phone-first UI
 
 ## References
 
-[1]: [Micro Current State](../operations/current-state.md)
+[1]: [Micro Current State](../../operations/current-state.md)
 
-[2]: [Micro Pre-build Alignment](../implementation/03-pre-build-alignment-v1.md)
+[2]: [Micro Pre-build Alignment](../../implementation/03-pre-build-alignment-v1.md)
 
-[3]: [Micro Domain Contract Coverage](../implementation/02-domain-contract-coverage.md)
+[3]: [Micro Domain Contract Coverage](../../implementation/02-domain-contract-coverage.md)
 
-[4]: [Micro Thinking Charter](../operations/micro-thinking-charter-v1.md)
+[4]: [Micro Thinking Charter](../../operations/micro-thinking-charter-v1.md)
 
-[5]: [Micro Mobile UI/UX Reference](../product/mobile-ui-ux-reference-v1.md)
+[5]: [Micro Mobile UI/UX Reference](../../product/mobile-ui-ux-reference-v1.md)
