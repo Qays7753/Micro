@@ -2022,6 +2022,90 @@
 .micro-finance-page {
   gap: var(--space-5);
 }
+
+/* مبدأ Micro: الطبقة المختصرة تبرز القرار، وتؤجل التفاصيل حتى يطلبها المستخدم. */
+.micro-finance-layer,
+.micro-owner-layer {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.micro-finance-layer-summary,
+.micro-owner-layer-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 64px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+.micro-finance-layer-summary::-webkit-details-marker,
+.micro-owner-layer-summary::-webkit-details-marker {
+  display: none;
+}
+.micro-finance-layer-summary:focus-visible,
+.micro-owner-layer-summary:focus-visible {
+  outline: 3px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+.micro-finance-layer-summary > span,
+.micro-owner-layer-summary > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-finance-layer-summary b,
+.micro-owner-layer-summary b {
+  font-size: 15px;
+}
+.micro-finance-layer-summary small,
+.micro-owner-layer-summary small {
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-finance-layer-summary > strong,
+.micro-owner-layer-summary > strong {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.micro-finance-layer[open] > summary,
+.micro-owner-layer[open] > summary {
+  border-color: color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
+}
+.micro-finance-unallocated-alert {
+  display: grid;
+  gap: var(--space-3);
+  border-inline-start: 3px solid var(--color-warning-text);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--color-warning-bg);
+}
+.micro-finance-unallocated-alert > div {
+  display: grid;
+  gap: var(--space-1);
+}
+.micro-finance-unallocated-alert strong {
+  color: var(--color-warning-text);
+}
+.micro-finance-unallocated-alert p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.micro-finance-unallocated-alert .micro-button {
+  justify-self: start;
+}
+
 .micro-finance-position {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4153,6 +4237,22 @@ button.micro-month-cell:hover {
   font-size: 16px;
   font-variant-numeric: tabular-nums;
   unicode-bidi: isolate;
+}
+.micro-finance-event-toggle {
+  justify-self: start;
+  font-size: 12px;
+}
+.micro-finance-event-detail {
+  display: grid;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-2);
+}
+.micro-finance-event-note {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
 }
 .micro-finance-event-audit {
   color: var(--color-accent-text);

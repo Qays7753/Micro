@@ -1,4 +1,4 @@
-/** Micro G5 UI: phone-first RTL decision surface with cash-first guidance and recorded figures kept separate. */
+/* مبدأ Micro: ابدأ بقرار الكاش والفعل الأقرب، وأجّل قراءة الفترة والسجل والأثر الكامل إلى طبقات مستقلة. */
 import { ArrowLeft, CircleDollarSign, HandCoins, Landmark, ReceiptText, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -171,8 +171,8 @@ export default function Finance() {
       </section>
     );
   const { position, period, decision, owner } = state;
-  const visibleEventIds = new Set(state.events.slice(0, 6).map(event => event.id));
-  state.events.slice(0, 6).forEach(event => {
+  const visibleEventIds = new Set(state.events.slice(0, 3).map(event => event.id));
+  state.events.slice(0, 3).forEach(event => {
     if (event.correctionType === "reverse" && event.correctionOfEventId)
       visibleEventIds.add(event.correctionOfEventId);
     const reversal = state.events.find(
@@ -191,7 +191,12 @@ export default function Finance() {
         <h1>وضعي المالي الآن</h1>
         <p>ابدأ بالكاش والالتزامات القريبة، ثم افتح القراءة المسجلة للفترة إذا احتجت مراجعة أوسع.</p>
       </div>
-      <CashDecisionSurface decision={decision} onDeclare={() => navigate("/finance/g5/declaration")} />
+      <CashDecisionSurface
+        decision={decision}
+        unallocatedCashMinor={position.unallocatedCashMinor}
+        onDeclare={() => navigate("/finance/g5/declaration")}
+        onReviewCash={() => navigate("/cash")}
+      />
       <OwnerDecisionCard overview={owner} onOpen={() => navigate("/finance/owner-entitlement")} />
       <section
         className="micro-finance-position"
@@ -240,246 +245,288 @@ export default function Finance() {
           </p>
         </div>
       </section>
-      <section className="micro-period-result micro-derived-surface" data-status={period.status}>
-        <div className="micro-period-heading">
-          <div>
-            <span className="micro-overline">قراءة تشغيلية مسجلة · ضمن فترة معلنة</span>
-            <h2>صافي الربح التشغيلي المسجل للفترة</h2>
+      <details className="micro-finance-layer">
+        <summary className="micro-finance-layer-summary">
+          <span>
+            <b>قراءة الفترة</b>
+            <small>نتيجة مسجلة ومصادرها واستبعاداتها</small>
+          </span>
+          <strong>افتح التفاصيل</strong>
+        </summary>
+        <section className="micro-period-result micro-derived-surface" data-status={period.status}>
+          <div className="micro-period-heading">
+            <div>
+              <span className="micro-overline">قراءة تشغيلية مسجلة · ضمن فترة معلنة</span>
+              <h2>صافي الربح التشغيلي المسجل للفترة</h2>
+            </div>
+            <div className="micro-period-range-fields">
+              <label>
+                <span>من</span>
+                <input
+                  type="month"
+                  value={fromMonth}
+                  onChange={event => setFromMonth(event.target.value)}
+                  aria-label="بداية نطاق نتيجة الفترة"
+                />
+              </label>
+              <label>
+                <span>إلى</span>
+                <input
+                  type="month"
+                  value={toMonth}
+                  onChange={event => setToMonth(event.target.value)}
+                  aria-label="نهاية نطاق نتيجة الفترة"
+                />
+              </label>
+            </div>
           </div>
-          <div className="micro-period-range-fields">
-            <label>
-              <span>من</span>
-              <input
-                type="month"
-                value={fromMonth}
-                onChange={event => setFromMonth(event.target.value)}
-                aria-label="بداية نطاق نتيجة الفترة"
-              />
-            </label>
-            <label>
-              <span>إلى</span>
-              <input
-                type="month"
-                value={toMonth}
-                onChange={event => setToMonth(event.target.value)}
-                aria-label="نهاية نطاق نتيجة الفترة"
-              />
-            </label>
-          </div>
-        </div>
-        <p className="micro-period-range-label">
-          النطاق المحدد: <bdi dir="ltr">{fromMonth}</bdi> — <bdi dir="ltr">{toMonth}</bdi>. هذا رقم تشغيلي
-          مسجل من البنود المعروفة، وليس صافي ربح نهائيًا.
-        </p>
-        <p className="micro-period-result-value">
-          <span>الإيراد − التكلفة المباشرة المستخدمة − المصروف التشغيلي المحمل، ضمن الفترة المحددة فقط</span>
-          <strong>
-            {period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}
-          </strong>
-        </p>
-        <p className="micro-period-status" data-status={period.status}>
-          {recordedPeriodStatusLabel(period.status)}
-          {period.status === "incomplete" ? "؛ يظهر الرقم ولا يخفي البنود المستبعدة أو التقديرية." : null}
-        </p>
-        <dl>
-          <div>
-            <dt>إيراد طلبات نهائية</dt>
-            <dd>
-              <PeriodMoney value={period.recognizedRevenueMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>تكلفة مباشرة من Snapshot</dt>
-            <dd>
-              <PeriodMoney value={period.snapshotDirectCostMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>تكلفة بيع مسجلة من الاستهلاك</dt>
-            <dd>
-              <PeriodMoney value={period.recordedCogsMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>التكلفة المباشرة المستخدمة</dt>
-            <dd>
-              <PeriodMoney value={period.effectiveDirectCostMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>مصروف للمشروع</dt>
-            <dd>
-              <PeriodMoney value={period.projectOperatingExpenseMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>حصص مشروع مشتركة محملة</dt>
-            <dd>
-              <PeriodMoney value={period.sharedProjectExpenseMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>مصروف مشترك غير محمل</dt>
-            <dd>
-              <PeriodMoney value={period.sharedUnallocatedExpenseMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>استهلاك عام غير محمل</dt>
-            <dd>
-              <PeriodMoney value={period.unallocatedInventoryCostMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>هدر مخزون عام</dt>
-            <dd>
-              <PeriodMoney value={period.generalInventoryWasteMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>مصروف قديم بلا سياق</dt>
-            <dd>
-              <PeriodMoney value={period.legacyUnclassifiedExpenseMinor} status={period.status} />
-            </dd>
-          </div>
-          <div>
-            <dt>طلبات داخلة / مستبعدة</dt>
-            <dd>
-              {period.status === "invalid" ? (
-                <bdi dir="ltr" className="micro-inline-number">
-                  غير متاح
-                </bdi>
-              ) : (
-                <>
-                  <IntegerValue value={period.finalOrderCount} className="micro-inline-number" /> /{" "}
-                  <IntegerValue value={period.excludedOrderCount} className="micro-inline-number" />
-                </>
-              )}
-            </dd>
-          </div>
-        </dl>
-        <div className="micro-period-review-note">
-          <strong>مصدر التكلفة وحالة COGS</strong>
-          <p>
-            {cogsStatusLabel(period.cogsStatus)}. الأعمال النهائية التي رجعت إلى Snapshot لغياب استهلاك مؤهل:{" "}
-            <IntegerValue value={period.cogsMissingOrderCount} className="micro-inline-number" />.
+          <p className="micro-period-range-label">
+            النطاق المحدد: <bdi dir="ltr">{fromMonth}</bdi> — <bdi dir="ltr">{toMonth}</bdi>. هذا رقم تشغيلي
+            مسجل من البنود المعروفة، وليس صافي ربح نهائيًا.
           </p>
-          {period.cogsReasons.length > 0 ? (
-            <ul>
-              {period.cogsReasons.map(reason => (
-                <li key={reason}>{reason}</li>
-              ))}
-            </ul>
-          ) : null}
-          <p className="micro-period-next-action">الفعل التالي: {period.cogsNextAction}</p>
-        </div>
-        {period.reasons.length > 0 ? (
+          <p className="micro-period-result-value">
+            <span>
+              الإيراد − التكلفة المباشرة المستخدمة − المصروف التشغيلي المحمل، ضمن الفترة المحددة فقط
+            </span>
+            <strong>
+              {period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}
+            </strong>
+          </p>
+          <p className="micro-period-status" data-status={period.status}>
+            {recordedPeriodStatusLabel(period.status)}
+            {period.status === "incomplete" ? "؛ يظهر الرقم ولا يخفي البنود المستبعدة أو التقديرية." : null}
+          </p>
+          <dl>
+            <div>
+              <dt>إيراد طلبات نهائية</dt>
+              <dd>
+                <PeriodMoney value={period.recognizedRevenueMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>تكلفة مباشرة من Snapshot</dt>
+              <dd>
+                <PeriodMoney value={period.snapshotDirectCostMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>تكلفة بيع مسجلة من الاستهلاك</dt>
+              <dd>
+                <PeriodMoney value={period.recordedCogsMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>التكلفة المباشرة المستخدمة</dt>
+              <dd>
+                <PeriodMoney value={period.effectiveDirectCostMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>مصروف للمشروع</dt>
+              <dd>
+                <PeriodMoney value={period.projectOperatingExpenseMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>حصص مشروع مشتركة محملة</dt>
+              <dd>
+                <PeriodMoney value={period.sharedProjectExpenseMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>مصروف مشترك غير محمل</dt>
+              <dd>
+                <PeriodMoney value={period.sharedUnallocatedExpenseMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>استهلاك عام غير محمل</dt>
+              <dd>
+                <PeriodMoney value={period.unallocatedInventoryCostMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>هدر مخزون عام</dt>
+              <dd>
+                <PeriodMoney value={period.generalInventoryWasteMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>مصروف قديم بلا سياق</dt>
+              <dd>
+                <PeriodMoney value={period.legacyUnclassifiedExpenseMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>طلبات داخلة / مستبعدة</dt>
+              <dd>
+                {period.status === "invalid" ? (
+                  <bdi dir="ltr" className="micro-inline-number">
+                    غير متاح
+                  </bdi>
+                ) : (
+                  <>
+                    <IntegerValue value={period.finalOrderCount} className="micro-inline-number" /> /{" "}
+                    <IntegerValue value={period.excludedOrderCount} className="micro-inline-number" />
+                  </>
+                )}
+              </dd>
+            </div>
+          </dl>
           <div className="micro-period-review-note">
-            <strong>ما يحتاج مراجعة قبل الاعتماد على نتيجة أدق</strong>
-            <ul>
-              {period.reasons.map(reason => (
-                <li key={reason}>{reason}</li>
-              ))}
-            </ul>
+            <strong>مصدر التكلفة وحالة COGS</strong>
+            <p>
+              {cogsStatusLabel(period.cogsStatus)}. الأعمال النهائية التي رجعت إلى Snapshot لغياب استهلاك
+              مؤهل: <IntegerValue value={period.cogsMissingOrderCount} className="micro-inline-number" />.
+            </p>
+            {period.cogsReasons.length > 0 ? (
+              <ul>
+                {period.cogsReasons.map(reason => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            ) : null}
+            <p className="micro-period-next-action">الفعل التالي: {period.cogsNextAction}</p>
           </div>
-        ) : null}
-        {period.sharedUnallocatedExpenseCount > 0 ? (
-          <p className="micro-period-next-action">
-            الفعل التالي: حدد حصة المشروع للمصروف المشترك غير المحمل قبل الاعتماد على نتيجة أدق؛ لم يخصم
-            المصدر المستبعد من الرقم أعلاه.
-          </p>
-        ) : null}
-        <p className="micro-period-truth">{period.truth}</p>
-      </section>
-      <G5DecisionPanel
-        decision={decision}
-        g5={g5}
-        onDeclare={() => navigate("/finance/g5/declaration")}
-        onChanged={notifyDataChanged}
-      />
-      <section className="micro-finance-actions" aria-label="تسجيل حدث مالي">
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
-          محافظ الكاش والافتتاح
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          onClick={() => navigate("/suppliers")}
-        >
-          مشتريات المواد والموردون
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          onClick={() => navigate("/inventory")}
-        >
-          المواد والمخزون
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          onClick={() => navigate("/finance/new/operating_expense_cash")}
-        >
-          سجل مصروفًا مدفوعًا
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          onClick={() => navigate("/finance/new/operating_expense_payable")}
-        >
-          سجل التزامًا لمورد
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          onClick={() => navigate("/finance/new/owner_investment_cash")}
-        >
-          سجل استثمارًا
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          onClick={() => navigate("/finance/new/owner_withdrawal_cash")}
-        >
-          سجل سحبًا شخصيًا
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          onClick={() => navigate("/finance/owner-entitlement")}
-        >
-          دفتر استحقاق المالك والسحب الفعلي
-        </button>
-        {position.supplierPayablesMinor > 0 ? (
+          {period.reasons.length > 0 ? (
+            <div className="micro-period-review-note">
+              <strong>ما يحتاج مراجعة قبل الاعتماد على نتيجة أدق</strong>
+              <ul>
+                {period.reasons.map(reason => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {period.sharedUnallocatedExpenseCount > 0 ? (
+            <p className="micro-period-next-action">
+              الفعل التالي: حدد حصة المشروع للمصروف المشترك غير المحمل قبل الاعتماد على نتيجة أدق؛ لم يخصم
+              المصدر المستبعد من الرقم أعلاه.
+            </p>
+          ) : null}
+          <p className="micro-period-truth">{period.truth}</p>
+        </section>
+      </details>
+      <details className="micro-finance-layer">
+        <summary className="micro-finance-layer-summary">
+          <span>
+            <b>التغطية والتعادل</b>
+            <small>قراءة G5 للفترة والمزيج والإعلانات المعلنة</small>
+          </span>
+          <strong>افتح التفاصيل</strong>
+        </summary>
+        <G5DecisionPanel
+          decision={decision}
+          g5={g5}
+          onDeclare={() => navigate("/finance/g5/declaration")}
+          onChanged={notifyDataChanged}
+        />
+      </details>
+      <details className="micro-finance-layer">
+        <summary className="micro-finance-layer-summary">
+          <span>
+            <b>تسجيل حركة أو فتح مصدر</b>
+            <small>المحافظ والموردون والمصروفات واستثمار المالك</small>
+          </span>
+          <strong>افتح الإجراءات</strong>
+        </summary>
+        <section className="micro-finance-actions" aria-label="تسجيل حدث مالي">
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={() => navigate("/cash")}
+          >
+            محافظ الكاش والافتتاح
+          </button>
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/finance/new/payable_settlement_cash")}
+            onClick={() => navigate("/suppliers")}
           >
-            سدد التزام مصروف
+            مشتريات المواد والموردون
           </button>
-        ) : null}
-      </section>
-      <section className="micro-finance-event-list">
-        <div className="micro-finance-event-heading">
-          <span className="micro-overline">السجل المحلي · المبالغ بد.أ</span>
-          <h2>أحدث الأحداث العامة</h2>
-          <p>كل عكس موثق يضيف حدثًا جديدًا؛ الأصل يبقى ظاهرًا ولا يوجد حذف.</p>
-        </div>
-        {visibleEvents.length > 0 ? (
-          visibleEvents.map(event => (
-            <FinancialEventRow
-              key={event.id}
-              event={event}
-              events={state.events}
-              projectFinance={projectFinance}
-              onChanged={notifyDataChanged}
-            />
-          ))
-        ) : (
-          <p>لم تسجل حدثًا عامًا بعد. سجّل واقعًا تعرفه، لا تقديرًا لا تثق به.</p>
-        )}
-      </section>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/inventory")}
+          >
+            المواد والمخزون
+          </button>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/finance/new/operating_expense_cash")}
+          >
+            سجل مصروفًا مدفوعًا
+          </button>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/finance/new/operating_expense_payable")}
+          >
+            سجل التزامًا لمورد
+          </button>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/finance/new/owner_investment_cash")}
+          >
+            سجل استثمارًا
+          </button>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/finance/new/owner_withdrawal_cash")}
+          >
+            سجل سحبًا شخصيًا
+          </button>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/finance/owner-entitlement")}
+          >
+            دفتر استحقاق المالك والسحب الفعلي
+          </button>
+          {position.supplierPayablesMinor > 0 ? (
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              onClick={() => navigate("/finance/new/payable_settlement_cash")}
+            >
+              سدد التزام مصروف
+            </button>
+          ) : null}
+        </section>
+      </details>
+      <details className="micro-finance-layer">
+        <summary className="micro-finance-layer-summary">
+          <span>
+            <b>السجل والأثر</b>
+            <small>آخر ثلاثة أحداث؛ افتح الصف لرؤية الأثر الكامل</small>
+          </span>
+          <strong>افتح السجل</strong>
+        </summary>
+        <section className="micro-finance-event-list">
+          <div className="micro-finance-event-heading">
+            <span className="micro-overline">السجل المحلي · المبالغ بد.أ</span>
+            <h2>أحدث الأحداث العامة</h2>
+            <p>كل عكس موثق يضيف حدثًا جديدًا؛ الأصل يبقى ظاهرًا ولا يوجد حذف.</p>
+          </div>
+          {visibleEvents.length > 0 ? (
+            visibleEvents.map(event => (
+              <FinancialEventRow
+                key={event.id}
+                event={event}
+                events={state.events}
+                projectFinance={projectFinance}
+                onChanged={notifyDataChanged}
+              />
+            ))
+          ) : (
+            <p>لم تسجل حدثًا عامًا بعد. سجّل واقعًا تعرفه، لا تقديرًا لا تثق به.</p>
+          )}
+        </section>
+      </details>
     </section>
   );
 }
@@ -493,11 +540,11 @@ function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOve
     >
       <div className="micro-section-heading">
         <div>
-          <span className="micro-overline">O1 · دفتر منفصل عن الربح</span>
+          <span className="micro-overline">حق المالك · دفتر منفصل عن الربح</span>
           <h2 id="owner-decision-title">حق المالك وما تحرك فعليًا</h2>
         </div>
         <bdi dir="ltr" className="micro-inline-number">
-          {formatMoneyMinor(overview.remainingEntitlementBalanceMinor)} JOD
+          {formatMoneyMinor(overview.remainingEntitlementBalanceMinor)} د.أ
         </bdi>
       </div>
       <p>
@@ -523,7 +570,17 @@ function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOve
   );
 }
 
-function CashDecisionSurface({ decision, onDeclare }: { decision: G5Decision; onDeclare: () => void }) {
+function CashDecisionSurface({
+  decision,
+  unallocatedCashMinor,
+  onDeclare,
+  onReviewCash,
+}: {
+  decision: G5Decision;
+  unallocatedCashMinor: number;
+  onDeclare: () => void;
+  onReviewCash: () => void;
+}) {
   const cash = decision.shortCash;
   return (
     <section className="micro-cash-decision" aria-labelledby="cash-decision-title">
@@ -575,6 +632,20 @@ function CashDecisionSurface({ decision, onDeclare }: { decision: G5Decision; on
           أعلن تحصيلًا أو التزامًا قريبًا
         </button>
       </div>
+      {unallocatedCashMinor < 0 ? (
+        <div className="micro-finance-unallocated-alert" role="status">
+          <div>
+            <strong>يوجد فرق كاش غير موزع يحتاج مراجعة</strong>
+            <p>
+              الفرق الحالي <MoneyValue minor={unallocatedCashMinor} /> د.أ. سببه ظاهر في المصادر المسجلة، لكنه
+              ليس مصروفًا أو ربحًا جديدًا.
+            </p>
+          </div>
+          <button className="micro-button micro-button-secondary" type="button" onClick={onReviewCash}>
+            راجع مصدر الفرق
+          </button>
+        </div>
+      ) : null}
       <p className="micro-cash-decision-truth">{decision.truth}</p>
     </section>
   );
@@ -592,6 +663,7 @@ function FinancialEventRow({
   onChanged: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -605,6 +677,7 @@ function FinancialEventRow({
     setError(null);
     setSuccess(null);
     setReason("");
+    setDetailsOpen(true);
     setOpen(true);
   };
   const cancel = () => {
@@ -646,14 +719,31 @@ function FinancialEventRow({
     >
       <div className="micro-finance-event-main">
         <div>
-          <strong>
-            {eventLabel[event.type]}
-            {isReversal ? " · عكس موثق" : ""}
-          </strong>
+          <strong>{eventLabel[event.type]}</strong>
           <small>
-            <LocalDateValue value={event.occurredOn} /> · {event.note}
-            {expenseContextLabel(event) ? ` · ${expenseContextLabel(event)}` : ""}
+            <LocalDateValue value={event.occurredOn} /> ·{" "}
+            {isReversal ? "عكس موثق" : reversal ? "عُكست" : "مسجلة"}
           </small>
+        </div>
+        <b>
+          <MoneyValue minor={event.amountMinor} /> د.أ
+        </b>
+      </div>
+      <button
+        className="micro-text-action micro-finance-event-toggle"
+        type="button"
+        aria-expanded={detailsOpen}
+        aria-controls={`micro-finance-event-detail-${event.id}`}
+        onClick={() => setDetailsOpen(current => !current)}
+      >
+        {detailsOpen ? "إخفاء الأثر الكامل" : "عرض الأثر الكامل"}
+      </button>
+      {detailsOpen ? (
+        <div className="micro-finance-event-detail" id={`micro-finance-event-detail-${event.id}`}>
+          <p className="micro-finance-event-note">{event.note}</p>
+          {expenseContextLabel(event) ? (
+            <p className="micro-finance-event-note">{expenseContextLabel(event)}</p>
+          ) : null}
           {isReversal ? (
             <small className="micro-finance-event-audit">
               الأصل: <bdi dir="ltr">{event.correctionOfEventId}</bdi> · السبب: {event.correctionReason}
@@ -663,25 +753,22 @@ function FinancialEventRow({
               العكس الموثق: <bdi dir="ltr">{reversal.id}</bdi> · السبب: {reversal.correctionReason}
             </small>
           ) : null}
+          <div className="micro-finance-event-effects">
+            <span>
+              كاش <MoneyValue minor={event.cashDeltaMinor} /> د.أ
+            </span>
+            <span>
+              التزام <MoneyValue minor={event.payableDeltaMinor} /> د.أ
+            </span>
+            <span>
+              مال المالك <MoneyValue minor={event.ownerCapitalDeltaMinor} /> د.أ
+            </span>
+            <span>
+              مصروف <MoneyValue minor={event.operatingExpenseDeltaMinor} /> د.أ
+            </span>
+          </div>
         </div>
-        <b>
-          <MoneyValue minor={event.amountMinor} />
-        </b>
-      </div>
-      <div className="micro-finance-event-effects">
-        <span>
-          كاش <MoneyValue minor={event.cashDeltaMinor} />
-        </span>
-        <span>
-          التزام <MoneyValue minor={event.payableDeltaMinor} />
-        </span>
-        <span>
-          مال المالك <MoneyValue minor={event.ownerCapitalDeltaMinor} />
-        </span>
-        <span>
-          مصروف <MoneyValue minor={event.operatingExpenseDeltaMinor} />
-        </span>
-      </div>
+      ) : null}
       {!isReversal && !reversal ? (
         <button className="micro-text-action" type="button" onClick={begin}>
           صحح هذه الواقعة

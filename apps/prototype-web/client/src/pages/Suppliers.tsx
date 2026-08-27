@@ -86,10 +86,21 @@ export default function Suppliers() {
         {open.length ? (
           open.map(purchase => (
             <article key={purchase.id}>
+              {/* مبدأ Micro: نعرض قصة شراء المورد كاملة دون تحويلها إلى مصروف أو تكلفة بيع. */}
               <div>
                 <strong>{purchase.supplierName}</strong>
+                <small>الحالة: مفتوح</small>
+                <b className="micro-number">
+                  المتبقي (د.أ): <MoneyValue minor={purchase.payableMinor} className="micro-inline-number" />
+                </b>
+              </div>
+              <div className="micro-supplier-balance">
+                <small className="micro-number">
+                  الإجمالي: <MoneyValue minor={purchase.totalMinor} className="micro-inline-number" /> ·
+                  المدفوع: <MoneyValue minor={purchase.paidMinor} className="micro-inline-number" />
+                </small>
                 <small>
-                  <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
+                  تاريخ الشراء: <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
                 </small>
                 {purchase.dueOn ? (
                   <small>
@@ -98,11 +109,6 @@ export default function Suppliers() {
                 ) : (
                   <small>لا يوجد تاريخ استحقاق مسجل</small>
                 )}
-              </div>
-              <div className="micro-supplier-balance">
-                <b className="micro-number">
-                  المتبقي (د.أ): <MoneyValue minor={purchase.payableMinor} className="micro-inline-number" />
-                </b>
                 <button
                   className="micro-button micro-button-secondary"
                   type="button"

@@ -68,7 +68,7 @@ const knowledgeFromBasis = (basis: SharedProjectShareBasis): OperatingExpenseCon
       : "needs_review";
 const sourceDescription: Record<SharedProjectShareBasis, string> = {
   agreed_fixed_share: "أدخل حصة المشروع فقط؛ لا يحفظ النظام إجمالي فاتورة البيت.",
-  agreed_percentage: "أدخل الإجمالي والنسبة الصريحة؛ يحسب النظام الحصة ويثبتها بوحدات JOD الصغرى.",
+  agreed_percentage: "أدخل الإجمالي والنسبة الصريحة؛ يحسب النظام حصة المشروع بدقة ويحفظها في السجل.",
   owner_estimate: "تقديرك الحالي لحصة المشروع؛ تدخل مرة واحدة وتبقى الصورة ناقصة.",
   needs_review: "يحفظ إجمالي المصدر كغير محمل؛ لا يصبح صفرًا ولا يخصم من النتيجة.",
 };
