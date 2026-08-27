@@ -19,6 +19,7 @@
 | أخلاقيات/شفافية/Pilot | Activation SOP وPartner Pilot SOP. | بوابة A/B والمراجعة الأسبوعية. | قبل أول دعوة. | لا شريك/Review/Rating مزيف أو توسع بسبب vanity metrics. |
 | قبول E-00 التوثيقي | `E00-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` وTracker وChecklist المراجعة. | مراجعة مستقلة لرأس موثق وروابط/نطاق وفحوص مشروع. | مكتمل توثيقيًا؛ L-00 ما زالت مشروطة. | لا يساوي قبول وثائق بتجربة بيت أو A أو Pilot. |
 | جاهزية التشغيل والثقة قبل التفعيل | `ACTIVATION-OPERATIONAL-READINESS-AND-SAFETY-GATE.md` و`E00-12-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` مع العقود 18–24 وSOPs. | OR-01…OR-07، مراجعة دعم/incident/release/accessibility/measurement قبل A/B. | E-00.12 مقبولة توثيقيًا؛ ثم A/B حسب الدليل. | لا SLA أو مزود أو دعم شامل أو Analytics أو امتثال قانوني مفترض. |
+| السيولة والنموذج التجاري | `COMMERCIAL-LIQUIDITY-AND-MODEL-DECISION-CARD.md` وبطاقة Wedge وPilot SOP و`DECISIONS` EX-O06…EX-O08. | تفاعل ذري، عتبة نجاح/فشل، جهة بذرة، وقرار Build/Discovery/Defer/Reject. | E-00.13 ثم L بعد قبول البطاقة وقرار المالك. | لا سوق عام أو رسوم/عمولة/دفع أو ترتيب مدفوع أو توسع بسبب GMV/تسجيلات. |
 
 ## Action Points
 

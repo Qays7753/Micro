@@ -56,7 +56,7 @@
 7. [`EXPANSION-GLOSSARY.md`](EXPANSION-GLOSSARY.md) و[`E00-TRACEABILITY-MATRIX.md`](E00-TRACEABILITY-MATRIX.md) و[`E00-REVIEW-CHECKLIST.md`](E00-REVIEW-CHECKLIST.md) و[`E00-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md`](E00-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md) و[`E00-TECHNICAL-ARCHITECTURE-DECISION.md`](E00-TECHNICAL-ARCHITECTURE-DECISION.md) و[`MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md`](MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md).
 8. [`FOUR-PARTY-IMPLEMENTATION-GATE-MAP.md`](FOUR-PARTY-IMPLEMENTATION-GATE-MAP.md) و[`FOUR-PARTY-PORTAL-AND-ACCESS-RECOVERY-GATE.md`](FOUR-PARTY-PORTAL-AND-ACCESS-RECOVERY-GATE.md) و[`SEVEN-AGENT-EXPANSION-OPERATING-CHECKLIST.md`](SEVEN-AGENT-EXPANSION-OPERATING-CHECKLIST.md) لتثبيت بوابات الجهات الأربع والاستعادة وتوزيع العمل قبل أي Agent أو كود.
 9. [`ACTIVATION-OPERATIONAL-READINESS-AND-SAFETY-GATE.md`](ACTIVATION-OPERATIONAL-READINESS-AND-SAFETY-GATE.md) و[`E00-12-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md`](E00-12-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md) لتحديد وقبول توثيق دعم وحوادث وإطلاق تدريجي وإتاحة وقياس Pilot بحدود صادقة؛ لا يختاران مزودًا أو SLA أو قانونًا أو يصرحان بتنفيذ A/B.
-10. [`FIRST-WEDGE-AND-PILOT-DECISION-CARD.md`](FIRST-WEDGE-AND-PILOT-DECISION-CARD.md) و[`LOCAL-FIRST-HOME-TRIAL-SOP.md`](LOCAL-FIRST-HOME-TRIAL-SOP.md) و[`HOME-TRIAL-LOG-TEMPLATE.md`](HOME-TRIAL-LOG-TEMPLATE.md) و[`ACTIVATION-PRIVACY-ETHICS-SOP.md`](ACTIVATION-PRIVACY-ETHICS-SOP.md) و[`PARTNER-PILOT-SOP-AND-MEASUREMENT.md`](PARTNER-PILOT-SOP-AND-MEASUREMENT.md).
+10. [`FIRST-WEDGE-AND-PILOT-DECISION-CARD.md`](FIRST-WEDGE-AND-PILOT-DECISION-CARD.md) و[`COMMERCIAL-LIQUIDITY-AND-MODEL-DECISION-CARD.md`](COMMERCIAL-LIQUIDITY-AND-MODEL-DECISION-CARD.md) قبل L-00 لتحديد Wedge والتفاعل والسيولة وقرار الإيراد المستقبلي بحدود صادقة، ثم [`LOCAL-FIRST-HOME-TRIAL-SOP.md`](LOCAL-FIRST-HOME-TRIAL-SOP.md) و[`HOME-TRIAL-LOG-TEMPLATE.md`](HOME-TRIAL-LOG-TEMPLATE.md) و[`ACTIVATION-PRIVACY-ETHICS-SOP.md`](ACTIVATION-PRIVACY-ETHICS-SOP.md) و[`PARTNER-PILOT-SOP-AND-MEASUREMENT.md`](PARTNER-PILOT-SOP-AND-MEASUREMENT.md).
 11. [`HISTORICAL-SOURCES.md`](HISTORICAL-SOURCES.md) فقط إذا احتاج سببًا تاريخيًا أو تفصيلًا لم يعد داخل القرار الحاكم؛ لا يستخدم أي ملف تحته كتعليمات تنفيذ.
 
 ## 5. طريقة العمل على التوسعة
@@ -73,7 +73,7 @@
 ## Action Points
 
 1. المصدر التنفيذي التفصيلي هو [`TRACKER.md`](TRACKER.md). لا تتجاوز بندًا أو تؤشر عليه لمجرد كتابة وثيقة أو نجاح build.
-2. قبل أول كود نكمل **E-00: العقود والسيناريو ومصفوفة الوصول والبوابات والاستعادة والجاهزية التشغيلية وقبول الحزمة المستقل** فقط، ثم يقرر المالك أول Slice ونقطة تجربة البيت.
+2. قبل أول كود نكمل **E-00: العقود والسيناريو ومصفوفة الوصول والبوابات والاستعادة والجاهزية التشغيلية وقرار السيولة/النموذج التجاري وقبول الحزمة المستقل** فقط، ثم يقرر المالك أول Slice ونقطة تجربة البيت.
 3. قبل أول واجهة توسعة داخل Micro نغلق شرائح UX G19–G23 تباعًا، لأن `الخدمات` تمس Home وApp Shell والملاحة.
 4. قبل دعوة أي شخص حقيقي نكمل بوابة التفعيل A: هوية، Workspace، API/DB authorization، عزل ملفات، اختبارات اختراق صلاحيات، وسجل تدقيق.
 
