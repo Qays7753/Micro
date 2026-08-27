@@ -2081,6 +2081,56 @@
 .micro-owner-layer[open] > summary {
   border-color: color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
 }
+/* مبدأ Micro: الطبقة الثانوية قابلة للفتح عند الحاجة ولا تسبق قرار العمل اليومي. */
+.micro-decision-layer {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.micro-decision-layer-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 64px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+.micro-decision-layer-summary::-webkit-details-marker {
+  display: none;
+}
+.micro-decision-layer-summary:focus-visible {
+  outline: 3px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+.micro-decision-layer-summary > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-decision-layer-summary b {
+  font-size: 15px;
+}
+.micro-decision-layer-summary small {
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-decision-layer-summary > strong {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.micro-decision-layer[open] > summary {
+  border-color: color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
+}
+
 .micro-finance-unallocated-alert {
   display: grid;
   gap: var(--space-3);
@@ -2914,6 +2964,26 @@
 .micro-cash-actions .micro-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+/* مبدأ Micro: الفعل المشروط يشرح شرطه القريب بدل زر معطل بلا تفسير. */
+.micro-later-action {
+  display: grid;
+  min-height: 52px;
+  align-content: center;
+  gap: 2px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-well);
+}
+.micro-later-action strong {
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+.micro-later-action small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 .micro-cash-history {
   border-top: 3px solid var(--color-accent-primary);

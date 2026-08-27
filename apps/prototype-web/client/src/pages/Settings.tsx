@@ -179,6 +179,7 @@ export default function SettingsPage() {
 
   const selectedModeDescription = modeOptions.find(option => option.value === selectedMode)?.description;
 
+  /* مبدأ Micro: التفضيل اليومي ظاهر، أما البيانات الحساسة والاستعادة فتحتاج فتحًا مقصودًا. */
   return (
     <section className="micro-page">
       <div className="micro-page-heading">
@@ -192,7 +193,15 @@ export default function SettingsPage() {
         nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف."
         tone="warning"
       />
-      <section className="micro-settings-list" aria-labelledby="data-protection-title">
+      <details className="micro-decision-layer">
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>بيانات ونسخ احتياطي محلي</b>
+            <small>تصدير واستيراد حساس؛ راجع الملف قبل استبدال بيانات الجهاز.</small>
+          </span>
+          <strong>افتح البيانات</strong>
+        </summary>
+        <section className="micro-settings-list" aria-labelledby="data-protection-title">
         <div className="micro-section-heading">
           <div>
             <span className="micro-overline">حماية البيانات</span>
@@ -233,241 +242,283 @@ export default function SettingsPage() {
           onChange={chooseImport}
         />
       </section>
-      <section className="micro-form-card" aria-labelledby="operating-mode-title">
-        <div className="micro-section-heading">
-          <div>
-            <span className="micro-overline">تفضيل اختياري</span>
-            <h2 id="operating-mode-title">كيف تنجز عملك غالبًا؟</h2>
-          </div>
-          <Hammer aria-hidden="true" />
-        </div>
-        <p>
-          يساعد هذا الاختيار Micro على تقديم الأداة الأقرب لسؤالك في الطلب. لا يغير نوع النشاط أو سجلًا
-          تاريخيًا أو أي رقم مالي.
-        </p>
-        {operatingMode.phase === "loading" ? (
-          <p className="micro-route-loading" role="status">
-            جارٍ قراءة تفضيل طريقة العمل…
-          </p>
-        ) : null}
-        {operatingMode.phase === "error" ? (
-          <div className="micro-storage-error" role="alert">
-            <strong>تعذر قراءة التفضيل المحلي</strong>
-            <p>{operatingMode.message}</p>
-          </div>
-        ) : null}
-        {operatingMode.phase === "ready" ? (
-          <>
-            <label className="micro-field">
-              <span>طريقة العمل المعتادة</span>
-              <select
-                value={selectedMode}
-                onChange={event => setSelectedMode(event.target.value as "" | OperatingWorkMode)}
-                aria-describedby="operating-mode-help"
-              >
-                {modeOptions.map(option => (
-                  <option key={option.value || "none"} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p id="operating-mode-help" className="micro-local-truth">
-              {selectedModeDescription}
-            </p>
-            <label className="micro-confirm-warning micro-setting-toggle">
-              <input
-                type="checkbox"
-                checked={trackingEnabled}
-                onChange={event => setTrackingEnabled(event.target.checked)}
-              />
-              <span>
-                <b>تفعيل تتبع الوقت المحلي</b> يتيح تسجيل وقت فعلي للطلب لاحقًا عند الحاجة، ولا يشغّل مؤقتًا
-                في الخلفية.
-              </span>
-            </label>
-            <p className="micro-cost-disclaimer">
-              عدم الاختيار أو إيقاف التتبع لا يمنع إنشاء الطلب أو تسجيل المال أو المادة؛ لكنه يعني أن مقارنة
-              الوقت لن تكون متاحة بلا سجل.
-            </p>
-            <button
-              className="micro-button micro-button-primary micro-save-cost"
-              type="button"
-              disabled={isSavingOperatingMode}
-              onClick={saveOperatingMode}
-            >
-              <Save aria-hidden="true" />
-              {isSavingOperatingMode ? "جارٍ حفظ التفضيل…" : "حفظ طريقة العمل"}
-            </button>
-          </>
-        ) : null}
-      </section>
-      <section className="micro-settings-list" aria-label="إعدادات المظهر">
-        <article className="micro-setting-row">
-          <span className="micro-setting-icon">
-            <MoonStar aria-hidden="true" />
+      </details>
+      <details className="micro-decision-layer" open>
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>تفضيلات العمل اليومية</b>
+            <small>اختر طريقة العمل وتتبّع الوقت دون تغيير السجل المالي.</small>
           </span>
-          <div>
-            <h2>المظهر</h2>
-            <p>الوضع الحالي: {theme === "dark" ? "داكن" : "فاتح"}.</p>
+          <strong>افتح التفضيل</strong>
+        </summary>
+        <section className="micro-form-card" aria-labelledby="operating-mode-title">
+          <div className="micro-section-heading">
+            <div>
+              <span className="micro-overline">تفضيل اختياري</span>
+              <h2 id="operating-mode-title">كيف تنجز عملك غالبًا؟</h2>
+            </div>
+            <Hammer aria-hidden="true" />
           </div>
-          <button className="micro-button micro-button-secondary" type="button" onClick={toggleTheme}>
-            التبديل إلى {theme === "dark" ? "الفاتح" : "الداكن"}
-          </button>
-        </article>
-      </section>
-      <section className="micro-form-card" aria-labelledby="guided-opening-title">
-        <div className="micro-section-heading">
-          <div>
-            <span className="micro-overline">بداية محدودة</span>
-            <h2 id="guided-opening-title">إدخال موقف افتتاحي</h2>
-          </div>
-          <Upload aria-hidden="true" />
-        </div>
-        <p>
-          أدخل نشاطًا ومحافظ كاش وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى
-          مبيعات أو ربح أو ديون.
-        </p>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          disabled={isWorking}
-          onClick={() => guidedInputRef.current?.click()}
-        >
-          اختيار ملف البداية
-        </button>
-        <input
-          ref={guidedInputRef}
-          className="micro-visually-hidden"
-          type="file"
-          accept="application/json,.json"
-          onChange={chooseGuidedOpeningImport}
-        />
-      </section>
-      {guidedPreview ? (
-        <section className="micro-import-preview" aria-live="polite">
-          <span className="micro-overline">
-            <FileCheck2 aria-hidden="true" /> مراجعة قبل الكتابة
-          </span>
-          <h2>لم نغير بياناتك بعد</h2>
-          <p>سيُدخل الملف موقفًا افتتاحيًا محدودًا فقط:</p>
-          <ul>
-            <li>
-              <IntegerValue value={guidedPreview.summary.acceptedWallets} className="micro-inline-number" />{" "}
-              محفظة كاش بقيمة{" "}
-              <IntegerValue value={guidedPreview.summary.acceptedCashMinor} className="micro-inline-number" />{" "}
-              قرشًا
-            </li>
-            <li>
-              <IntegerValue value={guidedPreview.summary.acceptedMaterials} className="micro-inline-number" />{" "}
-              مادة بكمية{" "}
-              <IntegerValue
-                value={guidedPreview.summary.acceptedMaterialQuantityMilli}
-                className="micro-inline-number"
-              />{" "}
-              milli
-            </li>
-            <li>
-              <IntegerValue value={guidedPreview.summary.estimatedRecords} className="micro-inline-number" />{" "}
-              قيمة تقديرية تحتاج مراجعة
-            </li>
-          </ul>
-          <p className="micro-local-truth">
-            الاستيراد ذري على Store فارغ، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة تلقائية بعد التأكيد.
-          </p>
-          <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={isWorking}
-              onClick={() => setGuidedPreview(null)}
-            >
-              إلغاء
-            </button>
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
-              disabled={isWorking}
-              onClick={confirmGuidedOpeningImport}
-            >
-              {isWorking ? "جارٍ الإدخال…" : "تأكيد إدخال البداية"}
-            </button>
-          </div>
-        </section>
-      ) : null}
-      {preview ? (
-        <section className="micro-import-preview" aria-live="polite">
-          <span className="micro-overline">
-            <FileCheck2 aria-hidden="true" /> ملف جاهز للمراجعة
-          </span>
-          <h2>لم نغير بياناتك بعد</h2>
           <p>
-            الملف صادر في <DateTimeValue value={preview.summary.exportedAt} /> ويحتوي على:
+            يساعد هذا الاختيار Micro على تقديم الأداة الأقرب لسؤالك في الطلب. لا يغير نوع النشاط أو سجلًا
+            تاريخيًا أو أي رقم مالي.
           </p>
-          <ul>
-            <li>{preview.summary.profile ? "ملف نشاط واحد" : "لا يحتوي ملف نشاط"}</li>
-            <li>
-              {preview.summary.preferences ? "تفضيل مظهر وطريقة عمل محفوظ" : "لا يحتوي تفضيلًا محفوظًا"}
-            </li>
-            <li>
-              <IntegerValue value={preview.summary.drafts} className="micro-inline-number" /> مسودة
-            </li>
-            <li>
-              <IntegerValue value={preview.summary.orders} className="micro-inline-number" /> طلب
-            </li>
-            <li>
-              <IntegerValue value={preview.summary.schedules} className="micro-inline-number" /> موعد
-            </li>
-            <li>
-              <IntegerValue value={preview.summary.supplierPurchases} className="micro-inline-number" /> شراء
-              مواد
-            </li>
-            <li>
-              <IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ كاش و
-              <IntegerValue
-                value={preview.summary.cashContinuityEntries}
-                className="micro-inline-number"
-              />{" "}
-              آثار افتتاح/تحويل/تصحيح
-            </li>
-            <li>
-              <IntegerValue value={preview.summary.materials} className="micro-inline-number" /> مواد و
-              <IntegerValue value={preview.summary.inventoryMovements} className="micro-inline-number" />{" "}
-              حركات مخزون
-            </li>
-            <li>
-              <IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> Snapshot
-              تكلفة و<IntegerValue value={preview.summary.events} className="micro-inline-number" /> حدث
-              مالي/تشغيلي داخل الطلب
-            </li>
-            <li>
-              <IntegerValue value={preview.summary.actualTimeRecords} className="micro-inline-number" /> سجل
-              وقت فعلي تفسيري مستقل عن المال
-            </li>
-          </ul>
-          <p className="micro-field-error">
-            التأكيد سيستبدل البيانات المحلية الحالية بهذا الملف. لا توجد استعادة تلقائية بعد الضغط.
-          </p>
-          <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={isWorking}
-              onClick={() => setPreview(null)}
-            >
-              إلغاء
-            </button>
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
-              disabled={isWorking}
-              onClick={confirmImport}
-            >
-              {isWorking ? "جارٍ الاستيراد…" : "استبدال البيانات المحلية"}
-            </button>
-          </div>
+          {operatingMode.phase === "loading" ? (
+            <p className="micro-route-loading" role="status">
+              جارٍ قراءة تفضيل طريقة العمل…
+            </p>
+          ) : null}
+          {operatingMode.phase === "error" ? (
+            <div className="micro-storage-error" role="alert">
+              <strong>تعذر قراءة التفضيل المحلي</strong>
+              <p>{operatingMode.message}</p>
+            </div>
+          ) : null}
+          {operatingMode.phase === "ready" ? (
+            <>
+              <label className="micro-field">
+                <span>طريقة العمل المعتادة</span>
+                <select
+                  value={selectedMode}
+                  onChange={event => setSelectedMode(event.target.value as "" | OperatingWorkMode)}
+                  aria-describedby="operating-mode-help"
+                >
+                  {modeOptions.map(option => (
+                    <option key={option.value || "none"} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p id="operating-mode-help" className="micro-local-truth">
+                {selectedModeDescription}
+              </p>
+              <label className="micro-confirm-warning micro-setting-toggle">
+                <input
+                  type="checkbox"
+                  checked={trackingEnabled}
+                  onChange={event => setTrackingEnabled(event.target.checked)}
+                />
+                <span>
+                  <b>تفعيل تتبع الوقت المحلي</b> يتيح تسجيل وقت فعلي للطلب لاحقًا عند الحاجة، ولا يشغّل مؤقتًا
+                  في الخلفية.
+                </span>
+              </label>
+              <p className="micro-cost-disclaimer">
+                عدم الاختيار أو إيقاف التتبع لا يمنع إنشاء الطلب أو تسجيل المال أو المادة؛ لكنه يعني أن مقارنة
+                الوقت لن تكون متاحة بلا سجل.
+              </p>
+              <button
+                className="micro-button micro-button-primary micro-save-cost"
+                type="button"
+                disabled={isSavingOperatingMode}
+                onClick={saveOperatingMode}
+              >
+                <Save aria-hidden="true" />
+                {isSavingOperatingMode ? "جارٍ حفظ التفضيل…" : "حفظ طريقة العمل"}
+              </button>
+            </>
+          ) : null}
         </section>
-      ) : null}
+      </details>
+      <details className="micro-decision-layer" open>
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>المظهر</b>
+            <small>تغيير العرض اليومي فقط.</small>
+          </span>
+          <strong>افتح المظهر</strong>
+        </summary>
+        <section className="micro-settings-list" aria-label="إعدادات المظهر">
+          <article className="micro-setting-row">
+            <span className="micro-setting-icon">
+              <MoonStar aria-hidden="true" />
+            </span>
+            <div>
+              <h2>المظهر</h2>
+              <p>الوضع الحالي: {theme === "dark" ? "داكن" : "فاتح"}.</p>
+            </div>
+            <button className="micro-button micro-button-secondary" type="button" onClick={toggleTheme}>
+              التبديل إلى {theme === "dark" ? "الفاتح" : "الداكن"}
+            </button>
+          </article>
+        </section>
+      </details>
+      <details className="micro-decision-layer">
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>بيانات البداية والاستعادة</b>
+            <small>إدخال أو استبدال محلي حساس؛ راجع الملخص قبل الكتابة.</small>
+          </span>
+          <strong>افتح البيانات</strong>
+        </summary>
+        <section className="micro-form-card" aria-labelledby="guided-opening-title">
+          <div className="micro-section-heading">
+            <div>
+              <span className="micro-overline">بداية محدودة</span>
+              <h2 id="guided-opening-title">إدخال موقف افتتاحي</h2>
+            </div>
+            <Upload aria-hidden="true" />
+          </div>
+          <p>
+            أدخل نشاطًا ومحافظ كاش وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى
+            مبيعات أو ربح أو ديون.
+          </p>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            disabled={isWorking}
+            onClick={() => guidedInputRef.current?.click()}
+          >
+            اختيار ملف البداية
+          </button>
+          <input
+            ref={guidedInputRef}
+            className="micro-visually-hidden"
+            type="file"
+            accept="application/json,.json"
+            onChange={chooseGuidedOpeningImport}
+          />
+        </section>
+        {guidedPreview ? (
+          <section className="micro-import-preview" aria-live="polite">
+            <span className="micro-overline">
+              <FileCheck2 aria-hidden="true" /> مراجعة قبل الكتابة
+            </span>
+            <h2>لم نغير بياناتك بعد</h2>
+            <p>سيُدخل الملف موقفًا افتتاحيًا محدودًا فقط:</p>
+            <ul>
+              <li>
+                <IntegerValue value={guidedPreview.summary.acceptedWallets} className="micro-inline-number" />{" "}
+                محفظة كاش بقيمة{" "}
+                <IntegerValue
+                  value={guidedPreview.summary.acceptedCashMinor}
+                  className="micro-inline-number"
+                />{" "}
+                قرشًا
+              </li>
+              <li>
+                <IntegerValue
+                  value={guidedPreview.summary.acceptedMaterials}
+                  className="micro-inline-number"
+                />{" "}
+                مادة بكمية{" "}
+                <IntegerValue
+                  value={guidedPreview.summary.acceptedMaterialQuantityMilli}
+                  className="micro-inline-number"
+                />{" "}
+                milli
+              </li>
+              <li>
+                <IntegerValue
+                  value={guidedPreview.summary.estimatedRecords}
+                  className="micro-inline-number"
+                />{" "}
+                قيمة تقديرية تحتاج مراجعة
+              </li>
+            </ul>
+            <p className="micro-local-truth">
+              الاستيراد ذري على Store فارغ، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة تلقائية بعد
+              التأكيد.
+            </p>
+            <div className="micro-form-actions">
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={isWorking}
+                onClick={() => setGuidedPreview(null)}
+              >
+                إلغاء
+              </button>
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={isWorking}
+                onClick={confirmGuidedOpeningImport}
+              >
+                {isWorking ? "جارٍ الإدخال…" : "تأكيد إدخال البداية"}
+              </button>
+            </div>
+          </section>
+        ) : null}
+        {preview ? (
+          <section className="micro-import-preview" aria-live="polite">
+            <span className="micro-overline">
+              <FileCheck2 aria-hidden="true" /> ملف جاهز للمراجعة
+            </span>
+            <h2>لم نغير بياناتك بعد</h2>
+            <p>
+              الملف صادر في <DateTimeValue value={preview.summary.exportedAt} /> ويحتوي على:
+            </p>
+            <ul>
+              <li>{preview.summary.profile ? "ملف نشاط واحد" : "لا يحتوي ملف نشاط"}</li>
+              <li>
+                {preview.summary.preferences ? "تفضيل مظهر وطريقة عمل محفوظ" : "لا يحتوي تفضيلًا محفوظًا"}
+              </li>
+              <li>
+                <IntegerValue value={preview.summary.drafts} className="micro-inline-number" /> مسودة
+              </li>
+              <li>
+                <IntegerValue value={preview.summary.orders} className="micro-inline-number" /> طلب
+              </li>
+              <li>
+                <IntegerValue value={preview.summary.schedules} className="micro-inline-number" /> موعد
+              </li>
+              <li>
+                <IntegerValue value={preview.summary.supplierPurchases} className="micro-inline-number" />{" "}
+                شراء مواد
+              </li>
+              <li>
+                <IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ كاش
+                و
+                <IntegerValue
+                  value={preview.summary.cashContinuityEntries}
+                  className="micro-inline-number"
+                />{" "}
+                آثار افتتاح/تحويل/تصحيح
+              </li>
+              <li>
+                <IntegerValue value={preview.summary.materials} className="micro-inline-number" /> مواد و
+                <IntegerValue
+                  value={preview.summary.inventoryMovements}
+                  className="micro-inline-number"
+                />{" "}
+                حركات مخزون
+              </li>
+              <li>
+                <IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> Snapshot
+                تكلفة و<IntegerValue value={preview.summary.events} className="micro-inline-number" /> حدث
+                مالي/تشغيلي داخل الطلب
+              </li>
+              <li>
+                <IntegerValue value={preview.summary.actualTimeRecords} className="micro-inline-number" /> سجل
+                وقت فعلي تفسيري مستقل عن المال
+              </li>
+            </ul>
+            <p className="micro-field-error">
+              التأكيد سيستبدل البيانات المحلية الحالية بهذا الملف. لا توجد استعادة تلقائية بعد الضغط.
+            </p>
+            <div className="micro-form-actions">
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={isWorking}
+                onClick={() => setPreview(null)}
+              >
+                إلغاء
+              </button>
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={isWorking}
+                onClick={confirmImport}
+              >
+                {isWorking ? "جارٍ الاستيراد…" : "استبدال البيانات المحلية"}
+              </button>
+            </div>
+          </section>
+        ) : null}
+      </details>
       {notice ? (
         <p className="micro-save-note" role="status">
           {notice}
