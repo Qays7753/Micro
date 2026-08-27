@@ -29,5 +29,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Audit dependencies
+        run: pnpm audit --audit-level high
+
       - name: Verify domain and prototype
         run: pnpm check
