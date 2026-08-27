@@ -14,6 +14,10 @@ describe("unified quantity input behavior", () => {
     expect(blurQuantityText("12.000.0", 1000)).toEqual({ text: "12.000.0", committed: 1000, valid: false });
   });
 
+  it("keeps an optional empty quantity nullable instead of manufacturing zero", () => {
+    expect(blurQuantityText("", null, true)).toEqual({ text: "", committed: null, valid: true });
+  });
+
   it("can opt out for a field where zero is an intentional opening value", () => {
     expect(focusQuantityText(0, "0", false, false)).toBe("0");
   });

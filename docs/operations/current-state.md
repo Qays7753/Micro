@@ -28,7 +28,7 @@
 | الكتالوج والوقت وقراءات مالية تاريخية | توجد قدرات محلية تاريخية على `main`، لكنها لا تساوي شرائح Bridge الجديدة ولا توسع حدودها. |
 | الاستعادة وPWA | export/import ذري محلي وPWA تشغيلية بلا backup أو Sync. اختبار Android/iOS وOffline الإنتاجي وPages production وPilot البشري ما زال غير منفذ. |
 | برامج UX السابقة | برنامج إصلاح القرار البصري V1–V6 وتصحيحه مدمج على `main` عبر PR #96؛ لا يغير معنى المال أو Schema أو Export/Import. |
-| First-use core acceptance slice | إصلاحات محلية محدودة لـFU-01…FU-05: clearance للـCTA، ثبات صفوف المواد العربية، إدخال الأرقام الموحد، وضوح Review final-only، وحماية كمية الطلب integer-only. لا توسع في النشاط أو المال أو التخزين. |
+| First-use core acceptance slice | إصلاحات محلية محدودة لـFU-01…FU-05: clearance للـCTA، ثبات صفوف المواد العربية، primitives موحدة لكل الحقول الرقمية القابلة للتحرير، signedInteger صريح لـO1، وضوح Review final-only، وحماية كمية الطلب integer-only. لا توسع في النشاط أو المال أو التخزين. |
 
 ## 3. الحزمة المالية G3–G5 المدمجة على `main`
 
@@ -55,7 +55,7 @@
 
 ### 3.2 حدود شريحة First-use الحالية
 
-هذه الشريحة لا تغيّر العقود المالية أو Snapshot أو schema `26` أو export `17`، ولا تغيّر مسار UI → Application → Domain → `PrototypeLocalStore` → IndexedDB. لم تُضف سياسة تاريخ أو دعم decimal جديد لكمية الطلب؛ `12.000` في عقد integer يبقى غير صالحًا ظاهرًا ويمنع الحفظ بدل تضخيمه. كما لم تُقبل هذه الشريحة على جهاز فعلي أو PWA مثبتة أو Offline حقيقي أو Android/iOS أو Cloudflare Pages production أو Pilot بشري؛ الفعل التالي هو مراجعة PR وفحوص CI/Cloudflare فقط.
+هذه الشريحة لا تغيّر العقود المالية أو Snapshot أو schema `26` أو export `17`، ولا تغيّر مسار UI → Application → Domain → `PrototypeLocalStore` → IndexedDB. كل حقل رقمي قابل للتحرير في Prototype يمر عبر `EnglishNumberInput` أو `EnglishQuantityInput`؛ رصيد O1 الافتتاحي يستخدم `signedInteger` صراحة، وحقول رصيد البداية لا تستثني سلوك الصفر الافتراضي. لم تُضف سياسة تاريخ أو دعم decimal جديد لكمية الطلب؛ `12.000` في عقد integer يبقى غير صالحًا ظاهرًا ويمنع الحفظ بدل تضخيمه. كما لم تُقبل هذه الشريحة على جهاز فعلي أو PWA مثبتة أو Offline حقيقي أو Android/iOS أو Cloudflare Pages production أو Pilot بشري؛ الفعل التالي هو مراجعة PR وفحوص CI/Cloudflare فقط.
 
 ## 4. حدود مالية غير قابلة للتفاوض
 

@@ -17,6 +17,8 @@ export function EnglishNumberInput({ value, kind, onNumericChange, onTextValidit
   const latestCommitted = useRef<number | null>(value);
   const hasUserEdited = useRef(false);
   const [text, setText] = useState(() => formatEnglishNumericValue(value, kind));
+  const inputMode = kind === "integer" || kind === "signedInteger" ? "numeric" : "decimal";
+  const pattern = kind === "signedInteger" ? "-?[0-9]*" : kind === "integer" ? "[0-9]*" : "[0-9]*[.]?[0-9]*";
 
   useEffect(() => {
     if (value !== latestCommitted.current) {
@@ -26,7 +28,7 @@ export function EnglishNumberInput({ value, kind, onNumericChange, onTextValidit
     }
   }, [kind, value]);
 
-  return <input {...props} className={cn("micro-english-number-input", className)} type="text" inputMode={kind === "integer" ? "numeric" : "decimal"} pattern={kind === "integer" ? "[0-9]*" : "[0-9]*[.]?[0-9]*"} lang="en" dir="ltr" value={text} onFocus={event => {
+  return <input {...props} className={cn("micro-english-number-input", className)} type="text" inputMode={inputMode} pattern={pattern} lang="en" dir="ltr" value={text} onFocus={event => {
     const next = focusEnglishNumericText(value, text, kind, hasUserEdited.current, clearDefaultZeroOnFocus);
     if (next !== text) setText(next);
     onFocus?.(event);
