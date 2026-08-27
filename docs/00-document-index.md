@@ -24,6 +24,10 @@
 | 12 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
 | 12A | `docs/contracts/06-financial-event-prototype-contract.md` | CURRENT / PROTOTYPE | عقد الأحداث المالية المحلية للكاش والذمم ومال المالك وحدود «وضعي المالي» |
 | 12B | `docs/expansion/README.md` | CURRENT / EXPANSION ENTRY POINT | نقطة دخول وقرار وTracker Market/Delivery والخدمات؛ تقرأ فقط عند مهمة التوسعة ولا تدعي تنفيذ قدرة شبكة |
+| 12C | `docs/contracts/18-network-identity-workspace-access-contract.md` إلى `24-network-data-classification-field-dictionary-contract.md` | CURRENT / EXPANSION E-00 | عقود الهوية والعزل والخدمات وMarket وDelivery وModeration ودورة البيانات وتصنيف الحقول قبل أي كود توسعة |
+| 12D | `docs/expansion/ROLE-ACCESS-MATRIX.md` و`E00-SCENARIOS-AND-ACCEPTANCE.md` و`E00-EXECUTION-PROTOCOL.md` و`E00-REVIEW-CHECKLIST.md` | CURRENT / EXPANSION E-00 | مصفوفة الوصول وسيناريوهات القبول وبروتوكول وChecklist التوثيق قبل تجربة البيت أو التفعيل |
+| 12E | `docs/expansion/FIRST-WEDGE-AND-PILOT-DECISION-CARD.md` و`LOCAL-FIRST-HOME-TRIAL-SOP.md` و`ACTIVATION-PRIVACY-ETHICS-SOP.md` و`PARTNER-PILOT-SOP-AND-MEASUREMENT.md` | CURRENT / EXPANSION E-00 | قرار Wedge وإجراء تجربة البيت وبوابة التفعيل والخصوصية وPilot والقياس؛ لا تفويض تنفيذ ذاتي |
+| 12F | `docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md` و`MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md` و`E00-TRACEABILITY-MATRIX.md` و`HOME-TRIAL-LOG-TEMPLATE.md` | CURRENT / EXPANSION E-00 | حد المعمارية قبل الكود، وحارس Manage/schema/export، وتتبع القرار إلى القبول، وسجل تجربة البيت الآمن |
 | 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 | 15 | `docs/product/problem-statement-v4.md` | CURRENT / CANONICAL | المشكلة والأضرار والأسئلة، والنواة العامة والـProfiles والمشاريع المختلطة |

@@ -210,10 +210,10 @@ Micro Delivery تكون خدمة مستقلة للجلب والإرسال، يس
 
 ## References
 
-[1]: [Micro Financial Operating Model v1](../product/financial-operating-model-v1.md)
+[1]: [Micro Financial Operating Model v1](../../product/financial-operating-model-v1.md)
 
-[2]: [Micro User Operating Model v1](../product/user-operating-model-v1.md)
+[2]: [Micro User Operating Model v1](../../product/user-operating-model-v1.md)
 
-[3]: [Micro Mobile UI/UX Reference v1](../product/mobile-ui-ux-reference-v1.md)
+[3]: [Micro Mobile UI/UX Reference v1](../../product/mobile-ui-ux-reference-v1.md)
 
-[4]: [Micro Current State](../operations/current-state.md)
+[4]: [Micro Current State](../../operations/current-state.md)

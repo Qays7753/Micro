@@ -103,7 +103,7 @@
 
 ### 8.1 التوسعة Market وDelivery
 
-التوسعة ليست قدرة منفذة بعد. المرجع الحاكم هو `docs/expansion/README.md` و`docs/expansion/DECISIONS.md` و`docs/expansion/TRACKER.md`. يسير العمل بالترتيب: E-00 عقود/سيناريوهات فقط؛ ثم تجربة منزلية local-first؛ ثم تفعيل متعدد الأطراف بهوية وعزل حقيقيين بعد دليل وقرار. لا تدخل Market/Delivery أو Auth/Cloud أو بيانات أطراف حقيقية في أي PR UX أو إصلاح مالي.
+التوسعة ليست قدرة منفذة بعد. المرجع الحاكم هو `docs/expansion/README.md` و`docs/expansion/DECISIONS.md` و`docs/expansion/TRACKER.md`، وعقود E-00 من `docs/contracts/18-...` إلى `24-...`، ومصفوفة الدور والسيناريوهات والإجراءات تحت `docs/expansion/`. يسير العمل بالترتيب: E-00 عقود/سيناريوهات وإجراءات فقط؛ ثم تجربة منزلية local-first؛ ثم تفعيل متعدد الأطراف بهوية وعزل حقيقيين بعد دليل وقرار. لا تدخل Market/Delivery أو Auth/Cloud أو بيانات أطراف حقيقية في أي PR UX أو إصلاح مالي.
 
 ### 8.2 الخطوة التنفيذية التالية
 

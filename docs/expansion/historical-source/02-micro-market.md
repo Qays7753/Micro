@@ -233,6 +233,6 @@ published → unavailable
 
 [3]: [OpenSooq — شروط الاستخدام](https://jo.opensooq.com/en/termOfUse)
 
-[4]: [Micro Problem Statement v4](../product/problem-statement-v4.md)
+[4]: [Micro Problem Statement v4](../../product/problem-statement-v4.md)
 
-[5]: [Micro Financial Operating Model v1](../product/financial-operating-model-v1.md)
+[5]: [Micro Financial Operating Model v1](../../product/financial-operating-model-v1.md)

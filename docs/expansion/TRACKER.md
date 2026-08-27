@@ -19,16 +19,34 @@
 
 هذه هي الأعمال التي تستفيد من الوقت ولا تتعارض مع المرحلة 0 أو عمل UX، لأن مخرجاتها وثائق وقرارات قابلة للمراجعة وليست تعديلات على تطبيق يعمل.
 
-- [ ] **E-00.1 — تثبيت نقطة الدخول والقرار والـTracker داخل GitHub.** ينجز هذا الـPR التوثيقي ولا يغير كودًا.
-- [ ] **E-00.2 — عقود N-01/N-02:** سياق الدور المحلي والهوية المستقبلية، ثم Workspace والعزل ومصفوفة من يرى ماذا.
-- [ ] **E-00.3 — عقود N-03/N-04:** `service_attention`/الإشعار داخل التطبيق، وجسر Manage الاختياري الذي يمنع الأثر المالي التلقائي.
-- [ ] **E-00.4 — عقود M-01/M-02/M-03:** احتياج Market ورد المورد وListing/الوسائط والمراجعة وقرار Owner.
-- [ ] **E-00.5 — عقود D-01/D-02/D-03:** طلب الحركة، عرض الشركة، وحالات Delivery والاستثناءات.
-- [ ] **E-00.6 — عقد A-01/A-02:** قرار Admin والبلاغ والتصعيد، بما في ذلك سبب القرار وسجل التدقيق.
-- [ ] **E-00.7 — مصفوفة سيناريوهات ووصول:** Owner/Supplier/Courier/Admin، طريق URL المباشر، الإفصاح عن البيانات، event history، والفشل.
-- [ ] **E-00.8 — دفتر QA تجربة البيت:** قالب ملاحظة يومية/أسبوعية، وحالات Export/Restore/Offline/duplicate/RTL/mobile؛ لا بيانات تجريبية داخل المنتج.
+- [x] **E-00.1 — تثبيت نقطة الدخول والقرار والـTracker داخل GitHub.** PR #123 مدمجة؛ لا كود أو توسعة تشغيلية.
+- [ ] **E-00.2 — عقود N-01/N-02/N-05/N-06 ومصفوفة الوصول:** هوية/Workspace، عزل وخصوصية، دورة البيانات والحقول ومن يرى ماذا.
+- [ ] **E-00.3 — عقد N-03/N-04:** `service_attention` والإشعار داخل التطبيق وجسر Manage الاختياري الذي يمنع الأثر المالي التلقائي.
+- [ ] **E-00.4 — عقدا M-01/M-02:** احتياج Market ورد المورد وListing/الوسائط والمراجعة وقرار Owner.
+- [ ] **E-00.5 — عقدا D-01/D-02:** طلب الحركة، Quote الشركة، حالات Delivery والاستثناءات والإفصاح الأدنى.
+- [ ] **E-00.6 — عقد A-01:** Moderation والموافقة والتدقيق والبلاغ؛ لا Admin تشغيلي أو مالي.
+- [ ] **E-00.7 — مصفوفة سيناريوهات ووصول:** Owner/Supplier/Courier/Admin وURL المباشر والملفات والإشعار والتاريخ والفشل.
+- [ ] **E-00.8 — دفتر QA تجربة البيت:** إجراء يومي/أسبوعي، Export/Restore/Offline/duplicate/RTL/mobile؛ لا بيانات تجريبية داخل المنتج.
 - [ ] **E-00.9 — سجل Migration/Export:** قرار «لا تغيير» أو مواصفة مستقلة إذا احتاج `localSchemaVersion` أو `localExportVersion` أي تعديل؛ لا تغيير صامت.
 - [ ] **E-00.10 — بطاقة أول Vertical Slice:** تربط الفئة والمنطقة وضرر المستخدم والشريك المحتمل ومدخلات الحد الأدنى ونتيجة القبول/الفشل.
+
+**ملاحظة الإنجاز:** أُضيفت العقود 18–24 والمصفوفة والسيناريوهات وإجراءات تجربة البيت والتفعيل وPilot والقاموس وبطاقة Wedge وChecklist المراجعة وبروتوكول E-00 وقرار المعمارية وبوابة Migration/Export وسجل تجربة البيت ومصفوفة التتبع في PR توثيقية لاحقة. لا يؤشر E-00.2–E-00.10 حتى يقبل مراجع مستقل اتساقها وربطها بالـTracker؛ ولا تتحول إلى كود أو صلاحيات منفذة بهذه الإضافة.
+
+### 2.1 خريطة أدلة E-00
+
+| بند الـTracker | المصدر الذي يجب قراءته | السؤال الذي يحسمه | دليل القبول عند الإغلاق |
+|---|---|---|---|
+| E-00.2 | `18-network-identity-workspace-access-contract.md` و`23-network-data-lifecycle-recovery-contract.md` و`24-network-data-classification-field-dictionary-contract.md` و`ROLE-ACCESS-MATRIX.md` | من هو الشخص/الجهة، ما Scope الوصول، وأين تعيش البيانات؟ | عزل واضح في DB/API/File/Search/Notification/Export مستقبلًا وحالات رفض موثقة. |
+| E-00.3 | `19-services-notification-manage-boundary-contract.md` | ماذا تعرض الخدمات، وما الذي لا تغيره في Manage؟ | Attention/notification/bridge حالة وفعل تالٍ بلا أثر مالي تلقائي. |
+| E-00.4 | `20-market-need-response-listing-moderation-contract.md` | ما Need/Response/Listing وما حدود Moderation؟ | حالات منفصلة لا تتحول إلى بيع أو دفع أو تقييم. |
+| E-00.5 | `21-delivery-request-quote-status-privacy-contract.md` | ما Request/Quote/Status وما الإفصاح حسب المرحلة؟ | انتقالات بفاعل/وقت/سبب، بلا تتبع أو دفع أو تسليم مالي. |
+| E-00.6 | `22-network-moderation-consent-audit-contract.md` و`ACTIVATION-PRIVACY-ETHICS-SOP.md` | من يراجع ومتى يكشف حقلًا وكيف يسجل القرار؟ | موافقة/سبب/Audit، لا Admin مالي أو حذف صامت. |
+| E-00.7 | `E00-SCENARIOS-AND-ACCEPTANCE.md` و`E00-TRACEABILITY-MATRIX.md` | هل غطت العقود الأدوار والفشل والحقيقة المالية؟ | المراجع يجيب عن الفاعل والحالة والإفصاح والأثر والفشل لكل S-01…S-18. |
+| E-00.8 | `LOCAL-FIRST-HOME-TRIAL-SOP.md` و`HOME-TRIAL-LOG-TEMPLATE.md` | كيف تختبر Owner محليًا من دون ادعاء أمن أو سوق حي؟ | سجلات آمنة وتصنيف ملاحظة وExport/Restore وقرار شهري. |
+| E-00.9 | `MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md` و`23-network-data-lifecycle-recovery-contract.md` | متى يصبح رابط الشبكة Migration أو أثرًا على Export؟ | قرار «لا تغيير» أو عقد Migration مستقل واختبارات Restore. |
+| E-00.10 | `FIRST-WEDGE-AND-PILOT-DECISION-CARD.md` و`PARTNER-PILOT-SOP-AND-MEASUREMENT.md` | ما أول فئة/منطقة/ضرر وشريك وقياس؟ | بطاقة مالك مكتملة وقرار Build/Discovery/Defer/Reject. |
+
+هذه خريطة إحالة، وليست تأشيرًا بالإنجاز. يبقى كل بند غير مكتمل حتى مراجعة مستقلة واعتماد مالك حيث يطلب القرار ذلك.
 
 ## 3. المرحلة L — تجربة منزلية Local-first بلا حسابات ولا Cloud
 
