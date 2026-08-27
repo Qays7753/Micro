@@ -1,4 +1,4 @@
-export * from './types.js';
+export * from "./types.js";
 export {
   calculateCostSnapshot,
   cancelOrder,
@@ -10,4 +10,4 @@ export {
   registerDebt,
   reviseOrderCost,
   transitionOrder,
-} from './policies.js';
+} from "./policies.js";

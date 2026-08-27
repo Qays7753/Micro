@@ -48,7 +48,13 @@ function assertKnowledge(value: G5Knowledge): void {
 }
 
 function addSafe(left: number, right: number): number | null {
-  if (!Number.isSafeInteger(left) || !Number.isSafeInteger(right) || right > 0 && left > Number.MAX_SAFE_INTEGER - right || right < 0 && left < Number.MIN_SAFE_INTEGER - right) return null;
+  if (
+    !Number.isSafeInteger(left) ||
+    !Number.isSafeInteger(right) ||
+    (right > 0 && left > Number.MAX_SAFE_INTEGER - right) ||
+    (right < 0 && left < Number.MIN_SAFE_INTEGER - right)
+  )
+    return null;
   return left + right;
 }
 
@@ -60,7 +66,13 @@ function roundHalfUp(numerator: number, denominator: number): number | null {
 }
 
 function ceilRatio(numerator: number, denominator: number): number | null {
-  if (!Number.isSafeInteger(numerator) || !Number.isSafeInteger(denominator) || numerator < 0 || denominator <= 0) return null;
+  if (
+    !Number.isSafeInteger(numerator) ||
+    !Number.isSafeInteger(denominator) ||
+    numerator < 0 ||
+    denominator <= 0
+  )
+    return null;
   return Math.floor(numerator / denominator) + (numerator % denominator === 0 ? 0 : 1);
 }
 
@@ -73,11 +85,16 @@ export function createShortCashDeclaration(input: CreateShortCashDeclarationInpu
   assertId(input.note, "note");
   assertId(input.idempotencyKey, "idempotencyKey");
   assertKnowledge(input.knowledge);
-  if (input.relatedOrderId && input.relatedEventId) throw new Error("a declaration cannot link to both an order and an event");
-  if (input.relatedOrderId && input.direction !== "collection") throw new Error("relatedOrderId is only valid for collections");
-  if (input.relatedEventId && input.direction !== "commitment") throw new Error("relatedEventId is only valid for commitments");
-  if (input.relatedOrderId !== null && input.relatedOrderId !== undefined) assertId(input.relatedOrderId, "relatedOrderId");
-  if (input.relatedEventId !== null && input.relatedEventId !== undefined) assertId(input.relatedEventId, "relatedEventId");
+  if (input.relatedOrderId && input.relatedEventId)
+    throw new Error("a declaration cannot link to both an order and an event");
+  if (input.relatedOrderId && input.direction !== "collection")
+    throw new Error("relatedOrderId is only valid for collections");
+  if (input.relatedEventId && input.direction !== "commitment")
+    throw new Error("relatedEventId is only valid for commitments");
+  if (input.relatedOrderId !== null && input.relatedOrderId !== undefined)
+    assertId(input.relatedOrderId, "relatedOrderId");
+  if (input.relatedEventId !== null && input.relatedEventId !== undefined)
+    assertId(input.relatedEventId, "relatedEventId");
   if (!isValidTimestamp(input.createdAt)) throw new Error("createdAt must be ISO-8601");
   return Object.freeze({
     id: input.id.trim(),
@@ -141,20 +158,40 @@ function validateOrder(order: G5OrderInput): string | null {
   if (!order.id.trim() || !order.itemName.trim()) return "يوجد طلب بلا معرف أو اسم عمل.";
   if (!isValidLocalDate(order.deliveredOn)) return `تاريخ تسليم الطلب ${order.id} غير صالح.`;
   if (!ORDER_RESULTS.includes(order.resultStatus)) return `حالة نتيجة الطلب ${order.id} غير صالحة.`;
-  if (!Number.isSafeInteger(order.recognizedRevenueMinor) || order.recognizedRevenueMinor < 0 || !Number.isSafeInteger(order.recognizedCostMinor) || order.recognizedCostMinor < 0) return `مقادير الطلب ${order.id} غير صالحة.`;
-  if (order.quantityMilli !== null && (!Number.isSafeInteger(order.quantityMilli) || order.quantityMilli <= 0)) return `كمية الطلب ${order.id} غير صالحة.`;
-  if (order.quantityIssue !== null && order.quantityIssue !== undefined && order.quantityIssue !== "needs_conversion" && order.quantityIssue !== "invalid") return `سبب كمية الطلب ${order.id} غير صالح.`;
-  if (order.quantityMilli !== null && order.unitKey !== null && !order.unitKey.trim()) return `وحدة الطلب ${order.id} غير صالحة.`;
+  if (
+    !Number.isSafeInteger(order.recognizedRevenueMinor) ||
+    order.recognizedRevenueMinor < 0 ||
+    !Number.isSafeInteger(order.recognizedCostMinor) ||
+    order.recognizedCostMinor < 0
+  )
+    return `مقادير الطلب ${order.id} غير صالحة.`;
+  if (
+    order.quantityMilli !== null &&
+    (!Number.isSafeInteger(order.quantityMilli) || order.quantityMilli <= 0)
+  )
+    return `كمية الطلب ${order.id} غير صالحة.`;
+  if (
+    order.quantityIssue !== null &&
+    order.quantityIssue !== undefined &&
+    order.quantityIssue !== "needs_conversion" &&
+    order.quantityIssue !== "invalid"
+  )
+    return `سبب كمية الطلب ${order.id} غير صالح.`;
+  if (order.quantityMilli !== null && order.unitKey !== null && !order.unitKey.trim())
+    return `وحدة الطلب ${order.id} غير صالحة.`;
   return null;
 }
 
 function validateExpense(expense: G5ExpenseInput): string | null {
   if (!expense.id.trim() || !expense.source.trim()) return "يوجد مصروف بلا مصدر قراءة.";
-  if (!Number.isSafeInteger(expense.amountMinor) || expense.amountMinor < 0) return `مبلغ المصروف ${expense.id} غير صالح.`;
+  if (!Number.isSafeInteger(expense.amountMinor) || expense.amountMinor < 0)
+    return `مبلغ المصروف ${expense.id} غير صالح.`;
   if (!EXPENSE_BEHAVIORS.includes(expense.behavior)) return `سلوك المصروف ${expense.id} غير صالح.`;
   if (!EXPENSE_RELATIONSHIPS.includes(expense.relationship)) return `علاقة المصروف ${expense.id} غير صالحة.`;
-  if (expense.sharedProjectShareBasis !== null && !SHARE_BASES.includes(expense.sharedProjectShareBasis)) return `أساس حصة المصروف ${expense.id} غير صالح.`;
-  if (expense.relationship !== "shared" && expense.sharedProjectShareBasis !== null) return `مصروف المشروع ${expense.id} يحمل أساس حصة غير مسموح.`;
+  if (expense.sharedProjectShareBasis !== null && !SHARE_BASES.includes(expense.sharedProjectShareBasis))
+    return `أساس حصة المصروف ${expense.id} غير صالح.`;
+  if (expense.relationship !== "shared" && expense.sharedProjectShareBasis !== null)
+    return `مصروف المشروع ${expense.id} يحمل أساس حصة غير مسموح.`;
   return null;
 }
 
@@ -164,7 +201,8 @@ export function calculateContributionMargin(
   orders: readonly G5OrderInput[],
   expenses: readonly G5ExpenseInput[],
 ): ContributionMarginResult {
-  if (!isValidLocalDate(from) || !isValidLocalDate(to) || from > to) return invalidContribution(from, to, "الفترة المحلية غير صالحة.");
+  if (!isValidLocalDate(from) || !isValidLocalDate(to) || from > to)
+    return invalidContribution(from, to, "الفترة المحلية غير صالحة.");
   const reasons: string[] = [];
   const excluded: string[] = [];
   const assumptions: string[] = [];
@@ -221,7 +259,8 @@ export function calculateContributionMargin(
       }
     } else {
       const unitKey = order.unitKey?.trim() || "legacy:recorded-mix";
-      const unitLabel = order.unitLabel?.trim() || (unitKey === "legacy:recorded-mix" ? "المزيج المسجل" : null);
+      const unitLabel =
+        order.unitLabel?.trim() || (unitKey === "legacy:recorded-mix" ? "المزيج المسجل" : null);
       if (!quantityUnitEstablished) {
         quantityUnitKey = unitKey;
         quantityUnitLabel = unitLabel;
@@ -229,7 +268,9 @@ export function calculateContributionMargin(
       } else if (quantityUnitKey !== unitKey) {
         totalQuantityMilli = null;
         incomplete = true;
-        reasons.push("توجد وحدات أو مراجع كمية غير متوافقة؛ لا تجمعها كناتج واحد دون تحويل G4-A صريح داخل البعد نفسه.");
+        reasons.push(
+          "توجد وحدات أو مراجع كمية غير متوافقة؛ لا تجمعها كناتج واحد دون تحويل G4-A صريح داخل البعد نفسه.",
+        );
       }
       if (totalQuantityMilli !== null) {
         const nextQuantity = addSafe(totalQuantityMilli, order.quantityMilli!);
@@ -243,16 +284,46 @@ export function calculateContributionMargin(
 
     const mixKey = `${order.itemName.trim()}::${order.unitKey?.trim() || "legacy:recorded-mix"}`;
     const existing = mix.get(mixKey);
-    const current = existing ?? { itemName: order.itemName.trim(), orderCount: 0, quantityMilli: null, unitKey: order.unitKey?.trim() || "legacy:recorded-mix", unitLabel: order.unitLabel?.trim() || (order.unitKey ? null : "المزيج المسجل"), revenueMinor: 0, variableCostMinor: 0, contributionMarginMinor: 0 };
+    const current = existing ?? {
+      itemName: order.itemName.trim(),
+      orderCount: 0,
+      quantityMilli: null,
+      unitKey: order.unitKey?.trim() || "legacy:recorded-mix",
+      unitLabel: order.unitLabel?.trim() || (order.unitKey ? null : "المزيج المسجل"),
+      revenueMinor: 0,
+      variableCostMinor: 0,
+      contributionMarginMinor: 0,
+    };
     const nextMixRevenue = addSafe(current.revenueMinor, order.recognizedRevenueMinor);
     const nextMixCost = addSafe(current.variableCostMinor, order.recognizedCostMinor);
-    const nextMixMargin = nextMixRevenue === null || nextMixCost === null ? null : addSafe(nextMixRevenue, -nextMixCost);
-    const nextMixQuantity = existing === undefined ? order.quantityMilli : current.quantityMilli === null || order.quantityMilli === null ? null : addSafe(current.quantityMilli, order.quantityMilli);
-    if (nextMixRevenue === null || nextMixCost === null || nextMixMargin === null || (existing !== undefined && current.quantityMilli !== null && order.quantityMilli !== null && nextMixQuantity === null)) {
+    const nextMixMargin =
+      nextMixRevenue === null || nextMixCost === null ? null : addSafe(nextMixRevenue, -nextMixCost);
+    const nextMixQuantity =
+      existing === undefined
+        ? order.quantityMilli
+        : current.quantityMilli === null || order.quantityMilli === null
+          ? null
+          : addSafe(current.quantityMilli, order.quantityMilli);
+    if (
+      nextMixRevenue === null ||
+      nextMixCost === null ||
+      nextMixMargin === null ||
+      (existing !== undefined &&
+        current.quantityMilli !== null &&
+        order.quantityMilli !== null &&
+        nextMixQuantity === null)
+    ) {
       invalid = true;
       reasons.push(`تعذر تجميع قراءة المزيج للعمل ${order.itemName}.`);
     } else {
-      mix.set(mixKey, { ...current, orderCount: current.orderCount + 1, quantityMilli: nextMixQuantity, revenueMinor: nextMixRevenue, variableCostMinor: nextMixCost, contributionMarginMinor: nextMixMargin });
+      mix.set(mixKey, {
+        ...current,
+        orderCount: current.orderCount + 1,
+        quantityMilli: nextMixQuantity,
+        revenueMinor: nextMixRevenue,
+        variableCostMinor: nextMixCost,
+        contributionMarginMinor: nextMixMargin,
+      });
     }
   }
 
@@ -301,7 +372,9 @@ export function calculateContributionMargin(
       } else totalVariableCostMinor = nextVariable;
       if (expense.knowledge !== "known") {
         needsReview = true;
-        assumptions.push(`تكلفة متغيرة مرتبطة ${expense.source} ${expense.knowledge === "estimated" ? "تقديرية" : "تحتاج مراجعة"}.`);
+        assumptions.push(
+          `تكلفة متغيرة مرتبطة ${expense.source} ${expense.knowledge === "estimated" ? "تقديرية" : "تحتاج مراجعة"}.`,
+        );
       }
       continue;
     } else if (expense.behavior === "variable") {
@@ -334,7 +407,8 @@ export function calculateContributionMargin(
     reasons.push("لا توجد طلبات نهائية موجبة تكفي لحساب هامش المساهمة.");
   }
   if (totalQuantityMilli === null || totalQuantityMilli <= 0) {
-    if (finalOrderCount > 0 && !reasons.some((reason) => reason.includes("كمية"))) reasons.push("لا توجد كمية نهائية موحدة موجبة تكفي لحساب هامش الوحدة.");
+    if (finalOrderCount > 0 && !reasons.some(reason => reason.includes("كمية")))
+      reasons.push("لا توجد كمية نهائية موحدة موجبة تكفي لحساب هامش الوحدة.");
     incomplete = true;
   }
   if (fixedExpenseMinor <= 0) {
@@ -346,10 +420,32 @@ export function calculateContributionMargin(
     invalid = true;
     reasons.push("هامش المساهمة المسجل غير موجب.");
   }
-  const contributionMarginPerUnitMinor = contributionMarginMinor !== null && totalQuantityMilli !== null && totalQuantityMilli > 0 && contributionMarginMinor >= 0 && contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 1000
-    ? roundHalfUp(contributionMarginMinor * 1000, totalQuantityMilli)
-    : null;
-  if (invalid) return { ...invalidContribution(from, to, reasons.join(" ") || "بيانات G5 غير صالحة."), totalRevenueMinor, totalVariableCostMinor, contributionMarginMinor: contributionMarginMinor ?? 0, totalQuantityMilli, quantityUnitKey, quantityUnitLabel, fixedExpenseMinor, finalOrderCount, excludedOrderCount, mix: [...mix.values()], sources, excluded, assumptions, reasons };
+  const contributionMarginPerUnitMinor =
+    contributionMarginMinor !== null &&
+    totalQuantityMilli !== null &&
+    totalQuantityMilli > 0 &&
+    contributionMarginMinor >= 0 &&
+    contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 1000
+      ? roundHalfUp(contributionMarginMinor * 1000, totalQuantityMilli)
+      : null;
+  if (invalid)
+    return {
+      ...invalidContribution(from, to, reasons.join(" ") || "بيانات G5 غير صالحة."),
+      totalRevenueMinor,
+      totalVariableCostMinor,
+      contributionMarginMinor: contributionMarginMinor ?? 0,
+      totalQuantityMilli,
+      quantityUnitKey,
+      quantityUnitLabel,
+      fixedExpenseMinor,
+      finalOrderCount,
+      excludedOrderCount,
+      mix: [...mix.values()],
+      sources,
+      excluded,
+      assumptions,
+      reasons,
+    };
   const status = incomplete ? "incomplete" : needsReview ? "needs_review" : "available";
   return {
     status,
@@ -365,12 +461,19 @@ export function calculateContributionMargin(
     fixedExpenseMinor,
     finalOrderCount,
     excludedOrderCount,
-    mix: [...mix.values()].sort((left, right) => right.contributionMarginMinor - left.contributionMarginMinor || left.itemName.localeCompare(right.itemName, "ar")),
+    mix: [...mix.values()].sort(
+      (left, right) =>
+        right.contributionMarginMinor - left.contributionMarginMinor ||
+        left.itemName.localeCompare(right.itemName, "ar"),
+    ),
     sources,
     excluded,
     assumptions,
     reasons,
-    nextAction: status === "available" || status === "needs_review" ? "راجع السعر والتكلفة إذا تغير المزيج أو الافتراض المعلن." : "سجّل الكمية أو الوحدة أو التصنيف أو التاريخ الناقص قبل الاعتماد على رقم التعادل.",
+    nextAction:
+      status === "available" || status === "needs_review"
+        ? "راجع السعر والتكلفة إذا تغير المزيج أو الافتراض المعلن."
+        : "سجّل الكمية أو الوحدة أو التصنيف أو التاريخ الناقص قبل الاعتماد على رقم التعادل.",
   };
 }
 
@@ -381,41 +484,80 @@ export function calculateBreakEven(
   expenses: readonly G5ExpenseInput[],
 ): BreakEvenResult {
   const contribution = calculateContributionMargin(from, to, orders, expenses);
-  const denominator = contribution.contributionMarginMinor > 0 && contribution.contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 1000 ? contribution.contributionMarginMinor * 1000 : null;
-  const numerator = denominator !== null && contribution.totalQuantityMilli !== null && contribution.fixedExpenseMinor <= Number.MAX_SAFE_INTEGER / Math.max(contribution.totalQuantityMilli, 1)
-    ? contribution.fixedExpenseMinor * contribution.totalQuantityMilli
-    : null;
-  const breakEvenUnits = (contribution.status === "available" || contribution.status === "needs_review") && numerator !== null && denominator !== null ? ceilRatio(numerator, denominator) : null;
-  if ((contribution.status === "available" || contribution.status === "needs_review") && breakEvenUnits === null) {
-    return { ...contribution, status: "invalid", breakEvenUnits: null, reasons: [...contribution.reasons, "تعذر حساب وحدات التعادل ضمن الدقة الآمنة."], nextAction: "راجع حجم الفترة والكمية والهامش قبل الاعتماد على رقم التعادل." };
+  const denominator =
+    contribution.contributionMarginMinor > 0 &&
+    contribution.contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 1000
+      ? contribution.contributionMarginMinor * 1000
+      : null;
+  const numerator =
+    denominator !== null &&
+    contribution.totalQuantityMilli !== null &&
+    contribution.fixedExpenseMinor <= Number.MAX_SAFE_INTEGER / Math.max(contribution.totalQuantityMilli, 1)
+      ? contribution.fixedExpenseMinor * contribution.totalQuantityMilli
+      : null;
+  const breakEvenUnits =
+    (contribution.status === "available" || contribution.status === "needs_review") &&
+    numerator !== null &&
+    denominator !== null
+      ? ceilRatio(numerator, denominator)
+      : null;
+  if (
+    (contribution.status === "available" || contribution.status === "needs_review") &&
+    breakEvenUnits === null
+  ) {
+    return {
+      ...contribution,
+      status: "invalid",
+      breakEvenUnits: null,
+      reasons: [...contribution.reasons, "تعذر حساب وحدات التعادل ضمن الدقة الآمنة."],
+      nextAction: "راجع حجم الفترة والكمية والهامش قبل الاعتماد على رقم التعادل.",
+    };
   }
   return { ...contribution, breakEvenUnits };
 }
 
 function validateBalanceItem(item: ShortCashInput["receivables"][number]): string | null {
   if (!item.id.trim() || !item.source.trim()) return "يوجد رصيد قصير بلا مصدر.";
-  if (!Number.isSafeInteger(item.amountMinor) || item.amountMinor < 0) return `الرصيد ${item.source} غير صالح.`;
+  if (!Number.isSafeInteger(item.amountMinor) || item.amountMinor < 0)
+    return `الرصيد ${item.source} غير صالح.`;
   if (item.dueOn !== null && !isValidLocalDate(item.dueOn)) return `تاريخ الرصيد ${item.source} غير صالح.`;
-  if (item.direction !== "collection" && item.direction !== "commitment") return `اتجاه الرصيد ${item.source} غير صالح.`;
+  if (item.direction !== "collection" && item.direction !== "commitment")
+    return `اتجاه الرصيد ${item.source} غير صالح.`;
   return null;
 }
 
 function validateDeclaration(declaration: ShortCashDeclaration): string | null {
-  if (!declaration.id.trim() || !["declaration", "reversal"].includes(declaration.kind)) return "يوجد إعلان سيولة بلا معرف أو نوع صالح.";
+  if (!declaration.id.trim() || !["declaration", "reversal"].includes(declaration.kind))
+    return "يوجد إعلان سيولة بلا معرف أو نوع صالح.";
   if (!DIRECTIONS.includes(declaration.direction)) return "اتجاه إعلان السيولة غير صالح.";
-  if (!Number.isSafeInteger(declaration.amountMinor) || declaration.amountMinor <= 0) return "مبلغ إعلان السيولة غير صالح.";
+  if (!Number.isSafeInteger(declaration.amountMinor) || declaration.amountMinor <= 0)
+    return "مبلغ إعلان السيولة غير صالح.";
   if (!isValidLocalDate(declaration.dueOn)) return "تاريخ إعلان السيولة غير صالح.";
-  if (!declaration.source.trim() || !declaration.note.trim() || !declaration.idempotencyKey.trim() || !isValidTimestamp(declaration.createdAt)) return "إعلان السيولة ناقص المصدر أو الملاحظة أو المفتاح أو وقت الإنشاء.";
+  if (
+    !declaration.source.trim() ||
+    !declaration.note.trim() ||
+    !declaration.idempotencyKey.trim() ||
+    !isValidTimestamp(declaration.createdAt)
+  )
+    return "إعلان السيولة ناقص المصدر أو الملاحظة أو المفتاح أو وقت الإنشاء.";
   if (!KNOWLEDGE.includes(declaration.knowledge)) return "درجة معرفة إعلان السيولة غير صالحة.";
-  if (declaration.relatedOrderId && declaration.relatedEventId) return "لا يجوز ربط إعلان السيولة بطلب وحدث معًا.";
-  if (declaration.relatedOrderId && declaration.direction !== "collection") return "ربط الطلب مخصص لتحصيلات العملاء فقط.";
-  if (declaration.relatedEventId && declaration.direction !== "commitment") return "ربط الحدث مخصص لالتزامات المصروف فقط.";
-  if (declaration.kind === "declaration" && declaration.reversalOfId !== null) return "الإعلان الأصلي لا يحمل رابط عكس.";
-  if (declaration.kind === "reversal" && !declaration.reversalOfId?.trim()) return "العكس يحتاج رابطًا إلى إعلان أصلي.";
+  if (declaration.relatedOrderId && declaration.relatedEventId)
+    return "لا يجوز ربط إعلان السيولة بطلب وحدث معًا.";
+  if (declaration.relatedOrderId && declaration.direction !== "collection")
+    return "ربط الطلب مخصص لتحصيلات العملاء فقط.";
+  if (declaration.relatedEventId && declaration.direction !== "commitment")
+    return "ربط الحدث مخصص لالتزامات المصروف فقط.";
+  if (declaration.kind === "declaration" && declaration.reversalOfId !== null)
+    return "الإعلان الأصلي لا يحمل رابط عكس.";
+  if (declaration.kind === "reversal" && !declaration.reversalOfId?.trim())
+    return "العكس يحتاج رابطًا إلى إعلان أصلي.";
   return null;
 }
 
-function activeDeclarations(declarations: readonly ShortCashDeclaration[]): { active: ShortCashDeclaration[]; invalidReason: string | null } {
+function activeDeclarations(declarations: readonly ShortCashDeclaration[]): {
+  active: ShortCashDeclaration[];
+  invalidReason: string | null;
+} {
   const byId = new Map<string, ShortCashDeclaration>();
   const reversedIds = new Set<string>();
   const active: ShortCashDeclaration[] = [];
@@ -424,28 +566,79 @@ function activeDeclarations(declarations: readonly ShortCashDeclaration[]): { ac
     const validation = validateDeclaration(declaration);
     if (validation) return { active: [], invalidReason: validation };
     if (byId.has(declaration.id)) return { active: [], invalidReason: "يوجد تكرار في معرف إعلان السيولة." };
-    if (keys.has(`${declaration.kind}:${declaration.idempotencyKey}`)) return { active: [], invalidReason: "يوجد تكرار في مفتاح إعلان السيولة." };
+    if (keys.has(`${declaration.kind}:${declaration.idempotencyKey}`))
+      return { active: [], invalidReason: "يوجد تكرار في مفتاح إعلان السيولة." };
     byId.set(declaration.id, declaration);
     keys.add(`${declaration.kind}:${declaration.idempotencyKey}`);
     if (declaration.kind === "declaration") active.push(declaration);
   }
   for (const declaration of declarations) {
     if (declaration.kind !== "reversal") continue;
-    if (!declaration.reversalOfId || reversedIds.has(declaration.reversalOfId)) return { active: [], invalidReason: "يوجد عكس مكرر أو بلا إعلان أصلي." };
+    if (!declaration.reversalOfId || reversedIds.has(declaration.reversalOfId))
+      return { active: [], invalidReason: "يوجد عكس مكرر أو بلا إعلان أصلي." };
     const original = byId.get(declaration.reversalOfId);
-    if (!original || original.kind !== "declaration" || original.amountMinor !== declaration.amountMinor || original.direction !== declaration.direction || original.dueOn !== declaration.dueOn || original.source !== declaration.source || original.relatedOrderId !== declaration.relatedOrderId || original.relatedEventId !== declaration.relatedEventId) return { active: [], invalidReason: "عكس إعلان السيولة لا يطابق أصله." };
+    if (
+      !original ||
+      original.kind !== "declaration" ||
+      original.amountMinor !== declaration.amountMinor ||
+      original.direction !== declaration.direction ||
+      original.dueOn !== declaration.dueOn ||
+      original.source !== declaration.source ||
+      original.relatedOrderId !== declaration.relatedOrderId ||
+      original.relatedEventId !== declaration.relatedEventId
+    )
+      return { active: [], invalidReason: "عكس إعلان السيولة لا يطابق أصله." };
     reversedIds.add(declaration.reversalOfId);
   }
-  return { active: active.filter((declaration) => !reversedIds.has(declaration.id)), invalidReason: null };
+  return { active: active.filter(declaration => !reversedIds.has(declaration.id)), invalidReason: null };
 }
 
 export function calculateShortCash(input: ShortCashInput): ShortCashResult {
-  const base = { from: input.from, to: input.to, recordedCashMinor: input.recordedCashMinor, declaredCollectionsMinor: 0, declaredCommitmentsMinor: 0, undatedReceivablesMinor: 0, undatedPayablesMinor: 0, projectedCashMinor: null, activeDeclarationCount: 0, sources: [] as string[], assumptions: [] as string[], reasons: [] as string[], nextAction: "سجّل مصدرًا وتاريخًا لأي تحصيل أو التزام مؤثر قبل الاعتماد على توقع." };
-  if (!isValidLocalDate(input.from) || !isValidLocalDate(input.to) || input.from > input.to || !Number.isSafeInteger(input.recordedCashMinor)) return { ...base, status: "invalid", reasons: ["الفترة أو الكاش المسجل غير صالح."], nextAction: "راجع الفترة أو الكاش المسجل قبل القراءة." };
-  const balanceErrors = [...input.receivables, ...input.payables].map(validateBalanceItem).filter((reason): reason is string => reason !== null);
-  if (balanceErrors.length > 0) return { ...base, status: "invalid", reasons: balanceErrors, nextAction: "صحح الرصيد أو تاريخه قبل قراءة السيولة." };
+  const base = {
+    from: input.from,
+    to: input.to,
+    recordedCashMinor: input.recordedCashMinor,
+    declaredCollectionsMinor: 0,
+    declaredCommitmentsMinor: 0,
+    undatedReceivablesMinor: 0,
+    undatedPayablesMinor: 0,
+    projectedCashMinor: null,
+    activeDeclarationCount: 0,
+    sources: [] as string[],
+    assumptions: [] as string[],
+    reasons: [] as string[],
+    nextAction: "سجّل مصدرًا وتاريخًا لأي تحصيل أو التزام مؤثر قبل الاعتماد على توقع.",
+  };
+  if (
+    !isValidLocalDate(input.from) ||
+    !isValidLocalDate(input.to) ||
+    input.from > input.to ||
+    !Number.isSafeInteger(input.recordedCashMinor)
+  )
+    return {
+      ...base,
+      status: "invalid",
+      reasons: ["الفترة أو الكاش المسجل غير صالح."],
+      nextAction: "راجع الفترة أو الكاش المسجل قبل القراءة.",
+    };
+  const balanceErrors = [...input.receivables, ...input.payables]
+    .map(validateBalanceItem)
+    .filter((reason): reason is string => reason !== null);
+  if (balanceErrors.length > 0)
+    return {
+      ...base,
+      status: "invalid",
+      reasons: balanceErrors,
+      nextAction: "صحح الرصيد أو تاريخه قبل قراءة السيولة.",
+    };
   const declarationState = activeDeclarations(input.declarations);
-  if (declarationState.invalidReason) return { ...base, status: "invalid", reasons: [declarationState.invalidReason], nextAction: "راجع إعلان السيولة أو عكسه دون تعديل السجل القديم." };
+  if (declarationState.invalidReason)
+    return {
+      ...base,
+      status: "invalid",
+      reasons: [declarationState.invalidReason],
+      nextAction: "راجع إعلان السيولة أو عكسه دون تعديل السجل القديم.",
+    };
   const active = declarationState.active;
   const allBalances = [...input.receivables, ...input.payables];
   let declaredCollectionsMinor = 0;
@@ -461,7 +654,11 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
   let hasWindowEvidence = false;
 
   for (const balance of allBalances) {
-    const linked = active.filter((declaration) => (declaration.relatedOrderId ?? declaration.relatedEventId) === balance.id && declaration.direction === balance.direction);
+    const linked = active.filter(
+      declaration =>
+        (declaration.relatedOrderId ?? declaration.relatedEventId) === balance.id &&
+        declaration.direction === balance.direction,
+    );
     const linkedAmount = linked.reduce((sum, declaration) => sum + declaration.amountMinor, 0);
     if (!Number.isSafeInteger(linkedAmount) || linkedAmount > balance.amountMinor) {
       invalid = true;
@@ -485,7 +682,9 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
       if (balance.direction === "collection") undatedReceivablesMinor += remaining;
       else undatedPayablesMinor += remaining;
       incomplete = true;
-      reasons.push(`${balance.direction === "collection" ? "ذمة" : "التزام"} بلا تاريخ كافٍ: ${balance.source}.`);
+      reasons.push(
+        `${balance.direction === "collection" ? "ذمة" : "التزام"} بلا تاريخ كافٍ: ${balance.source}.`,
+      );
     }
   }
 
@@ -495,14 +694,22 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
     hasWindowEvidence = true;
     const balanceId = declaration.relatedOrderId ?? declaration.relatedEventId;
     if (balanceId) {
-      const balance = allBalances.find((item) => item.id === balanceId && item.direction === declaration.direction);
+      const balance = allBalances.find(
+        item => item.id === balanceId && item.direction === declaration.direction,
+      );
       if (!balance) {
         invalid = true;
         reasons.push(`الإعلان ${declaration.source} مرتبط برصيد غير موجود.`);
         continue;
       }
       if (balance.dueOn !== null) continue;
-      const linkedAmount = active.filter((candidate) => (candidate.relatedOrderId ?? candidate.relatedEventId) === balanceId && candidate.direction === declaration.direction).reduce((sum, candidate) => sum + candidate.amountMinor, 0);
+      const linkedAmount = active
+        .filter(
+          candidate =>
+            (candidate.relatedOrderId ?? candidate.relatedEventId) === balanceId &&
+            candidate.direction === declaration.direction,
+        )
+        .reduce((sum, candidate) => sum + candidate.amountMinor, 0);
       if (linkedAmount > balance.amountMinor) {
         invalid = true;
         reasons.push(`إعلان ${declaration.source} يتجاوز الرصيد المسجل.`);
@@ -511,10 +718,14 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
     }
     if (declaration.direction === "collection") declaredCollectionsMinor += declaration.amountMinor;
     else declaredCommitmentsMinor += declaration.amountMinor;
-    sources.push(`إعلان ${declaration.direction === "collection" ? "تحصيل" : "التزام"}: ${declaration.source} في ${declaration.dueOn}`);
+    sources.push(
+      `إعلان ${declaration.direction === "collection" ? "تحصيل" : "التزام"}: ${declaration.source} في ${declaration.dueOn}`,
+    );
     if (declaration.knowledge !== "known") {
       needsReview = true;
-      assumptions.push(`${declaration.source}: ${declaration.knowledge === "estimated" ? "تقدير معلن" : "يحتاج مراجعة"}.`);
+      assumptions.push(
+        `${declaration.source}: ${declaration.knowledge === "estimated" ? "تقدير معلن" : "يحتاج مراجعة"}.`,
+      );
     }
   }
 
@@ -523,7 +734,20 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
     incomplete = true;
     reasons.push("لا يوجد أساس كافٍ لأفق قصير مؤرخ؛ غياب الإعلان لا يعني أن الأفق آمن.");
   }
-  if (invalid) return { ...base, status: "invalid", declaredCollectionsMinor, declaredCommitmentsMinor, undatedReceivablesMinor, undatedPayablesMinor, activeDeclarationCount: active.length, sources, assumptions, reasons, nextAction: "صحح مبلغ الإعلان أو تاريخه أو ربطه قبل الاعتماد على قراءة السيولة." };
+  if (invalid)
+    return {
+      ...base,
+      status: "invalid",
+      declaredCollectionsMinor,
+      declaredCommitmentsMinor,
+      undatedReceivablesMinor,
+      undatedPayablesMinor,
+      activeDeclarationCount: active.length,
+      sources,
+      assumptions,
+      reasons,
+      nextAction: "صحح مبلغ الإعلان أو تاريخه أو ربطه قبل الاعتماد على قراءة السيولة.",
+    };
   const status = incomplete ? "incomplete" : needsReview ? "needs_review" : "available";
   return {
     ...base,
@@ -532,11 +756,17 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
     declaredCommitmentsMinor,
     undatedReceivablesMinor,
     undatedPayablesMinor,
-    projectedCashMinor: status === "incomplete" ? null : input.recordedCashMinor + declaredCollectionsMinor - declaredCommitmentsMinor,
+    projectedCashMinor:
+      status === "incomplete"
+        ? null
+        : input.recordedCashMinor + declaredCollectionsMinor - declaredCommitmentsMinor,
     activeDeclarationCount: active.length,
     sources,
     assumptions,
     reasons,
-    nextAction: status === "available" || status === "needs_review" ? "راجع مواعيد التحصيل والالتزامات إذا تغيرت الوقائع؛ هذا توقع معلن وليس كاشًا حاليًا." : "حدّث تاريخ التحصيل أو الالتزام المفقود قبل الاعتماد على توقع قصير.",
+    nextAction:
+      status === "available" || status === "needs_review"
+        ? "راجع مواعيد التحصيل والالتزامات إذا تغيرت الوقائع؛ هذا توقع معلن وليس كاشًا حاليًا."
+        : "حدّث تاريخ التحصيل أو الالتزام المفقود قبل الاعتماد على توقع قصير.",
   };
 }

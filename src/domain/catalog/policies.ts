@@ -21,7 +21,8 @@ const required = (value: string, label: string) => {
 };
 
 const positiveSafeInteger = (value: number, label: string) => {
-  if (!Number.isSafeInteger(value) || value <= 0) throw new Error(`${label} يجب أن يكون عددًا صحيحًا موجبًا وآمنًا.`);
+  if (!Number.isSafeInteger(value) || value <= 0)
+    throw new Error(`${label} يجب أن يكون عددًا صحيحًا موجبًا وآمنًا.`);
   return value;
 };
 
@@ -63,7 +64,8 @@ export function createMeasurementUnit(input: CreateMeasurementUnitInput): Measur
 }
 
 export function assertSameDimension(from: MeasurementUnit, to: MeasurementUnit): void {
-  if (from.dimension !== to.dimension) throw new Error("لا يمكن التحويل بين بُعدين مختلفين؛ أضف وحدتين من البعد نفسه أو سجّل تحويلًا صريحًا.");
+  if (from.dimension !== to.dimension)
+    throw new Error("لا يمكن التحويل بين بُعدين مختلفين؛ أضف وحدتين من البعد نفسه أو سجّل تحويلًا صريحًا.");
 }
 
 export function createDirectConversion(input: CreateDirectConversionInput): DirectConversion {
@@ -87,11 +89,15 @@ export function createDirectConversion(input: CreateDirectConversionInput): Dire
   };
 }
 
-export function convertQuantityMilli(quantityMilli: number, conversion: DirectConversion): QuantityConversionResult {
+export function convertQuantityMilli(
+  quantityMilli: number,
+  conversion: DirectConversion,
+): QuantityConversionResult {
   positiveSafeInteger(quantityMilli, "الكمية");
   const scaledNumerator = quantityMilli * conversion.numerator;
   if (!Number.isSafeInteger(scaledNumerator)) throw new Error("ناتج التحويل أكبر من الرقم الآمن.");
-  if (scaledNumerator % conversion.denominator !== 0) throw new Error("لا يمكن تمثيل ناتج التحويل بدقة؛ صحح العامل بدل التقريب الخفي.");
+  if (scaledNumerator % conversion.denominator !== 0)
+    throw new Error("لا يمكن تمثيل ناتج التحويل بدقة؛ صحح العامل بدل التقريب الخفي.");
   const result = scaledNumerator / conversion.denominator;
   positiveSafeInteger(result, "ناتج التحويل");
   return { quantityMilli: result, exact: true };
@@ -109,16 +115,21 @@ function validateComponent(component: CatalogTemplateComponent): CatalogTemplate
 
 function validateYield(value: CatalogTemplateYield | null): CatalogTemplateYield | null {
   if (value === null) return null;
-  return { quantityMilli: positiveSafeInteger(value.quantityMilli, "كمية الناتج"), unitId: required(value.unitId, "وحدة الناتج") };
+  return {
+    quantityMilli: positiveSafeInteger(value.quantityMilli, "كمية الناتج"),
+    unitId: required(value.unitId, "وحدة الناتج"),
+  };
 }
 
 export function createCatalogTemplate(input: CreateCatalogTemplateInput): CatalogTemplate {
   const timestamp = validTimestamp(input.createdAt, "وقت إنشاء القالب");
-  if (!Number.isSafeInteger(input.revision) || input.revision < 1) throw new Error("رقم مراجعة القالب غير صالح.");
+  if (!Number.isSafeInteger(input.revision) || input.revision < 1)
+    throw new Error("رقم مراجعة القالب غير صالح.");
   const components = input.components.map(validateComponent);
   const yieldValue = validateYield(input.yield);
   const yieldReadiness = yieldValue === null ? "not_configured" : input.yieldReadiness;
-  if (yieldValue !== null && yieldReadiness !== "ready" && yieldReadiness !== "needs_conversion") throw new Error("حالة ناتج القالب غير صالحة.");
+  if (yieldValue !== null && yieldReadiness !== "ready" && yieldReadiness !== "needs_conversion")
+    throw new Error("حالة ناتج القالب غير صالحة.");
   return {
     id: required(input.id, "معرف القالب"),
     catalogItemId: required(input.catalogItemId, "مرجع القالب"),

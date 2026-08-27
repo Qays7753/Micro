@@ -61,7 +61,8 @@ export type G5ExpenseInput = {
   behavior: "fixed" | "variable" | "mixed" | "unknown";
   relationship: "project" | "shared";
   knowledge: G5Knowledge;
-  sharedProjectShareBasis: "agreed_fixed_share" | "agreed_percentage" | "owner_estimate" | "needs_review" | null;
+  sharedProjectShareBasis:
+    "agreed_fixed_share" | "agreed_percentage" | "owner_estimate" | "needs_review" | null;
   directlyLinked: boolean;
   source: string;
 };

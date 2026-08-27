@@ -1,27 +1,14 @@
-export type Currency = 'JOD';
+export type Currency = "JOD";
 export type MoneyMinor = number;
 
-export type KnowledgeState =
-  | 'known'
-  | 'estimated'
-  | 'partial'
-  | 'incomplete'
-  | 'stale'
-  | 'variable';
+export type KnowledgeState = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
 
-export type ResultStatus =
-  | 'final'
-  | 'estimated'
-  | 'incomplete'
-  | 'review_required';
+export type ResultStatus = "final" | "estimated" | "incomplete" | "review_required";
 
-export type DepositSettlementDecision =
-  | 'refund_deposit'
-  | 'retain_deposit'
-  | 'needs_review';
+export type DepositSettlementDecision = "refund_deposit" | "retain_deposit" | "needs_review";
 
-export type CostSource = 'user_input' | 'historical_price' | 'estimate';
-export type CostConfidence = 'known' | 'estimated';
+export type CostSource = "user_input" | "historical_price" | "estimate";
+export type CostConfidence = "known" | "estimated";
 
 export interface MaterialCostItem {
   name: string;
@@ -49,7 +36,7 @@ export interface CostSnapshotInput {
   safetyBufferMinor: MoneyMinor;
   quantity: number;
   createdAt: string;
-  source: 'draft' | 'price_approval' | 'order_confirmation' | 'revision';
+  source: "draft" | "price_approval" | "order_confirmation" | "revision";
   freshnessDays?: number | null;
 }
 
@@ -71,38 +58,38 @@ export interface CostSnapshot {
 }
 
 export type OrderStatus =
-  | 'draft'
-  | 'provisional_agreement'
-  | 'confirmed'
-  | 'in_progress'
-  | 'ready'
-  | 'delivered'
-  | 'settled'
-  | 'postponed'
-  | 'cancelled'
-  | 'needs_review';
+  | "draft"
+  | "provisional_agreement"
+  | "confirmed"
+  | "in_progress"
+  | "ready"
+  | "delivered"
+  | "settled"
+  | "postponed"
+  | "cancelled"
+  | "needs_review";
 
 export type SettlementStatus =
-  | 'unpaid'
-  | 'partially_paid'
-  | 'paid'
-  | 'debt'
-  | 'cancelled'
-  | 'cancelled_pending'
-  | 'cancelled_refunded'
-  | 'cancelled_retained';
+  | "unpaid"
+  | "partially_paid"
+  | "paid"
+  | "debt"
+  | "cancelled"
+  | "cancelled_pending"
+  | "cancelled_refunded"
+  | "cancelled_retained";
 
 export type OrderEventType =
-  | 'created'
-  | 'price_approved'
-  | 'status_changed'
-  | 'deposit_collected'
-  | 'deposit_refunded'
-  | 'deposit_retained'
-  | 'collection_recorded'
-  | 'debt_registered'
-  | 'specification_revised'
-  | 'cancelled';
+  | "created"
+  | "price_approved"
+  | "status_changed"
+  | "deposit_collected"
+  | "deposit_refunded"
+  | "deposit_retained"
+  | "collection_recorded"
+  | "debt_registered"
+  | "specification_revised"
+  | "cancelled";
 
 export interface OrderEvent {
   id: string;

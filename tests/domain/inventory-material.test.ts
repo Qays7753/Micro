@@ -1,11 +1,120 @@
 import { describe, expect, it } from "vitest";
-import { assertInventoryRemainsNonNegative, consumptionValueMinor, createInventoryMovement, createMaterial, isCostBackedConsumption, summarizeMaterialInventory } from "../../src/domain/inventory-material/index.js";
+import {
+  assertInventoryRemainsNonNegative,
+  consumptionValueMinor,
+  createInventoryMovement,
+  createMaterial,
+  isCostBackedConsumption,
+  summarizeMaterialInventory,
+} from "../../src/domain/inventory-material/index.js";
 
 describe("inventory material domain", () => {
-  const material = createMaterial({ id: "wood", name: "خشب", unit: "piece", createdAt: "2026-08-23T00:00:00.000Z", createdOperationKey: "material-wood" });
-  const opening = createInventoryMovement({ id: "opening", materialId: material.id, type: "opening", occurredOn: "2026-08-01", recordedAt: "2026-08-23T00:00:00.000Z", quantityDeltaMilli: 10000, valueDeltaMinor: 4000, note: "افتتاح", operationKey: "opening-wood" });
-  it("keeps opening material out of cash and derives a position", () => { expect(summarizeMaterialInventory(material.id, [opening])).toEqual({ materialId: "wood", quantityMilli: 10000, valueMinor: 4000, movementCount: 1 }); expect(consumptionValueMinor(2000, summarizeMaterialInventory(material.id, [opening]))).toBe(800); });
-  it("requires a purchase for receipt, an order for consumption, and reason for waste", () => { expect(() => createInventoryMovement({ ...opening, id: "receipt", type: "purchase_receipt", operationKey: "receipt", quantityDeltaMilli: 1000, valueDeltaMinor: 400 })).toThrow("مرجع شراء"); expect(() => createInventoryMovement({ ...opening, id: "consume", type: "consumption", operationKey: "consume", quantityDeltaMilli: -1000, valueDeltaMinor: -400 })).toThrow("مرجع طلب"); expect(() => createInventoryMovement({ ...opening, id: "waste", type: "waste", operationKey: "waste", quantityDeltaMilli: -1000, valueDeltaMinor: -400 })).toThrow("سبب الحركة"); });
-  it("marks only valued order-linked consumption as COGS evidence", () => { const consumption = createInventoryMovement({ ...opening, id: "consume-backed", type: "consumption", operationKey: "consume-backed", quantityDeltaMilli: -1000, valueDeltaMinor: -400, orderId: "completed-order" }); const receipt = createInventoryMovement({ ...opening, id: "receipt-backed", type: "purchase_receipt", operationKey: "receipt-backed", quantityDeltaMilli: 1000, valueDeltaMinor: 400, purchaseId: "purchase" }); const waste = createInventoryMovement({ ...opening, id: "waste-backed", type: "waste", operationKey: "waste-backed", quantityDeltaMilli: -1000, valueDeltaMinor: -400, reason: "اختبار" }); expect(isCostBackedConsumption(consumption)).toBe(true); expect(isCostBackedConsumption(receipt)).toBe(false); expect(isCostBackedConsumption(waste)).toBe(false); });
-  it("does not permit overspend or a negative remaining material position", () => { const position = summarizeMaterialInventory(material.id, [opening]); expect(() => consumptionValueMinor(11000, position)).toThrow("غير كافية"); const broken = createInventoryMovement({ id: "broken", materialId: material.id, type: "waste", occurredOn: "2026-08-02", recordedAt: "2026-08-23T00:00:00.000Z", quantityDeltaMilli: -11000, valueDeltaMinor: -4400, note: "تلف", reason: "اختبار", operationKey: "broken" }); expect(() => assertInventoryRemainsNonNegative(material.id, [opening, broken])).toThrow("سالبة"); });
+  const material = createMaterial({
+    id: "wood",
+    name: "خشب",
+    unit: "piece",
+    createdAt: "2026-08-23T00:00:00.000Z",
+    createdOperationKey: "material-wood",
+  });
+  const opening = createInventoryMovement({
+    id: "opening",
+    materialId: material.id,
+    type: "opening",
+    occurredOn: "2026-08-01",
+    recordedAt: "2026-08-23T00:00:00.000Z",
+    quantityDeltaMilli: 10000,
+    valueDeltaMinor: 4000,
+    note: "افتتاح",
+    operationKey: "opening-wood",
+  });
+  it("keeps opening material out of cash and derives a position", () => {
+    expect(summarizeMaterialInventory(material.id, [opening])).toEqual({
+      materialId: "wood",
+      quantityMilli: 10000,
+      valueMinor: 4000,
+      movementCount: 1,
+    });
+    expect(consumptionValueMinor(2000, summarizeMaterialInventory(material.id, [opening]))).toBe(800);
+  });
+  it("requires a purchase for receipt, an order for consumption, and reason for waste", () => {
+    expect(() =>
+      createInventoryMovement({
+        ...opening,
+        id: "receipt",
+        type: "purchase_receipt",
+        operationKey: "receipt",
+        quantityDeltaMilli: 1000,
+        valueDeltaMinor: 400,
+      }),
+    ).toThrow("مرجع شراء");
+    expect(() =>
+      createInventoryMovement({
+        ...opening,
+        id: "consume",
+        type: "consumption",
+        operationKey: "consume",
+        quantityDeltaMilli: -1000,
+        valueDeltaMinor: -400,
+      }),
+    ).toThrow("مرجع طلب");
+    expect(() =>
+      createInventoryMovement({
+        ...opening,
+        id: "waste",
+        type: "waste",
+        operationKey: "waste",
+        quantityDeltaMilli: -1000,
+        valueDeltaMinor: -400,
+      }),
+    ).toThrow("سبب الحركة");
+  });
+  it("marks only valued order-linked consumption as COGS evidence", () => {
+    const consumption = createInventoryMovement({
+      ...opening,
+      id: "consume-backed",
+      type: "consumption",
+      operationKey: "consume-backed",
+      quantityDeltaMilli: -1000,
+      valueDeltaMinor: -400,
+      orderId: "completed-order",
+    });
+    const receipt = createInventoryMovement({
+      ...opening,
+      id: "receipt-backed",
+      type: "purchase_receipt",
+      operationKey: "receipt-backed",
+      quantityDeltaMilli: 1000,
+      valueDeltaMinor: 400,
+      purchaseId: "purchase",
+    });
+    const waste = createInventoryMovement({
+      ...opening,
+      id: "waste-backed",
+      type: "waste",
+      operationKey: "waste-backed",
+      quantityDeltaMilli: -1000,
+      valueDeltaMinor: -400,
+      reason: "اختبار",
+    });
+    expect(isCostBackedConsumption(consumption)).toBe(true);
+    expect(isCostBackedConsumption(receipt)).toBe(false);
+    expect(isCostBackedConsumption(waste)).toBe(false);
+  });
+  it("does not permit overspend or a negative remaining material position", () => {
+    const position = summarizeMaterialInventory(material.id, [opening]);
+    expect(() => consumptionValueMinor(11000, position)).toThrow("غير كافية");
+    const broken = createInventoryMovement({
+      id: "broken",
+      materialId: material.id,
+      type: "waste",
+      occurredOn: "2026-08-02",
+      recordedAt: "2026-08-23T00:00:00.000Z",
+      quantityDeltaMilli: -11000,
+      valueDeltaMinor: -4400,
+      note: "تلف",
+      reason: "اختبار",
+      operationKey: "broken",
+    });
+    expect(() => assertInventoryRemainsNonNegative(material.id, [opening, broken])).toThrow("سالبة");
+  });
 });

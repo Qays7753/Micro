@@ -1,4 +1,9 @@
-export const allocationPolicyKinds = ["manual_amount", "per_output_unit", "actual_time", "completed_revenue_percentage"] as const;
+export const allocationPolicyKinds = [
+  "manual_amount",
+  "per_output_unit",
+  "actual_time",
+  "completed_revenue_percentage",
+] as const;
 export type AllocationPolicyKind = (typeof allocationPolicyKinds)[number];
 export type AllocationPolicyStatus = "active" | "inactive";
 
@@ -29,8 +34,25 @@ export type AllocationPolicy = {
   updatedAt: string;
 };
 
-export type CreateAllocationPolicyInput = Omit<AllocationPolicy, "rateMinorPerWholeUnit"> & { rateMinorPerWholeUnit?: number | null };
-export type AllocationPolicyTerms = Pick<AllocationPolicy, "kind" | "amountMinor" | "rateMinor" | "percentageBps" | "unitId" | "catalogItemId" | "periodFrom" | "periodTo" | "startsOn" | "endsOn" | "source" | "reason" | "note"> & { rateMinorPerWholeUnit?: number | null };
+export type CreateAllocationPolicyInput = Omit<AllocationPolicy, "rateMinorPerWholeUnit"> & {
+  rateMinorPerWholeUnit?: number | null;
+};
+export type AllocationPolicyTerms = Pick<
+  AllocationPolicy,
+  | "kind"
+  | "amountMinor"
+  | "rateMinor"
+  | "percentageBps"
+  | "unitId"
+  | "catalogItemId"
+  | "periodFrom"
+  | "periodTo"
+  | "startsOn"
+  | "endsOn"
+  | "source"
+  | "reason"
+  | "note"
+> & { rateMinorPerWholeUnit?: number | null };
 
 export type AllocationEvidence = {
   catalogItemId: string;
