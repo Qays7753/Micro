@@ -107,7 +107,7 @@
 
 ### 8.2 الخطوة التنفيذية التالية
 
-G20 مدمجة عبر PR #128، وG21 مدمجة عبر PR #129، وG22 مدمجة Squash عبر PR #133 عند `16dfd5802ee3492da9d51b2872abcff8f8974bd6`. بدأت G23 الآن على فرع مستقل من رأس `origin/main` الحي `16dfd5802ee3492da9d51b2872abcff8f8974bd6` لإعادة قبول UX وإصلاح Regression مثبت فقط إن ظهر. تظل اختبارات الجهاز الفعلي وPWA وOffline الإنتاجي وPilot البشري حدود قبول مستقلة.
+G20 مدمجة عبر PR #128، وG21 مدمجة عبر PR #129، وG22 مدمجة Squash عبر PR #133 عند `16dfd5802ee3492da9d51b2872abcff8f8974bd6`، وG23 مدمجة Squash عبر PR #135 عند `3f0f92d4f7c452fb1cdd775a1df0cb829d1dad1d`. أُغلقت إعادة قبول برنامج UX G17–G23 ضمن حدودها. لا تبدأ شريحة وظيفية أو توسعة Market/Delivery/Auth/Cloud تلقائيًا؛ تبقى اختبارات الجهاز الفعلي وPWA وOffline الإنتاجي وPilot البشري حدود قبول مستقلة.
 
 ## 9. G19 — Order clarity and incomplete cost truth مدمجة
 
@@ -159,14 +159,14 @@ G20 مدمجة عبر PR #128، وG21 مدمجة عبر PR #129، وG22 مدمج
 | القبول المقرر | الحقول الأساسية للمصروف وG5 أولًا، التفاصيل موجودة ومشروطة، التاريخ/العملة/الجمع العربي واضح، وفصل الإعلان عن الكاش مثبت ببيانات اصطناعية. |
 | حدود QA | تم القبول ببيانات اصطناعية ومحلية فقط؛ لا ادعاء جهاز حقيقي أو Production أو Pilot. |
 
-## 13. G23 — UX re-acceptance قيد التنفيذ
-بدأت G23 على فرع مستقل `agent-ux/g23-reacceptance` من رأس `origin/main` عند `16dfd5802ee3492da9d51b2872abcff8f8974bd6` بعد دمج G22. سؤال القرار هو: هل تعمل إصلاحات G20–G22 معًا في رحلة First-use واحدة، وتبقى أولوية Home موجهة إلى الفعل الأكثر إلحاحًا، مع توثيق حدود Export/Import والهاتف وPWA/Pilot دون ادعاء غير مثبت؟ النطاق محصور في M-23 وM-25 والتحقق العام؛ M-24 وM-26 فرضيتان للمراجعة فقط. لا Feature جديدة، ولا Market/Delivery/Auth/Cloud، ولا تغيير في Domain أو الحسابات أو schema/export.
+## 13. G23 — UX re-acceptance مدمجة
+بدأت G23 على فرع مستقل `agent-ux/g23-reacceptance` من رأس `origin/main` عند `16dfd5802ee3492da9d51b2872abcff8f8974bd6` بعد دمج G22، ثم دُمجت Squash عبر PR #135 عند `3f0f92d4f7c452fb1cdd775a1df0cb829d1dad1d`. سؤال القرار كان: هل تعمل إصلاحات G20–G22 معًا في رحلة First-use واحدة، وتبقى أولوية Home موجهة إلى الفعل الأكثر إلحاحًا، مع توثيق حدود Export/Import والهاتف وPWA/Pilot دون ادعاء غير مثبت؟ النطاق اقتصر على M-23 وM-25 والتحقق العام؛ M-24 وM-26 بقيتا فرضيتين للمراجعة فقط. لا Feature جديدة، ولا Market/Delivery/Auth/Cloud، ولا تغيير في Domain أو الحسابات أو schema/export.
 | الحقل | الحقيقة الحالية |
 |---|---|
-| الحالة | قيد التنفيذ؛ لم تُفتح PR بعد. |
-| الفرع والرأس | `agent-ux/g23-reacceptance` من `origin/main` عند `16dfd5802ee3492da9d51b2872abcff8f8974bd6`. |
-| القبول المقرر | First-use Black-box اصطناعي، حالات empty/populated/error/success، 360/390/430، RTL/Light/Dark، نصوص طويلة، Export/Import إن أمكن، وتسجيل حدود الهاتف/Production/Pilot صراحةً. |
-| المجهول الحالي | أُعيد إثبات Regression في Home: طلب مغلق بنتيجة ناقصة كان يعرض CTA سجل عامة؛ عولج بعرض أولوية «مراجعة النتيجة» واختبار خدمة حتمي، دون تغيير Domain أو الحسابات أو التخزين. تبقى حدود الجهاز الفعلي وProduction/Pilot مستقلة. |
+| الحالة | مقبولة وظيفيًا ومندمجة Squash عبر PR #135 عند `3f0f92d4f7c452fb1cdd775a1df0cb829d1dad1d`. |
+| الفرع والرأس | `agent-ux/g23-reacceptance`؛ رأس العمل `17f5b4839a827827ca873a6e2c21b4f1a1e5ebba`؛ رأس الدمج في `origin/main` هو `3f0f92d4f7c452fb1cdd775a1df0cb829d1dad1d`، والفرع البعيد محذوف. |
+| القبول المنفذ | First-use Black-box اصطناعي، حالات empty/populated/error/success/needs_review حيث تنطبق، 360/390/430، RTL/Light/Dark، ونصوص طويلة. لم يُشغّل Export/Import عمدًا وفق أمر G23؛ وسُجلت حدود الهاتف/Production/Pilot صراحةً. |
+| نتيجة القبول | كُشف Regression في Home لطلب مغلق بنتيجة ناقصة؛ عولج بعرض أولوية «مراجعة النتيجة» واختبار خدمة حتمي، دون تغيير Domain أو الحسابات أو التخزين. نجحت QA الحية وclean-worktree وCI وCloudflare؛ تبقى حدود الجهاز الفعلي وProduction/Pilot مستقلة. |
 ## References
 
 [1]: [مطابقة العقود بالتنفيذ](../implementation/02-domain-contract-coverage.md)
