@@ -84,6 +84,7 @@ export default function InventoryMaterials() {
           <p>{state.overview.truth}</p>
         </div>
       </section>
+      {/* مبدأ Micro: أفعال المادة لا تظهر كأنها متاحة قبل وجود مادة مسجلة. */}
       <div className="micro-cash-actions">
         <button
           className="micro-button micro-button-primary"
@@ -92,32 +93,45 @@ export default function InventoryMaterials() {
         >
           <Plus aria-hidden="true" /> مادة ورصيد بداية
         </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          disabled={!state.overview.materials.length}
-          onClick={() => navigate("/inventory/movement/receipt")}
-        >
-          <PackagePlus aria-hidden="true" /> استلام شراء
-        </button>
+        {state.overview.materials.length ? (
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/inventory/movement/receipt")}
+          >
+            <PackagePlus aria-hidden="true" /> استلام شراء
+          </button>
+        ) : (
+          <div className="micro-later-action" role="status">
+            <strong>استلام شراء — لاحقًا</strong>
+            <small>أضف مادة ورصيد بدايتها أولًا.</small>
+          </div>
+        )}
       </div>
       <div className="micro-cash-actions">
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          disabled={!state.overview.materials.length}
-          onClick={() => navigate("/inventory/movement/consume")}
-        >
-          <Scissors aria-hidden="true" /> استهلاك لطلب
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          disabled={!state.overview.materials.length}
-          onClick={() => navigate("/inventory/movement/waste")}
-        >
-          <CircleMinus aria-hidden="true" /> هدر أو ضبط
-        </button>
+        {state.overview.materials.length ? (
+          <>
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              onClick={() => navigate("/inventory/movement/consume")}
+            >
+              <Scissors aria-hidden="true" /> استهلاك لطلب
+            </button>
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              onClick={() => navigate("/inventory/movement/waste")}
+            >
+              <CircleMinus aria-hidden="true" /> هدر أو ضبط
+            </button>
+          </>
+        ) : (
+          <div className="micro-later-action" role="status">
+            <strong>الاستهلاك والهدر — لاحقًا</strong>
+            <small>أضف مادة ورصيد بدايتها أولًا حتى تختار سجلًا حقيقيًا.</small>
+          </div>
+        )}
       </div>
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">

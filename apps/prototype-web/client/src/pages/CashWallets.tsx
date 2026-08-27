@@ -117,6 +117,7 @@ export default function CashWallets() {
           <small>المحافظ المعلنة + الكاش غير الموزع.</small>
         </div>
       </section>
+      {/* مبدأ Micro: لا يظهر الفعل المشروط كزر معطل؛ يظهر شرط إنجازه قريبًا. */}
       <div className="micro-cash-actions">
         <button
           className="micro-button micro-button-primary"
@@ -125,14 +126,20 @@ export default function CashWallets() {
         >
           <Plus aria-hidden="true" /> محفظة ورصيد بداية
         </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          disabled={state.overview.wallets.length < 2}
-          onClick={() => navigate("/cash/transfer")}
-        >
-          <ArrowRightLeft aria-hidden="true" /> تحويل بين المحافظ
-        </button>
+        {state.overview.wallets.length >= 2 ? (
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/cash/transfer")}
+          >
+            <ArrowRightLeft aria-hidden="true" /> تحويل بين المحافظ
+          </button>
+        ) : (
+          <div className="micro-later-action" role="status">
+            <strong>تحويل بين المحافظ — لاحقًا</strong>
+            <small>أضف محفظة ثانية أولًا حتى يظهر التحويل.</small>
+          </div>
+        )}
       </div>
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">

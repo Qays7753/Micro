@@ -182,6 +182,7 @@ export default function Schedule() {
   const recurrenceSources = Array.from(
     new Map([...overview.today, ...overview.upcoming].map(item => [item.schedule.id, item])).values(),
   );
+  /* مبدأ Micro: يبدأ الجدول بأقرب التزام وفعل، وتأتي التقويمات والإعدادات النادرة عند الطلب. */
   return (
     <section className="micro-page micro-schedule-page">
       <button className="micro-back-button" type="button" onClick={() => navigate("/")}>
@@ -246,111 +247,135 @@ export default function Schedule() {
           </button>
         </section>
       ) : null}
-      <MonthSchedulePanel
-        month={month}
-        selectedDate={selectedDate}
-        onChangeMonth={changeMonth}
-        onSelectDate={setSelectedDate}
-        onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
-      />
-      {weekWithWork.length > 0 ? (
-        <section className="micro-week-agenda" aria-label="خطة الأيام السبعة">
-          <div className="micro-week-heading">
-            <div>
-              <span className="micro-overline">الأيام السبعة القادمة</span>
-              <h2>أين يوجد ضغط فعلي في وقتك المسجل؟</h2>
+      <details className="micro-decision-layer">
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>عرض الأسبوع والتقويم</b>
+            <small>راجع الأيام السبعة أو الشهر عندما تحتاج صورة أوسع.</small>
+          </span>
+          <strong>افتح العرض</strong>
+        </summary>
+        <MonthSchedulePanel
+          month={month}
+          selectedDate={selectedDate}
+          onChangeMonth={changeMonth}
+          onSelectDate={setSelectedDate}
+          onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
+        />
+        {weekWithWork.length > 0 ? (
+          <section className="micro-week-agenda" aria-label="خطة الأيام السبعة">
+            <div className="micro-week-heading">
+              <div>
+                <span className="micro-overline">الأيام السبعة القادمة</span>
+                <h2>أين يوجد ضغط فعلي في وقتك المسجل؟</h2>
+              </div>
+              <Clock3 aria-hidden="true" />
             </div>
-            <Clock3 aria-hidden="true" />
-          </div>
-          <div className="micro-week-list">
-            {weekWithWork.map(day => (
-              <WeekDay key={day.date} day={day} onOpen={item => navigate(`/schedule/${item.schedule.id}`)} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-      {overview.completedOrClosed > 0 ? (
-        <p className="micro-schedule-closed-note">
-          مواعيد مكتملة مستبعدة: {overview.completedOrClosed} موعدًا لطلبات أغلقت أو اكتملت عند التسليم؛ لا
-          تحتاج متابعة تشغيلية.
-        </p>
-      ) : null}
-      <section className="micro-schedule-status-summary" aria-label="ملخص حالة المواعيد">
-        <div>
-          <span>مواعيد تشغيلية نشطة</span>
-          <strong>
-            <IntegerValue value={total} />
-          </strong>
-          <small>متأخر، اليوم، أو قادم ويحتاج قراءة تشغيلية.</small>
-        </div>
-        <div>
-          <span>مواعيد مكتملة مستبعدة</span>
-          <strong>
-            <IntegerValue value={overview.completedOrClosed} />
-          </strong>
-          <small>مكتملة أو مغلقة؛ لا تظهر في المتابعة النشطة.</small>
-        </div>
-      </section>
-      <RecurrencePanel
-        service={recurrences}
-        sources={recurrenceSources}
-        views={recurrenceViews}
-        onChanged={notifyDataChanged}
-      />
-      <section className="micro-schedule-capacity">
-        <div>
-          <Timer aria-hidden="true" />
-          <div>
-            <span className="micro-overline">قدرة اليوم · إعداد اختياري</span>
-            <h2>ما المدة التي تستطيع الالتزام بها؟</h2>
-            <p>
-              {overview.dailyCapacityMinutes === null ? (
-                <>
-                  <strong>السعة غير محددة؛ لن نرفض الطلب بسببها.</strong> يمكنك قراءة الوقت المسجل فقط،
-                  وتفصيله يظهر في تحذير اليوم عند توفر البيانات.
-                </>
-              ) : (
-                `السعة المعلنة: ${overview.dailyCapacityMinutes} دقيقة. التحذير لا يمنعك من حفظ الموعد.`
-              )}
-            </p>
-          </div>
-        </div>
-        <label className="micro-field">
-          <span>سعة يومية اختيارية</span>
-          <select
-            value={capacityChoice}
-            onChange={event => setCapacityChoice(event.target.value)}
-            aria-label="سعة اليوم بالدقائق"
-          >
-            <option value="">غير محددة الآن</option>
-            {capacityOptions.map(minutes => (
-              <option key={minutes} value={minutes}>
-                {minutes} دقيقة
-              </option>
-            ))}
-          </select>
-        </label>
-        {capacityMessage ? (
-          <p
-            className={
-              capacityMessage.startsWith("تم ") || capacityMessage.startsWith("لم ")
-                ? "micro-save-note"
-                : "micro-field-error"
-            }
-            role={capacityMessage.startsWith("تم ") || capacityMessage.startsWith("لم ") ? "status" : "alert"}
-          >
-            {capacityMessage}
+            <div className="micro-week-list">
+              {weekWithWork.map(day => (
+                <WeekDay
+                  key={day.date}
+                  day={day}
+                  onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {overview.completedOrClosed > 0 ? (
+          <p className="micro-schedule-closed-note">
+            مواعيد مكتملة مستبعدة: {overview.completedOrClosed} موعدًا لطلبات أغلقت أو اكتملت عند التسليم؛ لا
+            تحتاج متابعة تشغيلية.
           </p>
         ) : null}
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
-          disabled={savingCapacity}
-          onClick={saveCapacity}
-        >
-          {savingCapacity ? "جارٍ حفظ السعة…" : "حفظ سعة اليوم"}
-        </button>
-      </section>
+        <section className="micro-schedule-status-summary" aria-label="ملخص حالة المواعيد">
+          <div>
+            <span>مواعيد تشغيلية نشطة</span>
+            <strong>
+              <IntegerValue value={total} />
+            </strong>
+            <small>متأخر، اليوم، أو قادم ويحتاج قراءة تشغيلية.</small>
+          </div>
+          <div>
+            <span>مواعيد مكتملة مستبعدة</span>
+            <strong>
+              <IntegerValue value={overview.completedOrClosed} />
+            </strong>
+            <small>مكتملة أو مغلقة؛ لا تظهر في المتابعة النشطة.</small>
+          </div>
+        </section>
+      </details>
+      <details className="micro-decision-layer">
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>التكرار والسعة</b>
+            <small>إعدادات اختيارية لا تمنع حفظ الموعد ولا تغيّر أثره المالي.</small>
+          </span>
+          <strong>افتح الإعدادات</strong>
+        </summary>
+        <RecurrencePanel
+          service={recurrences}
+          sources={recurrenceSources}
+          views={recurrenceViews}
+          onChanged={notifyDataChanged}
+        />
+        <section className="micro-schedule-capacity">
+          <div>
+            <Timer aria-hidden="true" />
+            <div>
+              <span className="micro-overline">قدرة اليوم · إعداد اختياري</span>
+              <h2>ما المدة التي تستطيع الالتزام بها؟</h2>
+              <p>
+                {overview.dailyCapacityMinutes === null ? (
+                  <>
+                    <strong>السعة غير محددة؛ لن نرفض الطلب بسببها.</strong> يمكنك قراءة الوقت المسجل فقط،
+                    وتفصيله يظهر في تحذير اليوم عند توفر البيانات.
+                  </>
+                ) : (
+                  `السعة المعلنة: ${overview.dailyCapacityMinutes} دقيقة. التحذير لا يمنعك من حفظ الموعد.`
+                )}
+              </p>
+            </div>
+          </div>
+          <label className="micro-field">
+            <span>سعة يومية اختيارية</span>
+            <select
+              value={capacityChoice}
+              onChange={event => setCapacityChoice(event.target.value)}
+              aria-label="سعة اليوم بالدقائق"
+            >
+              <option value="">غير محددة الآن</option>
+              {capacityOptions.map(minutes => (
+                <option key={minutes} value={minutes}>
+                  {minutes} دقيقة
+                </option>
+              ))}
+            </select>
+          </label>
+          {capacityMessage ? (
+            <p
+              className={
+                capacityMessage.startsWith("تم ") || capacityMessage.startsWith("لم ")
+                  ? "micro-save-note"
+                  : "micro-field-error"
+              }
+              role={
+                capacityMessage.startsWith("تم ") || capacityMessage.startsWith("لم ") ? "status" : "alert"
+              }
+            >
+              {capacityMessage}
+            </p>
+          ) : null}
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            disabled={savingCapacity}
+            onClick={saveCapacity}
+          >
+            {savingCapacity ? "جارٍ حفظ السعة…" : "حفظ سعة اليوم"}
+          </button>
+        </section>
+      </details>
     </section>
   );
 }

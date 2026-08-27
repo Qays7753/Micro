@@ -1,15 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  ArchiveX,
-  ArrowRight,
-  Check,
-  GitCompareArrows,
-  Plus,
-  RotateCcw,
-  Settings2,
-  SlidersHorizontal,
-  X,
-} from "lucide-react";
+import { ArchiveX, ArrowRight, Check, GitCompareArrows, Plus, RotateCcw, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application/input/englishNumeric";
@@ -205,7 +195,6 @@ export default function Catalog() {
   const [templates, setTemplates] = useState<readonly CatalogTemplate[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [showMeasurements, setShowMeasurements] = useState(false);
   const [policyKind, setPolicyKind] = useState<RecurringWorkPolicyInput["kind"]>("manual_amount");
   const [policyAmount, setPolicyAmount] = useState<number | null>(null);
   const [policyRate, setPolicyRate] = useState<number | null>(null);
@@ -665,6 +654,7 @@ export default function Catalog() {
         )
       : null;
 
+  /* مبدأ Micro: يبدأ الكتالوج بمرجع عملي، وتأتي القياسات والقوالب والقراءات عند الحاجة فقط. */
   return (
     <section className="micro-page">
       <button className="micro-back-button" type="button" onClick={() => requestSafeNavigation("/orders")}>
@@ -732,22 +722,46 @@ export default function Catalog() {
         </button>
       </section>
 
-      <section className="micro-form-card">
-        <button
-          className="micro-section-toggle"
-          type="button"
-          aria-expanded={showMeasurements}
-          onClick={() => setShowMeasurements(value => !value)}
-        >
+      <section className="micro-section" aria-labelledby="catalog-items-title">
+        <div className="micro-section-heading">
+          <div>
+            <span className="micro-overline">مراجعي</span>
+            <h2 id="catalog-items-title">أعمال متكررة</h2>
+          </div>
+          <span className="micro-g5-count">{items.length}</span>
+        </div>
+        {items.length ? (
+          <div className="micro-list micro-list-compact">
+            {items.map(item => (
+              <article className="micro-list-item" key={item.id}>
+                <div>
+                  <strong>{item.name}</strong>
+                  <p>
+                    {item.kind === "product" ? "منتج" : "خدمة"}
+                    {item.unitLabel ? ` · ${item.unitLabel}` : ""}
+                    {item.active ? " · متاح للطلبات الجديدة" : " · موقوف للطلبات الجديدة"}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="micro-empty-copy">لا يوجد مرجع بعد. أضف فقط العمل الذي يتكرر.</p>
+        )}
+      </section>
+
+      <details className="micro-decision-layer">
+        <summary className="micro-decision-layer-summary">
           <span>
-            <SlidersHorizontal aria-hidden="true" /> 2 · القياس والتحويلات <small>اختيارية</small>
+            <b>القياس والتحويلات</b>
+            <small>تفاصيل اختيارية للكمية؛ لا تحتاجها لبدء المرجع.</small>
           </span>
-          {showMeasurements ? <X aria-hidden="true" /> : <Settings2 aria-hidden="true" />}
-        </button>
-        <p className="micro-muted-copy">
-          أضف ما يساعدك على تذكر الكمية. لن ننشئ مخزونًا، ولن نحول الوزن إلى حجم تلقائيًا.
-        </p>
-        {showMeasurements ? (
+          <strong>افتح التفاصيل</strong>
+        </summary>
+        <section className="micro-form-card">
+          <p className="micro-muted-copy">
+            أضف ما يساعدك على تذكر الكمية. لن ننشئ مخزونًا، ولن نحول الوزن إلى حجم تلقائيًا.
+          </p>
           <div className="micro-subsection-stack">
             <div className="micro-subsection">
               <div className="micro-subsection-heading">
@@ -971,304 +985,25 @@ export default function Catalog() {
               </div>
             </div>
           </div>
-        ) : null}
-      </section>
+        </section>
+      </details>
 
-      <section className="micro-form-card">
-        <div className="micro-page-heading">
-          <span className="micro-overline">3 · قالب اختياري</span>
-          <h2>ماذا أجهز عادةً؟</h2>
-          <p>القالب للتذكر والتخطيط فقط. لا يسحب مخزونًا ولا يغيّر تكلفة قديمة.</p>
-        </div>
-        <label className="micro-field">
-          <span>مرجع القالب</span>
-          <select
-            value={selectedItemId}
-            onChange={event => {
-              setSelectedItemId(event.target.value);
-              resetTemplateForm();
-            }}
-          >
-            <option value="">اختر مرجعًا</option>
-            {items
-              .filter(item => item.active)
-              .map(item => (
-                <option key={item.id} value={item.id}>
-                  {item.name} · {item.kind === "product" ? "منتج" : "خدمة"}
-                </option>
-              ))}
-          </select>
-        </label>
-        {selectedItem ? (
-          <div className="micro-subsection-stack">
-            <div className="micro-subsection">
-              <div className="micro-subsection-heading">
-                <div>
-                  <h3>{editingTemplateId ? "مراجعة القالب" : "قالب جديد"}</h3>
-                  <p>
-                    {selectedItemUnit
-                      ? `مخرج المرجع: ${selectedItemUnit.nameAr} · ${dimensionLabel(selectedItemUnit.dimension)}`
-                      : "لا توجد وحدة مخرج منظمة؛ يمكن حفظ القالب دون yield."}
-                  </p>
-                </div>
-              </div>
-              <div className="micro-form-grid">
-                <label className="micro-field">
-                  <span>
-                    عنوان أو مصدر <small>اختياري</small>
-                  </span>
-                  <input
-                    value={templateTitle}
-                    onChange={event => setTemplateTitle(event.target.value)}
-                    placeholder="مثال: تجهيز الطلب المعتاد"
-                  />
-                </label>
-                <label className="micro-field micro-field-wide">
-                  <span>
-                    ملاحظة <small>اختيارية</small>
-                  </span>
-                  <input
-                    value={templateNote}
-                    onChange={event => setTemplateNote(event.target.value)}
-                    placeholder="ملاحظة تساعدني في التكرار"
-                  />
-                </label>
-              </div>
-              <div className="micro-inline-heading">
-                <h4>المكونات</h4>
-                <span>{templateComponents.length} مكوّن</span>
-              </div>
-              <div className="micro-form-grid">
-                <label className="micro-field">
-                  <span>اسم المكوّن</span>
-                  <input
-                    value={componentName}
-                    onChange={event => setComponentName(event.target.value)}
-                    placeholder="مثال: شمع"
-                  />
-                </label>
-                <label className="micro-field">
-                  <span>
-                    الكمية <small>حتى 3 منازل</small>
-                  </span>
-                  <EnglishQuantityInput
-                    valueMilli={componentQuantity}
-                    onMilliChange={setComponentQuantity}
-                    onTextValidityChange={setComponentQuantityValid}
-                    onEmptyChange={() => setComponentQuantity(null)}
-                    allowEmpty
-                    aria-label="كمية مكوّن القالب"
-                  />
-                </label>
-                <label className="micro-field">
-                  <span>الوحدة</span>
-                  <select value={componentUnitId} onChange={event => setComponentUnitId(event.target.value)}>
-                    <option value="">اختر وحدة</option>
-                    {activeUnits.map(unit => (
-                      <option key={unit.id} value={unit.id}>
-                        {unit.nameAr} · {dimensionLabel(unit.dimension)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <button className="micro-button micro-button-secondary" type="button" onClick={addComponent}>
-                <Plus aria-hidden="true" /> أضف مكوّنًا للقالب
-              </button>
-              {templateComponents.length ? (
-                <div className="micro-list micro-list-compact">
-                  {templateComponents.map(component => (
-                    <div className="micro-list-item" key={component.id}>
-                      <div>
-                        <strong>{component.name}</strong>
-                        <p dir="ltr">
-                          {quantityLabel(component.quantityMilli)} ·{" "}
-                          {units.find(unit => unit.id === component.unitId)?.nameAr ?? "وحدة محفوظة"}
-                        </p>
-                      </div>
-                      <button
-                        className="micro-icon-button"
-                        type="button"
-                        aria-label={`إزالة ${component.name}`}
-                        onClick={() =>
-                          setTemplateComponents(current => current.filter(entry => entry.id !== component.id))
-                        }
-                      >
-                        <X aria-hidden="true" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="micro-empty-copy">
-                  لم تضف مكونات بعد. يمكنك حفظ قالب فارغ كملاحظة تخطيطية، أو إضافة ما تكرره عادةً.
-                </p>
-              )}
-              <label className="micro-checkbox">
-                <input
-                  type="checkbox"
-                  checked={yieldEnabled}
-                  onChange={event => setYieldEnabled(event.target.checked)}
-                />
-                <span>أضيف ناتجًا متوقعًا لهذا القالب</span>
-              </label>
-              {yieldEnabled ? (
-                <div className="micro-form-grid">
-                  <label className="micro-field">
-                    <span>كمية الناتج</span>
-                    <EnglishQuantityInput
-                      valueMilli={yieldQuantity}
-                      onMilliChange={setYieldQuantity}
-                      onTextValidityChange={setYieldQuantityValid}
-                      onEmptyChange={() => setYieldQuantity(null)}
-                      allowEmpty
-                      aria-label="كمية ناتج القالب"
-                    />
-                  </label>
-                  <label className="micro-field">
-                    <span>وحدة الناتج</span>
-                    <select value={yieldUnitId} onChange={event => setYieldUnitId(event.target.value)}>
-                      <option value="">اختر وحدة الناتج</option>
-                      {activeUnits.map(unit => (
-                        <option key={unit.id} value={unit.id}>
-                          {unit.nameAr} · {dimensionLabel(unit.dimension)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              ) : null}
-              <div className="micro-action-row">
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
-                  disabled={saving || !selectedItemId}
-                  onClick={saveTemplate}
-                >
-                  {editingTemplateId ? <RotateCcw aria-hidden="true" /> : <Check aria-hidden="true" />}{" "}
-                  {saving ? "جارٍ الحفظ…" : editingTemplateId ? "احفظ المراجعة" : "احفظ القالب"}
-                </button>
-                {editingTemplateId ? (
-                  <button
-                    className="micro-button micro-button-secondary"
-                    type="button"
-                    onClick={resetTemplateForm}
-                  >
-                    إلغاء المراجعة
-                  </button>
-                ) : null}
-              </div>
-            </div>
-            <div className="micro-subsection">
-              <div className="micro-subsection-heading">
-                <div>
-                  <span className="micro-overline">المراجعات المحفوظة</span>
-                  <h3>قالب هذا المرجع</h3>
-                </div>
-                <p>التعديل ينشئ مراجعة جديدة؛ لا يعيد حساب طلب سابق.</p>
-              </div>
-              {selectedTemplates.length ? (
-                <div className="micro-list">
-                  {selectedTemplates.map(template => (
-                    <article className="micro-list-item" key={template.id}>
-                      <div>
-                        <strong>
-                          {template.title || "قالب بلا عنوان"} · مراجعة {template.revision}
-                        </strong>
-                        <p>
-                          {template.components.length} مكوّن
-                          {template.yield
-                            ? ` · الناتج ${quantityLabel(template.yield.quantityMilli)}`
-                            : " · بلا yield"}
-                          {template.active ? "" : " · موقوف"}
-                        </p>
-                        {template.yieldReadiness === "needs_conversion" ? (
-                          <p className="micro-warning-copy">
-                            الناتج غير مهيأ: أضف تحويلًا صريحًا داخل البعد نفسه، ولن نخمّن أو نقرب.
-                          </p>
-                        ) : template.yieldReadiness === "ready" ? (
-                          <p className="micro-success-copy">الناتج متوافق مع وحدة المرجع.</p>
-                        ) : null}
-                        <details className="micro-inline-disclosure">
-                          <summary>حدود القالب</summary>
-                          <p>
-                            هذا تذكّر تخطيطي فقط؛ لا Purchase ولا Inventory ولا Consumption ولا COGS ولا إيراد
-                            ولا هامش ينشأ منه.
-                          </p>
-                        </details>
-                      </div>
-                      <div className="micro-action-column">
-                        {template.active ? (
-                          <>
-                            <button
-                              className="micro-button micro-button-secondary"
-                              type="button"
-                              onClick={() => startRevision(template)}
-                            >
-                              <RotateCcw aria-hidden="true" /> مراجعة
-                            </button>
-                            <button
-                              className="micro-button micro-button-secondary"
-                              type="button"
-                              onClick={() => deactivateTemplate(template.id)}
-                            >
-                              <ArchiveX aria-hidden="true" /> إيقاف
-                            </button>
-                          </>
-                        ) : null}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <p className="micro-empty-copy">
-                  لا يوجد قالب لهذا المرجع. وهذا مسار صحيح للخدمة أو العمل المخصص.
-                </p>
-              )}
-            </div>
-          </div>
-        ) : (
-          <p className="micro-empty-copy">
-            اختر مرجعًا إن أردت إضافة مكونات أو ناتجًا متكررًا. لا يلزم إعداد أي قالب للحفظ.
-          </p>
-        )}
-      </section>
-
-      <section className="micro-form-card">
-        <div className="micro-page-heading">
-          <span className="micro-overline">4 · فترة القراءة والسياسة</span>
-          <h2>اقرأ قبل أن تقرر</h2>
-          <p>
-            حدد فترة معلنة، ثم اعرض الهامش المباشر المسجل. أي تحميل اختياري يحتاج سياسة مؤرخة ومصدرًا وسببًا
-            واضحًا.
-          </p>
-        </div>
-        <div className="micro-form-grid">
-          <label className="micro-field">
-            <span>من</span>
-            <input type="date" value={periodFrom} onChange={event => setPeriodFrom(event.target.value)} />
-          </label>
-          <label className="micro-field">
-            <span>إلى</span>
-            <input type="date" value={periodTo} onChange={event => setPeriodTo(event.target.value)} />
-          </label>
-        </div>
-        <p className="micro-muted-copy">
-          الهامش المباشر هو الإيراد المعترف به للطلبات <bdi dir="ltr">final</bdi> ناقص التكلفة المباشرة
-          المحفوظة في Snapshot. الوقت والهدر وCOGS قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا تلقائيًا.
-        </p>
-        <div className="micro-subsection">
-          <div className="micro-subsection-heading">
-            <div>
-              <span className="micro-overline">سياسة اختيارية</span>
-              <h3>أضف تحميلًا واضحًا</h3>
-            </div>
-            <p>
-              لا تُنشئ السياسة قيدًا ماليًا ولا تعيد كتابة الماضي؛ وتبقى قابلة للمراجعة عبر تاريخها ومصدرها.
-            </p>
+      <details className="micro-decision-layer">
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>قالب اختياري</b>
+            <small>تذكّر تخطيطي للمكونات والناتج عند الحاجة.</small>
+          </span>
+          <strong>افتح التفاصيل</strong>
+        </summary>
+        <section className="micro-form-card">
+          <div className="micro-page-heading">
+            <span className="micro-overline">3 · قالب اختياري</span>
+            <h2>ماذا أجهز عادةً؟</h2>
+            <p>القالب للتذكر والتخطيط فقط. لا يسحب مخزونًا ولا يغيّر تكلفة قديمة.</p>
           </div>
           <label className="micro-field">
-            <span>مرجع العمل</span>
+            <span>مرجع القالب</span>
             <select
               value={selectedItemId}
               onChange={event => {
@@ -1281,83 +1016,79 @@ export default function Catalog() {
                 .filter(item => item.active)
                 .map(item => (
                   <option key={item.id} value={item.id}>
-                    {item.name}
+                    {item.name} · {item.kind === "product" ? "منتج" : "خدمة"}
                   </option>
                 ))}
             </select>
           </label>
           {selectedItem ? (
-            <>
-              <div className="micro-form-grid">
-                <label className="micro-field">
-                  <span>بداية السياسة</span>
-                  <input
-                    type="date"
-                    value={policyPeriodFrom}
-                    onChange={event => setPolicyPeriodFrom(event.target.value)}
-                  />
-                </label>
-                <label className="micro-field">
-                  <span>نهاية السياسة</span>
-                  <input
-                    type="date"
-                    value={policyPeriodTo}
-                    onChange={event => setPolicyPeriodTo(event.target.value)}
-                  />
-                </label>
-                <label className="micro-field">
-                  <span>أساس التحميل</span>
-                  <select
-                    value={policyKind}
-                    onChange={event => setPolicyKind(event.target.value as RecurringWorkPolicyInput["kind"])}
-                  >
-                    <option value="manual_amount">مبلغ يدوي للفترة</option>
-                    <option value="per_output_unit">معدل لكل 1.000 وحدة كاملة</option>
-                    <option value="actual_time">معدل لكل دقيقة فعلية</option>
-                    <option value="completed_revenue_percentage">نسبة من الإيراد المكتمل</option>
-                  </select>
-                </label>
-                {policyKind === "manual_amount" ? (
+            <div className="micro-subsection-stack">
+              <div className="micro-subsection">
+                <div className="micro-subsection-heading">
+                  <div>
+                    <h3>{editingTemplateId ? "مراجعة القالب" : "قالب جديد"}</h3>
+                    <p>
+                      {selectedItemUnit
+                        ? `مخرج المرجع: ${selectedItemUnit.nameAr} · ${dimensionLabel(selectedItemUnit.dimension)}`
+                        : "لا توجد وحدة مخرج منظمة؛ يمكن حفظ القالب دون yield."}
+                    </p>
+                  </div>
+                </div>
+                <div className="micro-form-grid">
                   <label className="micro-field">
                     <span>
-                      المبلغ <small>د.أ</small>
+                      عنوان أو مصدر <small>اختياري</small>
                     </span>
-                    <EnglishNumberInput
-                      value={policyAmount}
-                      kind="money"
-                      onNumericChange={setPolicyAmount}
-                      onTextValidityChange={setPolicyAmountValid}
-                      onEmptyChange={() => setPolicyAmount(null)}
-                      allowEmpty
-                      aria-label="مبلغ سياسة التحميل"
+                    <input
+                      value={templateTitle}
+                      onChange={event => setTemplateTitle(event.target.value)}
+                      placeholder="مثال: تجهيز الطلب المعتاد"
                     />
                   </label>
-                ) : null}
-                {policyKind === "per_output_unit" || policyKind === "actual_time" ? (
+                  <label className="micro-field micro-field-wide">
+                    <span>
+                      ملاحظة <small>اختيارية</small>
+                    </span>
+                    <input
+                      value={templateNote}
+                      onChange={event => setTemplateNote(event.target.value)}
+                      placeholder="ملاحظة تساعدني في التكرار"
+                    />
+                  </label>
+                </div>
+                <div className="micro-inline-heading">
+                  <h4>المكونات</h4>
+                  <span>{templateComponents.length} مكوّن</span>
+                </div>
+                <div className="micro-form-grid">
+                  <label className="micro-field">
+                    <span>اسم المكوّن</span>
+                    <input
+                      value={componentName}
+                      onChange={event => setComponentName(event.target.value)}
+                      placeholder="مثال: شمع"
+                    />
+                  </label>
                   <label className="micro-field">
                     <span>
-                      {policyKind === "per_output_unit"
-                        ? catalogPerUnitRateLabel(
-                            selectedItemUnit?.nameAr ?? selectedItem?.unitLabel ?? "وحدة كاملة",
-                          )
-                        : "المعدل لكل دقيقة فعلية · د.أ"}
+                      الكمية <small>حتى 3 منازل</small>
                     </span>
-                    <EnglishNumberInput
-                      value={policyRate}
-                      kind="money"
-                      onNumericChange={setPolicyRate}
-                      onTextValidityChange={setPolicyRateValid}
-                      onEmptyChange={() => setPolicyRate(null)}
+                    <EnglishQuantityInput
+                      valueMilli={componentQuantity}
+                      onMilliChange={setComponentQuantity}
+                      onTextValidityChange={setComponentQuantityValid}
+                      onEmptyChange={() => setComponentQuantity(null)}
                       allowEmpty
-                      aria-label="معدل سياسة التحميل"
+                      aria-label="كمية مكوّن القالب"
                     />
                   </label>
-                ) : null}
-                {policyKind === "per_output_unit" ? (
                   <label className="micro-field">
-                    <span>وحدة الناتج</span>
-                    <select value={policyUnitId} onChange={event => setPolicyUnitId(event.target.value)}>
-                      <option value="">اختر وحدة المرجع</option>
+                    <span>الوحدة</span>
+                    <select
+                      value={componentUnitId}
+                      onChange={event => setComponentUnitId(event.target.value)}
+                    >
+                      <option value="">اختر وحدة</option>
                       {activeUnits.map(unit => (
                         <option key={unit.id} value={unit.id}>
                           {unit.nameAr} · {dimensionLabel(unit.dimension)}
@@ -1365,219 +1096,541 @@ export default function Catalog() {
                       ))}
                     </select>
                   </label>
-                ) : null}
-                {policyKind === "completed_revenue_percentage" ? (
-                  <label className="micro-field">
-                    <span>
-                      النسبة <small>%</small>
-                    </span>
-                    <EnglishNumberInput
-                      value={policyPercentage}
-                      kind="percentage"
-                      onNumericChange={setPolicyPercentage}
-                      onTextValidityChange={setPolicyPercentageValid}
-                      onEmptyChange={() => setPolicyPercentage(null)}
-                      allowEmpty
-                      aria-label="نسبة سياسة التحميل"
-                    />
-                  </label>
-                ) : null}
-              </div>
-              {policyKind === "per_output_unit" ? (
-                <div className="micro-inline-disclosure">
-                  <p>{perUnitPreview?.text ?? "ستظهر معاينة التحميل بعد وجود كمية final ومعدل صالح."}</p>
-                  <p>{catalogPerUnitRoundingNote}</p>
-                  {perUnitPreview?.warning ? (
-                    <p className="micro-warning-copy">{perUnitPreview.warning}</p>
-                  ) : null}
                 </div>
-              ) : null}
-              <div className="micro-form-grid">
-                <label className="micro-field">
-                  <span>المصدر</span>
-                  <input
-                    value={policySource}
-                    onChange={event => setPolicySource(event.target.value)}
-                    placeholder="مثال: فاتورة كهرباء شهرية"
-                  />
-                </label>
-                <label className="micro-field">
-                  <span>السبب</span>
-                  <input
-                    value={policyReason}
-                    onChange={event => setPolicyReason(event.target.value)}
-                    placeholder="مثال: توزيع تكلفة تشغيل مشتركة"
-                  />
-                </label>
-                <label className="micro-field micro-field-wide">
-                  <span>ملاحظة القرار</span>
-                  <textarea
-                    value={policyNote}
-                    onChange={event => setPolicyNote(event.target.value)}
-                    placeholder="لماذا اخترت هذا الأساس لهذه الفترة؟"
-                  />
-                </label>
-              </div>
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
-                disabled={saving}
-                onClick={savePolicy}
-              >
-                <Check aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "احفظ السياسة"}
-              </button>
-            </>
-          ) : (
-            <p className="micro-empty-copy">اختر مرجع عمل إذا أردت تسجيل سياسة تحميل اختيارية.</p>
-          )}
-        </div>
-      </section>
-
-      <section className="micro-form-card">
-        <div className="micro-page-heading">
-          <span className="micro-overline">المراجع المسجلة</span>
-          <h2>أعمال متكررة وقراءة القرار</h2>
-          <p>
-            {readings ? `الفترة المعلنة: ${readings.from} → ${readings.to}` : "جارٍ تحميل القراءة المحلية…"}
-          </p>
-        </div>
-        {items.length ? (
-          <div className="micro-list">
-            {items.map(item => {
-              const reading = readings?.items.find(entry => entry.catalogItemId === item.id);
-              const organizedUnit = item.unitId ? units.find(unit => unit.id === item.unitId) : null;
-              const allocation = reading?.allocation ?? null;
-              return (
-                <article key={item.id} className="micro-list-item">
-                  <div>
-                    <strong>{item.name}</strong>
-                    <p>
-                      {item.kind === "product" ? "منتج" : "خدمة"}
-                      {item.unitLabel ? ` · ${item.unitLabel}` : ""}
-                      {organizedUnit ? ` · ${organizedUnit.nameAr}` : ""}
-                      {item.active ? "" : " · موقوف للطلبات الجديدة"}
-                    </p>
-                    {reading?.directStatus === "recorded" ? (
-                      <p>
-                        <strong>الهامش المباشر المسجل: {jod(reading.directMarginMinor ?? 0)}</strong> ·{" "}
-                        {reading.finalOrderCount} طلب نهائي · كمية {reading.deliveredQuantity}
-                      </p>
-                    ) : (
-                      <p>
-                        لا توجد طلبات final مرتبطة بهذا المرجع في الفترة؛ لا تعرض القراءة صفرًا بدل دليل ناقص.
-                      </p>
-                    )}
-                    {reading ? (
-                      <>
-                        <p>
-                          المادة:{" "}
-                          {reading.material.actualMaterialMinor === null
-                            ? "غير مسجلة بعد"
-                            : jod(reading.material.actualMaterialMinor)}
-                          {reading.material.varianceMinor === null
-                            ? ""
-                            : ` · الفرق ${jod(reading.material.varianceMinor)}`}{" "}
-                          · {reading.material.recordedOrderCount} مسجل /{" "}
-                          {reading.material.notRecordedOrderCount} بلا سجل
-                        </p>
-                        <p>
-                          الوقت:{" "}
-                          {reading.time.actualMinutes === null
-                            ? "غير مسجل بعد"
-                            : `${reading.time.actualMinutes} دقيقة`}
-                          {reading.time.varianceMinutes === null
-                            ? ""
-                            : ` · الفرق ${reading.time.varianceMinutes} دقيقة`}{" "}
-                          · {reading.time.recordedOrderCount} مسجل / {reading.time.notRecordedOrderCount} بلا
-                          سجل
-                        </p>
-                        <p>
-                          الهدر المرتبط بهذا المرجع:{" "}
-                          {jod(
-                            reading.waste.orderWasteMinor +
-                              reading.waste.catalogItemWasteMinor +
-                              reading.waste.catalogTemplateWasteMinor,
-                          )}{" "}
-                          · الهدر العام/غير الموزع منفصل:{" "}
-                          {jod(reading.waste.generalProjectWasteMinor + reading.waste.unallocatedWasteMinor)}
-                        </p>
-                        {allocation ? (
-                          <>
-                            <p>
-                              <strong>
-                                الربح بعد التحميل:{" "}
-                                {allocation.resultMinor === null ? "غير مكتمل" : jod(allocation.resultMinor)}
-                              </strong>{" "}
-                              · {catalogAllocationKindLabel(allocation.kind)} ·{" "}
-                              {catalogAllocationStatusLabel(allocation.status)}
-                            </p>
-                            <p>{allocation.calculationNote}</p>
-                          </>
-                        ) : (
-                          <p>لا توجد سياسة تحميل فعالة تغطي الفترة؛ الهامش المباشر هو القراءة الأساسية.</p>
-                        )}
-                        {reading.reasons.map(reason => (
-                          <p className="micro-warning-copy" key={reason}>
-                            {reason}
+                <button className="micro-button micro-button-secondary" type="button" onClick={addComponent}>
+                  <Plus aria-hidden="true" /> أضف مكوّنًا للقالب
+                </button>
+                {templateComponents.length ? (
+                  <div className="micro-list micro-list-compact">
+                    {templateComponents.map(component => (
+                      <div className="micro-list-item" key={component.id}>
+                        <div>
+                          <strong>{component.name}</strong>
+                          <p dir="ltr">
+                            {quantityLabel(component.quantityMilli)} ·{" "}
+                            {units.find(unit => unit.id === component.unitId)?.nameAr ?? "وحدة محفوظة"}
                           </p>
-                        ))}
-                        {reading.policies.length ? (
-                          <details className="micro-inline-disclosure">
-                            <summary>سياسات هذا المرجع</summary>
-                            {reading.policies.map(policy => (
-                              <p key={policy.id}>
-                                {catalogAllocationKindLabel(policy.kind)} ·{" "}
-                                {policy.status === "active" ? "فعالة" : "غير فعالة"} · {policy.periodFrom} →{" "}
-                                {policy.periodTo}
-                                {policy.kind === "per_output_unit" && policy.rateMinorPerWholeUnit !== null
-                                  ? ` · ${(policy.rateMinorPerWholeUnit / 100).toFixed(2)} د.أ لكل 1.000 وحدة`
-                                  : ""}{" "}
-                                · {policy.source} · السبب: {policy.reason} · {policy.note}
-                                {policy.status === "active" ? (
-                                  <button
-                                    className="micro-button micro-button-secondary"
-                                    type="button"
-                                    onClick={() => startPolicyRevision(policy)}
-                                  >
-                                    أنشئ مراجعة
-                                  </button>
-                                ) : null}
-                              </p>
-                            ))}
-                          </details>
-                        ) : null}
-                        <details className="micro-inline-disclosure">
-                          <summary>الحقيقة والحدود</summary>
-                          <p>{reading.truth}</p>
-                          <p>
-                            الهدر لا يدخل COGS ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا، ولا
-                            توصية سعر، ولا تتضمن تكاليف لم تُسجل.
-                          </p>
-                        </details>
-                      </>
-                    ) : (
-                      <p className="micro-empty-copy">لا تتوفر قراءة لهذا المرجع بعد.</p>
-                    )}
+                        </div>
+                        <button
+                          className="micro-icon-button"
+                          type="button"
+                          aria-label={`إزالة ${component.name}`}
+                          onClick={() =>
+                            setTemplateComponents(current =>
+                              current.filter(entry => entry.id !== component.id),
+                            )
+                          }
+                        >
+                          <X aria-hidden="true" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  {item.active ? (
+                ) : (
+                  <p className="micro-empty-copy">
+                    لم تضف مكونات بعد. يمكنك حفظ قالب فارغ كملاحظة تخطيطية، أو إضافة ما تكرره عادةً.
+                  </p>
+                )}
+                <label className="micro-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={yieldEnabled}
+                    onChange={event => setYieldEnabled(event.target.checked)}
+                  />
+                  <span>أضيف ناتجًا متوقعًا لهذا القالب</span>
+                </label>
+                {yieldEnabled ? (
+                  <div className="micro-form-grid">
+                    <label className="micro-field">
+                      <span>كمية الناتج</span>
+                      <EnglishQuantityInput
+                        valueMilli={yieldQuantity}
+                        onMilliChange={setYieldQuantity}
+                        onTextValidityChange={setYieldQuantityValid}
+                        onEmptyChange={() => setYieldQuantity(null)}
+                        allowEmpty
+                        aria-label="كمية ناتج القالب"
+                      />
+                    </label>
+                    <label className="micro-field">
+                      <span>وحدة الناتج</span>
+                      <select value={yieldUnitId} onChange={event => setYieldUnitId(event.target.value)}>
+                        <option value="">اختر وحدة الناتج</option>
+                        {activeUnits.map(unit => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.nameAr} · {dimensionLabel(unit.dimension)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                ) : null}
+                <div className="micro-action-row">
+                  <button
+                    className="micro-button micro-button-primary"
+                    type="button"
+                    disabled={saving || !selectedItemId}
+                    onClick={saveTemplate}
+                  >
+                    {editingTemplateId ? <RotateCcw aria-hidden="true" /> : <Check aria-hidden="true" />}{" "}
+                    {saving ? "جارٍ الحفظ…" : editingTemplateId ? "احفظ المراجعة" : "احفظ القالب"}
+                  </button>
+                  {editingTemplateId ? (
                     <button
                       className="micro-button micro-button-secondary"
                       type="button"
-                      onClick={() => deactivate(item.id)}
+                      onClick={resetTemplateForm}
                     >
-                      <ArchiveX aria-hidden="true" /> إيقاف
+                      إلغاء المراجعة
                     </button>
                   ) : null}
-                </article>
-              );
-            })}
+                </div>
+              </div>
+              <div className="micro-subsection">
+                <div className="micro-subsection-heading">
+                  <div>
+                    <span className="micro-overline">المراجعات المحفوظة</span>
+                    <h3>قالب هذا المرجع</h3>
+                  </div>
+                  <p>التعديل ينشئ مراجعة جديدة؛ لا يعيد حساب طلب سابق.</p>
+                </div>
+                {selectedTemplates.length ? (
+                  <div className="micro-list">
+                    {selectedTemplates.map(template => (
+                      <article className="micro-list-item" key={template.id}>
+                        <div>
+                          <strong>
+                            {template.title || "قالب بلا عنوان"} · مراجعة {template.revision}
+                          </strong>
+                          <p>
+                            {template.components.length} مكوّن
+                            {template.yield
+                              ? ` · الناتج ${quantityLabel(template.yield.quantityMilli)}`
+                              : " · بلا yield"}
+                            {template.active ? "" : " · موقوف"}
+                          </p>
+                          {template.yieldReadiness === "needs_conversion" ? (
+                            <p className="micro-warning-copy">
+                              الناتج غير مهيأ: أضف تحويلًا صريحًا داخل البعد نفسه، ولن نخمّن أو نقرب.
+                            </p>
+                          ) : template.yieldReadiness === "ready" ? (
+                            <p className="micro-success-copy">الناتج متوافق مع وحدة المرجع.</p>
+                          ) : null}
+                          <details className="micro-inline-disclosure">
+                            <summary>حدود القالب</summary>
+                            <p>
+                              هذا تذكّر تخطيطي فقط؛ لا Purchase ولا Inventory ولا Consumption ولا COGS ولا
+                              إيراد ولا هامش ينشأ منه.
+                            </p>
+                          </details>
+                        </div>
+                        <div className="micro-action-column">
+                          {template.active ? (
+                            <>
+                              <button
+                                className="micro-button micro-button-secondary"
+                                type="button"
+                                onClick={() => startRevision(template)}
+                              >
+                                <RotateCcw aria-hidden="true" /> مراجعة
+                              </button>
+                              <button
+                                className="micro-button micro-button-secondary"
+                                type="button"
+                                onClick={() => deactivateTemplate(template.id)}
+                              >
+                                <ArchiveX aria-hidden="true" /> إيقاف
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="micro-empty-copy">
+                    لا يوجد قالب لهذا المرجع. وهذا مسار صحيح للخدمة أو العمل المخصص.
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="micro-empty-copy">
+              اختر مرجعًا إن أردت إضافة مكونات أو ناتجًا متكررًا. لا يلزم إعداد أي قالب للحفظ.
+            </p>
+          )}
+        </section>
+      </details>
+
+      <details className="micro-decision-layer">
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>فترة القراءة والسياسة</b>
+            <small>قراءة مشتقة وسياسة تحميل معلنة عند الطلب.</small>
+          </span>
+          <strong>افتح التفاصيل</strong>
+        </summary>
+        <section className="micro-form-card">
+          <div className="micro-page-heading">
+            <span className="micro-overline">4 · فترة القراءة والسياسة</span>
+            <h2>اقرأ قبل أن تقرر</h2>
+            <p>
+              حدد فترة معلنة، ثم اعرض الهامش المباشر المسجل. أي تحميل اختياري يحتاج سياسة مؤرخة ومصدرًا وسببًا
+              واضحًا.
+            </p>
           </div>
-        ) : (
-          <p className="micro-empty-copy">
-            لا يوجد مرجع بعد. أضف فقط العمل الذي يتكرر كي يصبح تحليله منظمًا لاحقًا.
+          <div className="micro-form-grid">
+            <label className="micro-field">
+              <span>من</span>
+              <input type="date" value={periodFrom} onChange={event => setPeriodFrom(event.target.value)} />
+            </label>
+            <label className="micro-field">
+              <span>إلى</span>
+              <input type="date" value={periodTo} onChange={event => setPeriodTo(event.target.value)} />
+            </label>
+          </div>
+          <p className="micro-muted-copy">
+            الهامش المباشر هو الإيراد المعترف به للطلبات <bdi dir="ltr">final</bdi> ناقص التكلفة المباشرة
+            المحفوظة في Snapshot. الوقت والهدر وCOGS قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا تلقائيًا.
           </p>
-        )}
-      </section>
+          <div className="micro-subsection">
+            <div className="micro-subsection-heading">
+              <div>
+                <span className="micro-overline">سياسة اختيارية</span>
+                <h3>أضف تحميلًا واضحًا</h3>
+              </div>
+              <p>
+                لا تُنشئ السياسة قيدًا ماليًا ولا تعيد كتابة الماضي؛ وتبقى قابلة للمراجعة عبر تاريخها ومصدرها.
+              </p>
+            </div>
+            <label className="micro-field">
+              <span>مرجع العمل</span>
+              <select
+                value={selectedItemId}
+                onChange={event => {
+                  setSelectedItemId(event.target.value);
+                  resetTemplateForm();
+                }}
+              >
+                <option value="">اختر مرجعًا</option>
+                {items
+                  .filter(item => item.active)
+                  .map(item => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            {selectedItem ? (
+              <>
+                <div className="micro-form-grid">
+                  <label className="micro-field">
+                    <span>بداية السياسة</span>
+                    <input
+                      type="date"
+                      value={policyPeriodFrom}
+                      onChange={event => setPolicyPeriodFrom(event.target.value)}
+                    />
+                  </label>
+                  <label className="micro-field">
+                    <span>نهاية السياسة</span>
+                    <input
+                      type="date"
+                      value={policyPeriodTo}
+                      onChange={event => setPolicyPeriodTo(event.target.value)}
+                    />
+                  </label>
+                  <label className="micro-field">
+                    <span>أساس التحميل</span>
+                    <select
+                      value={policyKind}
+                      onChange={event =>
+                        setPolicyKind(event.target.value as RecurringWorkPolicyInput["kind"])
+                      }
+                    >
+                      <option value="manual_amount">مبلغ يدوي للفترة</option>
+                      <option value="per_output_unit">معدل لكل 1.000 وحدة كاملة</option>
+                      <option value="actual_time">معدل لكل دقيقة فعلية</option>
+                      <option value="completed_revenue_percentage">نسبة من الإيراد المكتمل</option>
+                    </select>
+                  </label>
+                  {policyKind === "manual_amount" ? (
+                    <label className="micro-field">
+                      <span>
+                        المبلغ <small>د.أ</small>
+                      </span>
+                      <EnglishNumberInput
+                        value={policyAmount}
+                        kind="money"
+                        onNumericChange={setPolicyAmount}
+                        onTextValidityChange={setPolicyAmountValid}
+                        onEmptyChange={() => setPolicyAmount(null)}
+                        allowEmpty
+                        aria-label="مبلغ سياسة التحميل"
+                      />
+                    </label>
+                  ) : null}
+                  {policyKind === "per_output_unit" || policyKind === "actual_time" ? (
+                    <label className="micro-field">
+                      <span>
+                        {policyKind === "per_output_unit"
+                          ? catalogPerUnitRateLabel(
+                              selectedItemUnit?.nameAr ?? selectedItem?.unitLabel ?? "وحدة كاملة",
+                            )
+                          : "المعدل لكل دقيقة فعلية · د.أ"}
+                      </span>
+                      <EnglishNumberInput
+                        value={policyRate}
+                        kind="money"
+                        onNumericChange={setPolicyRate}
+                        onTextValidityChange={setPolicyRateValid}
+                        onEmptyChange={() => setPolicyRate(null)}
+                        allowEmpty
+                        aria-label="معدل سياسة التحميل"
+                      />
+                    </label>
+                  ) : null}
+                  {policyKind === "per_output_unit" ? (
+                    <label className="micro-field">
+                      <span>وحدة الناتج</span>
+                      <select value={policyUnitId} onChange={event => setPolicyUnitId(event.target.value)}>
+                        <option value="">اختر وحدة المرجع</option>
+                        {activeUnits.map(unit => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.nameAr} · {dimensionLabel(unit.dimension)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+                  {policyKind === "completed_revenue_percentage" ? (
+                    <label className="micro-field">
+                      <span>
+                        النسبة <small>%</small>
+                      </span>
+                      <EnglishNumberInput
+                        value={policyPercentage}
+                        kind="percentage"
+                        onNumericChange={setPolicyPercentage}
+                        onTextValidityChange={setPolicyPercentageValid}
+                        onEmptyChange={() => setPolicyPercentage(null)}
+                        allowEmpty
+                        aria-label="نسبة سياسة التحميل"
+                      />
+                    </label>
+                  ) : null}
+                </div>
+                {policyKind === "per_output_unit" ? (
+                  <div className="micro-inline-disclosure">
+                    <p>{perUnitPreview?.text ?? "ستظهر معاينة التحميل بعد وجود كمية final ومعدل صالح."}</p>
+                    <p>{catalogPerUnitRoundingNote}</p>
+                    {perUnitPreview?.warning ? (
+                      <p className="micro-warning-copy">{perUnitPreview.warning}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+                <div className="micro-form-grid">
+                  <label className="micro-field">
+                    <span>المصدر</span>
+                    <input
+                      value={policySource}
+                      onChange={event => setPolicySource(event.target.value)}
+                      placeholder="مثال: فاتورة كهرباء شهرية"
+                    />
+                  </label>
+                  <label className="micro-field">
+                    <span>السبب</span>
+                    <input
+                      value={policyReason}
+                      onChange={event => setPolicyReason(event.target.value)}
+                      placeholder="مثال: توزيع تكلفة تشغيل مشتركة"
+                    />
+                  </label>
+                  <label className="micro-field micro-field-wide">
+                    <span>ملاحظة القرار</span>
+                    <textarea
+                      value={policyNote}
+                      onChange={event => setPolicyNote(event.target.value)}
+                      placeholder="لماذا اخترت هذا الأساس لهذه الفترة؟"
+                    />
+                  </label>
+                </div>
+                <button
+                  className="micro-button micro-button-secondary"
+                  type="button"
+                  disabled={saving}
+                  onClick={savePolicy}
+                >
+                  <Check aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "احفظ السياسة"}
+                </button>
+              </>
+            ) : (
+              <p className="micro-empty-copy">اختر مرجع عمل إذا أردت تسجيل سياسة تحميل اختيارية.</p>
+            )}
+          </div>
+        </section>
+      </details>
+
+      <details className="micro-decision-layer">
+        <summary className="micro-decision-layer-summary">
+          <span>
+            <b>قراءة المراجع</b>
+            <small>الهامش المسجل والأدلة والسياسات عند الحاجة.</small>
+          </span>
+          <strong>افتح التفاصيل</strong>
+        </summary>
+        <section className="micro-form-card">
+          <div className="micro-page-heading">
+            <span className="micro-overline">المراجع المسجلة</span>
+            <h2>أعمال متكررة وقراءة القرار</h2>
+            <p>
+              {readings ? `الفترة المعلنة: ${readings.from} → ${readings.to}` : "جارٍ تحميل القراءة المحلية…"}
+            </p>
+          </div>
+          {items.length ? (
+            <div className="micro-list">
+              {items.map(item => {
+                const reading = readings?.items.find(entry => entry.catalogItemId === item.id);
+                const organizedUnit = item.unitId ? units.find(unit => unit.id === item.unitId) : null;
+                const allocation = reading?.allocation ?? null;
+                return (
+                  <article key={item.id} className="micro-list-item">
+                    <div>
+                      <strong>{item.name}</strong>
+                      <p>
+                        {item.kind === "product" ? "منتج" : "خدمة"}
+                        {item.unitLabel ? ` · ${item.unitLabel}` : ""}
+                        {organizedUnit ? ` · ${organizedUnit.nameAr}` : ""}
+                        {item.active ? "" : " · موقوف للطلبات الجديدة"}
+                      </p>
+                      {reading?.directStatus === "recorded" ? (
+                        <p>
+                          <strong>الهامش المباشر المسجل: {jod(reading.directMarginMinor ?? 0)}</strong> ·{" "}
+                          {reading.finalOrderCount} طلب نهائي · كمية {reading.deliveredQuantity}
+                        </p>
+                      ) : (
+                        <p>
+                          لا توجد طلبات final مرتبطة بهذا المرجع في الفترة؛ لا تعرض القراءة صفرًا بدل دليل
+                          ناقص.
+                        </p>
+                      )}
+                      {reading ? (
+                        <>
+                          <p>
+                            المادة:{" "}
+                            {reading.material.actualMaterialMinor === null
+                              ? "غير مسجلة بعد"
+                              : jod(reading.material.actualMaterialMinor)}
+                            {reading.material.varianceMinor === null
+                              ? ""
+                              : ` · الفرق ${jod(reading.material.varianceMinor)}`}{" "}
+                            · {reading.material.recordedOrderCount} مسجل /{" "}
+                            {reading.material.notRecordedOrderCount} بلا سجل
+                          </p>
+                          <p>
+                            الوقت:{" "}
+                            {reading.time.actualMinutes === null
+                              ? "غير مسجل بعد"
+                              : `${reading.time.actualMinutes} دقيقة`}
+                            {reading.time.varianceMinutes === null
+                              ? ""
+                              : ` · الفرق ${reading.time.varianceMinutes} دقيقة`}{" "}
+                            · {reading.time.recordedOrderCount} مسجل / {reading.time.notRecordedOrderCount}{" "}
+                            بلا سجل
+                          </p>
+                          <p>
+                            الهدر المرتبط بهذا المرجع:{" "}
+                            {jod(
+                              reading.waste.orderWasteMinor +
+                                reading.waste.catalogItemWasteMinor +
+                                reading.waste.catalogTemplateWasteMinor,
+                            )}{" "}
+                            · الهدر العام/غير الموزع منفصل:{" "}
+                            {jod(
+                              reading.waste.generalProjectWasteMinor + reading.waste.unallocatedWasteMinor,
+                            )}
+                          </p>
+                          {allocation ? (
+                            <>
+                              <p>
+                                <strong>
+                                  الربح بعد التحميل:{" "}
+                                  {allocation.resultMinor === null
+                                    ? "غير مكتمل"
+                                    : jod(allocation.resultMinor)}
+                                </strong>{" "}
+                                · {catalogAllocationKindLabel(allocation.kind)} ·{" "}
+                                {catalogAllocationStatusLabel(allocation.status)}
+                              </p>
+                              <p>{allocation.calculationNote}</p>
+                            </>
+                          ) : (
+                            <p>لا توجد سياسة تحميل فعالة تغطي الفترة؛ الهامش المباشر هو القراءة الأساسية.</p>
+                          )}
+                          {reading.reasons.map(reason => (
+                            <p className="micro-warning-copy" key={reason}>
+                              {reason}
+                            </p>
+                          ))}
+                          {reading.policies.length ? (
+                            <details className="micro-inline-disclosure">
+                              <summary>سياسات هذا المرجع</summary>
+                              {reading.policies.map(policy => (
+                                <p key={policy.id}>
+                                  {catalogAllocationKindLabel(policy.kind)} ·{" "}
+                                  {policy.status === "active" ? "فعالة" : "غير فعالة"} · {policy.periodFrom} →{" "}
+                                  {policy.periodTo}
+                                  {policy.kind === "per_output_unit" && policy.rateMinorPerWholeUnit !== null
+                                    ? ` · ${(policy.rateMinorPerWholeUnit / 100).toFixed(2)} د.أ لكل 1.000 وحدة`
+                                    : ""}{" "}
+                                  · {policy.source} · السبب: {policy.reason} · {policy.note}
+                                  {policy.status === "active" ? (
+                                    <button
+                                      className="micro-button micro-button-secondary"
+                                      type="button"
+                                      onClick={() => startPolicyRevision(policy)}
+                                    >
+                                      أنشئ مراجعة
+                                    </button>
+                                  ) : null}
+                                </p>
+                              ))}
+                            </details>
+                          ) : null}
+                          <details className="micro-inline-disclosure">
+                            <summary>الحقيقة والحدود</summary>
+                            <p>{reading.truth}</p>
+                            <p>
+                              الهدر لا يدخل COGS ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا، ولا
+                              توصية سعر، ولا تتضمن تكاليف لم تُسجل.
+                            </p>
+                          </details>
+                        </>
+                      ) : (
+                        <p className="micro-empty-copy">لا تتوفر قراءة لهذا المرجع بعد.</p>
+                      )}
+                    </div>
+                    {item.active ? (
+                      <button
+                        className="micro-button micro-button-secondary"
+                        type="button"
+                        onClick={() => deactivate(item.id)}
+                      >
+                        <ArchiveX aria-hidden="true" /> إيقاف
+                      </button>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="micro-empty-copy">
+              لا يوجد مرجع بعد. أضف فقط العمل الذي يتكرر كي يصبح تحليله منظمًا لاحقًا.
+            </p>
+          )}
+        </section>
+      </details>
       {message ? (
         <p className="micro-save-note" role="status">
           {message}
