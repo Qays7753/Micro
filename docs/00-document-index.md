@@ -33,6 +33,7 @@
 | 12I | `docs/expansion/ACTIVATION-OPERATIONAL-READINESS-AND-SAFETY-GATE.md` | CURRENT / EXPANSION E-00.12 / DOCUMENTATION ONLY | بوابة الدعم والحوادث والإطلاق والإتاحة والقياس قبل تفعيل الجهات الأربع؛ لا مزود أو SLA أو Auth أو Cloud منفذ |
 | 12J | `docs/expansion/E00-12-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` | CURRENT / EXPANSION E-00.12 ACCEPTANCE | دليل قبول مستقل لبوابة الجاهزية؛ يثبت اكتمال التوثيق فقط ويمنع خلطه بتشغيل A/B أو قرار المالك |
 | 12K | `docs/expansion/COMMERCIAL-LIQUIDITY-AND-MODEL-DECISION-CARD.md` | CURRENT / EXPANSION E-00.13 / OWNER DECISION REQUIRED | بطاقة تفاعل أول وسيولة ونموذج تجاري محتمل؛ لا رسوم أو دفع أو عمولة أو توسع قبل دليل وقرار مستقل |
+| 12L | `docs/expansion/E00-13-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` | CURRENT / EXPANSION E-00.13 ACCEPTANCE | دليل قبول مستقل لبطاقة السيولة والنموذج التجاري؛ يثبت اكتمال التوثيق لا قرار رسوم أو سوق أو دفع أو Pilot |
 | 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 | 15 | `docs/product/problem-statement-v4.md` | CURRENT / CANONICAL | المشكلة والأضرار والأسئلة، والنواة العامة والـProfiles والمشاريع المختلطة |
