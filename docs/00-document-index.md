@@ -29,6 +29,7 @@
 | 12E | `docs/expansion/FIRST-WEDGE-AND-PILOT-DECISION-CARD.md` و`LOCAL-FIRST-HOME-TRIAL-SOP.md` و`ACTIVATION-PRIVACY-ETHICS-SOP.md` و`PARTNER-PILOT-SOP-AND-MEASUREMENT.md` | CURRENT / EXPANSION E-00 | قرار Wedge وإجراء تجربة البيت وبوابة التفعيل والخصوصية وPilot والقياس؛ لا تفويض تنفيذ ذاتي |
 | 12F | `docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md` و`MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md` و`E00-TRACEABILITY-MATRIX.md` و`HOME-TRIAL-LOG-TEMPLATE.md` | CURRENT / EXPANSION E-00 | حد المعمارية قبل الكود، وحارس Manage/schema/export، وتتبع القرار إلى القبول، وسجل تجربة البيت الآمن |
 | 12G | `docs/expansion/FOUR-PARTY-IMPLEMENTATION-GATE-MAP.md` و`FOUR-PARTY-PORTAL-AND-ACCESS-RECOVERY-GATE.md` و`SEVEN-AGENT-EXPANSION-OPERATING-CHECKLIST.md` | CURRENT / EXPANSION E-00 | خريطة بوابات Owner/Supplier/Courier/Admin، استعادة الهوية وAdmin المقيد، وقائمة تشغيل الـAgents السبعة؛ لا Auth أو Cloud أو صلاحيات منفذة |
+| 12H | `docs/expansion/E00-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` | CURRENT / EXPANSION E-00 ACCEPTANCE | دليل المراجعة المستقلة الذي يغلق أساس E-00 توثيقيًا ويبين ما يبقى قرار مالك أو بوابة تنفيذ لاحقة |
 | 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 | 15 | `docs/product/problem-statement-v4.md` | CURRENT / CANONICAL | المشكلة والأضرار والأسئلة، والنواة العامة والـProfiles والمشاريع المختلطة |
