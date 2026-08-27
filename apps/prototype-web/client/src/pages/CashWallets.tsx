@@ -189,7 +189,7 @@ export default function CashWallets() {
       {state.entries.length ? (
         <section className="micro-supplier-list micro-cash-history">
           <div className="micro-finance-event-heading">
-            <span className="micro-overline">أحدث الآثار · المبالغ بد.أ</span>
+            <span className="micro-overline">أحدث الآثار · المبالغ (د.أ)</span>
             <h2>سجل لا يحذف بصمت</h2>
           </div>
           {state.entries

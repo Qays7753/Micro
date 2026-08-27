@@ -67,6 +67,7 @@ describe("deriveDailyFollowUp", () => {
     const history = deriveDailyFollowUp([order({ status: "settled" })], noDrafts);
     const empty = deriveDailyFollowUp([], noDrafts);
     expect(history).toMatchObject<Partial<DailyFollowUp>>({ kind: "history", title: "لا توجد طلبات نشطة" });
+    expect(history.truth).toBe("يوجد طلب واحد محفوظ يمكن مراجعة سجلها عند الحاجة.");
     expect(empty).toMatchObject<Partial<DailyFollowUp>>({ kind: "empty", title: "لا توجد طلبات بعد" });
   });
 });

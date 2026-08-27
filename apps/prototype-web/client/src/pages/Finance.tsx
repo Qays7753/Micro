@@ -187,7 +187,7 @@ export default function Finance() {
         <ArrowLeft aria-hidden="true" /> مشروعي الآن
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">الصورة العامة · المبالغ بد.أ</span>
+        <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>
         <h1>وضعي المالي الآن</h1>
         <p>ابدأ بالكاش والالتزامات القريبة، ثم افتح القراءة المسجلة للفترة إذا احتجت مراجعة أوسع.</p>
       </div>
@@ -508,7 +508,7 @@ export default function Finance() {
         </summary>
         <section className="micro-finance-event-list">
           <div className="micro-finance-event-heading">
-            <span className="micro-overline">السجل المحلي · المبالغ بد.أ</span>
+            <span className="micro-overline">السجل المحلي · المبالغ (د.أ)</span>
             <h2>أحدث الأحداث العامة</h2>
             <p>كل عكس موثق يضيف حدثًا جديدًا؛ الأصل يبقى ظاهرًا ولا يوجد حذف.</p>
           </div>

@@ -6,6 +6,9 @@
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { OrderDraft, PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
+import { formatArabicPlural } from "@/presentation/formatters";
+
+/* مبدأ Micro: صياغة العدد عرضية؛ لا تغيّر الحدث أو الدين أو أي أثر مالي. */
 
 type FollowUpOrder = Pick<StoredCraftOrder, "id" | "deliveryDate"> & {
   order: Pick<
@@ -83,7 +86,14 @@ export function deriveDailyFollowUp(
     return {
       kind: "history",
       title: "لا توجد طلبات نشطة",
-      truth: `يوجد ${orders.length} طلبات محفوظة يمكن مراجعة سجلها عند الحاجة.`,
+      truth: `يوجد ${formatArabicPlural(orders.length, {
+        zero: "لا توجد طلبات محفوظة",
+        one: "طلب واحد محفوظ",
+        two: "طلبان محفوظان",
+        few: "طلبات محفوظة",
+        many: "طلبًا محفوظًا",
+        other: "طلب محفوظ",
+      })} يمكن مراجعة سجلها عند الحاجة.`,
       nextAction: "راجع سجل الطلبات أو ابدأ مسودة جديدة.",
       href: "/orders",
       actionLabel: "فتح سجل الطلبات",

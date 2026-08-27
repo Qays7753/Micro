@@ -3,6 +3,9 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import { formatArabicPlural } from "@/presentation/formatters";
+
+/* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
   buildHomeControlCenterViewModel,
   type HomeAttentionItem,
@@ -245,7 +248,14 @@ export class HomeControlCenterService {
           priority: 40,
           kind: "capacity",
           title: "راجع ازدحام مواعيد اليوم",
-          reason: `يوجد ${capacity} مواعيد تشغيلية اليوم؛ السعة غير حكم رفض تلقائي.`,
+          reason: `يوجد ${formatArabicPlural(capacity, {
+            zero: "لا مواعيد تشغيلية",
+            one: "موعد واحد تشغيلي",
+            two: "موعدان تشغيليان",
+            few: "مواعيد تشغيلية",
+            many: "موعدًا تشغيليًا",
+            other: "موعد تشغيلي",
+          })} اليوم؛ السعة غير حكم رفض تلقائي.`,
           action: action("capacity:today", "فتح الجدول", "/schedule", "راجع التوقيت والسعة المعلنة."),
         });
     }

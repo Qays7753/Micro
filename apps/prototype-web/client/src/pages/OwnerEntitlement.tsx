@@ -585,7 +585,7 @@ export default function OwnerEntitlement() {
         <ArrowRight aria-hidden="true" /> الوضع المالي
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">دفتر المالك · المبالغ بد.أ</span>
+        <span className="micro-overline">دفتر المالك · المبالغ (د.أ)</span>
         <h1>ما حقي المسجل؟</h1>
         <p>
           افصل بين الاستحقاق الذي سجلته، وما أخذته أو أعدته فعليًا، ورصيد الاستحقاق المتبقي. هذه ليست رواتب
