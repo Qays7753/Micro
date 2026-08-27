@@ -13,7 +13,7 @@ export type HomeFinancialFact = {
 export type HomeAttentionItem = {
   id: string;
   priority: number;
-  kind: "draft" | "order" | "collection" | "debt" | "follow_up" | "capacity" | "cost";
+  kind: "draft" | "order" | "collection" | "debt" | "follow_up" | "capacity" | "cost" | "result_review";
   title: string;
   reason: string;
   action: HomeAction;

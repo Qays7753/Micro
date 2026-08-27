@@ -38,6 +38,9 @@ function isOpenOrder(stored: StoredCraftOrder) {
 function hasIncompleteCost(stored: StoredCraftOrder) {
   return stored.order.costSnapshot.knowledgeState !== "known";
 }
+function hasIncompleteResult(stored: StoredCraftOrder) {
+  return !["cancelled"].includes(stored.order.status) && stored.order.resultStatus !== "final";
+}
 function orderChange(stored: StoredCraftOrder): HomeRecentChange {
   return {
     id: `order:${stored.id}`,
@@ -194,6 +197,23 @@ export class HomeControlCenterService {
       }
     });
     orders
+      .filter(stored => !isOpenOrder(stored) && hasIncompleteResult(stored))
+      .forEach(stored =>
+        attention.push({
+          id: `result-review:${stored.id}`,
+          priority: 20,
+          kind: "result_review",
+          title: `راجع نتيجة ${stored.order.itemName || "الطلب"}`,
+          reason: "نتيجة الطلب غير مكتملة؛ راجع التكلفة أو الوقت قبل الاعتماد على رقم نهائي.",
+          action: action(
+            `result-review:${stored.id}`,
+            "مراجعة النتيجة",
+            `/orders/${stored.id}`,
+            "افتح الطلب وراجع ما ينقص النتيجة.",
+          ),
+        }),
+      );
+    orders
       .filter(
         stored =>
           stored.order.settlementStatus === "debt" &&
@@ -260,12 +280,17 @@ export class HomeControlCenterService {
         });
     }
 
-    const primary = action(
-      `primary:${followUp.followUp.kind}`,
-      followUp.followUp.actionLabel,
-      followUp.followUp.href,
-      followUp.followUp.nextAction,
-    );
+    const criticalAttention = attention
+      .filter(item => item.kind === "cost" || item.kind === "debt" || item.kind === "result_review")
+      .sort((left, right) => left.priority - right.priority || left.id.localeCompare(right.id, "ar"))[0];
+    const primary = criticalAttention
+      ? criticalAttention.action
+      : action(
+          `primary:${followUp.followUp.kind}`,
+          followUp.followUp.actionLabel,
+          followUp.followUp.href,
+          followUp.followUp.nextAction,
+        );
     const optionalModules: HomeOptionalModule[] = [
       {
         id: "inventory",
