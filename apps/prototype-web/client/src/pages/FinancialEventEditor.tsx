@@ -1,9 +1,11 @@
 /** Micro G3 UI: phone-first RTL form; one financial action, explicit knowledge, and no hidden allocation. */
+/* مبدأ Micro: يشرح الحدث المالي أثره المحلي بوضوح، ولا يختلط عرضه مع نتيجة الطلب أو الربح. */
 import { ArrowRight, Save } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useLocation, useParams } from "wouter";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { LocalDateField } from "@/components/forms/LocalDateField";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { FinancialEvent, FinancialEventType, OperatingExpenseContext, SharedProjectShareBasis } from "@micro-domain/financial-event/index.js";
 
@@ -95,7 +97,7 @@ export default function FinancialEventEditor() {
     <section className="micro-decision-card"><span>الأثر المعروف</span><strong>{content.effect}</strong><p>لا يغيّر هذا الحدث نتيجة طلب قائم أو صافي ربح المشروع تلقائيًا.</p></section>
     <section className="micro-form-card">
       {isShared && sharedMode === "percentage" ? <><label className="micro-field"><span>إجمالي المصروف المشترك</span><EnglishNumberInput value={sharedTotalAmountMinor} kind="money" onNumericChange={setSharedTotalAmountMinor} onTextValidityChange={setValidSharedTotal} aria-label="إجمالي المصروف المشترك" /><small>هذا هو إجمالي الفاتورة أو المصدر، وليس الحصة التي ستدخل النتيجة.</small></label><label className="micro-field"><span>نسبة حصة المشروع (%)</span><EnglishNumberInput value={sharedPercentage} kind="decimal" onNumericChange={setSharedPercentage} onTextValidityChange={setValidSharedPercentage} aria-label="نسبة حصة المشروع" /><small>أدخل نسبة صريحة بين 0 و100؛ يحفظ النظام النسبة والحصة المحسوبة بالتقريب الثابت.</small></label></> : <label className="micro-field"><span>{isShared && sharedMode === "defer" ? "إجمالي المصروف المصدر" : isShared ? "حصة المشروع بالدينار الأردني" : "المبلغ بالدينار الأردني"}</span><EnglishNumberInput value={amountMinor} kind="money" onNumericChange={setAmountMinor} onTextValidityChange={setValidAmount} aria-label="المبلغ بالدينار الأردني" /><small>{isShared && sharedMode === "defer" ? "سيبقى هذا الإجمالي غير محمل حتى تحدد حصة المشروع." : null}</small></label>}
-      <label className="micro-field"><span>تاريخ الواقعة</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
+      <LocalDateField label="تاريخ الواقعة" value={date} onChange={(event) => setDate(event.target.value)} />
       <label className="micro-field"><span>{content.counterparty}</span><input value={counterparty} onChange={(event) => setCounterparty(event.target.value)} placeholder="اختياري" /></label>
       {isOperatingExpense ? <ExpenseClassification relationship={relationship} setRelationship={setRelationship} behavior={behavior} setBehavior={setBehavior} purpose={purpose} setPurpose={setPurpose} knowledge={knowledge} setKnowledge={setKnowledge} sharedMode={sharedMode} setSharedMode={setSharedMode} sharedNote={sharedNote} setSharedNote={setSharedNote} sharedKnowledge={sharedKnowledge} /> : null}
       {type === "payable_settlement_cash" ? <label className="micro-field"><span>الالتزام الذي تسدده (المبالغ بد.أ)</span><select value={relatedEventId} onChange={(event) => setRelatedEventId(event.target.value)}><option value="">اختر التزامًا مسجلًا</option>{payableOptions.map(({ event, remaining }) => <option key={event.id} value={event.id}>{event.note} · المتبقي {formatMoneyOption(remaining)}</option>)}</select></label> : null}

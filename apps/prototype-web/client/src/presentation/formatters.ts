@@ -1,10 +1,12 @@
 const ammanTimeZone = "Asia/Amman";
 
+/* مبدأ Micro: تنسيق العرض لا يغيّر قيمة المال أو التاريخ المخزنة في الطبقات الداخلية. */
 const moneyFormatter = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true });
 const integerFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0, useGrouping: true });
 const dateFormatter = new Intl.DateTimeFormat("en-US", { timeZone: ammanTimeZone, year: "numeric", month: "2-digit", day: "2-digit" });
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", { timeZone: ammanTimeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 const monthFormatter = new Intl.DateTimeFormat("ar-JO-u-nu-latn", { timeZone: ammanTimeZone, month: "long", year: "numeric" });
+const readableDateFormatter = new Intl.DateTimeFormat("ar-JO-u-nu-latn", { timeZone: "UTC", calendar: "gregory", day: "numeric", month: "long", year: "numeric" });
 
 export function formatMoneyMinor(minor: number | null | undefined) {
   if (minor === null || minor === undefined || !Number.isFinite(minor)) return "غير متاح";
@@ -40,6 +42,11 @@ export function formatLocalDate(value: string | null | undefined) {
   if (!value || !isValidLocalDate(value)) return null;
   const [year, month, day] = value.split("-");
   return `${day}/${month}/${year}`;
+}
+
+export function formatLocalDateLong(value: string | null | undefined) {
+  if (!value || !isValidLocalDate(value)) return null;
+  return readableDateFormatter.format(new Date(`${value}T12:00:00.000Z`));
 }
 
 export function formatLocalDateTime(value: string | null | undefined) {

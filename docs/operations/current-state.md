@@ -92,6 +92,19 @@
 
 أي PR لاحقة يجب أن تحدّث هذا الملف داخل الـPR نفسها، وتذكر: النطاق، العقد، PR التاريخية، schema/export إن تغيرتا، أثر الاستيراد/التصدير، الحدود، والفعل التالي. لا تذكر SHA دمج PR الحالية بوصفها رأسًا لاحقًا؛ استخدم `git fetch origin --prune`. لا تضف `apps/prototype-web/client/public/__manus__/version.json` إلى Git، ولا تخلط تغييرات `todo.md` المحلي داخل commit.
 
+## 8. G18 — Safe Deep Flows قيد المراجعة
+
+بدأت G18 من رأس `origin/main` بعد دمج PR #118 عند `9dad691ea6cad6e307c7be9c0a652e5e67b19787`. هذه الشريحة تعالج UX-V2-03 وUX-V2-04 وتؤسس عرض التاريخ فقط؛ لا تبدأ G19 أو أي مجموعة لاحقة قبل مراجعة مستقلة ودمج هذه الـPR.
+
+| العنصر | الحقيقة الحالية |
+|---|---|
+| النطاق المنفذ | مصنف deep-flow مركزي في App Shell؛ إخفاء BottomNav وFAB داخل المحررات؛ safe bottom spacing بحسب نوع المسار؛ حالة `حركة غير متاحة` للنوع المجهول؛ ومكوّن عرض عربي للتاريخ المختار بجانب native date input. |
+| العقود | لم تتغير عقود Order/Agreement/Cost/Financial Event/O1/Cash/Inventory/Schedule؛ `waste` ليس default لمسار مجهول، والتاريخ الداخلي يبقى ISO محليًا. |
+| التخزين والترحيل | لا تغيير في schema أو export/import أو migration؛ التعديلات العرضية لا تصل مباشرة إلى IndexedDB ولا تعيد كتابة سجلات تاريخية. |
+| المال والحقيقة | لا تغيير في الحسابات أو معنى الكاش/الربح/الدين/المخزون أو snapshots؛ كل آثار العكس والوقت والمخزون بقيت غير هدّامة. |
+| التحقق | `pnpm check`، الاختبارات المستهدفة، `pnpm check` الكامل مع build، وQA حي محلي للمسارات العميقة والرابط `/inventory/movement/use` في Light/Dark مع RTL. |
+| الحالة التالية | تنتظر الشريحة فحوص CI وCloudflare Pages ثم مراجعة وقبول/دمج مستقلين؛ لا PR ثانية ولا G19 تلقائيًا. |
+
 ## References
 
 [1]: [مطابقة العقود بالتنفيذ](../implementation/02-domain-contract-coverage.md)
