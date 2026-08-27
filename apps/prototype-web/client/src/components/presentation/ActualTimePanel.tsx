@@ -1,6 +1,8 @@
 import { Clock3, RotateCcw, Save, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+/* مبدأ Micro: وقت التنفيذ يشرح الفرق ولا يغير النتيجة المالية، ويظهر تاريخه بوضوح. */
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { LocalDateField } from "@/components/forms/LocalDateField";
 import type { ActualTimeService, OperatingModeValue } from "@/application/time/actualTimeService";
 import type { ActualTimeComparison } from "@micro-domain/actual-time/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
@@ -154,14 +156,14 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
     {!guidedByPreference ? <p className="micro-cost-disclaimer">لم تحدد طريقة عمل أو لم تفعّل التتبع؛ يبقى التسجيل متاحًا هنا عند الحاجة دون سؤال يومي أو إلزام.</p> : null}
     {showRecordForm ? <section className="micro-actual-time-form" aria-label="نموذج تسجيل الوقت">
       <label className="micro-field"><span>الدقائق الفعلية <small>أرقام 0–9 صحيحة</small></span><EnglishNumberInput value={minutes} kind="integer" min={1} aria-label="الدقائق الفعلية بالأرقام 0–9" onNumericChange={setMinutes} onTextValidityChange={setMinutesValid} /></label>
-      <label className="micro-field"><span>تاريخ التسجيل</span><input type="date" value={recordedOn} onChange={event => setRecordedOn(event.target.value)} /></label>
+      <LocalDateField label="تاريخ التسجيل" value={recordedOn} onChange={event => setRecordedOn(event.target.value)} />
       <label className="micro-field"><span>ملاحظة اختيارية</span><textarea value={note} onChange={event => setNote(event.target.value)} placeholder="مثال: تنفيذ الجزء الأول" /></label>
       <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={isSaving} onClick={saveRecord}><Save aria-hidden="true" />{isSaving ? "جارٍ حفظ الوقت…" : "حفظ وقت التنفيذ"}</button>
     </section> : null}
     {reverseTarget ? <section className="micro-actual-time-form micro-actual-time-reverse-form" aria-label="نموذج عكس سجل الوقت">
       <div className="micro-section-heading"><div><span className="micro-overline">عكس محفوظ</span><h2>اعكس {minutesLabel(reverseTarget.minutesDelta)}</h2></div><button className="micro-icon-button" type="button" disabled={isSaving} onClick={() => setReverseTarget(null)} aria-label="إلغاء عكس سجل الوقت"><X aria-hidden="true" /></button></div>
       <p>سيبقى السجل الأصلي ظاهرًا، ويضاف أثر مقابل مرة واحدة فقط.</p>
-      <label className="micro-field"><span>تاريخ العكس</span><input type="date" value={reverseRecordedOn} onChange={event => setReverseRecordedOn(event.target.value)} /></label>
+      <LocalDateField label="تاريخ العكس" value={reverseRecordedOn} onChange={event => setReverseRecordedOn(event.target.value)} />
       <label className="micro-field"><span>سبب العكس <small>إلزامي</small></span><textarea value={reverseReason} onChange={event => setReverseReason(event.target.value)} placeholder="مثال: سجلت الدقائق بالخطأ" /></label>
       <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={isSaving} onClick={saveReverse}><RotateCcw aria-hidden="true" />{isSaving ? "جارٍ حفظ العكس…" : "حفظ عكس سجل الوقت"}</button>
     </section> : null}
