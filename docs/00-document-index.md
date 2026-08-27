@@ -6,7 +6,7 @@
 
 | الترتيب | الملف | الحالة | متى يُقرأ؟ |
 |---:|---|---|---|
-| 0 | `docs/operations/current-state.md` | CURRENT / LIVE STATUS | الحالة المندمجة على `main`، وحالة برنامج Bridge المعلنة، وبوابة التوقف، والخطوة التالية المسموحة لأي Agent جديد |
+| 0 | `docs/operations/current-state.md` | CURRENT / LIVE STATUS | الحالة المندمجة على `main`، وبوابة التوقف، والخطوة التالية المسموحة لأي Agent جديد |
 | 0A | `docs/operations/agent-handoff-protocol-v1.md` | CURRENT / OPERATIONAL | بروتوكول الاستلام والتنفيذ والتسليم بين الوكلاء |
 | 0B | `docs/operations/micro-thinking-charter-v1.md` | CURRENT / THINKING GATE | هدف Micro وطريقة التفكير وأسئلة النقد وبطاقة الفهم قبل أي كود |
 | 0C | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
@@ -23,6 +23,7 @@
 | 11 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة وسياسات المال P0، ومنها `05-financial-p0-policies.md` |
 | 12 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
 | 12A | `docs/contracts/06-financial-event-prototype-contract.md` | CURRENT / PROTOTYPE | عقد الأحداث المالية المحلية للكاش والذمم ومال المالك وحدود «وضعي المالي» |
+| 12B | `docs/expansion/README.md` | CURRENT / EXPANSION ENTRY POINT | نقطة دخول وقرار وTracker Market/Delivery والخدمات؛ تقرأ فقط عند مهمة التوسعة ولا تدعي تنفيذ قدرة شبكة |
 | 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 | 15 | `docs/product/problem-statement-v4.md` | CURRENT / CANONICAL | المشكلة والأضرار والأسئلة، والنواة العامة والـProfiles والمشاريع المختلطة |
@@ -78,6 +79,7 @@
 | LocalStore وExport/Import | `docs/implementation/prototype-build-charter-v1.md` ثم `ai-skills/micro-local-first-prototype/` و`ai-skills/saas-delivery-verifier/` |
 | قرار UX أو MVP | `docs/decisions/01-first-vertical-slice.md` ثم `docs/product/mobile-ui-ux-reference-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` ومراجع `ai-skills/saas-product-guardian/` و`ai-skills/micro-scenario-validation/` داخل المستودع |
 | تغيير المفهوم أو النموذج المالي أو التدفق | `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md` و`docs/quality/pre-build-experiment-simulation-v1.md` ثم `ai-skills/micro-scenario-validation/` |
+| Market أو Delivery أو «الخدمات» | `docs/expansion/README.md` ثم `docs/expansion/DECISIONS.md` و`docs/expansion/TRACKER.md`، ثم العقود المالية والسيناريوهات؛ لا تستخدم `historical-source/` كسلطة تنفيذ |
 | تنفيذ Domain Core أو Prototype | `docs/implementation/01-execution-roadmap.md` و`docs/implementation/03-pre-build-alignment-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` و`docs/implementation/prototype-build-charter-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` والعقود ثم `ai-skills/saas-delivery-verifier/` و`ai-skills/micro-local-first-prototype/` |
 | قبول Slice أو PR للواجهة | `ai-skills/micro-prototype-qa/` مع `docs/quality/scenario-coverage-matrix-v1.md` و`docs/implementation/prototype-build-charter-v1.md` |
 | مراجعة Accounting أو zman-app | افتح المرجع الحالي أولًا، ثم ملف الحالة المطلوب فقط |
