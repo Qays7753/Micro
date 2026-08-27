@@ -1,3 +1,4 @@
+/* مبدأ Micro: يثبت الاختبار أن Hero المتابعة لا يعرض فعلًا أقدم من حالة الاتفاق المحفوظة. */
 import { describe, expect, it } from "vitest";
 import { deriveDailyFollowUp, type DailyFollowUp } from "./dailyFollowUpService";
 
@@ -10,6 +11,7 @@ const order = (
     receivableMinor: number;
     settlementStatus: string;
     status: string;
+    agreedPriceMinor: number;
   }> = {},
 ) => ({
   id: overrides.id ?? "order-1",
@@ -20,6 +22,7 @@ const order = (
     receivableMinor: overrides.receivableMinor ?? 0,
     settlementStatus: overrides.settlementStatus ?? "open",
     status: overrides.status ?? "in_progress",
+    agreedPriceMinor: overrides.agreedPriceMinor ?? 1200,
   },
 });
 
@@ -33,6 +36,17 @@ describe("deriveDailyFollowUp", () => {
       kind: "active_order",
       href: "/orders/order-1",
       actionLabel: "فتح الطلب",
+    });
+  });
+
+  it("uses the saved-agreement action instead of the old confirmation wording", () => {
+    const result = deriveDailyFollowUp(
+      [order({ status: "provisional_agreement", nextAction: "أكد السعر والموعد" })],
+      noDrafts,
+    );
+    expect(result).toMatchObject<Partial<DailyFollowUp>>({
+      truth: "اتفاق محفوظ: السعر وموعد التسليم محفوظان. بدء التنفيذ فعل منفصل.",
+      nextAction: "ابدأ التنفيذ",
     });
   });
 

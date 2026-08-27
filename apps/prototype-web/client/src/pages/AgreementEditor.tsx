@@ -1,4 +1,4 @@
-/* مبدأ Micro: الاتفاق يثبت ما عُرف، ولا يحول العربون أو التاريخ إلى نتيجة مالية تلقائية. */
+/* مبدأ Micro: يثبت الاتفاق ما يعرفه المالك الآن، ويبقي بدء التنفيذ والتحصيل أفعالًا منفصلة. */
 import { ArrowRight, CircleAlert, Save } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
@@ -6,6 +6,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import {
   agreementPriceIsReady,
   applyProtectionPriceAsStart,
+  protectionPriceIsReadyForAgreement,
   startAgreementPrice,
 } from "@/application/agreements/agreementPrice";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -13,6 +14,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { AgreementSource, OrderDraft } from "@/storage/local/types";
+import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
 type AgreementFormValues = {
   priceMinor: number | null;
@@ -86,8 +88,17 @@ export default function AgreementEditor() {
   const snapshot = draft?.costSnapshots.find(item => item.id === draft.activeCostSnapshotId) ?? null;
   const preview = useMemo(() => (snapshot ? costs.previewStored(snapshot) : null), [costs, snapshot]);
   const protectionPriceMinor = preview?.ok ? preview.snapshot.priceFloorMinor * (draft?.quantity ?? 1) : null;
+  const canUseProtectionPrice = protectionPriceIsReadyForAgreement(
+    protectionPriceMinor,
+    preview?.ok ? preview.snapshot.knowledgeState : null,
+  );
   const isBelowFloor =
     protectionPriceMinor !== null && priceMinor !== null && priceMinor < protectionPriceMinor;
+  const agreementPresentation = getAgreementPresentation({
+    status: "draft",
+    agreedPriceMinor: priceMinor,
+    deliveryDate,
+  });
   const currentValues = { priceMinor, deliveryDate, depositMinor, source, acknowledgesBelowFloor };
   const isDirty = Boolean(
     initialValuesRef.current && !equalAgreementValues(currentValues, initialValuesRef.current),
@@ -159,6 +170,7 @@ export default function AgreementEditor() {
     if (storedId) navigate(`/orders/${storedId}`);
   }
   function useProtectionPriceAsStart() {
+    if (!canUseProtectionPrice) return;
     setPriceMinor(applyProtectionPriceAsStart(protectionPriceMinor));
     setIsPriceValid(true);
     setMessage(null);
@@ -174,21 +186,21 @@ export default function AgreementEditor() {
         <ArrowRight aria-hidden="true" /> العودة للتكلفة
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">اتفاق محلي</span>
+        <span className="micro-overline">{agreementPresentation.label}</span>
         <h1>ثبّت ما اتفقت عليه</h1>
-        <p>ثبّت السعر والموعد، والعربون إن قبضته.</p>
+        <p>{agreementPresentation.explanation} ثبّت السعر والموعد، والعربون إن قبضته.</p>
       </div>
       <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
         <span>سعر الحماية المشتق من نسخة التكلفة (د.أ)</span>
         <strong>
-          <MoneyValue minor={protectionPriceMinor ?? 0} />
+          {canUseProtectionPrice ? <MoneyValue minor={protectionPriceMinor} /> : "غير متاح بعد"}
         </strong>
         <small>
-          {preview.snapshot.knowledgeState === "known"
+          {!canUseProtectionPrice
+            ? "وقت العمل أو بند مؤثر ما زال ناقصًا؛ لا نعرض هذه القراءة الجزئية كسعر حماية ولا نستخدمها لبداية الاتفاق."
+            : preview.snapshot.knowledgeState === "known"
             ? "قيمة مشتقة من التكلفة المسجلة، وليست السعر المتفق عليه."
-            : preview.snapshot.knowledgeState === "incomplete"
-              ? "قراءة جزئية من البنود المعروفة فقط؛ وقت العمل ناقص، فلا نعدّها سعر حماية كاملًا."
-              : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تثبيت السعر."}
+            : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تثبيت السعر."}
         </small>
       </section>
       <section className="micro-form-card">
@@ -212,7 +224,7 @@ export default function AgreementEditor() {
           <button
             className="micro-text-action"
             type="button"
-            disabled={protectionPriceMinor === null}
+            disabled={!canUseProtectionPrice}
             onClick={useProtectionPriceAsStart}
           >
             استخدم سعر الحماية كبداية

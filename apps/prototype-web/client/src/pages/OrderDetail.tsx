@@ -1,4 +1,4 @@
-/** Style: Micro «قرار الطلب» — phone-first RTL; financial actions remain separate from G7-A agreement context. */
+/* مبدأ Micro: يعرض الطلب حالته الفعلية وفعلًا تاليًا واحدًا، ولا يساوي الحفظ ببدء التنفيذ أو التحصيل. */
 import {
   ArrowRight,
   CalendarDays,
@@ -27,16 +27,8 @@ import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import { DateTimeValue, LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { AgreementSource, StoredCraftOrder } from "@/storage/local/types";
 import { classifyFollowUpDate, localDateInAmman } from "@/application/agreements/followUpDate";
+import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
-const statusLabel: Record<string, string> = {
-  provisional_agreement: "اتفاق مبدئي",
-  confirmed: "تم التأكيد",
-  in_progress: "قيد التنفيذ",
-  ready: "جاهز للتسليم",
-  delivered: "تم التسليم",
-  settled: "مغلق",
-  needs_review: "يحتاج مراجعة",
-};
 const eventLabel: Record<string, string> = {
   created: "إنشاء الطلب",
   status_changed: "تحديث الحالة",
@@ -137,7 +129,13 @@ export default function OrderDetail() {
     );
 
   const { order } = stored;
-  const label = statusLabel[order.status] ?? "يحتاج مراجعة";
+  const agreement = getAgreementPresentation({
+    status: order.status,
+    agreedPriceMinor: order.agreedPriceMinor,
+    deliveryDate: stored.deliveryDate,
+    nextAction: order.nextAction,
+  });
+  const label = agreement.label;
   const result = resultCopy[order.resultStatus] ?? resultCopy.review_required;
 
   async function run(action: () => Promise<FulfillmentResult | AgreementResult>) {
@@ -230,7 +228,7 @@ export default function OrderDetail() {
       </div>
       <section className="micro-decision-card">
         <span>الفعل التالي</span>
-        <strong>{order.nextAction}</strong>
+        <strong>{agreement.nextAction}</strong>
         <p>
           موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
         </p>

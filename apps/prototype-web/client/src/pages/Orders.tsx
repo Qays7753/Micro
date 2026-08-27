@@ -1,9 +1,11 @@
 /** Style: Micro «مسار القرار» — phone-first RTL list where each row states status, date, settlement truth, and one next action. */
+/* مبدأ Micro: تعرض القائمة حالة الاتفاق والفعل التالي من خريطة واحدة، ولا توهم باعتماد ثانٍ. */
 import { ClipboardCheck, ClipboardPlus, ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
+import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
@@ -17,15 +19,6 @@ type OrdersState =
       orders: readonly StoredCraftOrder[];
       followUp: DailyFollowUp;
     };
-const statusLabel: Record<string, string> = {
-  provisional_agreement: "اتفاق مبدئي",
-  confirmed: "تم التأكيد",
-  in_progress: "قيد التنفيذ",
-  ready: "جاهز للتسليم",
-  delivered: "تم التسليم",
-  settled: "مغلق",
-  cancelled: "ملغى",
-};
 const settlementDetail = (stored: StoredCraftOrder) => (
   <>
     {stored.order.settlementStatus === "debt" ? "دين مسجل (د.أ): " : "المتبقي (د.أ): "}
@@ -80,28 +73,35 @@ export default function Orders() {
       />
       {state.orders.length > 0 ? (
         <section className="micro-draft-list" aria-label="الاتفاقات المحلية">
-          {state.orders.map(stored => (
-            <button
-              className="micro-draft-row"
-              type="button"
-              key={stored.id}
-              onClick={() => navigate(`/orders/${stored.id}`)}
-            >
-              <span className="micro-draft-symbol">
-                <ClipboardCheck aria-hidden="true" />
-              </span>
-              <span>
-                <strong>{stored.order.itemName}</strong>
-                <small>
-                  {statusLabel[stored.order.status] ?? "يحتاج مراجعة"} · موعد التسليم:{" "}
-                  <LocalDateValue value={stored.deliveryDate} />
-                </small>
-                <small>{settlementDetail(stored)}</small>
-                <small className="micro-row-next-action">الفعل التالي: {stored.order.nextAction}</small>
-              </span>
-              <ChevronLeft aria-hidden="true" />
-            </button>
-          ))}
+          {state.orders.map(stored => {
+            const agreement = getAgreementPresentation({
+              status: stored.order.status,
+              agreedPriceMinor: stored.order.agreedPriceMinor,
+              deliveryDate: stored.deliveryDate,
+              nextAction: stored.order.nextAction,
+            });
+            return (
+              <button
+                className="micro-draft-row"
+                type="button"
+                key={stored.id}
+                onClick={() => navigate(`/orders/${stored.id}`)}
+              >
+                <span className="micro-draft-symbol">
+                  <ClipboardCheck aria-hidden="true" />
+                </span>
+                <span>
+                  <strong>{stored.order.itemName}</strong>
+                  <small>
+                    {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
+                  </small>
+                  <small>{settlementDetail(stored)}</small>
+                  <small className="micro-row-next-action">الفعل التالي: {agreement.nextAction}</small>
+                </span>
+                <ChevronLeft aria-hidden="true" />
+              </button>
+            );
+          })}
         </section>
       ) : null}
       {state.drafts.length === 0 && state.orders.length === 0 ? (

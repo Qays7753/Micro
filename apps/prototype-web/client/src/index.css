@@ -1,4 +1,4 @@
-/* Micro design reminder: canonical semantic tokens, 4px rhythm, IBM Plex Arabic, and warm Android-like surfaces. */
+/* مبدأ Micro: تستخدم الصفحة توكنات المشروع وإيقاع 4px وIBM Plex Arabic مع أسطح آمنة للهاتف. */
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -1013,6 +1013,16 @@
   color: var(--color-success-text) !important;
   font-size: 13px !important;
 }
+.micro-cost-save-guidance {
+  margin: 0;
+  border-inline-start: 3px solid var(--color-warning-text);
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  font-size: 13px;
+  line-height: 1.6;
+}
 .micro-intent-stack,
 .micro-draft-list {
   display: grid;
@@ -1189,6 +1199,71 @@
 .micro-material-row .micro-delete-row {
   grid-column: span 2;
   justify-self: start;
+}
+.micro-material-summary-list {
+  display: grid;
+  gap: var(--space-2);
+}
+.micro-material-summary-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-2);
+}
+.micro-material-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: 56px;
+  border: 0;
+  padding: 0;
+  color: var(--color-text-primary);
+  background: transparent;
+  text-align: right;
+}
+.micro-material-summary > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+  flex: 1;
+}
+.micro-material-summary strong,
+.micro-material-summary small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.micro-material-summary strong {
+  font-size: 15px;
+}
+.micro-material-summary small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-material-summary > svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: var(--color-text-secondary);
+}
+.micro-material-summary-row .micro-delete-row {
+  align-self: center;
+}
+.micro-sheet-form {
+  display: grid;
+  gap: var(--space-3);
+  overflow: auto;
+  padding: 0 var(--space-4) var(--space-2);
+}
+.micro-sheet-footer {
+  border-top: 1px solid var(--color-border);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+.micro-sheet-footer .micro-button {
+  width: 100%;
 }
 .micro-field-grid {
   display: grid;

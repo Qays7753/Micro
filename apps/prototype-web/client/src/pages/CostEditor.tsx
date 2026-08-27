@@ -1,11 +1,22 @@
-import { ArrowRight, CircleAlert, Plus, Save, Trash2 } from "lucide-react";
+/* مبدأ Micro: يحفظ هذا السطح ما أدخله المالك بصدق، ويعرض المادة كخطوة قصيرة دون تحويل النقص إلى صفر. */
+import { ArrowRight, ChevronLeft, CircleAlert, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CostEditorInput } from "@/application/cost/costService";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 
 type EditableCostMaterial = DraftCostMaterial & { uiId: string };
@@ -114,6 +125,12 @@ export default function CostEditor() {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [materialSheet, setMaterialSheet] = useState<{
+    index: number | null;
+    draft: EditableCostMaterial;
+  } | null>(null);
+  const [materialSheetValidity, setMaterialSheetValidity] = useState<Record<string, boolean>>({});
+  const [materialSheetMessage, setMaterialSheetMessage] = useState<string | null>(null);
   const [numericValidity, setNumericValidity] = useState<Record<string, boolean>>({});
   const [visibleOptionalCosts, setVisibleOptionalCosts] = useState<Record<OptionalCostField, boolean>>({
     packagingMinor: false,
@@ -151,22 +168,46 @@ export default function CostEditor() {
   function setValidity(key: string, isValid: boolean) {
     setNumericValidity(current => (current[key] === isValid ? current : { ...current, [key]: isValid }));
   }
-  function setMaterial(index: number, patch: Partial<DraftCostMaterial>) {
-    setForm(current =>
-      current
-        ? {
-            ...current,
-            materialItems: current.materialItems.map((item, itemIndex) =>
-              itemIndex === index ? { ...item, ...patch } : item,
-            ),
-          }
-        : current,
-    );
+  function openMaterialSheet(index: number | null = null) {
+    if (!form) return;
+    const item = index === null ? newMaterial() : form.materialItems[index];
+    if (!item) return;
+    setMaterialSheet({ index, draft: { ...item } });
+    setMaterialSheetValidity({});
+    setMaterialSheetMessage(null);
+  }
+  function updateMaterialSheet(patch: Partial<DraftCostMaterial>) {
+    setMaterialSheet(current => (current ? { ...current, draft: { ...current.draft, ...patch } } : current));
+    setMaterialSheetMessage(null);
+  }
+  function saveMaterialFromSheet() {
+    if (!materialSheet) return;
+    const { draft: item, index } = materialSheet;
+    const hasInvalidNumber = Object.values(materialSheetValidity).some(isValid => !isValid);
+    if (
+      hasInvalidNumber ||
+      !item.name.trim() ||
+      !item.unit.trim() ||
+      item.quantity <= 0 ||
+      item.unitPriceMinor < 0
+    ) {
+      setMaterialSheetMessage("أكمل اسم المادة والوحدة، وأدخل كمية صحيحة وتكلفة غير سالبة.");
+      return;
+    }
+    setForm(current => {
+      if (!current) return current;
+      const materialItems =
+        index === null
+          ? [...current.materialItems, item]
+          : current.materialItems.map((currentItem, itemIndex) => (itemIndex === index ? item : currentItem));
+      return { ...current, materialItems };
+    });
+    setMaterialSheet(null);
+    setMaterialSheetValidity({});
+    setMaterialSheetMessage(null);
   }
   function addMaterial() {
-    setForm(current =>
-      current ? { ...current, materialItems: [...current.materialItems, newMaterial()] } : current,
-    );
+    openMaterialSheet();
   }
   function removeMaterial(index: number, uiId: string) {
     setForm(current =>
@@ -207,7 +248,11 @@ export default function CostEditor() {
     initialFormRef.current = form;
     setDraft(result.draft!);
     notifyDataChanged();
-    setMessage(`تم حفظ نسخة التكلفة ${result.draft!.costSnapshots.length} على هذا الجهاز.`);
+    setMessage(
+      preview.snapshot.knowledgeState === "incomplete"
+        ? `تم حفظ مسودة تكلفة ناقصة ${result.draft!.costSnapshots.length} على هذا الجهاز. أضف دقائق العمل وسعر الساعة لتكتمل القراءة.`
+        : `تم حفظ نسخة التكلفة ${result.draft!.costSnapshots.length} على هذا الجهاز.`,
+    );
     return true;
   }
 
@@ -287,7 +332,7 @@ export default function CostEditor() {
         <div className="micro-cost-section-heading">
           <div>
             <h2>المواد</h2>
-            <p>المادة الموجودة ليست مجانية؛ أدخل تكلفتها أو اتركها كتقدير واضح.</p>
+            <p>أضف بندًا قصيرًا ثم راجع ملخصه؛ المادة الموجودة ليست مجانية.</p>
           </div>
           <button className="micro-icon-button" type="button" aria-label="إضافة مادة" onClick={addMaterial}>
             <Plus aria-hidden="true" />
@@ -298,72 +343,58 @@ export default function CostEditor() {
             لم تضف مادة بعد. قد تبقى التكلفة ناقصة إن لم تدخل وقت العمل وبنودًا مؤثرة.
           </p>
         ) : (
-          form.materialItems.map((item, index) => (
-            <div className="micro-material-row" key={item.uiId}>
-              <label className="micro-field">
-                <span>المادة</span>
-                <input
-                  value={item.name}
-                  onChange={event => setMaterial(index, { name: event.target.value })}
-                />
-              </label>
-              <label className="micro-field">
-                <span>
-                  الكمية <small>أرقام 0–9</small>
-                </span>
-                <EnglishNumberInput
-                  value={item.quantity}
-                  kind="decimal"
-                  min="0"
-                  aria-label={`كمية المادة ${index + 1} بالأرقام 0–9`}
-                  onNumericChange={quantity => setMaterial(index, { quantity })}
-                  onTextValidityChange={isValid => setValidity(`material-${item.uiId}-quantity`, isValid)}
-                />
-              </label>
-              <label className="micro-field">
-                <span>الوحدة</span>
-                <input
-                  value={item.unit}
-                  onChange={event => setMaterial(index, { unit: event.target.value })}
-                />
-              </label>
-              <label className="micro-field">
-                <span>
-                  تكلفة الوحدة (د.أ) <small>أرقام 0–9</small>
-                </span>
-                <EnglishNumberInput
-                  value={item.unitPriceMinor}
-                  kind="money"
-                  min="0"
-                  aria-label={`تكلفة وحدة المادة ${index + 1} بالأرقام 0–9`}
-                  onNumericChange={unitPriceMinor => setMaterial(index, { unitPriceMinor })}
-                  onTextValidityChange={isValid => setValidity(`material-${item.uiId}-price`, isValid)}
-                />
-              </label>
-              <label className="micro-field">
-                <span>درجة المعرفة</span>
-                <select
-                  value={item.confidence}
-                  onChange={event =>
-                    setMaterial(index, { confidence: event.target.value as DraftCostMaterial["confidence"] })
-                  }
+          <div className="micro-material-summary-list">
+            {form.materialItems.map((item, index) => (
+              <div className="micro-material-summary-row" key={item.uiId}>
+                <button
+                  className="micro-material-summary"
+                  type="button"
+                  onClick={() => openMaterialSheet(index)}
+                  aria-label={`تعديل مادة ${item.name || index + 1}`}
                 >
-                  <option value="known">معروف</option>
-                  <option value="estimated">تقديري</option>
-                </select>
-              </label>
-              <button
-                className="micro-delete-row"
-                type="button"
-                aria-label="حذف المادة"
-                onClick={() => removeMaterial(index, item.uiId)}
-              >
-                <Trash2 aria-hidden="true" />
-              </button>
-            </div>
-          ))
+                  <span className="micro-draft-symbol">
+                    <Pencil aria-hidden="true" />
+                  </span>
+                  <span>
+                    <strong>{item.name || "مادة بلا اسم"}</strong>
+                    <small>
+                      {item.quantity} {item.unit || "وحدة"} · تكلفة الوحدة{" "}
+                      <MoneyValue minor={item.unitPriceMinor} className="micro-inline-number" /> ·{" "}
+                      {item.confidence === "estimated" ? "تقديري" : "معروف"}
+                    </small>
+                  </span>
+                  <ChevronLeft aria-hidden="true" />
+                </button>
+                <button
+                  className="micro-delete-row"
+                  type="button"
+                  aria-label={`حذف مادة ${item.name || index + 1}`}
+                  onClick={() => removeMaterial(index, item.uiId)}
+                >
+                  <Trash2 aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </section>
+      <MaterialSheet
+        value={materialSheet}
+        message={materialSheetMessage}
+        validity={materialSheetValidity}
+        onOpenChange={open => {
+          if (!open) {
+            setMaterialSheet(null);
+            setMaterialSheetMessage(null);
+            setMaterialSheetValidity({});
+          }
+        }}
+        onChange={updateMaterialSheet}
+        onValidityChange={(key, isValid) =>
+          setMaterialSheetValidity(current => ({ ...current, [key]: isValid }))
+        }
+        onSave={saveMaterialFromSheet}
+      />
       <section className="micro-form-card">
         <div className="micro-cost-section-heading">
           <div>
@@ -533,6 +564,12 @@ export default function CostEditor() {
           {message}
         </p>
       ) : null}
+      {preview?.ok && preview.snapshot.knowledgeState === "incomplete" ? (
+        <p className="micro-cost-save-guidance">
+          يمكنك حفظ ما تعرفه الآن كمسودة ناقصة. أضف دقائق العمل وسعر الساعة لاحقًا لتكتمل قراءة التكلفة؛ لا
+          تدخل صفرًا بدل المجهول.
+        </p>
+      ) : null}
       <div className="micro-form-actions">
         <button
           className="micro-button micro-button-primary micro-save-cost"
@@ -543,7 +580,11 @@ export default function CostEditor() {
           }}
         >
           <Save aria-hidden="true" />
-          {isSaving ? "جارٍ حفظ النسخة…" : "حفظ نسخة التكلفة"}
+          {isSaving
+            ? "جارٍ حفظ النسخة…"
+            : preview?.ok && preview.snapshot.knowledgeState === "incomplete"
+              ? "حفظ مسودة تكلفة ناقصة"
+              : "حفظ نسخة التكلفة"}
         </button>
         {draft.activeCostSnapshotId ? (
           <button
@@ -560,5 +601,121 @@ export default function CostEditor() {
         لا يُسجلان هنا.
       </p>
     </section>
+  );
+}
+
+type MaterialSheetProps = {
+  value: { index: number | null; draft: EditableCostMaterial } | null;
+  message: string | null;
+  validity: Record<string, boolean>;
+  onOpenChange: (open: boolean) => void;
+  onChange: (patch: Partial<DraftCostMaterial>) => void;
+  onValidityChange: (key: string, isValid: boolean) => void;
+  onSave: () => void;
+};
+
+function MaterialSheet({
+  value,
+  message,
+  validity,
+  onOpenChange,
+  onChange,
+  onValidityChange,
+  onSave,
+}: MaterialSheetProps) {
+  return (
+    <Drawer open={Boolean(value)} onOpenChange={onOpenChange} direction="bottom">
+      <DrawerContent className="micro-bottom-sheet" dir="rtl">
+        {value ? (
+          <>
+            <DrawerHeader className="micro-sheet-header">
+              <div className="micro-sheet-title-row">
+                <div>
+                  <DrawerTitle className="micro-sheet-title">
+                    {value.index === null ? "أضف بند مادة" : "عدّل بند المادة"}
+                  </DrawerTitle>
+                  <DrawerDescription className="micro-sheet-description">
+                    أدخل الحد الأدنى للمادة ثم عد إلى ملخص التكلفة. لا تتحول الكمية غير الصحيحة إلى رقم محفوظ.
+                  </DrawerDescription>
+                </div>
+                <DrawerClose asChild>
+                  <button className="micro-icon-button" type="button" aria-label="إغلاق إضافة المادة">
+                    <X aria-hidden="true" />
+                  </button>
+                </DrawerClose>
+              </div>
+            </DrawerHeader>
+            <div className="micro-sheet-form">
+              <label className="micro-field">
+                <span>المادة</span>
+                <input
+                  autoFocus
+                  value={value.draft.name}
+                  onChange={event => onChange({ name: event.target.value })}
+                />
+              </label>
+              <label className="micro-field">
+                <span>
+                  الكمية <small>أرقام 0–9 وحتى 3 منازل</small>
+                </span>
+                <EnglishQuantityInput
+                  valueMilli={Math.round(value.draft.quantity * 1000)}
+                  min="0"
+                  aria-label="كمية المادة بالأرقام 0–9"
+                  aria-invalid={validity.quantity === false}
+                  onMilliChange={quantityMilli => onChange({ quantity: quantityMilli / 1000 })}
+                  onTextValidityChange={isValid => onValidityChange("quantity", isValid)}
+                />
+              </label>
+              <label className="micro-field">
+                <span>الوحدة</span>
+                <input value={value.draft.unit} onChange={event => onChange({ unit: event.target.value })} />
+              </label>
+              <label className="micro-field">
+                <span>
+                  تكلفة الوحدة (د.أ) <small>أرقام 0–9</small>
+                </span>
+                <EnglishNumberInput
+                  value={value.draft.unitPriceMinor}
+                  kind="money"
+                  min="0"
+                  aria-label="تكلفة وحدة المادة بالأرقام 0–9"
+                  aria-invalid={validity.price === false}
+                  onNumericChange={unitPriceMinor => onChange({ unitPriceMinor })}
+                  onTextValidityChange={isValid => onValidityChange("price", isValid)}
+                />
+              </label>
+              <label className="micro-field">
+                <span>درجة المعرفة</span>
+                <select
+                  value={value.draft.confidence}
+                  onChange={event =>
+                    onChange({ confidence: event.target.value as DraftCostMaterial["confidence"] })
+                  }
+                >
+                  <option value="known">معروف</option>
+                  <option value="estimated">تقديري</option>
+                </select>
+              </label>
+              {message ? (
+                <p className="micro-field-error" role="alert">
+                  {message}
+                </p>
+              ) : null}
+            </div>
+            <DrawerFooter className="micro-sheet-footer">
+              <DrawerClose asChild>
+                <button className="micro-button micro-button-secondary" type="button">
+                  إلغاء
+                </button>
+              </DrawerClose>
+              <button className="micro-button micro-button-primary" type="button" onClick={onSave}>
+                حفظ بند المادة
+              </button>
+            </DrawerFooter>
+          </>
+        ) : null}
+      </DrawerContent>
+    </Drawer>
   );
 }

@@ -1,3 +1,4 @@
+/* مبدأ Micro: يعرض الموعد حالة الاتفاق كما هي وفعلها التالي، ولا يضيف اعتمادًا أو أثرًا ماليًا جديدًا. */
 import {
   ArrowLeft,
   CalendarClock,
@@ -24,6 +25,7 @@ import { buildCapacityDecisionViewModel } from "@/application/scheduling/capacit
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { IntegerValue, LocalDateValue, MonthValue, TimeValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate, formatMonthLabel } from "@/presentation/formatters";
+import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
 type ScheduleState =
   | { phase: "loading" }
@@ -34,14 +36,6 @@ type ScheduleState =
       month: MonthOverview;
       recurrences: readonly RecurrenceView[];
     };
-const orderStatus: Record<string, string> = {
-  provisional_agreement: "اتفاق مبدئي",
-  confirmed: "تم التأكيد",
-  in_progress: "قيد التنفيذ",
-  ready: "جاهز للتسليم",
-  delivered: "تم التسليم",
-  settled: "مغلق",
-};
 const weekdayLabels = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const dateLabel = (date: string) => formatLocalDate(date) ?? "غير متاح";
 const monthLabel = (month: string) => formatMonthLabel(month);
@@ -847,20 +841,28 @@ function MonthDayDetail({ day, onOpen }: { day: ScheduleDay; onOpen: (item: Sche
         <p>لا مواعيد مسجلة في هذا اليوم.</p>
       ) : (
         <div className="micro-month-day-list">
-          {day.items.map(item => (
-            <button type="button" key={item.schedule.id} onClick={() => onOpen(item)}>
-              <span className="micro-draft-symbol">
-                <CalendarClock aria-hidden="true" />
-              </span>
-              <span>
-                <strong>{item.order.order.itemName}</strong>
-                <small>
-                  {orderStatus[item.order.order.status] ?? "يحتاج مراجعة"} · {timingLabel(item.schedule)}
-                </small>
-              </span>
-              <ChevronLeft aria-hidden="true" />
-            </button>
-          ))}
+          {day.items.map(item => {
+            const agreement = getAgreementPresentation({
+              status: item.order.order.status,
+              agreedPriceMinor: item.order.order.agreedPriceMinor,
+              deliveryDate: item.schedule.scheduledFor,
+              nextAction: item.order.order.nextAction,
+            });
+            return (
+              <button type="button" key={item.schedule.id} onClick={() => onOpen(item)}>
+                <span className="micro-draft-symbol">
+                  <CalendarClock aria-hidden="true" />
+                </span>
+                <span>
+                  <strong>{item.order.order.itemName}</strong>
+                  <small>
+                    {agreement.label} · {timingLabel(item.schedule)}
+                  </small>
+                </span>
+                <ChevronLeft aria-hidden="true" />
+              </button>
+            );
+          })}
         </div>
       )}
     </section>
@@ -891,28 +893,35 @@ function ScheduleSection({
         </span>
       </div>
       <div className="micro-draft-list">
-        {items.map(item => (
-          <button
-            className="micro-draft-row"
-            type="button"
-            key={item.schedule.id}
-            onClick={() => onOpen(item)}
-          >
-            <span className="micro-draft-symbol">
-              <CalendarClock aria-hidden="true" />
-            </span>
-            <span>
-              <strong>{item.order.order.itemName}</strong>
-              <small>
-                {orderStatus[item.order.order.status] ?? "يحتاج مراجعة"} ·{" "}
-                <LocalDateValue value={item.schedule.scheduledFor} />
-              </small>
-              <small>{timingLabel(item.schedule)}</small>
-              <small className="micro-row-next-action">الفعل التالي: {item.order.order.nextAction}</small>
-            </span>
-            <ChevronLeft aria-hidden="true" />
-          </button>
-        ))}
+        {items.map(item => {
+          const agreement = getAgreementPresentation({
+            status: item.order.order.status,
+            agreedPriceMinor: item.order.order.agreedPriceMinor,
+            deliveryDate: item.schedule.scheduledFor,
+            nextAction: item.order.order.nextAction,
+          });
+          return (
+            <button
+              className="micro-draft-row"
+              type="button"
+              key={item.schedule.id}
+              onClick={() => onOpen(item)}
+            >
+              <span className="micro-draft-symbol">
+                <CalendarClock aria-hidden="true" />
+              </span>
+              <span>
+                <strong>{item.order.order.itemName}</strong>
+                <small>
+                  {agreement.label} · <LocalDateValue value={item.schedule.scheduledFor} />
+                </small>
+                <small>{timingLabel(item.schedule)}</small>
+                <small className="micro-row-next-action">الفعل التالي: {agreement.nextAction}</small>
+              </span>
+              <ChevronLeft aria-hidden="true" />
+            </button>
+          );
+        })}
       </div>
     </section>
   );
