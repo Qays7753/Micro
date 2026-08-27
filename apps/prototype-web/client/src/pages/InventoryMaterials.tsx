@@ -15,6 +15,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import type { InventoryOverview } from "@/application/inventory/inventoryMaterialService";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
+import { formatArabicPlural } from "@/presentation/formatters";
 const label = (type: InventoryMovement["type"]) =>
   ({
     opening: "رصيد مادة بداية",
@@ -66,6 +67,14 @@ export default function InventoryMaterials() {
         </button>
       </section>
     );
+  const materialCountLabel = formatArabicPlural(state.overview.materials.length, {
+    zero: "لم تسجل مادة بعد",
+    one: "مادة واحدة",
+    two: "مادتان",
+    few: "مواد",
+    many: "مادة",
+    other: "مادة",
+  });
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
@@ -79,7 +88,7 @@ export default function InventoryMaterials() {
       <section className="micro-decision-card">
         <Boxes aria-hidden="true" />
         <div>
-          <span>حد الحقيقة · القيم بد.أ</span>
+          <span>حد الحقيقة · القيم (د.أ)</span>
           <strong>المتبقي مادة وقيمة، لا ربح ولا مصروف تلقائي.</strong>
           <p>{state.overview.truth}</p>
         </div>
@@ -136,9 +145,7 @@ export default function InventoryMaterials() {
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">
           <span className="micro-overline">المتاح الآن</span>
-          <h2>
-            {state.overview.materials.length ? `${state.overview.materials.length} مواد` : "لم تسجل مادة بعد"}
-          </h2>
+          <h2>{state.overview.materials.length ? materialCountLabel : "لم تسجل مادة بعد"}</h2>
         </div>
         {state.overview.materials.length ? (
           state.overview.materials.map(material => (

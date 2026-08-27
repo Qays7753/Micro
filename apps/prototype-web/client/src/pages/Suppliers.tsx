@@ -6,6 +6,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
+import { formatArabicPlural } from "@/presentation/formatters";
 
 type PageState =
   | { phase: "loading" }
@@ -51,6 +52,14 @@ export default function Suppliers() {
       </section>
     );
   const open = state.purchases.filter(purchase => purchase.payableMinor > 0);
+  const openPurchaseLabel = formatArabicPlural(open.length, {
+    zero: "لا توجد مشتريات مفتوحة",
+    one: "شراء واحد يحتاج متابعة",
+    two: "شراءان يحتاجان متابعة",
+    few: "مشتريات تحتاج متابعة",
+    many: "شراءً يحتاج متابعة",
+    other: "شراء يحتاج متابعة",
+  });
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
@@ -81,7 +90,7 @@ export default function Suppliers() {
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">
           <span className="micro-overline">المشتريات المفتوحة</span>
-          <h2>{open.length ? `${open.length} شراء يحتاج متابعة` : "لا توجد مشتريات مفتوحة"}</h2>
+          <h2>{openPurchaseLabel}</h2>
         </div>
         {open.length ? (
           open.map(purchase => (

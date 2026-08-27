@@ -24,7 +24,7 @@ import type { RecurrenceView } from "@/application/scheduling/recurrenceService"
 import { buildCapacityDecisionViewModel } from "@/application/scheduling/capacityDecisionViewModel";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { IntegerValue, LocalDateValue, MonthValue, TimeValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate, formatMonthLabel } from "@/presentation/formatters";
+import { formatArabicPlural, formatLocalDate, formatMonthLabel } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
 type ScheduleState =
@@ -795,7 +795,14 @@ function MonthDayCell({
   const summary =
     day.items.length === 0
       ? "لا مواعيد"
-      : `${day.items.length} موعد${knownTimes[0] ? ` · ${knownTimes[0]}` : ""}`;
+      : `${formatArabicPlural(day.items.length, {
+          zero: "لا مواعيد",
+          one: "موعد واحد",
+          two: "موعدان",
+          few: "مواعيد",
+          many: "موعدًا",
+          other: "موعد",
+        })}${knownTimes[0] ? ` · ${knownTimes[0]}` : ""}`;
   return (
     <button
       className="micro-month-cell"

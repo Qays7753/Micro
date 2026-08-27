@@ -35,6 +35,32 @@ const readableDateFormatter = new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
   year: "numeric",
 });
 
+/**
+ * مبدأ Micro: الجمع العربي يتبع القواعد اللغوية (0، 1، 2، 3-10، 11-99، 100+).
+ * لا نستخدم "1 طلبات" أو "2 مادة".
+ */
+export function formatArabicPlural(
+  count: number | null | undefined,
+  forms: {
+    zero: string;
+    one: string;
+    two: string;
+    few: string; // 3-10
+    many: string; // 11-99
+    other: string; // 100+ or fallback
+  },
+) {
+  if (count === null || count === undefined || !Number.isFinite(count)) return "غير متاح";
+  const absCount = Math.abs(count);
+  if (absCount === 0) return forms.zero;
+  if (absCount === 1) return forms.one;
+  if (absCount === 2) return forms.two;
+  const lastTwo = absCount % 100;
+  if (lastTwo >= 3 && lastTwo <= 10) return `${count} ${forms.few}`;
+  if (lastTwo >= 11 && lastTwo <= 99) return `${count} ${forms.many}`;
+  return `${count} ${forms.other}`;
+}
+
 export function formatMoneyMinor(minor: number | null | undefined) {
   if (minor === null || minor === undefined || !Number.isFinite(minor)) return "غير متاح";
   return moneyFormatter.format(minor / 100);

@@ -1,4 +1,5 @@
 /** Financial pulse review: local order evidence, named money meanings, and no ledger-like claims beyond the available events. */
+/* مبدأ Micro: وحدة العملة في العرض موحدة، بينما تبقى دلالات القبض والدين والنتيجة منفصلة. */
 import { ArrowLeft, CircleAlert, Landmark } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -63,7 +64,7 @@ export default function Review() {
             <span className="micro-overline">صورة الطلبات المسجلة</span>
             <h2 id="review-pulse-title">قبض ودين ونتائج</h2>
           </div>
-          <span>القيم بد.أ</span>
+          <span>القيم (د.أ)</span>
         </div>
         <dl>
           <div>

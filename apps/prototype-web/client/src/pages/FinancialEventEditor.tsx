@@ -281,25 +281,34 @@ export default function FinancialEventEditor() {
           />
         </label>
         {isOperatingExpense ? (
-          <ExpenseClassification
-            relationship={relationship}
-            setRelationship={setRelationship}
-            behavior={behavior}
-            setBehavior={setBehavior}
-            purpose={purpose}
-            setPurpose={setPurpose}
-            knowledge={knowledge}
-            setKnowledge={setKnowledge}
-            sharedMode={sharedMode}
-            setSharedMode={setSharedMode}
-            sharedNote={sharedNote}
-            setSharedNote={setSharedNote}
-            sharedKnowledge={sharedKnowledge}
-          />
+          <details className="micro-decision-layer micro-expense-details">
+            <summary className="micro-decision-layer-summary">
+              <span>
+                <b>أضف سياقًا للمصروف</b>
+                <small>التصنيف والمعرفة وحصة المشروع عند الحاجة.</small>
+              </span>
+              <strong>افتح التفاصيل</strong>
+            </summary>
+            <ExpenseClassification
+              relationship={relationship}
+              setRelationship={setRelationship}
+              behavior={behavior}
+              setBehavior={setBehavior}
+              purpose={purpose}
+              setPurpose={setPurpose}
+              knowledge={knowledge}
+              setKnowledge={setKnowledge}
+              sharedMode={sharedMode}
+              setSharedMode={setSharedMode}
+              sharedNote={sharedNote}
+              setSharedNote={setSharedNote}
+              sharedKnowledge={sharedKnowledge}
+            />
+          </details>
         ) : null}
         {type === "payable_settlement_cash" ? (
           <label className="micro-field">
-            <span>الالتزام الذي تسدده (المبالغ بد.أ)</span>
+            <span>الالتزام الذي تسدده (المبالغ د.أ)</span>
             <select value={relatedEventId} onChange={event => setRelatedEventId(event.target.value)}>
               <option value="">اختر التزامًا مسجلًا</option>
               {payableOptions.map(({ event, remaining }) => (

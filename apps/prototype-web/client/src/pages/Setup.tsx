@@ -1,4 +1,5 @@
 /** Anti-vibe setup: one required identity input, one scoped local boundary, and one full-width start action. */
+/* مبدأ Micro: توحيد اسم العملة في البداية عرضي، ولا يغيّر القيمة الداخلية أو حدود الحفظ المحلي. */
 import { useState } from "react";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { useLocation } from "wouter";
@@ -31,7 +32,7 @@ export default function Setup() {
         <div className="micro-setup-impact">
           <span>ما يعرفه Micro الآن</span>
           <strong>
-            حرفة مخصصة <b>·</b> الدينار الأردني <em>JOD</em>
+            حرفة مخصصة <b>·</b> الدينار الأردني <em>د.أ</em>
           </strong>
           <small>اسم المشروع هو أول مرجع منظم قبل تسجيل التكلفة أو الاتفاق أو المتابعة.</small>
         </div>

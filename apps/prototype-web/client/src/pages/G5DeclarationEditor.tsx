@@ -8,6 +8,8 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import type { G5LinkOptions } from "@/application/g5/g5Service";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
+/* مبدأ Micro: يبدأ الإعلان بالواقعة الأساسية، وتبقى المعرفة والربط والملاحظة خلف تفاصيل مقصودة. */
+
 function todayInAmman() {
   return localDateInAmman();
 }
@@ -25,6 +27,7 @@ export default function G5DeclarationEditor() {
   const [relatedOrderId, setRelatedOrderId] = useState<string | null>(null);
   const [relatedEventId, setRelatedEventId] = useState<string | null>(null);
   const [links, setLinks] = useState<G5LinkOptions | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -48,6 +51,11 @@ export default function G5DeclarationEditor() {
     setMessage(null);
     if (amountMinor === null || amountMinor <= 0 || !amountValid) {
       setMessage("أدخل مبلغًا موجبًا بصيغة واضحة قبل الحفظ.");
+      return;
+    }
+    if (!note.trim()) {
+      setDetailsOpen(true);
+      setMessage("أضف ملاحظة قصيرة داخل تفاصيل الإعلان قبل الحفظ.");
       return;
     }
     setSaving(true);
@@ -139,42 +147,55 @@ export default function G5DeclarationEditor() {
             placeholder="مثال: رسالة العميلة أو فاتورة المورد"
           />
         </label>
-        <label className="micro-field">
-          <span>درجة المعرفة</span>
-          <select
-            value={knowledge}
-            onChange={event => setKnowledge(event.target.value as "known" | "estimated" | "needs_review")}
-          >
-            <option value="known">معروف / مؤكد</option>
-            <option value="estimated">تقديري معلن</option>
-            <option value="needs_review">يحتاج مراجعة</option>
-          </select>
-        </label>
-        <label className="micro-field">
-          <span>
-            ربط اختياري بمصدر قائم{" "}
-            <small>{direction === "collection" ? "طلب له ذمة مسجلة" : "مصروف مستحق قائم"}</small>
-          </span>
-          <select
-            value={selectedLinkId ?? ""}
-            onChange={event => setSelectedLinkId(event.target.value || null)}
-          >
-            <option value="">بدون ربط — إعلان مستقل</option>
-            {linkOptions.map(option => (
-              <option key={option.id} value={option.id}>
-                {option.label} · {formatMoneyMinor(option.amountMinor)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="micro-field">
-          <span>ملاحظة السياق</span>
-          <textarea
-            value={note}
-            onChange={event => setNote(event.target.value)}
-            placeholder="ما الذي يجعلك تعتبر هذا التحصيل أو الالتزام معلنًا؟"
-          />
-        </label>
+        <details
+          className="micro-decision-layer micro-g5-details"
+          open={detailsOpen}
+          onToggle={event => setDetailsOpen(event.currentTarget.open)}
+        >
+          <summary className="micro-decision-layer-summary">
+            <span>
+              <b>تفاصيل الإعلان</b>
+              <small>المعرفة والربط والملاحظة عند الحاجة.</small>
+            </span>
+            <strong>افتح التفاصيل</strong>
+          </summary>
+          <label className="micro-field">
+            <span>درجة المعرفة</span>
+            <select
+              value={knowledge}
+              onChange={event => setKnowledge(event.target.value as "known" | "estimated" | "needs_review")}
+            >
+              <option value="known">معروف / مؤكد</option>
+              <option value="estimated">تقديري معلن</option>
+              <option value="needs_review">يحتاج مراجعة</option>
+            </select>
+          </label>
+          <label className="micro-field">
+            <span>
+              ربط اختياري بمصدر قائم{" "}
+              <small>{direction === "collection" ? "طلب له ذمة مسجلة" : "مصروف مستحق قائم"}</small>
+            </span>
+            <select
+              value={selectedLinkId ?? ""}
+              onChange={event => setSelectedLinkId(event.target.value || null)}
+            >
+              <option value="">بدون ربط — إعلان مستقل</option>
+              {linkOptions.map(option => (
+                <option key={option.id} value={option.id}>
+                  {option.label} · {formatMoneyMinor(option.amountMinor)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="micro-field">
+            <span>ملاحظة السياق</span>
+            <textarea
+              value={note}
+              onChange={event => setNote(event.target.value)}
+              placeholder="ما الذي يجعلك تعتبر هذا التحصيل أو الالتزام معلنًا؟"
+            />
+          </label>
+        </details>
         <p className="micro-local-truth">
           <CalendarClock aria-hidden="true" />
           <span>

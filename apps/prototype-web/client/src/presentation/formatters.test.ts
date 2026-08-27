@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatArabicPlural,
   formatBreakEvenDisplay,
   formatLocalDate,
   formatLocalDateLong,
@@ -15,6 +16,24 @@ describe("presentation formatters", () => {
     expect(formatMoneyMinor(-1250)).toBe("-12.50");
     expect(formatMoneyMinor(0)).toBe("0.00");
     expect(/[٠-٩]/.test(formatMoneyMinor(123456))).toBe(false);
+  });
+
+  it("uses Arabic plural forms for the boundary counts called out in M-22", () => {
+    const forms = {
+      zero: "لا طلبات",
+      one: "طلب واحد",
+      two: "طلبان",
+      few: "طلبات",
+      many: "طلبًا",
+      other: "طلب",
+    };
+    expect(formatArabicPlural(0, forms)).toBe("لا طلبات");
+    expect(formatArabicPlural(1, forms)).toBe("طلب واحد");
+    expect(formatArabicPlural(2, forms)).toBe("طلبان");
+    expect(formatArabicPlural(3, forms)).toBe("3 طلبات");
+    expect(formatArabicPlural(10, forms)).toBe("10 طلبات");
+    expect(formatArabicPlural(11, forms)).toBe("11 طلبًا");
+    expect(formatArabicPlural(100, forms)).toBe("100 طلب");
   });
 
   it("formats known local dates without letting RTL reorder the date", () => {
