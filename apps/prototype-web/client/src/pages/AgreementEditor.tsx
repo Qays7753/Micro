@@ -6,6 +6,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import {
   agreementPriceIsReady,
   applyProtectionPriceAsStart,
+  protectionPriceIsReadyForAgreement,
   startAgreementPrice,
 } from "@/application/agreements/agreementPrice";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -87,6 +88,10 @@ export default function AgreementEditor() {
   const snapshot = draft?.costSnapshots.find(item => item.id === draft.activeCostSnapshotId) ?? null;
   const preview = useMemo(() => (snapshot ? costs.previewStored(snapshot) : null), [costs, snapshot]);
   const protectionPriceMinor = preview?.ok ? preview.snapshot.priceFloorMinor * (draft?.quantity ?? 1) : null;
+  const canUseProtectionPrice = protectionPriceIsReadyForAgreement(
+    protectionPriceMinor,
+    preview?.ok ? preview.snapshot.knowledgeState : null,
+  );
   const isBelowFloor =
     protectionPriceMinor !== null && priceMinor !== null && priceMinor < protectionPriceMinor;
   const agreementPresentation = getAgreementPresentation({
@@ -165,6 +170,7 @@ export default function AgreementEditor() {
     if (storedId) navigate(`/orders/${storedId}`);
   }
   function useProtectionPriceAsStart() {
+    if (!canUseProtectionPrice) return;
     setPriceMinor(applyProtectionPriceAsStart(protectionPriceMinor));
     setIsPriceValid(true);
     setMessage(null);
@@ -187,14 +193,14 @@ export default function AgreementEditor() {
       <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
         <span>سعر الحماية المشتق من نسخة التكلفة (د.أ)</span>
         <strong>
-          <MoneyValue minor={protectionPriceMinor ?? 0} />
+          {canUseProtectionPrice ? <MoneyValue minor={protectionPriceMinor} /> : "غير متاح بعد"}
         </strong>
         <small>
-          {preview.snapshot.knowledgeState === "known"
+          {!canUseProtectionPrice
+            ? "وقت العمل أو بند مؤثر ما زال ناقصًا؛ لا نعرض هذه القراءة الجزئية كسعر حماية ولا نستخدمها لبداية الاتفاق."
+            : preview.snapshot.knowledgeState === "known"
             ? "قيمة مشتقة من التكلفة المسجلة، وليست السعر المتفق عليه."
-            : preview.snapshot.knowledgeState === "incomplete"
-              ? "قراءة جزئية من البنود المعروفة فقط؛ وقت العمل ناقص، فلا نعدّها سعر حماية كاملًا."
-              : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تثبيت السعر."}
+            : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تثبيت السعر."}
         </small>
       </section>
       <section className="micro-form-card">
@@ -218,7 +224,7 @@ export default function AgreementEditor() {
           <button
             className="micro-text-action"
             type="button"
-            disabled={protectionPriceMinor === null}
+            disabled={!canUseProtectionPrice}
             onClick={useProtectionPriceAsStart}
           >
             استخدم سعر الحماية كبداية
