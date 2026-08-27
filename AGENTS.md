@@ -24,6 +24,7 @@
 | IndexedDB أو LocalStore أو المسودات أو Export/Import | `docs/contracts/04-limited-sync-contract.md`، و`docs/implementation/02-domain-contract-coverage.md`، و`ai-skills/micro-local-first-prototype/`، مع إبقاء `localSchemaVersion` و`localExportVersion` تحت حارس صريح |
 | قبول Slice أو PR أو تسليم أو مراجعة Agent سابق | `docs/operations/agent-handoff-protocol-v1.md`، و`docs/operations/slice-handoff-template.md`، و`.github/pull_request_template.md`، و`docs/quality/cloud-code-first-read-findings-v1.md`، و`docs/quality/unified-audit-resolution-v1.md` |
 | Profiles أو Activity أو مشروع مختلط أو سياق نشاط | `docs/product/activity-profiles-and-hybrid-projects-v1.md`، ومراجع المنتج والسيناريوهات أعلاه؛ لا تُنشئ عقدًا أو ترحيلًا من الوثيقة وحدها |
+| `الخدمات` أو Micro Market أو Micro Delivery أو Supplier/Courier/Admin | `docs/expansion/README.md` ثم `docs/expansion/DECISIONS.md` و`docs/expansion/TRACKER.md` و`E00-EXECUTION-PROTOCOL.md`؛ اقرأ العقود 18–24 ومصفوفة الدور والسيناريو المتصل بالمهمة، ثم العقود المالية والسيناريوهات؛ لا تستخدم `historical-source/` كمرجع تنفيذ |
 
 هذه طبقات قراءة لا بدائل مختصرة للعقود. عند لمس أكثر من طبقة، تُجمع المسارات المشروطة كلها، وتظل العقود والسياسات المالية ومصفوفات التغطية والوثائق canonical إلزامية. لا تقرأ تقارير البحث التاريخية أو ملفات النظام القديم بوصفها سلطة حالية؛ استخدمها فقط إذا ذكرت سبب الحاجة إليها.
 
@@ -47,6 +48,8 @@
 Micro نظام إدارة مالية وتشغيلية كامل للمشروع وصاحب المشروع. هو عميق ماليًا ومحاسبيًا في الداخل، لكنه بسيط وعملي في تجربة المستخدم. يربط الحدث الواقعي بالتكلفة والطلب والربح والكاش والمخزون والذمم ومال المالك والقرار التالي، ويظهر درجة المعرفة بدل الدقة الزائفة.
 
 Micro ليس تطبيق طلبات فقط، وليس تطبيقًا تعليميًا، وليس ERP أو POS أو CRM عامًا. التوجيه داخل الحقل أو التقرير مساعدة مرتبطة بالعمل، وليس دورات أو LMS أو شرطًا لإكمال محتوى.
+
+عند توسعة Market أو Delivery، يبقى Micro منتجًا واحدًا للمالك وManage هو مركزه؛ `الخدمات` لوحة متابعة لا قائمة منتجات. لا يعني قبول عرض مورد أو تحديث توصيل أي أثر مالي أو مخزني تلقائي؛ سجل الواقع داخل Manage وحده وبفعل Owner صريح.
 
 ## 5. تعريف المراحل
 

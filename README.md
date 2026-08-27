@@ -8,9 +8,9 @@
 
 ## ما هذا المستودع الآن؟
 
-هذا المستودع يحتوي عقود المجال وDomain Core وPrototype Web محليًا في `apps/prototype-web/`، ويُدار بوصفه سلسلة شرائح مستقلة لا «نسخة نهائية». الحالة المنفذة وحدودها الدقيقة ليست ثابتة داخل README؛ مصدرها الحي هو [`docs/operations/current-state.md`](docs/operations/current-state.md). لا يحتوي PWA أو استضافة Cloudflare أو Native أو SaaS أو استقبال بيانات حقيقية، ولا نسخة من Accounting أو zman-app أو كود خارجي منقول.
+هذا المستودع يحتوي عقود المجال وDomain Core وPrototype Web محليًا في `apps/prototype-web/`، ويُدار بوصفه سلسلة شرائح مستقلة لا «نسخة نهائية». الحالة المنفذة وحدودها الدقيقة ليست ثابتة داخل README؛ مصدرها الحي هو [`docs/operations/current-state.md`](docs/operations/current-state.md). توجد PWA وتهيئة Cloudflare Pages ضمن حدود Prototype، لكن لم يُقبل Android/iOS أو standalone أو Offline الإنتاجي ميدانيًا بعد. لا يحتوي SaaS أو Auth أو Sync أو Cloud data أو استقبال بيانات حقيقية، ولا نسخة من Accounting أو zman-app أو كود خارجي منقول.
 
-إذا كنت Agent جديدًا، ابدأ من [`docs/operations/current-state.md`](docs/operations/current-state.md) ثم [`AGENTS.md`](AGENTS.md) و[`docs/operations/README.md`](docs/operations/README.md). بعد ذلك اقرأ [`docs/00-document-index.md`](docs/00-document-index.md)، ثم المرجع والعقد المتصلين بالمهمة فقط. ولتعريف Micro، راجع [`docs/product/problem-statement-v4.md`](docs/product/problem-statement-v4.md) و[`docs/product/system-definition-v1.md`](docs/product/system-definition-v1.md) و[`docs/product/user-operating-model-v1.md`](docs/product/user-operating-model-v1.md) و[`docs/product/activity-profiles-and-hybrid-projects-v1.md`](docs/product/activity-profiles-and-hybrid-projects-v1.md).
+إذا كنت Agent جديدًا، ابدأ من [`docs/operations/current-state.md`](docs/operations/current-state.md) ثم [`AGENTS.md`](AGENTS.md) و[`docs/operations/README.md`](docs/operations/README.md). بعد ذلك اقرأ [`docs/00-document-index.md`](docs/00-document-index.md)، ثم المرجع والعقد المتصلين بالمهمة فقط. ولتعريف Micro، راجع [`docs/product/problem-statement-v4.md`](docs/product/problem-statement-v4.md) و[`docs/product/system-definition-v1.md`](docs/product/system-definition-v1.md) و[`docs/product/user-operating-model-v1.md`](docs/product/user-operating-model-v1.md) و[`docs/product/activity-profiles-and-hybrid-projects-v1.md`](docs/product/activity-profiles-and-hybrid-projects-v1.md). وعند أي عمل على Market أو Delivery أو «الخدمات»، ابدأ أيضًا من [`docs/expansion/README.md`](docs/expansion/README.md)؛ لا تعامل الوثائق التاريخية أو التقارير الخارجية كتعليمات تنفيذ.
 
 ## المراجع الأساسية
 
@@ -26,6 +26,7 @@
 | `docs/scenarios/` | الشخصيات والحالات والأسئلة ونتائج الاختبار |
 | `docs/quality/scenario-coverage-matrix-v1.md` | ربط المشكلات بالسيناريوهات والقدرات |
 | `docs/research/jordan-financial-problems-evidence.md` | الأدلة الأردنية والخارجية وحدودها |
+| `docs/expansion/` | نقطة الدخول والقرارات والـTracker لتوسعة Market وDelivery؛ توثق فقط ولا تعني أن قدرة الشبكة منفذة حاليًا |
 | `ai-skills/` | حزمة المهارات المحمولة الخاصة بالمنتج |
 | `src/domain/craft-order/` | Domain Core للشريحة الأولى |
 | `tests/domain/` | اختبارات المجال القابلة للتشغيل |
