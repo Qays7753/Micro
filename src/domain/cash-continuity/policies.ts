@@ -62,6 +62,10 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
     throw new Error("حركة التحويل لا تحمل سبب تصحيح.");
   if (input.type === "reversal" && (!reason || !reversesEntryId))
     throw new Error("العكس يتطلب سببًا وحركة أصل صريحة.");
+  if (input.type === "transfer_out" && input.cashDeltaMinor > 0)
+    throw new Error("اتجاه التحويل لا يطابق الحركة؛ أدخل مبلغ تحويل موجبًا.");
+  if (input.type === "transfer_in" && input.cashDeltaMinor < 0)
+    throw new Error("اتجاه التحويل لا يطابق الحركة؛ أدخل مبلغ تحويل موجبًا.");
   if (input.type !== "reversal" && reversesEntryId)
     throw new Error("الربط بحركة أصل يخص سجلات العكس فقط.");
   return Object.freeze({

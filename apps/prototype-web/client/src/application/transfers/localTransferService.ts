@@ -1068,7 +1068,9 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       group.length !== 2 ||
       group.reduce((sum, entry) => sum + (entry.cashDeltaMinor as number), 0) !== 0 ||
       !group.some(entry => entry.type === "transfer_out") ||
-      !group.some(entry => entry.type === "transfer_in")
+      !group.some(entry => entry.type === "transfer_in") ||
+      group.some(entry => entry.type === "transfer_out" && (entry.cashDeltaMinor as number) > 0) ||
+      group.some(entry => entry.type === "transfer_in" && (entry.cashDeltaMinor as number) < 0)
     )
       return false;
   }
