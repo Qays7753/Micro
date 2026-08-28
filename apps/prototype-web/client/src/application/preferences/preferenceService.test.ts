@@ -39,4 +39,19 @@ describe("PreferenceService", () => {
       title: "التخزين الدائم مفعّل",
     });
   });
+
+  it("persists the install-banner dismissal across other preference writes", async () => {
+    let stamp = 0;
+    const service = new PreferenceService(new MemoryLocalStore(), () => `2026-08-2${stamp++}T09:00:00.000Z`);
+    await expect(service.readInstallBannerDismissal()).resolves.toEqual({ ok: true, dismissedAt: null });
+    await expect(service.saveInstallBannerDismissal()).resolves.toEqual({
+      ok: true,
+      dismissedAt: "2026-08-20T09:00:00.000Z",
+    });
+    await expect(service.save("dark")).resolves.toEqual({ ok: true, preference: "dark" });
+    await expect(service.readInstallBannerDismissal()).resolves.toEqual({
+      ok: true,
+      dismissedAt: "2026-08-20T09:00:00.000Z",
+    });
+  });
 });

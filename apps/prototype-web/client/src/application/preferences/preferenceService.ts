@@ -9,6 +9,8 @@ import { localPreferencesId, type LocalPreferences, type PrototypeLocalStore } f
 export type ThemePreference = LocalPreferences["theme"];
 export type PreferenceResult =
   { ok: true; preference: ThemePreference } | { ok: false; code: "storage_error"; message: string };
+export type InstallBannerDismissalResult =
+  { ok: true; dismissedAt: string | null } | { ok: false; code: "storage_error"; message: string };
 
 export class PreferenceService {
   constructor(
@@ -34,11 +36,35 @@ export class PreferenceService {
       dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
       workMode: current.value?.workMode ?? null,
       actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
+      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
       updatedAt: this.now(),
     });
     return result.ok
       ? { ok: true, preference: result.value.theme }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيل المظهر المحلي." };
+  }
+  async readInstallBannerDismissal(): Promise<InstallBannerDismissalResult> {
+    const result = await this.store.getPreferences();
+    return result.ok
+      ? { ok: true, dismissedAt: result.value?.installBannerDismissedAt ?? null }
+      : { ok: false, code: "storage_error", message: "تعذر قراءة حالة بطاقة التثبيت." };
+  }
+  async saveInstallBannerDismissal(): Promise<InstallBannerDismissalResult> {
+    const current = await this.store.getPreferences();
+    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة حالة بطاقة التثبيت." };
+    const dismissedAt = this.now();
+    const result = await this.store.savePreferences({
+      id: localPreferencesId,
+      theme: current.value?.theme ?? "system",
+      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
+      workMode: current.value?.workMode ?? null,
+      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
+      installBannerDismissedAt: dismissedAt,
+      updatedAt: dismissedAt,
+    });
+    return result.ok
+      ? { ok: true, dismissedAt: result.value.installBannerDismissedAt }
+      : { ok: false, code: "storage_error", message: "تعذر حفظ حالة بطاقة التثبيت." };
   }
 }
 

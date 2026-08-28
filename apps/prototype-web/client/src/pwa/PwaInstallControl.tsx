@@ -1,18 +1,37 @@
 import { Download, Share, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import {
   type BeforeInstallPromptEvent,
   isBeforeInstallPromptEvent,
   isIosSafari,
+  isInstallBannerDismissalActive,
   isStandaloneMode,
 } from "./install";
 
 export function PwaInstallControl() {
+  const { preferences } = usePrototypeServices();
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState(true);
   const [isIos, setIsIos] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [dismissedAt, setDismissedAt] = useState<string | null>(null);
+  const [hasLoadedDismissal, setHasLoadedDismissal] = useState(false);
   const [isPrompting, setIsPrompting] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void preferences
+      .readInstallBannerDismissal()
+      .then(result => {
+        if (active && result.ok) setDismissedAt(result.dismissedAt);
+      })
+      .finally(() => {
+        if (active) setHasLoadedDismissal(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [preferences]);
 
   useEffect(() => {
     setIsStandalone(isStandaloneMode());
@@ -21,14 +40,13 @@ export function PwaInstallControl() {
     function handleBeforeInstallPrompt(event: Event) {
       if (!isBeforeInstallPromptEvent(event) || isStandaloneMode()) return;
       event.preventDefault();
+      // عرض جديد من المتصفح لا يلغي إخفاءً ما زال داخل نافذة الثلاثين يومًا.
       setPromptEvent(event);
-      setIsDismissed(false);
     }
 
     function handleAppInstalled() {
       setPromptEvent(null);
       setIsStandalone(true);
-      setIsDismissed(true);
     }
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -39,6 +57,12 @@ export function PwaInstallControl() {
     };
   }, []);
 
+  async function dismissInstallBanner() {
+    setDismissedAt(new Date().toISOString());
+    const saved = await preferences.saveInstallBannerDismissal();
+    if (saved.ok) setDismissedAt(saved.dismissedAt);
+  }
+
   async function promptForInstall() {
     if (!promptEvent) return;
     setIsPrompting(true);
@@ -46,15 +70,16 @@ export function PwaInstallControl() {
       await promptEvent.prompt();
       await promptEvent.userChoice;
       setPromptEvent(null);
-      setIsDismissed(true);
+      await dismissInstallBanner();
     } finally {
       setIsPrompting(false);
     }
   }
 
+  const isDismissed = isInstallBannerDismissalActive(dismissedAt, new Date().toISOString());
   const showAndroidInstall = Boolean(promptEvent) && !isStandalone && !isDismissed;
   const showIosInstructions = isIos && !isStandalone && !showAndroidInstall && !isDismissed;
-  if (!showAndroidInstall && !showIosInstructions) return null;
+  if (!hasLoadedDismissal || (!showAndroidInstall && !showIosInstructions)) return null;
 
   return (
     <aside className="micro-install-control" aria-live="polite">
@@ -85,7 +110,7 @@ export function PwaInstallControl() {
           <button
             className="micro-icon-button"
             type="button"
-            onClick={() => setIsDismissed(true)}
+            onClick={() => void dismissInstallBanner()}
             aria-label="ليس الآن"
             title="ليس الآن"
           >

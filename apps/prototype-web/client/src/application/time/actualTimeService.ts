@@ -65,6 +65,7 @@ export class ActualTimeService {
       dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
       workMode: input.workMode,
       actualTimeTrackingEnabled: input.actualTimeTrackingEnabled,
+      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
       updatedAt: this.now(),
     });
     return saved.ok

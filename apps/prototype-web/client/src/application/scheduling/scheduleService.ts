@@ -267,6 +267,7 @@ export class ScheduleService {
       dailyScheduleCapacityMinutes: minutes,
       workMode: current.value?.workMode ?? null,
       actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
+      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
       updatedAt: this.now(),
     });
     return saved.ok
