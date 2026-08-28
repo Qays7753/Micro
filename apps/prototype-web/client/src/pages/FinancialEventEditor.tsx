@@ -186,7 +186,14 @@ export default function FinancialEventEditor() {
       return;
     }
     notifyDataChanged();
-    setMessage(result.reused ? "هذا الحدث محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ الحدث المالي محليًا.");
+    if (result.reused) {
+      setMessage(
+        "لم يُحفظ التعديل. هذا الحدث مسجل سابقًا بنفس المفتاح؛ للتصحيح اعكس الحدث الأصلي وسجّل حدثًا جديدًا.",
+      );
+      return;
+    }
+    setMessage("تم حفظ الحدث المالي محليًا.");
+    navigate("/finance");
   }
 
   return (
