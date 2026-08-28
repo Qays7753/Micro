@@ -16,6 +16,7 @@ import {
   type ShortCashResult,
 } from "@micro-domain/g5/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -213,25 +214,16 @@ function receivables(orders: readonly StoredCraftOrder[]) {
 }
 
 function payables(events: readonly FinancialEvent[], purchases: readonly SupplierPurchase[]) {
-  const settlements = new Map<string, number>();
-  for (const event of events)
-    if (
-      event.type === "payable_settlement_cash" &&
-      event.relatedEventId &&
-      event.correctionType !== "reverse"
-    )
-      settlements.set(event.relatedEventId, (settlements.get(event.relatedEventId) ?? 0) + event.amountMinor);
+  const reversedIds = reversedEventIds(events);
   const eventPayables = events
     .filter(
       event =>
         event.type === "operating_expense_payable" &&
         event.payableDeltaMinor > 0 &&
-        !events.some(
-          candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
-        ),
+        !reversedIds.has(event.id),
     )
     .flatMap(event => {
-      const outstanding = event.amountMinor - (settlements.get(event.id) ?? 0);
+      const outstanding = event.amountMinor - activeSettlementsMinor(events, event.id);
       return outstanding > 0
         ? [
             {
@@ -274,28 +266,16 @@ export class G5Service {
     const [orders, events] = await Promise.all([this.store.listOrders(), this.store.listFinancialEvents()]);
     if (!orders.ok || !events.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة الأرصدة القابلة للربط." };
-    const paidByEvent = new Map<string, number>();
-    for (const event of events.value)
-      if (
-        event.type === "payable_settlement_cash" &&
-        event.relatedEventId &&
-        event.correctionType !== "reverse"
-      )
-        paidByEvent.set(
-          event.relatedEventId,
-          (paidByEvent.get(event.relatedEventId) ?? 0) + event.amountMinor,
-        );
+    const reversedIds = reversedEventIds(events.value);
     const payableEvents = events.value
       .filter(
         event =>
           event.type === "operating_expense_payable" &&
           event.payableDeltaMinor > 0 &&
-          !events.value.some(
-            candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
-          ),
+          !reversedIds.has(event.id),
       )
       .flatMap(event => {
-        const amountMinor = event.amountMinor - (paidByEvent.get(event.id) ?? 0);
+        const amountMinor = event.amountMinor - activeSettlementsMinor(events.value, event.id);
         return amountMinor > 0 ? [{ id: event.id, label: event.note || event.id, amountMinor }] : [];
       });
     return {
@@ -477,14 +457,7 @@ export class G5Service {
         )
       )
         return { ok: false, code: "validation_error", message: "لا يمكن ربط إعلان بالتزام مالي عُكس." };
-      const paid = events.value
-        .filter(
-          candidate =>
-            candidate.type === "payable_settlement_cash" &&
-            candidate.relatedEventId === event.value!.id &&
-            candidate.correctionType !== "reverse",
-        )
-        .reduce((sum, candidate) => sum + candidate.amountMinor, 0);
+      const paid = activeSettlementsMinor(events.value, event.value!.id);
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid)
         return {

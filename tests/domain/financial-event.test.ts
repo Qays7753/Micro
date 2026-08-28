@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeSettlementsMinor,
   createFinancialEvent,
   createFinancialReversal,
+  reversedEventIds,
   summarizeFinancialEvents,
 } from "../../src/domain/financial-event/index.js";
 
@@ -377,5 +379,59 @@ describe("financial event domain core", () => {
         },
       }),
     ).toThrow("amountMinor");
+  });
+});
+
+describe("active settlements against a payable", () => {
+  const payable = createFinancialEvent({
+    ...base,
+    id: "payable",
+    type: "operating_expense_payable",
+    amountMinor: 10000,
+    idempotencyKey: "payable-1",
+  });
+  const settlement = createFinancialEvent({
+    ...base,
+    id: "settlement",
+    type: "payable_settlement_cash",
+    amountMinor: 6000,
+    idempotencyKey: "settlement-1",
+    relatedEventId: payable.id,
+  });
+  const settlementReversal = createFinancialReversal({
+    id: "settlement-reversal",
+    idempotencyKey: "settlement-reversal-1",
+    reason: "دفعة مسجلة بالخطأ",
+    occurredOn: "2026-08-24",
+    recordedAt: "2026-08-24T08:00:00.000Z",
+    sourceEvent: settlement,
+  });
+  it("counts a live settlement and excludes the reversal record itself", () => {
+    expect(activeSettlementsMinor([payable, settlement], payable.id)).toBe(6000);
+    expect(activeSettlementsMinor([payable, settlement, settlementReversal], payable.id)).toBe(0);
+    expect(reversedEventIds([payable, settlement, settlementReversal])).toEqual(new Set([settlement.id]));
+  });
+  it("restores the full commitment after a settlement reversal and counts a replacement settlement", () => {
+    const replacement = createFinancialEvent({
+      ...base,
+      id: "replacement-settlement",
+      type: "payable_settlement_cash",
+      amountMinor: 4000,
+      idempotencyKey: "replacement-1",
+      relatedEventId: payable.id,
+    });
+    const events = [payable, settlement, settlementReversal, replacement];
+    expect(activeSettlementsMinor(events, payable.id)).toBe(4000);
+    expect(payable.amountMinor - activeSettlementsMinor(events, payable.id)).toBe(6000);
+  });
+  it("never mixes settlements across commitments", () => {
+    const otherPayable = createFinancialEvent({
+      ...base,
+      id: "other-payable",
+      type: "operating_expense_payable",
+      amountMinor: 3000,
+      idempotencyKey: "other-payable-1",
+    });
+    expect(activeSettlementsMinor([payable, otherPayable, settlement], otherPayable.id)).toBe(0);
   });
 });

@@ -341,3 +341,43 @@ describe("G5 Application service", () => {
     expect(retry).toMatchObject({ ok: true, reused: true, value: { kind: "reversal" } });
   });
 });
+
+describe("G5 payable link options after a settlement reversal (A-01)", () => {
+  it("shows the full commitment remaining after a mistaken settlement was reversed", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const payable = await finance.record({
+      type: "operating_expense_payable",
+      amountMinor: 10000,
+      occurredOn: "2026-08-01",
+      note: "التزام مورد",
+      counterparty: "مورد",
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "a01-g5-payable",
+    });
+    const settlement = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 6000,
+      occurredOn: "2026-08-02",
+      note: "دفعة خطأ",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-g5-settle",
+    });
+    await finance.reverse({
+      sourceEventId: settlement.ok ? settlement.value.id : "",
+      reason: "دفعة مسجلة بالخطأ",
+      occurredOn: "2026-08-03",
+      idempotencyKey: "a01-g5-reverse",
+    });
+    const g5 = new G5Service(store, finance, now);
+    const options = await g5.listLinkOptions();
+    expect(options).toMatchObject({
+      ok: true,
+      value: {
+        payableEvents: [{ id: payable.ok ? payable.value.id : "", amountMinor: 10000 }],
+      },
+    });
+  });
+});

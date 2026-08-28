@@ -1367,3 +1367,84 @@ describe("ProjectFinancialService", () => {
     });
   });
 });
+
+describe("ProjectFinancialService payable settlements after a reversal (A-01)", () => {
+  async function commitmentWithMistakenSettlement() {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const payable = await finance.record({
+      type: "operating_expense_payable",
+      amountMinor: 10000,
+      occurredOn: "2026-08-01",
+      note: "التزام مورد",
+      counterparty: "مورد",
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "a01-payable",
+    });
+    const settlement = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 6000,
+      occurredOn: "2026-08-02",
+      note: "دفعة خطأ",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-settle",
+    });
+    const reversal = await finance.reverse({
+      sourceEventId: settlement.ok ? settlement.value.id : "",
+      reason: "دفعة مسجلة بالخطأ",
+      occurredOn: "2026-08-03",
+      idempotencyKey: "a01-reverse",
+    });
+    return { store, finance, payable, settlement, reversal };
+  }
+  it("keeps all three surfaces at the full remaining 10000 after a settlement reversal", async () => {
+    const { finance, payable } = await commitmentWithMistakenSettlement();
+    const payables = await finance.listSettleablePayables();
+    expect(payables.ok).toBe(true);
+    const listed = payables.ok
+      ? payables.value.find(item => item.event.id === (payable.ok ? payable.value.id : ""))
+      : undefined;
+    expect(listed?.remainingMinor).toBe(10000);
+    const retry = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 10000,
+      occurredOn: "2026-08-04",
+      note: "الدفعة الصحيحة",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-retry",
+    });
+    expect(retry.ok).toBe(true);
+    const afterFullSettlement = await finance.listSettleablePayables();
+    expect(
+      afterFullSettlement.ok
+        ? afterFullSettlement.value.some(item => item.event.id === (payable.ok ? payable.value.id : ""))
+        : true,
+    ).toBe(false);
+  });
+  it("still rejects settlements beyond the remaining when a real settlement stands", async () => {
+    const { finance, payable } = await commitmentWithMistakenSettlement();
+    await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 4000,
+      occurredOn: "2026-08-04",
+      note: "دفعة جزئية",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-partial",
+    });
+    const beyond = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 6001,
+      occurredOn: "2026-08-05",
+      note: "تجاوز",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-beyond",
+    });
+    expect(beyond.ok).toBe(false);
+    if (!beyond.ok) expect(beyond.code).toBe("validation_error");
+  });
+});

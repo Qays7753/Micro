@@ -1,14 +1,14 @@
 /** Micro G3 UI: phone-first RTL form; one financial action, explicit knowledge, and no hidden allocation. */
 /* مبدأ Micro: يشرح الحدث المالي أثره المحلي بوضوح، ولا يختلط عرضه مع نتيجة الطلب أو الربح. */
 import { ArrowRight, Save } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useLocation, useParams } from "wouter";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import type { SettleablePayable } from "@/application/finance/projectFinancialService";
 import type {
-  FinancialEvent,
   FinancialEventType,
   OperatingExpenseContext,
   SharedProjectShareBasis,
@@ -93,35 +93,17 @@ export default function FinancialEventEditor() {
   const [knowledge, setKnowledge] = useState<OperatingExpenseContext["knowledge"]>("known");
   const [sharedMode, setSharedMode] = useState<SharedMode>("fixed");
   const [sharedNote, setSharedNote] = useState("");
-  const [events, setEvents] = useState<readonly FinancialEvent[]>([]);
+  const [payableOptions, setPayableOptions] = useState<readonly SettleablePayable[]>([]);
   const [relatedEventId, setRelatedEventId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const idempotencyKey = useRef(`finance-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
   useEffect(() => {
-    projectFinance.listEvents().then(result => {
-      if (result.ok) setEvents(result.value);
+    projectFinance.listSettleablePayables().then(result => {
+      if (result.ok) setPayableOptions(result.value);
     });
   }, [projectFinance]);
-  const payableOptions = useMemo(
-    () =>
-      events
-        .filter(event => event.type === "operating_expense_payable")
-        .map(event => ({
-          event,
-          remaining:
-            event.amountMinor -
-            events
-              .filter(
-                candidate =>
-                  candidate.type === "payable_settlement_cash" && candidate.relatedEventId === event.id,
-              )
-              .reduce((sum, candidate) => sum + candidate.amountMinor, 0),
-        }))
-        .filter(item => item.remaining > 0),
-    [events],
-  );
 
   if (!type)
     return (
@@ -311,9 +293,9 @@ export default function FinancialEventEditor() {
             <span>الالتزام الذي تسدده (المبالغ د.أ)</span>
             <select value={relatedEventId} onChange={event => setRelatedEventId(event.target.value)}>
               <option value="">اختر التزامًا مسجلًا</option>
-              {payableOptions.map(({ event, remaining }) => (
+              {payableOptions.map(({ event, remainingMinor }) => (
                 <option key={event.id} value={event.id}>
-                  {event.note} · المتبقي {formatMoneyOption(remaining)}
+                  {event.note} · المتبقي {formatMoneyOption(remainingMinor)}
                 </option>
               ))}
             </select>

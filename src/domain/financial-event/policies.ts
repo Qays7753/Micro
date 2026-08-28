@@ -273,6 +273,29 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
   });
 }
 
+/** Ids of events whose economic effect a live reversal cancels. A reversal is itself never reversible, so no recursion is needed. */
+export function reversedEventIds(events: readonly FinancialEvent[]): ReadonlySet<string> {
+  return new Set(
+    events.flatMap(event =>
+      event.correctionType === "reverse" && event.correctionOfEventId ? [event.correctionOfEventId] : [],
+    ),
+  );
+}
+
+/** Settlements still counting against a payable: neither reversal records nor the settlements they cancelled. */
+export function activeSettlementsMinor(events: readonly FinancialEvent[], payableId: string): number {
+  const reversedIds = reversedEventIds(events);
+  return events
+    .filter(
+      event =>
+        event.type === "payable_settlement_cash" &&
+        event.relatedEventId === payableId &&
+        event.correctionType !== "reverse" &&
+        !reversedIds.has(event.id),
+    )
+    .reduce((sum, event) => sum + event.amountMinor, 0);
+}
+
 export function summarizeFinancialEvents(events: readonly FinancialEvent[]): FinancialEventTotals {
   return events.reduce<FinancialEventTotals>(
     (totals, event) => ({

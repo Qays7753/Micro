@@ -3,9 +3,11 @@
  * collections and receivables without turning either into project profit or unrecorded cash.
  */
 import {
+  activeSettlementsMinor,
   calculateSharedProjectShareMinor,
   createFinancialEvent,
   createFinancialReversal,
+  reversedEventIds,
   summarizeFinancialEvents,
   type FinancialEvent,
   type FinancialEventType,
@@ -128,6 +130,7 @@ export type FinancialReversalInput = {
   reason: string;
   idempotencyKey: string;
 };
+export type SettleablePayable = { event: FinancialEvent; remainingMinor: number };
 export type FinanceResult<T> =
   | { ok: true; value: T; reused?: boolean }
   | { ok: false; code: "validation_error" | "storage_error"; message: string };
@@ -343,6 +346,27 @@ export class ProjectFinancialService {
     return result.ok
       ? { ok: true, value: result.value }
       : { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+  }
+
+  async listSettleablePayables(): Promise<FinanceResult<readonly SettleablePayable[]>> {
+    const events = await this.store.listFinancialEvents();
+    if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    const reversedIds = reversedEventIds(events.value);
+    return {
+      ok: true,
+      value: events.value
+        .filter(
+          event =>
+            event.type === "operating_expense_payable" &&
+            event.payableDeltaMinor > 0 &&
+            !reversedIds.has(event.id),
+        )
+        .map(event => ({
+          event,
+          remainingMinor: event.amountMinor - activeSettlementsMinor(events.value, event.id),
+        }))
+        .filter(payable => payable.remainingMinor > 0),
+    };
   }
 
   async readRecordedPeriodResult(from: string, to: string): Promise<FinanceResult<RecordedPeriodResult>> {
@@ -825,9 +849,7 @@ export class ProjectFinancialService {
       const source = existing.value.find(event => event.id === input.relatedEventId);
       if (!source || source.type !== "operating_expense_payable")
         return { ok: false, code: "validation_error", message: "اختر التزام مصروف مسجلًا قبل تسجيل تسديده." };
-      const paid = existing.value
-        .filter(event => event.type === "payable_settlement_cash" && event.relatedEventId === source.id)
-        .reduce((sum, event) => sum + event.amountMinor, 0);
+      const paid = activeSettlementsMinor(existing.value, source.id);
       if (amountMinor > source.amountMinor - paid)
         return {
           ok: false,
