@@ -20,6 +20,7 @@
 | قبول E-00 التوثيقي | `E00-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` وTracker وChecklist المراجعة. | مراجعة مستقلة لرأس موثق وروابط/نطاق وفحوص مشروع. | مكتمل توثيقيًا؛ L-00 ما زالت مشروطة. | لا يساوي قبول وثائق بتجربة بيت أو A أو Pilot. |
 | جاهزية التشغيل والثقة قبل التفعيل | `ACTIVATION-OPERATIONAL-READINESS-AND-SAFETY-GATE.md` و`E00-12-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` مع العقود 18–24 وSOPs. | OR-01…OR-07، مراجعة دعم/incident/release/accessibility/measurement قبل A/B. | E-00.12 مقبولة توثيقيًا؛ ثم A/B حسب الدليل. | لا SLA أو مزود أو دعم شامل أو Analytics أو امتثال قانوني مفترض. |
 | السيولة والنموذج التجاري | `COMMERCIAL-LIQUIDITY-AND-MODEL-DECISION-CARD.md` و`E00-13-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` وبطاقة Wedge وPilot SOP و`DECISIONS` EX-O06…EX-O08. | تفاعل ذري، عتبة نجاح/فشل، جهة بذرة، وقرار Build/Discovery/Defer/Reject. | E-00.13 مقبولة توثيقيًا؛ ثم L بعد قرار المالك. | لا سوق عام أو رسوم/عمولة/دفع أو ترتيب مدفوع أو توسع بسبب GMV/تسجيلات. |
+| توزيع Owner بين Market وDelivery | عقد IA و`DECISIONS` EX-D02/D10/D15…D17 والعقود 19–21 و24. | S-01…S-06A/S-09/S-15A و`E00-14-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-28.md`. | E-00.14 مقبولة توثيقيًا؛ ثم L-00 بعد Wedge. | لا صفحة خدمات مركزية أو UI مبكر أو Chat/Ranking/Ratings/دفع/GPS/Dispatch أو انتقال Manage تلقائي. |
 
 ## Action Points
 

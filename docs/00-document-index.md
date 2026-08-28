@@ -35,6 +35,7 @@
 | 12K | `docs/expansion/COMMERCIAL-LIQUIDITY-AND-MODEL-DECISION-CARD.md` | CURRENT / EXPANSION E-00.13 / OWNER DECISION REQUIRED | بطاقة تفاعل أول وسيولة ونموذج تجاري محتمل؛ لا رسوم أو دفع أو عمولة أو توسع قبل دليل وقرار مستقل |
 | 12L | `docs/expansion/E00-13-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` | CURRENT / EXPANSION E-00.13 ACCEPTANCE | دليل قبول مستقل لبطاقة السيولة والنموذج التجاري؛ يثبت اكتمال التوثيق لا قرار رسوم أو سوق أو دفع أو Pilot |
 | 12M | `docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md` | CURRENT / EXPANSION E-00.14 / IA ONLY | توزيع Owner: السوق في BottomNav والتوصيل من AppBar ومحتوى الشاشتين ونقاط الدخول؛ لا UI أو Domain أو LocalStore أو Auth/Cloud |
+| 12N | `docs/expansion/E00-14-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-28.md` | CURRENT / EXPANSION E-00.14 ACCEPTANCE | دليل قبول مستقل لتوزيعة السوق والتوصيل؛ يثبت اتساق التوثيق لا تنفيذ الواجهة أو Market/Delivery أو L/A/Pilot |
 | 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 | 15 | `docs/product/problem-statement-v4.md` | CURRENT / CANONICAL | المشكلة والأضرار والأسئلة، والنواة العامة والـProfiles والمشاريع المختلطة |
