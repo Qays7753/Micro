@@ -15,7 +15,7 @@
     "prototype:build": "pnpm --filter @micro/prototype-web build",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
-    "lint": "eslint src tests apps/prototype-web/client/src/pages apps/prototype-web/client/src/components",
+    "lint": "eslint src tests apps/prototype-web/client/src/pages apps/prototype-web/client/src/components --max-warnings 48",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build"
   },
   "devDependencies": {

@@ -68,10 +68,10 @@ export function MicroRouter() {
             <Route path="/inventory" component={InventoryMaterials} />
             <Route path="/catalog" component={Catalog} />
             <Route path="/finance" component={Finance} />
-            <Route path="/" component={Home} />
             <Route path="/orders" component={Orders} />
             <Route path="/review" component={Review} />
             <Route path="/settings" component={SettingsPage} />
+            <Route path="/" component={Home} />
             <Route component={NotFound} />
           </Switch>
         </StartupGate>
