@@ -118,15 +118,20 @@ export default function Finance() {
   const { projectFinance, ownerEntitlement, g5, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [fromMonth, setFromMonth] = useState(currentMonth);
   const [toMonth, setToMonth] = useState(currentMonth);
+  const [appliedRange, setAppliedRange] = useState({ from: currentMonth(), to: currentMonth() });
+  const [rangeInvalid, setRangeInvalid] = useState(false);
   const [state, setState] = useState<FinanceState>({ phase: "loading" });
   useEffect(() => {
     let active = true;
-    if (!validMonth(fromMonth) || !validMonth(toMonth) || fromMonth > toMonth) {
-      setState({ phase: "error", message: "اختر نطاقًا صحيحًا يبدأ من شهر لا يتجاوز شهر النهاية." });
+    const monthsUsable = validMonth(fromMonth) && validMonth(toMonth) && fromMonth <= toMonth;
+    setRangeInvalid(!monthsUsable);
+    if (!monthsUsable) {
+      // نطاق غير صالح هو خطأ حقل، لا خطأ شاشة: تبقى آخر قراءة صحيحة معروضة.
       return () => {
         active = false;
       };
     }
+    setAppliedRange({ from: fromMonth, to: toMonth });
     const from = monthBounds(fromMonth);
     const to = monthBounds(toMonth);
     Promise.all([
@@ -280,9 +285,14 @@ export default function Finance() {
               </label>
             </div>
           </div>
+          {rangeInvalid ? (
+            <p className="micro-field-error" role="status">
+              اختر نطاقًا يبدأ قبل نهايته؛ القراءة أدناه تبقى على آخر نطاق صحيح.
+            </p>
+          ) : null}
           <p className="micro-period-range-label">
-            النطاق المحدد: <bdi dir="ltr">{fromMonth}</bdi> — <bdi dir="ltr">{toMonth}</bdi>. هذا رقم تشغيلي
-            مسجل من البنود المعروفة، وليس صافي ربح نهائيًا.
+            النطاق المحدد: <bdi dir="ltr">{appliedRange.from}</bdi> — <bdi dir="ltr">{appliedRange.to}</bdi>. هذا رقم
+            تشغيلي مسجل من البنود المعروفة، وليس صافي ربح نهائيًا.
           </p>
           <p className="micro-period-result-value">
             <span>
