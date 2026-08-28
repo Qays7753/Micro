@@ -477,6 +477,11 @@ export function collectRemaining(
   });
 }
 
+/** A customer debt exists only when the owner explicitly registered the remainder as debt; a receivable on a draft or un-agreed order is not one. */
+export function isRegisteredCustomerDebt(order: CraftOrder): boolean {
+  return order.settlementStatus === "debt" && order.receivableMinor > 0;
+}
+
 export function registerDebt(order: CraftOrder, idempotencyKey: string, createdAt: string): CraftOrder {
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, "debt_registered")) return order;

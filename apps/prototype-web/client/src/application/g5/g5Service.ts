@@ -17,6 +17,7 @@ import {
 } from "@micro-domain/g5/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
+import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -219,7 +220,7 @@ function expenseInputs(events: readonly FinancialEvent[], from: string, to: stri
 
 function receivables(orders: readonly StoredCraftOrder[]) {
   return orders
-    .filter(({ order }) => order.receivableMinor > 0)
+    .filter(({ order }) => isRegisteredCustomerDebt(order))
     .map(({ order }) => ({
       id: order.id,
       direction: "collection" as const,
@@ -298,7 +299,7 @@ export class G5Service {
       ok: true,
       value: {
         orders: orders.value
-          .filter(({ order }) => order.receivableMinor > 0)
+          .filter(({ order }) => isRegisteredCustomerDebt(order))
           .map(({ order }) => ({
             id: order.id,
             label: `${order.customerName} · ${order.itemName}`,
@@ -449,6 +450,8 @@ export class G5Service {
       const order = await this.store.getOrder(input.relatedOrderId);
       if (!order.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلب المرتبط." };
       if (!order.value) return { ok: false, code: "not_found", message: "الطلب المرتبط غير موجود." };
+      if (!isRegisteredCustomerDebt(order.value.order))
+        return { ok: false, code: "validation_error", message: "ربط الطلب مخصص لطلب له دين مسجل." };
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > order.value.order.receivableMinor)
         return {
