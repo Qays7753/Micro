@@ -451,10 +451,8 @@ export class G5Service {
       const events = await this.store.listFinancialEvents();
       if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر التحقق من رصيد الالتزام." };
       if (
-        events.value.some(
-          candidate =>
-            candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.value!.id,
-        )
+        event.value.correctionType === "reverse" ||
+        reversedEventIds(events.value).has(event.value.id)
       )
         return { ok: false, code: "validation_error", message: "لا يمكن ربط إعلان بالتزام مالي عُكس." };
       const paid = activeSettlementsMinor(events.value, event.value!.id);

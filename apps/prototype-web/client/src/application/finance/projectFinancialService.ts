@@ -849,6 +849,8 @@ export class ProjectFinancialService {
       const source = existing.value.find(event => event.id === input.relatedEventId);
       if (!source || source.type !== "operating_expense_payable")
         return { ok: false, code: "validation_error", message: "اختر التزام مصروف مسجلًا قبل تسجيل تسديده." };
+      if (source.correctionType === "reverse" || reversedEventIds(existing.value).has(source.id))
+        return { ok: false, code: "validation_error", message: "اختر التزامًا فعالًا غير معكوس." };
       const paid = activeSettlementsMinor(existing.value, source.id);
       if (amountMinor > source.amountMinor - paid)
         return {
