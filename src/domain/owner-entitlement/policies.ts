@@ -1,4 +1,4 @@
-import { fieldLabelAr } from "../shared/index.js";
+import { fieldLabelAr, quantityMilliExact, roundHalfUp } from "../shared/index.js";
 import type {
   OwnerEntitlementKnowledge,
   OwnerEntitlementOpeningBalance,
@@ -106,8 +106,8 @@ function localDayNumber(value: string) {
   return Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10)));
 }
 function inclusiveDays(from: string, to: string) {
-  // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): exact UTC-midnight day-span, not money; migrate to exact division.
-  return Math.round((localDayNumber(to) - localDayNumber(from)) / 86_400_000) + 1;
+  // Both bounds are UTC-midnight instants, so the difference is an exact whole number of days.
+  return (localDayNumber(to) - localDayNumber(from)) / 86_400_000 + 1;
 }
 function lastDayOfMonth(value: string) {
   const year = Number(value.slice(0, 4));
@@ -518,9 +518,19 @@ export function calculateOwnerEntitlement(
           "سجل مدة العمل بالدقائق مع مراجع سجل الوقت قبل اعتماد الاستحقاق " +
           "بالساعة؛ لا يتحول الوقت المجهول إلى صفر.",
       };
+    const timeAmountMinor = roundHalfUp(amount * minutes, 60);
+    if (timeAmountMinor === null)
+      return {
+        amountMinor: null,
+        knowledge: "incomplete",
+        baseMinor: minutes,
+        quantity: minutes,
+        calculationBasis: "time_period",
+        sourceKeys: keys,
+        nextAction: "المدة أو أجر الساعة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الاستحقاق.",
+      };
     return {
-      // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding.
-      amountMinor: Math.floor((amount * minutes) / 60),
+      amountMinor: timeAmountMinor,
       knowledge: "known",
       baseMinor: minutes,
       quantity: minutes,
@@ -585,9 +595,30 @@ export function calculateOwnerEntitlement(
         sourceKeys: [],
         nextAction: "احفظ مراجع الوحدات أو العمل المكتمل حتى لا يعاد احتساب المصدر نفسه.",
       };
+    const quantityMilli = quantityMilliExact(quantity);
+    if (quantityMilli === null)
+      return {
+        amountMinor: null,
+        knowledge: "incomplete",
+        baseMinor: amount,
+        quantity,
+        calculationBasis: "unit",
+        sourceKeys: keys,
+        nextAction: "سجل كمية الوحدات بدقة أجزاء من ألف؛ الدقة الأعلى غير ممثلة في هذا الإصدار.",
+      };
+    const unitAmountMinor = roundHalfUp(quantityMilli * amount, 1000);
+    if (unitAmountMinor === null)
+      return {
+        amountMinor: null,
+        knowledge: "incomplete",
+        baseMinor: amount,
+        quantity,
+        calculationBasis: "unit",
+        sourceKeys: keys,
+        nextAction: "كمية الوحدات أو سعر الوحدة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الاستحقاق.",
+      };
     return {
-      // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding.
-      amountMinor: Math.floor(amount * quantity),
+      amountMinor: unitAmountMinor,
       knowledge: "known",
       baseMinor: amount,
       quantity,
@@ -619,8 +650,17 @@ export function calculateOwnerEntitlement(
         sourceKeys: [],
         nextAction: "راجع أسباب نقص نتيجة G3 قبل تسجيل نسبة الاستحقاق؛ لا تعرض دقة كاذبة.",
       };
-    // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding.
-    const share = Math.floor((base * (policy.percentageBps ?? 0) + 5_000) / 10_000);
+    const share = roundHalfUp(base * (policy.percentageBps ?? 0), 10_000);
+    if (share === null)
+      return {
+        amountMinor: null,
+        knowledge: "incomplete",
+        baseMinor: base,
+        quantity: null,
+        calculationBasis: "profit_share",
+        sourceKeys: evidence.recognizedProfitKeys ?? [],
+        nextAction: "أساس الربح أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الاستحقاق.",
+      };
     if (share <= 0)
       return {
         amountMinor: null,
@@ -664,8 +704,17 @@ export function calculateOwnerEntitlement(
         sourceKeys: [],
         nextAction: "احفظ مراجع البيوع المكتملة حتى لا يعاد احتساب البيع نفسه.",
       };
-    // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding.
-    const share = Math.floor((base * (policy.percentageBps ?? 0) + 5_000) / 10_000);
+    const share = roundHalfUp(base * (policy.percentageBps ?? 0), 10_000);
+    if (share === null)
+      return {
+        amountMinor: null,
+        knowledge: "incomplete",
+        baseMinor: base,
+        quantity: null,
+        calculationBasis: "completed_sale_percentage",
+        sourceKeys: [],
+        nextAction: "أساس البيع أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الاستحقاق.",
+      };
     if (share <= 0)
       return {
         amountMinor: null,

@@ -91,7 +91,7 @@ describe("owner entitlement Domain", () => {
         idempotencyKey: "successor-unit",
         createdAt: "2026-09-01T08:00:00.000Z",
       }),
-    ).toThrow("unitLabel");
+    ).toThrow("تسمية الوحدة");
   });
 
   it("does not turn missing hourly time or missing units into zero", () => {
@@ -279,5 +279,56 @@ describe("owner entitlement Domain", () => {
         idempotencyKey: "bad",
       }),
     ).toThrow();
+  });
+});
+
+describe("entitlement rounding follows the shared half-up minor policy (A-07)", () => {
+  const period = { periodFrom: "2026-08-01", periodTo: "2026-08-31" };
+  it("rounds 91 minutes at 100 minor/hour to 152, not floor 151", () => {
+    const hourly = createOwnerEntitlementPolicy({
+      ...basePolicy,
+      id: "a07-hourly",
+      kind: "hourly",
+      amountMinor: 100,
+      idempotencyKey: "a07-hourly",
+    });
+    expect(
+      calculateOwnerEntitlement(hourly, { ...period, timeQuantity: 91, timeSourceKeys: ["time-1"] }),
+    ).toMatchObject({ amountMinor: 152, knowledge: "known" });
+  });
+  it("rounds a fractional unit quantity to the nearest minor unit and refuses sub-milli precision", () => {
+    const unit = createOwnerEntitlementPolicy({
+      ...basePolicy,
+      id: "a07-unit",
+      family: "unit",
+      kind: "per_unit",
+      amountMinor: 101,
+      unitLabel: "قطعة",
+      idempotencyKey: "a07-unit",
+    });
+    expect(
+      calculateOwnerEntitlement(unit, { ...period, unitQuantity: 2.5, unitSourceKeys: ["unit-1"] }),
+    ).toMatchObject({ amountMinor: 253, knowledge: "known" });
+    expect(
+      calculateOwnerEntitlement(unit, { ...period, unitQuantity: 1.0005, unitSourceKeys: ["unit-2"] }),
+    ).toMatchObject({ amountMinor: null, knowledge: "incomplete" });
+  });
+  it("keeps the percentage share identical to the previous hand-rolled half-up", () => {
+    const share = createOwnerEntitlementPolicy({
+      ...basePolicy,
+      id: "a07-share",
+      family: "completed_sale_percentage",
+      kind: "sale_percentage",
+      amountMinor: null,
+      percentageBps: 2_500,
+      idempotencyKey: "a07-share",
+    });
+    expect(
+      calculateOwnerEntitlement(share, {
+        ...period,
+        completedSaleMinor: 10_005,
+        completedSaleKeys: ["sale-1"],
+      }),
+    ).toMatchObject({ amountMinor: 2_501, knowledge: "known" });
   });
 });
