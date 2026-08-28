@@ -293,8 +293,18 @@ export class InventoryMaterialService {
     const purchase = purchases.value.find(candidate => candidate.id === input.purchaseId);
     if (!purchase)
       return { ok: false, code: "validation_error", message: "اختر شراء مواد موجودًا لاستلامه." };
+    const reversedMovementIds = new Set(
+      movements.value
+        .filter(movement => movement.type === "reversal" && movement.reversesMovementId)
+        .map(movement => movement.reversesMovementId),
+    );
     const receivedValue = movements.value
-      .filter(movement => movement.type === "purchase_receipt" && movement.purchaseId === input.purchaseId)
+      .filter(
+        movement =>
+          movement.type === "purchase_receipt" &&
+          movement.purchaseId === input.purchaseId &&
+          !reversedMovementIds.has(movement.id),
+      )
       .reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
     if (receivedValue + input.valueMinor > purchase.totalMinor)
       return {

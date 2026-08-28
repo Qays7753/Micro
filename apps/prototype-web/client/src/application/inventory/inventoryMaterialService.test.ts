@@ -240,3 +240,85 @@ describe("InventoryMaterialService", () => {
     });
   });
 });
+
+describe("InventoryMaterialService purchase receipt quota after a reversal (A-02)", () => {
+  async function purchaseWithReversedReceipt() {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-08-23T09:00:00.000Z");
+    const opened = await service.openMaterial({
+      name: "قماش",
+      unit: "meter",
+      openingQuantityMilli: 0,
+      openingValueMinor: 0,
+      occurredOn: "2026-08-01",
+      note: "افتتاح",
+      operationKey: "a02-material",
+    });
+    if (!opened.ok) throw new Error("material should open");
+    const purchase = createSupplierPurchase({
+      id: "a02-purchase",
+      supplierName: "مورد القماش",
+      note: "قماش",
+      purchasedOn: "2026-08-01",
+      dueOn: null,
+      totalMinor: 10000,
+      initialPaidMinor: 10000,
+      recordedAt: "2026-08-23T09:00:00.000Z",
+      idempotencyKey: "a02-purchase",
+    });
+    await store.saveSupplierPurchase(purchase);
+    const receipt = await service.receivePurchase({
+      materialId: opened.value.material.id,
+      purchaseId: purchase.id,
+      quantityMilli: 2000,
+      valueMinor: 10000,
+      occurredOn: "2026-08-02",
+      note: "استلام كامل",
+      operationKey: "a02-receipt",
+    });
+    if (!receipt.ok) throw new Error("receipt should save");
+    const reversal = await service.reverse({
+      movementId: receipt.value.id,
+      reason: "استلام خاطئ",
+      occurredOn: "2026-08-03",
+      operationKey: "a02-reverse",
+    });
+    if (!reversal.ok) throw new Error("reversal should save");
+    return { service, materialId: opened.value.material.id, purchaseId: purchase.id };
+  }
+  it("releases the full quota after the wrong receipt was reversed", async () => {
+    const { service, materialId, purchaseId } = await purchaseWithReversedReceipt();
+    const reReceipt = await service.receivePurchase({
+      materialId,
+      purchaseId,
+      quantityMilli: 2000,
+      valueMinor: 10000,
+      occurredOn: "2026-08-04",
+      note: "الاستلام الصحيح",
+      operationKey: "a02-re-receipt",
+    });
+    expect(reReceipt).toMatchObject({ ok: true, value: { valueDeltaMinor: 10000 } });
+  });
+  it("still rejects receiving beyond the purchase total once the corrected receipt stands", async () => {
+    const { service, materialId, purchaseId } = await purchaseWithReversedReceipt();
+    await service.receivePurchase({
+      materialId,
+      purchaseId,
+      quantityMilli: 2000,
+      valueMinor: 10000,
+      occurredOn: "2026-08-04",
+      note: "الاستلام الصحيح",
+      operationKey: "a02-re-receipt-2",
+    });
+    const beyond = await service.receivePurchase({
+      materialId,
+      purchaseId,
+      quantityMilli: 100,
+      valueMinor: 100,
+      occurredOn: "2026-08-05",
+      note: "تجاوز",
+      operationKey: "a02-beyond",
+    });
+    expect(beyond).toMatchObject({ ok: false, code: "validation_error" });
+  });
+});
