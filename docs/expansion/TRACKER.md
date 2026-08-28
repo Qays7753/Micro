@@ -9,7 +9,7 @@
 
 | المسار | الحالة | ما يوقفه |
 |---|---|---|
-| قرارات المنتج | معتمدة في [`DECISIONS.md`](DECISIONS.md) ومصالحـتها التوثيقية E-00.14 قيد القبول. | لا UI أو Domain أو LocalStore حتى قبول E-00.14 وقرار Wedge. |
+| قرارات المنتج | معتمدة في [`DECISIONS.md`](DECISIONS.md)، ومصالحة E-00.14 مقبولة توثيقيًا عبر PR #137 وسجل القبول في PR #138. | لا UI أو Domain أو LocalStore حتى قرار Wedge وL-00. |
 | برنامج UX G19–G23 | مغلق ومثبت في `current-state.md` وGitHub. | لا نعدل Home/App Shell/BottomNav للتوسعة قبل L-00 وwireframes وقرار Wedge. |
 | E-00 — عقود التوسعة | مسموح توثيقيًا الآن. | لا DB، Auth، API، UI، Schema/Export، أو dependencies. |
 | تجربة البيت L | لا تبدأ كودها حتى قبول E-00 واستقرار UX. | لا ادعاء أمن أو تعاون حي متعدد الأجهزة. |
