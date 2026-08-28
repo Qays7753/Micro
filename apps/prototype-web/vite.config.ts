@@ -238,17 +238,15 @@ const pwa = VitePWA({
   devOptions: { enabled: false },
 });
 
-const plugins = [
-  react(),
-  tailwindcss(),
-  vitePluginManusRuntime(),
-  vitePluginManusDebugCollector(),
-  vitePluginStorageProxy(),
-  pwa,
-];
+// أدوات بيئة التوليد ليست جزءًا من المنتج. تعمل في التطوير فقط، ولا تدخل
+// أي بناء إنتاجي. لتعطيلها في التطوير أيضًا: MICRO_DEV_TOOLS=0
+function devOnlyPlugins(mode: string) {
+  if (mode === "production" || process.env.MICRO_DEV_TOOLS === "0") return [];
+  return [vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
+}
 
-export default defineConfig({
-  plugins,
+export default defineConfig(({ mode }) => ({
+  plugins: [react(), tailwindcss(), ...devOnlyPlugins(mode), pwa],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -262,10 +260,15 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          "react-runtime": ["react", "react-dom", "wouter"],
-          "interaction-runtime": ["vaul", "sonner"],
-          iconography: ["lucide-react"],
+        // الشكل الكائني لا يضمن ترتيب الإسناد: vaul/sonner يستوردان React
+        // فيسحبانه إلى حزمتهما ويتسرب react-dom إلى حزمة التطبيق. الدالة
+        // تحسم الإسناد صراحة وتُبقي vendor في حزمة مستقرة لا تُبطل مع كل نشر.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler|wouter)[\\/]/.test(id)) return "react-runtime";
+          if (/[\\/]node_modules[\\/](vaul|sonner)[\\/]/.test(id)) return "interaction-runtime";
+          if (/[\\/]node_modules[\\/]lucide-react[\\/]/.test(id)) return "iconography";
+          return undefined;
         },
       },
     },
@@ -292,4 +295,4 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
-});
+}));

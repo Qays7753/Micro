@@ -2,6 +2,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { requestPersistentStorage } from "@/storage/local/persistentStorage";
 import type { StorageFailure } from "@/storage/local/types";
 
 export const isPublicLocalRecoveryRoute = (path: string) => path === "/setup" || path === "/settings";
@@ -36,6 +37,11 @@ export function StartupGate({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [storageFailure, setStorageFailure] = useState<StorageFailure | null>(null);
+  // P-01 الطبقة 0: يُطلب الدوام مرة عند الإقلاع. نتيجته لا تعطل الإقلاع ولا
+  // تُخزَّن؛ تُقرأ حيّة في الإعدادات، فلا schema ولا export يتغيران.
+  useEffect(() => {
+    void requestPersistentStorage();
+  }, []);
   useEffect(() => {
     let active = true;
     profiles.load().then(result => {
