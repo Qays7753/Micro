@@ -12,7 +12,7 @@ import type {
   OrderTransitionInput,
   ResultStatus,
 } from "./types.js";
-import { JOD, assertNonNegativeInteger } from "../shared/index.js";
+import { JOD, assertNonNegativeInteger, fieldLabelAr } from "../shared/index.js";
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   draft: ["provisional_agreement", "needs_review"],
@@ -29,30 +29,30 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
 
 function assertPositiveInteger(value: number, field: string): void {
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${field} must be a positive integer in minor currency units`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا بالوحدات الصغرى.`);
   }
 }
 
 function assertValidQuantity(value: number): void {
   if (!Number.isFinite(value) || value <= 0) {
-    throw new Error("quantity must be greater than zero");
+    throw new Error("أدخل الكمية رقمًا أكبر من صفر.");
   }
 }
 
 function assertValidDate(value: string, field: string): void {
   if (!value.trim() || Number.isNaN(Date.parse(value))) {
-    throw new Error(`${field} must be a valid date`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا صحيحًا.`);
   }
 }
 
 function assertFreshnessDays(value: number | null | undefined): void {
   if (value !== null && value !== undefined && (!Number.isInteger(value) || value < 0)) {
-    throw new Error("freshnessDays must be a non-negative integer");
+    throw new Error("أدخل أيام صلاحية السعر رقمًا صحيحًا غير سالب.");
   }
 }
 
 function assertIdempotencyKey(value: string): void {
-  if (!value.trim()) throw new Error("idempotencyKey must be non-blank");
+  if (!value.trim()) throw new Error("أكمل مفتاح العملية قبل الحفظ.");
 }
 
 function cloneCostSnapshotInput(input: CostSnapshotInput): CostSnapshotInput {
@@ -112,7 +112,7 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
 }
 
 export function calculateCostSnapshot(id: string, input: CostSnapshotInput): CostSnapshot {
-  if (!id.trim()) throw new Error("snapshot id is required");
+  if (!id.trim()) throw new Error("أكمل معرّف نسخة التكلفة قبل الحساب.");
   if (input.currency !== JOD) throw new Error("only JOD is supported in the first slice");
   assertValidQuantity(input.quantity);
   assertValidDate(input.createdAt, "createdAt");
@@ -124,13 +124,13 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
 
   const materialCostMinor = input.materialItems.reduce((total, item) => {
     if (!item.name.trim() || !item.unit.trim()) {
-      throw new Error("material name and unit are required");
+      throw new Error("أكمل اسم المادة ووحدتها قبل الحساب.");
     }
     if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
-      throw new Error(`material quantity must be greater than zero: ${item.name}`);
+      throw new Error(`أدخل كمية المادة ${item.name} رقمًا أكبر من صفر.`);
     }
-    assertNonNegativeInteger(item.unitPriceMinor, `unitPriceMinor for ${item.name}`);
-    assertValidDate(item.priceDate, `priceDate for ${item.name}`);
+    assertNonNegativeInteger(item.unitPriceMinor, `سعر وحدة ${item.name}`);
+    assertValidDate(item.priceDate, `تاريخ سعر ${item.name}`);
     return total + Math.round(item.quantity * item.unitPriceMinor);
   }, 0);
 
@@ -138,7 +138,7 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
     ? (() => {
         const { minutes, hourlyRateMinor } = input.time!;
         if (minutes !== null && (!Number.isFinite(minutes) || minutes < 0)) {
-          throw new Error("time minutes must be non-negative");
+          throw new Error("أدخل دقائق الوقت رقمًا غير سالب.");
         }
         if (hourlyRateMinor !== null) {
           assertNonNegativeInteger(hourlyRateMinor, "hourlyRateMinor");
@@ -230,10 +230,10 @@ function resultStatusForKnowledge(knowledgeState: KnowledgeState): ResultStatus 
 }
 
 export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
-  if (!input.id.trim()) throw new Error("order id is required");
-  if (!input.customerName.trim()) throw new Error("customer name is required");
-  if (!input.itemName.trim()) throw new Error("item name is required");
-  if (!input.specifications.trim()) throw new Error("specifications are required");
+  if (!input.id.trim()) throw new Error("أكمل معرّف الطلب قبل الحفظ.");
+  if (!input.customerName.trim()) throw new Error("أكمل اسم العميل قبل الحفظ.");
+  if (!input.itemName.trim()) throw new Error("أكمل اسم العمل قبل الحفظ.");
+  if (!input.specifications.trim()) throw new Error("أكمل المواصفات قبل الحفظ.");
   assertValidQuantity(input.quantity);
   assertPositiveInteger(input.agreedPriceMinor, "agreedPriceMinor");
   assertSnapshotSelfConsistency(input.costSnapshot);
@@ -522,7 +522,7 @@ export function cancelOrder(
   if (order.status === "delivered" || order.status === "settled" || order.status === "cancelled") {
     throw new Error(`cannot cancel order in ${order.status} status`);
   }
-  if (!reason.trim()) throw new Error("cancellation reason is required");
+  if (!reason.trim()) throw new Error("أكمل سبب الإلغاء قبل الحفظ.");
 
   const hasDeposit = order.depositCollectedMinor > 0;
   const next: CraftOrder = {
@@ -571,8 +571,8 @@ function settleDeposit(
   if (order.depositSettlement !== "needs_review") {
     throw new Error("deposit settlement is already decided");
   }
-  if (!reason.trim()) throw new Error("deposit settlement reason is required");
-  assertPositiveInteger(amountMinor, "settlement amount");
+  if (!reason.trim()) throw new Error("أكمل سبب تسوية العربون قبل الحفظ.");
+  assertPositiveInteger(amountMinor, "مبلغ التسوية");
   if (amountMinor !== order.depositCollectedMinor) {
     throw new Error("settlement amount must equal the collected deposit");
   }

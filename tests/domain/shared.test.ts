@@ -123,6 +123,6 @@ describe("shared Domain policy vectors", () => {
     expect(addSafe(Number.MAX_SAFE_INTEGER, 1)).toBeNull();
     expect(isValidLocalDate("2026-02-30")).toBe(false);
     expect(isValidLocalDate("2026-02-28")).toBe(true);
-    expect(() => assertId("", "vectorId")).toThrow("vectorId is required");
+    expect(() => assertId("", "vectorId")).toThrow("أكمل vectorId قبل الحفظ.");
   });
 });

@@ -16,6 +16,7 @@ import {
   assertId,
   assertPositiveMinor,
   ceilRatio,
+  fieldLabelAr,
   isValidLocalDate,
   isValidTimestamp,
   roundHalfUp,
@@ -29,7 +30,7 @@ const EXPENSE_RELATIONSHIPS = ["project", "shared"] as const;
 const SHARE_BASES = ["agreed_fixed_share", "agreed_percentage", "owner_estimate", "needs_review"] as const;
 
 function assertDate(value: string, field: string): void {
-  if (!isValidLocalDate(value)) throw new Error(`${field} must be a valid local date`);
+  if (!isValidLocalDate(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 }
 
 function assertKnowledge(value: G5Knowledge): void {
@@ -55,7 +56,7 @@ export function createShortCashDeclaration(input: CreateShortCashDeclarationInpu
     assertId(input.relatedOrderId, "relatedOrderId");
   if (input.relatedEventId !== null && input.relatedEventId !== undefined)
     assertId(input.relatedEventId, "relatedEventId");
-  if (!isValidTimestamp(input.createdAt)) throw new Error("createdAt must be ISO-8601");
+  if (!isValidTimestamp(input.createdAt)) throw new Error("أدخل وقت الإنشاء وقتًا صحيحًا.");
   return Object.freeze({
     id: input.id.trim(),
     kind: "declaration",
@@ -78,7 +79,7 @@ export function createShortCashReversal(input: CreateShortCashReversalInput): Sh
   assertId(input.idempotencyKey, "idempotencyKey");
   assertId(input.note, "note");
   if (input.original.kind !== "declaration") throw new Error("only an active declaration can be reversed");
-  if (!isValidTimestamp(input.createdAt)) throw new Error("createdAt must be ISO-8601");
+  if (!isValidTimestamp(input.createdAt)) throw new Error("أدخل وقت الإنشاء وقتًا صحيحًا.");
   return Object.freeze({
     ...input.original,
     id: input.id.trim(),

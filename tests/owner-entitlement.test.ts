@@ -104,7 +104,7 @@ describe("owner entitlement Domain", () => {
         idempotencyKey: "successor-unit",
         createdAt: "2026-09-01T08:00:00.000Z",
       }),
-    ).toThrow("unitLabel");
+    ).toThrow("تسمية الوحدة");
   });
 
   it("requires complete local periods for monthly, weekly, and daily policies", () => {

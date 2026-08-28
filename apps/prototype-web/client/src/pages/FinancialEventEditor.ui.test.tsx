@@ -95,3 +95,33 @@ describe("FinancialEventEditor save honesty (U-02)", () => {
     expect(wouterMocks.navigate).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("FinancialEventEditor note requirement (U-04)", () => {
+  const record = vi.fn();
+
+  beforeEach(() => {
+    wouterMocks.navigate.mockClear();
+    record.mockReset();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("shows an Arabic message when the note is empty instead of reaching the domain", async () => {
+    const user = userEvent.setup();
+    mockedUsePrototypeServices.mockReturnValue({
+      projectFinance: {
+        record,
+        listSettleablePayables: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+      },
+      dataVersion: 0,
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    render(<FinancialEventEditor />);
+    await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
+    await user.click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    expect(screen.getByText("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.")).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+  });
+});

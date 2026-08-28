@@ -102,7 +102,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "bad-context",
         expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
       }),
-    ).toThrow("expenseContext");
+    ).toThrow("سياق المصروف يخص المصروفات التشغيلية فقط.");
   });
 
   it("rejects a shared-share basis that disagrees with knowledge or belongs to a project-only expense", () => {
@@ -121,7 +121,7 @@ describe("financial event domain core", () => {
           sharedProjectShare: { basis: "owner_estimate", note: null },
         },
       }),
-    ).toThrow("sharedProjectShare");
+    ).toThrow("حصة المصروف المشترك لا تطابق درجة المعرفة المعلنة.");
     expect(() =>
       createFinancialEvent({
         ...base,
@@ -137,7 +137,7 @@ describe("financial event domain core", () => {
           sharedProjectShare: { basis: "agreed_fixed_share", note: null },
         },
       }),
-    ).toThrow("sharedProjectShare");
+    ).toThrow("حصة المشروع المشتركة تخص المصروفات المشتركة فقط.");
   });
 
   it("rejects missing financial invariants instead of inferring zero or an unlinked payment", () => {
@@ -149,7 +149,7 @@ describe("financial event domain core", () => {
         amountMinor: 0,
         idempotencyKey: "bad",
       }),
-    ).toThrow("amountMinor");
+    ).toThrow("المبلغ");
     expect(() =>
       createFinancialEvent({
         ...base,
@@ -158,7 +158,7 @@ describe("financial event domain core", () => {
         amountMinor: 1,
         idempotencyKey: "bad-settlement",
       }),
-    ).toThrow("relatedEventId");
+    ).toThrow("تسديد الالتزام يتطلب التزامًا مرتبطًا.");
   });
 
   it("creates one full, linked reversal for every supported general event type without mutating the original", () => {
@@ -221,7 +221,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "blank-reason",
         reason: " ",
       }),
-    ).toThrow("reason");
+    ).toThrow("السبب");
     expect(() =>
       createFinancialReversal({
         id: "bad-date",
@@ -231,7 +231,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "bad-date",
         reason: "سبب",
       }),
-    ).toThrow("occurredOn");
+    ).toThrow("تاريخ الحركة");
     const reversal = createFinancialReversal({
       id: "reversal",
       sourceEvent: source,
@@ -249,7 +249,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "double",
         reason: "سبب ثان",
       }),
-    ).toThrow("reversal");
+    ).toThrow("لا يمكن عكس سجل عكس سابق.");
   });
 
   it("calculates and preserves a shared percentage in minor JOD units", () => {
@@ -308,7 +308,7 @@ describe("financial event domain core", () => {
           },
         },
       }),
-    ).toThrow("amountMinor");
+    ).toThrow("المبلغ");
   });
 
   it("keeps an explicitly deferred shared total in cash/payables but out of operating result", () => {
@@ -378,7 +378,7 @@ describe("financial event domain core", () => {
           },
         },
       }),
-    ).toThrow("amountMinor");
+    ).toThrow("المبلغ");
   });
 });
 

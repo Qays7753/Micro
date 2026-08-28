@@ -1,3 +1,4 @@
+import { fieldLabelAr } from "../shared/index.js";
 import type {
   CashContinuityEntry,
   CashContinuityEntryType,
@@ -8,14 +9,14 @@ import type {
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const assertNonBlank = (value: string, field: string) => {
-  if (!value.trim()) throw new Error(`${field} is required`);
+  if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 };
 const assertDate = (value: string, field: string) => {
   if (!DATE_PATTERN.test(value) || Number.isNaN(new Date(`${value}T12:00:00.000Z`).valueOf()))
-    throw new Error(`${field} must be a valid local date`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 };
 const assertIso = (value: string, field: string) => {
-  if (Number.isNaN(Date.parse(value))) throw new Error(`${field} must be ISO-8601`);
+  if (Number.isNaN(Date.parse(value))) throw new Error(`أدخل ${fieldLabelAr(field)} وقتًا صحيحًا.`);
 };
 
 export function createCashWallet(input: CreateCashWalletInput): CashWallet {
@@ -24,7 +25,7 @@ export function createCashWallet(input: CreateCashWalletInput): CashWallet {
   assertNonBlank(input.createdOperationKey, "createdOperationKey");
   assertIso(input.createdAt, "createdAt");
   if (!(["cash_drawer", "bank_account", "digital_wallet", "other"] as const).includes(input.kind))
-    throw new Error("kind is invalid");
+    throw new Error("نوع المحفظة غير صالح.");
   return Object.freeze({
     id: input.id,
     name: input.name.trim(),
@@ -42,7 +43,7 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
   assertDate(input.occurredOn, "occurredOn");
   assertIso(input.recordedAt, "recordedAt");
   if (!Number.isInteger(input.cashDeltaMinor) || input.cashDeltaMinor === 0)
-    throw new Error("cashDeltaMinor must be a non-zero integer");
+    throw new Error("أدخل فرق الكاش رقمًا صحيحًا غير صفري.");
   const reason = input.reason?.trim() || null;
   const transferId = input.transferId?.trim() || null;
   const reversesEntryId = input.reversesEntryId?.trim() || null;
@@ -51,18 +52,18 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
       input.type,
     )
   )
-    throw new Error("type is invalid");
+    throw new Error("نوع الحركة غير صالح.");
   if (input.type === "opening_balance" && input.cashDeltaMinor < 0)
-    throw new Error("opening balance cannot be negative");
-  if (input.type === "cash_adjustment" && !reason) throw new Error("cash adjustment requires a reason");
+    throw new Error("رصيد الافتتاح لا يمكن أن يكون سالبًا.");
+  if (input.type === "cash_adjustment" && !reason) throw new Error("تسوية الكاش تتطلب سببًا موثقًا.");
   if ((input.type === "transfer_out" || input.type === "transfer_in") && !transferId)
-    throw new Error("transfer entry requires transferId");
+    throw new Error("حركة التحويل تتطلب معرف تحويل صريحًا.");
   if ((input.type === "transfer_out" || input.type === "transfer_in") && reason)
-    throw new Error("transfer entry cannot carry a correction reason");
+    throw new Error("حركة التحويل لا تحمل سبب تصحيح.");
   if (input.type === "reversal" && (!reason || !reversesEntryId))
-    throw new Error("reversal requires reason and reversesEntryId");
+    throw new Error("العكس يتطلب سببًا وحركة أصل صريحة.");
   if (input.type !== "reversal" && reversesEntryId)
-    throw new Error("only reversal may reference reversesEntryId");
+    throw new Error("الربط بحركة أصل يخص سجلات العكس فقط.");
   return Object.freeze({
     id: input.id,
     walletId: input.walletId,

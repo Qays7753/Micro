@@ -220,14 +220,14 @@ describe("craft-order domain core", () => {
           index === 0 ? { ...item, unitPriceMinor: -1 } : item,
         ),
       }),
-    ).toThrow("unitPriceMinor");
+    ).toThrow("سعر وحدة خشب");
 
     expect(() =>
       calculateCostSnapshot("cost-zero-quantity", {
         ...costSnapshot.input,
         quantity: 0,
       }),
-    ).toThrow("quantity must be greater than zero");
+    ).toThrow("أدخل الكمية رقمًا أكبر من صفر.");
   });
 
   it("marks stale prices only when an explicit freshness policy is supplied", () => {
@@ -329,7 +329,7 @@ describe("craft-order domain core", () => {
   it("requires a reason and preserves a cancellation event", () => {
     const order = makeOrder();
     expect(() => cancelOrder(order, "", "cancel-1", "2026-08-21T09:50:00Z")).toThrow(
-      "cancellation reason is required",
+      "أكمل سبب الإلغاء قبل الحفظ.",
     );
 
     const cancelled = cancelOrder(order, "الزبون غير المواصفات", "cancel-1", "2026-08-21T09:51:00Z");
@@ -515,7 +515,7 @@ describe("craft-order domain core", () => {
 
   it("rejects blank idempotency keys", () => {
     expect(() => collectDeposit(makeOrder(), 100, "   ", "2026-08-21T10:37:00Z")).toThrow(
-      "idempotencyKey must be non-blank",
+      "أكمل مفتاح العملية قبل الحفظ.",
     );
   });
 

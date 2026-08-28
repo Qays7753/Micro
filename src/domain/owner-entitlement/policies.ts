@@ -1,3 +1,4 @@
+import { fieldLabelAr } from "../shared/index.js";
 import type {
   OwnerEntitlementKnowledge,
   OwnerEntitlementOpeningBalance,
@@ -57,39 +58,39 @@ const familyByKind: Record<OwnerEntitlementPolicyKind, OwnerEntitlementPolicyFam
 };
 
 function nonBlank(value: string, field: string) {
-  if (!value.trim()) throw new Error(`${field} is required`);
+  if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 }
 function date(value: string, field: string) {
-  if (!DATE_PATTERN.test(value)) throw new Error(`${field} must be a valid local date`);
+  if (!DATE_PATTERN.test(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
   const [year, month, day] = value.split("-").map(Number);
   const parsed = new Date(Date.UTC(year!, month! - 1, day));
   if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month! - 1 || parsed.getUTCDate() !== day)
-    throw new Error(`${field} must be a valid local date`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 }
 function iso(value: string, field: string) {
-  if (Number.isNaN(Date.parse(value))) throw new Error(`${field} must be ISO-8601`);
+  if (Number.isNaN(Date.parse(value))) throw new Error(`أدخل ${fieldLabelAr(field)} وقتًا صحيحًا.`);
 }
 function positiveMinor(value: number | null, field: string) {
   if (value === null || !Number.isInteger(value) || value <= 0)
-    throw new Error(`${field} must be a positive integer or null`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا.`);
 }
 function optionalPositiveMinor(value: number | null, field: string) {
   if (value !== null && (!Number.isInteger(value) || value <= 0))
-    throw new Error(`${field} must be a positive integer or null`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا أو اتركه فارغًا.`);
 }
 function bps(value: number | null, field: string) {
   if (value !== null && (!Number.isInteger(value) || value < 1 || value > 10_000))
-    throw new Error(`${field} must be between 1 and 10000 or null`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} قيمة بين 1 و10000 أو اتركه فارغًا.`);
 }
 export function ownerEntitlementPolicyFamilyForKind(
   kind: OwnerEntitlementPolicyKind,
 ): OwnerEntitlementPolicyFamily {
-  if (!(policyKinds as readonly string[]).includes(kind)) throw new Error("policy kind is invalid");
+  if (!(policyKinds as readonly string[]).includes(kind)) throw new Error("نوع السياسة غير صالح.");
   return familyByKind[kind];
 }
 function assertPolicyFamily(kind: OwnerEntitlementPolicyKind, family: OwnerEntitlementPolicyFamily) {
   if (ownerEntitlementPolicyFamilyForKind(kind) !== family)
-    throw new Error("policy family does not match kind");
+    throw new Error("عائلة السياسة لا تطابق نوعها.");
 }
 function sourceKeys(value: readonly string[] | undefined | null, field: string) {
   const keys = value ?? [];
@@ -98,7 +99,7 @@ function sourceKeys(value: readonly string[] | undefined | null, field: string) 
     keys.some(key => typeof key !== "string" || !key.trim()) ||
     new Set(keys).size !== keys.length
   )
-    throw new Error(`${field} must contain unique non-empty strings`);
+    throw new Error(`${fieldLabelAr(field)} يجب أن يحوي قيمًا فريدة غير فارغة.`);
   return keys.map(key => key.trim());
 }
 function localDayNumber(value: string) {
@@ -124,18 +125,18 @@ export function createOwnerEntitlementPolicy(
   nonBlank(input.note, "note");
   nonBlank(input.idempotencyKey, "idempotencyKey");
   if (!Number.isInteger(input.version) || input.version < 1)
-    throw new Error("version must be a positive integer");
-  if (!(policyKinds as readonly string[]).includes(input.kind)) throw new Error("policy kind is invalid");
+    throw new Error("أدخل رقم النسخة رقمًا صحيحًا موجبًا.");
+  if (!(policyKinds as readonly string[]).includes(input.kind)) throw new Error("نوع السياسة غير صالح.");
   if (!(policyFamilies as readonly string[]).includes(input.family))
-    throw new Error("policy family is invalid");
+    throw new Error("عائلة السياسة غير صالحة.");
   assertPolicyFamily(input.kind, input.family);
   date(input.startsOn, "startsOn");
   if (input.endsOn !== null) date(input.endsOn, "endsOn");
-  if (input.endsOn && input.endsOn < input.startsOn) throw new Error("endsOn cannot precede startsOn");
+  if (input.endsOn && input.endsOn < input.startsOn) throw new Error("تاريخ النهاية لا يمكن أن يسبق تاريخ البداية.");
   if (input.kind === "fixed_period" && input.endsOn === null)
-    throw new Error("fixed_period policy requires an explicit endsOn");
-  if (input.status === "ended" && input.endsOn === null) throw new Error("ended policy requires endsOn");
-  if (input.status !== "active" && input.status !== "ended") throw new Error("policy status is invalid");
+    throw new Error("سياسة الفترة الثابتة تتطلب تاريخ نهاية صريحًا.");
+  if (input.status === "ended" && input.endsOn === null) throw new Error("السياسة المنتهية تتطلب تاريخ نهاية.");
+  if (input.status !== "active" && input.status !== "ended") throw new Error("حالة السياسة غير صالحة.");
   optionalPositiveMinor(input.amountMinor, "amountMinor");
   bps(input.percentageBps, "percentageBps");
   const amountKinds: readonly OwnerEntitlementPolicyKind[] = [
@@ -150,21 +151,21 @@ export function createOwnerEntitlementPolicy(
   ];
   const percentageKinds: readonly OwnerEntitlementPolicyKind[] = ["profit_share", "sale_percentage"];
   if (amountKinds.includes(input.kind) && input.amountMinor === null)
-    throw new Error("this policy requires a positive amountMinor");
+    throw new Error("هذه السياسة تتطلب مبلغًا صحيحًا موجبًا.");
   if (percentageKinds.includes(input.kind) && input.percentageBps === null)
-    throw new Error("this policy requires percentageBps");
+    throw new Error("هذه السياسة تتطلب نسبة صريحة.");
   if (amountKinds.includes(input.kind) && input.percentageBps !== null)
-    throw new Error("amount policy cannot declare percentageBps");
+    throw new Error("سياسة المبلغ لا تعلن نسبة.");
   if (percentageKinds.includes(input.kind) && input.amountMinor !== null)
-    throw new Error("percentage policy cannot declare amountMinor");
+    throw new Error("سياسة النسبة لا تعلن مبلغًا.");
   if (input.kind === "per_unit" || input.kind === "per_completed_work")
     nonBlank(input.unitLabel ?? "", "unitLabel");
   if (input.kind !== "per_unit" && input.kind !== "per_completed_work" && input.unitLabel !== null)
-    throw new Error("unitLabel is only valid for unit or completed work policies");
+    throw new Error("تسمية الوحدة تخص سياسات الوحدة أو العمل المكتمل فقط.");
   iso(input.createdAt, "createdAt");
   const seriesId = input.seriesId?.trim() || input.id;
   const successorOfPolicyId = input.successorOfPolicyId?.trim() || null;
-  if (successorOfPolicyId === input.id) throw new Error("policy cannot succeed itself");
+  if (successorOfPolicyId === input.id) throw new Error("السياسة لا تكون خليفة لنفسها.");
   return Object.freeze({
     ...input,
     seriesId,
@@ -184,7 +185,7 @@ export function createOwnerEntitlementPolicySuccessor(
     ...input,
     family: ownerEntitlementPolicyFamilyForKind(input.kind),
   });
-  if (!successor.successorOfPolicyId) throw new Error("policy successor requires successorOfPolicyId");
+  if (!successor.successorOfPolicyId) throw new Error("النسخة الجديدة تتطلب سياسة أصل صريحة.");
   return successor;
 }
 
@@ -194,25 +195,25 @@ export function createOwnerEntitlementRecord(input: OwnerEntitlementRecord): Own
   nonBlank(input.note, "note");
   nonBlank(input.idempotencyKey, "idempotencyKey");
   if (!Number.isInteger(input.policyVersion) || input.policyVersion < 1)
-    throw new Error("policyVersion must be a positive integer");
+    throw new Error("أدخل رقم نسخة السياسة رقمًا صحيحًا موجبًا.");
   date(input.periodFrom, "periodFrom");
   date(input.periodTo, "periodTo");
   date(input.occurredOn, "occurredOn");
-  if (input.periodFrom > input.periodTo) throw new Error("periodTo cannot precede periodFrom");
+  if (input.periodFrom > input.periodTo) throw new Error("نهاية الفترة لا يمكن أن تسبق بدايتها.");
   positiveMinor(input.amountMinor, "amountMinor");
   if (!(input.knowledge === "known" || input.knowledge === "estimated" || input.knowledge === "partial"))
-    throw new Error("knowledge is invalid");
+    throw new Error("درجة المعرفة غير صالحة.");
   if (!(policyFamilies as readonly string[]).includes(input.calculationBasis))
-    throw new Error("calculationBasis is invalid");
+    throw new Error("أساس الحساب غير صالح.");
   if (input.baseMinor !== null && (!Number.isInteger(input.baseMinor) || input.baseMinor < 0))
-    throw new Error("baseMinor must be a non-negative integer or null");
+    throw new Error("أدخل المبلغ الأساس رقمًا صحيحًا غير سالب أو اتركه فارغًا.");
   if (input.quantity !== null && (!Number.isFinite(input.quantity) || input.quantity <= 0))
-    throw new Error("quantity must be positive or null");
+    throw new Error("أدخل الكمية رقمًا موجبًا أو اتركها فارغة.");
   const keys = sourceKeys(input.sourceKeys, "sourceKeys");
   const reversalOfId = input.reversalOfId?.trim() || null;
-  if (reversalOfId === input.id) throw new Error("record cannot reverse itself");
+  if (reversalOfId === input.id) throw new Error("السجل لا يعكس نفسه.");
   if (reversalOfId === null && input.reversalReason !== null && input.reversalReason !== undefined)
-    throw new Error("original record cannot have a reversal reason");
+    throw new Error("السجل الأصلي لا يحمل سبب عكس.");
   if (reversalOfId !== null) nonBlank(input.reversalReason ?? "", "reversalReason");
   iso(input.recordedAt, "recordedAt");
   return Object.freeze({
@@ -232,7 +233,7 @@ export function createOwnerEntitlementRecordReversal(
   nonBlank(input.idempotencyKey, "idempotencyKey");
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
-  if (input.source.reversalOfId) throw new Error("cannot reverse a reversal");
+  if (input.source.reversalOfId) throw new Error("لا يمكن عكس سجل عكس سابق.");
   return Object.freeze({
     ...input.source,
     id: input.id,
@@ -253,13 +254,13 @@ export function createOwnerEntitlementOpeningBalance(
   nonBlank(input.note, "note");
   nonBlank(input.idempotencyKey, "idempotencyKey");
   if (!Number.isInteger(input.amountMinor) || input.amountMinor === 0)
-    throw new Error("opening balance must be a non-zero integer");
+    throw new Error("أدخل رصيد الافتتاح رقمًا صحيحًا غير صفري.");
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
   const reversalOfId = input.reversalOfId?.trim() || null;
-  if (reversalOfId === input.id) throw new Error("opening balance cannot reverse itself");
+  if (reversalOfId === input.id) throw new Error("رصيد الافتتاح لا يعكس نفسه.");
   if (reversalOfId === null && input.reversalReason !== null && input.reversalReason !== undefined)
-    throw new Error("original opening balance cannot have a reversal reason");
+    throw new Error("رصيد الافتتاح الأصلي لا يحمل سبب عكس.");
   if (reversalOfId !== null) nonBlank(input.reversalReason ?? "", "reversalReason");
   return Object.freeze({
     ...input,
@@ -278,7 +279,7 @@ export function createOwnerEntitlementOpeningBalanceReversal(
   nonBlank(input.idempotencyKey, "idempotencyKey");
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
-  if (input.source.reversalOfId) throw new Error("cannot reverse a reversal");
+  if (input.source.reversalOfId) throw new Error("لا يمكن عكس سجل عكس سابق.");
   return Object.freeze({
     ...input.source,
     id: input.id,
@@ -297,39 +298,39 @@ export function createOwnerMovement(input: CreateOwnerMovementInput): OwnerMovem
   nonBlank(input.note, "note");
   nonBlank(input.idempotencyKey, "idempotencyKey");
   if (!Number.isInteger(input.amountMinor) || input.amountMinor <= 0)
-    throw new Error("amountMinor must be a positive integer");
+    throw new Error("أدخل المبلغ رقمًا صحيحًا موجبًا.");
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
-  if (input.kind !== "draw" && input.kind !== "return") throw new Error("movement kind is invalid");
+  if (input.kind !== "draw" && input.kind !== "return") throw new Error("نوع حركة المالك غير صالح.");
   if (!(movementReasons as readonly string[]).includes(input.reason))
-    throw new Error("movement reason is invalid");
+    throw new Error("سبب الحركة غير صالح.");
   if (
     input.kind === "draw" &&
     (input.reason === "settlement_of_prior_draw" || input.reason === "new_capital_investment")
   )
-    throw new Error("draw reason is invalid");
+    throw new Error("سبب السحب غير صالح.");
   if (
     input.kind === "return" &&
     (input.reason === "entitlement_settlement" ||
       input.reason === "pre_entitlement_draw" ||
       input.reason === "owner_draw")
   )
-    throw new Error("return reason is invalid");
+    throw new Error("سبب الإرجاع غير صالح.");
   const relatedEntitlementId = input.relatedEntitlementId?.trim() || null;
   const relatedOpeningBalanceId = input.relatedOpeningBalanceId?.trim() || null;
   const relatedMovementId = input.relatedMovementId?.trim() || null;
   if (input.reason === "entitlement_settlement" && !relatedEntitlementId)
-    throw new Error("entitlement settlement requires relatedEntitlementId");
+    throw new Error("تسوية الحق تتطلب حقًا مسجلًا مرتبطًا.");
   if (input.reason !== "entitlement_settlement" && relatedEntitlementId)
-    throw new Error("only entitlement settlement may reference relatedEntitlementId");
+    throw new Error("الربط بحق مسجل يخص تسوية الحقوق فقط.");
   if (input.reason === "opening_balance_settlement" && !relatedOpeningBalanceId)
-    throw new Error("opening balance settlement requires relatedOpeningBalanceId");
+    throw new Error("تسوية رصيد الافتتاح تتطلب رصيدًا مرتبطًا صريحًا.");
   if (input.reason !== "opening_balance_settlement" && relatedOpeningBalanceId)
-    throw new Error("only opening balance settlement may reference relatedOpeningBalanceId");
+    throw new Error("الربط برصيد افتتاح يخص تسوياته فقط.");
   if (input.reason === "settlement_of_prior_draw" && !relatedMovementId)
-    throw new Error("draw settlement requires relatedMovementId");
+    throw new Error("تسوية السحب تتطلب حركة مرتبطة صريحة.");
   if (input.reason !== "settlement_of_prior_draw" && relatedMovementId)
-    throw new Error("only draw settlement may reference relatedMovementId");
+    throw new Error("الربط بحركة سحب يخص تسوياتها فقط.");
   const entitlementDeltaMinor =
     input.reason === "entitlement_settlement"
       ? -input.amountMinor
@@ -378,7 +379,7 @@ export function createOwnerMovementReversal(input: CreateOwnerMovementReversalIn
   nonBlank(input.idempotencyKey, "idempotencyKey");
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
-  if (input.source.reversalOfId) throw new Error("cannot reverse a reversal");
+  if (input.source.reversalOfId) throw new Error("لا يمكن عكس سجل عكس سابق.");
   return Object.freeze({
     ...input.source,
     id: input.id,
@@ -431,7 +432,7 @@ export function calculateOwnerEntitlement(
 ): OwnerEntitlementCalculation {
   date(evidence.periodFrom, "periodFrom");
   date(evidence.periodTo, "periodTo");
-  if (evidence.periodFrom > evidence.periodTo) throw new Error("periodTo cannot precede periodFrom");
+  if (evidence.periodFrom > evidence.periodTo) throw new Error("نهاية الفترة لا يمكن أن تسبق بدايتها.");
   if (!isPolicyEffective(policy, evidence.periodFrom, evidence.periodTo))
     return {
       amountMinor: null,

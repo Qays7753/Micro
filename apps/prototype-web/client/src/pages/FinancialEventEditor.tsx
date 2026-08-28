@@ -156,6 +156,10 @@ export default function FinancialEventEditor() {
       );
       return;
     }
+    if (!note.trim()) {
+      setMessage("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.");
+      return;
+    }
     setMessage(null);
     setSaving(true);
     const sharedExpense = isShared
@@ -309,7 +313,7 @@ export default function FinancialEventEditor() {
           </label>
         ) : null}
         <label className="micro-field">
-          <span>ما الذي حدث؟</span>
+          <span>ما الذي حدث؟ (مطلوب)</span>
           <textarea
             value={note}
             onChange={event => setNote(event.target.value)}
