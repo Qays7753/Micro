@@ -1,7 +1,7 @@
 # Expansion — بوابة Migration وExport بين Manage والشبكة
 
 **الحالة:** `CURRENT / DECISION: NO MANAGE MIGRATION`
-**الغرض:** منع تغير schema/export أو نقل بيانات مالية باسم «ربط الخدمات» من دون عقد ومراجعة مستقلة.
+**الغرض:** منع تغير schema/export أو نقل بيانات مالية باسم ربط Market أو Delivery من دون عقد ومراجعة مستقلة.
 
 ## Major Discussion Points
 
@@ -17,7 +17,7 @@
 |---|---:|---|
 | إضافة Domain/Storage محلي جديد لـL | نعم. | يغير Schema/Export/Restore أو يحتاج قرارًا صريحًا «لا تغيير» مثبتًا. |
 | ربط Need باسم مادة مختارة | نعم، إذا خزّن رابطًا في Manage. | يجب تحديد تاريخية الرابط وExport/Import وغياب المادة. |
-| عرض Notification متصل في الخدمات | لا في Manage Schema إن كان منفصلًا تمامًا. | لا ينسخ سجل الشبكة ولا يعدل مالًا؛ يحتاج عقد Network فقط. |
+| عرض Attention/Notification متصل داخل Market أو Delivery | لا في Manage Schema إن كان منفصلًا تمامًا. | لا ينسخ سجل الشبكة ولا يعدل مالًا؛ يحتاج عقد Network فقط. |
 | اقتراح تسجيل Expense/Purchase/Inventory | نعم، إن مرر أي حقل مالي أو غير مرجع محدود. | خطر مبلغ/تاريخ/نوع مفروض أو تكرار. |
 | نسخ Order/Customer/address إلى Delivery | نعم، قبل أي حقل؛ وقرار خصوصية مستقل. | ليس سياقًا تقنيًا عاديًا بل إفصاح حساس وتاريخي. |
 | دمج/مزامنة Manage بين أجهزة | نعم، مشروع منفصل. | تعارضات/تكرار/Recovery وتحويل نموذج local-first. |

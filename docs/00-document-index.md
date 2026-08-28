@@ -23,8 +23,8 @@
 | 11 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة وسياسات المال P0، ومنها `05-financial-p0-policies.md` |
 | 12 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
 | 12A | `docs/contracts/06-financial-event-prototype-contract.md` | CURRENT / PROTOTYPE | عقد الأحداث المالية المحلية للكاش والذمم ومال المالك وحدود «وضعي المالي» |
-| 12B | `docs/expansion/README.md` | CURRENT / EXPANSION ENTRY POINT | نقطة دخول وقرار وTracker Market/Delivery والخدمات؛ تقرأ فقط عند مهمة التوسعة ولا تدعي تنفيذ قدرة شبكة |
-| 12C | `docs/contracts/18-network-identity-workspace-access-contract.md` إلى `24-network-data-classification-field-dictionary-contract.md` | CURRENT / EXPANSION E-00 | عقود الهوية والعزل والخدمات وMarket وDelivery وModeration ودورة البيانات وتصنيف الحقول قبل أي كود توسعة |
+| 12B | `docs/expansion/README.md` و`MARKET-DELIVERY-OWNER-IA-CONTRACT.md` | CURRENT / EXPANSION ENTRY POINT | نقطة دخول وقرار وTracker لتوزيع Owner بين Market وDelivery؛ تقرأ فقط عند مهمة التوسعة ولا تدعي تنفيذ قدرة شبكة |
+| 12C | `docs/contracts/18-network-identity-workspace-access-contract.md` إلى `24-network-data-classification-field-dictionary-contract.md` | CURRENT / EXPANSION E-00 | عقود الهوية والعزل وAttention/Notification وMarket وDelivery وModeration ودورة البيانات وتصنيف الحقول قبل أي كود توسعة |
 | 12D | `docs/expansion/ROLE-ACCESS-MATRIX.md` و`E00-SCENARIOS-AND-ACCEPTANCE.md` و`E00-EXECUTION-PROTOCOL.md` و`E00-REVIEW-CHECKLIST.md` | CURRENT / EXPANSION E-00 | مصفوفة الوصول وسيناريوهات القبول وبروتوكول وChecklist التوثيق قبل تجربة البيت أو التفعيل |
 | 12E | `docs/expansion/FIRST-WEDGE-AND-PILOT-DECISION-CARD.md` و`LOCAL-FIRST-HOME-TRIAL-SOP.md` و`ACTIVATION-PRIVACY-ETHICS-SOP.md` و`PARTNER-PILOT-SOP-AND-MEASUREMENT.md` | CURRENT / EXPANSION E-00 | قرار Wedge وإجراء تجربة البيت وبوابة التفعيل والخصوصية وPilot والقياس؛ لا تفويض تنفيذ ذاتي |
 | 12F | `docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md` و`MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md` و`E00-TRACEABILITY-MATRIX.md` و`HOME-TRIAL-LOG-TEMPLATE.md` | CURRENT / EXPANSION E-00 | حد المعمارية قبل الكود، وحارس Manage/schema/export، وتتبع القرار إلى القبول، وسجل تجربة البيت الآمن |
@@ -34,6 +34,7 @@
 | 12J | `docs/expansion/E00-12-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` | CURRENT / EXPANSION E-00.12 ACCEPTANCE | دليل قبول مستقل لبوابة الجاهزية؛ يثبت اكتمال التوثيق فقط ويمنع خلطه بتشغيل A/B أو قرار المالك |
 | 12K | `docs/expansion/COMMERCIAL-LIQUIDITY-AND-MODEL-DECISION-CARD.md` | CURRENT / EXPANSION E-00.13 / OWNER DECISION REQUIRED | بطاقة تفاعل أول وسيولة ونموذج تجاري محتمل؛ لا رسوم أو دفع أو عمولة أو توسع قبل دليل وقرار مستقل |
 | 12L | `docs/expansion/E00-13-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` | CURRENT / EXPANSION E-00.13 ACCEPTANCE | دليل قبول مستقل لبطاقة السيولة والنموذج التجاري؛ يثبت اكتمال التوثيق لا قرار رسوم أو سوق أو دفع أو Pilot |
+| 12M | `docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md` | CURRENT / EXPANSION E-00.14 / IA ONLY | توزيع Owner: السوق في BottomNav والتوصيل من AppBar ومحتوى الشاشتين ونقاط الدخول؛ لا UI أو Domain أو LocalStore أو Auth/Cloud |
 | 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 | 15 | `docs/product/problem-statement-v4.md` | CURRENT / CANONICAL | المشكلة والأضرار والأسئلة، والنواة العامة والـProfiles والمشاريع المختلطة |
@@ -89,7 +90,7 @@
 | LocalStore وExport/Import | `docs/implementation/prototype-build-charter-v1.md` ثم `ai-skills/micro-local-first-prototype/` و`ai-skills/saas-delivery-verifier/` |
 | قرار UX أو MVP | `docs/decisions/01-first-vertical-slice.md` ثم `docs/product/mobile-ui-ux-reference-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` ومراجع `ai-skills/saas-product-guardian/` و`ai-skills/micro-scenario-validation/` داخل المستودع |
 | تغيير المفهوم أو النموذج المالي أو التدفق | `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md` و`docs/quality/pre-build-experiment-simulation-v1.md` ثم `ai-skills/micro-scenario-validation/` |
-| Market أو Delivery أو «الخدمات» | `docs/expansion/README.md` ثم `docs/expansion/DECISIONS.md` و`docs/expansion/TRACKER.md`، ثم العقود المالية والسيناريوهات؛ لا تستخدم `historical-source/` كسلطة تنفيذ |
+| Market أو Delivery أو توزيع Owner | `docs/expansion/README.md` ثم `MARKET-DELIVERY-OWNER-IA-CONTRACT.md` و`DECISIONS.md` و`TRACKER.md`، ثم العقود المالية والسيناريوهات؛ لا تستخدم `historical-source/` كسلطة تنفيذ |
 | تنفيذ Domain Core أو Prototype | `docs/implementation/01-execution-roadmap.md` و`docs/implementation/03-pre-build-alignment-v1.md` و`docs/implementation/mobile-prototype-spec-v1.md` و`docs/implementation/prototype-build-charter-v1.md` و`docs/product/mobile-ui-ux-reference-v1.md` والعقود ثم `ai-skills/saas-delivery-verifier/` و`ai-skills/micro-local-first-prototype/` |
 | قبول Slice أو PR للواجهة | `ai-skills/micro-prototype-qa/` مع `docs/quality/scenario-coverage-matrix-v1.md` و`docs/implementation/prototype-build-charter-v1.md` |
 | مراجعة Accounting أو zman-app | افتح المرجع الحالي أولًا، ثم ملف الحالة المطلوب فقط |
