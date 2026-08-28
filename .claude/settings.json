@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rev-list *)",
+      "Bash(git merge-base *)",
+      "Bash(git fetch *)",
+      "Bash(git ls-tree *)",
+      "Bash(git patch-id *)",
+      "Bash(git cherry *)",
+      "Bash(pnpm audit *)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm test)",
+      "Bash(npm view *)"
+    ]
+  }
+}
