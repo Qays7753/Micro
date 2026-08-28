@@ -1,10 +1,18 @@
 /** Project-level financial events are separate from CraftOrder result fields. All money is JOD minor units. */
-export type FinancialEventType = "owner_investment_cash" | "owner_withdrawal_cash" | "operating_expense_cash" | "operating_expense_payable" | "payable_settlement_cash";
+import type { Currency, MoneyMinor } from "../shared/index.js";
+
+export type FinancialEventType =
+  | "owner_investment_cash"
+  | "owner_withdrawal_cash"
+  | "operating_expense_cash"
+  | "operating_expense_payable"
+  | "payable_settlement_cash";
 export type ExpenseRelationship = "project" | "shared";
 export type ExpenseBehavior = "fixed" | "variable" | "mixed" | "unknown";
 export type ExpensePurpose = "project_general" | "period" | "order" | "product" | "campaign" | "unallocated";
 export type ExpenseKnowledge = "known" | "estimated" | "needs_review";
-export type SharedProjectShareBasis = "agreed_fixed_share" | "agreed_percentage" | "owner_estimate" | "needs_review";
+export type SharedProjectShareBasis =
+  "agreed_fixed_share" | "agreed_percentage" | "owner_estimate" | "needs_review";
 export type SharedProjectShare = {
   basis: SharedProjectShareBasis;
   note: string | null;
@@ -13,13 +21,19 @@ export type SharedProjectShare = {
   percentageBps?: number | null;
   calculatedShareMinor?: number | null;
 };
-export type OperatingExpenseContext = { relationship: ExpenseRelationship; behavior: ExpenseBehavior; purpose: ExpensePurpose; knowledge: ExpenseKnowledge; sharedProjectShare?: SharedProjectShare | null };
+export type OperatingExpenseContext = {
+  relationship: ExpenseRelationship;
+  behavior: ExpenseBehavior;
+  purpose: ExpensePurpose;
+  knowledge: ExpenseKnowledge;
+  sharedProjectShare?: SharedProjectShare | null;
+};
 export type FinancialEventCorrectionType = "reverse";
 export type FinancialEvent = {
   id: string;
   type: FinancialEventType;
-  currency: "JOD";
-  amountMinor: number;
+  currency: Currency;
+  amountMinor: MoneyMinor;
   occurredOn: string;
   recordedAt: string;
   idempotencyKey: string;
@@ -32,16 +46,16 @@ export type FinancialEvent = {
   correctionType?: FinancialEventCorrectionType | null;
   correctionOfEventId?: string | null;
   correctionReason?: string | null;
-  cashDeltaMinor: number;
-  payableDeltaMinor: number;
-  ownerCapitalDeltaMinor: number;
-  operatingExpenseDeltaMinor: number;
+  cashDeltaMinor: MoneyMinor;
+  payableDeltaMinor: MoneyMinor;
+  ownerCapitalDeltaMinor: MoneyMinor;
+  operatingExpenseDeltaMinor: MoneyMinor;
 };
 
 export type CreateFinancialEventInput = {
   id: string;
   type: FinancialEventType;
-  amountMinor: number;
+  amountMinor: MoneyMinor;
   occurredOn: string;
   recordedAt: string;
   idempotencyKey: string;
@@ -61,9 +75,9 @@ export type CreateFinancialReversalInput = {
 };
 
 export type FinancialEventTotals = {
-  cashMinor: number;
-  payableMinor: number;
-  ownerCapitalMinor: number;
-  operatingExpenseMinor: number;
+  cashMinor: MoneyMinor;
+  payableMinor: MoneyMinor;
+  ownerCapitalMinor: MoneyMinor;
+  operatingExpenseMinor: MoneyMinor;
   eventCount: number;
 };

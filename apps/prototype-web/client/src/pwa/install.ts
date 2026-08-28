@@ -20,7 +20,8 @@ export function isIosSafari(
   platform = navigator.platform,
   maxTouchPoints = navigator.maxTouchPoints,
 ) {
-  const isAppleMobileDevice = /iPhone|iPad|iPod/i.test(userAgent) || (platform === "MacIntel" && maxTouchPoints > 1);
+  const isAppleMobileDevice =
+    /iPhone|iPad|iPod/i.test(userAgent) || (platform === "MacIntel" && maxTouchPoints > 1);
   const isSafari = /Safari\//i.test(userAgent);
   const isOtherIosBrowser = /CriOS|FxiOS|EdgiOS|OPiOS|GSA\//i.test(userAgent);
   return isAppleMobileDevice && isSafari && !isOtherIosBrowser;

@@ -20,5 +20,9 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/cash")) return "محافظ الكاش";
   if (pathname.startsWith("/inventory")) return "المواد والمخزون";
   if (pathname.startsWith("/suppliers")) return "الموردون والمشتريات";
-  return primaryNavigation.find(item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)))?.label ?? "مايكرو";
+  return (
+    primaryNavigation.find(
+      item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),
+    )?.label ?? "مايكرو"
+  );
 }

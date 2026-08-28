@@ -1,9 +1,108 @@
 /** RTL-safe quantity input: accepts ASCII decimals and emits integer thousandths, never a persisted float. */
 import { type ComponentProps, useEffect, useRef, useState } from "react";
+import { parseEnglishQuantityText } from "@/application/input/englishNumeric";
 import { cn } from "@/lib/utils";
 
-const parseMilli = (value: string): number | null => { if (!/^\d+(?:\.\d{0,3})?$/.test(value)) return null; const [whole, fraction = ""] = value.split("."); const major = Number(whole); const minor = Number(`${fraction}000`.slice(0, 3)); const result = major * 1000 + minor; return Number.isSafeInteger(result) ? result : null; };
-const formatMilli = (value: number) => (value / 1000).toFixed(3).replace(/\.0+$/, "");
-type Props = Omit<ComponentProps<"input">, "type" | "value" | "defaultValue" | "onChange" | "inputMode" | "dir" | "lang"> & { valueMilli: number; onMilliChange: (value: number) => void; onTextValidityChange?: (valid: boolean) => void };
+const quantityPartial = /^\d*(?:\.\d{0,3})?$/;
+const formatMilli = (value: number | null) =>
+  value === null ? "" : (value / 1000).toFixed(3).replace(/\.0+$/, "");
+export function focusQuantityText(
+  valueMilli: number | null,
+  text: string,
+  hasUserEdited: boolean,
+  clearDefaultZeroOnFocus: boolean,
+) {
+  const defaultText = formatMilli(0);
+  return clearDefaultZeroOnFocus && valueMilli === 0 && !hasUserEdited && text === defaultText ? "" : text;
+}
+export function blurQuantityText(text: string, committed: number | null, allowEmpty = false) {
+  const parsed = parseEnglishQuantityText(text);
+  if (parsed !== null) return { text: formatMilli(parsed), committed: parsed, valid: true };
+  if (allowEmpty && text === "") return { text: "", committed: null, valid: true };
+  if (text !== "") return { text, committed, valid: false };
+  return { text: formatMilli(committed), committed, valid: true };
+}
+type Props = Omit<
+  ComponentProps<"input">,
+  "type" | "value" | "defaultValue" | "onChange" | "inputMode" | "dir" | "lang"
+> & {
+  valueMilli: number | null;
+  onMilliChange: (value: number) => void;
+  onTextValidityChange?: (valid: boolean) => void;
+  allowEmpty?: boolean;
+  onEmptyChange?: () => void;
+  clearDefaultZeroOnFocus?: boolean;
+};
 
-export function EnglishQuantityInput({ valueMilli, onMilliChange, onTextValidityChange, className, onBlur, ...props }: Props) { const committed = useRef(valueMilli); const [text, setText] = useState(() => formatMilli(valueMilli)); useEffect(() => { if (committed.current !== valueMilli) { committed.current = valueMilli; setText(formatMilli(valueMilli)); } }, [valueMilli]); return <input {...props} className={cn("micro-english-number-input", className)} type="text" inputMode="decimal" pattern="[0-9]*[.]?[0-9]{0,3}" lang="en" dir="ltr" value={text} onChange={(event) => { const next = event.target.value; if (!/^\d*(?:\.\d{0,3})?$/.test(next)) { event.currentTarget.value = text; return; } setText(next); const parsed = parseMilli(next); onTextValidityChange?.(parsed !== null); if (parsed !== null) { committed.current = parsed; onMilliChange(parsed); } }} onBlur={(event) => { const parsed = parseMilli(text); if (parsed !== null) setText(formatMilli(parsed)); else { setText(formatMilli(committed.current)); onTextValidityChange?.(true); } onBlur?.(event); }} />; }
+export function EnglishQuantityInput({
+  valueMilli,
+  onMilliChange,
+  onTextValidityChange,
+  allowEmpty = false,
+  onEmptyChange,
+  clearDefaultZeroOnFocus = true,
+  className,
+  onFocus,
+  onBlur,
+  ...props
+}: Props) {
+  const committed = useRef<number | null>(valueMilli);
+  const hasUserEdited = useRef(false);
+  const [text, setText] = useState(() => formatMilli(valueMilli));
+  useEffect(() => {
+    if (committed.current !== valueMilli) {
+      committed.current = valueMilli;
+      hasUserEdited.current = false;
+      setText(formatMilli(valueMilli));
+    }
+  }, [valueMilli]);
+  return (
+    <input
+      {...props}
+      className={cn("micro-english-number-input", className)}
+      type="text"
+      inputMode="decimal"
+      pattern="[0-9]*[.]?[0-9]{0,3}"
+      lang="en"
+      dir="ltr"
+      value={text}
+      onFocus={event => {
+        const next = focusQuantityText(valueMilli, text, hasUserEdited.current, clearDefaultZeroOnFocus);
+        if (next !== text) setText(next);
+        onFocus?.(event);
+      }}
+      onChange={event => {
+        const next = event.target.value;
+        if (allowEmpty && next === "") {
+          hasUserEdited.current = true;
+          setText("");
+          committed.current = null;
+          onTextValidityChange?.(true);
+          onEmptyChange?.();
+          return;
+        }
+        if (!quantityPartial.test(next)) {
+          hasUserEdited.current = true;
+          setText(next);
+          onTextValidityChange?.(false);
+          return;
+        }
+        hasUserEdited.current = true;
+        setText(next);
+        const parsed = parseEnglishQuantityText(next);
+        onTextValidityChange?.(parsed !== null);
+        if (parsed !== null) {
+          committed.current = parsed;
+          onMilliChange(parsed);
+        }
+      }}
+      onBlur={event => {
+        const result = blurQuantityText(text, committed.current, allowEmpty);
+        committed.current = result.committed;
+        setText(result.text);
+        onTextValidityChange?.(result.valid);
+        onBlur?.(event);
+      }}
+    />
+  );
+}

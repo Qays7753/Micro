@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { formatBreakEvenDisplay, formatLocalDate, formatLocalDateTime, formatMoneyMinor, formatMonthLabel, localDateInAmman } from "./formatters";
+import {
+  formatArabicPlural,
+  formatBreakEvenDisplay,
+  formatLocalDate,
+  formatLocalDateLong,
+  formatLocalDateTime,
+  formatMoneyMinor,
+  formatMonthLabel,
+  localDateInAmman,
+} from "./formatters";
 
 describe("presentation formatters", () => {
   it("formats positive, negative, and zero JOD minor units with ASCII digits", () => {
@@ -9,10 +18,37 @@ describe("presentation formatters", () => {
     expect(/[٠-٩]/.test(formatMoneyMinor(123456))).toBe(false);
   });
 
+  it("uses Arabic plural forms for the boundary counts called out in M-22", () => {
+    const forms = {
+      zero: "لا طلبات",
+      one: "طلب واحد",
+      two: "طلبان",
+      few: "طلبات",
+      many: "طلبًا",
+      other: "طلب",
+    };
+    expect(formatArabicPlural(0, forms)).toBe("لا طلبات");
+    expect(formatArabicPlural(1, forms)).toBe("طلب واحد");
+    expect(formatArabicPlural(2, forms)).toBe("طلبان");
+    expect(formatArabicPlural(3, forms)).toBe("3 طلبات");
+    expect(formatArabicPlural(10, forms)).toBe("10 طلبات");
+    expect(formatArabicPlural(11, forms)).toBe("11 طلبًا");
+    expect(formatArabicPlural(100, forms)).toBe("100 طلب");
+  });
+
   it("formats known local dates without letting RTL reorder the date", () => {
     expect(formatLocalDate("2026-08-24")).toBe("24/08/2026");
     expect(formatLocalDate("2026-02-30")).toBeNull();
     expect(formatLocalDate(null)).toBeNull();
+  });
+
+  it("renders a selected local date as a readable Arabic date without changing ISO storage", () => {
+    const display = formatLocalDateLong("2026-09-05");
+    expect(display).toContain("2026");
+    expect(display).toContain("5");
+    expect(display).not.toContain("09/05/2026");
+    expect(formatLocalDateLong("2026-02-30")).toBeNull();
+    expect(formatLocalDateLong(null)).toBeNull();
   });
 
   it("keeps a UTC instant on the correct Amman calendar date", () => {

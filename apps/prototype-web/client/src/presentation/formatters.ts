@@ -1,10 +1,65 @@
 const ammanTimeZone = "Asia/Amman";
 
-const moneyFormatter = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true });
+/* مبدأ Micro: تنسيق العرض لا يغيّر قيمة المال أو التاريخ المخزنة في الطبقات الداخلية. */
+const moneyFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  useGrouping: true,
+});
 const integerFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0, useGrouping: true });
-const dateFormatter = new Intl.DateTimeFormat("en-US", { timeZone: ammanTimeZone, year: "numeric", month: "2-digit", day: "2-digit" });
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", { timeZone: ammanTimeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
-const monthFormatter = new Intl.DateTimeFormat("ar-JO-u-nu-latn", { timeZone: ammanTimeZone, month: "long", year: "numeric" });
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: ammanTimeZone,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: ammanTimeZone,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+const monthFormatter = new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
+  timeZone: ammanTimeZone,
+  month: "long",
+  year: "numeric",
+});
+const readableDateFormatter = new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
+  timeZone: "UTC",
+  calendar: "gregory",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+/**
+ * مبدأ Micro: الجمع العربي يتبع القواعد اللغوية (0، 1، 2، 3-10، 11-99، 100+).
+ * لا نستخدم "1 طلبات" أو "2 مادة".
+ */
+export function formatArabicPlural(
+  count: number | null | undefined,
+  forms: {
+    zero: string;
+    one: string;
+    two: string;
+    few: string; // 3-10
+    many: string; // 11-99
+    other: string; // 100+ or fallback
+  },
+) {
+  if (count === null || count === undefined || !Number.isFinite(count)) return "غير متاح";
+  const absCount = Math.abs(count);
+  if (absCount === 0) return forms.zero;
+  if (absCount === 1) return forms.one;
+  if (absCount === 2) return forms.two;
+  const lastTwo = absCount % 100;
+  if (lastTwo >= 3 && lastTwo <= 10) return `${count} ${forms.few}`;
+  if (lastTwo >= 11 && lastTwo <= 99) return `${count} ${forms.many}`;
+  return `${count} ${forms.other}`;
+}
 
 export function formatMoneyMinor(minor: number | null | undefined) {
   if (minor === null || minor === undefined || !Number.isFinite(minor)) return "غير متاح";
@@ -18,15 +73,23 @@ export function formatInteger(value: number | null | undefined) {
 
 export function formatQuantityMilli(value: number | null | undefined) {
   if (value === null || value === undefined || !Number.isFinite(value)) return "غير متاح";
-  return (value / 1000).toFixed(3).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+  return (value / 1000)
+    .toFixed(3)
+    .replace(/\.0+$/, "")
+    .replace(/(\.\d*?)0+$/, "$1");
 }
 
 export type BreakEvenDisplay = { number: string; scale: string };
 
-export function formatBreakEvenDisplay(value: number | null, unitKey: string | null, unitLabel: string | null): BreakEvenDisplay | null {
+export function formatBreakEvenDisplay(
+  value: number | null,
+  unitKey: string | null,
+  unitLabel: string | null,
+): BreakEvenDisplay | null {
   if (value === null || !Number.isSafeInteger(value) || value <= 0) return null;
   const normalizedLabel = unitLabel?.trim();
-  const scale = unitKey === "legacy:recorded-mix" || !unitKey || !normalizedLabel ? "من المزيج المسجل" : normalizedLabel;
+  const scale =
+    unitKey === "legacy:recorded-mix" || !unitKey || !normalizedLabel ? "من المزيج المسجل" : normalizedLabel;
   return { number: integerFormatter.format(value), scale };
 }
 
@@ -42,12 +105,17 @@ export function formatLocalDate(value: string | null | undefined) {
   return `${day}/${month}/${year}`;
 }
 
+export function formatLocalDateLong(value: string | null | undefined) {
+  if (!value || !isValidLocalDate(value)) return null;
+  return readableDateFormatter.format(new Date(`${value}T12:00:00.000Z`));
+}
+
 export function formatLocalDateTime(value: string | null | undefined) {
   if (!value) return null;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.valueOf())) return null;
   const parts = dateTimeFormatter.formatToParts(parsed);
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
   return `${part("day")}/${part("month")}/${part("year")} ${part("hour")}:${part("minute")}`;
 }
 
@@ -61,7 +129,7 @@ export function localDateInAmman(value: Date | string = new Date()) {
   const parsed = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(parsed.valueOf())) throw new Error("Invalid instant");
   const parts = dateFormatter.formatToParts(parsed);
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 

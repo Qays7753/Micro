@@ -9,3 +9,12 @@ export function applyProtectionPriceAsStart(protectionPriceMinor: number | null)
 export function agreementPriceIsReady(value: number | null): value is number {
   return value !== null && Number.isInteger(value) && value > 0;
 }
+
+export function protectionPriceIsReadyForAgreement(
+  protectionPriceMinor: number | null,
+  knowledgeState: string | null | undefined,
+): protectionPriceMinor is number {
+  return (
+    agreementPriceIsReady(protectionPriceMinor) && knowledgeState !== "incomplete" && knowledgeState !== "partial"
+  );
+}

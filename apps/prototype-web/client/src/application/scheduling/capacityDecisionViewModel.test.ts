@@ -2,7 +2,15 @@ import { describe, expect, it } from "vitest";
 import { buildCapacityDecisionViewModel } from "./capacityDecisionViewModel";
 import type { ScheduleDay } from "./scheduleService";
 
-const baseDay = (overrides: Partial<ScheduleDay> = {}): ScheduleDay => ({ date: "2026-08-24", items: [], scheduledMinutes: 90, unknownTimingCount: 0, conflictCount: 0, overCapacity: false, ...overrides });
+const baseDay = (overrides: Partial<ScheduleDay> = {}): ScheduleDay => ({
+  date: "2026-08-24",
+  items: [],
+  scheduledMinutes: 90,
+  unknownTimingCount: 0,
+  conflictCount: 0,
+  overCapacity: false,
+  ...overrides,
+});
 
 describe("buildCapacityDecisionViewModel", () => {
   it("connects unknown capacity to honest copy and a manual next action", () => {

@@ -8,30 +8,25 @@
 
 ## 2. ترتيب القراءة الإلزامي
 
-ابدأ بالترتيب التالي:
+ابدأ بخمس قراءات نواة قصيرة، ثم أضف مسار القراءة المشروط بحسب الملفات أو الطبقة التي ستلمسها:
 
 1. `docs/operations/current-state.md` لمعرفة commit المعتمد، ما اندمج، وما المسموح فعله الآن.
 2. `README.md` لفهم Micro في سطرين، لا لاستخراج حالة التنفيذ التفصيلية.
 3. `docs/operations/micro-thinking-charter-v1.md` لإثبات فهم هدف Micro وطريقة القرار قبل التفكير في كود أو شاشة.
 4. `docs/00-document-index.md` لمعرفة سلطة الوثائق ومسار القراءة.
-3. `docs/01-product-and-technical-blueprint.md` لتعريف Micro والمنتج والمراحل والمعمارية.
-4. `docs/implementation/03-pre-build-alignment-v1.md` لفهم الفرق بين المنتج الكامل وPrototype المرحلة 2 وMVP التجاري اللاحق.
-5. `docs/research/global-build-reference-library-v1.md` لفهم المصادر العالمية والمنطق المستخلص والتراخيص، ثم `docs/research/micro-build-logic-v1.md` لمعرفة ما يدخل كل مرحلة.
-6. `docs/product/problem-statement-v4.md` و`docs/product/system-definition-v1.md` و`docs/product/user-operating-model-v1.md` و`docs/product/financial-operating-model-v1.md` و`docs/product/guidance-interaction-policy-v1.md` و`docs/product/activity-profiles-and-hybrid-projects-v1.md`.
-7. `docs/contracts/`، وبالأخص `docs/contracts/05-financial-p0-policies.md` عند أي قرار متعلق بالتكلفة أو السعر أو الربح أو الكاش أو المصاريف.
-8. `docs/implementation/02-domain-contract-coverage.md` لمعرفة الفرق بين العقد الكامل وما ينفذه Domain Core حاليًا.
-9. `docs/product/mobile-ui-ux-reference-v1.md` لتثبيت عقد الهاتف والـRTL والمكونات والحالات والصدق المالي في الواجهة.
-10. `docs/implementation/mobile-prototype-spec-v1.md` لمعرفة الشاشات والمسارات والحالات وحدود Prototype المحلي.
-11. `docs/implementation/prototype-build-charter-v1.md` لمعرفة قرار Web-first وAndroid-like وPWA-ready وCloudflare وخطة البناء المرحلية وملكية المسارات.
-12. `ai-skills/micro-web-native-ux/` و`ai-skills/micro-design-system/` عند بناء أو مراجعة Web App أو الهوية أو المكونات.
-13. `ai-skills/micro-local-first-prototype/` عند بناء LocalStore أو المسودات أو export/import.
-14. `ai-skills/micro-prototype-qa/` عند قبول Slice أو PR أو اختبار الواجهة والتدفقات.
-15. `docs/scenarios/scenario-test-set-v1.md` و`docs/quality/scenario-coverage-matrix-v1.md` ونتائج المحاكاة قبل تغيير المفهوم أو التدفق.
-16. `docs/operations/agent-handoff-protocol-v1.md` و`docs/operations/slice-handoff-template.md` قبل استلام أو فتح Slice.
-17. `docs/quality/cloud-code-first-read-findings-v1.md` عند مراجعة نتيجة Agent سابقة أو أي ملاحظة على النواة والوثائق.
-18. `docs/quality/unified-audit-resolution-v1.md` لمعرفة ما ثبت من التدقيق، وما أُصلح، وما يجب تأجيله قبل Prototype.
+5. `docs/implementation/03-pre-build-alignment-v1.md` لتثبيت حدود المنتج الكامل وPrototype المرحلة 2 وMVP التجاري اللاحق.
 
-لا تقرأ تقارير البحث التاريخية أو ملفات النظام القديم بوصفها سلطة حالية. استخدمها فقط إذا ذكرت سبب الحاجة إليها.
+| إذا ستلمس | اقرأ قبل التعديل |
+|---|---|
+| تعريف المنتج أو المعمارية أو قرار مرحلة | `docs/01-product-and-technical-blueprint.md`، و`docs/research/global-build-reference-library-v1.md`، ثم `docs/research/micro-build-logic-v1.md` |
+| Domain أو تكلفة أو سعر أو ربح أو كاش أو مخزون أو دين أو مصروف | `docs/contracts/05-financial-p0-policies.md`، و`docs/contracts/` ذات الصلة، و`docs/implementation/02-domain-contract-coverage.md`، و`docs/product/financial-operating-model-v1.md`، و`docs/scenarios/scenario-test-set-v1.md`، و`docs/quality/scenario-coverage-matrix-v1.md`، إضافة إلى مهارات المالية والسيناريوهات |
+| Prototype أو صفحة أو مكوّن أو RTL أو حالات واجهة | `docs/product/mobile-ui-ux-reference-v1.md`، و`docs/implementation/mobile-prototype-spec-v1.md`، و`docs/implementation/prototype-build-charter-v1.md`، و`ai-skills/micro-web-native-ux/`، و`ai-skills/micro-prototype-qa/`، و`ai-skills/micro-anti-vibe-interface-audit/` |
+| IndexedDB أو LocalStore أو المسودات أو Export/Import | `docs/contracts/04-limited-sync-contract.md`، و`docs/implementation/02-domain-contract-coverage.md`، و`ai-skills/micro-local-first-prototype/`، مع إبقاء `localSchemaVersion` و`localExportVersion` تحت حارس صريح |
+| قبول Slice أو PR أو تسليم أو مراجعة Agent سابق | `docs/operations/agent-handoff-protocol-v1.md`، و`docs/operations/slice-handoff-template.md`، و`.github/pull_request_template.md`، و`docs/quality/cloud-code-first-read-findings-v1.md`، و`docs/quality/unified-audit-resolution-v1.md` |
+| Profiles أو Activity أو مشروع مختلط أو سياق نشاط | `docs/product/activity-profiles-and-hybrid-projects-v1.md`، ومراجع المنتج والسيناريوهات أعلاه؛ لا تُنشئ عقدًا أو ترحيلًا من الوثيقة وحدها |
+| `الخدمات` أو Micro Market أو Micro Delivery أو Supplier/Courier/Admin | `docs/expansion/README.md` ثم `docs/expansion/DECISIONS.md` و`docs/expansion/TRACKER.md` و`E00-EXECUTION-PROTOCOL.md` و`FOUR-PARTY-IMPLEMENTATION-GATE-MAP.md` و`FOUR-PARTY-PORTAL-AND-ACCESS-RECOVERY-GATE.md` و`SEVEN-AGENT-EXPANSION-OPERATING-CHECKLIST.md`؛ اقرأ العقود 18–24 ومصفوفة الدور والسيناريو المتصل بالمهمة، ثم العقود المالية والسيناريوهات؛ لا تستخدم `historical-source/` كمرجع تنفيذ |
+
+هذه طبقات قراءة لا بدائل مختصرة للعقود. عند لمس أكثر من طبقة، تُجمع المسارات المشروطة كلها، وتظل العقود والسياسات المالية ومصفوفات التغطية والوثائق canonical إلزامية. لا تقرأ تقارير البحث التاريخية أو ملفات النظام القديم بوصفها سلطة حالية؛ استخدمها فقط إذا ذكرت سبب الحاجة إليها.
 
 ## 3. سلطة الوثائق
 
@@ -53,6 +48,8 @@
 Micro نظام إدارة مالية وتشغيلية كامل للمشروع وصاحب المشروع. هو عميق ماليًا ومحاسبيًا في الداخل، لكنه بسيط وعملي في تجربة المستخدم. يربط الحدث الواقعي بالتكلفة والطلب والربح والكاش والمخزون والذمم ومال المالك والقرار التالي، ويظهر درجة المعرفة بدل الدقة الزائفة.
 
 Micro ليس تطبيق طلبات فقط، وليس تطبيقًا تعليميًا، وليس ERP أو POS أو CRM عامًا. التوجيه داخل الحقل أو التقرير مساعدة مرتبطة بالعمل، وليس دورات أو LMS أو شرطًا لإكمال محتوى.
+
+عند توسعة Market أو Delivery، يبقى Micro منتجًا واحدًا للمالك وManage هو مركزه؛ `الخدمات` لوحة متابعة لا قائمة منتجات. لا يعني قبول عرض مورد أو تحديث توصيل أي أثر مالي أو مخزني تلقائي؛ سجل الواقع داخل Manage وحده وبفعل Owner صريح.
 
 ## 5. تعريف المراحل
 

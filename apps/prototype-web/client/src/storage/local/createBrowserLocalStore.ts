@@ -2,4 +2,6 @@
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import type { PrototypeLocalStore } from "./types";
 
-export function createBrowserLocalStore(): PrototypeLocalStore { return new IndexedDbLocalStore(); }
+export function createBrowserLocalStore(): PrototypeLocalStore {
+  return new IndexedDbLocalStore();
+}

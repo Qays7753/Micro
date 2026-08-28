@@ -56,23 +56,43 @@ export function PwaInstallControl() {
   const showIosInstructions = isIos && !isStandalone && !showAndroidInstall && !isDismissed;
   if (!showAndroidInstall && !showIosInstructions) return null;
 
-  return <aside className="micro-install-control" aria-live="polite">
-    <div className="micro-install-card" data-platform={showAndroidInstall ? "chromium" : "ios"}>
-      <span className="micro-install-icon" aria-hidden="true">
-        {showAndroidInstall ? <Download /> : <Share />}
-      </span>
-      <div className="micro-install-copy">
-        <h2>{showAndroidInstall ? "ثبّت Micro على جهازك" : "أضف Micro إلى الشاشة الرئيسية"}</h2>
-        <p>{showAndroidInstall ? "يفتح أسرع ويظل متاحًا بعد الزيارة الأولى. سيظهر تأكيد النظام عند اختيار التثبيت." : "في Safari اضغط زر المشاركة ثم اختر «إضافة إلى الشاشة الرئيسية»."}</p>
+  return (
+    <aside className="micro-install-control" aria-live="polite">
+      <div className="micro-install-card" data-platform={showAndroidInstall ? "chromium" : "ios"}>
+        <span className="micro-install-icon" aria-hidden="true">
+          {showAndroidInstall ? <Download /> : <Share />}
+        </span>
+        <div className="micro-install-copy">
+          <h2>{showAndroidInstall ? "ثبّت Micro على جهازك" : "أضف Micro إلى الشاشة الرئيسية"}</h2>
+          <p>
+            {showAndroidInstall
+              ? "يفتح أسرع ويظل متاحًا بعد الزيارة الأولى. سيظهر تأكيد النظام عند اختيار التثبيت."
+              : "في Safari اضغط زر المشاركة ثم اختر «إضافة إلى الشاشة الرئيسية»."}
+          </p>
+        </div>
+        <div className="micro-install-actions">
+          {showAndroidInstall ? (
+            <button
+              className="micro-button micro-button-primary"
+              type="button"
+              disabled={isPrompting}
+              onClick={promptForInstall}
+            >
+              <Download aria-hidden="true" />
+              {isPrompting ? "جارٍ فتح تأكيد النظام…" : "تثبيت Micro"}
+            </button>
+          ) : null}
+          <button
+            className="micro-icon-button"
+            type="button"
+            onClick={() => setIsDismissed(true)}
+            aria-label="ليس الآن"
+            title="ليس الآن"
+          >
+            <X aria-hidden="true" />
+          </button>
+        </div>
       </div>
-      <div className="micro-install-actions">
-        {showAndroidInstall ? <button className="micro-button micro-button-primary" type="button" disabled={isPrompting} onClick={promptForInstall}>
-          <Download aria-hidden="true" />{isPrompting ? "جارٍ فتح تأكيد النظام…" : "تثبيت Micro"}
-        </button> : null}
-        <button className="micro-icon-button" type="button" onClick={() => setIsDismissed(true)} aria-label="ليس الآن" title="ليس الآن">
-          <X aria-hidden="true" />
-        </button>
-      </div>
-    </div>
-  </aside>;
+    </aside>
+  );
 }
