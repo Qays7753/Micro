@@ -106,6 +106,7 @@ function localDayNumber(value: string) {
   return Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10)));
 }
 function inclusiveDays(from: string, to: string) {
+  // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): exact UTC-midnight day-span, not money; migrate to exact division.
   return Math.round((localDayNumber(to) - localDayNumber(from)) / 86_400_000) + 1;
 }
 function lastDayOfMonth(value: string) {
@@ -518,6 +519,7 @@ export function calculateOwnerEntitlement(
           "بالساعة؛ لا يتحول الوقت المجهول إلى صفر.",
       };
     return {
+      // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding.
       amountMinor: Math.floor((amount * minutes) / 60),
       knowledge: "known",
       baseMinor: minutes,
@@ -584,6 +586,7 @@ export function calculateOwnerEntitlement(
         nextAction: "احفظ مراجع الوحدات أو العمل المكتمل حتى لا يعاد احتساب المصدر نفسه.",
       };
     return {
+      // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding.
       amountMinor: Math.floor(amount * quantity),
       knowledge: "known",
       baseMinor: amount,
@@ -616,6 +619,7 @@ export function calculateOwnerEntitlement(
         sourceKeys: [],
         nextAction: "راجع أسباب نقص نتيجة G3 قبل تسجيل نسبة الاستحقاق؛ لا تعرض دقة كاذبة.",
       };
+    // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding.
     const share = Math.floor((base * (policy.percentageBps ?? 0) + 5_000) / 10_000);
     if (share <= 0)
       return {
@@ -660,6 +664,7 @@ export function calculateOwnerEntitlement(
         sourceKeys: [],
         nextAction: "احفظ مراجع البيوع المكتملة حتى لا يعاد احتساب البيع نفسه.",
       };
+    // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding.
     const share = Math.floor((base * (policy.percentageBps ?? 0) + 5_000) / 10_000);
     if (share <= 0)
       return {

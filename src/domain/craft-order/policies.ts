@@ -131,6 +131,7 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
     }
     assertNonNegativeInteger(item.unitPriceMinor, `سعر وحدة ${item.name}`);
     assertValidDate(item.priceDate, `تاريخ سعر ${item.name}`);
+    // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding with A-04.
     return total + Math.round(item.quantity * item.unitPriceMinor);
   }, 0);
 
@@ -144,6 +145,7 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
           assertNonNegativeInteger(hourlyRateMinor, "hourlyRateMinor");
         }
         if (minutes === null || hourlyRateMinor === null) return 0;
+        // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding with A-04.
         return Math.round((minutes / 60) * hourlyRateMinor);
       })()
     : 0;
