@@ -1,4 +1,9 @@
 /** UI preferences are local Prototype data, but never carry financial meaning. */
+import {
+  persistentStorageCopy,
+  readPersistentStorageState,
+  type PersistentStorageState,
+} from "@/storage/local/persistentStorage";
 import { localPreferencesId, type LocalPreferences, type PrototypeLocalStore } from "@/storage/local/types";
 
 export type ThemePreference = LocalPreferences["theme"];
@@ -10,6 +15,10 @@ export class PreferenceService {
     private readonly store: PrototypeLocalStore,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
+  /** P-01 layer 0 read, exposed here so pages never import the storage layer directly. */
+  async readBrowserPersistence(): Promise<BrowserPersistenceReading> {
+    return readBrowserPersistence();
+  }
   async load(): Promise<PreferenceResult> {
     const result = await this.store.getPreferences();
     return result.ok
@@ -31,4 +40,12 @@ export class PreferenceService {
       ? { ok: true, preference: result.value.theme }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيل المظهر المحلي." };
   }
+}
+
+export type BrowserPersistenceReading = { state: PersistentStorageState; title: string; text: string };
+
+/** P-01 layer 0 read, exposed here so pages never import the storage layer directly. */
+export async function readBrowserPersistence(): Promise<BrowserPersistenceReading> {
+  const state = await readPersistentStorageState();
+  return { state, ...persistentStorageCopy(state) };
 }

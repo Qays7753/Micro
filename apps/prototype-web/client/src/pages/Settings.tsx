@@ -8,11 +8,7 @@ import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedO
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
-import {
-  persistentStorageCopy,
-  readPersistentStorageState,
-  type PersistentStorageState,
-} from "@/storage/local/persistentStorage";
+import { readBrowserPersistence, type BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { OperatingWorkMode } from "@/storage/local/types";
 
 type OperatingModeState =
@@ -40,18 +36,18 @@ const modeOptions: Array<{ value: "" | OperatingWorkMode; label: string; descrip
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
-  const { actualTime, transfers, guidedOpeningImport, dataVersion, notifyDataChanged } =
+  const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged } =
     usePrototypeServices();
-  const [persistence, setPersistence] = useState<PersistentStorageState | null>(null);
+  const [persistence, setPersistence] = useState<BrowserPersistenceReading | null>(null);
   useEffect(() => {
     let active = true;
-    void readPersistentStorageState().then(value => {
+    void preferences.readBrowserPersistence().then(value => {
       if (active) setPersistence(value);
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [preferences]);
   const inputRef = useRef<HTMLInputElement>(null);
   const guidedInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<TransferPreview | null>(null);
@@ -239,8 +235,8 @@ export default function SettingsPage() {
               <Shield aria-hidden="true" />
             </span>
             <div>
-              <h2>{persistentStorageCopy(persistence).title}</h2>
-              <p>{persistentStorageCopy(persistence).text}</p>
+              <h2>{persistence.title}</h2>
+              <p>{persistence.text}</p>
             </div>
           </article>
         ) : null}

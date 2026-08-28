@@ -73,8 +73,10 @@ export default [
         {
           patterns: [
             {
-              group: ["@/storage/local/IndexedDbLocalStore", "@/storage/local/createBrowserLocalStore"],
-              message: "Pages/components must use Application services, not the local storage adapter directly.",
+              group: ["@/storage/local/*"],
+              message:
+                "Pages/components must use Application services, not the local storage layer directly (type imports stay allowed).",
+              allowTypeImports: true,
             },
           ],
         },
