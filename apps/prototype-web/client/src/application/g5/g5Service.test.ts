@@ -381,3 +381,84 @@ describe("G5 payable link options after a settlement reversal (A-01)", () => {
     });
   });
 });
+
+describe("G5 expense readings after reversals (C-01)", () => {
+  async function storeWithReversedFixedExpense(occurredOn: string, reversedOn: string) {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const expense = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 1000,
+      occurredOn,
+      note: "مصروف ثابت",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "c01-expense",
+    });
+    await finance.reverse({
+      sourceEventId: expense.ok ? expense.value.id : "",
+      reason: "خطأ في الإدخال",
+      occurredOn: reversedOn,
+      idempotencyKey: "c01-reverse",
+    });
+    return { store, finance };
+  }
+  it("drops a fixed expense reversed within the same period, agreeing with the G3 netted reading", async () => {
+    const { store, finance } = await storeWithReversedFixedExpense("2026-08-05", "2026-08-06");
+    const g5 = new G5Service(store, finance, now);
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    const period = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
+    expect(decision).toMatchObject({ ok: true, value: { period: { fixedExpenseMinor: 0 } } });
+    expect(period).toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 0 } });
+  });
+  it("keeps the expense in the window where it was recorded when the reversal lands in a later window", async () => {
+    const { store, finance } = await storeWithReversedFixedExpense("2026-08-05", "2026-09-02");
+    const g5 = new G5Service(store, finance, now);
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    const period = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
+    expect(decision).toMatchObject({ ok: true, value: { period: { fixedExpenseMinor: 1000 } } });
+    expect(period).toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 1000 } });
+  });
+  it("no longer double-counts an unallocated shared expense when its reversal lands in the same window", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const expense = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-08-05",
+      note: "فاتورة بيت",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "shared",
+        behavior: "mixed",
+        purpose: "unallocated",
+        knowledge: "needs_review",
+        sharedProjectShare: {
+          basis: "needs_review",
+          note: null,
+          allocation: "unallocated",
+          totalAmountMinor: 5000,
+          percentageBps: null,
+          calculatedShareMinor: null,
+        },
+      },
+      idempotencyKey: "c01-unallocated",
+      sharedExpense: { mode: "defer", sharedTotalAmountMinor: 5000 },
+    });
+    await finance.reverse({
+      sourceEventId: expense.ok ? expense.value.id : "",
+      reason: "فاتورة مكررة",
+      occurredOn: "2026-08-06",
+      idempotencyKey: "c01-unallocated-reverse",
+    });
+    const g5 = new G5Service(store, finance, now);
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    expect(decision.ok && decision.value.period.fixedExpenseMinor).toBe(0);
+    const gapReasons = decision.ok
+      ? decision.value.period.reasons.filter(reason => reason.includes("غير محمل لغياب مصدر الحصة"))
+      : [];
+    expect(gapReasons).toHaveLength(0);
+  });
+});

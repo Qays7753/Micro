@@ -175,9 +175,25 @@ function orderInputs(
 }
 
 function expenseInputs(events: readonly FinancialEvent[], from: string, to: string): G5ExpenseInput[] {
+  // Period-local netting, mirroring the G3 period reader (contract 14 §6): an expense whose live
+  // reversal also falls inside the reading window leaves the reading entirely; a reversal in a later
+  // window does not rewrite the window where the expense was recorded. Reversal records themselves
+  // never enter: their negative deltas have no non-negative representation in a G5 expense input.
+  const nettedInWindow = new Set(
+    events
+      .filter(
+        event =>
+          event.correctionType === "reverse" &&
+          event.correctionOfEventId &&
+          inPeriod(event.occurredOn, from, to),
+      )
+      .map(event => event.correctionOfEventId!),
+  );
   return events
     .filter(
       event =>
+        event.correctionType !== "reverse" &&
+        !nettedInWindow.has(event.id) &&
         inPeriod(event.occurredOn, from, to) &&
         (event.operatingExpenseDeltaMinor > 0 ||
           event.expenseContext?.sharedProjectShare?.allocation === "unallocated"),
