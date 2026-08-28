@@ -699,3 +699,38 @@ describe("draft postponement follows contract 02 from every pre-delivery state (
     ).toThrow("invalid transition: delivered -> postponed");
   });
 });
+
+const a09FreshnessInput = (priceDate: string) => ({
+  currency: "JOD" as const,
+  materialItems: [
+    {
+      name: "قماش",
+      quantity: 1,
+      unit: "meter",
+      unitPriceMinor: 100,
+      priceDate,
+      source: "user_input" as const,
+      confidence: "known" as const,
+    },
+  ],
+  time: { minutes: 30, hourlyRateMinor: 600, confidence: "known" as const },
+  packagingMinor: 0,
+  deliveryMinor: 0,
+  wasteMinor: 0,
+  safetyBufferMinor: 0,
+  quantity: 1,
+  createdAt: "2026-05-10T01:30:00.000Z",
+  freshnessDays: 0,
+  source: "price_approval" as const,
+});
+
+describe("freshness compares Amman-local calendar dates, not UTC instants (A-09)", () => {
+  it("treats a price dated today as fresh even when recorded after Amman midnight", () => {
+    const state = calculateCostSnapshot("a09-same-day", a09FreshnessInput("2026-05-10"));
+    expect(state.knowledgeState).toBe("known");
+  });
+  it("marks yesterday's price stale at freshnessDays 0", () => {
+    const state = calculateCostSnapshot("a09-yesterday", a09FreshnessInput("2026-05-09"));
+    expect(state.knowledgeState).toBe("stale");
+  });
+});

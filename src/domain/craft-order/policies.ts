@@ -49,6 +49,25 @@ function assertValidDate(value: string, field: string): void {
   }
 }
 
+function ammanLocalDate(isoTimestamp: string): string | null {
+  if (Number.isNaN(Date.parse(isoTimestamp))) return null;
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Amman",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(isoTimestamp));
+  const part = (type: string) => parts.find(entry => entry.type === type)?.value ?? null;
+  const year = part("year");
+  const month = part("month");
+  const day = part("day");
+  return year && month && day ? `${year}-${month}-${day}` : null;
+}
+function localDateMinusDays(localDate: string, days: number): string {
+  const [year, month, day] = localDate.split("-").map(Number);
+  return new Date(Date.UTC(year!, month! - 1, day! - days)).toISOString().slice(0, 10);
+}
+
 function assertFreshnessDays(value: number | null | undefined): void {
   if (value !== null && value !== undefined && (!Number.isInteger(value) || value < 0)) {
     throw new Error("أدخل أيام صلاحية السعر رقمًا صحيحًا غير سالب.");
@@ -104,10 +123,16 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   if (hasIncompleteTime) return "incomplete";
 
   if (input.freshnessDays !== null && input.freshnessDays !== undefined) {
-    const createdAt = Date.parse(input.createdAt);
-    const oldestAllowed = createdAt - input.freshnessDays * 24 * 60 * 60 * 1000;
-    const hasStaleMaterial = input.materialItems.some(item => Date.parse(item.priceDate) < oldestAllowed);
-    if (hasStaleMaterial) return "stale";
+    // Freshness is a calendar-date question in the owner's day (Asia/Amman), not an instant comparison:
+    // a price dated today stays fresh even when the snapshot was recorded after Amman midnight.
+    const createdLocalDate = ammanLocalDate(input.createdAt);
+    const oldestAllowed = createdLocalDate === null
+      ? null
+      : localDateMinusDays(createdLocalDate, input.freshnessDays);
+    if (oldestAllowed !== null) {
+      const hasStaleMaterial = input.materialItems.some(item => item.priceDate < oldestAllowed);
+      if (hasStaleMaterial) return "stale";
+    }
   }
 
   if (hasVariableCost) return "variable";
