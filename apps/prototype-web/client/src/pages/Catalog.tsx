@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArchiveX, ArrowRight, Check, GitCompareArrows, Plus, RotateCcw, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
 import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application/input/englishNumeric";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
@@ -138,28 +139,23 @@ export const buildCatalogPerUnitPreview = (
   rateMinorPerWholeUnit: number | null,
   unitName: string,
 ) => {
-  if (quantityMilli === null || rateMinorPerWholeUnit === null)
-    return { allocationMinor: null, text: null, warning: "تحتاج المعاينة إلى كمية final ومعدل صالحين." };
-  if (
-    !Number.isSafeInteger(quantityMilli) ||
-    quantityMilli <= 0 ||
-    !Number.isSafeInteger(rateMinorPerWholeUnit) ||
-    rateMinorPerWholeUnit <= 0 ||
-    rateMinorPerWholeUnit > Number.MAX_SAFE_INTEGER / quantityMilli
-  )
+  const allocation = perOutputUnitAmountMinor(quantityMilli, rateMinorPerWholeUnit);
+  if ("problem" in allocation)
     return {
       allocationMinor: null,
       text: null,
-      warning: "لا يمكن الحساب بأمان؛ راجع الكمية والمعدل قبل الحفظ.",
+      warning:
+        allocation.problem === "missing_input"
+          ? "تحتاج المعاينة إلى كمية final ومعدل صالحين."
+          : allocation.problem === "unsafe_range"
+            ? "لا يمكن الحساب بأمان؛ راجع الكمية والمعدل قبل الحفظ."
+            : "تجاوز الحساب الدقة الآمنة؛ لم يُقرب الرقم.",
     };
-  const rawMinor = rateMinorPerWholeUnit * quantityMilli;
-  if (!Number.isSafeInteger(rawMinor) || rawMinor > Number.MAX_SAFE_INTEGER - 500)
-    return { allocationMinor: null, text: null, warning: "تجاوز الحساب الدقة الآمنة؛ لم يُقرب الرقم." };
-  const allocationMinor = Math.floor((rawMinor + 500) / 1000);
+  const allocationMinor = allocation.amountMinor;
   const label = unitName.trim() || "وحدة كاملة";
   return {
     allocationMinor,
-    text: `${(quantityMilli / 1000).toFixed(3)} ${label} × ${(rateMinorPerWholeUnit / 100).toFixed(2)} د.أ لكل 1.000 ${label} = ${(allocationMinor / 100).toFixed(2)} د.أ`,
+    text: `${((quantityMilli ?? 0) / 1000).toFixed(3)} ${label} × ${((rateMinorPerWholeUnit ?? 0) / 100).toFixed(2)} د.أ لكل 1.000 ${label} = ${(allocationMinor / 100).toFixed(2)} د.أ`,
     warning:
       allocationMinor === 0
         ? "الناتج 0.00 د.أ نتيجة حسابية معلنة بعد تقريب مجموع الفترة، وليس غياب بيانات."

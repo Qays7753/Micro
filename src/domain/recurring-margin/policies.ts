@@ -184,6 +184,29 @@ const incomplete = (
   calculationNote: "التحميل غير محسوب لأن دليل السياسة غير مكتمل.",
 });
 
+/** One implementation of the per-output-unit allocation arithmetic, shared by the catalog preview and the period reader. */
+export type PerOutputUnitAmount = { amountMinor: number } | { problem: "missing_input" | "unsafe_range" | "overflow" };
+
+export function perOutputUnitAmountMinor(
+  quantityMilli: number | null,
+  rateMinorPerWholeUnit: number | null,
+): PerOutputUnitAmount {
+  if (quantityMilli === null || rateMinorPerWholeUnit === null) return { problem: "missing_input" };
+  if (
+    !Number.isSafeInteger(quantityMilli) ||
+    quantityMilli <= 0 ||
+    !Number.isSafeInteger(rateMinorPerWholeUnit) ||
+    rateMinorPerWholeUnit <= 0 ||
+    rateMinorPerWholeUnit > Number.MAX_SAFE_INTEGER / quantityMilli
+  )
+    return { problem: "unsafe_range" };
+  const rawMinor = rateMinorPerWholeUnit * quantityMilli;
+  if (!Number.isSafeInteger(rawMinor) || rawMinor > Number.MAX_SAFE_INTEGER - 500) return { problem: "overflow" };
+  const amountMinor = roundHalfUp(rawMinor, 1_000);
+  if (amountMinor === null) return { problem: "overflow" };
+  return { amountMinor };
+}
+
 export function calculateAllocationPolicy(
   policy: AllocationPolicy,
   evidence: AllocationEvidence,
@@ -219,16 +242,15 @@ export function calculateAllocationPolicy(
       policy.unitId !== evidence.outputUnitId
     ) {
       reasons.push("أكمل كمية الناتج بوحدة منظمة متوافقة مع سياسة التحميل لكل وحدة؛ لا نحول أو نخمن yield.");
-    } else if (
-      policy.rateMinorPerWholeUnit === null ||
-      policy.rateMinorPerWholeUnit > Number.MAX_SAFE_INTEGER / evidence.outputQuantityMilli
-    ) {
-      reasons.push("معدل الوحدة أو كمية الناتج يتجاوزان الدقة الآمنة؛ راجع النطاق قبل الحساب.");
     } else {
-      const rawMinor = policy.rateMinorPerWholeUnit * evidence.outputQuantityMilli;
-      if (!Number.isSafeInteger(rawMinor) || rawMinor > Number.MAX_SAFE_INTEGER - 500)
-        reasons.push("مجموع معدل الوحدة والكمية يتجاوز الدقة الآمنة قبل التقريب.");
-      else amountMinor = roundHalfUp(rawMinor, 1_000);
+      const allocation = perOutputUnitAmountMinor(evidence.outputQuantityMilli, policy.rateMinorPerWholeUnit);
+      if ("problem" in allocation)
+        reasons.push(
+          allocation.problem === "overflow"
+            ? "مجموع معدل الوحدة والكمية يتجاوز الدقة الآمنة قبل التقريب."
+            : "معدل الوحدة أو كمية الناتج يتجاوزان الدقة الآمنة؛ راجع النطاق قبل الحساب.",
+        );
+      else amountMinor = allocation.amountMinor;
     }
   }
   if (policy.kind === "actual_time") {
