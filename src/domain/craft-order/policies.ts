@@ -16,7 +16,7 @@ import type {
 import { JOD, assertNonNegativeInteger, fieldLabelAr, quantityMilliExact, roundHalfUp } from "../shared/index.js";
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
-  draft: ["provisional_agreement", "needs_review"],
+  draft: ["provisional_agreement", "postponed", "needs_review"],
   provisional_agreement: ["confirmed", "postponed", "needs_review"],
   confirmed: ["in_progress", "postponed", "needs_review"],
   in_progress: ["ready", "postponed", "needs_review"],

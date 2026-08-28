@@ -662,3 +662,40 @@ describe("material and time rounding follows the half-up minor policy (A-04)", (
     ).toThrow("أدخل الكمية بدقة أجزاء من ألف");
   });
 });
+
+const a08DraftOrder = () =>
+  createCraftOrder({
+    id: "a08-draft-order",
+    customerName: "عميلة",
+    itemName: "قطعة",
+    specifications: "مواصفات",
+    quantity: 1,
+    agreedPriceMinor: 3000,
+    costSnapshot: costSnapshot,
+    createdAt: "2026-08-01T09:00:00.000Z",
+  });
+
+describe("draft postponement follows contract 02 from every pre-delivery state (A-08)", () => {
+  it("moves a draft to postponed as contract 02 allows from every pre-delivery state", () => {
+    const order = transitionOrder(a08DraftOrder(), {
+      to: "postponed",
+      idempotencyKey: "a08-postpone",
+      createdAt: "2026-08-02T09:00:00.000Z",
+    });
+    expect(order.status).toBe("postponed");
+  });
+  it("still forbids postponing a delivered order", () => {
+    let order = a08DraftOrder();
+    for (const [to, stamp] of [
+      ["provisional_agreement", "2026-08-01T10:00:00.000Z"],
+      ["confirmed", "2026-08-01T11:00:00.000Z"],
+      ["in_progress", "2026-08-02T09:00:00.000Z"],
+      ["ready", "2026-08-03T09:00:00.000Z"],
+      ["delivered", "2026-08-05T09:00:00.000Z"],
+    ] as const)
+      order = transitionOrder(order, { to, idempotencyKey: `a08-${to}`, createdAt: stamp });
+    expect(() =>
+      transitionOrder(order, { to: "postponed", idempotencyKey: "a08-late", createdAt: "2026-08-06T09:00:00.000Z" }),
+    ).toThrow("invalid transition: delivered -> postponed");
+  });
+});
