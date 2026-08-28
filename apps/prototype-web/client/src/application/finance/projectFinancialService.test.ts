@@ -710,6 +710,69 @@ describe("ProjectFinancialService", () => {
     });
   });
 
+  it("withholds break-even units beyond safe-integer precision with a recorded reason instead of a wrong number", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const cost = calculateCostSnapshot("cost-overflow", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 2,
+      createdAt: "2026-08-01T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    let order = createCraftOrder({
+      id: "overflow-order",
+      customerName: "عميلة",
+      itemName: "تعادل",
+      specifications: "اختبار",
+      quantity: 2,
+      agreedPriceMinor: 6000,
+      costSnapshot: cost,
+      createdAt: "2026-08-01T09:00:00.000Z",
+    });
+    for (const [to, stamp] of [
+      ["provisional_agreement", "2026-08-01T10:00:00.000Z"],
+      ["confirmed", "2026-08-01T11:00:00.000Z"],
+      ["in_progress", "2026-08-02T09:00:00.000Z"],
+      ["ready", "2026-08-03T09:00:00.000Z"],
+      ["delivered", "2026-08-05T09:00:00.000Z"],
+    ] as const)
+      order = transitionOrder(order, { to, idempotencyKey: `overflow-${to}`, createdAt: stamp });
+    await store.saveOrder({
+      id: order.id,
+      order,
+      deliveryDate: "2026-08-05",
+      agreementSource: "test",
+      createdAt: "2026-08-01T09:00:00.000Z",
+      updatedAt: "2026-08-05T09:00:00.000Z",
+    });
+    await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 9_000_000_000_000_000,
+      occurredOn: "2026-08-06",
+      note: "مصروف ثابت ضخم",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "overflow-fixed",
+    });
+    await expect(finance.readFinancialInsights("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+      ok: true,
+      value: {
+        coverage: {
+          status: "recorded_only",
+          breakEvenUnits: null,
+          reasons: [expect.stringContaining("تعذر حساب وحدات التعادل")],
+        },
+      },
+    });
+  });
+
   it("withholds coverage units for variable expenses and keeps liquidity debt separate from cash", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);

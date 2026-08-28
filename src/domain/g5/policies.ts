@@ -19,6 +19,7 @@ import {
   fieldLabelAr,
   isValidLocalDate,
   isValidTimestamp,
+  quantityMilliExact,
   roundHalfUp,
 } from "../shared/index.js";
 
@@ -475,6 +476,34 @@ export function calculateBreakEven(
     };
   }
   return { ...contribution, breakEvenUnits };
+}
+
+/** Break-even units from period aggregates, carrying the same safe-integer honesty as the full reader; null refuses. */
+export function calculateBreakEvenUnits(
+  fixedExpenseMinor: number,
+  deliveredQuantityUnits: number,
+  directMarginMinor: number,
+): number | null {
+  if (
+    !Number.isSafeInteger(fixedExpenseMinor) ||
+    fixedExpenseMinor < 0 ||
+    !Number.isSafeInteger(directMarginMinor) ||
+    directMarginMinor <= 0
+  )
+    return null;
+  const quantityMilli = quantityMilliExact(deliveredQuantityUnits);
+  if (quantityMilli === null) return null;
+  const denominator =
+    directMarginMinor > 0 && directMarginMinor <= Number.MAX_SAFE_INTEGER / 1000
+      ? directMarginMinor * 1000
+      : null;
+  const numerator =
+    denominator !== null &&
+    fixedExpenseMinor <= Number.MAX_SAFE_INTEGER / Math.max(quantityMilli, 1)
+      ? fixedExpenseMinor * quantityMilli
+      : null;
+  if (numerator === null || denominator === null) return null;
+  return ceilRatio(numerator, denominator);
 }
 
 function validateBalanceItem(item: ShortCashInput["receivables"][number]): string | null {

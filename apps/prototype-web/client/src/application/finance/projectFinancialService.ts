@@ -15,6 +15,7 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
+import { calculateBreakEvenUnits } from "@micro-domain/g5/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 
@@ -624,8 +625,10 @@ export class ProjectFinancialService {
           : "recorded_only";
     const breakEvenUnits =
       coverageStatus === "recorded_only"
-        ? Math.ceil((fixedExpenseMinor * finalDeliveredQuantity) / directMarginMinor)
+        ? calculateBreakEvenUnits(fixedExpenseMinor, finalDeliveredQuantity, directMarginMinor)
         : null;
+    if (coverageStatus === "recorded_only" && breakEvenUnits === null)
+      coverageReasons.push("تعذر حساب وحدات التعادل ضمن الدقة الآمنة.");
     const liquidityIncomplete =
       positionResult.value.customerReceivablesMinor > 0 || positionResult.value.supplierPayablesMinor > 0;
     const liquidity: RecordedLiquidity = {

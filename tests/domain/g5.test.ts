@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateBreakEven,
+  calculateBreakEvenUnits,
   calculateContributionMargin,
   calculateShortCash,
   createShortCashDeclaration,
@@ -204,6 +205,14 @@ describe("G5 pure domain", () => {
     expect(oneUnit).toMatchObject({ contributionMarginPerUnitMinor: 500, breakEvenUnits: 1 });
     expect(twelveUnits).toMatchObject({ contributionMarginPerUnitMinor: 500, breakEvenUnits: 2 });
     expect(oneUnit.breakEvenUnits).not.toBe(1000);
+  });
+
+  it("carries the aggregate break-even guard for the application layer (C-03)", () => {
+    expect(calculateBreakEvenUnits(1000, 2, 3300)).toBe(1);
+    expect(calculateBreakEvenUnits(600, 12, 500)).toBe(15);
+    expect(calculateBreakEvenUnits(9_000_000_000_000_000, 2, 3300)).toBeNull();
+    expect(calculateBreakEvenUnits(1000, 2, 0)).toBeNull();
+    expect(calculateBreakEvenUnits(-1, 2, 3300)).toBeNull();
   });
 
   it("does not combine incompatible quantity units into one break-even scale", () => {
