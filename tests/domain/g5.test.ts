@@ -344,7 +344,7 @@ describe("G5 pure domain", () => {
       recordedCashMinor: 10000,
       projectedCashMinor: null,
     });
-    expect(result.reasons.join(" ")).toContain("غياب الإعلان لا يعني");
+    expect(result.reasons.join(" ")).toContain("غياب المتوقع لا يعني");
   });
 
   it("invalidates a linked declaration that exceeds the known balance", () => {

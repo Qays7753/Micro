@@ -106,11 +106,11 @@ const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
       : "لا توجد COGS مؤهلة؛ Snapshot هو المصدر البديل المعلن";
 const shortStatusLabel = (status: G5Decision["shortCash"]["status"]) =>
   status === "available"
-    ? "توقع معلن مكتمل"
+    ? "توقع مكتمل"
     : status === "needs_review"
-      ? "توقع معلن يحتاج مراجعة"
+      ? "توقع يحتاج مراجعة"
       : status === "invalid"
-        ? "إعلان غير صالح"
+        ? "السجل غير صالح"
         : "لا يكفي لبناء توقع";
 
 export default function Finance() {
@@ -411,7 +411,7 @@ export default function Finance() {
         <summary className="micro-finance-layer-summary">
           <span>
             <b>التغطية والتعادل</b>
-            <small>قراءة G5 للفترة والمزيج والإعلانات المعلنة</small>
+            <small>قراءة الهامش والمتوقعات للفترة</small>
           </span>
           <strong>افتح التفاصيل</strong>
         </summary>
@@ -590,8 +590,8 @@ function CashDecisionSurface({
         </span>
         <h2 id="cash-decision-title">ماذا أفعل بالكاش؟</h2>
         <p>
-          ابدأ بما هو متاح الآن، ثم قارنه بما تتوقع تحصيله وما يجب دفعه ضمن النطاق المحدد. هذه قراءة معلنة، لا
-          وعد بتدفق نقدي.
+          ابدأ بما هو متاح الآن، ثم قارنه بما تتوقع تحصيله وما يجب دفعه ضمن النطاق المحدد. هذه قراءة من مسجلاتك، لا
+          وعد بأموال قادمة.
         </p>
       </div>
       <div className="micro-cash-decision-metrics">
@@ -601,18 +601,18 @@ function CashDecisionSurface({
           negative={cash.status !== "invalid" && cash.recordedCashMinor < 0}
         />
         <Metric
-          label="تحصيلات قريبة معلنة"
+          label="قبض متوقع قريب"
           value={displayCashAmount(cash.declaredCollectionsMinor, cash.status)}
         />
         <Metric
-          label="التزامات قريبة معلنة"
+          label="دفع متوقع قريب"
           value={displayCashAmount(cash.declaredCommitmentsMinor, cash.status)}
           negative={
             cash.status !== "invalid" && cash.declaredCommitmentsMinor > cash.declaredCollectionsMinor
           }
         />
         <Metric
-          label="بعد المعلن"
+          label="الكاش المتوقع"
           value={
             cash.projectedCashMinor === null || cash.status === "invalid"
               ? "غير متاح"
@@ -1021,19 +1021,19 @@ function G5DecisionPanel({
         <div className="micro-section-heading">
           <div>
             <span className="micro-overline">أثر قابل للتصحيح</span>
-            <h2>الإعلانات المحلية</h2>
+            <h2>المتوقعات المحلية</h2>
           </div>
           <span className="micro-g5-count">{activeDeclarations.length}</span>
         </div>
         {activeDeclarations.length === 0 ? (
-          <p>لا توجد إعلانات فعالة. لن يفترض النظام مواعيد من تلقاء نفسه.</p>
+          <p>لا توجد متوقعات مسجلة. لن يفترض النظام مواعيد من تلقاء نفسه.</p>
         ) : (
           <div className="micro-g5-declaration-list">
             {activeDeclarations.map(entry => (
               <div className="micro-g5-declaration" key={entry.id}>
                 <div>
                   <strong>
-                    {entry.direction === "collection" ? "تحصيل معلن" : "التزام معلن"} · {entry.source}
+                    {entry.direction === "collection" ? "قبض متوقع" : "دفع متوقع"} · {entry.source}
                   </strong>
                   <small>
                     {entry.dueOn ? <LocalDateValue value={entry.dueOn} /> : "بلا تاريخ"} ·{" "}
@@ -1061,7 +1061,7 @@ function G5DecisionPanel({
                       />
                     </label>
                     <p className="micro-local-truth">
-                      لن يُنفذ العكس قبل كتابة سبب غير فارغ. سيُحفظ هذا النص في سجل العكس مع بقاء الإعلان
+                      لن يُنفذ العكس قبل كتابة سبب غير فارغ. سيُحفظ هذا النص في سجل العكس مع بقاء السجل المتوقع
                       الأصلي محفوظًا.
                     </p>
                     <div className="micro-form-actions">

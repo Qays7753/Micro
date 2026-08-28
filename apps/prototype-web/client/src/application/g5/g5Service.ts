@@ -276,7 +276,7 @@ export class G5Service {
     const result = await this.store.listShortCashDeclarations();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة إعلانات السيولة المحلية." };
+      : { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
   }
 
   async listLinkOptions(): Promise<G5Result<G5LinkOptions>> {
@@ -357,7 +357,7 @@ export class G5Service {
         shortCash,
         declarations: declarations.value,
         truth:
-          "هذه قراءة مشتقة من السجل المحلي وإعلانات المالك. لا تحفظ نتيجة مالية جديدة، ولا تحول الإعلان إلى قبض أو دفع فعلي، ولا تقدم توصية ملزمة.",
+          "هذه قراءة مشتقة من السجل المحلي وما سجّلته من متوقعات. لا تحفظ نتيجة مالية جديدة، ولا تحول المتوقع إلى قبض أو دفع فعلي، ولا تقدم توصية ملزمة.",
       },
     };
   }
@@ -365,7 +365,7 @@ export class G5Service {
   async createDeclaration(input: G5DeclarationInput): Promise<G5Result<ShortCashDeclaration>> {
     const declarations = await this.store.listShortCashDeclarations();
     if (!declarations.ok)
-      return { ok: false, code: "storage_error", message: "تعذر التحقق من إعلانات السيولة المحلية." };
+      return { ok: false, code: "storage_error", message: "تعذر التحقق من المتوقعات المحلية." };
     const repeated = declarations.value.find(
       declaration =>
         declaration.kind === "declaration" && declaration.idempotencyKey === input.idempotencyKey,
@@ -378,12 +378,12 @@ export class G5Service {
       const saved = await this.store.saveShortCashDeclaration(declaration);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : { ok: false, code: "storage_error", message: "تعذر حفظ إعلان السيولة محليًا." };
+        : { ok: false, code: "storage_error", message: "تعذر حفظ السجل المتوقع محليًا." };
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "إعلان السيولة غير صالح.",
+        message: error instanceof Error ? error.message : "السجل المتوقع غير صالح.",
       };
     }
   }
@@ -395,10 +395,10 @@ export class G5Service {
   ): Promise<G5Result<ShortCashDeclaration>> {
     const declarations = await this.store.listShortCashDeclarations();
     if (!declarations.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة إعلانات السيولة المحلية." };
+      return { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
     const original = declarations.value.find(declaration => declaration.id === idToReverse);
     if (!original)
-      return { ok: false, code: "not_found", message: "إعلان السيولة المطلوب تصحيحه غير موجود." };
+      return { ok: false, code: "not_found", message: "السجل المتوقع المطلوب تصحيحه غير موجود." };
     if (original.kind !== "declaration")
       return { ok: false, code: "validation_error", message: "لا يمكن عكس سجل عكس آخر." };
     const repeated = declarations.value.find(
@@ -413,7 +413,7 @@ export class G5Service {
       return {
         ok: false,
         code: "validation_error",
-        message: "تم عكس هذا الإعلان مسبقًا دون تعديل السجل القديم.",
+        message: "تم عكس هذا السجل المتوقع مسبقًا دون تعديل السجل القديم.",
       };
     try {
       const reversal = createShortCashReversal({
@@ -429,13 +429,13 @@ export class G5Service {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ تصحيح إعلان السيولة ذريًا؛ بقي الأصل محفوظًا.",
+            message: "تعذر حفظ تصحيح السجل المتوقع ذريًا؛ بقي الأصل محفوظًا.",
           };
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "تصحيح إعلان السيولة غير صالح.",
+        message: error instanceof Error ? error.message : "تصحيح السجل المتوقع غير صالح.",
       };
     }
   }
@@ -457,7 +457,7 @@ export class G5Service {
         return {
           ok: false,
           code: "validation_error",
-          message: "لا يمكن أن يتجاوز مجموع إعلانات التحصيل الذمة المسجلة للطلب.",
+          message: "لا يمكن أن يتجاوز مجموع متوقعات القبض الدين المسجل للطلب.",
         };
     }
     if (input.relatedEventId) {
@@ -473,14 +473,14 @@ export class G5Service {
         event.value.correctionType === "reverse" ||
         reversedEventIds(events.value).has(event.value.id)
       )
-        return { ok: false, code: "validation_error", message: "لا يمكن ربط إعلان بالتزام مالي عُكس." };
+        return { ok: false, code: "validation_error", message: "لا يمكن ربط توقع بالتزام مالي عُكس." };
       const paid = activeSettlementsMinor(events.value, event.value!.id);
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid)
         return {
           ok: false,
           code: "validation_error",
-          message: "لا يمكن أن يتجاوز مجموع إعلانات الالتزام الرصيد المسجل.",
+          message: "لا يمكن أن يتجاوز مجموع متوقعات الدفع الرصيد المسجل.",
         };
     }
     return { ok: true, value: null };

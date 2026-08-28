@@ -1150,7 +1150,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد الإعلان الأصلي موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ العكس.",
             };
             try {
               transaction.abort();
@@ -1169,7 +1169,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "هذا الإعلان عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
+                    message: "هذا السجل المتوقع عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
                   };
             try {
               transaction.abort();
@@ -1195,7 +1195,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية عكس إعلان السيولة؛ لم يتغير السجل.",
+              message: "تعارض هوية عكس السجل المتوقع؛ لم يتغير السجل.",
             };
             try {
               transaction.abort();

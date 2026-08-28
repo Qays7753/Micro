@@ -1,4 +1,4 @@
-/* مبدأ Micro: الإعلان يظل توقعًا معلنًا منفصلًا عن الكاش، مع تاريخ قابل للفهم. */
+/* مبدأ Micro: المتوقع يظل سجلًا منفصلًا عن الكاش، مع تاريخ قابل للفهم. */
 import { ArrowLeft, CalendarClock, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -8,7 +8,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import type { G5LinkOptions } from "@/application/g5/g5Service";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
-/* مبدأ Micro: يبدأ الإعلان بالواقعة الأساسية، وتبقى المعرفة والربط والملاحظة خلف تفاصيل مقصودة. */
+/* مبدأ Micro: يبدأ المتوقع بالواقعة الأساسية، وتبقى المعرفة والربط والملاحظة خلف تفاصيل مقصودة. */
 
 function todayInAmman() {
   return localDateInAmman();
@@ -55,7 +55,7 @@ export default function G5DeclarationEditor() {
     }
     if (!note.trim()) {
       setDetailsOpen(true);
-      setMessage("أضف ملاحظة قصيرة داخل تفاصيل الإعلان قبل الحفظ.");
+      setMessage("أضف ملاحظة قصيرة داخل تفاصيل المتوقع قبل الحفظ.");
       return;
     }
     setSaving(true);
@@ -89,7 +89,7 @@ export default function G5DeclarationEditor() {
         <ArrowLeft aria-hidden="true" /> القرار المالي
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">إعلان لا يتحول إلى حركة مالية</span>
+        <span className="micro-overline">سجل متوقع لا يتحول إلى حركة مالية</span>
         <h1>تحصيل أو التزام قريب</h1>
         <p>
           اكتب ما أعلنته أو تعرفه مع تاريخه ومصدره. سيظهر في توقع G5 منفصلًا عن الكاش الحالي، ويمكن عكسه
@@ -127,19 +127,19 @@ export default function G5DeclarationEditor() {
             kind="money"
             allowEmpty
             placeholder="0.00"
-            aria-label="مبلغ إعلان السيولة"
+            aria-label="مبلغ السجل المتوقع"
             onNumericChange={setAmountMinor}
             onEmptyChange={() => setAmountMinor(null)}
             onTextValidityChange={setAmountValid}
           />
         </label>
         <LocalDateField
-          label="التاريخ المعلن"
+          label="التاريخ المتوقع"
           value={dueOn}
           onChange={event => setDueOn(event.target.value)}
         />
         <label className="micro-field">
-          <span>المصدر المعلن</span>
+          <span>مصدر التوقع</span>
           <input
             type="text"
             value={source}
@@ -154,7 +154,7 @@ export default function G5DeclarationEditor() {
         >
           <summary className="micro-decision-layer-summary">
             <span>
-              <b>تفاصيل الإعلان</b>
+              <b>تفاصيل المتوقع</b>
               <small>المعرفة والربط والملاحظة عند الحاجة.</small>
             </span>
             <strong>افتح التفاصيل</strong>
@@ -179,7 +179,7 @@ export default function G5DeclarationEditor() {
               value={selectedLinkId ?? ""}
               onChange={event => setSelectedLinkId(event.target.value || null)}
             >
-              <option value="">بدون ربط — إعلان مستقل</option>
+              <option value="">بدون ربط — سجل مستقل</option>
               {linkOptions.map(option => (
                 <option key={option.id} value={option.id}>
                   {option.label} · {formatMoneyMinor(option.amountMinor)}
@@ -192,14 +192,14 @@ export default function G5DeclarationEditor() {
             <textarea
               value={note}
               onChange={event => setNote(event.target.value)}
-              placeholder="ما الذي يجعلك تعتبر هذا التحصيل أو الالتزام معلنًا؟"
+              placeholder="ما الذي يجعلك تتوقع هذا القبض أو الدفع؟"
             />
           </label>
         </details>
         <p className="micro-local-truth">
           <CalendarClock aria-hidden="true" />
           <span>
-            هذا الإعلان لا يزيد الكاش ولا ينقصه ولا يسجل قبضًا أو دفعًا. إذا تغيرت الواقعة، صححها بعكس موثق من
+            هذا السجل المتوقع لا يزيد الكاش ولا ينقصه ولا يسجل قبضًا أو دفعًا. إذا تغيرت الواقعة، صححها بعكس موثق من
             سطح القرار.
           </span>
         </p>
@@ -216,7 +216,7 @@ export default function G5DeclarationEditor() {
             onClick={() => void save()}
           >
             <Save aria-hidden="true" />
-            {saving ? "جارٍ حفظ الإعلان…" : "حفظ الإعلان المحلي"}
+            {saving ? "جارٍ حفظ المتوقع…" : "حفظ المتوقع"}
           </button>
           <button
             className="micro-button micro-button-secondary micro-button-block"

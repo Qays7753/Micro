@@ -488,29 +488,29 @@ function validateBalanceItem(item: ShortCashInput["receivables"][number]): strin
 
 function validateDeclaration(declaration: ShortCashDeclaration): string | null {
   if (!declaration.id.trim() || !["declaration", "reversal"].includes(declaration.kind))
-    return "يوجد إعلان سيولة بلا معرف أو نوع صالح.";
-  if (!DIRECTIONS.includes(declaration.direction)) return "اتجاه إعلان السيولة غير صالح.";
+    return "يوجد سجل متوقع بلا معرف أو نوع صالح.";
+  if (!DIRECTIONS.includes(declaration.direction)) return "اتجاه السجل المتوقع غير صالح.";
   if (!Number.isSafeInteger(declaration.amountMinor) || declaration.amountMinor <= 0)
-    return "مبلغ إعلان السيولة غير صالح.";
-  if (!isValidLocalDate(declaration.dueOn)) return "تاريخ إعلان السيولة غير صالح.";
+    return "مبلغ السجل المتوقع غير صالح.";
+  if (!isValidLocalDate(declaration.dueOn)) return "تاريخ السجل المتوقع غير صالح.";
   if (
     !declaration.source.trim() ||
     !declaration.note.trim() ||
     !declaration.idempotencyKey.trim() ||
     !isValidTimestamp(declaration.createdAt)
   )
-    return "إعلان السيولة ناقص المصدر أو الملاحظة أو المفتاح أو وقت الإنشاء.";
-  if (!KNOWLEDGE.includes(declaration.knowledge)) return "درجة معرفة إعلان السيولة غير صالحة.";
+    return "السجل المتوقع ناقص المصدر أو الملاحظة أو المفتاح أو وقت الإنشاء.";
+  if (!KNOWLEDGE.includes(declaration.knowledge)) return "درجة معرفة السجل المتوقع غير صالحة.";
   if (declaration.relatedOrderId && declaration.relatedEventId)
-    return "لا يجوز ربط إعلان السيولة بطلب وحدث معًا.";
+    return "لا يجوز ربط السجل المتوقع بطلب وحدث معًا.";
   if (declaration.relatedOrderId && declaration.direction !== "collection")
     return "ربط الطلب مخصص لتحصيلات العملاء فقط.";
   if (declaration.relatedEventId && declaration.direction !== "commitment")
     return "ربط الحدث مخصص لالتزامات المصروف فقط.";
   if (declaration.kind === "declaration" && declaration.reversalOfId !== null)
-    return "الإعلان الأصلي لا يحمل رابط عكس.";
+    return "السجل الأصلي لا يحمل رابط عكس.";
   if (declaration.kind === "reversal" && !declaration.reversalOfId?.trim())
-    return "العكس يحتاج رابطًا إلى إعلان أصلي.";
+    return "العكس يحتاج رابطًا إلى سجل متوقع أصلي.";
   return null;
 }
 
@@ -525,9 +525,9 @@ function activeDeclarations(declarations: readonly ShortCashDeclaration[]): {
   for (const declaration of declarations) {
     const validation = validateDeclaration(declaration);
     if (validation) return { active: [], invalidReason: validation };
-    if (byId.has(declaration.id)) return { active: [], invalidReason: "يوجد تكرار في معرف إعلان السيولة." };
+    if (byId.has(declaration.id)) return { active: [], invalidReason: "يوجد تكرار في معرف السجل المتوقع." };
     if (keys.has(`${declaration.kind}:${declaration.idempotencyKey}`))
-      return { active: [], invalidReason: "يوجد تكرار في مفتاح إعلان السيولة." };
+      return { active: [], invalidReason: "يوجد تكرار في مفتاح السجل المتوقع." };
     byId.set(declaration.id, declaration);
     keys.add(`${declaration.kind}:${declaration.idempotencyKey}`);
     if (declaration.kind === "declaration") active.push(declaration);
@@ -535,7 +535,7 @@ function activeDeclarations(declarations: readonly ShortCashDeclaration[]): {
   for (const declaration of declarations) {
     if (declaration.kind !== "reversal") continue;
     if (!declaration.reversalOfId || reversedIds.has(declaration.reversalOfId))
-      return { active: [], invalidReason: "يوجد عكس مكرر أو بلا إعلان أصلي." };
+      return { active: [], invalidReason: "يوجد عكس مكرر أو بلا سجل أصلي." };
     const original = byId.get(declaration.reversalOfId);
     if (
       !original ||
@@ -547,7 +547,7 @@ function activeDeclarations(declarations: readonly ShortCashDeclaration[]): {
       original.relatedOrderId !== declaration.relatedOrderId ||
       original.relatedEventId !== declaration.relatedEventId
     )
-      return { active: [], invalidReason: "عكس إعلان السيولة لا يطابق أصله." };
+      return { active: [], invalidReason: "عكس السجل المتوقع لا يطابق أصله." };
     reversedIds.add(declaration.reversalOfId);
   }
   return { active: active.filter(declaration => !reversedIds.has(declaration.id)), invalidReason: null };
@@ -597,7 +597,7 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
       ...base,
       status: "invalid",
       reasons: [declarationState.invalidReason],
-      nextAction: "راجع إعلان السيولة أو عكسه دون تعديل السجل القديم.",
+      nextAction: "راجع السجل المتوقع أو عكسه دون تعديل السجل القديم.",
     };
   const active = declarationState.active;
   const allBalances = [...input.receivables, ...input.payables];
@@ -622,13 +622,13 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
     const linkedAmount = linked.reduce((sum, declaration) => sum + declaration.amountMinor, 0);
     if (!Number.isSafeInteger(linkedAmount) || linkedAmount > balance.amountMinor) {
       invalid = true;
-      reasons.push(`إعلانات ${balance.source} يتجاوز مجموعها الرصيد المسجل.`);
+      reasons.push(`متوقعات ${balance.source} يتجاوز مجموعها الرصيد المسجل.`);
       continue;
     }
     if (balance.dueOn !== null) {
       if (linked.length > 0) {
         invalid = true;
-        reasons.push(`الإعلان المرتبط بـ${balance.source} يكرر رصيدًا له تاريخ مسجل مسبقًا.`);
+        reasons.push(`السجل المتوقع المرتبط بـ${balance.source} يكرر رصيدًا له تاريخ مسجل مسبقًا.`);
         continue;
       }
       if (balance.dueOn >= input.from && balance.dueOn <= input.to) {
@@ -659,7 +659,7 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
       );
       if (!balance) {
         invalid = true;
-        reasons.push(`الإعلان ${declaration.source} مرتبط برصيد غير موجود.`);
+        reasons.push(`السجل المتوقع ${declaration.source} مرتبط برصيد غير موجود.`);
         continue;
       }
       if (balance.dueOn !== null) continue;
@@ -672,14 +672,14 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
         .reduce((sum, candidate) => sum + candidate.amountMinor, 0);
       if (linkedAmount > balance.amountMinor) {
         invalid = true;
-        reasons.push(`إعلان ${declaration.source} يتجاوز الرصيد المسجل.`);
+        reasons.push(`السجل المتوقع ${declaration.source} يتجاوز الرصيد المسجل.`);
         continue;
       }
     }
     if (declaration.direction === "collection") declaredCollectionsMinor += declaration.amountMinor;
     else declaredCommitmentsMinor += declaration.amountMinor;
     sources.push(
-      `إعلان ${declaration.direction === "collection" ? "تحصيل" : "التزام"}: ${declaration.source} في ${declaration.dueOn}`,
+      `${declaration.direction === "collection" ? "قبض" : "دفع"} متوقع: ${declaration.source} في ${declaration.dueOn}`,
     );
     if (declaration.knowledge !== "known") {
       needsReview = true;
@@ -692,7 +692,7 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
   if (undatedReceivablesMinor > 0 || undatedPayablesMinor > 0) incomplete = true;
   if (!hasWindowEvidence) {
     incomplete = true;
-    reasons.push("لا يوجد أساس كافٍ لأفق قصير مؤرخ؛ غياب الإعلان لا يعني أن الأفق آمن.");
+    reasons.push("لا يوجد أساس كافٍ لأفق قصير مؤرخ؛ غياب المتوقع لا يعني أن الأفق آمن.");
   }
   if (invalid)
     return {
@@ -706,7 +706,7 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
       sources,
       assumptions,
       reasons,
-      nextAction: "صحح مبلغ الإعلان أو تاريخه أو ربطه قبل الاعتماد على قراءة السيولة.",
+      nextAction: "صحح مبلغ السجل المتوقع أو تاريخه أو ربطه قبل الاعتماد على قراءة السيولة.",
     };
   const status = incomplete ? "incomplete" : needsReview ? "needs_review" : "available";
   return {

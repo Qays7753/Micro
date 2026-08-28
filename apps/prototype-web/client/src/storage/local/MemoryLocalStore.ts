@@ -419,7 +419,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     );
     if (repeated) return { ok: true, value: clone(repeated) };
     if (this.shortCashDeclarations.has(declaration.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية إعلان السيولة؛ لم تتغير البيانات." };
+      return { ok: false, code: "storage_error", message: "تعارض هوية السجل المتوقع؛ لم تتغير البيانات." };
     this.shortCashDeclarations.set(declaration.id, clone(declaration));
     return { ok: true, value: clone(declaration) };
   }
@@ -429,7 +429,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<ShortCashDeclaration>> {
     const source = this.shortCashDeclarations.get(sourceId);
     if (!source || source.kind !== "declaration")
-      return { ok: false, code: "storage_error", message: "لم يعد الإعلان الأصلي موجودًا؛ لم يُحفظ العكس." };
+      return { ok: false, code: "storage_error", message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ العكس." };
     const existing = Array.from(this.shortCashDeclarations.values()).find(
       candidate => candidate.kind === "reversal" && candidate.reversalOfId === sourceId,
     );
@@ -439,14 +439,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         : {
             ok: false,
             code: "storage_error",
-            message: "هذا الإعلان عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
+            message: "هذا السجل المتوقع عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
           };
     const repeated = Array.from(this.shortCashDeclarations.values()).find(
       candidate => candidate.kind === "reversal" && candidate.idempotencyKey === reversal.idempotencyKey,
     );
     if (repeated) return { ok: true, value: clone(repeated) };
     if (this.shortCashDeclarations.has(reversal.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية عكس إعلان السيولة؛ لم يتغير السجل." };
+      return { ok: false, code: "storage_error", message: "تعارض هوية عكس السجل المتوقع؛ لم يتغير السجل." };
     this.shortCashDeclarations.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }
