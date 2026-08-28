@@ -7,14 +7,14 @@
 
 | المجال | سؤال المراجعة | دليل/رابط | الحالة |
 |---|---|---|---|
-| هوية المنتج | هل يرى Owner Micro واحدًا و«الخدمات» لوحة متابعة لا قائمة منتجات؟ |  | [ ] |
+| هوية المنتج وتوزيعة Owner | هل يرى Owner Micro واحدًا: السوق وجهة BottomNav، والتوصيل قسم من رمز السيارة، والتنبيهات داخل مصدرها لا Dashboard خدمات؟ |  | [ ] |
 | النطاق | هل استبعدت العقود الدفع وCheckout وRatings وChat وGPS وDriver/Dispatch ودمج Manage؟ |  | [ ] |
 | Manage المحلي | هل نصت كل العقود على عدم نقل المال/الطلبات/العملاء تلقائيًا؟ |  | [ ] |
 | N-01/N-02 | هل identity/workspace/membership والعزل طبقات متعددة لا UI فقط؟ |  | [ ] |
 | N-03/N-04 | هل Attention/Notification وExternal Reference لا يغيرون مالًا أو مخزونًا؟ |  | [ ] |
 | N-05/N-06 | هل لكل سجل موضع حقيقة وحالة فشل وتصنيف حقل واستعادة؟ |  | [ ] |
 | Market | هل Need/Response/Listing/Media/Moderation حالات منفصلة بلا بيع تلقائي؟ |  | [ ] |
-| Delivery | هل Request/Quote/Assignment/Status/Exception تفصل النية عن الحقيقة ولا تكشف بيانات مبكرًا؟ |  | [ ] |
+| Delivery | هل Request/Quote/Assignment/Status/Exception تفصل النية عن الحقيقة ولا تكشف بيانات مبكرًا، وهل متطلب وسيلة النقل ليس سيارة/سائقًا أو حجزًا؟ |  | [ ] |
 | Admin | هل Admin محدود بالسياسة والمراجعة وله سبب وتاريخ بلا حق مالي؟ |  | [ ] |
 | الوصول | هل تشرح Matrix URL/Search/File/Notification/Export/Mutation؟ |  | [ ] |
 | استعادة الوصول | هل تفصل استعادة Export/Import المحلي عن هوية الشبكة والعضوية، وهل يبقى Admin محدودًا بحساب فردي/Audit وطوارئ بلا دخول Manage؟ |  | [ ] |

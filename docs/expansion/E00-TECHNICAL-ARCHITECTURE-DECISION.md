@@ -29,7 +29,7 @@ Micro Owner Experience
 | Contextان منفصلان: `manage` و`network` | يحمي المال والتاريخ المحليين من حركات شبكة خارجية. | Types وPorts وUse Cases منفصلة؛ لا استيراد Domain شبكة في منطق المال دون عقد جسر. |
 | Contracts أولًا | حالات Need/Quote/Status/Moderation لا تتغير مع تغيير مزود. | DTO/Schema بعد العقد واختبار Use Case قبل Adapter. |
 | API/DB/File policy دفاع متعدد الطبقات | لا تحقق واجهة وحده عزلًا. | identity + membership + policy في كل Query/Mutation/File/Search/Export. |
-| in-app attention أساس | Push والهاتف والخلفية ليست ضمانًا مبكرًا. | Notification سجل دائم قابل للعرض من الخدمات؛ Push إضافة لاحقة فقط. |
+| in-app attention أساس | Push والهاتف والخلفية ليست ضمانًا مبكرًا. | Notification سجل دائم قابل للعرض داخل Market أو Delivery بحسب مصدره؛ Push إضافة لاحقة فقط. |
 | Media خاصة قبل النشر | الصور قد تكشف محتوى أو معلومات حساسة. | object private، قرار Moderation، وصول قصير/متحقق، لا URL عام دائم. |
 | لا نقل Manage بلا Migration contract | السجل المالي والتصدير لا يتحملان نسخًا تدريجيًا مبهمًا. | Network يبدأ فارغًا ومفصولًا؛ أي جسر/ترحيل PR منفصلة. |
 

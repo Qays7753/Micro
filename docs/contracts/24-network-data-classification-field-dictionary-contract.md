@@ -31,13 +31,13 @@
 | `network_identity` | `id`، حالة الهوية، تاريخ إنشاء/تعطيل. | identity private. | لقب عام، سمعة، ملاحظات داخلية، بيانات مالية. |
 | `network_workspace` | `id`، نوع الجهة، اسم عرض، حالة، tenant key. | workspace/private أو public حسب الحالة. | أرصدة، اشتراك، KPIs أو تقييم. |
 | `network_membership` | identity، workspace، role، status، created/ended، inviter ref. | workspace private/audit. | صلاحيات حرة بلا Role، كلمات مرور. |
-| `service_attention` | source، subject ref، state، next action، updated at، recipient ref. | interaction scoped. | مبلغ، هاتف، محتوى كامل، score أو urgency مصطنع. |
+| `network_attention` | source، subject ref، state، next action، updated at، recipient ref. | interaction scoped. | مبلغ، هاتف، محتوى كامل، score أو urgency مصطنع أو صندوق خدمات مركزي. |
 | `network_notification` | recipient، type، subject ref، created/read at. | role private. | اعتبار `read` قبولًا أو تغيرًا للحالة. |
 | `market_need` | owner/workspace ref، title/description، category، area، unit/quantity optional، window optional، status. | interaction scoped. | عميل، Snapshot، ربح، سعر بيع، كامل Inventory. |
 | `market_response` | need ref، supplier/workspace ref، offer description، price/range optional، unit optional، readiness optional، status. | interaction scoped. | اتفاق دفع، receipt، Rating أو بيانات منافس. |
-| `supplier_listing` | workspace ref، name، category، description، area، unit/range optional، publish status. | private ثم public approved. | inventory live، SKU إلزامي، pricing engine، customer data. |
+| `supplier_listing` | workspace ref، name، category، description، area/coverage declared، unit/range optional، publish status. | private ثم public approved. | inventory live، SKU إلزامي، pricing engine، customer data أو تغطية مضمونة. |
 | `listing_media` | listing ref، owner ref، private object ref، review/public status، created at. | private ثم public approved. | public URL دائم أو metadata لا يلزم المراجعة. |
-| `delivery_request` | requester/workspace ref، direction، general scope، window، package description optional، status. | interaction/delivery scoped. | عنوان/هاتف تلقائي أو cash/collection أو order complete. |
+| `delivery_request` | requester/workspace ref، direction، general scope، window، package description optional، `vehicle_requirement` optional after Wedge، status. | interaction/delivery scoped. | عنوان/هاتف تلقائي أو cash/collection أو order complete أو سيارة/سائق محدد. |
 | `delivery_quote` | request ref، courier/workspace ref، amount/range optional، currency declared if included، availability, expiry, status. | interaction scoped. | Expense أو payment status أو pricing recommendation. |
 | `delivery_assignment` | accepted quote ref، courier workspace ref، disclosure scope، current status. | delivery scoped. | GPS stream أو Driver account افتراضي. |
 | `delivery_status_event` | assignment ref، prior/next status، actor, occurred at، source، reason optional. | delivery/audit restricted. | إثبات دفع أو استلام مخزون/تسليم Order. |
@@ -54,6 +54,8 @@
 لا يضاف حقل إلا بعد الإجابة المكتوبة: من يحتاجه؟ في أي موقف؟ لماذا لا يكفي بديل أخف؟ ما التصنيف؟ من يراه في كل مرحلة؟ متى ينتهي غرضه؟ ما اختبار رفض الوصول؟ وما أثره على Manage والتصدير والاستعادة؟ الحقل الذي لا يملك هذه الإجابات يبقى خارج Schema وواجهة الإدخال.
 
 لا يحذف حقل حساس أو Listing/Response/Status/Audit بلا أثر. يحدد عقد Migration/Retention لاحقًا إن كان الإخفاء أو الإيقاف أو الحذف المبرر ممكنًا، ولا يقرر Agent هذا في Feature PR.
+
+فلاتر `السوق` مثل نص البحث والفئة ونطاق التغطية هي حالة اكتشاف تملك غرضًا قصيرًا، ولا تحفظ كـProfile أو Analytics أو سجل شبكة بلا قرار مستقل. `vehicle_requirement` لا يضاف إلا إذا حسم Wedge سبب الحاجة وقيمه المسموح بها وScope قبل Quote، وتبقى حالته `غير متأكد` صريحة بدل تخمين سيارة أو قدرة.
 
 ## 6. سيناريوهات القبول
 
