@@ -5,6 +5,7 @@ import type {
   CreateCraftOrderInput,
   DepositSettlementDecision,
   KnowledgeState,
+  MaterialCostItem,
   MoneyMinor,
   OrderEvent,
   OrderEventType,
@@ -12,7 +13,7 @@ import type {
   OrderTransitionInput,
   ResultStatus,
 } from "./types.js";
-import { JOD, assertNonNegativeInteger, fieldLabelAr } from "../shared/index.js";
+import { JOD, assertNonNegativeInteger, fieldLabelAr, quantityMilliExact, roundHalfUp } from "../shared/index.js";
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   draft: ["provisional_agreement", "needs_review"],
@@ -36,6 +37,9 @@ function assertPositiveInteger(value: number, field: string): void {
 function assertValidQuantity(value: number): void {
   if (!Number.isFinite(value) || value <= 0) {
     throw new Error("أدخل الكمية رقمًا أكبر من صفر.");
+  }
+  if (quantityMilliExact(value) === null) {
+    throw new Error("أدخل الكمية بدقة أجزاء من ألف؛ الدقة الأعلى غير ممثلة في هذا الإصدار.");
   }
 }
 
@@ -111,6 +115,23 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   return "known";
 }
 
+function materialItemCostMinor(item: MaterialCostItem): number {
+  if (!item.name.trim() || !item.unit.trim()) {
+    throw new Error("أكمل اسم المادة ووحدتها قبل الحساب.");
+  }
+  if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
+    throw new Error(`أدخل كمية المادة ${item.name} رقمًا أكبر من صفر.`);
+  }
+  assertNonNegativeInteger(item.unitPriceMinor, `سعر وحدة ${item.name}`);
+  assertValidDate(item.priceDate, `تاريخ سعر ${item.name}`);
+  const quantityMilli = quantityMilliExact(item.quantity);
+  if (quantityMilli === null) throw new Error(`أدخل كمية المادة ${item.name} بدقة أجزاء من ألف.`);
+  const itemCostMinor = roundHalfUp(quantityMilli * item.unitPriceMinor, 1000);
+  if (itemCostMinor === null)
+    throw new Error(`تكلفة المادة ${item.name} تتجاوز الدقة الآمنة للأرقام الصحيحة.`);
+  return itemCostMinor;
+}
+
 export function calculateCostSnapshot(id: string, input: CostSnapshotInput): CostSnapshot {
   if (!id.trim()) throw new Error("أكمل معرّف نسخة التكلفة قبل الحساب.");
   if (input.currency !== JOD) throw new Error("only JOD is supported in the first slice");
@@ -122,18 +143,10 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
   assertNonNegativeInteger(input.wasteMinor, "wasteMinor");
   assertNonNegativeInteger(input.safetyBufferMinor, "safetyBufferMinor");
 
-  const materialCostMinor = input.materialItems.reduce((total, item) => {
-    if (!item.name.trim() || !item.unit.trim()) {
-      throw new Error("أكمل اسم المادة ووحدتها قبل الحساب.");
-    }
-    if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
-      throw new Error(`أدخل كمية المادة ${item.name} رقمًا أكبر من صفر.`);
-    }
-    assertNonNegativeInteger(item.unitPriceMinor, `سعر وحدة ${item.name}`);
-    assertValidDate(item.priceDate, `تاريخ سعر ${item.name}`);
-    // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding with A-04.
-    return total + Math.round(item.quantity * item.unitPriceMinor);
-  }, 0);
+  const materialCostMinor = input.materialItems.reduce(
+    (total, item) => total + materialItemCostMinor(item),
+    0,
+  );
 
   const timeCostMinor = input.time
     ? (() => {
@@ -145,8 +158,9 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
           assertNonNegativeInteger(hourlyRateMinor, "hourlyRateMinor");
         }
         if (minutes === null || hourlyRateMinor === null) return 0;
-        // eslint-disable-next-line no-restricted-syntax -- TODO(A-07): migrate to shared rounding with A-04.
-        return Math.round((minutes / 60) * hourlyRateMinor);
+        const timeCostMinor = roundHalfUp(minutes * hourlyRateMinor, 60);
+        if (timeCostMinor === null) throw new Error("تكلفة الوقت تتجاوز الدقة الآمنة للأرقام الصحيحة.");
+        return timeCostMinor;
       })()
     : 0;
 

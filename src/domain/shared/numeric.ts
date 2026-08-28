@@ -90,6 +90,15 @@ export function addSafe(left: number, right: number): number | null {
   return left + right;
 }
 
+/** Whole milli units of a user quantity, or null when the quantity is not exactly milli-representable. */
+export function quantityMilliExact(quantity: number): number | null {
+  if (!Number.isFinite(quantity) || quantity <= 0) return null;
+  const scaled = Math.round(quantity * 1000);
+  if (!Number.isSafeInteger(scaled) || scaled <= 0 || Math.abs(quantity - scaled / 1000) > Number.EPSILON)
+    return null;
+  return scaled;
+}
+
 export function roundHalfUp(numerator: number, denominator: number): number | null {
   if (!Number.isSafeInteger(numerator) || !Number.isSafeInteger(denominator) || denominator <= 0) return null;
   const quotient = Math.floor(numerator / denominator);

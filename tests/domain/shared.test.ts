@@ -6,6 +6,7 @@ import {
   assertId,
   ceilRatio,
   isValidLocalDate,
+  quantityMilliExact,
   roundHalfUp,
 } from "../../src/domain/shared/index.js";
 import {
@@ -124,5 +125,17 @@ describe("shared Domain policy vectors", () => {
     expect(isValidLocalDate("2026-02-30")).toBe(false);
     expect(isValidLocalDate("2026-02-28")).toBe(true);
     expect(() => assertId("", "vectorId")).toThrow("أكمل vectorId قبل الحفظ.");
+  });
+});
+
+describe("quantityMilliExact (A-04)", () => {
+  it("converts milli-representable quantities exactly and rejects the rest", () => {
+    expect(quantityMilliExact(1.005)).toBe(1005);
+    expect(quantityMilliExact(0.29)).toBe(290);
+    expect(quantityMilliExact(2)).toBe(2000);
+    expect(quantityMilliExact(1.0005)).toBeNull();
+    expect(quantityMilliExact(0)).toBeNull();
+    expect(quantityMilliExact(-1)).toBeNull();
+    expect(quantityMilliExact(Number.NaN)).toBeNull();
   });
 });

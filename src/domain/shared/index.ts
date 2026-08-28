@@ -8,5 +8,6 @@ export {
   fieldLabelAr,
   isValidLocalDate,
   isValidTimestamp,
+  quantityMilliExact,
   roundHalfUp,
 } from "./numeric.js";

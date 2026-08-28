@@ -605,3 +605,60 @@ describe("craft-order domain core", () => {
     expect(twice.events).toHaveLength(2);
   });
 });
+
+describe("material and time rounding follows the half-up minor policy (A-04)", () => {
+  const baseInput = {
+    currency: "JOD" as const,
+    time: null,
+    source: "draft" as const,
+    packagingMinor: 0,
+    deliveryMinor: 0,
+    wasteMinor: 0,
+    safetyBufferMinor: 0,
+    createdAt: "2026-08-01T09:00:00.000Z",
+    freshnessDays: null,
+  };
+  const material = (name: string, quantity: number, unitPriceMinor: number) => ({
+    name,
+    quantity,
+    unit: "meter",
+    unitPriceMinor,
+    priceDate: "2026-08-01",
+    source: "user_input" as const,
+    confidence: "known" as const,
+  });
+  it("rounds 1.005 meters at 1.00 up to 101 minor, not float-floor 100", () => {
+    const snapshot = calculateCostSnapshot("a04-half-boundary", {
+      ...baseInput,
+      materialItems: [material("قماش", 1.005, 100)],
+      quantity: 1.005,
+    });
+    expect(snapshot.materialCostMinor).toBe(101);
+  });
+  it("rounds 0.29 at 0.50 up to 15 minor, not float-floor 14", () => {
+    const snapshot = calculateCostSnapshot("a04-float-floor", {
+      ...baseInput,
+      materialItems: [material("خيط", 0.29, 50)],
+      quantity: 0.29,
+    });
+    expect(snapshot.materialCostMinor).toBe(15);
+  });
+  it("rounds a fractional hour of work to the nearest minor unit in integer space", () => {
+    const snapshot = calculateCostSnapshot("a04-time-half", {
+      ...baseInput,
+      materialItems: [],
+      time: { minutes: 91, hourlyRateMinor: 100, confidence: "known" },
+      quantity: 1,
+    });
+    expect(snapshot.timeCostMinor).toBe(152);
+  });
+  it("rejects quantities finer than one part in a thousand instead of rounding them silently", () => {
+    expect(() =>
+      calculateCostSnapshot("a04-too-fine", {
+        ...baseInput,
+        materialItems: [material("خيط", 1.0005, 100)],
+        quantity: 1.0005,
+      }),
+    ).toThrow("أدخل الكمية بدقة أجزاء من ألف");
+  });
+});
