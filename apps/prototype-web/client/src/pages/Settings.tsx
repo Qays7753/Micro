@@ -8,6 +8,11 @@ import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedO
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
+import {
+  persistentStorageCopy,
+  readPersistentStorageState,
+  type PersistentStorageState,
+} from "@/storage/local/persistentStorage";
 import type { OperatingWorkMode } from "@/storage/local/types";
 
 type OperatingModeState =
@@ -37,6 +42,16 @@ export default function SettingsPage() {
   const [, navigate] = useLocation();
   const { actualTime, transfers, guidedOpeningImport, dataVersion, notifyDataChanged } =
     usePrototypeServices();
+  const [persistence, setPersistence] = useState<PersistentStorageState | null>(null);
+  useEffect(() => {
+    let active = true;
+    void readPersistentStorageState().then(value => {
+      if (active) setPersistence(value);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   const inputRef = useRef<HTMLInputElement>(null);
   const guidedInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<TransferPreview | null>(null);
@@ -218,6 +233,17 @@ export default function SettingsPage() {
             <p>لا توجد مزامنة سحابية أو تسجيل دخول أو نسخة احتياطية تلقائية هنا.</p>
           </div>
         </article>
+        {persistence !== null ? (
+          <article className="micro-setting-row">
+            <span className="micro-setting-icon">
+              <Shield aria-hidden="true" />
+            </span>
+            <div>
+              <h2>{persistentStorageCopy(persistence).title}</h2>
+              <p>{persistentStorageCopy(persistence).text}</p>
+            </div>
+          </article>
+        ) : null}
         <StorageRow
           icon={Download}
           title="تصدير محلي"
