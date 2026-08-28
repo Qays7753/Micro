@@ -85,7 +85,7 @@
 
 - [ ] **L-03.1:** Owner ينشئ احتياجًا مسودة ويراجع البيانات التي ستظهر قبل النشر؛ لا سعر بيع أو ربح أو Snapshot أو معلومات عميل خارج اختياره.
 - [ ] **L-03.2:** Supplier simulator يرسل ردًا/عرضًا وتظهر حالة معرفة صادقة؛ Owner يقبل/يرفض/يغلق تفاعلًا فقط.
-- [ ] **L-03.3:** Listing/الوسائط تمر `draft → submitted → under_review → approved/rejected → paused/archived`، وAdmin simulator يكتب السبب.
+- [ ] **L-03.3:** Listing/الوسائط تمر وفق العقد 20 §3.3: `draft → submitted_for_review → approved_for_publish | changes_requested | rejected`، ومن `approved_for_publish → paused | archived | update_required`، و`changes_requested → submitted_for_review`؛ Admin simulator يكتب السبب. أسماء الحالات تتبع العقد 20 حرفيًا؛ عند أي اختلاف يُصحّح هذا الملف.
 - [ ] **L-03.4:** من رد مقبول يظهر فقط `سجل ما حدث في مشروعي` كخيار لاحق؛ لا شراء أو تكلفة أو مخزون تلقائي.
 - [ ] **L-03.5:** البحث والفلاتر يعملان على Listings المعتمدة ضمن الفئة/التغطية المقررة فقط؛ لا Checkout أو دفع أو عمولة أو ratings/نجوم أو Chat مفتوح أو توصية/ترتيب أو توفر لحظي مدعى.
 
