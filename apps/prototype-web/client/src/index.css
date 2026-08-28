@@ -1052,6 +1052,10 @@
   color: var(--color-accent-text);
   background: transparent;
 }
+.micro-intent-card[data-selected] {
+  color: var(--color-accent-text);
+  background: var(--color-bg-well);
+}
 .micro-intent-card:active,
 .micro-draft-row:active {
   transform: none;
