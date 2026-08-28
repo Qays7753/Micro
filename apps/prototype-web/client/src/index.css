@@ -499,11 +499,14 @@
 .micro-text-action {
   display: inline-flex;
   min-height: 44px;
+  min-width: 48px;
   align-items: center;
+  justify-content: center;
   gap: var(--space-1);
   width: fit-content;
   border: 0;
   padding: 0;
+  padding-inline: var(--space-2);
   color: var(--color-accent-text);
   background: transparent;
   font-size: 13px;
@@ -4791,6 +4794,7 @@ button.micro-month-cell:hover {
 }
 .micro-period-range-fields input {
   min-width: 0;
+  min-height: 48px;
   width: 100%;
   padding: var(--space-2);
 }
