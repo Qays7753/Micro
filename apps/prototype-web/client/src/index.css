@@ -784,6 +784,30 @@
   font-size: 13px;
   line-height: 1.6;
 }
+/* §٥-١٤: نماذج اللحظة داخل ورقة الإضافة — فعل عابر فوق شاشة الوقوف. */
+.micro-sheet-form {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-4);
+}
+.micro-sheet-form .micro-button-primary {
+  width: 100%;
+}
+.micro-sheet-receipt {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  text-align: center;
+}
+.micro-sheet-receipt strong {
+  font-size: 15px;
+}
+.micro-sheet-receipt p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
 .micro-sheet-actions {
   display: grid;
   gap: var(--space-2);

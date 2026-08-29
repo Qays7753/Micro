@@ -31,15 +31,8 @@ function ShellContent({ location, children }: { location: string; children: Reac
   const showGlobalChrome = showsGlobalChrome(location);
   function handleQuickAction(action: QuickAction) {
     setIsActionSheetOpen(false);
-    if (action === "sale") {
-      requestNavigation("/direct-sales/new");
-      return;
-    }
-    /* F-036 في موضعه الجديد (§6.1): المصروف الأكثر تكرارًا يسكن الورقة — فعل لحظته (م1). */
-    if (action === "expense") {
-      requestNavigation("/finance/new/operating_expense_cash");
-      return;
-    }
+    /* §٥-١٤ (م٣): البيع والمصروف يتمان داخل الورقة نفسها (QuickActionSheet) — لا
+     * يصلان إلى هنا. ما يصل هنا بدايات المسارات الأعمق فقط. */
     if (action === "order") {
       requestNavigation("/orders/new?intent=customer_order");
       return;
