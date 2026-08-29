@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { actionItems } from "./QuickActionSheet";
 
 describe("quick action contract", () => {
+  it("keeps direct-sale recording available without creating an order", () => {
+    const sale = actionItems.find(item => item.action === "sale");
+    expect(sale?.disabled).not.toBe(true);
+    expect(sale?.description).toContain("من دون إنشاء طلب");
+  });
+
   it("keeps the customer-order action available", () => {
     const order = actionItems.find(item => item.action === "order");
     expect(order?.disabled).not.toBe(true);

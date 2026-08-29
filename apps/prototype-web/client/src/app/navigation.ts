@@ -9,7 +9,7 @@ export type NavigationItem = { href: string; label: string; icon: LucideIcon };
 
 export const primaryNavigation: readonly NavigationItem[] = [
   { href: "/", label: "مشروعي الآن", icon: House },
-  { href: "/orders", label: "الطلبات", icon: ClipboardList },
+  { href: "/orders", label: "العمل", icon: ClipboardList },
   { href: "/review", label: "المراجعة", icon: ChartNoAxesColumnIncreasing },
   { href: "/settings", label: "الإعدادات", icon: Settings },
 ];

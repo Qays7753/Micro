@@ -18,6 +18,7 @@ import type {
   OwnerMovement,
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import {
   localSchemaVersion,
   type ActivityProfile,
@@ -38,6 +39,7 @@ const profileStore = "activity-profile";
 const preferencesStore = "local-preferences";
 const draftStore = "order-drafts";
 const orderStore = "craft-orders";
+const directSaleStore = "direct-sales";
 const scheduleStore = "schedule-entries";
 const recurrenceStore = "schedule-recurrences";
 const financialEventStore = "financial-events";
@@ -156,6 +158,12 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!database.objectStoreNames.contains(orderStore)) {
         const orders = database.createObjectStore(orderStore, { keyPath: "id" });
         orders.createIndex("updatedAt", "updatedAt");
+      }
+      if (!database.objectStoreNames.contains(directSaleStore)) {
+        const sales = database.createObjectStore(directSaleStore, { keyPath: "id" });
+        sales.createIndex("occurredOn", "occurredOn");
+        sales.createIndex("recordedAt", "recordedAt");
+        sales.createIndex("idempotencyKey", "idempotencyKey", { unique: true });
       }
       if (!database.objectStoreNames.contains(scheduleStore)) {
         const schedules = database.createObjectStore(scheduleStore, { keyPath: "id" });
@@ -638,6 +646,16 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   saveOrder(order: StoredCraftOrder) {
     return writeOne(orderStore, order);
+  }
+  listDirectSales() {
+    return listAll<DirectSale>(
+      directSaleStore,
+      (left, right) =>
+        right.occurredOn.localeCompare(left.occurredOn) || right.recordedAt.localeCompare(left.recordedAt),
+    );
+  }
+  saveDirectSale(sale: DirectSale) {
+    return writeOne(directSaleStore, sale);
   }
   listSchedules() {
     return listAll<ScheduleEntry>(
@@ -1615,6 +1633,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             preferencesStore,
             draftStore,
             orderStore,
+            directSaleStore,
             scheduleStore,
             recurrenceStore,
             financialEventStore,
@@ -1641,6 +1660,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const preferences = transaction.objectStore(preferencesStore).get("local-preferences");
         const drafts = transaction.objectStore(draftStore).getAll();
         const orders = transaction.objectStore(orderStore).getAll();
+        const directSales = transaction.objectStore(directSaleStore).getAll();
         const schedules = transaction.objectStore(scheduleStore).getAll();
         const recurrences = transaction.objectStore(recurrenceStore).getAll();
         const financialEvents = transaction.objectStore(financialEventStore).getAll();
@@ -1673,6 +1693,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               preferences: (preferences.result as LocalPreferences | undefined) ?? null,
               drafts: drafts.result as OrderDraft[],
               orders: orders.result as StoredCraftOrder[],
+              directSales: directSales.result as DirectSale[],
               schedules: schedules.result as ScheduleEntry[],
               recurrences: recurrences.result as ScheduleRecurrence[],
               financialEvents: financialEvents.result as FinancialEvent[],
@@ -1707,6 +1728,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       const normalized: LocalStoreSnapshot = {
         ...snapshot,
         schedules: snapshot.schedules ?? [],
+        directSales: snapshot.directSales ?? [],
         recurrences: snapshot.recurrences ?? [],
         financialEvents: snapshot.financialEvents ?? [],
         supplierPurchases: snapshot.supplierPurchases ?? [],
@@ -1733,6 +1755,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             preferencesStore,
             draftStore,
             orderStore,
+            directSaleStore,
             scheduleStore,
             recurrenceStore,
             financialEventStore,
@@ -1759,6 +1782,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const preferences = transaction.objectStore(preferencesStore);
         const drafts = transaction.objectStore(draftStore);
         const orders = transaction.objectStore(orderStore);
+        const directSales = transaction.objectStore(directSaleStore);
         const schedules = transaction.objectStore(scheduleStore);
         const recurrences = transaction.objectStore(recurrenceStore);
         const financialEvents = transaction.objectStore(financialEventStore);
@@ -1782,6 +1806,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         preferences.clear();
         drafts.clear();
         orders.clear();
+        directSales.clear();
         schedules.clear();
         recurrences.clear();
         financialEvents.clear();
@@ -1805,6 +1830,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         if (normalized.preferences) preferences.put(normalized.preferences);
         normalized.drafts.forEach(draft => drafts.put(draft));
         normalized.orders.forEach(order => orders.put(order));
+        normalized.directSales?.forEach(sale => directSales.put(sale));
         normalized.schedules.forEach(schedule => schedules.put(schedule));
         normalized.recurrences?.forEach(recurrence => recurrences.put(recurrence));
         normalized.financialEvents.forEach(event => financialEvents.put(event));

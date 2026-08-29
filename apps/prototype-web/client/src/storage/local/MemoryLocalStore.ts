@@ -18,6 +18,7 @@ import type {
   OwnerMovement,
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type {
   ActivityProfile,
   LocalPreferences,
@@ -37,6 +38,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   private preferences: LocalPreferences | null = null;
   private drafts = new Map<string, OrderDraft>();
   private orders = new Map<string, StoredCraftOrder>();
+  private directSales = new Map<string, DirectSale>();
   private schedules = new Map<string, ScheduleEntry>();
   private recurrences = new Map<string, ScheduleRecurrence>();
   private financialEvents = new Map<string, FinancialEvent>();
@@ -102,6 +104,21 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>> {
     this.orders.set(order.id, clone(order));
     return { ok: true, value: clone(order) };
+  }
+  async listDirectSales(): Promise<StorageResult<readonly DirectSale[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.directSales.values())
+        .sort(
+          (a, b) =>
+            b.occurredOn.localeCompare(a.occurredOn) || b.recordedAt.localeCompare(a.recordedAt),
+        )
+        .map(clone),
+    };
+  }
+  async saveDirectSale(sale: DirectSale): Promise<StorageResult<DirectSale>> {
+    this.directSales.set(sale.id, clone(sale));
+    return { ok: true, value: clone(sale) };
   }
   async listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>> {
     return {
@@ -638,6 +655,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         preferences: this.preferences ? clone(this.preferences) : null,
         drafts: Array.from(this.drafts.values()).map(clone),
         orders: Array.from(this.orders.values()).map(clone),
+        directSales: Array.from(this.directSales.values()).map(clone),
         schedules: Array.from(this.schedules.values()).map(clone),
         recurrences: Array.from(this.recurrences.values()).map(clone),
         financialEvents: Array.from(this.financialEvents.values()).map(clone),
@@ -664,6 +682,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     const safe = clone({
       ...snapshot,
       schedules: snapshot.schedules ?? [],
+      directSales: snapshot.directSales ?? [],
       recurrences: snapshot.recurrences ?? [],
       financialEvents: snapshot.financialEvents ?? [],
       supplierPurchases: snapshot.supplierPurchases ?? [],
@@ -687,6 +706,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.preferences = safe.preferences;
     this.drafts = new Map(safe.drafts.map(draft => [draft.id, draft]));
     this.orders = new Map(safe.orders.map(order => [order.id, order]));
+    this.directSales = new Map((safe.directSales ?? []).map(sale => [sale.id, sale]));
     this.schedules = new Map(safe.schedules.map(schedule => [schedule.id, schedule]));
     this.recurrences = new Map((safe.recurrences ?? []).map(recurrence => [recurrence.id, recurrence]));
     this.financialEvents = new Map(safe.financialEvents.map(event => [event.id, event]));

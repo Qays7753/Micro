@@ -31,6 +31,10 @@ function ShellContent({ location, children }: { location: string; children: Reac
   const showGlobalChrome = showsGlobalChrome(location);
   function handleQuickAction(action: QuickAction) {
     setIsActionSheetOpen(false);
+    if (action === "sale") {
+      requestNavigation("/direct-sales/new");
+      return;
+    }
     if (action === "order") {
       requestNavigation("/orders/new?intent=customer_order");
       return;

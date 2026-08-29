@@ -9,7 +9,7 @@ describe("Prototype navigation contract", () => {
 
   it("maps each known path to an Arabic contextual label", () => {
     expect(getNavigationLabel("/")).toBe("مشروعي الآن");
-    expect(getNavigationLabel("/orders")).toBe("الطلبات");
+    expect(getNavigationLabel("/orders")).toBe("العمل");
     expect(getNavigationLabel("/review")).toBe("المراجعة");
     expect(getNavigationLabel("/settings")).toBe("الإعدادات");
   });
