@@ -91,7 +91,7 @@ describe("FinancialEventEditor save honesty (U-02)", () => {
     await user.click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     expect(record).toHaveBeenCalledTimes(2);
     expect(screen.getByText(/لم يُحفظ التعديل/)).toBeTruthy();
-    expect(screen.getByText(/اعكس الحدث الأصلي وسجّل حدثًا جديدًا/)).toBeTruthy();
+    expect(screen.getByText(/تراجع عن الحدث الأصلي وسجّل حدثًا جديدًا/)).toBeTruthy();
     expect(wouterMocks.navigate).toHaveBeenCalledTimes(1);
   });
 });

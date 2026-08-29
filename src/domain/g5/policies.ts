@@ -560,9 +560,9 @@ function validateDeclaration(declaration: ShortCashDeclaration): string | null {
   if (declaration.relatedEventId && declaration.direction !== "commitment")
     return "ربط الحدث مخصص لالتزامات المصروف فقط.";
   if (declaration.kind === "declaration" && declaration.reversalOfId !== null)
-    return "السجل الأصلي لا يحمل رابط عكس.";
+    return "السجل الأصلي لا يحمل رابط تراجع.";
   if (declaration.kind === "reversal" && !declaration.reversalOfId?.trim())
-    return "العكس يحتاج رابطًا إلى سجل متوقع أصلي.";
+    return "التراجع يحتاج رابطًا إلى سجل متوقع أصلي.";
   return null;
 }
 
@@ -587,7 +587,7 @@ function activeDeclarations(declarations: readonly ShortCashDeclaration[]): {
   for (const declaration of declarations) {
     if (declaration.kind !== "reversal") continue;
     if (!declaration.reversalOfId || reversedIds.has(declaration.reversalOfId))
-      return { active: [], invalidReason: "يوجد عكس مكرر أو بلا سجل أصلي." };
+      return { active: [], invalidReason: "يوجد تراجع مكرر أو بلا سجل أصلي." };
     const original = byId.get(declaration.reversalOfId);
     if (
       !original ||
@@ -599,7 +599,7 @@ function activeDeclarations(declarations: readonly ShortCashDeclaration[]): {
       original.relatedOrderId !== declaration.relatedOrderId ||
       original.relatedEventId !== declaration.relatedEventId
     )
-      return { active: [], invalidReason: "عكس السجل المتوقع لا يطابق أصله." };
+      return { active: [], invalidReason: "التراجع عن السجل المتوقع لا يطابق أصله." };
     reversedIds.add(declaration.reversalOfId);
   }
   return { active: active.filter(declaration => !reversedIds.has(declaration.id)), invalidReason: null };
@@ -649,7 +649,7 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
       ...base,
       status: "invalid",
       reasons: [declarationState.invalidReason],
-      nextAction: "راجع السجل المتوقع أو عكسه دون تعديل السجل القديم.",
+      nextAction: "راجع السجل المتوقع أو التراجع عنه دون تعديل السجل القديم.",
     };
   const active = declarationState.active;
   const allBalances = [...input.receivables, ...input.payables];

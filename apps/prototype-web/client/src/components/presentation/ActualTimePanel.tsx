@@ -166,7 +166,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
   async function saveReverse() {
     setMessage(null);
     if (!reverseTarget || !reverseReason.trim() || !reverseRecordedOn) {
-      setMessage({ tone: "error", text: "أدخل سبب عكس سجل الوقت وتاريخه." });
+      setMessage({ tone: "error", text: "أدخل سبب التراجع عن سجل الوقت وتاريخه." });
       return;
     }
     const operationKey =
@@ -193,8 +193,8 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
     setMessage({
       tone: "success",
       text: result.reused
-        ? "هذا الضغط أعاد عكس السجل نفسه."
-        : "تم حفظ عكس سجل الوقت بسبب واضح؛ بقي الأصل ظاهرًا.",
+        ? "هذا الضغط أعاد التراجع عن السجل نفسه."
+        : "تم حفظ التراجع عن سجل الوقت بسبب واضح؛ بقي الأصل ظاهرًا.",
     });
     notifyDataChanged();
   }
@@ -235,7 +235,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
                   </small>
                   {reversal ? (
                     <p className="micro-actual-time-reversed">
-                      عُكس في {reversal.recordedOn} بسبب: {reversal.reversalReason}
+                      تم التراجع عنه في {reversal.recordedOn} بسبب: {reversal.reversalReason}
                     </p>
                   ) : null}
                 </div>
@@ -246,10 +246,10 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
                     disabled={isSaving}
                     onClick={() => beginReverse(record)}
                   >
-                    <RotateCcw aria-hidden="true" /> عكس السجل
+                    <RotateCcw aria-hidden="true" /> تراجع عن السجل
                   </button>
                 ) : (
-                  <span className="micro-actual-time-status">تم العكس</span>
+                  <span className="micro-actual-time-status">تم التراجع</span>
                 )}
               </article>
             );
@@ -259,7 +259,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
             .map(record => (
               <article className="micro-actual-time-row micro-actual-time-reversal" key={record.id}>
                 <div>
-                  <span className="micro-card-eyebrow">عكس محفوظ</span>
+                  <span className="micro-card-eyebrow">تراجع محفوظ</span>
                   <strong className="micro-number" dir="ltr">
                     {minutesLabel(record.minutesDelta)}
                   </strong>
@@ -330,32 +330,32 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
       {reverseTarget ? (
         <section
           className="micro-actual-time-form micro-actual-time-reverse-form"
-          aria-label="نموذج عكس سجل الوقت"
+          aria-label="نموذج التراجع عن سجل الوقت"
         >
           <div className="micro-section-heading">
             <div>
-              <span className="micro-overline">عكس محفوظ</span>
-              <h2>اعكس {minutesLabel(reverseTarget.minutesDelta)}</h2>
+              <span className="micro-overline">تراجع محفوظ</span>
+              <h2>تراجع عن {minutesLabel(reverseTarget.minutesDelta)}</h2>
             </div>
             <button
               className="micro-icon-button"
               type="button"
               disabled={isSaving}
               onClick={() => setReverseTarget(null)}
-              aria-label="إلغاء عكس سجل الوقت"
+              aria-label="إلغاء التراجع عن سجل الوقت"
             >
               <X aria-hidden="true" />
             </button>
           </div>
           <p>سيبقى السجل الأصلي ظاهرًا، ويضاف أثر مقابل مرة واحدة فقط.</p>
           <LocalDateField
-            label="تاريخ العكس"
+            label="تاريخ التراجع"
             value={reverseRecordedOn}
             onChange={event => setReverseRecordedOn(event.target.value)}
           />
           <label className="micro-field">
             <span>
-              سبب العكس <small>إلزامي</small>
+              سبب التراجع <small>إلزامي</small>
             </span>
             <textarea
               value={reverseReason}
@@ -370,7 +370,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
             onClick={saveReverse}
           >
             <RotateCcw aria-hidden="true" />
-            {isSaving ? "جارٍ حفظ العكس…" : "حفظ عكس سجل الوقت"}
+            {isSaving ? "جارٍ حفظ التراجع…" : "حفظ التراجع عن سجل الوقت"}
           </button>
         </section>
       ) : null}

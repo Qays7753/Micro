@@ -249,7 +249,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "double",
         reason: "سبب ثان",
       }),
-    ).toThrow("لا يمكن عكس سجل عكس سابق.");
+    ).toThrow("لا يمكن التراجع عن سجل تراجع سابق.");
   });
 
   it("calculates and preserves a shared percentage in minor JOD units", () => {

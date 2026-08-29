@@ -167,7 +167,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<FinancialEvent>> {
     const source = this.financialEvents.get(sourceEventId);
     if (!source)
-      return { ok: false, code: "storage_error", message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ العكس." };
+      return { ok: false, code: "storage_error", message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ التراجع." };
     const existing = Array.from(this.financialEvents.values()).find(
       event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse",
     );
@@ -177,10 +177,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ العكس لأن الواقعة عُكست سابقًا بمفتاح مختلف.",
+            message: "تعذر حفظ التراجع لأن الواقعة تم التراجع عنها سابقًا بمفتاح مختلف.",
           };
     if (this.financialEvents.has(reversal.id))
-      return { ok: false, code: "storage_error", message: "تعذر حفظ العكس بسبب تعارض هوية محلية." };
+      return { ok: false, code: "storage_error", message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." };
     this.financialEvents.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }
@@ -429,7 +429,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<ShortCashDeclaration>> {
     const source = this.shortCashDeclarations.get(sourceId);
     if (!source || source.kind !== "declaration")
-      return { ok: false, code: "storage_error", message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ العكس." };
+      return { ok: false, code: "storage_error", message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ التراجع." };
     const existing = Array.from(this.shortCashDeclarations.values()).find(
       candidate => candidate.kind === "reversal" && candidate.reversalOfId === sourceId,
     );
@@ -439,14 +439,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         : {
             ok: false,
             code: "storage_error",
-            message: "هذا السجل المتوقع عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
+            message: "تم التراجع عن هذا السجل المتوقع سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
           };
     const repeated = Array.from(this.shortCashDeclarations.values()).find(
       candidate => candidate.kind === "reversal" && candidate.idempotencyKey === reversal.idempotencyKey,
     );
     if (repeated) return { ok: true, value: clone(repeated) };
     if (this.shortCashDeclarations.has(reversal.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية عكس السجل المتوقع؛ لم يتغير السجل." };
+      return { ok: false, code: "storage_error", message: "تعارض هوية التراجع عن السجل المتوقع؛ لم يتغير السجل." };
     this.shortCashDeclarations.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }
@@ -515,7 +515,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       return {
         ok: false,
         code: "storage_error",
-        message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ العكس.",
+        message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ التراجع.",
       };
     const existing = Array.from(this.ownerEntitlementRecords.values()).find(
       record => record.reversalOfId === sourceId,
@@ -526,10 +526,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         : {
             ok: false,
             code: "storage_error",
-            message: "عكس الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
+            message: "التراجع عن الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
           };
     if (this.ownerEntitlementRecords.has(reversal.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية عكس الحق؛ لم تتغير البيانات." };
+      return { ok: false, code: "storage_error", message: "تعارض هوية التراجع عن الحق؛ لم تتغير البيانات." };
     this.ownerEntitlementRecords.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }
@@ -558,7 +558,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       return {
         ok: false,
         code: "storage_error",
-        message: "لم يعد الرصيد الافتتاحي المصدر موجودًا؛ لم يُحفظ العكس.",
+        message: "لم يعد الرصيد الافتتاحي المصدر موجودًا؛ لم يُحفظ التراجع.",
       };
     const existing = Array.from(this.ownerEntitlementOpeningBalances.values()).find(
       balance => balance.reversalOfId === sourceId,
@@ -569,13 +569,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         : {
             ok: false,
             code: "storage_error",
-            message: "عكس الرصيد الافتتاحي موجود بمفتاح مختلف؛ لم تتغير البيانات.",
+            message: "التراجع عن الرصيد الافتتاحي موجود بمفتاح مختلف؛ لم تتغير البيانات.",
           };
     if (this.ownerEntitlementOpeningBalances.has(reversal.id))
       return {
         ok: false,
         code: "storage_error",
-        message: "تعارض هوية عكس الرصيد الافتتاحي؛ لم تتغير البيانات.",
+        message: "تعارض هوية التراجع عن الرصيد الافتتاحي؛ لم تتغير البيانات.",
       };
     this.ownerEntitlementOpeningBalances.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };

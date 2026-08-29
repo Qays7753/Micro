@@ -30,7 +30,7 @@ export default function InventoryReversalEditor() {
   }, [id, inventory]);
   async function save() {
     if (!movement || !reason.trim()) {
-      setMessage("أدخل سبب عكس حركة المادة.");
+      setMessage("أدخل سبب التراجع عن حركة المادة.");
       return;
     }
     setSaving(true);
@@ -74,14 +74,14 @@ export default function InventoryReversalEditor() {
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">عكس محفوظ</span>
-        <h1>اعكس حركة المادة</h1>
+        <span className="micro-overline">تراجع محفوظ</span>
+        <h1>تراجع عن حركة المادة</h1>
         <p>يبقى الأصل ظاهرًا ويضاف أثر مقابل له بدل الحذف أو التعديل الصامت.</p>
       </div>
       <section className="micro-decision-card">
         <RotateCcw aria-hidden="true" />
         <div>
-          <span>الأثر الذي سيعكس</span>
+          <span>الأثر الذي سيتم التراجع عنه</span>
           <strong>{movement.note}</strong>
           <p>
             <LocalDateValue value={movement.occurredOn} /> · الكمية{" "}
@@ -90,9 +90,9 @@ export default function InventoryReversalEditor() {
         </div>
       </section>
       <section className="micro-form-card">
-        <LocalDateField label="تاريخ العكس" value={date} onChange={event => setDate(event.target.value)} />
+        <LocalDateField label="تاريخ التراجع" value={date} onChange={event => setDate(event.target.value)} />
         <label className="micro-field">
-          <span>لماذا تعكسه؟</span>
+          <span>لماذا تتراجع عنه؟</span>
           <textarea
             value={reason}
             onChange={event => setReason(event.target.value)}
@@ -111,7 +111,7 @@ export default function InventoryReversalEditor() {
           onClick={save}
         >
           <Save aria-hidden="true" />
-          {saving ? "جارٍ الحفظ…" : "حفظ العكس"}
+          {saving ? "جارٍ الحفظ…" : "حفظ التراجع"}
         </button>
       </section>
     </section>

@@ -729,12 +729,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: "storage_error",
-              message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ التراجع.",
             });
             return;
           }
           if (source.correctionType === "reverse" || source.correctionOfEventId) {
-            abortWith({ ok: false, code: "storage_error", message: "لا يمكن عكس واقعة عكس سابقة." });
+            abortWith({ ok: false, code: "storage_error", message: "لا يمكن التراجع عن واقعة تراجع سابقة." });
             return;
           }
           const existing = events.find(
@@ -747,13 +747,13 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "تعذر حفظ العكس لأن الواقعة عُكست سابقًا بمفتاح مختلف.",
+                    message: "تعذر حفظ التراجع لأن الواقعة تم التراجع عنها سابقًا بمفتاح مختلف.",
                   },
             );
             return;
           }
           if (events.some(event => event.id === reversal.id)) {
-            abortWith({ ok: false, code: "storage_error", message: "تعذر حفظ العكس بسبب تعارض هوية محلية." });
+            abortWith({ ok: false, code: "storage_error", message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." });
             return;
           }
           if (
@@ -770,7 +770,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: "storage_error",
-              message: "بيانات العكس لا تطابق الواقعة الأصلية؛ لم يتغير السجل.",
+              message: "بيانات التراجع لا تطابق الواقعة الأصلية؛ لم يتغير السجل.",
             });
             return;
           }
@@ -1150,7 +1150,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
               transaction.abort();
@@ -1169,7 +1169,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "هذا السجل المتوقع عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
+                    message: "تم التراجع عن هذا السجل المتوقع سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
                   };
             try {
               transaction.abort();
@@ -1195,7 +1195,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية عكس السجل المتوقع؛ لم يتغير السجل.",
+              message: "تعارض هوية التراجع عن السجل المتوقع؛ لم يتغير السجل.",
             };
             try {
               transaction.abort();
@@ -1352,7 +1352,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
               transaction.abort();
@@ -1369,7 +1369,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "عكس الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
+                    message: "التراجع عن الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
                   };
             try {
               transaction.abort();
@@ -1382,7 +1382,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية عكس الحق؛ لم تتغير البيانات.",
+              message: "تعارض هوية التراجع عن الحق؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();
@@ -1443,7 +1443,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد الرصيد الافتتاحي المصدر موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد الرصيد الافتتاحي المصدر موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
               transaction.abort();
@@ -1460,7 +1460,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "عكس الرصيد الافتتاحي موجود بمفتاح مختلف؛ لم تتغير البيانات.",
+                    message: "التراجع عن الرصيد الافتتاحي موجود بمفتاح مختلف؛ لم تتغير البيانات.",
                   };
             try {
               transaction.abort();
@@ -1473,7 +1473,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية عكس الرصيد الافتتاحي؛ لم تتغير البيانات.",
+              message: "تعارض هوية التراجع عن الرصيد الافتتاحي؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();

@@ -212,9 +212,9 @@ export function createOwnerEntitlementRecord(input: OwnerEntitlementRecord): Own
     throw new Error("أدخل الكمية رقمًا موجبًا أو اتركها فارغة.");
   const keys = sourceKeys(input.sourceKeys, "sourceKeys");
   const reversalOfId = input.reversalOfId?.trim() || null;
-  if (reversalOfId === input.id) throw new Error("السجل لا يعكس نفسه.");
+  if (reversalOfId === input.id) throw new Error("السجل لا يتراجع عن نفسه.");
   if (reversalOfId === null && input.reversalReason !== null && input.reversalReason !== undefined)
-    throw new Error("السجل الأصلي لا يحمل سبب عكس.");
+    throw new Error("السجل الأصلي لا يحمل سبب تراجع.");
   if (reversalOfId !== null) nonBlank(input.reversalReason ?? "", "reversalReason");
   iso(input.recordedAt, "recordedAt");
   return Object.freeze({
@@ -234,14 +234,14 @@ export function createOwnerEntitlementRecordReversal(
   nonBlank(input.idempotencyKey, "idempotencyKey");
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
-  if (input.source.reversalOfId) throw new Error("لا يمكن عكس سجل عكس سابق.");
+  if (input.source.reversalOfId) throw new Error("لا يمكن التراجع عن سجل تراجع سابق.");
   return Object.freeze({
     ...input.source,
     id: input.id,
     occurredOn: input.occurredOn,
     recordedAt: input.recordedAt,
     idempotencyKey: input.idempotencyKey,
-    note: `عكس: ${input.source.note}`,
+    note: `تراجع: ${input.source.note}`,
     reversalOfId: input.source.id,
     reversalReason: input.reason.trim(),
   });
@@ -259,9 +259,9 @@ export function createOwnerEntitlementOpeningBalance(
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
   const reversalOfId = input.reversalOfId?.trim() || null;
-  if (reversalOfId === input.id) throw new Error("رصيد الافتتاح لا يعكس نفسه.");
+  if (reversalOfId === input.id) throw new Error("رصيد الافتتاح لا يتراجع عن نفسه.");
   if (reversalOfId === null && input.reversalReason !== null && input.reversalReason !== undefined)
-    throw new Error("رصيد الافتتاح الأصلي لا يحمل سبب عكس.");
+    throw new Error("رصيد الافتتاح الأصلي لا يحمل سبب تراجع.");
   if (reversalOfId !== null) nonBlank(input.reversalReason ?? "", "reversalReason");
   return Object.freeze({
     ...input,
@@ -280,14 +280,14 @@ export function createOwnerEntitlementOpeningBalanceReversal(
   nonBlank(input.idempotencyKey, "idempotencyKey");
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
-  if (input.source.reversalOfId) throw new Error("لا يمكن عكس سجل عكس سابق.");
+  if (input.source.reversalOfId) throw new Error("لا يمكن التراجع عن سجل تراجع سابق.");
   return Object.freeze({
     ...input.source,
     id: input.id,
     occurredOn: input.occurredOn,
     recordedAt: input.recordedAt,
     idempotencyKey: input.idempotencyKey,
-    note: `عكس: ${input.source.note}`,
+    note: `تراجع: ${input.source.note}`,
     reversalOfId: input.source.id,
     reversalReason: input.reason.trim(),
   });
@@ -380,14 +380,14 @@ export function createOwnerMovementReversal(input: CreateOwnerMovementReversalIn
   nonBlank(input.idempotencyKey, "idempotencyKey");
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
-  if (input.source.reversalOfId) throw new Error("لا يمكن عكس سجل عكس سابق.");
+  if (input.source.reversalOfId) throw new Error("لا يمكن التراجع عن سجل تراجع سابق.");
   return Object.freeze({
     ...input.source,
     id: input.id,
     occurredOn: input.occurredOn,
     recordedAt: input.recordedAt,
     idempotencyKey: input.idempotencyKey,
-    note: `عكس: ${input.source.note}`,
+    note: `تراجع: ${input.source.note}`,
     reversalOfId: input.source.id,
     reversalReason: input.reason.trim(),
     cashDeltaMinor: -input.source.cashDeltaMinor,

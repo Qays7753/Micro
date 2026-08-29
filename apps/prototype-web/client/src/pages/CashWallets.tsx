@@ -30,7 +30,7 @@ const label = (type: CashContinuityEntry["type"]) =>
     cash_adjustment: "ضبط كاش",
     transfer_out: "تحويل صادر",
     transfer_in: "تحويل وارد",
-    reversal: "عكس أثر",
+    reversal: "تراجع عن أثر",
   })[type];
 
 export default function CashWallets() {
@@ -215,7 +215,7 @@ export default function CashWallets() {
                       type="button"
                       onClick={() => navigate(`/cash/entry/${entry.id}/reverse`)}
                     >
-                      <RotateCcw aria-hidden="true" /> عكس
+                      <RotateCcw aria-hidden="true" /> تراجع
                     </button>
                   ) : null}
                 </div>

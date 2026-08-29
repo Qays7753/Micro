@@ -53,7 +53,7 @@ const FIELD_LABELS_AR: Readonly<Record<string, string>> = {
   policyId: "السياسة",
   relatedOrderId: "الطلب المرتبط",
   relatedEventId: "الحدث المرتبط",
-  reversalReason: "سبب العكس",
+  reversalReason: "سبب التراجع",
   sourceKeys: "مفاتيح المصدر",
   version: "رقم النسخة",
   policyVersion: "رقم نسخة السياسة",

@@ -688,7 +688,7 @@ export class ProjectFinancialService {
     const reason = input.reason.trim();
     if (!sourceEventId)
       return { ok: false, code: "validation_error", message: "اختر الواقعة الأصلية قبل تصحيحها." };
-    if (!reason) return { ok: false, code: "validation_error", message: "اكتب سبب التصحيح قبل تنفيذ العكس." };
+    if (!reason) return { ok: false, code: "validation_error", message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
     if (!idempotencyKey)
       return { ok: false, code: "validation_error", message: "مفتاح التصحيح مطلوب لمنع تكرار الأثر." };
     if (!isValidLocalDate(input.occurredOn))
@@ -715,12 +715,12 @@ export class ProjectFinancialService {
         message: "لم تُعثر على الواقعة الأصلية؛ لم يتغير السجل.",
       };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
-      return { ok: false, code: "validation_error", message: "لا يمكن عكس واقعة عكس سابقة." };
+      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن واقعة تراجع سابقة." };
     const alreadyReversed = existing.value.find(
       event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
     );
     if (alreadyReversed)
-      return { ok: false, code: "validation_error", message: "هذه الواقعة عُكست سابقًا؛ لا يُنشأ عكس ثانٍ." };
+      return { ok: false, code: "validation_error", message: "تم التراجع عن هذه الواقعة سابقًا؛ لا يُنشأ تراجع ثانٍ." };
     try {
       const reversal = createFinancialReversal({
         id: id(),
@@ -735,7 +735,7 @@ export class ProjectFinancialService {
         return {
           ok: false,
           code: "storage_error",
-          message: "تعذر حفظ العكس ذريًا. بقيت الواقعة الأصلية دون تغيير.",
+          message: "تعذر حفظ التراجع ذريًا. بقيت الواقعة الأصلية دون تغيير.",
         };
       return saved.value.id === reversal.id
         ? { ok: true, value: saved.value }
@@ -853,7 +853,7 @@ export class ProjectFinancialService {
       if (!source || source.type !== "operating_expense_payable")
         return { ok: false, code: "validation_error", message: "اختر التزام مصروف مسجلًا قبل تسجيل تسديده." };
       if (source.correctionType === "reverse" || reversedEventIds(existing.value).has(source.id))
-        return { ok: false, code: "validation_error", message: "اختر التزامًا فعالًا غير معكوس." };
+        return { ok: false, code: "validation_error", message: "اختر التزامًا فعالًا لم يتم التراجع عنه." };
       const paid = activeSettlementsMinor(existing.value, source.id);
       if (amountMinor > source.amountMinor - paid)
         return {

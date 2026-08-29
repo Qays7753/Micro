@@ -23,7 +23,7 @@ const label = (type: InventoryMovement["type"]) =>
     consumption: "استهلاك لطلب",
     waste: "هدر مادة",
     adjustment: "ضبط مادة",
-    reversal: "عكس حركة",
+    reversal: "تراجع عن حركة",
   })[type];
 type State =
   | { phase: "loading" }
@@ -211,7 +211,7 @@ export default function InventoryMaterials() {
                     type="button"
                     onClick={() => navigate(`/inventory/movement/${movement.id}/reverse`)}
                   >
-                    <RotateCcw aria-hidden="true" /> عكس
+                    <RotateCcw aria-hidden="true" /> تراجع
                   </button>
                 ) : null}
               </div>

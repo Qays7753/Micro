@@ -437,7 +437,7 @@ export default function OwnerEntitlement() {
       tone: "success",
       text: result.reused
         ? "الرصيد الافتتاحي محفوظ سابقًا؛ لا أحداث ماضية وهمية."
-        : "تم حفظ الرصيد الافتتاحي كمصدر مستقل قابل للتسوية والعكس.",
+        : "تم حفظ الرصيد الافتتاحي كمصدر مستقل قابل للتسوية والتراجع.",
     });
     openingOperation.current = idempotency("owner-opening");
     setOpeningAmount(null);
@@ -499,7 +499,7 @@ export default function OwnerEntitlement() {
 
   async function reverseMovement() {
     if (!reversalTarget || reversalTarget.kind !== "movement" || !reversalReason.trim()) {
-      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الحركة." });
+      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل التراجع عن الحركة." });
       return;
     }
     setSaving(true);
@@ -516,7 +516,7 @@ export default function OwnerEntitlement() {
     }
     setNotice({
       tone: "success",
-      text: result.reused ? "العكس محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل عكس كامل. الأصل محفوظ ولم يُعدّل.",
+      text: result.reused ? "التراجع محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل تراجع كامل. الأصل محفوظ ولم يُعدّل.",
     });
     setReversalTarget(null);
     setReversalReason("");
@@ -525,7 +525,7 @@ export default function OwnerEntitlement() {
 
   async function reverseEntitlement() {
     if (!reversalTarget || reversalTarget.kind !== "entitlement" || !reversalReason.trim()) {
-      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الحق." });
+      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل التراجع عن الحق." });
       return;
     }
     setSaving(true);
@@ -543,8 +543,8 @@ export default function OwnerEntitlement() {
     setNotice({
       tone: "success",
       text: result.reused
-        ? "عكس الحق محفوظ سابقًا؛ لم يتكرر."
-        : "تم عكس الحق كاملًا. الأصل محفوظ وقفل الفترة متاح لإعادة تسجيل صحيحة.",
+        ? "التراجع عن الحق محفوظ سابقًا؛ لم يتكرر."
+        : "تم التراجع عن الحق كاملًا. الأصل محفوظ وقفل الفترة متاح لإعادة تسجيل صحيحة.",
     });
     setReversalTarget(null);
     setReversalReason("");
@@ -553,7 +553,7 @@ export default function OwnerEntitlement() {
 
   async function reverseOpening() {
     if (!reversalTarget || reversalTarget.kind !== "opening" || !reversalReason.trim()) {
-      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الرصيد الافتتاحي." });
+      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل التراجع عن الرصيد الافتتاحي." });
       return;
     }
     setSaving(true);
@@ -571,8 +571,8 @@ export default function OwnerEntitlement() {
     setNotice({
       tone: "success",
       text: result.reused
-        ? "عكس الرصيد الافتتاحي محفوظ سابقًا؛ لم يتكرر."
-        : "تم عكس الرصيد الافتتاحي كاملًا. الأصل محفوظ ويمكن تصحيحه بسجل جديد.",
+        ? "التراجع عن الرصيد الافتتاحي محفوظ سابقًا؛ لم يتكرر."
+        : "تم التراجع عن الرصيد الافتتاحي كاملًا. الأصل محفوظ ويمكن تصحيحه بسجل جديد.",
     });
     setReversalTarget(null);
     setReversalReason("");
@@ -939,7 +939,7 @@ export default function OwnerEntitlement() {
             </div>
           </div>
           <p>
-            تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. الفترة والمصدر مقفولان ضد تكرار الحق؛ اعكس السجل
+            تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. الفترة والمصدر مقفولان ضد تكرار الحق؛ تراجع عن السجل
             فقط إذا كان خطأ.
           </p>
           <label className="micro-field">
@@ -1017,7 +1017,7 @@ export default function OwnerEntitlement() {
         <summary className="micro-owner-layer-summary">
           <span>
             <b>رصيد افتتاحي</b>
-            <small>سجل مصدرًا قديمًا قابلًا للتسوية أو العكس</small>
+            <small>سجل مصدرًا قديمًا قابلًا للتسوية أو التراجع</small>
           </span>
           <strong>افتح الإجراء</strong>
         </summary>
@@ -1030,7 +1030,7 @@ export default function OwnerEntitlement() {
           </div>
           <p>
             هذه طبقة افتتاحية اختيارية بإشارة موجبة أو سالبة، مع سبب وملاحظة. لا تنشئ حركة ماضية، ويمكن
-            تسويتها أو عكسها صراحة.
+            تسويتها أو التراجع عنها صراحة.
           </p>
           <div className="micro-field-grid">
             <label className="micro-field">
@@ -1231,7 +1231,7 @@ export default function OwnerEntitlement() {
         <summary className="micro-owner-layer-summary">
           <span>
             <b>السجل والأثر</b>
-            <small>الحقوق والأرصدة والحركات مع العكس الموثق</small>
+            <small>الحقوق والأرصدة والحركات مع التراجع الموثق</small>
           </span>
           <strong>افتح السجل</strong>
         </summary>
@@ -1253,7 +1253,7 @@ export default function OwnerEntitlement() {
                   <div>
                     <strong>
                       حق · {formatLocalDate(record.occurredOn)}
-                      {record.reversalOfId ? " · عكس كامل" : ""}
+                      {record.reversalOfId ? " · تراجع كامل" : ""}
                     </strong>
                     <small>
                       {formatLocalDate(record.periodFrom)} → {formatLocalDate(record.periodTo)} ·{" "}
@@ -1279,13 +1279,13 @@ export default function OwnerEntitlement() {
                           setReversalReason("");
                         }}
                       >
-                        <RotateCcw aria-hidden="true" /> عكس كامل
+                        <RotateCcw aria-hidden="true" /> تراجع كامل
                       </button>
                     ) : null}
                   </div>
                   {reversalTarget?.kind === "entitlement" && reversalTarget.id === record.id ? (
                     <ReversalBox
-                      label="سبب عكس الحق"
+                      label="سبب التراجع عن الحق"
                       value={reversalReason}
                       onChange={setReversalReason}
                       onConfirm={() => void reverseEntitlement()}
@@ -1300,7 +1300,7 @@ export default function OwnerEntitlement() {
                   <div>
                     <strong>
                       رصيد افتتاحي · {formatLocalDate(balance.occurredOn)}
-                      {balance.reversalOfId ? " · عكس كامل" : ""}
+                      {balance.reversalOfId ? " · تراجع كامل" : ""}
                     </strong>
                     <small>
                       <bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> د.أ · {balance.reason} ·{" "}
@@ -1338,13 +1338,13 @@ export default function OwnerEntitlement() {
                           setReversalReason("");
                         }}
                       >
-                        <RotateCcw aria-hidden="true" /> عكس كامل
+                        <RotateCcw aria-hidden="true" /> تراجع كامل
                       </button>
                     ) : null}
                   </div>
                   {reversalTarget?.kind === "opening" && reversalTarget.id === balance.id ? (
                     <ReversalBox
-                      label="سبب عكس الرصيد الافتتاحي"
+                      label="سبب التراجع عن الرصيد الافتتاحي"
                       value={reversalReason}
                       onChange={setReversalReason}
                       onConfirm={() => void reverseOpening()}
@@ -1363,7 +1363,7 @@ export default function OwnerEntitlement() {
                   <div>
                     <strong>
                       {movement.kind === "draw" ? "سحب فعلي" : "إرجاع فعلي"}
-                      {movement.reversalOfId ? " · عكس كامل" : ""}
+                      {movement.reversalOfId ? " · تراجع كامل" : ""}
                     </strong>
                     <small>
                       {formatLocalDate(movement.occurredOn)} · {movementReasonLabels[movement.reason]} ·{" "}
@@ -1394,13 +1394,13 @@ export default function OwnerEntitlement() {
                           setReversalReason("");
                         }}
                       >
-                        <RotateCcw aria-hidden="true" /> عكس كامل
+                        <RotateCcw aria-hidden="true" /> تراجع كامل
                       </button>
                     ) : null}
                   </div>
                   {reversalTarget?.kind === "movement" && reversalTarget.id === movement.id ? (
                     <ReversalBox
-                      label="سبب العكس"
+                      label="سبب التراجع"
                       value={reversalReason}
                       onChange={setReversalReason}
                       onConfirm={() => void reverseMovement()}
@@ -1453,7 +1453,7 @@ function ReversalBox({
           disabled={saving}
           onClick={onConfirm}
         >
-          تأكيد العكس الموثق
+          تأكيد التراجع الموثق
         </button>
         <button
           className="micro-button micro-button-secondary"

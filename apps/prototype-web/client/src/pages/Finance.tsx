@@ -520,7 +520,7 @@ export default function Finance() {
           <div className="micro-finance-event-heading">
             <span className="micro-overline">السجل المحلي · المبالغ (د.أ)</span>
             <h2>أحدث الأحداث العامة</h2>
-            <p>كل عكس موثق يضيف حدثًا جديدًا؛ الأصل يبقى ظاهرًا ولا يوجد حذف.</p>
+            <p>كل تراجع موثق يضيف حدثًا جديدًا؛ الأصل يبقى ظاهرًا ولا يوجد حذف.</p>
           </div>
           {visibleEvents.length > 0 ? (
             visibleEvents.map(event => (
@@ -703,7 +703,7 @@ function FinancialEventRow({
   const submit = async () => {
     const trimmed = reason.trim();
     if (!trimmed) {
-      setError("سبب التصحيح مطلوب؛ اكتب لماذا سُجلت هذه الواقعة خطأ قبل العكس.");
+      setError("سبب التصحيح مطلوب؛ اكتب لماذا سُجلت هذه الواقعة خطأ قبل التراجع.");
       return;
     }
     setError(null);
@@ -722,7 +722,7 @@ function FinancialEventRow({
     setOpen(false);
     setReason("");
     setSuccess(
-      result.reused ? "العكس موثق مسبقًا؛ لم يُضاعف الأثر." : "تم تسجيل عكس موثق. الأصل محفوظ ولم يتغير.",
+      result.reused ? "التراجع موثق مسبقًا؛ لم يُضاعف الأثر." : "تم تسجيل تراجع موثق. الأصل محفوظ ولم يتغير.",
     );
     onChanged();
   };
@@ -736,7 +736,7 @@ function FinancialEventRow({
           <strong>{eventLabel[event.type]}</strong>
           <small>
             <LocalDateValue value={event.occurredOn} /> ·{" "}
-            {isReversal ? "عكس موثق" : reversal ? "عُكست" : "مسجلة"}
+            {isReversal ? "تراجع موثق" : reversal ? "تم التراجع" : "مسجلة"}
           </small>
         </div>
         <b>
@@ -769,7 +769,7 @@ function FinancialEventRow({
             </small>
           ) : reversal ? (
             <small className="micro-finance-event-audit">
-              العكس الموثق: {eventLabel[reversal.type]} · <LocalDateValue value={reversal.occurredOn} /> ·
+              التراجع الموثق: {eventLabel[reversal.type]} · <LocalDateValue value={reversal.occurredOn} /> ·
               السبب: {reversal.correctionReason}
             </small>
           ) : null}
@@ -795,7 +795,7 @@ function FinancialEventRow({
         </button>
       ) : null}
       {reversal ? (
-        <p className="micro-finance-event-closed">عُكست مرة واحدة بعكس كامل؛ لا يُسمح بعكس ثانٍ.</p>
+        <p className="micro-finance-event-closed">تم التراجع عنها مرة واحدة بتراجع كامل؛ لا يُسمح بتراجع ثانٍ.</p>
       ) : null}
       {success ? (
         <p className="micro-save-note" role="status">
@@ -805,9 +805,9 @@ function FinancialEventRow({
       {open ? (
         <div className="micro-finance-reversal-editor">
           <div className="micro-finance-reversal-review">
-            <strong>مراجعة قبل العكس</strong>
+            <strong>مراجعة قبل التراجع</strong>
             <p>
-              سيبقى السجل الأصلي كما هو دون تعديل. سيُضاف حدث جديد بتاريخ اليوم المحلي ويعكس كامل الأثر،
+              سيبقى السجل الأصلي كما هو دون تعديل. سيُضاف حدث جديد بتاريخ اليوم المحلي ويلغي كامل الأثر،
               دون إعادة كتابة تاريخ الواقعة.
             </p>
             <dl>
@@ -840,7 +840,7 @@ function FinancialEventRow({
             />
           </label>
           <p className="micro-local-truth">
-            العكس لا يحذف التاريخ ولا يعدل المبلغ أو السياق القديم. إذا كانت الواقعة الصحيحة مختلفة، سجّل
+            التراجع لا يحذف التاريخ ولا يعدل المبلغ أو السياق القديم. إذا كانت الواقعة الصحيحة مختلفة، سجّل
             حدثًا جديدًا منفصلًا.
           </p>
           {error ? (
@@ -855,7 +855,7 @@ function FinancialEventRow({
               disabled={saving}
               onClick={() => void submit()}
             >
-              {saving ? "جارٍ تسجيل العكس…" : "أكّد العكس الموثق"}
+              {saving ? "جارٍ تسجيل التراجع…" : "أكّد التراجع الموثق"}
             </button>
             <button
               className="micro-button micro-button-secondary"
@@ -907,7 +907,7 @@ function G5DecisionPanel({
     if (!reversalTarget) return;
     const note = reversalNote.trim();
     if (!note) {
-      setError("اكتب سبب التصحيح قبل تنفيذ العكس.");
+      setError("اكتب سبب التصحيح قبل تنفيذ التراجع.");
       return;
     }
     setError(null);
@@ -1066,13 +1066,13 @@ function G5DecisionPanel({
                   </small>
                 </div>
                 <button className="micro-text-action" type="button" onClick={() => beginReverse(entry)}>
-                  صحح بعكس موثق
+                  صحح بتراجع موثق
                 </button>
                 {reversalTarget?.id === entry.id ? (
                   <div className="micro-g5-reversal-editor">
                     <label className="micro-field">
                       <span>
-                        سبب التصحيح <small>مطلوب قبل العكس</small>
+                        سبب التصحيح <small>مطلوب قبل التراجع</small>
                       </span>
                       <textarea
                         value={reversalNote}
@@ -1081,7 +1081,7 @@ function G5DecisionPanel({
                       />
                     </label>
                     <p className="micro-local-truth">
-                      لن يُنفذ العكس قبل كتابة سبب غير فارغ. سيُحفظ هذا النص في سجل العكس مع بقاء السجل المتوقع
+                      لن يُنفذ التراجع قبل كتابة سبب غير فارغ. سيُحفظ هذا النص في سجل التراجع مع بقاء السجل المتوقع
                       الأصلي محفوظًا.
                     </p>
                     <div className="micro-form-actions">
@@ -1091,7 +1091,7 @@ function G5DecisionPanel({
                         disabled={reversing}
                         onClick={() => void submitReverse()}
                       >
-                        {reversing ? "جارٍ حفظ التصحيح…" : "تنفيذ العكس بسبب موثق"}
+                        {reversing ? "جارٍ حفظ التصحيح…" : "تنفيذ التراجع بسبب موثق"}
                       </button>
                       <button
                         className="micro-button micro-button-secondary"

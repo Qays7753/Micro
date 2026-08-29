@@ -81,8 +81,8 @@ export function createInventoryMovement(input: CreateInventoryMovementInput): In
     throw new Error("استلام الشراء يحتاج مرجع شراء مواد.");
   if (type === "consumption" && !input.orderId) throw new Error("استهلاك المادة يحتاج مرجع طلب.");
   if (needsReason && !input.reason?.trim()) throw new Error("سبب الحركة مطلوب.");
-  if (type === "reversal" && !input.reversesMovementId) throw new Error("العكس يحتاج مرجع الحركة الأصلية.");
-  if (type !== "reversal" && input.reversesMovementId) throw new Error("مرجع العكس خاص بحركة العكس فقط.");
+  if (type === "reversal" && !input.reversesMovementId) throw new Error("التراجع يحتاج مرجع الحركة الأصلية.");
+  if (type !== "reversal" && input.reversesMovementId) throw new Error("مرجع التراجع خاص بحركة التراجع فقط.");
   if (
     (type === "waste" && !validWasteContext(wasteContext)) ||
     (type !== "waste" && input.wasteContext !== undefined && input.wasteContext !== null)

@@ -431,12 +431,12 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const target = movements.find(movement => movement.id === input.movementId);
     if (!target)
-      return { ok: false, code: "validation_error", message: "لم نجد حركة المادة التي تريد عكسها." };
+      return { ok: false, code: "validation_error", message: "لم نجد حركة المادة التي تريد التراجع عنها." };
     if (target.type === "reversal" || movements.some(movement => movement.reversesMovementId === target.id))
       return {
         ok: false,
         code: "validation_error",
-        message: "تم عكس هذه الحركة سابقًا ولا يمكن عكسها مرة ثانية.",
+        message: "تم التراجع عن هذه الحركة سابقًا ولا يمكن التراجع عنها مرة ثانية.",
       };
     try {
       const reversal = createInventoryMovement({
@@ -447,7 +447,7 @@ export class InventoryMaterialService {
         recordedAt: this.now(),
         quantityDeltaMilli: -target.quantityDeltaMilli,
         valueDeltaMinor: -target.valueDeltaMinor,
-        note: `عكس: ${target.note}`,
+        note: `تراجع: ${target.note}`,
         reason: input.reason,
         operationKey: input.operationKey,
         reversesMovementId: target.id,
@@ -459,7 +459,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات عكس المادة غير صالحة.",
+        message: error instanceof Error ? error.message : "بيانات التراجع عن المادة غير صالحة.",
       };
     }
   }

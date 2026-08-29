@@ -251,7 +251,7 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
   assertDate(input.occurredOn, "occurredOn");
   if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   if (input.sourceEvent.correctionType === "reverse" || input.sourceEvent.correctionOfEventId)
-    throw new Error("لا يمكن عكس سجل عكس سابق.");
+    throw new Error("لا يمكن التراجع عن سجل تراجع سابق.");
   return Object.freeze({
     id: input.id,
     type: input.sourceEvent.type,
@@ -260,7 +260,7 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
     occurredOn: input.occurredOn,
     recordedAt: input.recordedAt,
     idempotencyKey: input.idempotencyKey,
-    note: `عكس: ${input.sourceEvent.note}`,
+    note: `تراجع: ${input.sourceEvent.note}`,
     counterparty: input.sourceEvent.counterparty,
     relatedEventId: input.sourceEvent.relatedEventId,
     expenseContext: input.sourceEvent.expenseContext ?? null,

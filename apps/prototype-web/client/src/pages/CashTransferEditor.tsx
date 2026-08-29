@@ -84,7 +84,7 @@ export default function CashTransferEditor() {
         <div>
           <span>حد الحقيقة</span>
           <strong>التحويل ليس دخلاً ولا مصروفًا.</strong>
-          <p>سيظهر طرفا الحركة معًا في السجل حتى يمكن عكسهما بأمان.</p>
+          <p>سيظهر طرفا الحركة معًا في السجل حتى يمكن التراجع عنهما بأمان.</p>
         </div>
       </section>
       <section className="micro-form-card">

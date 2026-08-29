@@ -400,7 +400,7 @@ export class G5Service {
     if (!original)
       return { ok: false, code: "not_found", message: "السجل المتوقع المطلوب تصحيحه غير موجود." };
     if (original.kind !== "declaration")
-      return { ok: false, code: "validation_error", message: "لا يمكن عكس سجل عكس آخر." };
+      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن سجل تراجع آخر." };
     const repeated = declarations.value.find(
       declaration => declaration.kind === "reversal" && declaration.idempotencyKey === idempotencyKey,
     );
@@ -413,7 +413,7 @@ export class G5Service {
       return {
         ok: false,
         code: "validation_error",
-        message: "تم عكس هذا السجل المتوقع مسبقًا دون تعديل السجل القديم.",
+        message: "تم التراجع عن هذا السجل المتوقع مسبقًا دون تعديل السجل القديم.",
       };
     try {
       const reversal = createShortCashReversal({
@@ -473,7 +473,7 @@ export class G5Service {
         event.value.correctionType === "reverse" ||
         reversedEventIds(events.value).has(event.value.id)
       )
-        return { ok: false, code: "validation_error", message: "لا يمكن ربط توقع بالتزام مالي عُكس." };
+        return { ok: false, code: "validation_error", message: "لا يمكن ربط توقع بالتزام مالي تم التراجع عنه." };
       const paid = activeSettlementsMinor(events.value, event.value!.id);
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid)

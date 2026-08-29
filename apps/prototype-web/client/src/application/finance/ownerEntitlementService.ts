@@ -510,7 +510,7 @@ export class OwnerEntitlementService {
         ok: false,
         code: "validation_error",
         message:
-          "يوجد حق نشط يغطي المصدر أو الفترة نفسها؛ لم يتكرر الحق. اعكس السجل السابق أولًا إذا كان خطأ.",
+          "يوجد حق نشط يغطي المصدر أو الفترة نفسها؛ لم يتكرر الحق. تراجع عن السجل السابق أولًا إذا كان خطأ.",
       };
     try {
       const record = createOwnerEntitlementRecord({
@@ -557,18 +557,18 @@ export class OwnerEntitlementService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const source = records.value.find(record => record.id === input.recordId);
     if (!source) return { ok: false, code: "validation_error", message: "لم نجد سجل الحق الأصلي." };
-    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن عكس عكس سابق." };
+    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
     if (records.value.some(record => record.reversalOfId === source.id))
       return {
         ok: false,
         code: "validation_error",
-        message: "عُكس هذا الحق سابقًا؛ لا يُنشأ عكس ثانٍ.",
+        message: "تم التراجع عن هذا الحق سابقًا؛ لا يُنشأ تراجع ثانٍ.",
       };
     if (activeOriginals(movements.value).some(movement => movement.relatedEntitlementId === source.id))
       return {
         ok: false,
         code: "validation_error",
-        message: "اعكس أو سوِّ حركات هذا الحق أولًا؛ لا نترك مصدرًا مسجلًا بلا رصيد متوازن.",
+        message: "تراجع عن حركات هذا الحق أو سوِّها أولًا؛ لا نترك مصدرًا مسجلًا بلا رصيد متوازن.",
       };
     try {
       const reversal = createOwnerEntitlementRecordReversal({
@@ -582,12 +582,12 @@ export class OwnerEntitlementService {
       const saved = await this.store.commitOwnerEntitlementRecordReversal(source.id, reversal);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : failure("تعذر حفظ عكس الحق؛ بقي الأصل محفوظًا.");
+        : failure("تعذر حفظ التراجع عن الحق؛ بقي الأصل محفوظًا.");
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات عكس الحق غير صالحة.",
+        message: error instanceof Error ? error.message : "بيانات التراجع عن الحق غير صالحة.",
       };
     }
   }
@@ -603,7 +603,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: "validation_error",
-        message: "يوجد رصيد افتتاحي فعال؛ اعكسه أو صححه قبل إضافة طبقة افتتاحية جديدة.",
+        message: "يوجد رصيد افتتاحي فعال؛ تراجع عنه أو صححه قبل إضافة طبقة افتتاحية جديدة.",
       };
     try {
       const balance = createOwnerEntitlementOpeningBalance({
@@ -639,18 +639,18 @@ export class OwnerEntitlementService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const source = balances.value.find(balance => balance.id === input.balanceId);
     if (!source) return { ok: false, code: "validation_error", message: "لم نجد الرصيد الافتتاحي الأصلي." };
-    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن عكس عكس سابق." };
+    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
     if (balances.value.some(balance => balance.reversalOfId === source.id))
       return {
         ok: false,
         code: "validation_error",
-        message: "عُكس هذا الرصيد الافتتاحي سابقًا؛ لا يُنشأ عكس ثانٍ.",
+        message: "تم التراجع عن هذا الرصيد الافتتاحي سابقًا؛ لا يُنشأ تراجع ثانٍ.",
       };
     if (activeOriginals(movements.value).some(movement => movement.relatedOpeningBalanceId === source.id))
       return {
         ok: false,
         code: "validation_error",
-        message: "اعكس أو سوِّ حركات هذا الافتتاح أولًا؛ لا نترك مصدرًا مسجلًا بلا رصيد متوازن.",
+        message: "تراجع عن حركات هذا الافتتاح أو سوِّها أولًا؛ لا نترك مصدرًا مسجلًا بلا رصيد متوازن.",
       };
     try {
       const reversal = createOwnerEntitlementOpeningBalanceReversal({
@@ -664,12 +664,12 @@ export class OwnerEntitlementService {
       const saved = await this.store.commitOwnerEntitlementOpeningBalanceReversal(source.id, reversal);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : failure("تعذر حفظ عكس الرصيد الافتتاحي؛ بقي الأصل محفوظًا.");
+        : failure("تعذر حفظ التراجع عن الرصيد الافتتاحي؛ بقي الأصل محفوظًا.");
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات عكس الرصيد الافتتاحي غير صالحة.",
+        message: error instanceof Error ? error.message : "بيانات التراجع عن الرصيد الافتتاحي غير صالحة.",
       };
     }
   }
@@ -738,7 +738,7 @@ export class OwnerEntitlementService {
         return {
           ok: false,
           code: "validation_error",
-          message: "اختر رصيدًا افتتاحيًا فعالًا؛ لا تسوِّ مصدرًا معكوسًا.",
+          message: "اختر رصيدًا افتتاحيًا فعالًا؛ لا تسوِّ مصدرًا تم التراجع عنه.",
         };
       const settled = movements.value
         .filter(movement => movement.relatedOpeningBalanceId === activeOpening.id)
@@ -819,9 +819,9 @@ export class OwnerEntitlementService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const source = movements.value.find(movement => movement.id === input.movementId);
     if (!source) return { ok: false, code: "validation_error", message: "لم نجد حركة المالك الأصلية." };
-    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن عكس عكس سابق." };
+    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
     if (movements.value.some(movement => movement.reversalOfId === source.id))
-      return { ok: false, code: "validation_error", message: "عُكست هذه الحركة سابقًا؛ لا يُنشأ عكس ثانٍ." };
+      return { ok: false, code: "validation_error", message: "تم التراجع عن هذه الحركة سابقًا؛ لا يُنشأ تراجع ثانٍ." };
     try {
       const reversal = createOwnerMovementReversal({
         id: id("owner-reversal"),
@@ -839,18 +839,18 @@ export class OwnerEntitlementService {
         recordedAt: this.now(),
         cashDeltaMinor: reversal.cashDeltaMinor,
         note: reversal.note,
-        reason: `عكس حركة مالك: ${input.reason}`,
+        reason: `تراجع عن حركة مالك: ${input.reason}`,
         operationKey: `owner-movement:${input.idempotencyKey}`,
       });
       const saved = await this.store.commitOwnerMovement(reversal, cashEntry);
       return saved.ok
         ? { ok: true, value: saved.value.movement }
-        : failure("تعذر حفظ عكس حركة المالك والكاش ذريًا؛ بقي الأصل محفوظًا.");
+        : failure("تعذر حفظ التراجع عن حركة المالك والكاش ذريًا؛ بقي الأصل محفوظًا.");
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات عكس الحركة غير صالحة.",
+        message: error instanceof Error ? error.message : "بيانات التراجع عن الحركة غير صالحة.",
       };
     }
   }
