@@ -10,7 +10,6 @@ import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/pre
 import {
   buildHomeControlCenterViewModel,
   type HomeAction,
-  type HomeAttentionItem,
   type HomeControlCenterViewModel,
   type HomeFinancialFact,
   type HomeOptionalModule,
@@ -20,7 +19,8 @@ import {
 } from "./homeControlCenterModel";
 
 export type HomeControlCenterResult =
-  { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
+  | { ok: true; value: HomeControlCenterViewModel }
+  | { ok: false; code: "storage_error"; message: string };
 
 function localDate(iso: string): string {
   const parts = new Intl.DateTimeFormat("en", {
@@ -178,70 +178,23 @@ export class HomeControlCenterService {
       },
     ];
 
-    const attention: HomeAttentionItem[] = [];
+    /* دمج بند ١٠ (قرار المالك): «اليوم» يستوعب ما كان في «ما يحتاج فعلًا الآن» —
+     * لا إلغاء ولا تكرار: كل مسودة ودين وتكلفة ونتيجة وطلب وسعة بندٌ واحد هنا،
+     * والمتابعة والدين يُبنيان مرة واحدة من مصدرهما (لا من القسمين معًا). */
+    const todayItems: HomeTodayItem[] = [];
     openDrafts.forEach(draft =>
-      attention.push({
-        id: `draft:${draft.id}`,
-        priority: 10,
+      todayItems.push({
+        id: `today-draft:${draft.id}`,
         kind: "draft",
         title: draft.itemName || "مسودة تحتاج وصفًا",
-        reason: "مسودة محلية لم تتحول إلى اتفاق بعد.",
-        action: action(
-          `draft:${draft.id}`,
-          "استئناف المسودة",
-          `/orders/draft/${draft.id}`,
-          "أكمل ما تعرفه ثم احفظه.",
-        ),
+        detail: "مسودة محلية لم تتحول إلى اتفاق بعد.",
+        dateLocal: draft.updatedAt.slice(0, 10),
+        timeLocal: null,
+        href: `/orders/draft/${draft.id}`,
+        actionLabel: "استئناف المسودة",
+        priority: 10,
       }),
     );
-    orders.filter(isOpenOrder).forEach(stored => {
-      if (hasIncompleteCost(stored)) {
-        attention.push({
-          id: `cost:${stored.id}`,
-          priority: 20,
-          kind: "cost",
-          title: `أكمل تكلفة ${stored.order.itemName || "الطلب"}`,
-          reason: "نسخة التكلفة غير مكتملة؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.",
-          action: action(
-            `cost:${stored.id}`,
-            "مراجعة الطلب",
-            `/orders/${stored.id}`,
-            "راجع البنود الناقصة قبل الاعتماد.",
-          ),
-        });
-      } else {
-        attention.push({
-          id: `order:${stored.id}`,
-          priority: 30,
-          kind: "order",
-          title: stored.order.itemName || "طلب قيد المتابعة",
-          reason: stored.order.nextAction,
-          action: action(
-            `order:${stored.id}`,
-            "فتح الطلب",
-            `/orders/${stored.id}`,
-            "أكمل الخطوة التالية الظاهرة في الطلب.",
-          ),
-        });
-      }
-    });
-    orders
-      .filter(stored => !isOpenOrder(stored) && hasIncompleteResult(stored))
-      .forEach(stored =>
-        attention.push({
-          id: `result-review:${stored.id}`,
-          priority: 20,
-          kind: "result_review",
-          title: `راجع نتيجة ${stored.order.itemName || "الطلب"}`,
-          reason: "نتيجة الطلب غير مكتملة؛ راجع التكلفة أو الوقت قبل الاعتماد على رقم نهائي.",
-          action: action(
-            `result-review:${stored.id}`,
-            "مراجعة النتيجة",
-            `/orders/${stored.id}`,
-            "افتح الطلب وراجع ما ينقص النتيجة.",
-          ),
-        }),
-      );
     orders
       .filter(
         stored =>
@@ -250,92 +203,60 @@ export class HomeControlCenterService {
           !["cancelled"].includes(stored.order.status),
       )
       .forEach(stored =>
-        attention.push({
-          id: `debt:${stored.id}`,
+        todayItems.push({
+          id: `today-due-amount:${stored.id}`,
+          kind: "due_amount",
+          title: `مستحق عليك متابعته: ${stored.order.itemName || "طلب"}`,
+          detail: `دين مسجل: ${formatMoneyMinor(stored.order.receivableMinor)} د.أ — دين لا كاش محصل.`,
+          dateLocal: null,
+          timeLocal: null,
+          href: `/orders/${stored.id}`,
+          actionLabel: "مراجعة الدين",
           priority: 15,
-          kind: "debt",
-          title: `دين مسجل: ${stored.order.itemName || "طلب"}`,
-          reason: "الدين مسجل بعد التسليم وليس كاشًا محصلًا.",
-          action: action(
-            `debt:${stored.id}`,
-            "مراجعة الدين",
-            `/orders/${stored.id}`,
-            "راجع التحصيل أو الدين المسجل.",
-          ),
         }),
       );
-    orders
-      .filter(
-        stored =>
-          stored.followUpDate &&
-          stored.followUpDate <= today &&
-          !["settled", "cancelled"].includes(stored.order.status),
-      )
-      .forEach(stored =>
-        attention.push({
-          id: `follow-up:${stored.id}`,
-          priority: 25,
-          kind: "follow_up",
-          title: `متابعة: ${stored.order.itemName || "طلب"}`,
-          reason: stored.followUpSummary || "يوجد موعد متابعة محفوظ لهذا الطلب.",
-          action: action(
-            `follow-up:${stored.id}`,
-            "فتح المتابعة",
-            `/orders/${stored.id}`,
-            "راجع المتابعة المسجلة دون اختراع موعد جديد.",
-          ),
-        }),
-      );
-    const activeSchedules = schedules.value.filter(schedule =>
-      ["scheduled", "postponed"].includes(schedule.status),
-    );
-    if (activeSchedules.length > 0) {
-      const capacity = activeSchedules.filter(schedule => schedule.scheduledFor === today).length;
-      if (capacity > 1)
-        attention.push({
-          id: "capacity:today",
-          priority: 40,
-          kind: "capacity",
-          title: "راجع ازدحام مواعيد اليوم",
-          reason: `يوجد ${formatArabicPlural(capacity, {
-            zero: "لا مواعيد تشغيلية",
-            one: "موعد واحد تشغيلي",
-            two: "موعدان تشغيليان",
-            few: "مواعيد تشغيلية",
-            many: "موعدًا تشغيليًا",
-            other: "موعد تشغيلي",
-          })} اليوم؛ السعة تحذير فقط، وليست رفضًا تلقائيًا.`,
-          action: action("capacity:today", "فتح الجدول", "/schedule", "راجع التوقيت والسعة المعلنة."),
+    orders.filter(isOpenOrder).forEach(stored => {
+      if (hasIncompleteCost(stored)) {
+        todayItems.push({
+          id: `today-cost:${stored.id}`,
+          kind: "cost_incomplete",
+          title: `أكمل تكلفة ${stored.order.itemName || "الطلب"}`,
+          detail: "نسخة التكلفة غير مكتملة؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.",
+          dateLocal: null,
+          timeLocal: null,
+          href: `/orders/${stored.id}`,
+          actionLabel: "مراجعة الطلب",
+          priority: 20,
         });
-    }
-
-    const criticalAttention = attention
-      .filter(item => item.kind === "cost" || item.kind === "debt" || item.kind === "result_review")
-      .sort((left, right) => left.priority - right.priority || left.id.localeCompare(right.id, "ar"))[0];
-    const primary = criticalAttention
-      ? criticalAttention.action
-      : action(
-          `primary:${followUp.followUp.kind}`,
-          followUp.followUp.actionLabel,
-          followUp.followUp.href,
-          followUp.followUp.nextAction,
-        );
-    /* القرار ١١: تُفكّ المالية كلها. الوحدة الدائمة تفتح المسارين: مالي ← المحافظ والموردون
-     * والمواد ودفتر المالك، بلا شرط بيانات وبلا نقل أي قدرة (§2.1 من وثيقة التوزيع). */
-    const financeUnit = {
-      action: action(
-        "finance",
-        "افتح مالي",
-        "/finance",
-        "قراءة يومية دائمة: كم عندي الآن ومن أين.",
-      ),
-      truth:
-        "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق؛ ونتيجة الفترة تظهر في وحدتها حين توجد نتيجة.",
-    };
-
-    /* قسم «اليوم» — موطن F-078 (رحلة ٢): متابعات مستحقة ومواعيد اليوم وديون
-     * مستحقة، بلا إنشاء موعد أو تحصيل. الحالة الفارغة صادقة: «لا متابعات بعد». */
-    const todayItems: HomeTodayItem[] = [];
+      } else {
+        todayItems.push({
+          id: `today-order:${stored.id}`,
+          kind: "open_order",
+          title: stored.order.itemName || "طلب قيد المتابعة",
+          detail: stored.order.nextAction,
+          dateLocal: stored.deliveryDate ?? null,
+          timeLocal: null,
+          href: `/orders/${stored.id}`,
+          actionLabel: "فتح الطلب",
+          priority: 30,
+        });
+      }
+    });
+    orders
+      .filter(stored => !isOpenOrder(stored) && hasIncompleteResult(stored))
+      .forEach(stored =>
+        todayItems.push({
+          id: `today-result-review:${stored.id}`,
+          kind: "result_review",
+          title: `راجع نتيجة ${stored.order.itemName || "الطلب"}`,
+          detail: "نتيجة الطلب غير مكتملة؛ راجع التكلفة أو الوقت قبل الاعتماد على رقم نهائي.",
+          dateLocal: null,
+          timeLocal: null,
+          href: `/orders/${stored.id}`,
+          actionLabel: "مراجعة النتيجة",
+          priority: 20,
+        }),
+      );
     dueFollowUps.value.due.forEach(stored =>
       todayItems.push({
         id: `today-follow-up:${stored.id}`,
@@ -346,6 +267,7 @@ export class HomeControlCenterService {
         timeLocal: null,
         href: `/orders/${stored.id}`,
         actionLabel: "فتح المتابعة",
+        priority: 25,
       }),
     );
     schedules.value
@@ -364,43 +286,71 @@ export class HomeControlCenterService {
           timeLocal: schedule.scheduledTime,
           href: `/schedule/${schedule.id}`,
           actionLabel: "فتح الموعد",
+          priority: 25,
         });
       });
-    orders
-      .filter(
-        stored =>
-          stored.order.settlementStatus === "debt" &&
-          stored.order.receivableMinor > 0 &&
-          !["cancelled"].includes(stored.order.status),
-      )
-      .forEach(stored =>
+    const activeSchedules = schedules.value.filter(schedule =>
+      ["scheduled", "postponed"].includes(schedule.status),
+    );
+    if (activeSchedules.length > 0) {
+      const capacity = activeSchedules.filter(schedule => schedule.scheduledFor === today).length;
+      if (capacity > 1)
         todayItems.push({
-          id: `today-due-amount:${stored.id}`,
-          kind: "due_amount",
-          title: `مستحق عليك متابعته: ${stored.order.itemName || "طلب"}`,
-          detail: `دين مسجل: ${formatMoneyMinor(stored.order.receivableMinor)} د.أ — دين لا كاش محصل.`,
-          dateLocal: null,
+          id: "today-capacity:today",
+          kind: "capacity_warning",
+          title: "راجع ازدحام مواعيد اليوم",
+          detail: `يوجد ${formatArabicPlural(capacity, {
+            zero: "لا مواعيد تشغيلية",
+            one: "موعد واحد تشغيلي",
+            two: "موعدان تشغيليان",
+            few: "مواعيد تشغيلية",
+            many: "موعدًا تشغيليًا",
+            other: "موعد تشغيلي",
+          })} اليوم؛ السعة تحذير فقط، وليست رفضًا تلقائيًا.`,
+          dateLocal: today,
           timeLocal: null,
-          href: `/orders/${stored.id}`,
-          actionLabel: "مراجعة الدين",
-        }),
-      );
+          href: "/schedule",
+          actionLabel: "فتح الجدول",
+          priority: 40,
+        });
+    }
     const upcoming = dueFollowUps.value.upcoming;
     const todaySection: HomeTodaySection = {
       items: todayItems,
       upcomingCount: upcoming.length,
       nextUpcomingDate: upcoming[0]?.followUpDate ?? null,
       nextUpcomingHref: upcoming[0] ? `/orders/${upcoming[0].id}` : null,
-      truth: "قراءة صباحية من سجلاتك: متابعات ومواعيد وديون مستحقة. لا تنشئ موعدًا ولا تحصيلًا.",
+      truth: "قراءة صباحية من سجلاتك: متابعات ومواعيد وديون ومسودات ونواقص نتائج. لا تنشئ موعدًا ولا تحصيلًا.",
     };
+
+    /* القرار ١١: تُفكّ المالية كلها. الوحدة الدائمة تفتح المسارين: مالي ← المحافظ والموردون
+     * والمواد ودفتر المالك، بلا شرط بيانات وبلا نقل أي قدرة (§2.1 من وثيقة التوزيع). */
+    const financeUnit = {
+      action: action(
+        "finance",
+        "افتح مالي",
+        "/finance",
+        "قراءة يومية دائمة: كم عندي الآن ومن أين.",
+      ),
+      truth:
+        "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق؛ ونتيجة الفترة تظهر في وحدتها حين توجد نتيجة.",
+    };
+    /* قرار المالك على بند ١١: «منتجاتي وخدماتي» كتلة دائمة مستقلة مثل «مالي» —
+     * سؤالها (§2.3): ما أكرره وبكم؟ وهل هو رابح؟ */
+    const catalogUnit = {
+      action: action(
+        "catalog",
+        "افتح منتجاتي وخدماتي",
+        "/catalog",
+        "ما أكرره وبكم — والقراءة عند المرجع نفسه.",
+      ),
+      truth: "مراجعك وهامشها المسجل وسياسات توزيعها في مكان واحد؛ لا يحدد المرجع سعرًا ولا مخزونًا.",
+    };
+
+    /* قرار المالك على بند ١٢: بطاقتا المخزون والموردين المشروطتان أُزيلتا —
+     * المسار الدائم عبر «مالي» يكفي. القسم القديم يبقى صادقًا على ما تحته:
+     * مسارات مرتبطة ببياناتها فقط (الجدول ونتيجة الفترة). */
     const optionalModules: HomeOptionalModule[] = [
-      {
-        id: "inventory",
-        label: "المواد والمخزون",
-        state:
-          inventory.value.materials.length > 0 || inventory.value.movementCount > 0 ? "available" : "empty",
-        action: action("inventory", "فتح المواد والمخزون", "/inventory", inventory.value.truth),
-      },
       {
         id: "schedule",
         label: "المواعيد",
@@ -411,12 +361,6 @@ export class HomeControlCenterService {
           "/schedule",
           "الجدول تشغيلي ولا ينشئ أثرًا ماليًا.",
         ),
-      },
-      {
-        id: "supplier_commitments",
-        label: "الموردون والمشتريات",
-        state: purchases.value.purchaseCount > 0 ? "available" : "empty",
-        action: action("suppliers", "فتح الموردين والمشتريات", "/suppliers", purchases.value.truth),
       },
       {
         id: "period_result",
@@ -431,19 +375,6 @@ export class HomeControlCenterService {
           "فتح الوضع المالي",
           "/finance",
           "نتيجة مسجلة محدودة وليست صافي ربح للمشروع.",
-        ),
-      },
-      /* F-063 (القرار ١٥): مدخل مستقل باسم موحد — إشارة دائمة في Home بجانب المحرر،
-       * لا من محرر المسودة وحده. موضع غير مشروط ببيانات (§2.8). */
-      {
-        id: "catalog",
-        label: "منتجاتي وخدماتي",
-        state: "available",
-        action: action(
-          "catalog",
-          "افتح منتجاتي وخدماتي",
-          "/catalog",
-          "ما أكرره وبكم — والقراءة عند المرجع نفسه.",
         ),
       },
     ];
@@ -482,11 +413,10 @@ export class HomeControlCenterService {
         todayLocal: today,
         truthLine:
           "هذه قراءة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
-        primaryAction: primary,
         financeUnit,
+        catalogUnit,
         todaySection,
         facts,
-        attention,
         optionalModules,
         recentChanges,
       }),

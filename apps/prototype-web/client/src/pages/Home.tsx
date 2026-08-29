@@ -1,4 +1,18 @@
-import { ArrowLeft, BellRing, CalendarDays, CircleAlert, ClipboardList, HandCoins, Landmark, Receipt, WalletCards } from "lucide-react";
+import {
+  ArrowLeft,
+  BellRing,
+  CalendarDays,
+  CircleAlert,
+  ClipboardList,
+  FilePen,
+  Gauge,
+  HandCoins,
+  Landmark,
+  Package,
+  Receipt,
+  Scale,
+  WalletCards,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -62,11 +76,17 @@ function FactCard({
   );
 }
 
+/* دمج بند ١٠: أنواع «اليوم» المدمجة — أنواع المتابعة القديمة بأيقوناتها الطبيعية. */
 const todayItemIcon: Record<HomeTodayItem["kind"], typeof BellRing> = {
   follow_up_due: BellRing,
   appointment_today: CalendarDays,
   due_amount: HandCoins,
   follow_up_upcoming: BellRing,
+  draft: FilePen,
+  cost_incomplete: Gauge,
+  open_order: Package,
+  result_review: Scale,
+  capacity_warning: CalendarDays,
 };
 
 function TodayItemRow({ item, onNavigate }: { item: HomeTodayItem; onNavigate: (href: string) => void }) {
@@ -153,8 +173,9 @@ export default function Home() {
           </time>
         </p>
       </div>
-      {/* قسم «اليوم» (F-078 · رحلة ٢): أجاب «ماذا عليّ اليوم؟» من شاشة واحدة،
-          والحالة الفارغة صادقة — «لا متابعات بعد». */}
+      {/* الكتلة ١ من ٣ — «اليوم» (قرار المالك على بندي ١٠ و١٣ من السجل): قسم واحد يجيب
+          «ماذا عليّ اليوم؟» — استوعب ما كان في «ما يحتاج فعلًا الآن» و«الأولوية الآن» بلا
+          إلغاء ولا تكرار؛ أول بند في القائمة هو الأولوية. الحالة الفارغة صادقة (رحلة ١). */}
       <section className="micro-home-today-section" aria-labelledby="home-today-title">
         <div className="micro-section-title">
           <BellRing aria-hidden="true" />
@@ -172,7 +193,7 @@ export default function Home() {
         ) : (
           <div className="micro-home-quiet">
             <strong>لا متابعات بعد.</strong>
-            <p>لا شيء مستحق اليوم من متابعات أو مواعيد أو ديون مسجلة.</p>
+            <p>لا شيء مستحق اليوم من متابعات أو مواعيد أو ديون أو مسودات مسجلة.</p>
           </div>
         )}
         {model.todaySection.upcomingCount > 0 && model.todaySection.nextUpcomingDate ? (
@@ -191,20 +212,6 @@ export default function Home() {
         ) : null}
         <p className="micro-home-truth-line">{model.todaySection.truth}</p>
       </section>
-      <section className="micro-decision-surface" data-tone="accent" aria-labelledby="home-primary-title">
-        <span className="micro-overline">الأولوية الآن</span>
-        <h2 id="home-primary-title">{model.primaryAction.label}</h2>
-        <p>{model.primaryAction.reason}</p>
-        <p className="micro-home-truth-line">{model.truthLine}</p>
-        <button
-          className="micro-button micro-button-primary micro-button-block"
-          type="button"
-          onClick={() => navigate(model.primaryAction.href)}
-        >
-          {model.primaryAction.label}
-          <ArrowLeft aria-hidden="true" />
-        </button>
-      </section>
       <section className="micro-home-facts-section" aria-labelledby="home-facts-title">
         <div className="micro-section-title">
           <WalletCards aria-hidden="true" />
@@ -219,8 +226,8 @@ export default function Home() {
           ))}
         </div>
       </section>
-      {/* القرار ١٢: وحدة مالية دائمة في Home — الأسطح بلا شرط (§2.1)، وperiod_result
-          يحتفظ بشرطه في وحدته دون أن ترث غيره رؤيته (القرار ١٤). */}
+      {/* الكتلة ٢ من ٣ — «مالي» (القرار ١٢): وحدة دائمة بلا شرط؛ الأسطح بلا شرط (§2.1)،
+          وperiod_result يحتفظ بشرطه في وحدته دون أن ترث غيره رؤيته (القرار ١٤). */}
       <section className="micro-home-finance-section" aria-labelledby="home-finance-title">
         <div className="micro-section-title">
           <Landmark aria-hidden="true" />
@@ -251,39 +258,29 @@ export default function Home() {
           </button>
         </div>
       </section>
-      <section className="micro-home-attention-section" aria-labelledby="home-attention-title">
+      {/* الكتلة ٣ من ٣ — «منتجاتي وخدماتي» (قرار المالك على بند ١١): كتلة دائمة مستقلة
+          مثل «مالي»؛ سؤالها (§2.3): ما أكرره وبكم؟ وهل هو رابح؟ */}
+      <section className="micro-home-catalog-section" aria-labelledby="home-catalog-title">
         <div className="micro-section-title">
-          <CircleAlert aria-hidden="true" />
+          <Package aria-hidden="true" />
           <div>
-            <span className="micro-overline">انتباه محدود</span>
-            <h2 id="home-attention-title">ما يحتاج فعلًا الآن</h2>
+            <span className="micro-overline">وجهة دائمة · بلا شرط</span>
+            <h2 id="home-catalog-title">منتجاتي وخدماتي</h2>
           </div>
         </div>
-        {model.attention.length > 0 ? (
-          <div className="micro-home-attention-list">
-            {model.attention.map(item => (
-              <article className="micro-home-attention-item" key={item.id}>
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.reason}</p>
-                </div>
-                <button
-                  className="micro-text-action"
-                  type="button"
-                  onClick={() => navigate(item.action.href)}
-                >
-                  {item.action.label}
-                  <ArrowLeft aria-hidden="true" />
-                </button>
-              </article>
-            ))}
+        <div className="micro-home-finance-unit">
+          <div>
+            <p>{model.catalogUnit.truth}</p>
           </div>
-        ) : (
-          <div className="micro-home-quiet">
-            <strong>لا توجد أولوية إضافية مسجلة الآن.</strong>
-            <p>يمكنك مراجعة السجل عند الحاجة أو البدء بفعل جديد.</p>
-          </div>
-        )}
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={() => navigate(model.catalogUnit.action.href)}
+          >
+            {model.catalogUnit.action.label}
+            <ArrowLeft aria-hidden="true" />
+          </button>
+        </div>
       </section>
       {model.optionalModules.length > 0 ? (
         <section className="micro-home-optional-section" aria-labelledby="home-optional-title">
