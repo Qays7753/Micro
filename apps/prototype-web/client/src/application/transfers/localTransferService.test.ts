@@ -1387,7 +1387,7 @@ describe("LocalTransferService G6-B recurrence migration", () => {
           idempotencyKey: `${recurrence.id}:1:2026-08-17`,
           createdAt: "2026-08-22T01:00:00.000Z",
           scheduledFor: "2026-08-17",
-          reason: "ظهور من قالب تكرار محلي",
+          reason: "موعد قادم من قالب تكرار محلي",
         },
       ],
     };

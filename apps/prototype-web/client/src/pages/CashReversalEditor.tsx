@@ -59,7 +59,7 @@ export default function CashReversalEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>لم نجد أثر الكاش</h1>
-        <p>ربما أُرشف السجل أو تم التراجع عنه سابقًا.</p>
+        <p>قد يكون السجل حُذف من هذا الجهاز أو تم التراجع عنه سابقًا.</p>
         <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
           محافظ الكاش
         </button>

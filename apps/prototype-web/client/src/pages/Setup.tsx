@@ -32,7 +32,7 @@ export default function Setup() {
         <div className="micro-setup-impact">
           <span>ما يعرفه Micro الآن</span>
           <strong>
-            حرفة مخصصة <b>·</b> الدينار الأردني <em>د.أ</em>
+            مشغل حرفي <b>·</b> الدينار الأردني <em>د.أ</em>
           </strong>
           <small>اسم المشروع هو أول مرجع منظم قبل تسجيل التكلفة أو الاتفاق أو المتابعة.</small>
         </div>

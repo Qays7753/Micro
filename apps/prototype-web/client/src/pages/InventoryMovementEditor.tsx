@@ -241,7 +241,7 @@ export default function InventoryMovementEditor() {
               ? "الاستهلاك ليس تعديلًا صامتًا لسعر الطلب."
               : "الحركة توضح كمية وقيمة المادة، لا مصروفًا تشغيليًا تلقائيًا."}
           </strong>
-          <p>لا تسمح الشريحة بخروج كمية أكبر من المتاح.</p>
+          <p>لا يمكن إخراج كمية أكبر من المتاحة.</p>
         </div>
       </section>
       <section className="micro-form-card">
