@@ -9,6 +9,8 @@ export type HomeFinancialFact = {
   source: string;
   period: string;
   helper: string;
+  /* §2.7: الحقيقة غير المسجلة تُعرض كطريق — «غير مسجل — سجّله (نقرة)» — لا كـ«غير مهيأ» عاجزة. */
+  road: HomeAction | null;
 };
 export type HomeAttentionItem = {
   id: string;
@@ -19,10 +21,35 @@ export type HomeAttentionItem = {
   action: HomeAction;
 };
 export type HomeOptionalModule = {
-  id: "inventory" | "schedule" | "supplier_commitments" | "period_result";
+  id: "inventory" | "schedule" | "supplier_commitments" | "period_result" | "catalog";
   label: string;
   state: "available" | "needs_setup" | "empty";
   action: HomeAction | null;
+};
+/* القرار ١٢: المالية وحدة جديدة دائمة في Home — بلا شرط بيانات، ولا تحل محل وحدة قائمة.
+ * period_result يحتفظ بشرطه على وحدته وحده ولا ترث وحدته رؤيته (القرار ١٤). */
+export type HomeFinanceUnit = {
+  action: HomeAction;
+  truth: string;
+};
+/* قسم «اليوم» (رحلة ٢): موطن F-078 — متابعات مستحقة ومواعيد اليوم وديون مستحقة،
+ * بلا إنشاء موعد أو تحصيل. الحالة الفارغة جزء من الموضع (م7). */
+export type HomeTodayItem = {
+  id: string;
+  kind: "follow_up_due" | "appointment_today" | "due_amount" | "follow_up_upcoming";
+  title: string;
+  detail: string | null;
+  dateLocal: string | null;
+  timeLocal: string | null;
+  href: string;
+  actionLabel: string;
+};
+export type HomeTodaySection = {
+  items: readonly HomeTodayItem[];
+  upcomingCount: number;
+  nextUpcomingDate: string | null;
+  nextUpcomingHref: string | null;
+  truth: string;
 };
 export type HomeRecentChange = {
   id: string;
@@ -36,6 +63,8 @@ export type HomeControlCenterInput = {
   todayLocal: string;
   truthLine: string;
   primaryAction: HomeAction;
+  financeUnit: HomeFinanceUnit;
+  todaySection: HomeTodaySection;
   facts: readonly HomeFinancialFact[];
   attention: readonly HomeAttentionItem[];
   optionalModules: readonly HomeOptionalModule[];
@@ -45,6 +74,8 @@ export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
   truthLine: string;
   primaryAction: HomeAction;
+  financeUnit: HomeFinanceUnit;
+  todaySection: HomeTodaySection;
   facts: readonly HomeFinancialFact[];
   attention: readonly HomeAttentionItem[];
   optionalModules: readonly HomeOptionalModule[];
@@ -73,6 +104,8 @@ export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): 
     heading: { activityName: input.activityName, todayLocal: input.todayLocal },
     truthLine: input.truthLine,
     primaryAction: input.primaryAction,
+    financeUnit: input.financeUnit,
+    todaySection: input.todaySection,
     facts,
     attention,
     optionalModules,

@@ -1,6 +1,6 @@
 /** Slice 1 draft editor: saves pre-domain details only and never creates price, deposit, cash, or a CraftOrder. */
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, BookOpen, Save } from "lucide-react";
+import { ArrowRight, BookOpen, Save, Trash2 } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -44,6 +44,8 @@ export default function DraftEditor() {
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isQuantityValid, setIsQuantityValid] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [catalogItems, setCatalogItems] = useState<readonly CatalogItem[]>([]);
   const initialValuesRef = useRef<DraftFormValues | null>(null);
   useEffect(() => {
@@ -104,6 +106,21 @@ export default function DraftEditor() {
     draft && initialValuesRef.current && !equalDraftValues(draftFormValues(draft), initialValuesRef.current),
   );
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save(false) });
+  /* القرار ٢١ (R-2): الحد القاطع يُقرأ من الحقل — linkedOrderId !== null ⇒ الزر لا يظهر أصلًا.
+   * الحذف بلا سبب وبلا أثر مالي: المسودة ليست طلبًا ولا تحمل مالًا. */
+  const canDelete = draft !== null && draft.linkedOrderId === null;
+  async function deleteDraft() {
+    if (!draft) return;
+    setIsDeleting(true);
+    const result = await drafts.delete(draft.id);
+    setIsDeleting(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    notifyDataChanged();
+    navigate("/orders", { replace: true });
+  }
   if (state === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -203,7 +220,7 @@ export default function DraftEditor() {
           type="button"
           onClick={() => navigate("/catalog")}
         >
-          <BookOpen aria-hidden="true" /> إدارة مراجع العمل
+          <BookOpen aria-hidden="true" /> منتجاتي وخدماتي
         </button>
         {isCustomerOrder ? (
           <label className="micro-field">
@@ -275,6 +292,45 @@ export default function DraftEditor() {
             {isSaving ? "جارٍ الحفظ…" : "احسب التكلفة"}
           </button>
         </div>
+        {canDelete ? (
+          <div className="micro-draft-delete-zone">
+            {confirmDelete ? (
+              <>
+                <p>
+                  حذف المسودة يزيلها من هذا الجهاز نهائيًا — بلا سبب ولا أثر مالي، لأنها لم تصبح طلبًا.
+                  لا يمكن التراجع بعد الحذف.
+                </p>
+                <div className="micro-form-actions">
+                  <button
+                    className="micro-button micro-button-secondary"
+                    type="button"
+                    disabled={isDeleting}
+                    onClick={() => {
+                      void deleteDraft();
+                    }}
+                  >
+                    <Trash2 aria-hidden="true" /> {isDeleting ? "جارٍ الحذف…" : "احذف المسودة نهائيًا"}
+                  </button>
+                  <button
+                    className="micro-button micro-button-quiet"
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                  >
+                    تراجع
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button
+                className="micro-button micro-button-quiet"
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 aria-hidden="true" /> احذف المسودة
+              </button>
+            )}
+          </div>
+        ) : null}
       </section>
     </section>
   );

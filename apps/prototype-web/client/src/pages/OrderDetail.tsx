@@ -12,6 +12,7 @@ import {
   PackageCheck,
   Play,
   Save,
+  XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "wouter";
@@ -72,6 +73,7 @@ type MaterialState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; comparison: OrderActualMaterialComparison };
 type OrderDetailState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; stored: StoredCraftOrder };
+const preDeliveryStatuses = ["provisional_agreement", "confirmed", "in_progress", "ready"];
 
 export default function OrderDetail() {
   const params = useParams<{ id: string }>();
@@ -83,6 +85,11 @@ export default function OrderDetail() {
   const [materialState, setMaterialState] = useState<MaterialState>({ phase: "loading" });
   const [message, setMessage] = useState<string | null>(null);
   const [isActing, setIsActing] = useState(false);
+  /* القرار ١٩: الإلغاء بثلاثة أسباب بنقرة مع تخطٍ متاح، والعربون ثلاثة خيارات. */
+  const [cancelPanelOpen, setCancelPanelOpen] = useState(false);
+  const [otherReason, setOtherReason] = useState("");
+  const [otherReasonOpen, setOtherReasonOpen] = useState(false);
+  const [depositReason, setDepositReason] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -150,6 +157,13 @@ export default function OrderDetail() {
     setStored(next.stored);
     setState({ phase: "ready", stored: next.stored });
     notifyDataChanged();
+  }
+
+  async function cancelWithReason(reason: string) {
+    setCancelPanelOpen(false);
+    setOtherReasonOpen(false);
+    setOtherReason("");
+    await run(() => fulfillment.cancel(stored!.id, reason));
   }
 
   const contextualAction =
@@ -266,6 +280,167 @@ export default function OrderDetail() {
         </section>
       )}
       {contextualAction}
+      {/* القرار ١٩: الإلغاء من أي حالة قبل التسليم عبر cancelOrder وحدها (عقد ٠٢) —
+          السبب اختياري بثلاثة أزرار بنقرة، والتخطي متاح. */}
+      {preDeliveryStatuses.includes(order.status) ? (
+        cancelPanelOpen ? (
+          <section className="micro-cancel-panel" aria-label="تأكيد إلغاء الطلب">
+            <strong>لماذا تلغي هذا الطلب؟</strong>
+            <p>
+              السبب اختياري — اختر بنقرة أو تخطَّ. الإلغاء لا يحذف الطلب ولا أحداثه؛ يسجّل تسوية موثقة
+              ويبقى في السجل.
+            </p>
+            {order.depositCollectedMinor > 0 ? (
+              <p className="micro-warning-copy">
+                يوجد عربون محصل (
+                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) —
+                يبقى بعد الإلغاء «يحتاج مراجعة» حتى تردّه أو تحتفظ به صراحة، وهذا خيار صالح لا خطأ.
+              </p>
+            ) : null}
+            <div className="micro-form-actions micro-contextual-actions">
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={isActing}
+                onClick={() => {
+                  void cancelWithReason("غلط في السعر");
+                }}
+              >
+                غلط في السعر
+              </button>
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={isActing}
+                onClick={() => {
+                  void cancelWithReason("انسحب العميل");
+                }}
+              >
+                انسحب العميل
+              </button>
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={isActing}
+                onClick={() => setOtherReasonOpen(true)}
+              >
+                سبب آخر
+              </button>
+              <button
+                className="micro-button micro-button-quiet"
+                type="button"
+                disabled={isActing}
+                onClick={() => {
+                  void cancelWithReason("");
+                }}
+              >
+                تخطّى السبب وألغِ
+              </button>
+              <button
+                className="micro-button micro-button-quiet"
+                type="button"
+                onClick={() => setCancelPanelOpen(false)}
+              >
+                تراجع
+              </button>
+            </div>
+            {otherReasonOpen ? (
+              <div className="micro-form-actions micro-contextual-actions">
+                <label className="micro-field">
+                  <span>سبب الإلغاء</span>
+                  <input
+                    value={otherReason}
+                    onChange={event => setOtherReason(event.target.value)}
+                    placeholder="مثال: تغيرت مواصفات الطلب"
+                  />
+                </label>
+                <button
+                  className="micro-button micro-button-primary"
+                  type="button"
+                  disabled={isActing || !otherReason.trim()}
+                  onClick={() => {
+                    void cancelWithReason(otherReason);
+                  }}
+                >
+                  ألغِ الطلب بهذا السبب
+                </button>
+              </div>
+            ) : null}
+          </section>
+        ) : (
+          <button
+            className="micro-button micro-button-quiet"
+            type="button"
+            disabled={isActing}
+            onClick={() => setCancelPanelOpen(true)}
+          >
+            <XCircle aria-hidden="true" /> إلغاء الطلب
+          </button>
+        )
+      ) : null}
+      {/* القرار ١٩: عربون طلب ملغى ينتظر قرارًا — ثلاثة خيارات لا اثنان. */}
+      {order.status === "cancelled" && order.depositSettlement === "needs_review" ? (
+        <section className="micro-cancel-panel" aria-label="تسوية عربون طلب ملغى">
+          <strong>
+            عربون محصل ينتظر قرارك (
+            <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ)
+          </strong>
+          <p>
+            ردّ العربون ينزل الرصيد المقبوض فعليًا، والاحتفاظ به يبقيه محصلًا. أو اتركه «يحتاج مراجعة»
+            وتابع لاحقًا — خيار صالح لا خطأ.
+          </p>
+          <label className="micro-field">
+            <span>سبب التسوية <small>مطلوب عند الرد أو الاحتفاظ</small></span>
+            <input
+              value={depositReason}
+              onChange={event => setDepositReason(event.target.value)}
+              placeholder="مثال: رد العربون نقدًا في المحل"
+            />
+          </label>
+          <div className="micro-form-actions micro-contextual-actions">
+            <button
+              className="micro-button micro-button-primary"
+              type="button"
+              disabled={isActing || !depositReason.trim()}
+              onClick={() => {
+                void run(() => fulfillment.refundDeposit(stored.id, depositReason));
+                setDepositReason("");
+              }}
+            >
+              <HandCoins aria-hidden="true" /> رُدَّ العربون
+            </button>
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              disabled={isActing || !depositReason.trim()}
+              onClick={() => {
+                void run(() => fulfillment.retainDeposit(stored.id, depositReason));
+                setDepositReason("");
+              }}
+            >
+              احتفظ به رصيدًا
+            </button>
+          </div>
+        </section>
+      ) : null}
+      {order.status === "cancelled" && order.depositSettlement === "refund_deposit" ? (
+        <section className="micro-note-card">
+          <HandCoins aria-hidden="true" />
+          <p>رُدّ عربون هذا الطلب، ونزل الرصيد المقبوض فعليًا بالتسوية الموثقة.</p>
+        </section>
+      ) : null}
+      {order.status === "cancelled" && order.depositSettlement === "retain_deposit" ? (
+        <section className="micro-note-card">
+          <CircleDollarSign aria-hidden="true" />
+          <p>احتُفظ بعربون هذا الطلب رصيدًا بتسوية موثقة؛ بقي محصلًا ولم يُحذف أثره.</p>
+        </section>
+      ) : null}
+      {order.status === "cancelled" && order.depositCollectedMinor === 0 ? (
+        <section className="micro-note-card">
+          <XCircle aria-hidden="true" />
+          <p>أُلغي هذا الطلب بلا عربون محصل؛ بقي في السجل بسببه ولا يُحذف.</p>
+        </section>
+      ) : null}
       {message ? (
         <p className="micro-field-error" role="alert">
           {message}

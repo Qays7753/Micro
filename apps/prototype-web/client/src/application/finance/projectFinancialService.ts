@@ -38,6 +38,9 @@ export type CogsStatus = "recorded" | "partial" | "not_available";
 export type RecordedPeriodResult = {
   from: string;
   to: string;
+  /* القرار ١٠: التقارير القديمة تقول صراحةً إن المخزون لم يكن مُدارًا — لا إخفاء ولا صفر.
+   * null = لم يُدر المخزون إطلاقًا؛ وتاريخ لاحق لبداية الفترة = جزء الفترة قبل التفعيل بلا إدارة. */
+  inventoryManagedFrom: string | null;
   recognizedRevenueMinor: number;
   recognizedDirectCostMinor: number;
   snapshotDirectCostMinor: number;
@@ -371,19 +374,33 @@ export class ProjectFinancialService {
   }
 
   async readRecordedPeriodResult(from: string, to: string): Promise<FinanceResult<RecordedPeriodResult>> {
-    const [ordersResult, eventsResult, movementsResult] = await Promise.all([
-      this.store.listOrders(),
-      this.store.listFinancialEvents(),
-      this.store.listInventoryMovements(),
-    ]);
-    if (!ordersResult.ok || !eventsResult.ok || !movementsResult.ok)
+    const [ordersResult, eventsResult, movementsResult, activationResult, materialsResult] =
+      await Promise.all([
+        this.store.listOrders(),
+        this.store.listFinancialEvents(),
+        this.store.listInventoryMovements(),
+        this.store.getInventoryActivation(),
+        this.store.listMaterials(),
+      ]);
+    if (!ordersResult.ok || !eventsResult.ok || !movementsResult.ok || !activationResult.ok || !materialsResult.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة نتيجة الفترة المحلية." };
+    /* القرار ٩/١٠: تاريخ بدء إدارة المخزون — المعلن صراحة أو أقدم دليل للموجود القائم. */
+    const inventoryManagedFrom =
+      activationResult.value?.activatedOn ??
+      ((): string | null => {
+        const evidence = [
+          ...movementsResult.value.map(movement => movement.occurredOn),
+          ...materialsResult.value.map(material => material.createdAt.slice(0, 10)),
+        ].filter(date => date);
+        return evidence.length > 0 ? evidence.slice().sort()[0]! : null;
+      })();
     if (!isValidLocalDate(from) || !isValidLocalDate(to) || from > to)
       return {
         ok: true,
         value: {
           from,
           to,
+          inventoryManagedFrom: null,
           recognizedRevenueMinor: 0,
           recognizedDirectCostMinor: 0,
           snapshotDirectCostMinor: 0,
@@ -497,6 +514,7 @@ export class ProjectFinancialService {
       value: {
         from,
         to,
+        inventoryManagedFrom,
         recognizedRevenueMinor,
         recognizedDirectCostMinor,
         snapshotDirectCostMinor: cogs.snapshotDirectCostMinor,

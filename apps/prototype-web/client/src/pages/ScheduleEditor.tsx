@@ -1,5 +1,5 @@
 /* مبدأ Micro: الموعد حالة تشغيلية مستقلة، ويُعرض يومه بوضوح دون تغيير أثر المال أو التاريخ. */
-import { ArrowRight, CalendarClock, Clock3, History, Save } from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarPlus, Clock3, History, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -49,6 +49,7 @@ export default function ScheduleEditor() {
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [postponing, setPostponing] = useState(false);
   const initialValuesRef = useRef<ScheduleFormValues | null>(null);
   useEffect(() => {
     let active = true;
@@ -116,6 +117,35 @@ export default function ScheduleEditor() {
     return true;
   }
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: persistTiming });
+  /* F-080: فعل «أجّل» — غلاف راحة معلن: تأجيل الموعد يومًا واحدًا بسببه الموثق.
+   * لا يخترع سببًا؛ يسجّل ما فُعل بالضبط، ومن أراد تاريخًا أو سببًا آخر يستخدم النموذج. */
+  async function postponeOneDay() {
+    if (!schedule) return;
+    setMessage(null);
+    setPostponing(true);
+    const nextDay = new Date(`${schedule.scheduledFor}T12:00:00.000Z`);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+    const result = await schedules.postpone(
+      schedule.id,
+      nextDay.toISOString().slice(0, 10),
+      "تأجيل سريع يومًا واحدًا",
+    );
+    setPostponing(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setSchedule(result.value);
+    setDate(result.value.scheduledFor);
+    initialValuesRef.current = {
+      date: result.value.scheduledFor,
+      time: result.value.scheduledTime ?? "",
+      duration: result.value.durationMinutes?.toString() ?? "",
+      reason: "",
+    };
+    notifyDataChanged();
+    setMessage("تم تأجيل الموعد يومًا واحدًا — التأجيل موثق في سجل الموعد.");
+  }
   if (phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -132,14 +162,14 @@ export default function ScheduleEditor() {
           type="button"
           onClick={() => navigate("/schedule")}
         >
-          جدول المواعيد
+          المواعيد
         </button>
       </section>
     );
   return (
     <section className="micro-page micro-schedule-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation("/schedule")}>
-        <ArrowRight aria-hidden="true" /> جدول المواعيد
+        <ArrowRight aria-hidden="true" /> المواعيد
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">تعديل تشغيلي</span>
@@ -220,6 +250,19 @@ export default function ScheduleEditor() {
           <Save aria-hidden="true" />
           {saving ? "جارٍ حفظ الموعد…" : "حفظ الموعد"}
         </button>
+        {schedule.status === "scheduled" || schedule.status === "postponed" ? (
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            disabled={postponing || saving}
+            onClick={() => {
+              void postponeOneDay();
+            }}
+          >
+            <CalendarPlus aria-hidden="true" />
+            {postponing ? "جارٍ التأجيل…" : "أجّل يومًا"}
+          </button>
+        ) : null}
       </section>
       <section className="micro-form-card">
         <h2 className="micro-section-title">

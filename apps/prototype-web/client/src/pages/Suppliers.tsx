@@ -40,7 +40,7 @@ export default function Suppliers() {
   if (state.phase === "error")
     return (
       <section className="micro-page micro-not-found">
-        <h1>تعذر قراءة مشتريات الموردين</h1>
+        <h1>تعذر قراءة الموردين والمشتريات</h1>
         <p>لم يتم تغيير أي سجل. أعد فتح التطبيق للمحاولة.</p>
         <button
           className="micro-button micro-button-primary"
@@ -67,7 +67,7 @@ export default function Suppliers() {
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مواد وموردون</span>
-        <h1>مشتريات المواد</h1>
+        <h1>الموردون والمشتريات</h1>
         <p>سجّل ما اشتريته للمشروع وما دُفع وما بقي.</p>
       </div>
       <section className="micro-decision-card">

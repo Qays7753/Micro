@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, CircleAlert, ClipboardList, Receipt, WalletCards } from "lucide-react";
+import { ArrowLeft, BellRing, CalendarDays, CircleAlert, ClipboardList, HandCoins, Landmark, Receipt, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -7,6 +7,7 @@ import { formatLocalDateLong } from "@/presentation/formatters";
 import type {
   HomeControlCenterViewModel,
   HomeFinancialFact,
+  HomeTodayItem,
 } from "@/application/home/homeControlCenterModel";
 
 type HomeState =
@@ -21,9 +22,15 @@ const factIcon: Record<HomeFinancialFact["id"], typeof WalletCards> = {
   owner_capital: WalletCards,
 };
 const factStateLabel = (state: HomeFinancialFact["state"]) =>
-  state === "known" ? "معروف من السجل" : state === "incomplete" ? "غير مكتمل" : "غير مهيأ";
+  state === "known" ? "معروف من السجل" : state === "incomplete" ? "غير مكتمل" : "غير مسجل";
 
-function FactCard({ fact }: { fact: HomeFinancialFact }) {
+function FactCard({
+  fact,
+  onNavigate,
+}: {
+  fact: HomeFinancialFact;
+  onNavigate: (href: string) => void;
+}) {
   const Icon = factIcon[fact.id];
   return (
     <article className="micro-home-fact" data-state={fact.state}>
@@ -34,6 +41,15 @@ function FactCard({ fact }: { fact: HomeFinancialFact }) {
       <strong>
         {fact.state === "known" && fact.valueMinor !== null ? (
           <MoneyValue minor={fact.valueMinor} />
+        ) : fact.state === "not_initialized" && fact.road ? (
+          /* §2.7: الحقيقة غير المسجلة طريق — «غير مسجل — سجّله (نقرة)». */
+          <button
+            className="micro-text-action micro-fact-road"
+            type="button"
+            onClick={() => onNavigate(fact.road!.href)}
+          >
+            {factStateLabel(fact.state)} — {fact.road.label}
+          </button>
         ) : (
           factStateLabel(fact.state)
         )}
@@ -42,6 +58,47 @@ function FactCard({ fact }: { fact: HomeFinancialFact }) {
       <small>
         {fact.source} · {fact.period}
       </small>
+    </article>
+  );
+}
+
+const todayItemIcon: Record<HomeTodayItem["kind"], typeof BellRing> = {
+  follow_up_due: BellRing,
+  appointment_today: CalendarDays,
+  due_amount: HandCoins,
+  follow_up_upcoming: BellRing,
+};
+
+function TodayItemRow({ item, onNavigate }: { item: HomeTodayItem; onNavigate: (href: string) => void }) {
+  const Icon = todayItemIcon[item.kind];
+  return (
+    <article className="micro-home-today-item" data-kind={item.kind}>
+      <div>
+        <strong>
+          <Icon aria-hidden="true" /> {item.title}
+        </strong>
+        {item.detail ? <p>{item.detail}</p> : null}
+        {item.dateLocal ? (
+          <small>
+            <time dateTime={item.dateLocal}>
+              {formatLocalDateLong(item.dateLocal) ?? item.dateLocal}
+            </time>
+            {item.timeLocal ? (
+              <bdi dir="ltr" className="micro-inline-number">
+                {" "}· {item.timeLocal}
+              </bdi>
+            ) : null}
+          </small>
+        ) : null}
+      </div>
+      <button
+        className="micro-text-action"
+        type="button"
+        onClick={() => onNavigate(item.href)}
+      >
+        {item.actionLabel}
+        <ArrowLeft aria-hidden="true" />
+      </button>
     </article>
   );
 }
@@ -96,6 +153,44 @@ export default function Home() {
           </time>
         </p>
       </div>
+      {/* قسم «اليوم» (F-078 · رحلة ٢): أجاب «ماذا عليّ اليوم؟» من شاشة واحدة،
+          والحالة الفارغة صادقة — «لا متابعات بعد». */}
+      <section className="micro-home-today-section" aria-labelledby="home-today-title">
+        <div className="micro-section-title">
+          <BellRing aria-hidden="true" />
+          <div>
+            <span className="micro-overline">قراءة الصباح</span>
+            <h2 id="home-today-title">اليوم</h2>
+          </div>
+        </div>
+        {model.todaySection.items.length > 0 ? (
+          <div className="micro-home-today-list">
+            {model.todaySection.items.map(item => (
+              <TodayItemRow key={item.id} item={item} onNavigate={navigate} />
+            ))}
+          </div>
+        ) : (
+          <div className="micro-home-quiet">
+            <strong>لا متابعات بعد.</strong>
+            <p>لا شيء مستحق اليوم من متابعات أو مواعيد أو ديون مسجلة.</p>
+          </div>
+        )}
+        {model.todaySection.upcomingCount > 0 && model.todaySection.nextUpcomingDate ? (
+          <p className="micro-home-truth-line">
+            قادمة: {formatLocalDateLong(model.todaySection.nextUpcomingDate)} —{" "}
+            <button
+              className="micro-text-action"
+              type="button"
+              onClick={() =>
+                model.todaySection.nextUpcomingHref ? navigate(model.todaySection.nextUpcomingHref) : null
+              }
+            >
+              افتح أقربها
+            </button>
+          </p>
+        ) : null}
+        <p className="micro-home-truth-line">{model.todaySection.truth}</p>
+      </section>
       <section className="micro-decision-surface" data-tone="accent" aria-labelledby="home-primary-title">
         <span className="micro-overline">الأولوية الآن</span>
         <h2 id="home-primary-title">{model.primaryAction.label}</h2>
@@ -120,8 +215,40 @@ export default function Home() {
         </div>
         <div className="micro-home-facts">
           {model.facts.map(fact => (
-            <FactCard key={fact.id} fact={fact} />
+            <FactCard key={fact.id} fact={fact} onNavigate={navigate} />
           ))}
+        </div>
+      </section>
+      {/* القرار ١٢: وحدة مالية دائمة في Home — الأسطح بلا شرط (§2.1)، وperiod_result
+          يحتفظ بشرطه في وحدته دون أن ترث غيره رؤيته (القرار ١٤). */}
+      <section className="micro-home-finance-section" aria-labelledby="home-finance-title">
+        <div className="micro-section-title">
+          <Landmark aria-hidden="true" />
+          <div>
+            <span className="micro-overline">وجهة دائمة · بلا شرط</span>
+            <h2 id="home-finance-title">مالي</h2>
+          </div>
+        </div>
+        <div className="micro-home-finance-unit">
+          <div>
+            <p>{model.financeUnit.truth}</p>
+            {/* القرار ٧: صفحة الأساس دائمة الوصول ولا تُغلق بعد اليوم الأول. */}
+            <button
+              className="micro-text-action"
+              type="button"
+              onClick={() => navigate("/foundation")}
+            >
+              صفحة الأساس: سجّل موقف البداية أو عدّله <ArrowLeft aria-hidden="true" />
+            </button>
+          </div>
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={() => navigate(model.financeUnit.action.href)}
+          >
+            {model.financeUnit.action.label}
+            <ArrowLeft aria-hidden="true" />
+          </button>
         </div>
       </section>
       <section className="micro-home-attention-section" aria-labelledby="home-attention-title">
@@ -229,8 +356,8 @@ export default function Home() {
           هذه قراءة محلية محدودة. لا تعرض صافي ربح المشروع ولا تستبدل صفحة المال أو الطلبات؛ الأرقام الناقصة
           تبقى غير معروفة.
         </p>
-        <button className="micro-text-action" type="button" onClick={() => navigate("/review")}>
-          فتح المراجعة <ArrowLeft aria-hidden="true" />
+        <button className="micro-text-action" type="button" onClick={() => navigate("/finance")}>
+          فتح مالي <ArrowLeft aria-hidden="true" />
         </button>
       </div>
     </section>

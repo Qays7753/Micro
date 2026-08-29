@@ -7,6 +7,8 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { G5Service } from "@/application/g5/g5Service";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import Finance from "@/pages/Finance";
 
@@ -36,6 +38,8 @@ describe("Finance month-range validation stays inline (U-05)", () => {
         now,
       ),
       g5: new G5Service(store, projectFinance, now),
+      financialPulse: new FinancialPulseService(store),
+      fulfillment: new FulfillmentService(store, now),
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
@@ -47,7 +51,7 @@ describe("Finance month-range validation stays inline (U-05)", () => {
 
   it("shows a scoped message for an inverted range while the last valid reading stays rendered", async () => {
     render(<Finance />);
-    expect(await screen.findByRole("heading", { name: "وضعي المالي الآن" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "مالي" })).toBeTruthy();
     await waitFor(() =>
       expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
     );

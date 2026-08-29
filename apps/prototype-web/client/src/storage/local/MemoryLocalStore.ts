@@ -21,6 +21,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type {
   ActivityProfile,
+  InventoryActivation,
   LocalPreferences,
   LocalStoreSnapshot,
   OrderDraft,
@@ -47,6 +48,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   private cashContinuityEntries = new Map<string, CashContinuityEntry>();
   private materials = new Map<string, Material>();
   private inventoryMovements = new Map<string, InventoryMovement>();
+  private inventoryActivation: InventoryActivation | null = null;
   private catalogItems = new Map<string, CatalogItem>();
   private measurementUnits = new Map<string, MeasurementUnit>();
   private directConversions = new Map<string, DirectConversion>();
@@ -88,6 +90,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async saveDraft(draft: OrderDraft): Promise<StorageResult<OrderDraft>> {
     this.drafts.set(draft.id, clone(draft));
     return { ok: true, value: clone(draft) };
+  }
+  async deleteDraft(id: string): Promise<StorageResult<null>> {
+    this.drafts.delete(id);
+    return { ok: true, value: null };
   }
   async listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>> {
     return {
@@ -256,6 +262,15 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn) || b.recordedAt.localeCompare(a.recordedAt))
         .map(clone),
     };
+  }
+  async getInventoryActivation(): Promise<StorageResult<InventoryActivation | null>> {
+    return { ok: true, value: this.inventoryActivation ? clone(this.inventoryActivation) : null };
+  }
+  async saveInventoryActivation(
+    activation: InventoryActivation,
+  ): Promise<StorageResult<InventoryActivation>> {
+    this.inventoryActivation = clone(activation);
+    return { ok: true, value: clone(activation) };
   }
   async commitInventory(
     material: Material | null,
@@ -664,6 +679,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         cashContinuityEntries: Array.from(this.cashContinuityEntries.values()).map(clone),
         materials: Array.from(this.materials.values()).map(clone),
         inventoryMovements: Array.from(this.inventoryMovements.values()).map(clone),
+        inventoryActivation: this.inventoryActivation ? clone(this.inventoryActivation) : null,
         catalogItems: Array.from(this.catalogItems.values()).map(clone),
         measurementUnits: Array.from(this.measurementUnits.values()).map(clone),
         directConversions: Array.from(this.directConversions.values()).map(clone),
@@ -690,6 +706,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
       materials: snapshot.materials ?? [],
       inventoryMovements: snapshot.inventoryMovements ?? [],
+      inventoryActivation: snapshot.inventoryActivation ?? null,
       catalogItems: snapshot.catalogItems ?? [],
       measurementUnits: snapshot.measurementUnits ?? [],
       directConversions: snapshot.directConversions ?? [],
@@ -715,6 +732,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.cashContinuityEntries = new Map(safe.cashContinuityEntries.map(entry => [entry.id, entry]));
     this.materials = new Map(safe.materials.map(material => [material.id, material]));
     this.inventoryMovements = new Map(safe.inventoryMovements.map(movement => [movement.id, movement]));
+    this.inventoryActivation = safe.inventoryActivation ?? null;
     this.catalogItems = new Map(safe.catalogItems.map(item => [item.id, item]));
     this.measurementUnits = new Map((safe.measurementUnits ?? []).map(unit => [unit.id, unit]));
     this.directConversions = new Map(

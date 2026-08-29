@@ -50,4 +50,42 @@ describe("DraftService", () => {
     expect(rejected).toMatchObject({ ok: false, code: "validation_error" });
     expect(unchanged).toMatchObject({ ok: true, value: { quantity: 1 } });
   });
+
+  /* القرار ٢١ (بناء لا توصيل): المسودة المهجورة تُحذف بسهولة وبلا سبب —
+   * والحد القاطع linkedOrderId !== null يُقرأ من الحقل ولا يُستنتج من الحالة. */
+  it("deletes an unlinked draft easily without a reason and removes it from the store", async () => {
+    const store = new MemoryLocalStore();
+    const service = new DraftService(store, () => "2026-08-22T00:00:00.000Z");
+    const created = await service.create("planned_design");
+    if (!created.ok) throw new Error("draft should be created");
+    await expect(service.delete(created.draft.id)).resolves.toMatchObject({
+      ok: true,
+      id: created.draft.id,
+    });
+    const after = await service.list();
+    expect(after.ok && after.value).toHaveLength(0);
+  });
+
+  it("refuses to delete a draft that became an order — the field is read, not inferred", async () => {
+    const store = new MemoryLocalStore();
+    const service = new DraftService(store, () => "2026-08-22T00:00:00.000Z");
+    const created = await service.create("customer_order");
+    if (!created.ok) throw new Error("draft should be created");
+    const linked = await service.save({ ...created.draft, linkedOrderId: "order-1" });
+    if (!linked.ok) throw new Error("draft should save");
+    await expect(service.delete(linked.draft.id)).resolves.toMatchObject({
+      ok: false,
+      code: "validation_error",
+    });
+    const kept = await service.get(linked.draft.id);
+    expect(kept).toMatchObject({ ok: true, value: { linkedOrderId: "order-1" } });
+  });
+
+  it("says not_found honestly when deleting an unknown draft instead of pretending success", async () => {
+    const service = new DraftService(new MemoryLocalStore(), () => "2026-08-22T00:00:00.000Z");
+    await expect(service.delete("missing-id")).resolves.toMatchObject({
+      ok: false,
+      code: "not_found",
+    });
+  });
 });

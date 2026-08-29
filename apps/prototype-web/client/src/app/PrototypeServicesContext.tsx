@@ -98,6 +98,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
         projectFinance,
         supplierPurchases,
         inventory,
+        agreementContext,
       ),
       schedules,
       recurrences,

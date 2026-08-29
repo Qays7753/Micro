@@ -20,8 +20,10 @@ import type {
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import {
+  localInventoryActivationId,
   localSchemaVersion,
   type ActivityProfile,
+  type InventoryActivation,
   type LocalPreferences,
   type LocalStoreSnapshot,
   type OrderDraft,
@@ -48,6 +50,8 @@ const cashWalletStore = "cash-wallets";
 const cashContinuityEntryStore = "cash-continuity-entries";
 const materialStore = "materials";
 const inventoryMovementStore = "inventory-movements";
+/* القرار ٩: سجل تفعيل المخزون المؤرّخ — مستودع منفرد بلا فهارس. */
+const inventoryActivationStore = "inventory-activations";
 const catalogItemStore = "catalog-items";
 const measurementUnitStore = "measurement-units";
 const directConversionStore = "direct-conversions";
@@ -206,6 +210,8 @@ function openDatabase(): Promise<IDBDatabase> {
         movements.createIndex("purchaseId", "purchaseId");
         movements.createIndex("orderId", "orderId");
       }
+      if (!database.objectStoreNames.contains(inventoryActivationStore))
+        database.createObjectStore(inventoryActivationStore, { keyPath: "id" });
       if (!database.objectStoreNames.contains(catalogItemStore)) {
         const catalogItems = database.createObjectStore(catalogItemStore, { keyPath: "id" });
         catalogItems.createIndex("active", "active");
@@ -596,6 +602,25 @@ async function writeOne<T>(storeName: string, value: T): Promise<StorageResult<T
   }
 }
 
+/* القرار ٢١: حذف المسودة غير المرتبطة — حذف سجل بلا أثر مالي؛ لا يمس أحداث طلب. */
+async function deleteOne(storeName: string, key: string): Promise<StorageResult<null>> {
+  try {
+    const database = await openDatabase();
+    return await new Promise(resolve => {
+      const transaction = database.transaction(storeName, "readwrite");
+      const request = transaction.objectStore(storeName).delete(key);
+      request.onerror = () => resolve(failure(request.error, database));
+      transaction.onabort = () => resolve(failure(transaction.error, database));
+      transaction.oncomplete = () => {
+        database.close();
+        resolve({ ok: true, value: null });
+      };
+    });
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 async function listAll<T>(
   storeName: string,
   sort: (left: T, right: T) => number,
@@ -635,6 +660,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   saveDraft(draft: OrderDraft) {
     return writeOne(draftStore, draft);
+  }
+  deleteDraft(id: string) {
+    return deleteOne(draftStore, id);
   }
   listOrders() {
     return listAll<StoredCraftOrder>(orderStore, (left, right) =>
@@ -852,6 +880,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   listMaterials() {
     return listAll<Material>(materialStore, (left, right) => left.createdAt.localeCompare(right.createdAt));
+  }
+  getInventoryActivation() {
+    return readOne<InventoryActivation>(inventoryActivationStore, localInventoryActivationId);
+  }
+  saveInventoryActivation(activation: InventoryActivation) {
+    return writeOne(inventoryActivationStore, activation);
   }
   listInventoryMovements() {
     return listAll<InventoryMovement>(
@@ -1642,6 +1676,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             cashContinuityEntryStore,
             materialStore,
             inventoryMovementStore,
+            inventoryActivationStore,
             catalogItemStore,
             measurementUnitStore,
             directConversionStore,
@@ -1669,6 +1704,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const cashContinuityEntries = transaction.objectStore(cashContinuityEntryStore).getAll();
         const materials = transaction.objectStore(materialStore).getAll();
         const inventoryMovements = transaction.objectStore(inventoryMovementStore).getAll();
+        const inventoryActivation = transaction
+          .objectStore(inventoryActivationStore)
+          .get(localInventoryActivationId);
         const catalogItems = transaction.objectStore(catalogItemStore).getAll();
         const measurementUnits = transaction.objectStore(measurementUnitStore).getAll();
         const directConversions = transaction.objectStore(directConversionStore).getAll();
@@ -1702,6 +1740,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[],
               materials: materials.result as Material[],
               inventoryMovements: inventoryMovements.result as InventoryMovement[],
+              inventoryActivation: (inventoryActivation.result as InventoryActivation | undefined) ?? null,
               catalogItems: catalogItems.result as CatalogItem[],
               measurementUnits: measurementUnits.result as MeasurementUnit[],
               directConversions: directConversions.result as DirectConversion[],
@@ -1736,6 +1775,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
         materials: snapshot.materials ?? [],
         inventoryMovements: snapshot.inventoryMovements ?? [],
+        inventoryActivation: snapshot.inventoryActivation ?? null,
         catalogItems: snapshot.catalogItems ?? [],
         measurementUnits: snapshot.measurementUnits ?? [],
         directConversions: snapshot.directConversions ?? [],
@@ -1764,6 +1804,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             cashContinuityEntryStore,
             materialStore,
             inventoryMovementStore,
+            inventoryActivationStore,
             catalogItemStore,
             measurementUnitStore,
             directConversionStore,
@@ -1791,6 +1832,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const cashContinuityEntries = transaction.objectStore(cashContinuityEntryStore);
         const materials = transaction.objectStore(materialStore);
         const inventoryMovements = transaction.objectStore(inventoryMovementStore);
+        const inventoryActivation = transaction.objectStore(inventoryActivationStore);
         const catalogItems = transaction.objectStore(catalogItemStore);
         const measurementUnits = transaction.objectStore(measurementUnitStore);
         const directConversions = transaction.objectStore(directConversionStore);
@@ -1815,6 +1857,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         cashContinuityEntries.clear();
         materials.clear();
         inventoryMovements.clear();
+        inventoryActivation.clear();
         catalogItems.clear();
         measurementUnits.clear();
         directConversions.clear();
@@ -1839,6 +1882,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         normalized.cashContinuityEntries?.forEach(entry => cashContinuityEntries.put(entry));
         normalized.materials?.forEach(material => materials.put(material));
         normalized.inventoryMovements?.forEach(movement => inventoryMovements.put(movement));
+        if (normalized.inventoryActivation) inventoryActivation.put(normalized.inventoryActivation);
         normalized.catalogItems?.forEach(item => catalogItems.put(item));
         normalized.measurementUnits?.forEach(unit => measurementUnits.put(unit));
         normalized.directConversions?.forEach(conversion => directConversions.put(conversion));

@@ -2,7 +2,7 @@
  * Micro design reminder: every quick action must end in a real path or be
  * clearly marked as unavailable; the sheet never creates a financial effect.
  */
-import { BadgeDollarSign, ClipboardPlus, HandCoins, PackagePlus, X } from "lucide-react";
+import { BadgeDollarSign, CircleDollarSign, ClipboardPlus, HandCoins, PackagePlus, X } from "lucide-react";
 import {
   Drawer,
   DrawerClose,
@@ -12,7 +12,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
-export type QuickAction = "sale" | "order" | "estimate" | "collection";
+export type QuickAction = "sale" | "expense" | "order" | "estimate" | "collection";
 export type QuickActionItem = {
   action: QuickAction;
   label: string;
@@ -26,12 +26,20 @@ type QuickActionSheetProps = {
   onAction: (action: QuickAction) => void;
 };
 
+/* القرار ٢٣-ب: الأفعال المتكررة يوميًا — تسجيل بيع · تسجيل مصروف · إضافة طلب.
+ * البيع المباشر أولًا (R-1 أعلى الورقة)، والمصروف لحظته (م1 — F-036 في موضعه الجديد). */
 export const actionItems: readonly QuickActionItem[] = [
   {
     action: "sale",
     label: "تسجيل بيع",
     description: "احفظ بيعًا مباشرًا من دون إنشاء طلب.",
     icon: BadgeDollarSign,
+  },
+  {
+    action: "expense",
+    label: "تسجيل مصروف",
+    description: "سجّل مصروفًا مدفوعًا في لحظته، من أي مكان.",
+    icon: CircleDollarSign,
   },
   { action: "order", label: "طلب من عميل", description: "ابدأ مسودة طلب واتفاق أولي.", icon: ClipboardPlus },
   {

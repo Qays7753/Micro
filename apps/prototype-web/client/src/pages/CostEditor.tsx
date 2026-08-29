@@ -2,6 +2,7 @@
 import { ArrowRight, ChevronLeft, CircleAlert, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { knowledgeGapsOf, type KnowledgeGapId } from "@micro-domain/craft-order/index.js";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CostEditorInput } from "@/application/cost/costService";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -57,6 +58,14 @@ const knowledgeCopy = {
   stale: ["تكلفة تحتاج مراجعة", "بعض أسعار المواد لم تعد ضمن مدة الحداثة."],
   variable: ["تكلفة متغيرة", "هناك بند تقديري يحتاج مراجعة قبل تسجيل السعر."],
 } as const;
+/* القرار ٢٢: كل نقص يحمل علامته — إلزامي (يمنع نتيجة صادقة) أو اختياري (يحسّن الدقة). */
+const knowledgeGapCopy: Record<KnowledgeGapId, string> = {
+  no_cost_components: "لا بنود تكلفة مدخلة إطلاقًا — لا تُبنى نتيجة صادقة على فراغ",
+  time_incomplete: "وقت العمل أو سعر الساعة غير مكتمل",
+  stale_material_price: "سعر مادة خرج عن مدة الحداثة",
+  estimated_item: "بند مدخل كتقدير — راجع افتراضه",
+  variable_cost_source: "مصدر تكلفة تقديري — راجع مصدره",
+};
 const optionalCostFields = [
   { field: "packagingMinor", label: "تغليف" },
   { field: "deliveryMinor", label: "توصيل" },
@@ -322,6 +331,16 @@ export default function CostEditor() {
             <b>{status?.[0]}</b>
             <p>{status?.[1]}</p>
           </div>
+          {knowledgeGapsOf(preview.snapshot).length > 0 ? (
+            <ul className="micro-knowledge-gaps" aria-label="نقاط المعرفة الناقصة كاملة">
+              {knowledgeGapsOf(preview.snapshot).map(gap => (
+                <li key={gap.id} data-mandatory={gap.mandatory}>
+                  <b>{gap.mandatory ? "إلزامي" : "اختياري"}</b>
+                  <span>{knowledgeGapCopy[gap.id]}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
       ) : (
         <p className="micro-field-error" role="alert">

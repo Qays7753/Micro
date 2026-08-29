@@ -1589,3 +1589,59 @@ describe("ProjectFinancialService settlement source liveness (A-03)", () => {
     expect(ids).not.toContain(reversal.ok ? reversal.value.id : "");
   });
 });
+
+/* القرار ١٠: التقارير القديمة تقول صراحةً إن المخزون لم يكن مُدارًا في هذه المدة. */
+describe("period result states when inventory was never managed (decision 10)", () => {
+  it("reports null inventoryManagedFrom when no material or movement was ever recorded", async () => {
+    const finance = new ProjectFinancialService(new MemoryLocalStore(), now);
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+      ok: true,
+      value: { inventoryManagedFrom: null },
+    });
+  });
+
+  it("reports the declared activation date so periods before it state their own gap", async () => {
+    const store = new MemoryLocalStore();
+    await store.saveInventoryActivation({
+      id: "local-inventory-activation",
+      activatedOn: "2026-08-20",
+      recordedAt: "2026-08-20T09:00:00.000Z",
+      operationKey: "activation-test",
+    });
+    const finance = new ProjectFinancialService(store, now);
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+      ok: true,
+      value: { inventoryManagedFrom: "2026-08-20" },
+    });
+  });
+
+  it("derives the management start for legacy owners with materials but no declaration", async () => {
+    const store = new MemoryLocalStore();
+    const material = createMaterial({
+      id: "material-legacy",
+      name: "خشب",
+      unit: "piece",
+      createdAt: "2026-07-05T09:00:00.000Z",
+      createdOperationKey: "material-legacy",
+    });
+    const saved = await store.commitInventory(material, [
+      createInventoryMovement({
+        id: "movement-legacy",
+        materialId: material.id,
+        type: "opening",
+        occurredOn: "2026-07-05",
+        recordedAt: "2026-07-05T09:00:00.000Z",
+        quantityDeltaMilli: 10000,
+        valueDeltaMinor: 4000,
+        note: "افتتاح",
+        operationKey: "movement-legacy",
+      }),
+    ]);
+    if (!saved.ok) throw new Error("inventory should commit");
+    const finance = new ProjectFinancialService(store, now);
+    await expect(finance.readRecordedPeriodResult("2026-07-01", "2026-07-31")).resolves.toMatchObject({
+      ok: true,
+      value: { inventoryManagedFrom: "2026-07-05" },
+    });
+  });
+});

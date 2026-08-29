@@ -15,12 +15,20 @@ const fact = (
   source: "السجل المحلي",
   period: "2026-08",
   helper: "مصدر محلي",
+  road:
+    state === "not_initialized"
+      ? { id: `road-${id}`, label: "سجّله", href: `/new-${id}`, reason: "طريق التسجيل" }
+      : null,
 });
 const baseInput = (): HomeControlCenterInput => ({
   activityName: "مشغل اختبار",
   todayLocal: "2026-08-25",
   truthLine: "هذه قراءة محلية محدودة.",
   primaryAction: action("orders/new", "طلب جديد"),
+  financeUnit: {
+    action: action("finance", "افتح مالي"),
+    truth: "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق.",
+  },
   facts: [
     fact("cash", "known", 1250),
     fact("receivables", "incomplete", 0),
@@ -48,6 +56,14 @@ describe("buildHomeControlCenterViewModel", () => {
       { id: "payables", state: "not_initialized", valueMinor: null },
       { id: "owner_capital", state: "known", valueMinor: 1250 },
     ]);
+  });
+
+  it("keeps an unregistered fact a road to its own registration path, never a dead «غير مهيأ» (§2.7)", () => {
+    const model = buildHomeControlCenterViewModel(baseInput());
+    const payables = model.facts.find(fact => fact.id === "payables");
+    expect(payables?.road).toMatchObject({ href: "/new-payables", label: "سجّله" });
+    const cash = model.facts.find(fact => fact.id === "cash");
+    expect(cash?.road).toBeNull();
   });
 
   it("orders unique attention by priority and caps the result at three items", () => {
@@ -115,6 +131,14 @@ describe("buildHomeControlCenterViewModel", () => {
       ],
     });
     expect(model.optionalModules.map(module => module.id)).toEqual(["schedule", "supplier_commitments"]);
+  });
+
+  it("keeps the permanent finance unit unconditional even while every optional module is empty", () => {
+    const model = buildHomeControlCenterViewModel(baseInput());
+    expect(model.financeUnit).toMatchObject({
+      action: { id: "finance", href: "/finance" },
+    });
+    expect(model.optionalModules).toHaveLength(0);
   });
 
   it("keeps the recent activity bounded to five useful changes and preserves the primary CTA", () => {

@@ -1,4 +1,6 @@
-/** Micro design reminder: four task destinations and one creation affordance, never generic ERP chrome. */
+/** Micro design reminder: phone-first task destinations with one creation affordance, never generic ERP chrome. */
+/* §2.2: مشروعي الآن | العمل | [FAB] | مالي — والمقعد الخامس شاغر معلن للسوق
+ * حين يأتي (إعلان مرسوم لا مساحة معطلة تُعرض اليوم — م8). */
 import { Plus } from "lucide-react";
 import type { NavigationItem } from "@/app/navigation";
 

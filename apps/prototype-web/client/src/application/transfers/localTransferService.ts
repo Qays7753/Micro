@@ -19,6 +19,7 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import {
   localExportFormat,
   localExportVersion,
+  localInventoryActivationId,
   localProfileId,
   localSchemaVersion,
   type LocalExportFile,
@@ -895,6 +896,17 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !isDate(data.preferences.updatedAt))
   )
     return false;
+  /* القرار ٩: سجل تفعيل المخزون سجل منفرد مؤرّخ — يُقبل غيابه ولا يُقبل معطوبًا. */
+  if (
+    data.inventoryActivation !== null &&
+    data.inventoryActivation !== undefined &&
+    (!isRecord(data.inventoryActivation) ||
+      data.inventoryActivation.id !== localInventoryActivationId ||
+      !isDate(data.inventoryActivation.activatedOn) ||
+      !isDate(data.inventoryActivation.recordedAt) ||
+      !isString(data.inventoryActivation.operationKey))
+  )
+    return false;
   const orderIds = new Set<string>();
   for (const stored of data.orders) {
     const orderContextValid =
@@ -1738,6 +1750,8 @@ export class LocalTransferService {
     const isCurrent =
       candidate.version === localExportVersion && candidate.schemaVersion === localSchemaVersion;
     const isPreviousDirectSale = candidate.version === 18 && candidate.schemaVersion === localSchemaVersion;
+    /* القرار ٩: ملفات 19/27 بلا سجل تفعيل المخزون تُقبل وتُهاجر بتفعيل غير معلن (null). */
+    const isPreviousInventoryActivation = candidate.version === 19 && candidate.schemaVersion === 27;
     const isPreviousCatalogCore = candidate.version === 14 && candidate.schemaVersion === 23;
     const isPreviousBridge = candidate.version === 15 && candidate.schemaVersion === 24;
     const isPreviousG4bScale = candidate.version === 16 && candidate.schemaVersion === 25;
@@ -1753,6 +1767,7 @@ export class LocalTransferService {
     if (
       !isCurrent &&
       !isPreviousDirectSale &&
+      !isPreviousInventoryActivation &&
       !isPreviousCatalogCore &&
       !isPreviousBridge &&
       !isPreviousG4bScale &&
@@ -1819,6 +1834,7 @@ export class LocalTransferService {
       cashWallets: Array.isArray(raw.cashWallets) ? raw.cashWallets : [],
       cashContinuityEntries: Array.isArray(raw.cashContinuityEntries) ? raw.cashContinuityEntries : [],
       materials: Array.isArray(raw.materials) ? raw.materials : [],
+      inventoryActivation: isRecord(raw.inventoryActivation) ? raw.inventoryActivation : null,
       inventoryMovements: Array.isArray(raw.inventoryMovements)
         ? raw.inventoryMovements.map(movement =>
             isRecord(movement)

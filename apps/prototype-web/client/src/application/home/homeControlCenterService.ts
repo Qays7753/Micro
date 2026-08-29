@@ -1,18 +1,22 @@
+import type { AgreementContextService } from "@/application/agreements/agreementContextService";
 import type { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { formatArabicPlural, formatLocalDateLong } from "@/presentation/formatters";
+import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
 
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
   buildHomeControlCenterViewModel,
+  type HomeAction,
   type HomeAttentionItem,
   type HomeControlCenterViewModel,
   type HomeFinancialFact,
   type HomeOptionalModule,
   type HomeRecentChange,
+  type HomeTodayItem,
+  type HomeTodaySection,
 } from "./homeControlCenterModel";
 
 export type HomeControlCenterResult =
@@ -58,19 +62,22 @@ export class HomeControlCenterService {
     private readonly projectFinance: ProjectFinancialService,
     private readonly supplierPurchases: SupplierPurchaseService,
     private readonly inventory: InventoryMaterialService,
+    private readonly agreementContext: AgreementContextService,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {
-    const [profile, followUp, position, schedules, events, purchases, inventory] = await Promise.all([
-      this.store.getProfile(),
-      this.dailyFollowUp.read(),
-      this.projectFinance.readPosition(),
-      this.store.listSchedules(),
-      this.store.listFinancialEvents(),
-      this.supplierPurchases.readSummary(),
-      this.inventory.overview(),
-    ]);
+    const [profile, followUp, position, schedules, events, purchases, inventory, dueFollowUps] =
+      await Promise.all([
+        this.store.getProfile(),
+        this.dailyFollowUp.read(),
+        this.projectFinance.readPosition(),
+        this.store.listSchedules(),
+        this.store.listFinancialEvents(),
+        this.supplierPurchases.readSummary(),
+        this.inventory.overview(),
+        this.agreementContext.dueFollowUps(),
+      ]);
     if (
       !profile.ok ||
       !followUp.ok ||
@@ -79,6 +86,7 @@ export class HomeControlCenterService {
       !events.ok ||
       !purchases.ok ||
       !inventory.ok ||
+      !dueFollowUps.ok ||
       !profile.value
     )
       return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
@@ -106,6 +114,23 @@ export class HomeControlCenterService {
         event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
       );
     const period = `حتى ${formatLocalDateLong(today) ?? today}`;
+    /* §2.7: كل حقيقة غير مسجلة تعرض طريقها — «غير مسجل — سجّله (نقرة)» — لا «غير مهيأ» عاجزة. */
+    const factRoads: Record<HomeFinancialFact["id"], HomeAction> = {
+      cash: action("road-cash", "سجّله", "/cash/wallet/new", "محفظة ورصيد بداية"),
+      receivables: action("road-receivables", "سجّله", "/orders", "الدين يسجل من طلب بعد تسليمه"),
+      payables: action(
+        "road-payables",
+        "سجّله",
+        "/finance/new/operating_expense_payable",
+        "سجل التزامًا لمورد",
+      ),
+      owner_capital: action(
+        "road-owner-capital",
+        "سجّله",
+        "/finance/new/owner_investment_cash",
+        "سجل استثمارًا",
+      ),
+    };
     const facts: HomeFinancialFact[] = [
       {
         id: "cash",
@@ -116,6 +141,7 @@ export class HomeControlCenterService {
         source: "السجل المحلي",
         period,
         helper: "يشمل ما سُجل من محافظ وكاش الطلبات والأحداث؛ ليس ربحًا.",
+        road: cashEvidence ? null : factRoads.cash,
       },
       {
         id: "receivables",
@@ -126,6 +152,7 @@ export class HomeControlCenterService {
         source: "طلبات محلية مسجلة",
         period,
         helper: "دين عميل مسجل، وليس كاشًا محصلًا.",
+        road: orderEvidence ? null : factRoads.receivables,
       },
       {
         id: "payables",
@@ -136,6 +163,7 @@ export class HomeControlCenterService {
         source: "أحداث المصروف وشراء المواد",
         period,
         helper: "التزام مسجل، وليس دفعة كاش جديدة.",
+        road: payableEvidence ? null : factRoads.payables,
       },
       {
         id: "owner_capital",
@@ -146,6 +174,7 @@ export class HomeControlCenterService {
         source: "أحداث مالية عامة",
         period,
         helper: "استثمار/سحب مسجل؛ لا يتحول إلى بيع أو مصروف.",
+        road: capitalEvidence ? null : factRoads.owner_capital,
       },
     ];
 
@@ -291,30 +320,103 @@ export class HomeControlCenterService {
           followUp.followUp.href,
           followUp.followUp.nextAction,
         );
+    /* القرار ١١: تُفكّ المالية كلها. الوحدة الدائمة تفتح المسارين: مالي ← المحافظ والموردون
+     * والمواد ودفتر المالك، بلا شرط بيانات وبلا نقل أي قدرة (§2.1 من وثيقة التوزيع). */
+    const financeUnit = {
+      action: action(
+        "finance",
+        "افتح مالي",
+        "/finance",
+        "قراءة يومية دائمة: كم عندي الآن ومن أين.",
+      ),
+      truth:
+        "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق؛ ونتيجة الفترة تظهر في وحدتها حين توجد نتيجة.",
+    };
+
+    /* قسم «اليوم» — موطن F-078 (رحلة ٢): متابعات مستحقة ومواعيد اليوم وديون
+     * مستحقة، بلا إنشاء موعد أو تحصيل. الحالة الفارغة صادقة: «لا متابعات بعد». */
+    const todayItems: HomeTodayItem[] = [];
+    dueFollowUps.value.due.forEach(stored =>
+      todayItems.push({
+        id: `today-follow-up:${stored.id}`,
+        kind: "follow_up_due",
+        title: `متابعة مستحقة: ${stored.order.itemName || "طلب بلا وصف"}`,
+        detail: stored.followUpSummary ?? stored.followUpReason ?? null,
+        dateLocal: stored.followUpDate ?? null,
+        timeLocal: null,
+        href: `/orders/${stored.id}`,
+        actionLabel: "فتح المتابعة",
+      }),
+    );
+    schedules.value
+      .filter(
+        schedule =>
+          ["scheduled", "postponed"].includes(schedule.status) && schedule.scheduledFor === today,
+      )
+      .forEach(schedule => {
+        const linkedOrder = orders.find(candidate => candidate.id === schedule.orderId);
+        todayItems.push({
+          id: `today-appointment:${schedule.id}`,
+          kind: "appointment_today",
+          title: `موعد اليوم: ${linkedOrder?.order.itemName || "موعد تسليم"}`,
+          detail: linkedOrder ? linkedOrder.order.nextAction : null,
+          dateLocal: schedule.scheduledFor,
+          timeLocal: schedule.scheduledTime,
+          href: `/schedule/${schedule.id}`,
+          actionLabel: "فتح الموعد",
+        });
+      });
+    orders
+      .filter(
+        stored =>
+          stored.order.settlementStatus === "debt" &&
+          stored.order.receivableMinor > 0 &&
+          !["cancelled"].includes(stored.order.status),
+      )
+      .forEach(stored =>
+        todayItems.push({
+          id: `today-due-amount:${stored.id}`,
+          kind: "due_amount",
+          title: `مستحق عليك متابعته: ${stored.order.itemName || "طلب"}`,
+          detail: `دين مسجل: ${formatMoneyMinor(stored.order.receivableMinor)} د.أ — دين لا كاش محصل.`,
+          dateLocal: null,
+          timeLocal: null,
+          href: `/orders/${stored.id}`,
+          actionLabel: "مراجعة الدين",
+        }),
+      );
+    const upcoming = dueFollowUps.value.upcoming;
+    const todaySection: HomeTodaySection = {
+      items: todayItems,
+      upcomingCount: upcoming.length,
+      nextUpcomingDate: upcoming[0]?.followUpDate ?? null,
+      nextUpcomingHref: upcoming[0] ? `/orders/${upcoming[0].id}` : null,
+      truth: "قراءة صباحية من سجلاتك: متابعات ومواعيد وديون مستحقة. لا تنشئ موعدًا ولا تحصيلًا.",
+    };
     const optionalModules: HomeOptionalModule[] = [
       {
         id: "inventory",
-        label: "المادة والمخزون",
+        label: "المواد والمخزون",
         state:
           inventory.value.materials.length > 0 || inventory.value.movementCount > 0 ? "available" : "empty",
-        action: action("inventory", "فتح المخزون", "/inventory", inventory.value.truth),
+        action: action("inventory", "فتح المواد والمخزون", "/inventory", inventory.value.truth),
       },
       {
         id: "schedule",
-        label: "جدول المواعيد",
+        label: "المواعيد",
         state: schedules.value.length > 0 ? "available" : orders.length > 0 ? "needs_setup" : "empty",
         action: action(
           "schedule",
-          schedules.value.length > 0 ? "فتح الجدول" : "إعداد الجدول",
+          schedules.value.length > 0 ? "فتح المواعيد" : "إعداد المواعيد",
           "/schedule",
           "الجدول تشغيلي ولا ينشئ أثرًا ماليًا.",
         ),
       },
       {
         id: "supplier_commitments",
-        label: "التزامات الموردين",
+        label: "الموردون والمشتريات",
         state: purchases.value.purchaseCount > 0 ? "available" : "empty",
-        action: action("suppliers", "فتح الموردين", "/suppliers", purchases.value.truth),
+        action: action("suppliers", "فتح الموردين والمشتريات", "/suppliers", purchases.value.truth),
       },
       {
         id: "period_result",
@@ -329,6 +431,19 @@ export class HomeControlCenterService {
           "فتح الوضع المالي",
           "/finance",
           "نتيجة مسجلة محدودة وليست صافي ربح للمشروع.",
+        ),
+      },
+      /* F-063 (القرار ١٥): مدخل مستقل باسم موحد — إشارة دائمة في Home بجانب المحرر،
+       * لا من محرر المسودة وحده. موضع غير مشروط ببيانات (§2.8). */
+      {
+        id: "catalog",
+        label: "منتجاتي وخدماتي",
+        state: "available",
+        action: action(
+          "catalog",
+          "افتح منتجاتي وخدماتي",
+          "/catalog",
+          "ما أكرره وبكم — والقراءة عند المرجع نفسه.",
         ),
       },
     ];
@@ -368,6 +483,8 @@ export class HomeControlCenterService {
         truthLine:
           "هذه قراءة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
         primaryAction: primary,
+        financeUnit,
+        todaySection,
         facts,
         attention,
         optionalModules,

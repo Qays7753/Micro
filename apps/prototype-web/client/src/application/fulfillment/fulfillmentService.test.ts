@@ -144,4 +144,102 @@ describe("FulfillmentService", () => {
       },
     });
   });
+
+  /* القرار ١٩: الإلغاء بسبب اختياري، والعربون ثلاثة خيارات يشمل «يحتاج مراجعة». */
+  it("cancels a pre-delivery order with a chosen reason and leaves the deposit awaiting an explicit decision", async () => {
+    const { store, orderId } = await activeOrder(500);
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    await expect(service.cancel(orderId, "غلط في السعر")).resolves.toMatchObject({
+      ok: true,
+      stored: {
+        order: {
+          status: "cancelled",
+          settlementStatus: "cancelled_pending",
+          depositSettlement: "needs_review",
+          receivableMinor: 0,
+          collectedMinor: 500,
+        },
+      },
+    });
+    const repeated = await service.cancel(orderId, "محاولة ثانية");
+    expect(repeated.ok && repeated.stored.order.status).toBe("cancelled");
+  });
+
+  it("cancels with no reason by recording an honest unspecified reason, not by bypassing the contract", async () => {
+    const { store, orderId } = await activeOrder(0);
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    const cancelled = await service.cancel(orderId, "   ");
+    expect(cancelled).toMatchObject({
+      ok: true,
+      stored: { order: { status: "cancelled", settlementStatus: "cancelled", depositSettlement: null } },
+    });
+    if (cancelled.ok) {
+      const event = cancelled.stored.order.events.find(candidate => candidate.type === "cancelled");
+      expect(event?.note).toBe("إلغاء بدون سبب محدد");
+    }
+  });
+
+  it("refunds the deposit of a cancelled order so the collected balance actually drops (decision 19)", async () => {
+    const { store, orderId } = await activeOrder(500);
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    await service.cancel(orderId, "انسحب العميل");
+    await expect(service.refundDeposit(orderId, "رد العربون نقدًا")).resolves.toMatchObject({
+      ok: true,
+      stored: {
+        order: {
+          status: "cancelled",
+          settlementStatus: "cancelled_refunded",
+          depositSettlement: "refund_deposit",
+          collectedMinor: 0,
+        },
+      },
+    });
+  });
+
+  it("retains the deposit of a cancelled order as a documented settlement that keeps it collected", async () => {
+    const { store, orderId } = await activeOrder(500);
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    await service.cancel(orderId, "انسحب العميل");
+    await expect(service.retainDeposit(orderId, "احتفاظ بالعربون مقابل تجهيز بدأ")).resolves.toMatchObject({
+      ok: true,
+      stored: {
+        order: {
+          settlementStatus: "cancelled_retained",
+          depositSettlement: "retain_deposit",
+          collectedMinor: 500,
+        },
+      },
+    });
+  });
+
+  it("collects every collected deposit in one honest overview, separating those awaiting settlement (owner addition)", async () => {
+    const { store, orderId } = await activeOrder(500);
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    await service.cancel(orderId, "غلط في السعر");
+    const overview = await service.listDepositOverview();
+    expect(overview).toMatchObject({
+      ok: true,
+      value: {
+        deposits: [
+          {
+            orderId,
+            depositCollectedMinor: 500,
+            depositSettlement: "needs_review",
+          },
+        ],
+        collectedTotalMinor: 500,
+        awaitingSettlementCount: 1,
+      },
+    });
+  });
+
+  it("keeps the deposits overview empty and honest when no deposit was ever collected", async () => {
+    const { store } = await activeOrder(0);
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    const overview = await service.listDepositOverview();
+    expect(overview).toMatchObject({
+      ok: true,
+      value: { deposits: [], collectedTotalMinor: 0, awaitingSettlementCount: 0 },
+    });
+  });
 });

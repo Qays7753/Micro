@@ -35,6 +35,11 @@ function ShellContent({ location, children }: { location: string; children: Reac
       requestNavigation("/direct-sales/new");
       return;
     }
+    /* F-036 في موضعه الجديد (§6.1): المصروف الأكثر تكرارًا يسكن الورقة — فعل لحظته (م1). */
+    if (action === "expense") {
+      requestNavigation("/finance/new/operating_expense_cash");
+      return;
+    }
     if (action === "order") {
       requestNavigation("/orders/new?intent=customer_order");
       return;
@@ -49,7 +54,10 @@ function ShellContent({ location, children }: { location: string; children: Reac
   }
   return (
     <div className="micro-app" data-route-kind={routeKind} dir="rtl">
-      <AppHeader contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)} />
+      <AppHeader
+        contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)}
+        onOpenSettings={() => requestNavigation("/settings")}
+      />
       <main className="micro-main" data-route-kind={routeKind} key={location}>
         <PwaInstallControl />
         <PwaRuntimeNotice />

@@ -5,6 +5,7 @@ import {
   collectDeposit,
   collectRemaining,
   createCraftOrder,
+  knowledgeGapsOf,
   registerDebt,
   reviseOrderCost,
   settleDepositRefund,
@@ -732,5 +733,97 @@ describe("freshness compares Amman-local calendar dates, not UTC instants (A-09)
   it("marks yesterday's price stale at freshnessDays 0", () => {
     const state = calculateCostSnapshot("a09-yesterday", a09FreshnessInput("2026-05-09"));
     expect(state.knowledgeState).toBe("stale");
+  });
+});
+
+/* القرار ٢٢: knowledgeGaps قائمة كاملة بجانب التعداد القائم — إضافية وغير كاسرة،
+ * وكل نقص يحمل علامته: إلزامي (يمنع نتيجة صادقة) أو اختياري (يحسّن الدقة). */
+describe("knowledge gaps list every deficiency at once with its mark (decision 22)", () => {
+  it("returns no gaps for a fully known snapshot while keeping knowledgeState", () => {
+    expect(costSnapshot.knowledgeState).toBe("known");
+    expect(knowledgeGapsOf(costSnapshot)).toEqual([]);
+  });
+
+  it("lists both mandatory gaps together when nothing is entered and time is missing", () => {
+    const empty = calculateCostSnapshot("gap-empty", {
+      currency: "JOD",
+      materialItems: [],
+      time: null,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-21T09:00:00Z",
+      source: "price_approval",
+    });
+    expect(empty.knowledgeState).toBe("incomplete");
+    expect(knowledgeGapsOf(empty)).toEqual([
+      { id: "no_cost_components", mandatory: true },
+      { id: "time_incomplete", mandatory: true },
+    ]);
+  });
+
+  it("marks estimated and stale deficiencies as optional accuracy gaps, not honesty blockers", () => {
+    const snapshot = calculateCostSnapshot("gap-mixed", {
+      currency: "JOD",
+      materialItems: [
+        {
+          name: "خامة تقديرية",
+          quantity: 1,
+          unit: "قطعة",
+          unitPriceMinor: 1000,
+          priceDate: "2026-05-01",
+          source: "estimate",
+          confidence: "estimated",
+        },
+      ],
+      time: { minutes: 60, hourlyRateMinor: 600, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-21T09:00:00Z",
+      freshnessDays: 30,
+      source: "price_approval",
+    });
+    const marks = knowledgeGapsOf(snapshot);
+    expect(marks).toContainEqual({ id: "stale_material_price", mandatory: false });
+    expect(marks).toContainEqual({ id: "estimated_item", mandatory: false });
+    expect(marks).toContainEqual({ id: "variable_cost_source", mandatory: false });
+    expect(marks.every(gap => gap.mandatory === false)).toBe(true);
+  });
+
+  it("derives the same gaps for an old snapshot stored before the field existed", () => {
+    const { knowledgeGaps: _omitted, ...legacyKnown } = costSnapshot;
+    const legacy: CostSnapshot = legacyKnown;
+    expect(legacy.knowledgeGaps).toBeUndefined();
+    expect(knowledgeGapsOf(legacy)).toEqual([]);
+    const legacyIncomplete = calculateCostSnapshot("gap-legacy-time", {
+      currency: "JOD",
+      materialItems: [
+        {
+          name: "خشب",
+          quantity: 1,
+          unit: "قطعة",
+          unitPriceMinor: 500,
+          priceDate: "2026-08-21",
+          source: "user_input",
+          confidence: "known",
+        },
+      ],
+      time: null,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-21T09:00:00Z",
+      source: "price_approval",
+    });
+    const { knowledgeGaps: _omittedToo, ...withoutFieldBase } = legacyIncomplete;
+    const withoutField: CostSnapshot = withoutFieldBase;
+    expect(knowledgeGapsOf(withoutField)).toEqual([{ id: "time_incomplete", mandatory: true }]);
   });
 });

@@ -312,6 +312,21 @@ export default function Catalog() {
     setMessage("تم إيقاف المرجع للطلبات الجديدة مع بقاء تاريخه محفوظًا.");
   }
 
+  /* F-082 (القرار ١٦): إيقاف سياسة توزيع فعالة بزر ظاهر مع تأكيد يبيّن أثره —
+   * سياسة خاطئة لم تعد أبدية، والقراءات السابقة تبقى بتوثيقها. */
+  const [policyStopId, setPolicyStopId] = useState<string | null>(null);
+  async function deactivateAllocationPolicy(policyId: string) {
+    const result = await recurringWork.deactivatePolicy(policyId);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setPolicyStopId(null);
+    notifyDataChanged();
+    await load();
+    setMessage("تم إيقاف سياسة التوزيع — لا تُوزّع بها حصص جديدة، والقراءات السابقة تبقى بتوثيقها.");
+  }
+
   function startPolicyRevision(policy: RecurringWorkReading["policies"][number]) {
     const start = policy.endsOn ? nextDay(policy.endsOn) : month.from;
     const [year, monthNumber] = start.split("-").map(Number);
@@ -660,7 +675,7 @@ export default function Catalog() {
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مرجع اختياري</span>
-        <h1>منتجاتي وخدماتي المتكررة</h1>
+        <h1>منتجاتي وخدماتي</h1>
         <p>نظّم ما تكرره. لا يحدد هذا المرجع سعرًا أو مخزونًا أو ربحًا نهائيًا.</p>
       </div>
 
@@ -1594,6 +1609,43 @@ export default function Catalog() {
                                     >
                                       أنشئ نسخة جديدة
                                     </button>
+                                  ) : null}
+                                  {/* F-082 (القرار ١٦): زر إيقاف بجانب كل سياسة فعالة، مع تأكيد يبيّن أثره. */}
+                                  {policy.status === "active" ? (
+                                    <span className="micro-policy-stop">
+                                      {policyStopId === policy.id ? (
+                                        <>
+                                          <small>
+                                            الإيقاف يمنع توزيعات جديدة بهذه السياسة؛ القراءات السابقة تبقى
+                                            بتوثيقها ولا يُحذف شيء.
+                                          </small>
+                                          <button
+                                            className="micro-button micro-button-secondary"
+                                            type="button"
+                                            onClick={() => {
+                                              void deactivateAllocationPolicy(policy.id);
+                                            }}
+                                          >
+                                            أكّد الإيقاف
+                                          </button>
+                                          <button
+                                            className="micro-button micro-button-quiet"
+                                            type="button"
+                                            onClick={() => setPolicyStopId(null)}
+                                          >
+                                            تراجع
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <button
+                                          className="micro-button micro-button-quiet"
+                                          type="button"
+                                          onClick={() => setPolicyStopId(policy.id)}
+                                        >
+                                          إيقاف
+                                        </button>
+                                      )}
+                                    </span>
                                   ) : null}
                                 </p>
                               ))}

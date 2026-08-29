@@ -1157,6 +1157,34 @@
   color: var(--color-warning-text);
   background: var(--color-warning-bg);
 }
+/* القرار ٢٢: القائمة الكاملة للنقص دفعة واحدة، وكل نقص بعلامته إلزامي/اختياري. */
+.micro-knowledge-gaps {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-knowledge-gaps li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-knowledge-gaps li > b {
+  flex: 0 0 auto;
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-control);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
+}
+.micro-knowledge-gaps li[data-mandatory="true"] > b {
+  color: var(--color-warning-text);
+  background: color-mix(in srgb, var(--color-warning-text) 12%, transparent);
+}
 .micro-cost-section-heading {
   display: flex;
   align-items: flex-start;
@@ -4447,11 +4475,301 @@ button.micro-month-cell:hover {
   font-size: 13px;
 }
 .micro-home-facts-section,
+.micro-home-finance-section,
 .micro-home-attention-section,
 .micro-home-optional-section,
 .micro-home-recent-section {
   display: grid;
   gap: var(--space-3);
+}
+.micro-home-finance-unit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-accent-primary);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-home-finance-unit p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-home-finance-unit .micro-button {
+  flex: 0 0 auto;
+}
+/* قسم «اليوم» (F-078): أولوية صباحية — المتابعات والمواعيد والديون من شاشة واحدة. */
+.micro-home-today-section {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-home-today-list {
+  display: grid;
+  gap: var(--space-2);
+}
+.micro-home-today-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-inline-start: 3px solid var(--color-accent-primary);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-home-today-item[data-kind="due_amount"] {
+  border-inline-start-color: var(--color-warning-text);
+}
+.micro-home-today-item > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-home-today-item strong {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 14px;
+}
+.micro-home-today-item strong svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--color-accent-text);
+}
+.micro-home-today-item p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-home-today-item small {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+}
+.micro-home-today-item .micro-text-action {
+  flex: 0 0 auto;
+}
+/* §2.7: سطر الحقيقة كطريق — «غير مسجل — سجّله (نقرة)». */
+.micro-home-fact .micro-fact-road {
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: start;
+}
+.micro-fact-road-line {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+/* القرار ١٩: لوحة الإلغاء وتسوية العربون — سبب اختياري بثلاثة أزرار، وعربون بثلاثة خيارات. */
+.micro-cancel-panel {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-warning-text);
+  border-radius: var(--radius-card);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-surface);
+}
+.micro-cancel-panel > strong {
+  font-size: 15px;
+}
+.micro-cancel-panel > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+/* القرار ٢١: حذف مسودة مهجورة — فعل بلا سبب ولا أثر مالي، بحارس مرئي. */
+.micro-draft-delete-zone {
+  display: grid;
+  gap: var(--space-2);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-3);
+}
+.micro-draft-delete-zone > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+/* القرار ٩: موضع المخزون غير النشط قبل التفعيل الصريح المؤرّخ. */
+.micro-inventory-inactive {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-bg-well);
+}
+.micro-inventory-inactive svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+.micro-inventory-inactive > div {
+  display: grid;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 0;
+}
+.micro-inventory-inactive h2 {
+  font-size: 15px;
+}
+.micro-inventory-inactive p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-inventory-inactive .micro-button {
+  flex: 0 0 auto;
+}
+/* F-082: إيقاف سياسة توزيع فعالة — تأكيد مزدوج يبيّن أثره. */
+.micro-policy-stop {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: var(--space-2);
+}
+.micro-policy-stop small {
+  color: var(--color-warning-text);
+  font-size: 11px;
+}
+/* صفحة الأساس (§2.5): قسم يمرّر بحرية — الكاش مفتوح والباقي مطوي بحالته بسطر واحد. */
+.micro-foundation-page {
+  display: grid;
+  gap: var(--space-4);
+}
+.micro-foundation-truth {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-accent-primary);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--color-bg-well);
+}
+.micro-foundation-truth p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-foundation-section {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.micro-foundation-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 64px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+.micro-foundation-summary::-webkit-details-marker {
+  display: none;
+}
+.micro-foundation-summary:focus-visible {
+  outline: 3px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+.micro-foundation-summary > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-foundation-summary b {
+  font-size: 15px;
+}
+.micro-foundation-summary small {
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-foundation-summary > strong {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.micro-foundation-section[open] > summary {
+  border-color: color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
+}
+.micro-foundation-body {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-foundation-body p {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-foundation-body p svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+.micro-foundation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.micro-foundation-file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-foundation-file svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+.micro-foundation-file > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+.micro-foundation-file b {
+  font-size: 14px;
+}
+.micro-foundation-file p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-foundation-exit {
+  display: grid;
+  gap: var(--space-3);
+  border-block: 1px solid var(--color-border);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-bg-well);
+}
+.micro-foundation-exit p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
 }
 .micro-home-facts {
   display: grid;

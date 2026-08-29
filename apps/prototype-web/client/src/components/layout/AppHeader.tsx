@@ -1,10 +1,10 @@
 /** Anti-vibe chrome: visible brand and contextual route label without a repeated decorative local badge. */
-import { Moon, Sun } from "lucide-react";
+import { Moon, Settings, Sun } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
-type AppHeaderProps = { contextLabel: string };
+type AppHeaderProps = { contextLabel: string; onOpenSettings: () => void };
 
-export function AppHeader({ contextLabel }: AppHeaderProps) {
+export function AppHeader({ contextLabel, onOpenSettings }: AppHeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
   return (
@@ -22,6 +22,16 @@ export function AppHeader({ contextLabel }: AppHeaderProps) {
           </div>
         </div>
         <div className="micro-header-actions">
+          {/* §2.2: الإعدادات ترسًا في الترويسة — المقعد الخامس يبقى شاغرًا معلنًا للسوق. */}
+          <button
+            className="micro-icon-button"
+            type="button"
+            onClick={onOpenSettings}
+            aria-label="الإعدادات"
+            title="الإعدادات"
+          >
+            <Settings aria-hidden="true" />
+          </button>
           <button
             className="micro-icon-button"
             type="button"

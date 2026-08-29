@@ -10,7 +10,11 @@ import {
   type WasteContext,
 } from "@micro-domain/inventory-material/index.js";
 import type { CatalogItem, CatalogTemplate } from "@micro-domain/catalog/index.js";
-import type { PrototypeLocalStore } from "@/storage/local/types";
+import {
+  localInventoryActivationId,
+  type InventoryActivation,
+  type PrototypeLocalStore,
+} from "@/storage/local/types";
 
 export type InventoryResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -25,6 +29,15 @@ export type InventoryOverview = {
   movementCount: number;
   truth: string;
 };
+/* القرار ٩: التفعيل صريح مؤرّخ — الموضع غير نشط قبله. الإرث الموجود (مواد أو حركات
+ * بلا سجل) يُقرأ تفعيله من أقدم دليل، لأن حمل مستخدم قائم على بوابة جديدة يعيد
+ * إنتاج period_result بصيغة ثانية (القرار ٧). */
+export type InventoryActivationState = {
+  activatedOn: string | null;
+  source: "declared" | "derived" | null;
+  truth: string;
+};
+export type InventoryActivationInput = { operationKey: string };
 export type OrderActualMaterialComparison = {
   orderId: string;
   status: "not_recorded" | "recorded" | "needs_review";
@@ -100,6 +113,16 @@ const storageFailure = <T>(): InventoryResult<T> => ({
   code: "storage_error",
   message: "تعذر حفظ حركة المادة محليًا. لم يتم تأكيد نجاح العملية.",
 });
+const ammanLocalDate = (iso: string): string => {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Amman",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(iso));
+  const part = (type: string) => parts.find(entry => entry.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+};
 
 export class InventoryMaterialService {
   constructor(
@@ -131,6 +154,62 @@ export class InventoryMaterialService {
     return result.ok
       ? { ok: true, value: result.value }
       : { ok: false, code: "storage_error", message: "تعذر قراءة حركات المواد المحلية." };
+  }
+  /* القرار ٩: قراءة تفعيل المخزون — المعلن صراحة أولًا، ثم أقدم دليل للموجود القائم. */
+  async readActivation(): Promise<InventoryResult<InventoryActivationState>> {
+    const [activation, materials, movements] = await Promise.all([
+      this.store.getInventoryActivation(),
+      this.store.listMaterials(),
+      this.store.listInventoryMovements(),
+    ]);
+    if (!activation.ok || !materials.ok || !movements.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة حالة تفعيل المخزون." };
+    if (activation.value)
+      return {
+        ok: true,
+        value: {
+          activatedOn: activation.value.activatedOn,
+          source: "declared",
+          truth: `المخزون مُدار بتفعيل صريح منذ ${activation.value.activatedOn}. تفعيله يغيّر أرقام التكلفة، وما قبله لم يكن مُدارًا.`,
+        },
+      };
+    const evidenceDates = [
+      ...movements.value.map(movement => movement.occurredOn),
+      ...materials.value.map(material => material.createdAt.slice(0, 10)),
+    ].filter(date => date);
+    if (evidenceDates.length === 0)
+      return {
+        ok: true,
+        value: {
+          activatedOn: null,
+          source: null,
+          truth: "المخزون غير مفعّل — تفعيله يغيّر أرقام التكلفة، ولقطة يوم التفعيل تكفي للبدء.",
+        },
+      };
+    const earliest = evidenceDates.sort()[0]!;
+    return {
+      ok: true,
+      value: {
+        activatedOn: earliest,
+        source: "derived",
+        truth: `المخزون مُدار عمليًا من أقدم حركة/مادة مسجلة: ${earliest} — بلا تفعيل صريح معلن.`,
+      },
+    };
+  }
+  /** القرار ٩: تفعيل صريح بتاريخ اليوم — لحظة معلنة تُعرض، والرصيد يومها يكفي. */
+  async activate(input: InventoryActivationInput): Promise<InventoryResult<InventoryActivation>> {
+    const current = await this.store.getInventoryActivation();
+    if (!current.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة حالة تفعيل المخزون." };
+    if (current.value) return { ok: true, value: current.value, reused: true };
+    const activation: InventoryActivation = {
+      id: localInventoryActivationId,
+      activatedOn: ammanLocalDate(this.now()),
+      recordedAt: this.now(),
+      operationKey: input.operationKey,
+    };
+    const saved = await this.store.saveInventoryActivation(activation);
+    return saved.ok ? { ok: true, value: saved.value } : storageFailure();
   }
   async readOrderActualMaterialComparison(
     orderId: string,

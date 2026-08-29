@@ -21,7 +21,8 @@ export default function Setup() {
       return;
     }
     notifyDataChanged();
-    navigate("/orders/new", { replace: true });
+    /* §2.5: بعد الاسم، الوجهة صفحة الأساس «شو عندك هلق؟» لا أول طلب. */
+    navigate("/foundation", { replace: true });
   }
   return (
     <section className="micro-page micro-setup-page">
@@ -48,7 +49,7 @@ export default function Setup() {
           <span>1</span>
           <div>
             <b>سمّ سجل مشروعك</b>
-            <p>سترى هذا الاسم عند بناء أول طلب محلي، لا في أي خدمة خارجية.</p>
+            <p>سترى هذا الاسم في سجل الطلبات، وصفحة الأساس بعده اختيارية بالكامل.</p>
           </div>
         </div>
         <label className="micro-field">
@@ -78,7 +79,7 @@ export default function Setup() {
           type="submit"
           disabled={isSaving}
         >
-          {isSaving ? "جارٍ حفظ الاسم…" : "احفظ الاسم وابدأ أول طلب"}
+          {isSaving ? "جارٍ حفظ الاسم…" : "احفظ الاسم وافتح صفحة الأساس"}
           <ArrowLeft aria-hidden="true" />
         </button>
       </form>
