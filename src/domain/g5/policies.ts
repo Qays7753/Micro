@@ -379,7 +379,7 @@ export function calculateContributionMargin(
   const contributionMarginMinor = addSafe(totalRevenueMinor, -totalVariableCostMinor);
   if (contributionMarginMinor === null) {
     invalid = true;
-    reasons.push("هامش المساهمة يتجاوز الدقة الآمنة.");
+    reasons.push("الهامش بعد الكلفة المباشرة يتجاوز الدقة الآمنة.");
   }
   if (excludedOrderCount > 0) {
     incomplete = true;
@@ -388,7 +388,7 @@ export function calculateContributionMargin(
   if (finalOrderCount === 0) {
     if (excludedOrderCount > 0 || classificationGap) incomplete = true;
     else invalid = true;
-    reasons.push("لا توجد طلبات نهائية موجبة تكفي لحساب هامش المساهمة.");
+    reasons.push("لا توجد طلبات نهائية موجبة تكفي لحساب الهامش بعد الكلفة المباشرة.");
   }
   if (totalQuantityMilli === null || totalQuantityMilli <= 0) {
     if (finalOrderCount > 0 && !reasons.some(reason => reason.includes("كمية")))
@@ -402,7 +402,7 @@ export function calculateContributionMargin(
   }
   if ((contributionMarginMinor ?? 0) <= 0 && finalOrderCount > 0) {
     invalid = true;
-    reasons.push("هامش المساهمة المسجل غير موجب.");
+    reasons.push("الهامش بعد الكلفة المباشرة المسجل غير موجب.");
   }
   const contributionMarginPerUnitMinor =
     contributionMarginMinor !== null &&

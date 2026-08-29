@@ -549,7 +549,7 @@ export function calculateOwnerEntitlement(
         quantity: null,
         calculationBasis: "completed_work",
         sourceKeys: [],
-        nextAction: "أكمل عدد الطلبات أو الخدمات المكتملة والمعترف بإيرادها.",
+        nextAction: "أكمل عدد الطلبات أو الخدمات المكتملة والمحتسب إيرادها عند التسليم.",
       };
     const keys = evidence.completedWorkKeys ?? [];
     if (keys.length !== quantity || new Set(keys).size !== keys.length)
@@ -691,7 +691,7 @@ export function calculateOwnerEntitlement(
         quantity: null,
         calculationBasis: "completed_sale_percentage",
         sourceKeys: [],
-        nextAction: "أكمل قيمة البيع المكتمل والمعترف بإيراده؛ لا تحسب من العربون أو الدين غير المعترف به.",
+        nextAction: "أكمل قيمة البيع المكتمل والمحتسب إيراده عند التسليم؛ لا تحسب من العربون أو الدين غير المحتسب عند التسليم.",
       };
     const keys = evidence.completedSaleKeys ?? [];
     if (keys.length === 0)
@@ -732,7 +732,7 @@ export function calculateOwnerEntitlement(
       quantity: null,
       calculationBasis: "completed_sale_percentage",
       sourceKeys: keys,
-      nextAction: "راجع أن البيع مكتمل ومعترف بإيراده، لا عربونًا أو دينًا.",
+      nextAction: "راجع أن البيع مكتمل ومحتسب إيراده عند التسليم، لا عربونًا أو دينًا.",
     };
   }
   return {

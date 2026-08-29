@@ -54,7 +54,7 @@ export function summarizeActualTime(
   knowledge: ActualTimeKnowledge,
 ): ActualTimeComparison {
   if (plannedMinutes !== null && (!Number.isInteger(plannedMinutes) || plannedMinutes < 0))
-    throw new Error("وقت Snapshot المخطط غير صالح.");
+    throw new Error("وقت نسخة التكلفة المخطط غير صالح.");
   const orderRecords = records.filter(record => record.orderId === orderId);
   const reversedIds = new Set(
     orderRecords.filter(record => record.reversalOfId).map(record => record.reversalOfId),
