@@ -1,8 +1,10 @@
 /* مبدأ Micro: ابدأ بقرار الكاش والفعل الأقرب، وأجّل قراءة الفترة والسجل والأثر الكامل إلى طبقات مستقلة. */
-import { ArrowLeft, CircleDollarSign, HandCoins, Landmark, ReceiptText, WalletCards } from "lucide-react";
+/* §2.2: المراجعة اندمجت نبضةً أعلى هذه الصفحة (F-003) — جلسة قراءة أسبوعية لا تستحق مقعدًا. */
+import { ArrowLeft, CircleAlert, CircleDollarSign, HandCoins, Landmark, ReceiptText, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
 import type {
   ProjectFinancialPosition,
   ProjectFinancialService,
@@ -12,6 +14,7 @@ import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitl
 import type { G5Decision } from "@/application/g5/g5Service";
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
+import type { StoredCraftOrder } from "@/storage/local/types";
 import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import {
   formatBreakEvenDisplay,
@@ -32,6 +35,8 @@ type FinanceState =
       period: RecordedPeriodResult;
       decision: G5Decision;
       owner: OwnerEntitlementOverview;
+      pulse: LocalFinancialPulse;
+      excludedOrders: readonly StoredCraftOrder[];
     };
 const eventLabel: Record<FinancialEventType, string> = {
   owner_investment_cash: "استثمار المالك",
@@ -116,7 +121,8 @@ const shortStatusLabel = (status: G5Decision["shortCash"]["status"]) =>
 
 export default function Finance() {
   const [, navigate] = useLocation();
-  const { projectFinance, ownerEntitlement, g5, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { projectFinance, ownerEntitlement, g5, financialPulse, dataVersion, notifyDataChanged } =
+    usePrototypeServices();
   const [fromMonth, setFromMonth] = useState(currentMonth);
   const [toMonth, setToMonth] = useState(currentMonth);
   const [appliedRange, setAppliedRange] = useState({ from: currentMonth(), to: currentMonth() });
@@ -141,12 +147,23 @@ export default function Finance() {
       projectFinance.readRecordedPeriodResult(from.from, to.to),
       g5.readDecision(from.from, to.to),
       ownerEntitlement.readOverview(),
-    ]).then(([position, events, result, decision, owner]) => {
+      financialPulse.read(),
+    ]).then(([position, events, result, decision, owner, pulseResult]) => {
       if (!active) return;
-      if (!position.ok || !events.ok || !result.ok || !decision.ok || !owner.ok) {
+      if (
+        !position.ok ||
+        !events.ok ||
+        !result.ok ||
+        !decision.ok ||
+        !owner.ok ||
+        !pulseResult.ok
+      ) {
         setState({ phase: "error", message: "لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة." });
         return;
       }
+      const completed = pulseResult.orders.filter(stored =>
+        ["delivered", "settled"].includes(stored.order.status),
+      );
       setState({
         phase: "ready",
         position: position.value,
@@ -154,12 +171,14 @@ export default function Finance() {
         period: result.value,
         decision: decision.value,
         owner: owner.value,
+        pulse: pulseResult.pulse,
+        excludedOrders: completed.filter(stored => stored.order.resultStatus !== "final"),
       });
     });
     return () => {
       active = false;
     };
-  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement]);
+  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -176,7 +195,7 @@ export default function Finance() {
         </button>
       </section>
     );
-  const { position, period, decision, owner } = state;
+  const { position, period, decision, owner, pulse } = state;
   const visibleEventIds = new Set(state.events.slice(0, 3).map(event => event.id));
   state.events.slice(0, 3).forEach(event => {
     if (event.correctionType === "reverse" && event.correctionOfEventId)
@@ -194,9 +213,14 @@ export default function Finance() {
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>
-        <h1>وضعي المالي الآن</h1>
-        <p>ابدأ بالكاش والالتزامات القريبة، ثم افتح القراءة المسجلة للفترة إذا احتجت مراجعة أوسع.</p>
+        <h1>مالي</h1>
+        <p>كم عندي الآن ومن أين؟ ابدأ بالكاش والالتزامات القريبة، ثم افتح القراءة المسجلة للفترة إذا احتجت مراجعة أوسع.</p>
       </div>
+      <ReviewPulseSection
+        pulse={pulse}
+        excludedOrders={state.excludedOrders}
+        onOpenOrder={orderId => navigate(`/orders/${orderId}`)}
+      />
       <CashDecisionSurface
         decision={decision}
         unallocatedCashMinor={position.unallocatedCashMinor}
@@ -538,6 +562,90 @@ export default function Finance() {
           )}
         </section>
       </details>
+    </section>
+  );
+}
+
+function ReviewPulseSection({
+  pulse,
+  excludedOrders,
+  onOpenOrder,
+}: {
+  pulse: LocalFinancialPulse;
+  excludedOrders: readonly StoredCraftOrder[];
+  onOpenOrder: (orderId: string) => void;
+}) {
+  return (
+    <section className="micro-financial-pulse" aria-labelledby="finance-review-pulse-title">
+      <div className="micro-financial-pulse-heading">
+        <div>
+          <span className="micro-overline">صورة الطلبات المسجلة · المراجعة</span>
+          <h2 id="finance-review-pulse-title">قبض ودين ونتائج</h2>
+        </div>
+        <span>القيم (د.أ)</span>
+      </div>
+      <dl>
+        <div>
+          <dt>قبض مسجل من الطلبات</dt>
+          <dd>
+            <MoneyValue minor={pulse.registeredCollectionsMinor} />
+          </dd>
+          <small>لا يساوي كاش المشروع</small>
+        </div>
+        <div>
+          <dt>دين مسجل بعد التسليم</dt>
+          <dd>
+            <MoneyValue minor={pulse.registeredDebtMinor} />
+          </dd>
+          <small>لا يدخل في القبض</small>
+        </div>
+        <div>
+          <dt>سعر محتسب عند التسليم</dt>
+          <dd>
+            <MoneyValue minor={pulse.recognizedRevenueFromFinalOrdersMinor} />
+          </dd>
+          <small>من نتائج معروفة فقط</small>
+        </div>
+        <div>
+          <dt>تكلفة محتسبة عند التسليم</dt>
+          <dd>
+            <MoneyValue minor={pulse.recognizedCostFromFinalOrdersMinor} />
+          </dd>
+          <small>من نتائج معروفة فقط</small>
+        </div>
+      </dl>
+      <p className="micro-financial-pulse-note">
+        الإيراد والتكلفة أعلاه محسوبان من الطلبات ذات النتيجة النهائية فقط؛ ليست هذه قراءة كل طلب مسلّم.
+      </p>
+      {excludedOrders.length ? (
+        <section className="micro-review-exclusions" aria-labelledby="finance-review-exclusions-title">
+          <div>
+            <CircleAlert aria-hidden="true" />
+            <p id="finance-review-exclusions-title">
+              استُبعدت{" "}
+              <strong>
+                <IntegerValue value={excludedOrders.length} />
+              </strong>{" "}
+              طلب/طلبات مسلّمة لأن معرفة التكلفة غير مكتملة أو تحتاج مراجعة.
+            </p>
+          </div>
+          <div>
+            {excludedOrders.map(stored => (
+              <button
+                className="micro-text-action"
+                type="button"
+                key={stored.id}
+                onClick={() => onOpenOrder(stored.id)}
+              >
+                فتح مصدر الاستبعاد: {stored.order.itemName} <ArrowLeft aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <p className="micro-financial-pulse-note">لا توجد طلبات مسلّمة مستبعدة من نطاق النتيجة النهائية.</p>
+      )}
+      <p className="micro-financial-pulse-note">العربون قبض مرتبط بالطلب، والدين مستحق، والتسليم لا يضيف قبضًا تلقائيًا.</p>
     </section>
   );
 }

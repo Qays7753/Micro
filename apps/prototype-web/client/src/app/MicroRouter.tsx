@@ -3,14 +3,13 @@
  * every destination has a clear next action and no desktop-only navigation split.
  */
 import { lazy, Suspense } from "react";
-import { Route, Switch } from "wouter";
+import { Redirect, Route, Switch } from "wouter";
 import { MicroAppShell } from "@/components/layout/MicroAppShell";
 import { StartupGate } from "@/app/StartupGate";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Orders = lazy(() => import("@/pages/Orders"));
 const DirectSaleEditor = lazy(() => import("@/pages/DirectSaleEditor"));
-const Review = lazy(() => import("@/pages/Review"));
 const SettingsPage = lazy(() => import("@/pages/Settings"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Setup = lazy(() => import("@/pages/Setup"));
@@ -72,7 +71,10 @@ export function MicroRouter() {
             <Route path="/catalog" component={Catalog} />
             <Route path="/finance" component={Finance} />
             <Route path="/orders" component={Orders} />
-            <Route path="/review" component={Review} />
+            {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
+            <Route path="/review">
+              <Redirect to="/finance" />
+            </Route>
             <Route path="/settings" component={SettingsPage} />
             <Route path="/" component={Home} />
             <Route component={NotFound} />

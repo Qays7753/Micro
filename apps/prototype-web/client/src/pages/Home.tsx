@@ -253,8 +253,8 @@ export default function Home() {
           هذه قراءة محلية محدودة. لا تعرض صافي ربح المشروع ولا تستبدل صفحة المال أو الطلبات؛ الأرقام الناقصة
           تبقى غير معروفة.
         </p>
-        <button className="micro-text-action" type="button" onClick={() => navigate("/review")}>
-          فتح المراجعة <ArrowLeft aria-hidden="true" />
+        <button className="micro-text-action" type="button" onClick={() => navigate("/finance")}>
+          فتح مالي <ArrowLeft aria-hidden="true" />
         </button>
       </div>
     </section>

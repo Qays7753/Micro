@@ -3,14 +3,16 @@ import { getNavigationLabel, primaryNavigation } from "./navigation";
 import { isPublicLocalRecoveryRoute } from "./StartupGate";
 
 describe("Prototype navigation contract", () => {
-  it("keeps the four Android-like destinations in the approved order", () => {
-    expect(primaryNavigation.map(item => item.href)).toEqual(["/", "/orders", "/review", "/settings"]);
+  it("keeps the approved three-destination bar: project, work, finance — the fifth seat stays vacant for the market", () => {
+    expect(primaryNavigation.map(item => item.href)).toEqual(["/", "/orders", "/finance"]);
+    expect(primaryNavigation.map(item => item.label)).toEqual(["مشروعي الآن", "العمل", "مالي"]);
   });
 
-  it("maps each known path to an Arabic contextual label", () => {
+  it("maps each known path to an Arabic contextual label with the unified finance name", () => {
     expect(getNavigationLabel("/")).toBe("مشروعي الآن");
     expect(getNavigationLabel("/orders")).toBe("العمل");
-    expect(getNavigationLabel("/review")).toBe("المراجعة");
+    expect(getNavigationLabel("/finance")).toBe("مالي");
+    expect(getNavigationLabel("/cash")).toBe("محافظ الكاش");
     expect(getNavigationLabel("/settings")).toBe("الإعدادات");
   });
 

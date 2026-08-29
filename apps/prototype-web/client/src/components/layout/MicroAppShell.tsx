@@ -49,7 +49,10 @@ function ShellContent({ location, children }: { location: string; children: Reac
   }
   return (
     <div className="micro-app" data-route-kind={routeKind} dir="rtl">
-      <AppHeader contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)} />
+      <AppHeader
+        contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)}
+        onOpenSettings={() => requestNavigation("/settings")}
+      />
       <main className="micro-main" data-route-kind={routeKind} key={location}>
         <PwaInstallControl />
         <PwaRuntimeNotice />
