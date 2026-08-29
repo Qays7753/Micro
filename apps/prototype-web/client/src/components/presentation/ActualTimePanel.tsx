@@ -213,7 +213,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
       </div>
       <p>
         يسجل هذا دقائق التنفيذ فقط. لا يحولها إلى أجر أو تكلفة أو ربح، ولا يغيّر نسخة التكلفة أو الكاش أو
-        الذمم.
+        الديون.
       </p>
       <ActualTimeComparisonPanel comparison={state.comparison} />
       {state.records.length === 0 ? (

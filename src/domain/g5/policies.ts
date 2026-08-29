@@ -695,7 +695,7 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
       else undatedPayablesMinor += remaining;
       incomplete = true;
       reasons.push(
-        `${balance.direction === "collection" ? "ذمة" : "التزام"} بلا تاريخ كافٍ: ${balance.source}.`,
+        `${balance.direction === "collection" ? "دين" : "التزام"} بلا تاريخ كافٍ: ${balance.source}.`,
       );
     }
   }

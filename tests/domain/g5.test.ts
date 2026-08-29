@@ -298,7 +298,7 @@ describe("G5 pure domain", () => {
       projectedCashMinor: null,
       undatedReceivablesMinor: 5000,
     });
-    expect(result.reasons.join(" ")).toContain("ذمة بلا تاريخ");
+    expect(result.reasons.join(" ")).toContain("دين بلا تاريخ");
   });
 
   it("allows a complete known projection and marks estimated declarations for review", () => {

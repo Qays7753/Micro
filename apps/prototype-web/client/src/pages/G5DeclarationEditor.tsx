@@ -173,7 +173,7 @@ export default function G5DeclarationEditor() {
           <label className="micro-field">
             <span>
               ربط اختياري بمصدر قائم{" "}
-              <small>{direction === "collection" ? "طلب له ذمة مسجلة" : "مصروف مستحق قائم"}</small>
+              <small>{direction === "collection" ? "طلب له دين مسجل" : "مصروف مستحق قائم"}</small>
             </span>
             <select
               value={selectedLinkId ?? ""}

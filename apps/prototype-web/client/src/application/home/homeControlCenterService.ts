@@ -125,7 +125,7 @@ export class HomeControlCenterService {
         currency: "JOD",
         source: "طلبات محلية مسجلة",
         period,
-        helper: "ذمة عميل مسجلة، وليست كاشًا محصلًا.",
+        helper: "دين عميل مسجل، وليس كاشًا محصلًا.",
       },
       {
         id: "payables",
@@ -226,7 +226,7 @@ export class HomeControlCenterService {
           priority: 15,
           kind: "debt",
           title: `دين مسجل: ${stored.order.itemName || "طلب"}`,
-          reason: "الذمة مسجلة بعد التسليم وليست كاشًا محصلًا.",
+          reason: "الدين مسجل بعد التسليم وليس كاشًا محصلًا.",
           action: action(
             `debt:${stored.id}`,
             "مراجعة الدين",
