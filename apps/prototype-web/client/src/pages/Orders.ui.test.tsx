@@ -87,6 +87,12 @@ describe("Work destination", () => {
       directSales: {
         list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
       },
+      schedules: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+        }),
+      },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
   });
@@ -123,6 +129,12 @@ describe("Work destination", () => {
       directSales: {
         list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
       },
+      schedules: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+        }),
+      },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
@@ -150,6 +162,12 @@ describe("Work destination", () => {
       directSales: {
         list: vi.fn().mockResolvedValue({ ok: true, value: [savedSale("sale-hybrid")] }),
       },
+      schedules: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+        }),
+      },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
@@ -170,6 +188,12 @@ describe("Work destination", () => {
       directSales: {
         list: vi.fn().mockResolvedValue({ ok: true, value: [savedSale("sale-open")] }),
       },
+      schedules: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+        }),
+      },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
@@ -178,5 +202,76 @@ describe("Work destination", () => {
     const sale = await screen.findByRole("button", { name: "فتح بيع كوب جاهز" });
     fireEvent.click(sale);
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/sale-open");
+  });
+
+  it("keeps the appointments section permanent with an honest empty state (F-070)", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: {
+        read: vi.fn().mockResolvedValue({
+          ok: true,
+          drafts: [],
+          orders: [savedOrder("order-schedule")],
+          followUp: { ...emptyFollowUp, kind: "active_order", truth: "طلب محفوظ." },
+        }),
+      },
+      directSales: {
+        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+      },
+      schedules: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+        }),
+      },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(<Orders />);
+
+    expect(await screen.findByRole("heading", { name: "المواعيد" })).toBeTruthy();
+    expect(screen.getByText(/لا مواعيد بعد/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /افتح جدول المواعيد/ })).toBeTruthy();
+  });
+
+  it("lists an upcoming appointment with its own road into the editor (F-070)", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: {
+        read: vi.fn().mockResolvedValue({
+          ok: true,
+          drafts: [],
+          orders: [],
+          followUp: emptyFollowUp,
+        }),
+      },
+      directSales: {
+        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+      },
+      schedules: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: {
+            overdue: [],
+            today: [],
+            upcoming: [
+              {
+                schedule: { id: "schedule-1", scheduledFor: "2026-09-01", scheduledTime: "16:00", status: "scheduled" },
+                order: savedOrder("order-schedule"),
+                bucket: "upcoming" as const,
+              },
+            ],
+            week: [],
+            dailyCapacityMinutes: null,
+            completedOrClosed: 0,
+          },
+        }),
+      },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(<Orders />);
+
+    const appointment = await screen.findByRole("button", { name: /طاولة اختبار/ });
+    fireEvent.click(appointment);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/schedule/schedule-1");
   });
 });

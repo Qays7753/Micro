@@ -21,7 +21,7 @@ export type HomeAttentionItem = {
   action: HomeAction;
 };
 export type HomeOptionalModule = {
-  id: "inventory" | "schedule" | "supplier_commitments" | "period_result";
+  id: "inventory" | "schedule" | "supplier_commitments" | "period_result" | "catalog";
   label: string;
   state: "available" | "needs_setup" | "empty";
   action: HomeAction | null;

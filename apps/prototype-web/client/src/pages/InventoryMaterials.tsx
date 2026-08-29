@@ -94,7 +94,7 @@ export default function InventoryMaterials() {
           type="button"
           onClick={() => navigate("/finance")}
         >
-          الوضع المالي
+          مالي
         </button>
       </section>
     );

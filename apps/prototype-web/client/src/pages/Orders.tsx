@@ -1,15 +1,16 @@
 /** Style: Micro «مسار القرار» — phone-first RTL list where each row states status, date, settlement truth, and one next action. */
 /* مبدأ Micro: تعرض القائمة حالة الاتفاق والفعل التالي من خريطة واحدة، ولا توهم باعتماد ثانٍ. */
-import { BadgeDollarSign, ClipboardCheck, ClipboardPlus, ChevronLeft } from "lucide-react";
+import { BadgeDollarSign, CalendarDays, ClipboardCheck, ClipboardPlus, ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
-import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
+import { IntegerValue, LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation/DisplayValue";
 import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
+import type { ScheduleOverview } from "@/application/scheduling/scheduleService";
 
 type OrdersState =
   | { phase: "loading" }
@@ -20,6 +21,7 @@ type OrdersState =
       orders: readonly StoredCraftOrder[];
       directSales: readonly DirectSale[];
       followUp: DailyFollowUp;
+      scheduleOverview: ScheduleOverview;
     };
 const settlementDetail = (stored: StoredCraftOrder) => (
   <>
@@ -30,28 +32,31 @@ const settlementDetail = (stored: StoredCraftOrder) => (
 
 export default function Orders() {
   const [, navigate] = useLocation();
-  const { dailyFollowUp, directSales, dataVersion } = usePrototypeServices();
+  const { dailyFollowUp, directSales, schedules, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<OrdersState>({ phase: "loading" });
   useEffect(() => {
     let active = true;
-    Promise.all([dailyFollowUp.read(), directSales.list()]).then(([result, sales]) => {
-      if (!active) return;
-      if (!result.ok || !sales.ok) {
-        setState({ phase: "error" });
-        return;
-      }
-      setState({
-        phase: "ready",
-        drafts: result.drafts,
-        orders: result.orders,
-        directSales: sales.value,
-        followUp: result.followUp,
-      });
-    });
+    Promise.all([dailyFollowUp.read(), directSales.list(), schedules.overview()]).then(
+      ([result, sales, scheduleResult]) => {
+        if (!active) return;
+        if (!result.ok || !sales.ok || !scheduleResult.ok) {
+          setState({ phase: "error" });
+          return;
+        }
+        setState({
+          phase: "ready",
+          drafts: result.drafts,
+          orders: result.orders,
+          directSales: sales.value,
+          followUp: result.followUp,
+          scheduleOverview: scheduleResult.value,
+        });
+      },
+    );
     return () => {
       active = false;
     };
-  }, [dailyFollowUp, directSales, dataVersion]);
+  }, [dailyFollowUp, directSales, schedules, dataVersion]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -202,6 +207,68 @@ export default function Orders() {
           ))}
         </section>
       ) : null}
+      {/* F-070 (§6.1): مقطع مواعيد دائم في «العمل» — ماذا يأتي ومتى؟ بلا شرط بيانات (08-5). */}
+      <section className="micro-draft-list" aria-labelledby="work-schedules-title">
+        <div className="micro-section-title">
+          <CalendarDays aria-hidden="true" />
+          <div>
+            <span className="micro-overline">قراءة تشغيلية · بلا أثر مالي</span>
+            <h2 id="work-schedules-title">المواعيد</h2>
+          </div>
+        </div>
+        {state.scheduleOverview.overdue.length > 0 ||
+        state.scheduleOverview.today.length > 0 ||
+        state.scheduleOverview.upcoming.length > 0 ? (
+          <div className="micro-schedule-preview-list">
+            {[...state.scheduleOverview.overdue, ...state.scheduleOverview.today, ...state.scheduleOverview.upcoming]
+              .slice(0, 5)
+              .map(item => (
+                <button
+                  key={item.schedule.id}
+                  className="micro-draft-row"
+                  type="button"
+                  onClick={() => navigate(`/schedule/${item.schedule.id}`)}
+                >
+                  <span className="micro-draft-symbol">
+                    <CalendarDays aria-hidden="true" />
+                  </span>
+                  <span>
+                    <strong>{item.order.order.itemName || "موعد تسليم"}</strong>
+                    <small>
+                      {item.bucket === "overdue"
+                        ? "متأخر · "
+                        : item.bucket === "today"
+                          ? "اليوم · "
+                          : "قادم · "}
+                      <LocalDateValue value={item.schedule.scheduledFor} />
+                      {item.schedule.scheduledTime ? (
+                        <>
+                          {" "}
+                          · <TimeValue value={item.schedule.scheduledTime} />
+                        </>
+                      ) : null}
+                    </small>
+                    <small className="micro-row-next-action">
+                      الخطوة التالية: افتح الموعد أو أجّله من محرره.
+                    </small>
+                  </span>
+                  <ChevronLeft aria-hidden="true" />
+                </button>
+              ))}
+          </div>
+        ) : (
+          <p className="micro-empty-inline">
+            لا مواعيد بعد؛ يُسجَّل موعد التسليم تلقائيًا مع كل اتفاق، وبقية المواعيد من الجدول.
+          </p>
+        )}
+        <button
+          className="micro-text-action"
+          type="button"
+          onClick={() => navigate("/schedule")}
+        >
+          افتح جدول المواعيد <ChevronLeft aria-hidden="true" />
+        </button>
+      </section>
       {state.orders.length > 0 || state.drafts.length > 0 ? (
         <button
           className="micro-button micro-button-secondary"

@@ -153,7 +153,7 @@ export default function Schedule() {
   if (state.phase === "error")
     return (
       <section className="micro-page micro-not-found">
-        <h1>تعذر تحميل جدول المواعيد</h1>
+        <h1>تعذر تحميل المواعيد</h1>
         <p>{state.message} لم يتم تغيير أي موعد.</p>
         <div className="micro-form-actions">
           <button
@@ -190,7 +190,7 @@ export default function Schedule() {
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">التنظيم التشغيلي</span>
-        <h1>جدول المواعيد</h1>
+        <h1>المواعيد</h1>
         <p>
           اقرأ التزامات الطلبات المسجلة في اليوم أو الأسبوع أو الشهر. الوقت والمدة يدعمان تحذيرًا فقط عندما
           تعرفهما؛ لا يرسل هذا الإصدار تذكيرًا خارجيًا.

@@ -220,7 +220,7 @@ export default function DraftEditor() {
           type="button"
           onClick={() => navigate("/catalog")}
         >
-          <BookOpen aria-hidden="true" /> إدارة مراجع العمل
+          <BookOpen aria-hidden="true" /> منتجاتي وخدماتي
         </button>
         {isCustomerOrder ? (
           <label className="micro-field">

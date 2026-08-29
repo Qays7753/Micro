@@ -4625,6 +4625,18 @@ button.micro-month-cell:hover {
 .micro-inventory-inactive .micro-button {
   flex: 0 0 auto;
 }
+/* F-082: إيقاف سياسة توزيع فعالة — تأكيد مزدوج يبيّن أثره. */
+.micro-policy-stop {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: var(--space-2);
+}
+.micro-policy-stop small {
+  color: var(--color-warning-text);
+  font-size: 11px;
+}
 /* صفحة الأساس (§2.5): قسم يمرّر بحرية — الكاش مفتوح والباقي مطوي بحالته بسطر واحد. */
 .micro-foundation-page {
   display: grid;

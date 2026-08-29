@@ -396,27 +396,27 @@ export class HomeControlCenterService {
     const optionalModules: HomeOptionalModule[] = [
       {
         id: "inventory",
-        label: "المادة والمخزون",
+        label: "المواد والمخزون",
         state:
           inventory.value.materials.length > 0 || inventory.value.movementCount > 0 ? "available" : "empty",
-        action: action("inventory", "فتح المخزون", "/inventory", inventory.value.truth),
+        action: action("inventory", "فتح المواد والمخزون", "/inventory", inventory.value.truth),
       },
       {
         id: "schedule",
-        label: "جدول المواعيد",
+        label: "المواعيد",
         state: schedules.value.length > 0 ? "available" : orders.length > 0 ? "needs_setup" : "empty",
         action: action(
           "schedule",
-          schedules.value.length > 0 ? "فتح الجدول" : "إعداد الجدول",
+          schedules.value.length > 0 ? "فتح المواعيد" : "إعداد المواعيد",
           "/schedule",
           "الجدول تشغيلي ولا ينشئ أثرًا ماليًا.",
         ),
       },
       {
         id: "supplier_commitments",
-        label: "التزامات الموردين",
+        label: "الموردون والمشتريات",
         state: purchases.value.purchaseCount > 0 ? "available" : "empty",
-        action: action("suppliers", "فتح الموردين", "/suppliers", purchases.value.truth),
+        action: action("suppliers", "فتح الموردين والمشتريات", "/suppliers", purchases.value.truth),
       },
       {
         id: "period_result",
@@ -431,6 +431,19 @@ export class HomeControlCenterService {
           "فتح الوضع المالي",
           "/finance",
           "نتيجة مسجلة محدودة وليست صافي ربح للمشروع.",
+        ),
+      },
+      /* F-063 (القرار ١٥): مدخل مستقل باسم موحد — إشارة دائمة في Home بجانب المحرر،
+       * لا من محرر المسودة وحده. موضع غير مشروط ببيانات (§2.8). */
+      {
+        id: "catalog",
+        label: "منتجاتي وخدماتي",
+        state: "available",
+        action: action(
+          "catalog",
+          "افتح منتجاتي وخدماتي",
+          "/catalog",
+          "ما أكرره وبكم — والقراءة عند المرجع نفسه.",
         ),
       },
     ];

@@ -35,6 +35,11 @@ function ShellContent({ location, children }: { location: string; children: Reac
       requestNavigation("/direct-sales/new");
       return;
     }
+    /* F-036 في موضعه الجديد (§6.1): المصروف الأكثر تكرارًا يسكن الورقة — فعل لحظته (م1). */
+    if (action === "expense") {
+      requestNavigation("/finance/new/operating_expense_cash");
+      return;
+    }
     if (action === "order") {
       requestNavigation("/orders/new?intent=customer_order");
       return;

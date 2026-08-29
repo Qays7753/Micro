@@ -79,7 +79,10 @@ describe("HomeControlCenterService", () => {
       ]),
     );
     expect(result.value.attention).toHaveLength(0);
-    expect(result.value.optionalModules).toHaveLength(0);
+    /* F-063: مدخل «منتجاتي وخدماتي» دائم مستقل؛ لا شيء آخر يظهر لمشروع فارغ. */
+    expect(result.value.optionalModules).toEqual([
+      expect.objectContaining({ id: "catalog", label: "منتجاتي وخدماتي", state: "available" }),
+    ]);
     expect(result.value.financeUnit).toMatchObject({ action: { id: "finance", href: "/finance" } });
     expect(result.value.todaySection).toMatchObject({
       items: [],

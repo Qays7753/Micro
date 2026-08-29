@@ -507,14 +507,14 @@ export default function Finance() {
             type="button"
             onClick={() => navigate("/cash")}
           >
-            محافظ الكاش والافتتاح
+            محافظ الكاش
           </button>
           <button
             className="micro-button micro-button-secondary"
             type="button"
             onClick={() => navigate("/suppliers")}
           >
-            مشتريات المواد والموردون
+            الموردون والمشتريات
           </button>
           <button
             className="micro-button micro-button-secondary"
@@ -769,7 +769,7 @@ function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOve
         حق المالك.
       </p>
       <button className="micro-button micro-button-primary" type="button" onClick={onOpen}>
-        فتح دفتر حق المالك والحركات
+        فتح دفتر المالك
       </button>
     </section>
   );
