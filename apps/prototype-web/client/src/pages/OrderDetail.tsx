@@ -283,7 +283,7 @@ export default function OrderDetail() {
       {order.status === "settled" && order.settlementStatus === "paid" ? (
         <section className="micro-note-card">
           <CheckCircle2 aria-hidden="true" />
-          <p>تم التحصيل الكامل وإغلاق الطلب. يمكنك مراجعة نتيجته وفق درجة المعرفة أعلاه.</p>
+          <p>تم التحصيل الكامل وإغلاق الطلب. يمكنك مراجعة نتيجته حسب حالتها أعلاه (مؤكدة أو تقديرية).</p>
         </section>
       ) : null}
       {order.status === "in_progress" ? (

@@ -160,12 +160,12 @@ export default function G5DeclarationEditor() {
             <strong>افتح التفاصيل</strong>
           </summary>
           <label className="micro-field">
-            <span>درجة المعرفة</span>
+            <span>حالة الرقم</span>
             <select
               value={knowledge}
               onChange={event => setKnowledge(event.target.value as "known" | "estimated" | "needs_review")}
             >
-              <option value="known">معروف / مؤكد</option>
+              <option value="known">مؤكد</option>
               <option value="estimated">تقديري معلن</option>
               <option value="needs_review">يحتاج مراجعة</option>
             </select>

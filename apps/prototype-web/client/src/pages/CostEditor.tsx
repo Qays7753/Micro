@@ -360,7 +360,7 @@ export default function CostEditor() {
                     <small>
                       {item.quantity} {item.unit || "وحدة"} · تكلفة الوحدة{" "}
                       <MoneyValue minor={item.unitPriceMinor} className="micro-inline-number" /> ·{" "}
-                      {item.confidence === "estimated" ? "تقديري" : "معروف"}
+                      {item.confidence === "estimated" ? "تقديري" : "مؤكد"}
                     </small>
                   </span>
                   <ChevronLeft aria-hidden="true" />
@@ -471,7 +471,7 @@ export default function CostEditor() {
               />
             </label>
             <label className="micro-field">
-              <span>درجة المعرفة</span>
+              <span>حالة الرقم</span>
               <select
                 value={form.time.confidence}
                 onChange={event =>
@@ -488,7 +488,7 @@ export default function CostEditor() {
                   )
                 }
               >
-                <option value="known">معروف</option>
+                <option value="known">مؤكد</option>
                 <option value="estimated">تقديري</option>
               </select>
             </label>
@@ -686,14 +686,14 @@ function MaterialSheet({
                 />
               </label>
               <label className="micro-field">
-                <span>درجة المعرفة</span>
+                <span>حالة الرقم</span>
                 <select
                   value={value.draft.confidence}
                   onChange={event =>
                     onChange({ confidence: event.target.value as DraftCostMaterial["confidence"] })
                   }
                 >
-                  <option value="known">معروف</option>
+                  <option value="known">مؤكد</option>
                   <option value="estimated">تقديري</option>
                 </select>
               </label>
