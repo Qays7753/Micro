@@ -8,7 +8,7 @@ import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedO
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
-import { readBrowserPersistence, type BrowserPersistenceReading } from "@/application/preferences/preferenceService";
+import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { OperatingWorkMode } from "@/storage/local/types";
 
 type OperatingModeState =
