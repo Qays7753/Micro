@@ -78,7 +78,19 @@ describe("HomeControlCenterService", () => {
     );
     expect(result.value.attention).toHaveLength(0);
     expect(result.value.optionalModules).toHaveLength(0);
+    expect(result.value.financeUnit).toMatchObject({ action: { id: "finance", href: "/finance" } });
     expect(result.value.recentChanges).toHaveLength(0);
+  });
+
+  it("keeps /finance reachable for a brand-new owner while period_result stays conditional on its own unit (decisions 11–14)", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    // The permanent unit opens the finance surface with no delivered order and no financial event.
+    expect(result.value.financeUnit.action).toMatchObject({ id: "finance", href: "/finance" });
+    // period_result keeps its own honest condition: no result yet, so its module stays hidden.
+    expect(result.value.optionalModules.map(module => module.id)).not.toContain("period_result");
   });
 
   it("uses existing finance facts with source semantics and keeps Home reads free of financial writes", async () => {
@@ -117,7 +129,7 @@ describe("HomeControlCenterService", () => {
     expect(result.value.truthLine).toContain("لا تحول الرقم إلى ربح");
   });
 
-  it("surfaces the real active-order CTA, caps attention at three, and exposes only relevant optional modules", async () => {
+  it("exposes the permanent finance unit beside data-linked optional modules for an active owner", async () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
     for (let index = 1; index <= 4; index += 1) await saveOrder(store, `home-order-${index}`);
@@ -126,6 +138,7 @@ describe("HomeControlCenterService", () => {
     expect(result.value.primaryAction).toMatchObject({ href: "/orders/home-order-1", label: "فتح الطلب" });
     expect(result.value.attention).toHaveLength(3);
     expect(result.value.attention.every(item => item.action.href.startsWith("/orders/"))).toBe(true);
+    expect(result.value.financeUnit.action).toMatchObject({ id: "finance", href: "/finance" });
     expect(result.value.optionalModules.map(module => module.id)).toContain("schedule");
     expect(result.value.optionalModules.map(module => module.id)).not.toContain("period_result");
     expect(result.value.optionalModules.map(module => module.id)).not.toContain("inventory");

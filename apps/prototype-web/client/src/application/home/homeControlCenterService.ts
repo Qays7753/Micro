@@ -291,6 +291,18 @@ export class HomeControlCenterService {
           followUp.followUp.href,
           followUp.followUp.nextAction,
         );
+    /* القرار ١١: تُفكّ المالية كلها. الوحدة الدائمة تفتح المسارين: مالي ← المحافظ والموردون
+     * والمواد ودفتر المالك، بلا شرط بيانات وبلا نقل أي قدرة (§2.1 من وثيقة التوزيع). */
+    const financeUnit = {
+      action: action(
+        "finance",
+        "افتح مالي",
+        "/finance",
+        "قراءة يومية دائمة: كم عندي الآن ومن أين.",
+      ),
+      truth:
+        "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق؛ ونتيجة الفترة تظهر في وحدتها حين توجد نتيجة.",
+    };
     const optionalModules: HomeOptionalModule[] = [
       {
         id: "inventory",
@@ -368,6 +380,7 @@ export class HomeControlCenterService {
         truthLine:
           "هذه قراءة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
         primaryAction: primary,
+        financeUnit,
         facts,
         attention,
         optionalModules,

@@ -24,6 +24,12 @@ export type HomeOptionalModule = {
   state: "available" | "needs_setup" | "empty";
   action: HomeAction | null;
 };
+/* القرار ١٢: المالية وحدة جديدة دائمة في Home — بلا شرط بيانات، ولا تحل محل وحدة قائمة.
+ * period_result يحتفظ بشرطه على وحدته وحده ولا ترث وحدته رؤيته (القرار ١٤). */
+export type HomeFinanceUnit = {
+  action: HomeAction;
+  truth: string;
+};
 export type HomeRecentChange = {
   id: string;
   occurredOn: string;
@@ -36,6 +42,7 @@ export type HomeControlCenterInput = {
   todayLocal: string;
   truthLine: string;
   primaryAction: HomeAction;
+  financeUnit: HomeFinanceUnit;
   facts: readonly HomeFinancialFact[];
   attention: readonly HomeAttentionItem[];
   optionalModules: readonly HomeOptionalModule[];
@@ -45,6 +52,7 @@ export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
   truthLine: string;
   primaryAction: HomeAction;
+  financeUnit: HomeFinanceUnit;
   facts: readonly HomeFinancialFact[];
   attention: readonly HomeAttentionItem[];
   optionalModules: readonly HomeOptionalModule[];
@@ -73,6 +81,7 @@ export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): 
     heading: { activityName: input.activityName, todayLocal: input.todayLocal },
     truthLine: input.truthLine,
     primaryAction: input.primaryAction,
+    financeUnit: input.financeUnit,
     facts,
     attention,
     optionalModules,

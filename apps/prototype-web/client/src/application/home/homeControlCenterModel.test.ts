@@ -21,6 +21,10 @@ const baseInput = (): HomeControlCenterInput => ({
   todayLocal: "2026-08-25",
   truthLine: "هذه قراءة محلية محدودة.",
   primaryAction: action("orders/new", "طلب جديد"),
+  financeUnit: {
+    action: action("finance", "افتح مالي"),
+    truth: "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق.",
+  },
   facts: [
     fact("cash", "known", 1250),
     fact("receivables", "incomplete", 0),
@@ -115,6 +119,14 @@ describe("buildHomeControlCenterViewModel", () => {
       ],
     });
     expect(model.optionalModules.map(module => module.id)).toEqual(["schedule", "supplier_commitments"]);
+  });
+
+  it("keeps the permanent finance unit unconditional even while every optional module is empty", () => {
+    const model = buildHomeControlCenterViewModel(baseInput());
+    expect(model.financeUnit).toMatchObject({
+      action: { id: "finance", href: "/finance" },
+    });
+    expect(model.optionalModules).toHaveLength(0);
   });
 
   it("keeps the recent activity bounded to five useful changes and preserves the primary CTA", () => {

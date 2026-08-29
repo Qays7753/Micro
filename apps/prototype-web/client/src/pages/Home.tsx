@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, CircleAlert, ClipboardList, Receipt, WalletCards } from "lucide-react";
+import { ArrowLeft, CalendarDays, CircleAlert, ClipboardList, Landmark, Receipt, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -122,6 +122,30 @@ export default function Home() {
           {model.facts.map(fact => (
             <FactCard key={fact.id} fact={fact} />
           ))}
+        </div>
+      </section>
+      {/* القرار ١٢: وحدة مالية دائمة في Home — الأسطح بلا شرط (§2.1)، وperiod_result
+          يحتفظ بشرطه في وحدته دون أن ترث غيره رؤيته (القرار ١٤). */}
+      <section className="micro-home-finance-section" aria-labelledby="home-finance-title">
+        <div className="micro-section-title">
+          <Landmark aria-hidden="true" />
+          <div>
+            <span className="micro-overline">وجهة دائمة · بلا شرط</span>
+            <h2 id="home-finance-title">مالي</h2>
+          </div>
+        </div>
+        <div className="micro-home-finance-unit">
+          <div>
+            <p>{model.financeUnit.truth}</p>
+          </div>
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={() => navigate(model.financeUnit.action.href)}
+          >
+            {model.financeUnit.action.label}
+            <ArrowLeft aria-hidden="true" />
+          </button>
         </div>
       </section>
       <section className="micro-home-attention-section" aria-labelledby="home-attention-title">
