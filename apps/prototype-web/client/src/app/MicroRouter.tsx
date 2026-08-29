@@ -13,6 +13,7 @@ const DirectSaleEditor = lazy(() => import("@/pages/DirectSaleEditor"));
 const SettingsPage = lazy(() => import("@/pages/Settings"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Setup = lazy(() => import("@/pages/Setup"));
+const Foundation = lazy(() => import("@/pages/Foundation"));
 const DraftEditor = lazy(() => import("@/pages/DraftEditor"));
 const NewDraft = lazy(() => import("@/pages/NewDraft"));
 const CostEditor = lazy(() => import("@/pages/CostEditor"));
@@ -44,6 +45,8 @@ export function MicroRouter() {
         <StartupGate>
           <Switch>
             <Route path="/setup" component={Setup} />
+            {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
+            <Route path="/foundation" component={Foundation} />
             <Route path="/orders/new" component={NewDraft} />
             <Route path="/direct-sales/new" component={DirectSaleEditor} />
             <Route path="/direct-sales/:id" component={DirectSaleEditor} />

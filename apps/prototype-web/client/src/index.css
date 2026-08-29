@@ -4473,6 +4473,140 @@ button.micro-month-cell:hover {
 .micro-home-finance-unit .micro-button {
   flex: 0 0 auto;
 }
+/* صفحة الأساس (§2.5): قسم يمرّر بحرية — الكاش مفتوح والباقي مطوي بحالته بسطر واحد. */
+.micro-foundation-page {
+  display: grid;
+  gap: var(--space-4);
+}
+.micro-foundation-truth {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-accent-primary);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--color-bg-well);
+}
+.micro-foundation-truth p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-foundation-section {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.micro-foundation-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 64px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+.micro-foundation-summary::-webkit-details-marker {
+  display: none;
+}
+.micro-foundation-summary:focus-visible {
+  outline: 3px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+.micro-foundation-summary > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-foundation-summary b {
+  font-size: 15px;
+}
+.micro-foundation-summary small {
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-foundation-summary > strong {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.micro-foundation-section[open] > summary {
+  border-color: color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
+}
+.micro-foundation-body {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-foundation-body p {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-foundation-body p svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+.micro-foundation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.micro-foundation-file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-foundation-file svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+.micro-foundation-file > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+.micro-foundation-file b {
+  font-size: 14px;
+}
+.micro-foundation-file p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-foundation-exit {
+  display: grid;
+  gap: var(--space-3);
+  border-block: 1px solid var(--color-border);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-bg-well);
+}
+.micro-foundation-exit p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
 .micro-home-facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

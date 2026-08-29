@@ -137,6 +137,14 @@ export default function Home() {
         <div className="micro-home-finance-unit">
           <div>
             <p>{model.financeUnit.truth}</p>
+            {/* القرار ٧: صفحة الأساس دائمة الوصول ولا تُغلق بعد اليوم الأول. */}
+            <button
+              className="micro-text-action"
+              type="button"
+              onClick={() => navigate("/foundation")}
+            >
+              صفحة الأساس: سجّل موقف البداية أو عدّله <ArrowLeft aria-hidden="true" />
+            </button>
           </div>
           <button
             className="micro-button micro-button-primary"
