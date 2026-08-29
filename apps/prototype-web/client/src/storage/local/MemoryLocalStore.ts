@@ -394,7 +394,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       return {
         ok: false,
         code: "storage_error",
-        message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم تتغير السلسلة.",
+        message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم يتغير أي شيء.",
       };
     if (this.allocationPolicies.has(successor.id))
       return {
@@ -481,9 +481,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }
     const current = this.ownerEntitlementPolicies.get(previous.id);
     if (!current || current.status !== "active")
-      return { ok: false, code: "storage_error", message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ السلسلة." };
+      return { ok: false, code: "storage_error", message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ النسخة الجديدة." };
     if (this.ownerEntitlementPolicies.has(successor.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية خليفة السياسة؛ لم تتغير السلسلة." };
+      return { ok: false, code: "storage_error", message: "تعارض هوية النسخة الجديدة من السياسة؛ لم يتغير أي شيء." };
     this.ownerEntitlementPolicies.set(previous.id, clone(previous));
     this.ownerEntitlementPolicies.set(successor.id, clone(successor));
     return { ok: true, value: { previous: clone(previous), successor: clone(successor) } };

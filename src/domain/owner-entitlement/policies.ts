@@ -166,7 +166,7 @@ export function createOwnerEntitlementPolicy(
   iso(input.createdAt, "createdAt");
   const seriesId = input.seriesId?.trim() || input.id;
   const successorOfPolicyId = input.successorOfPolicyId?.trim() || null;
-  if (successorOfPolicyId === input.id) throw new Error("السياسة لا تكون خليفة لنفسها.");
+  if (successorOfPolicyId === input.id) throw new Error("السياسة لا تكون نسخة جديدة لنفسها.");
   return Object.freeze({
     ...input,
     seriesId,

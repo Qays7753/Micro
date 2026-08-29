@@ -219,17 +219,17 @@ export class RecurringWorkService {
     input: RecurringWorkPolicySuccessorInput,
   ): Promise<RecurringWorkResult<AllocationPolicy>> {
     const policies = await this.store.listAllocationPolicies();
-    if (!policies.ok) return failure("تعذر قراءة سلسلة سياسات التوزيع.");
+    if (!policies.ok) return failure("تعذر قراءة سياسات التوزيع.");
     const repeated = policies.value.find(policy => policy.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const previous = policies.value.find(policy => policy.id === policyId);
     if (!previous) return failure("لم نجد سياسة التوزيع الأصلية.", "not_found");
     if (previous.status !== "active")
-      return failure("لا يمكن إنشاء خليفة لسياسة غير فعالة.", "validation_error");
+      return failure("لا يمكن إنشاء نسخة جديدة لسياسة غير فعالة.", "validation_error");
     if (!localDate(input.startsOn) || input.startsOn <= previous.startsOn)
       return failure("تاريخ نفاذ النسخة الجديدة يجب أن يكون بعد النسخة السابقة.", "validation_error");
     if (previous.endsOn !== null && input.startsOn !== dayAfter(previous.endsOn))
-      return failure("تاريخ النسخة الجديدة يجب أن يتبع نهاية السلسلة الحالية مباشرة.", "validation_error");
+      return failure("تاريخ النسخة الجديدة يجب أن يتبع نهاية النسخة السابقة مباشرة.", "validation_error");
     if (
       policies.value.some(
         policy =>
@@ -238,7 +238,7 @@ export class RecurringWorkService {
           policy.startsOn >= input.startsOn,
       )
     )
-      return failure("توجد نسخة لاحقة في هذه السلسلة؛ لا ينشئ النظام نسخة متداخلة.", "validation_error");
+      return failure("توجد نسخة لاحقة لهذه السياسة؛ لا ينشئ النظام نسخة متداخلة.", "validation_error");
     try {
       const successor = createAllocationPolicySuccessor(previous, {
         ...previous,
@@ -271,10 +271,10 @@ export class RecurringWorkService {
       const saved = await this.store.commitAllocationPolicySuccessor(ended, successor);
       return saved.ok
         ? { ok: true, value: saved.value.successor }
-        : failure("تعذر حفظ مراجعة سياسة التوزيع ذريًا؛ بقيت النسخة السابقة كما هي.");
+        : failure("تعذر حفظ النسخة الجديدة من سياسة التوزيع ذريًا؛ بقيت النسخة السابقة كما هي.");
     } catch (error) {
       return failure(
-        error instanceof Error ? error.message : "بيانات مراجعة سياسة التوزيع غير صالحة.",
+        error instanceof Error ? error.message : "بيانات النسخة الجديدة من سياسة التوزيع غير صالحة.",
         "validation_error",
       );
     }

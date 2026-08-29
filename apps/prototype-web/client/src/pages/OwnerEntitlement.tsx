@@ -301,7 +301,7 @@ export default function OwnerEntitlement() {
       tone: "success",
       text: result.reused
         ? "السياسة محفوظة سابقًا؛ لم تتكرر."
-        : "تم حفظ السياسة كإصدار أول. استخدم إجراء الخليفة لأي تعديل مؤرخ.",
+        : "تم حفظ السياسة كإصدار أول. أنشئ نسخة جديدة تبدأ من تاريخ لأي تعديل مؤرخ.",
     });
     policyOperation.current = idempotency("owner-policy");
     setPolicySource("");
@@ -317,7 +317,7 @@ export default function OwnerEntitlement() {
     const missingUnit = successorRequirements.requiresUnit && !successorUnitLabel.trim();
     const missingEnd = successorRequirements.requiresEndDate && !successorEndsOn;
     if (!successorPolicy || !successorSource.trim() || !successorNote.trim() || !successorStartsOn) {
-      setNotice({ tone: "error", text: "اختر سياسة فعالة وحدد تاريخ النفاذ واكتب سببًا وملاحظة للتعديل." });
+      setNotice({ tone: "error", text: "اختر سياسة فعالة وحدد تاريخ بدء النسخة الجديدة واكتب سببًا وملاحظة للتعديل." });
       return;
     }
     if (!successorRequirements.supported || successorKind === "fixed_shift") {
@@ -332,8 +332,8 @@ export default function OwnerEntitlement() {
         tone: "error",
         text:
           successorRequirements.valueKind === "amount"
-            ? "أدخل مبلغ الخليفة موجبًا بوحدة الدينار الأردني."
-            : "أدخل نسبة الخليفة بين 0.01% و100%.",
+            ? "أدخل مبلغ النسخة الجديدة موجبًا بوحدة الدينار الأردني."
+            : "أدخل نسبة النسخة الجديدة بين 0.01% و100%.",
       });
       return;
     }
@@ -342,7 +342,7 @@ export default function OwnerEntitlement() {
       return;
     }
     if (missingEnd) {
-      setNotice({ tone: "error", text: "الخليفة من نوع مبلغ ثابت للفترة تحتاج تاريخ نهاية معلنًا." });
+      setNotice({ tone: "error", text: "النسخة الجديدة من نوع مبلغ ثابت للفترة تحتاج تاريخ نهاية معلنًا." });
       return;
     }
     setSaving(true);
@@ -366,8 +366,8 @@ export default function OwnerEntitlement() {
     setNotice({
       tone: "success",
       text: result.reused
-        ? "خليفة السياسة محفوظة سابقًا؛ لم يتكرر التعديل."
-        : "تم حفظ إعدادات الخليفة الجديدة وإنهاء النسخة السابقة؛ لا تتغير الحقوق المسجلة سابقًا.",
+        ? "نسخة السياسة الجديدة محفوظة سابقًا؛ لم يتكرر التعديل."
+        : "تم حفظ إعدادات النسخة الجديدة وإنهاء النسخة السابقة؛ لا تتغير الحقوق المسجلة سابقًا.",
     });
     successorOperation.current = idempotency("owner-successor");
     setSuccessorSource("");
@@ -544,7 +544,7 @@ export default function OwnerEntitlement() {
       tone: "success",
       text: result.reused
         ? "التراجع عن الحق محفوظ سابقًا؛ لم يتكرر."
-        : "تم التراجع عن الحق كاملًا. الأصل محفوظ وقفل الفترة متاح لإعادة تسجيل صحيحة.",
+        : "تم التراجع عن الحق كاملًا. الأصل محفوظ ويمكنك تسجيل حق جديد صحيح بعد التراجع.",
     });
     setReversalTarget(null);
     setReversalReason("");
@@ -633,7 +633,7 @@ export default function OwnerEntitlement() {
           <span className="micro-g5-count">{overview.policies.length}</span>
         </div>
         <p>
-          كل سياسة جديدة مستقلة تبدأ بإصدار أول. تعديل سياسة قائمة يتم فقط عبر خليفة مؤرخة تنهي النسخة
+          كل سياسة جديدة مستقلة تبدأ بإصدار أول. تعديل سياسة قائمة يتم فقط عبر نسخة جديدة تبدأ من تاريخ وتُنهي النسخة
           السابقة؛ لا تعدّل إصدارًا محفوظًا يدويًا.
         </p>
         {overview.policies.length === 0 ? (
@@ -776,7 +776,7 @@ export default function OwnerEntitlement() {
         <summary className="micro-owner-layer-summary">
           <span>
             <b>تعديل سياسة</b>
-            <small>خليفة مؤرخة؛ الحقوق السابقة تبقى كما هي</small>
+            <small>نسخة جديدة تبدأ من تاريخ؛ الحقوق السابقة تبقى كما هي</small>
           </span>
           <strong>افتح الإجراء</strong>
         </summary>
@@ -820,13 +820,13 @@ export default function OwnerEntitlement() {
           ) : null}
           <div className="micro-field-grid">
             <LocalDateField
-              label="تاريخ نفاذ الخليفة"
+              label="تاريخ بدء النسخة الجديدة"
               description="يبدأ أثر الإعداد الجديد من هذا التاريخ فقط."
               value={successorStartsOn}
               onChange={event => setSuccessorStartsOn(event.target.value)}
             />
             <label className="micro-field">
-              <span>نوع الخليفة</span>
+              <span>نوع النسخة الجديدة</span>
               <select
                 value={successorKind}
                 onChange={event => {
@@ -846,24 +846,24 @@ export default function OwnerEntitlement() {
           </div>
           {successorRequirements.valueKind === "amount" ? (
             <label className="micro-field">
-              <span>مبلغ الخليفة بوحدة الدينار الأردني</span>
+              <span>مبلغ النسخة الجديدة بوحدة الدينار الأردني</span>
               <EnglishNumberInput
                 value={successorAmount}
                 kind="money"
                 onNumericChange={setSuccessorAmount}
                 onTextValidityChange={setSuccessorAmountValid}
-                aria-label="مبلغ خليفة سياسة حق المالك"
+                aria-label="مبلغ النسخة الجديدة لسياسة حق المالك"
               />
             </label>
           ) : (
             <label className="micro-field">
-              <span>نسبة الخليفة (%)</span>
+              <span>نسبة النسخة الجديدة (%)</span>
               <EnglishNumberInput
                 value={successorPercentage}
                 kind="decimal"
                 onNumericChange={setSuccessorPercentage}
                 onTextValidityChange={setSuccessorPercentageValid}
-                aria-label="نسبة خليفة سياسة حق المالك"
+                aria-label="نسبة النسخة الجديدة لسياسة حق المالك"
               />
               <small>تحسب من نتيجة الفترة المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.</small>
             </label>
@@ -883,7 +883,7 @@ export default function OwnerEntitlement() {
           ) : null}
           {successorRequirements.requiresEndDate ? (
             <LocalDateField
-              label="نهاية نطاق الخليفة"
+              label="نهاية نطاق النسخة الجديدة"
               description="مطلوبة. المبلغ الثابت للفترة يحتاج نطاقًا معلنًا كاملًا."
               value={successorEndsOn}
               onChange={event => setSuccessorEndsOn(event.target.value)}
@@ -901,7 +901,7 @@ export default function OwnerEntitlement() {
           </label>
           <label className="micro-field">
             <span>
-              ملاحظة الخليفة <small>مطلوبة</small>
+              ملاحظة النسخة الجديدة <small>مطلوبة</small>
             </span>
             <textarea
               value={successorNote}
@@ -939,7 +939,7 @@ export default function OwnerEntitlement() {
             </div>
           </div>
           <p>
-            تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. الفترة والمصدر مقفولان ضد تكرار الحق؛ تراجع عن السجل
+            تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. لا يُسجل الحق نفسه للفترة نفسها مرتين؛ تراجع عن السجل
             فقط إذا كان خطأ.
           </p>
           <label className="micro-field">

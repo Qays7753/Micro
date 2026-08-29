@@ -1077,7 +1077,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم تتغير السلسلة.",
+              message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم يتغير أي شيء.",
             };
             try {
               transaction.abort();
@@ -1274,7 +1274,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ السلسلة.",
+              message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ النسخة الجديدة.",
             };
             try {
               transaction.abort();
@@ -1287,7 +1287,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية خليفة السياسة؛ لم تتغير السلسلة.",
+              message: "تعارض هوية النسخة الجديدة من السياسة؛ لم يتغير أي شيء.",
             };
             try {
               transaction.abort();

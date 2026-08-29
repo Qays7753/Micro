@@ -277,7 +277,7 @@ export class OwnerEntitlementService {
         return {
           ok: false,
           code: "validation_error",
-          message: "السلسلة موجودة؛ استخدم إجراء الخليفة المؤرخ بدل تعديل الإصدار يدويًا.",
+          message: "يوجد إصدار سابق لنفس السياسة؛ أنشئ نسخة جديدة تبدأ من تاريخ بدل تعديل الإصدار يدويًا.",
         };
       const saved = await this.store.saveOwnerEntitlementPolicy(policy);
       return saved.ok
@@ -297,17 +297,17 @@ export class OwnerEntitlementService {
     input: OwnerPolicySuccessorInput,
   ): Promise<OwnerEntitlementResult<OwnerEntitlementPolicy>> {
     const policies = await this.store.listOwnerEntitlementPolicies();
-    if (!policies.ok) return failure("تعذر قراءة سلسلة سياسة حق المالك.");
+    if (!policies.ok) return failure("تعذر قراءة سياسات حق المالك.");
     const repeated = policies.value.find(policy => policy.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const previous = policies.value.find(policy => policy.id === policyId);
     if (!previous)
-      return { ok: false, code: "validation_error", message: "لم نجد السياسة الأصلية لإنشاء خليفة لها." };
+      return { ok: false, code: "validation_error", message: "لم نجد السياسة الأصلية لإنشاء نسخة جديدة لها." };
     if (previous.status !== "active")
       return {
         ok: false,
         code: "validation_error",
-        message: "لا يمكن إنشاء خليفة من سياسة منتهية؛ اختر النسخة الفعالة الأخيرة.",
+        message: "لا يمكن إنشاء نسخة جديدة من سياسة منتهية؛ اختر النسخة الفعالة الأخيرة.",
       };
     if (previous.endsOn !== null && ammanDate(this.now()) > previous.endsOn)
       return {
@@ -319,17 +319,17 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: "validation_error",
-        message: "تاريخ نفاذ الخليفة يجب أن يكون محليًا وبعد بداية السياسة الأصلية.",
+        message: "تاريخ بدء النسخة الجديدة يجب أن يكون محليًا وبعد بداية السياسة الأصلية.",
       };
     if (previous.endsOn !== null && input.startsOn > dayAfter(previous.endsOn))
       return {
         ok: false,
         code: "validation_error",
         message:
-          "تاريخ الخليفة يتجاوز نهاية السياسة الأصلية ويترك فجوة؛ اختر تاريخ النهاية التالي أو أنشئ سياسة مستقلة.",
+          "تاريخ بدء النسخة الجديدة يتجاوز نهاية السياسة الأصلية ويترك فجوة؛ اختر تاريخ النهاية التالي أو أنشئ سياسة مستقلة.",
       };
     if (!input.source.trim() || !input.note.trim())
-      return { ok: false, code: "validation_error", message: "سبب التعديل وملاحظة الخليفة إلزاميان." };
+      return { ok: false, code: "validation_error", message: "سبب التعديل وملاحظة النسخة الجديدة إلزاميان." };
     const later = policies.value.find(
       policy =>
         policy.seriesId === previous.seriesId &&
@@ -340,7 +340,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: "validation_error",
-        message: "توجد نسخة لاحقة في السلسلة من هذا التاريخ؛ لا ينشئ النظام خليفة متداخلًا.",
+        message: "توجد نسخة لاحقة تبدأ من هذا التاريخ؛ لا ينشئ النظام نسختين متداخلتين.",
       };
     try {
       const successor = createOwnerEntitlementPolicySuccessor({
@@ -369,25 +369,25 @@ export class OwnerEntitlementService {
         return {
           ok: false,
           code: "validation_error",
-          message: "تاريخ نفاذ الخليفة يقع قبل بداية السياسة الأصلية؛ لم تتغير السلسلة.",
+          message: "تاريخ بدء النسخة الجديدة يقع قبل بداية السياسة الأصلية؛ لم يتغير أي شيء.",
         };
       const saved = await this.store.commitOwnerEntitlementPolicySuccessor(ended, successor);
       return saved.ok
         ? { ok: true, value: saved.value.successor }
-        : failure("تعذر حفظ خليفة السياسة ذريًا؛ بقيت السلسلة دون تغيير.");
+        : failure("تعذر حفظ النسخة الجديدة ذريًا؛ بقيت السياسات دون تغيير.");
     } catch (error) {
       const raw = error instanceof Error ? error.message : "";
       const message = raw.includes("fixed_period")
-        ? "الخليفة من نوع مبلغ ثابت للفترة تحتاج تاريخ نهاية معلنًا."
+        ? "النسخة الجديدة من نوع مبلغ ثابت للفترة تحتاج تاريخ نهاية معلنًا."
         : raw.includes("unitLabel")
-          ? "الخليفة لكل وحدة أو عمل مكتمل تحتاج تسمية وحدة صريحة."
+          ? "النسخة الجديدة لكل وحدة أو عمل مكتمل تحتاج تسمية وحدة صريحة."
           : raw.includes("percentageBps")
             ? "أدخل نسبة صحيحة بين 0.01% و100%."
             : raw.includes("amountMinor")
               ? "أدخل مبلغًا موجبًا بوحدة JOD minor."
               : raw.includes("policy kind")
-                ? "نوع الخليفة غير مدعوم أو لا يملك دليلًا مكتملًا في هذا الإصدار."
-                : "بيانات خليفة السياسة غير صالحة؛ لم تتغير النسخة السابقة.";
+                ? "نوع النسخة الجديدة غير مدعوم أو لا يملك دليلًا مكتملًا في هذا الإصدار."
+                : "بيانات النسخة الجديدة غير صالحة؛ لم تتغير النسخة السابقة.";
       return { ok: false, code: "validation_error", message };
     }
   }

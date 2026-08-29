@@ -103,7 +103,7 @@ describe("O1 local transfer boundary", () => {
       startsOn: "2026-09-01",
       endsOn: null,
       source: "تعديل نسبة",
-      note: "خليفة متغيرة",
+      note: "نسخة جديدة متغيرة",
       status: "active",
       idempotencyKey: "policy-transfer-successor",
       createdAt: "2026-09-01T08:00:00.000Z",

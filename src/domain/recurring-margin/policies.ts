@@ -81,7 +81,7 @@ export function createAllocationPolicy(input: CreateAllocationPolicyInput): Allo
     throw new Error("مصدر وسبب وملاحظة سياسة التحميل مطلوبة.");
   if (
     !required(input.id, "معرف سياسة التحميل مطلوب.") ||
-    !required(input.seriesId, "سلسلة سياسة التحميل مطلوبة.") ||
+    !required(input.seriesId, "معرّف نسخ سياسة التحميل مطلوب.") ||
     !required(input.idempotencyKey, "مفتاح سياسة التحميل مطلوب.")
   )
     throw new Error("معرف ومفتاح سياسة التحميل مطلوبان.");
@@ -126,18 +126,18 @@ export function createAllocationPolicySuccessor(
     updatedAt: string;
   },
 ): AllocationPolicy {
-  if (previous.status !== "active") throw new Error("لا يمكن إنشاء خليفة لسياسة تحميل غير فعالة.");
+  if (previous.status !== "active") throw new Error("لا يمكن إنشاء نسخة جديدة لسياسة تحميل غير فعالة.");
   if (
     terms.seriesId !== previous.seriesId ||
     terms.successorOfPolicyId !== previous.id ||
     terms.version !== previous.version + 1
   )
-    throw new Error("سلسلة مراجعة سياسة التحميل غير متصلة.");
+    throw new Error("بيانات النسخة الجديدة لسياسة التحميل غير متصلة بالنسخة السابقة.");
   if (
     terms.startsOn <= previous.startsOn ||
     (previous.endsOn !== null && terms.startsOn !== dayAfter(previous.endsOn))
   )
-    throw new Error("تاريخ نفاذ خليفة سياسة التحميل يجب أن يتبع نهاية النسخة السابقة مباشرة.");
+    throw new Error("تاريخ بدء النسخة الجديدة لسياسة التحميل يجب أن يتبع نهاية النسخة السابقة مباشرة.");
   return createAllocationPolicy(terms);
 }
 
