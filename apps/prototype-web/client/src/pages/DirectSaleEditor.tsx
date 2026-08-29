@@ -50,6 +50,11 @@ export default function DirectSaleEditor() {
   const [savedSale, setSavedSale] = useState<DirectSale | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  /* و٦: إعادة تحميل السجل عند اكتشاف تعديل من نافذة أخرى. */
+  const [reloadToken, setReloadToken] = useState(0);
+  /* و٦: عند إعادة التحميل بعد تعارض تبقى كتابة المستخدم في الحقول كما هي —
+   * يُحدّث السجل ورقم مراجعاته لا ما يراه في النموذج. */
+  const preserveFormRef = useRef(false);
   /* X-06: لوحة الفرق — تظهر عند حفظ بيع قبضه أقل من سعره المتفق، ولا تقرّر مكانه. */
   const [differenceChoice, setDifferenceChoice] = useState<DifferenceChoice | null>(null);
   const idempotencyKey = useRef(`direct-sale-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
@@ -83,6 +88,10 @@ export default function DirectSaleEditor() {
       }
       const sale = result.value;
       setSavedSale(sale);
+      if (preserveFormRef.current) {
+        preserveFormRef.current = false;
+        return;
+      }
       setItemName(sale.itemName);
       setQuantity(sale.quantity);
       setRevenueMinor(sale.revenueMinor);
@@ -104,7 +113,7 @@ export default function DirectSaleEditor() {
     return () => {
       active = false;
     };
-  }, [directSales, saleId]);
+  }, [directSales, saleId, reloadToken]);
 
   /* المقبوض المحسوب: فارغ = السعر المتفق (قبض كامل). */
   const resolvedCollected = collectedEmpty ? revenueMinor : collectedMinor;
@@ -148,6 +157,8 @@ export default function DirectSaleEditor() {
             ? "partial_needs_review"
             : "collected_in_full"
         : "collected_in_full";
+    /* و٦: رقم المراجعة الذي فُتح عليه السجل — يحرس من طمس تعديل أحدث من نافذة أخرى. */
+    const openedRevisionCount = savedSale?.revisions?.length ?? 0;
     setMessage(null);
     setSaving(true);
     const result = editing
@@ -163,6 +174,7 @@ export default function DirectSaleEditor() {
           occurredOn,
           note,
           idempotencyKey: correctionIdempotencyKey.current,
+          expectedRevisionCount: openedRevisionCount,
         })
       : await directSales.record({
           itemName: itemName.trim() || "بيع نقدي",
@@ -180,6 +192,11 @@ export default function DirectSaleEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
+      /* و٦: عند التعارض يتحدّث السجل ورقم مراجعاته وتبقى كتابة المستخدم كما هي. */
+      if (result.code === "conflict") {
+        preserveFormRef.current = true;
+        setReloadToken(token => token + 1);
+      }
       return;
     }
     notifyDataChanged();
@@ -193,10 +210,19 @@ export default function DirectSaleEditor() {
     }
     setMessage(null);
     setSaving(true);
-    const result = await directSales.cancel(saleId, cancelReason, cancellationIdempotencyKey.current);
+    const result = await directSales.cancel(
+      saleId,
+      cancelReason,
+      cancellationIdempotencyKey.current,
+      savedSale?.revisions?.length ?? 0,
+    );
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
+      if (result.code === "conflict") {
+        preserveFormRef.current = true;
+        setReloadToken(token => token + 1);
+      }
       return;
     }
     notifyDataChanged();

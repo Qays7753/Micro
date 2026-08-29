@@ -161,6 +161,8 @@ export default function DraftEditor() {
       return false;
     }
     let toSave = draft;
+    /* و٦: رقم المسودة كما فُتحت — يمنع طمس تعديل أو نسخة تكلفة أحدث من نافذة ثانية. */
+    const expectedUpdatedAt = draft.updatedAt;
     if (draft.id === "new") {
       const materialized = await ensureMaterialized();
       if (!materialized) {
@@ -172,10 +174,20 @@ export default function DraftEditor() {
     }
     setIsSaving(true);
     setMessage(null);
-    const result = await drafts.save(toSave);
+    const result = await drafts.save(toSave, toSave.id === draft.id ? expectedUpdatedAt : undefined);
     setIsSaving(false);
     if (!result.ok) {
       setMessage(result.message);
+      /* و٦: عند التعارض يتحدّث رقم المسودة وما جُدّد فيها من نافذة أخرى،
+       * وتبقى كتابة المستخدم في الحقول كما هي — يراجع ثم يعيد الحفظ. */
+      if (result.code === "conflict" && !isNewDraft) {
+        const fresh = await drafts.get(params.id);
+        if (fresh.ok && fresh.value) {
+          const latest = draftRef.current;
+          setDraft(latest ? { ...fresh.value, ...draftFormValues(latest) } : fresh.value);
+          initialValuesRef.current = draftFormValues(fresh.value);
+        }
+      }
       return false;
     }
     setDraft(result.draft);

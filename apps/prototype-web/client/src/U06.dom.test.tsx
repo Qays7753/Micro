@@ -147,7 +147,7 @@ describe("the empty intent editor creates the draft only on first real input (U-
     expect(save).not.toHaveBeenCalled();
   });
 
-  it("keeps typing after creation: continue-and-save uses the materialized id", async () => {
+  it("keeps typing after creation: continue-and-save uses the materialized id and its version token", async () => {
     wouterMocks.location = "/orders/draft/new?intent=customer_order";
     create.mockResolvedValueOnce(draftWithId("draft-10", { itemName: "صندوق" }));
     save.mockImplementationOnce(async (input: { id: string; itemName: string }) =>
@@ -160,7 +160,10 @@ describe("the empty intent editor creates the draft only on first real input (U-
     const saveButton = await screen.findByRole("button", { name: "حفظ مسودة" });
     await userEvent.click(saveButton);
     await waitFor(() =>
-      expect(save).toHaveBeenCalledWith(expect.objectContaining({ id: "draft-10", itemName: "صندوق خشبي" })),
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "draft-10", itemName: "صندوق خشبي" }),
+        "2026-08-30T00:00:00.000Z",
+      ),
     );
   });
 

@@ -115,7 +115,7 @@ describe("DirectSaleEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: "تأكيد إلغاء البيع" }));
 
     await waitFor(() =>
-      expect(cancel).toHaveBeenCalledWith("sale-1", "سُجل البيع بالخطأ", expect.any(String)),
+      expect(cancel).toHaveBeenCalledWith("sale-1", "سُجل البيع بالخطأ", expect.any(String), 0),
     );
   });
 });

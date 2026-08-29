@@ -142,6 +142,110 @@ describe("DirectSaleService", () => {
     });
   });
 });
+describe("DirectSaleService two-tab conflict guard (و٦, §٥-٩)", () => {
+  async function recordedSale() {
+    const store = new MemoryLocalStore();
+    const service = new DirectSaleService(store, () => "2026-08-29T10:00:00.000Z");
+    const recorded = await service.record({
+      itemName: "منتج",
+      quantity: 1,
+      revenueMinor: 500,
+      costMinor: null,
+      occurredOn: "2026-08-29",
+      note: "بيع مباشر",
+      idempotencyKey: "sale-conflict-source",
+    });
+    if (!recorded.ok) throw new Error(recorded.message);
+    return { store, service, id: recorded.value.id };
+  }
+
+  it("refuses an update whose expected revision count fell behind a newer edit", async () => {
+    const { store, service, id } = await recordedSale();
+    /* النافذة الأولى صحّحت — المراجعات تقدمت من 0 إلى 1. */
+    const first = await service.update(id, {
+      itemName: "منتج",
+      quantity: 1,
+      revenueMinor: 900,
+      costMinor: null,
+      occurredOn: "2026-08-29",
+      note: "تصحيح النافذة الأولى",
+      idempotencyKey: "tab-a-1",
+    });
+    if (!first.ok) throw new Error(first.message);
+
+    /* النافذة الثانية ما تزال ترى 0 مراجعات — رفض لا طمس. */
+    await expect(
+      service.update(id, {
+        itemName: "منتج",
+        quantity: 1,
+        revenueMinor: 700,
+        costMinor: null,
+        occurredOn: "2026-08-29",
+        note: "تصحيح النافذة الثانية المتأخرة",
+        idempotencyKey: "tab-b-1",
+        expectedRevisionCount: 0,
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "conflict" });
+    await expect(store.listDirectSales()).resolves.toMatchObject({
+      ok: true,
+      value: [{ revenueMinor: 900, revisions: [{ idempotencyKey: "tab-a-1" }] }],
+    });
+  });
+
+  it("accepts an update whose expected revision count matches the stored record", async () => {
+    const { service, id } = await recordedSale();
+    await expect(
+      service.update(id, {
+        itemName: "منتج",
+        quantity: 1,
+        revenueMinor: 800,
+        costMinor: null,
+        occurredOn: "2026-08-29",
+        note: "تصحيح برقم صحيح",
+        idempotencyKey: "tab-fresh-1",
+        expectedRevisionCount: 0,
+      }),
+    ).resolves.toMatchObject({ ok: true, value: { revenueMinor: 800 } });
+  });
+
+  it("refuses a cancellation from a stale window instead of burying a newer edit", async () => {
+    const { store, service, id } = await recordedSale();
+    const first = await service.update(id, {
+      itemName: "منتج",
+      quantity: 1,
+      revenueMinor: 900,
+      costMinor: null,
+      occurredOn: "2026-08-29",
+      note: "تصحيح وصل أولًا",
+      idempotencyKey: "tab-a-2",
+    });
+    if (!first.ok) throw new Error(first.message);
+
+    await expect(service.cancel(id, "إلغاء من نافذة متأخرة", "tab-b-2", 0)).resolves.toMatchObject({
+      ok: false,
+      code: "conflict",
+    });
+    await expect(store.listDirectSales()).resolves.toMatchObject({
+      ok: true,
+      value: [{ status: "active", revenueMinor: 900 }],
+    });
+  });
+
+  it("keeps the guard optional so existing single-window callers behave as before", async () => {
+    const { service, id } = await recordedSale();
+    await expect(
+      service.update(id, {
+        itemName: "منتج",
+        quantity: 1,
+        revenueMinor: 600,
+        costMinor: null,
+        occurredOn: "2026-08-29",
+        note: "بلا رقم مرجعي",
+        idempotencyKey: "legacy-1",
+      }),
+    ).resolves.toMatchObject({ ok: true, value: { revenueMinor: 600 } });
+  });
+});
 describe("DirectSaleService agreed vs collected (X-06, و٤)", () => {
   it("records 10-agreed/8-collected with the owner's debt decision and a generic name when left empty", async () => {
     const store = new MemoryLocalStore();
