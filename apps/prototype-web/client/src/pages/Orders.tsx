@@ -9,6 +9,7 @@ import { getAgreementPresentation } from "@/presentation/orderAgreementPresentat
 import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
+import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
 type OrdersState =
   | { phase: "loading" }
@@ -17,6 +18,7 @@ type OrdersState =
       phase: "ready";
       drafts: readonly OrderDraft[];
       orders: readonly StoredCraftOrder[];
+      directSales: readonly DirectSale[];
       followUp: DailyFollowUp;
     };
 const settlementDetail = (stored: StoredCraftOrder) => (
@@ -28,22 +30,28 @@ const settlementDetail = (stored: StoredCraftOrder) => (
 
 export default function Orders() {
   const [, navigate] = useLocation();
-  const { dailyFollowUp, dataVersion } = usePrototypeServices();
+  const { dailyFollowUp, directSales, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<OrdersState>({ phase: "loading" });
   useEffect(() => {
     let active = true;
-    dailyFollowUp.read().then(result => {
+    Promise.all([dailyFollowUp.read(), directSales.list()]).then(([result, sales]) => {
       if (!active) return;
-      if (!result.ok) {
+      if (!result.ok || !sales.ok) {
         setState({ phase: "error" });
         return;
       }
-      setState({ phase: "ready", drafts: result.drafts, orders: result.orders, followUp: result.followUp });
+      setState({
+        phase: "ready",
+        drafts: result.drafts,
+        orders: result.orders,
+        directSales: sales.value,
+        followUp: result.followUp,
+      });
     });
     return () => {
       active = false;
     };
-  }, [dailyFollowUp, dataVersion]);
+  }, [dailyFollowUp, directSales, dataVersion]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -68,10 +76,37 @@ export default function Orders() {
       <section className="micro-decision-surface" data-tone="accent" aria-labelledby="direct-sales-title">
         <span className="micro-overline">مبيعات مباشرة</span>
         <h2 id="direct-sales-title">مبيعاتي</h2>
-        <p>لا توجد مبيعات مباشرة محفوظة بعد.</p>
-        <p className="micro-home-truth-line">
-          هذا لا ينشئ بيعًا تلقائيًا ولا يحوّل أي تحصيل مرتبط بطلب إلى مبيعات مباشرة.
-        </p>
+        {state.directSales.length === 0 ? (
+          <>
+            <p>لا توجد مبيعات مباشرة محفوظة بعد.</p>
+            <p className="micro-home-truth-line">
+              هذا لا ينشئ بيعًا تلقائيًا ولا يحوّل أي تحصيل مرتبط بطلب إلى مبيعات مباشرة.
+            </p>
+          </>
+        ) : (
+          <div className="micro-draft-list" aria-label="سجل المبيعات المباشرة">
+            {state.directSales.map(sale => (
+              <article className="micro-draft-row" key={sale.id}>
+                <span className="micro-draft-symbol">
+                  <BadgeDollarSign aria-hidden="true" />
+                </span>
+                <span>
+                  <strong>{sale.itemName}</strong>
+                  <small>
+                    <LocalDateValue value={sale.occurredOn} /> · الكمية:{" "}
+                    <IntegerValue value={sale.quantity} className="micro-inline-number" />
+                  </small>
+                  <small>
+                    المحصل (د.أ): <MoneyValue minor={sale.collectedMinor} className="micro-inline-number" />
+                  </small>
+                  <small>
+                    الربح (د.أ): <MoneyValue minor={sale.profitMinor} className="micro-inline-number" />
+                  </small>
+                </span>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
       {state.orders.length > 0 ? (
         <>
@@ -162,14 +197,14 @@ export default function Orders() {
           إنشاء مسودة أخرى
         </button>
       ) : null}
-      {state.orders.length === 0 && state.drafts.length === 0 ? (
+      {state.orders.length === 0 && state.drafts.length === 0 && state.directSales.length === 0 ? (
         <section className="micro-empty-state" aria-labelledby="work-empty-title">
           <span className="micro-empty-symbol">
             <BadgeDollarSign aria-hidden="true" />
           </span>
           <span className="micro-status-chip">لا توجد سجلات عمل بعد</span>
           <h2 id="work-empty-title">ابدأ من الفعل الذي تحتاجه اليوم</h2>
-          <p>يمكنك إنشاء أول طلب من زر الإضافة؛ ويظهر قسم الطلبات بعد حفظه.</p>
+          <p>يمكنك تسجيل أول بيع أو إنشاء أول طلب من زر الإضافة؛ ويظهر قسم الطلبات بعد حفظه.</p>
         </section>
       ) : null}
     </section>

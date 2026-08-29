@@ -194,8 +194,8 @@ describe("G4-A catalog transfer boundary", () => {
       ok: true,
       value: {
         file: {
-          version: 17,
-          schemaVersion: 26,
+          version: 18,
+          schemaVersion: 27,
           data: {
             catalogItems: [{ id: item.item.id, unitId: null }],
             measurementUnits: [],

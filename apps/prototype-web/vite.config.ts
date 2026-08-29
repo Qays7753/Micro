@@ -283,6 +283,7 @@ export default defineConfig(({ mode }) => ({
       ".manus-asia.computer",
       ".manuscomputer.ai",
       ".manusvm.computer",
+      ".replit.dev",
       "localhost",
       "127.0.0.1",
     ],

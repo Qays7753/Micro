@@ -15,6 +15,7 @@ import {
   type OwnerEntitlementRecord,
   type OwnerMovement,
 } from "@micro-domain/owner-entitlement/index.js";
+import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import {
   localExportFormat,
   localExportVersion,
@@ -30,6 +31,7 @@ export type TransferSummary = {
   preferences: boolean;
   drafts: number;
   orders: number;
+  directSales: number;
   schedules: number;
   recurrences: number;
   financialEvents: number;
@@ -184,7 +186,35 @@ const isFinancialType = (value: unknown) =>
   value === "operating_expense_cash" ||
   value === "operating_expense_payable" ||
   value === "payable_settlement_cash";
-const isSignedMoney = (value: unknown) => typeof value === "number" && Number.isInteger(value);
+const isSafeMoney = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+const isSignedMoney = (value: unknown) =>
+  typeof value === "number" && Number.isSafeInteger(value);
+function isDirectSale(value: unknown): value is DirectSale {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    !value.id.trim() ||
+    !isString(value.itemName) ||
+    !value.itemName.trim() ||
+    !isPositiveSafeInteger(value.quantity) ||
+    value.currency !== "JOD" ||
+    !isSafeMoney(value.revenueMinor) ||
+    value.revenueMinor <= 0 ||
+    value.collectedMinor !== value.revenueMinor ||
+    !(value.costMinor === null || isSafeMoney(value.costMinor)) ||
+    !(value.profitMinor === null || isSignedMoney(value.profitMinor)) ||
+    !isString(value.occurredOn) ||
+    !isLocalDate(value.occurredOn) ||
+    !isDate(value.recordedAt) ||
+    !isString(value.note) ||
+    !value.note.trim() ||
+    !isString(value.idempotencyKey) ||
+    !value.idempotencyKey.trim()
+  )
+    return false;
+  return value.profitMinor === (value.costMinor === null ? null : value.revenueMinor - value.costMinor);
+}
 const isCorrectionType = (value: unknown) => value === undefined || value === null || value === "reverse";
 const isOptionalString = (value: unknown) => value === undefined || value === null || isString(value);
 const isUnitDimension = (value: unknown) =>
@@ -771,6 +801,7 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     !isRecord(data) ||
     !Array.isArray(data.drafts) ||
     !Array.isArray(data.orders) ||
+    !Array.isArray(data.directSales) ||
     !Array.isArray(data.schedules) ||
     !Array.isArray(data.recurrences) ||
     !Array.isArray(data.financialEvents) ||
@@ -863,6 +894,18 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (!domainOrderValid) return false;
     if (orderIds.has(stored.id)) return false;
     orderIds.add(stored.id);
+  }
+  const directSaleIds = new Set<string>();
+  const directSaleKeys = new Set<string>();
+  for (const sale of data.directSales) {
+    if (
+      !isDirectSale(sale) ||
+      directSaleIds.has(sale.id) ||
+      directSaleKeys.has(sale.idempotencyKey)
+    )
+      return false;
+    directSaleIds.add(sale.id);
+    directSaleKeys.add(sale.idempotencyKey);
   }
   const actualTimeRecords = data.actualTimeRecords as unknown[];
   const actualTimeIds = new Set<string>();
@@ -1573,6 +1616,7 @@ function summary(file: LocalExportFile): TransferSummary {
     preferences: file.data.preferences !== null,
     drafts: file.data.drafts.length,
     orders: file.data.orders.length,
+    directSales: file.data.directSales?.length ?? 0,
     schedules: file.data.schedules.length,
     recurrences: file.data.recurrences?.length ?? 0,
     financialEvents: file.data.financialEvents.length,
@@ -1638,6 +1682,7 @@ export class LocalTransferService {
     const isPreviousCatalogCore = candidate.version === 14 && candidate.schemaVersion === 23;
     const isPreviousBridge = candidate.version === 15 && candidate.schemaVersion === 24;
     const isPreviousG4bScale = candidate.version === 16 && candidate.schemaVersion === 25;
+    const isPreviousWorkDestination = candidate.version === 17 && candidate.schemaVersion === 26;
     const isPreviousO1 =
       (candidate.version === 12 && candidate.schemaVersion === 21) ||
       (candidate.version === 13 && candidate.schemaVersion === 22);
@@ -1651,6 +1696,7 @@ export class LocalTransferService {
       !isPreviousCatalogCore &&
       !isPreviousBridge &&
       !isPreviousG4bScale &&
+      !isPreviousWorkDestination &&
       !isPreviousO1 &&
       !isPreviousG3 &&
       !isG3Legacy &&
@@ -1683,6 +1729,7 @@ export class LocalTransferService {
               : order,
           )
         : [],
+      directSales: Array.isArray(raw.directSales) ? raw.directSales : [],
       schedules: Array.isArray(raw.schedules)
         ? raw.schedules.map(schedule =>
             isRecord(schedule)

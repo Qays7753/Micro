@@ -15,6 +15,7 @@ import { createInventoryMovement, createMaterial } from "@micro-domain/inventory
 import { createCatalogItem, createMeasurementUnit } from "@micro-domain/catalog/index.js";
 import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import { createActualTimeRecord, reverseActualTimeRecord } from "@micro-domain/actual-time/index.js";
+import { createDirectSale } from "@micro-domain/direct-sale/index.js";
 
 const profile = {
   id: localProfileId,
@@ -121,6 +122,83 @@ describe("LocalTransferService", () => {
       ok: true,
       value: [{ type: "owner_investment_cash", cashDeltaMinor: 5000 }],
     });
+  });
+
+  it("round-trips direct sales and rejects records that bypass domain invariants", async () => {
+    const source = new MemoryLocalStore();
+    await source.saveDirectSale(
+      createDirectSale({
+        id: "sale-unknown-cost",
+        itemName: "منتج جاهز",
+        quantity: 1,
+        revenueMinor: 750,
+        costMinor: null,
+        occurredOn: "2026-08-29",
+        recordedAt: "2026-08-29T10:00:00.000Z",
+        note: "بيع بلا تكلفة معلومة",
+        idempotencyKey: "sale-transfer-1",
+      }),
+    );
+    await source.saveDirectSale(
+      createDirectSale({
+        id: "sale-known-cost",
+        itemName: "منتج محسوب",
+        quantity: 2,
+        revenueMinor: 1200,
+        costMinor: 500,
+        occurredOn: "2026-08-29",
+        recordedAt: "2026-08-29T11:00:00.000Z",
+        note: "بيع بتكلفة معلومة",
+        idempotencyKey: "sale-transfer-2",
+      }),
+    );
+
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("direct-sale export should succeed");
+    const target = new MemoryLocalStore();
+    const transfers = new LocalTransferService(target);
+    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    if (!preview.ok) throw new Error(`direct-sale import should validate: ${preview.message}`);
+    expect(preview.value.summary.directSales).toBe(2);
+    await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
+      ok: true,
+      value: { directSales: 2 },
+    });
+    await expect(target.listDirectSales()).resolves.toMatchObject({
+      ok: true,
+      value: [
+        { id: "sale-known-cost", costMinor: 500, profitMinor: 700 },
+        { id: "sale-unknown-cost", costMinor: null, profitMinor: null },
+      ],
+    });
+
+    for (const mutate of [
+      (sale: Record<string, unknown>) => {
+        sale.id = " ";
+      },
+      (sale: Record<string, unknown>) => {
+        sale.itemName = "";
+      },
+      (sale: Record<string, unknown>) => {
+        sale.quantity = 1.5;
+      },
+      (sale: Record<string, unknown>) => {
+        sale.revenueMinor = Number.MAX_SAFE_INTEGER + 1;
+        sale.collectedMinor = Number.MAX_SAFE_INTEGER + 1;
+      },
+      (sale: Record<string, unknown>) => {
+        sale.costMinor = Number.MAX_SAFE_INTEGER + 1;
+      },
+    ]) {
+      const broken = structuredClone(exported.value) as unknown as {
+        data: { directSales: Record<string, unknown>[] };
+      };
+      mutate(broken.data.directSales[0]!);
+      expect(transfers.prepareImport(JSON.stringify(broken))).toMatchObject({
+        ok: false,
+        code: "validation_error",
+      });
+    }
   });
 
   it("round-trips classified expenses while accepting legacy financial events without context", async () => {

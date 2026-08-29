@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import Orders from "@/pages/Orders";
 import type { StoredCraftOrder } from "@/storage/local/types";
+import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -52,6 +53,23 @@ function savedOrder(id: string): StoredCraftOrder {
   } as StoredCraftOrder;
 }
 
+function savedSale(id: string): DirectSale {
+  return {
+    id,
+    itemName: "كوب جاهز",
+    quantity: 2,
+    currency: "JOD",
+    revenueMinor: 1200,
+    collectedMinor: 1200,
+    costMinor: null,
+    profitMinor: null,
+    occurredOn: "2026-08-29",
+    recordedAt: "2026-08-29T09:00:00.000Z",
+    note: "بيع مباشر",
+    idempotencyKey: "sale-ui-1",
+  };
+}
+
 describe("Work destination", () => {
   afterEach(() => cleanup());
 
@@ -65,6 +83,9 @@ describe("Work destination", () => {
           orders: [],
           followUp: emptyFollowUp,
         }),
+      },
+      directSales: {
+        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
       },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
@@ -99,6 +120,9 @@ describe("Work destination", () => {
       });
     mockedUsePrototypeServices.mockReturnValue({
       dailyFollowUp: { read },
+      directSales: {
+        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+      },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
@@ -111,5 +135,30 @@ describe("Work destination", () => {
     expect(screen.getByRole("heading", { name: "العمل" })).toBeTruthy();
     expect(screen.getByText("طاولة اختبار")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
+  });
+
+  it("shows a cost-unknown direct sale beside orders with unavailable profit", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: {
+        read: vi.fn().mockResolvedValue({
+          ok: true,
+          drafts: [],
+          orders: [savedOrder("order-hybrid")],
+          followUp: { ...emptyFollowUp, kind: "active_order", truth: "طلب محفوظ." },
+        }),
+      },
+      directSales: {
+        list: vi.fn().mockResolvedValue({ ok: true, value: [savedSale("sale-hybrid")] }),
+      },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(<Orders />);
+
+    await waitFor(() => expect(screen.getByText("كوب جاهز")).toBeTruthy());
+    expect(screen.getByText("طاولة اختبار")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "طلباتي" })).toBeTruthy();
+    expect(screen.getByText("غير متاح")).toBeTruthy();
   });
 });

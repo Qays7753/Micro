@@ -2,7 +2,7 @@
  * Micro design reminder: every quick action must end in a real path or be
  * clearly marked as unavailable; the sheet never creates a financial effect.
  */
-import { ClipboardPlus, HandCoins, PackagePlus, X } from "lucide-react";
+import { BadgeDollarSign, ClipboardPlus, HandCoins, PackagePlus, X } from "lucide-react";
 import {
   Drawer,
   DrawerClose,
@@ -12,7 +12,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
-export type QuickAction = "order" | "estimate" | "collection";
+export type QuickAction = "sale" | "order" | "estimate" | "collection";
 export type QuickActionItem = {
   action: QuickAction;
   label: string;
@@ -27,6 +27,12 @@ type QuickActionSheetProps = {
 };
 
 export const actionItems: readonly QuickActionItem[] = [
+  {
+    action: "sale",
+    label: "تسجيل بيع",
+    description: "احفظ بيعًا مباشرًا من دون إنشاء طلب.",
+    icon: BadgeDollarSign,
+  },
   { action: "order", label: "طلب من عميل", description: "ابدأ مسودة طلب واتفاق أولي.", icon: ClipboardPlus },
   {
     action: "estimate",

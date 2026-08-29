@@ -483,7 +483,8 @@ export default function SettingsPage() {
                 <IntegerValue value={preview.summary.drafts} className="micro-inline-number" /> مسودة
               </li>
               <li>
-                <IntegerValue value={preview.summary.orders} className="micro-inline-number" /> طلب
+                <IntegerValue value={preview.summary.orders} className="micro-inline-number" /> طلب ·{" "}
+                <IntegerValue value={preview.summary.directSales} className="micro-inline-number" /> بيع مباشر
               </li>
               <li>
                 <IntegerValue value={preview.summary.schedules} className="micro-inline-number" /> موعد

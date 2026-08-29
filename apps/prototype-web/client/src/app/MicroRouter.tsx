@@ -9,6 +9,7 @@ import { StartupGate } from "@/app/StartupGate";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Orders = lazy(() => import("@/pages/Orders"));
+const DirectSaleEditor = lazy(() => import("@/pages/DirectSaleEditor"));
 const Review = lazy(() => import("@/pages/Review"));
 const SettingsPage = lazy(() => import("@/pages/Settings"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
@@ -45,6 +46,7 @@ export function MicroRouter() {
           <Switch>
             <Route path="/setup" component={Setup} />
             <Route path="/orders/new" component={NewDraft} />
+            <Route path="/direct-sales/new" component={DirectSaleEditor} />
             <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
             <Route path="/orders/draft/:id/cost" component={CostEditor} />
             <Route path="/orders/draft/:id" component={DraftEditor} />

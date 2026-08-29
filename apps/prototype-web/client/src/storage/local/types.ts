@@ -22,12 +22,13 @@ import type {
   OwnerMovement,
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
-export const localSchemaVersion = 26;
+export const localSchemaVersion = 27;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 17;
+export const localExportVersion = 18;
 
 export type ActivityProfile = {
   id: typeof localProfileId;
@@ -163,6 +164,7 @@ export type LocalStoreSnapshot = {
   preferences: LocalPreferences | null;
   drafts: readonly OrderDraft[];
   orders: readonly StoredCraftOrder[];
+  directSales?: readonly DirectSale[];
   schedules: readonly ScheduleEntry[];
   recurrences?: readonly ScheduleRecurrence[];
   financialEvents: readonly FinancialEvent[];
@@ -207,6 +209,8 @@ export interface PrototypeLocalStore {
   listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>>;
   getOrder(id: string): Promise<StorageResult<StoredCraftOrder | null>>;
   saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>>;
+  listDirectSales(): Promise<StorageResult<readonly DirectSale[]>>;
+  saveDirectSale(sale: DirectSale): Promise<StorageResult<DirectSale>>;
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
   getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
   saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;
