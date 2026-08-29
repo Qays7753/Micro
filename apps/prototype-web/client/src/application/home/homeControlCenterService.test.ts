@@ -104,7 +104,7 @@ describe("HomeControlCenterService", () => {
           id: "cash",
           state: "known",
           valueMinor: 5000,
-          source: expect.stringContaining("ProjectFinancialService"),
+          source: expect.stringContaining("السجل المحلي"),
         }),
         expect.objectContaining({ id: "owner_capital", state: "known", valueMinor: 5000 }),
         expect.objectContaining({ id: "receivables", state: "not_initialized", valueMinor: null }),

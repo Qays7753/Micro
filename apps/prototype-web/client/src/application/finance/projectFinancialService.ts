@@ -3,9 +3,11 @@
  * collections and receivables without turning either into project profit or unrecorded cash.
  */
 import {
+  activeSettlementsMinor,
   calculateSharedProjectShareMinor,
   createFinancialEvent,
   createFinancialReversal,
+  reversedEventIds,
   summarizeFinancialEvents,
   type FinancialEvent,
   type FinancialEventType,
@@ -13,6 +15,7 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
+import { calculateBreakEvenUnits } from "@micro-domain/g5/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 
@@ -128,6 +131,7 @@ export type FinancialReversalInput = {
   reason: string;
   idempotencyKey: string;
 };
+export type SettleablePayable = { event: FinancialEvent; remainingMinor: number };
 export type FinanceResult<T> =
   | { ok: true; value: T; reused?: boolean }
   | { ok: false; code: "validation_error" | "storage_error"; message: string };
@@ -242,19 +246,19 @@ function derivePeriodCogs(
   const cogsReasons: string[] = [];
   if (finals.length > 0 && cogsStatus === "not_available")
     cogsReasons.push(
-      "لا توجد حركات استهلاك ذات قيمة تكلفة مثبتة مرتبطة بطلب نهائي؛ تستخدم القراءة Snapshot كبديل معلن.",
+      "لا توجد حركات استهلاك ذات قيمة تكلفة مثبتة مرتبطة بطلب نهائي؛ تستخدم القراءة نسخة التكلفة كبديل معلن.",
     );
   if (cogsStatus === "partial")
     cogsReasons.push(
-      "تتوفر COGS مسجلة لبعض الأعمال النهائية فقط؛ تستخدم القراءة Snapshot لبقية الأعمال، فلا تُعرض كل التكلفة كـCOGS فعلية.",
+      "تتوفر تكلفة بيع مسجلة لبعض الأعمال النهائية فقط؛ تستخدم القراءة نسخة التكلفة لبقية الأعمال، فلا تُعرض كل التكلفة كتكلفة بيع فعلية.",
     );
   if (unallocatedInventoryCostMinor > 0)
-    cogsReasons.push("توجد حركة استهلاك عامة أو بلا ارتباط صالح؛ لم توزع على عمل ولم تدخل COGS.");
+    cogsReasons.push("توجد حركة استهلاك عامة أو بلا ارتباط صالح؛ لم توزع على عمل ولم تدخل تكلفة البيع.");
   if (generalInventoryWasteMinor > 0)
-    cogsReasons.push("يوجد هدر مخزون عام؛ لا يسمى COGS ولا يحمل على عمل تلقائيًا.");
+    cogsReasons.push("يوجد هدر مخزون عام؛ لا يسمى تكلفة بيع ولا يوزّع على عمل تلقائيًا.");
   const cogsNextAction =
     cogsStatus === "recorded" && unallocatedInventoryCostMinor === 0 && generalInventoryWasteMinor === 0
-      ? "راجع أن حركات الاستهلاك تغطي المواد المقصودة؛ تبقى بقية عناصر التكلفة من Snapshot."
+      ? "راجع أن حركات الاستهلاك تغطي المواد المقصودة؛ تبقى بقية عناصر التكلفة من نسخة التكلفة."
       : "سجل استهلاكًا بقيمة تكلفة محفوظة واربطه بعمل مكتمل، أو راجع الحركات العامة؛ لا تدخل صفرًا عند غياب الدليل.";
   return {
     snapshotDirectCostMinor,
@@ -333,7 +337,7 @@ export class ProjectFinancialService {
         unallocatedCashMinor,
         cashWalletCount: walletsResult.value.length,
         truth:
-          "الكاش المسجل يجمع رصيد المحافظ المعلن والكاش غير الموزع من الطلبات والأحداث وشراء المواد. استحقاق المالك لا يغير الكاش، بينما حركة السحب أو الإرجاع الفعلية تغير المحفظة بسببها؛ الاستثمار الجديد مستقل عن الاستحقاق.",
+          "الكاش المسجل يجمع رصيد المحافظ المعلن والكاش غير الموزع من الطلبات والأحداث وشراء المواد. حق المالك لا يغير الكاش، بينما حركة السحب أو الإرجاع الفعلية تغير المحفظة بسببها؛ الاستثمار الجديد مستقل عن الحق.",
       },
     };
   }
@@ -343,6 +347,27 @@ export class ProjectFinancialService {
     return result.ok
       ? { ok: true, value: result.value }
       : { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+  }
+
+  async listSettleablePayables(): Promise<FinanceResult<readonly SettleablePayable[]>> {
+    const events = await this.store.listFinancialEvents();
+    if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    const reversedIds = reversedEventIds(events.value);
+    return {
+      ok: true,
+      value: events.value
+        .filter(
+          event =>
+            event.type === "operating_expense_payable" &&
+            event.payableDeltaMinor > 0 &&
+            !reversedIds.has(event.id),
+        )
+        .map(event => ({
+          event,
+          remainingMinor: event.amountMinor - activeSettlementsMinor(events.value, event.id),
+        }))
+        .filter(payable => payable.remainingMinor > 0),
+    };
   }
 
   async readRecordedPeriodResult(from: string, to: string): Promise<FinanceResult<RecordedPeriodResult>> {
@@ -369,7 +394,7 @@ export class ProjectFinancialService {
           unallocatedInventoryCostMinor: 0,
           generalInventoryWasteMinor: 0,
           cogsReasons: [],
-          cogsNextAction: "صحح حدود الفترة قبل مراجعة COGS.",
+          cogsNextAction: "صحح حدود الفترة قبل مراجعة تكلفة البيع.",
           recordedOperatingExpenseMinor: 0,
           projectOperatingExpenseMinor: 0,
           sharedProjectExpenseMinor: 0,
@@ -464,7 +489,7 @@ export class ProjectFinancialService {
     if (sharedEstimatedExpenseCount > 0) reasons.push("توجد حصة مشروع مشتركة تقديرية أو تحتاج مراجعة.");
     if (sharedMissingBasisCount > 0) reasons.push("توجد حصة مشروع مشتركة بلا مصدر موثق.");
     if (sharedUnallocatedExpenseCount > 0)
-      reasons.push("توجد مصاريف مشتركة غير محملة؛ حدد حصة المشروع قبل خصمها من النتيجة.");
+      reasons.push("توجد مصاريف مشتركة غير موزّعة؛ حدد حصة المشروع قبل خصمها من النتيجة.");
     if (legacyUnclassifiedExpenseCount > 0) reasons.push("توجد مصروفات قديمة بلا سياق مالي.");
     const incomplete = reasons.length > 0;
     return {
@@ -499,8 +524,8 @@ export class ProjectFinancialService {
         status: incomplete ? "incomplete" : "recorded_only",
         reasons,
         truth: incomplete
-          ? "هذا هو صافي الربح التشغيلي المسجل من البنود الداخلة في الفترة، لكنه يحتاج مراجعة للأسباب الظاهرة. الرقم لا يشمل المصدر المشترك غير المحمل، وتوضح قراءة COGS هل استُخدم استهلاك مثبت أم Snapshot بديل؛ هذه القراءة ليست صافي ربح نهائيًا."
-          : "هذا هو صافي الربح التشغيلي المسجل من الأعمال المكتملة والتكلفة المباشرة المستخدمة وفق مصدرها ومصروفات الفترة. لا يؤكد COGS كاملًا خارج الاستهلاك المثبت أو Snapshot، ولا التوزيع على المنتجات أو الضرائب؛ لذلك ليس صافي ربح نهائيًا.",
+          ? "هذه هي نتيجة الفترة المسجلة من البنود الداخلة فيها، لكنها تحتاج مراجعة للأسباب الظاهرة. الرقم لا يشمل المصدر المشترك غير الموزّع، وتوضح قراءة تكلفة البيع هل استُخدم استهلاك مثبت أم نسخة تكلفة بديلة؛ هذه القراءة ليست صافي ربح نهائيًا."
+          : "هذه هي نتيجة الفترة المسجلة من الأعمال المكتملة والتكلفة المباشرة المستخدمة وفق مصدرها ومصروفات الفترة. لا تؤكد تكلفة البيع كاملة خارج الاستهلاك المثبت أو نسخة التكلفة، ولا التوزيع على المنتجات أو الضرائب؛ لذلك ليست صافي ربح نهائيًا.",
       },
     };
   }
@@ -585,10 +610,10 @@ export class ProjectFinancialService {
           event.expenseContext?.behavior === "unknown",
       )
     )
-      coverageReasons.push("توجد مصروفات متغيرة أو مختلطة لا تحمل تلقائيًا على هامش المساهمة.");
+      coverageReasons.push("توجد مصروفات متغيرة أو مختلطة لا توزّع تلقائيًا على الهامش بعد الكلفة المباشرة.");
     if (movementCount > 0)
       coverageReasons.push(
-        "توجد حركات مخزون فعلية؛ تعرض نتيجة الفترة COGS الاختيارية عند اكتمال دليلها، لكنها لا تعيد كتابة Snapshot أو هامش اسم العمل.",
+        "توجد حركات مخزون فعلية؛ تعرض نتيجة الفترة تكلفة البيع الاختيارية عند اكتمال دليلها، لكنها لا تعيد كتابة نسخة التكلفة أو هامش اسم العمل.",
       );
     if (directMarginMinor <= 0) coverageReasons.push("الهامش المباشر المسجل غير موجب.");
     if (fixedExpenseMinor <= 0) coverageReasons.push("لا توجد مصروفات ثابتة مسجلة ومعروفة للفترة.");
@@ -600,8 +625,10 @@ export class ProjectFinancialService {
           : "recorded_only";
     const breakEvenUnits =
       coverageStatus === "recorded_only"
-        ? Math.ceil((fixedExpenseMinor * finalDeliveredQuantity) / directMarginMinor)
+        ? calculateBreakEvenUnits(fixedExpenseMinor, finalDeliveredQuantity, directMarginMinor)
         : null;
+    if (coverageStatus === "recorded_only" && breakEvenUnits === null)
+      coverageReasons.push("تعذر حساب وحدات التعادل ضمن الدقة الآمنة.");
     const liquidityIncomplete =
       positionResult.value.customerReceivablesMinor > 0 || positionResult.value.supplierPayablesMinor > 0;
     const liquidity: RecordedLiquidity = {
@@ -612,7 +639,7 @@ export class ProjectFinancialService {
       cashCoverageAfterLiabilitiesMinor:
         positionResult.value.recordedCashMinor - positionResult.value.supplierPayablesMinor,
       truth: liquidityIncomplete
-        ? "الذمم أو الالتزامات المسجلة لا تحمل مواعيد تحصيل أو دفع كافية؛ لا يمثل هذا توقع سيولة للأيام القادمة."
+        ? "الديون أو الالتزامات المسجلة لا تحمل مواعيد تحصيل أو دفع كافية؛ لا يمثل هذا توقع سيولة للأيام القادمة."
         : "هذه تغطية الكاش المسجل بعد الالتزامات المسجلة فقط؛ ليست توقع تدفق نقدي.",
     };
     return {
@@ -647,7 +674,7 @@ export class ProjectFinancialService {
         },
         liquidity,
         truth:
-          "هذه مؤشرات مشتقة من السجل المحلي في الفترة؛ لا تحفظ نتيجة جديدة ولا تحول الكاش أو المخزون أو الذمم إلى صافي ربح. نتيجة الفترة تعرض COGS الاختيارية وفق عقد G3، بينما تبقى مؤشرات التغطية وهامش اسم العمل محافظة على Snapshot الخاص بالطلب.",
+          "هذه مؤشرات مشتقة من السجل المحلي في الفترة؛ لا تحفظ نتيجة جديدة ولا تحول الكاش أو المخزون أو الديون إلى صافي ربح. نتيجة الفترة تعرض تكلفة البيع الاختيارية وفق العقد، بينما تبقى مؤشرات التغطية وهامش اسم العمل محافظة على نسخة التكلفة الخاصة بالطلب.",
       },
     };
   }
@@ -660,8 +687,8 @@ export class ProjectFinancialService {
     const idempotencyKey = input.idempotencyKey.trim();
     const reason = input.reason.trim();
     if (!sourceEventId)
-      return { ok: false, code: "validation_error", message: "اختر الواقعة الأصلية قبل تصحيحها." };
-    if (!reason) return { ok: false, code: "validation_error", message: "اكتب سبب التصحيح قبل تنفيذ العكس." };
+      return { ok: false, code: "validation_error", message: "اختر الحدث الأصلي قبل تصحيحه." };
+    if (!reason) return { ok: false, code: "validation_error", message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
     if (!idempotencyKey)
       return { ok: false, code: "validation_error", message: "مفتاح التصحيح مطلوب لمنع تكرار الأثر." };
     if (!isValidLocalDate(input.occurredOn))
@@ -678,22 +705,22 @@ export class ProjectFinancialService {
       return {
         ok: false,
         code: "validation_error",
-        message: "مفتاح التصحيح مستخدم في واقعة أخرى؛ اختر مفتاحًا جديدًا.",
+        message: "مفتاح التصحيح مستخدم في حدث آخر؛ اختر مفتاحًا جديدًا.",
       };
     const source = existing.value.find(event => event.id === sourceEventId);
     if (!source)
       return {
         ok: false,
         code: "validation_error",
-        message: "لم تُعثر على الواقعة الأصلية؛ لم يتغير السجل.",
+        message: "لم يُعثر على الحدث الأصلي؛ لم يتغير السجل.",
       };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
-      return { ok: false, code: "validation_error", message: "لا يمكن عكس واقعة عكس سابقة." };
+      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن حدث تراجع سابق." };
     const alreadyReversed = existing.value.find(
       event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
     );
     if (alreadyReversed)
-      return { ok: false, code: "validation_error", message: "هذه الواقعة عُكست سابقًا؛ لا يُنشأ عكس ثانٍ." };
+      return { ok: false, code: "validation_error", message: "تم التراجع عن هذا الحدث سابقًا؛ لا يُنشأ تراجع ثانٍ." };
     try {
       const reversal = createFinancialReversal({
         id: id(),
@@ -708,7 +735,7 @@ export class ProjectFinancialService {
         return {
           ok: false,
           code: "storage_error",
-          message: "تعذر حفظ العكس ذريًا. بقيت الواقعة الأصلية دون تغيير.",
+          message: "تعذر حفظ التراجع ذريًا. بقي الحدث الأصلي دون تغيير.",
         };
       return saved.value.id === reversal.id
         ? { ok: true, value: saved.value }
@@ -825,9 +852,9 @@ export class ProjectFinancialService {
       const source = existing.value.find(event => event.id === input.relatedEventId);
       if (!source || source.type !== "operating_expense_payable")
         return { ok: false, code: "validation_error", message: "اختر التزام مصروف مسجلًا قبل تسجيل تسديده." };
-      const paid = existing.value
-        .filter(event => event.type === "payable_settlement_cash" && event.relatedEventId === source.id)
-        .reduce((sum, event) => sum + event.amountMinor, 0);
+      if (source.correctionType === "reverse" || reversedEventIds(existing.value).has(source.id))
+        return { ok: false, code: "validation_error", message: "اختر التزامًا فعالًا لم يتم التراجع عنه." };
+      const paid = activeSettlementsMinor(existing.value, source.id);
       if (amountMinor > source.amountMinor - paid)
         return {
           ok: false,

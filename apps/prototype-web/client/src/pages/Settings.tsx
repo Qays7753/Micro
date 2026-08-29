@@ -8,11 +8,7 @@ import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedO
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
-import {
-  persistentStorageCopy,
-  readPersistentStorageState,
-  type PersistentStorageState,
-} from "@/storage/local/persistentStorage";
+import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { OperatingWorkMode } from "@/storage/local/types";
 
 type OperatingModeState =
@@ -40,18 +36,18 @@ const modeOptions: Array<{ value: "" | OperatingWorkMode; label: string; descrip
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
-  const { actualTime, transfers, guidedOpeningImport, dataVersion, notifyDataChanged } =
+  const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged } =
     usePrototypeServices();
-  const [persistence, setPersistence] = useState<PersistentStorageState | null>(null);
+  const [persistence, setPersistence] = useState<BrowserPersistenceReading | null>(null);
   useEffect(() => {
     let active = true;
-    void readPersistentStorageState().then(value => {
+    void preferences.readBrowserPersistence().then(value => {
       if (active) setPersistence(value);
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [preferences]);
   const inputRef = useRef<HTMLInputElement>(null);
   const guidedInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<TransferPreview | null>(null);
@@ -208,7 +204,7 @@ export default function SettingsPage() {
         nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف."
         tone="warning"
       />
-      <details className="micro-decision-layer">
+      <details className="micro-decision-layer" open>
         <summary className="micro-decision-layer-summary">
           <span>
             <b>بيانات ونسخ احتياطي محلي</b>
@@ -239,15 +235,16 @@ export default function SettingsPage() {
               <Shield aria-hidden="true" />
             </span>
             <div>
-              <h2>{persistentStorageCopy(persistence).title}</h2>
-              <p>{persistentStorageCopy(persistence).text}</p>
+              <h2>{persistence.title}</h2>
+              <p>{persistence.text}</p>
             </div>
           </article>
         ) : null}
         <StorageRow
           icon={Download}
           title="تصدير محلي"
-          text="ينشئ ملف JSON لبيانات Prototype الحالية دون أسرار أو مفاتيح."
+          text="ينشئ ملف نسخة لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
+          actionLabel="تصدير"
           label="تصدير البيانات المحلية"
           disabled={isWorking}
           onClick={exportLocal}
@@ -256,6 +253,7 @@ export default function SettingsPage() {
           icon={Upload}
           title="استيراد محلي"
           text="نقرأ الملف ونتحقق منه أولًا، ثم نعرض ملخصًا قبل استبدال أي بيانات."
+          actionLabel="استيراد"
           label="اختيار ملف استيراد"
           disabled={isWorking}
           onClick={() => inputRef.current?.click()}
@@ -433,7 +431,7 @@ export default function SettingsPage() {
                   value={guidedPreview.summary.acceptedMaterialQuantityMilli}
                   className="micro-inline-number"
                 />{" "}
-                milli
+                (أجزاء من ألف)
               </li>
               <li>
                 <IntegerValue
@@ -444,8 +442,8 @@ export default function SettingsPage() {
               </li>
             </ul>
             <p className="micro-local-truth">
-              الاستيراد ذري على Store فارغ، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة تلقائية بعد
-              التأكيد.
+              الإدخال يكتب مرة واحدة على بيانات فارغة، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة تلقائية
+              بعد التأكيد.
             </p>
             <div className="micro-form-actions">
               <button
@@ -512,7 +510,7 @@ export default function SettingsPage() {
                 حركات مخزون
               </li>
               <li>
-                <IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> Snapshot
+                <IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> نسخة
                 تكلفة و<IntegerValue value={preview.summary.events} className="micro-inline-number" /> حدث
                 مالي/تشغيلي داخل الطلب
               </li>
@@ -558,6 +556,7 @@ function StorageRow({
   icon: Icon,
   title,
   text,
+  actionLabel,
   label,
   disabled,
   onClick,
@@ -565,6 +564,7 @@ function StorageRow({
   icon: typeof Download;
   title: string;
   text: string;
+  actionLabel: string;
   label: string;
   disabled: boolean;
   onClick: () => void;
@@ -579,13 +579,14 @@ function StorageRow({
         <p>{text}</p>
       </div>
       <button
-        className="micro-icon-button"
+        className="micro-button micro-button-secondary"
         type="button"
         disabled={disabled}
         onClick={onClick}
         aria-label={label}
       >
         <Icon aria-hidden="true" />
+        {actionLabel}
       </button>
     </article>
   );

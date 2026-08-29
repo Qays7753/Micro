@@ -286,7 +286,7 @@ function openDatabase(): Promise<IDBDatabase> {
         movementStore.createIndex("relatedOpeningBalanceId", "relatedOpeningBalanceId");
       if (event.oldVersion < 23) {
         if (policyStore) {
-          const cursor = guardUpgradeCursor(policyStore.openCursor(), request, "سياسات استحقاق المالك");
+          const cursor = guardUpgradeCursor(policyStore.openCursor(), request, "سياسات حق المالك");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -301,7 +301,7 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
         if (recordStore) {
-          const cursor = guardUpgradeCursor(recordStore.openCursor(), request, "سجلات استحقاق المالك");
+          const cursor = guardUpgradeCursor(recordStore.openCursor(), request, "سجلات حق المالك");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -322,7 +322,7 @@ function openDatabase(): Promise<IDBDatabase> {
           const cursor = guardUpgradeCursor(
             openingStore.openCursor(),
             request,
-            "أرصدة افتتاح استحقاق المالك",
+            "أرصدة افتتاح حق المالك",
           );
           cursor.onsuccess = () => {
             const current = cursor.result;
@@ -375,7 +375,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 26) {
         const allocationPolicies = request.transaction?.objectStore(allocationPolicyStore);
         if (allocationPolicies) {
-          const cursor = guardUpgradeCursor(allocationPolicies.openCursor(), request, "سياسات التحميل");
+          const cursor = guardUpgradeCursor(allocationPolicies.openCursor(), request, "سياسات التوزيع");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -729,12 +729,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: "storage_error",
-              message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ التراجع.",
             });
             return;
           }
           if (source.correctionType === "reverse" || source.correctionOfEventId) {
-            abortWith({ ok: false, code: "storage_error", message: "لا يمكن عكس واقعة عكس سابقة." });
+            abortWith({ ok: false, code: "storage_error", message: "لا يمكن التراجع عن حدث تراجع سابق." });
             return;
           }
           const existing = events.find(
@@ -747,13 +747,13 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "تعذر حفظ العكس لأن الواقعة عُكست سابقًا بمفتاح مختلف.",
+                    message: "تعذر حفظ التراجع لأن هذا الحدث تم التراجع عنه سابقًا بمفتاح مختلف.",
                   },
             );
             return;
           }
           if (events.some(event => event.id === reversal.id)) {
-            abortWith({ ok: false, code: "storage_error", message: "تعذر حفظ العكس بسبب تعارض هوية محلية." });
+            abortWith({ ok: false, code: "storage_error", message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." });
             return;
           }
           if (
@@ -770,7 +770,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: "storage_error",
-              message: "بيانات العكس لا تطابق الواقعة الأصلية؛ لم يتغير السجل.",
+              message: "بيانات التراجع لا تطابق الحدث الأصلي؛ لم يتغير السجل.",
             });
             return;
           }
@@ -958,7 +958,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ المراجعة.",
+              message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ النسخة الجديدة.",
             };
             try {
               transaction.abort();
@@ -971,7 +971,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية مراجعة القالب؛ لم تتغير البيانات.",
+              message: "تعارض هوية نسخة القالب؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();
@@ -1077,7 +1077,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم تعد سياسة التحميل الأصلية فعالة؛ لم تتغير السلسلة.",
+              message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم يتغير أي شيء.",
             };
             try {
               transaction.abort();
@@ -1090,7 +1090,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية نسخة سياسة التحميل؛ لم تتغير البيانات.",
+              message: "تعارض هوية نسخة سياسة التوزيع؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();
@@ -1150,7 +1150,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد الإعلان الأصلي موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
               transaction.abort();
@@ -1169,7 +1169,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "هذا الإعلان عُكس سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
+                    message: "تم التراجع عن هذا السجل المتوقع سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
                   };
             try {
               transaction.abort();
@@ -1195,7 +1195,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية عكس إعلان السيولة؛ لم يتغير السجل.",
+              message: "تعارض هوية التراجع عن السجل المتوقع؛ لم يتغير السجل.",
             };
             try {
               transaction.abort();
@@ -1274,7 +1274,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ السلسلة.",
+              message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ النسخة الجديدة.",
             };
             try {
               transaction.abort();
@@ -1287,7 +1287,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية خليفة السياسة؛ لم تتغير السلسلة.",
+              message: "تعارض هوية النسخة الجديدة من السياسة؛ لم يتغير أي شيء.",
             };
             try {
               transaction.abort();
@@ -1352,7 +1352,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد سجل الاستحقاق المصدر موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
               transaction.abort();
@@ -1369,7 +1369,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "عكس الاستحقاق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
+                    message: "التراجع عن الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
                   };
             try {
               transaction.abort();
@@ -1382,7 +1382,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية عكس الاستحقاق؛ لم تتغير البيانات.",
+              message: "تعارض هوية التراجع عن الحق؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();
@@ -1443,7 +1443,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد الرصيد الافتتاحي المصدر موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد الرصيد الافتتاحي المصدر موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
               transaction.abort();
@@ -1460,7 +1460,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "عكس الرصيد الافتتاحي موجود بمفتاح مختلف؛ لم تتغير البيانات.",
+                    message: "التراجع عن الرصيد الافتتاحي موجود بمفتاح مختلف؛ لم تتغير البيانات.",
                   };
             try {
               transaction.abort();
@@ -1473,7 +1473,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية عكس الرصيد الافتتاحي؛ لم تتغير البيانات.",
+              message: "تعارض هوية التراجع عن الرصيد الافتتاحي؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();

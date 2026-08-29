@@ -228,23 +228,23 @@ export class CashContinuityService {
     const repeated = entries.filter(entry => entry.operationKey === input.operationKey);
     if (repeated.length) return { ok: true, value: repeated, reused: true };
     const target = entries.find(entry => entry.id === input.entryId);
-    if (!target) return { ok: false, code: "validation_error", message: "لم نجد أثر الكاش الذي تريد عكسه." };
+    if (!target) return { ok: false, code: "validation_error", message: "لم نجد أثر الكاش الذي تريد التراجع عنه." };
     if (target.type === "reversal")
       return {
         ok: false,
         code: "validation_error",
-        message: "لا يعكس هذا الإصدار أثر عكس سابق؛ سجّل ضبط كاش بسبب بدلًا من ذلك.",
+        message: "لا يتراجع هذا الإصدار عن أثر تراجع سابق؛ سجّل ضبط كاش بسبب بدلًا من ذلك.",
       };
     const targets = target.transferId
       ? entries.filter(entry => entry.transferId === target.transferId)
       : [target];
     if (targets.length === 0 || (target.transferId && targets.length !== 2))
-      return { ok: false, code: "validation_error", message: "أثر التحويل غير متوازن ولا يمكن عكسه بأمان." };
+      return { ok: false, code: "validation_error", message: "أثر التحويل غير متوازن ولا يمكن التراجع عنه بأمان." };
     if (targets.some(entry => entries.some(candidate => candidate.reversesEntryId === entry.id)))
       return {
         ok: false,
         code: "validation_error",
-        message: "تم عكس هذا الأثر سابقًا. لا يمكن عكسه مرة ثانية.",
+        message: "تم التراجع عن هذا الأثر سابقًا. لا يمكن التراجع عنه مرة ثانية.",
       };
     try {
       const reversalTransferId = target.transferId ? id("reversal-transfer") : null;
@@ -256,7 +256,7 @@ export class CashContinuityService {
           occurredOn: input.occurredOn,
           recordedAt: this.now(),
           cashDeltaMinor: -entry.cashDeltaMinor,
-          note: `عكس: ${entry.note}`,
+          note: `تراجع: ${entry.note}`,
           reason: input.reason,
           operationKey: input.operationKey,
           transferId: reversalTransferId,
@@ -269,7 +269,7 @@ export class CashContinuityService {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات عكس الكاش غير صالحة.",
+        message: error instanceof Error ? error.message : "بيانات التراجع عن الكاش غير صالحة.",
       };
     }
   }

@@ -710,6 +710,69 @@ describe("ProjectFinancialService", () => {
     });
   });
 
+  it("withholds break-even units beyond safe-integer precision with a recorded reason instead of a wrong number", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const cost = calculateCostSnapshot("cost-overflow", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 2,
+      createdAt: "2026-08-01T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    let order = createCraftOrder({
+      id: "overflow-order",
+      customerName: "عميلة",
+      itemName: "تعادل",
+      specifications: "اختبار",
+      quantity: 2,
+      agreedPriceMinor: 6000,
+      costSnapshot: cost,
+      createdAt: "2026-08-01T09:00:00.000Z",
+    });
+    for (const [to, stamp] of [
+      ["provisional_agreement", "2026-08-01T10:00:00.000Z"],
+      ["confirmed", "2026-08-01T11:00:00.000Z"],
+      ["in_progress", "2026-08-02T09:00:00.000Z"],
+      ["ready", "2026-08-03T09:00:00.000Z"],
+      ["delivered", "2026-08-05T09:00:00.000Z"],
+    ] as const)
+      order = transitionOrder(order, { to, idempotencyKey: `overflow-${to}`, createdAt: stamp });
+    await store.saveOrder({
+      id: order.id,
+      order,
+      deliveryDate: "2026-08-05",
+      agreementSource: "test",
+      createdAt: "2026-08-01T09:00:00.000Z",
+      updatedAt: "2026-08-05T09:00:00.000Z",
+    });
+    await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 9_000_000_000_000_000,
+      occurredOn: "2026-08-06",
+      note: "مصروف ثابت ضخم",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "overflow-fixed",
+    });
+    await expect(finance.readFinancialInsights("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+      ok: true,
+      value: {
+        coverage: {
+          status: "recorded_only",
+          breakEvenUnits: null,
+          reasons: [expect.stringContaining("تعذر حساب وحدات التعادل")],
+        },
+      },
+    });
+  });
+
   it("withholds coverage units for variable expenses and keeps liquidity debt separate from cash", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
@@ -855,7 +918,7 @@ describe("ProjectFinancialService", () => {
         type: entry.type,
         amountMinor: 1000,
         occurredOn: "2026-08-23",
-        note: `واقعة ${index}`,
+        note: `حدث ${index}`,
         counterparty: null,
         relatedEventId: null,
         expenseContext: entry.type.startsWith("operating_expense")
@@ -1365,5 +1428,164 @@ describe("ProjectFinancialService", () => {
         status: "incomplete",
       },
     });
+  });
+});
+
+describe("ProjectFinancialService payable settlements after a reversal (A-01)", () => {
+  async function commitmentWithMistakenSettlement() {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const payable = await finance.record({
+      type: "operating_expense_payable",
+      amountMinor: 10000,
+      occurredOn: "2026-08-01",
+      note: "التزام مورد",
+      counterparty: "مورد",
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "a01-payable",
+    });
+    const settlement = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 6000,
+      occurredOn: "2026-08-02",
+      note: "دفعة خطأ",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-settle",
+    });
+    const reversal = await finance.reverse({
+      sourceEventId: settlement.ok ? settlement.value.id : "",
+      reason: "دفعة مسجلة بالخطأ",
+      occurredOn: "2026-08-03",
+      idempotencyKey: "a01-reverse",
+    });
+    return { store, finance, payable, settlement, reversal };
+  }
+  it("keeps all three surfaces at the full remaining 10000 after a settlement reversal", async () => {
+    const { finance, payable } = await commitmentWithMistakenSettlement();
+    const payables = await finance.listSettleablePayables();
+    expect(payables.ok).toBe(true);
+    const listed = payables.ok
+      ? payables.value.find(item => item.event.id === (payable.ok ? payable.value.id : ""))
+      : undefined;
+    expect(listed?.remainingMinor).toBe(10000);
+    const retry = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 10000,
+      occurredOn: "2026-08-04",
+      note: "الدفعة الصحيحة",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-retry",
+    });
+    expect(retry.ok).toBe(true);
+    const afterFullSettlement = await finance.listSettleablePayables();
+    expect(
+      afterFullSettlement.ok
+        ? afterFullSettlement.value.some(item => item.event.id === (payable.ok ? payable.value.id : ""))
+        : true,
+    ).toBe(false);
+  });
+  it("still rejects settlements beyond the remaining when a real settlement stands", async () => {
+    const { finance, payable } = await commitmentWithMistakenSettlement();
+    await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 4000,
+      occurredOn: "2026-08-04",
+      note: "دفعة جزئية",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-partial",
+    });
+    const beyond = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 6001,
+      occurredOn: "2026-08-05",
+      note: "تجاوز",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-beyond",
+    });
+    expect(beyond.ok).toBe(false);
+    if (!beyond.ok) expect(beyond.code).toBe("validation_error");
+  });
+});
+
+describe("ProjectFinancialService settlement source liveness (A-03)", () => {
+  it("rejects settling a reversal record and keeps the ledger at zero net effect", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const payable = await finance.record({
+      type: "operating_expense_payable",
+      amountMinor: 10000,
+      occurredOn: "2026-08-01",
+      note: "التزام خطأ",
+      counterparty: "مورد",
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "a03-payable",
+    });
+    const reversal = await finance.reverse({
+      sourceEventId: payable.ok ? payable.value.id : "",
+      reason: "سجل بالخطأ",
+      occurredOn: "2026-08-02",
+      idempotencyKey: "a03-reverse-payable",
+    });
+    const settleReversal = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 10000,
+      occurredOn: "2026-08-03",
+      note: "تسديد على السجل المعكوس",
+      counterparty: "مورد",
+      relatedEventId: reversal.ok ? reversal.value.id : "",
+      idempotencyKey: "a03-settle-reversal",
+    });
+    expect(settleReversal).toMatchObject({ ok: false, code: "validation_error" });
+    const events = await finance.listEvents();
+    const totals = events.ok
+      ? events.value.reduce(
+          (acc, event) => ({
+            cash: acc.cash + event.cashDeltaMinor,
+            payable: acc.payable + event.payableDeltaMinor,
+          }),
+          { cash: 0, payable: 0 },
+        )
+      : null;
+    expect(totals).toEqual({ cash: 0, payable: 0 });
+  });
+  it("rejects settling an already-reversed payable and lists neither it nor its reversal as settleable", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const payable = await finance.record({
+      type: "operating_expense_payable",
+      amountMinor: 10000,
+      occurredOn: "2026-08-01",
+      note: "التزام سيعكس",
+      counterparty: "مورد",
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "a03-payable-2",
+    });
+    const reversal = await finance.reverse({
+      sourceEventId: payable.ok ? payable.value.id : "",
+      reason: "سجل بالخطأ",
+      occurredOn: "2026-08-02",
+      idempotencyKey: "a03-reverse-payable-2",
+    });
+    const settleReversed = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-08-03",
+      note: "تسديد على التزام معكوس",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a03-settle-reversed",
+    });
+    expect(settleReversed).toMatchObject({ ok: false, code: "validation_error" });
+    const options = await finance.listSettleablePayables();
+    const ids = options.ok ? options.value.map(item => item.event.id) : [];
+    expect(ids).not.toContain(payable.ok ? payable.value.id : "");
+    expect(ids).not.toContain(reversal.ok ? reversal.value.id : "");
   });
 });

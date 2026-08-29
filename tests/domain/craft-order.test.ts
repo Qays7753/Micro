@@ -220,14 +220,14 @@ describe("craft-order domain core", () => {
           index === 0 ? { ...item, unitPriceMinor: -1 } : item,
         ),
       }),
-    ).toThrow("unitPriceMinor");
+    ).toThrow("سعر وحدة خشب");
 
     expect(() =>
       calculateCostSnapshot("cost-zero-quantity", {
         ...costSnapshot.input,
         quantity: 0,
       }),
-    ).toThrow("quantity must be greater than zero");
+    ).toThrow("أدخل الكمية رقمًا أكبر من صفر.");
   });
 
   it("marks stale prices only when an explicit freshness policy is supplied", () => {
@@ -259,7 +259,7 @@ describe("craft-order domain core", () => {
         idempotencyKey: "unsafe-reopen",
         createdAt: "2026-08-21T09:16:00Z",
       }),
-    ).toThrow("explicit correction");
+    ).toThrow("تصحيح موثق صريح");
   });
 
   it("keeps deposit, delivery, collection, and profit separate", () => {
@@ -329,7 +329,7 @@ describe("craft-order domain core", () => {
   it("requires a reason and preserves a cancellation event", () => {
     const order = makeOrder();
     expect(() => cancelOrder(order, "", "cancel-1", "2026-08-21T09:50:00Z")).toThrow(
-      "cancellation reason is required",
+      "أكمل سبب الإلغاء قبل الحفظ.",
     );
 
     const cancelled = cancelOrder(order, "الزبون غير المواصفات", "cancel-1", "2026-08-21T09:51:00Z");
@@ -384,7 +384,7 @@ describe("craft-order domain core", () => {
     );
     expect(() =>
       settleDepositRefund(cancelled, 600, "مبلغ أكبر من العربون", "refund-too-large", "2026-08-21T10:11:30Z"),
-    ).toThrow("settlement amount must equal the collected deposit");
+    ).toThrow("مبلغ التسوية يجب أن يساوي العربون المحصل");
 
     const retained = settleDepositRetain(
       cancelled,
@@ -399,21 +399,21 @@ describe("craft-order domain core", () => {
     expect(retained.collectedMinor).toBe(500);
     expect(() =>
       settleDepositRefund(retained, 500, "محاولة قرار متناقض", "refund-after-retain", "2026-08-21T10:13:00Z"),
-    ).toThrow("already decided");
+    ).toThrow("تسوية هذا العربون محسومة سابقًا");
   });
 
   it("prevents deposit collection after delivery or cancellation", () => {
     const delivered = confirmAndDeliver(makeOrder());
     expect(() => collectDeposit(delivered, 100, "late-deposit", "2026-08-21T10:20:00Z")).toThrow(
-      "cannot collect deposit in delivered status",
+      "لا يمكن تسجيل العربون والطلب في حالة «تم التسليم».",
     );
 
     const cancelled = cancelOrder(makeOrder(), "إلغاء", "cancel-late-deposit", "2026-08-21T10:21:00Z");
     expect(() => collectDeposit(cancelled, 100, "cancelled-deposit", "2026-08-21T10:22:00Z")).toThrow(
-      "cannot collect deposit in cancelled status",
+      "لا يمكن تسجيل العربون والطلب في حالة «ملغى».",
     );
     expect(() => collectRemaining(cancelled, 100, "cancelled-collection", "2026-08-21T10:23:00Z")).toThrow(
-      "remaining collection requires a delivered order",
+      "تحصيل المتبقي يتطلب طلبًا مسلّمًا",
     );
   });
 
@@ -462,7 +462,7 @@ describe("craft-order domain core", () => {
         "revision-mismatched-quantity",
         "2026-08-21T10:22:00Z",
       ),
-    ).toThrow("revised cost snapshot quantity must match order quantity");
+    ).toThrow("كمية نسخة التكلفة المعدلة يجب أن تطابق كمية الطلب");
   });
 
   it("settles a fully prepaid order at delivery and shows no collection action", () => {
@@ -472,7 +472,7 @@ describe("craft-order domain core", () => {
     expect(order.status).toBe("settled");
     expect(order.settlementStatus).toBe("paid");
     expect(order.receivableMinor).toBe(0);
-    expect(order.nextAction).toBe("راجع النتيجة والفعل التالي");
+    expect(order.nextAction).toBe("راجع النتيجة والخطوة التالية");
     expect(order.events).toContainEqual(
       expect.objectContaining({
         type: "status_changed",
@@ -492,12 +492,12 @@ describe("craft-order domain core", () => {
 
     expect(() =>
       cancelOrder(reviewed, "محاولة إلغاء بعد التسليم", "locked-cancel", "2026-08-21T10:32:00Z"),
-    ).toThrow("explicit correction");
+    ).toThrow("تصحيح موثق صريح");
     expect(() =>
       reviseOrderCost(reviewed, "تعديل بعد التسليم", costSnapshot, "locked-revision", "2026-08-21T10:33:00Z"),
-    ).toThrow("explicit correction");
+    ).toThrow("تصحيح موثق صريح");
     expect(() => collectDeposit(reviewed, 100, "locked-deposit", "2026-08-21T10:34:00Z")).toThrow(
-      "explicit correction",
+      "تصحيح موثق صريح",
     );
   });
 
@@ -510,12 +510,12 @@ describe("craft-order domain core", () => {
         idempotencyKey: "generic-cancel-transition",
         createdAt: "2026-08-21T10:36:00Z",
       }),
-    ).toThrow("invalid transition");
+    ).toThrow("انتقال غير مسموح");
   });
 
   it("rejects blank idempotency keys", () => {
     expect(() => collectDeposit(makeOrder(), 100, "   ", "2026-08-21T10:37:00Z")).toThrow(
-      "idempotencyKey must be non-blank",
+      "أكمل مفتاح العملية قبل الحفظ.",
     );
   });
 
@@ -592,7 +592,7 @@ describe("craft-order domain core", () => {
         idempotencyKey: "invalid-delivery",
         createdAt: "2026-08-21T10:00:00Z",
       }),
-    ).toThrow("invalid transition");
+    ).toThrow("انتقال غير مسموح");
   });
 
   it("does not duplicate a financial event when retried", () => {
@@ -603,5 +603,134 @@ describe("craft-order domain core", () => {
     expect(twice.collectedMinor).toBe(500);
     expect(twice.depositCollectedMinor).toBe(500);
     expect(twice.events).toHaveLength(2);
+  });
+});
+
+describe("material and time rounding follows the half-up minor policy (A-04)", () => {
+  const baseInput = {
+    currency: "JOD" as const,
+    time: null,
+    source: "draft" as const,
+    packagingMinor: 0,
+    deliveryMinor: 0,
+    wasteMinor: 0,
+    safetyBufferMinor: 0,
+    createdAt: "2026-08-01T09:00:00.000Z",
+    freshnessDays: null,
+  };
+  const material = (name: string, quantity: number, unitPriceMinor: number) => ({
+    name,
+    quantity,
+    unit: "meter",
+    unitPriceMinor,
+    priceDate: "2026-08-01",
+    source: "user_input" as const,
+    confidence: "known" as const,
+  });
+  it("rounds 1.005 meters at 1.00 up to 101 minor, not float-floor 100", () => {
+    const snapshot = calculateCostSnapshot("a04-half-boundary", {
+      ...baseInput,
+      materialItems: [material("قماش", 1.005, 100)],
+      quantity: 1.005,
+    });
+    expect(snapshot.materialCostMinor).toBe(101);
+  });
+  it("rounds 0.29 at 0.50 up to 15 minor, not float-floor 14", () => {
+    const snapshot = calculateCostSnapshot("a04-float-floor", {
+      ...baseInput,
+      materialItems: [material("خيط", 0.29, 50)],
+      quantity: 0.29,
+    });
+    expect(snapshot.materialCostMinor).toBe(15);
+  });
+  it("rounds a fractional hour of work to the nearest minor unit in integer space", () => {
+    const snapshot = calculateCostSnapshot("a04-time-half", {
+      ...baseInput,
+      materialItems: [],
+      time: { minutes: 91, hourlyRateMinor: 100, confidence: "known" },
+      quantity: 1,
+    });
+    expect(snapshot.timeCostMinor).toBe(152);
+  });
+  it("rejects quantities finer than one part in a thousand instead of rounding them silently", () => {
+    expect(() =>
+      calculateCostSnapshot("a04-too-fine", {
+        ...baseInput,
+        materialItems: [material("خيط", 1.0005, 100)],
+        quantity: 1.0005,
+      }),
+    ).toThrow("أدخل الكمية بدقة أجزاء من ألف");
+  });
+});
+
+const a08DraftOrder = () =>
+  createCraftOrder({
+    id: "a08-draft-order",
+    customerName: "عميلة",
+    itemName: "قطعة",
+    specifications: "مواصفات",
+    quantity: 1,
+    agreedPriceMinor: 3000,
+    costSnapshot: costSnapshot,
+    createdAt: "2026-08-01T09:00:00.000Z",
+  });
+
+describe("draft postponement follows contract 02 from every pre-delivery state (A-08)", () => {
+  it("moves a draft to postponed as contract 02 allows from every pre-delivery state", () => {
+    const order = transitionOrder(a08DraftOrder(), {
+      to: "postponed",
+      idempotencyKey: "a08-postpone",
+      createdAt: "2026-08-02T09:00:00.000Z",
+    });
+    expect(order.status).toBe("postponed");
+  });
+  it("still forbids postponing a delivered order", () => {
+    let order = a08DraftOrder();
+    for (const [to, stamp] of [
+      ["provisional_agreement", "2026-08-01T10:00:00.000Z"],
+      ["confirmed", "2026-08-01T11:00:00.000Z"],
+      ["in_progress", "2026-08-02T09:00:00.000Z"],
+      ["ready", "2026-08-03T09:00:00.000Z"],
+      ["delivered", "2026-08-05T09:00:00.000Z"],
+    ] as const)
+      order = transitionOrder(order, { to, idempotencyKey: `a08-${to}`, createdAt: stamp });
+    expect(() =>
+      transitionOrder(order, { to: "postponed", idempotencyKey: "a08-late", createdAt: "2026-08-06T09:00:00.000Z" }),
+    ).toThrow("انتقال غير مسموح من «تم التسليم» إلى «مؤجل»");
+  });
+});
+
+const a09FreshnessInput = (priceDate: string) => ({
+  currency: "JOD" as const,
+  materialItems: [
+    {
+      name: "قماش",
+      quantity: 1,
+      unit: "meter",
+      unitPriceMinor: 100,
+      priceDate,
+      source: "user_input" as const,
+      confidence: "known" as const,
+    },
+  ],
+  time: { minutes: 30, hourlyRateMinor: 600, confidence: "known" as const },
+  packagingMinor: 0,
+  deliveryMinor: 0,
+  wasteMinor: 0,
+  safetyBufferMinor: 0,
+  quantity: 1,
+  createdAt: "2026-05-10T01:30:00.000Z",
+  freshnessDays: 0,
+  source: "price_approval" as const,
+});
+
+describe("freshness compares Amman-local calendar dates, not UTC instants (A-09)", () => {
+  it("treats a price dated today as fresh even when recorded after Amman midnight", () => {
+    const state = calculateCostSnapshot("a09-same-day", a09FreshnessInput("2026-05-10"));
+    expect(state.knowledgeState).toBe("known");
+  });
+  it("marks yesterday's price stale at freshnessDays 0", () => {
+    const state = calculateCostSnapshot("a09-yesterday", a09FreshnessInput("2026-05-09"));
+    expect(state.knowledgeState).toBe("stale");
   });
 });

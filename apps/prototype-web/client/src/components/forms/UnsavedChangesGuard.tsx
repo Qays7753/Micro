@@ -48,13 +48,26 @@ export function UnsavedChangesProvider({
 }) {
   const guardRef = useRef<RegisteredGuard | null>(null);
   const [pendingTarget, setPendingTarget] = useState<string | null>(null);
+  const [pendingExit, setPendingExit] = useState<"app" | "back">("app");
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasDirtyGuard, setHasDirtyGuard] = useState(false);
+  const sentinelArmedRef = useRef(false);
+  const suppressHistoryGuardRef = useRef(false);
   const registerGuard = useCallback((guard: UnsavedGuardRegistration) => {
     const token = Symbol("unsaved-guard");
     guardRef.current = { ...guard, token };
+    setHasDirtyGuard(guard.isDirty);
+    if (guard.isDirty && !sentinelArmedRef.current) {
+      history.pushState({ microGuard: true }, "");
+      sentinelArmedRef.current = true;
+    }
     return () => {
-      if (guardRef.current?.token === token) guardRef.current = null;
+      if (guardRef.current?.token === token) {
+        guardRef.current = null;
+        setHasDirtyGuard(false);
+        sentinelArmedRef.current = false;
+      }
     };
   }, []);
   const requestNavigation = useCallback(
@@ -65,40 +78,94 @@ export function UnsavedChangesProvider({
         return;
       }
       setPendingTarget(target);
+      setPendingExit("app");
       setIsOpen(true);
     },
     [navigate],
   );
+  // Browser/system back is the most common phone interruption; the sentinel history entry keeps
+  // the form mounted (same URL) so its unsaved state survives, and the same three-choice drawer
+  // decides what happens. Stale sentinels left after an in-app exit are skipped on pop.
+  useEffect(() => {
+    function onPopState(event: PopStateEvent) {
+      if (suppressHistoryGuardRef.current) {
+        suppressHistoryGuardRef.current = false;
+        return;
+      }
+      const guard = guardRef.current;
+      if (guard?.isDirty) {
+        history.pushState({ microGuard: true }, "");
+        sentinelArmedRef.current = true;
+        setPendingTarget(null);
+        setPendingExit("back");
+        setIsOpen(true);
+        return;
+      }
+      if (sentinelArmedRef.current) {
+        sentinelArmedRef.current = false;
+        history.back();
+        return;
+      }
+      if (event.state?.microGuard) history.back();
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+  useEffect(() => {
+    if (!hasDirtyGuard) return;
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasDirtyGuard]);
   const close = useCallback(() => {
     if (isSaving) return;
     setIsOpen(false);
     setPendingTarget(null);
+    setPendingExit("app");
   }, [isSaving]);
+  const runExit = useCallback(
+    (exit: "app" | "back", target: string | null) => {
+      if (exit === "back") {
+        suppressHistoryGuardRef.current = true;
+        history.go(history.state?.microGuard ? -2 : -1);
+        return;
+      }
+      if (target) navigate(target);
+    },
+    [navigate],
+  );
   const discard = useCallback(() => {
-    if (isSaving || !pendingTarget) return;
+    if (isSaving || (pendingExit === "app" && !pendingTarget)) return;
+    const exit = pendingExit;
     const target = pendingTarget;
     setIsOpen(false);
     setPendingTarget(null);
-    navigate(target);
-  }, [isSaving, navigate, pendingTarget]);
+    setPendingExit("app");
+    runExit(exit, target);
+  }, [isSaving, pendingExit, pendingTarget, runExit]);
   const saveAndContinue = useCallback(async () => {
     const guard = guardRef.current;
-    if (isSaving || !guard || !pendingTarget) return;
-    setIsSaving(true);
+    if (isSaving || !guard || (pendingExit === "app" && !pendingTarget)) return;
+    const exit = pendingExit;
     const target = pendingTarget;
+    setIsSaving(true);
     const saved = await completeSaveNavigation(
       guard.onSave,
-      nextTarget => {
+      () => {
         setIsSaving(false);
         setIsOpen(false);
         setPendingTarget(null);
-        navigate(nextTarget);
+        setPendingExit("app");
+        runExit(exit, target);
       },
-      target,
+      exit === "app" ? (target ?? "") : "",
     );
     setIsSaving(false);
     if (!saved) return;
-  }, [isSaving, navigate, pendingTarget]);
+  }, [isSaving, pendingExit, pendingTarget, runExit]);
 
   return (
     <UnsavedChangesContext.Provider value={{ registerGuard, requestNavigation }}>
@@ -114,7 +181,7 @@ export function UnsavedChangesProvider({
           <DrawerHeader>
             <DrawerTitle>لديك تعديلات غير محفوظة</DrawerTitle>
             <DrawerDescription>
-              اختر كيف تتابع. لن يُحفظ شيء تلقائيًا، ولن يُفقد عملك ما لم تختر الخروج.
+              اختر كيف تتابع. لن يُحفظ شيء تلقائيًا، وإذا أغلقت الصفحة أو التطبيق قبل الحفظ يفقد ما لم تحفظه.
             </DrawerDescription>
           </DrawerHeader>
           <DrawerFooter>

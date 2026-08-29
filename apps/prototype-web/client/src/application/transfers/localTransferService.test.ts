@@ -560,6 +560,71 @@ describe("LocalTransferService", () => {
     ).toMatchObject({ ok: false, code: "validation_error" });
   });
 
+  it("rejects an imported transfer pair whose signs reverse the transfer direction", async () => {
+    const source = new MemoryLocalStore();
+    await source.saveProfile(profile);
+    const drawer = createCashWallet({
+      id: "drawer",
+      name: "درج",
+      kind: "cash_drawer",
+      createdAt: "2026-08-23T09:00:00.000Z",
+      createdOperationKey: "wallet-drawer",
+    });
+    const bank = createCashWallet({
+      id: "bank",
+      name: "البنك",
+      kind: "bank_account",
+      createdAt: "2026-08-23T09:00:00.000Z",
+      createdOperationKey: "wallet-bank",
+    });
+    const transferId = "transfer-1";
+    const opening = createCashContinuityEntry({
+      id: "opening",
+      walletId: drawer.id,
+      type: "opening_balance",
+      occurredOn: "2026-08-01",
+      recordedAt: "2026-08-23T09:00:00.000Z",
+      cashDeltaMinor: 10000,
+      note: "بداية",
+      operationKey: "opening-1",
+    });
+    const out = createCashContinuityEntry({
+      id: "out",
+      walletId: drawer.id,
+      type: "transfer_out",
+      occurredOn: "2026-08-02",
+      recordedAt: "2026-08-23T09:01:00.000Z",
+      cashDeltaMinor: -3000,
+      note: "إيداع",
+      operationKey: "transfer-1",
+      transferId,
+    });
+    const into = createCashContinuityEntry({
+      id: "in",
+      walletId: bank.id,
+      type: "transfer_in",
+      occurredOn: "2026-08-02",
+      recordedAt: "2026-08-23T09:01:00.000Z",
+      cashDeltaMinor: 3000,
+      note: "إيداع",
+      operationKey: "transfer-2",
+      transferId,
+    });
+    await source.commitCashContinuity(drawer, [opening]);
+    await source.commitCashContinuity(bank, [out, into]);
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    const reversed = structuredClone(exported.value) as {
+      data: { cashContinuityEntries: Array<{ id: string; cashDeltaMinor: number }> };
+    };
+    for (const entry of reversed.data.cashContinuityEntries) {
+      if (entry.id === "out" || entry.id === "in") entry.cashDeltaMinor = -entry.cashDeltaMinor;
+    }
+    expect(
+      new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(reversed)),
+    ).toMatchObject({ ok: false, code: "validation_error" });
+  });
+
   it("round-trips material movements and rejects an inconsistent inventory reversal", async () => {
     const source = new MemoryLocalStore();
     await source.saveProfile(profile);
@@ -1322,7 +1387,7 @@ describe("LocalTransferService G6-B recurrence migration", () => {
           idempotencyKey: `${recurrence.id}:1:2026-08-17`,
           createdAt: "2026-08-22T01:00:00.000Z",
           scheduledFor: "2026-08-17",
-          reason: "ظهور من قالب تكرار محلي",
+          reason: "موعد قادم من قالب تكرار محلي",
         },
       ],
     };

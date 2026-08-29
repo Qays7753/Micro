@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateBreakEven,
+  calculateBreakEvenUnits,
   calculateContributionMargin,
   calculateShortCash,
   createShortCashDeclaration,
@@ -112,7 +113,8 @@ describe("G5 pure domain", () => {
       breakEvenUnits: null,
     });
     expect(result.reasons.join(" ")).toContain("مستبعدة");
-    expect(result.excluded.join(" ")).toContain("مستبعد");
+    expect(result.excluded.join(" ")).toContain("الطلب «صندوق» مستبعد لأن نتيجته غير مكتملة");
+    expect(result.excluded.join(" ")).not.toContain("order-1");
   });
 
   it("marks estimated fixed cost as needs_review while preserving the number", () => {
@@ -206,6 +208,14 @@ describe("G5 pure domain", () => {
     expect(oneUnit.breakEvenUnits).not.toBe(1000);
   });
 
+  it("carries the aggregate break-even guard for the application layer (C-03)", () => {
+    expect(calculateBreakEvenUnits(1000, 2, 3300)).toBe(1);
+    expect(calculateBreakEvenUnits(600, 12, 500)).toBe(15);
+    expect(calculateBreakEvenUnits(9_000_000_000_000_000, 2, 3300)).toBeNull();
+    expect(calculateBreakEvenUnits(1000, 2, 0)).toBeNull();
+    expect(calculateBreakEvenUnits(-1, 2, 3300)).toBeNull();
+  });
+
   it("does not combine incompatible quantity units into one break-even scale", () => {
     const result = calculateBreakEven(
       "2026-08-01",
@@ -288,7 +298,7 @@ describe("G5 pure domain", () => {
       projectedCashMinor: null,
       undatedReceivablesMinor: 5000,
     });
-    expect(result.reasons.join(" ")).toContain("ذمة بلا تاريخ");
+    expect(result.reasons.join(" ")).toContain("دين بلا تاريخ");
   });
 
   it("allows a complete known projection and marks estimated declarations for review", () => {
@@ -344,7 +354,7 @@ describe("G5 pure domain", () => {
       recordedCashMinor: 10000,
       projectedCashMinor: null,
     });
-    expect(result.reasons.join(" ")).toContain("غياب الإعلان لا يعني");
+    expect(result.reasons.join(" ")).toContain("غياب المتوقع لا يعني");
   });
 
   it("invalidates a linked declaration that exceeds the known balance", () => {
@@ -386,7 +396,7 @@ describe("G5 pure domain", () => {
         createdAt: "2026-08-02T10:00:00.000Z",
         note: "عكس ثانٍ",
       }),
-    ).toThrow("only an active declaration");
+    ).toThrow("التراجع يخص سجلًا متوقعًا فعالًا");
     const reversed = calculateShortCash(shortCash({ declarations: [reversal, original] }));
     expect(reversed.activeDeclarationCount).toBe(0);
   });

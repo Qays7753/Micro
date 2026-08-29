@@ -31,7 +31,7 @@ export default function CashReversalEditor() {
   }, [cashContinuity, id]);
   async function save() {
     if (!entry || !reason.trim()) {
-      setMessage("اذكر سبب العكس قبل الحفظ.");
+      setMessage("اذكر سبب التراجع قبل الحفظ.");
       return;
     }
     setSaving(true);
@@ -59,7 +59,7 @@ export default function CashReversalEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>لم نجد أثر الكاش</h1>
-        <p>ربما أُرشف السجل أو عُكس سابقًا.</p>
+        <p>قد يكون السجل حُذف من هذا الجهاز أو تم التراجع عنه سابقًا.</p>
         <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
           محافظ الكاش
         </button>
@@ -71,14 +71,14 @@ export default function CashReversalEditor() {
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">عكس محفوظ</span>
-        <h1>اعكس هذا الأثر</h1>
+        <span className="micro-overline">تراجع محفوظ</span>
+        <h1>تراجع عن هذا الأثر</h1>
         <p>سيبقى الأصل ظاهرًا، ويضاف أثر مقابل له بدل الحذف أو التعديل الصامت.</p>
       </div>
       <section className="micro-decision-card">
         <RotateCcw aria-hidden="true" />
         <div>
-          <span>الأثر الذي سيعكس</span>
+          <span>الأثر الذي سيتم التراجع عنه</span>
           <strong>
             <MoneyValue minor={entry.cashDeltaMinor} showPlus />
           </strong>
@@ -88,9 +88,9 @@ export default function CashReversalEditor() {
         </div>
       </section>
       <section className="micro-form-card">
-        <LocalDateField label="تاريخ العكس" value={date} onChange={event => setDate(event.target.value)} />
+        <LocalDateField label="تاريخ التراجع" value={date} onChange={event => setDate(event.target.value)} />
         <label className="micro-field">
-          <span>لماذا تعكسه؟</span>
+          <span>لماذا تتراجع عنه؟</span>
           <textarea
             value={reason}
             onChange={event => setReason(event.target.value)}
@@ -109,7 +109,7 @@ export default function CashReversalEditor() {
           onClick={save}
         >
           <Save aria-hidden="true" />
-          {saving ? "جارٍ الحفظ…" : "حفظ العكس"}
+          {saving ? "جارٍ الحفظ…" : "حفظ التراجع"}
         </button>
       </section>
     </section>

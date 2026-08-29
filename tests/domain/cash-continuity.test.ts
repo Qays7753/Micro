@@ -47,7 +47,7 @@ describe("cash continuity domain", () => {
         note: "خطأ",
         operationKey: "bad-opening",
       }),
-    ).toThrow("opening balance cannot be negative");
+    ).toThrow("رصيد الافتتاح لا يمكن أن يكون سالبًا.");
     expect(() =>
       createCashContinuityEntry({
         id: "bad-adjustment",
@@ -59,6 +59,6 @@ describe("cash continuity domain", () => {
         note: "فرق",
         operationKey: "bad-adjustment",
       }),
-    ).toThrow("cash adjustment requires a reason");
+    ).toThrow("تسوية الكاش تتطلب سببًا موثقًا.");
   });
 });

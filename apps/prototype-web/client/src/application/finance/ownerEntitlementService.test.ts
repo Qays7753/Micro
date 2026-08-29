@@ -192,7 +192,7 @@ describe("OwnerEntitlementService", () => {
       id: "policy-independent",
       idempotencyKey: "policy-independent-op",
       source: "اتفاق مستقل",
-      note: "سلسلة مستقلة",
+      note: "سياسة مستقلة",
     });
     expect(independent.ok).toBe(true);
     const oldEntitlement = await service.recordEntitlement({
@@ -412,7 +412,7 @@ describe("OwnerEntitlementService", () => {
       endsOn: null,
       startsOn: "2026-09-01",
       source: "تعديل",
-      note: "خليفة صحيحة",
+      note: "نسخة جديدة صحيحة",
       idempotencyKey: "valid-successor",
     });
     if (!valid.ok) throw new Error("valid successor should succeed");

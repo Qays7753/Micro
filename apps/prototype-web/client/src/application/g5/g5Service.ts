@@ -16,6 +16,8 @@ import {
   type ShortCashResult,
 } from "@micro-domain/g5/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
+import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -174,9 +176,25 @@ function orderInputs(
 }
 
 function expenseInputs(events: readonly FinancialEvent[], from: string, to: string): G5ExpenseInput[] {
+  // Period-local netting, mirroring the G3 period reader (contract 14 §6): an expense whose live
+  // reversal also falls inside the reading window leaves the reading entirely; a reversal in a later
+  // window does not rewrite the window where the expense was recorded. Reversal records themselves
+  // never enter: their negative deltas have no non-negative representation in a G5 expense input.
+  const nettedInWindow = new Set(
+    events
+      .filter(
+        event =>
+          event.correctionType === "reverse" &&
+          event.correctionOfEventId &&
+          inPeriod(event.occurredOn, from, to),
+      )
+      .map(event => event.correctionOfEventId!),
+  );
   return events
     .filter(
       event =>
+        event.correctionType !== "reverse" &&
+        !nettedInWindow.has(event.id) &&
         inPeriod(event.occurredOn, from, to) &&
         (event.operatingExpenseDeltaMinor > 0 ||
           event.expenseContext?.sharedProjectShare?.allocation === "unallocated"),
@@ -202,7 +220,7 @@ function expenseInputs(events: readonly FinancialEvent[], from: string, to: stri
 
 function receivables(orders: readonly StoredCraftOrder[]) {
   return orders
-    .filter(({ order }) => order.receivableMinor > 0)
+    .filter(({ order }) => isRegisteredCustomerDebt(order))
     .map(({ order }) => ({
       id: order.id,
       direction: "collection" as const,
@@ -213,25 +231,16 @@ function receivables(orders: readonly StoredCraftOrder[]) {
 }
 
 function payables(events: readonly FinancialEvent[], purchases: readonly SupplierPurchase[]) {
-  const settlements = new Map<string, number>();
-  for (const event of events)
-    if (
-      event.type === "payable_settlement_cash" &&
-      event.relatedEventId &&
-      event.correctionType !== "reverse"
-    )
-      settlements.set(event.relatedEventId, (settlements.get(event.relatedEventId) ?? 0) + event.amountMinor);
+  const reversedIds = reversedEventIds(events);
   const eventPayables = events
     .filter(
       event =>
         event.type === "operating_expense_payable" &&
         event.payableDeltaMinor > 0 &&
-        !events.some(
-          candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
-        ),
+        !reversedIds.has(event.id),
     )
     .flatMap(event => {
-      const outstanding = event.amountMinor - (settlements.get(event.id) ?? 0);
+      const outstanding = event.amountMinor - activeSettlementsMinor(events, event.id);
       return outstanding > 0
         ? [
             {
@@ -267,42 +276,30 @@ export class G5Service {
     const result = await this.store.listShortCashDeclarations();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة إعلانات السيولة المحلية." };
+      : { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
   }
 
   async listLinkOptions(): Promise<G5Result<G5LinkOptions>> {
     const [orders, events] = await Promise.all([this.store.listOrders(), this.store.listFinancialEvents()]);
     if (!orders.ok || !events.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة الأرصدة القابلة للربط." };
-    const paidByEvent = new Map<string, number>();
-    for (const event of events.value)
-      if (
-        event.type === "payable_settlement_cash" &&
-        event.relatedEventId &&
-        event.correctionType !== "reverse"
-      )
-        paidByEvent.set(
-          event.relatedEventId,
-          (paidByEvent.get(event.relatedEventId) ?? 0) + event.amountMinor,
-        );
+    const reversedIds = reversedEventIds(events.value);
     const payableEvents = events.value
       .filter(
         event =>
           event.type === "operating_expense_payable" &&
           event.payableDeltaMinor > 0 &&
-          !events.value.some(
-            candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
-          ),
+          !reversedIds.has(event.id),
       )
       .flatMap(event => {
-        const amountMinor = event.amountMinor - (paidByEvent.get(event.id) ?? 0);
+        const amountMinor = event.amountMinor - activeSettlementsMinor(events.value, event.id);
         return amountMinor > 0 ? [{ id: event.id, label: event.note || event.id, amountMinor }] : [];
       });
     return {
       ok: true,
       value: {
         orders: orders.value
-          .filter(({ order }) => order.receivableMinor > 0)
+          .filter(({ order }) => isRegisteredCustomerDebt(order))
           .map(({ order }) => ({
             id: order.id,
             label: `${order.customerName} · ${order.itemName}`,
@@ -335,7 +332,7 @@ export class G5Service {
       !units.ok ||
       !conversions.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات G5 المحلية." };
+      return { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
     const contributionOrders = orderInputs(
       orders.value,
       catalogItems.value,
@@ -360,7 +357,7 @@ export class G5Service {
         shortCash,
         declarations: declarations.value,
         truth:
-          "هذه قراءة مشتقة من السجل المحلي وإعلانات المالك. لا تحفظ نتيجة مالية جديدة، ولا تحول الإعلان إلى قبض أو دفع فعلي، ولا تقدم توصية ملزمة.",
+          "هذه قراءة مشتقة من السجل المحلي وما سجّلته من متوقعات. لا تحفظ نتيجة مالية جديدة، ولا تحول المتوقع إلى قبض أو دفع فعلي، ولا تقدم توصية ملزمة.",
       },
     };
   }
@@ -368,7 +365,7 @@ export class G5Service {
   async createDeclaration(input: G5DeclarationInput): Promise<G5Result<ShortCashDeclaration>> {
     const declarations = await this.store.listShortCashDeclarations();
     if (!declarations.ok)
-      return { ok: false, code: "storage_error", message: "تعذر التحقق من إعلانات السيولة المحلية." };
+      return { ok: false, code: "storage_error", message: "تعذر التحقق من المتوقعات المحلية." };
     const repeated = declarations.value.find(
       declaration =>
         declaration.kind === "declaration" && declaration.idempotencyKey === input.idempotencyKey,
@@ -381,12 +378,12 @@ export class G5Service {
       const saved = await this.store.saveShortCashDeclaration(declaration);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : { ok: false, code: "storage_error", message: "تعذر حفظ إعلان السيولة محليًا." };
+        : { ok: false, code: "storage_error", message: "تعذر حفظ السجل المتوقع محليًا." };
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "إعلان السيولة غير صالح.",
+        message: error instanceof Error ? error.message : "السجل المتوقع غير صالح.",
       };
     }
   }
@@ -398,12 +395,12 @@ export class G5Service {
   ): Promise<G5Result<ShortCashDeclaration>> {
     const declarations = await this.store.listShortCashDeclarations();
     if (!declarations.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة إعلانات السيولة المحلية." };
+      return { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
     const original = declarations.value.find(declaration => declaration.id === idToReverse);
     if (!original)
-      return { ok: false, code: "not_found", message: "إعلان السيولة المطلوب تصحيحه غير موجود." };
+      return { ok: false, code: "not_found", message: "السجل المتوقع المطلوب تصحيحه غير موجود." };
     if (original.kind !== "declaration")
-      return { ok: false, code: "validation_error", message: "لا يمكن عكس سجل عكس آخر." };
+      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن سجل تراجع آخر." };
     const repeated = declarations.value.find(
       declaration => declaration.kind === "reversal" && declaration.idempotencyKey === idempotencyKey,
     );
@@ -416,7 +413,7 @@ export class G5Service {
       return {
         ok: false,
         code: "validation_error",
-        message: "تم عكس هذا الإعلان مسبقًا دون تعديل السجل القديم.",
+        message: "تم التراجع عن هذا السجل المتوقع مسبقًا دون تعديل السجل القديم.",
       };
     try {
       const reversal = createShortCashReversal({
@@ -432,13 +429,13 @@ export class G5Service {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ تصحيح إعلان السيولة ذريًا؛ بقي الأصل محفوظًا.",
+            message: "تعذر حفظ تصحيح السجل المتوقع ذريًا؛ بقي الأصل محفوظًا.",
           };
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "تصحيح إعلان السيولة غير صالح.",
+        message: error instanceof Error ? error.message : "تصحيح السجل المتوقع غير صالح.",
       };
     }
   }
@@ -453,12 +450,14 @@ export class G5Service {
       const order = await this.store.getOrder(input.relatedOrderId);
       if (!order.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلب المرتبط." };
       if (!order.value) return { ok: false, code: "not_found", message: "الطلب المرتبط غير موجود." };
+      if (!isRegisteredCustomerDebt(order.value.order))
+        return { ok: false, code: "validation_error", message: "ربط الطلب مخصص لطلب له دين مسجل." };
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > order.value.order.receivableMinor)
         return {
           ok: false,
           code: "validation_error",
-          message: "لا يمكن أن يتجاوز مجموع إعلانات التحصيل الذمة المسجلة للطلب.",
+          message: "لا يمكن أن يتجاوز مجموع متوقعات القبض الدين المسجل للطلب.",
         };
     }
     if (input.relatedEventId) {
@@ -471,26 +470,17 @@ export class G5Service {
       const events = await this.store.listFinancialEvents();
       if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر التحقق من رصيد الالتزام." };
       if (
-        events.value.some(
-          candidate =>
-            candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.value!.id,
-        )
+        event.value.correctionType === "reverse" ||
+        reversedEventIds(events.value).has(event.value.id)
       )
-        return { ok: false, code: "validation_error", message: "لا يمكن ربط إعلان بالتزام مالي عُكس." };
-      const paid = events.value
-        .filter(
-          candidate =>
-            candidate.type === "payable_settlement_cash" &&
-            candidate.relatedEventId === event.value!.id &&
-            candidate.correctionType !== "reverse",
-        )
-        .reduce((sum, candidate) => sum + candidate.amountMinor, 0);
+        return { ok: false, code: "validation_error", message: "لا يمكن ربط توقع بالتزام مالي تم التراجع عنه." };
+      const paid = activeSettlementsMinor(events.value, event.value!.id);
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid)
         return {
           ok: false,
           code: "validation_error",
-          message: "لا يمكن أن يتجاوز مجموع إعلانات الالتزام الرصيد المسجل.",
+          message: "لا يمكن أن يتجاوز مجموع متوقعات الدفع الرصيد المسجل.",
         };
     }
     return { ok: true, value: null };

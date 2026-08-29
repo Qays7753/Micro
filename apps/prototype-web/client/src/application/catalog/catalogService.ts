@@ -359,7 +359,7 @@ export class CatalogService {
     const retry = existing.value.find(template => template.createdOperationKey === input.operationKey);
     if (retry) return { ok: true, template: retry };
     if (existing.value.some(template => template.active))
-      return failure("يوجد قالب فعال لهذا المرجع. استخدم مراجعة جديدة بدل إنشاء قالب ثانٍ.");
+      return failure("يوجد قالب فعال لهذا المرجع. استخدم نسخة جديدة بدل إنشاء قالب ثانٍ.");
     const built = await this.buildTemplate(input, 1, null);
     if (!built.ok) return built;
     const saved = await this.store.saveCatalogTemplate(built.template);
@@ -376,10 +376,10 @@ export class CatalogService {
     if (!previousResult.ok) return failure("تعذر قراءة القالب السابق.", "storage_error");
     if (!previousResult.value) return failure("القالب السابق غير متاح محليًا.", "not_found");
     const existing = await this.store.listCatalogTemplates(previousResult.value.catalogItemId);
-    if (!existing.ok) return failure("تعذر قراءة مراجعات القالب.", "storage_error");
+    if (!existing.ok) return failure("تعذر قراءة نسخ القالب.", "storage_error");
     const retry = existing.value.find(template => template.createdOperationKey === input.operationKey);
     if (retry) return { ok: true, template: retry };
-    if (!previousResult.value.active) return failure("لا يمكن مراجعة قالب موقوف.");
+    if (!previousResult.value.active) return failure("لا يمكن إنشاء نسخة جديدة من قالب موقوف.");
     const built = await this.buildTemplate(
       { ...input, catalogItemId: previousResult.value.catalogItemId },
       previousResult.value.revision + 1,

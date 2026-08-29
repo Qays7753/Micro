@@ -51,11 +51,11 @@ const toServiceInput = (input: EditableCostInput): CostEditorInput => ({
 });
 const knowledgeCopy = {
   known: ["تكلفة معروفة", "كل بنود الوقت والتكلفة المدخلة معروفة."],
-  estimated: ["تكلفة تقديرية", "هناك بند أدخلته كتقدير، فراجع افتراضه قبل تثبيت السعر."],
+  estimated: ["تكلفة تقديرية", "هناك بند أدخلته كتقدير، فراجع افتراضه قبل تسجيل السعر."],
   incomplete: ["تكلفة ناقصة", "وقت العمل غير مكتمل؛ لا يظهر سعر حماية كامل ولا نتيجة نهائية."],
   partial: ["تكلفة جزئية", "بعض البنود متاحة فقط؛ لا توجد نتيجة نهائية هنا."],
   stale: ["تكلفة تحتاج مراجعة", "بعض أسعار المواد لم تعد ضمن مدة الحداثة."],
-  variable: ["تكلفة متغيرة", "هناك بند تقديري يحتاج مراجعة قبل تثبيت السعر."],
+  variable: ["تكلفة متغيرة", "هناك بند تقديري يحتاج مراجعة قبل تسجيل السعر."],
 } as const;
 const optionalCostFields = [
   { field: "packagingMinor", label: "تغليف" },
@@ -360,7 +360,7 @@ export default function CostEditor() {
                     <small>
                       {item.quantity} {item.unit || "وحدة"} · تكلفة الوحدة{" "}
                       <MoneyValue minor={item.unitPriceMinor} className="micro-inline-number" /> ·{" "}
-                      {item.confidence === "estimated" ? "تقديري" : "معروف"}
+                      {item.confidence === "estimated" ? "تقديري" : "مؤكد"}
                     </small>
                   </span>
                   <ChevronLeft aria-hidden="true" />
@@ -471,7 +471,7 @@ export default function CostEditor() {
               />
             </label>
             <label className="micro-field">
-              <span>درجة المعرفة</span>
+              <span>حالة الرقم</span>
               <select
                 value={form.time.confidence}
                 onChange={event =>
@@ -488,7 +488,7 @@ export default function CostEditor() {
                   )
                 }
               >
-                <option value="known">معروف</option>
+                <option value="known">مؤكد</option>
                 <option value="estimated">تقديري</option>
               </select>
             </label>
@@ -592,7 +592,7 @@ export default function CostEditor() {
             type="button"
             onClick={() => requestNavigation(`/orders/draft/${draft.id}/agreement`)}
           >
-            تثبيت الاتفاق
+            تسجيل الاتفاق
           </button>
         ) : null}
       </div>
@@ -686,14 +686,14 @@ function MaterialSheet({
                 />
               </label>
               <label className="micro-field">
-                <span>درجة المعرفة</span>
+                <span>حالة الرقم</span>
                 <select
                   value={value.draft.confidence}
                   onChange={event =>
                     onChange({ confidence: event.target.value as DraftCostMaterial["confidence"] })
                   }
                 >
-                  <option value="known">معروف</option>
+                  <option value="known">مؤكد</option>
                   <option value="estimated">تقديري</option>
                 </select>
               </label>

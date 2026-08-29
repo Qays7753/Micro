@@ -237,7 +237,7 @@ export default function Schedule() {
           </span>
           <span className="micro-status-chip">لا توجد مواعيد تشغيلية</span>
           <h2>لا توجد طلبات تحتاج موعدًا الآن</h2>
-          <p>عند تثبيت اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</p>
+          <p>عند تسجيل اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</p>
           <button
             className="micro-button micro-button-primary"
             type="button"
@@ -453,7 +453,14 @@ function RecurrencePanel({
     const created = result.value.created.length;
     const skipped = result.value.skipped.length;
     setMessage(
-      `تم حفظ قالب ${frequencyLabel(result.value.recurrence.frequency)}. أُنشئت ${created} ظهورات مستقلة${skipped > 0 ? `، وتجاوزنا ${skipped} لأن التاريخ موجود` : ""}.`,
+      `تم حفظ قالب ${frequencyLabel(result.value.recurrence.frequency)}. أُنشئت ${formatArabicPlural(created, {
+        zero: "لا مواعيد قادمة",
+        one: "موعد واحد قادم مستقل",
+        two: "موعدان قادمان مستقلان",
+        few: "مواعيد قادمة مستقلة",
+        many: "موعدًا قادمًا مستقلًا",
+        other: "موعدًا قادمًا مستقلًا",
+      })}${skipped > 0 ? `، وتجاوزنا ${skipped} لأن التاريخ موجود` : ""}.`,
     );
     onChanged();
   }
@@ -469,7 +476,7 @@ function RecurrencePanel({
     }
     setCancellingId(null);
     setCancelReason("");
-    setMessage("تم إيقاف الظهورات المستقبلية لهذا القالب؛ الظهورات السابقة محفوظة.");
+    setMessage("تم إيقاف المواعيد القادمة لهذا القالب؛ المواعيد السابقة محفوظة.");
     onChanged();
   }
 
@@ -480,7 +487,7 @@ function RecurrencePanel({
           <span className="micro-overline">تكرار محلي محدود</span>
           <h2 id="recurrence-title">هل يتكرر هذا الموعد بنمط واضح؟</h2>
           <p>
-            ينشئ Micro من 1 إلى 12 ظهورًا مستقبليًا فقط. لا ينشئ طلبًا أو حجزًا أو تذكيرًا، ولا يغير الموعد
+            ينشئ Micro من 1 إلى 12 موعدًا قادمًا فقط. لا ينشئ طلبًا أو حجزًا أو تذكيرًا، ولا يغير الموعد
             الأصلي.
           </p>
         </div>
@@ -519,7 +526,7 @@ function RecurrencePanel({
               </select>
             </label>
             <label className="micro-field">
-              <span>عدد الظهورات</span>
+              <span>عدد المواعيد القادمة</span>
               <select value={count} onChange={event => setCount(event.target.value)}>
                 {Array.from({ length: 12 }, (_, index) => index + 1).map(value => (
                   <option key={value} value={value}>
@@ -560,8 +567,15 @@ function RecurrencePanel({
                   <h3>{view.order?.order.itemName ?? "طلب غير متاح"}</h3>
                   <p>
                     {frequencyLabel(view.recurrence.frequency)} ·{" "}
-                    <IntegerValue value={view.recurrence.occurrenceCount} className="micro-inline-number" />{" "}
-                    ظهورات · المصدر:{" "}
+                    {formatArabicPlural(view.recurrence.occurrenceCount, {
+                      zero: "لا مواعيد قادمة",
+                      one: "موعد واحد قادم",
+                      two: "موعدان قادمان",
+                      few: "مواعيد قادمة",
+                      many: "موعدًا قادمًا",
+                      other: "موعدًا قادمًا",
+                    })}{" "}
+                    · المصدر:{" "}
                     {view.source ? <LocalDateValue value={view.source.scheduledFor} /> : "غير متاح"}
                   </p>
                 </div>
@@ -595,7 +609,7 @@ function RecurrencePanel({
                     </span>
                   ))
                 ) : (
-                  <span>لم تُنشأ ظهورات؛ راجع التواريخ المتجاوزة.</span>
+                  <span>لم تُنشأ مواعيد قادمة؛ راجع التواريخ المتجاوزة.</span>
                 )}
               </div>
               {view.recurrence.status === "active" ? (
@@ -616,7 +630,7 @@ function RecurrencePanel({
                         disabled={saving}
                         onClick={() => cancel(view.recurrence.id)}
                       >
-                        إيقاف الظهورات المستقبلية
+                        إيقاف المواعيد القادمة
                       </button>
                       <button
                         className="micro-button micro-button-quiet"
@@ -637,14 +651,14 @@ function RecurrencePanel({
                     type="button"
                     onClick={() => setCancellingId(view.recurrence.id)}
                   >
-                    إيقاف الظهورات المستقبلية بسبب مكتوب
+                    إيقاف المواعيد القادمة بسبب
                   </button>
                 )
               ) : (
                 <p className="micro-recurrence-cancelled">
                   أوقفه المالك
                   {view.recurrence.cancellationReason ? ` بسبب: ${view.recurrence.cancellationReason}` : ""}.
-                  الظهورات السابقة محفوظة.
+                  المواعيد السابقة محفوظة.
                 </p>
               )}
             </article>
@@ -948,7 +962,7 @@ function ScheduleSection({
                   {agreement.label} · <LocalDateValue value={item.schedule.scheduledFor} />
                 </small>
                 <small>{timingLabel(item.schedule)}</small>
-                <small className="micro-row-next-action">الفعل التالي: {agreement.nextAction}</small>
+                <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
               </span>
               <ChevronLeft aria-hidden="true" />
             </button>

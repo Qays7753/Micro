@@ -124,7 +124,7 @@ function validateYield(value: CatalogTemplateYield | null): CatalogTemplateYield
 export function createCatalogTemplate(input: CreateCatalogTemplateInput): CatalogTemplate {
   const timestamp = validTimestamp(input.createdAt, "وقت إنشاء القالب");
   if (!Number.isSafeInteger(input.revision) || input.revision < 1)
-    throw new Error("رقم مراجعة القالب غير صالح.");
+    throw new Error("رقم نسخة القالب غير صالح.");
   const components = input.components.map(validateComponent);
   const yieldValue = validateYield(input.yield);
   const yieldReadiness = yieldValue === null ? "not_configured" : input.yieldReadiness;

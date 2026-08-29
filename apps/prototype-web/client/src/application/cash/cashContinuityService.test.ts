@@ -128,4 +128,40 @@ describe("CashContinuityService", () => {
       },
     });
   });
+
+  it("rejects a negative transfer amount that would silently reverse the transfer direction", async () => {
+    const store = new MemoryLocalStore();
+    const cash = new CashContinuityService(store, now);
+    const drawer = await cash.openWallet({
+      name: "درج",
+      kind: "cash_drawer",
+      openingMinor: 10000,
+      occurredOn: "2026-08-01",
+      note: "بداية",
+      operationKey: "drawer",
+    });
+    const bank = await cash.openWallet({
+      name: "البنك",
+      kind: "bank_account",
+      openingMinor: 0,
+      occurredOn: "2026-08-01",
+      note: "بداية",
+      operationKey: "bank",
+    });
+    if (!drawer.ok || !bank.ok) throw new Error("wallets should save");
+    await expect(
+      cash.transfer({
+        fromWalletId: drawer.value.wallet.id,
+        toWalletId: bank.value.wallet.id,
+        amountMinor: -3000,
+        occurredOn: "2026-08-04",
+        note: "سالب",
+        operationKey: "transfer-negative",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    await expect(cash.overview()).resolves.toMatchObject({
+      ok: true,
+      value: { totalWalletCashMinor: 10000 },
+    });
+  });
 });

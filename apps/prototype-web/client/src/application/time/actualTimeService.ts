@@ -65,6 +65,7 @@ export class ActualTimeService {
       dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
       workMode: input.workMode,
       actualTimeTrackingEnabled: input.actualTimeTrackingEnabled,
+      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
       updatedAt: this.now(),
     });
     return saved.ok
@@ -149,12 +150,12 @@ export class ActualTimeService {
       const saved = await this.store.saveActualTimeRecord(record);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : { ok: false, code: "storage_error", message: "تعذر حفظ عكس الوقت محليًا." };
+        : { ok: false, code: "storage_error", message: "تعذر حفظ التراجع عن الوقت محليًا." };
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "تعذر عكس سجل الوقت.",
+        message: error instanceof Error ? error.message : "تعذر التراجع عن سجل الوقت.",
       };
     }
   }

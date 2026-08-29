@@ -115,14 +115,14 @@ export function getAgreementPresentation(input: AgreementPresentationInput): Agr
         kind: "review",
         label: "يحتاج مراجعة",
         nextAction: "افتح المراجعة",
-        explanation: "الحالة محجوبة للمراجعة؛ لا تتجاوز الحارس بفعل مالي عام.",
+        explanation: "هذه الحالة موقوفة للمراجعة؛ راجع الطلب قبل أي خطوة مالية.",
       };
     default:
       return {
         kind: "review",
         label: "يحتاج مراجعة",
         nextAction: input.nextAction?.trim() || "افتح الطلب وراجع الحالة",
-        explanation: "الحالة غير معروفة للعرض الحالي؛ لم يُخترع لها انتقال جديد.",
+        explanation: "حالة غير معروفة للعرض؛ لم يتغير أي شيء.",
       };
   }
 }

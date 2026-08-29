@@ -32,11 +32,11 @@ function ShellContent({ location, children }: { location: string; children: Reac
   function handleQuickAction(action: QuickAction) {
     setIsActionSheetOpen(false);
     if (action === "order") {
-      requestNavigation("/orders/new");
+      requestNavigation("/orders/new?intent=customer_order");
       return;
     }
     if (action === "estimate") {
-      requestNavigation("/orders/new");
+      requestNavigation("/orders/new?intent=planned_design");
       return;
     }
     if (action === "collection") {

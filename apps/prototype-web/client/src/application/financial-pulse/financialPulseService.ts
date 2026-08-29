@@ -1,5 +1,6 @@
 /** Local financial pulse: aggregates only named CraftOrder fields and never claims project cash, profit, or a Ledger. */
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 
 export type LocalFinancialPulse = {
   source: "local_craft_orders";
@@ -49,10 +50,9 @@ export function summarizeLocalCraftOrders(orders: readonly StoredCraftOrder[]): 
         ? pulse.deliveredOrSettledOrderCount + 1
         : pulse.deliveredOrSettledOrderCount,
       registeredCollectionsMinor: pulse.registeredCollectionsMinor + order.collectedMinor,
-      registeredDebtMinor:
-        order.settlementStatus === "debt"
-          ? pulse.registeredDebtMinor + order.receivableMinor
-          : pulse.registeredDebtMinor,
+      registeredDebtMinor: isRegisteredCustomerDebt(order)
+        ? pulse.registeredDebtMinor + order.receivableMinor
+        : pulse.registeredDebtMinor,
       finalResultOrderCount: hasFinalResult ? pulse.finalResultOrderCount + 1 : pulse.finalResultOrderCount,
       recognizedRevenueFromFinalOrdersMinor: hasFinalResult
         ? pulse.recognizedRevenueFromFinalOrdersMinor + order.recognizedRevenueMinor

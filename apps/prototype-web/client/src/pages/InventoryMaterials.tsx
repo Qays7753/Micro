@@ -16,6 +16,7 @@ import type { InventoryMovement } from "@micro-domain/inventory-material/index.j
 import type { InventoryOverview } from "@/application/inventory/inventoryMaterialService";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { formatArabicPlural } from "@/presentation/formatters";
+import { savedMovementCountLabel } from "@/presentation/plurals";
 const label = (type: InventoryMovement["type"]) =>
   ({
     opening: "رصيد مادة بداية",
@@ -23,7 +24,7 @@ const label = (type: InventoryMovement["type"]) =>
     consumption: "استهلاك لطلب",
     waste: "هدر مادة",
     adjustment: "ضبط مادة",
-    reversal: "عكس حركة",
+    reversal: "تراجع عن حركة",
   })[type];
 type State =
   | { phase: "loading" }
@@ -164,7 +165,7 @@ export default function InventoryMaterials() {
                         : material.unit === "liter"
                           ? "لتر"
                           : "وحدة أخرى"}{" "}
-                  · {material.movementCount} حركات محفوظة
+                  · {savedMovementCountLabel(material.movementCount)}
                 </small>
               </div>
               <div className="micro-supplier-balance">
@@ -211,7 +212,7 @@ export default function InventoryMaterials() {
                     type="button"
                     onClick={() => navigate(`/inventory/movement/${movement.id}/reverse`)}
                   >
-                    <RotateCcw aria-hidden="true" /> عكس
+                    <RotateCcw aria-hidden="true" /> تراجع
                   </button>
                 ) : null}
               </div>

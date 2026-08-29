@@ -44,6 +44,8 @@ export type LocalPreferences = {
   dailyScheduleCapacityMinutes: number | null;
   workMode: OperatingWorkMode | null;
   actualTimeTrackingEnabled: boolean;
+  /** آخر إخفاء لبطاقة التثبيت؛ تُظهر البطاقة مجددًا بعد نافذة الثلاثين يومًا. ليست بيانات مالية. */
+  installBannerDismissedAt: string | null;
   updatedAt: string;
 };
 export type DraftIntent = "customer_order" | "planned_design";

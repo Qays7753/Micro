@@ -39,7 +39,7 @@ const eventLabel: Record<string, string> = {
   cancelled: "إلغاء",
   deposit_refunded: "رد العربون",
   deposit_retained: "تسوية العربون",
-  price_approved: "تثبيت السعر",
+  price_approved: "تسجيل السعر",
 };
 const resultCopy: Record<string, [string, string]> = {
   final: ["نتيجة الطلب معروفة", "حسب بيانات تكلفة معروفة."],
@@ -227,7 +227,7 @@ export default function OrderDetail() {
         </p>
       </div>
       <section className="micro-decision-card">
-        <span>الفعل التالي</span>
+        <span>الخطوة التالية</span>
         <strong>{agreement.nextAction}</strong>
         <p>
           موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
@@ -275,15 +275,15 @@ export default function OrderDetail() {
         <section className="micro-note-card">
           <Landmark aria-hidden="true" />
           <p>
-            سُجل المتبقي كدين. لم يزد الكاش المحصل، والفعل التالي هو متابعة التحصيل خارج نطاق Prototype
-            الحالي.
+            سُجل المتبقي كدين. لم يزد الكاش المحصل، والخطوة التالية هي متابعة التحصيل مع العميل تتم خارج
+            التطبيق في هذا الإصدار؛ السجل بقي كما هو.
           </p>
         </section>
       ) : null}
       {order.status === "settled" && order.settlementStatus === "paid" ? (
         <section className="micro-note-card">
           <CheckCircle2 aria-hidden="true" />
-          <p>تم التحصيل الكامل وإغلاق الطلب. يمكنك مراجعة نتيجته وفق درجة المعرفة أعلاه.</p>
+          <p>تم التحصيل الكامل وإغلاق الطلب. يمكنك مراجعة نتيجته حسب حالتها أعلاه (مؤكدة أو تقديرية).</p>
         </section>
       ) : null}
       {order.status === "in_progress" ? (
@@ -304,9 +304,9 @@ export default function OrderDetail() {
           )}
           <p>{result[1]}</p>
           <small>
-            الإيراد المعترف به (د.أ):{" "}
+            المحتسب عند التسليم — السعر (د.أ):{" "}
             <MoneyValue minor={order.recognizedRevenueMinor} className="micro-inline-number" /> · التكلفة
-            المعترف بها (د.أ):{" "}
+            (د.أ):{" "}
             <MoneyValue minor={order.recognizedCostMinor} className="micro-inline-number" />
           </small>
         </section>
@@ -362,7 +362,7 @@ export default function OrderDetail() {
       </details>
       <section className="micro-note-card">
         <CalendarDays aria-hidden="true" />
-        <p>الاتفاق والأحداث محفوظة محليًا على هذا الجهاز. لا توجد مزامنة أو مشاركة خارجية في Prototype.</p>
+        <p>الاتفاق والأحداث محفوظة محليًا على هذا الجهاز. لا توجد مزامنة أو مشاركة خارجية في هذا الإصدار.</p>
       </section>
     </section>
   );

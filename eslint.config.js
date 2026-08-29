@@ -23,6 +23,39 @@ export default [
     },
   },
   {
+    files: ["src/domain/**/*.ts"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.object.name='Math'][callee.property.name='round'], CallExpression[callee.object.name='Math'][callee.property.name='floor']",
+          message:
+            "Money rounding must go through the shared helpers in src/domain/shared/ (roundHalfUp and friends); raw Math.round/Math.floor drift is banned (D-02/A-07). Math.ceil for contract-documented ceilings stays allowed.",
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/domain/shared/**/*.ts"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
+  {
     files: [
       "apps/prototype-web/client/src/pages/**/*.{ts,tsx}",
       "apps/prototype-web/client/src/components/**/*.{ts,tsx}",
@@ -40,8 +73,10 @@ export default [
         {
           patterns: [
             {
-              group: ["@/storage/local/IndexedDbLocalStore", "@/storage/local/createBrowserLocalStore"],
-              message: "Pages/components must use Application services, not the local storage adapter directly.",
+              group: ["@/storage/local/*"],
+              message:
+                "Pages/components must use Application services, not the local storage layer directly (type imports stay allowed).",
+              allowTypeImports: true,
             },
           ],
         },

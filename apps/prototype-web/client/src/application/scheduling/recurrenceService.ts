@@ -101,7 +101,7 @@ function buildAppearance(
         scheduledTime: source.scheduledTime,
         previousDurationMinutes: null,
         durationMinutes: source.durationMinutes,
-        reason: "ظهور من قالب تكرار محلي",
+        reason: "موعد قادم من قالب تكرار محلي",
       },
     ],
     recurrenceId: recurrence.id,
@@ -149,7 +149,7 @@ export class ScheduleRecurrenceService {
       return {
         ok: false,
         code: "validation_error",
-        message: "اختر موعدًا قائمًا، وتكرارًا أسبوعيًا أو شهريًا، وعدد ظهورات من 1 إلى 12.",
+        message: "اختر موعدًا قائمًا، وتكرارًا أسبوعيًا أو شهريًا، وعدد مواعيد قادمة من 1 إلى 12.",
       };
     const [sourceResult, schedulesResult, ordersResult, recurrencesResult] = await Promise.all([
       this.store.getSchedule(input.sourceScheduleId),
@@ -240,7 +240,7 @@ export class ScheduleRecurrenceService {
       return {
         ok: false,
         code: "storage_error",
-        message: "تعذر حفظ قالب التكرار وظهوراته محليًا. لم يتم تأكيد نجاح العملية.",
+        message: "تعذر حفظ قالب التكرار ومواعيده القادمة محليًا. لم يتم تأكيد نجاح العملية.",
       };
     return {
       ok: true,
@@ -253,7 +253,7 @@ export class ScheduleRecurrenceService {
       return {
         ok: false,
         code: "validation_error",
-        message: "اكتب سببًا مختصرًا لإيقاف الظهورات المستقبلية.",
+        message: "اكتب سببًا مختصرًا لإيقاف المواعيد القادمة.",
       };
     const current = await this.store.getRecurrence(id);
     if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة قالب التكرار المحلي." };
@@ -264,7 +264,7 @@ export class ScheduleRecurrenceService {
     const today = localDateKey(timestamp);
     const schedules = await this.store.listSchedules();
     if (!schedules.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة ظهورات التكرار المحلية." };
+      return { ok: false, code: "storage_error", message: "تعذر قراءة مواعيد التكرار القادمة محليًا." };
     const affected = schedules.value.map(schedule => {
       const isFutureDerived =
         schedule.recurrenceId === id && schedule.scheduledFor > today && isActiveSchedule(schedule);
@@ -307,7 +307,7 @@ export class ScheduleRecurrenceService {
       : {
           ok: false,
           code: "storage_error",
-          message: "تعذر إيقاف قالب التكرار وظهوراته المستقبلية محليًا. لم يتم تأكيد نجاح العملية.",
+          message: "تعذر إيقاف قالب التكرار ومواعيده القادمة محليًا. لم يتم تأكيد نجاح العملية.",
         };
   }
 }

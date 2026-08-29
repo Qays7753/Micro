@@ -69,7 +69,7 @@ describe("actual time domain", () => {
         },
         [reversal],
       ),
-    ).toThrow("تم عكس سجل الوقت هذا سابقًا");
+    ).toThrow("تم التراجع عن سجل الوقت هذا سابقًا");
   });
 
   it("keeps missing planned time unknown instead of treating it as zero", () => {

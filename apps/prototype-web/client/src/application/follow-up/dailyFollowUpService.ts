@@ -104,7 +104,7 @@ export function deriveDailyFollowUp(
     kind: "empty",
     title: "لا توجد طلبات بعد",
     truth: "لم تحفظ طلبًا أو مسودة محلية حتى الآن.",
-    nextAction: "ابدأ بطلب مخصص واحد تعرف قصته.",
+    nextAction: "ابدأ بطلب واحد من عميل تعرف قصته.",
     href: "/orders/new",
     actionLabel: "بدء طلب",
   };

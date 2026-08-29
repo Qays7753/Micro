@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { formatLocalDateLong } from "@/presentation/formatters";
 import type {
   HomeControlCenterViewModel,
   HomeFinancialFact,
@@ -65,13 +66,13 @@ export default function Home() {
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
-        جارٍ تجهيز مركز قيادة المشروع…
+        جارٍ تجهيز مشروعك…
       </div>
     );
   if (state.phase === "error")
     return (
       <section className="micro-page micro-not-found">
-        <h1>تعذر تحميل مركز القيادة</h1>
+        <h1>تعذر تحميل مشروعك</h1>
         <p>{state.message}</p>
         <button
           className="micro-button micro-button-primary"
@@ -86,11 +87,13 @@ export default function Home() {
   return (
     <section className="micro-page micro-home-control-center">
       <div className="micro-page-heading micro-home-heading">
-        <span className="micro-overline">مشروعي اليوم</span>
+        <span className="micro-overline">مشروعي الآن</span>
         <h1>{model.heading.activityName}</h1>
         <p>
           <CalendarDays aria-hidden="true" />{" "}
-          <time dateTime={model.heading.todayLocal}>{model.heading.todayLocal}</time>
+          <time dateTime={model.heading.todayLocal}>
+            {formatLocalDateLong(model.heading.todayLocal) ?? model.heading.todayLocal}
+          </time>
         </p>
       </div>
       <section className="micro-decision-surface" data-tone="accent" aria-labelledby="home-primary-title">
@@ -208,7 +211,9 @@ export default function Home() {
                 onClick={() => navigate(change.href)}
               >
                 <span>
-                  <time dateTime={change.occurredOn}>{change.occurredOn}</time>
+                  <time dateTime={change.occurredOn}>
+                    {formatLocalDateLong(change.occurredOn) ?? change.occurredOn}
+                  </time>
                   <strong>{change.title}</strong>
                   <small>{change.detail}</small>
                 </span>
@@ -221,8 +226,8 @@ export default function Home() {
       <div className="micro-scope-line">
         <CircleAlert aria-hidden="true" />
         <p>
-          Home قراءة قيادة محلية محدودة. لا تعرض صافي ربح المشروع ولا تستبدل Finance أو Orders؛ الأرقام
-          الناقصة تبقى غير معروفة.
+          هذه قراءة محلية محدودة. لا تعرض صافي ربح المشروع ولا تستبدل صفحة المال أو الطلبات؛ الأرقام الناقصة
+          تبقى غير معروفة.
         </p>
         <button className="micro-text-action" type="button" onClick={() => navigate("/review")}>
           فتح المراجعة <ArrowLeft aria-hidden="true" />

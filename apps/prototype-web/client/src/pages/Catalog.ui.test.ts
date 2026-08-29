@@ -16,6 +16,7 @@ import {
   parseCatalogPositiveSafeInteger,
   parseCatalogQuantityMilli,
 } from "./Catalog";
+import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
 
 describe("Catalog G4-A UI capability model", () => {
   it("exposes only the six general dimensions in Arabic", () => {
@@ -108,5 +109,25 @@ describe("Catalog G4-A UI capability model", () => {
       allocationMinor: null,
       warning: expect.stringContaining("لا يمكن الحساب بأمان"),
     });
+  });
+});
+
+describe("Catalog per-unit preview shares the domain implementation (A-07)", () => {
+  it("agrees with perOutputUnitAmountMinor across normal, boundary, and refusing inputs", () => {
+    const cases: ReadonlyArray<[number | null, number | null]> = [
+      [2_475, 100],
+      [1_000, 250],
+      [650, 33],
+      [null, 100],
+      [1_000, null],
+      [0, 100],
+    ];
+    for (const [quantityMilli, rate] of cases) {
+      const preview = buildCatalogPerUnitPreview(quantityMilli, rate, "قطعة");
+      const domain = perOutputUnitAmountMinor(quantityMilli, rate);
+      expect(preview.allocationMinor).toBe("problem" in domain ? null : domain.amountMinor);
+      if ("problem" in domain) expect(preview.warning).toBeTruthy();
+    }
+    expect(buildCatalogPerUnitPreview(2_475, 100, "قطعة").allocationMinor).toBe(248);
   });
 });

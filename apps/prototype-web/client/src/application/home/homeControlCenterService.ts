@@ -3,7 +3,7 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { formatArabicPlural } from "@/presentation/formatters";
+import { formatArabicPlural, formatLocalDateLong } from "@/presentation/formatters";
 
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
@@ -81,7 +81,7 @@ export class HomeControlCenterService {
       !inventory.ok ||
       !profile.value
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة مركز قيادة المشروع المحلي." };
+      return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
 
     const today = localDate(this.now());
     const orders = followUp.orders;
@@ -105,7 +105,7 @@ export class HomeControlCenterService {
       events.value.some(
         event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
       );
-    const period = `حتى ${today}`;
+    const period = `حتى ${formatLocalDateLong(today) ?? today}`;
     const facts: HomeFinancialFact[] = [
       {
         id: "cash",
@@ -113,7 +113,7 @@ export class HomeControlCenterService {
         state: cashEvidence ? "known" : "not_initialized",
         valueMinor: cashEvidence ? positionValue.recordedCashMinor : null,
         currency: "JOD",
-        source: "ProjectFinancialService والسجل المحلي",
+        source: "السجل المحلي",
         period,
         helper: "يشمل ما سُجل من محافظ وكاش الطلبات والأحداث؛ ليس ربحًا.",
       },
@@ -125,7 +125,7 @@ export class HomeControlCenterService {
         currency: "JOD",
         source: "طلبات محلية مسجلة",
         period,
-        helper: "ذمة عميل مسجلة، وليست كاشًا محصلًا.",
+        helper: "دين عميل مسجل، وليس كاشًا محصلًا.",
       },
       {
         id: "payables",
@@ -172,7 +172,7 @@ export class HomeControlCenterService {
           priority: 20,
           kind: "cost",
           title: `أكمل تكلفة ${stored.order.itemName || "الطلب"}`,
-          reason: "Snapshot التكلفة غير مكتمل؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.",
+          reason: "نسخة التكلفة غير مكتملة؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.",
           action: action(
             `cost:${stored.id}`,
             "مراجعة الطلب",
@@ -191,7 +191,7 @@ export class HomeControlCenterService {
             `order:${stored.id}`,
             "فتح الطلب",
             `/orders/${stored.id}`,
-            "أكمل الفعل التالي الظاهر في الطلب.",
+            "أكمل الخطوة التالية الظاهرة في الطلب.",
           ),
         });
       }
@@ -226,7 +226,7 @@ export class HomeControlCenterService {
           priority: 15,
           kind: "debt",
           title: `دين مسجل: ${stored.order.itemName || "طلب"}`,
-          reason: "الذمة مسجلة بعد التسليم وليست كاشًا محصلًا.",
+          reason: "الدين مسجل بعد التسليم وليس كاشًا محصلًا.",
           action: action(
             `debt:${stored.id}`,
             "مراجعة الدين",
@@ -275,7 +275,7 @@ export class HomeControlCenterService {
             few: "مواعيد تشغيلية",
             many: "موعدًا تشغيليًا",
             other: "موعد تشغيلي",
-          })} اليوم؛ السعة غير حكم رفض تلقائي.`,
+          })} اليوم؛ السعة تحذير فقط، وليست رفضًا تلقائيًا.`,
           action: action("capacity:today", "فتح الجدول", "/schedule", "راجع التوقيت والسعة المعلنة."),
         });
     }
@@ -326,7 +326,7 @@ export class HomeControlCenterService {
             : "empty",
         action: action(
           "period-result",
-          "فتح Finance",
+          "فتح الوضع المالي",
           "/finance",
           "نتيجة مسجلة محدودة وليست صافي ربح للمشروع.",
         ),
@@ -345,14 +345,14 @@ export class HomeControlCenterService {
       ...events.value.map(event => ({
         id: `finance:${event.id}`,
         occurredOn: event.occurredOn,
-        title: `Finance: ${event.note || event.type}`,
+        title: `حدث مالي: ${event.note || event.type}`,
         detail: "حدث مالي مسجل؛ راجع مصدره وسياقه.",
         href: "/finance",
       })),
       ...schedules.value.map(schedule => ({
         id: `schedule:${schedule.id}`,
         occurredOn: schedule.scheduledFor,
-        title: `موعد: ${schedule.scheduledFor}`,
+        title: `موعد: ${formatLocalDateLong(schedule.scheduledFor) ?? schedule.scheduledFor}`,
         detail: schedule.status === "completed" ? "موعد مكتمل مستبعد من التشغيل." : "موعد تشغيلي محفوظ.",
         href: "/schedule",
       })),
@@ -366,7 +366,7 @@ export class HomeControlCenterService {
         activityName: profile.value.activityName,
         todayLocal: today,
         truthLine:
-          "هذه قراءة قيادة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
+          "هذه قراءة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
         primaryAction: primary,
         facts,
         attention,

@@ -90,7 +90,7 @@ function parseFile(text: string, now: string): GuidedOpeningImportResult<GuidedO
   try {
     candidate = JSON.parse(text);
   } catch {
-    return fail("validation_error", "الملف تالف أو ليس JSON صالحًا. بقيت بيانات هذا الجهاز دون تغيير.");
+    return fail("validation_error", "الملف تالف أو ليس ملف بداية صالحًا. بقيت بيانات هذا الجهاز دون تغيير.");
   }
   if (
     !isRecord(candidate) ||

@@ -122,7 +122,7 @@ export class InventoryMaterialService {
         })),
         movementCount: movements.value.length,
         truth:
-          "قيمة المادة المتاحة ليست مصروفًا أو تكلفة بيع. ينتقل الجزء المستهلك أو المهدر فقط إلى أثر واضح، ولا يغير هذا الإصدار Snapshot أو نتيجة فترة سابقة.",
+          "قيمة المادة المتاحة ليست مصروفًا أو تكلفة بيع. ينتقل الجزء المستهلك أو المهدر فقط إلى أثر واضح، ولا يغير هذا الإصدار نسخة التكلفة أو نتيجة فترة سابقة.",
       },
     };
   }
@@ -192,8 +192,8 @@ export class InventoryMaterialService {
         consumptionCount: consumptions.length,
         truth:
           status === "recorded"
-            ? "هذه مقارنة بين مادة مخططة في Snapshot ومادة منفذة مسجلة من المخزون. لا تغير السعر أو النتيجة أو الكاش، وليست تكلفة فعلية كاملة للطلب."
-            : "سجلت مادة منفذة، لكن Snapshot التخطيط يحتاج مراجعة. لا تعتبر الفرق نتيجة نهائية قبل استكمال البنود المؤثرة.",
+            ? "هذه مقارنة بين مادة مخططة في نسخة التكلفة ومادة منفذة مسجلة من المخزون. لا تغير السعر أو النتيجة أو الكاش، وليست تكلفة فعلية كاملة للطلب."
+            : "سجلت مادة منفذة، لكن نسخة التخطيط تحتاج مراجعة. لا تعتبر الفرق نتيجة نهائية قبل استكمال البنود المؤثرة.",
       },
     };
   }
@@ -293,8 +293,18 @@ export class InventoryMaterialService {
     const purchase = purchases.value.find(candidate => candidate.id === input.purchaseId);
     if (!purchase)
       return { ok: false, code: "validation_error", message: "اختر شراء مواد موجودًا لاستلامه." };
+    const reversedMovementIds = new Set(
+      movements.value
+        .filter(movement => movement.type === "reversal" && movement.reversesMovementId)
+        .map(movement => movement.reversesMovementId),
+    );
     const receivedValue = movements.value
-      .filter(movement => movement.type === "purchase_receipt" && movement.purchaseId === input.purchaseId)
+      .filter(
+        movement =>
+          movement.type === "purchase_receipt" &&
+          movement.purchaseId === input.purchaseId &&
+          !reversedMovementIds.has(movement.id),
+      )
       .reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
     if (receivedValue + input.valueMinor > purchase.totalMinor)
       return {
@@ -421,12 +431,12 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const target = movements.find(movement => movement.id === input.movementId);
     if (!target)
-      return { ok: false, code: "validation_error", message: "لم نجد حركة المادة التي تريد عكسها." };
+      return { ok: false, code: "validation_error", message: "لم نجد حركة المادة التي تريد التراجع عنها." };
     if (target.type === "reversal" || movements.some(movement => movement.reversesMovementId === target.id))
       return {
         ok: false,
         code: "validation_error",
-        message: "تم عكس هذه الحركة سابقًا ولا يمكن عكسها مرة ثانية.",
+        message: "تم التراجع عن هذه الحركة سابقًا ولا يمكن التراجع عنها مرة ثانية.",
       };
     try {
       const reversal = createInventoryMovement({
@@ -437,7 +447,7 @@ export class InventoryMaterialService {
         recordedAt: this.now(),
         quantityDeltaMilli: -target.quantityDeltaMilli,
         valueDeltaMinor: -target.valueDeltaMinor,
-        note: `عكس: ${target.note}`,
+        note: `تراجع: ${target.note}`,
         reason: input.reason,
         operationKey: input.operationKey,
         reversesMovementId: target.id,
@@ -449,7 +459,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات عكس المادة غير صالحة.",
+        message: error instanceof Error ? error.message : "بيانات التراجع عن المادة غير صالحة.",
       };
     }
   }

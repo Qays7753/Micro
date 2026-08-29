@@ -2,10 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { ArchiveX, ArrowRight, Check, GitCompareArrows, Plus, RotateCcw, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
 import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application/input/englishNumeric";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { formatLocalDateLong } from "@/presentation/formatters";
+import { templateComponentCountLabel } from "@/presentation/plurals";
 import type {
   CatalogItem,
   CatalogItemKind,
@@ -138,28 +141,23 @@ export const buildCatalogPerUnitPreview = (
   rateMinorPerWholeUnit: number | null,
   unitName: string,
 ) => {
-  if (quantityMilli === null || rateMinorPerWholeUnit === null)
-    return { allocationMinor: null, text: null, warning: "تحتاج المعاينة إلى كمية final ومعدل صالحين." };
-  if (
-    !Number.isSafeInteger(quantityMilli) ||
-    quantityMilli <= 0 ||
-    !Number.isSafeInteger(rateMinorPerWholeUnit) ||
-    rateMinorPerWholeUnit <= 0 ||
-    rateMinorPerWholeUnit > Number.MAX_SAFE_INTEGER / quantityMilli
-  )
+  const allocation = perOutputUnitAmountMinor(quantityMilli, rateMinorPerWholeUnit);
+  if ("problem" in allocation)
     return {
       allocationMinor: null,
       text: null,
-      warning: "لا يمكن الحساب بأمان؛ راجع الكمية والمعدل قبل الحفظ.",
+      warning:
+        allocation.problem === "missing_input"
+          ? "تحتاج المعاينة إلى كمية نهائية ومعدل صالحين."
+          : allocation.problem === "unsafe_range"
+            ? "لا يمكن الحساب بأمان؛ راجع الكمية والمعدل قبل الحفظ."
+            : "تجاوز الحساب الدقة الآمنة؛ لم يُقرب الرقم.",
     };
-  const rawMinor = rateMinorPerWholeUnit * quantityMilli;
-  if (!Number.isSafeInteger(rawMinor) || rawMinor > Number.MAX_SAFE_INTEGER - 500)
-    return { allocationMinor: null, text: null, warning: "تجاوز الحساب الدقة الآمنة؛ لم يُقرب الرقم." };
-  const allocationMinor = Math.floor((rawMinor + 500) / 1000);
+  const allocationMinor = allocation.amountMinor;
   const label = unitName.trim() || "وحدة كاملة";
   return {
     allocationMinor,
-    text: `${(quantityMilli / 1000).toFixed(3)} ${label} × ${(rateMinorPerWholeUnit / 100).toFixed(2)} د.أ لكل 1.000 ${label} = ${(allocationMinor / 100).toFixed(2)} د.أ`,
+    text: `${((quantityMilli ?? 0) / 1000).toFixed(3)} ${label} × ${((rateMinorPerWholeUnit ?? 0) / 100).toFixed(2)} د.أ لكل 1.000 ${label} = ${(allocationMinor / 100).toFixed(2)} د.أ`,
     warning:
       allocationMinor === 0
         ? "الناتج 0.00 د.أ نتيجة حسابية معلنة بعد تقريب مجموع الفترة، وليس غياب بيانات."
@@ -343,7 +341,7 @@ export default function Catalog() {
 
   async function savePolicy() {
     if (!selectedItemId) {
-      setMessage("اختر مرجع عمل قبل إضافة سياسة تحميل.");
+      setMessage("اختر مرجع عمل قبل إضافة سياسة توزيع.");
       return;
     }
     const amountMinor = policyKind === "manual_amount" ? policyAmount : null;
@@ -359,14 +357,14 @@ export default function Catalog() {
       (policyKind === "completed_revenue_percentage" &&
         (!policyPercentageValid || percentageBps === null || percentageBps <= 0 || percentageBps > 10_000))
     ) {
-      setMessage("أدخل أساس التحميل بصيغة موجبة واضحة؛ لا نستخدم صفرًا بدل البيانات الناقصة.");
+      setMessage("أدخل أساس التوزيع بصيغة موجبة واضحة؛ لا نستخدم صفرًا بدل البيانات الناقصة.");
       return;
     }
     if (
       policyKind === "per_output_unit" &&
       (!policyUnitId || !selectedItem?.unitId || policyUnitId !== selectedItem.unitId)
     ) {
-      setMessage("اختر وحدة ناتج منظمة متوافقة مع وحدة مرجع العمل؛ لا نحول yield تلقائيًا.");
+      setMessage("اختر وحدة ناتج منظمة متوافقة مع وحدة مرجع العمل؛ لا نحوّل الناتج تلقائيًا.");
       return;
     }
     if (!policySource.trim() || !policyReason.trim() || !policyNote.trim()) {
@@ -413,7 +411,7 @@ export default function Catalog() {
     setPolicyRevisionId(null);
     notifyDataChanged();
     await load();
-    setMessage("تم حفظ سياسة التحميل كقراءة تفسيرية مؤرخة؛ لم ينشأ منها قيد مالي أو تغيير في Snapshot.");
+    setMessage("تم حفظ سياسة التوزيع كقراءة تفسيرية مؤرخة؛ لم ينشأ منها أثر مالي أو تغيير في نسخة التكلفة.");
   }
 
   async function createUnit() {
@@ -554,7 +552,7 @@ export default function Catalog() {
         yield: template.yield ? { quantity: revisionYieldQuantity, unitId: revisionYieldUnitId } : null,
       }),
     );
-    setMessage(`تعديل مراجعة القالب ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
+    setMessage(`تعديل القالب من النسخة ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
   }
 
   async function saveTemplate(): Promise<boolean> {
@@ -591,7 +589,7 @@ export default function Catalog() {
     setMessage(
       result.template.yieldReadiness === "needs_conversion"
         ? "تم حفظ القالب، لكن الناتج غير مهيأ بعد: أضف تحويلًا صريحًا داخل البعد نفسه."
-        : "تم حفظ القالب كمرجع تخطيطي فقط؛ لم يتغير المخزون أو السعر أو أي Snapshot.",
+        : "تم حفظ القالب كمرجع تخطيطي فقط؛ لم يتغير المخزون أو السعر أو أي نسخة تكلفة.",
     );
     return true;
   }
@@ -1026,11 +1024,11 @@ export default function Catalog() {
               <div className="micro-subsection">
                 <div className="micro-subsection-heading">
                   <div>
-                    <h3>{editingTemplateId ? "مراجعة القالب" : "قالب جديد"}</h3>
+                    <h3>{editingTemplateId ? "تعديل القالب" : "قالب جديد"}</h3>
                     <p>
                       {selectedItemUnit
                         ? `مخرج المرجع: ${selectedItemUnit.nameAr} · ${dimensionLabel(selectedItemUnit.dimension)}`
-                        : "لا توجد وحدة مخرج منظمة؛ يمكن حفظ القالب دون yield."}
+                        : "لا توجد وحدة مخرج منظمة؛ يمكن حفظ القالب دون ناتج."}
                     </p>
                   </div>
                 </div>
@@ -1058,7 +1056,7 @@ export default function Catalog() {
                 </div>
                 <div className="micro-inline-heading">
                   <h4>المكونات</h4>
-                  <span>{templateComponents.length} مكوّن</span>
+                  <span>{templateComponentCountLabel(templateComponents.length)}</span>
                 </div>
                 <div className="micro-form-grid">
                   <label className="micro-field">
@@ -1173,7 +1171,7 @@ export default function Catalog() {
                     onClick={saveTemplate}
                   >
                     {editingTemplateId ? <RotateCcw aria-hidden="true" /> : <Check aria-hidden="true" />}{" "}
-                    {saving ? "جارٍ الحفظ…" : editingTemplateId ? "احفظ المراجعة" : "احفظ القالب"}
+                    {saving ? "جارٍ الحفظ…" : editingTemplateId ? "احفظ النسخة الجديدة" : "احفظ القالب"}
                   </button>
                   {editingTemplateId ? (
                     <button
@@ -1181,7 +1179,7 @@ export default function Catalog() {
                       type="button"
                       onClick={resetTemplateForm}
                     >
-                      إلغاء المراجعة
+                      إلغاء التعديل
                     </button>
                   ) : null}
                 </div>
@@ -1192,7 +1190,7 @@ export default function Catalog() {
                     <span className="micro-overline">المراجعات المحفوظة</span>
                     <h3>قالب هذا المرجع</h3>
                   </div>
-                  <p>التعديل ينشئ مراجعة جديدة؛ لا يعيد حساب طلب سابق.</p>
+                  <p>التعديل ينشئ نسخة جديدة؛ لا يعيد حساب طلب سابق.</p>
                 </div>
                 {selectedTemplates.length ? (
                   <div className="micro-list">
@@ -1200,13 +1198,13 @@ export default function Catalog() {
                       <article className="micro-list-item" key={template.id}>
                         <div>
                           <strong>
-                            {template.title || "قالب بلا عنوان"} · مراجعة {template.revision}
+                            {template.title || "قالب بلا عنوان"} · نسخة {template.revision}
                           </strong>
                           <p>
-                            {template.components.length} مكوّن
+                            {templateComponentCountLabel(template.components.length)}
                             {template.yield
                               ? ` · الناتج ${quantityLabel(template.yield.quantityMilli)}`
-                              : " · بلا yield"}
+                              : " · بلا ناتج"}
                             {template.active ? "" : " · موقوف"}
                           </p>
                           {template.yieldReadiness === "needs_conversion" ? (
@@ -1219,7 +1217,7 @@ export default function Catalog() {
                           <details className="micro-inline-disclosure">
                             <summary>حدود القالب</summary>
                             <p>
-                              هذا تذكّر تخطيطي فقط؛ لا Purchase ولا Inventory ولا Consumption ولا COGS ولا
+                              هذا تذكّر تخطيطي فقط؛ لا شراء مواد ولا مخزون ولا استهلاك ولا تكلفة بيع ولا
                               إيراد ولا هامش ينشأ منه.
                             </p>
                           </details>
@@ -1232,7 +1230,7 @@ export default function Catalog() {
                                 type="button"
                                 onClick={() => startRevision(template)}
                               >
-                                <RotateCcw aria-hidden="true" /> مراجعة
+                                <RotateCcw aria-hidden="true" /> نسخة جديدة
                               </button>
                               <button
                                 className="micro-button micro-button-secondary"
@@ -1266,7 +1264,7 @@ export default function Catalog() {
         <summary className="micro-decision-layer-summary">
           <span>
             <b>فترة القراءة والسياسة</b>
-            <small>قراءة مشتقة وسياسة تحميل معلنة عند الطلب.</small>
+            <small>قراءة مشتقة وسياسة توزيع معلنة عند الطلب.</small>
           </span>
           <strong>افتح التفاصيل</strong>
         </summary>
@@ -1275,7 +1273,7 @@ export default function Catalog() {
             <span className="micro-overline">4 · فترة القراءة والسياسة</span>
             <h2>اقرأ قبل أن تقرر</h2>
             <p>
-              حدد فترة معلنة، ثم اعرض الهامش المباشر المسجل. أي تحميل اختياري يحتاج سياسة مؤرخة ومصدرًا وسببًا
+              حدد فترة معلنة، ثم اعرض الهامش المباشر المسجل. أي توزيع اختياري يحتاج سياسة مؤرخة ومصدرًا وسببًا
               واضحًا.
             </p>
           </div>
@@ -1290,14 +1288,14 @@ export default function Catalog() {
             </label>
           </div>
           <p className="micro-muted-copy">
-            الهامش المباشر هو الإيراد المعترف به للطلبات <bdi dir="ltr">final</bdi> ناقص التكلفة المباشرة
-            المحفوظة في Snapshot. الوقت والهدر وCOGS قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا تلقائيًا.
+            الهامش المباشر هو السعر المحتسب عند التسليم للطلبات المسلّمة النهائية ناقص التكلفة المباشرة المحفوظة
+            في نسخة التكلفة. الوقت والهدر وتكلفة البيع قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا تلقائيًا.
           </p>
           <div className="micro-subsection">
             <div className="micro-subsection-heading">
               <div>
                 <span className="micro-overline">سياسة اختيارية</span>
-                <h3>أضف تحميلًا واضحًا</h3>
+                <h3>أضف توزيعًا واضحًا</h3>
               </div>
               <p>
                 لا تُنشئ السياسة قيدًا ماليًا ولا تعيد كتابة الماضي؛ وتبقى قابلة للمراجعة عبر تاريخها ومصدرها.
@@ -1342,7 +1340,7 @@ export default function Catalog() {
                     />
                   </label>
                   <label className="micro-field">
-                    <span>أساس التحميل</span>
+                    <span>أساس التوزيع</span>
                     <select
                       value={policyKind}
                       onChange={event =>
@@ -1367,7 +1365,7 @@ export default function Catalog() {
                         onTextValidityChange={setPolicyAmountValid}
                         onEmptyChange={() => setPolicyAmount(null)}
                         allowEmpty
-                        aria-label="مبلغ سياسة التحميل"
+                        aria-label="مبلغ سياسة التوزيع"
                       />
                     </label>
                   ) : null}
@@ -1387,7 +1385,7 @@ export default function Catalog() {
                         onTextValidityChange={setPolicyRateValid}
                         onEmptyChange={() => setPolicyRate(null)}
                         allowEmpty
-                        aria-label="معدل سياسة التحميل"
+                        aria-label="معدل سياسة التوزيع"
                       />
                     </label>
                   ) : null}
@@ -1416,14 +1414,14 @@ export default function Catalog() {
                         onTextValidityChange={setPolicyPercentageValid}
                         onEmptyChange={() => setPolicyPercentage(null)}
                         allowEmpty
-                        aria-label="نسبة سياسة التحميل"
+                        aria-label="نسبة سياسة التوزيع"
                       />
                     </label>
                   ) : null}
                 </div>
                 {policyKind === "per_output_unit" ? (
                   <div className="micro-inline-disclosure">
-                    <p>{perUnitPreview?.text ?? "ستظهر معاينة التحميل بعد وجود كمية final ومعدل صالح."}</p>
+                    <p>{perUnitPreview?.text ?? "ستظهر معاينة التوزيع بعد وجود كمية نهائية ومعدل صالح."}</p>
                     <p>{catalogPerUnitRoundingNote}</p>
                     {perUnitPreview?.warning ? (
                       <p className="micro-warning-copy">{perUnitPreview.warning}</p>
@@ -1466,7 +1464,7 @@ export default function Catalog() {
                 </button>
               </>
             ) : (
-              <p className="micro-empty-copy">اختر مرجع عمل إذا أردت تسجيل سياسة تحميل اختيارية.</p>
+              <p className="micro-empty-copy">اختر مرجع عمل إذا أردت تسجيل سياسة توزيع اختيارية.</p>
             )}
           </div>
         </section>
@@ -1485,7 +1483,9 @@ export default function Catalog() {
             <span className="micro-overline">المراجع المسجلة</span>
             <h2>أعمال متكررة وقراءة القرار</h2>
             <p>
-              {readings ? `الفترة المعلنة: ${readings.from} → ${readings.to}` : "جارٍ تحميل القراءة المحلية…"}
+              {readings
+                ? `الفترة المعلنة: ${formatLocalDateLong(readings.from) ?? readings.from} → ${formatLocalDateLong(readings.to) ?? readings.to}`
+                : "جارٍ تحميل القراءة المحلية…"}
             </p>
           </div>
           {items.length ? (
@@ -1511,7 +1511,7 @@ export default function Catalog() {
                         </p>
                       ) : (
                         <p>
-                          لا توجد طلبات final مرتبطة بهذا المرجع في الفترة؛ لا تعرض القراءة صفرًا بدل دليل
+                          لا توجد طلبات نهائية مرتبطة بهذا المرجع في الفترة؛ لا تعرض القراءة صفرًا بدل دليل
                           ناقص.
                         </p>
                       )}
@@ -1555,7 +1555,7 @@ export default function Catalog() {
                             <>
                               <p>
                                 <strong>
-                                  الربح بعد التحميل:{" "}
+                                  الربح بعد التوزيع:{" "}
                                   {allocation.resultMinor === null
                                     ? "غير مكتمل"
                                     : jod(allocation.resultMinor)}
@@ -1566,7 +1566,7 @@ export default function Catalog() {
                               <p>{allocation.calculationNote}</p>
                             </>
                           ) : (
-                            <p>لا توجد سياسة تحميل فعالة تغطي الفترة؛ الهامش المباشر هو القراءة الأساسية.</p>
+                            <p>لا توجد سياسة توزيع فعالة تغطي الفترة؛ الهامش المباشر هو القراءة الأساسية.</p>
                           )}
                           {reading.reasons.map(reason => (
                             <p className="micro-warning-copy" key={reason}>
@@ -1579,8 +1579,9 @@ export default function Catalog() {
                               {reading.policies.map(policy => (
                                 <p key={policy.id}>
                                   {catalogAllocationKindLabel(policy.kind)} ·{" "}
-                                  {policy.status === "active" ? "فعالة" : "غير فعالة"} · {policy.periodFrom} →{" "}
-                                  {policy.periodTo}
+                                  {policy.status === "active" ? "فعالة" : "غير فعالة"} ·{" "}
+                                  {formatLocalDateLong(policy.periodFrom) ?? policy.periodFrom} →{" "}
+                                  {formatLocalDateLong(policy.periodTo) ?? policy.periodTo}
                                   {policy.kind === "per_output_unit" && policy.rateMinorPerWholeUnit !== null
                                     ? ` · ${(policy.rateMinorPerWholeUnit / 100).toFixed(2)} د.أ لكل 1.000 وحدة`
                                     : ""}{" "}
@@ -1591,7 +1592,7 @@ export default function Catalog() {
                                       type="button"
                                       onClick={() => startPolicyRevision(policy)}
                                     >
-                                      أنشئ مراجعة
+                                      أنشئ نسخة جديدة
                                     </button>
                                   ) : null}
                                 </p>
@@ -1602,8 +1603,8 @@ export default function Catalog() {
                             <summary>الحقيقة والحدود</summary>
                             <p>{reading.truth}</p>
                             <p>
-                              الهدر لا يدخل COGS ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا، ولا
-                              توصية سعر، ولا تتضمن تكاليف لم تُسجل.
+                              الهدر لا يدخل تكلفة البيع ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا،
+                              ولا توصية سعر، ولا تتضمن تكاليف لم تُسجل.
                             </p>
                           </details>
                         </>

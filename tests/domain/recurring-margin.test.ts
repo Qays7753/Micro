@@ -3,6 +3,7 @@ import {
   calculateAllocationPolicy,
   createAllocationPolicy,
   isValidWasteContext,
+  perOutputUnitAmountMinor,
 } from "../../src/domain/recurring-margin/index.js";
 import type { AllocationEvidence } from "../../src/domain/recurring-margin/index.js";
 
@@ -220,5 +221,20 @@ describe("G4-B recurring margin Domain", () => {
     expect(isValidWasteContext({ kind: "unallocated", allocationNote: null })).toBe(true);
     expect(isValidWasteContext({ kind: "order", orderId: "" })).toBe(false);
     expect(isValidWasteContext({ kind: "unknown" })).toBe(false);
+  });
+});
+
+describe("perOutputUnitAmountMinor (A-07 shared preview)", () => {
+  it("rounds the period total half-up to the nearest minor unit at milli boundaries", () => {
+    expect(perOutputUnitAmountMinor(2_475, 100)).toEqual({ amountMinor: 248 });
+    expect(perOutputUnitAmountMinor(1_000, 100)).toEqual({ amountMinor: 100 });
+    expect(perOutputUnitAmountMinor(2_450, 100)).toEqual({ amountMinor: 245 });
+  });
+  it("classifies missing, unsafe, and overflowing inputs instead of rounding them", () => {
+    expect(perOutputUnitAmountMinor(null, 100)).toEqual({ problem: "missing_input" });
+    expect(perOutputUnitAmountMinor(1_000, null)).toEqual({ problem: "missing_input" });
+    expect(perOutputUnitAmountMinor(0, 100)).toEqual({ problem: "unsafe_range" });
+    expect(perOutputUnitAmountMinor(1_000, -5)).toEqual({ problem: "unsafe_range" });
+    expect(perOutputUnitAmountMinor(Number.MAX_SAFE_INTEGER, 2)).toEqual({ problem: "unsafe_range" });
   });
 });

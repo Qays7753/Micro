@@ -5,7 +5,9 @@ export {
   assertNonNegativeInteger,
   assertPositiveMinor,
   ceilRatio,
+  fieldLabelAr,
   isValidLocalDate,
   isValidTimestamp,
+  quantityMilliExact,
   roundHalfUp,
 } from "./numeric.js";

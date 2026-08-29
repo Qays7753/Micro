@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { G5Service } from "./g5Service";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
+import {
+  calculateCostSnapshot,
+  createCraftOrder,
+  registerDebt,
+  transitionOrder,
+} from "@micro-domain/craft-order/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import {
   createCatalogItem,
@@ -60,6 +66,7 @@ describe("G5 Application service", () => {
     const finance = new ProjectFinancialService(store, now);
     const g5 = new G5Service(store, finance, now);
     const stored = deliveredOrder("g5-order");
+    stored.order = registerDebt(stored.order, "g5-order-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
     await finance.record({
       type: "operating_expense_cash",
@@ -112,6 +119,7 @@ describe("G5 Application service", () => {
     const finance = new ProjectFinancialService(store, now);
     const g5 = new G5Service(store, finance, now);
     const stored = deliveredOrder("g5-reversal-order");
+    stored.order = registerDebt(stored.order, "g5-reversal-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
     const input = {
       direction: "collection" as const,
@@ -171,6 +179,7 @@ describe("G5 Application service", () => {
     const finance = new ProjectFinancialService(store, now);
     const g5 = new G5Service(store, finance, now);
     const stored = deliveredOrder("g5-over-allocation-order", 5000);
+    stored.order = registerDebt(stored.order, "g5-over-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
     const input = {
       direction: "collection" as const,
@@ -317,6 +326,7 @@ describe("G5 Application service", () => {
     const finance = new ProjectFinancialService(store, now);
     const g5 = new G5Service(store, finance, now);
     const stored = deliveredOrder("g5-link-options");
+    stored.order = registerDebt(stored.order, "g5-link-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
     const options = await g5.listLinkOptions();
     expect(options).toMatchObject({
@@ -339,5 +349,220 @@ describe("G5 Application service", () => {
     const retry = await g5.reverseDeclaration(created.value.id, "تغير الموعد", "g5-link-reversal");
     expect(first).toMatchObject({ ok: true, value: { kind: "reversal" } });
     expect(retry).toMatchObject({ ok: true, reused: true, value: { kind: "reversal" } });
+  });
+});
+
+describe("G5 payable link options after a settlement reversal (A-01)", () => {
+  it("shows the full commitment remaining after a mistaken settlement was reversed", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const payable = await finance.record({
+      type: "operating_expense_payable",
+      amountMinor: 10000,
+      occurredOn: "2026-08-01",
+      note: "التزام مورد",
+      counterparty: "مورد",
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "a01-g5-payable",
+    });
+    const settlement = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 6000,
+      occurredOn: "2026-08-02",
+      note: "دفعة خطأ",
+      counterparty: "مورد",
+      relatedEventId: payable.ok ? payable.value.id : "",
+      idempotencyKey: "a01-g5-settle",
+    });
+    await finance.reverse({
+      sourceEventId: settlement.ok ? settlement.value.id : "",
+      reason: "دفعة مسجلة بالخطأ",
+      occurredOn: "2026-08-03",
+      idempotencyKey: "a01-g5-reverse",
+    });
+    const g5 = new G5Service(store, finance, now);
+    const options = await g5.listLinkOptions();
+    expect(options).toMatchObject({
+      ok: true,
+      value: {
+        payableEvents: [{ id: payable.ok ? payable.value.id : "", amountMinor: 10000 }],
+      },
+    });
+  });
+});
+
+describe("G5 expense readings after reversals (C-01)", () => {
+  async function storeWithReversedFixedExpense(occurredOn: string, reversedOn: string) {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const expense = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 1000,
+      occurredOn,
+      note: "مصروف ثابت",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "c01-expense",
+    });
+    await finance.reverse({
+      sourceEventId: expense.ok ? expense.value.id : "",
+      reason: "خطأ في الإدخال",
+      occurredOn: reversedOn,
+      idempotencyKey: "c01-reverse",
+    });
+    return { store, finance };
+  }
+  it("drops a fixed expense reversed within the same period, agreeing with the G3 netted reading", async () => {
+    const { store, finance } = await storeWithReversedFixedExpense("2026-08-05", "2026-08-06");
+    const g5 = new G5Service(store, finance, now);
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    const period = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
+    expect(decision).toMatchObject({ ok: true, value: { period: { fixedExpenseMinor: 0 } } });
+    expect(period).toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 0 } });
+  });
+  it("keeps the expense in the window where it was recorded when the reversal lands in a later window", async () => {
+    const { store, finance } = await storeWithReversedFixedExpense("2026-08-05", "2026-09-02");
+    const g5 = new G5Service(store, finance, now);
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    const period = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
+    expect(decision).toMatchObject({ ok: true, value: { period: { fixedExpenseMinor: 1000 } } });
+    expect(period).toMatchObject({ ok: true, value: { recordedOperatingExpenseMinor: 1000 } });
+  });
+  it("no longer double-counts an unallocated shared expense when its reversal lands in the same window", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const expense = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-08-05",
+      note: "فاتورة بيت",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "shared",
+        behavior: "mixed",
+        purpose: "unallocated",
+        knowledge: "needs_review",
+        sharedProjectShare: {
+          basis: "needs_review",
+          note: null,
+          allocation: "unallocated",
+          totalAmountMinor: 5000,
+          percentageBps: null,
+          calculatedShareMinor: null,
+        },
+      },
+      idempotencyKey: "c01-unallocated",
+      sharedExpense: { mode: "defer", sharedTotalAmountMinor: 5000 },
+    });
+    await finance.reverse({
+      sourceEventId: expense.ok ? expense.value.id : "",
+      reason: "فاتورة مكررة",
+      occurredOn: "2026-08-06",
+      idempotencyKey: "c01-unallocated-reverse",
+    });
+    const g5 = new G5Service(store, finance, now);
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    expect(decision.ok && decision.value.period.fixedExpenseMinor).toBe(0);
+    const gapReasons = decision.ok
+      ? decision.value.period.reasons.filter(reason => reason.includes("غير موزّع لغياب مصدر الحصة"))
+      : [];
+    expect(gapReasons).toHaveLength(0);
+  });
+});
+
+describe("G5 short-cash receivables count only registered debt (A-05)", () => {
+  it("excludes a never-agreed draft while including a delivered order whose remainder was registered as debt", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const g5 = new G5Service(store, finance, now);
+    const draftSnapshot = calculateCostSnapshot("a05-draft-cost", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-10T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    const draft = createCraftOrder({
+      id: "a05-draft",
+      customerName: "سارة",
+      itemName: "إطار",
+      specifications: "مسودة",
+      quantity: 1,
+      agreedPriceMinor: 3000,
+      costSnapshot: draftSnapshot,
+      createdAt: "2026-08-10T09:00:00.000Z",
+    });
+    await store.saveOrder({
+      id: draft.id,
+      order: draft,
+      catalogItemId: null,
+      deliveryDate: "",
+      agreementSource: null,
+      createdAt: draft.createdAt,
+      updatedAt: draft.createdAt,
+    });
+    const delivered = deliveredOrder("a05-debt", 5000);
+    const debtor = registerDebt(delivered.order, "a05-debt-key", "2026-08-06T09:00:00.000Z");
+    await store.saveOrder({ ...delivered, order: debtor });
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    expect(decision).toMatchObject({ ok: true });
+    if (decision.ok) {
+      expect(decision.value.shortCash.undatedReceivablesMinor).toBe(5000);
+      const debtReason = decision.value.shortCash.reasons.find(reason => reason.includes("دين عميل"));
+      expect(debtReason).toContain("عميلة اختبار");
+      expect(debtReason).not.toContain("سارة");
+    }
+  });
+  it("agrees with the financial pulse on what a registered debt is", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const g5 = new G5Service(store, finance, now);
+    const pulseService = new FinancialPulseService(store);
+    const draftSnapshot = calculateCostSnapshot("a05-agree-cost", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-10T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    const draft = createCraftOrder({
+      id: "a05-agree-draft",
+      customerName: "ليان",
+      itemName: "لوح",
+      specifications: "مسودة",
+      quantity: 1,
+      agreedPriceMinor: 2000,
+      costSnapshot: draftSnapshot,
+      createdAt: "2026-08-11T09:00:00.000Z",
+    });
+    await store.saveOrder({
+      id: draft.id,
+      order: draft,
+      catalogItemId: null,
+      deliveryDate: "",
+      agreementSource: null,
+      createdAt: draft.createdAt,
+      updatedAt: draft.createdAt,
+    });
+    const delivered = deliveredOrder("a05-agree-debt", 5000);
+    const debtor = registerDebt(delivered.order, "a05-agree-debt-key", "2026-08-06T09:00:00.000Z");
+    await store.saveOrder({ ...delivered, order: debtor });
+    const pulse = await pulseService.read();
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    expect(pulse.ok && pulse.pulse.registeredDebtMinor).toBe(5000);
+    expect(decision.ok && decision.value.shortCash.undatedReceivablesMinor).toBe(5000);
   });
 });

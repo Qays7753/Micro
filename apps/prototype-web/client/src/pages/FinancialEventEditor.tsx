@@ -1,14 +1,14 @@
 /** Micro G3 UI: phone-first RTL form; one financial action, explicit knowledge, and no hidden allocation. */
 /* مبدأ Micro: يشرح الحدث المالي أثره المحلي بوضوح، ولا يختلط عرضه مع نتيجة الطلب أو الربح. */
 import { ArrowRight, Save } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useLocation, useParams } from "wouter";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import type { SettleablePayable } from "@/application/finance/projectFinancialService";
 import type {
-  FinancialEvent,
   FinancialEventType,
   OperatingExpenseContext,
   SharedProjectShareBasis,
@@ -70,7 +70,7 @@ const sourceDescription: Record<SharedProjectShareBasis, string> = {
   agreed_fixed_share: "أدخل حصة المشروع فقط؛ لا يحفظ النظام إجمالي فاتورة البيت.",
   agreed_percentage: "أدخل الإجمالي والنسبة الصريحة؛ يحسب النظام حصة المشروع بدقة ويحفظها في السجل.",
   owner_estimate: "تقديرك الحالي لحصة المشروع؛ تدخل مرة واحدة وتبقى الصورة ناقصة.",
-  needs_review: "يحفظ إجمالي المصدر كغير محمل؛ لا يصبح صفرًا ولا يخصم من النتيجة.",
+  needs_review: "يحفظ إجمالي المصدر كغير موزّع؛ لا يصبح صفرًا ولا يخصم من النتيجة.",
 };
 
 export default function FinancialEventEditor() {
@@ -93,35 +93,17 @@ export default function FinancialEventEditor() {
   const [knowledge, setKnowledge] = useState<OperatingExpenseContext["knowledge"]>("known");
   const [sharedMode, setSharedMode] = useState<SharedMode>("fixed");
   const [sharedNote, setSharedNote] = useState("");
-  const [events, setEvents] = useState<readonly FinancialEvent[]>([]);
+  const [payableOptions, setPayableOptions] = useState<readonly SettleablePayable[]>([]);
   const [relatedEventId, setRelatedEventId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const idempotencyKey = useRef(`finance-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
   useEffect(() => {
-    projectFinance.listEvents().then(result => {
-      if (result.ok) setEvents(result.value);
+    projectFinance.listSettleablePayables().then(result => {
+      if (result.ok) setPayableOptions(result.value);
     });
   }, [projectFinance]);
-  const payableOptions = useMemo(
-    () =>
-      events
-        .filter(event => event.type === "operating_expense_payable")
-        .map(event => ({
-          event,
-          remaining:
-            event.amountMinor -
-            events
-              .filter(
-                candidate =>
-                  candidate.type === "payable_settlement_cash" && candidate.relatedEventId === event.id,
-              )
-              .reduce((sum, candidate) => sum + candidate.amountMinor, 0),
-        }))
-        .filter(item => item.remaining > 0),
-    [events],
-  );
 
   if (!type)
     return (
@@ -174,6 +156,10 @@ export default function FinancialEventEditor() {
       );
       return;
     }
+    if (!note.trim()) {
+      setMessage("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.");
+      return;
+    }
     setMessage(null);
     setSaving(true);
     const sharedExpense = isShared
@@ -204,7 +190,14 @@ export default function FinancialEventEditor() {
       return;
     }
     notifyDataChanged();
-    setMessage(result.reused ? "هذا الحدث محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ الحدث المالي محليًا.");
+    if (result.reused) {
+      setMessage(
+        "لم يُحفظ التعديل. هذا الحدث مسجل سابقًا بنفس المفتاح؛ للتصحيح تراجع عن الحدث الأصلي وسجّل حدثًا جديدًا.",
+      );
+      return;
+    }
+    setMessage("تم حفظ الحدث المالي محليًا.");
+    navigate("/finance");
   }
 
   return (
@@ -266,12 +259,12 @@ export default function FinancialEventEditor() {
             />
             <small>
               {isShared && sharedMode === "defer"
-                ? "سيبقى هذا الإجمالي غير محمل حتى تحدد حصة المشروع."
+                ? "سيبقى هذا الإجمالي غير موزّع حتى تحدد حصة المشروع."
                 : null}
             </small>
           </label>
         )}
-        <LocalDateField label="تاريخ الواقعة" value={date} onChange={event => setDate(event.target.value)} />
+        <LocalDateField label="تاريخ الحدث" value={date} onChange={event => setDate(event.target.value)} />
         <label className="micro-field">
           <span>{content.counterparty}</span>
           <input
@@ -311,16 +304,16 @@ export default function FinancialEventEditor() {
             <span>الالتزام الذي تسدده (المبالغ د.أ)</span>
             <select value={relatedEventId} onChange={event => setRelatedEventId(event.target.value)}>
               <option value="">اختر التزامًا مسجلًا</option>
-              {payableOptions.map(({ event, remaining }) => (
+              {payableOptions.map(({ event, remainingMinor }) => (
                 <option key={event.id} value={event.id}>
-                  {event.note} · المتبقي {formatMoneyOption(remaining)}
+                  {event.note} · المتبقي {formatMoneyOption(remainingMinor)}
                 </option>
               ))}
             </select>
           </label>
         ) : null}
         <label className="micro-field">
-          <span>ما الذي حدث؟</span>
+          <span>ما الذي حدث؟ (مطلوب)</span>
           <textarea
             value={note}
             onChange={event => setNote(event.target.value)}
@@ -408,7 +401,7 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
         </select>
         <small>
           {relationship === "shared"
-            ? "لن يحمّل النظام إجمالي فاتورة مشتركة على الربح إلا إذا حددت الحصة أو أبقيتها غير محملة بوضوح."
+            ? "لن يوزّع النظام إجمالي فاتورة مشتركة على الربح إلا إذا حددت الحصة أو أبقيتها غير موزّعة بوضوح."
             : "هذا المبلغ يخدم المشروع بالكامل كما هو مسجل."}
         </small>
       </label>
@@ -461,23 +454,23 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
             />
           </label>
           <p className="micro-expense-route-note">
-            درجة المعرفة:{" "}
+            حالة الرقم:{" "}
             {sharedKnowledge === "known"
-              ? "معروف"
+              ? "مؤكد"
               : sharedKnowledge === "estimated"
                 ? "تقديري"
                 : "يحتاج مراجعة"}
-            . تدخل الحصة المحملة في نتيجة الفترة مرة واحدة، أما المؤجل فيظهر كغير محمل ولا يساوي صفرًا.
+            . تدخل الحصة الموزّعة في نتيجة الفترة مرة واحدة، أما المؤجل فيظهر كغير موزّع ولا يساوي صفرًا.
           </p>
         </>
       ) : (
         <label className="micro-field">
-          <span>درجة المعرفة</span>
+          <span>حالة الرقم</span>
           <select
             value={knowledge}
             onChange={event => setKnowledge(event.target.value as OperatingExpenseContext["knowledge"])}
           >
-            <option value="known">معروف</option>
+            <option value="known">مؤكد</option>
             <option value="estimated">تقديري</option>
             <option value="needs_review">يحتاج مراجعة</option>
           </select>

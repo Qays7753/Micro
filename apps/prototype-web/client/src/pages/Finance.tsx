@@ -16,6 +16,7 @@ import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentat
 import {
   formatBreakEvenDisplay,
   formatLocalDate,
+  formatMonthLabel,
   formatMoneyMinor,
   formatQuantityMilli,
   localDateInAmman,
@@ -55,7 +56,7 @@ const expenseContextLabel = (event: FinancialEvent) => {
   if (event.expenseContext.relationship === "project") return `للمشروع · ${knowledge}`;
   const share = event.expenseContext.sharedProjectShare;
   if (share?.allocation === "unallocated")
-    return `مصروف مشترك غير محمل · ${formatMoneyMinor(share.totalAmountMinor ?? event.amountMinor)}`;
+    return `مصروف مشترك غير موزّع · ${formatMoneyMinor(share.totalAmountMinor ?? event.amountMinor)}`;
   const source = share?.basis;
   const sourceLabel =
     source === "agreed_fixed_share"
@@ -67,7 +68,7 @@ const expenseContextLabel = (event: FinancialEvent) => {
           : source === "needs_review"
             ? "مصدر يحتاج مراجعة"
             : "مصدر الحصة غير موثق";
-  return `حصة مشروع مشتركة · ${knowledge} · ${sourceLabel}`;
+  return `حصة المشروع من مصروف مشترك · ${knowledge} · ${sourceLabel}`;
 };
 const currentMonth = () => localDateInAmman().slice(0, 7);
 const validMonth = (month: string) =>
@@ -100,17 +101,17 @@ const recordedPeriodStatusLabel = (status: RecordedPeriodResult["status"]) =>
       : "لا يمكن حساب الفترة";
 const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
   status === "recorded"
-    ? "COGS مسجلة من استهلاك مؤهل لكل الأعمال النهائية"
+    ? "تكلفة البيع مسجلة من استهلاك مؤهل لكل الأعمال النهائية"
     : status === "partial"
-      ? "COGS مسجلة لبعض الأعمال، وSnapshot مستخدم لبقية الأعمال"
-      : "لا توجد COGS مؤهلة؛ Snapshot هو المصدر البديل المعلن";
+      ? "تكلفة البيع مسجلة لبعض الأعمال، ونسخة التكلفة مستخدمة لبقية الأعمال"
+      : "لا توجد تكلفة بيع مؤهلة؛ نسخة التكلفة هي المصدر البديل المعلن";
 const shortStatusLabel = (status: G5Decision["shortCash"]["status"]) =>
   status === "available"
-    ? "توقع معلن مكتمل"
+    ? "توقع مكتمل"
     : status === "needs_review"
-      ? "توقع معلن يحتاج مراجعة"
+      ? "توقع يحتاج مراجعة"
       : status === "invalid"
-        ? "إعلان غير صالح"
+        ? "السجل غير صالح"
         : "لا يكفي لبناء توقع";
 
 export default function Finance() {
@@ -118,15 +119,20 @@ export default function Finance() {
   const { projectFinance, ownerEntitlement, g5, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [fromMonth, setFromMonth] = useState(currentMonth);
   const [toMonth, setToMonth] = useState(currentMonth);
+  const [appliedRange, setAppliedRange] = useState({ from: currentMonth(), to: currentMonth() });
+  const [rangeInvalid, setRangeInvalid] = useState(false);
   const [state, setState] = useState<FinanceState>({ phase: "loading" });
   useEffect(() => {
     let active = true;
-    if (!validMonth(fromMonth) || !validMonth(toMonth) || fromMonth > toMonth) {
-      setState({ phase: "error", message: "اختر نطاقًا صحيحًا يبدأ من شهر لا يتجاوز شهر النهاية." });
+    const monthsUsable = validMonth(fromMonth) && validMonth(toMonth) && fromMonth <= toMonth;
+    setRangeInvalid(!monthsUsable);
+    if (!monthsUsable) {
+      // نطاق غير صالح هو خطأ حقل، لا خطأ شاشة: تبقى آخر قراءة صحيحة معروضة.
       return () => {
         active = false;
       };
     }
+    setAppliedRange({ from: fromMonth, to: toMonth });
     const from = monthBounds(fromMonth);
     const to = monthBounds(toMonth);
     Promise.all([
@@ -257,7 +263,7 @@ export default function Finance() {
           <div className="micro-period-heading">
             <div>
               <span className="micro-overline">قراءة تشغيلية مسجلة · ضمن فترة معلنة</span>
-              <h2>صافي الربح التشغيلي المسجل للفترة</h2>
+              <h2>نتيجة الفترة المسجلة</h2>
             </div>
             <div className="micro-period-range-fields">
               <label>
@@ -280,13 +286,18 @@ export default function Finance() {
               </label>
             </div>
           </div>
+          {rangeInvalid ? (
+            <p className="micro-field-error" role="status">
+              اختر نطاقًا يبدأ قبل نهايته؛ القراءة أدناه تبقى على آخر نطاق صحيح.
+            </p>
+          ) : null}
           <p className="micro-period-range-label">
-            النطاق المحدد: <bdi dir="ltr">{fromMonth}</bdi> — <bdi dir="ltr">{toMonth}</bdi>. هذا رقم تشغيلي
-            مسجل من البنود المعروفة، وليس صافي ربح نهائيًا.
+            النطاق المحدد: {formatMonthLabel(appliedRange.from)} — {formatMonthLabel(appliedRange.to)}. هذا رقم
+            تشغيلي مسجل من البنود المعروفة، وليس صافي ربح نهائيًا.
           </p>
           <p className="micro-period-result-value">
             <span>
-              الإيراد − التكلفة المباشرة المستخدمة − المصروف التشغيلي المحمل، ضمن الفترة المحددة فقط
+              الإيراد − التكلفة المباشرة المستخدمة − المصروف التشغيلي الموزّع، ضمن الفترة المحددة فقط
             </span>
             <strong>
               {period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}
@@ -304,7 +315,7 @@ export default function Finance() {
               </dd>
             </div>
             <div>
-              <dt>تكلفة مباشرة من Snapshot</dt>
+              <dt>تكلفة مباشرة من نسخة التكلفة</dt>
               <dd>
                 <PeriodMoney value={period.snapshotDirectCostMinor} status={period.status} />
               </dd>
@@ -328,19 +339,19 @@ export default function Finance() {
               </dd>
             </div>
             <div>
-              <dt>حصص مشروع مشتركة محملة</dt>
+              <dt>حصة المشروع من مصروف مشترك موزّعة</dt>
               <dd>
                 <PeriodMoney value={period.sharedProjectExpenseMinor} status={period.status} />
               </dd>
             </div>
             <div>
-              <dt>مصروف مشترك غير محمل</dt>
+              <dt>مصروف مشترك غير موزّع</dt>
               <dd>
                 <PeriodMoney value={period.sharedUnallocatedExpenseMinor} status={period.status} />
               </dd>
             </div>
             <div>
-              <dt>استهلاك عام غير محمل</dt>
+              <dt>استهلاك عام غير موزّع</dt>
               <dd>
                 <PeriodMoney value={period.unallocatedInventoryCostMinor} status={period.status} />
               </dd>
@@ -374,9 +385,9 @@ export default function Finance() {
             </div>
           </dl>
           <div className="micro-period-review-note">
-            <strong>مصدر التكلفة وحالة COGS</strong>
+            <strong>مصدر التكلفة وحالة تكلفة البيع</strong>
             <p>
-              {cogsStatusLabel(period.cogsStatus)}. الأعمال النهائية التي رجعت إلى Snapshot لغياب استهلاك
+              {cogsStatusLabel(period.cogsStatus)}. الأعمال النهائية التي رجعت إلى نسخة التكلفة لغياب استهلاك
               مؤهل: <IntegerValue value={period.cogsMissingOrderCount} className="micro-inline-number" />.
             </p>
             {period.cogsReasons.length > 0 ? (
@@ -386,7 +397,7 @@ export default function Finance() {
                 ))}
               </ul>
             ) : null}
-            <p className="micro-period-next-action">الفعل التالي: {period.cogsNextAction}</p>
+            <p className="micro-period-next-action">الخطوة التالية: {period.cogsNextAction}</p>
           </div>
           {period.reasons.length > 0 ? (
             <div className="micro-period-review-note">
@@ -400,7 +411,7 @@ export default function Finance() {
           ) : null}
           {period.sharedUnallocatedExpenseCount > 0 ? (
             <p className="micro-period-next-action">
-              الفعل التالي: حدد حصة المشروع للمصروف المشترك غير المحمل قبل الاعتماد على نتيجة أدق؛ لم يخصم
+              الخطوة التالية: حدد حصة المشروع للمصروف المشترك غير الموزّع قبل الاعتماد على نتيجة أدق؛ لم يخصم
               المصدر المستبعد من الرقم أعلاه.
             </p>
           ) : null}
@@ -411,7 +422,7 @@ export default function Finance() {
         <summary className="micro-finance-layer-summary">
           <span>
             <b>التغطية والتعادل</b>
-            <small>قراءة G5 للفترة والمزيج والإعلانات المعلنة</small>
+            <small>قراءة الهامش والمتوقعات للفترة</small>
           </span>
           <strong>افتح التفاصيل</strong>
         </summary>
@@ -485,7 +496,7 @@ export default function Finance() {
             type="button"
             onClick={() => navigate("/finance/owner-entitlement")}
           >
-            دفتر استحقاق المالك والسحب الفعلي
+            دفتر حق المالك
           </button>
           {position.supplierPayablesMinor > 0 ? (
             <button
@@ -510,7 +521,7 @@ export default function Finance() {
           <div className="micro-finance-event-heading">
             <span className="micro-overline">السجل المحلي · المبالغ (د.أ)</span>
             <h2>أحدث الأحداث العامة</h2>
-            <p>كل عكس موثق يضيف حدثًا جديدًا؛ الأصل يبقى ظاهرًا ولا يوجد حذف.</p>
+            <p>كل تراجع موثق يضيف حدثًا جديدًا؛ الأصل يبقى ظاهرًا ولا يوجد حذف.</p>
           </div>
           {visibleEvents.length > 0 ? (
             visibleEvents.map(event => (
@@ -551,20 +562,20 @@ function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOve
         {overview.balanceState === "positive"
           ? "المشروع ما زال مدينًا لك بهذا الرصيد المسجل."
           : overview.balanceState === "negative"
-            ? "السجل يظهر سحوبات أكثر من الاستحقاق المسجل حتى الآن."
-            : "لا يوجد رصيد استحقاق متبقٍ في السجل الحالي."}
+            ? "السجل يظهر سحوبات أكثر من الحق المسجل حتى الآن."
+            : "لا يوجد رصيد حق متبقٍ في السجل الحالي."}
       </p>
       <div className="micro-owner-decision-grid">
-        <Metric label="استحقاق مسجل" value={formatMoneyMinor(overview.approvedEntitlementMinor)} />
+        <Metric label="حق مسجل" value={formatMoneyMinor(overview.approvedEntitlementMinor)} />
         <Metric label="سحب/إرجاع فعلي" value={formatMoneyMinor(overview.cashMovementMinor)} />
         <Metric label="سياسات فعالة" value={String(overview.activePolicies.length)} />
       </div>
       <p className="micro-local-truth">
-        الاستحقاق لا يغير كاش المشروع. السحب والإرجاع يغيران محفظة الكاش بسبب موثق، والاستثمار الجديد مستقل عن
-        الاستحقاق.
+        حق المالك لا يغير كاش المشروع. السحب والإرجاع يغيران محفظة الكاش بسبب موثق، والاستثمار الجديد مستقل عن
+        حق المالك.
       </p>
       <button className="micro-button micro-button-primary" type="button" onClick={onOpen}>
-        فتح دفتر الاستحقاق والحركات
+        فتح دفتر حق المالك والحركات
       </button>
     </section>
   );
@@ -590,8 +601,8 @@ function CashDecisionSurface({
         </span>
         <h2 id="cash-decision-title">ماذا أفعل بالكاش؟</h2>
         <p>
-          ابدأ بما هو متاح الآن، ثم قارنه بما تتوقع تحصيله وما يجب دفعه ضمن النطاق المحدد. هذه قراءة معلنة، لا
-          وعد بتدفق نقدي.
+          ابدأ بما هو متاح الآن، ثم قارنه بما تتوقع تحصيله وما يجب دفعه ضمن النطاق المحدد. هذه قراءة من مسجلاتك، لا
+          وعد بأموال قادمة.
         </p>
       </div>
       <div className="micro-cash-decision-metrics">
@@ -601,18 +612,18 @@ function CashDecisionSurface({
           negative={cash.status !== "invalid" && cash.recordedCashMinor < 0}
         />
         <Metric
-          label="تحصيلات قريبة معلنة"
+          label="قبض متوقع قريب"
           value={displayCashAmount(cash.declaredCollectionsMinor, cash.status)}
         />
         <Metric
-          label="التزامات قريبة معلنة"
+          label="دفع متوقع قريب"
           value={displayCashAmount(cash.declaredCommitmentsMinor, cash.status)}
           negative={
             cash.status !== "invalid" && cash.declaredCommitmentsMinor > cash.declaredCollectionsMinor
           }
         />
         <Metric
-          label="بعد المعلن"
+          label="الكاش المتوقع"
           value={
             cash.projectedCashMinor === null || cash.status === "invalid"
               ? "غير متاح"
@@ -673,6 +684,10 @@ function FinancialEventRow({
       candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
     ) ?? null;
   const isReversal = event.correctionType === "reverse";
+  const original =
+    isReversal && event.correctionOfEventId
+      ? (events.find(candidate => candidate.id === event.correctionOfEventId) ?? null)
+      : null;
   const begin = () => {
     setError(null);
     setSuccess(null);
@@ -689,7 +704,7 @@ function FinancialEventRow({
   const submit = async () => {
     const trimmed = reason.trim();
     if (!trimmed) {
-      setError("سبب التصحيح مطلوب؛ اكتب لماذا سُجلت هذه الواقعة خطأ قبل العكس.");
+      setError("سبب التصحيح مطلوب؛ اكتب لماذا سُجّل هذا الحدث خطأ قبل التراجع.");
       return;
     }
     setError(null);
@@ -708,7 +723,7 @@ function FinancialEventRow({
     setOpen(false);
     setReason("");
     setSuccess(
-      result.reused ? "العكس موثق مسبقًا؛ لم يُضاعف الأثر." : "تم تسجيل عكس موثق. الأصل محفوظ ولم يتغير.",
+      result.reused ? "التراجع موثق مسبقًا؛ لم يُضاعف الأثر." : "تم تسجيل تراجع موثق. الأصل محفوظ ولم يتغير.",
     );
     onChanged();
   };
@@ -722,7 +737,7 @@ function FinancialEventRow({
           <strong>{eventLabel[event.type]}</strong>
           <small>
             <LocalDateValue value={event.occurredOn} /> ·{" "}
-            {isReversal ? "عكس موثق" : reversal ? "عُكست" : "مسجلة"}
+            {isReversal ? "تراجع موثق" : reversal ? "تم التراجع" : "مسجلة"}
           </small>
         </div>
         <b>
@@ -746,11 +761,17 @@ function FinancialEventRow({
           ) : null}
           {isReversal ? (
             <small className="micro-finance-event-audit">
-              الأصل: <bdi dir="ltr">{event.correctionOfEventId}</bdi> · السبب: {event.correctionReason}
+              {original ? (
+                <>
+                  الأصل: {eventLabel[original.type]} · <LocalDateValue value={original.occurredOn} /> ·{" "}
+                </>
+              ) : null}
+              السبب: {event.correctionReason}
             </small>
           ) : reversal ? (
             <small className="micro-finance-event-audit">
-              العكس الموثق: <bdi dir="ltr">{reversal.id}</bdi> · السبب: {reversal.correctionReason}
+              التراجع الموثق: {eventLabel[reversal.type]} · <LocalDateValue value={reversal.occurredOn} /> ·
+              السبب: {reversal.correctionReason}
             </small>
           ) : null}
           <div className="micro-finance-event-effects">
@@ -771,11 +792,11 @@ function FinancialEventRow({
       ) : null}
       {!isReversal && !reversal ? (
         <button className="micro-text-action" type="button" onClick={begin}>
-          صحح هذه الواقعة
+          صحّح هذا الحدث
         </button>
       ) : null}
       {reversal ? (
-        <p className="micro-finance-event-closed">عُكست مرة واحدة بعكس كامل؛ لا يُسمح بعكس ثانٍ.</p>
+        <p className="micro-finance-event-closed">تم التراجع عنها مرة واحدة بتراجع كامل؛ لا يُسمح بتراجع ثانٍ.</p>
       ) : null}
       {success ? (
         <p className="micro-save-note" role="status">
@@ -785,14 +806,14 @@ function FinancialEventRow({
       {open ? (
         <div className="micro-finance-reversal-editor">
           <div className="micro-finance-reversal-review">
-            <strong>مراجعة قبل العكس</strong>
+            <strong>مراجعة قبل التراجع</strong>
             <p>
-              سيبقى الأصل immutable كما هو. سيُضاف حدث جديد بتاريخ اليوم المحلي ويعكس كامل الأثر، دون إعادة
-              كتابة تاريخ الواقعة.
+              سيبقى السجل الأصلي كما هو دون تعديل. سيُضاف حدث جديد بتاريخ اليوم المحلي ويلغي كامل الأثر،
+              دون إعادة كتابة تاريخ الحدث.
             </p>
             <dl>
               <div>
-                <dt>الواقعة</dt>
+                <dt>الحدث</dt>
                 <dd>
                   {eventLabel[event.type]} · <LocalDateValue value={event.occurredOn} />
                 </dd>
@@ -815,12 +836,12 @@ function FinancialEventRow({
             <textarea
               value={reason}
               onChange={input => setReason(input.target.value)}
-              placeholder="مثال: سُجلت الواقعة مرتين بالخطأ"
+              placeholder="مثال: سُجّل الحدث مرتين بالخطأ"
               autoFocus
             />
           </label>
           <p className="micro-local-truth">
-            العكس لا يحذف التاريخ ولا يعدل المبلغ أو السياق القديم. إذا كانت الواقعة الصحيحة مختلفة، سجّل
+            التراجع لا يحذف التاريخ ولا يعدل المبلغ أو السياق القديم. إذا كان الحدث الصحيح مختلفًا، سجّل
             حدثًا جديدًا منفصلًا.
           </p>
           {error ? (
@@ -835,7 +856,7 @@ function FinancialEventRow({
               disabled={saving}
               onClick={() => void submit()}
             >
-              {saving ? "جارٍ تسجيل العكس…" : "أكّد العكس الموثق"}
+              {saving ? "جارٍ تسجيل التراجع…" : "أكّد التراجع الموثق"}
             </button>
             <button
               className="micro-button micro-button-secondary"
@@ -887,7 +908,7 @@ function G5DecisionPanel({
     if (!reversalTarget) return;
     const note = reversalNote.trim();
     if (!note) {
-      setError("اكتب سبب التصحيح قبل تنفيذ العكس.");
+      setError("اكتب سبب التصحيح قبل تنفيذ التراجع.");
       return;
     }
     setError(null);
@@ -929,7 +950,7 @@ function G5DecisionPanel({
         }
       >
         <div className="micro-card-copy">
-          <span className="micro-card-eyebrow">هامش المساهمة — قراءة ثانوية</span>
+          <span className="micro-card-eyebrow">الهامش بعد الكلفة المباشرة — قراءة ثانوية</span>
           <h2>
             {contribution.status === "invalid"
               ? "لا يمكن إعطاء رقم تعادل"
@@ -938,8 +959,8 @@ function G5DecisionPanel({
                 : statusLabel(contribution.status)}
           </h2>
           <p>
-            الإيراد والتكلفة المتغيرة مأخوذان من الطلبات النهائية ذات Snapshot المسجل. هذه قراءة مسجلة للفترة،
-            وليست صافي ربح نهائيًا ولا COGS فعليًا.
+            الإيراد والكلفة المباشرة مأخوذان من الطلبات النهائية ذات نسخة التكلفة المسجلة. هذه قراءة
+            مسجلة للفترة، وليست صافي ربح نهائيًا ولا تكلفة بيع فعلية.
           </p>
         </div>
         <div className="micro-g5-metrics">
@@ -948,11 +969,11 @@ function G5DecisionPanel({
             value={displayContributionAmount(contribution.totalRevenueMinor, contribution.status)}
           />
           <Metric
-            label="التكلفة المتغيرة"
+            label="الكلفة المباشرة للطلبات النهائية"
             value={displayContributionAmount(contribution.totalVariableCostMinor, contribution.status)}
           />
           <Metric
-            label="الثابت المسجل"
+            label="المصاريف الثابتة المسجلة"
             value={displayContributionAmount(contribution.fixedExpenseMinor, contribution.status)}
           />
           <Metric
@@ -970,7 +991,7 @@ function G5DecisionPanel({
           />
         </div>
         <div className="micro-g5-break-even">
-          <span>نقطة التعادل المفككة من المزيج المسجل</span>
+          <span>كم وحدة تغطي المصاريف الثابتة</span>
           <strong>
             {breakEvenDisplay === null ? (
               "غير متاحة"
@@ -1021,19 +1042,19 @@ function G5DecisionPanel({
         <div className="micro-section-heading">
           <div>
             <span className="micro-overline">أثر قابل للتصحيح</span>
-            <h2>الإعلانات المحلية</h2>
+            <h2>المتوقعات المحلية</h2>
           </div>
           <span className="micro-g5-count">{activeDeclarations.length}</span>
         </div>
         {activeDeclarations.length === 0 ? (
-          <p>لا توجد إعلانات فعالة. لن يفترض النظام مواعيد من تلقاء نفسه.</p>
+          <p>لا توجد متوقعات مسجلة. لن يفترض النظام مواعيد من تلقاء نفسه.</p>
         ) : (
           <div className="micro-g5-declaration-list">
             {activeDeclarations.map(entry => (
               <div className="micro-g5-declaration" key={entry.id}>
                 <div>
                   <strong>
-                    {entry.direction === "collection" ? "تحصيل معلن" : "التزام معلن"} · {entry.source}
+                    {entry.direction === "collection" ? "قبض متوقع" : "دفع متوقع"} · {entry.source}
                   </strong>
                   <small>
                     {entry.dueOn ? <LocalDateValue value={entry.dueOn} /> : "بلا تاريخ"} ·{" "}
@@ -1046,13 +1067,13 @@ function G5DecisionPanel({
                   </small>
                 </div>
                 <button className="micro-text-action" type="button" onClick={() => beginReverse(entry)}>
-                  صحح بعكس موثق
+                  صحّح بتراجع موثق
                 </button>
                 {reversalTarget?.id === entry.id ? (
                   <div className="micro-g5-reversal-editor">
                     <label className="micro-field">
                       <span>
-                        سبب التصحيح <small>مطلوب قبل العكس</small>
+                        سبب التصحيح <small>مطلوب قبل التراجع</small>
                       </span>
                       <textarea
                         value={reversalNote}
@@ -1061,7 +1082,7 @@ function G5DecisionPanel({
                       />
                     </label>
                     <p className="micro-local-truth">
-                      لن يُنفذ العكس قبل كتابة سبب غير فارغ. سيُحفظ هذا النص في سجل العكس مع بقاء الإعلان
+                      لن يُنفذ التراجع قبل كتابة سبب غير فارغ. سيُحفظ هذا النص في سجل التراجع مع بقاء السجل المتوقع
                       الأصلي محفوظًا.
                     </p>
                     <div className="micro-form-actions">
@@ -1071,7 +1092,7 @@ function G5DecisionPanel({
                         disabled={reversing}
                         onClick={() => void submitReverse()}
                       >
-                        {reversing ? "جارٍ حفظ التصحيح…" : "تنفيذ العكس بسبب موثق"}
+                        {reversing ? "جارٍ حفظ التصحيح…" : "تنفيذ التراجع بسبب موثق"}
                       </button>
                       <button
                         className="micro-button micro-button-secondary"
@@ -1152,7 +1173,7 @@ function G5Reasons({
           <strong>المصادر المستخدمة:</strong> {sources.slice(0, 4).map(formatSourceDates).join(" · ")}
         </p>
       ) : null}
-      <p className="micro-decision-next">الفعل التالي: {nextAction}</p>
+      <p className="micro-decision-next">الخطوة التالية: {nextAction}</p>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import type {
   CreateCraftOrderInput,
   DepositSettlementDecision,
   KnowledgeState,
+  MaterialCostItem,
   MoneyMinor,
   OrderEvent,
   OrderEventType,
@@ -12,10 +13,10 @@ import type {
   OrderTransitionInput,
   ResultStatus,
 } from "./types.js";
-import { JOD, assertNonNegativeInteger } from "../shared/index.js";
+import { JOD, assertNonNegativeInteger, fieldLabelAr, quantityMilliExact, roundHalfUp } from "../shared/index.js";
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
-  draft: ["provisional_agreement", "needs_review"],
+  draft: ["provisional_agreement", "postponed", "needs_review"],
   provisional_agreement: ["confirmed", "postponed", "needs_review"],
   confirmed: ["in_progress", "postponed", "needs_review"],
   in_progress: ["ready", "postponed", "needs_review"],
@@ -27,32 +28,68 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   needs_review: ["provisional_agreement", "confirmed"],
 };
 
+/** Arabic names of the order statuses as contract 02 §الحالات defines them, so transition refusals reach the owner in their own words. */
+const ORDER_STATUS_AR: Record<OrderStatus, string> = {
+  draft: "مسودة",
+  provisional_agreement: "اتفاق مبدئي",
+  confirmed: "مؤكد",
+  in_progress: "قيد التنفيذ",
+  ready: "جاهز",
+  delivered: "تم التسليم",
+  settled: "تمت التسوية",
+  postponed: "مؤجل",
+  cancelled: "ملغى",
+  needs_review: "يحتاج مراجعة",
+};
+
 function assertPositiveInteger(value: number, field: string): void {
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${field} must be a positive integer in minor currency units`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا بالوحدات الصغرى.`);
   }
 }
 
 function assertValidQuantity(value: number): void {
   if (!Number.isFinite(value) || value <= 0) {
-    throw new Error("quantity must be greater than zero");
+    throw new Error("أدخل الكمية رقمًا أكبر من صفر.");
+  }
+  if (quantityMilliExact(value) === null) {
+    throw new Error("أدخل الكمية بدقة أجزاء من ألف؛ الدقة الأعلى غير ممثلة في هذا الإصدار.");
   }
 }
 
 function assertValidDate(value: string, field: string): void {
   if (!value.trim() || Number.isNaN(Date.parse(value))) {
-    throw new Error(`${field} must be a valid date`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا صحيحًا.`);
   }
+}
+
+function ammanLocalDate(isoTimestamp: string): string | null {
+  if (Number.isNaN(Date.parse(isoTimestamp))) return null;
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Amman",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(isoTimestamp));
+  const part = (type: string) => parts.find(entry => entry.type === type)?.value ?? null;
+  const year = part("year");
+  const month = part("month");
+  const day = part("day");
+  return year && month && day ? `${year}-${month}-${day}` : null;
+}
+function localDateMinusDays(localDate: string, days: number): string {
+  const [year, month, day] = localDate.split("-").map(Number);
+  return new Date(Date.UTC(year!, month! - 1, day! - days)).toISOString().slice(0, 10);
 }
 
 function assertFreshnessDays(value: number | null | undefined): void {
   if (value !== null && value !== undefined && (!Number.isInteger(value) || value < 0)) {
-    throw new Error("freshnessDays must be a non-negative integer");
+    throw new Error("أدخل أيام صلاحية السعر رقمًا صحيحًا غير سالب.");
   }
 }
 
 function assertIdempotencyKey(value: string): void {
-  if (!value.trim()) throw new Error("idempotencyKey must be non-blank");
+  if (!value.trim()) throw new Error("أكمل مفتاح العملية قبل الحفظ.");
 }
 
 function cloneCostSnapshotInput(input: CostSnapshotInput): CostSnapshotInput {
@@ -74,7 +111,7 @@ function freezeCostSnapshot(snapshot: CostSnapshot): CostSnapshot {
 
 function assertSnapshotSelfConsistency(snapshot: CostSnapshot): void {
   if (snapshot.quantity !== snapshot.input.quantity) {
-    throw new Error("cost snapshot quantity must match its input quantity");
+    throw new Error("كمية نسخة التكلفة يجب أن تطابق كمية الإدخال.");
   }
 }
 
@@ -100,10 +137,16 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   if (hasIncompleteTime) return "incomplete";
 
   if (input.freshnessDays !== null && input.freshnessDays !== undefined) {
-    const createdAt = Date.parse(input.createdAt);
-    const oldestAllowed = createdAt - input.freshnessDays * 24 * 60 * 60 * 1000;
-    const hasStaleMaterial = input.materialItems.some(item => Date.parse(item.priceDate) < oldestAllowed);
-    if (hasStaleMaterial) return "stale";
+    // Freshness is a calendar-date question in the owner's day (Asia/Amman), not an instant comparison:
+    // a price dated today stays fresh even when the snapshot was recorded after Amman midnight.
+    const createdLocalDate = ammanLocalDate(input.createdAt);
+    const oldestAllowed = createdLocalDate === null
+      ? null
+      : localDateMinusDays(createdLocalDate, input.freshnessDays);
+    if (oldestAllowed !== null) {
+      const hasStaleMaterial = input.materialItems.some(item => item.priceDate < oldestAllowed);
+      if (hasStaleMaterial) return "stale";
+    }
   }
 
   if (hasVariableCost) return "variable";
@@ -111,9 +154,26 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
   return "known";
 }
 
+function materialItemCostMinor(item: MaterialCostItem): number {
+  if (!item.name.trim() || !item.unit.trim()) {
+    throw new Error("أكمل اسم المادة ووحدتها قبل الحساب.");
+  }
+  if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
+    throw new Error(`أدخل كمية المادة ${item.name} رقمًا أكبر من صفر.`);
+  }
+  assertNonNegativeInteger(item.unitPriceMinor, `سعر وحدة ${item.name}`);
+  assertValidDate(item.priceDate, `تاريخ سعر ${item.name}`);
+  const quantityMilli = quantityMilliExact(item.quantity);
+  if (quantityMilli === null) throw new Error(`أدخل كمية المادة ${item.name} بدقة أجزاء من ألف.`);
+  const itemCostMinor = roundHalfUp(quantityMilli * item.unitPriceMinor, 1000);
+  if (itemCostMinor === null)
+    throw new Error(`تكلفة المادة ${item.name} تتجاوز الدقة الآمنة للأرقام الصحيحة.`);
+  return itemCostMinor;
+}
+
 export function calculateCostSnapshot(id: string, input: CostSnapshotInput): CostSnapshot {
-  if (!id.trim()) throw new Error("snapshot id is required");
-  if (input.currency !== JOD) throw new Error("only JOD is supported in the first slice");
+  if (!id.trim()) throw new Error("أكمل معرّف نسخة التكلفة قبل الحساب.");
+  if (input.currency !== JOD) throw new Error("العملة المدعومة في هذا الإصدار هي الدينار الأردني فقط.");
   assertValidQuantity(input.quantity);
   assertValidDate(input.createdAt, "createdAt");
   assertFreshnessDays(input.freshnessDays);
@@ -122,29 +182,24 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
   assertNonNegativeInteger(input.wasteMinor, "wasteMinor");
   assertNonNegativeInteger(input.safetyBufferMinor, "safetyBufferMinor");
 
-  const materialCostMinor = input.materialItems.reduce((total, item) => {
-    if (!item.name.trim() || !item.unit.trim()) {
-      throw new Error("material name and unit are required");
-    }
-    if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
-      throw new Error(`material quantity must be greater than zero: ${item.name}`);
-    }
-    assertNonNegativeInteger(item.unitPriceMinor, `unitPriceMinor for ${item.name}`);
-    assertValidDate(item.priceDate, `priceDate for ${item.name}`);
-    return total + Math.round(item.quantity * item.unitPriceMinor);
-  }, 0);
+  const materialCostMinor = input.materialItems.reduce(
+    (total, item) => total + materialItemCostMinor(item),
+    0,
+  );
 
   const timeCostMinor = input.time
     ? (() => {
         const { minutes, hourlyRateMinor } = input.time!;
         if (minutes !== null && (!Number.isFinite(minutes) || minutes < 0)) {
-          throw new Error("time minutes must be non-negative");
+          throw new Error("أدخل دقائق الوقت رقمًا غير سالب.");
         }
         if (hourlyRateMinor !== null) {
           assertNonNegativeInteger(hourlyRateMinor, "hourlyRateMinor");
         }
         if (minutes === null || hourlyRateMinor === null) return 0;
-        return Math.round((minutes / 60) * hourlyRateMinor);
+        const timeCostMinor = roundHalfUp(minutes * hourlyRateMinor, 60);
+        if (timeCostMinor === null) throw new Error("تكلفة الوقت تتجاوز الدقة الآمنة للأرقام الصحيحة.");
+        return timeCostMinor;
       })()
     : 0;
 
@@ -177,7 +232,7 @@ function eventExists(order: CraftOrder, idempotencyKey: string, eventType: Order
 
 function assertNotLockedDeliveredReview(order: CraftOrder): void {
   if (order.status === "needs_review" && hasDeliveredEvent(order)) {
-    throw new Error("delivered order requires an explicit correction before leaving needs_review");
+    throw new Error("الطلب المسلّم لا يخرج من «يحتاج مراجعة» إلا بتصحيح موثق صريح.");
   }
 }
 
@@ -230,15 +285,15 @@ function resultStatusForKnowledge(knowledgeState: KnowledgeState): ResultStatus 
 }
 
 export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
-  if (!input.id.trim()) throw new Error("order id is required");
-  if (!input.customerName.trim()) throw new Error("customer name is required");
-  if (!input.itemName.trim()) throw new Error("item name is required");
-  if (!input.specifications.trim()) throw new Error("specifications are required");
+  if (!input.id.trim()) throw new Error("أكمل معرّف الطلب قبل الحفظ.");
+  if (!input.customerName.trim()) throw new Error("أكمل اسم العميل قبل الحفظ.");
+  if (!input.itemName.trim()) throw new Error("أكمل اسم العمل قبل الحفظ.");
+  if (!input.specifications.trim()) throw new Error("أكمل المواصفات قبل الحفظ.");
   assertValidQuantity(input.quantity);
   assertPositiveInteger(input.agreedPriceMinor, "agreedPriceMinor");
   assertSnapshotSelfConsistency(input.costSnapshot);
   if (input.costSnapshot.quantity !== input.quantity) {
-    throw new Error("cost snapshot quantity must match order quantity");
+    throw new Error("كمية نسخة التكلفة يجب أن تطابق كمية الطلب.");
   }
   const safeCostSnapshot = freezeCostSnapshot(input.costSnapshot);
 
@@ -280,14 +335,14 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
   if (eventExists(order, input.idempotencyKey, "status_changed")) return order;
   assertNotLockedDeliveredReview(order);
   if (!ALLOWED_TRANSITIONS[order.status].includes(input.to)) {
-    throw new Error(`invalid transition: ${order.status} -> ${input.to}`);
+    throw new Error(`انتقال غير مسموح من «${ORDER_STATUS_AR[order.status]}» إلى «${ORDER_STATUS_AR[input.to]}».`);
   }
   if (input.to === "settled" && order.receivableMinor > 0 && order.settlementStatus !== "debt") {
-    throw new Error("settled order requires zero receivable or a registered debt");
+    throw new Error("لا تُسوّى الطلب إلا بمتبقٍ صفري أو دين مسجل.");
   }
 
   const deliveredAction =
-    order.receivableMinor > 0 ? "حصّل المتبقي أو سجل الدين" : "راجع النتيجة والفعل التالي";
+    order.receivableMinor > 0 ? "حصّل المتبقي أو سجل الدين" : "راجع النتيجة والخطوة التالية";
   const nextActionByStatus: Record<OrderStatus, string> = {
     draft: "سجل الاتفاق أو راجع المواصفات",
     provisional_agreement: "أكد السعر والموعد",
@@ -295,7 +350,7 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
     in_progress: "سجل الجاهزية أو سبب التأجيل",
     ready: "سجل التسليم",
     delivered: deliveredAction,
-    settled: "راجع النتيجة والفعل التالي",
+    settled: "راجع النتيجة والخطوة التالية",
     postponed: "حدد موعد متابعة",
     cancelled: "راجع إغلاق الطلب وتسوية العربون إن وجدت",
     needs_review: "راجع التعارض أو النقص",
@@ -332,7 +387,7 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
   const shouldSettleAfterDelivery =
     input.to === "delivered" && recognized.receivableMinor === 0 && recognized.settlementStatus === "paid";
   const statusAfterDelivery = shouldSettleAfterDelivery
-    ? { ...recognized, status: "settled" as const, nextAction: "راجع النتيجة والفعل التالي" }
+    ? { ...recognized, status: "settled" as const, nextAction: "راجع النتيجة والخطوة التالية" }
     : recognized;
   const withDeliveryStatusEvent = shouldSettleAfterDelivery
     ? appendEvent(statusAfterDelivery, {
@@ -366,13 +421,13 @@ export function reviseOrderCost(
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, "specification_revised")) return order;
   assertNotLockedDeliveredReview(order);
-  if (!specifications.trim()) throw new Error("revised specifications are required");
+  if (!specifications.trim()) throw new Error("أكمل المواصفات المعدلة قبل الحفظ.");
   assertSnapshotSelfConsistency(nextCostSnapshot);
   if (nextCostSnapshot.quantity !== order.quantity) {
-    throw new Error("revised cost snapshot quantity must match order quantity");
+    throw new Error("كمية نسخة التكلفة المعدلة يجب أن تطابق كمية الطلب.");
   }
   if (order.status === "delivered" || order.status === "settled" || order.status === "cancelled") {
-    throw new Error(`cannot revise order in ${order.status} status`);
+    throw new Error(`لا يمكن تعديل مواصفات الطلب وهو في حالة «${ORDER_STATUS_AR[order.status]}».`);
   }
   const safeCostSnapshot = freezeCostSnapshot(nextCostSnapshot);
 
@@ -414,11 +469,11 @@ export function collectDeposit(
   if (eventExists(order, idempotencyKey, "deposit_collected")) return order;
   assertNotLockedDeliveredReview(order);
   if (order.status === "delivered" || order.status === "settled" || order.status === "cancelled") {
-    throw new Error(`cannot collect deposit in ${order.status} status`);
+    throw new Error(`لا يمكن تسجيل العربون والطلب في حالة «${ORDER_STATUS_AR[order.status]}».`);
   }
-  assertPositiveInteger(amountMinor, "deposit amount");
+  assertPositiveInteger(amountMinor, "العربون");
   if (amountMinor + order.collectedMinor > order.agreedPriceMinor) {
-    throw new Error("deposit cannot exceed the agreed price");
+    throw new Error("العربون لا يمكن أن يتجاوز السعر المتفق عليه.");
   }
 
   const next = withSettlement({
@@ -447,17 +502,17 @@ export function collectRemaining(
   if (eventExists(order, idempotencyKey, "collection_recorded")) return order;
   assertNotLockedDeliveredReview(order);
   if (order.status !== "delivered") {
-    throw new Error("remaining collection requires a delivered order");
+    throw new Error("تحصيل المتبقي يتطلب طلبًا مسلّمًا.");
   }
-  assertPositiveInteger(amountMinor, "collection amount");
+  assertPositiveInteger(amountMinor, "مبلغ التحصيل");
   if (amountMinor + order.collectedMinor > order.agreedPriceMinor) {
-    throw new Error("collection cannot exceed the agreed price");
+    throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
   }
 
   const next = withSettlement({
     ...order,
     collectedMinor: order.collectedMinor + amountMinor,
-    nextAction: "راجع النتيجة والفعل التالي",
+    nextAction: "راجع النتيجة والخطوة التالية",
   });
   const settled = next.receivableMinor === 0 ? { ...next, status: "settled" as const } : next;
   const withStatusEvent = appendStatusChanged(
@@ -477,15 +532,20 @@ export function collectRemaining(
   });
 }
 
+/** A customer debt exists only when the owner explicitly registered the remainder as debt; a receivable on a draft or un-agreed order is not one. */
+export function isRegisteredCustomerDebt(order: CraftOrder): boolean {
+  return order.settlementStatus === "debt" && order.receivableMinor > 0;
+}
+
 export function registerDebt(order: CraftOrder, idempotencyKey: string, createdAt: string): CraftOrder {
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, "debt_registered")) return order;
   assertNotLockedDeliveredReview(order);
   if (order.status !== "delivered") {
-    throw new Error("debt requires a delivered order");
+    throw new Error("تسجيل الدين يتطلب طلبًا مسلّمًا.");
   }
   if (order.receivableMinor <= 0) {
-    throw new Error("cannot register debt with no remaining amount");
+    throw new Error("لا يمكن تسجيل دين بلا مبلغ متبقٍ.");
   }
 
   const next: CraftOrder = {
@@ -515,9 +575,9 @@ export function cancelOrder(
   if (eventExists(order, idempotencyKey, "cancelled")) return order;
   assertNotLockedDeliveredReview(order);
   if (order.status === "delivered" || order.status === "settled" || order.status === "cancelled") {
-    throw new Error(`cannot cancel order in ${order.status} status`);
+    throw new Error(`لا يمكن إلغاء الطلب وهو في حالة «${ORDER_STATUS_AR[order.status]}».`);
   }
-  if (!reason.trim()) throw new Error("cancellation reason is required");
+  if (!reason.trim()) throw new Error("أكمل سبب الإلغاء قبل الحفظ.");
 
   const hasDeposit = order.depositCollectedMinor > 0;
   const next: CraftOrder = {
@@ -561,15 +621,15 @@ function settleDeposit(
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, eventType)) return order;
   if (order.status !== "cancelled") {
-    throw new Error("deposit settlement requires a cancelled order");
+    throw new Error("تسوية العربون تتطلب طلبًا ملغى.");
   }
   if (order.depositSettlement !== "needs_review") {
-    throw new Error("deposit settlement is already decided");
+    throw new Error("تسوية هذا العربون محسومة سابقًا.");
   }
-  if (!reason.trim()) throw new Error("deposit settlement reason is required");
-  assertPositiveInteger(amountMinor, "settlement amount");
+  if (!reason.trim()) throw new Error("أكمل سبب تسوية العربون قبل الحفظ.");
+  assertPositiveInteger(amountMinor, "مبلغ التسوية");
   if (amountMinor !== order.depositCollectedMinor) {
-    throw new Error("settlement amount must equal the collected deposit");
+    throw new Error("مبلغ التسوية يجب أن يساوي العربون المحصل.");
   }
 
   const isRefund = decision === "refund_deposit";

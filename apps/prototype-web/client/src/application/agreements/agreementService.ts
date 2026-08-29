@@ -89,11 +89,11 @@ export class AgreementService {
         };
       return { ok: true, stored: current.value };
     }
-    if (!draft.customerName.trim()) return validation("سجل اسم العميل قبل تثبيت الاتفاق.");
+    if (!draft.customerName.trim()) return validation("سجل اسم العميل قبل تسجيل الاتفاق.");
     if (!agreementSourceIsValid(input.agreementSource))
       return validation("اختر مصدر اتفاق من القائمة أو اتركه غير محدد.");
     if (!draft.itemName.trim() || !draft.specifications.trim())
-      return validation("أكمل وصف القطعة وملاحظات التخصيص قبل تثبيت الاتفاق.");
+      return validation("أكمل وصف القطعة وملاحظات التخصيص قبل تسجيل الاتفاق.");
     if (!Number.isInteger(input.agreedPriceMinor) || input.agreedPriceMinor <= 0)
       return validation("أدخل سعرًا متفقًا عليه أكبر من صفر.");
     if (!Number.isInteger(input.depositMinor) || input.depositMinor < 0)
@@ -103,13 +103,13 @@ export class AgreementService {
     if (!dateIsValid(input.deliveryDate)) return validation("أدخل موعد تسليم صحيحًا.");
     const active = draft.costSnapshots.find(snapshot => snapshot.id === draft.activeCostSnapshotId);
     if (!active)
-      return { ok: false, code: "missing_cost", message: "احفظ Snapshot تكلفة أولًا قبل تثبيت الاتفاق." };
+      return { ok: false, code: "missing_cost", message: "احفظ نسخة التكلفة أولًا قبل تسجيل الاتفاق." };
     const cost = this.costs.previewStored(active);
     if (!cost.ok)
       return {
         ok: false,
         code: "missing_cost",
-        message: "Snapshot التكلفة غير صالح؛ راجع التكلفة قبل تثبيت الاتفاق.",
+        message: "نسخة التكلفة غير صالحة؛ راجع التكلفة قبل تسجيل الاتفاق.",
       };
     const timestamp = this.now();
     const id = `order-${draft.id}`;

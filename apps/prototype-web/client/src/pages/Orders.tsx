@@ -96,7 +96,7 @@ export default function Orders() {
                     {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
                   </small>
                   <small>{settlementDetail(stored)}</small>
-                  <small className="micro-row-next-action">الفعل التالي: {agreement.nextAction}</small>
+                  <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
                 </span>
                 <ChevronLeft aria-hidden="true" />
               </button>
@@ -117,7 +117,7 @@ export default function Orders() {
             type="button"
             onClick={() => navigate("/orders/new")}
           >
-            <ClipboardPlus aria-hidden="true" /> إنشاء طلب مخصص
+            <ClipboardPlus aria-hidden="true" /> إنشاء طلب من عميل
           </button>
         </section>
       ) : null}
@@ -139,7 +139,7 @@ export default function Orders() {
                   {draft.intent === "customer_order" ? "طلب من عميل" : "تصميم مخطط"} · الكمية:{" "}
                   <IntegerValue value={draft.quantity} className="micro-inline-number" />
                 </small>
-                <small className="micro-row-next-action">الفعل التالي: أكمل ما تعرفه الآن.</small>
+                <small className="micro-row-next-action">الخطوة التالية: أكمل ما تعرفه الآن.</small>
               </span>
               <ChevronLeft aria-hidden="true" />
             </button>

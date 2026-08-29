@@ -11,17 +11,71 @@ export function isValidTimestamp(value: string): boolean {
   return typeof value === "string" && value.trim().length > 0 && !Number.isNaN(Date.parse(value));
 }
 
+const FIELD_LABELS_AR: Readonly<Record<string, string>> = {
+  id: "المعرّف",
+  name: "الاسم",
+  note: "الوصف",
+  reason: "السبب",
+  source: "المصدر",
+  supplierName: "اسم المورد",
+  customerName: "اسم العميل",
+  itemName: "اسم العمل",
+  idempotencyKey: "مفتاح العملية",
+  operationKey: "مفتاح العملية",
+  createdOperationKey: "مفتاح الإنشاء",
+  amountMinor: "المبلغ",
+  totalMinor: "إجمالي الشراء",
+  initialPaidMinor: "المبلغ المدفوع مبدئيًا",
+  agreedPriceMinor: "السعر المتفق عليه",
+  hourlyRateMinor: "أجر الساعة",
+  unitPriceMinor: "سعر الوحدة",
+  packagingMinor: "قيمة التغليف",
+  deliveryMinor: "قيمة التوصيل",
+  wasteMinor: "قيمة الهدر",
+  safetyBufferMinor: "هامش الحماية",
+  totalAmountMinor: "إجمالي المصروف المشترك",
+  calculatedShareMinor: "حصة المشروع المحسوبة",
+  percentageBps: "النسبة",
+  baseMinor: "المبلغ الأساس",
+  quantity: "الكمية",
+  unitLabel: "تسمية الوحدة",
+  freshnessDays: "أيام صلاحية السعر",
+  purchasedOn: "تاريخ الشراء",
+  dueOn: "تاريخ الاستحقاق",
+  occurredOn: "تاريخ الحركة",
+  startsOn: "تاريخ البداية",
+  endsOn: "تاريخ النهاية",
+  periodFrom: "بداية الفترة",
+  periodTo: "نهاية الفترة",
+  createdAt: "وقت الإنشاء",
+  recordedAt: "وقت التسجيل",
+  walletId: "المحفظة",
+  policyId: "السياسة",
+  relatedOrderId: "الطلب المرتبط",
+  relatedEventId: "الحدث المرتبط",
+  reversalReason: "سبب التراجع",
+  sourceKeys: "مفاتيح المصدر",
+  version: "رقم النسخة",
+  policyVersion: "رقم نسخة السياسة",
+};
+
+/** Arabic label for a validation field key so guard messages reach the user in their own language. */
+export function fieldLabelAr(field: string): string {
+  return FIELD_LABELS_AR[field] ?? field;
+}
+
 export function assertId(value: string, field: string): void {
-  if (!value.trim()) throw new Error(`${field} is required`);
+  if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 }
 
 export function assertPositiveMinor(value: number, field: string): void {
-  if (!Number.isSafeInteger(value) || value <= 0) throw new Error(`${field} must be a positive safe integer`);
+  if (!Number.isSafeInteger(value) || value <= 0)
+    throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا ضمن الدقة الآمنة.`);
 }
 
 export function assertNonNegativeInteger(value: number, field: string): void {
   if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`${field} must be a non-negative integer in minor currency units`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا غير سالب بالوحدات الصغرى.`);
   }
 }
 
@@ -34,6 +88,15 @@ export function addSafe(left: number, right: number): number | null {
   )
     return null;
   return left + right;
+}
+
+/** Whole milli units of a user quantity, or null when the quantity is not exactly milli-representable. */
+export function quantityMilliExact(quantity: number): number | null {
+  if (!Number.isFinite(quantity) || quantity <= 0) return null;
+  const scaled = Math.round(quantity * 1000);
+  if (!Number.isSafeInteger(scaled) || scaled <= 0 || Math.abs(quantity - scaled / 1000) > Number.EPSILON)
+    return null;
+  return scaled;
 }
 
 export function roundHalfUp(numerator: number, denominator: number): number | null {

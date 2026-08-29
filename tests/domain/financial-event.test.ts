@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeSettlementsMinor,
   createFinancialEvent,
   createFinancialReversal,
+  reversedEventIds,
   summarizeFinancialEvents,
 } from "../../src/domain/financial-event/index.js";
 
@@ -100,7 +102,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "bad-context",
         expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
       }),
-    ).toThrow("expenseContext");
+    ).toThrow("سياق المصروف يخص المصروفات التشغيلية فقط.");
   });
 
   it("rejects a shared-share basis that disagrees with knowledge or belongs to a project-only expense", () => {
@@ -119,7 +121,7 @@ describe("financial event domain core", () => {
           sharedProjectShare: { basis: "owner_estimate", note: null },
         },
       }),
-    ).toThrow("sharedProjectShare");
+    ).toThrow("حصة المصروف المشترك لا تطابق درجة المعرفة المعلنة.");
     expect(() =>
       createFinancialEvent({
         ...base,
@@ -135,7 +137,7 @@ describe("financial event domain core", () => {
           sharedProjectShare: { basis: "agreed_fixed_share", note: null },
         },
       }),
-    ).toThrow("sharedProjectShare");
+    ).toThrow("حصة المشروع المشتركة تخص المصروفات المشتركة فقط.");
   });
 
   it("rejects missing financial invariants instead of inferring zero or an unlinked payment", () => {
@@ -147,7 +149,7 @@ describe("financial event domain core", () => {
         amountMinor: 0,
         idempotencyKey: "bad",
       }),
-    ).toThrow("amountMinor");
+    ).toThrow("المبلغ");
     expect(() =>
       createFinancialEvent({
         ...base,
@@ -156,7 +158,7 @@ describe("financial event domain core", () => {
         amountMinor: 1,
         idempotencyKey: "bad-settlement",
       }),
-    ).toThrow("relatedEventId");
+    ).toThrow("تسديد الالتزام يتطلب التزامًا مرتبطًا.");
   });
 
   it("creates one full, linked reversal for every supported general event type without mutating the original", () => {
@@ -219,7 +221,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "blank-reason",
         reason: " ",
       }),
-    ).toThrow("reason");
+    ).toThrow("السبب");
     expect(() =>
       createFinancialReversal({
         id: "bad-date",
@@ -229,7 +231,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "bad-date",
         reason: "سبب",
       }),
-    ).toThrow("occurredOn");
+    ).toThrow("تاريخ الحركة");
     const reversal = createFinancialReversal({
       id: "reversal",
       sourceEvent: source,
@@ -247,7 +249,7 @@ describe("financial event domain core", () => {
         idempotencyKey: "double",
         reason: "سبب ثان",
       }),
-    ).toThrow("reversal");
+    ).toThrow("لا يمكن التراجع عن سجل تراجع سابق.");
   });
 
   it("calculates and preserves a shared percentage in minor JOD units", () => {
@@ -306,7 +308,7 @@ describe("financial event domain core", () => {
           },
         },
       }),
-    ).toThrow("amountMinor");
+    ).toThrow("المبلغ");
   });
 
   it("keeps an explicitly deferred shared total in cash/payables but out of operating result", () => {
@@ -376,6 +378,60 @@ describe("financial event domain core", () => {
           },
         },
       }),
-    ).toThrow("amountMinor");
+    ).toThrow("المبلغ");
+  });
+});
+
+describe("active settlements against a payable", () => {
+  const payable = createFinancialEvent({
+    ...base,
+    id: "payable",
+    type: "operating_expense_payable",
+    amountMinor: 10000,
+    idempotencyKey: "payable-1",
+  });
+  const settlement = createFinancialEvent({
+    ...base,
+    id: "settlement",
+    type: "payable_settlement_cash",
+    amountMinor: 6000,
+    idempotencyKey: "settlement-1",
+    relatedEventId: payable.id,
+  });
+  const settlementReversal = createFinancialReversal({
+    id: "settlement-reversal",
+    idempotencyKey: "settlement-reversal-1",
+    reason: "دفعة مسجلة بالخطأ",
+    occurredOn: "2026-08-24",
+    recordedAt: "2026-08-24T08:00:00.000Z",
+    sourceEvent: settlement,
+  });
+  it("counts a live settlement and excludes the reversal record itself", () => {
+    expect(activeSettlementsMinor([payable, settlement], payable.id)).toBe(6000);
+    expect(activeSettlementsMinor([payable, settlement, settlementReversal], payable.id)).toBe(0);
+    expect(reversedEventIds([payable, settlement, settlementReversal])).toEqual(new Set([settlement.id]));
+  });
+  it("restores the full commitment after a settlement reversal and counts a replacement settlement", () => {
+    const replacement = createFinancialEvent({
+      ...base,
+      id: "replacement-settlement",
+      type: "payable_settlement_cash",
+      amountMinor: 4000,
+      idempotencyKey: "replacement-1",
+      relatedEventId: payable.id,
+    });
+    const events = [payable, settlement, settlementReversal, replacement];
+    expect(activeSettlementsMinor(events, payable.id)).toBe(4000);
+    expect(payable.amountMinor - activeSettlementsMinor(events, payable.id)).toBe(6000);
+  });
+  it("never mixes settlements across commitments", () => {
+    const otherPayable = createFinancialEvent({
+      ...base,
+      id: "other-payable",
+      type: "operating_expense_payable",
+      amountMinor: 3000,
+      idempotencyKey: "other-payable-1",
+    });
+    expect(activeSettlementsMinor([payable, otherPayable, settlement], otherPayable.id)).toBe(0);
   });
 });

@@ -228,7 +228,7 @@ export default function InventoryMovementEditor() {
           {safeType === "receipt"
             ? "يزيد الاستلام المخزون فقط؛ لا يكرر كاش أو ذمة شراء المواد."
             : safeType === "consume"
-              ? "يربط الجزء المستهلك بطلب دون تعديل Snapshot أو نتيجة فترة قديمة."
+              ? "يربط الجزء المستهلك بطلب دون تعديل نسخة التكلفة أو نتيجة فترة قديمة."
               : "لا تحذف المادة من السجل؛ سجّل هدرًا أو فرقًا بسبب واضح."}
         </p>
       </div>
@@ -241,7 +241,7 @@ export default function InventoryMovementEditor() {
               ? "الاستهلاك ليس تعديلًا صامتًا لسعر الطلب."
               : "الحركة توضح كمية وقيمة المادة، لا مصروفًا تشغيليًا تلقائيًا."}
           </strong>
-          <p>لا تسمح الشريحة بخروج كمية أكبر من المتاح.</p>
+          <p>لا يمكن إخراج كمية أكبر من المتاحة.</p>
         </div>
       </section>
       <section className="micro-form-card">
@@ -298,7 +298,7 @@ export default function InventoryMovementEditor() {
                 <span className="micro-overline">سياق الهدر</span>
                 <h3>أين وقع الهدر؟</h3>
               </div>
-              <p>السياق يشرح الهدر فقط؛ لا ينشئ مصروفًا ولا COGS تلقائيًا.</p>
+              <p>السياق يشرح الهدر فقط؛ لا ينشئ مصروفًا ولا تكلفة بيع تلقائيًا.</p>
             </div>
             <label className="micro-field">
               <span>نوع السياق</span>
@@ -350,7 +350,7 @@ export default function InventoryMovementEditor() {
                     .filter(template => template.catalogItemId === wasteCatalogItemId)
                     .map(template => (
                       <option key={template.id} value={template.id}>
-                        {template.title || "قالب بلا عنوان"} · مراجعة {template.revision}
+                        {template.title || "قالب بلا عنوان"} · نسخة {template.revision}
                       </option>
                     ))}
                 </select>
