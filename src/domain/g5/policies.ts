@@ -35,12 +35,12 @@ function assertDate(value: string, field: string): void {
 }
 
 function assertKnowledge(value: G5Knowledge): void {
-  if (!KNOWLEDGE.includes(value)) throw new Error("knowledge is invalid");
+  if (!KNOWLEDGE.includes(value)) throw new Error("درجة المعرفة غير صالحة.");
 }
 
 export function createShortCashDeclaration(input: CreateShortCashDeclarationInput): ShortCashDeclaration {
   assertId(input.id, "id");
-  if (!DIRECTIONS.includes(input.direction)) throw new Error("direction is invalid");
+  if (!DIRECTIONS.includes(input.direction)) throw new Error("اتجاه السجل المتوقع غير صالح.");
   assertPositiveMinor(input.amountMinor, "amountMinor");
   assertDate(input.dueOn, "dueOn");
   assertId(input.source, "source");
@@ -48,11 +48,11 @@ export function createShortCashDeclaration(input: CreateShortCashDeclarationInpu
   assertId(input.idempotencyKey, "idempotencyKey");
   assertKnowledge(input.knowledge);
   if (input.relatedOrderId && input.relatedEventId)
-    throw new Error("a declaration cannot link to both an order and an event");
+    throw new Error("لا يمكن ربط السجل المتوقع بطلب والتزام مالي معًا.");
   if (input.relatedOrderId && input.direction !== "collection")
-    throw new Error("relatedOrderId is only valid for collections");
+    throw new Error("ربط الطلب يخص القبض المتوقع فقط.");
   if (input.relatedEventId && input.direction !== "commitment")
-    throw new Error("relatedEventId is only valid for commitments");
+    throw new Error("ربط الالتزام يخص الدفع المتوقع فقط.");
   if (input.relatedOrderId !== null && input.relatedOrderId !== undefined)
     assertId(input.relatedOrderId, "relatedOrderId");
   if (input.relatedEventId !== null && input.relatedEventId !== undefined)
@@ -79,7 +79,7 @@ export function createShortCashReversal(input: CreateShortCashReversalInput): Sh
   assertId(input.id, "id");
   assertId(input.idempotencyKey, "idempotencyKey");
   assertId(input.note, "note");
-  if (input.original.kind !== "declaration") throw new Error("only an active declaration can be reversed");
+  if (input.original.kind !== "declaration") throw new Error("التراجع يخص سجلًا متوقعًا فعالًا فقط.");
   if (!isValidTimestamp(input.createdAt)) throw new Error("أدخل وقت الإنشاء وقتًا صحيحًا.");
   return Object.freeze({
     ...input.original,

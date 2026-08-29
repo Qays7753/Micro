@@ -396,7 +396,7 @@ describe("G5 pure domain", () => {
         createdAt: "2026-08-02T10:00:00.000Z",
         note: "عكس ثانٍ",
       }),
-    ).toThrow("only an active declaration");
+    ).toThrow("التراجع يخص سجلًا متوقعًا فعالًا");
     const reversed = calculateShortCash(shortCash({ declarations: [reversal, original] }));
     expect(reversed.activeDeclarationCount).toBe(0);
   });

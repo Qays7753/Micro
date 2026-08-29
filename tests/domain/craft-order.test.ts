@@ -259,7 +259,7 @@ describe("craft-order domain core", () => {
         idempotencyKey: "unsafe-reopen",
         createdAt: "2026-08-21T09:16:00Z",
       }),
-    ).toThrow("explicit correction");
+    ).toThrow("تصحيح موثق صريح");
   });
 
   it("keeps deposit, delivery, collection, and profit separate", () => {
@@ -384,7 +384,7 @@ describe("craft-order domain core", () => {
     );
     expect(() =>
       settleDepositRefund(cancelled, 600, "مبلغ أكبر من العربون", "refund-too-large", "2026-08-21T10:11:30Z"),
-    ).toThrow("settlement amount must equal the collected deposit");
+    ).toThrow("مبلغ التسوية يجب أن يساوي العربون المحصل");
 
     const retained = settleDepositRetain(
       cancelled,
@@ -399,21 +399,21 @@ describe("craft-order domain core", () => {
     expect(retained.collectedMinor).toBe(500);
     expect(() =>
       settleDepositRefund(retained, 500, "محاولة قرار متناقض", "refund-after-retain", "2026-08-21T10:13:00Z"),
-    ).toThrow("already decided");
+    ).toThrow("تسوية هذا العربون محسومة سابقًا");
   });
 
   it("prevents deposit collection after delivery or cancellation", () => {
     const delivered = confirmAndDeliver(makeOrder());
     expect(() => collectDeposit(delivered, 100, "late-deposit", "2026-08-21T10:20:00Z")).toThrow(
-      "cannot collect deposit in delivered status",
+      "لا يمكن تسجيل العربون والطلب في حالة «تم التسليم».",
     );
 
     const cancelled = cancelOrder(makeOrder(), "إلغاء", "cancel-late-deposit", "2026-08-21T10:21:00Z");
     expect(() => collectDeposit(cancelled, 100, "cancelled-deposit", "2026-08-21T10:22:00Z")).toThrow(
-      "cannot collect deposit in cancelled status",
+      "لا يمكن تسجيل العربون والطلب في حالة «ملغى».",
     );
     expect(() => collectRemaining(cancelled, 100, "cancelled-collection", "2026-08-21T10:23:00Z")).toThrow(
-      "remaining collection requires a delivered order",
+      "تحصيل المتبقي يتطلب طلبًا مسلّمًا",
     );
   });
 
@@ -462,7 +462,7 @@ describe("craft-order domain core", () => {
         "revision-mismatched-quantity",
         "2026-08-21T10:22:00Z",
       ),
-    ).toThrow("revised cost snapshot quantity must match order quantity");
+    ).toThrow("كمية نسخة التكلفة المعدلة يجب أن تطابق كمية الطلب");
   });
 
   it("settles a fully prepaid order at delivery and shows no collection action", () => {
@@ -492,12 +492,12 @@ describe("craft-order domain core", () => {
 
     expect(() =>
       cancelOrder(reviewed, "محاولة إلغاء بعد التسليم", "locked-cancel", "2026-08-21T10:32:00Z"),
-    ).toThrow("explicit correction");
+    ).toThrow("تصحيح موثق صريح");
     expect(() =>
       reviseOrderCost(reviewed, "تعديل بعد التسليم", costSnapshot, "locked-revision", "2026-08-21T10:33:00Z"),
-    ).toThrow("explicit correction");
+    ).toThrow("تصحيح موثق صريح");
     expect(() => collectDeposit(reviewed, 100, "locked-deposit", "2026-08-21T10:34:00Z")).toThrow(
-      "explicit correction",
+      "تصحيح موثق صريح",
     );
   });
 
@@ -510,7 +510,7 @@ describe("craft-order domain core", () => {
         idempotencyKey: "generic-cancel-transition",
         createdAt: "2026-08-21T10:36:00Z",
       }),
-    ).toThrow("invalid transition");
+    ).toThrow("انتقال غير مسموح");
   });
 
   it("rejects blank idempotency keys", () => {
@@ -592,7 +592,7 @@ describe("craft-order domain core", () => {
         idempotencyKey: "invalid-delivery",
         createdAt: "2026-08-21T10:00:00Z",
       }),
-    ).toThrow("invalid transition");
+    ).toThrow("انتقال غير مسموح");
   });
 
   it("does not duplicate a financial event when retried", () => {
@@ -696,7 +696,7 @@ describe("draft postponement follows contract 02 from every pre-delivery state (
       order = transitionOrder(order, { to, idempotencyKey: `a08-${to}`, createdAt: stamp });
     expect(() =>
       transitionOrder(order, { to: "postponed", idempotencyKey: "a08-late", createdAt: "2026-08-06T09:00:00.000Z" }),
-    ).toThrow("invalid transition: delivered -> postponed");
+    ).toThrow("انتقال غير مسموح من «تم التسليم» إلى «مؤجل»");
   });
 });
 
