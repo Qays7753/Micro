@@ -26,7 +26,7 @@ const localDate = (value: string, label: string) => {
 };
 const positiveMinor = (value: number | null, label: string) => {
   if (!Number.isSafeInteger(value) || value === null || value <= 0)
-    throw new Error(`${label} يجب أن يكون مبلغًا موجبًا بوحدة JOD minor.`);
+    throw new Error(`${label} يجب أن يكون مبلغًا موجبًا بالوحدات الصغرى.`);
   return value;
 };
 const positiveInteger = (value: number | null, label: string) => {
@@ -36,11 +36,11 @@ const positiveInteger = (value: number | null, label: string) => {
 };
 const percentage = (value: number | null) => {
   if (!Number.isSafeInteger(value) || value === null || value < 1 || value > 10_000)
-    throw new Error("النسبة يجب أن تكون بين 0.01% و100% بوحدة basis points.");
+    throw new Error("النسبة يجب أن تكون بين 0.01% و100% بدقة كاملة.");
   return value;
 };
 const validKind = (value: AllocationPolicyKind) => {
-  if (!allocationPolicyKinds.includes(value)) throw new Error("أساس التحميل غير مدعوم.");
+  if (!allocationPolicyKinds.includes(value)) throw new Error("أساس التوزيع غير مدعوم.");
   return value;
 };
 const dateBefore = (left: string, right: string) => left <= right;
@@ -52,7 +52,7 @@ const dayAfter = (value: string) => {
 
 export function createAllocationPolicy(input: CreateAllocationPolicyInput): AllocationPolicy {
   const kind = validKind(input.kind);
-  const catalogItemId = required(input.catalogItemId, "مرجع العمل مطلوب لسياسة التحميل.");
+  const catalogItemId = required(input.catalogItemId, "مرجع العمل مطلوب لسياسة التوزيع.");
   const periodFrom = localDate(input.periodFrom, "بداية نطاق السياسة");
   const periodTo = localDate(input.periodTo, "نهاية نطاق السياسة");
   const startsOn = localDate(input.startsOn, "تاريخ نفاذ السياسة");
@@ -64,29 +64,29 @@ export function createAllocationPolicy(input: CreateAllocationPolicyInput): Allo
   const amountMinor = kind === "manual_amount" ? positiveMinor(input.amountMinor, "المبلغ اليدوي") : null;
   const rateMinorPerWholeUnit =
     kind === "per_output_unit"
-      ? positiveMinor(input.rateMinorPerWholeUnit ?? input.rateMinor, "معدل التحميل لكل 1.000 وحدة كاملة")
+      ? positiveMinor(input.rateMinorPerWholeUnit ?? input.rateMinor, "معدل التوزيع لكل 1.000 وحدة كاملة")
       : null;
   const rateMinor =
-    kind === "actual_time" ? positiveMinor(input.rateMinor, "معدل التحميل لكل دقيقة فعلية") : null;
+    kind === "actual_time" ? positiveMinor(input.rateMinor, "معدل التوزيع لكل دقيقة فعلية") : null;
   const percentageBps = kind === "completed_revenue_percentage" ? percentage(input.percentageBps) : null;
   const unitId =
     kind === "per_output_unit"
-      ? required(input.unitId ?? "", "سياسة التحميل لكل وحدة تحتاج وحدة منظمة.")
+      ? required(input.unitId ?? "", "سياسة التوزيع لكل وحدة تحتاج وحدة منظمة.")
       : null;
   if (
-    !required(input.source, "مصدر سياسة التحميل مطلوب.") ||
-    !required(input.reason, "سبب سياسة التحميل مطلوب.") ||
-    !required(input.note, "ملاحظة سياسة التحميل مطلوبة.")
+    !required(input.source, "مصدر سياسة التوزيع مطلوب.") ||
+    !required(input.reason, "سبب سياسة التوزيع مطلوب.") ||
+    !required(input.note, "ملاحظة سياسة التوزيع مطلوبة.")
   )
-    throw new Error("مصدر وسبب وملاحظة سياسة التحميل مطلوبة.");
+    throw new Error("مصدر وسبب وملاحظة سياسة التوزيع مطلوبة.");
   if (
-    !required(input.id, "معرف سياسة التحميل مطلوب.") ||
-    !required(input.seriesId, "معرّف نسخ سياسة التحميل مطلوب.") ||
-    !required(input.idempotencyKey, "مفتاح سياسة التحميل مطلوب.")
+    !required(input.id, "معرف سياسة التوزيع مطلوب.") ||
+    !required(input.seriesId, "معرّف نسخ سياسة التوزيع مطلوب.") ||
+    !required(input.idempotencyKey, "مفتاح سياسة التوزيع مطلوب.")
   )
-    throw new Error("معرف ومفتاح سياسة التحميل مطلوبان.");
+    throw new Error("معرف ومفتاح سياسة التوزيع مطلوبان.");
   if (input.version < 1 || !Number.isSafeInteger(input.version))
-    throw new Error("إصدار سياسة التحميل غير صالح.");
+    throw new Error("إصدار سياسة التوزيع غير صالح.");
   return {
     id: input.id.trim(),
     seriesId: input.seriesId.trim(),
@@ -126,18 +126,18 @@ export function createAllocationPolicySuccessor(
     updatedAt: string;
   },
 ): AllocationPolicy {
-  if (previous.status !== "active") throw new Error("لا يمكن إنشاء نسخة جديدة لسياسة تحميل غير فعالة.");
+  if (previous.status !== "active") throw new Error("لا يمكن إنشاء نسخة جديدة لسياسة توزيع غير فعالة.");
   if (
     terms.seriesId !== previous.seriesId ||
     terms.successorOfPolicyId !== previous.id ||
     terms.version !== previous.version + 1
   )
-    throw new Error("بيانات النسخة الجديدة لسياسة التحميل غير متصلة بالنسخة السابقة.");
+    throw new Error("بيانات النسخة الجديدة لسياسة التوزيع غير متصلة بالنسخة السابقة.");
   if (
     terms.startsOn <= previous.startsOn ||
     (previous.endsOn !== null && terms.startsOn !== dayAfter(previous.endsOn))
   )
-    throw new Error("تاريخ بدء النسخة الجديدة لسياسة التحميل يجب أن يتبع نهاية النسخة السابقة مباشرة.");
+    throw new Error("تاريخ بدء النسخة الجديدة لسياسة التوزيع يجب أن يتبع نهاية النسخة السابقة مباشرة.");
   return createAllocationPolicy(terms);
 }
 
@@ -180,8 +180,8 @@ const incomplete = (
   reasons,
   nextAction,
   truth:
-    "لا يمكن عرض الربح بعد التحميل كرقم كامل قبل اكتمال أساس السياسة والأدلة الداخلة؛ لم يتحول النقص إلى صفر.",
-  calculationNote: "التحميل غير محسوب لأن دليل السياسة غير مكتمل.",
+    "لا يمكن عرض الربح بعد التوزيع كرقم كامل قبل اكتمال أساس السياسة والأدلة الداخلة؛ لم يتحول النقص إلى صفر.",
+  calculationNote: "التوزيع غير محسوب لأن دليل السياسة غير مكتمل.",
 });
 
 /** One implementation of the per-output-unit allocation arithmetic, shared by the catalog preview and the period reader. */
@@ -226,8 +226,8 @@ export function calculateAllocationPolicy(
     return incomplete(
       policy,
       evidence,
-      ["لا توجد طلبات final مرتبطة صراحة بهذا المرجع في الفترة."],
-      "سجل الطلبات النهائية المرتبطة أو راجع نطاق الفترة قبل قراءة التحميل.",
+      ["لا توجد طلبات نهائية مرتبطة صراحة بهذا المرجع في الفترة."],
+      "سجل الطلبات النهائية المرتبطة أو راجع نطاق الفترة قبل قراءة التوزيع.",
     );
   let amountMinor: number | null = null;
   const reasons: string[] = [];
@@ -241,7 +241,7 @@ export function calculateAllocationPolicy(
       evidence.outputUnitId === null ||
       policy.unitId !== evidence.outputUnitId
     ) {
-      reasons.push("أكمل كمية الناتج بوحدة منظمة متوافقة مع سياسة التحميل لكل وحدة؛ لا نحول أو نخمن yield.");
+      reasons.push("أكمل كمية الناتج بوحدة منظمة متوافقة مع سياسة التوزيع لكل وحدة؛ لا نحول أو نخمن الناتج.");
     } else {
       const allocation = perOutputUnitAmountMinor(evidence.outputQuantityMilli, policy.rateMinorPerWholeUnit);
       if ("problem" in allocation)
@@ -259,7 +259,7 @@ export function calculateAllocationPolicy(
       evidence.actualTimeMinutes === null ||
       evidence.missingTimeOrderIds.length > 0
     )
-      reasons.push("أكمل تسجيل وقت فعلي صالح لكل الطلبات الداخلة قبل الاعتماد على التحميل.");
+      reasons.push("أكمل تسجيل وقت فعلي صالح لكل الطلبات الداخلة قبل الاعتماد على التوزيع.");
     else {
       const calculated = policy.rateMinor * evidence.actualTimeMinutes;
       if (!Number.isSafeInteger(calculated) || calculated <= 0)
@@ -274,12 +274,12 @@ export function calculateAllocationPolicy(
       evidence.missingRevenueOrderIds.length > 0
     )
       reasons.push(
-        "أكمل الإيراد final/المعترف به للطلبات الداخلة قبل تطبيق نسبة التحميل؛ توجد مبيعات ناقصة أو غير مكتملة.",
+        "أكمل الإيراد المحتسب عند التسليم للطلبات الداخلة قبل تطبيق نسبة التوزيع؛ توجد مبيعات ناقصة أو غير مكتملة.",
       );
     else {
       const calculated = roundHalfUp(evidence.recognizedRevenueMinor * policy.percentageBps, 10_000);
       if (calculated === null || calculated <= 0)
-        reasons.push("النسبة المعلنة لم تنتج مبلغ تحميل موجبًا من الإيراد المكتمل.");
+        reasons.push("النسبة المعلنة لم تنتج مبلغ توزيع موجبًا من الإيراد المكتمل.");
       else amountMinor = calculated;
     }
   }
@@ -288,7 +288,7 @@ export function calculateAllocationPolicy(
       policy,
       evidence,
       reasons,
-      reasons[0] ?? "أكمل دليل أساس سياسة التحميل قبل الاعتماد على القراءة.",
+      reasons[0] ?? "أكمل دليل أساس سياسة التوزيع قبل الاعتماد على القراءة.",
     );
   const calculationNote =
     policy.kind === "per_output_unit"
@@ -298,7 +298,7 @@ export function calculateAllocationPolicy(
       : policy.kind === "actual_time"
         ? `المعدل ${((policy.rateMinor ?? 0) / 100).toFixed(2)} د.أ لكل دقيقة فعلية.`
         : policy.kind === "completed_revenue_percentage"
-          ? `النسبة ${((policy.percentageBps ?? 0) / 100).toFixed(2)}% من الإيراد المكتمل/المعترف به.`
+          ? `النسبة ${((policy.percentageBps ?? 0) / 100).toFixed(2)}% من الإيراد المكتمل والمحتسب عند التسليم.`
           : "مبلغ يدوي معلن للفترة.";
   return {
     policyId: policy.id,
@@ -317,11 +317,11 @@ export function calculateAllocationPolicy(
     excluded,
     reasons:
       amountMinor === 0
-        ? ["الناتج صفر minor بعد تقريب مجموع الفترة؛ هذه نتيجة حسابية معلنة وليست نقص معرفة."]
+        ? ["الناتج صفر بعد تقريب مجموع الفترة؛ هذه نتيجة حسابية معلنة وليست نقص معرفة."]
         : [],
     nextAction:
       "راجع السياسة والمصادر الداخلة قبل اتخاذ قرار جديد؛ هذا الرقم ليس صافي ربح نهائيًا أو توصية سعر.",
-    truth: "هذا الربح بعد التحميل حسب سياستك، وليس صافي ربح نهائيًا أو توصية سعر.",
+    truth: "هذا الربح بعد التوزيع حسب سياستك، وليس صافي ربح نهائيًا أو توصية سعر.",
     calculationNote,
   };
 }
