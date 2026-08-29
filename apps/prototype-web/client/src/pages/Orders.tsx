@@ -117,7 +117,7 @@ export default function Orders() {
             type="button"
             onClick={() => navigate("/orders/new")}
           >
-            <ClipboardPlus aria-hidden="true" /> إنشاء طلب مخصص
+            <ClipboardPlus aria-hidden="true" /> إنشاء طلب من عميل
           </button>
         </section>
       ) : null}

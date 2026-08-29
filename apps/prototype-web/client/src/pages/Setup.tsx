@@ -78,7 +78,7 @@ export default function Setup() {
           type="submit"
           disabled={isSaving}
         >
-          {isSaving ? "جارٍ تثبيت الاسم…" : "ثبّت الاسم وابدأ أول طلب"}
+          {isSaving ? "جارٍ حفظ الاسم…" : "احفظ الاسم وابدأ أول طلب"}
           <ArrowLeft aria-hidden="true" />
         </button>
       </form>

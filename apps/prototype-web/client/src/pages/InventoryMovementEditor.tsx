@@ -350,7 +350,7 @@ export default function InventoryMovementEditor() {
                     .filter(template => template.catalogItemId === wasteCatalogItemId)
                     .map(template => (
                       <option key={template.id} value={template.id}>
-                        {template.title || "قالب بلا عنوان"} · مراجعة {template.revision}
+                        {template.title || "قالب بلا عنوان"} · نسخة {template.revision}
                       </option>
                     ))}
                 </select>

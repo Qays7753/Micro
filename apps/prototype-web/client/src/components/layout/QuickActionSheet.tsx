@@ -27,7 +27,7 @@ type QuickActionSheetProps = {
 };
 
 export const actionItems: readonly QuickActionItem[] = [
-  { action: "order", label: "طلب مخصص", description: "ابدأ مسودة طلب واتفاق أولي.", icon: ClipboardPlus },
+  { action: "order", label: "طلب من عميل", description: "ابدأ مسودة طلب واتفاق أولي.", icon: ClipboardPlus },
   {
     action: "estimate",
     label: "مسودة تصميم",

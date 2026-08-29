@@ -734,7 +734,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           if (source.correctionType === "reverse" || source.correctionOfEventId) {
-            abortWith({ ok: false, code: "storage_error", message: "لا يمكن التراجع عن واقعة تراجع سابقة." });
+            abortWith({ ok: false, code: "storage_error", message: "لا يمكن التراجع عن حدث تراجع سابق." });
             return;
           }
           const existing = events.find(
@@ -747,7 +747,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "تعذر حفظ التراجع لأن الواقعة تم التراجع عنها سابقًا بمفتاح مختلف.",
+                    message: "تعذر حفظ التراجع لأن هذا الحدث تم التراجع عنه سابقًا بمفتاح مختلف.",
                   },
             );
             return;
@@ -770,7 +770,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: "storage_error",
-              message: "بيانات التراجع لا تطابق الواقعة الأصلية؛ لم يتغير السجل.",
+              message: "بيانات التراجع لا تطابق الحدث الأصلي؛ لم يتغير السجل.",
             });
             return;
           }
@@ -958,7 +958,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ المراجعة.",
+              message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ النسخة الجديدة.",
             };
             try {
               transaction.abort();
@@ -971,7 +971,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية مراجعة القالب؛ لم تتغير البيانات.",
+              message: "تعارض هوية نسخة القالب؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();

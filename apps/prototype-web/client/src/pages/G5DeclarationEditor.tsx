@@ -199,7 +199,7 @@ export default function G5DeclarationEditor() {
         <p className="micro-local-truth">
           <CalendarClock aria-hidden="true" />
           <span>
-            هذا السجل المتوقع لا يزيد الكاش ولا ينقصه ولا يسجل قبضًا أو دفعًا. إذا تغيرت الواقعة، صححها بتراجع موثق من
+            هذا السجل المتوقع لا يزيد الكاش ولا ينقصه ولا يسجل قبضًا أو دفعًا. إذا تغيّر الحدث، صحّحه بتراجع موثق من
             سطح القرار.
           </span>
         </p>

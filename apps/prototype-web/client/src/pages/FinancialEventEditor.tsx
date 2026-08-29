@@ -264,7 +264,7 @@ export default function FinancialEventEditor() {
             </small>
           </label>
         )}
-        <LocalDateField label="تاريخ الواقعة" value={date} onChange={event => setDate(event.target.value)} />
+        <LocalDateField label="تاريخ الحدث" value={date} onChange={event => setDate(event.target.value)} />
         <label className="micro-field">
           <span>{content.counterparty}</span>
           <input

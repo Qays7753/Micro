@@ -39,7 +39,7 @@ const eventLabel: Record<string, string> = {
   cancelled: "إلغاء",
   deposit_refunded: "رد العربون",
   deposit_retained: "تسوية العربون",
-  price_approved: "تثبيت السعر",
+  price_approved: "تسجيل السعر",
 };
 const resultCopy: Record<string, [string, string]> = {
   final: ["نتيجة الطلب معروفة", "حسب بيانات تكلفة معروفة."],

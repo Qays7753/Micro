@@ -107,23 +107,23 @@ export default function AgreementEditor() {
     if (!draft) return null;
     setMessage(null);
     if (!agreementPriceIsReady(priceMinor)) {
-      setMessage("السعر المتفق عليه: أدخل مبلغًا أكبر من صفر أو استخدم سعر الحماية كبداية، ثم أعد التثبيت.");
+      setMessage("السعر المتفق عليه: أدخل مبلغًا أكبر من صفر أو استخدم سعر الحماية كبداية، ثم أعد التسجيل.");
       return null;
     }
     if (!isPriceValid) {
-      setMessage("السعر المتفق عليه: استخدم أرقام 0–9 صحيحة، ثم أعد التثبيت.");
+      setMessage("السعر المتفق عليه: استخدم أرقام 0–9 صحيحة، ثم أعد التسجيل.");
       return null;
     }
     if (depositMinor !== null && !isDepositValid) {
-      setMessage("العربون: استخدم أرقام 0–9 صحيحة أو اتركه فارغًا إذا لم تقبض شيئًا، ثم أعد التثبيت.");
+      setMessage("العربون: استخدم أرقام 0–9 صحيحة أو اتركه فارغًا إذا لم تقبض شيئًا، ثم أعد التسجيل.");
       return null;
     }
     if (!deliveryDate) {
-      setMessage("موعد التسليم: اختر تاريخًا صحيحًا قبل تثبيت الاتفاق.");
+      setMessage("موعد التسليم: اختر تاريخًا صحيحًا قبل تسجيل الاتفاق.");
       return null;
     }
     if (isBelowFloor && !acknowledgesBelowFloor) {
-      setMessage("إقرار سعر الحماية: فعّل مربع الإقرار بعد مراجعة السبب، ثم أعد التثبيت.");
+      setMessage("إقرار سعر الحماية: فعّل مربع الإقرار بعد مراجعة السبب، ثم أعد التسجيل.");
       return null;
     }
     setIsSaving(true);
@@ -155,7 +155,7 @@ export default function AgreementEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>التكلفة المطلوبة غير متاحة</h1>
-        <p>احفظ نسخة تكلفة صالحة قبل تثبيت الاتفاق.</p>
+        <p>احفظ نسخة تكلفة صالحة قبل تسجيل الاتفاق.</p>
         <button
           className="micro-button micro-button-primary"
           type="button"
@@ -187,8 +187,8 @@ export default function AgreementEditor() {
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">{agreementPresentation.label}</span>
-        <h1>ثبّت ما اتفقت عليه</h1>
-        <p>{agreementPresentation.explanation} ثبّت السعر والموعد، والعربون إن قبضته.</p>
+        <h1>سجّل ما اتفقت عليه</h1>
+        <p>{agreementPresentation.explanation} سجّل السعر والموعد، والعربون إن قبضته.</p>
       </div>
       <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
         <span>سعر الحماية المشتق من نسخة التكلفة (د.أ)</span>
@@ -200,7 +200,7 @@ export default function AgreementEditor() {
             ? "وقت العمل أو بند مؤثر ما زال ناقصًا؛ لا نعرض هذه القراءة الجزئية كسعر حماية ولا نستخدمها لبداية الاتفاق."
             : preview.snapshot.knowledgeState === "known"
             ? "قيمة مشتقة من التكلفة المسجلة، وليست السعر المتفق عليه."
-            : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تثبيت السعر."}
+            : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تسجيل السعر."}
         </small>
       </section>
       <section className="micro-form-card">
@@ -301,7 +301,7 @@ export default function AgreementEditor() {
           }}
         >
           <Save aria-hidden="true" />
-          {isSaving ? "جارٍ تثبيت الاتفاق…" : "تثبيت الاتفاق"}
+          {isSaving ? "جارٍ تسجيل الاتفاق…" : "تسجيل الاتفاق"}
         </button>
       </section>
     </section>

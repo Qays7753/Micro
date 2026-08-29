@@ -918,7 +918,7 @@ describe("ProjectFinancialService", () => {
         type: entry.type,
         amountMinor: 1000,
         occurredOn: "2026-08-23",
-        note: `واقعة ${index}`,
+        note: `حدث ${index}`,
         counterparty: null,
         relatedEventId: null,
         expenseContext: entry.type.startsWith("operating_expense")

@@ -177,7 +177,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ التراجع لأن الواقعة تم التراجع عنها سابقًا بمفتاح مختلف.",
+            message: "تعذر حفظ التراجع لأن هذا الحدث تم التراجع عنه سابقًا بمفتاح مختلف.",
           };
     if (this.financialEvents.has(reversal.id))
       return { ok: false, code: "storage_error", message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." };
@@ -318,13 +318,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ previous: CatalogTemplate; next: CatalogTemplate }>> {
     const current = this.catalogTemplates.get(previous.id);
     if (!current || !current.active)
-      return { ok: false, code: "storage_error", message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ المراجعة." };
+      return { ok: false, code: "storage_error", message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ النسخة الجديدة." };
     const repeated = Array.from(this.catalogTemplates.values()).find(
       template => template.createdOperationKey === next.createdOperationKey,
     );
     if (repeated) return { ok: true, value: { previous: clone(current), next: clone(repeated) } };
     if (this.catalogTemplates.has(next.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية مراجعة القالب؛ لم تتغير البيانات." };
+      return { ok: false, code: "storage_error", message: "تعارض هوية نسخة القالب؛ لم تتغير البيانات." };
     this.catalogTemplates.set(previous.id, clone(previous));
     this.catalogTemplates.set(next.id, clone(next));
     return { ok: true, value: { previous: clone(previous), next: clone(next) } };

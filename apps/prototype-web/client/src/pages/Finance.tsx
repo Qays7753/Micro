@@ -704,7 +704,7 @@ function FinancialEventRow({
   const submit = async () => {
     const trimmed = reason.trim();
     if (!trimmed) {
-      setError("سبب التصحيح مطلوب؛ اكتب لماذا سُجلت هذه الواقعة خطأ قبل التراجع.");
+      setError("سبب التصحيح مطلوب؛ اكتب لماذا سُجّل هذا الحدث خطأ قبل التراجع.");
       return;
     }
     setError(null);
@@ -792,7 +792,7 @@ function FinancialEventRow({
       ) : null}
       {!isReversal && !reversal ? (
         <button className="micro-text-action" type="button" onClick={begin}>
-          صحح هذه الواقعة
+          صحّح هذا الحدث
         </button>
       ) : null}
       {reversal ? (
@@ -809,11 +809,11 @@ function FinancialEventRow({
             <strong>مراجعة قبل التراجع</strong>
             <p>
               سيبقى السجل الأصلي كما هو دون تعديل. سيُضاف حدث جديد بتاريخ اليوم المحلي ويلغي كامل الأثر،
-              دون إعادة كتابة تاريخ الواقعة.
+              دون إعادة كتابة تاريخ الحدث.
             </p>
             <dl>
               <div>
-                <dt>الواقعة</dt>
+                <dt>الحدث</dt>
                 <dd>
                   {eventLabel[event.type]} · <LocalDateValue value={event.occurredOn} />
                 </dd>
@@ -836,12 +836,12 @@ function FinancialEventRow({
             <textarea
               value={reason}
               onChange={input => setReason(input.target.value)}
-              placeholder="مثال: سُجلت الواقعة مرتين بالخطأ"
+              placeholder="مثال: سُجّل الحدث مرتين بالخطأ"
               autoFocus
             />
           </label>
           <p className="micro-local-truth">
-            التراجع لا يحذف التاريخ ولا يعدل المبلغ أو السياق القديم. إذا كانت الواقعة الصحيحة مختلفة، سجّل
+            التراجع لا يحذف التاريخ ولا يعدل المبلغ أو السياق القديم. إذا كان الحدث الصحيح مختلفًا، سجّل
             حدثًا جديدًا منفصلًا.
           </p>
           {error ? (
@@ -1067,7 +1067,7 @@ function G5DecisionPanel({
                   </small>
                 </div>
                 <button className="micro-text-action" type="button" onClick={() => beginReverse(entry)}>
-                  صحح بتراجع موثق
+                  صحّح بتراجع موثق
                 </button>
                 {reversalTarget?.id === entry.id ? (
                   <div className="micro-g5-reversal-editor">

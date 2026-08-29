@@ -687,7 +687,7 @@ export class ProjectFinancialService {
     const idempotencyKey = input.idempotencyKey.trim();
     const reason = input.reason.trim();
     if (!sourceEventId)
-      return { ok: false, code: "validation_error", message: "اختر الواقعة الأصلية قبل تصحيحها." };
+      return { ok: false, code: "validation_error", message: "اختر الحدث الأصلي قبل تصحيحه." };
     if (!reason) return { ok: false, code: "validation_error", message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
     if (!idempotencyKey)
       return { ok: false, code: "validation_error", message: "مفتاح التصحيح مطلوب لمنع تكرار الأثر." };
@@ -705,22 +705,22 @@ export class ProjectFinancialService {
       return {
         ok: false,
         code: "validation_error",
-        message: "مفتاح التصحيح مستخدم في واقعة أخرى؛ اختر مفتاحًا جديدًا.",
+        message: "مفتاح التصحيح مستخدم في حدث آخر؛ اختر مفتاحًا جديدًا.",
       };
     const source = existing.value.find(event => event.id === sourceEventId);
     if (!source)
       return {
         ok: false,
         code: "validation_error",
-        message: "لم تُعثر على الواقعة الأصلية؛ لم يتغير السجل.",
+        message: "لم يُعثر على الحدث الأصلي؛ لم يتغير السجل.",
       };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
-      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن واقعة تراجع سابقة." };
+      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن حدث تراجع سابق." };
     const alreadyReversed = existing.value.find(
       event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
     );
     if (alreadyReversed)
-      return { ok: false, code: "validation_error", message: "تم التراجع عن هذه الواقعة سابقًا؛ لا يُنشأ تراجع ثانٍ." };
+      return { ok: false, code: "validation_error", message: "تم التراجع عن هذا الحدث سابقًا؛ لا يُنشأ تراجع ثانٍ." };
     try {
       const reversal = createFinancialReversal({
         id: id(),
@@ -735,7 +735,7 @@ export class ProjectFinancialService {
         return {
           ok: false,
           code: "storage_error",
-          message: "تعذر حفظ التراجع ذريًا. بقيت الواقعة الأصلية دون تغيير.",
+          message: "تعذر حفظ التراجع ذريًا. بقي الحدث الأصلي دون تغيير.",
         };
       return saved.value.id === reversal.id
         ? { ok: true, value: saved.value }

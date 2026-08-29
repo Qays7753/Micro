@@ -234,7 +234,7 @@ export default function DraftEditor() {
         </label>
         <label className="micro-field">
           <span>
-            ملاحظات التخصيص <small>مطلوبة قبل تثبيت الاتفاق</small>
+            ملاحظات التخصيص <small>مطلوبة قبل تسجيل الاتفاق</small>
           </span>
           <textarea
             value={draft.specifications}

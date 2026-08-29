@@ -237,7 +237,7 @@ export default function Schedule() {
           </span>
           <span className="micro-status-chip">لا توجد مواعيد تشغيلية</span>
           <h2>لا توجد طلبات تحتاج موعدًا الآن</h2>
-          <p>عند تثبيت اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</p>
+          <p>عند تسجيل اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</p>
           <button
             className="micro-button micro-button-primary"
             type="button"

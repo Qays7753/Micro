@@ -551,7 +551,7 @@ export default function Catalog() {
         yield: template.yield ? { quantity: revisionYieldQuantity, unitId: revisionYieldUnitId } : null,
       }),
     );
-    setMessage(`تعديل مراجعة القالب ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
+    setMessage(`تعديل القالب من النسخة ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
   }
 
   async function saveTemplate(): Promise<boolean> {
@@ -1023,7 +1023,7 @@ export default function Catalog() {
               <div className="micro-subsection">
                 <div className="micro-subsection-heading">
                   <div>
-                    <h3>{editingTemplateId ? "مراجعة القالب" : "قالب جديد"}</h3>
+                    <h3>{editingTemplateId ? "تعديل القالب" : "قالب جديد"}</h3>
                     <p>
                       {selectedItemUnit
                         ? `مخرج المرجع: ${selectedItemUnit.nameAr} · ${dimensionLabel(selectedItemUnit.dimension)}`
@@ -1170,7 +1170,7 @@ export default function Catalog() {
                     onClick={saveTemplate}
                   >
                     {editingTemplateId ? <RotateCcw aria-hidden="true" /> : <Check aria-hidden="true" />}{" "}
-                    {saving ? "جارٍ الحفظ…" : editingTemplateId ? "احفظ المراجعة" : "احفظ القالب"}
+                    {saving ? "جارٍ الحفظ…" : editingTemplateId ? "احفظ النسخة الجديدة" : "احفظ القالب"}
                   </button>
                   {editingTemplateId ? (
                     <button
@@ -1178,7 +1178,7 @@ export default function Catalog() {
                       type="button"
                       onClick={resetTemplateForm}
                     >
-                      إلغاء المراجعة
+                      إلغاء التعديل
                     </button>
                   ) : null}
                 </div>
@@ -1189,7 +1189,7 @@ export default function Catalog() {
                     <span className="micro-overline">المراجعات المحفوظة</span>
                     <h3>قالب هذا المرجع</h3>
                   </div>
-                  <p>التعديل ينشئ مراجعة جديدة؛ لا يعيد حساب طلب سابق.</p>
+                  <p>التعديل ينشئ نسخة جديدة؛ لا يعيد حساب طلب سابق.</p>
                 </div>
                 {selectedTemplates.length ? (
                   <div className="micro-list">
@@ -1197,7 +1197,7 @@ export default function Catalog() {
                       <article className="micro-list-item" key={template.id}>
                         <div>
                           <strong>
-                            {template.title || "قالب بلا عنوان"} · مراجعة {template.revision}
+                            {template.title || "قالب بلا عنوان"} · نسخة {template.revision}
                           </strong>
                           <p>
                             {template.components.length} مكوّن
@@ -1229,7 +1229,7 @@ export default function Catalog() {
                                 type="button"
                                 onClick={() => startRevision(template)}
                               >
-                                <RotateCcw aria-hidden="true" /> مراجعة
+                                <RotateCcw aria-hidden="true" /> نسخة جديدة
                               </button>
                               <button
                                 className="micro-button micro-button-secondary"
@@ -1591,7 +1591,7 @@ export default function Catalog() {
                                       type="button"
                                       onClick={() => startPolicyRevision(policy)}
                                     >
-                                      أنشئ مراجعة
+                                      أنشئ نسخة جديدة
                                     </button>
                                   ) : null}
                                 </p>
