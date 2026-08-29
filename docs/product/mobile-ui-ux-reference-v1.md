@@ -9,7 +9,7 @@
 > Market/Delivery **خارج النطاق الحالي**.
 >
 > **المرجع الحاكم للترتيب والتنقل هو:**
-> `docs/product/problem-statement-v1.md` و`docs/product/owner-decisions-v1.md`.
+> `docs/product/problem-statement-v5.md` و`docs/product/owner-decisions-v1.md`.
 >
 > بقية الوثيقة — المكوّنات، الأزرار، اللغة، حالات الفراغ، إمكانية الوصول — تبقى
 > مرجعية ونافعة. اقرأها، ولا تقرأ §6.1 و§6.2 و§6.4 كمواصفة.
