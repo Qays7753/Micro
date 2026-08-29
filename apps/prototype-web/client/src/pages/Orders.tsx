@@ -1,6 +1,6 @@
 /** Style: Micro «مسار القرار» — phone-first RTL list where each row states status, date, settlement truth, and one next action. */
 /* مبدأ Micro: تعرض القائمة حالة الاتفاق والفعل التالي من خريطة واحدة، ولا توهم باعتماد ثانٍ. */
-import { ClipboardCheck, ClipboardPlus, ChevronLeft } from "lucide-react";
+import { BadgeDollarSign, ClipboardCheck, ClipboardPlus, ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -61,68 +61,75 @@ export default function Orders() {
   return (
     <section className="micro-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">المتابعة</span>
-        <h1>الطلبات</h1>
-        <p>كل طلب يقودك إلى قرار واحد فقط، لا إلى لوحة مكتظة.</p>
+        <span className="micro-overline">وجهة العمل</span>
+        <h1>العمل</h1>
+        <p>سجلات البيع والطلبات في مكان واحد، وكل قسم يظهر عندما يكون له سجل فعلي.</p>
       </div>
-      <DecisionPanel
-        label="الأولوية الآن"
-        truth={state.followUp.truth}
-        nextAction={state.followUp.nextAction}
-        tone={tone}
-      />
+      <section className="micro-decision-surface" data-tone="accent" aria-labelledby="direct-sales-title">
+        <span className="micro-overline">مبيعات مباشرة</span>
+        <h2 id="direct-sales-title">مبيعاتي</h2>
+        <p>لا توجد مبيعات مباشرة محفوظة بعد.</p>
+        <p className="micro-home-truth-line">
+          هذا لا ينشئ بيعًا تلقائيًا ولا يحوّل أي تحصيل مرتبط بطلب إلى مبيعات مباشرة.
+        </p>
+      </section>
       {state.orders.length > 0 ? (
-        <section className="micro-draft-list" aria-label="الاتفاقات المحلية">
-          {state.orders.map(stored => {
-            const agreement = getAgreementPresentation({
-              status: stored.order.status,
-              agreedPriceMinor: stored.order.agreedPriceMinor,
-              deliveryDate: stored.deliveryDate,
-              nextAction: stored.order.nextAction,
-            });
-            return (
-              <button
-                className="micro-draft-row"
-                type="button"
-                key={stored.id}
-                onClick={() => navigate(`/orders/${stored.id}`)}
-              >
-                <span className="micro-draft-symbol">
-                  <ClipboardCheck aria-hidden="true" />
-                </span>
-                <span>
-                  <strong>{stored.order.itemName}</strong>
-                  <small>
-                    {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
-                  </small>
-                  <small>{settlementDetail(stored)}</small>
-                  <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
-                </span>
-                <ChevronLeft aria-hidden="true" />
-              </button>
-            );
-          })}
-        </section>
-      ) : null}
-      {state.drafts.length === 0 && state.orders.length === 0 ? (
-        <section className="micro-empty-state" aria-labelledby="orders-empty-title">
-          <span className="micro-empty-symbol">
-            <ClipboardPlus aria-hidden="true" />
-          </span>
-          <span className="micro-status-chip">لا توجد بيانات بعد</span>
-          <h2 id="orders-empty-title">ابدأ بطلب واحد تعرف قصته</h2>
-          <p>الوصف والكمية وما اتفقت عليه تكفي كبداية.</p>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            onClick={() => navigate("/orders/new")}
-          >
-            <ClipboardPlus aria-hidden="true" /> إنشاء طلب من عميل
-          </button>
-        </section>
+        <>
+          <DecisionPanel
+            label="الأولوية الآن"
+            truth={state.followUp.truth}
+            nextAction={state.followUp.nextAction}
+            tone={tone}
+          />
+          <section className="micro-draft-list" aria-labelledby="work-orders-title">
+            <div className="micro-section-title">
+              <ClipboardCheck aria-hidden="true" />
+              <div>
+                <span className="micro-overline">سجل محفوظ</span>
+                <h2 id="work-orders-title">طلباتي</h2>
+              </div>
+            </div>
+            {state.orders.map(stored => {
+              const agreement = getAgreementPresentation({
+                status: stored.order.status,
+                agreedPriceMinor: stored.order.agreedPriceMinor,
+                deliveryDate: stored.deliveryDate,
+                nextAction: stored.order.nextAction,
+              });
+              return (
+                <button
+                  className="micro-draft-row"
+                  type="button"
+                  key={stored.id}
+                  onClick={() => navigate(`/orders/${stored.id}`)}
+                >
+                  <span className="micro-draft-symbol">
+                    <ClipboardCheck aria-hidden="true" />
+                  </span>
+                  <span>
+                    <strong>{stored.order.itemName}</strong>
+                    <small>
+                      {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
+                    </small>
+                    <small>{settlementDetail(stored)}</small>
+                    <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
+                  </span>
+                  <ChevronLeft aria-hidden="true" />
+                </button>
+              );
+            })}
+          </section>
+        </>
       ) : null}
       {state.drafts.length > 0 ? (
-        <section className="micro-draft-list" aria-label="المسودات المحلية">
+        <section className="micro-draft-list" aria-labelledby="work-drafts-title">
+          <div className="micro-section-title">
+            <ClipboardPlus aria-hidden="true" />
+            <div>
+              <span className="micro-overline">لم تتحول إلى طلب محفوظ</span>
+              <h2 id="work-drafts-title">مسودات قيد الإكمال</h2>
+            </div>
+          </div>
           {state.drafts.map(draft => (
             <button
               className="micro-draft-row"
@@ -154,6 +161,16 @@ export default function Orders() {
         >
           إنشاء مسودة أخرى
         </button>
+      ) : null}
+      {state.orders.length === 0 && state.drafts.length === 0 ? (
+        <section className="micro-empty-state" aria-labelledby="work-empty-title">
+          <span className="micro-empty-symbol">
+            <BadgeDollarSign aria-hidden="true" />
+          </span>
+          <span className="micro-status-chip">لا توجد سجلات عمل بعد</span>
+          <h2 id="work-empty-title">ابدأ من الفعل الذي تحتاجه اليوم</h2>
+          <p>يمكنك إنشاء أول طلب من زر الإضافة؛ ويظهر قسم الطلبات بعد حفظه.</p>
+        </section>
       ) : null}
     </section>
   );

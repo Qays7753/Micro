@@ -1,0 +1,1 @@
+- [Workflow port forwarding](workflow-port-forwarding.md) — a Vite server can be healthy yet fail preview detection when the workflow port and `.replit` mapping differ.
