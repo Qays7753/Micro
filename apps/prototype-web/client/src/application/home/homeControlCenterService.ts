@@ -1,9 +1,10 @@
+import type { AgreementContextService } from "@/application/agreements/agreementContextService";
 import type { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { formatArabicPlural, formatLocalDateLong } from "@/presentation/formatters";
+import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
 
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
@@ -13,6 +14,8 @@ import {
   type HomeFinancialFact,
   type HomeOptionalModule,
   type HomeRecentChange,
+  type HomeTodayItem,
+  type HomeTodaySection,
 } from "./homeControlCenterModel";
 
 export type HomeControlCenterResult =
@@ -58,19 +61,22 @@ export class HomeControlCenterService {
     private readonly projectFinance: ProjectFinancialService,
     private readonly supplierPurchases: SupplierPurchaseService,
     private readonly inventory: InventoryMaterialService,
+    private readonly agreementContext: AgreementContextService,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {
-    const [profile, followUp, position, schedules, events, purchases, inventory] = await Promise.all([
-      this.store.getProfile(),
-      this.dailyFollowUp.read(),
-      this.projectFinance.readPosition(),
-      this.store.listSchedules(),
-      this.store.listFinancialEvents(),
-      this.supplierPurchases.readSummary(),
-      this.inventory.overview(),
-    ]);
+    const [profile, followUp, position, schedules, events, purchases, inventory, dueFollowUps] =
+      await Promise.all([
+        this.store.getProfile(),
+        this.dailyFollowUp.read(),
+        this.projectFinance.readPosition(),
+        this.store.listSchedules(),
+        this.store.listFinancialEvents(),
+        this.supplierPurchases.readSummary(),
+        this.inventory.overview(),
+        this.agreementContext.dueFollowUps(),
+      ]);
     if (
       !profile.ok ||
       !followUp.ok ||
@@ -79,6 +85,7 @@ export class HomeControlCenterService {
       !events.ok ||
       !purchases.ok ||
       !inventory.ok ||
+      !dueFollowUps.ok ||
       !profile.value
     )
       return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
@@ -303,6 +310,67 @@ export class HomeControlCenterService {
       truth:
         "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق؛ ونتيجة الفترة تظهر في وحدتها حين توجد نتيجة.",
     };
+
+    /* قسم «اليوم» — موطن F-078 (رحلة ٢): متابعات مستحقة ومواعيد اليوم وديون
+     * مستحقة، بلا إنشاء موعد أو تحصيل. الحالة الفارغة صادقة: «لا متابعات بعد». */
+    const todayItems: HomeTodayItem[] = [];
+    dueFollowUps.value.due.forEach(stored =>
+      todayItems.push({
+        id: `today-follow-up:${stored.id}`,
+        kind: "follow_up_due",
+        title: `متابعة مستحقة: ${stored.order.itemName || "طلب بلا وصف"}`,
+        detail: stored.followUpSummary ?? stored.followUpReason ?? null,
+        dateLocal: stored.followUpDate ?? null,
+        timeLocal: null,
+        href: `/orders/${stored.id}`,
+        actionLabel: "فتح المتابعة",
+      }),
+    );
+    schedules.value
+      .filter(
+        schedule =>
+          ["scheduled", "postponed"].includes(schedule.status) && schedule.scheduledFor === today,
+      )
+      .forEach(schedule => {
+        const linkedOrder = orders.find(candidate => candidate.id === schedule.orderId);
+        todayItems.push({
+          id: `today-appointment:${schedule.id}`,
+          kind: "appointment_today",
+          title: `موعد اليوم: ${linkedOrder?.order.itemName || "موعد تسليم"}`,
+          detail: linkedOrder ? linkedOrder.order.nextAction : null,
+          dateLocal: schedule.scheduledFor,
+          timeLocal: schedule.scheduledTime,
+          href: `/schedule/${schedule.id}`,
+          actionLabel: "فتح الموعد",
+        });
+      });
+    orders
+      .filter(
+        stored =>
+          stored.order.settlementStatus === "debt" &&
+          stored.order.receivableMinor > 0 &&
+          !["cancelled"].includes(stored.order.status),
+      )
+      .forEach(stored =>
+        todayItems.push({
+          id: `today-due-amount:${stored.id}`,
+          kind: "due_amount",
+          title: `مستحق عليك متابعته: ${stored.order.itemName || "طلب"}`,
+          detail: `دين مسجل: ${formatMoneyMinor(stored.order.receivableMinor)} د.أ — دين لا كاش محصل.`,
+          dateLocal: null,
+          timeLocal: null,
+          href: `/orders/${stored.id}`,
+          actionLabel: "مراجعة الدين",
+        }),
+      );
+    const upcoming = dueFollowUps.value.upcoming;
+    const todaySection: HomeTodaySection = {
+      items: todayItems,
+      upcomingCount: upcoming.length,
+      nextUpcomingDate: upcoming[0]?.followUpDate ?? null,
+      nextUpcomingHref: upcoming[0] ? `/orders/${upcoming[0].id}` : null,
+      truth: "قراءة صباحية من سجلاتك: متابعات ومواعيد وديون مستحقة. لا تنشئ موعدًا ولا تحصيلًا.",
+    };
     const optionalModules: HomeOptionalModule[] = [
       {
         id: "inventory",
@@ -381,6 +449,7 @@ export class HomeControlCenterService {
           "هذه قراءة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
         primaryAction: primary,
         financeUnit,
+        todaySection,
         facts,
         attention,
         optionalModules,

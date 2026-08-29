@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, CircleAlert, ClipboardList, Landmark, Receipt, WalletCards } from "lucide-react";
+import { ArrowLeft, BellRing, CalendarDays, CircleAlert, ClipboardList, HandCoins, Landmark, Receipt, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -7,6 +7,7 @@ import { formatLocalDateLong } from "@/presentation/formatters";
 import type {
   HomeControlCenterViewModel,
   HomeFinancialFact,
+  HomeTodayItem,
 } from "@/application/home/homeControlCenterModel";
 
 type HomeState =
@@ -42,6 +43,47 @@ function FactCard({ fact }: { fact: HomeFinancialFact }) {
       <small>
         {fact.source} · {fact.period}
       </small>
+    </article>
+  );
+}
+
+const todayItemIcon: Record<HomeTodayItem["kind"], typeof BellRing> = {
+  follow_up_due: BellRing,
+  appointment_today: CalendarDays,
+  due_amount: HandCoins,
+  follow_up_upcoming: BellRing,
+};
+
+function TodayItemRow({ item, onNavigate }: { item: HomeTodayItem; onNavigate: (href: string) => void }) {
+  const Icon = todayItemIcon[item.kind];
+  return (
+    <article className="micro-home-today-item" data-kind={item.kind}>
+      <div>
+        <strong>
+          <Icon aria-hidden="true" /> {item.title}
+        </strong>
+        {item.detail ? <p>{item.detail}</p> : null}
+        {item.dateLocal ? (
+          <small>
+            <time dateTime={item.dateLocal}>
+              {formatLocalDateLong(item.dateLocal) ?? item.dateLocal}
+            </time>
+            {item.timeLocal ? (
+              <bdi dir="ltr" className="micro-inline-number">
+                {" "}· {item.timeLocal}
+              </bdi>
+            ) : null}
+          </small>
+        ) : null}
+      </div>
+      <button
+        className="micro-text-action"
+        type="button"
+        onClick={() => onNavigate(item.href)}
+      >
+        {item.actionLabel}
+        <ArrowLeft aria-hidden="true" />
+      </button>
     </article>
   );
 }
@@ -96,6 +138,44 @@ export default function Home() {
           </time>
         </p>
       </div>
+      {/* قسم «اليوم» (F-078 · رحلة ٢): أجاب «ماذا عليّ اليوم؟» من شاشة واحدة،
+          والحالة الفارغة صادقة — «لا متابعات بعد». */}
+      <section className="micro-home-today-section" aria-labelledby="home-today-title">
+        <div className="micro-section-title">
+          <BellRing aria-hidden="true" />
+          <div>
+            <span className="micro-overline">قراءة الصباح</span>
+            <h2 id="home-today-title">اليوم</h2>
+          </div>
+        </div>
+        {model.todaySection.items.length > 0 ? (
+          <div className="micro-home-today-list">
+            {model.todaySection.items.map(item => (
+              <TodayItemRow key={item.id} item={item} onNavigate={navigate} />
+            ))}
+          </div>
+        ) : (
+          <div className="micro-home-quiet">
+            <strong>لا متابعات بعد.</strong>
+            <p>لا شيء مستحق اليوم من متابعات أو مواعيد أو ديون مسجلة.</p>
+          </div>
+        )}
+        {model.todaySection.upcomingCount > 0 && model.todaySection.nextUpcomingDate ? (
+          <p className="micro-home-truth-line">
+            قادمة: {formatLocalDateLong(model.todaySection.nextUpcomingDate)} —{" "}
+            <button
+              className="micro-text-action"
+              type="button"
+              onClick={() =>
+                model.todaySection.nextUpcomingHref ? navigate(model.todaySection.nextUpcomingHref) : null
+              }
+            >
+              افتح أقربها
+            </button>
+          </p>
+        ) : null}
+        <p className="micro-home-truth-line">{model.todaySection.truth}</p>
+      </section>
       <section className="micro-decision-surface" data-tone="accent" aria-labelledby="home-primary-title">
         <span className="micro-overline">الأولوية الآن</span>
         <h2 id="home-primary-title">{model.primaryAction.label}</h2>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
+import { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
@@ -18,6 +19,7 @@ function services(store: MemoryLocalStore) {
     finance,
     suppliers,
     new InventoryMaterialService(store),
+    new AgreementContextService(store, now),
     now,
   );
 }
@@ -79,7 +81,81 @@ describe("HomeControlCenterService", () => {
     expect(result.value.attention).toHaveLength(0);
     expect(result.value.optionalModules).toHaveLength(0);
     expect(result.value.financeUnit).toMatchObject({ action: { id: "finance", href: "/finance" } });
+    expect(result.value.todaySection).toMatchObject({
+      items: [],
+      upcomingCount: 0,
+      nextUpcomingDate: null,
+    });
     expect(result.value.recentChanges).toHaveLength(0);
+  });
+
+  it("reveals F-078 in the Today section: due follow-ups, today's appointment, and recorded debt from one screen (journey 2)", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const cost = calculateCostSnapshot("cost-today", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-20T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    const baseOrder = createCraftOrder({
+      id: "today-order",
+      customerName: "ريم",
+      itemName: "خاتم أمينة",
+      specifications: "اختبار",
+      quantity: 1,
+      agreedPriceMinor: 5000,
+      costSnapshot: cost,
+      createdAt: "2026-08-20T09:00:00.000Z",
+    });
+    const order = {
+      ...baseOrder,
+      status: "settled" as const,
+      settlementStatus: "debt" as const,
+      receivableMinor: 3500,
+      nextAction: "تابع تحصيل الدين",
+    };
+    await store.saveOrder({
+      id: "today-order",
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-08-26",
+      agreementSource: "whatsapp",
+      followUpDate: "2026-08-24",
+      followUpSummary: "اتصال أحمد اليوم",
+      followUpReason: "تأكيد القياس",
+      createdAt: order.createdAt,
+      updatedAt: order.createdAt,
+    });
+    await store.saveSchedule({
+      id: "schedule-today",
+      orderId: "today-order",
+      kind: "delivery",
+      scheduledFor: "2026-08-25",
+      scheduledTime: "16:00",
+      durationMinutes: 60,
+      status: "scheduled",
+      postponeReason: null,
+      events: [],
+      createdAt: "2026-08-20T09:00:00.000Z",
+      updatedAt: "2026-08-20T09:00:00.000Z",
+    });
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    const kinds = result.value.todaySection.items.map(item => item.kind);
+    expect(kinds).toContain("follow_up_due");
+    expect(kinds).toContain("appointment_today");
+    expect(kinds).toContain("due_amount");
+    const dueAmount = result.value.todaySection.items.find(item => item.kind === "due_amount");
+    expect(dueAmount).toMatchObject({ href: "/orders/today-order" });
+    expect(dueAmount?.detail).toContain("دين مسجل");
+    expect(dueAmount?.detail).toContain("لا كاش محصل");
   });
 
   it("keeps /finance reachable for a brand-new owner while period_result stays conditional on its own unit (decisions 11–14)", async () => {

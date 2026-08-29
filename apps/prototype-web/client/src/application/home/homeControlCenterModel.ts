@@ -30,6 +30,25 @@ export type HomeFinanceUnit = {
   action: HomeAction;
   truth: string;
 };
+/* قسم «اليوم» (رحلة ٢): موطن F-078 — متابعات مستحقة ومواعيد اليوم وديون مستحقة،
+ * بلا إنشاء موعد أو تحصيل. الحالة الفارغة جزء من الموضع (م7). */
+export type HomeTodayItem = {
+  id: string;
+  kind: "follow_up_due" | "appointment_today" | "due_amount" | "follow_up_upcoming";
+  title: string;
+  detail: string | null;
+  dateLocal: string | null;
+  timeLocal: string | null;
+  href: string;
+  actionLabel: string;
+};
+export type HomeTodaySection = {
+  items: readonly HomeTodayItem[];
+  upcomingCount: number;
+  nextUpcomingDate: string | null;
+  nextUpcomingHref: string | null;
+  truth: string;
+};
 export type HomeRecentChange = {
   id: string;
   occurredOn: string;
@@ -43,6 +62,7 @@ export type HomeControlCenterInput = {
   truthLine: string;
   primaryAction: HomeAction;
   financeUnit: HomeFinanceUnit;
+  todaySection: HomeTodaySection;
   facts: readonly HomeFinancialFact[];
   attention: readonly HomeAttentionItem[];
   optionalModules: readonly HomeOptionalModule[];
@@ -53,6 +73,7 @@ export type HomeControlCenterViewModel = {
   truthLine: string;
   primaryAction: HomeAction;
   financeUnit: HomeFinanceUnit;
+  todaySection: HomeTodaySection;
   facts: readonly HomeFinancialFact[];
   attention: readonly HomeAttentionItem[];
   optionalModules: readonly HomeOptionalModule[];
@@ -82,6 +103,7 @@ export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): 
     truthLine: input.truthLine,
     primaryAction: input.primaryAction,
     financeUnit: input.financeUnit,
+    todaySection: input.todaySection,
     facts,
     attention,
     optionalModules,

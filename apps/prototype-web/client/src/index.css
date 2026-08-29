@@ -4473,6 +4473,57 @@ button.micro-month-cell:hover {
 .micro-home-finance-unit .micro-button {
   flex: 0 0 auto;
 }
+/* قسم «اليوم» (F-078): أولوية صباحية — المتابعات والمواعيد والديون من شاشة واحدة. */
+.micro-home-today-section {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-home-today-list {
+  display: grid;
+  gap: var(--space-2);
+}
+.micro-home-today-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-inline-start: 3px solid var(--color-accent-primary);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-home-today-item[data-kind="due_amount"] {
+  border-inline-start-color: var(--color-warning-text);
+}
+.micro-home-today-item > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-home-today-item strong {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 14px;
+}
+.micro-home-today-item strong svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--color-accent-text);
+}
+.micro-home-today-item p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-home-today-item small {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+}
+.micro-home-today-item .micro-text-action {
+  flex: 0 0 auto;
+}
 /* صفحة الأساس (§2.5): قسم يمرّر بحرية — الكاش مفتوح والباقي مطوي بحالته بسطر واحد. */
 .micro-foundation-page {
   display: grid;
