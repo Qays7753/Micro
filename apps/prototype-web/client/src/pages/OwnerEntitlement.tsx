@@ -645,16 +645,12 @@ export default function OwnerEntitlement() {
                 <div>
                   <strong>{policyLabels[policy.kind]}</strong>
                   <small>
-                    {policyFamilyLabels[policy.family]} · إصدار <bdi dir="ltr">{policy.version}</bdi> ·
-                    السلسلة <bdi dir="ltr">{policy.seriesId.slice(0, 8)}</bdi> · تبدأ{" "}
+                    {policyFamilyLabels[policy.family]} · إصدار <bdi dir="ltr">{policy.version}</bdi> · تبدأ{" "}
                     <bdi dir="ltr">{formatLocalDate(policy.startsOn)}</bdi>
                     {policy.endsOn ? ` · تنتهي ${formatLocalDate(policy.endsOn)}` : " · بلا تاريخ إيقاف"}
                   </small>
                   <small>
                     المصدر: {policy.source} · {policy.status === "active" ? "فعالة" : "منتهية"}
-                    {policy.successorOfPolicyId
-                      ? ` · خليفة لـ ${policy.successorOfPolicyId.slice(0, 8)}`
-                      : ""}
                   </small>
                 </div>
                 <b>
@@ -1265,7 +1261,7 @@ export default function OwnerEntitlement() {
                     <small>
                       المصدر: {record.sourceKeys.join(", ") || "فترة معلنة"}
                       {record.reversalOfId
-                        ? ` · الأصل محفوظ: ${record.reversalOfId} · السبب: ${record.reversalReason}`
+                        ? ` · الأصل محفوظ كما هو · السبب: ${record.reversalReason}`
                         : ""}
                     </small>
                   </div>
@@ -1311,7 +1307,7 @@ export default function OwnerEntitlement() {
                     </small>
                     {balance.reversalOfId ? (
                       <small>
-                        الأصل محفوظ: {balance.reversalOfId} · السبب: {balance.reversalReason}
+                        الأصل محفوظ كما هو · السبب: {balance.reversalReason}
                       </small>
                     ) : (
                       <small>
@@ -1378,15 +1374,9 @@ export default function OwnerEntitlement() {
                         movement.walletId}{" "}
                       · أثر الكاش: <bdi dir="ltr">{formatMoneyMinor(movement.cashDeltaMinor)}</bdi> د.أ
                     </small>
-                    {movement.relatedOpeningBalanceId ? (
-                      <small>
-                        مصدر الافتتاح: <bdi dir="ltr">{movement.relatedOpeningBalanceId}</bdi>
-                      </small>
-                    ) : null}
                     {movement.reversalOfId ? (
                       <small>
-                        الأصل محفوظ: <bdi dir="ltr">{movement.reversalOfId}</bdi> · السبب:{" "}
-                        {movement.reversalReason}
+                        الأصل محفوظ كما هو · السبب: {movement.reversalReason}
                       </small>
                     ) : null}
                   </div>

@@ -683,6 +683,10 @@ function FinancialEventRow({
       candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
     ) ?? null;
   const isReversal = event.correctionType === "reverse";
+  const original =
+    isReversal && event.correctionOfEventId
+      ? (events.find(candidate => candidate.id === event.correctionOfEventId) ?? null)
+      : null;
   const begin = () => {
     setError(null);
     setSuccess(null);
@@ -756,11 +760,17 @@ function FinancialEventRow({
           ) : null}
           {isReversal ? (
             <small className="micro-finance-event-audit">
-              الأصل: <bdi dir="ltr">{event.correctionOfEventId}</bdi> · السبب: {event.correctionReason}
+              {original ? (
+                <>
+                  الأصل: {eventLabel[original.type]} · <LocalDateValue value={original.occurredOn} /> ·{" "}
+                </>
+              ) : null}
+              السبب: {event.correctionReason}
             </small>
           ) : reversal ? (
             <small className="micro-finance-event-audit">
-              العكس الموثق: <bdi dir="ltr">{reversal.id}</bdi> · السبب: {reversal.correctionReason}
+              العكس الموثق: {eventLabel[reversal.type]} · <LocalDateValue value={reversal.occurredOn} /> ·
+              السبب: {reversal.correctionReason}
             </small>
           ) : null}
           <div className="micro-finance-event-effects">

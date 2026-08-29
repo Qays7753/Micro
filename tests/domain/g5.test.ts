@@ -113,7 +113,8 @@ describe("G5 pure domain", () => {
       breakEvenUnits: null,
     });
     expect(result.reasons.join(" ")).toContain("مستبعدة");
-    expect(result.excluded.join(" ")).toContain("مستبعد");
+    expect(result.excluded.join(" ")).toContain("الطلب «صندوق» مستبعد لأن نتيجته غير مكتملة");
+    expect(result.excluded.join(" ")).not.toContain("order-1");
   });
 
   it("marks estimated fixed cost as needs_review while preserving the number", () => {

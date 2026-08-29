@@ -116,6 +116,24 @@ function invalidContribution(from: string, to: string, reason: string): Contribu
   };
 }
 
+/* مبدأ Micro: الجمل التي تصل للمستخدم تذكر الطلب باسمه وحالته بالعربية، لا بمعرّف داخلي. */
+function orderDisplayName(order: G5OrderInput): string {
+  return order.itemName.trim() || "طلب بلا وصف";
+}
+
+function orderResultStatusAr(status: G5OrderInput["resultStatus"]): string {
+  switch (status) {
+    case "final":
+      return "نهائية";
+    case "estimated":
+      return "تقديرية";
+    case "incomplete":
+      return "غير مكتملة";
+    default:
+      return "تحتاج مراجعة";
+  }
+}
+
 function validateOrder(order: G5OrderInput): string | null {
   if (!order.id.trim() || !order.itemName.trim()) return "يوجد طلب بلا معرف أو اسم عمل.";
   if (!isValidLocalDate(order.deliveredOn)) return `تاريخ تسليم الطلب ${order.id} غير صالح.`;
@@ -192,10 +210,12 @@ export function calculateContributionMargin(
       continue;
     }
     if (order.deliveredOn < from || order.deliveredOn > to) continue;
-    sources.push(`طلب مسلّم مسجل: ${order.id}`);
+    sources.push(`طلب مسلّم مسجل: ${orderDisplayName(order)}`);
     if (order.resultStatus !== "final") {
       excludedOrderCount += 1;
-      excluded.push(`الطلب ${order.id} مستبعد لأن نتيجته ${order.resultStatus}.`);
+      excluded.push(
+        `الطلب «${orderDisplayName(order)}» مستبعد لأن نتيجته ${orderResultStatusAr(order.resultStatus)}.`,
+      );
       continue;
     }
     finalOrderCount += 1;
@@ -214,10 +234,12 @@ export function calculateContributionMargin(
       totalQuantityMilli = null;
       if (order.quantityIssue === "invalid") {
         invalid = true;
-        reasons.push(`كمية الطلب ${order.id} غير صالحة؛ لا تحوّل إلى صفر.`);
+        reasons.push(`كمية الطلب «${orderDisplayName(order)}» غير صالحة؛ لا تحوّل إلى صفر.`);
       } else {
         incomplete = true;
-        reasons.push(`كمية الطلب ${order.id} غير قابلة للتوحيد؛ أكمل وحدة أو تحويلًا صريحًا.`);
+        reasons.push(
+          `كمية الطلب «${orderDisplayName(order)}» غير قابلة للتوحيد؛ أكمل وحدة أو تحويلًا صريحًا.`,
+        );
       }
     } else {
       const unitKey = order.unitKey?.trim() || "legacy:recorded-mix";
