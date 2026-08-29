@@ -547,7 +547,9 @@ export default function Finance() {
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/finance/new/owner_withdrawal_cash")}
+            /* X-05 (و٣): مدخل واحد باسم واحد — يسأل «سحب من المشروع لنفسك؟» ويكتب
+             * إلى المسار الصحيح بحسب وجود سياسة حق مالك، والتفريق تقني لا يُعلَّم. */
+            onClick={() => navigate("/finance/withdraw")}
           >
             سجل سحبًا شخصيًا
           </button>

@@ -64,10 +64,11 @@ export const supportedOwnerEntitlementPolicyKinds = [
   "sale_percentage",
   "per_unit",
 ] as const;
+/* X-05 (و٣): السحب الشخصي العادي له مدخل واحد من «مالي» يسأل «سحب من المشروع لنفسك؟»
+ * ويوجه إلى المسار الصحيح. طبقة الدفتر تبقى للعمليات المرتبطة بسجلاته: تسوية حق
+ * مسجل أو رصيد افتتاحي، وإرجاع السحب السابق، وحقن رأس مال جديد — لا للسحب الحر. */
 export const ownerMovementReasonsForKind = (kind: "draw" | "return"): readonly OwnerMovementReason[] =>
-  kind === "draw"
-    ? ["entitlement_settlement", "opening_balance_settlement", "pre_entitlement_draw", "owner_draw"]
-    : ["opening_balance_settlement", "settlement_of_prior_draw", "new_capital_investment"];
+  kind === "draw" ? ["entitlement_settlement", "opening_balance_settlement"] : ["opening_balance_settlement", "settlement_of_prior_draw", "new_capital_investment"];
 export const successorPolicyFormRequirements = (kind: OwnerEntitlementPolicy["kind"]) => ({
   family: ownerEntitlementPolicyFamilyForKind(kind),
   valueKind: percentagePolicyKinds.has(kind) ? ("percentage" as const) : ("amount" as const),
@@ -1088,8 +1089,8 @@ export default function OwnerEntitlement() {
       <details className="micro-owner-layer">
         <summary className="micro-owner-layer-summary">
           <span>
-            <b>سحب أو إرجاع</b>
-            <small>حركة كاش فعلية بسبب موثق ومحفظة محددة</small>
+            <b>إرجاع أو تسوية دفتر</b>
+            <small>عمليات مرتبطة بسجلات الدفتر: تسوية محددة أو إرجاع، بمحفظة معينة</small>
           </span>
           <strong>افتح الإجراء</strong>
         </summary>
@@ -1097,12 +1098,13 @@ export default function OwnerEntitlement() {
           <div className="micro-section-heading">
             <div>
               <span className="micro-overline">يغير الكاش فعليًا</span>
-              <h2>تسجيل سحب أو إرجاع</h2>
+              <h2>تسجيل إرجاع أو تسوية</h2>
             </div>
           </div>
           <p>
-            كل حركة تحتاج محفظة وسببًا وملاحظة ومصدرًا عند التسوية. السحب ليس مصروف تشغيل، والإرجاع كرأس مال
-            جديد لا يسوي الحق.
+            السحب الشخصي العادي له مدخل واحد من «مالي» — «سجل سحبًا شخصيًا». ما هنا مرتبط بسجلات الدفتر:
+            تسوية حق أو رصيد محدد، إرجاع سحب سابق، أو حقن رأس مال جديد. كل حركة تحتاج محفظة وسببًا
+            وملاحظة، والسحب ليس مصروف تشغيل، والإرجاع كرأس مال جديد لا يسوي الحق.
           </p>
           <div className="micro-field-grid">
             <label className="micro-field">

@@ -9,6 +9,8 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/orders\/new$/,
   /^\/orders\/draft\/[^/]+(?:\/(?:agreement|cost))?$/,
   /^\/finance\/new\/[^/]+$/,
+  /* X-05: المدخل الموحد للسحب عمق نموذج واحد، مثل بقية محررات الأفعال المالية. */
+  /^\/finance\/withdraw$/,
   /^\/finance\/owner-entitlement$/,
   /^\/finance\/g5\/declaration$/,
   /^\/suppliers\/purchase\/[^/]+(?:\/payment)?$/,

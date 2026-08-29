@@ -29,12 +29,10 @@ describe("OwnerEntitlement UI capability model", () => {
     });
   });
 
-  it("keeps every actual movement reason explicit", () => {
+  it("keeps every actual movement reason explicit and leaves plain withdrawal to the unified entry (X-05)", () => {
     expect(ownerMovementReasonsForKind("draw")).toEqual([
       "entitlement_settlement",
       "opening_balance_settlement",
-      "pre_entitlement_draw",
-      "owner_draw",
     ]);
     expect(ownerMovementReasonsForKind("return")).toEqual([
       "opening_balance_settlement",
