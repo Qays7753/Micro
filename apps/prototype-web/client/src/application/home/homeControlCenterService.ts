@@ -9,6 +9,7 @@ import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/pre
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
   buildHomeControlCenterViewModel,
+  type HomeAction,
   type HomeAttentionItem,
   type HomeControlCenterViewModel,
   type HomeFinancialFact,
@@ -113,6 +114,23 @@ export class HomeControlCenterService {
         event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
       );
     const period = `حتى ${formatLocalDateLong(today) ?? today}`;
+    /* §2.7: كل حقيقة غير مسجلة تعرض طريقها — «غير مسجل — سجّله (نقرة)» — لا «غير مهيأ» عاجزة. */
+    const factRoads: Record<HomeFinancialFact["id"], HomeAction> = {
+      cash: action("road-cash", "سجّله", "/cash/wallet/new", "محفظة ورصيد بداية"),
+      receivables: action("road-receivables", "سجّله", "/orders", "الدين يسجل من طلب بعد تسليمه"),
+      payables: action(
+        "road-payables",
+        "سجّله",
+        "/finance/new/operating_expense_payable",
+        "سجل التزامًا لمورد",
+      ),
+      owner_capital: action(
+        "road-owner-capital",
+        "سجّله",
+        "/finance/new/owner_investment_cash",
+        "سجل استثمارًا",
+      ),
+    };
     const facts: HomeFinancialFact[] = [
       {
         id: "cash",
@@ -123,6 +141,7 @@ export class HomeControlCenterService {
         source: "السجل المحلي",
         period,
         helper: "يشمل ما سُجل من محافظ وكاش الطلبات والأحداث؛ ليس ربحًا.",
+        road: cashEvidence ? null : factRoads.cash,
       },
       {
         id: "receivables",
@@ -133,6 +152,7 @@ export class HomeControlCenterService {
         source: "طلبات محلية مسجلة",
         period,
         helper: "دين عميل مسجل، وليس كاشًا محصلًا.",
+        road: orderEvidence ? null : factRoads.receivables,
       },
       {
         id: "payables",
@@ -143,6 +163,7 @@ export class HomeControlCenterService {
         source: "أحداث المصروف وشراء المواد",
         period,
         helper: "التزام مسجل، وليس دفعة كاش جديدة.",
+        road: payableEvidence ? null : factRoads.payables,
       },
       {
         id: "owner_capital",
@@ -153,6 +174,7 @@ export class HomeControlCenterService {
         source: "أحداث مالية عامة",
         period,
         helper: "استثمار/سحب مسجل؛ لا يتحول إلى بيع أو مصروف.",
+        road: capitalEvidence ? null : factRoads.owner_capital,
       },
     ];
 

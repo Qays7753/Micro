@@ -86,6 +86,11 @@ describe("HomeControlCenterService", () => {
       upcomingCount: 0,
       nextUpcomingDate: null,
     });
+    // §2.7: كل حقيقة غير مسجلة تعرض طريق تسجيلها — «غير مسجل — سجّله» لا «غير مهيأ».
+    const cashFact = result.value.facts.find(fact => fact.id === "cash");
+    expect(cashFact?.road).toMatchObject({ href: "/cash/wallet/new", label: "سجّله" });
+    const ownerFact = result.value.facts.find(fact => fact.id === "owner_capital");
+    expect(ownerFact?.road).toMatchObject({ href: "/finance/new/owner_investment_cash" });
     expect(result.value.recentChanges).toHaveLength(0);
   });
 

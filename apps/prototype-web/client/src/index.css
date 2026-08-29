@@ -4524,6 +4524,16 @@ button.micro-month-cell:hover {
 .micro-home-today-item .micro-text-action {
   flex: 0 0 auto;
 }
+/* §2.7: سطر الحقيقة كطريق — «غير مسجل — سجّله (نقرة)». */
+.micro-home-fact .micro-fact-road {
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: start;
+}
+.micro-fact-road-line {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
 /* صفحة الأساس (§2.5): قسم يمرّر بحرية — الكاش مفتوح والباقي مطوي بحالته بسطر واحد. */
 .micro-foundation-page {
   display: grid;

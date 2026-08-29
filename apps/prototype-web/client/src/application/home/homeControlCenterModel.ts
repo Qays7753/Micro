@@ -9,6 +9,8 @@ export type HomeFinancialFact = {
   source: string;
   period: string;
   helper: string;
+  /* §2.7: الحقيقة غير المسجلة تُعرض كطريق — «غير مسجل — سجّله (نقرة)» — لا كـ«غير مهيأ» عاجزة. */
+  road: HomeAction | null;
 };
 export type HomeAttentionItem = {
   id: string;

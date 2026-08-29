@@ -15,6 +15,10 @@ const fact = (
   source: "السجل المحلي",
   period: "2026-08",
   helper: "مصدر محلي",
+  road:
+    state === "not_initialized"
+      ? { id: `road-${id}`, label: "سجّله", href: `/new-${id}`, reason: "طريق التسجيل" }
+      : null,
 });
 const baseInput = (): HomeControlCenterInput => ({
   activityName: "مشغل اختبار",
@@ -52,6 +56,14 @@ describe("buildHomeControlCenterViewModel", () => {
       { id: "payables", state: "not_initialized", valueMinor: null },
       { id: "owner_capital", state: "known", valueMinor: 1250 },
     ]);
+  });
+
+  it("keeps an unregistered fact a road to its own registration path, never a dead «غير مهيأ» (§2.7)", () => {
+    const model = buildHomeControlCenterViewModel(baseInput());
+    const payables = model.facts.find(fact => fact.id === "payables");
+    expect(payables?.road).toMatchObject({ href: "/new-payables", label: "سجّله" });
+    const cash = model.facts.find(fact => fact.id === "cash");
+    expect(cash?.road).toBeNull();
   });
 
   it("orders unique attention by priority and caps the result at three items", () => {

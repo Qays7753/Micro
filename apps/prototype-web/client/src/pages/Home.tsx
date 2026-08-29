@@ -22,9 +22,15 @@ const factIcon: Record<HomeFinancialFact["id"], typeof WalletCards> = {
   owner_capital: WalletCards,
 };
 const factStateLabel = (state: HomeFinancialFact["state"]) =>
-  state === "known" ? "معروف من السجل" : state === "incomplete" ? "غير مكتمل" : "غير مهيأ";
+  state === "known" ? "معروف من السجل" : state === "incomplete" ? "غير مكتمل" : "غير مسجل";
 
-function FactCard({ fact }: { fact: HomeFinancialFact }) {
+function FactCard({
+  fact,
+  onNavigate,
+}: {
+  fact: HomeFinancialFact;
+  onNavigate: (href: string) => void;
+}) {
   const Icon = factIcon[fact.id];
   return (
     <article className="micro-home-fact" data-state={fact.state}>
@@ -35,6 +41,15 @@ function FactCard({ fact }: { fact: HomeFinancialFact }) {
       <strong>
         {fact.state === "known" && fact.valueMinor !== null ? (
           <MoneyValue minor={fact.valueMinor} />
+        ) : fact.state === "not_initialized" && fact.road ? (
+          /* §2.7: الحقيقة غير المسجلة طريق — «غير مسجل — سجّله (نقرة)». */
+          <button
+            className="micro-text-action micro-fact-road"
+            type="button"
+            onClick={() => onNavigate(fact.road!.href)}
+          >
+            {factStateLabel(fact.state)} — {fact.road.label}
+          </button>
         ) : (
           factStateLabel(fact.state)
         )}
@@ -200,7 +215,7 @@ export default function Home() {
         </div>
         <div className="micro-home-facts">
           {model.facts.map(fact => (
-            <FactCard key={fact.id} fact={fact} />
+            <FactCard key={fact.id} fact={fact} onNavigate={navigate} />
           ))}
         </div>
       </section>

@@ -273,6 +273,19 @@ export default function Finance() {
             <MoneyValue minor={position.operatingExpensesRecordedMinor} className="micro-inline-number" /> ·
             شراء مواد مسجل: {position.supplierPurchaseCount} · الأحداث العامة: {position.projectEventCount}
           </p>
+          {/* §2.7 (F-031): الحقيقة غير المسجلة طريق — لا عدد أصفار عاجز. */}
+          {position.cashWalletCount === 0 ? (
+            <p className="micro-fact-road-line">
+              الكاش: لا محفظة معلنة بعد —{" "}
+              <button
+                className="micro-text-action"
+                type="button"
+                onClick={() => navigate("/cash/wallet/new")}
+              >
+                سجّل محفظة ورصيد بداية
+              </button>
+            </p>
+          ) : null}
         </div>
       </section>
       <details className="micro-finance-layer">
