@@ -9,3 +9,7 @@ expertMode = true
 [[ports]]
 localPort = 8088
 externalPort = 80
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 180000
