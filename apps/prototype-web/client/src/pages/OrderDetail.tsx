@@ -304,9 +304,9 @@ export default function OrderDetail() {
           )}
           <p>{result[1]}</p>
           <small>
-            الإيراد المعترف به (د.أ):{" "}
+            المحتسب عند التسليم — السعر (د.أ):{" "}
             <MoneyValue minor={order.recognizedRevenueMinor} className="micro-inline-number" /> · التكلفة
-            المعترف بها (د.أ):{" "}
+            (د.أ):{" "}
             <MoneyValue minor={order.recognizedCostMinor} className="micro-inline-number" />
           </small>
         </section>

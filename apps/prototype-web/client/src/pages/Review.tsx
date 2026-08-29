@@ -82,14 +82,14 @@ export default function Review() {
             <small>لا يدخل في القبض</small>
           </div>
           <div>
-            <dt>إيراد معترف به</dt>
+            <dt>سعر محتسب عند التسليم</dt>
             <dd>
               <MoneyValue minor={state.pulse.recognizedRevenueFromFinalOrdersMinor} />
             </dd>
             <small>من نتائج معرفة فقط</small>
           </div>
           <div>
-            <dt>تكلفة معترف بها</dt>
+            <dt>تكلفة محتسبة عند التسليم</dt>
             <dd>
               <MoneyValue minor={state.pulse.recognizedCostFromFinalOrdersMinor} />
             </dd>
@@ -140,7 +140,7 @@ export default function Review() {
               <strong>
                 <MoneyValue minor={resultOrder.order.profitIndicatorMinor} />
               </strong>
-              ، بناءً على التكلفة المعترف بها.
+              ، بناءً على التكلفة المحتسبة عند التسليم.
             </p>
           ) : (
             <p>لا تظهر نتيجة رقمية نهائية لأن معرفة التكلفة ليست مكتملة أو تحتاج مراجعة.</p>
