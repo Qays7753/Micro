@@ -515,7 +515,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       return {
         ok: false,
         code: "storage_error",
-        message: "لم يعد سجل الاستحقاق المصدر موجودًا؛ لم يُحفظ العكس.",
+        message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ العكس.",
       };
     const existing = Array.from(this.ownerEntitlementRecords.values()).find(
       record => record.reversalOfId === sourceId,
@@ -526,10 +526,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         : {
             ok: false,
             code: "storage_error",
-            message: "عكس الاستحقاق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
+            message: "عكس الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
           };
     if (this.ownerEntitlementRecords.has(reversal.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية عكس الاستحقاق؛ لم تتغير البيانات." };
+      return { ok: false, code: "storage_error", message: "تعارض هوية عكس الحق؛ لم تتغير البيانات." };
     this.ownerEntitlementRecords.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }

@@ -46,9 +46,9 @@ const policyFamilyLabels: Record<OwnerEntitlementPolicy["family"], string> = {
   unit: "وحدة",
 };
 const movementReasonLabels: Record<OwnerMovementReason, string> = {
-  entitlement_settlement: "تسوية استحقاق مسجل",
+  entitlement_settlement: "تسوية حق مسجل",
   opening_balance_settlement: "تسوية رصيد افتتاحي",
-  pre_entitlement_draw: "سحب قبل الاستحقاق",
+  pre_entitlement_draw: "سحب قبل تسجيل الحق",
   owner_draw: "سحب مالك غير مرتبط بسياسة",
   settlement_of_prior_draw: "إرجاع لتسوية سحب سابق",
   new_capital_investment: "إرجاع/حقن كرأس مال جديد",
@@ -240,7 +240,7 @@ export default function OwnerEntitlement() {
   if (loading)
     return (
       <div className="micro-route-loading" role="status">
-        جارٍ قراءة دفتر استحقاق المالك…
+        جارٍ قراءة دفتر حق المالك…
       </div>
     );
   if (error || !overview)
@@ -367,7 +367,7 @@ export default function OwnerEntitlement() {
       tone: "success",
       text: result.reused
         ? "خليفة السياسة محفوظة سابقًا؛ لم يتكرر التعديل."
-        : "تم حفظ إعدادات الخليفة الجديدة وإنهاء النسخة السابقة؛ لا تتغير الاستحقاقات المسجلة سابقًا.",
+        : "تم حفظ إعدادات الخليفة الجديدة وإنهاء النسخة السابقة؛ لا تتغير الحقوق المسجلة سابقًا.",
     });
     successorOperation.current = idempotency("owner-successor");
     setSuccessorSource("");
@@ -379,7 +379,7 @@ export default function OwnerEntitlement() {
     if (!selectedPolicy || !calculation || calculation.amountMinor === null || !entitlementNote.trim()) {
       setNotice({
         tone: "error",
-        text: calculation?.nextAction ?? "اختر سياسة مؤهلة واكتب ملاحظة قبل تسجيل الاستحقاق.",
+        text: calculation?.nextAction ?? "اختر سياسة مؤهلة واكتب ملاحظة قبل تسجيل الحق.",
       });
       return;
     }
@@ -399,7 +399,7 @@ export default function OwnerEntitlement() {
     }
     setNotice({
       tone: "success",
-      text: result.reused ? "الاستحقاق محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل الاستحقاق. لم يتغير كاش المشروع.",
+      text: result.reused ? "الحق محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل الحق. لم يتغير كاش المشروع.",
     });
     entitlementOperation.current = idempotency("owner-entitlement");
     setEntitlementNote("");
@@ -453,7 +453,7 @@ export default function OwnerEntitlement() {
       return;
     }
     if (movementReason === "entitlement_settlement" && !relatedEntitlementId) {
-      setNotice({ tone: "error", text: "اختر الاستحقاق الذي تسويه؛ لا نخمن سبب السحب." });
+      setNotice({ tone: "error", text: "اختر الحق الذي تسويه؛ لا نخمن سبب السحب." });
       return;
     }
     if (movementReason === "opening_balance_settlement" && !relatedOpeningBalanceId) {
@@ -525,7 +525,7 @@ export default function OwnerEntitlement() {
 
   async function reverseEntitlement() {
     if (!reversalTarget || reversalTarget.kind !== "entitlement" || !reversalReason.trim()) {
-      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الاستحقاق." });
+      setNotice({ tone: "error", text: "اكتب سببًا غير فارغ قبل عكس الحق." });
       return;
     }
     setSaving(true);
@@ -543,8 +543,8 @@ export default function OwnerEntitlement() {
     setNotice({
       tone: "success",
       text: result.reused
-        ? "عكس الاستحقاق محفوظ سابقًا؛ لم يتكرر."
-        : "تم عكس الاستحقاق كاملًا. الأصل محفوظ وقفل الفترة متاح لإعادة تسجيل صحيحة.",
+        ? "عكس الحق محفوظ سابقًا؛ لم يتكرر."
+        : "تم عكس الحق كاملًا. الأصل محفوظ وقفل الفترة متاح لإعادة تسجيل صحيحة.",
     });
     setReversalTarget(null);
     setReversalReason("");
@@ -588,7 +588,7 @@ export default function OwnerEntitlement() {
         <span className="micro-overline">دفتر المالك · المبالغ (د.أ)</span>
         <h1>ما حقي المسجل؟</h1>
         <p>
-          افصل بين الاستحقاق الذي سجلته، وما أخذته أو أعدته فعليًا، ورصيد الاستحقاق المتبقي. هذه ليست رواتب
+          افصل بين الحق الذي سجلته، وما أخذته أو أعدته فعليًا، ورصيد الحق المتبقي. هذه ليست رواتب
           موظفين ولا دفترًا قانونيًا.
         </p>
       </div>
@@ -616,9 +616,9 @@ export default function OwnerEntitlement() {
           <small>د.أ</small>
         </strong>
         <div className="micro-owner-stat-grid">
-          <Metric label="الاستحقاق المعتمد" value={overview.approvedEntitlementMinor} />
+          <Metric label="الحق المعتمد" value={overview.approvedEntitlementMinor} />
           <Metric label="الافتتاح المتبقي" value={overview.openingBalanceRemainingMinor} />
-          <Metric label="سحب لتسوية استحقاق" value={overview.drawnForEntitlementMinor} />
+          <Metric label="سحب لتسوية حق" value={overview.drawnForEntitlementMinor} />
           <Metric label="إرجاع سحب سابق" value={overview.returnedForPriorDrawMinor} />
         </div>
         <p>{overview.truth}</p>
@@ -628,7 +628,7 @@ export default function OwnerEntitlement() {
         <div className="micro-section-heading">
           <div>
             <span className="micro-overline">طبقة لا تغير الربح أو الكاش</span>
-            <h2>سياسات الاستحقاق</h2>
+            <h2>سياسات حق المالك</h2>
           </div>
           <span className="micro-g5-count">{overview.policies.length}</span>
         </div>
@@ -704,7 +704,7 @@ export default function OwnerEntitlement() {
                 kind="money"
                 onNumericChange={setPolicyAmount}
                 onTextValidityChange={setPolicyAmountValid}
-                aria-label="مبلغ سياسة الاستحقاق"
+                aria-label="مبلغ سياسة حق المالك"
               />
             </label>
           ) : (
@@ -715,7 +715,7 @@ export default function OwnerEntitlement() {
                 kind="decimal"
                 onNumericChange={setPolicyPercentage}
                 onTextValidityChange={setPolicyPercentageValid}
-                aria-label="نسبة سياسة الاستحقاق"
+                aria-label="نسبة سياسة حق المالك"
               />
               <small>
                 تُحفظ النسبة كما أدخلتها بدقة كاملة، وتحسب من نتيجة الفترة المسجلة أو البيع المكتمل حسب
@@ -759,7 +759,7 @@ export default function OwnerEntitlement() {
             <textarea
               value={policyNote}
               onChange={event => setPolicyNote(event.target.value)}
-              placeholder="ما الذي يغطيه هذا الاستحقاق؟"
+              placeholder="ما الذي يغطيه هذا الحق؟"
             />
           </label>
           <button
@@ -789,7 +789,7 @@ export default function OwnerEntitlement() {
           </div>
           <p>
             تنتهي النسخة السابقة في اليوم السابق لتاريخ النفاذ، وتنشأ نسخة جديدة بإعداداتك الجديدة.{" "}
-            <strong>لا تتغير الاستحقاقات المسجلة سابقًا.</strong>
+            <strong>لا تتغير الحقوق المسجلة سابقًا.</strong>
           </p>
           <label className="micro-field">
             <span>السياسة الفعالة المصدر</span>
@@ -814,7 +814,7 @@ export default function OwnerEntitlement() {
                 · {policyFamilyLabels[successorPolicy.family]}
               </p>
               <small>
-                سيبقى الإصدار {successorPolicy.version} واستحقاقاته الماضية ومعرّفاتها ومبالغها كما هي.
+                سيبقى الإصدار {successorPolicy.version} وحقوقه الماضية ومعرّفاتها ومبالغها كما هي.
               </small>
             </div>
           ) : null}
@@ -852,7 +852,7 @@ export default function OwnerEntitlement() {
                 kind="money"
                 onNumericChange={setSuccessorAmount}
                 onTextValidityChange={setSuccessorAmountValid}
-                aria-label="مبلغ خليفة سياسة الاستحقاق"
+                aria-label="مبلغ خليفة سياسة حق المالك"
               />
             </label>
           ) : (
@@ -863,7 +863,7 @@ export default function OwnerEntitlement() {
                 kind="decimal"
                 onNumericChange={setSuccessorPercentage}
                 onTextValidityChange={setSuccessorPercentageValid}
-                aria-label="نسبة خليفة سياسة الاستحقاق"
+                aria-label="نسبة خليفة سياسة حق المالك"
               />
               <small>تحسب من نتيجة الفترة المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.</small>
             </label>
@@ -926,7 +926,7 @@ export default function OwnerEntitlement() {
       <details className="micro-owner-layer">
         <summary className="micro-owner-layer-summary">
           <span>
-            <b>تسجيل استحقاق</b>
+            <b>تسجيل حق</b>
             <small>حق المالك لا يقبض المال ولا يغيّر الكاش</small>
           </span>
           <strong>افتح الإجراء</strong>
@@ -934,7 +934,7 @@ export default function OwnerEntitlement() {
         <section className="micro-form-card">
           <div className="micro-section-heading">
             <div>
-              <span className="micro-overline">استحقاق مستقل</span>
+              <span className="micro-overline">حق مستقل</span>
               <h2>تسجيل حق المالك</h2>
             </div>
           </div>
@@ -972,13 +972,13 @@ export default function OwnerEntitlement() {
           >
             {calculation?.amountMinor === null || !calculation ? (
               <>
-                <strong>الاستحقاق غير متاح بعد</strong>
+                <strong>الحق غير متاح بعد</strong>
                 <p>{calculation?.nextAction ?? "اختر سياسة وفترة صحيحتين."}</p>
               </>
             ) : (
               <>
                 <strong>
-                  الاستحقاق المقترح: <bdi dir="ltr">{formatMoneyMinor(calculation.amountMinor)} د.أ</bdi>
+                  الحق المقترح: <bdi dir="ltr">{formatMoneyMinor(calculation.amountMinor)} د.أ</bdi>
                 </strong>
                 <p>
                   الحالة: {calculation.knowledge === "known" ? "معروف" : "جزئي/يحتاج مراجعة"}. راجع المصدر قبل
@@ -989,18 +989,18 @@ export default function OwnerEntitlement() {
             )}
           </div>
           <LocalDateField
-            label="تاريخ تسجيل الاستحقاق"
+            label="تاريخ تسجيل الحق"
             value={entitlementDate}
             onChange={event => setEntitlementDate(event.target.value)}
           />
           <label className="micro-field">
             <span>
-              ملاحظة الاستحقاق <small>مطلوبة</small>
+              ملاحظة الحق <small>مطلوبة</small>
             </span>
             <textarea
               value={entitlementNote}
               onChange={event => setEntitlementNote(event.target.value)}
-              placeholder="مثال: استحقاق شهر آب حسب السياسة 1"
+              placeholder="مثال: حق شهر آب حسب السياسة 1"
             />
           </label>
           <button
@@ -1009,7 +1009,7 @@ export default function OwnerEntitlement() {
             disabled={saving || !calculation || calculation.amountMinor === null}
             onClick={() => void saveEntitlement()}
           >
-            <HandCoins aria-hidden="true" /> تسجيل الاستحقاق دون قبض
+            <HandCoins aria-hidden="true" /> تسجيل الحق دون قبض
           </button>
         </section>
       </details>
@@ -1102,7 +1102,7 @@ export default function OwnerEntitlement() {
           </div>
           <p>
             كل حركة تحتاج محفظة وسببًا وملاحظة ومصدرًا عند التسوية. السحب ليس مصروف تشغيل، والإرجاع كرأس مال
-            جديد لا يسوي الاستحقاق.
+            جديد لا يسوي الحق.
           </p>
           <div className="micro-field-grid">
             <label className="micro-field">
@@ -1141,12 +1141,12 @@ export default function OwnerEntitlement() {
           </label>
           {movementReason === "entitlement_settlement" ? (
             <label className="micro-field">
-              <span>الاستحقاق الذي تتم تسويته</span>
+              <span>الحق الذي تتم تسويته</span>
               <select
                 value={relatedEntitlementId}
                 onChange={event => setRelatedEntitlementId(event.target.value)}
               >
-                <option value="">اختر استحقاقًا مسجلًا</option>
+                <option value="">اختر حقًا مسجلًا</option>
                 {activeEntitlements.map(record => (
                   <option key={record.id} value={record.id}>
                     {formatLocalDate(record.occurredOn)} · {formatMoneyMinor(record.amountMinor)} د.أ ·{" "}
@@ -1214,7 +1214,7 @@ export default function OwnerEntitlement() {
             <textarea
               value={movementNote}
               onChange={event => setMovementNote(event.target.value)}
-              placeholder="مثال: سحبت مبلغًا لتسوية استحقاق آب"
+              placeholder="مثال: سحبت مبلغًا لتسوية حق آب"
             />
           </label>
           <button
@@ -1231,7 +1231,7 @@ export default function OwnerEntitlement() {
         <summary className="micro-owner-layer-summary">
           <span>
             <b>السجل والأثر</b>
-            <small>الاستحقاقات والأرصدة والحركات مع العكس الموثق</small>
+            <small>الحقوق والأرصدة والحركات مع العكس الموثق</small>
           </span>
           <strong>افتح السجل</strong>
         </summary>
@@ -1239,20 +1239,20 @@ export default function OwnerEntitlement() {
           <div className="micro-section-heading">
             <div>
               <span className="micro-overline">أثر غير قابل للمحو</span>
-              <h2>الاستحقاقات والأرصدة والحركات</h2>
+              <h2>الحقوق والأرصدة والحركات</h2>
             </div>
           </div>
           {overview.entitlements.length === 0 &&
           overview.openingBalances.length === 0 &&
           overview.movements.length === 0 ? (
-            <p className="micro-empty-state">لا توجد استحقاقات أو أرصدة أو حركات مالك بعد.</p>
+            <p className="micro-empty-state">لا توجد حقوق أو أرصدة أو حركات مالك بعد.</p>
           ) : (
             <div className="micro-owner-list">
               {overview.entitlements.map(record => (
                 <article className="micro-owner-list-row" key={record.id}>
                   <div>
                     <strong>
-                      استحقاق · {formatLocalDate(record.occurredOn)}
+                      حق · {formatLocalDate(record.occurredOn)}
                       {record.reversalOfId ? " · عكس كامل" : ""}
                     </strong>
                     <small>
@@ -1285,7 +1285,7 @@ export default function OwnerEntitlement() {
                   </div>
                   {reversalTarget?.kind === "entitlement" && reversalTarget.id === record.id ? (
                     <ReversalBox
-                      label="سبب عكس الاستحقاق"
+                      label="سبب عكس الحق"
                       value={reversalReason}
                       onChange={setReversalReason}
                       onConfirm={() => void reverseEntitlement()}

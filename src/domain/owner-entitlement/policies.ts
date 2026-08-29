@@ -455,7 +455,7 @@ export function calculateOwnerEntitlement(
       sourceKeys: [],
       nextAction:
         "لا يوجد في النموذج الحالي سجل ورديات موثق؛ استخدم مبلغًا للفترة " +
-        "أو أكمل دليل الوردية قبل اعتماد الاستحقاق.",
+        "أو أكمل دليل الوردية قبل اعتماد الحق.",
     };
   if (policy.kind === "monthly" && !isFullCalendarMonth(evidence.periodFrom, evidence.periodTo))
     return {
@@ -515,7 +515,7 @@ export function calculateOwnerEntitlement(
         calculationBasis: "time_period",
         sourceKeys: [],
         nextAction:
-          "سجل مدة العمل بالدقائق مع مراجع سجل الوقت قبل اعتماد الاستحقاق " +
+          "سجل مدة العمل بالدقائق مع مراجع سجل الوقت قبل اعتماد الحق " +
           "بالساعة؛ لا يتحول الوقت المجهول إلى صفر.",
       };
     const timeAmountMinor = roundHalfUp(amount * minutes, 60);
@@ -527,7 +527,7 @@ export function calculateOwnerEntitlement(
         quantity: minutes,
         calculationBasis: "time_period",
         sourceKeys: keys,
-        nextAction: "المدة أو أجر الساعة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الاستحقاق.",
+        nextAction: "المدة أو أجر الساعة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الحق.",
       };
     return {
       amountMinor: timeAmountMinor,
@@ -615,7 +615,7 @@ export function calculateOwnerEntitlement(
         quantity,
         calculationBasis: "unit",
         sourceKeys: keys,
-        nextAction: "كمية الوحدات أو سعر الوحدة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الاستحقاق.",
+        nextAction: "كمية الوحدات أو سعر الوحدة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الحق.",
       };
     return {
       amountMinor: unitAmountMinor,
@@ -648,7 +648,7 @@ export function calculateOwnerEntitlement(
         quantity: null,
         calculationBasis: "profit_share",
         sourceKeys: [],
-        nextAction: "راجع أسباب نقص نتيجة G3 قبل تسجيل نسبة الاستحقاق؛ لا تعرض دقة كاذبة.",
+        nextAction: "راجع أسباب نقص نتيجة G3 قبل تسجيل نسبة الحق؛ لا تعرض دقة كاذبة.",
       };
     const share = roundHalfUp(base * (policy.percentageBps ?? 0), 10_000);
     if (share === null)
@@ -659,7 +659,7 @@ export function calculateOwnerEntitlement(
         quantity: null,
         calculationBasis: "profit_share",
         sourceKeys: evidence.recognizedProfitKeys ?? [],
-        nextAction: "أساس الربح أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الاستحقاق.",
+        nextAction: "أساس الربح أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الحق.",
       };
     if (share <= 0)
       return {
@@ -669,7 +669,7 @@ export function calculateOwnerEntitlement(
         quantity: null,
         calculationBasis: "profit_share",
         sourceKeys: evidence.recognizedProfitKeys ?? [],
-        nextAction: "راجع النسبة أو أساس الربح؛ لا يسجل استحقاق صفري من نسبة موجبة.",
+        nextAction: "راجع النسبة أو أساس الربح؛ لا يسجل حق صفري من نسبة موجبة.",
       };
     return {
       amountMinor: share,
@@ -713,7 +713,7 @@ export function calculateOwnerEntitlement(
         quantity: null,
         calculationBasis: "completed_sale_percentage",
         sourceKeys: [],
-        nextAction: "أساس البيع أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الاستحقاق.",
+        nextAction: "أساس البيع أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الحق.",
       };
     if (share <= 0)
       return {
@@ -723,7 +723,7 @@ export function calculateOwnerEntitlement(
         quantity: null,
         calculationBasis: "completed_sale_percentage",
         sourceKeys: keys,
-        nextAction: "راجع قيمة البيع أو النسبة؛ لا يسجل استحقاق صفري من نسبة موجبة.",
+        nextAction: "راجع قيمة البيع أو النسبة؛ لا يسجل حق صفري من نسبة موجبة.",
       };
     return {
       amountMinor: share,

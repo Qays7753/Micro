@@ -286,7 +286,7 @@ function openDatabase(): Promise<IDBDatabase> {
         movementStore.createIndex("relatedOpeningBalanceId", "relatedOpeningBalanceId");
       if (event.oldVersion < 23) {
         if (policyStore) {
-          const cursor = guardUpgradeCursor(policyStore.openCursor(), request, "سياسات استحقاق المالك");
+          const cursor = guardUpgradeCursor(policyStore.openCursor(), request, "سياسات حق المالك");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -301,7 +301,7 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
         if (recordStore) {
-          const cursor = guardUpgradeCursor(recordStore.openCursor(), request, "سجلات استحقاق المالك");
+          const cursor = guardUpgradeCursor(recordStore.openCursor(), request, "سجلات حق المالك");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -322,7 +322,7 @@ function openDatabase(): Promise<IDBDatabase> {
           const cursor = guardUpgradeCursor(
             openingStore.openCursor(),
             request,
-            "أرصدة افتتاح استحقاق المالك",
+            "أرصدة افتتاح حق المالك",
           );
           cursor.onsuccess = () => {
             const current = cursor.result;
@@ -1352,7 +1352,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم يعد سجل الاستحقاق المصدر موجودًا؛ لم يُحفظ العكس.",
+              message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ العكس.",
             };
             try {
               transaction.abort();
@@ -1369,7 +1369,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 : {
                     ok: false,
                     code: "storage_error",
-                    message: "عكس الاستحقاق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
+                    message: "عكس الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
                   };
             try {
               transaction.abort();
@@ -1382,7 +1382,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية عكس الاستحقاق؛ لم تتغير البيانات.",
+              message: "تعارض هوية عكس الحق؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();

@@ -186,7 +186,7 @@ export class OwnerEntitlementService {
       !wallets.ok ||
       !cashEntries.ok
     )
-      return failure("تعذر قراءة سجل استحقاق المالك ومحفظة الكاش.");
+      return failure("تعذر قراءة سجل حق المالك ومحفظة الكاش.");
     const activePolicies = policies.value.filter(policy => policy.status === "active");
     const walletBalances = wallets.value.map(wallet => ({
       ...wallet,
@@ -247,12 +247,12 @@ export class OwnerEntitlementService {
         cashMovementMinor,
         balanceState,
         truth:
-          "الاستحقاق المسجل ليس قبضًا ولا يغير كاش المشروع. السحب والإرجاع الفعليان يغيران محفظة الكاش فقط وفق سببهما؛ الاستثمار الجديد مستقل عن الاستحقاق، والسحب غير المرتبط بسياسة يبقى Owner Draw مستقلًا.",
+          "الحق المسجل ليس قبضًا ولا يغير كاش المشروع. السحب والإرجاع الفعليان يغيران محفظة الكاش فقط وفق سببهما؛ الاستثمار الجديد مستقل عن الحق، والسحب غير المرتبط بسياسة يبقى Owner Draw مستقلًا.",
         nextAction:
           activePolicies.length === 0
-            ? "أضف سياسة مؤرخة إذا أردت تسجيل استحقاق جديد؛ لا ينشئ النظام استحقاقًا من تاريخ سابق تلقائيًا."
+            ? "أضف سياسة مؤرخة إذا أردت تسجيل حق جديد؛ لا ينشئ النظام حقًا من تاريخ سابق تلقائيًا."
             : balanceState === "positive"
-              ? "يمكن تسجيل سحب لتسوية استحقاق أو افتتاح موجب ضمن المصدر المتبقي، أو تسجيل واقعة فعلية أخرى بسبب واضح."
+              ? "يمكن تسجيل سحب لتسوية حق أو افتتاح موجب ضمن المصدر المتبقي، أو تسجيل واقعة فعلية أخرى بسبب واضح."
               : balanceState === "negative"
                 ? "راجع السحوبات السابقة وسجل إرجاعًا لتسوية سحب سابق أو افتتاح سالب إذا كان هذا ما حدث فعليًا."
                 : "الرصيد مسوى حاليًا؛ لا تسجل حركة بلا سبب واضح.",
@@ -262,7 +262,7 @@ export class OwnerEntitlementService {
 
   async createPolicy(input: OwnerPolicyInput): Promise<OwnerEntitlementResult<OwnerEntitlementPolicy>> {
     const existing = await this.store.listOwnerEntitlementPolicies();
-    if (!existing.ok) return failure("تعذر التحقق من سياسات استحقاق المالك.");
+    if (!existing.ok) return failure("تعذر التحقق من سياسات حق المالك.");
     const repeated = existing.value.find(policy => policy.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     if (existing.value.some(policy => policy.id === input.id))
@@ -282,7 +282,7 @@ export class OwnerEntitlementService {
       const saved = await this.store.saveOwnerEntitlementPolicy(policy);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : failure("تعذر حفظ سياسة الاستحقاق؛ لم يتم تأكيد العملية.");
+        : failure("تعذر حفظ سياسة حق المالك؛ لم يتم تأكيد العملية.");
     } catch (error) {
       return {
         ok: false,
@@ -297,7 +297,7 @@ export class OwnerEntitlementService {
     input: OwnerPolicySuccessorInput,
   ): Promise<OwnerEntitlementResult<OwnerEntitlementPolicy>> {
     const policies = await this.store.listOwnerEntitlementPolicies();
-    if (!policies.ok) return failure("تعذر قراءة سلسلة سياسة الاستحقاق.");
+    if (!policies.ok) return failure("تعذر قراءة سلسلة سياسة حق المالك.");
     const repeated = policies.value.find(policy => policy.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const previous = policies.value.find(policy => policy.id === policyId);
@@ -398,9 +398,9 @@ export class OwnerEntitlementService {
     periodTo: string,
   ): Promise<OwnerEntitlementResult<ReturnType<typeof calculateOwnerEntitlement>>> {
     const policy = await this.store.getOwnerEntitlementPolicy(policyId);
-    if (!policy.ok) return failure("تعذر قراءة سياسة الاستحقاق.");
+    if (!policy.ok) return failure("تعذر قراءة سياسة حق المالك.");
     if (!policy.value)
-      return { ok: false, code: "validation_error", message: "لم نجد سياسة الاستحقاق المطلوبة." };
+      return { ok: false, code: "validation_error", message: "لم نجد سياسة حق المالك المطلوبة." };
     if (!localDate(periodFrom) || !localDate(periodTo))
       return { ok: false, code: "validation_error", message: "حدود الفترة المحلية غير صالحة." };
     const [orders, timeRecords] = await Promise.all([
@@ -470,7 +470,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "تعذر حساب الاستحقاق.",
+        message: error instanceof Error ? error.message : "تعذر حساب الحق.",
       };
     }
   }
@@ -479,12 +479,12 @@ export class OwnerEntitlementService {
     input: OwnerEntitlementRecordInput,
   ): Promise<OwnerEntitlementResult<OwnerEntitlementRecord>> {
     const existing = await this.store.listOwnerEntitlementRecords();
-    if (!existing.ok) return failure("تعذر التحقق من استحقاقات المالك.");
+    if (!existing.ok) return failure("تعذر التحقق من حقوق المالك.");
     const repeated = existing.value.find(record => record.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const policy = await this.store.getOwnerEntitlementPolicy(input.policyId);
-    if (!policy.ok) return failure("تعذر قراءة سياسة الاستحقاق.");
-    if (!policy.value) return { ok: false, code: "validation_error", message: "اختر سياسة استحقاق موجودة." };
+    if (!policy.ok) return failure("تعذر قراءة سياسة حق المالك.");
+    if (!policy.value) return { ok: false, code: "validation_error", message: "اختر سياسة حق موجودة." };
     const calculated = await this.calculate(input.policyId, input.periodFrom, input.periodTo);
     if (!calculated.ok) return calculated;
     if (calculated.value.amountMinor === null)
@@ -510,7 +510,7 @@ export class OwnerEntitlementService {
         ok: false,
         code: "validation_error",
         message:
-          "يوجد استحقاق نشط يغطي المصدر أو الفترة نفسها؛ لم يتكرر الحق. اعكس السجل السابق أولًا إذا كان خطأ.",
+          "يوجد حق نشط يغطي المصدر أو الفترة نفسها؛ لم يتكرر الحق. اعكس السجل السابق أولًا إذا كان خطأ.",
       };
     try {
       const record = createOwnerEntitlementRecord({
@@ -533,12 +533,12 @@ export class OwnerEntitlementService {
         reversalReason: null,
       });
       const saved = await this.store.saveOwnerEntitlementRecord(record);
-      return saved.ok ? { ok: true, value: saved.value } : failure("تعذر حفظ الاستحقاق؛ لم يتغير الكاش.");
+      return saved.ok ? { ok: true, value: saved.value } : failure("تعذر حفظ الحق؛ لم يتغير الكاش.");
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات الاستحقاق غير صالحة.",
+        message: error instanceof Error ? error.message : "بيانات الحق غير صالحة.",
       };
     }
   }
@@ -550,25 +550,25 @@ export class OwnerEntitlementService {
       this.store.listOwnerEntitlementRecords(),
       this.store.listOwnerMovements(),
     ]);
-    if (!records.ok || !movements.ok) return failure("تعذر قراءة سجل الاستحقاق.");
+    if (!records.ok || !movements.ok) return failure("تعذر قراءة سجل الحق.");
     const repeated = records.value.find(
       record => record.reversalOfId !== null && record.idempotencyKey === input.idempotencyKey,
     );
     if (repeated) return { ok: true, value: repeated, reused: true };
     const source = records.value.find(record => record.id === input.recordId);
-    if (!source) return { ok: false, code: "validation_error", message: "لم نجد سجل الاستحقاق الأصلي." };
+    if (!source) return { ok: false, code: "validation_error", message: "لم نجد سجل الحق الأصلي." };
     if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن عكس عكس سابق." };
     if (records.value.some(record => record.reversalOfId === source.id))
       return {
         ok: false,
         code: "validation_error",
-        message: "عُكس هذا الاستحقاق سابقًا؛ لا يُنشأ عكس ثانٍ.",
+        message: "عُكس هذا الحق سابقًا؛ لا يُنشأ عكس ثانٍ.",
       };
     if (activeOriginals(movements.value).some(movement => movement.relatedEntitlementId === source.id))
       return {
         ok: false,
         code: "validation_error",
-        message: "اعكس أو سوِّ حركات هذا الاستحقاق أولًا؛ لا نترك مصدرًا مسجلًا بلا رصيد متوازن.",
+        message: "اعكس أو سوِّ حركات هذا الحق أولًا؛ لا نترك مصدرًا مسجلًا بلا رصيد متوازن.",
       };
     try {
       const reversal = createOwnerEntitlementRecordReversal({
@@ -582,12 +582,12 @@ export class OwnerEntitlementService {
       const saved = await this.store.commitOwnerEntitlementRecordReversal(source.id, reversal);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : failure("تعذر حفظ عكس الاستحقاق؛ بقي الأصل محفوظًا.");
+        : failure("تعذر حفظ عكس الحق؛ بقي الأصل محفوظًا.");
     } catch (error) {
       return {
         ok: false,
         code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات عكس الاستحقاق غير صالحة.",
+        message: error instanceof Error ? error.message : "بيانات عكس الحق غير صالحة.",
       };
     }
   }
@@ -711,7 +711,7 @@ export class OwnerEntitlementService {
         return {
           ok: false,
           code: "validation_error",
-          message: "اختر استحقاقًا مسجلًا وفعالًا لتسويته؛ لا تخمن السبب.",
+          message: "اختر حقًا مسجلًا وفعالًا لتسويته؛ لا تخمن السبب.",
         };
       const entitlement = activeEntitlementRecords.find(record => record.id === input.relatedEntitlementId)!;
       const settled = movements.value
@@ -721,7 +721,7 @@ export class OwnerEntitlementService {
         return {
           ok: false,
           code: "validation_error",
-          message: "لا يمكن أن يتجاوز السحب استحقاق هذا السجل المتبقي.",
+          message: "لا يمكن أن يتجاوز السحب حق هذا السجل المتبقي.",
         };
     }
     if (input.reason === "opening_balance_settlement") {

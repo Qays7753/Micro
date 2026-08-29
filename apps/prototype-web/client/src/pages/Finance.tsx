@@ -495,7 +495,7 @@ export default function Finance() {
             type="button"
             onClick={() => navigate("/finance/owner-entitlement")}
           >
-            دفتر استحقاق المالك والسحب الفعلي
+            دفتر حق المالك
           </button>
           {position.supplierPayablesMinor > 0 ? (
             <button
@@ -561,20 +561,20 @@ function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOve
         {overview.balanceState === "positive"
           ? "المشروع ما زال مدينًا لك بهذا الرصيد المسجل."
           : overview.balanceState === "negative"
-            ? "السجل يظهر سحوبات أكثر من الاستحقاق المسجل حتى الآن."
-            : "لا يوجد رصيد استحقاق متبقٍ في السجل الحالي."}
+            ? "السجل يظهر سحوبات أكثر من الحق المسجل حتى الآن."
+            : "لا يوجد رصيد حق متبقٍ في السجل الحالي."}
       </p>
       <div className="micro-owner-decision-grid">
-        <Metric label="استحقاق مسجل" value={formatMoneyMinor(overview.approvedEntitlementMinor)} />
+        <Metric label="حق مسجل" value={formatMoneyMinor(overview.approvedEntitlementMinor)} />
         <Metric label="سحب/إرجاع فعلي" value={formatMoneyMinor(overview.cashMovementMinor)} />
         <Metric label="سياسات فعالة" value={String(overview.activePolicies.length)} />
       </div>
       <p className="micro-local-truth">
-        الاستحقاق لا يغير كاش المشروع. السحب والإرجاع يغيران محفظة الكاش بسبب موثق، والاستثمار الجديد مستقل عن
-        الاستحقاق.
+        حق المالك لا يغير كاش المشروع. السحب والإرجاع يغيران محفظة الكاش بسبب موثق، والاستثمار الجديد مستقل عن
+        حق المالك.
       </p>
       <button className="micro-button micro-button-primary" type="button" onClick={onOpen}>
-        فتح دفتر الاستحقاق والحركات
+        فتح دفتر حق المالك والحركات
       </button>
     </section>
   );
