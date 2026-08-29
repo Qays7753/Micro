@@ -204,7 +204,7 @@ export default function SettingsPage() {
         nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف."
         tone="warning"
       />
-      <details className="micro-decision-layer">
+      <details className="micro-decision-layer" open>
         <summary className="micro-decision-layer-summary">
           <span>
             <b>بيانات ونسخ احتياطي محلي</b>
@@ -244,6 +244,7 @@ export default function SettingsPage() {
           icon={Download}
           title="تصدير محلي"
           text="ينشئ ملف JSON لبيانات Prototype الحالية دون أسرار أو مفاتيح."
+          actionLabel="تصدير"
           label="تصدير البيانات المحلية"
           disabled={isWorking}
           onClick={exportLocal}
@@ -252,6 +253,7 @@ export default function SettingsPage() {
           icon={Upload}
           title="استيراد محلي"
           text="نقرأ الملف ونتحقق منه أولًا، ثم نعرض ملخصًا قبل استبدال أي بيانات."
+          actionLabel="استيراد"
           label="اختيار ملف استيراد"
           disabled={isWorking}
           onClick={() => inputRef.current?.click()}
@@ -554,6 +556,7 @@ function StorageRow({
   icon: Icon,
   title,
   text,
+  actionLabel,
   label,
   disabled,
   onClick,
@@ -561,6 +564,7 @@ function StorageRow({
   icon: typeof Download;
   title: string;
   text: string;
+  actionLabel: string;
   label: string;
   disabled: boolean;
   onClick: () => void;
@@ -575,13 +579,14 @@ function StorageRow({
         <p>{text}</p>
       </div>
       <button
-        className="micro-icon-button"
+        className="micro-button micro-button-secondary"
         type="button"
         disabled={disabled}
         onClick={onClick}
         aria-label={label}
       >
         <Icon aria-hidden="true" />
+        {actionLabel}
       </button>
     </article>
   );
