@@ -1,1 +1,2 @@
 - [Workflow port forwarding](workflow-port-forwarding.md) — a Vite server can be healthy yet fail preview detection when the workflow port and `.replit` mapping differ.
+- [Corepack pnpm recovery](corepack-pnpm-recovery.md) — if Corepack recursively tries to add pnpm or loads an incompatible cached pnpm, invoke the lockfile version’s cached CLI directly.

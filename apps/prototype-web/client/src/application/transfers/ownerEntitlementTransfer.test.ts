@@ -237,8 +237,8 @@ describe("O1 local transfer boundary", () => {
       ok: true,
       value: {
         file: {
-          version: 17,
-          schemaVersion: 26,
+          version: 18,
+          schemaVersion: 27,
           data: {
             ownerEntitlementPolicies: [],
             ownerEntitlementRecords: [],

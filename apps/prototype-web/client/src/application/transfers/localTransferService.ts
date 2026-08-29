@@ -186,19 +186,25 @@ const isFinancialType = (value: unknown) =>
   value === "operating_expense_cash" ||
   value === "operating_expense_payable" ||
   value === "payable_settlement_cash";
-const isSignedMoney = (value: unknown) => typeof value === "number" && Number.isInteger(value);
+const isSafeMoney = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+const isSignedMoney = (value: unknown) =>
+  typeof value === "number" && Number.isSafeInteger(value);
 function isDirectSale(value: unknown): value is DirectSale {
   if (
     !isRecord(value) ||
     !isString(value.id) ||
+    !value.id.trim() ||
     !isString(value.itemName) ||
-    !isPositiveQuantity(value.quantity) ||
+    !value.itemName.trim() ||
+    !isPositiveSafeInteger(value.quantity) ||
     value.currency !== "JOD" ||
-    !isMoney(value.revenueMinor) ||
+    !isSafeMoney(value.revenueMinor) ||
     value.revenueMinor <= 0 ||
     value.collectedMinor !== value.revenueMinor ||
-    !isOptionalMoney(value.costMinor) ||
+    !(value.costMinor === null || isSafeMoney(value.costMinor)) ||
     !(value.profitMinor === null || isSignedMoney(value.profitMinor)) ||
+    !isString(value.occurredOn) ||
     !isLocalDate(value.occurredOn) ||
     !isDate(value.recordedAt) ||
     !isString(value.note) ||
