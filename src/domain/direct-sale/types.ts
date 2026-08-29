@@ -14,6 +14,20 @@ export type DirectSale = {
   recordedAt: string;
   note: string;
   idempotencyKey: string;
+  /** Optional on legacy local records; missing means active with no corrections. */
+  status?: DirectSaleStatus;
+  cancelledAt?: string | null;
+  cancellationReason?: string | null;
+  revisions?: readonly DirectSaleRevision[];
+};
+
+export type DirectSaleStatus = "active" | "cancelled";
+export type DirectSaleRevisionKind = "edit" | "cancel";
+export type DirectSaleRevision = {
+  kind: DirectSaleRevisionKind;
+  idempotencyKey: string;
+  createdAt: string;
+  reason: string | null;
 };
 
 export type CreateDirectSaleInput = {
@@ -27,3 +41,8 @@ export type CreateDirectSaleInput = {
   note: string;
   idempotencyKey: string;
 };
+
+export type UpdateDirectSaleInput = Pick<
+  CreateDirectSaleInput,
+  "itemName" | "quantity" | "revenueMinor" | "costMinor" | "occurredOn" | "note"
+>;

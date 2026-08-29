@@ -190,6 +190,14 @@ const isSafeMoney = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 const isSignedMoney = (value: unknown) =>
   typeof value === "number" && Number.isSafeInteger(value);
+const isDirectSaleRevision = (value: unknown): boolean =>
+  isRecord(value) &&
+  (value.kind === "edit" || value.kind === "cancel") &&
+  isString(value.idempotencyKey) &&
+  value.idempotencyKey.trim().length > 0 &&
+  isDate(value.createdAt) &&
+  (value.reason === null || (isString(value.reason) && (value.kind === "edit" || value.reason.trim().length > 0)));
+
 function isDirectSale(value: unknown): value is DirectSale {
   if (
     !isRecord(value) ||
@@ -210,9 +218,50 @@ function isDirectSale(value: unknown): value is DirectSale {
     !isString(value.note) ||
     !value.note.trim() ||
     !isString(value.idempotencyKey) ||
-    !value.idempotencyKey.trim()
+    !value.idempotencyKey.trim() ||
+    !(value.status === undefined || value.status === "active" || value.status === "cancelled") ||
+    !(value.cancelledAt === undefined || value.cancelledAt === null || isDate(value.cancelledAt)) ||
+    !(
+      value.cancellationReason === undefined ||
+      value.cancellationReason === null ||
+      (isString(value.cancellationReason) && value.cancellationReason.trim().length > 0)
+    ) ||
+    !(value.revisions === undefined || (Array.isArray(value.revisions) && value.revisions.every(isDirectSaleRevision)))
   )
     return false;
+  const status = value.status ?? "active";
+  if (status === "active" && (value.cancelledAt ?? null) !== null) return false;
+  if (status === "active" && (value.cancellationReason ?? null) !== null) return false;
+  if (
+    status === "cancelled" &&
+    (!isDate(value.cancelledAt) ||
+      !isString(value.cancellationReason) ||
+      !value.cancellationReason.trim() ||
+      !(value.revisions ?? []).some(revision => revision.kind === "cancel"))
+  )
+    return false;
+  if (status === "cancelled") {
+    const cancellation = [...(value.revisions ?? [])].reverse().find(revision => revision.kind === "cancel");
+    if (
+      !cancellation ||
+      cancellation.createdAt !== value.cancelledAt ||
+      cancellation.reason !== value.cancellationReason
+    )
+      return false;
+  }
+  const revisionKeys = new Set<string>();
+  const revisions = value.revisions ?? [];
+  for (const [index, revision] of revisions.entries()) {
+    if (
+      revisionKeys.has(revision.idempotencyKey) ||
+      revision.idempotencyKey === value.idempotencyKey ||
+      revision.createdAt < value.recordedAt ||
+      (revision.kind === "cancel" && (status !== "cancelled" || index !== revisions.length - 1))
+    )
+      return false;
+    revisionKeys.add(revision.idempotencyKey);
+  }
+  if (status === "active" && revisions.some(revision => revision.kind === "cancel")) return false;
   return value.profitMinor === (value.costMinor === null ? null : value.revenueMinor - value.costMinor);
 }
 const isCorrectionType = (value: unknown) => value === undefined || value === null || value === "reverse";
@@ -897,15 +946,24 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   }
   const directSaleIds = new Set<string>();
   const directSaleKeys = new Set<string>();
+  const directSaleRevisionKeys = new Set<string>();
   for (const sale of data.directSales) {
     if (
       !isDirectSale(sale) ||
       directSaleIds.has(sale.id) ||
-      directSaleKeys.has(sale.idempotencyKey)
+      directSaleKeys.has(sale.idempotencyKey) ||
+      directSaleRevisionKeys.has(sale.idempotencyKey) ||
+      (sale.revisions ?? []).some(
+        revision =>
+          revision.idempotencyKey === sale.idempotencyKey ||
+          directSaleRevisionKeys.has(revision.idempotencyKey) ||
+          directSaleKeys.has(revision.idempotencyKey),
+      )
     )
       return false;
     directSaleIds.add(sale.id);
     directSaleKeys.add(sale.idempotencyKey);
+    for (const revision of sale.revisions ?? []) directSaleRevisionKeys.add(revision.idempotencyKey);
   }
   const actualTimeRecords = data.actualTimeRecords as unknown[];
   const actualTimeIds = new Set<string>();
@@ -1679,6 +1737,7 @@ export class LocalTransferService {
       return fail("هذا ليس ملف تصدير Micro المحلي. بقيت بيانات هذا الجهاز دون تغيير.");
     const isCurrent =
       candidate.version === localExportVersion && candidate.schemaVersion === localSchemaVersion;
+    const isPreviousDirectSale = candidate.version === 18 && candidate.schemaVersion === localSchemaVersion;
     const isPreviousCatalogCore = candidate.version === 14 && candidate.schemaVersion === 23;
     const isPreviousBridge = candidate.version === 15 && candidate.schemaVersion === 24;
     const isPreviousG4bScale = candidate.version === 16 && candidate.schemaVersion === 25;
@@ -1693,6 +1752,7 @@ export class LocalTransferService {
     const isPreviousG5 = candidate.version === 10 && candidate.schemaVersion === 19;
     if (
       !isCurrent &&
+      !isPreviousDirectSale &&
       !isPreviousCatalogCore &&
       !isPreviousBridge &&
       !isPreviousG4bScale &&
@@ -1729,7 +1789,19 @@ export class LocalTransferService {
               : order,
           )
         : [],
-      directSales: Array.isArray(raw.directSales) ? raw.directSales : [],
+      directSales: Array.isArray(raw.directSales)
+        ? raw.directSales.map(sale =>
+            isRecord(sale)
+              ? {
+                  ...sale,
+                  status: sale.status ?? "active",
+                  cancelledAt: sale.cancelledAt ?? null,
+                  cancellationReason: sale.cancellationReason ?? null,
+                  revisions: Array.isArray(sale.revisions) ? sale.revisions : [],
+                }
+              : sale,
+          )
+        : [],
       schedules: Array.isArray(raw.schedules)
         ? raw.schedules.map(schedule =>
             isRecord(schedule)

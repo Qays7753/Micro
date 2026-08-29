@@ -15,7 +15,11 @@ import { createInventoryMovement, createMaterial } from "@micro-domain/inventory
 import { createCatalogItem, createMeasurementUnit } from "@micro-domain/catalog/index.js";
 import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import { createActualTimeRecord, reverseActualTimeRecord } from "@micro-domain/actual-time/index.js";
-import { createDirectSale } from "@micro-domain/direct-sale/index.js";
+import {
+  cancelDirectSale,
+  createDirectSale,
+  updateDirectSale,
+} from "@micro-domain/direct-sale/index.js";
 
 const profile = {
   id: localProfileId,
@@ -140,7 +144,9 @@ describe("LocalTransferService", () => {
       }),
     );
     await source.saveDirectSale(
-      createDirectSale({
+      cancelDirectSale(
+        updateDirectSale(
+          createDirectSale({
         id: "sale-known-cost",
         itemName: "منتج محسوب",
         quantity: 2,
@@ -150,7 +156,29 @@ describe("LocalTransferService", () => {
         recordedAt: "2026-08-29T11:00:00.000Z",
         note: "بيع بتكلفة معلومة",
         idempotencyKey: "sale-transfer-2",
-      }),
+          }),
+          {
+            itemName: "منتج محسوب مصحح",
+            quantity: 2,
+            revenueMinor: 1300,
+            costMinor: 500,
+            occurredOn: "2026-08-29",
+            note: "بيع مصحح",
+          },
+          {
+            kind: "edit",
+            idempotencyKey: "sale-transfer-edit-1",
+            createdAt: "2026-08-29T11:30:00.000Z",
+            reason: "تصحيح بيانات البيع المباشر",
+          },
+        ),
+        {
+          kind: "cancel",
+          idempotencyKey: "sale-transfer-cancel-1",
+          createdAt: "2026-08-29T12:00:00.000Z",
+          reason: "سُجل البيع بالخطأ",
+        },
+      ),
     );
 
     const exported = await new LocalTransferService(source).createExport();
@@ -167,7 +195,14 @@ describe("LocalTransferService", () => {
     await expect(target.listDirectSales()).resolves.toMatchObject({
       ok: true,
       value: [
-        { id: "sale-known-cost", costMinor: 500, profitMinor: 700 },
+        {
+          id: "sale-known-cost",
+          status: "cancelled",
+          costMinor: 500,
+          profitMinor: 800,
+          cancellationReason: "سُجل البيع بالخطأ",
+          revisions: [{ kind: "edit" }, { kind: "cancel" }],
+        },
         { id: "sale-unknown-cost", costMinor: null, profitMinor: null },
       ],
     });
@@ -188,6 +223,27 @@ describe("LocalTransferService", () => {
       },
       (sale: Record<string, unknown>) => {
         sale.costMinor = Number.MAX_SAFE_INTEGER + 1;
+      },
+      (sale: Record<string, unknown>) => {
+        sale.revisions = [
+          {
+            kind: "edit",
+            idempotencyKey: sale.idempotencyKey,
+            createdAt: "2026-08-30T08:00:00.000Z",
+            reason: null,
+          },
+        ];
+      },
+      (sale: Record<string, unknown>) => {
+        sale.status = "active";
+        sale.revisions = [
+          {
+            kind: "cancel",
+            idempotencyKey: "impossible-cancel",
+            createdAt: "2026-08-30T08:00:00.000Z",
+            reason: "إلغاء غير متسق",
+          },
+        ];
       },
     ]) {
       const broken = structuredClone(exported.value) as unknown as {

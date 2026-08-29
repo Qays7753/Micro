@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { LocalTransferService } from "./localTransferService";
 
 const now = "2026-08-26T12:00:00.000Z";
@@ -194,8 +195,8 @@ describe("G4-A catalog transfer boundary", () => {
       ok: true,
       value: {
         file: {
-          version: 18,
-          schemaVersion: 27,
+          version: localExportVersion,
+          schemaVersion: localSchemaVersion,
           data: {
             catalogItems: [{ id: item.item.id, unitId: null }],
             measurementUnits: [],

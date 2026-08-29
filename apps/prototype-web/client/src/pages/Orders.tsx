@@ -86,7 +86,13 @@ export default function Orders() {
         ) : (
           <div className="micro-draft-list" aria-label="سجل المبيعات المباشرة">
             {state.directSales.map(sale => (
-              <article className="micro-draft-row" key={sale.id}>
+              <button
+                className="micro-draft-row"
+                type="button"
+                key={sale.id}
+                onClick={() => navigate(`/direct-sales/${sale.id}`)}
+                aria-label={`فتح بيع ${sale.itemName}`}
+              >
                 <span className="micro-draft-symbol">
                   <BadgeDollarSign aria-hidden="true" />
                 </span>
@@ -102,8 +108,16 @@ export default function Orders() {
                   <small>
                     الربح (د.أ): <MoneyValue minor={sale.profitMinor} className="micro-inline-number" />
                   </small>
+                  {sale.status === "cancelled" ? (
+                    <small className="micro-row-next-action">
+                      ملغى — {sale.cancellationReason ?? "بدون سبب مسجل"}
+                    </small>
+                  ) : (
+                    <small className="micro-row-next-action">الخطوة التالية: راجع أو صحح البيع عند الحاجة.</small>
+                  )}
                 </span>
-              </article>
+                <ChevronLeft aria-hidden="true" />
+              </button>
             ))}
           </div>
         )}

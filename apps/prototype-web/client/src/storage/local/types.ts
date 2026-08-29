@@ -28,7 +28,7 @@ export const localSchemaVersion = 27;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 18;
+export const localExportVersion = 19;
 
 export type ActivityProfile = {
   id: typeof localProfileId;

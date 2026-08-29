@@ -7,6 +7,7 @@ import {
 } from "@micro-domain/owner-entitlement/index.js";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { LocalTransferService } from "./localTransferService";
 
 const wallet = createCashWallet({
@@ -237,8 +238,8 @@ describe("O1 local transfer boundary", () => {
       ok: true,
       value: {
         file: {
-          version: 18,
-          schemaVersion: 27,
+          version: localExportVersion,
+          schemaVersion: localSchemaVersion,
           data: {
             ownerEntitlementPolicies: [],
             ownerEntitlementRecords: [],

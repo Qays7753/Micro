@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import React from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import Orders from "@/pages/Orders";
@@ -160,5 +160,23 @@ describe("Work destination", () => {
     expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "طلباتي" })).toBeTruthy();
     expect(screen.getByText("غير متاح")).toBeTruthy();
+  });
+
+  it("opens a saved direct sale from My Sales", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: {
+        read: vi.fn().mockResolvedValue({ ok: true, drafts: [], orders: [], followUp: emptyFollowUp }),
+      },
+      directSales: {
+        list: vi.fn().mockResolvedValue({ ok: true, value: [savedSale("sale-open")] }),
+      },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(<Orders />);
+
+    const sale = await screen.findByRole("button", { name: "فتح بيع كوب جاهز" });
+    fireEvent.click(sale);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/sale-open");
   });
 });

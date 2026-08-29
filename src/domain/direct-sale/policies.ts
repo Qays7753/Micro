@@ -1,5 +1,10 @@
 import { JOD, fieldLabelAr } from "../shared/index.js";
-import type { CreateDirectSaleInput, DirectSale } from "./types.js";
+import type {
+  CreateDirectSaleInput,
+  DirectSale,
+  DirectSaleRevision,
+  UpdateDirectSaleInput,
+} from "./types.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -49,5 +54,73 @@ export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
     recordedAt: input.recordedAt,
     note: input.note.trim(),
     idempotencyKey: input.idempotencyKey.trim(),
+    status: "active",
+    cancelledAt: null,
+    cancellationReason: null,
+    revisions: [],
+  });
+}
+
+function assertRevision(revision: DirectSaleRevision) {
+  assertText(revision.idempotencyKey, "idempotencyKey");
+  if (revision.kind !== "edit" && revision.kind !== "cancel")
+    throw new Error("نوع تصحيح البيع المباشر غير صالح.");
+  if (Number.isNaN(Date.parse(revision.createdAt))) throw new Error("أدخل وقت التصحيح وقتًا صحيحًا.");
+  if (revision.kind === "cancel") assertText(revision.reason ?? "", "cancellationReason");
+}
+
+function revisionList(source: DirectSale, revision: DirectSaleRevision): DirectSaleRevision[] {
+  const revisions = [...(source.revisions ?? [])];
+  if (source.idempotencyKey === revision.idempotencyKey)
+    throw new Error("مفتاح التصحيح مستخدم أصلًا لتسجيل البيع.");
+  if (revisions.some(candidate => candidate.idempotencyKey === revision.idempotencyKey))
+    throw new Error("تم تنفيذ هذا التصحيح مسبقًا.");
+  assertRevision(revision);
+  revisions.push({
+    kind: revision.kind,
+    idempotencyKey: revision.idempotencyKey.trim(),
+    createdAt: revision.createdAt,
+    reason: revision.reason?.trim() || null,
+  });
+  return revisions;
+}
+
+export function updateDirectSale(
+  source: DirectSale,
+  input: UpdateDirectSaleInput,
+  revision: DirectSaleRevision,
+): DirectSale {
+  if (source.status === "cancelled") throw new Error("لا يمكن تعديل بيع مباشر ملغى.");
+  if (revision.kind !== "edit") throw new Error("تعديل البيع المباشر يحتاج تصحيحًا من نوع التعديل.");
+  if ((source.revisions ?? []).some(candidate => candidate.kind === "cancel"))
+    throw new Error("لا يمكن تعديل بيع مباشر يحمل إلغاءً سابقًا.");
+  const updated = createDirectSale({
+    id: source.id,
+    itemName: input.itemName,
+    quantity: input.quantity,
+    revenueMinor: input.revenueMinor,
+    costMinor: input.costMinor,
+    occurredOn: input.occurredOn,
+    recordedAt: source.recordedAt,
+    note: input.note,
+    idempotencyKey: source.idempotencyKey,
+  });
+  return Object.freeze({
+    ...updated,
+    revisions: revisionList(source, revision),
+  });
+}
+
+export function cancelDirectSale(source: DirectSale, revision: DirectSaleRevision): DirectSale {
+  if (source.status === "cancelled") throw new Error("تم إلغاء هذا البيع المباشر مسبقًا.");
+  if (revision.kind !== "cancel") throw new Error("إلغاء البيع المباشر يحتاج تصحيحًا من نوع الإلغاء.");
+  if ((source.revisions ?? []).some(candidate => candidate.kind === "cancel"))
+    throw new Error("تم إلغاء هذا البيع المباشر مسبقًا.");
+  return Object.freeze({
+    ...source,
+    status: "cancelled",
+    cancelledAt: revision.createdAt,
+    cancellationReason: revision.reason?.trim() || null,
+    revisions: revisionList(source, revision),
   });
 }

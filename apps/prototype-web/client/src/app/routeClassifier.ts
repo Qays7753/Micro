@@ -5,7 +5,7 @@
 export type MicroRouteKind = "setup" | "deep" | "surface";
 
 const deepFlowPatterns: readonly RegExp[] = [
-  /^\/direct-sales\/new$/,
+  /^\/direct-sales\/[^/]+$/,
   /^\/orders\/new$/,
   /^\/orders\/draft\/[^/]+(?:\/(?:agreement|cost))?$/,
   /^\/finance\/new\/[^/]+$/,

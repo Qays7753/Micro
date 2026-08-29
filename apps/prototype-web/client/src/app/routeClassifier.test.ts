@@ -4,6 +4,8 @@ import { getMicroRouteKind, isDeepFlowPath, showsGlobalChrome } from "./routeCla
 describe("Micro deep-flow route classifier", () => {
   it("classifies the approved G18 editor routes as deep flows", () => {
     const deepRoutes = [
+      "/direct-sales/new",
+      "/direct-sales/sale-1",
       "/orders/draft/draft-1/agreement",
       "/orders/draft/draft-1/cost",
       "/finance/new/operating_expense_cash",

@@ -47,6 +47,7 @@ export function MicroRouter() {
             <Route path="/setup" component={Setup} />
             <Route path="/orders/new" component={NewDraft} />
             <Route path="/direct-sales/new" component={DirectSaleEditor} />
+            <Route path="/direct-sales/:id" component={DirectSaleEditor} />
             <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
             <Route path="/orders/draft/:id/cost" component={CostEditor} />
             <Route path="/orders/draft/:id" component={DraftEditor} />
