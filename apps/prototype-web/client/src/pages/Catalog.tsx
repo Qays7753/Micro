@@ -8,6 +8,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { formatLocalDateLong } from "@/presentation/formatters";
+import { templateComponentCountLabel } from "@/presentation/plurals";
 import type {
   CatalogItem,
   CatalogItemKind,
@@ -1055,7 +1056,7 @@ export default function Catalog() {
                 </div>
                 <div className="micro-inline-heading">
                   <h4>المكونات</h4>
-                  <span>{templateComponents.length} مكوّن</span>
+                  <span>{templateComponentCountLabel(templateComponents.length)}</span>
                 </div>
                 <div className="micro-form-grid">
                   <label className="micro-field">
@@ -1200,7 +1201,7 @@ export default function Catalog() {
                             {template.title || "قالب بلا عنوان"} · نسخة {template.revision}
                           </strong>
                           <p>
-                            {template.components.length} مكوّن
+                            {templateComponentCountLabel(template.components.length)}
                             {template.yield
                               ? ` · الناتج ${quantityLabel(template.yield.quantityMilli)}`
                               : " · بلا ناتج"}

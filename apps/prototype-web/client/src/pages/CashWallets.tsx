@@ -15,6 +15,7 @@ import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
+import { cashWalletCountLabel, savedImpactCountLabel } from "@/presentation/plurals";
 type State =
   | { phase: "loading" }
   | { phase: "error" }
@@ -146,7 +147,7 @@ export default function CashWallets() {
           <span className="micro-overline">الأماكن المعلنة</span>
           <h2>
             {state.overview.wallets.length
-              ? `${state.overview.wallets.length} محافظ كاش`
+              ? cashWalletCountLabel(state.overview.wallets.length)
               : "لم تسجل محفظة بعد"}
           </h2>
         </div>
@@ -165,7 +166,7 @@ export default function CashWallets() {
                       : wallet.kind === "digital_wallet"
                         ? "محفظة رقمية"
                         : "مكان كاش آخر"}{" "}
-                  · {wallet.entryCount} آثار محفوظة
+                  · {savedImpactCountLabel(wallet.entryCount)}
                 </small>
               </div>
               <div className="micro-supplier-balance">
