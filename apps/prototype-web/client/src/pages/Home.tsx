@@ -65,13 +65,13 @@ export default function Home() {
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
-        جارٍ تجهيز مركز قيادة المشروع…
+        جارٍ تجهيز مشروعك…
       </div>
     );
   if (state.phase === "error")
     return (
       <section className="micro-page micro-not-found">
-        <h1>تعذر تحميل مركز القيادة</h1>
+        <h1>تعذر تحميل مشروعك</h1>
         <p>{state.message}</p>
         <button
           className="micro-button micro-button-primary"
@@ -86,7 +86,7 @@ export default function Home() {
   return (
     <section className="micro-page micro-home-control-center">
       <div className="micro-page-heading micro-home-heading">
-        <span className="micro-overline">مشروعي اليوم</span>
+        <span className="micro-overline">مشروعي الآن</span>
         <h1>{model.heading.activityName}</h1>
         <p>
           <CalendarDays aria-hidden="true" />{" "}

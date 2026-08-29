@@ -81,7 +81,7 @@ export class HomeControlCenterService {
       !inventory.ok ||
       !profile.value
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة مركز قيادة المشروع المحلي." };
+      return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
 
     const today = localDate(this.now());
     const orders = followUp.orders;
@@ -275,7 +275,7 @@ export class HomeControlCenterService {
             few: "مواعيد تشغيلية",
             many: "موعدًا تشغيليًا",
             other: "موعد تشغيلي",
-          })} اليوم؛ السعة غير حكم رفض تلقائي.`,
+          })} اليوم؛ السعة تحذير فقط، وليست رفضًا تلقائيًا.`,
           action: action("capacity:today", "فتح الجدول", "/schedule", "راجع التوقيت والسعة المعلنة."),
         });
     }
@@ -366,7 +366,7 @@ export class HomeControlCenterService {
         activityName: profile.value.activityName,
         todayLocal: today,
         truthLine:
-          "هذه قراءة قيادة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
+          "هذه قراءة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
         primaryAction: primary,
         facts,
         attention,
