@@ -23,6 +23,7 @@ import { CatalogService } from "@/application/catalog/catalogService";
 import { ActualTimeService } from "@/application/time/actualTimeService";
 import { RecurringWorkService } from "@/application/recurring-work/recurringWorkService";
 import { G5Service } from "@/application/g5/g5Service";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 
 type PrototypeServices = {
@@ -30,6 +31,7 @@ type PrototypeServices = {
   preferences: PreferenceService;
   actualTime: ActualTimeService;
   drafts: DraftService;
+  directSales: DirectSaleService;
   costs: CostService;
   agreements: AgreementService;
   agreementContext: AgreementContextService;
@@ -76,6 +78,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       preferences: new PreferenceService(store),
       actualTime: new ActualTimeService(store),
       drafts: new DraftService(store),
+      directSales: new DirectSaleService(store),
       costs,
       agreements: new AgreementService(store, costs),
       agreementContext,
