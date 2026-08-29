@@ -262,7 +262,7 @@ export default function Finance() {
           <div className="micro-period-heading">
             <div>
               <span className="micro-overline">قراءة تشغيلية مسجلة · ضمن فترة معلنة</span>
-              <h2>صافي الربح التشغيلي المسجل للفترة</h2>
+              <h2>نتيجة الفترة المسجلة</h2>
             </div>
             <div className="micro-period-range-fields">
               <label>
@@ -949,7 +949,7 @@ function G5DecisionPanel({
         }
       >
         <div className="micro-card-copy">
-          <span className="micro-card-eyebrow">هامش المساهمة — قراءة ثانوية</span>
+          <span className="micro-card-eyebrow">الهامش بعد الكلفة المباشرة — قراءة ثانوية</span>
           <h2>
             {contribution.status === "invalid"
               ? "لا يمكن إعطاء رقم تعادل"
@@ -958,7 +958,7 @@ function G5DecisionPanel({
                 : statusLabel(contribution.status)}
           </h2>
           <p>
-            الإيراد والتكلفة المتغيرة مأخوذان من الطلبات النهائية ذات نسخة التكلفة المسجلة. هذه قراءة
+            الإيراد والكلفة المباشرة مأخوذان من الطلبات النهائية ذات نسخة التكلفة المسجلة. هذه قراءة
             مسجلة للفترة، وليست صافي ربح نهائيًا ولا تكلفة بيع فعلية.
           </p>
         </div>
@@ -968,11 +968,11 @@ function G5DecisionPanel({
             value={displayContributionAmount(contribution.totalRevenueMinor, contribution.status)}
           />
           <Metric
-            label="التكلفة المتغيرة"
+            label="الكلفة المباشرة للطلبات النهائية"
             value={displayContributionAmount(contribution.totalVariableCostMinor, contribution.status)}
           />
           <Metric
-            label="الثابت المسجل"
+            label="المصاريف الثابتة المسجلة"
             value={displayContributionAmount(contribution.fixedExpenseMinor, contribution.status)}
           />
           <Metric
@@ -990,7 +990,7 @@ function G5DecisionPanel({
           />
         </div>
         <div className="micro-g5-break-even">
-          <span>نقطة التعادل المفككة من المزيج المسجل</span>
+          <span>كم وحدة تغطي المصاريف الثابتة</span>
           <strong>
             {breakEvenDisplay === null ? (
               "غير متاحة"

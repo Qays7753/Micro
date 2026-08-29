@@ -52,7 +52,7 @@ describe("Finance month-range validation stays inline (U-05)", () => {
       expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
     );
     // The ready reading is on screen: the period section with its heading.
-    expect(screen.getByRole("heading", { name: "صافي الربح التشغيلي المسجل للفترة" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();
 
     const fromInput = screen.getByLabelText("بداية نطاق نتيجة الفترة");
     const toInput = screen.getByLabelText("نهاية نطاق نتيجة الفترة");
@@ -65,7 +65,7 @@ describe("Finance month-range validation stays inline (U-05)", () => {
     );
     // The whole screen did NOT collapse to the page-level error.
     expect(screen.queryByRole("heading", { name: "تعذر قراءة الوضع المالي" })).not.toBeTruthy();
-    expect(screen.getByRole("heading", { name: "صافي الربح التشغيلي المسجل للفترة" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();
     // The fields keep their values — recovery is changing one month back.
     expect((fromInput as HTMLInputElement).value).toBe("2026-12");
     expect((toInput as HTMLInputElement).value).toBe("2026-01");
@@ -77,6 +77,6 @@ describe("Finance month-range validation stays inline (U-05)", () => {
         screen.queryByText("اختر نطاقًا يبدأ قبل نهايته؛ القراءة أدناه تبقى على آخر نطاق صحيح."),
       ).not.toBeTruthy(),
     );
-    expect(screen.getByRole("heading", { name: "صافي الربح التشغيلي المسجل للفترة" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();
   });
 });
