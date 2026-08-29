@@ -3,7 +3,7 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { formatArabicPlural } from "@/presentation/formatters";
+import { formatArabicPlural, formatLocalDateLong } from "@/presentation/formatters";
 
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
@@ -105,7 +105,7 @@ export class HomeControlCenterService {
       events.value.some(
         event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
       );
-    const period = `حتى ${today}`;
+    const period = `حتى ${formatLocalDateLong(today) ?? today}`;
     const facts: HomeFinancialFact[] = [
       {
         id: "cash",
@@ -352,7 +352,7 @@ export class HomeControlCenterService {
       ...schedules.value.map(schedule => ({
         id: `schedule:${schedule.id}`,
         occurredOn: schedule.scheduledFor,
-        title: `موعد: ${schedule.scheduledFor}`,
+        title: `موعد: ${formatLocalDateLong(schedule.scheduledFor) ?? schedule.scheduledFor}`,
         detail: schedule.status === "completed" ? "موعد مكتمل مستبعد من التشغيل." : "موعد تشغيلي محفوظ.",
         href: "/schedule",
       })),

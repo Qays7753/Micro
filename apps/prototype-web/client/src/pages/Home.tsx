@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { formatLocalDateLong } from "@/presentation/formatters";
 import type {
   HomeControlCenterViewModel,
   HomeFinancialFact,
@@ -90,7 +91,9 @@ export default function Home() {
         <h1>{model.heading.activityName}</h1>
         <p>
           <CalendarDays aria-hidden="true" />{" "}
-          <time dateTime={model.heading.todayLocal}>{model.heading.todayLocal}</time>
+          <time dateTime={model.heading.todayLocal}>
+            {formatLocalDateLong(model.heading.todayLocal) ?? model.heading.todayLocal}
+          </time>
         </p>
       </div>
       <section className="micro-decision-surface" data-tone="accent" aria-labelledby="home-primary-title">
@@ -208,7 +211,9 @@ export default function Home() {
                 onClick={() => navigate(change.href)}
               >
                 <span>
-                  <time dateTime={change.occurredOn}>{change.occurredOn}</time>
+                  <time dateTime={change.occurredOn}>
+                    {formatLocalDateLong(change.occurredOn) ?? change.occurredOn}
+                  </time>
                   <strong>{change.title}</strong>
                   <small>{change.detail}</small>
                 </span>

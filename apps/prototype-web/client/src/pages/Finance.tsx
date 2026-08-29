@@ -16,6 +16,7 @@ import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentat
 import {
   formatBreakEvenDisplay,
   formatLocalDate,
+  formatMonthLabel,
   formatMoneyMinor,
   formatQuantityMilli,
   localDateInAmman,
@@ -291,7 +292,7 @@ export default function Finance() {
             </p>
           ) : null}
           <p className="micro-period-range-label">
-            النطاق المحدد: <bdi dir="ltr">{appliedRange.from}</bdi> — <bdi dir="ltr">{appliedRange.to}</bdi>. هذا رقم
+            النطاق المحدد: {formatMonthLabel(appliedRange.from)} — {formatMonthLabel(appliedRange.to)}. هذا رقم
             تشغيلي مسجل من البنود المعروفة، وليس صافي ربح نهائيًا.
           </p>
           <p className="micro-period-result-value">

@@ -7,6 +7,7 @@ import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { formatLocalDateLong } from "@/presentation/formatters";
 import type {
   CatalogItem,
   CatalogItemKind,
@@ -1481,7 +1482,9 @@ export default function Catalog() {
             <span className="micro-overline">المراجع المسجلة</span>
             <h2>أعمال متكررة وقراءة القرار</h2>
             <p>
-              {readings ? `الفترة المعلنة: ${readings.from} → ${readings.to}` : "جارٍ تحميل القراءة المحلية…"}
+              {readings
+                ? `الفترة المعلنة: ${formatLocalDateLong(readings.from) ?? readings.from} → ${formatLocalDateLong(readings.to) ?? readings.to}`
+                : "جارٍ تحميل القراءة المحلية…"}
             </p>
           </div>
           {items.length ? (
@@ -1575,8 +1578,9 @@ export default function Catalog() {
                               {reading.policies.map(policy => (
                                 <p key={policy.id}>
                                   {catalogAllocationKindLabel(policy.kind)} ·{" "}
-                                  {policy.status === "active" ? "فعالة" : "غير فعالة"} · {policy.periodFrom} →{" "}
-                                  {policy.periodTo}
+                                  {policy.status === "active" ? "فعالة" : "غير فعالة"} ·{" "}
+                                  {formatLocalDateLong(policy.periodFrom) ?? policy.periodFrom} →{" "}
+                                  {formatLocalDateLong(policy.periodTo) ?? policy.periodTo}
                                   {policy.kind === "per_output_unit" && policy.rateMinorPerWholeUnit !== null
                                     ? ` · ${(policy.rateMinorPerWholeUnit / 100).toFixed(2)} د.أ لكل 1.000 وحدة`
                                     : ""}{" "}
