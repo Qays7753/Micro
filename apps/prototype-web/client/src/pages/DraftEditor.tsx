@@ -1,11 +1,13 @@
-/** Slice 1 draft editor: saves pre-domain details only and never creates price, deposit, cash, or a CraftOrder. */
+/** Slice 1 draft editor: saves pre-domain details only and never creates price, deposit, cash, or a CraftOrder.
+ * §٥-١ (و٥): في مسار النية (id === "new") لا سجل وراء النقرة — المسودة تُنشأ
+ * عند أول إدخال حقيقي (أي حقل يخرج عن الفراغ)، فلا يخلّف الاستكشاف مسودات فارغة. */
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, Save, Trash2 } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
-import type { OrderDraft } from "@/storage/local/types";
+import type { DraftIntent, OrderDraft } from "@/storage/local/types";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
 type EditorState = "loading" | "ready" | "not_found" | "error";
@@ -35,10 +37,19 @@ function equalDraftValues(left: DraftFormValues | null, right: DraftFormValues |
     left.specifications === right.specifications,
   );
 }
+/** نيّة المحرر الفارغ تُقرأ من المسار عند الفتح. */
+function intentFromLocation(location: string): DraftIntent {
+  const value = new URLSearchParams(location.split("?")[1] ?? "").get("intent");
+  return value === "planned_design" ? "planned_design" : "customer_order";
+}
+
 export default function DraftEditor() {
   const params = useParams<{ id: string }>();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { drafts, catalog, dataVersion, notifyDataChanged } = usePrototypeServices();
+  /* و٥: "new" = محرر نية بلا سجل بعد. */
+  const isNewDraft = params.id === "new";
+  const intent = intentFromLocation(location);
   const [state, setState] = useState<EditorState>("loading");
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -48,8 +59,37 @@ export default function DraftEditor() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [catalogItems, setCatalogItems] = useState<readonly CatalogItem[]>([]);
   const initialValuesRef = useRef<DraftFormValues | null>(null);
+  const draftRef = useRef<OrderDraft | null>(null);
+  draftRef.current = draft;
+  const materializePromiseRef = useRef<Promise<OrderDraft | null> | null>(null);
   useEffect(() => {
     let active = true;
+    /* و٥: المحرر الفارغ يبدأ بلا قراءة من المخزن — لا سجل بعد. */
+    if (isNewDraft) {
+      if (state === "loading") {
+        const nowIso = new Date().toISOString();
+        const virtual: OrderDraft = {
+          id: "new",
+          intent,
+          customerName: "",
+          itemName: "",
+          catalogItemId: null,
+          specifications: "",
+          quantity: 1,
+          costSnapshots: [],
+          activeCostSnapshotId: null,
+          linkedOrderId: null,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+        setDraft(virtual);
+        initialValuesRef.current = draftFormValues(virtual);
+        setState("ready");
+      }
+      return () => {
+        active = false;
+      };
+    }
     drafts.get(params.id).then(result => {
       if (!active) return;
       if (!result.ok) {
@@ -63,7 +103,7 @@ export default function DraftEditor() {
     return () => {
       active = false;
     };
-  }, [dataVersion, drafts, params.id]);
+  }, [dataVersion, drafts, intent, isNewDraft, params.id, state]);
   useEffect(() => {
     let active = true;
     catalog.list({ includeInactive: true }).then(result => {
@@ -73,6 +113,39 @@ export default function DraftEditor() {
       active = false;
     };
   }, [catalog, dataVersion]);
+  /* و٥ (§٥-١): أول إدخال حقيقي يُنشئ المسودة — مرة واحدة، وبأحدث قيم مرئية.
+   * لا تنقّل ولا تُفقد التركيز؛ المسار يبقى «new» حتى يغادر المستخدم المحرر. */
+  function ensureMaterialized(): Promise<OrderDraft | null> {
+    const current = draftRef.current;
+    if (current && current.id !== "new") return Promise.resolve(current);
+    if (!current) return Promise.resolve(null);
+    const values = draftFormValues(current);
+    if (!initialValuesRef.current || equalDraftValues(values, initialValuesRef.current))
+      return Promise.resolve(null);
+    if (!materializePromiseRef.current) {
+      materializePromiseRef.current = drafts.create(current.intent, values).then(result => {
+        materializePromiseRef.current = null;
+        if (!result.ok) {
+          setMessage(result.message);
+          return null;
+        }
+        setDraft(latest =>
+          latest ? { ...result.draft, ...draftFormValues(latest) } : result.draft,
+        );
+        initialValuesRef.current = draftFormValues(result.draft);
+        notifyDataChanged();
+        return result.draft;
+      });
+    }
+    return materializePromiseRef.current;
+  }
+  useEffect(() => {
+    if (!isNewDraft || state !== "ready" || !draft || draft.id !== "new") return;
+    const values = draftFormValues(draft);
+    if (!initialValuesRef.current || equalDraftValues(values, initialValuesRef.current)) return;
+    void ensureMaterialized();
+  }, [draft, isNewDraft, state]);
+
   async function save(andContinue: boolean): Promise<boolean> {
     if (!draft) return false;
     if (andContinue && !draft.itemName.trim()) {
@@ -87,9 +160,19 @@ export default function DraftEditor() {
       setMessage("ملاحظات التخصيص: أضف ما يلزم للاتفاق قبل الانتقال للتكلفة.");
       return false;
     }
+    let toSave = draft;
+    if (draft.id === "new") {
+      const materialized = await ensureMaterialized();
+      if (!materialized) {
+        setMessage("لم تدخل بيانات بعد؛ لا تُحفظ مسودة فارغة.");
+        return false;
+      }
+      const latest = draftRef.current;
+      toSave = latest ? { ...materialized, ...draftFormValues(latest) } : materialized;
+    }
     setIsSaving(true);
     setMessage(null);
-    const result = await drafts.save(draft);
+    const result = await drafts.save(toSave);
     setIsSaving(false);
     if (!result.ok) {
       setMessage(result.message);
@@ -99,7 +182,7 @@ export default function DraftEditor() {
     initialValuesRef.current = draftFormValues(result.draft);
     notifyDataChanged();
     setMessage("تم حفظ المسودة على هذا الجهاز.");
-    if (andContinue) navigate(`/orders/draft/${draft.id}/cost`);
+    if (andContinue) navigate(`/orders/draft/${toSave.id}/cost`);
     return true;
   }
   const isDirty = Boolean(
@@ -107,8 +190,10 @@ export default function DraftEditor() {
   );
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save(false) });
   /* القرار ٢١ (R-2): الحد القاطع يُقرأ من الحقل — linkedOrderId !== null ⇒ الزر لا يظهر أصلًا.
-   * الحذف بلا سبب وبلا أثر مالي: المسودة ليست طلبًا ولا تحمل مالًا. */
-  const canDelete = draft !== null && draft.linkedOrderId === null;
+   * الحذف بلا سبب وبلا أثر مالي: المسودة ليست طلبًا ولا تحمل مالًا.
+   * و٥: المحرر الفارغ بلا سجل — لا شيء يُحذف بعد. */
+  const canDelete =
+    draft !== null && draft.id !== "new" && draft.linkedOrderId === null;
   async function deleteDraft() {
     if (!draft) return;
     setIsDeleting(true);

@@ -38,7 +38,9 @@ export class DraftService {
   get(id: string) {
     return this.store.getDraft(id);
   }
-  async create(intent: DraftIntent): Promise<DraftSaveResult> {
+  /* §٥-١ (و٥): الإنشاء لا يحدث عند نقر النية بل عند أول إدخال حقيقي — فالإنشاء
+   * يقبل قيم البداية التي كتبها المالك، ولا يولّد مسودة فارغة من نقرة. */
+  async create(intent: DraftIntent, initial: Partial<DraftInput> = {}): Promise<DraftSaveResult> {
     return this.save({
       id: createId(),
       intent,
@@ -51,6 +53,7 @@ export class DraftService {
       activeCostSnapshotId: null,
       linkedOrderId: null,
       createdAt: this.now(),
+      ...initial,
     });
   }
   async save(input: DraftInput & Pick<OrderDraft, "id" | "createdAt">): Promise<DraftSaveResult> {

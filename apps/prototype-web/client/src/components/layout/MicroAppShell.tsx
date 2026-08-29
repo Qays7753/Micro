@@ -33,12 +33,14 @@ function ShellContent({ location, children }: { location: string; children: Reac
     setIsActionSheetOpen(false);
     /* §٥-١٤ (م٣): البيع والمصروف يتمان داخل الورقة نفسها (QuickActionSheet) — لا
      * يصلان إلى هنا. ما يصل هنا بدايات المسارات الأعمق فقط. */
+    /* §٥-١ (و٥): النقر يفتح المحرر بلا إنشاء — المسودة تُنشأ عند أول إدخال حقيقي
+     * داخل المحرر، فلا يخلّف الاستكشاف مسودات فارغة. */
     if (action === "order") {
-      requestNavigation("/orders/new?intent=customer_order");
+      requestNavigation("/orders/draft/new?intent=customer_order");
       return;
     }
     if (action === "estimate") {
-      requestNavigation("/orders/new?intent=planned_design");
+      requestNavigation("/orders/draft/new?intent=planned_design");
       return;
     }
     if (action === "collection") {

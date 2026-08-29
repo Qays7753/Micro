@@ -50,6 +50,8 @@ export function MicroRouter() {
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
             <Route path="/foundation" component={Foundation} />
             <Route path="/orders/new" component={NewDraft} />
+            {/* و٥ (§٥-١): محرر النية الفارغ — المسودة تُنشأ عند أول إدخال حقيقي لا عند النقر. */}
+            <Route path="/orders/draft/new" component={DraftEditor} />
             <Route path="/direct-sales/new" component={DirectSaleEditor} />
             <Route path="/direct-sales/:id" component={DirectSaleEditor} />
             <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
