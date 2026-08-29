@@ -290,6 +290,7 @@ export class ProjectFinancialService {
       walletsResult,
       continuityResult,
       ownerMovementsResult,
+      directSalesResult,
     ] = await Promise.all([
       this.store.listOrders(),
       this.store.listFinancialEvents(),
@@ -297,6 +298,7 @@ export class ProjectFinancialService {
       this.store.listCashWallets(),
       this.store.listCashContinuityEntries(),
       this.store.listOwnerMovements(),
+      this.store.listDirectSales(),
     ]);
     if (
       !ordersResult.ok ||
@@ -304,11 +306,17 @@ export class ProjectFinancialService {
       !purchasesResult.ok ||
       !walletsResult.ok ||
       !continuityResult.ok ||
-      !ownerMovementsResult.ok
+      !ownerMovementsResult.ok ||
+      !directSalesResult.ok
     )
       return { ok: false, code: "storage_error", message: "تعذر قراءة السجلات المالية المحلية." };
     const orderPulse = summarizeLocalCraftOrders(ordersResult.value);
     const project = summarizeFinancialEvents(eventsResult.value);
+    /* §٥-١٣ (المرحلة أ): تحصيل البيع المباشر كاش كأي تحصيل — يدخل الكاش غير الموزع
+     * نظير تحصيلات الطلبات. البيع الملغى لا يُحتسب: نقضُه ينقض قبضه. */
+    const directSalesCashMinor = directSalesResult.value
+      .filter(sale => (sale.status ?? "active") === "active")
+      .reduce((sum, sale) => sum + sale.collectedMinor, 0);
     const supplierMaterialPayablesMinor = purchasesResult.value.reduce(
       (sum, purchase) => sum + purchase.payableMinor,
       0,
@@ -318,7 +326,10 @@ export class ProjectFinancialService {
       0,
     );
     const unallocatedCashMinor =
-      orderPulse.registeredCollectionsMinor + project.cashMinor - supplierPurchaseCashPaidMinor;
+      orderPulse.registeredCollectionsMinor +
+      project.cashMinor -
+      supplierPurchaseCashPaidMinor +
+      directSalesCashMinor;
     const walletCashMinor = continuityResult.value.reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
     const ownerCapitalFromMovementsMinor = ownerMovementsResult.value.reduce(
       (sum: number, movement: OwnerMovement) => sum + movement.ownerCapitalDeltaMinor,
@@ -340,7 +351,7 @@ export class ProjectFinancialService {
         unallocatedCashMinor,
         cashWalletCount: walletsResult.value.length,
         truth:
-          "الكاش المسجل يجمع رصيد المحافظ المعلن والكاش غير الموزع من الطلبات والأحداث وشراء المواد. حق المالك لا يغير الكاش، بينما حركة السحب أو الإرجاع الفعلية تغير المحفظة بسببها؛ الاستثمار الجديد مستقل عن الحق.",
+          "الكاش المسجل يجمع رصيد المحافظ المعلن والكاش غير الموزع من الطلبات والمبيعات المباشرة والأحداث وشراء المواد. حق المالك لا يغير الكاش، بينما حركة السحب أو الإرجاع الفعلية تغير المحفظة بسببها؛ الاستثمار الجديد مستقل عن الحق.",
       },
     };
   }

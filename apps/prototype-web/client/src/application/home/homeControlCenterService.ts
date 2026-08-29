@@ -140,7 +140,7 @@ export class HomeControlCenterService {
         currency: "JOD",
         source: "السجل المحلي",
         period,
-        helper: "يشمل ما سُجل من محافظ وكاش الطلبات والأحداث؛ ليس ربحًا.",
+        helper: "يشمل ما سُجل من محافظ وكاش الطلبات والمبيعات المباشرة والأحداث؛ ليس ربحًا.",
         road: cashEvidence ? null : factRoads.cash,
       },
       {
