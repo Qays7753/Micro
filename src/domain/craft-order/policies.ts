@@ -328,7 +328,7 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
   }
 
   const deliveredAction =
-    order.receivableMinor > 0 ? "حصّل المتبقي أو سجل الدين" : "راجع النتيجة والفعل التالي";
+    order.receivableMinor > 0 ? "حصّل المتبقي أو سجل الدين" : "راجع النتيجة والخطوة التالية";
   const nextActionByStatus: Record<OrderStatus, string> = {
     draft: "سجل الاتفاق أو راجع المواصفات",
     provisional_agreement: "أكد السعر والموعد",
@@ -336,7 +336,7 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
     in_progress: "سجل الجاهزية أو سبب التأجيل",
     ready: "سجل التسليم",
     delivered: deliveredAction,
-    settled: "راجع النتيجة والفعل التالي",
+    settled: "راجع النتيجة والخطوة التالية",
     postponed: "حدد موعد متابعة",
     cancelled: "راجع إغلاق الطلب وتسوية العربون إن وجدت",
     needs_review: "راجع التعارض أو النقص",
@@ -373,7 +373,7 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
   const shouldSettleAfterDelivery =
     input.to === "delivered" && recognized.receivableMinor === 0 && recognized.settlementStatus === "paid";
   const statusAfterDelivery = shouldSettleAfterDelivery
-    ? { ...recognized, status: "settled" as const, nextAction: "راجع النتيجة والفعل التالي" }
+    ? { ...recognized, status: "settled" as const, nextAction: "راجع النتيجة والخطوة التالية" }
     : recognized;
   const withDeliveryStatusEvent = shouldSettleAfterDelivery
     ? appendEvent(statusAfterDelivery, {
@@ -498,7 +498,7 @@ export function collectRemaining(
   const next = withSettlement({
     ...order,
     collectedMinor: order.collectedMinor + amountMinor,
-    nextAction: "راجع النتيجة والفعل التالي",
+    nextAction: "راجع النتيجة والخطوة التالية",
   });
   const settled = next.receivableMinor === 0 ? { ...next, status: "settled" as const } : next;
   const withStatusEvent = appendStatusChanged(

@@ -472,7 +472,7 @@ describe("craft-order domain core", () => {
     expect(order.status).toBe("settled");
     expect(order.settlementStatus).toBe("paid");
     expect(order.receivableMinor).toBe(0);
-    expect(order.nextAction).toBe("راجع النتيجة والفعل التالي");
+    expect(order.nextAction).toBe("راجع النتيجة والخطوة التالية");
     expect(order.events).toContainEqual(
       expect.objectContaining({
         type: "status_changed",

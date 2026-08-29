@@ -396,7 +396,7 @@ export default function Finance() {
                 ))}
               </ul>
             ) : null}
-            <p className="micro-period-next-action">الفعل التالي: {period.cogsNextAction}</p>
+            <p className="micro-period-next-action">الخطوة التالية: {period.cogsNextAction}</p>
           </div>
           {period.reasons.length > 0 ? (
             <div className="micro-period-review-note">
@@ -410,7 +410,7 @@ export default function Finance() {
           ) : null}
           {period.sharedUnallocatedExpenseCount > 0 ? (
             <p className="micro-period-next-action">
-              الفعل التالي: حدد حصة المشروع للمصروف المشترك غير الموزّع قبل الاعتماد على نتيجة أدق؛ لم يخصم
+              الخطوة التالية: حدد حصة المشروع للمصروف المشترك غير الموزّع قبل الاعتماد على نتيجة أدق؛ لم يخصم
               المصدر المستبعد من الرقم أعلاه.
             </p>
           ) : null}
@@ -1172,7 +1172,7 @@ function G5Reasons({
           <strong>المصادر المستخدمة:</strong> {sources.slice(0, 4).map(formatSourceDates).join(" · ")}
         </p>
       ) : null}
-      <p className="micro-decision-next">الفعل التالي: {nextAction}</p>
+      <p className="micro-decision-next">الخطوة التالية: {nextAction}</p>
     </div>
   );
 }

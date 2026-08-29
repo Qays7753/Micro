@@ -948,7 +948,7 @@ function ScheduleSection({
                   {agreement.label} · <LocalDateValue value={item.schedule.scheduledFor} />
                 </small>
                 <small>{timingLabel(item.schedule)}</small>
-                <small className="micro-row-next-action">الفعل التالي: {agreement.nextAction}</small>
+                <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
               </span>
               <ChevronLeft aria-hidden="true" />
             </button>

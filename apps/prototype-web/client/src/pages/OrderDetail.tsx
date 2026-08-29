@@ -227,7 +227,7 @@ export default function OrderDetail() {
         </p>
       </div>
       <section className="micro-decision-card">
-        <span>الفعل التالي</span>
+        <span>الخطوة التالية</span>
         <strong>{agreement.nextAction}</strong>
         <p>
           موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
@@ -275,7 +275,7 @@ export default function OrderDetail() {
         <section className="micro-note-card">
           <Landmark aria-hidden="true" />
           <p>
-            سُجل المتبقي كدين. لم يزد الكاش المحصل، والفعل التالي هو متابعة التحصيل مع العميل تتم خارج
+            سُجل المتبقي كدين. لم يزد الكاش المحصل، والخطوة التالية هي متابعة التحصيل مع العميل تتم خارج
             التطبيق في هذا الإصدار؛ السجل بقي كما هو.
           </p>
         </section>

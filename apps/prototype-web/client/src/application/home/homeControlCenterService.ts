@@ -191,7 +191,7 @@ export class HomeControlCenterService {
             `order:${stored.id}`,
             "فتح الطلب",
             `/orders/${stored.id}`,
-            "أكمل الفعل التالي الظاهر في الطلب.",
+            "أكمل الخطوة التالية الظاهرة في الطلب.",
           ),
         });
       }
