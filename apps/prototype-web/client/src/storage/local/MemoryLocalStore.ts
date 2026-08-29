@@ -89,6 +89,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.drafts.set(draft.id, clone(draft));
     return { ok: true, value: clone(draft) };
   }
+  async deleteDraft(id: string): Promise<StorageResult<null>> {
+    this.drafts.delete(id);
+    return { ok: true, value: null };
+  }
   async listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>> {
     return {
       ok: true,

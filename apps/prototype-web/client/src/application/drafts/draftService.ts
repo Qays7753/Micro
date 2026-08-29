@@ -16,6 +16,11 @@ export type DraftInput = Pick<
 export type DraftSaveResult =
   | { ok: true; draft: OrderDraft }
   | { ok: false; code: "validation_error" | "storage_error"; message: string };
+/* القرار ٢١: الحذف للمسودة غير المرتبطة فقط — الحدّ القاطع linkedOrderId !== null ⇒ ممنوع،
+ * وتُقرأ قيمة الحقل لا تُستنتج من الحالة. المسودة لا أثر مالي لها. */
+export type DraftDeleteResult =
+  | { ok: true; id: string }
+  | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
 
 const createId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -65,6 +70,33 @@ export class DraftService {
           ok: false,
           code: "storage_error",
           message: "تعذر حفظ المسودة على هذا الجهاز. بقيت بيانات النموذج أمامك؛ أعد المحاولة.",
+        };
+  }
+
+  /** القرار ٢١ (بناء لا توصيل): تُحذف بسهولة وبلا سبب — لكن غير المرتبطة فقط. */
+  async delete(id: string): Promise<DraftDeleteResult> {
+    const current = await this.store.getDraft(id);
+    if (!current.ok)
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "تعذر قراءة المسودة قبل الحذف. لم يُحذف شيء.",
+      };
+    if (!current.value)
+      return { ok: false, code: "not_found", message: "لم نجد هذه المسودة محليًا؛ لم يُحذف شيء." };
+    if (current.value.linkedOrderId !== null)
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "هذه المسودة أصبحت طلبًا محفوظًا؛ تُلغى من الطلب ولا تُحذف من هنا.",
+      };
+    const deleted = await this.store.deleteDraft(id);
+    return deleted.ok
+      ? { ok: true, id }
+      : {
+          ok: false,
+          code: "storage_error",
+          message: "تعذر حذف المسودة على هذا الجهاز. أعد المحاولة.",
         };
   }
 }

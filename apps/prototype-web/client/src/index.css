@@ -1157,6 +1157,34 @@
   color: var(--color-warning-text);
   background: var(--color-warning-bg);
 }
+/* القرار ٢٢: القائمة الكاملة للنقص دفعة واحدة، وكل نقص بعلامته إلزامي/اختياري. */
+.micro-knowledge-gaps {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-knowledge-gaps li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-knowledge-gaps li > b {
+  flex: 0 0 auto;
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-control);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
+}
+.micro-knowledge-gaps li[data-mandatory="true"] > b {
+  color: var(--color-warning-text);
+  background: color-mix(in srgb, var(--color-warning-text) 12%, transparent);
+}
 .micro-cost-section-heading {
   display: flex;
   align-items: flex-start;
@@ -4533,6 +4561,37 @@ button.micro-month-cell:hover {
 .micro-fact-road-line {
   color: var(--color-text-secondary);
   font-size: 12px;
+}
+/* القرار ١٩: لوحة الإلغاء وتسوية العربون — سبب اختياري بثلاثة أزرار، وعربون بثلاثة خيارات. */
+.micro-cancel-panel {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-warning-text);
+  border-radius: var(--radius-card);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-surface);
+}
+.micro-cancel-panel > strong {
+  font-size: 15px;
+}
+.micro-cancel-panel > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+/* القرار ٢١: حذف مسودة مهجورة — فعل بلا سبب ولا أثر مالي، بحارس مرئي. */
+.micro-draft-delete-zone {
+  display: grid;
+  gap: var(--space-2);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-3);
+}
+.micro-draft-delete-zone > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
 }
 /* صفحة الأساس (§2.5): قسم يمرّر بحرية — الكاش مفتوح والباقي مطوي بحالته بسطر واحد. */
 .micro-foundation-page {

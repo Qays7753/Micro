@@ -1,11 +1,32 @@
 /** Slice 4 financial boundary: delivery, collection, and debt are three distinct Domain operations. */
-import { collectRemaining, registerDebt, transitionOrder } from "@micro-domain/craft-order/index.js";
+import {
+  cancelOrder,
+  collectRemaining,
+  registerDebt,
+  settleDepositRefund,
+  settleDepositRetain,
+  transitionOrder,
+} from "@micro-domain/craft-order/index.js";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 
 export type FulfillmentResult =
   | { ok: true; stored: StoredCraftOrder }
   | { ok: false; code: "storage_error" | "invalid_state"; message: string };
+export type DepositRow = {
+  orderId: string;
+  itemName: string;
+  customerName: string;
+  depositCollectedMinor: number;
+  settlementStatus: StoredCraftOrder["order"]["settlementStatus"];
+  depositSettlement: StoredCraftOrder["order"]["depositSettlement"];
+};
+export type DepositOverview = {
+  deposits: readonly DepositRow[];
+  collectedTotalMinor: number;
+  awaitingSettlementCount: number;
+  truth: string;
+};
 const success = (stored: StoredCraftOrder): FulfillmentResult => ({ ok: true, stored });
 const failure = (
   code: Extract<FulfillmentResult, { ok: false }>["code"],
@@ -115,5 +136,91 @@ export class FulfillmentService {
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل الدين.");
     }
+  }
+
+  /* القرار ١٩: الإلغاء عبر cancelOrder وحدها (عقد ٠٢) — السبب اختياري في الواجهة،
+   * والمسار الموثق يفرض نصًا غير فارغ؛ التخطي يسجل «بدون سبب محدد» بصدق.
+   * العربون يبقى «يحتاج مراجعة» خيارًا صالحًا لا خطأً. */
+  async cancel(id: string, reason: string): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    if (current.stored.order.status === "cancelled") return current;
+    const trimmed = reason.trim() || "إلغاء بدون سبب محدد";
+    try {
+      const timestamp = this.now();
+      const order = cancelOrder(current.stored.order, trimmed, `${id}:cancel`, timestamp);
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر إلغاء الطلب.");
+    }
+  }
+
+  async refundDeposit(id: string, reason: string): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    const amount = current.stored.order.depositCollectedMinor;
+    try {
+      const timestamp = this.now();
+      const order = settleDepositRefund(
+        current.stored.order,
+        amount,
+        reason,
+        `${id}:refund-deposit-${amount}`,
+        timestamp,
+      );
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر رد العربون.");
+    }
+  }
+
+  async retainDeposit(id: string, reason: string): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    const amount = current.stored.order.depositCollectedMinor;
+    try {
+      const timestamp = this.now();
+      const order = settleDepositRetain(
+        current.stored.order,
+        amount,
+        reason,
+        `${id}:retain-deposit-${amount}`,
+        timestamp,
+      );
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسوية العربون.");
+    }
+  }
+
+  /* إضافة المالك (القرار ١٩): قسم يجمع العربونات — كم عربونًا مقبوضًا، على أي
+   * طلبات، وأيها ينتظر تسوية. قراءة فقط؛ لا تحصيل ولا تسوية من هنا. */
+  async listDepositOverview(): Promise<
+    { ok: true; value: DepositOverview } | Extract<FulfillmentResult, { ok: false }>
+  > {
+    const result = await this.store.listOrders();
+    if (!result.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة الطلبات المحلية." };
+    const rows = result.value
+      .filter(stored => stored.order.depositCollectedMinor > 0)
+      .map(stored => ({
+        orderId: stored.id,
+        itemName: stored.order.itemName,
+        customerName: stored.order.customerName,
+        depositCollectedMinor: stored.order.depositCollectedMinor,
+        settlementStatus: stored.order.settlementStatus,
+        depositSettlement: stored.order.depositSettlement,
+      }))
+      .sort((left, right) => left.orderId.localeCompare(right.orderId));
+    return {
+      ok: true,
+      value: {
+        deposits: rows,
+        collectedTotalMinor: rows.reduce((total, row) => total + row.depositCollectedMinor, 0),
+        awaitingSettlementCount: rows.filter(row => row.depositSettlement === "needs_review").length,
+        truth:
+          "العربون كاش مرتبط بطلبه، وليس ربحًا نهائيًا. الملغى منها ينتظر ردًا أو احتفاظًا صريحًا أو يبقى للمراجعة.",
+      },
+    };
   }
 }

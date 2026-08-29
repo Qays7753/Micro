@@ -54,6 +54,7 @@ function configureIncompleteCostServices() {
         knowledgeState: "incomplete",
         priceFloorMinor: null,
         unitCostMinor: null,
+        knowledgeGaps: [{ id: "time_incomplete", mandatory: true }],
       },
     }),
     saveSnapshot: vi.fn(),

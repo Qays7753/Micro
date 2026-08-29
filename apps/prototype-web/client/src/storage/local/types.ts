@@ -206,6 +206,8 @@ export interface PrototypeLocalStore {
   listDrafts(): Promise<StorageResult<readonly OrderDraft[]>>;
   getDraft(id: string): Promise<StorageResult<OrderDraft | null>>;
   saveDraft(draft: OrderDraft): Promise<StorageResult<OrderDraft>>;
+  /** القرار ٢١: حذف مسودة غير مرتبطة — سجل بلا أثر مالي؛ الحارس في خدمة التطبيق. */
+  deleteDraft(id: string): Promise<StorageResult<null>>;
   listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>>;
   getOrder(id: string): Promise<StorageResult<StoredCraftOrder | null>>;
   saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>>;

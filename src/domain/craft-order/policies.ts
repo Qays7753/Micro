@@ -4,6 +4,7 @@ import type {
   CraftOrder,
   CreateCraftOrderInput,
   DepositSettlementDecision,
+  KnowledgeGap,
   KnowledgeState,
   MaterialCostItem,
   MoneyMinor,
@@ -115,43 +116,68 @@ function assertSnapshotSelfConsistency(snapshot: CostSnapshot): void {
   }
 }
 
-function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
-  const hasNoCostComponent =
+function hasNoCostComponentInput(input: CostSnapshotInput): boolean {
+  return (
     input.materialItems.length === 0 &&
     input.time === null &&
     input.packagingMinor === 0 &&
     input.deliveryMinor === 0 &&
-    input.wasteMinor === 0;
-  const hasEstimate =
+    input.wasteMinor === 0
+  );
+}
+function hasEstimateInput(input: CostSnapshotInput): boolean {
+  return (
     input.materialItems.some(item => item.confidence === "estimated") ||
-    input.time?.confidence === "estimated";
-  const hasVariableCost = input.materialItems.some(item => item.source === "estimate");
-  const hasIncompleteTime =
+    input.time?.confidence === "estimated"
+  );
+}
+function hasVariableCostInput(input: CostSnapshotInput): boolean {
+  return input.materialItems.some(item => item.source === "estimate");
+}
+function hasIncompleteTimeInput(input: CostSnapshotInput): boolean {
+  return (
     input.time === null ||
     input.time.minutes === null ||
     input.time.hourlyRateMinor === null ||
     input.time.minutes === 0 ||
-    input.time.hourlyRateMinor === 0;
+    input.time.hourlyRateMinor === 0
+  );
+}
+function hasStaleMaterialInput(input: CostSnapshotInput): boolean {
+  if (input.freshnessDays === null || input.freshnessDays === undefined) return false;
+  // Freshness is a calendar-date question in the owner's day (Asia/Amman), not an instant comparison:
+  // a price dated today stays fresh even when the snapshot was recorded after Amman midnight.
+  const createdLocalDate = ammanLocalDate(input.createdAt);
+  if (createdLocalDate === null) return false;
+  const oldestAllowed = localDateMinusDays(createdLocalDate, input.freshnessDays);
+  return input.materialItems.some(item => item.priceDate < oldestAllowed);
+}
 
-  if (hasNoCostComponent) return "incomplete";
-  if (hasIncompleteTime) return "incomplete";
-
-  if (input.freshnessDays !== null && input.freshnessDays !== undefined) {
-    // Freshness is a calendar-date question in the owner's day (Asia/Amman), not an instant comparison:
-    // a price dated today stays fresh even when the snapshot was recorded after Amman midnight.
-    const createdLocalDate = ammanLocalDate(input.createdAt);
-    const oldestAllowed = createdLocalDate === null
-      ? null
-      : localDateMinusDays(createdLocalDate, input.freshnessDays);
-    if (oldestAllowed !== null) {
-      const hasStaleMaterial = input.materialItems.some(item => item.priceDate < oldestAllowed);
-      if (hasStaleMaterial) return "stale";
-    }
-  }
-
-  if (hasVariableCost) return "variable";
-  if (hasEstimate) return "estimated";
+function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
+  if (hasNoCostComponentInput(input)) return "incomplete";
+  if (hasIncompleteTimeInput(input)) return "incomplete";
+  if (hasStaleMaterialInput(input)) return "stale";
+  if (hasVariableCostInput(input)) return "variable";
+  if (hasEstimateInput(input)) return "estimated";
   return "known";
+}
+
+/** القرار ٢٢: القائمة الكاملة للنقص دفعة واحدة، وكل نقص يحمل علامته —
+ * إلزامي (يمنع نتيجة صادقة) أو اختياري (يحسّن الدقة). */
+export function deriveKnowledgeGaps(input: CostSnapshotInput): readonly KnowledgeGap[] {
+  const gaps: KnowledgeGap[] = [];
+  if (hasNoCostComponentInput(input))
+    gaps.push({ id: "no_cost_components", mandatory: true });
+  if (hasIncompleteTimeInput(input)) gaps.push({ id: "time_incomplete", mandatory: true });
+  if (hasStaleMaterialInput(input)) gaps.push({ id: "stale_material_price", mandatory: false });
+  if (hasEstimateInput(input)) gaps.push({ id: "estimated_item", mandatory: false });
+  if (hasVariableCostInput(input)) gaps.push({ id: "variable_cost_source", mandatory: false });
+  return gaps;
+}
+
+/** النسخ القديمة بلا حقل knowledgeGaps تُشتق فجواتها من مدخلاتها المحفوظة عند القراءة. */
+export function knowledgeGapsOf(snapshot: CostSnapshot): readonly KnowledgeGap[] {
+  return snapshot.knowledgeGaps ?? deriveKnowledgeGaps(snapshot.input);
 }
 
 function materialItemCostMinor(item: MaterialCostItem): number {
@@ -221,6 +247,7 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
     priceFloorMinor,
     quantity: input.quantity,
     knowledgeState: determineKnowledgeState(input),
+    knowledgeGaps: deriveKnowledgeGaps(input),
     input: cloneCostSnapshotInput(input),
     createdAt: input.createdAt,
   });

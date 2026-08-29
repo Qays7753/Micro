@@ -596,6 +596,25 @@ async function writeOne<T>(storeName: string, value: T): Promise<StorageResult<T
   }
 }
 
+/* القرار ٢١: حذف المسودة غير المرتبطة — حذف سجل بلا أثر مالي؛ لا يمس أحداث طلب. */
+async function deleteOne(storeName: string, key: string): Promise<StorageResult<null>> {
+  try {
+    const database = await openDatabase();
+    return await new Promise(resolve => {
+      const transaction = database.transaction(storeName, "readwrite");
+      const request = transaction.objectStore(storeName).delete(key);
+      request.onerror = () => resolve(failure(request.error, database));
+      transaction.onabort = () => resolve(failure(transaction.error, database));
+      transaction.oncomplete = () => {
+        database.close();
+        resolve({ ok: true, value: null });
+      };
+    });
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 async function listAll<T>(
   storeName: string,
   sort: (left: T, right: T) => number,
@@ -635,6 +654,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   saveDraft(draft: OrderDraft) {
     return writeOne(draftStore, draft);
+  }
+  deleteDraft(id: string) {
+    return deleteOne(draftStore, id);
   }
   listOrders() {
     return listAll<StoredCraftOrder>(orderStore, (left, right) =>

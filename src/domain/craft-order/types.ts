@@ -4,6 +4,16 @@ export type { Currency, MoneyMinor } from "../shared/index.js";
 
 export type KnowledgeState = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
 
+/* القرار ٢٢: كل نقص معرفة يحمل علامته — إلزامي (يمنع نتيجة صادقة) أو اختياري (يحسّن الدقة).
+ * الحقل إضافي وغير كاسر: النسخ القديمة بلا حقل تُشتق فجواتها من مدخلاتها المحفوظة. */
+export type KnowledgeGapId =
+  | "no_cost_components"
+  | "time_incomplete"
+  | "stale_material_price"
+  | "estimated_item"
+  | "variable_cost_source";
+export type KnowledgeGap = { id: KnowledgeGapId; mandatory: boolean };
+
 export type ResultStatus = "final" | "estimated" | "incomplete" | "review_required";
 
 export type DepositSettlementDecision = "refund_deposit" | "retain_deposit" | "needs_review";
@@ -54,6 +64,8 @@ export interface CostSnapshot {
   priceFloorMinor: MoneyMinor;
   quantity: number;
   knowledgeState: KnowledgeState;
+  /** القرار ٢٢: القائمة الكاملة للنقص بعلامة إلزامي/اختياري؛ التعداد يبقى «أشدّ نقص». */
+  knowledgeGaps?: readonly KnowledgeGap[];
   input: CostSnapshotInput;
   createdAt: string;
 }

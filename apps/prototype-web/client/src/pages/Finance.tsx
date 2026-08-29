@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
+import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
 import type {
   ProjectFinancialPosition,
   ProjectFinancialService,
@@ -37,6 +38,7 @@ type FinanceState =
       owner: OwnerEntitlementOverview;
       pulse: LocalFinancialPulse;
       excludedOrders: readonly StoredCraftOrder[];
+      deposits: DepositOverview;
     };
 const eventLabel: Record<FinancialEventType, string> = {
   owner_investment_cash: "استثمار المالك",
@@ -76,6 +78,14 @@ const expenseContextLabel = (event: FinancialEvent) => {
   return `حصة المشروع من مصروف مشترك · ${knowledge} · ${sourceLabel}`;
 };
 const currentMonth = () => localDateInAmman().slice(0, 7);
+const depositStateLabel = (row: DepositOverview["deposits"][number]) =>
+  row.depositSettlement === "needs_review"
+    ? "ينتظر قرارك: ردّه أو احتفظ به — أو اتركه للمراجعة"
+    : row.depositSettlement === "refund_deposit"
+      ? "مردود بتسوية موثقة"
+      : row.depositSettlement === "retain_deposit"
+        ? "محتفظ به رصيدًا بتسوية موثقة"
+        : "مرتبط بطلب قائم — ليس ربحًا ولا تحصيلًا زائدًا";
 const validMonth = (month: string) =>
   /^\d{4}-\d{2}$/.test(month) && Number(month.slice(5)) >= 1 && Number(month.slice(5)) <= 12;
 function monthBounds(month: string) {
@@ -121,7 +131,7 @@ const shortStatusLabel = (status: G5Decision["shortCash"]["status"]) =>
 
 export default function Finance() {
   const [, navigate] = useLocation();
-  const { projectFinance, ownerEntitlement, g5, financialPulse, dataVersion, notifyDataChanged } =
+  const { projectFinance, ownerEntitlement, g5, financialPulse, fulfillment, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   const [fromMonth, setFromMonth] = useState(currentMonth);
   const [toMonth, setToMonth] = useState(currentMonth);
@@ -148,7 +158,8 @@ export default function Finance() {
       g5.readDecision(from.from, to.to),
       ownerEntitlement.readOverview(),
       financialPulse.read(),
-    ]).then(([position, events, result, decision, owner, pulseResult]) => {
+      fulfillment.listDepositOverview(),
+    ]).then(([position, events, result, decision, owner, pulseResult, depositsResult]) => {
       if (!active) return;
       if (
         !position.ok ||
@@ -156,7 +167,8 @@ export default function Finance() {
         !result.ok ||
         !decision.ok ||
         !owner.ok ||
-        !pulseResult.ok
+        !pulseResult.ok ||
+        !depositsResult.ok
       ) {
         setState({ phase: "error", message: "لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة." });
         return;
@@ -173,12 +185,13 @@ export default function Finance() {
         owner: owner.value,
         pulse: pulseResult.pulse,
         excludedOrders: completed.filter(stored => stored.order.resultStatus !== "final"),
+        deposits: depositsResult.value,
       });
     });
     return () => {
       active = false;
     };
-  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse]);
+  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse, fulfillment]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -544,6 +557,56 @@ export default function Finance() {
               سدد التزام مصروف
             </button>
           ) : null}
+        </section>
+      </details>
+      <details className="micro-finance-layer">
+        <summary className="micro-finance-layer-summary">
+          <span>
+            <b>العربونات</b>
+            <small>
+              {state.deposits.deposits.length > 0
+                ? `${state.deposits.deposits.length} عربونًا مقبوضًا · ينتظر التسوية: ${state.deposits.awaitingSettlementCount}`
+                : "لا عربونات مقبوضة بعد"}
+            </small>
+          </span>
+          <strong>افتح العربونات</strong>
+        </summary>
+        {/* إضافة المالك (القرار ١٩): قسم يجمع العربونات — كم عربونًا مقبوضًا، على أي طلبات، وأيها ينتظر تسوية. */}
+        <section className="micro-finance-event-list" aria-label="قراءة العربونات">
+          <div className="micro-finance-event-heading">
+            <span className="micro-overline">العربونات المقبوضة · المبالغ (د.أ)</span>
+            <h2>عربونات الطلبات في مكان واحد</h2>
+            <p>{state.deposits.truth}</p>
+          </div>
+          {state.deposits.deposits.length > 0 ? (
+            <>
+              <p className="micro-period-range-label">
+                إجمالي العربونات المقبوضة: <MoneyValue minor={state.deposits.collectedTotalMinor} /> ·
+                ينتظر قرار التسوية:{" "}
+                <IntegerValue value={state.deposits.awaitingSettlementCount} className="micro-inline-number" />
+              </p>
+              {state.deposits.deposits.map(row => (
+                <button
+                  key={row.orderId}
+                  className="micro-home-recent-item"
+                  type="button"
+                  onClick={() => navigate(`/orders/${row.orderId}`)}
+                >
+                  <span>
+                    <strong>{row.itemName || "طلب بلا وصف"}</strong>
+                    <small>
+                      {row.customerName || "عميل بلا اسم"} · عربون مقبوض:{" "}
+                      <MoneyValue minor={row.depositCollectedMinor} className="micro-inline-number" />
+                    </small>
+                    <small className="micro-row-next-action">{depositStateLabel(row)}</small>
+                  </span>
+                  <ArrowLeft aria-hidden="true" />
+                </button>
+              ))}
+            </>
+          ) : (
+            <p>لم تقبض عربونًا بعد. العربون يسجل من تسجيل الاتفاق، ويظهر هنا لحظة قبضه.</p>
+          )}
         </section>
       </details>
       <details className="micro-finance-layer">
