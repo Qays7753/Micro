@@ -592,6 +592,41 @@ export function registerDebt(order: CraftOrder, idempotencyKey: string, createdA
   });
 }
 
+/** §٥-١٦ (المرحلة أ — رحلة ٢): الدين المسجل يبقى قابلًا للتحصيل — المال الذي حدث يجب أن
+ * يكون قابلًا للتسجيل. التحصيل يقلل الدين بواقعته، ولا يعيد فتح الطلب ولا يغير حالته،
+ * وحين يكتمل يصير الدين مقبوضًا كاملًا. */
+export function collectRegisteredDebt(
+  order: CraftOrder,
+  amountMinor: MoneyMinor,
+  idempotencyKey: string,
+  createdAt: string,
+): CraftOrder {
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, "collection_recorded")) return order;
+  if (!isRegisteredCustomerDebt(order))
+    throw new Error("تحصيل الدين المسجل يتطلب دينًا مسجلًا بعد التسليم.");
+  assertPositiveInteger(amountMinor, "مبلغ التحصيل");
+  if (amountMinor + order.collectedMinor > order.agreedPriceMinor)
+    throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
+
+  const collectedMinor = order.collectedMinor + amountMinor;
+  const receivableMinor = Math.max(order.agreedPriceMinor - collectedMinor, 0);
+  const next: CraftOrder = {
+    ...order,
+    collectedMinor,
+    receivableMinor,
+    settlementStatus: receivableMinor === 0 ? "paid" : "debt",
+    nextAction: receivableMinor === 0 ? "راجع النتيجة والخطوة التالية" : "تابع تحصيل الدين",
+  };
+  return appendEvent(next, {
+    id: `${order.id}:${idempotencyKey}`,
+    type: "collection_recorded",
+    idempotencyKey,
+    createdAt,
+    amountMinor,
+  });
+}
+
 export function cancelOrder(
   order: CraftOrder,
   reason: string,

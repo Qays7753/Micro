@@ -25,6 +25,7 @@ import type {
 import type { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
 import type { OrderActualMaterialComparison } from "@/application/inventory/inventoryMaterialService";
 import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
+import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { DateTimeValue, LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { AgreementSource, StoredCraftOrder } from "@/storage/local/types";
 import { classifyFollowUpDate, localDateInAmman } from "@/application/agreements/followUpDate";
@@ -90,6 +91,15 @@ export default function OrderDetail() {
   const [otherReason, setOtherReason] = useState("");
   const [otherReasonOpen, setOtherReasonOpen] = useState(false);
   const [depositReason, setDepositReason] = useState("");
+  /* §٥-١٦ (رحلة ٢): تحصيل الدين المسجل — المبلغ يُملأ بالمتبقي افتراضيًا. */
+  const [debtCollectMinor, setDebtCollectMinor] = useState(0);
+  const [validDebtCollect, setValidDebtCollect] = useState(true);
+
+  /* بعد كل تحصيل ناجح يعاد ملء الحقل بالمتبقي الجديد. */
+  useEffect(() => {
+    if (state.phase === "ready" && state.stored.order.settlementStatus === "debt")
+      setDebtCollectMinor(state.stored.order.receivableMinor);
+  }, [state]);
 
   useEffect(() => {
     let active = true;
@@ -446,13 +456,32 @@ export default function OrderDetail() {
           {message}
         </p>
       ) : null}
+      {/* §٥-١٦ (رحلة ٢): الدين المسجل قابل للتحصيل — المبلغ حقل وحيد معبأ بالمتبقي،
+          والتحصيل يقلل الدين ولا يعيد فتح الطلب. */}
       {order.status === "settled" && order.settlementStatus === "debt" ? (
-        <section className="micro-note-card">
-          <Landmark aria-hidden="true" />
-          <p>
-            سُجل المتبقي كدين. لم يزد الكاش المحصل، والخطوة التالية هي متابعة التحصيل مع العميل تتم خارج
-            التطبيق في هذا الإصدار؛ السجل بقي كما هو.
-          </p>
+        <section className="micro-cancel-panel" aria-label="تحصيل الدين المسجل">
+          <label className="micro-field">
+            <span>قبضت الآن من الدين (د.أ)</span>
+            <EnglishNumberInput
+              value={debtCollectMinor}
+              kind="money"
+              onNumericChange={setDebtCollectMinor}
+              onTextValidityChange={setValidDebtCollect}
+              aria-label="قبضت الآن من الدين"
+            />
+          </label>
+          <div className="micro-form-actions micro-contextual-actions">
+            <button
+              className="micro-button micro-button-primary"
+              type="button"
+              disabled={isActing || !validDebtCollect || debtCollectMinor <= 0}
+              onClick={() => {
+                void run(() => fulfillment.collectDebt(stored.id, debtCollectMinor));
+              }}
+            >
+              <HandCoins aria-hidden="true" /> {isActing ? "جارٍ التسجيل…" : "سجّل القبض"}
+            </button>
+          </div>
         </section>
       ) : null}
       {order.status === "settled" && order.settlementStatus === "paid" ? (
