@@ -2,6 +2,7 @@ import { JOD, fieldLabelAr } from "../shared/index.js";
 import type {
   CreateDirectSaleInput,
   DirectSale,
+  DirectSaleCollectionStatus,
   DirectSaleRevision,
   UpdateDirectSaleInput,
 } from "./types.js";
@@ -30,6 +31,20 @@ function assertLocalDate(value: string) {
     throw new Error("أدخل تاريخ البيع تاريخًا محليًا صحيحًا.");
 }
 
+/* X-06: القبض لا يتجاوز السعر المتفق عليه — والفرق يحمل قرارًا صريحًا لا افتراضًا. */
+function resolveCollection(
+  revenueMinor: number,
+  collectedMinor: number | undefined,
+  declared: DirectSaleCollectionStatus | undefined,
+): { collectedMinor: number; collectionStatus: DirectSaleCollectionStatus } {
+  const collected = collectedMinor ?? revenueMinor;
+  if (collected > revenueMinor)
+    throw new Error("المقبوض لا يتجاوز السعر المتفق عليه — سجّل الفرق قرارك في التسعير لا في القبض.");
+  const derived: DirectSaleCollectionStatus =
+    collected === revenueMinor ? "collected_in_full" : "partial_needs_review";
+  return { collectedMinor: collected, collectionStatus: declared ?? derived };
+}
+
 export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
   assertText(input.id, "id");
   assertText(input.itemName, "itemName");
@@ -40,6 +55,7 @@ export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
   if (input.costMinor !== null) assertNonNegativeInteger(input.costMinor, "costMinor");
   assertLocalDate(input.occurredOn);
   if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
+  const collection = resolveCollection(input.revenueMinor, input.collectedMinor, input.collectionStatus);
 
   return Object.freeze({
     id: input.id.trim(),
@@ -47,7 +63,9 @@ export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
     quantity: input.quantity,
     currency: JOD,
     revenueMinor: input.revenueMinor,
-    collectedMinor: input.revenueMinor,
+    collectedMinor: collection.collectedMinor,
+    collectionStatus: collection.collectionStatus,
+    catalogItemId: input.catalogItemId?.trim() || null,
     costMinor: input.costMinor,
     profitMinor: input.costMinor === null ? null : input.revenueMinor - input.costMinor,
     occurredOn: input.occurredOn,
@@ -63,13 +81,17 @@ export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
 
 function assertRevision(revision: DirectSaleRevision) {
   assertText(revision.idempotencyKey, "idempotencyKey");
-  if (revision.kind !== "edit" && revision.kind !== "cancel")
+  if (revision.kind !== "edit" && revision.kind !== "cancel" && revision.kind !== "price_cut")
     throw new Error("نوع تصحيح البيع المباشر غير صالح.");
   if (Number.isNaN(Date.parse(revision.createdAt))) throw new Error("أدخل وقت التصحيح وقتًا صحيحًا.");
   if (revision.kind === "cancel") assertText(revision.reason ?? "", "cancellationReason");
 }
 
-function revisionList(source: DirectSale, revision: DirectSaleRevision): DirectSaleRevision[] {
+function revisionList(
+  source: DirectSale,
+  revision: DirectSaleRevision,
+  beforeRevenueMinor?: number | null,
+): DirectSaleRevision[] {
   const revisions = [...(source.revisions ?? [])];
   if (source.idempotencyKey === revision.idempotencyKey)
     throw new Error("مفتاح التصحيح مستخدم أصلًا لتسجيل البيع.");
@@ -81,6 +103,9 @@ function revisionList(source: DirectSale, revision: DirectSaleRevision): DirectS
     idempotencyKey: revision.idempotencyKey.trim(),
     createdAt: revision.createdAt,
     reason: revision.reason?.trim() || null,
+    ...(beforeRevenueMinor !== undefined && beforeRevenueMinor !== null
+      ? { beforeRevenueMinor }
+      : {}),
   });
   return revisions;
 }
@@ -99,16 +124,51 @@ export function updateDirectSale(
     itemName: input.itemName,
     quantity: input.quantity,
     revenueMinor: input.revenueMinor,
+    collectedMinor: input.collectedMinor,
+    collectionStatus: input.collectionStatus,
+    /* ربط المرجع: التمييز بين «لم يُذكر» (يبقى الأصلي) و«أُلغي صراحة» (null). */
+    catalogItemId: input.catalogItemId !== undefined ? input.catalogItemId : source.catalogItemId ?? null,
     costMinor: input.costMinor,
     occurredOn: input.occurredOn,
     recordedAt: source.recordedAt,
     note: input.note,
     idempotencyKey: source.idempotencyKey,
   });
+  /* X-06: الأصل يبقى في السجل — كل تعديل يغيّر السعر المتفق يحمل سعره الأصلي معه. */
+  const before =
+    input.revenueMinor !== source.revenueMinor ? source.revenueMinor : undefined;
   return Object.freeze({
     ...updated,
-    revisions: revisionList(source, revision),
+    revisions: revisionList(source, revision, before),
   });
+}
+
+/* X-06 (و٤): «خفّضتُ السعر» — تخفيض موثَّق يحط السعر المتفق إلى المقبوض فعلًا:
+ * لا دَين ولا تتبّع، والأصل يبقى في السجل بمراجعة تحمل السعر قبل التخفيض. */
+export function applyPriceCut(
+  source: DirectSale,
+  revision: { idempotencyKey: string; createdAt: string; reason: string | null },
+): DirectSale {
+  if (source.status === "cancelled") throw new Error("لا يمكن تخفيض سعر بيع مباشر ملغى.");
+  if ((source.revisions ?? []).some(candidate => candidate.kind === "cancel"))
+    throw new Error("لا يمكن تخفيض سعر بيع مباشر يحمل إلغاءً سابقًا.");
+  if (source.collectedMinor >= source.revenueMinor)
+    throw new Error("التخفيض يخص بيعًا قبضه أقل من سعره المتفق — لا بيعًا مقبوضًا كاملًا.");
+  const cut: DirectSaleRevision = {
+    kind: "price_cut",
+    idempotencyKey: revision.idempotencyKey,
+    createdAt: revision.createdAt,
+    reason: revision.reason,
+  };
+  const before = source.revenueMinor;
+  const next: DirectSale = {
+    ...source,
+    revenueMinor: source.collectedMinor,
+    profitMinor: source.costMinor === null ? null : source.collectedMinor - source.costMinor,
+    collectionStatus: "collected_in_full",
+    revisions: revisionList(source, cut, before),
+  };
+  return Object.freeze(next);
 }
 
 export function cancelDirectSale(source: DirectSale, revision: DirectSaleRevision): DirectSale {

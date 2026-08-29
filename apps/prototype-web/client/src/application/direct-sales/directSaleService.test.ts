@@ -142,3 +142,133 @@ describe("DirectSaleService", () => {
     });
   });
 });
+describe("DirectSaleService agreed vs collected (X-06, و٤)", () => {
+  it("records 10-agreed/8-collected with the owner's debt decision and a generic name when left empty", async () => {
+    const store = new MemoryLocalStore();
+    const service = new DirectSaleService(store, () => "2026-08-30T09:00:00.000Z");
+    const result = await service.record({
+      itemName: "   ",
+      quantity: 1,
+      revenueMinor: 1000,
+      collectedMinor: 800,
+      collectionStatus: "partial_debt",
+      costMinor: null,
+      occurredOn: "2026-08-30",
+      note: "بيع من المحل",
+      idempotencyKey: "x06-debt-1",
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        itemName: "بيع نقدي",
+        revenueMinor: 1000,
+        collectedMinor: 800,
+        collectionStatus: "partial_debt",
+      },
+    });
+  });
+
+  it("applies the price cut at recording time as a documented revision — the sale becomes 8 and the original 10 stays", async () => {
+    const store = new MemoryLocalStore();
+    const service = new DirectSaleService(store, () => "2026-08-30T09:00:00.000Z");
+    const result = await service.record({
+      itemName: "قطعة",
+      quantity: 1,
+      revenueMinor: 1000,
+      collectedMinor: 800,
+      collectionStatus: undefined,
+      costMinor: 300,
+      occurredOn: "2026-08-30",
+      note: "بيع من المحل",
+      idempotencyKey: "x06-cut-1",
+      priceCut: true,
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        revenueMinor: 800,
+        collectedMinor: 800,
+        collectionStatus: "collected_in_full",
+        profitMinor: 500,
+        revisions: [
+          { kind: "price_cut", beforeRevenueMinor: 1000, reason: expect.stringContaining("خفّضتُ السعر") },
+        ],
+      },
+    });
+    /* إعادة الإرسال بمفتاح العملية نفسها لا تكرر التخفيض. */
+    const replay = await service.record({
+      itemName: "قطعة",
+      quantity: 1,
+      revenueMinor: 1000,
+      collectedMinor: 800,
+      costMinor: 300,
+      occurredOn: "2026-08-30",
+      note: "بيع من المحل",
+      idempotencyKey: "x06-cut-1",
+      priceCut: true,
+    });
+    expect(replay).toMatchObject({ ok: true, reused: true });
+  });
+
+  it("refuses collecting above the agreed price with an honest boundary message", async () => {
+    const store = new MemoryLocalStore();
+    const service = new DirectSaleService(store, () => "2026-08-30T09:00:00.000Z");
+    await expect(
+      service.record({
+        itemName: "قطعة",
+        quantity: 1,
+        revenueMinor: 500,
+        collectedMinor: 600,
+        costMinor: null,
+        occurredOn: "2026-08-30",
+        note: "بيع",
+        idempotencyKey: "x06-over-1",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+  });
+
+  it("keeps the review decision valid: the difference stays flagged, not debt and not zero", async () => {
+    const store = new MemoryLocalStore();
+    const service = new DirectSaleService(store, () => "2026-08-30T09:00:00.000Z");
+    const result = await service.record({
+      itemName: "قطعة",
+      quantity: 1,
+      revenueMinor: 1000,
+      collectedMinor: 800,
+      collectionStatus: "partial_needs_review",
+      costMinor: null,
+      occurredOn: "2026-08-30",
+      note: "بيع",
+      idempotencyKey: "x06-review-1",
+    });
+    expect(result).toMatchObject({ ok: true, value: { collectionStatus: "partial_needs_review" } });
+  });
+
+  it("carries the optional catalog reference through record and update without imposing one", async () => {
+    const store = new MemoryLocalStore();
+    const service = new DirectSaleService(store, () => "2026-08-30T09:00:00.000Z");
+    const recorded = await service.record({
+      itemName: "خاتم",
+      quantity: 1,
+      revenueMinor: 600,
+      catalogItemId: "catalog-item-1",
+      costMinor: null,
+      occurredOn: "2026-08-30",
+      note: "بيع",
+      idempotencyKey: "x06-ref-1",
+    });
+    expect(recorded).toMatchObject({ ok: true, value: { catalogItemId: "catalog-item-1" } });
+    const updated = await service.update(recorded.value.id, {
+      itemName: "خاتم",
+      quantity: 1,
+      revenueMinor: 600,
+      collectedMinor: 600,
+      catalogItemId: null,
+      costMinor: null,
+      occurredOn: "2026-08-30",
+      note: "بيع",
+      idempotencyKey: "x06-ref-edit-1",
+    });
+    expect(updated).toMatchObject({ ok: true, value: { catalogItemId: null } });
+  });
+});

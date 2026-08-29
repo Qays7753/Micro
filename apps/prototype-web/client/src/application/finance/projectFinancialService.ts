@@ -314,9 +314,18 @@ export class ProjectFinancialService {
     const project = summarizeFinancialEvents(eventsResult.value);
     /* §٥-١٣ (المرحلة أ): تحصيل البيع المباشر كاش كأي تحصيل — يدخل الكاش غير الموزع
      * نظير تحصيلات الطلبات. البيع الملغى لا يُحتسب: نقضُه ينقض قبضه. */
-    const directSalesCashMinor = directSalesResult.value
-      .filter(sale => (sale.status ?? "active") === "active")
-      .reduce((sum, sale) => sum + sale.collectedMinor, 0);
+    const activeDirectSales = directSalesResult.value.filter(
+      sale => (sale.status ?? "active") === "active",
+    );
+    const directSalesCashMinor = activeDirectSales.reduce(
+      (sum, sale) => sum + sale.collectedMinor,
+      0,
+    );
+    /* X-06 (و٤): ما قرّره المالك دَينًا من فرق البيع المباشر يظهر في «لي عند العملاء» —
+     * المال المستحق لا يُخفى. و«يحتاج مراجعة» فرق لم يُقرَّر بعد فلا يدخل الذمم. */
+    const directSalesReceivablesMinor = activeDirectSales
+      .filter(sale => sale.collectionStatus === "partial_debt")
+      .reduce((sum, sale) => sum + (sale.revenueMinor - sale.collectedMinor), 0);
     const supplierMaterialPayablesMinor = purchasesResult.value.reduce(
       (sum, purchase) => sum + purchase.payableMinor,
       0,
@@ -339,7 +348,7 @@ export class ProjectFinancialService {
       ok: true,
       value: {
         recordedCashMinor: unallocatedCashMinor + walletCashMinor,
-        customerReceivablesMinor: orderPulse.registeredDebtMinor,
+        customerReceivablesMinor: orderPulse.registeredDebtMinor + directSalesReceivablesMinor,
         supplierPayablesMinor: project.payableMinor + supplierMaterialPayablesMinor,
         ownerCapitalRecordedMinor: project.ownerCapitalMinor + ownerCapitalFromMovementsMinor,
         operatingExpensesRecordedMinor: project.operatingExpenseMinor,

@@ -53,6 +53,9 @@ describe("DirectSaleEditor", () => {
     const update = vi.fn().mockResolvedValue({ ok: true, value: sale });
     const notifyDataChanged = vi.fn();
     mockedUsePrototypeServices.mockReturnValue({
+      catalog: {
+        list: vi.fn().mockResolvedValue({ ok: true, items: [] }),
+      },
       directSales: {
         get: vi.fn().mockResolvedValue({ ok: true, value: sale }),
         update,
@@ -88,6 +91,9 @@ describe("DirectSaleEditor", () => {
       value: { ...sale, status: "cancelled" },
     });
     mockedUsePrototypeServices.mockReturnValue({
+      catalog: {
+        list: vi.fn().mockResolvedValue({ ok: true, items: [] }),
+      },
       directSales: {
         get: vi.fn().mockResolvedValue({ ok: true, value: sale }),
         cancel,

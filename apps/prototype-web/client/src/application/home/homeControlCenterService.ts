@@ -149,7 +149,7 @@ export class HomeControlCenterService {
         state: orderEvidence ? "known" : "not_initialized",
         valueMinor: orderEvidence ? positionValue.customerReceivablesMinor : null,
         currency: "JOD",
-        source: "طلبات محلية مسجلة",
+        source: "طلبات ومبيعات مباشرة مسجلة",
         period,
         helper: "دين عميل مسجل، وليس كاشًا محصلًا.",
         road: orderEvidence ? null : factRoads.receivables,
