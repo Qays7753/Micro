@@ -90,6 +90,13 @@ export type WasteMaterialInput = {
   operationKey: string;
   wasteContext?: WasteContext | null;
 };
+/* القرار ٢٠: «أخرِج المتبقي» — المادة والسبب فقط؛ الكمية والقيمة تأتيان من المتبقي كاملًا. */
+export type ExtractRemainderInput = {
+  materialId: string;
+  occurredOn: string;
+  reason: string;
+  operationKey: string;
+};
 export type AdjustMaterialInput = {
   materialId: string;
   quantityDeltaMilli: number;
@@ -454,6 +461,47 @@ export class InventoryMaterialService {
   }
   async waste(input: WasteMaterialInput): Promise<InventoryResult<InventoryMovement>> {
     return this.outbound({ ...input, type: "waste" });
+  }
+
+  /* القرار ٢٠ (عقد ١١ المعدَّل): فعل صريح «أخرِج المتبقي» يسجّل حركة هدر بكمية المتبقي
+   * كاملة وقيمته كاملة — لا حذفًا ولا شطبًا. المخزون يبلغ صفرًا صادقًا والقيمة تظهر
+   * حيث تنتمي: الهدر. والفعل عام — يخدم إخراج مادة تلفت كلها لا الفتات وحده. */
+  async extractRemainder(input: ExtractRemainderInput): Promise<InventoryResult<InventoryMovement>> {
+    const [materials, movements] = await Promise.all([
+      this.store.listMaterials(),
+      this.store.listInventoryMovements(),
+    ]);
+    if (!materials.ok || !movements.ok) return storageFailure();
+    const repeated = movements.value.find(movement => movement.operationKey === input.operationKey);
+    if (repeated) return { ok: true, value: repeated, reused: true };
+    if (!materials.value.some(material => material.id === input.materialId))
+      return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل إخراج الفاقد." };
+    try {
+      const position = assertInventoryRemainsNonNegative(input.materialId, movements.value);
+      if (position.quantityMilli <= 0 || position.valueMinor <= 0)
+        throw new Error("لا متبقي من هذه المادة لإخراجه.");
+      const movement = createInventoryMovement({
+        id: id("extract-waste"),
+        materialId: input.materialId,
+        type: "waste",
+        occurredOn: input.occurredOn,
+        recordedAt: this.now(),
+        quantityDeltaMilli: -position.quantityMilli,
+        valueDeltaMinor: -position.valueMinor,
+        note: "إخراج الفاقد — كامل المتبقي بقيمته",
+        reason: input.reason,
+        operationKey: input.operationKey,
+        wasteContext: { kind: "general_project" },
+      });
+      const saved = await this.store.commitInventory(null, [movement]);
+      return saved.ok ? { ok: true, value: movement } : storageFailure();
+    } catch (error) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: error instanceof Error ? error.message : "بيانات إخراج الفاقد غير صالحة.",
+      };
+    }
   }
   async adjust(input: AdjustMaterialInput): Promise<InventoryResult<InventoryMovement>> {
     const [materials, movements] = await Promise.all([

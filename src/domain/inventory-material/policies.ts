@@ -135,7 +135,10 @@ export function consumptionValueMinor(quantityMilli: number, position: MaterialI
   if (quantityMilli === position.quantityMilli) return position.valueMinor;
   const result = roundHalfUp(quantityMilli * position.valueMinor, position.quantityMilli);
   if (result === null || result <= 0 || result >= position.valueMinor)
-    throw new Error("لا يمكن توزيع قيمة المادة المتاحة بهذه الكمية.");
+    /* القرار ٢٠: الرفض يبقى، والفعل المعلن بعده «أخرِج المتبقي» — هدر بقيمة المتبقي كاملة لا شطب. */
+    throw new Error(
+      "حصة القيمة لا يمكن تمثيلها بهذه الكمية — سجّل حركة أصغر، أو أخرِج المتبقي كاملًا كإخراج فاقد بقيمته.",
+    );
   return result;
 }
 export function assertInventoryRemainsNonNegative(

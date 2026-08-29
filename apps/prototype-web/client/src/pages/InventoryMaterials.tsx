@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Boxes,
   CircleMinus,
+  PackageMinus,
   PackagePlus,
   Plus,
   RotateCcw,
@@ -18,7 +19,7 @@ import type {
   InventoryOverview,
 } from "@/application/inventory/inventoryMaterialService";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
-import { formatArabicPlural } from "@/presentation/formatters";
+import { localDateInAmman, formatArabicPlural } from "@/presentation/formatters";
 import { savedMovementCountLabel } from "@/presentation/plurals";
 const label = (type: InventoryMovement["type"]) =>
   ({
@@ -38,13 +39,25 @@ type State =
       movements: readonly InventoryMovement[];
       activation: InventoryActivationState;
     };
+/* القرار ٢٠: تأكيد إخراج الفاقد يعرض القيمة كاملة ويبيّن أن الفعل تسجيل هدر — قبل التنفيذ وبعده. */
+type ExtractionDraft = {
+  materialId: string;
+  materialName: string;
+  quantityMilli: number;
+  valueMinor: number;
+};
 export default function InventoryMaterials() {
   const [, navigate] = useLocation();
   const { inventory, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   const [activating, setActivating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  /* القرار ٢٠: حالة إخراج الفاقد — مسودة الفعل وسببه ومفتاح العملية. */
+  const [extraction, setExtraction] = useState<ExtractionDraft | null>(null);
+  const [extractionReason, setExtractionReason] = useState("");
+  const [extracting, setExtracting] = useState(false);
   const operationKeyRef = useRef(`inventory-activation-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+  const extractionKeyRef = useRef<string | null>(null);
   useEffect(() => {
     let active = true;
     Promise.all([inventory.overview(), inventory.movements(), inventory.readActivation()]).then(
@@ -77,6 +90,37 @@ export default function InventoryMaterials() {
     }
     notifyDataChanged();
     setMessage(`تم تفعيل المخزون بتاريخ ${result.value.activatedOn} — اللحظة معلنة في السجل.`);
+  }
+  /* القرار ٢٠ (عقد ١١ المعدّل): إخراج الفاقد — حركة هدر بقيمة المتبقي كاملة، لا حذف.
+   * الإشعار قبل التأكيد وبعده يبيّن أن المالك يسجّل هدرًا وبأي قيمة. */
+  async function confirmExtraction() {
+    if (!extraction) return;
+    const reason = extractionReason.trim();
+    if (!reason) {
+      setMessage("اكتب سبب الإخراج قبل تأكيده — سبب الهدر مطلوب كالعادة.");
+      return;
+    }
+    if (!extractionKeyRef.current)
+      extractionKeyRef.current = `inventory-extract-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
+    setExtracting(true);
+    const result = await inventory.extractRemainder({
+      materialId: extraction.materialId,
+      occurredOn: localDateInAmman(),
+      reason,
+      operationKey: extractionKeyRef.current,
+    });
+    setExtracting(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    notifyDataChanged();
+    setExtraction(null);
+    setExtractionReason("");
+    extractionKeyRef.current = null;
+    setMessage(
+      "سُجّل إخراج الفاقد — أنت سجّلت هدرًا: كامل المتبقي انتقل إلى الهدر بقيمته، ومخزون المادة صفر صادق. السجل محفوظ ولا يُحذف.",
+    );
   }
   if (state.phase === "loading")
     return (
@@ -239,6 +283,24 @@ export default function InventoryMaterials() {
                 <small>
                   <MoneyValue minor={material.valueMinor} className="micro-inline-number" />
                 </small>
+                {material.quantityMilli > 0 ? (
+                  <button
+                    className="micro-button micro-button-quiet"
+                    type="button"
+                    onClick={() => {
+                      extractionKeyRef.current = null;
+                      setExtractionReason("");
+                      setExtraction({
+                        materialId: material.id,
+                        materialName: material.name,
+                        quantityMilli: material.quantityMilli,
+                        valueMinor: material.valueMinor,
+                      });
+                    }}
+                  >
+                    <PackageMinus aria-hidden="true" /> أخرِج المتبقي
+                  </button>
+                ) : null}
               </div>
             </article>
           ))
@@ -248,6 +310,57 @@ export default function InventoryMaterials() {
           </p>
         )}
       </section>
+      {/* القرار ٢٠: تأكيد إخراج الفاقد — يعرض الكمية والقيمة كاملة ويبيّن أن الفعل تسجيل هدر. */}
+      {extraction ? (
+        <section className="micro-danger-zone" aria-labelledby="inventory-extract-title">
+          <div className="micro-section-heading">
+            <PackageMinus aria-hidden="true" />
+            <div>
+              <span className="micro-overline">أنت تسجّل هدرًا</span>
+              <h2 id="inventory-extract-title">أخرِج المتبقي: {extraction.materialName}</h2>
+            </div>
+          </div>
+          <p>
+            سيُسجَّل <strong>هدر</strong> بكمية{" "}
+            <QuantityValue valueMilli={extraction.quantityMilli} className="micro-inline-number" /> وقيمته
+            كاملة <MoneyValue minor={extraction.valueMinor} className="micro-inline-number" /> د.أ — لا حذف
+            ولا شطبًا بلا أثر. يصير مخزون المادة بعدها صفرًا صادقًا والقيمة تظهر في الهدر. القدرة عامة: إن كانت
+            المادة تلفت كلها فهذا بابها أيضًا.
+          </p>
+          <label className="micro-field">
+            <span>سبب الإخراج</span>
+            <textarea
+              value={extractionReason}
+              onChange={event => setExtractionReason(event.target.value)}
+              placeholder="مثال: فتات لا يمكن استعماله، أو مادة تلفت"
+            />
+          </label>
+          <div className="micro-form-actions">
+            <button
+              className="micro-button micro-button-danger"
+              type="button"
+              disabled={extracting}
+              onClick={() => {
+                void confirmExtraction();
+              }}
+            >
+              {extracting ? "جارٍ التسجيل…" : "أكّد إخراج الفاقد"}
+            </button>
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              disabled={extracting}
+              onClick={() => {
+                setExtraction(null);
+                setExtractionReason("");
+                extractionKeyRef.current = null;
+              }}
+            >
+              إلغاء
+            </button>
+          </div>
+        </section>
+      ) : null}
       {state.movements.length ? (
         <section className="micro-supplier-list micro-cash-history">
           <div className="micro-finance-event-heading">
