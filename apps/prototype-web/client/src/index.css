@@ -4593,6 +4593,38 @@ button.micro-month-cell:hover {
   font-size: 12px;
   line-height: 1.7;
 }
+/* القرار ٩: موضع المخزون غير النشط قبل التفعيل الصريح المؤرّخ. */
+.micro-inventory-inactive {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-bg-well);
+}
+.micro-inventory-inactive svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+.micro-inventory-inactive > div {
+  display: grid;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 0;
+}
+.micro-inventory-inactive h2 {
+  font-size: 15px;
+}
+.micro-inventory-inactive p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-inventory-inactive .micro-button {
+  flex: 0 0 auto;
+}
 /* صفحة الأساس (§2.5): قسم يمرّر بحرية — الكاش مفتوح والباقي مطوي بحالته بسطر واحد. */
 .micro-foundation-page {
   display: grid;

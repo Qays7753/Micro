@@ -357,6 +357,16 @@ export default function Finance() {
             {recordedPeriodStatusLabel(period.status)}
             {period.status === "incomplete" ? "؛ يظهر الرقم ولا يخفي البنود المستبعدة أو التقديرية." : null}
           </p>
+          {/* القرار ١٠: التقارير القديمة تقول صراحةً إن المخزون لم يكن مُدارًا — لا إخفاء ولا صفر. */}
+          {period.inventoryManagedFrom === null || period.inventoryManagedFrom > period.from ? (
+            <p className="micro-period-review-note" role="status">
+              {period.inventoryManagedFrom === null
+                ? "لم يكن المخزون مُدارًا في هذه المدة؛ لا تُقرأ من هذه الفترة أرقام مخزون."
+                : `المخزون لم يكن مُدارًا قبل ${
+                    formatLocalDate(period.inventoryManagedFrom) ?? period.inventoryManagedFrom
+                  }؛ ما قبله في هذه الفترة لا يُحسب من حركات المخزون.`}
+            </p>
+          ) : null}
           <dl>
             <div>
               <dt>إيراد طلبات نهائية</dt>

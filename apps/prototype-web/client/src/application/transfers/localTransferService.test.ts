@@ -1657,3 +1657,72 @@ describe("LocalTransferService G7-A agreement context", () => {
     ).toMatchObject({ ok: false, code: "validation_error" });
   });
 });
+
+/* القرار ٩: ترقية التصدير إلى 20 — سجل تفعيل المخزون يدور كاملًا في الملف الحالي،
+ * وملف 19/27 القديم يُقبل ويُهاجر بتفعيل غير معلن (null) لا باختراع تاريخ. */
+describe("inventory activation export and migration (decision 9)", () => {
+  it("round-trips the declared activation record in the current export version", async () => {
+    const source = new MemoryLocalStore();
+    await source.saveInventoryActivation({
+      id: "local-inventory-activation",
+      activatedOn: "2026-08-20",
+      recordedAt: "2026-08-20T09:00:00.000Z",
+      operationKey: "activation-transfer",
+    });
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    expect(exported.value.data.inventoryActivation).toMatchObject({ activatedOn: "2026-08-20" });
+    const target = new MemoryLocalStore();
+    const transfers = new LocalTransferService(target);
+    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    if (!preview.ok) throw new Error("activation import should validate");
+    await transfers.confirmImport(preview.value);
+    await expect(target.getInventoryActivation()).resolves.toMatchObject({
+      ok: true,
+      value: { activatedOn: "2026-08-20", operationKey: "activation-transfer" },
+    });
+  });
+
+  it("accepts the previous v19/schema27 export without inventing an activation date", async () => {
+    const source = new MemoryLocalStore();
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    const previous = structuredClone(exported.value) as {
+      version: number;
+      schemaVersion: number;
+      data: { inventoryActivation?: unknown };
+    };
+    previous.version = 19;
+    previous.schemaVersion = 27;
+    delete previous.data.inventoryActivation;
+    expect(
+      new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous)),
+    ).toMatchObject({
+      ok: true,
+      value: {
+        file: {
+          version: localExportVersion,
+          schemaVersion: localSchemaVersion,
+          data: { inventoryActivation: null },
+        },
+      },
+    });
+  });
+
+  it("rejects a corrupt activation record instead of guessing its meaning", async () => {
+    const source = new MemoryLocalStore();
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    const corrupt = structuredClone(exported.value) as {
+      version: number;
+      schemaVersion: number;
+      data: Record<string, unknown>;
+    };
+    corrupt.version = localExportVersion;
+    corrupt.schemaVersion = localSchemaVersion;
+    corrupt.data.inventoryActivation = { id: "wrong-id", activatedOn: "not-a-date" };
+    expect(
+      new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(corrupt)),
+    ).toMatchObject({ ok: false, code: "validation_error" });
+  });
+});

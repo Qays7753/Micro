@@ -322,3 +322,51 @@ describe("InventoryMaterialService purchase receipt quota after a reversal (A-02
     expect(beyond).toMatchObject({ ok: false, code: "validation_error" });
   });
 });
+
+/* القرار ٩: تفعيل المخزون صريح مؤرّخ — الموضع غير نشط قبله، ولحظة التفعيل تُعرض،
+ * والإرث الموجود يُقرأ من أقدم دليل لا من بوابة جديدة. */
+describe("InventoryMaterialService activation (decision 9)", () => {
+  it("reads an inactive position with an honest truth line when nothing was ever recorded", async () => {
+    const service = new InventoryMaterialService(new MemoryLocalStore(), () => "2026-08-23T09:00:00.000Z");
+    await expect(service.readActivation()).resolves.toMatchObject({
+      ok: true,
+      value: { activatedOn: null, source: null },
+    });
+  });
+
+  it("activates explicitly with today's Amman date and keeps the moment idempotent", async () => {
+    const store = new MemoryLocalStore();
+    let timestamp = "2026-08-23T09:00:00.000Z";
+    const service = new InventoryMaterialService(store, () => timestamp);
+    const activated = await service.activate({ operationKey: "activation-1" });
+    expect(activated).toMatchObject({
+      ok: true,
+      value: { activatedOn: "2026-08-23", operationKey: "activation-1" },
+    });
+    timestamp = "2026-08-24T09:00:00.000Z";
+    const repeated = await service.activate({ operationKey: "activation-2" });
+    expect(repeated).toMatchObject({ ok: true, reused: true, value: { activatedOn: "2026-08-23" } });
+    await expect(service.readActivation()).resolves.toMatchObject({
+      ok: true,
+      value: { activatedOn: "2026-08-23", source: "declared" },
+    });
+  });
+
+  it("derives an existing owner's management start from the earliest evidence instead of gating them", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-08-23T09:00:00.000Z");
+    await service.openMaterial({
+      name: "خشب",
+      unit: "piece",
+      openingQuantityMilli: 10000,
+      openingValueMinor: 4000,
+      occurredOn: "2026-08-01",
+      note: "افتتاح",
+      operationKey: "material-legacy",
+    });
+    await expect(service.readActivation()).resolves.toMatchObject({
+      ok: true,
+      value: { activatedOn: "2026-08-01", source: "derived" },
+    });
+  });
+});

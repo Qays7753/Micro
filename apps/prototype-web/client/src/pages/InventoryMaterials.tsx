@@ -9,11 +9,14 @@ import {
   Scissors,
   SlidersHorizontal,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
-import type { InventoryOverview } from "@/application/inventory/inventoryMaterialService";
+import type {
+  InventoryActivationState,
+  InventoryOverview,
+} from "@/application/inventory/inventoryMaterialService";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { formatArabicPlural } from "@/presentation/formatters";
 import { savedMovementCountLabel } from "@/presentation/plurals";
@@ -29,25 +32,52 @@ const label = (type: InventoryMovement["type"]) =>
 type State =
   | { phase: "loading" }
   | { phase: "error" }
-  | { phase: "ready"; overview: InventoryOverview; movements: readonly InventoryMovement[] };
+  | {
+      phase: "ready";
+      overview: InventoryOverview;
+      movements: readonly InventoryMovement[];
+      activation: InventoryActivationState;
+    };
 export default function InventoryMaterials() {
   const [, navigate] = useLocation();
-  const { inventory, dataVersion } = usePrototypeServices();
+  const { inventory, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
+  const [activating, setActivating] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const operationKeyRef = useRef(`inventory-activation-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   useEffect(() => {
     let active = true;
-    Promise.all([inventory.overview(), inventory.movements()]).then(([overview, movements]) => {
-      if (!active) return;
-      if (!overview.ok || !movements.ok) {
-        setState({ phase: "error" });
-        return;
-      }
-      setState({ phase: "ready", overview: overview.value, movements: movements.value });
-    });
+    Promise.all([inventory.overview(), inventory.movements(), inventory.readActivation()]).then(
+      ([overview, movements, activation]) => {
+        if (!active) return;
+        if (!overview.ok || !movements.ok || !activation.ok) {
+          setState({ phase: "error" });
+          return;
+        }
+        setState({
+          phase: "ready",
+          overview: overview.value,
+          movements: movements.value,
+          activation: activation.value,
+        });
+      },
+    );
     return () => {
       active = false;
     };
   }, [inventory, dataVersion]);
+  /* القرار ٩: تفعيل صريح بتاريخ اليوم — لحظة معلنة تُعرض، والرصيد يومها يكفي. */
+  async function activateInventory() {
+    setActivating(true);
+    const result = await inventory.activate({ operationKey: operationKeyRef.current });
+    setActivating(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    notifyDataChanged();
+    setMessage(`تم تفعيل المخزون بتاريخ ${result.value.activatedOn} — اللحظة معلنة في السجل.`);
+  }
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -76,24 +106,58 @@ export default function InventoryMaterials() {
     many: "مادة",
     other: "مادة",
   });
+  const notActivated = state.activation.activatedOn === null;
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
-        <ArrowLeft aria-hidden="true" /> الوضع المالي
+        <ArrowLeft aria-hidden="true" /> مالي
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مخزون بسيط</span>
-        <h1>المواد المتاحة</h1>
+        <h1>المواد والمخزون</h1>
         <p>سجّل ما يتوفر فعلًا، ثم اربط الاستهلاك أو الهدر بحدث واضح. شراء المواد لا يصبح تكلفة بيع هنا.</p>
       </div>
-      <section className="micro-decision-card">
-        <Boxes aria-hidden="true" />
-        <div>
-          <span>حد الحقيقة · القيم (د.أ)</span>
-          <strong>المتبقي مادة وقيمة، لا ربح ولا مصروف تلقائي.</strong>
-          <p>{state.overview.truth}</p>
-        </div>
-      </section>
+      {message ? (
+        <p className="micro-save-note" role="status">
+          {message}
+        </p>
+      ) : null}
+      {/* القرار ٩ + §٢.٨: قبل التفعيل الموضع غير نشط معلنًا — لا بوابة، والتفعيل بتاريخ اليوم. */}
+      {notActivated ? (
+        <section className="micro-inventory-inactive" aria-labelledby="inventory-inactive-title">
+          <SlidersHorizontal aria-hidden="true" />
+          <div>
+            <span className="micro-overline">موضع غير نشط</span>
+            <h2 id="inventory-inactive-title">المخزون غير مفعّل</h2>
+            <p>
+              تفعيله يغيّر أرقام التكلفة: من لحظة التفعيل تدخل حركات المواد شبكة المصادر. لقطة رصيد يوم
+              التفعيل تكفي — لا يُطلب استيراد تاريخ سابق.
+            </p>
+          </div>
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            disabled={activating}
+            onClick={() => {
+              void activateInventory();
+            }}
+          >
+            {activating ? "جارٍ التفعيل…" : "تفعيل بتاريخ اليوم"}
+          </button>
+        </section>
+      ) : (
+        <section className="micro-decision-card">
+          <SlidersHorizontal aria-hidden="true" />
+          <div>
+            <span>حد الحقيقة · القيم (د.أ)</span>
+            <strong>
+              {state.activation.source === "declared" ? "مُدار بتفعيل صريح منذ " : "مُدار من "}
+              <LocalDateValue value={state.activation.activatedOn ?? ""} />
+            </strong>
+            <p>{state.activation.truth}</p>
+          </div>
+        </section>
+      )}
       {/* مبدأ Micro: أفعال المادة لا تظهر كأنها متاحة قبل وجود مادة مسجلة. */}
       <div className="micro-cash-actions">
         <button

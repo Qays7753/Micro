@@ -24,11 +24,20 @@ import type {
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
-export const localSchemaVersion = 27;
+export const localSchemaVersion = 28;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 19;
+export const localExportVersion = 20;
+/* القرار ٩: تفعيل المخزون صريح مؤرّخ — لحظة معلنة يُعرض تاريخها، والرصيد يوم
+ * التفعيل يكفي. الترقية معلنة في الكومِت: سجل واحد بلا علاقات جديدة. */
+export const localInventoryActivationId = "local-inventory-activation";
+export type InventoryActivation = {
+  id: typeof localInventoryActivationId;
+  activatedOn: string;
+  recordedAt: string;
+  operationKey: string;
+};
 
 export type ActivityProfile = {
   id: typeof localProfileId;
@@ -173,6 +182,7 @@ export type LocalStoreSnapshot = {
   cashContinuityEntries?: readonly CashContinuityEntry[];
   materials?: readonly Material[];
   inventoryMovements?: readonly InventoryMovement[];
+  inventoryActivation?: InventoryActivation | null;
   catalogItems?: readonly CatalogItem[];
   measurementUnits?: readonly MeasurementUnit[];
   directConversions?: readonly DirectConversion[];
@@ -241,6 +251,8 @@ export interface PrototypeLocalStore {
   ): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>>;
   listMaterials(): Promise<StorageResult<readonly Material[]>>;
   listInventoryMovements(): Promise<StorageResult<readonly InventoryMovement[]>>;
+  getInventoryActivation(): Promise<StorageResult<InventoryActivation | null>>;
+  saveInventoryActivation(activation: InventoryActivation): Promise<StorageResult<InventoryActivation>>;
   commitInventory(
     material: Material | null,
     movements: readonly InventoryMovement[],
