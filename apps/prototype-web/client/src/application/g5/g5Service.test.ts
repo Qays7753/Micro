@@ -467,7 +467,7 @@ describe("G5 expense readings after reversals (C-01)", () => {
     const decision = await g5.readDecision("2026-08-01", "2026-08-31");
     expect(decision.ok && decision.value.period.fixedExpenseMinor).toBe(0);
     const gapReasons = decision.ok
-      ? decision.value.period.reasons.filter(reason => reason.includes("غير محمل لغياب مصدر الحصة"))
+      ? decision.value.period.reasons.filter(reason => reason.includes("غير موزّع لغياب مصدر الحصة"))
       : [];
     expect(gapReasons).toHaveLength(0);
   });

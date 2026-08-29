@@ -70,7 +70,7 @@ const sourceDescription: Record<SharedProjectShareBasis, string> = {
   agreed_fixed_share: "أدخل حصة المشروع فقط؛ لا يحفظ النظام إجمالي فاتورة البيت.",
   agreed_percentage: "أدخل الإجمالي والنسبة الصريحة؛ يحسب النظام حصة المشروع بدقة ويحفظها في السجل.",
   owner_estimate: "تقديرك الحالي لحصة المشروع؛ تدخل مرة واحدة وتبقى الصورة ناقصة.",
-  needs_review: "يحفظ إجمالي المصدر كغير محمل؛ لا يصبح صفرًا ولا يخصم من النتيجة.",
+  needs_review: "يحفظ إجمالي المصدر كغير موزّع؛ لا يصبح صفرًا ولا يخصم من النتيجة.",
 };
 
 export default function FinancialEventEditor() {
@@ -259,7 +259,7 @@ export default function FinancialEventEditor() {
             />
             <small>
               {isShared && sharedMode === "defer"
-                ? "سيبقى هذا الإجمالي غير محمل حتى تحدد حصة المشروع."
+                ? "سيبقى هذا الإجمالي غير موزّع حتى تحدد حصة المشروع."
                 : null}
             </small>
           </label>
@@ -401,7 +401,7 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
         </select>
         <small>
           {relationship === "shared"
-            ? "لن يحمّل النظام إجمالي فاتورة مشتركة على الربح إلا إذا حددت الحصة أو أبقيتها غير محملة بوضوح."
+            ? "لن يوزّع النظام إجمالي فاتورة مشتركة على الربح إلا إذا حددت الحصة أو أبقيتها غير موزّعة بوضوح."
             : "هذا المبلغ يخدم المشروع بالكامل كما هو مسجل."}
         </small>
       </label>
@@ -460,7 +460,7 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
               : sharedKnowledge === "estimated"
                 ? "تقديري"
                 : "يحتاج مراجعة"}
-            . تدخل الحصة المحملة في نتيجة الفترة مرة واحدة، أما المؤجل فيظهر كغير محمل ولا يساوي صفرًا.
+            . تدخل الحصة الموزّعة في نتيجة الفترة مرة واحدة، أما المؤجل فيظهر كغير موزّع ولا يساوي صفرًا.
           </p>
         </>
       ) : (

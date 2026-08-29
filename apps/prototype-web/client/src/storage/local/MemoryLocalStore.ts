@@ -394,13 +394,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       return {
         ok: false,
         code: "storage_error",
-        message: "لم تعد سياسة التحميل الأصلية فعالة؛ لم تتغير السلسلة.",
+        message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم تتغير السلسلة.",
       };
     if (this.allocationPolicies.has(successor.id))
       return {
         ok: false,
         code: "storage_error",
-        message: "تعارض هوية نسخة سياسة التحميل؛ لم تتغير البيانات.",
+        message: "تعارض هوية نسخة سياسة التوزيع؛ لم تتغير البيانات.",
       };
     this.allocationPolicies.set(previous.id, clone(previous));
     this.allocationPolicies.set(successor.id, clone(successor));

@@ -375,7 +375,7 @@ function openDatabase(): Promise<IDBDatabase> {
       if (event.oldVersion < 26) {
         const allocationPolicies = request.transaction?.objectStore(allocationPolicyStore);
         if (allocationPolicies) {
-          const cursor = guardUpgradeCursor(allocationPolicies.openCursor(), request, "سياسات التحميل");
+          const cursor = guardUpgradeCursor(allocationPolicies.openCursor(), request, "سياسات التوزيع");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -1077,7 +1077,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "لم تعد سياسة التحميل الأصلية فعالة؛ لم تتغير السلسلة.",
+              message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم تتغير السلسلة.",
             };
             try {
               transaction.abort();
@@ -1090,7 +1090,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             pending = {
               ok: false,
               code: "storage_error",
-              message: "تعارض هوية نسخة سياسة التحميل؛ لم تتغير البيانات.",
+              message: "تعارض هوية نسخة سياسة التوزيع؛ لم تتغير البيانات.",
             };
             try {
               transaction.abort();

@@ -324,7 +324,7 @@ export function calculateContributionMargin(
       classificationGap = true;
       incomplete = true;
       reasons.push(`الحصة المشتركة ${expense.source} بلا أساس معلن؛ لم تدخل كمصروف ثابت معروف.`);
-      excluded.push(`المصروف ${expense.source} غير محمل لغياب مصدر الحصة.`);
+      excluded.push(`المصروف ${expense.source} غير موزّع لغياب مصدر الحصة.`);
       continue;
     }
     if (expense.relationship === "shared" && expense.sharedProjectShareBasis === "needs_review") {

@@ -339,7 +339,7 @@ export default function Catalog() {
 
   async function savePolicy() {
     if (!selectedItemId) {
-      setMessage("اختر مرجع عمل قبل إضافة سياسة تحميل.");
+      setMessage("اختر مرجع عمل قبل إضافة سياسة توزيع.");
       return;
     }
     const amountMinor = policyKind === "manual_amount" ? policyAmount : null;
@@ -355,7 +355,7 @@ export default function Catalog() {
       (policyKind === "completed_revenue_percentage" &&
         (!policyPercentageValid || percentageBps === null || percentageBps <= 0 || percentageBps > 10_000))
     ) {
-      setMessage("أدخل أساس التحميل بصيغة موجبة واضحة؛ لا نستخدم صفرًا بدل البيانات الناقصة.");
+      setMessage("أدخل أساس التوزيع بصيغة موجبة واضحة؛ لا نستخدم صفرًا بدل البيانات الناقصة.");
       return;
     }
     if (
@@ -409,7 +409,7 @@ export default function Catalog() {
     setPolicyRevisionId(null);
     notifyDataChanged();
     await load();
-    setMessage("تم حفظ سياسة التحميل كقراءة تفسيرية مؤرخة؛ لم ينشأ منها أثر مالي أو تغيير في نسخة التكلفة.");
+    setMessage("تم حفظ سياسة التوزيع كقراءة تفسيرية مؤرخة؛ لم ينشأ منها أثر مالي أو تغيير في نسخة التكلفة.");
   }
 
   async function createUnit() {
@@ -1262,7 +1262,7 @@ export default function Catalog() {
         <summary className="micro-decision-layer-summary">
           <span>
             <b>فترة القراءة والسياسة</b>
-            <small>قراءة مشتقة وسياسة تحميل معلنة عند الطلب.</small>
+            <small>قراءة مشتقة وسياسة توزيع معلنة عند الطلب.</small>
           </span>
           <strong>افتح التفاصيل</strong>
         </summary>
@@ -1271,7 +1271,7 @@ export default function Catalog() {
             <span className="micro-overline">4 · فترة القراءة والسياسة</span>
             <h2>اقرأ قبل أن تقرر</h2>
             <p>
-              حدد فترة معلنة، ثم اعرض الهامش المباشر المسجل. أي تحميل اختياري يحتاج سياسة مؤرخة ومصدرًا وسببًا
+              حدد فترة معلنة، ثم اعرض الهامش المباشر المسجل. أي توزيع اختياري يحتاج سياسة مؤرخة ومصدرًا وسببًا
               واضحًا.
             </p>
           </div>
@@ -1293,7 +1293,7 @@ export default function Catalog() {
             <div className="micro-subsection-heading">
               <div>
                 <span className="micro-overline">سياسة اختيارية</span>
-                <h3>أضف تحميلًا واضحًا</h3>
+                <h3>أضف توزيعًا واضحًا</h3>
               </div>
               <p>
                 لا تُنشئ السياسة قيدًا ماليًا ولا تعيد كتابة الماضي؛ وتبقى قابلة للمراجعة عبر تاريخها ومصدرها.
@@ -1338,7 +1338,7 @@ export default function Catalog() {
                     />
                   </label>
                   <label className="micro-field">
-                    <span>أساس التحميل</span>
+                    <span>أساس التوزيع</span>
                     <select
                       value={policyKind}
                       onChange={event =>
@@ -1363,7 +1363,7 @@ export default function Catalog() {
                         onTextValidityChange={setPolicyAmountValid}
                         onEmptyChange={() => setPolicyAmount(null)}
                         allowEmpty
-                        aria-label="مبلغ سياسة التحميل"
+                        aria-label="مبلغ سياسة التوزيع"
                       />
                     </label>
                   ) : null}
@@ -1383,7 +1383,7 @@ export default function Catalog() {
                         onTextValidityChange={setPolicyRateValid}
                         onEmptyChange={() => setPolicyRate(null)}
                         allowEmpty
-                        aria-label="معدل سياسة التحميل"
+                        aria-label="معدل سياسة التوزيع"
                       />
                     </label>
                   ) : null}
@@ -1412,14 +1412,14 @@ export default function Catalog() {
                         onTextValidityChange={setPolicyPercentageValid}
                         onEmptyChange={() => setPolicyPercentage(null)}
                         allowEmpty
-                        aria-label="نسبة سياسة التحميل"
+                        aria-label="نسبة سياسة التوزيع"
                       />
                     </label>
                   ) : null}
                 </div>
                 {policyKind === "per_output_unit" ? (
                   <div className="micro-inline-disclosure">
-                    <p>{perUnitPreview?.text ?? "ستظهر معاينة التحميل بعد وجود كمية نهائية ومعدل صالح."}</p>
+                    <p>{perUnitPreview?.text ?? "ستظهر معاينة التوزيع بعد وجود كمية نهائية ومعدل صالح."}</p>
                     <p>{catalogPerUnitRoundingNote}</p>
                     {perUnitPreview?.warning ? (
                       <p className="micro-warning-copy">{perUnitPreview.warning}</p>
@@ -1462,7 +1462,7 @@ export default function Catalog() {
                 </button>
               </>
             ) : (
-              <p className="micro-empty-copy">اختر مرجع عمل إذا أردت تسجيل سياسة تحميل اختيارية.</p>
+              <p className="micro-empty-copy">اختر مرجع عمل إذا أردت تسجيل سياسة توزيع اختيارية.</p>
             )}
           </div>
         </section>
@@ -1551,7 +1551,7 @@ export default function Catalog() {
                             <>
                               <p>
                                 <strong>
-                                  الربح بعد التحميل:{" "}
+                                  الربح بعد التوزيع:{" "}
                                   {allocation.resultMinor === null
                                     ? "غير مكتمل"
                                     : jod(allocation.resultMinor)}
@@ -1562,7 +1562,7 @@ export default function Catalog() {
                               <p>{allocation.calculationNote}</p>
                             </>
                           ) : (
-                            <p>لا توجد سياسة تحميل فعالة تغطي الفترة؛ الهامش المباشر هو القراءة الأساسية.</p>
+                            <p>لا توجد سياسة توزيع فعالة تغطي الفترة؛ الهامش المباشر هو القراءة الأساسية.</p>
                           )}
                           {reading.reasons.map(reason => (
                             <p className="micro-warning-copy" key={reason}>

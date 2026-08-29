@@ -55,7 +55,7 @@ const expenseContextLabel = (event: FinancialEvent) => {
   if (event.expenseContext.relationship === "project") return `للمشروع · ${knowledge}`;
   const share = event.expenseContext.sharedProjectShare;
   if (share?.allocation === "unallocated")
-    return `مصروف مشترك غير محمل · ${formatMoneyMinor(share.totalAmountMinor ?? event.amountMinor)}`;
+    return `مصروف مشترك غير موزّع · ${formatMoneyMinor(share.totalAmountMinor ?? event.amountMinor)}`;
   const source = share?.basis;
   const sourceLabel =
     source === "agreed_fixed_share"
@@ -67,7 +67,7 @@ const expenseContextLabel = (event: FinancialEvent) => {
           : source === "needs_review"
             ? "مصدر يحتاج مراجعة"
             : "مصدر الحصة غير موثق";
-  return `حصة مشروع مشتركة · ${knowledge} · ${sourceLabel}`;
+  return `حصة المشروع من مصروف مشترك · ${knowledge} · ${sourceLabel}`;
 };
 const currentMonth = () => localDateInAmman().slice(0, 7);
 const validMonth = (month: string) =>
@@ -296,7 +296,7 @@ export default function Finance() {
           </p>
           <p className="micro-period-result-value">
             <span>
-              الإيراد − التكلفة المباشرة المستخدمة − المصروف التشغيلي المحمل، ضمن الفترة المحددة فقط
+              الإيراد − التكلفة المباشرة المستخدمة − المصروف التشغيلي الموزّع، ضمن الفترة المحددة فقط
             </span>
             <strong>
               {period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}
@@ -338,19 +338,19 @@ export default function Finance() {
               </dd>
             </div>
             <div>
-              <dt>حصص مشروع مشتركة محملة</dt>
+              <dt>حصة المشروع من مصروف مشترك موزّعة</dt>
               <dd>
                 <PeriodMoney value={period.sharedProjectExpenseMinor} status={period.status} />
               </dd>
             </div>
             <div>
-              <dt>مصروف مشترك غير محمل</dt>
+              <dt>مصروف مشترك غير موزّع</dt>
               <dd>
                 <PeriodMoney value={period.sharedUnallocatedExpenseMinor} status={period.status} />
               </dd>
             </div>
             <div>
-              <dt>استهلاك عام غير محمل</dt>
+              <dt>استهلاك عام غير موزّع</dt>
               <dd>
                 <PeriodMoney value={period.unallocatedInventoryCostMinor} status={period.status} />
               </dd>
@@ -410,7 +410,7 @@ export default function Finance() {
           ) : null}
           {period.sharedUnallocatedExpenseCount > 0 ? (
             <p className="micro-period-next-action">
-              الفعل التالي: حدد حصة المشروع للمصروف المشترك غير المحمل قبل الاعتماد على نتيجة أدق؛ لم يخصم
+              الفعل التالي: حدد حصة المشروع للمصروف المشترك غير الموزّع قبل الاعتماد على نتيجة أدق؛ لم يخصم
               المصدر المستبعد من الرقم أعلاه.
             </p>
           ) : null}

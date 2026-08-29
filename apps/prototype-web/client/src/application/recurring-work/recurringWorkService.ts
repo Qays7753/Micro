@@ -167,7 +167,7 @@ export class RecurringWorkService {
     includeInactive = true,
   ): Promise<RecurringWorkResult<readonly AllocationPolicy[]>> {
     const result = await this.store.listAllocationPolicies(catalogItemId);
-    if (!result.ok) return failure("تعذر قراءة سياسات التحميل المحلية.");
+    if (!result.ok) return failure("تعذر قراءة سياسات التوزيع المحلية.");
     return { ok: true, value: result.value.filter(policy => includeInactive || policy.status === "active") };
   }
 
@@ -176,8 +176,8 @@ export class RecurringWorkService {
       this.store.getCatalogItem(input.catalogItemId),
       this.store.listAllocationPolicies(input.catalogItemId),
     ]);
-    if (!item.ok || !policies.ok) return failure("تعذر قراءة مرجع العمل أو سياسات التحميل.");
-    if (!item.value) return failure("مرجع العمل غير موجود؛ لا يمكن ربط سياسة تحميل به.", "not_found");
+    if (!item.ok || !policies.ok) return failure("تعذر قراءة مرجع العمل أو سياسات التوزيع.");
+    if (!item.value) return failure("مرجع العمل غير موجود؛ لا يمكن ربط سياسة توزيع به.", "not_found");
     const repeated = policies.value.find(policy => policy.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     if (
@@ -188,7 +188,7 @@ export class RecurringWorkService {
       )
     )
       return failure(
-        "توجد سياسة تحميل فعالة في النطاق نفسه؛ أنهِها أو أنشئ نطاقًا مستقلًا بوضوح.",
+        "توجد سياسة توزيع فعالة في النطاق نفسه؛ أنهِها أو أنشئ نطاقًا مستقلًا بوضوح.",
         "validation_error",
       );
     try {
@@ -205,10 +205,10 @@ export class RecurringWorkService {
       const saved = await this.store.saveAllocationPolicy(policy);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : failure("تعذر حفظ سياسة التحميل؛ لم يتغير أي أثر مالي.");
+        : failure("تعذر حفظ سياسة التوزيع؛ لم يتغير أي أثر مالي.");
     } catch (error) {
       return failure(
-        error instanceof Error ? error.message : "بيانات سياسة التحميل غير صالحة.",
+        error instanceof Error ? error.message : "بيانات سياسة التوزيع غير صالحة.",
         "validation_error",
       );
     }
@@ -219,11 +219,11 @@ export class RecurringWorkService {
     input: RecurringWorkPolicySuccessorInput,
   ): Promise<RecurringWorkResult<AllocationPolicy>> {
     const policies = await this.store.listAllocationPolicies();
-    if (!policies.ok) return failure("تعذر قراءة سلسلة سياسات التحميل.");
+    if (!policies.ok) return failure("تعذر قراءة سلسلة سياسات التوزيع.");
     const repeated = policies.value.find(policy => policy.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const previous = policies.value.find(policy => policy.id === policyId);
-    if (!previous) return failure("لم نجد سياسة التحميل الأصلية.", "not_found");
+    if (!previous) return failure("لم نجد سياسة التوزيع الأصلية.", "not_found");
     if (previous.status !== "active")
       return failure("لا يمكن إنشاء خليفة لسياسة غير فعالة.", "validation_error");
     if (!localDate(input.startsOn) || input.startsOn <= previous.startsOn)
@@ -271,10 +271,10 @@ export class RecurringWorkService {
       const saved = await this.store.commitAllocationPolicySuccessor(ended, successor);
       return saved.ok
         ? { ok: true, value: saved.value.successor }
-        : failure("تعذر حفظ مراجعة سياسة التحميل ذريًا؛ بقيت النسخة السابقة كما هي.");
+        : failure("تعذر حفظ مراجعة سياسة التوزيع ذريًا؛ بقيت النسخة السابقة كما هي.");
     } catch (error) {
       return failure(
-        error instanceof Error ? error.message : "بيانات مراجعة سياسة التحميل غير صالحة.",
+        error instanceof Error ? error.message : "بيانات مراجعة سياسة التوزيع غير صالحة.",
         "validation_error",
       );
     }
@@ -282,15 +282,15 @@ export class RecurringWorkService {
 
   async deactivatePolicy(policyId: string): Promise<RecurringWorkResult<AllocationPolicy>> {
     const policy = await this.store.getAllocationPolicy(policyId);
-    if (!policy.ok) return failure("تعذر قراءة سياسة التحميل.");
-    if (!policy.value) return failure("سياسة التحميل غير موجودة.", "not_found");
+    if (!policy.ok) return failure("تعذر قراءة سياسة التوزيع.");
+    if (!policy.value) return failure("سياسة التوزيع غير موجودة.", "not_found");
     if (policy.value.status === "inactive") return { ok: true, value: policy.value };
     const saved = await this.store.saveAllocationPolicy({
       ...policy.value,
       status: "inactive",
       updatedAt: this.now(),
     });
-    return saved.ok ? { ok: true, value: saved.value } : failure("تعذر إيقاف سياسة التحميل.");
+    return saved.ok ? { ok: true, value: saved.value } : failure("تعذر إيقاف سياسة التوزيع.");
   }
 
   async readRecurringWork(from: string, to: string): Promise<RecurringWorkResult<RecurringWorkReadings>> {
@@ -304,7 +304,7 @@ export class RecurringWorkService {
       this.store.listAllocationPolicies(),
     ]);
     if (!catalog.ok || !orders.ok || !movements.ok || !timeRecords.ok || !policies.ok)
-      return failure("تعذر قراءة مرجع العمل أو أدلة الوقت والهدر وسياسات التحميل.");
+      return failure("تعذر قراءة مرجع العمل أو أدلة الوقت والهدر وسياسات التوزيع.");
     const active = activeMovements(movements.value);
     const reversedTime = new Set(
       timeRecords.value.filter(record => record.reversalOfId !== null).map(record => record.reversalOfId),
@@ -487,7 +487,7 @@ export class RecurringWorkService {
           ? ["الهدر المسجل ظاهر كدليل منفصل ولم يخصم من الهامش أو تكلفة البيع تلقائيًا."]
           : []),
         ...(activePolicies.length > 1
-          ? ["توجد سياسات فعالة متداخلة؛ لا تعرض قراءة تحميل مركبة قبل مراجعة النطاق والمصدر."]
+          ? ["توجد سياسات فعالة متداخلة؛ لا تعرض قراءة توزيع مركبة قبل مراجعة النطاق والمصدر."]
           : []),
       ];
       const nextAction =
@@ -496,9 +496,9 @@ export class RecurringWorkService {
           : material.notRecordedOrderCount > 0
             ? "سجل المادة الفعلية للطلبات الناقصة قبل تفسير فرق المادة."
             : activePolicies.length === 0
-              ? "لا توجد سياسة تحميل؛ يظهر الهامش المباشر المسجل فقط."
+              ? "لا توجد سياسة توزيع؛ يظهر الهامش المباشر المسجل فقط."
               : (allocation?.nextAction ??
-                "راجع نطاق سياسة التحميل ومصدرها وأكمل الدليل الناقص قبل الاعتماد على الرقم.");
+                "راجع نطاق سياسة التوزيع ومصدرها وأكمل الدليل الناقص قبل الاعتماد على الرقم.");
       return {
         catalogItemId: item.id,
         periodFrom: from,
@@ -534,7 +534,7 @@ export class RecurringWorkService {
         to,
         items,
         truth:
-          "هذه قراءة محلية حسب مرجع العمل وفترة معلنة. الربح بعد التحميل حسب سياسة المالك ليس صافي ربح نهائيًا أو توصية سعر، ولا يطغى على الهامش المباشر المسجل.",
+          "هذه قراءة محلية حسب مرجع العمل وفترة معلنة. الربح بعد التوزيع حسب سياسة المالك ليس صافي ربح نهائيًا أو توصية سعر، ولا يطغى على الهامش المباشر المسجل.",
       },
     };
   }

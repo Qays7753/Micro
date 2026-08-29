@@ -255,7 +255,7 @@ function derivePeriodCogs(
   if (unallocatedInventoryCostMinor > 0)
     cogsReasons.push("توجد حركة استهلاك عامة أو بلا ارتباط صالح؛ لم توزع على عمل ولم تدخل تكلفة البيع.");
   if (generalInventoryWasteMinor > 0)
-    cogsReasons.push("يوجد هدر مخزون عام؛ لا يسمى تكلفة بيع ولا يحمل على عمل تلقائيًا.");
+    cogsReasons.push("يوجد هدر مخزون عام؛ لا يسمى تكلفة بيع ولا يوزّع على عمل تلقائيًا.");
   const cogsNextAction =
     cogsStatus === "recorded" && unallocatedInventoryCostMinor === 0 && generalInventoryWasteMinor === 0
       ? "راجع أن حركات الاستهلاك تغطي المواد المقصودة؛ تبقى بقية عناصر التكلفة من نسخة التكلفة."
@@ -489,7 +489,7 @@ export class ProjectFinancialService {
     if (sharedEstimatedExpenseCount > 0) reasons.push("توجد حصة مشروع مشتركة تقديرية أو تحتاج مراجعة.");
     if (sharedMissingBasisCount > 0) reasons.push("توجد حصة مشروع مشتركة بلا مصدر موثق.");
     if (sharedUnallocatedExpenseCount > 0)
-      reasons.push("توجد مصاريف مشتركة غير محملة؛ حدد حصة المشروع قبل خصمها من النتيجة.");
+      reasons.push("توجد مصاريف مشتركة غير موزّعة؛ حدد حصة المشروع قبل خصمها من النتيجة.");
     if (legacyUnclassifiedExpenseCount > 0) reasons.push("توجد مصروفات قديمة بلا سياق مالي.");
     const incomplete = reasons.length > 0;
     return {
@@ -524,7 +524,7 @@ export class ProjectFinancialService {
         status: incomplete ? "incomplete" : "recorded_only",
         reasons,
         truth: incomplete
-          ? "هذه هي نتيجة الفترة المسجلة من البنود الداخلة فيها، لكنها تحتاج مراجعة للأسباب الظاهرة. الرقم لا يشمل المصدر المشترك غير المحمل، وتوضح قراءة تكلفة البيع هل استُخدم استهلاك مثبت أم نسخة تكلفة بديلة؛ هذه القراءة ليست صافي ربح نهائيًا."
+          ? "هذه هي نتيجة الفترة المسجلة من البنود الداخلة فيها، لكنها تحتاج مراجعة للأسباب الظاهرة. الرقم لا يشمل المصدر المشترك غير الموزّع، وتوضح قراءة تكلفة البيع هل استُخدم استهلاك مثبت أم نسخة تكلفة بديلة؛ هذه القراءة ليست صافي ربح نهائيًا."
           : "هذه هي نتيجة الفترة المسجلة من الأعمال المكتملة والتكلفة المباشرة المستخدمة وفق مصدرها ومصروفات الفترة. لا تؤكد تكلفة البيع كاملة خارج الاستهلاك المثبت أو نسخة التكلفة، ولا التوزيع على المنتجات أو الضرائب؛ لذلك ليست صافي ربح نهائيًا.",
       },
     };
@@ -610,7 +610,7 @@ export class ProjectFinancialService {
           event.expenseContext?.behavior === "unknown",
       )
     )
-      coverageReasons.push("توجد مصروفات متغيرة أو مختلطة لا تحمل تلقائيًا على الهامش بعد الكلفة المباشرة.");
+      coverageReasons.push("توجد مصروفات متغيرة أو مختلطة لا توزّع تلقائيًا على الهامش بعد الكلفة المباشرة.");
     if (movementCount > 0)
       coverageReasons.push(
         "توجد حركات مخزون فعلية؛ تعرض نتيجة الفترة تكلفة البيع الاختيارية عند اكتمال دليلها، لكنها لا تعيد كتابة نسخة التكلفة أو هامش اسم العمل.",
