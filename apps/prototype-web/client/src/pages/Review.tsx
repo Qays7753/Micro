@@ -97,8 +97,7 @@ export default function Review() {
           </div>
         </dl>
         <p className="micro-financial-pulse-note">
-          الإيراد والتكلفة أعلاه محسوبان من الطلبات ذات النتيجة <bdi dir="ltr">final</bdi> فقط؛ ليست هذه قراءة
-          كل طلب مسلّم.
+          الإيراد والتكلفة أعلاه محسوبان من الطلبات ذات النتيجة النهائية فقط؛ ليست هذه قراءة كل طلب مسلّم.
         </p>
         {excludedOrders.length ? (
           <section className="micro-review-exclusions" aria-labelledby="review-exclusions-title">

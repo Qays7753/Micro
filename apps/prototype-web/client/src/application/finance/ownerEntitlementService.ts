@@ -386,7 +386,7 @@ export class OwnerEntitlementService {
             : raw.includes("amountMinor")
               ? "أدخل مبلغًا موجبًا بوحدة JOD minor."
               : raw.includes("policy kind")
-                ? "نوع الخليفة غير مدعوم أو لا يملك دليلًا مكتملًا في O1."
+                ? "نوع الخليفة غير مدعوم أو لا يملك دليلًا مكتملًا في هذا الإصدار."
                 : "بيانات خليفة السياسة غير صالحة؛ لم تتغير النسخة السابقة.";
       return { ok: false, code: "validation_error", message };
     }

@@ -39,7 +39,7 @@ const comparisonCopy: Record<
   },
   recorded: {
     title: "فرق وقت مسجل",
-    truth: "الفرق يشرح الوقت المسجل مقابل خطة Snapshot، ولا يغيّر نتيجة الطلب المالية.",
+    truth: "الفرق يشرح الوقت المسجل مقابل خطة التكلفة، ولا يغيّر نتيجة الطلب المالية.",
   },
   needs_review: {
     title: "فرق الوقت يحتاج مراجعة",
@@ -212,7 +212,8 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
         <Clock3 aria-hidden="true" />
       </div>
       <p>
-        يسجل هذا دقائق التنفيذ فقط. لا يحولها إلى أجر أو تكلفة أو ربح، ولا يغيّر Snapshot أو الكاش أو الذمم.
+        يسجل هذا دقائق التنفيذ فقط. لا يحولها إلى أجر أو تكلفة أو ربح، ولا يغيّر نسخة التكلفة أو الكاش أو
+        الذمم.
       </p>
       <ActualTimeComparisonPanel comparison={state.comparison} />
       {state.records.length === 0 ? (

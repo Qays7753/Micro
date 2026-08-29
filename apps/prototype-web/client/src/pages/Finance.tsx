@@ -100,10 +100,10 @@ const recordedPeriodStatusLabel = (status: RecordedPeriodResult["status"]) =>
       : "لا يمكن حساب الفترة";
 const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
   status === "recorded"
-    ? "COGS مسجلة من استهلاك مؤهل لكل الأعمال النهائية"
+    ? "تكلفة البيع مسجلة من استهلاك مؤهل لكل الأعمال النهائية"
     : status === "partial"
-      ? "COGS مسجلة لبعض الأعمال، وSnapshot مستخدم لبقية الأعمال"
-      : "لا توجد COGS مؤهلة؛ Snapshot هو المصدر البديل المعلن";
+      ? "تكلفة البيع مسجلة لبعض الأعمال، ونسخة التكلفة مستخدمة لبقية الأعمال"
+      : "لا توجد تكلفة بيع مؤهلة؛ نسخة التكلفة هي المصدر البديل المعلن";
 const shortStatusLabel = (status: G5Decision["shortCash"]["status"]) =>
   status === "available"
     ? "توقع مكتمل"
@@ -314,7 +314,7 @@ export default function Finance() {
               </dd>
             </div>
             <div>
-              <dt>تكلفة مباشرة من Snapshot</dt>
+              <dt>تكلفة مباشرة من نسخة التكلفة</dt>
               <dd>
                 <PeriodMoney value={period.snapshotDirectCostMinor} status={period.status} />
               </dd>
@@ -384,9 +384,9 @@ export default function Finance() {
             </div>
           </dl>
           <div className="micro-period-review-note">
-            <strong>مصدر التكلفة وحالة COGS</strong>
+            <strong>مصدر التكلفة وحالة تكلفة البيع</strong>
             <p>
-              {cogsStatusLabel(period.cogsStatus)}. الأعمال النهائية التي رجعت إلى Snapshot لغياب استهلاك
+              {cogsStatusLabel(period.cogsStatus)}. الأعمال النهائية التي رجعت إلى نسخة التكلفة لغياب استهلاك
               مؤهل: <IntegerValue value={period.cogsMissingOrderCount} className="micro-inline-number" />.
             </p>
             {period.cogsReasons.length > 0 ? (
@@ -807,8 +807,8 @@ function FinancialEventRow({
           <div className="micro-finance-reversal-review">
             <strong>مراجعة قبل العكس</strong>
             <p>
-              سيبقى الأصل immutable كما هو. سيُضاف حدث جديد بتاريخ اليوم المحلي ويعكس كامل الأثر، دون إعادة
-              كتابة تاريخ الواقعة.
+              سيبقى السجل الأصلي كما هو دون تعديل. سيُضاف حدث جديد بتاريخ اليوم المحلي ويعكس كامل الأثر،
+              دون إعادة كتابة تاريخ الواقعة.
             </p>
             <dl>
               <div>
@@ -958,8 +958,8 @@ function G5DecisionPanel({
                 : statusLabel(contribution.status)}
           </h2>
           <p>
-            الإيراد والتكلفة المتغيرة مأخوذان من الطلبات النهائية ذات Snapshot المسجل. هذه قراءة مسجلة للفترة،
-            وليست صافي ربح نهائيًا ولا COGS فعليًا.
+            الإيراد والتكلفة المتغيرة مأخوذان من الطلبات النهائية ذات نسخة التكلفة المسجلة. هذه قراءة
+            مسجلة للفترة، وليست صافي ربح نهائيًا ولا تكلفة بيع فعلية.
           </p>
         </div>
         <div className="micro-g5-metrics">

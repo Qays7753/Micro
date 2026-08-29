@@ -221,8 +221,8 @@ export default function Home() {
       <div className="micro-scope-line">
         <CircleAlert aria-hidden="true" />
         <p>
-          Home قراءة قيادة محلية محدودة. لا تعرض صافي ربح المشروع ولا تستبدل Finance أو Orders؛ الأرقام
-          الناقصة تبقى غير معروفة.
+          هذه قراءة محلية محدودة. لا تعرض صافي ربح المشروع ولا تستبدل صفحة المال أو الطلبات؛ الأرقام الناقصة
+          تبقى غير معروفة.
         </p>
         <button className="micro-text-action" type="button" onClick={() => navigate("/review")}>
           فتح المراجعة <ArrowLeft aria-hidden="true" />

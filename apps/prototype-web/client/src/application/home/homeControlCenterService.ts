@@ -113,7 +113,7 @@ export class HomeControlCenterService {
         state: cashEvidence ? "known" : "not_initialized",
         valueMinor: cashEvidence ? positionValue.recordedCashMinor : null,
         currency: "JOD",
-        source: "ProjectFinancialService والسجل المحلي",
+        source: "السجل المحلي",
         period,
         helper: "يشمل ما سُجل من محافظ وكاش الطلبات والأحداث؛ ليس ربحًا.",
       },
@@ -172,7 +172,7 @@ export class HomeControlCenterService {
           priority: 20,
           kind: "cost",
           title: `أكمل تكلفة ${stored.order.itemName || "الطلب"}`,
-          reason: "Snapshot التكلفة غير مكتمل؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.",
+          reason: "نسخة التكلفة غير مكتملة؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.",
           action: action(
             `cost:${stored.id}`,
             "مراجعة الطلب",
@@ -326,7 +326,7 @@ export class HomeControlCenterService {
             : "empty",
         action: action(
           "period-result",
-          "فتح Finance",
+          "فتح الوضع المالي",
           "/finance",
           "نتيجة مسجلة محدودة وليست صافي ربح للمشروع.",
         ),
@@ -345,7 +345,7 @@ export class HomeControlCenterService {
       ...events.value.map(event => ({
         id: `finance:${event.id}`,
         occurredOn: event.occurredOn,
-        title: `Finance: ${event.note || event.type}`,
+        title: `حدث مالي: ${event.note || event.type}`,
         detail: "حدث مالي مسجل؛ راجع مصدره وسياقه.",
         href: "/finance",
       })),

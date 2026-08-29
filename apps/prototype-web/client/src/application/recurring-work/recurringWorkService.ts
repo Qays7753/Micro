@@ -373,7 +373,7 @@ export class RecurringWorkService {
             ? actualMaterialMinor - plannedMaterialMinor
             : null,
         truth:
-          "فرق المادة دليل تفسيري من استهلاك مثبت فقط؛ لا يغيّر Snapshot أو الهامش المباشر أو COGS تلقائيًا.",
+          "فرق المادة دليل تفسيري من استهلاك مثبت فقط؛ لا يغيّر نسخة التكلفة أو الهامش المباشر أو تكلفة البيع تلقائيًا.",
       };
       let actualMinutes = 0;
       let timeRecordedOrderCount = 0;
@@ -402,7 +402,7 @@ export class RecurringWorkService {
         varianceMinutes:
           timeRecordedOrderCount && missingTimeOrderIds.length === 0 ? actualMinutes - plannedMinutes : null,
         truth:
-          "فرق الوقت المسجل مقارنة بوقت Snapshot فقط؛ لا أجر أو سعر ساعة أو تكلفة فعلية أو تعديل للنتيجة.",
+          "فرق الوقت المسجل مقارنة بوقت نسخة التكلفة فقط؛ لا أجر أو سعر ساعة أو تكلفة فعلية أو تعديل للنتيجة.",
       };
       const waste: RecurringWorkWasteSummary = {
         orderWasteMinor: 0,
@@ -412,7 +412,7 @@ export class RecurringWorkService {
         unallocatedWasteMinor: 0,
         totalWasteMinor: 0,
         recordedCount: 0,
-        truth: "الهدر المرتبط ظاهر للتفسير، ولم نخصمه من الهامش أو COGS تلقائيًا.",
+        truth: "الهدر المرتبط ظاهر للتفسير، ولم نخصمه من الهامش أو تكلفة البيع تلقائيًا.",
       };
       for (const movement of active) {
         if (movement.type !== "waste" || !movement.wasteContext || !wasteValue(movement.wasteContext))
@@ -479,12 +479,12 @@ export class RecurringWorkService {
         activePolicies.length === 1 ? calculateAllocationPolicy(activePolicies[0]!, evidence) : null;
       const reasons = [
         ...(excludedOrderIds.length
-          ? ["توجد طلبات مسلّمة مستبعدة من القراءة لأنها ليست final؛ لم تتحول إلى صفر أو هامش مكتمل."]
+          ? ["توجد طلبات مسلّمة مستبعدة من القراءة لأن نتيجتها غير نهائية؛ لم تتحول إلى صفر أو هامش مكتمل."]
           : []),
         ...(material.notRecordedOrderCount ? ["لم تسجل مادة فعلية لبعض الطلبات؛ هذا لا يعني صفر مادة."] : []),
         ...(time.notRecordedOrderCount ? ["لم تسجل وقتًا فعليًا لبعض الطلبات؛ هذا لا يعني صفر وقت."] : []),
         ...(waste.totalWasteMinor
-          ? ["الهدر المسجل ظاهر كدليل منفصل ولم يخصم من الهامش أو COGS تلقائيًا."]
+          ? ["الهدر المسجل ظاهر كدليل منفصل ولم يخصم من الهامش أو تكلفة البيع تلقائيًا."]
           : []),
         ...(activePolicies.length > 1
           ? ["توجد سياسات فعالة متداخلة؛ لا تعرض قراءة تحميل مركبة قبل مراجعة النطاق والمصدر."]
@@ -524,7 +524,7 @@ export class RecurringWorkService {
         reasons,
         nextAction,
         truth:
-          "الهامش المباشر المسجل هو الإيراد المعترف به للطلبات final المرتبطة صراحة ناقص التكلفة المباشرة المحفوظة في Snapshot. وقت التنفيذ والهدر وسياسة التحميل أدلة منفصلة؛ لا تغيّر الكاش أو Snapshot أو نتيجة G3.",
+          "الهامش المباشر المسجل هو الإيراد المعترف به للطلبات المسلّمة النهائية المرتبطة صراحة ناقص التكلفة المباشرة المحفوظة في نسخة التكلفة. وقت التنفيذ والهدر وسياسة التوزيع أدلة منفصلة؛ لا تغيّر الكاش أو نسخة التكلفة أو نتيجة الفترة المسجلة.",
       } satisfies RecurringWorkReading;
     });
     return {

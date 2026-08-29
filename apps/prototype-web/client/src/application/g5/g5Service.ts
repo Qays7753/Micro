@@ -332,7 +332,7 @@ export class G5Service {
       !units.ok ||
       !conversions.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات G5 المحلية." };
+      return { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
     const contributionOrders = orderInputs(
       orders.value,
       catalogItems.value,

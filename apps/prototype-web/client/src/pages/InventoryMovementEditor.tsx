@@ -228,7 +228,7 @@ export default function InventoryMovementEditor() {
           {safeType === "receipt"
             ? "يزيد الاستلام المخزون فقط؛ لا يكرر كاش أو ذمة شراء المواد."
             : safeType === "consume"
-              ? "يربط الجزء المستهلك بطلب دون تعديل Snapshot أو نتيجة فترة قديمة."
+              ? "يربط الجزء المستهلك بطلب دون تعديل نسخة التكلفة أو نتيجة فترة قديمة."
               : "لا تحذف المادة من السجل؛ سجّل هدرًا أو فرقًا بسبب واضح."}
         </p>
       </div>
@@ -298,7 +298,7 @@ export default function InventoryMovementEditor() {
                 <span className="micro-overline">سياق الهدر</span>
                 <h3>أين وقع الهدر؟</h3>
               </div>
-              <p>السياق يشرح الهدر فقط؛ لا ينشئ مصروفًا ولا COGS تلقائيًا.</p>
+              <p>السياق يشرح الهدر فقط؛ لا ينشئ مصروفًا ولا تكلفة بيع تلقائيًا.</p>
             </div>
             <label className="micro-field">
               <span>نوع السياق</span>

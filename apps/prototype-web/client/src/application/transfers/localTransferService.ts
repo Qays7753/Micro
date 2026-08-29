@@ -1629,7 +1629,7 @@ export class LocalTransferService {
     try {
       candidate = JSON.parse(text);
     } catch {
-      return fail("الملف ليس JSON صالحًا. بقيت بيانات هذا الجهاز دون تغيير.");
+      return fail("الملف ليس ملف نسخة صالحًا. بقيت بيانات هذا الجهاز دون تغيير.");
     }
     if (!isRecord(candidate) || candidate.format !== localExportFormat)
       return fail("هذا ليس ملف تصدير Micro المحلي. بقيت بيانات هذا الجهاز دون تغيير.");
@@ -1658,7 +1658,7 @@ export class LocalTransferService {
       !isPreviousG4 &&
       !isPreviousG5
     )
-      return fail("إصدار الملف غير مدعوم في هذا Prototype. بقيت بيانات هذا الجهاز دون تغيير.");
+      return fail("إصدار الملف غير مدعوم في هذا الإصدار من التطبيق؛ بقيت بيانات هذا الجهاز دون تغيير.");
     if (!isDate(candidate.exportedAt) || !isRecord(candidate.data))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
     const raw = candidate.data;

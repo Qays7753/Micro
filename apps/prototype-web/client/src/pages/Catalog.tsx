@@ -146,7 +146,7 @@ export const buildCatalogPerUnitPreview = (
       text: null,
       warning:
         allocation.problem === "missing_input"
-          ? "تحتاج المعاينة إلى كمية final ومعدل صالحين."
+          ? "تحتاج المعاينة إلى كمية نهائية ومعدل صالحين."
           : allocation.problem === "unsafe_range"
             ? "لا يمكن الحساب بأمان؛ راجع الكمية والمعدل قبل الحفظ."
             : "تجاوز الحساب الدقة الآمنة؛ لم يُقرب الرقم.",
@@ -362,7 +362,7 @@ export default function Catalog() {
       policyKind === "per_output_unit" &&
       (!policyUnitId || !selectedItem?.unitId || policyUnitId !== selectedItem.unitId)
     ) {
-      setMessage("اختر وحدة ناتج منظمة متوافقة مع وحدة مرجع العمل؛ لا نحول yield تلقائيًا.");
+      setMessage("اختر وحدة ناتج منظمة متوافقة مع وحدة مرجع العمل؛ لا نحوّل الناتج تلقائيًا.");
       return;
     }
     if (!policySource.trim() || !policyReason.trim() || !policyNote.trim()) {
@@ -409,7 +409,7 @@ export default function Catalog() {
     setPolicyRevisionId(null);
     notifyDataChanged();
     await load();
-    setMessage("تم حفظ سياسة التحميل كقراءة تفسيرية مؤرخة؛ لم ينشأ منها قيد مالي أو تغيير في Snapshot.");
+    setMessage("تم حفظ سياسة التحميل كقراءة تفسيرية مؤرخة؛ لم ينشأ منها أثر مالي أو تغيير في نسخة التكلفة.");
   }
 
   async function createUnit() {
@@ -587,7 +587,7 @@ export default function Catalog() {
     setMessage(
       result.template.yieldReadiness === "needs_conversion"
         ? "تم حفظ القالب، لكن الناتج غير مهيأ بعد: أضف تحويلًا صريحًا داخل البعد نفسه."
-        : "تم حفظ القالب كمرجع تخطيطي فقط؛ لم يتغير المخزون أو السعر أو أي Snapshot.",
+        : "تم حفظ القالب كمرجع تخطيطي فقط؛ لم يتغير المخزون أو السعر أو أي نسخة تكلفة.",
     );
     return true;
   }
@@ -1026,7 +1026,7 @@ export default function Catalog() {
                     <p>
                       {selectedItemUnit
                         ? `مخرج المرجع: ${selectedItemUnit.nameAr} · ${dimensionLabel(selectedItemUnit.dimension)}`
-                        : "لا توجد وحدة مخرج منظمة؛ يمكن حفظ القالب دون yield."}
+                        : "لا توجد وحدة مخرج منظمة؛ يمكن حفظ القالب دون ناتج."}
                     </p>
                   </div>
                 </div>
@@ -1202,7 +1202,7 @@ export default function Catalog() {
                             {template.components.length} مكوّن
                             {template.yield
                               ? ` · الناتج ${quantityLabel(template.yield.quantityMilli)}`
-                              : " · بلا yield"}
+                              : " · بلا ناتج"}
                             {template.active ? "" : " · موقوف"}
                           </p>
                           {template.yieldReadiness === "needs_conversion" ? (
@@ -1215,7 +1215,7 @@ export default function Catalog() {
                           <details className="micro-inline-disclosure">
                             <summary>حدود القالب</summary>
                             <p>
-                              هذا تذكّر تخطيطي فقط؛ لا Purchase ولا Inventory ولا Consumption ولا COGS ولا
+                              هذا تذكّر تخطيطي فقط؛ لا شراء مواد ولا مخزون ولا استهلاك ولا تكلفة بيع ولا
                               إيراد ولا هامش ينشأ منه.
                             </p>
                           </details>
@@ -1286,8 +1286,8 @@ export default function Catalog() {
             </label>
           </div>
           <p className="micro-muted-copy">
-            الهامش المباشر هو الإيراد المعترف به للطلبات <bdi dir="ltr">final</bdi> ناقص التكلفة المباشرة
-            المحفوظة في Snapshot. الوقت والهدر وCOGS قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا تلقائيًا.
+            الهامش المباشر هو الإيراد المعترف به للطلبات المسلّمة النهائية ناقص التكلفة المباشرة المحفوظة في
+            نسخة التكلفة. الوقت والهدر وتكلفة البيع قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا تلقائيًا.
           </p>
           <div className="micro-subsection">
             <div className="micro-subsection-heading">
@@ -1419,7 +1419,7 @@ export default function Catalog() {
                 </div>
                 {policyKind === "per_output_unit" ? (
                   <div className="micro-inline-disclosure">
-                    <p>{perUnitPreview?.text ?? "ستظهر معاينة التحميل بعد وجود كمية final ومعدل صالح."}</p>
+                    <p>{perUnitPreview?.text ?? "ستظهر معاينة التحميل بعد وجود كمية نهائية ومعدل صالح."}</p>
                     <p>{catalogPerUnitRoundingNote}</p>
                     {perUnitPreview?.warning ? (
                       <p className="micro-warning-copy">{perUnitPreview.warning}</p>
@@ -1507,7 +1507,7 @@ export default function Catalog() {
                         </p>
                       ) : (
                         <p>
-                          لا توجد طلبات final مرتبطة بهذا المرجع في الفترة؛ لا تعرض القراءة صفرًا بدل دليل
+                          لا توجد طلبات نهائية مرتبطة بهذا المرجع في الفترة؛ لا تعرض القراءة صفرًا بدل دليل
                           ناقص.
                         </p>
                       )}
@@ -1598,8 +1598,8 @@ export default function Catalog() {
                             <summary>الحقيقة والحدود</summary>
                             <p>{reading.truth}</p>
                             <p>
-                              الهدر لا يدخل COGS ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا، ولا
-                              توصية سعر، ولا تتضمن تكاليف لم تُسجل.
+                              الهدر لا يدخل تكلفة البيع ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا،
+                              ولا توصية سعر، ولا تتضمن تكاليف لم تُسجل.
                             </p>
                           </details>
                         </>

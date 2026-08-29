@@ -275,8 +275,8 @@ export default function OrderDetail() {
         <section className="micro-note-card">
           <Landmark aria-hidden="true" />
           <p>
-            سُجل المتبقي كدين. لم يزد الكاش المحصل، والفعل التالي هو متابعة التحصيل خارج نطاق Prototype
-            الحالي.
+            سُجل المتبقي كدين. لم يزد الكاش المحصل، والفعل التالي هو متابعة التحصيل مع العميل تتم خارج
+            التطبيق في هذا الإصدار؛ السجل بقي كما هو.
           </p>
         </section>
       ) : null}
@@ -362,7 +362,7 @@ export default function OrderDetail() {
       </details>
       <section className="micro-note-card">
         <CalendarDays aria-hidden="true" />
-        <p>الاتفاق والأحداث محفوظة محليًا على هذا الجهاز. لا توجد مزامنة أو مشاركة خارجية في Prototype.</p>
+        <p>الاتفاق والأحداث محفوظة محليًا على هذا الجهاز. لا توجد مزامنة أو مشاركة خارجية في هذا الإصدار.</p>
       </section>
     </section>
   );

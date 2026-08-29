@@ -33,7 +33,7 @@ const policyLabels: Record<OwnerEntitlementPolicy["kind"], string> = {
   fixed_period: "مبلغ ثابت للفترة",
   fixed_shift: "مبلغ ثابت للوردية (غير متاح بلا دليل وردية)",
   per_completed_work: "مبلغ لكل عمل مكتمل",
-  profit_share: "نسبة من نتيجة G3 المسجلة",
+  profit_share: "نسبة من نتيجة الفترة المسجلة",
   sale_percentage: "نسبة من بيع مكتمل",
   per_unit: "مبلغ لكل وحدة مكتملة",
 };
@@ -323,7 +323,7 @@ export default function OwnerEntitlement() {
     if (!successorRequirements.supported || successorKind === "fixed_shift") {
       setNotice({
         tone: "error",
-        text: "هذا النوع غير متاح في O1 لغياب الدليل التشغيلي؛ اختر نوعًا مدعومًا.",
+        text: "هذا النوع غير متاح في هذا الإصدار لغياب الدليل التشغيلي؛ اختر نوعًا مدعومًا.",
       });
       return;
     }
@@ -718,7 +718,8 @@ export default function OwnerEntitlement() {
                 aria-label="نسبة سياسة الاستحقاق"
               />
               <small>
-                تحفظ النسبة basis points صحيحة، وتحسب من نتيجة G3 المسجلة أو البيع المكتمل حسب النوع.
+                تُحفظ النسبة كما أدخلتها بدقة كاملة، وتحسب من نتيجة الفترة المسجلة أو البيع المكتمل حسب
+                النوع.
               </small>
             </label>
           )}
@@ -864,7 +865,7 @@ export default function OwnerEntitlement() {
                 onTextValidityChange={setSuccessorPercentageValid}
                 aria-label="نسبة خليفة سياسة الاستحقاق"
               />
-              <small>تحسب من نتيجة G3 المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.</small>
+              <small>تحسب من نتيجة الفترة المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.</small>
             </label>
           )}
           {successorRequirements.requiresUnit ? (

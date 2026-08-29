@@ -243,7 +243,7 @@ export default function SettingsPage() {
         <StorageRow
           icon={Download}
           title="تصدير محلي"
-          text="ينشئ ملف JSON لبيانات Prototype الحالية دون أسرار أو مفاتيح."
+          text="ينشئ ملف نسخة لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
           actionLabel="تصدير"
           label="تصدير البيانات المحلية"
           disabled={isWorking}
@@ -431,7 +431,7 @@ export default function SettingsPage() {
                   value={guidedPreview.summary.acceptedMaterialQuantityMilli}
                   className="micro-inline-number"
                 />{" "}
-                milli
+                (أجزاء من ألف)
               </li>
               <li>
                 <IntegerValue
@@ -442,8 +442,8 @@ export default function SettingsPage() {
               </li>
             </ul>
             <p className="micro-local-truth">
-              الاستيراد ذري على Store فارغ، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة تلقائية بعد
-              التأكيد.
+              الإدخال يكتب مرة واحدة على بيانات فارغة، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة تلقائية
+              بعد التأكيد.
             </p>
             <div className="micro-form-actions">
               <button
@@ -510,7 +510,7 @@ export default function SettingsPage() {
                 حركات مخزون
               </li>
               <li>
-                <IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> Snapshot
+                <IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> نسخة
                 تكلفة و<IntegerValue value={preview.summary.events} className="micro-inline-number" /> حدث
                 مالي/تشغيلي داخل الطلب
               </li>
