@@ -6,9 +6,10 @@ export type HomeFinancialFact = {
   state: HomeValueState;
   valueMinor: number | null;
   currency: "JOD";
-  source: string;
-  period: string;
-  helper: string;
+  /* §10: التفصيل خلف العلامة لا على الوجه — الحقول قابلة للغياب. */
+  source: string | null;
+  period: string | null;
+  helper: string | null;
   /* §2.7: الحقيقة غير المسجلة تُعرض كطريق — «غير مسجل — سجّله (نقرة)» — لا كـ«غير مهيأ» عاجزة. */
   road: HomeAction | null;
 };
@@ -40,19 +41,19 @@ export type HomeTodaySection = {
   upcomingCount: number;
   nextUpcomingDate: string | null;
   nextUpcomingHref: string | null;
-  truth: string;
+  truth: string | null;
 };
 /* القرار ١٢: المالية وحدة جديدة دائمة في Home — بلا شرط بيانات، ولا تحل محل وحدة قائمة.
  * period_result يحتفظ بشرطه على وحدته وحده ولا ترث وحدته رؤيته (القرار ١٤). */
 export type HomeFinanceUnit = {
   action: HomeAction;
-  truth: string;
+  truth: string | null;
 };
 /* قرار المالك على بند ١١ (جلسة الإغلاق): «منتجاتي وخدماتي» كتلة دائمة مستقلة مثل «مالي» —
  * سؤالها (§2.3): ما أكرره وبكم؟ وهل هو رابح؟ */
 export type HomeCatalogUnit = {
   action: HomeAction;
-  truth: string;
+  truth: string | null;
 };
 export type HomeOptionalModule = {
   id: "schedule" | "period_result";
@@ -64,13 +65,13 @@ export type HomeRecentChange = {
   id: string;
   occurredOn: string;
   title: string;
-  detail: string;
+  detail: string | null;
   href: string;
 };
 export type HomeControlCenterInput = {
   activityName: string;
   todayLocal: string;
-  truthLine: string;
+  truthLine: string | null;
   financeUnit: HomeFinanceUnit;
   catalogUnit: HomeCatalogUnit;
   todaySection: HomeTodaySection;
@@ -80,7 +81,7 @@ export type HomeControlCenterInput = {
 };
 export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
-  truthLine: string;
+  truthLine: string | null;
   financeUnit: HomeFinanceUnit;
   catalogUnit: HomeCatalogUnit;
   todaySection: HomeTodaySection;

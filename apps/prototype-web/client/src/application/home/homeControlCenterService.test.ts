@@ -163,8 +163,8 @@ describe("HomeControlCenterService", () => {
     expect(kinds).toContain("due_amount");
     const dueAmount = result.value.todaySection.items.find(item => item.kind === "due_amount");
     expect(dueAmount).toMatchObject({ href: "/orders/today-order" });
-    expect(dueAmount?.detail).toContain("دين مسجل");
-    expect(dueAmount?.detail).toContain("لا كاش محصل");
+    /* §10: البطاقة قيمة بلا جملة — المبلغ يبقى والحد في النطاق. */
+    (expect(dueAmount?.detail).toContain("35.00"), expect(dueAmount?.title).toContain("دين"));
     /* دمج بند ١٠: المتابعة المستحقة والدين بندان لا أكثر — لا تكرار بين قسمين. */
     const ids = result.value.todaySection.items.map(item => item.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -204,7 +204,7 @@ describe("HomeControlCenterService", () => {
           id: "cash",
           state: "known",
           valueMinor: 5000,
-          source: expect.stringContaining("السجل المحلي"),
+          source: null,
         }),
         expect.objectContaining({ id: "owner_capital", state: "known", valueMinor: 5000 }),
         expect.objectContaining({ id: "receivables", state: "not_initialized", valueMinor: null }),
@@ -214,7 +214,8 @@ describe("HomeControlCenterService", () => {
     const after = await store.listFinancialEvents();
     if (!after.ok) throw new Error("events should read");
     expect(after.value).toHaveLength(before.value.length);
-    expect(result.value.truthLine).toContain("لا تحول الرقم إلى ربح");
+    /* §10: لا سطر حقيقة على الوجه. */
+    expect(result.value.truthLine).toBeNull();
   });
 
   it("absorbs the attention content into Today for an active owner with no duplication and no removal", async () => {
@@ -291,7 +292,7 @@ describe("HomeControlCenterService", () => {
     expect(review).toMatchObject({
       title: "راجع نتيجة طلب يحتاج مراجعة",
       href: `/orders/${id}`,
-      actionLabel: "مراجعة النتيجة",
+      actionLabel: "افتح",
     });
   });
 
@@ -316,9 +317,9 @@ describe("HomeControlCenterService", () => {
     if (!result.ok) throw new Error(result.message);
     const draft = result.value.todaySection.items.find(item => item.kind === "draft");
     expect(draft).toMatchObject({
-      title: "مسودة ليلية",
+      title: "مسودة: مسودة ليلية",
       href: "/orders/draft/draft-1",
-      actionLabel: "استئناف المسودة",
+      actionLabel: "افتح",
     });
   });
 });

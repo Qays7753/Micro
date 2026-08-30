@@ -49,7 +49,7 @@ export function LocalDateValue({
 }: ValueProps & { value: string | null | undefined }) {
   return (
     <bdi dir="ltr" className={className}>
-      {formatLocalDate(value) ?? "غير متاح"}
+      {formatLocalDate(value) ?? "—"}
     </bdi>
   );
 }
@@ -60,7 +60,7 @@ export function DateTimeValue({
 }: ValueProps & { value: string | null | undefined }) {
   return (
     <bdi dir="ltr" className={className}>
-      {formatLocalDateTime(value) ?? "غير متاح"}
+      {formatLocalDateTime(value) ?? "—"}
     </bdi>
   );
 }
@@ -79,7 +79,7 @@ export function TimeValue({
 }: ValueProps & { value: string | null | undefined }) {
   return (
     <bdi dir="ltr" className={className}>
-      {formatTime(value) ?? "وقت غير محدد"}
+      {formatTime(value) ?? "—"}
     </bdi>
   );
 }

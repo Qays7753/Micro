@@ -177,7 +177,7 @@ describe("Work destination", () => {
     expect(screen.getByText("طاولة اختبار")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "طلباتي" })).toBeTruthy();
-    expect(screen.getByText("غير متاح")).toBeTruthy();
+    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
   });
 
   it("opens a saved direct sale from My Sales", async () => {

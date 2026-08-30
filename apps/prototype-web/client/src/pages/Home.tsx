@@ -35,16 +35,11 @@ const factIcon: Record<HomeFinancialFact["id"], typeof WalletCards> = {
   payables: ClipboardList,
   owner_capital: WalletCards,
 };
+/* §10.2: الحالة المعروفة يتكلم عنها الرقم نفسه — الوسم للمجهول والناقص فقط. */
 const factStateLabel = (state: HomeFinancialFact["state"]) =>
-  state === "known" ? "معروف من السجل" : state === "incomplete" ? "غير مكتمل" : "غير مسجل";
+  state === "incomplete" ? "غير مكتمل" : state === "not_initialized" ? "غير مسجل" : null;
 
-function FactCard({
-  fact,
-  onNavigate,
-}: {
-  fact: HomeFinancialFact;
-  onNavigate: (href: string) => void;
-}) {
+function FactCard({ fact, onNavigate }: { fact: HomeFinancialFact; onNavigate: (href: string) => void }) {
   const Icon = factIcon[fact.id];
   return (
     <article className="micro-home-fact" data-state={fact.state}>
@@ -65,13 +60,10 @@ function FactCard({
             {factStateLabel(fact.state)} — {fact.road.label}
           </button>
         ) : (
-          factStateLabel(fact.state)
+          /* §6: المجهول علامة — لا جملة. */
+          (factStateLabel(fact.state) ?? "—")
         )}
       </strong>
-      <small>{fact.helper}</small>
-      <small>
-        {fact.source} · {fact.period}
-      </small>
     </article>
   );
 }
@@ -100,22 +92,17 @@ function TodayItemRow({ item, onNavigate }: { item: HomeTodayItem; onNavigate: (
         {item.detail ? <p>{item.detail}</p> : null}
         {item.dateLocal ? (
           <small>
-            <time dateTime={item.dateLocal}>
-              {formatLocalDateLong(item.dateLocal) ?? item.dateLocal}
-            </time>
+            <time dateTime={item.dateLocal}>{formatLocalDateLong(item.dateLocal) ?? item.dateLocal}</time>
             {item.timeLocal ? (
               <bdi dir="ltr" className="micro-inline-number">
-                {" "}· {item.timeLocal}
+                {" "}
+                · {item.timeLocal}
               </bdi>
             ) : null}
           </small>
         ) : null}
       </div>
-      <button
-        className="micro-text-action"
-        type="button"
-        onClick={() => onNavigate(item.href)}
-      >
+      <button className="micro-text-action" type="button" onClick={() => onNavigate(item.href)}>
         {item.actionLabel}
         <ArrowLeft aria-hidden="true" />
       </button>
@@ -193,7 +180,6 @@ export default function Home() {
         ) : (
           <div className="micro-home-quiet">
             <strong>لا متابعات بعد.</strong>
-            <p>لا شيء مستحق اليوم من متابعات أو مواعيد أو ديون أو مسودات مسجلة.</p>
           </div>
         )}
         {model.todaySection.upcomingCount > 0 && model.todaySection.nextUpcomingDate ? (
@@ -210,7 +196,6 @@ export default function Home() {
             </button>
           </p>
         ) : null}
-        <p className="micro-home-truth-line">{model.todaySection.truth}</p>
       </section>
       <section className="micro-home-facts-section" aria-labelledby="home-facts-title">
         <div className="micro-section-title">
@@ -238,14 +223,9 @@ export default function Home() {
         </div>
         <div className="micro-home-finance-unit">
           <div>
-            <p>{model.financeUnit.truth}</p>
             {/* القرار ٧: صفحة الأساس دائمة الوصول ولا تُغلق بعد اليوم الأول. */}
-            <button
-              className="micro-text-action"
-              type="button"
-              onClick={() => navigate("/foundation")}
-            >
-              صفحة الأساس: سجّل موقف البداية أو عدّله <ArrowLeft aria-hidden="true" />
+            <button className="micro-text-action" type="button" onClick={() => navigate("/foundation")}>
+              صفحة الأساس <ArrowLeft aria-hidden="true" />
             </button>
           </div>
           <button
@@ -269,9 +249,7 @@ export default function Home() {
           </div>
         </div>
         <div className="micro-home-finance-unit">
-          <div>
-            <p>{model.catalogUnit.truth}</p>
-          </div>
+          <div></div>
           <button
             className="micro-button micro-button-primary"
             type="button"
@@ -296,11 +274,6 @@ export default function Home() {
               <article className="micro-home-optional-item" data-state={module.state} key={module.id}>
                 <div>
                   <strong>{module.label}</strong>
-                  <p>
-                    {module.state === "available"
-                      ? "بيانات محلية متاحة للمراجعة."
-                      : "الوحدة مرتبطة ببيانات الطلبات، لكنها تحتاج إعدادًا."}
-                  </p>
                 </div>
                 {module.action ? (
                   <button
@@ -347,12 +320,9 @@ export default function Home() {
           </div>
         </section>
       ) : null}
+      {/* §10: الحدود في النطاق لا على الوجه — الطريق يبقى والجملة تُحذف. */}
       <div className="micro-scope-line">
         <CircleAlert aria-hidden="true" />
-        <p>
-          هذه قراءة محلية محدودة. لا تعرض صافي ربح المشروع ولا تستبدل صفحة المال أو الطلبات؛ الأرقام الناقصة
-          تبقى غير معروفة.
-        </p>
         <button className="micro-text-action" type="button" onClick={() => navigate("/finance")}>
           فتح مالي <ArrowLeft aria-hidden="true" />
         </button>

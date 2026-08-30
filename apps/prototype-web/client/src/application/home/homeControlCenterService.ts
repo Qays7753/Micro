@@ -4,7 +4,7 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
+import { formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
 
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
@@ -19,8 +19,7 @@ import {
 } from "./homeControlCenterModel";
 
 export type HomeControlCenterResult =
-  | { ok: true; value: HomeControlCenterViewModel }
-  | { ok: false; code: "storage_error"; message: string };
+  { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
 
 function localDate(iso: string): string {
   const parts = new Intl.DateTimeFormat("en", {
@@ -49,7 +48,7 @@ function orderChange(stored: StoredCraftOrder): HomeRecentChange {
   return {
     id: `order:${stored.id}`,
     occurredOn: stored.updatedAt.slice(0, 10),
-    title: `طلب: ${stored.order.itemName || "طلب بلا وصف"}`,
+    title: `طلب: ${stored.order.itemName || "بلا وصف"}`,
     detail: stored.order.nextAction,
     href: `/orders/${stored.id}`,
   };
@@ -113,23 +112,12 @@ export class HomeControlCenterService {
       events.value.some(
         event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
       );
-    const period = `حتى ${formatLocalDateLong(today) ?? today}`;
     /* §2.7: كل حقيقة غير مسجلة تعرض طريقها — «غير مسجل — سجّله (نقرة)» — لا «غير مهيأ» عاجزة. */
     const factRoads: Record<HomeFinancialFact["id"], HomeAction> = {
-      cash: action("road-cash", "سجّله", "/cash/wallet/new", "محفظة ورصيد بداية"),
-      receivables: action("road-receivables", "سجّله", "/orders", "الدين يسجل من طلب بعد تسليمه"),
-      payables: action(
-        "road-payables",
-        "سجّله",
-        "/finance/new/operating_expense_payable",
-        "سجل التزامًا لمورد",
-      ),
-      owner_capital: action(
-        "road-owner-capital",
-        "سجّله",
-        "/finance/new/owner_investment_cash",
-        "سجل استثمارًا",
-      ),
+      cash: action("road-cash", "سجّله", "/cash/wallet/new", ""),
+      receivables: action("road-receivables", "سجّله", "/orders", ""),
+      payables: action("road-payables", "سجّله", "/finance/new/operating_expense_payable", ""),
+      owner_capital: action("road-owner-capital", "سجّله", "/finance/new/owner_investment_cash", ""),
     };
     const facts: HomeFinancialFact[] = [
       {
@@ -138,9 +126,9 @@ export class HomeControlCenterService {
         state: cashEvidence ? "known" : "not_initialized",
         valueMinor: cashEvidence ? positionValue.recordedCashMinor : null,
         currency: "JOD",
-        source: "السجل المحلي",
-        period,
-        helper: "يشمل ما سُجل من محافظ وكاش الطلبات والمبيعات المباشرة والأحداث؛ ليس ربحًا.",
+        source: null,
+        period: null,
+        helper: null,
         road: cashEvidence ? null : factRoads.cash,
       },
       {
@@ -149,9 +137,9 @@ export class HomeControlCenterService {
         state: orderEvidence ? "known" : "not_initialized",
         valueMinor: orderEvidence ? positionValue.customerReceivablesMinor : null,
         currency: "JOD",
-        source: "طلبات ومبيعات مباشرة مسجلة",
-        period,
-        helper: "دين عميل مسجل، وليس كاشًا محصلًا.",
+        source: null,
+        period: null,
+        helper: null,
         road: orderEvidence ? null : factRoads.receivables,
       },
       {
@@ -160,9 +148,9 @@ export class HomeControlCenterService {
         state: payableEvidence ? "known" : "not_initialized",
         valueMinor: payableEvidence ? positionValue.supplierPayablesMinor : null,
         currency: "JOD",
-        source: "أحداث المصروف وشراء المواد",
-        period,
-        helper: "التزام مسجل، وليس دفعة كاش جديدة.",
+        source: null,
+        period: null,
+        helper: null,
         road: payableEvidence ? null : factRoads.payables,
       },
       {
@@ -171,9 +159,9 @@ export class HomeControlCenterService {
         state: capitalEvidence ? "known" : "not_initialized",
         valueMinor: capitalEvidence ? positionValue.ownerCapitalRecordedMinor : null,
         currency: "JOD",
-        source: "أحداث مالية عامة",
-        period,
-        helper: "استثمار/سحب مسجل؛ لا يتحول إلى بيع أو مصروف.",
+        source: null,
+        period: null,
+        helper: null,
         road: capitalEvidence ? null : factRoads.owner_capital,
       },
     ];
@@ -186,12 +174,12 @@ export class HomeControlCenterService {
       todayItems.push({
         id: `today-draft:${draft.id}`,
         kind: "draft",
-        title: draft.itemName || "مسودة تحتاج وصفًا",
-        detail: "مسودة محلية لم تتحول إلى اتفاق بعد.",
+        title: `مسودة: ${draft.itemName || "بلا وصف"}`,
+        detail: null,
         dateLocal: draft.updatedAt.slice(0, 10),
         timeLocal: null,
         href: `/orders/draft/${draft.id}`,
-        actionLabel: "استئناف المسودة",
+        actionLabel: "افتح",
         priority: 10,
       }),
     );
@@ -206,12 +194,12 @@ export class HomeControlCenterService {
         todayItems.push({
           id: `today-due-amount:${stored.id}`,
           kind: "due_amount",
-          title: `مستحق عليك متابعته: ${stored.order.itemName || "طلب"}`,
-          detail: `دين مسجل: ${formatMoneyMinor(stored.order.receivableMinor)} د.أ — دين لا كاش محصل.`,
+          title: `دين: ${stored.order.itemName || "طلب"}`,
+          detail: `${formatMoneyMinor(stored.order.receivableMinor)} د.أ`,
           dateLocal: null,
           timeLocal: null,
           href: `/orders/${stored.id}`,
-          actionLabel: "مراجعة الدين",
+          actionLabel: "افتح",
           priority: 15,
         }),
       );
@@ -221,23 +209,23 @@ export class HomeControlCenterService {
           id: `today-cost:${stored.id}`,
           kind: "cost_incomplete",
           title: `أكمل تكلفة ${stored.order.itemName || "الطلب"}`,
-          detail: "نسخة التكلفة غير مكتملة؛ لا تُعرض نتيجة نهائية مكتملة المعرفة.",
+          detail: null,
           dateLocal: null,
           timeLocal: null,
           href: `/orders/${stored.id}`,
-          actionLabel: "مراجعة الطلب",
+          actionLabel: "افتح",
           priority: 20,
         });
       } else {
         todayItems.push({
           id: `today-order:${stored.id}`,
           kind: "open_order",
-          title: stored.order.itemName || "طلب قيد المتابعة",
+          title: stored.order.itemName || "طلب",
           detail: stored.order.nextAction,
           dateLocal: stored.deliveryDate ?? null,
           timeLocal: null,
           href: `/orders/${stored.id}`,
-          actionLabel: "فتح الطلب",
+          actionLabel: "افتح",
           priority: 30,
         });
       }
@@ -249,11 +237,11 @@ export class HomeControlCenterService {
           id: `today-result-review:${stored.id}`,
           kind: "result_review",
           title: `راجع نتيجة ${stored.order.itemName || "الطلب"}`,
-          detail: "نتيجة الطلب غير مكتملة؛ راجع التكلفة أو الوقت قبل الاعتماد على رقم نهائي.",
+          detail: null,
           dateLocal: null,
           timeLocal: null,
           href: `/orders/${stored.id}`,
-          actionLabel: "مراجعة النتيجة",
+          actionLabel: "افتح",
           priority: 20,
         }),
       );
@@ -261,19 +249,18 @@ export class HomeControlCenterService {
       todayItems.push({
         id: `today-follow-up:${stored.id}`,
         kind: "follow_up_due",
-        title: `متابعة مستحقة: ${stored.order.itemName || "طلب بلا وصف"}`,
+        title: `متابعة مستحقة: ${stored.order.itemName || "بلا وصف"}`,
         detail: stored.followUpSummary ?? stored.followUpReason ?? null,
         dateLocal: stored.followUpDate ?? null,
         timeLocal: null,
         href: `/orders/${stored.id}`,
-        actionLabel: "فتح المتابعة",
+        actionLabel: "افتح",
         priority: 25,
       }),
     );
     schedules.value
       .filter(
-        schedule =>
-          ["scheduled", "postponed"].includes(schedule.status) && schedule.scheduledFor === today,
+        schedule => ["scheduled", "postponed"].includes(schedule.status) && schedule.scheduledFor === today,
       )
       .forEach(schedule => {
         const linkedOrder = orders.find(candidate => candidate.id === schedule.orderId);
@@ -285,7 +272,7 @@ export class HomeControlCenterService {
           dateLocal: schedule.scheduledFor,
           timeLocal: schedule.scheduledTime,
           href: `/schedule/${schedule.id}`,
-          actionLabel: "فتح الموعد",
+          actionLabel: "افتح",
           priority: 25,
         });
       });
@@ -298,19 +285,12 @@ export class HomeControlCenterService {
         todayItems.push({
           id: "today-capacity:today",
           kind: "capacity_warning",
-          title: "راجع ازدحام مواعيد اليوم",
-          detail: `يوجد ${formatArabicPlural(capacity, {
-            zero: "لا مواعيد تشغيلية",
-            one: "موعد واحد تشغيلي",
-            two: "موعدان تشغيليان",
-            few: "مواعيد تشغيلية",
-            many: "موعدًا تشغيليًا",
-            other: "موعد تشغيلي",
-          })} اليوم؛ السعة تحذير فقط، وليست رفضًا تلقائيًا.`,
+          title: `مواعيد اليوم: ${capacity}`,
+          detail: null,
           dateLocal: today,
           timeLocal: null,
           href: "/schedule",
-          actionLabel: "فتح الجدول",
+          actionLabel: "افتح",
           priority: 40,
         });
     }
@@ -320,31 +300,20 @@ export class HomeControlCenterService {
       upcomingCount: upcoming.length,
       nextUpcomingDate: upcoming[0]?.followUpDate ?? null,
       nextUpcomingHref: upcoming[0] ? `/orders/${upcoming[0].id}` : null,
-      truth: "قراءة صباحية من سجلاتك: متابعات ومواعيد وديون ومسودات ونواقص نتائج. لا تنشئ موعدًا ولا تحصيلًا.",
+      truth: null,
     };
 
     /* القرار ١١: تُفكّ المالية كلها. الوحدة الدائمة تفتح المسارين: مالي ← المحافظ والموردون
      * والمواد ودفتر المالك، بلا شرط بيانات وبلا نقل أي قدرة (§2.1 من وثيقة التوزيع). */
     const financeUnit = {
-      action: action(
-        "finance",
-        "افتح مالي",
-        "/finance",
-        "قراءة يومية دائمة: كم عندي الآن ومن أين.",
-      ),
-      truth:
-        "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق؛ ونتيجة الفترة تظهر في وحدتها حين توجد نتيجة.",
+      action: action("finance", "افتح", "/finance", ""),
+      truth: null,
     };
     /* قرار المالك على بند ١١: «منتجاتي وخدماتي» كتلة دائمة مستقلة مثل «مالي» —
      * سؤالها (§2.3): ما أكرره وبكم؟ وهل هو رابح؟ */
     const catalogUnit = {
-      action: action(
-        "catalog",
-        "افتح منتجاتي وخدماتي",
-        "/catalog",
-        "ما أكرره وبكم — والقراءة عند المرجع نفسه.",
-      ),
-      truth: "مراجعك وهامشها المسجل وسياسات توزيعها في مكان واحد؛ لا يحدد المرجع سعرًا ولا مخزونًا.",
+      action: action("catalog", "افتح", "/catalog", ""),
+      truth: null,
     };
 
     /* قرار المالك على بند ١٢: بطاقتا المخزون والموردين المشروطتان أُزيلتا —
@@ -355,12 +324,7 @@ export class HomeControlCenterService {
         id: "schedule",
         label: "المواعيد",
         state: schedules.value.length > 0 ? "available" : orders.length > 0 ? "needs_setup" : "empty",
-        action: action(
-          "schedule",
-          schedules.value.length > 0 ? "فتح المواعيد" : "إعداد المواعيد",
-          "/schedule",
-          "الجدول تشغيلي ولا ينشئ أثرًا ماليًا.",
-        ),
+        action: action("schedule", "افتح", "/schedule", ""),
       },
       {
         id: "period_result",
@@ -370,12 +334,7 @@ export class HomeControlCenterService {
           events.value.length > 0
             ? "available"
             : "empty",
-        action: action(
-          "period-result",
-          "فتح الوضع المالي",
-          "/finance",
-          "نتيجة مسجلة محدودة وليست صافي ربح للمشروع.",
-        ),
+        action: action("period-result", "افتح", "/finance", ""),
       },
     ];
 
@@ -385,21 +344,21 @@ export class HomeControlCenterService {
         id: `draft:${draft.id}`,
         occurredOn: draft.updatedAt.slice(0, 10),
         title: `مسودة: ${draft.itemName || "بلا وصف"}`,
-        detail: "مسودة محلية محفوظة.",
+        detail: null,
         href: `/orders/draft/${draft.id}`,
       })),
       ...events.value.map(event => ({
         id: `finance:${event.id}`,
         occurredOn: event.occurredOn,
         title: `حدث مالي: ${event.note || event.type}`,
-        detail: "حدث مالي مسجل؛ راجع مصدره وسياقه.",
+        detail: null,
         href: "/finance",
       })),
       ...schedules.value.map(schedule => ({
         id: `schedule:${schedule.id}`,
         occurredOn: schedule.scheduledFor,
         title: `موعد: ${formatLocalDateLong(schedule.scheduledFor) ?? schedule.scheduledFor}`,
-        detail: schedule.status === "completed" ? "موعد مكتمل مستبعد من التشغيل." : "موعد تشغيلي محفوظ.",
+        detail: null,
         href: "/schedule",
       })),
     ].sort(
@@ -411,8 +370,7 @@ export class HomeControlCenterService {
       value: buildHomeControlCenterViewModel({
         activityName: profile.value.activityName,
         todayLocal: today,
-        truthLine:
-          "هذه قراءة محلية مشتقة من سجلات Micro القائمة. لا تحول الرقم إلى ربح مشروع ولا تستبدل الصفحات التفصيلية.",
+        truthLine: null,
         financeUnit,
         catalogUnit,
         todaySection,

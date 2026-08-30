@@ -99,9 +99,9 @@ describe("U-01 DOM guards", () => {
     vi.clearAllMocks();
   });
 
-  it("renders null money as غير متاح instead of manufacturing zero", () => {
+  it("renders null money as — instead of manufacturing zero", () => {
     render(<MoneyValue minor={null} />);
-    const value = screen.getByText("غير متاح");
+    const value = screen.getAllByText("—")[0];
     expect(value).toBeTruthy();
     expect(value.textContent).not.toContain("0.00");
     expect(value.getAttribute("dir")).toBe("ltr");
