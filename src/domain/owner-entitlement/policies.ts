@@ -293,7 +293,95 @@ export function createOwnerEntitlementOpeningBalanceReversal(
   });
 }
 
-export function createOwnerMovement(input: CreateOwnerMovementInput): OwnerMovement {
+/* و٩: سبب الحركة يجب أن يناسب نوعها — سحب أو إرجاع. */
+function assertMovementReasonMatchesKind(
+  kind: CreateOwnerMovementInput["kind"],
+  reason: CreateOwnerMovementInput["reason"],
+): void {
+  if (
+    kind === "draw" &&
+    (reason === "settlement_of_prior_draw" || reason === "new_capital_investment")
+  )
+    throw new Error("سبب السحب غير صالح.");
+  if (
+    kind === "return" &&
+    (reason === "entitlement_settlement" || reason === "pre_entitlement_draw" || reason === "owner_draw")
+  )
+    throw new Error("سبب الإرجاع غير صالح.");
+}
+
+/* و٩: كل ربط مرتبط بسبب واحد صريح — لا ربط بلا سببه ولا سبب بلا ربطه. */
+function assertMovementRelations(
+  reason: CreateOwnerMovementInput["reason"],
+  relations: {
+    relatedEntitlementId: string | null;
+    relatedOpeningBalanceId: string | null;
+    relatedMovementId: string | null;
+  },
+): void {
+  assertPairedRelation(
+    reason === "entitlement_settlement",
+    relations.relatedEntitlementId,
+    "تسوية الحق تتطلب حقًا مسجلًا مرتبطًا.",
+    "الربط بحق مسجل يخص تسوية الحقوق فقط.",
+  );
+  assertPairedRelation(
+    reason === "opening_balance_settlement",
+    relations.relatedOpeningBalanceId,
+    "تسوية رصيد الافتتاح تتطلب رصيدًا مرتبطًا صريحًا.",
+    "الربط برصيد افتتاح يخص تسوياته فقط.",
+  );
+  assertPairedRelation(
+    reason === "settlement_of_prior_draw",
+    relations.relatedMovementId,
+    "تسوية السحب تتطلب حركة مرتبطة صريحة.",
+    "الربط بحركة سحب يخص تسوياتها فقط.",
+  );
+}
+
+/* و٩: علاقة سبب-ربط مقترنة: الربط موجود إذا وفقط إذا كان السبب يستدعيه. */
+function assertPairedRelation(
+  reasonMatches: boolean,
+  relationId: string | null,
+  missingMessage: string,
+  unrelatedMessage: string,
+): void {
+  if (reasonMatches && !relationId) throw new Error(missingMessage);
+  if (!reasonMatches && relationId) throw new Error(unrelatedMessage);
+}
+
+/* و٩: آثار الحركة على الحق بحسب سببها. */
+function movementEntitlementDeltaMinor(
+  reason: CreateOwnerMovementInput["reason"],
+  amountMinor: number,
+): number {
+  if (reason === "entitlement_settlement" || reason === "pre_entitlement_draw") return -amountMinor;
+  if (reason === "settlement_of_prior_draw") return amountMinor;
+  return 0;
+}
+
+/* و٩: آثار الحركة على رصيد الافتتاح بحسب سببها ونوعها. */
+function movementOpeningBalanceDeltaMinor(
+  reason: CreateOwnerMovementInput["reason"],
+  kind: CreateOwnerMovementInput["kind"],
+  amountMinor: number,
+): number {
+  if (reason !== "opening_balance_settlement") return 0;
+  return kind === "draw" ? -amountMinor : amountMinor;
+}
+
+/* و٩: آثار الحركة على رأس مال المالك بحسب سببها. */
+function movementOwnerCapitalDeltaMinor(
+  reason: CreateOwnerMovementInput["reason"],
+  amountMinor: number,
+): number {
+  if (reason === "owner_draw") return -amountMinor;
+  if (reason === "new_capital_investment") return amountMinor;
+  return 0;
+}
+
+/* و٩: تحقق الحقول الأولية لحركة المالك. */
+function assertMovementPrimitives(input: CreateOwnerMovementInput): void {
   nonBlank(input.id, "id");
   nonBlank(input.walletId, "walletId");
   nonBlank(input.note, "note");
@@ -305,53 +393,26 @@ export function createOwnerMovement(input: CreateOwnerMovementInput): OwnerMovem
   if (input.kind !== "draw" && input.kind !== "return") throw new Error("نوع حركة المالك غير صالح.");
   if (!(movementReasons as readonly string[]).includes(input.reason))
     throw new Error("سبب الحركة غير صالح.");
-  if (
-    input.kind === "draw" &&
-    (input.reason === "settlement_of_prior_draw" || input.reason === "new_capital_investment")
-  )
-    throw new Error("سبب السحب غير صالح.");
-  if (
-    input.kind === "return" &&
-    (input.reason === "entitlement_settlement" ||
-      input.reason === "pre_entitlement_draw" ||
-      input.reason === "owner_draw")
-  )
-    throw new Error("سبب الإرجاع غير صالح.");
+}
+
+export function createOwnerMovement(input: CreateOwnerMovementInput): OwnerMovement {
+  assertMovementPrimitives(input);
+  assertMovementReasonMatchesKind(input.kind, input.reason);
   const relatedEntitlementId = input.relatedEntitlementId?.trim() || null;
   const relatedOpeningBalanceId = input.relatedOpeningBalanceId?.trim() || null;
   const relatedMovementId = input.relatedMovementId?.trim() || null;
-  if (input.reason === "entitlement_settlement" && !relatedEntitlementId)
-    throw new Error("تسوية الحق تتطلب حقًا مسجلًا مرتبطًا.");
-  if (input.reason !== "entitlement_settlement" && relatedEntitlementId)
-    throw new Error("الربط بحق مسجل يخص تسوية الحقوق فقط.");
-  if (input.reason === "opening_balance_settlement" && !relatedOpeningBalanceId)
-    throw new Error("تسوية رصيد الافتتاح تتطلب رصيدًا مرتبطًا صريحًا.");
-  if (input.reason !== "opening_balance_settlement" && relatedOpeningBalanceId)
-    throw new Error("الربط برصيد افتتاح يخص تسوياته فقط.");
-  if (input.reason === "settlement_of_prior_draw" && !relatedMovementId)
-    throw new Error("تسوية السحب تتطلب حركة مرتبطة صريحة.");
-  if (input.reason !== "settlement_of_prior_draw" && relatedMovementId)
-    throw new Error("الربط بحركة سحب يخص تسوياتها فقط.");
-  const entitlementDeltaMinor =
-    input.reason === "entitlement_settlement"
-      ? -input.amountMinor
-      : input.reason === "pre_entitlement_draw"
-        ? -input.amountMinor
-        : input.reason === "settlement_of_prior_draw"
-          ? input.amountMinor
-          : 0;
-  const openingBalanceDeltaMinor =
-    input.reason === "opening_balance_settlement"
-      ? input.kind === "draw"
-        ? -input.amountMinor
-        : input.amountMinor
-      : 0;
-  const ownerCapitalDeltaMinor =
-    input.reason === "owner_draw"
-      ? -input.amountMinor
-      : input.reason === "new_capital_investment"
-        ? input.amountMinor
-        : 0;
+  assertMovementRelations(input.reason, {
+    relatedEntitlementId,
+    relatedOpeningBalanceId,
+    relatedMovementId,
+  });
+  const entitlementDeltaMinor = movementEntitlementDeltaMinor(input.reason, input.amountMinor);
+  const openingBalanceDeltaMinor = movementOpeningBalanceDeltaMinor(
+    input.reason,
+    input.kind,
+    input.amountMinor,
+  );
+  const ownerCapitalDeltaMinor = movementOwnerCapitalDeltaMinor(input.reason, input.amountMinor);
   return Object.freeze({
     id: input.id,
     kind: input.kind,
@@ -427,37 +488,15 @@ export function isPolicyEffective(policy: OwnerEntitlementPolicy, from: string, 
     policy.status === "active" && policy.startsOn <= from && (policy.endsOn === null || policy.endsOn >= to)
   );
 }
-export function calculateOwnerEntitlement(
+/* و٩: الحق بالساعة — دقائق موثقة بمراجعها وتقريب نصف-أعلى. */
+function hourlyEntitlement(
   policy: OwnerEntitlementPolicy,
   evidence: OwnerEntitlementEvidence,
+  amount: number,
 ): OwnerEntitlementCalculation {
-  date(evidence.periodFrom, "periodFrom");
-  date(evidence.periodTo, "periodTo");
-  if (evidence.periodFrom > evidence.periodTo) throw new Error("نهاية الفترة لا يمكن أن تسبق بدايتها.");
-  if (!isPolicyEffective(policy, evidence.periodFrom, evidence.periodTo))
-    return {
-      amountMinor: null,
-      knowledge: "incomplete",
-      baseMinor: null,
-      quantity: null,
-      calculationBasis: policy.family,
-      sourceKeys: [],
-      nextAction: "اجعل الفترة بعد تاريخ بدء السياسة وقبل إيقافها، أو أنشئ نسخة سياسة جديدة من تاريخ صحيح.",
-    };
-  const amount = policy.amountMinor ?? 0;
-  if (policy.kind === "fixed_shift")
-    return {
-      amountMinor: null,
-      knowledge: "incomplete",
-      baseMinor: null,
-      quantity: null,
-      calculationBasis: "fixed_amount",
-      sourceKeys: [],
-      nextAction:
-        "لا يوجد في النموذج الحالي سجل ورديات موثق؛ استخدم مبلغًا للفترة " +
-        "أو أكمل دليل الوردية قبل اعتماد الحق.",
-    };
-  if (policy.kind === "monthly" && !isFullCalendarMonth(evidence.periodFrom, evidence.periodTo))
+  const minutes = evidence.timeQuantity ?? null;
+  const keys = evidence.timeSourceKeys ?? [];
+  if (minutes === null || !Number.isInteger(minutes) || minutes <= 0 || keys.length === 0)
     return {
       amountMinor: null,
       knowledge: "incomplete",
@@ -466,222 +505,195 @@ export function calculateOwnerEntitlement(
       calculationBasis: "time_period",
       sourceKeys: [],
       nextAction:
-        "السياسة الشهرية تحتاج شهرًا تقويميًا كاملًا؛ لا يسجل النظام مبلغ الشهر عن فترة قصيرة أو جزئية.",
+        "سجل مدة العمل بالدقائق مع مراجع سجل الوقت قبل اعتماد الحق " +
+        "بالساعة؛ لا يتحول الوقت المجهول إلى صفر.",
     };
-  if (policy.kind === "weekly" && inclusiveDays(evidence.periodFrom, evidence.periodTo) !== 7)
+  const timeAmountMinor = roundHalfUp(amount * minutes, 60);
+  if (timeAmountMinor === null)
     return {
       amountMinor: null,
       knowledge: "incomplete",
-      baseMinor: null,
-      quantity: null,
-      calculationBasis: "time_period",
-      sourceKeys: [],
-      nextAction:
-        "السياسة الأسبوعية تحتاج سبعة أيام متصلة كاملة؛ اختر فترة أسبوع واضحة ولا يسجل النظام أسبوعًا جزئيًا.",
-    };
-  if (policy.kind === "daily" && evidence.periodFrom !== evidence.periodTo)
-    return {
-      amountMinor: null,
-      knowledge: "incomplete",
-      baseMinor: null,
-      quantity: null,
-      calculationBasis: "time_period",
-      sourceKeys: [],
-      nextAction: "السياسة اليومية تحتاج يومًا محليًا واحدًا فقط.",
-    };
-  if (
-    policy.kind === "fixed_period" &&
-    (policy.endsOn === null || evidence.periodFrom !== policy.startsOn || evidence.periodTo !== policy.endsOn)
-  )
-    return {
-      amountMinor: null,
-      knowledge: "incomplete",
-      baseMinor: null,
-      quantity: null,
-      calculationBasis: "fixed_amount",
-      sourceKeys: [],
-      nextAction:
-        "المبلغ الثابت يحتاج النطاق المعلن كاملًا في السياسة؛ لا تسجل فترة متداخلة أو أقصر بلا نسخة سياسة جديدة.",
-    };
-  if (policy.kind === "hourly") {
-    const minutes = evidence.timeQuantity ?? null;
-    const keys = evidence.timeSourceKeys ?? [];
-    if (minutes === null || !Number.isInteger(minutes) || minutes <= 0 || keys.length === 0)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: null,
-        quantity: null,
-        calculationBasis: "time_period",
-        sourceKeys: [],
-        nextAction:
-          "سجل مدة العمل بالدقائق مع مراجع سجل الوقت قبل اعتماد الحق " +
-          "بالساعة؛ لا يتحول الوقت المجهول إلى صفر.",
-      };
-    const timeAmountMinor = roundHalfUp(amount * minutes, 60);
-    if (timeAmountMinor === null)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: minutes,
-        quantity: minutes,
-        calculationBasis: "time_period",
-        sourceKeys: keys,
-        nextAction: "المدة أو أجر الساعة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الحق.",
-      };
-    return {
-      amountMinor: timeAmountMinor,
-      knowledge: "known",
       baseMinor: minutes,
       quantity: minutes,
       calculationBasis: "time_period",
       sourceKeys: keys,
-      nextAction: "راجع مصدر الدقائق قبل الاعتماد.",
+      nextAction: "المدة أو أجر الساعة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الحق.",
     };
-  }
-  if (policy.kind === "per_completed_work") {
-    const quantity = evidence.completedWorkCount ?? null;
-    if (quantity === null || !Number.isInteger(quantity) || quantity <= 0)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: null,
-        quantity: null,
-        calculationBasis: "completed_work",
-        sourceKeys: [],
-        nextAction: "أكمل عدد الطلبات أو الخدمات المكتملة والمحتسب إيرادها عند التسليم.",
-      };
-    const keys = evidence.completedWorkKeys ?? [];
-    if (keys.length !== quantity || new Set(keys).size !== keys.length)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: null,
-        quantity: null,
-        calculationBasis: "completed_work",
-        sourceKeys: [],
-        nextAction: "احفظ مراجع الأعمال المكتملة حتى لا يعاد احتساب الطلب نفسه.",
-      };
+  return {
+    amountMinor: timeAmountMinor,
+    knowledge: "known",
+    baseMinor: minutes,
+    quantity: minutes,
+    calculationBasis: "time_period",
+    sourceKeys: keys,
+    nextAction: "راجع مصدر الدقائق قبل الاعتماد.",
+  };
+}
+
+/* و٩: الحق لكل عمل مكتمل — عدد موثق بمراجع فريدة. */
+function completedWorkEntitlement(
+  policy: OwnerEntitlementPolicy,
+  evidence: OwnerEntitlementEvidence,
+  amount: number,
+): OwnerEntitlementCalculation {
+  const quantity = evidence.completedWorkCount ?? null;
+  if (quantity === null || !Number.isInteger(quantity) || quantity <= 0)
     return {
-      amountMinor: amount * quantity,
-      knowledge: "known",
-      baseMinor: amount,
-      quantity,
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
       calculationBasis: "completed_work",
-      sourceKeys: keys,
-      nextAction: "راجع أن كل عمل محسوب نهائي ومكتمل، لا مسودة أو عربون.",
+      sourceKeys: [],
+      nextAction: "أكمل عدد الطلبات أو الخدمات المكتملة والمحتسب إيرادها عند التسليم.",
     };
-  }
-  if (policy.kind === "per_unit") {
-    const quantity = evidence.unitQuantity ?? null;
-    if (quantity === null || !Number.isFinite(quantity) || quantity <= 0)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: null,
-        quantity: null,
-        calculationBasis: "unit",
-        sourceKeys: [],
-        nextAction: "سجل كمية الوحدات المكتملة ووحدتها قبل الاعتماد؛ لا تخترع عددًا.",
-      };
-    const keys = evidence.unitSourceKeys ?? [];
-    if (keys.length === 0)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: null,
-        quantity: null,
-        calculationBasis: "unit",
-        sourceKeys: [],
-        nextAction: "احفظ مراجع الوحدات أو العمل المكتمل حتى لا يعاد احتساب المصدر نفسه.",
-      };
-    const quantityMilli = quantityMilliExact(quantity);
-    if (quantityMilli === null)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: amount,
-        quantity,
-        calculationBasis: "unit",
-        sourceKeys: keys,
-        nextAction: "سجل كمية الوحدات بدقة أجزاء من ألف؛ الدقة الأعلى غير ممثلة في هذا الإصدار.",
-      };
-    const unitAmountMinor = roundHalfUp(quantityMilli * amount, 1000);
-    if (unitAmountMinor === null)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: amount,
-        quantity,
-        calculationBasis: "unit",
-        sourceKeys: keys,
-        nextAction: "كمية الوحدات أو سعر الوحدة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الحق.",
-      };
+  const keys = evidence.completedWorkKeys ?? [];
+  if (keys.length !== quantity || new Set(keys).size !== keys.length)
     return {
-      amountMinor: unitAmountMinor,
-      knowledge: "known",
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
+      calculationBasis: "completed_work",
+      sourceKeys: [],
+      nextAction: "احفظ مراجع الأعمال المكتملة حتى لا يعاد احتساب الطلب نفسه.",
+    };
+  return {
+    amountMinor: amount * quantity,
+    knowledge: "known",
+    baseMinor: amount,
+    quantity,
+    calculationBasis: "completed_work",
+    sourceKeys: keys,
+    nextAction: "راجع أن كل عمل محسوب نهائي ومكتمل، لا مسودة أو عربون.",
+  };
+}
+
+/* و٩: الحق لكل وحدة — كمية بأجزاء من ألف ومراجعها. */
+function unitEntitlement(
+  policy: OwnerEntitlementPolicy,
+  evidence: OwnerEntitlementEvidence,
+  amount: number,
+): OwnerEntitlementCalculation {
+  const quantity = evidence.unitQuantity ?? null;
+  if (quantity === null || !Number.isFinite(quantity) || quantity <= 0)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
+      calculationBasis: "unit",
+      sourceKeys: [],
+      nextAction: "سجل كمية الوحدات المكتملة ووحدتها قبل الاعتماد؛ لا تخترع عددًا.",
+    };
+  const keys = evidence.unitSourceKeys ?? [];
+  if (keys.length === 0)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
+      calculationBasis: "unit",
+      sourceKeys: [],
+      nextAction: "احفظ مراجع الوحدات أو العمل المكتمل حتى لا يعاد احتساب المصدر نفسه.",
+    };
+  const quantityMilli = quantityMilliExact(quantity);
+  if (quantityMilli === null)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
       baseMinor: amount,
       quantity,
       calculationBasis: "unit",
       sourceKeys: keys,
-      nextAction: "راجع أن الوحدة والكمية صالحتان وموجودتان في السجل.",
+      nextAction: "سجل كمية الوحدات بدقة أجزاء من ألف؛ الدقة الأعلى غير ممثلة في هذا الإصدار.",
     };
-  }
-  if (policy.kind === "profit_share") {
-    const base = evidence.recognizedProfitMinor ?? null;
-    if (base === null || evidence.recognizedProfitStatus === "invalid")
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: base,
-        quantity: null,
-        calculationBasis: "profit_share",
-        sourceKeys: [],
-        nextAction:
-          "أغلق الفترة وتحقق من قراءة G3 المسجلة الصحيحة؛ لا تحسب النسبة من الكاش أو المبيعات الخام.",
-      };
-    if (evidence.recognizedProfitStatus !== "recorded_only")
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: base,
-        quantity: null,
-        calculationBasis: "profit_share",
-        sourceKeys: [],
-        nextAction: "راجع أسباب نقص نتيجة G3 قبل تسجيل نسبة الحق؛ لا تعرض دقة كاذبة.",
-      };
-    const share = roundHalfUp(base * (policy.percentageBps ?? 0), 10_000);
-    if (share === null)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: base,
-        quantity: null,
-        calculationBasis: "profit_share",
-        sourceKeys: evidence.recognizedProfitKeys ?? [],
-        nextAction: "أساس الربح أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الحق.",
-      };
-    if (share <= 0)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: base,
-        quantity: null,
-        calculationBasis: "profit_share",
-        sourceKeys: evidence.recognizedProfitKeys ?? [],
-        nextAction: "راجع النسبة أو أساس الربح؛ لا يسجل حق صفري من نسبة موجبة.",
-      };
+  const unitAmountMinor = roundHalfUp(quantityMilli * amount, 1000);
+  if (unitAmountMinor === null)
     return {
-      amountMinor: share,
-      knowledge: "known",
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: amount,
+      quantity,
+      calculationBasis: "unit",
+      sourceKeys: keys,
+      nextAction: "كمية الوحدات أو سعر الوحدة يتجاوز الدقة الآمنة؛ راجع الإدخال قبل اعتماد الحق.",
+    };
+  return {
+    amountMinor: unitAmountMinor,
+    knowledge: "known",
+    baseMinor: amount,
+    quantity,
+    calculationBasis: "unit",
+    sourceKeys: keys,
+    nextAction: "راجع أن الوحدة والكمية صالحتان وموجودتان في السجل.",
+  };
+}
+
+/* و٩: حق نسبة الربح — من قراءة G3 المسجلة الكاملة فقط. */
+function profitShareEntitlement(
+  policy: OwnerEntitlementPolicy,
+  evidence: OwnerEntitlementEvidence,
+): OwnerEntitlementCalculation {
+  const base = evidence.recognizedProfitMinor ?? null;
+  if (base === null || evidence.recognizedProfitStatus === "invalid")
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
       baseMinor: base,
       quantity: null,
       calculationBasis: "profit_share",
-      sourceKeys: evidence.recognizedProfitKeys ?? [`g3:${evidence.periodFrom}:${evidence.periodTo}`],
-      nextAction: "راجع فترة G3 ومصدرها قبل الاعتماد.",
+      sourceKeys: [],
+      nextAction:
+        "أغلق الفترة وتحقق من قراءة G3 المسجلة الصحيحة؛ لا تحسب النسبة من الكاش أو المبيعات الخام.",
     };
-  }
-  if (policy.kind === "sale_percentage") {
+  if (evidence.recognizedProfitStatus !== "recorded_only")
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: base,
+      quantity: null,
+      calculationBasis: "profit_share",
+      sourceKeys: [],
+      nextAction: "راجع أسباب نقص نتيجة G3 قبل تسجيل نسبة الحق؛ لا تعرض دقة كاذبة.",
+    };
+  const share = roundHalfUp(base * (policy.percentageBps ?? 0), 10_000);
+  if (share === null)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: base,
+      quantity: null,
+      calculationBasis: "profit_share",
+      sourceKeys: evidence.recognizedProfitKeys ?? [],
+      nextAction: "أساس الربح أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الحق.",
+    };
+  if (share <= 0)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: base,
+      quantity: null,
+      calculationBasis: "profit_share",
+      sourceKeys: evidence.recognizedProfitKeys ?? [],
+      nextAction: "راجع النسبة أو أساس الربح؛ لا يسجل حق صفري من نسبة موجبة.",
+    };
+  return {
+    amountMinor: share,
+    knowledge: "known",
+    baseMinor: base,
+    quantity: null,
+    calculationBasis: "profit_share",
+    sourceKeys: evidence.recognizedProfitKeys ?? [`g3:${evidence.periodFrom}:${evidence.periodTo}`],
+    nextAction: "راجع فترة G3 ومصدرها قبل الاعتماد.",
+  };
+}
+
+/* و٩: حق نسبة البيع المكتمل — من البيع المحتسب إيراده عند التسليم فقط. */
+function salePercentageEntitlement(
+  policy: OwnerEntitlementPolicy,
+  evidence: OwnerEntitlementEvidence,
+): OwnerEntitlementCalculation {
     const base = evidence.completedSaleMinor ?? null;
     if (base === null || !Number.isInteger(base) || base <= 0)
       return {
@@ -734,7 +746,109 @@ export function calculateOwnerEntitlement(
       sourceKeys: keys,
       nextAction: "راجع أن البيع مكتمل ومحتسب إيراده عند التسليم، لا عربونًا أو دينًا.",
     };
-  }
+  
+}
+
+/* و٩: حوارس شكل الفترة بحسب نوع السياسة — شهر كامل أو سبعة أيام أو يوم واحد أو النطاق المعلن. */
+function entitlementPeriodGuard(
+  policy: OwnerEntitlementPolicy,
+  evidence: OwnerEntitlementEvidence,
+): OwnerEntitlementCalculation | null {
+  if (policy.kind === "fixed_shift")
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
+      calculationBasis: "fixed_amount",
+      sourceKeys: [],
+      nextAction:
+        "لا يوجد في النموذج الحالي سجل ورديات موثق؛ استخدم مبلغًا للفترة " +
+        "أو أكمل دليل الوردية قبل اعتماد الحق.",
+    };
+  if (policy.kind === "monthly" && !isFullCalendarMonth(evidence.periodFrom, evidence.periodTo))
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
+      calculationBasis: "time_period",
+      sourceKeys: [],
+      nextAction:
+        "السياسة الشهرية تحتاج شهرًا تقويميًا كاملًا؛ لا يسجل النظام مبلغ الشهر عن فترة قصيرة أو جزئية.",
+    };
+  if (policy.kind === "weekly" && inclusiveDays(evidence.periodFrom, evidence.periodTo) !== 7)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
+      calculationBasis: "time_period",
+      sourceKeys: [],
+      nextAction:
+        "السياسة الأسبوعية تحتاج سبعة أيام متصلة كاملة؛ اختر فترة أسبوع واضحة ولا يسجل النظام أسبوعًا جزئيًا.",
+    };
+  if (policy.kind === "daily" && evidence.periodFrom !== evidence.periodTo)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
+      calculationBasis: "time_period",
+      sourceKeys: [],
+      nextAction: "السياسة اليومية تحتاج يومًا محليًا واحدًا فقط.",
+    };
+  if (policy.kind === "fixed_period") return fixedPeriodRangeGuard(policy, evidence);
+  return null;
+}
+
+/* و٩: المبلغ الثابت يُحسب على نطاقه المعلن كاملًا فقط. */
+function fixedPeriodRangeGuard(
+  policy: OwnerEntitlementPolicy,
+  evidence: OwnerEntitlementEvidence,
+): OwnerEntitlementCalculation | null {
+  const rangeMatches =
+    policy.endsOn !== null &&
+    evidence.periodFrom === policy.startsOn &&
+    evidence.periodTo === policy.endsOn;
+  if (rangeMatches) return null;
+  return {
+    amountMinor: null,
+    knowledge: "incomplete",
+    baseMinor: null,
+    quantity: null,
+    calculationBasis: "fixed_amount",
+    sourceKeys: [],
+    nextAction:
+      "المبلغ الثابت يحتاج النطاق المعلن كاملًا في السياسة؛ لا تسجل فترة متداخلة أو أقصر بلا نسخة سياسة جديدة.",
+  };
+}
+
+export function calculateOwnerEntitlement(
+  policy: OwnerEntitlementPolicy,
+  evidence: OwnerEntitlementEvidence,
+): OwnerEntitlementCalculation {
+  date(evidence.periodFrom, "periodFrom");
+  date(evidence.periodTo, "periodTo");
+  if (evidence.periodFrom > evidence.periodTo) throw new Error("نهاية الفترة لا يمكن أن تسبق بدايتها.");
+  if (!isPolicyEffective(policy, evidence.periodFrom, evidence.periodTo))
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: null,
+      quantity: null,
+      calculationBasis: policy.family,
+      sourceKeys: [],
+      nextAction: "اجعل الفترة بعد تاريخ بدء السياسة وقبل إيقافها، أو أنشئ نسخة سياسة جديدة من تاريخ صحيح.",
+    };
+  const amount = policy.amountMinor ?? 0;
+  const periodGuard = entitlementPeriodGuard(policy, evidence);
+  if (periodGuard) return periodGuard;
+  if (policy.kind === "hourly") return hourlyEntitlement(policy, evidence, amount);
+  if (policy.kind === "per_completed_work") return completedWorkEntitlement(policy, evidence, amount);
+  if (policy.kind === "per_unit") return unitEntitlement(policy, evidence, amount);
+  if (policy.kind === "profit_share") return profitShareEntitlement(policy, evidence);
+  if (policy.kind === "sale_percentage") return salePercentageEntitlement(policy, evidence);
   return {
     amountMinor: amount,
     knowledge: "known",
