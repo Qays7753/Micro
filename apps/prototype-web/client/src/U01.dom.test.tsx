@@ -163,8 +163,9 @@ describe("U-01 DOM guards", () => {
     );
 
     await waitFor(() => expect(screen.getByText("تكلفة ناقصة")).toBeTruthy());
-    expect(screen.getByText("غير متاح بعد")).toBeTruthy();
-    expect(screen.getByText(/وقت العمل غير مكتمل/)).toBeTruthy();
+    /* §10/§6: المجهول علامة — لا جملة «غير متاح بعد»؛ الحقيقة في قائمة النواقص لا في جملة. */
+    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+    expect(screen.getByText(/وقت العمل أو سعر الساعة غير مكتمل/)).toBeTruthy();
     expect(screen.queryByText(/ربح|صافي الربح/)).toBeNull();
   });
 });
