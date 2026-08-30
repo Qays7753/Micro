@@ -695,6 +695,49 @@
   width: 20px;
   height: 20px;
 }
+/* §3.9/§3.11 حوار التغييرات غير المحفوظة: بطاقة 420px فوق غطاء — زر أول
+   بقاء (الأقل تدميرًا) وآخر تدميري مفصول، والتركيز محصور ويعود للمشغّل */
+.micro-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: color-mix(in srgb, #1f1e1d 45%, transparent);
+}
+.micro-dialog {
+  position: fixed;
+  inset-inline: 0;
+  top: 50%;
+  z-index: 60;
+  display: flex;
+  width: min(100% - 32px, 420px);
+  margin-inline: auto;
+  transform: translateY(-50%);
+  flex-direction: column;
+  gap: var(--space-4);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  box-shadow: var(--elevation-3);
+}
+.micro-dialog h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+.micro-dialog p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+.micro-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
 /* §4 بند ١٨: لوحة المفاتيح تفتح — الكروم العام يختفي حتى تُغلق */
 .micro-app[data-keyboard-open="true"] .micro-app-header,
 .micro-app[data-keyboard-open="true"] .micro-bottom-nav {
@@ -801,6 +844,15 @@
   align-items: start;
   justify-content: space-between;
   gap: var(--space-3);
+}
+/* §4 بند ١١: زر الإغلاق شفاف 44×44 في أول سطر للعنوان — والعنوان بقياس يمنع
+   ابتلاعه للزر في الأسطر الطويلة */
+.micro-sheet-title {
+  max-width: 24ch;
+}
+.micro-sheet-title-row > .micro-icon-button {
+  align-self: start;
+  flex: 0 0 auto;
 }
 .micro-sheet-title {
   color: var(--color-text-primary);

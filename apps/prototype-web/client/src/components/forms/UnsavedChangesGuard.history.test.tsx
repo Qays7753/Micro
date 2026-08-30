@@ -60,7 +60,8 @@ describe("unsaved changes guard against browser back (U-01)", () => {
     back();
 
     expect(await screen.findByTestId("unsaved-changes-drawer")).toBeTruthy();
-    expect(screen.getByText("لديك تعديلات غير محفوظة")).toBeTruthy();
+    /* §3.11: الحوار الجديد — البقاء أولًا */
+    expect(screen.getByText("تعديلات غير محفوظة")).toBeTruthy();
     const survived = screen.getByLabelText("ملاحظة التكلفة");
     expect(survived).toBe(field);
     expect((survived as HTMLInputElement).value).toBe("2 متر بـ 3.50");
@@ -77,7 +78,7 @@ describe("unsaved changes guard against browser back (U-01)", () => {
     await user.type(screen.getByLabelText("ملاحظة التكلفة"), "وقت 90 دقيقة");
     back();
     // A plain click reaches the button's onClick without vaul's drag handlers, which jsdom cannot run.
-    fireEvent.click(await screen.findByRole("button", { name: "إلغاء" }));
+    fireEvent.click(await screen.findByRole("button", { name: "ابقَ في الصفحة" }));
     expect((screen.getByLabelText("ملاحظة التكلفة") as HTMLInputElement).value).toBe("وقت 90 دقيقة");
   });
 

@@ -1,12 +1,4 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
 
 export type UnsavedExitChoice = "save" | "discard" | "cancel";
 export type UnsavedGuardRegistration = { isDirty: boolean; onSave: () => Promise<boolean> };
@@ -170,48 +162,14 @@ export function UnsavedChangesProvider({
   return (
     <UnsavedChangesContext.Provider value={{ registerGuard, requestNavigation }}>
       {children}
-      <Drawer
-        open={isOpen}
-        onOpenChange={open => {
-          if (!open) close();
-        }}
-        direction="bottom"
-      >
-        <DrawerContent dir="rtl" data-testid="unsaved-changes-drawer">
-          <DrawerHeader>
-            <DrawerTitle>لديك تعديلات غير محفوظة</DrawerTitle>
-            <DrawerDescription>
-              اختر كيف تتابع. لن يُحفظ شيء تلقائيًا، وإذا أغلقت الصفحة أو التطبيق قبل الحفظ يفقد ما لم تحفظه.
-            </DrawerDescription>
-          </DrawerHeader>
-          <DrawerFooter>
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
-              disabled={isSaving}
-              onClick={saveAndContinue}
-            >
-              {isSaving ? "جارٍ الحفظ…" : "احفظ واستمر"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={isSaving}
-              onClick={discard}
-            >
-              اخرج دون حفظ
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={isSaving}
-              onClick={close}
-            >
-              إلغاء
-            </button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+      {isOpen ? (
+        <UnsavedChangesDialog
+          isSaving={isSaving}
+          onStay={close}
+          onSaveAndContinue={saveAndContinue}
+          onDiscard={discard}
+        />
+      ) : null}
     </UnsavedChangesContext.Provider>
   );
 }
@@ -228,4 +186,87 @@ export function useUnsavedChangesNavigation() {
   const context = useContext(UnsavedChangesContext);
   if (!context) throw new Error("useUnsavedChangesNavigation must be used inside UnsavedChangesProvider");
   return context.requestNavigation;
+}
+
+/* §3.9/§3.11: حوار التغييرات غير المحفوظة — البقاء أولًا والأقل تدميرًا، والخروج
+ * التدميري أخيرًا مفصولًا بفجوة 16px، والحفظ فعل نصي ثالث. التركيز محصور داخل
+ * الحوار ويعود إلى الزر الأول (الأقل تدميرًا) عند الفتح، وEsc يبقيك (غير تدميري). */
+function UnsavedChangesDialog({
+  isSaving,
+  onStay,
+  onSaveAndContinue,
+  onDiscard,
+}: {
+  isSaving: boolean;
+  onStay: () => void;
+  onSaveAndContinue: () => void;
+  onDiscard: () => void;
+}) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const stayButtonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    stayButtonRef.current?.focus();
+  }, []);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onStay();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusables = dialogRef.current.querySelectorAll<HTMLElement>("button:not([disabled])");
+      if (focusables.length === 0) return;
+      const first = focusables[0]!;
+      const last = focusables[focusables.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onStay]);
+  return (
+    <div className="micro-dialog-overlay" onClick={onStay} data-testid="unsaved-changes-overlay">
+      <div
+        ref={dialogRef}
+        className="micro-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="unsaved-changes-title"
+        dir="rtl"
+        data-testid="unsaved-changes-drawer"
+        onClick={event => event.stopPropagation()}
+      >
+        <h2 id="unsaved-changes-title">تعديلات غير محفوظة</h2>
+        <p>لن يُحفظ شيء تلقائيًا، وإذا أغلقت الصفحة أو التطبيق قبل الحفظ يفقد ما لم تحفظه.</p>
+        <div className="micro-dialog-actions">
+          <button ref={stayButtonRef} className="micro-button micro-button-primary" type="button" onClick={onStay}>
+            ابقَ في الصفحة
+          </button>
+          <button
+            className="micro-text-action"
+            type="button"
+            disabled={isSaving}
+            onClick={onSaveAndContinue}
+          >
+            {isSaving ? "جارٍ الحفظ…" : "احفظ واستمر"}
+          </button>
+          <button
+            className="micro-button micro-button-danger"
+            type="button"
+            disabled={isSaving}
+            style={{ marginInlineStart: "auto" }}
+            onClick={onDiscard}
+          >
+            اخرج دون حفظ
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -131,10 +131,11 @@ describe("U-01 DOM guards", () => {
     await user.click(screen.getByRole("button", { name: "انتقل" }));
 
     expect(screen.getByTestId("unsaved-changes-drawer")).toBeTruthy();
-    expect(screen.getByText("لديك تعديلات غير محفوظة")).toBeTruthy();
+    /* §3.11: الحوار الجديد — البقاء أولًا */
+    expect(screen.getByText("تعديلات غير محفوظة")).toBeTruthy();
     expect(screen.getByRole("button", { name: "احفظ واستمر" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "اخرج دون حفظ" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "إلغاء" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "ابقَ في الصفحة" })).toBeTruthy();
   });
 
   it("rejects Arabic digits visibly and accepts ASCII quantity without losing the committed value", async () => {
