@@ -5754,3 +5754,81 @@ button.micro-month-cell:hover {
 .micro-main[data-route-kind="surface"] > .micro-page {
   padding-block-end: calc(64px + env(safe-area-inset-bottom));
 }
+
+/* و٧ (F-077/F-079): طبقة المؤشرات داخل قراءة الفترة وسجل المتوقعات المسجلة —
+   قيم مسجلة بلا سرد: صف اسم/قيمة/حالة فقط. */
+.micro-insights-layer,
+.micro-declarations-record {
+  margin-block-start: var(--space-3);
+}
+.micro-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+.micro-insights-grid > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.micro-insights-grid dt {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.micro-insights-grid dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 15px;
+}
+.micro-insights-work-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-insights-work-list > li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.micro-insights-work-list > li:last-child {
+  border-bottom: 0;
+}
+.micro-insights-work-name {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.micro-insights-work-list small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.micro-insights-work-list > li > b {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+.micro-insights-work-list > li > b[data-state="reversed"] {
+  color: var(--color-text-secondary);
+}
+.micro-insights-empty {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+.micro-insights-unknown {
+  color: var(--color-text-tertiary);
+}
+.micro-insights-reasons {
+  margin: var(--space-2) 0 0;
+  padding-inline-start: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}

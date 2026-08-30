@@ -7,6 +7,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
 import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
 import type {
+  FinancialInsights,
   ProjectFinancialPosition,
   ProjectFinancialService,
   RecordedPeriodResult,
@@ -34,7 +35,11 @@ type FinanceState =
       position: ProjectFinancialPosition;
       events: readonly FinancialEvent[];
       period: RecordedPeriodResult;
+      /* و٧ (F-077): طبقة المؤشرات داخل قراءة الفترة. */
+      insights: FinancialInsights;
       decision: G5Decision;
+      /* و٧ (F-079): سجل المتوقعات المسجلة كاملًا داخل التغطية والتعادل. */
+      declarations: readonly ShortCashDeclaration[];
       owner: OwnerEntitlementOverview;
       pulse: LocalFinancialPulse;
       excludedOrders: readonly StoredCraftOrder[];
@@ -155,17 +160,22 @@ export default function Finance() {
       projectFinance.readPosition(),
       projectFinance.listEvents(),
       projectFinance.readRecordedPeriodResult(from.from, to.to),
+      /* و٧: المؤشرات تُقرأ مع الفترة نفسها — طبقة واحدة داخل القراءة. */
+      projectFinance.readFinancialInsights(from.from, to.to),
       g5.readDecision(from.from, to.to),
+      g5.listDeclarations(),
       ownerEntitlement.readOverview(),
       financialPulse.read(),
       fulfillment.listDepositOverview(),
-    ]).then(([position, events, result, decision, owner, pulseResult, depositsResult]) => {
+    ]).then(([position, events, result, insights, decision, declarations, owner, pulseResult, depositsResult]) => {
       if (!active) return;
       if (
         !position.ok ||
         !events.ok ||
         !result.ok ||
+        !insights.ok ||
         !decision.ok ||
+        !declarations.ok ||
         !owner.ok ||
         !pulseResult.ok ||
         !depositsResult.ok
@@ -181,7 +191,9 @@ export default function Finance() {
         position: position.value,
         events: events.value,
         period: result.value,
+        insights: insights.value,
         decision: decision.value,
+        declarations: declarations.value,
         owner: owner.value,
         pulse: pulseResult.pulse,
         excludedOrders: completed.filter(stored => stored.order.resultStatus !== "final"),
@@ -208,7 +220,7 @@ export default function Finance() {
         </button>
       </section>
     );
-  const { position, period, decision, owner, pulse } = state;
+  const { position, period, insights, decision, declarations, owner, pulse } = state;
   const visibleEventIds = new Set(state.events.slice(0, 3).map(event => event.id));
   state.events.slice(0, 3).forEach(event => {
     if (event.correctionType === "reverse" && event.correctionOfEventId)
@@ -476,6 +488,152 @@ export default function Finance() {
             </p>
           ) : null}
           <p className="micro-period-truth">{period.truth}</p>
+          {/* و٧ (F-077): طبقة «المؤشرات» داخل قراءة الفترة — هامش أسماء الأعمال
+              وتكوين التكلفة والتغطية والتعادل والسيولة، قيم مسجلة بلا سرد. */}
+          <details className="micro-finance-layer micro-insights-layer">
+            <summary className="micro-finance-layer-summary">
+              <span>
+                <b>المؤشرات</b>
+                <small>هامش الأعمال · تكوين التكلفة · التغطية والتعادل · السيولة المسجلة</small>
+              </span>
+              <strong>افتح المؤشرات</strong>
+            </summary>
+            <section className="micro-period-result micro-derived-surface" aria-label="مؤشرات الفترة">
+              <div className="micro-period-review-note">
+                <strong>هامش أسماء الأعمال</strong>
+                {insights.workNames.length === 0 ? (
+                  <p className="micro-insights-empty">— لا أعمال نهائية في الفترة</p>
+                ) : (
+                  <ul className="micro-insights-work-list">
+                    {insights.workNames.map(work => (
+                      <li key={work.itemName}>
+                        <span className="micro-insights-work-name">{work.itemName}</span>
+                        <small>
+                          طلبات <IntegerValue value={work.finalOrderCount} className="micro-inline-number" /> ·
+                          إيراد <MoneyValue minor={work.recognizedRevenueMinor} className="micro-inline-number" /> ·
+                          تكلفة مباشرة{" "}
+                          <MoneyValue minor={work.recognizedDirectCostMinor} className="micro-inline-number" />
+                        </small>
+                        <b>
+                          هامش <MoneyValue minor={work.directMarginMinor} className="micro-inline-number" />
+                        </b>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="micro-period-review-note">
+                <strong>تكوين التكلفة المباشرة</strong>
+                <dl className="micro-insights-grid">
+                  <div>
+                    <dt>مواد</dt>
+                    <dd>
+                      <MoneyValue minor={insights.costComposition.materialMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>وقت</dt>
+                    <dd>
+                      <MoneyValue minor={insights.costComposition.timeMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>تغليف</dt>
+                    <dd>
+                      <MoneyValue minor={insights.costComposition.packagingMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>توصيل</dt>
+                    <dd>
+                      <MoneyValue minor={insights.costComposition.deliveryMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>هدر</dt>
+                    <dd>
+                      <MoneyValue minor={insights.costComposition.wasteMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>مصروف تشغيلي</dt>
+                    <dd>
+                      <MoneyValue minor={insights.costComposition.operatingExpenseMinor} />
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+              <div className="micro-period-review-note">
+                <strong>التغطية والتعادل المسجلان</strong>
+                <dl className="micro-insights-grid">
+                  <div>
+                    <dt>المصروف الثابت المسجل</dt>
+                    <dd>
+                      <MoneyValue minor={insights.coverage.fixedExpenseMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>الكمية المسلّمة النهائية</dt>
+                    <dd>
+                      <IntegerValue value={insights.coverage.finalDeliveredQuantity} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>الهامش المباشر</dt>
+                    <dd>
+                      <MoneyValue minor={insights.coverage.directMarginMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>وحدات التعادل</dt>
+                    <dd>
+                      {insights.coverage.breakEvenUnits === null ? (
+                        <span className="micro-insights-unknown">—</span>
+                      ) : (
+                        <IntegerValue value={insights.coverage.breakEvenUnits} />
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+                {insights.coverage.status !== "recorded_only" && insights.coverage.reasons.length > 0 ? (
+                  <ul className="micro-insights-reasons">
+                    {insights.coverage.reasons.map(reason => (
+                      <li key={reason}>{reason}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+              <div className="micro-period-review-note">
+                <strong>السيولة المسجلة</strong>
+                <dl className="micro-insights-grid">
+                  <div>
+                    <dt>الكاش المسجل</dt>
+                    <dd>
+                      <MoneyValue minor={insights.liquidity.recordedCashMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>ديون العملاء</dt>
+                    <dd>
+                      <MoneyValue minor={insights.liquidity.customerReceivablesMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>التزامات الموردين</dt>
+                    <dd>
+                      <MoneyValue minor={insights.liquidity.supplierPayablesMinor} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>التغطية بعد الالتزامات</dt>
+                    <dd>
+                      <MoneyValue minor={insights.liquidity.cashCoverageAfterLiabilitiesMinor} />
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </section>
+          </details>
         </section>
       </details>
       <details className="micro-finance-layer">
@@ -492,6 +650,51 @@ export default function Finance() {
           onDeclare={() => navigate("/finance/g5/declaration")}
           onChanged={notifyDataChanged}
         />
+        {/* و٧ (F-079): سجل المتوقعات المسجلة كاملًا — حتى المنقوضة — بلا تصحيح من هنا. */}
+        <details className="micro-finance-layer micro-declarations-record">
+          <summary className="micro-finance-layer-summary">
+            <span>
+              <b>سجل المتوقعات المسجلة</b>
+              <small>كل ما سُجل — حتى المنقوضة</small>
+            </span>
+            <strong>
+              {declarations.length > 0 ? (
+                <IntegerValue value={declarations.length} className="micro-inline-number" />
+              ) : (
+                "افتح السجل"
+              )}
+            </strong>
+          </summary>
+          <section className="micro-period-result micro-derived-surface" aria-label="سجل المتوقعات المسجلة">
+            {declarations.length === 0 ? (
+              <p className="micro-insights-empty">— لا متوقعات مسجلة</p>
+            ) : (
+              <ul className="micro-insights-work-list">
+                {[...declarations]
+                  .sort((left, right) => left.createdAt.localeCompare(right.createdAt))
+                  .map(entry => (
+                    <li key={entry.id}>
+                      <span className="micro-insights-work-name">
+                        {entry.direction === "collection" ? "قبض متوقع" : "دفع متوقع"} · {entry.source}
+                      </span>
+                      <small>
+                        <MoneyValue minor={entry.amountMinor} className="micro-inline-number" /> ·{" "}
+                        {entry.dueOn ? <LocalDateValue value={entry.dueOn} /> : "بلا تاريخ"} ·{" "}
+                        {entry.knowledge === "known"
+                          ? "معروف"
+                          : entry.knowledge === "estimated"
+                            ? "تقديري"
+                            : "يحتاج مراجعة"}
+                      </small>
+                      <b data-state={entry.kind === "reversal" ? "reversed" : "active"}>
+                        {entry.kind === "reversal" ? "نقض موثق" : "ساري"}
+                      </b>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </section>
+        </details>
       </details>
       <details className="micro-finance-layer">
         <summary className="micro-finance-layer-summary">
