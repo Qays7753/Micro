@@ -351,8 +351,15 @@ def strip_details_bodies(source: str) -> str:
 
 def strings_of(source: str) -> set[str]:
     found: set[str] = set()
+    # A moment-of-action call (setNotice({…})) may span lines: skip until its
+    # parentheses close so continuation strings are not read as at-rest text.
+    open_parens = 0
     for line in source.splitlines():
+        if open_parens:
+            open_parens += line.count("(") - line.count(")")
+            continue
         if MOMENT_LINE.search(line) or LOADING_LINE.search(line):
+            open_parens = max(0, line.count("(") - line.count(")"))
             continue
         for match in STRING_LIT.finditer(line):
             value = match.group(1) if match.group(1) is not None else match.group(2)

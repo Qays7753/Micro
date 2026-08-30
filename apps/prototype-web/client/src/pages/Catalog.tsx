@@ -158,10 +158,7 @@ export const buildCatalogPerUnitPreview = (
   return {
     allocationMinor,
     text: `${((quantityMilli ?? 0) / 1000).toFixed(3)} ${label} × ${((rateMinorPerWholeUnit ?? 0) / 100).toFixed(2)} د.أ لكل 1.000 ${label} = ${(allocationMinor / 100).toFixed(2)} د.أ`,
-    warning:
-      allocationMinor === 0
-        ? "الناتج 0.00 د.أ نتيجة حسابية معلنة بعد تقريب مجموع الفترة، وليس غياب بيانات."
-        : null,
+    warning: null,
   };
 };
 export const catalogAllocationStatusLabel = (status: "known" | "needs_review" | "incomplete" | null) =>
@@ -1653,7 +1650,6 @@ export default function Catalog() {
                           ) : null}
                           <details className="micro-inline-disclosure">
                             <summary>الحقيقة والحدود</summary>
-                            <p>{reading.truth}</p>
                             <p>
                               الهدر لا يدخل تكلفة البيع ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا،
                               ولا توصية سعر، ولا تتضمن تكاليف لم تُسجل.

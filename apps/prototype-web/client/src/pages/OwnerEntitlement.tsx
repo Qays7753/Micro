@@ -588,10 +588,6 @@ export default function OwnerEntitlement() {
       <div className="micro-page-heading">
         <span className="micro-overline">دفتر المالك · المبالغ (د.أ)</span>
         <h1>ما حقي المسجل؟</h1>
-        <p>
-          افصل بين الحق الذي سجلته، وما أخذته أو أعدته فعليًا، ورصيد الحق المتبقي. هذه ليست رواتب
-          موظفين ولا دفترًا قانونيًا.
-        </p>
       </div>
       {notice ? (
         <p className={notice.tone === "success" ? "micro-save-note" : "micro-field-error"} role="status">
@@ -631,10 +627,6 @@ export default function OwnerEntitlement() {
           </div>
           <span className="micro-g5-count">{overview.policies.length}</span>
         </div>
-        <p>
-          كل سياسة جديدة مستقلة تبدأ بإصدار أول. تعديل سياسة قائمة يتم فقط عبر نسخة جديدة تبدأ من تاريخ وتُنهي النسخة
-          السابقة؛ لا تعدّل إصدارًا محفوظًا يدويًا.
-        </p>
         {overview.policies.length === 0 ? (
           <p className="micro-empty-state">لا توجد سياسة بعد. أضف أقل سياسة تحتاجها فقط.</p>
         ) : (
