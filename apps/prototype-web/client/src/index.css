@@ -191,6 +191,11 @@
   z-index: 40;
   top: 0;
   border-bottom: 1px solid var(--color-border);
+  /* §4 بند ١٦: الشعرة ترى فوق الكانفس الضبابي عند التمرير فقط */
+  transition: border-color 160ms var(--motion-out);
+}
+.micro-app-header[data-scrolled="true"] {
+  border-bottom-color: var(--color-divider);
   background: color-mix(in srgb, var(--color-bg-canvas) 92%, transparent);
   backdrop-filter: blur(18px);
 }
@@ -267,8 +272,10 @@
     transform 160ms var(--motion-out),
     background 160ms var(--motion-out);
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-icon-button:hover {
   background: var(--color-bg-well);
+}
 }
 .micro-icon-button:active {
   transform: scale(0.97);
@@ -280,9 +287,11 @@
 .micro-main {
   --main-bottom-space: calc(var(--space-4) + env(safe-area-inset-bottom));
   --main-scroll-space: calc(var(--space-6) + env(safe-area-inset-bottom));
-  min-height: calc(100dvh - 56px);
+  /* §4 بند ٣: أول بطاقة لا تُقصّ خلف الترويسة اللاصقة عند التمرير أو الاسترجاع */
+  min-height: calc(100dvh - 56px - env(safe-area-inset-top));
   padding: var(--space-4) var(--space-4) var(--main-bottom-space);
   scroll-padding-block-end: var(--main-scroll-space);
+  scroll-padding-block-start: calc(56px + env(safe-area-inset-top) + var(--space-2));
 }
 .micro-main[data-route-kind="surface"] {
   --main-bottom-space: calc(116px + env(safe-area-inset-bottom));
@@ -370,6 +379,17 @@
   opacity: 0.16;
   filter: saturate(0.65);
 }
+/* §4 بند ١٧: في الداكن كل الألوان الناعمة #332d27 — الفصل بنيوي:
+   حد رقيق بلون نص الحالة يميز السطح الملوّن بلا هيكس جديد */
+.dark [data-tone="accent"] {
+  border: 1px solid color-mix(in srgb, var(--color-accent-text) 40%, transparent);
+}
+.dark [data-tone="warning"] {
+  border: 1px solid color-mix(in srgb, var(--color-warning-text) 40%, transparent);
+}
+.dark .micro-truth-banner {
+  border: 1px solid color-mix(in srgb, var(--color-success-text) 40%, transparent);
+}
 .dark .micro-priority-texture {
   opacity: 0.11;
 }
@@ -439,16 +459,20 @@
   background: var(--primary);
   box-shadow: var(--elevation-1);
 }
-.micro-button-primary:hover,
-.micro-fab:hover {
-  background: var(--color-brand-pressed);
+@media (hover: hover) and (pointer: fine) {
+  .micro-button-primary:hover,
+  .micro-fab:hover {
+    background: var(--color-brand-pressed);
+  }
 }
 .micro-button-secondary {
   color: var(--secondary-foreground);
   background: var(--secondary);
 }
-.micro-button-secondary:hover {
-  background: var(--color-accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .micro-button-secondary:hover {
+    background: var(--color-accent-primary);
+  }
 }
 .micro-section {
   display: flex;
@@ -671,6 +695,11 @@
   width: 20px;
   height: 20px;
 }
+/* §4 بند ١٨: لوحة المفاتيح تفتح — الكروم العام يختفي حتى تُغلق */
+.micro-app[data-keyboard-open="true"] .micro-app-header,
+.micro-app[data-keyboard-open="true"] .micro-bottom-nav {
+  display: none;
+}
 .micro-bottom-nav {
   position: fixed;
   z-index: 30;
@@ -698,7 +727,8 @@
   gap: var(--space-1);
   border: 0;
   border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  /* §4 بند ١٥: غير النشط بلون النص القوي — كان الثانوي أضعف نص على الشاشة */
+  color: var(--color-text-strong);
   background: transparent;
   font-size: 11px;
   font-weight: 500;
@@ -1075,10 +1105,12 @@
     color 160ms var(--motion-out),
     background 160ms var(--motion-out);
 }
-.micro-intent-card:hover,
-.micro-draft-row:hover {
-  color: var(--color-accent-text);
-  background: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .micro-intent-card:hover,
+  .micro-draft-row:hover {
+    color: var(--color-accent-text);
+    background: transparent;
+  }
 }
 .micro-intent-card[data-selected] {
   color: var(--color-accent-text);
@@ -3772,9 +3804,11 @@
 button.micro-month-cell:active {
   transform: scale(0.97);
 }
+@media (hover: hover) and (pointer: fine) {
 button.micro-month-cell:hover {
   border-color: var(--color-accent-primary);
   background: var(--color-accent-soft);
+}
 }
 .micro-month-cell[data-selected="true"] {
   border: 2px solid var(--color-accent-primary);
@@ -4108,8 +4142,10 @@ button.micro-month-cell:hover {
   color: var(--color-text-secondary);
   background: transparent;
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-button-quiet:hover {
   background: var(--color-bg-well);
+}
 }
 @media (max-width: 380px) {
   .micro-recurrence-appearances {
@@ -4943,8 +4979,10 @@ button.micro-month-cell:hover {
   text-align: start;
   cursor: pointer;
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-home-recent-item:hover {
   background: var(--color-bg-well);
+}
 }
 .micro-home-recent-item > span {
   display: grid;
@@ -5101,8 +5139,10 @@ button.micro-month-cell:hover {
   color: var(--color-surface);
   background: var(--color-danger-text);
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-button-danger:hover {
   background: color-mix(in srgb, var(--color-danger-text) 86%, var(--color-text-primary));
+}
 }
 .micro-button-danger svg {
   width: 18px;
@@ -5537,8 +5577,10 @@ button.micro-month-cell:hover {
   color: inherit;
   background: transparent;
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-chip button:hover {
   background: color-mix(in srgb, var(--color-accent-primary) 15%, transparent);
+}
 }
 .micro-chip button svg {
   width: 15px;

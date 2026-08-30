@@ -3,7 +3,7 @@
  * future financial actions to the application layer, never to UI state.
  */
 /* مبدأ Micro: يبقى السياق وحارس الرجوع مركزيين، ويظهر الكروم العام في الأسطح لا النماذج العميقة. */
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { getNavigationLabel, primaryNavigation } from "@/app/navigation";
 import { getMicroRouteKind, showsGlobalChrome } from "@/app/routeClassifier";
@@ -13,6 +13,16 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { type QuickAction, QuickActionSheet } from "@/components/layout/QuickActionSheet";
 import { PwaInstallControl } from "@/pwa/PwaInstallControl";
 import { PwaRuntimeNotice } from "@/pwa/PwaRuntimeNotice";
+
+/* §4 بند ٥: مسارات عنوانها h1 هو نفسه تسمية التنقل — الترويسة تعرض الاسم وحده */
+const CONTEXT_REPEATS_H1 = new Set([
+  "/finance",
+  "/schedule",
+  "/settings",
+  "/inventory",
+  "/suppliers",
+  "/cash",
+]);
 
 export function MicroAppShell({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
@@ -25,10 +35,21 @@ export function MicroAppShell({ children }: { children: ReactNode }) {
 
 function ShellContent({ location, children }: { location: string; children: ReactNode }) {
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const requestNavigation = useUnsavedChangesNavigation();
   const routeKind = getMicroRouteKind(location);
   const isSetup = routeKind === "setup";
   const showGlobalChrome = showsGlobalChrome(location);
+  const pathname = location.split(/[?#]/, 1)[0] ?? location;
+  /* §4 بند ١٨: الكروم العام يختفي ولوحة المفاتيح مفتوحة — المحتوى لا يختفي تحتها */
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const update = () => setIsKeyboardOpen(viewport.height < window.innerHeight - 120);
+    update();
+    viewport.addEventListener("resize", update);
+    return () => viewport.removeEventListener("resize", update);
+  }, []);
   function handleQuickAction(action: QuickAction) {
     setIsActionSheetOpen(false);
     /* §٥-١٤ (م٣): البيع والمصروف يتمان داخل الورقة نفسها (QuickActionSheet) — لا
@@ -48,9 +69,15 @@ function ShellContent({ location, children }: { location: string; children: Reac
     }
   }
   return (
-    <div className="micro-app" data-route-kind={routeKind} dir="rtl">
+    <div className="micro-app" data-route-kind={routeKind} data-keyboard-open={isKeyboardOpen} dir="rtl">
       <AppHeader
-        contextLabel={isSetup ? "تأسيس محلي" : getNavigationLabel(location)}
+        contextLabel={
+          isSetup
+            ? "تأسيس محلي"
+            : CONTEXT_REPEATS_H1.has(pathname)
+              ? null
+              : getNavigationLabel(location)
+        }
         onOpenSettings={() => requestNavigation("/settings")}
       />
       <main className="micro-main" data-route-kind={routeKind} key={location}>
