@@ -204,8 +204,14 @@ function UnsavedChangesDialog({
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const stayButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
+    /* §7: التركيز يعود إلى المشغّل عند إغلاق الحوار */
+    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     stayButtonRef.current?.focus();
+    return () => {
+      triggerRef.current?.focus?.();
+    };
   }, []);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
