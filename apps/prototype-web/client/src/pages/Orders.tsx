@@ -109,7 +109,27 @@ export default function Orders() {
                   </small>
                   <small>
                     المحصل (د.أ): <MoneyValue minor={sale.collectedMinor} className="micro-inline-number" />
+                    {sale.revenueMinor > sale.collectedMinor ? (
+                      <> من {(sale.revenueMinor / 100).toFixed(2)} المتفق</>
+                    ) : null}
                   </small>
+                  {sale.status !== "cancelled" && sale.revenueMinor > sale.collectedMinor ? (
+                    <small className="micro-row-next-action">
+                      {sale.collectionStatus === "partial_debt"
+                        ? "الفرق دَين على العميل — يظهر في «لي عند العملاء»."
+                        : "الفرق يحتاج مراجعة — لم يُقرَّر بعد."}
+                    </small>
+                  ) : null}
+                  {sale.revisions?.some(revision => revision.kind === "price_cut") ? (
+                    <small className="micro-row-next-action">
+                      خُفّض السعر من{" "}
+                      {(
+                        (sale.revisions.find(revision => revision.kind === "price_cut")
+                          ?.beforeRevenueMinor ?? 0) / 100
+                      ).toFixed(2)}{" "}
+                      د.أ — تخفيض موثَّق والأصل محفوظ.
+                    </small>
+                  ) : null}
                   <small>
                     الربح (د.أ): <MoneyValue minor={sale.profitMinor} className="micro-inline-number" />
                   </small>

@@ -7,6 +7,7 @@ import type {
   G5Knowledge,
   G5MixItem,
   G5OrderInput,
+  ShortCashBalanceItem,
   ShortCashDeclaration,
   ShortCashInput,
   ShortCashResult,
@@ -174,6 +175,373 @@ function validateExpense(expense: G5ExpenseInput): string | null {
     return `مصروف المشروع ${expense.id} يحمل أساس حصة غير مسموح.`;
   return null;
 }
+/* و٩: حالة قراءة الهامش المتراكمة بين الطلبات والمصاريف وحوارس الإغلاق. */
+type ContributionWindowState = {
+  sources: string[];
+  excluded: string[];
+  assumptions: string[];
+  reasons: string[];
+  mix: Map<string, G5MixItem>;
+  totalRevenueMinor: number;
+  totalVariableCostMinor: number;
+  finalOrderCount: number;
+  excludedOrderCount: number;
+  fixedExpenseMinor: number;
+  invalid: boolean;
+  incomplete: boolean;
+  needsReview: boolean;
+  classificationGap: boolean;
+  totalQuantityMilli: number | null;
+  quantityUnitKey: string | null;
+  quantityUnitLabel: string | null;
+  quantityUnitEstablished: boolean;
+};
+
+/* و٩: الطلبات داخل الفترة — الإجماليات والكمية الموحدة وقراءة المزيج. */
+function collectContributionOrders(
+  from: string,
+  to: string,
+  orders: readonly G5OrderInput[],
+  state: ContributionWindowState,
+): void {
+  for (const order of orders) {
+    const validation = validateOrder(order);
+    if (validation) {
+      state.invalid = true;
+      state.reasons.push(validation);
+      continue;
+    }
+    if (order.deliveredOn < from || order.deliveredOn > to) continue;
+    state.sources.push(`طلب مسلّم مسجل: ${orderDisplayName(order)}`);
+    if (order.resultStatus !== "final") {
+      state.excludedOrderCount += 1;
+      state.excluded.push(
+        `الطلب «${orderDisplayName(order)}» مستبعد لأن نتيجته ${orderResultStatusAr(order.resultStatus)}.`,
+      );
+      continue;
+    }
+    state.finalOrderCount += 1;
+    const nextRevenue = addSafe(state.totalRevenueMinor, order.recognizedRevenueMinor);
+    const nextCost = addSafe(state.totalVariableCostMinor, order.recognizedCostMinor);
+    if (nextRevenue === null || nextCost === null) {
+      state.invalid = true;
+      state.reasons.push(`مجموع إيراد أو تكلفة الطلبات يتجاوز الدقة الآمنة.`);
+    } else {
+      state.totalRevenueMinor = nextRevenue;
+      state.totalVariableCostMinor = nextCost;
+    }
+    collectContributionOrderQuantity(order, state);
+    collectContributionMixItem(order, state);
+  }
+}
+
+/* و٩: كمية الطلب ووحدتها — أول وحدة تُثبت والمختلفة تُسقط التوحيد. */
+function collectContributionOrderQuantity(
+  order: G5OrderInput,
+  state: ContributionWindowState,
+): void {
+  const hasQuantity = order.quantityMilli !== null && order.quantityMilli > 0;
+  if (!hasQuantity) {
+    state.totalQuantityMilli = null;
+    if (order.quantityIssue === "invalid") {
+      state.invalid = true;
+      state.reasons.push(`كمية الطلب «${orderDisplayName(order)}» غير صالحة؛ لا تحوّل إلى صفر.`);
+    } else {
+      state.incomplete = true;
+      state.reasons.push(
+        `كمية الطلب «${orderDisplayName(order)}» غير قابلة للتوحيد؛ أكمل وحدة أو تحويلًا صريحًا.`,
+      );
+    }
+    return;
+  }
+  const unitKey = order.unitKey?.trim() || "legacy:recorded-mix";
+  const unitLabel = order.unitLabel?.trim() || (unitKey === "legacy:recorded-mix" ? "المزيج المسجل" : null);
+  if (!state.quantityUnitEstablished) {
+    state.quantityUnitKey = unitKey;
+    state.quantityUnitLabel = unitLabel;
+    state.quantityUnitEstablished = true;
+  } else markQuantityUnitMismatch(state, unitKey);
+  if (state.totalQuantityMilli !== null) {
+    const nextQuantity = addSafe(state.totalQuantityMilli, order.quantityMilli!);
+    if (nextQuantity === null) {
+      state.totalQuantityMilli = null;
+      state.invalid = true;
+      state.reasons.push("مجموع الكمية يتجاوز الدقة الآمنة.");
+    } else state.totalQuantityMilli = nextQuantity;
+  }
+}
+
+/* و٩: وحدة مختلفة عن الأولى تُسقط توحيد الكمية بلا جمع كناتج واحد. */
+function markQuantityUnitMismatch(state: ContributionWindowState, unitKey: string): void {
+  if (state.quantityUnitKey === unitKey) return;
+  state.totalQuantityMilli = null;
+  state.incomplete = true;
+  state.reasons.push(
+    "توجد وحدات أو مراجع كمية غير متوافقة؛ لا تجمعها كناتج واحد دون تحويل G4-A صريح داخل البعد نفسه.",
+  );
+}
+
+/* و٩: قراءة المزيج لكل اسم عمل ووحدة — إيراد وتكلفة وهامش. */
+function collectContributionMixItem(order: G5OrderInput, state: ContributionWindowState): void {
+  const mixKey = `${order.itemName.trim()}::${order.unitKey?.trim() || "legacy:recorded-mix"}`;
+  const existing = state.mix.get(mixKey);
+  const current = existing ?? {
+    itemName: order.itemName.trim(),
+    orderCount: 0,
+    quantityMilli: null,
+    unitKey: order.unitKey?.trim() || "legacy:recorded-mix",
+    unitLabel: order.unitLabel?.trim() || (order.unitKey ? null : "المزيج المسجل"),
+    revenueMinor: 0,
+    variableCostMinor: 0,
+    contributionMarginMinor: 0,
+  };
+  const accumulated = accumulateMixItem(current, existing !== undefined, order);
+  if (accumulated === null) {
+    state.invalid = true;
+    state.reasons.push(`تعذر تجميع قراءة المزيج للعمل ${order.itemName}.`);
+  } else {
+    state.mix.set(mixKey, accumulated);
+  }
+}
+
+/* و٩: حساب صف المزيج المتراكم — null عند تجاوز الدقة الآمنة. */
+function accumulateMixItem(
+  current: G5MixItem,
+  hasExisting: boolean,
+  order: G5OrderInput,
+): G5MixItem | null {
+  const nextMixRevenue = addSafe(current.revenueMinor, order.recognizedRevenueMinor);
+  const nextMixCost = addSafe(current.variableCostMinor, order.recognizedCostMinor);
+  const nextMixMargin =
+    nextMixRevenue === null || nextMixCost === null ? null : addSafe(nextMixRevenue, -nextMixCost);
+  const nextMixQuantity = mixQuantityAccumulated(current, hasExisting, order);
+  if (
+    nextMixRevenue === null ||
+    nextMixCost === null ||
+    nextMixMargin === null ||
+    (hasExisting &&
+      current.quantityMilli !== null &&
+      order.quantityMilli !== null &&
+      nextMixQuantity === null)
+  )
+    return null;
+  return {
+    ...current,
+    orderCount: current.orderCount + 1,
+    quantityMilli: nextMixQuantity,
+    revenueMinor: nextMixRevenue,
+    variableCostMinor: nextMixCost,
+    contributionMarginMinor: nextMixMargin,
+  };
+}
+
+/* و٩: مصاريف الفترة — الثابت المعروف يدخل، والمشترك بلا أساس والمختلط فجوات تصنيف. */
+function collectContributionExpenses(
+  expenses: readonly G5ExpenseInput[],
+  state: ContributionWindowState,
+): void {
+  for (const expense of expenses) {
+    const validation = validateExpense(expense);
+    if (validation) {
+      state.invalid = true;
+      state.reasons.push(validation);
+      continue;
+    }
+    if (expense.amountMinor === 0) continue;
+    state.sources.push(`مصروف الفترة: ${expense.source}`);
+    if (expense.relationship === "shared" && expense.sharedProjectShareBasis === null) {
+      state.classificationGap = true;
+      state.incomplete = true;
+      state.reasons.push(`الحصة المشتركة ${expense.source} بلا أساس معلن؛ لم تدخل كمصروف ثابت معروف.`);
+      state.excluded.push(`المصروف ${expense.source} غير موزّع لغياب مصدر الحصة.`);
+      continue;
+    }
+    if (expense.relationship === "shared" && expense.sharedProjectShareBasis === "needs_review") {
+      state.classificationGap = true;
+      state.incomplete = true;
+      state.reasons.push(`مصدر حصة المصروف المشترك ${expense.source} يحتاج مراجعة.`);
+      continue;
+    }
+    if (collectContributionFixedExpense(expense, state)) continue;
+    collectContributionVariableExpense(expense, state);
+  }
+}
+
+/* و٩: المصروف الثابت — يعيد true إذا عولج وأكمل. */
+function collectContributionFixedExpense(
+  expense: G5ExpenseInput,
+  state: ContributionWindowState,
+): boolean {
+  if (expense.behavior !== "fixed") return false;
+  const nextFixed = addSafe(state.fixedExpenseMinor, expense.amountMinor);
+  if (nextFixed === null) {
+    state.invalid = true;
+    state.reasons.push("مجموع التكاليف الثابتة يتجاوز الدقة الآمنة.");
+  } else state.fixedExpenseMinor = nextFixed;
+  if (expense.knowledge === "estimated") {
+    state.needsReview = true;
+    state.assumptions.push(`مبلغ ثابت ${expense.source} تقديري معلن.`);
+  } else if (expense.knowledge === "needs_review") {
+    state.needsReview = true;
+    state.assumptions.push(`مبلغ ثابت ${expense.source} يحتاج مراجعة.`);
+  }
+  return true;
+}
+
+/* و٩: المصروف المتغير — المرتبط يدخل التكلفة، وغير المرتبط والمختلط والمجهول فجوات معلنة. */
+function collectContributionVariableExpense(
+  expense: G5ExpenseInput,
+  state: ContributionWindowState,
+): void {
+  if (expense.behavior === "variable" && expense.directlyLinked) {
+    const nextVariable = addSafe(state.totalVariableCostMinor, expense.amountMinor);
+    if (nextVariable === null) {
+      state.invalid = true;
+      state.reasons.push("مجموع التكلفة المتغيرة يتجاوز الدقة الآمنة.");
+    } else state.totalVariableCostMinor = nextVariable;
+    if (expense.knowledge !== "known") {
+      state.needsReview = true;
+      state.assumptions.push(
+        `تكلفة متغيرة مرتبطة ${expense.source} ${expense.knowledge === "estimated" ? "تقديرية" : "تحتاج مراجعة"}.`,
+      );
+    }
+    return;
+  }
+  if (expense.behavior === "variable") {
+    state.classificationGap = true;
+    state.incomplete = true;
+    state.reasons.push(`المصروف المتغير ${expense.source} غير مرتبط مباشرة بهامش الوحدات؛ لم يوزع تلقائيًا.`);
+  } else if (expense.behavior === "mixed") {
+    state.classificationGap = true;
+    state.incomplete = true;
+    state.reasons.push(`المصروف المختلط ${expense.source} لم يُفصل بين ثابت ومتغير.`);
+  } else if (expense.behavior === "unknown") {
+    state.classificationGap = true;
+    state.incomplete = true;
+    state.reasons.push(`سلوك المصروف ${expense.source} غير معروف؛ لم يحول إلى صفر.`);
+  }
+}
+
+/* و٩: كمية صف المزيج المتراكمة — null عند غياب الكمية أو تجاوز الدقة. */
+function mixQuantityAccumulated(
+  current: G5MixItem,
+  hasExisting: boolean,
+  order: G5OrderInput,
+): number | null {
+  if (!hasExisting) return order.quantityMilli;
+  if (current.quantityMilli === null || order.quantityMilli === null) return null;
+  return addSafe(current.quantityMilli, order.quantityMilli);
+}
+
+/* و٩: حوارس الإغلاق — الهامش والكمية والتكاليف الثابتة والطلبات النهائية. */
+function applyContributionFinalGuards(state: ContributionWindowState): void {
+  const contributionMarginMinor = addSafe(state.totalRevenueMinor, -state.totalVariableCostMinor);
+  if (contributionMarginMinor === null) {
+    state.invalid = true;
+    state.reasons.push("الهامش بعد الكلفة المباشرة يتجاوز الدقة الآمنة.");
+  }
+  if (state.excludedOrderCount > 0) {
+    state.incomplete = true;
+    state.reasons.push("توجد طلبات مسلّمة مستبعدة من الهامش بسبب النتيجة غير النهائية.");
+  }
+  if (state.finalOrderCount === 0) {
+    if (state.excludedOrderCount > 0 || state.classificationGap) state.incomplete = true;
+    else state.invalid = true;
+    state.reasons.push("لا توجد طلبات نهائية موجبة تكفي لحساب الهامش بعد الكلفة المباشرة.");
+  }
+  applyQuantityAndFixedGuards(state);
+  if ((contributionMarginMinor ?? 0) <= 0 && state.finalOrderCount > 0) {
+    state.invalid = true;
+    state.reasons.push("الهامش بعد الكلفة المباشرة المسجل غير موجب.");
+  }
+}
+
+/* و٩: حارسا الكمية الموحدة والتكاليف الثابتة الموجبة. */
+function applyQuantityAndFixedGuards(state: ContributionWindowState): void {
+  if (state.totalQuantityMilli === null || state.totalQuantityMilli <= 0) {
+    if (state.finalOrderCount > 0 && !state.reasons.some(reason => reason.includes("كمية")))
+      state.reasons.push("لا توجد كمية نهائية موحدة موجبة تكفي لحساب هامش الوحدة.");
+    state.incomplete = true;
+  }
+  if (state.fixedExpenseMinor <= 0) {
+    if (state.classificationGap) state.incomplete = true;
+    else state.invalid = true;
+    state.reasons.push("لا توجد تكاليف ثابتة موجبة قابلة للتطبيق في الفترة.");
+  }
+}
+
+/* و٩: هامش الوحدة — تقريب نصف-أعلى على الكمية الموحدة أو غياب معلن. */
+function contributionMarginPerUnit(
+  state: ContributionWindowState,
+  contributionMarginMinor: number | null,
+): number | null {
+  if (
+    contributionMarginMinor !== null &&
+    state.totalQuantityMilli !== null &&
+    state.totalQuantityMilli > 0 &&
+    contributionMarginMinor >= 0 &&
+    contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 1000
+  )
+    return roundHalfUp(contributionMarginMinor * 1000, state.totalQuantityMilli);
+  return null;
+}
+
+/* و٩: مخرج قراءة الهامش — رفض موثق أو قراءة بحالتها ومزيجها. */
+function contributionOutcome(
+  from: string,
+  to: string,
+  state: ContributionWindowState,
+): ContributionMarginResult {
+  const contributionMarginMinor = addSafe(state.totalRevenueMinor, -state.totalVariableCostMinor);
+  const contributionMarginPerUnitMinor = contributionMarginPerUnit(state, contributionMarginMinor);
+  if (state.invalid)
+    return {
+      ...invalidContribution(from, to, state.reasons.join(" ") || "بيانات G5 غير صالحة."),
+      totalRevenueMinor: state.totalRevenueMinor,
+      totalVariableCostMinor: state.totalVariableCostMinor,
+      contributionMarginMinor: contributionMarginMinor ?? 0,
+      totalQuantityMilli: state.totalQuantityMilli,
+      quantityUnitKey: state.quantityUnitKey,
+      quantityUnitLabel: state.quantityUnitLabel,
+      fixedExpenseMinor: state.fixedExpenseMinor,
+      finalOrderCount: state.finalOrderCount,
+      excludedOrderCount: state.excludedOrderCount,
+      mix: [...state.mix.values()],
+      sources: state.sources,
+      excluded: state.excluded,
+      assumptions: state.assumptions,
+      reasons: state.reasons,
+    };
+  const status = state.incomplete ? "incomplete" : state.needsReview ? "needs_review" : "available";
+  return {
+    status,
+    from,
+    to,
+    totalRevenueMinor: state.totalRevenueMinor,
+    totalVariableCostMinor: state.totalVariableCostMinor,
+    contributionMarginMinor: contributionMarginMinor!,
+    contributionMarginPerUnitMinor,
+    totalQuantityMilli: state.totalQuantityMilli,
+    quantityUnitKey: state.quantityUnitKey,
+    quantityUnitLabel: state.quantityUnitLabel,
+    fixedExpenseMinor: state.fixedExpenseMinor,
+    finalOrderCount: state.finalOrderCount,
+    excludedOrderCount: state.excludedOrderCount,
+    mix: [...state.mix.values()].sort(
+      (left, right) =>
+        right.contributionMarginMinor - left.contributionMarginMinor ||
+        left.itemName.localeCompare(right.itemName, "ar"),
+    ),
+    sources: state.sources,
+    excluded: state.excluded,
+    assumptions: state.assumptions,
+    reasons: state.reasons,
+    nextAction:
+      status === "available" || status === "needs_review"
+        ? "راجع السعر والتكلفة إذا تغير المزيج أو الافتراض المعلن."
+        : "سجّل الكمية أو الوحدة أو التصنيف أو التاريخ الناقص قبل الاعتماد على رقم التعادل.",
+  };
+}
 
 export function calculateContributionMargin(
   from: string,
@@ -183,282 +551,32 @@ export function calculateContributionMargin(
 ): ContributionMarginResult {
   if (!isValidLocalDate(from) || !isValidLocalDate(to) || from > to)
     return invalidContribution(from, to, "الفترة المحلية غير صالحة.");
-  const reasons: string[] = [];
-  const excluded: string[] = [];
-  const assumptions: string[] = [];
-  const sources: string[] = [];
-  const mix = new Map<string, G5MixItem>();
-  let totalRevenueMinor = 0;
-  let totalVariableCostMinor = 0;
-  let finalOrderCount = 0;
-  let excludedOrderCount = 0;
-  let fixedExpenseMinor = 0;
-  let invalid = false;
-  let incomplete = false;
-  let needsReview = false;
-  let classificationGap = false;
-  let totalQuantityMilli: number | null = 0;
-  let quantityUnitKey: string | null = null;
-  let quantityUnitLabel: string | null = null;
-  let quantityUnitEstablished = false;
-
-  for (const order of orders) {
-    const validation = validateOrder(order);
-    if (validation) {
-      invalid = true;
-      reasons.push(validation);
-      continue;
-    }
-    if (order.deliveredOn < from || order.deliveredOn > to) continue;
-    sources.push(`طلب مسلّم مسجل: ${orderDisplayName(order)}`);
-    if (order.resultStatus !== "final") {
-      excludedOrderCount += 1;
-      excluded.push(
-        `الطلب «${orderDisplayName(order)}» مستبعد لأن نتيجته ${orderResultStatusAr(order.resultStatus)}.`,
-      );
-      continue;
-    }
-    finalOrderCount += 1;
-    const nextRevenue = addSafe(totalRevenueMinor, order.recognizedRevenueMinor);
-    const nextCost = addSafe(totalVariableCostMinor, order.recognizedCostMinor);
-    if (nextRevenue === null || nextCost === null) {
-      invalid = true;
-      reasons.push(`مجموع إيراد أو تكلفة الطلبات يتجاوز الدقة الآمنة.`);
-    } else {
-      totalRevenueMinor = nextRevenue;
-      totalVariableCostMinor = nextCost;
-    }
-
-    const hasQuantity = order.quantityMilli !== null && order.quantityMilli > 0;
-    if (!hasQuantity) {
-      totalQuantityMilli = null;
-      if (order.quantityIssue === "invalid") {
-        invalid = true;
-        reasons.push(`كمية الطلب «${orderDisplayName(order)}» غير صالحة؛ لا تحوّل إلى صفر.`);
-      } else {
-        incomplete = true;
-        reasons.push(
-          `كمية الطلب «${orderDisplayName(order)}» غير قابلة للتوحيد؛ أكمل وحدة أو تحويلًا صريحًا.`,
-        );
-      }
-    } else {
-      const unitKey = order.unitKey?.trim() || "legacy:recorded-mix";
-      const unitLabel =
-        order.unitLabel?.trim() || (unitKey === "legacy:recorded-mix" ? "المزيج المسجل" : null);
-      if (!quantityUnitEstablished) {
-        quantityUnitKey = unitKey;
-        quantityUnitLabel = unitLabel;
-        quantityUnitEstablished = true;
-      } else if (quantityUnitKey !== unitKey) {
-        totalQuantityMilli = null;
-        incomplete = true;
-        reasons.push(
-          "توجد وحدات أو مراجع كمية غير متوافقة؛ لا تجمعها كناتج واحد دون تحويل G4-A صريح داخل البعد نفسه.",
-        );
-      }
-      if (totalQuantityMilli !== null) {
-        const nextQuantity = addSafe(totalQuantityMilli, order.quantityMilli!);
-        if (nextQuantity === null) {
-          totalQuantityMilli = null;
-          invalid = true;
-          reasons.push("مجموع الكمية يتجاوز الدقة الآمنة.");
-        } else totalQuantityMilli = nextQuantity;
-      }
-    }
-
-    const mixKey = `${order.itemName.trim()}::${order.unitKey?.trim() || "legacy:recorded-mix"}`;
-    const existing = mix.get(mixKey);
-    const current = existing ?? {
-      itemName: order.itemName.trim(),
-      orderCount: 0,
-      quantityMilli: null,
-      unitKey: order.unitKey?.trim() || "legacy:recorded-mix",
-      unitLabel: order.unitLabel?.trim() || (order.unitKey ? null : "المزيج المسجل"),
-      revenueMinor: 0,
-      variableCostMinor: 0,
-      contributionMarginMinor: 0,
-    };
-    const nextMixRevenue = addSafe(current.revenueMinor, order.recognizedRevenueMinor);
-    const nextMixCost = addSafe(current.variableCostMinor, order.recognizedCostMinor);
-    const nextMixMargin =
-      nextMixRevenue === null || nextMixCost === null ? null : addSafe(nextMixRevenue, -nextMixCost);
-    const nextMixQuantity =
-      existing === undefined
-        ? order.quantityMilli
-        : current.quantityMilli === null || order.quantityMilli === null
-          ? null
-          : addSafe(current.quantityMilli, order.quantityMilli);
-    if (
-      nextMixRevenue === null ||
-      nextMixCost === null ||
-      nextMixMargin === null ||
-      (existing !== undefined &&
-        current.quantityMilli !== null &&
-        order.quantityMilli !== null &&
-        nextMixQuantity === null)
-    ) {
-      invalid = true;
-      reasons.push(`تعذر تجميع قراءة المزيج للعمل ${order.itemName}.`);
-    } else {
-      mix.set(mixKey, {
-        ...current,
-        orderCount: current.orderCount + 1,
-        quantityMilli: nextMixQuantity,
-        revenueMinor: nextMixRevenue,
-        variableCostMinor: nextMixCost,
-        contributionMarginMinor: nextMixMargin,
-      });
-    }
-  }
-
-  for (const expense of expenses) {
-    const validation = validateExpense(expense);
-    if (validation) {
-      invalid = true;
-      reasons.push(validation);
-      continue;
-    }
-    if (expense.amountMinor === 0) continue;
-    sources.push(`مصروف الفترة: ${expense.source}`);
-    if (expense.relationship === "shared" && expense.sharedProjectShareBasis === null) {
-      classificationGap = true;
-      incomplete = true;
-      reasons.push(`الحصة المشتركة ${expense.source} بلا أساس معلن؛ لم تدخل كمصروف ثابت معروف.`);
-      excluded.push(`المصروف ${expense.source} غير موزّع لغياب مصدر الحصة.`);
-      continue;
-    }
-    if (expense.relationship === "shared" && expense.sharedProjectShareBasis === "needs_review") {
-      classificationGap = true;
-      incomplete = true;
-      reasons.push(`مصدر حصة المصروف المشترك ${expense.source} يحتاج مراجعة.`);
-      continue;
-    }
-    if (expense.behavior === "fixed") {
-      const nextFixed = addSafe(fixedExpenseMinor, expense.amountMinor);
-      if (nextFixed === null) {
-        invalid = true;
-        reasons.push("مجموع التكاليف الثابتة يتجاوز الدقة الآمنة.");
-      } else fixedExpenseMinor = nextFixed;
-      if (expense.knowledge === "estimated") {
-        needsReview = true;
-        assumptions.push(`مبلغ ثابت ${expense.source} تقديري معلن.`);
-      } else if (expense.knowledge === "needs_review") {
-        needsReview = true;
-        assumptions.push(`مبلغ ثابت ${expense.source} يحتاج مراجعة.`);
-      }
-      continue;
-    }
-    if (expense.behavior === "variable" && expense.directlyLinked) {
-      const nextVariable = addSafe(totalVariableCostMinor, expense.amountMinor);
-      if (nextVariable === null) {
-        invalid = true;
-        reasons.push("مجموع التكلفة المتغيرة يتجاوز الدقة الآمنة.");
-      } else totalVariableCostMinor = nextVariable;
-      if (expense.knowledge !== "known") {
-        needsReview = true;
-        assumptions.push(
-          `تكلفة متغيرة مرتبطة ${expense.source} ${expense.knowledge === "estimated" ? "تقديرية" : "تحتاج مراجعة"}.`,
-        );
-      }
-      continue;
-    } else if (expense.behavior === "variable") {
-      classificationGap = true;
-      incomplete = true;
-      reasons.push(`المصروف المتغير ${expense.source} غير مرتبط مباشرة بهامش الوحدات؛ لم يوزع تلقائيًا.`);
-    } else if (expense.behavior === "mixed") {
-      classificationGap = true;
-      incomplete = true;
-      reasons.push(`المصروف المختلط ${expense.source} لم يُفصل بين ثابت ومتغير.`);
-    } else if (expense.behavior === "unknown") {
-      classificationGap = true;
-      incomplete = true;
-      reasons.push(`سلوك المصروف ${expense.source} غير معروف؛ لم يحول إلى صفر.`);
-    }
-  }
-
-  const contributionMarginMinor = addSafe(totalRevenueMinor, -totalVariableCostMinor);
-  if (contributionMarginMinor === null) {
-    invalid = true;
-    reasons.push("الهامش بعد الكلفة المباشرة يتجاوز الدقة الآمنة.");
-  }
-  if (excludedOrderCount > 0) {
-    incomplete = true;
-    reasons.push("توجد طلبات مسلّمة مستبعدة من الهامش بسبب النتيجة غير النهائية.");
-  }
-  if (finalOrderCount === 0) {
-    if (excludedOrderCount > 0 || classificationGap) incomplete = true;
-    else invalid = true;
-    reasons.push("لا توجد طلبات نهائية موجبة تكفي لحساب الهامش بعد الكلفة المباشرة.");
-  }
-  if (totalQuantityMilli === null || totalQuantityMilli <= 0) {
-    if (finalOrderCount > 0 && !reasons.some(reason => reason.includes("كمية")))
-      reasons.push("لا توجد كمية نهائية موحدة موجبة تكفي لحساب هامش الوحدة.");
-    incomplete = true;
-  }
-  if (fixedExpenseMinor <= 0) {
-    if (classificationGap) incomplete = true;
-    else invalid = true;
-    reasons.push("لا توجد تكاليف ثابتة موجبة قابلة للتطبيق في الفترة.");
-  }
-  if ((contributionMarginMinor ?? 0) <= 0 && finalOrderCount > 0) {
-    invalid = true;
-    reasons.push("الهامش بعد الكلفة المباشرة المسجل غير موجب.");
-  }
-  const contributionMarginPerUnitMinor =
-    contributionMarginMinor !== null &&
-    totalQuantityMilli !== null &&
-    totalQuantityMilli > 0 &&
-    contributionMarginMinor >= 0 &&
-    contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 1000
-      ? roundHalfUp(contributionMarginMinor * 1000, totalQuantityMilli)
-      : null;
-  if (invalid)
-    return {
-      ...invalidContribution(from, to, reasons.join(" ") || "بيانات G5 غير صالحة."),
-      totalRevenueMinor,
-      totalVariableCostMinor,
-      contributionMarginMinor: contributionMarginMinor ?? 0,
-      totalQuantityMilli,
-      quantityUnitKey,
-      quantityUnitLabel,
-      fixedExpenseMinor,
-      finalOrderCount,
-      excludedOrderCount,
-      mix: [...mix.values()],
-      sources,
-      excluded,
-      assumptions,
-      reasons,
-    };
-  const status = incomplete ? "incomplete" : needsReview ? "needs_review" : "available";
-  return {
-    status,
-    from,
-    to,
-    totalRevenueMinor,
-    totalVariableCostMinor,
-    contributionMarginMinor: contributionMarginMinor!,
-    contributionMarginPerUnitMinor,
-    totalQuantityMilli,
-    quantityUnitKey,
-    quantityUnitLabel,
-    fixedExpenseMinor,
-    finalOrderCount,
-    excludedOrderCount,
-    mix: [...mix.values()].sort(
-      (left, right) =>
-        right.contributionMarginMinor - left.contributionMarginMinor ||
-        left.itemName.localeCompare(right.itemName, "ar"),
-    ),
-    sources,
-    excluded,
-    assumptions,
-    reasons,
-    nextAction:
-      status === "available" || status === "needs_review"
-        ? "راجع السعر والتكلفة إذا تغير المزيج أو الافتراض المعلن."
-        : "سجّل الكمية أو الوحدة أو التصنيف أو التاريخ الناقص قبل الاعتماد على رقم التعادل.",
+  const state: ContributionWindowState = {
+    sources: [],
+    excluded: [],
+    assumptions: [],
+    reasons: [],
+    mix: new Map<string, G5MixItem>(),
+    totalRevenueMinor: 0,
+    totalVariableCostMinor: 0,
+    finalOrderCount: 0,
+    excludedOrderCount: 0,
+    fixedExpenseMinor: 0,
+    invalid: false,
+    incomplete: false,
+    needsReview: false,
+    classificationGap: false,
+    totalQuantityMilli: 0,
+    quantityUnitKey: null,
+    quantityUnitLabel: null,
+    quantityUnitEstablished: false,
   };
+
+  collectContributionOrders(from, to, orders, state);
+  collectContributionExpenses(expenses, state);
+
+  applyContributionFinalGuards(state);
+  return contributionOutcome(from, to, state);
 }
 
 export function calculateBreakEven(
@@ -604,23 +722,173 @@ function activeDeclarations(declarations: readonly ShortCashDeclaration[]): {
   }
   return { active: active.filter(declaration => !reversedIds.has(declaration.id)), invalidReason: null };
 }
+/* و٩: حالة أفق الكاش القصير القابلة للتراكم بين حلقتي الأرصدة والمتوقعات. */
+type ShortCashWindowState = {
+  declaredCollectionsMinor: number;
+  declaredCommitmentsMinor: number;
+  undatedReceivablesMinor: number;
+  undatedPayablesMinor: number;
+  invalid: boolean;
+  incomplete: boolean;
+  needsReview: boolean;
+  hasWindowEvidence: boolean;
+  sources: string[];
+  assumptions: string[];
+  reasons: string[];
+};
 
-export function calculateShortCash(input: ShortCashInput): ShortCashResult {
-  const base = {
-    from: input.from,
-    to: input.to,
-    recordedCashMinor: input.recordedCashMinor,
-    declaredCollectionsMinor: 0,
-    declaredCommitmentsMinor: 0,
-    undatedReceivablesMinor: 0,
-    undatedPayablesMinor: 0,
-    projectedCashMinor: null,
-    activeDeclarationCount: 0,
-    sources: [] as string[],
-    assumptions: [] as string[],
-    reasons: [] as string[],
-    nextAction: "سجّل مصدرًا وتاريخًا لأي تحصيل أو التزام مؤثر قبل الاعتماد على توقع.",
+/* و٩: الأرصدة داخل الأفق — المؤرخة تدخل التوقع وغير المؤرخة نقص معلن. */
+function collectBalancesWindow(
+  input: ShortCashInput,
+  allBalances: readonly ShortCashBalanceItem[],
+  active: readonly ShortCashDeclaration[],
+  state: ShortCashWindowState,
+): void {
+  for (const balance of allBalances) {
+    const linked = active.filter(
+      declaration =>
+        (declaration.relatedOrderId ?? declaration.relatedEventId) === balance.id &&
+        declaration.direction === balance.direction,
+    );
+    const linkedAmount = linked.reduce((sum, declaration) => sum + declaration.amountMinor, 0);
+    if (!Number.isSafeInteger(linkedAmount) || linkedAmount > balance.amountMinor) {
+      state.invalid = true;
+      state.reasons.push(`متوقعات ${balance.source} يتجاوز مجموعها الرصيد المسجل.`);
+      continue;
+    }
+    if (balance.dueOn !== null) {
+      if (linked.length > 0) {
+        state.invalid = true;
+        state.reasons.push(`السجل المتوقع المرتبط بـ${balance.source} يكرر رصيدًا له تاريخ مسجل مسبقًا.`);
+        continue;
+      }
+      if (balance.dueOn >= input.from && balance.dueOn <= input.to) {
+        state.hasWindowEvidence = true;
+        state.sources.push(`رصيد مؤرخ: ${balance.source} في ${balance.dueOn}`);
+        if (balance.direction === "collection") state.declaredCollectionsMinor += balance.amountMinor;
+        else state.declaredCommitmentsMinor += balance.amountMinor;
+      }
+    } else if (linkedAmount < balance.amountMinor) {
+      const remaining = balance.amountMinor - linkedAmount;
+      if (balance.direction === "collection") state.undatedReceivablesMinor += remaining;
+      else state.undatedPayablesMinor += remaining;
+      state.incomplete = true;
+      state.reasons.push(
+        `${balance.direction === "collection" ? "دين" : "التزام"} بلا تاريخ كافٍ: ${balance.source}.`,
+      );
+    }
+  }
+}
+
+/* و٩: المتوقعات السارية داخل الأفق — تُقبل المرتبطة برصيد غير مؤرخ فقط. */
+function collectDeclarationsWindow(
+  input: ShortCashInput,
+  allBalances: readonly ShortCashBalanceItem[],
+  active: readonly ShortCashDeclaration[],
+  state: ShortCashWindowState,
+): void {
+  for (const declaration of active) {
+    const isInWindow = declaration.dueOn >= input.from && declaration.dueOn <= input.to;
+    if (!isInWindow) continue;
+    state.hasWindowEvidence = true;
+    const balanceId = declaration.relatedOrderId ?? declaration.relatedEventId;
+    if (balanceId && !declarationBalanceLinkPasses(allBalances, active, declaration, balanceId, state))
+      continue;
+    if (declaration.direction === "collection") state.declaredCollectionsMinor += declaration.amountMinor;
+    else state.declaredCommitmentsMinor += declaration.amountMinor;
+    state.sources.push(
+      `${declaration.direction === "collection" ? "قبض" : "دفع"} متوقع: ${declaration.source} في ${declaration.dueOn}`,
+    );
+    if (declaration.knowledge !== "known") {
+      state.needsReview = true;
+      state.assumptions.push(
+        `${declaration.source}: ${declaration.knowledge === "estimated" ? "تقدير معلن" : "يحتاج مراجعة"}.`,
+      );
+    }
+  }
+}
+
+/* و٩: السجل المتوقع المرتبط برصيد — الرصيد موجود وغير مؤرخ ولا تتجاوز المتوقعات مجموعه. */
+function declarationBalanceLinkPasses(
+  allBalances: readonly ShortCashBalanceItem[],
+  active: readonly ShortCashDeclaration[],
+  declaration: ShortCashDeclaration,
+  balanceId: string,
+  state: ShortCashWindowState,
+): boolean {
+  const balance = allBalances.find(
+    item => item.id === balanceId && item.direction === declaration.direction,
+  );
+  if (!balance) {
+    state.invalid = true;
+    state.reasons.push(`السجل المتوقع ${declaration.source} مرتبط برصيد غير موجود.`);
+    return false;
+  }
+  if (balance.dueOn !== null) return false;
+  const linkedAmount = active
+    .filter(
+      candidate =>
+        (candidate.relatedOrderId ?? candidate.relatedEventId) === balanceId &&
+        candidate.direction === declaration.direction,
+    )
+    .reduce((sum, candidate) => sum + candidate.amountMinor, 0);
+  if (linkedAmount > balance.amountMinor) {
+    state.invalid = true;
+    state.reasons.push(`السجل المتوقع ${declaration.source} يتجاوز الرصيد المسجل.`);
+    return false;
+  }
+  return true;
+}
+
+/* و٩: مخرج أفق الكاش القصير — رفض موثق أو توقع معلن بحالته. */
+function shortCashOutcome(
+  input: ShortCashInput,
+  base: Omit<ShortCashResult, "status">,
+  state: ShortCashWindowState,
+  activeDeclarationCount: number,
+): ShortCashResult {
+  if (state.invalid)
+    return {
+      ...base,
+      status: "invalid",
+      declaredCollectionsMinor: state.declaredCollectionsMinor,
+      declaredCommitmentsMinor: state.declaredCommitmentsMinor,
+      undatedReceivablesMinor: state.undatedReceivablesMinor,
+      undatedPayablesMinor: state.undatedPayablesMinor,
+      activeDeclarationCount,
+      sources: state.sources,
+      assumptions: state.assumptions,
+      reasons: state.reasons,
+      nextAction: "صحح مبلغ السجل المتوقع أو تاريخه أو ربطه قبل الاعتماد على قراءة السيولة.",
+    };
+  const status = state.incomplete ? "incomplete" : state.needsReview ? "needs_review" : "available";
+  return {
+    ...base,
+    status,
+    declaredCollectionsMinor: state.declaredCollectionsMinor,
+    declaredCommitmentsMinor: state.declaredCommitmentsMinor,
+    undatedReceivablesMinor: state.undatedReceivablesMinor,
+    undatedPayablesMinor: state.undatedPayablesMinor,
+    projectedCashMinor:
+      status === "incomplete"
+        ? null
+        : input.recordedCashMinor + state.declaredCollectionsMinor - state.declaredCommitmentsMinor,
+    activeDeclarationCount,
+    sources: state.sources,
+    assumptions: state.assumptions,
+    reasons: state.reasons,
+    nextAction:
+      status === "available" || status === "needs_review"
+        ? "راجع مواعيد التحصيل والالتزامات إذا تغيرت الوقائع؛ هذا توقع معلن وليس كاشًا حاليًا."
+        : "حدّث تاريخ التحصيل أو الالتزام المفقود قبل الاعتماد على توقع قصير.",
   };
+}
+
+/* و٩: حوارس صلاحية مدخلات أفق الكاش القصير — الفترة والكاش والأرصدة. */
+function shortCashInvalidGuard(
+  input: ShortCashInput,
+  base: Omit<ShortCashResult, "status">,
+): ShortCashResult | null {
   if (
     !isValidLocalDate(input.from) ||
     !isValidLocalDate(input.to) ||
@@ -643,6 +911,27 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
       reasons: balanceErrors,
       nextAction: "صحح الرصيد أو تاريخه قبل قراءة السيولة.",
     };
+  return null;
+}
+
+export function calculateShortCash(input: ShortCashInput): ShortCashResult {
+  const base = {
+    from: input.from,
+    to: input.to,
+    recordedCashMinor: input.recordedCashMinor,
+    declaredCollectionsMinor: 0,
+    declaredCommitmentsMinor: 0,
+    undatedReceivablesMinor: 0,
+    undatedPayablesMinor: 0,
+    projectedCashMinor: null,
+    activeDeclarationCount: 0,
+    sources: [] as string[],
+    assumptions: [] as string[],
+    reasons: [] as string[],
+    nextAction: "سجّل مصدرًا وتاريخًا لأي تحصيل أو التزام مؤثر قبل الاعتماد على توقع.",
+  };
+  const guarded = shortCashInvalidGuard(input, base);
+  if (guarded) return guarded;
   const declarationState = activeDeclarations(input.declarations);
   if (declarationState.invalidReason)
     return {
@@ -653,132 +942,25 @@ export function calculateShortCash(input: ShortCashInput): ShortCashResult {
     };
   const active = declarationState.active;
   const allBalances = [...input.receivables, ...input.payables];
-  let declaredCollectionsMinor = 0;
-  let declaredCommitmentsMinor = 0;
-  let undatedReceivablesMinor = 0;
-  let undatedPayablesMinor = 0;
-  let needsReview = false;
-  let incomplete = false;
-  const sources: string[] = [];
-  const assumptions: string[] = [];
-  const reasons: string[] = [];
-  let invalid = false;
-  let hasWindowEvidence = false;
-
-  for (const balance of allBalances) {
-    const linked = active.filter(
-      declaration =>
-        (declaration.relatedOrderId ?? declaration.relatedEventId) === balance.id &&
-        declaration.direction === balance.direction,
-    );
-    const linkedAmount = linked.reduce((sum, declaration) => sum + declaration.amountMinor, 0);
-    if (!Number.isSafeInteger(linkedAmount) || linkedAmount > balance.amountMinor) {
-      invalid = true;
-      reasons.push(`متوقعات ${balance.source} يتجاوز مجموعها الرصيد المسجل.`);
-      continue;
-    }
-    if (balance.dueOn !== null) {
-      if (linked.length > 0) {
-        invalid = true;
-        reasons.push(`السجل المتوقع المرتبط بـ${balance.source} يكرر رصيدًا له تاريخ مسجل مسبقًا.`);
-        continue;
-      }
-      if (balance.dueOn >= input.from && balance.dueOn <= input.to) {
-        hasWindowEvidence = true;
-        sources.push(`رصيد مؤرخ: ${balance.source} في ${balance.dueOn}`);
-        if (balance.direction === "collection") declaredCollectionsMinor += balance.amountMinor;
-        else declaredCommitmentsMinor += balance.amountMinor;
-      }
-    } else if (linkedAmount < balance.amountMinor) {
-      const remaining = balance.amountMinor - linkedAmount;
-      if (balance.direction === "collection") undatedReceivablesMinor += remaining;
-      else undatedPayablesMinor += remaining;
-      incomplete = true;
-      reasons.push(
-        `${balance.direction === "collection" ? "دين" : "التزام"} بلا تاريخ كافٍ: ${balance.source}.`,
-      );
-    }
-  }
-
-  for (const declaration of active) {
-    const isInWindow = declaration.dueOn >= input.from && declaration.dueOn <= input.to;
-    if (!isInWindow) continue;
-    hasWindowEvidence = true;
-    const balanceId = declaration.relatedOrderId ?? declaration.relatedEventId;
-    if (balanceId) {
-      const balance = allBalances.find(
-        item => item.id === balanceId && item.direction === declaration.direction,
-      );
-      if (!balance) {
-        invalid = true;
-        reasons.push(`السجل المتوقع ${declaration.source} مرتبط برصيد غير موجود.`);
-        continue;
-      }
-      if (balance.dueOn !== null) continue;
-      const linkedAmount = active
-        .filter(
-          candidate =>
-            (candidate.relatedOrderId ?? candidate.relatedEventId) === balanceId &&
-            candidate.direction === declaration.direction,
-        )
-        .reduce((sum, candidate) => sum + candidate.amountMinor, 0);
-      if (linkedAmount > balance.amountMinor) {
-        invalid = true;
-        reasons.push(`السجل المتوقع ${declaration.source} يتجاوز الرصيد المسجل.`);
-        continue;
-      }
-    }
-    if (declaration.direction === "collection") declaredCollectionsMinor += declaration.amountMinor;
-    else declaredCommitmentsMinor += declaration.amountMinor;
-    sources.push(
-      `${declaration.direction === "collection" ? "قبض" : "دفع"} متوقع: ${declaration.source} في ${declaration.dueOn}`,
-    );
-    if (declaration.knowledge !== "known") {
-      needsReview = true;
-      assumptions.push(
-        `${declaration.source}: ${declaration.knowledge === "estimated" ? "تقدير معلن" : "يحتاج مراجعة"}.`,
-      );
-    }
-  }
-
-  if (undatedReceivablesMinor > 0 || undatedPayablesMinor > 0) incomplete = true;
-  if (!hasWindowEvidence) {
-    incomplete = true;
-    reasons.push("لا يوجد أساس كافٍ لأفق قصير مؤرخ؛ غياب المتوقع لا يعني أن الأفق آمن.");
-  }
-  if (invalid)
-    return {
-      ...base,
-      status: "invalid",
-      declaredCollectionsMinor,
-      declaredCommitmentsMinor,
-      undatedReceivablesMinor,
-      undatedPayablesMinor,
-      activeDeclarationCount: active.length,
-      sources,
-      assumptions,
-      reasons,
-      nextAction: "صحح مبلغ السجل المتوقع أو تاريخه أو ربطه قبل الاعتماد على قراءة السيولة.",
-    };
-  const status = incomplete ? "incomplete" : needsReview ? "needs_review" : "available";
-  return {
-    ...base,
-    status,
-    declaredCollectionsMinor,
-    declaredCommitmentsMinor,
-    undatedReceivablesMinor,
-    undatedPayablesMinor,
-    projectedCashMinor:
-      status === "incomplete"
-        ? null
-        : input.recordedCashMinor + declaredCollectionsMinor - declaredCommitmentsMinor,
-    activeDeclarationCount: active.length,
-    sources,
-    assumptions,
-    reasons,
-    nextAction:
-      status === "available" || status === "needs_review"
-        ? "راجع مواعيد التحصيل والالتزامات إذا تغيرت الوقائع؛ هذا توقع معلن وليس كاشًا حاليًا."
-        : "حدّث تاريخ التحصيل أو الالتزام المفقود قبل الاعتماد على توقع قصير.",
+  const state: ShortCashWindowState = {
+    declaredCollectionsMinor: 0,
+    declaredCommitmentsMinor: 0,
+    undatedReceivablesMinor: 0,
+    undatedPayablesMinor: 0,
+    invalid: false,
+    incomplete: false,
+    needsReview: false,
+    hasWindowEvidence: false,
+    sources: [],
+    assumptions: [],
+    reasons: [],
   };
+  collectBalancesWindow(input, allBalances, active, state);
+  collectDeclarationsWindow(input, allBalances, active, state);
+  if (state.undatedReceivablesMinor > 0 || state.undatedPayablesMinor > 0) state.incomplete = true;
+  if (!state.hasWindowEvidence) {
+    state.incomplete = true;
+    state.reasons.push("لا يوجد أساس كافٍ لأفق قصير مؤرخ؛ غياب المتوقع لا يعني أن الأفق آمن.");
+  }
+  return shortCashOutcome(input, base, state, active.length);
 }

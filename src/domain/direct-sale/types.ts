@@ -8,6 +8,12 @@ export type DirectSale = {
   currency: Currency;
   revenueMinor: MoneyMinor;
   collectedMinor: MoneyMinor;
+  /* X-06 (و٤): حالة الفرق بين المتفق والمقبوض — «partial_debt» يظهر الفرق في «لي عند
+   * العملاء»، و«partial_needs_review» فرق لم يُقرَّر بعد. الحقل إضافي اختياري:
+   * السجلات القديمة بلا حقوله تُقرأ قبضًا كاملًا (collected === revenue دائمًا عندها). */
+  collectionStatus?: DirectSaleCollectionStatus;
+  /** Optional catalog reference binding (القيد التاسع — ربط اختياري لا يلزم أحدًا). */
+  catalogItemId?: string | null;
   costMinor: MoneyMinor | null;
   profitMinor: MoneyMinor | null;
   occurredOn: string;
@@ -21,13 +27,16 @@ export type DirectSale = {
   revisions?: readonly DirectSaleRevision[];
 };
 
+export type DirectSaleCollectionStatus = "collected_in_full" | "partial_debt" | "partial_needs_review";
 export type DirectSaleStatus = "active" | "cancelled";
-export type DirectSaleRevisionKind = "edit" | "cancel";
+export type DirectSaleRevisionKind = "edit" | "cancel" | "price_cut";
 export type DirectSaleRevision = {
   kind: DirectSaleRevisionKind;
   idempotencyKey: string;
   createdAt: string;
   reason: string | null;
+  /** Present when the agreed revenue changed: the original stays in the record (X-06). */
+  beforeRevenueMinor?: MoneyMinor | null;
 };
 
 export type CreateDirectSaleInput = {
@@ -35,6 +44,11 @@ export type CreateDirectSaleInput = {
   itemName: string;
   quantity: number;
   revenueMinor: MoneyMinor;
+  /** Defaults to revenueMinor (full collection) when absent — legacy behavior. */
+  collectedMinor?: MoneyMinor | undefined;
+  /** Defaults to the derived status of collected vs revenue when absent. */
+  collectionStatus?: DirectSaleCollectionStatus | undefined;
+  catalogItemId?: string | null | undefined;
   costMinor: MoneyMinor | null;
   occurredOn: string;
   recordedAt: string;
@@ -42,7 +56,14 @@ export type CreateDirectSaleInput = {
   idempotencyKey: string;
 };
 
-export type UpdateDirectSaleInput = Pick<
-  CreateDirectSaleInput,
-  "itemName" | "quantity" | "revenueMinor" | "costMinor" | "occurredOn" | "note"
->;
+export type UpdateDirectSaleInput = {
+  itemName: string;
+  quantity: number;
+  revenueMinor: MoneyMinor;
+  collectedMinor?: MoneyMinor | undefined;
+  collectionStatus?: DirectSaleCollectionStatus | undefined;
+  catalogItemId?: string | null | undefined;
+  costMinor: MoneyMinor | null;
+  occurredOn: string;
+  note: string;
+};

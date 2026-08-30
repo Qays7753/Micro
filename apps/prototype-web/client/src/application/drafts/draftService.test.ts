@@ -88,4 +88,64 @@ describe("DraftService", () => {
       code: "not_found",
     });
   });
+
+  /* و٦ (§٥-٩): لا طمس صامت لتعديل أحدث من نافذة ثانية — الحفظ برقم المرجعية
+   * (updatedAt) كما فُتحت المسودة، وعند تقدمه يُرفض الحفظ. */
+  it("refuses a save whose expected updatedAt fell behind a newer edit from another window", async () => {
+    const store = new MemoryLocalStore();
+    const timestamps = [
+      "2026-08-22T00:00:00.000Z", // الإنشاء
+      "2026-08-22T01:00:00.000Z", // حفظ النافذة الأولى
+      "2026-08-22T02:00:00.000Z", // محاولة النافذة الثانية
+    ];
+    const service = new DraftService(store, () => timestamps.shift()!);
+    const created = await service.create("customer_order");
+    if (!created.ok) throw new Error("draft should be created");
+    const openedAt = created.draft.updatedAt;
+
+    const first = await service.save({ ...created.draft, itemName: "تصحيح النافذة الأولى" });
+    if (!first.ok) throw new Error(first.message);
+
+    const stale = await service.save(
+      { ...created.draft, itemName: "تصحيح النافذة الثانية المتأخرة" },
+      openedAt,
+    );
+    expect(stale).toMatchObject({ ok: false, code: "conflict" });
+
+    const after = await service.get(created.draft.id);
+    expect(after).toMatchObject({ ok: true, value: { itemName: "تصحيح النافذة الأولى" } });
+  });
+
+  it("accepts a save whose expected updatedAt matches the stored draft", async () => {
+    const store = new MemoryLocalStore();
+    const timestamps = ["2026-08-22T00:00:00.000Z", "2026-08-22T01:00:00.000Z"];
+    const service = new DraftService(store, () => timestamps.shift()!);
+    const created = await service.create("planned_design");
+    if (!created.ok) throw new Error("draft should be created");
+    await expect(
+      service.save({ ...created.draft, itemName: "بمفتاح صحيح" }, created.draft.updatedAt),
+    ).resolves.toMatchObject({ ok: true, draft: { itemName: "بمفتاح صحيح" } });
+  });
+
+  it("keeps the guard optional so saves without an expectation behave as before", async () => {
+    const store = new MemoryLocalStore();
+    const timestamps = ["2026-08-22T00:00:00.000Z", "2026-08-22T01:00:00.000Z"];
+    const service = new DraftService(store, () => timestamps.shift()!);
+    const created = await service.create("customer_order");
+    if (!created.ok) throw new Error("draft should be created");
+    await service.save({ ...created.draft, itemName: "حفظ أول" });
+    await expect(service.save({ ...created.draft, itemName: "حفظ ثانٍ" })).resolves.toMatchObject({
+      ok: true,
+      draft: { itemName: "حفظ ثانٍ" },
+    });
+  });
+
+  it("creates a draft carrying first real input values, never an empty record from a click (و٥)", async () => {
+    const service = new DraftService(new MemoryLocalStore(), () => "2026-08-30T00:00:00.000Z");
+    const created = await service.create("customer_order", { itemName: "صندوق", quantity: 3 });
+    expect(created).toMatchObject({
+      ok: true,
+      draft: { itemName: "صندوق", quantity: 3, customerName: "", specifications: "" },
+    });
+  });
 });

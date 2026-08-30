@@ -15,7 +15,7 @@ export type DraftInput = Pick<
 >;
 export type DraftSaveResult =
   | { ok: true; draft: OrderDraft }
-  | { ok: false; code: "validation_error" | "storage_error"; message: string };
+  | { ok: false; code: "validation_error" | "storage_error" | "conflict"; message: string };
 /* القرار ٢١: الحذف للمسودة غير المرتبطة فقط — الحدّ القاطع linkedOrderId !== null ⇒ ممنوع،
  * وتُقرأ قيمة الحقل لا تُستنتج من الحالة. المسودة لا أثر مالي لها. */
 export type DraftDeleteResult =
@@ -38,7 +38,9 @@ export class DraftService {
   get(id: string) {
     return this.store.getDraft(id);
   }
-  async create(intent: DraftIntent): Promise<DraftSaveResult> {
+  /* §٥-١ (و٥): الإنشاء لا يحدث عند نقر النية بل عند أول إدخال حقيقي — فالإنشاء
+   * يقبل قيم البداية التي كتبها المالك، ولا يولّد مسودة فارغة من نقرة. */
+  async create(intent: DraftIntent, initial: Partial<DraftInput> = {}): Promise<DraftSaveResult> {
     return this.save({
       id: createId(),
       intent,
@@ -51,11 +53,28 @@ export class DraftService {
       activeCostSnapshotId: null,
       linkedOrderId: null,
       createdAt: this.now(),
+      ...initial,
     });
   }
-  async save(input: DraftInput & Pick<OrderDraft, "id" | "createdAt">): Promise<DraftSaveResult> {
+  /* و٦ (§٥-٩): الحفظ برقم مرجعي للمسودة كما فُتحت — إن تقدّم السجل (تحديث آخر من نافذة
+   * ثانية أو نسخة تكلفة جديدة) رُفض الحفظ بدل الطمس الصامت. */
+  async save(
+    input: DraftInput & Pick<OrderDraft, "id" | "createdAt">,
+    expectedUpdatedAt?: string,
+  ): Promise<DraftSaveResult> {
     if (!Number.isInteger(input.quantity) || input.quantity < 1)
       return { ok: false, code: "validation_error", message: "الكمية يجب أن تكون قطعة واحدة أو أكثر." };
+    if (expectedUpdatedAt !== undefined) {
+      const current = await this.store.getDraft(input.id);
+      if (!current.ok)
+        return { ok: false, code: "storage_error", message: "تعذر قراءة المسودة قبل الحفظ. أعد المحاولة." };
+      if (current.value && current.value.updatedAt !== expectedUpdatedAt)
+        return {
+          ok: false,
+          code: "conflict",
+          message: "هذه المسودة عُدّلت من نافذة أخرى بعد فتحك لها؛ لم يُحفظ تعديلك.",
+        };
+    }
     const draft: OrderDraft = {
       ...input,
       customerName: input.customerName.trim(),

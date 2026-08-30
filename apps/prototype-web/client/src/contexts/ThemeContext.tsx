@@ -47,6 +47,15 @@ export function ThemeProvider({ children, defaultTheme = "system", switchable = 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.dataset.theme = theme;
+    /* §4 بند ١٩: التبديل اليدوي يحدّث شريط النظام فورًا — القيمة من توكن §1.1
+     * لا هيكس خام في TSX (§5 بند ١٤) */
+    const styles = getComputedStyle(document.documentElement);
+    const color = styles.getPropertyValue("--color-bg-canvas").trim();
+    if (color) {
+      document
+        .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+        .forEach(meta => meta.setAttribute("content", color));
+    }
   }, [theme]);
   const toggleTheme = switchable
     ? () => {

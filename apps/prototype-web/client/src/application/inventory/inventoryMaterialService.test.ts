@@ -106,7 +106,6 @@ describe("InventoryMaterialService", () => {
       ok: true,
       value: {
         materials: [{ quantityMilli: 13000, valueMinor: 6067 }],
-        truth: expect.stringContaining("ليست مصروفًا"),
       },
     });
     await expect(store.listSupplierPurchases()).resolves.toMatchObject({
@@ -368,5 +367,142 @@ describe("InventoryMaterialService activation (decision 9)", () => {
       ok: true,
       value: { activatedOn: "2026-08-01", source: "derived" },
     });
+  });
+});
+
+describe("InventoryMaterialService extract remainder (decision 20, contract 11 amended)", () => {
+  it("records the full remainder as a waste movement with its whole value and leaves an honest zero (acceptance #9)", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-08-30T09:00:00.000Z");
+    const opened = await service.openMaterial({
+      name: "فضة",
+      unit: "kilogram",
+      openingQuantityMilli: 1000,
+      openingValueMinor: 400,
+      occurredOn: "2026-08-01",
+      note: "افتتاح",
+      operationKey: "silver-open",
+    });
+    if (!opened.ok) throw new Error("material should open");
+    const extracted = await service.extractRemainder({
+      materialId: opened.value.material.id,
+      occurredOn: "2026-08-30",
+      reason: "مادة تلفت بالكامل",
+      operationKey: "extract-1",
+    });
+    expect(extracted).toMatchObject({
+      ok: true,
+      value: {
+        type: "waste",
+        quantityDeltaMilli: -1000,
+        valueDeltaMinor: -400,
+        reason: "مادة تلفت بالكامل",
+        wasteContext: { kind: "general_project" },
+      },
+    });
+    const overview = await service.overview();
+    expect(overview).toMatchObject({
+      ok: true,
+      value: { materials: [{ quantityMilli: 0, valueMinor: 0 }] },
+    });
+    /* لا حذف: الحركات تحتفظ بالافتتاح والإخراج معًا. */
+    const movements = await store.listInventoryMovements();
+    if (!movements.ok) throw new Error("movements should read");
+    expect(movements.value).toHaveLength(2);
+  });
+
+  it("serves the dust trap: after partial consumption the unrepresentable remainder leaves whole, never deleted", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-08-30T09:00:00.000Z");
+    const opened = await service.openMaterial({
+      name: "خيط",
+      unit: "meter",
+      openingQuantityMilli: 1000,
+      openingValueMinor: 300,
+      occurredOn: "2026-08-01",
+      note: "افتتاح",
+      operationKey: "thread-open",
+    });
+    if (!opened.ok) throw new Error("material should open");
+    const consumed = await service.waste({
+      materialId: opened.value.material.id,
+      quantityMilli: 990,
+      occurredOn: "2026-08-30",
+      note: "الجزء المستعمل",
+      reason: "استعمال",
+      operationKey: "thread-most",
+    });
+    if (!consumed.ok) throw new Error(consumed.message ?? "waste should save");
+    /* الفتات: 10 أجزاء بـ3 فلسات — التوزيع الجزئي مرفوض والطريق المعلن إخراج المتبقي. */
+    await expect(
+      service.waste({
+        materialId: opened.value.material.id,
+        quantityMilli: 9,
+        occurredOn: "2026-08-30",
+        note: "فتات",
+        reason: "اختبار الحد",
+        operationKey: "thread-dust",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    const extracted = await service.extractRemainder({
+      materialId: opened.value.material.id,
+      occurredOn: "2026-08-30",
+      reason: "فتات لا يمكن تمثيله",
+      operationKey: "thread-extract",
+    });
+    expect(extracted).toMatchObject({
+      ok: true,
+      value: { type: "waste", quantityDeltaMilli: -10, valueDeltaMinor: -3 },
+    });
+    const overview = await service.overview();
+    expect(overview).toMatchObject({
+      ok: true,
+      value: { materials: [{ quantityMilli: 0, valueMinor: 0 }] },
+    });
+  });
+
+  it("requires a reason like any waste and refuses when nothing remains, and is idempotent by operation key", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-08-30T09:00:00.000Z");
+    const opened = await service.openMaterial({
+      name: "غراء",
+      unit: "liter",
+      openingQuantityMilli: 500,
+      openingValueMinor: 250,
+      occurredOn: "2026-08-01",
+      note: "افتتاح",
+      operationKey: "glue-open",
+    });
+    if (!opened.ok) throw new Error("material should open");
+    await expect(
+      service.extractRemainder({
+        materialId: opened.value.material.id,
+        occurredOn: "2026-08-30",
+        reason: "   ",
+        operationKey: "glue-no-reason",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    const first = await service.extractRemainder({
+      materialId: opened.value.material.id,
+      occurredOn: "2026-08-30",
+      reason: "جفّ بالكامل",
+      operationKey: "glue-extract",
+    });
+    if (!first.ok) throw new Error(first.message ?? "extract should save");
+    const repeated = await service.extractRemainder({
+      materialId: opened.value.material.id,
+      occurredOn: "2026-08-30",
+      reason: "محاولة ثانية",
+      operationKey: "glue-extract",
+    });
+    expect(repeated).toMatchObject({ ok: true, reused: true, value: { id: first.value.id } });
+    await expect(
+      service.extractRemainder({
+        materialId: opened.value.material.id,
+        occurredOn: "2026-08-30",
+        reason: "لا متبقي",
+        operationKey: "glue-empty",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
   });
 });

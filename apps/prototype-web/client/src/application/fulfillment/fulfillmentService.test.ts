@@ -126,6 +126,66 @@ describe("FulfillmentService", () => {
     });
   });
 
+  /* §٥-١٦ (رحلة ٢): الدين المسجل يبقى قابلًا للتحصيل — جزئيًا ثم كاملًا —
+   * والتحصيل يدخل الكاش المقبوض دون إعادة فتح الطلب. */
+  it("collects a registered debt partially then fully, keeping the order settled", async () => {
+    const { store, orderId } = await activeOrder();
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    await service.markReady(orderId);
+    await service.deliver(orderId);
+    await service.registerRemainingDebt(orderId);
+
+    const partial = await service.collectDebt(orderId, 700);
+    expect(partial).toMatchObject({
+      ok: true,
+      stored: {
+        order: {
+          status: "settled",
+          settlementStatus: "debt",
+          collectedMinor: 1200,
+          receivableMinor: 1000,
+        },
+      },
+    });
+
+    const full = await service.collectDebt(orderId, 1000);
+    expect(full).toMatchObject({
+      ok: true,
+      stored: {
+        order: {
+          status: "settled",
+          settlementStatus: "paid",
+          collectedMinor: 2200,
+          receivableMinor: 0,
+        },
+      },
+    });
+  });
+
+  it("rejects a debt collection beyond the agreed price with an honest error", async () => {
+    const { store, orderId } = await activeOrder();
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    await service.markReady(orderId);
+    await service.deliver(orderId);
+    await service.registerRemainingDebt(orderId);
+    await expect(service.collectDebt(orderId, 1701)).resolves.toMatchObject({
+      ok: false,
+      code: "invalid_state",
+    });
+  });
+
+  it("collects nothing when no registered debt exists (idempotent no-op)", async () => {
+    const { store, orderId } = await activeOrder();
+    const service = new FulfillmentService(store, () => "2026-08-22T02:00:00.000Z");
+    await service.markReady(orderId);
+    await service.deliver(orderId);
+    const result = await service.collectDebt(orderId, 100);
+    expect(result).toMatchObject({
+      ok: true,
+      stored: { order: { status: "delivered", collectedMinor: 500, receivableMinor: 1700 } },
+    });
+  });
+
   it("does not expose a final profit when delivered cost knowledge is incomplete", async () => {
     const incomplete: CostEditorInput = { ...costInput, time: null };
     const { store, orderId } = await activeOrder(0, incomplete);

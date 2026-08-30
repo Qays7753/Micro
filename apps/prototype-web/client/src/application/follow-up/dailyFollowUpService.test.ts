@@ -45,7 +45,7 @@ describe("deriveDailyFollowUp", () => {
       noDrafts,
     );
     expect(result).toMatchObject<Partial<DailyFollowUp>>({
-      truth: "اتفاق محفوظ: السعر وموعد التسليم محفوظان. بدء التنفيذ فعل منفصل.",
+      truth: "اتفاق محفوظ", /* §10: الوسم يبقى والجملة الحدودية تُحذف */
       nextAction: "ابدأ التنفيذ",
     });
   });

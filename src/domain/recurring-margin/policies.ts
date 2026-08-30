@@ -207,10 +207,104 @@ export function perOutputUnitAmountMinor(
   return { amountMinor };
 }
 
-export function calculateAllocationPolicy(
+/* و٩: توزيع كل وحدة ناتج — وحدة منظمة متوافقة وإلا فسبب صريح. */
+function perOutputUnitAllocation(
   policy: AllocationPolicy,
   evidence: AllocationEvidence,
-): AllocationCalculation {
+  reasons: string[],
+): number | null {
+  if (
+    policy.unitId === null ||
+    evidence.outputQuantityMilli === null ||
+    evidence.outputQuantityMilli <= 0 ||
+    evidence.outputUnitId === null ||
+    policy.unitId !== evidence.outputUnitId
+  ) {
+    reasons.push("أكمل كمية الناتج بوحدة منظمة متوافقة مع سياسة التوزيع لكل وحدة؛ لا نحول أو نخمن الناتج.");
+    return null;
+  }
+  const allocation = perOutputUnitAmountMinor(evidence.outputQuantityMilli, policy.rateMinorPerWholeUnit);
+  if ("problem" in allocation) {
+    reasons.push(
+      allocation.problem === "overflow"
+        ? "مجموع معدل الوحدة والكمية يتجاوز الدقة الآمنة قبل التقريب."
+        : "معدل الوحدة أو كمية الناتج يتجاوزان الدقة الآمنة؛ راجع النطاق قبل الحساب.",
+    );
+    return null;
+  }
+  return allocation.amountMinor;
+}
+
+/* و٩: توزيع الوقت الفعلي — دقائق كاملة لكل الطلبات الداخلة. */
+function actualTimeAllocation(
+  policy: AllocationPolicy,
+  evidence: AllocationEvidence,
+  reasons: string[],
+): number | null {
+  if (
+    policy.rateMinor === null ||
+    evidence.actualTimeMinutes === null ||
+    evidence.missingTimeOrderIds.length > 0
+  ) {
+    reasons.push("أكمل تسجيل وقت فعلي صالح لكل الطلبات الداخلة قبل الاعتماد على التوزيع.");
+    return null;
+  }
+  const calculated = policy.rateMinor * evidence.actualTimeMinutes;
+  if (!Number.isSafeInteger(calculated) || calculated <= 0) {
+    reasons.push("معدل أو دقائق الوقت تتجاوز الدقة الآمنة.");
+    return null;
+  }
+  return calculated;
+}
+
+/* و٩: توزيع نسبة الإيراد المكتمل — إيراد محتسب كامل لكل الطلبات الداخلة. */
+function completedRevenueAllocation(
+  policy: AllocationPolicy,
+  evidence: AllocationEvidence,
+  reasons: string[],
+): number | null {
+  if (
+    policy.percentageBps === null ||
+    evidence.recognizedRevenueMinor === null ||
+    evidence.missingRevenueOrderIds.length > 0
+  ) {
+    reasons.push(
+      "أكمل الإيراد المحتسب عند التسليم للطلبات الداخلة قبل تطبيق نسبة التوزيع؛ توجد مبيعات ناقصة أو غير مكتملة.",
+    );
+    return null;
+  }
+  const calculated = roundHalfUp(evidence.recognizedRevenueMinor * policy.percentageBps, 10_000);
+  if (calculated === null || calculated <= 0) {
+    reasons.push("النسبة المعلنة لم تنتج مبلغ توزيع موجبًا من الإيراد المكتمل.");
+    return null;
+  }
+  return calculated;
+}
+
+/* و٩: نص الحساب المعلن بحسب نوع السياسة — نفس النص كما هو. */
+function allocationCalculationNote(
+  policy: AllocationPolicy,
+  evidence: AllocationEvidence,
+  amountMinor: number,
+): string {
+  if (policy.kind === "per_output_unit")
+    return (
+      `إجمالي الناتج ${((evidence.outputQuantityMilli ?? 0) / 1000).toFixed(3)} وحدة كاملة؛ ` +
+      `المعدل ${((policy.rateMinorPerWholeUnit ?? 0) / 100).toFixed(2)} د.أ لكل 1.000 وحدة؛ ` +
+      `قُرّب مجموع الفترة مرة واحدة إلى أقرب قرش${amountMinor === 0 ? "؛ الصفر نتيجة حسابية معلنة وليس غياب بيانات." : "."}`
+    );
+  if (policy.kind === "actual_time")
+    return `المعدل ${((policy.rateMinor ?? 0) / 100).toFixed(2)} د.أ لكل دقيقة فعلية.`;
+  if (policy.kind === "completed_revenue_percentage")
+    return `النسبة ${((policy.percentageBps ?? 0) / 100).toFixed(2)}% من الإيراد المكتمل والمحتسب عند التسليم.`;
+  return "مبلغ يدوي معلن للفترة.";
+}
+
+/* و٩: حارسا التغطية — نطاق السياسة يغطي الفترة والمرجع، ووجود طلبات نهائية. */
+function allocationCoverageGuard(
+  policy: AllocationPolicy,
+  evidence: AllocationEvidence,
+): AllocationCalculation | null {
   if (
     policy.catalogItemId !== evidence.catalogItemId ||
     policy.periodFrom > evidence.periodFrom ||
@@ -229,60 +323,24 @@ export function calculateAllocationPolicy(
       ["لا توجد طلبات نهائية مرتبطة صراحة بهذا المرجع في الفترة."],
       "سجل الطلبات النهائية المرتبطة أو راجع نطاق الفترة قبل قراءة التوزيع.",
     );
+  return null;
+}
+
+export function calculateAllocationPolicy(
+  policy: AllocationPolicy,
+  evidence: AllocationEvidence,
+): AllocationCalculation {
+  const coverageGuard = allocationCoverageGuard(policy, evidence);
+  if (coverageGuard) return coverageGuard;
   let amountMinor: number | null = null;
   const reasons: string[] = [];
   const excluded: string[] = [...evidence.excludedOrderIds];
   if (policy.kind === "manual_amount") amountMinor = policy.amountMinor;
-  if (policy.kind === "per_output_unit") {
-    if (
-      policy.unitId === null ||
-      evidence.outputQuantityMilli === null ||
-      evidence.outputQuantityMilli <= 0 ||
-      evidence.outputUnitId === null ||
-      policy.unitId !== evidence.outputUnitId
-    ) {
-      reasons.push("أكمل كمية الناتج بوحدة منظمة متوافقة مع سياسة التوزيع لكل وحدة؛ لا نحول أو نخمن الناتج.");
-    } else {
-      const allocation = perOutputUnitAmountMinor(evidence.outputQuantityMilli, policy.rateMinorPerWholeUnit);
-      if ("problem" in allocation)
-        reasons.push(
-          allocation.problem === "overflow"
-            ? "مجموع معدل الوحدة والكمية يتجاوز الدقة الآمنة قبل التقريب."
-            : "معدل الوحدة أو كمية الناتج يتجاوزان الدقة الآمنة؛ راجع النطاق قبل الحساب.",
-        );
-      else amountMinor = allocation.amountMinor;
-    }
-  }
-  if (policy.kind === "actual_time") {
-    if (
-      policy.rateMinor === null ||
-      evidence.actualTimeMinutes === null ||
-      evidence.missingTimeOrderIds.length > 0
-    )
-      reasons.push("أكمل تسجيل وقت فعلي صالح لكل الطلبات الداخلة قبل الاعتماد على التوزيع.");
-    else {
-      const calculated = policy.rateMinor * evidence.actualTimeMinutes;
-      if (!Number.isSafeInteger(calculated) || calculated <= 0)
-        reasons.push("معدل أو دقائق الوقت تتجاوز الدقة الآمنة.");
-      else amountMinor = calculated;
-    }
-  }
-  if (policy.kind === "completed_revenue_percentage") {
-    if (
-      policy.percentageBps === null ||
-      evidence.recognizedRevenueMinor === null ||
-      evidence.missingRevenueOrderIds.length > 0
-    )
-      reasons.push(
-        "أكمل الإيراد المحتسب عند التسليم للطلبات الداخلة قبل تطبيق نسبة التوزيع؛ توجد مبيعات ناقصة أو غير مكتملة.",
-      );
-    else {
-      const calculated = roundHalfUp(evidence.recognizedRevenueMinor * policy.percentageBps, 10_000);
-      if (calculated === null || calculated <= 0)
-        reasons.push("النسبة المعلنة لم تنتج مبلغ توزيع موجبًا من الإيراد المكتمل.");
-      else amountMinor = calculated;
-    }
-  }
+  if (policy.kind === "per_output_unit")
+    amountMinor = perOutputUnitAllocation(policy, evidence, reasons);
+  if (policy.kind === "actual_time") amountMinor = actualTimeAllocation(policy, evidence, reasons);
+  if (policy.kind === "completed_revenue_percentage")
+    amountMinor = completedRevenueAllocation(policy, evidence, reasons);
   if (amountMinor === null || reasons.length > 0)
     return incomplete(
       policy,
@@ -290,16 +348,7 @@ export function calculateAllocationPolicy(
       reasons,
       reasons[0] ?? "أكمل دليل أساس سياسة التوزيع قبل الاعتماد على القراءة.",
     );
-  const calculationNote =
-    policy.kind === "per_output_unit"
-      ? `إجمالي الناتج ${((evidence.outputQuantityMilli ?? 0) / 1000).toFixed(3)} وحدة كاملة؛ ` +
-        `المعدل ${((policy.rateMinorPerWholeUnit ?? 0) / 100).toFixed(2)} د.أ لكل 1.000 وحدة؛ ` +
-        `قُرّب مجموع الفترة مرة واحدة إلى أقرب قرش${amountMinor === 0 ? "؛ الصفر نتيجة حسابية معلنة وليس غياب بيانات." : "."}`
-      : policy.kind === "actual_time"
-        ? `المعدل ${((policy.rateMinor ?? 0) / 100).toFixed(2)} د.أ لكل دقيقة فعلية.`
-        : policy.kind === "completed_revenue_percentage"
-          ? `النسبة ${((policy.percentageBps ?? 0) / 100).toFixed(2)}% من الإيراد المكتمل والمحتسب عند التسليم.`
-          : "مبلغ يدوي معلن للفترة.";
+  const calculationNote = allocationCalculationNote(policy, evidence, amountMinor);
   return {
     policyId: policy.id,
     catalogItemId: policy.catalogItemId,

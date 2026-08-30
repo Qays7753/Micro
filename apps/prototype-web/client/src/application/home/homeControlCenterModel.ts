@@ -6,95 +6,103 @@ export type HomeFinancialFact = {
   state: HomeValueState;
   valueMinor: number | null;
   currency: "JOD";
-  source: string;
-  period: string;
-  helper: string;
+  /* §10: التفصيل خلف العلامة لا على الوجه — الحقول قابلة للغياب. */
+  source: string | null;
+  period: string | null;
+  helper: string | null;
   /* §2.7: الحقيقة غير المسجلة تُعرض كطريق — «غير مسجل — سجّله (نقرة)» — لا كـ«غير مهيأ» عاجزة. */
   road: HomeAction | null;
 };
-export type HomeAttentionItem = {
-  id: string;
-  priority: number;
-  kind: "draft" | "order" | "collection" | "debt" | "follow_up" | "capacity" | "cost" | "result_review";
-  title: string;
-  reason: string;
-  action: HomeAction;
-};
-export type HomeOptionalModule = {
-  id: "inventory" | "schedule" | "supplier_commitments" | "period_result" | "catalog";
-  label: string;
-  state: "available" | "needs_setup" | "empty";
-  action: HomeAction | null;
-};
-/* القرار ١٢: المالية وحدة جديدة دائمة في Home — بلا شرط بيانات، ولا تحل محل وحدة قائمة.
- * period_result يحتفظ بشرطه على وحدته وحده ولا ترث وحدته رؤيته (القرار ١٤). */
-export type HomeFinanceUnit = {
-  action: HomeAction;
-  truth: string;
-};
-/* قسم «اليوم» (رحلة ٢): موطن F-078 — متابعات مستحقة ومواعيد اليوم وديون مستحقة،
- * بلا إنشاء موعد أو تحصيل. الحالة الفارغة جزء من الموضع (م7). */
+/* قرار المالك على بند ١٠ (جلسة الإغلاق): «اليوم» و«ما يحتاج فعلًا الآن» يُدمجان في «اليوم» —
+ * يُستوعب المحتوى ولا يُلغى، ولا بند يظهر مرتين. أنواع المسودة والتكلفة والنتيجة والسعة
+ * انتقلت من قسم الانتباه القديم إلى أنواع بند «اليوم» بعناوينها وأفعالها نفسها. */
 export type HomeTodayItem = {
   id: string;
-  kind: "follow_up_due" | "appointment_today" | "due_amount" | "follow_up_upcoming";
+  kind:
+    | "follow_up_due"
+    | "appointment_today"
+    | "due_amount"
+    | "follow_up_upcoming"
+    | "draft"
+    | "cost_incomplete"
+    | "open_order"
+    | "result_review"
+    | "capacity_warning";
   title: string;
   detail: string | null;
   dateLocal: string | null;
   timeLocal: string | null;
   href: string;
   actionLabel: string;
+  priority: number;
 };
 export type HomeTodaySection = {
   items: readonly HomeTodayItem[];
   upcomingCount: number;
   nextUpcomingDate: string | null;
   nextUpcomingHref: string | null;
-  truth: string;
+  truth: string | null;
+};
+/* القرار ١٢: المالية وحدة جديدة دائمة في Home — بلا شرط بيانات، ولا تحل محل وحدة قائمة.
+ * period_result يحتفظ بشرطه على وحدته وحده ولا ترث وحدته رؤيته (القرار ١٤). */
+export type HomeFinanceUnit = {
+  action: HomeAction;
+  truth: string | null;
+};
+/* قرار المالك على بند ١١ (جلسة الإغلاق): «منتجاتي وخدماتي» كتلة دائمة مستقلة مثل «مالي» —
+ * سؤالها (§2.3): ما أكرره وبكم؟ وهل هو رابح؟ */
+export type HomeCatalogUnit = {
+  action: HomeAction;
+  truth: string | null;
+};
+export type HomeOptionalModule = {
+  id: "schedule" | "period_result";
+  label: string;
+  state: "available" | "needs_setup" | "empty";
+  action: HomeAction | null;
 };
 export type HomeRecentChange = {
   id: string;
   occurredOn: string;
   title: string;
-  detail: string;
+  detail: string | null;
   href: string;
 };
 export type HomeControlCenterInput = {
   activityName: string;
   todayLocal: string;
-  truthLine: string;
-  primaryAction: HomeAction;
+  truthLine: string | null;
   financeUnit: HomeFinanceUnit;
+  catalogUnit: HomeCatalogUnit;
   todaySection: HomeTodaySection;
   facts: readonly HomeFinancialFact[];
-  attention: readonly HomeAttentionItem[];
   optionalModules: readonly HomeOptionalModule[];
   recentChanges: readonly HomeRecentChange[];
 };
 export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
-  truthLine: string;
-  primaryAction: HomeAction;
+  truthLine: string | null;
   financeUnit: HomeFinanceUnit;
+  catalogUnit: HomeCatalogUnit;
   todaySection: HomeTodaySection;
   facts: readonly HomeFinancialFact[];
-  attention: readonly HomeAttentionItem[];
   optionalModules: readonly HomeOptionalModule[];
   recentChanges: readonly HomeRecentChange[];
 };
 
-const compareAttention = (left: HomeAttentionItem, right: HomeAttentionItem) =>
+const compareToday = (left: HomeTodayItem, right: HomeTodayItem) =>
   left.priority - right.priority || left.id.localeCompare(right.id, "ar");
 
 export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): HomeControlCenterViewModel {
-  const seenAttention = new Set<string>();
-  const attention = [...input.attention]
+  /* دمج بند ١٠: لا بند يظهر مرتين — أول ظهور يحسم، والقائمة مرتبة بالأولوية. */
+  const seenToday = new Set<string>();
+  const todayItems = input.todaySection.items
     .filter(item => {
-      if (seenAttention.has(item.id)) return false;
-      seenAttention.add(item.id);
+      if (seenToday.has(item.id)) return false;
+      seenToday.add(item.id);
       return true;
     })
-    .sort(compareAttention)
-    .slice(0, 3);
+    .sort(compareToday);
   const facts = input.facts.map(fact =>
     fact.state === "known" && fact.valueMinor !== null ? fact : { ...fact, valueMinor: null },
   );
@@ -103,11 +111,10 @@ export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): 
   return {
     heading: { activityName: input.activityName, todayLocal: input.todayLocal },
     truthLine: input.truthLine,
-    primaryAction: input.primaryAction,
     financeUnit: input.financeUnit,
-    todaySection: input.todaySection,
+    catalogUnit: input.catalogUnit,
+    todaySection: { ...input.todaySection, items: todayItems },
     facts,
-    attention,
     optionalModules,
     recentChanges,
   };

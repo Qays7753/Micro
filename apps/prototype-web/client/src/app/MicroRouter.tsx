@@ -23,6 +23,8 @@ const Schedule = lazy(() => import("@/pages/Schedule"));
 const ScheduleEditor = lazy(() => import("@/pages/ScheduleEditor"));
 const Finance = lazy(() => import("@/pages/Finance"));
 const OwnerEntitlement = lazy(() => import("@/pages/OwnerEntitlement"));
+/* X-05 (و٣): المدخل الواحد لسحب المالك — يسأل «سحب من المشروع لنفسك؟» ويكتب إلى المسار الصحيح. */
+const OwnerWithdrawalEditor = lazy(() => import("@/pages/OwnerWithdrawalEditor"));
 const G5DeclarationEditor = lazy(() => import("@/pages/G5DeclarationEditor"));
 const FinancialEventEditor = lazy(() => import("@/pages/FinancialEventEditor"));
 const Suppliers = lazy(() => import("@/pages/Suppliers"));
@@ -48,6 +50,8 @@ export function MicroRouter() {
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
             <Route path="/foundation" component={Foundation} />
             <Route path="/orders/new" component={NewDraft} />
+            {/* و٥ (§٥-١): محرر النية الفارغ — المسودة تُنشأ عند أول إدخال حقيقي لا عند النقر. */}
+            <Route path="/orders/draft/new" component={DraftEditor} />
             <Route path="/direct-sales/new" component={DirectSaleEditor} />
             <Route path="/direct-sales/:id" component={DirectSaleEditor} />
             <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
@@ -57,6 +61,7 @@ export function MicroRouter() {
             <Route path="/schedule/:id" component={ScheduleEditor} />
             <Route path="/schedule" component={Schedule} />
             <Route path="/finance/new/:type" component={FinancialEventEditor} />
+            <Route path="/finance/withdraw" component={OwnerWithdrawalEditor} />
             <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />
             <Route path="/finance/g5/declaration" component={G5DeclarationEditor} />
             <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />

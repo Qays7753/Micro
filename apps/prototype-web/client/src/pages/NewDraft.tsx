@@ -1,59 +1,27 @@
-/** Anti-vibe intent choice: two operational entry points, each with a distinct record outcome. */
+/** Anti-vibe intent choice: two operational entry points, each with a distinct record outcome.
+ * §٥-١ (و٥): الاختيار يفتح المحرر بلا إنشاء — المسودة تُنشأ عند أول إدخال حقيقي داخله،
+ * فلا يخلّف الاستكشاف مسودات فارغة في السجل. */
 import { Box, ClipboardPlus, ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { DraftIntent } from "@/storage/local/types";
 
-/** The quick-action sheet already answered the intent question; its answer rides the route. */
-const intentFromLocation = (location: string): DraftIntent | null => {
-  const value = new URLSearchParams(location.split("?")[1] ?? "").get("intent");
-  return value === "customer_order" || value === "planned_design" ? value : null;
-};
-
 export default function NewDraft() {
-  const [location, navigate] = useLocation();
-  const { drafts, notifyDataChanged } = usePrototypeServices();
-  const [error, setError] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [intendedIntent, setIntendedIntent] = useState<DraftIntent | null>(() =>
-    intentFromLocation(location),
-  );
-  async function create(intent: DraftIntent) {
-    setIsCreating(true);
-    setError(null);
-    const result = await drafts.create(intent);
-    setIsCreating(false);
-    if (!result.ok) {
-      setIntendedIntent(null);
-      setError(result.message);
-      return;
-    }
-    notifyDataChanged();
-    navigate(`/orders/draft/${result.draft.id}`);
+  const [, navigate] = useLocation();
+  function openEditor(intent: DraftIntent) {
+    navigate(`/orders/draft/new?intent=${intent}`);
   }
-  useEffect(() => {
-    if (intendedIntent) void create(intendedIntent);
-    // The route's answer is consumed once on mount; the sheet must not be asked again.
-  }, []);
   return (
     <section className="micro-page">
       <div className="micro-page-heading">
         <span className="micro-overline">سجل جديد</span>
         <h1>اختر نقطة البداية</h1>
-        <p>
-          {intendedIntent
-            ? "جارٍ إنشاء المسودة من اختيارك في القائمة السريعة…"
-            : "ينشئ الاختيار مسودة فقط؛ لا يسجل سعرًا أو قبضًا حتى تدخل هذه البيانات وتسجّلها."}
-        </p>
+        <p>يفتح الاختيار المحرر فارغًا؛ لا تُحفظ مسودة حتى تكتب شيئًا.</p>
       </div>
       <div className="micro-intent-stack">
         <button
           className="micro-intent-card"
           type="button"
-          disabled={isCreating}
-          data-selected={intendedIntent === "customer_order" || undefined}
-          onClick={() => create("customer_order")}
+          onClick={() => openEditor("customer_order")}
         >
           <span className="micro-intent-icon">
             <ClipboardPlus aria-hidden="true" />
@@ -67,9 +35,7 @@ export default function NewDraft() {
         <button
           className="micro-intent-card"
           type="button"
-          disabled={isCreating}
-          data-selected={intendedIntent === "planned_design" || undefined}
-          onClick={() => create("planned_design")}
+          onClick={() => openEditor("planned_design")}
         >
           <span className="micro-intent-icon">
             <Box aria-hidden="true" />
@@ -81,11 +47,6 @@ export default function NewDraft() {
           <ArrowLeft aria-hidden="true" />
         </button>
       </div>
-      {error ? (
-        <p className="micro-field-error" role="alert">
-          {error}
-        </p>
-      ) : null}
     </section>
   );
 }

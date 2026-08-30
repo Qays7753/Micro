@@ -1,0 +1,44 @@
+{
+  "rules": {
+    "declaration-property-value-allowed-list": {
+      "z-index": [
+        "0",
+        "1",
+        "20",
+        "30",
+        "40",
+        "50",
+        "60",
+        "70"
+      ],
+      "font-size": [
+        "11px",
+        "12px",
+        "13px",
+        "14px",
+        "15px",
+        "16px",
+        "17px",
+        "18px",
+        "20px",
+        "24px",
+        "26px",
+        "28px",
+        "31px",
+        "/^var\\(--/",
+        "inherit"
+      ]
+    },
+    "declaration-property-value-disallowed-list": {
+      "z-index": [
+        "auto",
+        "/^9\\d+/"
+      ]
+    }
+  },
+  "ignoreFiles": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**"
+  ]
+}

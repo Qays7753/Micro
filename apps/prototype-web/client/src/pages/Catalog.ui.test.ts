@@ -103,7 +103,8 @@ describe("Catalog G4-A UI capability model", () => {
     });
     expect(buildCatalogPerUnitPreview(1, 1, "قطعة")).toMatchObject({
       allocationMinor: 0,
-      warning: expect.stringContaining("نتيجة حسابية معلنة"),
+      /* §10.3: صفر مسجل بلا جملة تنفي — التحذير غاب كما صمم */
+      warning: null,
     });
     expect(buildCatalogPerUnitPreview(Number.MAX_SAFE_INTEGER, 2, "قطعة")).toMatchObject({
       allocationMinor: null,

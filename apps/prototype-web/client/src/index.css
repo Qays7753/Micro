@@ -187,9 +187,15 @@
 }
 .micro-app-header {
   position: sticky;
-  z-index: 30;
+  /* §1.8 سلّم z: المحتوى 0 · داخل اللوحة 1 · اللواصق 20 · الشريط+FAB 30 · الترويسة 40 · الغطاء 50 · الورقة 60 · التوست 70 */
+  z-index: 40;
   top: 0;
   border-bottom: 1px solid var(--color-border);
+  /* §4 بند ١٦: الشعرة ترى فوق الكانفس الضبابي عند التمرير فقط */
+  transition: border-color 160ms var(--motion-out);
+}
+.micro-app-header[data-scrolled="true"] {
+  border-bottom-color: var(--color-divider);
   background: color-mix(in srgb, var(--color-bg-canvas) 92%, transparent);
   backdrop-filter: blur(18px);
 }
@@ -266,8 +272,10 @@
     transform 160ms var(--motion-out),
     background 160ms var(--motion-out);
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-icon-button:hover {
   background: var(--color-bg-well);
+}
 }
 .micro-icon-button:active {
   transform: scale(0.97);
@@ -279,9 +287,11 @@
 .micro-main {
   --main-bottom-space: calc(var(--space-4) + env(safe-area-inset-bottom));
   --main-scroll-space: calc(var(--space-6) + env(safe-area-inset-bottom));
-  min-height: calc(100dvh - 56px);
+  /* §4 بند ٣: أول بطاقة لا تُقصّ خلف الترويسة اللاصقة عند التمرير أو الاسترجاع */
+  min-height: calc(100dvh - 56px - env(safe-area-inset-top));
   padding: var(--space-4) var(--space-4) var(--main-bottom-space);
   scroll-padding-block-end: var(--main-scroll-space);
+  scroll-padding-block-start: calc(56px + env(safe-area-inset-top) + var(--space-2));
 }
 .micro-main[data-route-kind="surface"] {
   --main-bottom-space: calc(116px + env(safe-area-inset-bottom));
@@ -369,6 +379,17 @@
   opacity: 0.16;
   filter: saturate(0.65);
 }
+/* §4 بند ١٧: في الداكن كل الألوان الناعمة #332d27 — الفصل بنيوي:
+   حد رقيق بلون نص الحالة يميز السطح الملوّن بلا هيكس جديد */
+.dark [data-tone="accent"] {
+  border: 1px solid color-mix(in srgb, var(--color-accent-text) 40%, transparent);
+}
+.dark [data-tone="warning"] {
+  border: 1px solid color-mix(in srgb, var(--color-warning-text) 40%, transparent);
+}
+.dark .micro-truth-banner {
+  border: 1px solid color-mix(in srgb, var(--color-success-text) 40%, transparent);
+}
 .dark .micro-priority-texture {
   opacity: 0.11;
 }
@@ -438,16 +459,20 @@
   background: var(--primary);
   box-shadow: var(--elevation-1);
 }
-.micro-button-primary:hover,
-.micro-fab:hover {
-  background: var(--color-brand-pressed);
+@media (hover: hover) and (pointer: fine) {
+  .micro-button-primary:hover,
+  .micro-fab:hover {
+    background: var(--color-brand-pressed);
+  }
 }
 .micro-button-secondary {
   color: var(--secondary-foreground);
   background: var(--secondary);
 }
-.micro-button-secondary:hover {
-  background: var(--color-accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .micro-button-secondary:hover {
+    background: var(--color-accent-primary);
+  }
 }
 .micro-section {
   display: flex;
@@ -496,6 +521,17 @@
   display: grid;
   gap: var(--space-3);
 }
+/* §3 حالات المكوّنات — معطّل: شفافية نصف، مؤشر ممنوع، لا تغيير لون */
+button:disabled,
+select:disabled,
+input:disabled,
+textarea:disabled,
+[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
 .micro-text-action {
   display: inline-flex;
   min-height: 44px;
@@ -670,6 +706,76 @@
   width: 20px;
   height: 20px;
 }
+/* §3.9/§3.11 حوار التغييرات غير المحفوظة: بطاقة 420px فوق غطاء — زر أول
+   بقاء (الأقل تدميرًا) وآخر تدميري مفصول، والتركيز محصور ويعود للمشغّل */
+.micro-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: color-mix(in srgb, #1f1e1d 45%, transparent);
+}
+.micro-dialog {
+  position: fixed;
+  inset-inline: 0;
+  top: 50%;
+  z-index: 60;
+  display: flex;
+  width: min(100% - 32px, 420px);
+  margin-inline: auto;
+  transform: translateY(-50%);
+  flex-direction: column;
+  gap: var(--space-4);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  box-shadow: var(--elevation-3);
+}
+.micro-dialog h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+.micro-dialog p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+.micro-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* §3.10 دوران التحميل: 16px داخل الأزرار، خط 2px، لون العنصر الحالي —
+   ويتوقف نصًا ثابتًا مع prefers-reduced-motion */
+.micro-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-inline-start-color: transparent;
+  border-radius: 50%;
+  animation: micro-spin 800ms linear infinite;
+}
+@keyframes micro-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .micro-spinner {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* §4 بند ١٨: لوحة المفاتيح تفتح — الكروم العام يختفي حتى تُغلق */
+.micro-app[data-keyboard-open="true"] .micro-app-header,
+.micro-app[data-keyboard-open="true"] .micro-bottom-nav {
+  display: none;
+}
 .micro-bottom-nav {
   position: fixed;
   z-index: 30;
@@ -697,7 +803,8 @@
   gap: var(--space-1);
   border: 0;
   border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  /* §4 بند ١٥: غير النشط بلون النص القوي — كان الثانوي أضعف نص على الشاشة */
+  color: var(--color-text-strong);
   background: transparent;
   font-size: 11px;
   font-weight: 500;
@@ -771,6 +878,15 @@
   justify-content: space-between;
   gap: var(--space-3);
 }
+/* §4 بند ١١: زر الإغلاق شفاف 44×44 في أول سطر للعنوان — والعنوان بقياس يمنع
+   ابتلاعه للزر في الأسطر الطويلة */
+.micro-sheet-title {
+  max-width: 24ch;
+}
+.micro-sheet-title-row > .micro-icon-button {
+  align-self: start;
+  flex: 0 0 auto;
+}
 .micro-sheet-title {
   color: var(--color-text-primary);
   font-family: var(--font-arabic);
@@ -784,6 +900,30 @@
   font-size: 13px;
   line-height: 1.6;
 }
+/* §٥-١٤: نماذج اللحظة داخل ورقة الإضافة — فعل عابر فوق شاشة الوقوف. */
+.micro-sheet-form {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-4);
+}
+.micro-sheet-form .micro-button-primary {
+  width: 100%;
+}
+.micro-sheet-receipt {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  text-align: center;
+}
+.micro-sheet-receipt strong {
+  font-size: 15px;
+}
+.micro-sheet-receipt p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
 .micro-sheet-actions {
   display: grid;
   gap: var(--space-2);
@@ -1050,10 +1190,12 @@
     color 160ms var(--motion-out),
     background 160ms var(--motion-out);
 }
-.micro-intent-card:hover,
-.micro-draft-row:hover {
-  color: var(--color-accent-text);
-  background: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .micro-intent-card:hover,
+  .micro-draft-row:hover {
+    color: var(--color-accent-text);
+    background: transparent;
+  }
 }
 .micro-intent-card[data-selected] {
   color: var(--color-accent-text);
@@ -1177,7 +1319,7 @@
   flex: 0 0 auto;
   padding-inline: var(--space-1);
   border-radius: var(--radius-control);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-text-secondary);
   background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
 }
@@ -1305,6 +1447,12 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
 }
+@media (max-width: 380px) {
+  .micro-field-grid {
+    /* §1.7 درجة النزول: شبكات الحقول عمود واحد دون 380px — لا قصّ */
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .micro-missing-time {
   display: flex;
   align-items: flex-start;
@@ -1388,7 +1536,7 @@
 }
 .micro-decision-card strong {
   color: var(--color-text-primary);
-  font-size: 19px;
+  font-size: 20px;
 }
 .micro-decision-card p {
   margin: 0;
@@ -1433,7 +1581,7 @@
   width: 10px;
   height: 10px;
   flex: 0 0 auto;
-  margin-top: 6px;
+  margin-top: var(--space-2);
   border-radius: 999px;
   background: var(--color-accent-primary);
 }
@@ -1492,7 +1640,7 @@
 }
 .micro-result-card strong {
   color: var(--color-text-primary);
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-result-card p,
 .micro-result-card small {
@@ -1589,7 +1737,7 @@
 .micro-decision-surface h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1.4;
 }
 .micro-decision-surface p {
@@ -1685,7 +1833,7 @@
 }
 .micro-financial-pulse dd {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-financial-pulse-note {
   margin: 0;
@@ -1781,7 +1929,7 @@
 .micro-decision-surface h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1.4;
 }
 .micro-decision-surface p {
@@ -1937,7 +2085,7 @@
 }
 .micro-financial-pulse dd {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-financial-pulse-note {
   margin: 0;
@@ -2033,7 +2181,7 @@
 .micro-decision-surface h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1.4;
 }
 .micro-decision-surface p {
@@ -2221,7 +2369,7 @@
   font-size: 11px;
 }
 .micro-finance-position-card strong {
-  font-size: 21px;
+  font-size: 20px;
 }
 .micro-number[data-negative="true"] {
   color: var(--color-warning-text);
@@ -2260,10 +2408,14 @@
   gap: var(--space-2);
 }
 .micro-finance-event-list {
+  /* §2: قوائم الصفوف الموحدة داخل حاوية محدودة واحدة 16px بصفوف نصف قطرها 0
+     وفواصل 1px — لا بطاقات منفصلة بفجوات متفاوتة (§4 بند ٧) */
   display: grid;
-  gap: var(--space-2);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
 }
 .micro-finance-event-heading {
   display: grid;
@@ -2278,8 +2430,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  border-radius: 0;
   border-bottom: 1px solid var(--color-border);
   padding-block: var(--space-3);
+}
+.micro-finance-event-list > article:last-child {
+  border-bottom: 0;
 }
 .micro-finance-event-list article > div {
   display: grid;
@@ -2441,7 +2597,7 @@
 }
 .micro-financial-pulse dd {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-financial-pulse-note {
   margin: 0;
@@ -2748,23 +2904,25 @@
   color: var(--color-accent-text);
 }
 .micro-brand-lockup {
-  gap: 10px;
+  /* §3.1: قفل العلامة بفجوة 8px */
+  gap: var(--space-2);
 }
 .micro-brand-mark-frame {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--color-brand-soft);
 }
 .micro-brand-mark {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
 }
 .micro-brand-copy {
   display: grid;
-  gap: 1px;
+  /* §1.3: أضيق فجوة قانونية لزوج تسمية/قيمة */
+  gap: 2px;
 }
 .micro-wordmark {
   font-size: 20px;
@@ -3253,6 +3411,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
 }
+/* §4 بند ٩: شبكة عمودين بعدد فردي — الابن الأخير يمتد العمودين؛ بلا بلاطة يتيمة */
+.micro-g5-metrics > :last-child:nth-child(odd),
+.micro-cash-decision-metrics > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .micro-g5-metrics > div {
   display: grid;
   gap: var(--space-1);
@@ -3266,6 +3429,9 @@
 .micro-g5-count {
   color: var(--color-text-secondary);
   font-size: 12px;
+  /* §4 بند ٨: التسمية تلتف أينما احتاجت — لا قصّ ولا nowrap */
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 .micro-g5-metrics .micro-number {
   font-size: 20px;
@@ -3671,7 +3837,7 @@
 }
 .micro-month-summary dd {
   margin: 0;
-  font-size: 21px;
+  font-size: 20px;
 }
 .micro-month-empty {
   display: grid;
@@ -3717,7 +3883,7 @@
 }
 .micro-month-weekdays {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   text-align: center;
 }
@@ -3732,7 +3898,7 @@
   min-width: 0;
   min-height: 92px;
   align-content: start;
-  gap: 3px;
+  gap: var(--space-1);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   padding: var(--space-2);
@@ -3747,9 +3913,11 @@
 button.micro-month-cell:active {
   transform: scale(0.97);
 }
+@media (hover: hover) and (pointer: fine) {
 button.micro-month-cell:hover {
   border-color: var(--color-accent-primary);
   background: var(--color-accent-soft);
+}
 }
 .micro-month-cell[data-selected="true"] {
   border: 2px solid var(--color-accent-primary);
@@ -3771,6 +3939,7 @@ button.micro-month-cell:hover {
   display: flex;
   align-items: start;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 2px;
   min-width: 0;
   color: var(--color-text-primary);
@@ -3786,7 +3955,7 @@ button.micro-month-cell:hover {
 .micro-month-date small {
   color: var(--color-brand-text);
   font-family: var(--font-arabic);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
 }
 .micro-month-cell-count,
@@ -3800,7 +3969,7 @@ button.micro-month-cell:hover {
 }
 .micro-month-cell-count {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.35;
 }
 .micro-month-cell-count b {
@@ -3820,7 +3989,7 @@ button.micro-month-cell:hover {
   align-items: center;
   gap: 2px;
   color: var(--color-warning-text);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.25;
 }
 .micro-month-cell-warning svg {
@@ -3925,19 +4094,19 @@ button.micro-month-cell:hover {
   }
   .micro-month-cell {
     min-height: 86px;
-    padding: 6px;
+    padding: var(--space-2);
   }
   .micro-month-cell[data-selected="true"] {
-    padding: 5px;
+    padding: var(--space-1);
   }
   .micro-month-date {
     font-size: 12px;
   }
   .micro-month-cell-count {
-    font-size: 9px;
+    font-size: 11px;
   }
   .micro-month-cell-time {
-    font-size: 10px;
+    font-size: 11px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -4083,8 +4252,10 @@ button.micro-month-cell:hover {
   color: var(--color-text-secondary);
   background: transparent;
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-button-quiet:hover {
   background: var(--color-bg-well);
+}
 }
 @media (max-width: 380px) {
   .micro-recurrence-appearances {
@@ -4278,7 +4449,7 @@ button.micro-month-cell:hover {
     grid-template-columns: 1fr;
   }
   .micro-schedule-status-summary strong {
-    font-size: 22px;
+    font-size: 24px;
   }
 }
 
@@ -4476,6 +4647,7 @@ button.micro-month-cell:hover {
 }
 .micro-home-facts-section,
 .micro-home-finance-section,
+.micro-home-catalog-section,
 .micro-home-attention-section,
 .micro-home-optional-section,
 .micro-home-recent-section {
@@ -4547,7 +4719,7 @@ button.micro-month-cell:hover {
 }
 .micro-home-today-item small {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
 }
 .micro-home-today-item .micro-text-action {
   flex: 0 0 auto;
@@ -4563,6 +4735,57 @@ button.micro-month-cell:hover {
   font-size: 12px;
 }
 /* القرار ١٩: لوحة الإلغاء وتسوية العربون — سبب اختياري بثلاثة أزرار، وعربون بثلاثة خيارات. */
+/* X-06 (و٤): لوحة قرار الفرق بين المتفق والمقبوض — ثلاثة خيارات والثالث صالح. */
+.micro-difference-panel {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-warning-text);
+  border-radius: var(--radius-card);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-surface);
+}
+.micro-difference-panel > strong {
+  font-size: 15px;
+}
+.micro-difference-panel > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+.micro-radio-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  cursor: pointer;
+}
+.micro-radio-choice input[type="radio"] {
+  margin-inline-start: 0;
+  margin-block-start: 4px;
+  accent-color: var(--color-accent-primary);
+}
+.micro-radio-choice span {
+  display: grid;
+  gap: 2px;
+}
+.micro-radio-choice b {
+  font-size: 14px;
+}
+.micro-radio-choice small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-direct-sale-revisions {
+  margin: var(--space-2) 0 0;
+  padding-inline-start: var(--space-4);
+  display: grid;
+  gap: 2px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
 .micro-cancel-panel {
   display: grid;
   gap: var(--space-3);
@@ -4806,14 +5029,14 @@ button.micro-month-cell:hover {
 .micro-home-fact > strong {
   min-height: 26px;
   color: var(--color-text-primary);
-  font-size: 21px;
+  font-size: 20px;
 }
 .micro-home-fact > strong .micro-number {
-  font-size: 21px;
+  font-size: 20px;
 }
 .micro-home-fact > small {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 .micro-home-attention-list,
@@ -4866,8 +5089,10 @@ button.micro-month-cell:hover {
   text-align: start;
   cursor: pointer;
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-home-recent-item:hover {
   background: var(--color-bg-well);
+}
 }
 .micro-home-recent-item > span {
   display: grid;
@@ -5024,8 +5249,10 @@ button.micro-month-cell:hover {
   color: var(--color-surface);
   background: var(--color-danger-text);
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-button-danger:hover {
   background: color-mix(in srgb, var(--color-danger-text) 86%, var(--color-text-primary));
+}
 }
 .micro-button-danger svg {
   width: 18px;
@@ -5075,7 +5302,7 @@ button.micro-month-cell:hover {
   font-size: 12px;
 }
 .micro-cash-decision-metrics .micro-number {
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-cash-decision-footer {
   display: grid;
@@ -5230,7 +5457,7 @@ button.micro-month-cell:hover {
 .micro-owner-balance-value {
   color: var(--color-accent-text);
   direction: ltr;
-  font-size: clamp(28px, 8vw, 44px);
+  font-size: 31px;
   letter-spacing: -0.04em;
 }
 .micro-owner-balance-value small {
@@ -5460,8 +5687,10 @@ button.micro-month-cell:hover {
   color: inherit;
   background: transparent;
 }
+@media (hover: hover) and (pointer: fine) {
 .micro-chip button:hover {
   background: color-mix(in srgb, var(--color-accent-primary) 15%, transparent);
+}
 }
 .micro-chip button svg {
   width: 15px;
@@ -5607,7 +5836,7 @@ button.micro-month-cell:hover {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: flex-start;
-  gap: 0.28rem;
+  gap: var(--space-1);
   direction: ltr;
   unicode-bidi: isolate;
   font-family: var(--font-numeric);
@@ -5677,4 +5906,82 @@ button.micro-month-cell:hover {
 /* Fixed navigation must not cover the last actionable control on any phone-first page. */
 .micro-main[data-route-kind="surface"] > .micro-page {
   padding-block-end: calc(64px + env(safe-area-inset-bottom));
+}
+
+/* و٧ (F-077/F-079): طبقة المؤشرات داخل قراءة الفترة وسجل المتوقعات المسجلة —
+   قيم مسجلة بلا سرد: صف اسم/قيمة/حالة فقط. */
+.micro-insights-layer,
+.micro-declarations-record {
+  margin-block-start: var(--space-3);
+}
+.micro-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+.micro-insights-grid > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.micro-insights-grid dt {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.micro-insights-grid dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 15px;
+}
+.micro-insights-work-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-insights-work-list > li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.micro-insights-work-list > li:last-child {
+  border-bottom: 0;
+}
+.micro-insights-work-name {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.micro-insights-work-list small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.micro-insights-work-list > li > b {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+.micro-insights-work-list > li > b[data-state="reversed"] {
+  color: var(--color-text-secondary);
+}
+.micro-insights-empty {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+.micro-insights-unknown {
+  color: var(--color-text-tertiary);
+}
+.micro-insights-reasons {
+  margin: var(--space-2) 0 0;
+  padding-inline-start: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
 }

@@ -12,7 +12,13 @@ function App() {
       <PrototypeServicesProvider>
         <ThemeProvider defaultTheme="system" switchable>
           <TooltipProvider>
-            <Toaster position="top-center" closeButton dir="rtl" />
+            <Toaster
+              position="top-center"
+              dir="rtl"
+              offset="calc(56px + env(safe-area-inset-top) + 8px)"
+              style={{ zIndex: 70, width: "min(100% - 32px, 420px)" }}
+              toastOptions={{ duration: 4000 }}
+            />
             <MicroRouter />
           </TooltipProvider>
         </ThemeProvider>

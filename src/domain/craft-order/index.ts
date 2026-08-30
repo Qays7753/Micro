@@ -9,6 +9,7 @@ export {
   settleDepositRetain,
   collectDeposit,
   collectRemaining,
+  collectRegisteredDebt,
   createCraftOrder,
   registerDebt,
   reviseOrderCost,

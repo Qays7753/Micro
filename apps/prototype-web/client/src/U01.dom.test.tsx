@@ -99,9 +99,9 @@ describe("U-01 DOM guards", () => {
     vi.clearAllMocks();
   });
 
-  it("renders null money as غير متاح instead of manufacturing zero", () => {
+  it("renders null money as — instead of manufacturing zero", () => {
     render(<MoneyValue minor={null} />);
-    const value = screen.getByText("غير متاح");
+    const value = screen.getAllByText("—")[0];
     expect(value).toBeTruthy();
     expect(value.textContent).not.toContain("0.00");
     expect(value.getAttribute("dir")).toBe("ltr");
@@ -131,10 +131,11 @@ describe("U-01 DOM guards", () => {
     await user.click(screen.getByRole("button", { name: "انتقل" }));
 
     expect(screen.getByTestId("unsaved-changes-drawer")).toBeTruthy();
-    expect(screen.getByText("لديك تعديلات غير محفوظة")).toBeTruthy();
+    /* §3.11: الحوار الجديد — البقاء أولًا */
+    expect(screen.getByText("تعديلات غير محفوظة")).toBeTruthy();
     expect(screen.getByRole("button", { name: "احفظ واستمر" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "اخرج دون حفظ" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "إلغاء" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "ابقَ في الصفحة" })).toBeTruthy();
   });
 
   it("rejects Arabic digits visibly and accepts ASCII quantity without losing the committed value", async () => {
@@ -163,8 +164,9 @@ describe("U-01 DOM guards", () => {
     );
 
     await waitFor(() => expect(screen.getByText("تكلفة ناقصة")).toBeTruthy());
-    expect(screen.getByText("غير متاح بعد")).toBeTruthy();
-    expect(screen.getByText(/وقت العمل غير مكتمل/)).toBeTruthy();
+    /* §10/§6: المجهول علامة — لا جملة «غير متاح بعد»؛ الحقيقة في قائمة النواقص لا في جملة. */
+    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+    expect(screen.getByText(/وقت العمل أو سعر الساعة غير مكتمل/)).toBeTruthy();
     expect(screen.queryByText(/ربح|صافي الربح/)).toBeNull();
   });
 });

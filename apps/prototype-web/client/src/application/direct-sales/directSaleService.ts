@@ -1,9 +1,11 @@
 /** Application boundary for direct sales. Order collections never enter this service. */
 import {
+  applyPriceCut,
   cancelDirectSale,
   createDirectSale,
   updateDirectSale,
   type DirectSale,
+  type DirectSaleCollectionStatus,
   type UpdateDirectSaleInput,
 } from "@micro-domain/direct-sale/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
@@ -12,19 +14,38 @@ export type DirectSaleRecordInput = {
   itemName: string;
   quantity: number;
   revenueMinor: number;
+  /* X-06 (و٤): المقبوض الآن — غيابه يعني قبضًا كاملًا (سلوك السجلات القديمة). */
+  collectedMinor?: number;
+  collectionStatus?: DirectSaleCollectionStatus;
+  /** ربط مرجع اختياري (القيد التاسع — R-1). */
+  catalogItemId?: string | null;
   costMinor: number | null;
   occurredOn: string;
   note: string;
   idempotencyKey: string;
+  /** عند اختيار «خفّضتُ السعر»: يسجّل تخفيضًا موثّقًا يحط السعر إلى المقبوض ويحفظ الأصل. */
+  priceCut?: boolean;
 };
-export type DirectSaleUpdateInput = UpdateDirectSaleInput & { idempotencyKey: string };
+export type DirectSaleUpdateInput = UpdateDirectSaleInput & {
+  idempotencyKey: string;
+  /* و٦ (§٥-٩): عدد المراجعات الذي رآه المحرر عند الفتح — إن تقدّم السجل فالتعديل
+   * من نافذة أخرى أحدث، ولا يُطمس بصمت. */
+  expectedRevisionCount?: number;
+};
 
 export type DirectSaleResult<T> =
   | { ok: true; value: T; reused?: boolean }
-  | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
+  | {
+      ok: false;
+      code: "validation_error" | "storage_error" | "not_found" | "conflict";
+      message: string;
+    };
 
 const createId = () =>
   globalThis.crypto?.randomUUID?.() ?? `direct-sale-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const CONFLICT_MESSAGE =
+  "هذا البيع عُدّل من نافذة أخرى بعد فتحك له؛ لم يُحفظ تعديلك. راجع ثم أعد الحفظ.";
 
 export class DirectSaleService {
   constructor(
@@ -57,15 +78,28 @@ export class DirectSaleService {
     try {
       sale = createDirectSale({
         id: createId(),
-        itemName: input.itemName,
+        /* معيار القبول §٥.٣: الحقل الإلزامي الوحيد هو المبلغ — الاسم الفارغ يأخذ اسمًا
+         * عامًا صادقًا بدل رفض الحفظ، والسجل يبقى موسومًا بلا وصف صريح. */
+        itemName: input.itemName.trim() || "بيع نقدي",
         quantity: input.quantity,
         revenueMinor: input.revenueMinor,
+        collectedMinor: input.collectedMinor,
+        collectionStatus: input.collectionStatus,
+        catalogItemId: input.catalogItemId ?? null,
         costMinor: input.costMinor,
         occurredOn: input.occurredOn,
         recordedAt: this.now(),
         note: input.note,
         idempotencyKey: input.idempotencyKey,
       });
+      /* X-06 (و٤): «خفّضتُ السعر» — تخفيض موثّق لحظة التسجيل: السعر يصير المقبوض،
+       * ولا دين ولا تتبّع، والأصل يبقى في السجل. */
+      if (input.priceCut)
+        sale = applyPriceCut(sale, {
+          idempotencyKey: `${input.idempotencyKey}:cut`,
+          createdAt: this.now(),
+          reason: "خفّضتُ السعر — السعر صار ما قُبض فعلًا",
+        });
     } catch (error) {
       return {
         ok: false,
@@ -90,6 +124,12 @@ export class DirectSaleService {
       return { ok: false, code: "storage_error", message: "تعذر قراءة سجل البيع قبل التصحيح." };
     const source = existing.value.find(sale => sale.id === id);
     if (!source) return { ok: false, code: "not_found", message: "بيع مباشر غير موجود؛ لم يتغير شيء." };
+    /* و٦: لا طمس صامت لتعديل أحدث — المراجعات تتقدم مع كل تصحيح أو إلغاء. */
+    if (
+      input.expectedRevisionCount !== undefined &&
+      input.expectedRevisionCount !== (source.revisions?.length ?? 0)
+    )
+      return { ok: false, code: "conflict", message: CONFLICT_MESSAGE };
     const repeated = source.revisions?.find(revision => revision.idempotencyKey === input.idempotencyKey);
     if (repeated) return { ok: true, value: source, reused: true };
     if (
@@ -121,12 +161,23 @@ export class DirectSaleService {
       : { ok: false, code: "storage_error", message: "تعذر حفظ تصحيح البيع المباشر محليًا؛ لم يتغير الأصل." };
   }
 
-  async cancel(id: string, reason: string, idempotencyKey: string): Promise<DirectSaleResult<DirectSale>> {
+  async cancel(
+    id: string,
+    reason: string,
+    idempotencyKey: string,
+    expectedRevisionCount?: number,
+  ): Promise<DirectSaleResult<DirectSale>> {
     const existing = await this.store.listDirectSales();
     if (!existing.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة سجل البيع قبل الإلغاء." };
     const source = existing.value.find(sale => sale.id === id);
     if (!source) return { ok: false, code: "not_found", message: "بيع مباشر غير موجود؛ لم يتغير شيء." };
+    /* و٦: الإلغاء من نافذة متأخرة لا يطمس تعديلًا أحدث وصل قبله. */
+    if (
+      expectedRevisionCount !== undefined &&
+      expectedRevisionCount !== (source.revisions?.length ?? 0)
+    )
+      return { ok: false, code: "conflict", message: CONFLICT_MESSAGE };
     const repeated = source.revisions?.find(revision => revision.idempotencyKey === idempotencyKey);
     if (repeated) return { ok: true, value: source, reused: true };
     if (

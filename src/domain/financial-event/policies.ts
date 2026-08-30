@@ -45,10 +45,11 @@ function expectedKnowledge(basis: SharedProjectShare["basis"]): OperatingExpense
       ? "estimated"
       : "needs_review";
 }
-function normalizeSharedProjectShare(
+/* و٩: التحقق من الشكل العام للحصة — الأساس والملاحظة والمعرفة والتوزيع. */
+function assertShareShape(
   value: SharedProjectShare,
   knowledge: OperatingExpenseContext["knowledge"],
-): SharedProjectShare {
+): "allocated" | "unallocated" {
   if (!(
     "agreed_fixed_share" === value.basis ||
     "agreed_percentage" === value.basis ||
@@ -63,43 +64,69 @@ function normalizeSharedProjectShare(
   const allocation = value.allocation ?? "allocated";
   if (allocation !== "allocated" && allocation !== "unallocated")
     throw new Error("توزيع حصة المصروف المشترك غير صالح.");
+  return allocation;
+}
+
+/* و٩: المصروف غير الموزع — إجمالي موجب معلن ولا نسبة ولا حصة محسوبة. */
+function assertUnallocatedShare(
+  basis: SharedProjectShare["basis"],
+  totalAmountMinor: number | null,
+  percentageBps: number | null,
+  calculatedShareMinor: number | null,
+): void {
+  if (
+    basis !== "needs_review" ||
+    totalAmountMinor === null ||
+    totalAmountMinor <= 0 ||
+    percentageBps !== null ||
+    calculatedShareMinor !== null
+  )
+    throw new Error("المصروف المشترك غير الموزع يتطلب إجماليًا موجبًا بلا حصة محسوبة.");
+}
+
+/* و٩: الحصة الموزعة — قيود النسبة والحصة المحسوبة وأساسها المتفق. */
+function assertAllocatedShare(
+  basis: SharedProjectShare["basis"],
+  totalAmountMinor: number | null,
+  percentageBps: number | null,
+  calculatedShareMinor: number | null,
+): void {
+  if (basis === "needs_review" && totalAmountMinor !== null)
+    throw new Error("الحصة الموزعة التي تحتاج مراجعة لا تعلن إجماليًا دون حصة محسوبة.");
+  if (
+    percentageBps !== null &&
+    (!Number.isInteger(percentageBps) || percentageBps < 1 || percentageBps > 10_000)
+  )
+    throw new Error("أدخل النسبة قيمة بين 1 و10000.");
+  if (percentageBps === null && calculatedShareMinor !== null)
+    throw new Error("الحصة المحسوبة تتطلب نسبة صريحة.");
+  if (
+    percentageBps !== null &&
+    (totalAmountMinor === null ||
+      calculatedShareMinor === null ||
+      calculatedShareMinor !== calculateSharedProjectShareMinor(totalAmountMinor, percentageBps))
+  )
+    throw new Error("مدخلات النسبة المشتركة لا تطابق الحصة المحسوبة.");
+  if (
+    basis === "agreed_percentage" &&
+    (totalAmountMinor === null || percentageBps === null || calculatedShareMinor === null)
+  )
+    throw new Error("النسبة المتفق عليها تتطلب الإجمالي والنسبة والحصة المحسوبة معًا.");
+}
+
+function normalizeSharedProjectShare(
+  value: SharedProjectShare,
+  knowledge: OperatingExpenseContext["knowledge"],
+): SharedProjectShare {
+  const allocation = assertShareShape(value, knowledge);
   const totalAmountMinor = value.totalAmountMinor ?? null;
   const percentageBps = value.percentageBps ?? null;
   const calculatedShareMinor = value.calculatedShareMinor ?? null;
   assertOptionalMinor(totalAmountMinor, "totalAmountMinor");
   assertOptionalMinor(calculatedShareMinor, "calculatedShareMinor");
-  if (allocation === "unallocated") {
-    if (
-      value.basis !== "needs_review" ||
-      totalAmountMinor === null ||
-      totalAmountMinor <= 0 ||
-      percentageBps !== null ||
-      calculatedShareMinor !== null
-    )
-      throw new Error("المصروف المشترك غير الموزع يتطلب إجماليًا موجبًا بلا حصة محسوبة.");
-  } else {
-    if (value.basis === "needs_review" && totalAmountMinor !== null)
-      throw new Error("الحصة الموزعة التي تحتاج مراجعة لا تعلن إجماليًا دون حصة محسوبة.");
-    if (
-      percentageBps !== null &&
-      (!Number.isInteger(percentageBps) || percentageBps < 1 || percentageBps > 10_000)
-    )
-      throw new Error("أدخل النسبة قيمة بين 1 و10000.");
-    if (percentageBps === null && calculatedShareMinor !== null)
-      throw new Error("الحصة المحسوبة تتطلب نسبة صريحة.");
-    if (
-      percentageBps !== null &&
-      (totalAmountMinor === null ||
-        calculatedShareMinor === null ||
-        calculatedShareMinor !== calculateSharedProjectShareMinor(totalAmountMinor, percentageBps))
-    )
-      throw new Error("مدخلات النسبة المشتركة لا تطابق الحصة المحسوبة.");
-    if (
-      value.basis === "agreed_percentage" &&
-      (totalAmountMinor === null || percentageBps === null || calculatedShareMinor === null)
-    )
-      throw new Error("النسبة المتفق عليها تتطلب الإجمالي والنسبة والحصة المحسوبة معًا.");
-  }
+  if (allocation === "unallocated")
+    assertUnallocatedShare(value.basis, totalAmountMinor, percentageBps, calculatedShareMinor);
+  else assertAllocatedShare(value.basis, totalAmountMinor, percentageBps, calculatedShareMinor);
   return Object.freeze({
     basis: value.basis,
     note: value.note?.trim() || null,

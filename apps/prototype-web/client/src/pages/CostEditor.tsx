@@ -1,23 +1,14 @@
 /* مبدأ Micro: يحفظ هذا السطح ما أدخله المالك بصدق، ويعرض المادة كخطوة قصيرة دون تحويل النقص إلى صفر. */
-import { ArrowRight, ChevronLeft, CircleAlert, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, CircleAlert, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { knowledgeGapsOf, type KnowledgeGapId } from "@micro-domain/craft-order/index.js";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CostEditorInput } from "@/application/cost/costService";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
-import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { MaterialSheet } from "@/components/cost/MaterialSheet";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 
 type EditableCostMaterial = DraftCostMaterial & { uiId: string };
@@ -50,17 +41,18 @@ const toServiceInput = (input: EditableCostInput): CostEditorInput => ({
   ...input,
   materialItems: input.materialItems.map(({ uiId: _uiId, ...item }) => item),
 });
+/* §10.2: حالة المعرفة تسمية على الوجه — الشرح محذوف؛ النواقص تحمل علاماتها أدناه. */
 const knowledgeCopy = {
-  known: ["تكلفة معروفة", "كل بنود الوقت والتكلفة المدخلة معروفة."],
-  estimated: ["تكلفة تقديرية", "هناك بند أدخلته كتقدير، فراجع افتراضه قبل تسجيل السعر."],
-  incomplete: ["تكلفة ناقصة", "وقت العمل غير مكتمل؛ لا يظهر سعر حماية كامل ولا نتيجة نهائية."],
-  partial: ["تكلفة جزئية", "بعض البنود متاحة فقط؛ لا توجد نتيجة نهائية هنا."],
-  stale: ["تكلفة تحتاج مراجعة", "بعض أسعار المواد لم تعد ضمن مدة الحداثة."],
-  variable: ["تكلفة متغيرة", "هناك بند تقديري يحتاج مراجعة قبل تسجيل السعر."],
+  known: "تكلفة معروفة",
+  estimated: "تكلفة تقديرية",
+  incomplete: "تكلفة ناقصة",
+  partial: "تكلفة جزئية",
+  stale: "تكلفة تحتاج مراجعة",
+  variable: "تكلفة متغيرة",
 } as const;
 /* القرار ٢٢: كل نقص يحمل علامته — إلزامي (يمنع نتيجة صادقة) أو اختياري (يحسّن الدقة). */
 const knowledgeGapCopy: Record<KnowledgeGapId, string> = {
-  no_cost_components: "لا بنود تكلفة مدخلة إطلاقًا — لا تُبنى نتيجة صادقة على فراغ",
+  no_cost_components: "لا بنود تكلفة مدخلة",
   time_incomplete: "وقت العمل أو سعر الساعة غير مكتمل",
   stale_material_price: "سعر مادة خرج عن مدة الحداثة",
   estimated_item: "بند مدخل كتقدير — راجع افتراضه",
@@ -132,7 +124,7 @@ export default function CostEditor() {
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [form, setForm] = useState<EditableCostInput | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [materialSheet, setMaterialSheet] = useState<{
     index: number | null;
@@ -240,28 +232,30 @@ export default function CostEditor() {
     if (!draft || !form) return false;
     setMessage(null);
     if (hasInvalidNumericInput) {
-      setMessage("أكمل أو صحح الحقل العددي. استخدم أرقام 0–9 فقط.");
+      setMessage({ kind: "error", text: "أكمل أو صحح الحقل العددي. استخدم أرقام 0–9 فقط." });
       return false;
     }
     if (!preview?.ok) {
-      setMessage(preview?.message ?? "راجع المدخلات قبل الحفظ.");
+      if (preview) setMessage({ kind: "error", text: preview.message });
       return false;
     }
     setIsSaving(true);
     const result = await costs.saveSnapshot(draft, toServiceInput(form));
     setIsSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setMessage({ kind: "error", text: result.message });
       return false;
     }
     initialFormRef.current = form;
     setDraft(result.draft!);
     notifyDataChanged();
-    setMessage(
-      preview.snapshot.knowledgeState === "incomplete"
-        ? `تم حفظ مسودة تكلفة ناقصة ${result.draft!.costSnapshots.length} على هذا الجهاز. أضف دقائق العمل وسعر الساعة لتكتمل القراءة.`
-        : `تم حفظ نسخة التكلفة ${result.draft!.costSnapshots.length} على هذا الجهاز.`,
-    );
+    setMessage({
+      kind: "ok",
+      text:
+        preview.snapshot.knowledgeState === "incomplete"
+          ? `تم حفظ مسودة تكلفة ناقصة ${result.draft!.costSnapshots.length} على هذا الجهاز.`
+          : `تم حفظ نسخة التكلفة ${result.draft!.costSnapshots.length} على هذا الجهاز.`,
+    });
     return true;
   }
 
@@ -288,8 +282,7 @@ export default function CostEditor() {
     );
   const status = preview?.ok
     ? knowledgeCopy[preview.snapshot.knowledgeState as keyof typeof knowledgeCopy]
-    : null;
-  const canShowProtectionPrice =
+    : null;  const canShowProtectionPrice =
     preview?.ok && !["incomplete", "partial"].includes(preview.snapshot.knowledgeState);
 
   return (
@@ -304,7 +297,6 @@ export default function CostEditor() {
       <div className="micro-page-heading">
         <span className="micro-overline">نسخة تكلفة محفوظة</span>
         <h1>{draft.itemName || "وصف القطعة"}</h1>
-        <p>أدخل ما تعرفه. الصفر ليس بديلًا عن وقت أو تكلفة لا تعرفها.</p>
       </div>
       {preview?.ok ? (
         <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
@@ -313,24 +305,17 @@ export default function CostEditor() {
             {canShowProtectionPrice ? (
               <MoneyValue minor={preview.snapshot.priceFloorMinor} />
             ) : (
-              "غير متاح بعد"
+              "—"
             )}
           </strong>
-          <small>
-            {canShowProtectionPrice ? (
-              <>
-                تكلفة القطعة{" "}
-                <MoneyValue minor={preview.snapshot.unitCostMinor} className="micro-inline-number" /> + هامش
-                الحماية الذي أدخلته.
-              </>
-            ) : (
-              "هذه قراءة جزئية من البنود المعروفة؛ أكمل المدة وسعر الساعة لقراءة سعر حماية أدق."
-            )}
-          </small>
-          <div>
-            <b>{status?.[0]}</b>
-            <p>{status?.[1]}</p>
-          </div>
+          {canShowProtectionPrice ? (
+            <small>
+              تكلفة القطعة{" "}
+              <MoneyValue minor={preview.snapshot.unitCostMinor} className="micro-inline-number" /> + هامش
+              الحماية الذي أدخلته.
+            </small>
+          ) : null}
+          {status ? <b>{status}</b> : null}
           {knowledgeGapsOf(preview.snapshot).length > 0 ? (
             <ul className="micro-knowledge-gaps" aria-label="نقاط المعرفة الناقصة كاملة">
               {knowledgeGapsOf(preview.snapshot).map(gap => (
@@ -344,23 +329,20 @@ export default function CostEditor() {
         </section>
       ) : (
         <p className="micro-field-error" role="alert">
-          {preview?.message ?? "راجع المدخلات."}
+          {preview?.message}
         </p>
       )}
       <section className="micro-form-card">
         <div className="micro-cost-section-heading">
           <div>
             <h2>المواد</h2>
-            <p>أضف بندًا قصيرًا ثم راجع ملخصه؛ المادة الموجودة ليست مجانية.</p>
           </div>
           <button className="micro-icon-button" type="button" aria-label="إضافة مادة" onClick={addMaterial}>
             <Plus aria-hidden="true" />
           </button>
         </div>
         {form.materialItems.length === 0 ? (
-          <p className="micro-empty-inline">
-            لم تضف مادة بعد. قد تبقى التكلفة ناقصة إن لم تدخل وقت العمل وبنودًا مؤثرة.
-          </p>
+          <p className="micro-empty-inline">لم تضف مادة بعد.</p>
         ) : (
           <div className="micro-material-summary-list">
             {form.materialItems.map((item, index) => (
@@ -577,10 +559,10 @@ export default function CostEditor() {
       </section>
       {message ? (
         <p
-          className={message.startsWith("تم ") ? "micro-save-note" : "micro-field-error"}
-          role={message.startsWith("تم ") ? "status" : "alert"}
+          className={message.kind === "ok" ? "micro-save-note" : "micro-field-error"}
+          role={message.kind === "ok" ? "status" : "alert"}
         >
-          {message}
+          {message.text}
         </p>
       ) : null}
       {preview?.ok && preview.snapshot.knowledgeState === "incomplete" ? (
@@ -594,16 +576,16 @@ export default function CostEditor() {
           className="micro-button micro-button-primary micro-save-cost"
           type="button"
           disabled={isSaving || hasInvalidNumericInput || !preview?.ok}
+          aria-busy={isSaving}
           onClick={() => {
             void saveSnapshot();
           }}
         >
-          <Save aria-hidden="true" />
-          {isSaving
-            ? "جارٍ حفظ النسخة…"
-            : preview?.ok && preview.snapshot.knowledgeState === "incomplete"
-              ? "حفظ مسودة تكلفة ناقصة"
-              : "حفظ نسخة التكلفة"}
+          {/* §3.4: أثناء الحفظ الدوران يحل مكان الأيقونة والتسمية ثابتة — لا قفز عرض */}
+          {isSaving ? <span className="micro-spinner" aria-hidden="true" /> : <Save aria-hidden="true" />}
+          {preview?.ok && preview.snapshot.knowledgeState === "incomplete"
+            ? "حفظ مسودة تكلفة ناقصة"
+            : "حفظ نسخة التكلفة"}
         </button>
         {draft.activeCostSnapshotId ? (
           <button
@@ -623,118 +605,3 @@ export default function CostEditor() {
   );
 }
 
-type MaterialSheetProps = {
-  value: { index: number | null; draft: EditableCostMaterial } | null;
-  message: string | null;
-  validity: Record<string, boolean>;
-  onOpenChange: (open: boolean) => void;
-  onChange: (patch: Partial<DraftCostMaterial>) => void;
-  onValidityChange: (key: string, isValid: boolean) => void;
-  onSave: () => void;
-};
-
-function MaterialSheet({
-  value,
-  message,
-  validity,
-  onOpenChange,
-  onChange,
-  onValidityChange,
-  onSave,
-}: MaterialSheetProps) {
-  return (
-    <Drawer open={Boolean(value)} onOpenChange={onOpenChange} direction="bottom">
-      <DrawerContent className="micro-bottom-sheet" dir="rtl">
-        {value ? (
-          <>
-            <DrawerHeader className="micro-sheet-header">
-              <div className="micro-sheet-title-row">
-                <div>
-                  <DrawerTitle className="micro-sheet-title">
-                    {value.index === null ? "أضف بند مادة" : "عدّل بند المادة"}
-                  </DrawerTitle>
-                  <DrawerDescription className="micro-sheet-description">
-                    أدخل الحد الأدنى للمادة ثم عد إلى ملخص التكلفة. لا تتحول الكمية غير الصحيحة إلى رقم محفوظ.
-                  </DrawerDescription>
-                </div>
-                <DrawerClose asChild>
-                  <button className="micro-icon-button" type="button" aria-label="إغلاق إضافة المادة">
-                    <X aria-hidden="true" />
-                  </button>
-                </DrawerClose>
-              </div>
-            </DrawerHeader>
-            <div className="micro-sheet-form">
-              <label className="micro-field">
-                <span>المادة</span>
-                <input
-                  autoFocus
-                  value={value.draft.name}
-                  onChange={event => onChange({ name: event.target.value })}
-                />
-              </label>
-              <label className="micro-field">
-                <span>
-                  الكمية <small>أرقام 0–9 وحتى 3 منازل</small>
-                </span>
-                <EnglishQuantityInput
-                  valueMilli={Math.round(value.draft.quantity * 1000)}
-                  min="0"
-                  aria-label="كمية المادة بالأرقام 0–9"
-                  aria-invalid={validity.quantity === false}
-                  onMilliChange={quantityMilli => onChange({ quantity: quantityMilli / 1000 })}
-                  onTextValidityChange={isValid => onValidityChange("quantity", isValid)}
-                />
-              </label>
-              <label className="micro-field">
-                <span>الوحدة</span>
-                <input value={value.draft.unit} onChange={event => onChange({ unit: event.target.value })} />
-              </label>
-              <label className="micro-field">
-                <span>
-                  تكلفة الوحدة (د.أ) <small>أرقام 0–9</small>
-                </span>
-                <EnglishNumberInput
-                  value={value.draft.unitPriceMinor}
-                  kind="money"
-                  min="0"
-                  aria-label="تكلفة وحدة المادة بالأرقام 0–9"
-                  aria-invalid={validity.price === false}
-                  onNumericChange={unitPriceMinor => onChange({ unitPriceMinor })}
-                  onTextValidityChange={isValid => onValidityChange("price", isValid)}
-                />
-              </label>
-              <label className="micro-field">
-                <span>حالة الرقم</span>
-                <select
-                  value={value.draft.confidence}
-                  onChange={event =>
-                    onChange({ confidence: event.target.value as DraftCostMaterial["confidence"] })
-                  }
-                >
-                  <option value="known">مؤكد</option>
-                  <option value="estimated">تقديري</option>
-                </select>
-              </label>
-              {message ? (
-                <p className="micro-field-error" role="alert">
-                  {message}
-                </p>
-              ) : null}
-            </div>
-            <DrawerFooter className="micro-sheet-footer">
-              <DrawerClose asChild>
-                <button className="micro-button micro-button-secondary" type="button">
-                  إلغاء
-                </button>
-              </DrawerClose>
-              <button className="micro-button micro-button-primary" type="button" onClick={onSave}>
-                حفظ بند المادة
-              </button>
-            </DrawerFooter>
-          </>
-        ) : null}
-      </DrawerContent>
-    </Drawer>
-  );
-}

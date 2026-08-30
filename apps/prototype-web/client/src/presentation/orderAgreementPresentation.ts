@@ -14,7 +14,6 @@ export type AgreementPresentation = {
   kind: AgreementPresentationKind;
   label: string;
   nextAction: string;
-  explanation: string;
 };
 
 const hasPrice = (value: number | null | undefined) =>
@@ -31,7 +30,6 @@ function incompleteAgreement(hasAgreedPrice: boolean, hasDeliveryDate: boolean):
     kind: "incomplete",
     label: "اتفاق ناقص",
     nextAction: `أكمل ${missingLabel}`,
-    explanation: `ينقص الاتفاق ${missingLabel} قبل اعتباره محفوظًا.`,
   };
 }
 
@@ -46,14 +44,12 @@ export function getAgreementPresentation(input: AgreementPresentationInput): Agr
         kind: "none",
         label: "لا يوجد اتفاق",
         nextAction: "أضف السعر وموعد التسليم",
-        explanation: "احفظ السعر والموعد عندما يصبحان معروفين لديك.",
       };
     if (!hasAgreedPrice || !hasDeliveryDate) return incompleteAgreement(hasAgreedPrice, hasDeliveryDate);
     return {
       kind: "review",
       label: "اتفاق قيد المراجعة",
       nextAction: "راجع السعر والموعد",
-      explanation: "السعر والموعد مدخلان، ولم يُحفظ الاتفاق بعد.",
     };
   }
 
@@ -66,63 +62,54 @@ export function getAgreementPresentation(input: AgreementPresentationInput): Agr
         kind: "saved",
         label: "اتفاق محفوظ",
         nextAction: "ابدأ التنفيذ",
-        explanation: "السعر وموعد التسليم محفوظان. بدء التنفيذ فعل منفصل.",
       };
     case "in_progress":
       return {
         kind: "execution",
         label: "قيد التنفيذ",
         nextAction: "أكمل التنفيذ",
-        explanation: "الاتفاق محفوظ والعمل بدأ؛ لا ينشئ تغيير الحالة قبضًا.",
       };
     case "ready":
       return {
         kind: "execution",
         label: "جاهز للتسليم",
         nextAction: "سجل التسليم",
-        explanation: "العمل جاهز، والتسليم خطوة تشغيلية منفصلة عن التحصيل.",
       };
     case "delivered":
       return {
         kind: "delivery",
         label: "تم التسليم",
         nextAction: input.nextAction?.trim() || "راجع التحصيل أو النتيجة",
-        explanation: "التسليم مسجل؛ راجع المتبقي أو نتيجة الطلب دون مساواة القبض بالربح.",
       };
     case "settled":
       return {
         kind: "settled",
         label: "مغلق",
         nextAction: "راجع نتيجة الطلب",
-        explanation: "أُغلقت التسوية، وتبقى نتيجة الطلب مرتبطة بدرجة المعرفة.",
       };
     case "cancelled":
       return {
         kind: "review",
         label: "ملغى",
         nextAction: "راجع تسوية الطلب",
-        explanation: "الإلغاء لا يحذف الطلب أو أثره؛ راجع التسوية الموثقة.",
       };
     case "postponed":
       return {
         kind: "review",
         label: "مؤجل",
         nextAction: input.nextAction?.trim() || "راجع سبب التأجيل",
-        explanation: "التأجيل يحتاج سببًا وفعل متابعة واضحًا.",
       };
     case "needs_review":
       return {
         kind: "review",
         label: "يحتاج مراجعة",
         nextAction: "افتح المراجعة",
-        explanation: "هذه الحالة موقوفة للمراجعة؛ راجع الطلب قبل أي خطوة مالية.",
       };
     default:
       return {
         kind: "review",
         label: "يحتاج مراجعة",
         nextAction: input.nextAction?.trim() || "افتح الطلب وراجع الحالة",
-        explanation: "حالة غير معروفة للعرض؛ لم يتغير أي شيء.",
       };
   }
 }

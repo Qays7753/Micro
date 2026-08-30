@@ -69,7 +69,6 @@ describe("HomeControlCenterService", () => {
     const result = await services(store).read();
     if (!result.ok) throw new Error(result.message);
     expect(result.value.heading).toMatchObject({ activityName: "مشغل اختبار", todayLocal: "2026-08-25" });
-    expect(result.value.primaryAction).toMatchObject({ href: "/orders/new", label: "بدء طلب" });
     expect(result.value.facts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "cash", state: "not_initialized", valueMinor: null }),
@@ -78,12 +77,14 @@ describe("HomeControlCenterService", () => {
         expect.objectContaining({ id: "owner_capital", state: "not_initialized", valueMinor: null }),
       ]),
     );
-    expect(result.value.attention).toHaveLength(0);
-    /* F-063: مدخل «منتجاتي وخدماتي» دائم مستقل؛ لا شيء آخر يظهر لمشروع فارغ. */
-    expect(result.value.optionalModules).toEqual([
-      expect.objectContaining({ id: "catalog", label: "منتجاتي وخدماتي", state: "available" }),
-    ]);
+    /* دمج بند ١٠: مشروع فارغ — «اليوم» صادقة فارغة لا تدفع نحو الطلبات (رحلة ١). */
+    expect(result.value.todaySection.items).toHaveLength(0);
+    /* قرار المالك على بند ١٢: لا بطاقات مشروطة للمخزون والموردين — القسم القديم فارغ
+     * لمشروع بلا مواعيد ولا نتيجة، والكتلتان الدائمتان هما الطريق. */
+    expect(result.value.optionalModules).toHaveLength(0);
     expect(result.value.financeUnit).toMatchObject({ action: { id: "finance", href: "/finance" } });
+    /* قرار المالك على بند ١١: «منتجاتي وخدماتي» كتلة دائمة مستقلة. */
+    expect(result.value.catalogUnit).toMatchObject({ action: { id: "catalog", href: "/catalog" } });
     expect(result.value.todaySection).toMatchObject({
       items: [],
       upcomingCount: 0,
@@ -162,8 +163,11 @@ describe("HomeControlCenterService", () => {
     expect(kinds).toContain("due_amount");
     const dueAmount = result.value.todaySection.items.find(item => item.kind === "due_amount");
     expect(dueAmount).toMatchObject({ href: "/orders/today-order" });
-    expect(dueAmount?.detail).toContain("دين مسجل");
-    expect(dueAmount?.detail).toContain("لا كاش محصل");
+    /* §10: البطاقة قيمة بلا جملة — المبلغ يبقى والحد في النطاق. */
+    (expect(dueAmount?.detail).toContain("35.00"), expect(dueAmount?.title).toContain("دين"));
+    /* دمج بند ١٠: المتابعة المستحقة والدين بندان لا أكثر — لا تكرار بين قسمين. */
+    const ids = result.value.todaySection.items.map(item => item.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("keeps /finance reachable for a brand-new owner while period_result stays conditional on its own unit (decisions 11–14)", async () => {
@@ -200,7 +204,7 @@ describe("HomeControlCenterService", () => {
           id: "cash",
           state: "known",
           valueMinor: 5000,
-          source: expect.stringContaining("السجل المحلي"),
+          source: null,
         }),
         expect.objectContaining({ id: "owner_capital", state: "known", valueMinor: 5000 }),
         expect.objectContaining({ id: "receivables", state: "not_initialized", valueMinor: null }),
@@ -210,27 +214,36 @@ describe("HomeControlCenterService", () => {
     const after = await store.listFinancialEvents();
     if (!after.ok) throw new Error("events should read");
     expect(after.value).toHaveLength(before.value.length);
-    expect(result.value.truthLine).toContain("لا تحول الرقم إلى ربح");
+    /* §10: لا سطر حقيقة على الوجه. */
+    expect(result.value.truthLine).toBeNull();
   });
 
-  it("exposes the permanent finance unit beside data-linked optional modules for an active owner", async () => {
+  it("absorbs the attention content into Today for an active owner with no duplication and no removal", async () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
     for (let index = 1; index <= 4; index += 1) await saveOrder(store, `home-order-${index}`);
     const result = await services(store).read();
     if (!result.ok) throw new Error(result.message);
-    expect(result.value.primaryAction).toMatchObject({ href: "/orders/home-order-1", label: "فتح الطلب" });
-    expect(result.value.attention).toHaveLength(3);
-    expect(result.value.attention.every(item => item.action.href.startsWith("/orders/"))).toBe(true);
+    /* دمج بند ١٠: كل طلب مفتوح بند واحد في «اليوم» — لا قسم انتباه منفصل ولا سقف إلغاء. */
+    const openOrders = result.value.todaySection.items.filter(item => item.kind === "open_order");
+    expect(openOrders).toHaveLength(4);
+    expect(openOrders.every(item => item.href.startsWith("/orders/"))).toBe(true);
+    const ids = result.value.todaySection.items.map(item => item.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    /* الترتيب بالأولوية: أول بند في القائمة هو الأولوية — لا بطاقة أولوية منفصلة. */
+    const priorities = result.value.todaySection.items.map(item => item.priority);
+    expect([...priorities].sort((left, right) => left - right)).toEqual(priorities);
     expect(result.value.financeUnit.action).toMatchObject({ id: "finance", href: "/finance" });
+    expect(result.value.catalogUnit.action).toMatchObject({ id: "catalog", href: "/catalog" });
     expect(result.value.optionalModules.map(module => module.id)).toContain("schedule");
     expect(result.value.optionalModules.map(module => module.id)).not.toContain("period_result");
     expect(result.value.optionalModules.map(module => module.id)).not.toContain("inventory");
     expect(result.value.optionalModules.map(module => module.id)).not.toContain("supplier_commitments");
+    expect(result.value.optionalModules.map(module => module.id)).not.toContain("catalog");
     expect(result.value.recentChanges.length).toBeLessThanOrEqual(5);
   });
 
-  it("promotes a closed incomplete result above the generic history action", async () => {
+  it("keeps a closed incomplete result in Today as one review item above the open-order items", async () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
     const id = "home-incomplete-settled";
@@ -275,14 +288,38 @@ describe("HomeControlCenterService", () => {
 
     const result = await services(store).read();
     if (!result.ok) throw new Error(result.message);
-    expect(result.value.primaryAction).toMatchObject({
-      href: `/orders/${id}`,
-      label: "مراجعة النتيجة",
-    });
-    expect(result.value.attention[0]).toMatchObject({
-      kind: "result_review",
+    const review = result.value.todaySection.items.find(item => item.kind === "result_review");
+    expect(review).toMatchObject({
       title: "راجع نتيجة طلب يحتاج مراجعة",
-      action: { href: `/orders/${id}`, label: "مراجعة النتيجة" },
+      href: `/orders/${id}`,
+      actionLabel: "افتح",
+    });
+  });
+
+  it("keeps open drafts inside Today with their resume action (absorbed, not cancelled)", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    await store.saveDraft({
+      id: "draft-1",
+      intent: "customer_order",
+      itemName: "مسودة ليلية",
+      customerName: "",
+      quantity: 1,
+      specifications: "",
+      catalogItemId: null,
+      costSnapshots: [],
+      activeCostSnapshotId: null,
+      linkedOrderId: null,
+      createdAt: "2026-08-24T20:00:00.000Z",
+      updatedAt: "2026-08-24T20:00:00.000Z",
+    });
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    const draft = result.value.todaySection.items.find(item => item.kind === "draft");
+    expect(draft).toMatchObject({
+      title: "مسودة: مسودة ليلية",
+      href: "/orders/draft/draft-1",
+      actionLabel: "افتح",
     });
   });
 });

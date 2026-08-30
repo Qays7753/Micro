@@ -3,6 +3,7 @@ import {
   calculateCostSnapshot,
   cancelOrder,
   collectDeposit,
+  collectRegisteredDebt,
   collectRemaining,
   createCraftOrder,
   knowledgeGapsOf,
@@ -325,6 +326,53 @@ describe("craft-order domain core", () => {
         toStatus: "settled",
       }),
     );
+  });
+
+  /* §٥-١٦ (المرحلة أ — رحلة ٢): الدين المسجل قابل للتحصيل لاحقًا — جزئيًا أو كاملًا —
+   * دون إعادة فتح الطلب ودون تغيير حالته. */
+  it("collects a registered debt partially without reopening the order", () => {
+    let order = confirmAndDeliver(makeOrder());
+    order = registerDebt(order, "debt-2", "2026-08-21T09:45:00Z");
+    order = collectRegisteredDebt(order, 1500, "debt-collect-1", "2026-08-21T11:00:00Z");
+
+    expect(order.status).toBe("settled");
+    expect(order.settlementStatus).toBe("debt");
+    expect(order.collectedMinor).toBe(1500);
+    expect(order.receivableMinor).toBe(2500);
+    expect(order.nextAction).toBe("تابع تحصيل الدين");
+    expect(order.events).toContainEqual(
+      expect.objectContaining({ type: "collection_recorded", amountMinor: 1500 }),
+    );
+  });
+
+  it("completes a registered debt to paid and never exceeds the agreed price", () => {
+    let order = confirmAndDeliver(makeOrder());
+    order = registerDebt(order, "debt-3", "2026-08-21T09:46:00Z");
+    order = collectRegisteredDebt(order, 4000, "debt-collect-full", "2026-08-21T11:05:00Z");
+
+    expect(order.status).toBe("settled");
+    expect(order.settlementStatus).toBe("paid");
+    expect(order.collectedMinor).toBe(4000);
+    expect(order.receivableMinor).toBe(0);
+    expect(order.nextAction).toBe("راجع النتيجة والخطوة التالية");
+  });
+
+  it("rejects debt collection without a registered debt or beyond the agreed price, and retries idempotently", () => {
+    const delivered = confirmAndDeliver(makeOrder());
+    expect(() => collectRegisteredDebt(delivered, 100, "no-debt", "2026-08-21T11:10:00Z")).toThrow(
+      "يتطلب دينًا مسجلًا",
+    );
+
+    let order = registerDebt(delivered, "debt-4", "2026-08-21T09:47:00Z");
+    expect(() => collectRegisteredDebt(order, 4001, "over-collect", "2026-08-21T11:11:00Z")).toThrow(
+      "لا يمكن أن يتجاوز السعر المتفق عليه",
+    );
+    expect(() => collectRegisteredDebt(order, 0, "zero-collect", "2026-08-21T11:12:00Z")).toThrow();
+
+    const once = collectRegisteredDebt(order, 500, "debt-retry", "2026-08-21T11:13:00Z");
+    const twice = collectRegisteredDebt(once, 500, "debt-retry", "2026-08-21T11:14:00Z");
+    expect(twice).toEqual(once);
+    expect(once.collectedMinor).toBe(500);
   });
 
   it("requires a reason and preserves a cancellation event", () => {

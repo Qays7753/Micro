@@ -1,6 +1,7 @@
 /** Slice 4 financial boundary: delivery, collection, and debt are three distinct Domain operations. */
 import {
   cancelOrder,
+  collectRegisteredDebt,
   collectRemaining,
   registerDebt,
   settleDepositRefund,
@@ -25,7 +26,6 @@ export type DepositOverview = {
   deposits: readonly DepositRow[];
   collectedTotalMinor: number;
   awaitingSettlementCount: number;
-  truth: string;
 };
 const success = (stored: StoredCraftOrder): FulfillmentResult => ({ ok: true, stored });
 const failure = (
@@ -116,6 +116,28 @@ export class FulfillmentService {
       return this.persist({ ...current.stored, order, updatedAt: timestamp });
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التحصيل.");
+    }
+  }
+
+  /* §٥-١٦ (المرحلة أ — رحلة ٢): الدين المسجل قابل للتحصيل لاحقًا. المبلغ هو
+   * الحقل الوحيد؛ التحصيل يقلل الدين ولا يعيد فتح الطلب. */
+  async collectDebt(id: string, amountMinor: number): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    if (current.stored.order.settlementStatus !== "debt" || current.stored.order.receivableMinor <= 0)
+      return current; // لا دين مسجل: لا شيء يُفعل
+    if (current.stored.order.status === "cancelled") return current;
+    try {
+      const timestamp = this.now();
+      const order = collectRegisteredDebt(
+        current.stored.order,
+        amountMinor,
+        `${id}:debt-collect-${amountMinor}-${timestamp}`,
+        timestamp,
+      );
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل تحصيل الدين.");
     }
   }
 
@@ -218,8 +240,6 @@ export class FulfillmentService {
         deposits: rows,
         collectedTotalMinor: rows.reduce((total, row) => total + row.depositCollectedMinor, 0),
         awaitingSettlementCount: rows.filter(row => row.depositSettlement === "needs_review").length,
-        truth:
-          "العربون كاش مرتبط بطلبه، وليس ربحًا نهائيًا. الملغى منها ينتظر ردًا أو احتفاظًا صريحًا أو يبقى للمراجعة.",
       },
     };
   }

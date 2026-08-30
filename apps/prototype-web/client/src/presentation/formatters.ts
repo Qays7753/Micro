@@ -50,7 +50,7 @@ export function formatArabicPlural(
     other: string; // 100+ or fallback
   },
 ) {
-  if (count === null || count === undefined || !Number.isFinite(count)) return "غير متاح";
+  if (count === null || count === undefined || !Number.isFinite(count)) return "—";
   const absCount = Math.abs(count);
   if (absCount === 0) return forms.zero;
   if (absCount === 1) return forms.one;
@@ -62,17 +62,17 @@ export function formatArabicPlural(
 }
 
 export function formatMoneyMinor(minor: number | null | undefined) {
-  if (minor === null || minor === undefined || !Number.isFinite(minor)) return "غير متاح";
+  if (minor === null || minor === undefined || !Number.isFinite(minor)) return "—";
   return moneyFormatter.format(minor / 100);
 }
 
 export function formatInteger(value: number | null | undefined) {
-  if (value === null || value === undefined || !Number.isFinite(value)) return "غير متاح";
+  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
   return integerFormatter.format(value);
 }
 
 export function formatQuantityMilli(value: number | null | undefined) {
-  if (value === null || value === undefined || !Number.isFinite(value)) return "غير متاح";
+  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
   return (value / 1000)
     .toFixed(3)
     .replace(/\.0+$/, "")

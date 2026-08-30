@@ -47,8 +47,6 @@ export type OwnerEntitlementOverview = {
   remainingEntitlementBalanceMinor: number;
   cashMovementMinor: number;
   balanceState: "positive" | "zero" | "negative";
-  truth: string;
-  nextAction: string;
 };
 export type OwnerPolicyInput = Omit<CreateOwnerEntitlementPolicyInput, "createdAt">;
 export type OwnerPolicySuccessorInput = OwnerEntitlementPolicyTerms & {
@@ -246,16 +244,6 @@ export class OwnerEntitlementService {
         remainingEntitlementBalanceMinor,
         cashMovementMinor,
         balanceState,
-        truth:
-          "الحق المسجل ليس قبضًا ولا يغير كاش المشروع. السحب والإرجاع الفعليان يغيران محفظة الكاش فقط وفق سببهما؛ الاستثمار الجديد مستقل عن الحق، والسحب غير المرتبط بسياسة يبقى Owner Draw مستقلًا.",
-        nextAction:
-          activePolicies.length === 0
-            ? "أضف سياسة مؤرخة إذا أردت تسجيل حق جديد؛ لا ينشئ النظام حقًا من تاريخ سابق تلقائيًا."
-            : balanceState === "positive"
-              ? "يمكن تسجيل سحب لتسوية حق أو افتتاح موجب ضمن المصدر المتبقي، أو تسجيل حدث مالي آخر بسبب واضح."
-              : balanceState === "negative"
-                ? "راجع السحوبات السابقة وسجل إرجاعًا لتسوية سحب سابق أو افتتاح سالب إذا كان هذا ما حدث فعليًا."
-                : "الرصيد مسوى حاليًا؛ لا تسجل حركة بلا سبب واضح.",
       },
     };
   }

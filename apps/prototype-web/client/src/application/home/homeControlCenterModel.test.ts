@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildHomeControlCenterViewModel, type HomeControlCenterInput } from "./homeControlCenterModel";
+import { buildHomeControlCenterViewModel, type HomeControlCenterInput, type HomeTodayItem } from "./homeControlCenterModel";
 
 const action = (id: string, label = "افتح") => ({ id, label, href: `/${id}`, reason: `سبب ${id}` });
 const fact = (
@@ -20,14 +20,35 @@ const fact = (
       ? { id: `road-${id}`, label: "سجّله", href: `/new-${id}`, reason: "طريق التسجيل" }
       : null,
 });
+const todayItem = (id: string, priority: number, kind: HomeTodayItem["kind"]): HomeTodayItem => ({
+  id,
+  kind,
+  title: `بند ${id}`,
+  detail: `تفصيل ${id}`,
+  dateLocal: null,
+  timeLocal: null,
+  href: `/${id}`,
+  actionLabel: "افتح",
+  priority,
+});
 const baseInput = (): HomeControlCenterInput => ({
   activityName: "مشغل اختبار",
   todayLocal: "2026-08-25",
   truthLine: "هذه قراءة محلية محدودة.",
-  primaryAction: action("orders/new", "طلب جديد"),
   financeUnit: {
     action: action("finance", "افتح مالي"),
     truth: "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق.",
+  },
+  catalogUnit: {
+    action: action("catalog", "افتح منتجاتي وخدماتي"),
+    truth: "ما أكرره وبكم — والقراءة عند المرجع نفسه.",
+  },
+  todaySection: {
+    items: [],
+    upcomingCount: 0,
+    nextUpcomingDate: null,
+    nextUpcomingHref: null,
+    truth: "قراءة صباحية من سجلاتك.",
   },
   facts: [
     fact("cash", "known", 1250),
@@ -35,7 +56,6 @@ const baseInput = (): HomeControlCenterInput => ({
     fact("payables", "not_initialized", null),
     fact("owner_capital", "known", 1250),
   ],
-  attention: [],
   optionalModules: [],
   recentChanges: [],
 });
@@ -66,85 +86,63 @@ describe("buildHomeControlCenterViewModel", () => {
     expect(cash?.road).toBeNull();
   });
 
-  it("orders unique attention by priority and caps the result at three items", () => {
+  /* دمج بند ١٠ (قرار المالك): ترتيب بالأولوية، ولا بند يظهر مرتين، ولا إلغاء للمحتوى الممتص. */
+  it("merges the absorbed attention content into Today ordered by priority with no item twice", () => {
     const model = buildHomeControlCenterViewModel({
       ...baseInput(),
-      attention: [
-        {
-          id: "late",
-          priority: 3,
-          kind: "order",
-          title: "طلب متأخر",
-          reason: "التسليم يحتاج متابعة",
-          action: action("late"),
-        },
-        {
-          id: "draft",
-          priority: 1,
-          kind: "draft",
-          title: "مسودة",
-          reason: "لم تتحول إلى اتفاق",
-          action: action("draft"),
-        },
-        {
-          id: "draft",
-          priority: 1,
-          kind: "draft",
-          title: "مسودة مكررة",
-          reason: "لا تُعرض مرتين",
-          action: action("draft"),
-        },
-        {
-          id: "cost",
-          priority: 2,
-          kind: "cost",
-          title: "تكلفة ناقصة",
-          reason: "سعر الساعة غير معروف",
-          action: action("cost"),
-        },
-        {
-          id: "follow-up",
-          priority: 4,
-          kind: "follow_up",
-          title: "متابعة",
-          reason: "تاريخ مسجل",
-          action: action("follow-up"),
-        },
-      ],
+      todaySection: {
+        ...baseInput().todaySection,
+        items: [
+          todayItem("today-capacity:today", 40, "capacity_warning"),
+          todayItem("today-order:late", 30, "open_order"),
+          todayItem("today-draft:draft", 10, "draft"),
+          todayItem("today-draft:draft", 10, "draft"),
+          todayItem("today-cost:cost", 20, "cost_incomplete"),
+          todayItem("today-follow-up:follow", 25, "follow_up_due"),
+        ],
+      },
     });
-    expect(model.attention.map(item => item.id)).toEqual(["draft", "cost", "late"]);
+    expect(model.todaySection.items.map(item => item.id)).toEqual([
+      "today-draft:draft",
+      "today-cost:cost",
+      "today-follow-up:follow",
+      "today-order:late",
+      "today-capacity:today",
+    ]);
+  });
+
+  it("keeps the honest empty Today state for a project with nothing on it (journey 1)", () => {
+    const model = buildHomeControlCenterViewModel(baseInput());
+    expect(model.todaySection.items).toHaveLength(0);
   });
 
   it("shows only optional modules with actual data or a relevant setup action", () => {
     const model = buildHomeControlCenterViewModel({
       ...baseInput(),
       optionalModules: [
-        { id: "inventory", label: "المخزون", state: "empty", action: null },
+        { id: "schedule", label: "الجدول", state: "empty", action: null },
         { id: "schedule", label: "الجدول", state: "needs_setup", action: action("schedule") },
-        {
-          id: "supplier_commitments",
-          label: "التزامات الموردين",
-          state: "available",
-          action: action("suppliers"),
-        },
+        { id: "period_result", label: "نتيجة الفترة", state: "available", action: action("period-result") },
         { id: "period_result", label: "نتيجة الفترة", state: "empty", action: null },
       ],
     });
-    expect(model.optionalModules.map(module => module.id)).toEqual(["schedule", "supplier_commitments"]);
+    expect(model.optionalModules.map(module => module.id)).toEqual(["schedule", "period_result"]);
   });
 
-  it("keeps the permanent finance unit unconditional even while every optional module is empty", () => {
+  it("keeps the permanent finance and catalog units unconditional even while every optional module is empty", () => {
     const model = buildHomeControlCenterViewModel(baseInput());
     expect(model.financeUnit).toMatchObject({
       action: { id: "finance", href: "/finance" },
     });
+    expect(model.catalogUnit).toMatchObject({
+      action: { id: "catalog", href: "/catalog" },
+    });
     expect(model.optionalModules).toHaveLength(0);
   });
 
-  it("keeps the recent activity bounded to five useful changes and preserves the primary CTA", () => {
+  it("keeps the recent activity bounded to five useful changes", () => {
     const model = buildHomeControlCenterViewModel({
       ...baseInput(),
-      primaryAction: action("draft-1", "استأنف المسودة"),
       recentChanges: Array.from({ length: 7 }, (_, index) => ({
         id: `change-${index}`,
         occurredOn: `2026-08-${String(index + 1).padStart(2, "0")}`,
@@ -153,7 +151,6 @@ describe("buildHomeControlCenterViewModel", () => {
         href: "/review",
       })),
     });
-    expect(model.primaryAction).toMatchObject({ id: "draft-1", label: "استأنف المسودة", href: "/draft-1" });
     expect(model.recentChanges).toHaveLength(5);
     expect(model.recentChanges.at(-1)?.id).toBe("change-4");
   });

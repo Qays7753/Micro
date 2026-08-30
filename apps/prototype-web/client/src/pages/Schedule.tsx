@@ -134,7 +134,7 @@ export default function Schedule() {
     notifyDataChanged();
     setCapacityMessage(
       result.value === null
-        ? "لم تعد سعة يومية محددة؛ سيعرض Micro الوقت المسجل فقط."
+        ? "أُزيلت السعة اليومية."
         : `تم حفظ سعة يومية معلنة: ${result.value} دقيقة.`,
     );
   }
@@ -191,10 +191,6 @@ export default function Schedule() {
       <div className="micro-page-heading">
         <span className="micro-overline">التنظيم التشغيلي</span>
         <h1>المواعيد</h1>
-        <p>
-          اقرأ التزامات الطلبات المسجلة في اليوم أو الأسبوع أو الشهر. الوقت والمدة يدعمان تحذيرًا فقط عندما
-          تعرفهما؛ لا يرسل هذا الإصدار تذكيرًا خارجيًا.
-        </p>
       </div>
       {decisionDay ? (
         <CapacityDecisionSurface
@@ -206,7 +202,7 @@ export default function Schedule() {
       {overview.overdue.length > 0 ? (
         <ScheduleSection
           title="متأخر"
-          description="مواعيد تشغيلية تجاوزت موعدها المسجل وتحتاج قرارًا."
+          description="تجاوزت موعدها"
           tone="warning"
           items={overview.overdue}
           onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
@@ -215,7 +211,7 @@ export default function Schedule() {
       {overview.today.length > 0 ? (
         <ScheduleSection
           title="اليوم"
-          description="طلبات موعدها اليوم حسب توقيت عمّان."
+          description="موعدها اليوم"
           tone="accent"
           items={overview.today}
           onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
@@ -224,7 +220,7 @@ export default function Schedule() {
       {overview.upcoming.length > 0 ? (
         <ScheduleSection
           title="قادم"
-          description="رتب العمل القادم قبل أن يصبح متأخرًا."
+          description="مواعيد قادمة"
           tone="support"
           items={overview.upcoming}
           onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
@@ -485,11 +481,7 @@ function RecurrencePanel({
       <div className="micro-recurrence-heading">
         <div>
           <span className="micro-overline">تكرار محلي محدود</span>
-          <h2 id="recurrence-title">هل يتكرر هذا الموعد بنمط واضح؟</h2>
-          <p>
-            ينشئ Micro من 1 إلى 12 موعدًا قادمًا فقط. لا ينشئ طلبًا أو حجزًا أو تذكيرًا، ولا يغير الموعد
-            الأصلي.
-          </p>
+          <h2 id="recurrence-title">تكرار محلي محدود</h2>
         </div>
         <Repeat2 aria-hidden="true" />
       </div>

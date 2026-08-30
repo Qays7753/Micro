@@ -47,7 +47,6 @@ export type RecurringWorkWasteSummary = {
   unallocatedWasteMinor: number;
   totalWasteMinor: number;
   recordedCount: number;
-  truth: string;
 };
 export type RecurringWorkTimeSummary = {
   recordedOrderCount: number;
@@ -56,7 +55,6 @@ export type RecurringWorkTimeSummary = {
   plannedMinutes: number;
   actualMinutes: number | null;
   varianceMinutes: number | null;
-  truth: string;
 };
 export type RecurringWorkMaterialSummary = {
   recordedOrderCount: number;
@@ -65,7 +63,6 @@ export type RecurringWorkMaterialSummary = {
   plannedMaterialMinor: number;
   actualMaterialMinor: number | null;
   varianceMinor: number | null;
-  truth: string;
 };
 export type RecurringWorkReading = {
   catalogItemId: string;
@@ -85,13 +82,11 @@ export type RecurringWorkReading = {
   allocation: AllocationCalculation | null;
   reasons: readonly string[];
   nextAction: string;
-  truth: string;
 };
 export type RecurringWorkReadings = {
   from: string;
   to: string;
   items: readonly RecurringWorkReading[];
-  truth: string;
 };
 
 const id = (prefix: string) =>
@@ -372,8 +367,6 @@ export class RecurringWorkService {
           recordedOrderIds.size === finalOrders.length && recordedOrderIds.size > 0
             ? actualMaterialMinor - plannedMaterialMinor
             : null,
-        truth:
-          "فرق المادة دليل تفسيري من استهلاك مثبت فقط؛ لا يغيّر نسخة التكلفة أو الهامش المباشر أو تكلفة البيع تلقائيًا.",
       };
       let actualMinutes = 0;
       let timeRecordedOrderCount = 0;
@@ -401,8 +394,6 @@ export class RecurringWorkService {
         actualMinutes: timeRecordedOrderCount ? actualMinutes : null,
         varianceMinutes:
           timeRecordedOrderCount && missingTimeOrderIds.length === 0 ? actualMinutes - plannedMinutes : null,
-        truth:
-          "فرق الوقت المسجل مقارنة بوقت نسخة التكلفة فقط؛ لا أجر أو سعر ساعة أو تكلفة فعلية أو تعديل للنتيجة.",
       };
       const waste: RecurringWorkWasteSummary = {
         orderWasteMinor: 0,
@@ -412,7 +403,6 @@ export class RecurringWorkService {
         unallocatedWasteMinor: 0,
         totalWasteMinor: 0,
         recordedCount: 0,
-        truth: "الهدر المرتبط ظاهر للتفسير، ولم نخصمه من الهامش أو تكلفة البيع تلقائيًا.",
       };
       for (const movement of active) {
         if (movement.type !== "waste" || !movement.wasteContext || !wasteValue(movement.wasteContext))
@@ -479,26 +469,26 @@ export class RecurringWorkService {
         activePolicies.length === 1 ? calculateAllocationPolicy(activePolicies[0]!, evidence) : null;
       const reasons = [
         ...(excludedOrderIds.length
-          ? ["توجد طلبات مسلّمة مستبعدة من القراءة لأن نتيجتها غير نهائية؛ لم تتحول إلى صفر أو هامش مكتمل."]
+          ? ["طلبات مستبعدة"]
           : []),
-        ...(material.notRecordedOrderCount ? ["لم تسجل مادة فعلية لبعض الطلبات؛ هذا لا يعني صفر مادة."] : []),
+        ...(material.notRecordedOrderCount ? ["مادة غير مسجلة"] : []),
         ...(time.notRecordedOrderCount ? ["لم تسجل وقتًا فعليًا لبعض الطلبات؛ هذا لا يعني صفر وقت."] : []),
         ...(waste.totalWasteMinor
-          ? ["الهدر المسجل ظاهر كدليل منفصل ولم يخصم من الهامش أو تكلفة البيع تلقائيًا."]
+          ? ["هدر مسجل"]
           : []),
         ...(activePolicies.length > 1
-          ? ["توجد سياسات فعالة متداخلة؛ لا تعرض قراءة توزيع مركبة قبل مراجعة النطاق والمصدر."]
+          ? ["سياسات متداخلة"]
           : []),
       ];
       const nextAction =
         allocation?.status === "known"
           ? allocation.nextAction
           : material.notRecordedOrderCount > 0
-            ? "سجل المادة الفعلية للطلبات الناقصة قبل تفسير فرق المادة."
+            ? "سجل المادة الفعلية"
             : activePolicies.length === 0
-              ? "لا توجد سياسة توزيع؛ يظهر الهامش المباشر المسجل فقط."
+              ? "بلا سياسة توزيع"
               : (allocation?.nextAction ??
-                "راجع نطاق سياسة التوزيع ومصدرها وأكمل الدليل الناقص قبل الاعتماد على الرقم.");
+                "راجع السياسة والدليل");
       return {
         catalogItemId: item.id,
         periodFrom: from,
@@ -523,8 +513,6 @@ export class RecurringWorkService {
         allocation,
         reasons,
         nextAction,
-        truth:
-          "الهامش المباشر المسجل هو السعر المحتسب عند التسليم للطلبات المسلّمة النهائية المرتبطة صراحة ناقص التكلفة المباشرة المحفوظة في نسخة التكلفة. وقت التنفيذ والهدر وسياسة التوزيع أدلة منفصلة؛ لا تغيّر الكاش أو نسخة التكلفة أو نتيجة الفترة المسجلة.",
       } satisfies RecurringWorkReading;
     });
     return {
@@ -533,8 +521,6 @@ export class RecurringWorkService {
         from,
         to,
         items,
-        truth:
-          "هذه قراءة محلية حسب مرجع العمل وفترة معلنة. الربح بعد التوزيع حسب سياسة المالك ليس صافي ربح نهائيًا أو توصية سعر، ولا يطغى على الهامش المباشر المسجل.",
       },
     };
   }

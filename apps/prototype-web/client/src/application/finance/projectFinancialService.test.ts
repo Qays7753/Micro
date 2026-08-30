@@ -413,7 +413,7 @@ describe("ProjectFinancialService", () => {
       value: {
         resultMinor: null,
         status: "invalid",
-        reasons: ["الفترة المحلية غير صالحة؛ لا يمكن بناء نتيجة قابلة للقراءة."],
+        reasons: ["فترة غير صالحة"],
       },
     });
   });
@@ -767,7 +767,7 @@ describe("ProjectFinancialService", () => {
         coverage: {
           status: "recorded_only",
           breakEvenUnits: null,
-          reasons: [expect.stringContaining("تعذر حساب وحدات التعادل")],
+          reasons: [expect.stringContaining("تعادل غير محسوب")],
         },
       },
     });
@@ -1643,5 +1643,79 @@ describe("period result states when inventory was never managed (decision 10)", 
       ok: true,
       value: { inventoryManagedFrom: "2026-07-05" },
     });
+  });
+});
+
+describe("ProjectFinancialService direct-sale cash truth (journey 1, §5-13)", () => {
+  it("counts an active direct sale's collected cash like an order collection — 500 + 20 = 520", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    /* محفظة معلنة 500: */
+    await store.commitCashContinuity(
+      { id: "w1", name: "الدرج", kind: "cash_drawer", createdAt: now(), createdOperationKey: "op-w1" },
+      [
+        {
+          id: "e1",
+          walletId: "w1",
+          type: "opening_balance",
+          occurredOn: "2026-08-30",
+          recordedAt: now(),
+          cashDeltaMinor: 50000,
+          note: "رصيد بداية",
+          reason: null,
+          operationKey: "op-e1",
+          transferId: null,
+          reversesEntryId: null,
+        },
+      ],
+    );
+    const before = await finance.readPosition();
+    if (!before.ok) throw new Error(before.message);
+    expect(before.value.recordedCashMinor).toBe(50000);
+    /* بيع مباشر بقبض 20: */
+    await store.saveDirectSale({
+      id: "sale-1",
+      itemName: "كوب قهوة",
+      quantity: 1,
+      currency: "JOD",
+      revenueMinor: 2000,
+      collectedMinor: 2000,
+      costMinor: null,
+      profitMinor: null,
+      occurredOn: "2026-08-30",
+      recordedAt: now(),
+      note: "بيع مباشر",
+      idempotencyKey: "sale-key-1",
+      status: "active",
+      cancelledAt: null,
+      cancellationReason: null,
+      revisions: [],
+    });
+    const after = await finance.readPosition();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value.recordedCashMinor).toBe(52000);
+    expect(after.value.unallocatedCashMinor).toBe(2000);
+    /* إلغاء البيع ينقض قبضه: لا يبقى أثر كاش لبيع ملغى. */
+    await store.saveDirectSale({
+      id: "sale-1",
+      itemName: "كوب قهوة",
+      quantity: 1,
+      currency: "JOD",
+      revenueMinor: 2000,
+      collectedMinor: 2000,
+      costMinor: null,
+      profitMinor: null,
+      occurredOn: "2026-08-30",
+      recordedAt: now(),
+      note: "بيع مباشر",
+      idempotencyKey: "sale-key-1",
+      status: "cancelled",
+      cancelledAt: now(),
+      cancellationReason: "أُدخل المبلغ بالخطأ",
+      revisions: [],
+    });
+    const cancelled = await finance.readPosition();
+    if (!cancelled.ok) throw new Error(cancelled.message);
+    expect(cancelled.value.recordedCashMinor).toBe(50000);
   });
 });
