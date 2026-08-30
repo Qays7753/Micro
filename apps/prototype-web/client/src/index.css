@@ -1319,7 +1319,7 @@ textarea:disabled,
   flex: 0 0 auto;
   padding-inline: var(--space-1);
   border-radius: var(--radius-control);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-text-secondary);
   background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
 }
@@ -1530,7 +1530,7 @@ textarea:disabled,
 }
 .micro-decision-card strong {
   color: var(--color-text-primary);
-  font-size: 19px;
+  font-size: 20px;
 }
 .micro-decision-card p {
   margin: 0;
@@ -1575,7 +1575,7 @@ textarea:disabled,
   width: 10px;
   height: 10px;
   flex: 0 0 auto;
-  margin-top: 6px;
+  margin-top: var(--space-2);
   border-radius: 999px;
   background: var(--color-accent-primary);
 }
@@ -1634,7 +1634,7 @@ textarea:disabled,
 }
 .micro-result-card strong {
   color: var(--color-text-primary);
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-result-card p,
 .micro-result-card small {
@@ -1731,7 +1731,7 @@ textarea:disabled,
 .micro-decision-surface h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1.4;
 }
 .micro-decision-surface p {
@@ -1827,7 +1827,7 @@ textarea:disabled,
 }
 .micro-financial-pulse dd {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-financial-pulse-note {
   margin: 0;
@@ -1923,7 +1923,7 @@ textarea:disabled,
 .micro-decision-surface h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1.4;
 }
 .micro-decision-surface p {
@@ -2079,7 +2079,7 @@ textarea:disabled,
 }
 .micro-financial-pulse dd {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-financial-pulse-note {
   margin: 0;
@@ -2175,7 +2175,7 @@ textarea:disabled,
 .micro-decision-surface h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1.4;
 }
 .micro-decision-surface p {
@@ -2363,7 +2363,7 @@ textarea:disabled,
   font-size: 11px;
 }
 .micro-finance-position-card strong {
-  font-size: 21px;
+  font-size: 20px;
 }
 .micro-number[data-negative="true"] {
   color: var(--color-warning-text);
@@ -2591,7 +2591,7 @@ textarea:disabled,
 }
 .micro-financial-pulse dd {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-financial-pulse-note {
   margin: 0;
@@ -3831,7 +3831,7 @@ textarea:disabled,
 }
 .micro-month-summary dd {
   margin: 0;
-  font-size: 21px;
+  font-size: 20px;
 }
 .micro-month-empty {
   display: grid;
@@ -3877,7 +3877,7 @@ textarea:disabled,
 }
 .micro-month-weekdays {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   text-align: center;
 }
@@ -3948,7 +3948,7 @@ button.micro-month-cell:hover {
 .micro-month-date small {
   color: var(--color-brand-text);
   font-family: var(--font-arabic);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
 }
 .micro-month-cell-count,
@@ -3962,7 +3962,7 @@ button.micro-month-cell:hover {
 }
 .micro-month-cell-count {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.35;
 }
 .micro-month-cell-count b {
@@ -3982,7 +3982,7 @@ button.micro-month-cell:hover {
   align-items: center;
   gap: 2px;
   color: var(--color-warning-text);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.25;
 }
 .micro-month-cell-warning svg {
@@ -4087,19 +4087,19 @@ button.micro-month-cell:hover {
   }
   .micro-month-cell {
     min-height: 86px;
-    padding: 6px;
+    padding: var(--space-2);
   }
   .micro-month-cell[data-selected="true"] {
-    padding: 5px;
+    padding: var(--space-1);
   }
   .micro-month-date {
     font-size: 12px;
   }
   .micro-month-cell-count {
-    font-size: 9px;
+    font-size: 11px;
   }
   .micro-month-cell-time {
-    font-size: 10px;
+    font-size: 11px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -4442,7 +4442,7 @@ button.micro-month-cell:hover {
     grid-template-columns: 1fr;
   }
   .micro-schedule-status-summary strong {
-    font-size: 22px;
+    font-size: 24px;
   }
 }
 
@@ -4712,7 +4712,7 @@ button.micro-month-cell:hover {
 }
 .micro-home-today-item small {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
 }
 .micro-home-today-item .micro-text-action {
   flex: 0 0 auto;
@@ -5022,14 +5022,14 @@ button.micro-month-cell:hover {
 .micro-home-fact > strong {
   min-height: 26px;
   color: var(--color-text-primary);
-  font-size: 21px;
+  font-size: 20px;
 }
 .micro-home-fact > strong .micro-number {
-  font-size: 21px;
+  font-size: 20px;
 }
 .micro-home-fact > small {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 .micro-home-attention-list,
@@ -5295,7 +5295,7 @@ button.micro-month-cell:hover {
   font-size: 12px;
 }
 .micro-cash-decision-metrics .micro-number {
-  font-size: 22px;
+  font-size: 24px;
 }
 .micro-cash-decision-footer {
   display: grid;
@@ -5450,7 +5450,7 @@ button.micro-month-cell:hover {
 .micro-owner-balance-value {
   color: var(--color-accent-text);
   direction: ltr;
-  font-size: clamp(28px, 8vw, 44px);
+  font-size: 31px;
   letter-spacing: -0.04em;
 }
 .micro-owner-balance-value small {

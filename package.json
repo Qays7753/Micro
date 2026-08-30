@@ -8,6 +8,7 @@
   "scripts": {
     "test": "vitest run",
     "text-density": "python3 scripts/text-density-count.py",
+    "design-guards": "python3 scripts/design-token-guards.py && stylelint \"apps/prototype-web/client/src/**/*.css\"",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "prototype:dev": "pnpm --filter @micro/prototype-web dev",
@@ -17,11 +18,13 @@
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
     "lint": "eslint src tests apps/prototype-web/client/src/pages apps/prototype-web/client/src/components --max-warnings 37",
-    "check": "pnpm typecheck && pnpm lint && pnpm text-density && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build"
+    "check": "pnpm typecheck && pnpm lint && pnpm text-density && pnpm design-guards && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build"
   },
   "devDependencies": {
     "eslint": "^9.39.1",
     "prettier": "^3.6.2",
+    "stylelint": "16",
+    "stylelint-declaration-strict-value": "^1.12.1",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.46.0",
     "vite": "^7.3.6",
