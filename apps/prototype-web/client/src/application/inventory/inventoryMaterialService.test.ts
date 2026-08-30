@@ -106,7 +106,6 @@ describe("InventoryMaterialService", () => {
       ok: true,
       value: {
         materials: [{ quantityMilli: 13000, valueMinor: 6067 }],
-        truth: expect.stringContaining("ليست مصروفًا"),
       },
     });
     await expect(store.listSupplierPurchases()).resolves.toMatchObject({

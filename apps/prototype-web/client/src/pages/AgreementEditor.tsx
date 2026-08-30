@@ -188,7 +188,7 @@ export default function AgreementEditor() {
       <div className="micro-page-heading">
         <span className="micro-overline">{agreementPresentation.label}</span>
         <h1>سجّل ما اتفقت عليه</h1>
-        <p>{agreementPresentation.explanation} سجّل السعر والموعد، والعربون إن قبضته.</p>
+        
       </div>
       <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
         <span>سعر الحماية المشتق من نسخة التكلفة (د.أ)</span>

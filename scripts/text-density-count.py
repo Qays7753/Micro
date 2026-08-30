@@ -42,7 +42,7 @@ CLIENT_SRC = ROOT / "apps/prototype-web/client/src"
 ARABIC = re.compile(r"[\u0600-\u06FF]")
 
 MOMENT_LINE = re.compile(
-    r"throw new Error|setMessage\(|setError\(|setNotice\(|setSuccess\(|setSaved\(|setReversalError\(|message:|message =|aria-invalid"
+    r"throw new Error|setMessage\(|setError\(|setNotice\(|setSuccess\(|setSaved\(|setReversalError\(|message:|message =|aria-invalid|text:|validation\(|setSaveState\("
     r"|failure\(|\bfail\(|\berr\(|invalid_input"
 )
 # Loading/progress labels on action buttons appear only while acting.

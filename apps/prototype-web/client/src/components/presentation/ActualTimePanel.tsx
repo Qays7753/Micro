@@ -33,19 +33,9 @@ const comparisonCopy: Record<
   ActualTimeComparison["status"],
   { title: string; truth: string; tone?: "warning" }
 > = {
-  not_recorded: {
-    title: "لا يوجد وقت فعلي مسجل",
-    truth: "غياب السجل ليس صفر دقيقة؛ لا توجد مقارنة وقت بعد.",
-  },
-  recorded: {
-    title: "فرق وقت مسجل",
-    truth: "الفرق يشرح الوقت المسجل مقابل خطة التكلفة، ولا يغيّر نتيجة الطلب المالية.",
-  },
-  needs_review: {
-    title: "فرق الوقت يحتاج مراجعة",
-    truth: "يوجد وقت فعلي، لكن الوقت المخطط تقديري أو غير متاح؛ هذه ليست نتيجة مالية نهائية.",
-    tone: "warning",
-  },
+  not_recorded: { title: "لا يوجد وقت فعلي مسجل", truth: "—" },
+  recorded: { title: "فرق وقت مسجل", truth: "—" },
+  needs_review: { title: "فرق الوقت يحتاج مراجعة", truth: "—", tone: "warning" },
 };
 const formatVariance = (minutes: number | null) => (minutes === null ? "غير متاح" : minutesLabel(minutes));
 
@@ -211,13 +201,9 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
         </div>
         <Clock3 aria-hidden="true" />
       </div>
-      <p>
-        يسجل هذا دقائق التنفيذ فقط. لا يحولها إلى أجر أو تكلفة أو ربح، ولا يغيّر نسخة التكلفة أو الكاش أو
-        الديون.
-      </p>
       <ActualTimeComparisonPanel comparison={state.comparison} />
       {state.records.length === 0 ? (
-        <p className="micro-empty-inline">لا يوجد سجل وقت فعلي لهذا الطلب بعد. الغياب ليس صفر دقيقة.</p>
+        <p className="micro-empty-inline">لا يوجد وقت فعلي بعد.</p>
       ) : (
         <div className="micro-actual-time-list" aria-label="سجلات الوقت الفعلي">
           {originalRecords.map(record => {

@@ -51,7 +51,7 @@ export function deriveDailyFollowUp(
     return {
       kind: "active_order",
       title: activeOrder.order.itemName,
-      truth: `${agreement.label}: ${agreement.explanation}`,
+      truth: agreement.label,
       nextAction: agreement.nextAction,
       href: `/orders/${activeOrder.id}`,
       actionLabel: "فتح الطلب",

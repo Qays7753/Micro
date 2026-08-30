@@ -211,10 +211,6 @@ export default function Foundation() {
           <strong>اختياري — افتحه عند الحاجة</strong>
         </summary>
         <div className="micro-foundation-body">
-          <p>
-            <Boxes aria-hidden="true" /> قيمة المادة المتاحة ليست مصروفًا ولا تكلفة بيع؛ ينتقل المستهلك
-            أو المهدر فقط إلى أثر واضح.
-          </p>
           <button
             className="micro-button micro-button-secondary"
             type="button"

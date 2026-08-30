@@ -198,7 +198,6 @@ export default function InventoryMaterials() {
               {state.activation.source === "declared" ? "مُدار بتفعيل صريح منذ " : "مُدار من "}
               <LocalDateValue value={state.activation.activatedOn ?? ""} />
             </strong>
-            <p>{state.activation.truth}</p>
           </div>
         </section>
       )}

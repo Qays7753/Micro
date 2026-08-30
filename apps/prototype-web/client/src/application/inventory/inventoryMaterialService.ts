@@ -27,7 +27,6 @@ export type InventoryMaterialOverview = Material & {
 export type InventoryOverview = {
   materials: readonly InventoryMaterialOverview[];
   movementCount: number;
-  truth: string;
 };
 /* القرار ٩: التفعيل صريح مؤرّخ — الموضع غير نشط قبله. الإرث الموجود (مواد أو حركات
  * بلا سجل) يُقرأ تفعيله من أقدم دليل، لأن حمل مستخدم قائم على بوابة جديدة يعيد
@@ -35,7 +34,6 @@ export type InventoryOverview = {
 export type InventoryActivationState = {
   activatedOn: string | null;
   source: "declared" | "derived" | null;
-  truth: string;
 };
 export type InventoryActivationInput = { operationKey: string };
 export type OrderActualMaterialComparison = {
@@ -46,7 +44,6 @@ export type OrderActualMaterialComparison = {
   actualQuantityMilli: number | null;
   varianceMinor: number | null;
   consumptionCount: number;
-  truth: string;
 };
 export type InventoryReferences = {
   materials: readonly Material[];
@@ -151,8 +148,6 @@ export class InventoryMaterialService {
           ...summarizeMaterialInventory(material.id, movements.value),
         })),
         movementCount: movements.value.length,
-        truth:
-          "قيمة المادة المتاحة ليست مصروفًا أو تكلفة بيع. ينتقل الجزء المستهلك أو المهدر فقط إلى أثر واضح، ولا يغير هذا الإصدار نسخة التكلفة أو نتيجة فترة سابقة.",
       },
     };
   }
@@ -177,7 +172,6 @@ export class InventoryMaterialService {
         value: {
           activatedOn: activation.value.activatedOn,
           source: "declared",
-          truth: `المخزون مُدار بتفعيل صريح منذ ${activation.value.activatedOn}. تفعيله يغيّر أرقام التكلفة، وما قبله لم يكن مُدارًا.`,
         },
       };
     const evidenceDates = [
@@ -190,7 +184,6 @@ export class InventoryMaterialService {
         value: {
           activatedOn: null,
           source: null,
-          truth: "المخزون غير مفعّل — تفعيله يغيّر أرقام التكلفة، ولقطة يوم التفعيل تكفي للبدء.",
         },
       };
     const earliest = evidenceDates.sort()[0]!;
@@ -199,7 +192,6 @@ export class InventoryMaterialService {
       value: {
         activatedOn: earliest,
         source: "derived",
-        truth: `المخزون مُدار عمليًا من أقدم حركة/مادة مسجلة: ${earliest} — بلا تفعيل صريح معلن.`,
       },
     };
   }
@@ -253,8 +245,6 @@ export class InventoryMaterialService {
           actualQuantityMilli: null,
           varianceMinor: null,
           consumptionCount: 0,
-          truth:
-            "لم تسجل مادة منفذة لهذا الطلب بعد. عدم وجود سجل لا يعني أن المادة الفعلية صفر أو أن الطلب لا يحتاج مادة.",
         },
       };
     const actualMaterialMinor = consumptions.reduce(
@@ -276,10 +266,6 @@ export class InventoryMaterialService {
         actualQuantityMilli,
         varianceMinor: actualMaterialMinor - plannedMaterialMinor,
         consumptionCount: consumptions.length,
-        truth:
-          status === "recorded"
-            ? "هذه مقارنة بين مادة مخططة في نسخة التكلفة ومادة منفذة مسجلة من المخزون. لا تغير السعر أو النتيجة أو الكاش، وليست تكلفة فعلية كاملة للطلب."
-            : "سجلت مادة منفذة، لكن نسخة التخطيط تحتاج مراجعة. لا تعتبر الفرق نتيجة نهائية قبل استكمال البنود المؤثرة.",
       },
     };
   }
