@@ -62,6 +62,7 @@ describe("financial event domain core", () => {
       payableMinor: 0,
       ownerCapitalMinor: 0,
       operatingExpenseMinor: 4000,
+      amanahMinor: 0,
       eventCount: 2,
     });
   });

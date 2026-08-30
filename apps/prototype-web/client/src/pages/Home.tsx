@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CircleAlert,
   ClipboardList,
+  CloudSun,
   FilePen,
   Gauge,
   HandCoins,
@@ -160,6 +161,45 @@ export default function Home() {
           </time>
         </p>
       </div>
+      {/* التدفق ٢٣: بطاقة «أثناء غيابك» — تظهر بعد ٧ أيام بلا تسجيل وتختفي بالنشاط. */}
+      {model.awaySection ? (
+        <section className="micro-away-card" aria-label="أثناء غيابك">
+          <b>
+            <CloudSun aria-hidden="true" /> أثناء غيابك — آخر تسجيل قبل {model.awaySection.daysSinceLastActivity} يوم
+          </b>
+          <ul>
+            {model.awaySection.overdueDebtCount > 0 ? (
+              <li>
+                {model.awaySection.overdueDebtCount} دين فات موعد متابعته —{" "}
+                <button
+                  className="micro-text-action"
+                  type="button"
+                  onClick={() => navigate("/parties")}
+                >
+                  راجع دفتر الناس
+                </button>
+              </li>
+            ) : null}
+            <li>
+              {model.awaySection.daysSinceLastExport === null
+                ? "ما في نسخة احتياطية معتمدة بعد"
+                : `آخر نسخة احتياطية قبل ${model.awaySection.daysSinceLastExport} يوم`}{" "}
+              —{" "}
+              <button className="micro-text-action" type="button" onClick={() => navigate("/settings")}>
+                انسخ الآن
+              </button>
+            </li>
+          </ul>
+        </section>
+      ) : null}
+      {model.truthLine ? (
+        <p className="micro-home-truth-line" role="status">
+          <CircleAlert aria-hidden="true" /> {model.truthLine}{" "}
+          <button className="micro-text-action" type="button" onClick={() => navigate("/settings")}>
+            افتح الإعدادات
+          </button>
+        </p>
+      ) : null}
       {/* الكتلة ١ من ٣ — «اليوم» (قرار المالك على بندي ١٠ و١٣ من السجل): قسم واحد يجيب
           «ماذا عليّ اليوم؟» — استوعب ما كان في «ما يحتاج فعلًا الآن» و«الأولوية الآن» بلا
           إلغاء ولا تكرار؛ أول بند في القائمة هو الأولوية. الحالة الفارغة صادقة (رحلة ١). */}

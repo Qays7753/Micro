@@ -33,6 +33,8 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
           title: "التخزين الدائم غير مدعوم في هذا المتصفح",
           text: "لا يعلن هذا المتصفح حالة الدوام.",
         })),
+        readLastVerifiedExport: vi.fn(async () => ({ ok: true, exportedAt: null })),
+        markVerifiedExport: vi.fn(async () => ({ ok: true, preference: "system" })),
       },
       actualTime: {
         readOperatingMode: vi.fn(async () => ({
@@ -41,7 +43,13 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
         })),
         saveOperatingMode: vi.fn(),
       },
-      transfers: { createExport: vi.fn(), prepareImport: vi.fn(), confirmImport: vi.fn() },
+      transfers: {
+        createExport: vi.fn(async () => ({ ok: false })),
+        prepareImport: vi.fn(),
+        confirmImport: vi.fn(),
+        createVerifiedExport: vi.fn(async () => ({ ok: false })),
+        resetAll: vi.fn(async () => ({ ok: false })),
+      },
       guidedOpeningImport: { prepare: vi.fn(), confirm: vi.fn() },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),

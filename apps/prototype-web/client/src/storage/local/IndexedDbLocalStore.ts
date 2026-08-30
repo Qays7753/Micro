@@ -23,6 +23,7 @@ import {
   localInventoryActivationId,
   localSchemaVersion,
   type ActivityProfile,
+  type CostEstimate,
   type InventoryActivation,
   type LocalPreferences,
   type LocalStoreSnapshot,
@@ -63,6 +64,7 @@ const ownerEntitlementRecordStore = "owner-entitlement-records";
 const ownerEntitlementOpeningBalanceStore = "owner-entitlement-opening-balances";
 const ownerMovementStore = "owner-movements";
 const allocationPolicyStore = "allocation-policies";
+const costEstimateStore = "cost-estimates";
 
 class StorageOpenError extends Error {
   constructor(
@@ -283,6 +285,11 @@ function openDatabase(): Promise<IDBDatabase> {
         policies.createIndex("status", "status");
         policies.createIndex("idempotencyKey", "idempotencyKey");
         policies.createIndex("seriesId", "seriesId");
+      }
+      /* مخزن ٢٩: تقديرات التكلفة المستقلة — أدوات تفكير بلا أثر مالي. */
+      if (!database.objectStoreNames.contains(costEstimateStore)) {
+        const costEstimates = database.createObjectStore(costEstimateStore, { keyPath: "id" });
+        costEstimates.createIndex("updatedAt", "updatedAt");
       }
       const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
       if (policyStore && !policyStore.indexNames.contains("seriesId"))
@@ -832,6 +839,108 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
+  /** تعديل موثق ذرّي: التراجع والبديل في معاملة IndexedDB واحدة — لا حالة بينية أبدًا. */
+  async commitFinancialEventReplacement(
+    sourceEventId: string,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>> {
+    try {
+      const database = await openDatabase();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(financialEventStore, "readwrite");
+        const store = transaction.objectStore(financialEventStore);
+        let settled = false;
+        let pendingAbortResult: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }> | null =
+          null;
+        const finish = (result: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>) => {
+          if (settled) return;
+          settled = true;
+          database.close();
+          resolve(result);
+        };
+        const abortWith = (result: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>) => {
+          pendingAbortResult = result;
+          try {
+            transaction.abort();
+          } catch {
+            finish(result);
+          }
+        };
+        const request = store.getAll();
+        request.onerror = () => abortWith(failure(request.error, database));
+        request.onsuccess = () => {
+          const events = request.result as FinancialEvent[];
+          const source = events.find(event => event.id === sourceEventId);
+          if (!source) {
+            abortWith({
+              ok: false,
+              code: "storage_error",
+              message: "لم يعد الحدث الأصلي موجودًا؛ لم يتغير السجل.",
+            });
+            return;
+          }
+          if (source.correctionType === "reverse" || source.correctionOfEventId) {
+            abortWith({ ok: false, code: "storage_error", message: "لا يمكن التراجع عن حدث تراجع سابق." });
+            return;
+          }
+          const existing = events.find(
+            event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse",
+          );
+          if (existing) {
+            abortWith(
+              existing.idempotencyKey === reversal.idempotencyKey
+                ? { ok: true, value: { reversal: existing, replacement } }
+                : {
+                    ok: false,
+                    code: "storage_error",
+                    message: "تعذر حفظ التعديل لأن هذا الحدث عُدّل سابقًا بمفتاح مختلف.",
+                  },
+            );
+            return;
+          }
+          if (events.some(event => event.id === reversal.id || event.id === replacement.id)) {
+            abortWith({
+              ok: false,
+              code: "storage_error",
+              message: "تعذر حفظ التعديل بسبب تعارض هوية محلية.",
+            });
+            return;
+          }
+          if (
+            reversal.correctionType !== "reverse" ||
+            reversal.correctionOfEventId !== source.id ||
+            reversal.type !== source.type ||
+            reversal.amountMinor !== source.amountMinor ||
+            reversal.cashDeltaMinor !== -source.cashDeltaMinor ||
+            reversal.payableDeltaMinor !== -source.payableDeltaMinor ||
+            reversal.ownerCapitalDeltaMinor !== -source.ownerCapitalDeltaMinor ||
+            reversal.operatingExpenseDeltaMinor !== -source.operatingExpenseDeltaMinor
+          ) {
+            abortWith({
+              ok: false,
+              code: "storage_error",
+              message: "بيانات التراجع لا تطابق الحدث الأصلي؛ لم يتغير السجل.",
+            });
+            return;
+          }
+          store.put(reversal);
+          store.put(replacement);
+        };
+        transaction.onerror = () => {
+          if (!pendingAbortResult)
+            pendingAbortResult = failure(transaction.error, database) as StorageResult<{
+              reversal: FinancialEvent;
+              replacement: FinancialEvent;
+            }>;
+        };
+        transaction.onabort = () => finish(pendingAbortResult ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { reversal, replacement } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listSupplierPurchases() {
     return listAll<SupplierPurchase>(
       supplierPurchaseStore,
@@ -1080,6 +1189,21 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   saveAllocationPolicy(policy: AllocationPolicy) {
     return writeOne(allocationPolicyStore, policy);
+  }
+  listCostEstimates() {
+    return listAll<CostEstimate>(
+      costEstimateStore,
+      (left, right) => right.updatedAt.localeCompare(left.updatedAt) || right.id.localeCompare(left.id),
+    );
+  }
+  getCostEstimate(id: string) {
+    return readOne<CostEstimate>(costEstimateStore, id);
+  }
+  saveCostEstimate(estimate: CostEstimate) {
+    return writeOne(costEstimateStore, estimate);
+  }
+  deleteCostEstimate(id: string) {
+    return deleteOne(costEstimateStore, id);
   }
   async commitAllocationPolicySuccessor(
     previous: AllocationPolicy,
@@ -1688,6 +1812,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             ownerEntitlementOpeningBalanceStore,
             ownerMovementStore,
             allocationPolicyStore,
+            costEstimateStore,
           ],
           "readonly",
         );
@@ -1720,6 +1845,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           .getAll();
         const ownerMovements = transaction.objectStore(ownerMovementStore).getAll();
         const allocationPolicies = transaction.objectStore(allocationPolicyStore).getAll();
+        const costEstimates = transaction.objectStore(costEstimateStore).getAll();
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
@@ -1753,6 +1879,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 ownerEntitlementOpeningBalances.result as OwnerEntitlementOpeningBalance[],
               ownerMovements: ownerMovements.result as OwnerMovement[],
               allocationPolicies: allocationPolicies.result as AllocationPolicy[],
+              costEstimates: costEstimates.result as CostEstimate[],
             },
           });
         };
@@ -1787,6 +1914,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ownerEntitlementOpeningBalances: snapshot.ownerEntitlementOpeningBalances ?? [],
         ownerMovements: snapshot.ownerMovements ?? [],
         allocationPolicies: snapshot.allocationPolicies ?? [],
+        costEstimates: snapshot.costEstimates ?? [],
       };
       return await new Promise(resolve => {
         const transaction = database.transaction(
@@ -1816,6 +1944,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             ownerEntitlementOpeningBalanceStore,
             ownerMovementStore,
             allocationPolicyStore,
+            costEstimateStore,
           ],
           "readwrite",
         );
@@ -1844,6 +1973,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const ownerEntitlementOpeningBalances = transaction.objectStore(ownerEntitlementOpeningBalanceStore);
         const ownerMovements = transaction.objectStore(ownerMovementStore);
         const allocationPolicies = transaction.objectStore(allocationPolicyStore);
+        const costEstimates = transaction.objectStore(costEstimateStore);
         profiles.clear();
         preferences.clear();
         drafts.clear();
@@ -1869,6 +1999,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ownerEntitlementOpeningBalances.clear();
         ownerMovements.clear();
         allocationPolicies.clear();
+        costEstimates.clear();
         if (normalized.profile) profiles.put(normalized.profile);
         if (normalized.preferences) preferences.put(normalized.preferences);
         normalized.drafts.forEach(draft => drafts.put(draft));
@@ -1896,6 +2027,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         );
         normalized.ownerMovements?.forEach(movement => ownerMovements.put(movement));
         normalized.allocationPolicies?.forEach(policy => allocationPolicies.put(policy));
+        normalized.costEstimates?.forEach(estimate => costEstimates.put(estimate));
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {

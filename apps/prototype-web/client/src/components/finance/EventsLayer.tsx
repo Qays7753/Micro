@@ -11,6 +11,9 @@ export const eventLabel: Record<FinancialEventType, string> = {
   operating_expense_cash: "مصروف مدفوع",
   operating_expense_payable: "مصروف مستحق",
   payable_settlement_cash: "تسديد التزام",
+  amanah_held_cash: "أمانة قُبضت",
+  amanah_released_cash: "أمانة سُلّمت",
+  loss_non_cash: "هالك بلا خروج نقد",
 };
 export const expenseContextLabel = (event: FinancialEvent) => {
   if (

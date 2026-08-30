@@ -16,6 +16,8 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/suppliers\/purchase\/[^/]+(?:\/payment)?$/,
   /^\/cash\/wallet\/new$/,
   /^\/cash\/transfer$/,
+  /^\/cash\/distribute$/,
+  /^\/cash\/count$/,
   /^\/cash\/wallet\/[^/]+\/adjust$/,
   /^\/cash\/entry\/[^/]+\/reverse$/,
   /^\/inventory\/material\/new$/,

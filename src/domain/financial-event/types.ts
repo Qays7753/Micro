@@ -1,12 +1,18 @@
 /** Project-level financial events are separate from CraftOrder result fields. All money is JOD minor units. */
 import type { Currency, MoneyMinor } from "../shared/index.js";
 
+/* المبدأ الثالث عشر: المال الذي بحوزتك ليس بالضرورة مالك — الأمانات مال عابر يدخل
+ * الكاش ولا يدخل الإيراد ولا المصروف ولا رأس مال المالك. والخسارة غير النقدية (هالك/تلف)
+ * تخفض الربح من دون حركة كاش. كلاهما نوع صريح له أثر معلن، لا مجرد تسمية. */
 export type FinancialEventType =
   | "owner_investment_cash"
   | "owner_withdrawal_cash"
   | "operating_expense_cash"
   | "operating_expense_payable"
-  | "payable_settlement_cash";
+  | "payable_settlement_cash"
+  | "amanah_held_cash"
+  | "amanah_released_cash"
+  | "loss_non_cash";
 export type ExpenseRelationship = "project" | "shared";
 export type ExpenseBehavior = "fixed" | "variable" | "mixed" | "unknown";
 export type ExpensePurpose = "project_general" | "period" | "order" | "product" | "campaign" | "unallocated";
@@ -50,6 +56,8 @@ export type FinancialEvent = {
   payableDeltaMinor: MoneyMinor;
   ownerCapitalDeltaMinor: MoneyMinor;
   operatingExpenseDeltaMinor: MoneyMinor;
+  /** أثر الأمانات: موجب عند قبض أمانة وسالب عند تسليمها. القيمة القديمة قبل هذا الحقل تُقرأ صفرًا. */
+  amanahDeltaMinor?: MoneyMinor;
 };
 
 export type CreateFinancialEventInput = {
@@ -79,5 +87,6 @@ export type FinancialEventTotals = {
   payableMinor: MoneyMinor;
   ownerCapitalMinor: MoneyMinor;
   operatingExpenseMinor: MoneyMinor;
+  amanahMinor: MoneyMinor;
   eventCount: number;
 };

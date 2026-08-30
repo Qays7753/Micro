@@ -1,9 +1,9 @@
-import { Download, FileCheck2, Hammer, MoonStar, Save, Shield, Upload } from "lucide-react";
+import { Download, FileCheck2, Hammer, MoonStar, RotateCcw, Save, Shield, Upload } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
-import type { TransferPreview } from "@/application/transfers/localTransferService";
+import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
 import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
@@ -39,15 +39,32 @@ export default function SettingsPage() {
   const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   const [persistence, setPersistence] = useState<BrowserPersistenceReading | null>(null);
+  /* ٥.٧: حالة النسخة المُتحققة وبوابة «ابدأ من جديد». */
+  const [lastExport, setLastExport] = useState<string | null>(null);
+  const [currentSummary, setCurrentSummary] = useState<TransferSummary | null>(null);
+  const [resetFlow, setResetFlow] = useState<
+    { phase: "idle" } | { phase: "exporting" } | { phase: "confirm" } | { phase: "done" }
+  >({ phase: "idle" });
+  const [resetNameConfirmation, setResetNameConfirmation] = useState("");
   useEffect(() => {
     let active = true;
     void preferences.readBrowserPersistence().then(value => {
       if (active) setPersistence(value);
     });
+    void preferences.readLastVerifiedExport().then(value => {
+      if (active && value.ok) setLastExport(value.exportedAt);
+    });
+    void transfers.createExport().then(value => {
+      if (active && value.ok) {
+        const serialized = JSON.stringify(value.value, null, 2);
+        const prepared = transfers.prepareImport(serialized);
+        if (prepared.ok) setCurrentSummary(prepared.value.summary);
+      }
+    });
     return () => {
       active = false;
     };
-  }, [preferences]);
+  }, [preferences, transfers, dataVersion]);
   const inputRef = useRef<HTMLInputElement>(null);
   const guidedInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<TransferPreview | null>(null);
@@ -97,20 +114,67 @@ export default function SettingsPage() {
   async function exportLocal() {
     setNotice(null);
     setIsWorking(true);
-    const result = await transfers.createExport();
+    /* ٥.٧: تصدير مُتحقق منه — يُعاد تحليل الملف دورة كاملة قبل إعلان جهوزيته. */
+    const result = await transfers.createVerifiedExport();
     setIsWorking(false);
     if (!result.ok) {
       setNotice(result.message);
       return;
     }
-    const blob = new Blob([JSON.stringify(result.value, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(result.value.file, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-local-${result.value.exportedAt.slice(0, 10)}.json`;
+    link.download = `micro-local-${result.value.file.exportedAt.slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    setNotice("تم تجهيز ملف تصدير محلي. احتفظ به في مكان تختاره؛ لا توجد نسخة سحابية هنا.");
+    await preferences.markVerifiedExport();
+    setLastExport(result.value.file.exportedAt);
+    setCurrentSummary(result.value.summary);
+    notifyDataChanged();
+    setNotice(
+      "النسخة جاهزة ومُتحقق منها ✓ — احفظها بمكان آمن، فيها كل أرقامك. لو ضاع الجهاز بتضيع معه؛ لا سحابة في هذا الإصدار.",
+    );
+  }
+
+  /* ٥.٧: بوابة «ابدأ من جديد» — لا تصفير قبل نسخة مُتحقق منها، ولا استمرار إن فشل التصدير. */
+  async function startResetFlow() {
+    setNotice(null);
+    setResetFlow({ phase: "exporting" });
+    const result = await transfers.createVerifiedExport();
+    if (!result.ok) {
+      setResetFlow({ phase: "idle" });
+      setNotice(
+        `${result.message} بياناتك كما هي — لا يبدأ أي تصفير قبل نسخة احتياطية ناجحة.`,
+      );
+      return;
+    }
+    const blob = new Blob([JSON.stringify(result.value.file, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `micro-local-${result.value.file.exportedAt.slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    await preferences.markVerifiedExport();
+    setLastExport(result.value.file.exportedAt);
+    setResetNameConfirmation("");
+    setResetFlow({ phase: "confirm" });
+  }
+
+  async function confirmReset() {
+    setNotice(null);
+    setIsWorking(true);
+    const result = await transfers.resetAll();
+    setIsWorking(false);
+    if (!result.ok) {
+      setResetFlow({ phase: "idle" });
+      setNotice(result.message);
+      return;
+    }
+    setResetFlow({ phase: "done" });
+    notifyDataChanged();
+    navigate("/setup");
   }
 
   async function chooseImport(event: ChangeEvent<HTMLInputElement>) {
@@ -242,8 +306,12 @@ export default function SettingsPage() {
         ) : null}
         <StorageRow
           icon={Download}
-          title="تصدير محلي"
-          text="ينشئ ملف نسخة لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
+          title={lastExport ? "تصدير محلي مُتحقق" : "تصدير محلي"}
+          text={
+            lastExport
+              ? `آخر نسخة مُتحقق منها: ${lastExport.slice(0, 10)} — يُعاد التحقق من الملف دورة كاملة قبل إعلان جهوزيته.`
+              : "ينشئ ملف نسخة مُتحققًا منه لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
+          }
           actionLabel="تصدير"
           label="تصدير البيانات المحلية"
           disabled={isWorking}
@@ -265,6 +333,65 @@ export default function SettingsPage() {
           accept="application/json,.json"
           onChange={chooseImport}
         />
+        {/* ٥.٧: بوابة «ابدأ من جديد» — تصدير مُتحقق ثم تأكيد مزدوج؛ الفشل يوقف كل شيء. */}
+        {resetFlow.phase === "idle" || resetFlow.phase === "done" ? (
+          <StorageRow
+            icon={RotateCcw}
+            title="ابدأ من جديد"
+            text="يمسح كل بيانات هذا الجهاز بعد نسخة احتياطية مُتحقق منها إلزاميًا. الفشل يوقف العملية بالكامل."
+            actionLabel="ابدأ"
+            label="بدء مسار المشروع الجديد"
+            disabled={isWorking}
+            onClick={() => void startResetFlow()}
+          />
+        ) : null}
+        {resetFlow.phase === "exporting" ? (
+          <p className="micro-save-note" role="status">
+            جارٍ إنشاء نسخة احتياطية مُتحقق منها والتحقق منها… لم يُمس أي شيء بعد.
+          </p>
+        ) : null}
+        {resetFlow.phase === "confirm" ? (
+          <section className="micro-import-preview" aria-live="polite">
+            <span className="micro-overline">
+              <RotateCcw aria-hidden="true" /> بوابة البدء من جديد
+            </span>
+            <h2>النسخة الاحتياطية جاهزة ومُتحقق منها</h2>
+            <p>
+              حُمّل الملف إلى جهازك (micro-local-{lastExport?.slice(0, 10) ?? ""}.json). لتأكيد المسح اكتب
+              «ابدأ من جديد» في الحقل أدناه.
+            </p>
+            <label className="micro-field">
+              <span>اكتب «ابدأ من جديد» للتأكيد</span>
+              <input
+                value={resetNameConfirmation}
+                onChange={event => setResetNameConfirmation(event.target.value)}
+                placeholder="ابدأ من جديد"
+              />
+            </label>
+            <p className="micro-field-error">
+              سيُمسح كل شيء على هذا الجهاز: الطلبات، الأحداث المالية، المحافظ، المخزون، والتقديرات. الملف
+              المحمّل هو نسختك الوحيدة.
+            </p>
+            <div className="micro-form-actions">
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={isWorking}
+                onClick={() => setResetFlow({ phase: "idle" })}
+              >
+                إلغاء — بياناتي تبقى
+              </button>
+              <button
+                className="micro-button micro-button-danger"
+                type="button"
+                disabled={isWorking || resetNameConfirmation.trim() !== "ابدأ من جديد"}
+                onClick={() => void confirmReset()}
+              >
+                {isWorking ? "جارٍ المسح…" : "امسح وابدأ من جديد"}
+              </button>
+            </div>
+          </section>
+        ) : null}
       </section>
       </details>
       <details className="micro-decision-layer" open>
@@ -523,6 +650,15 @@ export default function SettingsPage() {
             <p className="micro-field-error">
               التأكيد سيستبدل البيانات المحلية الحالية بهذا الملف. لا توجد استعادة تلقائية بعد الضغط.
             </p>
+            {/* ٥.٧: معاينة الاستعادة تعرض ما سيُستبدل — أرقامك الحالية مقابل محتوى الملف. */}
+            {currentSummary ? (
+              <p>
+                <b>ما سيُستبدل من بياناتك الحالية:</b>{" "}
+                {currentSummary.orders} طلب · {currentSummary.directSales} بيع مباشر ·{" "}
+                {currentSummary.financialEvents} حدث مالي · {currentSummary.costEstimates} تقدير محفوظ ·{" "}
+                {currentSummary.cashWallets} محفظة.
+              </p>
+            ) : null}
             <div className="micro-form-actions">
               <button
                 className="micro-button micro-button-secondary"

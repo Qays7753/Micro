@@ -39,6 +39,11 @@ const MaterialEditor = lazy(() => import("@/pages/MaterialEditor"));
 const InventoryMovementEditor = lazy(() => import("@/pages/InventoryMovementEditor"));
 const InventoryReversalEditor = lazy(() => import("@/pages/InventoryReversalEditor"));
 const Catalog = lazy(() => import("@/pages/Catalog"));
+/* «أدواتي» (مبدأ المالك ٥.٤): وجهة مستقلة للحاسبة والتقديرات وحالة الوحدات. */
+const Tools = lazy(() => import("@/pages/Tools"));
+const Parties = lazy(() => import("@/pages/Parties"));
+const CashDistribution = lazy(() => import("@/pages/CashDistribution"));
+const CashCount = lazy(() => import("@/pages/CashCount"));
 
 export function MicroRouter() {
   return (
@@ -69,6 +74,8 @@ export function MicroRouter() {
             <Route path="/suppliers" component={Suppliers} />
             <Route path="/cash/wallet/new" component={CashWalletEditor} />
             <Route path="/cash/transfer" component={CashTransferEditor} />
+            <Route path="/cash/distribute" component={CashDistribution} />
+            <Route path="/cash/count" component={CashCount} />
             <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
             <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
             <Route path="/cash" component={CashWallets} />
@@ -77,6 +84,8 @@ export function MicroRouter() {
             <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
             <Route path="/inventory" component={InventoryMaterials} />
             <Route path="/catalog" component={Catalog} />
+            <Route path="/tools" component={Tools} />
+            <Route path="/parties" component={Parties} />
             <Route path="/finance" component={Finance} />
             <Route path="/orders" component={Orders} />
             {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}

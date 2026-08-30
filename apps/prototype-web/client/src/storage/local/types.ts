@@ -24,11 +24,11 @@ import type {
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
-export const localSchemaVersion = 28;
+export const localSchemaVersion = 29;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 20;
+export const localExportVersion = 21;
 /* القرار ٩: تفعيل المخزون صريح مؤرّخ — لحظة معلنة يُعرض تاريخها، والرصيد يوم
  * التفعيل يكفي. الترقية معلنة في الكومِت: سجل واحد بلا علاقات جديدة. */
 export const localInventoryActivationId = "local-inventory-activation";
@@ -56,6 +56,8 @@ export type LocalPreferences = {
   actualTimeTrackingEnabled: boolean;
   /** آخر إخفاء لبطاقة التثبيت؛ تُظهر البطاقة مجددًا بعد نافذة الثلاثين يومًا. ليست بيانات مالية. */
   installBannerDismissedAt: string | null;
+  /** آخر تصدير مُتحقق منه — أساس تذكير النسخ الاحتياطي (P-01 طبقة ١). ليست بيانات مالية. */
+  lastVerifiedExportAt?: string | null;
   updatedAt: string;
 };
 export type DraftIntent = "customer_order" | "planned_design";
@@ -168,6 +170,31 @@ export type ScheduleRecurrence = {
   updatedAt: string;
 };
 
+/* تقدير تكلفة مستقل (PA-006 ومبدأ «أدواتي»): حساب تفكير قبل الالتزام — لا يُنشئ
+ * أي حدث مالي ولا حركة مخزون ولا طلبًا. يُحفظ للمراجعة اللاحقة فقط ويوسم دائمًا «تقديري». */
+export type CostEstimateKnowledge = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
+export type CostEstimate = {
+  id: string;
+  title: string;
+  currency: "JOD";
+  /* مدخلات الحاسبة نفسها: مواد ووقت وبنود اختيارية وكمية وهامش حماية. */
+  materialItems: readonly DraftCostMaterial[];
+  time: DraftCostTime | null;
+  packagingMinor: number;
+  deliveryMinor: number;
+  wasteMinor: number;
+  safetyBufferMinor: number;
+  quantity: number;
+  /* ملخص نتيجة الحساب لحظة الحفظ — يُعاد حسابه عند الفتح للتأكد من الثبات. */
+  plannedCostMinor: number;
+  unitCostMinor: number;
+  priceFloorMinor: number;
+  knowledgeState: CostEstimateKnowledge;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type LocalStoreSnapshot = {
   profile: ActivityProfile | null;
   preferences: LocalPreferences | null;
@@ -194,6 +221,7 @@ export type LocalStoreSnapshot = {
   ownerEntitlementOpeningBalances?: readonly OwnerEntitlementOpeningBalance[];
   ownerMovements?: readonly OwnerMovement[];
   allocationPolicies?: readonly AllocationPolicy[];
+  costEstimates?: readonly CostEstimate[];
 };
 export type LocalExportFile = {
   format: typeof localExportFormat;
@@ -240,6 +268,12 @@ export interface PrototypeLocalStore {
     sourceEventId: string,
     reversal: FinancialEvent,
   ): Promise<StorageResult<FinancialEvent>>;
+  /** تعديل موثق واحد-ذرّي: يكتب التراجع والبديل في معاملة واحدة فلا يبقى أثر معلّق بينهما. */
+  commitFinancialEventReplacement(
+    sourceEventId: string,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>>;
   listSupplierPurchases(): Promise<StorageResult<readonly SupplierPurchase[]>>;
   getSupplierPurchase(id: string): Promise<StorageResult<SupplierPurchase | null>>;
   saveSupplierPurchase(purchase: SupplierPurchase): Promise<StorageResult<SupplierPurchase>>;
@@ -318,6 +352,11 @@ export interface PrototypeLocalStore {
     previous: AllocationPolicy,
     successor: AllocationPolicy,
   ): Promise<StorageResult<{ previous: AllocationPolicy; successor: AllocationPolicy }>>;
+  listCostEstimates(): Promise<StorageResult<readonly CostEstimate[]>>;
+  getCostEstimate(id: string): Promise<StorageResult<CostEstimate | null>>;
+  saveCostEstimate(estimate: CostEstimate): Promise<StorageResult<CostEstimate>>;
+  /** حذف تقدير حر: أداة تفكير لا سجل مالي — يحذف بلا أثر على أي رصيد. */
+  deleteCostEstimate(id: string): Promise<StorageResult<null>>;
   commitOrderFromDraft(
     order: StoredCraftOrder,
     draft: OrderDraft,

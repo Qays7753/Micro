@@ -21,6 +21,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type {
   ActivityProfile,
+  CostEstimate,
   InventoryActivation,
   LocalPreferences,
   LocalStoreSnapshot,
@@ -60,6 +61,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   private ownerEntitlementOpeningBalances = new Map<string, OwnerEntitlementOpeningBalance>();
   private ownerMovements = new Map<string, OwnerMovement>();
   private allocationPolicies = new Map<string, AllocationPolicy>();
+  private costEstimates = new Map<string, CostEstimate>();
 
   async getProfile(): Promise<StorageResult<ActivityProfile | null>> {
     return { ok: true, value: this.profile ? clone(this.profile) : null };
@@ -206,6 +208,34 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       return { ok: false, code: "storage_error", message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." };
     this.financialEvents.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
+  }
+  /** محاكي الذاكرة لتعديل الحدث الذرّي — نفس حراس محوّل IndexedDB. */
+  async commitFinancialEventReplacement(
+    sourceEventId: string,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>> {
+    const source = this.financialEvents.get(sourceEventId);
+    if (!source)
+      return { ok: false, code: "storage_error", message: "لم يعد الحدث الأصلي موجودًا؛ لم يتغير السجل." };
+    if (source.correctionType === "reverse" || source.correctionOfEventId)
+      return { ok: false, code: "storage_error", message: "لا يمكن التراجع عن حدث تراجع سابق." };
+    const existing = Array.from(this.financialEvents.values()).find(
+      event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse",
+    );
+    if (existing)
+      return existing.idempotencyKey === reversal.idempotencyKey
+        ? { ok: true, value: { reversal: clone(existing), replacement: clone(replacement) } }
+        : {
+            ok: false,
+            code: "storage_error",
+            message: "تعذر حفظ التعديل لأن هذا الحدث عُدّل سابقًا بمفتاح مختلف.",
+          };
+    if (this.financialEvents.has(reversal.id) || this.financialEvents.has(replacement.id))
+      return { ok: false, code: "storage_error", message: "تعذر حفظ التعديل بسبب تعارض هوية محلية." };
+    this.financialEvents.set(reversal.id, clone(reversal));
+    this.financialEvents.set(replacement.id, clone(replacement));
+    return { ok: true, value: { reversal: clone(reversal), replacement: clone(replacement) } };
   }
   async listSupplierPurchases(): Promise<StorageResult<readonly SupplierPurchase[]>> {
     return {
@@ -691,6 +721,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         ownerEntitlementOpeningBalances: Array.from(this.ownerEntitlementOpeningBalances.values()).map(clone),
         ownerMovements: Array.from(this.ownerMovements.values()).map(clone),
         allocationPolicies: Array.from(this.allocationPolicies.values()).map(clone),
+        costEstimates: Array.from(this.costEstimates.values()).map(clone),
       },
     };
   }
@@ -718,6 +749,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       ownerEntitlementOpeningBalances: snapshot.ownerEntitlementOpeningBalances ?? [],
       ownerMovements: snapshot.ownerMovements ?? [],
       allocationPolicies: snapshot.allocationPolicies ?? [],
+      costEstimates: snapshot.costEstimates ?? [],
     });
     this.profile = safe.profile;
     this.preferences = safe.preferences;
@@ -754,6 +786,27 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     );
     this.ownerMovements = new Map((safe.ownerMovements ?? []).map(movement => [movement.id, movement]));
     this.allocationPolicies = new Map((safe.allocationPolicies ?? []).map(policy => [policy.id, policy]));
+    this.costEstimates = new Map((safe.costEstimates ?? []).map(estimate => [estimate.id, estimate]));
     return { ok: true, value: clone(safe) };
+  }
+  async listCostEstimates(): Promise<StorageResult<readonly CostEstimate[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.costEstimates.values())
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.id.localeCompare(a.id))
+        .map(clone),
+    };
+  }
+  async getCostEstimate(id: string): Promise<StorageResult<CostEstimate | null>> {
+    const estimate = this.costEstimates.get(id);
+    return { ok: true, value: estimate ? clone(estimate) : null };
+  }
+  async saveCostEstimate(estimate: CostEstimate): Promise<StorageResult<CostEstimate>> {
+    this.costEstimates.set(estimate.id, clone(estimate));
+    return { ok: true, value: clone(estimate) };
+  }
+  async deleteCostEstimate(id: string): Promise<StorageResult<null>> {
+    this.costEstimates.delete(id);
+    return { ok: true, value: null };
   }
 }

@@ -24,6 +24,8 @@ import { ActualTimeService } from "@/application/time/actualTimeService";
 import { RecurringWorkService } from "@/application/recurring-work/recurringWorkService";
 import { G5Service } from "@/application/g5/g5Service";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
+import { CostEstimateService } from "@/application/estimates/costEstimateService";
+import { PartyLedgerService } from "@/application/parties/partyLedgerService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 
 type PrototypeServices = {
@@ -51,6 +53,8 @@ type PrototypeServices = {
   fulfillment: FulfillmentService;
   transfers: LocalTransferService;
   guidedOpeningImport: GuidedOpeningImportService;
+  costEstimates: CostEstimateService;
+  partyLedger: PartyLedgerService;
   dataVersion: number;
   notifyDataChanged: () => void;
 };
@@ -105,6 +109,8 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       fulfillment: new FulfillmentService(store, undefined, schedules),
       transfers: new LocalTransferService(store),
       guidedOpeningImport: new GuidedOpeningImportService(store),
+      costEstimates: new CostEstimateService(store),
+      partyLedger: new PartyLedgerService(store),
       dataVersion,
       notifyDataChanged: () => setDataVersion(version => version + 1),
     };

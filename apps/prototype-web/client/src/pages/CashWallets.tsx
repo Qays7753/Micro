@@ -32,6 +32,7 @@ const label = (type: CashContinuityEntry["type"]) =>
     transfer_out: "تحويل صادر",
     transfer_in: "تحويل وارد",
     reversal: "تراجع عن أثر",
+    allocation: "تخصيص من غير الموزع",
   })[type];
 
 export default function CashWallets() {

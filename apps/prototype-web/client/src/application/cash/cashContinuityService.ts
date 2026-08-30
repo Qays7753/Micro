@@ -5,23 +5,39 @@ import {
   type CashContinuityEntry,
   type CashWallet,
   type CashWalletKind,
+  type CashWalletOpeningStatus,
 } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
 export type CashContinuityResult<T> =
   | { ok: true; value: T; reused?: boolean }
   | { ok: false; code: "validation_error" | "storage_error"; message: string };
-export type CashWalletBalance = CashWallet & { balanceMinor: number; entryCount: number };
+export type CashWalletBalance = CashWallet & {
+  balanceMinor: number;
+  entryCount: number;
+  /* «unknown»: المحفظة بلا رصيد معلن بعد — تُعرض «غير محدد» لا صفرًا (مبدأ ٥.١). */
+  openingUnknown: boolean;
+};
 export type CashContinuityOverview = {
   wallets: readonly CashWalletBalance[];
   totalWalletCashMinor: number;
   entryCount: number;
+  unknownOpeningCount: number;
   truth: string;
 };
 export type OpenWalletInput = {
   name: string;
   kind: CashWalletKind;
   openingMinor: number;
+  occurredOn: string;
+  note: string;
+  operationKey: string;
+  /* «unknown» = أنشئ المحفظة بلا رقم؛ يظهر «غير محدد» حتى يُدخل رصيد موثق لاحقًا. */
+  openingStatus?: CashWalletOpeningStatus;
+};
+export type RecordOpeningLaterInput = {
+  walletId: string;
+  amountMinor: number;
   occurredOn: string;
   note: string;
   operationKey: string;
@@ -71,6 +87,7 @@ export class CashContinuityService {
         ...wallet,
         balanceMinor: summarizeCashContinuity(walletEntries),
         entryCount: walletEntries.length,
+        openingUnknown: wallet.openingStatus === "unknown",
       };
     });
     return {
@@ -79,8 +96,9 @@ export class CashContinuityService {
         wallets: balances,
         totalWalletCashMinor: balances.reduce((sum, wallet) => sum + wallet.balanceMinor, 0),
         entryCount: entries.value.length,
+        unknownOpeningCount: balances.filter(wallet => wallet.openingUnknown).length,
         truth:
-          "هذه المحافظ تسجل فقط الافتتاح والتحويلات والضبط الذي ربطته بها. تحصيلات الطلبات والمصاريف والمشتريات السابقة تبقى كاشًا غير موزع إلى أن يسجل لها عقد توزيع صريح.",
+          "هذه المحافظ تسجل فقط الافتتاح والتحويلات والضبط والتخصيص الذي ربطته بها. تحصيلات الطلبات والمصاريف والمشتريات السابقة تبقى كاشًا غير موزع إلى أن يسجل لها عقد توزيع صريح.",
       },
     };
   }
@@ -113,9 +131,11 @@ export class CashContinuityService {
         kind: input.kind,
         createdAt: this.now(),
         createdOperationKey: input.operationKey,
+        /* ٥.١: المحفظة المجهولة تُختم «unknown» — لا تُعرض صفرًا صامتًا. */
+        openingStatus: input.openingStatus === "unknown" ? "unknown" : "known",
       });
       const opening =
-        input.openingMinor === 0
+        input.openingMinor === 0 || input.openingStatus === "unknown"
           ? null
           : createCashContinuityEntry({
               id: id("opening"),
@@ -134,6 +154,52 @@ export class CashContinuityService {
         ok: false,
         code: "validation_error",
         message: error instanceof Error ? error.message : "بيانات محفظة الكاش غير صالحة.",
+      };
+    }
+  }
+
+  /** PA-007: رصيد افتتاحي موثق لاحقًا لمحفظة قائمة — occurredOn للماضي وrecordedAt للآن، ويُرفع ختم المجهول. */
+  async recordOpeningBalanceLater(
+    input: RecordOpeningLaterInput,
+  ): Promise<CashContinuityResult<CashContinuityEntry>> {
+    const [wallets, entries] = await Promise.all([
+      this.store.listCashWallets(),
+      this.store.listCashContinuityEntries(),
+    ]);
+    if (!wallets.ok || !entries.ok) return storageFailure();
+    const repeated = entries.value.find(entry => entry.operationKey === input.operationKey);
+    if (repeated) return { ok: true, value: repeated, reused: true };
+    const wallet = wallets.value.find(candidate => candidate.id === input.walletId);
+    if (!wallet)
+      return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل إدخال الرصيد." };
+    if (entries.value.some(entry => entry.walletId === wallet.id && entry.type === "opening_balance"))
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "لهذه المحفظة رصيد افتتاحي مسجل؛ التسوية اللاحقة تُسجل ضبط كاش بسبب، لا افتتاحًا ثانيًا.",
+      };
+    try {
+      if (!Number.isInteger(input.amountMinor) || input.amountMinor < 0)
+        throw new Error("رصيد البداية يجب أن يكون مبلغًا صحيحًا موجبًا أو صفرًا.");
+      const entry = createCashContinuityEntry({
+        id: id("opening-later"),
+        walletId: wallet.id,
+        type: "opening_balance",
+        occurredOn: input.occurredOn,
+        recordedAt: this.now(),
+        cashDeltaMinor: input.amountMinor,
+        note: input.note,
+        operationKey: input.operationKey,
+      });
+      /* رفع ختم المجهول يُحفظ مع القيد في المعاملة نفسها — ذرّي. */
+      const updatedWallet: CashWallet = { ...wallet, openingStatus: "known" };
+      const saved = await this.store.commitCashContinuity(updatedWallet, [entry]);
+      return saved.ok ? { ok: true, value: entry } : storageFailure();
+    } catch (error) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: error instanceof Error ? error.message : "بيانات الرصيد الافتتاحي غير صالحة.",
       };
     }
   }

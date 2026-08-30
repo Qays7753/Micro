@@ -243,6 +243,32 @@ export default function Finance() {
             <MoneyValue minor={position.operatingExpensesRecordedMinor} className="micro-inline-number" /> ·
             شراء مواد مسجل: {position.supplierPurchaseCount} · الأحداث العامة: {position.projectEventCount}
           </p>
+          {/* المبدأ ١٣: أمانات بحوزتك — كاش في الدرج ليس ملكًا لك ولا إيرادًا. */}
+          {position.amanahHeldMinor > 0 ? (
+            <p>
+              أمانات بحوزتك (د.أ):{" "}
+              <MoneyValue minor={position.amanahHeldMinor} className="micro-inline-number" /> — كاش حقيقي في
+              الدرج لكنه ليس لك ولا يدخل الربح.
+            </p>
+          ) : null}
+          {/* PA-002: شريط توزيع صريح — لا كاش عالق بلا طريق حل. */}
+          {position.unallocatedCashMinor > 0 ? (
+            <div className="micro-unallocated-strip">
+              <div>
+                <strong>
+                  كاش غير موزع: <MoneyValue minor={position.unallocatedCashMinor} className="micro-inline-number" />
+                </strong>
+                <small>وزّعه على محفظة الآن، أو اتركه حتى تعرف وجهته — لا يُخصص شيء بصمت.</small>
+              </div>
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                onClick={() => navigate("/cash/distribute")}
+              >
+                وزّع على محفظة
+              </button>
+            </div>
+          ) : null}
           {/* §2.7 (F-031): الحقيقة غير المسجلة طريق — لا عدد أصفار عاجز. */}
           {position.cashWalletCount === 0 ? (
             <p className="micro-fact-road-line">
@@ -256,6 +282,16 @@ export default function Finance() {
               </button>
             </p>
           ) : null}
+          {/* التدفقات ١٤/٢٠: دفتر الناس وعدّ الصنديف من مسارات مالي الدائمة. */}
+          <p className="micro-fact-road-line">
+            <button className="micro-text-action" type="button" onClick={() => navigate("/parties")}>
+              افتح دفتر الناس — مين عليه إلَي وعليّ لمين
+            </button>{" "}
+            ·{" "}
+            <button className="micro-text-action" type="button" onClick={() => navigate("/cash/count")}>
+              عدّ الصندوق — طابق الدرج مع السجل
+            </button>
+          </p>
         </div>
       </section>
       <details className="micro-finance-layer">
@@ -712,6 +748,30 @@ export default function Finance() {
               سدد التزام مصروف
             </button>
           ) : null}
+          {/* المبدأ ١٣: الأمانات والهالك مسارات صريحة — لا تُسجل إيرادًا ولا مصروفًا عاديًا. */}
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/finance/new/amanah_held_cash")}
+          >
+            سجل أمانة قُبضت
+          </button>
+          {position.amanahHeldMinor > 0 ? (
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              onClick={() => navigate("/finance/new/amanah_released_cash")}
+            >
+              سجل أمانة سُلّمت
+            </button>
+          ) : null}
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate("/finance/new/loss_non_cash")}
+          >
+            سجل هالكًا بلا خروج نقد
+          </button>
         </section>
       </details>
       <DepositsLayer deposits={state.deposits} onOpenOrder={orderId => navigate(`/orders/${orderId}`)} />
