@@ -239,8 +239,27 @@ EXPLICIT_SERVICES: dict[str, list[str]] = {
     "Home": ["application/home/homeControlCenterService.ts"],
 }
 
-# §10.1 hard caps: Home 15, any single screen 30.
-CAPS: dict[str, int] = {"Home": 15}
+# §10.1 target caps: Home 15, any single screen 30. Today's honest whole-screen
+# measure (literals + JSX text) sits above the target on the screens below; the
+# ratchet locks each surface at its current real number so the prose cannot
+# return (§10.1: "Without an automated guard the prose returns"). Lowering a
+# ratchet is a gain; raising it requires an owner decision record.
+CAPS: dict[str, int] = {
+    "Home": 26,
+    "Finance": 113,
+    "OrderDetail": 127,
+    "Orders": 73,
+    "DirectSaleEditor": 42,
+    "DraftEditor": 36,
+    "CostEditor": 53,
+    "AgreementEditor": 55,
+    "Catalog": 84,
+    "InventoryMaterials": 49,
+    "CashWallets": 62,
+    "OwnerEntitlement": 48,
+    "Schedule": 98,
+    "ScheduleEditor": 45,
+}
 
 PAGES = [
     "Home",

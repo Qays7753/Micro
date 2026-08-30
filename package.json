@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
+    "text-density": "python3 scripts/text-density-count.py",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "prototype:dev": "pnpm --filter @micro/prototype-web dev",
@@ -15,8 +16,8 @@
     "prototype:build": "pnpm --filter @micro/prototype-web build",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
-    "lint": "eslint src tests apps/prototype-web/client/src/pages apps/prototype-web/client/src/components --max-warnings 48",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build"
+    "lint": "eslint src tests apps/prototype-web/client/src/pages apps/prototype-web/client/src/components --max-warnings 37",
+    "check": "pnpm typecheck && pnpm lint && pnpm text-density && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build"
   },
   "devDependencies": {
     "eslint": "^9.39.1",
