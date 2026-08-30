@@ -576,16 +576,16 @@ export default function CostEditor() {
           className="micro-button micro-button-primary micro-save-cost"
           type="button"
           disabled={isSaving || hasInvalidNumericInput || !preview?.ok}
+          aria-busy={isSaving}
           onClick={() => {
             void saveSnapshot();
           }}
         >
-          <Save aria-hidden="true" />
-          {isSaving
-            ? "جارٍ حفظ النسخة…"
-            : preview?.ok && preview.snapshot.knowledgeState === "incomplete"
-              ? "حفظ مسودة تكلفة ناقصة"
-              : "حفظ نسخة التكلفة"}
+          {/* §3.4: أثناء الحفظ الدوران يحل مكان الأيقونة والتسمية ثابتة — لا قفز عرض */}
+          {isSaving ? <span className="micro-spinner" aria-hidden="true" /> : <Save aria-hidden="true" />}
+          {preview?.ok && preview.snapshot.knowledgeState === "incomplete"
+            ? "حفظ مسودة تكلفة ناقصة"
+            : "حفظ نسخة التكلفة"}
         </button>
         {draft.activeCostSnapshotId ? (
           <button
