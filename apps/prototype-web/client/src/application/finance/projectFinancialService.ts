@@ -32,7 +32,6 @@ export type ProjectFinancialPosition = {
   walletCashMinor: number;
   unallocatedCashMinor: number;
   cashWalletCount: number;
-  truth: string;
 };
 export type CogsStatus = "recorded" | "partial" | "not_available";
 export type RecordedPeriodResult = {
@@ -51,7 +50,6 @@ export type RecordedPeriodResult = {
   unallocatedInventoryCostMinor: number;
   generalInventoryWasteMinor: number;
   cogsReasons: readonly string[];
-  cogsNextAction: string;
   recordedOperatingExpenseMinor: number;
   projectOperatingExpenseMinor: number;
   sharedProjectExpenseMinor: number;
@@ -67,7 +65,6 @@ export type RecordedPeriodResult = {
   expenseNeedsReviewCount: number;
   status: "recorded_only" | "incomplete" | "invalid";
   reasons: readonly string[];
-  truth: string;
 };
 export type FinancialInsightStatus = "recorded_only" | "incomplete" | "not_available";
 export type WorkNameProfitability = {
@@ -93,7 +90,6 @@ export type CoverageIndicator = {
   directMarginMinor: number;
   breakEvenUnits: number | null;
   reasons: readonly string[];
-  truth: string;
 };
 export type RecordedLiquidity = {
   status: "recorded_only" | "incomplete";
@@ -101,7 +97,6 @@ export type RecordedLiquidity = {
   customerReceivablesMinor: number;
   supplierPayablesMinor: number;
   cashCoverageAfterLiabilitiesMinor: number;
-  truth: string;
 };
 export type FinancialInsights = {
   period: RecordedPeriodResult;
@@ -110,7 +105,6 @@ export type FinancialInsights = {
   inventoryMovementCount: number;
   coverage: CoverageIndicator;
   liquidity: RecordedLiquidity;
-  truth: string;
 };
 export type SharedExpenseRecordInput =
   | { mode?: "fixed"; amountMinor: number; sharedTotalAmountMinor?: never; sharedPercentageBps?: never }
@@ -190,7 +184,6 @@ type PeriodCogsReading = {
   unallocatedInventoryCostMinor: number;
   generalInventoryWasteMinor: number;
   cogsReasons: readonly string[];
-  cogsNextAction: string;
 };
 function activeInventoryMovements(movements: readonly InventoryMovement[]) {
   const reversedIds = new Set(
@@ -249,20 +242,16 @@ function derivePeriodCogs(
   const cogsReasons: string[] = [];
   if (finals.length > 0 && cogsStatus === "not_available")
     cogsReasons.push(
-      "لا توجد حركات استهلاك ذات قيمة تكلفة مثبتة مرتبطة بطلب نهائي؛ تستخدم القراءة نسخة التكلفة كبديل معلن.",
+      "نسخة تكلفة بديلة",
     );
   if (cogsStatus === "partial")
     cogsReasons.push(
-      "تتوفر تكلفة بيع مسجلة لبعض الأعمال النهائية فقط؛ تستخدم القراءة نسخة التكلفة لبقية الأعمال، فلا تُعرض كل التكلفة كتكلفة بيع فعلية.",
+      "تكلفة بيع جزئية",
     );
   if (unallocatedInventoryCostMinor > 0)
-    cogsReasons.push("توجد حركة استهلاك عامة أو بلا ارتباط صالح؛ لم توزع على عمل ولم تدخل تكلفة البيع.");
+    cogsReasons.push("استهلاك غير موزع");
   if (generalInventoryWasteMinor > 0)
-    cogsReasons.push("يوجد هدر مخزون عام؛ لا يسمى تكلفة بيع ولا يوزّع على عمل تلقائيًا.");
-  const cogsNextAction =
-    cogsStatus === "recorded" && unallocatedInventoryCostMinor === 0 && generalInventoryWasteMinor === 0
-      ? "راجع أن حركات الاستهلاك تغطي المواد المقصودة؛ تبقى بقية عناصر التكلفة من نسخة التكلفة."
-      : "سجل استهلاكًا بقيمة تكلفة محفوظة واربطه بعمل مكتمل، أو راجع الحركات العامة؛ لا تدخل صفرًا عند غياب الدليل.";
+    cogsReasons.push("هدر عام");
   return {
     snapshotDirectCostMinor,
     recordedCogsMinor,
@@ -272,7 +261,6 @@ function derivePeriodCogs(
     unallocatedInventoryCostMinor,
     generalInventoryWasteMinor,
     cogsReasons,
-    cogsNextAction,
   };
 }
 
@@ -359,8 +347,6 @@ export class ProjectFinancialService {
         walletCashMinor,
         unallocatedCashMinor,
         cashWalletCount: walletsResult.value.length,
-        truth:
-          "الكاش المسجل يجمع رصيد المحافظ المعلن والكاش غير الموزع من الطلبات والمبيعات المباشرة والأحداث وشراء المواد. حق المالك لا يغير الكاش، بينما حركة السحب أو الإرجاع الفعلية تغير المحفظة بسببها؛ الاستثمار الجديد مستقل عن الحق.",
       },
     };
   }
@@ -431,7 +417,6 @@ export class ProjectFinancialService {
           unallocatedInventoryCostMinor: 0,
           generalInventoryWasteMinor: 0,
           cogsReasons: [],
-          cogsNextAction: "صحح حدود الفترة قبل مراجعة تكلفة البيع.",
           recordedOperatingExpenseMinor: 0,
           projectOperatingExpenseMinor: 0,
           sharedProjectExpenseMinor: 0,
@@ -446,9 +431,7 @@ export class ProjectFinancialService {
           excludedOrderCount: 0,
           expenseNeedsReviewCount: 0,
           status: "invalid",
-          reasons: ["الفترة المحلية غير صالحة؛ لا يمكن بناء نتيجة قابلة للقراءة."],
-          truth:
-            "لا توجد نتيجة رقمية لهذه الفترة لأن حدودها غير صالحة. صحح الشهر أو الفترة قبل الاعتماد على القراءة.",
+          reasons: ["فترة غير صالحة"],
         },
       };
     const inPeriod = (date: string) => date >= from && date <= to;
@@ -522,12 +505,12 @@ export class ProjectFinancialService {
     ).length;
     const expenseNeedsReviewCount = reviewableOperatingEvents.filter(expenseNeedsReview).length;
     const reasons: string[] = [];
-    if (excludedOrderCount > 0) reasons.push("توجد طلبات مسلّمة مستبعدة بسبب درجة المعرفة أو المراجعة.");
-    if (sharedEstimatedExpenseCount > 0) reasons.push("توجد حصة مشروع مشتركة تقديرية أو تحتاج مراجعة.");
-    if (sharedMissingBasisCount > 0) reasons.push("توجد حصة مشروع مشتركة بلا مصدر موثق.");
+    if (excludedOrderCount > 0) reasons.push("طلبات مستبعدة");
+    if (sharedEstimatedExpenseCount > 0) reasons.push("حصة تقديرية");
+    if (sharedMissingBasisCount > 0) reasons.push("حصة بلا مصدر");
     if (sharedUnallocatedExpenseCount > 0)
-      reasons.push("توجد مصاريف مشتركة غير موزّعة؛ حدد حصة المشروع قبل خصمها من النتيجة.");
-    if (legacyUnclassifiedExpenseCount > 0) reasons.push("توجد مصروفات قديمة بلا سياق مالي.");
+      reasons.push("حصة غير موزعة");
+    if (legacyUnclassifiedExpenseCount > 0) reasons.push("مصروفات غير مصنفة");
     const incomplete = reasons.length > 0;
     return {
       ok: true,
@@ -545,7 +528,6 @@ export class ProjectFinancialService {
         unallocatedInventoryCostMinor: cogs.unallocatedInventoryCostMinor,
         generalInventoryWasteMinor: cogs.generalInventoryWasteMinor,
         cogsReasons: cogs.cogsReasons,
-        cogsNextAction: cogs.cogsNextAction,
         recordedOperatingExpenseMinor,
         projectOperatingExpenseMinor,
         sharedProjectExpenseMinor,
@@ -561,9 +543,6 @@ export class ProjectFinancialService {
         expenseNeedsReviewCount,
         status: incomplete ? "incomplete" : "recorded_only",
         reasons,
-        truth: incomplete
-          ? "هذه هي نتيجة الفترة المسجلة من البنود الداخلة فيها، لكنها تحتاج مراجعة للأسباب الظاهرة. الرقم لا يشمل المصدر المشترك غير الموزّع، وتوضح قراءة تكلفة البيع هل استُخدم استهلاك مثبت أم نسخة تكلفة بديلة؛ هذه القراءة ليست صافي ربح نهائيًا."
-          : "هذه هي نتيجة الفترة المسجلة من الأعمال المكتملة والتكلفة المباشرة المستخدمة وفق مصدرها ومصروفات الفترة. لا تؤكد تكلفة البيع كاملة خارج الاستهلاك المثبت أو نسخة التكلفة، ولا التوزيع على المنتجات أو الضرائب؛ لذلك ليست صافي ربح نهائيًا.",
       },
     };
   }
@@ -637,9 +616,9 @@ export class ProjectFinancialService {
     const coverageReasons: string[] = [];
     if (finals.length === 0) coverageReasons.push("لا توجد طلبات مسلّمة بنتيجة نهائية في الفترة.");
     if (periodResult.value.excludedOrderCount > 0)
-      coverageReasons.push("توجد طلبات مسلّمة مستبعدة بسبب درجة المعرفة أو المراجعة.");
+      coverageReasons.push("طلبات مستبعدة");
     if (reviewableFixed.some(event => event.expenseContext?.knowledge !== "known"))
-      coverageReasons.push("توجد مصروفات ثابتة تحتاج مراجعة أو تقديرًا.");
+      coverageReasons.push("مصروفات تحتاج مراجعة");
     if (
       reviewableOperating.some(
         event =>
@@ -648,13 +627,13 @@ export class ProjectFinancialService {
           event.expenseContext?.behavior === "unknown",
       )
     )
-      coverageReasons.push("توجد مصروفات متغيرة أو مختلطة لا توزّع تلقائيًا على الهامش بعد الكلفة المباشرة.");
+      coverageReasons.push("مصروفات غير موزعة");
     if (movementCount > 0)
       coverageReasons.push(
-        "توجد حركات مخزون فعلية؛ تعرض نتيجة الفترة تكلفة البيع الاختيارية عند اكتمال دليلها، لكنها لا تعيد كتابة نسخة التكلفة أو هامش اسم العمل.",
+        "حركات مخزون فعلية",
       );
-    if (directMarginMinor <= 0) coverageReasons.push("الهامش المباشر المسجل غير موجب.");
-    if (fixedExpenseMinor <= 0) coverageReasons.push("لا توجد مصروفات ثابتة مسجلة ومعروفة للفترة.");
+    if (directMarginMinor <= 0) coverageReasons.push("هامش غير موجب");
+    if (fixedExpenseMinor <= 0) coverageReasons.push("بلا مصروفات ثابتة");
     const coverageStatus: FinancialInsightStatus =
       finals.length === 0 || fixedExpenseMinor <= 0
         ? "not_available"
@@ -666,7 +645,7 @@ export class ProjectFinancialService {
         ? calculateBreakEvenUnits(fixedExpenseMinor, finalDeliveredQuantity, directMarginMinor)
         : null;
     if (coverageStatus === "recorded_only" && breakEvenUnits === null)
-      coverageReasons.push("تعذر حساب وحدات التعادل ضمن الدقة الآمنة.");
+      coverageReasons.push("تعادل غير محسوب");
     const liquidityIncomplete =
       positionResult.value.customerReceivablesMinor > 0 || positionResult.value.supplierPayablesMinor > 0;
     const liquidity: RecordedLiquidity = {
@@ -676,9 +655,6 @@ export class ProjectFinancialService {
       supplierPayablesMinor: positionResult.value.supplierPayablesMinor,
       cashCoverageAfterLiabilitiesMinor:
         positionResult.value.recordedCashMinor - positionResult.value.supplierPayablesMinor,
-      truth: liquidityIncomplete
-        ? "الديون أو الالتزامات المسجلة لا تحمل مواعيد تحصيل أو دفع كافية؛ لا يمثل هذا توقع سيولة للأيام القادمة."
-        : "هذه تغطية الكاش المسجل بعد الالتزامات المسجلة فقط؛ ليست توقع تدفق نقدي.",
     };
     return {
       ok: true,
@@ -705,14 +681,8 @@ export class ProjectFinancialService {
           directMarginMinor,
           breakEvenUnits,
           reasons: coverageReasons,
-          truth:
-            coverageStatus === "recorded_only"
-              ? "هذا مؤشر تغطية من مزيج الطلبات النهائية والمصروفات الثابتة المسجلة لهذه الفترة، وليس نقطة تعادل نهائية أو توقعًا."
-              : "لا يمكن عرض رقم تغطية موثوق حتى تكتمل شروط البيانات والسياسة الظاهرة.",
         },
         liquidity,
-        truth:
-          "هذه مؤشرات مشتقة من السجل المحلي في الفترة؛ لا تحفظ نتيجة جديدة ولا تحول الكاش أو المخزون أو الديون إلى صافي ربح. نتيجة الفترة تعرض تكلفة البيع الاختيارية وفق العقد، بينما تبقى مؤشرات التغطية وهامش اسم العمل محافظة على نسخة التكلفة الخاصة بالطلب.",
       },
     };
   }

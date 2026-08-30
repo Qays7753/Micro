@@ -622,8 +622,6 @@ export default function OwnerEntitlement() {
           <Metric label="سحب لتسوية حق" value={overview.drawnForEntitlementMinor} />
           <Metric label="إرجاع سحب سابق" value={overview.returnedForPriorDrawMinor} />
         </div>
-        <p>{overview.truth}</p>
-        <p className="micro-decision-next">الخطوة التالية: {overview.nextAction}</p>
       </section>
       <section className="micro-owner-ledger">
         <div className="micro-section-heading">

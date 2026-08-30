@@ -217,7 +217,6 @@ export default function Home() {
         <div className="micro-section-title">
           <Landmark aria-hidden="true" />
           <div>
-            <span className="micro-overline">وجهة دائمة · بلا شرط</span>
             <h2 id="home-finance-title">مالي</h2>
           </div>
         </div>
@@ -244,7 +243,6 @@ export default function Home() {
         <div className="micro-section-title">
           <Package aria-hidden="true" />
           <div>
-            <span className="micro-overline">وجهة دائمة · بلا شرط</span>
             <h2 id="home-catalog-title">منتجاتي وخدماتي</h2>
           </div>
         </div>

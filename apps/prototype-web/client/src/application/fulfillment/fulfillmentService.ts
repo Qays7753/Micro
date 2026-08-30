@@ -26,7 +26,6 @@ export type DepositOverview = {
   deposits: readonly DepositRow[];
   collectedTotalMinor: number;
   awaitingSettlementCount: number;
-  truth: string;
 };
 const success = (stored: StoredCraftOrder): FulfillmentResult => ({ ok: true, stored });
 const failure = (
@@ -241,8 +240,6 @@ export class FulfillmentService {
         deposits: rows,
         collectedTotalMinor: rows.reduce((total, row) => total + row.depositCollectedMinor, 0),
         awaitingSettlementCount: rows.filter(row => row.depositSettlement === "needs_review").length,
-        truth:
-          "العربون كاش مرتبط بطلبه، وليس ربحًا نهائيًا. الملغى منها ينتظر ردًا أو احتفاظًا صريحًا أو يبقى للمراجعة.",
       },
     };
   }

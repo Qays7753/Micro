@@ -413,7 +413,7 @@ describe("ProjectFinancialService", () => {
       value: {
         resultMinor: null,
         status: "invalid",
-        reasons: ["الفترة المحلية غير صالحة؛ لا يمكن بناء نتيجة قابلة للقراءة."],
+        reasons: ["فترة غير صالحة"],
       },
     });
   });
@@ -767,7 +767,7 @@ describe("ProjectFinancialService", () => {
         coverage: {
           status: "recorded_only",
           breakEvenUnits: null,
-          reasons: [expect.stringContaining("تعذر حساب وحدات التعادل")],
+          reasons: [expect.stringContaining("تعادل غير محسوب")],
         },
       },
     });

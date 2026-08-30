@@ -26,7 +26,6 @@ export type G5Decision = {
   period: BreakEvenResult;
   shortCash: ShortCashResult;
   declarations: readonly ShortCashDeclaration[];
-  truth: string;
 };
 export type G5LinkOption = { id: string; label: string; amountMinor: number };
 export type G5LinkOptions = { orders: readonly G5LinkOption[]; payableEvents: readonly G5LinkOption[] };
@@ -356,8 +355,6 @@ export class G5Service {
         period,
         shortCash,
         declarations: declarations.value,
-        truth:
-          "هذه قراءة مشتقة من السجل المحلي وما سجّلته من متوقعات. لا تحفظ نتيجة مالية جديدة، ولا تحول المتوقع إلى قبض أو دفع فعلي، ولا تقدم توصية ملزمة.",
       },
     };
   }

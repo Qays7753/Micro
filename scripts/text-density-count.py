@@ -42,14 +42,193 @@ CLIENT_SRC = ROOT / "apps/prototype-web/client/src"
 ARABIC = re.compile(r"[\u0600-\u06FF]")
 
 MOMENT_LINE = re.compile(
-    r"throw new Error|setMessage\(|setError\(|setNotice\(|setReversalError\(|message:|message =|aria-invalid"
+    r"throw new Error|setMessage\(|setError\(|setNotice\(|setSuccess\(|setSaved\(|setReversalError\(|message:|message =|aria-invalid"
     r"|failure\(|\bfail\(|\berr\(|invalid_input"
 )
 # Loading/progress labels on action buttons appear only while acting.
 LOADING_LINE = re.compile(r"جارٍ|…")
 
+# Message values may break across lines (message:\n  "…" · const message = …? A : B;)
+# — they are action feedback, never at rest. Arabic prose uses «؛» so the ASCII
+# ';' statement terminator never appears inside these strings.
+MESSAGE_VALUE = re.compile(r'message:\s*\n\s*("[^"\n]*"|\'[^\'\n]*\')')
+MESSAGE_CHAIN = re.compile(r'(?:const|let)\s+message\s*=[^;]*;', re.S)
+
+
+def strip_messages(source: str) -> str:
+    source = MESSAGE_CHAIN.sub("const message = '';", source)
+    source = MESSAGE_VALUE.sub("message: ''", source)
+    return source
+
 STRING_LIT = re.compile(r'"([^"\\\n]*)"|' + r"'([^'\\\n]*)'")
 TEMPLATE_LIT = re.compile(r"`([^`\\]*)`")
+_TAG_KEYWORDS = {
+    "return", "typeof", "instanceof", "case", "do", "else", "in", "of",
+    "new", "void", "await", "yield", "satisfies", "as", "extends",
+}
+
+
+def _looks_like_tag(source: str, pos: int) -> bool:
+    """Decide whether a `<` at pos opens a JSX tag (code context).
+
+    Tags follow value positions: `return`, `=`, `=>`, `(`, `{`, `?`, `:`, `,`,
+    `&&`, `||`. A `<` after a plain identifier (`Record<`, `i < n`) or after
+    `)`/`]` (`foo() < bar`) opens a generic or comparison instead.
+    """
+    j = pos - 1
+    while j >= 0 and source[j] in " \t\n\r":
+        j -= 1
+    if j < 0:
+        return True  # file start
+    c = source[j]
+    if c in "=(?:,{&|":
+        return True
+    if c == ">":  # end of a tag or `=>` arrow — a real tag follows either way
+        return True
+    if c.isalnum() or c in "_$":
+        end = j + 1
+        while j >= 0 and (source[j].isalnum() or source[j] in "_$"):
+            j -= 1
+        word = source[j + 1 : end]
+        return word in _TAG_KEYWORDS
+    if c == "}" or c == ")" or c == "]":
+        return False
+    return True  # quotes, ;, +, -, etc. — conservative: treat as tag
+
+
+def jsx_text_nodes(source: str) -> list[str]:
+    """Static JSX text between a tag's closing > and the next child <.
+
+    A context-aware state machine (code / tag / children) with a real tag
+    stack: generics and comparison operators never open a children region,
+    closing tags return to code when the element stack empties, and brace
+    walking is string-aware so it can never desync.
+    """
+    CODE, TAG, CHILDREN = 0, 1, 2
+    texts: list[str] = []
+    buffer: list[str] = []
+    stack: list[bool] = []
+    state = CODE
+    tag_brace = 0
+    tag_is_closing = False
+    tag_is_self_closing = False
+    i, n = 0, len(source)
+    while i < n:
+        ch = source[i]
+        if state == CODE:
+            if ch in "\"'":
+                quote = ch
+                i += 1
+                while i < n and source[i] != quote:
+                    i += 2 if source[i] == "\\" else 1
+                i += 1
+                continue
+            if ch == "`":
+                i += 1
+                while i < n and source[i] != "`":
+                    i += 2 if source[i] == "\\" else 1
+                i += 1
+                continue
+            if ch == "<":
+                nxt = source[i + 1] if i + 1 < n else ""
+                if (nxt.isalpha() or nxt in "/>") and _looks_like_tag(source, i):
+                    after = source[i + 2] if i + 2 < n else ""
+                    if nxt.isupper() and not after.isalpha():
+                        pass  # generic type parameter: <T> <T,> <T>( …) <T extends …>
+                    else:
+                        state = TAG
+                        tag_brace = 0
+                        tag_is_closing = nxt == "/"
+                        tag_is_self_closing = False
+                        i += 2 if tag_is_closing else 1
+                        continue
+                i += 1
+                continue
+            i += 1
+            continue
+        if state == TAG:
+            if ch in "\"'":
+                quote = ch
+                i += 1
+                while i < n and source[i] != quote:
+                    i += 2 if source[i] == "\\" else 1
+                i += 1
+                continue
+            if ch == "{":
+                tag_brace += 1
+                i += 1
+                continue
+            if ch == "}":
+                tag_brace = max(0, tag_brace - 1)
+                i += 1
+                continue
+            if ch == "/" and tag_brace == 0:
+                tag_is_self_closing = True
+                i += 1
+                continue
+            if ch == ">" and tag_brace == 0:
+                if tag_is_self_closing:
+                    state = CHILDREN if stack else CODE
+                elif tag_is_closing:
+                    if stack:
+                        stack.pop()
+                    state = CHILDREN if stack else CODE
+                else:
+                    stack.append(True)
+                    state = CHILDREN
+                    buffer = []
+                tag_is_closing = False
+                tag_is_self_closing = False
+                i += 1
+                continue
+            i += 1
+            continue
+        # CHILDREN
+        if ch == "{":
+            depth = 1
+            i += 1
+            while i < n and depth:
+                c = source[i]
+                if c in "\"'":
+                    q = c
+                    i += 1
+                    while i < n and source[i] != q:
+                        i += 2 if source[i] == "\\" else 1
+                    i += 1
+                    continue
+                if c == "`":
+                    i += 1
+                    while i < n and source[i] != "`":
+                        i += 2 if source[i] == "\\" else 1
+                    i += 1
+                    continue
+                if c == "{":
+                    depth += 1
+                elif c == "}":
+                    depth -= 1
+                i += 1
+            continue
+        if ch == "<":
+            nxt = source[i + 1] if i + 1 < n else ""
+            if nxt.isalpha() or nxt in "/>":
+                value = re.sub(r"\s+", " ", "".join(buffer)).strip()
+                if value and ARABIC.search(value) and not LOADING_LINE.search(value):
+                    texts.append(value)
+                buffer = []
+                state = TAG
+                tag_brace = 0
+                tag_is_closing = nxt == "/"
+                tag_is_self_closing = False
+                i += 2 if tag_is_closing else 1
+                continue
+            else:
+                buffer.append(ch)
+            i += 1
+            continue
+        buffer.append(ch)
+        i += 1
+    return texts
+
 
 # import ... from "spec" / export ... from "spec" / import "spec"
 IMPORT_SPEC = re.compile(r'(?:^|\n)\s*(?:import|export)\s[^;]*?from\s*["\']([^"\']+)["\']', re.S)
@@ -126,33 +305,19 @@ def strip_comments(source: str) -> str:
                 mode = "code"
                 i += 2
                 continue
+            if ch == "\n":
+                out.append(ch)  # keep line structure for line-based filters
             i += 1
-        elif mode in ("single", "double", "template"):
-            if ch == "\\":
-                out.append(ch)
-                if i + 1 < n:
-                    out.append(source[i + 1])
+        else:
+            out.append(ch)
+            if ch == "\\" and i + 1 < n:
+                out.append(source[i + 1])
                 i += 2
                 continue
             if (mode == "single" and ch == "'") or (mode == "double" and ch == '"') or (
                 mode == "template" and ch == "`"
             ):
                 mode = "code"
-            elif mode == "template" and ch == "$" and nxt == "{":
-                # interpolation: hand off raw until matching brace
-                out.append("${")
-                i += 2
-                depth = 1
-                while i < n and depth:
-                    c = source[i]
-                    if c == "{":
-                        depth += 1
-                    elif c == "}":
-                        depth -= 1
-                    out.append(c)
-                    i += 1
-                continue
-            out.append(ch)
             i += 1
     return "".join(out)
 
@@ -197,6 +362,8 @@ def strings_of(source: str) -> set[str]:
         value = match.group(1)
         if value and "${" not in value and ARABIC.search(value):
             found.add(value.strip())
+    for value in jsx_text_nodes(source):
+        found.add(value)
     return found
 
 
@@ -256,11 +423,11 @@ def count_screen(name: str) -> set[str]:
     if not page.is_file():
         return strings
     for module in screen_files(page):
-        strings |= strings_of(strip_details_bodies(strip_comments(module.read_text(encoding="utf-8"))))
+        strings |= strings_of(strip_details_bodies(strip_messages(strip_comments(module.read_text(encoding="utf-8")))))
     for rel in EXPLICIT_SERVICES.get(name, []):
         service = CLIENT_SRC / rel
         if service.is_file():
-            strings |= strings_of(strip_details_bodies(strip_comments(service.read_text(encoding="utf-8"))))
+            strings |= strings_of(strip_details_bodies(strip_messages(strip_comments(service.read_text(encoding="utf-8")))))
     return strings
 
 
