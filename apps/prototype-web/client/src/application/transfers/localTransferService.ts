@@ -52,6 +52,7 @@ export type TransferSummary = {
   ownerEntitlementOpeningBalances: number;
   ownerMovements: number;
   allocationPolicies: number;
+  costEstimates: number;
   snapshots: number;
   events: number;
   exportedAt: string;
@@ -186,7 +187,10 @@ const isFinancialType = (value: unknown) =>
   value === "owner_withdrawal_cash" ||
   value === "operating_expense_cash" ||
   value === "operating_expense_payable" ||
-  value === "payable_settlement_cash";
+  value === "payable_settlement_cash" ||
+  value === "amanah_held_cash" ||
+  value === "amanah_released_cash" ||
+  value === "loss_non_cash";
 const isSafeMoney = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 const isSignedMoney = (value: unknown) =>
@@ -455,21 +459,29 @@ function validFinancialEvent(value: unknown): boolean {
     isRecord(expenseContext.sharedProjectShare) &&
     expenseContext.sharedProjectShare.allocation === "unallocated";
   const operatingExpense = unallocatedShared ? 0 : amount;
+  /* ترتيب الأثر: [كاش، ذمم، رأس مالك، مصروف، أمانات]. */
   const expected =
     value.type === "owner_investment_cash"
-      ? [amount, 0, amount, 0]
+      ? [amount, 0, amount, 0, 0]
       : value.type === "owner_withdrawal_cash"
-        ? [-amount, 0, -amount, 0]
+        ? [-amount, 0, -amount, 0, 0]
         : value.type === "operating_expense_cash"
-          ? [-amount, 0, 0, operatingExpense]
+          ? [-amount, 0, 0, operatingExpense, 0]
           : value.type === "operating_expense_payable"
-            ? [0, amount, 0, operatingExpense]
-            : [-amount, -amount, 0, 0];
+            ? [0, amount, 0, operatingExpense, 0]
+            : value.type === "amanah_held_cash"
+              ? [amount, 0, 0, 0, amount]
+              : value.type === "amanah_released_cash"
+                ? [-amount, 0, 0, 0, -amount]
+                : value.type === "loss_non_cash"
+                  ? [0, 0, 0, amount, 0]
+                  : [-amount, -amount, 0, 0, 0];
   return (
     value.cashDeltaMinor === expected[0] &&
     value.payableDeltaMinor === expected[1] &&
     value.ownerCapitalDeltaMinor === expected[2] &&
     value.operatingExpenseDeltaMinor === expected[3] &&
+    (value.amanahDeltaMinor ?? 0) === expected[4] &&
     (value.type === "payable_settlement_cash"
       ? isString(value.relatedEventId) && value.relatedEventId.trim().length > 0
       : value.relatedEventId === null)
@@ -531,7 +543,8 @@ const isCashEntryType = (value: unknown) =>
   value === "cash_adjustment" ||
   value === "transfer_out" ||
   value === "transfer_in" ||
-  value === "reversal";
+  value === "reversal" ||
+  value === "allocation";
 function validCashWallet(value: unknown): boolean {
   return (
     isRecord(value) &&
@@ -541,7 +554,11 @@ function validCashWallet(value: unknown): boolean {
     isCashWalletKind(value.kind) &&
     isDate(value.createdAt) &&
     isString(value.createdOperationKey) &&
-    value.createdOperationKey.trim().length > 0
+    value.createdOperationKey.trim().length > 0 &&
+    (value.openingStatus === undefined ||
+      value.openingStatus === null ||
+      value.openingStatus === "known" ||
+      value.openingStatus === "unknown")
   );
 }
 function validCashEntry(value: unknown): boolean {
@@ -813,6 +830,49 @@ function validDraftCostSnapshot(value: unknown): boolean {
   );
 }
 
+/* تقدير مستقل: نفس مدخلات الحاسبة بلا مراجع مسودة أو طلب — أداة تفكير بلا أثر مالي. */
+function validCostEstimate(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    !isString(value.title) ||
+    value.title.trim().length === 0 ||
+    value.currency !== "JOD" ||
+    !isPositiveQuantity(value.quantity) ||
+    !Array.isArray(value.materialItems) ||
+    !isMoney(value.packagingMinor) ||
+    !isMoney(value.deliveryMinor) ||
+    !isMoney(value.wasteMinor) ||
+    !isMoney(value.safetyBufferMinor) ||
+    !isMoney(value.plannedCostMinor) ||
+    !isMoney(value.unitCostMinor) ||
+    !isMoney(value.priceFloorMinor) ||
+    !isKnownState(value.knowledgeState) ||
+    !(value.note === null || value.note === undefined || isString(value.note)) ||
+    !isDate(value.createdAt) ||
+    !isDate(value.updatedAt)
+  )
+    return false;
+  if (!(
+    value.time === null ||
+    value.time === undefined ||
+    (isRecord(value.time) &&
+      isTimeMinutes(value.time.minutes) &&
+      isOptionalMoney(value.time.hourlyRateMinor) &&
+      (value.time.confidence === "known" || value.time.confidence === "estimated"))
+  ))
+    return false;
+  return value.materialItems.every(
+    item =>
+      isRecord(item) &&
+      isString(item.name) &&
+      isString(item.unit) &&
+      isPositiveQuantity(item.quantity) &&
+      isMoney(item.unitPriceMinor) &&
+      (item.confidence === "known" || item.confidence === "estimated"),
+  );
+}
+
 function validDomainCostSnapshot(value: unknown): boolean {
   if (
     !isRecord(value) ||
@@ -866,7 +926,8 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     !Array.isArray(data.catalogTemplates) ||
     !Array.isArray(data.actualTimeRecords) ||
     !Array.isArray(data.shortCashDeclarations) ||
-    !Array.isArray(data.allocationPolicies)
+    !Array.isArray(data.allocationPolicies) ||
+    !Array.isArray(data.costEstimates)
   )
     return false;
   if (
@@ -892,6 +953,11 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !(
         data.preferences.dailyScheduleCapacityMinutes === null ||
         isScheduleDuration(data.preferences.dailyScheduleCapacityMinutes)
+      ) ||
+      !(
+        data.preferences.lastVerifiedExportAt === undefined ||
+        data.preferences.lastVerifiedExportAt === null ||
+        isDate(data.preferences.lastVerifiedExportAt)
       ) ||
       !isDate(data.preferences.updatedAt))
   )
@@ -1119,7 +1185,8 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       event.cashDeltaMinor !== -source.cashDeltaMinor ||
       event.payableDeltaMinor !== -source.payableDeltaMinor ||
       event.ownerCapitalDeltaMinor !== -source.ownerCapitalDeltaMinor ||
-      event.operatingExpenseDeltaMinor !== -source.operatingExpenseDeltaMinor
+      event.operatingExpenseDeltaMinor !== -source.operatingExpenseDeltaMinor ||
+      (event.amanahDeltaMinor ?? 0) !== -(source.amanahDeltaMinor ?? 0)
     )
       return false;
   }
@@ -1673,6 +1740,12 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     )
       return false;
   }
+  /* تقديرات التكلفة المستقلة: سجلات أدوات بلا أثر مالي — هوية فريدة وشكل سليم فقط. */
+  const costEstimateIds = new Set<string>();
+  for (const estimate of data.costEstimates ?? []) {
+    if (!validCostEstimate(estimate) || costEstimateIds.has(estimate.id)) return false;
+    costEstimateIds.add(estimate.id);
+  }
   return true;
 }
 
@@ -1706,6 +1779,7 @@ function summary(file: LocalExportFile): TransferSummary {
     ownerEntitlementOpeningBalances: file.data.ownerEntitlementOpeningBalances?.length ?? 0,
     ownerMovements: file.data.ownerMovements?.length ?? 0,
     allocationPolicies: file.data.allocationPolicies?.length ?? 0,
+    costEstimates: file.data.costEstimates?.length ?? 0,
     snapshots,
     events,
     exportedAt: file.exportedAt,
@@ -1756,6 +1830,8 @@ export class LocalTransferService {
     const isPreviousBridge = candidate.version === 15 && candidate.schemaVersion === 24;
     const isPreviousG4bScale = candidate.version === 16 && candidate.schemaVersion === 25;
     const isPreviousWorkDestination = candidate.version === 17 && candidate.schemaVersion === 26;
+    /* إرث موجة إعادة التدفق: نسخة ٢٠/مخطط ٢٨ قبل حقول الأمانات والتقديرات المستقلة. */
+    const isPreviousFlowRedesign = candidate.version === 20 && candidate.schemaVersion === 28;
     const isPreviousO1 =
       (candidate.version === 12 && candidate.schemaVersion === 21) ||
       (candidate.version === 13 && candidate.schemaVersion === 22);
@@ -1772,6 +1848,7 @@ export class LocalTransferService {
       !isPreviousBridge &&
       !isPreviousG4bScale &&
       !isPreviousWorkDestination &&
+      !isPreviousFlowRedesign &&
       !isPreviousO1 &&
       !isPreviousG3 &&
       !isG3Legacy &&
@@ -1829,7 +1906,14 @@ export class LocalTransferService {
           )
         : [],
       recurrences: Array.isArray(raw.recurrences) ? raw.recurrences : [],
-      financialEvents: Array.isArray(raw.financialEvents) ? raw.financialEvents : [],
+      financialEvents: Array.isArray(raw.financialEvents)
+        ? raw.financialEvents.map(event =>
+            isRecord(event) ? { ...event, amanahDeltaMinor: event.amanahDeltaMinor ?? 0 } : event,
+          )
+        : [],
+      preferences: isRecord(raw.preferences)
+        ? { ...raw.preferences, lastVerifiedExportAt: raw.preferences.lastVerifiedExportAt ?? null }
+        : raw.preferences,
       supplierPurchases: Array.isArray(raw.supplierPurchases) ? raw.supplierPurchases : [],
       cashWallets: Array.isArray(raw.cashWallets) ? raw.cashWallets : [],
       cashContinuityEntries: Array.isArray(raw.cashContinuityEntries) ? raw.cashContinuityEntries : [],
@@ -1922,6 +2006,7 @@ export class LocalTransferService {
               : policy,
           )
         : [],
+      costEstimates: Array.isArray(raw.costEstimates) ? raw.costEstimates : [],
     } as unknown as LocalStoreSnapshot;
     if (!validateSnapshot(migrated))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
@@ -1944,5 +2029,65 @@ export class LocalTransferService {
         message: "تعذر استبدال البيانات المحلية. لم يتم تأكيد نجاح الاستيراد.",
       };
     return { ok: true, value: preview.summary };
+  }
+
+  /** نسخة مُتحقق منها (P-01): يُعاد تحليل الملف دورة كاملة قبل إعلان جهوزيته. */
+  async createVerifiedExport(): Promise<TransferResult<{ file: LocalExportFile; summary: TransferSummary }>> {
+    const created = await this.createExport();
+    if (!created.ok) return created;
+    const serialized = JSON.stringify(created.value, null, 2);
+    const roundTrip = this.prepareImport(serialized);
+    if (!roundTrip.ok)
+      return {
+        ok: false,
+        code: "validation_error",
+        message:
+          "أنشئ الملف لكن التحقق منه فشل؛ لا تعتمد عليه نسخة احتياطية. أنشئ نسخة جديدة قبل أي خطوة مدمّرة.",
+      };
+    return { ok: true, value: { file: roundTrip.value.file, summary: roundTrip.value.summary } };
+  }
+
+  /** لقطة فارغة معلنة — تُستخدم حصرًا من بوابة «ابدأ من جديد» بعد نسخة مُتحقق منها. */
+  static emptySnapshot(): LocalStoreSnapshot {
+    return {
+      profile: null,
+      preferences: null,
+      drafts: [],
+      orders: [],
+      directSales: [],
+      schedules: [],
+      recurrences: [],
+      financialEvents: [],
+      supplierPurchases: [],
+      cashWallets: [],
+      cashContinuityEntries: [],
+      materials: [],
+      inventoryMovements: [],
+      inventoryActivation: null,
+      catalogItems: [],
+      measurementUnits: [],
+      directConversions: [],
+      catalogTemplates: [],
+      actualTimeRecords: [],
+      shortCashDeclarations: [],
+      ownerEntitlementPolicies: [],
+      ownerEntitlementRecords: [],
+      ownerEntitlementOpeningBalances: [],
+      ownerMovements: [],
+      allocationPolicies: [],
+      costEstimates: [],
+    };
+  }
+
+  /** «ابدأ من جديد»: استبدال ذرّي بلقطة فارغة — لا يمس أي بيانات قبل نجاح المعاملة. */
+  async resetAll(): Promise<TransferResult<null>> {
+    const replacement = await this.store.replaceSnapshot(LocalTransferService.emptySnapshot());
+    if (!replacement.ok)
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "تعذر بدء مشروع جديد؛ بياناتك الحالية كما هي دون تغيير.",
+      };
+    return { ok: true, value: null };
   }
 }

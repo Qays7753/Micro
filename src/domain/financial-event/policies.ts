@@ -182,49 +182,36 @@ function normalizeExpenseContext(
 function isUnallocatedSharedExpense(context: OperatingExpenseContext | null): boolean {
   return context?.relationship === "shared" && context.sharedProjectShare?.allocation === "unallocated";
 }
+/* خريطة الأثر الخماسي [كاش، ذمم، رأس مالك، مصروف، أمانات] لكل نوع حدث. */
+const DELTA_TABLE: Readonly<Record<CreateFinancialEventInput["type"], readonly number[]>> = {
+  owner_investment_cash: [1, 0, 1, 0, 0],
+  owner_withdrawal_cash: [-1, 0, -1, 0, 0],
+  operating_expense_cash: [-1, 0, 0, 1, 0],
+  operating_expense_payable: [0, 1, 0, 1, 0],
+  payable_settlement_cash: [-1, -1, 0, 0, 0],
+  /* المبدأ ١٣: أمانة قُبضت — الكاش يرتفع والرصيد الأمين يرتفع؛ لا إيراد ولا مصروف. */
+  amanah_held_cash: [1, 0, 0, 0, 1],
+  /* أمانة سُلّمت — الكاش ينخفض والرصيد الأمين ينخفض؛ لا أثر على الربح. */
+  amanah_released_cash: [-1, 0, 0, 0, -1],
+  /* هالك بلا خروج نقد: يخفض الربح ولا يمس الكاش ولا الذمم. */
+  loss_non_cash: [0, 0, 0, 1, 0],
+};
+
 function deltas(
   type: CreateFinancialEventInput["type"],
   amountMinor: number,
   expenseContext: OperatingExpenseContext | null,
 ) {
-  const operatingExpenseMinor = isUnallocatedSharedExpense(expenseContext) ? 0 : amountMinor;
-  switch (type) {
-    case "owner_investment_cash":
-      return {
-        cashDeltaMinor: amountMinor,
-        payableDeltaMinor: 0,
-        ownerCapitalDeltaMinor: amountMinor,
-        operatingExpenseDeltaMinor: 0,
-      };
-    case "owner_withdrawal_cash":
-      return {
-        cashDeltaMinor: -amountMinor,
-        payableDeltaMinor: 0,
-        ownerCapitalDeltaMinor: -amountMinor,
-        operatingExpenseDeltaMinor: 0,
-      };
-    case "operating_expense_cash":
-      return {
-        cashDeltaMinor: -amountMinor,
-        payableDeltaMinor: 0,
-        ownerCapitalDeltaMinor: 0,
-        operatingExpenseDeltaMinor: operatingExpenseMinor,
-      };
-    case "operating_expense_payable":
-      return {
-        cashDeltaMinor: 0,
-        payableDeltaMinor: amountMinor,
-        ownerCapitalDeltaMinor: 0,
-        operatingExpenseDeltaMinor: operatingExpenseMinor,
-      };
-    case "payable_settlement_cash":
-      return {
-        cashDeltaMinor: -amountMinor,
-        payableDeltaMinor: -amountMinor,
-        ownerCapitalDeltaMinor: 0,
-        operatingExpenseDeltaMinor: 0,
-      };
-  }
+  const [cash = 0, payable = 0, ownerCapital = 0, operatingExpense = 0, amanah = 0] = DELTA_TABLE[type] ?? [];
+  /* المصروف المشترك غير الموزّع لا يدخل نتيجة الفترة حتى تُحدَّد حصة معلنة. */
+  const operatingExpenseMinor = isUnallocatedSharedExpense(expenseContext) ? 0 : operatingExpense * amountMinor;
+  return {
+    cashDeltaMinor: cash * amountMinor,
+    payableDeltaMinor: payable * amountMinor,
+    ownerCapitalDeltaMinor: ownerCapital * amountMinor,
+    operatingExpenseDeltaMinor: operatingExpenseMinor,
+    amanahDeltaMinor: amanah * amountMinor,
+  };
 }
 
 export function createFinancialEvent(input: CreateFinancialEventInput): FinancialEvent {
@@ -243,6 +230,14 @@ export function createFinancialEvent(input: CreateFinancialEventInput): Financia
   const expenseContext = normalizeExpenseContext(input.expenseContext);
   if (expenseContext && input.type !== "operating_expense_cash" && input.type !== "operating_expense_payable")
     throw new Error("سياق المصروف يخص المصروفات التشغيلية فقط.");
+  /* الأمانات والخسارة غير النقدية أحداث مستقلة: لا ربط بالتزامات ولا سياق مصروف. */
+  if (
+    (input.type === "amanah_held_cash" ||
+      input.type === "amanah_released_cash" ||
+      input.type === "loss_non_cash") &&
+    expenseContext
+  )
+    throw new Error("الأمانات والخسارة غير النقدية لا تحمل سياق مصروف.");
   const share = expenseContext?.sharedProjectShare;
   if (
     share?.allocation === "allocated" &&
@@ -298,6 +293,7 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
     payableDeltaMinor: -input.sourceEvent.payableDeltaMinor,
     ownerCapitalDeltaMinor: -input.sourceEvent.ownerCapitalDeltaMinor,
     operatingExpenseDeltaMinor: -input.sourceEvent.operatingExpenseDeltaMinor,
+    amanahDeltaMinor: -(input.sourceEvent.amanahDeltaMinor ?? 0),
   });
 }
 
@@ -331,8 +327,16 @@ export function summarizeFinancialEvents(events: readonly FinancialEvent[]): Fin
       payableMinor: totals.payableMinor + event.payableDeltaMinor,
       ownerCapitalMinor: totals.ownerCapitalMinor + event.ownerCapitalDeltaMinor,
       operatingExpenseMinor: totals.operatingExpenseMinor + event.operatingExpenseDeltaMinor,
+      amanahMinor: totals.amanahMinor + (event.amanahDeltaMinor ?? 0),
       eventCount: totals.eventCount + 1,
     }),
-    { cashMinor: 0, payableMinor: 0, ownerCapitalMinor: 0, operatingExpenseMinor: 0, eventCount: 0 },
+    {
+      cashMinor: 0,
+      payableMinor: 0,
+      ownerCapitalMinor: 0,
+      operatingExpenseMinor: 0,
+      amanahMinor: 0,
+      eventCount: 0,
+    },
   );
 }

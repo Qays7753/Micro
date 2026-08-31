@@ -14,6 +14,10 @@ import {
   type OperatingExpenseContext,
 } from "@micro-domain/financial-event/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
+import {
+  createCashContinuityEntry,
+  summarizeCashContinuity,
+} from "@micro-domain/cash-continuity/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
 import { calculateBreakEvenUnits } from "@micro-domain/g5/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
@@ -32,6 +36,10 @@ export type ProjectFinancialPosition = {
   walletCashMinor: number;
   unallocatedCashMinor: number;
   cashWalletCount: number;
+  /* المبدأ ١٣: أمانات بحوزتك — كاش حقيقي في الدرج وليس إيرادًا ولا مالك لك. */
+  amanahHeldMinor: number;
+  /* ما انتقل من غير الموزع إلى المحافظ بتخصيص صريح (PA-002). */
+  allocatedToWalletsMinor: number;
 };
 export type CogsStatus = "recorded" | "partial" | "not_available";
 export type RecordedPeriodResult = {
@@ -126,6 +134,24 @@ export type FinancialReversalInput = {
   sourceEventId: string;
   occurredOn: string;
   reason: string;
+  idempotencyKey: string;
+};
+/* PA-002: توزيع صريح من الكاش غير الموزع إلى محفظة، أو تغطية صرف منها. */
+export type UnallocatedDistributionInput = {
+  walletId: string;
+  deltaMinor: number;
+  note?: string | null;
+  operationKey?: string;
+  occurredOn?: string;
+};
+/* تعديل/حذف بسيطان (مبدأ المالك ٥.٦): التراجع والبديل في معاملة واحدة ذرّية. */
+export type FinancialEditInput = {
+  sourceEventId: string;
+  amountMinor: number;
+  occurredOn: string;
+  note: string;
+  counterparty: string | null;
+  reason?: string | null;
   idempotencyKey: string;
 };
 export type SettleablePayable = { event: FinancialEvent; remainingMinor: number };
@@ -322,11 +348,16 @@ export class ProjectFinancialService {
       (sum, purchase) => sum + purchase.paidMinor,
       0,
     );
+    /* PA-002: «تخصيص» صريح ينقل القيمة من غير الموزع إلى محفظة — الإجمالي لا يتغير. */
+    const allocatedToWalletsMinor = continuityResult.value
+      .filter(entry => entry.type === "allocation")
+      .reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
     const unallocatedCashMinor =
       orderPulse.registeredCollectionsMinor +
       project.cashMinor -
       supplierPurchaseCashPaidMinor +
-      directSalesCashMinor;
+      directSalesCashMinor -
+      allocatedToWalletsMinor;
     const walletCashMinor = continuityResult.value.reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
     const ownerCapitalFromMovementsMinor = ownerMovementsResult.value.reduce(
       (sum: number, movement: OwnerMovement) => sum + movement.ownerCapitalDeltaMinor,
@@ -347,6 +378,8 @@ export class ProjectFinancialService {
         walletCashMinor,
         unallocatedCashMinor,
         cashWalletCount: walletsResult.value.length,
+        amanahHeldMinor: project.amanahMinor,
+        allocatedToWalletsMinor,
       },
     };
   }
@@ -755,6 +788,189 @@ export class ProjectFinancialService {
         message: error instanceof Error ? error.message : "بيانات التصحيح غير صالحة.",
       };
     }
+  }
+
+  /** توزيع صريح من الكاش غير الموزع (PA-002): لا تخصيص صامت ولا كاش بلا طريق حل. */
+  async distributeUnallocated(
+    input: UnallocatedDistributionInput,
+  ): Promise<FinanceResult<{ unallocatedAfterMinor: number; walletBalanceAfterMinor: number }>> {
+    if (!Number.isInteger(input.deltaMinor) || input.deltaMinor === 0)
+      return { ok: false, code: "validation_error", message: "أدخل مبلغ تخصيص صحيحًا غير صفري." };
+    const [walletsResult, entriesResult] = await Promise.all([
+      this.store.listCashWallets(),
+      this.store.listCashContinuityEntries(),
+    ]);
+    if (!walletsResult.ok || !entriesResult.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة المحافظ قبل التخصيص." };
+    const wallet = walletsResult.value.find(candidate => candidate.id === input.walletId);
+    if (!wallet)
+      return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل التخصيص." };
+    const existingKey = entriesResult.value.find(
+      entry => entry.operationKey === (input.operationKey ?? ""),
+    );
+    if (input.operationKey && existingKey)
+      return {
+        ok: true,
+        value: { unallocatedAfterMinor: 0, walletBalanceAfterMinor: 0 },
+        reused: true,
+      };
+    const position = await this.readPosition();
+    if (!position.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة الكاش غير الموزع قبل التخصيص." };
+    const walletEntries = entriesResult.value.filter(entry => entry.walletId === wallet.id);
+    const walletBalanceMinor = summarizeCashContinuity(walletEntries);
+    if (input.deltaMinor > 0 && input.deltaMinor > position.value.unallocatedCashMinor)
+      return {
+        ok: false,
+        code: "validation_error",
+        message:
+          "المبلغ المطلوب أكبر من الكاش غير الموزع المتاح؛ لا يُخصم من رصيد المحافظ ولا يُخترع فرق.",
+      };
+    if (input.deltaMinor < 0 && walletBalanceMinor + input.deltaMinor < 0)
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "رصيد المحفظة لا يغطي هذا الصرف؛ اختر محفظة أخرى أو صرّف المبلغ من غير الموزع.",
+      };
+    try {
+      const entry = createCashContinuityEntry({
+        id: id(),
+        walletId: wallet.id,
+        type: "allocation",
+        occurredOn: input.occurredOn ?? ammanDate(this.now()),
+        recordedAt: this.now(),
+        cashDeltaMinor: input.deltaMinor,
+        note:
+          (input.note?.trim() || null) ??
+          (input.deltaMinor > 0 ? "تخصيص كاش غير موزع إلى محفظة" : "تغطية صرف من رصيد محفظة"),
+        operationKey: input.operationKey ?? `allocation-${id()}`,
+      });
+      const saved = await this.store.commitCashContinuity(wallet, [entry]);
+      if (!saved.ok)
+        return { ok: false, code: "storage_error", message: "تعذر حفظ التخصيص؛ لم يتغير أي رصيد." };
+      return {
+        ok: true,
+        value: {
+          unallocatedAfterMinor: position.value.unallocatedCashMinor - input.deltaMinor,
+          walletBalanceAfterMinor: walletBalanceMinor + input.deltaMinor,
+        },
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: error instanceof Error ? error.message : "بيانات التخصيص غير صالحة.",
+      };
+    }
+  }
+
+  /** تعديل بسيط موثق (مبدأ ٥.٦): تراجع + بديل في معاملة ذرّية واحدة — الأثر يتجدد والسجل يبقى. */
+  async editEvent(input: FinancialEditInput): Promise<FinanceResult<FinancialEvent>> {
+    const existing = await this.store.listFinancialEvents();
+    if (!existing.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    const source = existing.value.find(event => event.id === input.sourceEventId.trim());
+    if (!source)
+      return { ok: false, code: "validation_error", message: "لم يُعثر على الحدث الأصلي؛ لم يتغير السجل." };
+    if (source.correctionType === "reverse" || source.correctionOfEventId)
+      return { ok: false, code: "validation_error", message: "لا يمكن تعديل سجل تراجع سابق." };
+    const alreadyReversed = existing.value.find(
+      event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
+    );
+    if (alreadyReversed)
+      return { ok: false, code: "validation_error", message: "عُدّل هذا الحدث سابقًا؛ عدّل النسخة الحالية." };
+    if (input.amountMinor <= 0 || !Number.isInteger(input.amountMinor))
+      return { ok: false, code: "validation_error", message: "أدخل مبلغًا صحيحًا موجبًا بالأرقام 0–9." };
+    if (!input.note.trim())
+      return { ok: false, code: "validation_error", message: "اكتب ما حدث؛ الوصف جزء من السجل المالي." };
+    if (!isValidLocalDate(input.occurredOn))
+      return { ok: false, code: "validation_error", message: "تاريخ الحدث المحلي غير صالح." };
+    /* تسديد التزام: تعديل المبلغ لا يتجاوز المتبقي بعد استبعاد الأصل من الحساب. */
+    if (source.type === "payable_settlement_cash" && source.relatedEventId) {
+      const payable = existing.value.find(event => event.id === source.relatedEventId);
+      if (payable) {
+        const remainingWithoutSource =
+          payable.amountMinor - activeSettlementsMinor(existing.value, payable.id) + source.amountMinor;
+        if (input.amountMinor > remainingWithoutSource)
+          return {
+            ok: false,
+            code: "validation_error",
+            message: "المبلغ الجديد يتجاوز المتبقي من الالتزام؛ عدّله أو سجّل تسديدًا إضافيًا.",
+          };
+      }
+    }
+    if (existing.value.some(event => event.idempotencyKey === input.idempotencyKey))
+      return { ok: false, code: "validation_error", message: "مفتاح التعديل مستخدم؛ اختر مفتاحًا جديدًا." };
+    try {
+      const reversal = createFinancialReversal({
+        id: id(),
+        sourceEvent: source,
+        occurredOn: ammanDate(this.now()),
+        recordedAt: this.now(),
+        idempotencyKey: `${input.idempotencyKey}:reversal`,
+        reason: (input.reason?.trim() || "تعديل موثق"),
+      });
+      const replacement = createFinancialEvent({
+        id: id(),
+        type: source.type,
+        amountMinor: input.amountMinor,
+        occurredOn: input.occurredOn,
+        recordedAt: this.now(),
+        idempotencyKey: input.idempotencyKey,
+        note: input.note.trim(),
+        counterparty: input.counterparty,
+        relatedEventId: source.relatedEventId,
+        expenseContext: source.expenseContext ?? null,
+      });
+      const saved = await this.store.commitFinancialEventReplacement(source.id, reversal, replacement);
+      if (!saved.ok) return { ok: false, code: "storage_error", message: saved.message };
+      return saved.value.replacement.id === replacement.id
+        ? { ok: true, value: saved.value.replacement }
+        : { ok: true, value: saved.value.replacement, reused: true };
+    } catch (error) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: error instanceof Error ? error.message : "بيانات التعديل غير صالحة.",
+      };
+    }
+  }
+
+  /** حذف بسيط (مبدأ ٥.٦): التراجع الموثق هو الآلية — الأثر يتلاشى والسجل يبقى. */
+  async deleteEvent(input: {
+    sourceEventId: string;
+    reason?: string | null;
+    idempotencyKey: string;
+  }): Promise<FinanceResult<FinancialEvent>> {
+    return this.reverse({
+      sourceEventId: input.sourceEventId,
+      occurredOn: ammanDate(this.now()),
+      reason: input.reason?.trim() || "حذف",
+      idempotencyKey: input.idempotencyKey,
+    });
+  }
+
+  /** تراجع عن الحذف (Undo): يعاد تسجيل القيم الأصلية كحدث جديد — لا يُلمس الماضي. */
+  async restoreEvent(input: {
+    sourceEventId: string;
+    idempotencyKey: string;
+  }): Promise<FinanceResult<FinancialEvent>> {
+    const existing = await this.store.listFinancialEvents();
+    if (!existing.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    const source = existing.value.find(event => event.id === input.sourceEventId.trim());
+    if (!source)
+      return { ok: false, code: "validation_error", message: "لم يُعثر على الحدث الأصلي." };
+    return this.record({
+      type: source.type,
+      amountMinor: source.amountMinor,
+      occurredOn: source.occurredOn,
+      note: source.note.replace(/^تراجع: /u, ""),
+      counterparty: source.counterparty,
+      relatedEventId: source.relatedEventId,
+      expenseContext: source.expenseContext ?? null,
+      idempotencyKey: input.idempotencyKey,
+    });
   }
 
   async record(input: FinancialRecordInput): Promise<FinanceResult<FinancialEvent>> {

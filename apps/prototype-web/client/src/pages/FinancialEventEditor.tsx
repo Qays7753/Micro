@@ -49,6 +49,25 @@ const definition: Record<
     effect: "ينقص الكاش وما عليك، ولا يسجل المصروف مرة ثانية.",
     counterparty: "المورد أو الجهة المستحقة",
   },
+  /* المبدأ الثالث عشر: المال الذي بحوزتك ليس بالضرورة مالك. */
+  amanah_held_cash: {
+    title: "تسجيل أمانة قُبضت",
+    description: "مال مرّ عبر يدك وليس لك: ثمن طرود لمندوب، مال يحفظ لغيرك.",
+    effect: "يزيد الكاش ويرفع رصيد الأمانات؛ لا يمس الإيراد ولا المصروف ولا الربح إطلاقًا.",
+    counterparty: "صاحب الأمانة",
+  },
+  amanah_released_cash: {
+    title: "تسجيل أمانة سُلّمت",
+    description: "سلّمت لصاحبها أمانة كانت بحوزتك.",
+    effect: "ينقص الكاش ورصيد الأمانات معًا؛ لا أثر على الربح.",
+    counterparty: "صاحب الأمانة",
+  },
+  loss_non_cash: {
+    title: "تسجيل هالك أو تلف بلا خروج نقد",
+    description: "خسارة مادية لم يرافقها دفع: بضاعة تلفت قبل تسجيلها في المخزون.",
+    effect: "يخفض ربح الفترة كتكلفة ضائعة؛ لا يغيّر الكاش ولا الذمم.",
+    counterparty: "اختياري: مصدر الخسارة",
+  },
 };
 const types = new Set<FinancialEventType>(Object.keys(definition) as FinancialEventType[]);
 const ammanDate = () => localDateInAmman();

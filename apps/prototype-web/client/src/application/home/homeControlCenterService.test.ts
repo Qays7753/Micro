@@ -214,8 +214,9 @@ describe("HomeControlCenterService", () => {
     const after = await store.listFinancialEvents();
     if (!after.ok) throw new Error("events should read");
     expect(after.value).toHaveLength(before.value.length);
-    /* §10: لا سطر حقيقة على الوجه. */
-    expect(result.value.truthLine).toBeNull();
+    /* §10 معدّلة بقرار P-01 طبقة ١: سطر الحقيقة الوحيد المسموح هو تذكير النسخ
+     * الاحتياطية حين لا توجد نسخة مُتحقق منها مع وجود بيانات — لا جملة عامة أخرى. */
+    expect(result.value.truthLine === null || result.value.truthLine.includes("نسخة احتياطية")).toBe(true);
   });
 
   it("absorbs the attention content into Today for an active owner with no duplication and no removal", async () => {

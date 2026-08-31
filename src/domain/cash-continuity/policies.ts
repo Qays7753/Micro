@@ -32,6 +32,7 @@ export function createCashWallet(input: CreateCashWalletInput): CashWallet {
     kind: input.kind,
     createdAt: input.createdAt,
     createdOperationKey: input.createdOperationKey,
+    ...(input.openingStatus === "unknown" ? { openingStatus: "unknown" as const } : {}),
   });
 }
 
@@ -48,11 +49,22 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
   const transferId = input.transferId?.trim() || null;
   const reversesEntryId = input.reversesEntryId?.trim() || null;
   if (
-    !(["opening_balance", "cash_adjustment", "transfer_out", "transfer_in", "reversal"] as const).includes(
-      input.type,
-    )
+    !(
+      [
+        "opening_balance",
+        "cash_adjustment",
+        "transfer_out",
+        "transfer_in",
+        "reversal",
+        "allocation",
+      ] as const
+    ).includes(input.type)
   )
     throw new Error("نوع الحركة غير صالح.");
+  if (input.type === "allocation" && transferId)
+    throw new Error("حركة التخصيص ليست تحويلًا بين محفظتين.");
+  if (input.type === "allocation" && reversesEntryId)
+    throw new Error("حركة التخصيص ليست تراجعًا.");
   if (input.type === "opening_balance" && input.cashDeltaMinor < 0)
     throw new Error("رصيد الافتتاح لا يمكن أن يكون سالبًا.");
   if (input.type === "cash_adjustment" && !reason) throw new Error("تسوية الكاش تتطلب سببًا موثقًا.");

@@ -13,7 +13,7 @@ import {
   PackagePlus,
   X,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   Drawer,
   DrawerClose,
@@ -73,7 +73,8 @@ export const actionItems: readonly QuickActionItem[] = [
 ];
 
 export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSheetProps) {
-  const { directSales, projectFinance, notifyDataChanged } = usePrototypeServices();
+  const { directSales, projectFinance, cashContinuity, notifyDataChanged, dataVersion } =
+    usePrototypeServices();
   const [mode, setMode] = useState<SheetMode>("menu");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   /* نموذج البيع */
@@ -83,6 +84,15 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   const [saleCostKnown, setSaleCostKnown] = useState(false);
   const [saleCostMinor, setSaleCostMinor] = useState(0);
   const [saleCostValid, setSaleCostValid] = useState(true);
+  /* ٥.٥: بيع آجل سريع من الورقة نفسها — اسم والباقي دين موثق. */
+  const [saleOnCredit, setSaleOnCredit] = useState(false);
+  const [saleCollectedMinor, setSaleCollectedMinor] = useState(0);
+  const [saleCollectedValid, setSaleCollectedValid] = useState(true);
+  const [saleCustomer, setSaleCustomer] = useState("");
+  /* ٥.٢: نسبة الحركة لمحفظة عند الإدخال حينما يختار المالك ذلك — بلا تخصيص صامت. */
+  const [wallets, setWallets] = useState<readonly { id: string; name: string }[]>([]);
+  const [saleWalletId, setSaleWalletId] = useState("");
+  const [expenseWalletId, setExpenseWalletId] = useState("");
   /* نموذج المصروف */
   const [expenseAmountMinor, setExpenseAmountMinor] = useState(0);
   const [expenseAmountValid, setExpenseAmountValid] = useState(true);
@@ -92,6 +102,13 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   const saleKeyRef = useRef(`sheet-sale-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   const expenseKeyRef = useRef(`sheet-expense-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
+  useEffect(() => {
+    if (!open) return;
+    cashContinuity.overview().then(result => {
+      if (result.ok) setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+    });
+  }, [open, cashContinuity, dataVersion]);
+
   function reset() {
     setMode("menu");
     setReceipt(null);
@@ -99,7 +116,12 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     setSaleAmountMinor(0);
     setSaleCostKnown(false);
     setSaleCostMinor(0);
+    setSaleOnCredit(false);
+    setSaleCollectedMinor(0);
+    setSaleCustomer("");
+    setSaleWalletId("");
     setExpenseAmountMinor(0);
+    setExpenseWalletId("");
     setExpenseNote("");
     setFormError(null);
     saleKeyRef.current = `sheet-sale-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
@@ -116,6 +138,12 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     return position.ok ? position.value.recordedCashMinor : null;
   }
 
+  /* ٥.٢: تخصيص صريح بعد التسجيل — الحركة تُنسب للمحفظة المختارة بلا انتظار. */
+  async function attributeToWallet(walletId: string, deltaMinor: number, note: string) {
+    if (!walletId || deltaMinor === 0) return;
+    await projectFinance.distributeUnallocated({ walletId, deltaMinor, note });
+  }
+
   async function submitSale() {
     if (!saleAmountValid || !Number.isInteger(saleAmountMinor) || saleAmountMinor <= 0) {
       setFormError("أدخل مبلغ البيع بالأرقام 0–9.");
@@ -125,15 +153,33 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       setFormError("أدخل التكلفة بالأرقام 0–9 أو اختر «لا أعرف الآن».");
       return;
     }
+    if (saleOnCredit) {
+      if (!saleCollectedValid || !Number.isInteger(saleCollectedMinor) || saleCollectedMinor < 0) {
+        setFormError("أدخل المبلغ المحصل الآن بالأرقام 0–9.");
+        return;
+      }
+      if (saleCollectedMinor >= saleAmountMinor) {
+        setFormError("البيع الآجل يقتضي تحصيلًا أقل من المبلغ الكامل.");
+        return;
+      }
+      if (!saleCustomer.trim()) {
+        setFormError("اكتب اسم الزبون ليتجمع دينه في دفتر الناس.");
+        return;
+      }
+    }
     setFormError(null);
     setSaving(true);
     const result = await directSales.record({
       itemName: saleName.trim() || "بيع نقدي",
       quantity: 1,
       revenueMinor: saleAmountMinor,
+      collectedMinor: saleOnCredit ? saleCollectedMinor : undefined,
+      collectionStatus: saleOnCredit ? "partial_debt" : undefined,
       costMinor: saleCostKnown ? saleCostMinor : null,
       occurredOn: localDateInAmman(),
-      note: "بيع مباشر من ورقة الإضافة",
+      note: saleOnCredit
+        ? `عميل: ${saleCustomer.trim()} — بيع آجل من ورقة الإضافة`
+        : "بيع مباشر من ورقة الإضافة",
       idempotencyKey: saleKeyRef.current,
     });
     if (!result.ok) {
@@ -142,9 +188,13 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       return;
     }
     notifyDataChanged();
+    /* ٥.٢: نسبة المقبوض للمحفظة المختارة إن حُددت — تحصيلًا لا دينًا. */
+    const attributedMinor = saleOnCredit ? saleCollectedMinor : saleAmountMinor;
+    if (saleWalletId && attributedMinor > 0)
+      await attributeToWallet(saleWalletId, attributedMinor, "تخصيص قبض بيع من ورقة الإضافة");
     const cashMinor = await cashNow();
     setSaving(false);
-    setReceipt({ title: "سُجّل بيع", amountMinor: result.value.revenueMinor, cashMinor });
+    setReceipt({ title: saleOnCredit ? "سُجّل بيع آجل" : "سُجّل بيع", amountMinor: saleAmountMinor, cashMinor });
     setMode("receipt");
   }
 
@@ -177,6 +227,9 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       return;
     }
     notifyDataChanged();
+    /* ٥.٢: إن حُددت محفظة، يُغطى الصرف منها بتخصيص سالب — بلا تخصيص صامت. */
+    if (expenseWalletId && expenseAmountMinor > 0)
+      await attributeToWallet(expenseWalletId, -expenseAmountMinor, "تغطية مصروف من رصيد المحفظة");
     const cashMinor = await cashNow();
     setSaving(false);
     setReceipt({ title: "سُجّل مصروف", amountMinor: expenseAmountMinor, cashMinor });
@@ -307,6 +360,56 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                 />
               </label>
             ) : null}
+            {/* ٥.٥: مفتاح الآجل — بيع سريع بلا مسار طلبية ثقيل. */}
+            <label className="micro-field">
+              <span>هل بقي شيء عليه؟</span>
+              <select
+                value={saleOnCredit ? "credit" : "full"}
+                onChange={event => setSaleOnCredit(event.target.value === "credit")}
+              >
+                <option value="full">قُبض المبلغ كاملًا</option>
+                <option value="credit">آجل — الباقي دين باسم الزبون</option>
+              </select>
+            </label>
+            {saleOnCredit ? (
+              <>
+                <label className="micro-field">
+                  <span>اسم الزبون</span>
+                  <input
+                    value={saleCustomer}
+                    onChange={event => setSaleCustomer(event.target.value)}
+                    placeholder="مثال: خالد"
+                  />
+                  <small>يتجمع دينه في «دفتر الناس» باسمه هذا.</small>
+                </label>
+                <label className="micro-field">
+                  <span>المبلغ المحصل الآن (د.أ)</span>
+                  <EnglishNumberInput
+                    value={saleCollectedMinor}
+                    kind="money"
+                    onNumericChange={setSaleCollectedMinor}
+                    onTextValidityChange={setSaleCollectedValid}
+                    aria-label="المبلغ المحصل الآن"
+                  />
+                  <small>ما لم يُقبض يُسجّل دينًا — لا يدخل الكاش ولا يُعرض ربحًا.</small>
+                </label>
+              </>
+            ) : null}
+            {wallets.length > 0 ? (
+              <label className="micro-field">
+                <span>
+                  محفظة القبض <small>اختياري — الإهمال يبقيه في غير الموزع</small>
+                </span>
+                <select value={saleWalletId} onChange={event => setSaleWalletId(event.target.value)}>
+                  <option value="">بلا نسبة الآن — كاش غير موزع</option>
+                  {wallets.map(wallet => (
+                    <option key={wallet.id} value={wallet.id}>
+                      {wallet.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             {formError ? (
               <p className="micro-field-error" role="status">
                 {formError}
@@ -348,6 +451,21 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                 placeholder="مثال: أكياس تغليف"
               />
             </label>
+            {wallets.length > 0 ? (
+              <label className="micro-field">
+                <span>
+                  محفظة الصرف <small>اختياري — الإهمال يخرج من غير الموزع</small>
+                </span>
+                <select value={expenseWalletId} onChange={event => setExpenseWalletId(event.target.value)}>
+                  <option value="">بلا نسبة الآن — من الكاش غير الموزع</option>
+                  {wallets.map(wallet => (
+                    <option key={wallet.id} value={wallet.id}>
+                      {wallet.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             {formError ? (
               <p className="micro-field-error" role="status">
                 {formError}

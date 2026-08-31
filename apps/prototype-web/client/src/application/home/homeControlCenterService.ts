@@ -66,7 +66,7 @@ export class HomeControlCenterService {
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {
-    const [profile, followUp, position, schedules, events, purchases, inventory, dueFollowUps] =
+    const [profile, followUp, position, schedules, events, purchases, inventory, dueFollowUps, preferences] =
       await Promise.all([
         this.store.getProfile(),
         this.dailyFollowUp.read(),
@@ -76,6 +76,7 @@ export class HomeControlCenterService {
         this.supplierPurchases.readSummary(),
         this.inventory.overview(),
         this.agreementContext.dueFollowUps(),
+        this.store.getPreferences(),
       ]);
     if (
       !profile.ok ||
@@ -86,6 +87,7 @@ export class HomeControlCenterService {
       !purchases.ok ||
       !inventory.ok ||
       !dueFollowUps.ok ||
+      !preferences.ok ||
       !profile.value
     )
       return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
@@ -365,18 +367,60 @@ export class HomeControlCenterService {
       (left, right) => right.occurredOn.localeCompare(left.occurredOn) || left.id.localeCompare(right.id),
     );
 
+    /* «أثناء غيابك» (التدفق ٢٣): تظهر بعد ٧ أيام بلا تسجيل، وتختفي بالنشاط.
+     * تذكير النسخة (P-01 طبقة ١): بعد ٧ أيام من آخر تصدير مُتحقق مع وجود بيانات. */
+    const lastActivityDate = recentChanges[0]?.occurredOn ?? null;
+    const daysSinceLastActivity = lastActivityDate
+      ? Math.max(
+          0,
+          Math.round(
+            (Date.parse(`${today}T12:00:00.000Z`) - Date.parse(`${lastActivityDate}T12:00:00.000Z`)) /
+              86_400_000,
+          ),
+        )
+      : null;
+    const lastExport = preferences.value?.lastVerifiedExportAt ?? null;
+    const daysSinceLastExport = lastExport
+      ? Math.max(
+          0,
+          Math.round(
+            (Date.parse(`${today}T12:00:00.000Z`) - Date.parse(lastExport.slice(0, 10))) / 86_400_000,
+          ),
+        )
+      : null;
+    const hasAnyData =
+      recentChanges.length > 0 || positionValue.cashWalletCount > 0 || positionValue.projectEventCount > 0;
+    const awaySection =
+      daysSinceLastActivity !== null && daysSinceLastActivity >= 7 && hasAnyData
+        ? {
+            daysSinceLastActivity,
+            overdueDebtCount: orders.filter(
+              stored =>
+                stored.order.settlementStatus === "debt" &&
+                stored.order.receivableMinor > 0 &&
+                stored.followUpDate != null &&
+                stored.followUpDate < today,
+            ).length,
+            daysSinceLastExport,
+          }
+        : null;
+    const backupReminderDue = hasAnyData && (daysSinceLastExport === null || daysSinceLastExport >= 7);
+
     return {
       ok: true,
       value: buildHomeControlCenterViewModel({
         activityName: profile.value.activityName,
         todayLocal: today,
-        truthLine: null,
+        truthLine: backupReminderDue
+          ? "بياناتك على هذا الجهاز فقط — انسخ نسخة احتياطية من الإعدادات لتصبح جاهزة للطوارئ."
+          : null,
         financeUnit,
         catalogUnit,
         todaySection,
         facts,
         optionalModules,
         recentChanges,
+        awaySection,
       }),
     };
   }

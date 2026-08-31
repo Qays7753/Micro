@@ -68,6 +68,12 @@ export type HomeRecentChange = {
   detail: string | null;
   href: string;
 };
+/* «أثناء غيابك» (التدفق ٢٣): بطاقة عودة بعد انقطاع — آخر تسجيل، ديون متأخرة، عمر النسخة. */
+export type HomeAwaySection = {
+  daysSinceLastActivity: number;
+  overdueDebtCount: number;
+  daysSinceLastExport: number | null;
+};
 export type HomeControlCenterInput = {
   activityName: string;
   todayLocal: string;
@@ -78,6 +84,7 @@ export type HomeControlCenterInput = {
   facts: readonly HomeFinancialFact[];
   optionalModules: readonly HomeOptionalModule[];
   recentChanges: readonly HomeRecentChange[];
+  awaySection: HomeAwaySection | null;
 };
 export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
@@ -88,6 +95,7 @@ export type HomeControlCenterViewModel = {
   facts: readonly HomeFinancialFact[];
   optionalModules: readonly HomeOptionalModule[];
   recentChanges: readonly HomeRecentChange[];
+  awaySection: HomeAwaySection | null;
 };
 
 const compareToday = (left: HomeTodayItem, right: HomeTodayItem) =>
@@ -117,5 +125,6 @@ export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): 
     facts,
     optionalModules,
     recentChanges,
+    awaySection: input.awaySection,
   };
 }

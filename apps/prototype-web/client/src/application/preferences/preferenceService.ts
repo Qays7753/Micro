@@ -49,6 +49,31 @@ export class PreferenceService {
       ? { ok: true, dismissedAt: result.value?.installBannerDismissedAt ?? null }
       : { ok: false, code: "storage_error", message: "تعذر قراءة حالة بطاقة التثبيت." };
   }
+  /** P-01 طبقة ١: تسجيل آخر تصدير مُتحقق منه — أساس تذكير النسخ الاحتياطي. */
+  async markVerifiedExport(): Promise<PreferenceResult> {
+    const current = await this.store.getPreferences();
+    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيل المحلي." };
+    const exportedAt = this.now();
+    const result = await this.store.savePreferences({
+      id: localPreferencesId,
+      theme: current.value?.theme ?? "system",
+      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
+      workMode: current.value?.workMode ?? null,
+      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
+      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
+      lastVerifiedExportAt: exportedAt,
+      updatedAt: exportedAt,
+    });
+    return result.ok
+      ? { ok: true, preference: result.value.theme }
+      : { ok: false, code: "storage_error", message: "تعذر حفظ تاريخ النسخة الاحتياطية." };
+  }
+  async readLastVerifiedExport(): Promise<{ ok: true; exportedAt: string | null } | { ok: false; code: "storage_error"; message: string }> {
+    const result = await this.store.getPreferences();
+    return result.ok
+      ? { ok: true, exportedAt: result.value?.lastVerifiedExportAt ?? null }
+      : { ok: false, code: "storage_error", message: "تعذر قراءة تاريخ النسخة الاحتياطية." };
+  }
   async saveInstallBannerDismissal(): Promise<InstallBannerDismissalResult> {
     const current = await this.store.getPreferences();
     if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة حالة بطاقة التثبيت." };

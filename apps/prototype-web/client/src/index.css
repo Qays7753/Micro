@@ -5985,3 +5985,133 @@ button.micro-month-cell:hover {
   font-size: 12px;
   line-height: 1.6;
 }
+
+/* ============ «أدواتي» والتدفقات الجديدة (موجة إعادة التدفق المالي) ============ */
+
+/* دفتر الناس: مدخل طرف قابل للفتح مع حركاته. */
+.micro-party-entry {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.micro-party-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  cursor: pointer;
+  list-style: none;
+}
+.micro-party-summary::-webkit-details-marker {
+  display: none;
+}
+.micro-party-summary > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-party-summary b {
+  font-size: 15px;
+  color: var(--color-text-primary);
+}
+.micro-party-summary small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-party-summary strong {
+  color: var(--color-accent-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.micro-party-movements {
+  display: grid;
+  margin: 0;
+  padding: 0 0 var(--space-2);
+  list-style: none;
+}
+.micro-party-movements li {
+  border-top: 1px solid var(--color-divider);
+}
+.micro-party-movements button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  text-align: start;
+  cursor: pointer;
+  color: inherit;
+}
+.micro-party-movements button > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-party-movements small {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+.micro-party-movements b {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* شريط توزيع الكاش غير الموزع في مالي/المحافظ. */
+.micro-unallocated-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  border-inline-start: 3px solid var(--color-warning-text);
+  background: var(--color-surface);
+  padding: var(--space-3);
+}
+.micro-unallocated-strip > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-unallocated-strip strong {
+  font-size: 15px;
+}
+.micro-unallocated-strip small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+/* بطاقة «أثناء غيابك» أعلى الرئيسية. */
+.micro-away-card {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  border-inline-start: 3px solid var(--color-accent-primary);
+  background: var(--color-accent-soft);
+  padding: var(--space-4);
+}
+.micro-away-card b {
+  font-size: 15px;
+  color: var(--color-text-primary);
+}
+.micro-away-card ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+/* صف اختيار المحفظة داخل ورقة الإضافة والمحررات. */
+.micro-wallet-select-grid {
+  display: grid;
+  gap: var(--space-3);
+}
