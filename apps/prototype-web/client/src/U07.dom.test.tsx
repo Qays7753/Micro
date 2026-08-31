@@ -3,12 +3,13 @@
 /* و٧: F-077 طبقة «المؤشرات» داخل قراءة الفترة، وF-079 سجل المتوقعات المسجلة
  * داخل التغطية والتعادل — القيم المسجلة تصل الواجهة من خدماتها. */
 import React from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { G5Service } from "@/application/g5/g5Service";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -107,6 +108,8 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
 
     mockedUsePrototypeServices.mockReturnValue({
       projectFinance,
+      /* U-001: خدمة سجل التصحيحات جزء من واجهة مالي — مثيل حقيقي على المخزن نفسه. */
+      correctionHistory: new CorrectionHistoryService(store),
       ownerEntitlement: new OwnerEntitlementService(
         store,
         (from, to) => projectFinance.readRecordedPeriodResult(from, to),
@@ -130,11 +133,18 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     await waitFor(() =>
       expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
     );
+    /* تثبيت النطاق على آب ٢٠٢٦ — بيانات الاختبار مسجلة فيه؛ النطاق الافتراضي
+     * (الشهر الحقيقي الحالي) يتغير مع تقويم الجهاز فلا يظل الاختبار هشًا. */
+    fireEvent.change(screen.getByLabelText("بداية نطاق نتيجة الفترة"), { target: { value: "2026-08" } });
+    fireEvent.change(screen.getByLabelText("نهاية نطاق نتيجة الفترة"), { target: { value: "2026-08" } });
+    await waitFor(() =>
+      expect(screen.getByText("المؤشرات")).toBeTruthy(),
+    );
 
     /* F-077: طبقة المؤشرات داخل قراءة الفترة. */
     expect(screen.getByText("المؤشرات")).toBeTruthy();
     expect(screen.getByText("هامش أسماء الأعمال")).toBeTruthy();
-    expect(screen.getByText("قطعة خشب")).toBeTruthy();
+    await waitFor(() => expect(screen.getByText("قطعة خشب")).toBeTruthy());
     expect(screen.getByText("تكوين التكلفة المباشرة")).toBeTruthy();
     expect(screen.getByText("التغطية والتعادل المسجلان")).toBeTruthy();
     expect(screen.getByText("وحدات التعادل")).toBeTruthy();

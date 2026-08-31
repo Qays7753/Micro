@@ -28,6 +28,7 @@ import type { StoredCraftOrder } from "@/storage/local/types";
 import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import G5DecisionPanel from "@/components/finance/G5DecisionPanel";
 import { EventsLayer } from "@/components/finance/EventsLayer";
+import { CorrectionsLayer } from "@/components/finance/CorrectionsLayer";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {
@@ -76,6 +77,7 @@ export default function Finance() {
   const [, navigate] = useLocation();
   const {
     projectFinance,
+    correctionHistory,
     ownerEntitlement,
     g5,
     financialPulse,
@@ -282,10 +284,15 @@ export default function Finance() {
               </button>
             </p>
           ) : null}
-          {/* التدفقات ١٤/٢٠: دفتر الناس وعدّ الصنديف من مسارات مالي الدائمة. */}
+          {/* التدفقات ١٤/٢٠ + D-002: دفتر الناس وعدّ الصناديق والموردون من مسارات
+              مالي الدائمة — نوايا قراءة تجد مكانها الطبيعي هنا بلا مقعد خامس. */}
           <p className="micro-fact-road-line">
             <button className="micro-text-action" type="button" onClick={() => navigate("/parties")}>
               افتح دفتر الناس — مين عليه إلَي وعليّ لمين
+            </button>{" "}
+            ·{" "}
+            <button className="micro-text-action" type="button" onClick={() => navigate("/suppliers")}>
+              الموردون والمشتريات — استحقاقاتك ودفعاتك
             </button>{" "}
             ·{" "}
             <button className="micro-text-action" type="button" onClick={() => navigate("/cash/count")}>
@@ -340,7 +347,8 @@ export default function Finance() {
           </p>
           <p className="micro-period-result-value">
             <span>
-              الإيراد − التكلفة المباشرة المستخدمة − المصروف التشغيلي الموزّع، ضمن الفترة المحددة فقط
+              إيراد الطلبات والبيع المباشر − التكلفة المباشرة المستخدمة − المصروف التشغيلي الموزّع، ضمن
+              الفترة المحددة فقط
             </span>
             <strong>
               {period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}
@@ -349,6 +357,25 @@ export default function Finance() {
           <p className="micro-period-status" data-status={period.status}>
             {recordedPeriodStatusLabel(period.status)}
           </p>
+          {/* F-005 + بند ٢٤ من قرارات المالك: نطاق القراءة معلن صراحة — ما يدخل
+              وما لا يدخل، وكيف يُعترف بكل مصدر، والكاش غير النتيجة. */}
+          <div className="micro-period-review-note" aria-label="نطاق قراءة الفترة">
+            <strong>ما تشمله هذه القراءة</strong>
+            <p>
+              طلبات مسلَّمة بنتيجة نهائية (تُعرف إيرادها بتاريخ التسليم) + بيع مباشر نشط (يُعرف إيراده
+              بتاريخ البيع وبالثمن المسجّل وقت البيع). البيع الملغى مستبعد بالكامل.
+            </p>
+            <p>
+              القبض — من طلبات أو بيع آجل — ليس إيرادًا هنا؛ الكاش يظهر في بطاقة الكاش، وديون العملاء في
+              «لي عند العملاء». رأس المال والسحوبات والأمانات ليست إيرادًا ولا مصروفًا ولا تربحًا.
+            </p>
+            {period.directSaleCostUnknownCount > 0 ? (
+              <p role="status">
+                يوجد بيع مباشر بتكلفة غير معروفة: النتيجة «غير متاح» حتى تُوثّق تكلفته — لا تُقلب المجهول
+                صفرًا فيربو رقمٌ غير مؤكد.
+              </p>
+            ) : null}
+          </div>
           {/* القرار ١٠: التقارير القديمة تقول صراحةً إن المخزون لم يكن مُدارًا — لا إخفاء ولا صفر. */}
           {period.inventoryManagedFrom === null || period.inventoryManagedFrom > period.from ? (
             <p className="micro-period-review-note" role="status">
@@ -364,6 +391,46 @@ export default function Finance() {
               <dt>إيراد طلبات نهائية</dt>
               <dd>
                 <PeriodMoney value={period.recognizedRevenueMinor} status={period.status} />
+              </dd>
+            </div>
+            {/* F-005: البيع المباشر داخل نتيجة الفترة — بتاريخ البيع وبثمنه المسجّل. */}
+            <div>
+              <dt>إيراد بيع مباشر (بتاريخ البيع)</dt>
+              <dd>
+                <PeriodMoney value={period.directSaleRevenueMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>تكلفة بيع مباشر معروفة</dt>
+              <dd>
+                <PeriodMoney value={period.directSaleCostKnownMinor} status={period.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>بيع مباشر بتكلفة غير معروفة</dt>
+              <dd>
+                {period.status === "invalid" ? (
+                  <bdi dir="ltr" className="micro-inline-number">
+                    غير متاح
+                  </bdi>
+                ) : (
+                  <IntegerValue value={period.directSaleCostUnknownCount} className="micro-inline-number" />
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>بيع مباشر نشط / ملغى مستبعد</dt>
+              <dd>
+                {period.status === "invalid" ? (
+                  <bdi dir="ltr" className="micro-inline-number">
+                    غير متاح
+                  </bdi>
+                ) : (
+                  <>
+                    <IntegerValue value={period.directSaleCount} className="micro-inline-number" /> /{" "}
+                    <IntegerValue value={period.directSaleCancelledCount} className="micro-inline-number" />
+                  </>
+                )}
               </dd>
             </div>
             <div>
@@ -781,6 +848,9 @@ export default function Finance() {
         projectFinance={projectFinance}
         onChanged={notifyDataChanged}
       />
+      {/* U-001: «السجل» — سطح قراءة واحد لكل تصحيح موثق عبر السجلات المدعومة؛
+          لا يضيف حدثًا ولا يعدّل قيمة، ويُحدّث مع كل تغيير بيانات. */}
+      <CorrectionsLayer correctionHistory={correctionHistory} reloadToken={dataVersion} />
     </section>
   );
 }

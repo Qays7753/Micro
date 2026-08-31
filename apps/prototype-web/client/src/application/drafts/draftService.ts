@@ -12,6 +12,7 @@ export type DraftInput = Pick<
   | "costSnapshots"
   | "activeCostSnapshotId"
   | "linkedOrderId"
+  | "sourceEstimateId"
 >;
 export type DraftSaveResult =
   | { ok: true; draft: OrderDraft }
@@ -52,6 +53,7 @@ export class DraftService {
       costSnapshots: [],
       activeCostSnapshotId: null,
       linkedOrderId: null,
+      sourceEstimateId: null,
       createdAt: this.now(),
       ...initial,
     });

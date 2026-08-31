@@ -12,6 +12,13 @@ export type CatalogItem = {
   unitLabel: string | null;
   /** Optional organized unit reference; legacy records migrate to null. */
   unitId?: string | null;
+  /* P-002 (الخيار أ): اقتراحات اختيارية على المرجع — ليست سعرًا ولا تكلفة فعلية.
+   * البيع المباشر يحفظ نسخته المستقلة عند الحفظ؛ تغيير هذه القيم لاحقًا لا يغيّر
+   * أي بيع سابق. غياب الحقل (سجلات قديمة) يعني «لا اقتراح مسجّلًا». */
+  /** Optional suggested selling price per unit; a proposal, never the actual sale price. */
+  defaultPriceMinor?: number | null;
+  /** Optional suggested unit cost; a proposal, never the actual cost of a sale. */
+  defaultUnitCostMinor?: number | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -21,7 +28,19 @@ export type CatalogItem = {
 export type CreateCatalogItemInput = Pick<
   CatalogItem,
   "id" | "kind" | "name" | "unitLabel" | "createdAt" | "createdOperationKey"
-> & { unitId?: string | null };
+> & {
+  unitId?: string | null;
+  defaultPriceMinor?: number | null;
+  defaultUnitCostMinor?: number | null;
+};
+
+/* P-002: تحديث اقتراحات المرجع (السعر/التكلفة الافتراضية) — لا يمس الاسم ولا التفعيل
+ * ولا أي بيع سابق؛ البيع يحتفظ بنسخته التي حفظها وقت البيع. */
+export type UpdateCatalogItemDefaultsInput = {
+  defaultPriceMinor: number | null;
+  defaultUnitCostMinor: number | null;
+  updatedAt: string;
+};
 
 export type MeasurementUnit = {
   id: string;

@@ -21,6 +21,11 @@ vi.mock("wouter", () => ({
   useParams: () => ({
     id: (wouterMocks.location.split("/")[3] ?? "new").split("?")[0],
   }),
+  /* F-003: محاكاة Redirect الحقيقية — استبدال لا إضافة في التاريخ. */
+  Redirect: ({ to }: { to: string }) => {
+    void wouterMocks.navigate(to, { replace: true });
+    return null;
+  },
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
@@ -66,19 +71,25 @@ describe("intent choice opens the editor without creating a record (U-06, §٥-�
     wouterMocks.location = "/orders/new";
   });
 
-  it("the manual customer-order card opens the empty editor, not a stored draft", async () => {
+  it("the legacy /orders/new deep link now redirects straight to the primary FAB customer-order editor (F-003)", async () => {
     wouterMocks.location = "/orders/new";
     render(<NewDraft />);
-    await userEvent.click(screen.getByRole("button", { name: /طلب عميل/ }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/orders/draft/new?intent=customer_order");
+    await waitFor(() =>
+      expect(wouterMocks.navigate).toHaveBeenCalledWith("/orders/draft/new?intent=customer_order", {
+        replace: true,
+      }),
+    );
     expect(create).not.toHaveBeenCalled();
   });
 
-  it("the manual planned-design card opens the empty editor, not a stored draft", async () => {
-    wouterMocks.location = "/orders/new";
+  it("the legacy /orders/new deep link preserves an explicit planned-design intent (F-003)", async () => {
+    wouterMocks.location = "/orders/new?intent=planned_design";
     render(<NewDraft />);
-    await userEvent.click(screen.getByRole("button", { name: /مسودة تصميم/ }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/orders/draft/new?intent=planned_design");
+    await waitFor(() =>
+      expect(wouterMocks.navigate).toHaveBeenCalledWith("/orders/draft/new?intent=planned_design", {
+        replace: true,
+      }),
+    );
     expect(create).not.toHaveBeenCalled();
   });
 });
@@ -132,6 +143,8 @@ describe("the empty intent editor creates the draft only on first real input (U-
       catalogItemId: null,
       specifications: "",
       quantity: 1,
+      /* U-004: رابط التقدير المصدر يمر مع الإنشاء — فارغ عند البدء اليدوي. */
+      sourceEstimateId: null,
     });
   });
 

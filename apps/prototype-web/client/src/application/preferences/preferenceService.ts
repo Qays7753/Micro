@@ -11,6 +11,8 @@ export type PreferenceResult =
   { ok: true; preference: ThemePreference } | { ok: false; code: "storage_error"; message: string };
 export type InstallBannerDismissalResult =
   { ok: true; dismissedAt: string | null } | { ok: false; code: "storage_error"; message: string };
+export type BackupReminderResult =
+  { ok: true; enabled: boolean } | { ok: false; code: "storage_error"; message: string };
 
 export class PreferenceService {
   constructor(
@@ -37,6 +39,9 @@ export class PreferenceService {
       workMode: current.value?.workMode ?? null,
       actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
       installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
+      /* O-001: التفضيلات تُنقل كاملة — لا يفقد تغيير المظهر تاريخ النسخة ولا مفتاح التذكير. */
+      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
+      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
       updatedAt: this.now(),
     });
     return result.ok
@@ -62,11 +67,37 @@ export class PreferenceService {
       actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
       installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
       lastVerifiedExportAt: exportedAt,
+      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
       updatedAt: exportedAt,
     });
     return result.ok
       ? { ok: true, preference: result.value.theme }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تاريخ النسخة الاحتياطية." };
+  }
+  /* O-001: تذكير النسخة الدوري اختياري — إطفاؤه يخفي السطر من الرئيسية فقط. */
+  async saveBackupReminderEnabled(enabled: boolean): Promise<BackupReminderResult> {
+    const current = await this.store.getPreferences();
+    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيل المحلي." };
+    const result = await this.store.savePreferences({
+      id: localPreferencesId,
+      theme: current.value?.theme ?? "system",
+      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
+      workMode: current.value?.workMode ?? null,
+      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
+      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
+      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
+      backupReminderEnabled: enabled,
+      updatedAt: this.now(),
+    });
+    return result.ok
+      ? { ok: true, enabled: result.value.backupReminderEnabled ?? true }
+      : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيل تذكير النسخة." };
+  }
+  async readBackupReminderEnabled(): Promise<BackupReminderResult> {
+    const result = await this.store.getPreferences();
+    return result.ok
+      ? { ok: true, enabled: result.value?.backupReminderEnabled ?? true }
+      : { ok: false, code: "storage_error", message: "تعذر قراءة تفضيل تذكير النسخة." };
   }
   async readLastVerifiedExport(): Promise<{ ok: true; exportedAt: string | null } | { ok: false; code: "storage_error"; message: string }> {
     const result = await this.store.getPreferences();
@@ -85,6 +116,8 @@ export class PreferenceService {
       workMode: current.value?.workMode ?? null,
       actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
       installBannerDismissedAt: dismissedAt,
+      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
+      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
       updatedAt: dismissedAt,
     });
     return result.ok

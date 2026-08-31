@@ -3076,7 +3076,8 @@ textarea:disabled,
   border-inline-start: 3px solid var(--color-warning-text);
   padding-inline-start: var(--space-3);
   color: var(--color-warning-text);
-  font-size: 12px;
+  /* P-004: نطاق القراءة وملاحظات المراجعة مادة قراءة — ١٣px بدل ١٢. */
+  font-size: 13px;
   line-height: 1.65;
 }
 .micro-full-action {
@@ -3208,6 +3209,21 @@ textarea:disabled,
     right: 50%;
     left: auto;
     transform: translateX(50%);
+  }
+}
+/* P-004: بديل منطقي للوضع الأفقي دون كسر تجربة العمود أولًا — على الأجهزة
+   القصيرة أفقيًا (هاتف مُدار) يتسع العمود قليلًا لعرض المزيد بلا تمرير مضني،
+   ويبقى الهيكل والتنقل ونظام التصميم كما هما تمامًا. ليس إعادة تصميم للحاسوب. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .micro-app {
+    width: min(100%, 720px);
+  }
+  .micro-app-header,
+  .micro-bottom-nav {
+    width: min(100%, 720px);
+  }
+  .micro-bottom-nav {
+    padding-block: var(--space-1);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -4527,7 +4543,8 @@ button.micro-month-cell:hover {
 .micro-finance-event-note {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  /* P-004: نص السبب والملاحظة مادة قراءة فعلية — ١٣px بدل ١٢ لقراءة أرخص. */
+  font-size: 13px;
   line-height: 1.6;
 }
 .micro-finance-event-audit {

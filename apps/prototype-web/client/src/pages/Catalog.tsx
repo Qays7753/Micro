@@ -7,7 +7,7 @@ import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
-import { formatLocalDateLong } from "@/presentation/formatters";
+import { formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
 import { templateComponentCountLabel } from "@/presentation/plurals";
 import type {
   CatalogItem,
@@ -177,6 +177,21 @@ export default function Catalog() {
   const [name, setName] = useState("");
   const [unitLabel, setUnitLabel] = useState("");
   const [unitId, setUnitId] = useState("");
+  /* P-002 (الخيار أ): اقتراحات اختيارية على المرجع — اقتراح لا سعر مفروض ولا تكلفة فعلية. */
+  const [defaultPrice, setDefaultPrice] = useState(0);
+  const [defaultPriceEmpty, setDefaultPriceEmpty] = useState(true);
+  const [defaultPriceValid, setDefaultPriceValid] = useState(true);
+  const [defaultCost, setDefaultCost] = useState(0);
+  const [defaultCostEmpty, setDefaultCostEmpty] = useState(true);
+  const [defaultCostValid, setDefaultCostValid] = useState(true);
+  /* تحرير اقتراحات مرجع قائم: يفتح لمرجع واحد فقط ويحفظ بالقيم الجديدة. */
+  const [defaultsEditingId, setDefaultsEditingId] = useState<string | null>(null);
+  const [editingPrice, setEditingPrice] = useState(0);
+  const [editingPriceEmpty, setEditingPriceEmpty] = useState(true);
+  const [editingPriceValid, setEditingPriceValid] = useState(true);
+  const [editingCost, setEditingCost] = useState(0);
+  const [editingCostEmpty, setEditingCostEmpty] = useState(true);
+  const [editingCostValid, setEditingCostValid] = useState(true);
   const [items, setItems] = useState<readonly CatalogItem[]>([]);
   const month = useMemo(currentMonth, []);
   const [periodFrom, setPeriodFrom] = useState(month.from);
@@ -282,6 +297,8 @@ export default function Catalog() {
       name,
       unitLabel: unitLabel.trim() || null,
       unitId: unitId || null,
+      defaultPriceMinor: defaultPriceEmpty || !defaultPriceValid ? null : defaultPrice,
+      defaultUnitCostMinor: defaultCostEmpty || !defaultCostValid ? null : defaultCost,
       operationKey: operationKey("catalog"),
     });
     setSaving(false);
@@ -292,10 +309,56 @@ export default function Catalog() {
     setName("");
     setUnitLabel("");
     setUnitId("");
+    setDefaultPrice(0);
+    setDefaultPriceEmpty(true);
+    setDefaultCost(0);
+    setDefaultCostEmpty(true);
     setSelectedItemId(result.item.id);
     notifyDataChanged();
     await load();
     setMessage("تم حفظ مرجع العمل محليًا. يمكنك إضافة القياس أو القالب لاحقًا، وليس ذلك مطلوبًا للحفظ.");
+  }
+
+  /* P-002: فتح محرر اقتراحات مرجع قائم بقيمه الحالية. */
+  function openDefaultsEditor(item: CatalogItem) {
+    setDefaultsEditingId(item.id);
+    if (item.defaultPriceMinor == null) {
+      setEditingPrice(0);
+      setEditingPriceEmpty(true);
+    } else {
+      setEditingPrice(item.defaultPriceMinor);
+      setEditingPriceEmpty(false);
+    }
+    if (item.defaultUnitCostMinor == null) {
+      setEditingCost(0);
+      setEditingCostEmpty(true);
+    } else {
+      setEditingCost(item.defaultUnitCostMinor);
+      setEditingCostEmpty(false);
+    }
+  }
+
+  /* P-002: حفظ الاقتراحات الجديدة — لا يعدّل أي بيع سابق؛ البيع يحتفظ بنسخته. */
+  async function saveDefaults(id: string) {
+    if (!editingPriceValid || !editingCostValid) {
+      setMessage("أدخل الاقتراحات بالأرقام 0–9 أو اتركها فارغة بلا قيمة.");
+      return;
+    }
+    setSaving(true);
+    setMessage(null);
+    const result = await catalog.updateDefaults(id, {
+      defaultPriceMinor: editingPriceEmpty ? null : editingPrice,
+      defaultUnitCostMinor: editingCostEmpty ? null : editingCost,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setDefaultsEditingId(null);
+    notifyDataChanged();
+    await load();
+    setMessage("تم حفظ الاقتراحات الجديدة؛ لا يتأثر أي بيع سابق بقيمه المسجّلة.");
   }
 
   async function deactivate(id: string) {
@@ -673,7 +736,10 @@ export default function Catalog() {
       <div className="micro-page-heading">
         <span className="micro-overline">مرجع اختياري</span>
         <h1>منتجاتي وخدماتي</h1>
-        <p>نظّم ما تكرره. لا يحدد هذا المرجع سعرًا أو مخزونًا أو ربحًا نهائيًا.</p>
+        <p>
+          نظّم ما تكرره. المرجع يحفظ اقتراحًا اختياريًا للسعر والتكلفة، ولا يحدد مخزونًا ولا ربحًا نهائيًا؛
+          البيع الفعلي يُسجّل بقيمه المستقلة.
+        </p>
       </div>
 
       <section className="micro-form-card">
@@ -722,6 +788,41 @@ export default function Catalog() {
             </select>
           </label>
         </div>
+        {/* P-002 (الخيار أ): اقتراحان اختياريان يُحفظان مع المرجع — يُعرضان في بيع
+            المباشر كمقترح قابل للتعديل، والسعر الفعلي للبيع هو ما يُدخل ويُؤكد هناك. */}
+        <div className="micro-form-grid">
+          <label className="micro-field">
+            <span>
+              سعر بيع افتراضي <small>اقتراح اختياري — ليس سعرًا مفروضًا</small>
+            </span>
+            <EnglishNumberInput
+              value={defaultPrice}
+              kind="money"
+              onNumericChange={setDefaultPrice}
+              onTextValidityChange={setDefaultPriceValid}
+              allowEmpty
+              onEmptyChange={() => setDefaultPriceEmpty(true)}
+              aria-label="سعر بيع افتراضي مقترح"
+            />
+          </label>
+          <label className="micro-field">
+            <span>
+              تكلفة وحدة افتراضية <small>اقتراح اختياري — ليس تكلفة فعلية</small>
+            </span>
+            <EnglishNumberInput
+              value={defaultCost}
+              kind="money"
+              onNumericChange={value => {
+                setDefaultCost(value);
+                setDefaultCostEmpty(false);
+              }}
+              onTextValidityChange={setDefaultCostValid}
+              allowEmpty
+              onEmptyChange={() => setDefaultCostEmpty(true)}
+              aria-label="تكلفة وحدة افتراضية مقترحة"
+            />
+          </label>
+        </div>
         <button
           className="micro-button micro-button-primary"
           type="button"
@@ -750,7 +851,75 @@ export default function Catalog() {
                     {item.kind === "product" ? "منتج" : "خدمة"}
                     {item.unitLabel ? ` · ${item.unitLabel}` : ""}
                     {item.active ? " · متاح للطلبات الجديدة" : " · موقوف للطلبات الجديدة"}
+                    {item.defaultPriceMinor != null
+                      ? ` · سعر مقترح: ${formatMoneyMinor(item.defaultPriceMinor)} د.أ`
+                      : ""}
+                    {item.defaultUnitCostMinor != null
+                      ? ` · تكلفة مقترحة: ${formatMoneyMinor(item.defaultUnitCostMinor)} د.أ`
+                      : ""}
                   </p>
+                  {defaultsEditingId === item.id ? (
+                    <div className="micro-form-grid">
+                      <label className="micro-field">
+                        <span>سعر مقترح جديد</span>
+                        <EnglishNumberInput
+                          value={editingPrice}
+                          kind="money"
+                          onNumericChange={value => {
+                            setEditingPrice(value);
+                            setEditingPriceEmpty(false);
+                          }}
+                          onTextValidityChange={setEditingPriceValid}
+                          allowEmpty
+                          onEmptyChange={() => setEditingPriceEmpty(true)}
+                          aria-label="سعر مقترح جديد"
+                        />
+                      </label>
+                      <label className="micro-field">
+                        <span>تكلفة مقترحة جديدة</span>
+                        <EnglishNumberInput
+                          value={editingCost}
+                          kind="money"
+                          onNumericChange={value => {
+                            setEditingCost(value);
+                            setEditingCostEmpty(false);
+                          }}
+                          onTextValidityChange={setEditingCostValid}
+                          allowEmpty
+                          onEmptyChange={() => setEditingCostEmpty(true)}
+                          aria-label="تكلفة مقترحة جديدة"
+                        />
+                      </label>
+                      <div className="micro-form-actions">
+                        <button
+                          className="micro-button micro-button-primary"
+                          type="button"
+                          disabled={saving}
+                          onClick={() => void saveDefaults(item.id)}
+                        >
+                          {saving ? "جارٍ الحفظ…" : "حفظ الاقتراحات"}
+                        </button>
+                        <button
+                          className="micro-button micro-button-secondary"
+                          type="button"
+                          disabled={saving}
+                          onClick={() => setDefaultsEditingId(null)}
+                        >
+                          إلغاء التعديل
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="micro-form-actions">
+                      <button
+                        className="micro-button micro-button-secondary"
+                        type="button"
+                        onClick={() => openDefaultsEditor(item)}
+                      >
+                        عدّل الافتراضيات
+                      </button>
+                    </div>
+                  )}
                 </div>
               </article>
             ))}

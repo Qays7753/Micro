@@ -5,7 +5,7 @@
  */
 /* مبدأ Micro: توحيد اسم العملة في البداية عرضي، ولا يغيّر القيمة الداخلية أو حدود الحفظ المحلي. */
 import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -14,17 +14,97 @@ import { localDateInAmman } from "@/presentation/formatters";
 type Step = 1 | 2 | 3;
 type OpeningChoice = "known" | "unknown" | "zero";
 
+/* U-003: مسودة الإعداد تبقى محفوظة محليًا أثناء الكتابة — بلا أي حدث مالي حتى
+ * تأكيد المالك. استعادة آمنة: بيانات معطوبة تُتجاهل بلا انفجار، والمسودة
+ * تُمسح بعد الإتمام أو بإعادة تعيين صريحة. */
+const SETUP_DRAFT_KEY = "micro.setup-draft.v1";
+type SetupDraft = {
+  step: Step;
+  activityName: string;
+  walletName: string;
+  openingChoice: OpeningChoice | null;
+  openingMinor: number;
+  savedAt: string;
+};
+function readSetupDraft(): SetupDraft | null {
+  try {
+    const raw = globalThis.localStorage?.getItem(SETUP_DRAFT_KEY);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const candidate = parsed as Partial<SetupDraft>;
+    const step: Step = candidate.step === 2 || candidate.step === 3 ? candidate.step : 1;
+    if (
+      typeof candidate.activityName !== "string" ||
+      typeof candidate.walletName !== "string" ||
+      (candidate.openingChoice !== null &&
+        candidate.openingChoice !== undefined &&
+        candidate.openingChoice !== "known" &&
+        candidate.openingChoice !== "unknown" &&
+        candidate.openingChoice !== "zero") ||
+      (candidate.openingMinor !== undefined &&
+        (typeof candidate.openingMinor !== "number" || !Number.isSafeInteger(candidate.openingMinor)))
+    )
+      return null;
+    return {
+      step,
+      activityName: candidate.activityName,
+      walletName: candidate.walletName || "الدرج",
+      openingChoice:
+        candidate.openingChoice === "known" ||
+        candidate.openingChoice === "unknown" ||
+        candidate.openingChoice === "zero"
+          ? candidate.openingChoice
+          : null,
+      openingMinor: typeof candidate.openingMinor === "number" ? candidate.openingMinor : 0,
+      savedAt: typeof candidate.savedAt === "string" ? candidate.savedAt : new Date().toISOString(),
+    };
+  } catch {
+    /* بيانات معطوبة أو بيئة بلا تخزين — تُتجاهل بلا انفجال. */
+    return null;
+  }
+}
+function writeSetupDraft(draft: SetupDraft | null) {
+  try {
+    if (draft === null) globalThis.localStorage?.removeItem(SETUP_DRAFT_KEY);
+    else globalThis.localStorage?.setItem(SETUP_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    /* لا تخزين متاح: تُفقد المسودة عند الانقطاع لكن لا يتعطل الإعداد. */
+  }
+}
+
 export default function Setup() {
   const [, navigate] = useLocation();
   const { profiles, cashContinuity, notifyDataChanged } = usePrototypeServices();
-  const [step, setStep] = useState<Step>(1);
-  const [activityName, setActivityName] = useState("");
-  const [walletName, setWalletName] = useState("الدرج");
-  const [openingChoice, setOpeningChoice] = useState<OpeningChoice | null>(null);
-  const [openingMinor, setOpeningMinor] = useState(0);
+  /* U-003: الاستعادة مرة واحدة عند الفتح — القيم المُدخلة سابقًا تعود كما كانت. */
+  const [restoredDraft] = useState<SetupDraft | null>(() => readSetupDraft());
+  const [step, setStep] = useState<Step>(() => restoredDraft?.step ?? 1);
+  const [activityName, setActivityName] = useState(() => restoredDraft?.activityName ?? "");
+  const [walletName, setWalletName] = useState(() => restoredDraft?.walletName ?? "الدرج");
+  const [openingChoice, setOpeningChoice] = useState<OpeningChoice | null>(
+    () => restoredDraft?.openingChoice ?? null,
+  );
+  const [openingMinor, setOpeningMinor] = useState(() => restoredDraft?.openingMinor ?? 0);
   const [openingValid, setOpeningValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [draftNotice, setDraftNotice] = useState<string | null>(
+    () =>
+      restoredDraft && (restoredDraft.activityName.trim() || restoredDraft.openingChoice)
+        ? "استعدنا مسودة إعدادك من آخر مرة — أكمل من حيث توقفت؛ لم يُسجّل شيء بعد."
+        : null,
+  );
+  /* U-003: كل تغيير يحفظ المسودة فورًا — كتابة صغيرة محلية بلا أثر مالي. */
+  useEffect(() => {
+    writeSetupDraft({
+      step,
+      activityName,
+      walletName,
+      openingChoice,
+      openingMinor,
+      savedAt: new Date().toISOString(),
+    });
+  }, [step, activityName, walletName, openingChoice, openingMinor]);
 
   async function submit() {
     setIsSaving(true);
@@ -59,6 +139,8 @@ export default function Setup() {
     }
     notifyDataChanged();
     setIsSaving(false);
+    /* U-003: الإتمام الناجح يمسح المسودة — لا تعود بعد أن صارت بيانات فعلية. */
+    writeSetupDraft(null);
     /* §2.5: بعد الحد الأدنى، صفحة الأساس للعمق الاختياري — ثم الرئيسية بفعل واضح. */
     navigate("/foundation", { replace: true });
   }
@@ -88,11 +170,34 @@ export default function Setup() {
         <div className="micro-setup-impact">
           <span>ما يعرفه Micro الآن</span>
           <strong>
-            مشغل حرفي <b>·</b> الدينار الأردني <em>د.أ</em>
+            {/* P-003: تسمية محايدة — لا يفترض النظام قطاعًا ولا حرفة بعينها. */}
+            مشروعك <b>·</b> الدينار الأردني <em>د.أ</em>
           </strong>
           <small>«ما بعرف» تبقى حالة معلنة — لا تُعرض صفرًا في أي شاشة.</small>
         </div>
       </div>
+      {/* U-003: إشعار الاستعادة مع إعادة تعيين صريحة عند الطلب. */}
+      {draftNotice ? (
+        <p className="micro-save-note" role="status">
+          {draftNotice}{" "}
+          <button
+            className="micro-text-action"
+            type="button"
+            onClick={() => {
+              writeSetupDraft(null);
+              setDraftNotice(null);
+              setStep(1);
+              setActivityName("");
+              setWalletName("الدرج");
+              setOpeningChoice(null);
+              setOpeningMinor(0);
+              setError(null);
+            }}
+          >
+            ابدأ الإعداد من جديد
+          </button>
+        </p>
+      ) : null}
       <form
         className="micro-form-card micro-setup-decision"
         onSubmit={event => {

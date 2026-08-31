@@ -11,6 +11,7 @@ import { PreferenceService } from "@/application/preferences/preferenceService";
 import { ProfileService } from "@/application/profile/profileService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import { HomeControlCenterService } from "@/application/home/homeControlCenterService";
@@ -39,6 +40,8 @@ type PrototypeServices = {
   agreementContext: AgreementContextService;
   financialPulse: FinancialPulseService;
   projectFinance: ProjectFinancialService;
+  /* U-001: «السجل» — خدمة قراءة التصحيحات الموثقة عبر السجلات المدعومة. */
+  correctionHistory: CorrectionHistoryService;
   ownerEntitlement: OwnerEntitlementService;
   recurringWork: RecurringWorkService;
   g5: G5Service;
@@ -88,6 +91,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       agreementContext,
       financialPulse: new FinancialPulseService(store),
       projectFinance,
+      correctionHistory: new CorrectionHistoryService(store),
       ownerEntitlement,
       recurringWork,
       g5,

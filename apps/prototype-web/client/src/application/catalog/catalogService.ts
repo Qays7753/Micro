@@ -4,6 +4,7 @@ import {
   createCatalogTemplate,
   createDirectConversion,
   createMeasurementUnit,
+  updateCatalogItemDefaults,
   type CatalogItem,
   type CatalogItemKind,
   type CatalogTemplate,
@@ -51,7 +52,14 @@ export type CreateCatalogInput = {
   name: string;
   unitLabel: string | null;
   unitId?: string | null;
+  /* P-002 (الخيار أ): اقتراحات اختيارية تُحفظ على المرجع — ليست سعرًا ولا تكلفة فعلية. */
+  defaultPriceMinor?: number | null;
+  defaultUnitCostMinor?: number | null;
   operationKey: string;
+};
+export type UpdateCatalogDefaultsInput = {
+  defaultPriceMinor: number | null;
+  defaultUnitCostMinor: number | null;
 };
 export type CreateUnitInput = {
   nameAr: string;
@@ -143,6 +151,8 @@ export class CatalogService {
         name: input.name,
         unitLabel: input.unitLabel,
         unitId: input.unitId ?? null,
+        defaultPriceMinor: input.defaultPriceMinor ?? null,
+        defaultUnitCostMinor: input.defaultUnitCostMinor ?? null,
         createdAt: this.now(),
         createdOperationKey: input.operationKey,
       });
@@ -152,6 +162,26 @@ export class CatalogService {
         : failure("تعذر حفظ مرجع العمل محليًا.", "storage_error");
     } catch (error) {
       return failure(error instanceof Error ? error.message : "مرجع العمل غير صالح.");
+    }
+  }
+
+  /* P-002: تعديل اقتراحات المرجع فقط — لا يمس الاسم ولا أي بيع سجل قيمه وقت البيع. */
+  async updateDefaults(id: string, input: UpdateCatalogDefaultsInput): Promise<CatalogResult> {
+    const existing = await this.store.getCatalogItem(id);
+    if (!existing.ok) return failure("تعذر قراءة مرجع العمل محليًا.", "storage_error");
+    if (!existing.value) return failure("مرجع العمل غير متاح محليًا.", "not_found");
+    try {
+      const updated = updateCatalogItemDefaults(existing.value, {
+        defaultPriceMinor: input.defaultPriceMinor,
+        defaultUnitCostMinor: input.defaultUnitCostMinor,
+        updatedAt: this.now(),
+      });
+      const saved = await this.store.saveCatalogItem(updated);
+      return saved.ok
+        ? { ok: true, item: saved.value }
+        : failure("تعذر حفظ اقتراحات المرجع محليًا.", "storage_error");
+    } catch (error) {
+      return failure(error instanceof Error ? error.message : "اقتراحات المرجع غير صالحة.");
     }
   }
 

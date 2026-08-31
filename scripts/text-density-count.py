@@ -247,25 +247,46 @@ EXPLICIT_SERVICES: dict[str, list[str]] = {
 CAPS: dict[str, int] = {
     # Home 26 → 29 (2026-08-31, owner execution prompt flow 23 + §5.7): "أثناء غيابك"
     # return-after-absence card and the backup-reminder truth line — mandated labels.
-    "Home": 29,
+    # Home 29 → 31 (2026-09-01, repair cycle U-002): away-digest lines (sales/expenses
+    # since last activity, upcoming follow-ups) — concise digest mandated by the owner.
+    "Home": 31,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.
-    "Finance": 122,
+    # Finance 122 → 145 (2026-09-01, repair cycle): U-001 «السجل» corrections surface
+    # (kind labels + filter groups + summary), D-005 edit/delete/restore actions and
+    # previews, F-005 period-result direct-sale lines + scope note + review reason,
+    # D-002 suppliers reading intent. All mandated labels from approved owner decisions.
+    "Finance": 145,
     "OrderDetail": 127,
     "Orders": 73,
     # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
     # credit-sale customer identity field — one mandated label, no prose.
-    "DirectSaleEditor": 43,
-    "DraftEditor": 36,
-    "CostEditor": 53,
+    # DirectSaleEditor 43 → 45 (2026-09-01, repair cycle P-002): catalog-reference
+    # suggestion labels (suggested price / no-default note / suggested cost) —
+    # mandated proposal labels, clearly editable.
+    # DirectSaleEditor 45 → 47 (2026-09-01, repair cycle item 25): quantity
+    # semantics made explicit — total-price clarification under the quantity field
+    # + per-unit suggestion note when quantity > 1 (no silent auto-multiply).
+    "DirectSaleEditor": 47,
+    # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
+    # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
+    # mandated bridge labels; the draft form itself is unchanged.
+    "DraftEditor": 47,
+    # CostEditor 53 → 54 (2026-09-01, repair cycle U-004): source-estimate proposal
+    # notice — one mandated bridge label.
+    "CostEditor": 54,
     "AgreementEditor": 55,
-    "Catalog": 84,
+    # Catalog 84 → 92 (2026-09-01, repair cycle P-002): optional suggested default
+    # price/cost fields + per-item defaults editor labels — Option A mandated fields.
+    "Catalog": 92,
     "InventoryMaterials": 49,
     # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
     # label + service truth line — the explicit distribution path is now a first-class
     # wallet-screen concept.
-    "CashWallets": 67,
+    # CashWallets 67 → 69 (2026-09-01, repair cycle D-004): unknown-opening badge +
+    # documented-later-opening action label — mandated completion-road labels.
+    "CashWallets": 69,
     "OwnerEntitlement": 48,
     "Schedule": 98,
     "ScheduleEditor": 45,

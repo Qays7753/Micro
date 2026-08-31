@@ -35,6 +35,9 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
         })),
         readLastVerifiedExport: vi.fn(async () => ({ ok: true, exportedAt: null })),
         markVerifiedExport: vi.fn(async () => ({ ok: true, preference: "system" })),
+        /* O-001: مفتاح تذكير النسخة — افتراضي مفعّل. */
+        readBackupReminderEnabled: vi.fn(async () => ({ ok: true, enabled: true })),
+        saveBackupReminderEnabled: vi.fn(async (enabled: boolean) => ({ ok: true, enabled })),
       },
       actualTime: {
         readOperatingMode: vi.fn(async () => ({

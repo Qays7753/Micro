@@ -6,6 +6,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useLocation, useParams } from "wouter";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { SettleablePayable } from "@/application/finance/projectFinancialService";
 import type {
@@ -123,6 +124,18 @@ export default function FinancialEventEditor() {
       if (result.ok) setPayableOptions(result.value);
     });
   }, [projectFinance]);
+  /* F-006: رصيد الأمانات الحالي أمام العين قبل تسليم أي مبلغ — لا اكتشاف بعد الحفظ. */
+  const [amanahHeldMinor, setAmanahHeldMinor] = useState<number | null>(null);
+  useEffect(() => {
+    if (type !== "amanah_released_cash") return;
+    let active = true;
+    projectFinance.readPosition().then(result => {
+      if (active && result.ok) setAmanahHeldMinor(result.value.amanahHeldMinor);
+    });
+    return () => {
+      active = false;
+    };
+  }, [projectFinance, type]);
 
   if (!type)
     return (
@@ -233,6 +246,17 @@ export default function FinancialEventEditor() {
         <span>الأثر المعروف</span>
         <strong>{content.effect}</strong>
         <p>لا يغيّر هذا الحدث نتيجة طلب قائم أو صافي ربح المشروع تلقائيًا.</p>
+        {type === "amanah_released_cash" ? (
+          <p role="status">
+            رصيد الأمانات بحوزتك الآن:{" "}
+            {amanahHeldMinor === null ? (
+              "يُقرأ…"
+            ) : (
+              <MoneyValue minor={amanahHeldMinor} className="micro-inline-number" />
+            )}{" "}
+            — لا يمكنك تسليم أكثر منه؛ إن كان صفرًا فسجّل قبض الأمانة أولًا.
+          </p>
+        ) : null}
       </section>
       <section className="micro-form-card">
         {isShared && sharedMode === "percentage" ? (

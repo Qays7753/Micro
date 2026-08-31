@@ -294,7 +294,7 @@ export default function Orders() {
         <button
           className="micro-button micro-button-secondary"
           type="button"
-          onClick={() => navigate("/orders/new")}
+          onClick={() => navigate("/orders/draft/new?intent=customer_order")}
         >
           إنشاء مسودة أخرى
         </button>

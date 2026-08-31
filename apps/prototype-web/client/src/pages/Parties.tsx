@@ -25,6 +25,16 @@ const movementLabel: Record<string, string> = {
   payable_event: "التزام",
   settlement: "تسديد",
 };
+/* D-003: طريق التحصيل الصحيح من صف الطرف — يفتح السجل المصدر للدين القائم
+ * (تفاصيل الطلب أو محرر البيع) حيث يجري التحصيل فعليًا؛ الدفتر نفسه يبقى قراءة. */
+function collectTargetHref(
+  party: PartyLedgerOverview["parties"][number],
+): string | null {
+  const debt = party.movements.find(
+    movement => movement.kind === "order_debt" || movement.kind === "direct_sale_debt",
+  );
+  return debt?.href ?? null;
+}
 
 export default function Parties() {
   const [, navigate] = useLocation();
@@ -144,6 +154,19 @@ export default function Parties() {
                 <strong>افتح التفاصيل</strong>
               </summary>
               <ul className="micro-party-movements">
+                {/* D-003: اختصار التحصيل — يفتح سجل الدين المصدر نفسه حيث يجري التحصيل
+                    الموثق؛ الدفتر يبقى نموذج قراءة ولا يكتب حدثًا ماليًا من هنا. */}
+                {party.receivableMinor > 0 && collectTargetHref(party) ? (
+                  <li className="micro-party-collect-shortcut">
+                    <button type="button" onClick={() => navigate(collectTargetHref(party)!)}>
+                      <span>
+                        <b>حصّل من {party.name}</b>
+                        <small>يفتح سجل الدين المصدر حيث يسجَّل التحصيل — لا يُسجَّل شيء من الدفتر.</small>
+                      </span>
+                      <HandCoins aria-hidden="true" />
+                    </button>
+                  </li>
+                ) : null}
                 {party.movements.map(movement => (
                   <li key={movement.id}>
                     <button type="button" onClick={() => navigate(movement.href)}>

@@ -44,6 +44,8 @@ export default function DirectSaleEditor() {
   const [customerName, setCustomerName] = useState("");
   const [catalogItemId, setCatalogItemId] = useState("");
   const [references, setReferences] = useState<readonly CatalogItem[]>([]);
+  /* P-002: المرجع المختار الآن — لعرض الاقتراحات المعلّمة لا لتقرير السعر. */
+  const [suggestedReference, setSuggestedReference] = useState<CatalogItem | null>(null);
   const [occurredOn, setOccurredOn] = useState(() => localDateInAmman());
   const [note, setNote] = useState("بيع مباشر");
   const [message, setMessage] = useState<string | null>(null);
@@ -68,9 +70,12 @@ export default function DirectSaleEditor() {
   );
 
   useEffect(() => {
-    catalog.list().then(result => {
-      if (result.ok) setReferences(result.items);
-    });
+    catalog
+      .list({ includeInactive: true })
+      .then(result => {
+        if (result.ok) setReferences(result.items);
+      })
+      .catch(() => setReferences([]));
   }, [catalog]);
 
   useEffect(() => {
@@ -309,6 +314,12 @@ export default function DirectSaleEditor() {
             onTextValidityChange={setValidQuantity}
             aria-label="الكمية"
           />
+          {/* بند ٢٥ (قرارات المالك): دلالة الكمية معلنة — الكمية توثيق، والسعر إجمالي
+              البيع كاملًا لا سعر القطعة؛ لا يضرب النظام عنك ولا يخمّن. */}
+          <small>
+            عدد القطع في هذا البيع — للتوثيق. السعر الذي تدخله أدناه هو إجمالي البيع كاملًا، لا سعر
+            القطعة الواحدة.
+          </small>
         </label>
         <label className="micro-field">
           <span>السعر المتفق عليه بالدينار الأردني</span>
@@ -364,16 +375,67 @@ export default function DirectSaleEditor() {
           <span>
             ربط مرجع <small>اختياري — من «منتجاتي وخدماتي»</small>
           </span>
-          <select value={catalogItemId} onChange={event => setCatalogItemId(event.target.value)}>
+          <select
+            value={catalogItemId}
+            aria-label="ربط مرجع"
+            onChange={event => {
+              const selectedId = event.target.value;
+              setCatalogItemId(selectedId);
+              const selected = references.find(
+                candidate => candidate.id === selectedId && candidate.active,
+              );
+              if (!editing) {
+                /* P-002 (الخيار أ): اختيار مرجع يعبّئ اسمه واقتراحاته كمقترح معلن
+                 * قابل للتعديل — والسعر الفعلي هو ما تؤكده أنت عند الحفظ.
+                 * لا نعبّئ شيئًا في وضع التعديل: قيم البيع المسجّلة هي الحقيقة. */
+                if (selected) {
+                  if (!itemName.trim() || references.some(ref => ref.name === itemName.trim()))
+                    setItemName(selected.name);
+                  if (selected.defaultPriceMinor != null && revenueMinor === 0 && quantity === 1)
+                    setRevenueMinor(selected.defaultPriceMinor);
+                  if (selected.defaultUnitCostMinor != null && quantity === 1 && !costKnown) {
+                    setCostKnown(true);
+                    setCostMinor(selected.defaultUnitCostMinor);
+                  }
+                }
+                setSuggestedReference(selected ?? null);
+              }
+            }}
+          >
             <option value="">لا أربط هذا البيع بمرجع الآن</option>
-            {references.map(reference => (
-              <option key={reference.id} value={reference.id}>
-                {reference.name}
-              </option>
-            ))}
+            {references
+              .filter(reference => reference.active || reference.id === catalogItemId)
+              .map(reference => (
+                <option key={reference.id} value={reference.id}>
+                  {reference.name}
+                  {reference.active ? "" : " · مرجع موقوف"}
+                </option>
+              ))}
           </select>
-          <small>الربط لا يغيّر السعر ولا يفرض الكتالوج؛ من لا يستعمل المراجع يبيع كاملًا.</small>
+          {!editing ? (
+            <small>
+              {suggestedReference
+                ? suggestedReference.defaultPriceMinor != null
+                  ? quantity > 1
+                    ? `الاقتراح المسجّل سعرٌ للقطعة الواحدة (${formatMoneyMinor(
+                        suggestedReference.defaultPriceMinor,
+                      )} د.أ)؛ مع كمية أكبر من ١ لا يُعبّأ تلقائيًا — اضرب بنفسك وأدخل الإجمالي الفعلي.`
+                    : `سعر مقترح من المرجع: ${formatMoneyMinor(
+                        suggestedReference.defaultPriceMinor,
+                      )} د.أ — عدّله ليصير السعر الفعلي لهذا البيع.`
+                  : "هذا المرجع بلا سعر افتراضي مسجّل — السعر الفعلي ما تدخله بنفسك."
+                : "اختيار مرجع يعبّئ الاسم والاقتراحات فقط؛ لا يفرض سعرًا ولا يحسب مخزونًا."}
+            </small>
+          ) : (
+            <small>الربط لا يغيّر السعر ولا التكلفة المسجّلين؛ البيع يحتفظ بنسخته وقت حفظه.</small>
+          )}
         </label>
+        {suggestedReference && suggestedReference.defaultUnitCostMinor != null && !editing ? (
+          <p className="micro-save-note" role="status">
+            تكلفة مقترحة من المرجع: {formatMoneyMinor(suggestedReference.defaultUnitCostMinor)} د.أ — نسخة
+            تُحفظ مع هذا البيع وحده؛ عدّلها أو اختر «لا أعرف الآن» فتبقى التكلفة مجهولة بصدق.
+          </p>
+        ) : null}
         {/* D-001: الزبون حقل مستقل — يظهر عند وجود دين أو زبون مسجل، ويجتمع باسمه في دفتر الناس. */}
         {difference > 0 || customerName.trim() !== "" ? (
           <label className="micro-field">

@@ -583,6 +583,46 @@ describe("LocalTransferService", () => {
     ).toMatchObject({ ok: false, code: "validation_error" });
   });
 
+  /* P-002: اقتراحات المرجع تعبر التصدير/الاستيراد كما هي، والقيم الفاسدة تُرفض. */
+  it("round-trips catalog suggestion defaults and rejects corrupted default values", async () => {
+    const source = new MemoryLocalStore();
+    await source.saveProfile(profile);
+    const item = createCatalogItem({
+      id: "cup",
+      kind: "product",
+      name: "كوب جاهز",
+      unitLabel: "قطعة",
+      defaultPriceMinor: 250,
+      defaultUnitCostMinor: 120,
+      createdAt: "2026-08-23T09:00:00.000Z",
+      createdOperationKey: "catalog-cup",
+    });
+    await source.saveCatalogItem(item);
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    const target = new MemoryLocalStore();
+    const transfers = new LocalTransferService(target);
+    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    if (!preview.ok) throw new Error("defaults export should validate");
+    await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
+      ok: true,
+      value: { catalogItems: 1 },
+    });
+    await expect(target.listCatalogItems()).resolves.toMatchObject({
+      ok: true,
+      value: [
+        { id: "cup", defaultPriceMinor: 250, defaultUnitCostMinor: 120 },
+      ],
+    });
+    const corrupted = structuredClone(exported.value) as {
+      data: { catalogItems: Array<{ defaultPriceMinor?: number | null }> };
+    };
+    corrupted.data.catalogItems[0]!.defaultPriceMinor = -5;
+    expect(
+      new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(corrupted)),
+    ).toMatchObject({ ok: false, code: "validation_error" });
+  });
+
   it("round-trips a material purchase and rejects a purchase whose payment total is inconsistent", async () => {
     const source = new MemoryLocalStore();
     await source.saveProfile(profile);

@@ -58,6 +58,9 @@ export type LocalPreferences = {
   installBannerDismissedAt: string | null;
   /** آخر تصدير مُتحقق منه — أساس تذكير النسخ الاحتياطي (P-01 طبقة ١). ليست بيانات مالية. */
   lastVerifiedExportAt?: string | null;
+  /* O-001: تذكير النسخة الدوري اختياري — غيابه يعني «مفعّل» (السلوك القائم).
+   * إطفاؤه يخفي سطر التذكير من الشاشة الرئيسية فقط؛ لا يمس التصدير ولا بياناته. */
+  backupReminderEnabled?: boolean;
   updatedAt: string;
 };
 export type DraftIntent = "customer_order" | "planned_design";
@@ -97,6 +100,9 @@ export type OrderDraft = {
   costSnapshots: readonly DraftCostSnapshot[];
   activeCostSnapshotId: string | null;
   linkedOrderId: string | null;
+  /* U-004: مرجع التقدير الذي بدأت منه المسودة — أثر سجل فقط: التقدير لا يتغير،
+  * ومحرر التكلفة يعرض بنوده كاقتراحات قابلة للتعديل. حقل اختياري؛ القديم بلاه يُقرأ فارغًا. */
+  sourceEstimateId?: string | null;
   createdAt: string;
   updatedAt: string;
 };
