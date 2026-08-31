@@ -143,6 +143,15 @@ export default function CashWallets() {
           </div>
         )}
       </div>
+      {/* D-004: المحفظة المجهولة الافتتاح تُعرض مجهولةً بصراحة مع طريق إكمال موثق لاحقًا. */}
+      {state.overview.unknownOpeningCount > 0 ? (
+        <p className="micro-later-action" role="status">
+          <strong>محفظة بلا رصيد افتتاحي معروف</strong>
+          <small>
+            رصيدها المعروض الآن يخص الحركات المسجلة فقط؛ سجّل رصيدها الموثق لاحقًا ليزول الختم بصدق.
+          </small>
+        </p>
+      ) : null}
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">
           <span className="micro-overline">الأماكن المعلنة</span>
@@ -168,19 +177,30 @@ export default function CashWallets() {
                         ? "محفظة رقمية"
                         : "مكان كاش آخر"}{" "}
                   · {savedImpactCountLabel(wallet.entryCount)}
+                  {wallet.openingUnknown ? " · رصيد الافتتاح غير معروف" : ""}
                 </small>
               </div>
               <div className="micro-supplier-balance">
                 <b>
                   <MoneyValue minor={wallet.balanceMinor} />
                 </b>
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
-                  onClick={() => navigate(`/cash/wallet/${wallet.id}/adjust`)}
-                >
-                  <SlidersHorizontal aria-hidden="true" /> ضبط بسبب
-                </button>
+                {wallet.openingUnknown ? (
+                  <button
+                    className="micro-button micro-button-secondary"
+                    type="button"
+                    onClick={() => navigate(`/cash/wallet/${wallet.id}/opening-later`)}
+                  >
+                    سجّل رصيدًا موثقًا لاحقًا
+                  </button>
+                ) : (
+                  <button
+                    className="micro-button micro-button-secondary"
+                    type="button"
+                    onClick={() => navigate(`/cash/wallet/${wallet.id}/adjust`)}
+                  >
+                    <SlidersHorizontal aria-hidden="true" /> ضبط بسبب
+                  </button>
+                )}
               </div>
             </article>
           ))

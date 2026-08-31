@@ -12,6 +12,7 @@ import {
   type DirectConversion,
   type MeasurementUnit,
   type QuantityConversionResult,
+  type UpdateCatalogItemDefaultsInput,
 } from "./types.js";
 
 const required = (value: string, label: string) => {
@@ -32,6 +33,22 @@ const validTimestamp = (value: string, label: string) => {
   return normalized;
 };
 
+const nonNegativeSafeInteger = (value: number, label: string) => {
+  if (!Number.isSafeInteger(value) || value < 0)
+    throw new Error(`${label} يجب أن يكون عددًا صحيحًا غير سالب وآمنًا.`);
+  return value;
+};
+
+/* P-002: اقتراحات المرجع — إما غائبة (null) أو قيم واضحة؛ لا صفر ضمني ولا تفسير مبتكر. */
+function normalizeDefaultPriceMinor(value: number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  return positiveSafeInteger(value, "السعر الافتراضي المقترح");
+}
+function normalizeDefaultUnitCostMinor(value: number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  return nonNegativeSafeInteger(value, "التكلفة الافتراضية المقترحة");
+}
+
 export function createCatalogItem(input: CreateCatalogItemInput): CatalogItem {
   if (!catalogItemKinds.includes(input.kind)) throw new Error("نوع المرجع غير مدعوم.");
   const timestamp = validTimestamp(input.createdAt, "وقت إنشاء المرجع");
@@ -41,10 +58,27 @@ export function createCatalogItem(input: CreateCatalogItemInput): CatalogItem {
     name: required(input.name, "اسم المرجع"),
     unitLabel: input.unitLabel?.trim() || null,
     unitId: input.unitId?.trim() || null,
+    defaultPriceMinor: normalizeDefaultPriceMinor(input.defaultPriceMinor),
+    defaultUnitCostMinor: normalizeDefaultUnitCostMinor(input.defaultUnitCostMinor),
     active: true,
     createdAt: timestamp,
     updatedAt: timestamp,
     createdOperationKey: required(input.createdOperationKey, "مفتاح العملية"),
+  };
+}
+
+/* P-002 (الخيار أ): تحديث الاقتراحات فقط — اقتراح جديد لا يرجع ليغيّر بيعًا مسجلًا؛
+ * البيع المباشر يحفظ قيمه المستقلة (snapshot) وقت البيع. */
+export function updateCatalogItemDefaults(
+  item: CatalogItem,
+  input: UpdateCatalogItemDefaultsInput,
+): CatalogItem {
+  const timestamp = validTimestamp(input.updatedAt, "وقت تحديث المرجع");
+  return {
+    ...item,
+    defaultPriceMinor: normalizeDefaultPriceMinor(input.defaultPriceMinor),
+    defaultUnitCostMinor: normalizeDefaultUnitCostMinor(input.defaultUnitCostMinor),
+    updatedAt: timestamp,
   };
 }
 

@@ -120,11 +120,13 @@ function optionalCostVisibility(input: CostEditorInput): Record<OptionalCostFiel
 export default function CostEditor() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const { drafts, costs, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { drafts, costs, costEstimates, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [form, setForm] = useState<EditableCostInput | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+  /* U-004: بنود مقترحة من تقدير المصدر — تُعرض معلّنة كما هي: اقتراح لا تكلفة مؤكدة. */
+  const [proposalNotice, setProposalNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [materialSheet, setMaterialSheet] = useState<{
     index: number | null;
@@ -140,6 +142,8 @@ export default function CostEditor() {
     safetyBufferMinor: false,
   });
   const initialFormRef = useRef<CostEditorInput | null>(null);
+  /* U-004: التعليم مرة واحدة لكل فتح — لا يُعاد التعبئة فوق تعديل المالك. */
+  const estimatePrefillDoneRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -149,6 +153,7 @@ export default function CostEditor() {
         setState("error");
         return;
       }
+      setProposalNotice(null);
       const loadedInput = toInput(result.value, result.value.activeCostSnapshotId);
       setDraft(result.value);
       setForm(loadedInput);
@@ -156,11 +161,44 @@ export default function CostEditor() {
       setVisibleOptionalCosts(optionalCostVisibility(loadedInput));
       setNumericValidity({});
       setState("ready");
+      /* U-004: جسر التقدير → التكلفة — إن بدأت المسودة من تقدير ولم تُبنَ لها تكلفة بعد،
+       * تُعرض بنود التقدير كاقتراحات قابلة للتعديل والحذف؛ لا تُحفظ نسخة تكلفة إلا
+       * حين يقرر المالك الحفظ. التقدير نفسه لا يتغير، ومرجع المسودة أثر سجل فقط. */
+      const sourceEstimateId = result.value.sourceEstimateId ?? null;
+      const costAlreadyBuilt =
+        result.value.activeCostSnapshotId !== null || loadedInput.materialItems.length > 0;
+      if (sourceEstimateId && !costAlreadyBuilt && !estimatePrefillDoneRef.current) {
+        estimatePrefillDoneRef.current = true;
+        void costEstimates.get(sourceEstimateId).then(estimateResult => {
+          if (!active) return;
+          if (!estimateResult.ok || !estimateResult.value) {
+            setProposalNotice(
+              "لم نجد تقديرك المصدر (قد حُذف)؛ ابدأ التكلفة بنفسك — لم يتغير أي سجل.",
+            );
+            return;
+          }
+          const estimate = estimateResult.value;
+          const prefilled: EditableCostInput = {
+            materialItems: estimate.materialItems.map(item => ({ ...item, uiId: newUiId() })),
+            time: estimate.time ? { ...estimate.time } : null,
+            packagingMinor: estimate.packagingMinor,
+            deliveryMinor: estimate.deliveryMinor,
+            wasteMinor: estimate.wasteMinor,
+            safetyBufferMinor: estimate.safetyBufferMinor,
+            quantity: loadedInput.quantity,
+          };
+          setForm(prefilled);
+          setVisibleOptionalCosts(optionalCostVisibility(prefilled));
+          setProposalNotice(
+            `بنود مقترحة من تقديرك «${estimate.title}» — عدّل أو احذف ما تشاء قبل الحفظ؛ الحفظ وحده يوثّق نسخة التكلفة. هذه ليست تكلفة مؤكدة ولا سعرًا ملتزمًا به.`,
+          );
+        });
+      }
     });
     return () => {
       active = false;
     };
-  }, [dataVersion, drafts, params.id]);
+  }, [costEstimates, dataVersion, drafts, params.id]);
 
   const preview = useMemo(() => (form ? costs.preview(toServiceInput(form)) : null), [costs, form]);
   const hasInvalidNumericInput = Object.values(numericValidity).some(isValid => !isValid);
@@ -298,6 +336,12 @@ export default function CostEditor() {
         <span className="micro-overline">نسخة تكلفة محفوظة</span>
         <h1>{draft.itemName || "وصف القطعة"}</h1>
       </div>
+      {/* U-004: إشعار البنود المقترحة من التقدير المصدر — معلنة لا مفترضة. */}
+      {proposalNotice ? (
+        <p className="micro-save-note" role="status">
+          {proposalNotice}
+        </p>
+      ) : null}
       {preview?.ok ? (
         <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
           <span>سعر الحماية لكل قطعة (د.أ)</span>

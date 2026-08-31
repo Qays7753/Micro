@@ -66,6 +66,9 @@ export class ActualTimeService {
       workMode: input.workMode,
       actualTimeTrackingEnabled: input.actualTimeTrackingEnabled,
       installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
+      /* O-001: التفضيلات تُنقل كاملة — لا تفقد عمليات الوقت تاريخ النسخة ولا مفتاح التذكير. */
+      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
+      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
       updatedAt: this.now(),
     });
     return saved.ok

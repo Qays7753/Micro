@@ -66,7 +66,7 @@ export class HomeControlCenterService {
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {
-    const [profile, followUp, position, schedules, events, purchases, inventory, dueFollowUps, preferences] =
+    const [profile, followUp, position, schedules, events, purchases, inventory, dueFollowUps, preferences, directSales] =
       await Promise.all([
         this.store.getProfile(),
         this.dailyFollowUp.read(),
@@ -77,6 +77,7 @@ export class HomeControlCenterService {
         this.inventory.overview(),
         this.agreementContext.dueFollowUps(),
         this.store.getPreferences(),
+        this.store.listDirectSales(),
       ]);
     if (
       !profile.ok ||
@@ -88,6 +89,7 @@ export class HomeControlCenterService {
       !inventory.ok ||
       !dueFollowUps.ok ||
       !preferences.ok ||
+      !directSales.ok ||
       !profile.value
     )
       return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
@@ -402,9 +404,42 @@ export class HomeControlCenterService {
                 stored.followUpDate < today,
             ).length,
             daysSinceLastExport,
+            /* U-002: ملخص ما تغيّر منذ آخر تسجيل — أرقام مشتقة صادقة لا توقعات:
+             * لا شيء يتحرك في هذا التطبيق المحلي دون تسجيل المالك، فالصفر صفرٌ معلن. */
+            digest: (() => {
+              const since = lastActivityDate ?? today;
+              const activeSales = directSales.value.filter(
+                sale => (sale.status ?? "active") === "active" && sale.occurredOn > since,
+              );
+              const expenseEvents = events.value.filter(
+                event =>
+                  event.operatingExpenseDeltaMinor > 0 &&
+                  event.correctionType !== "reverse" &&
+                  event.occurredOn > since,
+              );
+              return {
+                salesCount: activeSales.length,
+                salesRevenueMinor: activeSales.reduce((total, sale) => total + sale.revenueMinor, 0),
+                expenseCount: expenseEvents.length,
+                expenseMinor: expenseEvents.reduce(
+                  (total, event) => total + event.operatingExpenseDeltaMinor,
+                  0,
+                ),
+                newOrderCount: orders.filter(
+                  stored => stored.order.createdAt.slice(0, 10) > since,
+                ).length,
+                upcomingFollowUpCount: dueFollowUps.value.upcoming.filter(
+                  stored => stored.followUpDate != null,
+                ).length,
+              };
+            })(),
           }
         : null;
-    const backupReminderDue = hasAnyData && (daysSinceLastExport === null || daysSinceLastExport >= 7);
+    /* O-001: تذكير النسخة الدوري اختياري — افتراضيًا مفعّل (السلوك القائم)، وإطفاؤه
+     * من الإعدادات يخفي سطر التذكير فقط، لا عمر النسخة في بطاقة الغياب. */
+    const backupReminderEnabled = preferences.value?.backupReminderEnabled ?? true;
+    const backupReminderDue =
+      backupReminderEnabled && hasAnyData && (daysSinceLastExport === null || daysSinceLastExport >= 7);
 
     return {
       ok: true,

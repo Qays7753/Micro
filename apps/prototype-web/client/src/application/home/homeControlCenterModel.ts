@@ -68,11 +68,22 @@ export type HomeRecentChange = {
   detail: string | null;
   href: string;
 };
-/* «أثناء غيابك» (التدفق ٢٣): بطاقة عودة بعد انقطاع — آخر تسجيل، ديون متأخرة، عمر النسخة. */
+/* «أثناء غيابك» (التدفق ٢٣): بطاقة عودة بعد انقطاع — آخر تسجيل، وملخص ما تغيّر
+ * منذ آخر تسجيل حيث يصح (بيع/مصروف/طلبات/متابعات)، وديون متأخرة، وعمر النسخة. */
+export type HomeAwayDigest = {
+  salesCount: number;
+  salesRevenueMinor: number;
+  expenseCount: number;
+  expenseMinor: number;
+  newOrderCount: number;
+  upcomingFollowUpCount: number;
+};
 export type HomeAwaySection = {
   daysSinceLastActivity: number;
   overdueDebtCount: number;
   daysSinceLastExport: number | null;
+  /* U-002: ملخص قصير قابل للفعل لا لوحة طويلة. */
+  digest: HomeAwayDigest;
 };
 export type HomeControlCenterInput = {
   activityName: string;

@@ -4,8 +4,58 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
+import {
+  applyPriceCut,
+  cancelDirectSale,
+  createDirectSale,
+  type DirectSale,
+} from "@micro-domain/direct-sale/index.js";
 
 const now = () => "2026-08-23T09:00:00.000Z";
+/* F-005: عامل بيع مباشر للاختبارات — الثمن المسجّل وقت البيع هو المعتمد. */
+async function saveDirectSale(
+  store: MemoryLocalStore,
+  input: {
+    id: string;
+    revenueMinor: number;
+    costMinor: number | null;
+    occurredOn: string;
+    collectedMinor?: number;
+    cancel?: boolean;
+    priceCut?: boolean;
+  },
+): Promise<DirectSale> {
+  let sale = createDirectSale({
+    id: input.id,
+    itemName: "قطعة",
+    quantity: 1,
+    revenueMinor: input.revenueMinor,
+    collectedMinor: input.collectedMinor,
+    catalogItemId: null,
+    customerName: null,
+    costMinor: input.costMinor,
+    occurredOn: input.occurredOn,
+    recordedAt: now(),
+    note: "بيع مباشر لاختبار الفترة",
+    idempotencyKey: `${input.id}-key`,
+  });
+  if (input.priceCut)
+    sale = applyPriceCut(sale, {
+      idempotencyKey: `${input.id}-cut`,
+      createdAt: now(),
+      reason: "خفّضتُ السعر",
+    });
+  if (input.cancel)
+    sale = cancelDirectSale(sale, {
+      kind: "cancel",
+      idempotencyKey: `${input.id}-cancel`,
+      createdAt: now(),
+      reason: "إلغاء موثق",
+    });
+  const saved = await store.saveDirectSale(sale);
+  if (!saved.ok) throw new Error("direct sale should save");
+  return saved.value;
+}
 function completedMaterialOrder(id: string) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
     currency: "JOD",
@@ -286,6 +336,314 @@ describe("ProjectFinancialService", () => {
         excludedOrderCount: 0,
         status: "recorded_only",
       },
+    });
+  });
+
+  /* F-005 (قرار المالك D-01): البيع المباشر داخل نتيجة الفترة. */
+  describe("F-005 direct-sale recognition in the period result", () => {
+    it("recognizes an active direct sale at its sale date with its recorded price and known cost", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await saveDirectSale(store, {
+        id: "f005-sale-in",
+        revenueMinor: 1200,
+        costMinor: 400,
+        occurredOn: "2026-08-10",
+      });
+      await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+        ok: true,
+        value: {
+          directSaleCount: 1,
+          directSaleCancelledCount: 0,
+          directSaleRevenueMinor: 1200,
+          directSaleCostKnownMinor: 400,
+          directSaleCostUnknownCount: 0,
+          resultMinor: 800,
+          status: "recorded_only",
+          reasons: [],
+        },
+      });
+      /* تاريخ البيع يحكم: نفس البيع خارج نطاق لاحق لا يُعترف ثانية. */
+      await expect(finance.readRecordedPeriodResult("2026-09-01", "2026-09-30")).resolves.toMatchObject({
+        ok: true,
+        value: {
+          directSaleCount: 0,
+          directSaleRevenueMinor: 0,
+          directSaleCostKnownMinor: 0,
+          resultMinor: 0,
+        },
+      });
+    });
+
+    it("excludes cancelled sales entirely from revenue and cost", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await saveDirectSale(store, {
+        id: "f005-cancelled",
+        revenueMinor: 900,
+        costMinor: 300,
+        occurredOn: "2026-08-12",
+        cancel: true,
+      });
+      await saveDirectSale(store, {
+        id: "f005-active",
+        revenueMinor: 500,
+        costMinor: 200,
+        occurredOn: "2026-08-13",
+      });
+      await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+        ok: true,
+        value: {
+          directSaleCount: 1,
+          directSaleCancelledCount: 1,
+          directSaleRevenueMinor: 500,
+          directSaleCostKnownMinor: 200,
+          resultMinor: 300,
+          status: "recorded_only",
+        },
+      });
+    });
+
+    it("keeps unknown cost unknown: no fabricated profit, incomplete status, and a named reason", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await saveDirectSale(store, {
+        id: "f005-unknown-cost",
+        revenueMinor: 1500,
+        costMinor: null,
+        occurredOn: "2026-08-14",
+      });
+      await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+        ok: true,
+        value: {
+          directSaleCount: 1,
+          directSaleRevenueMinor: 1500,
+          directSaleCostKnownMinor: 0,
+          directSaleCostUnknownCount: 1,
+          resultMinor: null,
+          status: "incomplete",
+          reasons: ["بيع مباشر بتكلفة غير معروفة"],
+        },
+      });
+    });
+
+    it("recognizes revenue once at the sale date without double-counting a later partial collection", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await saveDirectSale(store, {
+        id: "f005-partial",
+        revenueMinor: 1000,
+        costMinor: 250,
+        occurredOn: "2026-08-05",
+        collectedMinor: 400,
+      });
+      const august = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
+      if (!august.ok) throw new Error("august should read");
+      expect(august.value.directSaleRevenueMinor).toBe(1000);
+      expect(august.value.resultMinor).toBe(750);
+      /* القبض اللاحق لا يُنشئ إيرادًا ثانيًا ولا يغيّر نتيجة فترة البيع. */
+      const september = await finance.readRecordedPeriodResult("2026-09-01", "2026-09-30");
+      if (!september.ok) throw new Error("september should read");
+      expect(september.value.directSaleRevenueMinor).toBe(0);
+      expect(september.value.resultMinor).toBe(0);
+      const reread = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
+      if (!reread.ok) throw new Error("reread should read");
+      expect(reread.value).toEqual(august.value);
+    });
+
+    it("uses the recorded selling price after a documented price cut and keeps the original only in history", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await saveDirectSale(store, {
+        id: "f005-price-cut",
+        revenueMinor: 2000,
+        costMinor: 600,
+        occurredOn: "2026-08-06",
+        collectedMinor: 1600,
+        priceCut: true,
+      });
+      await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+        ok: true,
+        value: {
+          directSaleRevenueMinor: 1600,
+          directSaleCostKnownMinor: 600,
+          resultMinor: 1000,
+        },
+      });
+    });
+  });
+
+  /* F-006: لا تسليم أمانة يتجاوز المحتجز — الرصيد الأمين لا ينزل تحت الصفر أبدًا. */
+  describe("F-006 amanah over-release protection", () => {
+    it("rejects releasing more than the held amanah and keeps the ledger unchanged", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await finance.record({
+        type: "amanah_held_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-01",
+        note: "أمانة زبون",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-held",
+      });
+      const over = await finance.record({
+        type: "amanah_released_cash",
+        amountMinor: 5000,
+        occurredOn: "2026-08-20",
+        note: "تسليم أمانة",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-over",
+      });
+      expect(over).toMatchObject({
+        ok: false,
+        code: "validation_error",
+        message: "المبلغ المُسلَّم يتجاوز الأمانات بحوزتك — راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.",
+      });
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 3000 },
+      });
+    });
+
+    it("rejects any release when nothing is held at all", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await expect(
+        finance.record({
+          type: "amanah_released_cash",
+          amountMinor: 1000,
+          occurredOn: "2026-08-20",
+          note: "تسليم بلا أمانة مسجلة",
+          counterparty: null,
+          relatedEventId: null,
+          idempotencyKey: "f006-nothing",
+        }),
+      ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 0 },
+      });
+    });
+
+    it("allows releasing exactly the remaining held balance after a partial release", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await finance.record({
+        type: "amanah_held_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-01",
+        note: "أمانة",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-held-2",
+      });
+      await finance.record({
+        type: "amanah_released_cash",
+        amountMinor: 1000,
+        occurredOn: "2026-08-10",
+        note: "تسليم جزئي",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-partial-release",
+      });
+      /* المتبقي ٢٠٠٠: التسليم بها مسموح، وما بعدها مرفوض. */
+      await expect(
+        finance.record({
+          type: "amanah_released_cash",
+          amountMinor: 2000,
+          occurredOn: "2026-08-15",
+          note: "تسليم الباقي",
+          counterparty: "زبون",
+          relatedEventId: null,
+          idempotencyKey: "f006-rest",
+        }),
+      ).resolves.toMatchObject({ ok: true });
+      await expect(
+        finance.record({
+          type: "amanah_released_cash",
+          amountMinor: 1,
+          occurredOn: "2026-08-16",
+          note: "ما لم يعد موجودًا",
+          counterparty: "زبون",
+          relatedEventId: null,
+          idempotencyKey: "f006-beyond",
+        }),
+      ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 0 },
+      });
+    });
+
+    it("counts a reversal of a held amanah against the available release balance", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      const held = await finance.record({
+        type: "amanah_held_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-01",
+        note: "أمانة",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-held-3",
+      });
+      if (!held.ok) throw new Error("held should save");
+      await finance.reverse({
+        sourceEventId: held.value.id,
+        occurredOn: "2026-08-05",
+        reason: "سُجلت بالخطأ",
+        idempotencyKey: "f006-held-reverse",
+      });
+      await expect(
+        finance.record({
+          type: "amanah_released_cash",
+          amountMinor: 1000,
+          occurredOn: "2026-08-20",
+          note: "تسليم بعد تراجع القبض",
+          counterparty: "زبون",
+          relatedEventId: null,
+          idempotencyKey: "f006-after-reverse",
+        }),
+      ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 0 },
+      });
+    });
+
+    it("keeps amanah out of revenue, expense, profit, and owner capital while it moves cash", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await finance.record({
+        type: "amanah_held_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-01",
+        note: "أمانة",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-held-4",
+      });
+      await finance.record({
+        type: "amanah_released_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-02",
+        note: "تسليم كامل",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-release-4",
+      });
+      const position = await finance.readPosition();
+      if (!position.ok) throw new Error("position should read");
+      expect(position.value.recordedCashMinor).toBe(0);
+      expect(position.value.amanahHeldMinor).toBe(0);
+      expect(position.value.ownerCapitalRecordedMinor).toBe(0);
+      expect(position.value.operatingExpensesRecordedMinor).toBe(0);
+      await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+        ok: true,
+        value: { recordedOperatingExpenseMinor: 0, resultMinor: 0, status: "recorded_only" },
+      });
     });
   });
 

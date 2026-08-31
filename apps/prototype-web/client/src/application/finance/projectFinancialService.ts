@@ -67,6 +67,14 @@ export type RecordedPeriodResult = {
   sharedMissingBasisCount: number;
   sharedUnallocatedExpenseCount: number;
   legacyUnclassifiedExpenseCount: number;
+  /* F-005 (قرار المالك D-01): البيع المباشر يُعترف بإيراده في نتيجة الفترة بتاريخ
+   * البيع نفسه (occurredOn) لا بتاريخ القبض — والملغى مستبعد، والتكلفة غير المعروفة
+   * تبقى غير معروفة فلا يُعرض ربحٌ يبدو قاطعًا. قراءة مشتقة فقط: لا سجل يُعاد كتابته. */
+  directSaleCount: number;
+  directSaleCancelledCount: number;
+  directSaleRevenueMinor: number;
+  directSaleCostKnownMinor: number;
+  directSaleCostUnknownCount: number;
   resultMinor: number | null;
   finalOrderCount: number;
   excludedOrderCount: number;
@@ -413,15 +421,23 @@ export class ProjectFinancialService {
   }
 
   async readRecordedPeriodResult(from: string, to: string): Promise<FinanceResult<RecordedPeriodResult>> {
-    const [ordersResult, eventsResult, movementsResult, activationResult, materialsResult] =
+    const [ordersResult, eventsResult, movementsResult, activationResult, materialsResult, directSalesResult] =
       await Promise.all([
         this.store.listOrders(),
         this.store.listFinancialEvents(),
         this.store.listInventoryMovements(),
         this.store.getInventoryActivation(),
         this.store.listMaterials(),
+        this.store.listDirectSales(),
       ]);
-    if (!ordersResult.ok || !eventsResult.ok || !movementsResult.ok || !activationResult.ok || !materialsResult.ok)
+    if (
+      !ordersResult.ok ||
+      !eventsResult.ok ||
+      !movementsResult.ok ||
+      !activationResult.ok ||
+      !materialsResult.ok ||
+      !directSalesResult.ok
+    )
       return { ok: false, code: "storage_error", message: "تعذر قراءة نتيجة الفترة المحلية." };
     /* القرار ٩/١٠: تاريخ بدء إدارة المخزون — المعلن صراحة أو أقدم دليل للموجود القائم. */
     const inventoryManagedFrom =
@@ -459,6 +475,11 @@ export class ProjectFinancialService {
           sharedMissingBasisCount: 0,
           sharedUnallocatedExpenseCount: 0,
           legacyUnclassifiedExpenseCount: 0,
+          directSaleCount: 0,
+          directSaleCancelledCount: 0,
+          directSaleRevenueMinor: 0,
+          directSaleCostKnownMinor: 0,
+          directSaleCostUnknownCount: 0,
           resultMinor: null,
           finalOrderCount: 0,
           excludedOrderCount: 0,
@@ -468,6 +489,18 @@ export class ProjectFinancialService {
         },
       };
     const inPeriod = (date: string) => date >= from && date <= to;
+    /* F-005: الاعتراف بتاريخ البيع — القبض اللاحق لا يُنشئ إيرادًا ثانيًا ولا يُحسب
+     * مرتين: القبض يدخل الكاش والمركز فقط، والإيراد يُعترف مرة واحدة هنا. */
+    const directSalesInPeriod = directSalesResult.value.filter(sale => inPeriod(sale.occurredOn));
+    const activeDirectSales = directSalesInPeriod.filter(sale => (sale.status ?? "active") === "active");
+    const directSaleCancelledCount = directSalesInPeriod.length - activeDirectSales.length;
+    const directSaleRevenueMinor = activeDirectSales.reduce((total, sale) => total + sale.revenueMinor, 0);
+    const directSaleCostKnownMinor = activeDirectSales.reduce(
+      (total, sale) => total + (sale.costMinor ?? 0),
+      0,
+    );
+    /* التكلفة المجهولة تبقى مجهولة: جمعها هنا يعني «مجموع المعروف منها» لا «التكلفة صفر». */
+    const directSaleCostUnknownCount = activeDirectSales.filter(sale => sale.costMinor === null).length;
     const delivered = ordersResult.value
       .map(stored => {
         const event = stored.order.events.find(
@@ -539,6 +572,7 @@ export class ProjectFinancialService {
     const expenseNeedsReviewCount = reviewableOperatingEvents.filter(expenseNeedsReview).length;
     const reasons: string[] = [];
     if (excludedOrderCount > 0) reasons.push("طلبات مستبعدة");
+    if (directSaleCostUnknownCount > 0) reasons.push("بيع مباشر بتكلفة غير معروفة");
     if (sharedEstimatedExpenseCount > 0) reasons.push("حصة تقديرية");
     if (sharedMissingBasisCount > 0) reasons.push("حصة بلا مصدر");
     if (sharedUnallocatedExpenseCount > 0)
@@ -570,7 +604,21 @@ export class ProjectFinancialService {
         sharedMissingBasisCount,
         sharedUnallocatedExpenseCount,
         legacyUnclassifiedExpenseCount,
-        resultMinor: recognizedRevenueMinor - cogs.effectiveDirectCostMinor - recordedOperatingExpenseMinor,
+        directSaleCount: activeDirectSales.length,
+        directSaleCancelledCount,
+        directSaleRevenueMinor,
+        directSaleCostKnownMinor,
+        directSaleCostUnknownCount,
+        /* F-005: النتيجة تتضمن إيراد البيع المباشر وتكلفته المعروفة. وأي بيع بتكلفة
+         * مجهولة يمنع عرض رقم نهائي — «غير متاح» لا ربحًا متوهّمًا. */
+        resultMinor:
+          directSaleCostUnknownCount > 0
+            ? null
+            : recognizedRevenueMinor +
+              directSaleRevenueMinor -
+              cogs.effectiveDirectCostMinor -
+              directSaleCostKnownMinor -
+              recordedOperatingExpenseMinor,
         finalOrderCount: finals.length,
         excludedOrderCount,
         expenseNeedsReviewCount,
@@ -1084,6 +1132,19 @@ export class ProjectFinancialService {
           ok: false,
           code: "validation_error",
           message: "لا يمكن أن يتجاوز التسديد المتبقي المسجل على هذا الالتزام.",
+        };
+    }
+    /* F-006: تسليم الأمانة لا يتجاوز الرصيد الأمين المحتجز فعليًا — رصيد سالب
+     * يعني ملكًا زائفًا ونقص كاشٍ كاذبًا. المجهول لا يُقرّب: إن لم تُسجّل الأمانة
+     * بعد فسجلها أولًا، ثم سلّم منها. */
+    if (input.type === "amanah_released_cash") {
+      const heldMinor = summarizeFinancialEvents(existing.value).amanahMinor;
+      if (amountMinor > heldMinor)
+        return {
+          ok: false,
+          code: "validation_error",
+          message:
+            "المبلغ المُسلَّم يتجاوز الأمانات بحوزتك — راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.",
         };
     }
     try {

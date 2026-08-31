@@ -164,4 +164,69 @@ describe("CashContinuityService", () => {
       value: { totalWalletCashMinor: 10000 },
     });
   });
+
+  /* D-004: طريق إكمال الرصيد المجهول — حدث موثق لاحقًا يرفع الختم دون إعادة كتابة السجل. */
+  it("lifts the unknown-opening stamp via a later documented opening without rewriting prior entries", async () => {
+    const store = new MemoryLocalStore();
+    const cash = new CashContinuityService(store, now);
+    const finance = new ProjectFinancialService(store, now);
+    const opened = await cash.openWallet({
+      name: "درج مجهول البداية",
+      kind: "cash_drawer",
+      openingMinor: 0,
+      occurredOn: "2026-08-01",
+      note: "أنشأت المكان ولا أعرف رصيده",
+      operationKey: "d004-open-unknown",
+      openingStatus: "unknown",
+    });
+    if (!opened.ok) throw new Error("wallet should save");
+    /* الحالة المجهولة معروضة كمجهولة لا صفرًا. */
+    const before = await cash.overview();
+    if (!before.ok) throw new Error("overview should read");
+    expect(before.value.wallets[0]).toMatchObject({ openingUnknown: true });
+    expect(before.value.unknownOpeningCount).toBe(1);
+    expect(before.value.totalWalletCashMinor).toBe(0);
+    /* الرصيد الموثق لاحقًا بتاريخه وسببه. */
+    const documented = await cash.recordOpeningBalanceLater({
+      walletId: opened.value.wallet.id,
+      amountMinor: 4500,
+      occurredOn: "2026-08-20",
+      note: "عدّت الدرج صباح ٢٠ أب",
+      operationKey: "d004-later-opening",
+    });
+    expect(documented).toMatchObject({
+      ok: true,
+      value: { type: "opening_balance", cashDeltaMinor: 4500, occurredOn: "2026-08-20" },
+    });
+    /* الختم رُفع والرصيد الآن يشمل الافتتاح الموثق. */
+    const after = await cash.overview();
+    if (!after.ok) throw new Error("overview should read again");
+    expect(after.value.wallets[0]).toMatchObject({ openingUnknown: false, balanceMinor: 4500 });
+    expect(after.value.unknownOpeningCount).toBe(0);
+    expect(after.value.totalWalletCashMinor).toBe(4500);
+    /* الكاش ارتفع دون ربح ولا رأس مال. */
+    await expect(finance.readPosition()).resolves.toMatchObject({
+      ok: true,
+      value: {
+        recordedCashMinor: 4500,
+        walletCashMinor: 4500,
+        ownerCapitalRecordedMinor: 0,
+        operatingExpensesRecordedMinor: 0,
+      },
+    });
+    await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+      ok: true,
+      value: { resultMinor: 0 },
+    });
+    /* لا افتتاح ثانٍ لمحفظة اكتملت معرفتها. */
+    await expect(
+      cash.recordOpeningBalanceLater({
+        walletId: opened.value.wallet.id,
+        amountMinor: 100,
+        occurredOn: "2026-08-25",
+        note: "محاولة ثانية",
+        operationKey: "d004-second-opening",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+  });
 });

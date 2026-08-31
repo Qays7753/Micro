@@ -237,7 +237,7 @@ export default function Schedule() {
           <button
             className="micro-button micro-button-primary"
             type="button"
-            onClick={() => navigate("/orders/new")}
+            onClick={() => navigate("/orders/draft/new?intent=customer_order")}
           >
             بدء طلب
           </button>

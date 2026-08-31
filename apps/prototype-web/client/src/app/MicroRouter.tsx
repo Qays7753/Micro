@@ -31,6 +31,8 @@ const Suppliers = lazy(() => import("@/pages/Suppliers"));
 const SupplierPurchaseEditor = lazy(() => import("@/pages/SupplierPurchaseEditor"));
 const CashWallets = lazy(() => import("@/pages/CashWallets"));
 const CashWalletEditor = lazy(() => import("@/pages/CashWalletEditor"));
+/* D-004: إكمال رصيد الافتتاح المجهول لاحقًا — حدث موثق إضافي لا إعادة كتابة. */
+const CashOpeningLaterEditor = lazy(() => import("@/pages/CashOpeningLaterEditor"));
 const CashTransferEditor = lazy(() => import("@/pages/CashTransferEditor"));
 const CashAdjustmentEditor = lazy(() => import("@/pages/CashAdjustmentEditor"));
 const CashReversalEditor = lazy(() => import("@/pages/CashReversalEditor"));
@@ -73,6 +75,7 @@ export function MicroRouter() {
             <Route path="/suppliers/purchase/:id" component={SupplierPurchaseEditor} />
             <Route path="/suppliers" component={Suppliers} />
             <Route path="/cash/wallet/new" component={CashWalletEditor} />
+            <Route path="/cash/wallet/:id/opening-later" component={CashOpeningLaterEditor} />
             <Route path="/cash/transfer" component={CashTransferEditor} />
             <Route path="/cash/distribute" component={CashDistribution} />
             <Route path="/cash/count" component={CashCount} />

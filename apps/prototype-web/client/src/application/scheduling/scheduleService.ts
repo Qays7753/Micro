@@ -268,6 +268,9 @@ export class ScheduleService {
       workMode: current.value?.workMode ?? null,
       actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
       installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
+      /* O-001: التفضيلات تُنقل كاملة — لا تفقد عمليات الجدول تاريخ النسخة ولا مفتاح التذكير. */
+      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
+      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
       updatedAt: this.now(),
     });
     return saved.ok

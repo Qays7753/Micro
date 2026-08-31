@@ -691,6 +691,18 @@ function validCatalogItem(value: unknown): boolean {
     (value.unitId === undefined ||
       value.unitId === null ||
       (isString(value.unitId) && value.unitId.trim().length > 0)) &&
+    /* P-002: اقتراحات اختيارية — غائبة/فارغة أو عدد صحيح صالح؛ الملفات القديمة بلا
+     * الحقلين تُقبل كما هي (توافق التصدير/الاستيراد). */
+    (value.defaultPriceMinor === undefined ||
+      value.defaultPriceMinor === null ||
+      (typeof value.defaultPriceMinor === "number" &&
+        Number.isSafeInteger(value.defaultPriceMinor) &&
+        value.defaultPriceMinor > 0)) &&
+    (value.defaultUnitCostMinor === undefined ||
+      value.defaultUnitCostMinor === null ||
+      (typeof value.defaultUnitCostMinor === "number" &&
+        Number.isSafeInteger(value.defaultUnitCostMinor) &&
+        value.defaultUnitCostMinor >= 0)) &&
     typeof value.active === "boolean" &&
     isDate(value.createdAt) &&
     isDate(value.updatedAt) &&
@@ -980,6 +992,11 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
         data.preferences.lastVerifiedExportAt === null ||
         isDate(data.preferences.lastVerifiedExportAt)
       ) ||
+      /* O-001: مفتاح تذكير النسخة اختياري — غائب أو منطقي؛ لا تفسير آخر. */
+      !(
+        data.preferences.backupReminderEnabled === undefined ||
+        typeof data.preferences.backupReminderEnabled === "boolean"
+      ) ||
       !isDate(data.preferences.updatedAt))
   )
     return false;
@@ -1109,6 +1126,13 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !draft.costSnapshots.every(validDraftCostSnapshot) ||
       !(draft.activeCostSnapshotId === null || isString(draft.activeCostSnapshotId)) ||
       !(draft.linkedOrderId === null || isString(draft.linkedOrderId)) ||
+      /* U-004: مرجع التقدير المصدر اختياري — سلسلة أو غائب؛ بلا فحص مرجعي كي لا يُرفض
+       * ملف صالح بعد حذف تقدير قديم. */
+      !(
+        draft.sourceEstimateId === undefined ||
+        draft.sourceEstimateId === null ||
+        isString(draft.sourceEstimateId)
+      ) ||
       !isDate(draft.createdAt) ||
       !isDate(draft.updatedAt)
     )

@@ -7,7 +7,8 @@ import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
-import type { DraftIntent, OrderDraft } from "@/storage/local/types";
+import { formatMoneyMinor } from "@/presentation/formatters";
+import type { CostEstimate, DraftIntent, OrderDraft } from "@/storage/local/types";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
 type EditorState = "loading" | "ready" | "not_found" | "error";
@@ -42,17 +43,62 @@ function intentFromLocation(location: string): DraftIntent {
   const value = new URLSearchParams(location.split("?")[1] ?? "").get("intent");
   return value === "planned_design" ? "planned_design" : "customer_order";
 }
+/* U-004: جسر التقدير → المسودة — التقدير الذي بدأت منه، إن اختير من «أدواتي». */
+function estimateIdFromLocation(location: string): string | null {
+  const value = new URLSearchParams(location.split("?")[1] ?? "").get("estimate");
+  return value && value.trim() ? value : null;
+}
+const estimateKnowledgeLabel: Record<CostEstimate["knowledgeState"], string> = {
+  known: "معروفة",
+  estimated: "تقديرية",
+  partial: "جزئية",
+  incomplete: "ناقصة",
+  stale: "تحتاج مراجعة",
+  variable: "متغيرة",
+};
+/* U-004: القيم المنسوخة اقتراحات معلنة لا أسعار مؤكدة — تُنسخ مرة واحدة وتُترك للتعديل. */
+function prefillFromEstimate(virtual: OrderDraft, estimate: CostEstimate): OrderDraft {
+  const materials = estimate.materialItems
+    .map(item => `${item.name} ×${item.quantity} ${item.unit}`)
+    .join("، ");
+  const time = estimate.time
+    ? `${estimate.time.minutes} دقيقة بـ ${formatMoneyMinor(estimate.time.hourlyRateMinor)} د.أ/ساعة`
+    : null;
+  const specs = [
+    "(اقتراح من تقديرك — عدّل بحرية قبل أي اتفاق)",
+    materials ? `مواد مقترحة: ${materials}` : null,
+    time ? `وقت مقترح: ${time}` : null,
+    `سعر الحماية المقترح: ${formatMoneyMinor(estimate.priceFloorMinor)} د.أ (حالة المعرفة: ${
+      estimateKnowledgeLabel[estimate.knowledgeState]
+    })`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  return {
+    ...virtual,
+    itemName: estimate.title.trim() || estimate.materialItems[0]?.name?.trim() || "مسودة من تقدير",
+    quantity: estimate.quantity,
+    specifications: specs,
+    sourceEstimateId: estimate.id,
+  };
+}
+function proposalNotice(estimate: CostEstimate): string {
+  return `بدأت هذه المسودة من تقديرك «${estimate.title}» — القيم المنسوخة مقترحات قابلة للتعديل، التقدير نفسه لم يتغيّر وغير مالي، ولا شيء هنا سعر مؤكد أو التزام. تكلفته الكاملة تُبنى في خطوة «احسب التكلفة».`;
+}
 
 export default function DraftEditor() {
   const params = useParams<{ id: string }>();
   const [location, navigate] = useLocation();
-  const { drafts, catalog, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { drafts, catalog, costEstimates, dataVersion, notifyDataChanged } = usePrototypeServices();
   /* و٥: "new" = محرر نية بلا سجل بعد. */
   const isNewDraft = params.id === "new";
   const intent = intentFromLocation(location);
+  const estimateId = estimateIdFromLocation(location);
   const [state, setState] = useState<EditorState>("loading");
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  /* U-004: إشعار الاقتراحات المنسوخة من تقدير — القيم مقترحة قابلة للتعديل. */
+  const [estimateNotice, setEstimateNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isQuantityValid, setIsQuantityValid] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -113,6 +159,28 @@ export default function DraftEditor() {
       active = false;
     };
   }, [catalog, dataVersion]);
+  /* U-004: جسر التقدير → المسودة في أثر مستقل يعمل مرة واحدة — لا يُبطل بانتقال
+   * حالة التحميل إلى الجاهزية. القيم المقترحة تصل المسودة الافتراضية وتُنشئها؛
+   * والتقدير نفسه لا يتغير ولا تُنشأ أي حركة مالية. */
+  useEffect(() => {
+    if (!isNewDraft || !estimateId) return;
+    let estimateActive = true;
+    void costEstimates.get(estimateId).then(result => {
+      if (!estimateActive) return;
+      if (!result.ok || !result.value) {
+        setEstimateNotice("لم نجد التقدير المشار إليه (قد حُذف)؛ بدأت المسودة فارغة ولم يُنشأ شيء.");
+        return;
+      }
+      const estimate = result.value;
+      setDraft(current =>
+        current && current.id === "new" ? prefillFromEstimate(current, estimate) : current,
+      );
+      setEstimateNotice(proposalNotice(estimate));
+    });
+    return () => {
+      estimateActive = false;
+    };
+  }, [costEstimates, estimateId, isNewDraft]);
   /* و٥ (§٥-١): أول إدخال حقيقي يُنشئ المسودة — مرة واحدة، وبأحدث قيم مرئية.
    * لا تنقّل ولا تُفقد التركيز؛ المسار يبقى «new» حتى يغادر المستخدم المحرر. */
   function ensureMaterialized(): Promise<OrderDraft | null> {
@@ -123,19 +191,28 @@ export default function DraftEditor() {
     if (!initialValuesRef.current || equalDraftValues(values, initialValuesRef.current))
       return Promise.resolve(null);
     if (!materializePromiseRef.current) {
-      materializePromiseRef.current = drafts.create(current.intent, values).then(result => {
-        materializePromiseRef.current = null;
-        if (!result.ok) {
-          setMessage(result.message);
-          return null;
-        }
-        setDraft(latest =>
-          latest ? { ...result.draft, ...draftFormValues(latest) } : result.draft,
-        );
-        initialValuesRef.current = draftFormValues(result.draft);
-        notifyDataChanged();
-        return result.draft;
-      });
+      materializePromiseRef.current = drafts
+        .create(current.intent, {
+          ...values,
+          /* U-004: يبقى رابط التقدير المصدر مع المسودة — أثر سجل فقط. */
+          sourceEstimateId: current.sourceEstimateId ?? null,
+        })
+        .then(result => {
+          materializePromiseRef.current = null;
+          if (!result.ok) {
+            setMessage(result.message);
+            return null;
+          }
+          /* و٥/و٦: المرجع يتحدّث لحظة نجاح الإنشاء — قبل الالتزام — كي لا يُنشئ
+           * إدخال متزامن مسودة ثانية أثناء حل الوعد. */
+          draftRef.current = result.draft;
+          setDraft(latest =>
+            latest ? { ...result.draft, ...draftFormValues(latest) } : result.draft,
+          );
+          initialValuesRef.current = draftFormValues(result.draft);
+          notifyDataChanged();
+          return result.draft;
+        });
     }
     return materializePromiseRef.current;
   }
@@ -279,6 +356,12 @@ export default function DraftEditor() {
         <h1>{isCustomerOrder ? "طلب من عميل" : "تصميم مخطط"}</h1>
         <p>نسجل القصة والكمية الآن. التكلفة والاتفاق يأتيان بعد ذلك.</p>
       </div>
+      {/* U-004: إشعار الجسر من التقدير — اقتراحات معلنة لا أسعار مؤكدة. */}
+      {estimateNotice ? (
+        <p className="micro-save-note" role="status">
+          {estimateNotice}
+        </p>
+      ) : null}
       <section className="micro-form-card">
         <label className="micro-field">
           <span>
@@ -286,7 +369,9 @@ export default function DraftEditor() {
           </span>
           <input
             value={draft.itemName}
-            onChange={event => setDraft({ ...draft, itemName: event.target.value })}
+            onChange={event =>
+              setDraft(current => (current ? { ...current, itemName: event.target.value } : current))
+            }
             placeholder="مثال: صندوق خشبي مخصص"
             aria-invalid={hasFormError && !draft.itemName.trim()}
             aria-describedby={hasFormError ? "draft-form-error" : undefined}
@@ -298,7 +383,9 @@ export default function DraftEditor() {
           </span>
           <select
             value={draft.catalogItemId ?? ""}
-            onChange={event => setDraft({ ...draft, catalogItemId: event.target.value || null })}
+            onChange={event =>
+              setDraft(current => (current ? { ...current, catalogItemId: event.target.value || null } : current))
+            }
           >
             <option value="">لا أربط هذه المسودة بمرجع الآن</option>
             {catalogItems
@@ -326,7 +413,9 @@ export default function DraftEditor() {
             </span>
             <input
               value={draft.customerName}
-              onChange={event => setDraft({ ...draft, customerName: event.target.value })}
+              onChange={event =>
+                setDraft(current => (current ? { ...current, customerName: event.target.value } : current))
+              }
               placeholder="مثال: سارة"
             />
           </label>
@@ -342,7 +431,7 @@ export default function DraftEditor() {
             aria-label="الكمية بالأرقام 0–9"
             aria-invalid={hasFormError && !isQuantityValid}
             aria-describedby={hasFormError ? "draft-form-error" : undefined}
-            onNumericChange={quantity => setDraft({ ...draft, quantity })}
+            onNumericChange={quantity => setDraft(current => (current ? { ...current, quantity } : current))}
             onTextValidityChange={setIsQuantityValid}
           />
         </label>
@@ -352,7 +441,11 @@ export default function DraftEditor() {
           </span>
           <textarea
             value={draft.specifications}
-            onChange={event => setDraft({ ...draft, specifications: event.target.value })}
+            onChange={event =>
+              setDraft(current =>
+                current ? { ...current, specifications: event.target.value } : current,
+              )
+            }
             placeholder="لون، قياس، اسم أو تفاصيل مهمة…"
             rows={4}
             aria-describedby={hasFormError ? "draft-form-error" : undefined}

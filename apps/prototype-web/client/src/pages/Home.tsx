@@ -18,7 +18,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDateLong } from "@/presentation/formatters";
+import { formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
 import type {
   HomeControlCenterViewModel,
   HomeFinancialFact,
@@ -168,6 +168,37 @@ export default function Home() {
             <CloudSun aria-hidden="true" /> أثناء غيابك — آخر تسجيل قبل {model.awaySection.daysSinceLastActivity} يوم
           </b>
           <ul>
+            {/* U-002: ملخص قصير لما تغيّر منذ آخر تسجيل — صادقًا حتى لو كان «لا جديد». */}
+            <li>
+              {model.awaySection.digest.salesCount === 0 && model.awaySection.digest.expenseCount === 0 ? (
+                "لا شيء جديد سُجّل منذ آخر تسجيل."
+              ) : (
+                <>
+                  {model.awaySection.digest.salesCount > 0
+                    ? `بِيع ${model.awaySection.digest.salesCount} بـ ${formatMoneyMinor(
+                        model.awaySection.digest.salesRevenueMinor,
+                      )} د.أ`
+                    : ""}
+                  {model.awaySection.digest.expenseCount > 0
+                    ? `${model.awaySection.digest.salesCount > 0 ? " · " : ""}مصروف ${
+                        model.awaySection.digest.expenseCount
+                      } بـ ${formatMoneyMinor(model.awaySection.digest.expenseMinor)} د.أ`
+                    : ""}
+                  {" · منذ آخر تسجيل"}
+                </>
+              )}
+            </li>
+            {model.awaySection.digest.newOrderCount > 0 ? (
+              <li>طلبات جديدة: {model.awaySection.digest.newOrderCount}</li>
+            ) : null}
+            {model.awaySection.digest.upcomingFollowUpCount > 0 ? (
+              <li>
+                متابعات قادمة: {model.awaySection.digest.upcomingFollowUpCount} —{" "}
+                <button className="micro-text-action" type="button" onClick={() => navigate("/orders")}>
+                  راجعها
+                </button>
+              </li>
+            ) : null}
             {model.awaySection.overdueDebtCount > 0 ? (
               <li>
                 {model.awaySection.overdueDebtCount} دين فات موعد متابعته —{" "}

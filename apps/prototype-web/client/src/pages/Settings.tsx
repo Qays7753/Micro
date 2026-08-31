@@ -1,4 +1,15 @@
-import { Download, FileCheck2, Hammer, MoonStar, RotateCcw, Save, Shield, Upload } from "lucide-react";
+import {
+  BellRing,
+  CircleDollarSign,
+  Download,
+  FileCheck2,
+  Hammer,
+  MoonStar,
+  RotateCcw,
+  Save,
+  Shield,
+  Upload,
+} from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -41,6 +52,8 @@ export default function SettingsPage() {
   const [persistence, setPersistence] = useState<BrowserPersistenceReading | null>(null);
   /* ٥.٧: حالة النسخة المُتحققة وبوابة «ابدأ من جديد». */
   const [lastExport, setLastExport] = useState<string | null>(null);
+  /* O-001: مفتاح تذكير النسخة الدوري — مفعّل افتراضيًا وقابل للإطفاء بهدوء. */
+  const [backupReminder, setBackupReminder] = useState<boolean | null>(null);
   const [currentSummary, setCurrentSummary] = useState<TransferSummary | null>(null);
   const [resetFlow, setResetFlow] = useState<
     { phase: "idle" } | { phase: "exporting" } | { phase: "confirm" } | { phase: "done" }
@@ -53,6 +66,9 @@ export default function SettingsPage() {
     });
     void preferences.readLastVerifiedExport().then(value => {
       if (active && value.ok) setLastExport(value.exportedAt);
+    });
+    void preferences.readBackupReminderEnabled().then(value => {
+      if (active && value.ok) setBackupReminder(value.enabled);
     });
     void transfers.createExport().then(value => {
       if (active && value.ok) {
@@ -291,6 +307,62 @@ export default function SettingsPage() {
           <div>
             <h2>بياناتك على هذا الجهاز</h2>
             <p>لا توجد مزامنة سحابية أو تسجيل دخول أو نسخة احتياطية تلقائية هنا.</p>
+          </div>
+        </article>
+        {/* P-001: سياسة دقة المال معلنة — قرشان (منزلتان عشريتان) في كل مكان:
+            الإدخال والحساب والعرض والتصدير وحدةً واحدة متسقة، بلا تحويل يدوي
+            ولا تفسير جديد للوحدة. ما دون القرش يُقرّب عند الإدخال بثبات، لا
+            يُعرض رقمًا نصف قرش. */}
+        <article className="micro-setting-row">
+          <span className="micro-setting-icon">
+            <CircleDollarSign aria-hidden="true" />
+          </span>
+          <div>
+            <h2>دقة المال: قرشان للدينار</h2>
+            <p>
+              كل مبلغ في Micro يُدخل ويُحسب ويُعرض بمنزلتين عشريتين (القرش) — سعر البيع والتكلفة
+              والمصروف والتصدير سواء. الثمن بثلاث منزلات يُدخل بقيمة القرش المقرّبة عند الكتابة، بلا
+              قيم نصف قرش ولا وحدتين مختلفتين.
+            </p>
+          </div>
+        </article>
+        {/* O-001: تذكير نسخة دوري هادئ قابل للإطفاء — لا إزعاج يومي ولا حجب. */}
+        <article className="micro-setting-row">
+          <span className="micro-setting-icon">
+            <BellRing aria-hidden="true" />
+          </span>
+          <div>
+            <h2>تذكير النسخة الاحتياطية</h2>
+            {backupReminder === null ? (
+              <p>يُقرأ التفضيل…</p>
+            ) : (
+              <>
+                <p>
+                  {backupReminder
+                    ? "مفعّل — سطر هادئ في الشاشة الرئيسية بعد ٧ أيام من آخر تصدير مُتحقق."
+                    : "مطفأ — لن يظهر سطر التذكير؛ تصديرك وعمر نسختك يبقيان كما هما في الإعدادات."}
+                </p>
+                <button
+                  className="micro-text-action"
+                  type="button"
+                  disabled={isWorking}
+                  onClick={() => {
+                    const next = !backupReminder;
+                    setBackupReminder(next);
+                    void preferences.saveBackupReminderEnabled(next).then(result => {
+                      if (!result.ok) {
+                        setBackupReminder(!next);
+                        setNotice(result.message);
+                        return;
+                      }
+                      notifyDataChanged();
+                    });
+                  }}
+                >
+                  {backupReminder ? "أطفئ التذكير" : "فعّل التذكير"}
+                </button>
+              </>
+            )}
           </div>
         </article>
         {persistence !== null ? (

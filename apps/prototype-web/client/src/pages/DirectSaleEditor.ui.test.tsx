@@ -49,6 +49,65 @@ describe("DirectSaleEditor", () => {
     wouterMocks.navigate.mockReset();
   });
 
+  /* بند ٢٥ (قرارات المالك): دلالة الكمية معلنة — السعر إجمالي البيع كاملًا لا سعر
+   * القطعة، والاقتراح من المرجع سعرٌ للقطعة لا يُضرب تلقائيًا مع كمية أكبر. */
+  it("declares total-price semantics under the quantity field and never auto-multiplies a per-unit suggestion (item 25)", async () => {
+    wouterMocks.location = "/direct-sales/new";
+    const catalogItem = {
+      id: "ref-1",
+      kind: "product",
+      name: "كوب جاهز",
+      unitLabel: null,
+      unitId: null,
+      defaultPriceMinor: 600,
+      defaultUnitCostMinor: 250,
+      active: true,
+      createdAt: "2026-08-20T10:00:00.000Z",
+      updatedAt: "2026-08-20T10:00:00.000Z",
+      createdOperationKey: "catalog-op-1",
+    };
+    const create = vi.fn().mockResolvedValue({ ok: true, value: { ...sale, id: "sale-new" } });
+    mockedUsePrototypeServices.mockReturnValue({
+      catalog: {
+        list: vi.fn().mockResolvedValue({ ok: true, items: [catalogItem] }),
+      },
+      directSales: {
+        create,
+      },
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(<DirectSaleEditor />);
+
+    await screen.findByRole("heading", { name: "تسجيل بيع مباشر" });
+    /* دلالة الكمية معلنة قبل أي اختيار مرجع. */
+    expect(
+      screen.getByText(
+        (content, element) =>
+          element?.tagName === "SMALL" &&
+          content.includes("إجمالي البيع كاملًا") &&
+          content.includes("لا سعر"),
+      ),
+    ).toBeTruthy();
+
+    /* كمية ٢ ثم اختيار مرجع له اقتراح سعر: لا تعبئة تلقائية ولا ضرب عن المالك. */
+    fireEvent.change(screen.getByLabelText("الكمية"), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("ربط مرجع"), { target: { value: "ref-1" } });
+    expect(
+      await screen.findByText((content, element) => element?.tagName === "SMALL" && content.includes("سعرٌ للقطعة الواحدة")),
+    ).toBeTruthy();
+    /* السعر الفعلي بقي بيد المالك: لم يُعبّأ رقمًا عنه. */
+    expect((screen.getByLabelText("السعر المتفق عليه") as HTMLInputElement).value).toBe("0.00");
+
+    /* كمية ١ مع مرجع له اقتراح: تُعرض التعبئة كاقتراح قابل للتعديل. */
+    fireEvent.change(screen.getByLabelText("الكمية"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("ربط مرجع"), { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText("ربط مرجع"), { target: { value: "ref-1" } });
+    expect(
+      await screen.findByText((content, element) => element?.tagName === "SMALL" && content.includes("سعر مقترح من المرجع")),
+    ).toBeTruthy();
+  });
+
   it("loads a saved sale and submits its corrected values", async () => {
     const update = vi.fn().mockResolvedValue({ ok: true, value: sale });
     const notifyDataChanged = vi.fn();

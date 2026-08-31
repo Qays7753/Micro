@@ -11,7 +11,6 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import type { CostEstimate } from "@/storage/local/types";
-
 type EditableMaterial = {
   uiId: string;
   name: string;
@@ -25,15 +24,14 @@ type ModuleState =
   | "not_available"
   | "available_not_enabled"
   | "enabled"
-  | "partially_configured"
-  | "paused";
+  | "partially_configured";
 
 const moduleStateLabel: Record<ModuleState, string> = {
   not_available: "غير متاح في هذه المرحلة",
   available_not_enabled: "متاح — غير مفعّل",
   enabled: "مفعّل",
   partially_configured: "مفعّل جزئيًا — أكمل بياناته",
-  paused: "متوقف مؤقتًا",
+  /* Q-003/D-006: حالة «متوقف مؤقتًا» أُزيلت — لم يكن لها مُنتِج حقيقي. */
 };
 
 const knowledgeLabel: Record<string, string> = {
@@ -47,7 +45,16 @@ const knowledgeLabel: Record<string, string> = {
 
 export default function Tools() {
   const [, navigate] = useLocation();
-  const { costEstimates, dataVersion, inventory, catalog, notifyDataChanged } = usePrototypeServices();
+  const {
+    costEstimates,
+    dataVersion,
+    inventory,
+    catalog,
+    schedules,
+    supplierPurchases,
+    partyLedger,
+    notifyDataChanged,
+  } = usePrototypeServices();
   /* نموذج الحاسبة */
   const [title, setTitle] = useState("");
   const [materials, setMaterials] = useState<EditableMaterial[]>([
@@ -75,41 +82,69 @@ export default function Tools() {
     costEstimates.list().then(result => {
       if (active && result.ok) setSavedEstimates(result.value);
     });
-    Promise.all([inventory.readActivation(), catalog.listUnits(), catalog.list()]).then(
-      ([activation, units, items]) => {
-        if (!active || !activation.ok || !units.ok || !items.ok) return;
-        const catalogConfigured = items.items.length > 0;
-        setModuleStates([
-          {
-            label: "حاسبة التكلفة",
-            state: "enabled",
-            href: "/tools",
-          },
-          {
-            label: "المخزون",
-            state: activation.value.activatedOn ? "enabled" : "available_not_enabled",
-            href: "/inventory",
-          },
-          {
-            label: "الكتالوج والقوالب",
-            state: catalogConfigured
-              ? "enabled"
-              : units.units.length > 0
-                ? "partially_configured"
-                : "available_not_enabled",
-            href: "/catalog",
-          },
-          { label: "المواعيد والمتابعات", state: "available_not_enabled", href: "/schedule" },
-          { label: "الموردون والمشتريات", state: "available_not_enabled", href: "/suppliers" },
-          { label: "دفتر الناس", state: "available_not_enabled", href: "/parties" },
-          { label: "السوق والتوصيل", state: "not_available", href: "/tools" },
-        ]);
-      },
-    );
+    /* D-006: حالات الوحدات مشتقة من بيانات فعلية — لا سلسلة مثبتة تقول «غير مفعّل»
+     * لما فيه بيانات. الوحدة بلا منتج للحالة لا تدّعي حالة. */
+    Promise.all([
+      inventory.readActivation(),
+      catalog.listUnits(),
+      catalog.list(),
+      schedules.overview(),
+      supplierPurchases.readSummary(),
+      partyLedger.read(),
+    ]).then(([activation, units, items, scheduleOverview, purchases, parties]) => {
+      if (!active || !activation.ok || !units.ok || !items.ok) return;
+      const catalogConfigured = items.items.length > 0;
+      const scheduleConfigured =
+        scheduleOverview.ok &&
+        scheduleOverview.value.overdue.length +
+          scheduleOverview.value.today.length +
+          scheduleOverview.value.upcoming.length +
+          scheduleOverview.value.completedOrClosed >
+          0;
+      const suppliersConfigured = purchases.ok && purchases.value.purchaseCount > 0;
+      const partiesConfigured = parties.ok && parties.value.parties.length > 0;
+      setModuleStates([
+        {
+          label: "حاسبة التكلفة",
+          state: "enabled",
+          href: "/tools",
+        },
+        {
+          label: "المخزون",
+          state: activation.value.activatedOn ? "enabled" : "available_not_enabled",
+          href: "/inventory",
+        },
+        {
+          label: "الكتالوج والقوالب",
+          state: catalogConfigured
+            ? "enabled"
+            : units.units.length > 0
+              ? "partially_configured"
+              : "available_not_enabled",
+          href: "/catalog",
+        },
+        {
+          label: "المواعيد والمتابعات",
+          state: scheduleConfigured ? "enabled" : "available_not_enabled",
+          href: "/schedule",
+        },
+        {
+          label: "الموردون والمشتريات",
+          state: suppliersConfigured ? "enabled" : "available_not_enabled",
+          href: "/suppliers",
+        },
+        {
+          label: "دفتر الناس",
+          state: partiesConfigured ? "enabled" : "available_not_enabled",
+          href: "/parties",
+        },
+        { label: "السوق والتوصيل", state: "not_available", href: "/tools" },
+      ]);
+    });
     return () => {
       active = false;
     };
-  }, [costEstimates, inventory, catalog, dataVersion]);
+  }, [costEstimates, inventory, catalog, schedules, supplierPurchases, partyLedger, dataVersion]);
 
   const preview = useMemo(
     () =>
@@ -478,6 +513,19 @@ export default function Tools() {
                   تقديري · سعر الحماية <MoneyValue minor={estimate.priceFloorMinor} className="micro-inline-number" /> ·{" "}
                   {formatLocalDate(estimate.updatedAt.slice(0, 10))}
                 </small>
+                {/* U-004: جسر التقدير → المسودة — نسخ قيم مقترحة قابلة للتعديل؛ التقدير لا يتغير
+                    ولا تُنشأ أي حركة مالية، والمسودة تُحفظ عند تأكيد المالك فقط. */}
+                <div className="micro-form-actions">
+                  <button
+                    className="micro-text-action"
+                    type="button"
+                    onClick={() =>
+                      navigate(`/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`)
+                    }
+                  >
+                    ابدأ مسودة من هذا التقدير
+                  </button>
+                </div>
               </div>
               <button
                 className="micro-icon-button"
