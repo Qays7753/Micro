@@ -40,6 +40,8 @@ export default function DirectSaleEditor() {
   const [costKnown, setCostKnown] = useState(false);
   const [costMinor, setCostMinor] = useState(0);
   const [validCost, setValidCost] = useState(true);
+  /* D-001: زبون البيع الآجل حقل مستقل — يظهر حيث يوجد دين أو زبون مسجل. */
+  const [customerName, setCustomerName] = useState("");
   const [catalogItemId, setCatalogItemId] = useState("");
   const [references, setReferences] = useState<readonly CatalogItem[]>([]);
   const [occurredOn, setOccurredOn] = useState(() => localDateInAmman());
@@ -104,6 +106,7 @@ export default function DirectSaleEditor() {
       }
       setCostKnown(sale.costMinor !== null);
       setCostMinor(sale.costMinor ?? 0);
+      setCustomerName(sale.customerName ?? "");
       setCatalogItemId(sale.catalogItemId ?? "");
       setOccurredOn(sale.occurredOn);
       setNote(sale.note);
@@ -170,6 +173,7 @@ export default function DirectSaleEditor() {
           collectedMinor: resolvedCollected,
           collectionStatus: priceCutChosen ? "collected_in_full" : status,
           catalogItemId: catalogItemId || null,
+          customerName: customerName.trim() || null,
           costMinor: costKnown ? costMinor : null,
           occurredOn,
           note,
@@ -183,6 +187,7 @@ export default function DirectSaleEditor() {
           collectedMinor: resolvedCollected,
           collectionStatus: priceCutChosen ? undefined : status,
           catalogItemId: catalogItemId || null,
+          customerName: customerName.trim() || null,
           costMinor: costKnown ? costMinor : null,
           occurredOn,
           note,
@@ -369,6 +374,17 @@ export default function DirectSaleEditor() {
           </select>
           <small>الربط لا يغيّر السعر ولا يفرض الكتالوج؛ من لا يستعمل المراجع يبيع كاملًا.</small>
         </label>
+        {/* D-001: الزبون حقل مستقل — يظهر عند وجود دين أو زبون مسجل، ويجتمع باسمه في دفتر الناس. */}
+        {difference > 0 || customerName.trim() !== "" ? (
+          <label className="micro-field">
+            <span>اسم الزبون</span>
+            <input
+              value={customerName}
+              onChange={event => setCustomerName(event.target.value)}
+              aria-label="اسم الزبون"
+            />
+          </label>
+        ) : null}
         <LocalDateField label="تاريخ البيع" value={occurredOn} onChange={event => setOccurredOn(event.target.value)} />
         <label className="micro-field">
           <span>بيان مختصر</span>

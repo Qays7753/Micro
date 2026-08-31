@@ -66,6 +66,8 @@ export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
     collectedMinor: collection.collectedMinor,
     collectionStatus: collection.collectionStatus,
     catalogItemId: input.catalogItemId?.trim() || null,
+    /* D-001: الزبون حقل مستقل — الفراغ يُقرأ «بلا زبون» لا اسمًا مستخرجًا من الملاحظة. */
+    customerName: input.customerName?.trim() || null,
     costMinor: input.costMinor,
     profitMinor: input.costMinor === null ? null : input.revenueMinor - input.costMinor,
     occurredOn: input.occurredOn,
@@ -128,6 +130,8 @@ export function updateDirectSale(
     collectionStatus: input.collectionStatus,
     /* ربط المرجع: التمييز بين «لم يُذكر» (يبقى الأصلي) و«أُلغي صراحة» (null). */
     catalogItemId: input.catalogItemId !== undefined ? input.catalogItemId : source.catalogItemId ?? null,
+    /* D-001: الزبون بالمنطق نفسه — undefined يُبقي الأصل، وnull الصريح يمحو الزبون. */
+    customerName: input.customerName !== undefined ? input.customerName : source.customerName ?? null,
     costMinor: input.costMinor,
     occurredOn: input.occurredOn,
     recordedAt: source.recordedAt,

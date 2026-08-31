@@ -161,11 +161,19 @@ export default function Setup() {
             <button
               className="micro-text-action"
               type="button"
+              disabled={isSaving}
               onClick={() => {
+                /* F-002: تخطّي المحفظة يتخطى سؤال الموقف الافتتاحي أيضًا — لا يُسأل جواب
+                 * ثم يُهمل عند الحفظ. المحفظة والرصيد يُسجَّلان لاحقًا من «مالي». */
+                if (!activityName.trim()) {
+                  setError("حط اسم لمشروعك أولًا.");
+                  setStep(1);
+                  return;
+                }
                 setWalletName("");
                 setOpeningChoice(null);
                 setError(null);
-                setStep(3);
+                void submit();
               }}
             >
               تخطَّ المحفظة الآن — أسجلها لاحقًا من «مالي» <ArrowLeft aria-hidden="true" />

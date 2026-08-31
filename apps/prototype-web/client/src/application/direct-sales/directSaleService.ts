@@ -19,6 +19,8 @@ export type DirectSaleRecordInput = {
   collectionStatus?: DirectSaleCollectionStatus;
   /** ربط مرجع اختياري (القيد التاسع — R-1). */
   catalogItemId?: string | null;
+  /* D-001: زبون البيع الآجل كبيانات مستقلة — لا اسم مدفون في الملاحظة. */
+  customerName?: string | null;
   costMinor: number | null;
   occurredOn: string;
   note: string;
@@ -86,6 +88,7 @@ export class DirectSaleService {
         collectedMinor: input.collectedMinor,
         collectionStatus: input.collectionStatus,
         catalogItemId: input.catalogItemId ?? null,
+        customerName: input.customerName ?? null,
         costMinor: input.costMinor,
         occurredOn: input.occurredOn,
         recordedAt: this.now(),

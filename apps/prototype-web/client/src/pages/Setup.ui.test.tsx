@@ -1,0 +1,88 @@
+/** @vitest-environment jsdom */
+
+import React from "react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import Setup from "@/pages/Setup";
+
+vi.mock("@/app/PrototypeServicesContext", () => ({
+  usePrototypeServices: vi.fn(),
+}));
+
+const wouterMocks = vi.hoisted(() => ({
+  navigate: vi.fn(),
+}));
+
+vi.mock("wouter", () => ({
+  useLocation: () => ["/setup", wouterMocks.navigate],
+}));
+
+const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+
+/* F-002 (انحدار): كان تخطّي المحفظة يعرض سؤال الموقف الافتتاحي ثم يهمل جوابه عند
+ * الحفظ. الحارس هنا: التخطّي يحفظ المشروع مباشرة، ولا يُسأل سؤال يُهمل جوابه أبدًا. */
+describe("Setup wallet-skip path never asks and discards (F-002 regression)", () => {
+  afterEach(() => cleanup());
+
+  beforeEach(() => {
+    wouterMocks.navigate.mockReset();
+  });
+
+  it("skipping the wallet saves the profile directly and never shows the opening-position step", async () => {
+    const save = vi.fn().mockResolvedValue({ ok: true, profile: { id: "profile-1" } });
+    const openWallet = vi.fn();
+    const notifyDataChanged = vi.fn();
+    mockedUsePrototypeServices.mockReturnValue({
+      profiles: { save },
+      cashContinuity: { openWallet },
+      notifyDataChanged,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(<Setup />);
+
+    fireEvent.change(screen.getByLabelText("اسم المشروع"), { target: { value: "مشغل ليان" } });
+    fireEvent.click(screen.getByRole("button", { name: "التالي" }));
+
+    const skipButton = await screen.findByRole("button", { name: /تخطَّ المحفظة الآن/ });
+    fireEvent.click(skipButton);
+
+    await waitFor(() => expect(save).toHaveBeenCalledWith("مشغل ليان"));
+    await waitFor(() =>
+      expect(wouterMocks.navigate).toHaveBeenCalledWith("/foundation", { replace: true }),
+    );
+    expect(openWallet).not.toHaveBeenCalled();
+    expect(screen.queryByText("شو وضع الدرج هلق؟")).toBeNull();
+  });
+
+  it("keeping the wallet still asks the opening question and persists the wallet with it", async () => {
+    const save = vi.fn().mockResolvedValue({ ok: true, profile: { id: "profile-2" } });
+    const openWallet = vi.fn().mockResolvedValue({ ok: true, value: {} });
+    const notifyDataChanged = vi.fn();
+    mockedUsePrototypeServices.mockReturnValue({
+      profiles: { save },
+      cashContinuity: { openWallet },
+      notifyDataChanged,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(<Setup />);
+
+    fireEvent.change(screen.getByLabelText("اسم المشروع"), { target: { value: "مشغل ليان" } });
+    fireEvent.click(screen.getByRole("button", { name: "التالي" }));
+    await screen.findByRole("button", { name: /تخطَّ المحفظة الآن/ });
+    fireEvent.click(screen.getByRole("button", { name: "التالي" }));
+
+    expect(await screen.findByText("شو وضع الدرج هلق؟")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("الموقف الافتتاحي"), { target: { value: "zero" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وافتح صفحة الأساس" }));
+
+    await waitFor(() =>
+      expect(openWallet).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "الدرج", openingMinor: 0, openingStatus: "known" }),
+      ),
+    );
+    await waitFor(() =>
+      expect(wouterMocks.navigate).toHaveBeenCalledWith("/foundation", { replace: true }),
+    );
+  });
+});

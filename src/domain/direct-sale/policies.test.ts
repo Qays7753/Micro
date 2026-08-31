@@ -197,3 +197,61 @@ describe("direct sale price cut and edit trail (X-06)", () => {
     expect(edited.revenueMinor).toBe(400);
   });
 });
+
+/* D-001 (انحدار): هوية زبون البيع الآجل حقل مستقل — لا اسم مستخرج من الملاحظة. */
+describe("direct sale credit customer as structured data (D-001)", () => {
+  it("stores the credit-sale customer as a structured field, trimmed", () => {
+    expect(
+      createDirectSale({
+        ...input,
+        costMinor: null,
+        collectedMinor: 300,
+        collectionStatus: "partial_debt",
+        customerName: "  خالد  ",
+      }),
+    ).toMatchObject({ customerName: "خالد", collectionStatus: "partial_debt" });
+    expect(createDirectSale({ ...input, costMinor: null })).toMatchObject({ customerName: null });
+  });
+
+  it("keeps the original customer when an edit does not mention it, and clears it on explicit null", () => {
+    const original = createDirectSale({
+      ...input,
+      costMinor: null,
+      collectedMinor: 300,
+      collectionStatus: "partial_debt",
+      customerName: "خالد",
+    });
+    const editedWithoutCustomer = updateDirectSale(
+      original,
+      {
+        itemName: original.itemName,
+        quantity: 1,
+        revenueMinor: 500,
+        collectedMinor: 400,
+        collectionStatus: "partial_debt",
+        costMinor: null,
+        occurredOn: original.occurredOn,
+        note: original.note,
+      },
+      { kind: "edit", idempotencyKey: "edit-op-c1", createdAt: "2026-08-30T09:00:00.000Z", reason: "قبض إضافي" },
+    );
+    expect(editedWithoutCustomer.customerName).toBe("خالد");
+
+    const editedWithNull = updateDirectSale(
+      original,
+      {
+        itemName: original.itemName,
+        quantity: 1,
+        revenueMinor: 500,
+        collectedMinor: 500,
+        collectionStatus: "collected_in_full",
+        customerName: null,
+        costMinor: null,
+        occurredOn: original.occurredOn,
+        note: original.note,
+      },
+      { kind: "edit", idempotencyKey: "edit-op-c2", createdAt: "2026-08-30T10:00:00.000Z", reason: "حُدد الزبون لاحقًا" },
+    );
+    expect(editedWithNull.customerName).toBeNull();
+  });
+});
