@@ -113,6 +113,7 @@ export default function Orders() {
                       <> من {(sale.revenueMinor / 100).toFixed(2)} المتفق</>
                     ) : null}
                   </small>
+                  {sale.customerName ? <small>الزبون: {sale.customerName}</small> : null}
                   {sale.status !== "cancelled" && sale.revenueMinor > sale.collectedMinor ? (
                     <small className="micro-row-next-action">
                       {sale.collectionStatus === "partial_debt"

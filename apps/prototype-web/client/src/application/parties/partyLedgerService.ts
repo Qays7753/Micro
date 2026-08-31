@@ -106,11 +106,12 @@ export class PartyLedgerService {
       }
     }
 
-    /* ٢) البيع المباشر: الديون المعلنة والقبض المحصل — DirectSale بلا حقل عميل،
-     * فيُجمع فقط ما صُرّح بدينه عبر الملاحظة/الاسم داخل البند. */
+    /* ٢) البيع المباشر: الديون المعلنة والقبض المحصل — D-001: الزبون حقل مستقل
+     * (customerName)، والملاحظة القديمة مصدر احتياطي للسجلات التي سبق الحقل فقط. */
     for (const sale of sales.value as readonly DirectSale[]) {
       if ((sale.status ?? "active") !== "active") continue;
-      const name = sale.note?.trim() ? extractPartyFromNote(sale.note) : null;
+      const name =
+        sale.customerName?.trim() || (sale.note?.trim() ? extractPartyFromNote(sale.note) : null);
       if (!name) continue;
       const entry = party(name);
       if (sale.collectionStatus === "partial_debt") {
@@ -200,11 +201,23 @@ export class PartyLedgerService {
   }
 }
 
-/* استخراج اسم الطرف من ملاحظة البيع المباشر بصيغة «عميل: اسم» أو «لـ اسم». */
+/* استخراج اسم الطرف من ملاحظة البيع المباشر بصيغة «عميل: اسم» أو «لـ اسم» — للسجلات
+ * القديمة فقط (قبل حقل customerName): الاسم ينتهي عند شرطة الوصف « — ...» إن وجدت،
+ * فلا يظهر الوصف جزءًا من اسم الشخص. لا يُعاد كتابة أي سجل مخزّن. */
 function extractPartyFromNote(note: string): string | null {
+  const nameBeforeDescriptor = (raw: string): string | null => {
+    const beforeDash = raw.split("—")[0]?.trim();
+    return beforeDash || null;
+  };
   const colonMatch = note.match(/^(?:عميل|لـ|للعميل)\s*:\s*(.+)$/u);
-  if (colonMatch?.[1]?.trim()) return colonMatch[1].trim();
+  if (colonMatch?.[1]) {
+    const name = nameBeforeDescriptor(colonMatch[1]);
+    if (name) return name;
+  }
   const prefixed = note.match(/^(?:لـ|للعميل)\s+(.+)$/u);
-  if (prefixed?.[1]?.trim()) return prefixed[1].trim();
+  if (prefixed?.[1]) {
+    const name = nameBeforeDescriptor(prefixed[1]);
+    if (name) return name;
+  }
   return null;
 }

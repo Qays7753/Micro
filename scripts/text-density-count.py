@@ -254,7 +254,9 @@ CAPS: dict[str, int] = {
     "Finance": 122,
     "OrderDetail": 127,
     "Orders": 73,
-    "DirectSaleEditor": 42,
+    # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
+    # credit-sale customer identity field — one mandated label, no prose.
+    "DirectSaleEditor": 43,
     "DraftEditor": 36,
     "CostEditor": 53,
     "AgreementEditor": 55,

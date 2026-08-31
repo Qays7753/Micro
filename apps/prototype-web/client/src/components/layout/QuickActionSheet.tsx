@@ -175,11 +175,11 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       revenueMinor: saleAmountMinor,
       collectedMinor: saleOnCredit ? saleCollectedMinor : undefined,
       collectionStatus: saleOnCredit ? "partial_debt" : undefined,
+      /* D-001: الزبون بيانات مستقلة — لا يُدفن اسمه في نص الملاحظة. */
+      customerName: saleOnCredit ? saleCustomer.trim() : null,
       costMinor: saleCostKnown ? saleCostMinor : null,
       occurredOn: localDateInAmman(),
-      note: saleOnCredit
-        ? `عميل: ${saleCustomer.trim()} — بيع آجل من ورقة الإضافة`
-        : "بيع مباشر من ورقة الإضافة",
+      note: saleOnCredit ? "بيع آجل من ورقة الإضافة" : "بيع مباشر من ورقة الإضافة",
       idempotencyKey: saleKeyRef.current,
     });
     if (!result.ok) {

@@ -8,6 +8,9 @@ export type DirectSale = {
   currency: Currency;
   revenueMinor: MoneyMinor;
   collectedMinor: MoneyMinor;
+  /* D-001: هوية زبون البيع الآجل حقل مستقل صادق — لا تُستخرج من نص الملاحظة.
+   * اختياري كسجلات ما قبل الحقل؛ غيابه يعني «بدون زبون مسجل». */
+  customerName?: string | null;
   /* X-06 (و٤): حالة الفرق بين المتفق والمقبوض — «partial_debt» يظهر الفرق في «لي عند
    * العملاء»، و«partial_needs_review» فرق لم يُقرَّر بعد. الحقل إضافي اختياري:
    * السجلات القديمة بلا حقوله تُقرأ قبضًا كاملًا (collected === revenue دائمًا عندها). */
@@ -49,6 +52,8 @@ export type CreateDirectSaleInput = {
   /** Defaults to the derived status of collected vs revenue when absent. */
   collectionStatus?: DirectSaleCollectionStatus | undefined;
   catalogItemId?: string | null | undefined;
+  /** D-001: اسم الزبون للدين — اختياري؛ الفراغ الصريح يعني بلا زبون. */
+  customerName?: string | null | undefined;
   costMinor: MoneyMinor | null;
   occurredOn: string;
   recordedAt: string;
@@ -63,6 +68,8 @@ export type UpdateDirectSaleInput = {
   collectedMinor?: MoneyMinor | undefined;
   collectionStatus?: DirectSaleCollectionStatus | undefined;
   catalogItemId?: string | null | undefined;
+  /** D-001: undefined يُبقي زبون الأصل؛ null الصريح يمحو الزبون. */
+  customerName?: string | null | undefined;
   costMinor: MoneyMinor | null;
   occurredOn: string;
   note: string;

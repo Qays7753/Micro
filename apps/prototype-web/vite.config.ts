@@ -13,6 +13,10 @@ import { VitePWA } from "vite-plugin-pwa";
 
 const PROJECT_ROOT = import.meta.dirname;
 const LOG_DIR = path.join(PROJECT_ROOT, ".manus-logs");
+/* Q-002: أدوات التطوير تُخزّن خارج public/ — لا تنسخ إلى أي بناء إنتاجي،
+ * وتُقدّم في التطوير فقط عبر وسيط الخادم أدناه. */
+const DEV_TOOLS_DIR = path.join(PROJECT_ROOT, "dev-tools");
+const DEBUG_COLLECTOR_PATH = path.join(DEV_TOOLS_DIR, "debug-collector.js");
 const MAX_LOG_SIZE_BYTES = 1 * 1024 * 1024; // 1MB per log file
 const TRIM_TARGET_BYTES = Math.floor(MAX_LOG_SIZE_BYTES * 0.6); // Trim to 60% to avoid constant re-trimming
 
@@ -98,6 +102,17 @@ function vitePluginManusDebugCollector(): Plugin {
     },
 
     configureServer(server: ViteDevServer) {
+      /* Q-002: تقديم أداة التطوير من خارج public/ — الإنتاج لا يراها أبدًا. */
+      server.middlewares.use("/__manus__/debug-collector.js", (_req, res) => {
+        try {
+          res.setHeader("Content-Type", "application/javascript");
+          res.end(fs.readFileSync(DEBUG_COLLECTOR_PATH));
+        } catch {
+          res.writeHead(404, { "Content-Type": "text/plain" });
+          res.end("dev debug collector not found");
+        }
+      });
+
       // POST /__manus__/logs: Browser sends logs (written directly to files)
       server.middlewares.use("/__manus__/logs", (req, res, next) => {
         if (req.method !== "POST") {

@@ -195,13 +195,20 @@ const isSafeMoney = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 const isSignedMoney = (value: unknown) =>
   typeof value === "number" && Number.isSafeInteger(value);
+/* X-06: مراجعة البيع المباشر قد تكون تعديلًا أو إلغاءً أو تخفيض سعر موثقًا —
+ * كلها سلوك نطامي تنتجه الوحدة، فلا يرفض التصدير المُتحقق أياها. */
 const isDirectSaleRevision = (value: unknown): boolean =>
   isRecord(value) &&
-  (value.kind === "edit" || value.kind === "cancel") &&
+  (value.kind === "edit" || value.kind === "cancel" || value.kind === "price_cut") &&
   isString(value.idempotencyKey) &&
   value.idempotencyKey.trim().length > 0 &&
   isDate(value.createdAt) &&
-  (value.reason === null || (isString(value.reason) && (value.kind === "edit" || value.reason.trim().length > 0)));
+  (value.reason === null ||
+    (isString(value.reason) &&
+      (value.kind === "edit" || value.kind === "price_cut" || value.reason.trim().length > 0))) &&
+  (value.beforeRevenueMinor === undefined ||
+    value.beforeRevenueMinor === null ||
+    isSafeMoney(value.beforeRevenueMinor));
 
 function isDirectSale(value: unknown): value is DirectSale {
   if (
@@ -214,7 +221,21 @@ function isDirectSale(value: unknown): value is DirectSale {
     value.currency !== "JOD" ||
     !isSafeMoney(value.revenueMinor) ||
     value.revenueMinor <= 0 ||
-    value.collectedMinor !== value.revenueMinor ||
+    /* X-06: القبض الجزئي (بيع آجل أو تخفيض) سلوك نطامي — المقبوض لا يتجاوز المتفق. */
+    !isSafeMoney(value.collectedMinor) ||
+    value.collectedMinor > value.revenueMinor ||
+    !(
+      value.collectionStatus === undefined ||
+      value.collectionStatus === "collected_in_full" ||
+      value.collectionStatus === "partial_debt" ||
+      value.collectionStatus === "partial_needs_review"
+    ) ||
+    /* D-001: الزبون حقل مستقل اختياري — null أو اسم غير فارغ. */
+    !(
+      value.customerName === undefined ||
+      value.customerName === null ||
+      (isString(value.customerName) && value.customerName.trim().length > 0)
+    ) ||
     !(value.costMinor === null || isSafeMoney(value.costMinor)) ||
     !(value.profitMinor === null || isSignedMoney(value.profitMinor)) ||
     !isString(value.occurredOn) ||

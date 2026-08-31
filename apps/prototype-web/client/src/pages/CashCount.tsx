@@ -8,6 +8,11 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import {
+  cashCountDifferenceReason,
+  cashCountSettledMessage,
+  cashCountSettlementNote,
+} from "@/presentation/cashCountMessages";
 import { localDateInAmman } from "@/presentation/formatters";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 
@@ -83,11 +88,9 @@ export default function CashCount() {
       walletId: wallet.id,
       deltaMinor: differenceMinor,
       occurredOn: localDateInAmman(),
-      note: `تسوية عدّ الصندوق — المعدود ${countedMinor / 1000} د.أ`,
-      reason:
-        differenceMinor > 0
-          ? `فرق زيادة عند العدّ (+${Math.abs(differenceMinor)})`
-          : `فرق نقص عند العدّ (-${Math.abs(differenceMinor)})`,
+      /* F-001: النصوص عبر البنّاء المُختبر — مقياس المال 1/100 في كل رسالة. */
+      note: cashCountSettlementNote(countedMinor),
+      reason: cashCountDifferenceReason(differenceMinor),
       operationKey: `cash-count-${wallet.id}-${Date.now()}`,
     });
     setSaving(false);
@@ -97,9 +100,7 @@ export default function CashCount() {
     }
     notifyDataChanged();
     setDone({ differenceMinor, newBalanceMinor: countedMinor });
-    setMessage(
-      `انسجّلت التسوية ✓ — الصندوق صار ${countedMinor / 1000} د.أ. ولا رقم قديم تغيّر؛ الفرق أثر من اليوم فقط.`,
-    );
+    setMessage(cashCountSettledMessage(countedMinor));
   }
 
   if (done) {
