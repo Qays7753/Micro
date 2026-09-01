@@ -86,8 +86,8 @@ export default function Collect() {
     return () => {
       active = false;
     };
-    /* requested مقصود خارج الاعتماديات: يُقرأ مرة عند الفتح لا مع كل بحث. */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    /* requested مقصود خارج الاعتماديات: يُقرأ مرة عند الفتح لا مع كل بحث.
+     * المعامل يُثبَّت في selectedId عند أول تحميل؛ تغيير البحث لا يعيد فتح الذمة. */
   }, [collections, cashContinuity, dataVersion]);
 
   const ready = state.phase === "ready" ? state : null;

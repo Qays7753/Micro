@@ -20,9 +20,7 @@ function baseInput(overrides: Partial<CreateCashEntryInput> = {}): CreateCashEnt
 
 describe("مصدر التخصيص في سجل المحفظة (المجموعة ٢ §9.1)", () => {
   it("يقبل مصدرًا معلومًا مع نوعه في حركة التخصيص", () => {
-    const entry = createCashContinuityEntry(
-      baseInput({ sourceRefId: "sale-1", sourceRefKind: "sale" }),
-    );
+    const entry = createCashContinuityEntry(baseInput({ sourceRefId: "sale-1", sourceRefKind: "sale" }));
     expect(entry.sourceRefId).toBe("sale-1");
     expect(entry.sourceRefKind).toBe("sale");
   });

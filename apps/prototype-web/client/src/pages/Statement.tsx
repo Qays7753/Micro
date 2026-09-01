@@ -231,6 +231,43 @@ export default function Statement() {
             />
           ))
         )}
+        {reading.blocks.corrections.lines.length > 0 ? (
+          <>
+            <div className="micro-finance-event-heading">
+              <span className="micro-overline">تصحيحات الفترة</span>
+              <h2>تصحيحات وقعت خلالها</h2>
+            </div>
+            {reading.blocks.corrections.lines.map(correction => (
+              <article key={correction.id} className="micro-finance-event">
+                <div className="micro-finance-event-main">
+                  <div>
+                    <strong>تراجع عن {correction.familyLabel}</strong>
+                    <small>
+                      {correction.reason ? `السبب: ${correction.reason} — ` : ""}
+                      الأثر الصافي على هذا الكشف{" "}
+                      {correction.netEffectMinor === 0
+                        ? "صفر: الأثر أُلغي كاملًا"
+                        : `${(correction.netEffectMinor / 100).toFixed(2)} د.أ`}
+                    </small>
+                  </div>
+                  <b>
+                    <MoneyValue minor={correction.netEffectMinor} showPlus /> د.أ
+                  </b>
+                </div>
+                <button
+                  className="micro-text-action micro-finance-event-toggle"
+                  type="button"
+                  onClick={() => openWithReferrer(correction.sourceHref)}
+                >
+                  {correction.sourceLabel}
+                </button>
+              </article>
+            ))}
+            <p className="micro-empty-copy">
+              التصحيح يظهر هنا مرة واحدة — لا مع عائلته الأصلية، ولا يُخفى أثره.
+            </p>
+          </>
+        ) : null}
       </section>
       <section className="micro-decision-card" aria-label="نتيجة الفترة">
         <ReceiptText aria-hidden="true" />

@@ -59,27 +59,37 @@ function agreedOrder(): CraftOrder {
 }
 
 function deliveredOrder(): CraftOrder {
-  let next = agreedOrder();
-  next = transitionOrder(next, {
+  return deliverFrom(agreedOrder(), "status");
+}
+
+/* سلسلة التسليم بادئة مفاتيح قابلة للتمييز — تستخدمها مسارات تصحيح القبض
+ * والسعر؛ أداة واحدة لا سلاسل منسوخة داخل كل اختبار. */
+function deliverFrom(order: CraftOrder, prefix: string): CraftOrder {
+  let next = transitionOrder(order, {
     to: "confirmed",
-    idempotencyKey: "status-confirmed",
+    idempotencyKey: `${prefix}-confirmed`,
     createdAt: "2026-09-01T08:11:00Z",
   });
   next = transitionOrder(next, {
     to: "in_progress",
-    idempotencyKey: "status-progress",
+    idempotencyKey: `${prefix}-progress`,
     createdAt: "2026-09-01T08:12:00Z",
   });
   next = transitionOrder(next, {
     to: "ready",
-    idempotencyKey: "status-ready",
+    idempotencyKey: `${prefix}-ready`,
     createdAt: "2026-09-01T08:13:00Z",
   });
   return transitionOrder(next, {
     to: "delivered",
-    idempotencyKey: "status-delivered",
+    idempotencyKey: `${prefix}-delivered`,
     createdAt: "2026-09-01T08:14:00Z",
   });
+}
+
+function deliveredWithCollection(): CraftOrder {
+  const withDeposit = collectDeposit(agreedOrder(), 2000, "deposit-r1", "2026-09-01T09:00:00Z");
+  return collectRemaining(deliverFrom(withDeposit, "status-r"), 3000, "collect-r1", "2026-09-01T10:00:00Z");
 }
 
 describe("reviseAgreedPrice — تصحيح السعر بعد الاتفاق (المجموعة ٢)", () => {
@@ -124,26 +134,7 @@ describe("reviseAgreedPrice — تصحيح السعر بعد الاتفاق (ا�
 
   it("يحفظ العربون والقبضات المسجلة ويفتح المتبقي وفق السعر الجديد", () => {
     let order = collectDeposit(agreedOrder(), 2000, "deposit-1", "2026-09-01T09:00:00Z");
-    order = transitionOrder(order, {
-      to: "confirmed",
-      idempotencyKey: "status-confirmed-a",
-      createdAt: "2026-09-01T09:30:00Z",
-    });
-    order = transitionOrder(order, {
-      to: "in_progress",
-      idempotencyKey: "status-progress-a",
-      createdAt: "2026-09-01T09:31:00Z",
-    });
-    order = transitionOrder(order, {
-      to: "ready",
-      idempotencyKey: "status-ready-a",
-      createdAt: "2026-09-01T09:32:00Z",
-    });
-    order = transitionOrder(order, {
-      to: "delivered",
-      idempotencyKey: "status-delivered-a",
-      createdAt: "2026-09-01T09:33:00Z",
-    });
+    order = deliverFrom(order, "status-a");
     order = collectRemaining(order, 3000, "collect-1", "2026-09-01T10:00:00Z");
     const revised = reviseAgreedPrice(order, {
       newPriceMinor: 10000,
@@ -156,7 +147,10 @@ describe("reviseAgreedPrice — تصحيح السعر بعد الاتفاق (ا�
     expect(revised.receivableMinor).toBe(5000);
     expect(revised.settlementStatus).toBe("partially_paid");
   });
+});
 
+/* الحمايات والتكرار — رفض التصحيحات غير الصالحة لا يمس السجل أبدًا. */
+describe("reviseAgreedPrice — الحمايات والتكرار (المجموعة ٢)", () => {
   it("يرفض سعرًا أقل مما قُبض فعليًا", () => {
     const order = collectDeposit(agreedOrder(), 4000, "deposit-2", "2026-09-01T09:00:00Z");
     expect(() =>
@@ -214,31 +208,6 @@ describe("reviseAgreedPrice — تصحيح السعر بعد الاتفاق (ا�
 });
 
 describe("reverseOrderCollection — التراجع عن قبض مسجل (المجموعة ٢)", () => {
-  function deliveredWithCollection(): CraftOrder {
-    let order = collectDeposit(agreedOrder(), 2000, "deposit-r1", "2026-09-01T09:00:00Z");
-    order = transitionOrder(order, {
-      to: "confirmed",
-      idempotencyKey: "status-confirmed-r",
-      createdAt: "2026-09-01T09:30:00Z",
-    });
-    order = transitionOrder(order, {
-      to: "in_progress",
-      idempotencyKey: "status-progress-r",
-      createdAt: "2026-09-01T09:31:00Z",
-    });
-    order = transitionOrder(order, {
-      to: "ready",
-      idempotencyKey: "status-ready-r",
-      createdAt: "2026-09-01T09:32:00Z",
-    });
-    order = transitionOrder(order, {
-      to: "delivered",
-      idempotencyKey: "status-delivered-r",
-      createdAt: "2026-09-01T09:33:00Z",
-    });
-    return collectRemaining(order, 3000, "collect-r1", "2026-09-01T10:00:00Z");
-  }
-
   it("يرد المبلغ للعميل ويعيد فتح المتبقي دون مسّ الإيراد", () => {
     const order = deliveredWithCollection();
     const collectionEvent = order.events.find(item => item.type === "collection_recorded");
@@ -280,7 +249,9 @@ describe("reverseOrderCollection — التراجع عن قبض مسجل (الم
       }),
     ).toThrow("لا يمكن أن يتجاوز مبلغ القبضة المسجلة");
   });
+});
 
+describe("reverseOrderCollection — طلب مسوّى يعود دينًا (المجموعة ٢)", () => {
   it("طلب مسوّى بقبض كامل يعود دينًا مسجلًا بعد التراجع", () => {
     let order = deliveredOrder();
     order = collectRemaining(order, 8000, "collect-full", "2026-09-01T11:00:00Z");
@@ -300,9 +271,17 @@ describe("reverseOrderCollection — التراجع عن قبض مسجل (الم
     expect(reversed.settlementStatus).toBe("debt");
     expect(reversed.receivableMinor).toBe(8000);
   });
+});
+
+/* رفض مسارات التراجع غير الصالحة — لا كتابة عند الرفض، والطلب كما هو. */
+describe("reverseOrderCollection — الحمايات (المجموعة ٢)", () => {
+  function reverseTestOrder(): CraftOrder {
+    const withDeposit = collectDeposit(agreedOrder(), 2000, "deposit-g", "2026-09-01T09:00:00Z");
+    return collectRemaining(deliverFrom(withDeposit, "status-g"), 3000, "collect-g", "2026-09-01T10:00:00Z");
+  }
 
   it("يرفض أحداث غير القبض وبلا سبب والطلب الملغى", () => {
-    const order = deliveredWithCollection();
+    const order = reverseTestOrder();
     const depositEvent = order.events.find(item => item.type === "deposit_collected")!;
     expect(() =>
       reverseOrderCollection(order, {
@@ -332,7 +311,9 @@ describe("reverseOrderCollection — التراجع عن قبض مسجل (الم
       }),
     ).toThrow("أكمل سبب التراجع");
   });
+});
 
+describe("reverseOrderCollection — تراجع تحصيل الدين (المجموعة ٢)", () => {
   it("تحصيل الدين المسجل قابل للتراجع أيضًا", () => {
     let order = deliveredOrder();
     order = registerDebt(order, "register-debt", "2026-09-01T11:00:00Z");

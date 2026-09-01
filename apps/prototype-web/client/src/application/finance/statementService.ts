@@ -3,6 +3,7 @@
  * النتيجة عن الأمانات عن الذمم عن مال المالك، ويصل كل سطر بمصدره. قراءة فقط
  * من السجلات القائمة؛ لا يُنشئ شيئًا ولا يعيد تفسير الماضي.
  */
+import { reversedEventIds } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
@@ -26,9 +27,23 @@ export type StatementLine = {
   sources: readonly StatementLineSource[];
 };
 
+/** سطر تصحيح واحد (تراجع) كما يظهر في كتلة التصحيحات — لا مع عائلته الأصلية.
+ * netEffectMinor = أثر التراجع + أثر الأصل إن كان الأصل داخل الفترة نفسها:
+ * صفر عندما دخلا معًا (صافي صادق)، وأثر التراجع وحده عندما الأصل خارج الفترة. */
+export type StatementCorrectionLine = {
+  id: string;
+  occurredOn: string;
+  familyLabel: string;
+  reason: string;
+  netEffectMinor: number;
+  sourceHref: string;
+  sourceLabel: string;
+};
+
 export type StatementBlocks = {
   cashIn: readonly StatementLine[];
   cashOut: readonly StatementLine[];
+  corrections: { lines: readonly StatementCorrectionLine[]; netMinor: number };
   owner: { investedMinor: number; withdrawnMinor: number; sources: readonly StatementLineSource[] };
   amanah: {
     heldInPeriodMinor: number;
@@ -104,6 +119,9 @@ export class StatementService {
     const inPeriod = (date: string) => date >= from && date <= to;
     const events = eventsResult.value as readonly FinancialEvent[];
     const activeEvents = events.filter(event => inPeriod(event.occurredOn));
+    /* الأصول التي جرى تراجع داخل هذه الفترة تُعرض مرة واحدة في كتلة التصحيحات
+     * لا مع عائلاتها — فلا يظهر الأثر مرتين ولا يُطمس تصحيح وقع. */
+    const reversedInPeriodIds = reversedEventIds(activeEvents);
 
     /* ١) قبض الطلبات (عربون + تحصيل) داخل الفترة — بتاريخ تسجيل القبضة. */
     const orderCollectionSources: StatementLineSource[] = [];
@@ -133,11 +151,12 @@ export class StatementService {
       0,
     );
 
+    const familyEvent = (event: FinancialEvent) =>
+      event.correctionType !== "reverse" && !reversedInPeriodIds.has(event.id);
+
     const cashEventLines = (types: readonly FinancialEvent["type"][]) => {
-      /* أحداث التراجع تحمل نوع الأصل — تُستبعد هنا وتُحسب في كتلة التصحيحات وحدها
-       * فلا يُحسب الأثر مرتين ولا يُطمس تصحيح وقع في الفترة. */
       const matched = activeEvents.filter(
-        event => types.includes(event.type) && event.correctionType !== "reverse",
+        event => types.includes(event.type) && familyEvent(event),
       );
       const total = matched.reduce((sum, event) => sum + event.cashDeltaMinor, 0);
       return { matched, total };
@@ -146,16 +165,16 @@ export class StatementService {
     const investment = cashEventLines(["owner_investment_cash"]);
     const withdrawal = cashEventLines(["owner_withdrawal_cash"]);
     const amanahHeld = activeEvents.filter(
-      event => event.type === "amanah_held_cash" && event.correctionType !== "reverse",
+      event => event.type === "amanah_held_cash" && familyEvent(event),
     );
     const amanahReleased = activeEvents.filter(
-      event => event.type === "amanah_released_cash" && event.correctionType !== "reverse",
+      event => event.type === "amanah_released_cash" && familyEvent(event),
     );
     const expensePaid = activeEvents.filter(
-      event => event.type === "operating_expense_cash" && event.correctionType !== "reverse",
+      event => event.type === "operating_expense_cash" && familyEvent(event),
     );
     const payableSettled = activeEvents.filter(
-      event => event.type === "payable_settlement_cash" && event.correctionType !== "reverse",
+      event => event.type === "payable_settlement_cash" && familyEvent(event),
     );
 
     /* مشتريات الموردين داخل الفترة: الدفع الابتدائي بتاريخ الشراء والدفعات بتواريخها. */
@@ -184,20 +203,49 @@ export class StatementService {
       }
     }
 
-    /* تصحيحات الكاش داخل الفترة: أحداث التراجع للكاش (بأنواع أصلها) — أثر موقّع
-     * صافٍ يُعرض وحده فلا يُحسب مع عائلاته الأصلية ولا يُخفى. */
-    const cashCorrectionEvents = activeEvents.filter(
-      event =>
-        event.correctionType === "reverse" &&
-        (event.type === "owner_investment_cash" ||
-          event.type === "owner_withdrawal_cash" ||
-          event.type === "operating_expense_cash" ||
-          event.type === "payable_settlement_cash" ||
-          event.type === "amanah_held_cash" ||
-          event.type === "amanah_released_cash"),
-    );
-    const correctionsNetMinor = cashCorrectionEvents.reduce(
-      (sum, event) => sum + event.cashDeltaMinor,
+    /* تصحيحات الكاش داخل الفترة: أحداث التراجع (بأنواع أصلها) تُعرض مرة واحدة
+     * في كتلة التصحيحات — بسطر يبين السبب والأثر الصافي على هذا الكشف. */
+    const familyLabelOf = (type: FinancialEvent["type"]): string =>
+      type === "owner_investment_cash"
+        ? "مال أدخلته"
+        : type === "owner_withdrawal_cash"
+          ? "سحب شخصي"
+          : type === "amanah_held_cash"
+            ? "أمانة قُبضت"
+            : type === "amanah_released_cash"
+              ? "أمانة سُلّمت"
+              : type === "payable_settlement_cash"
+                ? "تسديد التزام"
+                : "مصروف مدفوع";
+    const cashCorrectionLines: StatementCorrectionLine[] = activeEvents
+      .filter(
+        event =>
+          event.correctionType === "reverse" &&
+          (event.type === "owner_investment_cash" ||
+            event.type === "owner_withdrawal_cash" ||
+            event.type === "operating_expense_cash" ||
+            event.type === "payable_settlement_cash" ||
+            event.type === "amanah_held_cash" ||
+            event.type === "amanah_released_cash"),
+      )
+      .map(event => {
+        const original = event.correctionOfEventId
+          ? events.find(candidate => candidate.id === event.correctionOfEventId)
+          : undefined;
+        const originalInPeriod = original ? inPeriod(original.occurredOn) : false;
+        return {
+          id: event.id,
+          occurredOn: event.occurredOn,
+          familyLabel: familyLabelOf(event.type),
+          reason: event.correctionReason ?? "",
+          netEffectMinor:
+            event.cashDeltaMinor + (originalInPeriod && original ? original.cashDeltaMinor : 0),
+          sourceHref: original ? `/finance?event=${encodeURIComponent(original.id)}` : `/finance`,
+          sourceLabel: original ? original.note || "الحدث الأصلي" : "الحدث الأصلي",
+        };
+      });
+    const correctionsNetMinor = cashCorrectionLines.reduce(
+      (sum, line) => sum + line.netEffectMinor,
       0,
     );
 
@@ -213,7 +261,7 @@ export class StatementService {
         id: "direct-sales-cash",
         label: "قبض البيع المباشر",
         amountMinor: directSalesCollectedMinor,
-        qualifier: "يُنسب لتاريخ البيع المسجل",
+        qualifier: "كاش نقدي دخل بتاريخ البيع المسجل — لا إيرادًا عند التحصيل",
         sources: activeSalesInPeriod.map(sale => ({
           label: `بيع — ${sale.itemName || "بيع"}`,
           href: `/direct-sales/${sale.id}`,
@@ -310,6 +358,7 @@ export class StatementService {
       blocks: {
         cashIn,
         cashOut,
+        corrections: { lines: cashCorrectionLines, netMinor: correctionsNetMinor },
         owner: {
           investedMinor: investment.total,
           withdrawnMinor: -withdrawal.total,

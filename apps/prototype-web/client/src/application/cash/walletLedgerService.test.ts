@@ -77,7 +77,7 @@ describe("WalletLedgerService — دفتر المحفظة (المجموعة ٢ �
     const result = await ledger.read("drawer-1");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const { overview } = result;
+    const overview = result.value;
     expect(overview.wallet.name).toBe("درج المحل");
     /* 5000 + 1500 − 700 − 1500 = 4300. */
     expect(overview.balanceMinor).toBe(4300);

@@ -35,11 +35,7 @@ const totalReversed = (reversals: readonly SupplierPurchasePaymentReversal[] | u
   (reversals ?? []).reduce((sum, reversal) => sum + reversal.amountMinor, 0);
 const effectivePaid = (purchase: SupplierPurchase): number =>
   totalPaid(purchase.payments) - totalReversed(purchase.paymentReversals);
-const recompute = (
-  purchase: SupplierPurchase,
-  paidMinor: number,
-  recordedAt: string,
-): SupplierPurchase =>
+const recompute = (purchase: SupplierPurchase, paidMinor: number, recordedAt: string): SupplierPurchase =>
   Object.freeze({
     ...purchase,
     paidMinor,
@@ -47,18 +43,45 @@ const recompute = (
     status: statusFor(purchase.totalMinor, paidMinor),
     updatedAt: recordedAt,
   });
-
-export function createSupplierPurchase(input: CreateSupplierPurchaseInput): SupplierPurchase {
-  assertText(input.id, "id");
+/* المجموعة ٢: حقول الشراء المشتركة — نفس تحقق الإنشاء والتعديل لا نسختان تتباعدان. */
+const assertPurchaseFields = (input: {
+  supplierName: string;
+  note: string;
+  totalMinor: number;
+  initialPaidMinor: number;
+  purchasedOn: string;
+  dueOn?: string | null;
+  recordedAt: string;
+}) => {
   assertText(input.supplierName, "supplierName");
   assertText(input.note, "note");
-  assertText(input.idempotencyKey, "idempotencyKey");
   assertPositive(input.totalMinor, "totalMinor");
   assertNonNegative(input.initialPaidMinor, "initialPaidMinor");
   if (!validDate(input.purchasedOn)) throw new Error("أدخل تاريخ الشراء تاريخًا محليًا صحيحًا.");
   if (input.dueOn && !validDate(input.dueOn)) throw new Error("أدخل تاريخ الاستحقاق تاريخًا محليًا صحيحًا.");
   if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
-  if (input.initialPaidMinor > input.totalMinor) throw new Error("المدفوع مبدئيًا لا يمكن أن يتجاوز إجمالي الشراء.");
+  if (input.initialPaidMinor > input.totalMinor)
+    throw new Error("المدفوع مبدئيًا لا يمكن أن يتجاوز إجمالي الشراء.");
+};
+/* المجموعة ٢ (§10.4): المدفوع بعد التعديل = الدفع الأولي الجديد + الدفعات اللاحقة
+ * − تراجعاتها الموثقة. معيّن صريح؛ الشروط في استدعائه لا في صياغته. */
+const paidAfterEditFor = (purchase: SupplierPurchase, input: UpdateSupplierPurchaseInput): number => {
+  const laterPayments = purchase.payments.filter(payment => payment.id !== `${purchase.id}:initial`);
+  const laterPaidMinor = laterPayments.reduce((sum, payment) => sum + payment.amountMinor, 0);
+  const reversedLaterMinor = totalReversed(purchase.paymentReversals);
+  return input.initialPaidMinor + laterPaidMinor - reversedLaterMinor;
+};
+/* المدفوع بعد التعديل محصور بالإجمالي الجديد وبالصفر — حارس واحد مستقل. */
+const assertPaidAfterEdit = (paidAfterEdit: number, totalMinor: number) => {
+  if (paidAfterEdit > totalMinor)
+    throw new Error("الإجمالي الجديد أقل من الدفعات المسجلة عليه؛ راجع الدفعات أو التراجعات قبل التعديل.");
+  if (paidAfterEdit < 0) throw new Error("التعديل يجعل المدفوع سالبًا؛ راجع التراجعات المسجلة أولًا.");
+};
+
+export function createSupplierPurchase(input: CreateSupplierPurchaseInput): SupplierPurchase {
+  assertText(input.id, "id");
+  assertText(input.idempotencyKey, "idempotencyKey");
+  assertPurchaseFields(input);
   const payments: readonly SupplierPurchasePayment[] =
     input.initialPaidMinor > 0
       ? [
@@ -132,29 +155,13 @@ export function updateSupplierPurchase(
 ): SupplierPurchase {
   assertText(input.idempotencyKey, "idempotencyKey");
   assertText(input.reason, "reason");
-  if (purchase.revisions?.some(revision => revision.idempotencyKey === input.idempotencyKey))
-    return purchase;
-  assertText(input.supplierName, "supplierName");
-  assertText(input.note, "note");
-  assertPositive(input.totalMinor, "totalMinor");
-  assertNonNegative(input.initialPaidMinor, "initialPaidMinor");
-  if (!validDate(input.purchasedOn)) throw new Error("أدخل تاريخ الشراء تاريخًا محليًا صحيحًا.");
-  if (input.dueOn && !validDate(input.dueOn)) throw new Error("أدخل تاريخ الاستحقاق تاريخًا محليًا صحيحًا.");
-  if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
-  if (input.initialPaidMinor > input.totalMinor)
-    throw new Error("المدفوع مبدئيًا لا يمكن أن يتجاوز إجمالي الشراء.");
+  if (purchase.revisions?.some(revision => revision.idempotencyKey === input.idempotencyKey)) return purchase;
+  assertPurchaseFields(input);
+
+  const paidAfterEdit = paidAfterEditFor(purchase, input);
+  assertPaidAfterEdit(paidAfterEdit, input.totalMinor);
 
   const laterPayments = purchase.payments.filter(payment => payment.id !== `${purchase.id}:initial`);
-  const laterPaidMinor = laterPayments.reduce((sum, payment) => sum + payment.amountMinor, 0);
-  const reversals = purchase.paymentReversals ?? [];
-  const reversedLaterMinor = reversals.reduce((sum, reversal) => sum + reversal.amountMinor, 0);
-  const paidAfterEdit = input.initialPaidMinor + laterPaidMinor - reversedLaterMinor;
-  if (paidAfterEdit > input.totalMinor)
-    throw new Error(
-      "الإجمالي الجديد أقل من الدفعات المسجلة عليه؛ راجع الدفعات أو التراجعات قبل التعديل.",
-    );
-  if (paidAfterEdit < 0)
-    throw new Error("التعديل يجعل المدفوع سالبًا؛ راجع التراجعات المسجلة أولًا.");
 
   const initialPayment = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`) ?? null;
   const payments: readonly SupplierPurchasePayment[] =

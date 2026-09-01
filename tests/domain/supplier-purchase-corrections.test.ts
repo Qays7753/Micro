@@ -21,20 +21,60 @@ function makePurchase(): SupplierPurchase {
   });
 }
 
+/* مدخلات تعديل الشراء — أساس واحد والاختبار يعلن فرقه فقط؛ لا تكرار حرفي
+ * يخفي حقلًا نسيه تصحيح لاحق. */
+function editInput(overrides: Partial<Parameters<typeof updateSupplierPurchase>[1]> = {}) {
+  return {
+    supplierName: "محل الأقمشة",
+    note: "قماش",
+    purchasedOn: "2026-09-01",
+    totalMinor: 5000,
+    initialPaidMinor: 2000,
+    recordedAt: "2026-09-02T09:00:00Z",
+    idempotencyKey: "edit-base",
+    reason: "سبب",
+    ...overrides,
+  };
+}
+
+/* مدخلات تراجع الدفعة — الأساس نفسه لكل استدعاءات الحماية والتكرار. */
+function reversalInput(overrides: Partial<Parameters<typeof reverseSupplierPurchasePayment>[1]> = {}) {
+  return {
+    id: "reversal-base",
+    paymentId: "payment-1",
+    reason: "سبب",
+    occurredOn: "2026-09-12",
+    recordedAt: "2026-09-12T09:00:00Z",
+    idempotencyKey: "reversal-key-base",
+    ...overrides,
+  };
+}
+
+function purchaseWithPayment(): SupplierPurchase {
+  return recordSupplierPurchasePayment(makePurchase(), {
+    id: "payment-1",
+    amountMinor: 1500,
+    occurredOn: "2026-09-10",
+    recordedAt: "2026-09-10T09:00:00Z",
+    idempotencyKey: "payment-key-1",
+    note: "دفعة ثانية",
+  });
+}
+
 describe("updateSupplierPurchase — تعديل موثق للشراء (المجموعة ٢ §10.4)", () => {
   it("يصحح الإجمالي والدفع الأولي ويحفظ القيم قبل التصحيح في مراجعة", () => {
     const purchase = makePurchase();
-    const updated = updateSupplierPurchase(purchase, {
-      supplierName: "محل الأقمشة",
-      note: "قماش قطني — تصحيح الفاتورة",
-      purchasedOn: "2026-09-01",
-      dueOn: "2026-09-25",
-      totalMinor: 6000,
-      initialPaidMinor: 2500,
-      recordedAt: "2026-09-02T09:00:00Z",
-      idempotencyKey: "edit-1",
-      reason: "فاتورة مصححة من المورد",
-    });
+    const updated = updateSupplierPurchase(
+      purchase,
+      editInput({
+        note: "قماش قطني — تصحيح الفاتورة",
+        dueOn: "2026-09-25",
+        totalMinor: 6000,
+        initialPaidMinor: 2500,
+        idempotencyKey: "edit-1",
+        reason: "فاتورة مصححة من المورد",
+      }),
+    );
     expect(updated.totalMinor).toBe(6000);
     expect(updated.paidMinor).toBe(2500);
     expect(updated.payableMinor).toBe(3500);
@@ -49,21 +89,22 @@ describe("updateSupplierPurchase — تعديل موثق للشراء (المج�
 
   it("يدفع أولي صفر في التعديل يحذف الدفعة الأولية لا غيرها", () => {
     const purchase = makePurchase();
-    const updated = updateSupplierPurchase(purchase, {
-      supplierName: "محل الأقمشة",
-      note: "قماش",
-      purchasedOn: "2026-09-01",
-      totalMinor: 5000,
-      initialPaidMinor: 0,
-      recordedAt: "2026-09-02T09:00:00Z",
-      idempotencyKey: "edit-2",
-      reason: "الدفع كان من حساب شخصي",
-    });
+    const updated = updateSupplierPurchase(
+      purchase,
+      editInput({
+        initialPaidMinor: 0,
+        idempotencyKey: "edit-2",
+        reason: "الدفع كان من حساب شخصي",
+      }),
+    );
     expect(updated.payments.find(payment => payment.id === "purchase-1:initial")).toBeUndefined();
     expect(updated.paidMinor).toBe(0);
     expect(updated.status).toBe("unpaid");
   });
+});
 
+/* حمايات التعديل — الرفض لا يكتب شيئًا والمفتاح المكرر يعيد الأصل. */
+describe("updateSupplierPurchase — الحمايات والتكرار (المجموعة ٢ §10.4)", () => {
   it("يرفض إجماليًا أقل من الدفعات المسجلة عليه", () => {
     const purchase = recordSupplierPurchasePayment(makePurchase(), {
       id: "payment-x",
@@ -74,81 +115,53 @@ describe("updateSupplierPurchase — تعديل موثق للشراء (المج�
       note: "دفعة كبيرة",
     });
     expect(() =>
-      updateSupplierPurchase(purchase, {
-        supplierName: "محل الأقمشة",
-        note: "قماش",
-        purchasedOn: "2026-09-01",
-        totalMinor: 4000,
-        initialPaidMinor: 2000,
-        recordedAt: "2026-09-02T09:00:00Z",
-        idempotencyKey: "edit-3",
-        reason: "خطأ",
-      }),
+      updateSupplierPurchase(
+        purchase,
+        editInput({
+          totalMinor: 4000,
+          idempotencyKey: "edit-3",
+          reason: "خطأ",
+        }),
+      ),
     ).toThrow("أقل من الدفعات المسجلة");
   });
+});
 
+describe("updateSupplierPurchase — بلا سبب أو بمفتاح مكرر (المجموعة ٢ §10.4)", () => {
   it("يرفض التعديل بلا سبب وبمفتاح مكرر يعيد الأصل", () => {
     const purchase = makePurchase();
     expect(() =>
-      updateSupplierPurchase(purchase, {
-        supplierName: "محل الأقمشة",
-        note: "قماش",
-        purchasedOn: "2026-09-01",
-        totalMinor: 5000,
-        initialPaidMinor: 2000,
-        recordedAt: "2026-09-02T09:00:00Z",
-        idempotencyKey: "edit-4",
-        reason: "",
-      }),
+      updateSupplierPurchase(purchase, editInput({ idempotencyKey: "edit-4", reason: "" })),
     ).toThrow("أكمل السبب");
-    const once = updateSupplierPurchase(purchase, {
-      supplierName: "محل الأقمشة",
-      note: "قماش",
-      purchasedOn: "2026-09-01",
-      totalMinor: 5500,
-      initialPaidMinor: 2000,
-      recordedAt: "2026-09-02T09:00:00Z",
-      idempotencyKey: "edit-5",
-      reason: "سبب",
-    });
-    const twice = updateSupplierPurchase(once, {
-      supplierName: "محل الأقمشة",
-      note: "قماش",
-      purchasedOn: "2026-09-01",
-      totalMinor: 5500,
-      initialPaidMinor: 2000,
-      recordedAt: "2026-09-02T10:00:00Z",
-      idempotencyKey: "edit-5",
-      reason: "سبب",
-    });
+    const once = updateSupplierPurchase(
+      purchase,
+      editInput({ totalMinor: 5500, idempotencyKey: "edit-5", reason: "سبب" }),
+    );
+    const twice = updateSupplierPurchase(
+      once,
+      editInput({
+        totalMinor: 5500,
+        recordedAt: "2026-09-02T10:00:00Z",
+        idempotencyKey: "edit-5",
+        reason: "سبب",
+      }),
+    );
     expect(twice).toBe(once);
   });
 });
 
 describe("reverseSupplierPurchasePayment — تراجع موثق عن دفعة (المجموعة ٢ §10.4)", () => {
-  function purchaseWithPayment(): SupplierPurchase {
-    const purchase = makePurchase();
-    return recordSupplierPurchasePayment(purchase, {
-      id: "payment-1",
-      amountMinor: 1500,
-      occurredOn: "2026-09-10",
-      recordedAt: "2026-09-10T09:00:00Z",
-      idempotencyKey: "payment-key-1",
-      note: "دفعة ثانية",
-    });
-  }
-
   it("يستعيد المتبقي للمورد ويحفظ الدفعة الأصلية وعلاقة التراجع", () => {
     const purchase = purchaseWithPayment();
     expect(purchase.payableMinor).toBe(1500);
-    const reversed = reverseSupplierPurchasePayment(purchase, {
-      id: "reversal-1",
-      paymentId: "payment-1",
-      reason: "رجعت الدفعة للمورد خطأً بالتحويل",
-      occurredOn: "2026-09-12",
-      recordedAt: "2026-09-12T09:00:00Z",
-      idempotencyKey: "reversal-key-1",
-    });
+    const reversed = reverseSupplierPurchasePayment(
+      purchase,
+      reversalInput({
+        id: "reversal-1",
+        reason: "رجعت الدفعة للمورد خطأً بالتحويل",
+        idempotencyKey: "reversal-key-1",
+      }),
+    );
     expect(reversed.paidMinor).toBe(2000);
     expect(reversed.payableMinor).toBe(3000);
     expect(reversed.status).toBe("partially_paid");
@@ -157,68 +170,61 @@ describe("reverseSupplierPurchasePayment — تراجع موثق عن دفعة (
     expect(reversed.paymentReversals?.[0]?.paymentId).toBe("payment-1");
     expect(reversed.paymentReversals?.[0]?.amountMinor).toBe(1500);
   });
+});
 
+/* حمايات التراجع عن الدفعات — الرفض بلا كتابة والتكرار لا يضاعف الأثر. */
+describe("reverseSupplierPurchasePayment — الحمايات والتكرار (المجموعة ٢ §10.4)", () => {
   it("يرفض التراجع عن الدفعة الأولية والدفعة المرتدة سابقًا", () => {
     const purchase = purchaseWithPayment();
     expect(() =>
-      reverseSupplierPurchasePayment(purchase, {
-        id: "reversal-2",
-        paymentId: "purchase-1:initial",
-        reason: "سبب",
-        occurredOn: "2026-09-12",
-        recordedAt: "2026-09-12T09:00:00Z",
-        idempotencyKey: "reversal-key-2",
-      }),
+      reverseSupplierPurchasePayment(
+        purchase,
+        reversalInput({
+          id: "reversal-2",
+          paymentId: "purchase-1:initial",
+          idempotencyKey: "reversal-key-2",
+        }),
+      ),
     ).toThrow("بتعديل الشراء نفسه");
-    const reversed = reverseSupplierPurchasePayment(purchase, {
-      id: "reversal-3",
-      paymentId: "payment-1",
-      reason: "سبب",
-      occurredOn: "2026-09-12",
-      recordedAt: "2026-09-12T09:00:00Z",
-      idempotencyKey: "reversal-key-3",
-    });
+    const reversed = reverseSupplierPurchasePayment(
+      purchase,
+      reversalInput({ id: "reversal-3", idempotencyKey: "reversal-key-3" }),
+    );
     expect(() =>
-      reverseSupplierPurchasePayment(reversed, {
-        id: "reversal-4",
-        paymentId: "payment-1",
-        reason: "سبب ثانٍ",
-        occurredOn: "2026-09-13",
-        recordedAt: "2026-09-13T09:00:00Z",
-        idempotencyKey: "reversal-key-4",
-      }),
+      reverseSupplierPurchasePayment(
+        reversed,
+        reversalInput({
+          id: "reversal-4",
+          reason: "سبب ثانٍ",
+          occurredOn: "2026-09-13",
+          recordedAt: "2026-09-13T09:00:00Z",
+          idempotencyKey: "reversal-key-4",
+        }),
+      ),
     ).toThrow("لا يُنشأ تراجع ثانٍ");
   });
 
   it("idempotent: نفس المفتاح يعيد السجل دون تغيير، والسبب إلزامي", () => {
     const purchase = purchaseWithPayment();
     expect(() =>
-      reverseSupplierPurchasePayment(purchase, {
-        id: "reversal-5",
-        paymentId: "payment-1",
-        reason: "",
-        occurredOn: "2026-09-12",
-        recordedAt: "2026-09-12T09:00:00Z",
-        idempotencyKey: "reversal-key-5",
-      }),
+      reverseSupplierPurchasePayment(
+        purchase,
+        reversalInput({ id: "reversal-5", reason: "", idempotencyKey: "reversal-key-5" }),
+      ),
     ).toThrow("أكمل السبب");
-    const once = reverseSupplierPurchasePayment(purchase, {
-      id: "reversal-6",
-      paymentId: "payment-1",
-      reason: "سبب",
-      occurredOn: "2026-09-12",
-      recordedAt: "2026-09-12T09:00:00Z",
-      idempotencyKey: "reversal-key-6",
-    });
+    const once = reverseSupplierPurchasePayment(
+      purchase,
+      reversalInput({ id: "reversal-6", idempotencyKey: "reversal-key-6" }),
+    );
     /* مفتاح مكرر: يعيد السجل الحالي دون تغيير — لا تراجع ثانٍ ولا مضاعفة أثر */
-    const twice = reverseSupplierPurchasePayment(once, {
-      id: "reversal-7",
-      paymentId: "payment-1",
-      reason: "سبب ثانٍ",
-      occurredOn: "2026-09-12",
-      recordedAt: "2026-09-12T09:00:00Z",
-      idempotencyKey: "reversal-key-6",
-    });
+    const twice = reverseSupplierPurchasePayment(
+      once,
+      reversalInput({
+        id: "reversal-7",
+        reason: "سبب ثانٍ",
+        idempotencyKey: "reversal-key-6",
+      }),
+    );
     expect(twice).toBe(once);
     expect(twice.paymentReversals).toHaveLength(1);
   });
