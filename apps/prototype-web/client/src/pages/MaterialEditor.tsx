@@ -7,6 +7,8 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { MaterialUnit } from "@micro-domain/inventory-material/index.js";
 import { localDateInAmman } from "@/presentation/formatters";
 const ammanDate = () => localDateInAmman();
@@ -24,7 +26,19 @@ export default function MaterialEditor() {
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const operationKey = useRef(`material-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
-  async function save() {
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+  const isDirty = useFormDirty([
+      name,
+      unit,
+      quantityMilli,
+      valueMinor,
+      date,
+      note,
+    ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
+  async function save(): Promise<boolean> {
     if (
       !name.trim() ||
       !note.trim() ||
@@ -35,7 +49,7 @@ export default function MaterialEditor() {
       (quantityMilli === 0) !== (valueMinor === 0)
     ) {
       setMessage("أدخل اسم المادة، أو كمية وقيمة افتتاحيتين موجبتين معًا، بالأرقام 0–9.");
-      return;
+      return false;
     }
     setSaving(true);
     const result = await inventory.openMaterial({
@@ -50,14 +64,15 @@ export default function MaterialEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/inventory");
+    return true;
   }
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/inventory")}>
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation("/inventory")}>
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">

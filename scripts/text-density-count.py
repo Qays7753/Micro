@@ -249,7 +249,9 @@ CAPS: dict[str, int] = {
     # return-after-absence card and the backup-reminder truth line — mandated labels.
     # Home 29 → 31 (2026-09-01, repair cycle U-002): away-digest lines (sales/expenses
     # since last activity, upcoming follow-ups) — concise digest mandated by the owner.
-    "Home": 31,
+    # Home 31 → 30 (2026-09-01, final-audit cycle U-002): the digest line was rewritten
+    # as one honest "last recording day" summary — a ratchet gain (lowering), locked here.
+    "Home": 30,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.
@@ -257,7 +259,11 @@ CAPS: dict[str, int] = {
     # (kind labels + filter groups + summary), D-005 edit/delete/restore actions and
     # previews, F-005 period-result direct-sale lines + scope note + review reason,
     # D-002 suppliers reading intent. All mandated labels from approved owner decisions.
-    "Finance": 145,
+    # Finance 145 → 148 (2026-09-01, final-audit cycle U-001): older-events
+    # reachability — show-all/collapse toggle labels, full-list heading and honest
+    # full-log note, focused-row aria label. Mandated by the approved prompt §7
+    # ("a practical way to reach older events, not only the latest three").
+    "Finance": 148,
     "OrderDetail": 127,
     "Orders": 73,
     # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
@@ -268,7 +274,11 @@ CAPS: dict[str, int] = {
     # DirectSaleEditor 45 → 47 (2026-09-01, repair cycle item 25): quantity
     # semantics made explicit — total-price clarification under the quantity field
     # + per-unit suggestion note when quantity > 1 (no silent auto-multiply).
-    "DirectSaleEditor": 47,
+    # DirectSaleEditor 47 → 50 (2026-09-01, final-audit cycle U-005): the
+    # unsaved-changes guard is now wired into this editor (the named U-005 case),
+    # so the shared guard component's dialog labels join this screen's measured
+    # set — the same +4 already counted for every guarded editor. No new prose.
+    "DirectSaleEditor": 50,
     # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
     # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
     # mandated bridge labels; the draft form itself is unchanged.

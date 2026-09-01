@@ -370,8 +370,19 @@ export class HomeControlCenterService {
     );
 
     /* «أثناء غيابك» (التدفق ٢٣): تظهر بعد ٧ أيام بلا تسجيل، وتختفي بالنشاط.
-     * تذكير النسخة (P-01 طبقة ١): بعد ٧ أيام من آخر تصدير مُتحقق مع وجود بيانات. */
-    const lastActivityDate = recentChanges[0]?.occurredOn ?? null;
+     * تذكير النسخة (P-01 طبقة ١): بعد ٧ أيام من آخر تصدير مُتحقق مع وجود بيانات.
+     * U-002 (دورة التدقيق النهائي): «آخر تسجيل» يُحسب من أوقات التسجيل الفعلية
+     * (recordedAt/createdAt/updatedAt) — لا من تواريخ الأثر (occurredOn) ولا من
+     * المواعيد المستقبلية (scheduledFor): قيدٌ مؤرَّخ لا يوهم غيابًا، وموعدٌ قادم
+     * لا يخفي البطاقة، والبيع المباشر تسجيلٌ كغيره فلا تناقض داخل البطاقة. */
+    const recordedActivityDates = [
+      ...orders.map(stored => localDate(stored.updatedAt)),
+      ...openDrafts.map(draft => localDate(draft.updatedAt)),
+      ...events.value.map(event => localDate(event.recordedAt)),
+      ...directSales.value.map(sale => localDate(sale.recordedAt)),
+      ...schedules.value.map(schedule => localDate(schedule.updatedAt)),
+    ].sort((left, right) => right.localeCompare(left));
+    const lastActivityDate = recordedActivityDates[0] ?? null;
     const daysSinceLastActivity = lastActivityDate
       ? Math.max(
           0,
@@ -404,20 +415,23 @@ export class HomeControlCenterService {
                 stored.followUpDate < today,
             ).length,
             daysSinceLastExport,
-            /* U-002: ملخص ما تغيّر منذ آخر تسجيل — أرقام مشتقة صادقة لا توقعات:
-             * لا شيء يتحرك في هذا التطبيق المحلي دون تسجيل المالك، فالصفر صفرٌ معلن. */
+            /* U-002 (دورة التدقيق النهائي): الملخص الصادق الوحيد الممكن لبطاقة الغياب
+             * هو «آخر يوم تسجيل» — ماذا دوّن المالك في آخر جلسة تسجيل فعلية؟ لا شيء
+             * يتحرك «خلال» الغياب نفسه في تطبيق محلي أحادي المستخدم، فالملخص يصف آخر
+             * جلسة صادقًا بأرقام مشتقة من البيانات لا من التوقعات. */
             digest: (() => {
-              const since = lastActivityDate ?? today;
+              const lastDay = lastActivityDate ?? today;
               const activeSales = directSales.value.filter(
-                sale => (sale.status ?? "active") === "active" && sale.occurredOn > since,
+                sale => (sale.status ?? "active") === "active" && localDate(sale.recordedAt) === lastDay,
               );
               const expenseEvents = events.value.filter(
                 event =>
                   event.operatingExpenseDeltaMinor > 0 &&
                   event.correctionType !== "reverse" &&
-                  event.occurredOn > since,
+                  localDate(event.recordedAt) === lastDay,
               );
               return {
+                lastRecordedOn: lastDay,
                 salesCount: activeSales.length,
                 salesRevenueMinor: activeSales.reduce((total, sale) => total + sale.revenueMinor, 0),
                 expenseCount: expenseEvents.length,
@@ -426,7 +440,7 @@ export class HomeControlCenterService {
                   0,
                 ),
                 newOrderCount: orders.filter(
-                  stored => stored.order.createdAt.slice(0, 10) > since,
+                  stored => localDate(stored.order.createdAt) === lastDay,
                 ).length,
                 upcomingFollowUpCount: dueFollowUps.value.upcoming.filter(
                   stored => stored.followUpDate != null,

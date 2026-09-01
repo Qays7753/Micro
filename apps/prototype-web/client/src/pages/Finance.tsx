@@ -10,7 +10,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
 import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
@@ -75,6 +75,10 @@ const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
 
 export default function Finance() {
   const [, navigate] = useLocation();
+  /* U-001 (دورة التدقيق النهائي): رابط عميق ?event= من «السجل» — يفتح صف الحدث
+   * المصدر في طبقة «السجل والأثر» مركّزًا (لا يكتب شيئًا؛ وصول وقراءة وتصحيح موثق). */
+  const search = useSearch();
+  const focusEventId = new URLSearchParams(search).get("event");
   const {
     projectFinance,
     correctionHistory,
@@ -847,6 +851,7 @@ export default function Finance() {
         events={state.events}
         projectFinance={projectFinance}
         onChanged={notifyDataChanged}
+        focusEventId={focusEventId}
       />
       {/* U-001: «السجل» — سطح قراءة واحد لكل تصحيح موثق عبر السجلات المدعومة؛
           لا يضيف حدثًا ولا يعدّل قيمة، ويُحدّث مع كل تغيير بيانات. */}

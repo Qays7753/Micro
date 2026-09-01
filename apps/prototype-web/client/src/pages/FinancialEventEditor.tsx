@@ -6,6 +6,8 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useLocation, useParams } from "wouter";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { SettleablePayable } from "@/application/finance/projectFinancialService";
@@ -177,20 +179,40 @@ export default function FinancialEventEditor() {
         sharedPercentage <= 100
       : validAmount && amountMinor > 0;
 
-  async function save() {
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة في محرر الأحداث —
+   * الرجوع يمر بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ». */
+  const isDirty = useFormDirty([
+    amountMinor,
+    validAmount,
+    sharedTotalAmountMinor,
+    sharedPercentage,
+    date,
+    note,
+    counterparty,
+    relationship,
+    behavior,
+    purpose,
+    knowledge,
+    sharedMode,
+    sharedNote,
+    relatedEventId,
+  ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
+  async function save(): Promise<boolean> {
     const selectedType = type;
-    if (!selectedType) return;
+    if (!selectedType) return false;
     if (!primaryAmountValid) {
       setMessage(
         isShared && sharedMode === "percentage"
           ? "أدخل إجماليًا ونسبة صحيحة بين 0 و100 قبل الحفظ."
           : "أدخل مبلغًا صالحًا بالأرقام 0–9 قبل الحفظ.",
       );
-      return;
+      return false;
     }
     if (!note.trim()) {
       setMessage("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.");
-      return;
+      return false;
     }
     setMessage(null);
     setSaving(true);
@@ -219,22 +241,27 @@ export default function FinancialEventEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     if (result.reused) {
       setMessage(
         "لم يُحفظ التعديل. هذا الحدث مسجل سابقًا بنفس المفتاح؛ للتصحيح تراجع عن الحدث الأصلي وسجّل حدثًا جديدًا.",
       );
-      return;
+      return false;
     }
     setMessage("تم حفظ الحدث المالي محليًا.");
     navigate("/finance");
+    return true;
   }
 
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/finance")}
+      >
         <ArrowRight aria-hidden="true" /> الوضع المالي
       </button>
       <div className="micro-page-heading">

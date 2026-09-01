@@ -245,6 +245,11 @@ describe("LocalTransferService", () => {
           },
         ];
       },
+      /* P-002 (دورة التدقيق النهائي): مرجع كتالوج بغير نوع نصي يُرفض — تناظرًا
+       * مع تحقق الطلبات والمسودات. */
+      (sale: Record<string, unknown>) => {
+        sale.catalogItemId = 42;
+      },
     ]) {
       const broken = structuredClone(exported.value) as unknown as {
         data: { directSales: Record<string, unknown>[] };

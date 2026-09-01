@@ -4,6 +4,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import DirectSaleEditor from "@/pages/DirectSaleEditor";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
@@ -77,7 +78,11 @@ describe("DirectSaleEditor", () => {
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
-    render(<DirectSaleEditor />);
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
 
     await screen.findByRole("heading", { name: "تسجيل بيع مباشر" });
     /* دلالة الكمية معلنة قبل أي اختيار مرجع. */
@@ -122,7 +127,11 @@ describe("DirectSaleEditor", () => {
       notifyDataChanged,
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
-    render(<DirectSaleEditor />);
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
 
     await screen.findByRole("heading", { name: "تصحيح بيع مباشر" });
     expect(screen.getByDisplayValue("كوب جاهز")).toBeTruthy();
@@ -160,7 +169,11 @@ describe("DirectSaleEditor", () => {
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
-    render(<DirectSaleEditor />);
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
 
     await screen.findByRole("heading", { name: "تصحيح بيع مباشر" });
     fireEvent.click(screen.getByRole("button", { name: "إظهار تأكيد الإلغاء" }));

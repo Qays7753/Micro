@@ -38,7 +38,13 @@ type LayerState =
   | { phase: "error"; message: string }
   | { phase: "ready"; entries: readonly CorrectionHistoryEntry[] };
 
-function CorrectionRow({ entry, onOpenSale }: { entry: CorrectionHistoryEntry; onOpenSale: (path: string) => void }) {
+function CorrectionRow({
+  entry,
+  onOpenSource,
+}: {
+  entry: CorrectionHistoryEntry;
+  onOpenSource: (path: string) => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <article className="micro-finance-event" data-correction-kind={entry.kind}>
@@ -84,9 +90,9 @@ function CorrectionRow({ entry, onOpenSale }: { entry: CorrectionHistoryEntry; o
         <button
           className="micro-text-action"
           type="button"
-          onClick={() => onOpenSale(entry.deepLink ?? "")}
+          onClick={() => onOpenSource(entry.deepLink ?? "")}
         >
-          افتح سجل البيع
+          افتح السجل المصدر
         </button>
       ) : (
         <button
@@ -207,7 +213,7 @@ export function CorrectionsLayer({
                     <CorrectionRow
                       key={entry.id}
                       entry={entry}
-                      onOpenSale={path => navigate(path)}
+                      onOpenSource={path => navigate(path)}
                     />
                   ))}
                 </div>

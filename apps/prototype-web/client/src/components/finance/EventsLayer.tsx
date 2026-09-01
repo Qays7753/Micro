@@ -1,7 +1,9 @@
 /* §10: طبقة «السجل والأثر» وحدة مستقلة — تسميات الأحداث وأثرها وتصحيحها الموثق. */
 /* D-005: التصحيح الثلاثة الموثق — التراجع، والتعديل الذرّي (تراجع + بديل)، والحذف الموثق،
  * والاسترجاع — كلها بأثرها الحقيقي أمام العين قبل التأكيد، وسبب واضح حيث يلزم. */
-import { useState } from "react";
+/* U-001 (دورة التدقيق النهائي): وصول عملي للأحداث الأقدم لا الأحدث الثلاثة فقط —
+ * زر «اعرض كل الأحداث» + تركيز صف مصدر التصحيح القادم من «السجل» عبر ?event=. */
+import { useEffect, useRef, useState } from "react";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -57,11 +59,13 @@ function FinancialEventRow({
   events,
   projectFinance,
   onChanged,
+  focused = false,
 }: {
   event: FinancialEvent;
   events: readonly FinancialEvent[];
   projectFinance: ProjectFinancialService;
   onChanged: () => void;
+  focused?: boolean;
 }) {
   const [open, setOpen] = useState<CorrectionMode | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -69,6 +73,15 @@ function FinancialEventRow({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /* U-001: الصف المركَّز (قادم من سجل التصحيحات) يُبرَز ويُمرَّر إليه مرة واحدة. */
+  const rowRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (focused && rowRef.current) {
+      /* scrollIntoView اختيارية — jsdom وبعض البيئات لا توفرها، والإبراز وحده كافٍ. */
+      rowRef.current.scrollIntoView?.({ block: "center" });
+      rowRef.current.focus?.({ preventScroll: true });
+    }
+  }, [focused]);
   /* D-005: نموذج التعديل يبدأ معبّأً بقيم الحدث الحالية — البديل الجديد هو ما تصحّحه. */
   const [editAmount, setEditAmount] = useState(event.amountMinor);
   const [validEditAmount, setValidEditAmount] = useState(true);
@@ -218,8 +231,12 @@ function FinancialEventRow({
   };
   return (
     <article
+      ref={rowRef}
       className="micro-finance-event"
       data-correction={isReversal ? "reverse" : reversal ? "reversed" : "source"}
+      data-focused={focused ? "true" : undefined}
+      tabIndex={focused ? -1 : undefined}
+      aria-label={focused ? "حدث مركَّز قادم من سجل التصحيحات" : undefined}
     >
       <div className="micro-finance-event-main">
         <div>
@@ -585,40 +602,80 @@ export function EventsLayer({
   events,
   projectFinance,
   onChanged,
+  focusEventId = null,
 }: {
   visibleEvents: readonly FinancialEvent[];
   events: readonly FinancialEvent[];
   projectFinance: ProjectFinancialService;
   onChanged: () => void;
+  focusEventId?: string | null;
 }) {
+  /* U-001 (دورة التدقيق النهائي): طريقة عملية للوصول للأحداث الأقدم — الافتراضي
+   * الأحدث الثلاثة (كثافة §10)، وزر واحد يعرض السجل كاملًا بنفس صفوفه وتصحيحاته.
+   * التركيز القادم من «السجل» (?event=) يفتح الكل ويُبرز صف المصدر. */
+  const [showAll, setShowAll] = useState(false);
+  const [layerOpen, setLayerOpen] = useState(false);
+  useEffect(() => {
+    if (focusEventId) {
+      setShowAll(true);
+      setLayerOpen(true);
+    }
+  }, [focusEventId]);
+  const renderedEvents = showAll ? events : visibleEvents;
+  const focusedEventId = focusEventId ?? null;
+  const onToggle = (event: React.ToggleEvent<HTMLDetailsElement>) => {
+    setLayerOpen(event.currentTarget.open);
+  };
   return (
-    <details className="micro-finance-layer">
+    <details className="micro-finance-layer" open={layerOpen} onToggle={onToggle}>
       <summary className="micro-finance-layer-summary">
         <span>
           <b>السجل والأثر</b>
-          <small>آخر ثلاثة أحداث؛ افتح الصف لرؤية الأثر الكامل وتصحيحه</small>
+          <small>
+            {showAll
+              ? `السجل كاملًا (${events.length} حدثًا)؛ افتح الصف لرؤية الأثر وتصحيحه`
+              : "آخر ثلاثة أحداث؛ افتح الصف لرؤية الأثر الكامل وتصحيحه"}
+          </small>
         </span>
         <strong>افتح السجل</strong>
       </summary>
       <section className="micro-finance-event-list">
         <div className="micro-finance-event-heading">
           <span className="micro-overline">السجل المحلي · المبالغ (د.أ)</span>
-          <h2>أحدث الأحداث العامة</h2>
+          <h2>{showAll ? "كل الأحداث العامة" : "أحدث الأحداث العامة"}</h2>
           <p>كل تراجع أو تعديل أو حذف موثق يضيف سجلًا؛ الأصل يبقى ظاهرًا ولا يوجد محو صامت.</p>
         </div>
-        {visibleEvents.length > 0 ? (
-          visibleEvents.map(event => (
+        {renderedEvents.length > 0 ? (
+          renderedEvents.map(event => (
             <FinancialEventRow
               key={event.id}
               event={event}
               events={events}
               projectFinance={projectFinance}
               onChanged={onChanged}
+              focused={event.id === focusedEventId}
             />
           ))
         ) : (
           <p>لم تسجل حدثًا عامًا بعد. سجّل واقعًا تعرفه، لا تقديرًا لا تثق به.</p>
         )}
+        <div className="micro-form-actions" role="group" aria-label="نطاق عرض الأحداث">
+          <button
+            className="micro-text-action"
+            type="button"
+            aria-pressed={showAll}
+            onClick={() => setShowAll(current => !current)}
+          >
+            {showAll
+              ? "أعرض الأحدث فقط"
+              : `اعرض كل الأحداث (${events.length})`}
+          </button>
+        </div>
+        {showAll && events.length > visibleEvents.length ? (
+          <p className="micro-finance-event-closed">
+            السجل الكامل ظاهر الآن؛ التصفح للأسفل بلا حد أقصى، وكل صف قابل للتصحيح الموثق مثل الأحدث.
+          </p>
+        ) : null}
       </section>
     </details>
   );

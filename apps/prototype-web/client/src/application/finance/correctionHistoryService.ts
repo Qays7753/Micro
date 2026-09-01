@@ -100,7 +100,12 @@ export class CorrectionHistoryService {
             isEdit && replacement
               ? `${eventKindLabel[replacement.type]} · ${replacement.occurredOn} · ${money(replacement.amountMinor)}`
               : null,
-          deepLink: null,
+          /* U-001 (دورة التدقيق النهائي): وصول عميق للحدث في «السجل والأثر» — التعديل
+           * يفتح البديل النشط (حيث التصحيح/الحذف)، والتراجع يفتح الأصل (حيث الاسترجاع). */
+          deepLink:
+            isEdit && replacement
+              ? `/finance?event=${encodeURIComponent(replacement.id)}`
+              : `/finance?event=${encodeURIComponent(event.correctionOfEventId)}`,
         });
       }
       /* استرجاع: إعادة تسجيل قيم أصل متراجع عنه — موسّمة بمفتاح صريح. */
@@ -117,13 +122,24 @@ export class CorrectionHistoryService {
             : "استرجاع حدث سابق",
           originalLabel: null,
           replacementLabel: null,
-          deepLink: null,
+          /* حدث الاسترجاع هو السجل النشط الحالي — تصحيحه من صفّه. */
+          deepLink: `/finance?event=${encodeURIComponent(event.id)}`,
         });
       }
     }
 
     for (const sale of salesResult.value) {
       for (const revision of sale.revisions ?? []) {
+        /* U-001 (دورة التدقيق النهائي): الأثر الموقّع هو فرق التعديل نفسه لا قيمة
+         * السجل القديمة — إلغاء بيع يُظهر الإيراد المستبعد بالسالب. */
+        const signedEffectMinor =
+          revision.kind === "cancel"
+            ? -sale.revenueMinor
+            : revision.kind === "price_cut" && revision.beforeRevenueMinor != null
+              ? sale.collectedMinor - revision.beforeRevenueMinor
+              : revision.beforeRevenueMinor != null
+                ? sale.revenueMinor - revision.beforeRevenueMinor
+                : null;
         entries.push({
           id: `${sale.id}:${revision.idempotencyKey}`,
           kind:
@@ -134,10 +150,7 @@ export class CorrectionHistoryService {
                 : "sale_price_cut",
           recordedAt: revision.createdAt,
           occurredOn: sale.occurredOn,
-          amountEffectMinor:
-            revision.kind === "price_cut" && revision.beforeRevenueMinor != null
-              ? sale.collectedMinor - revision.beforeRevenueMinor
-              : revision.beforeRevenueMinor ?? null,
+          amountEffectMinor: signedEffectMinor,
           reason: revision.reason ?? null,
           originalLabel:
             revision.beforeRevenueMinor != null
@@ -163,7 +176,9 @@ export class CorrectionHistoryService {
         reason: entry.reason ?? entry.note,
         originalLabel: `قيد كاش · ${entry.note}`,
         replacementLabel: null,
-        deepLink: null,
+        /* U-001 (دورة التدقيق النهائي): القيد المصدر ظاهر في سطح المحافظ والقيدود —
+         * لا مسار كتابة ثانٍ من هنا؛ تصحيح القيدود يُنفّذ من سطحه الأصلي. */
+        deepLink: "/cash",
       });
     }
 

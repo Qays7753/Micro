@@ -1312,7 +1312,8 @@ textarea:disabled,
   align-items: baseline;
   gap: var(--space-2);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  /* P-004 (دورة التدقيق النهائي): قائمة فجوات المعرفة مادة قراءة فعلية — 13px. */
+  font-size: 13px;
   line-height: 1.7;
 }
 .micro-knowledge-gaps li > b {
@@ -3064,11 +3065,13 @@ textarea:disabled,
 .micro-expense-classification .micro-field {
   gap: var(--space-1);
 }
+/* P-004 (دورة التدقيق النهائي): مادة قراءة فعلية — رُفعت إلى 13px كقرار الدورة
+ * نفسه (التفسيرات وأسباب المسارات). */
 .micro-expense-route-note {
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-3);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.65;
 }
 .micro-period-review-note {
@@ -4499,6 +4502,12 @@ button.micro-month-cell:hover {
 }
 .micro-finance-event[data-correction="reversed"] {
   border-inline-start: 3px solid var(--color-success-text);
+}
+/* U-001 (دورة التدقيق النهائي): صف الحدث المركَّز القادم من «السجل» — إبراز مؤقت
+ * بالحدود فقط دون تغيير الألوان المالية أو المعنى. */
+.micro-finance-event[data-focused="true"] {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
 }
 .micro-finance-event-main {
   display: flex;

@@ -27,10 +27,8 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"
-    ></script>
+    <!-- Q-003/§11 (دورة التدقيق النهائي): أزيل وسم تحليلات معطل كان يشحن في الإنتاج
+         بقيم %VITE_ANALYTICS_*% غير معرفة أبدًا في هذا المستودع — التطبيق محلي
+         أولًا بلا نداءات شبكة، ولا مكان لمسار تحليلات غير مفعل. -->
   </body>
 </html>

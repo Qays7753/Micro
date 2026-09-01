@@ -7,6 +7,8 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { InventoryReferences } from "@/application/inventory/inventoryMaterialService";
 import {
   resolveInventoryMovementType,
@@ -73,6 +75,29 @@ export default function InventoryMovementEditor() {
       setWasteTemplateId(result.value.catalogTemplates[0]?.id ?? "");
     });
   }, [inventory, safeType]);
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة.
+   * تُستدعى الخطافات قبل أي return شرطي (قواعد الخطافات): فرع «حركة غير
+   * متاحة» يمر بها أيضًا بأمان (النموذج نظيف فالحارس خامل). */
+  const isDirty = useFormDirty([
+      type,
+      materialId,
+      purchaseId,
+      orderId,
+      direction,
+      wasteContextKind,
+      wasteOrderId,
+      wasteCatalogItemId,
+      wasteTemplateId,
+      wasteAllocationNote,
+      quantityMilli,
+      valueMinor,
+      date,
+      reason,
+      note,
+    ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
   if (!safeType)
     return (
       <section className="micro-page micro-not-found" data-testid="inventory-movement-unavailable">
@@ -93,7 +118,7 @@ export default function InventoryMovementEditor() {
         </button>
       </section>
     );
-  async function save() {
+  async function save(): Promise<boolean> {
     if (
       !safeType ||
       !references ||
@@ -104,27 +129,27 @@ export default function InventoryMovementEditor() {
       !valueValid
     ) {
       setMessage("أدخل المادة والكمية والبيان بالأرقام 0–9 قبل الحفظ.");
-      return;
+      return false;
     }
     if (safeType === "receipt" && (!purchaseId || valueMinor <= 0)) {
       setMessage("اختر شراء مواد وأدخل قيمة الجزء المستلم.");
-      return;
+      return false;
     }
     if (safeType === "consume" && !orderId) {
       setMessage("اختر طلبًا موجودًا لاستهلاك المادة.");
-      return;
+      return false;
     }
     if ((safeType === "waste" || safeType === "adjust") && !reason.trim()) {
       setMessage("أدخل سببًا واضحًا للحركة.");
-      return;
+      return false;
     }
     if (safeType === "waste" && wasteContextKind === "order" && !wasteOrderId) {
       setMessage("اختر الطلب المرتبط بالهدر.");
-      return;
+      return false;
     }
     if (safeType === "waste" && wasteContextKind === "catalog_item" && !wasteCatalogItemId) {
       setMessage("اختر مرجع العمل المرتبط بالهدر.");
-      return;
+      return false;
     }
     if (
       safeType === "waste" &&
@@ -132,7 +157,7 @@ export default function InventoryMovementEditor() {
       (!wasteCatalogItemId || !wasteTemplateId)
     ) {
       setMessage("اختر مرجع العمل والقالب المرتبطين بالهدر.");
-      return;
+      return false;
     }
     setSaving(true);
     const wasteContext =
@@ -191,10 +216,11 @@ export default function InventoryMovementEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/inventory");
+    return true;
   }
   if (!references && !message)
     return (
@@ -218,7 +244,11 @@ export default function InventoryMovementEditor() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/inventory")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/inventory")}
+      >
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">

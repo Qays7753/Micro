@@ -323,4 +323,104 @@ describe("HomeControlCenterService", () => {
       actionLabel: "افتح",
     });
   });
+
+  /* U-002 (دورة التدقيق النهائي): «آخر تسجيل» من أوقات التسجيل الفعلية —
+   * القيد المؤرَّخ لا يوهم غيابًا، والموعد المستقبلي لا يخفي البطاقة،
+   * والبيع المباشر تسجيلٌ كغيره، والملخص يصف آخر يوم تسجيل صادقًا. */
+  it("counts last activity by recording time: a backdated expense does not fake absence and the digest describes the last recording day", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    /* حدث مؤرَّخ قديمًا (١ يوليو) لكن سُجّل حديثًا (٢٤ أغسطس): التسجيل حديث فلا غياب. */
+    const backdated = await new ProjectFinancialService(store, () => "2026-08-24T09:00:00.000Z").record({
+      type: "operating_expense_cash",
+      amountMinor: 900,
+      occurredOn: "2026-07-01",
+      note: "مصروف مؤرَّخ",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "u002-backdated",
+    });
+    if (!backdated.ok) throw new Error("expense should save");
+    const fresh = await services(store).read();
+    if (!fresh.ok) throw new Error(fresh.message);
+    expect(fresh.value.awaySection).toBeNull();
+  });
+
+  it("describes the last recording day honestly when the absence is real, counting the direct sale as activity", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    /* مصروف وبيع سُجّلا معًا في آخر يوم تسجيل (١٠ أغسطس) قبل غياب فعلي. */
+    const expense = await new ProjectFinancialService(store, () => "2026-08-10T09:00:00.000Z").record({
+      type: "operating_expense_cash",
+      amountMinor: 900,
+      occurredOn: "2026-08-10",
+      note: "مصروف آخر يوم",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "u002-last-day-expense",
+    });
+    if (!expense.ok) throw new Error("expense should save");
+    await store.saveDirectSale({
+      id: "u002-sale",
+      itemName: "كوب",
+      quantity: 1,
+      revenueMinor: 1500,
+      collectedMinor: 1500,
+      catalogItemId: null,
+      customerName: null,
+      costMinor: null,
+      occurredOn: "2026-08-20",
+      recordedAt: "2026-08-10T10:00:00.000Z",
+      note: null,
+      idempotencyKey: "u002-sale-key",
+      status: "active",
+      revisions: [],
+    });
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    /* آخر تسجيل = ١٠ أغسطس (وقت التسجيل، لا تاريخ أثر البيع ٢٠ أغسطس) → ١٥ يومًا. */
+    expect(result.value.awaySection).toMatchObject({ daysSinceLastActivity: 15 });
+    expect(result.value.awaySection?.digest).toMatchObject({
+      lastRecordedOn: "2026-08-10",
+      salesCount: 1,
+      salesRevenueMinor: 1500,
+      expenseCount: 1,
+      expenseMinor: 900,
+    });
+  });
+
+  it("never lets a future schedule date hide the away card or a stale effective date fake absence", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    await saveOrder(store, "u002-order-1");
+    /* موعد مستقبلي بعيد (شهر ahead) بتاريخ تسجيل قديم — لا يخفي البطاقة. */
+    await store.saveSchedule({
+      id: "u002-schedule",
+      orderId: "u002-order-1",
+      kind: "delivery",
+      scheduledFor: "2026-12-01",
+      scheduledTime: null,
+      durationMinutes: 60,
+      status: "scheduled",
+      postponeReason: null,
+      events: [],
+      createdAt: "2026-08-10T09:00:00.000Z",
+      updatedAt: "2026-08-10T09:00:00.000Z",
+    });
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    /* آخر تسجيل = الطلب ٢٤ أغسطس → غياب يوم واحد فقط → لا بطاقة رغم الموعد البعيد. */
+    expect(result.value.awaySection).toBeNull();
+  });
+
+  it("hides the away card while recording is recent and shows it only after a real recording gap", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    await saveOrder(store, "u002-order-2");
+    const recent = await services(store).read();
+    if (!recent.ok) throw new Error(recent.message);
+    expect(recent.value.awaySection).toBeNull();
+  });
 });

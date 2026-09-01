@@ -18,7 +18,6 @@
     "lucide-react": "^0.453.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "vaul": "^1.1.2",
     "wouter": "^3.3.5"

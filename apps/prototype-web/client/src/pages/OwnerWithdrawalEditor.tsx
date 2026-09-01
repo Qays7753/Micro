@@ -9,6 +9,8 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
 
@@ -52,25 +54,36 @@ export default function OwnerWithdrawalEditor() {
     };
   }, [ownerEntitlement]);
 
-  async function save() {
-    if (loadError || !overview) return;
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+  const isDirty = useFormDirty([
+      amountMinor,
+      walletId,
+      entitlementId,
+      occurredOn,
+      note,
+    ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
+  async function save(): Promise<boolean> {
+    if (loadError || !overview) return false;
     const path = unifiedWithdrawalPath(overview);
     if (!validAmount || !Number.isInteger(amountMinor) || amountMinor <= 0) {
       setMessage("أدخل مبلغ السحب بالأرقام 0–9 قبل الحفظ.");
-      return;
+      return false;
     }
     if (path === "ledger_movement") {
       if (!walletId.trim()) {
         setMessage("اختر المحفظة التي يخرج منها السحب.");
-        return;
+        return false;
       }
       if (!entitlementId.trim()) {
         setMessage("اختر الحق المسجل الذي تتم تسويته بهذا السحب.");
-        return;
+        return false;
       }
     } else if (!note.trim()) {
       setMessage("اكتب بيانًا مختصرًا للسحب — ما الذي حدث؟");
-      return;
+      return false;
     }
     setMessage(null);
     setSaving(true);
@@ -98,10 +111,11 @@ export default function OwnerWithdrawalEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/finance");
+    return true;
   }
 
   if (loadError)
@@ -118,7 +132,11 @@ export default function OwnerWithdrawalEditor() {
   const path = overview ? unifiedWithdrawalPath(overview) : null;
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/finance")}
+      >
         <ArrowRight aria-hidden="true" /> مالي
       </button>
       <div className="micro-page-heading">
