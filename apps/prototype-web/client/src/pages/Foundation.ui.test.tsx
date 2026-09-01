@@ -13,6 +13,7 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 const wouterMocks = { navigate: vi.fn() };
 
 vi.mock("wouter", () => ({
+  useSearch: () => "",
   useLocation: () => ["/foundation", wouterMocks.navigate],
 }));
 
@@ -105,9 +106,9 @@ describe("Foundation page (decisions 4–8)", () => {
     fireEvent.click(screen.getByRole("button", { name: /مادة ورصيد بداية/ }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/inventory/material/new");
 
-    // F-076: بديل الملف باب إلى الاستيراد في الإعدادات.
+    // F-076 + المجموعة ١: بديل الملف باب إلى الاستيراد الموجه — يصل للبطاقة نفسها.
     fireEvent.click(screen.getByRole("button", { name: /فتح الاستيراد/ }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/settings");
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/settings?focus=guided-import&from=%2Ffoundation");
   });
 
   it("offers both exits and lands on Home without closing the step (decision 7)", async () => {

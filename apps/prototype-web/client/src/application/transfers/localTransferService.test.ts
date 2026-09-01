@@ -1771,3 +1771,85 @@ describe("inventory activation export and migration (decision 9)", () => {
     ).toMatchObject({ ok: false, code: "validation_error" });
   });
 });
+
+describe("owner profile export and migration (group 1 owner profile foundation)", () => {
+  it("round-trips the owner identity in the current export version", async () => {
+    const source = new MemoryLocalStore();
+    await source.saveOwnerProfile({
+      id: "local-owner-profile",
+      ownerId: "owner-11111111-2222-3333-4444-555555555555",
+      displayName: "ليان",
+      email: null,
+      provider: null,
+      externalAccountId: null,
+      createdAt: "2026-09-01T00:00:00.000Z",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+    });
+    const transfers = new LocalTransferService(source);
+    const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    expect(exported.value.data.ownerProfile).toMatchObject({ displayName: "ليان" });
+    const verified = await transfers.createVerifiedExport();
+    expect(verified.ok).toBe(true);
+    const roundTrip = new LocalTransferService(new MemoryLocalStore());
+    const preview = roundTrip.prepareImport(JSON.stringify(exported.value));
+    if (!preview.ok) throw new Error("owner import should validate");
+    await roundTrip.confirmImport(preview.value);
+    const target = new MemoryLocalStore();
+    const targetTransfers = new LocalTransferService(target);
+    const targetPreview = targetTransfers.prepareImport(JSON.stringify(exported.value));
+    if (!targetPreview.ok) throw new Error("target import should validate");
+    await targetTransfers.confirmImport(targetPreview.value);
+    await expect(target.getOwnerProfile()).resolves.toMatchObject({
+      ok: true,
+      value: { displayName: "ليان", ownerId: "owner-11111111-2222-3333-4444-555555555555" },
+    });
+  });
+
+  it("accepts the previous v21/schema29 export and backfills ownerProfile=null", async () => {
+    const source = new MemoryLocalStore();
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    const previous = structuredClone(exported.value) as {
+      version: number;
+      schemaVersion: number;
+      data: Record<string, unknown>;
+    };
+    previous.version = 21;
+    previous.schemaVersion = 29;
+    delete previous.data.ownerProfile;
+    expect(
+      new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous)),
+    ).toMatchObject({
+      ok: true,
+      value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { ownerProfile: null } } },
+    });
+  });
+
+  it("rejects a corrupt owner profile record instead of guessing its meaning", async () => {
+    const source = new MemoryLocalStore();
+    const exported = await new LocalTransferService(source).createExport();
+    if (!exported.ok) throw new Error("export should succeed");
+    const corrupt = structuredClone(exported.value) as {
+      version: number;
+      schemaVersion: number;
+      data: Record<string, unknown>;
+    };
+    corrupt.version = localExportVersion;
+    corrupt.schemaVersion = localSchemaVersion;
+    /* مزود غير محلي = وعد مزامنة لم يُنفذ — الحارس يرفض لا أن يمرره بصمت. */
+    corrupt.data.ownerProfile = {
+      id: "local-owner-profile",
+      ownerId: "owner-11111111-2222-3333-4444-555555555555",
+      displayName: null,
+      email: null,
+      provider: "google",
+      externalAccountId: "abc",
+      createdAt: "2026-09-01T00:00:00.000Z",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    expect(
+      new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(corrupt)),
+    ).toMatchObject({ ok: false, code: "validation_error" });
+  });
+});

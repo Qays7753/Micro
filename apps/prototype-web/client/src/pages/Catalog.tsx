@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArchiveX, ArrowRight, Check, GitCompareArrows, Plus, RotateCcw, X } from "lucide-react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
 import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application/input/englishNumeric";
@@ -172,6 +173,8 @@ export const catalogAllocationStatusLabel = (status: "known" | "needs_review" | 
 
 export default function Catalog() {
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { catalog, recurringWork, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [kind, setKind] = useState<CatalogItemKind>("product");
   const [name, setName] = useState("");
@@ -730,8 +733,8 @@ export default function Catalog() {
   /* مبدأ Micro: يبدأ الكتالوج بمرجع عملي، وتأتي القياسات والقوالب والقراءات عند الحاجة فقط. */
   return (
     <section className="micro-page">
-      <button className="micro-back-button" type="button" onClick={() => requestSafeNavigation("/orders")}>
-        <ArrowRight aria-hidden="true" /> العودة للطلبات
+      <button className="micro-back-button" type="button" onClick={() => requestSafeNavigation(returnPath)}>
+        <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مرجع اختياري</span>

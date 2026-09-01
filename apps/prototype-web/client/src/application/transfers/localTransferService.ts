@@ -20,6 +20,7 @@ import {
   localExportFormat,
   localExportVersion,
   localInventoryActivationId,
+  localOwnerProfileId,
   localProfileId,
   localSchemaVersion,
   type LocalExportFile,
@@ -29,6 +30,7 @@ import {
 
 export type TransferSummary = {
   profile: boolean;
+  ownerProfile: boolean;
   preferences: boolean;
   drafts: number;
   orders: number;
@@ -947,6 +949,24 @@ function validEvent(value: unknown): boolean {
   );
 }
 
+function validateOwnerProfile(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (!isRecord(value)) return false;
+  return (
+    value.id === localOwnerProfileId &&
+    isString(value.ownerId) &&
+    value.ownerId.length >= 8 &&
+    value.ownerId.length <= 64 &&
+    (value.displayName === null || (isString(value.displayName) && value.displayName.length <= 80)) &&
+    (value.email === null || (isString(value.email) && value.email.length <= 120)) &&
+    /* حقول مستقبلية محجوزة — null فقط في هذه المرحلة؛ أي قيمة أخرى ترفض الملف. */
+    value.provider === null &&
+    value.externalAccountId === null &&
+    isDate(value.createdAt) &&
+    isDate(value.updatedAt)
+  );
+}
+
 function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   if (
     !isRecord(data) ||
@@ -982,6 +1002,8 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !isDate(data.profile.updatedAt))
   )
     return false;
+  /* المجموعة ١: ملف المالك — غيابه مقبول (ملفات ٢١ وأقدم)؛ وجوده المعطوب يرفض. */
+  if (!validateOwnerProfile(data.ownerProfile)) return false;
   if (
     data.preferences !== null &&
     (!isRecord(data.preferences) ||
@@ -1809,6 +1831,7 @@ function summary(file: LocalExportFile): TransferSummary {
   const events = file.data.orders.reduce((count, stored) => count + stored.order.events.length, 0);
   return {
     profile: file.data.profile !== null,
+    ownerProfile: file.data.ownerProfile != null,
     preferences: file.data.preferences !== null,
     drafts: file.data.drafts.length,
     orders: file.data.orders.length,
@@ -1885,6 +1908,9 @@ export class LocalTransferService {
     const isPreviousWorkDestination = candidate.version === 17 && candidate.schemaVersion === 26;
     /* إرث موجة إعادة التدفق: نسخة ٢٠/مخطط ٢٨ قبل حقول الأمانات والتقديرات المستقلة. */
     const isPreviousFlowRedesign = candidate.version === 20 && candidate.schemaVersion === 28;
+    /* المجموعة ١ (ملف المالك): نسخة ٢١/مخطط ٢٩ قبل مخزن هوية المالك — تُقبل
+     * وتُهاجر بـ ownerProfile=null؛ لا أعمدة مالية أو تاريخية تتغير. */
+    const isPreviousOwnerFoundation = candidate.version === 21 && candidate.schemaVersion === 29;
     const isPreviousO1 =
       (candidate.version === 12 && candidate.schemaVersion === 21) ||
       (candidate.version === 13 && candidate.schemaVersion === 22);
@@ -1902,6 +1928,7 @@ export class LocalTransferService {
       !isPreviousG4bScale &&
       !isPreviousWorkDestination &&
       !isPreviousFlowRedesign &&
+      !isPreviousOwnerFoundation &&
       !isPreviousO1 &&
       !isPreviousG3 &&
       !isG3Legacy &&
@@ -1915,6 +1942,7 @@ export class LocalTransferService {
     const raw = candidate.data;
     const migrated: LocalStoreSnapshot = {
       ...raw,
+      ownerProfile: raw.ownerProfile ?? null,
       drafts: Array.isArray(raw.drafts)
         ? raw.drafts.map(draft =>
             isRecord(draft) ? { ...draft, catalogItemId: draft.catalogItemId ?? null } : draft,
@@ -2104,6 +2132,7 @@ export class LocalTransferService {
   static emptySnapshot(): LocalStoreSnapshot {
     return {
       profile: null,
+      ownerProfile: null,
       preferences: null,
       drafts: [],
       orders: [],

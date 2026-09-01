@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import type {
@@ -136,7 +137,7 @@ export default function InventoryMaterials() {
         <button
           className="micro-button micro-button-primary"
           type="button"
-          onClick={() => navigate("/finance")}
+          onClick={() => navigate(withFrom("/finance", "/inventory"))}
         >
           مالي
         </button>
@@ -153,7 +154,7 @@ export default function InventoryMaterials() {
   const notActivated = state.activation.activatedOn === null;
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+      <button className="micro-back-button" type="button" onClick={() => navigate(withFrom("/finance", "/inventory"))}>
         <ArrowLeft aria-hidden="true" /> مالي
       </button>
       <div className="micro-page-heading">
@@ -206,7 +207,7 @@ export default function InventoryMaterials() {
         <button
           className="micro-button micro-button-primary"
           type="button"
-          onClick={() => navigate("/inventory/material/new")}
+          onClick={() => navigate(withFrom("/inventory/material/new", "/inventory"))}
         >
           <Plus aria-hidden="true" /> مادة ورصيد بداية
         </button>
@@ -214,7 +215,7 @@ export default function InventoryMaterials() {
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/inventory/movement/receipt")}
+            onClick={() => navigate(withFrom("/inventory/movement/receipt", "/inventory"))}
           >
             <PackagePlus aria-hidden="true" /> استلام شراء
           </button>
@@ -231,14 +232,14 @@ export default function InventoryMaterials() {
             <button
               className="micro-button micro-button-secondary"
               type="button"
-              onClick={() => navigate("/inventory/movement/consume")}
+              onClick={() => navigate(withFrom("/inventory/movement/consume", "/inventory"))}
             >
               <Scissors aria-hidden="true" /> استهلاك لطلب
             </button>
             <button
               className="micro-button micro-button-secondary"
               type="button"
-              onClick={() => navigate("/inventory/movement/waste")}
+              onClick={() => navigate(withFrom("/inventory/movement/waste", "/inventory"))}
             >
               <CircleMinus aria-hidden="true" /> هدر أو ضبط
             </button>
@@ -386,7 +387,7 @@ export default function InventoryMaterials() {
                   <button
                     className="micro-button micro-button-quiet"
                     type="button"
-                    onClick={() => navigate(`/inventory/movement/${movement.id}/reverse`)}
+                    onClick={() => navigate(withFrom(`/inventory/movement/${movement.id}/reverse`, "/inventory"))}
                   >
                     <RotateCcw aria-hidden="true" /> تراجع
                   </button>

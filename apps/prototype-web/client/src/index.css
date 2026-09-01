@@ -929,6 +929,29 @@ textarea:disabled,
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
 }
+/* المجموعة ١ — سؤال الإغلاق الهادئ بمدخل مكتوب: خياران صريحان لا إغلاق صامت. */
+.micro-sheet-confirm {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 var(--space-4) var(--space-2);
+  border: 1px solid var(--color-warning-text);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-sheet-confirm > strong {
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+.micro-sheet-confirm > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.micro-sheet-confirm .micro-form-actions {
+  margin: 0;
+}
 .micro-sheet-action {
   display: flex;
   min-height: 64px;
@@ -5020,6 +5043,54 @@ button.micro-month-cell:hover {
   font-size: 12px;
   line-height: 1.7;
 }
+/* المجموعة ١ — ملف المالك والمشروع (/profile): سطح قراءة هادئ بلا مقعد تنقل. */
+.micro-profile-page {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-profile-section {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-profile-facts {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.micro-profile-facts > div {
+  display: grid;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+  padding-block: var(--space-2);
+}
+.micro-profile-facts > div:last-child {
+  border-bottom: 0;
+}
+.micro-profile-facts dt {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-profile-facts dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.micro-profile-fields {
+  display: grid;
+  gap: var(--space-2);
+}
+.micro-profile-future-note {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
 .micro-home-facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5064,6 +5135,58 @@ button.micro-month-cell:hover {
   color: var(--color-text-secondary);
   font-size: 11px;
   line-height: 1.5;
+}
+/* المجموعة ١ (§7.1) — ترويسة الرئيسية: التاريخ ومدخل الملف في صف واحد هادئ. */
+.micro-home-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.micro-home-profile-link {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary);
+}
+.micro-home-profile-link svg {
+  width: 15px;
+  height: 15px;
+}
+/* كتلة «الأهم الآن»: بند واحد مرفوع بلون تمييز هادئ — لا عدّاد ولا إنذار. */
+.micro-home-priority {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  background: var(--color-surface);
+}
+.micro-home-priority .micro-home-today-item {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+/* مؤهل الأمانة داخل بطاقة الكاش: حقيقة مالية ظاهرة بلا لون إنذار. */
+.micro-home-fact-qualifier {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+/* سطر المكان/العمل بلا اتصال — بديل نص النطاق القديم. */
+.micro-home-locality {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-block: 1px solid var(--color-border);
+  padding: var(--space-3);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-well);
+  font-size: 12px;
+}
+.micro-home-locality svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
 }
 .micro-home-attention-list,
 .micro-home-optional-list,

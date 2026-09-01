@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { AgreementResult } from "@/application/agreements/agreementService";
 import type { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
@@ -35,10 +36,15 @@ const resultLabel: Record<string, string> = {
 type OrderDetailState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; stored: StoredCraftOrder };
 const preDeliveryStatuses = ["provisional_agreement", "confirmed", "in_progress", "ready"];
+/* المجموعة ١ (Scope E): القدرات الحقيقية تُكشف في سياقها — الوقت والمادة الفعليان
+ * يصعدان من «تفاصيل إضافية» إلى سطح الطلب عندما يصل التنفيذ؛ ما قبله يبقى مطويًا. */
+const executionStatuses = ["in_progress", "ready"];
 
 export default function OrderDetail() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو الطلبات كبديل قانوني. */
+  const returnPath = useReturnPath();
   const { actualTime, agreements, agreementContext, fulfillment, inventory, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   const [stored, setStored] = useState<StoredCraftOrder | null>(null);
@@ -97,7 +103,7 @@ export default function OrderDetail() {
         <button
           className="micro-button micro-button-primary"
           type="button"
-          onClick={() => navigate("/orders")}
+          onClick={() => navigate(returnPath)}
         >
           الطلبات
         </button>
@@ -248,6 +254,24 @@ export default function OrderDetail() {
         </section>
       )}
       {contextualAction}
+      {/* المجموعة ١ (Scope E): أثناء التنفيذ — قراءة الوقت والمادة الفعلية ظاهرة
+          بلا طي، ووصلة استهلاك المادة تحفظ سياق الطلب الأصلي للتعبئة والرجوع. */}
+      {executionStatuses.includes(order.status) ? (
+        <section className="micro-execution-layer" aria-label="قراءة التنفيذ">
+          <ActualMaterialPanel
+            state={materialState}
+            onRecord={() =>
+              navigate(`/inventory/movement/consume?order=${stored.id}&from=/orders/${stored.id}`)
+            }
+          />
+          <ActualTimePanel
+            orderId={stored.id}
+            actualTime={actualTime}
+            dataVersion={dataVersion}
+            notifyDataChanged={notifyDataChanged}
+          />
+        </section>
+      ) : null}
       {/* القرار ١٩: الإلغاء من أي حالة قبل التسليم عبر cancelOrder وحدها (عقد ٠٢) —
           السبب اختياري بثلاثة أزرار بنقرة، والتخطي متاح. */}
       {preDeliveryStatuses.includes(order.status) ? (
@@ -470,7 +494,9 @@ export default function OrderDetail() {
       <details className="micro-additional-details">
         <summary className="micro-additional-details-summary">
           <span>تفاصيل إضافية</span>
-          <small>الاتفاق، المواد، الوقت، وسجل الطلب</small>
+          <small>
+            {executionStatuses.includes(order.status) ? "الاتفاق وسجل الطلب" : "الاتفاق، المواد، الوقت، وسجل الطلب"}
+          </small>
         </summary>
         <div className="micro-additional-details-body">
           <AgreementContextPanel
@@ -482,16 +508,20 @@ export default function OrderDetail() {
               notifyDataChanged();
             }}
           />
-          <ActualMaterialPanel
-            state={materialState}
-            onRecord={() => navigate("/inventory/movement/consume")}
-          />
-          <ActualTimePanel
-            orderId={stored.id}
-            actualTime={actualTime}
-            dataVersion={dataVersion}
-            notifyDataChanged={notifyDataChanged}
-          />
+          {executionStatuses.includes(order.status) ? null : (
+            <>
+              <ActualMaterialPanel
+                state={materialState}
+                onRecord={() => navigate("/inventory/movement/consume")}
+              />
+              <ActualTimePanel
+                orderId={stored.id}
+                actualTime={actualTime}
+                dataVersion={dataVersion}
+                notifyDataChanged={notifyDataChanged}
+              />
+            </>
+          )}
           <OrderEventLog events={order.events} />
         </div>
       </details>

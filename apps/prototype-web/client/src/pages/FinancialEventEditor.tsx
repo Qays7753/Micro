@@ -4,6 +4,7 @@ import { ArrowRight, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useLocation, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -98,6 +99,8 @@ const sourceDescription: Record<SharedProjectShareBasis, string> = {
 export default function FinancialEventEditor() {
   const { type: rawType } = useParams<{ type: string }>();
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { projectFinance, notifyDataChanged } = usePrototypeServices();
   const type = types.has(rawType as FinancialEventType) ? (rawType as FinancialEventType) : null;
   const [amountMinor, setAmountMinor] = useState(0);
@@ -260,7 +263,7 @@ export default function FinancialEventEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/finance")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowRight aria-hidden="true" /> الوضع المالي
       </button>

@@ -1,6 +1,8 @@
 import {
   BellRing,
+  ChevronLeft,
   CircleDollarSign,
+  CircleUserRound,
   Download,
   FileCheck2,
   Hammer,
@@ -11,7 +13,7 @@ import {
   Upload,
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
@@ -47,8 +49,22 @@ const modeOptions: Array<{ value: "" | OperatingWorkMode; label: string; descrip
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
+  const search = useSearch();
   const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged } =
     usePrototypeServices();
+  const guidedCardRef = useRef<HTMLDivElement>(null);
+  /* المجموعة ١ (Scope A/E): ?focus=guided-import يفتح بطاقة إدخال الموقف الافتتاحي
+   * مباشرة — الوصلة من صفحة الأساس تصل للموضع لا لصفحة عامة. القيمة المجهولة تُهمل. */
+  const [guidedLayerOpen, setGuidedLayerOpen] = useState(() => {
+    try {
+      return new URLSearchParams(search ?? "").get("focus") === "guided-import";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (guidedLayerOpen) guidedCardRef.current?.scrollIntoView({ block: "start" });
+  }, [guidedLayerOpen]);
   const [persistence, setPersistence] = useState<BrowserPersistenceReading | null>(null);
   /* ٥.٧: حالة النسخة المُتحققة وبوابة «ابدأ من جديد». */
   const [lastExport, setLastExport] = useState<string | null>(null);
@@ -284,6 +300,22 @@ export default function SettingsPage() {
         nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف."
         tone="warning"
       />
+      {/* المجموعة ١ (Scope G): مدخل ملف المالك من الإعدادات — سطر هادئ لا CTA منافس. */}
+      <section className="micro-settings-profile-entry">
+        <CircleUserRound aria-hidden="true" />
+        <div>
+          <b>ملفك وملف مشروعك</b>
+          <small>هوية المالك ومعلومات المشروع — محفوظة على هذا الجهاز فقط.</small>
+        </div>
+        <button
+          className="micro-text-action"
+          type="button"
+          onClick={() => navigate("/profile?from=%2Fsettings")}
+        >
+          افتح الملف
+          <ChevronLeft aria-hidden="true" />
+        </button>
+      </section>
       <details className="micro-decision-layer" open>
         <summary className="micro-decision-layer-summary">
           <span>
@@ -567,7 +599,11 @@ export default function SettingsPage() {
           </article>
         </section>
       </details>
-      <details className="micro-decision-layer">
+      <details
+        className="micro-decision-layer"
+        open={guidedLayerOpen || undefined}
+        onToggle={event => setGuidedLayerOpen((event.target as HTMLDetailsElement).open)}
+      >
         <summary className="micro-decision-layer-summary">
           <span>
             <b>بيانات البداية والاستعادة</b>
@@ -575,6 +611,7 @@ export default function SettingsPage() {
           </span>
           <strong>افتح البيانات</strong>
         </summary>
+        <div ref={guidedCardRef} className="micro-settings-focused-card" data-focused={guidedLayerOpen || undefined}>
         <section className="micro-form-card" aria-labelledby="guided-opening-title">
           <div className="micro-section-heading">
             <div>
@@ -751,6 +788,7 @@ export default function SettingsPage() {
             </div>
           </section>
         ) : null}
+        </div>
       </details>
       {notice ? (
         <p className="micro-save-note" role="status">

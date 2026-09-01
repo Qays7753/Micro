@@ -8,10 +8,12 @@ import {
   FilePen,
   Gauge,
   HandCoins,
+  House,
   Landmark,
   Package,
   Receipt,
   Scale,
+  ShieldCheck,
   WalletCards,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -19,6 +21,7 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
+import { withFrom } from "@/app/navigationContract";
 import type {
   HomeControlCenterViewModel,
   HomeFinancialFact,
@@ -35,10 +38,12 @@ const factIcon: Record<HomeFinancialFact["id"], typeof WalletCards> = {
   receivables: Receipt,
   payables: ClipboardList,
   owner_capital: WalletCards,
+  unallocated: Landmark,
 };
-/* §10.2: الحالة المعروفة يتكلم عنها الرقم نفسه — الوسم للمجهول والناقص فقط. */
+/* §10.2: الحالة المعروفة يتكلم عنها الرقم نفسه — الوسم للمجهول والناقص فقط.
+ * المجموعة ١: المجهول «غير محدد بعد» لا صفر ولا «—» بلا تفسير. */
 const factStateLabel = (state: HomeFinancialFact["state"]) =>
-  state === "incomplete" ? "غير مكتمل" : state === "not_initialized" ? "غير مسجل" : null;
+  state === "incomplete" ? "غير محدد بعد" : state === "not_initialized" ? "غير مسجل" : null;
 
 function FactCard({ fact, onNavigate }: { fact: HomeFinancialFact; onNavigate: (href: string) => void }) {
   const Icon = factIcon[fact.id];
@@ -61,10 +66,12 @@ function FactCard({ fact, onNavigate }: { fact: HomeFinancialFact; onNavigate: (
             {factStateLabel(fact.state)} — {fact.road.label}
           </button>
         ) : (
-          /* §6: المجهول علامة — لا جملة. */
+          /* §6: المجهول علامة معلنة — لا رقم مختلق. */
           (factStateLabel(fact.state) ?? "—")
         )}
       </strong>
+      {/* المجموعة ١ (§7.1): مؤهل الأمانة — الكاش يشمل مالًا ليس مالك؛ يظهر لا يُدفن. */}
+      {fact.qualifier ? <small className="micro-home-fact-qualifier">{fact.qualifier}</small> : null}
     </article>
   );
 }
@@ -149,17 +156,33 @@ export default function Home() {
       </section>
     );
   const { model } = state;
+  /* المجموعة ١ (§7.2): كل رحلة من الرئيسية تحفظ مصدرها — الرجوع يعود هنا لا لصفحة عامة. */
+  const openFromHome = (href: string) => navigate(withFrom(href, "/"));
+  const todayRows = model.priorityBlock
+    ? model.todaySection.items.filter(item => item.id !== model.priorityBlock!.id)
+    : model.todaySection.items;
   return (
     <section className="micro-page micro-home-control-center">
       <div className="micro-page-heading micro-home-heading">
         <span className="micro-overline">مشروعي الآن</span>
         <h1>{model.heading.activityName}</h1>
-        <p>
-          <CalendarDays aria-hidden="true" />{" "}
-          <time dateTime={model.heading.todayLocal}>
-            {formatLocalDateLong(model.heading.todayLocal) ?? model.heading.todayLocal}
-          </time>
-        </p>
+        <div className="micro-home-heading-row">
+          <p>
+            <CalendarDays aria-hidden="true" />{" "}
+            <time dateTime={model.heading.todayLocal}>
+              {formatLocalDateLong(model.heading.todayLocal) ?? model.heading.todayLocal}
+            </time>
+          </p>
+          {/* المجموعة ١ (§7.1): ترويسة تُوجّه — اسم المشروع والتاريخ ومدخل الملف،
+              بلا منافسة مع فعل «سجّل» المركزي. */}
+          <button
+            className="micro-text-action micro-home-profile-link"
+            type="button"
+            onClick={() => openFromHome("/profile")}
+          >
+            <House aria-hidden="true" /> ملف المالك
+          </button>
+        </div>
       </div>
       {/* التدفق ٢٣: بطاقة «أثناء غيابك» — تظهر بعد ٧ أيام بلا تسجيل وتختفي بالنشاط. */}
       {model.awaySection ? (
@@ -200,7 +223,7 @@ export default function Home() {
             {model.awaySection.digest.upcomingFollowUpCount > 0 ? (
               <li>
                 متابعات قادمة: {model.awaySection.digest.upcomingFollowUpCount} —{" "}
-                <button className="micro-text-action" type="button" onClick={() => navigate("/orders")}>
+                <button className="micro-text-action" type="button" onClick={() => openFromHome("/orders")}>
                   راجعها
                 </button>
               </li>
@@ -208,11 +231,7 @@ export default function Home() {
             {model.awaySection.overdueDebtCount > 0 ? (
               <li>
                 {model.awaySection.overdueDebtCount} دين فات موعد متابعته —{" "}
-                <button
-                  className="micro-text-action"
-                  type="button"
-                  onClick={() => navigate("/parties")}
-                >
+                <button className="micro-text-action" type="button" onClick={() => openFromHome("/parties")}>
                   راجع دفتر الناس
                 </button>
               </li>
@@ -222,7 +241,7 @@ export default function Home() {
                 ? "ما في نسخة احتياطية معتمدة بعد"
                 : `آخر نسخة احتياطية قبل ${model.awaySection.daysSinceLastExport} يوم`}{" "}
               —{" "}
-              <button className="micro-text-action" type="button" onClick={() => navigate("/settings")}>
+              <button className="micro-text-action" type="button" onClick={() => openFromHome("/settings")}>
                 انسخ الآن
               </button>
             </li>
@@ -232,31 +251,42 @@ export default function Home() {
       {model.truthLine ? (
         <p className="micro-home-truth-line" role="status">
           <CircleAlert aria-hidden="true" /> {model.truthLine}{" "}
-          <button className="micro-text-action" type="button" onClick={() => navigate("/settings")}>
+          <button className="micro-text-action" type="button" onClick={() => openFromHome("/settings")}>
             افتح الإعدادات
           </button>
         </p>
       ) : null}
-      {/* الكتلة ١ من ٣ — «اليوم» (قرار المالك على بندي ١٠ و١٣ من السجل): قسم واحد يجيب
-          «ماذا عليّ اليوم؟» — استوعب ما كان في «ما يحتاج فعلًا الآن» و«الأولوية الآن» بلا
-          إلغاء ولا تكرار؛ أول بند في القائمة هو الأولوية. الحالة الفارغة صادقة (رحلة ١). */}
+      {/* المجموعة ١ (§7.1): كتلة أولوية واحدة — أهم بند قابل للفعل اليوم فوق القائمة؛
+          البطاقات والصفوف لا تنافس فعل «سجّل» المركزي. */}
+      {model.priorityBlock ? (
+        <section className="micro-home-priority" aria-labelledby="home-priority-title">
+          <div className="micro-section-title">
+            <BellRing aria-hidden="true" />
+            <div>
+              <h2 id="home-priority-title">الأهم الآن</h2>
+            </div>
+          </div>
+          <TodayItemRow item={model.priorityBlock} onNavigate={openFromHome} />
+        </section>
+      ) : null}
+      {/* الكتلة ١ من ٣ — «اليوم»: أفعال محددة (حصّل/سلّم/أكمل/راجع) لا «افتح» العامة. */}
       <section className="micro-home-today-section" aria-labelledby="home-today-title">
         <div className="micro-section-title">
-          <BellRing aria-hidden="true" />
+          <CalendarDays aria-hidden="true" />
           <div>
-            <span className="micro-overline">قراءة الصباح</span>
             <h2 id="home-today-title">اليوم</h2>
           </div>
         </div>
-        {model.todaySection.items.length > 0 ? (
+        {todayRows.length > 0 ? (
           <div className="micro-home-today-list">
-            {model.todaySection.items.map(item => (
-              <TodayItemRow key={item.id} item={item} onNavigate={navigate} />
+            {todayRows.map(item => (
+              <TodayItemRow key={item.id} item={item} onNavigate={openFromHome} />
             ))}
           </div>
         ) : (
           <div className="micro-home-quiet">
-            <strong>لا متابعات بعد.</strong>
+            <strong>يومك مفتوح</strong>
+            <p>سجّل أول بيع أو طلب من زر «سجّل» في الأسفل — ما لا تسجله لا يُخترع له رقم.</p>
           </div>
         )}
         {model.todaySection.upcomingCount > 0 && model.todaySection.nextUpcomingDate ? (
@@ -266,7 +296,9 @@ export default function Home() {
               className="micro-text-action"
               type="button"
               onClick={() =>
-                model.todaySection.nextUpcomingHref ? navigate(model.todaySection.nextUpcomingHref) : null
+                model.todaySection.nextUpcomingHref
+                  ? openFromHome(model.todaySection.nextUpcomingHref)
+                  : null
               }
             >
               افتح أقربها
@@ -278,18 +310,16 @@ export default function Home() {
         <div className="micro-section-title">
           <WalletCards aria-hidden="true" />
           <div>
-            <span className="micro-overline">أربع حقائق محلية</span>
             <h2 id="home-facts-title">ما هو مسجل حتى الآن؟</h2>
           </div>
         </div>
         <div className="micro-home-facts">
           {model.facts.map(fact => (
-            <FactCard key={fact.id} fact={fact} onNavigate={navigate} />
+            <FactCard key={fact.id} fact={fact} onNavigate={openFromHome} />
           ))}
         </div>
       </section>
-      {/* الكتلة ٢ من ٣ — «مالي» (القرار ١٢): وحدة دائمة بلا شرط؛ الأسطح بلا شرط (§2.1)،
-          وperiod_result يحتفظ بشرطه في وحدته دون أن ترث غيره رؤيته (القرار ١٤). */}
+      {/* الكتلة ٢ من ٣ — «مالي»: وحدة دائمة بلا شرط (القرار ١٢). */}
       <section className="micro-home-finance-section" aria-labelledby="home-finance-title">
         <div className="micro-section-title">
           <Landmark aria-hidden="true" />
@@ -300,22 +330,21 @@ export default function Home() {
         <div className="micro-home-finance-unit">
           <div>
             {/* القرار ٧: صفحة الأساس دائمة الوصول ولا تُغلق بعد اليوم الأول. */}
-            <button className="micro-text-action" type="button" onClick={() => navigate("/foundation")}>
+            <button className="micro-text-action" type="button" onClick={() => openFromHome("/foundation")}>
               صفحة الأساس <ArrowLeft aria-hidden="true" />
             </button>
           </div>
           <button
             className="micro-button micro-button-primary"
             type="button"
-            onClick={() => navigate(model.financeUnit.action.href)}
+            onClick={() => openFromHome(model.financeUnit.action.href)}
           >
             {model.financeUnit.action.label}
             <ArrowLeft aria-hidden="true" />
           </button>
         </div>
       </section>
-      {/* الكتلة ٣ من ٣ — «منتجاتي وخدماتي» (قرار المالك على بند ١١): كتلة دائمة مستقلة
-          مثل «مالي»؛ سؤالها (§2.3): ما أكرره وبكم؟ وهل هو رابح؟ */}
+      {/* الكتلة ٣ من ٣ — «منتجاتي وخدماتي» (قرار المالك على بند ١١). */}
       <section className="micro-home-catalog-section" aria-labelledby="home-catalog-title">
         <div className="micro-section-title">
           <Package aria-hidden="true" />
@@ -328,7 +357,7 @@ export default function Home() {
           <button
             className="micro-button micro-button-primary"
             type="button"
-            onClick={() => navigate(model.catalogUnit.action.href)}
+            onClick={() => openFromHome(model.catalogUnit.action.href)}
           >
             {model.catalogUnit.action.label}
             <ArrowLeft aria-hidden="true" />
@@ -340,7 +369,6 @@ export default function Home() {
           <div className="micro-section-title">
             <ClipboardList aria-hidden="true" />
             <div>
-              <span className="micro-overline">وحدات عند الحاجة</span>
               <h2 id="home-optional-title">مسارات مرتبطة فقط</h2>
             </div>
           </div>
@@ -354,7 +382,7 @@ export default function Home() {
                   <button
                     className="micro-text-action"
                     type="button"
-                    onClick={() => navigate(module.action!.href)}
+                    onClick={() => openFromHome(module.action!.href)}
                   >
                     {module.action.label}
                     <ArrowLeft aria-hidden="true" />
@@ -370,7 +398,6 @@ export default function Home() {
           <div className="micro-section-title">
             <Receipt aria-hidden="true" />
             <div>
-              <span className="micro-overline">آخر التغيرات المفيدة</span>
               <h2 id="home-recent-title">ما تغير مؤخرًا</h2>
             </div>
           </div>
@@ -380,7 +407,7 @@ export default function Home() {
                 className="micro-home-recent-item"
                 type="button"
                 key={change.id}
-                onClick={() => navigate(change.href)}
+                onClick={() => openFromHome(change.href)}
               >
                 <span>
                   <time dateTime={change.occurredOn}>
@@ -395,12 +422,10 @@ export default function Home() {
           </div>
         </section>
       ) : null}
-      {/* §10: الحدود في النطاق لا على الوجه — الطريق يبقى والجملة تُحذف. */}
-      <div className="micro-scope-line">
-        <CircleAlert aria-hidden="true" />
-        <button className="micro-text-action" type="button" onClick={() => navigate("/finance")}>
-          فتح مالي <ArrowLeft aria-hidden="true" />
-        </button>
+      {/* المجموعة ١ (§7.1): سطر المكان/العمل بلا اتصال — بديل صادق عن نص النطاق. */}
+      <div className="micro-home-locality" role="note">
+        <ShieldCheck aria-hidden="true" />
+        <span>بياناتك محفوظة على هذا الجهاز</span>
       </div>
     </section>
   );

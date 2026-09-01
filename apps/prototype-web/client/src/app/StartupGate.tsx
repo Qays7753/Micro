@@ -33,7 +33,7 @@ export function storageRecoveryCopy(failure: StorageFailure): { title: string; d
 }
 
 export function StartupGate({ children }: { children: ReactNode }) {
-  const { profiles, dataVersion } = usePrototypeServices();
+  const { profiles, ownerProfile, dataVersion } = usePrototypeServices();
   const [location, navigate] = useLocation();
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [storageFailure, setStorageFailure] = useState<StorageFailure | null>(null);
@@ -52,12 +52,15 @@ export function StartupGate({ children }: { children: ReactNode }) {
         return;
       }
       if (!result.value && !isPublicLocalRecoveryRoute(location)) navigate("/setup", { replace: true });
+      /* المجموعة ١ (ملف المالك): بعد وجود المشروع تُضمن هوية مالك محلية ثابتة —
+       * إنشاء مرة واحدة ثم قراءة؛ فشلها لا يعطل الإقلاع ولا يغير بيانات قائمة. */
+      if (result.value) void ownerProfile.ensureLocal();
       setState("ready");
     });
     return () => {
       active = false;
     };
-  }, [dataVersion, location, navigate, profiles]);
+  }, [dataVersion, location, navigate, ownerProfile, profiles]);
   if (state === "loading")
     return (
       <div className="micro-route-loading" role="status" aria-live="polite">

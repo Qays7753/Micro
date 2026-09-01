@@ -3,6 +3,7 @@
 import { ArrowRight, RotateCcw, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -14,6 +15,8 @@ const ammanDate = () => localDateInAmman();
 export default function InventoryReversalEditor() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { inventory, notifyDataChanged } = usePrototypeServices();
   const [movement, setMovement] = useState<InventoryMovement | null>(null);
   const [date, setDate] = useState(ammanDate);
@@ -81,7 +84,7 @@ export default function InventoryReversalEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/inventory")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>

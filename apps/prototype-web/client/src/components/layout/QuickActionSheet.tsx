@@ -16,7 +16,6 @@ import {
 import { useRef, useState, useEffect } from "react";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
@@ -77,6 +76,9 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     usePrototypeServices();
   const [mode, setMode] = useState<SheetMode>("menu");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
+  /* المجموعة ١ (حماية المدخل العابر): إغلاق الورقة وبها مدخل مكتوب يمرّ بسؤال
+   * هادئ من خيارين — سجّله أو تتجاهله — لا إعادة تعيين صامتة. */
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   /* نموذج البيع */
   const [saleName, setSaleName] = useState("");
   const [saleAmountMinor, setSaleAmountMinor] = useState(0);
@@ -112,6 +114,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   function reset() {
     setMode("menu");
     setReceipt(null);
+    setConfirmDiscard(false);
     setSaleName("");
     setSaleAmountMinor(0);
     setSaleCostKnown(false);
@@ -128,9 +131,56 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     expenseKeyRef.current = `sheet-expense-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
   }
 
+  /* المجموعة ١: الوسخ = أي مدخل مكتوب أو مختار في نموذجي البيع/المصروف — قيمة أو
+   * خيارًا واحدًا يكفي؛ الفراغ النظيف يغلق بلا سؤال. */
+  function isFormDirty(): boolean {
+    if (mode === "sale-form")
+      return Boolean(
+        saleName.trim() ||
+          saleAmountMinor > 0 ||
+          saleCostKnown ||
+          saleOnCredit ||
+          saleCollectedMinor > 0 ||
+          saleCustomer.trim() ||
+          saleWalletId,
+      );
+    if (mode === "expense-form")
+      return Boolean(expenseAmountMinor > 0 || expenseNote.trim() || expenseWalletId);
+    return false;
+  }
+
+  function requestClose() {
+    if (mode === "sale-form" || mode === "expense-form") {
+      /* السؤال معروض: الإغلاق المتكرر/X يعني «ابقَ» — الأقل تدميرًا هو الافتراضي. */
+      if (confirmDiscard) return;
+      if (isFormDirty()) {
+        setConfirmDiscard(true);
+        return;
+      }
+    }
+    setConfirmDiscard(false);
+    reset();
+    onOpenChange(false);
+  }
+
+  function discardTypedInput() {
+    setConfirmDiscard(false);
+    reset();
+    onOpenChange(false);
+  }
+
+  async function confirmBySaving() {
+    setConfirmDiscard(false);
+    if (mode === "sale-form") await submitSale();
+    else if (mode === "expense-form") await submitExpense();
+  }
+
   function handleOpenChange(next: boolean) {
-    if (!next) reset();
-    onOpenChange(next);
+    if (next) {
+      onOpenChange(true);
+      return;
+    }
+    requestClose();
   }
 
   async function cashNow(): Promise<number | null> {
@@ -194,6 +244,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       await attributeToWallet(saleWalletId, attributedMinor, "تخصيص قبض بيع من ورقة الإضافة");
     const cashMinor = await cashNow();
     setSaving(false);
+    setConfirmDiscard(false);
     setReceipt({ title: saleOnCredit ? "سُجّل بيع آجل" : "سُجّل بيع", amountMinor: saleAmountMinor, cashMinor });
     setMode("receipt");
   }
@@ -232,6 +283,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       await attributeToWallet(expenseWalletId, -expenseAmountMinor, "تغطية مصروف من رصيد المحفظة");
     const cashMinor = await cashNow();
     setSaving(false);
+    setConfirmDiscard(false);
     setReceipt({ title: "سُجّل مصروف", amountMinor: expenseAmountMinor, cashMinor });
     setMode("receipt");
   }
@@ -272,13 +324,32 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                 </>
               )}
             </div>
-            <DrawerClose asChild>
-              <button className="micro-icon-button" type="button" aria-label="إغلاق" onClick={reset}>
-                <X aria-hidden="true" />
-              </button>
-            </DrawerClose>
+            <button className="micro-icon-button" type="button" aria-label="إغلاق" onClick={requestClose}>
+              <X aria-hidden="true" />
+            </button>
           </div>
         </DrawerHeader>
+        {confirmDiscard && (mode === "sale-form" || mode === "expense-form") ? (
+          <section className="micro-sheet-confirm" role="alertdialog" aria-labelledby="sheet-discard-question">
+            <strong id="sheet-discard-question">في رقم مكتوب — تسجّله أو تتجاهله؟</strong>
+            <p>الإغلاق الآن يفقد ما كتبته في هذه الورقة؛ لا يوجد حفظ تلقائي.</p>
+            <div className="micro-form-actions">
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={saving}
+                onClick={() => {
+                  void confirmBySaving();
+                }}
+              >
+                سجّله الآن
+              </button>
+              <button className="micro-button micro-button-danger" type="button" onClick={discardTypedInput}>
+                تجاهل ما كتبت
+              </button>
+            </div>
+          </section>
+        ) : null}
         {mode === "menu" ? (
           <div className="micro-sheet-actions">
             {actionItems.map(item => {

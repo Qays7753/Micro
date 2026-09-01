@@ -3,6 +3,7 @@
 import { ArrowRight, ArrowRightLeft, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -13,6 +14,8 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman } from "@/presentation/formatters";
 export default function CashTransferEditor() {
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [wallets, setWallets] = useState<readonly CashWalletBalance[]>([]);
   const [fromWalletId, setFromWalletId] = useState("");
@@ -88,7 +91,7 @@ export default function CashTransferEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/cash")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>

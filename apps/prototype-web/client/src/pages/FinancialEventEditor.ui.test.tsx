@@ -16,6 +16,7 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn() }));
 
 vi.mock("wouter", () => ({
+  useSearch: () => "",
   useLocation: () => ["/finance/new/operating_expense_cash", wouterMocks.navigate],
   useParams: () => ({ type: "operating_expense_cash" }),
 }));

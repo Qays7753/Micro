@@ -20,6 +20,7 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 }));
 
 vi.mock("wouter", () => ({
+  useSearch: () => "",
   useLocation: () => ["/orders/draft/draft-1/cost", vi.fn()],
   useParams: () => ({ id: "draft-1" }),
 }));

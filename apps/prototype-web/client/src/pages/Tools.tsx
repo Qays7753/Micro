@@ -6,6 +6,7 @@
 import { ArrowLeft, Calculator, Layers, PackageOpen, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
@@ -520,7 +521,12 @@ export default function Tools() {
                     className="micro-text-action"
                     type="button"
                     onClick={() =>
-                      navigate(`/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`)
+                      navigate(
+                        withFrom(
+                          `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`,
+                          "/tools",
+                        ),
+                      )
                     }
                   >
                     ابدأ مسودة من هذا التقدير

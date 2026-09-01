@@ -117,12 +117,17 @@ export class HomeControlCenterService {
         event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
       );
     /* §2.7: كل حقيقة غير مسجلة تعرض طريقها — «غير مسجل — سجّله (نقرة)» — لا «غير مهيأ» عاجزة. */
-    const factRoads: Record<HomeFinancialFact["id"], HomeAction> = {
+    const factRoads: Record<"cash" | "receivables" | "payables" | "owner_capital", HomeAction> = {
       cash: action("road-cash", "سجّله", "/cash/wallet/new", ""),
       receivables: action("road-receivables", "سجّله", "/orders", ""),
       payables: action("road-payables", "سجّله", "/finance/new/operating_expense_payable", ""),
       owner_capital: action("road-owner-capital", "سجّله", "/finance/new/owner_investment_cash", ""),
     };
+    /* المجموعة ١ (§7.1): مؤهل الأمانات — الكاش المسجل يشمل أمانات ليست مالك ولا ربحًا. */
+    const cashQualifier =
+      positionValue.amanahHeldMinor > 0
+        ? `منها أمانات بأمانتي ${formatMoneyMinor(positionValue.amanahHeldMinor)} د.أ — ليست مالك ولا ربحًا`
+        : null;
     const facts: HomeFinancialFact[] = [
       {
         id: "cash",
@@ -130,6 +135,7 @@ export class HomeControlCenterService {
         state: cashEvidence ? "known" : "not_initialized",
         valueMinor: cashEvidence ? positionValue.recordedCashMinor : null,
         currency: "JOD",
+        qualifier: cashQualifier,
         source: null,
         period: null,
         helper: null,
@@ -141,6 +147,7 @@ export class HomeControlCenterService {
         state: orderEvidence ? "known" : "not_initialized",
         valueMinor: orderEvidence ? positionValue.customerReceivablesMinor : null,
         currency: "JOD",
+        qualifier: null,
         source: null,
         period: null,
         helper: null,
@@ -152,6 +159,7 @@ export class HomeControlCenterService {
         state: payableEvidence ? "known" : "not_initialized",
         valueMinor: payableEvidence ? positionValue.supplierPayablesMinor : null,
         currency: "JOD",
+        qualifier: null,
         source: null,
         period: null,
         helper: null,
@@ -163,12 +171,29 @@ export class HomeControlCenterService {
         state: capitalEvidence ? "known" : "not_initialized",
         valueMinor: capitalEvidence ? positionValue.ownerCapitalRecordedMinor : null,
         currency: "JOD",
+        qualifier: null,
         source: null,
         period: null,
         helper: null,
         road: capitalEvidence ? null : factRoads.owner_capital,
       },
     ];
+    /* المجموعة ١ (§7.1): الكاش غير الموزع يظهر عند وجوده فقط — قبض لم يُنسب لمحفظة؛
+     * الصفر أو الغياب لا بطاقة له. */
+    if (cashEvidence && positionValue.unallocatedCashMinor !== 0) {
+      facts.push({
+        id: "unallocated",
+        label: "كاش غير موزع",
+        state: "known",
+        valueMinor: positionValue.unallocatedCashMinor,
+        currency: "JOD",
+        qualifier: positionValue.unallocatedCashMinor < 0 ? "فرق سالب — راجع مصدره" : null,
+        source: null,
+        period: null,
+        helper: null,
+        road: null,
+      });
+    }
 
     /* دمج بند ١٠ (قرار المالك): «اليوم» يستوعب ما كان في «ما يحتاج فعلًا الآن» —
      * لا إلغاء ولا تكرار: كل مسودة ودين وتكلفة ونتيجة وطلب وسعة بندٌ واحد هنا،
@@ -183,7 +208,8 @@ export class HomeControlCenterService {
         dateLocal: draft.updatedAt.slice(0, 10),
         timeLocal: null,
         href: `/orders/draft/${draft.id}`,
-        actionLabel: "افتح",
+        /* المجموعة ١ (§7.1): أفعال محددة لا «افتح» العامة. */
+        actionLabel: "أكمل",
         priority: 10,
       }),
     );
@@ -203,7 +229,7 @@ export class HomeControlCenterService {
           dateLocal: null,
           timeLocal: null,
           href: `/orders/${stored.id}`,
-          actionLabel: "افتح",
+          actionLabel: "حصّل",
           priority: 15,
         }),
       );
@@ -217,7 +243,7 @@ export class HomeControlCenterService {
           dateLocal: null,
           timeLocal: null,
           href: `/orders/${stored.id}`,
-          actionLabel: "افتح",
+          actionLabel: "أكمل",
           priority: 20,
         });
       } else {
@@ -229,7 +255,8 @@ export class HomeControlCenterService {
           dateLocal: stored.deliveryDate ?? null,
           timeLocal: null,
           href: `/orders/${stored.id}`,
-          actionLabel: "افتح",
+          /* المجموعة ١: الجاهز للتسليم «سلّم»، وغيره «راجع» — فعل يطابق الخطوة التالية. */
+          actionLabel: stored.order.status === "ready" ? "سلّم" : "راجع",
           priority: 30,
         });
       }
@@ -245,7 +272,7 @@ export class HomeControlCenterService {
           dateLocal: null,
           timeLocal: null,
           href: `/orders/${stored.id}`,
-          actionLabel: "افتح",
+          actionLabel: "راجع",
           priority: 20,
         }),
       );
@@ -258,7 +285,7 @@ export class HomeControlCenterService {
         dateLocal: stored.followUpDate ?? null,
         timeLocal: null,
         href: `/orders/${stored.id}`,
-        actionLabel: "افتح",
+        actionLabel: "راجع",
         priority: 25,
       }),
     );
@@ -276,7 +303,7 @@ export class HomeControlCenterService {
           dateLocal: schedule.scheduledFor,
           timeLocal: schedule.scheduledTime,
           href: `/schedule/${schedule.id}`,
-          actionLabel: "افتح",
+          actionLabel: "سلّم",
           priority: 25,
         });
       });
@@ -293,8 +320,9 @@ export class HomeControlCenterService {
           detail: null,
           dateLocal: today,
           timeLocal: null,
-          href: "/schedule",
-          actionLabel: "افتح",
+          /* المجموعة ١: وصلة عميقة تفتح قراءة السعة نفسها لا الصفحة العامة. */
+          href: "/schedule?focus=capacity",
+          actionLabel: "راجع",
           priority: 40,
         });
     }

@@ -2,6 +2,7 @@
 import { ArrowLeft, Plus, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
@@ -45,7 +46,7 @@ export default function Suppliers() {
         <button
           className="micro-button micro-button-primary"
           type="button"
-          onClick={() => navigate("/finance")}
+          onClick={() => navigate(withFrom("/finance", "/suppliers"))}
         >
           الوضع المالي
         </button>
@@ -62,7 +63,7 @@ export default function Suppliers() {
   });
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+      <button className="micro-back-button" type="button" onClick={() => navigate(withFrom("/finance", "/suppliers"))}>
         <ArrowLeft aria-hidden="true" /> الوضع المالي
       </button>
       <div className="micro-page-heading">
@@ -83,7 +84,7 @@ export default function Suppliers() {
       <button
         className="micro-button micro-button-primary micro-full-action"
         type="button"
-        onClick={() => navigate("/suppliers/purchase/new")}
+        onClick={() => navigate(withFrom("/suppliers/purchase/new", "/suppliers"))}
       >
         <Plus aria-hidden="true" /> سجل شراء مواد
       </button>
@@ -121,7 +122,7 @@ export default function Suppliers() {
                 <button
                   className="micro-button micro-button-secondary"
                   type="button"
-                  onClick={() => navigate(`/suppliers/purchase/${purchase.id}/payment`)}
+                  onClick={() => navigate(withFrom(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))}
                 >
                   سجل دفعة
                 </button>

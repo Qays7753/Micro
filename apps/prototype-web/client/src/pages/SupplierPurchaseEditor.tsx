@@ -3,6 +3,7 @@
 import { ArrowRight, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -18,6 +19,8 @@ export default function SupplierPurchaseEditor() {
   const { id } = useParams<{ id?: string }>();
   const isNew = id === "new";
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { supplierPurchases, notifyDataChanged } = usePrototypeServices();
   const [purchase, setPurchase] = useState<SupplierPurchase | null>(null);
   const [loading, setLoading] = useState(!isNew);
@@ -132,7 +135,7 @@ export default function SupplierPurchaseEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/suppliers")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowRight aria-hidden="true" /> مشتريات المواد
       </button>

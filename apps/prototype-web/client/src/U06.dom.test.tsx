@@ -17,6 +17,7 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 const wouterMocks = vi.hoisted(() => ({ location: "/orders/new", navigate: vi.fn() }));
 
 vi.mock("wouter", () => ({
+  useSearch: () => "",
   useLocation: () => [wouterMocks.location, wouterMocks.navigate],
   useParams: () => ({
     id: (wouterMocks.location.split("/")[3] ?? "new").split("?")[0],

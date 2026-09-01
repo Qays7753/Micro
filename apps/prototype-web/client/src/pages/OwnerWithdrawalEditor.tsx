@@ -6,6 +6,7 @@
 import { ArrowRight, HandCoins, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -24,6 +25,8 @@ export function unifiedWithdrawalPath(
 
 export default function OwnerWithdrawalEditor() {
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { ownerEntitlement, projectFinance, notifyDataChanged } = usePrototypeServices();
   const [overview, setOverview] = useState<OwnerEntitlementOverview | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -135,7 +138,7 @@ export default function OwnerWithdrawalEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/finance")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowRight aria-hidden="true" /> مالي
       </button>

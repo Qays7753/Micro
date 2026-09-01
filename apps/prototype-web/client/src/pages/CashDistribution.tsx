@@ -5,6 +5,7 @@
 import { ArrowRight, ArrowLeft, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
@@ -22,6 +23,8 @@ type State =
 
 export default function CashDistribution() {
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو المحافظ كبديل قانوني. */
+  const returnPath = useReturnPath();
   const { cashContinuity, projectFinance, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   const [walletId, setWalletId] = useState("");
@@ -60,7 +63,7 @@ export default function CashDistribution() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الكاش</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
+        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
           محافظ الكاش
         </button>
       </section>

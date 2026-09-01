@@ -4,6 +4,7 @@
 import { ArrowRight, Ban, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -26,6 +27,8 @@ const collectionStatusLabel: Record<DirectSaleCollectionStatus, string> = {
 
 export default function DirectSaleEditor() {
   const [location, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع والخروج بعد النجاح يعودان للمصدر (?from) لا لهدف ثابت. */
+  const returnPath = useReturnPath();
   const { directSales, catalog, notifyDataChanged } = usePrototypeServices();
   const saleMatch = location.match(/^\/direct-sales\/([^/?]+)$/);
   const saleId = saleMatch?.[1] && saleMatch[1] !== "new" ? decodeURIComponent(saleMatch[1]) : null;
@@ -238,7 +241,7 @@ export default function DirectSaleEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/orders");
+    navigate(returnPath);
     return true;
   }
 
@@ -265,7 +268,7 @@ export default function DirectSaleEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/orders");
+    navigate(returnPath);
     return true;
   }
 
@@ -283,7 +286,7 @@ export default function DirectSaleEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/orders")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowRight aria-hidden="true" /> العمل
       </button>

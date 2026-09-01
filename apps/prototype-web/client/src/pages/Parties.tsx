@@ -5,6 +5,7 @@
 import { ArrowLeft, HandCoins, Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
@@ -71,7 +72,7 @@ export default function Parties() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر الناس</h1>
         <p>لم يتم تغيير بياناتك. أعد المحاولة.</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/finance")}>
+        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(withFrom("/finance", "/parties"))}>
           الوضع المالي
         </button>
       </section>
@@ -81,7 +82,7 @@ export default function Parties() {
 
   return (
     <section className="micro-page micro-parties-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+      <button className="micro-back-button" type="button" onClick={() => navigate(withFrom("/finance", "/parties"))}>
         <ArrowLeft aria-hidden="true" /> الوضع المالي
       </button>
       <div className="micro-page-heading">

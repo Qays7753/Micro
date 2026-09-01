@@ -2,6 +2,7 @@
 import { ArrowRight, CalendarClock, CalendarPlus, Clock3, History, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -40,6 +41,8 @@ function equalScheduleValues(left: ScheduleFormValues | null, right: ScheduleFor
 export default function ScheduleEditor() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { schedules, notifyDataChanged, dataVersion } = usePrototypeServices();
   const [phase, setPhase] = useState<EditorState>("loading");
   const [schedule, setSchedule] = useState<ScheduleEntry | null>(null);
@@ -168,7 +171,7 @@ export default function ScheduleEditor() {
     );
   return (
     <section className="micro-page micro-schedule-page">
-      <button className="micro-back-button" type="button" onClick={() => requestNavigation("/schedule")}>
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> المواعيد
       </button>
       <div className="micro-page-heading">

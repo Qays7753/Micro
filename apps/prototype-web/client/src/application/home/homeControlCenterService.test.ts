@@ -293,7 +293,7 @@ describe("HomeControlCenterService", () => {
     expect(review).toMatchObject({
       title: "راجع نتيجة طلب يحتاج مراجعة",
       href: `/orders/${id}`,
-      actionLabel: "افتح",
+      actionLabel: "راجع",
     });
   });
 
@@ -320,7 +320,7 @@ describe("HomeControlCenterService", () => {
     expect(draft).toMatchObject({
       title: "مسودة: مسودة ليلية",
       href: "/orders/draft/draft-1",
-      actionLabel: "افتح",
+      actionLabel: "أكمل",
     });
   });
 
@@ -422,5 +422,117 @@ describe("HomeControlCenterService", () => {
     const recent = await services(store).read();
     if (!recent.ok) throw new Error(recent.message);
     expect(recent.value.awaySection).toBeNull();
+  });
+});
+
+/* المجموعة ١ (§7.1): كتلة الأولوية + مؤهل الأمانات + الكاش غير الموزع + أفعال محددة. */
+describe("HomeControlCenterService — group 1 target hierarchy", () => {
+  it("exposes the single priority block as the top sorted today item — the page lifts it out of the list", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    /* مشروع فارغ: لا أولوية مختلقة — الكتلة null لا بند مفبرك. */
+    expect(result.value.priorityBlock).toBeNull();
+    await saveOrder(store, "home-priority-order");
+    const second = await services(store).read();
+    if (!second.ok) throw new Error(second.message);
+    expect(second.value.priorityBlock).toBeTruthy();
+    /* الكتلة = أول بند بعد الترتيب (أعلى أولوية) — مصدر واحد، والصفحة ترفعه ولا تكرره. */
+    const sortedIds = second.value.todaySection.items.map(item => item.id);
+    expect(second.value.priorityBlock?.id).toBe(sortedIds[0]);
+    expect(second.value.priorityBlock?.actionLabel).toBeTruthy();
+  });
+
+  it("qualifies recorded cash with held amanah — real cash that is not the owner's money or profit", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const finance = new ProjectFinancialService(store, now);
+    await finance.record({
+      type: "amanah_held_cash",
+      amountMinor: 2000,
+      occurredOn: "2026-08-25",
+      note: "أمانة لدى المالك",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "home-amanah-held",
+    });
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    const cash = result.value.facts.find(fact => fact.id === "cash");
+    expect(cash?.state).toBe("known");
+    expect(cash?.qualifier).toContain("أمانات");
+    /* الأمانة لا تُعد مالكًا ولا ربحًا: حق المالك يبقى غير مسجل. */
+    const capital = result.value.facts.find(fact => fact.id === "owner_capital");
+    expect(capital?.state).toBe("not_initialized");
+  });
+
+  it("shows unallocated cash only when it exists, never as a zero card", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const finance = new ProjectFinancialService(store, now);
+    await finance.record({
+      type: "owner_investment_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-08-25",
+      note: "استثمار",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "home-unallocated-investment",
+    });
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    /* قبض بلا تخصيص: بطاقة كاش غير موزع موجودة بقيمة موجبة. */
+    const unallocated = result.value.facts.find(fact => fact.id === "unallocated");
+    expect(unallocated).toMatchObject({ state: "known", valueMinor: 5000 });
+  });
+
+  it("uses specific action verbs for today rows instead of the generic open", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    await saveOrder(store, "home-verb-order");
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    const orderItem = result.value.todaySection.items.find(item => item.kind === "open_order");
+    expect(orderItem?.actionLabel).toBe("راجع");
+    /* كتلة الأولوية نفسها تحمل الفعل المحدد لا «افتح». */
+    expect(result.value.priorityBlock?.actionLabel).not.toBe("افتح");
+  });
+
+  it("links the capacity warning to the schedule capacity focus, not the generic page", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    await saveOrder(store, "home-capacity-1");
+    await saveOrder(store, "home-capacity-2");
+    const scheduleBase = {
+      orderId: "home-capacity-1",
+      kind: "delivery" as const,
+      status: "scheduled" as const,
+      postponeReason: null,
+      events: [],
+    };
+    await store.saveSchedule({
+      ...scheduleBase,
+      id: "sched-cap-1",
+      scheduledFor: "2026-08-25",
+      scheduledTime: null,
+      durationMinutes: null,
+      createdAt: "2026-08-24T09:00:00.000Z",
+      updatedAt: "2026-08-24T09:00:00.000Z",
+    });
+    await store.saveSchedule({
+      ...scheduleBase,
+      id: "sched-cap-2",
+      orderId: "home-capacity-2",
+      scheduledFor: "2026-08-25",
+      scheduledTime: null,
+      durationMinutes: null,
+      createdAt: "2026-08-24T09:00:00.000Z",
+      updatedAt: "2026-08-24T09:00:00.000Z",
+    });
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    const capacity = result.value.todaySection.items.find(item => item.kind === "capacity_warning");
+    expect(capacity?.href).toBe("/schedule?focus=capacity");
   });
 });
