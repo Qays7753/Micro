@@ -41,6 +41,9 @@ export default function Collect() {
   const requested = parseSourceParam(search);
 
   const [state, setState] = useState<PageState>({ phase: "loading" });
+  /* المجموعة ٢ (§14): بعد نجاح محلي موثق لا تعيد القراءة طمس شاشة النتيجة —
+   * إشارة تغيّر البيانات تجدد القوائم عند الفتح لا بعد الإنجاز. */
+  const doneRef = useRef(false);
   const [selectedId, setSelectedId] = useState<string | null>(
     requested ? `${requested.kind}:${requested.id}` : null,
   );
@@ -59,7 +62,7 @@ export default function Collect() {
     let active = true;
     Promise.all([collections.listReceivableSources(), cashContinuity.overview()]).then(
       ([sourcesResult, walletsResult]) => {
-        if (!active) return;
+        if (!active || doneRef.current) return;
         if (!sourcesResult.ok || !walletsResult.ok) {
           const message = !sourcesResult.ok
             ? sourcesResult.message
@@ -141,6 +144,10 @@ export default function Collect() {
       setMessage(result.message);
       return false;
     }
+    /* نجاح محلي مكتمل: يُعرض كما هو، والنموذج يُفرّغ فلا يعترض الخروج بعده. */
+    doneRef.current = true;
+    setAmountMinor(0);
+    setNote("");
     notifyDataChanged();
     setState({ phase: "done", outcome: result.value, personName: source.personName });
     return true;
