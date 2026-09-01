@@ -21,10 +21,10 @@ describe("quick action contract", () => {
     expect(estimate?.description).toContain("مسودة تصميم");
   });
 
-  it("explains that collection starts from an existing order", () => {
+  it("explains that collection opens the collection sheet with a chosen destination", () => {
     const collection = actionItems.find(item => item.action === "collection");
     expect(collection?.disabled).not.toBe(true);
-    expect(collection?.description).toContain("طلب محدد");
+    expect(collection?.description).toContain("ورقة تحصيل");
   });
 });
 

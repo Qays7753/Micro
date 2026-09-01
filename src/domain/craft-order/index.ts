@@ -12,6 +12,8 @@ export {
   collectRegisteredDebt,
   createCraftOrder,
   registerDebt,
+  reviseAgreedPrice,
   reviseOrderCost,
+  reverseOrderCollection,
   transitionOrder,
 } from "./policies.js";

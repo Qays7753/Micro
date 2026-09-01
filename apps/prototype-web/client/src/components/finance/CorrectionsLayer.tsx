@@ -18,18 +18,28 @@ const kindLabel: Record<CorrectionHistoryKind, string> = {
   sale_cancel: "إلغاء بيع مباشر",
   sale_price_cut: "تخفيض سعر موثّق",
   cash_reversal: "تراجع عن قيد كاش",
+  purchase_edit: "تعديل شراء موثق",
+  payment_reversal: "تراجع عن دفعة مورد",
+  order_price_revision: "تعديل سعر طلب بعد الاتفاق",
+  order_collection_reversal: "تراجع عن قبضة طلب",
 };
 const groupOf = (kind: CorrectionHistoryKind): Exclude<CorrectionHistoryGroup, "all"> =>
   kind === "sale_edit" || kind === "sale_cancel" || kind === "sale_price_cut"
     ? "sales"
     : kind === "cash_reversal"
       ? "cash"
-      : "events";
+      : kind === "purchase_edit" || kind === "payment_reversal"
+        ? "purchases"
+        : kind === "order_price_revision" || kind === "order_collection_reversal"
+          ? "orders"
+          : "events";
 const groupLabel: Record<CorrectionHistoryGroup, string> = {
   all: "الكل",
   events: "أحداث مالية",
   sales: "مبيعات مباشرة",
   cash: "كاش ومحافظ",
+  purchases: "مشتريات وموردين",
+  orders: "طلبات",
 };
 
 type LayerState =
@@ -160,6 +170,8 @@ export function CorrectionsLayer({
     events: entries.filter(entry => groupOf(entry.kind) === "events").length,
     sales: entries.filter(entry => groupOf(entry.kind) === "sales").length,
     cash: entries.filter(entry => groupOf(entry.kind) === "cash").length,
+    purchases: entries.filter(entry => groupOf(entry.kind) === "purchases").length,
+    orders: entries.filter(entry => groupOf(entry.kind) === "orders").length,
   };
 
   return (

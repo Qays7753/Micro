@@ -257,7 +257,10 @@ CAPS: dict[str, int] = {
     # unallocated-cash card (+negative qualifier), owner-profile header link, honest
     # empty state ("يومك مفتوح"), and the local/offline truth line. Overlines removed
     # with the same scope (قراءة الصباح / أربع حقائق محلية / وحدات عند الحاجة).
-    "Home": 35,
+    # Home 35 → 36 (2026-09-02, Group 2 §6.3 Scope B): direct-sale debt appears as a
+    # due-collection row with its own title prefix ("دين بيع:") beside order debts — one
+    # mandated label so credit-sale receivables never disappear from Home.
+    "Home": 36,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.
@@ -269,11 +272,22 @@ CAPS: dict[str, int] = {
     # reachability — show-all/collapse toggle labels, full-list heading and honest
     # full-log note, focused-row aria label. Mandated by the approved prompt §7
     # ("a practical way to reach older events, not only the latest three").
-    "Finance": 148,
+    # Finance 148 → 169 (2026-09-02, Group 2 §8 Scope D + §9.2 Scope E, owner-approved
+    # financial-truth prompt): Position/Period first-decision toggle labels, statement
+    # entry card + period-reading link, negative-unallocated cover-payment alert
+    # wording ("في دفعة تحتاج تغطية" + neutral explanation), direct-sale cash qualifier
+    # ("بتاريخ البيع"), corrections-block labels (family/reason/net-effect), and the
+    # unified correction history groups (purchases/orders). Mandated labels only.
+    "Finance": 169,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
-    "OrderDetail": 128,
+    # OrderDetail 128 → 157 (2026-09-02, Group 2 §10.3/§10.5 Scope F, owner-approved
+    # financial-correction prompt): post-agreement price-revision panel (price field,
+    # CorrectionPreview dimensions for receivable/cash/revenue, reason, confirm labels)
+    # and documented collection-reversal panel (event picker, amount, preview labels) —
+    # the two approved order-level corrections, no generic confirmations.
+    "OrderDetail": 157,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -309,7 +323,10 @@ CAPS: dict[str, int] = {
     # wallet-screen concept.
     # CashWallets 67 → 69 (2026-09-01, repair cycle D-004): unknown-opening badge +
     # documented-later-opening action label — mandated completion-road labels.
-    "CashWallets": 69,
+    # CashWallets 69 → 70 (2026-09-02, Group 2 §9.1 Scope E): the wallet-ledger entry
+    # label ("دفتر المحفظة") on each wallet row — the approved per-wallet reading
+    # surface, one mandated link label.
+    "CashWallets": 70,
     "OwnerEntitlement": 48,
     "Schedule": 98,
     "ScheduleEditor": 45,

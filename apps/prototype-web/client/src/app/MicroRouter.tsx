@@ -48,6 +48,12 @@ const Tools = lazy(() => import("@/pages/Tools"));
 const Parties = lazy(() => import("@/pages/Parties"));
 const CashDistribution = lazy(() => import("@/pages/CashDistribution"));
 const CashCount = lazy(() => import("@/pages/CashCount"));
+/* المجموعة ٢ (Scope B): ورقة التحصيل — سطح تحصيل مخصص واعٍ بالسياق والمصدر. */
+const Collect = lazy(() => import("@/pages/Collect"));
+/* المجموعة ٢ (§9.1): دفتر المحفظة — قراءة سطحية فوق سياق المحافظ. */
+const WalletLedger = lazy(() => import("@/pages/WalletLedger"));
+/* المجموعة ٢ (§9.2): كشف الفترة — قراءة سطحية من مالي. */
+const Statement = lazy(() => import("@/pages/Statement"));
 
 export function MicroRouter() {
   return (
@@ -77,6 +83,8 @@ export function MicroRouter() {
             <Route path="/suppliers/purchase/:id" component={SupplierPurchaseEditor} />
             <Route path="/suppliers" component={Suppliers} />
             <Route path="/cash/wallet/new" component={CashWalletEditor} />
+            {/* المجموعة ٢ (§9.1): دفتر المحفظة — قارئ، يبقى التنقل السفلي، ويعود لمحافظه. */}
+            <Route path="/cash/wallet/:id" component={WalletLedger} />
             <Route path="/cash/wallet/:id/opening-later" component={CashOpeningLaterEditor} />
             <Route path="/cash/transfer" component={CashTransferEditor} />
             <Route path="/cash/distribute" component={CashDistribution} />
@@ -84,6 +92,8 @@ export function MicroRouter() {
             <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
             <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
             <Route path="/cash" component={CashWallets} />
+            {/* المجموعة ٢ (Scope B): ورقة التحصيل — تحصيل الذمم من كل المداخل المعتمدة. */}
+            <Route path="/collect" component={Collect} />
             <Route path="/inventory/material/new" component={MaterialEditor} />
             <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
             <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
@@ -92,6 +102,8 @@ export function MicroRouter() {
             <Route path="/tools" component={Tools} />
             <Route path="/parties" component={Parties} />
             <Route path="/finance" component={Finance} />
+            {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
+            <Route path="/finance/statement" component={Statement} />
             <Route path="/orders" component={Orders} />
             {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
             <Route path="/review">

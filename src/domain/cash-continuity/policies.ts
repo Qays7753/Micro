@@ -8,6 +8,14 @@ import type {
 } from "./types.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const ENTRY_TYPES = [
+  "opening_balance",
+  "cash_adjustment",
+  "transfer_out",
+  "transfer_in",
+  "reversal",
+  "allocation",
+] as const;
 const assertNonBlank = (value: string, field: string) => {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 };
@@ -36,6 +44,24 @@ export function createCashWallet(input: CreateCashWalletInput): CashWallet {
   });
 }
 
+/* المجموعة ٢ (§9.1): مصدر التخصيص — وصل قراءة فقط في سجل المحفظة؛ يُقبل في
+ * حركات التخصيص حصرًا ومعه نوع مصدر معلوم، وبلا معرّف لا يُقبل نوع. */
+const SOURCE_REF_KINDS = ["sale", "expense", "collection", "order"] as const;
+type SourceRefKind = (typeof SOURCE_REF_KINDS)[number];
+
+function normalizeSourceRef(input: CreateCashEntryInput): {
+  sourceRefId: string | null;
+  sourceRefKind: SourceRefKind | null;
+} {
+  const sourceRefId = input.sourceRefId?.trim() || null;
+  const sourceRefKind = (input.sourceRefKind as SourceRefKind | null) ?? null;
+  if (sourceRefId && !sourceRefKind) throw new Error("ربط المصدر يتطلب نوع السجل المصدر.");
+  if (!sourceRefId && sourceRefKind) throw new Error("نوع المصدر بلا سجل مصدر غير صالح.");
+  if (sourceRefKind && !SOURCE_REF_KINDS.includes(sourceRefKind))
+    throw new Error("نوع مصدر التخصيص غير صالح.");
+  return { sourceRefId, sourceRefKind };
+}
+
 export function createCashContinuityEntry(input: CreateCashEntryInput): CashContinuityEntry {
   assertNonBlank(input.id, "id");
   assertNonBlank(input.walletId, "walletId");
@@ -48,23 +74,9 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
   const reason = input.reason?.trim() || null;
   const transferId = input.transferId?.trim() || null;
   const reversesEntryId = input.reversesEntryId?.trim() || null;
-  if (
-    !(
-      [
-        "opening_balance",
-        "cash_adjustment",
-        "transfer_out",
-        "transfer_in",
-        "reversal",
-        "allocation",
-      ] as const
-    ).includes(input.type)
-  )
-    throw new Error("نوع الحركة غير صالح.");
-  if (input.type === "allocation" && transferId)
-    throw new Error("حركة التخصيص ليست تحويلًا بين محفظتين.");
-  if (input.type === "allocation" && reversesEntryId)
-    throw new Error("حركة التخصيص ليست تراجعًا.");
+  if (!ENTRY_TYPES.includes(input.type)) throw new Error("نوع الحركة غير صالح.");
+  if (input.type === "allocation" && transferId) throw new Error("حركة التخصيص ليست تحويلًا بين محفظتين.");
+  if (input.type === "allocation" && reversesEntryId) throw new Error("حركة التخصيص ليست تراجعًا.");
   if (input.type === "opening_balance" && input.cashDeltaMinor < 0)
     throw new Error("رصيد الافتتاح لا يمكن أن يكون سالبًا.");
   if (input.type === "cash_adjustment" && !reason) throw new Error("تسوية الكاش تتطلب سببًا موثقًا.");
@@ -78,8 +90,10 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
     throw new Error("اتجاه التحويل لا يطابق الحركة؛ أدخل مبلغ تحويل موجبًا.");
   if (input.type === "transfer_in" && input.cashDeltaMinor < 0)
     throw new Error("اتجاه التحويل لا يطابق الحركة؛ أدخل مبلغ تحويل موجبًا.");
-  if (input.type !== "reversal" && reversesEntryId)
-    throw new Error("الربط بحركة أصل يخص سجلات التراجع فقط.");
+  if (input.type !== "reversal" && reversesEntryId) throw new Error("الربط بحركة أصل يخص سجلات التراجع فقط.");
+  if (input.type !== "allocation" && (input.sourceRefId?.trim() || input.sourceRefKind))
+    throw new Error("ربط المصدر يخص حركات التخصيص فقط.");
+  const { sourceRefId, sourceRefKind } = normalizeSourceRef(input);
   return Object.freeze({
     id: input.id,
     walletId: input.walletId,
@@ -92,6 +106,9 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
     operationKey: input.operationKey,
     transferId,
     reversesEntryId,
+    ...(sourceRefId
+      ? { sourceRefId, sourceRefKind: sourceRefKind as NonNullable<typeof sourceRefKind> }
+      : {}),
   });
 }
 

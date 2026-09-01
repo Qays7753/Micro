@@ -13,8 +13,17 @@ import type {
   OrderStatus,
   OrderTransitionInput,
   ResultStatus,
+  ReviseAgreedPriceInput,
+  ReverseCollectionInput,
+  SettlementStatus,
 } from "./types.js";
-import { JOD, assertNonNegativeInteger, fieldLabelAr, quantityMilliExact, roundHalfUp } from "../shared/index.js";
+import {
+  JOD,
+  assertNonNegativeInteger,
+  fieldLabelAr,
+  quantityMilliExact,
+  roundHalfUp,
+} from "../shared/index.js";
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   draft: ["provisional_agreement", "postponed", "needs_review"],
@@ -166,8 +175,7 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
  * إلزامي (يمنع نتيجة صادقة) أو اختياري (يحسّن الدقة). */
 export function deriveKnowledgeGaps(input: CostSnapshotInput): readonly KnowledgeGap[] {
   const gaps: KnowledgeGap[] = [];
-  if (hasNoCostComponentInput(input))
-    gaps.push({ id: "no_cost_components", mandatory: true });
+  if (hasNoCostComponentInput(input)) gaps.push({ id: "no_cost_components", mandatory: true });
   if (hasIncompleteTimeInput(input)) gaps.push({ id: "time_incomplete", mandatory: true });
   if (hasStaleMaterialInput(input)) gaps.push({ id: "stale_material_price", mandatory: false });
   if (hasEstimateInput(input)) gaps.push({ id: "estimated_item", mandatory: false });
@@ -362,7 +370,9 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
   if (eventExists(order, input.idempotencyKey, "status_changed")) return order;
   assertNotLockedDeliveredReview(order);
   if (!ALLOWED_TRANSITIONS[order.status].includes(input.to)) {
-    throw new Error(`انتقال غير مسموح من «${ORDER_STATUS_AR[order.status]}» إلى «${ORDER_STATUS_AR[input.to]}».`);
+    throw new Error(
+      `انتقال غير مسموح من «${ORDER_STATUS_AR[order.status]}» إلى «${ORDER_STATUS_AR[input.to]}».`,
+    );
   }
   if (input.to === "settled" && order.receivableMinor > 0 && order.settlementStatus !== "debt") {
     throw new Error("لا تُسوّى الطلب إلا بمتبقٍ صفري أو دين مسجل.");
@@ -603,8 +613,7 @@ export function collectRegisteredDebt(
 ): CraftOrder {
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, "collection_recorded")) return order;
-  if (!isRegisteredCustomerDebt(order))
-    throw new Error("تحصيل الدين المسجل يتطلب دينًا مسجلًا بعد التسليم.");
+  if (!isRegisteredCustomerDebt(order)) throw new Error("تحصيل الدين المسجل يتطلب دينًا مسجلًا بعد التسليم.");
   assertPositiveInteger(amountMinor, "مبلغ التحصيل");
   if (amountMinor + order.collectedMinor > order.agreedPriceMinor)
     throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
@@ -624,6 +633,133 @@ export function collectRegisteredDebt(
     idempotencyKey,
     createdAt,
     amountMinor,
+  });
+}
+
+/** المجموعة ٢ (§10.5 — أمر التنفيذ): تعديل السعر بعد الاتفاق تصحيحًا موثقًا داخل
+ * الطلب نفسه. السعر الجديد يعيد فتح المتبقي (العربون والقبضات المسجلة تبقى كما
+ * هي — لا يُمس الماضي)، والإيراد المعروف يتجدد فقط إن كان التسليم مسجلًا لأن
+ * الإيراد يُعرف عند التسليم بالسعر المتفق يومها. الاتفاق الأصلي يبقى في الأحداث. */
+/* حالة تسوية الطلب بعد تصحيح السعر: الدين المسجل يبقى دينًا حتى يسدد، وغيره
+ * يوصف من المقبوض والمتبقي لا من الماضي. معيّن واحد تشترك فيه مسارات التصحيح. */
+const settlementAfterPriceRevision = (order: CraftOrder, receivableMinor: number): SettlementStatus =>
+  order.settlementStatus === "debt"
+    ? receivableMinor === 0
+      ? "paid"
+      : "debt"
+    : order.collectedMinor === 0
+      ? "unpaid"
+      : receivableMinor === 0
+        ? "paid"
+        : "partially_paid";
+
+/* حالات الطلب التي يُسمح فيها بتصحيح السعر — الاتفاق قائم لا مسودة ولا تعارض. */
+const assertPriceRevisionState = (order: CraftOrder) => {
+  if (order.status === "draft") throw new Error("تعديل السعر بعد الاتفاق يتطلب اتفاقًا مسجلًا لا مسودة.");
+  if (order.status === "cancelled") throw new Error("لا يُعدَّل سعر طلب ملغى؛ افتح طلبًا جديدًا إن لزم.");
+  if (order.status === "needs_review") throw new Error("راجع تعارض الطلب أولًا ثم عدّل السعر بعدها.");
+};
+
+export function reviseAgreedPrice(order: CraftOrder, input: ReviseAgreedPriceInput): CraftOrder {
+  assertIdempotencyKey(input.idempotencyKey);
+  if (eventExists(order, input.idempotencyKey, "price_revised")) return order;
+  assertPriceRevisionState(order);
+  assertPositiveInteger(input.newPriceMinor, "السعر الجديد");
+  if (input.newPriceMinor === order.agreedPriceMinor)
+    throw new Error("السعر الجديد يطابق السعر الحالي؛ لا تصحيح بلا تغيير.");
+  if (!input.reason.trim()) throw new Error("أكمل سبب تعديل السعر قبل الحفظ.");
+  if (input.newPriceMinor < order.collectedMinor)
+    throw new Error("السعر الجديد لا يمكن أن يقل عمّا قُبض فعليًا (بما فيه العربون).");
+
+  const receivableMinor = Math.max(input.newPriceMinor - order.collectedMinor, 0);
+  const wasDelivered = hasDeliveredEvent(order);
+  const next: CraftOrder = {
+    ...order,
+    agreedPriceMinor: input.newPriceMinor,
+    receivableMinor,
+    settlementStatus: settlementAfterPriceRevision(order, receivableMinor),
+    nextAction:
+      receivableMinor > 0
+        ? order.settlementStatus === "debt"
+          ? "تابع تحصيل الدين وفق السعر المعدل"
+          : "حصّل المتبقي أو سجّل الدين وفق السعر المعدل"
+        : order.nextAction,
+    recognizedRevenueMinor: wasDelivered ? input.newPriceMinor : order.recognizedRevenueMinor,
+    profitIndicatorMinor:
+      wasDelivered && order.resultStatus === "final"
+        ? input.newPriceMinor - order.recognizedCostMinor
+        : order.profitIndicatorMinor,
+  };
+  return appendEvent(next, {
+    id: `${order.id}:${input.idempotencyKey}`,
+    type: "price_revised",
+    idempotencyKey: input.idempotencyKey,
+    createdAt: input.createdAt,
+    note: input.reason.trim(),
+    amountMinor: input.newPriceMinor,
+    fromPriceMinor: order.agreedPriceMinor,
+    toPriceMinor: input.newPriceMinor,
+  });
+}
+
+/** المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة — الكاش المقبوض يعود للعميل
+ * والمتبقي يعود مبلغًا مستحقًا؛ الإيراد المعروف والنتيجة لا يتأثران لأن التحصيل
+ * لم يكن إيرادًا أصلًا (الإيراد يُعرف عند التسليم). علاقة التدقيق صريحة عبر
+ * reversesEventId، والتراجع التراكمي لا يتجاوز القبضة المصدر. لا يُتراجع هنا عن
+ * العربون (له مسار التسوية) ولا عن طلب ملغى. */
+/* حالة التسوية بعد إرجاع قبضة: طلب مقفول عاد له متبقٍ يصبح دينًا، وغيره يوصف
+ * من المقبوض الجديد والمتبقي. معيّن واحد — لا صياغة مزدوجة تتباعد. */
+const settlementAfterCollectionReversal = (
+  order: CraftOrder,
+  collectedMinor: number,
+  receivableMinor: number,
+): SettlementStatus =>
+  order.status === "settled"
+    ? receivableMinor === 0
+      ? "paid"
+      : "debt"
+    : collectedMinor === 0
+      ? "unpaid"
+      : receivableMinor === 0
+        ? "paid"
+        : "partially_paid";
+
+export function reverseOrderCollection(order: CraftOrder, input: ReverseCollectionInput): CraftOrder {
+  assertIdempotencyKey(input.idempotencyKey);
+  if (eventExists(order, input.idempotencyKey, "collection_reversed")) return order;
+  if (order.status === "cancelled")
+    throw new Error("لا يُتراجع عن قبض في طلب ملغى؛ العربون له مسار تسويته الخاص.");
+  const source = order.events.find(event => event.id === input.collectionEventId);
+  if (!source || source.type !== "collection_recorded")
+    throw new Error("اختر قبضة مسجلة على هذا الطلب قبل التراجع.");
+  assertPositiveInteger(input.amountMinor, "مبلغ التراجع");
+  const sourceAmount = source.amountMinor ?? 0;
+  const reversedSoFar = order.events
+    .filter(event => event.type === "collection_reversed" && event.reversesEventId === source.id)
+    .reduce((sum, event) => sum + (event.amountMinor ?? 0), 0);
+  if (reversedSoFar + input.amountMinor > sourceAmount)
+    throw new Error("التراجع التراكمي لا يمكن أن يتجاوز مبلغ القبضة المسجلة.");
+  if (!input.reason.trim()) throw new Error("أكمل سبب التراجع قبل الحفظ.");
+  if (input.amountMinor > order.collectedMinor)
+    throw new Error("مبلغ التراجع يتجاوز الكاش المقبوض على الطلب.");
+
+  const collectedMinor = order.collectedMinor - input.amountMinor;
+  const receivableMinor = Math.max(order.agreedPriceMinor - collectedMinor, 0);
+  const next: CraftOrder = {
+    ...order,
+    collectedMinor,
+    receivableMinor,
+    settlementStatus: settlementAfterCollectionReversal(order, collectedMinor, receivableMinor),
+    nextAction: receivableMinor > 0 ? "تابع تحصيل المتبقي" : order.nextAction,
+  };
+  return appendEvent(next, {
+    id: `${order.id}:${input.idempotencyKey}`,
+    type: "collection_reversed",
+    idempotencyKey: input.idempotencyKey,
+    createdAt: input.createdAt,
+    note: input.reason.trim(),
+    amountMinor: input.amountMinor,
+    reversesEventId: source.id,
   });
 }
 

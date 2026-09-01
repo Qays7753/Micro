@@ -102,7 +102,11 @@ export type OrderEventType =
   | "collection_recorded"
   | "debt_registered"
   | "specification_revised"
-  | "cancelled";
+  | "cancelled"
+  /* المجموعة ٢ (§10.5): تصحيح السعر بعد الاتفاق — علاقة موثقة لا إلغاء وإعادة إنشاء. */
+  | "price_revised"
+  /* المجموعة ٢ (§10.3): التراجع الموثق عن قبض مسجل — عكس أثر الكاش لا الإيراد. */
+  | "collection_reversed";
 
 export interface OrderEvent {
   id: string;
@@ -113,6 +117,11 @@ export interface OrderEvent {
   amountMinor?: MoneyMinor;
   fromStatus?: OrderStatus;
   toStatus?: OrderStatus;
+  /** حاضرة في أحداث «تعديل السعر بعد الاتفاق» فقط: السعر قبل/بعد التصحيح. */
+  fromPriceMinor?: MoneyMinor;
+  toPriceMinor?: MoneyMinor;
+  /** حاضرة في أحداث «التراجع عن قبض» فقط: معرّف حدث القبض المصدر — علاقة تدقيق صريحة. */
+  reversesEventId?: string;
 }
 
 export interface CraftOrder {
@@ -156,4 +165,23 @@ export interface OrderTransitionInput {
   idempotencyKey: string;
   createdAt: string;
   note?: string;
+}
+
+/* المجموعة ٢ (§10.5 — أمر التنفيذ): تعديل السعر المتفق عليه بعد الاتفاق، تصحيحًا
+ * موثقًا داخل الطلب نفسه — لا إلغاء الطلب ولا إعادة إنشائه ولا مسح الاتفاق الأصلي. */
+export interface ReviseAgreedPriceInput {
+  newPriceMinor: MoneyMinor;
+  reason: string;
+  idempotencyKey: string;
+  createdAt: string;
+}
+
+/* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة (تحصيل أو تحصيل دين) —
+ * الكاش المقبوض يعود للعميل والمتبقي يعود دينًا مفتوحًا؛ الإيراد لا يتأثر. */
+export interface ReverseCollectionInput {
+  collectionEventId: string;
+  amountMinor: MoneyMinor;
+  reason: string;
+  idempotencyKey: string;
+  createdAt: string;
 }

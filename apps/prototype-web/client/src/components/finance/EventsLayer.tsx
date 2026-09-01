@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
@@ -293,6 +294,11 @@ function FinancialEventRow({
             <span>
               مصروف <MoneyValue minor={event.operatingExpenseDeltaMinor} /> د.أ
             </span>
+            {event.amanahDeltaMinor ? (
+              <span>
+                أمانات <MoneyValue minor={event.amanahDeltaMinor} showPlus /> د.أ
+              </span>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -325,79 +331,31 @@ function FinancialEventRow({
         </p>
       ) : null}
       {open === "reverse" ? (
-        <div className="micro-finance-reversal-editor">
-          <div className="micro-finance-reversal-review">
-            <strong>مراجعة قبل التراجع</strong>
-            <p>
-              سيبقى السجل الأصلي كما هو دون تعديل. سيُضاف حدث جديد بتاريخ اليوم المحلي ويلغي كامل الأثر، دون
-              إعادة كتابة تاريخ الحدث.
-            </p>
-            <dl>
-              <div>
-                <dt>الحدث</dt>
-                <dd>
-                  {eventLabel[event.type]} · <LocalDateValue value={event.occurredOn} />
-                </dd>
-              </div>
-              <div>
-                <dt>الأثر الحالي</dt>
-                <dd>
-                  كاش <MoneyValue minor={event.cashDeltaMinor} /> · التزام{" "}
-                  <MoneyValue minor={event.payableDeltaMinor} /> · مال المالك{" "}
-                  <MoneyValue minor={event.ownerCapitalDeltaMinor} /> · مصروف{" "}
-                  <MoneyValue minor={event.operatingExpenseDeltaMinor} />
-                </dd>
-              </div>
-              <div>
-                <dt>الأثر بعد التراجع</dt>
-                <dd>
-                  كاش <MoneyValue minor={-event.cashDeltaMinor} /> · التزام{" "}
-                  <MoneyValue minor={-event.payableDeltaMinor} /> · مال المالك{" "}
-                  <MoneyValue minor={-event.ownerCapitalDeltaMinor} /> · مصروف{" "}
-                  <MoneyValue minor={-event.operatingExpenseDeltaMinor} />
-                </dd>
-              </div>
-            </dl>
-          </div>
-          <label className="micro-field">
-            <span>
-              سبب التصحيح <small>مطلوب · لا يُقبل فارغًا</small>
-            </span>
-            <textarea
-              value={reason}
-              onChange={input => setReason(input.target.value)}
-              placeholder="مثال: سُجّل الحدث مرتين بالخطأ"
-              autoFocus
-            />
-          </label>
-          <p className="micro-local-truth">
-            التراجع لا يحذف التاريخ ولا يعدل المبلغ أو السياق القديم. إذا كان الحدث الصحيح مختلفًا، عدّله
-            بقيم جديدة أو سجّل حدثًا منفصلًا.
-          </p>
-          {error ? (
-            <p className="micro-field-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
-              disabled={saving}
-              onClick={() => void submitReverse()}
-            >
-              {saving ? "جارٍ تسجيل التراجع…" : "أكّد التراجع الموثق"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={saving}
-              onClick={cancel}
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
+        /* المجموعة ٢ (§10.2): معاينة التصحيح الموحدة — الأبعاد الخمسة بما فيها الأمانات. */
+        <CorrectionPreview
+          action="تراجع موثق عن الحدث"
+          originalLabel={`${eventLabel[event.type]} · ${formatMoneyMinor(event.amountMinor)} د.أ`}
+          originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
+          intro="سيبقى السجل الأصلي كما هو. سيُضاف حدث تراجع بتاريخ اليوم يلغي كامل الأثر — لا إعادة كتابة للتاريخ."
+          dimensions={[
+            { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: -event.cashDeltaMinor },
+            { label: "الالتزامات", beforeMinor: event.payableDeltaMinor, afterMinor: -event.payableDeltaMinor },
+            { label: "مال المالك", beforeMinor: event.ownerCapitalDeltaMinor, afterMinor: -event.ownerCapitalDeltaMinor },
+            { label: "المصروف/النتيجة", beforeMinor: event.operatingExpenseDeltaMinor, afterMinor: -event.operatingExpenseDeltaMinor },
+            { label: "الأمانات", beforeMinor: event.amanahDeltaMinor ?? 0, afterMinor: -(event.amanahDeltaMinor ?? 0) },
+          ]}
+          unchanged={["السجل الأصلي بقيمه وتاريخه", "سبب التراجع يُحفظ مع الحدث الجديد"]}
+          reversibleNote="التراجع نفسه لا يُتراجع عنه؛ إن أردت إعادة الأثر فاستخدم «استرجع القيم الأصلية»."
+          reason={reason}
+          onReasonChange={setReason}
+          reasonPlaceholder="مثال: سُجّل الحدث مرتين بالخطأ"
+          error={error}
+          busy={saving}
+          confirmLabel="أكّد التراجع الموثق"
+          busyLabel="جارٍ تسجيل التراجع…"
+          onConfirm={() => void submitReverse()}
+          onCancel={cancel}
+        />
       ) : null}
       {open === "edit" ? (
         <div className="micro-finance-reversal-editor">
@@ -486,60 +444,31 @@ function FinancialEventRow({
         </div>
       ) : null}
       {open === "delete" ? (
-        <div className="micro-finance-reversal-editor">
-          <div className="micro-finance-reversal-review">
-            <strong>مراجعة قبل الحذف الموثق</strong>
-            <p>
-              «الحذف» هنا تراجع كامل موثق: الأثر المالي يزول من الحساب، والسجل الأصلي والسبب يبقيان في
-              التاريخ — لا محو صامت.
-            </p>
-            <dl>
-              <div>
-                <dt>الأثر الذي سيُلغى</dt>
-                <dd>
-                  كاش <MoneyValue minor={event.cashDeltaMinor} /> · التزام{" "}
-                  <MoneyValue minor={event.payableDeltaMinor} /> · مال المالك{" "}
-                  <MoneyValue minor={event.ownerCapitalDeltaMinor} /> · مصروف{" "}
-                  <MoneyValue minor={event.operatingExpenseDeltaMinor} />
-                </dd>
-              </div>
-            </dl>
-          </div>
-          <label className="micro-field">
-            <span>
-              سبب الحذف <small>مطلوب · لا يُقبل فارغًا</small>
-            </span>
-            <textarea
-              value={reason}
-              onChange={input => setReason(input.target.value)}
-              placeholder="مثال: حدث اختباري سُجّل بالخطأ"
-              autoFocus
-            />
-          </label>
-          {error ? (
-            <p className="micro-field-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-danger"
-              type="button"
-              disabled={saving}
-              onClick={() => void submitDelete()}
-            >
-              {saving ? "جارٍ توثيق الحذف…" : "أكّد الحذف الموثق"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={saving}
-              onClick={cancel}
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
+        <CorrectionPreview
+          action="حذف موثق (تراجع كامل)"
+          originalLabel={`${eventLabel[event.type]} · ${formatMoneyMinor(event.amountMinor)} د.أ`}
+          originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
+          intro="«الحذف» هنا تراجع كامل موثق: الأثر يزول من الحساب، والسجل الأصلي والسبب يبقيان في التاريخ — لا محو صامت."
+          dimensions={[
+            { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: 0 },
+            { label: "الالتزامات", beforeMinor: event.payableDeltaMinor, afterMinor: 0 },
+            { label: "مال المالك", beforeMinor: event.ownerCapitalDeltaMinor, afterMinor: 0 },
+            { label: "المصروف/النتيجة", beforeMinor: event.operatingExpenseDeltaMinor, afterMinor: 0 },
+            { label: "الأمانات", beforeMinor: event.amanahDeltaMinor ?? 0, afterMinor: 0 },
+          ]}
+          unchanged={["السجل الأصلي باقٍ في التاريخ", "السبب جزء من السجل لا يُحذف"]}
+          reversibleNote="يمكن استرجاع القيم لاحقًا كحدث جديد إن كان الأصل صحيحًا."
+          reason={reason}
+          onReasonChange={setReason}
+          reasonPlaceholder="مثال: حدث اختباري سُجّل بالخطأ"
+          error={error}
+          busy={saving}
+          danger
+          confirmLabel="أكّد الحذف الموثق"
+          busyLabel="جارٍ توثيق الحذف…"
+          onConfirm={() => void submitDelete()}
+          onCancel={cancel}
+        />
       ) : null}
       {open === "restore" ? (
         <div className="micro-finance-reversal-editor">

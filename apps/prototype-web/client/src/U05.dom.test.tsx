@@ -56,8 +56,10 @@ describe("Finance month-range validation stays inline (U-05)", () => {
     await waitFor(() =>
       expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
     );
+    /* المجموعة ٢ (§8): قراءة الفترة صارت وجهة «الفترة» — تُفتح من مبدّل القراءة. */
+    fireEvent.click(screen.getByText("شو صار خلال الفترة"));
     // The ready reading is on screen: the period section with its heading.
-    expect(screen.getByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();
 
     const fromInput = screen.getByLabelText("بداية نطاق نتيجة الفترة");
     const toInput = screen.getByLabelText("نهاية نطاق نتيجة الفترة");

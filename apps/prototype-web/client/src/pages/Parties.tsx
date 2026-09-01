@@ -26,15 +26,22 @@ const movementLabel: Record<string, string> = {
   payable_event: "التزام",
   settlement: "تسديد",
 };
-/* D-003: طريق التحصيل الصحيح من صف الطرف — يفتح السجل المصدر للدين القائم
- * (تفاصيل الطلب أو محرر البيع) حيث يجري التحصيل فعليًا؛ الدفتر نفسه يبقى قراءة. */
+/* المجموعة ٢ (§6.2): طريق التحصيل الصحيح من صف الطرف — يفتح ورقة التحصيل
+ * بالذمة المصدر (طلبًا كانت أو بيعًا آجل) حيث التحصيل الموثق بالوجهة المختارة؛
+ * الدفتر نفسه يبقى قراءة ولا يكتب الحركة من هنا. */
 function collectTargetHref(
   party: PartyLedgerOverview["parties"][number],
 ): string | null {
   const debt = party.movements.find(
     movement => movement.kind === "order_debt" || movement.kind === "direct_sale_debt",
   );
-  return debt?.href ?? null;
+  if (!debt) return null;
+  if (debt.kind === "order_debt") {
+    const orderId = debt.href.replace(/^\/orders\//u, "");
+    return orderId ? `/collect?source=order:${orderId}` : null;
+  }
+  const saleId = debt.href.replace(/^\/direct-sales\//u, "");
+  return saleId ? `/collect?source=sale:${saleId}` : null;
 }
 
 export default function Parties() {
@@ -162,7 +169,7 @@ export default function Parties() {
                     <button type="button" onClick={() => navigate(collectTargetHref(party)!)}>
                       <span>
                         <b>حصّل من {party.name}</b>
-                        <small>يفتح سجل الدين المصدر حيث يسجَّل التحصيل — لا يُسجَّل شيء من الدفتر.</small>
+                        <small>يفتح ورقة التحصيل بهذه الذمة — مبلغ ووجهة كاش موثقة، ولا يُكتب شيء من الدفتر.</small>
                       </span>
                       <HandCoins aria-hidden="true" />
                     </button>

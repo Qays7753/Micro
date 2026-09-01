@@ -162,7 +162,8 @@ describe("HomeControlCenterService", () => {
     expect(kinds).toContain("appointment_today");
     expect(kinds).toContain("due_amount");
     const dueAmount = result.value.todaySection.items.find(item => item.kind === "due_amount");
-    expect(dueAmount).toMatchObject({ href: "/orders/today-order" });
+    /* المجموعة ٢ (§6.3): بند الدين يفتح ورقة التحصيل في نقرة — لا صفحة الطلب. */
+    expect(dueAmount).toMatchObject({ href: "/collect?source=order:today-order" });
     /* §10: البطاقة قيمة بلا جملة — المبلغ يبقى والحد في النطاق. */
     (expect(dueAmount?.detail).toContain("35.00"), expect(dueAmount?.title).toContain("دين"));
     /* دمج بند ١٠: المتابعة المستحقة والدين بندان لا أكثر — لا تكرار بين قسمين. */
