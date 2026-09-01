@@ -83,13 +83,12 @@ export function CorrectionPreview({
           </div>
           {changed.length > 0 ? (
             <div>
-              <dt>الأثر الصافي</dt>
+              <dt>القيم قبل وبعد التصحيح</dt>
               <dd>
                 {changed.map(dimension => (
                   <span key={dimension.label}>
-                    {dimension.label}{" "}
-                    <MoneyValue minor={(dimension.afterMinor ?? 0) - dimension.beforeMinor} showPlus />{" "}
-                    د.أ
+                    {dimension.label} <MoneyValue minor={dimension.beforeMinor} /> →{" "}
+                    <MoneyValue minor={dimension.afterMinor ?? 0} showPlus /> د.أ
                   </span>
                 ))}
               </dd>
