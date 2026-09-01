@@ -80,6 +80,23 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
     throw new Error("اتجاه التحويل لا يطابق الحركة؛ أدخل مبلغ تحويل موجبًا.");
   if (input.type !== "reversal" && reversesEntryId)
     throw new Error("الربط بحركة أصل يخص سجلات التراجع فقط.");
+  /* المجموعة ٢ (§9.1): مصدر التخصيص — وصل قراءة فقط في سجل المحفظة؛ يُقبل في
+   * حركات التخصيص حصرًا ومعه نوع مصدر معلوم، وبلا معرّف لا يُقبل نوع. */
+  const sourceRefId = input.sourceRefId?.trim() || null;
+  const sourceRefKind = input.sourceRefKind ?? null;
+  if (input.type !== "allocation" && (sourceRefId || sourceRefKind))
+    throw new Error("ربط المصدر يخص حركات التخصيص فقط.");
+  if (sourceRefId && !sourceRefKind)
+    throw new Error("ربط المصدر يتطلب نوع السجل المصدر.");
+  if (!sourceRefId && sourceRefKind)
+    throw new Error("نوع المصدر بلا سجل مصدر غير صالح.");
+  if (
+    sourceRefKind &&
+    !(["sale", "expense", "collection", "order"] as const).includes(
+      sourceRefKind as "sale" | "expense" | "collection" | "order",
+    )
+  )
+    throw new Error("نوع مصدر التخصيص غير صالح.");
   return Object.freeze({
     id: input.id,
     walletId: input.walletId,
@@ -92,6 +109,7 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
     operationKey: input.operationKey,
     transferId,
     reversesEntryId,
+    ...(sourceRefId ? { sourceRefId, sourceRefKind: sourceRefKind as NonNullable<typeof sourceRefKind> } : {}),
   });
 }
 

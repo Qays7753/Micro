@@ -6,6 +6,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { getNavigationLabel, primaryNavigation } from "@/app/navigation";
+import { withFrom } from "@/app/navigationContract";
 import { getMicroRouteKind, showsGlobalChrome } from "@/app/routeClassifier";
 import { UnsavedChangesProvider, useUnsavedChangesNavigation } from "@/components/forms/UnsavedChangesGuard";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -65,7 +66,9 @@ function ShellContent({ location, children }: { location: string; children: Reac
       return;
     }
     if (action === "collection") {
-      requestNavigation("/orders");
+      /* المجموعة ٢ (Scope B): التحصيل يفتح ورقة التحصيل مباشرة لا قائمة الطلبات —
+       * مع الحفاظ على السطح الحالي مصدرًا للرجوع (?from). */
+      requestNavigation(withFrom("/collect", pathname));
     }
   }
   return (

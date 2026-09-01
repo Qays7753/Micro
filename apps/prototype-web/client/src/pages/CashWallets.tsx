@@ -2,7 +2,10 @@
 import {
   ArrowLeft,
   ArrowRightLeft,
+  Calculator,
+  HandCoins,
   Landmark,
+  NotebookPen,
   Plus,
   RotateCcw,
   SlidersHorizontal,
@@ -104,6 +107,20 @@ export default function CashWallets() {
           <p>{state.overview.truth}</p>
         </div>
       </section>
+      {/* المجموعة ٢ (§7.1/Scope G): الأمانات كاش حقيقي في الدرج لا ملك ولا ربح —
+          تظهر بمبلغها الدقيق مع سطر الثقة لا بمجاز غامض. */}
+      {state.position.amanahHeldMinor > 0 ? (
+        <section className="micro-decision-card" data-amanah="true" aria-label="الأمانات بحوزتك">
+          <HandCoins aria-hidden="true" />
+          <div>
+            <span>أمانات بأمانتك</span>
+            <strong>
+              <MoneyValue minor={state.position.amanahHeldMinor} /> د.أ
+            </strong>
+            <p>هذا كاش موجود في الدرج، لكنه مش ربحك ولا مالك — قُبض وسُلّم من «تسجيل حركة» في مالي.</p>
+          </div>
+        </section>
+      ) : null}
       <section className="micro-cash-facts">
         <div>
           <span>الكاش غير الموزع (د.أ)</span>
@@ -129,6 +146,29 @@ export default function CashWallets() {
         >
           <Plus aria-hidden="true" /> محفظة ورصيد بداية
         </button>
+        {state.overview.wallets.length > 0 ? (
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate(withFrom("/cash/count", "/cash"))}
+          >
+            <Calculator aria-hidden="true" /> عدّ الصندوق
+          </button>
+        ) : (
+          <div className="micro-later-action" role="status">
+            <strong>عدّ الصندوق — لاحقًا</strong>
+            <small>سجّل محفظة الدرج أولًا حتى تتمكن من مقارنة المعدود بالمسجل.</small>
+          </div>
+        )}
+        {state.position.unallocatedCashMinor !== 0 ? (
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => navigate(withFrom("/cash/distribute", "/cash"))}
+          >
+            <SlidersHorizontal aria-hidden="true" /> وزّع غير الموزع
+          </button>
+        ) : null}
         {state.overview.wallets.length >= 2 ? (
           <button
             className="micro-button micro-button-secondary"
@@ -185,6 +225,13 @@ export default function CashWallets() {
                 <b>
                   <MoneyValue minor={wallet.balanceMinor} />
                 </b>
+                <button
+                  className="micro-button micro-button-quiet"
+                  type="button"
+                  onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}`, "/cash"))}
+                >
+                  <NotebookPen aria-hidden="true" /> السجل
+                </button>
                 {wallet.openingUnknown ? (
                   <button
                     className="micro-button micro-button-secondary"

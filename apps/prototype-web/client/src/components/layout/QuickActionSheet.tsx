@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import {
   Drawer,
   DrawerContent,
@@ -39,7 +40,14 @@ type QuickActionSheetProps = {
   onAction: (action: QuickAction) => void;
 };
 type SheetMode = "menu" | "sale-form" | "expense-form" | "receipt";
-type Receipt = { title: string; amountMinor: number; cashMinor: number | null };
+/* المجموعة ٢ (Scope A): الوصل يفتح السجل المصدر — بيعًا أو حدثًا ماليًا. */
+type Receipt = {
+  title: string;
+  amountMinor: number;
+  cashMinor: number | null;
+  recordHref: string | null;
+  detail: string | null;
+};
 
 /* القرار ٢٣-ب: الأفعال المتكررة يوميًا — تسجيل بيع · تسجيل مصروف · إضافة طلب.
  * البيع المباشر أولًا (R-1 أعلى الورقة)، والمصروف لحظته (م1 — F-036 في موضعه الجديد). */
@@ -66,12 +74,13 @@ export const actionItems: readonly QuickActionItem[] = [
   {
     action: "collection",
     label: "عربون أو تحصيل",
-    description: "افتح طلبًا موجودًا؛ التحصيل مرتبط بطلب محدد.",
+    description: "ورقة تحصيل: مين عليه إلك وكم قبضت — بالوجهة التي تختارها.",
     icon: HandCoins,
   },
 ];
 
 export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSheetProps) {
+  const [, navigate] = useLocation();
   const { directSales, projectFinance, cashContinuity, notifyDataChanged, dataVersion } =
     usePrototypeServices();
   const [mode, setMode] = useState<SheetMode>("menu");
@@ -107,7 +116,13 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   useEffect(() => {
     if (!open) return;
     cashContinuity.overview().then(result => {
-      if (result.ok) setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+      if (!result.ok) return;
+      setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+      /* المجموعة ٢ (Scope A): الدرج وجهة القبض الافتراضية حين يوجد — غير الموزع
+       * خيار صريح لا اختيارًا صامتًا. المصروف: من غير الموزع افتراضيًا صادقًا
+       * (لا نختار محفظة نيابةً عن الصرف)، وتغطية المحفظة خيار معلن. */
+      const drawer = result.value.wallets.find(wallet => wallet.kind === "cash_drawer");
+      setSaleWalletId(current => current || drawer?.id || "");
     });
   }, [open, cashContinuity, dataVersion]);
 
@@ -188,10 +203,23 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     return position.ok ? position.value.recordedCashMinor : null;
   }
 
-  /* ٥.٢: تخصيص صريح بعد التسجيل — الحركة تُنسب للمحفظة المختارة بلا انتظار. */
-  async function attributeToWallet(walletId: string, deltaMinor: number, note: string) {
+  /* ٥.٢: تخصيص صريح بعد التسجيل — الحركة تُنسب للمحفظة المختارة بلا انتظار.
+   * المجموعة ٢ (§9.1): وصل المصدر يُحفظ مع التخصيص فيصل دفتر المحفظة لأصله. */
+  async function attributeToWallet(
+    walletId: string,
+    deltaMinor: number,
+    note: string,
+    sourceRefId?: string,
+    sourceRefKind?: "sale" | "expense" | "collection" | "order",
+  ) {
     if (!walletId || deltaMinor === 0) return;
-    await projectFinance.distributeUnallocated({ walletId, deltaMinor, note });
+    await projectFinance.distributeUnallocated({
+      walletId,
+      deltaMinor,
+      note,
+      sourceRefId: sourceRefId ?? null,
+      sourceRefKind: sourceRefKind ?? null,
+    });
   }
 
   async function submitSale() {
@@ -241,11 +269,27 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     /* ٥.٢: نسبة المقبوض للمحفظة المختارة إن حُددت — تحصيلًا لا دينًا. */
     const attributedMinor = saleOnCredit ? saleCollectedMinor : saleAmountMinor;
     if (saleWalletId && attributedMinor > 0)
-      await attributeToWallet(saleWalletId, attributedMinor, "تخصيص قبض بيع من ورقة الإضافة");
+      await attributeToWallet(
+        saleWalletId,
+        attributedMinor,
+        "تخصيص قبض بيع من ورقة الإضافة",
+        result.value.id,
+        "sale",
+      );
     const cashMinor = await cashNow();
     setSaving(false);
     setConfirmDiscard(false);
-    setReceipt({ title: saleOnCredit ? "سُجّل بيع آجل" : "سُجّل بيع", amountMinor: saleAmountMinor, cashMinor });
+    setReceipt({
+      title: saleOnCredit ? "سُجّل بيع آجل" : "سُجّل بيع",
+      amountMinor: saleAmountMinor,
+      cashMinor,
+      recordHref: `/direct-sales/${encodeURIComponent(result.value.id)}`,
+      detail: saleOnCredit
+        ? `دين مسجل على «${saleCustomer.trim()}»: ${formatMoneyMinor(
+            saleAmountMinor - saleCollectedMinor,
+          )} د.أ — يظهر في دفتر الناس ولي عند العملاء.`
+        : null,
+    });
     setMode("receipt");
   }
 
@@ -280,11 +324,23 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     notifyDataChanged();
     /* ٥.٢: إن حُددت محفظة، يُغطى الصرف منها بتخصيص سالب — بلا تخصيص صامت. */
     if (expenseWalletId && expenseAmountMinor > 0)
-      await attributeToWallet(expenseWalletId, -expenseAmountMinor, "تغطية مصروف من رصيد المحفظة");
+      await attributeToWallet(
+        expenseWalletId,
+        -expenseAmountMinor,
+        "تغطية مصروف من رصيد المحفظة",
+        result.value.id,
+        "expense",
+      );
     const cashMinor = await cashNow();
     setSaving(false);
     setConfirmDiscard(false);
-    setReceipt({ title: "سُجّل مصروف", amountMinor: expenseAmountMinor, cashMinor });
+    setReceipt({
+      title: "سُجّل مصروف",
+      amountMinor: expenseAmountMinor,
+      cashMinor,
+      recordHref: `/finance?event=${encodeURIComponent(result.value.id)}`,
+      detail: null,
+    });
     setMode("receipt");
   }
 
@@ -469,10 +525,10 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
             {wallets.length > 0 ? (
               <label className="micro-field">
                 <span>
-                  محفظة القبض <small>اختياري — الإهمال يبقيه في غير الموزع</small>
+                  وجهة القبض <small>الدرج افتراضيًا حين يوجد — غير الموزع خيار صريح</small>
                 </span>
                 <select value={saleWalletId} onChange={event => setSaleWalletId(event.target.value)}>
-                  <option value="">بلا نسبة الآن — كاش غير موزع</option>
+                  <option value="">غير موزع — يبقى هنا حتى توزّعه بقرار</option>
                   {wallets.map(wallet => (
                     <option key={wallet.id} value={wallet.id}>
                       {wallet.name}
@@ -480,6 +536,27 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                   ))}
                 </select>
               </label>
+            ) : null}
+            {/* المجموعة ٢ (Scope A): معاينة الأثر قبل الحفظ — القبض كاش والباقي دين. */}
+            {saleAmountMinor > 0 && saleAmountValid ? (
+              <p className="micro-local-truth" role="status">
+                {saleOnCredit ? (
+                  <>
+                    سيدخل الكاش {formatMoneyMinor(saleCollectedValid ? saleCollectedMinor : 0)} د.أ
+                    {saleWalletId ? ` إلى «${wallets.find(wallet => wallet.id === saleWalletId)?.name ?? ""}»` : " غير موزع"} ·
+                    ويسجل دين {formatMoneyMinor(Math.max(saleAmountMinor - (saleCollectedValid ? saleCollectedMinor : 0), 0))} د.أ
+                    على «{saleCustomer.trim() || "الزبون"}» — لا إيراد ولا ربح يُعرض قبل التسليم/البيع المسجل.
+                  </>
+                ) : (
+                  <>
+                    سيدخل المبلغ {formatMoneyMinor(saleAmountMinor)} د.أ
+                    {saleWalletId
+                      ? ` إلى «${wallets.find(wallet => wallet.id === saleWalletId)?.name ?? ""}»`
+                      : " كاشًا غير موزع"}{" "}
+                    — إيراد هذا البيع يُعرف بتاريخه لا بتاريخ القبض.
+                  </>
+                )}
+              </p>
             ) : null}
             {formError ? (
               <p className="micro-field-error" role="status">
@@ -525,17 +602,27 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
             {wallets.length > 0 ? (
               <label className="micro-field">
                 <span>
-                  محفظة الصرف <small>اختياري — الإهمال يخرج من غير الموزع</small>
+                  وجهة الصرف <small>غير الموزع افتراضيًا؛ المحفظة تغطي من رصيدها</small>
                 </span>
                 <select value={expenseWalletId} onChange={event => setExpenseWalletId(event.target.value)}>
-                  <option value="">بلا نسبة الآن — من الكاش غير الموزع</option>
+                  <option value="">من الكاش غير الموزع</option>
                   {wallets.map(wallet => (
                     <option key={wallet.id} value={wallet.id}>
-                      {wallet.name}
+                      {wallet.name} — تغطية من رصيدها
                     </option>
                   ))}
                 </select>
               </label>
+            ) : null}
+            {/* المجموعة ٢ (Scope A): معاينة الأثر قبل الحفظ — الصرف ينقص الكاش فقط. */}
+            {expenseAmountMinor > 0 && expenseAmountValid ? (
+              <p className="micro-local-truth" role="status">
+                سينقص الكاش {formatMoneyMinor(expenseAmountMinor)} د.أ
+                {expenseWalletId
+                  ? ` من «${wallets.find(wallet => wallet.id === expenseWalletId)?.name ?? ""}»`
+                  : " من غير الموزع"}{" "}
+                — مصروف مسجل لا يُعدّ ربحًا ولا يُخصم من دين.
+              </p>
             ) : null}
             {formError ? (
               <p className="micro-field-error" role="status">
@@ -567,7 +654,21 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                   ) : null}
                   .
                 </strong>
+                {receipt.detail ? <p>{receipt.detail}</p> : null}
                 <p>أُغلق التسجيل فوق شاشتك؛ صحّح من «العمل» أو «مالي» عند الحاجة.</p>
+                {receipt.recordHref ? (
+                  <button
+                    className="micro-button micro-button-secondary"
+                    type="button"
+                    onClick={() => {
+                      const href = receipt.recordHref ?? "";
+                      handleOpenChange(false);
+                      navigate(href);
+                    }}
+                  >
+                    افتح السجل
+                  </button>
+                ) : null}
               </>
             ) : null}
             <button

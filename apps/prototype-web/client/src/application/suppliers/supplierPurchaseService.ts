@@ -2,6 +2,8 @@
 import {
   createSupplierPurchase,
   recordSupplierPurchasePayment,
+  reverseSupplierPurchasePayment,
+  updateSupplierPurchase,
   type SupplierPurchase,
 } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
@@ -20,6 +22,25 @@ export type SupplierPurchasePaymentInput = {
   amountMinor: number;
   occurredOn: string;
   note: string;
+  idempotencyKey: string;
+};
+/* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — يعرض الأثر قبل التنفيذ من الواجهة. */
+export type SupplierPurchaseEditInput = {
+  purchaseId: string;
+  supplierName: string;
+  note: string;
+  purchasedOn: string;
+  dueOn: string | null;
+  totalMinor: number;
+  initialPaidMinor: number;
+  reason: string;
+  idempotencyKey: string;
+};
+export type SupplierPaymentReversalInput = {
+  purchaseId: string;
+  paymentId: string;
+  reason: string;
+  occurredOn: string;
   idempotencyKey: string;
 };
 export type SupplierPurchaseSummary = {
@@ -136,6 +157,91 @@ export class SupplierPurchaseService {
         ok: false,
         code: "validation_error",
         message: error instanceof Error ? error.message : "بيانات الدفعة غير صالحة.",
+      };
+    }
+  }
+
+  /* المجموعة ٢ (§10.4): تعديل موثق — التصحيح يعدّل الكاش/الذمة بحسب فرق الدفع
+   * الأولي والإجمالي، ويحفظ مراجعة بالقيم قبل التصحيح. لا يُحذف الأصل أبدًا. */
+  async editPurchase(
+    input: SupplierPurchaseEditInput,
+  ): Promise<SupplierPurchaseResult<SupplierPurchase>> {
+    const existing = await this.store.getSupplierPurchase(input.purchaseId);
+    if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة شراء المورد." };
+    if (!existing.value)
+      return { ok: false, code: "validation_error", message: "اختر شراء مواد مسجلًا قبل تعديله." };
+    const repeated = existing.value.revisions?.some(
+      revision => revision.idempotencyKey === input.idempotencyKey,
+    );
+    if (repeated) return { ok: true, value: existing.value, reused: true };
+    if (!input.reason.trim())
+      return { ok: false, code: "validation_error", message: "اكتب سبب التعديل قبل الحفظ." };
+    try {
+      const updated = updateSupplierPurchase(existing.value, {
+        supplierName: input.supplierName,
+        note: input.note,
+        purchasedOn: input.purchasedOn,
+        dueOn: input.dueOn,
+        totalMinor: input.totalMinor,
+        initialPaidMinor: input.initialPaidMinor,
+        recordedAt: this.now(),
+        idempotencyKey: input.idempotencyKey,
+        reason: input.reason,
+      });
+      const saved = await this.store.saveSupplierPurchase(updated);
+      return saved.ok
+        ? { ok: true, value: saved.value }
+        : {
+            ok: false,
+            code: "storage_error",
+            message: "تعذر حفظ تعديل الشراء محليًا. بقي الأصل دون تغيير.",
+          };
+    } catch (error) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: error instanceof Error ? error.message : "بيانات تعديل الشراء غير صالحة.",
+      };
+    }
+  }
+
+  /* المجموعة ٢ (§10.4): تراجع موثق عن دفعة لاحقة — يستعيد المتبقي للمورد
+   * ويُرجع أثر الكاش المدفوع؛ الدفعة الأصلية تبقى وعلاقة التدقيق صريحة. */
+  async reversePayment(
+    input: SupplierPaymentReversalInput,
+  ): Promise<SupplierPurchaseResult<SupplierPurchase>> {
+    const existing = await this.store.getSupplierPurchase(input.purchaseId);
+    if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة شراء المورد." };
+    if (!existing.value)
+      return { ok: false, code: "validation_error", message: "اختر شراء مواد مسجلًا قبل التراجع عن دفعته." };
+    const repeated = existing.value.paymentReversals?.some(
+      reversal => reversal.idempotencyKey === input.idempotencyKey,
+    );
+    if (repeated) return { ok: true, value: existing.value, reused: true };
+    if (!input.reason.trim())
+      return { ok: false, code: "validation_error", message: "اكتب سبب التراجع قبل الحفظ." };
+    try {
+      const updated = reverseSupplierPurchasePayment(existing.value, {
+        id: id(),
+        paymentId: input.paymentId,
+        reason: input.reason,
+        occurredOn: input.occurredOn,
+        recordedAt: this.now(),
+        idempotencyKey: input.idempotencyKey,
+      });
+      const saved = await this.store.saveSupplierPurchase(updated);
+      return saved.ok
+        ? { ok: true, value: saved.value }
+        : {
+            ok: false,
+            code: "storage_error",
+            message: "تعذر حفظ التراجع محليًا. بقي الدفع دون تغيير.",
+          };
+    } catch (error) {
+      return {
+        ok: false,
+        code: "validation_error",
+        message: error instanceof Error ? error.message : "بيانات التراجع غير صالحة.",
       };
     }
   }

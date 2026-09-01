@@ -140,7 +140,7 @@ describe("D-005 corrections reach the UI from the event row", () => {
     await openEventsLayer();
     fireEvent.click(screen.getByText("عرض الأثر الكامل"));
     fireEvent.click(screen.getByText("حذف موثق"));
-    expect(screen.getByText("مراجعة قبل الحذف الموثق")).toBeTruthy();
+    expect(screen.getByText("حذف موثق (تراجع كامل)")).toBeTruthy();
     /* سبب الحذف إلزامي. */
     fireEvent.click(screen.getByText("أكّد الحذف الموثق"));
     await waitFor(() =>

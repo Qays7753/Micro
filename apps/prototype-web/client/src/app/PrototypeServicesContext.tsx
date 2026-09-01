@@ -28,6 +28,10 @@ import { G5Service } from "@/application/g5/g5Service";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
 import { PartyLedgerService } from "@/application/parties/partyLedgerService";
+/* المجموعة ٢: التحصيل ودفتر المحفظة والكشف — خدمات مالية جديدة فوق المخزن نفسه. */
+import { CollectionService } from "@/application/collections/collectionService";
+import { WalletLedgerService } from "@/application/cash/walletLedgerService";
+import { StatementService } from "@/application/finance/statementService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 
 type PrototypeServices = {
@@ -61,6 +65,12 @@ type PrototypeServices = {
   guidedOpeningImport: GuidedOpeningImportService;
   costEstimates: CostEstimateService;
   partyLedger: PartyLedgerService;
+  /* المجموعة ٢ (Scope B): ورقة التحصيل — المصدر الواحد لتحصيل الذمم. */
+  collections: CollectionService;
+  /* المجموعة ٢ (§9.1): دفتر المحفظة — قراءة حركات كل محفظة بمصادرها. */
+  walletLedger: WalletLedgerService;
+  /* المجموعة ٢ (§9.2): كشف الفترة — كاش/نتيجة/أمانات/ذمم/مال المالك. */
+  statement: StatementService;
   dataVersion: number;
   notifyDataChanged: () => void;
 };
@@ -83,13 +93,15 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     const supplierPurchases = new SupplierPurchaseService(store);
     const inventory = new InventoryMaterialService(store);
     const recurringWork = new RecurringWorkService(store);
+    const directSales = new DirectSaleService(store);
+    const fulfillment = new FulfillmentService(store, undefined, schedules);
     return {
       profiles: new ProfileService(store),
       ownerProfile: new OwnerProfileService(store),
       preferences: new PreferenceService(store),
       actualTime: new ActualTimeService(store),
       drafts: new DraftService(store),
-      directSales: new DirectSaleService(store),
+      directSales: directSales,
       costs,
       agreements: new AgreementService(store, costs),
       agreementContext,
@@ -114,11 +126,14 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       ),
       schedules,
       recurrences,
-      fulfillment: new FulfillmentService(store, undefined, schedules),
+      fulfillment: fulfillment,
       transfers: new LocalTransferService(store),
       guidedOpeningImport: new GuidedOpeningImportService(store),
       costEstimates: new CostEstimateService(store),
       partyLedger: new PartyLedgerService(store),
+      collections: new CollectionService(store, fulfillment, directSales, projectFinance),
+      walletLedger: new WalletLedgerService(store),
+      statement: new StatementService(store, projectFinance),
       dataVersion,
       notifyDataChanged: () => setDataVersion(version => version + 1),
     };

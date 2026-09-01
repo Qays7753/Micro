@@ -23,6 +23,8 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/finance\/owner-entitlement$/,
   /^\/finance\/g5\/declaration$/,
   /^\/suppliers\/purchase\/[^/]+(?:\/payment)?$/,
+  /* المجموعة ٢ (Scope B): ورقة التحصيل — محرر فعل مالي واحد عميق كإخوته. */
+  /^\/collect$/,
   /^\/cash\/wallet\/new$/,
   /^\/cash\/transfer$/,
   /^\/cash\/distribute$/,

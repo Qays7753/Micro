@@ -4,7 +4,7 @@
  */
 import { ArrowRight, ArrowLeft, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -23,13 +23,22 @@ type State =
 
 export default function CashDistribution() {
   const [, navigate] = useLocation();
-  /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو المحافظ كبديل قانوني. */
+  const search = useSearch();
+  /* المجموعة ٢ (§7.3): تفعيل المعاملات المحجوزة — ?mode=cover يفتح التوزيع
+   * جاهزًا لتغطية صرف من محفظة، و?to=<walletId> يختار المحفظة مسبقًا. القيم
+   * المجهولة تُهمل بهدوء (عقد ٢٦ §3.2). */
+  const query = new URLSearchParams(search);
+  const modeParam = query.get("mode");
+  const toParam = query.get("to");
+  /* المجموعة ٢ (§8): الرجوع للمصدر (?from) أو المحافظ كبديل قانوني. */
   const returnPath = useReturnPath();
   const { cashContinuity, projectFinance, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   const [walletId, setWalletId] = useState("");
   const [amountMinor, setAmountMinor] = useState(0);
-  const [direction, setDirection] = useState<"into_wallet" | "cover_payment">("into_wallet");
+  const [direction, setDirection] = useState<"into_wallet" | "cover_payment">(
+    modeParam === "cover" ? "cover_payment" : "into_wallet",
+  );
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -44,7 +53,12 @@ export default function CashDistribution() {
           return;
         }
         setState({ phase: "ready", overview: overview.value, position: position.value });
-        setWalletId(current => current || overview.value.wallets[0]?.id || "");
+        /* ?to= يختار محفظة معلنة فقط؛ غير ذلك أول محفظة — بلا اختراع. */
+        const requested =
+          toParam && overview.value.wallets.some(wallet => wallet.id === toParam) ? toParam : null;
+        setWalletId(current => requested ?? current ?? overview.value.wallets[0]?.id ?? "");
+        /* الكاش غير الموزع السالب يعني دفعة تحتاج تغطية — الاتجاه جاهز للتغطية لا للتوزيع. */
+        if (position.value.unallocatedCashMinor < 0) setDirection("cover_payment");
       },
     );
     return () => {
@@ -123,6 +137,12 @@ export default function CashDistribution() {
           كاش المحافظ: <MoneyValue minor={position.walletCashMinor} /> · الإجمالي المسجل:{" "}
           <MoneyValue minor={position.recordedCashMinor} /> — التوزيع ينقل بينهما ولا يغيّر الإجمالي.
         </p>
+        {position.unallocatedCashMinor < 0 ? (
+          <p className="micro-field-error" role="status">
+            في دفعة تحتاج تغطية — الكاش غير الموزع سالب لأن دفعًا مسجلًا تجاوز ما دخل غير موزع.
+            غطِّ الفرق من محفظة فيها رصيد؛ التغطية نقل كاش لا مصروف ولا ربح.
+          </p>
+        ) : null}
       </section>
       <section className="micro-form-card" aria-label="نموذج التوزيع">
         {overview.wallets.length === 0 ? (

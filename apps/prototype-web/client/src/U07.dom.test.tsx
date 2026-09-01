@@ -134,6 +134,8 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     await waitFor(() =>
       expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
     );
+    /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
+    fireEvent.click(screen.getByText("شو صار خلال الفترة"));
     /* تثبيت النطاق على آب ٢٠٢٦ — بيانات الاختبار مسجلة فيه؛ النطاق الافتراضي
      * (الشهر الحقيقي الحالي) يتغير مع تقويم الجهاز فلا يظل الاختبار هشًا. */
     fireEvent.change(screen.getByLabelText("بداية نطاق نتيجة الفترة"), { target: { value: "2026-08" } });
@@ -150,7 +152,9 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     expect(screen.getByText("التغطية والتعادل المسجلان")).toBeTruthy();
     expect(screen.getByText("وحدات التعادل")).toBeTruthy();
     expect(screen.getByText("السيولة المسجلة")).toBeTruthy();
-    expect(screen.getAllByText("الكاش المسجل").length).toBeGreaterThan(1);
+    /* المجموعة ٢ (§8): بطاقة قرار الكاش صارت في وجهة «الوضع» — في وجهة «الفترة»
+     * يظهر السطر مرة واحدة (السيولة المسجلة) بلا تكرار. */
+    expect(screen.getAllByText("الكاش المسجل").length).toBeGreaterThanOrEqual(1);
   });
 
   it("reveals the full registered expectations record under coverage and break-even, including reversals", async () => {
@@ -159,6 +163,8 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     await waitFor(() =>
       expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
     );
+    /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
+    fireEvent.click(screen.getByText("شو صار خلال الفترة"));
 
     /* F-079: سجل المتوقعات المسجلة داخل التغطية والتعادل. */
     expect(screen.getByText("سجل المتوقعات المسجلة")).toBeTruthy();
@@ -172,6 +178,8 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     await waitFor(() =>
       expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
     );
+    /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
+    fireEvent.click(screen.getByText("شو صار خلال الفترة"));
     /* بلا مصروف ثابت مسجل لا تُخترع وحدة تعادل — العلامة — لا جملة. */
     const breakEvenCell = screen.getByText("وحدات التعادل").closest("div");
     expect(breakEvenCell?.querySelector(".micro-insights-unknown")?.textContent).toBe("—");

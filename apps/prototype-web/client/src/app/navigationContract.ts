@@ -134,6 +134,10 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   "/schedule": "/",
   "/parties": "/finance",
   "/profile": "/",
+  /* المجموعة ٢ (Scope B): ورقة التحصيل — البديل القانوني هو الرئيسية (المركز). */
+  "/collect": "/",
+  /* المجموعة ٢ (§9.2): كشف الفترة — يفتح من مالي والرئيسية؛ البديل مالي. */
+  "/finance/statement": "/finance",
 };
 
 /** البديل القانوني لمسار بمعرّف: يُستخرج من نمط المسار لا من قائمة مغلقة. */

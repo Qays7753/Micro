@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { appendQueryParams, withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
 import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
@@ -80,6 +80,21 @@ export default function Finance() {
    * المصدر في طبقة «السجل والأثر» مركّزًا (لا يكتب شيئًا؛ وصول وقراءة وتصحيح موثق). */
   const search = useSearch();
   const focusEventId = new URLSearchParams(search).get("event");
+  /* المجموعة ٢ (§8 — Scope D): انقسام مالي إلى «الوضع الآن» و«الفترة» — قرار
+   * أول واضح: شو معي الآن، أو شو صار خلال الفترة. القيمة دفاعية: مجهولة =
+   * الوضع. تُحفظ في الرابط فيبقى البدء البارد والتحديث على نية القارئ. */
+  const viewParam = new URLSearchParams(search).get("view");
+  const [view, setView] = useState<"position" | "period">(
+    viewParam === "period" ? "period" : "position",
+  );
+  const switchView = (next: "position" | "period") => {
+    setView(next);
+    const query = new URLSearchParams(search);
+    query.set("view", next);
+    if (next === "position") query.delete("view");
+    const rendered = query.toString();
+    navigate(rendered ? `/finance?${rendered}` : "/finance", { replace: true });
+  };
   const {
     projectFinance,
     correctionHistory,
@@ -194,6 +209,31 @@ export default function Finance() {
         <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>
         <h1>مالي</h1>
       </div>
+      {/* المجموعة ٢ (§8.3): أول قرار واضح — الوضع الآن أو ما صار خلال الفترة. */}
+      <div className="micro-form-actions" role="tablist" aria-label="اختيار قراءة مالي">
+        <button
+          className="micro-text-action"
+          type="button"
+          role="tab"
+          aria-selected={view === "position"}
+          aria-pressed={view === "position"}
+          onClick={() => switchView("position")}
+        >
+          الوضع الآن
+        </button>
+        <button
+          className="micro-text-action"
+          type="button"
+          role="tab"
+          aria-selected={view === "period"}
+          aria-pressed={view === "period"}
+          onClick={() => switchView("period")}
+        >
+          شو صار خلال الفترة
+        </button>
+      </div>
+      {view === "position" ? (
+        <>
       <ReviewPulseSection
         pulse={pulse}
         excludedOrders={state.excludedOrders}
@@ -203,7 +243,9 @@ export default function Finance() {
         decision={decision}
         unallocatedCashMinor={position.unallocatedCashMinor}
         onDeclare={() => navigate(withFrom("/finance/g5/declaration", "/finance"))}
-        onReviewCash={() => navigate(withFrom("/cash", "/finance"))}
+        onCoverPayment={() =>
+          navigate(appendQueryParams("/cash/distribute", { mode: "cover", from: "/finance" }))
+        }
       />
       <OwnerDecisionCard overview={owner} onOpen={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))} />
       <section
@@ -291,6 +333,7 @@ export default function Finance() {
           ) : null}
           {/* التدفقات ١٤/٢٠ + D-002: دفتر الناس وعدّ الصناديق والموردون من مسارات
               مالي الدائمة — نوايا قراءة تجد مكانها الطبيعي هنا بلا مقعد خامس. */}
+          {/* المجموعة ٢ (§8.1): روابط الوضع إلى مصادره — دفتر المحفظة والكشف من هنا. */}
           <p className="micro-fact-road-line">
             <button className="micro-text-action" type="button" onClick={() => navigate(withFrom("/parties", "/finance"))}>
               افتح دفتر الناس — مين عليه إلَي وعليّ لمين
@@ -304,8 +347,21 @@ export default function Finance() {
               عدّ الصندوق — طابق الدرج مع السجل
             </button>
           </p>
+          <p className="micro-fact-road-line">
+            <button className="micro-text-action" type="button" onClick={() => navigate(withFrom("/finance/statement", "/finance"))}>
+              كشف الفترة — بسيط ومفصول بالعربية
+            </button>{" "}
+            ·{" "}
+            <button className="micro-text-action" type="button" onClick={() => switchView("period")}>
+              قراءة الفترة الكاملة
+            </button>
+          </p>
         </div>
       </section>
+      <DepositsLayer deposits={state.deposits} onOpenOrder={orderId => navigate(`/orders/${orderId}`)} />
+      </>
+      ) : (
+      <>
       <details className="micro-finance-layer">
         <summary className="micro-finance-layer-summary">
           <span>
@@ -744,6 +800,23 @@ export default function Finance() {
           </section>
         </details>
       </details>
+      {/* المجموعة ٢ (§9.2): من قراءة الفترة إلى الكشف البسيط — الرجوع محفوظ للمصدر. */}
+      <section className="micro-decision-card" aria-label="كشف الفترة البسيط">
+        <ReceiptText aria-hidden="true" />
+        <div>
+          <span>قصة الأسبوع ببساطة</span>
+          <p>كشف بأسطر عربية مفصولة: كاش، نتيجة، أمانات، ذمم، مال المالك — وكل سطر بمصدره.</p>
+        </div>
+        <button
+          className="micro-button micro-button-secondary"
+          type="button"
+          onClick={() => navigate(withFrom("/finance/statement", "/finance"))}
+        >
+          افتح كشف الفترة
+        </button>
+      </section>
+      </>
+      )}
       <details className="micro-finance-layer">
         <summary className="micro-finance-layer-summary">
           <span>
@@ -846,7 +919,6 @@ export default function Finance() {
           </button>
         </section>
       </details>
-      <DepositsLayer deposits={state.deposits} onOpenOrder={orderId => navigate(`/orders/${orderId}`)} />
       <EventsLayer
         visibleEvents={visibleEvents}
         events={state.events}
@@ -973,12 +1045,12 @@ function CashDecisionSurface({
   decision,
   unallocatedCashMinor,
   onDeclare,
-  onReviewCash,
+  onCoverPayment,
 }: {
   decision: G5Decision;
   unallocatedCashMinor: number;
   onDeclare: () => void;
-  onReviewCash: () => void;
+  onCoverPayment: () => void;
 }) {
   const cash = decision.shortCash;
   return (
@@ -1029,14 +1101,19 @@ function CashDecisionSurface({
       {unallocatedCashMinor < 0 ? (
         <div className="micro-finance-unallocated-alert" role="status">
           <div>
-            <strong>يوجد فرق كاش غير موزع يحتاج مراجعة</strong>
+            <strong>في دفعة تحتاج تغطية</strong>
             <p>
-              الفرق الحالي <MoneyValue minor={unallocatedCashMinor} /> د.أ. سببه ظاهر في المصادر المسجلة، لكنه
-              ليس مصروفًا أو ربحًا جديدًا.
+              الكاش غير الموزع الآن <MoneyValue minor={unallocatedCashMinor} /> د.أ — سالب لأن دفعًا
+              مسجلًا تجاوز ما دخل غير موزع. مصدر الفرق ظاهر في المصادر المسجلة، وهو ليس مصروفًا أو ربحًا
+              جديدًا.
             </p>
           </div>
-          <button className="micro-button micro-button-secondary" type="button" onClick={onReviewCash}>
-            راجع مصدر الفرق
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={onCoverPayment}
+          >
+            غطِّ الدفعة من محفظة
           </button>
         </div>
       ) : null}

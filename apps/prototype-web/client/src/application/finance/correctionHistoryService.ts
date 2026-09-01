@@ -1,9 +1,10 @@
 /** U-001: «السجل» — سطح قراءة واحد لكل تصحيح موثق عبر أنواع السجلات المدعومة.
- * لا يكتب شيئًا ولا يعيد تفسير الماضي؛ يجمع ما سُجّل فعلًا من مصادر كل مخزن. */
+ * لا يكتب شيئًا ولا يعيد تفسير الماضي؛ يجمع ما سُجّل فعلًا من مصادر كل مخزن.
+ * المجموعة ٢: توسّع بعائلات الشراء/الدفعات وتعديل سعر الطلب والتراجع عن القبض. */
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
-import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 
 export type CorrectionHistoryKind =
   | "event_reversal"
@@ -12,9 +13,15 @@ export type CorrectionHistoryKind =
   | "sale_edit"
   | "sale_cancel"
   | "sale_price_cut"
-  | "cash_reversal";
+  | "cash_reversal"
+  /* المجموعة ٢ (§10.4): تصحيحات المشتريات والدفعات. */
+  | "purchase_edit"
+  | "payment_reversal"
+  /* المجموعة ٢ (§10.5/§10.3): تعديل سعر الطلب بعد الاتفاق والتراجع عن قبض. */
+  | "order_price_revision"
+  | "order_collection_reversal";
 
-export type CorrectionHistoryGroup = "all" | "events" | "sales" | "cash";
+export type CorrectionHistoryGroup = "all" | "events" | "sales" | "cash" | "purchases" | "orders";
 
 export type CorrectionHistoryEntry = {
   id: string;
@@ -60,12 +67,14 @@ export class CorrectionHistoryService {
   constructor(private readonly store: PrototypeLocalStore) {}
 
   async list(): Promise<CorrectionHistoryResult> {
-    const [eventsResult, salesResult, cashResult] = await Promise.all([
+    const [eventsResult, salesResult, cashResult, purchasesResult, ordersResult] = await Promise.all([
       this.store.listFinancialEvents(),
       this.store.listDirectSales(),
       this.store.listCashContinuityEntries(),
+      this.store.listSupplierPurchases(),
+      this.store.listOrders(),
     ]);
-    if (!eventsResult.ok || !salesResult.ok || !cashResult.ok)
+    if (!eventsResult.ok || !salesResult.ok || !cashResult.ok || !purchasesResult.ok || !ordersResult.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة سجل التصحيحات المحلي." };
 
     const events = eventsResult.value;
@@ -182,7 +191,86 @@ export class CorrectionHistoryService {
       });
     }
 
+    /* المجموعة ٢ (§10.4): تعديلات المشتريات وتراجعات الدفعات — من سجل الشراء نفسه. */
+    for (const purchase of purchasesResult.value) {
+      for (const revision of purchase.revisions ?? []) {
+        entries.push({
+          id: `${purchase.id}:revision:${revision.idempotencyKey}`,
+          kind: "purchase_edit",
+          recordedAt: revision.createdAt,
+          occurredOn: revision.createdAt.slice(0, 10),
+          amountEffectMinor: revision.beforeTotalMinor - purchase.totalMinor,
+          reason: revision.reason,
+          originalLabel: `شراء من ${revision.beforeSupplierName} · الإجمالي قبل التصحيح ${money(revision.beforeTotalMinor)}`,
+          replacementLabel: `الإجمالي بعد التصحيح ${money(purchase.totalMinor)} · المدفوع ${money(purchase.paidMinor)}`,
+          deepLink: `/suppliers/purchase/${encodeURIComponent(purchase.id)}`,
+        });
+      }
+      for (const reversal of purchase.paymentReversals ?? []) {
+        const payment = purchase.payments.find(candidate => candidate.id === reversal.paymentId);
+        entries.push({
+          id: `${purchase.id}:reversal:${reversal.idempotencyKey}`,
+          kind: "payment_reversal",
+          recordedAt: reversal.recordedAt,
+          occurredOn: reversal.occurredOn,
+          amountEffectMinor: reversal.amountMinor,
+          reason: reversal.reason,
+          originalLabel: `دفعة ${payment ? money(payment.amountMinor) : money(reversal.amountMinor)} لـ${purchase.supplierName}`,
+          replacementLabel: `استُعيد المتبقي للمورد — المتبقي الآن ${money(purchase.payableMinor)}`,
+          deepLink: `/suppliers/purchase/${encodeURIComponent(purchase.id)}`,
+        });
+      }
+    }
+
+    /* المجموعة ٢ (§10.5/§10.3): تعديل سعر الطلب بعد الاتفاق والتراجع عن قبضة. */
+    for (const stored of ordersResult.value as readonly StoredCraftOrder[]) {
+      for (const event of stored.order.events) {
+        if (event.type === "price_revised") {
+          entries.push({
+            id: `${stored.id}:price:${event.idempotencyKey}`,
+            kind: "order_price_revision",
+            recordedAt: event.createdAt,
+            occurredOn: ammanDateOf(event.createdAt),
+            amountEffectMinor: (event.toPriceMinor ?? 0) - (event.fromPriceMinor ?? 0),
+            reason: event.note ?? null,
+            originalLabel: `سعر «${stored.order.itemName || "طلب"}» قبل التصحيح ${money(event.fromPriceMinor ?? 0)}`,
+            replacementLabel: `السعر بعد التصحيح ${money(event.toPriceMinor ?? 0)} · المتبقي ${money(stored.order.receivableMinor)}`,
+            deepLink: `/orders/${encodeURIComponent(stored.id)}`,
+          });
+        }
+        if (event.type === "collection_reversed") {
+          entries.push({
+            id: `${stored.id}:reverse-collection:${event.idempotencyKey}`,
+            kind: "order_collection_reversal",
+            recordedAt: event.createdAt,
+            occurredOn: ammanDateOf(event.createdAt),
+            amountEffectMinor: -(event.amountMinor ?? 0),
+            reason: event.note ?? null,
+            originalLabel: `قبضة على «${stored.order.itemName || "طلب"}» · ${money(event.amountMinor ?? 0)}`,
+            replacementLabel: `المتبقي الآن ${money(stored.order.receivableMinor)} — الإيراد لم يتغير`,
+            deepLink: `/orders/${encodeURIComponent(stored.id)}`,
+          });
+        }
+      }
+    }
+
     entries.sort((left, right) => right.recordedAt.localeCompare(left.recordedAt));
     return { ok: true, value: entries };
   }
+}
+
+/* تاريخ محلي (عمّان) من طابع زمني — لأحداث الطلب التي تسجل وقت التنفيذ. */
+function ammanDateOf(timestamp: string): string | null {
+  if (Number.isNaN(Date.parse(timestamp))) return null;
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Amman",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(timestamp));
+  const value = (type: string) => parts.find(part => part.type === type)?.value;
+  const year = value("year");
+  const month = value("month");
+  const day = value("day");
+  return year && month && day ? `${year}-${month}-${day}` : null;
 }

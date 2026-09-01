@@ -4,6 +4,8 @@ import {
   collectRegisteredDebt,
   collectRemaining,
   registerDebt,
+  reviseAgreedPrice,
+  reverseOrderCollection,
   settleDepositRefund,
   settleDepositRetain,
   transitionOrder,
@@ -138,6 +140,92 @@ export class FulfillmentService {
       return this.persist({ ...current.stored, order, updatedAt: timestamp });
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل تحصيل الدين.");
+    }
+  }
+
+  /* المجموعة ٢ (§6.1): ورقة التحصيل تستدعي هذا المسار الواحد — يختار دالة النطاق
+   * الصحيحة بحسب حالة الطلب (دين مسجل أو متبقٍ بعد التسليم) ويكتب تحصيلًا واحدًا
+   * موثقًا. لا يُنشئ إيرادًا ولا يلمس النتيجة — التحصيل كاش ومتبقٍ فقط. */
+  async collectFromSheet(
+    id: string,
+    amountMinor: number,
+    operationKey: string,
+  ): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    const order = current.stored.order;
+    if (order.status === "cancelled") return failure("invalid_state", "طلب ملغى لا يُحصّل منه.");
+    if (order.settlementStatus === "debt" && order.receivableMinor > 0)
+      return this.collectDebt(id, amountMinor);
+    if (order.status === "delivered") {
+      if (order.receivableMinor <= 0)
+        return failure("invalid_state", "لا يوجد مبلغ متبقٍ لتحصيله على هذا الطلب.");
+      if (amountMinor > order.receivableMinor)
+        return failure("invalid_state", "التحصيل لا يمكن أن يتجاوز المتبقي على الطلب.");
+      try {
+        const timestamp = this.now();
+        const next = collectRemaining(
+          order,
+          amountMinor,
+          `${operationKey}`,
+          timestamp,
+        );
+        return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
+      } catch (error) {
+        return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التحصيل.");
+      }
+    }
+    return failure(
+      "invalid_state",
+      "تحصيل الطلب يتطلب دينًا مسجلًا أو طلبًا مسلّمًا بمتبقٍ؛ المتبقي قبل التسليم يُسجّل عربونًا.",
+    );
+  }
+
+  /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة من تفاصيل الطلب. */
+  async reverseCollection(
+    id: string,
+    input: { collectionEventId: string; amountMinor: number; reason: string },
+  ): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    if (!input.reason.trim())
+      return failure("invalid_state", "أكمل سبب التراجع قبل الحفظ.");
+    try {
+      const timestamp = this.now();
+      const order = reverseOrderCollection(current.stored.order, {
+        collectionEventId: input.collectionEventId,
+        amountMinor: input.amountMinor,
+        reason: input.reason,
+        idempotencyKey: `${id}:reverse-collection-${input.collectionEventId}-${input.amountMinor}-${timestamp}`,
+        createdAt: timestamp,
+      });
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر التراجع عن القبض.");
+    }
+  }
+
+  /* المجموعة ٢ (§10.5): تعديل السعر بعد الاتفاق من تفاصيل الطلب — تصحيح موثق
+   * داخل الطلب، لا إلغاء ولا إعادة إنشاء. */
+  async revisePrice(
+    id: string,
+    input: { newPriceMinor: number; reason: string },
+  ): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    if (!input.reason.trim())
+      return failure("invalid_state", "أكمل سبب تعديل السعر قبل الحفظ.");
+    try {
+      const timestamp = this.now();
+      const order = reviseAgreedPrice(current.stored.order, {
+        newPriceMinor: input.newPriceMinor,
+        reason: input.reason,
+        idempotencyKey: `${id}:revise-price-${input.newPriceMinor}-${timestamp}`,
+        createdAt: timestamp,
+      });
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تعديل السعر.");
     }
   }
 

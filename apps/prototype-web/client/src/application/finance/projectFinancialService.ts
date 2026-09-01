@@ -144,13 +144,16 @@ export type FinancialReversalInput = {
   reason: string;
   idempotencyKey: string;
 };
-/* PA-002: توزيع صريح من الكاش غير الموزع إلى محفظة، أو تغطية صرف منها. */
+/* PA-002: توزيع صريح من الكاش غير الموزع إلى محفظة، أو تغطية صرف منها.
+ * المجموعة ٢ (§9.1): مصدر التخصيص يُحفظ مع الحركة ليصل دفتر المحفظة للمصدر. */
 export type UnallocatedDistributionInput = {
   walletId: string;
   deltaMinor: number;
   note?: string | null;
   operationKey?: string;
   occurredOn?: string;
+  sourceRefId?: string | null;
+  sourceRefKind?: "sale" | "expense" | "collection" | "order" | null;
 };
 /* تعديل/حذف بسيطان (مبدأ المالك ٥.٦): التراجع والبديل في معاملة واحدة ذرّية. */
 export type FinancialEditInput = {
@@ -915,6 +918,8 @@ export class ProjectFinancialService {
           (input.note?.trim() || null) ??
           (input.deltaMinor > 0 ? "تخصيص كاش غير موزع إلى محفظة" : "تغطية صرف من رصيد محفظة"),
         operationKey: input.operationKey ?? `allocation-${id()}`,
+        sourceRefId: input.sourceRefId ?? null,
+        sourceRefKind: input.sourceRefKind ?? null,
       });
       const saved = await this.store.commitCashContinuity(wallet, [entry]);
       if (!saved.ok)

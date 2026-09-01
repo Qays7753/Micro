@@ -228,7 +228,30 @@ export class HomeControlCenterService {
           detail: `${formatMoneyMinor(stored.order.receivableMinor)} د.أ`,
           dateLocal: null,
           timeLocal: null,
-          href: `/orders/${stored.id}`,
+          /* المجموعة ٢ (§6.3): بند الدين يفتح ورقة التحصيل في نقرة واحدة — لا قائمة عامة. */
+          href: `/collect?source=order:${stored.id}`,
+          actionLabel: "حصّل",
+          priority: 15,
+        }),
+      );
+    /* المجموعة ٢ (§6.3): ديون البيع الآجل بند تحصيل كأخواتها — لا تختفي لأنها ليست
+     * من طلب؛ ورقة التحصيل نفسها تكتبها عبر مسارها الصحيح. */
+    directSales.value
+      .filter(
+        sale =>
+          (sale.status ?? "active") === "active" &&
+          sale.collectionStatus === "partial_debt" &&
+          sale.revenueMinor - sale.collectedMinor > 0,
+      )
+      .forEach(sale =>
+        todayItems.push({
+          id: `today-due-amount:${sale.id}`,
+          kind: "due_amount",
+          title: `دين بيع: ${sale.itemName || "بيع"}`,
+          detail: `${formatMoneyMinor(sale.revenueMinor - sale.collectedMinor)} د.أ`,
+          dateLocal: null,
+          timeLocal: null,
+          href: `/collect?source=sale:${sale.id}`,
           actionLabel: "حصّل",
           priority: 15,
         }),

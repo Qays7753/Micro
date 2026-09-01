@@ -5,6 +5,10 @@ export type CashWalletKind = "cash_drawer" | "bank_account" | "digital_wallet" |
 export type CashContinuityEntryType =
   "opening_balance" | "cash_adjustment" | "transfer_out" | "transfer_in" | "reversal" | "allocation";
 export type CashWalletOpeningStatus = "known" | "unknown";
+/* المجموعة ٢ (§9.1): مصدر التخصيص — ربط صريح بين حركة التخصيص في سجل المحفظة
+ * والسجل المصدر الذي أنشأ الكاش (بيع/مصروف/تحصيل/طلب)، فيصل صاحب السجل للمصدر
+ * من دفتر المحفظة بلا مسار كتابة ثانٍ. حقل اختياري: القديم بلاه يُقرأ فارغًا. */
+export type CashAllocationSourceKind = "sale" | "expense" | "collection" | "order";
 export type CashWallet = {
   id: string;
   name: string;
@@ -26,6 +30,10 @@ export type CashContinuityEntry = {
   operationKey: string;
   transferId: string | null;
   reversesEntryId: string | null;
+  /** حاضر في حركات التخصيص فقط: معرّف السجل المصدر الذي أُنشئ منه الكاش المخصص. */
+  sourceRefId?: string | null;
+  /** حاضر مع sourceRefId فقط: نوع السجل المصدر — يحدد وجهة الوصلة العميقة. */
+  sourceRefKind?: CashAllocationSourceKind | null;
 };
 export type CreateCashWalletInput = {
   id: string;
@@ -48,4 +56,7 @@ export type CreateCashEntryInput = {
   operationKey: string;
   transferId?: string | null;
   reversesEntryId?: string | null;
+  /** اختياري للتخصيص فقط: سجل المصدر الذي أُنشئ منه الكاش. */
+  sourceRefId?: string | null;
+  sourceRefKind?: CashAllocationSourceKind | null;
 };

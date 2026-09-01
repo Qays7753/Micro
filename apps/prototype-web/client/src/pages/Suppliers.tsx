@@ -126,6 +126,14 @@ export default function Suppliers() {
                 >
                   سجل دفعة
                 </button>
+                {/* المجموعة ٢ (§10.1): تصحيح الشراء من صفّه — لا إيماءة مخفية ولا لون فقط. */}
+                <button
+                  className="micro-button micro-button-quiet"
+                  type="button"
+                  onClick={() => navigate(withFrom(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
+                >
+                  عدّل/تراجع
+                </button>
               </div>
             </article>
           ))
@@ -150,9 +158,18 @@ export default function Suppliers() {
                     <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
                   </small>
                 </div>
-                <b>
-                  <MoneyValue minor={purchase.totalMinor} />
-                </b>
+                <div className="micro-supplier-balance">
+                  <b>
+                    <MoneyValue minor={purchase.totalMinor} />
+                  </b>
+                  <button
+                    className="micro-button micro-button-quiet"
+                    type="button"
+                    onClick={() => navigate(withFrom(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
+                  >
+                    السجل والتصحيح
+                  </button>
+                </div>
               </article>
             ))}
         </section>
