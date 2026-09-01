@@ -26,6 +26,7 @@ import type {
   LocalPreferences,
   LocalStoreSnapshot,
   OrderDraft,
+  OwnerProfile,
   PrototypeLocalStore,
   ScheduleEntry,
   ScheduleRecurrence,
@@ -37,6 +38,7 @@ const clone = <T>(value: T): T => structuredClone(value);
 
 export class MemoryLocalStore implements PrototypeLocalStore {
   private profile: ActivityProfile | null = null;
+  private ownerProfile: OwnerProfile | null = null;
   private preferences: LocalPreferences | null = null;
   private drafts = new Map<string, OrderDraft>();
   private orders = new Map<string, StoredCraftOrder>();
@@ -68,6 +70,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   }
   async saveProfile(profile: ActivityProfile): Promise<StorageResult<ActivityProfile>> {
     this.profile = clone(profile);
+    return { ok: true, value: clone(profile) };
+  }
+  async getOwnerProfile(): Promise<StorageResult<OwnerProfile | null>> {
+    return { ok: true, value: this.ownerProfile ? clone(this.ownerProfile) : null };
+  }
+  async saveOwnerProfile(profile: OwnerProfile): Promise<StorageResult<OwnerProfile>> {
+    this.ownerProfile = clone(profile);
     return { ok: true, value: clone(profile) };
   }
   async getPreferences(): Promise<StorageResult<LocalPreferences | null>> {
@@ -697,6 +706,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       ok: true,
       value: {
         profile: this.profile ? clone(this.profile) : null,
+        ownerProfile: this.ownerProfile ? clone(this.ownerProfile) : null,
         preferences: this.preferences ? clone(this.preferences) : null,
         drafts: Array.from(this.drafts.values()).map(clone),
         orders: Array.from(this.orders.values()).map(clone),
@@ -728,6 +738,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
     const safe = clone({
       ...snapshot,
+      ownerProfile: snapshot.ownerProfile ?? null,
       schedules: snapshot.schedules ?? [],
       directSales: snapshot.directSales ?? [],
       recurrences: snapshot.recurrences ?? [],
@@ -752,6 +763,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       costEstimates: snapshot.costEstimates ?? [],
     });
     this.profile = safe.profile;
+    this.ownerProfile = safe.ownerProfile ?? null;
     this.preferences = safe.preferences;
     this.drafts = new Map(safe.drafts.map(draft => [draft.id, draft]));
     this.orders = new Map(safe.orders.map(order => [order.id, order]));

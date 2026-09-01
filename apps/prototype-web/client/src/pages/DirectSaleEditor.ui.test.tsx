@@ -18,6 +18,7 @@ const wouterMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("wouter", () => ({
+  useSearch: () => "",
   useLocation: () => [wouterMocks.location, wouterMocks.navigate],
 }));
 

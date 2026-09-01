@@ -3,6 +3,7 @@
 import { ArrowRight, Save, WalletCards } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -20,6 +21,8 @@ type PageState =
 export default function CashOpeningLaterEditor() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<PageState>({ phase: "loading" });
   const [amountMinor, setAmountMinor] = useState(0);
@@ -87,7 +90,7 @@ export default function CashOpeningLaterEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/cash");
+    navigate(returnPath);
     return true;
   }
 
@@ -102,7 +105,7 @@ export default function CashOpeningLaterEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح سجل الرصيد</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
+        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
           محافظ الكاش
         </button>
       </section>
@@ -110,7 +113,7 @@ export default function CashOpeningLaterEditor() {
   if (state.phase === "already-known")
     return (
       <section className="micro-page micro-finance-page">
-        <button className="micro-back-button" type="button" onClick={() => navigate("/cash")}>
+        <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
           <ArrowRight aria-hidden="true" /> محافظ الكاش
         </button>
         <div className="micro-page-heading">

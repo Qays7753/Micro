@@ -1,11 +1,13 @@
 export type HomeValueState = "known" | "incomplete" | "not_initialized";
 export type HomeAction = { id: string; label: string; href: string; reason: string };
 export type HomeFinancialFact = {
-  id: "cash" | "receivables" | "payables" | "owner_capital";
+  id: "cash" | "receivables" | "payables" | "owner_capital" | "unallocated";
   label: string;
   state: HomeValueState;
   valueMinor: number | null;
   currency: "JOD";
+  /* المجموعة ١ (§7.1): الكاش يحمل مؤهل الأمانات — كاش حقيقي لست مالكه بالكامل. */
+  qualifier?: string | null;
   /* §10: التفصيل خلف العلامة لا على الوجه — الحقول قابلة للغياب. */
   source: string | null;
   period: string | null;
@@ -104,6 +106,9 @@ export type HomeControlCenterInput = {
 export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
   truthLine: string | null;
+  /* المجموعة ١ (§7.1): كتلة أولوية واحدة — أهم بند قابل للفعل اليوم؛ أول عنصر
+   * بعد الترتيب، والقائمة تحته تستوعب الباقي بلا تكرار. */
+  priorityBlock: HomeTodayItem | null;
   financeUnit: HomeFinanceUnit;
   catalogUnit: HomeCatalogUnit;
   todaySection: HomeTodaySection;
@@ -131,9 +136,12 @@ export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): 
   );
   const optionalModules = input.optionalModules.filter(module => module.state !== "empty");
   const recentChanges = input.recentChanges.slice(0, 5);
+  /* المجموعة ١: الأولوية = أول بند مرتّب؛ القائمة الفارغة تبقي الكتلة null لا مختلقة. */
+  const priorityBlock = todayItems.length > 0 ? todayItems[0] : null;
   return {
     heading: { activityName: input.activityName, todayLocal: input.todayLocal },
     truthLine: input.truthLine,
+    priorityBlock,
     financeUnit: input.financeUnit,
     catalogUnit: input.catalogUnit,
     todaySection: { ...input.todaySection, items: todayItems },

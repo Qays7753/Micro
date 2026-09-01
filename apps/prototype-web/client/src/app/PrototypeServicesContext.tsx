@@ -9,6 +9,7 @@ import { LocalTransferService } from "@/application/transfers/localTransferServi
 import { GuidedOpeningImportService } from "@/application/transfers/guidedOpeningImportService";
 import { PreferenceService } from "@/application/preferences/preferenceService";
 import { ProfileService } from "@/application/profile/profileService";
+import { OwnerProfileService } from "@/application/owner/ownerProfileService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
@@ -31,6 +32,8 @@ import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore
 
 type PrototypeServices = {
   profiles: ProfileService;
+  /* المجموعة ١ (ملف المالك): هوية محلية مستقلة — لا مزود خارجي ولا مزامنة. */
+  ownerProfile: OwnerProfileService;
   preferences: PreferenceService;
   actualTime: ActualTimeService;
   drafts: DraftService;
@@ -82,6 +85,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     const recurringWork = new RecurringWorkService(store);
     return {
       profiles: new ProfileService(store),
+      ownerProfile: new OwnerProfileService(store),
       preferences: new PreferenceService(store),
       actualTime: new ActualTimeService(store),
       drafts: new DraftService(store),

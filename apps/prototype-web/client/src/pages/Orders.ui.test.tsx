@@ -15,6 +15,7 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 const wouterMocks = { navigate: vi.fn() };
 
 vi.mock("wouter", () => ({
+  useSearch: () => "",
   useLocation: () => ["/orders", wouterMocks.navigate],
 }));
 
@@ -149,7 +150,7 @@ describe("Work destination", () => {
     expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
   });
 
-  it("shows a cost-unknown direct sale beside orders with unavailable profit", async () => {
+  it("shows a cost-unknown direct sale beside orders with a compact row (profit deferred to the detail screen)", async () => {
     mockedUsePrototypeServices.mockReturnValue({
       dailyFollowUp: {
         read: vi.fn().mockResolvedValue({
@@ -177,7 +178,9 @@ describe("Work destination", () => {
     expect(screen.getByText("طاولة اختبار")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "طلباتي" })).toBeTruthy();
-    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+    /* المجموعة ١ (§8.2): الربح ومراجعات السعر خلف شاشة التفصيل — الصف مختصر. */
+    expect(screen.queryByText(/الربح/)).toBeNull();
+    expect(screen.queryByText(/خـفّض السعر/)).toBeNull();
   });
 
   it("opens a saved direct sale from My Sales", async () => {
@@ -201,7 +204,8 @@ describe("Work destination", () => {
 
     const sale = await screen.findByRole("button", { name: "فتح بيع كوب جاهز" });
     fireEvent.click(sale);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/sale-open");
+    /* المجموعة ١ (Scope A): الرابط يحفظ مصدره — الرجوع من المحرر يعود إلى «العمل». */
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/sale-open?from=%2Forders");
   });
 
   it("keeps the appointments section permanent with an honest empty state (F-070)", async () => {
@@ -272,6 +276,22 @@ describe("Work destination", () => {
 
     const appointment = await screen.findByRole("button", { name: /طاولة اختبار/ });
     fireEvent.click(appointment);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/schedule/schedule-1");
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/schedule/schedule-1?from=%2Forders");
+  });
+
+  /* المجموعة ١ (§8.1): «الأولوية الآن» دائمًا حتى بلا سجلات — بصدق لا بفبركة. */
+  it("renders the priority block even with no orders, sales, or drafts", async () => {
+    render(<Orders />);
+    expect(await screen.findByText("الأولوية الآن")).toBeTruthy();
+    expect(screen.getByText(/لا شيء مستعجل الآن/)).toBeTruthy();
+  });
+
+  it("offers the direct-sale secondary CTA and the first-sale empty action", async () => {
+    render(<Orders />);
+    const cta = await screen.findByRole("button", { name: /تسجيل بيع مباشر/ });
+    fireEvent.click(cta);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/new?from=%2Forders");
+    const firstSale = screen.getByRole("button", { name: /سجّل أول بيع/ });
+    expect(firstSale).toBeTruthy();
   });
 });

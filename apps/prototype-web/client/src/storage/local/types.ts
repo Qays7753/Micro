@@ -24,11 +24,29 @@ import type {
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
-export const localSchemaVersion = 29;
+export const localSchemaVersion = 30;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 21;
+export const localExportVersion = 22;
+/* المجموعة ١ (ملف المالك): سجل هوية مالك محلي مستقل عن سجل المشروع — معرّف محلي
+ * ثابت + حقول مستقبلية فارغة (المزود/المعرّف الخارجي) لا تُفعّل في هذه المرحلة.
+ * مخزن ٣٠ (owner-profile)؛ النسخ ٢٢ تشمله ونسخ ٢١ تُقبل وتُهاجر بـ null. */
+export const localOwnerProfileId = "local-owner-profile";
+export type OwnerProfile = {
+  id: typeof localOwnerProfileId;
+  /** معرّف مالك محلي ثابت — يولَّد مرة عند أول إنشاء ولا يتغير بالتعديل. */
+  ownerId: string;
+  displayName: string | null;
+  /** اختياري تمامًا؛ يبقى فارغًا حتى يكتبه المالك. */
+  email: string | null;
+  /** حقل مستقبلي محجوز — null دائمًا في هذه المرحلة (لا مزود خارجي). */
+  provider: null;
+  /** حقل مستقبلي محجوز — null دائمًا في هذه المرحلة (لا حساب خارجي). */
+  externalAccountId: null;
+  createdAt: string;
+  updatedAt: string;
+};
 /* القرار ٩: تفعيل المخزون صريح مؤرّخ — لحظة معلنة يُعرض تاريخها، والرصيد يوم
  * التفعيل يكفي. الترقية معلنة في الكومِت: سجل واحد بلا علاقات جديدة. */
 export const localInventoryActivationId = "local-inventory-activation";
@@ -203,6 +221,7 @@ export type CostEstimate = {
 
 export type LocalStoreSnapshot = {
   profile: ActivityProfile | null;
+  ownerProfile?: OwnerProfile | null;
   preferences: LocalPreferences | null;
   drafts: readonly OrderDraft[];
   orders: readonly StoredCraftOrder[];
@@ -245,6 +264,9 @@ export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
 export interface PrototypeLocalStore {
   getProfile(): Promise<StorageResult<ActivityProfile | null>>;
   saveProfile(profile: ActivityProfile): Promise<StorageResult<ActivityProfile>>;
+  /** ملف المالك (المجموعة ١): هوية محلية مستقلة — سجل واحد بمعرّف ثابت. */
+  getOwnerProfile(): Promise<StorageResult<OwnerProfile | null>>;
+  saveOwnerProfile(profile: OwnerProfile): Promise<StorageResult<OwnerProfile>>;
   getPreferences(): Promise<StorageResult<LocalPreferences | null>>;
   savePreferences(preferences: LocalPreferences): Promise<StorageResult<LocalPreferences>>;
   listDrafts(): Promise<StorageResult<readonly OrderDraft[]>>;

@@ -251,7 +251,13 @@ CAPS: dict[str, int] = {
     # since last activity, upcoming follow-ups) — concise digest mandated by the owner.
     # Home 31 → 30 (2026-09-01, final-audit cycle U-002): the digest line was rewritten
     # as one honest "last recording day" summary — a ratchet gain (lowering), locked here.
-    "Home": 30,
+    # Home 30 → 35 (2026-09-02, Group 1 experience foundation §7.1, owner-approved
+    # execution prompt): mandated labels only — priority block ("الأهم الآن"), today-row
+    # action verbs (أكمل/حصّل/راجع/سلّم instead of generic open), amanah cash qualifier,
+    # unallocated-cash card (+negative qualifier), owner-profile header link, honest
+    # empty state ("يومك مفتوح"), and the local/offline truth line. Overlines removed
+    # with the same scope (قراءة الصباح / أربع حقائق محلية / وحدات عند الحاجة).
+    "Home": 35,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.
@@ -264,8 +270,15 @@ CAPS: dict[str, int] = {
     # full-log note, focused-row aria label. Mandated by the approved prompt §7
     # ("a practical way to reach older events, not only the latest three").
     "Finance": 148,
-    "OrderDetail": 127,
-    "Orders": 73,
+    # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
+    # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
+    # panels surface above the fold — one mandated conditional label.
+    "OrderDetail": 128,
+    # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
+    # the always-rendered priority block's honest empty line, the direct-sale secondary
+    # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
+    # strings moved behind the detail screen in the same scope (net prose reduced).
+    "Orders": 76,
     # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
     # credit-sale customer identity field — one mandated label, no prose.
     # DirectSaleEditor 43 → 45 (2026-09-01, repair cycle P-002): catalog-reference
@@ -300,6 +313,10 @@ CAPS: dict[str, int] = {
     "OwnerEntitlement": 48,
     "Schedule": 98,
     "ScheduleEditor": 45,
+    # Profile (2026-09-02, Group 1 Scope G, owner-approved execution prompt): new
+    # mandated screen — two identity sections, states, edit mode, and local-truth line;
+    # locked at 27 with headroom of 3 for future mandated labels only.
+    "Profile": 30,
 }
 
 PAGES = [
@@ -322,6 +339,8 @@ PAGES = [
     "ScheduleEditor",
     "OwnerWithdrawalEditor",
     "G5DeclarationEditor",
+    # المجموعة ١ (Scope G): ملف المالك والمشروع — شاشة جديدة مقيسة من يومها الأول.
+    "Profile",
     "Settings",
     "NotFound",
 ]

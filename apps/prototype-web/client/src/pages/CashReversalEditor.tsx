@@ -3,6 +3,7 @@
 import { ArrowRight, RotateCcw, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -15,6 +16,8 @@ const ammanDate = () => localDateInAmman();
 export default function CashReversalEditor() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [entry, setEntry] = useState<CashContinuityEntry | null>(null);
   const [date, setDate] = useState(() => ammanDate());
@@ -81,7 +84,7 @@ export default function CashReversalEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/cash")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>

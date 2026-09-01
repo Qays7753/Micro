@@ -24,6 +24,7 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn(), location: "/" }));
 
 vi.mock("wouter", () => ({
+  useSearch: () => "",
   useLocation: () => [wouterMocks.location, wouterMocks.navigate],
   useParams: () => ({ id: "new" }),
 }));
@@ -86,8 +87,9 @@ describe("U-004 estimate-to-draft bridge", () => {
     render(<Tools />);
     const bridgeButton = await screen.findByText("ابدأ مسودة من هذا التقدير");
     fireEvent.click(bridgeButton);
+    /* المجموعة ١ (Scope A): الجسر يحفظ أدواتي مصدرًا — الرجوع من المسودة يعود إليها. */
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(saved.value.id)}`,
+      `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(saved.value.id)}&from=%2Ftools`,
     );
 
     /* الخطوة ٢: المحرر يفتح على القيم المقترحة، والإشعار يعلن أنها مقترحات. */

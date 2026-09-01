@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
@@ -74,7 +75,7 @@ export default function CashWallets() {
         <button
           className="micro-button micro-button-primary"
           type="button"
-          onClick={() => navigate("/finance")}
+          onClick={() => navigate(withFrom("/finance", "/cash"))}
         >
           الوضع المالي
         </button>
@@ -82,7 +83,7 @@ export default function CashWallets() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+      <button className="micro-back-button" type="button" onClick={() => navigate(withFrom("/finance", "/cash"))}>
         <ArrowLeft aria-hidden="true" /> الوضع المالي
       </button>
       <div className="micro-page-heading">
@@ -124,7 +125,7 @@ export default function CashWallets() {
         <button
           className="micro-button micro-button-primary"
           type="button"
-          onClick={() => navigate("/cash/wallet/new")}
+          onClick={() => navigate(withFrom("/cash/wallet/new", "/cash"))}
         >
           <Plus aria-hidden="true" /> محفظة ورصيد بداية
         </button>
@@ -132,7 +133,7 @@ export default function CashWallets() {
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/cash/transfer")}
+            onClick={() => navigate(withFrom("/cash/transfer", "/cash"))}
           >
             <ArrowRightLeft aria-hidden="true" /> تحويل بين المحافظ
           </button>
@@ -188,7 +189,7 @@ export default function CashWallets() {
                   <button
                     className="micro-button micro-button-secondary"
                     type="button"
-                    onClick={() => navigate(`/cash/wallet/${wallet.id}/opening-later`)}
+                    onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}/opening-later`, "/cash"))}
                   >
                     سجّل رصيدًا موثقًا لاحقًا
                   </button>
@@ -196,7 +197,7 @@ export default function CashWallets() {
                   <button
                     className="micro-button micro-button-secondary"
                     type="button"
-                    onClick={() => navigate(`/cash/wallet/${wallet.id}/adjust`)}
+                    onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}/adjust`, "/cash"))}
                   >
                     <SlidersHorizontal aria-hidden="true" /> ضبط بسبب
                   </button>
@@ -235,7 +236,7 @@ export default function CashWallets() {
                     <button
                       className="micro-button micro-button-quiet"
                       type="button"
-                      onClick={() => navigate(`/cash/entry/${entry.id}/reverse`)}
+                      onClick={() => navigate(withFrom(`/cash/entry/${entry.id}/reverse`, "/cash"))}
                     >
                       <RotateCcw aria-hidden="true" /> تراجع
                     </button>

@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, Save, Trash2 } from "lucide-react";
 import { useLocation, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -89,6 +90,8 @@ function proposalNotice(estimate: CostEstimate): string {
 export default function DraftEditor() {
   const params = useParams<{ id: string }>();
   const [location, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { drafts, catalog, costEstimates, dataVersion, notifyDataChanged } = usePrototypeServices();
   /* و٥: "new" = محرر نية بلا سجل بعد. */
   const isNewDraft = params.id === "new";
@@ -348,7 +351,7 @@ export default function DraftEditor() {
   const hasFormError = Boolean(message && !message.startsWith("تم "));
   return (
     <section className="micro-page">
-      <button className="micro-back-button" type="button" onClick={() => requestNavigation(`/orders`)}>
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> العودة للطلبات
       </button>
       <div className="micro-page-heading">

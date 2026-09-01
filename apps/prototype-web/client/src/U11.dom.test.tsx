@@ -12,6 +12,7 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 }));
 
 vi.mock("wouter", () => ({
+  useSearch: () => "",
   useLocation: () => ["/settings", vi.fn()],
   useParams: () => ({}),
 }));

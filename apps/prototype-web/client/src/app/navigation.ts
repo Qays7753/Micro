@@ -26,6 +26,8 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/parties")) return "دفتر الناس";
   if (pathname.startsWith("/tools")) return "أدواتي";
   if (pathname.startsWith("/settings")) return "الإعدادات";
+  /* المجموعة ١: ملف المالك — تسمية سياقية للترويسة بلا مقعد تنقل جديد. */
+  if (pathname.startsWith("/profile")) return "ملف المالك";
   return (
     primaryNavigation.find(
       item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),

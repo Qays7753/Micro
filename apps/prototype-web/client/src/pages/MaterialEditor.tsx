@@ -3,6 +3,7 @@
 import { ArrowRight, Boxes, Save } from "lucide-react";
 import { useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
@@ -14,6 +15,8 @@ import { localDateInAmman } from "@/presentation/formatters";
 const ammanDate = () => localDateInAmman();
 export default function MaterialEditor() {
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { inventory, notifyDataChanged } = usePrototypeServices();
   const [name, setName] = useState("");
   const [unit, setUnit] = useState<MaterialUnit>("piece");
@@ -72,7 +75,7 @@ export default function MaterialEditor() {
   }
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => requestNavigation("/inventory")}>
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">

@@ -2,7 +2,8 @@
 /* مبدأ Micro: حركة المخزون المجهولة تتوقف بوضوح، ولا ترث معنى الهدر أو أي حركة أخرى. */
 import { ArrowRight, CircleMinus, PackagePlus, Save, Scissors, SlidersHorizontal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useParams } from "wouter";
+import { useLocation, useSearch, useParams } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
@@ -19,6 +20,16 @@ type MovementType = InventoryMovementRouteType;
 export default function InventoryMovementEditor() {
   const { type } = useParams<{ type: string }>();
   const [, navigate] = useLocation();
+  const search = useSearch();
+  /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) والمواد كبديل قانوني. */
+  const returnPath = useReturnPath();
+  /* المجموعة ١ (Scope E): وصلة عميقة تحفظ سياق الطلب الأصلي —
+   * /inventory/movement/consume?order=<id>&from=/orders/<id> تُعبّئ الطلب مسبقًا. */
+  const [linkedOrderId] = useState(() => {
+    const query = new URLSearchParams(search ?? "");
+    const order = query.get("order");
+    return order && /^[A-Za-z0-9_-]{1,64}$/.test(order) ? order : null;
+  });
   const { inventory, notifyDataChanged } = usePrototypeServices();
   const [references, setReferences] = useState<InventoryReferences | null>(null);
   const [materialId, setMaterialId] = useState("");
@@ -69,12 +80,14 @@ export default function InventoryMovementEditor() {
       setReferences(result.value);
       setMaterialId(result.value.materials[0]?.id ?? "");
       setPurchaseId(result.value.purchases[0]?.id ?? "");
-      setOrderId(result.value.orders[0]?.id ?? "");
+      /* سياق الطلب من الوصلة العميقة إن وُجد؛ وإلا أول طلب كالسلوك القائم. */
+      const linked = linkedOrderId && result.value.orders.some(order => order.id === linkedOrderId);
+      setOrderId(linked ? (linkedOrderId as string) : (result.value.orders[0]?.id ?? ""));
       setWasteOrderId(result.value.orders[0]?.id ?? "");
       setWasteCatalogItemId(result.value.catalogItems[0]?.id ?? "");
       setWasteTemplateId(result.value.catalogTemplates[0]?.id ?? "");
     });
-  }, [inventory, safeType]);
+  }, [inventory, safeType, linkedOrderId]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة.
    * تُستدعى الخطافات قبل أي return شرطي (قواعد الخطافات): فرع «حركة غير
@@ -219,7 +232,7 @@ export default function InventoryMovementEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/inventory");
+    navigate(returnPath);
     return true;
   }
   if (!references && !message)
@@ -247,7 +260,7 @@ export default function InventoryMovementEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/inventory")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>

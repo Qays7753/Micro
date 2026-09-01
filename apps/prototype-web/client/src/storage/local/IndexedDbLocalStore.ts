@@ -21,6 +21,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import {
   localInventoryActivationId,
+  localOwnerProfileId,
   localSchemaVersion,
   type ActivityProfile,
   type CostEstimate,
@@ -28,6 +29,7 @@ import {
   type LocalPreferences,
   type LocalStoreSnapshot,
   type OrderDraft,
+  type OwnerProfile,
   type PrototypeLocalStore,
   type ScheduleEntry,
   type ScheduleRecurrence,
@@ -39,6 +41,8 @@ import {
 
 const databaseName = "micro-prototype-local";
 const profileStore = "activity-profile";
+/* مخزن ٣٠ (المجموعة ١): هوية المالك المحلية — سجل واحد بلا فهارس. */
+const ownerProfileStore = "owner-profile";
 const preferencesStore = "local-preferences";
 const draftStore = "order-drafts";
 const orderStore = "craft-orders";
@@ -155,6 +159,8 @@ function openDatabase(): Promise<IDBDatabase> {
       const database = request.result;
       if (!database.objectStoreNames.contains(profileStore))
         database.createObjectStore(profileStore, { keyPath: "id" });
+      if (!database.objectStoreNames.contains(ownerProfileStore))
+        database.createObjectStore(ownerProfileStore, { keyPath: "id" });
       if (!database.objectStoreNames.contains(preferencesStore))
         database.createObjectStore(preferencesStore, { keyPath: "id" });
       if (!database.objectStoreNames.contains(draftStore)) {
@@ -652,6 +658,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   saveProfile(profile: ActivityProfile) {
     return writeOne(profileStore, profile);
+  }
+  getOwnerProfile() {
+    return readOne<OwnerProfile>(ownerProfileStore, localOwnerProfileId);
+  }
+  saveOwnerProfile(profile: OwnerProfile) {
+    return writeOne(ownerProfileStore, profile);
   }
   getPreferences() {
     return readOne<LocalPreferences>(preferencesStore, "local-preferences");
@@ -1788,6 +1800,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction(
           [
             profileStore,
+            ownerProfileStore,
             preferencesStore,
             draftStore,
             orderStore,
@@ -1817,6 +1830,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           "readonly",
         );
         const profile = transaction.objectStore(profileStore).get("local-profile");
+        const ownerProfile = transaction.objectStore(ownerProfileStore).get(localOwnerProfileId);
         const preferences = transaction.objectStore(preferencesStore).get("local-preferences");
         const drafts = transaction.objectStore(draftStore).getAll();
         const orders = transaction.objectStore(orderStore).getAll();
@@ -1854,6 +1868,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             ok: true,
             value: {
               profile: (profile.result as ActivityProfile | undefined) ?? null,
+              ownerProfile: (ownerProfile.result as OwnerProfile | undefined) ?? null,
               preferences: (preferences.result as LocalPreferences | undefined) ?? null,
               drafts: drafts.result as OrderDraft[],
               orders: orders.result as StoredCraftOrder[],
@@ -1893,6 +1908,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       const database = await openDatabase();
       const normalized: LocalStoreSnapshot = {
         ...snapshot,
+        ownerProfile: snapshot.ownerProfile ?? null,
         schedules: snapshot.schedules ?? [],
         directSales: snapshot.directSales ?? [],
         recurrences: snapshot.recurrences ?? [],
@@ -1920,6 +1936,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction(
           [
             profileStore,
+            ownerProfileStore,
             preferencesStore,
             draftStore,
             orderStore,
@@ -1949,6 +1966,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           "readwrite",
         );
         const profiles = transaction.objectStore(profileStore);
+        const ownerProfiles = transaction.objectStore(ownerProfileStore);
         const preferences = transaction.objectStore(preferencesStore);
         const drafts = transaction.objectStore(draftStore);
         const orders = transaction.objectStore(orderStore);
@@ -1975,6 +1993,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const allocationPolicies = transaction.objectStore(allocationPolicyStore);
         const costEstimates = transaction.objectStore(costEstimateStore);
         profiles.clear();
+        ownerProfiles.clear();
         preferences.clear();
         drafts.clear();
         orders.clear();
@@ -2001,6 +2020,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         allocationPolicies.clear();
         costEstimates.clear();
         if (normalized.profile) profiles.put(normalized.profile);
+        if (normalized.ownerProfile) ownerProfiles.put(normalized.ownerProfile);
         if (normalized.preferences) preferences.put(normalized.preferences);
         normalized.drafts.forEach(draft => drafts.put(draft));
         normalized.orders.forEach(order => orders.put(order));

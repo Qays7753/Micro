@@ -12,8 +12,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { withFrom } from "@/app/navigationContract";
 import type {
   MonthOverview,
   ScheduleDay,
@@ -80,6 +81,7 @@ const monthFirstDayOffset = (month: string) => new Date(`${month}-01T12:00:00.00
 
 export default function Schedule() {
   const [, navigate] = useLocation();
+  const search = useSearch();
   const { schedules, recurrences, notifyDataChanged, dataVersion } = usePrototypeServices();
   const [selectedMonth, setSelectedMonth] = useState(currentLocalMonth);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -88,6 +90,15 @@ export default function Schedule() {
   const [capacityChoice, setCapacityChoice] = useState("");
   const [capacityMessage, setCapacityMessage] = useState<string | null>(null);
   const [savingCapacity, setSavingCapacity] = useState(false);
+  /* المجموعة ١ (Scope A/E): وصلة عميقة دفاعية — ?focus=capacity يفتح طبقة «التكرار
+   * والسعة» حيث يُقرأ الضغط؛ القيمة المجهولة تُهمل بلا أثر. */
+  const [capacityLayerOpen, setCapacityLayerOpen] = useState(() => {
+    try {
+      return new URLSearchParams(search ?? "").get("focus") === "capacity";
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     let active = true;
@@ -196,7 +207,9 @@ export default function Schedule() {
         <CapacityDecisionSurface
           day={decisionDay}
           capacityMinutes={overview.dailyCapacityMinutes}
-          onOpen={item => (item ? navigate(`/schedule/${item.schedule.id}`) : navigate("/orders"))}
+          onOpen={item => (item ? navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule")) : navigate(withFrom("/orders", "/schedule")))}
+          /* المجموعة ١ (Scope E): عند ضغط السعة، تحديدها فعل قابل للنقر من نفس القراءة. */
+          onOpenCapacity={() => setCapacityLayerOpen(true)}
         />
       ) : null}
       {overview.overdue.length > 0 ? (
@@ -205,7 +218,7 @@ export default function Schedule() {
           description="تجاوزت موعدها"
           tone="warning"
           items={overview.overdue}
-          onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
+          onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
         />
       ) : null}
       {overview.today.length > 0 ? (
@@ -214,7 +227,7 @@ export default function Schedule() {
           description="موعدها اليوم"
           tone="accent"
           items={overview.today}
-          onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
+          onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
         />
       ) : null}
       {overview.upcoming.length > 0 ? (
@@ -223,7 +236,7 @@ export default function Schedule() {
           description="مواعيد قادمة"
           tone="support"
           items={overview.upcoming}
-          onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
+          onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
         />
       ) : null}
       {total === 0 ? (
@@ -256,7 +269,7 @@ export default function Schedule() {
           selectedDate={selectedDate}
           onChangeMonth={changeMonth}
           onSelectDate={setSelectedDate}
-          onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
+          onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
         />
         {weekWithWork.length > 0 ? (
           <section className="micro-week-agenda" aria-label="خطة الأيام السبعة">
@@ -272,7 +285,7 @@ export default function Schedule() {
                 <WeekDay
                   key={day.date}
                   day={day}
-                  onOpen={item => navigate(`/schedule/${item.schedule.id}`)}
+                  onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
                 />
               ))}
             </div>
@@ -301,7 +314,11 @@ export default function Schedule() {
           </div>
         </section>
       </details>
-      <details className="micro-decision-layer">
+      <details
+        className="micro-decision-layer"
+        open={capacityLayerOpen || undefined}
+        onToggle={event => setCapacityLayerOpen((event.target as HTMLDetailsElement).open)}
+      >
         <summary className="micro-decision-layer-summary">
           <span>
             <b>التكرار والسعة</b>
@@ -380,13 +397,16 @@ function CapacityDecisionSurface({
   day,
   capacityMinutes,
   onOpen,
+  onOpenCapacity,
 }: {
   day: ScheduleDay;
   capacityMinutes: number | null;
   onOpen: (item: ScheduledOrder | null) => void;
+  onOpenCapacity: () => void;
 }) {
   const decision = buildCapacityDecisionViewModel(day, capacityMinutes);
   const nextItem = day.items[0] ?? null;
+  const underPressure = decision.tone === "warning";
   return (
     <section className="micro-capacity-decision" aria-label={`قرار السعة ليوم ${dateLabel(day.date)}`}>
       <DecisionPanel
@@ -395,13 +415,20 @@ function CapacityDecisionSurface({
         nextAction={decision.nextAction}
         tone={decision.tone}
       />
-      <button
-        className="micro-button micro-button-primary micro-button-block"
-        type="button"
-        onClick={() => onOpen(nextItem)}
-      >
-        {nextItem ? "فتح أقرب متابعة" : "فتح الطلبات"}
-      </button>
+      <div className="micro-capacity-actions">
+        <button
+          className="micro-button micro-button-primary micro-button-block"
+          type="button"
+          onClick={() => onOpen(nextItem)}
+        >
+          {nextItem ? "فتح أقرب متابعة" : "فتح الطلبات"}
+        </button>
+        {underPressure ? (
+          <button className="micro-text-action" type="button" onClick={onOpenCapacity}>
+            حدّد سعة اليوم
+          </button>
+        ) : null}
+      </div>
       {day.conflictCount > 0 ? (
         <p className="micro-month-warning">
           <CircleAlert aria-hidden="true" />

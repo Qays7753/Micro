@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
 import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
@@ -201,10 +202,10 @@ export default function Finance() {
       <CashDecisionSurface
         decision={decision}
         unallocatedCashMinor={position.unallocatedCashMinor}
-        onDeclare={() => navigate("/finance/g5/declaration")}
-        onReviewCash={() => navigate("/cash")}
+        onDeclare={() => navigate(withFrom("/finance/g5/declaration", "/finance"))}
+        onReviewCash={() => navigate(withFrom("/cash", "/finance"))}
       />
-      <OwnerDecisionCard overview={owner} onOpen={() => navigate("/finance/owner-entitlement")} />
+      <OwnerDecisionCard overview={owner} onOpen={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))} />
       <section
         className="micro-finance-position"
         aria-label="تفاصيل الوضع المالي المسجل · المبالغ بالدينار الأردني"
@@ -269,7 +270,7 @@ export default function Finance() {
               <button
                 className="micro-button micro-button-secondary"
                 type="button"
-                onClick={() => navigate("/cash/distribute")}
+                onClick={() => navigate(withFrom("/cash/distribute", "/finance"))}
               >
                 وزّع على محفظة
               </button>
@@ -282,7 +283,7 @@ export default function Finance() {
               <button
                 className="micro-text-action"
                 type="button"
-                onClick={() => navigate("/cash/wallet/new")}
+                onClick={() => navigate(withFrom("/cash/wallet/new", "/finance"))}
               >
                 سجّل محفظة ورصيد بداية
               </button>
@@ -291,15 +292,15 @@ export default function Finance() {
           {/* التدفقات ١٤/٢٠ + D-002: دفتر الناس وعدّ الصناديق والموردون من مسارات
               مالي الدائمة — نوايا قراءة تجد مكانها الطبيعي هنا بلا مقعد خامس. */}
           <p className="micro-fact-road-line">
-            <button className="micro-text-action" type="button" onClick={() => navigate("/parties")}>
+            <button className="micro-text-action" type="button" onClick={() => navigate(withFrom("/parties", "/finance"))}>
               افتح دفتر الناس — مين عليه إلَي وعليّ لمين
             </button>{" "}
             ·{" "}
-            <button className="micro-text-action" type="button" onClick={() => navigate("/suppliers")}>
+            <button className="micro-text-action" type="button" onClick={() => navigate(withFrom("/suppliers", "/finance"))}>
               الموردون والمشتريات — استحقاقاتك ودفعاتك
             </button>{" "}
             ·{" "}
-            <button className="micro-text-action" type="button" onClick={() => navigate("/cash/count")}>
+            <button className="micro-text-action" type="button" onClick={() => navigate(withFrom("/cash/count", "/finance"))}>
               عدّ الصندوق — طابق الدرج مع السجل
             </button>
           </p>
@@ -694,7 +695,7 @@ export default function Finance() {
         <G5DecisionPanel
           decision={decision}
           g5={g5}
-          onDeclare={() => navigate("/finance/g5/declaration")}
+          onDeclare={() => navigate(withFrom("/finance/g5/declaration", "/finance"))}
           onChanged={notifyDataChanged}
         />
         {/* و٧ (F-079): سجل المتوقعات المسجلة كاملًا — حتى المنقوضة — بلا تصحيح من هنا. */}
@@ -755,42 +756,42 @@ export default function Finance() {
           <button
             className="micro-button micro-button-primary"
             type="button"
-            onClick={() => navigate("/cash")}
+            onClick={() => navigate(withFrom("/cash", "/finance"))}
           >
             محافظ الكاش
           </button>
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/suppliers")}
+            onClick={() => navigate(withFrom("/suppliers", "/finance"))}
           >
             الموردون والمشتريات
           </button>
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/inventory")}
+            onClick={() => navigate(withFrom("/inventory", "/finance"))}
           >
             المواد والمخزون
           </button>
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/finance/new/operating_expense_cash")}
+            onClick={() => navigate(withFrom("/finance/new/operating_expense_cash", "/finance"))}
           >
             سجل مصروفًا مدفوعًا
           </button>
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/finance/new/operating_expense_payable")}
+            onClick={() => navigate(withFrom("/finance/new/operating_expense_payable", "/finance"))}
           >
             سجل التزامًا لمورد
           </button>
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/finance/new/owner_investment_cash")}
+            onClick={() => navigate(withFrom("/finance/new/owner_investment_cash", "/finance"))}
           >
             سجل استثمارًا
           </button>
@@ -799,14 +800,14 @@ export default function Finance() {
             type="button"
             /* X-05 (و٣): مدخل واحد باسم واحد — يسأل «سحب من المشروع لنفسك؟» ويكتب
              * إلى المسار الصحيح بحسب وجود سياسة حق مالك، والتفريق تقني لا يُعلَّم. */
-            onClick={() => navigate("/finance/withdraw")}
+            onClick={() => navigate(withFrom("/finance/withdraw", "/finance"))}
           >
             سجل سحبًا شخصيًا
           </button>
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/finance/owner-entitlement")}
+            onClick={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
           >
             دفتر حق المالك
           </button>
@@ -814,7 +815,7 @@ export default function Finance() {
             <button
               className="micro-button micro-button-secondary"
               type="button"
-              onClick={() => navigate("/finance/new/payable_settlement_cash")}
+              onClick={() => navigate(withFrom("/finance/new/payable_settlement_cash", "/finance"))}
             >
               سدد التزام مصروف
             </button>
@@ -823,7 +824,7 @@ export default function Finance() {
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/finance/new/amanah_held_cash")}
+            onClick={() => navigate(withFrom("/finance/new/amanah_held_cash", "/finance"))}
           >
             سجل أمانة قُبضت
           </button>
@@ -831,7 +832,7 @@ export default function Finance() {
             <button
               className="micro-button micro-button-secondary"
               type="button"
-              onClick={() => navigate("/finance/new/amanah_released_cash")}
+              onClick={() => navigate(withFrom("/finance/new/amanah_released_cash", "/finance"))}
             >
               سجل أمانة سُلّمت
             </button>
@@ -839,7 +840,7 @@ export default function Finance() {
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate("/finance/new/loss_non_cash")}
+            onClick={() => navigate(withFrom("/finance/new/loss_non_cash", "/finance"))}
           >
             سجل هالكًا بلا خروج نقد
           </button>

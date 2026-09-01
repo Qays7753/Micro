@@ -2,6 +2,7 @@
 import { ArrowLeft, CalendarClock, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -18,6 +19,8 @@ function todayInAmman() {
 
 export default function G5DeclarationEditor() {
   const [, navigate] = useLocation();
+  /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
+  const returnPath = useReturnPath();
   const { g5, notifyDataChanged } = usePrototypeServices();
   const [direction, setDirection] = useState<"collection" | "commitment">("collection");
   const [amountMinor, setAmountMinor] = useState<number | null>(null);
@@ -105,7 +108,7 @@ export default function G5DeclarationEditor() {
       <button
         className="micro-back-button"
         type="button"
-        onClick={() => requestNavigation("/finance")}
+        onClick={() => requestNavigation(returnPath)}
       >
         <ArrowLeft aria-hidden="true" /> القرار المالي
       </button>

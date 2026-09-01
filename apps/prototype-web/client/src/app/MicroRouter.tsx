@@ -11,6 +11,8 @@ const Home = lazy(() => import("@/pages/Home"));
 const Orders = lazy(() => import("@/pages/Orders"));
 const DirectSaleEditor = lazy(() => import("@/pages/DirectSaleEditor"));
 const SettingsPage = lazy(() => import("@/pages/Settings"));
+/* المجموعة ١ (ملف المالك): /profile — سطح بلا مقعد سادس؛ الدخول من الترويسة/الإعدادات. */
+const Profile = lazy(() => import("@/pages/Profile"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Setup = lazy(() => import("@/pages/Setup"));
 const Foundation = lazy(() => import("@/pages/Foundation"));
@@ -96,6 +98,7 @@ export function MicroRouter() {
               <Redirect to="/finance" />
             </Route>
             <Route path="/settings" component={SettingsPage} />
+            <Route path="/profile" component={Profile} />
             <Route path="/" component={Home} />
             <Route component={NotFound} />
           </Switch>

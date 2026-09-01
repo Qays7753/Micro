@@ -1,10 +1,14 @@
 /** Style: Micro «مسار القرار» — phone-first RTL list where each row states status, date, settlement truth, and one next action. */
 /* مبدأ Micro: تعرض القائمة حالة الاتفاق والفعل التالي من خريطة واحدة، ولا توهم باعتماد ثانٍ. */
+/* المجموعة ١ (§8): العمل مبني حول أولوية العمل والمهمة التالية لا حول قائمة طويلة —
+ * «الأولوية الآن» دائمًا (ولو بعبارة لا شيء مستعجل)، صفوف البيع مختصرة، والتفاصيل
+ * الثانوية (الربح والمراجعات) خلف شاشة التفصيل. */
 import { BadgeDollarSign, CalendarDays, ClipboardCheck, ClipboardPlus, ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
+import { withFrom } from "@/app/navigationContract";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { IntegerValue, LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation/DisplayValue";
 import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService";
@@ -31,7 +35,7 @@ const settlementDetail = (stored: StoredCraftOrder) => (
 );
 
 export default function Orders() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { dailyFollowUp, directSales, schedules, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<OrdersState>({ phase: "loading" });
   useEffect(() => {
@@ -70,14 +74,70 @@ export default function Orders() {
         <p>لم يتم تغيير شيء. أعد فتح التطبيق للمحاولة.</p>
       </section>
     );
+  /* المجموعة ١ (§8.1): كل فتح من «العمل» يحفظ مصدره — الرجوع يعود إلى العمل. */
+  const openFromWork = (href: string) => navigate(withFrom(href, location));
   const tone = state.followUp.kind === "recorded_debt" ? "warning" : "accent";
+  /* «الأولوية الآن» دائمًا: حالة «لا طلبات» تُقال بصدق لا تُخفى، ولا تُفبرك أولوية. */
+  const isEmptyWorkState =
+    state.followUp.kind === "empty" && state.directSales.length === 0 && state.drafts.length === 0;
+  const priorityTruth = isEmptyWorkState ? "لا شيء مستعجل الآن — يومك مفتوح للعمل." : state.followUp.truth;
+  const priorityNextAction = isEmptyWorkState
+    ? "سجّل بيعًا أو ابدأ طلبًا عندما يحدث."
+    : state.followUp.nextAction;
   return (
     <section className="micro-page">
       <div className="micro-page-heading">
         <span className="micro-overline">وجهة العمل</span>
         <h1>العمل</h1>
-        <p>سجلات البيع والطلبات في مكان واحد، وكل قسم يظهر عندما يكون له سجل فعلي.</p>
+        <p>الطلبات والمبيعات والمسودات والمواعيد — وكل قسم يظهر عند وجود سجل فعلي.</p>
       </div>
+      {/* §8.1: الأولوية الآن قبل القوائم — دائمًا حاضرة حتى بلا طلبات. */}
+      <DecisionPanel
+        label="الأولوية الآن"
+        truth={priorityTruth}
+        nextAction={priorityNextAction}
+        tone={tone}
+      />
+      {state.orders.length > 0 ? (
+        <section className="micro-draft-list" aria-labelledby="work-orders-title">
+          <div className="micro-section-title">
+            <ClipboardCheck aria-hidden="true" />
+            <div>
+              <span className="micro-overline">سجل محفوظ</span>
+              <h2 id="work-orders-title">طلباتي</h2>
+            </div>
+          </div>
+          {state.orders.map(stored => {
+            const agreement = getAgreementPresentation({
+              status: stored.order.status,
+              agreedPriceMinor: stored.order.agreedPriceMinor,
+              deliveryDate: stored.deliveryDate,
+              nextAction: stored.order.nextAction,
+            });
+            return (
+              <button
+                className="micro-draft-row"
+                type="button"
+                key={stored.id}
+                onClick={() => openFromWork(`/orders/${stored.id}`)}
+              >
+                <span className="micro-draft-symbol">
+                  <ClipboardCheck aria-hidden="true" />
+                </span>
+                <span>
+                  <strong>{stored.order.itemName}</strong>
+                  <small>
+                    {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
+                  </small>
+                  <small>{settlementDetail(stored)}</small>
+                  <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
+                </span>
+                <ChevronLeft aria-hidden="true" />
+              </button>
+            );
+          })}
+        </section>
+      ) : null}
       <section className="micro-decision-surface" data-tone="accent" aria-labelledby="direct-sales-title">
         <span className="micro-overline">مبيعات مباشرة</span>
         <h2 id="direct-sales-title">مبيعاتي</h2>
@@ -90,12 +150,13 @@ export default function Orders() {
           </>
         ) : (
           <div className="micro-draft-list" aria-label="سجل المبيعات المباشرة">
+            {/* §8.2: صف البيع مختصر — الربح والمراجعات وثانوية التفاصيل خلف شاشة التفصيل. */}
             {state.directSales.map(sale => (
               <button
                 className="micro-draft-row"
                 type="button"
                 key={sale.id}
-                onClick={() => navigate(`/direct-sales/${sale.id}`)}
+                onClick={() => openFromWork(`/direct-sales/${sale.id}`)}
                 aria-label={`فتح بيع ${sale.itemName}`}
               >
                 <span className="micro-draft-symbol">
@@ -113,34 +174,13 @@ export default function Orders() {
                       <> من {(sale.revenueMinor / 100).toFixed(2)} المتفق</>
                     ) : null}
                   </small>
-                  {sale.customerName ? <small>الزبون: {sale.customerName}</small> : null}
-                  {sale.status !== "cancelled" && sale.revenueMinor > sale.collectedMinor ? (
-                    <small className="micro-row-next-action">
-                      {sale.collectionStatus === "partial_debt"
-                        ? "الفرق دَين على العميل — يظهر في «لي عند العملاء»."
-                        : "الفرق يحتاج مراجعة — لم يُقرَّر بعد."}
-                    </small>
-                  ) : null}
-                  {sale.revisions?.some(revision => revision.kind === "price_cut") ? (
-                    <small className="micro-row-next-action">
-                      خُفّض السعر من{" "}
-                      {(
-                        (sale.revisions.find(revision => revision.kind === "price_cut")
-                          ?.beforeRevenueMinor ?? 0) / 100
-                      ).toFixed(2)}{" "}
-                      د.أ — تخفيض موثَّق والأصل محفوظ.
-                    </small>
-                  ) : null}
-                  <small>
-                    الربح (د.أ): <MoneyValue minor={sale.profitMinor} className="micro-inline-number" />
+                  <small className="micro-row-next-action">
+                    {sale.status === "cancelled"
+                      ? `ملغى — ${sale.cancellationReason ?? "بدون سبب مسجل"}`
+                      : sale.collectionStatus === "partial_debt" && sale.revenueMinor > sale.collectedMinor
+                        ? "الفرق دَين على العميل — التفاصيل عند فتح البيع."
+                        : "الخطوة التالية: راجع أو صحح البيع عند الحاجة."}
                   </small>
-                  {sale.status === "cancelled" ? (
-                    <small className="micro-row-next-action">
-                      ملغى — {sale.cancellationReason ?? "بدون سبب مسجل"}
-                    </small>
-                  ) : (
-                    <small className="micro-row-next-action">الخطوة التالية: راجع أو صحح البيع عند الحاجة.</small>
-                  )}
                 </span>
                 <ChevronLeft aria-hidden="true" />
               </button>
@@ -148,54 +188,6 @@ export default function Orders() {
           </div>
         )}
       </section>
-      {state.orders.length > 0 ? (
-        <>
-          <DecisionPanel
-            label="الأولوية الآن"
-            truth={state.followUp.truth}
-            nextAction={state.followUp.nextAction}
-            tone={tone}
-          />
-          <section className="micro-draft-list" aria-labelledby="work-orders-title">
-            <div className="micro-section-title">
-              <ClipboardCheck aria-hidden="true" />
-              <div>
-                <span className="micro-overline">سجل محفوظ</span>
-                <h2 id="work-orders-title">طلباتي</h2>
-              </div>
-            </div>
-            {state.orders.map(stored => {
-              const agreement = getAgreementPresentation({
-                status: stored.order.status,
-                agreedPriceMinor: stored.order.agreedPriceMinor,
-                deliveryDate: stored.deliveryDate,
-                nextAction: stored.order.nextAction,
-              });
-              return (
-                <button
-                  className="micro-draft-row"
-                  type="button"
-                  key={stored.id}
-                  onClick={() => navigate(`/orders/${stored.id}`)}
-                >
-                  <span className="micro-draft-symbol">
-                    <ClipboardCheck aria-hidden="true" />
-                  </span>
-                  <span>
-                    <strong>{stored.order.itemName}</strong>
-                    <small>
-                      {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
-                    </small>
-                    <small>{settlementDetail(stored)}</small>
-                    <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
-                  </span>
-                  <ChevronLeft aria-hidden="true" />
-                </button>
-              );
-            })}
-          </section>
-        </>
-      ) : null}
       {state.drafts.length > 0 ? (
         <section className="micro-draft-list" aria-labelledby="work-drafts-title">
           <div className="micro-section-title">
@@ -210,7 +202,7 @@ export default function Orders() {
               className="micro-draft-row"
               type="button"
               key={draft.id}
-              onClick={() => navigate(`/orders/draft/${draft.id}`)}
+              onClick={() => openFromWork(`/orders/draft/${draft.id}`)}
             >
               <span className="micro-draft-symbol">
                 <ClipboardPlus aria-hidden="true" />
@@ -248,7 +240,7 @@ export default function Orders() {
                   key={item.schedule.id}
                   className="micro-draft-row"
                   type="button"
-                  onClick={() => navigate(`/schedule/${item.schedule.id}`)}
+                  onClick={() => openFromWork(`/schedule/${item.schedule.id}`)}
                 >
                   <span className="micro-draft-symbol">
                     <CalendarDays aria-hidden="true" />
@@ -282,31 +274,44 @@ export default function Orders() {
             لا مواعيد بعد؛ يُسجَّل موعد التسليم تلقائيًا مع كل اتفاق، وبقية المواعيد من الجدول.
           </p>
         )}
-        <button
-          className="micro-text-action"
-          type="button"
-          onClick={() => navigate("/schedule")}
-        >
+        <button className="micro-text-action" type="button" onClick={() => openFromWork("/schedule")}>
           افتح جدول المواعيد <ChevronLeft aria-hidden="true" />
         </button>
       </section>
+      {/* §8.1: CTA ثانوي واضح حيث يملك هذا السطح المبيعات. */}
+      <button
+        className="micro-button micro-button-secondary"
+        type="button"
+        onClick={() => openFromWork("/direct-sales/new")}
+      >
+        <BadgeDollarSign aria-hidden="true" /> تسجيل بيع مباشر
+      </button>
       {state.orders.length > 0 || state.drafts.length > 0 ? (
         <button
           className="micro-button micro-button-secondary"
           type="button"
-          onClick={() => navigate("/orders/draft/new?intent=customer_order")}
+          onClick={() => openFromWork("/orders/draft/new?intent=customer_order")}
         >
           إنشاء مسودة أخرى
         </button>
       ) : null}
-      {state.orders.length === 0 && state.drafts.length === 0 && state.directSales.length === 0 ? (
+      {isEmptyWorkState ? (
         <section className="micro-empty-state" aria-labelledby="work-empty-title">
           <span className="micro-empty-symbol">
             <BadgeDollarSign aria-hidden="true" />
           </span>
           <span className="micro-status-chip">لا توجد سجلات عمل بعد</span>
-          <h2 id="work-empty-title">ابدأ من الفعل الذي تحتاجه اليوم</h2>
-          <p>يمكنك تسجيل أول بيع أو إنشاء أول طلب من زر الإضافة؛ ويظهر قسم الطلبات بعد حفظه.</p>
+          <h2 id="work-empty-title">يومك مفتوح — سجّل أول بيع</h2>
+          <p>
+            بيع واحد مسجل يكفي لتبدأ؛ الربح يظهر بعد معرفة التكلفة، وما لا تعرفه يبقى «غير محدد بعد» لا صفرًا.
+          </p>
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={() => openFromWork("/direct-sales/new")}
+          >
+            سجّل أول بيع
+          </button>
         </section>
       ) : null}
     </section>
