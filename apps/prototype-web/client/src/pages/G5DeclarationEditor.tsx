@@ -5,6 +5,8 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { G5LinkOptions } from "@/application/g5/g5Service";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
@@ -47,16 +49,30 @@ export default function G5DeclarationEditor() {
     else setRelatedOrderId(null);
   }
 
-  async function save() {
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+  const isDirty = useFormDirty([
+      direction,
+      amountMinor,
+      dueOn,
+      source,
+      knowledge,
+      note,
+      relatedOrderId,
+      relatedEventId,
+    ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
+  async function save(): Promise<boolean> {
     setMessage(null);
     if (amountMinor === null || amountMinor <= 0 || !amountValid) {
       setMessage("أدخل مبلغًا موجبًا بصيغة واضحة قبل الحفظ.");
-      return;
+      return false;
     }
     if (!note.trim()) {
       setDetailsOpen(true);
       setMessage("أضف ملاحظة قصيرة داخل تفاصيل المتوقع قبل الحفظ.");
-      return;
+      return false;
     }
     setSaving(true);
     const result = await g5.createDeclaration({
@@ -73,10 +89,11 @@ export default function G5DeclarationEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/finance");
+    return true;
   }
 
   const linkOptions = direction === "collection" ? (links?.orders ?? []) : (links?.payableEvents ?? []);
@@ -85,7 +102,11 @@ export default function G5DeclarationEditor() {
 
   return (
     <section className="micro-page micro-g5-editor-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/finance")}
+      >
         <ArrowLeft aria-hidden="true" /> القرار المالي
       </button>
       <div className="micro-page-heading">

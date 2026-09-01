@@ -6,6 +6,8 @@ import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman } from "@/presentation/formatters";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
@@ -37,14 +39,27 @@ export default function SupplierPurchaseEditor() {
       setLoading(false);
     });
   }, [id, isNew, supplierPurchases]);
-  async function savePurchase() {
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+  const isDirty = useFormDirty([
+      supplierName,
+      note,
+      purchasedOn,
+      dueOn,
+      totalMinor,
+      initialPaidMinor,
+      paymentMinor,
+    ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => (paymentMode ? savePayment() : savePurchase()) });
+
+  async function savePurchase(): Promise<boolean> {
     if (!validMoney || totalMinor <= 0 || initialPaidMinor < 0) {
       setMessage("أدخل إجماليًا صالحًا بالأرقام 0–9.");
-      return;
+      return false;
     }
     if (initialPaidMinor > totalMinor) {
       setMessage("لا يمكن أن يتجاوز المدفوع الآن إجمالي الشراء.");
-      return;
+      return false;
     }
     setSaving(true);
     setMessage(null);
@@ -60,16 +75,17 @@ export default function SupplierPurchaseEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     setMessage(result.reused ? "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ شراء المواد محليًا.");
     if (!result.reused) navigate("/suppliers");
+    return true;
   }
-  async function savePayment() {
+  async function savePayment(): Promise<boolean> {
     if (!purchase || !validMoney || paymentMinor <= 0) {
       setMessage("أدخل دفعة صالحة بالأرقام 0–9.");
-      return;
+      return false;
     }
     setSaving(true);
     setMessage(null);
@@ -83,11 +99,12 @@ export default function SupplierPurchaseEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     setMessage(result.reused ? "هذه الدفعة محفوظة سابقًا؛ لم نكرر أثرها." : "تم حفظ دفعة المورد محليًا.");
     if (!result.reused) navigate("/suppliers");
+    return true;
   }
   if (loading)
     return (
@@ -112,7 +129,11 @@ export default function SupplierPurchaseEditor() {
   const paymentMode = !isNew && purchase;
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/suppliers")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/suppliers")}
+      >
         <ArrowRight aria-hidden="true" /> مشتريات المواد
       </button>
       <div className="micro-page-heading">

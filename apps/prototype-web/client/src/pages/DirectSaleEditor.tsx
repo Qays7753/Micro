@@ -7,6 +7,8 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type {
   DirectSaleCollectionStatus,
@@ -59,6 +61,10 @@ export default function DirectSaleEditor() {
   /* و٦: عند إعادة التحميل بعد تعارض تبقى كتابة المستخدم في الحقول كما هي —
    * يُحدّث السجل ورقم مراجعاته لا ما يراه في النموذج. */
   const preserveFormRef = useRef(false);
+  /* U-005 (دورة التدقيق النهائي): لقطة القيم الأولية تُلتقط بعد تحميل السجل
+   * (loadedToken) لا عند التركيب فقط — حماية المدخلات غير المحفوظة في محرر
+   * البيع المباشر نفسه، وهو الحالة المسماة في توحيد تنقّل التفاصيل. */
+  const [loadedToken, setLoadedToken] = useState(0);
   /* X-06: لوحة الفرق — تظهر عند حفظ بيع قبضه أقل من سعره المتفق، ولا تقرّر مكانه. */
   const [differenceChoice, setDifferenceChoice] = useState<DifferenceChoice | null>(null);
   const idempotencyKey = useRef(`direct-sale-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
@@ -117,6 +123,8 @@ export default function DirectSaleEditor() {
       setNote(sale.note);
       if (sale.collectionStatus === "partial_debt") setDifferenceChoice("remaining_debt");
       else if (sale.collectionStatus === "partial_needs_review") setDifferenceChoice("needs_review");
+      /* اللقطة الأولية تُعاد التقاطها مع القيم المحمّلة في نفس الدفعة. */
+      setLoadedToken(token => token + 1);
     });
     return () => {
       active = false;
@@ -126,11 +134,31 @@ export default function DirectSaleEditor() {
   /* المقبوض المحسوب: فارغ = السعر المتفق (قبض كامل). */
   const resolvedCollected = collectedEmpty ? revenueMinor : collectedMinor;
   const difference = revenueMinor - resolvedCollected;
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — زر الرجوع والمتصفح
+   * كلاهما يمران بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ». */
+  const isDirty = useFormDirty(
+    [
+      itemName,
+      quantity,
+      revenueMinor,
+      collectedEmpty,
+      collectedMinor,
+      costKnown,
+      costMinor,
+      customerName,
+      catalogItemId,
+      occurredOn,
+      note,
+      differenceChoice,
+    ],
+    loadedToken,
+  );
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
-  async function save() {
+  async function save(): Promise<boolean> {
     if (savedSale?.status === "cancelled") {
       setMessage("هذا البيع ملغى ولا يمكن تعديله.");
-      return;
+      return false;
     }
     if (
       !note.trim() ||
@@ -145,16 +173,16 @@ export default function DirectSaleEditor() {
       (costKnown && (!validCost || costMinor < 0))
     ) {
       setMessage("أدخل المبلغ والكمية بالأرقام 0–9 قبل الحفظ — المبلغ هو الحقل الإلزامي الوحيد.");
-      return;
+      return false;
     }
     if (resolvedCollected > revenueMinor) {
       setMessage("المقبوض لا يتجاوز السعر المتفق عليه — سجّل فرقك قرارًا في التسعير لا في القبض.");
-      return;
+      return false;
     }
     /* X-06: النظام ينبّه ولا يقرّر — الفرق يوقف الحفظ ويعرض الخيارات الثلاثة. */
     if (difference > 0 && differenceChoice === null) {
       setMessage("at_difference_prompt");
-      return;
+      return false;
     }
     const priceCutChosen = difference > 0 && differenceChoice === "price_cut";
     const status: DirectSaleCollectionStatus =
@@ -207,10 +235,11 @@ export default function DirectSaleEditor() {
         preserveFormRef.current = true;
         setReloadToken(token => token + 1);
       }
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/orders");
+    return true;
   }
 
   async function cancel() {
@@ -233,10 +262,11 @@ export default function DirectSaleEditor() {
         preserveFormRef.current = true;
         setReloadToken(token => token + 1);
       }
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/orders");
+    return true;
   }
 
   if (editing && loadingSale)
@@ -250,7 +280,11 @@ export default function DirectSaleEditor() {
 
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/orders")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/orders")}
+      >
         <ArrowRight aria-hidden="true" /> العمل
       </button>
       <div className="micro-page-heading">

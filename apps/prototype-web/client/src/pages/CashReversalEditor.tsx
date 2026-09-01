@@ -6,6 +6,8 @@ import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman } from "@/presentation/formatters";
 
@@ -29,10 +31,18 @@ export default function CashReversalEditor() {
       setEntry(result.value.find(candidate => candidate.id === id) ?? null);
     });
   }, [cashContinuity, id]);
-  async function save() {
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+  const isDirty = useFormDirty([
+      date,
+      reason,
+    ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
+  async function save(): Promise<boolean> {
     if (!entry || !reason.trim()) {
       setMessage("اذكر سبب التراجع قبل الحفظ.");
-      return;
+      return false;
     }
     setSaving(true);
     const result = await cashContinuity.reverse({
@@ -44,10 +54,11 @@ export default function CashReversalEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/cash");
+    return true;
   }
   if (!entry && !message)
     return (
@@ -67,7 +78,11 @@ export default function CashReversalEditor() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/cash")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/cash")}
+      >
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">

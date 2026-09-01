@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import FinancialEventEditor from "./FinancialEventEditor";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
@@ -67,7 +68,11 @@ describe("FinancialEventEditor save honesty (U-02)", () => {
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
-    render(<FinancialEventEditor />);
+    render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <FinancialEventEditor />
+      </UnsavedChangesProvider>,
+    );
   }
 
   async function fillAndSave(user: ReturnType<typeof userEvent.setup>) {
@@ -118,7 +123,11 @@ describe("FinancialEventEditor note requirement (U-04)", () => {
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
-    render(<FinancialEventEditor />);
+    render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <FinancialEventEditor />
+      </UnsavedChangesProvider>,
+    );
     await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
     await user.click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     expect(screen.getByText("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.")).toBeTruthy();

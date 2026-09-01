@@ -23,9 +23,12 @@ export function BottomNav({ activePath, items, onNavigate, onOpenActions }: Bott
             onNavigate={onNavigate}
           />
         ))}
-        <button className="micro-fab" type="button" onClick={onOpenActions} aria-label="تسجيل أو إضافة">
+        {/* §10 (دورة التدقيق النهائي): تسمية الزر المركزي «سجّل» تطابق البنية
+            المعتمدة حرفيًا: مشروعي الآن | العمل | سجّل | مالي | أدواتي — وهو
+            مدخل التسجيل الأساسي (F-003). */}
+        <button className="micro-fab" type="button" onClick={onOpenActions} aria-label="سجّل أو أضف">
           <Plus aria-hidden="true" />
-          <span>إضافة</span>
+          <span>سجّل</span>
         </button>
         {items.slice(2).map(item => (
           <NavigationButton

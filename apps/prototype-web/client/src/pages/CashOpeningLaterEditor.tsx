@@ -6,6 +6,8 @@ import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletBalance } from "@/application/cash/cashContinuityService";
 import { localDateInAmman } from "@/presentation/formatters";
 
@@ -55,15 +57,20 @@ export default function CashOpeningLaterEditor() {
     };
   }, [cashContinuity, id]);
 
-  async function save() {
-    if (state.phase !== "ready" || !id) return;
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+  const isDirty = useFormDirty([amountMinor, validAmount, date, reason]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
+  async function save(): Promise<boolean> {
+    if (state.phase !== "ready" || !id) return false;
     if (!validAmount || amountMinor < 0 || !Number.isInteger(amountMinor)) {
       setMessage("أدخل الرصيد الموثق بالأرقام 0–9 قبل الحفظ — أو ارجع وبقِ الحالة غير معروفة.");
-      return;
+      return false;
     }
     if (!reason.trim()) {
       setMessage("اكتب سبب هذا الرصيد ومصدره (عدّ، كشف حساب…) — السبب جزء من السجل الموثق.");
-      return;
+      return false;
     }
     setSaving(true);
     setMessage(null);
@@ -77,10 +84,11 @@ export default function CashOpeningLaterEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/cash");
+    return true;
   }
 
   if (state.phase === "loading")
@@ -125,7 +133,11 @@ export default function CashOpeningLaterEditor() {
 
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/cash")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/cash")}
+      >
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">

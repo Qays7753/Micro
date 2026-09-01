@@ -275,13 +275,12 @@ export default defineConfig(({ mode }) => ({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        // الشكل الكائني لا يضمن ترتيب الإسناد: vaul/sonner يستوردان React
-        // فيسحبانه إلى حزمتهما ويتسرب react-dom إلى حزمة التطبيق. الدالة
-        // تحسم الإسناد صراحة وتُبقي vendor في حزمة مستقرة لا تُبطل مع كل نشر.
+        /* Q-003 (دورة التدقيق النهائي): أزيلت sonner من الشجرة؛ بقيت vaul فقط
+         * في حزمة التفاعل. الشكل الكائني لا يضمن ترتيب الإسناد فالدالة تحسمه. */
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
           if (/[\\/]node_modules[\\/](react|react-dom|scheduler|wouter)[\\/]/.test(id)) return "react-runtime";
-          if (/[\\/]node_modules[\\/](vaul|sonner)[\\/]/.test(id)) return "interaction-runtime";
+          if (/[\\/]node_modules[\\/](vaul)[\\/]/.test(id)) return "interaction-runtime";
           if (/[\\/]node_modules[\\/]lucide-react[\\/]/.test(id)) return "iconography";
           return undefined;
         },

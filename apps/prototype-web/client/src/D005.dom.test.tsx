@@ -24,6 +24,7 @@ const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn() }));
 vi.mock("wouter", () => ({
   useLocation: () => ["/finance", wouterMocks.navigate],
   useParams: () => ({}),
+  useSearch: () => "",
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);

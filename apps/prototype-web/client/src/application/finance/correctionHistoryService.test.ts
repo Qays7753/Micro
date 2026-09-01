@@ -68,13 +68,22 @@ describe("CorrectionHistoryService", () => {
       amountEffectMinor: -500,
       originalLabel: expect.stringContaining("مصروف مدفوع"),
       replacementLabel: expect.stringContaining("مصروف مدفوع"),
+      /* U-001 (دورة التدقيق النهائي): وصول عميق للبديل النشط حيث التعديل/الحذف. */
+      deepLink: `/finance?event=${edited.value.id}`,
     });
     const deleteEntry = entries.find(entry => entry.kind === "event_reversal");
-    expect(deleteEntry).toMatchObject({ reason: "سُجل مرتين بالخطأ", amountEffectMinor: -20000 });
+    expect(deleteEntry).toMatchObject({
+      reason: "سُجل مرتين بالخطأ",
+      amountEffectMinor: -20000,
+      /* التراجع/الحذف يفتح صف الأصل حيث الاسترجاع. */
+      deepLink: `/finance?event=${investment.value.id}`,
+    });
     const restoreEntry = entries.find(entry => entry.kind === "event_restore");
     expect(restoreEntry).toMatchObject({
       amountEffectMinor: 20000,
       reason: expect.stringContaining("استرجاع بعد تراجع"),
+      /* الاسترجاع يفتح صف السجل النشط المعاد تسجيله. */
+      deepLink: `/finance?event=${restored.value.id}`,
     });
     /* الأنواع الثلاثة كلها ظاهرة: تعديل (تراجع + بديل)، حذف/تراجع، استرجاع. */
     expect(entries.map(entry => entry.kind).sort()).toEqual([
@@ -131,7 +140,12 @@ describe("CorrectionHistoryService", () => {
       originalLabel: expect.stringContaining("كوب"),
     });
     const cancelEntry = result.value.find(entry => entry.kind === "sale_cancel");
-    expect(cancelEntry).toMatchObject({ reason: "أُدخل بالخطأ", deepLink: "/direct-sales/u001-sale-2" });
+    /* U-001 (دورة التدقيق النهائي): أثر الإلغاء موقّع — الإيراد المستبعد بالسالب. */
+    expect(cancelEntry).toMatchObject({
+      reason: "أُدخل بالخطأ",
+      deepLink: "/direct-sales/u001-sale-2",
+      amountEffectMinor: -1600,
+    });
   });
 
   it("lists cash-continuity reversals with their documented reason", async () => {
@@ -162,6 +176,8 @@ describe("CorrectionHistoryService", () => {
     expect(cashEntry).toMatchObject({
       reason: "المبلغ غير صحيح",
       amountEffectMinor: -10000,
+      /* U-001 (دورة التدقيق النهائي): القيد المصدر ظاهر في سطح المحافظ. */
+      deepLink: "/cash",
     });
   });
 

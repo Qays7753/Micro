@@ -6,6 +6,8 @@ import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman } from "@/presentation/formatters";
 const ammanDate = () => localDateInAmman();
@@ -28,10 +30,15 @@ export default function InventoryReversalEditor() {
       setMovement(result.value.find(candidate => candidate.id === id) ?? null);
     });
   }, [id, inventory]);
-  async function save() {
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+  const isDirty = useFormDirty([date, reason]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
+  async function save(): Promise<boolean> {
     if (!movement || !reason.trim()) {
       setMessage("أدخل سبب التراجع عن حركة المادة.");
-      return;
+      return false;
     }
     setSaving(true);
     const result = await inventory.reverse({
@@ -43,10 +50,11 @@ export default function InventoryReversalEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/inventory");
+    return true;
   }
   if (!movement && !message)
     return (
@@ -70,7 +78,11 @@ export default function InventoryReversalEditor() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/inventory")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/inventory")}
+      >
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">

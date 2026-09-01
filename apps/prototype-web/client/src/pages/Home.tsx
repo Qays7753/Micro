@@ -168,23 +168,29 @@ export default function Home() {
             <CloudSun aria-hidden="true" /> أثناء غيابك — آخر تسجيل قبل {model.awaySection.daysSinceLastActivity} يوم
           </b>
           <ul>
-            {/* U-002: ملخص قصير لما تغيّر منذ آخر تسجيل — صادقًا حتى لو كان «لا جديد». */}
+            {/* U-002 (دورة التدقيق النهائي): ملخص «آخر يوم تسجيل» الصادق — لا شيء يتحرك
+                خلال الغياب في تطبيق محلي، فالملخص يصف آخر جلسة تسجيل فعلية. */}
             <li>
-              {model.awaySection.digest.salesCount === 0 && model.awaySection.digest.expenseCount === 0 ? (
-                "لا شيء جديد سُجّل منذ آخر تسجيل."
+              {model.awaySection.digest.salesCount === 0 &&
+              model.awaySection.digest.expenseCount === 0 &&
+              model.awaySection.digest.newOrderCount === 0 ? (
+                "آخر يوم تسجيل لم يشمل بيعًا ولا مصروفًا ولا طلبًا جديدًا."
               ) : (
                 <>
+                  آخر يوم تسجيل (
+                  {formatLocalDateLong(model.awaySection.digest.lastRecordedOn) ??
+                    model.awaySection.digest.lastRecordedOn}
+                  ):
                   {model.awaySection.digest.salesCount > 0
-                    ? `بِيع ${model.awaySection.digest.salesCount} بـ ${formatMoneyMinor(
+                    ? ` بِيع ${model.awaySection.digest.salesCount} بـ ${formatMoneyMinor(
                         model.awaySection.digest.salesRevenueMinor,
                       )} د.أ`
                     : ""}
                   {model.awaySection.digest.expenseCount > 0
-                    ? `${model.awaySection.digest.salesCount > 0 ? " · " : ""}مصروف ${
+                    ? `${model.awaySection.digest.salesCount > 0 ? " ·" : ""} مصروف ${
                         model.awaySection.digest.expenseCount
                       } بـ ${formatMoneyMinor(model.awaySection.digest.expenseMinor)} د.أ`
                     : ""}
-                  {" · منذ آخر تسجيل"}
                 </>
               )}
             </li>

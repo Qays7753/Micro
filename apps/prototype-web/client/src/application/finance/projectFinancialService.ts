@@ -188,6 +188,13 @@ function isValidLocalDate(value: string): boolean {
   const date = new Date(Date.UTC(year!, month! - 1, day!));
   return date.getUTCFullYear() === year && date.getUTCMonth() === month! - 1 && date.getUTCDate() === day;
 }
+/* F-006 (دورة التدقيق النهائي ٢٠٢٦‑٠٩‑٠١): رسالة حد الأمانة تعرض الرصيد المتاح
+ * والمبلغ المطلوب بالأرقام — قرار المالك المعتمد §٥.٢: «رسالة عربية واضحة تُظهر
+ * الرصيد المتاح والمبلغ المطلوب». التنسيق بالقرش (منزلتان) هو نفسه سياسة P‑001. */
+function amanahLimitMessage(availableMinor: number, requestedMinor: number, action: string): string {
+  const money = (minor: number) => `${(minor / 100).toFixed(2)} د.أ`;
+  return `${action} يتجاوز الأمانات بحوزتك — المتاح لديك ${money(availableMinor)} والمطلوب ${money(requestedMinor)}. راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.`;
+}
 function sharedExpenseHasMissingBasis(event: FinancialEvent) {
   return event.expenseContext?.relationship === "shared" && !event.expenseContext.sharedProjectShare;
 }
@@ -810,6 +817,22 @@ export class ProjectFinancialService {
     );
     if (alreadyReversed)
       return { ok: false, code: "validation_error", message: "تم التراجع عن هذا الحدث سابقًا؛ لا يُنشأ تراجع ثانٍ." };
+    /* F-006 (دورة التدقيق النهائي): التراجع/الحذف يخضع لنفس حد الأمانة — التراجع عن
+     * استلام أمانة جرى تسليم جزء منها يجعل الرصيد الأمين سالبًا (خصم زائد). المسار
+     * الصحيح: تراجع عن التسليم أولًا ثم عن الاستلام. لا يُكتب شيء عند الرفض. */
+    if ((source.amanahDeltaMinor ?? 0) > 0) {
+      const heldMinor = summarizeFinancialEvents(existing.value).amanahMinor;
+      if ((source.amanahDeltaMinor ?? 0) > heldMinor)
+        return {
+          ok: false,
+          code: "validation_error",
+          message: amanahLimitMessage(
+            heldMinor,
+            source.amanahDeltaMinor ?? 0,
+            "التراجع عن استلام الأمانة",
+          ),
+        };
+    }
     try {
       const reversal = createFinancialReversal({
         id: id(),
@@ -970,6 +993,38 @@ export class ProjectFinancialService {
         relatedEventId: source.relatedEventId,
         expenseContext: source.expenseContext ?? null,
       });
+      /* F-006 (دورة التدقيق النهائي): التعديل الذرّي يخضع لنفس حد الأمانة الذي يخضع
+       * له التسجيل — رفع تسليم أو إنقاص استلام بما يتجاوز المحتجز فعليًا يجعل الرصيد
+       * الأمين سالبًا. يُفحص قبل الكتابة؛ لا يُلمس السجل عند الرفض. */
+      const sourceAmanahDelta = source.amanahDeltaMinor ?? 0;
+      const replacementAmanahDelta = replacement.amanahDeltaMinor ?? 0;
+      const postEditAmanahMinor =
+        summarizeFinancialEvents(existing.value).amanahMinor - sourceAmanahDelta + replacementAmanahDelta;
+      if (postEditAmanahMinor < 0) {
+        const heldBeforeMinor = summarizeFinancialEvents(existing.value).amanahMinor;
+        if (sourceAmanahDelta < 0) {
+          /* تسليم يُرفع مبلغُه: المتاح بعد استبعاد الأصل = الرصيد + قيمة الأصل. */
+          return {
+            ok: false,
+            code: "validation_error",
+            message: amanahLimitMessage(
+              heldBeforeMinor - sourceAmanahDelta,
+              input.amountMinor,
+              "المبلغ الجديد المُسلَّم بعد التعديل",
+            ),
+          };
+        }
+        /* استلام يُنقص مبلغُه: الإنقاص المتاح = الرصيد الحالي؛ والمطلوب = قيمة الإنقاص. */
+        return {
+          ok: false,
+          code: "validation_error",
+          message: amanahLimitMessage(
+            heldBeforeMinor,
+            sourceAmanahDelta - input.amountMinor,
+            "الإنقاص من استلام الأمانة",
+          ),
+        };
+      }
       const saved = await this.store.commitFinancialEventReplacement(source.id, reversal, replacement);
       if (!saved.ok) return { ok: false, code: "storage_error", message: saved.message };
       return saved.value.replacement.id === replacement.id
@@ -1136,15 +1191,14 @@ export class ProjectFinancialService {
     }
     /* F-006: تسليم الأمانة لا يتجاوز الرصيد الأمين المحتجز فعليًا — رصيد سالب
      * يعني ملكًا زائفًا ونقص كاشٍ كاذبًا. المجهول لا يُقرّب: إن لم تُسجّل الأمانة
-     * بعد فسجلها أولًا، ثم سلّم منها. */
+     * بعد فسجلها أولًا، ثم سلّم منها. الرسالة تعرض المتاح والمطلوب بالأرقام (§٥.٢). */
     if (input.type === "amanah_released_cash") {
       const heldMinor = summarizeFinancialEvents(existing.value).amanahMinor;
       if (amountMinor > heldMinor)
         return {
           ok: false,
           code: "validation_error",
-          message:
-            "المبلغ المُسلَّم يتجاوز الأمانات بحوزتك — راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.",
+          message: amanahLimitMessage(heldMinor, amountMinor, "المبلغ المُسلَّم"),
         };
     }
     try {

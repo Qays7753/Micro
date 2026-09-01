@@ -6,6 +6,8 @@ import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletBalance } from "@/application/cash/cashContinuityService";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman } from "@/presentation/formatters";
@@ -33,10 +35,21 @@ export default function CashTransferEditor() {
       setToWalletId(result.value.wallets[1]?.id ?? "");
     });
   }, [cashContinuity]);
-  async function save() {
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+  const isDirty = useFormDirty([
+      fromWalletId,
+      toWalletId,
+      amountMinor,
+      date,
+      note,
+    ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
+  async function save(): Promise<boolean> {
     if (!validAmount || amountMinor <= 0 || !note.trim()) {
       setMessage("أدخل مبلغ التحويل وبيانًا قصيرًا بالأرقام 0–9.");
-      return;
+      return false;
     }
     setSaving(true);
     const result = await cashContinuity.transfer({
@@ -50,10 +63,11 @@ export default function CashTransferEditor() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     navigate("/cash");
+    return true;
   }
   if (wallets.length < 2)
     return (
@@ -71,7 +85,11 @@ export default function CashTransferEditor() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/cash")}>
+      <button
+        className="micro-back-button"
+        type="button"
+        onClick={() => requestNavigation("/cash")}
+      >
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">

@@ -499,7 +499,8 @@ describe("ProjectFinancialService", () => {
       expect(over).toMatchObject({
         ok: false,
         code: "validation_error",
-        message: "المبلغ المُسلَّم يتجاوز الأمانات بحوزتك — راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.",
+        message:
+          "المبلغ المُسلَّم يتجاوز الأمانات بحوزتك — المتاح لديك 30.00 د.أ والمطلوب 50.00 د.أ. راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.",
       });
       await expect(finance.readPosition()).resolves.toMatchObject({
         ok: true,
@@ -643,6 +644,194 @@ describe("ProjectFinancialService", () => {
       await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
         ok: true,
         value: { recordedOperatingExpenseMinor: 0, resultMinor: 0, status: "recorded_only" },
+      });
+    });
+
+    /* F-006 (دورة التدقيق النهائي): مسار التعديل الذرّي لا يبقى ثغرة لحد الأمانة —
+     * رفع تسليم أو إنقاص استلام بما يتجاوز المحتجز مرفوض ولا يُكتب شيء. */
+    it("rejects editing an amanah release upward beyond the held balance and keeps the ledger unchanged", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await finance.record({
+        type: "amanah_held_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-01",
+        note: "أمانة",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-edit-held",
+      });
+      const release = await finance.record({
+        type: "amanah_released_cash",
+        amountMinor: 1000,
+        occurredOn: "2026-08-10",
+        note: "تسليم جزئي",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-edit-release",
+      });
+      if (!release.ok) throw new Error("release should save");
+      const overEdit = await finance.editEvent({
+        sourceEventId: release.value.id,
+        amountMinor: 5000,
+        occurredOn: "2026-08-10",
+        note: "تعديل مبلغ التسليم",
+        counterparty: "زبون",
+        reason: "صحّحت المبلغ",
+        idempotencyKey: "f006-edit-up",
+      });
+      expect(overEdit).toMatchObject({
+        ok: false,
+        code: "validation_error",
+        message:
+          "المبلغ الجديد المُسلَّم بعد التعديل يتجاوز الأمانات بحوزتك — المتاح لديك 30.00 د.أ والمطلوب 50.00 د.أ. راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.",
+      });
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 2000 },
+      });
+    });
+
+    it("rejects editing an amanah receipt downward below what was already delivered", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      const held = await finance.record({
+        type: "amanah_held_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-01",
+        note: "أمانة",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-edit-held-2",
+      });
+      if (!held.ok) throw new Error("held should save");
+      await finance.record({
+        type: "amanah_released_cash",
+        amountMinor: 2000,
+        occurredOn: "2026-08-05",
+        note: "تسليم",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-edit-release-2",
+      });
+      const downEdit = await finance.editEvent({
+        sourceEventId: held.value.id,
+        amountMinor: 1000,
+        occurredOn: "2026-08-01",
+        note: "تصحيح مبلغ الاستلام",
+        counterparty: "زبون",
+        reason: "كان أقل",
+        idempotencyKey: "f006-edit-down",
+      });
+      expect(downEdit).toMatchObject({
+        ok: false,
+        code: "validation_error",
+        message:
+          "الإنقاص من استلام الأمانة يتجاوز الأمانات بحوزتك — المتاح لديك 10.00 د.أ والمطلوب 20.00 د.أ. راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.",
+      });
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 1000 },
+      });
+    });
+
+    it("allows an amanah edit that keeps the post-edit balance non-negative", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await finance.record({
+        type: "amanah_held_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-01",
+        note: "أمانة",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-edit-ok-held",
+      });
+      const release = await finance.record({
+        type: "amanah_released_cash",
+        amountMinor: 1000,
+        occurredOn: "2026-08-10",
+        note: "تسليم جزئي",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-edit-ok-release",
+      });
+      if (!release.ok) throw new Error("release should save");
+      const exactEdit = await finance.editEvent({
+        sourceEventId: release.value.id,
+        amountMinor: 3000,
+        occurredOn: "2026-08-10",
+        note: "تعديل إلى كامل الأمانة",
+        counterparty: "زبون",
+        reason: "سلّمت الباقي أيضًا",
+        idempotencyKey: "f006-edit-ok",
+      });
+      expect(exactEdit.ok).toBe(true);
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 0 },
+      });
+    });
+
+    /* F-006 (دورة التدقيق النهائي): التراجع/الحذف عن استلام أمانة جرى تسليم جزء
+     * منها مرفوض أيضًا — المسار الصحيح: تراجع عن التسليم أولًا ثم عن الاستلام. */
+    it("rejects reversing a held-amanah receipt when part of it was already delivered", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      const held = await finance.record({
+        type: "amanah_held_cash",
+        amountMinor: 3000,
+        occurredOn: "2026-08-01",
+        note: "أمانة",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-reverse-held",
+      });
+      if (!held.ok) throw new Error("held should save");
+      const release2 = await finance.record({
+        type: "amanah_released_cash",
+        amountMinor: 2000,
+        occurredOn: "2026-08-05",
+        note: "تسليم جزئي",
+        counterparty: "زبون",
+        relatedEventId: null,
+        idempotencyKey: "f006-reverse-release",
+      });
+      if (!release2.ok) throw new Error("release should save");
+      const blockedReverse = await finance.reverse({
+        sourceEventId: held.value.id,
+        occurredOn: "2026-08-20",
+        reason: "سُجل بالخطأ",
+        idempotencyKey: "f006-reverse-blocked",
+      });
+      expect(blockedReverse).toMatchObject({
+        ok: false,
+        code: "validation_error",
+        message:
+          "التراجع عن استلام الأمانة يتجاوز الأمانات بحوزتك — المتاح لديك 10.00 د.أ والمطلوب 30.00 د.أ. راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.",
+      });
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 1000 },
+      });
+      /* المسار الصحيح: تراجع عن التسليم أولًا (يرفع المتاح) ثم يسمح بتراجع الاستلام. */
+      const undoRelease = await finance.reverse({
+        sourceEventId: release2.value.id,
+        occurredOn: "2026-08-21",
+        reason: "تراجع عن التسليم أولًا",
+        idempotencyKey: "f006-reverse-undo-release",
+      });
+      expect(undoRelease.ok).toBe(true);
+      const undoHeld = await finance.reverse({
+        sourceEventId: held.value.id,
+        occurredOn: "2026-08-22",
+        reason: "سُجل بالخطأ",
+        idempotencyKey: "f006-reverse-after-undo",
+      });
+      expect(undoHeld.ok).toBe(true);
+      await expect(finance.readPosition()).resolves.toMatchObject({
+        ok: true,
+        value: { amanahHeldMinor: 0 },
       });
     });
   });

@@ -236,6 +236,14 @@ function isDirectSale(value: unknown): value is DirectSale {
       value.customerName === null ||
       (isString(value.customerName) && value.customerName.trim().length > 0)
     ) ||
+    /* P-002 (دورة التدقيق النهائي): مرجع الكتالوج اختياري — null أو معرّف نصي
+     * غير فارغ؛ تناظرًا مع تحقق الطلبات والمسودات فلا يُقبل ملف معطوب يضع
+     * نوعًا آخر في هذا الحقل. المرجع المعلّق مقبول (حذف المرجع لاحقًا قانوني). */
+    !(
+      value.catalogItemId === undefined ||
+      value.catalogItemId === null ||
+      (isString(value.catalogItemId) && value.catalogItemId.trim().length > 0)
+    ) ||
     !(value.costMinor === null || isSafeMoney(value.costMinor)) ||
     !(value.profitMinor === null || isSignedMoney(value.profitMinor)) ||
     !isString(value.occurredOn) ||
