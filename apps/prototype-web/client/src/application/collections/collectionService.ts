@@ -44,6 +44,8 @@ export type CollectionOutcome = {
   /** ما انتقل فعليًا إلى المحفظة (صفر عندما تكون الوجهة «غير الموزع»). */
   attributedToWalletMinor: number;
   walletName: string | null;
+  /** (مجموعة ٤): سبب بقاء الكاش غير موزع رغم اختيار محفظة — يظهر في النتيجة لا كخطأ. */
+  attributionNotice: string | null;
   /** وصلة السجل المصدر لـ«افتح السجل». */
   sourceHref: string;
   reused: boolean;
@@ -187,6 +189,7 @@ export class CollectionService {
     /* وجهة الكاش صريحة: محفظة مختارة أو «غير موزع» — لا اختيار صامت أبدًا. */
     let attributedToWalletMinor = 0;
     let walletName: string | null = null;
+    let attributionNotice: string | null = null;
     if (input.walletId) {
       const attribution = await this.projectFinance.distributeUnallocated({
         walletId: input.walletId,
@@ -196,13 +199,19 @@ export class CollectionService {
         sourceRefId: input.sourceId,
         sourceRefKind: input.sourceKind === "order" ? "order" : "sale",
       });
-      if (!attribution.ok)
-        return { ok: false, code: "validation_error", message: attribution.message };
-      reused = reused || (attribution.reused ?? false);
-      attributedToWalletMinor = input.amountMinor;
-      const wallets = await this.store.listCashWallets();
-      walletName =
-        wallets.ok ? wallets.value.find(wallet => wallet.id === input.walletId)?.name ?? null : null;
+      if (attribution.ok) {
+        reused = reused || (attribution.reused ?? false);
+        attributedToWalletMinor = input.amountMinor;
+        const wallets = await this.store.listCashWallets();
+        walletName =
+          wallets.ok ? wallets.value.find(wallet => wallet.id === input.walletId)?.name ?? null : null;
+      } else {
+        /* (إصلاح تكاملي — مجموعة ٤): التحصيل والقبض سُجّلا قبل النسبة — فشل التخصيص
+         * لا يعلن فشل التحصيل كله (كان يعيد خطأً بعد كتابةٍ نفّذت فعلًا: دين نقص
+         * وكاش هبط في غير الموزع والرسالة تقول «لن يُسجّل»). المال لا يُفقد — يبقى
+         * غير موزع ويعرض السبب في النتيجة، بنفس معيار محرر البيع المباشر. */
+        attributionNotice = attribution.message;
+      }
     }
 
     return {
@@ -212,6 +221,7 @@ export class CollectionService {
         remainingAfterMinor,
         attributedToWalletMinor,
         walletName,
+        attributionNotice,
         sourceHref: source.value.sourceHref,
         reused,
       },

@@ -334,4 +334,79 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     expect(missing.ok).toBe(false);
     if (!missing.ok) expect(missing.message).toContain("لا توجد ذمة");
   });
+
+  /* (مجموعة ٤ — إصلاح تكاملي): فشل نسبة المحفظة بعد تسجيل القبض لا يعلن فشل
+   * التحصيل كله — الكتابة نفّذت فعلًا (الدين نقص والكاش هبط في غير الموزع)
+   * فالرسالة الكاذبة «لن يُسجّل» كانت تخفي كتابةً تمت. النتيجة الآن صادقة:
+   * التحصيل نجح والمال بقي غير موزع وسبب النسبة ظاهر. */
+  it("فشل نسبة المحفظة بعد القبض: التحصيل ينجح والكاش يبقى غير موزع بلا فقدان", async () => {
+    const store = new MemoryLocalStore();
+    const { projectFinance, collections } = makeServices(store);
+    /* بيع آجل 5000 قبض منه 2000 — غير الموزع = 2000. */
+    await store.saveDirectSale(
+      createDirectSale({
+        id: "sale-hole",
+        itemName: "سوار",
+        quantity: 1,
+        revenueMinor: 5000,
+        collectedMinor: 2000,
+        collectionStatus: "partial_debt",
+        catalogItemId: null,
+        customerName: "سعاد",
+        costMinor: null,
+        occurredOn: "2026-09-01",
+        recordedAt: now(),
+        note: "بيع آجل",
+        idempotencyKey: "sale-hole-key",
+      }),
+    );
+    const drawer = await openDrawer(store);
+    const before = await projectFinance.readPosition();
+    if (!before.ok) throw new Error(before.message);
+    /* مصروف 2500 من غير الموزع يفتح فرقًا سالبًا (2000 − 2500 = −500). */
+    const expense = await projectFinance.record({
+      type: "operating_expense_cash",
+      amountMinor: 2500,
+      occurredOn: "2026-09-02",
+      note: "خيط",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "project",
+        behavior: "unknown",
+        purpose: "project_general",
+        knowledge: "known",
+        sharedProjectShare: null,
+      },
+      idempotencyKey: "expense-hole-1",
+    });
+    if (!expense.ok) throw new Error(expense.message);
+    /* تحصيل 3000 إلى الدرج: القبض يهبط في غير الموزع (−500 + 3000 = 2500)
+     * والنسبة (3000) أكبر منه فتُرفض — لكن التحصيل نفسه سُجل بالفعل. */
+    const result = await collections.collect({
+      sourceKind: "direct_sale",
+      sourceId: "sale-hole",
+      amountMinor: 3000,
+      walletId: drawer.id,
+      idempotencyKey: "collect-hole-1",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.message);
+    expect(result.value.remainingAfterMinor).toBe(0);
+    expect(result.value.attributedToWalletMinor).toBe(0);
+    expect(result.value.walletName).toBeNull();
+    expect(result.value.attributionNotice).toContain("غير الموزع");
+    const sale = (await store.listDirectSales()).value!.find(item => item.id === "sale-hole")!;
+    expect(sale.collectedMinor).toBe(5000);
+    expect(sale.collectionStatus).toBe("collected_in_full");
+    /* الحكم الحاسم: الكاش المسجل = القبض − المصروف (لا فقدان ولا اختراع)،
+     * والمحفظة لم تتغير — الفرق يوصف من غير الموزع لا يختفي. */
+    const after = await projectFinance.readPosition();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value.recordedCashMinor).toBe(before.value.recordedCashMinor - 2500 + 3000);
+    expect(after.value.walletCashMinor).toBe(before.value.walletCashMinor);
+    expect(after.value.unallocatedCashMinor).toBe(
+      before.value.unallocatedCashMinor - 2500 + 3000,
+    );
+  });
 });

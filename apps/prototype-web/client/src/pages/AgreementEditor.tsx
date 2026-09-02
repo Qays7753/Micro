@@ -22,6 +22,9 @@ type AgreementFormValues = {
   depositMinor: number | null;
   source: AgreementSource | "";
   acknowledgesBelowFloor: boolean;
+  /* (إصلاح تكاملي — مجموعة ٤): اسم العميل يُطلب عند الاتفاق لا عند المسودة —
+   * مسودة «تصميم مخطط» بلا حقل اسم لا يمكنها بلوغ الاتفاق أبدًا إلا من هنا. */
+  customerName: string;
 };
 
 function equalAgreementValues(left: AgreementFormValues | null, right: AgreementFormValues | null) {
@@ -32,7 +35,8 @@ function equalAgreementValues(left: AgreementFormValues | null, right: Agreement
     left.deliveryDate === right.deliveryDate &&
     left.depositMinor === right.depositMinor &&
     left.source === right.source &&
-    left.acknowledgesBelowFloor === right.acknowledgesBelowFloor,
+    left.acknowledgesBelowFloor === right.acknowledgesBelowFloor &&
+    left.customerName === right.customerName,
   );
 }
 
@@ -46,6 +50,8 @@ export default function AgreementEditor() {
   const [depositMinor, setDepositMinor] = useState<number | null>(null);
   const [source, setSource] = useState<AgreementSource | "">("");
   const [acknowledgesBelowFloor, setAcknowledgesBelowFloor] = useState(false);
+  /* (إصلاح تكاملي — مجموعة ٤): الاسم يُعبّأ من المسودة إن وُجد؛ يُطلب هنا فقط عند نقصه. */
+  const [customerName, setCustomerName] = useState("");
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -71,6 +77,7 @@ export default function AgreementEditor() {
         depositMinor: null,
         source: "" as const,
         acknowledgesBelowFloor: false,
+        customerName: loaded.customerName,
       };
       setDraft(loaded);
       setPriceMinor(loadedValues.priceMinor);
@@ -78,6 +85,7 @@ export default function AgreementEditor() {
       setDepositMinor(loadedValues.depositMinor);
       setSource(loadedValues.source);
       setAcknowledgesBelowFloor(loadedValues.acknowledgesBelowFloor);
+      setCustomerName(loadedValues.customerName);
       initialValuesRef.current = loadedValues;
       setState("ready");
     });
@@ -99,13 +107,17 @@ export default function AgreementEditor() {
     agreedPriceMinor: priceMinor,
     deliveryDate,
   });
-  const currentValues = { priceMinor, deliveryDate, depositMinor, source, acknowledgesBelowFloor };
+  const currentValues = { priceMinor, deliveryDate, depositMinor, source, acknowledgesBelowFloor, customerName };
   const isDirty = Boolean(
     initialValuesRef.current && !equalAgreementValues(currentValues, initialValuesRef.current),
   );
   async function persistAgreement(): Promise<string | null> {
     if (!draft) return null;
     setMessage(null);
+    if (!customerName.trim()) {
+      setMessage("اسم العميل: سجّله قبل تسجيل الاتفاق — الدين والتحصيل يُنسبان باسمه.");
+      return null;
+    }
     if (!agreementPriceIsReady(priceMinor)) {
       setMessage("السعر المتفق عليه: أدخل مبلغًا أكبر من صفر أو استخدم سعر الحماية كبداية، ثم أعد التسجيل.");
       return null;
@@ -127,7 +139,20 @@ export default function AgreementEditor() {
       return null;
     }
     setIsSaving(true);
-    const result = await agreements.createFromDraft(draft, {
+    /* (إصلاح تكاملي — مجموعة ٤): الاسم المُدخل هنا يُحفظ في المسودة أولًا (مصدر واحد
+     * للحقيقة) ثم يُبنى الاتفاق من المسودة المحدّثة — لا مسار كتابة موازٍ. */
+    let draftForAgreement = draft;
+    if (customerName.trim() && customerName.trim() !== draft.customerName) {
+      const savedDraft = await drafts.save({ ...draft, customerName: customerName.trim() });
+      if (!savedDraft.ok) {
+        setIsSaving(false);
+        setMessage(savedDraft.message);
+        return null;
+      }
+      draftForAgreement = savedDraft.draft;
+      setDraft(savedDraft.draft);
+    }
+    const result = await agreements.createFromDraft(draftForAgreement, {
       agreedPriceMinor: priceMinor,
       deliveryDate,
       depositMinor: depositMinor ?? 0,
@@ -274,6 +299,19 @@ export default function AgreementEditor() {
           <CircleAlert aria-hidden="true" /> العربون كاش محصل مرتبط بالطلب، وليس ربحًا نهائيًا أو تسليمًا
           تلقائيًا.
         </p>
+        <label className="micro-field">
+          <span>
+            اسم العميل <small>مطلوب قبل تسجيل الاتفاق</small>
+          </span>
+          <input
+            value={customerName}
+            onChange={event => setCustomerName(event.target.value)}
+            placeholder="مثال: سارة"
+            aria-label="اسم العميل قبل تسجيل الاتفاق"
+            aria-invalid={hasFormError && !customerName.trim()}
+            aria-describedby={hasFormError ? "agreement-form-error" : undefined}
+          />
+        </label>
         <label className="micro-field">
           <span>
             كيف تم الاتفاق؟ <small>اختياري</small>

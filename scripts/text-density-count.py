@@ -325,7 +325,12 @@ CAPS: dict[str, int] = {
     # CostEditor 53 → 54 (2026-09-01, repair cycle U-004): source-estimate proposal
     # notice — one mandated bridge label.
     "CostEditor": 54,
-    "AgreementEditor": 55,
+    # AgreementEditor 55 → 59 (2026-09-02, Group 4 final integration fix G4-6):
+    # customer name field (label + required note + placeholder + its validation
+    # message) — the agreement step is the point where the name becomes required
+    # (debt and collection are attributed by it); planned-design drafts from the
+    # estimate bridge had no field to satisfy it, so the step was a dead end.
+    "AgreementEditor": 59,
     # Catalog 84 → 92 (2026-09-01, repair cycle P-002): optional suggested default
     # price/cost fields + per-item defaults editor labels — Option A mandated fields.
     # Catalog 92 → 94 (2026-09-02, Group 3 Scope C §9.3, owner-approved execution
