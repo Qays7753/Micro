@@ -76,6 +76,13 @@ describe("DirectSaleEditor", () => {
       directSales: {
         create,
       },
+      /* المجموعة ٣ (Scope D): خدمتا وجهة القبض — موجودتان في السياق الحقيقي. */
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
+      },
+      projectFinance: {
+        distributeUnallocated: vi.fn(),
+      },
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
@@ -125,6 +132,12 @@ describe("DirectSaleEditor", () => {
         get: vi.fn().mockResolvedValue({ ok: true, value: sale }),
         update,
       },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
+      },
+      projectFinance: {
+        distributeUnallocated: vi.fn(),
+      },
       notifyDataChanged,
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
@@ -166,6 +179,12 @@ describe("DirectSaleEditor", () => {
       directSales: {
         get: vi.fn().mockResolvedValue({ ok: true, value: sale }),
         cancel,
+      },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
+      },
+      projectFinance: {
+        distributeUnallocated: vi.fn(),
       },
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);

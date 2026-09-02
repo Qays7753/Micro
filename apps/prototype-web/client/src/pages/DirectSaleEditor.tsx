@@ -1,9 +1,10 @@
 /** Phone-first direct-sale form. It records a sale, never an order or inferred profit. */
 /* X-06 (و٤): المتفق عن المقبوض — النظام ينبّه ولا يقرّر: ثلاثة خيارات والثالث صالح.
  * «خفّضتُ السعر» تخفيض موثَّق لا تعديلًا في مكانه، والأصل يبقى في السجل. */
-import { ArrowRight, Ban, Save } from "lucide-react";
+import { ArrowRight, Ban, ReceiptText, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -25,11 +26,29 @@ const collectionStatusLabel: Record<DirectSaleCollectionStatus, string> = {
   partial_needs_review: "الفرق يحتاج مراجعة",
 };
 
+/* المجموعة ٣ (Scope D — §10.1): معامل سياق السجل ?product=<id> — يصل من زر
+ * «سجّل بيع هذا المنتج» في الكتالوج؛ يعبّئ المرجع واقتراحاته المعلنة مرة واحدة،
+ * والسعر الفعلي يبقى بيد المالك (P-002). غير الصالح يُهمل بهدوء كإخوته.
+ * (و٥-ب): يُقرأ من useSearch — المسار الحقيقي يصل بلا استعلام.) */
+function productParamFromSearch(search: string): string | null {
+  const value = new URLSearchParams(search).get("product");
+  return value && /^[A-Za-z0-9_-]{1,64}$/.test(value) ? value : null;
+}
+
+type SaleDone = {
+  sale: DirectSale;
+  walletName: string | null;
+  attributedMinor: number;
+};
+
 export default function DirectSaleEditor() {
   const [location, navigate] = useLocation();
+  /* و٥-ب (مجموعة ٣): معامل المنتج يُقرأ من useSearch — المسار الحقيقي بلا استعلام. */
+  const search = useSearch();
   /* المجموعة ١ (Scope A): الرجوع والخروج بعد النجاح يعودان للمصدر (?from) لا لهدف ثابت. */
   const returnPath = useReturnPath();
-  const { directSales, catalog, notifyDataChanged } = usePrototypeServices();
+  const { directSales, catalog, projectFinance, cashContinuity, notifyDataChanged } =
+    usePrototypeServices();
   const saleMatch = location.match(/^\/direct-sales\/([^/?]+)$/);
   const saleId = saleMatch?.[1] && saleMatch[1] !== "new" ? decodeURIComponent(saleMatch[1]) : null;
   const editing = saleId !== null;
@@ -64,6 +83,15 @@ export default function DirectSaleEditor() {
   /* و٦: عند إعادة التحميل بعد تعارض تبقى كتابة المستخدم في الحقول كما هي —
    * يُحدّث السجل ورقم مراجعاته لا ما يراه في النموذج. */
   const preserveFormRef = useRef(false);
+  /* المجموعة ٣ (Scope D — §10.4): إغلاق واقعي بعد التسجيل — ما بيع، السعر الفعلي،
+   * أثر الكاش/الذمة، وصل السجل، والرجوع للمصدر؛ شاشة نتيجة لا تُطمس. */
+  const [done, setDone] = useState<SaleDone | null>(null);
+  /* المجموعة ٣ (Scope D): وجهة القبض الصريحة عند الإنشاء — الدرج افتراضيًا حين
+   * يوجد، وغير الموزع خيار معلن؛ النسبة تتم بعد نجاح التسجيل بمسار المجموعة ٢ نفسه. */
+  const [wallets, setWallets] = useState<readonly { id: string; name: string }[]>([]);
+  const [saleWalletId, setSaleWalletId] = useState("");
+  const [productNotice, setProductNotice] = useState<string | null>(null);
+  const appliedProductRef = useRef(false);
   /* U-005 (دورة التدقيق النهائي): لقطة القيم الأولية تُلتقط بعد تحميل السجل
    * (loadedToken) لا عند التركيب فقط — حماية المدخلات غير المحفوظة في محرر
    * البيع المباشر نفسه، وهو الحالة المسماة في توحيد تنقّل التفاصيل. */
@@ -82,10 +110,54 @@ export default function DirectSaleEditor() {
     catalog
       .list({ includeInactive: true })
       .then(result => {
-        if (result.ok) setReferences(result.items);
+        if (!result.ok) return;
+        setReferences(result.items);
+        /* المجموعة ٣ (§10.1): الوصلة العميقة للمنتج تُطبق مرة واحدة عند الإنشاء —
+         * المرجع الموقوف لا يُعبّأ (إشعار صادق)، والمحذوف يُهمل بهدوء. */
+        const requestedProduct =
+          !editing && !appliedProductRef.current ? productParamFromSearch(search) : null;
+        if (!requestedProduct) return;
+        appliedProductRef.current = true;
+        const selected = result.items.find(item => item.id === requestedProduct) ?? null;
+        if (!selected) return;
+        if (!selected.active) {
+          setProductNotice("هذا المرجع موقوف — سُجّل البيع بلا ربط أو فعّله من الكتالوج.");
+          return;
+        }
+        setCatalogItemId(selected.id);
+        if (!itemName.trim() || result.items.some(reference => reference.name === itemName.trim()))
+          setItemName(selected.name);
+        if (selected.defaultPriceMinor != null && revenueMinor === 0 && quantity === 1)
+          setRevenueMinor(selected.defaultPriceMinor);
+        if (selected.defaultUnitCostMinor != null && quantity === 1 && !costKnown) {
+          setCostKnown(true);
+          setCostMinor(selected.defaultUnitCostMinor);
+        }
+        setSuggestedReference(selected);
+        /* فحص حي (مجموعة ٣): التعبئة المقترحة «قيم محمّلة» لا كتابة مستخدم —
+         * تُعاد لقطة الوسخ بعدها فلا يعترض الخروج الصامت بمستخدم لم يكتب شيئًا. */
+        setLoadedToken(token => token + 1);
       })
       .catch(() => setReferences([]));
   }, [catalog]);
+
+  /* المجموعة ٣ (Scope D): محافظ القبض تُقرأ عند الإنشاء فقط — التعديل لا يحرك الكاش. */
+  useEffect(() => {
+    if (editing) return;
+    let active = true;
+    cashContinuity
+      .overview()
+      .then(result => {
+        if (!active || !result.ok) return;
+        setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+        const drawer = result.value.wallets.find(wallet => wallet.kind === "cash_drawer");
+        setSaleWalletId(current => current || drawer?.id || "");
+      })
+      .catch(() => setWallets([]));
+    return () => {
+      active = false;
+    };
+  }, [cashContinuity, editing]);
 
   useEffect(() => {
     if (!saleId) return;
@@ -241,7 +313,36 @@ export default function DirectSaleEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate(returnPath);
+    /* التعديل يخرج لمصدره كما كان — لا شاشة نتيجة لسجل قائم. */
+    if (editing) {
+      navigate(returnPath);
+      return true;
+    }
+    /* المجموعة ٣ (Scope D): تخصيص صريح بعد التسجيل — نفس مسار المجموعة ٢
+     * (distributeUnallocated) بمفتاح عملية مشتق من مفتاح الإرسال نفسه؛
+     * إعادة المحاولة أو الضغط المكرر لا يكرر التخصيص. */
+    let walletName: string | null = null;
+    let attributedMinor = 0;
+    if (saleWalletId && resolvedCollected > 0) {
+      const attribution = await projectFinance.distributeUnallocated({
+        walletId: saleWalletId,
+        deltaMinor: resolvedCollected,
+        note: "تخصيص قبض بيع من محرر البيع",
+        operationKey: `${idempotencyKey.current}:attribute`,
+        sourceRefId: result.value.id,
+        sourceRefKind: "sale",
+      });
+      if (attribution.ok) {
+        walletName = wallets.find(wallet => wallet.id === saleWalletId)?.name ?? null;
+        attributedMinor = resolvedCollected;
+      } else {
+        /* البيع سُجل والقبض محفوظ — الفشل في النسبة لا يفقد المال؛ يُعرض السبب. */
+        setMessage(attribution.message);
+      }
+    }
+    /* نجاح محلي مكتمل: يُعاد ضبط لقطة الوسخ فلا يعترض الخروج من شاشة النتيجة. */
+    setLoadedToken(token => token + 1);
+    setDone({ sale: result.value, walletName, attributedMinor });
     return true;
   }
 
@@ -279,6 +380,67 @@ export default function DirectSaleEditor() {
       </div>
     );
 
+  /* المجموعة ٣ (§10.4): إغلاق واقعي بعد التسجيل — ما بيع والسعر الفعلي وأثر
+   * الكاش/الذمة ووصل السجل والرجوع للمصدر؛ الرقم من السجل المُرجع نفسه. */
+  if (done && !editing) {
+    const sale = done.sale;
+    const reference = references.find(item => item.id === sale.catalogItemId) ?? null;
+    const outstandingMinor = sale.revenueMinor - sale.collectedMinor;
+    return (
+      <section className="micro-page micro-finance-page">
+        <div className="micro-page-heading">
+          <span className="micro-overline">بيع مباشر · انسجّل</span>
+          <h1>سُجّل البيع</h1>
+        </div>
+        <section className="micro-decision-card" aria-label="نتيجة البيع">
+          <span>ما تم بيعه</span>
+          <strong>
+            {sale.itemName}
+            {sale.quantity > 1 ? ` ×${sale.quantity}` : ""}
+          </strong>
+          <p>
+            السعر الفعلي: {formatMoneyMinor(sale.revenueMinor)} د.أ · قُبض الآن:{" "}
+            {formatMoneyMinor(sale.collectedMinor)} د.أ
+          </p>
+          <p>
+            {outstandingMinor > 0
+              ? sale.collectionStatus === "partial_debt"
+                ? `دين على ${sale.customerName ?? "الزبون"}: ${formatMoneyMinor(outstandingMinor)} د.أ — يظهر في «لي عند العملاء» ودفتر الناس.`
+                : `فرق معلّق للمراجعة: ${formatMoneyMinor(outstandingMinor)} د.أ — لم يُقرّر بعد.`
+              : "قُبض المبلغ كاملًا — لا ذمم من هذا البيع."}
+          </p>
+          <p>
+            {done.attributedMinor > 0
+              ? `نُسب القبض إلى «${done.walletName ?? "المحفظة"}»: ${formatMoneyMinor(done.attributedMinor)} د.أ — حركة موثقة في دفتر المحفظة.`
+              : "بقي القبض في الكاش غير الموزع — وزّعه على محفظة عندما تعرف وجهته."}
+          </p>
+          {reference ? <p>مرجع مرتبط: {reference.name} — الربط للتوثيق فقط.</p> : null}
+          <p className="micro-local-truth">سُجل محليًا على هذا الجهاز — الضغط مرتين لا يضاعف أثرًا.</p>
+        </section>
+        <div className="micro-form-actions">
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={() =>
+              requestNavigation(
+                withFrom(`/direct-sales/${encodeURIComponent(sale.id)}`, returnPath),
+              )
+            }
+          >
+            <ReceiptText aria-hidden="true" /> افتح السجل
+          </button>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => requestNavigation(returnPath)}
+          >
+            تم
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   const showDifferencePrompt = message === "at_difference_prompt" && difference > 0;
 
   return (
@@ -288,7 +450,7 @@ export default function DirectSaleEditor() {
         type="button"
         onClick={() => requestNavigation(returnPath)}
       >
-        <ArrowRight aria-hidden="true" /> العمل
+        <ArrowRight aria-hidden="true" /> {returnPath === "/orders" ? "العمل" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">سجل بيع مستقل</span>
@@ -473,6 +635,11 @@ export default function DirectSaleEditor() {
             تُحفظ مع هذا البيع وحده؛ عدّلها أو اختر «لا أعرف الآن» فتبقى التكلفة مجهولة بصدق.
           </p>
         ) : null}
+        {productNotice ? (
+          <p className="micro-save-note" role="status">
+            {productNotice}
+          </p>
+        ) : null}
         {/* D-001: الزبون حقل مستقل — يظهر عند وجود دين أو زبون مسجل، ويجتمع باسمه في دفتر الناس. */}
         {difference > 0 || customerName.trim() !== "" ? (
           <label className="micro-field">
@@ -482,6 +649,27 @@ export default function DirectSaleEditor() {
               onChange={event => setCustomerName(event.target.value)}
               aria-label="اسم الزبون"
             />
+          </label>
+        ) : null}
+        {/* المجموعة ٣ (Scope D — §10.1): وجهة القبض الصريحة عند الإنشاء — الدرج افتراضيًا
+            حين يوجد وغير الموزع خيار معلن؛ لا تخصيص صامت ولا محفظة تُختار نيابةً عن المالك. */}
+        {!editing && wallets.length > 0 ? (
+          <label className="micro-field">
+            <span>
+              وجهة القبض <small>الدرج افتراضيًا حين يوجد — غير الموزع خيار صريح</small>
+            </span>
+            <select
+              value={saleWalletId}
+              onChange={event => setSaleWalletId(event.target.value)}
+              aria-label="وجهة القبض"
+            >
+              <option value="">غير موزع — يبقى هنا حتى توزّعه بقرار</option>
+              {wallets.map(wallet => (
+                <option key={wallet.id} value={wallet.id}>
+                  {wallet.name}
+                </option>
+              ))}
+            </select>
           </label>
         ) : null}
         <LocalDateField label="تاريخ البيع" value={occurredOn} onChange={event => setOccurredOn(event.target.value)} />

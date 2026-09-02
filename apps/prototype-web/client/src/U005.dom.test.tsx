@@ -38,6 +38,13 @@ function servicesContext() {
     catalog: {
       list: vi.fn().mockResolvedValue({ ok: true, items: [] }),
     },
+    /* المجموعة ٣ (Scope D): وجهة القبض والنسبة — الخدمتان موجودتان في السياق الحقيقي دائمًا. */
+    cashContinuity: {
+      overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
+    },
+    projectFinance: {
+      distributeUnallocated: vi.fn(),
+    },
     notifyDataChanged: vi.fn(),
   };
 }

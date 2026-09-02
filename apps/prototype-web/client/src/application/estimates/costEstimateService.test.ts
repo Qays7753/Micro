@@ -66,6 +66,51 @@ describe("standalone cost estimates", () => {
     if (!list.ok) throw new Error(list.message);
     expect(list.value).toHaveLength(0);
   });
+
+  /* المجموعة ٣ (Scope B — §8.1): تعديل التقدير — نفس السجل يتجدد ولا يتكرر، ولا أثر مالي. */
+  it("updates an existing estimate in place — recalculates totals, keeps id, no duplicate, no financial effect", async () => {
+    const store = new MemoryLocalStore();
+    const estimates = new CostEstimateService(store, now);
+    const finance = new ProjectFinancialService(store, now);
+    const saved = await estimates.save(input);
+    if (!saved.ok) throw new Error(saved.message);
+    const before = await finance.readPosition();
+    if (!before.ok) throw new Error(before.message);
+
+    const updated = await estimates.update(saved.value.id, {
+      ...input,
+      title: "كيكة مناسبة معدلة",
+      materialItems: [
+        { name: "دقيق", quantity: 3, unit: "كيلو", unitPriceMinor: 1200, confidence: "known" as const },
+      ],
+      time: null,
+      packagingMinor: 0,
+      safetyBufferMinor: 500,
+    });
+    if (!updated.ok) throw new Error(updated.message);
+    /* نفس السجل: المعرف ثابت والعدد لم يتضاعف. */
+    expect(updated.value.id).toBe(saved.value.id);
+    expect(updated.value.title).toBe("كيكة مناسبة معدلة");
+    expect(updated.value.createdAt).toBe(saved.value.createdAt);
+    /* المواد 3×1200 = 3600؛ الوقت غير معروف الآن — الحساب يتجدد بصدق. */
+    expect(updated.value.plannedCostMinor).toBe(3600);
+    expect(updated.value.priceFloorMinor).toBe(3600 + 500);
+    const list = await estimates.list();
+    if (!list.ok) throw new Error(list.message);
+    expect(list.value).toHaveLength(1);
+    /* الحكم الحاسم: التعديل لم يُنشئ حدثًا ماليًا ولا حركة كاش. */
+    const after = await finance.readPosition();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value).toEqual(before.value);
+  });
+
+  it("refuses to update a missing estimate honestly", async () => {
+    const store = new MemoryLocalStore();
+    const estimates = new CostEstimateService(store, now);
+    const missing = await estimates.update("estimate-gone", input);
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) expect(missing.code).toBe("validation_error");
+  });
 });
 
 /* دفتر الناس (مبدأ المالك ٥.٣): تجميع بالاسم من السجلات القائمة — بلا كيان CRM جديد. */

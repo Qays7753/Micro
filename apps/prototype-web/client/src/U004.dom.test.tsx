@@ -24,7 +24,11 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn(), location: "/" }));
 
 vi.mock("wouter", () => ({
-  useSearch: () => "",
+  /* و٥-ب (مجموعة ٣): المحاكاة أمينة — الاستعلام من useSearch كما في المتصفح الحقيقي. */
+  useSearch: () => {
+    const query = wouterMocks.location.split("?")[1] ?? "";
+    return query ? `?${query}` : "";
+  },
   useLocation: () => [wouterMocks.location, wouterMocks.navigate],
   useParams: () => ({ id: "new" }),
 }));

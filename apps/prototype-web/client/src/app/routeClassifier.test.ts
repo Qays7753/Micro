@@ -19,6 +19,9 @@ describe("Micro deep-flow route classifier", () => {
       "/inventory/movement/consume",
       "/inventory/movement/movement-1/reverse",
       "/schedule/schedule-1",
+      /* المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير محررا تفكير عميقة. */
+      "/tools/calculator",
+      "/tools/estimate/estimate-1",
     ];
 
     for (const route of deepRoutes) {
@@ -32,7 +35,9 @@ describe("Micro deep-flow route classifier", () => {
     expect(getMicroRouteKind("/")).toBe("surface");
     expect(getMicroRouteKind("/inventory")).toBe("surface");
     expect(getMicroRouteKind("/setup")).toBe("setup");
-    expect(showsGlobalChrome("/")).toBe(true);
+    /* المجموعة ٣: سطح أدواتي نفسه يبقي التنقل — العمق للمحررين فقط. */
+    expect(getMicroRouteKind("/tools")).toBe("surface");
+    expect(showsGlobalChrome("/tools")).toBe(true);
     expect(showsGlobalChrome("/setup")).toBe(false);
   });
 
