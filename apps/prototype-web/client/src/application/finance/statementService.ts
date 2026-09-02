@@ -86,7 +86,7 @@ const ammanDate = (timestamp: string): string => {
   return `${value("year")}-${value("month")}-${value("day")}`;
 };
 
-const money = (minor: number) => `${(minor / 100).toFixed(2)} د.أ`;
+import { formatMoneyWithUnit } from "@/presentation/formatters";
 
 export class StatementService {
   constructor(
@@ -199,6 +199,18 @@ export class StatementService {
           label: `دفعة مورد — ${purchase.supplierName}`,
           href: `/suppliers/purchase/${purchase.id}`,
           amountMinor: payment.amountMinor,
+        });
+      }
+      /* G5-S7: التراجع الموثق عن دفعة داخل الفترة يسترد كاشًا دخل فعلًا — بلا خصمه
+       * يتضخم «دفع للموردين» ويفترق صافي الكشف عن الكاش المسجل. يُعرض بسطر مصدر
+       * مستقل حتى يبقى الأثر الأصلي والاسترداد معًا قابلين للتتبع بلا إخفاء. */
+      for (const reversal of purchase.paymentReversals ?? []) {
+        if (!inPeriod(reversal.occurredOn)) continue;
+        supplierPaymentsInPeriodMinor -= reversal.amountMinor;
+        supplierSources.push({
+          label: `تراجع عن دفعة — ${purchase.supplierName}`,
+          href: `/suppliers/purchase/${purchase.id}`,
+          amountMinor: -reversal.amountMinor,
         });
       }
     }
@@ -372,7 +384,7 @@ export class StatementService {
           heldInPeriodMinor: amanahHeld.reduce((sum, event) => sum + event.amountMinor, 0),
           releasedInPeriodMinor: amanahReleased.reduce((sum, event) => sum + event.amountMinor, 0),
           heldNowMinor: position.amanahHeldMinor,
-          trustLine: `أمانات بأمانتك: ${money(position.amanahHeldMinor)} — هذا كاش موجود، لكنه مش ربحك ولا مالك.`,
+          trustLine: `أمانات بأمانتك: ${formatMoneyWithUnit(position.amanahHeldMinor)} — هذا كاش موجود، لكنه مش ربحك ولا مالك.`,
         },
         receivablesPayables: {
           receivablesNowMinor: position.customerReceivablesMinor,

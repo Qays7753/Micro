@@ -17,8 +17,8 @@
     "prototype:build": "pnpm --filter @micro/prototype-web build",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
-    "lint": "eslint src tests apps/prototype-web/client/src/pages apps/prototype-web/client/src/components --max-warnings 37",
-    "check": "pnpm typecheck && pnpm lint && pnpm text-density && pnpm design-guards && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build"
+    "lint": "eslint src tests apps/prototype-web/client/src/pages apps/prototype-web/client/src/components apps/prototype-web/client/src/application apps/prototype-web/client/src/storage apps/prototype-web/client/src/app apps/prototype-web/client/src/contexts apps/prototype-web/client/src/presentation apps/prototype-web/client/src/pwa --max-warnings 37",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm text-density && pnpm design-guards && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build"
   },
   "devDependencies": {
     "eslint": "^9.39.1",

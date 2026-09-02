@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   BellRing,
   ChevronLeft,
   CircleDollarSign,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
@@ -49,6 +51,8 @@ const modeOptions: Array<{ value: "" | OperatingWorkMode; label: string; descrip
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
+  /* S1-13: زر رجوع موحد — الأساس بديل قانوني، و?from (من صفحة الأساس) يُحترم. */
+  const returnPath = useReturnPath();
   const search = useSearch();
   const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged } =
     usePrototypeServices();
@@ -101,7 +105,10 @@ export default function SettingsPage() {
   const guidedInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<TransferPreview | null>(null);
   const [guidedPreview, setGuidedPreview] = useState<GuidedOpeningImportPreview | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  /* S3-11: الإشعار يُعرض داخل القسم الذي أنتجه — لا في أسفل صفحة بطول ٨٤١ سطرًا. */
+  const [notice, setNotice] = useState<{ text: string; section: "storage" | "mode" } | null>(null);
+  const setStorageNotice = (text: string) => setNotice({ text, section: "storage" });
+  const setModeNotice = (text: string) => setNotice({ text, section: "mode" });
   const [isWorking, setIsWorking] = useState(false);
   const [operatingMode, setOperatingMode] = useState<OperatingModeState>({ phase: "loading" });
   const [selectedMode, setSelectedMode] = useState<"" | OperatingWorkMode>("");
@@ -135,12 +142,12 @@ export default function SettingsPage() {
     });
     setIsSavingOperatingMode(false);
     if (!result.ok) {
-      setNotice(result.message);
+      setModeNotice(result.message);
       return;
     }
     setOperatingMode({ phase: "ready", value: result.value });
     notifyDataChanged();
-    setNotice("تم حفظ طريقة العمل وتتبع الوقت على هذا الجهاز فقط.");
+    setModeNotice("تم حفظ طريقة العمل وتتبع الوقت على هذا الجهاز فقط.");
   }
 
   async function exportLocal() {
@@ -150,7 +157,7 @@ export default function SettingsPage() {
     const result = await transfers.createVerifiedExport();
     setIsWorking(false);
     if (!result.ok) {
-      setNotice(result.message);
+      setStorageNotice(result.message);
       return;
     }
     const blob = new Blob([JSON.stringify(result.value.file, null, 2)], { type: "application/json" });
@@ -159,12 +166,13 @@ export default function SettingsPage() {
     link.href = url;
     link.download = `micro-local-${result.value.file.exportedAt.slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
+    /* S5-11: الإبطال مؤجل — الإبطال الفوري المتزامن قد يجهض التنزيل في WebKit. */
+    globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
     await preferences.markVerifiedExport();
     setLastExport(result.value.file.exportedAt);
     setCurrentSummary(result.value.summary);
     notifyDataChanged();
-    setNotice(
+    setStorageNotice(
       "النسخة جاهزة ومُتحقق منها ✓ — احفظها بمكان آمن، فيها كل أرقامك. لو ضاع الجهاز بتضيع معه؛ لا سحابة في هذا الإصدار.",
     );
   }
@@ -176,7 +184,7 @@ export default function SettingsPage() {
     const result = await transfers.createVerifiedExport();
     if (!result.ok) {
       setResetFlow({ phase: "idle" });
-      setNotice(
+      setStorageNotice(
         `${result.message} بياناتك كما هي — لا يبدأ أي تصفير قبل نسخة احتياطية ناجحة.`,
       );
       return;
@@ -187,7 +195,8 @@ export default function SettingsPage() {
     link.href = url;
     link.download = `micro-local-${result.value.file.exportedAt.slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
+    /* S5-11: الإبطال مؤجل — الإبطال الفوري المتزامن قد يجهض التنزيل في WebKit. */
+    globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
     await preferences.markVerifiedExport();
     setLastExport(result.value.file.exportedAt);
     setResetNameConfirmation("");
@@ -197,11 +206,13 @@ export default function SettingsPage() {
   async function confirmReset() {
     setNotice(null);
     setIsWorking(true);
+    /* S5-03: البدء من جديد يمسح مسودة الإعداد أيضًا — لا تُبعث بعد تصفير مقصود. */
+    globalThis.localStorage?.removeItem("micro.setup-draft.v1");
     const result = await transfers.resetAll();
     setIsWorking(false);
     if (!result.ok) {
       setResetFlow({ phase: "idle" });
-      setNotice(result.message);
+      setStorageNotice(result.message);
       return;
     }
     setResetFlow({ phase: "done" });
@@ -218,12 +229,12 @@ export default function SettingsPage() {
     try {
       const prepared = transfers.prepareImport(await file.text());
       if (!prepared.ok) {
-        setNotice(prepared.message);
+        setStorageNotice(prepared.message);
         return;
       }
       setPreview(prepared.value);
     } catch {
-      setNotice("تعذر قراءة الملف. بقيت بيانات هذا الجهاز دون تغيير.");
+      setStorageNotice("تعذر قراءة الملف. بقيت بيانات هذا الجهاز دون تغيير.");
     } finally {
       setIsWorking(false);
     }
@@ -236,12 +247,12 @@ export default function SettingsPage() {
     const result = await transfers.confirmImport(preview);
     setIsWorking(false);
     if (!result.ok) {
-      setNotice(result.message);
+      setStorageNotice(result.message);
       return;
     }
     setPreview(null);
     notifyDataChanged();
-    setNotice("تم استبدال البيانات المحلية بالملف الذي راجعته.");
+    setStorageNotice("تم استبدال البيانات المحلية بالملف الذي راجعته.");
     if (!result.value.profile) navigate("/setup");
   }
 
@@ -254,12 +265,12 @@ export default function SettingsPage() {
     try {
       const prepared = await guidedOpeningImport.prepare(await file.text());
       if (!prepared.ok) {
-        setNotice(prepared.message);
+        setStorageNotice(prepared.message);
         return;
       }
       setGuidedPreview(prepared.value);
     } catch {
-      setNotice("تعذر قراءة ملف البداية. بقيت بيانات هذا الجهاز دون تغيير.");
+      setStorageNotice("تعذر قراءة ملف البداية. بقيت بيانات هذا الجهاز دون تغيير.");
     } finally {
       setIsWorking(false);
     }
@@ -272,12 +283,12 @@ export default function SettingsPage() {
     const result = await guidedOpeningImport.confirm(guidedPreview);
     setIsWorking(false);
     if (!result.ok) {
-      setNotice(result.message);
+      setStorageNotice(result.message);
       return;
     }
     setGuidedPreview(null);
     notifyDataChanged();
-    setNotice(
+    setStorageNotice(
       result.reused
         ? "تم التعرف على هذه المحاولة مسبقًا؛ لم يتكرر أي أثر."
         : "تم إدخال الموقف الافتتاحي المحدود مع إبقاء ما لم نعرفه خارج السجل.",
@@ -289,6 +300,9 @@ export default function SettingsPage() {
   /* مبدأ Micro: التفضيل اليومي ظاهر، أما البيانات الحساسة والاستعادة فتحتاج فتحًا مقصودًا. */
   return (
     <section className="micro-page">
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowLeft aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
+      </button>
       <div className="micro-page-heading">
         <span className="micro-overline">التحكم المحلي</span>
         <h1>الإعدادات</h1>
@@ -384,7 +398,7 @@ export default function SettingsPage() {
                     void preferences.saveBackupReminderEnabled(next).then(result => {
                       if (!result.ok) {
                         setBackupReminder(!next);
-                        setNotice(result.message);
+                        setStorageNotice(result.message);
                         return;
                       }
                       notifyDataChanged();
@@ -572,6 +586,11 @@ export default function SettingsPage() {
                 <Save aria-hidden="true" />
                 {isSavingOperatingMode ? "جارٍ حفظ التفضيل…" : "حفظ طريقة العمل"}
               </button>
+              {notice?.section === "mode" ? (
+                <p className="micro-save-note" role="status">
+                  {notice.text}
+                </p>
+              ) : null}
             </>
           ) : null}
         </section>
@@ -788,13 +807,13 @@ export default function SettingsPage() {
             </div>
           </section>
         ) : null}
+        {notice?.section === "storage" ? (
+          <p className="micro-save-note" role="status">
+            {notice.text}
+          </p>
+        ) : null}
         </div>
       </details>
-      {notice ? (
-        <p className="micro-save-note" role="status">
-          {notice}
-        </p>
-      ) : null}
     </section>
   );
 }

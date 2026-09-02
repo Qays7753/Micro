@@ -10,7 +10,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate, formatLocalDateLong, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate, formatLocalDateLong, localDateInAmman , formatMoneyWithUnit } from "@/presentation/formatters";
 import type { StatementLine, StatementReading } from "@/application/finance/statementService";
 
 type State =
@@ -247,7 +247,7 @@ export default function Statement() {
                       الأثر الصافي على هذا الكشف{" "}
                       {correction.netEffectMinor === 0
                         ? "صفر: الأثر أُلغي كاملًا"
-                        : `${(correction.netEffectMinor / 100).toFixed(2)} د.أ`}
+                        : formatMoneyWithUnit(correction.netEffectMinor)}
                     </small>
                   </div>
                   <b>
@@ -278,16 +278,16 @@ export default function Statement() {
             {reading.result.resultMinor === null ? null : " د.أ"}
           </strong>
           <p>
-            إيراد معترف به {formatMoneyLine(reading.result.recognizedRevenueMinor + reading.result.directSaleRevenueMinor)}{" "}
-            − تكلفة مباشرة {formatMoneyLine(reading.result.effectiveDirectCostMinor)} − مصروف موزّع{" "}
-            {formatMoneyLine(reading.result.recordedOperatingExpenseMinor)} — ضمن الفترة فقط.
+            إيراد معترف به {formatMoneyWithUnit(reading.result.recognizedRevenueMinor + reading.result.directSaleRevenueMinor)}{" "}
+            − تكلفة مباشرة {formatMoneyWithUnit(reading.result.effectiveDirectCostMinor)} − مصروف موزّع{" "}
+            {formatMoneyWithUnit(reading.result.recordedOperatingExpenseMinor)} — ضمن الفترة فقط.
             {reading.result.resultMinor === null
               ? " هناك تكلفة غير معروفة تمنع رقمًا نهائيًا — لا يُعرض ربح متوهَّم."
               : ""}
           </p>
           <p>
-            الملك {formatMoneyLine(reading.blocks.owner.investedMinor)} · سحب{" "}
-            {formatMoneyLine(reading.blocks.owner.withdrawnMinor)} — مال المالك لا يدخل النتيجة.
+            الملك {formatMoneyWithUnit(reading.blocks.owner.investedMinor)} · سحب{" "}
+            {formatMoneyWithUnit(reading.blocks.owner.withdrawnMinor)} — مال المالك لا يدخل النتيجة.
           </p>
         </div>
       </section>
@@ -299,20 +299,20 @@ export default function Statement() {
             <MoneyValue minor={reading.blocks.amanah.heldNowMinor} /> د.أ بحوزتك الآن
           </strong>
           <p>
-            قُبض {formatMoneyLine(reading.blocks.amanah.heldInPeriodMinor)} · سُلّم{" "}
-            {formatMoneyLine(reading.blocks.amanah.releasedInPeriodMinor)} خلال الفترة —{" "}
+            قُبض {formatMoneyWithUnit(reading.blocks.amanah.heldInPeriodMinor)} · سُلّم{" "}
+            {formatMoneyWithUnit(reading.blocks.amanah.releasedInPeriodMinor)} خلال الفترة —{" "}
             {reading.blocks.amanah.trustLine}
           </p>
         </div>
       </section>
-      <section className="micro-cash-facts" aria-label="الذمم الآن">
+      <section className="micro-cash-facts" aria-label="الدين الآن">
         <div>
           <span>لي عند الناس الآن</span>
           <strong>
             <MoneyValue minor={reading.blocks.receivablesPayables.receivablesNowMinor} /> د.أ
           </strong>
           <small>
-            تحصّل منها في الفترة {formatMoneyLine(reading.blocks.receivablesPayables.collectionsInPeriodMinor)}
+            تحصّل منها في الفترة {formatMoneyWithUnit(reading.blocks.receivablesPayables.collectionsInPeriodMinor)}
           </small>
         </div>
         <div>
@@ -322,7 +322,7 @@ export default function Statement() {
           </strong>
           <small>
             دفع للموردين في الفترة{" "}
-            {formatMoneyLine(
+            {formatMoneyWithUnit(
               reading.blocks.receivablesPayables.supplierPurchasesInPeriodMinor +
                 reading.blocks.receivablesPayables.supplierPaymentsInPeriodMinor,
             )}
@@ -351,9 +351,6 @@ export default function Statement() {
   );
 }
 
-function formatMoneyLine(minor: number): string {
-  return `${(minor / 100).toFixed(2)} د.أ`;
-}
 
 function withFromFallback(returnPath: string): string {
   /* رجوع الكشف يمر عبر ?from المحفوظ أو البديل القانوني — لا وجهة ثابتة مفروضة. */

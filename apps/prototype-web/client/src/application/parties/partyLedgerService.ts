@@ -140,7 +140,13 @@ export class PartyLedgerService {
           amountMinor: -purchase.payableMinor,
           href: `/suppliers/purchase/${purchase.id}`,
         });
-      const paidAfterInitial = purchase.paidMinor - (purchase.payments[0]?.amountMinor ?? 0);
+      /* S2-08: الدفع الأولي يُلتمس بمعرفه لا بترتيب المصفوفة، وpaidMinor صار صافي
+       * التراجعات بعد إصلاح S2-01 — فلا تتضخم «دفعات سُددت» بعد تراجع موثق. */
+      const initialPayment = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`);
+      const paidAfterInitial = Math.max(
+        0,
+        purchase.paidMinor - (initialPayment?.amountMinor ?? 0),
+      );
       if (paidAfterInitial > 0)
         entry.movements.push({
           id: `purchase-paid:${purchase.id}`,

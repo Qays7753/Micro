@@ -146,8 +146,11 @@ describe("U-001 older events stay reachable from the finance record surface", ()
     fireEvent.click(correctionsSummary);
     const sourceButton = await waitFor(() => screen.getByText("افتح السجل المصدر"));
     fireEvent.click(sourceButton);
-    /* الرابط العميق يقود إلى صف الحدث المصدر نفسه في الطبقة المالية. */
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(`/finance?event=${expense.id}`);
+    /* الرابط العميق يقود إلى صف الحدث المصدر نفسه في الطبقة المالية —
+     * (S1-03) يحمل مصدره ?from=/finance فيعود الرجوع إلى مالي. */
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(
+      `/finance?event=${expense.id}&from=%2Ffinance`,
+    );
     /* الوصول العميق يفتح «السجل والأثر» كاملًا ويُبرز صف المصدر مركّزًا. */
     wouterMocks.search = `?event=${expense.id}`;
     cleanup();

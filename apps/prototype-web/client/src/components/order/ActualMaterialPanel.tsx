@@ -2,6 +2,7 @@
 import { PackageCheck } from "lucide-react";
 import type { OrderActualMaterialComparison } from "@/application/inventory/inventoryMaterialService";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { InfoCard } from "@/components/presentation/InfoCard";
 
 export type MaterialState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; comparison: OrderActualMaterialComparison };
@@ -34,17 +35,13 @@ export function ActualMaterialPanel({ state, onRecord }: { state: MaterialState;
         </button>
       </section>
     );
+  /* S4-04: البطاقة عبر المكوّن المشترك بدل ترميز مكرر — نفس الفئات والنغمة. */
   return (
-    <section
-      className="micro-info-card"
-      data-tone={comparison.status === "needs_review" ? "warning" : undefined}
+    <InfoCard
+      eyebrow="المادة المنفذة مقابل المخطط"
+      title={comparison.status === "needs_review" ? "فرق المادة يحتاج مراجعة" : "فرق مادة مسجل لهذا الطلب"}
+      tone={comparison.status === "needs_review" ? "warning" : "default"}
     >
-      <div className="micro-card-copy">
-        <span className="micro-card-eyebrow">المادة المنفذة مقابل المخطط</span>
-        <h2>
-          {comparison.status === "needs_review" ? "فرق المادة يحتاج مراجعة" : "فرق مادة مسجل لهذا الطلب"}
-        </h2>
-      </div>
       <div className="micro-record-summary">
         <div>
           <span>مادة مخططة</span>
@@ -69,6 +66,6 @@ export function ActualMaterialPanel({ state, onRecord }: { state: MaterialState;
           <strong className="micro-number">{comparison.consumptionCount}</strong>
         </div>
       </div>
-    </section>
+    </InfoCard>
   );
 }

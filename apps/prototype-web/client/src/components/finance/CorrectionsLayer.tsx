@@ -2,6 +2,7 @@
  * سطح قراءة لا نظام كتابة ثانيًا: لا يعدّل حدثًا ولا يعيد تفسير الماضي. */
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import type {
   CorrectionHistoryEntry,
   CorrectionHistoryGroup,
@@ -117,7 +118,7 @@ function CorrectionRow({
       {open ? (
         <small className="micro-finance-event-audit">
           تصحيح قراءة فقط من سجلك المحلي؛ لا يضيف هذا السجل حدثًا ولا يعدّل قيمة مسجّلة. أنواع التصحيح
-          الموثقة تُنفَّذ من سيوفها الأصلية في «السجل والأثر» و«مبيعاتي».
+          الموثقة تُنفَّذ من صفوفها الأصلية في «السجل والأثر» و«مبيعاتي».
         </small>
       ) : null}
     </article>
@@ -127,9 +128,11 @@ function CorrectionRow({
 export function CorrectionsLayer({
   correctionHistory,
   reloadToken,
+  initiallyOpen = false,
 }: {
   correctionHistory: CorrectionHistoryService;
   reloadToken: number;
+  initiallyOpen?: boolean;
 }) {
   const [, navigate] = useLocation();
   const [state, setState] = useState<LayerState>({ phase: "idle" });
@@ -150,8 +153,14 @@ export function CorrectionsLayer({
   };
 
   /* تحميل كسول عند أول فتح، وتحديث عند تغير البيانات إن كان مفتوحًا. */
-  const [openedOnce, setOpenedOnce] = useState(false);
+  const [openedOnce, setOpenedOnce] = useState(initiallyOpen);
+  /* S1-09: ?layer=corrections يفتح طبقة «السجل» من الوصلة العميقة (عقد ٢٦ §3.1). */
+  const [layerOpen, setLayerOpen] = useState(initiallyOpen);
+  useEffect(() => {
+    if (initiallyOpen && state.phase === "idle") load(correctionHistory);
+  }, [initiallyOpen]);
   const onToggle = (event: React.ToggleEvent<HTMLDetailsElement>) => {
+    setLayerOpen(event.currentTarget.open);
     if (event.currentTarget.open && state.phase === "idle") {
       setOpenedOnce(true);
       load(correctionHistory);
@@ -175,7 +184,7 @@ export function CorrectionsLayer({
   };
 
   return (
-    <details className="micro-finance-layer micro-corrections-layer" onToggle={onToggle}>
+    <details className="micro-finance-layer micro-corrections-layer" open={layerOpen} onToggle={onToggle}>
       <summary className="micro-finance-layer-summary">
         <span>
           <b>السجل</b>
@@ -200,7 +209,7 @@ export function CorrectionsLayer({
         {state.phase === "ready" ? (
           entries.length === 0 ? (
             <p className="micro-empty-copy">
-              لا تصحيحات موثقة بعد. هذا طبيعي: كل تراجع أو تعديل أو حذف من سيوفه الأصلية يظهر هنا تلقائيًا.
+              لا تصحيحات موثقة بعد. هذا طبيعي: كل تراجع أو تعديل أو حذف من صفوفه الأصلية يظهر هنا تلقائيًا.
             </p>
           ) : (
             <>
@@ -225,7 +234,7 @@ export function CorrectionsLayer({
                     <CorrectionRow
                       key={entry.id}
                       entry={entry}
-                      onOpenSource={path => navigate(path)}
+                      onOpenSource={path => navigate(withFrom(path, "/finance"))}
                     />
                   ))}
                 </div>

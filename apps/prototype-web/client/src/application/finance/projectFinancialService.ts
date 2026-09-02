@@ -13,6 +13,8 @@ import {
   type FinancialEventType,
   type OperatingExpenseContext,
 } from "@micro-domain/financial-event/index.js";
+import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import {
   createCashContinuityEntry,
@@ -113,6 +115,10 @@ export type RecordedLiquidity = {
   customerReceivablesMinor: number;
   supplierPayablesMinor: number;
   cashCoverageAfterLiabilitiesMinor: number;
+  /* S2-05 (تدقيق المجموعة ٥): الأمانات المحتجزة كاش موجود لكنه ليس مالكًا —
+   * تظهر هنا لتفسر التغطية بصدق بدل تضخيمها بصمت. */
+  amanahHeldMinor: number;
+  amanahNotice: string | null;
 };
 export type FinancialInsights = {
   period: RecordedPeriodResult;
@@ -185,18 +191,11 @@ function ammanDate(timestamp: string): string {
   const value = (type: string) => parts.find(part => part.type === type)?.value;
   return `${value("year")}-${value("month")}-${value("day")}`;
 }
-function isValidLocalDate(value: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year!, month! - 1, day!));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month! - 1 && date.getUTCDate() === day;
-}
 /* F-006 (دورة التدقيق النهائي ٢٠٢٦‑٠٩‑٠١): رسالة حد الأمانة تعرض الرصيد المتاح
  * والمبلغ المطلوب بالأرقام — قرار المالك المعتمد §٥.٢: «رسالة عربية واضحة تُظهر
  * الرصيد المتاح والمبلغ المطلوب». التنسيق بالقرش (منزلتان) هو نفسه سياسة P‑001. */
 function amanahLimitMessage(availableMinor: number, requestedMinor: number, action: string): string {
-  const money = (minor: number) => `${(minor / 100).toFixed(2)} د.أ`;
-  return `${action} يتجاوز الأمانات بحوزتك — المتاح لديك ${money(availableMinor)} والمطلوب ${money(requestedMinor)}. راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.`;
+  return `${action} يتجاوز الأمانات بحوزتك — المتاح لديك ${formatMoneyWithUnit(availableMinor)} والمطلوب ${formatMoneyWithUnit(requestedMinor)}. راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.`;
 }
 function sharedExpenseHasMissingBasis(event: FinancialEvent) {
   return event.expenseContext?.relationship === "shared" && !event.expenseContext.sharedProjectShare;
@@ -745,8 +744,13 @@ export class ProjectFinancialService {
         : null;
     if (coverageStatus === "recorded_only" && breakEvenUnits === null)
       coverageReasons.push("تعادل غير محسوب");
+    /* S2-05: الأمانات ضمن الكاش المسجل لكنها محتجزة لغير المالك — التغطية
+     * تعلن ذلك بدل عدّها مالًا قابلًا للصرف بصمت. */
+    const amanahHeldMinor = positionResult.value.amanahHeldMinor;
     const liquidityIncomplete =
-      positionResult.value.customerReceivablesMinor > 0 || positionResult.value.supplierPayablesMinor > 0;
+      positionResult.value.customerReceivablesMinor > 0 ||
+      positionResult.value.supplierPayablesMinor > 0 ||
+      amanahHeldMinor > 0;
     const liquidity: RecordedLiquidity = {
       status: liquidityIncomplete ? "incomplete" : "recorded_only",
       recordedCashMinor: positionResult.value.recordedCashMinor,
@@ -754,6 +758,11 @@ export class ProjectFinancialService {
       supplierPayablesMinor: positionResult.value.supplierPayablesMinor,
       cashCoverageAfterLiabilitiesMinor:
         positionResult.value.recordedCashMinor - positionResult.value.supplierPayablesMinor,
+      amanahHeldMinor,
+      amanahNotice:
+        amanahHeldMinor > 0
+          ? "من الكاش المسجل أمانات محتجزة ليست مالكًا — راجعها قبل الاعتماد على التغطية."
+          : null,
     };
     return {
       ok: true,

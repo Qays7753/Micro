@@ -204,7 +204,9 @@ function deltas(
 ) {
   const [cash = 0, payable = 0, ownerCapital = 0, operatingExpense = 0, amanah = 0] = DELTA_TABLE[type] ?? [];
   /* المصروف المشترك غير الموزّع لا يدخل نتيجة الفترة حتى تُحدَّد حصة معلنة. */
-  const operatingExpenseMinor = isUnallocatedSharedExpense(expenseContext) ? 0 : operatingExpense * amountMinor;
+  const operatingExpenseMinor = isUnallocatedSharedExpense(expenseContext)
+    ? 0
+    : operatingExpense * amountMinor;
   return {
     cashDeltaMinor: cash * amountMinor,
     payableDeltaMinor: payable * amountMinor,

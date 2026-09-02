@@ -173,12 +173,13 @@ describe("CorrectionHistoryService", () => {
     const historyResult = await history.list();
     if (!historyResult.ok) throw new Error("history should read");
     const cashEntry = historyResult.value.find(entry => entry.kind === "cash_reversal");
+    /* S1-08: الوصلة تفتح دفتر المحفظة نفسه مع تركيز صف التراجع (?entry=). */
     expect(cashEntry).toMatchObject({
       reason: "المبلغ غير صحيح",
       amountEffectMinor: -10000,
-      /* U-001 (دورة التدقيق النهائي): القيد المصدر ظاهر في سطح المحافظ. */
-      deepLink: "/cash",
     });
+    expect(cashEntry?.deepLink).toContain(`/cash/wallet/`);
+    expect(cashEntry?.deepLink).toContain(`entry=`);
   });
 
   it("returns empty for a clean store and never invents entries", async () => {

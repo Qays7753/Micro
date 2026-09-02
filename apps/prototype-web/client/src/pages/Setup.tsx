@@ -323,7 +323,8 @@ export default function Setup() {
               </label>
             ) : null}
             {openingChoice === "unknown" ? (
-              <p className="micro-field-error" role="status">
+              /* S3-17: خيار صادق معتمد — ملاحظة محايدة لا تنبيه خطأ. */
+              <p className="micro-save-note" role="status">
                 ستبقى المحفظة «غير محددة» — تُظهر طريقًا لإدخال رصيد موثق لاحقًا، ولا تُعرض صفرًا أبدًا.
               </p>
             ) : null}

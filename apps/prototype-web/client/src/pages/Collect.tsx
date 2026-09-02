@@ -1,7 +1,7 @@
 /**
  * المجموعة ٢ (§6 — Scope B): ورقة التحصيل — سطح تحصيل مخصص واعٍ بالسياق.
  * يُفتح من الرئيسية (بند دين)، ودفتر الناس (صف الطرف)، وورقة الإضافة (سجّل)،
- * أو مباشرة بلا مصدر فيعمل منتقي ذمم آمن. يعرض الشخص والمتبقي وسياق المصدر،
+ * أو مباشرة بلا مصدر فيعمل منتقي ديون آمن. يعرض الشخص والمتبقي وسياق المصدر،
  * يعبّئ المتبقي قابلًا للتعديل، يفرض وجهة كاش صريحة (الدرج افتراضيًا حين يوجد)،
  * يمنع التحصيل فوق المتبقي، ويكتب بواقعية: كاش+ / متبقٍ− — لا إيراد ولا ربح.
  */
@@ -17,6 +17,7 @@ import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayVal
 import type { CollectionOutcome, ReceivableSource } from "@/application/collections/collectionService";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyWithUnit } from "@/presentation/formatters";
 
 type PageState =
   | { phase: "loading" }
@@ -68,7 +69,7 @@ export default function Collect() {
             ? sourcesResult.message
             : !walletsResult.ok
               ? walletsResult.message
-              : "تعذر قراءة الذمم.";
+              : "تعذر قراءة الديون.";
           setState({ phase: "error", message });
           return;
         }
@@ -120,7 +121,7 @@ export default function Collect() {
 
   async function submit() {
     if (!source) {
-      setMessage("اختر ذمة التحصيل أولًا.");
+      setMessage("اختر دين التحصيل أولًا.");
       return false;
     }
     if (!validAmount || !Number.isInteger(amountMinor) || amountMinor <= 0) {
@@ -129,7 +130,7 @@ export default function Collect() {
     }
     if (amountMinor > source.outstandingMinor) {
       setMessage(
-        `التحصيل يتجاوز المتبقي على ${source.personName} — المتبقي ${(source.outstandingMinor / 100).toFixed(2)} د.أ. حصّل المتبقي أو أقل منه.`,
+        `التحصيل يتجاوز المتبقي على ${source.personName} — المتبقي ${formatMoneyWithUnit(source.outstandingMinor)}. حصّل المتبقي أو أقل منه.`,
       );
       return false;
     }
@@ -160,7 +161,7 @@ export default function Collect() {
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
-        جارٍ قراءة الذمم القابلة للتحصيل…
+        جارٍ قراءة الديون القابلة للتحصيل…
       </div>
     );
   if (state.phase === "error")
@@ -188,12 +189,12 @@ export default function Collect() {
           </strong>
           <p>
             {outcome.remainingAfterMinor > 0
-              ? `الباقي على ${state.personName}: ${formatRemaining(outcome.remainingAfterMinor)} — الديون مستمرة لا تتغير قيمتها.`
+              ? `الباقي على ${state.personName}: ${formatMoneyWithUnit(outcome.remainingAfterMinor)} — الديون مستمرة لا تتغير قيمتها.`
               : `الباقي على ${state.personName}: صفر — الذمة سُدّت بالكامل.`}
           </p>
           <p>
             {outcome.attributedToWalletMinor > 0
-              ? `انتقل إلى «${outcome.walletName ?? "المحفظة"}»: ${formatRemaining(outcome.attributedToWalletMinor)} — حركة موثقة في دفتر المحفظة.`
+              ? `انتقل إلى «${outcome.walletName ?? "المحفظة"}»: ${formatMoneyWithUnit(outcome.attributedToWalletMinor)} — حركة موثقة في دفتر المحفظة.`
               : "بقي الكاش غير موزع — وزّعه على محفظة عندما تعرف وجهته."}
           </p>
           {/* (إصلاح تكاملي — مجموعة ٤): فشل نسبة المحفظة بعد تسجيل القبض يظهر سببه
@@ -284,15 +285,15 @@ export default function Collect() {
               <option value="">اختر شخصًا وذمة…</option>
               {ready.sources.map(item => (
                 <option key={`${item.kind}:${item.id}`} value={`${item.kind}:${item.id}`}>
-                  {item.personName} — {item.itemName} — المتبقي {(item.outstandingMinor / 100).toFixed(2)} د.أ
+                  {item.personName} — {item.itemName} — المتبقي {formatMoneyWithUnit(item.outstandingMinor)}
                 </option>
               ))}
             </select>
           </label>
         </section>
       ) : ready && ready.sources.length === 0 ? (
-        <section className="micro-home-quiet" aria-label="لا ذمم">
-          <strong>ما في ذمم قابلة للتحصيل الآن.</strong>
+        <section className="micro-home-quiet" aria-label="لا ديون">
+          <strong>ما في ديون قابلة للتحصيل الآن.</strong>
           <p>
             الديون تظهر هنا بعد التسليم مع متبقٍ، أو بعد تسجيل الدين صراحة، أو من بيع آجل — التحصيل قبل
             التسليم يُسجّل عربونًا من تفاصيل الطلب.
@@ -327,7 +328,7 @@ export default function Collect() {
               type="button"
               onClick={() => setAmountMinor(source.outstandingMinor)}
             >
-              كامل المتبقي ({formatRemaining(source.outstandingMinor)})
+              كامل المتبقي ({formatMoneyWithUnit(source.outstandingMinor)})
             </button>
             <button
               className="micro-text-action"
@@ -346,7 +347,7 @@ export default function Collect() {
               {walletOptions.map(wallet => (
                 <option key={wallet.id} value={wallet.id}>
                   {wallet.name} ({wallet.kind === "cash_drawer" ? "درج" : wallet.kind === "bank_account" ? "حساب بنكي" : wallet.kind === "digital_wallet" ? "محفظة رقمية" : "مكان كاش"}{" "}
-                  — الرصيد {(wallet.balanceMinor / 100).toFixed(2)} د.أ)
+                  — الرصيد {formatMoneyWithUnit(wallet.balanceMinor)})
                   {drawer && wallet.id === drawer.id ? " · الافتراضي" : ""}
                 </option>
               ))}
@@ -363,7 +364,7 @@ export default function Collect() {
               aria-label="ملاحظة التحصيل"
             />
           </label>
-          {/* معاينة الأثر قبل التأكيد — مادية لأنها تلمس الكاش والذمم معًا. */}
+          {/* معاينة الأثر قبل التأكيد — مادية لأنها تلمس الكاش والدين معًا. */}
           <section className="micro-decision-card" data-knowledge="known" aria-label="أثر التحصيل">
             <span>الأثر قبل الحفظ</span>
             <dl className="micro-collect-preview">
@@ -387,14 +388,14 @@ export default function Collect() {
               </div>
             </dl>
             {overAmount ? (
-              <p className="micro-field-error" role="status">
+              <p className="micro-field-error" role="alert">
                 المبلغ المُدخل يتجاوز المتبقي على {source.personName} — القبض لن يُسجّل حتى تصحّح
                 المبلغ؛ المتبقي أعلاه يبقى كما هو.
               </p>
             ) : null}
           </section>
           {message ? (
-            <p className="micro-field-error" role="status">
+            <p className="micro-field-error" role="alert">
               {message}
             </p>
           ) : null}
@@ -417,6 +418,3 @@ export default function Collect() {
   );
 }
 
-function formatRemaining(minor: number): string {
-  return `${(minor / 100).toFixed(2)} د.أ`;
-}

@@ -532,12 +532,14 @@ export function EventsLayer({
   projectFinance,
   onChanged,
   focusEventId = null,
+  openOnLoad = false,
 }: {
   visibleEvents: readonly FinancialEvent[];
   events: readonly FinancialEvent[];
   projectFinance: ProjectFinancialService;
   onChanged: () => void;
   focusEventId?: string | null;
+  openOnLoad?: boolean;
 }) {
   /* U-001 (دورة التدقيق النهائي): طريقة عملية للوصول للأحداث الأقدم — الافتراضي
    * الأحدث الثلاثة (كثافة §10)، وزر واحد يعرض السجل كاملًا بنفس صفوفه وتصحيحاته.
@@ -550,6 +552,10 @@ export function EventsLayer({
       setLayerOpen(true);
     }
   }, [focusEventId]);
+  /* S1-09: ?layer=events يفتح الطبقة نفسها (معجم عقد ٢٦ §3.1). */
+  useEffect(() => {
+    if (openOnLoad) setLayerOpen(true);
+  }, [openOnLoad]);
   const renderedEvents = showAll ? events : visibleEvents;
   const focusedEventId = focusEventId ?? null;
   const onToggle = (event: React.ToggleEvent<HTMLDetailsElement>) => {

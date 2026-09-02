@@ -9,6 +9,8 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import {
   cashCountDifferenceReason,
   cashCountSettledMessage,
@@ -34,6 +36,9 @@ export default function CashCount() {
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState<{ differenceMinor: number; newBalanceMinor: number } | null>(null);
+  /* S1-05/S1-11: عدّ مكتوب بلا تسوية يحمى بحارس المدخلات؛ الرجوع للمصدر (?from). */
+  const isDirty = useFormDirty([walletId, countedMinor, valid]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => settle() });
 
   useEffect(() => {
     let active = true;
@@ -72,18 +77,19 @@ export default function CashCount() {
   const wallet = overview.wallets.find(candidate => candidate.id === walletId) ?? null;
   const differenceMinor = wallet ? countedMinor - wallet.balanceMinor : 0;
 
-  async function settle() {
+  /* حارس المدخلات يستدعي نفس المسار: النجاح يرجع true ليكتمل الخروج بعد الحفظ. */
+  async function settle(): Promise<boolean> {
     if (!wallet) {
       setMessage("اختر محفظة قبل العدّ.");
-      return;
+      return false;
     }
     if (!valid || !Number.isInteger(countedMinor) || countedMinor < 0) {
       setMessage("أدخل المعدود رقمًا صحيحًا غير سالب.");
-      return;
+      return false;
     }
     if (differenceMinor === 0) {
       setMessage("العدّ يطابق الرصيد المسجل — لا حاجة لأي تسوية.");
-      return;
+      return false;
     }
     setSaving(true);
     setMessage(null);
@@ -99,11 +105,12 @@ export default function CashCount() {
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     setDone({ differenceMinor, newBalanceMinor: countedMinor });
     setMessage(cashCountSettledMessage(countedMinor));
+    return true;
   }
 
   if (done) {
@@ -124,7 +131,7 @@ export default function CashCount() {
             بأثر مستقبلي فقط.
           </p>
         </section>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
+        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
           محافظ الكاش <ArrowRight aria-hidden="true" />
         </button>
       </section>
@@ -133,7 +140,7 @@ export default function CashCount() {
 
   return (
     <section className="micro-page micro-count-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/cash")}>
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">

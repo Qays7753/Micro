@@ -246,8 +246,8 @@ export default function OrderDetail() {
 
   return (
     <section className="micro-page micro-order-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/orders")}>
-        <ArrowRight aria-hidden="true" /> الطلبات
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowRight aria-hidden="true" /> {returnPath === "/orders" ? "الطلبات" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">{label}</span>
@@ -751,7 +751,10 @@ export default function OrderDetail() {
             <>
               <ActualMaterialPanel
                 state={materialState}
-                onRecord={() => navigate("/inventory/movement/consume")}
+                onRecord={() =>
+                  /* S1-06: نفس نمط فرع التنفيذ — الاستهلاك مرتبط بطلبه لا بأول طلب في القائمة. */
+                  navigate(`/inventory/movement/consume?order=${stored.id}&from=/orders/${stored.id}`)
+                }
               />
               <ActualTimePanel
                 orderId={stored.id}

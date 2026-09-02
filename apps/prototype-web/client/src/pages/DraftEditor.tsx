@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, Save, Trash2 } from "lucide-react";
 import { useLocation, useParams, useSearch } from "wouter";
-import { useReturnPath } from "@/app/useReturnNavigation";
+import { useReturnPath, useReferrerLinks } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -283,6 +283,8 @@ export default function DraftEditor() {
     draft && initialValuesRef.current && !equalDraftValues(draftFormValues(draft), initialValuesRef.current),
   );
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save(false) });
+  /* S1-04: وصلة الكتالوج تمرّ بالحارس نفسه وتحمل المصدر — لا ضياع صامت للمدخلات. */
+  const linkTo = useReferrerLinks();
   /* القرار ٢١ (R-2): الحد القاطع يُقرأ من الحقل — linkedOrderId !== null ⇒ الزر لا يظهر أصلًا.
    * الحذف بلا سبب وبلا أثر مالي: المسودة ليست طلبًا ولا تحمل مالًا.
    * و٥: المحرر الفارغ بلا سجل — لا شيء يُحذف بعد. */
@@ -407,7 +409,7 @@ export default function DraftEditor() {
         <button
           className="micro-button micro-button-secondary"
           type="button"
-          onClick={() => navigate("/catalog")}
+          onClick={() => requestNavigation(linkTo("/catalog"))}
         >
           <BookOpen aria-hidden="true" /> منتجاتي وخدماتي
         </button>

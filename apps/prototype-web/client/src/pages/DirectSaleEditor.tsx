@@ -16,6 +16,7 @@ import type {
   DirectSaleCollectionStatus,
   DirectSale,
 } from "@micro-domain/direct-sale/index.js";
+import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
 type DifferenceChoice = "price_cut" | "remaining_debt" | "needs_review";
@@ -385,7 +386,7 @@ export default function DirectSaleEditor() {
   if (done && !editing) {
     const sale = done.sale;
     const reference = references.find(item => item.id === sale.catalogItemId) ?? null;
-    const outstandingMinor = sale.revenueMinor - sale.collectedMinor;
+    const outstandingMinor = directSaleOutstandingMinor(sale);
     return (
       <section className="micro-page micro-finance-page">
         <div className="micro-page-heading">
@@ -407,7 +408,7 @@ export default function DirectSaleEditor() {
               ? sale.collectionStatus === "partial_debt"
                 ? `دين على ${sale.customerName ?? "الزبون"}: ${formatMoneyMinor(outstandingMinor)} د.أ — يظهر في «لي عند العملاء» ودفتر الناس.`
                 : `فرق معلّق للمراجعة: ${formatMoneyMinor(outstandingMinor)} د.أ — لم يُقرّر بعد.`
-              : "قُبض المبلغ كاملًا — لا ذمم من هذا البيع."}
+              : "قُبض المبلغ كاملًا — لا دين من هذا البيع."}
           </p>
           <p>
             {done.attributedMinor > 0
@@ -696,7 +697,7 @@ export default function DirectSaleEditor() {
           <section className="micro-difference-panel" aria-label="قرار الفرق بين المتفق والمقبوض">
             <strong>
               اتفقتَ على {formatMoneyMinor(revenueMinor)} وقبضتَ {formatMoneyMinor(resolvedCollected)} — الفرق{" "}
-              {formatMoneyMinor(difference)} دينار.
+              {formatMoneyMinor(difference)} د.أ.
             </strong>
             <p>النظام لا يقرّر عنك — اختر ما حدث فعلًا:</p>
             <label className="micro-radio-choice">
@@ -747,10 +748,12 @@ export default function DirectSaleEditor() {
             </button>
           </section>
         ) : (
-          <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={saving} onClick={save}>
+          <div className="micro-form-actions micro-sticky-save">
+            <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={saving} onClick={save}>
             <Save aria-hidden="true" />
             {saving ? "جارٍ الحفظ…" : editing ? "حفظ تصحيح البيع" : "حفظ البيع المباشر"}
           </button>
+          </div>
         )}
         </fieldset>
       </section>

@@ -89,8 +89,7 @@ export function ownerEntitlementPolicyFamilyForKind(
   return familyByKind[kind];
 }
 function assertPolicyFamily(kind: OwnerEntitlementPolicyKind, family: OwnerEntitlementPolicyFamily) {
-  if (ownerEntitlementPolicyFamilyForKind(kind) !== family)
-    throw new Error("عائلة السياسة لا تطابق نوعها.");
+  if (ownerEntitlementPolicyFamilyForKind(kind) !== family) throw new Error("عائلة السياسة لا تطابق نوعها.");
 }
 function sourceKeys(value: readonly string[] | undefined | null, field: string) {
   const keys = value ?? [];
@@ -118,28 +117,8 @@ function isFullCalendarMonth(from: string, to: string) {
   return from.endsWith("-01") && to === lastDayOfMonth(from);
 }
 
-export function createOwnerEntitlementPolicy(
-  input: CreateOwnerEntitlementPolicyInput,
-): OwnerEntitlementPolicy {
-  nonBlank(input.id, "id");
-  nonBlank(input.source, "source");
-  nonBlank(input.note, "note");
-  nonBlank(input.idempotencyKey, "idempotencyKey");
-  if (!Number.isInteger(input.version) || input.version < 1)
-    throw new Error("أدخل رقم النسخة رقمًا صحيحًا موجبًا.");
-  if (!(policyKinds as readonly string[]).includes(input.kind)) throw new Error("نوع السياسة غير صالح.");
-  if (!(policyFamilies as readonly string[]).includes(input.family))
-    throw new Error("عائلة السياسة غير صالحة.");
-  assertPolicyFamily(input.kind, input.family);
-  date(input.startsOn, "startsOn");
-  if (input.endsOn !== null) date(input.endsOn, "endsOn");
-  if (input.endsOn && input.endsOn < input.startsOn) throw new Error("تاريخ النهاية لا يمكن أن يسبق تاريخ البداية.");
-  if (input.kind === "fixed_period" && input.endsOn === null)
-    throw new Error("سياسة الفترة الثابتة تتطلب تاريخ نهاية صريحًا.");
-  if (input.status === "ended" && input.endsOn === null) throw new Error("السياسة المنتهية تتطلب تاريخ نهاية.");
-  if (input.status !== "active" && input.status !== "ended") throw new Error("حالة السياسة غير صالحة.");
-  optionalPositiveMinor(input.amountMinor, "amountMinor");
-  bps(input.percentageBps, "percentageBps");
+/* تحقق عائلة المبلغ/النسبة معيّن مستقل — نفس الرسائل بلا تضخيم الدالة الأم. */
+function assertPolicyAmountShape(input: CreateOwnerEntitlementPolicyInput) {
   const amountKinds: readonly OwnerEntitlementPolicyKind[] = [
     "monthly",
     "weekly",
@@ -159,6 +138,33 @@ export function createOwnerEntitlementPolicy(
     throw new Error("سياسة المبلغ لا تعلن نسبة.");
   if (percentageKinds.includes(input.kind) && input.amountMinor !== null)
     throw new Error("سياسة النسبة لا تعلن مبلغًا.");
+}
+
+export function createOwnerEntitlementPolicy(
+  input: CreateOwnerEntitlementPolicyInput,
+): OwnerEntitlementPolicy {
+  nonBlank(input.id, "id");
+  nonBlank(input.source, "source");
+  nonBlank(input.note, "note");
+  nonBlank(input.idempotencyKey, "idempotencyKey");
+  if (!Number.isInteger(input.version) || input.version < 1)
+    throw new Error("أدخل رقم النسخة رقمًا صحيحًا موجبًا.");
+  if (!(policyKinds as readonly string[]).includes(input.kind)) throw new Error("نوع السياسة غير صالح.");
+  if (!(policyFamilies as readonly string[]).includes(input.family))
+    throw new Error("عائلة السياسة غير صالحة.");
+  assertPolicyFamily(input.kind, input.family);
+  date(input.startsOn, "startsOn");
+  if (input.endsOn !== null) date(input.endsOn, "endsOn");
+  if (input.endsOn && input.endsOn < input.startsOn)
+    throw new Error("تاريخ النهاية لا يمكن أن يسبق تاريخ البداية.");
+  if (input.kind === "fixed_period" && input.endsOn === null)
+    throw new Error("سياسة الفترة الثابتة تتطلب تاريخ نهاية صريحًا.");
+  if (input.status === "ended" && input.endsOn === null)
+    throw new Error("السياسة المنتهية تتطلب تاريخ نهاية.");
+  if (input.status !== "active" && input.status !== "ended") throw new Error("حالة السياسة غير صالحة.");
+  optionalPositiveMinor(input.amountMinor, "amountMinor");
+  bps(input.percentageBps, "percentageBps");
+  assertPolicyAmountShape(input);
   if (input.kind === "per_unit" || input.kind === "per_completed_work")
     nonBlank(input.unitLabel ?? "", "unitLabel");
   if (input.kind !== "per_unit" && input.kind !== "per_completed_work" && input.unitLabel !== null)
@@ -298,10 +304,7 @@ function assertMovementReasonMatchesKind(
   kind: CreateOwnerMovementInput["kind"],
   reason: CreateOwnerMovementInput["reason"],
 ): void {
-  if (
-    kind === "draw" &&
-    (reason === "settlement_of_prior_draw" || reason === "new_capital_investment")
-  )
+  if (kind === "draw" && (reason === "settlement_of_prior_draw" || reason === "new_capital_investment"))
     throw new Error("سبب السحب غير صالح.");
   if (
     kind === "return" &&
@@ -391,8 +394,7 @@ function assertMovementPrimitives(input: CreateOwnerMovementInput): void {
   date(input.occurredOn, "occurredOn");
   iso(input.recordedAt, "recordedAt");
   if (input.kind !== "draw" && input.kind !== "return") throw new Error("نوع حركة المالك غير صالح.");
-  if (!(movementReasons as readonly string[]).includes(input.reason))
-    throw new Error("سبب الحركة غير صالح.");
+  if (!(movementReasons as readonly string[]).includes(input.reason)) throw new Error("سبب الحركة غير صالح.");
 }
 
 export function createOwnerMovement(input: CreateOwnerMovementInput): OwnerMovement {
@@ -644,8 +646,7 @@ function profitShareEntitlement(
       quantity: null,
       calculationBasis: "profit_share",
       sourceKeys: [],
-      nextAction:
-        "أغلق الفترة وتحقق من قراءة G3 المسجلة الصحيحة؛ لا تحسب النسبة من الكاش أو المبيعات الخام.",
+      nextAction: "أغلق الفترة وتحقق من قراءة G3 المسجلة الصحيحة؛ لا تحسب النسبة من الكاش أو المبيعات الخام.",
     };
   if (evidence.recognizedProfitStatus !== "recorded_only")
     return {
@@ -694,59 +695,59 @@ function salePercentageEntitlement(
   policy: OwnerEntitlementPolicy,
   evidence: OwnerEntitlementEvidence,
 ): OwnerEntitlementCalculation {
-    const base = evidence.completedSaleMinor ?? null;
-    if (base === null || !Number.isInteger(base) || base <= 0)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: base,
-        quantity: null,
-        calculationBasis: "completed_sale_percentage",
-        sourceKeys: [],
-        nextAction: "أكمل قيمة البيع المكتمل والمحتسب إيراده عند التسليم؛ لا تحسب من العربون أو الدين غير المحتسب عند التسليم.",
-      };
-    const keys = evidence.completedSaleKeys ?? [];
-    if (keys.length === 0)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: base,
-        quantity: null,
-        calculationBasis: "completed_sale_percentage",
-        sourceKeys: [],
-        nextAction: "احفظ مراجع البيوع المكتملة حتى لا يعاد احتساب البيع نفسه.",
-      };
-    const share = roundHalfUp(base * (policy.percentageBps ?? 0), 10_000);
-    if (share === null)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: base,
-        quantity: null,
-        calculationBasis: "completed_sale_percentage",
-        sourceKeys: [],
-        nextAction: "أساس البيع أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الحق.",
-      };
-    if (share <= 0)
-      return {
-        amountMinor: null,
-        knowledge: "incomplete",
-        baseMinor: base,
-        quantity: null,
-        calculationBasis: "completed_sale_percentage",
-        sourceKeys: keys,
-        nextAction: "راجع قيمة البيع أو النسبة؛ لا يسجل حق صفري من نسبة موجبة.",
-      };
+  const base = evidence.completedSaleMinor ?? null;
+  if (base === null || !Number.isInteger(base) || base <= 0)
     return {
-      amountMinor: share,
-      knowledge: "known",
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: base,
+      quantity: null,
+      calculationBasis: "completed_sale_percentage",
+      sourceKeys: [],
+      nextAction:
+        "أكمل قيمة البيع المكتمل والمحتسب إيراده عند التسليم؛ لا تحسب من العربون أو الدين غير المحتسب عند التسليم.",
+    };
+  const keys = evidence.completedSaleKeys ?? [];
+  if (keys.length === 0)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: base,
+      quantity: null,
+      calculationBasis: "completed_sale_percentage",
+      sourceKeys: [],
+      nextAction: "احفظ مراجع البيوع المكتملة حتى لا يعاد احتساب البيع نفسه.",
+    };
+  const share = roundHalfUp(base * (policy.percentageBps ?? 0), 10_000);
+  if (share === null)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
+      baseMinor: base,
+      quantity: null,
+      calculationBasis: "completed_sale_percentage",
+      sourceKeys: [],
+      nextAction: "أساس البيع أو النسبة يتجاوز الدقة الآمنة؛ راجع القراءة قبل اعتماد الحق.",
+    };
+  if (share <= 0)
+    return {
+      amountMinor: null,
+      knowledge: "incomplete",
       baseMinor: base,
       quantity: null,
       calculationBasis: "completed_sale_percentage",
       sourceKeys: keys,
-      nextAction: "راجع أن البيع مكتمل ومحتسب إيراده عند التسليم، لا عربونًا أو دينًا.",
+      nextAction: "راجع قيمة البيع أو النسبة؛ لا يسجل حق صفري من نسبة موجبة.",
     };
-  
+  return {
+    amountMinor: share,
+    knowledge: "known",
+    baseMinor: base,
+    quantity: null,
+    calculationBasis: "completed_sale_percentage",
+    sourceKeys: keys,
+    nextAction: "راجع أن البيع مكتمل ومحتسب إيراده عند التسليم، لا عربونًا أو دينًا.",
+  };
 }
 
 /* و٩: حوارس شكل الفترة بحسب نوع السياسة — شهر كامل أو سبعة أيام أو يوم واحد أو النطاق المعلن. */
@@ -808,9 +809,7 @@ function fixedPeriodRangeGuard(
   evidence: OwnerEntitlementEvidence,
 ): OwnerEntitlementCalculation | null {
   const rangeMatches =
-    policy.endsOn !== null &&
-    evidence.periodFrom === policy.startsOn &&
-    evidence.periodTo === policy.endsOn;
+    policy.endsOn !== null && evidence.periodFrom === policy.startsOn && evidence.periodTo === policy.endsOn;
   if (rangeMatches) return null;
   return {
     amountMinor: null,

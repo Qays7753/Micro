@@ -11,7 +11,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 import type { CostEstimate } from "@/storage/local/types";
 
 type DetailState =
@@ -175,12 +175,12 @@ export default function EstimateDetail() {
         )}
         <p className="micro-muted-copy">
           {estimate.time && estimate.time.minutes != null && estimate.time.hourlyRateMinor != null
-            ? `وقت العمل: ${estimate.time.minutes} دقيقة بـ ${(estimate.time.hourlyRateMinor / 100).toFixed(2)} د.أ للساعة`
+            ? `وقت العمل: ${estimate.time.minutes} دقيقة بـ ${formatMoneyWithUnit(estimate.time.hourlyRateMinor)} للساعة`
             : "وقت العمل: غير محدد بعد — النتيجة بلا أجر وقتك."}
         </p>
         {extras.length ? (
           <p className="micro-muted-copy">
-            {extras.map(extra => `${extra.label}: ${(extra.value / 100).toFixed(2)} د.أ`).join(" · ")}
+            {extras.map(extra => `${extra.label}: ${formatMoneyWithUnit(extra.value)}`).join(" · ")}
           </p>
         ) : (
           <p className="micro-muted-copy">لا بنود إضافية محفوظة في هذا التقدير.</p>

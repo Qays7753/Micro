@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { withFrom } from "@/app/navigationContract";
 import type {
@@ -81,6 +82,8 @@ const monthFirstDayOffset = (month: string) => new Date(`${month}-01T12:00:00.00
 
 export default function Schedule() {
   const [, navigate] = useLocation();
+  /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
+  const returnPath = useReturnPath();
   const search = useSearch();
   const { schedules, recurrences, notifyDataChanged, dataVersion } = usePrototypeServices();
   const [selectedMonth, setSelectedMonth] = useState(currentLocalMonth);
@@ -94,7 +97,8 @@ export default function Schedule() {
    * والسعة» حيث يُقرأ الضغط؛ القيمة المجهولة تُهمل بلا أثر. */
   const [capacityLayerOpen, setCapacityLayerOpen] = useState(() => {
     try {
-      return new URLSearchParams(search ?? "").get("focus") === "capacity";
+      /* S1-09: focus=recurrence يفتح نفس طبقة «التكرار والسعة» (معجم عقد ٢٦ §3.1). */
+      return ["capacity", "recurrence"].includes(new URLSearchParams(search ?? "").get("focus") ?? "");
     } catch {
       return false;
     }
@@ -196,8 +200,8 @@ export default function Schedule() {
   /* مبدأ Micro: يبدأ الجدول بأقرب التزام وفعل، وتأتي التقويمات والإعدادات النادرة عند الطلب. */
   return (
     <section className="micro-page micro-schedule-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/")}>
-        <ArrowLeft aria-hidden="true" /> مشروعي الآن
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowLeft aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">التنظيم التشغيلي</span>

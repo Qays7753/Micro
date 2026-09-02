@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
@@ -41,6 +42,8 @@ const label = (type: CashContinuityEntry["type"]) =>
 
 export default function CashWallets() {
   const [, navigate] = useLocation();
+  /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
+  const returnPath = useReturnPath();
   const { cashContinuity, projectFinance, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   useEffect(() => {
@@ -86,8 +89,8 @@ export default function CashWallets() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate(withFrom("/finance", "/cash"))}>
-        <ArrowLeft aria-hidden="true" /> الوضع المالي
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowLeft aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">استمرارية السجل</span>
@@ -127,7 +130,15 @@ export default function CashWallets() {
           <strong>
             <MoneyValue minor={state.position.unallocatedCashMinor} />
           </strong>
-          <small>طلب أو حدث أو شراء مواد لم يربطه النظام بمحفظة بعد.</small>
+          {/* S2-04 (ب): الرصيد السالب يُفسَّر بسببه لا برقم مجرد — تراجع تحصيل/تصحيح بيع
+              مع تخصيص قائم يترك تخصيصًا زائدًا؛ التراجع الموثق للتخصيص من السجل أسفله. */}
+          {state.position.unallocatedCashMinor < 0 ? (
+            <small className="micro-field-error" role="alert">
+              تخصيص زائد — راجع تراجع التحصيل أو تصحيح البيع ثم تراجع التخصيص الموثق من السجل.
+            </small>
+          ) : (
+            <small>طلب أو حدث أو شراء مواد لم يربطه النظام بمحفظة بعد.</small>
+          )}
         </div>
         <div>
           <span>الكاش المسجل الكلي (د.أ)</span>

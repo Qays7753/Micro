@@ -15,6 +15,7 @@ import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { ScheduleOverview } from "@/application/scheduling/scheduleService";
+import { formatMoneyWithUnit } from "@/presentation/formatters";
 
 type OrdersState =
   | { phase: "loading" }
@@ -171,7 +172,7 @@ export default function Orders() {
                   <small>
                     المحصل (د.أ): <MoneyValue minor={sale.collectedMinor} className="micro-inline-number" />
                     {sale.revenueMinor > sale.collectedMinor ? (
-                      <> من {(sale.revenueMinor / 100).toFixed(2)} المتفق</>
+                      <> من {formatMoneyWithUnit(sale.revenueMinor)} المتفق</>
                     ) : null}
                   </small>
                   <small className="micro-row-next-action">

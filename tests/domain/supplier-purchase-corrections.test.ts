@@ -229,3 +229,50 @@ describe("reverseSupplierPurchasePayment — الحمايات والتكرار (
     expect(twice.paymentReversals).toHaveLength(1);
   });
 });
+
+/* S2-01 (تدقيق المجموعة ٥): الدفعة بعد التراجع تحترم التراجع — لا يُبعث أثر
+ * دفعة مُتراجَع عنها، والمتبقي يُحسب من المدفوع الفعلي لا من مجموع الدفعات. */
+describe("recordSupplierPurchasePayment بعد تراجع موثق (S2-01)", () => {
+  it("دفعة جديدة بعد التراجع تطرح أثر التراجع — المدفوع والمتبقي صادقان", () => {
+    const purchase = purchaseWithPayment();
+    /* تراجع موثق عن الدفعة الثانية (1500) — المدفوع يعود إلى الدفع الأولي 2000. */
+    const afterReversal = reverseSupplierPurchasePayment(
+      purchase,
+      reversalInput({ paymentId: "payment-1", idempotencyKey: "reversal-s201" }),
+    );
+    expect(afterReversal.paidMinor).toBe(2000);
+    expect(afterReversal.payableMinor).toBe(3000);
+    /* دفعة جديدة 1500: المدفوع الفعلي 3500 لا 5000 (لا يُبعث أثر التراجع). */
+    const afterNewPayment = recordSupplierPurchasePayment(afterReversal, {
+      id: "payment-2",
+      amountMinor: 1500,
+      occurredOn: "2026-09-14",
+      recordedAt: "2026-09-14T09:00:00Z",
+      idempotencyKey: "payment-key-2",
+      note: "دفعة بديلة",
+    });
+    expect(afterNewPayment.payments).toHaveLength(3);
+    expect(afterNewPayment.paidMinor).toBe(3500);
+    expect(afterNewPayment.payableMinor).toBe(1500);
+    expect(afterNewPayment.status).toBe("partially_paid");
+  });
+
+  it("يرفض دفعة تتجاوز المتبقي الفعلي بعد التراجع (لا المتبقي المخزن وحده)", () => {
+    const purchase = purchaseWithPayment();
+    const afterReversal = reverseSupplierPurchasePayment(
+      purchase,
+      reversalInput({ paymentId: "payment-1", idempotencyKey: "reversal-s201b" }),
+    );
+    /* المتبقي الفعلي 3000 — دفعة 3500 يجب أن تُرفض رغم أن مجموع الدفعات كان 3500. */
+    expect(() =>
+      recordSupplierPurchasePayment(afterReversal, {
+        id: "payment-3",
+        amountMinor: 3500,
+        occurredOn: "2026-09-14",
+        recordedAt: "2026-09-14T09:00:00Z",
+        idempotencyKey: "payment-key-3",
+        note: "دفعة كبيرة",
+      }),
+    ).toThrow("الدفعة لا يمكن أن تتجاوز المتبقي المسجل على الشراء.");
+  });
+});

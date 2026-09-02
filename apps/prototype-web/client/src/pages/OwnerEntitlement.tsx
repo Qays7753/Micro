@@ -969,7 +969,9 @@ export default function OwnerEntitlement() {
             ) : (
               <>
                 <strong>
-                  الحق المقترح: <bdi dir="ltr">{formatMoneyMinor(calculation.amountMinor)} د.أ</bdi>
+                  الحق المقترح:{" "}
+                  <bdi dir="ltr">{formatMoneyMinor(calculation.amountMinor)}</bdi>{" "}
+                  د.أ
                 </strong>
                 <p>
                   الحالة: {calculation.knowledge === "known" ? "معروف" : "جزئي/يحتاج مراجعة"}. راجع المصدر قبل

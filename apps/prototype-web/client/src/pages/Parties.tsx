@@ -5,6 +5,7 @@
 import { ArrowLeft, HandCoins, Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
@@ -38,14 +39,17 @@ function collectTargetHref(
   if (!debt) return null;
   if (debt.kind === "order_debt") {
     const orderId = debt.href.replace(/^\/orders\//u, "");
-    return orderId ? `/collect?source=order:${orderId}` : null;
+    /* S1-01: الرجوع من ورقة التحصيل يعود إلى دفتر الناس لا إلى الرئيسية (عقد ٢٦ §٢.٣). */
+    return orderId ? withFrom(`/collect?source=order:${orderId}`, "/parties") : null;
   }
   const saleId = debt.href.replace(/^\/direct-sales\//u, "");
-  return saleId ? `/collect?source=sale:${saleId}` : null;
+  return saleId ? withFrom(`/collect?source=sale:${saleId}`, "/parties") : null;
 }
 
 export default function Parties() {
   const [, navigate] = useLocation();
+  /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
+  const returnPath = useReturnPath();
   const { partyLedger, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   const [query, setQuery] = useState("");
@@ -89,8 +93,8 @@ export default function Parties() {
 
   return (
     <section className="micro-page micro-parties-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate(withFrom("/finance", "/parties"))}>
-        <ArrowLeft aria-hidden="true" /> الوضع المالي
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowLeft aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">دفتر الناس</span>
@@ -169,7 +173,7 @@ export default function Parties() {
                     <button type="button" onClick={() => navigate(collectTargetHref(party)!)}>
                       <span>
                         <b>حصّل من {party.name}</b>
-                        <small>يفتح ورقة التحصيل بهذه الذمة — مبلغ ووجهة كاش موثقة، ولا يُكتب شيء من الدفتر.</small>
+                        <small>يفتح ورقة التحصيل بهذا الدين — مبلغ ووجهة كاش موثقة، ولا يُكتب شيء من الدفتر.</small>
                       </span>
                       <HandCoins aria-hidden="true" />
                     </button>
@@ -177,7 +181,7 @@ export default function Parties() {
                 ) : null}
                 {party.movements.map(movement => (
                   <li key={movement.id}>
-                    <button type="button" onClick={() => navigate(movement.href)}>
+                    <button type="button" onClick={() => navigate(withFrom(movement.href, "/parties"))}>
                       <span>
                         <small>{formatLocalDate(movement.occurredOn)}</small>
                         <b>

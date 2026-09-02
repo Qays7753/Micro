@@ -275,10 +275,14 @@ CAPS: dict[str, int] = {
     # Finance 148 → 169 (2026-09-02, Group 2 §8 Scope D + §9.2 Scope E, owner-approved
     # financial-truth prompt): Position/Period first-decision toggle labels, statement
     # entry card + period-reading link, negative-unallocated cover-payment alert
-    # wording ("في دفعة تحتاج تغطية" + neutral explanation), direct-sale cash qualifier
+    # wording ("في دفعة تحت تغطية" + neutral explanation), direct-sale cash qualifier
     # ("بتاريخ البيع"), corrections-block labels (family/reason/net-effect), and the
     # unified correction history groups (purchases/orders). Mandated labels only.
-    "Finance": 169,
+    # Finance 169 → 172 (2026-09-02, Group 5 full audit S2-05/S1-10, owner-approved
+    # audit repairs): honest Amanah exclusion on recorded liquidity (dt label
+    # "أمانات محتجزة" + explanatory notice when held > 0) and the contract-26 return
+    # label ("رجوع") when opened with ?from. Mandated honesty labels, no prose.
+    "Finance": 172,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -292,7 +296,10 @@ CAPS: dict[str, int] = {
     # open link) + real labels for the two Group-2 correction events that fell back
     # to a generic label (price_revised / collection_reversed in OrderEventLog) —
     # mandated labels, not prose creep.
-    "OrderDetail": 158,
+    # OrderDetail 158 → 160 (2026-09-02, Group 5 full audit S1-02/S1-06): the
+    # contract-26 return label ("رجوع") honoring ?from, and the pre-execution
+    # consume link carrying its order context — mandated navigation labels.
+    "OrderDetail": 160,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -337,7 +344,9 @@ CAPS: dict[str, int] = {
     # prompt): the Product-to-Sale row action "سجّل بيع هذا المنتج/هذه الخدمة" on active
     # items — one mandated label pair, the primary action of the catalog surface.
     "Catalog": 94,
-    "InventoryMaterials": 49,
+    # InventoryMaterials 49 → 50 (2026-09-02, Group 5 S1-10): contract-26 return
+    # label ("رجوع") when opened with ?from — one mandated navigation label.
+    "InventoryMaterials": 50,
     # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
     # label + service truth line — the explicit distribution path is now a first-class
     # wallet-screen concept.
@@ -346,14 +355,24 @@ CAPS: dict[str, int] = {
     # CashWallets 69 → 70 (2026-09-02, Group 2 §9.1 Scope E): the wallet-ledger entry
     # label ("دفتر المحفظة") on each wallet row — the approved per-wallet reading
     # surface, one mandated link label.
-    "CashWallets": 70,
+    # CashWallets 70 → 72 (2026-09-02, Group 5 S1-10/S3-05): contract-26 return
+    # label ("رجوع") honoring ?from + the payable-line label moved out of the mono
+    # numeric class into its own Arabic label pair. Mandated labels.
+    "CashWallets": 72,
     "OwnerEntitlement": 48,
-    "Schedule": 98,
+    # Schedule 98 → 99 (2026-09-02, Group 5 S1-10): contract-26 return label ("رجوع")
+    # when opened with ?from — one mandated navigation label.
+    "Schedule": 99,
     "ScheduleEditor": 45,
     # Profile (2026-09-02, Group 1 Scope G, owner-approved execution prompt): new
     # mandated screen — two identity sections, states, edit mode, and local-truth line;
     # locked at 27 with headroom of 3 for future mandated labels only.
     "Profile": 30,
+    # Settings (2026-09-02, Group 5 S1-13): first explicit cap for the surface at its
+    # current honest count — the contract-26 return label ("رجوع") honoring the
+    # Foundation guided-import ?from; notices now render inline per section (S3-11)
+    # so no new prose was added beyond the return label.
+    "Settings": 31,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate

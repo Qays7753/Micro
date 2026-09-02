@@ -142,6 +142,28 @@ export default function FinancialEventEditor() {
     };
   }, [projectFinance, type]);
 
+  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة في محرر الأحداث —
+   * الرجوع يمر بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ».
+   * G5-S6: حُرّك الهوكان فوق العائد المبكر (!type) — هوك بعد عائد مبكر يغيّر
+   * عدد الهوكات بين الرندرات ويرمي React رقم 310 عند تنقل النوع على نفس السطح. */
+  const isDirty = useFormDirty([
+    amountMinor,
+    validAmount,
+    sharedTotalAmountMinor,
+    sharedPercentage,
+    date,
+    note,
+    counterparty,
+    relationship,
+    behavior,
+    purpose,
+    knowledge,
+    sharedMode,
+    sharedNote,
+    relatedEventId,
+  ]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+
   if (!type)
     return (
       <section className="micro-page micro-not-found">
@@ -181,26 +203,6 @@ export default function FinancialEventEditor() {
         sharedPercentage > 0 &&
         sharedPercentage <= 100
       : validAmount && amountMinor > 0;
-
-  /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة في محرر الأحداث —
-   * الرجوع يمر بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ». */
-  const isDirty = useFormDirty([
-    amountMinor,
-    validAmount,
-    sharedTotalAmountMinor,
-    sharedPercentage,
-    date,
-    note,
-    counterparty,
-    relationship,
-    behavior,
-    purpose,
-    knowledge,
-    sharedMode,
-    sharedNote,
-    relatedEventId,
-  ]);
-  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
     const selectedType = type;
@@ -254,7 +256,8 @@ export default function FinancialEventEditor() {
       return false;
     }
     setMessage("تم حفظ الحدث المالي محليًا.");
-    navigate("/finance");
+    /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
+    navigate(returnPath);
     return true;
   }
 
@@ -405,6 +408,7 @@ export default function FinancialEventEditor() {
             {message}
           </p>
         ) : null}
+        <div className="micro-form-actions micro-sticky-save">
         <button
           className="micro-button micro-button-primary micro-save-cost"
           type="button"
@@ -414,6 +418,7 @@ export default function FinancialEventEditor() {
           <Save aria-hidden="true" />
           {saving ? "جارٍ الحفظ…" : isOperatingExpense ? "حفظ المصروف المصنف" : "حفظ الحدث"}
         </button>
+      </div>
       </section>
     </section>
   );
