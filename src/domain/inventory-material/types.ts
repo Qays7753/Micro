@@ -7,7 +7,7 @@ export type Material = {
   createdAt: string;
   createdOperationKey: string;
 };
-export type InventoryMovementType =
+type InventoryMovementType =
   "opening" | "purchase_receipt" | "consumption" | "waste" | "adjustment" | "reversal";
 export type WasteContext =
   | { kind: "order"; orderId: string }

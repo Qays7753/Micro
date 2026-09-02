@@ -149,8 +149,8 @@ export type StoredCraftOrder = {
 };
 
 export type ScheduleStatus = "scheduled" | "postponed" | "completed" | "cancelled";
-export type ScheduleEventType = "created" | "postponed" | "timing_changed" | "completed" | "cancelled";
-export type ScheduleEvent = {
+type ScheduleEventType = "created" | "postponed" | "timing_changed" | "completed" | "cancelled";
+type ScheduleEvent = {
   id: string;
   type: ScheduleEventType;
   idempotencyKey: string;
@@ -179,7 +179,7 @@ export type ScheduleEntry = {
   updatedAt: string;
 };
 export type ScheduleRecurrenceFrequency = "weekly" | "monthly";
-export type ScheduleRecurrenceStatus = "active" | "cancelled";
+type ScheduleRecurrenceStatus = "active" | "cancelled";
 export type ScheduleRecurrence = {
   id: string;
   sourceScheduleId: string;
@@ -196,7 +196,7 @@ export type ScheduleRecurrence = {
 
 /* تقدير تكلفة مستقل (PA-006 ومبدأ «أدواتي»): حساب تفكير قبل الالتزام — لا يُنشئ
  * أي حدث مالي ولا حركة مخزون ولا طلبًا. يُحفظ للمراجعة اللاحقة فقط ويوسم دائمًا «تقديري». */
-export type CostEstimateKnowledge = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
+type CostEstimateKnowledge = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
 export type CostEstimate = {
   id: string;
   title: string;
@@ -258,7 +258,7 @@ export type LocalExportFile = {
 export type StorageFailureCode =
   "storage_unavailable" | "storage_error" | "storage_upgrade_failed" | "storage_blocked" | "storage_stale";
 export type StorageFailure = { ok: false; code: StorageFailureCode; message: string };
-export type StorageSuccess<T> = { ok: true; value: T };
+type StorageSuccess<T> = { ok: true; value: T };
 export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
 
 export interface PrototypeLocalStore {

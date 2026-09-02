@@ -7,7 +7,6 @@ import type {
   KnowledgeGap,
   KnowledgeState,
   MaterialCostItem,
-  MoneyMinor,
   OrderEvent,
   OrderEventType,
   OrderStatus,
@@ -17,6 +16,7 @@ import type {
   ReverseCollectionInput,
   SettlementStatus,
 } from "./types.js";
+import type { MoneyMinor } from "../shared/index.js";
 import {
   JOD,
   assertNonNegativeInteger,
@@ -173,7 +173,7 @@ function determineKnowledgeState(input: CostSnapshotInput): KnowledgeState {
 
 /** القرار ٢٢: القائمة الكاملة للنقص دفعة واحدة، وكل نقص يحمل علامته —
  * إلزامي (يمنع نتيجة صادقة) أو اختياري (يحسّن الدقة). */
-export function deriveKnowledgeGaps(input: CostSnapshotInput): readonly KnowledgeGap[] {
+function deriveKnowledgeGaps(input: CostSnapshotInput): readonly KnowledgeGap[] {
   const gaps: KnowledgeGap[] = [];
   if (hasNoCostComponentInput(input)) gaps.push({ id: "no_cost_components", mandatory: true });
   if (hasIncompleteTimeInput(input)) gaps.push({ id: "time_incomplete", mandatory: true });

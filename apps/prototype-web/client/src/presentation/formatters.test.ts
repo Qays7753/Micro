@@ -78,3 +78,50 @@ describe("presentation formatters", () => {
     expect(formatBreakEvenDisplay(0, "piece", "قطعة")).toBeNull();
   });
 });
+
+describe("المجموعة ٦ (البند ٥) — أرقام إنجليزية وتاريخ رقمي DD/MM/YYYY نظاميًا", () => {
+  it("يبطّن اليوم والشهر أحادي المنزلتين — 02/09/2026 لا 2/9/2026", () => {
+    expect(formatLocalDate("2026-09-02")).toBe("02/09/2026");
+    expect(formatLocalDate("2026-01-01")).toBe("01/01/2026");
+    expect(formatLocalDate("2026-10-05")).toBe("05/10/2026");
+  });
+
+  it("يقبل الكبيسة فقط حين تكون حقيقية — 29/02/2024 لا 29/02/2026", () => {
+    expect(formatLocalDate("2024-02-29")).toBe("29/02/2024");
+    expect(formatLocalDate("2000-02-29")).toBe("29/02/2000");
+    expect(formatLocalDate("2026-02-29")).toBeNull();
+    expect(formatLocalDate("1900-02-29")).toBeNull();
+  });
+
+  it("يرفض التواريخ المستحيلة والحدود المعكوسة", () => {
+    expect(formatLocalDate("2026-13-01")).toBeNull();
+    expect(formatLocalDate("2026-00-10")).toBeNull();
+    expect(formatLocalDate("2026-01-00")).toBeNull();
+    expect(formatLocalDate("2026-01-32")).toBeNull();
+    expect(formatLocalDate("")).toBeNull();
+    expect(formatLocalDate("not-a-date")).toBeNull();
+  });
+
+  it("حدود السنة كاملة بترتيب يوم/شهر/سنة محفوظ", () => {
+    expect(formatLocalDate("2026-12-31")).toBe("31/12/2026");
+    expect(formatLocalDate("2027-01-01")).toBe("01/01/2027");
+    const rendered = formatLocalDate("2026-06-15") ?? "";
+    expect(rendered.indexOf("15")).toBeLessThan(rendered.indexOf("06"));
+    expect(rendered.indexOf("06")).toBeLessThan(rendered.indexOf("2026"));
+  });
+
+  it("كل مخارج العرض أرقام ASCII لا هندية — مال وتاريخ وسنة وكمية", () => {
+    const arabicIndic = /[\u0660-\u0669\u06F0-\u06F9]/;
+    expect(arabicIndic.test(formatMoneyMinor(999999))).toBe(false);
+    expect(arabicIndic.test(formatLocalDate("2026-09-02") ?? "")).toBe(false);
+    expect(arabicIndic.test(formatMonthLabel("2026-09"))).toBe(false);
+    expect(arabicIndic.test(formatLocalDateTime("2026-08-23T22:30:00.000Z") ?? "")).toBe(false);
+  });
+
+  it("السنة بأربع منازل دائمًا — 31/12/2026 لا 31/12/26", () => {
+    const rendered = formatLocalDate("2026-12-31") ?? "";
+    expect(rendered.endsWith("2026")).toBe(true);
+    expect(rendered.split("/")).toHaveLength(3);
+    expect(rendered.split("/").map(part => part.length)).toEqual([2, 2, 4]);
+  });
+});

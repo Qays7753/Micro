@@ -77,7 +77,7 @@ export type StatementResult =
   | { ok: false; code: "storage_error" | "validation_error"; message: string };
 
 
-import { formatMoneyWithUnit, localDateInAmman as ammanDate } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit, localDateInAmman as ammanDate } from "@/presentation/formatters";
 
 export class StatementService {
   constructor(
@@ -435,7 +435,7 @@ export class StatementService {
       cashNetMinor,
       truthLines: [
         "الكاش ليس النتيجة: القبض يظهر أعلاه كحركة كاش، والإيراد يُعرف عند التسليم أو البيع.",
-        `نطاق الكشف: من ${from} إلى ${to} — حسب تواريخ الحركات المسجلة لا وقت فتح الشاشة.`,
+        `نطاق الكشف: من ${formatLocalDate(from) ?? from} إلى ${formatLocalDate(to) ?? to} — حسب تواريخ الحركات المسجلة لا وقت فتح الشاشة.`,
         "أي مجهول يبقى مجهولًا: لا يُعرض صفر مكان رقم لم يُدخل.",
         "صافي الكاش أعلاه لا يشمل أرصدة محافظ افتُتحت في الفترة ولا تسويات عدّ الصندوق — مصادرها في محافظ الكاش.",
       ],

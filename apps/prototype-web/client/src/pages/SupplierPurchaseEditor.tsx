@@ -314,7 +314,14 @@ export default function SupplierPurchaseEditor() {
             </strong>
             <p>
               {purchase.note} · اشتري في <LocalDateValue value={purchase.purchasedOn} />
-              {purchase.dueOn ? ` · يستحق في ${purchase.dueOn}` : ""}
+              {/* المجموعة ٦ (البند ٥): تاريخ الاستحقاق رقمي DD/MM/YYYY بجدار
+                  ثنائي الاتجاه — لا نص ISO خام. */}
+              {purchase.dueOn ? (
+                <>
+                  {" · يستحق في "}
+                  <LocalDateValue value={purchase.dueOn} />
+                </>
+              ) : ""}
             </p>
             <p>
               تكلفة الشراء ليست مصروف بيع — تدخل النتيجة عند الاستهلاك مستقبلًا؛ أثره الآن كاش وذمة مورد.

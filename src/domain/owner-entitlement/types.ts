@@ -1,4 +1,4 @@
-export type OwnerEntitlementPolicyStatus = "active" | "ended";
+type OwnerEntitlementPolicyStatus = "active" | "ended";
 export type OwnerEntitlementPolicyFamily =
   "time_period" | "fixed_amount" | "completed_work" | "profit_share" | "completed_sale_percentage" | "unit";
 export type OwnerEntitlementPolicyKind =
@@ -13,7 +13,7 @@ export type OwnerEntitlementPolicyKind =
   | "sale_percentage"
   | "per_unit";
 export type OwnerEntitlementKnowledge = "known" | "estimated" | "partial" | "incomplete";
-export type OwnerEntitlementCalculationBasis =
+type OwnerEntitlementCalculationBasis =
   "time_period" | "fixed_amount" | "completed_work" | "profit_share" | "completed_sale_percentage" | "unit";
 
 export type OwnerEntitlementPolicy = {
@@ -89,7 +89,7 @@ export type OwnerEntitlementOpeningBalance = {
   reversalReason: string | null;
 };
 
-export type OwnerMovementKind = "draw" | "return";
+type OwnerMovementKind = "draw" | "return";
 export type OwnerMovementReason =
   | "entitlement_settlement"
   | "opening_balance_settlement"

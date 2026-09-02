@@ -58,7 +58,7 @@ export type CorrectionDigestResult =
   | { ok: true; value: CorrectionDigest }
   | { ok: false; code: "storage_error"; message: string };
 
-export const eventKindLabel: Record<FinancialEventType, string> = {
+const eventKindLabel: Record<FinancialEventType, string> = {
   owner_investment_cash: "استثمار المالك",
   owner_withdrawal_cash: "سحب شخصي",
   operating_expense_cash: "مصروف مدفوع",

@@ -1,5 +1,5 @@
 export * from "./types.js";
-export type { OwnerEntitlementEvidence, OwnerEntitlementCalculation } from "./policies.js";
+export type { OwnerEntitlementEvidence } from "./policies.js";
 export {
   calculateOwnerEntitlement,
   createOwnerEntitlementOpeningBalance,

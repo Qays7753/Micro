@@ -185,7 +185,7 @@ const incomplete = (
 });
 
 /** One implementation of the per-output-unit allocation arithmetic, shared by the catalog preview and the period reader. */
-export type PerOutputUnitAmount =
+type PerOutputUnitAmount =
   { amountMinor: number } | { problem: "missing_input" | "unsafe_range" | "overflow" };
 
 export function perOutputUnitAmountMinor(

@@ -31,8 +31,8 @@ export type DirectSale = {
 };
 
 export type DirectSaleCollectionStatus = "collected_in_full" | "partial_debt" | "partial_needs_review";
-export type DirectSaleStatus = "active" | "cancelled";
-export type DirectSaleRevisionKind = "edit" | "cancel" | "price_cut";
+type DirectSaleStatus = "active" | "cancelled";
+type DirectSaleRevisionKind = "edit" | "cancel" | "price_cut";
 export type DirectSaleRevision = {
   kind: DirectSaleRevisionKind;
   idempotencyKey: string;

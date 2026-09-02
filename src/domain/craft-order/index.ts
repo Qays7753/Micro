@@ -2,7 +2,6 @@ export * from "./types.js";
 export {
   calculateCostSnapshot,
   cancelOrder,
-  deriveKnowledgeGaps,
   isRegisteredCustomerDebt,
   knowledgeGapsOf,
   settleDepositRefund,

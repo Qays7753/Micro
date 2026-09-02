@@ -18,10 +18,10 @@ prompt) عبر `vite-plugin-pwa`. لا تنفذ Cloud Sync أو Auth أو SaaS �
 
 ```text
 React UI
-  → Application services (~24 خدمة)
-  → Micro Domain Core في ../../src/domain (13 وحدة نطاقية)
+  → Application services (31 خدمة عبر 25 مجلدًا — G6-R5-9)
+  → Micro Domain Core في ../../src/domain (11 وحدة نطاقية + معينات shared)
   → LocalStore port (PrototypeLocalStore)
-  → IndexedDB adapter (IndexedDbLocalStore — 26 مخزن كائنات)
+  → IndexedDB adapter (IndexedDbLocalStore — 27 مخزن كائنات، مخطط 30)
 ```
 
 لا تستورد مكونات React `IndexedDbLocalStore` ولا تضع قواعد المال فيها. كل مال/كمية يمر عبر
