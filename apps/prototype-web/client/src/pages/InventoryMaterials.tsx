@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
@@ -49,6 +50,8 @@ type ExtractionDraft = {
 };
 export default function InventoryMaterials() {
   const [, navigate] = useLocation();
+  /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
+  const returnPath = useReturnPath();
   const { inventory, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   const [activating, setActivating] = useState(false);
@@ -154,8 +157,8 @@ export default function InventoryMaterials() {
   const notActivated = state.activation.activatedOn === null;
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate(withFrom("/finance", "/inventory"))}>
-        <ArrowLeft aria-hidden="true" /> مالي
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowLeft aria-hidden="true" /> {returnPath === "/finance" ? "مالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مخزون بسيط</span>

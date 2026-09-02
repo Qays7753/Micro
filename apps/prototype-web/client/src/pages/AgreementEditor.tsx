@@ -330,7 +330,8 @@ export default function AgreementEditor() {
             {message}
           </p>
         ) : null}
-        <button
+        <div className="micro-form-actions micro-sticky-save">
+            <button
           className="micro-button micro-button-primary micro-save-cost"
           type="button"
           disabled={isSaving}
@@ -341,6 +342,7 @@ export default function AgreementEditor() {
           <Save aria-hidden="true" />
           {isSaving ? "جارٍ تسجيل الاتفاق…" : "تسجيل الاتفاق"}
         </button>
+          </div>
       </section>
     </section>
   );

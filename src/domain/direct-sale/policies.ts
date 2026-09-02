@@ -45,6 +45,12 @@ function resolveCollection(
   return { collectedMinor: collected, collectionStatus: declared ?? derived };
 }
 
+/* المجموعة ٥ (S4-09): المتبقي على بيع مباشر — معيّن واحد في المجال تشترك فيه
+ * ورقة التحصيل ومحرر البيع بدل حسابين قد يتباعدان. */
+export function directSaleOutstandingMinor(sale: DirectSale): number {
+  return Math.max(sale.revenueMinor - sale.collectedMinor, 0);
+}
+
 export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
   assertText(input.id, "id");
   assertText(input.itemName, "itemName");
@@ -105,9 +111,7 @@ function revisionList(
     idempotencyKey: revision.idempotencyKey.trim(),
     createdAt: revision.createdAt,
     reason: revision.reason?.trim() || null,
-    ...(beforeRevenueMinor !== undefined && beforeRevenueMinor !== null
-      ? { beforeRevenueMinor }
-      : {}),
+    ...(beforeRevenueMinor !== undefined && beforeRevenueMinor !== null ? { beforeRevenueMinor } : {}),
   });
   return revisions;
 }
@@ -129,9 +133,9 @@ export function updateDirectSale(
     collectedMinor: input.collectedMinor,
     collectionStatus: input.collectionStatus,
     /* ربط المرجع: التمييز بين «لم يُذكر» (يبقى الأصلي) و«أُلغي صراحة» (null). */
-    catalogItemId: input.catalogItemId !== undefined ? input.catalogItemId : source.catalogItemId ?? null,
+    catalogItemId: input.catalogItemId !== undefined ? input.catalogItemId : (source.catalogItemId ?? null),
     /* D-001: الزبون بالمنطق نفسه — undefined يُبقي الأصل، وnull الصريح يمحو الزبون. */
-    customerName: input.customerName !== undefined ? input.customerName : source.customerName ?? null,
+    customerName: input.customerName !== undefined ? input.customerName : (source.customerName ?? null),
     costMinor: input.costMinor,
     occurredOn: input.occurredOn,
     recordedAt: source.recordedAt,
@@ -139,8 +143,7 @@ export function updateDirectSale(
     idempotencyKey: source.idempotencyKey,
   });
   /* X-06: الأصل يبقى في السجل — كل تعديل يغيّر السعر المتفق يحمل سعره الأصلي معه. */
-  const before =
-    input.revenueMinor !== source.revenueMinor ? source.revenueMinor : undefined;
+  const before = input.revenueMinor !== source.revenueMinor ? source.revenueMinor : undefined;
   return Object.freeze({
     ...updated,
     revisions: revisionList(source, revision, before),

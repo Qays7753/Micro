@@ -126,6 +126,10 @@ export default function Tools() {
     if (list.ok) setSavedEstimates(list.value);
   }
 
+  /* S3-01: حذف تقدير فعل تدميري — خطوة تأكيد ثانية تسمّي التقدير نفسه في القائمة
+   * كما في صفحة التقدير (عقد التصميم §3.8) لا نقرة واحدة عابرة. */
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   return (
     <section className="micro-page micro-tools-page">
       <div className="micro-page-heading">
@@ -216,10 +220,32 @@ export default function Tools() {
                 className="micro-icon-button"
                 type="button"
                 aria-label={`حذف تقدير ${estimate.title}`}
-                onClick={() => void removeEstimate(estimate.id)}
+                onClick={() => setConfirmDeleteId(current => (current === estimate.id ? null : estimate.id))}
               >
                 <Trash2 aria-hidden="true" />
               </button>
+              {confirmDeleteId === estimate.id ? (
+                <p className="micro-estimate-delete-confirm" role="alert">
+                  احذف «{estimate.title}» نهائيًا؟ لا يمكن التراجع.
+                  <button
+                    className="micro-text-action"
+                    type="button"
+                    onClick={() => {
+                      setConfirmDeleteId(null);
+                      void removeEstimate(estimate.id);
+                    }}
+                  >
+                    احذفه
+                  </button>
+                  <button
+                    className="micro-text-action"
+                    type="button"
+                    onClick={() => setConfirmDeleteId(null)}
+                  >
+                    تراجع
+                  </button>
+                </p>
+              ) : null}
             </article>
           ))
         )}

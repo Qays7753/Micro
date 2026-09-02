@@ -744,7 +744,11 @@ describe("draft postponement follows contract 02 from every pre-delivery state (
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `a08-${to}`, createdAt: stamp });
     expect(() =>
-      transitionOrder(order, { to: "postponed", idempotencyKey: "a08-late", createdAt: "2026-08-06T09:00:00.000Z" }),
+      transitionOrder(order, {
+        to: "postponed",
+        idempotencyKey: "a08-late",
+        createdAt: "2026-08-06T09:00:00.000Z",
+      }),
     ).toThrow("انتقال غير مسموح من «تم التسليم» إلى «مؤجل»");
   });
 });

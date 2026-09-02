@@ -68,7 +68,8 @@ export default function CashTransferEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/cash");
+    /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
+    navigate(returnPath);
     return true;
   }
   if (wallets.length < 2)
@@ -149,11 +150,12 @@ export default function CashTransferEditor() {
           />
         </label>
         {message ? (
-          <p className="micro-field-error" role="status">
+          <p className="micro-field-error" role="alert">
             {message}
           </p>
         ) : null}
-        <button
+        <div className="micro-form-actions micro-sticky-save">
+            <button
           className="micro-button micro-button-primary micro-save-cost"
           type="button"
           disabled={saving}
@@ -162,6 +164,7 @@ export default function CashTransferEditor() {
           <Save aria-hidden="true" />
           {saving ? "جارٍ الحفظ…" : "حفظ التحويل"}
         </button>
+          </div>
       </section>
     </section>
   );

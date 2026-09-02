@@ -34,7 +34,12 @@ function Metric({ label, value, negative = false }: { label: string; value: stri
   return (
     <div className="micro-g5-metric">
       <span>{label}</span>
-      <strong data-negative={negative || undefined}>{value}</strong>
+      {/* S3-07: الحالة العربية خارج الخط العريض الرقمي. */}
+      {value === "غير متاح" ? (
+        <span className="micro-unknown-value">{value}</span>
+      ) : (
+        <strong data-negative={negative || undefined}>{value}</strong>
+      )}
     </div>
   );
 }
@@ -116,7 +121,7 @@ function G5DecisionPanel({
         }
       >
         <div className="micro-card-copy">
-          <span className="micro-card-eyebrow">الهامش بعد الكلفة المباشرة — قراءة ثانوية</span>
+          <span className="micro-card-eyebrow">الهامش بعد التكلفة المباشرة — قراءة ثانوية</span>
           <h2>
             {contribution.status === "invalid"
               ? "تعادل غير محسوب"
@@ -131,7 +136,7 @@ function G5DecisionPanel({
             value={displayContributionAmount(contribution.totalRevenueMinor, contribution.status)}
           />
           <Metric
-            label="الكلفة المباشرة للطلبات النهائية"
+            label="التكلفة المباشرة للطلبات النهائية"
             value={displayContributionAmount(contribution.totalVariableCostMinor, contribution.status)}
           />
           <Metric

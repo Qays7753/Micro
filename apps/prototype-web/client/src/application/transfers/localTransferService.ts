@@ -556,14 +556,51 @@ function validSupplierPurchase(value: unknown): boolean {
       paymentKeys.has(payment.idempotencyKey)
     )
       return Number.NaN;
-    paymentKeys.add(payment.idempotencyKey);
+    paymentKeys.add(payment.id);
     return sum + payment.amountMinor;
   }, 0);
-  const status = totalPaid === 0 ? "unpaid" : totalPaid === value.totalMinor ? "paid" : "partially_paid";
+  /* S2-03: التراجعات الموثقة عن الدفعات جزء من الحالة الشرعية — المدفوع الفعلي =
+   * الدفعات − التراجعات، وإلا رُفضت نسخة احتياطية صادقة بعد تراجع موثق. */
+  const paymentsList = value.payments as readonly unknown[];
+  const reversals = Array.isArray(value.paymentReversals) ? (value.paymentReversals as readonly unknown[]) : [];
+  const reversalKeys = new Set<string>();
+  const reversedPaymentIds = new Set<string>();
+  const totalReversed = reversals.reduce<number>((sum, reversal) => {
+    if (
+      !isRecord(reversal) ||
+      !isString(reversal.id) ||
+      !isString(reversal.paymentId) ||
+      !isMoney(reversal.amountMinor) ||
+      reversal.amountMinor === 0 ||
+      !isString(reversal.reason) ||
+      !reversal.reason.trim() ||
+      !isString(reversal.occurredOn) ||
+      !isDate(`${reversal.occurredOn}T12:00:00.000Z`) ||
+      !isDate(reversal.recordedAt) ||
+      !isString(reversal.idempotencyKey) ||
+      reversalKeys.has(reversal.idempotencyKey) ||
+      reversedPaymentIds.has(reversal.paymentId)
+    )
+      return Number.NaN;
+    const payment = paymentsList.find(
+      candidate => isRecord(candidate) && isString(candidate.id) && candidate.id === reversal.paymentId,
+    );
+    /* التراجع يماثل دفعته: نفس المبلغ، ومرة واحدة لكل دفعة (عقد المجموعة ٢). */
+    if (!isRecord(payment) || payment.amountMinor !== reversal.amountMinor) return Number.NaN;
+    reversalKeys.add(reversal.idempotencyKey);
+    reversedPaymentIds.add(reversal.paymentId);
+    return sum + reversal.amountMinor;
+  }, 0);
+  const effectivePaid = totalPaid - totalReversed;
+  const status =
+    effectivePaid === 0 ? "unpaid" : effectivePaid === value.totalMinor ? "paid" : "partially_paid";
   return (
     Number.isInteger(totalPaid) &&
-    totalPaid === value.paidMinor &&
-    value.payableMinor === value.totalMinor - totalPaid &&
+    Number.isInteger(totalReversed) &&
+    effectivePaid >= 0 &&
+    effectivePaid <= value.totalMinor &&
+    value.paidMinor === effectivePaid &&
+    value.payableMinor === value.totalMinor - effectivePaid &&
     value.status === status
   );
 }
@@ -1899,7 +1936,9 @@ export class LocalTransferService {
       return fail("هذا ليس ملف تصدير Micro المحلي. بقيت بيانات هذا الجهاز دون تغيير.");
     const isCurrent =
       candidate.version === localExportVersion && candidate.schemaVersion === localSchemaVersion;
-    const isPreviousDirectSale = candidate.version === 18 && candidate.schemaVersion === localSchemaVersion;
+    /* S5-05: ملفات ١٨ التاريخية حملت مخطط ٢٧ حرفيًا (زوج صدر فعلًا) — المقارنة
+     * كانت ضد الثابت الحي فارتفعت معه إلى ٣٠ فقبلت زوجًا غير موجود ورفضت الحقيقي. */
+    const isPreviousDirectSale = candidate.version === 18 && candidate.schemaVersion === 27;
     /* القرار ٩: ملفات 19/27 بلا سجل تفعيل المخزون تُقبل وتُهاجر بتفعيل غير معلن (null). */
     const isPreviousInventoryActivation = candidate.version === 19 && candidate.schemaVersion === 27;
     const isPreviousCatalogCore = candidate.version === 14 && candidate.schemaVersion === 23;

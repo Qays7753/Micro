@@ -31,6 +31,14 @@ export default function WalletLedger() {
   const returnPath = useReturnPath();
   const { walletLedger, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
+  /* S1-08: تركيز الحركة المقصودة (?entry=) — إبراز وتمرير مثل طبقة الأحداث. */
+  const focusedEntryId = new URLSearchParams(search).get("entry");
+  useEffect(() => {
+    if (state.phase !== "ready" || !focusedEntryId) return;
+    const row = document.getElementById(`wallet-entry-${focusedEntryId}`);
+    row?.scrollIntoView({ block: "center", behavior: "smooth" });
+    (row as HTMLElement | null)?.focus?.();
+  }, [state, focusedEntryId]);
 
   useEffect(() => {
     let active = true;
@@ -65,7 +73,6 @@ export default function WalletLedger() {
     );
 
   const { overview } = state;
-  const focusedEntryId = new URLSearchParams(search).get("entry");
   const walletHref = (path: string) => `${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent(`/cash/wallet/${overview.wallet.id}`)}`;
 
   return (
@@ -119,7 +126,12 @@ export default function WalletLedger() {
             <h2>حركات المحفظة بالتسلسل</h2>
           </div>
           {overview.rows.map(row => (
-            <article key={row.id} data-focused={focusedEntryId === row.id ? "true" : undefined}>
+            <article
+              key={row.id}
+              id={`wallet-entry-${row.id}`}
+              tabIndex={focusedEntryId === row.id ? -1 : undefined}
+              data-focused={focusedEntryId === row.id ? "true" : undefined}
+            >
               <div>
                 <strong>{row.label}</strong>
                 <small>

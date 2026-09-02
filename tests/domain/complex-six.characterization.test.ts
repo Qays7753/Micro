@@ -39,9 +39,7 @@ const g5Order = (overrides: Partial<Parameters<typeof calculateContributionMargi
   recognizedCostMinor: 1800,
   ...overrides,
 });
-const g5Expense = (
-  overrides: Partial<Parameters<typeof calculateContributionMargin>[3][number]> = {},
-) => ({
+const g5Expense = (overrides: Partial<Parameters<typeof calculateContributionMargin>[3][number]> = {}) => ({
   id: "expense-1",
   amountMinor: 1000,
   behavior: "fixed" as const,
@@ -109,7 +107,6 @@ describe("characterization: calculateContributionMargin (و٩)", () => {
     expect(result.mix.map(item => item.itemName)).toEqual(["صندوق", "رف"]);
     expect(result.mix[0]?.contributionMarginMinor).toBe(3200);
   });
-
 });
 
 describe("characterization: calculateContributionMargin — exclusion (و٩)", () => {
@@ -123,13 +120,10 @@ describe("characterization: calculateContributionMargin — exclusion (و٩)", (
     expect(result.status).toBe("incomplete");
     expect(result.finalOrderCount).toBe(0);
     expect(result.excludedOrderCount).toBe(1);
-    expect(result.excluded).toContain(
-      "الطلب «صندوق» مستبعد لأن نتيجته تقديرية.",
-    );
+    expect(result.excluded).toContain("الطلب «صندوق» مستبعد لأن نتيجته تقديرية.");
     expect(result.reasons).toContain("توجد طلبات مسلّمة مستبعدة من الهامش بسبب النتيجة غير النهائية.");
     expect(result.reasons).toContain("لا توجد طلبات نهائية موجبة تكفي لحساب الهامش بعد الكلفة المباشرة.");
   });
-
 });
 
 describe("characterization: calculateContributionMargin — guards (و٩)", () => {
@@ -179,7 +173,6 @@ describe("characterization: calculateContributionMargin — guards (و٩)", () =
       "المصروف المتغير تغليف خارجي غير مرتبط مباشرة بهامش الوحدات؛ لم يوزع تلقائيًا.",
     );
   });
-
 });
 
 describe("characterization: calculateContributionMargin — expenses (و٩)", () => {
@@ -220,7 +213,6 @@ describe("characterization: calculateContributionMargin — expenses (و٩)", ()
     expect(invalidQuantity.status).toBe("invalid");
     expect(invalidQuantity.reasons).toContain("كمية الطلب «صندوق» غير صالحة؛ لا تحوّل إلى صفر.");
   });
-
 });
 
 describe("characterization: calculateContributionMargin — units (و٩)", () => {
@@ -269,7 +261,13 @@ describe("characterization: calculateShortCash (و٩)", () => {
         { id: "order-1", direction: "collection", amountMinor: 8000, dueOn: "2026-08-20", source: "دين ريم" },
       ],
       payables: [
-        { id: "pay-1", direction: "commitment", amountMinor: 3000, dueOn: "2026-08-25", source: "التزام مورد" },
+        {
+          id: "pay-1",
+          direction: "commitment",
+          amountMinor: 3000,
+          dueOn: "2026-08-25",
+          source: "التزام مورد",
+        },
       ],
     });
 
@@ -295,18 +293,19 @@ describe("characterization: calculateShortCash (و٩)", () => {
       "رصيد مؤرخ: التزام مورد في 2026-08-25",
     ]);
   });
-
 });
 
 describe("characterization: calculateShortCash — guards (و٩)", () => {
+  /* صفا دين واحد ومتوقعًا واحدًا بمعاملات معلنة — يقلل تكرار البناء الحرفي
+   * في حمايات الاستحقاق الثلاث. */
+  const oneDebt = (amountMinor: number, dueOn: string | null, source: string) => [
+    { id: "order-1", direction: "collection" as const, amountMinor, dueOn, source },
+  ];
+  const oneDeclaration = (id: string, amountMinor: number, dueOn: string, key: string) => [
+    makeDeclaration({ id, amountMinor, dueOn, relatedOrderId: "order-1", idempotencyKey: key }),
+  ];
   it("pins the incomplete path for undated balances: no projection and the honest reason", () => {
-    const result = calculateShortCash(
-      shortCashInput({
-        receivables: [
-          { id: "order-1", direction: "collection", amountMinor: 8000, dueOn: null, source: "دين بلا تاريخ" },
-        ],
-      }),
-    );
+    const result = calculateShortCash(shortCashInput({ receivables: oneDebt(8000, null, "دين بلا تاريخ") }));
     expect(result).toMatchObject({
       status: "incomplete",
       declaredCollectionsMinor: 0,
@@ -320,35 +319,30 @@ describe("characterization: calculateShortCash — guards (و٩)", () => {
   it("pins the invalid path when declarations exceed the recorded balance", () => {
     const result = calculateShortCash(
       shortCashInput({
-        receivables: [
-          { id: "order-1", direction: "collection", amountMinor: 2000, dueOn: null, source: "دين صغير" },
-        ],
+        receivables: oneDebt(2000, null, "دين صغير"),
         declarations: [
-          makeDeclaration({ id: "d1", amountMinor: 1500, dueOn: "2026-08-10", relatedOrderId: "order-1", idempotencyKey: "k1" }),
-          makeDeclaration({ id: "d2", amountMinor: 1000, dueOn: "2026-08-12", relatedOrderId: "order-1", idempotencyKey: "k2" }),
+          ...oneDeclaration("d1", 1500, "2026-08-10", "k1"),
+          ...oneDeclaration("d2", 1000, "2026-08-12", "k2"),
         ],
       }),
     );
     expect(result.status).toBe("invalid");
     expect(result.reasons).toContain("متوقعات دين صغير يتجاوز مجموعها الرصيد المسجل.");
-    expect(result.nextAction).toBe("صحح مبلغ السجل المتوقع أو تاريخه أو ربطه قبل الاعتماد على قراءة السيولة.");
+    expect(result.nextAction).toBe(
+      "صحح مبلغ السجل المتوقع أو تاريخه أو ربطه قبل الاعتماد على قراءة السيولة.",
+    );
   });
 
   it("pins the duplicate evidence guard: a declaration linked to a dated balance is invalid", () => {
     const result = calculateShortCash(
       shortCashInput({
-        receivables: [
-          { id: "order-1", direction: "collection", amountMinor: 8000, dueOn: "2026-08-20", source: "دين مؤرخ" },
-        ],
-        declarations: [
-          makeDeclaration({ id: "d1", amountMinor: 1000, dueOn: "2026-08-20", relatedOrderId: "order-1", idempotencyKey: "k1" }),
-        ],
+        receivables: oneDebt(8000, "2026-08-20", "دين مؤرخ"),
+        declarations: oneDeclaration("d1", 1000, "2026-08-20", "k1"),
       }),
     );
     expect(result.status).toBe("invalid");
     expect(result.reasons).toContain("السجل المتوقع المرتبط بـدين مؤرخ يكرر رصيدًا له تاريخ مسجل مسبقًا.");
   });
-
 });
 
 describe("characterization: calculateShortCash — assumptions (و٩)", () => {
@@ -366,7 +360,6 @@ describe("characterization: calculateShortCash — assumptions (و٩)", () => {
     expect(result.projectedCashMinor).toBe(18000);
     expect(result.sources).toEqual(["قبض متوقع: وعد تحصيل في 2026-08-20"]);
   });
-
 });
 
 describe("characterization: calculateShortCash — window (و٩)", () => {
@@ -415,7 +408,6 @@ describe("characterization: normalizeSharedProjectShare via createFinancialEvent
       calculatedShareMinor: null,
     });
   });
-
 });
 
 describe("characterization: normalizeSharedProjectShare — values (و٩)", () => {
@@ -450,7 +442,6 @@ describe("characterization: normalizeSharedProjectShare — values (و٩)", () =
       calculatedShareMinor: 617,
     });
   });
-
 });
 
 describe("characterization: normalizeSharedProjectShare — unallocated (و٩)", () => {
@@ -484,7 +475,6 @@ describe("characterization: normalizeSharedProjectShare — unallocated (و٩)",
     });
     expect(event.operatingExpenseDeltaMinor).toBe(0);
   });
-
 });
 
 describe("characterization: normalizeSharedProjectShare — guards (و٩)", () => {
@@ -505,9 +495,7 @@ describe("characterization: normalizeSharedProjectShare — guards (و٩)", () =
     });
     /* الحصة الثابتة المتفق عليها بلا إجمالي مقبولة: الأساس يوثق والنص يبقى. */
     expect(() =>
-      createFinancialEvent(
-        share({ basis: "agreed_fixed_share", note: null, allocation: "allocated" }),
-      ),
+      createFinancialEvent(share({ basis: "agreed_fixed_share", note: null, allocation: "allocated" })),
     ).not.toThrow();
     expect(() =>
       createFinancialEvent(
@@ -544,7 +532,6 @@ describe("characterization: normalizeSharedProjectShare — guards (و٩)", () =
       ),
     ).toThrow("حصة المصروف المشترك لا تطابق درجة المعرفة المعلنة.");
   });
-
 });
 
 describe("characterization: normalizeSharedProjectShare — allocated review (و٩)", () => {
@@ -610,7 +597,6 @@ describe("characterization: createOwnerMovement (و٩)", () => {
       note: "سحب شخصي",
     });
   });
-
 });
 
 describe("characterization: createOwnerMovement — returns (و٩)", () => {
@@ -666,14 +652,13 @@ describe("characterization: createOwnerMovement — returns (و٩)", () => {
     );
     expect(openingReturn.openingBalanceDeltaMinor).toBe(5000);
   });
-
 });
 
 describe("characterization: createOwnerMovement — guards (و٩)", () => {
   it("pins the exact rejection messages of the movement guards", () => {
-    expect(() => createOwnerMovement(movementInput({ kind: "draw", reason: "settlement_of_prior_draw" }))).toThrow(
-      "سبب السحب غير صالح.",
-    );
+    expect(() =>
+      createOwnerMovement(movementInput({ kind: "draw", reason: "settlement_of_prior_draw" })),
+    ).toThrow("سبب السحب غير صالح.");
     expect(() => createOwnerMovement(movementInput({ kind: "return", reason: "owner_draw" }))).toThrow(
       "سبب الإرجاع غير صالح.",
     );
@@ -762,7 +747,6 @@ describe("characterization: calculateOwnerEntitlement (و٩)", () => {
       calculateOwnerEntitlement(daily, { periodFrom: "2026-08-10", periodTo: "2026-08-11" }).amountMinor,
     ).toBeNull();
   });
-
 });
 
 describe("characterization: calculateOwnerEntitlement — hourly (و٩)", () => {
@@ -782,10 +766,13 @@ describe("characterization: calculateOwnerEntitlement — hourly (و٩)", () => 
       }),
     ).toMatchObject({ amountMinor: 375, knowledge: "known", baseMinor: 90, quantity: 90 });
     expect(
-      calculateOwnerEntitlement(hourly, { periodFrom: "2026-08-01", periodTo: "2026-08-31", timeQuantity: null }),
+      calculateOwnerEntitlement(hourly, {
+        periodFrom: "2026-08-01",
+        periodTo: "2026-08-31",
+        timeQuantity: null,
+      }),
     ).toMatchObject({ amountMinor: null, knowledge: "incomplete" });
   });
-
 });
 
 describe("characterization: calculateOwnerEntitlement — work and units (و٩)", () => {
@@ -815,7 +802,6 @@ describe("characterization: calculateOwnerEntitlement — work and units (و٩)"
       }).amountMinor,
     ).toBeNull();
   });
-
 });
 
 describe("characterization: calculateOwnerEntitlement — units and profit (و٩)", () => {
@@ -863,7 +849,6 @@ describe("characterization: calculateOwnerEntitlement — units and profit (و٩
       }).amountMinor,
     ).toBeNull();
   });
-
 });
 
 describe("characterization: calculateOwnerEntitlement — sale and fixed (و٩)", () => {
@@ -898,7 +883,8 @@ describe("characterization: calculateOwnerEntitlement — sale and fixed (و٩)"
       calculateOwnerEntitlement(fixedPeriod, { periodFrom: "2026-08-01", periodTo: "2026-08-31" }),
     ).toMatchObject({ amountMinor: 5000, knowledge: "known", calculationBasis: "fixed_amount" });
     expect(
-      calculateOwnerEntitlement(fixedPeriod, { periodFrom: "2026-08-01", periodTo: "2026-08-30" }).amountMinor,
+      calculateOwnerEntitlement(fixedPeriod, { periodFrom: "2026-08-01", periodTo: "2026-08-30" })
+        .amountMinor,
     ).toBeNull();
   });
 });
@@ -959,7 +945,8 @@ describe("characterization: calculateAllocationPolicy (و٩)", () => {
       excluded: [],
       reasons: [],
       calculationNote: "مبلغ يدوي معلن للفترة.",
-      nextAction: "راجع السياسة والمصادر الداخلة قبل اتخاذ قرار جديد؛ هذا الرقم ليس صافي ربح نهائيًا أو توصية سعر.",
+      nextAction:
+        "راجع السياسة والمصادر الداخلة قبل اتخاذ قرار جديد؛ هذا الرقم ليس صافي ربح نهائيًا أو توصية سعر.",
       truth: "هذا الربح بعد التوزيع حسب سياستك، وليس صافي ربح نهائيًا أو توصية سعر.",
     });
   });
@@ -984,7 +971,6 @@ describe("characterization: calculateAllocationPolicy (و٩)", () => {
       "إجمالي الناتج 5.000 وحدة كاملة؛ المعدل 1.00 د.أ لكل 1.000 وحدة؛ قُرّب مجموع الفترة مرة واحدة إلى أقرب قرش.",
     );
   });
-
 });
 
 describe("characterization: calculateAllocationPolicy — time and revenue (و٩)", () => {
@@ -1019,7 +1005,6 @@ describe("characterization: calculateAllocationPolicy — time and revenue (و٩
     expect(revenue).toMatchObject({ status: "known", amountMinor: 1500, resultMinor: 2500 });
     expect(revenue.calculationNote).toBe("النسبة 15.00% من الإيراد المكتمل والمحتسب عند التسليم.");
   });
-
 });
 
 describe("characterization: calculateAllocationPolicy — guards (و٩)", () => {
@@ -1048,9 +1033,7 @@ describe("characterization: calculateAllocationPolicy — guards (و٩)", () => 
       ...allocationEvidence,
       finalOrderIds: [],
     });
-    expect(noOrders.reasons).toEqual([
-      "لا توجد طلبات نهائية مرتبطة صراحة بهذا المرجع في الفترة.",
-    ]);
+    expect(noOrders.reasons).toEqual(["لا توجد طلبات نهائية مرتبطة صراحة بهذا المرجع في الفترة."]);
   });
 
   it("pins the unit-mismatch refusal for per-output-unit without a matching unit", () => {

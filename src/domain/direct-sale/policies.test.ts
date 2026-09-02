@@ -12,6 +12,38 @@ const input = {
   idempotencyKey: "sale-op-1",
 };
 
+/* معاونو الاختبار: بيع جزفي بمتبقٍ وقرار معلن، وطلب تعديل يحفظ حقول الأصل. */
+const partialSale = (overrides: Record<string, unknown> = {}) =>
+  createDirectSale({
+    ...input,
+    costMinor: null,
+    collectedMinor: 300,
+    collectionStatus: "partial_debt",
+    ...overrides,
+  });
+const editOf = (
+  sale: ReturnType<typeof createDirectSale>,
+  changes: Record<string, unknown>,
+  key: string,
+  reason: string,
+  at = "2026-08-30T09:00:00.000Z",
+) =>
+  updateDirectSale(
+    sale,
+    {
+      itemName: sale.itemName,
+      quantity: 1,
+      revenueMinor: sale.revenueMinor,
+      collectedMinor: sale.collectedMinor,
+      collectionStatus: sale.collectionStatus,
+      costMinor: null,
+      occurredOn: sale.occurredOn,
+      note: sale.note,
+      ...changes,
+    },
+    { kind: "edit", idempotencyKey: key, createdAt: at, reason },
+  );
+
 describe("direct sale", () => {
   it("keeps profit unavailable when cost is unknown", () => {
     expect(createDirectSale({ ...input, costMinor: null })).toMatchObject({
@@ -59,7 +91,6 @@ describe("direct sale", () => {
       revisions: [{ kind: "edit", idempotencyKey: "sale-edit-1" }],
     });
   });
-
 });
 
 describe("direct sale cancellation", () => {
@@ -86,19 +117,18 @@ describe("direct sale cancellation", () => {
 });
 describe("direct sale agreed vs collected (X-06, decision from the owner's text)", () => {
   it("records a partial collection with the owner's explicit decision, never a silent default", () => {
-    expect(createDirectSale({ ...input, costMinor: null, collectedMinor: 300, collectionStatus: "partial_debt" })).toMatchObject({
+    expect(partialSale()).toMatchObject({
       revenueMinor: 500,
       collectedMinor: 300,
       collectionStatus: "partial_debt",
     });
-    expect(
-      createDirectSale({ ...input, costMinor: null, collectedMinor: 300, collectionStatus: "partial_needs_review" }),
-    ).toMatchObject({ collectionStatus: "partial_needs_review" });
+    expect(partialSale({ collectionStatus: "partial_needs_review" })).toMatchObject({
+      collectionStatus: "partial_needs_review",
+    });
   });
 
   it("applies a price cut as a documented revision: the sale becomes what was collected (10 → 8)", () => {
-    const sale = createDirectSale({
-      ...input,
+    const sale = partialSale({
       revenueMinor: 1000,
       costMinor: 200,
       collectedMinor: 800,
@@ -118,10 +148,8 @@ describe("direct sale agreed vs collected (X-06, decision from the owner's text)
   });
 
   it("keeps the original agreed price inside the price-cut revision — الأصل يبقى في السجل", () => {
-    const sale = createDirectSale({
-      ...input,
+    const sale = partialSale({
       revenueMinor: 1000,
-      costMinor: null,
       collectedMinor: 800,
       collectionStatus: "partial_needs_review",
     });
@@ -140,56 +168,55 @@ describe("direct sale agreed vs collected (X-06, decision from the owner's text)
       },
     ]);
   });
-
 });
 
-  it("keeps legacy full-collection records valid without the new fields", () => {
-    expect(createDirectSale({ ...input, costMinor: null })).toMatchObject({
-      collectedMinor: 500,
-      collectionStatus: "collected_in_full",
-    });
+it("keeps legacy full-collection records valid without the new fields", () => {
+  expect(createDirectSale({ ...input, costMinor: null })).toMatchObject({
+    collectedMinor: 500,
+    collectionStatus: "collected_in_full",
   });
+});
 
-  it("refuses collecting more than the agreed price and defaults an undecided difference to review", () => {
-    expect(() => createDirectSale({ ...input, costMinor: null, collectedMinor: 501 })).toThrow();
-    expect(createDirectSale({ ...input, costMinor: null, collectedMinor: 300 })).toMatchObject({
-      collectionStatus: "partial_needs_review",
-    });
+it("refuses collecting more than the agreed price and defaults an undecided difference to review", () => {
+  expect(() => createDirectSale({ ...input, costMinor: null, collectedMinor: 501 })).toThrow();
+  expect(createDirectSale({ ...input, costMinor: null, collectedMinor: 300 })).toMatchObject({
+    collectionStatus: "partial_needs_review",
   });
+});
 
 describe("direct sale price cut and edit trail (X-06)", () => {
   it("refuses a price cut on a fully collected sale and keeps idempotency unique", () => {
     const full = createDirectSale({ ...input, costMinor: null });
     expect(() =>
-      applyPriceCut(full, { idempotencyKey: "cut-op-2", createdAt: "2026-08-30T09:00:00.000Z", reason: "خفض" }),
+      applyPriceCut(full, {
+        idempotencyKey: "cut-op-2",
+        createdAt: "2026-08-30T09:00:00.000Z",
+        reason: "خفض",
+      }),
     ).toThrow();
-    const partial = createDirectSale({ ...input, costMinor: null, collectedMinor: 300, collectionStatus: "partial_debt" });
+    const partial = createDirectSale({
+      ...input,
+      costMinor: null,
+      collectedMinor: 300,
+      collectionStatus: "partial_debt",
+    });
     const cut = applyPriceCut(partial, {
       idempotencyKey: "cut-op-3",
       createdAt: "2026-08-30T09:00:00.000Z",
       reason: "خفّضتُ السعر",
     });
     expect(() =>
-      applyPriceCut(cut, { idempotencyKey: "cut-op-3", createdAt: "2026-08-30T10:00:00.000Z", reason: "تكرار" }),
+      applyPriceCut(cut, {
+        idempotencyKey: "cut-op-3",
+        createdAt: "2026-08-30T10:00:00.000Z",
+        reason: "تكرار",
+      }),
     ).toThrow();
   });
 
   it("captures the original agreed price on any edit that changes it (update path)", () => {
-    const sale = createDirectSale({ ...input, costMinor: null, collectedMinor: 300, collectionStatus: "partial_debt" });
-    const edited = updateDirectSale(
-      sale,
-      {
-        itemName: sale.itemName,
-        quantity: 1,
-        revenueMinor: 400,
-        collectedMinor: 300,
-        collectionStatus: "partial_debt",
-        costMinor: null,
-        occurredOn: sale.occurredOn,
-        note: sale.note,
-      },
-      { kind: "edit", idempotencyKey: "edit-op-9", createdAt: "2026-08-30T09:00:00.000Z", reason: "تصحيح السعر" },
-    );
+    const sale = partialSale();
+    const edited = editOf(sale, { revenueMinor: 400 }, "edit-op-9", "تصحيح السعر");
     expect(edited.revisions?.[0]).toMatchObject({
       kind: "edit",
       beforeRevenueMinor: 500,
@@ -214,43 +241,16 @@ describe("direct sale credit customer as structured data (D-001)", () => {
   });
 
   it("keeps the original customer when an edit does not mention it, and clears it on explicit null", () => {
-    const original = createDirectSale({
-      ...input,
-      costMinor: null,
-      collectedMinor: 300,
-      collectionStatus: "partial_debt",
-      customerName: "خالد",
-    });
-    const editedWithoutCustomer = updateDirectSale(
-      original,
-      {
-        itemName: original.itemName,
-        quantity: 1,
-        revenueMinor: 500,
-        collectedMinor: 400,
-        collectionStatus: "partial_debt",
-        costMinor: null,
-        occurredOn: original.occurredOn,
-        note: original.note,
-      },
-      { kind: "edit", idempotencyKey: "edit-op-c1", createdAt: "2026-08-30T09:00:00.000Z", reason: "قبض إضافي" },
-    );
+    const original = partialSale({ customerName: "خالد" });
+    const editedWithoutCustomer = editOf(original, { collectedMinor: 400 }, "edit-op-c1", "قبض إضافي");
     expect(editedWithoutCustomer.customerName).toBe("خالد");
 
-    const editedWithNull = updateDirectSale(
+    const editedWithNull = editOf(
       original,
-      {
-        itemName: original.itemName,
-        quantity: 1,
-        revenueMinor: 500,
-        collectedMinor: 500,
-        collectionStatus: "collected_in_full",
-        customerName: null,
-        costMinor: null,
-        occurredOn: original.occurredOn,
-        note: original.note,
-      },
-      { kind: "edit", idempotencyKey: "edit-op-c2", createdAt: "2026-08-30T10:00:00.000Z", reason: "حُدد الزبون لاحقًا" },
+      { collectedMinor: 500, collectionStatus: "collected_in_full", customerName: null },
+      "edit-op-c2",
+      "حُدد الزبون لاحقًا",
+      "2026-08-30T10:00:00.000Z",
     );
     expect(editedWithNull.customerName).toBeNull();
   });

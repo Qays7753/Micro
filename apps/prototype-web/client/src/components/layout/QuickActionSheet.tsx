@@ -575,7 +575,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
               </p>
             ) : null}
             {formError ? (
-              <p className="micro-field-error" role="status">
+              <p className="micro-field-error" role="alert">
                 {formError}
               </p>
             ) : null}

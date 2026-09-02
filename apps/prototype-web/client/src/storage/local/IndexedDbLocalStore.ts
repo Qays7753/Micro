@@ -443,7 +443,7 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
       }
-      if (event.oldVersion < 4 || event.oldVersion < 17) {
+      if (event.oldVersion < 17) {
         const drafts = request.transaction?.objectStore(draftStore);
         if (drafts) {
           const cursor = guardUpgradeCursor(drafts.openCursor(), request, "المسودات");
@@ -549,7 +549,7 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
       }
-      if (event.oldVersion < 8 || event.oldVersion < 18) {
+      if (event.oldVersion < 18) {
         const preferences = request.transaction?.objectStore(preferencesStore);
         if (preferences) {
           const cursor = guardUpgradeCursor(preferences.openCursor(), request, "التفضيلات");

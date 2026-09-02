@@ -242,7 +242,8 @@ export default function ScheduleEditor() {
             {message}
           </p>
         ) : null}
-        <button
+        <div className="micro-form-actions micro-sticky-save">
+            <button
           className="micro-button micro-button-primary micro-save-cost"
           type="button"
           disabled={saving}
@@ -253,6 +254,7 @@ export default function ScheduleEditor() {
           <Save aria-hidden="true" />
           {saving ? "جارٍ حفظ الموعد…" : "حفظ الموعد"}
         </button>
+          </div>
         {schedule.status === "scheduled" || schedule.status === "postponed" ? (
           <button
             className="micro-button micro-button-secondary"

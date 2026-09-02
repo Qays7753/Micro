@@ -157,15 +157,6 @@ export class RecurringWorkService {
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
-  async listPolicies(
-    catalogItemId?: string,
-    includeInactive = true,
-  ): Promise<RecurringWorkResult<readonly AllocationPolicy[]>> {
-    const result = await this.store.listAllocationPolicies(catalogItemId);
-    if (!result.ok) return failure("تعذر قراءة سياسات التوزيع المحلية.");
-    return { ok: true, value: result.value.filter(policy => includeInactive || policy.status === "active") };
-  }
-
   async createPolicy(input: RecurringWorkPolicyInput): Promise<RecurringWorkResult<AllocationPolicy>> {
     const [item, policies] = await Promise.all([
       this.store.getCatalogItem(input.catalogItemId),

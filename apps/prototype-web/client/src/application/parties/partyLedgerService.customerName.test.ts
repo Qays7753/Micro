@@ -77,3 +77,44 @@ describe("party ledger reads the structured credit-sale customer name", () => {
     expect(names).not.toContain("خالد");
   });
 });
+
+/* S2-08 (انحدار G5): دفتر الناس يلتمس الدفع الأولي بمعرفه لا بترتيب المصفوفة،
+ * ولا تعرض «دفعات سُددت» أبدًا بعد تراجع موثق يُعيد paidMinor إلى مستوى الدفع الأولي. */
+describe("party ledger supplier payments survive a documented payment reversal", () => {
+  it("does not show paid-after-initial after the later payment was reversed", async () => {
+    const store = new MemoryLocalStore();
+    const saved = await store.saveSupplierPurchase({
+      id: "purchase-pl-1",
+      supplierName: "مورد الأقطان",
+      note: "أقطان",
+      purchasedOn: "2026-09-02",
+      dueOn: null,
+      totalMinor: 5000,
+      /* paidMinor صافي التراجع كما يعيد حسابه المجال (إصلاح S2-01): 2000+1000−1000. */
+      paidMinor: 2000,
+      payableMinor: 2000,
+      status: "partially_paid",
+      idempotencyKey: "pl-1-key",
+      payments: [
+        { id: "purchase-pl-1:initial", amountMinor: 2000, occurredOn: "2026-09-02", recordedAt: "2026-09-02T09:00:00.000Z", idempotencyKey: "pl-init", note: "دفعة أولى" },
+        { id: "purchase-pl-1:pay-1", amountMinor: 1000, occurredOn: "2026-09-03", recordedAt: "2026-09-03T09:00:00.000Z", idempotencyKey: "pl-pay-1", note: "دفعة ثانية" },
+      ],
+      paymentReversals: [
+        { id: "purchase-pl-1:rev-1", paymentId: "purchase-pl-1:pay-1", amountMinor: 1000, reason: "خطأ مزدوج", occurredOn: "2026-09-03", recordedAt: "2026-09-03T10:00:00.000Z", idempotencyKey: "pl-rev-1" },
+      ],
+      revisions: [],
+      createdAt: "2026-09-02T09:00:00.000Z",
+      updatedAt: "2026-09-03T10:00:00.000Z",
+    });
+    if (!saved.ok) throw new Error(saved.message);
+    /* paidMinor الحقيقي بعد التراجع = 2000 (الأولي فقط) — كما يحسبه إصلاح S2-01. */
+    const ledger = new PartyLedgerService(store);
+    const result = await ledger.read();
+    if (!result.ok) throw new Error(result.message);
+    const supplier = result.value.parties.find(entry => entry.name === "مورد الأقطان");
+    expect(supplier).toBeDefined();
+    expect(supplier?.payableMinor).toBe(2000);
+    const paidMovement = supplier?.movements.find(movement => movement.kind === "purchase_payment");
+    expect(paidMovement).toBeUndefined();
+  });
+});

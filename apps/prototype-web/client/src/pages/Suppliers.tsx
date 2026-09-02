@@ -2,6 +2,7 @@
 import { ArrowLeft, Plus, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
@@ -16,6 +17,8 @@ type PageState =
 
 export default function Suppliers() {
   const [, navigate] = useLocation();
+  /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
+  const returnPath = useReturnPath();
   const { supplierPurchases, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<PageState>({ phase: "loading" });
   useEffect(() => {
@@ -63,8 +66,8 @@ export default function Suppliers() {
   });
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate(withFrom("/finance", "/suppliers"))}>
-        <ArrowLeft aria-hidden="true" /> الوضع المالي
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowLeft aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مواد وموردون</span>
@@ -100,12 +103,13 @@ export default function Suppliers() {
               <div>
                 <strong>{purchase.supplierName}</strong>
                 <small>الحالة: مفتوح</small>
-                <b className="micro-number">
+                {/* S3-05: العربية خارج صنف الأرقام الأحادي — الخط والمقاس والاتجاه للنص العربي. */}
+                <b className="micro-supplier-payable">
                   المتبقي (د.أ): <MoneyValue minor={purchase.payableMinor} className="micro-inline-number" />
                 </b>
               </div>
               <div className="micro-supplier-balance">
-                <small className="micro-number">
+                <small className="micro-supplier-totals">
                   الإجمالي: <MoneyValue minor={purchase.totalMinor} className="micro-inline-number" /> ·
                   المدفوع: <MoneyValue minor={purchase.paidMinor} className="micro-inline-number" />
                 </small>

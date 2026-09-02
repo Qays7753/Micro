@@ -69,7 +69,8 @@ export default function CashAdjustmentEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/cash");
+    /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
+    navigate(returnPath);
     return true;
   }
   if (!wallet && !message)
@@ -153,7 +154,8 @@ export default function CashAdjustmentEditor() {
             {message}
           </p>
         ) : null}
-        <button
+        <div className="micro-form-actions micro-sticky-save">
+            <button
           className="micro-button micro-button-primary micro-save-cost"
           type="button"
           disabled={saving}
@@ -162,6 +164,7 @@ export default function CashAdjustmentEditor() {
           <Save aria-hidden="true" />
           {saving ? "جارٍ الحفظ…" : "حفظ ضبط الكاش"}
         </button>
+          </div>
       </section>
     </section>
   );

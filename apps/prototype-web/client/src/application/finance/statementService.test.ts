@@ -216,4 +216,113 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
     expect(reading.ok).toBe(false);
     if (!reading.ok) expect(reading.message).toContain("يبدأ قبل نهايته");
   });
+
+  it("G5-S7: تراجع الدفعة داخل الفترة يسترد الكاش في «دفع للموردين» — لا تضخم خرج", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const statement = new StatementService(store, finance);
+    const purchaseSaved = await store.saveSupplierPurchase(
+      createSupplierPurchase({
+        id: "purchase-rev-st",
+        supplierName: "مورد الأقمشة",
+        note: "قماش",
+        purchasedOn: "2026-09-02",
+        dueOn: null,
+        totalMinor: 5000,
+        initialPaidMinor: 2000,
+        recordedAt: now(),
+        idempotencyKey: "purchase-rev-st-key",
+      }),
+    );
+    expect(purchaseSaved.ok).toBe(true);
+    /* دفعة لاحقة 10.00 داخل الفترة + تراجع موثق عنها بنفس الفترة. */
+    const withPaymentAndReversal: typeof purchaseSaved extends { ok: true; value: infer V } ? V : never = {
+      ...purchaseSaved.value,
+      paidMinor: 2000,
+      payableMinor: 3000,
+      payments: [
+        ...purchaseSaved.value.payments,
+        {
+          id: "purchase-rev-st:pay-1",
+          amountMinor: 1000,
+          occurredOn: "2026-09-03",
+          recordedAt: now(),
+          idempotencyKey: "pay-1-key",
+          note: "دفعة ثانية",
+        },
+      ],
+      paymentReversals: [
+        {
+          id: "purchase-rev-st:rev-1",
+          paymentId: "purchase-rev-st:pay-1",
+          amountMinor: 1000,
+          reason: "دُفعت مرتين بالخطأ",
+          occurredOn: "2026-09-03",
+          recordedAt: now(),
+          idempotencyKey: "rev-1-key",
+        },
+      ],
+      updatedAt: now(),
+    };
+    const updated = await store.saveSupplierPurchase(withPaymentAndReversal);
+    expect(updated.ok).toBe(true);
+    const reading = await statement.read("2026-09-01", "2026-09-07");
+    expect(reading.ok).toBe(true);
+    if (reading.ok) {
+      const supplierOut = reading.value.blocks.cashOut.find(line => line.id === "supplier-payments");
+      /* الشراء الابتدائي 20.00 + دفعة 10.00 − تراجع 10.00 = 20.00 خرج صافٍ. */
+      expect(supplierOut?.amountMinor).toBe(-2000);
+      const reversalSource = supplierOut?.sources.find(source => source.label.includes("تراجع عن دفعة"));
+      expect(reversalSource?.amountMinor).toBe(-1000);
+      expect(reversalSource?.href).toBe("/suppliers/purchase/purchase-rev-st");
+      const payments = reading.value.blocks.receivablesPayables.supplierPaymentsInPeriodMinor;
+      expect(payments).toBe(0);
+    }
+  });
+
+  it("G5-S7: تراجع خارج الفترة لا يمس كشف الفترة الحالية", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const statement = new StatementService(store, finance);
+    const purchaseSaved = await store.saveSupplierPurchase(
+      createSupplierPurchase({
+        id: "purchase-rev-st2",
+        supplierName: "مورد الخشب",
+        note: "خشب",
+        purchasedOn: "2026-08-20",
+        dueOn: null,
+        totalMinor: 4000,
+        initialPaidMinor: 4000,
+        recordedAt: now(),
+        idempotencyKey: "purchase-rev-st2-key",
+      }),
+    );
+    const withReversalNextPeriod = {
+      ...purchaseSaved.value,
+      paidMinor: 3000,
+      payableMinor: 1000,
+      paymentReversals: [
+        {
+          id: "purchase-rev-st2:rev-1",
+          paymentId: "purchase-rev-st2:initial",
+          amountMinor: 1000,
+          reason: "تصحيح لاحق",
+          occurredOn: "2026-09-10",
+          recordedAt: now(),
+          idempotencyKey: "rev-2-key",
+        },
+      ],
+      updatedAt: now(),
+    } as typeof purchaseSaved.value;
+    const updated = await store.saveSupplierPurchase(withReversalNextPeriod);
+    expect(updated.ok).toBe(true);
+    const reading = await statement.read("2026-09-01", "2026-09-07");
+    expect(reading.ok).toBe(true);
+    if (reading.ok) {
+      /* الشراء نفسه بتاريخ 2026-08-20 خارج الفترة؛ والتراجع بتاريخ 2026-09-10 خارجها —
+       * لا سطر موردين في الكشف إطلاقًا. */
+      const supplierOut = reading.value.blocks.cashOut.find(line => line.id === "supplier-payments");
+      expect(supplierOut).toBeUndefined();
+    }
+  });
 });

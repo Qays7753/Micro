@@ -128,7 +128,8 @@ export default function SupplierPurchaseEditor() {
     }
     notifyDataChanged();
     setMessage(result.reused ? "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ شراء المواد محليًا.");
-    if (!result.reused) navigate("/suppliers");
+    /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
+    if (!result.reused) navigate(returnPath);
     return true;
   }
   async function savePayment(): Promise<boolean> {
@@ -152,7 +153,8 @@ export default function SupplierPurchaseEditor() {
     }
     notifyDataChanged();
     setMessage(result.reused ? "هذه الدفعة محفوظة سابقًا؛ لم نكرر أثرها." : "تم حفظ دفعة المورد محليًا.");
-    if (!result.reused) navigate("/suppliers");
+    /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
+    if (!result.reused) navigate(returnPath);
     return true;
   }
 
@@ -220,6 +222,29 @@ export default function SupplierPurchaseEditor() {
     return true;
   }
 
+  /* معاينة تعديل الشراء: فروق الكاش/الذمة بين الأصل والقيم الجديدة.
+   * G5-S6: حُرّك الـuseMemo فوق العوائد المبكرة (loading/غير موجود) — هوك بعد عائد
+   * مبكر يغيّر عدد الهوكات بين الرندرات ويرمي React رقم 310 على مسار الدفعة/التعديل. */
+  const editPreview = useMemo(() => {
+    if (!purchase || mode !== "edit") return null;
+    /* الإجمالي والدفع الأولي الجديدان يحددان المدفوع الجديد فوق الدفعات اللاحقة. */
+    const laterPayments = purchase.payments
+      .filter(payment => payment.id !== `${purchase.id}:initial`)
+      .reduce((sum, payment) => sum + payment.amountMinor, 0);
+    const reversed = (purchase.paymentReversals ?? []).reduce(
+      (sum, reversal) => sum + reversal.amountMinor,
+      0,
+    );
+    const paidAfter = initialPaidMinor + laterPayments - reversed;
+    const payableComputed = totalMinor - paidAfter;
+    return {
+      payableBefore: purchase.payableMinor,
+      payableAfter: payableComputed,
+      cashBefore: purchase.paidMinor,
+      cashAfter: paidAfter,
+    };
+  }, [purchase, mode, totalMinor, initialPaidMinor]);
+
   if (loading)
     return (
       <div className="micro-route-loading" role="status">
@@ -240,27 +265,6 @@ export default function SupplierPurchaseEditor() {
         </button>
       </section>
     );
-
-  /* معاينة تعديل الشراء: فروق الكاش/الذمة بين الأصل والقيم الجديدة. */
-  const editPreview = useMemo(() => {
-    if (!purchase || mode !== "edit") return null;
-    /* الإجمالي والدفع الأولي الجديدان يحددان المدفوع الجديد فوق الدفعات اللاحقة. */
-    const laterPayments = purchase.payments
-      .filter(payment => payment.id !== `${purchase.id}:initial`)
-      .reduce((sum, payment) => sum + payment.amountMinor, 0);
-    const reversed = (purchase.paymentReversals ?? []).reduce(
-      (sum, reversal) => sum + reversal.amountMinor,
-      0,
-    );
-    const paidAfter = initialPaidMinor + laterPayments - reversed;
-    const payableComputed = totalMinor - paidAfter;
-    return {
-      payableBefore: purchase.payableMinor,
-      payableAfter: payableComputed,
-      cashBefore: purchase.paidMinor,
-      cashAfter: paidAfter,
-    };
-  }, [purchase, mode, totalMinor, initialPaidMinor]);
 
   const reversalPreview = reversalTarget && purchase ? {
     payment: reversalTarget,
@@ -455,7 +459,7 @@ export default function SupplierPurchaseEditor() {
                 onChange={event => setDueOn(event.target.value)}
               />
               {message && message.startsWith("أدخل") ? (
-                <p className="micro-field-error" role="status">
+                <p className="micro-field-error" role="alert">
                   {message}
                 </p>
               ) : null}
@@ -608,15 +612,17 @@ export default function SupplierPurchaseEditor() {
                 {message}
               </p>
             ) : null}
-            <button
-              className="micro-button micro-button-primary micro-save-cost"
-              type="button"
-              disabled={saving}
-              onClick={paymentMode ? savePayment : savePurchase}
-            >
-              <Save aria-hidden="true" />
-              {saving ? "جارٍ الحفظ…" : paymentMode ? "حفظ الدفعة" : "حفظ شراء المواد"}
-            </button>
+            <div className="micro-form-actions micro-sticky-save">
+              <button
+                className="micro-button micro-button-primary micro-save-cost"
+                type="button"
+                disabled={saving}
+                onClick={paymentMode ? savePayment : savePurchase}
+              >
+                <Save aria-hidden="true" />
+                {saving ? "جارٍ الحفظ…" : paymentMode ? "حفظ الدفعة" : "حفظ شراء المواد"}
+              </button>
+            </div>
           </section>
         </>
       )}

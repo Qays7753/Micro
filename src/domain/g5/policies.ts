@@ -236,10 +236,7 @@ function collectContributionOrders(
 }
 
 /* و٩: كمية الطلب ووحدتها — أول وحدة تُثبت والمختلفة تُسقط التوحيد. */
-function collectContributionOrderQuantity(
-  order: G5OrderInput,
-  state: ContributionWindowState,
-): void {
+function collectContributionOrderQuantity(order: G5OrderInput, state: ContributionWindowState): void {
   const hasQuantity = order.quantityMilli !== null && order.quantityMilli > 0;
   if (!hasQuantity) {
     state.totalQuantityMilli = null;
@@ -305,11 +302,7 @@ function collectContributionMixItem(order: G5OrderInput, state: ContributionWind
 }
 
 /* و٩: حساب صف المزيج المتراكم — null عند تجاوز الدقة الآمنة. */
-function accumulateMixItem(
-  current: G5MixItem,
-  hasExisting: boolean,
-  order: G5OrderInput,
-): G5MixItem | null {
+function accumulateMixItem(current: G5MixItem, hasExisting: boolean, order: G5OrderInput): G5MixItem | null {
   const nextMixRevenue = addSafe(current.revenueMinor, order.recognizedRevenueMinor);
   const nextMixCost = addSafe(current.variableCostMinor, order.recognizedCostMinor);
   const nextMixMargin =
@@ -368,10 +361,7 @@ function collectContributionExpenses(
 }
 
 /* و٩: المصروف الثابت — يعيد true إذا عولج وأكمل. */
-function collectContributionFixedExpense(
-  expense: G5ExpenseInput,
-  state: ContributionWindowState,
-): boolean {
+function collectContributionFixedExpense(expense: G5ExpenseInput, state: ContributionWindowState): boolean {
   if (expense.behavior !== "fixed") return false;
   const nextFixed = addSafe(state.fixedExpenseMinor, expense.amountMinor);
   if (nextFixed === null) {
@@ -389,10 +379,7 @@ function collectContributionFixedExpense(
 }
 
 /* و٩: المصروف المتغير — المرتبط يدخل التكلفة، وغير المرتبط والمختلط والمجهول فجوات معلنة. */
-function collectContributionVariableExpense(
-  expense: G5ExpenseInput,
-  state: ContributionWindowState,
-): void {
+function collectContributionVariableExpense(expense: G5ExpenseInput, state: ContributionWindowState): void {
   if (expense.behavior === "variable" && expense.directlyLinked) {
     const nextVariable = addSafe(state.totalVariableCostMinor, expense.amountMinor);
     if (nextVariable === null) {
@@ -638,8 +625,7 @@ export function calculateBreakEvenUnits(
       ? directMarginMinor * 1000
       : null;
   const numerator =
-    denominator !== null &&
-    fixedExpenseMinor <= Number.MAX_SAFE_INTEGER / Math.max(quantityMilli, 1)
+    denominator !== null && fixedExpenseMinor <= Number.MAX_SAFE_INTEGER / Math.max(quantityMilli, 1)
       ? fixedExpenseMinor * quantityMilli
       : null;
   if (numerator === null || denominator === null) return null;
@@ -816,9 +802,7 @@ function declarationBalanceLinkPasses(
   balanceId: string,
   state: ShortCashWindowState,
 ): boolean {
-  const balance = allBalances.find(
-    item => item.id === balanceId && item.direction === declaration.direction,
-  );
+  const balance = allBalances.find(item => item.id === balanceId && item.direction === declaration.direction);
   if (!balance) {
     state.invalid = true;
     state.reasons.push(`السجل المتوقع ${declaration.source} مرتبط برصيد غير موجود.`);

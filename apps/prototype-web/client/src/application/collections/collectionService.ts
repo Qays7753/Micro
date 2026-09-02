@@ -11,6 +11,8 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import type { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 
 export type ReceivableSourceKind = "order" | "direct_sale";
 
@@ -55,8 +57,6 @@ export type CollectionResult<T> =
   | { ok: true; value: T }
   | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
 
-const money = (minor: number) => `${(minor / 100).toFixed(2)} د.أ`;
-
 export class CollectionService {
   constructor(
     private readonly store: PrototypeLocalStore,
@@ -97,7 +97,7 @@ export class CollectionService {
     for (const sale of salesResult.value as readonly DirectSale[]) {
       if ((sale.status ?? "active") !== "active") continue;
       if (sale.collectionStatus !== "partial_debt") continue;
-      const outstanding = sale.revenueMinor - sale.collectedMinor;
+      const outstanding = directSaleOutstandingMinor(sale);
       if (outstanding <= 0) continue;
       sources.push({
         id: sale.id,
@@ -145,7 +145,7 @@ export class CollectionService {
       return {
         ok: false,
         code: "validation_error",
-        message: `التحصيل يتجاوز المتبقي على ${source.value.personName} — المتبقي ${money(source.value.outstandingMinor)} والمطلوب ${money(input.amountMinor)}. حصّل المتبقي أو أقل منه.`,
+        message: `التحصيل يتجاوز المتبقي على ${source.value.personName} — المتبقي ${formatMoneyWithUnit(source.value.outstandingMinor)} والمطلوب ${formatMoneyWithUnit(input.amountMinor)}. حصّل المتبقي أو أقل منه.`,
       };
 
     let remainingAfterMinor: number;

@@ -14,7 +14,7 @@ import { ScheduleService } from "@/application/scheduling/scheduleService";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 
 export type FulfillmentResult =
-  | { ok: true; stored: StoredCraftOrder }
+  | { ok: true; stored: StoredCraftOrder; notice?: string }
   | { ok: false; code: "storage_error" | "invalid_state"; message: string };
 export type DepositRow = {
   orderId: string;
@@ -95,7 +95,14 @@ export class FulfillmentService {
         createdAt: timestamp,
       });
       const saved = await this.persist({ ...current.stored, order, updatedAt: timestamp });
-      if (saved.ok) await this.schedules.reconcileDelivery(id);
+      /* S2-10: فشل مواءمة الجدول بعد التسليم لا يُخفى ولا يُفشل التسليم نفسه —
+       * إشعار غير حاجر بنمط إشعار نسبة المحفظة نفسه (المجموعة ٤). غياب موعد
+       * مرتبط (not_found) حالة سليمة لا تستحق إشعارًا. */
+      if (saved.ok) {
+        const reconciled = await this.schedules.reconcileDelivery(id);
+        if (!reconciled.ok && reconciled.code === "storage_error")
+          return { ...saved, notice: "تم تسجيل التسليم، وتعذرت مواءمة المواعيد المرتبطة به." };
+      }
       return saved;
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التسليم.");
@@ -122,8 +129,15 @@ export class FulfillmentService {
   }
 
   /* §٥-١٦ (المرحلة أ — رحلة ٢): الدين المسجل قابل للتحصيل لاحقًا. المبلغ هو
-   * الحقل الوحيد؛ التحصيل يقلل الدين ولا يعيد فتح الطلب. */
-  async collectDebt(id: string, amountMinor: number): Promise<FulfillmentResult> {
+   * الحقل الوحيد؛ التحصيل يقلل الدين ولا يعيد فتح الطلب.
+   * S2-02: مفتاح العملية يُمرَّر من ورقة التحصيل كما في فرع المتبقي — إعادة
+   * المحاولة بمفتاح واحد لا تسجّل تحصيلًا ثانيًا؛ مسار النموذج يبقى بطابعه
+   * الزمني مع حماية single-flight في الواجهة. */
+  async collectDebt(
+    id: string,
+    amountMinor: number,
+    operationKey?: string,
+  ): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
     if (current.stored.order.settlementStatus !== "debt" || current.stored.order.receivableMinor <= 0)
@@ -134,7 +148,7 @@ export class FulfillmentService {
       const order = collectRegisteredDebt(
         current.stored.order,
         amountMinor,
-        `${id}:debt-collect-${amountMinor}-${timestamp}`,
+        operationKey ?? `${id}:debt-collect-${amountMinor}-${timestamp}`,
         timestamp,
       );
       return this.persist({ ...current.stored, order, updatedAt: timestamp });
@@ -156,7 +170,9 @@ export class FulfillmentService {
     const order = current.stored.order;
     if (order.status === "cancelled") return failure("invalid_state", "طلب ملغى لا يُحصّل منه.");
     if (order.settlementStatus === "debt" && order.receivableMinor > 0)
-      return this.collectDebt(id, amountMinor);
+      /* S2-02: مفتاح العملية يُمرَّر كما يُمرَّر في فرع المتبقي — إعادة المحاولة
+       * بعد انقطاع لا تدفع الدين مرتين. */
+      return this.collectDebt(id, amountMinor, operationKey);
     if (order.status === "delivered") {
       if (order.receivableMinor <= 0)
         return failure("invalid_state", "لا يوجد مبلغ متبقٍ لتحصيله على هذا الطلب.");

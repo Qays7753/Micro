@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
 import { appendQueryParams, withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
@@ -76,10 +77,14 @@ const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
 
 export default function Finance() {
   const [, navigate] = useLocation();
+  /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
+  const returnPath = useReturnPath();
   /* U-001 (دورة التدقيق النهائي): رابط عميق ?event= من «السجل» — يفتح صف الحدث
    * المصدر في طبقة «السجل والأثر» مركّزًا (لا يكتب شيئًا؛ وصول وقراءة وتصحيح موثق). */
   const search = useSearch();
   const focusEventId = new URLSearchParams(search).get("event");
+  /* S1-09: ?layer=corrections|events يفتح الطبقة المعنية من الوصلة العميقة (عقد ٢٦ §3.1). */
+  const layerParam = new URLSearchParams(search).get("layer");
   /* المجموعة ٢ (§8 — Scope D): انقسام مالي إلى «الوضع الآن» و«الفترة» — قرار
    * أول واضح: شو معي الآن، أو شو صار خلال الفترة. القيمة دفاعية: مجهولة =
    * الوضع. تُحفظ في الرابط فيبقى البدء البارد والتحديث على نية القارئ. */
@@ -202,8 +207,8 @@ export default function Finance() {
   const visibleEvents = state.events.filter(event => visibleEventIds.has(event.id));
   return (
     <section className="micro-page micro-finance-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/")}>
-        <ArrowLeft aria-hidden="true" /> مشروعي الآن
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowLeft aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>
@@ -237,7 +242,7 @@ export default function Finance() {
       <ReviewPulseSection
         pulse={pulse}
         excludedOrders={state.excludedOrders}
-        onOpenOrder={orderId => navigate(`/orders/${orderId}`)}
+        onOpenOrder={orderId => navigate(withFrom(`/orders/${orderId}`, "/finance"))}
       />
       <CashDecisionSurface
         decision={decision}
@@ -358,7 +363,7 @@ export default function Finance() {
           </p>
         </div>
       </section>
-      <DepositsLayer deposits={state.deposits} onOpenOrder={orderId => navigate(`/orders/${orderId}`)} />
+      <DepositsLayer deposits={state.deposits} onOpenOrder={orderId => navigate(withFrom(`/orders/${orderId}`, "/finance"))} />
       </>
       ) : (
       <>
@@ -398,7 +403,7 @@ export default function Finance() {
             </div>
           </div>
           {rangeInvalid ? (
-            <p className="micro-field-error" role="status">
+            <p className="micro-field-error" role="alert">
               اختر نطاقًا يبدأ قبل نهايته؛ القراءة أدناه تبقى على آخر نطاق صحيح.
             </p>
           ) : null}
@@ -471,9 +476,7 @@ export default function Finance() {
               <dt>بيع مباشر بتكلفة غير معروفة</dt>
               <dd>
                 {period.status === "invalid" ? (
-                  <bdi dir="ltr" className="micro-inline-number">
-                    غير متاح
-                  </bdi>
+                  <span className="micro-unknown-value">غير متاح</span>
                 ) : (
                   <IntegerValue value={period.directSaleCostUnknownCount} className="micro-inline-number" />
                 )}
@@ -483,9 +486,7 @@ export default function Finance() {
               <dt>بيع مباشر نشط / ملغى مستبعد</dt>
               <dd>
                 {period.status === "invalid" ? (
-                  <bdi dir="ltr" className="micro-inline-number">
-                    غير متاح
-                  </bdi>
+                  <span className="micro-unknown-value">غير متاح</span>
                 ) : (
                   <>
                     <IntegerValue value={period.directSaleCount} className="micro-inline-number" /> /{" "}
@@ -552,9 +553,7 @@ export default function Finance() {
               <dt>طلبات داخلة / مستبعدة</dt>
               <dd>
                 {period.status === "invalid" ? (
-                  <bdi dir="ltr" className="micro-inline-number">
-                    غير متاح
-                  </bdi>
+                  <span className="micro-unknown-value">غير متاح</span>
                 ) : (
                   <>
                     <IntegerValue value={period.finalOrderCount} className="micro-inline-number" /> /{" "}
@@ -734,7 +733,18 @@ export default function Finance() {
                       <MoneyValue minor={insights.liquidity.cashCoverageAfterLiabilitiesMinor} />
                     </dd>
                   </div>
+                  <div>
+                    <dt>أمانات محتجزة (ليست مالكًا)</dt>
+                    <dd>
+                      <MoneyValue minor={insights.liquidity.amanahHeldMinor} />
+                    </dd>
+                  </div>
                 </dl>
+                {insights.liquidity.amanahNotice ? (
+                  <p className="micro-period-review-note" role="status">
+                    {insights.liquidity.amanahNotice}
+                  </p>
+                ) : null}
               </div>
             </section>
           </details>
@@ -925,10 +935,11 @@ export default function Finance() {
         projectFinance={projectFinance}
         onChanged={notifyDataChanged}
         focusEventId={focusEventId}
+        openOnLoad={layerParam === "events"}
       />
       {/* U-001: «السجل» — سطح قراءة واحد لكل تصحيح موثق عبر السجلات المدعومة؛
           لا يضيف حدثًا ولا يعدّل قيمة، ويُحدّث مع كل تغيير بيانات. */}
-      <CorrectionsLayer correctionHistory={correctionHistory} reloadToken={dataVersion} />
+      <CorrectionsLayer correctionHistory={correctionHistory} reloadToken={dataVersion} initiallyOpen={layerParam === "corrections"} />
     </section>
   );
 }
@@ -1025,9 +1036,12 @@ function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOve
           <span className="micro-overline">حق المالك · دفتر منفصل عن الربح</span>
           <h2 id="owner-decision-title">حق المالك وما تحرك فعليًا</h2>
         </div>
-        <bdi dir="ltr" className="micro-inline-number">
-          {formatMoneyMinor(overview.remainingEntitlementBalanceMinor)} د.أ
-        </bdi>
+        <span>
+          <bdi dir="ltr" className="micro-inline-number">
+            {formatMoneyMinor(overview.remainingEntitlementBalanceMinor)}
+          </bdi>{" "}
+          د.أ
+        </span>
       </div>
       <div className="micro-owner-decision-grid">
         <Metric label="حق مسجل" value={formatMoneyMinor(overview.approvedEntitlementMinor)} />
@@ -1125,17 +1139,20 @@ function Metric({ label, value, negative = false }: { label: string; value: stri
   return (
     <div>
       <span>{label}</span>
-      <strong className="micro-number" data-negative={negative}>
-        {value}
-      </strong>
+      {/* S3-07: الحالة العربية خارج صنف الأرقام — هادئة لا الصوت الأعلى في الخلية. */}
+      {value === "غير متاح" ? (
+        <span className="micro-unknown-value">{value}</span>
+      ) : (
+        <strong className="micro-number" data-negative={negative}>
+          {value}
+        </strong>
+      )}
     </div>
   );
 }
 function PeriodMoney({ value, status }: { value: number; status: RecordedPeriodResult["status"] }) {
   return status === "invalid" ? (
-    <bdi dir="ltr" className="micro-number">
-      غير متاح
-    </bdi>
+    <span className="micro-unknown-value">غير متاح</span>
   ) : (
     <MoneyValue minor={value} />
   );

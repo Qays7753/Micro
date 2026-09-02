@@ -615,7 +615,7 @@ export default function CostEditor() {
           تدخل صفرًا بدل المجهول.
         </p>
       ) : null}
-      <div className="micro-form-actions">
+      <div className="micro-form-actions micro-sticky-save">
         <button
           className="micro-button micro-button-primary micro-save-cost"
           type="button"

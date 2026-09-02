@@ -43,6 +43,10 @@ export function StartupGate({ children }: { children: ReactNode }) {
     void requestPersistentStorage();
   }, []);
   useEffect(() => {
+    /* S5-09: إقلاع واحد لكل جلسة — كانت الطبقة تعيد قراءة الملف مع كل تغيير مسار
+     * وكل dataVersion (فتح IndexedDB إضافي بلا فائدة). مسار الخطأ يبقي إعادة
+     * المحاولة حية، والإقلاع الأول يفعل كل شيء كما كان. */
+    if (state === "ready") return;
     let active = true;
     profiles.load().then(result => {
       if (!active) return;
@@ -60,7 +64,7 @@ export function StartupGate({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [dataVersion, location, navigate, ownerProfile, profiles]);
+  }, [dataVersion, location, navigate, ownerProfile, profiles, state]);
   if (state === "loading")
     return (
       <div className="micro-route-loading" role="status" aria-live="polite">

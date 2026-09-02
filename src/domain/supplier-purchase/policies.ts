@@ -124,7 +124,10 @@ export function recordSupplierPurchasePayment(
   if (!validDate(input.occurredOn)) throw new Error("أدخل تاريخ الحركة تاريخًا محليًا صحيحًا.");
   if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   if (purchase.payments.some(payment => payment.idempotencyKey === input.idempotencyKey)) return purchase;
-  if (input.amountMinor > purchase.payableMinor)
+  /* S2-01: الحارس والمتبقي محسوبان من المدفوع الفعلي (الدفعات − التراجعات الموثقة)
+   * لا من حقول مخزنة قد تعكس حالة ما قبل تراجع — لا يُبعث أثر دفعة مُتراجَع عنها. */
+  const effectivePayableMinor = purchase.totalMinor - effectivePaid(purchase);
+  if (input.amountMinor > effectivePayableMinor)
     throw new Error("الدفعة لا يمكن أن تتجاوز المتبقي المسجل على الشراء.");
   const payment = Object.freeze({
     id: input.id,
@@ -135,7 +138,10 @@ export function recordSupplierPurchasePayment(
     note: input.note.trim(),
   });
   const payments = Object.freeze([...purchase.payments, payment]);
-  const paidMinor = totalPaid(payments);
+  /* S2-01: المدفوع بعد الدفعة الجديدة يطرح التراجعات الموثقة نفسها. */
+  const paidMinor = totalPaid(payments) - totalReversed(purchase.paymentReversals);
+  if (paidMinor < 0 || paidMinor > purchase.totalMinor)
+    throw new Error("الدفعة تجعل المدفوع خارج الحدود؛ راجع التراجعات المسجلة أولًا.");
   return Object.freeze({
     ...purchase,
     payments,

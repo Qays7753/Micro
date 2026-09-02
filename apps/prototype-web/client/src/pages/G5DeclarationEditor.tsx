@@ -95,7 +95,8 @@ export default function G5DeclarationEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/finance");
+    /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
+    navigate(returnPath);
     return true;
   }
 
@@ -232,7 +233,7 @@ export default function G5DeclarationEditor() {
             {message}
           </p>
         ) : null}
-        <div className="micro-form-actions">
+        <div className="micro-form-actions micro-sticky-save">
           <button
             className="micro-button micro-button-primary micro-button-block"
             type="button"

@@ -70,7 +70,8 @@ export default function MaterialEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/inventory");
+    /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
+    navigate(returnPath);
     return true;
   }
   return (
@@ -140,7 +141,8 @@ export default function MaterialEditor() {
             {message}
           </p>
         ) : null}
-        <button
+        <div className="micro-form-actions micro-sticky-save">
+            <button
           className="micro-button micro-button-primary micro-save-cost"
           type="button"
           disabled={saving}
@@ -149,6 +151,7 @@ export default function MaterialEditor() {
           <Save aria-hidden="true" />
           {saving ? "جارٍ الحفظ…" : "حفظ المادة ورصيد البداية"}
         </button>
+          </div>
       </section>
     </section>
   );

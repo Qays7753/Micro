@@ -117,7 +117,8 @@ export default function OwnerWithdrawalEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate("/finance");
+    /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
+    navigate(returnPath);
     return true;
   }
 
@@ -219,11 +220,12 @@ export default function OwnerWithdrawalEditor() {
             />
           </label>
           {message ? (
-            <p className="micro-field-error" role="status">
+            <p className="micro-field-error" role="alert">
               {message}
             </p>
           ) : null}
-          <button
+          <div className="micro-form-actions micro-sticky-save">
+            <button
             className="micro-button micro-button-primary micro-save-cost"
             type="button"
             disabled={saving}
@@ -234,6 +236,7 @@ export default function OwnerWithdrawalEditor() {
             <Save aria-hidden="true" />
             {saving ? "جارٍ الحفظ…" : "سجّل السحب"}
           </button>
+          </div>
         </section>
       ) : (
         <div className="micro-route-loading" role="status">

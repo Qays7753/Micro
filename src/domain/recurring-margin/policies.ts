@@ -185,7 +185,8 @@ const incomplete = (
 });
 
 /** One implementation of the per-output-unit allocation arithmetic, shared by the catalog preview and the period reader. */
-export type PerOutputUnitAmount = { amountMinor: number } | { problem: "missing_input" | "unsafe_range" | "overflow" };
+export type PerOutputUnitAmount =
+  { amountMinor: number } | { problem: "missing_input" | "unsafe_range" | "overflow" };
 
 export function perOutputUnitAmountMinor(
   quantityMilli: number | null,
@@ -201,7 +202,8 @@ export function perOutputUnitAmountMinor(
   )
     return { problem: "unsafe_range" };
   const rawMinor = rateMinorPerWholeUnit * quantityMilli;
-  if (!Number.isSafeInteger(rawMinor) || rawMinor > Number.MAX_SAFE_INTEGER - 500) return { problem: "overflow" };
+  if (!Number.isSafeInteger(rawMinor) || rawMinor > Number.MAX_SAFE_INTEGER - 500)
+    return { problem: "overflow" };
   const amountMinor = roundHalfUp(rawMinor, 1_000);
   if (amountMinor === null) return { problem: "overflow" };
   return { amountMinor };
@@ -336,8 +338,7 @@ export function calculateAllocationPolicy(
   const reasons: string[] = [];
   const excluded: string[] = [...evidence.excludedOrderIds];
   if (policy.kind === "manual_amount") amountMinor = policy.amountMinor;
-  if (policy.kind === "per_output_unit")
-    amountMinor = perOutputUnitAllocation(policy, evidence, reasons);
+  if (policy.kind === "per_output_unit") amountMinor = perOutputUnitAllocation(policy, evidence, reasons);
   if (policy.kind === "actual_time") amountMinor = actualTimeAllocation(policy, evidence, reasons);
   if (policy.kind === "completed_revenue_percentage")
     amountMinor = completedRevenueAllocation(policy, evidence, reasons);
@@ -365,9 +366,7 @@ export function calculateAllocationPolicy(
     evidence,
     excluded,
     reasons:
-      amountMinor === 0
-        ? ["الناتج صفر بعد تقريب مجموع الفترة؛ هذه نتيجة حسابية معلنة وليست نقص معرفة."]
-        : [],
+      amountMinor === 0 ? ["الناتج صفر بعد تقريب مجموع الفترة؛ هذه نتيجة حسابية معلنة وليست نقص معرفة."] : [],
     nextAction:
       "راجع السياسة والمصادر الداخلة قبل اتخاذ قرار جديد؛ هذا الرقم ليس صافي ربح نهائيًا أو توصية سعر.",
     truth: "هذا الربح بعد التوزيع حسب سياستك، وليس صافي ربح نهائيًا أو توصية سعر.",

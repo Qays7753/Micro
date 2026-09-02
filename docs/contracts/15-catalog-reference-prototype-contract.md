@@ -204,4 +204,4 @@ measurement-units | direct-conversions | catalog-templates
 [3]: [عقد المواد والاستهلاك](11-inventory-material-consumption-prototype-contract.md)
 [4]: [عقد المادة الفعلية للطلب](13-actual-material-per-order-prototype-contract.md)
 [5]: [عقد نتيجة الفترة](14-period-result-allocation-policy-prototype-contract.md)
-[6]: [بطاقة فهم G4-A](../../g4a-understanding-card.md)
+[6]: [بطاقة فهم G4-A](../quality/g4a-understanding-card.md)

@@ -303,3 +303,35 @@ describe("FulfillmentService", () => {
     });
   });
 });
+
+/* S2-02 (تدقيق المجموعة ٥): إعادة محاولة تحصيل الدين من ورقة التحصيل بمفتاح
+ * عملية واحد لا تسجّل تحصيلًا ثانيًا — حتى مع ساعة زمنية متقدمة (المفتاح
+ * يُمرَّر كما يُمرَّر في فرع المتبقي). */
+it("keeps collectFromSheet debt retries idempotent under an advancing clock (S2-02)", async () => {
+  const { store, orderId } = await activeOrder();
+  /* ساعة متقدمة: كل استدعاء يعيد وقتًا مختلفًا فيفشل أي مفتاح مبني على الوقت. */
+  let clockTick = 0;
+  const advancing = () => `2026-08-22T02:${String(10 + clockTick++).padStart(2, "0")}:00.000Z`;
+  const service = new FulfillmentService(store, advancing);
+  await service.markReady(orderId);
+  await service.deliver(orderId);
+  await service.registerRemainingDebt(orderId);
+
+  const first = await service.collectFromSheet(orderId, 500, "sheet-retry-key-s202");
+  expect(first).toMatchObject({
+    ok: true,
+    stored: { order: { collectedMinor: 1000, receivableMinor: 1200 } },
+  });
+  /* إعادة المحاولة بالمفتاح نفسه (انقطاع شبكة/نقرة مزدوجة): لا تحصيل ثانٍ. */
+  const retry = await service.collectFromSheet(orderId, 500, "sheet-retry-key-s202");
+  expect(retry).toMatchObject({
+    ok: true,
+    stored: { order: { collectedMinor: 1000, receivableMinor: 1200 } },
+  });
+  const stored = await store.getOrder(orderId);
+  if (!stored.ok || !stored.value) throw new Error("order should read");
+  const collectionEvents = stored.value.order.events.filter(
+    event => event.type === "collection_recorded" && event.amountMinor === 500,
+  );
+  expect(collectionEvents).toHaveLength(1);
+});

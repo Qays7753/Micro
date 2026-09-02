@@ -9,7 +9,12 @@ import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
-import { formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
+import {
+  formatLocalDateLong,
+  formatMoneyMinor,
+  formatMoneyWithUnit,
+  localDateInAmman,
+} from "@/presentation/formatters";
 import { templateComponentCountLabel } from "@/presentation/plurals";
 import type {
   CatalogItem,
@@ -25,7 +30,6 @@ import type {
   RecurringWorkReadings,
 } from "@/application/recurring-work/recurringWorkService";
 
-const jod = (minor: number) => `${(minor / 100).toFixed(2)} د.أ`;
 const dimensions: readonly { value: UnitDimension; label: string }[] = [
   { value: "count", label: "عدد" },
   { value: "mass", label: "وزن" },
@@ -108,11 +112,15 @@ export const isCatalogTemplateDirty = (fingerprint: string, baseline: string | n
   baseline === null ? hasDraft : fingerprint !== baseline;
 const operationKey = (prefix: string) => `${prefix}:${crypto.randomUUID()}`;
 const currentMonth = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
-  return { from: `${year}-${month}-01`, to: `${year}-${month}-${String(lastDay).padStart(2, "0")}` };
+  /* S5-14: شهر عمان لا شهر الجهاز — نفس مصدر الحقيقة الذي تستعمله مالي والكشف. */
+  const today = localDateInAmman();
+  const year = Number(today.slice(0, 4));
+  const month = Number(today.slice(5, 7));
+  const lastDay = monthEndDate(year, month);
+  return {
+    from: `${today.slice(0, 7)}-01`,
+    to: `${today.slice(0, 7)}-${String(lastDay).padStart(2, "0")}`,
+  };
 };
 const nextDay = (value: string) => {
   const date = new Date(`${value}T12:00:00.000Z`);
@@ -159,7 +167,7 @@ export const buildCatalogPerUnitPreview = (
   const label = unitName.trim() || "وحدة كاملة";
   return {
     allocationMinor,
-    text: `${((quantityMilli ?? 0) / 1000).toFixed(3)} ${label} × ${((rateMinorPerWholeUnit ?? 0) / 100).toFixed(2)} د.أ لكل 1.000 ${label} = ${(allocationMinor / 100).toFixed(2)} د.أ`,
+    text: `${((quantityMilli ?? 0) / 1000).toFixed(3)} ${label} × ${formatMoneyWithUnit((rateMinorPerWholeUnit ?? 0))} لكل 1.000 ${label} = ${formatMoneyWithUnit(allocationMinor ?? 0)}`,
     warning: null,
   };
 };
@@ -711,9 +719,22 @@ export default function Catalog() {
     !conversionDenominatorValid ||
     conversionNote.trim(),
   );
+  /* S1-14: نموذج «مرجع عمل» الجديد داخل الحارس أيضًا — نصف اسم مسجل لا يضيع
+   * صامتًا عند القفز لتسجيل بيع من صف آخر. */
+  const referenceDirty = Boolean(
+    name.trim() ||
+    unitLabel.trim() ||
+    defaultPrice ||
+    defaultCost ||
+    !defaultPriceEmpty && defaultPriceValid && defaultPrice > 0,
+  );
   const requestSafeNavigation = useUnsavedChangesGuard({
-    isDirty: templateDirty || conversionDirty,
+    isDirty: templateDirty || conversionDirty || referenceDirty,
     onSave: async () => {
+      if (referenceDirty) {
+        await create();
+        return true;
+      }
       if (templateDirty && !(await saveTemplate())) return false;
       if (conversionDirty && !(await createConversion())) return false;
       return true;
@@ -928,7 +949,7 @@ export default function Catalog() {
                           className="micro-button micro-button-primary"
                           type="button"
                           onClick={() =>
-                            navigate(
+                            requestSafeNavigation(
                               withFrom(
                                 `/direct-sales/new?product=${encodeURIComponent(item.id)}`,
                                 "/catalog",
@@ -1715,7 +1736,7 @@ export default function Catalog() {
                       </p>
                       {reading?.directStatus === "recorded" ? (
                         <p>
-                          <strong>الهامش المباشر المسجل: {jod(reading.directMarginMinor ?? 0)}</strong> ·{" "}
+                          <strong>الهامش المباشر المسجل: {formatMoneyWithUnit(reading.directMarginMinor ?? 0)}</strong> ·{" "}
                           {reading.finalOrderCount} طلب نهائي · كمية {reading.deliveredQuantity}
                         </p>
                       ) : (
@@ -1730,10 +1751,10 @@ export default function Catalog() {
                             المادة:{" "}
                             {reading.material.actualMaterialMinor === null
                               ? "غير مسجلة بعد"
-                              : jod(reading.material.actualMaterialMinor)}
+                              : formatMoneyWithUnit(reading.material.actualMaterialMinor)}
                             {reading.material.varianceMinor === null
                               ? ""
-                              : ` · الفرق ${jod(reading.material.varianceMinor)}`}{" "}
+                              : ` · الفرق ${formatMoneyWithUnit(reading.material.varianceMinor)}`}{" "}
                             · {reading.material.recordedOrderCount} مسجل /{" "}
                             {reading.material.notRecordedOrderCount} بلا سجل
                           </p>
@@ -1750,13 +1771,13 @@ export default function Catalog() {
                           </p>
                           <p>
                             الهدر المرتبط بهذا المرجع:{" "}
-                            {jod(
+                            {formatMoneyWithUnit(
                               reading.waste.orderWasteMinor +
                                 reading.waste.catalogItemWasteMinor +
                                 reading.waste.catalogTemplateWasteMinor,
                             )}{" "}
                             · الهدر العام/غير الموزع منفصل:{" "}
-                            {jod(
+                            {formatMoneyWithUnit(
                               reading.waste.generalProjectWasteMinor + reading.waste.unallocatedWasteMinor,
                             )}
                           </p>
@@ -1767,7 +1788,7 @@ export default function Catalog() {
                                   الربح بعد التوزيع:{" "}
                                   {allocation.resultMinor === null
                                     ? "غير مكتمل"
-                                    : jod(allocation.resultMinor)}
+                                    : formatMoneyWithUnit(allocation.resultMinor)}
                                 </strong>{" "}
                                 · {catalogAllocationKindLabel(allocation.kind)} ·{" "}
                                 {catalogAllocationStatusLabel(allocation.status)}
@@ -1792,7 +1813,7 @@ export default function Catalog() {
                                   {formatLocalDateLong(policy.periodFrom) ?? policy.periodFrom} →{" "}
                                   {formatLocalDateLong(policy.periodTo) ?? policy.periodTo}
                                   {policy.kind === "per_output_unit" && policy.rateMinorPerWholeUnit !== null
-                                    ? ` · ${(policy.rateMinorPerWholeUnit / 100).toFixed(2)} د.أ لكل 1.000 وحدة`
+                                    ? ` · ${formatMoneyWithUnit(policy.rateMinorPerWholeUnit)} لكل 1.000 وحدة`
                                     : ""}{" "}
                                   · {policy.source} · السبب: {policy.reason} · {policy.note}
                                   {policy.status === "active" ? (

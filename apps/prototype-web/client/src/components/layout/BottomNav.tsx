@@ -26,7 +26,7 @@ export function BottomNav({ activePath, items, onNavigate, onOpenActions }: Bott
         {/* §10 (دورة التدقيق النهائي): تسمية الزر المركزي «سجّل» تطابق البنية
             المعتمدة حرفيًا: مشروعي الآن | العمل | سجّل | مالي | أدواتي — وهو
             مدخل التسجيل الأساسي (F-003). */}
-        <button className="micro-fab" type="button" onClick={onOpenActions} aria-label="سجّل أو أضف">
+        <button className="micro-fab" type="button" onClick={onOpenActions} aria-label="سجّل">
           <Plus aria-hidden="true" />
           <span>سجّل</span>
         </button>

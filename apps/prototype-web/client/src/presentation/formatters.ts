@@ -66,6 +66,13 @@ export function formatMoneyMinor(minor: number | null | undefined) {
   return moneyFormatter.format(minor / 100);
 }
 
+/* S4-06: مصدر واحد لعرض المال بوحدته — الرقم بفواصل الآلاف والوحدة بعده بمسافة.
+ * (S3-09): توحيد كل المساعدات المحلية المكررة على هذا المعيّن. */
+export function formatMoneyWithUnit(minor: number | null | undefined) {
+  if (minor === null || minor === undefined || !Number.isFinite(minor)) return "—";
+  return `${moneyFormatter.format(minor / 100)} د.أ`;
+}
+
 export function formatInteger(value: number | null | undefined) {
   if (value === null || value === undefined || !Number.isFinite(value)) return "—";
   return integerFormatter.format(value);
@@ -93,11 +100,9 @@ export function formatBreakEvenDisplay(
   return { number: integerFormatter.format(value), scale };
 }
 
-export function isValidLocalDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parsed = new Date(`${value}T12:00:00.000Z`);
-  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
-}
+/* S4-08: معيّن واحد لتاريخ محلي صحيح — نسخة المجال المرجعية (UTC Y/M/D). */
+import { isValidLocalDate as isValidLocalDateDomain } from "@micro-domain/shared/index.js";
+export const isValidLocalDate = isValidLocalDateDomain;
 
 export function formatLocalDate(value: string | null | undefined) {
   if (!value || !isValidLocalDate(value)) return null;

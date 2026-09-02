@@ -1,5 +1,5 @@
 /** Composition root: React receives application services, never the IndexedDB adapter itself. */
-import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { DraftService } from "@/application/drafts/draftService";
 import { CostService } from "@/application/cost/costService";
 import { AgreementService } from "@/application/agreements/agreementService";
@@ -76,8 +76,27 @@ type PrototypeServices = {
 };
 const PrototypeServicesContext = createContext<PrototypeServices | undefined>(undefined);
 
+const CROSS_TAB_CHANNEL = "micro-data-changed";
+
 export function PrototypeServicesProvider({ children }: { children: ReactNode }) {
   const [dataVersion, setDataVersion] = useState(0);
+  /* S5-12: نافذة أخرى كتبت بيانات؟ BroadcastChannel ينبّه هذه النافذة فتُحدّث
+   * قراءاتها بدل أن تظل تعرض حالة قديمة حتى إعادة التحميل. */
+  const channelRef = useRef<BroadcastChannel | null>(null);
+  useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") return;
+    const channel = new BroadcastChannel(CROSS_TAB_CHANNEL);
+    channelRef.current = channel;
+    channel.onmessage = () => setDataVersion(version => version + 1);
+    return () => {
+      channel.close();
+      channelRef.current = null;
+    };
+  }, []);
+  const notifyDataChanged = useCallback(() => {
+    setDataVersion(version => version + 1);
+    channelRef.current?.postMessage("changed");
+  }, []);
   const services = useMemo(() => {
     const store = createBrowserLocalStore();
     const costs = new CostService(store);
@@ -135,9 +154,9 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       walletLedger: new WalletLedgerService(store),
       statement: new StatementService(store, projectFinance),
       dataVersion,
-      notifyDataChanged: () => setDataVersion(version => version + 1),
+      notifyDataChanged,
     };
-  }, [dataVersion]);
+  }, [dataVersion, notifyDataChanged]);
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
 

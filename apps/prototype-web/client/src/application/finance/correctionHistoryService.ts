@@ -5,6 +5,7 @@ import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
+import { formatMoneyWithUnit } from "@/presentation/formatters";
 
 export type CorrectionHistoryKind =
   | "event_reversal"
@@ -56,7 +57,6 @@ export const eventKindLabel: Record<FinancialEventType, string> = {
   loss_non_cash: "هالك بلا خروج نقد",
 };
 
-const money = (minor: number) => `${(minor / 100).toFixed(2)} د.أ`;
 
 /** استرجاع الحدث المالي يُوسَم بمفتاح «restore:<id>» من واجهة التصحيح — علامة صريحة لا تخمين. */
 const RESTORE_KEY_PREFIX = "restore:";
@@ -103,11 +103,11 @@ export class CorrectionHistoryService {
               : -event.amountMinor,
           reason: event.correctionReason ?? null,
           originalLabel: source
-            ? `${eventKindLabel[source.type]} · ${source.occurredOn} · ${money(source.amountMinor)}`
+            ? `${eventKindLabel[source.type]} · ${source.occurredOn} · ${formatMoneyWithUnit(source.amountMinor)}`
             : null,
           replacementLabel:
             isEdit && replacement
-              ? `${eventKindLabel[replacement.type]} · ${replacement.occurredOn} · ${money(replacement.amountMinor)}`
+              ? `${eventKindLabel[replacement.type]} · ${replacement.occurredOn} · ${formatMoneyWithUnit(replacement.amountMinor)}`
               : null,
           /* U-001 (دورة التدقيق النهائي): وصول عميق للحدث في «السجل والأثر» — التعديل
            * يفتح البديل النشط (حيث التصحيح/الحذف)، والتراجع يفتح الأصل (حيث الاسترجاع). */
@@ -127,7 +127,7 @@ export class CorrectionHistoryService {
           occurredOn: event.occurredOn,
           amountEffectMinor: event.amountMinor,
           reason: source
-            ? `استرجاع بعد تراجع: ${eventKindLabel[source.type]} · ${source.occurredOn} · ${money(source.amountMinor)}`
+            ? `استرجاع بعد تراجع: ${eventKindLabel[source.type]} · ${source.occurredOn} · ${formatMoneyWithUnit(source.amountMinor)}`
             : "استرجاع حدث سابق",
           originalLabel: null,
           replacementLabel: null,
@@ -163,12 +163,12 @@ export class CorrectionHistoryService {
           reason: revision.reason ?? null,
           originalLabel:
             revision.beforeRevenueMinor != null
-              ? `بيع مباشر «${sale.itemName}» · السعر قبل التصحيح ${money(revision.beforeRevenueMinor)}`
-              : `بيع مباشر «${sale.itemName}» · ${money(sale.revenueMinor)}`,
+              ? `بيع مباشر «${sale.itemName}» · السعر قبل التصحيح ${formatMoneyWithUnit(revision.beforeRevenueMinor)}`
+              : `بيع مباشر «${sale.itemName}» · ${formatMoneyWithUnit(sale.revenueMinor)}`,
           replacementLabel:
             revision.kind === "cancel"
               ? "ملغى — مستبعد من الإيراد والكاش، والسجل باقٍ"
-              : `السعر بعد التصحيح ${money(sale.revenueMinor)}`,
+              : `السعر بعد التصحيح ${formatMoneyWithUnit(sale.revenueMinor)}`,
           deepLink: `/direct-sales/${encodeURIComponent(sale.id)}`,
         });
       }
@@ -185,9 +185,9 @@ export class CorrectionHistoryService {
         reason: entry.reason ?? entry.note,
         originalLabel: `قيد كاش · ${entry.note}`,
         replacementLabel: null,
-        /* U-001 (دورة التدقيق النهائي): القيد المصدر ظاهر في سطح المحافظ والقيدود —
-         * لا مسار كتابة ثانٍ من هنا؛ تصحيح القيدود يُنفّذ من سطحه الأصلي. */
-        deepLink: "/cash",
+        /* S1-08: يفتح دفتر المحفظة نفسه مع تركيز صف التراجع (?entry=) —
+         * لا مسار كتابة ثانٍ من هنا؛ تصحيح القيود يُنفّذ من سطحه الأصلي. */
+        deepLink: `/cash/wallet/${encodeURIComponent(entry.walletId)}?entry=${encodeURIComponent(entry.id)}`,
       });
     }
 
@@ -201,8 +201,8 @@ export class CorrectionHistoryService {
           occurredOn: revision.createdAt.slice(0, 10),
           amountEffectMinor: revision.beforeTotalMinor - purchase.totalMinor,
           reason: revision.reason,
-          originalLabel: `شراء من ${revision.beforeSupplierName} · الإجمالي قبل التصحيح ${money(revision.beforeTotalMinor)}`,
-          replacementLabel: `الإجمالي بعد التصحيح ${money(purchase.totalMinor)} · المدفوع ${money(purchase.paidMinor)}`,
+          originalLabel: `شراء من ${revision.beforeSupplierName} · الإجمالي قبل التصحيح ${formatMoneyWithUnit(revision.beforeTotalMinor)}`,
+          replacementLabel: `الإجمالي بعد التصحيح ${formatMoneyWithUnit(purchase.totalMinor)} · المدفوع ${formatMoneyWithUnit(purchase.paidMinor)}`,
           deepLink: `/suppliers/purchase/${encodeURIComponent(purchase.id)}`,
         });
       }
@@ -215,8 +215,8 @@ export class CorrectionHistoryService {
           occurredOn: reversal.occurredOn,
           amountEffectMinor: reversal.amountMinor,
           reason: reversal.reason,
-          originalLabel: `دفعة ${payment ? money(payment.amountMinor) : money(reversal.amountMinor)} لـ${purchase.supplierName}`,
-          replacementLabel: `استُعيد المتبقي للمورد — المتبقي الآن ${money(purchase.payableMinor)}`,
+          originalLabel: `دفعة ${payment ? formatMoneyWithUnit(payment.amountMinor) : formatMoneyWithUnit(reversal.amountMinor)} لـ${purchase.supplierName}`,
+          replacementLabel: `استُعيد المتبقي للمورد — المتبقي الآن ${formatMoneyWithUnit(purchase.payableMinor)}`,
           deepLink: `/suppliers/purchase/${encodeURIComponent(purchase.id)}`,
         });
       }
@@ -233,8 +233,8 @@ export class CorrectionHistoryService {
             occurredOn: ammanDateOf(event.createdAt),
             amountEffectMinor: (event.toPriceMinor ?? 0) - (event.fromPriceMinor ?? 0),
             reason: event.note ?? null,
-            originalLabel: `سعر «${stored.order.itemName || "طلب"}» قبل التصحيح ${money(event.fromPriceMinor ?? 0)}`,
-            replacementLabel: `السعر بعد التصحيح ${money(event.toPriceMinor ?? 0)} · المتبقي ${money(stored.order.receivableMinor)}`,
+            originalLabel: `سعر «${stored.order.itemName || "طلب"}» قبل التصحيح ${formatMoneyWithUnit(event.fromPriceMinor ?? 0)}`,
+            replacementLabel: `السعر بعد التصحيح ${formatMoneyWithUnit(event.toPriceMinor ?? 0)} · المتبقي ${formatMoneyWithUnit(stored.order.receivableMinor)}`,
             deepLink: `/orders/${encodeURIComponent(stored.id)}`,
           });
         }
@@ -246,8 +246,8 @@ export class CorrectionHistoryService {
             occurredOn: ammanDateOf(event.createdAt),
             amountEffectMinor: -(event.amountMinor ?? 0),
             reason: event.note ?? null,
-            originalLabel: `قبضة على «${stored.order.itemName || "طلب"}» · ${money(event.amountMinor ?? 0)}`,
-            replacementLabel: `المتبقي الآن ${money(stored.order.receivableMinor)} — الإيراد لم يتغير`,
+            originalLabel: `قبضة على «${stored.order.itemName || "طلب"}» · ${formatMoneyWithUnit(event.amountMinor ?? 0)}`,
+            replacementLabel: `المتبقي الآن ${formatMoneyWithUnit(stored.order.receivableMinor)} — الإيراد لم يتغير`,
             deepLink: `/orders/${encodeURIComponent(stored.id)}`,
           });
         }

@@ -3,12 +3,14 @@
  * for cash that entered the business without a wallet attribution.
  */
 import { ArrowRight, ArrowLeft, WalletCards } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatMoneyMinor } from "@/presentation/formatters";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
@@ -43,6 +45,11 @@ export default function CashDistribution() {
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /* S2-06: مفتاح عملية لكل فتح صفحة — إعادة محاولة نفس التوزيع لا تكرره. */
+  const operationKeyRef = useRef(`cash-distribute-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+  /* S1-05/S1-11: مسار عميق بمفتاح واحد — حارس المدخلات غير المحفوظة + رجوع للمصدر. */
+  const isDirty = useFormDirty([walletId, amountMinor, direction, note]);
+  const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => distribute() });
 
   useEffect(() => {
     let active = true;
@@ -90,14 +97,15 @@ export default function CashDistribution() {
   const selectedWallet = overview.wallets.find(wallet => wallet.id === walletId) ?? null;
   const deltaMinor = direction === "into_wallet" ? amountMinor : -amountMinor;
 
-  async function distribute() {
+  /* حارس المدخلات يستدعي نفس المسار: النجاح يرجع true ليكتمل الخروج بعد الحفظ. */
+  async function distribute(): Promise<boolean> {
     if (!walletId) {
       setMessage("اختر محفظة قبل التوزيع.");
-      return;
+      return false;
     }
     if (!Number.isInteger(amountMinor) || amountMinor <= 0) {
       setMessage("أدخل مبلغًا صحيحًا موجبًا بالأرقام 0–9.");
-      return;
+      return false;
     }
     setSaving(true);
     setMessage(null);
@@ -105,11 +113,12 @@ export default function CashDistribution() {
       walletId,
       deltaMinor,
       note: note.trim() || null,
+      operationKey: operationKeyRef.current,
     });
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
-      return;
+      return false;
     }
     notifyDataChanged();
     setMessage(
@@ -119,11 +128,12 @@ export default function CashDistribution() {
     );
     setAmountMinor(0);
     setNote("");
+    return true;
   }
 
   return (
     <section className="micro-page micro-distribution-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/cash")}>
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">
@@ -141,7 +151,7 @@ export default function CashDistribution() {
           <MoneyValue minor={position.recordedCashMinor} /> — التوزيع ينقل بينهما ولا يغيّر الإجمالي.
         </p>
         {position.unallocatedCashMinor < 0 ? (
-          <p className="micro-field-error" role="status">
+          <p className="micro-field-error" role="alert">
             في دفعة تحتاج تغطية — الكاش غير الموزع سالب لأن دفعًا مسجلًا تجاوز ما دخل غير موزع.
             غطِّ الفرق من محفظة فيها رصيد؛ التغطية نقل كاش لا مصروف ولا ربح.
           </p>
@@ -149,7 +159,7 @@ export default function CashDistribution() {
       </section>
       <section className="micro-form-card" aria-label="نموذج التوزيع">
         {overview.wallets.length === 0 ? (
-          <p className="micro-field-error" role="status">
+          <p className="micro-field-error" role="alert">
             لا توجد محافظ بعد؛ أنشئ محفظة أولًا من «محافظ الكاش».
           </p>
         ) : (

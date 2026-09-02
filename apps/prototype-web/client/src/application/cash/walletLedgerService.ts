@@ -3,6 +3,7 @@
  * في المحفظة بالتسلسل الزمني مع تمييز الأنواع ووصل كل صف بمصدره حيث يوجد.
  * قراءة فقط: التصحيح يُنفَّذ من سطحه الأصلي (تراجع القيد) بلا مسار كتابة ثانٍ.
  */
+import { summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
@@ -130,11 +131,13 @@ export class WalletLedgerService {
       };
     });
     rows.reverse();
+    /* S4-09: الرصيد النهائي من معيّن المجال نفسه الذي تستعمله النظرة العامة —
+     * المجموع الجاري يبقى لعرض الصفوف فقط. */
     return {
       ok: true,
       value: {
         wallet,
-        balanceMinor: running,
+        balanceMinor: summarizeCashContinuity(walletEntries),
         openingUnknown: wallet.openingStatus === "unknown",
         entryCount: walletEntries.length,
         rows,

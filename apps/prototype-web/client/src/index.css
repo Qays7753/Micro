@@ -64,11 +64,11 @@
   --color-accent-primary: #079fa0;
   --color-accent-text: #057b7c;
   --color-accent-soft: #e3f5f5;
-  --color-success-text: #2e7d57;
+  --color-success-text: #256b4a; /* S3-06: 5.5:1 على خلفيته الفاتحة */
   --color-success-bg: #e4f2ea;
   --color-danger-text: #b42318;
   --color-danger-bg: #fbe7e6;
-  --color-warning-text: #8a6927;
+  --color-warning-text: #7a5c20; /* S3-06: 5.3:1 على خلفيته الفاتحة */
   --color-warning-bg: #f6eccf;
   --color-withdrawal-text: #3e5c76;
   --color-withdrawal-bg: #e8eef3;
@@ -277,14 +277,7 @@
   background: var(--color-bg-well);
 }
 }
-.micro-icon-button:active {
-  transform: scale(0.97);
-}
-.micro-icon-button svg {
-  width: 20px;
-  height: 20px;
-}
-.micro-main {
+.micro-icon-button:active .micro-icon-button svg .micro-main {
   --main-bottom-space: calc(var(--space-4) + env(safe-area-inset-bottom));
   --main-scroll-space: calc(var(--space-6) + env(safe-area-inset-bottom));
   /* §4 بند ٣: أول بطاقة لا تُقصّ خلف الترويسة اللاصقة عند التمرير أو الاسترجاع */
@@ -311,10 +304,7 @@
 }
 .micro-page h1,
 .micro-page h2,
-.micro-page p {
-  margin: 0;
-}
-.micro-page h1 {
+.micro-page p .micro-page h1 {
   color: var(--color-text-primary);
   font-size: 28px;
   font-weight: 700;
@@ -347,11 +337,7 @@
   font-size: 13px;
   font-weight: 600;
 }
-.micro-eyebrow svg {
-  width: 16px;
-  height: 16px;
-}
-.micro-route-loading {
+.micro-eyebrow svg .micro-route-loading {
   display: grid;
   min-height: 280px;
   place-items: center;
@@ -426,11 +412,7 @@
   font-size: 12px;
   font-weight: 500;
 }
-.micro-priority-truth strong {
-  color: var(--color-text-strong);
-  font-size: 15px;
-}
-.micro-button {
+.micro-priority-truth strong .micro-button {
   display: inline-flex;
   min-height: 48px;
   align-items: center;
@@ -447,14 +429,7 @@
     background 160ms var(--motion-out),
     color 160ms var(--motion-out);
 }
-.micro-button svg {
-  width: 20px;
-  height: 20px;
-}
-.micro-button:active {
-  transform: scale(0.97);
-}
-.micro-button-primary {
+.micro-button svg .micro-button:active .micro-button-primary {
   color: var(--primary-foreground);
   background: var(--primary);
   box-shadow: var(--elevation-1);
@@ -497,31 +472,9 @@
   background: var(--color-surface);
   box-shadow: var(--elevation-1);
 }
-.micro-info-card[data-tone="accent"] {
-  background: var(--color-accent-soft);
-  box-shadow: none;
-}
-.micro-info-card[data-tone="warning"] {
-  background: var(--color-warning-bg);
-  box-shadow: none;
-}
-.micro-info-card[data-tone="accent"] h2,
-.micro-info-card[data-tone="accent"] .micro-card-eyebrow {
-  color: var(--color-accent-text);
-}
-.micro-info-card[data-tone="warning"] h2,
-.micro-info-card[data-tone="warning"] .micro-card-eyebrow {
-  color: var(--color-warning-text);
-}
-.micro-card-copy {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-guidance-grid {
-  display: grid;
-  gap: var(--space-3);
-}
-/* §3 حالات المكوّنات — معطّل: شفافية نصف، مؤشر ممنوع، لا تغيير لون */
+.micro-info-card[data-tone="accent"] .micro-info-card[data-tone="warning"] .micro-info-card[data-tone="accent"] h2,
+.micro-info-card[data-tone="accent"] .micro-card-eyebrow .micro-info-card[data-tone="warning"] h2,
+.micro-info-card[data-tone="warning"] .micro-card-eyebrow .micro-card-copy .micro-guidance-grid /* §3 حالات المكوّنات — معطّل: شفافية نصف، مؤشر ممنوع، لا تغيير لون */
 button:disabled,
 select:disabled,
 input:disabled,
@@ -549,11 +502,7 @@ textarea:disabled,
   font-weight: 600;
   text-align: right;
 }
-.micro-text-action svg {
-  width: 18px;
-  height: 18px;
-}
-.micro-decision-panel {
+.micro-text-action svg .micro-decision-panel {
   display: grid;
   gap: var(--space-3);
   border-inline-start: 3px solid var(--color-divider);
@@ -576,18 +525,7 @@ textarea:disabled,
   color: var(--color-brand-text) !important;
   font-weight: 700 !important;
 }
-.micro-decision-panel > div {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-decision-panel strong {
-  color: var(--color-text-primary);
-  font-size: 15px;
-}
-.micro-decision-panel p {
-  font-size: 13px;
-}
-.micro-empty-state {
+.micro-decision-panel > div .micro-decision-panel strong .micro-decision-panel p .micro-empty-state {
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -658,11 +596,7 @@ textarea:disabled,
   height: 24px;
   flex: 0 0 auto;
 }
-.micro-truth-banner p {
-  color: inherit;
-  font-size: 13px;
-}
-.micro-settings-list {
+.micro-truth-banner p .micro-settings-list {
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -676,20 +610,11 @@ textarea:disabled,
   padding: var(--space-4);
   border-bottom: 1px solid var(--color-border);
 }
-.micro-setting-row:last-child {
-  border-bottom: 0;
-}
-.micro-setting-row > div {
+.micro-setting-row:last-child .micro-setting-row > div {
   flex: 1;
   min-width: 0;
 }
-.micro-setting-row h2 {
-  font-size: 15px;
-}
-.micro-setting-row p {
-  font-size: 13px;
-}
-.micro-setting-icon,
+.micro-setting-row h2 .micro-setting-row p .micro-setting-icon,
 .micro-sheet-action-icon {
   display: inline-grid;
   place-items: center;
@@ -697,16 +622,7 @@ textarea:disabled,
   color: var(--color-brand-text);
   background: var(--color-brand-soft);
 }
-.micro-setting-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-control);
-}
-.micro-setting-icon svg {
-  width: 20px;
-  height: 20px;
-}
-/* §3.9/§3.11 حوار التغييرات غير المحفوظة: بطاقة 420px فوق غطاء — زر أول
+.micro-setting-icon .micro-setting-icon svg /* §3.9/§3.11 حوار التغييرات غير المحفوظة: بطاقة 420px فوق غطاء — زر أول
    بقاء (الأقل تدميرًا) وآخر تدميري مفصول، والتركيز محصور ويعود للمشغّل */
 .micro-dialog-overlay {
   position: fixed;
@@ -773,10 +689,7 @@ textarea:disabled,
 
 /* §4 بند ١٨: لوحة المفاتيح تفتح — الكروم العام يختفي حتى تُغلق */
 .micro-app[data-keyboard-open="true"] .micro-app-header,
-.micro-app[data-keyboard-open="true"] .micro-bottom-nav {
-  display: none;
-}
-.micro-bottom-nav {
+.micro-app[data-keyboard-open="true"] .micro-bottom-nav .micro-bottom-nav {
   position: fixed;
   z-index: 30;
   right: 0;
@@ -822,10 +735,7 @@ textarea:disabled,
   background: var(--color-accent-soft);
   font-weight: 600;
 }
-.micro-nav-item:active {
-  transform: scale(0.97);
-}
-.micro-fab {
+.micro-nav-item:active .micro-fab {
   display: flex;
   width: 56px;
   height: 56px;
@@ -906,25 +816,13 @@ textarea:disabled,
   gap: var(--space-3);
   padding: 0 var(--space-4) var(--space-4);
 }
-.micro-sheet-form .micro-button-primary {
-  width: 100%;
-}
-.micro-sheet-receipt {
+.micro-sheet-form .micro-button-primary .micro-sheet-receipt {
   display: grid;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4) var(--space-4);
   text-align: center;
 }
-.micro-sheet-receipt strong {
-  font-size: 15px;
-}
-.micro-sheet-receipt p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-
-.micro-sheet-actions {
+.micro-sheet-receipt strong .micro-sheet-receipt p .micro-sheet-actions {
   display: grid;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
@@ -943,16 +841,7 @@ textarea:disabled,
   font-size: 14px;
   color: var(--color-text-primary);
 }
-.micro-sheet-confirm > p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-.micro-sheet-confirm .micro-form-actions {
-  margin: 0;
-}
-.micro-sheet-action {
+.micro-sheet-confirm > p .micro-sheet-confirm .micro-form-actions .micro-sheet-action {
   display: flex;
   min-height: 64px;
   align-items: center;
@@ -967,10 +856,7 @@ textarea:disabled,
     background 160ms var(--motion-out),
     transform 160ms var(--motion-out);
 }
-.micro-sheet-action:hover {
-  background: var(--color-bg-well);
-}
-.micro-sheet-action:active {
+.micro-sheet-action:hover .micro-sheet-action:active {
   transform: scale(0.99);
 }
 .micro-sheet-action-icon {
@@ -978,11 +864,7 @@ textarea:disabled,
   height: 40px;
   border-radius: var(--radius-control);
 }
-.micro-sheet-action-icon svg {
-  width: 20px;
-  height: 20px;
-}
-.micro-sheet-action strong,
+.micro-sheet-action-icon svg .micro-sheet-action strong,
 .micro-sheet-action small {
   display: block;
 }
@@ -1012,22 +894,12 @@ textarea:disabled,
   text-align: center;
 }
 .micro-error-boundary h1,
-.micro-error-boundary p {
-  margin: 0;
-}
-.micro-error-boundary h1 {
-  color: var(--color-text-primary);
-  font-size: 20px;
-}
-.micro-error-boundary p {
+.micro-error-boundary p .micro-error-boundary h1 .micro-error-boundary p {
   max-width: 32ch;
   color: var(--color-text-secondary);
   font-size: 15px;
 }
-.micro-setup-page {
-  gap: var(--space-5);
-}
-.micro-setup-heading {
+.micro-setup-page .micro-setup-heading {
   border-bottom: 2px solid var(--color-brand-primary);
   padding-bottom: var(--space-4);
 }
@@ -1047,12 +919,7 @@ textarea:disabled,
   justify-content: space-between;
   gap: var(--space-2);
 }
-.micro-field small {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  font-weight: 400;
-}
-.micro-field input,
+.micro-field small .micro-field input,
 .micro-field textarea,
 .micro-field select {
   width: 100%;
@@ -1081,7 +948,8 @@ textarea:disabled,
   line-height: 1.5;
 }
 .micro-selected-date[data-empty="true"] {
-  color: var(--color-text-tertiary);
+  /* S3-06: علامة «غير محدد» نص يُقرأ — لون ثانوي مقروء لا علامة باهتة. */
+  color: var(--color-text-secondary);
 }
 .micro-field textarea {
   min-height: 112px;
@@ -1113,12 +981,7 @@ textarea:disabled,
   color: var(--color-brand-primary);
   font-weight: 700;
 }
-.micro-setup-context span {
-  direction: ltr;
-  font-family: var(--font-numeric);
-  unicode-bidi: isolate;
-}
-.micro-local-truth {
+.micro-setup-context span .micro-local-truth {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -1137,10 +1000,7 @@ textarea:disabled,
   color: inherit;
   font-size: 13px;
 }
-.micro-local-truth b {
-  color: var(--color-text-primary);
-}
-.micro-back-button {
+.micro-local-truth b .micro-back-button {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -1153,11 +1013,7 @@ textarea:disabled,
   font-size: 13px;
   font-weight: 600;
 }
-.micro-back-button svg {
-  width: 18px;
-  height: 18px;
-}
-.micro-form-card {
+.micro-back-button svg .micro-form-card {
   display: grid;
   gap: var(--space-4);
   border: 1px solid var(--color-border);
@@ -1173,6 +1029,20 @@ textarea:disabled,
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
+}
+/* S3-02 (عقد التصميم §3.11): تذييل النماذج اللاصق — فعل الحفظ الأساسي يبقى
+ * بمتناول الإبهام فوق لوحة المفاتيح في المحررات العميقة الطويلة. */
+.micro-form-actions.micro-sticky-save {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-divider);
+  margin-inline: calc(var(--space-3) * -1);
+  padding: var(--space-3) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
+}
+.micro-form-actions.micro-sticky-save .micro-button {
+  flex: 1 1 auto;
 }
 .micro-save-note {
   margin: 0;
@@ -1190,11 +1060,7 @@ textarea:disabled,
   line-height: 1.6;
 }
 .micro-intent-stack,
-.micro-draft-list {
-  display: grid;
-  border-top: 1px solid var(--color-border);
-}
-.micro-intent-card,
+.micro-draft-list .micro-intent-card,
 .micro-draft-row {
   display: flex;
   align-items: center;
@@ -1236,15 +1102,8 @@ textarea:disabled,
   gap: var(--space-1);
 }
 .micro-intent-card strong,
-.micro-draft-row strong {
-  font-size: 16px;
-}
-.micro-intent-card small,
-.micro-draft-row small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-intent-card > svg,
+.micro-draft-row strong .micro-intent-card small,
+.micro-draft-row small .micro-intent-card > svg,
 .micro-draft-row > svg {
   width: 20px;
   height: 20px;
@@ -1261,11 +1120,7 @@ textarea:disabled,
   background: var(--color-brand-soft);
 }
 .micro-intent-icon svg,
-.micro-draft-symbol svg {
-  width: 19px;
-  height: 19px;
-}
-.micro-storage-error {
+.micro-draft-symbol svg .micro-storage-error {
   display: grid;
   gap: var(--space-3);
   min-height: 260px;
@@ -1279,10 +1134,7 @@ textarea:disabled,
   margin: 0;
   color: var(--color-text-secondary);
 }
-.micro-cost-page {
-  gap: var(--space-4);
-}
-.micro-cost-result {
+.micro-cost-page .micro-cost-result {
   display: grid;
   gap: var(--space-1);
   border-radius: var(--radius-card);
@@ -1300,29 +1152,13 @@ textarea:disabled,
   font-size: 28px;
   letter-spacing: -0.02em;
 }
-.micro-cost-result > small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-cost-result > div {
+.micro-cost-result > small .micro-cost-result > div {
   margin-top: var(--space-2);
   border-top: 1px solid color-mix(in srgb, var(--color-accent-primary) 22%, transparent);
   padding-top: var(--space-2);
 }
-.micro-cost-result b {
-  font-size: 13px;
-}
-.micro-cost-result p {
-  margin: var(--space-1) 0 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-cost-result[data-knowledge="incomplete"],
-.micro-cost-result[data-knowledge="stale"] {
-  color: var(--color-warning-text);
-  background: var(--color-warning-bg);
-}
-/* القرار ٢٢: القائمة الكاملة للنقص دفعة واحدة، وكل نقص بعلامته إلزامي/اختياري. */
+.micro-cost-result b .micro-cost-result p .micro-cost-result[data-knowledge="incomplete"],
+.micro-cost-result[data-knowledge="stale"] /* القرار ٢٢: القائمة الكاملة للنقص دفعة واحدة، وكل نقص بعلامته إلزامي/اختياري. */
 .micro-knowledge-gaps {
   display: grid;
   gap: var(--space-1);
@@ -1351,18 +1187,7 @@ textarea:disabled,
   color: var(--color-warning-text);
   background: color-mix(in srgb, var(--color-warning-text) 12%, transparent);
 }
-.micro-cost-section-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.micro-cost-section-heading h2 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 17px;
-}
-.micro-cost-section-heading p,
+.micro-cost-section-heading .micro-cost-section-heading h2 .micro-cost-section-heading p,
 .micro-empty-inline {
   margin: var(--space-1) 0 0;
   color: var(--color-text-secondary);
@@ -1381,11 +1206,7 @@ textarea:disabled,
   background: var(--color-accent-soft);
 }
 .micro-icon-button svg,
-.micro-delete-row svg {
-  width: 20px;
-  height: 20px;
-}
-.micro-delete-row {
+.micro-delete-row svg .micro-delete-row {
   align-self: end;
   color: var(--color-danger-text);
   background: var(--color-danger-bg);
@@ -1401,11 +1222,7 @@ textarea:disabled,
   grid-column: span 2;
   justify-self: start;
 }
-.micro-material-summary-list {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-material-summary-row {
+.micro-material-summary-list .micro-material-summary-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -1432,25 +1249,7 @@ textarea:disabled,
   flex: 1;
 }
 .micro-material-summary strong,
-.micro-material-summary small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.micro-material-summary strong {
-  font-size: 15px;
-}
-.micro-material-summary small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-material-summary > svg {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  color: var(--color-text-secondary);
-}
-.micro-material-summary-row .micro-delete-row {
+.micro-material-summary small .micro-material-summary strong .micro-material-summary small .micro-material-summary > svg .micro-material-summary-row .micro-delete-row {
   align-self: center;
 }
 .micro-sheet-form {
@@ -1463,15 +1262,7 @@ textarea:disabled,
   border-top: 1px solid var(--color-border);
   padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
 }
-.micro-sheet-footer .micro-button {
-  width: 100%;
-}
-.micro-field-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-@media (max-width: 380px) {
+.micro-sheet-footer .micro-button .micro-field-grid @media (max-width: 380px) {
   .micro-field-grid {
     /* §1.7 درجة النزول: شبكات الحقول عمود واحد دون 380px — لا قصّ */
     grid-template-columns: minmax(0, 1fr);
@@ -1485,26 +1276,14 @@ textarea:disabled,
   color: var(--color-warning-text) !important;
   font-size: 13px !important;
 }
-.micro-missing-time svg {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-}
-.micro-save-cost {
-  width: 100%;
-  justify-content: center;
-}
-.micro-cost-disclaimer {
+.micro-missing-time svg .micro-save-cost .micro-cost-disclaimer {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 12px;
   text-align: center;
 }
 .micro-agreement-page,
-.micro-order-page {
-  gap: var(--space-4);
-}
-.micro-confirm-warning {
+.micro-order-page .micro-confirm-warning {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -1537,15 +1316,7 @@ textarea:disabled,
   font-size: 13px;
   line-height: 1.6;
 }
-.micro-deposit-truth svg {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-}
-.micro-deposit-truth b {
-  color: var(--color-text-primary);
-}
-.micro-decision-card {
+.micro-deposit-truth svg .micro-deposit-truth b .micro-decision-card {
   display: grid;
   gap: var(--space-1);
   border-radius: var(--radius-card);
@@ -1562,41 +1333,19 @@ textarea:disabled,
   color: var(--color-text-primary);
   font-size: 20px;
 }
-.micro-decision-card p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-.micro-summary-grid > div {
+.micro-decision-card p .micro-summary-grid .micro-summary-grid > div {
   display: grid;
   gap: var(--space-2);
   border-radius: var(--radius-control);
   padding: var(--space-3);
   background: var(--color-bg-well);
 }
-.micro-summary-grid span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-summary-grid strong {
-  color: var(--color-text-primary);
-  font-size: 16px;
-}
-.micro-section-title {
+.micro-summary-grid span .micro-summary-grid strong .micro-section-title {
   margin: 0;
   color: var(--color-text-primary);
   font-size: 17px;
 }
-.micro-event-list {
-  display: grid;
-  gap: var(--space-3);
-}
-.micro-event-list > div {
+.micro-event-list .micro-event-list > div {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -1609,20 +1358,7 @@ textarea:disabled,
   border-radius: 999px;
   background: var(--color-accent-primary);
 }
-.micro-event-list p {
-  display: grid;
-  gap: 2px;
-  margin: 0;
-}
-.micro-event-list b {
-  color: var(--color-text-primary);
-  font-size: 14px;
-}
-.micro-event-list small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-note-card {
+.micro-event-list p .micro-event-list b .micro-event-list small .micro-note-card {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -1662,11 +1398,7 @@ textarea:disabled,
   font-size: 13px;
   font-weight: 700;
 }
-.micro-result-card strong {
-  color: var(--color-text-primary);
-  font-size: 24px;
-}
-.micro-result-card p,
+.micro-result-card strong .micro-result-card p,
 .micro-result-card small {
   margin: 0;
   color: var(--color-text-secondary);
@@ -1728,462 +1460,17 @@ textarea:disabled,
   font-size: 13px;
   line-height: 1.6;
 }
-.micro-import-preview ul {
-  display: grid;
-  gap: var(--space-1);
-  margin: 0;
-  padding-inline-start: var(--space-4);
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-import-preview .micro-field-error {
-  color: var(--color-danger-text);
-}
-.micro-button-block {
-  width: 100%;
-  justify-content: center;
-}
-.micro-home-heading {
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-decision-surface {
-  display: grid;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-brand-primary);
-  padding: var(--space-4);
-  background: var(--color-bg-well);
-}
-.micro-decision-surface[data-tone="warning"] {
-  border-inline-start-color: var(--color-warning-text);
-  background: var(--color-warning-bg);
-}
-.micro-decision-surface h2 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 24px;
-  line-height: 1.4;
-}
-.micro-decision-surface p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-.micro-decision-surface .micro-decision-next {
-  color: var(--color-text-strong);
-  font-weight: 600;
-}
-.micro-row-next-action {
-  color: var(--color-accent-text) !important;
-  font-weight: 600;
-}
-.micro-record-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-block: 1px solid var(--color-border);
-}
-.micro-record-summary > div {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) 0;
-}
-.micro-record-summary > div + div {
-  padding-inline-start: var(--space-3);
-  border-inline-start: 1px solid var(--color-border);
-}
-.micro-record-summary span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-number {
-  color: var(--color-text-primary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 26px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-  text-align: right;
-  unicode-bidi: isolate;
-}
-.micro-financial-pulse {
-  display: grid;
-  gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-4);
-  background: var(--color-surface);
-}
-.micro-financial-pulse-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-3);
-}
-.micro-financial-pulse-heading h2 {
-  margin: var(--space-1) 0 0;
-  font-size: 18px;
-}
-.micro-financial-pulse-heading > span {
-  color: var(--color-text-secondary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 12px;
-}
-.micro-financial-pulse dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0;
-}
-.micro-financial-pulse dl > div {
-  display: grid;
-  gap: var(--space-1);
-  min-height: 96px;
-  padding: var(--space-3) 0;
-}
-.micro-financial-pulse dl > div:nth-child(odd) {
-  padding-inline-end: var(--space-3);
-  border-inline-end: 1px solid var(--color-border);
-}
-.micro-financial-pulse dl > div:nth-child(-n + 2) {
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-financial-pulse dt,
+.micro-import-preview ul .micro-import-preview .micro-field-error .micro-button-block .micro-home-heading .micro-decision-surface .micro-decision-surface[data-tone="warning"] .micro-decision-surface h2 .micro-decision-surface p .micro-decision-surface .micro-decision-next .micro-row-next-action .micro-record-summary .micro-record-summary > div .micro-record-summary > div + div .micro-record-summary span .micro-number .micro-financial-pulse .micro-financial-pulse-heading .micro-financial-pulse-heading h2 .micro-financial-pulse-heading > span .micro-financial-pulse dl .micro-financial-pulse dl > div .micro-financial-pulse dl > div:nth-child(odd) .micro-financial-pulse dl > div:nth-child(-n + 2) .micro-financial-pulse dt,
 .micro-financial-pulse small,
-.micro-financial-pulse-note {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-financial-pulse dd {
-  margin: 0;
-  font-size: 24px;
-}
-.micro-financial-pulse-note {
-  margin: 0;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-}
-.micro-financial-pulse-note .micro-number {
-  display: inline;
-  font-size: 14px;
-}
-.micro-scope-line {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-}
-.micro-scope-line svg {
-  width: 18px;
-  height: 18px;
-  margin-top: 4px;
-  color: var(--color-accent-text);
-}
-.micro-scope-line p {
-  margin: 0;
-  font-size: 13px;
-}
-.micro-scope-line .micro-text-action {
-  grid-column: 2;
-}
-.micro-review-result {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 3px solid var(--color-success-text);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-4) 0;
-}
-.micro-review-result[data-result="estimated"],
-.micro-review-result[data-result="review_required"] {
-  border-top-color: var(--color-warning-text);
-}
-.micro-review-result[data-result="incomplete"] {
-  border-top-color: var(--color-accent-text);
-}
-.micro-review-result h2,
-.micro-review-result p {
-  margin: 0;
-}
-.micro-review-result span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-review-result p {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-review-result p .micro-number {
-  display: inline;
-  font-size: 16px;
-}
-.micro-review-empty {
-  display: grid;
-  gap: var(--space-3);
-  border-block: 1px solid var(--color-border);
-  padding: var(--space-5) 0;
-}
-.micro-review-empty h2,
-.micro-review-empty p {
-  margin: 0;
-}
-.micro-review-empty p {
-  color: var(--color-text-secondary);
-}
-.micro-button-block {
-  width: 100%;
-  justify-content: center;
-}
-.micro-home-heading {
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-decision-surface {
-  display: grid;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-brand-primary);
-  padding: var(--space-4);
-  background: var(--color-bg-well);
-}
-.micro-decision-surface[data-tone="warning"] {
-  border-inline-start-color: var(--color-warning-text);
-  background: var(--color-warning-bg);
-}
-.micro-decision-surface h2 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 24px;
-  line-height: 1.4;
-}
-.micro-decision-surface p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-.micro-decision-surface .micro-decision-next {
-  color: var(--color-text-strong);
-  font-weight: 600;
-}
-.micro-row-next-action {
-  color: var(--color-accent-text) !important;
-  font-weight: 600;
-}
-.micro-schedule-page {
-  gap: var(--space-5);
-}
-.micro-schedule-section {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-schedule-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-divider);
-  padding-inline-start: var(--space-3);
-}
-.micro-schedule-heading > div {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-schedule-heading h2 {
-  margin: 0;
-  font-size: 15px;
-}
-.micro-schedule-heading > span {
-  display: inline-grid;
-  min-width: 28px;
-  min-height: 28px;
-  place-items: center;
-  border-radius: 999px;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-well);
-  font-family: var(--font-numeric);
-  font-size: 12px;
-}
-.micro-schedule-section[data-tone="warning"] .micro-schedule-heading {
-  border-inline-start-color: var(--color-warning-text);
-}
-.micro-schedule-section[data-tone="warning"] .micro-overline {
-  color: var(--color-warning-text);
-}
-.micro-schedule-section[data-tone="accent"] .micro-schedule-heading {
-  border-inline-start-color: var(--color-accent-primary);
-}
-.micro-schedule-closed-note {
-  margin: 0;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-section-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.micro-section-title svg {
-  width: 19px;
-  height: 19px;
-  color: var(--color-accent-text);
-}
-.micro-record-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-block: 1px solid var(--color-border);
-}
-.micro-record-summary > div {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) 0;
-}
-.micro-record-summary > div + div {
-  padding-inline-start: var(--space-3);
-  border-inline-start: 1px solid var(--color-border);
-}
-.micro-record-summary span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-number {
-  color: var(--color-text-primary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 26px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-  text-align: right;
-  unicode-bidi: isolate;
-}
-.micro-financial-pulse {
-  display: grid;
-  gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-4);
-  background: var(--color-surface);
-}
-.micro-financial-pulse-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-3);
-}
-.micro-financial-pulse-heading h2 {
-  margin: var(--space-1) 0 0;
-  font-size: 18px;
-}
-.micro-financial-pulse-heading > span {
-  color: var(--color-text-secondary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 12px;
-}
-.micro-financial-pulse dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0;
-}
-.micro-financial-pulse dl > div {
-  display: grid;
-  gap: var(--space-1);
-  min-height: 96px;
-  padding: var(--space-3) 0;
-}
-.micro-financial-pulse dl > div:nth-child(odd) {
-  padding-inline-end: var(--space-3);
-  border-inline-end: 1px solid var(--color-border);
-}
-.micro-financial-pulse dl > div:nth-child(-n + 2) {
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-financial-pulse dt,
+.micro-financial-pulse-note .micro-financial-pulse dd .micro-financial-pulse-note .micro-financial-pulse-note .micro-number .micro-scope-line .micro-scope-line svg .micro-scope-line p .micro-scope-line .micro-text-action .micro-review-result .micro-review-result[data-result="estimated"],
+.micro-review-result[data-result="review_required"] .micro-review-result[data-result="incomplete"] .micro-review-result h2,
+.micro-review-result p .micro-review-result span .micro-review-result p .micro-review-result p .micro-number .micro-review-empty .micro-review-empty h2,
+.micro-review-empty p .micro-review-empty p .micro-button-block .micro-home-heading .micro-decision-surface .micro-decision-surface[data-tone="warning"] .micro-decision-surface h2 .micro-decision-surface p .micro-decision-surface .micro-decision-next .micro-row-next-action .micro-schedule-page .micro-schedule-section .micro-schedule-heading .micro-schedule-heading > div .micro-schedule-heading h2 .micro-schedule-heading > span .micro-schedule-section[data-tone="warning"] .micro-schedule-heading .micro-schedule-section[data-tone="warning"] .micro-overline .micro-schedule-section[data-tone="accent"] .micro-schedule-heading .micro-schedule-closed-note .micro-section-title .micro-section-title svg .micro-record-summary .micro-record-summary > div .micro-record-summary > div + div .micro-record-summary span .micro-number .micro-financial-pulse .micro-financial-pulse-heading .micro-financial-pulse-heading h2 .micro-financial-pulse-heading > span .micro-financial-pulse dl .micro-financial-pulse dl > div .micro-financial-pulse dl > div:nth-child(odd) .micro-financial-pulse dl > div:nth-child(-n + 2) .micro-financial-pulse dt,
 .micro-financial-pulse small,
-.micro-financial-pulse-note {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-financial-pulse dd {
-  margin: 0;
-  font-size: 24px;
-}
-.micro-financial-pulse-note {
-  margin: 0;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-}
-.micro-financial-pulse-note .micro-number {
-  display: inline;
-  font-size: 14px;
-}
-.micro-scope-line {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-}
-.micro-scope-line svg {
-  width: 18px;
-  height: 18px;
-  margin-top: 4px;
-  color: var(--color-accent-text);
-}
-.micro-scope-line p {
-  margin: 0;
-  font-size: 13px;
-}
-.micro-scope-line .micro-text-action {
-  grid-column: 2;
-}
-.micro-review-result {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 3px solid var(--color-success-text);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-4) 0;
-}
-.micro-review-result[data-result="estimated"],
-.micro-review-result[data-result="review_required"] {
-  border-top-color: var(--color-warning-text);
-}
-.micro-review-result[data-result="incomplete"] {
-  border-top-color: var(--color-accent-text);
-}
-.micro-review-result h2,
-.micro-review-result p {
-  margin: 0;
-}
-.micro-review-result span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-review-result p {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-review-result p .micro-number {
-  display: inline;
-  font-size: 16px;
-}
-.micro-review-empty {
-  display: grid;
-  gap: var(--space-3);
-  border-block: 1px solid var(--color-border);
-  padding: var(--space-5) 0;
-}
-.micro-review-empty h2,
-.micro-review-empty p {
-  margin: 0;
-}
-.micro-review-empty p {
-  color: var(--color-text-secondary);
-}
-.micro-button-block {
+.micro-financial-pulse-note .micro-financial-pulse dd .micro-financial-pulse-note .micro-financial-pulse-note .micro-number .micro-scope-line .micro-scope-line svg .micro-scope-line p .micro-scope-line .micro-text-action .micro-review-result .micro-review-result[data-result="estimated"],
+.micro-review-result[data-result="review_required"] .micro-review-result[data-result="incomplete"] .micro-review-result h2,
+.micro-review-result p .micro-review-result span .micro-review-result p .micro-review-result p .micro-number .micro-review-empty .micro-review-empty h2,
+.micro-review-empty p .micro-review-empty p .micro-button-block {
   width: 100%;
   justify-content: center;
 }
@@ -2198,11 +1485,7 @@ textarea:disabled,
   padding: var(--space-4);
   background: var(--color-bg-well);
 }
-.micro-decision-surface[data-tone="warning"] {
-  border-inline-start-color: var(--color-warning-text);
-  background: var(--color-warning-bg);
-}
-.micro-decision-surface h2 {
+.micro-decision-surface[data-tone="warning"] .micro-decision-surface h2 {
   margin: 0;
   color: var(--color-text-primary);
   font-size: 24px;
@@ -2226,119 +1509,23 @@ textarea:disabled,
   color: var(--color-accent-text) !important;
   font-weight: 600;
 }
-.micro-finance-page {
-  gap: var(--space-5);
-}
-
-/* مبدأ Micro: الطبقة المختصرة تبرز القرار، وتؤجل التفاصيل حتى يطلبها المستخدم. */
+.micro-finance-page /* مبدأ Micro: الطبقة المختصرة تبرز القرار، وتؤجل التفاصيل حتى يطلبها المستخدم. */
 .micro-finance-layer,
-.micro-owner-layer {
-  display: grid;
-  gap: var(--space-3);
-  min-width: 0;
-}
-.micro-finance-layer-summary,
-.micro-owner-layer-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  min-height: 64px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  cursor: pointer;
-  list-style: none;
-}
-.micro-finance-layer-summary::-webkit-details-marker,
-.micro-owner-layer-summary::-webkit-details-marker {
-  display: none;
-}
-.micro-finance-layer-summary:focus-visible,
-.micro-owner-layer-summary:focus-visible {
-  outline: 3px solid var(--color-accent-text);
-  outline-offset: 2px;
-}
-.micro-finance-layer-summary > span,
-.micro-owner-layer-summary > span {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-finance-layer-summary b,
-.micro-owner-layer-summary b {
-  font-size: 15px;
-}
-.micro-finance-layer-summary small,
-.micro-owner-layer-summary small {
-  overflow-wrap: anywhere;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-finance-layer-summary > strong,
-.micro-owner-layer-summary > strong {
-  flex: 0 0 auto;
-  color: var(--color-accent-text);
-  font-size: 12px;
-  white-space: nowrap;
-}
-.micro-finance-layer[open] > summary,
-.micro-owner-layer[open] > summary {
-  border-color: color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
-}
-/* مبدأ Micro: الطبقة الثانوية قابلة للفتح عند الحاجة ولا تسبق قرار العمل اليومي. */
+.micro-owner-layer .micro-finance-layer-summary,
+.micro-owner-layer-summary .micro-finance-layer-summary::-webkit-details-marker,
+.micro-owner-layer-summary::-webkit-details-marker .micro-finance-layer-summary:focus-visible,
+.micro-owner-layer-summary:focus-visible .micro-finance-layer-summary > span,
+.micro-owner-layer-summary > span .micro-finance-layer-summary b,
+.micro-owner-layer-summary b .micro-finance-layer-summary small,
+.micro-owner-layer-summary small .micro-finance-layer-summary > strong,
+.micro-owner-layer-summary > strong .micro-finance-layer[open] > summary,
+.micro-owner-layer[open] > summary /* مبدأ Micro: الطبقة الثانوية قابلة للفتح عند الحاجة ولا تسبق قرار العمل اليومي. */
 .micro-decision-layer {
   display: grid;
   gap: var(--space-3);
   min-width: 0;
 }
-.micro-decision-layer-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  min-height: 64px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  cursor: pointer;
-  list-style: none;
-}
-.micro-decision-layer-summary::-webkit-details-marker {
-  display: none;
-}
-.micro-decision-layer-summary:focus-visible {
-  outline: 3px solid var(--color-accent-text);
-  outline-offset: 2px;
-}
-.micro-decision-layer-summary > span {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-decision-layer-summary b {
-  font-size: 15px;
-}
-.micro-decision-layer-summary small {
-  overflow-wrap: anywhere;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-decision-layer-summary > strong {
-  flex: 0 0 auto;
-  color: var(--color-accent-text);
-  font-size: 12px;
-  white-space: nowrap;
-}
-.micro-decision-layer[open] > summary {
-  border-color: color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
-}
-
-.micro-finance-unallocated-alert {
+.micro-decision-layer-summary .micro-decision-layer-summary::-webkit-details-marker .micro-decision-layer-summary:focus-visible .micro-decision-layer-summary > span .micro-decision-layer-summary b .micro-decision-layer-summary small .micro-decision-layer-summary > strong .micro-decision-layer[open] > summary .micro-finance-unallocated-alert {
   display: grid;
   gap: var(--space-3);
   border-inline-start: 3px solid var(--color-warning-text);
@@ -2346,24 +1533,13 @@ textarea:disabled,
   padding: var(--space-3);
   background: var(--color-warning-bg);
 }
-.micro-finance-unallocated-alert > div {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-finance-unallocated-alert strong {
-  color: var(--color-warning-text);
-}
-.micro-finance-unallocated-alert p {
+.micro-finance-unallocated-alert > div .micro-finance-unallocated-alert strong .micro-finance-unallocated-alert p {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.7;
 }
-.micro-finance-unallocated-alert .micro-button {
-  justify-self: start;
-}
-
-.micro-finance-position {
+.micro-finance-unallocated-alert .micro-button .micro-finance-position {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   border: 1px solid var(--color-border);
@@ -2379,26 +1555,8 @@ textarea:disabled,
 .micro-finance-position-card:nth-child(odd) {
   border-inline-end: 1px solid var(--color-border);
 }
-.micro-finance-position-card:nth-child(-n + 2) {
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-finance-position-card svg {
-  width: 18px;
-  height: 18px;
-  color: var(--color-accent-text);
-}
-.micro-finance-position-card > span,
-.micro-finance-position-card small {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-finance-position-card strong {
-  font-size: 20px;
-}
-.micro-number[data-negative="true"] {
-  color: var(--color-warning-text);
-}
-.micro-finance-truth {
+.micro-finance-position-card:nth-child(-n + 2) .micro-finance-position-card svg .micro-finance-position-card > span,
+.micro-finance-position-card small .micro-finance-position-card strong .micro-number[data-negative="true"] .micro-finance-truth {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: var(--space-3);
@@ -2406,32 +1564,8 @@ textarea:disabled,
   padding: var(--space-3);
   background: var(--color-bg-well);
 }
-.micro-finance-truth svg {
-  width: 20px;
-  height: 20px;
-  color: var(--color-accent-text);
-}
-.micro-finance-truth h2,
-.micro-finance-truth p {
-  margin: 0;
-}
-.micro-finance-truth div {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-finance-truth p {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-finance-truth .micro-number {
-  display: inline;
-  font-size: 14px;
-}
-.micro-finance-actions {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-finance-event-list {
+.micro-finance-truth svg .micro-finance-truth h2,
+.micro-finance-truth p .micro-finance-truth div .micro-finance-truth p .micro-finance-truth .micro-number .micro-finance-actions .micro-finance-event-list {
   /* §2: قوائم الصفوف الموحدة داخل حاوية محدودة واحدة 16px بصفوف نصف قطرها 0
      وفواصل 1px — لا بطاقات منفصلة بفجوات متفاوتة (§4 بند ٧) */
   display: grid;
@@ -2441,15 +1575,7 @@ textarea:disabled,
   padding: var(--space-2) var(--space-4);
   background: var(--color-surface);
 }
-.micro-finance-event-heading {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-finance-event-heading h2 {
-  margin: 0;
-  font-size: 17px;
-}
-.micro-finance-event-list > article {
+.micro-finance-event-heading .micro-finance-event-heading h2 .micro-finance-event-list > article {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2458,19 +1584,7 @@ textarea:disabled,
   border-bottom: 1px solid var(--color-border);
   padding-block: var(--space-3);
 }
-.micro-finance-event-list > article:last-child {
-  border-bottom: 0;
-}
-.micro-finance-event-list article > div {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-finance-event-list article strong {
-  color: var(--color-text-primary);
-  font-size: 14px;
-}
-.micro-finance-event-list article small {
+.micro-finance-event-list > article:last-child .micro-finance-event-list article > div .micro-finance-event-list article strong .micro-finance-event-list article small {
   overflow: hidden;
   color: var(--color-text-secondary);
   font-size: 12px;
@@ -2484,11 +1598,7 @@ textarea:disabled,
 .micro-schedule-page {
   gap: var(--space-5);
 }
-.micro-schedule-section {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-schedule-heading {
+.micro-schedule-section .micro-schedule-heading {
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -2496,15 +1606,7 @@ textarea:disabled,
   border-inline-start: 3px solid var(--color-divider);
   padding-inline-start: var(--space-3);
 }
-.micro-schedule-heading > div {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-schedule-heading h2 {
-  margin: 0;
-  font-size: 15px;
-}
-.micro-schedule-heading > span {
+.micro-schedule-heading > div .micro-schedule-heading h2 .micro-schedule-heading > span {
   display: inline-grid;
   min-width: 28px;
   min-height: 28px;
@@ -2515,13 +1617,7 @@ textarea:disabled,
   font-family: var(--font-numeric);
   font-size: 12px;
 }
-.micro-schedule-section[data-tone="warning"] .micro-schedule-heading {
-  border-inline-start-color: var(--color-warning-text);
-}
-.micro-schedule-section[data-tone="warning"] .micro-overline {
-  color: var(--color-warning-text);
-}
-.micro-schedule-section[data-tone="accent"] .micro-schedule-heading {
+.micro-schedule-section[data-tone="warning"] .micro-schedule-heading .micro-schedule-section[data-tone="warning"] .micro-overline .micro-schedule-section[data-tone="accent"] .micro-schedule-heading {
   border-inline-start-color: var(--color-accent-primary);
 }
 .micro-schedule-closed-note {
@@ -2541,25 +1637,11 @@ textarea:disabled,
   height: 19px;
   color: var(--color-accent-text);
 }
-.micro-record-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-block: 1px solid var(--color-border);
-}
-.micro-record-summary > div {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) 0;
-}
-.micro-record-summary > div + div {
+.micro-record-summary .micro-record-summary > div .micro-record-summary > div + div {
   padding-inline-start: var(--space-3);
   border-inline-start: 1px solid var(--color-border);
 }
-.micro-record-summary span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-number {
+.micro-record-summary span .micro-number {
   color: var(--color-text-primary);
   direction: ltr;
   font-family: var(--font-numeric);
@@ -2585,11 +1667,7 @@ textarea:disabled,
   border-bottom: 1px solid var(--color-border);
   padding-bottom: var(--space-3);
 }
-.micro-financial-pulse-heading h2 {
-  margin: var(--space-1) 0 0;
-  font-size: 18px;
-}
-.micro-financial-pulse-heading > span {
+.micro-financial-pulse-heading h2 .micro-financial-pulse-heading > span {
   color: var(--color-text-secondary);
   direction: ltr;
   font-family: var(--font-numeric);
@@ -2610,16 +1688,9 @@ textarea:disabled,
   padding-inline-end: var(--space-3);
   border-inline-end: 1px solid var(--color-border);
 }
-.micro-financial-pulse dl > div:nth-child(-n + 2) {
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-financial-pulse dt,
+.micro-financial-pulse dl > div:nth-child(-n + 2) .micro-financial-pulse dt,
 .micro-financial-pulse small,
-.micro-financial-pulse-note {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-financial-pulse dd {
+.micro-financial-pulse-note .micro-financial-pulse dd {
   margin: 0;
   font-size: 24px;
 }
@@ -2628,11 +1699,7 @@ textarea:disabled,
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-3);
 }
-.micro-financial-pulse-note .micro-number {
-  display: inline;
-  font-size: 14px;
-}
-.micro-scope-line {
+.micro-financial-pulse-note .micro-number .micro-scope-line {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: start;
@@ -2645,11 +1712,7 @@ textarea:disabled,
   margin-top: 4px;
   color: var(--color-accent-text);
 }
-.micro-scope-line p {
-  margin: 0;
-  font-size: 13px;
-}
-.micro-scope-line .micro-text-action {
+.micro-scope-line p .micro-scope-line .micro-text-action {
   grid-column: 2;
 }
 .micro-review-result {
@@ -2660,25 +1723,11 @@ textarea:disabled,
   padding: var(--space-4) 0;
 }
 .micro-review-result[data-result="estimated"],
-.micro-review-result[data-result="review_required"] {
-  border-top-color: var(--color-warning-text);
-}
-.micro-review-result[data-result="incomplete"] {
+.micro-review-result[data-result="review_required"] .micro-review-result[data-result="incomplete"] {
   border-top-color: var(--color-accent-text);
 }
 .micro-review-result h2,
-.micro-review-result p {
-  margin: 0;
-}
-.micro-review-result span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-review-result p {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-review-result p .micro-number {
+.micro-review-result p .micro-review-result span .micro-review-result p .micro-review-result p .micro-number {
   display: inline;
   font-size: 16px;
 }
@@ -2689,13 +1738,7 @@ textarea:disabled,
   padding: var(--space-5) 0;
 }
 .micro-review-empty h2,
-.micro-review-empty p {
-  margin: 0;
-}
-.micro-review-empty p {
-  color: var(--color-text-secondary);
-}
-.micro-period-result {
+.micro-review-empty p .micro-review-empty p .micro-period-result {
   display: grid;
   gap: var(--space-3);
   border-top: 3px solid var(--color-accent-primary);
@@ -2705,23 +1748,11 @@ textarea:disabled,
 .micro-period-result[data-status="incomplete"] {
   border-top-color: var(--color-warning-text);
 }
-.micro-period-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.micro-period-heading h2 {
+.micro-period-heading .micro-period-heading h2 {
   margin: var(--space-1) 0 0;
   font-size: 18px;
 }
-.micro-period-heading label {
-  display: grid;
-  gap: 2px;
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-period-heading input {
+.micro-period-heading label .micro-period-heading input {
   min-width: 116px;
   padding: var(--space-2);
 }
@@ -2730,11 +1761,7 @@ textarea:disabled,
   gap: var(--space-1);
   margin: 0;
 }
-.micro-period-result-value > span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-period-result-value strong {
+.micro-period-result-value > span .micro-period-result-value strong {
   font-size: 31px;
 }
 .micro-period-result dl {
@@ -2743,12 +1770,7 @@ textarea:disabled,
   margin: 0;
   border-block: 1px solid var(--color-border);
 }
-.micro-period-result dl > div {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) 0;
-}
-.micro-period-result dl > div:nth-child(odd) {
+.micro-period-result dl > div .micro-period-result dl > div:nth-child(odd) {
   border-inline-end: 1px solid var(--color-border);
   padding-inline-end: var(--space-3);
 }
@@ -2758,21 +1780,11 @@ textarea:disabled,
 .micro-period-result dl > div:nth-child(-n + 2) {
   border-bottom: 1px solid var(--color-border);
 }
-.micro-period-result dt {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-period-result dd {
+.micro-period-result dt .micro-period-result dd {
   margin: 0;
   font-size: 17px;
 }
-.micro-period-truth {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.65;
-}
-.micro-schedule-capacity {
+.micro-period-truth .micro-schedule-capacity {
   display: grid;
   gap: var(--space-3);
   border-inline-start: 3px solid var(--color-accent-primary);
@@ -2784,43 +1796,14 @@ textarea:disabled,
   grid-template-columns: auto 1fr;
   gap: var(--space-3);
 }
-.micro-schedule-capacity svg {
-  width: 20px;
-  height: 20px;
-  color: var(--color-accent-text);
-}
-.micro-schedule-capacity h2,
-.micro-schedule-capacity p {
-  margin: 0;
-}
-.micro-schedule-capacity h2 {
-  font-size: 16px;
-}
-.micro-schedule-capacity p {
+.micro-schedule-capacity svg .micro-schedule-capacity h2,
+.micro-schedule-capacity p .micro-schedule-capacity h2 .micro-schedule-capacity p {
   margin-top: var(--space-1);
   color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.6;
 }
-.micro-schedule-capacity .micro-field {
-  gap: var(--space-1);
-}
-.micro-schedule-capacity .micro-button {
-  justify-self: start;
-}
-.micro-week-agenda {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-4);
-}
-.micro-week-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.micro-week-heading h2 {
+.micro-schedule-capacity .micro-field .micro-schedule-capacity .micro-button .micro-week-agenda .micro-week-heading .micro-week-heading h2 {
   margin: var(--space-1) 0 0;
   font-size: 17px;
 }
@@ -2829,11 +1812,7 @@ textarea:disabled,
   height: 21px;
   color: var(--color-accent-text);
 }
-.micro-week-list {
-  display: grid;
-  gap: var(--space-3);
-}
-.micro-week-day {
+.micro-week-list .micro-week-day {
   display: grid;
   gap: var(--space-2);
   border: 1px solid var(--color-border);
@@ -2841,27 +1820,7 @@ textarea:disabled,
   padding: var(--space-3);
   background: var(--color-surface);
 }
-.micro-week-day[data-alert="true"] {
-  border-inline-start-color: var(--color-warning-text);
-}
-.micro-week-day-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.micro-week-day-heading > div {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-week-day-heading strong {
-  font-size: 14px;
-}
-.micro-week-day-heading small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-week-day-heading .micro-number {
+.micro-week-day[data-alert="true"] .micro-week-day-heading .micro-week-day-heading > div .micro-week-day-heading strong .micro-week-day-heading small .micro-week-day-heading .micro-number {
   display: inline;
   font-size: 14px;
 }
@@ -2875,11 +1834,7 @@ textarea:disabled,
   color: var(--color-warning-text);
   font-size: 12px;
 }
-.micro-week-day > div:last-child {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-week-day button {
+.micro-week-day > div:last-child .micro-week-day button {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2892,22 +1847,13 @@ textarea:disabled,
   background: transparent;
   text-align: start;
 }
-.micro-week-day button > span {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-.micro-week-day button b {
+.micro-week-day button > span .micro-week-day button b {
   overflow: hidden;
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.micro-week-day button small {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-week-day button > svg {
+.micro-week-day button small .micro-week-day button > svg {
   flex: 0 0 auto;
   width: 17px;
   height: 17px;
@@ -3000,12 +1946,7 @@ textarea:disabled,
   font-style: normal;
   unicode-bidi: isolate;
 }
-.micro-setup-impact small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.6;
-}
-.micro-setup-decision {
+.micro-setup-impact small .micro-setup-decision {
   gap: var(--space-5);
   border-top-width: 4px;
   box-shadow: var(--elevation-1);
@@ -3029,11 +1970,7 @@ textarea:disabled,
   font-family: var(--font-numeric);
   font-size: 12px;
 }
-.micro-setup-step > div {
-  display: grid;
-  gap: 2px;
-}
-.micro-setup-step b {
+.micro-setup-step > div .micro-setup-step b {
   color: var(--color-text-primary);
   font-size: 16px;
 }
@@ -3069,23 +2006,11 @@ textarea:disabled,
   padding: var(--space-4);
   background: var(--color-bg-well);
 }
-.micro-expense-classification > div {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-expense-classification h2,
-.micro-expense-classification p {
-  margin: 0;
-}
-.micro-expense-classification h2 {
+.micro-expense-classification > div .micro-expense-classification h2,
+.micro-expense-classification p .micro-expense-classification h2 {
   font-size: 17px;
 }
-.micro-expense-classification > div > p {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.6;
-}
-.micro-expense-classification .micro-field {
+.micro-expense-classification > div > p .micro-expense-classification .micro-field {
   gap: var(--space-1);
 }
 /* P-004 (دورة التدقيق النهائي): مادة قراءة فعلية — رُفعت إلى 13px كقرار الدورة
@@ -3106,10 +2031,7 @@ textarea:disabled,
   font-size: 13px;
   line-height: 1.65;
 }
-.micro-full-action {
-  width: 100%;
-}
-.micro-supplier-list {
+.micro-full-action .micro-supplier-list {
   display: grid;
   gap: var(--space-3);
   margin-top: var(--space-5);
@@ -3120,31 +2042,27 @@ textarea:disabled,
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--color-bg-surface);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
 }
-.micro-supplier-list article > div:first-child {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-.micro-supplier-list small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.5;
-}
-.micro-supplier-balance {
+.micro-supplier-list article > div:first-child .micro-supplier-list small .micro-supplier-balance {
   display: grid;
   gap: var(--space-2);
   justify-items: end;
   flex: 0 0 auto;
 }
 .micro-supplier-balance .micro-button {
-  min-height: 34px;
+  /* S3-03: أرضية اللمس 44px لأفعال الكاش داخل الصفوف (عقد التصميم §3). */
+  min-height: 44px;
   padding: 0 var(--space-3);
   font-size: 12px;
 }
-.micro-supplier-settled {
+.micro-supplier-payable {
+  color: var(--color-text-strong);
+  font-size: 15px;
+}
+.micro-supplier-totals /* S3-07: حالة «غير متاح» نص عربي هادئ — لا خط أحادي ولا اتجاه LTR ولا 26px. */
+.micro-unknown-value .micro-supplier-settled {
   opacity: 0.86;
 }
 .micro-cash-facts {
@@ -3162,20 +2080,7 @@ textarea:disabled,
   padding-inline-start: var(--space-3);
 }
 .micro-cash-facts span,
-.micro-cash-facts small {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  line-height: 1.5;
-}
-.micro-cash-facts strong {
-  font-size: 20px;
-}
-.micro-cash-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-.micro-cash-actions .micro-button {
+.micro-cash-facts small .micro-cash-facts strong .micro-cash-actions .micro-cash-actions .micro-button {
   width: 100%;
   min-height: 52px;
   padding-inline: var(--space-2);
@@ -3196,11 +2101,7 @@ textarea:disabled,
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-well);
 }
-.micro-later-action strong {
-  color: var(--color-text-primary);
-  font-size: 13px;
-}
-.micro-later-action small {
+.micro-later-action strong .micro-later-action small {
   color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.5;
@@ -3262,10 +2163,7 @@ textarea:disabled,
   }
 }
 
-.micro-actual-time-panel {
-  gap: var(--space-3);
-}
-.micro-actual-time-panel > .micro-section-heading svg {
+.micro-actual-time-panel .micro-actual-time-panel > .micro-section-heading svg {
   width: 21px;
   height: 21px;
   flex: 0 0 auto;
@@ -3284,12 +2182,7 @@ textarea:disabled,
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-3) 0;
 }
-.micro-actual-time-row > div {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-1);
-}
-.micro-actual-time-row small,
+.micro-actual-time-row > div .micro-actual-time-row small,
 .micro-actual-time-reversed,
 .micro-actual-time-status {
   color: var(--color-text-secondary);
@@ -3317,10 +2210,7 @@ textarea:disabled,
   padding: var(--space-3);
   background: var(--color-warning-bg);
 }
-.micro-actual-time-reversal .micro-number {
-  color: var(--color-warning-text);
-}
-.micro-actual-time-form {
+.micro-actual-time-reversal .micro-number .micro-actual-time-form {
   display: grid;
   gap: var(--space-3);
   border-top: 1px solid var(--color-border);
@@ -3337,11 +2227,7 @@ textarea:disabled,
 .micro-actual-time-form > .micro-section-heading .micro-icon-button {
   margin-block-start: calc(var(--space-1) * -1);
 }
-.micro-actual-time-form > p {
-  margin: 0;
-  font-size: 13px;
-}
-.micro-empty-inline {
+.micro-actual-time-form > p .micro-empty-inline {
   margin: 0;
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-3);
@@ -3366,11 +2252,7 @@ textarea:disabled,
   padding: var(--space-3);
   background: var(--color-accent-soft);
 }
-.micro-actual-time-comparison[data-tone="warning"] {
-  border-inline-start-color: var(--color-warning-text);
-  background: var(--color-warning-bg);
-}
-.micro-actual-time-comparison h3 {
+.micro-actual-time-comparison[data-tone="warning"] .micro-actual-time-comparison h3 {
   margin: 0;
   color: var(--color-text-primary);
   font-size: 16px;
@@ -3398,24 +2280,13 @@ textarea:disabled,
 .micro-actual-time-comparison-grid > div:nth-child(-n + 2) {
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
 }
-.micro-actual-time-comparison-grid dt {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-actual-time-comparison-grid dd {
+.micro-actual-time-comparison-grid dt .micro-actual-time-comparison-grid dd {
   margin: 0;
   font-size: 15px;
 }
 .micro-actual-time-comparison[data-tone="warning"] .micro-card-eyebrow,
-.micro-actual-time-comparison[data-tone="warning"] h3 {
-  color: var(--color-warning-text);
-}
-
-/* G5 decision surface: recorded facts and declared assumptions stay visually distinct. */
-.micro-g5-surface {
-  gap: var(--space-4);
-}
-.micro-g5-card,
+.micro-actual-time-comparison[data-tone="warning"] h3 /* G5 decision surface: recorded facts and declared assumptions stay visually distinct. */
+.micro-g5-surface .micro-g5-card,
 .micro-g5-declarations {
   display: grid;
   gap: var(--space-3);
@@ -3437,28 +2308,14 @@ textarea:disabled,
   box-shadow: none;
 }
 .micro-g5-card[data-tone="accent"] .micro-card-eyebrow,
-.micro-g5-card[data-tone="accent"] h2 {
-  color: var(--color-accent-text);
-}
-.micro-g5-card[data-tone="warning"] .micro-card-eyebrow,
-.micro-g5-card[data-tone="warning"] h2 {
-  color: var(--color-warning-text);
-}
-.micro-g5-card[data-tone="danger"] .micro-card-eyebrow,
+.micro-g5-card[data-tone="accent"] h2 .micro-g5-card[data-tone="warning"] .micro-card-eyebrow,
+.micro-g5-card[data-tone="warning"] h2 .micro-g5-card[data-tone="danger"] .micro-card-eyebrow,
 .micro-g5-card[data-tone="danger"] h2 {
   color: var(--color-danger-text);
 }
-.micro-g5-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-/* §4 بند ٩: شبكة عمودين بعدد فردي — الابن الأخير يمتد العمودين؛ بلا بلاطة يتيمة */
+.micro-g5-metrics /* §4 بند ٩: شبكة عمودين بعدد فردي — الابن الأخير يمتد العمودين؛ بلا بلاطة يتيمة */
 .micro-g5-metrics > :last-child:nth-child(odd),
-.micro-cash-decision-metrics > :last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-}
-.micro-g5-metrics > div {
+.micro-cash-decision-metrics > :last-child:nth-child(odd) .micro-g5-metrics > div {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -3475,10 +2332,7 @@ textarea:disabled,
   overflow-wrap: anywhere;
   min-width: 0;
 }
-.micro-g5-metrics .micro-number {
-  font-size: 20px;
-}
-.micro-g5-metrics-secondary {
+.micro-g5-metrics .micro-number .micro-g5-metrics-secondary {
   border-top: 1px dashed var(--color-divider);
   padding-top: var(--space-3);
 }
@@ -3502,23 +2356,11 @@ textarea:disabled,
   border-top: 1px solid color-mix(in srgb, var(--color-text-secondary) 18%, transparent);
   padding-top: var(--space-3);
 }
-.micro-g5-guidance > div {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-g5-guidance strong {
+.micro-g5-guidance > div .micro-g5-guidance strong {
   color: var(--color-text-strong);
   font-size: 13px;
 }
-.micro-g5-guidance ul {
-  display: grid;
-  gap: var(--space-1);
-  margin: 0;
-  padding-inline-start: var(--space-4);
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-g5-guidance .micro-decision-next {
+.micro-g5-guidance ul .micro-g5-guidance .micro-decision-next {
   margin: 0;
   color: var(--color-text-strong);
   font-size: 13px;
@@ -3538,11 +2380,7 @@ textarea:disabled,
   background: var(--color-accent-soft);
   font-family: var(--font-numeric);
 }
-.micro-g5-declaration-list {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-g5-declaration {
+.micro-g5-declaration-list .micro-g5-declaration {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3550,12 +2388,7 @@ textarea:disabled,
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-2);
 }
-.micro-g5-declaration > div {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-1);
-}
-.micro-g5-declaration strong {
+.micro-g5-declaration > div .micro-g5-declaration strong {
   overflow: hidden;
   color: var(--color-text-primary);
   font-size: 13px;
@@ -3565,12 +2398,7 @@ textarea:disabled,
 .micro-g5-declaration small {
   direction: rtl;
 }
-.micro-g5-choice-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-.micro-g5-choice {
+.micro-g5-choice-row .micro-g5-choice {
   min-height: 48px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
@@ -3585,10 +2413,7 @@ textarea:disabled,
   color: var(--color-accent-text);
   background: var(--color-accent-soft);
 }
-.micro-g5-editor-page {
-  gap: var(--space-4);
-}
-.micro-g5-editor-page .micro-form-card {
+.micro-g5-editor-page .micro-g5-editor-page .micro-form-card {
   gap: var(--space-4);
 }
 .micro-g5-mix {
@@ -3646,40 +2471,7 @@ textarea:disabled,
   width: 20px;
   height: 20px;
 }
-.micro-install-copy {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-1);
-}
-.micro-install-copy h2 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 15px;
-  line-height: 1.45;
-}
-.micro-install-copy p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  line-height: 1.65;
-}
-.micro-install-actions {
-  display: flex;
-  align-items: center;
-  justify-content: end;
-  gap: var(--space-1);
-}
-.micro-install-actions .micro-button {
-  min-height: 44px;
-  padding-inline: var(--space-3);
-  font-size: 13px;
-  white-space: nowrap;
-}
-.micro-install-actions .micro-icon-button {
-  width: 44px;
-  height: 44px;
-}
-@media (max-width: 420px) {
+.micro-install-copy .micro-install-copy h2 .micro-install-copy p .micro-install-actions .micro-install-actions .micro-button .micro-install-actions .micro-icon-button @media (max-width: 420px) {
   .micro-install-card {
     grid-template-columns: auto 1fr;
   }
@@ -3707,11 +2499,7 @@ textarea:disabled,
   padding: var(--space-3);
   background: var(--color-accent-soft);
 }
-.micro-runtime-card[data-tone="offline"] {
-  border-inline-start-color: var(--color-warning-text);
-  background: var(--color-warning-bg);
-}
-.micro-runtime-icon {
+.micro-runtime-card[data-tone="offline"] .micro-runtime-icon {
   display: grid;
   width: 36px;
   height: 36px;
@@ -3720,10 +2508,7 @@ textarea:disabled,
   color: var(--color-accent-text);
   background: color-mix(in srgb, var(--color-surface) 72%, transparent);
 }
-.micro-runtime-card[data-tone="offline"] .micro-runtime-icon {
-  color: var(--color-warning-text);
-}
-.micro-runtime-icon svg {
+.micro-runtime-card[data-tone="offline"] .micro-runtime-icon .micro-runtime-icon svg {
   width: 19px;
   height: 19px;
 }
@@ -3738,13 +2523,7 @@ textarea:disabled,
   font-size: 15px;
   line-height: 1.45;
 }
-.micro-runtime-copy p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  line-height: 1.65;
-}
-.micro-runtime-actions {
+.micro-runtime-copy p .micro-runtime-actions {
   display: flex;
   align-items: center;
   justify-content: end;
@@ -3800,11 +2579,7 @@ textarea:disabled,
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
-.micro-g5-reversal-editor .micro-button {
-  width: 100%;
-}
-
-/* G6-A: derived monthly order schedule */
+.micro-g5-reversal-editor .micro-button /* G6-A: derived monthly order schedule */
 .micro-month-panel {
   display: grid;
   gap: var(--space-4);
@@ -3819,26 +2594,11 @@ textarea:disabled,
   justify-content: space-between;
   gap: var(--space-3);
 }
-.micro-month-heading > div {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-month-heading h2 {
-  margin: 0;
-  font-size: 20px;
-}
-.micro-month-heading p {
+.micro-month-heading > div .micro-month-heading h2 .micro-month-heading p {
   margin: 0;
   font-size: 12px;
 }
-.micro-month-heading > svg {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  color: var(--color-accent-text);
-}
-.micro-month-navigation {
+.micro-month-heading > svg .micro-month-navigation {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
@@ -3854,10 +2614,7 @@ textarea:disabled,
   text-align: center;
   unicode-bidi: isolate;
 }
-.micro-month-navigation .micro-icon-button {
-  background: var(--color-bg-well);
-}
-.micro-month-summary {
+.micro-month-navigation .micro-icon-button .micro-month-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-2);
@@ -3896,11 +2653,7 @@ textarea:disabled,
   flex: 0 0 auto;
   color: var(--color-warning-text);
 }
-.micro-month-empty strong {
-  color: var(--color-text-primary);
-  font-size: 14px;
-}
-.micro-month-empty p {
+.micro-month-empty strong .micro-month-empty p {
   margin: var(--space-1) 0 0;
   color: var(--color-text-secondary);
   font-size: 12px;
@@ -3990,11 +2743,7 @@ button.micro-month-cell:hover {
   font-weight: 600;
   line-height: 1.2;
 }
-.micro-month-date > span {
-  direction: ltr;
-  unicode-bidi: isolate;
-}
-.micro-month-date small {
+.micro-month-date > span .micro-month-date small {
   color: var(--color-brand-text);
   font-family: var(--font-arabic);
   font-size: 11px;
@@ -4044,24 +2793,13 @@ button.micro-month-cell:hover {
   color: var(--color-text-secondary);
   font-size: 12px !important;
 }
-.micro-month-day-detail {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-4);
-}
-.micro-month-detail-heading {
+.micro-month-day-detail .micro-month-detail-heading {
   display: flex;
   align-items: end;
   justify-content: space-between;
   gap: var(--space-3);
 }
-.micro-month-detail-heading > div {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-month-detail-heading h3 {
+.micro-month-detail-heading > div .micro-month-detail-heading h3 {
   margin: 0;
   color: var(--color-text-primary);
   font-size: 17px;
@@ -4080,12 +2818,7 @@ button.micro-month-cell:hover {
   font-size: 12px !important;
   line-height: 1.6 !important;
 }
-.micro-month-warning svg {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-}
-.micro-month-day-list {
+.micro-month-warning svg .micro-month-day-list {
   display: grid;
   border-top: 1px solid var(--color-border);
 }
@@ -4102,29 +2835,14 @@ button.micro-month-cell:hover {
   background: transparent;
   text-align: right;
 }
-.micro-month-day-list > button:hover {
-  color: var(--color-accent-text);
-}
-.micro-month-day-list > button > span:nth-child(2) {
+.micro-month-day-list > button:hover .micro-month-day-list > button > span:nth-child(2) {
   display: grid;
   flex: 1;
   min-width: 0;
   gap: 2px;
 }
 .micro-month-day-list strong,
-.micro-month-day-list small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.micro-month-day-list strong {
-  font-size: 14px;
-}
-.micro-month-day-list small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-month-day-list > button > svg {
+.micro-month-day-list small .micro-month-day-list strong .micro-month-day-list small .micro-month-day-list > button > svg {
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
@@ -4159,42 +2877,11 @@ button.micro-month-cell:hover {
   }
 }
 
-.micro-recurrence-panel {
-  display: grid;
-  gap: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  box-shadow: var(--elevation-1);
-}
-.micro-recurrence-heading,
-.micro-recurrence-card-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.micro-recurrence-heading > div,
-.micro-recurrence-card-heading > div {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-recurrence-heading > svg,
-.micro-recurrence-card-heading > svg {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  color: var(--color-accent-text);
-}
-.micro-recurrence-heading p,
-.micro-recurrence-card p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-recurrence-empty {
+.micro-recurrence-panel .micro-recurrence-heading,
+.micro-recurrence-card-heading .micro-recurrence-heading > div,
+.micro-recurrence-card-heading > div .micro-recurrence-heading > svg,
+.micro-recurrence-card-heading > svg .micro-recurrence-heading p,
+.micro-recurrence-card p .micro-recurrence-empty {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -4208,12 +2895,7 @@ button.micro-month-cell:hover {
   height: 20px;
   flex: 0 0 auto;
 }
-.micro-recurrence-empty p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-recurrence-note {
+.micro-recurrence-empty p .micro-recurrence-note {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -4228,13 +2910,7 @@ button.micro-month-cell:hover {
   flex: 0 0 auto;
   color: var(--color-accent-text);
 }
-.micro-recurrence-list {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-}
-.micro-recurrence-card {
+.micro-recurrence-list .micro-recurrence-card {
   display: grid;
   gap: var(--space-3);
   border: 1px solid var(--color-border);
@@ -4242,20 +2918,10 @@ button.micro-month-cell:hover {
   padding: var(--space-3);
   background: var(--color-bg-canvas);
 }
-.micro-recurrence-card-heading h3 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 15px;
-}
-.micro-recurrence-card-heading > svg {
+.micro-recurrence-card-heading h3 .micro-recurrence-card-heading > svg {
   color: var(--color-success-text);
 }
-.micro-recurrence-appearances {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-.micro-recurrence-appearances > span {
+.micro-recurrence-appearances .micro-recurrence-appearances > span {
   display: grid;
   gap: 2px;
   min-width: 0;
@@ -4278,13 +2944,7 @@ button.micro-month-cell:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.micro-recurrence-cancel {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-}
-.micro-recurrence-cancelled {
+.micro-recurrence-cancel .micro-recurrence-cancelled {
   margin: 0;
   color: var(--color-warning-text) !important;
   font-size: 12px !important;
@@ -4317,34 +2977,13 @@ button.micro-month-cell:hover {
   background: var(--color-surface);
   box-shadow: var(--elevation-1);
 }
-.micro-agreement-context-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.micro-agreement-context-heading > div {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-agreement-context-heading > svg {
+.micro-agreement-context-heading .micro-agreement-context-heading > div .micro-agreement-context-heading > svg {
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
   color: var(--color-accent-text);
 }
-.micro-agreement-context-heading p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-context-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-.micro-context-summary > div {
+.micro-agreement-context-heading p .micro-context-summary .micro-context-summary > div {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -4352,11 +2991,7 @@ button.micro-month-cell:hover {
   padding: var(--space-3);
   background: var(--color-bg-well);
 }
-.micro-context-summary span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-context-summary strong {
+.micro-context-summary span .micro-context-summary strong {
   overflow: hidden;
   color: var(--color-text-primary);
   font-size: 14px;
@@ -4377,26 +3012,12 @@ button.micro-month-cell:hover {
   height: 18px;
   flex: 0 0 auto;
 }
-.micro-context-history {
-  display: grid;
-  gap: var(--space-2);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-}
-.micro-context-history > p {
+.micro-context-history .micro-context-history > p {
   display: grid;
   gap: 2px;
   margin: 0;
 }
-.micro-context-history b {
-  color: var(--color-text-primary);
-  font-size: 13px;
-}
-.micro-context-history small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-@media (max-width: 380px) {
+.micro-context-history b .micro-context-history small @media (max-width: 380px) {
   .micro-context-summary {
     grid-template-columns: 1fr;
   }
@@ -4427,12 +3048,7 @@ button.micro-month-cell:hover {
 }
 
 /* G13: honest state hierarchy and in-flow form feedback */
-.micro-schedule-status-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-.micro-schedule-status-summary > div {
+.micro-schedule-status-summary .micro-schedule-status-summary > div {
   display: grid;
   gap: var(--space-1);
   border: 1px solid var(--color-border);
@@ -4441,11 +3057,7 @@ button.micro-month-cell:hover {
   background: var(--color-surface);
 }
 .micro-schedule-status-summary span,
-.micro-schedule-status-summary small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-schedule-status-summary strong {
+.micro-schedule-status-summary small .micro-schedule-status-summary strong {
   color: var(--color-text-primary);
   font-family: var(--font-numeric);
   font-size: 24px;
@@ -4456,30 +3068,19 @@ button.micro-month-cell:hover {
 .micro-schedule-status-summary > div:last-child {
   border-inline-start: 3px solid var(--color-divider);
 }
-.micro-schedule-capacity p strong {
-  color: var(--color-text-primary);
-}
-.micro-sheet-action:disabled {
+.micro-schedule-capacity p strong .micro-sheet-action:disabled {
   cursor: not-allowed;
   opacity: 0.68;
   filter: saturate(0.65);
 }
-.micro-sheet-action:disabled .micro-sheet-action-icon {
-  color: var(--color-text-secondary);
-  background: var(--color-bg-well);
-}
-.micro-confirm-warning {
+.micro-sheet-action:disabled .micro-sheet-action-icon .micro-confirm-warning {
   cursor: pointer;
 }
 .micro-confirm-warning:focus-within {
   outline: 3px solid color-mix(in srgb, var(--color-accent-primary) 45%, transparent);
   outline-offset: 2px;
 }
-.micro-confirm-warning input:focus-visible {
-  outline: 2px solid var(--color-accent-primary);
-  outline-offset: 2px;
-}
-.micro-field-error {
+.micro-confirm-warning input:focus-visible .micro-field-error {
   border-inline-start: 3px solid var(--color-danger-text);
   border-radius: var(--radius-control);
   padding: var(--space-2) var(--space-3);
@@ -4495,23 +3096,8 @@ button.micro-month-cell:hover {
   }
 }
 
-.micro-finance-event-list {
-  display: grid;
-  gap: var(--space-3);
-}
-.micro-finance-event-heading {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-finance-event-heading h2,
-.micro-finance-event-heading p {
-  margin: 0;
-}
-.micro-finance-event-heading p {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-finance-event {
+.micro-finance-event-list .micro-finance-event-heading .micro-finance-event-heading h2,
+.micro-finance-event-heading p .micro-finance-event-heading p .micro-finance-event {
   display: grid;
   gap: var(--space-2);
   border: 1px solid var(--color-border);
@@ -4528,26 +3114,31 @@ button.micro-month-cell:hover {
 }
 /* U-001 (دورة التدقيق النهائي): صف الحدث المركَّز القادم من «السجل» — إبراز مؤقت
  * بالحدود فقط دون تغيير الألوان المالية أو المعنى. */
-.micro-finance-event[data-focused="true"] {
+.micro-finance-event[data-focused="true"] /* S1-08: نفس إبراز التركيز لصفوف دفتر المحفظة القادمة من «السجل» (?entry=). */
+.micro-wallet-ledger-page article[data-focused="true"] {
   outline: 2px solid var(--color-accent-primary);
   outline-offset: 2px;
 }
-.micro-finance-event-main {
+/* S3-01: تأكيد حذف التقدير داخل صف القائمة — خطوة ثانية تسمّي الكائن. */
+.micro-estimate-delete-confirm {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 13px;
 }
-.micro-finance-event-main > div {
+.micro-finance-event-main .micro-finance-event-main > div {
   display: grid;
   min-width: 0;
   gap: 2px;
 }
-.micro-finance-event-main strong {
-  color: var(--color-text-primary);
-  font-size: 14px;
-}
-.micro-finance-event-main small,
+.micro-finance-event-main strong .micro-finance-event-main small,
 .micro-finance-event-audit {
   color: var(--color-text-secondary);
   font-size: 12px;
@@ -4597,12 +3188,7 @@ button.micro-month-cell:hover {
   justify-content: space-between;
   gap: var(--space-1);
 }
-.micro-finance-event-effects bdi {
-  direction: ltr;
-  font-family: var(--font-numeric);
-  unicode-bidi: isolate;
-}
-.micro-finance-event-closed {
+.micro-finance-event-effects bdi .micro-finance-event-closed {
   margin: 0;
   color: var(--color-success-text) !important;
   font-size: 12px !important;
@@ -4621,57 +3207,17 @@ button.micro-month-cell:hover {
   color: var(--color-warning-text);
   background: var(--color-warning-bg);
 }
-.micro-finance-reversal-review strong {
-  color: var(--color-text-primary);
-  font-size: 14px;
-}
-.micro-finance-reversal-review p {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-finance-reversal-review dl {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-}
-.micro-finance-reversal-review dl > div {
-  display: grid;
-  gap: 2px;
-}
-.micro-finance-reversal-review dt {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-finance-reversal-review dd {
+.micro-finance-reversal-review strong .micro-finance-reversal-review p .micro-finance-reversal-review dl .micro-finance-reversal-review dl > div .micro-finance-reversal-review dt .micro-finance-reversal-review dd {
   margin: 0;
   color: var(--color-text-primary);
   font-size: 13px;
 }
-.micro-finance-reversal-review dd bdi {
-  direction: ltr;
-  font-family: var(--font-numeric);
-  unicode-bidi: isolate;
-}
-.micro-finance-reversal-editor .micro-local-truth {
+.micro-finance-reversal-review dd bdi .micro-finance-reversal-editor .micro-local-truth .micro-finance-reversal-editor .micro-local-truth p {
   font-size: 12px;
 }
-.micro-finance-reversal-editor .micro-local-truth p {
-  font-size: 12px;
-}
-.micro-finance-event .micro-text-action {
-  justify-self: start;
-}
-.micro-finance-event .micro-save-note,
-.micro-finance-event .micro-field-error {
-  margin: 0;
-}
-
-/* H01-B: decision-led local control center */
-.micro-home-control-center {
-  display: grid;
-  gap: var(--space-5);
-}
-.micro-home-heading > p {
+.micro-finance-event .micro-text-action .micro-finance-event .micro-save-note,
+.micro-finance-event .micro-field-error /* H01-B: decision-led local control center */
+.micro-home-control-center .micro-home-heading > p {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -4699,11 +3245,7 @@ button.micro-month-cell:hover {
 .micro-home-catalog-section,
 .micro-home-attention-section,
 .micro-home-optional-section,
-.micro-home-recent-section {
-  display: grid;
-  gap: var(--space-3);
-}
-.micro-home-finance-unit {
+.micro-home-recent-section .micro-home-finance-unit {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4714,42 +3256,8 @@ button.micro-month-cell:hover {
   padding: var(--space-3);
   background: var(--color-surface);
 }
-.micro-home-finance-unit p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-home-finance-unit .micro-button {
-  flex: 0 0 auto;
-}
-/* قسم «اليوم» (F-078): أولوية صباحية — المتابعات والمواعيد والديون من شاشة واحدة. */
-.micro-home-today-section {
-  display: grid;
-  gap: var(--space-3);
-}
-.micro-home-today-list {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-home-today-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-accent-primary);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-3);
-  background: var(--color-surface);
-}
-.micro-home-today-item[data-kind="due_amount"] {
-  border-inline-start-color: var(--color-warning-text);
-}
-.micro-home-today-item > div {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-home-today-item strong {
+.micro-home-finance-unit p .micro-home-finance-unit .micro-button /* قسم «اليوم» (F-078): أولوية صباحية — المتابعات والمواعيد والديون من شاشة واحدة. */
+.micro-home-today-section .micro-home-today-list .micro-home-today-item .micro-home-today-item[data-kind="due_amount"] .micro-home-today-item > div .micro-home-today-item strong {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -4761,42 +3269,15 @@ button.micro-month-cell:hover {
   height: 16px;
   color: var(--color-accent-text);
 }
-.micro-home-today-item p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-home-today-item small {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-home-today-item .micro-text-action {
-  flex: 0 0 auto;
-}
-/* §2.7: سطر الحقيقة كطريق — «غير مسجل — سجّله (نقرة)». */
+.micro-home-today-item p .micro-home-today-item small .micro-home-today-item .micro-text-action /* §2.7: سطر الحقيقة كطريق — «غير مسجل — سجّله (نقرة)». */
 .micro-home-fact .micro-fact-road {
   font-size: 15px;
   line-height: 1.6;
   text-align: start;
 }
-.micro-fact-road-line {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-/* القرار ١٩: لوحة الإلغاء وتسوية العربون — سبب اختياري بثلاثة أزرار، وعربون بثلاثة خيارات. */
+.micro-fact-road-line /* القرار ١٩: لوحة الإلغاء وتسوية العربون — سبب اختياري بثلاثة أزرار، وعربون بثلاثة خيارات. */
 /* X-06 (و٤): لوحة قرار الفرق بين المتفق والمقبوض — ثلاثة خيارات والثالث صالح. */
-.micro-difference-panel {
-  display: grid;
-  gap: var(--space-3);
-  border: 1px solid var(--color-warning-text);
-  border-radius: var(--radius-card);
-  padding: var(--space-4) var(--space-3);
-  background: var(--color-surface);
-}
-.micro-difference-panel > strong {
-  font-size: 15px;
-}
-.micro-difference-panel > p {
+.micro-difference-panel .micro-difference-panel > strong .micro-difference-panel > p {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 13px;
@@ -4808,7 +3289,7 @@ button.micro-month-cell:hover {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   padding: var(--space-3);
-  background: var(--color-bg-surface);
+  background: var(--color-surface);
   cursor: pointer;
 }
 .micro-radio-choice input[type="radio"] {
@@ -4820,14 +3301,7 @@ button.micro-month-cell:hover {
   display: grid;
   gap: 2px;
 }
-.micro-radio-choice b {
-  font-size: 14px;
-}
-.micro-radio-choice small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-direct-sale-revisions {
+.micro-radio-choice b .micro-radio-choice small .micro-direct-sale-revisions {
   margin: var(--space-2) 0 0;
   padding-inline-start: var(--space-4);
   display: grid;
@@ -4843,29 +3317,14 @@ button.micro-month-cell:hover {
   padding: var(--space-4) var(--space-3);
   background: var(--color-surface);
 }
-.micro-cancel-panel > strong {
-  font-size: 15px;
-}
-.micro-cancel-panel > p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-/* القرار ٢١: حذف مسودة مهجورة — فعل بلا سبب ولا أثر مالي، بحارس مرئي. */
+.micro-cancel-panel > strong .micro-cancel-panel > p /* القرار ٢١: حذف مسودة مهجورة — فعل بلا سبب ولا أثر مالي، بحارس مرئي. */
 .micro-draft-delete-zone {
   display: grid;
   gap: var(--space-2);
   border-top: 1px dashed var(--color-border);
   padding-top: var(--space-3);
 }
-.micro-draft-delete-zone > p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-/* القرار ٩: موضع المخزون غير النشط قبل التفعيل الصريح المؤرّخ. */
+.micro-draft-delete-zone > p /* القرار ٩: موضع المخزون غير النشط قبل التفعيل الصريح المؤرّخ. */
 .micro-inventory-inactive {
   display: flex;
   align-items: flex-start;
@@ -4875,29 +3334,13 @@ button.micro-month-cell:hover {
   padding: var(--space-4) var(--space-3);
   background: var(--color-bg-well);
 }
-.micro-inventory-inactive svg {
-  flex: 0 0 auto;
-  color: var(--color-accent-text);
-}
-.micro-inventory-inactive > div {
+.micro-inventory-inactive svg .micro-inventory-inactive > div {
   display: grid;
   gap: var(--space-1);
   flex: 1;
   min-width: 0;
 }
-.micro-inventory-inactive h2 {
-  font-size: 15px;
-}
-.micro-inventory-inactive p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-.micro-inventory-inactive .micro-button {
-  flex: 0 0 auto;
-}
-/* F-082: إيقاف سياسة توزيع فعالة — تأكيد مزدوج يبيّن أثره. */
+.micro-inventory-inactive h2 .micro-inventory-inactive p .micro-inventory-inactive .micro-button /* F-082: إيقاف سياسة توزيع فعالة — تأكيد مزدوج يبيّن أثره. */
 .micro-policy-stop {
   display: inline-flex;
   flex-wrap: wrap;
@@ -4923,13 +3366,7 @@ button.micro-month-cell:hover {
   padding: var(--space-3);
   background: var(--color-bg-well);
 }
-.micro-foundation-truth p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-.micro-foundation-section {
+.micro-foundation-truth p .micro-foundation-section {
   display: grid;
   gap: var(--space-2);
   min-width: 0;
@@ -4948,22 +3385,11 @@ button.micro-month-cell:hover {
   cursor: pointer;
   list-style: none;
 }
-.micro-foundation-summary::-webkit-details-marker {
-  display: none;
-}
-.micro-foundation-summary:focus-visible {
+.micro-foundation-summary::-webkit-details-marker .micro-foundation-summary:focus-visible {
   outline: 3px solid var(--color-accent-text);
   outline-offset: 2px;
 }
-.micro-foundation-summary > span {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-foundation-summary b {
-  font-size: 15px;
-}
-.micro-foundation-summary small {
+.micro-foundation-summary > span .micro-foundation-summary b .micro-foundation-summary small {
   overflow-wrap: anywhere;
   color: var(--color-text-secondary);
   font-size: 12px;
@@ -4994,16 +3420,7 @@ button.micro-month-cell:hover {
   font-size: 12px;
   line-height: 1.7;
 }
-.micro-foundation-body p svg {
-  flex: 0 0 auto;
-  color: var(--color-accent-text);
-}
-.micro-foundation-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-.micro-foundation-file {
+.micro-foundation-body p svg .micro-foundation-actions .micro-foundation-file {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -5012,11 +3429,7 @@ button.micro-month-cell:hover {
   padding: var(--space-3);
   background: var(--color-surface);
 }
-.micro-foundation-file svg {
-  flex: 0 0 auto;
-  color: var(--color-accent-text);
-}
-.micro-foundation-file > div {
+.micro-foundation-file svg .micro-foundation-file > div {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -5025,30 +3438,15 @@ button.micro-month-cell:hover {
 .micro-foundation-file b {
   font-size: 14px;
 }
-.micro-foundation-file p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-foundation-exit {
+.micro-foundation-file p .micro-foundation-exit {
   display: grid;
   gap: var(--space-3);
   border-block: 1px solid var(--color-border);
   padding: var(--space-4) var(--space-3);
   background: var(--color-bg-well);
 }
-.micro-foundation-exit p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-/* المجموعة ١ — ملف المالك والمشروع (/profile): سطح قراءة هادئ بلا مقعد تنقل. */
-.micro-profile-page {
-  display: grid;
-  gap: var(--space-3);
-}
-.micro-profile-section {
+.micro-foundation-exit p /* المجموعة ١ — ملف المالك والمشروع (/profile): سطح قراءة هادئ بلا مقعد تنقل. */
+.micro-profile-page .micro-profile-section {
   display: grid;
   gap: var(--space-2);
   min-width: 0;
@@ -5068,35 +3466,19 @@ button.micro-month-cell:hover {
   border-bottom: 1px solid var(--color-border);
   padding-block: var(--space-2);
 }
-.micro-profile-facts > div:last-child {
-  border-bottom: 0;
-}
-.micro-profile-facts dt {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-profile-facts dd {
+.micro-profile-facts > div:last-child .micro-profile-facts dt .micro-profile-facts dd {
   margin: 0;
   color: var(--color-text-primary);
   font-size: 14px;
   overflow-wrap: anywhere;
 }
-.micro-profile-fields {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-profile-future-note {
+.micro-profile-fields .micro-profile-future-note {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 12px;
   line-height: 1.7;
 }
-.micro-home-facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-.micro-home-fact {
+.micro-home-facts .micro-home-fact {
   display: grid;
   gap: var(--space-2);
   min-width: 0;
@@ -5148,11 +3530,7 @@ button.micro-month-cell:hover {
   flex: 0 0 auto;
   color: var(--color-text-secondary);
 }
-.micro-home-profile-link svg {
-  width: 15px;
-  height: 15px;
-}
-/* كتلة «الأهم الآن»: بند واحد مرفوع بلون تمييز هادئ — لا عدّاد ولا إنذار. */
+.micro-home-profile-link svg /* كتلة «الأهم الآن»: بند واحد مرفوع بلون تمييز هادئ — لا عدّاد ولا إنذار. */
 .micro-home-priority {
   display: grid;
   gap: var(--space-2);
@@ -5190,11 +3568,7 @@ button.micro-month-cell:hover {
 }
 .micro-home-attention-list,
 .micro-home-optional-list,
-.micro-home-recent-list {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-home-attention-item,
+.micro-home-recent-list .micro-home-attention-item,
 .micro-home-optional-item {
   display: flex;
   align-items: center;
@@ -5243,21 +3617,12 @@ button.micro-month-cell:hover {
   background: var(--color-bg-well);
 }
 }
-.micro-home-recent-item > span {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-home-recent-item strong {
+.micro-home-recent-item > span .micro-home-recent-item strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.micro-home-recent-item small {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-home-recent-item svg {
+.micro-home-recent-item small .micro-home-recent-item svg {
   flex: 0 0 auto;
   width: 17px;
   height: 17px;
@@ -5304,10 +3669,7 @@ button.micro-month-cell:hover {
   cursor: pointer;
   list-style: none;
 }
-.micro-additional-details-summary::-webkit-details-marker {
-  display: none;
-}
-.micro-additional-details-summary::after {
+.micro-additional-details-summary::-webkit-details-marker .micro-additional-details-summary::after {
   content: "+";
   display: inline-grid;
   width: 28px;
@@ -5320,10 +3682,7 @@ button.micro-month-cell:hover {
   font-size: 20px;
   line-height: 1;
 }
-.micro-additional-details[open] > .micro-additional-details-summary::after {
-  content: "−";
-}
-.micro-additional-details-summary:focus-visible {
+.micro-additional-details[open] > .micro-additional-details-summary::after .micro-additional-details-summary:focus-visible {
   outline: 2px solid var(--color-accent-text);
   outline-offset: -2px;
 }
@@ -5357,10 +3716,7 @@ button.micro-month-cell:hover {
   cursor: pointer;
   list-style: none;
 }
-.micro-inline-disclosure summary::-webkit-details-marker {
-  display: none;
-}
-.micro-inline-disclosure summary::before {
+.micro-inline-disclosure summary::-webkit-details-marker .micro-inline-disclosure summary::before {
   content: "+";
   display: inline-block;
   margin-inline-end: var(--space-1);
@@ -5417,11 +3773,7 @@ button.micro-month-cell:hover {
   background: var(--color-accent-soft);
   box-shadow: var(--elevation-1);
 }
-.micro-cash-decision-heading {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-cash-decision-heading h2 {
+.micro-cash-decision-heading .micro-cash-decision-heading h2 {
   margin: 0;
   color: var(--color-accent-text);
   font-size: 24px;
@@ -5446,11 +3798,7 @@ button.micro-month-cell:hover {
   border-top: 1px solid color-mix(in srgb, var(--color-accent-text) 20%, transparent);
   padding-top: var(--space-2);
 }
-.micro-cash-decision-metrics span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-cash-decision-metrics .micro-number {
+.micro-cash-decision-metrics span .micro-cash-decision-metrics .micro-number {
   font-size: 24px;
 }
 .micro-cash-decision-footer {
@@ -5501,12 +3849,7 @@ button.micro-month-cell:hover {
   opacity: 0.92;
   box-shadow: none;
 }
-.micro-optional-cost-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-.micro-optional-cost-actions .micro-button {
+.micro-optional-cost-actions .micro-optional-cost-actions .micro-button {
   min-height: 44px;
 }
 .micro-optional-cost-field {
@@ -5550,24 +3893,13 @@ button.micro-month-cell:hover {
   border-color: color-mix(in srgb, var(--color-warning-text) 48%, var(--color-border));
 }
 .micro-owner-decision-card .micro-section-heading,
-.micro-owner-balance-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.micro-owner-decision-card .micro-section-heading h2,
+.micro-owner-balance-head .micro-owner-decision-card .micro-section-heading h2,
 .micro-owner-balance-head h2 {
   margin: 2px 0 0;
 }
 .micro-owner-decision-card > p,
 .micro-owner-balance-card > p,
-.micro-owner-ledger > p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  line-height: 1.7;
-}
-.micro-owner-decision-grid,
+.micro-owner-ledger > p .micro-owner-decision-grid,
 .micro-owner-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5586,11 +3918,7 @@ button.micro-month-cell:hover {
   min-width: 0;
 }
 .micro-owner-decision-grid span,
-.micro-owner-stat-grid span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-owner-decision-grid strong,
+.micro-owner-stat-grid span .micro-owner-decision-grid strong,
 .micro-owner-stat-grid strong {
   direction: ltr;
   unicode-bidi: isolate;
@@ -5632,10 +3960,7 @@ button.micro-month-cell:hover {
   gap: 4px;
   min-width: 0;
 }
-.micro-owner-list-row strong {
-  color: var(--color-text-primary);
-}
-.micro-owner-list-row small {
+.micro-owner-list-row strong .micro-owner-list-row small {
   color: var(--color-text-secondary);
   line-height: 1.6;
   overflow-wrap: anywhere;
@@ -5674,10 +3999,7 @@ button.micro-month-cell:hover {
   border-inline-start-color: var(--color-accent-primary);
   background: color-mix(in srgb, var(--color-accent-primary) 9%, var(--color-surface));
 }
-.micro-owner-calculation strong {
-  color: var(--color-text-primary);
-}
-.micro-owner-calculation p {
+.micro-owner-calculation strong .micro-owner-calculation p {
   margin: 0;
   color: var(--color-text-secondary);
   line-height: 1.6;
@@ -5789,10 +4111,7 @@ button.micro-month-cell:hover {
   gap: var(--space-3);
 }
 .micro-subsection-heading h3,
-.micro-subsection-heading p {
-  margin: 0;
-}
-.micro-subsection-heading h3 {
+.micro-subsection-heading p .micro-subsection-heading h3 {
   color: var(--color-text-primary);
   font-size: 16px;
   line-height: 1.45;
@@ -5810,12 +4129,7 @@ button.micro-month-cell:hover {
   min-height: 64px;
   padding-block: var(--space-2);
 }
-.micro-chip-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-.micro-chip {
+.micro-chip-list .micro-chip {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -5866,11 +4180,7 @@ button.micro-month-cell:hover {
   color: var(--color-text-primary);
   font-size: 14px;
 }
-.micro-inline-heading span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-checkbox {
+.micro-inline-heading span .micro-checkbox {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -6074,12 +4384,7 @@ button.micro-month-cell:hover {
   gap: 2px;
   min-width: 0;
 }
-.micro-insights-grid dt {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-.micro-insights-grid dd {
+.micro-insights-grid dt .micro-insights-grid dd {
   margin: 0;
   color: var(--color-text-primary);
   font-size: 15px;
@@ -6125,7 +4430,8 @@ button.micro-month-cell:hover {
   font-size: 13px;
 }
 .micro-insights-unknown {
-  color: var(--color-text-tertiary);
+  /* S3-06: علامة المجهول قرار يُقرأ — لون ثانوي لا ثالثي باهت (2.0:1 سابقًا). */
+  color: var(--color-text-secondary);
 }
 .micro-insights-reasons {
   margin: var(--space-2) 0 0;
@@ -6156,20 +4462,7 @@ button.micro-month-cell:hover {
 .micro-party-summary::-webkit-details-marker {
   display: none;
 }
-.micro-party-summary > span {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-party-summary b {
-  font-size: 15px;
-  color: var(--color-text-primary);
-}
-.micro-party-summary small {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-party-summary strong {
+.micro-party-summary > span .micro-party-summary b .micro-party-summary small .micro-party-summary strong {
   color: var(--color-accent-text);
   font-size: 12px;
   white-space: nowrap;
@@ -6196,12 +4489,7 @@ button.micro-month-cell:hover {
   cursor: pointer;
   color: inherit;
 }
-.micro-party-movements button > span {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.micro-party-movements small {
+.micro-party-movements button > span .micro-party-movements small {
   color: var(--color-text-secondary);
   font-size: 11px;
 }
