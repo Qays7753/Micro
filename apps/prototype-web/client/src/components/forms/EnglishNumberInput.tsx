@@ -7,6 +7,7 @@ import {
   formatEnglishNumericValue,
   parseEnglishNumericText,
   type EnglishNumericKind,
+  normalizeAsciiDigits,
 } from "@/application/input/englishNumeric";
 import { cn } from "@/lib/utils";
 
@@ -72,7 +73,9 @@ export function EnglishNumberInput({
         onFocus?.(event);
       }}
       onChange={event => {
-        const next = event.target.value;
+        /* المجموعة ٦ (البند ٥): تطبيع حدود الإدخال — الأرقام الهندية/الفارسية
+         * تصير إنجليزية قبل فحص النمط؛ المعنى الرقمي لا يتغير أبدًا. */
+        const next = normalizeAsciiDigits(event.target.value);
         if (allowEmpty && next === "") {
           hasUserEdited.current = true;
           setText("");

@@ -21,7 +21,8 @@ export default function G5DeclarationEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { g5, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, g5, notifyDataChanged } = usePrototypeServices();
   const [direction, setDirection] = useState<"collection" | "commitment">("collection");
   const [amountMinor, setAmountMinor] = useState<number | null>(null);
   const [amountValid, setAmountValid] = useState(true);
@@ -44,7 +45,7 @@ export default function G5DeclarationEditor() {
     return () => {
       active = false;
     };
-  }, [g5]);
+  }, [g5, dataVersion]);
 
   function selectDirection(next: "collection" | "commitment") {
     setDirection(next);

@@ -42,11 +42,9 @@ describe("presentation formatters", () => {
     expect(formatLocalDate(null)).toBeNull();
   });
 
-  it("renders a selected local date as a readable Arabic date without changing ISO storage", () => {
-    const display = formatLocalDateLong("2026-09-05");
-    expect(display).toContain("2026");
-    expect(display).toContain("5");
-    expect(display).not.toContain("09/05/2026");
+  it("المجموعة ٦ (البند ٥): الطويل رقمي DD/MM/YYYY بمنزلتين — لا أسماء شهور أبدًا", () => {
+    expect(formatLocalDateLong("2026-09-05")).toBe("05/09/2026");
+    expect(formatLocalDateLong("2026-09-05")).not.toContain("أيلول");
     expect(formatLocalDateLong("2026-02-30")).toBeNull();
     expect(formatLocalDateLong(null)).toBeNull();
   });
@@ -56,8 +54,9 @@ describe("presentation formatters", () => {
     expect(formatLocalDateTime("2026-08-23T22:30:00.000Z")).toBe("24/08/2026 01:30");
   });
 
-  it("renders month context in Arabic while preserving the underlying YYYY-MM value elsewhere", () => {
-    expect(formatMonthLabel("2026-08")).toContain("2026");
+  it("المجموعة ٦ (البند ٥): تسمية الشهر رقمية MM/YYYY — لا كلمات شهور", () => {
+    expect(formatMonthLabel("2026-08")).toBe("08/2026");
+    expect(formatMonthLabel("2026-08")).not.toContain("آب");
     expect(formatMonthLabel("not-a-month")).toBe("not-a-month");
   });
 

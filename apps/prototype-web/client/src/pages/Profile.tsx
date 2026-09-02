@@ -7,6 +7,7 @@ import { ArrowRight, CircleUserRound, Landmark, ShieldCheck } from "lucide-react
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import { resolveReturnPath } from "@/app/navigationContract";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -278,7 +279,12 @@ export default function Profile() {
               <dt>آخر نسخة احتياطية متحققة</dt>
               <dd>
                 {project.lastVerifiedExportAt
-                  ? new Date(project.lastVerifiedExportAt).toLocaleDateString("ar-JO")
+                  ? /* المجموعة ٦ (البند ٥): رقمي DD/MM/YYYY بجدار ثنائي الاتجاه —
+                     نسق ar-JO كان يعرض أرقامًا هندية. */
+                    (() => {
+                      const display = formatLocalDate(localDateInAmman(project.lastVerifiedExportAt));
+                      return display ? <bdi dir="ltr">{display}</bdi> : "—";
+                    })()
                   : "لا نسخة بعد"}
               </dd>
             </div>

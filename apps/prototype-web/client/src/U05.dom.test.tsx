@@ -4,6 +4,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
 import { G5Service } from "@/application/g5/g5Service";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -38,6 +39,8 @@ describe("Finance month-range validation stays inline (U-05)", () => {
         (from, to) => projectFinance.readRecordedPeriodResult(from, to),
         now,
       ),
+      /* المجموعة ٦ (البند ٣): خلاصة أثر التصحيحات تُقرأ داخل تأثير التحميل. */
+      correctionHistory: new CorrectionHistoryService(store),
       g5: new G5Service(store, projectFinance, now),
       financialPulse: new FinancialPulseService(store),
       fulfillment: new FulfillmentService(store, now),

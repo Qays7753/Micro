@@ -10,6 +10,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { RestatementNote } from "@/components/finance/RestatementNote";
 import { formatLocalDate, formatLocalDateLong, localDateInAmman , formatMoneyWithUnit } from "@/presentation/formatters";
 import type { StatementLine, StatementReading } from "@/application/finance/statementService";
 
@@ -263,9 +264,12 @@ export default function Statement() {
                 </button>
               </article>
             ))}
-            <p className="micro-empty-copy">
-              التصحيح يظهر هنا مرة واحدة — لا مع عائلته الأصلية، ولا يُخفى أثره.
-            </p>
+            <RestatementNote
+              count={reading.blocks.corrections.lines.length}
+              netAmountMinor={reading.blocks.corrections.netMinor}
+              scopeLabel="هذه الفترة"
+              onOpen={() => openWithReferrer("/finance?layer=corrections")}
+            />
           </>
         ) : null}
       </section>

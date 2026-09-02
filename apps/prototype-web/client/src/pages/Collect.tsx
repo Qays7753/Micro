@@ -409,7 +409,7 @@ export default function Collect() {
             {saving ? "جارٍ تسجيل القبض…" : "سجّل القبض"}
           </button>
           <p className="micro-home-truth-line">
-            <Landmark aria-hidden="true" /> القبض يُسجّل اليوم {formatLocalDate(localDateInAmman())} — كتابة
+            <Landmark aria-hidden="true" /> القبض يُسجّل اليوم <bdi dir="ltr">{formatLocalDate(localDateInAmman())}</bdi> — كتابة
             محلية واحدة، والضغط مرتين لا يضاعف أثرًا.
           </p>
         </section>

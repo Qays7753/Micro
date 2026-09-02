@@ -188,3 +188,86 @@ describe("CorrectionHistoryService", () => {
     await expect(history.list()).resolves.toMatchObject({ ok: true, value: [] });
   });
 });
+
+describe("CorrectionHistoryService.affecting — خلاصة أثر التصحيحات (المجموعة ٦، البند ٣)", () => {
+  it("بلا نطاق: كل التصحيحات بعدّها وصافيها الموقع", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const history = new CorrectionHistoryService(store);
+    const expense = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-08-02",
+      note: "مصروف",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "variable", purpose: "order", knowledge: "known" },
+      idempotencyKey: "g6-affect-exp",
+    });
+    if (!expense.ok) throw new Error("expense should save");
+    const reversal = await finance.reverse({
+      sourceEventId: expense.value.id,
+      occurredOn: "2026-08-04",
+      reason: "سُجل خطأ",
+      idempotencyKey: `g6-affect-rev:${expense.value.id}`,
+    });
+    if (!reversal.ok) throw new Error("reversal should save");
+    const digest = await history.affecting();
+    expect(digest.ok).toBe(true);
+    if (!digest.ok) return;
+    expect(digest.value.count).toBe(1);
+    /* العرف القائم: أثر التراجع معكوس مبلغ حدث التراجع (المصروف كان سالب الكاش). */
+    expect(digest.value.netAmountMinor).toBe(-5000);
+    expect(digest.value.entries[0]?.reason).toBe("سُجل خطأ");
+  });
+
+  it("بنطاق: تُستبعد التصحيحات خارج [من، إلى] ويبقى الصافي صادقًا", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const history = new CorrectionHistoryService(store);
+    const first = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 2000,
+      occurredOn: "2026-08-05",
+      note: "مصروف آب",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "variable", purpose: "order", knowledge: "known" },
+      idempotencyKey: "g6-range-a",
+    });
+    if (!first.ok) throw new Error("first should save");
+    await finance.reverse({
+      sourceEventId: first.value.id,
+      occurredOn: "2026-08-06",
+      reason: "تصحيح آب",
+      idempotencyKey: `g6-range-a-rev:${first.value.id}`,
+    });
+    const second = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 3000,
+      occurredOn: "2026-09-05",
+      note: "مصروف أيلول",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "variable", purpose: "order", knowledge: "known" },
+      idempotencyKey: "g6-range-b",
+    });
+    if (!second.ok) throw new Error("second should save");
+    await finance.reverse({
+      sourceEventId: second.value.id,
+      occurredOn: "2026-09-06",
+      reason: "تصحيح أيلول",
+      idempotencyKey: `g6-range-b-rev:${second.value.id}`,
+    });
+    const inSeptember = await history.affecting("2026-09-01", "2026-09-30");
+    expect(inSeptember.ok).toBe(true);
+    if (!inSeptember.ok) return;
+    expect(inSeptember.value.count).toBe(1);
+    expect(inSeptember.value.netAmountMinor).toBe(-3000);
+    const inAugust = await history.affecting("2026-08-01", "2026-08-31");
+    expect(inAugust.ok).toBe(true);
+    if (!inAugust.ok) return;
+    expect(inAugust.value.count).toBe(1);
+    expect(inAugust.value.netAmountMinor).toBe(-2000);
+  });
+});

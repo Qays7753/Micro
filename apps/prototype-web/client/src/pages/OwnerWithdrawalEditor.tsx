@@ -12,11 +12,14 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
 
 /* مفتاح القرار (X-05): وجود سياسة حق مالك فعالة يوجه السحب إلى مسار الدفتر
- * (تسوية حق بمحفظة محددة)، وغيابها يوجهه إلى الحدث المالي العام. */
+ * (تسوية حق بمحفظة محددة)، وغيابها يوجهه إلى الحدث المالي العام.
+ * G6-U2-1 (المجموعة ٦): وجود حق قابل للتسوية شرط تسوية الحق — بلا حق مسجل
+ * يذهب السحب لمسار الدفتر نفسه بسبب «سحب قبل تسجيل الحق» (موجود بالنطاق
+ * وغير مستدعى من أي سطح) بدل الطريق المسدود. */
 export function unifiedWithdrawalPath(
   overview: Pick<OwnerEntitlementOverview, "activePolicies">,
 ): "ledger_movement" | "financial_event" {
@@ -27,7 +30,8 @@ export default function OwnerWithdrawalEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { ownerEntitlement, projectFinance, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, ownerEntitlement, projectFinance, notifyDataChanged } = usePrototypeServices();
   const [overview, setOverview] = useState<OwnerEntitlementOverview | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [amountMinor, setAmountMinor] = useState(0);
@@ -55,7 +59,7 @@ export default function OwnerWithdrawalEditor() {
     return () => {
       active = false;
     };
-  }, [ownerEntitlement]);
+  }, [ownerEntitlement, dataVersion]);
 
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
@@ -71,6 +75,8 @@ export default function OwnerWithdrawalEditor() {
   async function save(): Promise<boolean> {
     if (loadError || !overview) return false;
     const path = unifiedWithdrawalPath(overview);
+    const settleableEntitlements = overview.entitlements.filter(record => record.amountMinor > 0);
+    const settlingEntitlement = entitlementId.trim() && settleableEntitlements.length > 0;
     if (!validAmount || !Number.isInteger(amountMinor) || amountMinor <= 0) {
       setMessage("أدخل مبلغ السحب بالأرقام 0–9 قبل الحفظ.");
       return false;
@@ -80,8 +86,8 @@ export default function OwnerWithdrawalEditor() {
         setMessage("اختر المحفظة التي يخرج منها السحب.");
         return false;
       }
-      if (!entitlementId.trim()) {
-        setMessage("اختر الحق المسجل الذي تتم تسويته بهذا السحب.");
+      if (!settlingEntitlement && entitlementId.trim()) {
+        setMessage("الحق المختار غير قابل للتسوية؛ اختر حقًا مسجلًا فعّالًا أو اتركه فارغًا.");
         return false;
       }
     } else if (!note.trim()) {
@@ -98,8 +104,8 @@ export default function OwnerWithdrawalEditor() {
             walletId,
             occurredOn,
             note: note.trim() || "سحب من المشروع لنفسك",
-            reason: "entitlement_settlement",
-            relatedEntitlementId: entitlementId,
+            reason: settlingEntitlement ? "entitlement_settlement" : "pre_entitlement_draw",
+            relatedEntitlementId: settlingEntitlement ? entitlementId : null,
             idempotencyKey: idempotencyKey.current,
           })
         : await projectFinance.record({
@@ -158,7 +164,9 @@ export default function OwnerWithdrawalEditor() {
           <strong>السحب الشخصي ليس مصروفًا.</strong>
           <p>
             {path === "ledger_movement"
-              ? "عندك سياسة حق مالك فعالة، فيُسجَّل السحب تسويةً لحقك من محفظة محددة، ويظهر في دفتر المالك."
+              ? overview && overview.entitlements.filter(record => record.amountMinor > 0).length > 0
+                ? "عندك سياسة حق مالك فعالة، فيُسجَّل السحب تسويةً لحقك من محفظة محددة، ويظهر في دفتر المالك."
+                : "عندك سياسة حق مالك فعالة بس ما في حق مسجل بعد — يُسجَّل السحب «قبل تسجيل الحق» من المحفظة، ويظهر في دفتر المالك."
               : path === "financial_event"
                 ? "يُسجَّل السحب حدثًا ماليًا عامًا ينقص الكاش ومال المالك معًا."
                 : "جارٍ قراءة حال مشروعك المحلية…"}
@@ -198,7 +206,9 @@ export default function OwnerWithdrawalEditor() {
                     .filter(record => record.amountMinor > 0)
                     .map(record => (
                       <option key={record.id} value={record.id}>
-                        {record.occurredOn} · {formatMoneyMinor(record.amountMinor)} د.أ · {record.note}
+                        {/* المجموعة ٦ (البند ٥): تاريخ رقمي لا ISO خام أمام المستخدم. */}
+                        {formatLocalDate(record.occurredOn) ?? record.occurredOn} ·{" "}
+                        {formatMoneyMinor(record.amountMinor)} د.أ · {record.note}
                       </option>
                     ))}
                 </select>

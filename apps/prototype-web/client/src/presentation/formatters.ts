@@ -22,18 +22,11 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
   hour12: false,
 });
-const monthFormatter = new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
-  timeZone: ammanTimeZone,
-  month: "long",
-  year: "numeric",
-});
-const readableDateFormatter = new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
-  timeZone: "UTC",
-  calendar: "gregory",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+/* المجموعة ٦ (البند ٥): قاعدة منتج نظامية — الأرقام الإنجليزية 0–9 والتاريخ
+ * الرقمي DD/MM/YYYY في كل ما يراه المستخدم. لا أسماء شهور ولا اختصاراتها ولا
+ * ترتيبًا آخر؛ التنسيق الطويل يصير رقميًا من منزلتين (05/03/2026) والصافي
+ * من فورمتر واحد مركزي هذا. */
+
 
 /**
  * مبدأ Micro: الجمع العربي يتبع القواعد اللغوية (0، 1، 2، 3-10، 11-99، 100+).
@@ -110,9 +103,10 @@ export function formatLocalDate(value: string | null | undefined) {
   return `${day}/${month}/${year}`;
 }
 
+/* المجموعة ٦ (البند ٥): الطويل = الرقمي نفسه بمنزلتين — لا أسماء شهور أبدًا.
+ * حاضر للتوافق مع الاستدعاءات القائمة؛ الشهر الرقمي MM/YYYY لتسمية الشهر. */
 export function formatLocalDateLong(value: string | null | undefined) {
-  if (!value || !isValidLocalDate(value)) return null;
-  return readableDateFormatter.format(new Date(`${value}T12:00:00.000Z`));
+  return formatLocalDate(value);
 }
 
 export function formatLocalDateTime(value: string | null | undefined) {
@@ -126,8 +120,7 @@ export function formatLocalDateTime(value: string | null | undefined) {
 
 export function formatMonthLabel(value: string) {
   if (!/^\d{4}-\d{2}$/.test(value)) return value;
-  const parsed = new Date(`${value}-15T12:00:00.000Z`);
-  return Number.isNaN(parsed.valueOf()) ? value : monthFormatter.format(parsed);
+  return `${value.slice(5)}/${value.slice(0, 4)}`;
 }
 
 export function localDateInAmman(value: Date | string = new Date()) {

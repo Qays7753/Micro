@@ -122,6 +122,63 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.orders.set(order.id, clone(order));
     return { ok: true, value: clone(order) };
   }
+  /* المجموعة ٦ (S2-04أ): تراجع القبضة والتخصيص معًا بذريّة واحدة — فحص الهوية
+   * قبل أي كتابة: إن وُجد حدث التراجع نفسه فمسار إعادة الاستخدام (مع أثر الكاش
+   * المطابق)، وإن وُجد أثر كاش متراجع سابقًا لنفس التخصيص فرفض صادق، وإلا
+   * تُكتب الحالتان معًا. الحالة النصفية تُعلن لا تُكمل بصمت. */
+  async commitOrderCollectionReversal(
+    order: StoredCraftOrder,
+    allocationReversal: CashContinuityEntry | null,
+    reversalEventKey: string,
+  ): Promise<
+    StorageResult<{ order: StoredCraftOrder; cashEntry: CashContinuityEntry | null; reused: boolean }>
+  > {
+    const existing = this.orders.get(order.id);
+    if (!existing)
+      return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لتراجع القبضة." };
+    const alreadyReversed = existing.order.events.some(
+      event => event.type === "collection_reversed" && event.idempotencyKey === reversalEventKey,
+    );
+    if (alreadyReversed) {
+      if (!allocationReversal)
+        return { ok: true, value: { order: clone(existing), cashEntry: null, reused: true } };
+      const matchingCash = Array.from(this.cashContinuityEntries.values()).find(
+        entry => entry.operationKey === allocationReversal.operationKey,
+      );
+      if (!matchingCash)
+        return {
+          ok: false,
+          code: "storage_error",
+          message: "وجدت تراجع قبضة بلا أثر تخصيص مطابق؛ لم يتغير السجل.",
+        };
+      return {
+        ok: true,
+        value: { order: clone(existing), cashEntry: clone(matchingCash), reused: true },
+      };
+    }
+    if (
+      allocationReversal &&
+      Array.from(this.cashContinuityEntries.values()).some(
+        entry => entry.reversesEntryId === allocationReversal.reversesEntryId,
+      )
+    )
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "تم التراجع عن تخصيص هذه القبضة سابقًا؛ لم يتغير السجل.",
+      };
+    this.orders.set(order.id, clone(order));
+    if (allocationReversal)
+      this.cashContinuityEntries.set(allocationReversal.id, clone(allocationReversal));
+    return {
+      ok: true,
+      value: {
+        order: clone(order),
+        cashEntry: allocationReversal ? clone(allocationReversal) : null,
+        reused: false,
+      },
+    };
+  }
   async listDirectSales(): Promise<StorageResult<readonly DirectSale[]>> {
     return {
       ok: true,

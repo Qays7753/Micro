@@ -15,7 +15,8 @@ export default function CashTransferEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { cashContinuity, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [wallets, setWallets] = useState<readonly CashWalletBalance[]>([]);
   const [fromWalletId, setFromWalletId] = useState("");
   const [toWalletId, setToWalletId] = useState("");
@@ -36,7 +37,7 @@ export default function CashTransferEditor() {
       setFromWalletId(result.value.wallets[0]?.id ?? "");
       setToWalletId(result.value.wallets[1]?.id ?? "");
     });
-  }, [cashContinuity]);
+  }, [cashContinuity, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
   const isDirty = useFormDirty([

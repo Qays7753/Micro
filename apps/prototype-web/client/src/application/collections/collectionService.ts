@@ -198,6 +198,11 @@ export class CollectionService {
         operationKey: `${input.idempotencyKey}:attribute`,
         sourceRefId: input.sourceId,
         sourceRefKind: input.sourceKind === "order" ? "order" : "sale",
+        /* المجموعة ٦ (S2-04أ): حدث القبضة المصدر — معرّف الحدث حتمي في النطاق
+         * (orderId:idempotencyKey) فيُربط التخصيص بسطر التحصيل نفسه، ويصير
+         * التراجع المزدوج «القبضة مع تخصيصها» قابلًا للمطابقة بلا تخمين. */
+        sourceRefLineId:
+          input.sourceKind === "order" ? `${input.sourceId}:${input.idempotencyKey}` : null,
       });
       if (attribution.ok) {
         reused = reused || (attribution.reused ?? false);

@@ -18,7 +18,8 @@ export default function CashAdjustmentEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { cashContinuity, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [wallet, setWallet] = useState<CashWalletBalance | null>(null);
   const [direction, setDirection] = useState<"increase" | "decrease">("decrease");
   const [amountMinor, setAmountMinor] = useState(0);
@@ -37,7 +38,7 @@ export default function CashAdjustmentEditor() {
       }
       setWallet(result.value.wallets.find(candidate => candidate.id === id) ?? null);
     });
-  }, [cashContinuity, id]);
+  }, [cashContinuity, id, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
   const isDirty = useFormDirty([

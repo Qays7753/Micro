@@ -3,7 +3,7 @@
  * future financial actions to the application layer, never to UI state.
  */
 /* مبدأ Micro: يبقى السياق وحارس الرجوع مركزيين، ويظهر الكروم العام في الأسطح لا النماذج العميقة. */
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, Suspense, lazy, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { getNavigationLabel, primaryNavigation } from "@/app/navigation";
 import { withFrom } from "@/app/navigationContract";
@@ -11,7 +11,14 @@ import { getMicroRouteKind, showsGlobalChrome } from "@/app/routeClassifier";
 import { UnsavedChangesProvider, useUnsavedChangesNavigation } from "@/components/forms/UnsavedChangesGuard";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
-import { type QuickAction, QuickActionSheet } from "@/components/layout/QuickActionSheet";
+import type { QuickAction } from "@/components/layout/QuickActionSheet";
+/* S5-10 (المجموعة ٦ — البند ٦): ورقة الإضافة تفاعل عند الطلب — تُحمَّل كسولًا
+ * (مع radix-runtime مشطوبة عن التحميل المسبق) وتُسبق جلبًا عند الخمول فتفتح
+ * فورًا دون اتصال، ويبقى أول رسم خفيفًا بلا تكلفة vaul مقدمًا. */
+const QuickActionSheet = lazy(async () => {
+  const module = await import("@/components/layout/QuickActionSheet");
+  return { default: module.QuickActionSheet };
+});
 import { PwaInstallControl } from "@/pwa/PwaInstallControl";
 import { PwaRuntimeNotice } from "@/pwa/PwaRuntimeNotice";
 
@@ -38,6 +45,15 @@ function ShellContent({ location, children }: { location: string; children: Reac
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const requestNavigation = useUnsavedChangesNavigation();
+  /* S5-10: جلب الورقة عند الخمول — بعد أول تركيز يصبح فتحها فوريًا دون اتصال
+   * (precache يغطيها أصلًا بعد الزيارة الأولى؛ هذا يقفل المسار قبل أول فتح). */
+  useEffect(() => {
+    const prefetch = () => {
+      void import("@/components/layout/QuickActionSheet");
+    };
+    if (typeof requestIdleCallback === "function") requestIdleCallback(prefetch);
+    else setTimeout(prefetch, 1500);
+  }, []);
   const routeKind = getMicroRouteKind(location);
   const isSetup = routeKind === "setup";
   const showGlobalChrome = showsGlobalChrome(location);
@@ -96,11 +112,11 @@ function ShellContent({ location, children }: { location: string; children: Reac
             onNavigate={requestNavigation}
             onOpenActions={() => setIsActionSheetOpen(true)}
           />
-          <QuickActionSheet
+          <Suspense fallback={null}><QuickActionSheet
             open={isActionSheetOpen}
             onOpenChange={setIsActionSheetOpen}
             onAction={handleQuickAction}
-          />
+          /></Suspense>
         </>
       ) : null}
     </div>

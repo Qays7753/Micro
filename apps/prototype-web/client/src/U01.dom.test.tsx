@@ -139,21 +139,24 @@ describe("U-01 DOM guards", () => {
     expect(screen.getByRole("button", { name: "ابقَ في الصفحة" })).toBeTruthy();
   });
 
-  it("rejects Arabic digits visibly and accepts ASCII quantity without losing the committed value", async () => {
+  it("المجموعة ٦ (البند ٥): الرقم الهند يُطبع عند حد الإدخال إلى إنجليزي بالمعنى نفسه، والكمية تُقبل", async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(<QuantityFixture />);
     const input = screen.getByRole("textbox", { name: "الكمية" });
 
+    /* ١ (U+0661) تُحوَّل إلى 1 عند الحد — الإدخال النهائي إنجليزي حصرًا
+     * والقيمة الرقمية لا تتغير. (كان القرار السابق رفضًا مرئيًا؛ أمر
+     * المجموعة ٦ يفرض التطبيع الآمن عند الحدود.) */
     await user.type(input, "١");
-    expect(input).toHaveProperty("value", "١");
-    expect(screen.getByTestId("quantity-validity").textContent).toBe("false");
-    expect(screen.getByTestId("quantity-value").textContent).toBe("0");
-
-    await user.clear(input);
-    await user.type(input, "1");
     expect(input).toHaveProperty("value", "1");
     expect(screen.getByTestId("quantity-validity").textContent).toBe("true");
     expect(screen.getByTestId("quantity-value").textContent).toBe("1000");
+
+    await user.clear(input);
+    await user.type(input, "2");
+    expect(input).toHaveProperty("value", "2");
+    expect(screen.getByTestId("quantity-validity").textContent).toBe("true");
+    expect(screen.getByTestId("quantity-value").textContent).toBe("2000");
   });
 
   it("renders the incomplete-cost knowledge state without calling it profit", async () => {

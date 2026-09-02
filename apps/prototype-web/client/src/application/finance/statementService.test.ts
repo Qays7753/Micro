@@ -2,11 +2,21 @@
  * وحدود الفترة، ووصل المصادر، وأثر التصحيحات مرة واحدة لا مرتين. */
 import { describe, expect, it } from "vitest";
 import { StatementService } from "./statementService";
+import { OwnerEntitlementService } from "./ownerEntitlementService";
+import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import {
+  calculateCostSnapshot,
+  collectDeposit,
+  collectRemaining,
+  createCraftOrder,
+  reverseOrderCollection,
+  transitionOrder,
+} from "@micro-domain/craft-order/index.js";
 
 const now = () => "2026-09-02T10:00:00.000Z";
 
@@ -324,5 +334,211 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
       const supplierOut = reading.value.blocks.cashOut.find(line => line.id === "supplier-payments");
       expect(supplierOut).toBeUndefined();
     }
+  });
+});
+
+describe("StatementService — تراجعات القبض ورد العربون (G6-F1-3)", () => {
+  it("تراجع قبضة داخل الفترة يُخصم من «قبض الطلبات» فيصافي الكشف يطابق الكاش المسجل", async () => {
+    const store = new MemoryLocalStore();
+    const clock = () => "2026-09-02T10:00:00.000Z";
+    const finance = new ProjectFinancialService(store, clock);
+    const statement = new StatementService(store, finance);
+    /* طلب مسلّم: عربون 2000 بتاريخ 2026-09-01 ثم قبضة 3000 بتاريخ 2026-09-02
+     * ثم تراجع موثق عن القبضة كاملة بتاريخ 2026-09-03. */
+    const cost = calculateCostSnapshot("st-1-cost", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-20T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    let order = createCraftOrder({
+      id: "order-st-1",
+      customerName: "سعيد",
+      itemName: "شغلة مطرزة",
+      specifications: "اختبار",
+      quantity: 1,
+      agreedPriceMinor: 10000,
+      costSnapshot: cost,
+      createdAt: "2026-08-20T09:00:00.000Z",
+    });
+    order = collectDeposit(order, 2000, "st-dep", "2026-09-01T09:00:00.000Z");
+    for (const [to, stamp] of [
+      ["provisional_agreement", "2026-09-01T10:00:00.000Z"],
+      ["confirmed", "2026-09-01T11:00:00.000Z"],
+      ["in_progress", "2026-09-01T12:00:00.000Z"],
+      ["ready", "2026-09-01T13:00:00.000Z"],
+      ["delivered", "2026-09-01T14:00:00.000Z"],
+    ] as const)
+      order = transitionOrder(order, { to, idempotencyKey: `st-${to}`, createdAt: stamp });
+    order = collectRemaining(order, 3000, "st-collect", "2026-09-02T09:00:00.000Z");
+    order = reverseOrderCollection(order, {
+      collectionEventId: "order-st-1:st-collect",
+      amountMinor: 3000,
+      reason: "رجّعت المبلغ",
+      idempotencyKey: "st-reverse",
+      createdAt: "2026-09-03T09:00:00.000Z",
+    });
+    await store.saveOrder({
+      id: "order-st-1",
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-09-01",
+      agreementSource: "walk_in",
+      createdAt: "2026-08-20T09:00:00.000Z",
+      updatedAt: "2026-09-03T09:00:00.000Z",
+    });
+    const reading = await statement.read("2026-09-01", "2026-09-07");
+    expect(reading.ok).toBe(true);
+    if (!reading.ok) return;
+    const orderLine = reading.value.blocks.cashIn.find(line => line.id === "order-collections");
+    /* العربون 2000 دخل، والقبضة 3000 دخلت ثم خرجت بالتراجع — الصافي 2000. */
+    expect(orderLine?.amountMinor).toBe(2000);
+    expect(
+      orderLine?.sources.some(source => source.amountMinor === -3000 && source.label.includes("تراجع عن قبضة")),
+    ).toBe(true);
+    /* صافي الكاش: 2000 فقط — بلا خصم التراجع كان سيتضخم إلى 5000 (G6-F1-3). */
+    expect(reading.value.cashNetMinor).toBe(2000);
+  });
+
+  it("تراجع قبضة بفترة لاحقة يخصم من فترة التراجع لا من فترة القبضة", async () => {
+    const store = new MemoryLocalStore();
+    const clock = () => "2026-09-02T10:00:00.000Z";
+    const finance = new ProjectFinancialService(store, clock);
+    const statement = new StatementService(store, finance);
+    const cost = calculateCostSnapshot("st-2-cost", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-01T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    let order = createCraftOrder({
+      id: "order-st-2",
+      customerName: "سعيد",
+      itemName: "شغلة مطرزة",
+      specifications: "اختبار",
+      quantity: 1,
+      agreedPriceMinor: 10000,
+      costSnapshot: cost,
+      createdAt: "2026-08-01T09:00:00.000Z",
+    });
+    order = collectDeposit(order, 2000, "st2-dep", "2026-09-01T09:00:00.000Z");
+    for (const [to, stamp] of [
+      ["provisional_agreement", "2026-09-01T10:00:00.000Z"],
+      ["confirmed", "2026-09-01T11:00:00.000Z"],
+      ["in_progress", "2026-09-01T12:00:00.000Z"],
+      ["ready", "2026-09-01T13:00:00.000Z"],
+      ["delivered", "2026-09-01T14:00:00.000Z"],
+    ] as const)
+      order = transitionOrder(order, { to, idempotencyKey: `st2-${to}`, createdAt: stamp });
+    order = collectRemaining(order, 3000, "st2-collect", "2026-09-02T09:00:00.000Z");
+    await store.saveOrder({
+      id: "order-st-2",
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-09-01",
+      agreementSource: "walk_in",
+      createdAt: "2026-08-01T09:00:00.000Z",
+      updatedAt: "2026-09-02T09:00:00.000Z",
+    });
+    /* الفترة الأولى (قبل التراجع): القبض كامل. */
+    const first = await statement.read("2026-09-01", "2026-09-07");
+    expect(first.ok).toBe(true);
+    if (first.ok) {
+      expect(first.value.blocks.cashIn.find(line => line.id === "order-collections")?.amountMinor).toBe(5000);
+    }
+    /* تراجع في 2026-09-10: يظهر في فترة التراجع (خارج الفترة الأولى). */
+    const stored = (await store.getOrder("order-st-2")).value!;
+    const reversed = reverseOrderCollection(stored.order, {
+      collectionEventId: "order-st-2:st2-collect",
+      amountMinor: 3000,
+      reason: "رجّعت لاحقًا",
+      idempotencyKey: "st2-reverse",
+      createdAt: "2026-09-10T09:00:00.000Z",
+    });
+    await store.saveOrder({ ...stored, order: reversed, updatedAt: "2026-09-10T09:00:00.000Z" });
+    const secondPeriod = await statement.read("2026-09-08", "2026-09-14");
+    expect(secondPeriod.ok).toBe(true);
+    if (secondPeriod.ok) {
+      expect(secondPeriod.value.blocks.cashIn.find(line => line.id === "order-collections")?.amountMinor).toBe(
+        -3000,
+      );
+      expect(secondPeriod.value.cashNetMinor).toBe(-3000);
+    }
+    /* فترة القبضة الأصلية لم تُعد كتابتها (تاريخ مسجل لا يتغير). */
+    const reread = await statement.read("2026-09-01", "2026-09-07");
+    expect(reread.ok).toBe(true);
+    if (reread.ok) {
+      expect(reread.value.blocks.cashIn.find(line => line.id === "order-collections")?.amountMinor).toBe(5000);
+    }
+  });
+});
+
+
+
+describe("StatementService — G6-U2-2: ledger owner movements in the owner block", () => {
+  it("سحب مالك بمسار المحفظة يدخل كتلة المالك بسطر مصدره دفتر المحفظة", async () => {
+    const store = new MemoryLocalStore();
+    const clock = () => "2026-09-02T10:00:00.000Z";
+    const finance = new ProjectFinancialService(store, clock);
+    const statement = new StatementService(store, finance);
+    /* محفظة + حركة سحب مالك بمسار الدفتر (right: kind draw, cash from wallet). */
+    const wallet = createCashWallet({
+      id: "g6-ow-wallet",
+      name: "درج",
+      kind: "cash_drawer",
+      createdAt: "2026-09-01T09:00:00.000Z",
+      createdOperationKey: "g6-ow-open",
+    });
+    const opening = createCashContinuityEntry({
+      id: "g6-ow-opening",
+      walletId: wallet.id,
+      type: "opening_balance",
+      occurredOn: "2026-09-01",
+      recordedAt: "2026-09-01T09:00:00.000Z",
+      cashDeltaMinor: 10000,
+      note: "رصيد بداية",
+      operationKey: "g6-ow-open",
+    });
+    const committed = await store.commitCashContinuity(wallet, [opening]);
+    expect(committed.ok).toBe(true);
+    const ownerEntitlement = new OwnerEntitlementService(
+      store,
+      async () => ({ ok: true as const, value: { resultMinor: 0, status: "recorded_only" as const } }),
+      clock,
+    );
+    const draw = await ownerEntitlement.recordMovement({
+      kind: "draw",
+      amountMinor: 2500,
+      walletId: "g6-ow-wallet",
+      occurredOn: "2026-09-02",
+      note: "سحبت لنفسي من الدرج",
+      reason: "pre_entitlement_draw",
+      idempotencyKey: "g6-ow-draw",
+    });
+    expect(draw.ok).toBe(true);
+
+    const reading = await statement.read("2026-09-01", "2026-09-07");
+    expect(reading.ok).toBe(true);
+    if (!reading.ok) return;
+    /* الكتلة تشمل سحب مسار المحفظة — لم يعد مخفيًا عن ملخص المالك. */
+    expect(reading.value.blocks.owner.withdrawnMinor).toBe(2500);
+    expect(reading.value.blocks.owner.investedMinor).toBe(0);
+    expect(
+      reading.value.blocks.owner.sources.some(
+        source => source.label.includes("سحب مالك") && source.amountMinor === 2500,
+      ),
+    ).toBe(true);
   });
 });

@@ -1935,3 +1935,50 @@ describe("owner profile export and migration (group 1 owner profile foundation)"
     };
     expect(transfers.prepareImport(JSON.stringify(fakePair))).toMatchObject({ ok: false });
   });
+
+describe("Group 6 — allocation source line survives export/import round trip", () => {
+  it("sourceRefLineId يمر التصدير والتحقق والاستيراد كما هو — بلا فقد ولا تحريف", async () => {
+    const source = new MemoryLocalStore();
+    await source.saveProfile(profile);
+    const wallet = createCashWallet({
+      id: "g6-wallet",
+      name: "درج",
+      kind: "cash_drawer",
+      createdAt: "2026-09-01T09:00:00.000Z",
+      createdOperationKey: "g6-wallet-open",
+    });
+    const allocation = createCashContinuityEntry({
+      id: "g6-alloc",
+      walletId: wallet.id,
+      type: "allocation",
+      occurredOn: "2026-09-02",
+      recordedAt: "2026-09-02T10:00:00.000Z",
+      cashDeltaMinor: 3000,
+      note: "تخصيص قبضة",
+      operationKey: "g6-sheet:attribute",
+      sourceRefId: "g6-order",
+      sourceRefKind: "order",
+      sourceRefLineId: "g6-order:g6-sheet",
+    });
+    const committed = await source.commitCashContinuity(wallet, [allocation]);
+    expect(committed.ok).toBe(true);
+    const transfers = new LocalTransferService(source);
+    const exported = await transfers.createVerifiedExport();
+    expect(exported.ok).toBe(true);
+    if (!exported.ok) return;
+    const target = new MemoryLocalStore();
+    const serialized = JSON.stringify(exported.value.file);
+    const preview = new LocalTransferService(target).prepareImport(serialized);
+    expect(preview.ok).toBe(true);
+    if (!preview.ok) return;
+    const imported = await new LocalTransferService(target).confirmImport(preview.value);
+    expect(imported.ok).toBe(true);
+    if (!imported.ok) return;
+    const entries = await target.listCashContinuityEntries();
+    expect(entries.ok).toBe(true);
+    const restored = entries.value.find(entry => entry.id === "g6-alloc");
+    expect(restored?.sourceRefLineId).toBe("g6-order:g6-sheet");
+    expect(restored?.sourceRefId).toBe("g6-order");
+    expect(restored?.sourceRefKind).toBe("order");
+  });
+});

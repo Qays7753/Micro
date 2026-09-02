@@ -2,11 +2,16 @@
 import { ArrowRight, CircleDollarSign, HandCoins, RotateCcw, Save, WalletCards } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useReturnPath } from "@/app/useReturnNavigation";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
+import type {
+  OwnerEntitlementOverview,
+  OwnerMoneyOverview,
+} from "@/application/finance/ownerEntitlementService";
 import {
   ownerEntitlementPolicyFamilyForKind,
   type OwnerEntitlementPolicy,
@@ -81,8 +86,13 @@ const idempotency = (prefix: string) => `${prefix}:${globalThis.crypto?.randomUU
 
 export default function OwnerEntitlement() {
   const [, navigate] = useLocation();
+  /* G6-U2-4 (المجموعة ٦ — عقد ٢٦): الرجوع للمصدر (?from) مع بديل قانوني،
+   * لا مسار ثابت يتجاهل من أين فُتح الدفتر. */
+  const returnPath = useReturnPath();
   const { ownerEntitlement, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [overview, setOverview] = useState<OwnerEntitlementOverview | null>(null);
+  /* المجموعة ٦ (البند ٢): القراءة الموحدة لمال المالك فوق المصدرين. */
+  const [ownerMoney, setOwnerMoney] = useState<OwnerMoneyOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
@@ -162,6 +172,16 @@ export default function OwnerEntitlement() {
       setSelectedPolicyId(current => current || result.value.activePolicies[0]?.id || "");
       setSuccessorPolicyId(current => current || result.value.activePolicies[0]?.id || "");
       setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [ownerEntitlement, dataVersion]);
+  /* المجموعة ٦ (البند ٢): الدفتر الموحد يُقرأ مع كل تحديث بيانات. */
+  useEffect(() => {
+    let active = true;
+    ownerEntitlement.readOwnerMoneyOverview().then(result => {
+      if (active && result.ok) setOwnerMoney(result.value);
     });
     return () => {
       active = false;
@@ -582,12 +602,12 @@ export default function OwnerEntitlement() {
 
   return (
     <section className="micro-page micro-finance-page micro-owner-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate("/finance")}>
-        <ArrowRight aria-hidden="true" /> الوضع المالي
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">دفتر المالك · المبالغ (د.أ)</span>
-        <h1>ما حقي المسجل؟</h1>
+        <span className="micro-overline">دفتر واحد · المبالغ (د.أ)</span>
+        <h1>مال المالك</h1>
       </div>
       {notice ? (
         <p className={notice.tone === "success" ? "micro-save-note" : "micro-field-error"} role="status">
@@ -598,7 +618,7 @@ export default function OwnerEntitlement() {
         <div className="micro-owner-balance-head">
           <CircleDollarSign aria-hidden="true" />
           <div>
-            <span className="micro-overline">الرصيد بعد الحركات المسجلة</span>
+            <span className="micro-overline">الدفتر الموحد لمالك واحد</span>
             <h2>
               {overview.balanceState === "positive"
                 ? "المشروع ما زال مدينًا لك"
@@ -613,12 +633,95 @@ export default function OwnerEntitlement() {
           <small>د.أ</small>
         </strong>
         <div className="micro-owner-stat-grid">
-          <Metric label="الحق المعتمد" value={overview.approvedEntitlementMinor} />
+          <Metric label="رأس مالك في المشروع" value={ownerMoney?.ownerCapitalRecordedMinor ?? 0} />
+          <Metric label="حق مسجل متبقٍ" value={overview.remainingEntitlementBalanceMinor} />
           <Metric label="الافتتاح المتبقي" value={overview.openingBalanceRemainingMinor} />
-          <Metric label="سحب لتسوية حق" value={overview.drawnForEntitlementMinor} />
           <Metric label="إرجاع سحب سابق" value={overview.returnedForPriorDrawMinor} />
         </div>
       </section>
+      <div className="micro-form-actions micro-contextual-actions">
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() =>
+            navigate(
+              withFrom("/finance/new/owner_investment_cash", "/finance/owner-entitlement"),
+            )
+          }
+        >
+          <HandCoins aria-hidden="true" /> أدخل مالًا للمشروع
+        </button>
+        <button
+          className="micro-button micro-button-secondary"
+          type="button"
+          onClick={() => navigate(withFrom("/finance/withdraw", "/finance/owner-entitlement"))}
+        >
+          <ArrowRight aria-hidden="true" /> اسحب لنفسك
+        </button>
+      </div>
+      <details className="micro-owner-layer">
+        <summary className="micro-owner-layer-summary">
+          <span>
+            <b>حركات مالك</b>
+            <small>الأصل والتصحيح معًا — الصافي هو الظاهر</small>
+          </span>
+          <strong>افتح السجل</strong>
+        </summary>
+        <section className="micro-owner-ledger">
+          {ownerMoney && ownerMoney.rows.length > 0 ? (
+            <div className="micro-owner-list">
+              {ownerMoney.rows.map(row => (
+                <article key={row.id} className="micro-owner-list-row">
+                  <div>
+                    <strong>{row.source === "event" ? "حدث عام" : "دفتر المالك"}</strong>
+                    <small>
+                      <bdi dir="ltr">{formatLocalDate(row.occurredOn)}</bdi> · {row.effectLabel}
+                      {row.cashPoolLabel ? ` · ${row.cashPoolLabel}` : ""}
+                    </small>
+                    <small>{row.note}</small>
+                    {row.reversalLabel ? <small>{row.reversalLabel}</small> : null}
+                  </div>
+                  <b>
+                    <bdi dir="ltr">{formatMoneyMinor(row.amountMinor)}</bdi> د.أ
+                  </b>
+                  {row.deepLink ? (
+                    <button
+                      className="micro-button micro-button-quiet"
+                      type="button"
+                      onClick={() => navigate(withFrom(row.deepLink!, "/finance/owner-entitlement"))}
+                    >
+                      افتح الأصل
+                    </button>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="micro-empty-state">ما في حركة مالك بعد — دخل مال أو اسحب ليبدأ السجل.</p>
+          )}
+        </section>
+      </details>
+      <details className="micro-owner-layer">
+        <summary className="micro-owner-layer-summary">
+          <span>
+            <b>حدود مال المالك</b>
+            <small>رأس المال والسحب والحق بمعزل عن الربح</small>
+          </span>
+          <strong>اقرأ الحد</strong>
+        </summary>
+        <p className="micro-local-truth">
+          رأس المال والسحب والحق ما بدخلوا نتيجة الفترة ولا الربح. الأمانات مال غيرك، والكاش يظهر بمحافظه.
+        </p>
+      </details>
+      <details className="micro-owner-layer">
+        <summary className="micro-owner-layer-summary">
+          <span>
+            <b>حق المالك وسياسته</b>
+            <small>طبقة لا تغير الربح أو الكاش</small>
+          </span>
+          <strong>افتح الدفتر</strong>
+        </summary>
+        <div className="micro-owner-layer-body">
       <section className="micro-owner-ledger">
         <div className="micro-section-heading">
           <div>
@@ -637,7 +740,7 @@ export default function OwnerEntitlement() {
                   <strong>{policyLabels[policy.kind]}</strong>
                   <small>
                     {policyFamilyLabels[policy.family]} · إصدار <bdi dir="ltr">{policy.version}</bdi> · تبدأ{" "}
-                    <bdi dir="ltr">{formatLocalDate(policy.startsOn)}</bdi>
+                    <bdi dir="ltr"><bdi dir="ltr">{formatLocalDate(policy.startsOn)}</bdi></bdi>
                     {policy.endsOn ? ` · تنتهي ${formatLocalDate(policy.endsOn)}` : " · بلا تاريخ إيقاف"}
                   </small>
                   <small>
@@ -887,7 +990,7 @@ export default function OwnerEntitlement() {
             <input
               value={successorSource}
               onChange={event => setSuccessorSource(event.target.value)}
-              placeholder="مثال: تعديل الاتفاق من بداية أيلول"
+              placeholder="مثال: تعديل الاتفاق من بداية 09/2026"
             />
           </label>
           <label className="micro-field">
@@ -993,7 +1096,7 @@ export default function OwnerEntitlement() {
             <textarea
               value={entitlementNote}
               onChange={event => setEntitlementNote(event.target.value)}
-              placeholder="مثال: حق شهر آب حسب السياسة 1"
+              placeholder="مثال: حق شهر 08/2026 حسب السياسة 1"
             />
           </label>
           <button
@@ -1143,7 +1246,7 @@ export default function OwnerEntitlement() {
                 <option value="">اختر حقًا مسجلًا</option>
                 {activeEntitlements.map(record => (
                   <option key={record.id} value={record.id}>
-                    {formatLocalDate(record.occurredOn)} · {formatMoneyMinor(record.amountMinor)} د.أ ·{" "}
+                    <bdi dir="ltr">{formatLocalDate(record.occurredOn)}</bdi> · {formatMoneyMinor(record.amountMinor)} د.أ ·{" "}
                     {record.note}
                   </option>
                 ))}
@@ -1164,7 +1267,7 @@ export default function OwnerEntitlement() {
                   )
                   .map(balance => (
                     <option key={balance.id} value={balance.id}>
-                      {formatLocalDate(balance.occurredOn)} · {formatMoneyMinor(balance.amountMinor)} د.أ ·{" "}
+                      <bdi dir="ltr">{formatLocalDate(balance.occurredOn)}</bdi> · {formatMoneyMinor(balance.amountMinor)} د.أ ·{" "}
                       {balance.note}
                     </option>
                   ))}
@@ -1178,7 +1281,7 @@ export default function OwnerEntitlement() {
                 <option value="">اختر سحبًا سابقًا</option>
                 {priorDraws.map(movement => (
                   <option key={movement.id} value={movement.id}>
-                    {formatLocalDate(movement.occurredOn)} · {formatMoneyMinor(movement.amountMinor)} د.أ ·{" "}
+                    <bdi dir="ltr">{formatLocalDate(movement.occurredOn)}</bdi> · {formatMoneyMinor(movement.amountMinor)} د.أ ·{" "}
                     {movement.note}
                   </option>
                 ))}
@@ -1246,11 +1349,11 @@ export default function OwnerEntitlement() {
                 <article className="micro-owner-list-row" key={record.id}>
                   <div>
                     <strong>
-                      حق · {formatLocalDate(record.occurredOn)}
+                      حق · <bdi dir="ltr">{formatLocalDate(record.occurredOn)}</bdi>
                       {record.reversalOfId ? " · تراجع كامل" : ""}
                     </strong>
                     <small>
-                      {formatLocalDate(record.periodFrom)} → {formatLocalDate(record.periodTo)} ·{" "}
+                      <bdi dir="ltr">{formatLocalDate(record.periodFrom)} → {formatLocalDate(record.periodTo)}</bdi> ·{" "}
                       {record.knowledge === "known" ? "معروف" : "جزئي"} · {record.note}
                     </small>
                     <small>
@@ -1293,7 +1396,7 @@ export default function OwnerEntitlement() {
                 <article className="micro-owner-list-row" key={balance.id}>
                   <div>
                     <strong>
-                      رصيد افتتاحي · {formatLocalDate(balance.occurredOn)}
+                      رصيد افتتاحي · <bdi dir="ltr">{formatLocalDate(balance.occurredOn)}</bdi>
                       {balance.reversalOfId ? " · تراجع كامل" : ""}
                     </strong>
                     <small>
@@ -1407,6 +1510,8 @@ export default function OwnerEntitlement() {
             </div>
           )}
         </section>
+      </details>
+        </div>
       </details>
     </section>
   );

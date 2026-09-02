@@ -1552,6 +1552,19 @@ textarea:disabled,
   min-height: 132px;
   padding: var(--space-3);
 }
+/* المجموعة ٦ (البند ٢): بطاقة المالك داخل شبكة الوضع تفتح الدفتر الموحد —
+ * نفس شكل البطاقة بلا حواشي جديدة، مع مؤشر لمس وتركيز 44px. */
+button.micro-finance-position-link {
+  cursor: pointer;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+}
+button.micro-finance-position-link:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: -2px;
+}
 .micro-finance-position-card:nth-child(odd) {
   border-inline-end: 1px solid var(--color-border);
 }
@@ -3871,6 +3884,30 @@ button.micro-month-cell:hover {
   .micro-period-range-fields input {
     width: 100%;
   }
+}
+
+/* المجموعة ٦ (البند ٣ — S2-09): سطر «أثر التصحيحات» — نص هادئ بلا لون إنذار:
+ * التصحيح الموثق دفتر سليم. الترميز 13px بتباعد مريح، والعد بالأساس المشدد. */
+.micro-restatement-note {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.micro-restatement-note strong {
+  color: var(--color-text-primary);
+}
+.micro-restatement-note .micro-text-action {
+  min-height: 44px;
+}
+
+/* المجموعة ٦ (البند ٢ — S2-07): جسم طبقة «حق المالك وسياسته» داخل الدفتر
+ * الموحد — نفس إيقاع الطبقات المالية؛ حدود وفجوة وقطع عند الحاجة. */
+.micro-owner-layer-body {
+  display: grid;
+  gap: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-4) 0 0;
 }
 
 /* O1 owner entitlement: a compact decision surface, not a payroll or legal ledger. */

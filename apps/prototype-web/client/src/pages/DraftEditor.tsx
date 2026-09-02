@@ -185,7 +185,7 @@ export default function DraftEditor() {
     return () => {
       estimateActive = false;
     };
-  }, [costEstimates, estimateId, isNewDraft]);
+  }, [costEstimates, estimateId, isNewDraft, dataVersion]);
   /* و٥ (§٥-١): أول إدخال حقيقي يُنشئ المسودة — مرة واحدة، وبأحدث قيم مرئية.
    * لا تنقّل ولا تُفقد التركيز؛ المسار يبقى «new» حتى يغادر المستخدم المحرر. */
   function ensureMaterialized(): Promise<OrderDraft | null> {

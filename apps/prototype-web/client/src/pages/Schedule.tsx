@@ -106,7 +106,9 @@ export default function Schedule() {
 
   useEffect(() => {
     let active = true;
-    setState({ phase: "loading" });
+    /* S5-08 (المجموعة ٦ — البند ٦): بلا وميض تحميل عند تحديث البيانات —
+     * القراءة السابقة تبقى معروضة حتى تصل الجديدة. */
+    setState(current => (current.phase === "ready" ? current : { phase: "loading" }));
     Promise.all([schedules.overview(), schedules.monthOverview(selectedMonth), recurrences.list()])
       .then(([overviewResult, monthResult, recurrenceResult]) => {
         if (!active) return;
@@ -532,7 +534,7 @@ function RecurrencePanel({
             >
               {sources.map(item => (
                 <option key={item.schedule.id} value={item.schedule.id}>
-                  {item.order.order.itemName} · {formatLocalDate(item.schedule.scheduledFor) ?? "غير متاح"}
+                  {item.order.order.itemName} · <bdi dir="ltr">{formatLocalDate(item.schedule.scheduledFor) ?? "غير متاح"}</bdi>
                 </option>
               ))}
             </select>

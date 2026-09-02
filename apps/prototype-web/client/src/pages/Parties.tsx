@@ -183,7 +183,7 @@ export default function Parties() {
                   <li key={movement.id}>
                     <button type="button" onClick={() => navigate(withFrom(movement.href, "/parties"))}>
                       <span>
-                        <small>{formatLocalDate(movement.occurredOn)}</small>
+                        <small><bdi dir="ltr">{formatLocalDate(movement.occurredOn)}</bdi></small>
                         <b>
                           {movementLabel[movement.kind] ?? movement.kind} · {movement.label}
                         </b>

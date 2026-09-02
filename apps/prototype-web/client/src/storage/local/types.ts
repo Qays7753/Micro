@@ -277,6 +277,16 @@ export interface PrototypeLocalStore {
   listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>>;
   getOrder(id: string): Promise<StorageResult<StoredCraftOrder | null>>;
   saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>>;
+  /** المجموعة ٦ (البند ١ — S2-04أ): تراجع القبضة مع تخصيصها المطابق في معاملة
+   * واحدة ذرّية — الطلب وأثر الكاش يُكتبان معًا أو لا يُكتب شيء، مع فحص هوية داخل
+   * المعاملة يمنع التكرار المزدوج ويكشف الحالة النصفية بصدق لا بإكمال صامت. */
+  commitOrderCollectionReversal(
+    order: StoredCraftOrder,
+    allocationReversal: CashContinuityEntry | null,
+    reversalEventKey: string,
+  ): Promise<
+    StorageResult<{ order: StoredCraftOrder; cashEntry: CashContinuityEntry | null; reused: boolean }>
+  >;
   listDirectSales(): Promise<StorageResult<readonly DirectSale[]>>;
   saveDirectSale(sale: DirectSale): Promise<StorageResult<DirectSale>>;
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;

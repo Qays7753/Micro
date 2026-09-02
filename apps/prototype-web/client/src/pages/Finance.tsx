@@ -31,6 +31,8 @@ import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentat
 import G5DecisionPanel from "@/components/finance/G5DecisionPanel";
 import { EventsLayer } from "@/components/finance/EventsLayer";
 import { CorrectionsLayer } from "@/components/finance/CorrectionsLayer";
+import { RestatementNote } from "@/components/finance/RestatementNote";
+import type { CorrectionDigest } from "@/application/finance/correctionHistoryService";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {
@@ -59,6 +61,10 @@ type FinanceState =
       pulse: LocalFinancialPulse;
       excludedOrders: readonly StoredCraftOrder[];
       deposits: DepositOverview;
+      /* المجموعة ٦ (البند ٣ — S2-09): خلاصة أثر التصحيحات — كل التاريخ للوضع،
+       * وبنطاق الفترة لقراءة الفترة. */
+      correctionsAllTime: CorrectionDigest | null;
+      correctionsInPeriod: CorrectionDigest | null;
     };
 const currentMonth = () => localDateInAmman().slice(0, 7);
 const validMonth = (month: string) =>
@@ -139,8 +145,10 @@ export default function Finance() {
       ownerEntitlement.readOverview(),
       financialPulse.read(),
       fulfillment.listDepositOverview(),
+      correctionHistory.affecting(),
+      correctionHistory.affecting(from.from, to.to),
     ]).then(
-      ([position, events, result, insights, decision, declarations, owner, pulseResult, depositsResult]) => {
+      ([position, events, result, insights, decision, declarations, owner, pulseResult, depositsResult, correctionsAll, correctionsPeriod]) => {
         if (!active) return;
         if (
           !position.ok ||
@@ -171,13 +179,15 @@ export default function Finance() {
           pulse: pulseResult.pulse,
           excludedOrders: completed.filter(stored => stored.order.resultStatus !== "final"),
           deposits: depositsResult.value,
+          correctionsAllTime: correctionsAll.ok ? correctionsAll.value : null,
+          correctionsInPeriod: correctionsPeriod.ok ? correctionsPeriod.value : null,
         });
       },
     );
     return () => {
       active = false;
     };
-  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse, fulfillment]);
+  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse, fulfillment, correctionHistory]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -252,7 +262,11 @@ export default function Finance() {
           navigate(appendQueryParams("/cash/distribute", { mode: "cover", from: "/finance" }))
         }
       />
-      <OwnerDecisionCard overview={owner} onOpen={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))} />
+      <OwnerDecisionCard
+        overview={owner}
+        capitalRecordedMinor={position.ownerCapitalRecordedMinor}
+        onOpen={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
+      />
       <section
         className="micro-finance-position"
         aria-label="تفاصيل الوضع المالي المسجل · المبالغ بالدينار الأردني"
@@ -275,13 +289,28 @@ export default function Finance() {
           helper="مصروفات أو مشتريات مستحقة"
           icon={Landmark}
         />
-        <PositionCard
-          label="مال المالك المسجل"
-          value={position.ownerCapitalRecordedMinor}
-          helper="استثمار ناقص سحب شخصي"
-          icon={CircleDollarSign}
-        />
+        <button
+          type="button"
+          className="micro-finance-position-card micro-finance-position-link"
+          aria-label="افتح مال المالك"
+          onClick={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
+        >
+          <CircleDollarSign aria-hidden="true" />
+          <span>مال المالك</span>
+          <strong>
+            <MoneyValue minor={position.ownerCapitalRecordedMinor} />
+          </strong>
+          <small>رأس مالك · افتح الدفتر الموحد</small>
+        </button>
       </section>
+      {state.correctionsAllTime && state.correctionsAllTime.count > 0 ? (
+        <RestatementNote
+          count={state.correctionsAllTime.count}
+          netAmountMinor={state.correctionsAllTime.netAmountMinor}
+          scopeLabel="هذه الأرصدة"
+          onOpen={() => navigate(withFrom("/finance?layer=corrections", "/finance"))}
+        />
+      ) : null}
       <section className="micro-finance-truth">
         <ReceiptText aria-hidden="true" />
         <div>
@@ -423,6 +452,14 @@ export default function Finance() {
           <p className="micro-period-status" data-status={period.status}>
             {recordedPeriodStatusLabel(period.status)}
           </p>
+          {state.correctionsInPeriod && state.correctionsInPeriod.count > 0 ? (
+            <RestatementNote
+              count={state.correctionsInPeriod.count}
+              netAmountMinor={state.correctionsInPeriod.netAmountMinor}
+              scopeLabel="هذه الفترة"
+              onOpen={() => navigate(withFrom("/finance?layer=corrections", "/finance"))}
+            />
+          ) : null}
           {/* F-005 + بند ٢٤ من قرارات المالك: نطاق القراءة معلن صراحة — ما يدخل
               وما لا يدخل، وكيف يُعترف بكل مصدر، والكاش غير النتيجة. */}
           <div className="micro-period-review-note" aria-label="نطاق قراءة الفترة">
@@ -874,25 +911,11 @@ export default function Finance() {
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate(withFrom("/finance/new/owner_investment_cash", "/finance"))}
-          >
-            سجل استثمارًا
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
-            /* X-05 (و٣): مدخل واحد باسم واحد — يسأل «سحب من المشروع لنفسك؟» ويكتب
-             * إلى المسار الصحيح بحسب وجود سياسة حق مالك، والتفريق تقني لا يُعلَّم. */
-            onClick={() => navigate(withFrom("/finance/withdraw", "/finance"))}
-          >
-            سجل سحبًا شخصيًا
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+            /* المجموعة ٦ (البند ٢ — S2-07): مدخل مالك واحد من «مالي» — الدفتر الموحد
+             * يحمل فعل الإدخال والسحب وسياسة الحق (X-05 محفوظ داخل الدفتر). */
             onClick={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
           >
-            دفتر حق المالك
+            مال المالك
           </button>
           {position.supplierPayablesMinor > 0 ? (
             <button
@@ -1024,7 +1047,17 @@ function ReviewPulseSection({
   );
 }
 
-function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOverview; onOpen: () => void }) {
+function OwnerDecisionCard({
+  overview,
+  capitalRecordedMinor,
+  onOpen,
+}: {
+  overview: OwnerEntitlementOverview;
+  capitalRecordedMinor: number;
+  onOpen: () => void;
+}) {
+  /* المجموعة ٦ (البند ٢ — S2-07): بطاقة مالك واحدة برقمين مفصولين — رأس المال
+   * والحق المسجل المتبقي — ومدخل واحد للدفتر الموحد «مال المالك». */
   return (
     <section
       className="micro-owner-decision-card"
@@ -1033,8 +1066,8 @@ function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOve
     >
       <div className="micro-section-heading">
         <div>
-          <span className="micro-overline">حق المالك · دفتر منفصل عن الربح</span>
-          <h2 id="owner-decision-title">حق المالك وما تحرك فعليًا</h2>
+          <span className="micro-overline">مال المالك · دفتر منفصل عن الربح</span>
+          <h2 id="owner-decision-title">مال المالك</h2>
         </div>
         <span>
           <bdi dir="ltr" className="micro-inline-number">
@@ -1044,12 +1077,11 @@ function OwnerDecisionCard({ overview, onOpen }: { overview: OwnerEntitlementOve
         </span>
       </div>
       <div className="micro-owner-decision-grid">
-        <Metric label="حق مسجل" value={formatMoneyMinor(overview.approvedEntitlementMinor)} />
-        <Metric label="سحب/إرجاع فعلي" value={formatMoneyMinor(overview.cashMovementMinor)} />
-        <Metric label="سياسات فعالة" value={String(overview.activePolicies.length)} />
+        <Metric label="رأس مالك في المشروع" value={formatMoneyMinor(capitalRecordedMinor)} />
+        <Metric label="حق مسجل متبقٍ" value={formatMoneyMinor(overview.remainingEntitlementBalanceMinor)} />
       </div>
       <button className="micro-button micro-button-primary" type="button" onClick={onOpen}>
-        فتح دفتر المالك
+        افتح مال المالك
       </button>
     </section>
   );

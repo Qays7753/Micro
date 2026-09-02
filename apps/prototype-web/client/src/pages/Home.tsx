@@ -55,7 +55,20 @@ function FactCard({ fact, onNavigate }: { fact: HomeFinancialFact; onNavigate: (
       </div>
       <strong>
         {fact.state === "known" && fact.valueMinor !== null ? (
-          <MoneyValue minor={fact.valueMinor} />
+          /* المجموعة ٦ (البند ٢): الحقيقة المعروفة تفتح مصدرها الدقيق — قيمة مال
+           * المالك نقرة إلى الدفتر الموحد، بلا بطاقة ميتة. */
+          fact.source ? (
+            <button
+              className="micro-text-action"
+              type="button"
+              aria-label={`افتح ${fact.label}`}
+              onClick={() => onNavigate(fact.source!)}
+            >
+              <MoneyValue minor={fact.valueMinor} />
+            </button>
+          ) : (
+            <MoneyValue minor={fact.valueMinor} />
+          )
         ) : fact.state === "not_initialized" && fact.road ? (
           /* §2.7: الحقيقة غير المسجلة طريق — «غير مسجل — سجّله (نقرة)». */
           <button
@@ -124,7 +137,10 @@ export default function Home() {
   const [state, setState] = useState<HomeState>({ phase: "loading" });
   useEffect(() => {
     let active = true;
-    setState({ phase: "loading" });
+    /* S5-08 (المجموعة ٦ — البند ٦): تحديث خلفي لا وميض تحميل — القراءة السابقة
+     * تبقى معروضة حتى تصل الجديدة (stale-while-revalidate)؛ حالة التحميل الكاملة
+     * للإقلاع الأول فقط. */
+    setState(current => (current.phase === "ready" ? current : { phase: "loading" }));
     homeControlCenter.read().then(result => {
       if (!active) return;
       setState(
