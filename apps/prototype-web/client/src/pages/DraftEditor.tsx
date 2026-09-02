@@ -3,7 +3,7 @@
  * عند أول إدخال حقيقي (أي حقل يخرج عن الفراغ)، فلا يخلّف الاستكشاف مسودات فارغة. */
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, Save, Trash2 } from "lucide-react";
-import { useLocation, useParams } from "wouter";
+import { useLocation, useParams, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -39,14 +39,14 @@ function equalDraftValues(left: DraftFormValues | null, right: DraftFormValues |
     left.specifications === right.specifications,
   );
 }
-/** نيّة المحرر الفارغ تُقرأ من المسار عند الفتح. */
-function intentFromLocation(location: string): DraftIntent {
-  const value = new URLSearchParams(location.split("?")[1] ?? "").get("intent");
+/** نيّة المحرر الفارغ تُقرأ من البحث (useSearch) لا من المسار — wouter يعيد المسار بلا استعلام. */
+function intentFromSearch(search: string): DraftIntent {
+  const value = new URLSearchParams(search).get("intent");
   return value === "planned_design" ? "planned_design" : "customer_order";
 }
 /* U-004: جسر التقدير → المسودة — التقدير الذي بدأت منه، إن اختير من «أدواتي». */
-function estimateIdFromLocation(location: string): string | null {
-  const value = new URLSearchParams(location.split("?")[1] ?? "").get("estimate");
+function estimateIdFromSearch(search: string): string | null {
+  const value = new URLSearchParams(search).get("estimate");
   return value && value.trim() ? value : null;
 }
 const estimateKnowledgeLabel: Record<CostEstimate["knowledgeState"], string> = {
@@ -90,13 +90,15 @@ function proposalNotice(estimate: CostEstimate): string {
 export default function DraftEditor() {
   const params = useParams<{ id: string }>();
   const [location, navigate] = useLocation();
+  /* و٥-ب (مجموعة ٣): المعاملات تُقرأ من useSearch — المسار في المتصفح الحقيقي يصل بلا استعلام. */
+  const search = useSearch();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
   const { drafts, catalog, costEstimates, dataVersion, notifyDataChanged } = usePrototypeServices();
   /* و٥: "new" = محرر نية بلا سجل بعد. */
   const isNewDraft = params.id === "new";
-  const intent = intentFromLocation(location);
-  const estimateId = estimateIdFromLocation(location);
+  const intent = intentFromSearch(search);
+  const estimateId = estimateIdFromSearch(search);
   const [state, setState] = useState<EditorState>("loading");
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [message, setMessage] = useState<string | null>(null);

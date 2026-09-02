@@ -13,6 +13,10 @@ const eventLabel: Record<string, string> = {
   deposit_refunded: "رد العربون",
   deposit_retained: "تسوية العربون",
   price_approved: "تسجيل السعر",
+  /* المجموعة ٣ (Scope E — §11.3): تسميات أحداث تصحيح المجموعة ٢ التي كانت
+   * تسقط إلى «تحديث الطلب» — السجل يسمي فعله الحقيقي لا تسمية عامة. */
+  price_revised: "تعديل السعر بعد الاتفاق",
+  collection_reversed: "التراجع عن قبضة",
 };
 
 export function OrderEventLog({ events }: { events: readonly OrderEvent[] }) {

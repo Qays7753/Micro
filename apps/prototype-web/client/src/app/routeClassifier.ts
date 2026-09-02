@@ -37,6 +37,10 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/inventory\/movement\/[^/]+\/reverse$/,
   /^\/inventory\/movement\/[^/]+$/,
   /^\/schedule\/[^/]+$/,
+  /* المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير محررا تفكير عميقة كإخوتهما —
+   * حارس المدخلات غير المحفوظة وزر الرجوع للمصدر بدل شريط التنقل. */
+  /^\/tools\/calculator$/,
+  /^\/tools\/estimate\/[^/]+$/,
 ];
 
 function pathnameOnly(location: string) {

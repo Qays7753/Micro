@@ -287,7 +287,12 @@ CAPS: dict[str, int] = {
     # CorrectionPreview dimensions for receivable/cash/revenue, reason, confirm labels)
     # and documented collection-reversal panel (event picker, amount, preview labels) —
     # the two approved order-level corrections, no generic confirmations.
-    "OrderDetail": 157,
+    # OrderDetail 157 → 158 (2026-09-02, Group 3 Scope E §11.3, owner-approved
+    # execution prompt): source-estimate link in additional details ("المصدر: تقدير",
+    # open link) + real labels for the two Group-2 correction events that fell back
+    # to a generic label (price_revised / collection_reversed in OrderEventLog) —
+    # mandated labels, not prose creep.
+    "OrderDetail": 158,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -305,7 +310,14 @@ CAPS: dict[str, int] = {
     # unsaved-changes guard is now wired into this editor (the named U-005 case),
     # so the shared guard component's dialog labels join this screen's measured
     # set — the same +4 already counted for every guarded editor. No new prose.
-    "DirectSaleEditor": 50,
+    # DirectSaleEditor 50 → 66 (2026-09-02, Group 3 Scope D §10.1/§10.4, owner-approved
+    # execution prompt): factual completion screen after create (what was sold, actual
+    # price, cash/receivable effect, product reference, "افتح السجل"/"تم", local-truth
+    # line), explicit collection-wallet destination (drawer default + unallocated as an
+    # explicit option), ?product= prefill notice for inactive references, and a return
+    # label that names the real target — all mandated labels from the Product-to-Sale
+    # flow; no prose padding.
+    "DirectSaleEditor": 66,
     # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
     # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
     # mandated bridge labels; the draft form itself is unchanged.
@@ -316,7 +328,10 @@ CAPS: dict[str, int] = {
     "AgreementEditor": 55,
     # Catalog 84 → 92 (2026-09-01, repair cycle P-002): optional suggested default
     # price/cost fields + per-item defaults editor labels — Option A mandated fields.
-    "Catalog": 92,
+    # Catalog 92 → 94 (2026-09-02, Group 3 Scope C §9.3, owner-approved execution
+    # prompt): the Product-to-Sale row action "سجّل بيع هذا المنتج/هذه الخدمة" on active
+    # items — one mandated label pair, the primary action of the catalog surface.
+    "Catalog": 94,
     "InventoryMaterials": 49,
     # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
     # label + service truth line — the explicit distribution path is now a first-class
@@ -334,6 +349,21 @@ CAPS: dict[str, int] = {
     # mandated screen — two identity sections, states, edit mode, and local-truth line;
     # locked at 27 with headroom of 3 for future mandated labels only.
     "Profile": 30,
+    # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
+    # measurement day-one — the calculator moved to its own deep route
+    # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
+    # list (row opens the new detail page), and module states; mandated labels only.
+    "Tools": 34,
+    # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
+    # new mandated deep screen — full calculator (materials/time/quantity/optional
+    # extras), live result with honest unknown lines, save + edit binding, saved
+    # next-actions (open estimate / start draft), dirty guard, local-truth line.
+    "CostCalculator": 56,
+    # EstimateDetail (2026-09-02, Group 3 Scope B, owner-approved execution prompt):
+    # new mandated screen — read-only estimate summary (result, materials, time,
+    # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
+    # two-step delete, honest not-found.
+    "EstimateDetail": 36,
 }
 
 PAGES = [
@@ -358,6 +388,10 @@ PAGES = [
     "G5DeclarationEditor",
     # المجموعة ١ (Scope G): ملف المالك والمشروع — شاشة جديدة مقيسة من يومها الأول.
     "Profile",
+    # المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير وأدواتي بعد إعادة الهيكلة.
+    "CostCalculator",
+    "EstimateDetail",
+    "Tools",
     "Settings",
     "NotFound",
 ]

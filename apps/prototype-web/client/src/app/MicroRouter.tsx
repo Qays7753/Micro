@@ -45,6 +45,10 @@ const InventoryReversalEditor = lazy(() => import("@/pages/InventoryReversalEdit
 const Catalog = lazy(() => import("@/pages/Catalog"));
 /* «أدواتي» (مبدأ المالك ٥.٤): وجهة مستقلة للحاسبة والتقديرات وحالة الوحدات. */
 const Tools = lazy(() => import("@/pages/Tools"));
+/* المجموعة ٣ (Scope A): الحاسبة مسار عميق كامل — أداة تفكير بلا أثر مالي. */
+const CostCalculator = lazy(() => import("@/pages/CostCalculator"));
+/* المجموعة ٣ (Scope B): صفحة التقدير المحفوظ — قراءة وأفعال لا محرر ثانٍ. */
+const EstimateDetail = lazy(() => import("@/pages/EstimateDetail"));
 const Parties = lazy(() => import("@/pages/Parties"));
 const CashDistribution = lazy(() => import("@/pages/CashDistribution"));
 const CashCount = lazy(() => import("@/pages/CashCount"));
@@ -65,8 +69,10 @@ export function MicroRouter() {
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
             <Route path="/foundation" component={Foundation} />
             <Route path="/orders/new" component={NewDraft} />
-            {/* و٥ (§٥-١): محرر النية الفارغ — المسودة تُنشأ عند أول إدخال حقيقي لا عند النقر. */}
-            <Route path="/orders/draft/new" component={DraftEditor} />
+            {/* و٥ (§٥-١): محرر النية الفارغ — المسودة تُنشأ عند أول إدخال حقيقي لا عند النقر.
+             * (المجموعة ٣): المسار الحرفي `/orders/draft/new` حُذف — كان يطابق أولًا في
+             * Switch بلا معاملات فيصل params.id غير معرّف للمحرر؛ النمط `:id` يغطيه
+             * بـ id="new" كما تختبره U-004/G3. */}
             <Route path="/direct-sales/new" component={DirectSaleEditor} />
             <Route path="/direct-sales/:id" component={DirectSaleEditor} />
             <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
@@ -100,6 +106,9 @@ export function MicroRouter() {
             <Route path="/inventory" component={InventoryMaterials} />
             <Route path="/catalog" component={Catalog} />
             <Route path="/tools" component={Tools} />
+            {/* المجموعة ٣ (Scope A/B): حاسبة عميقة + تفصيل تقدير — يخفيان التنقل كإخوتهما المحررات. */}
+            <Route path="/tools/calculator" component={CostCalculator} />
+            <Route path="/tools/estimate/:id" component={EstimateDetail} />
             <Route path="/parties" component={Parties} />
             <Route path="/finance" component={Finance} />
             {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}

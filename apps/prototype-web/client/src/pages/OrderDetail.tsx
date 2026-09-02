@@ -1,5 +1,6 @@
 /* مبدأ Micro: يعرض الطلب حالته الفعلية وفعلًا تاليًا واحدًا، ولا يساوي الحفظ ببدء التنفيذ أو التحصيل. */
 import {
+  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   CircleDollarSign,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { AgreementResult } from "@/application/agreements/agreementService";
@@ -25,7 +27,7 @@ import { ActualMaterialPanel, type MaterialState } from "@/components/order/Actu
 import { OrderEventLog } from "@/components/order/OrderEventLog";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
-import type { StoredCraftOrder } from "@/storage/local/types";
+import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
 import { formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
@@ -49,11 +51,13 @@ export default function OrderDetail() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو الطلبات كبديل قانوني. */
   const returnPath = useReturnPath();
-  const { actualTime, agreements, agreementContext, fulfillment, inventory, dataVersion, notifyDataChanged } =
+  const { actualTime, agreements, agreementContext, fulfillment, inventory, drafts, costEstimates, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   const [stored, setStored] = useState<StoredCraftOrder | null>(null);
   const [state, setState] = useState<OrderDetailState>({ phase: "loading" });
   const [materialState, setMaterialState] = useState<MaterialState>({ phase: "loading" });
+  /* المجموعة ٣ (Scope E — §11.3): التقدير المصدر — وصلة أثر فقط؛ إن حُذف لا تُعرض. */
+  const [sourceEstimate, setSourceEstimate] = useState<CostEstimate | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isActing, setIsActing] = useState(false);
   /* القرار ١٩: الإلغاء بثلاثة أسباب بنقرة مع تخطٍ متاح، والعربون ثلاثة خيارات. */
@@ -107,6 +111,25 @@ export default function OrderDetail() {
       active = false;
     };
   }, [agreements, inventory, dataVersion, params.id]);
+
+  /* المجموعة ٣ (§11.3): «المصدر: تقدير» — المسودة المرتبطة تحمل معرّف التقدير؛
+   * العرض وصلة قراءة لا تغيّر شيئًا، والتقدير المحذوف يُغيب بصدق لا بخطأ. */
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const draftsResult = await drafts.list();
+      if (!active || !draftsResult.ok) return;
+      const draft =
+        draftsResult.value.find(candidate => candidate.linkedOrderId === params.id) ?? null;
+      if (!draft?.sourceEstimateId) return;
+      const estimateResult = await costEstimates.get(draft.sourceEstimateId);
+      if (!active || !estimateResult.ok || !estimateResult.value) return;
+      setSourceEstimate(estimateResult.value);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [drafts, costEstimates, params.id, dataVersion]);
 
   if (state.phase === "loading")
     return (
@@ -692,6 +715,29 @@ export default function OrderDetail() {
           </small>
         </summary>
         <div className="micro-additional-details-body">
+          {sourceEstimate ? (
+            <section className="micro-form-card" aria-label="المصدر: تقدير">
+              <h2 className="micro-section-title">المصدر: تقدير</h2>
+              <p className="micro-muted-copy">
+                بدأ هذا الطلب من تقديرك «{sourceEstimate.title}» — نُسخت منه اقتراحات وقتها؛ لا يربط
+                السعر الحالي بشيء الآن.
+              </p>
+              <button
+                className="micro-text-action"
+                type="button"
+                onClick={() =>
+                  navigate(
+                    withFrom(
+                      `/tools/estimate/${encodeURIComponent(sourceEstimate.id)}`,
+                      `/orders/${stored.id}`,
+                    ),
+                  )
+                }
+              >
+                افتح التقدير <ArrowLeft aria-hidden="true" />
+              </button>
+            </section>
+          ) : null}
           <AgreementContextPanel
             stored={stored}
             service={agreementContext}

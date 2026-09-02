@@ -98,10 +98,14 @@ export default function Collect() {
   const walletOptions = ready?.wallets.wallets ?? [];
   const drawer = walletOptions.find(wallet => wallet.kind === "cash_drawer") ?? null;
 
-  /* قذارة النموذج: أي مبلغ مكتوب أو وجهة أو ملاحظة — تُحمى من الخروج الصامت. */
+  /* قذارة النموذج: أي مبلغ مكتوب أو وجهة أو ملاحظة — تُحمى من الخروج الصامت.
+   * (فحص حي — مجموعة ٣): بعد النجاح (done) لا وسخ أصلًا — الطور يسقط wallets
+   * فلا يُقارن الدرج بوجهةٍ فارغة فيفتح الحوار خطأً على شاشة النتيجة. */
   const isDirty = useMemo(
-    () => amountMinor > 0 || note.trim().length > 0 || destination !== (drawer?.id ?? ""),
-    [amountMinor, note, destination, drawer],
+    () =>
+      state.phase === "ready" &&
+      (amountMinor > 0 || note.trim().length > 0 || destination !== (drawer?.id ?? "")),
+    [state.phase, amountMinor, note, destination, drawer],
   );
   useFormDirty([amountMinor, note, destination, loadedToken], loadedToken);
   const requestNavigation = useUnsavedChangesGuard({

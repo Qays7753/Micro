@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArchiveX, ArrowRight, Check, GitCompareArrows, Plus, RotateCcw, X } from "lucide-react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
@@ -801,7 +802,12 @@ export default function Catalog() {
             <EnglishNumberInput
               value={defaultPrice}
               kind="money"
-              onNumericChange={setDefaultPrice}
+              /* المجموعة ٣ (فحص حي): الكتابة تُخرج الحقل من حالة «الفراغ» — وإلا
+                 يُحفظ السعر المقترح null بصمت بينما التكلفة تُحفظ. */
+              onNumericChange={value => {
+                setDefaultPrice(value);
+                setDefaultPriceEmpty(false);
+              }}
               onTextValidityChange={setDefaultPriceValid}
               allowEmpty
               onEmptyChange={() => setDefaultPriceEmpty(true)}
@@ -914,6 +920,25 @@ export default function Catalog() {
                     </div>
                   ) : (
                     <div className="micro-form-actions">
+                      {/* المجموعة ٣ (Scope C — §9.3): Product-to-Sale من صف المرجع — يفتح
+                          محرر البيع بمرجع مُختار مسبقًا (?product=) ويحفظ الكتالوج مصدرًا؛
+                          الموقوف لا يُباع من هنا حتى يُفعّل. */}
+                      {item.active ? (
+                        <button
+                          className="micro-button micro-button-primary"
+                          type="button"
+                          onClick={() =>
+                            navigate(
+                              withFrom(
+                                `/direct-sales/new?product=${encodeURIComponent(item.id)}`,
+                                "/catalog",
+                              ),
+                            )
+                          }
+                        >
+                          {item.kind === "product" ? "سجّل بيع هذا المنتج" : "سجّل بيع هذه الخدمة"}
+                        </button>
+                      ) : null}
                       <button
                         className="micro-button micro-button-secondary"
                         type="button"

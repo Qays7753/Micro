@@ -2,15 +2,16 @@
  * ومسار «/orders/new» القديم يصبح تحويل عمق واحد يحفظ التوافق مع الروابط القديمة
  * بلا شاشة اختيار منافسة: النية الافتراضية «طلب عميل»، وتُحفظ نية «مسودة تصميم»
  * إن جاءت في الرابط. لا قدرة تُزال؛ كلا المحررين يبقيان متاحين من FAB ومن الروابط. */
-import { Redirect, useLocation } from "wouter";
+import { Redirect, useSearch } from "wouter";
 import type { DraftIntent } from "@/storage/local/types";
 
-function intentFromLocation(location: string): DraftIntent {
-  const value = new URLSearchParams(location.split("?")[1] ?? "").get("intent");
+/* و٥-ب (مجموعة ٣): النية تُقرأ من useSearch — المسار الحقيقي يصل بلا استعلام. */
+function intentFromSearch(search: string): DraftIntent {
+  const value = new URLSearchParams(search).get("intent");
   return value === "planned_design" ? "planned_design" : "customer_order";
 }
 
 export default function NewDraft() {
-  const [location] = useLocation();
-  return <Redirect to={`/orders/draft/new?intent=${intentFromLocation(location)}`} />;
+  const search = useSearch();
+  return <Redirect to={`/orders/draft/new?intent=${intentFromSearch(search)}`} />;
 }
