@@ -47,6 +47,9 @@ type Receipt = {
   cashMinor: number | null;
   recordHref: string | null;
   detail: string | null;
+  /* (مجموعة ٤): سبب عدم تنفيذ وجهة المحفظة إن فشل التخصيص بعد التسجيل — يظهر
+   * في الوصل بصدق؛ null حين لا وجهة أصلًا أو حين نجحت النسبة. */
+  attributionNote: string | null;
 };
 
 /* القرار ٢٣-ب: الأفعال المتكررة يوميًا — تسجيل بيع · تسجيل مصروف · إضافة طلب.
@@ -204,22 +207,27 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   }
 
   /* ٥.٢: تخصيص صريح بعد التسجيل — الحركة تُنسب للمحفظة المختارة بلا انتظار.
-   * المجموعة ٢ (§9.1): وصل المصدر يُحفظ مع التخصيص فيصل دفتر المحفظة لأصله. */
+   * المجموعة ٢ (§9.1): وصل المصدر يُحفظ مع التخصيص فيصل دفتر المحفظة لأصله.
+   * (إصلاح تكاملي — مجموعة ٤): نتيجة التخصيص تُعاد للفاعل لا تُبتلع — الفشل
+   * يظهر في الوصل بصدق (البيع/المصروف سُجلا والمال محفوظ) بدل تجاهل صامت. */
   async function attributeToWallet(
     walletId: string,
     deltaMinor: number,
     note: string,
     sourceRefId?: string,
     sourceRefKind?: "sale" | "expense" | "collection" | "order",
-  ) {
-    if (!walletId || deltaMinor === 0) return;
-    await projectFinance.distributeUnallocated({
+  ): Promise<{ ok: boolean; message: string | null }> {
+    if (!walletId || deltaMinor === 0) return { ok: true, message: null };
+    const result = await projectFinance.distributeUnallocated({
       walletId,
       deltaMinor,
       note,
       sourceRefId: sourceRefId ?? null,
       sourceRefKind: sourceRefKind ?? null,
     });
+    return result.ok
+      ? { ok: true, message: null }
+      : { ok: false, message: result.message };
   }
 
   async function submitSale() {
@@ -268,14 +276,17 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     notifyDataChanged();
     /* ٥.٢: نسبة المقبوض للمحفظة المختارة إن حُددت — تحصيلًا لا دينًا. */
     const attributedMinor = saleOnCredit ? saleCollectedMinor : saleAmountMinor;
+    let attributionNote: string | null = null;
     if (saleWalletId && attributedMinor > 0)
-      await attributeToWallet(
-        saleWalletId,
-        attributedMinor,
-        "تخصيص قبض بيع من ورقة الإضافة",
-        result.value.id,
-        "sale",
-      );
+      attributionNote = (
+        await attributeToWallet(
+          saleWalletId,
+          attributedMinor,
+          "تخصيص قبض بيع من ورقة الإضافة",
+          result.value.id,
+          "sale",
+        )
+      ).message;
     const cashMinor = await cashNow();
     setSaving(false);
     setConfirmDiscard(false);
@@ -289,6 +300,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
             saleAmountMinor - saleCollectedMinor,
           )} د.أ — يظهر في دفتر الناس ولي عند العملاء.`
         : null,
+      attributionNote,
     });
     setMode("receipt");
   }
@@ -323,14 +335,17 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     }
     notifyDataChanged();
     /* ٥.٢: إن حُددت محفظة، يُغطى الصرف منها بتخصيص سالب — بلا تخصيص صامت. */
+    let attributionNote: string | null = null;
     if (expenseWalletId && expenseAmountMinor > 0)
-      await attributeToWallet(
-        expenseWalletId,
-        -expenseAmountMinor,
-        "تغطية مصروف من رصيد المحفظة",
-        result.value.id,
-        "expense",
-      );
+      attributionNote = (
+        await attributeToWallet(
+          expenseWalletId,
+          -expenseAmountMinor,
+          "تغطية مصروف من رصيد المحفظة",
+          result.value.id,
+          "expense",
+        )
+      ).message;
     const cashMinor = await cashNow();
     setSaving(false);
     setConfirmDiscard(false);
@@ -340,6 +355,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       cashMinor,
       recordHref: `/finance?event=${encodeURIComponent(result.value.id)}`,
       detail: null,
+      attributionNote,
     });
     setMode("receipt");
   }
@@ -655,6 +671,9 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                   .
                 </strong>
                 {receipt.detail ? <p>{receipt.detail}</p> : null}
+                {/* (إصلاح تكاملي — مجموعة ٤): فشل نسبة المحفظة بعد التسجيل يظهر
+                    في الوصل — المال محفوظ غير موزع، لا كذب على الكتابة ولا تجاهل. */}
+                {receipt.attributionNote ? <p>{receipt.attributionNote}</p> : null}
                 <p>أُغلق التسجيل فوق شاشتك؛ صحّح من «العمل» أو «مالي» عند الحاجة.</p>
                 {receipt.recordHref ? (
                   <button

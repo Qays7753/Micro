@@ -9,6 +9,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
 
@@ -53,10 +54,12 @@ export default function CashDistribution() {
           return;
         }
         setState({ phase: "ready", overview: overview.value, position: position.value });
-        /* ?to= يختار محفظة معلنة فقط؛ غير ذلك أول محفظة — بلا اختراع. */
+        /* ?to= يختار محفظة معلنة فقط؛ غير ذلك أول محفظة — بلا اختراع.
+         * (إصلاح تكاملي — مجموعة ٤): عامل ?? لا يمرّر السلسلة الفارغة فلا تُختار
+         * أول محفظة أبدًا بينما يعرض <select> خياره الأول — القائمة والمقود متزامنان الآن. */
         const requested =
           toParam && overview.value.wallets.some(wallet => wallet.id === toParam) ? toParam : null;
-        setWalletId(current => requested ?? current ?? overview.value.wallets[0]?.id ?? "");
+        setWalletId(current => requested || current || overview.value.wallets[0]?.id || "");
         /* الكاش غير الموزع السالب يعني دفعة تحتاج تغطية — الاتجاه جاهز للتغطية لا للتوزيع. */
         if (position.value.unallocatedCashMinor < 0) setDirection("cover_payment");
       },
@@ -167,8 +170,10 @@ export default function CashDistribution() {
               <span>المحفظة</span>
               <select value={walletId} onChange={event => setWalletId(event.target.value)}>
                 {overview.wallets.map(wallet => (
+                  /* (إصلاح تكاملي — مجموعة ٤): نص خالص داخل <option> — MoneyValue يرسم
+                   * <bdi> والمتصفح يرفض تعشيشه داخل option فيسجّل أخطاء كونسول. */
                   <option key={wallet.id} value={wallet.id}>
-                    {wallet.name} — الرصيد <MoneyValue minor={wallet.balanceMinor} />
+                    {wallet.name} — الرصيد {formatMoneyMinor(wallet.balanceMinor)} د.أ
                   </option>
                 ))}
               </select>

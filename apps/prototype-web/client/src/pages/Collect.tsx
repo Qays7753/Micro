@@ -196,6 +196,11 @@ export default function Collect() {
               ? `انتقل إلى «${outcome.walletName ?? "المحفظة"}»: ${formatRemaining(outcome.attributedToWalletMinor)} — حركة موثقة في دفتر المحفظة.`
               : "بقي الكاش غير موزع — وزّعه على محفظة عندما تعرف وجهته."}
           </p>
+          {/* (إصلاح تكاملي — مجموعة ٤): فشل نسبة المحفظة بعد تسجيل القبض يظهر سببه
+              في النتيجة لا كخطأ يكذب على كتابةٍ تمت — المال بقي غير موزع بلا فقدان. */}
+          {outcome.attributionNotice ? (
+            <p className="micro-local-truth">وجهة المحفظة لم تُنفّذ: {outcome.attributionNotice}</p>
+          ) : null}
           <p className="micro-local-truth">بياناتك محفوظة على هذا الجهاز — التحصيل سُجل محليًا ولم يُرسل لأي مكان.</p>
         </section>
         <div className="micro-form-actions">
@@ -219,7 +224,13 @@ export default function Collect() {
   }
 
   const outstanding = source?.outstandingMinor ?? 0;
-  const remainingAfter = Math.max(outstanding - (validAmount ? amountMinor : 0), 0);
+  /* (إصلاح تكاملي — مجموعة ٤، عيبان): (١) معاينة الأثر لا تعرض تجاوزًا كأنه نتيجة
+   * صالحة — عند تجاوز المتبقي يبقى المتبقي كما هو ويظهر تحذير داخل المعاينة؛
+   * (٢) تصحيح المبلغ/الوجهة يُزيل رسالة الخطأ القديمة فلا تُقرأ كأنها حالة حالية. */
+  const overAmount = Boolean(source && validAmount && amountMinor > source.outstandingMinor);
+  const remainingAfter = overAmount
+    ? outstanding
+    : Math.max(outstanding - (validAmount ? amountMinor : 0), 0);
 
   return (
     <section className="micro-page micro-collect-page">
@@ -302,7 +313,10 @@ export default function Collect() {
             <EnglishNumberInput
               value={amountMinor}
               kind="money"
-              onNumericChange={setAmountMinor}
+              onNumericChange={value => {
+                setAmountMinor(value);
+                if (message) setMessage(null);
+              }}
               onTextValidityChange={setValidAmount}
               aria-label="مبلغ التحصيل"
             />
@@ -372,6 +386,12 @@ export default function Collect() {
                 <dd>لا تتغير — القبض ليس إيرادًا</dd>
               </div>
             </dl>
+            {overAmount ? (
+              <p className="micro-field-error" role="status">
+                المبلغ المُدخل يتجاوز المتبقي على {source.personName} — القبض لن يُسجّل حتى تصحّح
+                المبلغ؛ المتبقي أعلاه يبقى كما هو.
+              </p>
+            ) : null}
           </section>
           {message ? (
             <p className="micro-field-error" role="status">

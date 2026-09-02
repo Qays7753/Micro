@@ -14,7 +14,7 @@ import {
   cashCountSettledMessage,
   cashCountSettlementNote,
 } from "@/presentation/cashCountMessages";
-import { localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 
 type State =
@@ -151,8 +151,9 @@ export default function CashCount() {
             <span>المحفظة التي تعدّها</span>
             <select value={walletId} onChange={event => setWalletId(event.target.value)}>
               {overview.wallets.map(candidate => (
+                /* (إصلاح تكاملي — مجموعة ٤): نص خالص داخل option — bdi داخل option تعشيش مرفوض. */
                 <option key={candidate.id} value={candidate.id}>
-                  {candidate.name} — المسجل <MoneyValue minor={candidate.balanceMinor} />
+                  {candidate.name} — المسجل {formatMoneyMinor(candidate.balanceMinor)} د.أ
                 </option>
               ))}
             </select>

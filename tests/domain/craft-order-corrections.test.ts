@@ -333,3 +333,58 @@ describe("reverseOrderCollection — تراجع تحصيل الدين (المج�
     expect(reversed.settlementStatus).toBe("debt");
   });
 });
+
+/* (مجموعة ٤ — إصلاح تكاملي): تصحيح السعر على طلب مُغلق بعد تحصيل كامل يعيد فتح
+ * المتبقي دينًا مسجلًا مرئيًا — لا حالة «partially_paid» عمياء بلا أي مدخل تحصيل. */
+describe("reviseAgreedPrice — المتبقي المفتوح على طلب مغلق (المجموعة ٤)", () => {
+  it("دين مسجل قابل للتحصيل فور تصحيح السعر صعودًا على طلب مكتمل التحصيل", () => {
+    /* تحصيل كامل: عربون 2000 + المتبقي 6000 = 8000 → الطلب مغلق مسدد. */
+    const withDeposit = collectDeposit(agreedOrder(), 2000, "deposit-g4", "2026-09-01T09:00:00Z");
+    const fullyCollected = collectRemaining(
+      deliverFrom(withDeposit, "status-g4"),
+      6000,
+      "collect-g4",
+      "2026-09-01T10:00:00Z",
+    );
+    expect(fullyCollected.status).toBe("settled");
+    expect(fullyCollected.settlementStatus).toBe("paid");
+    const revised = reviseAgreedPrice(fullyCollected, {
+      newPriceMinor: 10000,
+      reason: "شغل إضافي بعد الاتفاق",
+      idempotencyKey: "revise-g4",
+      createdAt: "2026-09-02T09:00:00Z",
+    });
+    expect(revised.receivableMinor).toBe(2000);
+    expect(revised.settlementStatus).toBe("debt");
+    expect(revised.status).toBe("settled");
+    /* الدين الناتج قابل للتحصيل من مسار الدين المسجل مباشرة. */
+    const collected = collectRegisteredDebt(revised, 2000, "debt-collect-g4", "2026-09-02T10:00:00Z");
+    expect(collected.receivableMinor).toBe(0);
+    expect(collected.settlementStatus).toBe("paid");
+  });
+
+  it("خفض السعر بعد رفعٍ يسدد المتبقي المفتوح ويُبقي الحالة paid", () => {
+    const withDeposit = collectDeposit(agreedOrder(), 2000, "deposit-g4b", "2026-09-01T09:00:00Z");
+    const fullyCollected = collectRemaining(
+      deliverFrom(withDeposit, "status-g4b"),
+      6000,
+      "collect-g4b",
+      "2026-09-01T10:00:00Z",
+    );
+    const revisedUp = reviseAgreedPrice(fullyCollected, {
+      newPriceMinor: 10000,
+      reason: "شغل إضافي",
+      idempotencyKey: "revise-g4b-up",
+      createdAt: "2026-09-02T09:00:00Z",
+    });
+    expect(revisedUp.settlementStatus).toBe("debt");
+    const revisedDown = reviseAgreedPrice(revisedUp, {
+      newPriceMinor: 8000,
+      reason: "خصم متفق عليه بعد المراجعة",
+      idempotencyKey: "revise-g4b-down",
+      createdAt: "2026-09-02T09:30:00Z",
+    });
+    expect(revisedDown.settlementStatus).toBe("paid");
+    expect(revisedDown.receivableMinor).toBe(0);
+  });
+});

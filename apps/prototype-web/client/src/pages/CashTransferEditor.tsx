@@ -10,8 +10,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletBalance } from "@/application/cash/cashContinuityService";
-import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 export default function CashTransferEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
@@ -113,8 +112,9 @@ export default function CashTransferEditor() {
           <span>من محفظة</span>
           <select value={fromWalletId} onChange={event => setFromWalletId(event.target.value)}>
             {wallets.map(wallet => (
+              /* (إصلاح تكاملي — مجموعة ٤): نص خالص داخل option — bdi داخل option تعشيش مرفوض. */
               <option key={wallet.id} value={wallet.id}>
-                {wallet.name} · <MoneyValue minor={wallet.balanceMinor} className="micro-inline-number" />
+                {wallet.name} · {formatMoneyMinor(wallet.balanceMinor)} د.أ
               </option>
             ))}
           </select>
@@ -124,7 +124,7 @@ export default function CashTransferEditor() {
           <select value={toWalletId} onChange={event => setToWalletId(event.target.value)}>
             {wallets.map(wallet => (
               <option key={wallet.id} value={wallet.id}>
-                {wallet.name} · <MoneyValue minor={wallet.balanceMinor} className="micro-inline-number" />
+                {wallet.name} · {formatMoneyMinor(wallet.balanceMinor)} د.أ
               </option>
             ))}
           </select>

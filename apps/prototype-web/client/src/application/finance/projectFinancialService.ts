@@ -366,9 +366,17 @@ export class ProjectFinancialService {
       (sum, purchase) => sum + purchase.paidMinor,
       0,
     );
-    /* PA-002: «تخصيص» صريح ينقل القيمة من غير الموزع إلى محفظة — الإجمالي لا يتغير. */
+    /* PA-002: «تخصيص» صريح ينقل القيمة من غير الموزع إلى محفظة — الإجمالي لا يتغير.
+     * (إصلاح تكاملي — مجموعة ٤): التخصيص المُتراجَع يُستبعد من المجموع — التراجع عن
+     * تخصيصٍ يجب أن يعيد قيمته إلى «غير الموزع» لا أن تختفي من الإجمالي المسجل
+     * (حارس «التخصيص لا يغيّر الإجمالي» يشمل التراجع عنه). */
+    const reversedEntryIds = new Set(
+      continuityResult.value
+        .filter(entry => entry.type === "reversal" && entry.reversesEntryId)
+        .map(entry => entry.reversesEntryId as string),
+    );
     const allocatedToWalletsMinor = continuityResult.value
-      .filter(entry => entry.type === "allocation")
+      .filter(entry => entry.type === "allocation" && !reversedEntryIds.has(entry.id))
       .reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
     const unallocatedCashMinor =
       orderPulse.registeredCollectionsMinor +

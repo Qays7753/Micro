@@ -138,6 +138,55 @@ describe("unallocated cash distribution", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.message).toContain("لا يغطي");
   });
+
+  /* (مجموعة ٤ — إصلاح تكاملي): التراجع عن تخصيص يعيد قيمته إلى «غير الموزع» —
+   * الإجمالي المسجل لا يسقط بصمت (عقد PA-002 يشمل فك التخصيص). */
+  it("returns the reversed allocation to unallocated without losing recorded cash", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const cash = new CashContinuityService(store, now);
+    await finance.record({
+      type: "owner_investment_cash",
+      amountMinor: 50000,
+      occurredOn: "2026-08-28",
+      note: "استثمار",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "inv-rev-alloc",
+    });
+    const wallet = await cash.openWallet({
+      name: "الدرج",
+      kind: "cash_drawer",
+      openingMinor: 0,
+      occurredOn: "2026-08-28",
+      note: "محفظة",
+      operationKey: "wallet-rev-alloc",
+    });
+    if (!wallet.ok) throw new Error(wallet.message);
+    const distribute = await finance.distributeUnallocated({
+      walletId: wallet.value.wallet.id,
+      deltaMinor: 50000,
+      note: "توزيع قبضة",
+    });
+    if (!distribute.ok) throw new Error(distribute.message);
+    const entriesAfterDistribute = await store.listCashContinuityEntries();
+    if (!entriesAfterDistribute.ok) throw new Error(entriesAfterDistribute.message);
+    const allocationEntry = entriesAfterDistribute.value.find(entry => entry.type === "allocation");
+    if (!allocationEntry) throw new Error("لم يُوجد أثر التخصيص");
+    const reversal = await cash.reverse({
+      entryId: allocationEntry.id,
+      occurredOn: "2026-08-29",
+      reason: "خصصت القبضة على المحفظة بالخطأ — الصحيح غير موزع",
+      operationKey: "reverse-alloc-1",
+    });
+    if (!reversal.ok) throw new Error(reversal.message);
+    const after = await finance.readPosition();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value.walletCashMinor).toBe(0);
+    expect(after.value.unallocatedCashMinor).toBe(50000);
+    /* الحكم الحاسم: لا اختفاء صامت للكاش عند فك التخصيص. */
+    expect(after.value.recordedCashMinor).toBe(50000);
+  });
 });
 
 /* عقد التعديل والحذف البسيطين (مبدأ المالك ٥.٦): تعديل موثق ذرّي، وحذف بأثر،
