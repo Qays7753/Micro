@@ -93,15 +93,17 @@ describe("DirectSaleEditor", () => {
     );
 
     await screen.findByRole("heading", { name: "تسجيل بيع مباشر" });
-    /* دلالة الكمية معلنة قبل أي اختيار مرجع. */
+    /* المجموعة ٦ (البند ٤ — S3-12): دلالة الكمية خلف إفصاح «معنى الكمية» —
+     * موجودة في الصفحة (تُقرأ بالفتح) ولم تُحذف؛ القاعدة نفسها بند ٢٥. */
     expect(
       screen.getByText(
         (content, element) =>
-          element?.tagName === "SMALL" &&
+          (element?.tagName === "SMALL" || element?.tagName === "P") &&
           content.includes("إجمالي البيع كاملًا") &&
           content.includes("لا سعر"),
       ),
     ).toBeTruthy();
+    expect(screen.getByText("معنى الكمية")).toBeTruthy();
 
     /* كمية ٢ ثم اختيار مرجع له اقتراح سعر: لا تعبئة تلقائية ولا ضرب عن المالك. */
     fireEvent.change(screen.getByLabelText("الكمية"), { target: { value: "2" } });

@@ -9,6 +9,7 @@ import { useLocation, useParams, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
+import { RestatementNote } from "@/components/finance/RestatementNote";
 import type { WalletLedgerOverview } from "@/application/cash/walletLedgerService";
 
 type State =
@@ -112,6 +113,21 @@ export default function WalletLedger() {
           </p>
         </div>
       </section>
+      {(() => {
+        /* المجموعة ٦ (البند ٣ — S2-09): رصيد المحفظة صافي أثر الحركات
+         * وتراجعاتها الموثقة — السطر يقولها حين يوجد تراجع واحد على الأقل. */
+        const reversalRows = overview.rows.filter(row => row.kind === "reversal");
+        if (reversalRows.length === 0) return null;
+        const netAmountMinor = reversalRows.reduce((sum, row) => sum + row.amountMinor, 0);
+        return (
+          <RestatementNote
+            count={reversalRows.length}
+            netAmountMinor={netAmountMinor}
+            scopeLabel="هذا الرصيد"
+            onOpen={() => navigate(`/cash/wallet/${overview.wallet.id}`)}
+          />
+        );
+      })()}
       {overview.rows.length === 0 ? (
         <section className="micro-home-quiet" aria-label="دفتر فارغ">
           <strong>لسه ما في حركات على هذه المحفظة.</strong>

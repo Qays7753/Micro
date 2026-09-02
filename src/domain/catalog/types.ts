@@ -98,7 +98,7 @@ export type CatalogTemplateYield = {
   unitId: string;
 };
 
-export type CatalogTemplateYieldReadiness = "not_configured" | "ready" | "needs_conversion";
+type CatalogTemplateYieldReadiness = "not_configured" | "ready" | "needs_conversion";
 
 export type CatalogTemplate = {
   id: string;

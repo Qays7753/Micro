@@ -3,6 +3,7 @@
 import { ArrowRight, RotateCcw, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
@@ -15,11 +16,13 @@ import { localDateInAmman } from "@/presentation/formatters";
 const ammanDate = () => localDateInAmman();
 export default function CashReversalEditor() {
   const { id } = useParams<{ id: string }>();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { cashContinuity, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, cashContinuity, agreements, notifyDataChanged } = usePrototypeServices();
   const [entry, setEntry] = useState<CashContinuityEntry | null>(null);
+  const [sourceWarning, setSourceWarning] = useState<{ orderId: string; text: string } | null>(null);
   const [date, setDate] = useState(() => ammanDate());
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -33,7 +36,48 @@ export default function CashReversalEditor() {
       }
       setEntry(result.value.find(candidate => candidate.id === id) ?? null);
     });
-  }, [cashContinuity, id]);
+  }, [cashContinuity, id, dataVersion]);
+  /* G6-F1-4 (البند ١ — الجزء ب): تحذير غير حاجر عند التراجع عن تخصيص مرتبط
+   * بقبضة ما زالت مسجلة — الصدق المزدوج: التصحيح ينفَّذ من سطحه المالك (الطلب)،
+   * لا عكس تلقائي من سطح الكاش. وصلة للطلب مع الحفاظ على الرجوع. */
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      if (
+        !entry ||
+        entry.type !== "allocation" ||
+        entry.sourceRefKind !== "order" ||
+        !entry.sourceRefId
+      ) {
+        if (active) setSourceWarning(null);
+        return;
+      }
+      const orderResult = await agreements.get(entry.sourceRefId);
+      if (!active) return;
+      if (!orderResult.ok || !orderResult.stored) {
+        setSourceWarning(null);
+        return;
+      }
+      const events = orderResult.stored.order.events;
+      const lineStillRecorded = entry.sourceRefLineId
+        ? events.some(
+            event =>
+              event.type === "collection_recorded" && event.id === entry.sourceRefLineId,
+          )
+        : events.some(event => event.type === "collection_recorded");
+      if (!lineStillRecorded) {
+        setSourceWarning(null);
+        return;
+      }
+      setSourceWarning({
+        orderId: orderResult.stored.id,
+        text: "هذا التخصيص مرتبط بقبضة ما زالت مسجلة على الطلب — لو رجّعت المبلغ للزبون، تراجع عن القبضة وتخصيصها معًا من صفحة الطلب.",
+      });
+    })();
+    return () => {
+      active = false;
+    };
+  }, [entry, agreements, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
   const isDirty = useFormDirty([
@@ -106,6 +150,20 @@ export default function CashReversalEditor() {
           </p>
         </div>
       </section>
+      {sourceWarning ? (
+        <section className="micro-note-card" aria-label="تحذير ارتباط المصدر">
+          <p>{sourceWarning.text}</p>
+          <button
+            className="micro-button micro-button-quiet"
+            type="button"
+            onClick={() =>
+              navigate(withFrom(`/orders/${sourceWarning.orderId}`, location.split("?")[0] ?? location))
+            }
+          >
+            افتح الطلب
+          </button>
+        </section>
+      ) : null}
       <section className="micro-form-card">
         <LocalDateField label="تاريخ التراجع" value={date} onChange={event => setDate(event.target.value)} />
         <label className="micro-field">

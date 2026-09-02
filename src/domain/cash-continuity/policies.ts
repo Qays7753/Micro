@@ -52,6 +52,7 @@ type SourceRefKind = (typeof SOURCE_REF_KINDS)[number];
 function normalizeSourceRef(input: CreateCashEntryInput): {
   sourceRefId: string | null;
   sourceRefKind: SourceRefKind | null;
+  sourceRefLineId: string | null;
 } {
   const sourceRefId = input.sourceRefId?.trim() || null;
   const sourceRefKind = (input.sourceRefKind as SourceRefKind | null) ?? null;
@@ -59,7 +60,17 @@ function normalizeSourceRef(input: CreateCashEntryInput): {
   if (!sourceRefId && sourceRefKind) throw new Error("نوع المصدر بلا سجل مصدر غير صالح.");
   if (sourceRefKind && !SOURCE_REF_KINDS.includes(sourceRefKind))
     throw new Error("نوع مصدر التخصيص غير صالح.");
-  return { sourceRefId, sourceRefKind };
+  /* المجموعة ٦ (S2-04أ): سطر المصدر يُقبل مع المصدر فقط — ربط الحدث بالتخصيص
+   * يستلزم معرفة السجل الذي ينتمي إليه الحدث أصلًا. */
+  const sourceRefLineId = normalizeSourceRefLine(input, sourceRefId);
+  return { sourceRefId, sourceRefKind, sourceRefLineId };
+}
+
+/* سطر المصدر: معرّف الحدث داخل السجل المصدر — يُرفض بلا سجل مصدر صريح. */
+function normalizeSourceRefLine(input: CreateCashEntryInput, sourceRefId: string | null): string | null {
+  const sourceRefLineId = input.sourceRefLineId?.trim() || null;
+  if (sourceRefLineId && !sourceRefId) throw new Error("ربط سطر المصدر يتطلب سجل المصدر نفسه.");
+  return sourceRefLineId;
 }
 
 export function createCashContinuityEntry(input: CreateCashEntryInput): CashContinuityEntry {
@@ -93,7 +104,9 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
   if (input.type !== "reversal" && reversesEntryId) throw new Error("الربط بحركة أصل يخص سجلات التراجع فقط.");
   if (input.type !== "allocation" && (input.sourceRefId?.trim() || input.sourceRefKind))
     throw new Error("ربط المصدر يخص حركات التخصيص فقط.");
-  const { sourceRefId, sourceRefKind } = normalizeSourceRef(input);
+  if (input.type !== "allocation" && input.sourceRefLineId?.trim())
+    throw new Error("ربط سطر المصدر يخص حركات التخصيص فقط.");
+  const { sourceRefId, sourceRefKind, sourceRefLineId } = normalizeSourceRef(input);
   return Object.freeze({
     id: input.id,
     walletId: input.walletId,
@@ -109,6 +122,7 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
     ...(sourceRefId
       ? { sourceRefId, sourceRefKind: sourceRefKind as NonNullable<typeof sourceRefKind> }
       : {}),
+    ...(sourceRefId && sourceRefLineId ? { sourceRefLineId } : {}),
   });
 }
 

@@ -23,7 +23,9 @@ import {
   type CreateOwnerEntitlementPolicyInput,
   type OwnerEntitlementPolicyTerms,
 } from "@micro-domain/owner-entitlement/index.js";
+import { reversedEventIds, type FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import { localDateInAmman as ammanDate } from "@/presentation/formatters";
 
 export type OwnerEntitlementResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -47,6 +49,28 @@ export type OwnerEntitlementOverview = {
   remainingEntitlementBalanceMinor: number;
   cashMovementMinor: number;
   balanceState: "positive" | "zero" | "negative";
+};
+/* المجموعة ٦ (البند ٢ — S2-07): قراءة «مال المالك» الموحدة — طبقة قراءة فقط
+ * فوق المصدرين القائمين (الأحداث المالية العامة + حركات دفتر المالك)، بلا
+ * تخزين جديد ولا تغيير معنى: نفس معادلة readPosition لرأس المال المسجل،
+ * وسجل موحد يعرض المصدر والتاريخ والمبلغ والأثر والمحفظة وحالة التراجع. */
+export type OwnerMoneyRow = {
+  id: string;
+  source: "event" | "ledger";
+  occurredOn: string;
+  /** موجب = دخل مالك إلى المشروع؛ سالب = خرج منه. */
+  amountMinor: number;
+  effectLabel: string;
+  cashPoolLabel: string | null;
+  reversalLabel: string | null;
+  note: string;
+  deepLink: string | null;
+};
+export type OwnerMoneyOverview = {
+  ownerCapitalRecordedMinor: number;
+  remainingEntitlementBalanceMinor: number;
+  balanceState: "positive" | "zero" | "negative";
+  rows: readonly OwnerMoneyRow[];
 };
 export type OwnerPolicyInput = Omit<CreateOwnerEntitlementPolicyInput, "createdAt">;
 export type OwnerPolicySuccessorInput = OwnerEntitlementPolicyTerms & {
@@ -117,16 +141,6 @@ const localDate = (value: string) =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) &&
   !Number.isNaN(new Date(`${value}T12:00:00.000Z`).getTime()) &&
   new Date(`${value}T12:00:00.000Z`).toISOString().slice(0, 10) === value;
-const ammanDate = (timestamp: string) => {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(timestamp));
-  const part = (type: string) => parts.find(entry => entry.type === type)?.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
-};
 const dayBefore = (value: string) => {
   const date = new Date(`${value}T12:00:00.000Z`);
   date.setUTCDate(date.getUTCDate() - 1);
@@ -244,6 +258,84 @@ export class OwnerEntitlementService {
         remainingEntitlementBalanceMinor,
         cashMovementMinor,
         balanceState,
+      },
+    };
+  }
+
+  /** المجموعة ٦ (البند ٢): الدفتر الموحد — أحداث المالك العامة + حركات الدفتر
+   * بترتيب زمني واحد؛ رأس المال بنفس معادلة readPosition (الأحداث + حركات
+   * رأس المال) فلا رقم ثانٍ ولا معنى جديد. */
+  async readOwnerMoneyOverview(): Promise<OwnerEntitlementResult<OwnerMoneyOverview>> {
+    const [eventsResult, movementsResult, walletsResult, overviewResult] = await Promise.all([
+      this.store.listFinancialEvents(),
+      this.store.listOwnerMovements(),
+      this.store.listCashWallets(),
+      this.readOverview(),
+    ]);
+    if (!eventsResult.ok || !movementsResult.ok || !walletsResult.ok || !overviewResult.ok)
+      return failure("تعذر قراءة سجل مال المالك الموحد.");
+    const events = eventsResult.value as readonly FinancialEvent[];
+    const movements = movementsResult.value;
+    const reversedIds = reversedEventIds(events);
+    const walletNameOf = (walletId: string | null) => {
+      if (!walletId) return null;
+      const wallet = walletsResult.value.find(candidate => candidate.id === walletId);
+      return wallet ? `محفظة: ${wallet.name}` : null;
+    };
+    const rows: OwnerMoneyRow[] = [];
+    for (const event of events) {
+      if (event.type !== "owner_investment_cash" && event.type !== "owner_withdrawal_cash") continue;
+      rows.push({
+        id: event.id,
+        source: "event",
+        occurredOn: event.occurredOn,
+        amountMinor: event.ownerCapitalDeltaMinor,
+        effectLabel: "رأس مال",
+        cashPoolLabel: "كاش غير موزع",
+        reversalLabel: reversedIds.has(event.id) ? "مُتراجَع موثقًا" : null,
+        note: event.note,
+        deepLink: `/finance?event=${encodeURIComponent(event.id)}`,
+      });
+    }
+    const reversedMovementIds = new Set(
+      movements.filter(movement => movement.reversalOfId !== null).map(movement => movement.reversalOfId),
+    );
+    for (const movement of movements) {
+      const isReversal = movement.reversalOfId !== null;
+      const reversed = reversedMovementIds.has(movement.id);
+      rows.push({
+        id: movement.id,
+        source: "ledger",
+        occurredOn: movement.occurredOn,
+        /* اتجاه الكاش من منظور المالك: سحب = خرج (سالب)، إرجاع = دخل (موجب).
+         * التراجع يحمل نوع أصله مع دلتا معكوسة، فالمعيار الحاسم هو أثر الكاش
+         * نفسه (cashDeltaMinor) لا نوع الحركة. */
+        amountMinor: movement.cashDeltaMinor,
+        effectLabel:
+          movement.ownerCapitalDeltaMinor !== 0
+            ? "رأس مال"
+            : movement.openingBalanceDeltaMinor !== 0
+              ? "رصيد افتتاحي"
+              : movement.entitlementDeltaMinor !== 0
+                ? "حق مسجل"
+                : "حركة",
+        cashPoolLabel: walletNameOf(movement.walletId),
+        reversalLabel: isReversal ? "تراجع موثق عن حركة" : reversed ? "مُتراجَع موثقًا" : null,
+        note: movement.note,
+        deepLink: null,
+      });
+    }
+    rows.sort((left, right) => right.occurredOn.localeCompare(left.occurredOn) || left.id.localeCompare(right.id));
+    const ownerCapitalRecordedMinor =
+      events.reduce((sum, event) => sum + event.ownerCapitalDeltaMinor, 0) +
+      movements.reduce((sum, movement) => sum + movement.ownerCapitalDeltaMinor, 0);
+    return {
+      ok: true,
+      value: {
+        ownerCapitalRecordedMinor,
+        remainingEntitlementBalanceMinor: overviewResult.value.remainingEntitlementBalanceMinor,
+        balanceState: overviewResult.value.balanceState,
+        rows,
       },
     };
   }

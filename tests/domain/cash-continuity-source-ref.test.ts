@@ -53,3 +53,50 @@ describe("مصدر التخصيص في سجل المحفظة (المجموعة �
     );
   });
 });
+
+describe("سطر المصدر في حركة التخصيص (المجموعة ٦ — S2-04أ)", () => {
+  it("يقبل سطر المصدر مع المصدر نفسه في حركة التخصيص", () => {
+    const entry = createCashContinuityEntry(
+      baseInput({ sourceRefId: "order-1", sourceRefKind: "order", sourceRefLineId: "order-1:sheet-1" }),
+    );
+    expect(entry.sourceRefLineId).toBe("order-1:sheet-1");
+  });
+
+  it("يبقى سطر المصدر غائبًا عند عدم إرساله — السجلات القديمة تُقرأ كما هي", () => {
+    const entry = createCashContinuityEntry(baseInput({ sourceRefId: "order-1", sourceRefKind: "order" }));
+    expect("sourceRefLineId" in entry).toBe(false);
+  });
+
+  it("يرفض سطر المصدر في غير حركات التخصيص", () => {
+    /* مع المصدر نفسه: حارس «ربط المصدر» يسبق حارس سطر المصدر — والرفض مضمون. */
+    expect(() =>
+      createCashContinuityEntry(
+        baseInput({
+          type: "cash_adjustment",
+          reason: "تسوية",
+          sourceRefId: "order-1",
+          sourceRefKind: "order",
+          sourceRefLineId: "order-1:sheet-1",
+        }),
+      ),
+    ).toThrow("حركات التخصيص فقط");
+    /* وبمصدر كامل لكن حركة غير تخصيص مع سطر فقط: نفس العائلة تُرفض. */
+    expect(() =>
+      createCashContinuityEntry(
+        baseInput({
+          type: "cash_adjustment",
+          reason: "تسوية",
+          sourceRefId: "order-1",
+          sourceRefKind: "order",
+          sourceRefLineId: "order-1:sheet-1",
+        }),
+      ),
+    ).toThrow();
+  });
+
+  it("يرفض سطر مصدر بلا سجل مصدر", () => {
+    expect(() => createCashContinuityEntry(baseInput({ sourceRefLineId: "order-1:sheet-1" }))).toThrow(
+      "ربط سطر المصدر يتطلب سجل المصدر نفسه",
+    );
+  });
+});

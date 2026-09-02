@@ -37,7 +37,8 @@ export default function EstimateDetail() {
   const [, navigate] = useLocation();
   /* المجموعة ٣ (§8.1): رجوع آمن للمصدر (?from) أو أدواتي بديلًا قانونيًا. */
   const returnPath = useReturnPath();
-  const { costEstimates, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, costEstimates, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<DetailState>({ phase: "loading" });
   const [message, setMessage] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -56,7 +57,7 @@ export default function EstimateDetail() {
     return () => {
       active = false;
     };
-  }, [costEstimates, params.id]);
+  }, [costEstimates, params.id, dataVersion]);
 
   async function deleteEstimate() {
     if (state.phase !== "ready") return;
@@ -125,7 +126,7 @@ export default function EstimateDetail() {
         <span className="micro-overline">تقدير محفوظ</span>
         <h1>{estimate.title}</h1>
         <p>
-          حُفظ في {formatLocalDate(estimate.createdAt.slice(0, 10))} · حالة المعرفة:{" "}
+          حُفظ في <bdi dir="ltr">{formatLocalDate(estimate.createdAt.slice(0, 10))}</bdi> · حالة المعرفة:{" "}
           {knowledgeLabel[estimate.knowledgeState] ?? estimate.knowledgeState}
         </p>
       </div>

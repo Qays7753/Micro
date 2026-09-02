@@ -5,7 +5,7 @@ export const allocationPolicyKinds = [
   "completed_revenue_percentage",
 ] as const;
 export type AllocationPolicyKind = (typeof allocationPolicyKinds)[number];
-export type AllocationPolicyStatus = "active" | "inactive";
+type AllocationPolicyStatus = "active" | "inactive";
 
 export type AllocationPolicy = {
   id: string;

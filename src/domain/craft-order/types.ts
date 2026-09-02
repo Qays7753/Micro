@@ -1,7 +1,5 @@
 import type { Currency, MoneyMinor } from "../shared/index.js";
 
-export type { Currency, MoneyMinor } from "../shared/index.js";
-
 export type KnowledgeState = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
 
 /* القرار ٢٢: كل نقص معرفة يحمل علامته — إلزامي (يمنع نتيجة صادقة) أو اختياري (يحسّن الدقة).
@@ -18,8 +16,8 @@ export type ResultStatus = "final" | "estimated" | "incomplete" | "review_requir
 
 export type DepositSettlementDecision = "refund_deposit" | "retain_deposit" | "needs_review";
 
-export type CostSource = "user_input" | "historical_price" | "estimate";
-export type CostConfidence = "known" | "estimated";
+type CostSource = "user_input" | "historical_price" | "estimate";
+type CostConfidence = "known" | "estimated";
 
 export interface MaterialCostItem {
   name: string;

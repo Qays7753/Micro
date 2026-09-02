@@ -48,7 +48,7 @@ export default function DirectSaleEditor() {
   const search = useSearch();
   /* المجموعة ١ (Scope A): الرجوع والخروج بعد النجاح يعودان للمصدر (?from) لا لهدف ثابت. */
   const returnPath = useReturnPath();
-  const { directSales, catalog, projectFinance, cashContinuity, notifyDataChanged } =
+  const { directSales, catalog, projectFinance, cashContinuity, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   const saleMatch = location.match(/^\/direct-sales\/([^/?]+)$/);
   const saleId = saleMatch?.[1] && saleMatch[1] !== "new" ? decodeURIComponent(saleMatch[1]) : null;
@@ -140,7 +140,7 @@ export default function DirectSaleEditor() {
         setLoadedToken(token => token + 1);
       })
       .catch(() => setReferences([]));
-  }, [catalog]);
+  }, [catalog, dataVersion]);
 
   /* المجموعة ٣ (Scope D): محافظ القبض تُقرأ عند الإنشاء فقط — التعديل لا يحرك الكاش. */
   useEffect(() => {
@@ -158,7 +158,7 @@ export default function DirectSaleEditor() {
     return () => {
       active = false;
     };
-  }, [cashContinuity, editing]);
+  }, [cashContinuity, editing, dataVersion]);
 
   useEffect(() => {
     if (!saleId) return;
@@ -205,7 +205,7 @@ export default function DirectSaleEditor() {
     return () => {
       active = false;
     };
-  }, [directSales, saleId, reloadToken]);
+  }, [directSales, saleId, reloadToken, dataVersion]);
 
   /* المقبوض المحسوب: فارغ = السعر المتفق (قبض كامل). */
   const resolvedCollected = collectedEmpty ? revenueMinor : collectedMinor;
@@ -466,7 +466,12 @@ export default function DirectSaleEditor() {
         <div>
           <span>حد الحقيقة</span>
           <strong>التحصيل ليس ربحًا.</strong>
-          <p>إذا لم تعرف التكلفة الآن، سيظهر الربح «غير متاح» بدل أن يفترضه النظام صفرًا.</p>
+          {/* المجموعة ٦ (البند ٤ — S3-12 §10.2 قاعدة ١): الشرح خلف علامة
+              قراءة هادئة — السطر القوي يبقى، والتفصيل عند طلبه. */}
+          <details className="micro-inline-disclosure">
+            <summary>اقرأ حد الربح</summary>
+            <p>إذا لم تعرف التكلفة الآن، سيظهر الربح «غير متاح» بدل أن يفترضه النظام صفرًا.</p>
+          </details>
         </div>
       </section>
       {savedSale?.status === "cancelled" ? (
@@ -514,12 +519,15 @@ export default function DirectSaleEditor() {
             onTextValidityChange={setValidQuantity}
             aria-label="الكمية"
           />
-          {/* بند ٢٥ (قرارات المالك): دلالة الكمية معلنة — الكمية توثيق، والسعر إجمالي
-              البيع كاملًا لا سعر القطعة؛ لا يضرب النظام عنك ولا يخمّن. */}
-          <small>
-            عدد القطع في هذا البيع — للتوثيق. السعر الذي تدخله أدناه هو إجمالي البيع كاملًا، لا سعر
-            القطعة الواحدة.
-          </small>
+          {/* بند ٢٥ (قرارات المالك) + المجموعة ٦ (البند ٤ — S3-12، §10.2 قاعدة ١):
+              دلالة الكمية وراء إفصاح مسمّى 44px — الشرح يُصل عند طلبه لا يثقل الوجه. */}
+          <details className="micro-inline-disclosure">
+            <summary>معنى الكمية</summary>
+            <p>
+              عدد القطع في هذا البيع — للتوثيق. السعر الذي تدخله أدناه هو إجمالي البيع كاملًا، لا سعر
+              القطعة الواحدة.
+            </p>
+          </details>
         </label>
         <label className="micro-field">
           <span>السعر المتفق عليه بالدينار الأردني</span>
@@ -557,7 +565,10 @@ export default function DirectSaleEditor() {
             <option value="unknown">لا أعرف الآن</option>
             <option value="known">نعم، أعرفها</option>
           </select>
-          <small>عدم المعرفة يبقى معلومة ناقصة، ولا يسجل تكلفة صفرية.</small>
+          <details className="micro-inline-disclosure">
+            <summary>معنى «لا أعرف الآن»</summary>
+            <p>عدم المعرفة يبقى معلومة ناقصة، ولا يسجل تكلفة صفرية.</p>
+          </details>
         </label>
         {costKnown ? (
           <label className="micro-field">
@@ -571,6 +582,14 @@ export default function DirectSaleEditor() {
             />
           </label>
         ) : null}
+        {/* المجموعة ٦ (البند ٤ — S3-12): الربط الاختياري خلف إفصاح 44px — يُفتح
+            تلقائيًا عند التعبئة المسبقة من الكتالوج (?product=) لتبقى الحالة معلنة،
+            ويبقى إشعار المرجع (productNotice) خارج الإفصاح بلا إخفاء. */}
+        <details
+          className="micro-inline-disclosure"
+          open={Boolean(catalogItemId) && !editing ? true : undefined}
+        >
+          <summary>ربط مرجع (اختياري)</summary>
         <label className="micro-field">
           <span>
             ربط مرجع <small>اختياري — من «منتجاتي وخدماتي»</small>
@@ -619,7 +638,7 @@ export default function DirectSaleEditor() {
                   ? quantity > 1
                     ? `الاقتراح المسجّل سعرٌ للقطعة الواحدة (${formatMoneyMinor(
                         suggestedReference.defaultPriceMinor,
-                      )} د.أ)؛ مع كمية أكبر من ١ لا يُعبّأ تلقائيًا — اضرب بنفسك وأدخل الإجمالي الفعلي.`
+                      )} د.أ)؛ مع كمية أكبر من 1 لا يُعبّأ تلقائيًا — اضرب بنفسك وأدخل الإجمالي الفعلي.`
                     : `سعر مقترح من المرجع: ${formatMoneyMinor(
                         suggestedReference.defaultPriceMinor,
                       )} د.أ — عدّله ليصير السعر الفعلي لهذا البيع.`
@@ -636,6 +655,7 @@ export default function DirectSaleEditor() {
             تُحفظ مع هذا البيع وحده؛ عدّلها أو اختر «لا أعرف الآن» فتبقى التكلفة مجهولة بصدق.
           </p>
         ) : null}
+        </details>
         {productNotice ? (
           <p className="micro-save-note" role="status">
             {productNotice}

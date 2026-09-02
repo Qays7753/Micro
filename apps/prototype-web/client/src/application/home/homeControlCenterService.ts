@@ -172,7 +172,9 @@ export class HomeControlCenterService {
         valueMinor: capitalEvidence ? positionValue.ownerCapitalRecordedMinor : null,
         currency: "JOD",
         qualifier: null,
-        source: null,
+        /* المجموعة ٦ (البند ٢): الحالة المعروفة تفتح الدفتر الموحد «مال المالك» —
+         * الحقيقة المعروفة لها وجه تنقّل، والطريق يبقى للتسجيل الأول. */
+        source: capitalEvidence ? "/finance/owner-entitlement" : null,
         period: null,
         helper: null,
         road: capitalEvidence ? null : factRoads.owner_capital,

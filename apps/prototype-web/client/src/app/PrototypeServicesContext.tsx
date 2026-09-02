@@ -30,6 +30,8 @@ import { CostEstimateService } from "@/application/estimates/costEstimateService
 import { PartyLedgerService } from "@/application/parties/partyLedgerService";
 /* المجموعة ٢: التحصيل ودفتر المحفظة والكشف — خدمات مالية جديدة فوق المخزن نفسه. */
 import { CollectionService } from "@/application/collections/collectionService";
+/* المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة وتخصيصها المطابق. */
+import { CollectionReversalService } from "@/application/collections/collectionReversalService";
 import { WalletLedgerService } from "@/application/cash/walletLedgerService";
 import { StatementService } from "@/application/finance/statementService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
@@ -67,6 +69,8 @@ type PrototypeServices = {
   partyLedger: PartyLedgerService;
   /* المجموعة ٢ (Scope B): ورقة التحصيل — المصدر الواحد لتحصيل الذمم. */
   collections: CollectionService;
+  /* المجموعة ٦ (البند ١): تراجع القبضة مع تخصيصها المطابق بنقطة واحدة ذرّية. */
+  collectionReversal: CollectionReversalService;
   /* المجموعة ٢ (§9.1): دفتر المحفظة — قراءة حركات كل محفظة بمصادرها. */
   walletLedger: WalletLedgerService;
   /* المجموعة ٢ (§9.2): كشف الفترة — كاش/نتيجة/أمانات/ذمم/مال المالك. */
@@ -97,68 +101,81 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     setDataVersion(version => version + 1);
     channelRef.current?.postMessage("changed");
   }, []);
-  const services = useMemo(() => {
-    const store = createBrowserLocalStore();
-    const costs = new CostService(store);
-    const projectFinance = new ProjectFinancialService(store);
-    const ownerEntitlement = new OwnerEntitlementService(store, (from, to) =>
-      projectFinance.readRecordedPeriodResult(from, to),
-    );
-    const g5 = new G5Service(store, projectFinance);
-    const schedules = new ScheduleService(store);
-    const recurrences = new ScheduleRecurrenceService(store);
-    const agreementContext = new AgreementContextService(store);
-    const dailyFollowUp = new DailyFollowUpService(store);
-    const supplierPurchases = new SupplierPurchaseService(store);
-    const inventory = new InventoryMaterialService(store);
-    const recurringWork = new RecurringWorkService(store);
-    const directSales = new DirectSaleService(store);
-    const fulfillment = new FulfillmentService(store, undefined, schedules);
-    return {
-      profiles: new ProfileService(store),
-      ownerProfile: new OwnerProfileService(store),
-      preferences: new PreferenceService(store),
-      actualTime: new ActualTimeService(store),
-      drafts: new DraftService(store),
-      directSales: directSales,
-      costs,
-      agreements: new AgreementService(store, costs),
-      agreementContext,
-      financialPulse: new FinancialPulseService(store),
-      projectFinance,
-      correctionHistory: new CorrectionHistoryService(store),
-      ownerEntitlement,
-      recurringWork,
-      g5,
-      supplierPurchases,
-      cashContinuity: new CashContinuityService(store),
-      inventory,
-      catalog: new CatalogService(store),
-      dailyFollowUp,
-      homeControlCenter: new HomeControlCenterService(
-        store,
-        dailyFollowUp,
-        projectFinance,
-        supplierPurchases,
-        inventory,
-        agreementContext,
-      ),
-      schedules,
-      recurrences,
-      fulfillment: fulfillment,
-      transfers: new LocalTransferService(store),
-      guidedOpeningImport: new GuidedOpeningImportService(store),
-      costEstimates: new CostEstimateService(store),
-      partyLedger: new PartyLedgerService(store),
-      collections: new CollectionService(store, fulfillment, directSales, projectFinance),
-      walletLedger: new WalletLedgerService(store),
-      statement: new StatementService(store, projectFinance),
-      dataVersion,
-      notifyDataChanged,
-    };
-  }, [dataVersion, notifyDataChanged]);
+  /* S5-08 (المجموعة ٦ — البند ٦): الخدمات والمخزن عناصر بلا حالة — تُنشأ مرة
+   * واحدة على مستوى الوحدة (singleton)، وdataVersion يعيد تركيب غلاف السياق
+   * الرخيص فقط: هوية السياق تتغير فيلتقط التأثيرات المفتاحة على dataVersion
+   * التحديث، وهويات الخدمات الداخلية تبقى مستقرة فلا يُعاد بناء ~35 خدمة عند
+   * كل كتابة، ويبقى المخزن واحدًا فوق الاتصال المخزَّن (S5-07). */
+  const services = useMemo<PrototypeServices>(
+    () => ({ ...singletonServices, dataVersion, notifyDataChanged }),
+    [dataVersion, notifyDataChanged],
+  );
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
+
+/* مجموعة الخدمات الواحدة — تُبنى مرة عند تحميل الوحدة. الخدمات كلها بلا حالة
+ * (حقول قراءة فقط في منشئاتها) فلا حالة مشتركة تُفسد بين الأسطح. */
+function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataChanged"> {
+  const store = createBrowserLocalStore();
+  const costs = new CostService(store);
+  const projectFinance = new ProjectFinancialService(store);
+  const ownerEntitlement = new OwnerEntitlementService(store, (from, to) =>
+    projectFinance.readRecordedPeriodResult(from, to),
+  );
+  const g5 = new G5Service(store, projectFinance);
+  const schedules = new ScheduleService(store);
+  const recurrences = new ScheduleRecurrenceService(store);
+  const agreementContext = new AgreementContextService(store);
+  const dailyFollowUp = new DailyFollowUpService(store);
+  const supplierPurchases = new SupplierPurchaseService(store);
+  const inventory = new InventoryMaterialService(store);
+  const recurringWork = new RecurringWorkService(store);
+  const directSales = new DirectSaleService(store);
+  const fulfillment = new FulfillmentService(store, undefined, schedules);
+  return {
+    profiles: new ProfileService(store),
+    ownerProfile: new OwnerProfileService(store),
+    preferences: new PreferenceService(store),
+    actualTime: new ActualTimeService(store),
+    drafts: new DraftService(store),
+    directSales: directSales,
+    costs,
+    agreements: new AgreementService(store, costs),
+    agreementContext,
+    financialPulse: new FinancialPulseService(store),
+    projectFinance,
+    correctionHistory: new CorrectionHistoryService(store),
+    ownerEntitlement,
+    recurringWork,
+    g5,
+    supplierPurchases,
+    cashContinuity: new CashContinuityService(store),
+    inventory,
+    catalog: new CatalogService(store),
+    dailyFollowUp,
+    homeControlCenter: new HomeControlCenterService(
+      store,
+      dailyFollowUp,
+      projectFinance,
+      supplierPurchases,
+      inventory,
+      agreementContext,
+    ),
+    schedules,
+    recurrences,
+    fulfillment: fulfillment,
+    transfers: new LocalTransferService(store),
+    guidedOpeningImport: new GuidedOpeningImportService(store),
+    costEstimates: new CostEstimateService(store),
+    partyLedger: new PartyLedgerService(store),
+    collections: new CollectionService(store, fulfillment, directSales, projectFinance),
+    collectionReversal: new CollectionReversalService(store, projectFinance),
+    walletLedger: new WalletLedgerService(store),
+    statement: new StatementService(store, projectFinance),
+  };
+}
+
+const singletonServices = createServices();
 
 export function usePrototypeServices() {
   const context = useContext(PrototypeServicesContext);

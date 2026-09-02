@@ -1,7 +1,7 @@
 /**
  * مبدأ Micro: نوع حركة المخزون المجهول يفشل بوضوح بدل أن يرث معنى حركة أخرى.
  */
-export const supportedInventoryMovementTypes = ["receipt", "consume", "waste", "adjust"] as const;
+const supportedInventoryMovementTypes = ["receipt", "consume", "waste", "adjust"] as const;
 
 export type InventoryMovementRouteType = (typeof supportedInventoryMovementTypes)[number];
 

@@ -475,7 +475,7 @@ export type OwnerEntitlementEvidence = {
   unitQuantity?: number | null;
   unitSourceKeys?: readonly string[] | null;
 };
-export type OwnerEntitlementCalculation = {
+type OwnerEntitlementCalculation = {
   amountMinor: number | null;
   knowledge: OwnerEntitlementKnowledge;
   baseMinor: number | null;

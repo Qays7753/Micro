@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createCashWallet } from "@micro-domain/cash-continuity/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { OwnerEntitlementService } from "./ownerEntitlementService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
@@ -675,5 +676,115 @@ describe("OwnerEntitlementService", () => {
         idempotencyKey: "blank-note",
       }),
     ).toMatchObject({ ok: false, code: "validation_error" });
+  });
+});
+
+describe("OwnerEntitlementService — الدفتر الموحد لمال المالك (المجموعة ٦، البند ٢)", () => {
+  it("يدمج أحداث المالك العامة مع حركات الدفتر برقم رأس مال مطابق لمعادلة المركز", async () => {
+    const store = new MemoryLocalStore();
+    await store.commitCashContinuity(wallet, []);
+    const service = new OwnerEntitlementService(
+      store,
+      async () => ({ ok: true as const, value: { resultMinor: 0, status: "recorded_only" as const } }),
+      () => "2026-09-02T08:00:00.000Z",
+    );
+    /* حدثان عامان: إدخال 5000 وسحب 1000 (كاش غير موزع). */
+    const invest = await store.saveFinancialEvent(
+      createFinancialEvent({
+        id: "g6-inv",
+        type: "owner_investment_cash",
+        amountMinor: 5000,
+        occurredOn: "2026-09-01",
+        recordedAt: "2026-09-01T08:00:00.000Z",
+        idempotencyKey: "g6-inv-key",
+        note: "أضفت مالًا",
+        counterparty: null,
+        relatedEventId: null,
+      }),
+    );
+    expect(invest.ok).toBe(true);
+    const withdraw = await store.saveFinancialEvent(
+      createFinancialEvent({
+        id: "g6-wd",
+        type: "owner_withdrawal_cash",
+        amountMinor: 1000,
+        occurredOn: "2026-09-02",
+        recordedAt: "2026-09-02T08:00:00.000Z",
+        idempotencyKey: "g6-wd-key",
+        note: "سحبت نقدي",
+        counterparty: null,
+        relatedEventId: null,
+      }),
+    );
+    expect(withdraw.ok).toBe(true);
+    /* حركة دفتر: إرجاع بوصف رأس مال جديد 2000 (محفظة). */
+    const capitalReturn = await service.recordMovement({
+      kind: "return",
+      amountMinor: 2000,
+      walletId: "wallet-1",
+      occurredOn: "2026-09-02",
+      note: "أرجعت مالًا",
+      reason: "new_capital_investment",
+      idempotencyKey: "g6-cap-key",
+    });
+    expect(capitalReturn.ok).toBe(true);
+
+    const overview = await service.readOwnerMoneyOverview();
+    expect(overview.ok).toBe(true);
+    if (!overview.ok) return;
+    /* رأس المال: 5000 حدثًا − 1000 سحبًا + 2000 إرجاعًا = 6000. */
+    expect(overview.value.ownerCapitalRecordedMinor).toBe(6000);
+    const eventRows = overview.value.rows.filter(row => row.source === "event");
+    expect(eventRows.length).toBe(2);
+    expect(eventRows.find(row => row.id === "g6-inv")?.amountMinor).toBe(5000);
+    expect(eventRows.find(row => row.id === "g6-wd")?.amountMinor).toBe(-1000);
+    expect(eventRows.find(row => row.id === "g6-inv")?.cashPoolLabel).toBe("كاش غير موزع");
+    expect(eventRows.find(row => row.id === "g6-inv")?.deepLink).toContain("/finance?event=");
+    const ledgerRows = overview.value.rows.filter(row => row.source === "ledger");
+    expect(ledgerRows.length).toBe(1);
+    expect(ledgerRows[0]!.amountMinor).toBe(2000);
+    expect(ledgerRows[0]!.effectLabel).toBe("رأس مال");
+    expect(ledgerRows[0]!.cashPoolLabel).toContain("محفظة");
+  });
+
+  it("يحسب سحوبات الدفتر خروجًا ويكشف التراجع الموثق على السطر", async () => {
+    const store = new MemoryLocalStore();
+    await store.commitCashContinuity(wallet, []);
+    const service = new OwnerEntitlementService(
+      store,
+      async () => ({ ok: true as const, value: { resultMinor: 0, status: "recorded_only" as const } }),
+      () => "2026-09-02T08:00:00.000Z",
+    );
+    const draw = await service.recordMovement({
+      kind: "draw",
+      amountMinor: 700,
+      walletId: "wallet-1",
+      occurredOn: "2026-09-02",
+      note: "سحب قبل تسجيل الحق",
+      reason: "pre_entitlement_draw",
+      idempotencyKey: "g6-pre-key",
+    });
+    expect(draw.ok).toBe(true);
+    const reversed = await service.reverseMovement({
+      movementId: draw.value.movement.id,
+      occurredOn: "2026-09-03",
+      reason: "سجلت السحب بالخطأ",
+      idempotencyKey: "g6-pre-rev-key",
+    });
+    expect(reversed.ok).toBe(true);
+
+    const overview = await service.readOwnerMoneyOverview();
+    expect(overview.ok).toBe(true);
+    if (!overview.ok) return;
+    const rows = overview.value.rows;
+    /* السحب الأصلي والتراجع كلاهما ظاهر بحالته الصادقة. */
+    const original = rows.find(row => row.id === draw.value.movement.id);
+    const reversalRow = rows.find(row => row.id === reversed.value!.id);
+    expect(original?.amountMinor).toBe(-700);
+    expect(original?.reversalLabel).toContain("مُتراجَع");
+    expect(reversalRow?.amountMinor).toBe(700);
+    expect(reversalRow?.reversalLabel).toContain("تراجع موثق");
+    /* رأس المال صافي صفر (السحب قبل الحق لا يمس رأس المال أصلًا). */
+    expect(overview.value.ownerCapitalRecordedMinor).toBe(0);
   });
 });

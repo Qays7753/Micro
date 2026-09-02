@@ -282,7 +282,21 @@ CAPS: dict[str, int] = {
     # audit repairs): honest Amanah exclusion on recorded liquidity (dt label
     # "أمانات محتجزة" + explanatory notice when held > 0) and the contract-26 return
     # label ("رجوع") when opened with ?from. Mandated honesty labels, no prose.
-    "Finance": 172,
+    # Finance 172 → 175 (2026-09-02, Group 6 Item 2, owner-approved final-closure
+    # prompt — S2-07 unification): the single owner card carries the two mandated
+    # separated numbers ("رأس مالك في المشروع" + "حق مسجل متبقٍ"), the dead owner
+    # PositionCard becomes a link with the discoverability helper ("رأس مالك · افتح
+    # الدفتر الموحد"), and the unified ledger service labels (merged-history rows)
+    # join the measured set as feeding-service strings. Netted in the same scope:
+    # "سياسات فعالة" + "سحب/إرجاع فعلي" metrics and the three scattered owner
+    # action buttons collapsed into one "مال المالك" entry. Mandated labels only.
+    # Finance 175 → 181 (2026-09-02, Group 6 Item 3, owner-approved final-closure
+    # prompt — S2-09): the honest restatement line on Position (all-time digest)
+    # and Period (in-range digest) — the RestatementNote component's mandated
+    # sentences (count phrase, net-effect label, the preservation semantics,
+    # "افتح الأصل والتصحيح") join the measured set as component strings. Calm
+    # one-line treatment, no cards, no warning colors. Mandated labels only.
+    "Finance": 181,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -299,7 +313,13 @@ CAPS: dict[str, int] = {
     # OrderDetail 158 → 160 (2026-09-02, Group 5 full audit S1-02/S1-06): the
     # contract-26 return label ("رجوع") honoring ?from, and the pre-execution
     # consume link carrying its order context — mandated navigation labels.
-    "OrderDetail": 160,
+    # OrderDetail 160 → 141 (2026-09-02, Group 6 Items 1+4, owner-approved
+    # final-closure prompt): a ratchet GAIN — price-revision, collection-reversal,
+    # and cancel entry moved behind one named disclosure ("تصحيحات موثقة على
+    # الطلب") per §10.2 rule 1 (S3-12); the new compound one-tap reversal labels
+    # (S2-04a) live inside that collapsed layer, and the always-zero "أمانات"
+    # preview row was dropped (G6-F1-6). Nothing deleted; cap lowered 160→141.
+    "OrderDetail": 141,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -324,7 +344,13 @@ CAPS: dict[str, int] = {
     # explicit option), ?product= prefill notice for inactive references, and a return
     # label that names the real target — all mandated labels from the Product-to-Sale
     # flow; no prose padding.
-    "DirectSaleEditor": 66,
+    # DirectSaleEditor 66 → 63 (2026-09-02, Group 6 Item 4, owner-approved
+    # final-closure prompt — S3-12 §10.2 rule 1): the optional reference block
+    # moves behind a 44px inline disclosure that auto-opens on ?product= prefill
+    # (productNotice stays outside), the item-25 quantity semantics and the two
+    # ⓘ explanations (profit-boundary, unknown-cost meaning) move behind named
+    # disclosures. All primary-task fields stay visible; nothing deleted.
+    "DirectSaleEditor": 63,
     # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
     # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
     # mandated bridge labels; the draft form itself is unchanged.
@@ -343,7 +369,13 @@ CAPS: dict[str, int] = {
     # Catalog 92 → 94 (2026-09-02, Group 3 Scope C §9.3, owner-approved execution
     # prompt): the Product-to-Sale row action "سجّل بيع هذا المنتج/هذه الخدمة" on active
     # items — one mandated label pair, the primary action of the catalog surface.
-    "Catalog": 94,
+    # Catalog 94 → 86 (2026-09-02, Group 6 Item 4, owner-approved final-closure
+    # prompt — S3-12 §10.2 rule 1, Option A): the P-002 optional suggestion
+    # fields, the optional organized-unit select, and the per-row defaults editor
+    # move behind named inline disclosures (44px, prefill preserved on open);
+    # the primary Product-to-Sale row action and the create path stay visible.
+    # Nothing deleted; caps lowered — a ratchet gain.
+    "Catalog": 86,
     # InventoryMaterials 49 → 50 (2026-09-02, Group 5 S1-10): contract-26 return
     # label ("رجوع") when opened with ?from — one mandated navigation label.
     "InventoryMaterials": 50,
@@ -359,7 +391,15 @@ CAPS: dict[str, int] = {
     # label ("رجوع") honoring ?from + the payable-line label moved out of the mono
     # numeric class into its own Arabic label pair. Mandated labels.
     "CashWallets": 72,
-    "OwnerEntitlement": 48,
+    # OwnerEntitlement 48 → 53 (2026-09-02, Group 6 Item 2, owner-approved
+    # final-closure prompt — S2-07): the screen becomes the unified «مال المالك»
+    # surface — mandated labels: unified overline ("دفتر واحد · المبالغ (د.أ)"),
+    # the two balance metrics, the two primary write actions ("أدخل مالًا للمشروع"
+    # · "اسحب لنفسك"), the merged-history layer with its source labels ("حدث عام"
+    # · "دفتر المالك" + empty state), and the ⓘ boundaries disclosure. The old
+    # visible policies section moved inside the collapsed «حق المالك وسياسته»
+    # layer in the same scope. Mandated unification labels, no prose padding.
+    "OwnerEntitlement": 53,
     # Schedule 98 → 99 (2026-09-02, Group 5 S1-10): contract-26 return label ("رجوع")
     # when opened with ?from — one mandated navigation label.
     "Schedule": 99,

@@ -163,6 +163,3 @@ export function canonicalReturnFor(pathname: string): string {
 }
 
 /** هل المسار سطح (يُبقي التنقل السفلي)؟ يُستعمل لتصنيف المصدر عند الحاجة. */
-export function isSurfacePath(pathname: string): boolean {
-  return getMicroRouteKind(pathname) === "surface";
-}

@@ -414,7 +414,7 @@ function FinancialEventRow({
             <textarea
               value={reason}
               onChange={input => setReason(input.target.value)}
-              placeholder="مثال: المبلغ الصحيح ١٢ دينارًا لا ٢١"
+              placeholder="مثال: المبلغ الصحيح 12 دينارًا لا 21"
               autoFocus
             />
           </label>

@@ -13,7 +13,7 @@ import {
   type FinancialEventType,
   type OperatingExpenseContext,
 } from "@micro-domain/financial-event/index.js";
-import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatMoneyWithUnit, localDateInAmman as ammanDate} from "@/presentation/formatters";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import {
@@ -160,6 +160,9 @@ export type UnallocatedDistributionInput = {
   occurredOn?: string;
   sourceRefId?: string | null;
   sourceRefKind?: "sale" | "expense" | "collection" | "order" | null;
+  /* المجموعة ٦ (S2-04أ): حدث القبضة المصدر — يربط التخصيص بسطر التحصيل نفسه
+   * فيصير التراجع المزدوج قابلًا للتحديد المطابق بلا تخمين. */
+  sourceRefLineId?: string | null;
 };
 /* تعديل/حذف بسيطان (مبدأ المالك ٥.٦): التراجع والبديل في معاملة واحدة ذرّية. */
 export type FinancialEditInput = {
@@ -180,16 +183,6 @@ function id(): string {
   return (
     globalThis.crypto?.randomUUID?.() ?? `financial-${Date.now()}-${Math.random().toString(36).slice(2)}`
   );
-}
-function ammanDate(timestamp: string): string {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(timestamp));
-  const value = (type: string) => parts.find(part => part.type === type)?.value;
-  return `${value("year")}-${value("month")}-${value("day")}`;
 }
 /* F-006 (دورة التدقيق النهائي ٢٠٢٦‑٠٩‑٠١): رسالة حد الأمانة تعرض الرصيد المتاح
  * والمبلغ المطلوب بالأرقام — قرار المالك المعتمد §٥.٢: «رسالة عربية واضحة تُظهر
@@ -937,6 +930,7 @@ export class ProjectFinancialService {
         operationKey: input.operationKey ?? `allocation-${id()}`,
         sourceRefId: input.sourceRefId ?? null,
         sourceRefKind: input.sourceRefKind ?? null,
+        sourceRefLineId: input.sourceRefLineId ?? null,
       });
       const saved = await this.store.commitCashContinuity(wallet, [entry]);
       if (!saved.ok)

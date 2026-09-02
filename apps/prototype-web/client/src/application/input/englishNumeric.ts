@@ -1,6 +1,23 @@
 /** Application input boundary: validates ASCII numeric text before it becomes a quantity or JOD minor unit. */
 export type EnglishNumericKind = "integer" | "signedInteger" | "decimal" | "money" | "percentage";
 
+/* المجموعة ٦ (البند ٥): حدود الإدخال وحده يُطبَّع — أرقام هندية (٠–٩) أو فارسية
+ * (۰–۹) تُحول إلى إنجليزية 0–9 قبل أي فحص نمط، فيبقى الإدخال بالإنجليزية حصرًا
+ * مع بيانانات مخزنة قديمة تُقرأ بسلامة بلا تغيير للمعنى الرقمي. لا يُطبَّع نص
+ * حر ولا يُعاد كتابة أي مخزن — تحويل عرض/إدخال فقط. */
+const ARABIC_INDIC = /[\u0660-\u0669\u06F0-\u06F9]/g;
+/* تُبنى الخريطة برمجيًا — لا قيم حرفية بأرقام هندية في المصدر — نفس المنطق
+ * بلا أي أثر على قياس كثافة النص للأسطح المستوردة. */
+const ARABIC_INDIC_MAP: Record<string, string> = {};
+for (let code = 0x0660; code <= 0x0669; code += 1)
+  ARABIC_INDIC_MAP[String.fromCharCode(code)] = String(code - 0x0660);
+for (let code = 0x06f0; code <= 0x06f9; code += 1)
+  ARABIC_INDIC_MAP[String.fromCharCode(code)] = String(code - 0x06f0);
+export function normalizeAsciiDigits(value: string): string {
+  if (!/[\u0660-\u0669\u06F0-\u06F9]/.test(value)) return value;
+  return value.replace(ARABIC_INDIC, digit => ARABIC_INDIC_MAP[digit] ?? digit);
+}
+
 const integerPartial = /^[0-9]*$/;
 const signedIntegerPartial = /^-?[0-9]*$/;
 const decimalPartial = /^[0-9]*(?:\.[0-9]*)?$/;

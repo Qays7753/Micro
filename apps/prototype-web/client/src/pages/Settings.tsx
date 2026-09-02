@@ -17,6 +17,7 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { formatLocalDate } from "@/presentation/formatters";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
 import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
@@ -385,7 +386,7 @@ export default function SettingsPage() {
               <>
                 <p>
                   {backupReminder
-                    ? "مفعّل — سطر هادئ في الشاشة الرئيسية بعد ٧ أيام من آخر تصدير مُتحقق."
+                    ? "مفعّل — سطر هادئ في الشاشة الرئيسية بعد 7 أيام من آخر تصدير مُتحقق."
                     : "مطفأ — لن يظهر سطر التذكير؛ تصديرك وعمر نسختك يبقيان كما هما في الإعدادات."}
                 </p>
                 <button
@@ -427,7 +428,7 @@ export default function SettingsPage() {
           title={lastExport ? "تصدير محلي مُتحقق" : "تصدير محلي"}
           text={
             lastExport
-              ? `آخر نسخة مُتحقق منها: ${lastExport.slice(0, 10)} — يُعاد التحقق من الملف دورة كاملة قبل إعلان جهوزيته.`
+              ? `آخر نسخة مُتحقق منها: ${formatLocalDate(lastExport.slice(0, 10)) ?? lastExport.slice(0, 10)} — يُعاد التحقق من الملف دورة كاملة قبل إعلان جهوزيته.`
               : "ينشئ ملف نسخة مُتحققًا منه لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
           }
           actionLabel="تصدير"

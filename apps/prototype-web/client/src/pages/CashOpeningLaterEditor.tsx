@@ -23,7 +23,8 @@ export default function CashOpeningLaterEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { cashContinuity, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<PageState>({ phase: "loading" });
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
@@ -58,7 +59,7 @@ export default function CashOpeningLaterEditor() {
     return () => {
       active = false;
     };
-  }, [cashContinuity, id]);
+  }, [cashContinuity, id, dataVersion]);
 
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
@@ -181,7 +182,7 @@ export default function CashOpeningLaterEditor() {
           <textarea
             value={reason}
             onChange={event => setReason(event.target.value)}
-            placeholder="مثال: عدّت الدرج صباح ٢٠ أب ووجدت ٤٥ دينارًا"
+            placeholder="مثال: عدّت الدرج يوم 20/08 ووجدت 45 دينارًا"
           />
         </label>
         {message ? (

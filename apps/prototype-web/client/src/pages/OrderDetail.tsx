@@ -13,13 +13,17 @@ import {
   Save,
   XCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { AgreementResult } from "@/application/agreements/agreementService";
 import type { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
+import type {
+  CollectionReversalPreview,
+  CollectionReversalResult,
+} from "@/application/collections/collectionReversalService";
 import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
 import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import { AgreementContextPanel } from "@/components/order/AgreementContextPanel";
@@ -51,7 +55,7 @@ export default function OrderDetail() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو الطلبات كبديل قانوني. */
   const returnPath = useReturnPath();
-  const { actualTime, agreements, agreementContext, fulfillment, inventory, drafts, costEstimates, dataVersion, notifyDataChanged } =
+  const { actualTime, agreements, agreementContext, fulfillment, inventory, drafts, costEstimates, collectionReversal, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   const [stored, setStored] = useState<StoredCraftOrder | null>(null);
   const [state, setState] = useState<OrderDetailState>({ phase: "loading" });
@@ -73,11 +77,56 @@ export default function OrderDetail() {
   const [newPriceMinor, setNewPriceMinor] = useState(0);
   const [validNewPrice, setValidNewPrice] = useState(true);
   const [priceReason, setPriceReason] = useState("");
-  /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة على الطلب. */
+  /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة على الطلب.
+   * المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة مع تخصيصها
+   * المطابق — مفتاح جذر واحد لكل فتح لوحة يجعل إعادة المحاولة آمنة. */
   const [reversalEventId, setReversalEventId] = useState<string | null>(null);
   const [reversalMinor, setReversalMinor] = useState(0);
   const [validReversal, setValidReversal] = useState(true);
   const [reversalReason, setReversalReason] = useState("");
+  /* المجموعة ٦ (البند ١): معاينة المطابقة + وضع التراجع (مزدوج/مفرد). */
+  const [compoundPreview, setCompoundPreview] = useState<CollectionReversalPreview | null>(null);
+  const [compoundMode, setCompoundMode] = useState(true);
+  const reversalOperationKeyRef = useRef(
+    `order-reversal-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
+  );
+
+  const openReversalPanel = (eventId: string, amountMinor: number) => {
+    reversalOperationKeyRef.current = `order-reversal-${
+      globalThis.crypto?.randomUUID?.() ?? Date.now()
+    }`;
+    setCompoundMode(true);
+    setReversalEventId(eventId);
+    setReversalMinor(amountMinor);
+    setReversalReason("");
+  };
+
+  /* معاينة التراجع المزدوج: حالة مطابقة التخصيص وأرقام المحفظة/غير الموزع
+   * قبل/بعد — تُقرأ محليًا مع كل فتح لوحة أو تحديث بيانات. */
+  useEffect(() => {
+    let active = true;
+    if (!reversalEventId || state.phase !== "ready") {
+      setCompoundPreview(null);
+      return;
+    }
+    void (async () => {
+      const result = await collectionReversal.preview({
+        orderId: state.stored.id,
+        collectionEventId: reversalEventId,
+      });
+      if (active) setCompoundPreview(result.ok ? result.value : null);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [reversalEventId, state, collectionReversal, dataVersion]);
+
+  const closeReversalPanel = () => {
+    setReversalEventId(null);
+    setReversalReason("");
+    setReversalMinor(0);
+    setCompoundPreview(null);
+  };
 
   useEffect(() => {
     if (state.phase === "ready") setNewPriceMinor(state.stored.order.agreedPriceMinor);
@@ -160,6 +209,16 @@ export default function OrderDetail() {
   });
   const label = agreement.label;
   const result = resultLabel[order.resultStatus] ?? resultLabel.review_required;
+  /* المجموعة ٦ (البند ٤ — S3-12): ملخص الإفصاح يسمي الأفعال المتاحة فعلًا حسب
+   * حالة الطلب — قابل للاكتشاف بلا فتح، وبلا ذكر فعل لا ينطبق. */
+  const correctionsSummary = [
+    ...(["draft", "cancelled", "needs_review"].includes(order.status) ? [] : ["تعديل السعر"]),
+    ...(order.status !== "cancelled" &&
+    order.events.some(event => event.type === "collection_recorded")
+      ? ["تراجع عن قبضة"]
+      : []),
+    ...(preDeliveryStatuses.includes(order.status) ? ["إلغاء الطلب"] : []),
+  ].join(" · ");
 
   async function run(action: () => Promise<FulfillmentResult | AgreementResult>) {
     setMessage(null);
@@ -180,6 +239,29 @@ export default function OrderDetail() {
     setOtherReasonOpen(false);
     setOtherReason("");
     await run(() => fulfillment.cancel(stored!.id, reason));
+  }
+
+  /* المجموعة ٦ (البند ١): تنفيذ التراجع — مزدوجًا أو مفردًا — عبر الخدمة الذرّية
+   * نفسها؛ إعادة المحاولة بمفتاح الجذر نفسه لا تكرر أي أثر. */
+  async function runReversal(compound: boolean) {
+    if (!stored || !reversalEventId) return;
+    const result = await collectionReversal.reverse({
+      orderId: stored.id,
+      collectionEventId: reversalEventId,
+      amountMinor: reversalMinor,
+      reason: reversalReason,
+      operationKey: reversalOperationKeyRef.current,
+      alsoReverseAllocation: compound,
+    });
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setStored(result.value.stored);
+    setState({ phase: "ready", stored: result.value.stored });
+    notifyDataChanged();
+    closeReversalPanel();
+    setCompoundMode(true);
   }
 
   const contextualAction =
@@ -277,9 +359,19 @@ export default function OrderDetail() {
           </strong>
         </div>
       </section>
-      {/* المجموعة ٢ (§10.5): تعديل السعر بعد الاتفاق — تصحيح موثق داخل الطلب لا
-          إلغاء وإعادة إنشاء. الاتفاق الأصلي باقٍ في الأحداث والسبب إلزامي. */}
-      {["draft", "cancelled", "needs_review"].includes(order.status) ? null : pricePanelOpen ? (
+      {/* المجموعة ٦ (البند ٤ — S3-12): تصحيحات الطلب خلف إفصاح واحد — الحالة
+          الملحّة والفعل الأساسي والنتيجة تبقى ظاهرة بلا تمرير، والثانوي خلف فعل
+          واضح قابل للاكتشاف. لا حذف لمعلومة ولا رفع لسقف الكثافة. */}
+      {!["draft", "cancelled"].includes(order.status) ? (
+        <details className="micro-additional-details">
+          <summary className="micro-additional-details-summary">
+            <span>تصحيحات موثقة على الطلب</span>
+            <small>{correctionsSummary}</small>
+          </summary>
+          <div className="micro-additional-details-body">
+            {/* المجموعة ٢ (§10.5): تعديل السعر بعد الاتفاق — تصحيح موثق داخل الطلب لا
+                إلغاء وإعادة إنشاء. الاتفاق الأصلي باقٍ في الأحداث والسبب إلزامي. */}
+            {["draft", "cancelled", "needs_review"].includes(order.status) ? null : pricePanelOpen ? (
         <section className="micro-cancel-panel" aria-label="تعديل السعر بعد الاتفاق">
           <strong>عدّل السعر المتفق عليه</strong>
           <label className="micro-field">
@@ -339,16 +431,305 @@ export default function OrderDetail() {
             <p className="micro-local-truth">السعر الجديد يطابق الحالي — لا تصحيح بلا تغيير.</p>
           ) : null}
         </section>
-      ) : (
-        <button
-          className="micro-button micro-button-quiet"
-          type="button"
-          disabled={isActing}
-          onClick={() => setPricePanelOpen(true)}
-        >
-          <PencilLine aria-hidden="true" /> عدّل السعر بعد الاتفاق
-        </button>
-      )}
+            ) : (
+              <button
+                className="micro-button micro-button-quiet"
+                type="button"
+                disabled={isActing}
+                onClick={() => setPricePanelOpen(true)}
+              >
+                <PencilLine aria-hidden="true" /> عدّل السعر بعد الاتفاق
+              </button>
+            )}
+            {/* القرار ١٩: الإلغاء من أي حالة قبل التسليم عبر cancelOrder وحدها (عقد ٠٢) —
+                السبب اختياري بثلاثة أزرار بنقرة، والتخطي متاح. */}
+            {preDeliveryStatuses.includes(order.status) ? (
+              cancelPanelOpen ? (
+                <section className="micro-cancel-panel" aria-label="تأكيد إلغاء الطلب">
+                  <strong>لماذا تلغي هذا الطلب؟</strong>
+                  <p>
+                    السبب اختياري — اختر بنقرة أو تخطَّ. الإلغاء لا يحذف الطلب ولا أحداثه؛ يسجّل تسوية موثقة ويبقى
+                    في السجل.
+                  </p>
+                  {order.depositCollectedMinor > 0 ? (
+                    <p className="micro-warning-copy">
+                      يوجد عربون محصل (
+                      <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) — يبقى
+                      بعد الإلغاء «يحتاج مراجعة» حتى تردّه أو تحتفظ به صراحة، وهذا خيار صالح لا خطأ.
+                    </p>
+                  ) : null}
+                  <div className="micro-form-actions micro-contextual-actions">
+                    <button
+                      className="micro-button micro-button-secondary"
+                      type="button"
+                      disabled={isActing}
+                      onClick={() => {
+                        void cancelWithReason("غلط في السعر");
+                      }}
+                    >
+                      غلط في السعر
+                    </button>
+                    <button
+                      className="micro-button micro-button-secondary"
+                      type="button"
+                      disabled={isActing}
+                      onClick={() => {
+                        void cancelWithReason("انسحب العميل");
+                      }}
+                    >
+                      انسحب العميل
+                    </button>
+                    <button
+                      className="micro-button micro-button-secondary"
+                      type="button"
+                      disabled={isActing}
+                      onClick={() => setOtherReasonOpen(true)}
+                    >
+                      سبب آخر
+                    </button>
+                    <button
+                      className="micro-button micro-button-quiet"
+                      type="button"
+                      disabled={isActing}
+                      onClick={() => {
+                        void cancelWithReason("");
+                      }}
+                    >
+                      تخطّى السبب وألغِ
+                    </button>
+                    <button
+                      className="micro-button micro-button-quiet"
+                      type="button"
+                      onClick={() => setCancelPanelOpen(false)}
+                    >
+                      تراجع
+                    </button>
+                  </div>
+                  {otherReasonOpen ? (
+                    <div className="micro-form-actions micro-contextual-actions">
+                      <label className="micro-field">
+                        <span>سبب الإلغاء</span>
+                        <input
+                          value={otherReason}
+                          onChange={event => setOtherReason(event.target.value)}
+                          placeholder="مثال: تغيرت مواصفات الطلب"
+                        />
+                      </label>
+                      <button
+                        className="micro-button micro-button-primary"
+                        type="button"
+                        disabled={isActing || !otherReason.trim()}
+                        onClick={() => {
+                          void cancelWithReason(otherReason);
+                        }}
+                      >
+                        ألغِ الطلب بهذا السبب
+                      </button>
+                    </div>
+                  ) : null}
+                </section>
+              ) : (
+                <button
+                  className="micro-button micro-button-quiet"
+                  type="button"
+                  disabled={isActing}
+                  onClick={() => setCancelPanelOpen(true)}
+                >
+                  <XCircle aria-hidden="true" /> إلغاء الطلب
+                </button>
+              )
+            ) : null}
+            {/* المجموعة ٦ (البند ١ — S2-04أ): التراجع الموثق عن قبضة مسجلة،
+                والمزدوج عن القبضة مع تخصيصها المطابق عند توفر مطابقة كاملة —
+                فعل واحد، معاينة صادقة، ومعاملة ذرّية واحدة. */}
+            {order.status !== "cancelled"
+              ? (() => {
+                  const collections = order.events.filter(event => event.type === "collection_recorded");
+                  if (collections.length === 0) return null;
+                  const remainingOf = (eventId: string) => {
+                    const source = order.events.find(event => event.id === eventId);
+                    const reversed = order.events
+                      .filter(
+                        event => event.type === "collection_reversed" && event.reversesEventId === eventId,
+                      )
+                      .reduce((sum, event) => sum + (event.amountMinor ?? 0), 0);
+                    return (source?.amountMinor ?? 0) - reversed;
+                  };
+                  const openCollections = collections.filter(event => remainingOf(event.id) > 0);
+                  const target = reversalEventId
+                    ? order.events.find(event => event.id === reversalEventId) ?? null
+                    : null;
+                  const preview = compoundPreview;
+                  const allocation = preview?.allocation ?? null;
+                  const compoundAvailable =
+                    preview?.status === "full_match" &&
+                    allocation !== null &&
+                    reversalMinor === preview.remainingMinor;
+                  const useCompound = compoundMode && compoundAvailable;
+                  return (
+                    <section className="micro-cancel-panel" aria-label="تراجع موثق عن قبضة">
+                      {reversalEventId && target ? (
+                        <>
+                          <label className="micro-field">
+                            <span>مبلغ التراجع (د.أ)</span>
+                            <EnglishNumberInput
+                              value={reversalMinor}
+                              kind="money"
+                              onNumericChange={setReversalMinor}
+                              onTextValidityChange={setValidReversal}
+                              aria-label="مبلغ التراجع عن القبضة"
+                            />
+                          </label>
+                          {validReversal &&
+                          reversalMinor > 0 &&
+                          reversalMinor <= remainingOf(target.id) &&
+                          preview ? (
+                            <CorrectionPreview
+                              action={
+                                useCompound
+                                  ? "تراجع موثق عن القبضة والتخصيص معًا"
+                                  : "تراجع موثق عن قبضة على الطلب"
+                              }
+                              originalLabel={`قبضة ${formatMoneyMinor(target.amountMinor ?? 0)} د.أ على «${order.itemName}»`}
+                              originalDetail={
+                                useCompound && allocation
+                                  ? `مخصصة بمحفظة «${allocation.walletName}» · المتبقي الحالي على العميل ${formatMoneyMinor(order.receivableMinor)} د.أ`
+                                  : `المتبقي الحالي على العميل ${formatMoneyMinor(order.receivableMinor)} د.أ`
+                              }
+                              intro={
+                                useCompound && allocation
+                                  ? "المبلغ يعود للعميل من محفظته المخصصة والقبضة نفسها — الأصلان باقيان والتراجعان موثقان معًا بمعاملة واحدة."
+                                  : "المبلغ المقبوض يعود للعميل والمتبقي يفتح من جديد — علاقة التدقيق صريحة والقبضة الأصلية باقية."
+                              }
+                              dimensions={
+                                useCompound && allocation
+                                  ? [
+                                      {
+                                        label: "الكاش المقبوض",
+                                        beforeMinor: order.collectedMinor,
+                                        afterMinor: order.collectedMinor - reversalMinor,
+                                      },
+                                      {
+                                        label: "المتبقي على العميل",
+                                        beforeMinor: order.receivableMinor,
+                                        afterMinor: order.receivableMinor + reversalMinor,
+                                      },
+                                      {
+                                        label: `رصيد محفظة «${allocation.walletName}»`,
+                                        beforeMinor: preview.walletBalanceBeforeMinor ?? 0,
+                                        afterMinor: preview.walletBalanceAfterMinor ?? 0,
+                                      },
+                                      {
+                                        label: "الكاش غير الموزع",
+                                        beforeMinor: preview.unallocatedBeforeMinor ?? 0,
+                                        afterMinor: preview.unallocatedAfterMinor ?? 0,
+                                      },
+                                      {
+                                        label: "الإيراد المعروف",
+                                        beforeMinor: order.recognizedRevenueMinor,
+                                        afterMinor: order.recognizedRevenueMinor,
+                                      },
+                                    ]
+                                  : [
+                                      {
+                                        label: "الكاش المقبوض",
+                                        beforeMinor: order.collectedMinor,
+                                        afterMinor: order.collectedMinor - reversalMinor,
+                                      },
+                                      {
+                                        label: "المتبقي على العميل",
+                                        beforeMinor: order.receivableMinor,
+                                        afterMinor: order.receivableMinor + reversalMinor,
+                                      },
+                                      {
+                                        label: "الإيراد المعروف",
+                                        beforeMinor: order.recognizedRevenueMinor,
+                                        afterMinor: order.recognizedRevenueMinor,
+                                      },
+                                    ]
+                              }
+                              unchanged={["الإيراد والنتيجة لا تتغير", "تكلفة الطلب", "سعر الاتفاق"]}
+                              resulting={[
+                                {
+                                  label: "المتبقي بعد التراجع",
+                                  amountMinor: order.receivableMinor + reversalMinor,
+                                },
+                              ]}
+                              reversibleNote={
+                                useCompound
+                                  ? "التراجع التراكمي لا يتجاوز مبلغ القبضة، وفك التخصيص يعيد قيمته إلى غير الموزع — الأصلان باقيان والعملية واحدة."
+                                  : "التراجع التراكمي لا يتجاوز مبلغ القبضة؛ عربون الطلب له مسار تسويته الخاص."
+                              }
+                              reason={reversalReason}
+                              onReasonChange={setReversalReason}
+                              reasonPlaceholder="مثال: رجّعت المبلغ للزبون من الدرج"
+                              error={message}
+                              busy={isActing}
+                              confirmLabel={
+                                useCompound ? "أكّد التراجع عن القبضة والتخصيص" : "أكّد التراجع الموثق"
+                              }
+                              busyLabel="جارٍ توثيق التراجع…"
+                              onConfirm={() => {
+                                void runReversal(useCompound);
+                              }}
+                              onCancel={closeReversalPanel}
+                            >
+                              {useCompound ? (
+                                <button
+                                  className="micro-button micro-button-quiet"
+                                  type="button"
+                                  disabled={isActing}
+                                  onClick={() => setCompoundMode(false)}
+                                >
+                                  تراجع عن القبضة لحالها بدلًا
+                                </button>
+                              ) : compoundAvailable ? (
+                                <button
+                                  className="micro-button micro-button-quiet"
+                                  type="button"
+                                  disabled={isActing}
+                                  onClick={() => setCompoundMode(true)}
+                                >
+                                  تراجع عن القبضة والتخصيص معًا
+                                </button>
+                              ) : preview?.refusalReason ? (
+                                <p className="micro-local-truth">{preview.refusalReason}</p>
+                              ) : null}
+                              {useCompound && preview?.walletWarning ? (
+                                <p className="micro-warning-copy" role="alert">
+                                  {preview.walletWarning}
+                                </p>
+                              ) : null}
+                            </CorrectionPreview>
+                          ) : null}
+                        </>
+                      ) : openCollections.length > 0 ? (
+                        <>
+                          <strong>قبضات مسجلة قابلة للتراجع الموثق</strong>
+                          <div className="micro-form-actions micro-contextual-actions">
+                            {openCollections.map(event => (
+                              <button
+                                key={event.id}
+                                className="micro-button micro-button-quiet"
+                                type="button"
+                                disabled={isActing}
+                                onClick={() => {
+                                  openReversalPanel(event.id, remainingOf(event.id));
+                                }}
+                              >
+                                <RotateCcw aria-hidden="true" /> تراجع عن {formatMoneyMinor(remainingOf(event.id))} د.أ
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+                    </section>
+                  );
+                })()
+              : null}
+          </div>
+        </details>
+      ) : null}
       {order.depositCollectedMinor > 0 ? (
         <section className="micro-deposit-truth">
           <CircleDollarSign aria-hidden="true" />
@@ -384,104 +765,6 @@ export default function OrderDetail() {
             notifyDataChanged={notifyDataChanged}
           />
         </section>
-      ) : null}
-      {/* القرار ١٩: الإلغاء من أي حالة قبل التسليم عبر cancelOrder وحدها (عقد ٠٢) —
-          السبب اختياري بثلاثة أزرار بنقرة، والتخطي متاح. */}
-      {preDeliveryStatuses.includes(order.status) ? (
-        cancelPanelOpen ? (
-          <section className="micro-cancel-panel" aria-label="تأكيد إلغاء الطلب">
-            <strong>لماذا تلغي هذا الطلب؟</strong>
-            <p>
-              السبب اختياري — اختر بنقرة أو تخطَّ. الإلغاء لا يحذف الطلب ولا أحداثه؛ يسجّل تسوية موثقة ويبقى
-              في السجل.
-            </p>
-            {order.depositCollectedMinor > 0 ? (
-              <p className="micro-warning-copy">
-                يوجد عربون محصل (
-                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) — يبقى
-                بعد الإلغاء «يحتاج مراجعة» حتى تردّه أو تحتفظ به صراحة، وهذا خيار صالح لا خطأ.
-              </p>
-            ) : null}
-            <div className="micro-form-actions micro-contextual-actions">
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
-                disabled={isActing}
-                onClick={() => {
-                  void cancelWithReason("غلط في السعر");
-                }}
-              >
-                غلط في السعر
-              </button>
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
-                disabled={isActing}
-                onClick={() => {
-                  void cancelWithReason("انسحب العميل");
-                }}
-              >
-                انسحب العميل
-              </button>
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
-                disabled={isActing}
-                onClick={() => setOtherReasonOpen(true)}
-              >
-                سبب آخر
-              </button>
-              <button
-                className="micro-button micro-button-quiet"
-                type="button"
-                disabled={isActing}
-                onClick={() => {
-                  void cancelWithReason("");
-                }}
-              >
-                تخطّى السبب وألغِ
-              </button>
-              <button
-                className="micro-button micro-button-quiet"
-                type="button"
-                onClick={() => setCancelPanelOpen(false)}
-              >
-                تراجع
-              </button>
-            </div>
-            {otherReasonOpen ? (
-              <div className="micro-form-actions micro-contextual-actions">
-                <label className="micro-field">
-                  <span>سبب الإلغاء</span>
-                  <input
-                    value={otherReason}
-                    onChange={event => setOtherReason(event.target.value)}
-                    placeholder="مثال: تغيرت مواصفات الطلب"
-                  />
-                </label>
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
-                  disabled={isActing || !otherReason.trim()}
-                  onClick={() => {
-                    void cancelWithReason(otherReason);
-                  }}
-                >
-                  ألغِ الطلب بهذا السبب
-                </button>
-              </div>
-            ) : null}
-          </section>
-        ) : (
-          <button
-            className="micro-button micro-button-quiet"
-            type="button"
-            disabled={isActing}
-            onClick={() => setCancelPanelOpen(true)}
-          >
-            <XCircle aria-hidden="true" /> إلغاء الطلب
-          </button>
-        )
       ) : null}
       {/* القرار ١٩: عربون طلب ملغى ينتظر قرارًا — ثلاثة خيارات لا اثنان. */}
       {order.status === "cancelled" && order.depositSettlement === "needs_review" ? (
@@ -553,109 +836,6 @@ export default function OrderDetail() {
           {message}
         </p>
       ) : null}
-      {/* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة — الكاش يعود للعميل
-          والمتبقي يفتح من جديد؛ الإيراد والنتيجة لا يتأثران لأن القبض لم يكن إيرادًا. */}
-      {order.status !== "cancelled"
-        ? (() => {
-            const collections = order.events.filter(event => event.type === "collection_recorded");
-            if (collections.length === 0) return null;
-            const remainingOf = (eventId: string) => {
-              const source = order.events.find(event => event.id === eventId);
-              const reversed = order.events
-                .filter(
-                  event => event.type === "collection_reversed" && event.reversesEventId === eventId,
-                )
-                .reduce((sum, event) => sum + (event.amountMinor ?? 0), 0);
-              return (source?.amountMinor ?? 0) - reversed;
-            };
-            const openCollections = collections.filter(event => remainingOf(event.id) > 0);
-            const target = reversalEventId
-              ? order.events.find(event => event.id === reversalEventId) ?? null
-              : null;
-            return (
-              <section className="micro-cancel-panel" aria-label="تراجع موثق عن قبضة">
-                {reversalEventId && target ? (
-                  <>
-                    <label className="micro-field">
-                      <span>مبلغ التراجع (د.أ)</span>
-                      <EnglishNumberInput
-                        value={reversalMinor}
-                        kind="money"
-                        onNumericChange={setReversalMinor}
-                        onTextValidityChange={setValidReversal}
-                        aria-label="مبلغ التراجع عن القبضة"
-                      />
-                    </label>
-                    {validReversal && reversalMinor > 0 && reversalMinor <= remainingOf(target.id) ? (
-                      <CorrectionPreview
-                        action="تراجع موثق عن قبضة على الطلب"
-                        originalLabel={`قبضة ${formatMoneyMinor(target.amountMinor ?? 0)} د.أ على «${order.itemName}»`}
-                        originalDetail={`المتبقي الحالي على العميل ${formatMoneyMinor(order.receivableMinor)} د.أ`}
-                        intro="المبلغ المقبوض يعود للعميل والمتبقي يفتح من جديد — علاقة التدقيق صريحة والقبضة الأصلية باقية."
-                        dimensions={[
-                          { label: "الكاش المقبوض", beforeMinor: order.collectedMinor, afterMinor: order.collectedMinor - reversalMinor },
-                          { label: "المتبقي على العميل", beforeMinor: order.receivableMinor, afterMinor: order.receivableMinor + reversalMinor },
-                          { label: "الإيراد المعروف", beforeMinor: order.recognizedRevenueMinor, afterMinor: order.recognizedRevenueMinor },
-                          { label: "أمانات", beforeMinor: 0, afterMinor: 0 },
-                        ]}
-                        unchanged={["الإيراد والنتيجة لا تتغير", "تكلفة الطلب", "سعر الاتفاق"]}
-                        resulting={[
-                          { label: "المتبقي بعد التراجع", amountMinor: order.receivableMinor + reversalMinor },
-                        ]}
-                        reversibleNote="التراجع التراكمي لا يتجاوز مبلغ القبضة؛ عربون الطلب له مسار تسويته الخاص."
-                        reason={reversalReason}
-                        onReasonChange={setReversalReason}
-                        reasonPlaceholder="مثال: رُدّ المبلغ نقدًا للعميل"
-                        error={message}
-                        busy={isActing}
-                        confirmLabel="أكّد التراجع الموثق"
-                        busyLabel="جارٍ توثيق التراجع…"
-                        onConfirm={() => {
-                          void run(() =>
-                            fulfillment.reverseCollection(stored.id, {
-                              collectionEventId: target.id,
-                              amountMinor: reversalMinor,
-                              reason: reversalReason,
-                            }),
-                          );
-                          setReversalEventId(null);
-                          setReversalReason("");
-                          setReversalMinor(0);
-                        }}
-                        onCancel={() => {
-                          setReversalEventId(null);
-                          setReversalReason("");
-                          setReversalMinor(0);
-                        }}
-                      />
-                    ) : null}
-                  </>
-                ) : openCollections.length > 0 ? (
-                  <>
-                    <strong>قبضات مسجلة قابلة للتراجع الموثق</strong>
-                    <div className="micro-form-actions micro-contextual-actions">
-                      {openCollections.map(event => (
-                        <button
-                          key={event.id}
-                          className="micro-button micro-button-quiet"
-                          type="button"
-                          disabled={isActing}
-                          onClick={() => {
-                            setReversalEventId(event.id);
-                            setReversalMinor(remainingOf(event.id));
-                            setReversalReason("");
-                          }}
-                        >
-                          <RotateCcw aria-hidden="true" /> تراجع عن {formatMoneyMinor(remainingOf(event.id))} د.أ
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                ) : null}
-              </section>
-            );
-          })()
-        : null}
       {/* §٥-١٦ (رحلة ٢): الدين المسجل قابل للتحصيل — المبلغ حقل وحيد معبأ بالمتبقي،
           والتحصيل يقلل الدين ولا يعيد فتح الطلب. */}
       {order.status === "settled" && order.settlementStatus === "debt" ? (

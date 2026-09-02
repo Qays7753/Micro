@@ -10,6 +10,7 @@ import type {
   CorrectionHistoryService,
 } from "@/application/finance/correctionHistoryService";
 import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
+import { RestatementNote } from "@/components/finance/RestatementNote";
 
 const kindLabel: Record<CorrectionHistoryKind, string> = {
   event_reversal: "تراجع موثق عن حدث مالي",
@@ -63,7 +64,7 @@ function CorrectionRow({
         <div>
           <strong>{kindLabel[entry.kind]}</strong>
           <small>
-            {formatLocalDate(entry.recordedAt.slice(0, 10)) ?? entry.recordedAt.slice(0, 10)}
+            <bdi dir="ltr">{formatLocalDate(entry.recordedAt.slice(0, 10)) ?? entry.recordedAt.slice(0, 10)}</bdi>
             {entry.occurredOn && entry.occurredOn !== entry.recordedAt.slice(0, 10)
               ? ` · تاريخ الأثر ${formatLocalDate(entry.occurredOn) ?? entry.occurredOn}`
               : ""}
@@ -206,6 +207,22 @@ export function CorrectionsLayer({
             {state.message} لم يتغير أي سجل؛ أعد الفتح للمحاولة.
           </p>
         ) : null}
+        {state.phase === "ready" && entries.length > 0 ? (
+          /* المجموعة ٦ (البند ٣ — S2-09): سطر واحد عند رأس السجل يقول الدلالة
+           * نفسها — الأصل باقٍ والتصحيح سِجِل جديد والظاهر صافيهما. */
+          <RestatementNote
+            count={entries.length}
+            netAmountMinor={
+              entries.some(entry => entry.amountEffectMinor === null)
+                ? null
+                : entries.reduce((sum, entry) => sum + (entry.amountEffectMinor ?? 0), 0)
+            }
+            onOpen={() => {
+              const first = entries.find(entry => entry.deepLink) ?? null;
+              if (first?.deepLink) navigate(first.deepLink);
+            }}
+          />
+        ) : null}
         {state.phase === "ready" ? (
           entries.length === 0 ? (
             <p className="micro-empty-copy">
@@ -241,7 +258,7 @@ export function CorrectionsLayer({
               )}
               {entries.length > 30 ? (
                 <p className="micro-finance-event-closed">
-                  تُعرض أحدث ٣٠ تصحيحًا من {entries.length}؛ السجل الكامل محفوظ محليًا ولا يُحذف.
+                  تُعرض أحدث 30 تصحيحًا من {entries.length}؛ السجل الكامل محفوظ محليًا ولا يُحذف.
                 </p>
               ) : null}
             </>

@@ -6,6 +6,7 @@
 import { reversedEventIds } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
+import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 import type {
   ProjectFinancialPosition,
@@ -75,18 +76,8 @@ export type StatementResult =
   | { ok: true; value: StatementReading }
   | { ok: false; code: "storage_error" | "validation_error"; message: string };
 
-const ammanDate = (timestamp: string): string => {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(timestamp));
-  const value = (type: string) => parts.find(part => part.type === type)?.value;
-  return `${value("year")}-${value("month")}-${value("day")}`;
-};
 
-import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit, localDateInAmman as ammanDate } from "@/presentation/formatters";
 
 export class StatementService {
   constructor(
@@ -97,12 +88,13 @@ export class StatementService {
   async read(from: string, to: string): Promise<StatementResult> {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to)
       return { ok: false, code: "validation_error", message: "اختر نطاق كشف يبدأ قبل نهايته." };
-    const [eventsResult, salesResult, ordersResult, purchasesResult, periodResult, positionResult] =
+    const [eventsResult, salesResult, ordersResult, purchasesResult, movementsResult, periodResult, positionResult] =
       await Promise.all([
         this.store.listFinancialEvents(),
         this.store.listDirectSales(),
         this.store.listOrders(),
         this.store.listSupplierPurchases(),
+        this.store.listOwnerMovements(),
         this.projectFinance.readRecordedPeriodResult(from, to),
         this.projectFinance.readPosition(),
       ]);
@@ -111,6 +103,7 @@ export class StatementService {
       !salesResult.ok ||
       !ordersResult.ok ||
       !purchasesResult.ok ||
+      !movementsResult.ok ||
       !periodResult.ok ||
       !positionResult.ok
     )
@@ -123,21 +116,35 @@ export class StatementService {
      * لا مع عائلاتها — فلا يظهر الأثر مرتين ولا يُطمس تصحيح وقع. */
     const reversedInPeriodIds = reversedEventIds(activeEvents);
 
-    /* ١) قبض الطلبات (عربون + تحصيل) داخل الفترة — بتاريخ تسجيل القبضة. */
+    /* ١) قبض الطلبات (عربون + تحصيل) داخل الفترة — بتاريخ تسجيل القبضة.
+     * G6-F1-3: التراجع الموثق عن قبضة أو رد عربون داخل الفترة يسترد كاشًا خرج
+     * فعلًا — بلا خصمه يتضخم «قبض الطلبات» ويفترق صافي الكشف عن الكاش المسجل
+     * (نفس صنيع تراجعات دفعات الموردين G5-S7: الخصم بتاريخ التراجع، والأصل
+     * يبقى بسطره، فيظهران معًا قابلين للتتبع بلا إخفاء). */
     const orderCollectionSources: StatementLineSource[] = [];
     let orderCollectionsMinor = 0;
     for (const stored of ordersResult.value as readonly StoredCraftOrder[]) {
       for (const event of stored.order.events) {
-        if (event.type !== "collection_recorded" && event.type !== "deposit_collected") continue;
+        const isCashIn =
+          event.type === "collection_recorded" || event.type === "deposit_collected";
+        const isCashReturned =
+          event.type === "collection_reversed" || event.type === "deposit_refunded";
+        if (!isCashIn && !isCashReturned) continue;
         const date = ammanDate(event.createdAt);
         if (!inPeriod(date)) continue;
         const amount = event.amountMinor ?? 0;
         if (amount <= 0) continue;
-        orderCollectionsMinor += amount;
+        orderCollectionsMinor += isCashIn ? amount : -amount;
         orderCollectionSources.push({
-          label: `${event.type === "deposit_collected" ? "عربون" : "تحصيل"} — ${stored.order.itemName || "طلب"}`,
+          label: `${isCashIn
+            ? event.type === "deposit_collected"
+              ? "عربون"
+              : "تحصيل"
+            : event.type === "deposit_refunded"
+              ? "رد عربون"
+              : "تراجع عن قبضة"} — ${stored.order.itemName || "طلب"}`,
           href: `/orders/${stored.id}`,
-          amountMinor: amount,
+          amountMinor: isCashIn ? amount : -amount,
         });
       }
     }
@@ -261,6 +268,24 @@ export class StatementService {
       0,
     );
 
+    /* G6-U2-2 (المجموعة ٦ — البند ٢): مسار المحفظة لحركات المالك يدخل كتلة
+     * المالك — الإدخال/الإرجاع في «الملك» والسحب في «سحب»، بسطور مصدرها دفتر
+     * المحفظة نفسه. حركة التراجع نوعها معاكس فتنجّح الأرقام تلقائيًا؛ لا يُخفى
+     * سحبُ مسار المحفظة بعد اليوم ولا يُعدَّل حد «مال المالك لا يدخل النتيجة». */
+    const ownerMovements = movementsResult.value as readonly OwnerMovement[];
+    const inPeriodMovements = ownerMovements.filter(movement => inPeriod(movement.occurredOn));
+    const ledgerInvestedMinor = inPeriodMovements
+      .filter(movement => movement.kind === "return")
+      .reduce((sum, movement) => sum + movement.amountMinor, 0);
+    const ledgerWithdrawnMinor = inPeriodMovements
+      .filter(movement => movement.kind === "draw")
+      .reduce((sum, movement) => sum + movement.amountMinor, 0);
+    const ownerMovementSources: StatementLineSource[] = inPeriodMovements.map(movement => ({
+      label: `${movement.kind === "draw" ? "سحب مالك" : "إرجاع مالك"} — دفتر المحفظة`,
+      href: `/cash/wallet/${movement.walletId}`,
+      amountMinor: movement.kind === "draw" ? movement.amountMinor : -movement.amountMinor,
+    }));
+
     const cashIn: StatementLine[] = [
       {
         id: "order-collections",
@@ -372,13 +397,21 @@ export class StatementService {
         cashOut,
         corrections: { lines: cashCorrectionLines, netMinor: correctionsNetMinor },
         owner: {
-          investedMinor: investment.total,
-          withdrawnMinor: -withdrawal.total,
-          sources: [...investment.matched, ...withdrawal.matched].map(event => ({
-            label: event.note,
-            href: `/finance?event=${encodeURIComponent(event.id)}`,
-            amountMinor: event.amountMinor,
-          })),
+          investedMinor: investment.total + ledgerInvestedMinor,
+          withdrawnMinor: -withdrawal.total + ledgerWithdrawnMinor,
+          sources: [
+            ...investment.matched.map(event => ({
+              label: event.note,
+              href: `/finance?event=${encodeURIComponent(event.id)}`,
+              amountMinor: event.amountMinor,
+            })),
+            ...withdrawal.matched.map(event => ({
+              label: event.note,
+              href: `/finance?event=${encodeURIComponent(event.id)}`,
+              amountMinor: event.amountMinor,
+            })),
+            ...ownerMovementSources,
+          ],
         },
         amanah: {
           heldInPeriodMinor: amanahHeld.reduce((sum, event) => sum + event.amountMinor, 0),
@@ -402,7 +435,7 @@ export class StatementService {
       cashNetMinor,
       truthLines: [
         "الكاش ليس النتيجة: القبض يظهر أعلاه كحركة كاش، والإيراد يُعرف عند التسليم أو البيع.",
-        `نطاق الكشف: من ${from} إلى ${to} — حسب تواريخ الحركات المسجلة لا وقت فتح الشاشة.`,
+        `نطاق الكشف: من ${formatLocalDate(from) ?? from} إلى ${formatLocalDate(to) ?? to} — حسب تواريخ الحركات المسجلة لا وقت فتح الشاشة.`,
         "أي مجهول يبقى مجهولًا: لا يُعرض صفر مكان رقم لم يُدخل.",
         "صافي الكاش أعلاه لا يشمل أرصدة محافظ افتُتحت في الفترة ولا تسويات عدّ الصندوق — مصادرها في محافظ الكاش.",
       ],

@@ -116,8 +116,8 @@ describe("D-005 corrections reach the UI from the event row", () => {
       expect(screen.getByText("سبب التعديل مطلوب؛ التصحيح المالي يوثَّق بسبب واضح لا يُترك فارغًا.")).toBeTruthy(),
     );
     /* تعبئة السبب وتغيير المبلغ ثم التأكيد. */
-    fireEvent.change(screen.getByPlaceholderText("مثال: المبلغ الصحيح ١٢ دينارًا لا ٢١"), {
-      target: { value: "الفاتورة ٤٥ لا ٥٠" },
+    fireEvent.change(screen.getByPlaceholderText("مثال: المبلغ الصحيح 12 دينارًا لا 21"), {
+      target: { value: "الفاتورة 45 لا 50" },
     });
     fireEvent.change(amountInput, { target: { value: "45.00" } });
     fireEvent.click(screen.getByText("أكّد التعديل الذرّي"));

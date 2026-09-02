@@ -18,6 +18,9 @@
 | wouter | التوجيه الخفيف (chunk `react-runtime`) | MIT |
 | vaul | أدراج اللمس السفلية (chunk `interaction-runtime`) | MIT |
 | lucide-react | الأيقونات (chunk `iconography`) | ISC |
+| @radix-ui/react-tooltip | طبقة تلميحات الواجهة — chunk `radix-runtime` بعد فصله للمجموعة ٦ (G6-R5-10) | MIT |
+| clsx | تركيب أصناف العناصر عبر `cn()` في `lib/utils.ts` (G6-R5-10) | MIT |
+| tailwind-merge | حل تعارض أصناف Tailwind داخل `cn()` (G6-R5-10) | MIT |
 | workbox-window + workbox-build | خدمة العملاء وPWA precache | MIT |
 | IBM Plex Sans Arabic (٤٠٠/٥٠٠/٦٠٠/٧٠٠) | خط الواجهة العربي — مستضاف محليًا `public/fonts/` (S5-01) | SIL OFL 1.1 |
 | IBM Plex Mono (٥٠٠/٦٠٠) | خط الأرقام والوحدات — مستضاف محليًا `public/fonts/` (S5-01) | SIL OFL 1.1 |

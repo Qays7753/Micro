@@ -107,7 +107,8 @@ export default function CostCalculator() {
   const [location, navigate] = useLocation();
   /* المجموعة ٣ (§7): الحاسبة مسار عميق — الرجوع للمصدر (?from) أو أدواتي بديلًا. */
   const returnPath = useReturnPath();
-  const { costEstimates, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, costEstimates, notifyDataChanged } = usePrototypeServices();
   /* و٥-ب (مجموعة ٣): معامل التقدير يُقرأ من useSearch — المسار الحقيقي بلا استعلام. */
   const search = useSearch();
   const requestedEstimateId = estimateIdFromSearch(search);
@@ -161,7 +162,7 @@ export default function CostCalculator() {
     return () => {
       active = false;
     };
-  }, [costEstimates, requestedEstimateId]);
+  }, [costEstimates, requestedEstimateId, dataVersion]);
 
   const input = useMemo<CostEstimateInput>(
     () => ({

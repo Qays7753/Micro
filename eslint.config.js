@@ -146,6 +146,7 @@ export default [
       "apps/prototype-web/client/src/contexts/**/*.{ts,tsx}",
       "apps/prototype-web/client/src/presentation/**/*.{ts,tsx}",
       "apps/prototype-web/client/src/pwa/**/*.{ts,tsx}",
+      "apps/prototype-web/client/src/lib/**/*.{ts,tsx}",
     ],
     languageOptions: {
       parser: tseslint.parser,

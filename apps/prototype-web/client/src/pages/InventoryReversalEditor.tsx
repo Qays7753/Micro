@@ -17,7 +17,8 @@ export default function InventoryReversalEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { inventory, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
   const [movement, setMovement] = useState<InventoryMovement | null>(null);
   const [date, setDate] = useState(ammanDate);
   const [reason, setReason] = useState("");
@@ -32,7 +33,7 @@ export default function InventoryReversalEditor() {
       }
       setMovement(result.value.find(candidate => candidate.id === id) ?? null);
     });
-  }, [id, inventory]);
+  }, [id, inventory, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
   const isDirty = useFormDirty([date, reason]);

@@ -101,7 +101,8 @@ export default function FinancialEventEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { projectFinance, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, projectFinance, notifyDataChanged } = usePrototypeServices();
   const type = types.has(rawType as FinancialEventType) ? (rawType as FinancialEventType) : null;
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
@@ -128,7 +129,7 @@ export default function FinancialEventEditor() {
     projectFinance.listSettleablePayables().then(result => {
       if (result.ok) setPayableOptions(result.value);
     });
-  }, [projectFinance]);
+  }, [projectFinance, dataVersion]);
   /* F-006: رصيد الأمانات الحالي أمام العين قبل تسليم أي مبلغ — لا اكتشاف بعد الحفظ. */
   const [amanahHeldMinor, setAmanahHeldMinor] = useState<number | null>(null);
   useEffect(() => {
@@ -140,7 +141,7 @@ export default function FinancialEventEditor() {
     return () => {
       active = false;
     };
-  }, [projectFinance, type]);
+  }, [projectFinance, type, dataVersion]);
 
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة في محرر الأحداث —
    * الرجوع يمر بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ».

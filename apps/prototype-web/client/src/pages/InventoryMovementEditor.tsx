@@ -6,6 +6,7 @@ import { useLocation, useSearch, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { localDateInAmman } from "@/presentation/formatters";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -15,7 +16,7 @@ import {
   resolveInventoryMovementType,
   type InventoryMovementRouteType,
 } from "@/application/inventory/inventoryMovementRoute";
-const ammanDate = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Amman" }).format(new Date());
+const ammanDate = () => localDateInAmman();
 type MovementType = InventoryMovementRouteType;
 export default function InventoryMovementEditor() {
   const { type } = useParams<{ type: string }>();
@@ -30,7 +31,8 @@ export default function InventoryMovementEditor() {
     const order = query.get("order");
     return order && /^[A-Za-z0-9_-]{1,64}$/.test(order) ? order : null;
   });
-  const { inventory, notifyDataChanged } = usePrototypeServices();
+  const {
+  dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
   const [references, setReferences] = useState<InventoryReferences | null>(null);
   const [materialId, setMaterialId] = useState("");
   const [purchaseId, setPurchaseId] = useState("");
@@ -87,7 +89,7 @@ export default function InventoryMovementEditor() {
       setWasteCatalogItemId(result.value.catalogItems[0]?.id ?? "");
       setWasteTemplateId(result.value.catalogTemplates[0]?.id ?? "");
     });
-  }, [inventory, safeType, linkedOrderId]);
+  }, [inventory, safeType, linkedOrderId, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة.
    * تُستدعى الخطافات قبل أي return شرطي (قواعد الخطافات): فرع «حركة غير

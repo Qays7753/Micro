@@ -799,22 +799,31 @@ export default function Catalog() {
               placeholder={kind === "product" ? "مثال: قطعة" : "مثال: جلسة"}
             />
           </label>
-          <label className="micro-field">
-            <span>
-              وحدة منظمة <small>اختيارية</small>
-            </span>
-            <select value={unitId} onChange={event => setUnitId(event.target.value)}>
-              <option value="">لا أضيف وحدة الآن</option>
-              {activeUnits.map(unit => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.nameAr} · {dimensionLabel(unit.dimension)}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* المجموعة ٦ (البند ٤ — S3-12): الوحدة المنظمة اختيار تقني خلف إفصاح
+              44px — المسار الأساسي (اسم + وحدة عملية) يبقى في الوجه. */}
+          <details className="micro-inline-disclosure">
+            <summary>وحدة منظمة (اختيارية)</summary>
+            <label className="micro-field">
+              <span>
+                وحدة منظمة <small>اختيارية</small>
+              </span>
+              <select value={unitId} onChange={event => setUnitId(event.target.value)}>
+                <option value="">لا أضيف وحدة الآن</option>
+                {activeUnits.map(unit => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.nameAr} · {dimensionLabel(unit.dimension)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </details>
         </div>
         {/* P-002 (الخيار أ): اقتراحان اختياريان يُحفظان مع المرجع — يُعرضان في بيع
-            المباشر كمقترح قابل للتعديل، والسعر الفعلي للبيع هو ما يُدخل ويُؤكد هناك. */}
+            المباشر كمقترح قابل للتعديل، والسعر الفعلي للبيع هو ما يُدخل ويُؤكد هناك.
+            المجموعة ٦ (البند ٤ — S3-12): الاقتراحان خلف إفصاح مسمّى — إنشاء المرجع
+            الأساسي (الاسم والوحدة) لا يتطلب فتحه. */}
+        <details className="micro-inline-disclosure">
+          <summary>اقتراحات السعر والتكلفة (اختيارية)</summary>
         <div className="micro-form-grid">
           <label className="micro-field">
             <span>
@@ -853,6 +862,7 @@ export default function Catalog() {
             />
           </label>
         </div>
+        </details>
         <button
           className="micro-button micro-button-primary"
           type="button"
@@ -888,6 +898,17 @@ export default function Catalog() {
                       ? ` · تكلفة مقترحة: ${formatMoneyMinor(item.defaultUnitCostMinor)} د.أ`
                       : ""}
                   </p>
+                  <details
+                    className="micro-inline-disclosure"
+                    open={defaultsEditingId === item.id}
+                    onToggle={event => {
+                      /* فتح الإفصاح يعبّئ المحرر بقيم المرجع الحالية (P-002)؛
+                       * الإغلاق ينهي التعديل — نفس سلوك الزر السابق بلا زر إضافي. */
+                      if (event.currentTarget.open) openDefaultsEditor(item);
+                      else setDefaultsEditingId(null);
+                    }}
+                  >
+                    <summary>عدّل الافتراضيات</summary>
                   {defaultsEditingId === item.id ? (
                     <div className="micro-form-grid">
                       <label className="micro-field">
@@ -939,36 +960,29 @@ export default function Catalog() {
                         </button>
                       </div>
                     </div>
-                  ) : (
-                    <div className="micro-form-actions">
-                      {/* المجموعة ٣ (Scope C — §9.3): Product-to-Sale من صف المرجع — يفتح
-                          محرر البيع بمرجع مُختار مسبقًا (?product=) ويحفظ الكتالوج مصدرًا؛
-                          الموقوف لا يُباع من هنا حتى يُفعّل. */}
-                      {item.active ? (
-                        <button
-                          className="micro-button micro-button-primary"
-                          type="button"
-                          onClick={() =>
-                            requestSafeNavigation(
-                              withFrom(
-                                `/direct-sales/new?product=${encodeURIComponent(item.id)}`,
-                                "/catalog",
-                              ),
-                            )
-                          }
-                        >
-                          {item.kind === "product" ? "سجّل بيع هذا المنتج" : "سجّل بيع هذه الخدمة"}
-                        </button>
-                      ) : null}
+                  ) : null}
+                  </details>
+                  <div className="micro-form-actions">
+                    {/* المجموعة ٣ (Scope C — §9.3): Product-to-Sale من صف المرجع — يفتح
+                        محرر البيع بمرجع مُختار مسبقًا (?product=) ويحفظ الكتالوج مصدرًا؛
+                        الموقوف لا يُباع من هنا حتى يُفعّل. */}
+                    {item.active ? (
                       <button
-                        className="micro-button micro-button-secondary"
+                        className="micro-button micro-button-primary"
                         type="button"
-                        onClick={() => openDefaultsEditor(item)}
+                        onClick={() =>
+                          requestSafeNavigation(
+                            withFrom(
+                              `/direct-sales/new?product=${encodeURIComponent(item.id)}`,
+                              "/catalog",
+                            ),
+                          )
+                        }
                       >
-                        عدّل الافتراضيات
+                        {item.kind === "product" ? "سجّل بيع هذا المنتج" : "سجّل بيع هذه الخدمة"}
                       </button>
-                    </div>
-                  )}
+                    ) : null}
+                  </div>
                 </div>
               </article>
             ))}

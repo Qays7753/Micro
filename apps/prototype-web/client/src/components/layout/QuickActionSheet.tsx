@@ -216,6 +216,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     note: string,
     sourceRefId?: string,
     sourceRefKind?: "sale" | "expense" | "collection" | "order",
+    operationKey?: string,
   ): Promise<{ ok: boolean; message: string | null }> {
     if (!walletId || deltaMinor === 0) return { ok: true, message: null };
     const result = await projectFinance.distributeUnallocated({
@@ -224,6 +225,9 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       note,
       sourceRefId: sourceRefId ?? null,
       sourceRefKind: sourceRefKind ?? null,
+      /* G6-F1-5: مفتاح جذر مشتق من مفتاح السجل نفسه (نفس توقيع ورقة التحصيل
+       * والدفع المسبق) — إعادة المحاولة أو التكرار لا يخصص الكاش مرتين. */
+      operationKey: operationKey ?? undefined,
     });
     return result.ok
       ? { ok: true, message: null }
@@ -285,6 +289,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
           "تخصيص قبض بيع من ورقة الإضافة",
           result.value.id,
           "sale",
+          `${saleKeyRef.current}:attribute`,
         )
       ).message;
     const cashMinor = await cashNow();
@@ -344,6 +349,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
           "تغطية مصروف من رصيد المحفظة",
           result.value.id,
           "expense",
+          `${expenseKeyRef.current}:attribute`,
         )
       ).message;
     const cashMinor = await cashNow();

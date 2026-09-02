@@ -195,7 +195,7 @@ export default function Tools() {
                 </button>
                 <small>
                   تقديري · سعر الحماية <MoneyValue minor={estimate.priceFloorMinor} className="micro-inline-number" /> ·{" "}
-                  {formatLocalDate(estimate.updatedAt.slice(0, 10))}
+                  <bdi dir="ltr">{formatLocalDate(estimate.updatedAt.slice(0, 10))}</bdi>
                 </small>
                 {/* U-004: جسر التقدير → المسودة — نسخ قيم مقترحة قابلة للتعديل؛ التقدير لا يتغير
                     ولا تُنشأ أي حركة مالية، والمسودة تُحفظ عند تأكيد المالك فقط. */}

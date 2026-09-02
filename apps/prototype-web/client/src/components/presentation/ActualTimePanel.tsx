@@ -2,6 +2,7 @@ import { Clock3, RotateCcw, Save, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 /* مبدأ Micro: وقت التنفيذ يشرح الفرق ولا يغير النتيجة المالية، ويظهر تاريخه بوضوح. */
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import type { ActualTimeService, OperatingModeValue } from "@/application/time/actualTimeService";
 import type { ActualTimeComparison } from "@micro-domain/actual-time/index.js";
@@ -25,7 +26,7 @@ type LoadState =
 
 type Message = { tone: "error" | "success"; text: string };
 
-const ammanDate = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Amman" }).format(new Date());
+const ammanDate = () => localDateInAmman();
 const newOperationKey = (prefix: string) =>
   `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
 const minutesLabel = (minutes: number) => `${minutes > 0 ? "+" : ""}${minutes} دقيقة`;
@@ -216,12 +217,14 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
                     {minutesLabel(record.minutesDelta)}
                   </strong>
                   <small>
-                    {record.recordedOn}
+                    <bdi dir="ltr">{formatLocalDate(record.recordedOn) ?? record.recordedOn}</bdi>
                     {record.note ? ` · ${record.note}` : ""}
                   </small>
                   {reversal ? (
                     <p className="micro-actual-time-reversed">
-                      تم التراجع عنه في {reversal.recordedOn} بسبب: {reversal.reversalReason}
+                      تم التراجع عنه في{" "}
+                      <bdi dir="ltr">{formatLocalDate(reversal.recordedOn) ?? reversal.recordedOn}</bdi> بسبب:{" "}
+                      {reversal.reversalReason}
                     </p>
                   ) : null}
                 </div>
@@ -250,7 +253,8 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
                     {minutesLabel(record.minutesDelta)}
                   </strong>
                   <small>
-                    {record.recordedOn} · السبب: {record.reversalReason}
+                    <bdi dir="ltr">{formatLocalDate(record.recordedOn) ?? record.recordedOn}</bdi> · السبب:{" "}
+                    {record.reversalReason}
                   </small>
                 </div>
                 <span className="micro-actual-time-status">الأصل محفوظ</span>

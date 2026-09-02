@@ -1,8 +1,8 @@
-export type G5Status = "available" | "incomplete" | "invalid" | "needs_review";
+type G5Status = "available" | "incomplete" | "invalid" | "needs_review";
 export type G5Knowledge = "known" | "estimated" | "needs_review";
-export type G5Direction = "collection" | "commitment";
-export type ShortCashDeclarationKind = "declaration" | "reversal";
-export type G5QuantityIssue = "needs_conversion" | "invalid";
+type G5Direction = "collection" | "commitment";
+type ShortCashDeclarationKind = "declaration" | "reversal";
+type G5QuantityIssue = "needs_conversion" | "invalid";
 
 export type ShortCashDeclaration = {
   id: string;

@@ -282,6 +282,8 @@ export default defineConfig(({ mode }) => ({
           if (/[\\/]node_modules[\\/](react|react-dom|scheduler|wouter)[\\/]/.test(id)) return "react-runtime";
           if (/[\\/]node_modules[\\/](vaul)[\\/]/.test(id)) return "interaction-runtime";
           if (/[\\/]node_modules[\\/]lucide-react[\\/]/.test(id)) return "iconography";
+          /* S5-10: فصل radix — مشترك بين Tooltip المتحمس وvaul الكسول؛ فصله يجعل كسل التفاعل حقيقيًا. */
+          if (/[\\/]node_modules[\\/]@radix-ui[\\/]/.test(id)) return "radix-runtime";
           return undefined;
         },
       },

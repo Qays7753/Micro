@@ -46,7 +46,19 @@ export type CorrectionHistoryResult =
   | { ok: true; value: readonly CorrectionHistoryEntry[] }
   | { ok: false; code: "storage_error"; message: string };
 
-export const eventKindLabel: Record<FinancialEventType, string> = {
+/* المجموعة ٦ (البند ٣ — S2-09): خلاصة أثر التصحيحات على سطح/نطاق واحد —
+ * عدد وصافي قابل للعرض الصادق (null حين لا يمكن اختزاله برقم واحد) وسطور
+ * لفتح الأصل والتصحيح. طبقة قراءة صرفة فوق list()؛ لا تخزين جديد. */
+export type CorrectionDigest = {
+  count: number;
+  netAmountMinor: number | null;
+  entries: readonly CorrectionHistoryEntry[];
+};
+export type CorrectionDigestResult =
+  | { ok: true; value: CorrectionDigest }
+  | { ok: false; code: "storage_error"; message: string };
+
+const eventKindLabel: Record<FinancialEventType, string> = {
   owner_investment_cash: "استثمار المالك",
   owner_withdrawal_cash: "سحب شخصي",
   operating_expense_cash: "مصروف مدفوع",
@@ -65,6 +77,25 @@ const EDIT_REVERSAL_SUFFIX = ":reversal";
 
 export class CorrectionHistoryService {
   constructor(private readonly store: PrototypeLocalStore) {}
+
+  /** المجموعة ٦ (البند ٣): التصحيحات المؤثرة داخل نطاق (occurredOn) — بلا
+   * نطاق: كل التاريخ. الصافي مجموع الآثار الموقعة، وnull إن تعذر أي رقم. */
+  async affecting(from?: string, to?: string): Promise<CorrectionDigestResult> {
+    const list = await this.list();
+    if (!list.ok)
+      return { ok: false, code: "storage_error", message: list.message };
+    const entries = list.value.filter(entry => {
+      if (!entry.occurredOn) return from === undefined && to === undefined;
+      if (from !== undefined && entry.occurredOn < from) return false;
+      if (to !== undefined && entry.occurredOn > to) return false;
+      return true;
+    });
+    const amounts = entries.map(entry => entry.amountEffectMinor);
+    const netAmountMinor = amounts.some(amount => amount === null)
+      ? null
+      : (amounts as readonly number[]).reduce((sum, amount) => sum + amount, 0);
+    return { ok: true, value: { count: entries.length, netAmountMinor, entries } };
+  }
 
   async list(): Promise<CorrectionHistoryResult> {
     const [eventsResult, salesResult, cashResult, purchasesResult, ordersResult] = await Promise.all([

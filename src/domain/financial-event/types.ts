@@ -13,10 +13,10 @@ export type FinancialEventType =
   | "amanah_held_cash"
   | "amanah_released_cash"
   | "loss_non_cash";
-export type ExpenseRelationship = "project" | "shared";
-export type ExpenseBehavior = "fixed" | "variable" | "mixed" | "unknown";
-export type ExpensePurpose = "project_general" | "period" | "order" | "product" | "campaign" | "unallocated";
-export type ExpenseKnowledge = "known" | "estimated" | "needs_review";
+type ExpenseRelationship = "project" | "shared";
+type ExpenseBehavior = "fixed" | "variable" | "mixed" | "unknown";
+type ExpensePurpose = "project_general" | "period" | "order" | "product" | "campaign" | "unallocated";
+type ExpenseKnowledge = "known" | "estimated" | "needs_review";
 export type SharedProjectShareBasis =
   "agreed_fixed_share" | "agreed_percentage" | "owner_estimate" | "needs_review";
 export type SharedProjectShare = {
@@ -34,7 +34,7 @@ export type OperatingExpenseContext = {
   knowledge: ExpenseKnowledge;
   sharedProjectShare?: SharedProjectShare | null;
 };
-export type FinancialEventCorrectionType = "reverse";
+type FinancialEventCorrectionType = "reverse";
 export type FinancialEvent = {
   id: string;
   type: FinancialEventType;

@@ -86,6 +86,25 @@ class StorageOpenError extends Error {
 const staleConnections = new WeakSet<IDBDatabase>();
 const upgradeErrors = new WeakMap<IDBOpenDBRequest, StorageOpenError>();
 
+/* S5-07 (المجموعة ٦ — البند ٦): اتصال واحد مُخزَّن على مستوى الوحدة. الفتح لكل
+ * عملية كان يدفع مصافحة open كاملة لكل قراءة/كتابة (قياس ٥٣ فتحًا لتحميل
+ * «مالي» واحد). الاتصال يُقال من الذاكرة عند versionchange (نافذة أخرى رقّت
+ * النسخة) فلا يحجب ترقيةً أبدًا، وفشل الفتح لا يدنس الذاكرة — المحاولة
+ * التالية تفتح من جديد. VersionError بعد إقالة الاتصال يُعلن storage_stale
+ * بصدق (G6-P4-2) — لا إعادة محاولة تلقائية تخفي قدم البيانات. */
+let cachedConnection: Promise<IDBDatabase> | null = null;
+
+function connection(): Promise<IDBDatabase> {
+  if (cachedConnection === null) {
+    const promise = openDatabase();
+    promise.catch(() => {
+      if (cachedConnection === promise) cachedConnection = null;
+    });
+    cachedConnection = promise;
+  }
+  return cachedConnection;
+}
+
 function failure(error: unknown, database?: IDBDatabase): StorageFailure {
   if (database && staleConnections.has(database)) {
     return {
@@ -95,6 +114,15 @@ function failure(error: unknown, database?: IDBDatabase): StorageFailure {
     };
   }
   if (error instanceof StorageOpenError) return { ok: false, code: error.code, message: error.message };
+  /* G6-P4-2 (المجموعة ٦): إقالة الاتصال بعد ترقية في نافذة أخرى تجعل
+   * المعاملات التالية VersionError — ذلك قدمٌ معلن لا «خطأ تخزين» عام. */
+  if (error instanceof Error && error.name === "VersionError") {
+    return {
+      ok: false,
+      code: "storage_stale",
+      message: "هذه النسخة قديمة. أعد تحميل Micro قبل إدخال بيانات جديدة.",
+    };
+  }
   return {
     ok: false,
     code: typeof indexedDB === "undefined" ? "storage_unavailable" : "storage_error",
@@ -134,6 +162,9 @@ function guardUpgradeCursor(
 function attachVersionChangeRecovery(database: IDBDatabase): IDBDatabase {
   database.onversionchange = () => {
     staleConnections.add(database);
+    /* S5-07: الإقالة الفورية للاتصال المخزَّن — ترقية نافذة أخرى لا تُحجب
+     * أبدًا، والعملية التالية هنا تفتح نسخة جديدة أو تعلن قدمها بصدق. */
+    cachedConnection = null;
     database.close();
   };
   return database;
@@ -582,15 +613,20 @@ export function __openDatabaseForTesting(): Promise<IDBDatabase> {
   return openDatabase();
 }
 
+/** @internal S5-07: إعادة الاتصال المخزَّن لحالة الاختبار (يفحص أن ذاكرة الاتصال تُقال). */
+export function __cachedConnectionForTesting(): Promise<IDBDatabase> | null {
+  return cachedConnection;
+}
+
 async function readOne<T>(storeName: string, key: string): Promise<StorageResult<T | null>> {
   try {
-    const database = await openDatabase();
+    const database = await connection();
     return await new Promise(resolve => {
       const transaction = database.transaction(storeName, "readonly");
       const request = transaction.objectStore(storeName).get(key);
       request.onerror = () => resolve(failure(request.error, database));
       request.onsuccess = () => resolve({ ok: true, value: (request.result as T | undefined) ?? null });
-      transaction.oncomplete = () => database.close();
+      transaction.oncomplete = () => {};
     });
   } catch (error) {
     return failure(error);
@@ -599,14 +635,13 @@ async function readOne<T>(storeName: string, key: string): Promise<StorageResult
 
 async function writeOne<T>(storeName: string, value: T): Promise<StorageResult<T>> {
   try {
-    const database = await openDatabase();
+    const database = await connection();
     return await new Promise(resolve => {
       const transaction = database.transaction(storeName, "readwrite");
       const request = transaction.objectStore(storeName).put(value);
       request.onerror = () => resolve(failure(request.error, database));
       transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.oncomplete = () => {
-        database.close();
         resolve({ ok: true, value });
       };
     });
@@ -618,14 +653,13 @@ async function writeOne<T>(storeName: string, value: T): Promise<StorageResult<T
 /* القرار ٢١: حذف المسودة غير المرتبطة — حذف سجل بلا أثر مالي؛ لا يمس أحداث طلب. */
 async function deleteOne(storeName: string, key: string): Promise<StorageResult<null>> {
   try {
-    const database = await openDatabase();
+    const database = await connection();
     return await new Promise(resolve => {
       const transaction = database.transaction(storeName, "readwrite");
       const request = transaction.objectStore(storeName).delete(key);
       request.onerror = () => resolve(failure(request.error, database));
       transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.oncomplete = () => {
-        database.close();
         resolve({ ok: true, value: null });
       };
     });
@@ -639,13 +673,13 @@ async function listAll<T>(
   sort: (left: T, right: T) => number,
 ): Promise<StorageResult<readonly T[]>> {
   try {
-    const database = await openDatabase();
+    const database = await connection();
     return await new Promise(resolve => {
       const transaction = database.transaction(storeName, "readonly");
       const request = transaction.objectStore(storeName).getAll();
       request.onerror = () => resolve(failure(request.error, database));
       request.onsuccess = () => resolve({ ok: true, value: (request.result as T[]).sort(sort) });
-      transaction.oncomplete = () => database.close();
+      transaction.oncomplete = () => {};
     });
   } catch (error) {
     return failure(error);
@@ -694,6 +728,150 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   saveOrder(order: StoredCraftOrder) {
     return writeOne(orderStore, order);
   }
+  /* المجموعة ٦ (S2-04أ): تراجع القبضة والتخصيص في معاملة IndexedDB واحدة —
+   * الطلب وأثر الكاش معًا أو لا شيء. فحص الهوية داخل المعاملة (نمط حركة المالك):
+   * حدث التراجع موجود سلفًا → مسار إعادة استخدام مع أثر الكاش المطابق أو رفض
+   * الحالة النصفية؛ أثر تراجع سابق لنفس التخصيص → رفض؛ وإلا كتابة الحالتين. */
+  async commitOrderCollectionReversal(
+    order: StoredCraftOrder,
+    allocationReversal: CashContinuityEntry | null,
+    reversalEventKey: string,
+  ): Promise<
+    StorageResult<{ order: StoredCraftOrder; cashEntry: CashContinuityEntry | null; reused: boolean }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([orderStore, cashContinuityEntryStore], "readwrite");
+        const orders = transaction.objectStore(orderStore);
+        const cashEntries = transaction.objectStore(cashContinuityEntryStore);
+        let pending:
+          | StorageResult<{ order: StoredCraftOrder; cashEntry: CashContinuityEntry | null; reused: boolean }>
+          | null = null;
+        const finish = (
+          result: StorageResult<{
+            order: StoredCraftOrder;
+            cashEntry: CashContinuityEntry | null;
+            reused: boolean;
+          }>,
+        ) => {
+          resolve(result);
+        };
+        const orderRequest = orders.get(order.id);
+        orderRequest.onerror = () => {
+          pending = failure(orderRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        orderRequest.onsuccess = () => {
+          const existing = orderRequest.result as StoredCraftOrder | undefined;
+          if (!existing) {
+            pending = {
+              ok: false,
+              code: "storage_error",
+              message: "لم نجد الطلب المحلي لتراجع القبضة.",
+            };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const alreadyReversed = existing.order.events.some(
+            event => event.type === "collection_reversed" && event.idempotencyKey === reversalEventKey,
+          );
+          if (alreadyReversed) {
+            if (!allocationReversal) {
+              pending = { ok: true, value: { order: existing, cashEntry: null, reused: true } };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            const cashRequest = cashEntries.getAll();
+            cashRequest.onerror = () => {
+              pending = failure(cashRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            cashRequest.onsuccess = () => {
+              const matching = (cashRequest.result as CashContinuityEntry[]).find(
+                entry => entry.operationKey === allocationReversal.operationKey,
+              );
+              if (!matching) {
+                pending = {
+                  ok: false,
+                  code: "storage_error",
+                  message: "وجدت تراجع قبضة بلا أثر تخصيص مطابق؛ لم يتغير السجل.",
+                };
+              } else {
+                pending = {
+                  ok: true,
+                  value: { order: existing, cashEntry: matching, reused: true },
+                };
+              }
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          if (allocationReversal) {
+            const cashRequest = cashEntries.getAll();
+            cashRequest.onerror = () => {
+              pending = failure(cashRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            cashRequest.onsuccess = () => {
+              const conflict = (cashRequest.result as CashContinuityEntry[]).some(
+                entry => entry.reversesEntryId === allocationReversal.reversesEntryId,
+              );
+              if (conflict) {
+                pending = {
+                  ok: false,
+                  code: "storage_error",
+                  message: "تم التراجع عن تخصيص هذه القبضة سابقًا؛ لم يتغير السجل.",
+                };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+                return;
+              }
+              orders.put(order);
+              cashEntries.put(allocationReversal);
+            };
+            return;
+          }
+          orders.put(order);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { order, cashEntry: allocationReversal, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listDirectSales() {
     return listAll<DirectSale>(
       directSaleStore,
@@ -733,7 +911,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     schedules: readonly ScheduleEntry[],
   ): Promise<StorageResult<{ recurrence: ScheduleRecurrence; schedules: readonly ScheduleEntry[] }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([recurrenceStore, scheduleStore], "readwrite");
         transaction.objectStore(recurrenceStore).put(recurrence);
@@ -741,7 +919,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
-          database.close();
           resolve({ ok: true, value: { recurrence, schedules } });
         };
       });
@@ -765,7 +942,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     reversal: FinancialEvent,
   ): Promise<StorageResult<FinancialEvent>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(financialEventStore, "readwrite");
         const store = transaction.objectStore(financialEventStore);
@@ -774,7 +951,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<FinancialEvent>) => {
           if (settled) return;
           settled = true;
-          database.close();
           resolve(result);
         };
         const abortWith = (result: StorageResult<FinancialEvent>) => {
@@ -858,7 +1034,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     replacement: FinancialEvent,
   ): Promise<StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(financialEventStore, "readwrite");
         const store = transaction.objectStore(financialEventStore);
@@ -868,7 +1044,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>) => {
           if (settled) return;
           settled = true;
-          database.close();
           resolve(result);
         };
         const abortWith = (result: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>) => {
@@ -983,7 +1158,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     entries: readonly CashContinuityEntry[],
   ): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([cashWalletStore, cashContinuityEntryStore], "readwrite");
         if (wallet) transaction.objectStore(cashWalletStore).put(wallet);
@@ -991,7 +1166,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
-          database.close();
           resolve({ ok: true, value: { wallet, entries } });
         };
       });
@@ -1020,7 +1194,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     movements: readonly InventoryMovement[],
   ): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([materialStore, inventoryMovementStore], "readwrite");
         if (material) transaction.objectStore(materialStore).put(material);
@@ -1028,7 +1202,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
-          database.close();
           resolve({ ok: true, value: { material, movements } });
         };
       });
@@ -1094,13 +1267,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     next: CatalogTemplate,
   ): Promise<StorageResult<{ previous: CatalogTemplate; next: CatalogTemplate }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(catalogTemplateStore, "readwrite");
         const store = transaction.objectStore(catalogTemplateStore);
         let pending: StorageResult<{ previous: CatalogTemplate; next: CatalogTemplate }> | null = null;
         const finish = (result: StorageResult<{ previous: CatalogTemplate; next: CatalogTemplate }>) => {
-          database.close();
           resolve(result);
         };
         const request = store.getAll();
@@ -1222,7 +1394,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     successor: AllocationPolicy,
   ): Promise<StorageResult<{ previous: AllocationPolicy; successor: AllocationPolicy }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(allocationPolicyStore, "readwrite");
         const store = transaction.objectStore(allocationPolicyStore);
@@ -1230,7 +1402,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (
           result: StorageResult<{ previous: AllocationPolicy; successor: AllocationPolicy }>,
         ) => {
-          database.close();
           resolve(result);
         };
         const request = store.getAll();
@@ -1311,13 +1482,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     reversal: ShortCashDeclaration,
   ): Promise<StorageResult<ShortCashDeclaration>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(shortCashDeclarationStore, "readwrite");
         const store = transaction.objectStore(shortCashDeclarationStore);
         let pending: StorageResult<ShortCashDeclaration> | null = null;
         const finish = (result: StorageResult<ShortCashDeclaration>) => {
-          database.close();
           resolve(result);
         };
         const request = store.getAll();
@@ -1421,7 +1591,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     successor: OwnerEntitlementPolicy,
   ): Promise<StorageResult<{ previous: OwnerEntitlementPolicy; successor: OwnerEntitlementPolicy }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(ownerEntitlementPolicyStore, "readwrite");
         const store = transaction.objectStore(ownerEntitlementPolicyStore);
@@ -1432,7 +1602,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (
           result: StorageResult<{ previous: OwnerEntitlementPolicy; successor: OwnerEntitlementPolicy }>,
         ) => {
-          database.close();
           resolve(result);
         };
         const request = store.getAll();
@@ -1515,13 +1684,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     reversal: OwnerEntitlementRecord,
   ): Promise<StorageResult<OwnerEntitlementRecord>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(ownerEntitlementRecordStore, "readwrite");
         const store = transaction.objectStore(ownerEntitlementRecordStore);
         let pending: StorageResult<OwnerEntitlementRecord> | null = null;
         const finish = (result: StorageResult<OwnerEntitlementRecord>) => {
-          database.close();
           resolve(result);
         };
         const request = store.getAll();
@@ -1606,13 +1774,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     reversal: OwnerEntitlementOpeningBalance,
   ): Promise<StorageResult<OwnerEntitlementOpeningBalance>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(ownerEntitlementOpeningBalanceStore, "readwrite");
         const store = transaction.objectStore(ownerEntitlementOpeningBalanceStore);
         let pending: StorageResult<OwnerEntitlementOpeningBalance> | null = null;
         const finish = (result: StorageResult<OwnerEntitlementOpeningBalance>) => {
-          database.close();
           resolve(result);
         };
         const request = store.getAll();
@@ -1695,7 +1862,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     cashEntry: CashContinuityEntry,
   ): Promise<StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([ownerMovementStore, cashContinuityEntryStore], "readwrite");
         const movements = transaction.objectStore(ownerMovementStore);
@@ -1705,7 +1872,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (
           result: StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }>,
         ) => {
-          database.close();
           resolve(result);
         };
         existingRequest.onerror = () => {
@@ -1775,7 +1941,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     schedule?: ScheduleEntry,
   ): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const stores = schedule ? [orderStore, draftStore, scheduleStore] : [orderStore, draftStore];
         const transaction = database.transaction(stores, "readwrite");
@@ -1785,7 +1951,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
-          database.close();
           resolve({ ok: true, value: { order, draft, schedule: schedule ?? null } });
         };
       });
@@ -1795,7 +1960,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   async readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(
           [
@@ -1863,7 +2028,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
-          database.close();
           resolve({
             ok: true,
             value: {
@@ -1905,7 +2069,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
     try {
-      const database = await openDatabase();
+      const database = await connection();
       const normalized: LocalStoreSnapshot = {
         ...snapshot,
         ownerProfile: snapshot.ownerProfile ?? null,
@@ -2051,7 +2215,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
-          database.close();
           resolve({ ok: true, value: normalized });
         };
       });

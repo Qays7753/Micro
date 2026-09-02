@@ -8,7 +8,7 @@ export type CashWalletOpeningStatus = "known" | "unknown";
 /* المجموعة ٢ (§9.1): مصدر التخصيص — ربط صريح بين حركة التخصيص في سجل المحفظة
  * والسجل المصدر الذي أنشأ الكاش (بيع/مصروف/تحصيل/طلب)، فيصل صاحب السجل للمصدر
  * من دفتر المحفظة بلا مسار كتابة ثانٍ. حقل اختياري: القديم بلاه يُقرأ فارغًا. */
-export type CashAllocationSourceKind = "sale" | "expense" | "collection" | "order";
+type CashAllocationSourceKind = "sale" | "expense" | "collection" | "order";
 export type CashWallet = {
   id: string;
   name: string;
@@ -34,6 +34,10 @@ export type CashContinuityEntry = {
   sourceRefId?: string | null;
   /** حاضر مع sourceRefId فقط: نوع السجل المصدر — يحدد وجهة الوصلة العميقة. */
   sourceRefKind?: CashAllocationSourceKind | null;
+  /* المجموعة ٦ (البند ١ — S2-04أ): ربط سطر المصدر — معرّف حدث القبضة الذي
+   * أُنشئ منه هذا التخصيص، فيصبح «تراجع القبضة مع تخصيصها المطابق» قابلًا
+   * للتحديد بلا تخمين. حقل اختياري مع sourceRefId؛ القديم بلاه يُقرأ فارغًا. */
+  sourceRefLineId?: string | null;
 };
 export type CreateCashWalletInput = {
   id: string;
@@ -59,4 +63,6 @@ export type CreateCashEntryInput = {
   /** اختياري للتخصيص فقط: سجل المصدر الذي أُنشئ منه الكاش. */
   sourceRefId?: string | null;
   sourceRefKind?: CashAllocationSourceKind | null;
+  /** اختياري للتخصيص فقط (المجموعة ٦): حدث القبضة المصدر الذي أُنشئ منه الكاش. */
+  sourceRefLineId?: string | null;
 };

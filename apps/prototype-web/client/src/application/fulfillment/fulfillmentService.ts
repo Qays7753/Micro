@@ -200,7 +200,7 @@ export class FulfillmentService {
   /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة من تفاصيل الطلب. */
   async reverseCollection(
     id: string,
-    input: { collectionEventId: string; amountMinor: number; reason: string },
+    input: { collectionEventId: string; amountMinor: number; reason: string; operationKey?: string },
   ): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
@@ -208,11 +208,15 @@ export class FulfillmentService {
       return failure("invalid_state", "أكمل سبب التراجع قبل الحفظ.");
     try {
       const timestamp = this.now();
+      /* G6-F1-2: مفتاح جذر من المستدعي يجعل إعادة المحاولة قابلة للكشف بـeventExists —
+       * مفتاح الطابع الزمني السابق جعل كل محاولة فريدة فرُحّ تكرر التراجع الجزئي. */
       const order = reverseOrderCollection(current.stored.order, {
         collectionEventId: input.collectionEventId,
         amountMinor: input.amountMinor,
         reason: input.reason,
-        idempotencyKey: `${id}:reverse-collection-${input.collectionEventId}-${input.amountMinor}-${timestamp}`,
+        idempotencyKey:
+          input.operationKey ??
+          `${id}:reverse-collection-${input.collectionEventId}-${input.amountMinor}-${timestamp}`,
         createdAt: timestamp,
       });
       return this.persist({ ...current.stored, order, updatedAt: timestamp });
