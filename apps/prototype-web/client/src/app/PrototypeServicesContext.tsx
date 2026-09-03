@@ -34,6 +34,8 @@ import { CollectionService } from "@/application/collections/collectionService";
 import { CollectionReversalService } from "@/application/collections/collectionReversalService";
 import { WalletLedgerService } from "@/application/cash/walletLedgerService";
 import { StatementService } from "@/application/finance/statementService";
+/* المجموعة ١ (فحص سلامة مالي): خدمة قراءة فقط فوق القارئ الكنسي والكشف والمحافظ. */
+import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 
 type PrototypeServices = {
@@ -75,6 +77,8 @@ type PrototypeServices = {
   walletLedger: WalletLedgerService;
   /* المجموعة ٢ (§9.2): كشف الفترة — كاش/نتيجة/أمانات/ذمم/مال المالك. */
   statement: StatementService;
+  /* المجموعة ١ (فحص سلامة مالي): قراءة فقط — «يقرأ أرقامك ولا يغيّر شيئًا». */
+  integrityCheck: IntegrityCheckService;
   dataVersion: number;
   notifyDataChanged: () => void;
 };
@@ -132,6 +136,8 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
   const recurringWork = new RecurringWorkService(store);
   const directSales = new DirectSaleService(store);
   const fulfillment = new FulfillmentService(store, undefined, schedules);
+  const cashContinuity = new CashContinuityService(store);
+  const statement = new StatementService(store, projectFinance);
   return {
     profiles: new ProfileService(store),
     ownerProfile: new OwnerProfileService(store),
@@ -149,7 +155,7 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
     recurringWork,
     g5,
     supplierPurchases,
-    cashContinuity: new CashContinuityService(store),
+    cashContinuity,
     inventory,
     catalog: new CatalogService(store),
     dailyFollowUp,
@@ -171,7 +177,8 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
     collections: new CollectionService(store, fulfillment, directSales, projectFinance),
     collectionReversal: new CollectionReversalService(store, projectFinance),
     walletLedger: new WalletLedgerService(store),
-    statement: new StatementService(store, projectFinance),
+    statement,
+    integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
   };
 }
 

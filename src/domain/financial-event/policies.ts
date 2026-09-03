@@ -136,6 +136,17 @@ function normalizeSharedProjectShare(
     calculatedShareMinor,
   });
 }
+/* المجموعة ١ (تصنيفي للمصاريف): تطبيع وسم التصنيف — قصّ الطرفين، دمج الفراغات
+ * الداخلية، الفارغ يصبح null. الحد ٨٠ حرفًا يقاس على القيمة بعد التطبيع (نفس
+ * قاعدة فحص الاستيراد)؛ الرفض صريح برسالة عربية، لا قصًّا صامتًا. */
+const categoryLabelMaxLength = 80;
+function normalizeCategoryLabel(value: string | null | undefined): string | null {
+  const normalized = value?.trim().replace(/\s+/gu, " ") ?? null;
+  if (!normalized) return null;
+  if (normalized.length > categoryLabelMaxLength)
+    throw new Error("تصنيف المصروف يتجاوز ٨٠ حرفًا؛ اختصره أو اتركه فارغًا.");
+  return normalized;
+}
 function normalizeExpenseContext(
   value: OperatingExpenseContext | null | undefined,
 ): OperatingExpenseContext | null {
@@ -170,6 +181,7 @@ function normalizeExpenseContext(
       purpose: value.purpose,
       knowledge: value.knowledge,
       sharedProjectShare: null,
+      categoryLabel: normalizeCategoryLabel(value.categoryLabel),
     });
   return Object.freeze({
     relationship: value.relationship,
@@ -177,6 +189,7 @@ function normalizeExpenseContext(
     purpose: value.purpose,
     knowledge: value.knowledge,
     sharedProjectShare: normalizeSharedProjectShare(share, value.knowledge),
+    categoryLabel: normalizeCategoryLabel(value.categoryLabel),
   });
 }
 function isUnallocatedSharedExpense(context: OperatingExpenseContext | null): boolean {

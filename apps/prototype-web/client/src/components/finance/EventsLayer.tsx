@@ -35,10 +35,14 @@ export const expenseContextLabel = (event: FinancialEvent) => {
       : event.expenseContext.knowledge === "estimated"
         ? "تقديري"
         : "يحتاج مراجعة";
-  if (event.expenseContext.relationship === "project") return `للمشروع · ${knowledge}`;
+  /* المجموعة ١ (تصنيفي للمصاريف): وسم المالك يظهر مع السياق — قراءة فقط لا أثر. */
+  const category = event.expenseContext.categoryLabel
+    ? ` · تصنيفك: ${event.expenseContext.categoryLabel}`
+    : "";
+  if (event.expenseContext.relationship === "project") return `للمشروع · ${knowledge}${category}`;
   const share = event.expenseContext.sharedProjectShare;
   if (share?.allocation === "unallocated")
-    return `مصروف مشترك غير موزّع · ${formatMoneyMinor(share.totalAmountMinor ?? event.amountMinor)}`;
+    return `مصروف مشترك غير موزّع · ${formatMoneyMinor(share.totalAmountMinor ?? event.amountMinor)}${category}`;
   const source = share?.basis;
   const sourceLabel =
     source === "agreed_fixed_share"
@@ -50,7 +54,7 @@ export const expenseContextLabel = (event: FinancialEvent) => {
           : source === "needs_review"
             ? "مصدر يحتاج مراجعة"
             : "مصدر الحصة غير موثق";
-  return `حصة المشروع من مصروف مشترك · ${knowledge} · ${sourceLabel}`;
+  return `حصة المشروع من مصروف مشترك · ${knowledge} · ${sourceLabel}${category}`;
 };
 
 type CorrectionMode = "reverse" | "edit" | "delete" | "restore";

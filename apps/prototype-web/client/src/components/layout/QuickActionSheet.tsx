@@ -25,6 +25,7 @@ import {
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { deriveExpenseCategorySuggestions } from "@/application/finance/expenseCategorySuggestions";
 
 export type QuickAction = "sale" | "expense" | "order" | "estimate" | "collection";
 export type QuickActionItem = {
@@ -111,6 +112,10 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   const [expenseAmountMinor, setExpenseAmountMinor] = useState(0);
   const [expenseAmountValid, setExpenseAmountValid] = useState(true);
   const [expenseNote, setExpenseNote] = useState("");
+  /* المجموعة ١ (تصنيفي للمصاريف): وسم سريع اختياري بنقرة — المسار السريع يبقى
+   * مبلغًا إلزاميًا واحدًا؛ الرقاقات لا تفتح لوحة مفاتيح ولا تفرض اختيارًا. */
+  const [expenseCategory, setExpenseCategory] = useState("");
+  const [categorySuggestions, setCategorySuggestions] = useState<readonly string[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const saleKeyRef = useRef(`sheet-sale-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
@@ -127,7 +132,11 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       const drawer = result.value.wallets.find(wallet => wallet.kind === "cash_drawer");
       setSaleWalletId(current => current || drawer?.id || "");
     });
-  }, [open, cashContinuity, dataVersion]);
+    /* المجموعة ١ (تصنيفي للمصاريف): مقترحات مشتقة من الاستعمال — قراءة فقط. */
+    projectFinance.listEvents().then(result => {
+      if (result.ok) setCategorySuggestions(deriveExpenseCategorySuggestions(result.value, 6));
+    });
+  }, [open, cashContinuity, projectFinance, dataVersion]);
 
   function reset() {
     setMode("menu");
@@ -144,6 +153,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     setExpenseAmountMinor(0);
     setExpenseWalletId("");
     setExpenseNote("");
+    setExpenseCategory("");
     setFormError(null);
     saleKeyRef.current = `sheet-sale-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
     expenseKeyRef.current = `sheet-expense-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
@@ -163,7 +173,9 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
           saleWalletId,
       );
     if (mode === "expense-form")
-      return Boolean(expenseAmountMinor > 0 || expenseNote.trim() || expenseWalletId);
+      return Boolean(
+        expenseAmountMinor > 0 || expenseNote.trim() || expenseWalletId || expenseCategory,
+      );
     return false;
   }
 
@@ -330,6 +342,8 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
         purpose: "project_general",
         knowledge: "known",
         sharedProjectShare: null,
+        /* المجموعة ١ (تصنيفي للمصاريف): وسم سريع اختياري — لا يمس الدلتا. */
+        categoryLabel: expenseCategory || null,
       },
       idempotencyKey: expenseKeyRef.current,
     });
@@ -636,6 +650,26 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                 </select>
               </label>
             ) : null}
+            {categorySuggestions.length > 0 ? (
+              /* المجموعة ١ (تصنيفي للمصاريف): رقاقات اختيارية بعد الحقول وقبل سطر
+               * الأثر — نقرة واحدة بلا لوحة مفاتيح، ولا ترفع مدخلات المسار السريع. */
+              <div className="micro-chip-list" role="group" aria-label="تصنيف سريع (اختياري)">
+                {categorySuggestions.map(suggestion => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    className="micro-suggest-chip"
+                    aria-pressed={expenseCategory === suggestion}
+                    title={suggestion}
+                    onClick={() =>
+                      setExpenseCategory(current => (current === suggestion ? "" : suggestion))
+                    }
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {/* المجموعة ٢ (Scope A): معاينة الأثر قبل الحفظ — الصرف ينقص الكاش فقط. */}
             {expenseAmountMinor > 0 && expenseAmountValid ? (
               <p className="micro-local-truth" role="status">
@@ -643,7 +677,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                 {expenseWalletId
                   ? ` من «${wallets.find(wallet => wallet.id === expenseWalletId)?.name ?? ""}»`
                   : " من غير الموزع"}{" "}
-                — مصروف مسجل لا يُعدّ ربحًا ولا يُخصم من دين.
+                — مصروف مسجل لا يُعدّ ربحًا ولا يُخصم من دين، وبلا حركة أمانة ولا سحب مالك.
               </p>
             ) : null}
             {formError ? (

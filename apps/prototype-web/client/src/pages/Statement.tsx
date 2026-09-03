@@ -12,7 +12,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import { formatLocalDate, formatLocalDateLong, localDateInAmman , formatMoneyWithUnit } from "@/presentation/formatters";
-import type { StatementLine, StatementReading } from "@/application/finance/statementService";
+import type { StatementLine, StatementReading, StatementExpenseCategoryGroup } from "@/application/finance/statementService";
 
 type State =
   | { phase: "loading" }
@@ -20,6 +20,61 @@ type State =
   | { phase: "ready"; reading: StatementReading };
 
 type QuickRange = "this_week" | "last_week" | "this_month" | "custom";
+
+/* المجموعة ١ (تصنيفي للمصاريف): «مصاريفي حسب تصنيفي» — صفوف الأوسمة بنفس
+ * نمط صفوف الكشف (زر تبديل يفتح المصادر)؛ «غير مصنّف» مجموعة صادقة أخيرة. */
+function ExpenseCategoryGroupRow({
+  group,
+  onOpenSource,
+}: {
+  group: StatementExpenseCategoryGroup;
+  onOpenSource: (path: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <article className="micro-finance-event" data-category-group={group.classified ? "classified" : "unclassified"}>
+      <div className="micro-finance-event-main">
+        <div>
+          <strong>{group.label}</strong>
+          <small>
+            {group.classified
+              ? "تصنيفك — قراءة تجميعية لا تغير الأثر"
+              : "مصاريف بلا وسم — صنّفها من محرر المصروف عند الحاجة"}
+          </small>
+        </div>
+        <b>
+          <MoneyValue minor={group.totalMinor} /> د.أ
+        </b>
+      </div>
+      <button
+        className="micro-text-action micro-finance-event-toggle"
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(current => !current)}
+      >
+        {open ? "إخفاء المصادر" : `المصادر (${group.lines.length})`}
+      </button>
+      {open ? (
+        <ul className="micro-party-movements">
+          {group.lines.map(line => (
+            <li key={line.eventId}>
+              <button type="button" onClick={() => onOpenSource(line.href)}>
+                <span>
+                  <b>{line.note}</b>
+                  <small>
+                    {formatLocalDate(line.occurredOn) ?? line.occurredOn} ·{" "}
+                    {line.kind === "paid" ? "مدفوع" : "مستحق"}
+                  </small>
+                </span>
+                <MoneyValue minor={line.amountMinor} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </article>
+  );
+}
 
 const DAY = 24 * 60 * 60 * 1000;
 const shiftDate = (localDate: string, days: number): string => {
@@ -282,7 +337,8 @@ export default function Statement() {
             {reading.result.resultMinor === null ? null : " د.أ"}
           </strong>
           <p>
-            إيراد معترف به {formatMoneyWithUnit(reading.result.recognizedRevenueMinor + reading.result.directSaleRevenueMinor)}{" "}
+            {/* المجموعة ١ (قراءة الفترة الواحدة): المجموع مشتقّ في الخدمة — لا حساب فترة داخل الصفحة. */}
+            إيراد معترف به {formatMoneyWithUnit(reading.recognizedRevenueTotalMinor)}{" "}
             − تكلفة مباشرة {formatMoneyWithUnit(reading.result.effectiveDirectCostMinor)} − مصروف موزّع{" "}
             {formatMoneyWithUnit(reading.result.recordedOperatingExpenseMinor)} — ضمن الفترة فقط.
             {reading.result.resultMinor === null
@@ -295,6 +351,28 @@ export default function Statement() {
           </p>
         </div>
       </section>
+      {reading.expenseCategories.length > 0 ? (
+        /* المجموعة ١ (تصنيفي للمصاريف): كتلة مطوية افتراضيًا — تُفتح حين يريدها
+         * المالك؛ التجميع بُعد قراءة فوق نفس أحداث الفترة، لا مسار حساب ثانٍ. */
+        <details className="micro-finance-layer micro-category-groups">
+          <summary className="micro-finance-layer-summary">
+            <span>
+              <b>مصاريفي حسب تصنيفي</b>
+              <small>{`${reading.expenseCategories.length} تصنيفًا في هذه الفترة — وسمك البشري، لا تصنيفًا محاسبيًا`}</small>
+            </span>
+            <strong>افتح التجميع</strong>
+          </summary>
+          <section className="micro-finance-event-list">
+            {reading.expenseCategories.map(group => (
+              <ExpenseCategoryGroupRow
+                key={group.label}
+                group={group}
+                onOpenSource={openWithReferrer}
+              />
+            ))}
+          </section>
+        </details>
+      ) : null}
       <section className="micro-decision-card" aria-label="الأمانات في الفترة">
         <HandCoins aria-hidden="true" />
         <div>

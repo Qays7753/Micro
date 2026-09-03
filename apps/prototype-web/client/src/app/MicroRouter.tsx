@@ -49,6 +49,8 @@ const Tools = lazy(() => import("@/pages/Tools"));
 const CostCalculator = lazy(() => import("@/pages/CostCalculator"));
 /* المجموعة ٣ (Scope B): صفحة التقدير المحفوظ — قراءة وأفعال لا محرر ثانٍ. */
 const EstimateDetail = lazy(() => import("@/pages/EstimateDetail"));
+/* المجموعة ١ (فحص سلامة مالي): قارئ سطح تحت أدواتي — يبقى شريط التنقل. */
+const ToolsIntegrity = lazy(() => import("@/pages/ToolsIntegrity"));
 const Parties = lazy(() => import("@/pages/Parties"));
 const CashDistribution = lazy(() => import("@/pages/CashDistribution"));
 const CashCount = lazy(() => import("@/pages/CashCount"));
@@ -109,6 +111,8 @@ export function MicroRouter() {
             {/* المجموعة ٣ (Scope A/B): حاسبة عميقة + تفصيل تقدير — يخفيان التنقل كإخوتهما المحررات. */}
             <Route path="/tools/calculator" component={CostCalculator} />
             <Route path="/tools/estimate/:id" component={EstimateDetail} />
+            {/* المجموعة ١ (فحص سلامة مالي): مسار سطح — قارئ يبقي التنقل السفلي. */}
+            <Route path="/tools/integrity" component={ToolsIntegrity} />
             <Route path="/parties" component={Parties} />
             <Route path="/finance" component={Finance} />
             {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}

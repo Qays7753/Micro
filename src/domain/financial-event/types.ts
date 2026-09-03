@@ -33,6 +33,10 @@ export type OperatingExpenseContext = {
   purpose: ExpensePurpose;
   knowledge: ExpenseKnowledge;
   sharedProjectShare?: SharedProjectShare | null;
+  /* المجموعة ١ (تصنيفي للمصاريف): وسم بشري اختياري يجيب «على شو اندفعت المصاري؟»
+   * — بُعد قراءة وتجميع فقط؛ لا يغيّر أي دلتا مالية ولا الحصة ولا النتيجة.
+   * مجمّد مع الحدث؛ تعديله لاحقًا = تراجع موثق + تسجيل جديد. */
+  categoryLabel?: string | null;
 };
 type FinancialEventCorrectionType = "reverse";
 export type FinancialEvent = {

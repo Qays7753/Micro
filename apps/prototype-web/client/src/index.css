@@ -6338,3 +6338,161 @@ button.micro-month-cell:hover {
   display: grid;
   gap: var(--space-3);
 }
+
+/* ═══ المجموعة ١ — الإدخال المالي الموجّه والتصنيف وفحص السلامة ═══ */
+/* رقاقة مقترح التصنيف: لمسة 44px، شكل حبة، الوسم الكامل في title، والاختيار
+   حالة معلنة (aria-pressed) لا لونًا وحده. */
+.micro-suggest-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-inline-size: 160px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 var(--space-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-well);
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    background 160ms var(--motion-out),
+    color 160ms var(--motion-out);
+}
+@media (hover: hover) and (pointer: fine) {
+.micro-suggest-chip:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+}
+.micro-suggest-chip[aria-pressed="true"] {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+.micro-suggest-chip:active {
+  transform: scale(0.97);
+}
+
+/* معاينة الأثر قبل الحفظ: منطقة ارتفاع محجوز ثابتة — لا صفوف شرطية فوق حقول
+   الإدخال (قانون عدم الاهتزاز)؛ المحتوى يتبدل داخل صندوق مستقر. */
+.micro-effect-preview {
+  display: grid;
+  gap: var(--space-1);
+  /* SA-5 (6): يحتضن أسوأ حالة (سطر أثر + غير موزّع + السوالب + سطر الوسم)
+     دون نمو فوق حقل المبلغ — لا اهتزاز إطلاقًا. */
+  min-height: 116px;
+  align-content: start;
+}
+.micro-effect-preview-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+.micro-effect-preview-line {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* مسودة محفوظة + صدق النسبة بعد الحفظ: إعلان هادئ بلا ألوان إنذار. */
+.micro-draft-banner {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--color-accent-soft);
+  font-size: 13px;
+}
+.micro-draft-banner p {
+  margin: 0;
+}
+
+/* بطاقة مراجعة التوزيع: صفوف «تسمية: قيمة» لا معادلات مضمّنة (سلامة الاتجاه). */
+.micro-allocation-review {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-well);
+}
+.micro-allocation-review h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.micro-allocation-review dl {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.micro-allocation-review dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.micro-allocation-review dt {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.micro-allocation-review dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* فحص سلامة مالي: الحالة كلمة وأيقونة ولون معًا — لا لونًا وحده أبدًا. */
+.micro-integrity-status {
+  font-weight: 700;
+}
+.micro-integrity-status[data-status="PASS"] {
+  color: var(--color-success-text);
+}
+.micro-integrity-status[data-status="WARN"] {
+  color: var(--color-warning-text);
+}
+.micro-integrity-status[data-status="FAIL"] {
+  color: var(--color-danger-text);
+}
+.micro-integrity-check .micro-setting-icon {
+  color: var(--color-text-secondary);
+}
+.micro-integrity-check[data-status="WARN"] .micro-setting-icon {
+  color: var(--color-warning-text);
+}
+.micro-integrity-check[data-status="FAIL"] .micro-setting-icon {
+  color: var(--color-danger-text);
+}
+.micro-integrity-page .micro-decision-card strong[data-status="WARN"] {
+  color: var(--color-warning-text);
+}
+.micro-integrity-page .micro-decision-card strong[data-status="FAIL"] {
+  color: var(--color-danger-text);
+}
+.micro-integrity-detail {
+  margin: 0;
+  font-size: 13px;
+}
+.micro-integrity-drift {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.micro-integrity-offenders summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.micro-integrity-offenders ul {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-1);
+}
+.micro-integrity-offenders li {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}

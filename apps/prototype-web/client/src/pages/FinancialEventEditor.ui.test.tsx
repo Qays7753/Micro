@@ -65,6 +65,12 @@ describe("FinancialEventEditor save honesty (U-02)", () => {
       projectFinance: {
         record,
         listSettleablePayables: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        /* المجموعة ١: مقترحات التصنيف + وجهة الصرف — قراءتان مشتقتان فقط. */
+        listEvents: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        readPosition: vi.fn().mockResolvedValue({ ok: true, value: { amanahHeldMinor: 0 } }),
+      },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
       },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
@@ -120,6 +126,12 @@ describe("FinancialEventEditor note requirement (U-04)", () => {
       projectFinance: {
         record,
         listSettleablePayables: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        /* المجموعة ١: مقترحات التصنيف + وجهة الصرف — قراءتان مشتقتان فقط. */
+        listEvents: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        readPosition: vi.fn().mockResolvedValue({ ok: true, value: { amanahHeldMinor: 0 } }),
+      },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
       },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),

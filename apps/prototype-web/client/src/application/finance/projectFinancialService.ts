@@ -128,11 +128,12 @@ export type FinancialInsights = {
   coverage: CoverageIndicator;
   liquidity: RecordedLiquidity;
 };
-export type SharedExpenseRecordInput =
-  | { mode?: "fixed"; amountMinor: number; sharedTotalAmountMinor?: never; sharedPercentageBps?: never }
-  | { mode: "percentage"; amountMinor?: never; sharedTotalAmountMinor: number; sharedPercentageBps: number }
-  | { mode: "estimate"; amountMinor: number; sharedTotalAmountMinor?: never; sharedPercentageBps?: never }
-  | { mode: "defer"; amountMinor?: never; sharedTotalAmountMinor: number; sharedPercentageBps?: never };
+/* المجموعة ١ (معاينة الأثر): نوع خيارات الحصة انتقل إلى وحدة التوسيع النقية
+ * `expenseRecordIntent` مصدرًا واحدًا للحفظ والمعاينة — يُعاد تصديره هنا
+ * للتوافق مع المستوردين القائمين. */
+export type { SharedExpenseRecordInput } from "@/application/finance/expenseRecordIntent";
+import { expandExpenseRecordIntent } from "@/application/finance/expenseRecordIntent";
+import type { SharedExpenseRecordInput } from "@/application/finance/expenseRecordIntent";
 export type FinancialRecordInput = {
   type: FinancialEventType;
   amountMinor?: number;
@@ -1102,93 +1103,23 @@ export class ProjectFinancialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     let amountMinor = input.amountMinor;
     let expenseContext = input.expenseContext ?? null;
-    if (input.sharedExpense && expenseContext?.relationship !== "shared")
-      return {
-        ok: false,
-        code: "validation_error",
-        message: "خيارات حصة المصروف لا تستخدم إلا مع مصروف مشترك.",
-      };
-    if (
-      (input.type === "operating_expense_cash" || input.type === "operating_expense_payable") &&
-      !expenseContext
-    )
-      return { ok: false, code: "validation_error", message: "حدد سياق المصروف ودرجة معرفته قبل الحفظ." };
-    if (expenseContext?.relationship === "shared" && input.sharedExpense) {
-      const note = expenseContext.sharedProjectShare?.note ?? null;
-      if (input.sharedExpense.mode === "percentage") {
-        const calculatedShareMinor = calculateSharedProjectShareMinor(
-          input.sharedExpense.sharedTotalAmountMinor,
-          input.sharedExpense.sharedPercentageBps,
-        );
-        amountMinor = calculatedShareMinor;
-        expenseContext = {
-          ...expenseContext,
-          knowledge: "known",
-          sharedProjectShare: {
-            basis: "agreed_percentage",
-            note,
-            allocation: "allocated",
-            totalAmountMinor: input.sharedExpense.sharedTotalAmountMinor,
-            percentageBps: input.sharedExpense.sharedPercentageBps,
-            calculatedShareMinor,
-          },
-        };
-      } else if (input.sharedExpense.mode === "defer") {
-        amountMinor = input.sharedExpense.sharedTotalAmountMinor;
-        expenseContext = {
-          ...expenseContext,
-          knowledge: "needs_review",
-          sharedProjectShare: {
-            basis: "needs_review",
-            note,
-            allocation: "unallocated",
-            totalAmountMinor: input.sharedExpense.sharedTotalAmountMinor,
-            percentageBps: null,
-            calculatedShareMinor: null,
-          },
-        };
-      } else if (input.sharedExpense.mode === "estimate") {
-        if (amountMinor === undefined)
-          return { ok: false, code: "validation_error", message: "أدخل حصة المالك التقديرية قبل الحفظ." };
-        expenseContext = {
-          ...expenseContext,
-          knowledge: "estimated",
-          sharedProjectShare: {
-            basis: "owner_estimate",
-            note,
-            allocation: "allocated",
-            totalAmountMinor: null,
-            percentageBps: null,
-            calculatedShareMinor: null,
-          },
-        };
-      } else {
-        if (amountMinor === undefined)
-          return { ok: false, code: "validation_error", message: "أدخل مبلغ حصة المشروع قبل الحفظ." };
-        expenseContext = {
-          ...expenseContext,
-          knowledge: "known",
-          sharedProjectShare: {
-            basis: "agreed_fixed_share",
-            note,
-            allocation: "allocated",
-            totalAmountMinor: null,
-            percentageBps: null,
-            calculatedShareMinor: null,
-          },
-        };
-      }
+    /* المجموعة ١ (معاينة الأثر): التوسيع نفسه الذي تعرضه المعاينة قبل الحفظ —
+     * وحدة نقية واحدة (`expenseRecordIntent`) لا مسار حساب ثانٍ. */
+    const intentType: "operating_expense_cash" | "operating_expense_payable" =
+      input.type === "operating_expense_cash" || input.type === "operating_expense_payable"
+        ? input.type
+        : "operating_expense_cash";
+    if (intentType === input.type || input.sharedExpense || input.expenseContext) {
+      const expanded = expandExpenseRecordIntent({
+        type: intentType,
+        amountMinor: input.amountMinor,
+        expenseContext: input.expenseContext ?? null,
+        sharedExpense: input.sharedExpense,
+      });
+      if (!expanded.ok) return { ok: false, code: "validation_error", message: expanded.message };
+      amountMinor = expanded.amountMinor;
+      expenseContext = expanded.expenseContext;
     }
-    if (
-      (input.type === "operating_expense_cash" || input.type === "operating_expense_payable") &&
-      expenseContext?.relationship === "shared" &&
-      !expenseContext.sharedProjectShare
-    )
-      return {
-        ok: false,
-        code: "validation_error",
-        message: "حدد كيف عرفت حصة المشروع من المصروف المشترك قبل الحفظ.",
-      };
     if (amountMinor === undefined)
       return { ok: false, code: "validation_error", message: "أدخل مبلغًا صالحًا قبل الحفظ." };
     if (input.type === "payable_settlement_cash") {

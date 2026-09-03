@@ -417,7 +417,26 @@ CAPS: dict[str, int] = {
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
     # list (row opens the new detail page), and module states; mandated labels only.
+    # Tools 27 → 28 (2026-09-03, Group 1 guided-financial-entry prompt §5.8): the
+    # integrity module-states row label ("فحص سلامة مالي") — one mandated label;
+    # "مفعّل" and "افتح" deduped against the existing measured set. Headroom kept.
     "Tools": 34,
+    # ToolsIntegrity 32 (2026-09-03, Group 1 §5.8 — first measurement day): the
+    # read-only integrity surface — promise line, verdict card, five check titles,
+    # status words (سليم/تحذير/خلل), offender disclosure, and the feeding service's
+    # static titles; detail lines are `${}` templates (data-driven, uncounted).
+    # Locked at the honest measured number as a ratchet from day one.
+    "ToolsIntegrity": 32,
+    # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
+    # day): the guided expense journey — wallet question, category field + chips,
+    # allocation review card, derived effect preview, guidance notes, draft banner
+    # and attribution-failure honesty, on top of the historical editor labels.
+    # Details-layer bodies are stripped at rest; validation/loading lines excluded.
+    "FinancialEventEditor": 138,
+    # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
+    # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
+    # labels and truth lines join the measured set; per-tag rows are data.
+    "Statement": 89,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
@@ -458,6 +477,11 @@ PAGES = [
     "Tools",
     "Settings",
     "NotFound",
+    # المجموعة ١ (الإدخال المالي الموجّه): فحص السلامة + المحرر الموجّه + الكشف
+    # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
+    "ToolsIntegrity",
+    "FinancialEventEditor",
+    "Statement",
 ]
 
 
