@@ -69,7 +69,29 @@ export type StatementReading = {
   result: RecordedPeriodResult;
   position: ProjectFinancialPosition;
   cashNetMinor: number;
+  /* المجموعة ١ (قراءة الفترة الواحدة): مجموع الإيراد المعترف به — مشتقّ في
+   * الخدمة لا في الصفحة؛ لا حساب فترة داخل أي واجهة. */
+  recognizedRevenueTotalMinor: number;
+  /* المجموعة ١ (تصنيفي للمصاريف): «مصاريفي حسب تصنيفي» — بُعد قراءة وتجميع
+   * فقط؛ لا يغير أي دلتا ولا النتيجة. المجموعة غير المصنفة آخر القائمة
+   * بصدق (وسم غائب = غير مصنّف، لا صفر ولا اختفاء). */
+  expenseCategories: readonly StatementExpenseCategoryGroup[];
   truthLines: readonly string[];
+};
+
+export type StatementExpenseCategoryLine = {
+  eventId: string;
+  occurredOn: string;
+  note: string;
+  amountMinor: number;
+  kind: "paid" | "payable";
+  href: string;
+};
+export type StatementExpenseCategoryGroup = {
+  label: string;
+  classified: boolean;
+  totalMinor: number;
+  lines: readonly StatementExpenseCategoryLine[];
 };
 
 export type StatementResult =
@@ -388,6 +410,41 @@ export class StatementService {
       cashOut.reduce((sum, line) => sum + line.amountMinor, 0) +
       correctionsNetMinor;
 
+    /* المجموعة ١ (تصنيفي للمصاريف): تجميع مصاريف الفترة حسب وسم المالك —
+     * مدفوعة ومستحقة معًا (كلاهما «وين راح المصروف»)؛ المصروف المشترك غير
+     * الموزّع يظهر هنا لكنه لا يدخل النتيجة (دلتاه صفر) — التوضيح في سطر
+     * الحقيقة داخل الكتلة. */
+    const expenseCategoryEvents = activeEvents.filter(
+      event =>
+        (event.type === "operating_expense_cash" || event.type === "operating_expense_payable") &&
+        familyEvent(event),
+    );
+    const unclassifiedKey = "__unclassified__";
+    const categoryGroups = new Map<string, StatementExpenseCategoryLine[]>();
+    for (const event of expenseCategoryEvents) {
+      const key = event.expenseContext?.categoryLabel ?? unclassifiedKey;
+      const lines = categoryGroups.get(key) ?? [];
+      lines.push({
+        eventId: event.id,
+        occurredOn: event.occurredOn,
+        note: event.note,
+        amountMinor: event.amountMinor,
+        kind: event.type === "operating_expense_cash" ? "paid" : "payable",
+        href: `/finance?event=${encodeURIComponent(event.id)}`,
+      });
+      categoryGroups.set(key, lines);
+    }
+    const expenseCategories: readonly StatementExpenseCategoryGroup[] = [...categoryGroups.entries()]
+      .map(([key, lines]) => ({
+        label: key === unclassifiedKey ? "غير مصنّف" : key,
+        classified: key !== unclassifiedKey,
+        totalMinor: lines.reduce((sum, line) => sum + line.amountMinor, 0),
+        lines,
+      }))
+      .sort((a, b) =>
+        a.classified === b.classified ? b.totalMinor - a.totalMinor : a.classified ? -1 : 1,
+      );
+
     const position = positionResult.value;
     const reading: StatementReading = {
       from,
@@ -433,11 +490,15 @@ export class StatementService {
       result: periodResult.value,
       position,
       cashNetMinor,
+      recognizedRevenueTotalMinor:
+        periodResult.value.recognizedRevenueMinor + periodResult.value.directSaleRevenueMinor,
+      expenseCategories,
       truthLines: [
         "الكاش ليس النتيجة: القبض يظهر أعلاه كحركة كاش، والإيراد يُعرف عند التسليم أو البيع.",
         `نطاق الكشف: من ${formatLocalDate(from) ?? from} إلى ${formatLocalDate(to) ?? to} — حسب تواريخ الحركات المسجلة لا وقت فتح الشاشة.`,
         "أي مجهول يبقى مجهولًا: لا يُعرض صفر مكان رقم لم يُدخل.",
         "صافي الكاش أعلاه لا يشمل أرصدة محافظ افتُتحت في الفترة ولا تسويات عدّ الصندوق — مصادرها في محافظ الكاش.",
+        "«مصاريفي حسب تصنيفي» قراءة تجميعية لوسمك البشري: المستحق منها لم يُدفع بعد، والغير موزّع لا يدخل نتيجة الفترة حتى توزيعه.",
       ],
     };
     return { ok: true, value: reading };

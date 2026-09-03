@@ -417,6 +417,19 @@ const isSharedProjectShare = (value: unknown, knowledge: unknown) => {
       value.calculatedShareMinor === null)
   );
 };
+/* المجموعة ١ (تصنيفي للمصاريف): وسم التصنيف على سياق المصروف — اختياري (null/undefined)
+ * أو نص ≤ ٨٠ حرفًا بعد التطبيع (نفس قاعدة الـDomain). التطبيع الكامل (قص/دمج/فارغ→null)
+ * يجري في خريطة الترحيل قبل الفحص؛ هنا يُرفض فقط النوع غير النصي أو الطول الزائد. */
+const categoryLabelMaxLength = 80;
+const isExpenseCategoryLabel = (value: unknown) =>
+  value === undefined ||
+  value === null ||
+  (isString(value) && value.trim().replace(/\s+/gu, " ").length <= categoryLabelMaxLength);
+const normalizeImportedCategoryLabel = (value: unknown): string | null => {
+  if (value === undefined || value === null) return null;
+  if (!isString(value)) return null;
+  return value.trim().replace(/\s+/gu, " ") || null;
+};
 const isExpenseContext = (value: unknown) =>
   isRecord(value) &&
   (value.relationship === "project" || value.relationship === "shared") &&
@@ -431,6 +444,7 @@ const isExpenseContext = (value: unknown) =>
     value.purpose === "campaign" ||
     value.purpose === "unallocated") &&
   (value.knowledge === "known" || value.knowledge === "estimated" || value.knowledge === "needs_review") &&
+  isExpenseCategoryLabel(value.categoryLabel) &&
   (value.relationship === "shared"
     ? isSharedProjectShare(value.sharedProjectShare, value.knowledge)
     : value.sharedProjectShare === undefined || value.sharedProjectShare === null);
@@ -1302,6 +1316,12 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     )
       return false;
   }
+  /* المجموعة ١ (فحص سلامة مالي — تعزيز الاستيراد): مجموع الأمانات لا ينزل تحت
+   * الصفر إجمالًا — المسار الحي يحرس كل كتابة، والاستيراد اليدوي كان الثغرة. */
+  if (
+    data.financialEvents.reduce((sum, event) => sum + (event.amanahDeltaMinor ?? 0), 0) < 0
+  )
+    return false;
   const purchaseIds = new Set<string>();
   const purchaseKeys = new Set<string>();
   for (const purchase of data.supplierPurchases ?? []) {
@@ -1327,32 +1347,61 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     walletOperationKeys.add(wallet.createdOperationKey);
   }
   const entryIds = new Set<string>();
-  const entryOperationKeys = new Set<string>();
   const reversedIds = new Set<string>();
   const transferGroups = new Map<string, Record<string, unknown>[]>();
+  /* المجموعة ١ (إصلاح عيب سابق): مفتاح العملية قد يكتب زوجًا مقترنًا واحدًا —
+   * تحويل (خارج/داخل بمعرف تحويل واحد) أو عكس تحويل (تراجعان بمعرف واحد)؛
+   * وحدة الإيداع واحدة والمفتاح واحد. التفرد يُطبق على الوحدات لا الأسطر:
+   * أي تكرار خارج هذين الزوجين الموثقين = ملف غير صالح. */
+  const entriesByOperationKey = new Map<string, Record<string, unknown>[]>();
   for (const entry of data.cashContinuityEntries ?? []) {
     if (
       !validCashEntry(entry) ||
       entryIds.has(entry.id) ||
-      !walletIds.has(entry.walletId) ||
-      entryOperationKeys.has(entry.operationKey)
+      !walletIds.has(entry.walletId)
     )
       return false;
     entryIds.add(entry.id);
-    entryOperationKeys.add(entry.operationKey);
+    entriesByOperationKey.set(entry.operationKey, [
+      ...(entriesByOperationKey.get(entry.operationKey) ?? []),
+      entry,
+    ]);
     if (entry.type === "reversal") {
       if (reversedIds.has(entry.reversesEntryId)) return false;
       reversedIds.add(entry.reversesEntryId);
     }
-    if (isString(entry.transferId))
+    /* المجموعة ١ (إصلاح عيب سابق): عكس التحويل يحمل transferId خاصًّا به (زوج تراجع
+     * لا نقل) — لا يدخل مجموعات التحويل وإلا فشل كل ملف فيه تحويل معكوس. */
+    if (isString(entry.transferId) && entry.type !== "reversal")
       transferGroups.set(entry.transferId, [...(transferGroups.get(entry.transferId) ?? []), entry]);
+  }
+  for (const group of entriesByOperationKey.values()) {
+    if (group.length === 1) continue;
+    const sameTransfer =
+      group.length === 2 &&
+      group.every(
+        entry => isString(entry.transferId) && entry.transferId === (group[0] as { transferId?: unknown }).transferId,
+      );
+    const isTransferPair =
+      sameTransfer &&
+      group.some(entry => entry.type === "transfer_out") &&
+      group.some(entry => entry.type === "transfer_in");
+    const isReversalPair = sameTransfer && group.every(entry => entry.type === "reversal");
+    if (!isTransferPair && !isReversalPair) return false;
   }
   for (const entry of data.cashContinuityEntries ?? []) {
     if (entry.type === "reversal") {
       const original = (data.cashContinuityEntries ?? []).find(
         candidate => candidate.id === entry.reversesEntryId,
       );
-      if (!original || entry.cashDeltaMinor !== -original.cashDeltaMinor) return false;
+      /* SA-5 (4): التراجع عن تراجع غير مشروع في المسار الحي — يُرفض هنا أيضًا؛
+       * لا تُقبل أزواج مراجعة متبادلة مصنوعة يدويًا. */
+      if (
+        !original ||
+        original.type === "reversal" ||
+        entry.cashDeltaMinor !== -original.cashDeltaMinor
+      )
+        return false;
     }
   }
   for (const group of transferGroups.values()) {
@@ -1947,9 +1996,12 @@ export class LocalTransferService {
     const isPreviousWorkDestination = candidate.version === 17 && candidate.schemaVersion === 26;
     /* إرث موجة إعادة التدفق: نسخة ٢٠/مخطط ٢٨ قبل حقول الأمانات والتقديرات المستقلة. */
     const isPreviousFlowRedesign = candidate.version === 20 && candidate.schemaVersion === 28;
-    /* المجموعة ١ (ملف المالك): نسخة ٢١/مخطط ٢٩ قبل مخزن هوية المالك — تُقبل
+    /* المجموعة ١ (ملف المالك — سابقًا): نسخة ٢١/مخطط ٢٩ قبل مخزن هوية المالك — تُقبل
      * وتُهاجر بـ ownerProfile=null؛ لا أعمدة مالية أو تاريخية تتغير. */
     const isPreviousOwnerFoundation = candidate.version === 21 && candidate.schemaVersion === 29;
+    /* المجموعة ١ (تصنيفي للمصاريف): نسخة ٢٢/مخطط ٣٠ قبل وسم التصنيف — تُقبل
+     * وتُهاجر بغياب الوسم (undefined→null) بلا تعبئة افتراضية ولا اختراع تصنيف. */
+    const isPreviousExpenseCategory = candidate.version === 22 && candidate.schemaVersion === 30;
     const isPreviousO1 =
       (candidate.version === 12 && candidate.schemaVersion === 21) ||
       (candidate.version === 13 && candidate.schemaVersion === 22);
@@ -1968,6 +2020,7 @@ export class LocalTransferService {
       !isPreviousWorkDestination &&
       !isPreviousFlowRedesign &&
       !isPreviousOwnerFoundation &&
+      !isPreviousExpenseCategory &&
       !isPreviousO1 &&
       !isPreviousG3 &&
       !isG3Legacy &&
@@ -2028,7 +2081,23 @@ export class LocalTransferService {
       recurrences: Array.isArray(raw.recurrences) ? raw.recurrences : [],
       financialEvents: Array.isArray(raw.financialEvents)
         ? raw.financialEvents.map(event =>
-            isRecord(event) ? { ...event, amanahDeltaMinor: event.amanahDeltaMinor ?? 0 } : event,
+            isRecord(event)
+              ? {
+                  ...event,
+                  amanahDeltaMinor: event.amanahDeltaMinor ?? 0,
+                  /* المجموعة ١ (تصنيفي للمصاريف): تطبيع الوسم داخل سياق المصروف عند
+                   * الاستيراد — القصّ والدمج والفارغ→null، كسابقة amanahDeltaMinor ?? 0؛
+                   * لا اختراع تصنيف للتاريخ ولا وسم على أحداث بلا سياق. */
+                  expenseContext: isRecord(event.expenseContext)
+                    ? {
+                        ...event.expenseContext,
+                        categoryLabel: normalizeImportedCategoryLabel(
+                          (event.expenseContext as Record<string, unknown>).categoryLabel,
+                        ),
+                      }
+                    : event.expenseContext,
+                }
+              : event,
           )
         : [],
       preferences: isRecord(raw.preferences)

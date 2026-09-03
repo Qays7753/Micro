@@ -28,6 +28,8 @@ function mockSheetServices(saleOk = true) {
     projectFinance: {
       readPosition: vi.fn().mockResolvedValue({ ok: true, value: { recordedCashMinor: 2500 } }),
       distributeUnallocated: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+      /* المجموعة ١ (تصنيفي للمصاريف): مقترحات الوسم قراءة مشتقة. */
+      listEvents: vi.fn().mockResolvedValue({ ok: true, value: [] }),
     },
     cashContinuity: {
       overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),

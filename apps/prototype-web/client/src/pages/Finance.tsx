@@ -389,6 +389,11 @@ export default function Finance() {
             <button className="micro-text-action" type="button" onClick={() => switchView("period")}>
               قراءة الفترة الكاملة
             </button>
+            {/* المجموعة ١ (فحص سلامة مالي): باب مالي حيث يُشك بالرقم — قراءة فقط. */}
+            {" · "}
+            <button className="micro-text-action" type="button" onClick={() => navigate(withFrom("/tools/integrity", "/finance"))}>
+              فحص سلامة مالي — اطمن على أرقامك
+            </button>
           </p>
         </div>
       </section>

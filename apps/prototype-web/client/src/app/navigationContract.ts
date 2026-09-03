@@ -140,6 +140,8 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   "/finance/statement": "/finance",
   /* المجموعة ٣ (Scope C — §9.3): الحاسبة وصفحة التقدير — البديل القانوني أدواتي (بيتهما). */
   "/tools/calculator": "/tools",
+  /* المجموعة ١ (فحص سلامة مالي): قارئ سطح — بيته أدواتي (عقد ٢٦ سجل واحد). */
+  "/tools/integrity": "/tools",
   /* المجموعة ٣ (فحص حي): الكتالوج بلا مصدر كان يعود إلى نفسه (حلقة) — بيته أدواتي. */
   "/catalog": "/tools",
 };

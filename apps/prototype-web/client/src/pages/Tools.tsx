@@ -78,6 +78,13 @@ export default function Tools() {
           state: "enabled",
           href: "/tools/calculator",
         },
+        /* المجموعة ١ (فحص سلامة مالي): متاح دائمًا — قراءة فقط لا يعتمد على
+         * بيانات؛ حالته «مفعّل» صادقة من يومها الأول (D-006: مشتقة من حقيقة). */
+        {
+          label: "فحص سلامة مالي",
+          state: "enabled",
+          href: "/tools/integrity",
+        },
         {
           label: "المخزون",
           state: activation.value.activatedOn ? "enabled" : "available_not_enabled",

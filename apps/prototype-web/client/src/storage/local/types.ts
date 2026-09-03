@@ -24,14 +24,15 @@ import type {
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
-export const localSchemaVersion = 30;
+export const localSchemaVersion = 31;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 22;
-/* المجموعة ١ (ملف المالك): سجل هوية مالك محلي مستقل عن سجل المشروع — معرّف محلي
- * ثابت + حقول مستقبلية فارغة (المزود/المعرّف الخارجي) لا تُفعّل في هذه المرحلة.
- * مخزن ٣٠ (owner-profile)؛ النسخ ٢٢ تشمله ونسخ ٢١ تُقبل وتُهاجر بـ null. */
+export const localExportVersion = 23;
+/* المجموعة ١ (تصنيفي للمصاريف): مخزن ٣١/نسخة ٢٣ أضافتا `categoryLabel` الاختياري
+ * داخل سياق المصروف — لا أعمدة مالية ولا متاجر جديدة؛ الملفات ٢٢/٣٠ تُقبل
+ * وتُهاجر بغياب الوسم (null) بلا تعبئة افتراضية. تعليق المجموعة ١ السابق (ملف
+ * المالك — مخزن ٣٠/نسخ ٢٢) صار تاريخيًا: ٢١/٢٩ تُقبل وهاجرت بـ ownerProfile=null. */
 export const localOwnerProfileId = "local-owner-profile";
 export type OwnerProfile = {
   id: typeof localOwnerProfileId;
