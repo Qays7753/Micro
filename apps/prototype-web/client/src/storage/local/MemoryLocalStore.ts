@@ -192,6 +192,111 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         .map(clone),
     };
   }
+  /* المجموعة ٣ (عقد D4): ذرّية التسليم في الذاكرة — نفس دلالات IndexedDB:
+   * إعادة استخدام عند وجود حدث التسليم، وإكمال ما نقص من مفاتيح حتمية فقط. */
+  async commitOrderDelivery(
+    order: StoredCraftOrder,
+    movements: readonly InventoryMovement[],
+    shortages: readonly InventoryShortage[],
+    wallet: CashWallet | null,
+    cashEntry: CashContinuityEntry | null,
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      movements: readonly InventoryMovement[];
+      shortages: readonly InventoryShortage[];
+      cashEntry: CashContinuityEntry | null;
+      reused: boolean;
+    }>
+  > {
+    const existing = this.orders.get(order.id);
+    if (!existing)
+      return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لتسجيل التسليم." };
+    /* المجموعة ٣: إعادة التسليم بعد عكسٍ تسليمٌ جديد — المقارنة على مفتاح آخر
+     * حدث تسليم في الطلب الوارد لا على أي حدث تاريخي، وإلا لَعُدَّت إعادة
+     * التنفيذ إعادة تشغيل وأُهملت كتابتها. */
+    const lastDeliveryKey = [...order.order.events]
+      .reverse()
+      .find(event => event.type === "status_changed" && event.toStatus === "delivered")?.idempotencyKey;
+    const alreadyDelivered =
+      lastDeliveryKey !== undefined &&
+      existing.order.events.some(
+        event =>
+          event.type === "status_changed" &&
+          event.toStatus === "delivered" &&
+          event.idempotencyKey === lastDeliveryKey,
+      );
+    if (!alreadyDelivered) this.orders.set(order.id, clone(order));
+    const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
+    movements
+      .filter(movement => !movementKeys.has(movement.operationKey))
+      .forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    const shortageKeys = new Set(Array.from(this.inventoryShortages.values()).map(s => s.operationKey));
+    shortages
+      .filter(shortage => !shortageKeys.has(shortage.operationKey))
+      .forEach(shortage => this.inventoryShortages.set(shortage.id, clone(shortage)));
+    let attributedEntry: CashContinuityEntry | null = null;
+    if (cashEntry) {
+      const cashKeyTaken = Array.from(this.cashContinuityEntries.values()).some(
+        entry => entry.operationKey === cashEntry.operationKey,
+      );
+      if (!cashKeyTaken) {
+        this.cashContinuityEntries.set(cashEntry.id, clone(cashEntry));
+        attributedEntry = clone(cashEntry);
+      } else {
+        attributedEntry = clone(cashEntry);
+      }
+      if (wallet) this.cashWallets.set(wallet.id, clone(wallet));
+    } else if (wallet) {
+      this.cashWallets.set(wallet.id, clone(wallet));
+    }
+    return {
+      ok: true,
+      value: {
+        order: clone(alreadyDelivered ? existing : order),
+        movements: movements.map(clone),
+        shortages: shortages.map(clone),
+        cashEntry: attributedEntry,
+        reused: alreadyDelivered,
+      },
+    };
+  }
+  /* المجموعة ٣ (عقد D4): عكس التسليم ذرّيًا في الذاكرة. */
+  async commitOrderDeliveryReversal(
+    order: StoredCraftOrder,
+    reversalMovements: readonly InventoryMovement[],
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      reversalMovements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  > {
+    const existing = this.orders.get(order.id);
+    if (!existing)
+      return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لعكس تسليمه." };
+    const lastReversalKey = [...order.order.events]
+      .reverse()
+      .find(event => event.type === "delivery_reversed")?.idempotencyKey;
+    const alreadyReversed =
+      lastReversalKey !== undefined &&
+      existing.order.events.some(
+        event => event.type === "delivery_reversed" && event.idempotencyKey === lastReversalKey,
+      );
+    if (!alreadyReversed) this.orders.set(order.id, clone(order));
+    const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
+    reversalMovements
+      .filter(movement => !movementKeys.has(movement.operationKey))
+      .forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    return {
+      ok: true,
+      value: {
+        order: clone(alreadyReversed ? existing : order),
+        reversalMovements: reversalMovements.map(clone),
+        reused: alreadyReversed,
+      },
+    };
+  }
   async saveDirectSale(sale: DirectSale): Promise<StorageResult<DirectSale>> {
     this.directSales.set(sale.id, clone(sale));
     return { ok: true, value: clone(sale) };

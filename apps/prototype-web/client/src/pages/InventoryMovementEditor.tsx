@@ -48,6 +48,11 @@ export default function InventoryMovementEditor() {
     const order = query.get("order");
     return order && ID_SHAPE.test(order) ? order : null;
   })();
+  /* المجموعة ٣ (عقد D6): وصلة استهلاك بيع مباشر — /inventory/movement/consume?sale=<id>. */
+  const linkedSaleId = (() => {
+    const sale = query.get("sale");
+    return sale && ID_SHAPE.test(sale) ? sale : null;
+  })();
   const linkedPurchaseId = (() => {
     const purchase = query.get("purchase");
     return purchase && ID_SHAPE.test(purchase) ? purchase : null;
@@ -63,8 +68,12 @@ export default function InventoryMovementEditor() {
   const [purchaseId, setPurchaseId] = useState("");
   const [receiptStatus, setReceiptStatus] = useState<PurchaseReceiptStatus | null>(null);
   const [orderId, setOrderId] = useState("");
-  /* المجموعة ٢ (عقد ٢٨): الاستهلاك لطلب محدد أم لعمل المشروع — سؤال صريح. */
-  const [consumeTarget, setConsumeTarget] = useState<"order" | "project">("order");
+  /* المجموعة ٢ (عقد ٢٨): الاستهلاك لطلب محدد أم لعمل المشروع — سؤال صريح.
+   * المجموعة ٣ (عقد D6): أو لبيع مباشر محدد — مرجع صريح ثالث. */
+  const [consumeTarget, setConsumeTarget] = useState<"order" | "sale" | "project">(
+    linkedSaleId ? "sale" : "order",
+  );
+  const [saleId, setSaleId] = useState("");
   const [wasteContextKind, setWasteContextKind] = useState<
     "order" | "catalog_item" | "catalog_template" | "general_project" | "unallocated"
   >("general_project");
@@ -135,11 +144,14 @@ export default function InventoryMovementEditor() {
       /* سياق الطلب من الوصلة العميقة إن وُجد؛ وإلا أول طلب كالسلوك القائم. */
       const linked = linkedOrderId && result.value.orders.some(order => order.id === linkedOrderId);
       setOrderId(linked ? (linkedOrderId as string) : (result.value.orders[0]?.id ?? ""));
+      /* المجموعة ٣ (عقد D6): بيع مباشر من الوصلة العميقة إن وُجد؛ وإلا أول بيع نشط. */
+      const linkedSale = linkedSaleId && result.value.sales.some(sale => sale.id === linkedSaleId);
+      setSaleId(linkedSale ? (linkedSaleId as string) : (result.value.sales[0]?.id ?? ""));
       setWasteOrderId(result.value.orders[0]?.id ?? "");
       setWasteCatalogItemId(result.value.catalogItems[0]?.id ?? "");
       setWasteTemplateId(result.value.catalogTemplates[0]?.id ?? "");
     });
-  }, [inventory, safeType, linkedOrderId, linkedPurchaseId, linkedMaterialId, dataVersion]);
+  }, [inventory, safeType, linkedOrderId, linkedSaleId, linkedPurchaseId, linkedMaterialId, dataVersion]);
   /* المجموعة ٢ (عقد ٢٨ / TR-07): حالة الاستلام الحية للشراء المحدد — المستلم
    * والمتبقي قيمةً وكميةً، وتغيير الشراء يعيد اشتقاق التعبئة (لا تعبئة كاذبة). */
   useEffect(() => {
@@ -241,6 +253,10 @@ export default function InventoryMovementEditor() {
       setMessage("اختر طلبًا موجودًا لاستهلاك المادة.");
       return false;
     }
+    if (safeType === "consume" && consumeTarget === "sale" && !saleId) {
+      setMessage("اختر بيعًا مباشرًا موجودًا لاستهلاك المادة.");
+      return false;
+    }
     if (safeType === "consume" && consumeTarget === "project" && !note.trim()) {
       setMessage("اكتب بيان الاستهلاك — استهلاك بلا طلب يحتاج بيانًا واضحًا.");
       return false;
@@ -296,6 +312,7 @@ export default function InventoryMovementEditor() {
           ? await inventory.consume({
               materialId,
               orderId: consumeTarget === "order" ? orderId : null,
+              saleId: consumeTarget === "sale" ? saleId : null,
               reason: consumeTarget === "project" ? note : null,
               quantityMilli,
               occurredOn: date,
@@ -588,6 +605,19 @@ export default function InventoryMovementEditor() {
               <input
                 type="radio"
                 name="consume-target"
+                checked={consumeTarget === "sale"}
+                onChange={() => setConsumeTarget("sale")}
+                disabled={references.sales.length === 0}
+              />
+              <span>
+                <b>لبيع مباشر محدد</b>
+                <small>يُربط الاستهلاك ببيع نقدي مسجل — مرجع صريح كالطلب.</small>
+              </span>
+            </label>
+            <label className="micro-radio-choice">
+              <input
+                type="radio"
+                name="consume-target"
                 checked={consumeTarget === "project"}
                 onChange={() => setConsumeTarget("project")}
               />
@@ -603,6 +633,18 @@ export default function InventoryMovementEditor() {
                   {references.orders.map(order => (
                     <option key={order.id} value={order.id}>
                       {order.itemName} · {order.customerName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            {consumeTarget === "sale" ? (
+              <label className="micro-field">
+                <span>البيع المباشر الذي استهلك المادة</span>
+                <select value={saleId} onChange={event => setSaleId(event.target.value)}>
+                  {references.sales.map(sale => (
+                    <option key={sale.id} value={sale.id}>
+                      {sale.itemName}
                     </option>
                   ))}
                 </select>

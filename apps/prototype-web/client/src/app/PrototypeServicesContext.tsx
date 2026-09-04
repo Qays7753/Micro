@@ -5,6 +5,7 @@ import { CostService } from "@/application/cost/costService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewService";
 import { LocalTransferService } from "@/application/transfers/localTransferService";
 import { GuidedOpeningImportService } from "@/application/transfers/guidedOpeningImportService";
 import { PreferenceService } from "@/application/preferences/preferenceService";
@@ -65,6 +66,9 @@ type PrototypeServices = {
   schedules: ScheduleService;
   recurrences: ScheduleRecurrenceService;
   fulfillment: FulfillmentService;
+  /* المجموعة ٣ (عقد D4): مراجعة التسليم وتنفيذه وعكسه — المسار الوحيد للتسليم
+   * بحركات مخزون وقبض عند التسليم. */
+  deliveryReview: DeliveryReviewService;
   transfers: LocalTransferService;
   guidedOpeningImport: GuidedOpeningImportService;
   costEstimates: CostEstimateService;
@@ -136,6 +140,7 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
   const recurringWork = new RecurringWorkService(store);
   const directSales = new DirectSaleService(store);
   const fulfillment = new FulfillmentService(store, undefined, schedules);
+  const deliveryReview = new DeliveryReviewService(store, undefined, projectFinance, schedules);
   const cashContinuity = new CashContinuityService(store);
   const statement = new StatementService(store, projectFinance);
   return {
@@ -170,6 +175,7 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
     schedules,
     recurrences,
     fulfillment: fulfillment,
+    deliveryReview,
     transfers: new LocalTransferService(store),
     guidedOpeningImport: new GuidedOpeningImportService(store),
     costEstimates: new CostEstimateService(store),

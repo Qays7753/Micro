@@ -184,7 +184,7 @@ export default function Catalog() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { catalog, recurringWork, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { catalog, recurringWork, dataVersion, notifyDataChanged , inventory } = usePrototypeServices();
   const [kind, setKind] = useState<CatalogItemKind>("product");
   const [name, setName] = useState("");
   const [unitLabel, setUnitLabel] = useState("");
@@ -244,6 +244,21 @@ export default function Catalog() {
   const [templateNote, setTemplateNote] = useState("");
   const [templateComponents, setTemplateComponents] = useState<CatalogTemplate["components"]>([]);
   const [componentName, setComponentName] = useState("");
+  /* المجموعة ٣ (عقد D5): ربط المكوّن بمادة مخزون — اختياري، والمادة إن رُبطت
+   * تُعرض بصدق متتبَّعة/غير متتبَّعة؛ الربط مرجع تخطيط بلا أثر مخزون. */
+  const [componentMaterialId, setComponentMaterialId] = useState("");
+  const [materials, setMaterials] = useState<
+    readonly { id: string; name: string; unitLabel: string; tracked: boolean }[]
+  >([]);
+  /* المجموعة ٣ (عقد D5): بنود التكلفة الاختيارية على مستوى القالب — مرآة بنية
+   * نسخة تكلفة الطلب؛ كلها اختيارية وغيابها حالة صادقة لا صفر مفترض. */
+  const [extrasOpen, setExtrasOpen] = useState(false);
+  const [extraTimeMinutes, setExtraTimeMinutes] = useState<number | null>(null);
+  const [extraRateMinor, setExtraRateMinor] = useState<number | null>(null);
+  const [extraPackagingMinor, setExtraPackagingMinor] = useState(0);
+  const [extraDeliveryMinor, setExtraDeliveryMinor] = useState(0);
+  const [extraWasteMinor, setExtraWasteMinor] = useState(0);
+  const [extraBufferMinor, setExtraBufferMinor] = useState(0);
   const [componentQuantity, setComponentQuantity] = useState<number | null>(null);
   const [componentQuantityValid, setComponentQuantityValid] = useState(true);
   const [componentUnitId, setComponentUnitId] = useState("");
@@ -271,13 +286,16 @@ export default function Catalog() {
   const selectedTemplates = templates.filter(template => template.catalogItemId === selectedItemId);
 
   async function load() {
-    const [itemResult, readingResult, unitResult, conversionResult, templateResult] = await Promise.all([
-      catalog.list({ includeInactive: true }),
-      recurringWork.readRecurringWork(periodFrom, periodTo),
-      catalog.listUnits({ includeInactive: true }),
-      catalog.listConversions({ includeInactive: true }),
-      catalog.listTemplates(undefined, { includeInactive: true }),
-    ]);
+    const [itemResult, readingResult, unitResult, conversionResult, templateResult, materialsResult] =
+      await Promise.all([
+        catalog.list({ includeInactive: true }),
+        recurringWork.readRecurringWork(periodFrom, periodTo),
+        catalog.listUnits({ includeInactive: true }),
+        catalog.listConversions({ includeInactive: true }),
+        catalog.listTemplates(undefined, { includeInactive: true }),
+        /* المجموعة ٣ (عقد D5): مواد المخزون لربط مكونات القالب — قراءة فقط. */
+        inventory.overview(),
+      ]);
     if (itemResult.ok) setItems(itemResult.items);
     else setMessage(itemResult.message);
     if (readingResult.ok) setReadings(readingResult.value);
@@ -288,6 +306,24 @@ export default function Catalog() {
     else setMessage(conversionResult.message);
     if (templateResult.ok) setTemplates(templateResult.templates);
     else setMessage(templateResult.message);
+    if (materialsResult.ok)
+      setMaterials(
+        materialsResult.value.materials.map(material => ({
+          id: material.id,
+          name: material.name,
+          unitLabel:
+            material.unit === "piece"
+              ? "قطعة"
+              : material.unit === "meter"
+                ? "متر"
+                : material.unit === "kilogram"
+                  ? "كيلوغرام"
+                  : material.unit === "liter"
+                    ? "لتر"
+                    : "وحدة أخرى",
+          tracked: !material.tracking || material.tracking.status === "tracked",
+        })),
+      );
   }
 
   useEffect(() => {
@@ -601,11 +637,14 @@ export default function Catalog() {
         quantityMilli,
         unitId: componentUnitId,
         note: null,
+        /* المجموعة ٣ (عقد D5): رابط المادة إن اختير — هوية تخطيط لا قيمة مخزنة. */
+        materialId: componentMaterialId || null,
       },
     ]);
     setComponentName("");
     setComponentQuantity(null);
     setComponentQuantityValid(true);
+    setComponentMaterialId("");
   }
 
   function resetTemplateForm() {
@@ -617,6 +656,13 @@ export default function Catalog() {
     setYieldEnabled(false);
     setYieldQuantity(null);
     setYieldQuantityValid(true);
+    setComponentMaterialId("");
+    setExtraTimeMinutes(null);
+    setExtraRateMinor(null);
+    setExtraPackagingMinor(0);
+    setExtraDeliveryMinor(0);
+    setExtraWasteMinor(0);
+    setExtraBufferMinor(0);
   }
 
   function startRevision(template: CatalogTemplate) {
@@ -627,6 +673,14 @@ export default function Catalog() {
     setTemplateTitle(template.title ?? "");
     setTemplateNote(template.note ?? "");
     setTemplateComponents(template.components);
+    setComponentMaterialId("");
+    /* المجموعة ٣ (عقد D5): بنود القالب الاختيارية تُحمَّل للتعديل كما هي. */
+    setExtraTimeMinutes(template.extras?.timeMinutes ?? null);
+    setExtraRateMinor(template.extras?.hourlyRateMinor ?? null);
+    setExtraPackagingMinor(template.extras?.packagingMinor ?? 0);
+    setExtraDeliveryMinor(template.extras?.deliveryMinor ?? 0);
+    setExtraWasteMinor(template.extras?.wasteMinor ?? 0);
+    setExtraBufferMinor(template.extras?.safetyBufferMinor ?? 0);
     setYieldEnabled(template.yield !== null);
     setYieldQuantity(revisionYieldQuantity);
     setYieldQuantityValid(true);
@@ -637,6 +691,7 @@ export default function Catalog() {
         note: (template.note ?? "").trim(),
         components: template.components,
         yield: template.yield ? { quantity: revisionYieldQuantity, unitId: revisionYieldUnitId } : null,
+        extras: template.extras ?? null,
       }),
     );
     setMessage(`تعديل القالب من النسخة ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
@@ -654,12 +709,31 @@ export default function Catalog() {
     }
     setSaving(true);
     setMessage(null);
+    /* المجموعة ٣ (عقد D5): البنود الاختيارية تُبنى مما دخل فعلًا — الوقت بلا
+     * أجر أو الأجر بلا وقت يبقى «غير معرف بعد» (null/null) لا صفرًا مفترضًا. */
+    const extras =
+      extraTimeMinutes !== null ||
+      extraRateMinor !== null ||
+      extraPackagingMinor > 0 ||
+      extraDeliveryMinor > 0 ||
+      extraWasteMinor > 0 ||
+      extraBufferMinor > 0
+        ? {
+            timeMinutes: extraTimeMinutes,
+            hourlyRateMinor: extraRateMinor,
+            packagingMinor: extraPackagingMinor,
+            deliveryMinor: extraDeliveryMinor,
+            wasteMinor: extraWasteMinor,
+            safetyBufferMinor: extraBufferMinor,
+          }
+        : null;
     const input = {
       catalogItemId: selectedItemId,
       title: templateTitle.trim() || null,
       note: templateNote.trim() || null,
       components: templateComponents,
       yield: yieldEnabled ? { quantityMilli: parsedYield as number, unitId: yieldUnitId } : null,
+      extras,
       operationKey: operationKey("template"),
     };
     const result = editingTemplateId
@@ -1338,13 +1412,34 @@ export default function Catalog() {
                       ))}
                     </select>
                   </label>
+                  {/* المجموعة ٣ (عقد D5): ربط المادة اختياري — مكوّن حر إن تُرك فارغًا؛
+                      الربط هوية تخطيط تظهر لاحقًا ضمن استهلاك مواد التسليم المقترح. */}
+                  <label className="micro-field">
+                    <span>مادة مرتبطة من المخزون (اختياري)</span>
+                    <select
+                      value={componentMaterialId}
+                      onChange={event => setComponentMaterialId(event.target.value)}
+                    >
+                      <option value="">بلا مادة — مكوّن حر</option>
+                      {materials.map(material => (
+                        <option key={material.id} value={material.id}>
+                          {material.name} · {material.unitLabel} ·{" "}
+                          {material.tracked ? "متتبَّعة" : "غير متتبَّعة (تكلفة فقط)"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
                 <button className="micro-button micro-button-secondary" type="button" onClick={addComponent}>
                   <Plus aria-hidden="true" /> أضف مكوّنًا للقالب
                 </button>
                 {templateComponents.length ? (
                   <div className="micro-list micro-list-compact">
-                    {templateComponents.map(component => (
+                    {templateComponents.map(component => {
+                      const linkedMaterial = component.materialId
+                        ? materials.find(material => material.id === component.materialId)
+                        : null;
+                      return (
                       <div className="micro-list-item" key={component.id}>
                         <div>
                           <strong>{component.name}</strong>
@@ -1352,6 +1447,14 @@ export default function Catalog() {
                             {quantityLabel(component.quantityMilli)} ·{" "}
                             {units.find(unit => unit.id === component.unitId)?.nameAr ?? "وحدة محفوظة"}
                           </p>
+                          {linkedMaterial ? (
+                            <p className="micro-local-truth">
+                              مربوط بـ«{linkedMaterial.name}» ·{" "}
+                              {linkedMaterial.tracked ? "متتبَّعة" : "غير متتبَّعة — تكلفة فقط"}
+                            </p>
+                          ) : (
+                            <p className="micro-local-truth">مكوّن حر — بلا مادة مخزون</p>
+                          )}
                         </div>
                         <button
                           className="micro-icon-button"
@@ -1366,13 +1469,85 @@ export default function Catalog() {
                           <X aria-hidden="true" />
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="micro-empty-copy">
                     لم تضف مكونات بعد. يمكنك حفظ قالب فارغ كملاحظة تخطيطية، أو إضافة ما تكرره عادةً.
                   </p>
                 )}
+                {/* المجموعة ٣ (عقد D5): بنود تكلفة اختيارية على مستوى القالب — إفصاح
+                    تدريجي؛ الافتراضي قالب ببندات مواد فقط، والعمل/التغليف/التوصيل/
+                    الهدر/هامش الحماية خلف فعل واضح. مرجع تخطيط بلا أثر مخزون أو سعر. */}
+                <button
+                  className="micro-button micro-button-quiet"
+                  type="button"
+                  onClick={() => setExtrasOpen(current => !current)}
+                >
+                  {extrasOpen ? "إخفاء بنود التكلفة الاختيارية" : "بنود اختيارية: عمل، تغليف، توصيل، هدر، هامش"}
+                </button>
+                {extrasOpen ? (
+                  <div className="micro-form-grid">
+                    <label className="micro-field">
+                      <span>دقائق العمل لكل وحدة (اختياري)</span>
+                      <EnglishNumberInput
+                        value={extraTimeMinutes ?? 0}
+                        kind="integer"
+                        onNumericChange={value => setExtraTimeMinutes(value > 0 ? value : null)}
+                        aria-label="دقائق العمل لكل وحدة"
+                      />
+                    </label>
+                    <label className="micro-field">
+                      <span>أجر الساعة (د.أ) (اختياري)</span>
+                      <EnglishNumberInput
+                        value={extraRateMinor ?? 0}
+                        kind="money"
+                        onNumericChange={value => setExtraRateMinor(value > 0 ? value : null)}
+                        aria-label="أجر الساعة"
+                      />
+                    </label>
+                    <label className="micro-field">
+                      <span>تغليف لكل وحدة (د.أ)</span>
+                      <EnglishNumberInput
+                        value={extraPackagingMinor}
+                        kind="money"
+                        onNumericChange={setExtraPackagingMinor}
+                        aria-label="تكلفة التغليف لكل وحدة"
+                      />
+                    </label>
+                    <label className="micro-field">
+                      <span>توصيل لكل وحدة (د.أ)</span>
+                      <EnglishNumberInput
+                        value={extraDeliveryMinor}
+                        kind="money"
+                        onNumericChange={setExtraDeliveryMinor}
+                        aria-label="تكلفة التوصيل لكل وحدة"
+                      />
+                    </label>
+                    <label className="micro-field">
+                      <span>هدر متوقع لكل وحدة (د.أ)</span>
+                      <EnglishNumberInput
+                        value={extraWasteMinor}
+                        kind="money"
+                        onNumericChange={setExtraWasteMinor}
+                        aria-label="تكلفة الهدر المتوقعة لكل وحدة"
+                      />
+                    </label>
+                    <label className="micro-field">
+                      <span>هامش حماية لكل وحدة (د.أ)</span>
+                      <EnglishNumberInput
+                        value={extraBufferMinor}
+                        kind="money"
+                        onNumericChange={setExtraBufferMinor}
+                        aria-label="هامش الحماية لكل وحدة"
+                      />
+                    </label>
+                    <p className="micro-local-truth">
+                      الوقت بلا أجر أو الأجر بلا وقت يبقى «غير معرف بعد» — لا يُفترض صفر واثق.
+                    </p>
+                  </div>
+                ) : null}
                 <label className="micro-checkbox">
                   <input
                     type="checkbox"

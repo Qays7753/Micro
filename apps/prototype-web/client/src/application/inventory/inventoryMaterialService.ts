@@ -75,6 +75,8 @@ export type InventoryReferences = {
     expectedQuantityMilli: number | null;
   }[];
   orders: readonly { id: string; itemName: string; customerName: string }[];
+  /* المجموعة ٣ (عقد D6): المبيعات المباشرة النشطة — مرجع استهلاك صريح كالطلب. */
+  sales: readonly { id: string; itemName: string; revenueMinor: number }[];
   catalogItems: readonly CatalogItem[];
   catalogTemplates: readonly CatalogTemplate[];
   /* المجموعة ٢ (عقد ٢٨): الرصيد الحي لكل مادة متتبَّعة — لتحذير النقص قبل الحفظ. */
@@ -118,6 +120,8 @@ export type ConsumeMaterialInput = {
   materialId: string;
   /* المجموعة ٢ (عقد ٢٨): الاستهلاك لطلب محدد أو لعمل المشروع (بسبب/بيان). */
   orderId: string | null;
+  /* المجموعة ٣ (عقد D6): استهلاك مرتبط ببيع مباشر — مرجع صريح كالطلب. */
+  saleId?: string | null;
   reason: string | null;
   quantityMilli: number;
   occurredOn: string;
@@ -428,15 +432,25 @@ export class InventoryMaterialService {
     };
   }
   async references(): Promise<InventoryResult<InventoryReferences>> {
-    const [materials, purchases, orders, catalogItems, catalogTemplates, movements] = await Promise.all([
+    const [materials, purchases, orders, catalogItems, catalogTemplates, movements, sales] = await Promise.all([
       this.store.listMaterials(),
       this.store.listSupplierPurchases(),
       this.store.listOrders(),
       this.store.listCatalogItems(),
       this.store.listCatalogTemplates(),
       this.store.listInventoryMovements(),
+      /* المجموعة ٣ (عقد D6): المبيعات المباشرة النشطة — مرجع استهلاك صريح. */
+      this.store.listDirectSales(),
     ]);
-    if (!materials.ok || !purchases.ok || !orders.ok || !catalogItems.ok || !catalogTemplates.ok || !movements.ok)
+    if (
+      !materials.ok ||
+      !purchases.ok ||
+      !orders.ok ||
+      !catalogItems.ok ||
+      !catalogTemplates.ok ||
+      !movements.ok ||
+      !sales.ok
+    )
       return { ok: false, code: "storage_error", message: "تعذر قراءة مراجع المادة أو الشراء أو الطلب." };
     /* المجموعة ٢ (عقد ٢٨): مواد المحررات = المتتبَّعة فقط (وعد «لن تظهر في
      * النماذج»)؛ وكل المواد تبقى لربط الشراء؛ والرصيد الحي لتحذير النقص. */
@@ -459,6 +473,14 @@ export class InventoryMaterialService {
           itemName: stored.order.itemName,
           customerName: stored.order.customerName,
         })),
+        /* المجموعة ٣ (عقد D6): البيع النشط فقط — الملغى لا يُستهلك باسمه. */
+        sales: sales.value
+          .filter(sale => (sale.status ?? "active") === "active")
+          .map(sale => ({
+            id: sale.id,
+            itemName: sale.itemName,
+            revenueMinor: sale.revenueMinor,
+          })),
         catalogItems: catalogItems.value,
         catalogTemplates: catalogTemplates.value,
         materialPositions: trackedMaterials.map(material => {
@@ -787,12 +809,14 @@ export class InventoryMaterialService {
     }
   }
   async consume(input: ConsumeMaterialInput): Promise<InventoryResult<InventoryMovement>> {
-    const [materials, movements, order] = await Promise.all([
+    const [materials, movements, order, sales] = await Promise.all([
       this.store.listMaterials(),
       this.store.listInventoryMovements(),
       input.orderId ? this.store.getOrder(input.orderId) : Promise.resolve({ ok: true, value: null } as const),
+      /* المجموعة ٣ (عقد D6): تحقق وجود البيع المباشر المرتبط إن ذُكر. */
+      input.saleId ? this.store.listDirectSales() : Promise.resolve({ ok: true, value: [] as const } as const),
     ]);
-    if (!materials.ok || !movements.ok || !order.ok) return storageFailure();
+    if (!materials.ok || !movements.ok || !order.ok || !sales.ok) return storageFailure();
     const repeated = movements.value.find(movement => movement.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
@@ -807,12 +831,20 @@ export class InventoryMaterialService {
       };
     if (input.orderId && !order.value)
       return { ok: false, code: "validation_error", message: "اختر طلبًا محليًا موجودًا لاستهلاك المادة." };
-    /* المجموعة ٢ (عقد ٢٨): استهلاك بلا طلب يحتاج بيانًا واضحًا (عمل المشروع). */
-    if (!input.orderId && !input.reason?.trim())
+    /* المجموعة ٣ (عقد D6): البيع المرتبط إن ذُكر يجب أن يكون مسجلًا ونشطًا —
+     * الملغى لا يُستهلك باسمه (المُنتقي يرى النشط فقط؛ الحارس هنا يطابق). */
+    if (
+      input.saleId &&
+      !sales.value.some(sale => sale.id === input.saleId && (sale.status ?? "active") === "active")
+    )
+      return { ok: false, code: "validation_error", message: "اختر بيعًا مباشرًا نشطًا لاستهلاك المادة." };
+    /* المجموعة ٢ (عقد ٢٨): استهلاك بلا طلب يحتاج بيانًا واضحًا (عمل المشروع).
+     * المجموعة ٣ (عقد D6): البيع المباشر مرجع صريح يغني عن البيان. */
+    if (!input.orderId && !input.saleId && !input.reason?.trim())
       return {
         ok: false,
         code: "validation_error",
-        message: "استهلاك بلا طلب يحتاج بيانًا واضحًا — مثال: تجربة لون لطلب قادم.",
+        message: "استهلاك بلا طلب أو بيع يحتاج بيانًا واضحًا — مثال: تجربة لون لطلب قادم.",
       };
     try {
       const position = assertInventoryRemainsNonNegative(input.materialId, movements.value);
@@ -830,6 +862,7 @@ export class InventoryMaterialService {
         reason: input.reason?.trim() || null,
         operationKey: input.operationKey,
         orderId: input.orderId,
+        saleId: input.saleId ?? null,
         costKnowledge: value === 0 ? "unknown" : "known",
       });
       const saved = await this.store.commitInventory(null, [movement]);

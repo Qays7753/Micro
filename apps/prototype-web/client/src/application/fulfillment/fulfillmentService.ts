@@ -64,14 +64,60 @@ export class FulfillmentService {
       return failure("invalid_state", "لا يمكن تسجيل الجاهزية من حالة الطلب الحالية.");
     try {
       const timestamp = this.now();
+      /* المجموعة ٣ (عقد D4): مفتاح لكل جاهزية — إعادة التنفيذ بعد عكس التسليم
+       * جاهزية جديدة بمفتاح جديد لا إعادة تشغيل صامتة للجاهزية الأولى. */
+      const readyAttempt = current.stored.order.events.filter(
+        event => event.type === "status_changed" && event.toStatus === "ready",
+      ).length;
       const order = transitionOrder(current.stored.order, {
         to: "ready",
-        idempotencyKey: `${id}:mark-ready`,
+        idempotencyKey: readyAttempt === 0 ? `${id}:mark-ready` : `${id}:mark-ready-${readyAttempt + 1}`,
         createdAt: timestamp,
       });
       return this.persist({ ...current.stored, order, updatedAt: timestamp });
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل الجاهزية.");
+    }
+  }
+
+  /* المجموعة ٣ (عقد D4): استئناف التنفيذ بعد مراجعة موثقة (كما بعد عكس التسليم)
+   * — مراجعة ← مؤكد ← قيد التنفيذ بانتقالات النطاق نفسها؛ لا مسار خاص بالعكس
+   * ولا تخطٍ لقفل «الطلب المسلّم لا يخرج من المراجعة إلا بعكس موثق». */
+  async resumeAfterReview(id: string): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    if (current.stored.order.status === "in_progress") return current;
+    if (current.stored.order.status !== "needs_review")
+      return failure("invalid_state", "الاستئناف يتطلب طلبًا يحتاج مراجعة.");
+    try {
+      const timestamp = this.now();
+      const confirmedAttempt = current.stored.order.events.filter(
+        event => event.type === "status_changed" && event.toStatus === "confirmed",
+      ).length;
+      const confirmed = transitionOrder(current.stored.order, {
+        to: "confirmed",
+        idempotencyKey:
+          confirmedAttempt === 0 ? `${id}:reconfirm` : `${id}:reconfirm-${confirmedAttempt + 1}`,
+        createdAt: timestamp,
+        note: "استئناف بعد مراجعة موثقة",
+      });
+      const executingAttempt = confirmed.events.filter(
+        event => event.type === "status_changed" && event.toStatus === "in_progress",
+      ).length;
+      const executing = transitionOrder(confirmed, {
+        to: "in_progress",
+        idempotencyKey:
+          executingAttempt === 0
+            ? `${id}:resume-execution`
+            : `${id}:resume-execution-${executingAttempt + 1}`,
+        createdAt: timestamp,
+      });
+      return this.persist({ ...current.stored, order: executing, updatedAt: timestamp });
+    } catch (error) {
+      return failure(
+        "invalid_state",
+        error instanceof Error ? error.message : "تعذر استئناف التنفيذ بعد المراجعة.",
+      );
     }
   }
 
@@ -89,9 +135,14 @@ export class FulfillmentService {
       return failure("invalid_state", "لا يمكن تسجيل التسليم قبل أن يصبح الطلب جاهزًا.");
     try {
       const timestamp = this.now();
+      /* المجموعة ٣ (عقد D4): مفتاح لكل محاولة تسليم — إعادة التسليم بعد عكسٍ
+       * تسليمٌ جديد بمفتاح جديد لا إعادة تشغيل صامتة للمفتاح القديم. */
+      const attempt = current.stored.order.events.filter(
+        event => event.type === "status_changed" && event.toStatus === "delivered",
+      ).length;
       const order = transitionOrder(current.stored.order, {
         to: "delivered",
-        idempotencyKey: `${id}:deliver`,
+        idempotencyKey: attempt === 0 ? `${id}:deliver` : `${id}:deliver-${attempt + 1}`,
         createdAt: timestamp,
       });
       const saved = await this.persist({ ...current.stored, order, updatedAt: timestamp });

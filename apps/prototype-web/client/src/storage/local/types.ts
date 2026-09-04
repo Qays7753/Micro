@@ -24,11 +24,11 @@ import type {
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
-export const localSchemaVersion = 32;
+export const localSchemaVersion = 33;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 24;
+export const localExportVersion = 25;
 /* المجموعة ٢ (عقد ٢٨ — مخزون انتقائي): مخزن ٣٢/نسخة ٢٤ أضافتا قرار المتابعة
  * ومعرفة رصيد البداية لكل مادة، ووسم معرفة التكلفة على الحركات، وربط الشراء
  * بمادة وكمية متوقعة، وسجلات نقص المخزون (متجر جديد `inventory-shortages`).
@@ -90,6 +90,9 @@ export type DraftCostMaterial = {
   unit: string;
   unitPriceMinor: number;
   confidence: "known" | "estimated";
+  /* المجموعة ٣ (عقد D2/D3): هوية المادة المرتبطة إن اختيرت من المخزون — هوية
+   * فقط؛ الأرقام تُدخل وتُجمَّد كما هي. غياب الحقل = بند حر. */
+  materialId?: string | null;
 };
 export type DraftCostTime = {
   minutes: number | null;
@@ -416,6 +419,33 @@ export interface PrototypeLocalStore {
     draft: OrderDraft,
     schedule?: ScheduleEntry,
   ): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;
+  /* المجموعة ٣ (عقد D4): معاملة تسليم ذرّية واحدة — الطلب المسلّم وحركات
+   * استهلاك المواد وسجلات النقص وتخصيص الكاش المقبوض عند التسليم تُكتب معًا
+   * أو لا يُكتب شيء؛ فحص الهوية داخل المعاملة يمنع تكرار التسليم والحركات
+   * عند إعادة المحاولة أو الإعادة بعد انقطاع. */
+  commitOrderDelivery(
+    order: StoredCraftOrder,
+    movements: readonly InventoryMovement[],
+    shortages: readonly InventoryShortage[],
+    wallet: CashWallet | null,
+    cashEntry: CashContinuityEntry | null,
+  ): Promise<StorageResult<{
+    order: StoredCraftOrder;
+    movements: readonly InventoryMovement[];
+    shortages: readonly InventoryShortage[];
+    cashEntry: CashContinuityEntry | null;
+    reused: boolean;
+  }>>;
+  /* المجموعة ٣ (عقد D4): عكس التسليم ذرّيًا — الطلب المعكوس وحركات المرآة
+   * تُكتبان معًا؛ لا حالة بينية (عكس بلا حركات أو حركات بلا عكس). */
+  commitOrderDeliveryReversal(
+    order: StoredCraftOrder,
+    reversalMovements: readonly InventoryMovement[],
+  ): Promise<StorageResult<{
+    order: StoredCraftOrder;
+    reversalMovements: readonly InventoryMovement[];
+    reused: boolean;
+  }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
 }

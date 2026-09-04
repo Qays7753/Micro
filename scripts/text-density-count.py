@@ -298,7 +298,11 @@ CAPS: dict[str, int] = {
     # one-line treatment, no cards, no warning colors. Mandated labels only.
     # Finance 181 → 182 (2026-09-06, Group 2, عقد ٢٨): one conditional period waste
     # row (non-cash, outside period result) — SA-4 predicted 182. Decision D-029.
-    "Finance": 182,
+    # Finance 181 → 182 (2026-09-04, Group 2 §8): the period waste row reads
+    # inventory — the shared inventory service now feeds this screen.
+    # Finance 182 → 183 (2026-09-04, Group 3 D6): one new validation string in the
+    # same shared service (direct-sale-linked consumption reference check).
+    "Finance": 183,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -321,7 +325,12 @@ CAPS: dict[str, int] = {
     # الطلب") per §10.2 rule 1 (S3-12); the new compound one-tap reversal labels
     # (S2-04a) live inside that collapsed layer, and the always-zero "أمانات"
     # preview row was dropped (G6-F1-6). Nothing deleted; cap lowered 160→141.
-    "OrderDetail": 141,
+    # OrderDetail 160 → 141 (2026-09-02, Group 6 Items 1+4, owner-approved
+    # disclosure redesign).
+    # OrderDetail 141 → 143 (2026-09-04, Group 3 D4/D5): the ready order routes to
+    # the full delivery review instead of one-click delivery, and the delivered
+    # order gains the documented reversal entry + post-reversal resume action.
+    "OrderDetail": 143,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -352,7 +361,9 @@ CAPS: dict[str, int] = {
     # (productNotice stays outside), the item-25 quantity semantics and the two
     # ⓘ explanations (profit-boundary, unknown-cost meaning) move behind named
     # disclosures. All primary-task fields stay visible; nothing deleted.
-    "DirectSaleEditor": 63,
+    # DirectSaleEditor 63 → 66 (2026-09-04, Group 3 D5/§5.6): optional explicit
+    # inventory-linkage offer on the done receipt — no forced consumption.
+    "DirectSaleEditor": 66,
     # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
     # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
     # mandated bridge labels; the draft form itself is unchanged.
@@ -379,7 +390,10 @@ CAPS: dict[str, int] = {
     # move behind named inline disclosures (44px, prefill preserved on open);
     # the primary Product-to-Sale row action and the create path stay visible.
     # Nothing deleted; caps lowered — a ratchet gain.
-    "Catalog": 86,
+    # Catalog 86 → 91 (2026-09-04, Group 3 D5/§5.2): per-component material link
+    # with tracked/untracked honesty + template extras section (labor, packaging,
+    # delivery, waste, safety margin) — planning reference, zero inventory effect.
+    "Catalog": 91,
     # InventoryMaterials 49 → 50 (2026-09-02, Group 5 S1-10): contract-26 return
     # label ("رجوع") when opened with ?from — one mandated navigation label.
     # InventoryMaterials 50 → 56 (2026-09-06, Group 2 transfer program, عقد ٢٨):
@@ -464,7 +478,12 @@ CAPS: dict[str, int] = {
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
     # next-actions (open estimate / start draft), dirty guard, local-truth line.
-    "CostCalculator": 56,
+    # CostCalculator 56 → 59 (2026-09-04, Group 3 D5/§5.1): inventory suggestion
+    # chips with receipt-confidence + excluded-items honesty (named, unpriced).
+    "CostCalculator": 59,
+    # DeliveryReview (new 2026-09-04, Group 3 D5): the full pre-commitment delivery
+    # surface — measured from day one per the Profile/CostCalculator precedent.
+    "DeliveryReview": 48,
     # EstimateDetail (2026-09-02, Group 3 Scope B, owner-approved execution prompt):
     # new mandated screen — read-only estimate summary (result, materials, time,
     # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
@@ -500,6 +519,8 @@ PAGES = [
     "Profile",
     # المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير وأدواتي بعد إعادة الهيكلة.
     "CostCalculator",
+    # المجموعة ٣ (عقد D5): مراجعة التسليم — تقاس من يومها الأول.
+    "DeliveryReview",
     "EstimateDetail",
     "Tools",
     "Settings",

@@ -50,12 +50,26 @@ const preDeliveryStatuses = ["provisional_agreement", "confirmed", "in_progress"
  * يصعدان من «تفاصيل إضافية» إلى سطح الطلب عندما يصل التنفيذ؛ ما قبله يبقى مطويًا. */
 const executionStatuses = ["in_progress", "ready"];
 
+/* المجموعة ٣ (عقد D4 — SA-5 R4): هل عُكس آخر تسليم؟ منطق النطاق نفسه — آخر حدث
+ * تسليم له عكس مقابل؛ لا يكفي وجود عكس قديم لتسليم أقدم. */
+function lastDeliveryWasReversed(order: {
+  events: readonly { id: string; type: string; toStatus?: string; reversesEventId?: string }[];
+}): boolean {
+  const lastDelivery = [...order.events]
+    .reverse()
+    .find(event => event.type === "status_changed" && event.toStatus === "delivered");
+  if (!lastDelivery) return false;
+  return order.events.some(
+    event => event.type === "delivery_reversed" && event.reversesEventId === lastDelivery.id,
+  );
+}
+
 export default function OrderDetail() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو الطلبات كبديل قانوني. */
   const returnPath = useReturnPath();
-  const { actualTime, agreements, agreementContext, fulfillment, inventory, drafts, costEstimates, collectionReversal, dataVersion, notifyDataChanged } =
+  const { actualTime, agreements, agreementContext, fulfillment, deliveryReview, inventory, drafts, costEstimates, collectionReversal, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   const [stored, setStored] = useState<StoredCraftOrder | null>(null);
   const [state, setState] = useState<OrderDetailState>({ phase: "loading" });
@@ -90,6 +104,10 @@ export default function OrderDetail() {
   const reversalOperationKeyRef = useRef(
     `order-reversal-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
   );
+
+  /* المجموعة ٣ (عقد D4/D5): عكس التسليم المكتمل — تصحيح موثق من تفاصيل الطلب. */
+  const [deliveryReversalOpen, setDeliveryReversalOpen] = useState(false);
+  const [deliveryReversalReason, setDeliveryReversalReason] = useState("");
 
   const openReversalPanel = (eventId: string, amountMinor: number) => {
     reversalOperationKeyRef.current = `order-reversal-${
@@ -241,6 +259,22 @@ export default function OrderDetail() {
     await run(() => fulfillment.cancel(stored!.id, reason));
   }
 
+  /* المجموعة ٣ (عقد D4): عكس التسليم — الإيراد يُحيَّد والحركات تُعكس مرآةً
+   * والكاش المقبوض لا يُمس؛ الطلب ينتقل إلى مراجعة صريحة قابلة للاستئناف. */
+  async function runDeliveryReversal() {
+    if (!stored) return;
+    const result = await deliveryReview.reverseDelivery(stored.id, { reason: deliveryReversalReason });
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setStored(result.value.stored);
+    setState({ phase: "ready", stored: result.value.stored });
+    notifyDataChanged();
+    setDeliveryReversalOpen(false);
+    setDeliveryReversalReason("");
+  }
+
   /* المجموعة ٦ (البند ١): تنفيذ التراجع — مزدوجًا أو مفردًا — عبر الخدمة الذرّية
    * نفسها؛ إعادة المحاولة بمفتاح الجذر نفسه لا تكرر أي أثر. */
   async function runReversal(compound: boolean) {
@@ -290,25 +324,41 @@ export default function OrderDetail() {
         {isActing ? "جارٍ حفظ الجاهزية…" : "الطلب جاهز للتسليم"}
       </button>
     ) : order.status === "ready" ? (
+      /* المجموعة ٣ (عقد D5): لا تسليم بنقرة واحدة — مراجعة كاملة قبل الالتزام:
+       * المال والمخزون المقترح والقبض الاختياري ثم تأكيد واحد لمعاملة ذرّية. */
+      <button
+        className="micro-button micro-button-primary micro-save-cost"
+        type="button"
+        onClick={() => {
+          navigate(withFrom(`/orders/${stored.id}/deliver`, `/orders/${stored.id}`));
+        }}
+      >
+        <CheckCircle2 aria-hidden="true" />
+        راجع التسليم وسجّله
+      </button>
+    ) : order.status === "needs_review" && lastDeliveryWasReversed(order) ? (
+      /* المجموعة ٣ (عقد D4): الاستئناف الموثق بعد عكس التسليم — انتقالات النطاق
+       * نفسها لا مسار خاص؛ المراجعة تُغلق بقرار صريح لا صمتًا. */
       <button
         className="micro-button micro-button-primary micro-save-cost"
         type="button"
         disabled={isActing}
         onClick={() => {
-          void run(() => fulfillment.deliver(stored.id));
+          void run(() => fulfillment.resumeAfterReview(stored.id));
         }}
       >
-        <CheckCircle2 aria-hidden="true" />
-        {isActing ? "جارٍ تسجيل التسليم…" : "تم التسليم"}
+        <Play aria-hidden="true" />
+        {isActing ? "جارٍ الاستئناف…" : "استئناف التنفيذ بعد المراجعة"}
       </button>
     ) : order.status === "delivered" && order.receivableMinor > 0 ? (
       <div className="micro-form-actions micro-contextual-actions">
+        {/* المجموعة ٣ (عقد D5): التحصيل عبر ورقة التحصيل — وجهة محفظة صريحة
+            وتحصيل واحد موثق؛ لا قبض بلا وجهة من هنا. */}
         <button
           className="micro-button micro-button-primary"
           type="button"
-          disabled={isActing}
           onClick={() => {
-            void run(() => fulfillment.collectFullRemaining(stored.id));
+            navigate(withFrom(`/collect?source=order:${stored.id}`, `/orders/${stored.id}`));
           }}
         >
           <HandCoins aria-hidden="true" /> تحصيل المتبقي الآن
@@ -441,6 +491,57 @@ export default function OrderDetail() {
                 <PencilLine aria-hidden="true" /> عدّل السعر بعد الاتفاق
               </button>
             )}
+            {/* المجموعة ٣ (عقد D4/D5): عكس التسليم المكتمل — تصحيح موثق يحيّد الإيراد
+                ويعكس حركات الاستهلاك مرآةً ولا يمس الكاش المقبوض؛ الطلب ينتقل إلى
+                «يحتاج مراجعة» ويُستأنف تنفيذه بقرار صريح. */}
+            {["delivered", "settled"].includes(order.status) && !lastDeliveryWasReversed(order) ? (
+              deliveryReversalOpen ? (
+                <section className="micro-cancel-panel" aria-label="عكس التسليم">
+                  <CorrectionPreview
+                    action="عكس التسليم المكتمل"
+                    originalLabel={`تسليم «${order.itemName}» بإيراد معروف ${formatMoneyMinor(order.recognizedRevenueMinor)} د.أ`}
+                    originalDetail={`المقبوض ${formatMoneyMinor(order.collectedMinor)} د.أ · التكلفة المعروفة ${formatMoneyMinor(order.recognizedCostMinor)} د.أ`}
+                    intro="عكس موثق لا حذف: حدث التسليم وأثره يبقى في السجل، الإيراد والنتيجة يُحيَّدان إلى غياب المعرفة، وحركات استهلاك المواد المرتبطة بهذا التسليم تُعكس مرآةً فيرجع الرصيد. الكاش المقبوض لا يتأثر — عكس قبضة له مساره الخاص."
+                    dimensions={[
+                      { label: "الإيراد المعروف", beforeMinor: order.recognizedRevenueMinor, afterMinor: 0 },
+                      { label: "الكاش المقبوض", beforeMinor: order.collectedMinor, afterMinor: order.collectedMinor },
+                      { label: "أمانات", beforeMinor: 0, afterMinor: 0 },
+                    ]}
+                    unchanged={["القبضات المسجلة وتواريخها", "العربون ومسار تسويته إن وجد", "الأحداث السابقة كلها"]}
+                    resulting={[{ label: "نتيجة الطلب بعد العكس", amountMinor: null, unknown: true }]}
+                    reversibleNote="بعد العكس ينتقل الطلب إلى «يحتاج مراجعة»: استأنف التنفيذ بقرار صريح أو ألغِ موثقًا؛ إعادة التسليم لاحقًا تسجيل جديد لا تكرار."
+                    reason={deliveryReversalReason}
+                    onReasonChange={setDeliveryReversalReason}
+                    reasonPlaceholder="مثال: سُلّم الطلب للزبون الخطأ"
+                    error={message}
+                    busy={isActing}
+                    confirmLabel="أكّد عكس التسليم"
+                    busyLabel="جارٍ عكس التسليم…"
+                    danger={true}
+                    onConfirm={() => {
+                      void (async () => {
+                        setIsActing(true);
+                        await runDeliveryReversal();
+                        setIsActing(false);
+                      })();
+                    }}
+                    onCancel={() => {
+                      setDeliveryReversalOpen(false);
+                      setDeliveryReversalReason("");
+                    }}
+                  />
+                </section>
+              ) : (
+                <button
+                  className="micro-button micro-button-quiet"
+                  type="button"
+                  disabled={isActing}
+                  onClick={() => setDeliveryReversalOpen(true)}
+                >
+                  <RotateCcw aria-hidden="true" /> اعكس التسليم
+                </button>
+              )
+            ) : null}
             {/* القرار ١٩: الإلغاء من أي حالة قبل التسليم عبر cancelOrder وحدها (عقد ٠٢) —
                 السبب اختياري بثلاثة أزرار بنقرة، والتخطي متاح. */}
             {preDeliveryStatuses.includes(order.status) ? (
@@ -836,30 +937,25 @@ export default function OrderDetail() {
           {message}
         </p>
       ) : null}
-      {/* §٥-١٦ (رحلة ٢): الدين المسجل قابل للتحصيل — المبلغ حقل وحيد معبأ بالمتبقي،
-          والتحصيل يقلل الدين ولا يعيد فتح الطلب. */}
+      {/* §٥-١٦ (رحلة ٢): الدين المسجل قابل للتحصيل — التحصيل يقلل الدين ولا يعيد
+          فتح الطلب. المجموعة ٣ (عقد D5 — SA-5 R1): كل تحصيل من الطلب عبر ورقة
+          التحصيل — وجهة محفظة صريحة وتحصيل واحد موثق؛ لا قبض بلا وجهة من هنا. */}
       {order.status === "settled" && order.settlementStatus === "debt" ? (
-        <section className="micro-cancel-panel" aria-label="تحصيل الدين المسجل">
-          <label className="micro-field">
-            <span>قبضت الآن من الدين (د.أ)</span>
-            <EnglishNumberInput
-              value={debtCollectMinor}
-              kind="money"
-              onNumericChange={setDebtCollectMinor}
-              onTextValidityChange={setValidDebtCollect}
-              aria-label="قبضت الآن من الدين"
-            />
-          </label>
+        <section className="micro-decision-card" aria-label="تحصيل الدين المسجل">
+          <span>دين مسجل قابل للتحصيل</span>
+          <strong>
+            <MoneyValue minor={order.receivableMinor} /> د.أ
+          </strong>
+          <p>حصّله من ورقة التحصيل بوجهة محفظة واضحة — التحصيل كاش ومتبقٍ فقط، لا إيراد جديد.</p>
           <div className="micro-form-actions micro-contextual-actions">
             <button
               className="micro-button micro-button-primary"
               type="button"
-              disabled={isActing || !validDebtCollect || debtCollectMinor <= 0}
               onClick={() => {
-                void run(() => fulfillment.collectDebt(stored.id, debtCollectMinor));
+                navigate(withFrom(`/collect?source=order:${stored.id}`, `/orders/${stored.id}`));
               }}
             >
-              <HandCoins aria-hidden="true" /> {isActing ? "جارٍ التسجيل…" : "سجّل القبض"}
+              <HandCoins aria-hidden="true" /> حصّل الدين من ورقة التحصيل
             </button>
           </div>
         </section>

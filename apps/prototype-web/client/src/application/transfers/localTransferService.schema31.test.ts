@@ -49,8 +49,10 @@ describe("schema 31 export round-trip with expense category labels", () => {
     expect(verified.value.file.version).toBe(localExportVersion);
     expect(verified.value.file.schemaVersion).toBe(localSchemaVersion);
     /* المجموعة ٢: الرقم الحي صار ٢٤/٣٢ — ملف المجموعة ١ يُهاجر ضمن أحدث زوج. */
-    expect(verified.value.file.version).toBe(24);
-    expect(verified.value.file.schemaVersion).toBe(32);
+    /* المجموعة ٣ (عقد D3): زوج الإصدار انتقل إلى ٢٥/٣٣ مع حقول ربط المنتج
+     * بالبيع — السلوك المدقق نفسه يبقى على الزوج الحي. */
+    expect(verified.value.file.version).toBe(25);
+    expect(verified.value.file.schemaVersion).toBe(33);
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);

@@ -9,6 +9,7 @@ import {
   type CatalogItemKind,
   type CatalogTemplate,
   type CatalogTemplateComponent,
+  type CatalogTemplateExtras,
   type DirectConversion,
   type MeasurementUnit,
   type UnitDimension,
@@ -63,6 +64,9 @@ export type CreateTemplateInput = {
   note?: string | null;
   components: readonly CatalogTemplateComponent[];
   yield: { quantityMilli: number; unitId: string } | null;
+  /* المجموعة ٣ (عقد D5): بنود تكلفة اختيارية على مستوى القالب — مرجع تخطيطي
+   * بلا أثر مخزون أو سعر؛ غيابها = قالب بلا بنود معرفة بعد. */
+  extras?: CatalogTemplateExtras | null;
   operationKey: string;
 };
 
@@ -332,6 +336,20 @@ export class CatalogService {
     const activeUnits = unitsResult.value.filter(unit => unit.active);
     if (input.components.some(component => !activeUnits.some(unit => unit.id === component.unitId)))
       return failure("كل مكوّن يحتاج وحدة نشطة مسجلة.");
+    /* المجموعة ٣ (عقد D5): رابط المادة اختياري — إن وُجد فالمادة يجب أن تكون
+     * مسجلة فعلًا؛ لا يُخترع رابط لمادة غير موجودة. */
+    const linkedMaterialIds = input.components
+      .map(component => component.materialId ?? null)
+      .filter((id): id is string => Boolean(id));
+    if (linkedMaterialIds.length > 0) {
+      const materialsResult = await this.store.listMaterials();
+      if (!materialsResult.ok) return failure("تعذر قراءة المواد للتحقق من الروابط.", "storage_error");
+      const knownIds = new Set(materialsResult.value.map(material => material.id));
+      const unknown = input.components.find(
+        component => component.materialId && !knownIds.has(component.materialId),
+      );
+      if (unknown) return failure(`المادة المرتبطة بالمكوّن «${unknown.name}» غير مسجلة في المخزون.`);
+    }
     const yieldInput = input.yield;
     if (yieldInput && !activeUnits.some(unit => unit.id === yieldInput.unitId))
       return failure("وحدة الناتج غير متاحة للاختيار الجديد.");
@@ -354,6 +372,8 @@ export class CatalogService {
         components: input.components,
         yield: yieldInput,
         yieldReadiness,
+        /* المجموعة ٣ (عقد D5): البنود الاختيارية تمر كما دخل — null صادقة. */
+        extras: input.extras ?? null,
         revision,
         sourceTemplateId,
         createdAt: this.now(),
