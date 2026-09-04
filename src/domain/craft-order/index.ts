@@ -6,6 +6,8 @@ export {
   knowledgeGapsOf,
   settleDepositRefund,
   settleDepositRetain,
+  classifyRetainedDeposit,
+  reclassifyRetainedDeposit,
   collectDeposit,
   collectRemaining,
   collectRegisteredDebt,

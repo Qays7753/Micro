@@ -113,7 +113,14 @@ export type OrderEventType =
   | "delivery_consumed"
   /* المجموعة ٣ (عقد D2): عكس موثق لتسليم مكتمل — الإيراد والنتيجة تُحيَّد، الحركات
    * تُعكس مرآةً، الكاش المقبوض لا يُمس؛ الأصل باقٍ في الأحداث. */
-  | "delivery_reversed";
+  | "delivery_reversed"
+  /* المجموعة ٤ (عقد ٢٩): تصنيف صريح لمعنى العربون المحتفظ به — مال مالك أو
+   * إيراد مشروع — بعد قرار الاحتفاظ؛ قرار قابل للعكس بتوثيق. */
+  | "deposit_classified";
+
+/* المجموعة ٤ (عقد ٢٩): معنى العربون المحتفظ به بعد الإلغاء والاحتفاظ.
+ * null (أو غياب الحقل للقديم) = قرار معلّق ظاهر بانتظار اختيار المالك. */
+export type RetainedDepositMeaning = "owner" | "revenue";
 
 export interface OrderEvent {
   id: string;
@@ -145,6 +152,9 @@ export interface CraftOrder {
   settlementStatus: SettlementStatus;
   depositCollectedMinor: MoneyMinor;
   depositSettlement: DepositSettlementDecision | null;
+  /* المجموعة ٤ (عقد ٢٩): معنى العربون المحتفظ به بعد قرار الاحتفاظ —
+   * مال مالك أو إيراد مشروع؛ null/غياب = معلق بانتظار القرار (الحالة الآمنة). */
+  retainedMeaning?: RetainedDepositMeaning | null;
   collectedMinor: MoneyMinor;
   receivableMinor: MoneyMinor;
   recognizedRevenueMinor: MoneyMinor;

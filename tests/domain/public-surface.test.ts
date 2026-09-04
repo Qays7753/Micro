@@ -21,6 +21,9 @@ import * as inventoryMaterial from "../../src/domain/inventory-material/index.js
 import * as ownerEntitlement from "../../src/domain/owner-entitlement/index.js";
 import * as recurringMargin from "../../src/domain/recurring-margin/index.js";
 import * as shared from "../../src/domain/shared/index.js";
+/* المجموعة ٤ (عقد ٢٩): دومينا الأصول والقروض — إضافة واعية للسطح العام. */
+import * as asset from "../../src/domain/asset/index.js";
+import * as loan from "../../src/domain/loan/index.js";
 import * as supplierPurchase from "../../src/domain/supplier-purchase/index.js";
 
 /* الأنواع المستوردة موضعًا — فشل الترجمة عند اختفاء أي منها. */
@@ -313,6 +316,10 @@ const REMOVED_SURFACE_SYMBOLS = [
 const ALL_BARRELS: Record<string, unknown>[] = [
   actualTime,
 
+  /* المجموعة ٤ (عقد ٢٩): برميلان جديدان داخل القفل المغلق. */
+
+  asset,
+
   cashContinuity,
 
   catalog,
@@ -326,6 +333,8 @@ const ALL_BARRELS: Record<string, unknown>[] = [
   g5,
 
   inventoryMaterial,
+
+  loan,
 
   ownerEntitlement,
 
@@ -353,6 +362,21 @@ describe("قفل سطح الدومين العام (٣) — إغلاق العقد
     expect(typeof ownerEntitlement.isValidOwnerEntitlementRecord).toBe("function");
     expect(typeof ownerEntitlement.isValidOwnerMovement).toBe("function");
     expect(typeof ownerEntitlement.ownerEntitlementPolicyFamilyForKind).toBe("function");
+  });
+  it("asset/loan (المجموعة ٤): دوال العقد العام حاضرة وقت التشغيل", () => {
+    expect(typeof asset.createAssetRecord).toBe("function");
+    expect(typeof asset.reviseAssetContract).toBe("function");
+    expect(typeof asset.monthlyDepreciationMinor).toBe("function");
+    expect(typeof asset.scheduledAccumulatedMinor).toBe("function");
+    expect(typeof asset.planAssetDepreciation).toBe("function");
+    expect(typeof asset.assetEventSummary).toBe("function");
+    expect(typeof asset.prepareAssetDisposal).toBe("function");
+    expect(typeof asset.prepareAssetWriteOff).toBe("function");
+    expect(typeof loan.createLoanRecord).toBe("function");
+    expect(typeof loan.readLoan).toBe("function");
+    expect(typeof loan.addLoanRepayment).toBe("function");
+    expect(typeof loan.reverseLoanRepayment).toBe("function");
+    expect(typeof loan.correctLoanRecord).toBe("function");
   });
   it("لا يحمل أي برميل رموزًا سحبنا تصديرها — السطح صار عقدًا مغلقًا", () => {
     /* المجموعة ٦ (البند ٧): الرموز غير المستوردة خارجيًا لم تعد جزءًا من

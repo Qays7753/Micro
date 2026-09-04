@@ -319,6 +319,10 @@ export class GuidedOpeningImportService {
         catalogItems: [],
         actualTimeRecords: [],
         shortCashDeclarations: [],
+        /* المجموعة ٤ (عقد ٢٩): لا أصول ولا قروض في الاستيراد الافتتاحي —
+         * تُسجَّل من أسطحها المخصصة عند الحاجة، لا تُخترع افتتاحيًا. */
+        assets: [],
+        loans: [],
       };
       return { ok: true, value: { file, summary: this.summary(file), snapshot } };
     } catch (error) {

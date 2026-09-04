@@ -19,6 +19,8 @@ import type {
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
+import type { AssetRecord } from "@micro-domain/asset/index.js";
+import type { LoanRecord } from "@micro-domain/loan/index.js";
 import type {
   ActivityProfile,
   CostEstimate,
@@ -66,6 +68,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   private ownerMovements = new Map<string, OwnerMovement>();
   private allocationPolicies = new Map<string, AllocationPolicy>();
   private costEstimates = new Map<string, CostEstimate>();
+  /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — تطابق المتصفح اختبارًا وسلوكًا. */
+  private assets = new Map<string, AssetRecord>();
+  private loans = new Map<string, LoanRecord>();
 
   async getProfile(): Promise<StorageResult<ActivityProfile | null>> {
     return { ok: true, value: this.profile ? clone(this.profile) : null };
@@ -926,6 +931,8 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         ownerMovements: Array.from(this.ownerMovements.values()).map(clone),
         allocationPolicies: Array.from(this.allocationPolicies.values()).map(clone),
         costEstimates: Array.from(this.costEstimates.values()).map(clone),
+        assets: Array.from(this.assets.values()).map(clone),
+        loans: Array.from(this.loans.values()).map(clone),
       },
     };
   }
@@ -956,6 +963,8 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       ownerMovements: snapshot.ownerMovements ?? [],
       allocationPolicies: snapshot.allocationPolicies ?? [],
       costEstimates: snapshot.costEstimates ?? [],
+      assets: snapshot.assets ?? [],
+      loans: snapshot.loans ?? [],
     });
     this.profile = safe.profile;
     this.ownerProfile = safe.ownerProfile ?? null;
@@ -997,6 +1006,8 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.ownerMovements = new Map((safe.ownerMovements ?? []).map(movement => [movement.id, movement]));
     this.allocationPolicies = new Map((safe.allocationPolicies ?? []).map(policy => [policy.id, policy]));
     this.costEstimates = new Map((safe.costEstimates ?? []).map(estimate => [estimate.id, estimate]));
+    this.assets = new Map((safe.assets ?? []).map(asset => [asset.id, asset]));
+    this.loans = new Map((safe.loans ?? []).map(loan => [loan.id, loan]));
     return { ok: true, value: clone(safe) };
   }
   async listCostEstimates(): Promise<StorageResult<readonly CostEstimate[]>> {
@@ -1018,5 +1029,179 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async deleteCostEstimate(id: string): Promise<StorageResult<null>> {
     this.costEstimates.delete(id);
     return { ok: true, value: null };
+  }
+
+  /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة وكتابة ذرّية متطابقة سلوكًا مع المتصفح. */
+  async listAssets(): Promise<StorageResult<readonly AssetRecord[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.assets.values())
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
+        .map(clone),
+    };
+  }
+  async getAsset(id: string): Promise<StorageResult<AssetRecord | null>> {
+    const record = this.assets.get(id);
+    return { ok: true, value: record ? clone(record) : null };
+  }
+  async commitAssetRecord(
+    record: AssetRecord,
+    event: FinancialEvent | null,
+  ): Promise<StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>> {
+    const existing = this.assets.get(record.id);
+    if (existing && existing.operationKey !== record.operationKey) {
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "سجل أصل مختلف يحمل هذا المعرف؛ لم يتغير شيء.",
+      };
+    }
+    if (event && this.financialEvents.has(event.id)) {
+      return {
+        ok: true,
+        value: {
+          record: existing ? clone(existing) : clone(record),
+          event: clone(this.financialEvents.get(event.id)!),
+          reused: true,
+        },
+      };
+    }
+    if (!event && existing && record.contractRevisions.length > 0 && existing.contractRevisions.length >= record.contractRevisions.length) {
+      return { ok: true, value: { record: clone(existing), event: null, reused: true } };
+    }
+    this.assets.set(record.id, clone(record));
+    if (event) this.financialEvents.set(event.id, clone(event));
+    return { ok: true, value: { record: clone(record), event: event ? clone(event) : null, reused: false } };
+  }
+  async commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    record: AssetRecord;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>> {
+    if (this.financialEvents.has(reversal.id)) {
+      const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
+      return {
+        ok: true,
+        value: {
+          record: clone(record),
+          reversal: clone(this.financialEvents.get(reversal.id)!),
+          replacement: clone(storedReplacement),
+          reused: true,
+        },
+      };
+    }
+    this.assets.set(record.id, clone(record));
+    this.financialEvents.set(reversal.id, clone(reversal));
+    this.financialEvents.set(replacement.id, clone(replacement));
+    return { ok: true, value: { record: clone(record), reversal: clone(reversal), replacement: clone(replacement), reused: false } };
+  }
+  async listLoans(): Promise<StorageResult<readonly LoanRecord[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.loans.values())
+        .sort((a, b) => a.loanDate.localeCompare(b.loanDate) || a.id.localeCompare(b.id))
+        .map(clone),
+    };
+  }
+  async getLoan(id: string): Promise<StorageResult<LoanRecord | null>> {
+    const record = this.loans.get(id);
+    return { ok: true, value: record ? clone(record) : null };
+  }
+  async commitLoanRecord(
+    record: LoanRecord,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }>> {
+    if (this.financialEvents.has(event.id)) {
+      const existing = this.loans.get(record.id);
+      return {
+        ok: true,
+        value: {
+          record: existing ? clone(existing) : clone(record),
+          event: clone(this.financialEvents.get(event.id)!),
+          reused: true,
+        },
+      };
+    }
+    this.loans.set(record.id, clone(record));
+    this.financialEvents.set(event.id, clone(event));
+    return { ok: true, value: { record: clone(record), event: clone(event), reused: false } };
+  }
+  async commitLoanCorrection(
+    record: LoanRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    record: LoanRecord;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>> {
+    if (this.financialEvents.has(reversal.id)) {
+      const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
+      return {
+        ok: true,
+        value: {
+          record: clone(record),
+          reversal: clone(this.financialEvents.get(reversal.id)!),
+          replacement: clone(storedReplacement),
+          reused: true,
+        },
+      };
+    }
+    this.loans.set(record.id, clone(record));
+    this.financialEvents.set(reversal.id, clone(reversal));
+    this.financialEvents.set(replacement.id, clone(replacement));
+    return { ok: true, value: { record: clone(record), reversal: clone(reversal), replacement: clone(replacement), reused: false } };
+  }
+  async commitDepositClassification(
+    order: StoredCraftOrder,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ order: StoredCraftOrder; event: FinancialEvent; reused: boolean }>> {
+    if (this.financialEvents.has(event.id)) {
+      const existing = this.orders.get(order.id);
+      return {
+        ok: true,
+        value: {
+          order: existing ? clone(existing) : clone(order),
+          event: clone(this.financialEvents.get(event.id)!),
+          reused: true,
+        },
+      };
+    }
+    this.orders.set(order.id, clone(order));
+    this.financialEvents.set(event.id, clone(event));
+    return { ok: true, value: { order: clone(order), event: clone(event), reused: false } };
+  }
+  async commitDepositClassificationCorrection(
+    order: StoredCraftOrder,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    order: StoredCraftOrder;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>> {
+    if (this.financialEvents.has(reversal.id)) {
+      const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
+      return {
+        ok: true,
+        value: {
+          order: clone(order),
+          reversal: clone(this.financialEvents.get(reversal.id)!),
+          replacement: clone(storedReplacement),
+          reused: true,
+        },
+      };
+    }
+    this.orders.set(order.id, clone(order));
+    this.financialEvents.set(reversal.id, clone(reversal));
+    this.financialEvents.set(replacement.id, clone(replacement));
+    return { ok: true, value: { order: clone(order), reversal: clone(reversal), replacement: clone(replacement), reused: false } };
   }
 }

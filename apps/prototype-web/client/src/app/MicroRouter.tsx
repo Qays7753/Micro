@@ -56,6 +56,13 @@ const ToolsIntegrity = lazy(() => import("@/pages/ToolsIntegrity"));
 const Parties = lazy(() => import("@/pages/Parties"));
 const CashDistribution = lazy(() => import("@/pages/CashDistribution"));
 const CashCount = lazy(() => import("@/pages/CashCount"));
+/* المجموعة ٤ (عقد ٢٩): الأصول والقروض وتصنيف العربون — أسطح قراءة ومحررات عميقة. */
+const Assets = lazy(() => import("@/pages/Assets"));
+const AssetEditor = lazy(() => import("@/pages/AssetEditor"));
+const AssetDetail = lazy(() => import("@/pages/AssetDetail"));
+const Loans = lazy(() => import("@/pages/Loans"));
+const LoanEditor = lazy(() => import("@/pages/LoanEditor"));
+const LoanDetail = lazy(() => import("@/pages/LoanDetail"));
 /* المجموعة ٢ (Scope B): ورقة التحصيل — سطح تحصيل مخصص واعٍ بالسياق والمصدر. */
 const Collect = lazy(() => import("@/pages/Collect"));
 /* المجموعة ٢ (§9.1): دفتر المحفظة — قراءة سطحية فوق سياق المحافظ. */
@@ -119,6 +126,13 @@ export function MicroRouter() {
             <Route path="/tools/estimate/:id" component={EstimateDetail} />
             {/* المجموعة ١ (فحص سلامة مالي): مسار سطح — قارئ يبقي التنقل السفلي. */}
             <Route path="/tools/integrity" component={ToolsIntegrity} />
+            {/* المجموعة ٤ (عقد ٢٩): محررا الأصل والقرض قبل المسارات الأكثر تحديدًا */}
+            <Route path="/assets/new" component={AssetEditor} />
+            <Route path="/assets/:id" component={AssetDetail} />
+            <Route path="/assets" component={Assets} />
+            <Route path="/loans/new" component={LoanEditor} />
+            <Route path="/loans/:id" component={LoanDetail} />
+            <Route path="/loans" component={Loans} />
             <Route path="/parties" component={Parties} />
             <Route path="/finance" component={Finance} />
             {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}

@@ -38,6 +38,10 @@ import { StatementService } from "@/application/finance/statementService";
 /* المجموعة ١ (فحص سلامة مالي): خدمة قراءة فقط فوق القارئ الكنسي والكشف والمحافظ. */
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
+/* المجموعة ٤ (عقد ٢٩): الأصول والقروض وتصنيف العربون المحتفظ به. */
+import { AssetService } from "@/application/assets/assetService";
+import { LoanService } from "@/application/loans/loanService";
+import { RetainedDepositService } from "@/application/finance/retainedDepositService";
 
 type PrototypeServices = {
   profiles: ProfileService;
@@ -83,6 +87,11 @@ type PrototypeServices = {
   statement: StatementService;
   /* المجموعة ١ (فحص سلامة مالي): قراءة فقط — «يقرأ أرقامك ولا يغيّر شيئًا». */
   integrityCheck: IntegrityCheckService;
+  /* المجموعة ٤ (عقد ٢٩): الأصول والإهلاك، والقروض الصادرة، وتصنيف العربون
+   * المحتفظ به — كتابة الأحداث المالية من هنا فقط لا من أي صفحة. */
+  assets: AssetService;
+  loans: LoanService;
+  retainedDeposits: RetainedDepositService;
   dataVersion: number;
   notifyDataChanged: () => void;
 };
@@ -185,6 +194,9 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
     walletLedger: new WalletLedgerService(store),
     statement,
     integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
+    assets: new AssetService(store),
+    loans: new LoanService(store),
+    retainedDeposits: new RetainedDepositService(store),
   };
 }
 

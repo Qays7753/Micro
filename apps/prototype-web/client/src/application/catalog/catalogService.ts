@@ -67,6 +67,8 @@ export type CreateTemplateInput = {
   /* المجموعة ٣ (عقد D5): بنود تكلفة اختيارية على مستوى القالب — مرجع تخطيطي
    * بلا أثر مخزون أو سعر؛ غيابها = قالب بلا بنود معرفة بعد. */
   extras?: CatalogTemplateExtras | null;
+  /* المجموعة ٤ (عقد ٢٩): إعلان الخصم التلقائي عند التسليم — علم صريح اختياري. */
+  autoConsumeOnDelivery?: boolean | null;
   operationKey: string;
 };
 
@@ -374,6 +376,7 @@ export class CatalogService {
         yieldReadiness,
         /* المجموعة ٣ (عقد D5): البنود الاختيارية تمر كما دخل — null صادقة. */
         extras: input.extras ?? null,
+        autoConsumeOnDelivery: input.autoConsumeOnDelivery === true ? true : null,
         revision,
         sourceTemplateId,
         createdAt: this.now(),

@@ -5,6 +5,7 @@ export {
   assertNonNegativeInteger,
   assertPositiveMinor,
   ceilRatio,
+  floorRatio,
   fieldLabelAr,
   isValidLocalDate,
   isValidTimestamp,

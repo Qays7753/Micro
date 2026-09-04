@@ -148,6 +148,11 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   "/collect": "/",
   /* المجموعة ٢ (§9.2): كشف الفترة — يفتح من مالي والرئيسية؛ البديل مالي. */
   "/finance/statement": "/finance",
+  /* المجموعة ٤ (عقد ٢٩): الأصول والقروض تُفتح من مالي — البديل القانوني مالي. */
+  "/assets": "/finance",
+  "/assets/new": "/assets",
+  "/loans": "/finance",
+  "/loans/new": "/loans",
   /* المجموعة ٣ (Scope C — §9.3): الحاسبة وصفحة التقدير — البديل القانوني أدواتي (بيتهما). */
   "/tools/calculator": "/tools",
   /* المجموعة ١ (فحص سلامة مالي): قارئ سطح — بيته أدواتي (عقد ٢٦ سجل واحد). */
@@ -168,6 +173,10 @@ export function canonicalReturnFor(pathname: string): string {
   if (pathname.startsWith("/suppliers/")) return "/suppliers";
   if (pathname.startsWith("/cash/")) return "/cash";
   if (pathname.startsWith("/inventory/")) return "/inventory";
+  /* المجموعة ٤ (تصحيح مراجعة 4-c): تفاصيل الأصل/القرض بلا مصدر تعود لقائمتها
+   * لا للرئيسية — نفس نمط الطلبات والمحافظ. */
+  if (pathname.startsWith("/assets/")) return "/assets";
+  if (pathname.startsWith("/loans/")) return "/loans";
   if (pathname.startsWith("/catalog")) return "/catalog";
   if (pathname.startsWith("/tools")) return "/tools";
   if (pathname === "/profile") return "/";

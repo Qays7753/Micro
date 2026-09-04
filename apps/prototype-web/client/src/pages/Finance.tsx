@@ -35,6 +35,10 @@ import { RestatementNote } from "@/components/finance/RestatementNote";
 import type { CorrectionDigest } from "@/application/finance/correctionHistoryService";
 import type { PeriodWasteReading } from "@/application/inventory/inventoryMaterialService";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
+/* المجموعة ٤ (عقد ٢٩): قراءات الأصول والقروض والعربون المحتفظ به. */
+import type { AssetSummaryRow } from "@/application/assets/assetService";
+import type { LoanSummaryRow } from "@/application/loans/loanService";
+import type { RetainedDepositRow } from "@/application/finance/retainedDepositService";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {
   formatBreakEvenDisplay,
@@ -68,6 +72,10 @@ type FinanceState =
       correctionsInPeriod: CorrectionDigest | null;
       /* المجموعة ٢ (عقد ٢٨): هدر المخزون داخل الفترة — قراءة مشتقة غير نقدية. */
       periodWaste: PeriodWasteReading | null;
+      /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة. */
+      assetsOverview: readonly AssetSummaryRow[];
+      loansOverview: readonly LoanSummaryRow[];
+      pendingRetainedDeposits: readonly RetainedDepositRow[];
     };
 const currentMonth = () => localDateInAmman().slice(0, 7);
 const validMonth = (month: string) =>
@@ -117,6 +125,10 @@ export default function Finance() {
     financialPulse,
     fulfillment,
     inventory,
+    /* المجموعة ٤ (عقد ٢٩): أسطح الأصول والقروض والعربون المحتفظ به. */
+    assets,
+    loans,
+    retainedDeposits,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
@@ -153,8 +165,12 @@ export default function Finance() {
       correctionHistory.affecting(from.from, to.to),
       /* المجموعة ٢ (عقد ٢٨): هدر الفترة — قراءة مشتقة بأساس occurredOn نفسه. */
       inventory.readPeriodWaste(from.from, to.to),
+      /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة. */
+      assets.overview(),
+      loans.overview(),
+      retainedDeposits.listPending(),
     ]).then(
-      ([position, events, result, insights, decision, declarations, owner, pulseResult, depositsResult, correctionsAll, correctionsPeriod, periodWaste]) => {
+      ([position, events, result, insights, decision, declarations, owner, pulseResult, depositsResult, correctionsAll, correctionsPeriod, periodWaste, assetsResult, loansResult, pendingRetainedResult]) => {
         if (!active) return;
         if (
           !position.ok ||
@@ -165,7 +181,10 @@ export default function Finance() {
           !declarations.ok ||
           !owner.ok ||
           !pulseResult.ok ||
-          !depositsResult.ok
+          !depositsResult.ok ||
+          !assetsResult.ok ||
+          !loansResult.ok ||
+          !pendingRetainedResult.ok
         ) {
           setState({ phase: "error", message: "لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة." });
           return;
@@ -188,13 +207,17 @@ export default function Finance() {
           correctionsAllTime: correctionsAll.ok ? correctionsAll.value : null,
           correctionsInPeriod: correctionsPeriod.ok ? correctionsPeriod.value : null,
           periodWaste: periodWaste.ok ? periodWaste.value : null,
+          /* المجموعة ٤ (عقد ٢٩): قراءات الطبقات الجديدة — القيم null تعني تعذر القراءة لا صفرًا. */
+          assetsOverview: assetsResult.value,
+          loansOverview: loansResult.value,
+          pendingRetainedDeposits: pendingRetainedResult.value,
         });
       },
     );
     return () => {
       active = false;
     };
-  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse, fulfillment, correctionHistory, inventory]);
+  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse, fulfillment, correctionHistory, inventory, assets, loans, retainedDeposits]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -405,6 +428,53 @@ export default function Finance() {
         </div>
       </section>
       <DepositsLayer deposits={state.deposits} onOpenOrder={orderId => navigate(withFrom(`/orders/${orderId}`, "/finance"))} />
+      {/* المجموعة ٤ (عقد ٢٩): الأصول والقروض — طبقتان مستقلتان بمدخلين، بلا مقعد تنقل جديد. */}
+      <details className="micro-finance-layer">
+        <summary className="micro-finance-layer-summary">
+          <span>
+            <b>الأصول</b>
+            <small>دفتري مشتق من الأحداث — لا مس شراءً للربح</small>
+          </span>
+          <strong>
+            {state.assetsOverview.length} أصلًا ·{" "}
+            {formatMoneyMinor(state.assetsOverview.reduce((sum, row) => sum + row.bookValueMinor, 0))} د.أ
+          </strong>
+        </summary>
+        <p className="micro-period-status">
+          {state.assetsOverview.length === 0
+            ? "لا أصول بعد — سجّل أول أصل طويل الاستخدام من «سجّل أصلًا»."
+            : `دفتري كلي ${formatMoneyMinor(state.assetsOverview.reduce((sum, row) => sum + row.bookValueMinor, 0))} د.أ؛ الإهلاك غير نقدي ولا يخصم من الصندوق.`}
+        </p>
+        <div className="micro-form-actions">
+          <button className="micro-text-action" type="button" onClick={() => navigate(withFrom("/assets", "/finance"))}>
+            افتح سجل الأصول
+          </button>
+        </div>
+      </details>
+      <details className="micro-finance-layer">
+        <summary className="micro-finance-layer-summary">
+          <span>
+            <b>القروض</b>
+            <small>مالك عند غيرك — ليس مصروفًا ولا ربحًا</small>
+          </span>
+          <strong>
+            {state.pendingRetainedDeposits.filter(row => row.decision === "pending").length > 0
+              ? `${state.pendingRetainedDeposits.filter(row => row.decision === "pending").length} عربونًا بانتظار قرارك · `
+              : ""}
+            {formatMoneyMinor(state.loansOverview.reduce((sum, row) => sum + row.reading.outstandingMinor, 0))} د.أ قائمًا
+          </strong>
+        </summary>
+        <p className="micro-period-status">
+          {state.loansOverview.length === 0 && state.pendingRetainedDeposits.length === 0
+            ? "لا قروض ولا عربونات محتفظة — سجّل قرضًا حين تعطي مالًا يُعاد."
+            : "المتبقي مشتق من الدفعات القائمة؛ والعربون المحتفظ بلا قرار يبقى معلقًا ظاهرًا."}
+        </p>
+        <div className="micro-form-actions micro-contextual-actions">
+          <button className="micro-text-action" type="button" onClick={() => navigate(withFrom("/loans", "/finance"))}>
+            افتح سجل القروض
+          </button>
+        </div>
+      </details>
       </>
       ) : (
       <>
@@ -454,8 +524,8 @@ export default function Finance() {
           </p>
           <p className="micro-period-result-value">
             <span>
-              إيراد الطلبات والبيع المباشر − التكلفة المباشرة المستخدمة − المصروف التشغيلي الموزّع، ضمن
-              الفترة المحددة فقط
+              إيراد الطلبات والبيع المباشر − التكلفة المباشرة المستخدمة − المصروف التشغيلي الموزّع − الإهلاك
+              والشطب المسجّلين + نتيجة التخلص وعربون محتفظ مصنَّف، ضمن الفترة المحددة فقط
             </span>
             <strong>
               {period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}
@@ -544,6 +614,35 @@ export default function Finance() {
                 )}
               </dd>
             </div>
+            {/* المجموعة ٤ (عقد ٢٩): بنود مستقلة معلنة — إهلاك وشطب وتخلص وعربون مصنَّف. */}
+            {period.assetDepreciationMinor !== 0 || period.assetWriteOffLossMinor !== 0 || period.assetDisposalResultMinor !== 0 || period.retainedDepositRevenueMinor !== 0 ? (
+              <>
+                <div>
+                  <dt>إهلاك أصول مسجّل (غير نقدي)</dt>
+                  <dd>
+                    <PeriodMoney value={period.assetDepreciationMinor} status={period.status} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>خسارة شطب أصل (غير نقدي)</dt>
+                  <dd>
+                    <PeriodMoney value={period.assetWriteOffLossMinor} status={period.status} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>نتيجة التخلص من أصول</dt>
+                  <dd>
+                    <PeriodMoney value={period.assetDisposalResultMinor} status={period.status} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>عربون محتفظ به كإيراد</dt>
+                  <dd>
+                    <PeriodMoney value={period.retainedDepositRevenueMinor} status={period.status} />
+                  </dd>
+                </div>
+              </>
+            ) : null}
             <div>
               <dt>تكلفة مباشرة من نسخة التكلفة</dt>
               <dd>

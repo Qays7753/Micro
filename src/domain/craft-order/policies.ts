@@ -13,6 +13,7 @@ import type {
   OrderStatus,
   OrderTransitionInput,
   ResultStatus,
+  RetainedDepositMeaning,
   ReviseAgreedPriceInput,
   ReverseCollectionInput,
   ReverseDeliveryInput,
@@ -977,4 +978,74 @@ export function settleDepositRetain(
     idempotencyKey,
     createdAt,
   );
+}
+
+/* المجموعة ٤ (عقد ٢٩): تصنيف معنى العربون المحتفظ به — بعد قرار الاحتفاظ
+ * يختار المالك: مال مالك، أو إيراد مشروع. المعلق يبقى معلقًا ظاهرًا (الافتراضي الآمن).
+ * التصنيف حدث مالي مرتبط يُنشئه الكاتب الواحد خارج الدومين؛ هنا يوثَّق القرار
+ * على الطلب نفسه. إعادة نفس المفتاح = إعادة استخدام صادقة بلا أثر جديد. */
+export function classifyRetainedDeposit(
+  order: CraftOrder,
+  meaning: RetainedDepositMeaning,
+  reason: string,
+  idempotencyKey: string,
+  createdAt: string,
+): CraftOrder {
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, "deposit_classified")) return order;
+  if (order.status !== "cancelled") throw new Error("تصنيف العربون المحتفظ به يتطلب طلبًا ملغى.");
+  if (order.depositSettlement !== "retain_deposit")
+    throw new Error("التصنيف يتبع قرار الاحتفاظ — راجع تسوية العربون أولًا.");
+  if (!reason.trim()) throw new Error("أكمل سبب تصنيف العربون قبل الحفظ.");
+  if (order.retainedMeaning != null)
+    throw new Error("هذا العربون مصنَّف سابقًا — صحِّحه بقرار موثق لا بتسجيل ثانٍ.");
+  const next: CraftOrder = {
+    ...order,
+    retainedMeaning: meaning,
+    nextAction:
+      meaning === "owner" ? "أرشِف قرار عربون محتفظ به كمال مالك" : "أرشِف قرار عربون محتفظ به كإيراد مشروع",
+  };
+  return appendEvent(next, {
+    id: `${order.id}:${idempotencyKey}`,
+    type: "deposit_classified",
+    idempotencyKey,
+    createdAt,
+    amountMinor: order.depositCollectedMinor,
+    note: `${meaning === "owner" ? "مال مالك" : "إيراد مشروع"} — ${reason.trim()}`,
+  });
+}
+
+/* تصحيح التصنيف: قرار جديد موثق يعلو القديم — الأصل يبقى في الأحداث،
+ * والأثر المالي يُعكس ويُستبدل ذرّيًا في طبقة التخزين، لا هنا. */
+export function reclassifyRetainedDeposit(
+  order: CraftOrder,
+  meaning: RetainedDepositMeaning,
+  reason: string,
+  idempotencyKey: string,
+  createdAt: string,
+): CraftOrder {
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, "deposit_classified")) return order;
+  if (order.status !== "cancelled") throw new Error("تصحيح تصنيف العربون يتطلب طلبًا ملغى.");
+  if (order.depositSettlement !== "retain_deposit")
+    throw new Error("تصحيح التصنيف يتبع قرار الاحتفاظ — راجع تسوية العربون أولًا.");
+  if (order.retainedMeaning == null) throw new Error("لا تصنيف قائم يُصحَّح — سجِّل تصنيفًا أولًا.");
+  if (order.retainedMeaning === meaning) throw new Error("التصنيف الجديد مطابق للقائم — لا تصحيح بلا تغيير.");
+  if (!reason.trim()) throw new Error("أكمل سبب تصحيح التصنيف قبل الحفظ.");
+  const next: CraftOrder = {
+    ...order,
+    retainedMeaning: meaning,
+    nextAction:
+      meaning === "owner"
+        ? "أرشِف تصحيح تصنيف عربون إلى مال مالك"
+        : "أرشِف تصحيح تصنيف عربون إلى إيراد مشروع",
+  };
+  return appendEvent(next, {
+    id: `${order.id}:${idempotencyKey}`,
+    type: "deposit_classified",
+    idempotencyKey,
+    createdAt,
+    amountMinor: order.depositCollectedMinor,
+    note: `تصحيح إلى ${meaning === "owner" ? "مال مالك" : "إيراد مشروع"} — ${reason.trim()}`,
+  });
 }

@@ -128,6 +128,11 @@ export type CatalogTemplate = {
   revision: number;
   sourceTemplateId: string | null;
   active: boolean;
+  /* المجموعة ٤ (عقد ٢٩): إعلان الخصم التلقائي عند التسليم — علم صريح على القالب.
+   * true = عند تأكيد التسليم تكون حركات الاستهلاك جاهزة افتراضيًا ضمن المعاملة
+   * الذرّية نفسها بلا خطوة إضافية؛ غيابه/null = غير معلن (اقتراح يدوي كما في
+   * المجموعة ٣). لا يخصم شيئًا عند فتح الصفحات أو حفظ المسودات أبدًا. */
+  autoConsumeOnDelivery?: boolean | null;
   createdAt: string;
   updatedAt: string;
   createdOperationKey: string;
@@ -146,6 +151,6 @@ export type CreateCatalogTemplateInput = Pick<
   | "sourceTemplateId"
   | "createdAt"
   | "createdOperationKey"
-> & { extras?: CatalogTemplateExtras | null };
+> & { extras?: CatalogTemplateExtras | null; autoConsumeOnDelivery?: boolean | null };
 
 export type QuantityConversionResult = { quantityMilli: number; exact: true };

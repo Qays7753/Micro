@@ -7,6 +7,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { AssetService } from "@/application/assets/assetService";
+import { LoanService } from "@/application/loans/loanService";
+import { RetainedDepositService } from "@/application/finance/retainedDepositService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import MaterialEditor from "@/pages/MaterialEditor";
@@ -736,6 +739,10 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
         financialPulse: new FinancialPulseService(store),
         fulfillment: new FulfillmentService(store, () => NOW),
         inventory,
+        /* المجموعة ٤ (عقد ٢٩): خدمات الأصول والقروض والعربون فوق مخزن الذاكرة. */
+        assets: new AssetService(store, () => NOW),
+        loans: new LoanService(store, () => NOW),
+        retainedDeposits: new RetainedDepositService(store, () => NOW),
         dataVersion: version,
         notifyDataChanged: () => setVersion(current => current + 1),
       };

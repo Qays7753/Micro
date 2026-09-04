@@ -69,7 +69,7 @@ export default function OrderDetail() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو الطلبات كبديل قانوني. */
   const returnPath = useReturnPath();
-  const { actualTime, agreements, agreementContext, fulfillment, deliveryReview, inventory, drafts, costEstimates, collectionReversal, dataVersion, notifyDataChanged } =
+  const { actualTime, agreements, agreementContext, fulfillment, deliveryReview, inventory, drafts, costEstimates, collectionReversal, retainedDeposits, dataVersion, notifyDataChanged } =
     usePrototypeServices();
   const [stored, setStored] = useState<StoredCraftOrder | null>(null);
   const [state, setState] = useState<OrderDetailState>({ phase: "loading" });
@@ -83,6 +83,9 @@ export default function OrderDetail() {
   const [otherReason, setOtherReason] = useState("");
   const [otherReasonOpen, setOtherReasonOpen] = useState(false);
   const [depositReason, setDepositReason] = useState("");
+  /* المجموعة ٤ (عقد ٢٩): معنى العربون المحتفظ به — قرار صريح يُوثَّق حدثًا ماليًا. */
+  const [classifyMeaning, setClassifyMeaning] = useState<"owner" | "revenue" | null>(null);
+  const [classifyReason, setClassifyReason] = useState("");
   /* §٥-١٦ (رحلة ٢): تحصيل الدين المسجل — المبلغ يُملأ بالمتبقي افتراضيًا. */
   const [debtCollectMinor, setDebtCollectMinor] = useState(0);
   const [validDebtCollect, setValidDebtCollect] = useState(true);
@@ -249,6 +252,42 @@ export default function OrderDetail() {
     }
     setStored(next.stored);
     setState({ phase: "ready", stored: next.stored });
+    notifyDataChanged();
+  }
+
+  /* المجموعة ٤ (عقد ٢٩): تصنيف أو إعادة تصنيف معنى العربون — التصحيح عكس + بديل ذرّي،
+   * والطلب يُحدَّث مع الحدث في معاملة واحدة. الافتراضي الآمن «معلق» يبقى حتى الاختيار. */
+  async function classifyDeposit(meaning: "owner" | "revenue", reason: string) {
+    if (!stored) return;
+    setMessage(null);
+    setIsActing(true);
+    const result = await retainedDeposits.classify(stored.id, meaning, reason);
+    setIsActing(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setStored(result.value.order);
+    setState({ phase: "ready", stored: result.value.order });
+    setClassifyMeaning(null);
+    setClassifyReason("");
+    notifyDataChanged();
+  }
+
+  async function reclassifyDeposit(meaning: "owner" | "revenue", reason: string) {
+    if (!stored) return;
+    setMessage(null);
+    setIsActing(true);
+    const result = await retainedDeposits.reclassify(stored.id, meaning, reason);
+    setIsActing(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setStored(result.value.order);
+    setState({ phase: "ready", stored: result.value.order });
+    setClassifyMeaning(null);
+    setClassifyReason("");
     notifyDataChanged();
   }
 
@@ -921,9 +960,104 @@ export default function OrderDetail() {
         </section>
       ) : null}
       {order.status === "cancelled" && order.depositSettlement === "retain_deposit" ? (
-        <section className="micro-note-card">
-          <CircleDollarSign aria-hidden="true" />
-          <p>عربون محتفظ به رصيدًا بتسوية موثقة.</p>
+        <section className="micro-cancel-panel" aria-label="معنى العربون المحتفظ به">
+          <strong>
+            عربون محتفظ به (
+            <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) — شو بدك تعمل فيه؟
+          </strong>
+          {order.retainedMeaning == null ? (
+            <>
+              <p>
+                الكاش محتفظ به بلا معنى بعد. صنّفه: مال مالك (تسحبه وقتما تشاء)، أو إيراد مشروع (يدخل ربح فترة
+                القرار). أو اتركه معلقًا — خيار صالح ظاهر حتى تقرر.
+              </p>
+              <label className="micro-field">
+                <span>سبب التصنيف (مطلوب عند الاختيار)</span>
+                <input
+                  value={classifyReason}
+                  onChange={event => setClassifyReason(event.target.value)}
+                  placeholder="مثال: العميل تنازل عن العربون مقابل الإلغاء"
+                />
+              </label>
+              <div className="micro-form-actions micro-contextual-actions">
+                <button
+                  className="micro-button micro-button-primary"
+                  type="button"
+                  disabled={isActing || !classifyReason.trim()}
+                  onClick={() => void classifyDeposit("owner", classifyReason)}
+                >
+                  مال مالك
+                </button>
+                <button
+                  className="micro-button micro-button-secondary"
+                  type="button"
+                  disabled={isActing || !classifyReason.trim()}
+                  onClick={() => void classifyDeposit("revenue", classifyReason)}
+                >
+                  إيراد مشروع
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p>
+                {order.retainedMeaning === "owner"
+                  ? "صُنّف مال مالك — يظهر في مال المالك، وتسحبه وقتما تشاء بلا إيراد جديد."
+                  : "صُنّف إيراد مشروع — يُعترف به مرة واحدة في نتيجة فترة القرار، لا كاش جديد."}
+              </p>
+              <button
+                className="micro-text-action"
+                type="button"
+                aria-expanded={classifyMeaning !== null}
+                onClick={() => setClassifyMeaning(current => (current === null ? "revenue" : null))}
+              >
+                صحِّح التصنيف بقرار موثق
+              </button>
+              {classifyMeaning !== null ? (
+                <div className="micro-revision-form">
+                  {/* أزرار الاختيار داخل fieldset لا label — الاسم المتاح لكل زر
+                   * يبقى نصه، والتسمية الشاملة عبر legend (و٩: إمكانية الوصول). */}
+                  <fieldset className="micro-field">
+                    <legend>التصنيف الجديد</legend>
+                    <div className="micro-choice-row">
+                      <button
+                        className={`micro-button ${classifyMeaning === "owner" ? "micro-button-primary" : "micro-button-secondary"}`}
+                        type="button"
+                        onClick={() => setClassifyMeaning("owner")}
+                      >
+                        مال مالك
+                      </button>
+                      <button
+                        className={`micro-button ${classifyMeaning === "revenue" ? "micro-button-primary" : "micro-button-secondary"}`}
+                        type="button"
+                        onClick={() => setClassifyMeaning("revenue")}
+                      >
+                        إيراد مشروع
+                      </button>
+                    </div>
+                  </fieldset>
+                  <label className="micro-field">
+                    <span>سبب التصحيح (مطلوب)</span>
+                    <input
+                      value={classifyReason}
+                      onChange={event => setClassifyReason(event.target.value)}
+                      placeholder="مثال: القرار الأول كان متسرعًا"
+                    />
+                  </label>
+                  <div className="micro-form-actions">
+                    <button
+                      className="micro-button micro-button-primary"
+                      type="button"
+                      disabled={isActing || !classifyReason.trim()}
+                      onClick={() => void reclassifyDeposit(classifyMeaning, classifyReason)}
+                    >
+                      احفظ التصحيح الموثق
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
         </section>
       ) : null}
       {order.status === "cancelled" && order.depositCollectedMinor === 0 ? (

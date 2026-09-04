@@ -208,6 +208,10 @@ export function createCatalogTemplate(input: CreateCatalogTemplateInput): Catalo
     yield: yieldValue,
     yieldReadiness,
     extras,
+    /* المجموعة ٤ (عقد ٢٩): إعلان الخصم التلقائي عند التسليم — علم صريح على القالب.
+     * غيابه = غير معلن: يبقى العرض اليدوي كما هو. لا يخصم شيئًا بنفسه أبدًا؛
+     * يفعّل الاقتراح الجاهز في مراجعة التسليم ضمن المعاملة الذرّية نفسها. */
+    autoConsumeOnDelivery: input.autoConsumeOnDelivery === true ? true : null,
     revision: input.revision,
     sourceTemplateId: input.sourceTemplateId?.trim() || null,
     active: true,

@@ -542,3 +542,119 @@ describe("StatementService — G6-U2-2: ledger owner movements in the owner bloc
     ).toBe(true);
   });
 });
+
+/* المجموعة ٤ (تصحيح مراجعة 4-c): الكشف يشمل حركات الكاش الجديدة — شراء أصل
+ * نقدي وتخلص وقرض صادر وسداده — بعائلات صريحة ومصادر موصولة للأصل/القرض،
+ * ولا يختفي منها شيء بعد اليوم في صافي الكاش. */
+describe("StatementService — سطور الكاش للمجموعة ٤ (الأصول والقروض)", () => {
+  it("شراء الأصل والقرض الصادر في الخرج، والتخلص والسداد في الدخل، والمصادر موصولة", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const statement = new StatementService(store, finance);
+    await saveEvent(store, {
+      id: "g4-st-purchase",
+      type: "asset_purchase_cash",
+      amountMinor: 40000,
+      occurredOn: "2026-09-01",
+      recordedAt: now(),
+      idempotencyKey: "g4-st-purchase-key",
+      note: "مكينة خياطة",
+      counterparty: null,
+      relatedEventId: null,
+      assetContext: { assetId: "asset-1", name: "مكينة خياطة" },
+    });
+    await saveEvent(store, {
+      id: "g4-st-disposal",
+      type: "asset_disposal_cash",
+      amountMinor: 9000,
+      occurredOn: "2026-09-02",
+      recordedAt: now(),
+      idempotencyKey: "g4-st-disposal-key",
+      note: "بعت المكينة القديمة",
+      counterparty: null,
+      relatedEventId: null,
+      assetContext: { assetId: "asset-2", name: "مكينة قديمة", bookValueMinor: 7000 },
+    });
+    await saveEvent(store, {
+      id: "g4-st-loan",
+      type: "loan_outgoing_cash",
+      amountMinor: 12000,
+      occurredOn: "2026-09-02",
+      recordedAt: now(),
+      idempotencyKey: "g4-st-loan-key",
+      note: "أعطيت أخي قرضًا",
+      counterparty: null,
+      relatedEventId: null,
+      loanContext: { loanId: "loan-1", borrower: "سامي" },
+    });
+    await saveEvent(store, {
+      id: "g4-st-repay",
+      type: "loan_repayment_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-09-03",
+      recordedAt: now(),
+      idempotencyKey: "g4-st-repay-key",
+      note: "سداد جزء من القرض",
+      counterparty: null,
+      relatedEventId: null,
+      loanContext: { loanId: "loan-1", borrower: "سامي" },
+    });
+    const reading = await statement.read("2026-09-01", "2026-09-07");
+    expect(reading.ok).toBe(true);
+    if (!reading.ok) return;
+    const { blocks, cashNetMinor } = reading.value;
+    expect(blocks.cashOut.find(line => line.id === "asset-purchase-cash")?.amountMinor).toBe(-40000);
+    expect(blocks.cashOut.find(line => line.id === "loan-given-cash")?.amountMinor).toBe(-12000);
+    expect(blocks.cashIn.find(line => line.id === "asset-disposal-cash")?.amountMinor).toBe(9000);
+    expect(blocks.cashIn.find(line => line.id === "loan-repaid-cash")?.amountMinor).toBe(5000);
+    expect(cashNetMinor).toBe(9000 + 5000 - 40000 - 12000);
+    /* المصادر توصل لصفحة الأصل/القرض لا لحدث مبهَم. */
+    const purchaseLine = blocks.cashOut.find(line => line.id === "asset-purchase-cash");
+    expect(purchaseLine?.sources[0]?.href).toBe("/assets/asset-1");
+    const loanLine = blocks.cashIn.find(line => line.id === "loan-repaid-cash");
+    expect(loanLine?.sources[0]?.href).toBe("/loans/loan-1");
+    /* الأهلية الصريحة: شراء الأصل ليس مصروفًا والقرض ليس سحبًا والسداد ليس إيرادًا. */
+    expect(purchaseLine?.qualifier).toContain("ليس مصروفًا");
+    expect(blocks.cashOut.find(line => line.id === "loan-given-cash")?.qualifier).toContain(
+      "ليس مصروفًا ولا سحبًا",
+    );
+    expect(loanLine?.qualifier).toContain("ليس إيرادًا");
+  });
+
+  it("التراجع عن قرض صادر داخل الفترة يظهر مرة واحدة في كتلة التصحيحات بعائلة صريحة", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const statement = new StatementService(store, finance);
+    const original = await saveEvent(store, {
+      id: "g4-stc-loan",
+      type: "loan_outgoing_cash",
+      amountMinor: 8000,
+      occurredOn: "2026-09-01",
+      recordedAt: now(),
+      idempotencyKey: "g4-stc-loan-key",
+      note: "قرض لجار",
+      counterparty: null,
+      relatedEventId: null,
+      loanContext: { loanId: "loan-2", borrower: "أحمد" },
+    });
+    const reversal = await finance.reverse({
+      sourceEventId: original.id,
+      occurredOn: "2026-09-03",
+      reason: "سُجّل بالخطأ",
+      idempotencyKey: "g4-stc-reverse",
+    });
+    expect(reversal.ok).toBe(true);
+    const reading = await statement.read("2026-09-01", "2026-09-07");
+    expect(reading.ok).toBe(true);
+    if (!reading.ok) return;
+    const { blocks, cashNetMinor } = reading.value;
+    /* الأصل والتراجع معًا داخل الفترة: الصافي صفر ولا تكرار في عائلة الخرج. */
+    expect(blocks.cashOut.find(line => line.id === "loan-given-cash")).toBeUndefined();
+    const correction = blocks.corrections.lines.find(
+      line => line.familyLabel === "قرض أعطيته" && line.reason === "سُجّل بالخطأ",
+    );
+    expect(correction).toBeDefined();
+    expect(correction?.netEffectMinor).toBe(0);
+    expect(cashNetMinor).toBe(0);
+  });
+});

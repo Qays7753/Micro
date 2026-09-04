@@ -19,6 +19,8 @@ import type {
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
+import type { AssetRecord } from "@micro-domain/asset/index.js";
+import type { LoanRecord } from "@micro-domain/loan/index.js";
 import {
   localInventoryActivationId,
   localOwnerProfileId,
@@ -71,6 +73,9 @@ const ownerEntitlementOpeningBalanceStore = "owner-entitlement-opening-balances"
 const ownerMovementStore = "owner-movements";
 const allocationPolicyStore = "allocation-policies";
 const costEstimateStore = "cost-estimates";
+/* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — سجلان تشغيليان فوق أحداثهما المالية. */
+const assetStore = "assets";
+const loanStore = "loans";
 
 class StorageOpenError extends Error {
   constructor(
@@ -336,6 +341,16 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!database.objectStoreNames.contains(costEstimateStore)) {
         const costEstimates = database.createObjectStore(costEstimateStore, { keyPath: "id" });
         costEstimates.createIndex("updatedAt", "updatedAt");
+      }
+      /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — إنشاء محروس للترقية من
+       * المخطط ٣٣؛ القديم يفتح بلا سجلين ولا يفقد شيئًا. */
+      if (!database.objectStoreNames.contains(assetStore)) {
+        const assets = database.createObjectStore(assetStore, { keyPath: "id" });
+        assets.createIndex("updatedAt", "updatedAt");
+      }
+      if (!database.objectStoreNames.contains(loanStore)) {
+        const loans = database.createObjectStore(loanStore, { keyPath: "id" });
+        loans.createIndex("updatedAt", "updatedAt");
       }
       const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
       if (policyStore && !policyStore.indexNames.contains("seriesId"))
@@ -2296,6 +2311,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             ownerMovementStore,
             allocationPolicyStore,
             costEstimateStore,
+            assetStore,
+            loanStore,
           ],
           "readonly",
         );
@@ -2332,6 +2349,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const ownerMovements = transaction.objectStore(ownerMovementStore).getAll();
         const allocationPolicies = transaction.objectStore(allocationPolicyStore).getAll();
         const costEstimates = transaction.objectStore(costEstimateStore).getAll();
+        const assets = transaction.objectStore(assetStore).getAll();
+        const loans = transaction.objectStore(loanStore).getAll();
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
@@ -2367,6 +2386,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               ownerMovements: ownerMovements.result as OwnerMovement[],
               allocationPolicies: allocationPolicies.result as AllocationPolicy[],
               costEstimates: costEstimates.result as CostEstimate[],
+              assets: assets.result as AssetRecord[],
+              loans: loans.result as LoanRecord[],
             },
           });
         };
@@ -2404,6 +2425,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ownerMovements: snapshot.ownerMovements ?? [],
         allocationPolicies: snapshot.allocationPolicies ?? [],
         costEstimates: snapshot.costEstimates ?? [],
+        assets: snapshot.assets ?? [],
+        loans: snapshot.loans ?? [],
       };
       return await new Promise(resolve => {
         const transaction = database.transaction(
@@ -2436,6 +2459,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             ownerMovementStore,
             allocationPolicyStore,
             costEstimateStore,
+            assetStore,
+            loanStore,
           ],
           "readwrite",
         );
@@ -2467,6 +2492,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const ownerMovements = transaction.objectStore(ownerMovementStore);
         const allocationPolicies = transaction.objectStore(allocationPolicyStore);
         const costEstimates = transaction.objectStore(costEstimateStore);
+        const assets = transaction.objectStore(assetStore);
+        const loans = transaction.objectStore(loanStore);
         profiles.clear();
         ownerProfiles.clear();
         preferences.clear();
@@ -2495,6 +2522,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ownerMovements.clear();
         allocationPolicies.clear();
         costEstimates.clear();
+        assets.clear();
+        loans.clear();
         if (normalized.profile) profiles.put(normalized.profile);
         if (normalized.ownerProfile) ownerProfiles.put(normalized.ownerProfile);
         if (normalized.preferences) preferences.put(normalized.preferences);
@@ -2526,11 +2555,519 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         normalized.ownerMovements?.forEach(movement => ownerMovements.put(movement));
         normalized.allocationPolicies?.forEach(policy => allocationPolicies.put(policy));
         normalized.costEstimates?.forEach(estimate => costEstimates.put(estimate));
+        normalized.assets?.forEach(asset => assets.put(asset));
+        normalized.loans?.forEach(loan => loans.put(loan));
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           resolve({ ok: true, value: normalized });
         };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة سجل الأصول. */
+  listAssets() {
+    return listAll<AssetRecord>(assetStore, (left, right) =>
+      left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id),
+    );
+  }
+  getAsset(id: string) {
+    return readOne<AssetRecord>(assetStore, id);
+  }
+  /* كتابة ذرّية: سجل الأصل مع حدثه المالي أو بلا حدث (مراجعة عقد) — فحص
+   * الهوية داخل المعاملة: الحدث موجود سلفًا أو المراجعة محفوظة → إعادة
+   * استخدام صادقة؛ سجل مختلف بمعرف مشغول → رفض لا كتابة فوقه. */
+  async commitAssetRecord(
+    record: AssetRecord,
+    event: FinancialEvent | null,
+  ): Promise<StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([assetStore, financialEventStore], "readwrite");
+        const assets = transaction.objectStore(assetStore);
+        const events = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }> | null =
+          null;
+        const finish = (
+          result: StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>,
+        ) => {
+          resolve(result);
+        };
+        const assetRequest = assets.get(record.id);
+        assetRequest.onerror = () => {
+          pending = failure(assetRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        assetRequest.onsuccess = () => {
+          const existing = assetRequest.result as AssetRecord | undefined;
+          const eventCheck = event ? events.get(event.id) : null;
+          const proceed = () => {
+            if (event) {
+              const request = eventCheck!;
+              request.onsuccess = () => {
+                if (request.result) {
+                  pending = { ok: true, value: { record: existing ?? record, event: request.result as FinancialEvent, reused: true } };
+                  try {
+                    transaction.abort();
+                  } catch {
+                    if (pending) finish(pending);
+                  }
+                  return;
+                }
+                assets.put(record);
+                events.put(event);
+              };
+              request.onerror = () => {
+                pending = failure(request.error, database);
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+              };
+              return;
+            }
+            /* مراجعة عقد بلا حدث: المراجعة نفسها محفوظة → إعادة استخدام. */
+            if (
+              existing &&
+              existing.contractRevisions.length >= record.contractRevisions.length &&
+              record.contractRevisions.length > 0
+            ) {
+              pending = { ok: true, value: { record: existing, event: null, reused: true } };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            assets.put(record);
+          };
+          if (existing && existing.operationKey !== record.operationKey) {
+            pending = {
+              ok: false,
+              code: "storage_error",
+              message: "سجل أصل مختلف يحمل هذا المعرف؛ لم يتغير شيء.",
+            };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          proceed();
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { record, event, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* تصحيح اقتناء أصل: التراجع والبديل والسجل في معاملة واحدة. */
+  async commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    record: AssetRecord;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([assetStore, financialEventStore], "readwrite");
+        const assets = transaction.objectStore(assetStore);
+        const events = transaction.objectStore(financialEventStore);
+        let pending:
+          | StorageResult<{
+              record: AssetRecord;
+              reversal: FinancialEvent;
+              replacement: FinancialEvent;
+              reused: boolean;
+            }>
+          | null = null;
+        const finish = (
+          result: StorageResult<{
+            record: AssetRecord;
+            reversal: FinancialEvent;
+            replacement: FinancialEvent;
+            reused: boolean;
+          }>,
+        ) => {
+          resolve(result);
+        };
+        const reversalRequest = events.get(reversal.id);
+        reversalRequest.onerror = () => {
+          pending = failure(reversalRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        reversalRequest.onsuccess = () => {
+          if (reversalRequest.result) {
+            const replacementRequest = events.get(replacement.id);
+            replacementRequest.onsuccess = () => {
+              pending = {
+                ok: true,
+                value: {
+                  record,
+                  reversal: reversalRequest.result as FinancialEvent,
+                  replacement: (replacementRequest.result as FinancialEvent | undefined) ?? replacement,
+                  reused: true,
+                },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            replacementRequest.onerror = () => {
+              pending = failure(replacementRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          assets.put(record);
+          events.put(reversal);
+          events.put(replacement);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { record, reversal, replacement, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* المجموعة ٤ (عقد ٢٩ — القروض): قراءة سجل القروض. */
+  listLoans() {
+    return listAll<LoanRecord>(loanStore, (left, right) =>
+      left.loanDate.localeCompare(right.loanDate) || left.id.localeCompare(right.id),
+    );
+  }
+  getLoan(id: string) {
+    return readOne<LoanRecord>(loanStore, id);
+  }
+  /* كتابة ذرّية: سجل القرض مع حدثه (إنشاء/سداد/تراجع سداد) — الحدث موجود
+   * سلفًا → إعادة استخدام؛ السجل بلا الدفعة المطابقة → حالة نصفية تُرفض. */
+  async commitLoanRecord(
+    record: LoanRecord,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([loanStore, financialEventStore], "readwrite");
+        const loans = transaction.objectStore(loanStore);
+        const events = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }>) => {
+          resolve(result);
+        };
+        const eventRequest = events.get(event.id);
+        eventRequest.onerror = () => {
+          pending = failure(eventRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        eventRequest.onsuccess = () => {
+          const existingEvent = eventRequest.result as FinancialEvent | undefined;
+          if (existingEvent) {
+            const loanRequest = loans.get(record.id);
+            loanRequest.onsuccess = () => {
+              const existingLoan = loanRequest.result as LoanRecord | undefined;
+              pending = {
+                ok: true,
+                value: { record: existingLoan ?? record, event: existingEvent, reused: true },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            loanRequest.onerror = () => {
+              pending = failure(loanRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          loans.put(record);
+          events.put(event);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { record, event, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* تصحيح قرض: التراجع والبديل والسجل في معاملة واحدة. */
+  async commitLoanCorrection(
+    record: LoanRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    record: LoanRecord;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([loanStore, financialEventStore], "readwrite");
+        const loans = transaction.objectStore(loanStore);
+        const events = transaction.objectStore(financialEventStore);
+        let pending:
+          | StorageResult<{
+              record: LoanRecord;
+              reversal: FinancialEvent;
+              replacement: FinancialEvent;
+              reused: boolean;
+            }>
+          | null = null;
+        const finish = (
+          result: StorageResult<{
+            record: LoanRecord;
+            reversal: FinancialEvent;
+            replacement: FinancialEvent;
+            reused: boolean;
+          }>,
+        ) => {
+          resolve(result);
+        };
+        const reversalRequest = events.get(reversal.id);
+        reversalRequest.onerror = () => {
+          pending = failure(reversalRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        reversalRequest.onsuccess = () => {
+          if (reversalRequest.result) {
+            const replacementRequest = events.get(replacement.id);
+            replacementRequest.onsuccess = () => {
+              pending = {
+                ok: true,
+                value: {
+                  record,
+                  reversal: reversalRequest.result as FinancialEvent,
+                  replacement: (replacementRequest.result as FinancialEvent | undefined) ?? replacement,
+                  reused: true,
+                },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            replacementRequest.onerror = () => {
+              pending = failure(replacementRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          loans.put(record);
+          events.put(reversal);
+          events.put(replacement);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { record, reversal, replacement, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* المجموعة ٤ (عقد ٢٩ — العربون المحتفظ): تصنيف الطلب وحدثه المالي معًا. */
+  async commitDepositClassification(
+    order: StoredCraftOrder,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ order: StoredCraftOrder; event: FinancialEvent; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([orderStore, financialEventStore], "readwrite");
+        const orders = transaction.objectStore(orderStore);
+        const events = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{ order: StoredCraftOrder; event: FinancialEvent; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ order: StoredCraftOrder; event: FinancialEvent; reused: boolean }>) => {
+          resolve(result);
+        };
+        const eventRequest = events.get(event.id);
+        eventRequest.onerror = () => {
+          pending = failure(eventRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        eventRequest.onsuccess = () => {
+          const existingEvent = eventRequest.result as FinancialEvent | undefined;
+          if (existingEvent) {
+            const orderRequest = orders.get(order.id);
+            orderRequest.onsuccess = () => {
+              const existingOrder = orderRequest.result as StoredCraftOrder | undefined;
+              pending = {
+                ok: true,
+                value: { order: existingOrder ?? order, event: existingEvent, reused: true },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            orderRequest.onerror = () => {
+              pending = failure(orderRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          orders.put(order);
+          events.put(event);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { order, event, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* تصحيح تصنيف عربون: تراجع الحدث القائم وبديله والطلب معًا. */
+  async commitDepositClassificationCorrection(
+    order: StoredCraftOrder,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    order: StoredCraftOrder;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([orderStore, financialEventStore], "readwrite");
+        const orders = transaction.objectStore(orderStore);
+        const events = transaction.objectStore(financialEventStore);
+        let pending:
+          | StorageResult<{
+              order: StoredCraftOrder;
+              reversal: FinancialEvent;
+              replacement: FinancialEvent;
+              reused: boolean;
+            }>
+          | null = null;
+        const finish = (
+          result: StorageResult<{
+            order: StoredCraftOrder;
+            reversal: FinancialEvent;
+            replacement: FinancialEvent;
+            reused: boolean;
+          }>,
+        ) => {
+          resolve(result);
+        };
+        const reversalRequest = events.get(reversal.id);
+        reversalRequest.onerror = () => {
+          pending = failure(reversalRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        reversalRequest.onsuccess = () => {
+          if (reversalRequest.result) {
+            const replacementRequest = events.get(replacement.id);
+            replacementRequest.onsuccess = () => {
+              pending = {
+                ok: true,
+                value: {
+                  order,
+                  reversal: reversalRequest.result as FinancialEvent,
+                  replacement: (replacementRequest.result as FinancialEvent | undefined) ?? replacement,
+                  reused: true,
+                },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            replacementRequest.onerror = () => {
+              pending = failure(replacementRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          orders.put(order);
+          events.put(reversal);
+          events.put(replacement);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { order, reversal, replacement, reused: false } });
       });
     } catch (error) {
       return failure(error);

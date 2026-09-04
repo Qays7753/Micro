@@ -106,6 +106,11 @@ export function roundHalfUp(numerator: number, denominator: number): number | nu
   return quotient + (remainder * 2 >= denominator ? 1 : 0);
 }
 
+export function floorRatio(numerator: number, denominator: number): number | null {
+  if (!Number.isSafeInteger(numerator) || !Number.isSafeInteger(denominator) || denominator <= 0) return null;
+  return Math.floor(numerator / denominator);
+}
+
 export function ceilRatio(numerator: number, denominator: number): number | null {
   if (
     !Number.isSafeInteger(numerator) ||
