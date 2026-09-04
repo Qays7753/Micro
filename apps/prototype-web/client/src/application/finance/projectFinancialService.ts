@@ -42,6 +42,11 @@ export type ProjectFinancialPosition = {
   amanahHeldMinor: number;
   /* ما انتقل من غير الموزع إلى المحافظ بتخصيص صريح (PA-002). */
   allocatedToWalletsMinor: number;
+  /* المجموعة ٤ (عقد ٢٩): طبقات مستقلة في المركز — الدفتري للأصول النشطة،
+   * والقروض القائمة (ذمم لصالح المشروع)، وعربونات محتفظة بانتظار القرار. */
+  assetBookValueMinor: number;
+  loansOutstandingMinor: number;
+  pendingRetainedDepositsMinor: number;
 };
 export type CogsStatus = "recorded" | "partial" | "not_available";
 export type RecordedPeriodResult = {
@@ -77,6 +82,15 @@ export type RecordedPeriodResult = {
   directSaleRevenueMinor: number;
   directSaleCostKnownMinor: number;
   directSaleCostUnknownCount: number;
+  /* المجموعة ٤ (عقد ٢٩): الإهلاك المسجّل — بند مستقل غير نقدي يخفض النتيجة
+   * ولا يدخل بند المصروفات التشغيلية أبدًا. */
+  assetDepreciationMinor: number;
+  /* خسارة شطب أصل — غير نقدية، مبلغ دفتري مفقود صراحةً. */
+  assetWriteOffLossMinor: number;
+  /* نتيجة التخلص: المقابل ناقص الدفتري — سالبة خسارة وموجبة ربح، معلنة. */
+  assetDisposalResultMinor: number;
+  /* إيراد عربون محتفظ به مصنَّف صراحةً — يُعترف مرة واحدة بتاريخ التصنيف. */
+  retainedDepositRevenueMinor: number;
   resultMinor: number | null;
   finalOrderCount: number;
   excludedOrderCount: number;
@@ -382,6 +396,16 @@ export class ProjectFinancialService {
       (sum: number, movement: OwnerMovement) => sum + movement.ownerCapitalDeltaMinor,
       0,
     );
+    /* المجموعة ٤ (عقد ٢٩): العربونات المحتفظة بلا قرار — كاش محتفظ به بلا معنى
+     * بعد؛ ظاهرة هنا حتى يختار المالك، لا مدفونة في المجموعات. */
+    const pendingRetainedDepositsMinor = ordersResult.value
+      .filter(
+        stored =>
+          stored.order.status === "cancelled" &&
+          stored.order.depositSettlement === "retain_deposit" &&
+          (stored.order.retainedMeaning ?? null) === null,
+      )
+      .reduce((sum, stored) => sum + stored.order.depositCollectedMinor, 0);
     return {
       ok: true,
       value: {
@@ -399,6 +423,9 @@ export class ProjectFinancialService {
         cashWalletCount: walletsResult.value.length,
         amanahHeldMinor: project.amanahMinor,
         allocatedToWalletsMinor,
+        assetBookValueMinor: project.assetMinor,
+        loansOutstandingMinor: project.loanMinor,
+        pendingRetainedDepositsMinor,
       },
     };
   }
@@ -491,6 +518,10 @@ export class ProjectFinancialService {
           directSaleRevenueMinor: 0,
           directSaleCostKnownMinor: 0,
           directSaleCostUnknownCount: 0,
+          assetDepreciationMinor: 0,
+          assetWriteOffLossMinor: 0,
+          assetDisposalResultMinor: 0,
+          retainedDepositRevenueMinor: 0,
           resultMinor: null,
           finalOrderCount: 0,
           excludedOrderCount: 0,
@@ -581,6 +612,30 @@ export class ProjectFinancialService {
       event => !event.expenseContext,
     ).length;
     const expenseNeedsReviewCount = reviewableOperatingEvents.filter(expenseNeedsReview).length;
+    /* المجموعة ٤ (عقد ٢٩): أحداث الطبقات الجديدة النشطة داخل الفترة — الإهلاك
+     * والشطب والتخلص وتصنيف العربون؛ معكوسة أو معكوس أثرها لا تُحتسب. */
+    const reversedIds = reversedEventIds(eventsResult.value);
+    const activePeriodGroup4Events = periodEvents.filter(
+      event =>
+        event.correctionType !== "reverse" &&
+        !reversedIds.has(event.id) &&
+        (event.type === "asset_depreciation" ||
+          event.type === "asset_writeoff" ||
+          event.type === "asset_disposal_cash" ||
+          event.type === "deposit_retained_revenue"),
+    );
+    const assetDepreciationMinor = activePeriodGroup4Events
+      .filter(event => event.type === "asset_depreciation")
+      .reduce((sum, event) => sum + event.amountMinor, 0);
+    const assetWriteOffLossMinor = activePeriodGroup4Events
+      .filter(event => event.type === "asset_writeoff")
+      .reduce((sum, event) => sum + event.amountMinor, 0);
+    const assetDisposalResultMinor = activePeriodGroup4Events
+      .filter(event => event.type === "asset_disposal_cash")
+      .reduce((sum, event) => sum + (event.amountMinor - (event.assetContext?.bookValueMinor ?? 0)), 0);
+    const retainedDepositRevenueMinor = activePeriodGroup4Events
+      .filter(event => event.type === "deposit_retained_revenue")
+      .reduce((sum, event) => sum + (event.revenueDeltaMinor ?? event.amountMinor), 0);
     const reasons: string[] = [];
     if (excludedOrderCount > 0) reasons.push("طلبات مستبعدة");
     if (directSaleCostUnknownCount > 0) reasons.push("بيع مباشر بتكلفة غير معروفة");
@@ -589,6 +644,11 @@ export class ProjectFinancialService {
     if (sharedUnallocatedExpenseCount > 0)
       reasons.push("حصة غير موزعة");
     if (legacyUnclassifiedExpenseCount > 0) reasons.push("مصروفات غير مصنفة");
+    /* المجموعة ٤: بنود مستقلة معلنة — لا تُخلط بالمصروفات التشغيلية. */
+    if (assetDepreciationMinor > 0) reasons.push("إهلاك مسجّل");
+    if (assetWriteOffLossMinor > 0) reasons.push("شطب أصل");
+    if (assetDisposalResultMinor !== 0) reasons.push("تخلص من أصل");
+    if (retainedDepositRevenueMinor > 0) reasons.push("عربون محتفظ كإيراد");
     const incomplete = reasons.length > 0;
     return {
       ok: true,
@@ -620,8 +680,14 @@ export class ProjectFinancialService {
         directSaleRevenueMinor,
         directSaleCostKnownMinor,
         directSaleCostUnknownCount,
-        /* F-005: النتيجة تتضمن إيراد البيع المباشر وتكلفته المعروفة. وأي بيع بتكلفة
-         * مجهولة يمنع عرض رقم نهائي — «غير متاح» لا ربحًا متوهّمًا. */
+        assetDepreciationMinor,
+        assetWriteOffLossMinor,
+        assetDisposalResultMinor,
+        retainedDepositRevenueMinor,
+        /* F-005 + المجموعة ٤: النتيجة تتضمن إيراد البيع المباشر وتكلفته المعروفة،
+         * وتخصم الإهلاك المسجّل وخسارة الشطب وتضيف نتيجة التخلص وإيراد عربون
+         * محتفظ مصنَّف — كلها بنود صريحة بلا اختراع كاش. وأي بيع بتكلفة مجهولة
+         * يمنع عرض رقم نهائي — «غير متاح» لا ربحًا متوهّمًا. */
         resultMinor:
           directSaleCostUnknownCount > 0
             ? null
@@ -629,7 +695,11 @@ export class ProjectFinancialService {
               directSaleRevenueMinor -
               cogs.effectiveDirectCostMinor -
               directSaleCostKnownMinor -
-              recordedOperatingExpenseMinor,
+              recordedOperatingExpenseMinor -
+              assetDepreciationMinor -
+              assetWriteOffLossMinor +
+              assetDisposalResultMinor +
+              retainedDepositRevenueMinor,
         finalOrderCount: finals.length,
         excludedOrderCount,
         expenseNeedsReviewCount,

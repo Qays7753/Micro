@@ -67,6 +67,16 @@ const eventKindLabel: Record<FinancialEventType, string> = {
   amanah_held_cash: "أمانة قُبضت",
   amanah_released_cash: "أمانة سُلّمت",
   loss_non_cash: "هالك بلا خروج نقد",
+  /* المجموعة ٤ (عقد ٢٩): تسميات قراءة للأنواع الجديدة — تعرض في السجلات والتصحيحات. */
+  asset_purchase_cash: "شراء أصل نقدًا",
+  asset_purchase_payable: "شراء أصل بالذمم",
+  asset_depreciation: "إهلاك أصل",
+  asset_disposal_cash: "تخلص من أصل",
+  asset_writeoff: "شطب أصل",
+  loan_outgoing_cash: "قرض لشخص",
+  loan_repayment_cash: "سداد قرض",
+  deposit_retained_revenue: "عربون محتفظ به كإيراد",
+  deposit_retained_owner: "عربون محتفظ به كمال مالك",
 };
 
 

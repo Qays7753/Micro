@@ -71,6 +71,10 @@ export type DeliveryReview = {
     hasLinkedMaterials: boolean;
     rows: readonly DeliveryConsumptionRow[];
     unlinkedItems: readonly { name: string; quantity: number; unit: string }[];
+    /* المجموعة ٤ (عقد ٢٩): إعلان الخصم التلقائي من قالب المنتج — علم صريح
+     * يقرأ من القالب النشط؛ لا يخصم بنفسه، بل يجعل الاقتراح جاهزًا عند
+     * التأكيد داخل المعاملة الذرّية نفسها. */
+    autoConsume: boolean;
   };
   warnings: readonly string[];
 };
@@ -149,12 +153,13 @@ export class DeliveryReviewService {
   async buildReview(orderId: string): Promise<
     { ok: true; value: DeliveryReview } | { ok: false; code: "storage_error" | "invalid_state"; message: string }
   > {
-    const [ordersResult, materialsResult, movementsResult] = await Promise.all([
+    const [ordersResult, materialsResult, movementsResult, templatesResult] = await Promise.all([
       this.store.getOrder(orderId),
       this.store.listMaterials(),
       this.store.listInventoryMovements(),
+      this.store.listCatalogTemplates(),
     ]);
-    if (!ordersResult.ok || !materialsResult.ok || !movementsResult.ok)
+    if (!ordersResult.ok || !materialsResult.ok || !movementsResult.ok || !templatesResult.ok)
       return failure("storage_error", "تعذر قراءة بيانات التسليم المحلية.");
     const stored = ordersResult.value;
     if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
@@ -244,6 +249,16 @@ export class DeliveryReviewService {
       });
     }
 
+    /* المجموعة ٤ (عقد ٢٩): علم الخصم التلقائي من القالب النشط لمنتج هذا الطلب —
+     * إعلانٌ يقرأ فقط؛ الحركات تبقى داخل التأكيد الصريح والمعاملة الذرّية. */
+    const autoConsume =
+      stored.catalogItemId !== null &&
+      templatesResult.value.some(
+        template =>
+          template.active &&
+          template.catalogItemId === stored.catalogItemId &&
+          template.autoConsumeOnDelivery === true,
+      );
     return {
       ok: true,
       value: {
@@ -266,6 +281,7 @@ export class DeliveryReviewService {
           hasLinkedMaterials: rows.some(row => row.tracked),
           rows,
           unlinkedItems,
+          autoConsume,
         },
         warnings,
       },

@@ -30,8 +30,22 @@ import type {
 } from "@micro-domain/financial-event/index.js";
 
 type SharedMode = "fixed" | "percentage" | "estimate" | "defer";
-const definition: Record<
+/* المجموعة ٤ (عقد ٢٩): أحداث الأصول والقروض وتصنيف العربون تُنشأ من أسطحها
+ * المخصصة لأنها تتطلب ربط سجل مصدر (أصل/قرض/طلب) — المحرر العام يبقى
+ * للأفعال المالية المستقلة الثمانية الأصلية فقط. */
+type GuidedFinancialEventType = Extract<
   FinancialEventType,
+  | "owner_investment_cash"
+  | "owner_withdrawal_cash"
+  | "operating_expense_cash"
+  | "operating_expense_payable"
+  | "payable_settlement_cash"
+  | "amanah_held_cash"
+  | "amanah_released_cash"
+  | "loss_non_cash"
+>;
+const definition: Record<
+  GuidedFinancialEventType,
   { title: string; description: string; effect: string; counterparty: string }
 > = {
   owner_investment_cash: {
@@ -84,7 +98,7 @@ const definition: Record<
     counterparty: "اختياري: مصدر الخسارة",
   },
 };
-const types = new Set<FinancialEventType>(Object.keys(definition) as FinancialEventType[]);
+const types = new Set<GuidedFinancialEventType>(Object.keys(definition) as GuidedFinancialEventType[]);
 const ammanDate = () => localDateInAmman();
 const basisFromMode = (mode: SharedMode): SharedProjectShareBasis =>
   mode === "percentage"
@@ -125,7 +139,7 @@ type EditorDraft = {
   relatedEventId: string;
   walletId: string;
 };
-const draftKeyFor = (type: FinancialEventType): string => `micro.finance-draft.${type}.v1`;
+const draftKeyFor = (type: GuidedFinancialEventType): string => `micro.finance-draft.${type}.v1`;
 const isEditorDraft = (value: unknown): value is EditorDraft =>
   typeof value === "object" &&
   value !== null &&
@@ -143,7 +157,7 @@ export default function FinancialEventEditor() {
     cashContinuity,
     notifyDataChanged,
   } = usePrototypeServices();
-  const type = types.has(rawType as FinancialEventType) ? (rawType as FinancialEventType) : null;
+  const type = types.has(rawType as GuidedFinancialEventType) ? (rawType as GuidedFinancialEventType) : null;
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
   const [sharedTotalAmountMinor, setSharedTotalAmountMinor] = useState(0);

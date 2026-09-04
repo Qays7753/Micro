@@ -23,12 +23,14 @@ import type {
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
+import type { AssetRecord } from "@micro-domain/asset/index.js";
+import type { LoanRecord } from "@micro-domain/loan/index.js";
 
-export const localSchemaVersion = 33;
+export const localSchemaVersion = 34;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 25;
+export const localExportVersion = 26;
 /* المجموعة ٢ (عقد ٢٨ — مخزون انتقائي): مخزن ٣٢/نسخة ٢٤ أضافتا قرار المتابعة
  * ومعرفة رصيد البداية لكل مادة، ووسم معرفة التكلفة على الحركات، وربط الشراء
  * بمادة وكمية متوقعة، وسجلات نقص المخزون (متجر جديد `inventory-shortages`).
@@ -253,6 +255,11 @@ export type LocalStoreSnapshot = {
   ownerMovements?: readonly OwnerMovement[];
   allocationPolicies?: readonly AllocationPolicy[];
   costEstimates?: readonly CostEstimate[];
+  /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — مجموعتان جديدتان متجران
+   * مستقلان؛ الحقيقة المالية في أحداثها داخل financialEvents. الغياب في
+   * التصدير القديم = قائمة فارغة بلا اختراع تاريخ. */
+  assets?: readonly AssetRecord[];
+  loans?: readonly LoanRecord[];
 };
 export type LocalExportFile = {
   format: typeof localExportFormat;
@@ -448,4 +455,61 @@ export interface PrototypeLocalStore {
   }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
+  /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة سجل الأصول. */
+  listAssets(): Promise<StorageResult<readonly AssetRecord[]>>;
+  getAsset(id: string): Promise<StorageResult<AssetRecord | null>>;
+  /* كتابة ذرّية واحدة: سجل الأصل مع حدثه المالي (إنشاء/إهلاك دورة حياة/تخلص/
+   * شطب) أو بلا حدث (مراجعة عقد) — كل شيء أو لا شيء؛ إعادة المحاولة آمنة
+   * بفحص هوية داخل المعاملة يعيد الاستخدام الصادق لا التكرار. */
+  commitAssetRecord(
+    record: AssetRecord,
+    event: FinancialEvent | null,
+  ): Promise<StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>>;
+  /* تصحيح اقتناء أصل: التراجع والبديل والسجل المحدّث في معاملة واحدة. */
+  commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    record: AssetRecord;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>>;
+  /* المجموعة ٤ (عقد ٢٩ — القروض): قراءة سجل القروض. */
+  listLoans(): Promise<StorageResult<readonly LoanRecord[]>>;
+  getLoan(id: string): Promise<StorageResult<LoanRecord | null>>;
+  /* كتابة ذرّية واحدة: سجل القرض مع حدثه (إنشاء/سداد) أو تراجع سداد (الحدث
+   * المعكوس) — لا حالة بينية أبدًا. */
+  commitLoanRecord(
+    record: LoanRecord,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }>>;
+  /* تصحيح قرض: التراجع والبديل والسجل المحدّث في معاملة واحدة. */
+  commitLoanCorrection(
+    record: LoanRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    record: LoanRecord;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>>;
+  /* المجموعة ٤ (عقد ٢٩ — العربون المحتفظ): تصنيف معنى العربون والحدث المالي
+   * المرتبط في معاملة واحدة؛ التراجع عن تصنيف: تراجع + بديل + الطلب معًا. */
+  commitDepositClassification(
+    order: StoredCraftOrder,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ order: StoredCraftOrder; event: FinancialEvent; reused: boolean }>>;
+  commitDepositClassificationCorrection(
+    order: StoredCraftOrder,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<StorageResult<{
+    order: StoredCraftOrder;
+    reversal: FinancialEvent;
+    replacement: FinancialEvent;
+    reused: boolean;
+  }>>;
 }

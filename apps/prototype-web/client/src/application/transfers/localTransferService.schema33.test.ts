@@ -42,8 +42,8 @@ describe("schema 33 export round-trip with product-sale links", () => {
     const service = new LocalTransferService(store, now);
     const exported = await service.createExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.version).toBe(25);
-    expect(exported.value.schemaVersion).toBe(33);
+    expect(exported.value.version).toBe(26);
+    expect(exported.value.schemaVersion).toBe(34);
     const text = JSON.stringify(exported.value);
 
     /* الاستيراد في جهاز جديد: الهوية تعبر حرفيًا لا تُخترع ولا تُفقد. */

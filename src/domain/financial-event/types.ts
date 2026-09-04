@@ -3,7 +3,10 @@ import type { Currency, MoneyMinor } from "../shared/index.js";
 
 /* المبدأ الثالث عشر: المال الذي بحوزتك ليس بالضرورة مالك — الأمانات مال عابر يدخل
  * الكاش ولا يدخل الإيراد ولا المصروف ولا رأس مال المالك. والخسارة غير النقدية (هالك/تلف)
- * تخفض الربح من دون حركة كاش. كلاهما نوع صريح له أثر معلن، لا مجرد تسمية. */
+ * تخفض الربح من دون حركة كاش. كلاهما نوع صريح له أثر معلن، لا مجرد تسمية.
+ * المجموعة ٤ (عقد ٢٩): الأصول والقروض الصادرة والعربون المحتفظ به طبقات مالية
+ * مستقلة — الشراء الرأسمالي ليس مصروفًا تشغيليًا، والقرض ليس سحبًا ولا مصروفًا،
+ * والعربون المحتفظ به لا يصير إيرادًا ولا مالكًا إلا بتصنيف صريح قابل للعكس. */
 export type FinancialEventType =
   | "owner_investment_cash"
   | "owner_withdrawal_cash"
@@ -12,7 +15,16 @@ export type FinancialEventType =
   | "payable_settlement_cash"
   | "amanah_held_cash"
   | "amanah_released_cash"
-  | "loss_non_cash";
+  | "loss_non_cash"
+  | "asset_purchase_cash"
+  | "asset_purchase_payable"
+  | "asset_depreciation"
+  | "asset_disposal_cash"
+  | "asset_writeoff"
+  | "loan_outgoing_cash"
+  | "loan_repayment_cash"
+  | "deposit_retained_revenue"
+  | "deposit_retained_owner";
 type ExpenseRelationship = "project" | "shared";
 type ExpenseBehavior = "fixed" | "variable" | "mixed" | "unknown";
 type ExpensePurpose = "project_general" | "period" | "order" | "product" | "campaign" | "unallocated";
@@ -38,6 +50,21 @@ export type OperatingExpenseContext = {
    * مجمّد مع الحدث؛ تعديله لاحقًا = تراجع موثق + تسجيل جديد. */
   categoryLabel?: string | null;
 };
+/* المجموعة ٤ (عقد ٢٩): سياقات مرتبطة — هوية الأصل أو القرض أو الطلب المصدر.
+ * سياق إلزامي لنوعه؛ غيابه عن الأنواع الأخرى يُرفض (لا حدث أصول بلا أصل). */
+export type AssetEventContext = {
+  assetId: string;
+  name: string;
+  /* الدفتري المجمد لحظة التخلص — إلزامي لنوع التخلص فقط. */
+  bookValueMinor?: number;
+};
+export type LoanEventContext = {
+  loanId: string;
+  borrower: string;
+};
+export type DepositEventContext = {
+  orderId: string;
+};
 type FinancialEventCorrectionType = "reverse";
 export type FinancialEvent = {
   id: string;
@@ -62,6 +89,16 @@ export type FinancialEvent = {
   operatingExpenseDeltaMinor: MoneyMinor;
   /** أثر الأمانات: موجب عند قبض أمانة وسالب عند تسليمها. القيمة القديمة قبل هذا الحقل تُقرأ صفرًا. */
   amanahDeltaMinor?: MoneyMinor;
+  /** المجموعة ٤: أثر صافي قيمة الأصول الدفترية — شراء موجب، إهلاك/تخلص/شطب سالب.
+   * القيمة القديمة قبل هذا الحقل تُقرأ صفرًا (سابقة الأمانات). */
+  assetDeltaMinor?: MoneyMinor;
+  /** المجموعة ٤: أثر القروض الصادرة القائمة — إقراض موجب، سداد سالب. قراءة قديمة = صفر. */
+  loanDeltaMinor?: MoneyMinor;
+  /** المجموعة ٤: إيراد عربون محتفظ به مصنَّف صراحةً — لا يُنشأ إلا بقرار موثق. قراءة قديمة = صفر. */
+  revenueDeltaMinor?: MoneyMinor;
+  assetContext?: AssetEventContext | null;
+  loanContext?: LoanEventContext | null;
+  depositContext?: DepositEventContext | null;
 };
 
 export type CreateFinancialEventInput = {
@@ -75,6 +112,9 @@ export type CreateFinancialEventInput = {
   counterparty?: string | null;
   relatedEventId?: string | null;
   expenseContext?: OperatingExpenseContext | null;
+  assetContext?: AssetEventContext | null;
+  loanContext?: LoanEventContext | null;
+  depositContext?: DepositEventContext | null;
 };
 
 export type CreateFinancialReversalInput = {
@@ -92,5 +132,9 @@ export type FinancialEventTotals = {
   ownerCapitalMinor: MoneyMinor;
   operatingExpenseMinor: MoneyMinor;
   amanahMinor: MoneyMinor;
+  /* المجموعة ٤: طبقات مستقلة تُجمع كالأمانات — القديم يقرأ صفرًا. */
+  assetMinor: MoneyMinor;
+  loanMinor: MoneyMinor;
+  retainedDepositRevenueMinor: MoneyMinor;
   eventCount: number;
 };

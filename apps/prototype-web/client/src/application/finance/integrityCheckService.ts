@@ -26,7 +26,18 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@/presentation/formatters";
 
 export type IntegrityCheckStatus = "PASS" | "WARN" | "FAIL";
-export type IntegrityCheckId = "MIC-1" | "MIC-2" | "MIC-4" | "MIC-7" | "MIC-8" | "MIC-9";
+export type IntegrityCheckId =
+  | "MIC-1"
+  | "MIC-2"
+  | "MIC-4"
+  | "MIC-7"
+  | "MIC-8"
+  | "MIC-9"
+  /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربون المحتفظ وربط استهلاك التسليم. */
+  | "MIC-10"
+  | "MIC-11"
+  | "MIC-12"
+  | "MIC-13";
 export type IntegrityCheckResult = {
   id: IntegrityCheckId;
   titleAr: string;
@@ -97,7 +108,24 @@ export class IntegrityCheckService {
       from,
       to,
     );
-    return this.report(from, to, [mic1.result, mic2, mic4, mic7, mic8, mic9]);
+    /* المجموعة ٤ (عقد ٢٩): فحوص القراءة المتسلسلة نفسها — الأصول ثم القروض ثم
+     * تصنيف العربون ثم ربط استهلاك التسليم بمصدره. */
+    const mic10 = await this.checkAssetIntegrity(events);
+    const mic11 = await this.checkLoanIntegrity(events);
+    const mic12 = await this.checkRetainedDepositIntegrity(events);
+    const mic13 = await this.checkDeliveryConsumptionIntegrity();
+    return this.report(from, to, [
+      mic1.result,
+      mic2,
+      mic4,
+      mic7,
+      mic8,
+      mic9,
+      mic10,
+      mic11,
+      mic12,
+      mic13,
+    ]);
   }
 
   private report(from: string, to: string, checks: readonly IntegrityCheckResult[]): IntegrityCheckReport {
@@ -615,6 +643,277 @@ export class IntegrityCheckService {
     };
   }
 
+
+  /* ─── MIC-10 (المجموعة ٤): الأصول — الاقتناء مقابل الكاش/الذمم، والإهلاك
+   * مقابل الدفتري، والتخلص/الشطب مقابل حالة السجل. كل عدم تطابق خلل صريح. */
+  private async checkAssetIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
+    const assetsResult = await this.store.listAssets();
+    if (!assetsResult.ok)
+      return this.fail("MIC-10", "تعذر قراءة سجل الأصول — أعد المحاولة.", []);
+    const assets = assetsResult.value;
+    const reversed = reversedEventIds(events);
+    const offenders: string[] = [];
+    const warnOffenders: string[] = [];
+    for (const asset of assets) {
+      const acquisition = events.find(event => event.id === asset.acquisitionEventId);
+      if (!acquisition || acquisition.assetContext?.assetId !== asset.id) {
+        offenders.push(`أصل-بلا-اقتناء:${asset.id}`);
+        continue;
+      }
+      const acquisitionActive = acquisition.correctionType !== "reverse" && !reversed.has(acquisition.id);
+      if (!acquisitionActive) offenders.push(`اقتناء-معكوس:${asset.id}`);
+      else if (
+        acquisition.amountMinor !== asset.acquisitionAmountMinor ||
+        acquisition.type !==
+          (asset.acquisitionKind === "cash" ? "asset_purchase_cash" : "asset_purchase_payable")
+      )
+        offenders.push(`اقتناء-لا-يطابق:${asset.id}`);
+      const active = events.filter(
+        event => event.assetContext?.assetId === asset.id && event.correctionType !== "reverse" && !reversed.has(event.id),
+      );
+      let bookValue = 0;
+      for (const event of active) bookValue += event.assetDeltaMinor ?? 0;
+      if (bookValue < 0) offenders.push(`دفتري-سالب:${asset.id}`);
+      const depreciation = active
+        .filter(event => event.type === "asset_depreciation")
+        .reduce((sum, event) => sum + event.amountMinor, 0);
+      if (acquisitionActive && depreciation > asset.acquisitionAmountMinor)
+        offenders.push(`إهلاك-فوق-القيمة:${asset.id}`);
+      if (asset.status === "disposed" && !active.some(event => event.type === "asset_disposal_cash"))
+        offenders.push(`تخلص-بلا-حدث:${asset.id}`);
+      if (asset.status === "written_off" && !active.some(event => event.type === "asset_writeoff"))
+        offenders.push(`شطب-بلا-حدث:${asset.id}`);
+      if (asset.status === "active" && (asset.disposal || asset.writeOff)) offenders.push(`حالة-متناقضة:${asset.id}`);
+      if (asset.disposal && active.some(event => event.id === asset.disposal!.eventId && event.correctionType === "reverse"))
+        warnOffenders.push(`تخلص-معكوس:${asset.id}`);
+      /* تحذير: مستحق غير مسجّل — اقتراح ظاهر لا يخصم نفسه. */
+      if (asset.status === "active" && asset.lifeMonths === null) warnOffenders.push(`عمر-مجهول:${asset.id}`);
+    }
+    if (offenders.length > 0)
+      return this.fail(
+        "MIC-10",
+        `سلامة الأصول مكسورة في ${offenders.length} موضعًا — راجع الأصل وحدثه قبل أي تصحيح.`,
+        offenders,
+        null,
+        "/assets",
+      );
+    if (warnOffenders.length > 0)
+      return {
+        id: "MIC-10",
+        titleAr: INTEGRITY_TITLES["MIC-10"],
+        status: "WARN",
+        detailAr: `أصول بحاجة انتباه: ${warnOffenders.length} — منها أصول بعمر نافع مجهول لا يُهلك منها شيء حتى تُحدده، وأصول معكوس تخلصها. كلها حالات معلنة لا أرقام مخفية.`,
+        offenderCount: warnOffenders.length,
+        offenderSampleIds: warnOffenders.slice(0, 5),
+        deepLink: "/assets",
+      };
+    return {
+      id: "MIC-10",
+      titleAr: INTEGRITY_TITLES["MIC-10"],
+      status: "PASS",
+      detailAr:
+        assets.length === 0
+          ? "لا أصول مسجلة بعد — سجل أول أصل من «مالي ← الأصول»."
+          : "الأصول سليمة: كل اقتناء بحادثه، والإهلاك ضمن قيمة الشراء، والحالة تطابق الأحداث.",
+    };
+  }
+
+  /* ─── MIC-11 (المجموعة ٤): القروض — الأصل مقابل الكاش والرصيد القائم،
+   * والسداد مقابل الكاش والدفعات، وتراجع الدفعات مقابل علاماتها. */
+  private async checkLoanIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
+    const loansResult = await this.store.listLoans();
+    if (!loansResult.ok)
+      return this.fail("MIC-11", "تعذر قراءة سجل القروض — أعد المحاولة.", []);
+    const loans = loansResult.value;
+    const reversed = reversedEventIds(events);
+    const offenders: string[] = [];
+    for (const loan of loans) {
+      const principal = events.find(event => event.id === loan.principalEventId);
+      if (!principal || principal.loanContext?.loanId !== loan.id) {
+        offenders.push(`قرض-بلا-أصل:${loan.id}`);
+        continue;
+      }
+      const principalActive = principal.correctionType !== "reverse" && !reversed.has(principal.id);
+      if (!principalActive) offenders.push(`أصل-معكوس:${loan.id}`);
+      else if (principal.amountMinor !== loan.principalMinor) offenders.push(`أصل-لا-يطابق:${loan.id}`);
+      for (const repayment of loan.repayments) {
+        const event = events.find(candidate => candidate.id === repayment.eventId);
+        if (!event || event.loanContext?.loanId !== loan.id) {
+          offenders.push(`دفعة-بلا-حدث:${repayment.id}`);
+          continue;
+        }
+        const active = event.correctionType !== "reverse" && !reversed.has(event.id);
+        const markedReversed = repayment.reversal !== null;
+        if (active !== !markedReversed) offenders.push(`دفعة-حالة-متناقضة:${repayment.id}`);
+        if (active && event.amountMinor !== repayment.amountMinor)
+          offenders.push(`دفعة-لا-تطابق:${repayment.id}`);
+        if (markedReversed) {
+          const reversalExists = events.some(
+            candidate => candidate.id === repayment.reversal!.reversalEventId,
+          );
+          if (!reversalExists) offenders.push(`تراجع-بلا-حدث:${repayment.id}`);
+        }
+      }
+      const repaidActive = loan.repayments
+        .filter(repayment => repayment.reversal === null)
+        .reduce((sum, repayment) => sum + repayment.amountMinor, 0);
+      if (repaidActive > loan.principalMinor) offenders.push(`سداد-فوق-الأصل:${loan.id}`);
+    }
+    if (offenders.length > 0)
+      return this.fail(
+        "MIC-11",
+        `سلامة القروض مكسورة في ${offenders.length} موضعًا — راجع القرض ودفعاته قبل أي تصحيح.`,
+        offenders,
+        null,
+        "/loans",
+      );
+    return {
+      id: "MIC-11",
+      titleAr: INTEGRITY_TITLES["MIC-11"],
+      status: "PASS",
+      detailAr:
+        loans.length === 0
+          ? "لا قروض صادرة مسجلة بعد — سجلها من «مالي ← القروض»."
+          : "القروض سليمة: كل أصل بحادثه، وكل دفعة بحادثها، والمتبقي مشتق بلا رصيد مخزن.",
+    };
+  }
+
+  /* ─── MIC-12 (المجموعة ٤): تصنيف العربون المحتفظ — القرار مقابل الحدث،
+   * ولا تصنيف مزدوج ولا إيراد معترف مرتين. المعلق تحذير ظاهر لا خلل. */
+  private async checkRetainedDepositIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
+    const ordersResult = await this.store.listOrders();
+    if (!ordersResult.ok)
+      return this.fail("MIC-12", "تعذر قراءة الطلبات المحلية — أعد المحاولة.", []);
+    const reversed = reversedEventIds(events);
+    const offenders: string[] = [];
+    let pendingCount = 0;
+    let pendingMinor = 0;
+    const activeClassificationEventIds = new Set(
+      events
+        .filter(
+          event =>
+            (event.type === "deposit_retained_revenue" || event.type === "deposit_retained_owner") &&
+            event.correctionType !== "reverse" &&
+            !reversed.has(event.id),
+        )
+        .map(event => event.depositContext?.orderId ?? `بلا-طلب:${event.id}`),
+    );
+    for (const stored of ordersResult.value) {
+      const order = stored.order;
+      if (order.status !== "cancelled") continue;
+      if (order.depositSettlement === "retain_deposit") {
+        const hasActiveEvent = activeClassificationEventIds.has(stored.id);
+        const meaning = order.retainedMeaning ?? null;
+        if (meaning !== null && !hasActiveEvent) offenders.push(`تصنيف-بلا-حدث:${stored.id}`);
+        if (meaning === null && hasActiveEvent) offenders.push(`حدث-بلا-تصنيف:${stored.id}`);
+        if (meaning === null) {
+          pendingCount += 1;
+          pendingMinor += order.depositCollectedMinor;
+        }
+      } else if (activeClassificationEventIds.has(stored.id)) {
+        offenders.push(`تصنيف-بلا-احتفاظ:${stored.id}`);
+      }
+    }
+    for (const orderId of activeClassificationEventIds) {
+      if (orderId.startsWith("بلا-طلب")) offenders.push(orderId);
+    }
+    if (offenders.length > 0)
+      return this.fail(
+        "MIC-12",
+        `سلامة تصنيف العربون مكسورة في ${offenders.length} موضعًا — راجع طلب الإلغاء وقراره قبل أي تصحيح.`,
+        offenders,
+        null,
+        "/finance",
+      );
+    if (pendingCount > 0)
+      return {
+        id: "MIC-12",
+        titleAr: INTEGRITY_TITLES["MIC-12"],
+        status: "WARN",
+        detailAr: `عربونات محتفظة بانتظار قرارك: ${pendingCount} بقيمة ${Math.round(pendingMinor / 100)} د.أ — الكاش محتفظ به بلا معنى حتى تصنّفه (مال مالك أو إيراد مشروع) من صفحة الطلب.`,
+        offenderCount: pendingCount,
+        driftMinor: pendingMinor,
+        deepLink: "/finance",
+      };
+    return {
+      id: "MIC-12",
+      titleAr: INTEGRITY_TITLES["MIC-12"],
+      status: "PASS",
+      detailAr: "تصنيف العربون المحتفظ سليم: كل قرار بحادثه، ولا إيراد مزدوج ولا كاش جديد.",
+    };
+  }
+
+  /* ─── MIC-13 (المجموعة ٤): استهلاك التسليم مقابل مصدره — كل حركة مفتاح
+   * تسليم تخص طلبًا مسلّمًا فعلًا، وحركات تسليم معكوس لها مرآة عكسها. */
+  private async checkDeliveryConsumptionIntegrity(): Promise<IntegrityCheckResult> {
+    const [ordersResult, movementsResult] = await Promise.all([
+      this.store.listOrders(),
+      this.store.listInventoryMovements(),
+    ]);
+    if (!ordersResult.ok || !movementsResult.ok)
+      return this.fail("MIC-13", "تعذر قراءة بيانات استهلاك التسليم — أعد المحاولة.", []);
+    const offenders: string[] = [];
+    for (const stored of ordersResult.value) {
+      const order = stored.order;
+      const deliveryEvents = order.events.filter(
+        event => event.type === "status_changed" && event.toStatus === "delivered",
+      );
+      const reversedDeliveryIds = new Set(
+        order.events
+          .filter(event => event.type === "delivery_reversed")
+          .map(event => (event as { reversesEventId?: string }).reversesEventId)
+          .filter((id): id is string => typeof id === "string"),
+      );
+      const deliveryLinked = movementsResult.value.filter(
+        movement => movement.orderId === stored.id && movement.operationKey.includes(":deliver:"),
+      );
+      for (const movement of deliveryLinked) {
+        /* المفتاح الحتمي يحمل معرف حدث التسليم — انسجامه مع التسليم الفعلي. */
+        const deliveryEventId = movement.operationKey.split(":")[2];
+        const knownDelivery = deliveryEvents.some(event => event.id === `${stored.id}:${deliveryEventId}`) || deliveryEvents.some(event => event.id.endsWith(`:${deliveryEventId}`));
+        if (!knownDelivery && deliveryLinked.length > 0 && deliveryEvents.length === 0) {
+          offenders.push(`حركة-بلا-تسليم:${movement.id}`);
+          continue;
+        }
+        const mirrored = movementsResult.value.some(
+          candidate =>
+            candidate.type === "reversal" &&
+            candidate.reversesMovementId === movement.id &&
+            candidate.operationKey === `${movement.operationKey}:reversal`,
+        );
+        if (!mirrored) continue;
+        /* موجودة مرآة — إما عكس حركة حيّة (سليم) أو حركة معكوسة بلا عكس التسليم بعدها (تحذير). */
+      }
+      /* تسليم معكوس وحركاته بلا مرايا = عكس ناقص. */
+      for (const deliveryEvent of deliveryEvents) {
+        if (!reversedDeliveryIds.has(deliveryEvent.idempotencyKey) && !reversedDeliveryIds.has(deliveryEvent.id))
+          continue;
+        const linked = deliveryLinked.filter(movement => movement.operationKey.includes(deliveryEvent.id));
+        for (const movement of linked) {
+          const mirrored = movementsResult.value.some(
+            candidate =>
+              candidate.type === "reversal" && candidate.reversesMovementId === movement.id,
+          );
+          if (!mirrored) offenders.push(`عكس-ناقص-مرآة:${movement.id}`);
+        }
+      }
+    }
+    if (offenders.length > 0)
+      return this.fail(
+        "MIC-13",
+        `ربط استهلاك التسليم بمصدره مكسور في ${offenders.length} موضعًا — راجع الطلب وحركات المواد قبل أي تصحيح.`,
+        offenders,
+        null,
+        "/orders",
+      );
+    return {
+      id: "MIC-13",
+      titleAr: INTEGRITY_TITLES["MIC-13"],
+      status: "PASS",
+      detailAr: "استهلاك التسليم مربوط بمصدره: كل حركة بمفتاح حتمي، وكل عكس بمرآته.",
+    };
+  }
+
   private fail(
     id: IntegrityCheckId,
     detailAr: string,
@@ -642,4 +941,8 @@ export const INTEGRITY_TITLES: Record<IntegrityCheckId, string> = {
   "MIC-7": "رصيد الأمانات",
   "MIC-8": "سلامة المخزون والمواد",
   "MIC-9": "صدق درجة المعرفة",
+  "MIC-10": "سلامة الأصول والإهلاك",
+  "MIC-11": "سلامة القروض والسداد",
+  "MIC-12": "تصنيف العربون المحتفظ",
+  "MIC-13": "ربط استهلاك التسليم",
 };

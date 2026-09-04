@@ -5,7 +5,7 @@
  * ويطلب تأكيدًا واحدًا واضحًا قبل معاملة ذرّية واحدة. عكس التسليم له مساره
  * الموثق من صفحة الطلب.
  */
-import { ArrowRight, CheckCircle2, PackageOpen, TriangleAlert } from "lucide-react";
+import { ArrowRight, CheckCircle2, PackageOpen, TriangleAlert, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -247,6 +247,14 @@ export default function DeliveryReviewPage() {
           {/* المخزون المقترح: مواد متتبَّعة مرتبطة بالطلب فقط — لا خصم خفي. */}
           <section className="micro-delivery-consumption" aria-label="أثر المخزون عند التسليم">
             <h2>شو رح يتغير في المخزون؟</h2>
+            {/* المجموعة ٤ (عقد ٢٩): إعلان الخصم التلقائي من القالب — علم صريح
+             * يظهر هنا؛ الحركات تبقى داخل تأكيد واحد ذرّي لا تخصم عند الفتح. */}
+            {ready.consumption.autoConsume ? (
+              <p className="micro-local-truth">
+                <Zap aria-hidden="true" /> خصم تلقائي مفعّل لهذا المنتج: الاقتراحات جاهزة ضمن تأكيد التسليم
+                الواحد — بلا خطوة إضافية وبلا أثر عند فتح الصفحة.
+              </p>
+            ) : null}
             {ready.consumption.rows.length === 0 ? (
               <p className="micro-local-truth">
                 <PackageOpen aria-hidden="true" /> لا مواد مرتبطة بهذا الطلب في المخزون — التسليم بلا أثر على

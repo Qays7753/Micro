@@ -30,6 +30,9 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/profile")) return "ملف المالك";
   /* المجموعة ٣ (عقد D5): مراجعة التسليم — سياق واضح فوق محرر عميق. */
   if (/^\/orders\/[^/]+\/deliver$/.test(pathname)) return "مراجعة التسليم";
+  /* المجموعة ٤ (عقد ٢٩): الأصول والقروض — تسميات سياقية بلا مقاعد جديدة. */
+  if (pathname === "/assets" || pathname.startsWith("/assets/")) return "الأصول";
+  if (pathname === "/loans" || pathname.startsWith("/loans/")) return "القروض";
   return (
     primaryNavigation.find(
       item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),

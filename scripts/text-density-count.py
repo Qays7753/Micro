@@ -302,7 +302,11 @@ CAPS: dict[str, int] = {
     # inventory — the shared inventory service now feeds this screen.
     # Finance 182 → 183 (2026-09-04, Group 3 D6): one new validation string in the
     # same shared service (direct-sale-linked consumption reference check).
-    "Finance": 183,
+    # Finance 183 → 199 (2026-09-04, Group 4 §5/عقد 29, deep finance): two mandated
+    # finance layers (الأصول والقروض with pending-retained visibility), four explicit
+    # period-result lines (إهلاك/شطب/تخلص/عربون مصنَّف), and the canonical reader's new
+    # reason strings in the feeding service — mandated labels only.
+    "Finance": 199,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -330,7 +334,10 @@ CAPS: dict[str, int] = {
     # OrderDetail 141 → 143 (2026-09-04, Group 3 D4/D5): the ready order routes to
     # the full delivery review instead of one-click delivery, and the delivered
     # order gains the documented reversal entry + post-reversal resume action.
-    "OrderDetail": 143,
+    # OrderDetail 143 → 147 (2026-09-04, Group 4 عقد 29): retained-deposit meaning
+    # classification panel (owner/revenue/pending + documented correction) — the
+    # three-outcome decision mandated by the contract.
+    "OrderDetail": 147,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -425,7 +432,10 @@ CAPS: dict[str, int] = {
     # CashWallets 70 → 72 (2026-09-02, Group 5 S1-10/S3-05): contract-26 return
     # label ("رجوع") honoring ?from + the payable-line label moved out of the mono
     # numeric class into its own Arabic label pair. Mandated labels.
-    "CashWallets": 72,
+    # CashWallets 72 → 75 (2026-09-04, Group 4 عقد 29): the export/import
+    # service in this screen's closure gained the new collections' migration labels
+    # (لا أصول ولا قروض…) — zero new on-screen labels.
+    "CashWallets": 75,
     # OwnerEntitlement 48 → 53 (2026-09-02, Group 6 Item 2, owner-approved
     # final-closure prompt — S2-07): the screen becomes the unified «مال المالك»
     # surface — mandated labels: unified overline ("دفتر واحد · المبالغ (د.أ)"),
@@ -463,13 +473,19 @@ CAPS: dict[str, int] = {
     # Locked at the honest measured number as a ratchet from day one.
     # ToolsIntegrity 32 → 34 (2026-09-06, Group 2, عقد ٢٨): MIC-8 title
     # («سلامة المخزون والمواد») + generic deep-link label. Decision D-029.
-    "ToolsIntegrity": 34,
+    # ToolsIntegrity 34 → 45 (2026-09-04, Group 4 عقد 29): the MIC registry grew by
+    # four read-only checks (MIC-10..13: assets, loans, retained deposits, delivery
+    # consumption) — their titles and verdict strings render on this reader surface.
+    "ToolsIntegrity": 45,
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,
     # allocation review card, derived effect preview, guidance notes, draft banner
     # and attribution-failure honesty, on top of the historical editor labels.
     # Details-layer bodies are stripped at rest; validation/loading lines excluded.
-    "FinancialEventEditor": 138,
+    # FinancialEventEditor 138 → 142 (2026-09-04, Group 4 عقد 29): the canonical
+    # period reader feeding this editor gained four reason strings for the new
+    # independent period lines (إهلاك مسجّل/شطب أصل/تخلص من أصل/عربون محتفظ كإيراد).
+    "FinancialEventEditor": 142,
     # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
     # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
     # labels and truth lines join the measured set; per-tag rows are data.
@@ -484,6 +500,16 @@ CAPS: dict[str, int] = {
     # DeliveryReview (new 2026-09-04, Group 3 D5): the full pre-commitment delivery
     # surface — measured from day one per the Profile/CostCalculator precedent.
     "DeliveryReview": 48,
+    # المجموعة ٤ (عقد ٢٩ — 2026-09-04): أسطح الأصول والقروض مقيسة من يومها الأول.
+    # AssetEditor 40: the long-use question journey (name/category/kind/date/life/
+    # start/note + effect preview + unsaved-guard labels) — mandated contract copy.
+    "AssetEditor": 40,
+    # AssetDetail 36: book value + depreciation proposal/record + contract revision
+    # + disposal/write-off + event history — every consequential action previews.
+    "AssetDetail": 36,
+    # LoanDetail 31: reading + repayment history with traceable reversal + documented
+    # correction + financial events layer.
+    "LoanDetail": 31,
     # EstimateDetail (2026-09-02, Group 3 Scope B, owner-approved execution prompt):
     # new mandated screen — read-only estimate summary (result, materials, time,
     # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
@@ -530,6 +556,14 @@ PAGES = [
     "ToolsIntegrity",
     "FinancialEventEditor",
     "Statement",
+    # المجموعة ٤ (عقد ٢٩): أسطح الأصول والقروض ومحرراتها — تقاس من يومها الأول
+    # (سابقة Profile/CostCalculator/DeliveryReview).
+    "Assets",
+    "AssetEditor",
+    "AssetDetail",
+    "Loans",
+    "LoanEditor",
+    "LoanDetail",
 ]
 
 

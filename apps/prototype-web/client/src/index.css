@@ -6625,3 +6625,92 @@ button.micro-month-cell:hover {
   margin: 0;
   padding: 0;
 }
+
+/* ─── المجموعة ٤ (عقد ٢٩): أسطح الأصول والقروض — بنفس نظام الرموز والفراغات ─── */
+.micro-cards-list {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.micro-asset-card,
+.micro-loan-card {
+  display: grid;
+  gap: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.micro-asset-card strong,
+.micro-loan-card strong {
+  color: var(--color-text-primary);
+  font-size: 15px;
+}
+.micro-asset-card[data-status="disposed"],
+.micro-asset-card[data-status="written_off"] {
+  opacity: 0.75;
+}
+.micro-asset-depreciation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.micro-asset-depreciation svg {
+  width: 14px;
+  height: 14px;
+}
+.micro-repayment-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+.micro-revision-form {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+.micro-events-list {
+  display: grid;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.micro-event-row {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.micro-event-row strong {
+  color: var(--color-text-primary);
+}
+.micro-event-row[data-reversed="true"] {
+  opacity: 0.7;
+}
+.micro-event-row[data-reversed="true"] strong {
+  text-decoration: line-through;
+}
+.micro-choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.micro-offline-truth {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  margin: var(--space-2) 0 0;
+}

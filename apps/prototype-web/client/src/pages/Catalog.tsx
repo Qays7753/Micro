@@ -253,6 +253,8 @@ export default function Catalog() {
   /* المجموعة ٣ (عقد D5): بنود التكلفة الاختيارية على مستوى القالب — مرآة بنية
    * نسخة تكلفة الطلب؛ كلها اختيارية وغيابها حالة صادقة لا صفر مفترض. */
   const [extrasOpen, setExtrasOpen] = useState(false);
+  /* المجموعة ٤ (عقد ٢٩): إعلان الخصم التلقائي عند التسليم — علم صريح على القالب. */
+  const [autoConsumeOnDelivery, setAutoConsumeOnDelivery] = useState(false);
   const [extraTimeMinutes, setExtraTimeMinutes] = useState<number | null>(null);
   const [extraRateMinor, setExtraRateMinor] = useState<number | null>(null);
   const [extraPackagingMinor, setExtraPackagingMinor] = useState(0);
@@ -663,6 +665,7 @@ export default function Catalog() {
     setExtraDeliveryMinor(0);
     setExtraWasteMinor(0);
     setExtraBufferMinor(0);
+    setAutoConsumeOnDelivery(false);
   }
 
   function startRevision(template: CatalogTemplate) {
@@ -681,6 +684,7 @@ export default function Catalog() {
     setExtraDeliveryMinor(template.extras?.deliveryMinor ?? 0);
     setExtraWasteMinor(template.extras?.wasteMinor ?? 0);
     setExtraBufferMinor(template.extras?.safetyBufferMinor ?? 0);
+    setAutoConsumeOnDelivery(template.autoConsumeOnDelivery === true);
     setYieldEnabled(template.yield !== null);
     setYieldQuantity(revisionYieldQuantity);
     setYieldQuantityValid(true);
@@ -692,6 +696,7 @@ export default function Catalog() {
         components: template.components,
         yield: template.yield ? { quantity: revisionYieldQuantity, unitId: revisionYieldUnitId } : null,
         extras: template.extras ?? null,
+        autoConsumeOnDelivery: template.autoConsumeOnDelivery === true,
       }),
     );
     setMessage(`تعديل القالب من النسخة ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
@@ -734,6 +739,7 @@ export default function Catalog() {
       components: templateComponents,
       yield: yieldEnabled ? { quantityMilli: parsedYield as number, unitId: yieldUnitId } : null,
       extras,
+      autoConsumeOnDelivery,
       operationKey: operationKey("template"),
     };
     const result = editingTemplateId
@@ -1546,6 +1552,21 @@ export default function Catalog() {
                     <p className="micro-local-truth">
                       الوقت بلا أجر أو الأجر بلا وقت يبقى «غير معرف بعد» — لا يُفترض صفر واثق.
                     </p>
+                    {/* المجموعة ٤ (عقد ٢٩): إعلان الخصم التلقائي — علم صريح لا خصم خفي. */}
+                    <label className="micro-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={autoConsumeOnDelivery}
+                        onChange={event => setAutoConsumeOnDelivery(event.target.checked)}
+                      />
+                      <span>
+                        خصم تلقائي عند التسليم
+                        <small>
+                          عند تأكيد التسليم تكون حركات استهلاك المواد المرتبطة جاهزةً ضمن الخطوة نفسها —
+                          بمعاينة وبلا أثر عند فتح الصفحات أو حفظ المسودات.
+                        </small>
+                      </span>
+                    </label>
                   </div>
                 ) : null}
                 <label className="micro-checkbox">

@@ -63,6 +63,10 @@ describe("financial event domain core", () => {
       ownerCapitalMinor: 0,
       operatingExpenseMinor: 4000,
       amanahMinor: 0,
+      /* المجموعة ٤: الطبقات الجديدة تُقرأ صفرًا للأحداث القديمة — سابقة الأمانات. */
+      assetMinor: 0,
+      loanMinor: 0,
+      retainedDepositRevenueMinor: 0,
       eventCount: 2,
     });
   });
@@ -380,6 +384,239 @@ describe("financial event domain core", () => {
         },
       }),
     ).toThrow("المبلغ");
+  });
+
+  /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربون المحتفظ به — طبقات مستقلة
+   * بدلتات معلنة، وسلوك تبعية سياق صريح، وعكس كامل للأعمدة الجديدة — داخل
+   * الوصف الأول (تحذير أسطره القائم مُمتص، لا يُضاعف). */
+  /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربون المحتفظ به — طبقات مستقلة
+   * بدلتات معلنة، وسلوك تبعية سياق صريح، وعكس كامل للأعمدة الجديدة.
+   * داخل الوصف الأول نفسه (تحذير الأسطر القائم مُمتص لا يُضاعف). */
+  const contextBase = {
+    occurredOn: "2026-09-01",
+    recordedAt: "2026-09-01T08:00:00.000Z",
+    note: "اختبار المجموعة ٤",
+    counterparty: null,
+  };
+  it("records an asset purchase as cash out and book value up, never as operating expense", () => {
+    const event = createFinancialEvent({
+      ...contextBase,
+      id: "asset-cash",
+      type: "asset_purchase_cash",
+      amountMinor: 60000,
+      idempotencyKey: "asset-cash-1",
+      assetContext: { assetId: "asset-1", name: "ثلاجة" },
+    });
+    expect(event.cashDeltaMinor).toBe(-60000);
+    expect(event.assetDeltaMinor).toBe(60000);
+    expect(event.operatingExpenseDeltaMinor).toBe(0);
+    expect(event.ownerCapitalDeltaMinor).toBe(0);
+  });
+  it("records an asset purchase on payables without touching cash or expense", () => {
+    const event = createFinancialEvent({
+      ...contextBase,
+      id: "asset-payable",
+      type: "asset_purchase_payable",
+      amountMinor: 60000,
+      idempotencyKey: "asset-payable-1",
+      assetContext: { assetId: "asset-1", name: "ثلاجة" },
+    });
+    expect(event.cashDeltaMinor).toBe(0);
+    expect(event.payableDeltaMinor).toBe(60000);
+    expect(event.assetDeltaMinor).toBe(60000);
+  });
+  it("records depreciation, write-off, and disposal with non-cash clarity", () => {
+    const depreciation = createFinancialEvent({
+      ...contextBase,
+      id: "dep",
+      type: "asset_depreciation",
+      amountMinor: 2500,
+      idempotencyKey: "dep-1",
+      assetContext: { assetId: "asset-1", name: "ثلاجة" },
+    });
+    expect(depreciation.cashDeltaMinor).toBe(0);
+    expect(depreciation.assetDeltaMinor).toBe(-2500);
+    expect(depreciation.operatingExpenseDeltaMinor).toBe(0);
+    const writeOff = createFinancialEvent({
+      ...contextBase,
+      id: "writeoff",
+      type: "asset_writeoff",
+      amountMinor: 57500,
+      idempotencyKey: "writeoff-1",
+      assetContext: { assetId: "asset-1", name: "ثلاجة" },
+    });
+    expect(writeOff.assetDeltaMinor).toBe(-57500);
+    expect(writeOff.cashDeltaMinor).toBe(0);
+    const disposal = createFinancialEvent({
+      ...contextBase,
+      id: "disposal",
+      type: "asset_disposal_cash",
+      amountMinor: 30000,
+      idempotencyKey: "disposal-1",
+      assetContext: { assetId: "asset-1", name: "ثلاجة", bookValueMinor: 57500 },
+    });
+    expect(disposal.cashDeltaMinor).toBe(30000);
+    expect(disposal.assetDeltaMinor).toBe(-57500);
+  });
+  it("keeps loans separate from expense, owner money, and revenue", () => {
+    const loan = createFinancialEvent({
+      ...contextBase,
+      id: "loan-out",
+      type: "loan_outgoing_cash",
+      amountMinor: 15000,
+      idempotencyKey: "loan-out-1",
+      loanContext: { loanId: "loan-1", borrower: "أحمد" },
+    });
+    expect(loan.cashDeltaMinor).toBe(-15000);
+    expect(loan.loanDeltaMinor).toBe(15000);
+    expect(loan.operatingExpenseDeltaMinor).toBe(0);
+    expect(loan.ownerCapitalDeltaMinor).toBe(0);
+    const repayment = createFinancialEvent({
+      ...contextBase,
+      id: "loan-rep",
+      type: "loan_repayment_cash",
+      amountMinor: 5000,
+      idempotencyKey: "loan-rep-1",
+      loanContext: { loanId: "loan-1", borrower: "أحمد" },
+    });
+    expect(repayment.cashDeltaMinor).toBe(5000);
+    expect(repayment.loanDeltaMinor).toBe(-5000);
+    expect(repayment.revenueDeltaMinor ?? 0).toBe(0);
+  });
+  it("classifies a retained deposit as revenue or owner money without new cash", () => {
+    const revenue = createFinancialEvent({
+      ...contextBase,
+      id: "dep-rev",
+      type: "deposit_retained_revenue",
+      amountMinor: 5000,
+      idempotencyKey: "dep-rev-1",
+      depositContext: { orderId: "order-1" },
+    });
+    expect(revenue.revenueDeltaMinor).toBe(5000);
+    expect(revenue.cashDeltaMinor).toBe(0);
+    const owner = createFinancialEvent({
+      ...contextBase,
+      id: "dep-owner",
+      type: "deposit_retained_owner",
+      amountMinor: 5000,
+      idempotencyKey: "dep-owner-1",
+      depositContext: { orderId: "order-1" },
+    });
+    expect(owner.ownerCapitalDeltaMinor).toBe(5000);
+    expect(owner.cashDeltaMinor).toBe(0);
+    expect(owner.revenueDeltaMinor ?? 0).toBe(0);
+  });
+  it("rejects missing or misplaced linked contexts", () => {
+    expect(() =>
+      createFinancialEvent({
+        ...contextBase,
+        id: "asset-ctx",
+        type: "asset_depreciation",
+        amountMinor: 2500,
+        idempotencyKey: "asset-ctx-1",
+      }),
+    ).toThrow(/سياق الأصل/);
+    expect(() =>
+      createFinancialEvent({
+        ...contextBase,
+        id: "loan-ctx",
+        type: "loan_outgoing_cash",
+        amountMinor: 1500,
+        idempotencyKey: "loan-ctx-1",
+        assetContext: { assetId: "asset-1", name: "ثلاجة" },
+      }),
+    ).toThrow(/سياق الأصل يخص أحداث الأصول فقط/);
+    expect(() =>
+      createFinancialEvent({
+        ...contextBase,
+        id: "dep-ctx",
+        type: "deposit_retained_revenue",
+        amountMinor: 1500,
+        idempotencyKey: "dep-ctx-1",
+        depositContext: { orderId: " " },
+      }),
+    ).toThrow(/معرف الطلب/);
+    expect(() =>
+      createFinancialEvent({
+        ...contextBase,
+        id: "misplaced",
+        type: "operating_expense_cash",
+        amountMinor: 1500,
+        idempotencyKey: "misplaced-1",
+        loanContext: { loanId: "loan-1", borrower: "أحمد" },
+      }),
+    ).toThrow(/سياق القرض يخص أحداث القروض فقط/);
+    expect(() =>
+      createFinancialEvent({
+        ...contextBase,
+        id: "disposal-nbv",
+        type: "asset_disposal_cash",
+        amountMinor: 1500,
+        idempotencyKey: "disposal-nbv-1",
+        assetContext: { assetId: "asset-1", name: "ثلاجة" },
+      }),
+    ).toThrow(/الرصيد الدفتري/);
+  });
+  it("reverses a group 4 event by negating every new column and carrying its context", () => {
+    const disposal = createFinancialEvent({
+      ...contextBase,
+      id: "disposal-rev",
+      type: "asset_disposal_cash",
+      amountMinor: 30000,
+      idempotencyKey: "disposal-rev-1",
+      assetContext: { assetId: "asset-1", name: "ثلاجة", bookValueMinor: 57500 },
+    });
+    const reversal = createFinancialReversal({
+      id: "disposal-reversal",
+      sourceEvent: disposal,
+      occurredOn: "2026-09-05",
+      recordedAt: "2026-09-05T08:00:00.000Z",
+      idempotencyKey: "disposal-reversal-1",
+      reason: "تصحيح تخلص",
+    });
+    expect(reversal.cashDeltaMinor).toBe(-30000);
+    expect(reversal.assetDeltaMinor).toBe(57500);
+    expect(reversal.assetContext?.assetId).toBe("asset-1");
+    expect(reversal.correctionOfEventId).toBe("disposal-rev");
+    const revenue = createFinancialEvent({
+      ...contextBase,
+      id: "rev",
+      type: "deposit_retained_revenue",
+      amountMinor: 5000,
+      idempotencyKey: "rev-1",
+      depositContext: { orderId: "order-1" },
+    });
+    const revenueReversal = createFinancialReversal({
+      id: "rev-reversal",
+      sourceEvent: revenue,
+      occurredOn: "2026-09-05",
+      recordedAt: "2026-09-05T08:00:00.000Z",
+      idempotencyKey: "rev-reversal-1",
+      reason: "إعادة تصنيف",
+    });
+    expect(revenueReversal.revenueDeltaMinor).toBe(-5000);
+    expect(revenueReversal.depositContext?.orderId).toBe("order-1");
+  });
+  it("summarizes the new layers in totals including reversal netting", () => {
+    const loanOut = createFinancialEvent({
+      ...contextBase,
+      id: "loan-sum",
+      type: "loan_outgoing_cash",
+      amountMinor: 15000,
+      idempotencyKey: "loan-sum-1",
+      loanContext: { loanId: "loan-1", borrower: "أحمد" },
+    });
+    const loanReversal = createFinancialReversal({
+      id: "loan-sum-rev",
+      sourceEvent: loanOut,
+      occurredOn: "2026-09-02",
+      recordedAt: "2026-09-02T08:00:00.000Z",
+      idempotencyKey: "loan-sum-rev-1",
+      reason: "إلغاء قرض خاطئ",
+    });
+    const totals = summarizeFinancialEvents([loanOut, loanReversal]);
+    expect(totals.loanMinor).toBe(0);
+    expect(totals.cashMinor).toBe(0);
   });
 });
 

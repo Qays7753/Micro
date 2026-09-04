@@ -5,6 +5,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { AssetService } from "@/application/assets/assetService";
+import { LoanService } from "@/application/loans/loanService";
+import { RetainedDepositService } from "@/application/finance/retainedDepositService";
 import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
 import { G5Service } from "@/application/g5/g5Service";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
@@ -47,6 +50,10 @@ describe("Finance month-range validation stays inline (U-05)", () => {
       fulfillment: new FulfillmentService(store, now),
       /* المجموعة ٢ (عقد ٢٨): خدمة المخزون الحقيقية فوق مخزن الذاكرة. */
       inventory: new InventoryMaterialService(store, now),
+      /* المجموعة ٤ (عقد ٢٩): خدمات الأصول والقروض والعربون فوق مخزن الذاكرة. */
+      assets: new AssetService(store, now),
+      loans: new LoanService(store, now),
+      retainedDeposits: new RetainedDepositService(store, now),
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);

@@ -57,6 +57,9 @@ export type TransferSummary = {
   ownerMovements: number;
   allocationPolicies: number;
   costEstimates: number;
+  /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض في ملخص النقل. */
+  assets: number;
+  loans: number;
   snapshots: number;
   events: number;
   exportedAt: string;
@@ -194,7 +197,27 @@ const isFinancialType = (value: unknown) =>
   value === "payable_settlement_cash" ||
   value === "amanah_held_cash" ||
   value === "amanah_released_cash" ||
-  value === "loss_non_cash";
+  value === "loss_non_cash" ||
+  /* المجموعة ٤ (عقد ٢٩): أنواع الأصول والقروض والعربون المحتفظ به. */
+  value === "asset_purchase_cash" ||
+  value === "asset_purchase_payable" ||
+  value === "asset_depreciation" ||
+  value === "asset_disposal_cash" ||
+  value === "asset_writeoff" ||
+  value === "loan_outgoing_cash" ||
+  value === "loan_repayment_cash" ||
+  value === "deposit_retained_revenue" ||
+  value === "deposit_retained_owner";
+const isAssetEventType = (value: unknown) =>
+  value === "asset_purchase_cash" ||
+  value === "asset_purchase_payable" ||
+  value === "asset_depreciation" ||
+  value === "asset_disposal_cash" ||
+  value === "asset_writeoff";
+const isLoanEventType = (value: unknown) =>
+  value === "loan_outgoing_cash" || value === "loan_repayment_cash";
+const isDepositEventType = (value: unknown) =>
+  value === "deposit_retained_revenue" || value === "deposit_retained_owner";
 const isSafeMoney = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 const isSignedMoney = (value: unknown) =>
@@ -501,6 +524,87 @@ function validFinancialEvent(value: unknown): boolean {
   if (value.correctionOfEventId !== undefined && value.correctionOfEventId !== null) return false;
   if (value.correctionReason !== undefined && value.correctionReason !== null) return false;
   const amount = value.amountMinor;
+  /* المجموعة ٤ (عقد ٢٩): فروع الأنواع الجديدة — سياق إلزامي مطابق للنوع
+   * ودلتات الأعمدة الثلاث الجديدة كما تنتجها الوحدة تمامًا. */
+  const assetContext = value.assetContext;
+  const loanContext = value.loanContext;
+  const depositContext = value.depositContext;
+  if (isAssetEventType(value.type)) {
+    if (
+      !isRecord(assetContext) ||
+      !isString(assetContext.assetId) ||
+      !assetContext.assetId.trim() ||
+      !isString(assetContext.name) ||
+      !assetContext.name.trim()
+    )
+      return false;
+    if (value.type === "asset_disposal_cash") {
+      if (!isSafeMoney(assetContext.bookValueMinor)) return false;
+      return (
+        value.cashDeltaMinor === amount &&
+        value.payableDeltaMinor === 0 &&
+        value.ownerCapitalDeltaMinor === 0 &&
+        value.operatingExpenseDeltaMinor === 0 &&
+        (value.amanahDeltaMinor ?? 0) === 0 &&
+        (value.assetDeltaMinor ?? 0) === -assetContext.bookValueMinor &&
+        (value.loanDeltaMinor ?? 0) === 0 &&
+        (value.revenueDeltaMinor ?? 0) === 0
+      );
+    }
+    const expectedAsset =
+      value.type === "asset_depreciation" || value.type === "asset_writeoff" ? -amount : amount;
+    const expectedCash = value.type === "asset_purchase_cash" ? -amount : 0;
+    const expectedPayable = value.type === "asset_purchase_payable" ? amount : 0;
+    return (
+      value.cashDeltaMinor === expectedCash &&
+      value.payableDeltaMinor === expectedPayable &&
+      value.ownerCapitalDeltaMinor === 0 &&
+      value.operatingExpenseDeltaMinor === 0 &&
+      (value.amanahDeltaMinor ?? 0) === 0 &&
+      (value.assetDeltaMinor ?? 0) === expectedAsset &&
+      (value.loanDeltaMinor ?? 0) === 0 &&
+      (value.revenueDeltaMinor ?? 0) === 0 &&
+      assetContext.bookValueMinor === undefined
+    );
+  }
+  if (isLoanEventType(value.type)) {
+    if (
+      !isRecord(loanContext) ||
+      !isString(loanContext.loanId) ||
+      !loanContext.loanId.trim() ||
+      !isString(loanContext.borrower) ||
+      !loanContext.borrower.trim()
+    )
+      return false;
+    return (
+      value.cashDeltaMinor === (value.type === "loan_outgoing_cash" ? -amount : amount) &&
+      value.payableDeltaMinor === 0 &&
+      value.ownerCapitalDeltaMinor === 0 &&
+      value.operatingExpenseDeltaMinor === 0 &&
+      (value.amanahDeltaMinor ?? 0) === 0 &&
+      (value.assetDeltaMinor ?? 0) === 0 &&
+      (value.loanDeltaMinor ?? 0) === (value.type === "loan_outgoing_cash" ? amount : -amount) &&
+      (value.revenueDeltaMinor ?? 0) === 0
+    );
+  }
+  if (isDepositEventType(value.type)) {
+    if (!isRecord(depositContext) || !isString(depositContext.orderId) || !depositContext.orderId.trim())
+      return false;
+    return (
+      value.cashDeltaMinor === 0 &&
+      value.payableDeltaMinor === 0 &&
+      value.ownerCapitalDeltaMinor === (value.type === "deposit_retained_owner" ? amount : 0) &&
+      value.operatingExpenseDeltaMinor === 0 &&
+      (value.amanahDeltaMinor ?? 0) === 0 &&
+      (value.assetDeltaMinor ?? 0) === 0 &&
+      (value.loanDeltaMinor ?? 0) === 0 &&
+      (value.revenueDeltaMinor ?? 0) === (value.type === "deposit_retained_revenue" ? amount : 0)
+    );
+  }
+  /* الأنواع القديمة لا تحمل أي سياق من المجموعة ٤. */
+  if (assetContext !== undefined && assetContext !== null) return false;
+  if (loanContext !== undefined && loanContext !== null) return false;
+  if (depositContext !== undefined && depositContext !== null) return false;
   const unallocatedShared =
     isRecord(expenseContext) &&
     isRecord(expenseContext.sharedProjectShare) &&
@@ -532,6 +636,148 @@ function validFinancialEvent(value: unknown): boolean {
     (value.type === "payable_settlement_cash"
       ? isString(value.relatedEventId) && value.relatedEventId.trim().length > 0
       : value.relatedEventId === null)
+  );
+}
+
+/* المجموعة ٤ (عقد ٢٩): شكل سجل الأصل — العقد والهوية وحالة الدورة فقط؛
+ * الرصيد الدفتري قراءة مشتقة في التطبيق لا حقل مخزن. */
+function validAssetRecord(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    !value.id.trim() ||
+    !isString(value.name) ||
+    !value.name.trim() ||
+    value.name.trim().length > 200 ||
+    !(value.categoryLabel === null || value.categoryLabel === undefined || isString(value.categoryLabel)) ||
+    !isMoney(value.acquisitionAmountMinor) ||
+    value.acquisitionAmountMinor === 0 ||
+    !(value.acquisitionKind === "cash" || value.acquisitionKind === "payable") ||
+    !isString(value.purchaseDate) ||
+    !isLocalDate(value.purchaseDate) ||
+    !(value.lifeMonths === null || value.lifeMonths === undefined || (typeof value.lifeMonths === "number" && Number.isInteger(value.lifeMonths) && (value.lifeMonths as number) >= 1 && (value.lifeMonths as number) <= 600)) ||
+    !(value.depreciationStartOn === null || value.depreciationStartOn === undefined || (isString(value.depreciationStartOn) && isLocalDate(value.depreciationStartOn as string))) ||
+    !(value.status === "active" || value.status === "disposed" || value.status === "written_off") ||
+    !isString(value.acquisitionEventId) ||
+    value.acquisitionEventId.trim().length === 0 ||
+    !Array.isArray(value.contractRevisions) ||
+    !isString(value.operationKey) ||
+    !value.operationKey.trim() ||
+    !isDate(value.createdAt) ||
+    !isDate(value.updatedAt)
+  )
+    return false;
+  if (value.status === "active" && (value.disposal !== null || value.writeOff !== null)) return false;
+  if (value.status === "disposed" && !isRecord(value.disposal)) return false;
+  if (value.status === "written_off" && !isRecord(value.writeOff)) return false;
+  if (value.disposal !== null && value.disposal !== undefined) {
+    const disposal = value.disposal;
+    if (
+      !isRecord(disposal) ||
+      !isString(disposal.on) ||
+      !isLocalDate(disposal.on) ||
+      !isMoney(disposal.proceedsMinor) ||
+      disposal.proceedsMinor === 0 ||
+      !isMoney(disposal.bookValueMinor) ||
+      !isString(disposal.eventId) ||
+      !disposal.eventId.trim() ||
+      !isString(disposal.reason) ||
+      !disposal.reason.trim()
+    )
+      return false;
+  }
+  if (value.writeOff !== null && value.writeOff !== undefined) {
+    const writeOff = value.writeOff;
+    if (
+      !isRecord(writeOff) ||
+      !isString(writeOff.on) ||
+      !isLocalDate(writeOff.on) ||
+      !isMoney(writeOff.bookValueMinor) ||
+      !isString(writeOff.eventId) ||
+      !writeOff.eventId.trim() ||
+      !isString(writeOff.reason) ||
+      !writeOff.reason.trim()
+    )
+      return false;
+  }
+  return value.contractRevisions.every(
+    (revision: unknown) =>
+      isRecord(revision) &&
+      typeof revision.revision === "number" &&
+      Number.isSafeInteger(revision.revision) &&
+      (revision.revision as number) >= 1 &&
+      (revision.lifeMonths === null ||
+        (typeof revision.lifeMonths === "number" && Number.isInteger(revision.lifeMonths) && (revision.lifeMonths as number) >= 1)) &&
+      (revision.depreciationStartOn === null ||
+        (isString(revision.depreciationStartOn) && isLocalDate(revision.depreciationStartOn as string))) &&
+      isString(revision.reason) &&
+      (revision.reason as string).trim().length > 0 &&
+      isDate(revision.changedAt),
+  );
+}
+/* المجموعة ٤ (عقد ٢٩): شكل سجل القرض — العقد والدفعات وتراجعها الموثق. */
+function validLoanRecord(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    !value.id.trim() ||
+    !isString(value.borrowerName) ||
+    !value.borrowerName.trim() ||
+    value.borrowerName.trim().length > 200 ||
+    !isMoney(value.principalMinor) ||
+    value.principalMinor === 0 ||
+    !isString(value.loanDate) ||
+    !isLocalDate(value.loanDate) ||
+    !(value.purposeNote === null || value.purposeNote === undefined || isString(value.purposeNote)) ||
+    !(value.sourceWalletId === null || value.sourceWalletId === undefined || isString(value.sourceWalletId)) ||
+    !isString(value.principalEventId) ||
+    value.principalEventId.trim().length === 0 ||
+    !Array.isArray(value.repayments) ||
+    !Array.isArray(value.corrections) ||
+    !isString(value.operationKey) ||
+    !value.operationKey.trim() ||
+    !isDate(value.createdAt) ||
+    !isDate(value.updatedAt)
+  )
+    return false;
+  const repaymentIds = new Set<string>();
+  if (
+    !value.repayments.every(
+      (repayment: unknown) => {
+        const valid =
+          isRecord(repayment) &&
+          isString(repayment.id) &&
+          repayment.id.trim().length > 0 &&
+          !repaymentIds.has(repayment.id) &&
+          isMoney(repayment.amountMinor) &&
+          repayment.amountMinor !== 0 &&
+          isString(repayment.date) &&
+          isLocalDate(repayment.date as string) &&
+          (repayment.note === null || repayment.note === undefined || isString(repayment.note)) &&
+          isString(repayment.eventId) &&
+          repayment.eventId.trim().length > 0;
+        if (valid && isRecord(repayment) && isString(repayment.id)) repaymentIds.add(repayment.id);
+        return valid;
+      },
+    )
+  )
+    return false;
+  return value.repayments.every(
+    (repayment: Record<string, unknown>) =>
+      repayment.reversal === null ||
+      repayment.reversal === undefined ||
+      (isRecord(repayment.reversal) &&
+        isString(repayment.reversal.reason) &&
+        repayment.reversal.reason.trim().length > 0 &&
+        isDate(repayment.reversal.at) &&
+        isString(repayment.reversal.reversalEventId) &&
+        repayment.reversal.reversalEventId.trim().length > 0),
+  ) && value.corrections.every(
+    (correction: unknown) =>
+      isRecord(correction) &&
+      isString(correction.reason) &&
+      correction.reason.trim().length > 0 &&
+      isDate(correction.at),
   );
 }
 function validSupplierPurchase(value: unknown): boolean {
@@ -1160,7 +1406,10 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     !Array.isArray(data.actualTimeRecords) ||
     !Array.isArray(data.shortCashDeclarations) ||
     !Array.isArray(data.allocationPolicies) ||
-    !Array.isArray(data.costEstimates)
+    !Array.isArray(data.costEstimates) ||
+    /* المجموعة ٤ (عقد ٢٩): الأصول والقروض اختيارية في الملفات القديمة — المصفوفة إن وُجدت. */
+    (data.assets !== undefined && data.assets !== null && !Array.isArray(data.assets)) ||
+    (data.loans !== undefined && data.loans !== null && !Array.isArray(data.loans))
   )
     return false;
   if (
@@ -2066,6 +2315,27 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (!validCostEstimate(estimate) || costEstimateIds.has(estimate.id)) return false;
     costEstimateIds.add(estimate.id);
   }
+  /* المجموعة ٤ (عقد ٢٩): الأصول والقروض — هوية فريدة وشكل سليم وربط أحداث
+   * موجود فعلًا؛ سجل بلا حدثه المالي ملف مكسور يُرفض بصراحة لا يُستورد. */
+  const eventIds = new Set(data.financialEvents.map(event => event.id));
+  const assetIds = new Set<string>();
+  for (const asset of data.assets ?? []) {
+    if (!validAssetRecord(asset) || assetIds.has(asset.id)) return false;
+    assetIds.add(asset.id);
+    if (!eventIds.has(asset.acquisitionEventId)) return false;
+    if (asset.disposal && !eventIds.has(asset.disposal.eventId)) return false;
+    if (asset.writeOff && !eventIds.has(asset.writeOff.eventId)) return false;
+  }
+  const loanIds = new Set<string>();
+  for (const loan of data.loans ?? []) {
+    if (!validLoanRecord(loan) || loanIds.has(loan.id)) return false;
+    loanIds.add(loan.id);
+    if (!eventIds.has(loan.principalEventId)) return false;
+    for (const repayment of loan.repayments) {
+      if (!eventIds.has(repayment.eventId)) return false;
+      if (repayment.reversal && !eventIds.has(repayment.reversal.reversalEventId)) return false;
+    }
+  }
   return true;
 }
 
@@ -2102,6 +2372,8 @@ function summary(file: LocalExportFile): TransferSummary {
     ownerMovements: file.data.ownerMovements?.length ?? 0,
     allocationPolicies: file.data.allocationPolicies?.length ?? 0,
     costEstimates: file.data.costEstimates?.length ?? 0,
+    assets: file.data.assets?.length ?? 0,
+    loans: file.data.loans?.length ?? 0,
     snapshots,
     events,
     exportedAt: file.exportedAt,
@@ -2169,6 +2441,10 @@ export class LocalTransferService {
      * التكلفة والقوالب وبنود القالب الاختيارية وربط حركة المادة بالبيع المباشر —
      * تُقبل وتُهاجر بغياب = null بلا اختراع روابط ولا أرقام. */
     const isPreviousProductSaleLink = candidate.version === 24 && candidate.schemaVersion === 32;
+    /* المجموعة ٤ (التمويل العميق): نسخة ٢٥/مخطط ٣٣ قبل الأصول والقروض وتصنيف
+     * العربون المحتفظ به وعلم الخصم التلقائي — تُقبل وتُهاجر بقوائم فارغة
+     * ودلتات صفر بلا اختراع أصول ولا قروض ولا معاني. */
+    const isPreviousDeepFinance = candidate.version === 25 && candidate.schemaVersion === 33;
     const isPreviousO1 =
       (candidate.version === 12 && candidate.schemaVersion === 21) ||
       (candidate.version === 13 && candidate.schemaVersion === 22);
@@ -2190,6 +2466,7 @@ export class LocalTransferService {
       !isPreviousExpenseCategory &&
       !isPreviousSelectiveInventory &&
       !isPreviousProductSaleLink &&
+      !isPreviousDeepFinance &&
       !isPreviousO1 &&
       !isPreviousG3 &&
       !isG3Legacy &&
@@ -2254,6 +2531,11 @@ export class LocalTransferService {
               ? {
                   ...event,
                   amanahDeltaMinor: event.amanahDeltaMinor ?? 0,
+                  /* المجموعة ٤ (عقد ٢٩): أعمدة الطبقات الجديدة — القديم يقرأ صفرًا
+                   * كسابقة الأمانات؛ لا اختراع أصول ولا قروض ولا إيراد عربون. */
+                  assetDeltaMinor: event.assetDeltaMinor ?? 0,
+                  loanDeltaMinor: event.loanDeltaMinor ?? 0,
+                  revenueDeltaMinor: event.revenueDeltaMinor ?? 0,
                   /* المجموعة ١ (تصنيفي للمصاريف): تطبيع الوسم داخل سياق المصروف عند
                    * الاستيراد — القصّ والدمج والفارغ→null، كسابقة amanahDeltaMinor ?? 0؛
                    * لا اختراع تصنيف للتاريخ ولا وسم على أحداث بلا سياق. */
@@ -2341,6 +2623,8 @@ export class LocalTransferService {
                       )
                     : template.components,
                   extras: template.extras ?? null,
+                  /* المجموعة ٤ (عقد ٢٩): علم الخصم التلقائي — غياب = غير معلن. */
+                  autoConsumeOnDelivery: template.autoConsumeOnDelivery === true ? true : null,
                 }
               : template,
           )
@@ -2416,6 +2700,40 @@ export class LocalTransferService {
           )
         : [],
       costEstimates: Array.isArray(raw.costEstimates) ? raw.costEstimates : [],
+      /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — غياب = [] بلا اختراع؛
+       * حقولها الاختيارية تُطبع بقيم فارغة آمنة (مراجعات/دفعات/تصحيحات). */
+      assets: Array.isArray(raw.assets)
+        ? raw.assets.map(asset =>
+            isRecord(asset)
+              ? {
+                  ...asset,
+                  categoryLabel: asset.categoryLabel ?? null,
+                  lifeMonths: asset.lifeMonths ?? null,
+                  depreciationStartOn: asset.depreciationStartOn ?? null,
+                  disposal: asset.disposal ?? null,
+                  writeOff: asset.writeOff ?? null,
+                  contractRevisions: Array.isArray(asset.contractRevisions) ? asset.contractRevisions : [],
+                }
+              : asset,
+          )
+        : [],
+      loans: Array.isArray(raw.loans)
+        ? raw.loans.map(loan =>
+            isRecord(loan)
+              ? {
+                  ...loan,
+                  purposeNote: loan.purposeNote ?? null,
+                  sourceWalletId: loan.sourceWalletId ?? null,
+                  repayments: Array.isArray(loan.repayments)
+                    ? loan.repayments.map((repayment: Record<string, unknown>) =>
+                        isRecord(repayment) ? { ...repayment, reversal: repayment.reversal ?? null } : repayment,
+                      )
+                    : [],
+                  corrections: Array.isArray(loan.corrections) ? loan.corrections : [],
+                }
+              : loan,
+          )
+        : [],
     } as unknown as LocalStoreSnapshot;
     if (!validateSnapshot(migrated))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
@@ -2488,6 +2806,9 @@ export class LocalTransferService {
       ownerMovements: [],
       allocationPolicies: [],
       costEstimates: [],
+      /* المجموعة ٤ (عقد ٢٩): لا أصول ولا قروض في اللقطة الفارغة. */
+      assets: [],
+      loans: [],
     };
   }
 

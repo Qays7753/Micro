@@ -5,6 +5,8 @@ import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { AssetService } from "@/application/assets/assetService";
+import { LoanService } from "@/application/loans/loanService";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
 const now = () => "2026-09-03T09:00:00.000Z";
@@ -19,7 +21,10 @@ function buildServices(store: MemoryLocalStore) {
   const statement = new StatementService(store, projectFinance);
   const cashContinuity = new CashContinuityService(store, now);
   const integrityCheck = new IntegrityCheckService(store, projectFinance, statement, cashContinuity, now);
-  return { projectFinance, statement, cashContinuity, integrityCheck };
+  /* المجموعة ٤ (عقد ٢٩): الأصول والقروض فوق المخزن نفسه لفحوص MIC-10/11. */
+  const assets = new AssetService(store, now);
+  const loans = new LoanService(store, now);
+  return { projectFinance, statement, cashContinuity, integrityCheck, assets, loans };
 }
 
 async function cleanStore(): Promise<{ store: MemoryLocalStore; services: ReturnType<typeof buildServices> }> {
@@ -84,6 +89,10 @@ describe("integrity check service (فحص سلامة مالي)", () => {
       "MIC-7",
       "MIC-8",
       "MIC-9",
+      "MIC-10",
+      "MIC-11",
+      "MIC-12",
+      "MIC-13",
     ]);
     for (const check of report.checks) expect(check.status).toBe("PASS");
   });
@@ -430,5 +439,143 @@ describe("integrity check MIC-8 (سلامة المخزون والمواد)", () 
     expect(mic8?.status).toBe("FAIL");
     expect(mic8?.offenderCount).toBeGreaterThanOrEqual(1);
     expect(mic8?.deepLink).toBe("/inventory");
+  });
+});
+
+/* المجموعة ٤ (عقد ٢٩): فحوص الأصول والقروض والعربون وربط التسليم — PASS/WARN/FAIL
+ * بأدلة، والفحص قراءة فقط لا يصلح شيئًا أبدًا. */
+describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", () => {
+  it("MIC-10 fails on an asset whose acquisition event is missing", async () => {
+    const { store, services } = await cleanStore();
+    await services.assets.create({
+      name: "ثلاجة",
+      acquisitionAmountMinor: 60000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-06-01",
+    });
+    /* فك الربط: حقن سجل أصل بلا حدثه — محاكاة ملف مكسور عبر الكتابة المباشرة. */
+    const snapshot = await store.readSnapshot();
+    if (!snapshot.ok) throw new Error(snapshot.message);
+    const broken = snapshot.value.assets?.[0]!;
+    await store.replaceSnapshot({
+      ...snapshot.value,
+      financialEvents: snapshot.value.financialEvents.filter(event => event.id !== broken.acquisitionEventId),
+    });
+    const report = await services.integrityCheck.run();
+    const mic10 = report.checks.find(check => check.id === "MIC-10");
+    expect(mic10?.status).toBe("FAIL");
+    expect(mic10?.detailAr).toContain("سلامة الأصول مكسورة");
+  });
+
+  it("MIC-10 warns on an active asset with unknown life — honest, not a failure", async () => {
+    const { store, services } = await cleanStore();
+    await services.assets.create({
+      name: "جهاز مجهول العمر",
+      acquisitionAmountMinor: 20000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: null,
+      depreciationStartOn: null,
+    });
+    const report = await services.integrityCheck.run();
+    const mic10 = report.checks.find(check => check.id === "MIC-10");
+    expect(mic10?.status).toBe("WARN");
+    expect(mic10?.detailAr).toContain("عمر نافع مجهول");
+  });
+
+  it("MIC-11 fails when a repayment event disagrees with the loan record", async () => {
+    const { store, services } = await cleanStore();
+    const created = await services.loans.create({
+      borrowerName: "أحمد",
+      principalMinor: 15000,
+      loanDate: "2026-07-01",
+    });
+    if (!created.ok) throw new Error(created.message);
+    await services.loans.recordRepayment(created.value.loan.id, { amountMinor: 5000, date: "2026-08-01" });
+    const snapshot = await store.readSnapshot();
+    if (!snapshot.ok) throw new Error(snapshot.message);
+    /* عبث بالمبلغ المخزن في الدفعة — الفحص يلتقط عدم التطابق. */
+    const tamperedLoans = (snapshot.value.loans ?? []).map(loan =>
+      loan.id === created.value.loan.id
+        ? { ...loan, repayments: [{ ...loan.repayments[0]!, amountMinor: 4000 }] }
+        : loan,
+    );
+    await store.replaceSnapshot({ ...snapshot.value, loans: tamperedLoans });
+    const report = await services.integrityCheck.run();
+    const mic11 = report.checks.find(check => check.id === "MIC-11");
+    expect(mic11?.status).toBe("FAIL");
+    expect(mic11?.detailAr).toContain("سلامة القروض مكسورة");
+  });
+
+  it("MIC-12 warns on pending retained deposits — the safe default stays visible", async () => {
+    const { store, services } = await cleanStore();
+    const { calculateCostSnapshot, collectDeposit, createCraftOrder, cancelOrder, settleDepositRetain } =
+      await import("@micro-domain/craft-order/index.js");
+    const snapshotCost = calculateCostSnapshot("cost-mic12", {
+      currency: "JOD",
+      materialItems: [{ name: "خيط", quantity: 1, unit: "متر", unitPriceMinor: 300, priceDate: "2026-09-01", source: "user_input", confidence: "known" }],
+      time: null,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-09-01T08:00:00Z",
+      source: "price_approval",
+    });
+    let order = createCraftOrder({
+      id: "order-mic12",
+      customerName: "ليلى",
+      itemName: "فستان",
+      specifications: "قياس مخصص",
+      quantity: 1,
+      agreedPriceMinor: 10000,
+      costSnapshot: snapshotCost,
+      createdAt: "2026-09-01T08:00:00Z",
+    });
+    order = collectDeposit(order, 5000, "order-mic12:dep", "2026-09-01T08:01:00Z");
+    order = cancelOrder(order, "إلغاء", "order-mic12:cancel", "2026-09-02T08:00:00Z");
+    order = settleDepositRetain(order, 5000, "احتفاظ", "order-mic12:retain", "2026-09-03T08:00:00Z");
+    await store.saveOrder({
+      id: "order-mic12",
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-09-10",
+      agreementSource: "whatsapp",
+      createdAt: "2026-09-01T08:00:00Z",
+      updatedAt: "2026-09-03T08:00:00Z",
+    });
+    const report = await services.integrityCheck.run();
+    const mic12 = report.checks.find(check => check.id === "MIC-12");
+    expect(mic12?.status).toBe("WARN");
+    expect(mic12?.detailAr).toContain("عربونات محتفظة بانتظار قرارك");
+  });
+
+  it("MIC-10..13 pass on a clean store with a healthy asset, loan, and settled decision", async () => {
+    const { store, services } = await cleanStore();
+    const asset = await services.assets.create({
+      name: "ثلاجة",
+      acquisitionAmountMinor: 60000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-06-01",
+    });
+    if (asset.ok) {
+      await services.assets.recordDepreciation(asset.value.asset.id, { asOf: "2026-09-01" });
+    }
+    const loan = await services.loans.create({ borrowerName: "أحمد", principalMinor: 15000, loanDate: "2026-07-01" });
+    if (loan.ok) {
+      await services.loans.recordRepayment(loan.value.loan.id, { amountMinor: 15000, date: "2026-08-01" });
+    }
+    const report = await services.integrityCheck.run();
+    const mic10 = report.checks.find(check => check.id === "MIC-10");
+    const mic11 = report.checks.find(check => check.id === "MIC-11");
+    const mic13 = report.checks.find(check => check.id === "MIC-13");
+    expect(mic10?.status).toBe("PASS");
+    expect(mic11?.status).toBe("PASS");
+    expect(mic13?.status).toBe("PASS");
   });
 });

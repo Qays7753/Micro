@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   calculateCostSnapshot,
   cancelOrder,
+  classifyRetainedDeposit,
   collectDeposit,
   collectRegisteredDebt,
   collectRemaining,
   createCraftOrder,
   knowledgeGapsOf,
   registerDebt,
+  reclassifyRetainedDeposit,
   reviseOrderCost,
   settleDepositRefund,
   settleDepositRetain,
@@ -877,5 +879,118 @@ describe("knowledge gaps list every deficiency at once with its mark (decision 2
     const { knowledgeGaps: _omittedToo, ...withoutFieldBase } = legacyIncomplete;
     const withoutField: CostSnapshot = withoutFieldBase;
     expect(knowledgeGapsOf(withoutField)).toEqual([{ id: "time_incomplete", mandatory: true }]);
+  });
+});
+
+/* المجموعة ٤ (عقد ٢٩): تصنيف معنى العربون المحتفظ به — قرار صريح بعد
+ * الاحتفاظ، وتصحيح موثق يعلو القديم، والتاريخ يبقى كاملًا. */
+/* المجموعة ٤: أدوات تصنيف العربون خارج الوصف — وصف مقتصد تحت سقف الأسطر. */
+const classificationSnapshot = calculateCostSnapshot("cost-classify", {
+  currency: "JOD",
+  materialItems: [
+    {
+      name: "قماش",
+      quantity: 1,
+      unit: "متر",
+      unitPriceMinor: 500,
+      priceDate: "2026-08-21",
+      source: "user_input",
+      confidence: "known",
+    },
+  ],
+  time: null,
+  packagingMinor: 0,
+  deliveryMinor: 0,
+  wasteMinor: 0,
+  safetyBufferMinor: 0,
+  quantity: 1,
+  createdAt: "2026-08-21T09:00:00Z",
+  source: "price_approval",
+});
+
+function cancelledRetained(): CraftOrder {
+  let order: CraftOrder = createCraftOrder({
+    id: "order-classify",
+    customerName: "ليلى",
+    itemName: "فستان",
+    specifications: "قياس مخصص",
+    quantity: 1,
+    agreedPriceMinor: 10000,
+    costSnapshot: classificationSnapshot,
+    createdAt: "2026-08-21T10:00:00Z",
+  });
+  order = collectDeposit(order, 5000, "order-classify:dep", "2026-08-21T10:01:00Z");
+  order = cancelOrder(order, "إلغاء متفق", "order-classify:cancel", "2026-08-22T10:00:00Z");
+  return settleDepositRetain(order, 5000, "احتفاظ", "order-classify:retain", "2026-08-23T10:00:00Z");
+}
+
+describe("retained deposit classification (group 4)", () => {
+  it("classifies a retained deposit as owner or revenue with a documented event", () => {
+    const classified = classifyRetainedDeposit(
+      cancelledRetained(),
+      "owner",
+      "العربون يعود لي",
+      "order-classify:classify",
+      "2026-08-24T10:00:00Z",
+    );
+    expect(classified.retainedMeaning).toBe("owner");
+    expect(classified.events.filter(event => event.type === "deposit_classified")).toHaveLength(1);
+    const event = classified.events.find(event => event.type === "deposit_classified")!;
+    expect(event.amountMinor).toBe(5000);
+    expect(event.note).toContain("مال مالك");
+  });
+
+  it("keeps pending as the honest default until the owner chooses", () => {
+    const order = cancelledRetained();
+    expect(order.retainedMeaning ?? null).toBeNull();
+  });
+
+  it("rejects a second classification and a blank reason", () => {
+    const classified = classifyRetainedDeposit(
+      cancelledRetained(),
+      "revenue",
+      "قرار",
+      "order-classify:classify",
+      "2026-08-24T10:00:00Z",
+    );
+    expect(() =>
+      classifyRetainedDeposit(
+        classified,
+        "owner",
+        "ثانٍ",
+        "order-classify:classify-2",
+        "2026-08-25T10:00:00Z",
+      ),
+    ).toThrow(/مصنَّف سابقًا/);
+    expect(() =>
+      classifyRetainedDeposit(cancelledRetained(), "owner", "  ", "k", "2026-08-25T10:00:00Z"),
+    ).toThrow(/سبب تصنيف العربون/);
+  });
+
+});
+
+/* المجموعة ٤: تصحيح التصنيف — وصف مستقل صغير تحت سقف الأسطر. */
+describe("retained deposit reclassification (group 4)", () => {
+  it("reclassifies with a documented correction and keeps both decisions in history", () => {
+    const classified = classifyRetainedDeposit(
+      cancelledRetained(),
+      "revenue",
+      "قرار أول",
+      "order-classify:classify",
+      "2026-08-24T10:00:00Z",
+    );
+    const corrected = reclassifyRetainedDeposit(
+      classified,
+      "owner",
+      "القرار الأول كان متسرعًا",
+      "order-classify:reclassify",
+      "2026-08-26T10:00:00Z",
+    );
+    expect(corrected.retainedMeaning).toBe("owner");
+    expect(corrected.events.filter(event => event.type === "deposit_classified")).toHaveLength(2);
+    /* رفض التصحيح بلا تغيير. */
+    expect(() =>
+      reclassifyRetainedDeposit(corrected, "owner", "نفس القيمة", "k2", "2026-08-27T10:00:00Z"),
+    ).toThrow(/مطابق للقائم/);
   });
 });
