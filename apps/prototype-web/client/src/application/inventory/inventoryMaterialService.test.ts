@@ -11,12 +11,18 @@ describe("InventoryMaterialService", () => {
     const opened = await service.openMaterial({
       name: "خشب",
       unit: "piece",
-      openingQuantityMilli: 10000,
-      openingValueMinor: 4000,
-      occurredOn: "2026-08-01",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 10000,
+        costState: "known",
+        valueMinor: 4000,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
       note: "افتتاح",
       operationKey: "material-1",
-    });
+      });
     if (!opened.ok) throw new Error("material should open");
     const purchase = createSupplierPurchase({
       id: "purchase-1",
@@ -119,12 +125,18 @@ describe("InventoryMaterialService", () => {
     const opened = await service.openMaterial({
       name: "خيط",
       unit: "meter",
-      openingQuantityMilli: 1000,
-      openingValueMinor: 500,
-      occurredOn: "2026-08-01",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 1000,
+        costState: "known",
+        valueMinor: 500,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
       note: "افتتاح",
       operationKey: "thread",
-    });
+      });
     if (!opened.ok) throw new Error("material should open");
     await expect(
       service.waste({
@@ -144,12 +156,18 @@ describe("InventoryMaterialService", () => {
     const opened = await service.openMaterial({
       name: "خشب",
       unit: "piece",
-      openingQuantityMilli: 10000,
-      openingValueMinor: 4000,
-      occurredOn: "2026-08-01",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 10000,
+        costState: "known",
+        valueMinor: 4000,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
       note: "افتتاح",
       operationKey: "actual-material-open",
-    });
+      });
     if (!opened.ok) throw new Error("material should open");
     const cost = calculateCostSnapshot("actual-material-cost", {
       currency: "JOD",
@@ -247,12 +265,18 @@ describe("InventoryMaterialService purchase receipt quota after a reversal (A-02
     const opened = await service.openMaterial({
       name: "قماش",
       unit: "meter",
-      openingQuantityMilli: 0,
-      openingValueMinor: 0,
-      occurredOn: "2026-08-01",
+      tracking: "tracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
       note: "افتتاح",
       operationKey: "a02-material",
-    });
+      });
     if (!opened.ok) throw new Error("material should open");
     const purchase = createSupplierPurchase({
       id: "a02-purchase",
@@ -357,12 +381,18 @@ describe("InventoryMaterialService activation (decision 9)", () => {
     await service.openMaterial({
       name: "خشب",
       unit: "piece",
-      openingQuantityMilli: 10000,
-      openingValueMinor: 4000,
-      occurredOn: "2026-08-01",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 10000,
+        costState: "known",
+        valueMinor: 4000,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
       note: "افتتاح",
       operationKey: "material-legacy",
-    });
+      });
     await expect(service.readActivation()).resolves.toMatchObject({
       ok: true,
       value: { activatedOn: "2026-08-01", source: "derived" },
@@ -377,12 +407,18 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
     const opened = await service.openMaterial({
       name: "فضة",
       unit: "kilogram",
-      openingQuantityMilli: 1000,
-      openingValueMinor: 400,
-      occurredOn: "2026-08-01",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 1000,
+        costState: "known",
+        valueMinor: 400,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
       note: "افتتاح",
       operationKey: "silver-open",
-    });
+      });
     if (!opened.ok) throw new Error("material should open");
     const extracted = await service.extractRemainder({
       materialId: opened.value.material.id,
@@ -417,12 +453,18 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
     const opened = await service.openMaterial({
       name: "خيط",
       unit: "meter",
-      openingQuantityMilli: 1000,
-      openingValueMinor: 300,
-      occurredOn: "2026-08-01",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 1000,
+        costState: "known",
+        valueMinor: 300,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
       note: "افتتاح",
       operationKey: "thread-open",
-    });
+      });
     if (!opened.ok) throw new Error("material should open");
     const consumed = await service.waste({
       materialId: opened.value.material.id,
@@ -467,12 +509,18 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
     const opened = await service.openMaterial({
       name: "غراء",
       unit: "liter",
-      openingQuantityMilli: 500,
-      openingValueMinor: 250,
-      occurredOn: "2026-08-01",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 500,
+        costState: "known",
+        valueMinor: 250,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
       note: "افتتاح",
       operationKey: "glue-open",
-    });
+      });
     if (!opened.ok) throw new Error("material should open");
     await expect(
       service.extractRemainder({
@@ -504,5 +552,541 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
         operationKey: "glue-empty",
       }),
     ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+  });
+});
+
+/* ── المجموعة ٢ (عقد ٢٨): المتابعة الانتقائية والاستلام والنقص — اختبارات الخدمة ── */
+/* المجموعة ٢ (عقد ٢٨): مساعدات مشتركة لمجموعات الاختبار — على مستوى الوحدة. */
+const NOW = () => "2026-09-06T09:00:00.000Z";
+async function openTracked(
+  service: InventoryMaterialService,
+  input: {
+    name: string;
+    quantityMilli: number | null;
+    valueMinor: number | null;
+    confirmed: boolean;
+    key: string;
+  },
+) {
+  return service.openMaterial({
+      name: input.name,
+      unit: "kilogram",
+      tracking: "tracked",
+      opening: {
+        quantityState: input.confirmed ? "confirmed" : "unconfirmed",
+        quantityMilli: input.quantityMilli,
+        costState: input.valueMinor !== null ? "known" : "unknown",
+        valueMinor: input.valueMinor,
+        confirmedOn: input.confirmed ? "2026-09-01" : null,
+        sourceNote: "جرد",
+      },
+      note: "رصيد معلن",
+      operationKey: input.key,
+    });
+}
+
+describe("InventoryMaterialService — Group 2 selective tracking — cost-only materials (Scenario A)", () => {
+  it("Scenario A: an untracked material keeps a reference identity with no balance and no hidden movement", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const opened = await service.openMaterial({
+      name: "أكياس تغليف",
+      unit: "piece",
+      tracking: "untracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: null,
+        sourceNote: null,
+      },
+      note: "مادة للتكلفة فقط",
+      operationKey: "g2-scenario-a",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    expect(opened.value.opening).toBeNull();
+    const movements = await service.movements();
+    if (!movements.ok) throw new Error(movements.message);
+    expect(movements.value).toHaveLength(0);
+    const overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.tracking?.status).toBe("untracked");
+    expect(overview.value.materials[0]?.quantityMilli).toBe(0);
+    expect(overview.value.materials[0]?.quantityKnowledge).toBe("known");
+  });
+});
+
+describe("InventoryMaterialService — Group 2 selective tracking — activation journeys (Scenarios A–C)", () => {
+  it("Scenarios B & C: known opening writes a movement; unknown opening shows «unconfirmed», never zero", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const known = await openTracked(service, {
+      name: "سكر",
+      quantityMilli: 20000,
+      valueMinor: 12000,
+      confirmed: true,
+      key: "g2-known-opening",
+    });
+    if (!known.ok) throw new Error(known.message);
+    expect(known.value.opening).not.toBeNull();
+    expect(known.value.opening?.costKnowledge).toBe("known");
+    const unknown = await openTracked(service, {
+      name: "دقيق",
+      quantityMilli: null,
+      valueMinor: null,
+      confirmed: false,
+      key: "g2-unknown-opening",
+    });
+    if (!unknown.ok) throw new Error(unknown.message);
+    expect(unknown.value.opening).toBeNull();
+    const overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    const sugar = overview.value.materials.find(material => material.name === "سكر");
+    const flour = overview.value.materials.find(material => material.name === "دقيق");
+    expect(sugar?.quantityMilli).toBe(20000);
+    expect(sugar?.quantityKnowledge).toBe("known");
+    expect(flour?.quantityKnowledge).toBe("unconfirmed");
+    expect(flour?.movementCount).toBe(0);
+  });
+  it("an unknown-cost opening writes a zero value marked unknown, and consuming it stays a marked zero", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const opened = await openTracked(service, {
+      name: "ملح",
+      quantityMilli: 5000,
+      valueMinor: null,
+      confirmed: true,
+      key: "g2-unknown-cost",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    expect(opened.value.opening?.valueDeltaMinor).toBe(0);
+    expect(opened.value.opening?.costKnowledge).toBe("unknown");
+    const consumed = await service.consume({
+      materialId: opened.value.material.id,
+      orderId: null,
+      reason: "تجربة وصفة",
+      quantityMilli: 2000,
+      occurredOn: "2026-09-03",
+      note: "استهلاك بلا تكلفة معلومة",
+      operationKey: "g2-consume-unknown",
+    });
+    if (!consumed.ok) throw new Error(consumed.message);
+    expect(consumed.value.valueDeltaMinor).toBe(0);
+    expect(consumed.value.costKnowledge).toBe("unknown");
+    const overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.costKnowledge).toBe("unknown");
+  });
+});
+
+describe("InventoryMaterialService — Group 2 selective tracking — purchase-to-receipt bridge (Scenarios D–F)", () => {
+  it("Scenario D & E & F: purchase stays financial; explicit receipt is prefilled and partial receipts reconcile", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const opened = await openTracked(service, {
+      name: "خشب",
+      quantityMilli: 0,
+      valueMinor: null,
+      confirmed: true,
+      key: "g2-bridge-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    await store.saveSupplierPurchase(
+      createSupplierPurchase({
+        id: "g2-purchase",
+        supplierName: "مورد الخشب",
+        note: "خشب زان",
+        purchasedOn: "2026-09-02",
+        dueOn: null,
+        totalMinor: 10000,
+        initialPaidMinor: 5000,
+        recordedAt: "2026-09-02T00:00:00.000Z",
+        idempotencyKey: "g2-purchase-key",
+        materialId: opened.value.material.id,
+        expectedQuantityMilli: 10000,
+      }),
+    );
+    /* D: الشراء وحده لا يزيد المخزون. */
+    let overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.quantityMilli).toBe(0);
+    let status = await service.purchaseReceiptStatus("g2-purchase");
+    if (!status.ok || !status.value) throw new Error("status should read");
+    expect(status.value.receivedValueMinor).toBe(0);
+    expect(status.value.remainingValueMinor).toBe(10000);
+    expect(status.value.remainingQuantityMilli).toBe(10000);
+    /* F: استلام جزئي متعمد. */
+    const first = await service.receivePurchase({
+      materialId: opened.value.material.id,
+      purchaseId: "g2-purchase",
+      quantityMilli: 4000,
+      valueMinor: 4000,
+      occurredOn: "2026-09-04",
+      note: "استلام الجزء الأول",
+      operationKey: "g2-receipt-1",
+    });
+    if (!first.ok) throw new Error(first.message);
+    status = await service.purchaseReceiptStatus("g2-purchase");
+    if (!status.ok || !status.value) throw new Error("status should read");
+    expect(status.value.receivedValueMinor).toBe(4000);
+    expect(status.value.remainingValueMinor).toBe(6000);
+    expect(status.value.remainingQuantityMilli).toBe(6000);
+    /* التجاوز فوق المتوقع مرفوض بصدق. */
+    await expect(
+      service.receivePurchase({
+        materialId: opened.value.material.id,
+        purchaseId: "g2-purchase",
+        quantityMilli: 7000,
+        valueMinor: 6000,
+        occurredOn: "2026-09-05",
+        note: "تجاوز",
+        operationKey: "g2-receipt-over",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    /* الشراء المرتبط بمادة تُستلم عليها. */
+    await store.saveSupplierPurchase(
+      createSupplierPurchase({
+        id: "g2-purchase-2",
+        supplierName: "مورد آخر",
+        note: "مادة أخرى",
+        purchasedOn: "2026-09-02",
+        dueOn: null,
+        totalMinor: 3000,
+        initialPaidMinor: 0,
+        recordedAt: "2026-09-02T00:00:00.000Z",
+        idempotencyKey: "g2-purchase-2-key",
+        materialId: "material-other",
+        expectedQuantityMilli: null,
+      }),
+    );
+    await expect(
+      service.receivePurchase({
+        materialId: opened.value.material.id,
+        purchaseId: "g2-purchase-2",
+        quantityMilli: 1000,
+        valueMinor: 1000,
+        occurredOn: "2026-09-05",
+        note: "مادة مختلفة",
+        operationKey: "g2-receipt-wrong-material",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    /* بانتظار الاستلام يظهر على المادة (عقد ١١). */
+    overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.awaitingReceiptPurchaseCount).toBe(1);
+    expect(overview.value.materials[0]?.awaitingReceiptRemainingMinor).toBe(6000);
+  });
+});
+
+describe("InventoryMaterialService — Group 2 selective tracking — consumption without order (Scenario H)", () => {
+  it("Scenario H: deliberate project consumption without an order carries a reason and idempotency", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const opened = await openTracked(service, {
+      name: "غراء",
+      quantityMilli: 2000,
+      valueMinor: 800,
+      confirmed: true,
+      key: "g2-project-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const consumed = await service.consume({
+      materialId: opened.value.material.id,
+      orderId: null,
+      reason: "تجربة لون لطلب قادم",
+      quantityMilli: 500,
+      occurredOn: "2026-09-05",
+      note: "استهلاك مشروع",
+      operationKey: "g2-project-consume",
+    });
+    if (!consumed.ok) throw new Error(consumed.message);
+    expect(consumed.value.orderId).toBeNull();
+    expect(consumed.value.reason).toBe("تجربة لون لطلب قادم");
+    const repeated = await service.consume({
+      materialId: opened.value.material.id,
+      orderId: null,
+      reason: "تجربة لون لطلب قادم",
+      quantityMilli: 500,
+      occurredOn: "2026-09-05",
+      note: "استهلاك مشروع",
+      operationKey: "g2-project-consume",
+    });
+    expect(repeated).toMatchObject({ ok: true, reused: true });
+    await expect(
+      service.consume({
+        materialId: opened.value.material.id,
+        orderId: null,
+        reason: "  ",
+        quantityMilli: 100,
+        occurredOn: "2026-09-05",
+        note: "بلا بيان",
+        operationKey: "g2-project-blank",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+  });
+});
+
+describe("InventoryMaterialService — Group 2 selective tracking — shortage policy (Scenario I)", () => {
+  it("Scenario I: shortage policy — record, partial-consume atomically, resolve explicitly, never negative", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const opened = await openTracked(service, {
+      name: "مسمار",
+      quantityMilli: 6000,
+      valueMinor: 2400,
+      confirmed: true,
+      key: "g2-shortage-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const materialId = opened.value.material.id;
+    /* الاستهلاك فوق المتاح مرفوض (الدستور: لا رصيد سالب). */
+    await expect(
+      service.consume({
+        materialId,
+        orderId: null,
+        reason: "طلب كبير",
+        quantityMilli: 10000,
+        occurredOn: "2026-09-06",
+        note: "محاولة تجاوز",
+        operationKey: "g2-over-consume",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    /* استهلاك المتاح + توثيق النقص في حفظ ذرّي واحد. */
+    const partial = await service.consumeWithShortage({
+      materialId,
+      orderId: null,
+      reason: "طلب كبير",
+      quantityMilli: 10000,
+      occurredOn: "2026-09-06",
+      note: "استهلاك المتاح والباقي نقص",
+      operationKey: "g2-partial",
+    });
+    if (!partial.ok) throw new Error(partial.message);
+    expect(partial.value.movement?.quantityDeltaMilli).toBe(-6000);
+    expect(partial.value.shortage.shortageQuantityMilli).toBe(4000);
+    expect(partial.value.shortage.status).toBe("open");
+    const overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.quantityMilli).toBe(0);
+    expect(overview.value.materials[0]?.openShortageCount).toBe(1);
+    /* الحل صريح، والتكرار idempotent. */
+    const resolved = await service.resolveShortage({
+      shortageId: partial.value.shortage.id,
+      resolutionNote: "استلمت بديلًا من المورد",
+      resolvedOn: "2026-09-08",
+    });
+    if (!resolved.ok) throw new Error(resolved.message);
+    expect(resolved.value.status).toBe("resolved");
+    const resolvedAgain = await service.resolveShortage({
+      shortageId: partial.value.shortage.id,
+      resolutionNote: "مرة أخرى",
+      resolvedOn: "2026-09-09",
+    });
+    expect(resolvedAgain).toMatchObject({ ok: true, reused: true });
+    /* سجل نقص لكمية متوفرة مرفوض — ليست نقصًا. */
+    const replenished = await service.adjust({
+      materialId,
+      quantityDeltaMilli: 5000,
+      valueMinorWhenIncrease: 2000,
+      occurredOn: "2026-09-10",
+      note: "استلام بديل",
+      reason: "بديل النقص",
+      operationKey: "g2-replenish",
+    });
+    if (!replenished.ok) throw new Error(replenished.message);
+    await expect(
+      service.recordShortage({
+        materialId,
+        requestedQuantityMilli: 3000,
+        orderId: null,
+        occurredOn: "2026-09-10",
+        note: "متوفر فعلًا",
+        operationKey: "g2-fake-shortage",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+  });
+});
+
+describe("InventoryMaterialService — Group 2 selective tracking — untrack/retrack lifecycle (Scenario K)", () => {
+  it("Scenario K: untracking states consequences, preserves history, and retrack returns unconfirmed", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const opened = await openTracked(service, {
+      name: "قماش",
+      quantityMilli: 3000,
+      valueMinor: 1500,
+      confirmed: true,
+      key: "g2-untrack-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const materialId = opened.value.material.id;
+    const untracked = await service.untrackMaterial({ materialId, reason: null, operationKey: "g2-untrack" });
+    if (!untracked.ok) throw new Error(untracked.message);
+    expect(untracked.value.tracking?.status).toBe("untracked");
+    /* التاريخ محفوظ — لا حذف. */
+    const movements = await service.movements();
+    if (!movements.ok) throw new Error(movements.message);
+    expect(movements.value).toHaveLength(1);
+    /* حركة جديدة على مادة غير متتبَّعة مرفوضة بصدق. */
+    await expect(
+      service.waste({
+        materialId,
+        quantityMilli: 500,
+        occurredOn: "2026-09-07",
+        note: "هدر بعد الإيقاف",
+        reason: "تلف",
+        operationKey: "g2-waste-after-untrack",
+      }),
+    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    const repeatedUntrack = await service.untrackMaterial({ materialId, reason: null, operationKey: "g2-untrack-2" });
+    expect(repeatedUntrack).toMatchObject({ ok: true, reused: true });
+    /* إعادة التفعيل: الرصيد يعود «غير محدد بعد». */
+    const retracked = await service.retrackMaterial({ materialId, operationKey: "g2-retrack" });
+    if (!retracked.ok) throw new Error(retracked.message);
+    expect(retracked.value.tracking?.status).toBe("tracked");
+    expect(retracked.value.opening?.quantityState).toBe("unconfirmed");
+    const overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.quantityKnowledge).toBe("unconfirmed");
+    expect(overview.value.materials[0]?.quantityMilli).toBe(3000);
+  });
+  it("confirmMaterialOpening: equal, increase-as-first-movement, and derived decrease branches", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    /* مادة غير محددة البداية ثم تأكيد رصيد معلوم — أول حركة بداية. */
+    const opened = await service.openMaterial({
+      name: "طلاء",
+      unit: "liter",
+      tracking: "tracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: null,
+        sourceNote: null,
+      },
+      note: "بلا رصيد معروف",
+      operationKey: "g2-confirm-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const materialId = opened.value.material.id;
+    const confirmed = await service.confirmMaterialOpening({
+      materialId,
+      actualQuantityMilli: 8000,
+      costKnown: true,
+      valueMinor: 3200,
+      occurredOn: "2026-09-09",
+      note: "تأكيد جرد",
+      sourceNote: "جرد",
+      operationKey: "g2-confirm-1",
+    });
+    if (!confirmed.ok) throw new Error(confirmed.message);
+    expect(confirmed.value.movement?.type).toBe("opening");
+    expect(confirmed.value.material.opening?.quantityState).toBe("confirmed");
+    /* تأكيد نفس الرقم بلا فرق — بلا حركة. */
+    const equal = await service.confirmMaterialOpening({
+      materialId,
+      actualQuantityMilli: 8000,
+      costKnown: true,
+      valueMinor: 3200,
+      occurredOn: "2026-09-10",
+      note: "لا فرق",
+      sourceNote: "جرد ثانية",
+      operationKey: "g2-confirm-equal",
+    });
+    if (!equal.ok) throw new Error(equal.message);
+    expect(equal.value.movement).toBeNull();
+    /* تأكيد أقل — ضبط مشتق القيمة. */
+    const lower = await service.confirmMaterialOpening({
+      materialId,
+      actualQuantityMilli: 6000,
+      costKnown: false,
+      valueMinor: null,
+      occurredOn: "2026-09-11",
+      note: "جرد أقل",
+      sourceNote: "جرد",
+      operationKey: "g2-confirm-lower",
+    });
+    if (!lower.ok) throw new Error(lower.message);
+    expect(lower.value.movement?.type).toBe("adjustment");
+    expect(lower.value.movement?.quantityDeltaMilli).toBe(-2000);
+    expect(lower.value.movement?.valueDeltaMinor).toBe(-800);
+    const overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.quantityMilli).toBe(6000);
+  });
+});
+
+describe("InventoryMaterialService — Group 2 selective tracking — reads and effect-free surfaces", () => {
+  it("Scenario J: waste stays non-cash and the period summary flags unknown cost honestly", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const opened = await openTracked(service, {
+      name: "خيط",
+      quantityMilli: 4000,
+      valueMinor: 1000,
+      confirmed: true,
+      key: "g2-waste-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const wasted = await service.waste({
+      materialId: opened.value.material.id,
+      quantityMilli: 1000,
+      occurredOn: "2026-09-06",
+      note: "هدر قص",
+      reason: "قص خاطئ",
+      operationKey: "g2-waste-1",
+    });
+    if (!wasted.ok) throw new Error(wasted.message);
+    /* لا حدث مالي أبدًا من حركة الهدر. */
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    expect(events.value).toHaveLength(0);
+    const summary = await service.readPeriodWaste("2026-09-01", "2026-09-30");
+    if (!summary.ok) throw new Error(summary.message);
+    expect(summary.value).toMatchObject({ count: 1, valueMinor: 250, hasUnknownCost: false });
+    const emptyMonth = await service.readPeriodWaste("2026-08-01", "2026-08-31");
+    if (!emptyMonth.ok) throw new Error(emptyMonth.message);
+    expect(emptyMonth.value.count).toBe(0);
+  });
+  it("references serve only tracked materials for movement editors, and positions drive shortage warnings", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, NOW);
+    const tracked = await openTracked(service, {
+      name: "خشب",
+      quantityMilli: 5000,
+      valueMinor: 2000,
+      confirmed: true,
+      key: "g2-ref-tracked",
+    });
+    if (!tracked.ok) throw new Error(tracked.message);
+    const untracked = await service.openMaterial({
+      name: "أكياس",
+      unit: "piece",
+      tracking: "untracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: null,
+        sourceNote: null,
+      },
+      note: "للتكلفة",
+      operationKey: "g2-ref-untracked",
+    });
+    if (!untracked.ok) throw new Error(untracked.message);
+    const references = await service.references();
+    if (!references.ok) throw new Error(references.message);
+    expect(references.value.materials.map(material => material.name)).toEqual(["خشب"]);
+    expect(references.value.allMaterials).toHaveLength(2);
+    expect(references.value.materialPositions[0]).toMatchObject({
+      materialId: tracked.value.material.id,
+      quantityMilli: 5000,
+      valueMinor: 2000,
+      costKnowledge: "known",
+    });
   });
 });

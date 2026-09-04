@@ -6,7 +6,7 @@ import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
-import type { InventoryMovement, Material } from "@micro-domain/inventory-material/index.js";
+import type { InventoryMovement, InventoryShortage, Material } from "@micro-domain/inventory-material/index.js";
 import type {
   CatalogItem,
   CatalogTemplate,
@@ -24,15 +24,16 @@ import type {
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
-export const localSchemaVersion = 31;
+export const localSchemaVersion = 32;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 23;
-/* المجموعة ١ (تصنيفي للمصاريف): مخزن ٣١/نسخة ٢٣ أضافتا `categoryLabel` الاختياري
- * داخل سياق المصروف — لا أعمدة مالية ولا متاجر جديدة؛ الملفات ٢٢/٣٠ تُقبل
- * وتُهاجر بغياب الوسم (null) بلا تعبئة افتراضية. تعليق المجموعة ١ السابق (ملف
- * المالك — مخزن ٣٠/نسخ ٢٢) صار تاريخيًا: ٢١/٢٩ تُقبل وهاجرت بـ ownerProfile=null. */
+export const localExportVersion = 24;
+/* المجموعة ٢ (عقد ٢٨ — مخزون انتقائي): مخزن ٣٢/نسخة ٢٤ أضافتا قرار المتابعة
+ * ومعرفة رصيد البداية لكل مادة، ووسم معرفة التكلفة على الحركات، وربط الشراء
+ * بمادة وكمية متوقعة، وسجلات نقص المخزون (متجر جديد `inventory-shortages`).
+ * الحقول اختيارية بلا تعبئة (غياب = سلوك إرث متوافق)؛ الملفات ٢٣/٣١ تُقبل
+ * وتُهاجر بقيم null/[] آمنة. */
 export const localOwnerProfileId = "local-owner-profile";
 export type OwnerProfile = {
   id: typeof localOwnerProfileId;
@@ -235,6 +236,7 @@ export type LocalStoreSnapshot = {
   cashContinuityEntries?: readonly CashContinuityEntry[];
   materials?: readonly Material[];
   inventoryMovements?: readonly InventoryMovement[];
+  inventoryShortages?: readonly InventoryShortage[];
   inventoryActivation?: InventoryActivation | null;
   catalogItems?: readonly CatalogItem[];
   measurementUnits?: readonly MeasurementUnit[];
@@ -330,6 +332,19 @@ export interface PrototypeLocalStore {
     material: Material | null,
     movements: readonly InventoryMovement[],
   ): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>>;
+  /* المجموعة ٢ (عقد ٢٨): قراءة سجلات نقص المخزون — مرتبطة زمنيًا كالحركات. */
+  listInventoryShortages(): Promise<StorageResult<readonly InventoryShortage[]>>;
+  /* المجموعة ٢ (عقد ٢٨ / D-027): كتابة ذرّية واحدة للمادة وحركاتها وسجل النقص —
+   * كل شيء أو لا شيء؛ لا حالة بينية (استهلاك جزئي + نقص معًا مثلًا). */
+  commitInventoryWithShortage(
+    material: Material | null,
+    movements: readonly InventoryMovement[],
+    shortage: InventoryShortage | null,
+  ): Promise<StorageResult<{
+    material: Material | null;
+    movements: readonly InventoryMovement[];
+    shortage: InventoryShortage | null;
+  }>>;
   listCatalogItems(): Promise<StorageResult<readonly CatalogItem[]>>;
   getCatalogItem(id: string): Promise<StorageResult<CatalogItem | null>>;
   saveCatalogItem(item: CatalogItem): Promise<StorageResult<CatalogItem>>;

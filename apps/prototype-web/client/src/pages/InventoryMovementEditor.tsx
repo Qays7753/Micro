@@ -6,18 +6,33 @@ import { useLocation, useSearch, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
-import { localDateInAmman } from "@/presentation/formatters";
+import { localDateInAmman, formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
-import type { InventoryReferences } from "@/application/inventory/inventoryMaterialService";
+import type {
+  InventoryReferences,
+  PurchaseReceiptStatus,
+} from "@/application/inventory/inventoryMaterialService";
 import {
   resolveInventoryMovementType,
   type InventoryMovementRouteType,
 } from "@/application/inventory/inventoryMovementRoute";
+import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 const ammanDate = () => localDateInAmman();
+const ID_SHAPE = /^[A-Za-z0-9_-]{1,64}$/;
 type MovementType = InventoryMovementRouteType;
+const unitWord = (unit: string) =>
+  unit === "piece"
+    ? "قطعة"
+    : unit === "meter"
+      ? "متر"
+      : unit === "kilogram"
+        ? "كيلوغرام"
+        : unit === "liter"
+          ? "لتر"
+          : "وحدة أخرى";
 export default function InventoryMovementEditor() {
   const { type } = useParams<{ type: string }>();
   const [, navigate] = useLocation();
@@ -25,18 +40,31 @@ export default function InventoryMovementEditor() {
   /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) والمواد كبديل قانوني. */
   const returnPath = useReturnPath();
   /* المجموعة ١ (Scope E): وصلة عميقة تحفظ سياق الطلب الأصلي —
-   * /inventory/movement/consume?order=<id>&from=/orders/<id> تُعبّئ الطلب مسبقًا. */
-  const [linkedOrderId] = useState(() => {
-    const query = new URLSearchParams(search ?? "");
+   * /inventory/movement/consume?order=<id>&from=/orders/<id> تُعبّئ الطلب مسبقًا.
+   * المجموعة ٢ (عقد ٢٨): ?purchase=<id> جسر الاستلام من سجل الشراء،
+   * و?material=<id> يمنع الافتراض الصامت لأول مادة. */
+  const query = new URLSearchParams(search ?? "");
+  const linkedOrderId = (() => {
     const order = query.get("order");
-    return order && /^[A-Za-z0-9_-]{1,64}$/.test(order) ? order : null;
-  });
+    return order && ID_SHAPE.test(order) ? order : null;
+  })();
+  const linkedPurchaseId = (() => {
+    const purchase = query.get("purchase");
+    return purchase && ID_SHAPE.test(purchase) ? purchase : null;
+  })();
+  const linkedMaterialId = (() => {
+    const material = query.get("material");
+    return material && ID_SHAPE.test(material) ? material : null;
+  })();
   const {
   dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
   const [references, setReferences] = useState<InventoryReferences | null>(null);
   const [materialId, setMaterialId] = useState("");
   const [purchaseId, setPurchaseId] = useState("");
+  const [receiptStatus, setReceiptStatus] = useState<PurchaseReceiptStatus | null>(null);
   const [orderId, setOrderId] = useState("");
+  /* المجموعة ٢ (عقد ٢٨): الاستهلاك لطلب محدد أم لعمل المشروع — سؤال صريح. */
+  const [consumeTarget, setConsumeTarget] = useState<"order" | "project">("order");
   const [wasteContextKind, setWasteContextKind] = useState<
     "order" | "catalog_item" | "catalog_template" | "general_project" | "unallocated"
   >("general_project");
@@ -46,6 +74,7 @@ export default function InventoryMovementEditor() {
   const [wasteAllocationNote, setWasteAllocationNote] = useState("");
   const [quantityMilli, setQuantityMilli] = useState(0);
   const [valueMinor, setValueMinor] = useState(0);
+  const [costKnown, setCostKnown] = useState(true);
   const [direction, setDirection] = useState<"increase" | "decrease">("decrease");
   const [quantityValid, setQuantityValid] = useState(true);
   const [valueValid, setValueValid] = useState(true);
@@ -55,12 +84,13 @@ export default function InventoryMovementEditor() {
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const operationKey = useRef(`inventory-${type}-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+  const prefilledPurchaseRef = useRef<string | null>(null);
   const safeType = resolveInventoryMovementType(type);
   const title =
     safeType === "receipt"
       ? "استلم شراء مواد"
       : safeType === "consume"
-        ? "استهلك مادة لطلب"
+        ? "استهلك مادة"
         : safeType === "waste"
           ? "سجل هدر مادة"
           : "اضبط كمية مادة";
@@ -80,8 +110,28 @@ export default function InventoryMovementEditor() {
         return;
       }
       setReferences(result.value);
-      setMaterialId(result.value.materials[0]?.id ?? "");
-      setPurchaseId(result.value.purchases[0]?.id ?? "");
+      const linkedMaterial =
+        linkedMaterialId && result.value.materials.some(material => material.id === linkedMaterialId)
+          ? linkedMaterialId
+          : null;
+      setMaterialId(
+        (linkedMaterial as string | null) ??
+          (linkedPurchaseId
+            ? (result.value.purchases.find(purchase => purchase.id === linkedPurchaseId)?.materialId ?? null)
+            : null) ??
+          result.value.materials[0]?.id ??
+          "",
+      );
+      const purchaseFromLink = linkedPurchaseId
+        ? result.value.purchases.find(purchase => purchase.id === linkedPurchaseId)
+        : undefined;
+      setPurchaseId(purchaseFromLink ? purchaseFromLink.id : (result.value.purchases[0]?.id ?? ""));
+      /* SA-5 (F1): لا نُعلّم الإحالة هنا — بطاقة حالة الاستلام هي التي تعبّئ
+       * (كمية/قيمة متبقية) مرة واحدة لكل شراء؛ الوصلة العميقة تمر بالمسار نفسه. */
+      if (purchaseFromLink && safeType === "receipt" && purchaseFromLink.materialId) {
+        setMaterialId(purchaseFromLink.materialId);
+        setNote(`استلام شراء: ${purchaseFromLink.supplierName}`);
+      }
       /* سياق الطلب من الوصلة العميقة إن وُجد؛ وإلا أول طلب كالسلوك القائم. */
       const linked = linkedOrderId && result.value.orders.some(order => order.id === linkedOrderId);
       setOrderId(linked ? (linkedOrderId as string) : (result.value.orders[0]?.id ?? ""));
@@ -89,7 +139,35 @@ export default function InventoryMovementEditor() {
       setWasteCatalogItemId(result.value.catalogItems[0]?.id ?? "");
       setWasteTemplateId(result.value.catalogTemplates[0]?.id ?? "");
     });
-  }, [inventory, safeType, linkedOrderId, dataVersion]);
+  }, [inventory, safeType, linkedOrderId, linkedPurchaseId, linkedMaterialId, dataVersion]);
+  /* المجموعة ٢ (عقد ٢٨ / TR-07): حالة الاستلام الحية للشراء المحدد — المستلم
+   * والمتبقي قيمةً وكميةً، وتغيير الشراء يعيد اشتقاق التعبئة (لا تعبئة كاذبة). */
+  useEffect(() => {
+    if (safeType !== "receipt" || !purchaseId) {
+      setReceiptStatus(null);
+      return;
+    }
+    inventory.purchaseReceiptStatus(purchaseId).then(result => {
+      if (!result.ok) {
+        setReceiptStatus(null);
+        return;
+      }
+      setReceiptStatus(result.value);
+      /* إعادة التعبئة عند تغيير الشراء فقط — ما يكتبه المالك لا يُمسّ. */
+      if (result.value && prefilledPurchaseRef.current !== purchaseId && references) {
+        prefilledPurchaseRef.current = purchaseId;
+        const purchase = references.purchases.find(candidate => candidate.id === purchaseId);
+        if (purchase?.materialId) setMaterialId(purchase.materialId);
+        if (result.value.remainingQuantityMilli && result.value.remainingQuantityMilli > 0)
+          setQuantityMilli(result.value.remainingQuantityMilli);
+        if (result.value.remainingValueMinor > 0) {
+          setValueMinor(result.value.remainingValueMinor);
+          setCostKnown(true);
+        }
+        if (purchase) setNote(`استلام شراء: ${purchase.supplierName}`);
+      }
+    });
+  }, [safeType, purchaseId, inventory, references, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة.
    * تُستدعى الخطافات قبل أي return شرطي (قواعد الخطافات): فرع «حركة غير
@@ -99,7 +177,9 @@ export default function InventoryMovementEditor() {
       materialId,
       purchaseId,
       orderId,
+      consumeTarget,
       direction,
+      costKnown,
       wasteContextKind,
       wasteOrderId,
       wasteCatalogItemId,
@@ -133,6 +213,13 @@ export default function InventoryMovementEditor() {
         </button>
       </section>
     );
+  const selectedMaterial = references?.materials.find(material => material.id === materialId) ?? null;
+  const selectedPosition = references?.materialPositions.find(
+    position => position.materialId === materialId,
+  );
+  const availableMilli = selectedPosition?.quantityMilli ?? 0;
+  const shortageImminent = safeType === "consume" && quantityMilli > availableMilli;
+
   async function save(): Promise<boolean> {
     if (
       !safeType ||
@@ -146,12 +233,16 @@ export default function InventoryMovementEditor() {
       setMessage("أدخل المادة والكمية والبيان بالأرقام 0–9 قبل الحفظ.");
       return false;
     }
-    if (safeType === "receipt" && (!purchaseId || valueMinor <= 0)) {
-      setMessage("اختر شراء مواد وأدخل قيمة الجزء المستلم.");
+    if (safeType === "receipt" && (!purchaseId || (costKnown && valueMinor <= 0))) {
+      setMessage(costKnown ? "اختر شراء مواد وأدخل قيمة الجزء المستلم." : "اختر شراء مواد قبل الحفظ.");
       return false;
     }
-    if (safeType === "consume" && !orderId) {
+    if (safeType === "consume" && consumeTarget === "order" && !orderId) {
       setMessage("اختر طلبًا موجودًا لاستهلاك المادة.");
+      return false;
+    }
+    if (safeType === "consume" && consumeTarget === "project" && !note.trim()) {
+      setMessage("اكتب بيان الاستهلاك — استهلاك بلا طلب يحتاج بيانًا واضحًا.");
       return false;
     }
     if ((safeType === "waste" || safeType === "adjust") && !reason.trim()) {
@@ -195,7 +286,8 @@ export default function InventoryMovementEditor() {
             materialId,
             purchaseId,
             quantityMilli,
-            valueMinor,
+            valueMinor: costKnown ? valueMinor : 0,
+            costKnowledge: costKnown ? "known" : "unknown",
             occurredOn: date,
             note,
             operationKey: operationKey.current,
@@ -203,7 +295,8 @@ export default function InventoryMovementEditor() {
         : safeType === "consume"
           ? await inventory.consume({
               materialId,
-              orderId,
+              orderId: consumeTarget === "order" ? orderId : null,
+              reason: consumeTarget === "project" ? note : null,
               quantityMilli,
               occurredOn: date,
               note,
@@ -222,7 +315,9 @@ export default function InventoryMovementEditor() {
             : await inventory.adjust({
                 materialId,
                 quantityDeltaMilli: direction === "increase" ? quantityMilli : -quantityMilli,
-                valueMinorWhenIncrease: direction === "increase" ? valueMinor : null,
+                valueMinorWhenIncrease:
+                  direction === "increase" ? (costKnown ? valueMinor : null) : null,
+                increaseCostKnowledge: direction === "increase" && !costKnown ? "unknown" : "known",
                 occurredOn: date,
                 note,
                 reason,
@@ -236,6 +331,47 @@ export default function InventoryMovementEditor() {
     notifyDataChanged();
     navigate(returnPath);
     return true;
+  }
+  /* المجموعة ٢ (عقد ٢٨ / D-027): بدائل النقص الصريحة — توثيق النقص وحده، أو
+   * استهلاك المتاح مع توثيق الباقي نقصًا في حفظ ذرّي واحد. */
+  async function saveShortageOnly(): Promise<void> {
+    if (!materialId || !note.trim() || quantityMilli <= availableMilli) return;
+    setSaving(true);
+    const result = await inventory.recordShortage({
+      materialId,
+      requestedQuantityMilli: quantityMilli,
+      orderId: consumeTarget === "order" ? orderId : null,
+      occurredOn: date,
+      note,
+      operationKey: `${operationKey.current}:shortage`,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    notifyDataChanged();
+    navigate(returnPath);
+  }
+  async function saveConsumeAvailableWithShortage(): Promise<void> {
+    if (!materialId || !note.trim() || availableMilli <= 0 || quantityMilli <= availableMilli) return;
+    setSaving(true);
+    const result = await inventory.consumeWithShortage({
+      materialId,
+      orderId: consumeTarget === "order" ? orderId : null,
+      reason: consumeTarget === "project" ? note : null,
+      quantityMilli,
+      occurredOn: date,
+      note,
+      operationKey: operationKey.current,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    notifyDataChanged();
+    navigate(returnPath);
   }
   if (!references && !message)
     return (
@@ -257,6 +393,71 @@ export default function InventoryMovementEditor() {
         </button>
       </section>
     );
+  if (references.materials.length === 0)
+    return (
+      <section className="micro-page micro-not-found" data-testid="inventory-movement-no-materials">
+        <button
+          className="micro-back-button"
+          type="button"
+          onClick={() => requestNavigation(returnPath)}
+        >
+          <ArrowRight aria-hidden="true" /> المواد والمخزون
+        </button>
+        <div className="micro-page-heading">
+          <span className="micro-overline">حركة مخزون</span>
+          <h1>لا مواد متتبَّعة بعد</h1>
+          <p>سجّل مادة وفعّل متابعة كميتها أولًا — حركة المخزون تحتاج مادة متتبَّعة.</p>
+        </div>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate("/inventory/material/new")}
+        >
+          مادة جديدة
+        </button>
+      </section>
+    );
+  const unit = unitWord(selectedMaterial?.unit ?? "other");
+  const afterMilli =
+    safeType === "receipt"
+      ? availableMilli + quantityMilli
+      : safeType === "consume" || safeType === "waste"
+        ? availableMilli - quantityMilli
+        : direction === "increase"
+          ? availableMilli + quantityMilli
+          : availableMilli - quantityMilli;
+  const previewLines: string[] =
+    safeType === "receipt"
+      ? [
+          `رصيد المادة يصبح ${formatQuantityMilli(afterMilli)} ${unit}${
+            costKnown ? ` بقيمة معروفة (${formatMoneyMinor(valueMinor)} د.أ).` : "."
+          }`,
+          costKnown
+            ? "لا يتغير الكاش ولا ذمة المورد — الاستلام حركة مخزون فقط."
+            : "قيمة الاستلام غير معروفة — تُعرض «التكلفة غير معروفة» لا صفرًا، ولا يتغير الكاش.",
+        ]
+      : safeType === "consume"
+        ? shortageImminent
+          ? ["لا يمكن تنفيذ الكمية المطلوبة — انظر خيارات النقص أسفل النموذج."]
+          : [
+              `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} ليصبح ${formatQuantityMilli(afterMilli)}.`,
+              "لا يتغير الكاش ولا نتيجة الفترة الآن.",
+            ]
+        : safeType === "waste"
+          ? [
+              `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} وتخرج قيمته من المخزون.`,
+              "هدر مخزون — بلا خروج نقد جديد ولا أثر في نتيجة الفترة.",
+            ]
+          : [
+              `رصيد المادة يصبح ${formatQuantityMilli(afterMilli)} ${unit} (فرق ${
+                direction === "increase" ? "+" : "−"
+              }${formatQuantityMilli(quantityMilli)}).`,
+              direction === "increase"
+                ? costKnown
+                  ? `قيمة الزيادة المعلنة ${formatMoneyMinor(valueMinor)} د.أ — لا يتغير الكاش.`
+                  : "قيمة الزيادة غير معروفة — قيمة صفرية موسومة، لا يتغير الكاش."
+                : "قيمة النقص تُشتق من رصيد المادة — لا يتغير الكاش ولا نتيجة الفترة.",
+            ];
   return (
     <section className="micro-page micro-finance-page">
       <button
@@ -273,7 +474,7 @@ export default function InventoryMovementEditor() {
           {safeType === "receipt"
             ? "يزيد الاستلام المخزون فقط؛ لا يكرر كاش أو ذمة شراء المواد."
             : safeType === "consume"
-              ? "يربط الجزء المستهلك بطلب دون تعديل نسخة التكلفة أو نتيجة فترة قديمة."
+              ? "يربط الجزء المستهلك بطلب أو ببيان مشروع، دون تعديل نسخة التكلفة أو نتيجة فترة قديمة."
               : "لا تحذف المادة من السجل؛ سجّل هدرًا أو فرقًا بسبب واضح."}
         </p>
       </div>
@@ -290,6 +491,18 @@ export default function InventoryMovementEditor() {
         </div>
       </section>
       <section className="micro-form-card">
+        {safeType === "receipt" ? (
+          <label className="micro-field">
+            <span>شراء المواد المرجعي</span>
+            <select value={purchaseId} onChange={event => setPurchaseId(event.target.value)}>
+              {references.purchases.map(purchase => (
+                <option key={purchase.id} value={purchase.id}>
+                  {purchase.supplierName} · {purchase.note}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <label className="micro-field">
           <span>المادة</span>
           <select value={materialId} onChange={event => setMaterialId(event.target.value)}>
@@ -300,41 +513,102 @@ export default function InventoryMovementEditor() {
             ))}
           </select>
         </label>
+        {safeType === "receipt" && receiptStatus ? (
+          <section className="micro-inventory-inactive" aria-label="حالة الاستلام" data-testid="receipt-status-card">
+            <div>
+              <span className="micro-overline">حالة الاستلام</span>
+              <p>
+                قيمة مستلمة:{" "}
+                <MoneyValue minor={receiptStatus.receivedValueMinor} className="micro-inline-number" /> من{" "}
+                <MoneyValue minor={receiptStatus.totalMinor} className="micro-inline-number" /> د.أ
+                {receiptStatus.remainingQuantityMilli !== null
+                  ? ` · كمية مستلمة: ${formatQuantityMilli(receiptStatus.receivedQuantityMilli ?? 0)} من ${formatQuantityMilli(receiptStatus.expectedQuantityMilli ?? 0)} ${unit}`
+                  : " · لا كمية متوقعة مسجلة — الحد على القيمة فقط."}
+              </p>
+            </div>
+          </section>
+        ) : null}
         {safeType === "receipt" ? (
-          <>
-            <label className="micro-field">
-              <span>شراء المواد المرجعي</span>
-              <select value={purchaseId} onChange={event => setPurchaseId(event.target.value)}>
-                {references.purchases.map(purchase => (
-                  <option key={purchase.id} value={purchase.id}>
-                    {purchase.supplierName} · {purchase.note}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="micro-field">
-              <span>قيمة الجزء المستلم بالدينار الأردني</span>
-              <EnglishNumberInput
-                value={valueMinor}
-                kind="money"
-                onNumericChange={setValueMinor}
-                onTextValidityChange={setValueValid}
-                aria-label="قيمة استلام الشراء"
+          <fieldset className="micro-field">
+            <legend>هل تعرف قيمة هذا الاستلام؟</legend>
+            <label className="micro-radio-choice">
+              <input
+                type="radio"
+                name="receipt-cost"
+                checked={costKnown}
+                onChange={() => setCostKnown(true)}
               />
+              <span>
+                <b>نعم، معلومة</b>
+              </span>
             </label>
-          </>
+            <label className="micro-radio-choice">
+              <input
+                type="radio"
+                name="receipt-cost"
+                checked={!costKnown}
+                onChange={() => setCostKnown(false)}
+              />
+              <span>
+                <b>لا، غير معروفة بعد</b>
+                <small>تُسجَّل قيمة صفرية موسومة «غير معروفة» — لا مجانية مفترضة.</small>
+              </span>
+            </label>
+            {costKnown ? (
+              <label className="micro-field">
+                <span>قيمة الجزء المستلم بالدينار الأردني</span>
+                <EnglishNumberInput
+                  value={valueMinor}
+                  kind="money"
+                  onNumericChange={setValueMinor}
+                  onTextValidityChange={setValueValid}
+                  aria-label="قيمة استلام الشراء"
+                />
+              </label>
+            ) : null}
+          </fieldset>
         ) : null}
         {safeType === "consume" ? (
-          <label className="micro-field">
-            <span>الطلب الذي استهلك المادة</span>
-            <select value={orderId} onChange={event => setOrderId(event.target.value)}>
-              {references.orders.map(order => (
-                <option key={order.id} value={order.id}>
-                  {order.itemName} · {order.customerName}
-                </option>
-              ))}
-            </select>
-          </label>
+          <fieldset className="micro-field" data-testid="consume-target-question">
+            <legend>الاستهلاك لطلب محدد أم لعمل المشروع؟</legend>
+            <label className="micro-radio-choice">
+              <input
+                type="radio"
+                name="consume-target"
+                checked={consumeTarget === "order"}
+                onChange={() => setConsumeTarget("order")}
+                disabled={references.orders.length === 0}
+              />
+              <span>
+                <b>لطلب محدد</b>
+                <small>يُربط الاستهلاك بطلب موثق للمقارنة لاحقًا.</small>
+              </span>
+            </label>
+            <label className="micro-radio-choice">
+              <input
+                type="radio"
+                name="consume-target"
+                checked={consumeTarget === "project"}
+                onChange={() => setConsumeTarget("project")}
+              />
+              <span>
+                <b>لعمل المشروع</b>
+                <small>استهلاك بلا طلب — ببيان واضح في خانة البيان.</small>
+              </span>
+            </label>
+            {consumeTarget === "order" ? (
+              <label className="micro-field">
+                <span>الطلب الذي استهلك المادة</span>
+                <select value={orderId} onChange={event => setOrderId(event.target.value)}>
+                  {references.orders.map(order => (
+                    <option key={order.id} value={order.id}>
+                      {order.itemName} · {order.customerName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+          </fieldset>
         ) : null}
         {safeType === "waste" ? (
           <div className="micro-subsection">
@@ -428,16 +702,44 @@ export default function InventoryMovementEditor() {
               </select>
             </label>
             {direction === "increase" ? (
-              <label className="micro-field">
-                <span>قيمة الزيادة المعلنة بالدينار الأردني</span>
-                <EnglishNumberInput
-                  value={valueMinor}
-                  kind="money"
-                  onNumericChange={setValueMinor}
-                  onTextValidityChange={setValueValid}
-                  aria-label="قيمة زيادة المادة"
-                />
-              </label>
+              <fieldset className="micro-field">
+                <legend>هل تعرف قيمة الزيادة؟</legend>
+                <label className="micro-radio-choice">
+                  <input
+                    type="radio"
+                    name="adjust-cost"
+                    checked={costKnown}
+                    onChange={() => setCostKnown(true)}
+                  />
+                  <span>
+                    <b>نعم، معلومة</b>
+                  </span>
+                </label>
+                <label className="micro-radio-choice">
+                  <input
+                    type="radio"
+                    name="adjust-cost"
+                    checked={!costKnown}
+                    onChange={() => setCostKnown(false)}
+                  />
+                  <span>
+                    <b>لا، غير معروفة بعد</b>
+                    <small>قيمة صفرية موسومة «غير معروفة» — لا مجانية مفترضة.</small>
+                  </span>
+                </label>
+                {costKnown ? (
+                  <label className="micro-field">
+                    <span>قيمة الزيادة المعلنة بالدينار الأردني</span>
+                    <EnglishNumberInput
+                      value={valueMinor}
+                      kind="money"
+                      onNumericChange={setValueMinor}
+                      onTextValidityChange={setValueValid}
+                      aria-label="قيمة زيادة المادة"
+                    />
+                  </label>
+                ) : null}
+              </fieldset>
             ) : null}
           </>
         ) : null}
@@ -449,6 +751,13 @@ export default function InventoryMovementEditor() {
             onTextValidityChange={setQuantityValid}
             aria-label="كمية حركة المادة"
           />
+          {safeType === "consume" && selectedMaterial ? (
+            <small data-testid="consume-available-hint">
+              {shortageImminent
+                ? `الكمية أكبر من المتاحة (المتاح: ${formatQuantityMilli(availableMilli)} ${unit}) — الخيارات أسفل النموذج.`
+                : `المتاح الآن: ${formatQuantityMilli(availableMilli)} ${unit}.`}
+            </small>
+          ) : null}
         </label>
         <LocalDateField label="تاريخ الحركة" value={date} onChange={event => setDate(event.target.value)} />
         {safeType === "waste" || safeType === "adjust" ? (
@@ -469,11 +778,67 @@ export default function InventoryMovementEditor() {
             placeholder="مثال: استهلاك لطلب سارة"
           />
         </label>
+        {/* المجموعة ٢ (عقد ٢٨ / D-027): بدائل النقص — آخر كتلة قبل المعاينة
+            والحفظ (لا صفوف شرطية فوق حقول الإدخال — قانون عدم الاهتزاز). */}
+        {shortageImminent && selectedMaterial ? (
+          <section className="micro-danger-zone" aria-labelledby="shortage-title" data-testid="shortage-panel">
+            <div className="micro-section-heading">
+              <CircleMinus aria-hidden="true" />
+              <div>
+                <span className="micro-overline">أنت توثّق نقصًا</span>
+                <h2 id="shortage-title">الكمية المطلوبة أكبر من المتاحة</h2>
+              </div>
+            </div>
+            <p>
+              المتاح الآن <QuantityValue valueMilli={availableMilli} className="micro-inline-number" /> من{" "}
+              {selectedMaterial.name}. لا يُسمح برصيد سالب في Micro — النقص يُوثَّق سجلًا يُحلّ لاحقًا،
+              لا رقمًا سالبًا يُخفى. اختر:
+            </p>
+            <div className="micro-form-actions">
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={saving || !note.trim()}
+                onClick={() => {
+                  void saveShortageOnly();
+                }}
+              >
+                سجّل نقصًا بدل الاستهلاك
+              </button>
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={saving || !note.trim() || availableMilli <= 0}
+                onClick={() => {
+                  void saveConsumeAvailableWithShortage();
+                }}
+              >
+                استهلك المتاح
+              </button>
+            </div>
+            <p>
+              <small>
+                «سجّل نقصًا»: بلا استهلاك — يُوثَّق النقص ويبقى مفتوحًا حتى الحل. · «استهلك المتاح»:
+                يُسجَّل الاستهلاك للجزء المتاح، والباقي نقصًا في حفظ ذرّي واحد.
+              </small>
+            </p>
+          </section>
+        ) : null}
         {message ? (
           <p className="micro-field-error" role="status">
             {message}
           </p>
         ) : null}
+        {/* معاينة الأثر (المجموعة ٢): منطقة ارتفاع محجوز، آخر كتلة قبل زر
+            الحفظ اللاصق — لحظة الحفظ تقترن بما سيتغير. */}
+        <div className="micro-effect-preview" data-testid="movement-effect-preview" aria-live="polite">
+          <span className="micro-effect-preview-label">بعد الحفظ:</span>
+          {previewLines.map(line => (
+            <p className="micro-effect-preview-line" key={line}>
+              {line}
+            </p>
+          ))}
+        </div>
         <button
           className="micro-button micro-button-primary micro-save-cost"
           type="button"

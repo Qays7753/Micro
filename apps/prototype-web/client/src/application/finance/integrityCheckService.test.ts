@@ -3,6 +3,7 @@ import { IntegrityCheckService } from "@/application/finance/integrityCheckServi
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
@@ -75,7 +76,15 @@ describe("integrity check service (فحص سلامة مالي)", () => {
     const after = await snapshotOf(store);
     expect(after).toBe(before);
     expect(report.overall).toBe("PASS");
-    expect(report.checks.map(check => check.id)).toEqual(["MIC-1", "MIC-2", "MIC-4", "MIC-7", "MIC-9"]);
+    /* المجموعة ٢ (عقد ٢٨): MIC-8 (سلامة المخزون والمواد) ينضم للفحوص القراءة فقط. */
+    expect(report.checks.map(check => check.id)).toEqual([
+      "MIC-1",
+      "MIC-2",
+      "MIC-4",
+      "MIC-7",
+      "MIC-8",
+      "MIC-9",
+    ]);
     for (const check of report.checks) expect(check.status).toBe("PASS");
   });
 
@@ -300,5 +309,126 @@ describe("MIC-4 stale settlement reference after a documented edit", () => {
     const mic4 = report.checks.find(check => check.id === "MIC-4");
     expect(mic4?.status).toBe("WARN");
     expect(mic4?.detailAr).toContain("جرى تعديله أو حذفه");
+  });
+});
+
+/* ── المجموعة ٢ (عقد ٢٨): MIC-8 — سلامة المخزون والمواد ── */
+describe("integrity check MIC-8 (سلامة المخزون والمواد)", () => {
+  it("WARNs on an open shortage record with the material name and date — zero writes", async () => {
+    const { store, services } = await cleanStore();
+    const inventory = new InventoryMaterialService(store, now);
+    const opened = await inventory.openMaterial({
+      name: "سكر",
+      unit: "kilogram",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 6000,
+        costState: "known",
+        valueMinor: 2400,
+        confirmedOn: "2026-09-01",
+        sourceNote: "جرد",
+      },
+      note: "رصيد",
+      operationKey: "mic8-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const shortage = await inventory.recordShortage({
+      materialId: opened.value.material.id,
+      requestedQuantityMilli: 10000,
+      orderId: null,
+      occurredOn: "2026-09-05",
+      note: "نقص",
+      operationKey: "mic8-shortage",
+    });
+    if (!shortage.ok) throw new Error(shortage.message);
+    const before = await snapshotOf(store);
+    const report = await services.integrityCheck.run();
+    const after = await snapshotOf(store);
+    expect(after).toBe(before);
+    const mic8 = report.checks.find(check => check.id === "MIC-8");
+    expect(mic8?.status).toBe("WARN");
+    expect(mic8?.detailAr).toContain("سكر");
+    expect(mic8?.offenderCount).toBe(1);
+  });
+  it("WARNs only for explicitly unconfirmed openings — legacy materials stay quiet", async () => {
+    const { store, services } = await cleanStore();
+    const inventory = new InventoryMaterialService(store, now);
+    const unconfirmed = await inventory.openMaterial({
+      name: "دقيق",
+      unit: "kilogram",
+      tracking: "tracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: null,
+        sourceNote: null,
+      },
+      note: "بلا رصيد",
+      operationKey: "mic8-unconfirmed",
+    });
+    if (!unconfirmed.ok) throw new Error(unconfirmed.message);
+    /* مادة إرث بلا حقول المتابعة — لا إنذار كاذب. */
+    const legacy = await inventory.openMaterial({
+      name: "خشب قديم",
+      unit: "piece",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 3000,
+        costState: "known",
+        valueMinor: 1200,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
+      note: "إرث",
+      operationKey: "mic8-legacy",
+    });
+    if (!legacy.ok) throw new Error(legacy.message);
+    const report = await services.integrityCheck.run();
+    const mic8 = report.checks.find(check => check.id === "MIC-8");
+    expect(mic8?.status).toBe("WARN");
+    expect(mic8?.offenderCount).toBe(1);
+    expect(mic8?.detailAr).toContain("غير مؤكد");
+  });
+  it("FAILs on a movement referencing a missing material — zero writes", async () => {
+    const { store, services } = await cleanStore();
+    const inventory = new InventoryMaterialService(store, now);
+    const opened = await inventory.openMaterial({
+      name: "خيط",
+      unit: "meter",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 1000,
+        costState: "known",
+        valueMinor: 400,
+        confirmedOn: "2026-09-01",
+        sourceNote: null,
+      },
+      note: "رصيد",
+      operationKey: "mic8-thread",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    /* كسر بنيوي مزروع: حركة إلى مادة غير موجودة. */
+    const broken = await store.commitInventory(null, [
+      {
+        ...opened.value.opening!,
+        id: "mic8-broken",
+        materialId: "ghost-material",
+        operationKey: "mic8-broken",
+      },
+    ]);
+    if (!broken.ok) throw new Error(broken.message);
+    const before = await snapshotOf(store);
+    const report = await services.integrityCheck.run();
+    const after = await snapshotOf(store);
+    expect(after).toBe(before);
+    const mic8 = report.checks.find(check => check.id === "MIC-8");
+    expect(mic8?.status).toBe("FAIL");
+    expect(mic8?.offenderCount).toBeGreaterThanOrEqual(1);
+    expect(mic8?.deepLink).toBe("/inventory");
   });
 });

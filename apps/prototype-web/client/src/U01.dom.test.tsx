@@ -48,6 +48,11 @@ function configureIncompleteCostServices() {
   const drafts = {
     get: vi.fn().mockResolvedValue({ ok: true, value: createDraft() }),
   };
+  /* المجموعة ٢ (عقد ٢٨): مقترحات مواد المخزون — قراءة فقط بلا مواد في الاختبار. */
+  const inventory = {
+    overview: vi.fn().mockResolvedValue({ ok: true, value: { materials: [], movementCount: 0 } }),
+    movements: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+  };
   const costs = {
     preview: vi.fn().mockReturnValue({
       ok: true,
@@ -63,6 +68,7 @@ function configureIncompleteCostServices() {
   mockedUsePrototypeServices.mockReturnValue({
     drafts,
     costs,
+    inventory,
     dataVersion: 0,
     notifyDataChanged: vi.fn(),
   } as unknown as ReturnType<typeof usePrototypeServices>);

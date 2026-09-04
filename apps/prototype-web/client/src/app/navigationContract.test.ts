@@ -11,7 +11,9 @@ import {
 
 describe("parseDeepLink", () => {
   it("يقرأ المعاملات المعروفة كما هي", () => {
-    const params = parseDeepLink("?focus=capacity&from=/orders&event=evt_12&mode=cover&layer=events&to=/cash");
+    const params = parseDeepLink(
+      "?focus=capacity&from=/orders&event=evt_12&mode=cover&layer=events&to=/cash&purchase=pur_9&material=mat_3",
+    );
     expect(params).toEqual({
       focus: "capacity",
       layer: "events",
@@ -19,6 +21,8 @@ describe("parseDeepLink", () => {
       event: "evt_12",
       from: "/orders",
       to: "/cash",
+      purchase: "pur_9",
+      material: "mat_3",
     });
   });
   it("يهمل القيم المجهولة والمشوهة بلا انفجار", () => {
@@ -28,6 +32,8 @@ describe("parseDeepLink", () => {
     expect(params.mode).toBeNull();
     expect(params.from).toBeNull();
     expect(params.event).toBeNull();
+    expect(params.purchase).toBeNull();
+    expect(params.material).toBeNull();
   });
   it("يقبل null أو سلسلة فارغة أو معطوبة", () => {
     expect(parseDeepLink(null).focus).toBeNull();

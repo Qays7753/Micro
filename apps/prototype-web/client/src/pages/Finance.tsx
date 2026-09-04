@@ -33,6 +33,7 @@ import { EventsLayer } from "@/components/finance/EventsLayer";
 import { CorrectionsLayer } from "@/components/finance/CorrectionsLayer";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import type { CorrectionDigest } from "@/application/finance/correctionHistoryService";
+import type { PeriodWasteReading } from "@/application/inventory/inventoryMaterialService";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {
@@ -65,6 +66,8 @@ type FinanceState =
        * وبنطاق الفترة لقراءة الفترة. */
       correctionsAllTime: CorrectionDigest | null;
       correctionsInPeriod: CorrectionDigest | null;
+      /* المجموعة ٢ (عقد ٢٨): هدر المخزون داخل الفترة — قراءة مشتقة غير نقدية. */
+      periodWaste: PeriodWasteReading | null;
     };
 const currentMonth = () => localDateInAmman().slice(0, 7);
 const validMonth = (month: string) =>
@@ -113,6 +116,7 @@ export default function Finance() {
     g5,
     financialPulse,
     fulfillment,
+    inventory,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
@@ -147,8 +151,10 @@ export default function Finance() {
       fulfillment.listDepositOverview(),
       correctionHistory.affecting(),
       correctionHistory.affecting(from.from, to.to),
+      /* المجموعة ٢ (عقد ٢٨): هدر الفترة — قراءة مشتقة بأساس occurredOn نفسه. */
+      inventory.readPeriodWaste(from.from, to.to),
     ]).then(
-      ([position, events, result, insights, decision, declarations, owner, pulseResult, depositsResult, correctionsAll, correctionsPeriod]) => {
+      ([position, events, result, insights, decision, declarations, owner, pulseResult, depositsResult, correctionsAll, correctionsPeriod, periodWaste]) => {
         if (!active) return;
         if (
           !position.ok ||
@@ -181,13 +187,14 @@ export default function Finance() {
           deposits: depositsResult.value,
           correctionsAllTime: correctionsAll.ok ? correctionsAll.value : null,
           correctionsInPeriod: correctionsPeriod.ok ? correctionsPeriod.value : null,
+          periodWaste: periodWaste.ok ? periodWaste.value : null,
         });
       },
     );
     return () => {
       active = false;
     };
-  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse, fulfillment, correctionHistory]);
+  }, [dataVersion, fromMonth, toMonth, projectFinance, g5, ownerEntitlement, financialPulse, fulfillment, correctionHistory, inventory]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -580,11 +587,31 @@ export default function Finance() {
               </dd>
             </div>
             <div>
-              <dt>هدر مخزون عام</dt>
+              <dt>هدر مخزون (منذ البداية)</dt>
               <dd>
                 <PeriodMoney value={period.generalInventoryWasteMinor} status={period.status} />
               </dd>
             </div>
+            {/* المجموعة ٢ (عقد ٢٨): هدر الفترة — غير نقدي، خارج نتيجة الفترة عمدًا؛
+                * قيمة غير معروفة تُصرَّح بها ولا تُعرض 0.00 واثقة. */}
+            {state.periodWaste && state.periodWaste.count > 0 ? (
+              <div>
+                <dt>هدر مخزون هذه الفترة</dt>
+                <dd>
+                  {state.periodWaste.valueMinor === 0 && state.periodWaste.hasUnknownCost ? (
+                    <span className="micro-unknown-value">قيمة الهدر غير معروفة بعد</span>
+                  ) : (
+                    <>
+                      <PeriodMoney value={state.periodWaste.valueMinor} status={period.status} />
+                      {state.periodWaste.hasUnknownCost ? (
+                        <small> · منها جزء بتكلفة غير معروفة</small>
+                      ) : null}
+                    </>
+                  )}{" "}
+                  — غير نقدي: لا يخرج كاش ولا يدخل نتيجة الفترة.
+                </dd>
+              </div>
+            ) : null}
             <div>
               <dt>مصروف قديم بلا سياق</dt>
               <dd>

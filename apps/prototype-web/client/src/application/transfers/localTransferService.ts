@@ -43,6 +43,8 @@ export type TransferSummary = {
   cashContinuityEntries: number;
   materials: number;
   inventoryMovements: number;
+  /* المجموعة ٢ (عقد ٢٨): سجلات النقص جزء الملخص — كشف لا يُسقط. */
+  inventoryShortages: number;
   catalogItems: number;
   measurementUnits: number;
   directConversions: number;
@@ -551,7 +553,13 @@ function validSupplierPurchase(value: unknown): boolean {
     !isString(value.idempotencyKey) ||
     !isDate(value.createdAt) ||
     !isDate(value.updatedAt) ||
-    !Array.isArray(value.payments)
+    !Array.isArray(value.payments) ||
+    /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة اختياري — الشكل فقط. */
+    !(value.materialId === undefined || value.materialId === null ||
+      (isString(value.materialId) && value.materialId.trim().length > 0)) ||
+    !(value.expectedQuantityMilli === undefined ||
+      value.expectedQuantityMilli === null ||
+      (isMoney(value.expectedQuantityMilli) && value.expectedQuantityMilli > 0))
   )
     return false;
   const paymentKeys = new Set<string>();
@@ -693,7 +701,30 @@ function validMaterial(value: unknown): boolean {
     isMaterialUnit(value.unit) &&
     isDate(value.createdAt) &&
     isString(value.createdOperationKey) &&
-    value.createdOperationKey.trim().length > 0
+    value.createdOperationKey.trim().length > 0 &&
+    /* المجموعة ٢ (عقد ٢٨): قرار المتابعة ومعرفة البداية اختيارية — الشكل فقط يُفحص. */
+    (value.tracking === undefined ||
+      value.tracking === null ||
+      (isRecord(value.tracking) &&
+        (value.tracking.status === "tracked" || value.tracking.status === "untracked") &&
+        (value.tracking.decidedOn === null ||
+          (isString(value.tracking.decidedOn) && isDate(`${value.tracking.decidedOn}T12:00:00.000Z`))) &&
+        (value.tracking.reason === null || isString(value.tracking.reason)))) &&
+    (value.opening === undefined ||
+      value.opening === null ||
+      (isRecord(value.opening) &&
+        (value.opening.quantityState === "unconfirmed" || value.opening.quantityState === "confirmed") &&
+        (value.opening.quantityState === "unconfirmed"
+          ? value.opening.quantityMilli === null || value.opening.quantityMilli === undefined
+          : isMoney(value.opening.quantityMilli)) &&
+        (value.opening.costState === "known" || value.opening.costState === "unknown") &&
+        (value.opening.costState === "known"
+          ? isMoney(value.opening.valueMinor)
+          : value.opening.valueMinor === null || value.opening.valueMinor === undefined) &&
+        (value.opening.confirmedOn === null ||
+          (isString(value.opening.confirmedOn) &&
+            isDate(`${value.opening.confirmedOn}T12:00:00.000Z`))) &&
+        (value.opening.sourceNote === null || isString(value.opening.sourceNote))))
   );
 }
 function validInventoryMovement(value: unknown): boolean {
@@ -708,7 +739,6 @@ function validInventoryMovement(value: unknown): boolean {
     !isSignedMoney(value.quantityDeltaMilli) ||
     !isSignedMoney(value.valueDeltaMinor) ||
     value.quantityDeltaMilli === 0 ||
-    value.valueDeltaMinor === 0 ||
     !isString(value.note) ||
     !value.note.trim() ||
     !(value.reason === null || isString(value.reason)) ||
@@ -716,9 +746,16 @@ function validInventoryMovement(value: unknown): boolean {
     !value.operationKey.trim() ||
     !(value.purchaseId === null || isString(value.purchaseId)) ||
     !(value.orderId === null || isString(value.orderId)) ||
-    !(value.reversesMovementId === null || isString(value.reversesMovementId))
+    !(value.reversesMovementId === null || isString(value.reversesMovementId)) ||
+    !(value.costKnowledge === undefined || value.costKnowledge === null ||
+      value.costKnowledge === "known" || value.costKnowledge === "unknown")
   )
     return false;
+  /* المجموعة ٢ (عقد ٢٨): قيمة صفرية ⇐ تكلفة غير معروفة — لا صفرًا واثقًا بلا وسم،
+   * ولا وسم «غير معروفة» على قيمة معلنة. (الإرث بلا حقل = known وقيمة غير صفرية.) */
+  const costKnowledge = value.costKnowledge === "unknown" ? "unknown" : "known";
+  if (value.valueDeltaMinor === 0 && costKnowledge !== "unknown") return false;
+  if (value.valueDeltaMinor !== 0 && costKnowledge === "unknown") return false;
   const quantity = value.quantityDeltaMilli as number;
   const amount = value.valueDeltaMinor as number;
   if ((value.type === "opening" || value.type === "purchase_receipt") && (quantity < 0 || amount < 0))
@@ -726,7 +763,13 @@ function validInventoryMovement(value: unknown): boolean {
   if ((value.type === "consumption" || value.type === "waste") && (quantity > 0 || amount > 0)) return false;
   if (value.type === "purchase_receipt" ? !isString(value.purchaseId) : value.purchaseId !== null)
     return false;
-  if (value.type === "consumption" ? !isString(value.orderId) : value.orderId !== null) return false;
+  /* المجموعة ٢ (عقد ٢٨): الاستهلاك لطلب أو ببيان — الاستهلاك بلا مرجع ولا بيان يُرفض. */
+  if (
+    value.type === "consumption"
+      ? !(isString(value.orderId) || (isString(value.reason) && value.reason.trim().length > 0))
+      : value.orderId !== null
+  )
+    return false;
   if (
     ["waste", "adjustment", "reversal"].includes(value.type as string) &&
     (!isString(value.reason) || !value.reason.trim())
@@ -739,6 +782,42 @@ function validInventoryMovement(value: unknown): boolean {
   return (
     wasteContextValid &&
     (value.type === "reversal" ? isString(value.reversesMovementId) : value.reversesMovementId === null)
+  );
+}
+/* المجموعة ٢ (عقد ٢٨ / D-027): فحص سجل نقص عند الاستيراد — شكل صارم بلا تهاون. */
+function validInventoryShortage(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    !isString(value.materialId) ||
+    !isString(value.occurredOn) ||
+    !isDate(value.recordedAt) ||
+    !isString(value.note) ||
+    !isString(value.operationKey)
+  )
+    return false;
+  const requested = value.requestedQuantityMilli;
+  const available = value.availableQuantityMilli;
+  const shortage = value.shortageQuantityMilli;
+  return (
+    isSignedMoney(requested) &&
+    (requested as number) > 0 &&
+    isSignedMoney(available) &&
+    (available as number) >= 0 &&
+    isSignedMoney(shortage) &&
+    (shortage as number) > 0 &&
+    (shortage as number) === (requested as number) - (available as number) &&
+    isDate(`${value.occurredOn}T12:00:00.000Z`) &&
+    value.note.trim().length > 0 &&
+    value.operationKey.trim().length > 0 &&
+    (value.orderId === null || isString(value.orderId)) &&
+    (value.status === "open" || value.status === "resolved") &&
+    (value.status === "open"
+      ? value.resolvedOn === null && value.resolutionNote === null
+      : isString(value.resolvedOn) &&
+        isDate(`${value.resolvedOn}T12:00:00.000Z`) &&
+        isString(value.resolutionNote) &&
+        value.resolutionNote.trim().length > 0)
   );
 }
 function validCatalogItem(value: unknown): boolean {
@@ -1032,6 +1111,10 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     !Array.isArray(data.cashContinuityEntries) ||
     !Array.isArray(data.materials) ||
     !Array.isArray(data.inventoryMovements) ||
+    /* المجموعة ٢ (عقد ٢٨): سجلات النقص اختيارية في الملفات القديمة — المصفوفة إن وُجدت. */
+    (data.inventoryShortages !== undefined &&
+      data.inventoryShortages !== null &&
+      !Array.isArray(data.inventoryShortages)) ||
     !Array.isArray(data.catalogItems) ||
     !Array.isArray(data.measurementUnits) ||
     !Array.isArray(data.directConversions) ||
@@ -1457,7 +1540,45 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
         target.valueDeltaMinor !== -movement.valueDeltaMinor
       )
         return false;
+      /* المجموعة ٢ (عقد ٢٨): مرآة معرفة التكلفة — التراجع عن حركة موسومة «غير
+       * معروفة» يحمل الوسم نفسه، وإلا فالملف غير صادق. */
+      const targetKnowledge = (target as { costKnowledge?: string | null }).costKnowledge ?? "known";
+      const reversalKnowledge = (movement as { costKnowledge?: string | null }).costKnowledge ?? "known";
+      if (targetKnowledge !== reversalKnowledge) return false;
     }
+  }
+  /* المجموعة ٢ (عقد ٢٨): طيّ غير سالب لكل مادة — الاستيراد قوي كالكتابة لا أضعف.
+   * (ثغرة سابقة: الكتابة تحرسها السياسة والاستيراد لم يكن يفحص الطيّ.) */
+  for (const materialId of materialIds) {
+    const fold = data.inventoryMovements.reduce(
+      (sum, movement) => (movement.materialId === materialId ? sum + movement.quantityDeltaMilli : sum),
+      0,
+    );
+    const valueFold = data.inventoryMovements.reduce(
+      (sum, movement) => (movement.materialId === materialId ? sum + movement.valueDeltaMinor : sum),
+      0,
+    );
+    if (fold < 0 || valueFold < 0) return false;
+  }
+  /* المجموعة ٢ (عقد ٢٨ / D-027): سجلات النقص — شكل + مفاتيح فريدة + مادة موجودة. */
+  const shortageIds = new Set<string>();
+  const shortageKeys = new Set<string>();
+  for (const shortage of data.inventoryShortages ?? []) {
+    if (
+      !validInventoryShortage(shortage) ||
+      shortageIds.has(shortage.id) ||
+      shortageKeys.has(shortage.operationKey) ||
+      !materialIds.has(shortage.materialId)
+    )
+      return false;
+    if (shortage.orderId !== null && !orderIds.has(shortage.orderId)) return false;
+    shortageIds.add(shortage.id);
+    shortageKeys.add(shortage.operationKey);
+  }
+  /* المجموعة ٢ (عقد ٢٨): ربط الشراء بمادة — إن وُجد فالمادة موجودة فعلًا. */
+  for (const purchase of data.supplierPurchases ?? []) {
+    if (purchase.materialId !== null && purchase.materialId !== undefined && !materialIds.has(purchase.materialId))
+      return false;
   }
   const catalogIds = new Set<string>();
   const catalogKeys = new Set<string>();
@@ -1930,6 +2051,7 @@ function summary(file: LocalExportFile): TransferSummary {
     cashContinuityEntries: file.data.cashContinuityEntries?.length ?? 0,
     materials: file.data.materials?.length ?? 0,
     inventoryMovements: file.data.inventoryMovements?.length ?? 0,
+    inventoryShortages: file.data.inventoryShortages?.length ?? 0,
     catalogItems: file.data.catalogItems?.length ?? 0,
     measurementUnits: file.data.measurementUnits?.length ?? 0,
     directConversions: file.data.directConversions?.length ?? 0,
@@ -2002,6 +2124,9 @@ export class LocalTransferService {
     /* المجموعة ١ (تصنيفي للمصاريف): نسخة ٢٢/مخطط ٣٠ قبل وسم التصنيف — تُقبل
      * وتُهاجر بغياب الوسم (undefined→null) بلا تعبئة افتراضية ولا اختراع تصنيف. */
     const isPreviousExpenseCategory = candidate.version === 22 && candidate.schemaVersion === 30;
+    /* المجموعة ٢ (مخزون انتقائي): نسخة ٢٣/مخطط ٣١ قبل قرار المتابعة والنقص —
+     * تُقبل وتُهاجر بقيم null/[] آمنة بلا اختراع متابعة ولا رصيد ولا نقص. */
+    const isPreviousSelectiveInventory = candidate.version === 23 && candidate.schemaVersion === 31;
     const isPreviousO1 =
       (candidate.version === 12 && candidate.schemaVersion === 21) ||
       (candidate.version === 13 && candidate.schemaVersion === 22);
@@ -2021,6 +2146,7 @@ export class LocalTransferService {
       !isPreviousFlowRedesign &&
       !isPreviousOwnerFoundation &&
       !isPreviousExpenseCategory &&
+      !isPreviousSelectiveInventory &&
       !isPreviousO1 &&
       !isPreviousG3 &&
       !isG3Legacy &&
@@ -2103,10 +2229,39 @@ export class LocalTransferService {
       preferences: isRecord(raw.preferences)
         ? { ...raw.preferences, lastVerifiedExportAt: raw.preferences.lastVerifiedExportAt ?? null }
         : raw.preferences,
-      supplierPurchases: Array.isArray(raw.supplierPurchases) ? raw.supplierPurchases : [],
+      supplierPurchases: Array.isArray(raw.supplierPurchases)
+        ? raw.supplierPurchases.map(purchase =>
+            isRecord(purchase)
+              ? {
+                  ...purchase,
+                  /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — غياب = null (لا صفر). */
+                  materialId: purchase.materialId ?? null,
+                  expectedQuantityMilli: purchase.expectedQuantityMilli ?? null,
+                  revisions: Array.isArray(purchase.revisions)
+                    ? purchase.revisions.map(revision =>
+                        isRecord(revision)
+                          ? {
+                              ...revision,
+                              beforeMaterialId: revision.beforeMaterialId ?? null,
+                              beforeExpectedQuantityMilli: revision.beforeExpectedQuantityMilli ?? null,
+                            }
+                          : revision,
+                      )
+                    : purchase.revisions,
+                }
+              : purchase,
+          )
+        : [],
       cashWallets: Array.isArray(raw.cashWallets) ? raw.cashWallets : [],
       cashContinuityEntries: Array.isArray(raw.cashContinuityEntries) ? raw.cashContinuityEntries : [],
-      materials: Array.isArray(raw.materials) ? raw.materials : [],
+      /* المجموعة ٢ (عقد ٢٨): قرار المتابعة ومعرفة البداية — غياب = null (إرث متوافق). */
+      materials: Array.isArray(raw.materials)
+        ? raw.materials.map(material =>
+            isRecord(material)
+              ? { ...material, tracking: material.tracking ?? null, opening: material.opening ?? null }
+              : material,
+          )
+        : [],
       inventoryActivation: isRecord(raw.inventoryActivation) ? raw.inventoryActivation : null,
       inventoryMovements: Array.isArray(raw.inventoryMovements)
         ? raw.inventoryMovements.map(movement =>
@@ -2115,10 +2270,14 @@ export class LocalTransferService {
                   ...movement,
                   wasteContext:
                     movement.type === "waste" ? (movement.wasteContext ?? { kind: "general_project" }) : null,
+                  /* المجموعة ٢ (عقد ٢٨): معرفة التكلفة — غياب = known (إرث متوافق). */
+                  costKnowledge: movement.costKnowledge ?? "known",
                 }
               : movement,
           )
         : [],
+      /* المجموعة ٢ (عقد ٢٨ / D-027): سجلات النقص — غياب = [] (لا نقص مفترض). */
+      inventoryShortages: Array.isArray(raw.inventoryShortages) ? raw.inventoryShortages : [],
       catalogItems: Array.isArray(raw.catalogItems)
         ? raw.catalogItems.map(item => (isRecord(item) ? { ...item, unitId: item.unitId ?? null } : item))
         : [],
@@ -2253,6 +2412,8 @@ export class LocalTransferService {
       cashContinuityEntries: [],
       materials: [],
       inventoryMovements: [],
+      /* المجموعة ٢ (عقد ٢٨): لقطة فارغة شاملة — لا نقص قديم ينجو من «ابدأ من جديد». */
+      inventoryShortages: [],
       inventoryActivation: null,
       catalogItems: [],
       measurementUnits: [],

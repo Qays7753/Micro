@@ -1141,6 +1141,18 @@ describe("LocalTransferService", () => {
       createdAt: "2026-08-22T00:00:00.000Z",
       createdOperationKey: "material-waste",
     });
+    /* المجموعة ٢ (عقد ٢٨): طيّ غير سالب عند الاستيراد — للهدر أصل مخزون يُخرج منه. */
+    const opening = createInventoryMovement({
+      id: "opening-waste",
+      materialId: material.id,
+      type: "opening",
+      occurredOn: "2026-08-21",
+      recordedAt: "2026-08-21T00:00:00.000Z",
+      quantityDeltaMilli: 1000,
+      valueDeltaMinor: 400,
+      note: "رصيد بداية",
+      operationKey: "opening-waste",
+    });
     const movement = createInventoryMovement({
       id: "waste-context",
       materialId: material.id,
@@ -1154,7 +1166,7 @@ describe("LocalTransferService", () => {
       operationKey: "waste-context",
       wasteContext: { kind: "catalog_item", catalogItemId: item.id },
     });
-    await source.commitInventory(material, [movement]);
+    await source.commitInventory(material, [opening, movement]);
     await source.saveAllocationPolicy(
       createAllocationPolicy({
         id: "allocation-transfer",
@@ -1187,7 +1199,7 @@ describe("LocalTransferService", () => {
     const transfers = new LocalTransferService(target);
     const preview = transfers.prepareImport(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`G4-B import should validate: ${preview.message}`);
-    expect(preview.value.summary).toMatchObject({ allocationPolicies: 1, inventoryMovements: 1 });
+    expect(preview.value.summary).toMatchObject({ allocationPolicies: 1, inventoryMovements: 2 });
     await transfers.confirmImport(preview.value);
     await expect(target.listAllocationPolicies()).resolves.toMatchObject({
       ok: true,
@@ -1197,7 +1209,15 @@ describe("LocalTransferService", () => {
     });
     await expect(target.listInventoryMovements()).resolves.toMatchObject({
       ok: true,
-      value: [{ wasteContext: { kind: "catalog_item", catalogItemId: item.id } }],
+      value: [
+        {
+          id: "waste-context",
+          wasteContext: { kind: "catalog_item", catalogItemId: item.id },
+          /* المجموعة ٢ (عقد ٢٨): معرفة التكلفة تُهاجر غيابًا إلى known (إرث متوافق). */
+          costKnowledge: "known",
+        },
+        { id: "opening-waste" },
+      ],
     });
     const legacy = structuredClone(exported.value) as {
       version: number;

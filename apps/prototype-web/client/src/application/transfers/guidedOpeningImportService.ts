@@ -273,6 +273,17 @@ export class GuidedOpeningImportService {
           unit: input.unit,
           createdAt,
           createdOperationKey: expectedKey("material", input.id),
+          /* المجموعة ٢ (عقد ٢٨): معرفة البداية تُحفظ على المادة — رصيد معلن مؤكد
+           * بمصدر معرفته؛ الإرث المواد المتابعة كما هي (tracked غيابًا). */
+          tracking: { status: "tracked", decidedOn: input.occurredOn, reason: null },
+          opening: {
+            quantityState: "confirmed",
+            quantityMilli: input.openingQuantityMilli,
+            costState: "known",
+            valueMinor: input.openingValueMinor,
+            confirmedOn: input.occurredOn,
+            sourceNote: `${input.source.trim()} (${input.knowledge})`,
+          },
         }),
       );
       const inventoryMovements = file.materials
@@ -303,6 +314,8 @@ export class GuidedOpeningImportService {
         cashContinuityEntries,
         materials,
         inventoryMovements,
+        /* المجموعة ٢ (عقد ٢٨): لا نقص في الاستيراد الافتتاحي — بداية نظيفة معلنة. */
+        inventoryShortages: [],
         catalogItems: [],
         actualTimeRecords: [],
         shortCashDeclarations: [],

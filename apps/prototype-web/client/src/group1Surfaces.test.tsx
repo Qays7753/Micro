@@ -4,6 +4,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { G5Service } from "@/application/g5/g5Service";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
@@ -95,6 +96,8 @@ describe("Finance doorway to the integrity surface (المجموعة ١)", () =>
         g5: new G5Service(store, projectFinance, () => NOW),
         financialPulse: new FinancialPulseService(store),
         fulfillment: new FulfillmentService(store, () => NOW),
+        /* المجموعة ٢ (عقد ٢٨): خدمة المخزون الحقيقية فوق مخزن الذاكرة. */
+        inventory: new InventoryMaterialService(store, () => NOW),
         dataVersion: version,
         notifyDataChanged: () => setVersion(current => current + 1),
       };

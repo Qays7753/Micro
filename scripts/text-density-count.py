@@ -296,7 +296,9 @@ CAPS: dict[str, int] = {
     # sentences (count phrase, net-effect label, the preservation semantics,
     # "افتح الأصل والتصحيح") join the measured set as component strings. Calm
     # one-line treatment, no cards, no warning colors. Mandated labels only.
-    "Finance": 181,
+    # Finance 181 → 182 (2026-09-06, Group 2, عقد ٢٨): one conditional period waste
+    # row (non-cash, outside period result) — SA-4 predicted 182. Decision D-029.
+    "Finance": 182,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -357,7 +359,9 @@ CAPS: dict[str, int] = {
     "DraftEditor": 47,
     # CostEditor 53 → 54 (2026-09-01, repair cycle U-004): source-estimate proposal
     # notice — one mandated bridge label.
-    "CostEditor": 54,
+    # CostEditor 54 → 58 (2026-09-06, Group 2, عقد ٢٨): material suggestion chips
+    # (Scenario G) — group label + unit literals for suggestions. Decision D-029.
+    "CostEditor": 58,
     # AgreementEditor 55 → 59 (2026-09-02, Group 4 final integration fix G4-6):
     # customer name field (label + required note + placeholder + its validation
     # message) — the agreement step is the point where the name becomes required
@@ -378,7 +382,24 @@ CAPS: dict[str, int] = {
     "Catalog": 86,
     # InventoryMaterials 49 → 50 (2026-09-02, Group 5 S1-10): contract-26 return
     # label ("رجوع") when opened with ?from — one mandated navigation label.
-    "InventoryMaterials": 50,
+    # InventoryMaterials 50 → 56 (2026-09-06, Group 2 transfer program, عقد ٢٨):
+    # tracked/cost-only section split, knowledge-state chips + qualifiers
+    # («غير محدد بعد»/«صفر مؤكد»/«التكلفة غير معروفة»), shortage disclosure + resolve,
+    # untrack consequences dialog, awaiting-receipt line (contract-11 promise),
+    # «مرتدة موثقًا» marker — decision record D-029.
+    "InventoryMaterials": 56,
+    # MaterialEditor first measurement (2026-09-06, Group 2, عقد ٢٨): guided journey
+    # (tracking question + opening-state question + cost question + effect preview)
+    # — create + confirm-opening modes. Decision record D-029.
+    "MaterialEditor": 39,
+    # InventoryMovementEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
+    # receipt bridge status card + cost-known question + consume-target question +
+    # shortage alternative panel + effect preview. Decision record D-029.
+    "InventoryMovementEditor": 54,
+    # SupplierPurchaseEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
+    # material link + expected quantity fields + received-status bridge card.
+    # Decision record D-029.
+    "SupplierPurchaseEditor": 62,
     # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
     # label + service truth line — the explicit distribution path is now a first-class
     # wallet-screen concept.
@@ -426,7 +447,9 @@ CAPS: dict[str, int] = {
     # status words (سليم/تحذير/خلل), offender disclosure, and the feeding service's
     # static titles; detail lines are `${}` templates (data-driven, uncounted).
     # Locked at the honest measured number as a ratchet from day one.
-    "ToolsIntegrity": 32,
+    # ToolsIntegrity 32 → 34 (2026-09-06, Group 2, عقد ٢٨): MIC-8 title
+    # («سلامة المخزون والمواد») + generic deep-link label. Decision D-029.
+    "ToolsIntegrity": 34,
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,
     # allocation review card, derived effect preview, guidance notes, draft banner
@@ -460,6 +483,10 @@ PAGES = [
     "AgreementEditor",
     "Catalog",
     "InventoryMaterials",
+    # المجموعة ٢ (عقد ٢٨): محررات المخزون تدخل القياس أول مرة (يوم القياس الأول).
+    "MaterialEditor",
+    "InventoryMovementEditor",
+    "SupplierPurchaseEditor",
     "Suppliers",
     "Foundation",
     "Setup",

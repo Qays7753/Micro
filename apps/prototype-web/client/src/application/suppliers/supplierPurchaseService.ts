@@ -16,6 +16,10 @@ export type SupplierPurchaseInput = {
   totalMinor: number;
   initialPaidMinor: number;
   idempotencyKey: string;
+  /* المجموعة ٢ (عقد ٢٨ / TR-07): ربط مادة اختياري — يغذي جسر الاستلام بالمادة
+   * والكمية المتوقعة والقيمة المتبقية. null = غير معروف (لا صفر). */
+  materialId?: string | null;
+  expectedQuantityMilli?: number | null;
 };
 export type SupplierPurchasePaymentInput = {
   purchaseId: string;
@@ -35,6 +39,9 @@ export type SupplierPurchaseEditInput = {
   initialPaidMinor: number;
   reason: string;
   idempotencyKey: string;
+  /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — جزء التعديل الموثق. */
+  materialId: string | null;
+  expectedQuantityMilli: number | null;
 };
 export type SupplierPaymentReversalInput = {
   purchaseId: string;
@@ -108,6 +115,9 @@ export class SupplierPurchaseService {
         initialPaidMinor: input.initialPaidMinor,
         recordedAt: this.now(),
         idempotencyKey: input.idempotencyKey,
+        /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — اختياري، null = غير معروف. */
+        materialId: input.materialId ?? null,
+        expectedQuantityMilli: input.expectedQuantityMilli ?? null,
       });
       const saved = await this.store.saveSupplierPurchase(purchase);
       return saved.ok
@@ -162,12 +172,18 @@ export class SupplierPurchaseService {
   }
 
   /* المجموعة ٢ (§10.4): تعديل موثق — التصحيح يعدّل الكاش/الذمة بحسب فرق الدفع
-   * الأولي والإجمالي، ويحفظ مراجعة بالقيم قبل التصحيح. لا يُحذف الأصل أبدًا. */
+   * الأولي والإجمالي، ويحفظ مراجعة بالقيم قبل التصحيح. لا يُحذف الأصل أبدًا.
+   * المجموعة ٢ (عقد ٢٨): حارس الاستلام — التعديل لا يجعل الإجمالي/المتوقع أقل
+   * من المستلم الموثّق فعلًا (الإيصالات حركات لا تُعاد بمجرد تعديل الشراء). */
   async editPurchase(
     input: SupplierPurchaseEditInput,
   ): Promise<SupplierPurchaseResult<SupplierPurchase>> {
-    const existing = await this.store.getSupplierPurchase(input.purchaseId);
-    if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة شراء المورد." };
+    const [existing, movements] = await Promise.all([
+      this.store.getSupplierPurchase(input.purchaseId),
+      this.store.listInventoryMovements(),
+    ]);
+    if (!existing.ok || !movements.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة شراء المورد." };
     if (!existing.value)
       return { ok: false, code: "validation_error", message: "اختر شراء مواد مسجلًا قبل تعديله." };
     const repeated = existing.value.revisions?.some(
@@ -176,6 +192,49 @@ export class SupplierPurchaseService {
     if (repeated) return { ok: true, value: existing.value, reused: true };
     if (!input.reason.trim())
       return { ok: false, code: "validation_error", message: "اكتب سبب التعديل قبل الحفظ." };
+    const reversedMovementIds = new Set(
+      movements.value
+        .filter(movement => movement.type === "reversal" && movement.reversesMovementId)
+        .map(movement => movement.reversesMovementId),
+    );
+    const activeReceipts = movements.value.filter(
+      movement =>
+        movement.type === "purchase_receipt" &&
+        movement.purchaseId === input.purchaseId &&
+        !reversedMovementIds.has(movement.id),
+    );
+    const receivedValueMinor = activeReceipts.reduce(
+      (sum, movement) => sum + movement.valueDeltaMinor,
+      0,
+    );
+    if (input.totalMinor < receivedValueMinor)
+      return {
+        ok: false,
+        code: "validation_error",
+        message: `الإجمالي الجديد أقل من قيمة مستلمة موثقة (${receivedValueMinor / 100} د.أ) — راجع إيصالات الاستلام أولًا.`,
+      };
+    /* SA-5 (F3): الربط لا يُبدَّل ولا يُفرَّغ وإيصالات قائمة عليه — وحدات
+     * الإيصالات القديمة تبقى على المادة القديمة فيلوّث الحساب لو سُمح. */
+    const currentMaterialId = existing.value.materialId ?? null;
+    const nextMaterialId = input.materialId ?? null;
+    if (activeReceipts.length > 0 && nextMaterialId !== currentMaterialId)
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "لا يمكن تغيير ربط المادة مع إيصالات استلام قائمة على الربط الحالي — راجع إيصالات الاستلام أولًا.",
+      };
+    if (input.expectedQuantityMilli !== null && input.expectedQuantityMilli !== undefined) {
+      const receivedQuantityMilli = activeReceipts.reduce(
+        (sum, movement) => sum + movement.quantityDeltaMilli,
+        0,
+      );
+      if (input.expectedQuantityMilli < receivedQuantityMilli)
+        return {
+          ok: false,
+          code: "validation_error",
+          message: "الكمية المتوقعة الجديدة أقل من الكمية المستلمة الموثقة — راجع إيصالات الاستلام أولًا.",
+        };
+    }
     try {
       const updated = updateSupplierPurchase(existing.value, {
         supplierName: input.supplierName,
@@ -187,6 +246,8 @@ export class SupplierPurchaseService {
         recordedAt: this.now(),
         idempotencyKey: input.idempotencyKey,
         reason: input.reason,
+        materialId: input.materialId,
+        expectedQuantityMilli: input.expectedQuantityMilli,
       });
       const saved = await this.store.saveSupplierPurchase(updated);
       return saved.ok

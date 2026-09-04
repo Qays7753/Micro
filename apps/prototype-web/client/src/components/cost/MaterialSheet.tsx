@@ -12,11 +12,23 @@ import {
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import type { DraftCostMaterial } from "@/storage/local/types";
+import { MoneyValue } from "@/components/presentation/DisplayValue";
+
+/* المجموعة ٢ (عقد ٢٨ — السيناريو G): مقترحات مواد من المخزون — تعبئة أرقام
+ * فقط؛ لا حركة مخزون ولا حدث نقدي يُنشأ أبدًا من التقدير. */
+export type MaterialSuggestion = {
+  materialId: string;
+  name: string;
+  unit: string;
+  unitPriceMinor: number | null;
+  fromReceipt: boolean;
+};
 
 export type MaterialSheetProps = {
   value: { index: number | null; draft: DraftCostMaterial } | null;
   message: string | null;
   validity: Record<string, boolean>;
+  suggestions?: readonly MaterialSuggestion[];
   onOpenChange: (open: boolean) => void;
   onChange: (patch: Partial<DraftCostMaterial>) => void;
   onValidityChange: (key: string, isValid: boolean) => void;
@@ -27,6 +39,7 @@ export function MaterialSheet({
   value,
   message,
   validity,
+  suggestions = [],
   onOpenChange,
   onChange,
   onValidityChange,
@@ -55,10 +68,46 @@ export function MaterialSheet({
               </div>
             </DrawerHeader>
             <div className="micro-sheet-form">
+              {/* المجموعة ٢ (عقد ٢٨): المقترحات أول الجسم — مسار اليد الواحدة:
+               * بلمسة قبل تركيز أي حقل لا يفتح لوحة المفاتيح أصلًا. */}
+              {suggestions.length > 0 && value?.index === null ? (
+                <div className="micro-suggest-group" data-testid="material-suggestions">
+                  <small className="micro-suggest-group-label">مقترحات من موادك — السعر من آخر استلام</small>
+                  <div className="micro-suggest-chip-row">
+                    {suggestions.slice(0, 6).map(suggestion => (
+                      <button
+                        key={suggestion.materialId}
+                        className="micro-suggest-chip"
+                        type="button"
+                        onClick={() => {
+                          onChange({
+                            name: suggestion.name,
+                            unit: suggestion.unit,
+                            ...(suggestion.unitPriceMinor !== null
+                              ? {
+                                  unitPriceMinor: suggestion.unitPriceMinor,
+                                  confidence: suggestion.fromReceipt ? "known" : "estimated",
+                                }
+                              : { confidence: "estimated" }),
+                          });
+                        }}
+                      >
+                        {suggestion.name}
+                        {suggestion.unitPriceMinor !== null ? (
+                          <>
+                            {" · "}
+                            <MoneyValue minor={suggestion.unitPriceMinor} className="micro-inline-number" /> د.أ
+                          </>
+                        ) : null}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <label className="micro-field">
                 <span>المادة</span>
                 <input
-                  autoFocus
+                  autoFocus={suggestions.length === 0}
                   value={value.draft.name}
                   onChange={event => onChange({ name: event.target.value })}
                 />

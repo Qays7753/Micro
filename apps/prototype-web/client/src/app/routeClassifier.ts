@@ -34,6 +34,8 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/cash\/wallet\/[^/]+\/opening-later$/,
   /^\/cash\/entry\/[^/]+\/reverse$/,
   /^\/inventory\/material\/new$/,
+  /* المجموعة ٢ (عقد ٢٨): تأكيد رصيد مادة قائمة — محرر عميق كإخوته. */
+  /^\/inventory\/material\/[^/]+\/confirm$/,
   /^\/inventory\/movement\/[^/]+\/reverse$/,
   /^\/inventory\/movement\/[^/]+$/,
   /^\/schedule\/[^/]+$/,

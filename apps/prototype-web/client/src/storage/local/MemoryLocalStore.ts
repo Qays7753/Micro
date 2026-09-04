@@ -2,7 +2,7 @@
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
-import type { InventoryMovement, Material } from "@micro-domain/inventory-material/index.js";
+import type { InventoryMovement, InventoryShortage, Material } from "@micro-domain/inventory-material/index.js";
 import type {
   CatalogItem,
   CatalogTemplate,
@@ -51,6 +51,8 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   private cashContinuityEntries = new Map<string, CashContinuityEntry>();
   private materials = new Map<string, Material>();
   private inventoryMovements = new Map<string, InventoryMovement>();
+  /* المجموعة ٢ (عقد ٢٨): سجلات النقص في الذاكرة أيضًا — تطابق المتصفح اختبارًا وسلوكًا. */
+  private inventoryShortages = new Map<string, InventoryShortage>();
   private inventoryActivation: InventoryActivation | null = null;
   private catalogItems = new Map<string, CatalogItem>();
   private measurementUnits = new Map<string, MeasurementUnit>();
@@ -377,6 +379,35 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     return {
       ok: true,
       value: { material: material ? clone(material) : null, movements: movements.map(clone) },
+    };
+  }
+  async listInventoryShortages(): Promise<StorageResult<readonly InventoryShortage[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.inventoryShortages.values())
+        .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn) || b.recordedAt.localeCompare(a.recordedAt))
+        .map(clone),
+    };
+  }
+  async commitInventoryWithShortage(
+    material: Material | null,
+    movements: readonly InventoryMovement[],
+    shortage: InventoryShortage | null,
+  ): Promise<StorageResult<{
+    material: Material | null;
+    movements: readonly InventoryMovement[];
+    shortage: InventoryShortage | null;
+  }>> {
+    if (material) this.materials.set(material.id, clone(material));
+    movements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    if (shortage) this.inventoryShortages.set(shortage.id, clone(shortage));
+    return {
+      ok: true,
+      value: {
+        material: material ? clone(material) : null,
+        movements: movements.map(clone),
+        shortage: shortage ? clone(shortage) : null,
+      },
     };
   }
   async listCatalogItems(): Promise<StorageResult<readonly CatalogItem[]>> {
@@ -776,6 +807,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         cashContinuityEntries: Array.from(this.cashContinuityEntries.values()).map(clone),
         materials: Array.from(this.materials.values()).map(clone),
         inventoryMovements: Array.from(this.inventoryMovements.values()).map(clone),
+        inventoryShortages: Array.from(this.inventoryShortages.values()).map(clone),
         inventoryActivation: this.inventoryActivation ? clone(this.inventoryActivation) : null,
         catalogItems: Array.from(this.catalogItems.values()).map(clone),
         measurementUnits: Array.from(this.measurementUnits.values()).map(clone),
@@ -805,6 +837,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
       materials: snapshot.materials ?? [],
       inventoryMovements: snapshot.inventoryMovements ?? [],
+      inventoryShortages: snapshot.inventoryShortages ?? [],
       inventoryActivation: snapshot.inventoryActivation ?? null,
       catalogItems: snapshot.catalogItems ?? [],
       measurementUnits: snapshot.measurementUnits ?? [],
@@ -833,6 +866,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.cashContinuityEntries = new Map(safe.cashContinuityEntries.map(entry => [entry.id, entry]));
     this.materials = new Map(safe.materials.map(material => [material.id, material]));
     this.inventoryMovements = new Map(safe.inventoryMovements.map(movement => [movement.id, movement]));
+    this.inventoryShortages = new Map(
+      (safe.inventoryShortages ?? []).map(shortage => [shortage.id, shortage]),
+    );
     this.inventoryActivation = safe.inventoryActivation ?? null;
     this.catalogItems = new Map(safe.catalogItems.map(item => [item.id, item]));
     this.measurementUnits = new Map((safe.measurementUnits ?? []).map(unit => [unit.id, unit]));
