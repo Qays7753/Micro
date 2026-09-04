@@ -44,7 +44,9 @@ export default function AssetEditor() {
     if (longUse === "yes") {
       const life = Number(lifeMonths);
       if (!Number.isInteger(life) || life < 1 || life > 600)
-        return "أدخل العمر النافع عددًا صحيحًا بين ١ و٦٠٠ شهرًا، أو اختر «مجهول».";
+        /* تصحيح مراجعة 4-d: الأرقام الظاهرة إنجليزية دومًا، والإرشاد يصف
+         * المسار الحقيقي (ترك الحقل فارغًا) لا خيارًا غير موجود. */
+        return "أدخل العمر النافع عددًا صحيحًا بين 1 و600 شهرًا، أو اتركه فارغًا ليبقى مجهولًا.";
       if (startOn && startOn < purchaseDate) return "بداية الاستخدام لا تسبق تاريخ الشراء.";
     }
     return null;

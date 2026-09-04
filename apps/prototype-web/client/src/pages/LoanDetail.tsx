@@ -33,6 +33,8 @@ export default function LoanDetail() {
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reversalTargetId, setReversalTargetId] = useState<string | null>(null);
+  const [reversalReason, setReversalReason] = useState("");
 
   useEffect(() => {
     const match = window.location.pathname.match(/^\/loans\/([^/]+)$/);
@@ -62,19 +64,24 @@ export default function LoanDetail() {
     );
   const { loan, reading, events } = state.reading;
 
-  async function reverseRepayment(repaymentId: string, repaymentNote: string) {
-    const reversalReason = window.prompt(`سبب تراجع دفعة «${repaymentNote}» (مطلوب):`);
-    if (!reversalReason || !reversalReason.trim()) return;
+  /* تصحيح مراجعة 4-d: سبب التراجع داخل الصف بلا نافذة متصفح عائمة — نفس
+   * نمط micro-inline-reversal في تفاصيل الأصل. */
+  function confirmInlineReversal(repaymentId: string) {
+    const trimmed = reversalReason.trim();
+    if (!trimmed) return;
     setBusy(true);
-    const result = await loans.reverseRepayment(loan.id, repaymentId, reversalReason);
-    setBusy(false);
-    if (!result.ok) {
-      setMessage(result.message);
-      return;
-    }
-    setMessage(null);
-    notifyDataChanged();
-    load();
+    void loans.reverseRepayment(loan.id, repaymentId, trimmed).then(result => {
+      setBusy(false);
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
+      setMessage(null);
+      setReversalTargetId(null);
+      setReversalReason("");
+      notifyDataChanged();
+      load();
+    });
   }
 
   async function correctLoan() {
@@ -172,7 +179,7 @@ export default function LoanDetail() {
           </label>
           <label className="micro-field">
             <span>سبب التصحيح (مطلوب)</span>
-            <input value={reason} onChange={event => setReason(event.target.value)} placeholder="مثال: المبلغ الصحيح ٥٠٠ لا ٤٥٠" />
+            <input value={reason} onChange={event => setReason(event.target.value)} placeholder="مثال: المبلغ الصحيح 500 لا 450" />
           </label>
           <div className="micro-form-actions">
             <button className="micro-button micro-button-primary" type="button" disabled={busy} onClick={() => void correctLoan()}>
@@ -198,12 +205,39 @@ export default function LoanDetail() {
                 <span>{repayment.note ?? "دفعة سداد"}</span>
                 {repayment.reversal ? (
                   <small>معكوسة موثقة: {repayment.reversal.reason}</small>
+                ) : reversalTargetId === repayment.id ? (
+                  <span className="micro-inline-reversal">
+                    <input
+                      value={reversalReason}
+                      onChange={event => setReversalReason(event.target.value)}
+                      placeholder="سبب تراجع الدفعة (مطلوب)"
+                      aria-label="سبب تراجع الدفعة"
+                    />
+                    <button
+                      className="micro-text-action"
+                      type="button"
+                      disabled={busy || !reversalReason.trim()}
+                      onClick={() => confirmInlineReversal(repayment.id)}
+                    >
+                      أكّد التراجع
+                    </button>
+                    <button
+                      className="micro-text-action"
+                      type="button"
+                      onClick={() => {
+                        setReversalTargetId(null);
+                        setReversalReason("");
+                      }}
+                    >
+                      إلغاء
+                    </button>
+                  </span>
                 ) : (
                   <button
                     className="micro-text-action"
                     type="button"
                     disabled={busy}
-                    onClick={() => void reverseRepayment(repayment.id, repayment.note ?? formatMoneyMinor(repayment.amountMinor))}
+                    onClick={() => setReversalTargetId(repayment.id)}
                   >
                     تراجع
                   </button>
