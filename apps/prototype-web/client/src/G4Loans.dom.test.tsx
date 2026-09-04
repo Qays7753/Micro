@@ -12,6 +12,7 @@ import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/finance/retainedDepositService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { FormDraftService } from "@/application/drafts/formDraftService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import Loans from "@/pages/Loans";
 import LoanEditor from "@/pages/LoanEditor";
@@ -42,6 +43,7 @@ const contextRef: { current: Record<string, unknown> } = { current: {} };
 function Harness({ page }: { page: React.ReactNode }) {
   const [version, setVersion] = React.useState(0);
   contextRef.current = {
+    formDrafts: new FormDraftService(store),
     loans,
     cashContinuity: new CashContinuityService(store, () => NOW),
     assets: new AssetService(store, () => NOW),

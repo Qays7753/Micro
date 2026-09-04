@@ -16,6 +16,8 @@ import {
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import { LockSettingsCard } from "@/components/security/LockSettingsCard";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { formatLocalDate } from "@/presentation/formatters";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
@@ -55,8 +57,10 @@ export default function SettingsPage() {
   /* S1-13: زر رجوع موحد — الأساس بديل قانوني، و?from (من صفحة الأساس) يُحترم. */
   const returnPath = useReturnPath();
   const search = useSearch();
-  const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged } =
+  const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged, integrityCheck } =
     usePrototypeServices();
+  /* المجموعة ٥ (عقد ٣٩): حكم فحص السلامة بعد الاستعادة — يُعرض مع رابط التفاصيل. */
+  const [restoreCheck, setRestoreCheck] = useState<{ overall: "PASS" | "WARN" | "FAIL"; note: string } | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
   /* المجموعة ١ (Scope A/E): ?focus=guided-import يفتح بطاقة إدخال الموقف الافتتاحي
    * مباشرة — الوصلة من صفحة الأساس تصل للموضع لا لصفحة عامة. القيمة المجهولة تُهمل. */
@@ -254,6 +258,18 @@ export default function SettingsPage() {
     setPreview(null);
     notifyDataChanged();
     setStorageNotice("تم استبدال البيانات المحلية بالملف الذي راجعته.");
+    /* المجموعة ٥ (عقد ٣٩): فحص سلامة بعد الاستعادة مباشرة — قراءة جديدة فوق
+     * البيانات المستعادة، بلا إصلاح تلقائي؛ النتيجة إجمالية مع رابط للتفاصيل. */
+    const check = await integrityCheck.run();
+    setRestoreCheck({
+      overall: check.overall,
+      note:
+        check.overall === "PASS"
+          ? "فحص السلامة بعد الاستعادة: سليم — الأرقام المستعادة متسقة مع قواعدها (الاتساق لا الجدوى)."
+          : check.overall === "WARN"
+            ? "فحص السلامة بعد الاستعادة: توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل."
+            : "فحص السلامة بعد الاستعادة: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
+    });
     if (!result.value.profile) navigate("/setup");
   }
 
@@ -356,6 +372,8 @@ export default function SettingsPage() {
             <p>لا توجد مزامنة سحابية أو تسجيل دخول أو نسخة احتياطية تلقائية هنا.</p>
           </div>
         </article>
+        {/* المجموعة ٥ (عقد ٣٧): قفل محلي اختياري — تفعيل وتعطيل بالرمز. */}
+        <LockSettingsCard />
         {/* P-001: سياسة دقة المال معلنة — قرشان (منزلتان عشريتان) في كل مكان:
             الإدخال والحساب والعرض والتصدير وحدةً واحدة متسقة، بلا تحويل يدوي
             ولا تفسير جديد للوحدة. ما دون القرش يُقرّب عند الإدخال بثبات، لا
@@ -812,6 +830,20 @@ export default function SettingsPage() {
           <p className="micro-save-note" role="status">
             {notice.text}
           </p>
+        ) : null}
+        {restoreCheck ? (
+          <article className="micro-setting-row" data-status={restoreCheck.overall}>
+            <div>
+              <strong data-status={restoreCheck.overall}>{restoreCheck.note}</strong>
+              <button
+                className="micro-text-action"
+                type="button"
+                onClick={() => navigate(withFrom("/tools/integrity", "/settings"))}
+              >
+                افتح فحص السلامة
+              </button>
+            </div>
+          </article>
         ) : null}
         </div>
       </details>

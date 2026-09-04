@@ -51,8 +51,8 @@ describe("schema 31 export round-trip with expense category labels", () => {
     /* المجموعة ٢: الرقم الحي صار ٢٤/٣٢ — ملف المجموعة ١ يُهاجر ضمن أحدث زوج. */
     /* المجموعة ٣ (عقد D3): زوج الإصدار انتقل إلى ٢٥/٣٣ مع حقول ربط المنتج
      * بالبيع — السلوك المدقق نفسه يبقى على الزوج الحي. */
-    expect(verified.value.file.version).toBe(26);
-    expect(verified.value.file.schemaVersion).toBe(34);
+    expect(verified.value.file.version).toBe(27);
+    expect(verified.value.file.schemaVersion).toBe(35);
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
@@ -78,8 +78,15 @@ describe("schema 31 export round-trip with expense category labels", () => {
       schemaVersion: number;
       data: { financialEvents: (FinancialEvent & Record<string, unknown>)[] };
     };
-    legacyFile.version = 22;
+    legacyFile.version = 22;    delete (legacyFile as Record<string, unknown>).integrity;
+    delete (legacyFile as Record<string, unknown>).counts;
+    delete (legacyFile as Record<string, unknown>).appVersion;
+
     legacyFile.schemaVersion = 30;
+    /* المجموعة ٥: ملفات الموجات القديمة بلا مظروف التكامل — يُحذف عند المحاكاة. */
+    delete (legacyFile as Record<string, unknown>).integrity;
+    delete (legacyFile as Record<string, unknown>).counts;
+    delete (legacyFile as Record<string, unknown>).appVersion;
     for (const event of legacyFile.data.financialEvents)
       if (event.expenseContext) delete event.expenseContext.categoryLabel;
     const prepared = new LocalTransferService(new MemoryLocalStore(), now).prepareImport(
@@ -102,6 +109,10 @@ describe("schema 31 export round-trip with expense category labels", () => {
       data: { financialEvents: { expenseContext?: Record<string, unknown> }[] };
     };
     file.data.financialEvents[0]!.expenseContext!.categoryLabel = "  بنزين     وقود   ";
+    /* المجموعة ٥: بلا مظروف تكامل — التعديل المُحاكى على ملف بلا بصمة. */
+    delete (file as Record<string, unknown>).integrity;
+    delete (file as Record<string, unknown>).counts;
+    delete (file as Record<string, unknown>).appVersion;
     const prepared = new LocalTransferService(new MemoryLocalStore(), now).prepareImport(
       JSON.stringify(file),
     );

@@ -3,6 +3,7 @@
  * سداد دفعة من ورقة سفلية، وتراجع دفعة خطأ بقرار موثق يبقي الأصل في
  * التاريخ. تصحيح القرض (اسم/مبلغ) عكس + بديل عبر الخدمة نفسها.
  */
+import { loanInstallmentCountLabel } from "@/presentation/g5Plurals";
 import { HandCoins, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -128,7 +129,7 @@ export default function LoanDetail() {
           <span>المتبقي</span>
           <strong><MoneyValue minor={reading.outstandingMinor} /> د.أ</strong>
           <p>
-            رجع منه <MoneyValue minor={reading.repaidActiveMinor} /> د.أ في {reading.repaymentCount} دفعة قائمة —
+            رجع منه <MoneyValue minor={reading.repaidActiveMinor} /> د.أ {loanInstallmentCountLabel(reading.repaymentCount)} —
             المتبقي مشتق لا مخزن.
           </p>
         </div>

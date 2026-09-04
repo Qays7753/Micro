@@ -23,6 +23,7 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import type { StatementService } from "@/application/finance/statementService";
 import type { CashContinuityService } from "@/application/cash/cashContinuityService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@/presentation/formatters";
 
 export type IntegrityCheckStatus = "PASS" | "WARN" | "FAIL";
@@ -37,7 +38,12 @@ export type IntegrityCheckId =
   | "MIC-10"
   | "MIC-11"
   | "MIC-12"
-  | "MIC-13";
+  | "MIC-13"
+  /* المجموعة ٥ (عقد ٣٥): صحة الكاش غير الموزّع، تفرّد مفاتيح الأحداث،
+  * وفصل مال المالك عن النتيجة والمصروف. */
+  | "MIC-14"
+  | "MIC-15"
+  | "MIC-16";
 export type IntegrityCheckResult = {
   id: IntegrityCheckId;
   titleAr: string;
@@ -54,6 +60,10 @@ export type IntegrityCheckReport = {
   to: string;
   overall: IntegrityCheckStatus;
   checks: readonly IntegrityCheckResult[];
+  /* المجموعة ٥ (عقد ٣٥): ختم إصدار الفحص — إصدار المخطط وإصدار التصدير
+   * لحظة التشغيل، فيعرف المالك أي جيل من القواعد فحص أرقامه. */
+  schemaVersion: number;
+  exportVersion: number;
 };
 
 const SOURCE_REF_KINDS = ["sale", "expense", "collection", "order"] as const;
@@ -114,6 +124,10 @@ export class IntegrityCheckService {
     const mic11 = await this.checkLoanIntegrity(events);
     const mic12 = await this.checkRetainedDepositIntegrity(events);
     const mic13 = await this.checkDeliveryConsumptionIntegrity();
+    /* المجموعة ٥ (عقد ٣٥): فحوص الاستمرارية الثلاثة — قراءة متسلسلة كإخوتها. */
+    const mic14 = await this.checkUnallocatedCashTruth();
+    const mic15 = this.checkEventKeyUniqueness(events);
+    const mic16 = this.checkOwnerMoneySeparation(events);
     return this.report(from, to, [
       mic1.result,
       mic2,
@@ -125,6 +139,9 @@ export class IntegrityCheckService {
       mic11,
       mic12,
       mic13,
+      mic14,
+      mic15,
+      mic16,
     ]);
   }
 
@@ -134,7 +151,15 @@ export class IntegrityCheckService {
       : checks.some(check => check.status === "WARN")
         ? "WARN"
         : "PASS";
-    return { runAt: this.now(), from, to, overall, checks };
+    return {
+      runAt: this.now(),
+      from,
+      to,
+      overall,
+      checks,
+      schemaVersion: localSchemaVersion,
+      exportVersion: localExportVersion,
+    };
   }
 
   /* ─── MIC-1: تطابق نتيجة الفترة عبر الأسطح (القارئ الكنسي) ───
@@ -914,6 +939,111 @@ export class IntegrityCheckService {
     };
   }
 
+  /* ─── MIC-14 (المجموعة ٥): صحة الكاش غير الموزّع — الكاش الكلي مسجل
+   * المصادر، وما لم يخصص بعد ليس خطأً بل حالة معلنة (عربونات اتفاق، قبض لم
+   * يوزّع). السالب وحده تحذير صادق: إنفاق فوق مصادر مسجلة. عربونات الطلبات
+   * الملغاة بلا تسوية (needs_review) تدخل المعلق ذاته — قرار معلق لا رقم مختفي. */
+  private async checkUnallocatedCashTruth(): Promise<IntegrityCheckResult> {
+    const [positionResult, ordersResult] = await Promise.all([
+      this.projectFinance.readPosition(),
+      this.store.listOrders(),
+    ]);
+    if (!positionResult.ok || !ordersResult.ok)
+      return this.fail("MIC-14", "تعذر قراءة مركز الكاش غير الموزّع — أعد المحاولة.", []);
+    const unallocated = positionResult.value.unallocatedCashMinor;
+    const needsReview = ordersResult.value.filter(
+      stored => stored.order.status === "cancelled" && stored.order.depositSettlement === "needs_review",
+    );
+    const needsReviewMinor = needsReview.reduce((sum, stored) => sum + stored.order.depositCollectedMinor, 0);
+    if (unallocated < 0) {
+      return {
+        id: "MIC-14",
+        titleAr: INTEGRITY_TITLES["MIC-14"],
+        status: "WARN",
+        detailAr: `الكاش غير الموزّع سالب (${Math.round(-unallocated / 100)} د.أ) — أنفقت أو خصّصت أكثر من مصادر الكاش المسجلة؛ راجع مصدر الفرق قبل الاعتماد على أي رصيد محفظة.`,
+        driftMinor: -unallocated,
+        deepLink: "/cash",
+      };
+    }
+    const pendingNote =
+      needsReview.length > 0
+        ? ` وفيها ${needsReview.length} طلبًا ملغى بعربون بلا تسوية (${Math.round(needsReviewMinor / 100)} د.أ) — قراري الرد/الاحتفاظ بانتظارك من صفحة الطلب.`
+        : "";
+    return {
+      id: "MIC-14",
+      titleAr: INTEGRITY_TITLES["MIC-14"],
+      status: "PASS",
+      detailAr:
+        unallocated === 0
+          ? "لا كاش غير موزّع — كل ما سُجل مصادرّه وتخصيصاته متسقة."
+          : `كاش غير موزّع: ${Math.round(unallocated / 100)} د.أ — حالة معلنة لا خطأً: عربونات اتفاق وقبض لم يوزّع بعد؛ وزّعه للمحافظ حين تجهز.${pendingNote}`,
+      driftMinor: unallocated,
+      deepLink: "/cash",
+    };
+  }
+
+  /* ─── MIC-15 (المجموعة ٥): تفرّد مفاتيح الحتمية — طبقة التحقق نفسها التي
+   * يفرضها الاستيراد على الملفات، لكن على المخزن الحيّ: نسخة معدّلة يدويًا
+   * بمعرّف جديد ومفتاح مكرر تمرّ من كل الفحوص الأخرى وتُمسك هنا فقط. */
+  private checkEventKeyUniqueness(events: readonly FinancialEvent[]): IntegrityCheckResult {
+    const seen = new Map<string, number>();
+    for (const event of events) seen.set(event.idempotencyKey, (seen.get(event.idempotencyKey) ?? 0) + 1);
+    const duplicates = events.filter(event => (seen.get(event.idempotencyKey) ?? 0) > 1);
+    if (duplicates.length > 0) {
+      return this.fail(
+        "MIC-15",
+        `مفاتيح حتمية مكررة في ${duplicates.length} حدثًا — قد يكرّر أثرًا ماليًا؛ راجع السجل والتصحيح الموثق قبل الاعتماد على أي رقم.`,
+        duplicates.map(event => event.id),
+        null,
+        EVENTS_DEEP_LINK,
+      );
+    }
+    return {
+      id: "MIC-15",
+      titleAr: INTEGRITY_TITLES["MIC-15"],
+      status: "PASS",
+      detailAr: "كل حدث مفتاحه فريد — لا أثر مالي مكرر في سجلك الحي.",
+    };
+  }
+
+  /* ─── MIC-16 (المجموعة ٥): فصل مال المالك — قاعدة جدول الدلتا نفسها:
+   * دلتا رأس مال المالك لا تسكن إلا أنواع المالك (استثمار/سحب/عربون-مالك)،
+   * وأنواع المالك لا تحمل مصروفًا ولا إيرادًا معلنًا. أي خلط = تسريب مال
+   * المالك إلى النتيجة أو العكس — يُعرض لا يُصلح. */
+  private checkOwnerMoneySeparation(events: readonly FinancialEvent[]): IntegrityCheckResult {
+    const OWNER_TYPES = new Set([
+      "owner_investment_cash",
+      "owner_withdrawal_cash",
+      "deposit_retained_owner",
+    ]);
+    const offenders: string[] = [];
+    for (const event of events) {
+      const ownerDelta = event.ownerCapitalDeltaMinor;
+      const isOwnerType = OWNER_TYPES.has(event.type);
+      if (ownerDelta !== 0 && !isOwnerType) offenders.push(`مال-مالك-في-غير-نوعه:${event.id}`);
+      if (isOwnerType && ownerDelta === 0 && event.correctionType !== "reverse")
+        offenders.push(`نوع-مالك-بلا-أثر:${event.id}`);
+      if (isOwnerType && (event.operatingExpenseDeltaMinor !== 0 || (event.revenueDeltaMinor ?? 0) !== 0))
+        offenders.push(`مالك-يخالط-النتيجة:${event.id}`);
+    }
+    if (offenders.length > 0) {
+      return this.fail(
+        "MIC-16",
+        `فصل مال المالك مكسور في ${offenders.length} موضعًا — مال المالك أو عربونه اختلط بالمصروف/الإيراد؛ صحّح بالتراجع الموثق من سطحه.`,
+        offenders,
+        null,
+        EVENTS_DEEP_LINK,
+      );
+    }
+    return {
+      id: "MIC-16",
+      titleAr: INTEGRITY_TITLES["MIC-16"],
+      status: "PASS",
+      detailAr:
+        "مال المالك مفصول: الاستثمار والسحب والعربون-المالك لا يدخلون نتيجة الفترة ولا مصاريفها أبدًا.",
+    };
+  }
+
   private fail(
     id: IntegrityCheckId,
     detailAr: string,
@@ -945,4 +1075,8 @@ export const INTEGRITY_TITLES: Record<IntegrityCheckId, string> = {
   "MIC-11": "سلامة القروض والسداد",
   "MIC-12": "تصنيف العربون المحتفظ",
   "MIC-13": "ربط استهلاك التسليم",
+  /* المجموعة ٥ (عقد ٣٥): فحوص الاستمرارية الثلاثة. */
+  "MIC-14": "صحة الكاش غير الموزّع",
+  "MIC-15": "تفرّد مفاتيح الأحداث",
+  "MIC-16": "فصل مال المالك",
 };

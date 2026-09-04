@@ -3,7 +3,7 @@
  * الأمانات عن الذمم عن مال المالك، ويفسر المجهول بصدق، ويصل كل سطر بمصدره.
  * الأسبوع الحالي افتراضيًا؛ نطاقات سريعة ونطاق مخصص — والرجوع للمصدر محفوظ.
  */
-import { ArrowLeft, FileText, HandCoins, Landmark, ReceiptText, WalletCards } from "lucide-react";
+import { ArrowLeft, FileText, HandCoins, Landmark, ReceiptText, Share2, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -11,6 +11,9 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { RestatementNote } from "@/components/finance/RestatementNote";
+import { StatementMarkdownService } from "@/application/finance/statementMarkdownService";
+import { categoryCountLabel } from "@/presentation/g5Plurals";
+import { canShareText, downloadTextFile, shareTextManually } from "@/lib/textDelivery";
 import { formatLocalDate, formatLocalDateLong, localDateInAmman , formatMoneyWithUnit } from "@/presentation/formatters";
 import type { StatementLine, StatementReading, StatementExpenseCategoryGroup } from "@/application/finance/statementService";
 
@@ -141,6 +144,8 @@ export default function Statement() {
   const search = useSearch();
   const returnPath = useReturnPath();
   const { statement, dataVersion } = usePrototypeServices();
+  const markdownRenderer = new StatementMarkdownService();
+  const [reportNotice, setReportNotice] = useState<string | null>(null);
   const today = localDateInAmman();
   const thisWeek = weekBounds(today);
   const [range, setRange] = useState<QuickRange>("this_week");
@@ -202,6 +207,31 @@ export default function Statement() {
   const openWithReferrer = (path: string) => navigate(`${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent("/finance/statement")}`);
   /* روابط المصادر تعود للكشف عبر ?from= لا للمالي — السياق محفوظ. */
   const sourceHref = new URLSearchParams(search).get("from");
+
+  /* المجموعة ٥ (عقد ٣٢): تقرير محلي — التنزيل متاح دائمًا، والمشاركة تحسين
+   * اختياري عبر نظام المشاركة بالنص وحده؛ التوليد لا يغيّر أي رقم ولا يسجل
+   * حدثًا. */
+  const generateReport = async () => {
+    setReportNotice(null);
+    const rendered = markdownRenderer.render(reading);
+    if (!rendered.ok) {
+      setReportNotice(rendered.message);
+      return;
+    }
+    downloadTextFile(rendered.value.filename, rendered.value.markdown, "text/markdown");
+    if (canShareText()) {
+      const outcome = await shareTextManually(rendered.value.markdown);
+      setReportNotice(
+        outcome === "shared"
+          ? "التقرير جاهز ونُزّل، وفتح نظام المشاركة بيدك — الإرسال قرارك هناك."
+          : outcome === "copied"
+            ? "التقرير نُزّل ونسخ نصه للحافظة — مشاركته قرارك اليدوي."
+            : "التقرير نُزّل ملفًا نصيًا — نسخة قراءة لحظة، ليست حدثًا ماليًا.",
+      );
+      return;
+    }
+    setReportNotice("التقرير نُزّل ملفًا نصيًا — نسخة قراءة لحظة من سجلك، ليست حدثًا ماليًا.");
+  };
 
   return (
     <section className="micro-page micro-statement-page">
@@ -358,7 +388,7 @@ export default function Statement() {
           <summary className="micro-finance-layer-summary">
             <span>
               <b>مصاريفي حسب تصنيفي</b>
-              <small>{`${reading.expenseCategories.length} تصنيفًا في هذه الفترة — وسمك البشري، لا تصنيفًا محاسبيًا`}</small>
+              <small>{`${categoryCountLabel(reading.expenseCategories.length)} — وسمك البشري، لا تصنيفًا محاسبيًا`}</small>
             </span>
             <strong>افتح التجميع</strong>
           </summary>
@@ -372,6 +402,118 @@ export default function Statement() {
             ))}
           </section>
         </details>
+      ) : null}
+      {/* المجموعة ٥ (عقد ٣١): بنود عقد ٢٩ غير النقدية وطبقات المركز — طبقة
+       * مطوية كإخواتها؛ أرقامها من القارئ الكنوني نفسه (قراءة، لا حساب جديد). */}
+      <details className="micro-finance-layer micro-statement-deep">
+        <summary className="micro-finance-layer-summary">
+          <span>
+            <b>الأصول والقروض والعربونات في النتيجة</b>
+            <small>الإهلاك والشطب والتخلص والعربون المصنّف — وطبقات مستقلة الآن</small>
+          </span>
+          <strong>افتح العمق</strong>
+        </summary>
+        <section className="micro-finance-event-list">
+          <article className="micro-finance-event">
+            <div className="micro-finance-event-main">
+              <div>
+                <strong>إهلاك الأصول</strong>
+                <small>غير نقدي — يخفض النتيجة لا الكاش</small>
+              </div>
+              <b>
+                <MoneyValue minor={reading.blocks.deepFinance.depreciationMinor} /> د.أ
+              </b>
+            </div>
+          </article>
+          <article className="micro-finance-event">
+            <div className="micro-finance-event-main">
+              <div>
+                <strong>خسارة شطب أصول</strong>
+                <small>غير نقدي — مبلغ دفتري مفقود</small>
+              </div>
+              <b>
+                <MoneyValue minor={reading.blocks.deepFinance.writeOffLossMinor} /> د.أ
+              </b>
+            </div>
+          </article>
+          <article className="micro-finance-event">
+            <div className="micro-finance-event-main">
+              <div>
+                <strong>نتيجة التخلص من أصول</strong>
+                <small>مقابل البيع ناقصًا الدفتري</small>
+              </div>
+              <b>
+                <MoneyValue minor={reading.blocks.deepFinance.disposalResultMinor} showPlus /> د.أ
+              </b>
+            </div>
+          </article>
+          <article className="micro-finance-event">
+            <div className="micro-finance-event-main">
+              <div>
+                <strong>عربون محتفظ به مصنّف إيرادًا</strong>
+                <small>بقرار موثق — الكاش قُبض سابقًا</small>
+              </div>
+              <b>
+                <MoneyValue minor={reading.blocks.deepFinance.retainedDepositRevenueMinor} /> د.أ
+              </b>
+            </div>
+          </article>
+          <article className="micro-finance-event">
+            <div className="micro-finance-event-main">
+              <div>
+                <strong>الدفتري للأصول النشطة — الآن</strong>
+                <small>ليس مصروفًا ولا كاشًا</small>
+              </div>
+              <b>
+                <MoneyValue minor={reading.blocks.deepFinance.assetBookValueNowMinor} /> د.أ
+              </b>
+            </div>
+          </article>
+          <article className="micro-finance-event">
+            <div className="micro-finance-event-main">
+              <div>
+                <strong>القروض القائمة — الآن</strong>
+                <small>ذمم لصالح مشروعك — ليست نتيجة</small>
+              </div>
+              <b>
+                <MoneyValue minor={reading.blocks.deepFinance.loansOutstandingNowMinor} /> د.أ
+              </b>
+            </div>
+          </article>
+          <article className="micro-finance-event">
+            <div className="micro-finance-event-main">
+              <div>
+                <strong>عربونات محتفظة بانتظار القرار — الآن</strong>
+                <small>ليست مالكًا ولا إيرادًا بعد</small>
+              </div>
+              <b>
+                <MoneyValue minor={reading.blocks.deepFinance.pendingRetainedDepositsNowMinor} /> د.أ
+              </b>
+            </div>
+          </article>
+        </section>
+      </details>
+      {reading.blocks.deepFinance.unresolved.length > 0 ? (
+        <section className="micro-info-card" data-tone="warning" aria-label="قيم غير محلولة">
+          <span className="micro-overline">قيم غير محلولة</span>
+          <h2>ما لم يُحسم بعد</h2>
+          <ul className="micro-activity-unresolved">
+            {reading.blocks.deepFinance.unresolved.map(item => (
+              <li key={item.id}>
+                <span>{item.label}</span>
+                <b>
+                  {item.amountMinor === null ? null : (
+                    <>
+                      <MoneyValue minor={item.amountMinor} /> د.أ
+                    </>
+                  )}
+                  {item.count !== null && item.count !== undefined ? ` (${item.count})` : ""}
+                </b>
+              </li>
+            ))}
+          </ul>
+          <p>هذه القيم تُعرض كما هي — لا تُختزل إلى صفر ولا تدخل رقمًا نهائيًا قبل حلّها.</p>
+        </section>
       ) : null}
       <section className="micro-decision-card" aria-label="الأمانات في الفترة">
         <HandCoins aria-hidden="true" />
@@ -410,6 +552,24 @@ export default function Statement() {
             )}
           </small>
         </div>
+      </section>
+      <section className="micro-info-card" data-tone="accent" aria-label="تقرير الفترة">
+        <span className="micro-overline">تقرير الفترة المحلي</span>
+        <h2>خذ التقرير معك</h2>
+        <p>
+          ملف نصي (Markdown) عربي بأرقام هذه الفترة — يُولّد على جهازك ويعمل دون إنترنت؛
+          نسخة قراءة لحظة ليست حدثًا ماليًا. مشاركته إن شئت فعلٌ يدوي بيدك وحدك.
+        </p>
+        <div className="micro-form-actions">
+          <button className="micro-button micro-button-primary" type="button" onClick={() => void generateReport()}>
+            <Share2 aria-hidden="true" /> ولّد ونزّل التقرير
+          </button>
+        </div>
+        {reportNotice ? (
+          <p className="micro-offline-truth" role="status">
+            {reportNotice}
+          </p>
+        ) : null}
       </section>
       <div className="micro-finance-actions">
         <button

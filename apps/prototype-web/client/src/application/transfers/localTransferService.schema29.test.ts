@@ -79,6 +79,10 @@ describe("schema 29 export round-trip with estimates, amanah, and allocations", 
       version: 20,
       schemaVersion: 28,
     };
+    /* المجموعة ٥: ملف الموجة القديمة بلا مظروف التكامل — يُحذف عند المحاكاة. */
+    delete (legacyFile as Record<string, unknown>).integrity;
+    delete (legacyFile as Record<string, unknown>).counts;
+    delete (legacyFile as Record<string, unknown>).appVersion;
     delete legacyFile.data.costEstimates;
     for (const event of legacyFile.data.financialEvents) delete event.amanahDeltaMinor;
     if (legacyFile.data.preferences) delete legacyFile.data.preferences.lastVerifiedExportAt;

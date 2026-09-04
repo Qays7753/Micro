@@ -60,6 +60,27 @@ export type StatementBlocks = {
     supplierPurchasesInPeriodMinor: number;
     supplierPaymentsInPeriodMinor: number;
   };
+  /* المجموعة ٥ (عقد ٣١ — عمق النتيجة): بنود عقد ٢٩ غير النقدية التي تدخل
+   * النتيجة (الإهلاك/الشطب/التخلص/العربون المصنف) وطبقات المركز (الدفتري
+   * والقروض والعربونات المعلقة) وقيم غير محلولة — كلها من القارئ الكنوني
+   * وحده؛ لا حساب جديد هنا. */
+  deepFinance: {
+    depreciationMinor: number;
+    writeOffLossMinor: number;
+    disposalResultMinor: number;
+    retainedDepositRevenueMinor: number;
+    assetBookValueNowMinor: number;
+    loansOutstandingNowMinor: number;
+    pendingRetainedDepositsNowMinor: number;
+    unresolved: readonly StatementUnresolvedLine[];
+  };
+};
+export type StatementUnresolvedLine = {
+  id: string;
+  label: string;
+  /** قيمة إن وُجد رقم صادق؛ null = حالة/عدّاد بلا مبلغ. */
+  amountMinor: number | null;
+  count: number | null;
 };
 
 export type StatementReading = {
@@ -550,6 +571,69 @@ export class StatementService {
             .reduce((sum, event) => sum + event.amountMinor, 0),
           supplierPurchasesInPeriodMinor,
           supplierPaymentsInPeriodMinor,
+        },
+        /* المجموعة ٥ (عقد ٣١): أرقام عقد ٢٩ من القارئ الكنوني نفسه — الإهلاك
+         * والشطب ونتيجة التخلص وإيراد العربون المصنف داخل النتيجة؛ الدفتري
+         * والقروض والعربونات المعلقة «الآن»؛ وكل قيمة غير محلولة تظهر
+         * بقيمتها أو بعدّادها بلا اختزال إلى صفر. */
+        deepFinance: {
+          depreciationMinor: periodResult.value.assetDepreciationMinor,
+          writeOffLossMinor: periodResult.value.assetWriteOffLossMinor,
+          disposalResultMinor: periodResult.value.assetDisposalResultMinor,
+          retainedDepositRevenueMinor: periodResult.value.retainedDepositRevenueMinor,
+          assetBookValueNowMinor: position.assetBookValueMinor,
+          loansOutstandingNowMinor: position.loansOutstandingMinor,
+          pendingRetainedDepositsNowMinor: position.pendingRetainedDepositsMinor,
+          unresolved: ([
+            periodResult.value.directSaleCostUnknownCount > 0
+              ? {
+                  id: "direct-sale-cost-unknown",
+                  label: "بيوع مباشرة بتكلفة غير معروفة — النتيجة غير متاحة حتى تُدخل",
+                  amountMinor: null,
+                  count: periodResult.value.directSaleCostUnknownCount,
+                }
+              : null,
+            periodResult.value.sharedUnallocatedExpenseCount > 0
+              ? {
+                  id: "shared-unallocated",
+                  label: "مصروف مشترك غير موزّع — لا يدخل النتيجة حتى توزيعه",
+                  amountMinor: periodResult.value.sharedUnallocatedExpenseMinor,
+                  count: periodResult.value.sharedUnallocatedExpenseCount,
+                }
+              : null,
+            periodResult.value.unallocatedInventoryCostMinor > 0
+              ? {
+                  id: "unallocated-inventory-cost",
+                  label: "قيمة مخزون غير موزّعة على الطلبات",
+                  amountMinor: periodResult.value.unallocatedInventoryCostMinor,
+                  count: null,
+                }
+              : null,
+            periodResult.value.expenseNeedsReviewCount > 0
+              ? {
+                  id: "expense-needs-review",
+                  label: "مصاريف تحتاج مراجعة",
+                  amountMinor: null,
+                  count: periodResult.value.expenseNeedsReviewCount,
+                }
+              : null,
+            periodResult.value.cogsMissingOrderCount > 0
+              ? {
+                  id: "cogs-missing",
+                  label: "طلبات مسلّمة بلا تكلفة مواد مكتملة",
+                  amountMinor: null,
+                  count: periodResult.value.cogsMissingOrderCount,
+                }
+              : null,
+            position.pendingRetainedDepositsMinor > 0
+              ? {
+                  id: "pending-retained-deposits",
+                  label: "عربونات محتفظة بانتظار قرارك — ليست مالكًا ولا إيرادًا بعد",
+                  amountMinor: position.pendingRetainedDepositsMinor,
+                  count: null,
+                }
+              : null,
+          ] as (StatementUnresolvedLine | null)[]).filter((line): line is StatementUnresolvedLine => line !== null),
         },
       },
       result: periodResult.value,

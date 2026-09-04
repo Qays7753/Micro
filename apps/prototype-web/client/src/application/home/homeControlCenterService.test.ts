@@ -8,6 +8,7 @@ import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchas
 import { ProfileService } from "@/application/profile/profileService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { HomeControlCenterService } from "./homeControlCenterService";
+import { ActivityService } from "@/application/activity/activityService";
 
 const now = () => "2026-08-25T09:00:00.000Z";
 function services(store: MemoryLocalStore) {
@@ -20,6 +21,7 @@ function services(store: MemoryLocalStore) {
     suppliers,
     new InventoryMaterialService(store),
     new AgreementContextService(store, now),
+    new ActivityService(store),
     now,
   );
 }

@@ -6,6 +6,8 @@ import { lazy, Suspense } from "react";
 import { Redirect, Route, Switch } from "wouter";
 import { MicroAppShell } from "@/components/layout/MicroAppShell";
 import { StartupGate } from "@/app/StartupGate";
+/* المجموعة ٥ (عقد ٣٧): بوابة القفل المحلي — غطاء فوق المحتوى بعد الإقلاع. */
+import { AppLockGate } from "@/components/security/AppLockGate";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Orders = lazy(() => import("@/pages/Orders"));
@@ -69,12 +71,17 @@ const Collect = lazy(() => import("@/pages/Collect"));
 const WalletLedger = lazy(() => import("@/pages/WalletLedger"));
 /* المجموعة ٢ (§9.2): كشف الفترة — قراءة سطحية من مالي. */
 const Statement = lazy(() => import("@/pages/Statement"));
+/* المجموعة ٥ (عقد ٣٠): القارئ الكامل للنشاط — سطح قراءة في بيت مالي. */
+const FinanceActivity = lazy(() => import("@/pages/FinanceActivity"));
+/* المجموعة ٥ (عقد ٣٣): معاينة المشاركة اليدوية — محرر نص عميق يحرس المدخلات. */
+const SharePreview = lazy(() => import("@/pages/SharePreview"));
 
 export function MicroRouter() {
   return (
     <MicroAppShell>
       <Suspense fallback={<RouteLoadingState />}>
         <StartupGate>
+          <AppLockGate>
           <Switch>
             <Route path="/setup" component={Setup} />
             {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
@@ -137,6 +144,8 @@ export function MicroRouter() {
             <Route path="/finance" component={Finance} />
             {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
             <Route path="/finance/statement" component={Statement} />
+            <Route path="/finance/activity" component={FinanceActivity} />
+            <Route path="/share/preview" component={SharePreview} />
             <Route path="/orders" component={Orders} />
             {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
             <Route path="/review">
@@ -147,6 +156,7 @@ export function MicroRouter() {
             <Route path="/" component={Home} />
             <Route component={NotFound} />
           </Switch>
+          </AppLockGate>
         </StartupGate>
       </Suspense>
     </MicroAppShell>

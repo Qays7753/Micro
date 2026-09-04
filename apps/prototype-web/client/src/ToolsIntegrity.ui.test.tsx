@@ -11,6 +11,7 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { FormDraftService } from "@/application/drafts/formDraftService";
 import ToolsIntegrity from "@/pages/ToolsIntegrity";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
@@ -104,8 +105,9 @@ describe("ToolsIntegrity page (فحص سلامة مالي)", () => {
     fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
     expect(await screen.findByText(/يوجد خلل يحتاج تصحيحًا موثقًا/)).toBeTruthy();
     expect(screen.getAllByText("خلل").length).toBeGreaterThan(0);
-    const openLink = screen.getByRole("button", { name: "افتح السجل المعني" });
-    expect(openLink).toBeTruthy();
+    /* المجموعة ٥: فحوص أكثر قد تفشل معًا — كل واحدة بعرضتها ورابطها؛ أول رابط يكفي للرحلة. */
+    const openLinks = screen.getAllByRole("button", { name: "افتح السجل المعني" });
+    expect(openLinks.length).toBeGreaterThan(0);
     expect(screen.getByText(/أعرض السجلات المتأثرة/)).toBeTruthy();
   });
 });

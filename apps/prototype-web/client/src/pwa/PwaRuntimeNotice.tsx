@@ -1,6 +1,7 @@
 import { CheckCircle2, RefreshCw, WifiOff, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { applyPwaUpdate, getPwaRuntimeState, subscribePwa } from "./register";
+import { hasDirtyForms } from "./dirtyRegistry";
 
 export function PwaRuntimeNotice() {
   const [runtime, setRuntime] = useState(getPwaRuntimeState());
@@ -30,7 +31,16 @@ export function PwaRuntimeNotice() {
     if (runtime.updateAvailable) setIsUpdateDismissed(false);
   }, [runtime.updateAvailable]);
 
+  const [dirtyBlocked, setDirtyBlocked] = useState(false);
+
   async function updateNow() {
+    /* المجموعة ٥ (عقد ٣٨): نموذج قذر يعلّم ولا يُدمَّر — الزر يشرح أن الحفظ
+     * أولًا، والإغلاق اليدوي للبطاقة قرار المستخدم لا قفزة تحديث. */
+    if (hasDirtyForms()) {
+      setDirtyBlocked(true);
+      return;
+    }
+    setDirtyBlocked(false);
     setIsApplying(true);
     await applyPwaUpdate();
     setIsApplying(false);
@@ -50,6 +60,11 @@ export function PwaRuntimeNotice() {
           <div className="micro-runtime-copy">
             <h2>تحديث Micro جاهز</h2>
             <p>التحديث ينتظر موافقتك؛ لن نعيد تحميل الصفحة أو نستبدل النسخة أثناء عملك دون اختيارك.</p>
+            {dirtyBlocked ? (
+              <p className="micro-field-error" role="alert">
+                عندك مدخلات غير محفوظة — احفظها أولًا ثم حدّث؛ التحديث لن يبدأ فوق عملك المفتوح.
+              </p>
+            ) : null}
           </div>
           <div className="micro-runtime-actions">
             <button

@@ -20,7 +20,18 @@ export type CorrectionHistoryKind =
   | "payment_reversal"
   /* المجموعة ٢ (§10.5/§10.3): تعديل سعر الطلب بعد الاتفاق والتراجع عن قبض. */
   | "order_price_revision"
-  | "order_collection_reversal";
+  | "order_collection_reversal"
+  /* المجموعة ٥ (عقد ٣٤ — مسار التدقيق): عائلات عقد ٢٩ وأصحاب التصحيح
+   * المفقودة — تصحيح الأصل/القرض/العربون، عكس التسليم، تصنيف العربون،
+   * عكس حركة مخزون/حركة مال المالك، ومراجعة عقد الأصل (المدة/البداية). */
+  | "asset_correction"
+  | "loan_correction"
+  | "deposit_reclassification"
+  | "delivery_reversal"
+  | "deposit_classification"
+  | "inventory_reversal"
+  | "owner_reversal"
+  | "asset_contract_revision";
 
 export type CorrectionHistoryGroup = "all" | "events" | "sales" | "cash" | "purchases" | "orders";
 
@@ -84,6 +95,25 @@ const eventKindLabel: Record<FinancialEventType, string> = {
 const RESTORE_KEY_PREFIX = "restore:";
 /** تعديل الحدث الذرّي يُنشئ تراجعًا بمفتاح «<key>:reversal» والبديل بمفتاح «<key>». */
 const EDIT_REVERSAL_SUFFIX = ":reversal";
+/* المجموعة ٥ (عقد ٣٤): إصلاح اقتران تعديلات المجموعة ٤ — مفاتيحها النمطية
+ * «<base>-reversal:<stamp>» مع بديل «<base>-replacement:<stamp>» بالختم نفسه؛
+ * التحويل هنا يجد البديل فتُعرض رحلة «من → إلى» بدل تراجعٍ أعمى. */
+const G4_REVERSAL_MARKER = "-reversal:";
+const G4_REPLACEMENT_MARKER = "-replacement:";
+const KIND_FOR_G4_KEY: Record<string, CorrectionHistoryKind> = {
+  ":acquisition-": "asset_correction",
+  ":principal-": "loan_correction",
+  ":deposit-reclassify-": "deposit_reclassification",
+};
+function g4ReplacementKey(reversalKey: string): string | null {
+  const markerAt = reversalKey.indexOf(G4_REVERSAL_MARKER);
+  if (markerAt === -1) return null;
+  return (
+    reversalKey.slice(0, markerAt) +
+    G4_REPLACEMENT_MARKER +
+    reversalKey.slice(markerAt + G4_REVERSAL_MARKER.length)
+  );
+}
 
 export class CorrectionHistoryService {
   constructor(private readonly store: PrototypeLocalStore) {}
@@ -108,18 +138,32 @@ export class CorrectionHistoryService {
   }
 
   async list(): Promise<CorrectionHistoryResult> {
-    const [eventsResult, salesResult, cashResult, purchasesResult, ordersResult] = await Promise.all([
-      this.store.listFinancialEvents(),
-      this.store.listDirectSales(),
-      this.store.listCashContinuityEntries(),
-      this.store.listSupplierPurchases(),
-      this.store.listOrders(),
-    ]);
-    if (!eventsResult.ok || !salesResult.ok || !cashResult.ok || !purchasesResult.ok || !ordersResult.ok)
+    const [eventsResult, salesResult, cashResult, purchasesResult, ordersResult, movementsResult, assetsResult, ownerMovementsResult] =
+      await Promise.all([
+        this.store.listFinancialEvents(),
+        this.store.listDirectSales(),
+        this.store.listCashContinuityEntries(),
+        this.store.listSupplierPurchases(),
+        this.store.listOrders(),
+        this.store.listInventoryMovements(),
+        this.store.listAssets(),
+        this.store.listOwnerMovements(),
+      ]);
+    if (
+      !eventsResult.ok ||
+      !salesResult.ok ||
+      !cashResult.ok ||
+      !purchasesResult.ok ||
+      !ordersResult.ok ||
+      !movementsResult.ok ||
+      !assetsResult.ok ||
+      !ownerMovementsResult.ok
+    )
       return { ok: false, code: "storage_error", message: "تعذر قراءة سجل التصحيحات المحلي." };
 
     const events = eventsResult.value;
     const byId = new Map(events.map(event => [event.id, event] as const));
+    const byKey = new Map(events.map(event => [event.idempotencyKey, event] as const));
     const entries: CorrectionHistoryEntry[] = [];
 
     for (const event of events) {
@@ -127,35 +171,51 @@ export class CorrectionHistoryService {
       if (event.correctionType === "reverse" && event.correctionOfEventId) {
         const source = byId.get(event.correctionOfEventId) ?? null;
         const isEdit = event.idempotencyKey.endsWith(EDIT_REVERSAL_SUFFIX);
+        /* المجموعة ٥ (عقد ٣٤): تعديلات المجموعة ٤ الذرّية — البديل بنفس الختم
+         * عبر تحويل المفتاح، فيقترن التراجع ببديله وتُعرض «من → إلى». */
+        const g4Key = g4ReplacementKey(event.idempotencyKey);
+        const g4Replacement = g4Key !== null ? byKey.get(g4Key) ?? null : null;
         const replacement = isEdit
           ? events.find(
               candidate =>
                 candidate.idempotencyKey === event.idempotencyKey.slice(0, -EDIT_REVERSAL_SUFFIX.length),
             ) ?? null
-          : null;
+          : g4Replacement;
+        let kind: CorrectionHistoryKind = isEdit && replacement ? "event_edit" : "event_reversal";
+        if (g4Replacement) {
+          for (const [marker, g4Kind] of Object.entries(KIND_FOR_G4_KEY)) {
+            if (event.idempotencyKey.includes(marker)) kind = g4Kind;
+          }
+        }
         entries.push({
           id: event.id,
-          kind: isEdit && replacement ? "event_edit" : "event_reversal",
+          kind,
           recordedAt: event.recordedAt,
           occurredOn: event.occurredOn,
           amountEffectMinor:
-            isEdit && replacement && source
-              ? replacement.amountMinor - source.amountMinor
-              : -event.amountMinor,
+            replacement && source ? replacement.amountMinor - source.amountMinor : -event.amountMinor,
           reason: event.correctionReason ?? null,
           originalLabel: source
             ? `${eventKindLabel[source.type]} · ${source.occurredOn} · ${formatMoneyWithUnit(source.amountMinor)}`
             : null,
           replacementLabel:
-            isEdit && replacement
+            replacement && source
               ? `${eventKindLabel[replacement.type]} · ${replacement.occurredOn} · ${formatMoneyWithUnit(replacement.amountMinor)}`
               : null,
           /* U-001 (دورة التدقيق النهائي): وصول عميق للحدث في «السجل والأثر» — التعديل
            * يفتح البديل النشط (حيث التصحيح/الحذف)، والتراجع يفتح الأصل (حيث الاسترجاع). */
           deepLink:
-            isEdit && replacement
-              ? `/finance?event=${encodeURIComponent(replacement.id)}`
-              : `/finance?event=${encodeURIComponent(event.correctionOfEventId)}`,
+            replacement || event.assetContext?.assetId
+              ? event.assetContext?.assetId
+                ? `/assets/${encodeURIComponent(event.assetContext.assetId)}`
+                : replacement
+                  ? `/finance?event=${encodeURIComponent(replacement.id)}`
+                  : `/finance?event=${encodeURIComponent(event.correctionOfEventId)}`
+              : event.loanContext?.loanId
+                ? `/loans/${encodeURIComponent(event.loanContext.loanId)}`
+                : event.depositContext?.orderId
+                  ? `/orders/${encodeURIComponent(event.depositContext.orderId)}`
+                  : `/finance?event=${encodeURIComponent(event.correctionOfEventId)}`,
         });
       }
       /* استرجاع: إعادة تسجيل قيم أصل متراجع عنه — موسّمة بمفتاح صريح. */
@@ -293,6 +353,96 @@ export class CorrectionHistoryService {
           });
         }
       }
+    }
+
+    /* المجموعة ٥ (عقد ٣٤ — مسار التدقيق): عائلات عقد ٢٩ والأصحاب المفقودة. */
+
+    /* عكس التسليم وتصنيف العربون — من خط زمن الطلب نفسه؛ أصل السجل باقٍ دائمًا. */
+    for (const stored of ordersResult.value as readonly StoredCraftOrder[]) {
+      for (const event of stored.order.events) {
+        if (event.type === "delivery_reversed") {
+          entries.push({
+            id: `${stored.id}:reverse-delivery:${event.idempotencyKey}`,
+            kind: "delivery_reversal",
+            recordedAt: event.createdAt,
+            occurredOn: ammanDateOf(event.createdAt),
+            amountEffectMinor: null,
+            reason: event.note ?? null,
+            originalLabel: `تسليم «${stored.order.itemName || "طلب"}» — الإيراد والنتيجة حُيّدا، وحركات المواد عُكست مرآةً`,
+            replacementLabel: "الكاش المقبوض لم يُمس — راجع الطلب قبل تسليم جديد",
+            deepLink: `/orders/${encodeURIComponent(stored.id)}`,
+          });
+        }
+        if (event.type === "deposit_classified") {
+          entries.push({
+            id: `${stored.id}:classify-deposit:${event.idempotencyKey}`,
+            kind: "deposit_classification",
+            recordedAt: event.createdAt,
+            occurredOn: ammanDateOf(event.createdAt),
+            amountEffectMinor: null,
+            reason: event.note ?? null,
+            originalLabel: `عربون محتفظ به من «${stored.order.itemName || "طلب"}» · ${formatMoneyWithUnit(stored.order.depositCollectedMinor)} — كان معلقًا بلا معنى`,
+            replacementLabel:
+              stored.order.retainedMeaning === "owner"
+                ? "صُنّف مال مالك — ليس نتيجة"
+                : stored.order.retainedMeaning === "revenue"
+                  ? "صُنّف إيراد مشروع — يدخل نتيجة الفترة"
+                  : "معناه الآن: بانتظار قرار",
+            deepLink: `/orders/${encodeURIComponent(stored.id)}`,
+          });
+        }
+      }
+    }
+
+    /* عكس حركة مخزون — المرآة السالبة تحيّد الكمية والقيمة معًا. */
+    for (const movement of movementsResult.value) {
+      if (movement.type !== "reversal" || !movement.reversesMovementId) continue;
+      entries.push({
+        id: `movement-reversal:${movement.id}`,
+        kind: "inventory_reversal",
+        recordedAt: movement.recordedAt,
+        occurredOn: movement.occurredOn,
+        amountEffectMinor: null,
+        reason: movement.note || movement.reason,
+        originalLabel: `حركة مخزون · ${movement.occurredOn} · الكمية ${movement.quantityDeltaMilli / 1000}`,
+        replacementLabel: "حُيّد أثر الحركة — الكمية والقيمة عادا كما كانا",
+        deepLink: movement.orderId
+          ? `/orders/${encodeURIComponent(movement.orderId)}`
+          : "/inventory",
+      });
+    }
+
+    /* مراجعة عقد الأصل (المدة/بداية الإهلاك) — التاريخ لا يُعاد كتابته. */
+    for (const asset of assetsResult.value) {
+      for (const revision of asset.contractRevisions ?? []) {
+        entries.push({
+          id: `asset-contract:${asset.id}:${revision.revision}`,
+          kind: "asset_contract_revision",
+          recordedAt: revision.changedAt,
+          occurredOn: revision.changedAt.slice(0, 10),
+          amountEffectMinor: null,
+          reason: revision.reason,
+          originalLabel: `عقد الأصل «${asset.name}» قبل المراجعة — العمر ${revision.lifeMonths ?? "?"} شهرًا`,
+          replacementLabel: `بعد المراجعة: العمر ${revision.lifeMonths ?? "?"} · بداية الإهلاك ${revision.depreciationStartOn ?? "غير محددة"}`,
+          deepLink: `/assets/${encodeURIComponent(asset.id)}`,
+        });
+      }
+    }
+
+    /* تراجع موثق عن حركة مال المالك — الأصل باقٍ والصافي أثرهما معًا. */
+    for (const movement of ownerMovementsResult.value) {
+      if (!movement.reversalOfId) continue;
+      entries.push({
+        id: `owner-reversal:${movement.id}`,
+        kind: "owner_reversal",
+        recordedAt: movement.recordedAt,
+        occurredOn: movement.occurredOn,
+        amountEffectMinor: null,
+        reason: movement.reversalReason,
+        originalLabel: `حركة مال مالك (${movement.kind === "draw" ? "سحب" : "إرجاع"}) · ${formatMoneyWithUnit(movement.amountMinor)}`,
+        replacementLabel: "التراجع موثق — صافي أثر الحركتين معًا هو الرصيد القائم",
+        deepLink: "/finance/owner-entitlement",
+      });
     }
 
     entries.sort((left, right) => right.recordedAt.localeCompare(left.recordedAt));

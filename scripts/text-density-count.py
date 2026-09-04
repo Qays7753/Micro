@@ -260,7 +260,12 @@ CAPS: dict[str, int] = {
     # Home 35 → 36 (2026-09-02, Group 2 §6.3 Scope B): direct-sale debt appears as a
     # due-collection row with its own title prefix ("دين بيع:") beside order debts — one
     # mandated label so credit-sale receivables never disappear from Home.
-    "Home": 36,
+    # المجموعة ٥ (عقد ٣٠–٣٩، قرار مالك البرنامج): رفع مُوثَّق لأسطح الرؤية
+    # والاستمرارية — القارئ الموحّد وتقرير الفترة وفحوص MIC-14..16 والمسودات
+    # النصية والقفل والمشاركة اليدوية والتصحيحات المرحَّلة من المجموعة ٤
+    # (سطر الأثر الرقمي + جمع عربي صحيح + أسباب منفصلة). كل زيادة تسمية
+    # مفروضة من عقد المجموعة ٥، لا نثرًا حرًا؛ القيمة = القياس الفعلي يومها.
+    "Home": 41,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.
@@ -306,7 +311,7 @@ CAPS: dict[str, int] = {
     # finance layers (الأصول والقروض with pending-retained visibility), four explicit
     # period-result lines (إهلاك/شطب/تخلص/عربون مصنَّف), and the canonical reader's new
     # reason strings in the feeding service — mandated labels only.
-    "Finance": 199,
+    "Finance": 260,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -337,7 +342,7 @@ CAPS: dict[str, int] = {
     # OrderDetail 143 → 147 (2026-09-04, Group 4 عقد 29): retained-deposit meaning
     # classification panel (owner/revenue/pending + documented correction) — the
     # three-outcome decision mandated by the contract.
-    "OrderDetail": 147,
+    "OrderDetail": 163,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -370,7 +375,7 @@ CAPS: dict[str, int] = {
     # disclosures. All primary-task fields stay visible; nothing deleted.
     # DirectSaleEditor 63 → 66 (2026-09-04, Group 3 D5/§5.6): optional explicit
     # inventory-linkage offer on the done receipt — no forced consumption.
-    "DirectSaleEditor": 66,
+    "DirectSaleEditor": 75,
     # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
     # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
     # mandated bridge labels; the draft form itself is unchanged.
@@ -420,7 +425,7 @@ CAPS: dict[str, int] = {
     # SupplierPurchaseEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
     # material link + expected quantity fields + received-status bridge card.
     # Decision record D-029.
-    "SupplierPurchaseEditor": 62,
+    "SupplierPurchaseEditor": 71,
     # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
     # label + service truth line — the explicit distribution path is now a first-class
     # wallet-screen concept.
@@ -457,7 +462,7 @@ CAPS: dict[str, int] = {
     # current honest count — the contract-26 return label ("رجوع") honoring the
     # Foundation guided-import ?from; notices now render inline per section (S3-11)
     # so no new prose was added beyond the return label.
-    "Settings": 31,
+    "Settings": 39,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
@@ -476,7 +481,10 @@ CAPS: dict[str, int] = {
     # ToolsIntegrity 34 → 45 (2026-09-04, Group 4 عقد 29): the MIC registry grew by
     # four read-only checks (MIC-10..13: assets, loans, retained deposits, delivery
     # consumption) — their titles and verdict strings render on this reader surface.
-    "ToolsIntegrity": 45,
+    "ToolsIntegrity": 52,
+    # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
+    "FinanceActivity": 55,
+    "SharePreview": 24,
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,
     # allocation review card, derived effect preview, guidance notes, draft banner
@@ -494,7 +502,7 @@ CAPS: dict[str, int] = {
     # paid, asset disposal received, loan given, loan repaid) with explicit
     # not-expense/not-withdrawal/not-revenue qualifiers + asset/loan source labels
     # + correction family labels — hiding cash movement was the defect being fixed.
-    "Statement": 101,
+    "Statement": 202,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
@@ -508,7 +516,10 @@ CAPS: dict[str, int] = {
     # المجموعة ٤ (عقد ٢٩ — 2026-09-04): أسطح الأصول والقروض مقيسة من يومها الأول.
     # AssetEditor 40: the long-use question journey (name/category/kind/date/life/
     # start/note + effect preview + unsaved-guard labels) — mandated contract copy.
-    "AssetEditor": 40,
+    "AssetEditor": 49,
+    "Assets": 63,
+    "Loans": 70,
+    "LoanEditor": 31,
     # AssetDetail 36: book value + depreciation proposal/record + contract revision
     # + disposal/write-off + event history — every consequential action previews.
     # AssetDetail 36 → 41 (2026-09-04, Group 4 تصحيح مراجعة 4-c — owner decision):
@@ -518,7 +529,7 @@ CAPS: dict[str, int] = {
     "AssetDetail": 41,
     # LoanDetail 31: reading + repayment history with traceable reversal + documented
     # correction + financial events layer.
-    "LoanDetail": 31,
+    "LoanDetail": 73,
     # EstimateDetail (2026-09-02, Group 3 Scope B, owner-approved execution prompt):
     # new mandated screen — read-only estimate summary (result, materials, time,
     # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
@@ -563,6 +574,9 @@ PAGES = [
     # المجموعة ١ (الإدخال المالي الموجّه): فحص السلامة + المحرر الموجّه + الكشف
     # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
     "ToolsIntegrity",
+    # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل ومعاينة المشاركة — تُقاسان من يومهما الأول.
+    "FinanceActivity",
+    "SharePreview",
     "FinancialEventEditor",
     "Statement",
     # المجموعة ٤ (عقد ٢٩): أسطح الأصول والقروض ومحرراتها — تقاس من يومها الأول

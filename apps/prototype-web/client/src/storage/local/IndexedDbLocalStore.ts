@@ -25,10 +25,13 @@ import {
   localInventoryActivationId,
   localOwnerProfileId,
   localSchemaVersion,
+  localSecurityId,
   type ActivityProfile,
   type CostEstimate,
+  type FormDraftEnvelope,
   type InventoryActivation,
   type LocalPreferences,
+  type LocalSecurityRecord,
   type LocalStoreSnapshot,
   type OrderDraft,
   type OwnerProfile,
@@ -76,6 +79,10 @@ const costEstimateStore = "cost-estimates";
 /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — سجلان تشغيليان فوق أحداثهما المالية. */
 const assetStore = "assets";
 const loanStore = "loans";
+/* المجموعة ٥ (الاستمرارية): مسودات النماذج الطويلة وسجل القفل المحلي — مخزنان
+ * خارج اللقطة عمدًا (مسودة عابرة/سر محلي)؛ المُنشئ محروس فيُفتح القديم بلا فقدان. */
+const formDraftStore = "form-drafts";
+const securityStore = "local-security";
 
 class StorageOpenError extends Error {
   constructor(
@@ -352,6 +359,15 @@ function openDatabase(): Promise<IDBDatabase> {
         const loans = database.createObjectStore(loanStore, { keyPath: "id" });
         loans.createIndex("updatedAt", "updatedAt");
       }
+      /* المجموعة ٥ (المخطط ٣٥): مخزنا المسودات النصية والقفل — إنشاء محروس
+       * للترقية من ٣٤؛ لا ترحيل بيانات ولا حقول جديدة على سجلات قائمة. */
+      if (!database.objectStoreNames.contains(formDraftStore)) {
+        const formDrafts = database.createObjectStore(formDraftStore, { keyPath: "id" });
+        formDrafts.createIndex("updatedAt", "updatedAt");
+        formDrafts.createIndex("formKind", "formKind");
+      }
+      if (!database.objectStoreNames.contains(securityStore))
+        database.createObjectStore(securityStore, { keyPath: "id" });
       const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
       if (policyStore && !policyStore.indexNames.contains("seriesId"))
         policyStore.createIndex("seriesId", "seriesId");
@@ -728,6 +744,26 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   savePreferences(preferences: LocalPreferences) {
     return writeOne(preferencesStore, preferences);
+  }
+  /* المجموعة ٥: مسودات النماذج وسجل القفل — عمليات سجل واحد كالتفضيلات؛
+   * لا مس لهما داخل readSnapshot/replaceSnapshot فتبقى عند الاستعادة. */
+  getFormDraft(id: string) {
+    return readOne<FormDraftEnvelope>(formDraftStore, id);
+  }
+  saveFormDraft(draft: FormDraftEnvelope) {
+    return writeOne(formDraftStore, draft);
+  }
+  deleteFormDraft(id: string) {
+    return deleteOne(formDraftStore, id);
+  }
+  getLocalSecurity() {
+    return readOne<LocalSecurityRecord>(securityStore, localSecurityId);
+  }
+  saveLocalSecurity(security: LocalSecurityRecord) {
+    return writeOne(securityStore, security);
+  }
+  deleteLocalSecurity() {
+    return deleteOne(securityStore, localSecurityId);
   }
   listDrafts() {
     return listAll<OrderDraft>(draftStore, (left, right) => right.updatedAt.localeCompare(left.updatedAt));

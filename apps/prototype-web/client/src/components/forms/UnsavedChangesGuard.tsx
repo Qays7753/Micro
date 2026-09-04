@@ -1,3 +1,4 @@
+import { setDirtyForms } from "@/pwa/dirtyRegistry";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 export type UnsavedExitChoice = "save" | "discard" | "cancel";

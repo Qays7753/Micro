@@ -41,7 +41,11 @@ export default function AssetDetail() {
   const [state, setState] = useState<{ phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: Reading }>(
     { phase: "loading" },
   );
-  const [reason, setReason] = useState("");
+  /* المجموعة ٥ (تسديد دَين المجموعة ٤ — بند ٣): ثلاثة حقول سبب مستقلة —
+   * حقل واحد مشترك كان يعبّئ نماذج التصحيح الثلاثة بالسبب نفسه فيُوثَّق خطأً. */
+  const [acquisitionReason, setAcquisitionReason] = useState("");
+  const [contractReason, setContractReason] = useState("");
+  const [disposalReason, setDisposalReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [disposalOpen, setDisposalOpen] = useState(false);
@@ -99,7 +103,9 @@ export default function AssetDetail() {
       return;
     }
     setMessage(null);
-    setReason("");
+    setAcquisitionReason("");
+    setContractReason("");
+    setDisposalReason("");
     notifyDataChanged();
   }
 
@@ -205,7 +211,7 @@ export default function AssetDetail() {
               </label>
               <label className="micro-field">
                 <span>سبب التصحيح (مطلوب)</span>
-                <input value={reason} onChange={event => setReason(event.target.value)} placeholder="مثال: الفاتورة الحقيقية كانت أعلى" />
+                <input value={acquisitionReason} onChange={event => setAcquisitionReason(event.target.value)} placeholder="مثال: الفاتورة الحقيقية كانت أعلى" />
               </label>
               <p className="micro-field-hint">
                 {correctedAmount > 0 && (correctedAmount !== asset.acquisitionAmountMinor || correctedKind !== asset.acquisitionKind)
@@ -218,7 +224,7 @@ export default function AssetDetail() {
                   type="button"
                   disabled={
                     busy ||
-                    !reason.trim() ||
+                    !acquisitionReason.trim() ||
                     !validCorrectedAmount ||
                     correctedAmount <= 0 ||
                     (correctedAmount === asset.acquisitionAmountMinor && correctedKind === asset.acquisitionKind)
@@ -228,7 +234,7 @@ export default function AssetDetail() {
                       assets.correctAcquisition(asset.id, {
                         acquisitionAmountMinor: correctedAmount,
                         acquisitionKind: correctedKind,
-                        reason,
+                        reason: acquisitionReason,
                       }),
                     )
                   }
@@ -272,19 +278,19 @@ export default function AssetDetail() {
               <LocalDateField label="بداية الاستخدام" value={newStart} onChange={event => setNewStart(event.target.value)} />
               <label className="micro-field">
                 <span>سبب التعديل (مطلوب)</span>
-                <input value={reason} onChange={event => setReason(event.target.value)} placeholder="مثال: الصيانة أطالت عمره" />
+                <input value={contractReason} onChange={event => setContractReason(event.target.value)} placeholder="مثال: الصيانة أطالت عمره" />
               </label>
               <div className="micro-form-actions">
                 <button
                   className="micro-button micro-button-primary"
                   type="button"
-                  disabled={busy || !reason.trim()}
+                  disabled={busy || !contractReason.trim()}
                   onClick={() =>
                     void run(() =>
                       assets.reviseContract(asset.id, {
                         lifeMonths: newLife.trim() === "" ? null : Number(newLife),
                         depreciationStartOn: newStart || null,
-                        reason,
+                        reason: contractReason,
                       }),
                     )
                   }
@@ -321,7 +327,7 @@ export default function AssetDetail() {
               </label>
               <label className="micro-field">
                 <span>السبب (مطلوب)</span>
-                <input value={reason} onChange={event => setReason(event.target.value)} placeholder="مثال: بعتُه، أو تلف كليًا" />
+                <input value={disposalReason} onChange={event => setDisposalReason(event.target.value)} placeholder="مثال: بعتُه، أو تلف كليًا" />
               </label>
               <p className="micro-field-hint">
                 {proceedsMinor > 0
@@ -332,13 +338,13 @@ export default function AssetDetail() {
                 <button
                   className="micro-button micro-button-secondary"
                   type="button"
-                  disabled={busy || !reason.trim() || !validProceeds || proceedsMinor <= 0}
+                  disabled={busy || !disposalReason.trim() || !validProceeds || proceedsMinor <= 0}
                   onClick={() =>
                     void run(() =>
                       assets.dispose(asset.id, {
                         on: localDateInAmman(),
                         proceedsMinor,
-                        reason,
+                        reason: disposalReason,
                       }),
                     )
                   }
@@ -348,10 +354,10 @@ export default function AssetDetail() {
                 <button
                   className="micro-button micro-button-secondary"
                   type="button"
-                  disabled={busy || !reason.trim() || proceedsMinor > 0 || summary.bookValueMinor <= 0}
+                  disabled={busy || !disposalReason.trim() || proceedsMinor > 0 || summary.bookValueMinor <= 0}
                   onClick={() =>
                     void run(() =>
-                      assets.writeOff(asset.id, { on: localDateInAmman(), reason }),
+                      assets.writeOff(asset.id, { on: localDateInAmman(), reason: disposalReason }),
                     )
                   }
                 >

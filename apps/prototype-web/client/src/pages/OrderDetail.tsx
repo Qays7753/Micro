@@ -1,4 +1,5 @@
 /* مبدأ Micro: يعرض الطلب حالته الفعلية وفعلًا تاليًا واحدًا، ولا يساوي الحفظ ببدء التنفيذ أو التحصيل. */
+import { Share2 } from "lucide-react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -29,6 +30,12 @@ import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import { AgreementContextPanel } from "@/components/order/AgreementContextPanel";
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
 import { OrderEventLog } from "@/components/order/OrderEventLog";
+import {
+  collectionShareDraft,
+  deliveryShareDraft,
+  orderShareDraft,
+  reminderShareDraft,
+} from "@/application/share/shareMessageService";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
@@ -971,6 +978,15 @@ export default function OrderDetail() {
                 الكاش محتفظ به بلا معنى بعد. صنّفه: مال مالك (تسحبه وقتما تشاء)، أو إيراد مشروع (يدخل ربح فترة
                 القرار). أو اتركه معلقًا — خيار صالح ظاهر حتى تقرر.
               </p>
+              {/* المجموعة ٥ (تسديد دَين المجموعة ٤ — بند ٢): سطر الأثر الرقمي قبل
+               * التأكيد — النمط المعتمد في بقية أسطح التصحيح؛ الرقم من السجل نفسه. */}
+              <p className="micro-deposit-effect-line" role="note">
+                هذا التغيير سيؤثر على الرصيد كالتالي: «مال مالك» يرفع مال المالك{" "}
+                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ بلا أي أثر
+                على نتيجة الفترة؛ و«إيراد مشروع» يضيف{" "}
+                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ إلى نتيجة
+                فترة القرار بلا كاش جديد (الكاش قُبض سابقًا). كلاهما قابل للتصحيح الموثق لاحقًا.
+              </p>
               <label className="micro-field">
                 <span>سبب التصنيف (مطلوب عند الاختيار)</span>
                 <input
@@ -1100,6 +1116,24 @@ export default function OrderDetail() {
           <p>تم التحصيل الكامل وإغلاق الطلب.</p>
         </section>
       ) : null}
+      {/* المجموعة ٥ (عقد ٣٣): مشاركة يدوية مع الزبون — نص من السجل يُعرض ويُعدّل
+       * قبل أن يغادر الجهاز؛ لا إرسال تلقائي ولا قراءة جهات اتصال. */}
+      <div className="micro-form-actions micro-contextual-actions">
+        <button
+          className="micro-text-action"
+          type="button"
+          onClick={() => {
+            const draft = ["delivered", "settled"].includes(order.status)
+              ? deliveryShareDraft(stored)
+              : order.receivableMinor > 0
+                ? reminderShareDraft(stored, order.receivableMinor, stored.followUpDate ?? null)
+                : orderShareDraft(stored);
+            navigate(withFrom("/share/preview", `/orders/${stored.id}`), { state: { draft } });
+          }}
+        >
+          <Share2 aria-hidden="true" /> شارك رسالة مع الزبون
+        </button>
+      </div>
       {["delivered", "settled"].includes(order.status) ? (
         <section className="micro-result-card" data-result={order.resultStatus}>
           <span>{result}</span>

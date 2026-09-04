@@ -4,6 +4,8 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
+import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
@@ -93,6 +95,10 @@ describe("integrity check service (فحص سلامة مالي)", () => {
       "MIC-11",
       "MIC-12",
       "MIC-13",
+      /* المجموعة ٥ (عقد ٣٥): فحوص الاستمرارية الثلاثة تنضم للفحوص القراءة فقط. */
+      "MIC-14",
+      "MIC-15",
+      "MIC-16",
     ]);
     for (const check of report.checks) expect(check.status).toBe("PASS");
   });
@@ -749,5 +755,98 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
     const mic13 = report.checks.find(check => check.id === "MIC-13");
     expect(mic13?.status).toBe("FAIL");
     expect(mic13?.offenderSampleIds?.some(id => id.includes("mv-mic13b-orphan"))).toBe(true);
+  });
+
+  /* ─── المجموعة ٥ (عقد ٣٥): فحوص الاستمرارية MIC-14/15/16 ─── */
+
+  it("MIC-14: negative unallocated cash is a WARN with the amount; zero/positive stays PASS", async () => {
+    const { store, services } = await cleanStore();
+    const report = await services.integrityCheck.run();
+    let mic14 = report.checks.find(check => check.id === "MIC-14");
+    expect(mic14?.status).toBe("PASS");
+
+    /* محاكاة إنفاق فوق المصادر المسجلة: حدث كاش خارج بلا مصدر يعادل مصدرًا
+     * مكشوفًا — عبر كتابة مباشرة تُحاكي عبور الاستيراد/العد الخارجي. */
+    const overspend = createFinancialEvent({
+      id: "mic14-overspend",
+      type: "payable_settlement_cash",
+      amountMinor: 900000,
+      occurredOn: "2026-09-02",
+      recordedAt: now(),
+      idempotencyKey: "mic14-overspend",
+      note: "تسديد ضخم",
+      counterparty: null,
+      relatedEventId: "legacy-mic14-payable",
+    });
+    const saved = await store.saveFinancialEvent(overspend);
+    if (!saved.ok) throw new Error(saved.message);
+    const after = await services.integrityCheck.run();
+    mic14 = after.checks.find(check => check.id === "MIC-14");
+    expect(mic14?.status).toBe("WARN");
+    expect(mic14?.driftMinor ?? 0).toBeGreaterThan(0);
+    expect(mic14?.deepLink).toBe("/cash");
+  });
+
+  it("MIC-15: a duplicated idempotency key with a fresh id fails — import-grade check on the live store", async () => {
+    const { store, services } = await cleanStore();
+    const original = createFinancialEvent({
+      id: "mic15-original",
+      type: "operating_expense_cash",
+      amountMinor: 1200,
+      occurredOn: "2026-09-01",
+      recordedAt: now(),
+      idempotencyKey: "mic15-key",
+      note: "أصل",
+      counterparty: null,
+    });
+    const savedOriginal = await store.saveFinancialEvent(original);
+    if (!savedOriginal.ok) throw new Error(savedOriginal.message);
+    const forged = createFinancialEvent({
+      id: "mic15-forged",
+      type: "operating_expense_cash",
+      amountMinor: 1200,
+      occurredOn: "2026-09-02",
+      recordedAt: now(),
+      idempotencyKey: "mic15-key",
+      note: "نسخة معدّة يدويًا بمعرّف جديد",
+      counterparty: null,
+    });
+    const savedForged = await store.saveFinancialEvent(forged);
+    if (!savedForged.ok) throw new Error(savedForged.message);
+    const report = await services.integrityCheck.run();
+    const mic15 = report.checks.find(check => check.id === "MIC-15");
+    expect(mic15?.status).toBe("FAIL");
+    expect(mic15?.offenderSampleIds).toContain("mic15-forged");
+  });
+
+  it("MIC-16: owner-capital delta on a non-owner type fails the separation check", async () => {
+    const store = new MemoryLocalStore();
+    const services = buildServices(store);
+    const tampered = {
+      ...createFinancialEvent({
+        id: "mic16-leak",
+        type: "operating_expense_cash",
+        amountMinor: 1000,
+        occurredOn: "2026-09-01",
+        recordedAt: now(),
+        idempotencyKey: "mic16-leak",
+        note: "مصروف يحمل دلتا مالك",
+        counterparty: null,
+      }),
+      ownerCapitalDeltaMinor: 1000,
+    };
+    const saved = await store.saveFinancialEvent(tampered);
+    if (!saved.ok) throw new Error(saved.message);
+    const report = await services.integrityCheck.run();
+    const mic16 = report.checks.find(check => check.id === "MIC-16");
+    expect(mic16?.status).toBe("FAIL");
+    expect(mic16?.offenderSampleIds?.some(id => id.includes("mic16-leak"))).toBe(true);
+  });
+
+  it("the report carries schema and export version stamps (المجموعة ٥)", async () => {
+    const { services } = await cleanStore();
+    const report = await services.integrityCheck.run();
+    expect(report.schemaVersion).toBe(localSchemaVersion);
+    expect(report.exportVersion).toBe(localExportVersion);
   });
 });

@@ -3,8 +3,10 @@ import type { DailyFollowUpService } from "@/application/follow-up/dailyFollowUp
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
+import type { ActivityService } from "@/application/activity/activityService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
+import { activityEffectLabel, activityFamilyLabel } from "@/presentation/activityLabels";
 
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
@@ -44,16 +46,6 @@ function hasIncompleteCost(stored: StoredCraftOrder) {
 function hasIncompleteResult(stored: StoredCraftOrder) {
   return !["cancelled"].includes(stored.order.status) && stored.order.resultStatus !== "final";
 }
-function orderChange(stored: StoredCraftOrder): HomeRecentChange {
-  return {
-    id: `order:${stored.id}`,
-    occurredOn: stored.updatedAt.slice(0, 10),
-    title: `طلب: ${stored.order.itemName || "بلا وصف"}`,
-    detail: stored.order.nextAction,
-    href: `/orders/${stored.id}`,
-  };
-}
-
 export class HomeControlCenterService {
   constructor(
     private readonly store: PrototypeLocalStore,
@@ -62,6 +54,7 @@ export class HomeControlCenterService {
     private readonly supplierPurchases: SupplierPurchaseService,
     private readonly inventory: InventoryMaterialService,
     private readonly agreementContext: AgreementContextService,
+    private readonly activity: ActivityService,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
@@ -395,32 +388,22 @@ export class HomeControlCenterService {
       },
     ];
 
-    const recentChanges: HomeRecentChange[] = [
-      ...orders.map(orderChange),
-      ...openDrafts.map(draft => ({
-        id: `draft:${draft.id}`,
-        occurredOn: draft.updatedAt.slice(0, 10),
-        title: `مسودة: ${draft.itemName || "بلا وصف"}`,
-        detail: null,
-        href: `/orders/draft/${draft.id}`,
-      })),
-      ...events.value.map(event => ({
-        id: `finance:${event.id}`,
-        occurredOn: event.occurredOn,
-        title: `حدث مالي: ${event.note || event.type}`,
-        detail: null,
-        href: "/finance",
-      })),
-      ...schedules.value.map(schedule => ({
-        id: `schedule:${schedule.id}`,
-        occurredOn: schedule.scheduledFor,
-        title: `موعد: ${formatLocalDateLong(schedule.scheduledFor) ?? schedule.scheduledFor}`,
-        detail: null,
-        href: "/schedule",
-      })),
-    ].sort(
-      (left, right) => right.occurredOn.localeCompare(left.occurredOn) || left.id.localeCompare(right.id),
-    );
+    /* المجموعة ٥ (عقد ٣٠): «آخر ما حدث» يُبنى من القارئ الموحّد وحده — قراءة
+     * واحدة لكل العائلات مع كلمة أثر ورابط مصدر لكل صف؛ لا قصّات منفصلة بعد
+     * اليوم (الأحداث وحدها/المواعيد المستقبلية/مسودة بلا أثر). عائلة المحفظة
+     * تُستثنى من نافذة الرئيس (دفتر المحفظة أبوابها في «مالي»). */
+    const activityRead = await this.activity.read({ limit: 5, perFamilyLimit: 3 });
+    const recentChanges: HomeRecentChange[] = activityRead.ok
+      ? activityRead.value.map(record => ({
+          id: record.id,
+          occurredOn: record.occurredOn ?? record.recordedAt.slice(0, 10),
+          title: activityFamilyLabel[record.family],
+          detail: record.detail,
+          href: record.sourceHref,
+          effectWord: activityEffectLabel[record.effect],
+          amountMinor: record.amountMinor,
+        }))
+      : [];
 
     /* «أثناء غيابك» (التدفق ٢٣): تظهر بعد ٧ أيام بلا تسجيل، وتختفي بالنشاط.
      * تذكير النسخة (P-01 طبقة ١): بعد ٧ أيام من آخر تصدير مُتحقق مع وجود بيانات.

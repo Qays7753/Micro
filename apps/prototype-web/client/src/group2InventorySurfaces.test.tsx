@@ -12,6 +12,7 @@ import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/finance/retainedDepositService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { FormDraftService } from "@/application/drafts/formDraftService";
 import MaterialEditor from "@/pages/MaterialEditor";
 import InventoryMaterials from "@/pages/InventoryMaterials";
 import InventoryMovementEditor from "@/pages/InventoryMovementEditor";
@@ -67,6 +68,7 @@ function renderWithHarness(node: React.ReactNode, store: MemoryLocalStore): Harn
   function Harness() {
     const [version, setVersion] = React.useState(0);
     contextRef.current = {
+    formDrafts: new FormDraftService(store),
       inventory,
       dataVersion: version,
       notifyDataChanged: () => setVersion(current => current + 1),
@@ -479,6 +481,7 @@ function renderPurchaseEditorHarness(store: MemoryLocalStore, inventory: Invento
     contextRef.current = {
       supplierPurchases,
       inventory,
+      formDrafts: new FormDraftService(store),
       dataVersion: version,
       notifyDataChanged: () => setVersion(current => current + 1),
     };

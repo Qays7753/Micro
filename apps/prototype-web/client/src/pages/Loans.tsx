@@ -3,6 +3,7 @@
  * قراءة من «مالي» بالمتبقي المشتق من الدفعات القائمة؛ سداد دفعة ورقة
  * سفلية سريعة بمعاينة أثرها (كاش يرتفع والقرض ينزل — لا ربح ولا مصروف).
  */
+import { assetCountLabel, loanInstallmentCountLabel, loanOutstandingCountLabel } from "@/presentation/g5Plurals";
 import { HandCoins, Plus, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -102,7 +103,7 @@ function LoansSummary({ rows }: { rows: readonly LoanSummaryRow[] }) {
         <span>قائم عند الناس</span>
         <strong><MoneyValue minor={outstanding} /> د.أ</strong>
         <p>
-          {openCount} قرضًا قائمًا من أصل {rows.length} — المسدَّد يبقى في التاريخ للمراجعة.
+          {loanOutstandingCountLabel(openCount)} من أصل {assetCountLabel(rows.length)} — المسدَّد يبقى في التاريخ للمراجعة.
         </p>
       </div>
     </section>
@@ -134,7 +135,7 @@ function LoanCard({
           )}
         </p>
         {row.reading.repaidActiveMinor > 0 ? (
-          <p>رجع منه: <MoneyValue minor={row.reading.repaidActiveMinor} /> د.أ في {row.reading.repaymentCount} دفعة</p>
+          <p>رجع منه: <MoneyValue minor={row.reading.repaidActiveMinor} /> د.أ {loanInstallmentCountLabel(row.reading.repaymentCount)}</p>
         ) : null}
         {row.reading.status === "open" ? (
           <div className="micro-form-actions micro-contextual-actions">

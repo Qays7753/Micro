@@ -1,5 +1,6 @@
 /* مبدأ Micro: ابدأ بقرار الكاش والفعل الأقرب، وأجّل قراءة الفترة والسجل والأثر الكامل إلى طبقات مستقلة. */
 /* §2.2: المراجعة اندمجت نبضةً أعلى هذه الصفحة (F-003) — جلسة قراءة أسبوعية لا تستحق مقعدًا. */
+import { assetCountLabel, pendingDepositCountLabel } from "@/presentation/g5Plurals";
 import {
   ArrowLeft,
   CircleAlert,
@@ -436,7 +437,7 @@ export default function Finance() {
             <small>دفتري مشتق من الأحداث — لا مس شراءً للربح</small>
           </span>
           <strong>
-            {state.assetsOverview.length} أصلًا ·{" "}
+            {assetCountLabel(state.assetsOverview.length)} ·{" "}
             {formatMoneyMinor(state.assetsOverview.reduce((sum, row) => sum + row.bookValueMinor, 0))} د.أ
           </strong>
         </summary>
@@ -459,7 +460,7 @@ export default function Finance() {
           </span>
           <strong>
             {state.pendingRetainedDeposits.filter(row => row.decision === "pending").length > 0
-              ? `${state.pendingRetainedDeposits.filter(row => row.decision === "pending").length} عربونًا بانتظار قرارك · `
+              ? `${pendingDepositCountLabel(state.pendingRetainedDeposits.filter(row => row.decision === "pending").length)} · `
               : ""}
             {formatMoneyMinor(state.loansOverview.reduce((sum, row) => sum + row.reading.outstandingMinor, 0))} د.أ قائمًا
           </strong>
@@ -1083,6 +1084,17 @@ export default function Finance() {
           </button>
         </section>
       </details>
+      {/* المجموعة ٥ (عقد ٣٠): مدخل القارئ الكامل — كل العائلات في مكان واحد؛
+          نافذة الرئيس تكفي للنظرة السريعة وهنا الرحلة الكاملة. */}
+      <div className="micro-finance-actions">
+        <button
+          className="micro-text-action"
+          type="button"
+          onClick={() => navigate(withFrom("/finance/activity", "/finance"))}
+        >
+          آخر ما حدث — القارئ الكامل لكل النشاط
+        </button>
+      </div>
       <EventsLayer
         visibleEvents={visibleEvents}
         events={state.events}

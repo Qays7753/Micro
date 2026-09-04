@@ -53,6 +53,8 @@ const deepFlowPatterns: readonly RegExp[] = [
   /* المجموعة ٤ (عقد ٢٩): محرر القرض وتفصيله عمقان — القائمة سطح، والباقي عمق. */
   /^\/loans\/new$/,
   /^\/loans\/[^/]+$/,
+  /* المجموعة ٥ (عقد ٣٣): معاينة المشاركة محرر نص عميق — يحرس التعديل اليدوي. */
+  /^\/share\/preview$/,
 ];
 
 function pathnameOnly(location: string) {

@@ -14,12 +14,14 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
+import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
+import { useFormDraft } from "@/components/forms/useFormDraft";
 import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
 
 export default function AssetEditor() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { assets, notifyDataChanged } = usePrototypeServices();
+  const { assets, notifyDataChanged, formDrafts } = usePrototypeServices();
   const [name, setName] = useState("");
   const [categoryLabel, setCategoryLabel] = useState("");
   const [amountMinor, setAmountMinor] = useState(0);
@@ -36,6 +38,52 @@ export default function AssetEditor() {
 
   const isDirty = useFormDirty([name, categoryLabel, amountMinor, acquisitionKind, purchaseDate, longUse, lifeMonths, startOn, note]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+  /* المجموعة ٥ (عقد ٣٦): مسودة نصية لمحرر الأصل — تُكتب عند التعديل الفعلي
+   * وتُستعاد صريحة بعد الإغلاق/التحديث؛ لا حدث مالي قبل الحفظ النهائي. */
+  const draft = useFormDraft(formDrafts, "asset", "new", {
+    name: "",
+    categoryLabel: "",
+    amountMinor: 0,
+    acquisitionKind: "cash" as "cash" | "payable",
+    purchaseDate: localDateInAmman(),
+    longUse: "unknown" as "yes" | "no" | "unknown",
+    lifeMonths: "",
+    startOn: "",
+    note: "",
+  });
+  const restoredFromOffer = useRef(false);
+  /* الكتابة عند التغيير الفعلي فقط (قذر) وفي طور الصياغة — لا مسودة من مجرد فتح. */
+  useEffect(() => {
+    if (!isDirty || draft.state.phase !== "drafting") return;
+    draft.onValuesChanged({
+      name,
+      categoryLabel,
+      amountMinor,
+      acquisitionKind,
+      purchaseDate,
+      longUse,
+      lifeMonths,
+      startOn,
+      note,
+    });
+  }, [name, categoryLabel, amountMinor, acquisitionKind, purchaseDate, longUse, lifeMonths, startOn, note, isDirty, draft.state.phase]);
+  /* تطبيق القيم المستعادة بعد «استرجع» فقط — الانتقال من العرض إلى الصياغة. */
+  useEffect(() => {
+    if (draft.state.phase === "drafting" && restoredFromOffer.current) {
+      restoredFromOffer.current = false;
+      const saved = draft.state.values;
+      setName(String(saved.name ?? ""));
+      setCategoryLabel(String(saved.categoryLabel ?? ""));
+      setAmountMinor(Number(saved.amountMinor ?? 0));
+      setAcquisitionKind(saved.acquisitionKind === "payable" ? "payable" : "cash");
+      setPurchaseDate(String(saved.purchaseDate ?? localDateInAmman()));
+      setLongUse(saved.longUse === "yes" || saved.longUse === "no" ? saved.longUse : "unknown");
+      setLifeMonths(String(saved.lifeMonths ?? ""));
+      setStartOn(String(saved.startOn ?? ""));
+      setNote(String(saved.note ?? ""));
+    }
+    if (draft.state.phase === "restore-offer") restoredFromOffer.current = true;
+  }, [draft.state.phase]);
 
   function validate(): string | null {
     if (!name.trim()) return "أكمل اسم الأصل — مثال: ثلاجة عرض، ماكينة خياطة.";
@@ -76,6 +124,7 @@ export default function AssetEditor() {
       return false;
     }
     notifyDataChanged();
+    await draft.clearFormDraft();
     navigate(withFromReturn(returnPath, result.value.asset.id));
     return true;
   }
@@ -90,6 +139,18 @@ export default function AssetEditor() {
         <h1>شراء للاستخدام الطويل</h1>
         <p>الفرق بين الأصل والمصروف: المصروف ينتهي فورده، والأصل يخدمك أشهرًا أو سنوات.</p>
       </div>
+      {draft.state.phase === "restore-offer" ? (
+        <FormDraftRestoreBanner
+          savedAt={draft.state.savedAt}
+          onRestore={draft.restoreDraft}
+          onDiscard={draft.discardDraft}
+        />
+      ) : null}
+      {draft.state.phase === "drafting" && draft.state.lastSavedAt ? (
+        <p className="micro-offline-truth" role="status">
+          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{draft.state.lastSavedAt.slice(0, 10)}</bdi>؛ لم تُسجّل أي حركة مالية بعد.
+        </p>
+      ) : null}
       <label className="micro-field">
         <span>اسم الأصل</span>
         <input

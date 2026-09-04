@@ -4,6 +4,7 @@ import { ProjectFinancialService } from "./projectFinancialService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";
+import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 
 const now = () => "2026-08-23T09:00:00.000Z";
 
@@ -269,5 +270,238 @@ describe("CorrectionHistoryService.affecting — خلاصة أثر التصحي�
     if (!inAugust.ok) return;
     expect(inAugust.value.count).toBe(1);
     expect(inAugust.value.netAmountMinor).toBe(-2000);
+  });
+});
+
+/* المجموعة ٥ (عقد ٣٤ — اختبار مسار التدقيق الموسّع): اقتران تعديلات المجموعة
+ * ٤ الذرّية (reversal/replacement بنفس الختم)، وعائلات الأصحاب الجديدة —
+ * عكس التسليم وتصنيف العربون وعكس حركة المخزون ومراجعة عقد الأصل وتراجع
+ * حركة مال المالك. */
+describe("CorrectionHistoryService — امتداد المجموعة ٥ (عقد ٣٤)", () => {
+  it("pairs the G4 reverse+replace convention and shows from → to", async () => {
+    const store = new MemoryLocalStore();
+    const history = new CorrectionHistoryService(store);
+    const base = {
+      type: "operating_expense_cash" as const,
+      occurredOn: "2026-09-01",
+      note: "أصل الاقتران",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "pair-base",
+      expenseContext: { relationship: "project" as const, behavior: "fixed" as const, purpose: "period" as const, knowledge: "known" as const },
+    };
+    const original = await store.saveFinancialEvent(
+      createFinancialEvent({ id: "pair-1", amountMinor: 3000, recordedAt: now(), ...base }),
+    );
+    if (!original.ok) throw new Error(original.message);
+    /* التراجع عبر معيّن المجال القياسي، والبديل حدث عادي بمفتاح الختم نفسه —
+     * نمط مفاتيح المجموعة ٤ الحقيقي. */
+    const reversal = await store.saveFinancialEvent(
+      createFinancialReversal({
+        id: "pair-rev",
+        sourceEvent: original.value,
+        occurredOn: "2026-09-02",
+        recordedAt: now(),
+        idempotencyKey: "x:acquisition-reversal:stamp",
+        reason: "قيمة أولى خاطئة",
+      }),
+    );
+    if (!reversal.ok) throw new Error(reversal.message);
+    const patchedReversal = await store.saveFinancialEvent({
+      ...reversal.value,
+      idempotencyKey: "x:acquisition-reversal:stamp",
+    });
+    if (!patchedReversal.ok) throw new Error(patchedReversal.message);
+    const replacement = await store.saveFinancialEvent(
+      createFinancialEvent({
+        id: "pair-repl",
+        type: "operating_expense_cash",
+        amountMinor: 3500,
+        occurredOn: "2026-09-02",
+        recordedAt: now(),
+        note: "بديل",
+        counterparty: null,
+        relatedEventId: null,
+        idempotencyKey: "x:acquisition-replacement:stamp",
+      }),
+    );
+    if (!replacement.ok) throw new Error(replacement.message);
+    const list = await history.list();
+    if (!list.ok) throw new Error(list.message);
+    const entry = list.value.find(item => item.id === "pair-rev");
+    expect(entry?.kind).toBe("asset_correction");
+    expect(entry?.replacementLabel).toContain("مصروف مدفوع");
+    expect(entry?.replacementLabel).toContain("35.00 د.أ");
+    expect(entry?.originalLabel).toContain("30.00 د.أ");
+    expect(entry?.amountEffectMinor).toBe(500);
+  });
+
+  it("collects inventory reversals, delivery reversals, deposit classifications, asset contract revisions, and owner reversals", async () => {
+    const store = new MemoryLocalStore();
+    const history = new CorrectionHistoryService(store);
+    /* عكس حركة مخزون موثق. */
+    const committed = await store.commitInventory(
+      {
+        id: "mat-h",
+        name: "خيط",
+        unit: "piece",
+        createdAt: now(),
+        createdOperationKey: "mat-h",
+      },
+      [
+        {
+          id: "mov-h",
+          materialId: "mat-h",
+          type: "reversal",
+          occurredOn: "2026-09-02",
+          recordedAt: now(),
+          quantityDeltaMilli: 500,
+          valueDeltaMinor: 300,
+          note: "عكس تسليم: خطأ كمية",
+          reason: null,
+          operationKey: "mov-h-rev",
+          purchaseId: null,
+          orderId: "order-h",
+          reversesMovementId: "mov-h-original",
+          wasteContext: null,
+        },
+      ],
+    );
+    if (!committed.ok) throw new Error(committed.message);
+    /* طلب بعكس تسليم وتصنيف عربون. */
+    const storedOrder = {
+      id: "order-h",
+      order: {
+        id: "order-h",
+        customerName: "زبون",
+        itemName: "عمل",
+        specifications: "مواصفة",
+        quantity: 1,
+        currency: "JOD",
+        agreedPriceMinor: 10000,
+        costSnapshot: { currency: "JOD", quantity: 1, createdAt: now() },
+        costSnapshots: [],
+        status: "delivered",
+        settlementStatus: "paid",
+        depositCollectedMinor: 2000,
+        depositSettlement: "retain_deposit",
+        retainedMeaning: "revenue",
+        collectedMinor: 10000,
+        receivableMinor: 0,
+        recognizedRevenueMinor: 10000,
+        recognizedCostMinor: 4000,
+        profitIndicatorMinor: 6000,
+        resultStatus: "final",
+        nextAction: null,
+        events: [
+          {
+            id: "ev-delivered",
+            type: "status_changed",
+            idempotencyKey: "o-h-delivered",
+            createdAt: now(),
+            toStatus: "delivered",
+          },
+          {
+            id: "ev-delivery-reversed",
+            type: "delivery_reversed",
+            idempotencyKey: "o-h-delivery-reversed",
+            createdAt: now(),
+            reversesEventId: "ev-delivered",
+            note: "مرتجع بعد التسليم",
+          },
+          {
+            id: "ev-classified",
+            type: "deposit_classified",
+            idempotencyKey: "o-h-classified",
+            createdAt: now(),
+            note: "قرار الاحتفاظ إيرادًا",
+          },
+        ],
+        createdAt: now(),
+      },
+      catalogItemId: null,
+      deliveryDate: "2026-09-10",
+      agreementSource: null,
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    const savedOrder = await store.saveOrder(storedOrder);
+    if (!savedOrder.ok) throw new Error(savedOrder.message);
+    /* أصل بمراجعة عقد. */
+    const committedAsset = await store.commitAssetRecord(
+      {
+        id: "asset-h",
+        name: "ماكينة",
+        categoryLabel: null,
+        acquisitionAmountMinor: 9000,
+        acquisitionKind: "cash",
+        purchaseDate: "2026-08-01",
+        lifeMonths: 60,
+        depreciationStartOn: "2026-08-01",
+        note: null,
+        status: "active",
+        acquisitionEventId: "asset-h-acq",
+        disposal: null,
+        writeOff: null,
+        contractRevisions: [
+          { revision: 1, lifeMonths: 48, depreciationStartOn: "2026-08-01", reason: "مراجعة عمر", changedAt: now() },
+        ],
+        operationKey: "asset-h",
+        createdAt: now(),
+        updatedAt: now(),
+      },
+      null,
+    );
+    if (!committedAsset.ok) throw new Error(committedAsset.message);
+    /* حركة مال مالك متراجعة. */
+    const committedOwner = await store.commitOwnerMovement(
+      {
+        id: "owner-h",
+        kind: "draw",
+        amountMinor: 1000,
+        walletId: "wallet-h",
+        occurredOn: "2026-09-01",
+        recordedAt: now(),
+        reason: "owner_draw",
+        note: "سحب",
+        idempotencyKey: "owner-h",
+        relatedEntitlementId: null,
+        relatedOpeningBalanceId: null,
+        relatedMovementId: null,
+        reversalOfId: "owner-h-original",
+        reversalReason: "خطأ",
+        cashDeltaMinor: -1000,
+        entitlementDeltaMinor: 0,
+        openingBalanceDeltaMinor: 0,
+        ownerCapitalDeltaMinor: -1000,
+      },
+      {
+        id: "cash-h",
+        walletId: "wallet-h",
+        type: "reversal",
+        occurredOn: "2026-09-01",
+        recordedAt: now(),
+        cashDeltaMinor: 1000,
+        note: "مرآة السحب",
+        reason: null,
+        operationKey: "cash-h",
+        transferId: null,
+        reversesEntryId: null,
+      },
+    );
+    if (!committedOwner.ok) throw new Error(committedOwner.message);
+
+    const list = await history.list();
+    if (!list.ok) throw new Error(list.message);
+    const kinds = new Set(list.value.map(entry => entry.kind));
+    expect(kinds.has("inventory_reversal")).toBe(true);
+    expect(kinds.has("delivery_reversal")).toBe(true);
+    expect(kinds.has("deposit_classification")).toBe(true);
+    expect(kinds.has("asset_contract_revision")).toBe(true);
+    expect(kinds.has("owner_reversal")).toBe(true);
+    const classification = list.value.find(entry => entry.kind === "deposit_classification");
+    expect(classification?.replacementLabel).toContain("إيراد مشروع");
+    const contractRevision = list.value.find(entry => entry.kind === "asset_contract_revision");
+    expect(contractRevision?.deepLink).toBe("/assets/asset-h");
   });
 });

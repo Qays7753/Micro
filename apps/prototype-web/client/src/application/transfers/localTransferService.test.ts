@@ -375,6 +375,9 @@ describe("LocalTransferService", () => {
       delete event.correctionReason;
     });
     legacy.data.financialEvents = legacy.data.financialEvents.filter(event => event.id === "transfer-source");
+    delete (legacy as Record<string, unknown>).integrity;
+    delete (legacy as Record<string, unknown>).counts;
+    delete (legacy as Record<string, unknown>).appVersion;
     expect(
       new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy)),
     ).toMatchObject({
@@ -418,7 +421,10 @@ describe("LocalTransferService", () => {
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
     const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number };
-    legacy.version = 6;
+    legacy.version = 6;    delete (legacy as Record<string, unknown>).integrity;
+    delete (legacy as Record<string, unknown>).counts;
+    delete (legacy as Record<string, unknown>).appVersion;
+
     legacy.schemaVersion = 14;
     const preview = new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(legacy));
     expect(preview).toMatchObject({
@@ -513,7 +519,10 @@ describe("LocalTransferService", () => {
       },
     ]);
     const previous = structuredClone(exported.value) as { version: number; schemaVersion: number };
-    previous.version = 11;
+    previous.version = 11;    delete (previous as Record<string, unknown>).integrity;
+    delete (previous as Record<string, unknown>).counts;
+    delete (previous as Record<string, unknown>).appVersion;
+
     previous.schemaVersion = 20;
     expect(
       new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous)),
@@ -534,7 +543,10 @@ describe("LocalTransferService", () => {
       schemaVersion: number;
       data: { catalogItems?: unknown; drafts: Array<Record<string, unknown>> };
     };
-    legacy.version = 7;
+    legacy.version = 7;    delete (legacy as Record<string, unknown>).integrity;
+    delete (legacy as Record<string, unknown>).counts;
+    delete (legacy as Record<string, unknown>).appVersion;
+
     legacy.schemaVersion = 15;
     delete legacy.data.catalogItems;
     delete legacy.data.drafts[0]!.catalogItemId;
@@ -1095,7 +1107,10 @@ describe("LocalTransferService", () => {
       schemaVersion: number;
       data: { shortCashDeclarations?: unknown };
     };
-    previous.version = 9;
+    previous.version = 9;    delete (previous as Record<string, unknown>).integrity;
+    delete (previous as Record<string, unknown>).counts;
+    delete (previous as Record<string, unknown>).appVersion;
+
     previous.schemaVersion = 18;
     delete previous.data.shortCashDeclarations;
     expect(
@@ -1224,7 +1239,10 @@ describe("LocalTransferService", () => {
       schemaVersion: number;
       data: { allocationPolicies: Array<Record<string, unknown>> };
     };
-    legacy.version = 16;
+    legacy.version = 16;    delete (legacy as Record<string, unknown>).integrity;
+    delete (legacy as Record<string, unknown>).counts;
+    delete (legacy as Record<string, unknown>).appVersion;
+
     legacy.schemaVersion = 25;
     legacy.data.allocationPolicies = legacy.data.allocationPolicies.map(policy => {
       const { rateMinorPerWholeUnit, ...oldPolicy } = policy;
@@ -1379,7 +1397,10 @@ describe("LocalTransferService", () => {
       schemaVersion: number;
       data: { actualTimeRecords?: unknown };
     };
-    legacy.version = 7;
+    legacy.version = 7;    delete (legacy as Record<string, unknown>).integrity;
+    delete (legacy as Record<string, unknown>).counts;
+    delete (legacy as Record<string, unknown>).appVersion;
+
     legacy.schemaVersion = 15;
     delete legacy.data.actualTimeRecords;
     expect(
@@ -1624,7 +1645,10 @@ describe("LocalTransferService G6-B recurrence migration", () => {
       schemaVersion: number;
       data: { recurrences?: unknown; schedules: unknown[] };
     };
-    legacy.version = 10;
+    legacy.version = 10;    delete (legacy as Record<string, unknown>).integrity;
+    delete (legacy as Record<string, unknown>).counts;
+    delete (legacy as Record<string, unknown>).appVersion;
+
     legacy.schemaVersion = 19;
     legacy.data.schedules = [sourceSchedule];
     delete legacy.data.recurrences;
@@ -1761,7 +1785,10 @@ describe("inventory activation export and migration (decision 9)", () => {
       schemaVersion: number;
       data: { inventoryActivation?: unknown };
     };
-    previous.version = 19;
+    previous.version = 19;    delete (previous as Record<string, unknown>).integrity;
+    delete (previous as Record<string, unknown>).counts;
+    delete (previous as Record<string, unknown>).appVersion;
+
     previous.schemaVersion = 27;
     delete previous.data.inventoryActivation;
     expect(
@@ -1840,6 +1867,9 @@ describe("owner profile export and migration (group 1 owner profile foundation)"
       data: Record<string, unknown>;
     };
     previous.version = 21;
+    delete (previous as Record<string, unknown>).integrity;
+    delete (previous as Record<string, unknown>).counts;
+    delete (previous as Record<string, unknown>).appVersion;
     previous.schemaVersion = 29;
     delete previous.data.ownerProfile;
     expect(
