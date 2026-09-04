@@ -2790,12 +2790,24 @@ export class LocalTransferService {
     } as unknown as LocalStoreSnapshot;
     if (!validateSnapshot(migrated))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
+    /* المجموعة ٥ (عقد ٣٩ — إصلاح الجولة الكاملة): الحقول الاختيارية للمظروف ٢٧
+     * كانت تُتجاهل عند إعادة بناء الملف هنا فخرج تصدير «مُتحقق منه» بلا بصمة
+     * ولا عدادات ولا إصدار تطبيق — فيُفقد تحقق التكامل لملفات هذا الإصدار نفسه.
+     * الآن تُحمل مع الملف: البصمة تُعاد على البيانات بعد الترحيل فتبقى صادقة
+     * على الملف الخارج نفسه، والملفات القديمة بلا بصمة تبقى على مسارها القائم. */
     const file: LocalExportFile = {
       format: localExportFormat,
       version: localExportVersion,
       schemaVersion: localSchemaVersion,
       exportedAt: candidate.exportedAt,
       data: migrated,
+      ...(isRecord(candidate.integrity)
+        ? { integrity: { algorithm: "sha256" as const, digest: syncSha256Hex(JSON.stringify(migrated)) } }
+        : {}),
+      /* العدادات تُعاد من البيانات المُرحَّلة نفسها — مطابقة النوع دومًا
+       * وصادقة على الملف الخارج مهما كان مصدر الملف الداخل. */
+      ...(isRecord(candidate.counts) ? { counts: exportCountsOf(migrated) } : {}),
+      ...(typeof candidate.appVersion === "string" ? { appVersion: candidate.appVersion } : {}),
     };
     return { ok: true, value: { file, summary: summary(file) } };
   }

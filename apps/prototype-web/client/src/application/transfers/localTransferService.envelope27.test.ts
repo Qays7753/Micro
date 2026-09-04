@@ -39,6 +39,18 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
     /* دورة كاملة عبر التحقق الذاتي — المظروف نفسه يعبر. */
     const verified = await transfers.createVerifiedExport();
     expect(verified.ok).toBe(true);
+    /* إصلاح الجولة الكاملة: الملف الخارج من التصدير المُتحقق منه يحتفظ
+     * بعلاماته (بصمة/عدادات/إصدار تطبيق) — لا يخرج أصلًا مجردًا منها فيُفقد
+     * تحقق التكامل لملفات هذا الإصدار نفسه. البصمة تظل صادقة على بياناته. */
+    if (!verified.ok) throw new Error(verified.message);
+    expect(verified.value.file.version).toBe(27);
+    expect(verified.value.file.integrity?.algorithm).toBe("sha256");
+    expect(verified.value.file.integrity?.digest).toMatch(/^[0-9a-f]{64}$/);
+    expect(verified.value.file.counts?.financialEvents).toBe(1);
+    expect(verified.value.file.appVersion).toBe("micro-prototype-web");
+    /* بصمة الملف الخارج تطابق بياناته هو — ملف يعبر prepareImport لاحقًا بلا رفض. */
+    const rePrepared = transfers.prepareImport(JSON.stringify(verified.value.file));
+    expect(rePrepared.ok).toBe(true);
   });
 
   it("rejects a tampered file by digest before any preview — data unchanged", async () => {

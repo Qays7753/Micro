@@ -5,7 +5,7 @@ import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
-import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 
 export type CorrectionHistoryKind =
   | "event_reversal"
@@ -196,11 +196,11 @@ export class CorrectionHistoryService {
             replacement && source ? replacement.amountMinor - source.amountMinor : -event.amountMinor,
           reason: event.correctionReason ?? null,
           originalLabel: source
-            ? `${eventKindLabel[source.type]} · ${source.occurredOn} · ${formatMoneyWithUnit(source.amountMinor)}`
+            ? `${eventKindLabel[source.type]} · ${formatLocalDate(source.occurredOn) ?? source.occurredOn} · ${formatMoneyWithUnit(source.amountMinor)}`
             : null,
           replacementLabel:
             replacement && source
-              ? `${eventKindLabel[replacement.type]} · ${replacement.occurredOn} · ${formatMoneyWithUnit(replacement.amountMinor)}`
+              ? `${eventKindLabel[replacement.type]} · ${formatLocalDate(replacement.occurredOn) ?? replacement.occurredOn} · ${formatMoneyWithUnit(replacement.amountMinor)}`
               : null,
           /* U-001 (دورة التدقيق النهائي): وصول عميق للحدث في «السجل والأثر» — التعديل
            * يفتح البديل النشط (حيث التصحيح/الحذف)، والتراجع يفتح الأصل (حيث الاسترجاع). */
@@ -228,7 +228,7 @@ export class CorrectionHistoryService {
           occurredOn: event.occurredOn,
           amountEffectMinor: event.amountMinor,
           reason: source
-            ? `استرجاع بعد تراجع: ${eventKindLabel[source.type]} · ${source.occurredOn} · ${formatMoneyWithUnit(source.amountMinor)}`
+            ? `استرجاع بعد تراجع: ${eventKindLabel[source.type]} · ${formatLocalDate(source.occurredOn) ?? source.occurredOn} · ${formatMoneyWithUnit(source.amountMinor)}`
             : "استرجاع حدث سابق",
           originalLabel: null,
           replacementLabel: null,
@@ -404,7 +404,7 @@ export class CorrectionHistoryService {
         occurredOn: movement.occurredOn,
         amountEffectMinor: null,
         reason: movement.note || movement.reason,
-        originalLabel: `حركة مخزون · ${movement.occurredOn} · الكمية ${movement.quantityDeltaMilli / 1000}`,
+        originalLabel: `حركة مخزون · ${formatLocalDate(movement.occurredOn) ?? movement.occurredOn} · الكمية ${movement.quantityDeltaMilli / 1000}`,
         replacementLabel: "حُيّد أثر الحركة — الكمية والقيمة عادا كما كانا",
         deepLink: movement.orderId
           ? `/orders/${encodeURIComponent(movement.orderId)}`
@@ -423,7 +423,7 @@ export class CorrectionHistoryService {
           amountEffectMinor: null,
           reason: revision.reason,
           originalLabel: `عقد الأصل «${asset.name}» قبل المراجعة — العمر ${revision.lifeMonths ?? "?"} شهرًا`,
-          replacementLabel: `بعد المراجعة: العمر ${revision.lifeMonths ?? "?"} · بداية الإهلاك ${revision.depreciationStartOn ?? "غير محددة"}`,
+          replacementLabel: `بعد المراجعة: العمر ${revision.lifeMonths ?? "?"} · بداية الإهلاك ${formatLocalDate(revision.depreciationStartOn) ?? revision.depreciationStartOn ?? "غير محددة"}`,
           deepLink: `/assets/${encodeURIComponent(asset.id)}`,
         });
       }

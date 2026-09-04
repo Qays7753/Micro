@@ -849,4 +849,60 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
     expect(report.schemaVersion).toBe(localSchemaVersion);
     expect(report.exportVersion).toBe(localExportVersion);
   });
+
+  /* المجموعة ٥ (إصلاح MIC-4): أحداث الأصول/القروض/تصنيف العربون كانت تُوسم
+   * «خللًا» كذبًا لأن إعادة الاشتقاق لم تمرّر سياقها المرتبط الذي يوجبه عقد
+   * المجال — المُنشئ يرمي فيقع السجل السليم في فرع الخلل. الآن السياق يُمرّر
+   * ويُقارن، والسليم يبقى سليمًا والمُلاعَب يُكشف. */
+  it("asset/loan/deposit-context events: MIC-4 PASS on healthy linked events (false-positive regression)", async () => {
+    const { store, services } = await cleanStore();
+    await services.assets.create({
+      name: "مكينة خياطة",
+      acquisitionAmountMinor: 45000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-09-05",
+      lifeMonths: 60,
+      depreciationStartOn: "2026-09-05",
+    });
+    await services.loans.create({
+      borrowerName: "أحمد",
+      principalMinor: 30000,
+      loanDate: "2026-09-05",
+      sourceWalletId: null,
+      purposeNote: "قرض اختبار",
+    });
+    const report = await services.integrityCheck.run();
+    const mic4 = report.checks.find(check => check.id === "MIC-4");
+    expect(mic4?.status).toBe("PASS");
+  });
+
+  it("tampered asset context: MIC-4 FAIL — context comparison catches it", async () => {
+    const { store, services } = await cleanStore();
+    await services.assets.create({
+      name: "ثلاجة عرض",
+      acquisitionAmountMinor: 60000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-09-05",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-09-05",
+    });
+    const snapshot = await store.readSnapshot();
+    if (!snapshot.ok) throw new Error(snapshot.message);
+    const assetEvent = snapshot.value.financialEvents.find(event => event.type === "asset_purchase_cash")!;
+    /* سياق يكسر عقد المجال (بلا اسم) — إعادة الاشتقاق ترفضه فيُوسم الحدث. */
+    const tampered = {
+      ...assetEvent,
+      assetContext: { assetId: assetEvent.assetContext!.assetId, name: "" },
+    };
+    await store.replaceSnapshot({
+      ...snapshot.value,
+      financialEvents: snapshot.value.financialEvents.map(event => (event.id === tampered.id ? tampered : event)),
+    });
+    const report = await services.integrityCheck.run();
+    const mic4 = report.checks.find(check => check.id === "MIC-4");
+    expect(mic4?.status).toBe("FAIL");
+    expect(mic4?.offenderSampleIds?.some(id => id === tampered.id)).toBe(true);
+  });
+
 });
+

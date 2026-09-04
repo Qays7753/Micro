@@ -375,7 +375,13 @@ export class IntegrityCheckService {
             rebuilt.ownerCapitalDeltaMinor !== event.ownerCapitalDeltaMinor ||
             rebuilt.operatingExpenseDeltaMinor !== event.operatingExpenseDeltaMinor ||
             (rebuilt.amanahDeltaMinor ?? 0) !== (event.amanahDeltaMinor ?? 0) ||
-            JSON.stringify(rebuilt.expenseContext ?? null) !== JSON.stringify(event.expenseContext ?? null)
+            (rebuilt.assetDeltaMinor ?? 0) !== (event.assetDeltaMinor ?? 0) ||
+            (rebuilt.loanDeltaMinor ?? 0) !== (event.loanDeltaMinor ?? 0) ||
+            (rebuilt.revenueDeltaMinor ?? 0) !== (event.revenueDeltaMinor ?? 0) ||
+            JSON.stringify(rebuilt.expenseContext ?? null) !== JSON.stringify(event.expenseContext ?? null) ||
+            JSON.stringify(rebuilt.assetContext ?? null) !== JSON.stringify(event.assetContext ?? null) ||
+            JSON.stringify(rebuilt.loanContext ?? null) !== JSON.stringify(event.loanContext ?? null) ||
+            JSON.stringify(rebuilt.depositContext ?? null) !== JSON.stringify(event.depositContext ?? null)
           )
             offenders.push(event.id);
           continue;
@@ -391,13 +397,27 @@ export class IntegrityCheckService {
           counterparty: event.counterparty,
           relatedEventId: event.relatedEventId,
           expenseContext: event.expenseContext ?? null,
+          /* المجموعة ٥ (إصلاح إيجابيات كاذبة في MIC-4): أحداث الأصول/القروض/
+           * تصنيف العربون تتطلب سياقها المرتبط في عقد المجال — دون تمريره
+           * كان إعادة الاشتقاق يرمي خطأً فيُوسَم كل حدث أصل/قرض/عربون سليم
+           * «خللًا». السياقات المسجلة تُمرّر فتُعاد التطبيع بنفس عقد المجال،
+           * وتُقارن نصيًا كسياق المصروف — تلاعب السياق يُكتشف لا يُخفى. */
+          assetContext: event.assetContext ?? null,
+          loanContext: event.loanContext ?? null,
+          depositContext: event.depositContext ?? null,
         });
         if (
           rebuilt.cashDeltaMinor !== event.cashDeltaMinor ||
           rebuilt.payableDeltaMinor !== event.payableDeltaMinor ||
           rebuilt.ownerCapitalDeltaMinor !== event.ownerCapitalDeltaMinor ||
           rebuilt.operatingExpenseDeltaMinor !== event.operatingExpenseDeltaMinor ||
-          (rebuilt.amanahDeltaMinor ?? 0) !== (event.amanahDeltaMinor ?? 0)
+          (rebuilt.amanahDeltaMinor ?? 0) !== (event.amanahDeltaMinor ?? 0) ||
+          (rebuilt.assetDeltaMinor ?? 0) !== (event.assetDeltaMinor ?? 0) ||
+          (rebuilt.loanDeltaMinor ?? 0) !== (event.loanDeltaMinor ?? 0) ||
+          (rebuilt.revenueDeltaMinor ?? 0) !== (event.revenueDeltaMinor ?? 0) ||
+          JSON.stringify(rebuilt.assetContext ?? null) !== JSON.stringify(event.assetContext ?? null) ||
+          JSON.stringify(rebuilt.loanContext ?? null) !== JSON.stringify(event.loanContext ?? null) ||
+          JSON.stringify(rebuilt.depositContext ?? null) !== JSON.stringify(event.depositContext ?? null)
         )
           offenders.push(event.id);
         /* قيد المصروف: غياب المرجل أو مرجع ليس التزامًا = خلل؛ أما مرجع التزام
