@@ -205,6 +205,14 @@ export class StatementService {
     const payableSettled = activeEvents.filter(
       event => event.type === "payable_settlement_cash" && familyEvent(event),
     );
+    /* المجموعة ٤ (تصحيح مراجعة 4-c): الكشف كان يخفي حركات الكاش الجديدة —
+     * شراء أصل نقدي وتخلص وتقديم قرض واسترداده. تظهر الآن بعائلاتها الصريحة
+     * بلا إعادة تفسير: شراء الأصل خرج ليس مصروفًا، القرض خرج ليس سحبًا ولا
+     * مصروفًا، التخلص والاسترداد قبض ليس إيرادًا. المصدر يوصل لصفحة الأصل/القرض. */
+    const assetPurchasePaid = cashEventLines(["asset_purchase_cash"]);
+    const assetDisposalReceived = cashEventLines(["asset_disposal_cash"]);
+    const loanGiven = cashEventLines(["loan_outgoing_cash"]);
+    const loanRepaid = cashEventLines(["loan_repayment_cash"]);
 
     /* مشتريات الموردين داخل الفترة: الدفع الابتدائي بتاريخ الشراء والدفعات بتواريخها. */
     let supplierPurchasesInPeriodMinor = 0;
@@ -257,17 +265,30 @@ export class StatementService {
               ? "أمانة سُلّمت"
               : type === "payable_settlement_cash"
                 ? "تسديد التزام"
-                : "مصروف مدفوع";
+                : type === "asset_purchase_cash"
+                  ? "شراء أصل"
+                  : type === "asset_disposal_cash"
+                    ? "تخلص من أصل"
+                    : type === "loan_outgoing_cash"
+                      ? "قرض أعطيته"
+                      : type === "loan_repayment_cash"
+                        ? "استرداد قرض"
+                        : "مصروف مدفوع";
+    const cashMovingTypes: readonly FinancialEvent["type"][] = [
+      "owner_investment_cash",
+      "owner_withdrawal_cash",
+      "operating_expense_cash",
+      "payable_settlement_cash",
+      "amanah_held_cash",
+      "amanah_released_cash",
+      "asset_purchase_cash",
+      "asset_disposal_cash",
+      "loan_outgoing_cash",
+      "loan_repayment_cash",
+    ];
     const cashCorrectionLines: StatementCorrectionLine[] = activeEvents
       .filter(
-        event =>
-          event.correctionType === "reverse" &&
-          (event.type === "owner_investment_cash" ||
-            event.type === "owner_withdrawal_cash" ||
-            event.type === "operating_expense_cash" ||
-            event.type === "payable_settlement_cash" ||
-            event.type === "amanah_held_cash" ||
-            event.type === "amanah_released_cash"),
+        event => event.correctionType === "reverse" && cashMovingTypes.includes(event.type),
       )
       .map(event => {
         const original = event.correctionOfEventId
@@ -349,6 +370,28 @@ export class StatementService {
           amountMinor: event.amountMinor,
         })),
       },
+      {
+        id: "asset-disposal-cash",
+        label: "متصل تخلص من أصل",
+        amountMinor: assetDisposalReceived.total,
+        qualifier: "مبلغ تخلص نقدي — ليس إيرادًا تشغيليًا",
+        sources: assetDisposalReceived.matched.map(event => ({
+          label: event.assetContext ? `تخلص — ${event.assetContext.name}` : event.note,
+          href: event.assetContext ? `/assets/${event.assetContext.assetId}` : `/finance`,
+          amountMinor: event.cashDeltaMinor,
+        })),
+      },
+      {
+        id: "loan-repaid-cash",
+        label: "استرداد قروض",
+        amountMinor: loanRepaid.total,
+        qualifier: "رجوع مالك أقرضته — ليس إيرادًا",
+        sources: loanRepaid.matched.map(event => ({
+          label: event.loanContext ? `سداد — ${event.loanContext.borrower}` : event.note,
+          href: event.loanContext ? `/loans/${event.loanContext.loanId}` : `/finance`,
+          amountMinor: event.cashDeltaMinor,
+        })),
+      },
     ].filter(line => line.amountMinor !== 0);
 
     const cashOut: StatementLine[] = [
@@ -402,6 +445,28 @@ export class StatementService {
         amountMinor: -(supplierPurchasesInPeriodMinor + supplierPaymentsInPeriodMinor),
         qualifier: "شراء مواد — ليس مصروفًا حتى الاستهلاك",
         sources: supplierSources,
+      },
+      {
+        id: "asset-purchase-cash",
+        label: "شراء أصول (دفع نقدي)",
+        amountMinor: assetPurchasePaid.total,
+        qualifier: "أصل طويل الاستخدام — ليس مصروفًا",
+        sources: assetPurchasePaid.matched.map(event => ({
+          label: event.assetContext ? `شراء — ${event.assetContext.name}` : event.note,
+          href: event.assetContext ? `/assets/${event.assetContext.assetId}` : `/finance`,
+          amountMinor: event.cashDeltaMinor,
+        })),
+      },
+      {
+        id: "loan-given-cash",
+        label: "قروض أعطيتها",
+        amountMinor: loanGiven.total,
+        qualifier: "قرض لشخص — ليس مصروفًا ولا سحبًا شخصيًا",
+        sources: loanGiven.matched.map(event => ({
+          label: event.loanContext ? `قرض — ${event.loanContext.borrower}` : event.note,
+          href: event.loanContext ? `/loans/${event.loanContext.loanId}` : `/finance`,
+          amountMinor: event.cashDeltaMinor,
+        })),
       },
     ].filter(line => line.amountMinor !== 0);
 

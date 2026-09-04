@@ -633,6 +633,12 @@ function validFinancialEvent(value: unknown): boolean {
     value.ownerCapitalDeltaMinor === expected[2] &&
     value.operatingExpenseDeltaMinor === expected[3] &&
     (value.amanahDeltaMinor ?? 0) === expected[4] &&
+    /* المجموعة ٤ (تصحيح مراجعة 4-c): الأنواع القديمة لا تحمل أثر الأعمدة
+     * الثلاثة الجديدة — ملف يزعم غير ذلك يُرفض لا يُقبل بتخفٍّ يفسر الأصول
+     * والقروض عند الاستيراد بخلاف ما ينتجه المسار الحي. */
+    (value.assetDeltaMinor ?? 0) === 0 &&
+    (value.loanDeltaMinor ?? 0) === 0 &&
+    (value.revenueDeltaMinor ?? 0) === 0 &&
     (value.type === "payable_settlement_cash"
       ? isString(value.relatedEventId) && value.relatedEventId.trim().length > 0
       : value.relatedEventId === null)
@@ -1661,6 +1667,15 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       financialKeys.has(`${event.type}:${event.idempotencyKey}`)
     )
       return false;
+    /* المجموعة ٤ (تصحيح مراجعة 4-c): رابط الطلب في سياق تصنيف العربون يشير
+     * إلى طلب موجود في الملف نفسه — سلسلة بلا مرجع تُرفض كما تُرفض سلسلة
+     * الوقت الفعلي المرتبطة بطلب غائب. */
+    if (
+      event.depositContext &&
+      typeof event.depositContext.orderId === "string" &&
+      !orderIds.has(event.depositContext.orderId)
+    )
+      return false;
     financialIds.add(event.id);
     financialKeys.add(`${event.type}:${event.idempotencyKey}`);
     if (event.correctionType === "reverse") {
@@ -1682,14 +1697,27 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       event.payableDeltaMinor !== -source.payableDeltaMinor ||
       event.ownerCapitalDeltaMinor !== -source.ownerCapitalDeltaMinor ||
       event.operatingExpenseDeltaMinor !== -source.operatingExpenseDeltaMinor ||
-      (event.amanahDeltaMinor ?? 0) !== -(source.amanahDeltaMinor ?? 0)
+      (event.amanahDeltaMinor ?? 0) !== -(source.amanahDeltaMinor ?? 0) ||
+      /* المجموعة ٤ (تصحيح مراجعة 4-c): تراجع أنواع المجموعة ٤ ينفي أعمدتها
+       * الثلاث ويحمل سياقه نفسه — التراجع المستورد يطابق ما ينتجه المسار الحي. */
+      (event.assetDeltaMinor ?? 0) !== -(source.assetDeltaMinor ?? 0) ||
+      (event.loanDeltaMinor ?? 0) !== -(source.loanDeltaMinor ?? 0) ||
+      (event.revenueDeltaMinor ?? 0) !== -(source.revenueDeltaMinor ?? 0) ||
+      (event.assetContext?.assetId ?? null) !== (source.assetContext?.assetId ?? null) ||
+      (event.loanContext?.loanId ?? null) !== (source.loanContext?.loanId ?? null) ||
+      (event.depositContext?.orderId ?? null) !== (source.depositContext?.orderId ?? null)
     )
       return false;
   }
   /* المجموعة ١ (فحص سلامة مالي — تعزيز الاستيراد): مجموع الأمانات لا ينزل تحت
-   * الصفر إجمالًا — المسار الحي يحرس كل كتابة، والاستيراد اليدوي كان الثغرة. */
+   * الصفر إجمالًا — المسار الحي يحرس كل كتابة، والاستيراد اليدوي كان الثغرة.
+   * المجموعة ٤ (تصحيح مراجعة 4-c): نفس السياج لأعمدة الأصول والقروض والإيراد —
+   * دفتري سالب = إهلاك زائد، قرض سالب = سداد فوق القائم، وإيراد عربون لا يكون سالبًا. */
   if (
-    data.financialEvents.reduce((sum, event) => sum + (event.amanahDeltaMinor ?? 0), 0) < 0
+    data.financialEvents.reduce((sum, event) => sum + (event.amanahDeltaMinor ?? 0), 0) < 0 ||
+    data.financialEvents.reduce((sum, event) => sum + (event.assetDeltaMinor ?? 0), 0) < 0 ||
+    data.financialEvents.reduce((sum, event) => sum + (event.loanDeltaMinor ?? 0), 0) < 0 ||
+    data.financialEvents.reduce((sum, event) => sum + (event.revenueDeltaMinor ?? 0), 0) < 0
   )
     return false;
   const purchaseIds = new Set<string>();

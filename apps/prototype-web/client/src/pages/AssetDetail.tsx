@@ -4,7 +4,7 @@
  * الصندوق؛ يخفض ربح الفترة فقط»)؛ التخلص والشطب تصحيحات موثقة بمقابل
  * معلن. تعديل العقد (العمر/البداية) لا يمس الإهلاك المسجّل سابقًا.
  */
-import { CircleDollarSign, HandCoins, Save, TrendingDown, Trash2 } from "lucide-react";
+import { CircleDollarSign, HandCoins, Save, TrendingDown, Trash2, Pencil } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { withFrom } from "@/app/navigationContract";
@@ -50,6 +50,15 @@ export default function AssetDetail() {
   const [revisionOpen, setRevisionOpen] = useState(false);
   const [newLife, setNewLife] = useState("");
   const [newStart, setNewStart] = useState("");
+  /* المجموعة ٤ (تصحيح مراجعة 4-c): تاريخ الإهلاك اختيار المالك — العقد وعد بتاريخ
+   * يختاره هو لا بتاريخ فتح الصفحة؛ الافتراضي اليوم. */
+  const [depreciationAsOf, setDepreciationAsOf] = useState(localDateInAmman());
+  const [acquisitionOpen, setAcquisitionOpen] = useState(false);
+  const [correctedAmount, setCorrectedAmount] = useState(0);
+  const [validCorrectedAmount, setValidCorrectedAmount] = useState(true);
+  const [correctedKind, setCorrectedKind] = useState<"cash" | "payable">("cash");
+  const [reversalTargetId, setReversalTargetId] = useState<string | null>(null);
+  const [reversalReason, setReversalReason] = useState("");
 
   useEffect(() => {
     const match = window.location.pathname.match(/^\/assets\/([^/]+)$/);
@@ -64,6 +73,8 @@ export default function AssetDetail() {
         return;
       }
       setState({ phase: "ready", reading: result.value });
+      setCorrectedAmount(result.value.asset.acquisitionAmountMinor);
+      setCorrectedKind(result.value.asset.acquisitionKind);
     });
   }, [assets, assetId]);
 
@@ -129,13 +140,18 @@ export default function AssetDetail() {
                   {proposal.remainingMonths} شهرًا.
                 </p>
                 <p className="micro-field-hint">تسجيله يخفض ربح فترته فقط — لا يخصم من الصندوق شيئًا.</p>
+                <LocalDateField
+                  label="سجّل حتى تاريخ"
+                  value={depreciationAsOf}
+                  onChange={event => setDepreciationAsOf(event.target.value)}
+                />
                 <div className="micro-form-actions">
                   <button
                     className="micro-button micro-button-primary"
                     type="button"
                     disabled={busy || proposal.proposedMinor <= 0}
                     onClick={() =>
-                      void run(() => assets.recordDepreciation(asset.id, { asOf: localDateInAmman() }))
+                      void run(() => assets.recordDepreciation(asset.id, { asOf: depreciationAsOf }))
                     }
                   >
                     سجّل الإهلاك المستحق
@@ -149,6 +165,79 @@ export default function AssetDetail() {
               </>
             )}
           </div>
+        </section>
+      ) : null}
+
+      {asset.status === "active" ? (
+        <section className="micro-decision-card" aria-label="تصحيح الاقتناء">
+          <button
+            className="micro-text-action"
+            type="button"
+            aria-expanded={acquisitionOpen}
+            onClick={() => setAcquisitionOpen(current => !current)}
+          >
+            صحّح قيمة أو طريقة الاقتناء
+          </button>
+          {acquisitionOpen ? (
+            <div className="micro-revision-form">
+              <p className="micro-field-hint">
+                تصحيح موثّق: حدث الاقتناء الأصلي يُعكَس ويُسجّل بديل بتاريخه نفسه — الإهلاك المسجّل سابقًا لا يُمسّ.
+              </p>
+              <label className="micro-field">
+                <span>قيمة الشراء الصحيحة (د.أ)</span>
+                <EnglishNumberInput
+                  value={correctedAmount}
+                  kind="money"
+                  onNumericChange={setCorrectedAmount}
+                  onTextValidityChange={setValidCorrectedAmount}
+                  aria-label="قيمة الشراء الصحيحة"
+                />
+              </label>
+              <label className="micro-field">
+                <span>طريقة الدفع الصحيحة</span>
+                <select
+                  value={correctedKind}
+                  onChange={event => setCorrectedKind(event.target.value === "payable" ? "payable" : "cash")}
+                >
+                  <option value="cash">نقدًا</option>
+                  <option value="payable">بالذمم</option>
+                </select>
+              </label>
+              <label className="micro-field">
+                <span>سبب التصحيح (مطلوب)</span>
+                <input value={reason} onChange={event => setReason(event.target.value)} placeholder="مثال: الفاتورة الحقيقية كانت أعلى" />
+              </label>
+              <p className="micro-field-hint">
+                {correctedAmount > 0 && (correctedAmount !== asset.acquisitionAmountMinor || correctedKind !== asset.acquisitionKind)
+                  ? `سيظهر التراجع والبديل في التاريخ، والدفتري القادم يتبع القيمة الجديدة (${formatMoneyMinor(correctedAmount)} د.أ).`
+                  : "أدخل قيمة أو طريقة مختلفة عن المسجّلة لتفعل التصحيح."}
+              </p>
+              <div className="micro-form-actions">
+                <button
+                  className="micro-button micro-button-primary"
+                  type="button"
+                  disabled={
+                    busy ||
+                    !reason.trim() ||
+                    !validCorrectedAmount ||
+                    correctedAmount <= 0 ||
+                    (correctedAmount === asset.acquisitionAmountMinor && correctedKind === asset.acquisitionKind)
+                  }
+                  onClick={() =>
+                    void run(() =>
+                      assets.correctAcquisition(asset.id, {
+                        acquisitionAmountMinor: correctedAmount,
+                        acquisitionKind: correctedKind,
+                        reason,
+                      }),
+                    )
+                  }
+                >
+                  <Pencil aria-hidden="true" /> صحّح الاقتناء
+                </button>
+              </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -290,28 +379,73 @@ export default function AssetDetail() {
       <details className="micro-finance-layer" open>
         <summary className="micro-finance-layer-summary">تاريخ أحداث الأصل ({events.length})</summary>
         <ul className="micro-events-list">
-          {events.map(event => (
-            <li key={event.id} className="micro-event-row" data-type={event.type}>
-              <strong>{EVENT_LABELS[event.type] ?? event.type}</strong>
-              <span><MoneyValue minor={event.amountMinor} /> د.أ · {formatLocalDate(event.occurredOn)}</span>
-              {event.correctionType === "reverse" ? <small>تراجع موثق</small> : null}
-              {event.type === "asset_depreciation" && event.correctionType !== "reverse" ? (
-                <button
-                  className="micro-text-action"
-                  type="button"
-                  disabled={busy}
-                  onClick={() => {
-                    const reversalReason = window.prompt("سبب تراجع الإهلاك (مطلوب):");
-                    if (reversalReason && reversalReason.trim()) {
-                      void run(() => assets.reverseDepreciation(event.id, reversalReason));
-                    }
-                  }}
-                >
-                  تراجع
-                </button>
+          {/* المجموعة ٤ (تصحيح مراجعة 4-c): الأصل المعكوس يُعلَّم مشطوبًا — التاريخ
+             صادق بصريًا لا يعرض المُلغى كأنه قائم. */}
+          {(() => {
+            const reversedIds = new Set(
+              events
+                .filter(event => event.correctionType === "reverse" && event.correctionOfEventId)
+                .map(event => event.correctionOfEventId as string),
+            );
+            return events.map(event => (
+              <li
+                key={event.id}
+                className="micro-event-row"
+                data-type={event.type}
+                data-reversed={reversedIds.has(event.id)}
+              >
+                <strong>{EVENT_LABELS[event.type] ?? event.type}</strong>
+                <span><MoneyValue minor={event.amountMinor} /> د.أ · {formatLocalDate(event.occurredOn)}</span>
+                {event.correctionType === "reverse" ? <small>تراجع موثق</small> : null}
+                {event.correctionType !== "reverse" && reversedIds.has(event.id) ? (
+                  <small>عُكِس لاحقًا</small>
+                ) : null}
+                {event.type === "asset_depreciation" && event.correctionType !== "reverse" ? (
+                reversalTargetId === event.id ? (
+                  <span className="micro-inline-reversal">
+                    <input
+                      value={reversalReason}
+                      onChange={change => setReversalReason(change.target.value)}
+                      placeholder="سبب تراجع الإهلاك (مطلوب)"
+                      aria-label="سبب تراجع الإهلاك"
+                    />
+                    <button
+                      className="micro-text-action"
+                      type="button"
+                      disabled={busy || !reversalReason.trim()}
+                      onClick={() => {
+                        void run(() => assets.reverseDepreciation(event.id, reversalReason.trim()));
+                        setReversalTargetId(null);
+                        setReversalReason("");
+                      }}
+                    >
+                      أكّد التراجع
+                    </button>
+                    <button
+                      className="micro-text-action"
+                      type="button"
+                      onClick={() => {
+                        setReversalTargetId(null);
+                        setReversalReason("");
+                      }}
+                    >
+                      إلغاء
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    className="micro-text-action"
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setReversalTargetId(event.id)}
+                  >
+                    تراجع
+                  </button>
+                )
               ) : null}
-            </li>
-          ))}
+              </li>
+            ));
+          })()}
         </ul>
       </details>
       <p className="micro-offline-truth">يعمل بلا إنترنت — كل التاريخ محفوظ محليًا على جهازك.</p>

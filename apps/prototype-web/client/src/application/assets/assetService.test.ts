@@ -203,4 +203,21 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     const overview = await service.overview();
     expect(overview.ok).toBe(true);
   });
+
+  it("rejects a no-change acquisition correction instead of churning history (تصحيح مراجعة 4-c)", async () => {
+    const { service, store } = await seededAsset();
+    const overview = await service.overview();
+    if (!overview.ok) return;
+    const asset = overview.value[0]!.asset;
+    const correction = await service.correctAcquisition(asset.id, {
+      acquisitionAmountMinor: asset.acquisitionAmountMinor,
+      acquisitionKind: asset.acquisitionKind,
+      reason: "بلا تغيير",
+    });
+    expect(correction.ok).toBe(false);
+    if (correction.ok) return;
+    expect(correction.message).toContain("لا تغيير عن المسجّل");
+    const events = await store.listFinancialEvents();
+    expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
+  });
 });

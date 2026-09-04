@@ -489,7 +489,12 @@ CAPS: dict[str, int] = {
     # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
     # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
     # labels and truth lines join the measured set; per-tag rows are data.
-    "Statement": 89,
+    # Statement 89 → 101 (2026-09-04, Group 4 تصحيح مراجعة 4-c — owner decision):
+    # the cash statement surfaced the 4 new cash-moving families (asset purchase
+    # paid, asset disposal received, loan given, loan repaid) with explicit
+    # not-expense/not-withdrawal/not-revenue qualifiers + asset/loan source labels
+    # + correction family labels — hiding cash movement was the defect being fixed.
+    "Statement": 101,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
@@ -506,7 +511,11 @@ CAPS: dict[str, int] = {
     "AssetEditor": 40,
     # AssetDetail 36: book value + depreciation proposal/record + contract revision
     # + disposal/write-off + event history — every consequential action previews.
-    "AssetDetail": 36,
+    # AssetDetail 36 → 41 (2026-09-04, Group 4 تصحيح مراجعة 4-c — owner decision):
+    # acquisition-correction card (the unreachable-surface defect), owner-chosen
+    # depreciation asOf date, and inline documented reversal reason replace
+    # window.prompt — each string is a mandated contract/UX element.
+    "AssetDetail": 41,
     # LoanDetail 31: reading + repayment history with traceable reversal + documented
     # correction + financial events layer.
     "LoanDetail": 31,

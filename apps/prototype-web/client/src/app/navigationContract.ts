@@ -173,6 +173,10 @@ export function canonicalReturnFor(pathname: string): string {
   if (pathname.startsWith("/suppliers/")) return "/suppliers";
   if (pathname.startsWith("/cash/")) return "/cash";
   if (pathname.startsWith("/inventory/")) return "/inventory";
+  /* المجموعة ٤ (تصحيح مراجعة 4-c): تفاصيل الأصل/القرض بلا مصدر تعود لقائمتها
+   * لا للرئيسية — نفس نمط الطلبات والمحافظ. */
+  if (pathname.startsWith("/assets/")) return "/assets";
+  if (pathname.startsWith("/loans/")) return "/loans";
   if (pathname.startsWith("/catalog")) return "/catalog";
   if (pathname.startsWith("/tools")) return "/tools";
   if (pathname === "/profile") return "/";

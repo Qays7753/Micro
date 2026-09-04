@@ -87,6 +87,9 @@ describe("canonicalReturnFor", () => {
     expect(canonicalReturnFor("/suppliers/purchase/abc")).toBe("/suppliers");
     expect(canonicalReturnFor("/cash/count")).toBe("/cash");
     expect(canonicalReturnFor("/finance/withdraw")).toBe("/finance");
+    /* المجموعة ٤ (تصحيح مراجعة 4-c): تفاصيل الأصل/القرض بلا مصدر تعود لقائمتها. */
+    expect(canonicalReturnFor("/assets/asset-9")).toBe("/assets");
+    expect(canonicalReturnFor("/loans/loan-9")).toBe("/loans");
   });
   it("المسار المجهول يعود للرئيسية بأمان", () => {
     expect(canonicalReturnFor("/unknown-path")).toBe("/");

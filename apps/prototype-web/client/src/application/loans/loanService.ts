@@ -216,10 +216,14 @@ export class LoanService {
     if (!source) return failure("invalid_state", "حدث أصل القرض غير موجود.");
     if (source.correctionType === "reverse")
       return failure("invalid_state", "حدث أصل القرض معكوس سابقًا.");
+    /* تصحيح مراجعة 4-c: لا تصحيح بلا تغيير — عكس وبديل بلا فرق فعلي يلوّثان
+     * التاريخ بضجيج بلا معنى؛ الطلب نفس القيم يُرفض برسالة صريحة. */
+    const nextPrincipal = input.principalMinor ?? loan.principalMinor;
+    const nextBorrower = (input.borrowerName ?? loan.borrowerName).trim();
+    if (nextPrincipal === loan.principalMinor && nextBorrower === loan.borrowerName.trim())
+      return failure("validation_error", "لا تغيير عن المسجّل — عدّل المبلغ أو المستفيد قبل التصحيح.");
     try {
       const now = this.now();
-      const nextPrincipal = input.principalMinor ?? loan.principalMinor;
-      const nextBorrower = input.borrowerName ?? loan.borrowerName;
       const reversal = createFinancialReversal({
         id: newId("event"),
         sourceEvent: source,

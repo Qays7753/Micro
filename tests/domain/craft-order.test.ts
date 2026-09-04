@@ -966,7 +966,6 @@ describe("retained deposit classification (group 4)", () => {
       classifyRetainedDeposit(cancelledRetained(), "owner", "  ", "k", "2026-08-25T10:00:00Z"),
     ).toThrow(/سبب تصنيف العربون/);
   });
-
 });
 
 /* المجموعة ٤: تصحيح التصنيف — وصف مستقل صغير تحت سقف الأسطر. */

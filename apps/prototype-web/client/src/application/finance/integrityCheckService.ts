@@ -843,8 +843,11 @@ export class IntegrityCheckService {
     };
   }
 
-  /* ─── MIC-13 (المجموعة ٤): استهلاك التسليم مقابل مصدره — كل حركة مفتاح
-   * تسليم تخص طلبًا مسلّمًا فعلًا، وحركات تسليم معكوس لها مرآة عكسها. */
+  /* ─── MIC-13 (المجموعة ٤): استهلاك التسليم مقابل مصدره — كل حركة استهلاك
+   * بمفتاح تسليم تخص حدث تسليم فعلًا، وكل تسليم معكوس جرى عكس حركاته.
+   * تصحيح مراجعة 4-c: الاستخراج القديم split(":")[2] كان يعيد معرف الطلب لا
+   * معرف حدث التسليم (المعرف نفسه يحوي فواصل) فلم يتحقق الربط أبدًا، وفرع
+   * المرآة الأول كان ميتًا لا يفعل شيئًا — هنا يتحققان فعليًا. */
   private async checkDeliveryConsumptionIntegrity(): Promise<IntegrityCheckResult> {
     const [ordersResult, movementsResult] = await Promise.all([
       this.store.listOrders(),
@@ -852,47 +855,44 @@ export class IntegrityCheckService {
     ]);
     if (!ordersResult.ok || !movementsResult.ok)
       return this.fail("MIC-13", "تعذر قراءة بيانات استهلاك التسليم — أعد المحاولة.", []);
+    const movements = movementsResult.value;
     const offenders: string[] = [];
     for (const stored of ordersResult.value) {
       const order = stored.order;
       const deliveryEvents = order.events.filter(
         event => event.type === "status_changed" && event.toStatus === "delivered",
       );
-      const reversedDeliveryIds = new Set(
+      const reversedDeliveryEventIds = new Set(
         order.events
           .filter(event => event.type === "delivery_reversed")
           .map(event => (event as { reversesEventId?: string }).reversesEventId)
           .filter((id): id is string => typeof id === "string"),
       );
-      const deliveryLinked = movementsResult.value.filter(
-        movement => movement.orderId === stored.id && movement.operationKey.includes(":deliver:"),
+      const prefix = `${stored.id}:deliver:`;
+      const deliveryLinked = movements.filter(
+        movement =>
+          movement.orderId === stored.id &&
+          movement.type === "consumption" &&
+          movement.operationKey.startsWith(prefix),
       );
       for (const movement of deliveryLinked) {
-        /* المفتاح الحتمي يحمل معرف حدث التسليم — انسجامه مع التسليم الفعلي. */
-        const deliveryEventId = movement.operationKey.split(":")[2];
-        const knownDelivery = deliveryEvents.some(event => event.id === `${stored.id}:${deliveryEventId}`) || deliveryEvents.some(event => event.id.endsWith(`:${deliveryEventId}`));
-        if (!knownDelivery && deliveryLinked.length > 0 && deliveryEvents.length === 0) {
+        /* معرف حدث التسليم مضمّن بين البادئة الحتمية وآخر فاصل قبل المادة. */
+        const withoutPrefix = movement.operationKey.slice(prefix.length);
+        const lastColon = withoutPrefix.lastIndexOf(":");
+        const deliveryEventId = lastColon > 0 ? withoutPrefix.slice(0, lastColon) : null;
+        const knownDelivery =
+          deliveryEventId !== null && deliveryEvents.some(event => event.id === deliveryEventId);
+        if (!knownDelivery) {
           offenders.push(`حركة-بلا-تسليم:${movement.id}`);
           continue;
         }
-        const mirrored = movementsResult.value.some(
-          candidate =>
-            candidate.type === "reversal" &&
-            candidate.reversesMovementId === movement.id &&
-            candidate.operationKey === `${movement.operationKey}:reversal`,
-        );
-        if (!mirrored) continue;
-        /* موجودة مرآة — إما عكس حركة حيّة (سليم) أو حركة معكوسة بلا عكس التسليم بعدها (تحذير). */
-      }
-      /* تسليم معكوس وحركاته بلا مرايا = عكس ناقص. */
-      for (const deliveryEvent of deliveryEvents) {
-        if (!reversedDeliveryIds.has(deliveryEvent.idempotencyKey) && !reversedDeliveryIds.has(deliveryEvent.id))
-          continue;
-        const linked = deliveryLinked.filter(movement => movement.operationKey.includes(deliveryEvent.id));
-        for (const movement of linked) {
-          const mirrored = movementsResult.value.some(
+        /* تسليم معكوس: كل حركة استهلاك مرتبطة به تستلزم مرآة عكسها. */
+        if (deliveryEventId !== null && reversedDeliveryEventIds.has(deliveryEventId)) {
+          const mirrored = movements.some(
             candidate =>
-              candidate.type === "reversal" && candidate.reversesMovementId === movement.id,
+              candidate.type === "reversal" &&
+              candidate.reversesMovementId === movement.id &&
+              candidate.operationKey === `${movement.operationKey}:reversal`,
           );
           if (!mirrored) offenders.push(`عكس-ناقص-مرآة:${movement.id}`);
         }

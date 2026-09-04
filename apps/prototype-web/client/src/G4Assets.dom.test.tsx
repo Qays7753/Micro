@@ -166,4 +166,53 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     if (!events2.ok) throw new Error(events2.message);
     expect(events2.value.filter(event => event.type === "asset_depreciation")).toHaveLength(1);
   });
+  it("surfaces acquisition correction with reverse+replace events and preserved history", async () => {
+    const created = await assets.create({
+      name: "ثلاجة عرض",
+      acquisitionAmountMinor: 60000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-06-01",
+    });
+    if (!created.ok) return;
+    wouterMocks.location = `/assets/${created.value.asset.id}`;
+    window.history.pushState({}, "", `/assets/${created.value.asset.id}`);
+    render(<Harness page={<AssetDetail />} />);
+    expect(await screen.findByText("ثلاجة عرض")).toBeTruthy();
+    /* سطح تصحيح الاقتناء (تصحيح مراجعة 4-c): زر نصي يفتح النموذج المتدرّج. */
+    fireEvent.click(await screen.findByRole("button", { name: /صحّح قيمة أو طريقة الاقتناء/ }));
+    const corrected = await screen.findByLabelText("قيمة الشراء الصحيحة");
+    fireEvent.change(corrected, { target: { value: "480" } });
+    fireEvent.blur(corrected);
+    fireEvent.change(await screen.findByLabelText("طريقة الدفع الصحيحة"), {
+      target: { value: "payable" },
+    });
+    const reason = await screen.findByPlaceholderText("مثال: الفاتورة الحقيقية كانت أعلى");
+    fireEvent.change(reason, { target: { value: "الفاتورة الحقيقية" } });
+    fireEvent.click(await screen.findByRole("button", { name: /صحّح الاقتناء/ }));
+    await waitFor(() => {
+      /* معاينة الأثر: التصحيح معلن قبل التنفيذ. */
+      expect(screen.queryByText(/سيظهر التراجع والبديل في التاريخ/)).toBeTruthy();
+    });
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const originals = events.value.filter(
+      event => event.type === "asset_purchase_cash" && event.correctionType !== "reverse",
+    );
+    const replacements = events.value.filter(
+      event => event.type === "asset_purchase_payable" && event.correctionType !== "reverse",
+    );
+    const reversals = events.value.filter(event => event.correctionType === "reverse");
+    expect(originals).toHaveLength(1);
+    expect(replacements).toHaveLength(1);
+    expect(reversals).toHaveLength(1);
+    /* الأصل يحتفظ بهويته ودفته يتبع البديل؛ التاريخ لم يُمس. */
+    const list = await store.listAssets();
+    if (!list.ok) throw new Error(list.message);
+    expect(list.value).toHaveLength(1);
+    expect(list.value[0]!.acquisitionAmountMinor).toBe(48000);
+    expect(list.value[0]!.acquisitionKind).toBe("payable");
+    expect(list.value[0]!.acquisitionEventId).toBe(replacements[0]!.id);
+  });
 });

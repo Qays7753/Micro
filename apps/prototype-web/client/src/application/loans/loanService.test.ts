@@ -130,4 +130,21 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     });
     expect(correction.ok).toBe(false);
   });
+
+  it("rejects a no-change correction instead of churning history (تصحيح مراجعة 4-c)", async () => {
+    const { service, created, store } = await seededLoan();
+    if (!created.ok) return;
+    const loanId = created.value.loan.id;
+    const correction = await service.correctLoan(loanId, {
+      principalMinor: created.value.loan.principalMinor,
+      borrowerName: created.value.loan.borrowerName,
+      reason: "بلا تغيير",
+    });
+    expect(correction.ok).toBe(false);
+    if (correction.ok) return;
+    expect(correction.message).toContain("لا تغيير عن المسجّل");
+    const events = await store.listFinancialEvents();
+    /* لا عكس ولا بديل — التاريخ لم يُلوَّث. */
+    expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
+  });
 });

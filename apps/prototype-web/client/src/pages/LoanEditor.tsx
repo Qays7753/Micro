@@ -7,6 +7,7 @@
 import { Save, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -68,7 +69,13 @@ export default function LoanEditor() {
       return false;
     }
     notifyDataChanged();
-    navigate(returnPath && returnPath !== "/loans" ? returnPath : `/loans/${result.value.loan.id}`);
+    /* المجموعة ٤ (تصحيح مراجعة 4-c): الذهاب للتفاصيل يحمل مصدره — زر الرجوع
+     * في التفاصيل يعود لقائمة القروض لا لقفزة مجهولة. */
+    navigate(
+      returnPath && returnPath !== "/loans"
+        ? returnPath
+        : withFrom(`/loans/${result.value.loan.id}`, "/loans"),
+    );
     return true;
   }
 

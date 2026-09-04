@@ -7,6 +7,7 @@
 import { ArrowRight, Save, Warehouse } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -199,7 +200,14 @@ export default function AssetEditor() {
         <p className="micro-field-error" role="alert">{message}</p>
       ) : null}
       <div className="micro-form-actions">
-        <button className="micro-button micro-button-primary" type="button" disabled={saving} onClick={() => void save()}>
+        {/* المجموعة ٤ (تصحيح مراجعة 4-c): «يُستهلك فورًا» = مصروف عادي — الحفظ
+         * كأصل محجوب والإرشاد يوجّه لمسار المصروف؛ لا تناقض بين القول والفعل. */}
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          disabled={saving || longUse === "no"}
+          onClick={() => void save()}
+        >
           <Save aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "احفظ الأصل"}
         </button>
       </div>
@@ -210,9 +218,11 @@ export default function AssetEditor() {
 }
 
 function withFromReturn(returnPath: string, assetId: string): string {
+  /* المجموعة ٤ (تصحيح مراجعة 4-c): الذهاب للتفاصيل يحمل مصدره — زر الرجوع
+   * في التفاصيل يعود لقائمة الأصول لا لقفزة مجهولة. */
   return returnPath && returnPath !== "/assets" ? returnPath : withFromLocal(assetId);
 }
 
 function withFromLocal(assetId: string): string {
-  return `/assets/${assetId}`;
+  return withFrom(`/assets/${assetId}`, "/assets");
 }

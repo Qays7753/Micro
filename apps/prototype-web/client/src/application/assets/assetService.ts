@@ -233,6 +233,12 @@ export class AssetService {
     if (!source) return failure("invalid_state", "حدث الاقتناء الأصلي غير موجود.");
     if (source.correctionType === "reverse")
       return failure("invalid_state", "حدث الاقتناء معكوس سابقًا؛ راجع سجل التصحيحات.");
+    /* تصحيح مراجعة 4-c: لا تصحيح بلا تغيير — الواجهة تحجبه والخدمة تحرسه. */
+    if (
+      input.acquisitionAmountMinor === asset.acquisitionAmountMinor &&
+      input.acquisitionKind === asset.acquisitionKind
+    )
+      return failure("validation_error", "لا تغيير عن المسجّل — عدّل القيمة أو طريقة الدفع قبل التصحيح.");
     try {
       const now = this.now();
       const reversal = createFinancialReversal({

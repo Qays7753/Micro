@@ -232,3 +232,208 @@ describe("schema 34 export round-trip (المجموعة ٤ — عقد ٢٩)", ()
     expect(prepared.value.file.data.orders[0]!.order.retainedMeaning).toBe("revenue");
   });
 });
+
+/* المجموعة ٤ (تصحيح مراجعة 4-c — تعزيز مدقق الاستيراد): الأعمدة الجديدة لا
+ * تُهرَّب داخل أنواع قديمة، ورابط عربون التصنيف يشير لطلب موجود، وتراجع
+ * المجموعة ٤ ينفي أعمدته — الملف المكسور يُرفض والبيانات المحلية لا تُمس. */
+describe("schema 34 import validator hardening (تصحيح 4-c)", () => {
+  function baseFile(): Record<string, unknown> {
+    return {
+      format: "micro-prototype-local-export",
+      version: 26,
+      schemaVersion: 34,
+      exportedAt: NOW,
+      data: {
+        profile: null,
+        preferences: null,
+        drafts: [],
+        orders: [],
+        schedules: [],
+        recurrences: [],
+        financialEvents: [],
+        supplierPurchases: [],
+        cashWallets: [],
+        cashContinuityEntries: [],
+        materials: [],
+        inventoryMovements: [],
+        inventoryShortages: [],
+        inventoryActivation: null,
+        catalogItems: [],
+        measurementUnits: [],
+        directConversions: [],
+        catalogTemplates: [],
+        actualTimeRecords: [],
+        shortCashDeclarations: [],
+        ownerEntitlementPolicies: [],
+        ownerEntitlementRecords: [],
+        ownerEntitlementOpeningBalances: [],
+        ownerMovements: [],
+        allocationPolicies: [],
+        costEstimates: [],
+        assets: [],
+        loans: [],
+      },
+    };
+  }
+
+  it("rejects a legacy-type event smuggling a non-zero asset delta column", async () => {
+    const store = new MemoryLocalStore();
+    const transfers = new LocalTransferService(store, () => NOW);
+    const file = baseFile();
+    (file.data as Record<string, unknown>).financialEvents = [
+      {
+        id: "ev-smuggle",
+        type: "owner_investment_cash",
+        currency: "JOD",
+        amountMinor: 5000,
+        occurredOn: "2026-08-01",
+        recordedAt: NOW,
+        idempotencyKey: "ev-smuggle-key",
+        note: "مال مالك",
+        counterparty: null,
+        relatedEventId: null,
+        correctionType: null,
+        correctionOfEventId: null,
+        correctionReason: null,
+        cashDeltaMinor: 5000,
+        payableDeltaMinor: 0,
+        ownerCapitalDeltaMinor: 5000,
+        operatingExpenseDeltaMinor: 0,
+        amanahDeltaMinor: 0,
+        assetDeltaMinor: 5000,
+        loanDeltaMinor: 0,
+        revenueDeltaMinor: 0,
+      },
+    ];
+    const prepared = await transfers.prepareImport(JSON.stringify(file));
+    expect(prepared.ok).toBe(false);
+    if (prepared.ok) return;
+    expect(prepared.message).toContain("بقيت بيانات هذا الجهاز دون تغيير");
+  });
+
+  it("rejects a deposit classification event whose order does not exist in the file", async () => {
+    const store = new MemoryLocalStore();
+    const transfers = new LocalTransferService(store, () => NOW);
+    const file = baseFile();
+    (file.data as Record<string, unknown>).financialEvents = [
+      {
+        id: "ev-dep-orphan",
+        type: "deposit_retained_revenue",
+        currency: "JOD",
+        amountMinor: 3000,
+        occurredOn: "2026-08-02",
+        recordedAt: NOW,
+        idempotencyKey: "ev-dep-orphan-key",
+        note: "عربون احتُفظ به",
+        counterparty: null,
+        relatedEventId: null,
+        correctionType: null,
+        correctionOfEventId: null,
+        correctionReason: null,
+        cashDeltaMinor: 0,
+        payableDeltaMinor: 0,
+        ownerCapitalDeltaMinor: 0,
+        operatingExpenseDeltaMinor: 0,
+        amanahDeltaMinor: 0,
+        assetDeltaMinor: 0,
+        loanDeltaMinor: 0,
+        revenueDeltaMinor: 3000,
+        depositContext: { orderId: "order-ghost" },
+      },
+    ];
+    const prepared = await transfers.prepareImport(JSON.stringify(file));
+    expect(prepared.ok).toBe(false);
+  });
+
+  it("rejects a loan reversal whose loan delta is not the negation of its source", async () => {
+    const store = new MemoryLocalStore();
+    const transfers = new LocalTransferService(store, () => NOW);
+    const file = baseFile();
+    (file.data as Record<string, unknown>).financialEvents = [
+      {
+        id: "ev-loan-src",
+        type: "loan_outgoing_cash",
+        currency: "JOD",
+        amountMinor: 15000,
+        occurredOn: "2026-08-01",
+        recordedAt: NOW,
+        idempotencyKey: "ev-loan-src-key",
+        note: "قرض لأحمد",
+        counterparty: null,
+        relatedEventId: null,
+        correctionType: null,
+        correctionOfEventId: null,
+        correctionReason: null,
+        cashDeltaMinor: -15000,
+        payableDeltaMinor: 0,
+        ownerCapitalDeltaMinor: 0,
+        operatingExpenseDeltaMinor: 0,
+        amanahDeltaMinor: 0,
+        assetDeltaMinor: 0,
+        loanDeltaMinor: 15000,
+        revenueDeltaMinor: 0,
+        loanContext: { loanId: "loan-x", borrower: "أحمد" },
+      },
+      {
+        id: "ev-loan-rev",
+        type: "loan_outgoing_cash",
+        currency: "JOD",
+        amountMinor: 15000,
+        occurredOn: "2026-08-03",
+        recordedAt: NOW,
+        idempotencyKey: "ev-loan-rev-key",
+        note: "تراجع: قرض لأحمد",
+        counterparty: null,
+        relatedEventId: null,
+        correctionType: "reverse",
+        correctionOfEventId: "ev-loan-src",
+        correctionReason: "سُجّل بالخطأ",
+        cashDeltaMinor: 15000,
+        payableDeltaMinor: 0,
+        ownerCapitalDeltaMinor: 0,
+        operatingExpenseDeltaMinor: 0,
+        amanahDeltaMinor: 0,
+        assetDeltaMinor: 0,
+        loanDeltaMinor: 15000,
+        revenueDeltaMinor: 0,
+        loanContext: { loanId: "loan-x", borrower: "أحمد" },
+      },
+    ];
+    const prepared = await transfers.prepareImport(JSON.stringify(file));
+    expect(prepared.ok).toBe(false);
+  });
+
+  it("rejects an aggregate that over-depreciates assets below zero book value", async () => {
+    const store = new MemoryLocalStore();
+    const transfers = new LocalTransferService(store, () => NOW);
+    const file = baseFile();
+    (file.data as Record<string, unknown>).financialEvents = [
+      {
+        id: "ev-wo-alone",
+        type: "asset_writeoff",
+        currency: "JOD",
+        amountMinor: 9000,
+        occurredOn: "2026-08-05",
+        recordedAt: NOW,
+        idempotencyKey: "ev-wo-alone-key",
+        note: "شطب بلا أصل",
+        counterparty: null,
+        relatedEventId: null,
+        correctionType: null,
+        correctionOfEventId: null,
+        correctionReason: null,
+        cashDeltaMinor: 0,
+        payableDeltaMinor: 0,
+        ownerCapitalDeltaMinor: 0,
+        operatingExpenseDeltaMinor: 0,
+        amanahDeltaMinor: 0,
+        assetDeltaMinor: -9000,
+        loanDeltaMinor: 0,
+        revenueDeltaMinor: 0,
+        assetContext: { assetId: "asset-ghost", name: "أصل وهمي" },
+      },
+    ];
+    const prepared = await transfers.prepareImport(JSON.stringify(file));
+    expect(prepared.ok).toBe(false);
+  });
+});

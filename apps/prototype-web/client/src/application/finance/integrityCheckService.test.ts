@@ -515,7 +515,7 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
       await import("@micro-domain/craft-order/index.js");
     const snapshotCost = calculateCostSnapshot("cost-mic12", {
       currency: "JOD",
-      materialItems: [{ name: "خيط", quantity: 1, unit: "متر", unitPriceMinor: 300, priceDate: "2026-09-01", source: "user_input", confidence: "known" }],
+      materialItems: [{ name: "خيط", quantity: 1, unit: "meter", unitPriceMinor: 300, priceDate: "2026-09-01", source: "user_input", confidence: "known" }],
       time: null,
       packagingMinor: 0,
       deliveryMinor: 0,
@@ -577,5 +577,177 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
     expect(mic10?.status).toBe("PASS");
     expect(mic11?.status).toBe("PASS");
     expect(mic13?.status).toBe("PASS");
+  });
+});
+
+/* المجموعة ٤ (تصحيح مراجعة 4-c): MIC-13 يتحقق فعليًا الآن — الاستخراج القديم
+ * كان يعيد معرف الطلب فلم يمسك رابطًا مكسورًا قط. هنا حركة استهلاك مفتاحها
+ * يشير لحدث تسليم غير موجود والفحص يمسكها بمعرّفها. */
+describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف المزروع", () => {
+  it("يفشل حين يشير مفتاح حركة إلى حدث تسليم غير موجود", async () => {
+    const store = new MemoryLocalStore();
+    const services = buildServices(store);
+    const { calculateCostSnapshot, createCraftOrder, transitionOrder } = await import(
+      "@micro-domain/craft-order/index.js"
+    );
+    const { createMaterial } = await import("@micro-domain/inventory-material/index.js");
+    const snapshot = calculateCostSnapshot("cost-mic13", {
+      currency: "JOD",
+      materialItems: [
+        { name: "خيط", quantity: 1, unit: "meter", unitPriceMinor: 300, priceDate: "2026-08-01", source: "user_input", confidence: "known" },
+      ],
+      time: null,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: now(),
+      source: "price_approval",
+    });
+    let order = createCraftOrder({
+      id: "order-mic13",
+      customerName: "ليلى",
+      itemName: "فستان",
+      specifications: "قياس",
+      quantity: 1,
+      agreedPriceMinor: 10000,
+      costSnapshot: snapshot,
+      createdAt: now(),
+    });
+    for (const [to, key] of [
+      ["provisional_agreement", "order-mic13:t1"],
+      ["confirmed", "order-mic13:t2"],
+      ["in_progress", "order-mic13:t3"],
+      ["ready", "order-mic13:t4"],
+      ["delivered", "order-mic13:deliver"],
+    ] as const) {
+      order = transitionOrder(order, { to, idempotencyKey: key, createdAt: now() });
+    }
+    await store.saveOrder({
+      id: "order-mic13",
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-09-01",
+      agreementSource: "whatsapp",
+      createdAt: now(),
+      updatedAt: now(),
+    });
+    const material = createMaterial({
+      id: "mat-mic13",
+      name: "خيط",
+      unit: "meter",
+      createdAt: now(),
+      createdOperationKey: "mat-mic13:create",
+    });
+    const { createInventoryMovement } = await import("@micro-domain/inventory-material/index.js");
+    const broken = createInventoryMovement({
+      id: "mv-mic13-broken",
+      materialId: "mat-mic13",
+      type: "consumption",
+      occurredOn: "2026-09-02",
+      recordedAt: now(),
+      quantityDeltaMilli: -1000,
+      valueDeltaMinor: -300,
+      note: "استهلاك تسليم وهمي",
+      operationKey: "order-mic13:deliver:order-mic13:status:status:order-mic13:deliver-ghost:mat-mic13",
+      orderId: "order-mic13",
+    });
+    const committed = await store.commitInventory(material, [broken]);
+    if (!committed.ok) throw new Error(committed.message);
+
+    const report = await services.integrityCheck.run();
+    const mic13 = report.checks.find(check => check.id === "MIC-13");
+    expect(mic13?.status).toBe("FAIL");
+    expect(mic13?.offenderSampleIds?.some(id => id.includes("mv-mic13-broken"))).toBe(true);
+    /* الفحص قراءة فقط: الحركة المزروعة ما زالت كما هي. */
+    const movements = await store.listInventoryMovements();
+    if (!movements.ok) throw new Error(movements.message);
+    expect(movements.value.some(movement => movement.id === "mv-mic13-broken")).toBe(true);
+  });
+
+  it("يفشل حين يكون التسليم معكوسًا وحركته بلا مرآة عكس", async () => {
+    const store = new MemoryLocalStore();
+    const services = buildServices(store);
+    const { calculateCostSnapshot, createCraftOrder, transitionOrder, reverseDelivery } = await import(
+      "@micro-domain/craft-order/index.js"
+    );
+    const { createMaterial, createInventoryMovement } = await import(
+      "@micro-domain/inventory-material/index.js"
+    );
+    const snapshot = calculateCostSnapshot("cost-mic13b", {
+      currency: "JOD",
+      materialItems: [
+        { name: "خيط", quantity: 1, unit: "meter", unitPriceMinor: 300, priceDate: "2026-08-01", source: "user_input", confidence: "known" },
+      ],
+      time: null,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: now(),
+      source: "price_approval",
+    });
+    let order = createCraftOrder({
+      id: "order-mic13b",
+      customerName: "سارة",
+      itemName: "عباية",
+      specifications: "قياس",
+      quantity: 1,
+      agreedPriceMinor: 12000,
+      costSnapshot: snapshot,
+      createdAt: now(),
+    });
+    for (const [to, key] of [
+      ["provisional_agreement", "order-mic13b:t1"],
+      ["confirmed", "order-mic13b:t2"],
+      ["in_progress", "order-mic13b:t3"],
+      ["ready", "order-mic13b:t4"],
+      ["delivered", "order-mic13b:deliver"],
+    ] as const) {
+      order = transitionOrder(order, { to, idempotencyKey: key, createdAt: now() });
+    }
+    order = reverseDelivery(order, { reason: "عكس تجريبي", idempotencyKey: "order-mic13b:rev", createdAt: now() });
+    await store.saveOrder({
+      id: "order-mic13b",
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-09-01",
+      agreementSource: "whatsapp",
+      createdAt: now(),
+      updatedAt: now(),
+    });
+    const material = createMaterial({
+      id: "mat-mic13b",
+      name: "خيط",
+      unit: "meter",
+      createdAt: now(),
+      createdOperationKey: "mat-mic13b:create",
+    });
+    /* حركة استهلاك مرتبطة بتسليم معكوس لكن بلا مرآة عكس — عكس ناقص. */
+    const deliveryEvent = [...order.events]
+      .reverse()
+      .find(event => event.type === "status_changed" && event.toStatus === "delivered");
+    if (!deliveryEvent) throw new Error("delivery event missing");
+    const orphan = createInventoryMovement({
+      id: "mv-mic13b-orphan",
+      materialId: "mat-mic13b",
+      type: "consumption",
+      occurredOn: "2026-09-02",
+      recordedAt: now(),
+      quantityDeltaMilli: -1000,
+      valueDeltaMinor: -300,
+      note: "استهلاك تسليم بلا عكس",
+      operationKey: `order-mic13b:deliver:${deliveryEvent.id}:mat-mic13b`,
+      orderId: "order-mic13b",
+    });
+    const committed = await store.commitInventory(material, [orphan]);
+    if (!committed.ok) throw new Error(committed.message);
+
+    const report = await services.integrityCheck.run();
+    const mic13 = report.checks.find(check => check.id === "MIC-13");
+    expect(mic13?.status).toBe("FAIL");
+    expect(mic13?.offenderSampleIds?.some(id => id.includes("mv-mic13b-orphan"))).toBe(true);
   });
 });
