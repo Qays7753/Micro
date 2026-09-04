@@ -137,9 +137,10 @@ export function createInventoryMovement(input: CreateInventoryMovementInput): In
   if (type === "purchase_receipt" && !input.purchaseId)
     throw new Error("استلام الشراء يحتاج مرجع شراء مواد.");
   /* المجموعة ٢ (عقد ٢٨): الاستهلاك لطلب محدد أو بيان صريح لعمل المشروع —
-   * الاستهلاك بلا مرجع ولا بيان حركة مجهولة تُرفض. */
-  if (type === "consumption" && !input.orderId && !input.reason?.trim())
-    throw new Error("استهلاك المادة يحتاج مرجع طلب أو بيانًا واضحًا للاستهلاك.");
+   * الاستهلاك بلا مرجع ولا بيان حركة مجهولة تُرفض. المجموعة ٣ (عقد D6):
+   * البيع المباشر مرجع صريح كذلك — استهلاك مرتبط ببيع لا يحتاج بيانًا إضافيًا. */
+  if (type === "consumption" && !input.orderId && !input.saleId && !input.reason?.trim())
+    throw new Error("استهلاك المادة يحتاج مرجع طلب أو بيع مباشر أو بيانًا واضحًا للاستهلاك.");
   if (needsReason && !input.reason?.trim()) throw new Error("سبب الحركة مطلوب.");
   if (type === "reversal" && !input.reversesMovementId) throw new Error("التراجع يحتاج مرجع الحركة الأصلية.");
   if (type !== "reversal" && input.reversesMovementId) throw new Error("مرجع التراجع خاص بحركة التراجع فقط.");
@@ -161,6 +162,7 @@ export function createInventoryMovement(input: CreateInventoryMovementInput): In
     operationKey: nonEmpty(input.operationKey, "مفتاح العملية"),
     purchaseId: input.purchaseId ?? null,
     orderId: input.orderId ?? null,
+    saleId: input.saleId?.trim() || null,
     reversesMovementId: input.reversesMovementId ?? null,
     wasteContext,
     costKnowledge,

@@ -91,6 +91,21 @@ export type CatalogTemplateComponent = {
   quantityMilli: number;
   unitId: string;
   note: string | null;
+  /* المجموعة ٣ (عقد D5): ربط هوية المادة بالمكوّن — مرجع تخطيط بلا أثر مخزون؛
+   * تكلفة المادة تُقترح لحظة الاستخدام ولا تُخزن هنا. غياب الحقل = مكوّن حر. */
+  materialId?: string | null;
+};
+
+/* المجموعة ٣ (عقد D5): بنود التكلفة الاختيارية على مستوى القالب — مرآة بنية
+ * نسخة تكلفة الطلب (وقت/تغليف/توصيل/هدر/هامش حماية) حتى يتطابق القالب مع
+ * المسودة بلا ترجمة. كلها اختيارية: غياب extras = قالب ببنود لا يعرفها بعد. */
+export type CatalogTemplateExtras = {
+  timeMinutes: number | null;
+  hourlyRateMinor: number | null;
+  packagingMinor: number;
+  deliveryMinor: number;
+  wasteMinor: number;
+  safetyBufferMinor: number;
 };
 
 export type CatalogTemplateYield = {
@@ -108,6 +123,8 @@ export type CatalogTemplate = {
   components: readonly CatalogTemplateComponent[];
   yield: CatalogTemplateYield | null;
   yieldReadiness: CatalogTemplateYieldReadiness;
+  /* المجموعة ٣ (عقد D5): بنود اختيارية — عمل/تغليف/توصيل/هدر/هامش. */
+  extras?: CatalogTemplateExtras | null;
   revision: number;
   sourceTemplateId: string | null;
   active: boolean;
@@ -129,6 +146,6 @@ export type CreateCatalogTemplateInput = Pick<
   | "sourceTemplateId"
   | "createdAt"
   | "createdOperationKey"
->;
+> & { extras?: CatalogTemplateExtras | null };
 
 export type QuantityConversionResult = { quantityMilli: number; exact: true };

@@ -21,6 +21,8 @@ const NewDraft = lazy(() => import("@/pages/NewDraft"));
 const CostEditor = lazy(() => import("@/pages/CostEditor"));
 const AgreementEditor = lazy(() => import("@/pages/AgreementEditor"));
 const OrderDetail = lazy(() => import("@/pages/OrderDetail"));
+/* المجموعة ٣ (عقد D5): مراجعة التسليم — سطح كامل قبل الالتزام. */
+const DeliveryReview = lazy(() => import("@/pages/DeliveryReview"));
 const Schedule = lazy(() => import("@/pages/Schedule"));
 const ScheduleEditor = lazy(() => import("@/pages/ScheduleEditor"));
 const Finance = lazy(() => import("@/pages/Finance"));
@@ -80,6 +82,8 @@ export function MicroRouter() {
             <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
             <Route path="/orders/draft/:id/cost" component={CostEditor} />
             <Route path="/orders/draft/:id" component={DraftEditor} />
+            {/* المجموعة ٣ (عقد D5): مراجعة التسليم قبل المسار الأكثر تحديدًا */}
+            <Route path="/orders/:id/deliver" component={DeliveryReview} />
             <Route path="/orders/:id" component={OrderDetail} />
             <Route path="/schedule/:id" component={ScheduleEditor} />
             <Route path="/schedule" component={Schedule} />

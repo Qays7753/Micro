@@ -43,6 +43,9 @@ const deepFlowPatterns: readonly RegExp[] = [
    * حارس المدخلات غير المحفوظة وزر الرجوع للمصدر بدل شريط التنقل. */
   /^\/tools\/calculator$/,
   /^\/tools\/estimate\/[^/]+$/,
+  /* المجموعة ٣ (عقد D5): مراجعة التسليم — محرر فعل عميق كإخوته: يخفي شريط
+   * التنقل ويحرس الخروج بلا تأكيد. */
+  /^\/orders\/[^/]+\/deliver$/,
 ];
 
 function pathnameOnly(location: string) {

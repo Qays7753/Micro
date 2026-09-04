@@ -299,7 +299,8 @@ describe("inventory material domain — Group 2 selective tracking: consumption 
     expect(createInventoryMovement({ ...base, reason: "تجربة لون لطلب قادم" }).reason).toBe(
       "تجربة لون لطلب قادم",
     );
-    expect(() => createInventoryMovement(base)).toThrow("مرجع طلب أو بيانًا");
+    /* المجموعة ٣ (عقد D6): الرسالة توسعت لتشمل مرجع البيع المباشر — القاعدة لم تتغير. */
+    expect(() => createInventoryMovement(base)).toThrow("مرجع طلب أو بيع مباشر أو بيانًا");
   });
   it("a pure-unknown-cost position consumes at a zero marked unknown; known positions keep Decision 20", () => {
     const materialId = "sugar";

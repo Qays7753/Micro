@@ -28,6 +28,8 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/settings")) return "الإعدادات";
   /* المجموعة ١: ملف المالك — تسمية سياقية للترويسة بلا مقعد تنقل جديد. */
   if (pathname.startsWith("/profile")) return "ملف المالك";
+  /* المجموعة ٣ (عقد D5): مراجعة التسليم — سياق واضح فوق محرر عميق. */
+  if (/^\/orders\/[^/]+\/deliver$/.test(pathname)) return "مراجعة التسليم";
   return (
     primaryNavigation.find(
       item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),

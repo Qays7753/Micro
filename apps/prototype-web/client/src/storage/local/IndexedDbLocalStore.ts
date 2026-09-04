@@ -881,6 +881,263 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
+  /* المجموعة ٣ (عقد D4): معاملة تسليم ذرّية — الطلب وحركات الاستهلاك وسجلات
+   * النقص وتخصيص الكاش معًا أو لا شيء. مسار إعادة الاستخدام يقرأ الحالة القائمة
+   * ويكمل ما نقص فقط (مفاتيح عمليات حتمية) فلا تكرار عند إعادة المحاولة. */
+  async commitOrderDelivery(
+    order: StoredCraftOrder,
+    movements: readonly InventoryMovement[],
+    shortages: readonly InventoryShortage[],
+    wallet: CashWallet | null,
+    cashEntry: CashContinuityEntry | null,
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      movements: readonly InventoryMovement[];
+      shortages: readonly InventoryShortage[];
+      cashEntry: CashContinuityEntry | null;
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [
+            orderStore,
+            inventoryMovementStore,
+            inventoryShortageStore,
+            cashWalletStore,
+            cashContinuityEntryStore,
+          ],
+          "readwrite",
+        );
+        const orders = transaction.objectStore(orderStore);
+        const movementStore = transaction.objectStore(inventoryMovementStore);
+        const shortageStore = transaction.objectStore(inventoryShortageStore);
+        const wallets = transaction.objectStore(cashWalletStore);
+        const cashEntries = transaction.objectStore(cashContinuityEntryStore);
+        let pending:
+          | StorageResult<{
+              order: StoredCraftOrder;
+              movements: readonly InventoryMovement[];
+              shortages: readonly InventoryShortage[];
+              cashEntry: CashContinuityEntry | null;
+              reused: boolean;
+            }>
+          | null = null;
+        const finish = (result: StorageResult<{
+          order: StoredCraftOrder;
+          movements: readonly InventoryMovement[];
+          shortages: readonly InventoryShortage[];
+          cashEntry: CashContinuityEntry | null;
+          reused: boolean;
+        }>) => resolve(result);
+        let deliveryReused = false;
+        const orderRequest = orders.get(order.id);
+        orderRequest.onerror = () => {
+          pending = failure(orderRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        orderRequest.onsuccess = () => {
+          const existing = orderRequest.result as StoredCraftOrder | undefined;
+          if (!existing) {
+            pending = {
+              ok: false,
+              code: "storage_error",
+              message: "لم نجد الطلب المحلي لتسجيل التسليم.",
+            };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          /* حدث التسليم حاضر سلفًا → إعادة استخدام: لا نعيد كتابة الطلب، ونكمل
+           * فقط حركات/نقص/تخصيصًا نقص من مفاتيح حتمية (حالة نصفية بعد انقطاع). */
+          /* المجموعة ٣: المقارنة على مفتاح آخر حدث تسليم في الطلب الوارد —
+           * إعادة التسليم بعد عكسٍ كتابة جديدة لا إعادة تشغيل. */
+          const lastDeliveryKey = [...order.order.events]
+            .reverse()
+            .find(event => event.type === "status_changed" && event.toStatus === "delivered")?.idempotencyKey;
+          const alreadyDelivered =
+            lastDeliveryKey !== undefined &&
+            existing.order.events.some(
+              event =>
+                event.type === "status_changed" &&
+                event.toStatus === "delivered" &&
+                event.idempotencyKey === lastDeliveryKey,
+            );
+          deliveryReused = alreadyDelivered;
+          const movementRequest = movementStore.getAll();
+          movementRequest.onerror = () => {
+            pending = failure(movementRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          movementRequest.onsuccess = () => {
+            const storedMovements = movementRequest.result as InventoryMovement[];
+            const storedKeys = new Set(storedMovements.map(movement => movement.operationKey));
+            const movementsToWrite = movements.filter(movement => !storedKeys.has(movement.operationKey));
+            const shortageRequest = shortageStore.getAll();
+            shortageRequest.onerror = () => {
+              pending = failure(shortageRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            shortageRequest.onsuccess = () => {
+              const storedShortages = shortageRequest.result as InventoryShortage[];
+              const shortageKeys = new Set(storedShortages.map(shortage => shortage.operationKey));
+              const shortagesToWrite = shortages.filter(shortage => !shortageKeys.has(shortage.operationKey));
+              const writeAll = () => {
+                if (!alreadyDelivered) orders.put(order);
+                movementsToWrite.forEach(movement => movementStore.put(movement));
+                shortagesToWrite.forEach(shortage => shortageStore.put(shortage));
+                if (cashEntry) {
+                  const cashRequest = cashEntries.getAll();
+                  cashRequest.onerror = () => {
+                    pending = failure(cashRequest.error, database);
+                    try {
+                      transaction.abort();
+                    } catch {
+                      if (pending) finish(pending);
+                    }
+                  };
+                  cashRequest.onsuccess = () => {
+                    const cashKeys = new Set(
+                      (cashRequest.result as CashContinuityEntry[]).map(entry => entry.operationKey),
+                    );
+                    if (!cashKeys.has(cashEntry.operationKey)) {
+                      cashEntries.put(cashEntry);
+                      if (wallet) wallets.put(wallet);
+                    }
+                  };
+                } else if (wallet) {
+                  wallets.put(wallet);
+                }
+              };
+              writeAll();
+            };
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({
+            ok: true,
+            value: { order, movements, shortages, cashEntry, reused: deliveryReused },
+          });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* المجموعة ٣ (عقد D4): عكس التسليم ذرّيًا — الطلب المعكوس وحركات المرآة معًا. */
+  async commitOrderDeliveryReversal(
+    order: StoredCraftOrder,
+    reversalMovements: readonly InventoryMovement[],
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      reversalMovements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([orderStore, inventoryMovementStore], "readwrite");
+        const orders = transaction.objectStore(orderStore);
+        const movementStore = transaction.objectStore(inventoryMovementStore);
+        let reversalReused = false;
+        let pending:
+          | StorageResult<{
+              order: StoredCraftOrder;
+              reversalMovements: readonly InventoryMovement[];
+              reused: boolean;
+            }>
+          | null = null;
+        const finish = (result: StorageResult<{
+          order: StoredCraftOrder;
+          reversalMovements: readonly InventoryMovement[];
+          reused: boolean;
+        }>) => resolve(result);
+        const orderRequest = orders.get(order.id);
+        orderRequest.onerror = () => {
+          pending = failure(orderRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        orderRequest.onsuccess = () => {
+          const existing = orderRequest.result as StoredCraftOrder | undefined;
+          if (!existing) {
+            pending = {
+              ok: false,
+              code: "storage_error",
+              message: "لم نجد الطلب المحلي لعكس تسليمه.",
+            };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const lastReversalKey = [...order.order.events]
+            .reverse()
+            .find(event => event.type === "delivery_reversed")?.idempotencyKey;
+          const alreadyReversed =
+            lastReversalKey !== undefined &&
+            existing.order.events.some(
+              event => event.type === "delivery_reversed" && event.idempotencyKey === lastReversalKey,
+            );
+          reversalReused = alreadyReversed;
+          const movementRequest = movementStore.getAll();
+          movementRequest.onerror = () => {
+            pending = failure(movementRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          movementRequest.onsuccess = () => {
+            const storedKeys = new Set(
+              (movementRequest.result as InventoryMovement[]).map(movement => movement.operationKey),
+            );
+            if (!alreadyReversed) orders.put(order);
+            reversalMovements
+              .filter(movement => !storedKeys.has(movement.operationKey))
+              .forEach(movement => movementStore.put(movement));
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { order, reversalMovements, reused: reversalReused } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listDirectSales() {
     return listAll<DirectSale>(
       directSaleStore,

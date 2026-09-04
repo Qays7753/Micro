@@ -55,6 +55,9 @@ export type InventoryMovement = {
   operationKey: string;
   purchaseId: string | null;
   orderId: string | null;
+  /* المجموعة ٣ (عقد D6): ربط حركة المادة ببيع مباشر — نمط purchaseId/orderId
+   * نفسه؛ الاستهلاك المرتبط ببيع لا يحتاج بيانًا إضافيًا لأن المرجع صريح. */
+  saleId?: string | null;
   reversesMovementId: string | null;
   wasteContext: WasteContext | null;
   costKnowledge?: MovementCostKnowledge | null;

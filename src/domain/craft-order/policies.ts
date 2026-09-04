@@ -3,6 +3,7 @@ import type {
   CostSnapshotInput,
   CraftOrder,
   CreateCraftOrderInput,
+  DeliveryConsumptionNoteInput,
   DepositSettlementDecision,
   KnowledgeGap,
   KnowledgeState,
@@ -14,6 +15,7 @@ import type {
   ResultStatus,
   ReviseAgreedPriceInput,
   ReverseCollectionInput,
+  ReverseDeliveryInput,
   SettlementStatus,
 } from "./types.js";
 import type { MoneyMinor } from "../shared/index.js";
@@ -266,13 +268,27 @@ function eventExists(order: CraftOrder, idempotencyKey: string, eventType: Order
 }
 
 function assertNotLockedDeliveredReview(order: CraftOrder): void {
-  if (order.status === "needs_review" && hasDeliveredEvent(order)) {
+  /* المجموعة ٣ (عقد D2): عكس التسليم هو التصحيح الموثق الذي يفتح خروج الطلب
+   * المسلّم من المراجعة — بدونه يبقى القفل كما هو. */
+  if (order.status === "needs_review" && hasDeliveredEvent(order) && !hasDeliveryReversal(order)) {
     throw new Error("الطلب المسلّم لا يخرج من «يحتاج مراجعة» إلا بتصحيح موثق صريح.");
   }
 }
 
 function hasDeliveredEvent(order: CraftOrder): boolean {
   return order.events.some(event => event.type === "status_changed" && event.toStatus === "delivered");
+}
+
+/* المجموعة ٣ (عقد D2): هل عُكس آخر تسليم؟ آخر حدث تسليم لا يزال بلا عكس مقابلاً
+ * يعني أن العكس غير حاصل بعد. */
+function hasDeliveryReversal(order: CraftOrder): boolean {
+  const lastDelivery = [...order.events]
+    .reverse()
+    .find(event => event.type === "status_changed" && event.toStatus === "delivered");
+  if (!lastDelivery) return false;
+  return order.events.some(
+    event => event.type === "delivery_reversed" && event.reversesEventId === lastDelivery.id,
+  );
 }
 
 function appendEvent(order: CraftOrder, event: OrderEvent): CraftOrder {
@@ -764,6 +780,79 @@ export function reverseOrderCollection(order: CraftOrder, input: ReverseCollecti
     note: input.reason.trim(),
     amountMinor: input.amountMinor,
     reversesEventId: source.id,
+  });
+}
+
+/* المجموعة ٣ (عقد D2): توثيق استهلاك مواد التسليم في خط زمن الطلب — يُستدعى بعد
+ * نجاح معاملة التسليم الذرّية؛ العلاقة بحادثة التسليم صريحة عبر reversesEventId. */
+export function noteDeliveryConsumption(order: CraftOrder, input: DeliveryConsumptionNoteInput): CraftOrder {
+  assertIdempotencyKey(input.idempotencyKey);
+  if (eventExists(order, input.idempotencyKey, "delivery_consumed")) return order;
+  if (!input.note.trim()) throw new Error("أكمل بيان مواد التسليم قبل التوثيق.");
+  const source = order.events.find(event => event.id === input.reversesEventId);
+  if (!source || source.type !== "status_changed" || source.toStatus !== "delivered") {
+    throw new Error("اختر حدث التسليم الموثق قبل تسجيل استهلاك مواد التسليم.");
+  }
+  return appendEvent(order, {
+    id: `${order.id}:${input.idempotencyKey}`,
+    type: "delivery_consumed",
+    idempotencyKey: input.idempotencyKey,
+    createdAt: input.createdAt,
+    note: input.note.trim(),
+    reversesEventId: source.id,
+  });
+}
+
+/* المجموعة ٣ (عقد D2): عكس التسليم المكتمل — تصحيح موثق. الأصل (حدث التسليم
+ * وأثره في الأحداث) يبقى؛ الإيراد المعروف والتكلفة المعروفة تُحيَّدان إلى غياب
+ * المعرفة (لا صفر مزيف: النتيجة «تحتاج مراجعة»)؛ الطلب ينتقل إلى «يحتاج مراجعة»
+ * ليقرر المالك بعدها: إعادة تنفيذ (مؤكد ← قيد التنفيذ) أو إلغاء موثق. الكاش
+ * المقبوض لا يُمس هنا — عكس قبضة له مساره الخاص. */
+export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput): CraftOrder {
+  assertIdempotencyKey(input.idempotencyKey);
+  if (eventExists(order, input.idempotencyKey, "delivery_reversed")) return order;
+  if (order.status !== "delivered" && order.status !== "settled") {
+    throw new Error(`عكس التسليم يتطلب طلبًا مسلّمًا — الحالة الحالية «${ORDER_STATUS_AR[order.status]}».`);
+  }
+  const deliveryEvent = [...order.events]
+    .reverse()
+    .find(event => event.type === "status_changed" && event.toStatus === "delivered");
+  if (!deliveryEvent) {
+    throw new Error("لم نجد حدث تسليم موثقًا لهذا الطلب.");
+  }
+  if (
+    order.events.some(
+      event => event.type === "delivery_reversed" && event.reversesEventId === deliveryEvent.id,
+    )
+  ) {
+    throw new Error("عُكس هذا التسليم سابقًا؛ لا يُعكس التسليم نفسه مرتين.");
+  }
+  if (!input.reason.trim()) throw new Error("أكمل سبب عكس التسليم قبل الحفظ.");
+
+  const next: CraftOrder = {
+    ...order,
+    status: "needs_review",
+    recognizedRevenueMinor: 0,
+    recognizedCostMinor: 0,
+    profitIndicatorMinor: null,
+    resultStatus: "review_required",
+    nextAction: "راجع الطلب بعد عكس التسليم — أعِد التنفيذ أو ألغِ موثقًا",
+  };
+  const withStatusEvent = appendStatusChanged(
+    next,
+    order.status,
+    "needs_review",
+    `${input.idempotencyKey}:status`,
+    input.createdAt,
+    input.reason.trim(),
+  );
+  return appendEvent(withStatusEvent, {
+    id: `${order.id}:${input.idempotencyKey}`,
+    type: "delivery_reversed",
+    idempotencyKey: input.idempotencyKey,
+    createdAt: input.createdAt,
+    note: input.reason.trim(),
+    reversesEventId: deliveryEvent.id,
   });
 }
 

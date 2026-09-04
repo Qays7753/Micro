@@ -111,8 +111,10 @@ describe("schema 32 export round-trip with selective inventory", () => {
     if (!verified.ok) throw new Error(verified.message);
     expect(verified.value.file.version).toBe(localExportVersion);
     expect(verified.value.file.schemaVersion).toBe(localSchemaVersion);
-    expect(verified.value.file.version).toBe(24);
-    expect(verified.value.file.schemaVersion).toBe(32);
+    /* المجموعة ٣ (عقد D3): زوج الإصدار انتقل إلى ٢٥/٣٣ مع حقول ربط المنتج
+     * بالبيع — السلوك المدقق نفسه يبقى على الزوج الحي. */
+    expect(verified.value.file.version).toBe(25);
+    expect(verified.value.file.schemaVersion).toBe(33);
     expect(verified.value.summary).toMatchObject({ materials: 3, inventoryShortages: 1 });
 
     const target = new MemoryLocalStore();

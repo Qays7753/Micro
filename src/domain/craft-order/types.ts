@@ -27,6 +27,9 @@ export interface MaterialCostItem {
   priceDate: string;
   source: CostSource;
   confidence: CostConfidence;
+  /* المجموعة ٣ (عقد D2): ربط هوية المادة عند التكلفة — هوية فقط لا قيمة حية؛
+   * أرقام البند مجمّدة في النسخة كما كانت لحظة الإنشاء. غياب الحقل = بند حر. */
+  materialId?: string | null;
 }
 
 export interface TimeCost {
@@ -104,7 +107,13 @@ export type OrderEventType =
   /* المجموعة ٢ (§10.5): تصحيح السعر بعد الاتفاق — علاقة موثقة لا إلغاء وإعادة إنشاء. */
   | "price_revised"
   /* المجموعة ٢ (§10.3): التراجع الموثق عن قبض مسجل — عكس أثر الكاش لا الإيراد. */
-  | "collection_reversed";
+  | "collection_reversed"
+  /* المجموعة ٣ (عقد D2): مواد استُهلكت فعليًا عند التسليم — توثيق في خط زمن الطلب
+   * مع علاقة صريحة بحدث التسليم؛ الحركات نفسها سجل المخزون المرجعي. */
+  | "delivery_consumed"
+  /* المجموعة ٣ (عقد D2): عكس موثق لتسليم مكتمل — الإيراد والنتيجة تُحيَّد، الحركات
+   * تُعكس مرآةً، الكاش المقبوض لا يُمس؛ الأصل باقٍ في الأحداث. */
+  | "delivery_reversed";
 
 export interface OrderEvent {
   id: string;
@@ -180,6 +189,24 @@ export interface ReverseCollectionInput {
   collectionEventId: string;
   amountMinor: MoneyMinor;
   reason: string;
+  idempotencyKey: string;
+  createdAt: string;
+}
+
+/* المجموعة ٣ (عقد D2): عكس التسليم المكتمل — تصحيح موثق لا إلغاء صامت. يبقى الأصل
+ * في الأحداث، والإيراد المعروف والتكلفة المعروفة تُحيَّدان، والطلب ينتقل إلى
+ * «يحتاج مراجعة» ليقرر المالك: إعادة تنفيذ أو إلغاء. الكاش المقبوض لا يتأثر. */
+export interface ReverseDeliveryInput {
+  reason: string;
+  idempotencyKey: string;
+  createdAt: string;
+}
+
+/* المجموعة ٣ (عقد D2): توثيق استهلاك مواد التسليم في خط زمن الطلب — البيان ملخص
+ * بشري القراءة، والحركات المرجعية تحمل التفصيل والمعرفات. */
+export interface DeliveryConsumptionNoteInput {
+  note: string;
+  reversesEventId: string;
   idempotencyKey: string;
   createdAt: string;
 }

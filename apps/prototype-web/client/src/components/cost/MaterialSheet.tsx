@@ -83,6 +83,9 @@ export function MaterialSheet({
                           onChange({
                             name: suggestion.name,
                             unit: suggestion.unit,
+                            /* المجموعة ٣ (عقد D2): هوية المادة تُحفظ مع البند — هوية
+                             * ربط فقط؛ الرقم يبقى كما دخل ويُجمَّد مع النسخة. */
+                            materialId: suggestion.materialId,
                             ...(suggestion.unitPriceMinor !== null
                               ? {
                                   unitPriceMinor: suggestion.unitPriceMinor,

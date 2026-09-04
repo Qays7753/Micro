@@ -746,6 +746,8 @@ function validInventoryMovement(value: unknown): boolean {
     !value.operationKey.trim() ||
     !(value.purchaseId === null || isString(value.purchaseId)) ||
     !(value.orderId === null || isString(value.orderId)) ||
+    /* المجموعة ٣ (عقد D6): ربط البيع المباشر — null أو نص (اختياري). */
+    !(value.saleId === undefined || value.saleId === null || isString(value.saleId)) ||
     !(value.reversesMovementId === null || isString(value.reversesMovementId)) ||
     !(value.costKnowledge === undefined || value.costKnowledge === null ||
       value.costKnowledge === "known" || value.costKnowledge === "unknown")
@@ -914,7 +916,11 @@ function validCatalogTemplate(value: unknown, catalogIds: Set<string>, unitIds: 
         isPositiveSafeInteger(component.quantityMilli) &&
         isString(component.unitId) &&
         unitIds.has(component.unitId) &&
-        isOptionalNote(component.note),
+        isOptionalNote(component.note) &&
+        /* المجموعة ٣ (عقد D5): هوية المادة اختيارية — null أو نص غير فارغ. */
+        (component.materialId === undefined ||
+          component.materialId === null ||
+          (isString(component.materialId) && component.materialId.trim().length > 0))
     ) ||
     !(
       value.yield === null ||
@@ -931,6 +937,34 @@ function validCatalogTemplate(value: unknown, catalogIds: Set<string>, unitIds: 
     !isDate(value.updatedAt) ||
     !isString(value.createdOperationKey) ||
     value.createdOperationKey.trim().length === 0
+  )
+    return false;
+  /* المجموعة ٣ (عقد D5): البنود الاختيارية للقالب — null أو سجل بحقول غير سالبة
+   * وغياب صريح (null) للوقت والأجر. */
+  if (
+    value.extras !== undefined &&
+    value.extras !== null &&
+    !(isRecord(value.extras) &&
+      (value.extras.timeMinutes === null ||
+        (typeof value.extras.timeMinutes === "number" &&
+          Number.isSafeInteger(value.extras.timeMinutes) &&
+          value.extras.timeMinutes >= 0)) &&
+      (value.extras.hourlyRateMinor === null ||
+        (typeof value.extras.hourlyRateMinor === "number" &&
+          Number.isSafeInteger(value.extras.hourlyRateMinor) &&
+          value.extras.hourlyRateMinor >= 0)) &&
+      typeof value.extras.packagingMinor === "number" &&
+      Number.isSafeInteger(value.extras.packagingMinor) &&
+      value.extras.packagingMinor >= 0 &&
+      typeof value.extras.deliveryMinor === "number" &&
+      Number.isSafeInteger(value.extras.deliveryMinor) &&
+      value.extras.deliveryMinor >= 0 &&
+      typeof value.extras.wasteMinor === "number" &&
+      Number.isSafeInteger(value.extras.wasteMinor) &&
+      value.extras.wasteMinor >= 0 &&
+      typeof value.extras.safetyBufferMinor === "number" &&
+      Number.isSafeInteger(value.extras.safetyBufferMinor) &&
+      value.extras.safetyBufferMinor >= 0)
   )
     return false;
   return value.yield === null
@@ -999,7 +1033,9 @@ function validDraftCostSnapshot(value: unknown): boolean {
       isString(item.unit) &&
       isPositiveQuantity(item.quantity) &&
       isMoney(item.unitPriceMinor) &&
-      (item.confidence === "known" || item.confidence === "estimated"),
+      (item.confidence === "known" || item.confidence === "estimated") &&
+      /* المجموعة ٣ (عقد D2): هوية المادة في بند التكلفة — اختيارية null أو نص. */
+      (item.materialId === undefined || item.materialId === null || isString(item.materialId)),
   );
 }
 
@@ -1042,7 +1078,9 @@ function validCostEstimate(value: unknown): boolean {
       isString(item.unit) &&
       isPositiveQuantity(item.quantity) &&
       isMoney(item.unitPriceMinor) &&
-      (item.confidence === "known" || item.confidence === "estimated"),
+      (item.confidence === "known" || item.confidence === "estimated") &&
+      /* المجموعة ٣ (عقد D2): هوية المادة في بند التكلفة — اختيارية null أو نص. */
+      (item.materialId === undefined || item.materialId === null || isString(item.materialId)),
   );
 }
 
@@ -2127,6 +2165,10 @@ export class LocalTransferService {
     /* المجموعة ٢ (مخزون انتقائي): نسخة ٢٣/مخطط ٣١ قبل قرار المتابعة والنقص —
      * تُقبل وتُهاجر بقيم null/[] آمنة بلا اختراع متابعة ولا رصيد ولا نقص. */
     const isPreviousSelectiveInventory = candidate.version === 23 && candidate.schemaVersion === 31;
+    /* المجموعة ٣ (ربط المنتج بالبيع): نسخة ٢٤/مخطط ٣٢ قبل هوية المادة في بنود
+     * التكلفة والقوالب وبنود القالب الاختيارية وربط حركة المادة بالبيع المباشر —
+     * تُقبل وتُهاجر بغياب = null بلا اختراع روابط ولا أرقام. */
+    const isPreviousProductSaleLink = candidate.version === 24 && candidate.schemaVersion === 32;
     const isPreviousO1 =
       (candidate.version === 12 && candidate.schemaVersion === 21) ||
       (candidate.version === 13 && candidate.schemaVersion === 22);
@@ -2147,6 +2189,7 @@ export class LocalTransferService {
       !isPreviousOwnerFoundation &&
       !isPreviousExpenseCategory &&
       !isPreviousSelectiveInventory &&
+      !isPreviousProductSaleLink &&
       !isPreviousO1 &&
       !isPreviousG3 &&
       !isG3Legacy &&
@@ -2272,6 +2315,8 @@ export class LocalTransferService {
                     movement.type === "waste" ? (movement.wasteContext ?? { kind: "general_project" }) : null,
                   /* المجموعة ٢ (عقد ٢٨): معرفة التكلفة — غياب = known (إرث متوافق). */
                   costKnowledge: movement.costKnowledge ?? "known",
+                  /* المجموعة ٣ (عقد D6): ربط البيع المباشر — غياب = null (لا مرجع مفترض). */
+                  saleId: movement.saleId ?? null,
                 }
               : movement,
           )
@@ -2283,7 +2328,23 @@ export class LocalTransferService {
         : [],
       measurementUnits: Array.isArray(raw.measurementUnits) ? raw.measurementUnits : [],
       directConversions: Array.isArray(raw.directConversions) ? raw.directConversions : [],
-      catalogTemplates: Array.isArray(raw.catalogTemplates) ? raw.catalogTemplates : [],
+      catalogTemplates: Array.isArray(raw.catalogTemplates)
+        ? raw.catalogTemplates.map(template =>
+            isRecord(template)
+              ? {
+                  ...template,
+                  /* المجموعة ٣ (عقد D5): ربط هوية المادة بالمكوّن وبنود القالب الاختيارية —
+                   * غياب = null بلا اختراع رابط ولا بنود. */
+                  components: Array.isArray(template.components)
+                    ? template.components.map(component =>
+                        isRecord(component) ? { ...component, materialId: component.materialId ?? null } : component,
+                      )
+                    : template.components,
+                  extras: template.extras ?? null,
+                }
+              : template,
+          )
+        : [],
       actualTimeRecords: Array.isArray(raw.actualTimeRecords)
         ? raw.actualTimeRecords
         : isCurrent

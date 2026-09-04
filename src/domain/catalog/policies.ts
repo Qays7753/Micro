@@ -4,6 +4,7 @@ import {
   type CatalogItem,
   type CatalogTemplate,
   type CatalogTemplateComponent,
+  type CatalogTemplateExtras,
   type CatalogTemplateYield,
   type CreateCatalogItemInput,
   type CreateCatalogTemplateInput,
@@ -144,6 +145,30 @@ function validateComponent(component: CatalogTemplateComponent): CatalogTemplate
     quantityMilli: positiveSafeInteger(component.quantityMilli, "كمية المكوّن"),
     unitId: required(component.unitId, "وحدة المكوّن"),
     note: component.note?.trim() || null,
+    /* المجموعة ٣ (عقد D5): معرّف المادة إن وُجد — هوية تخطيط لا قيمة مخزنة. */
+    materialId: component.materialId?.trim() || null,
+  };
+}
+
+/* المجموعة ٣ (عقد D5): بنود القالب الاختيارية — قيم غير سالبة أو غياب معرفة
+ * صريح (null للوقت/الأجر)؛ لا يُخترع رقم ولا يُقلب الغياب صفرًا ملزمًا. */
+function validateExtras(extras: CatalogTemplateExtras | null | undefined): CatalogTemplateExtras | null {
+  if (extras === null || extras === undefined) return null;
+  const nonNegative = (value: number, label: string) => {
+    if (!Number.isSafeInteger(value) || value < 0) throw new Error(`${label} غير صالحة في القالب.`);
+    return value;
+  };
+  const nullableNonNegative = (value: number | null, label: string) => {
+    if (value === null) return null;
+    return nonNegative(value, label);
+  };
+  return {
+    timeMinutes: nullableNonNegative(extras.timeMinutes, "دقائق العمل"),
+    hourlyRateMinor: nullableNonNegative(extras.hourlyRateMinor, "أجر الساعة"),
+    packagingMinor: nonNegative(extras.packagingMinor, "تكلفة التغليف"),
+    deliveryMinor: nonNegative(extras.deliveryMinor, "تكلفة التوصيل"),
+    wasteMinor: nonNegative(extras.wasteMinor, "تكلفة الهدر"),
+    safetyBufferMinor: nonNegative(extras.safetyBufferMinor, "هامش الحماية"),
   };
 }
 
@@ -155,15 +180,25 @@ function validateYield(value: CatalogTemplateYield | null): CatalogTemplateYield
   };
 }
 
+/* المجموعة ٣ (عقد D5): اشتقاق حالة الناتج مع تحققها — مساعد صغير يبقي
+ * createCatalogTemplate داخل سقف التعقيد المقبول. */
+function resolveYieldReadiness(
+  yieldValue: CatalogTemplateYield | null,
+  declared: CatalogTemplate["yieldReadiness"],
+): CatalogTemplate["yieldReadiness"] {
+  if (yieldValue === null) return "not_configured";
+  if (declared !== "ready" && declared !== "needs_conversion") throw new Error("حالة ناتج القالب غير صالحة.");
+  return declared;
+}
+
 export function createCatalogTemplate(input: CreateCatalogTemplateInput): CatalogTemplate {
   const timestamp = validTimestamp(input.createdAt, "وقت إنشاء القالب");
   if (!Number.isSafeInteger(input.revision) || input.revision < 1)
     throw new Error("رقم نسخة القالب غير صالح.");
   const components = input.components.map(validateComponent);
   const yieldValue = validateYield(input.yield);
-  const yieldReadiness = yieldValue === null ? "not_configured" : input.yieldReadiness;
-  if (yieldValue !== null && yieldReadiness !== "ready" && yieldReadiness !== "needs_conversion")
-    throw new Error("حالة ناتج القالب غير صالحة.");
+  const yieldReadiness = resolveYieldReadiness(yieldValue, input.yieldReadiness);
+  const extras = validateExtras(input.extras);
   return {
     id: required(input.id, "معرف القالب"),
     catalogItemId: required(input.catalogItemId, "مرجع القالب"),
@@ -172,6 +207,7 @@ export function createCatalogTemplate(input: CreateCatalogTemplateInput): Catalo
     components,
     yield: yieldValue,
     yieldReadiness,
+    extras,
     revision: input.revision,
     sourceTemplateId: input.sourceTemplateId?.trim() || null,
     active: true,

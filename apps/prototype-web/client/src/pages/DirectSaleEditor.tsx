@@ -418,6 +418,29 @@ export default function DirectSaleEditor() {
           {reference ? <p>مرجع مرتبط: {reference.name} — الربط للتوثيق فقط.</p> : null}
           <p className="micro-local-truth">سُجل محليًا على هذا الجهاز — الضغط مرتين لا يضاعف أثرًا.</p>
         </section>
+        {/* المجموعة ٣ (عقد D5/§5.6): ربط المخزون بالبيع مباشر اختياري صريح — لا
+            يُخصم شيء لمجرد البيع؛ إن استهلكت مواد متتبَّعة فسجّلها من هنا بمسار
+            عقد ٢٨ نفسه (معاينة ونقص موثق وتراجع). */}
+        <section className="micro-decision-card" aria-label="ربط اختياري بالمخزون">
+          <p>
+            فيك مواد متتبَّعة استُهلكت في هذا البيع؟ سجّل استهلاكها بصلة صريحة بهذا البيع —
+            اختياري تمامًا، والبيع صحيح بدونه.
+          </p>
+          <button
+            className="micro-button micro-button-quiet"
+            type="button"
+            onClick={() =>
+              requestNavigation(
+                withFrom(
+                  `/inventory/movement/consume?sale=${encodeURIComponent(sale.id)}`,
+                  `/direct-sales/${encodeURIComponent(sale.id)}`,
+                ),
+              )
+            }
+          >
+            سجّل استهلاك مواد لهذا البيع
+          </button>
+        </section>
         <div className="micro-form-actions">
           <button
             className="micro-button micro-button-primary"

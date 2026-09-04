@@ -8,6 +8,7 @@ import type { CostEditorInput } from "@/application/cost/costService";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MaterialSheet, type MaterialSuggestion } from "@/components/cost/MaterialSheet";
+import { readMaterialSuggestions } from "@/application/inventory/materialSuggestions";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 
@@ -125,52 +126,12 @@ export default function CostEditor() {
    * غير معكوس مصدر السعر (مؤكد)، وبلا استلام الاسم والوحدة فقط (تقديري).
    * قراءة فقط: التقدير لا يستهلك مخزونًا ولا ينشئ حدثًا. */
   const [materialSuggestions, setMaterialSuggestions] = useState<readonly MaterialSuggestion[]>([]);
+  /* المجموعة ٣ (عقد D5): المقترحات عبر الدليل المشترك الواحد — نفس سلوك الحاسبة
+   * حرفيًا (آخر استلام غير معكوس مصدر السعر، وبلا استلام اسم/وحدة تقديرية). */
   useEffect(() => {
     let active = true;
-    Promise.all([inventory.overview(), inventory.movements()]).then(([overviewResult, movementsResult]) => {
-      if (!active || !overviewResult.ok || !movementsResult.ok) return;
-      const reversedIds = new Set(
-        movementsResult.value
-          .filter(movement => movement.type === "reversal" && movement.reversesMovementId)
-          .map(movement => movement.reversesMovementId),
-      );
-      const suggestions: MaterialSuggestion[] = overviewResult.value.materials.map(material => {
-        const receipts = movementsResult.value
-          .filter(
-            movement =>
-              movement.type === "purchase_receipt" &&
-              movement.materialId === material.id &&
-              !reversedIds.has(movement.id) &&
-              movement.quantityDeltaMilli > 0,
-          )
-          .sort((left, right) => right.occurredOn.localeCompare(left.occurredOn));
-        const lastReceipt = receipts[0];
-        const unitPriceMinor = lastReceipt
-          ? Math.round((lastReceipt.valueDeltaMinor / lastReceipt.quantityDeltaMilli) * 1000)
-          : null;
-        return {
-          materialId: material.id,
-          name: material.name,
-          unit:
-            material.unit === "piece"
-              ? "قطعة"
-              : material.unit === "meter"
-                ? "متر"
-                : material.unit === "kilogram"
-                  ? "كيلوغرام"
-                  : material.unit === "liter"
-                    ? "لتر"
-                    : "وحدة أخرى",
-          unitPriceMinor,
-          fromReceipt: Boolean(lastReceipt),
-        };
-      });
-      /* ذو سعر من استلام أولًا ثم الباقي — أقصى ٦ كما في الورقة. */
-      setMaterialSuggestions(
-        suggestions
-          .sort((left, right) => Number(right.unitPriceMinor !== null) - Number(left.unitPriceMinor !== null))
-          .slice(0, 6),
-      );
+    void readMaterialSuggestions(inventory).then(suggestions => {
+      if (active && suggestions) setMaterialSuggestions(suggestions);
     });
     return () => {
       active = false;

@@ -16,6 +16,8 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { CostEstimateInput } from "@/application/estimates/costEstimateService";
 import type { CostEstimate } from "@/storage/local/types";
+import type { MaterialSuggestion } from "@/components/cost/MaterialSheet";
+import { readMaterialSuggestions } from "@/application/inventory/materialSuggestions";
 
 type EditableMaterial = {
   uiId: string;
@@ -23,6 +25,8 @@ type EditableMaterial = {
   quantity: number;
   unit: string;
   unitPriceMinor: number;
+  /* المجموعة ٣ (عقد D2): هوية المادة من المخزون إن اختيرت — هوية ربط فقط. */
+  materialId?: string | null;
 };
 
 type CalculatorState = { phase: "loading" } | { phase: "ready" };
@@ -62,6 +66,8 @@ function materialInputsOf(materials: readonly EditableMaterial[]): CostEstimateI
       unit: material.unit.trim() || "قطعة",
       unitPriceMinor: material.unitPriceMinor,
       confidence: "known" as const,
+      /* المجموعة ٣ (عقد D2): الهوية تُحفظ مع التقدير — بلا رقم حي ولا أثر مخزون. */
+      materialId: material.materialId ?? null,
     }));
 }
 
@@ -108,7 +114,19 @@ export default function CostCalculator() {
   /* المجموعة ٣ (§7): الحاسبة مسار عميق — الرجوع للمصدر (?from) أو أدواتي بديلًا. */
   const returnPath = useReturnPath();
   const {
-  dataVersion, costEstimates, notifyDataChanged } = usePrototypeServices();
+  dataVersion, costEstimates, inventory, notifyDataChanged } = usePrototypeServices();
+  /* المجموعة ٣ (عقد D5): مقترحات مواد الحاسبة — نفس دليل محرر التكلفة المشترك:
+   * تعبئة أرقام مقترحة فقط؛ لا حركة مخزون ولا حدث نقدي من التقدير أبدًا. */
+  const [materialSuggestions, setMaterialSuggestions] = useState<readonly MaterialSuggestion[]>([]);
+  useEffect(() => {
+    let active = true;
+    void readMaterialSuggestions(inventory).then(suggestions => {
+      if (active && suggestions) setMaterialSuggestions(suggestions);
+    });
+    return () => {
+      active = false;
+    };
+  }, [inventory, dataVersion]);
   /* و٥-ب (مجموعة ٣): معامل التقدير يُقرأ من useSearch — المسار الحقيقي بلا استعلام. */
   const search = useSearch();
   const requestedEstimateId = estimateIdFromSearch(search);
@@ -294,6 +312,39 @@ export default function CostCalculator() {
             placeholder="مثال: كيكة مناسبة صغيرة"
           />
         </label>
+        {materialSuggestions.length > 0 ? (
+          <div className="micro-suggest-group" data-testid="calculator-material-suggestions">
+            <small className="micro-suggest-group-label">مقترحات من موادك — السعر من آخر استلام</small>
+            <div className="micro-suggest-chip-row">
+              {materialSuggestions.map(suggestion => (
+                <button
+                  key={suggestion.materialId}
+                  className="micro-suggest-chip"
+                  type="button"
+                  onClick={() => {
+                    setMaterials(current => {
+                      const emptyIndex = current.findIndex(item => !item.name.trim());
+                      const filled: EditableMaterial = {
+                        uiId: emptyIndex >= 0 ? current[emptyIndex]!.uiId : `m-${Date.now()}`,
+                        name: suggestion.name,
+                        quantity: 1,
+                        unit: suggestion.unit,
+                        unitPriceMinor: suggestion.unitPriceMinor ?? 0,
+                        materialId: suggestion.materialId,
+                      };
+                      if (emptyIndex >= 0)
+                        return current.map((item, index) => (index === emptyIndex ? filled : item));
+                      return [...current, filled];
+                    });
+                  }}
+                >
+                  {suggestion.name}
+                  {suggestion.unitPriceMinor !== null ? " · بآخر سعر استلام" : " · بلا سعر بعد"}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
         {materials.map((material, index) => (
           <div className="micro-field-grid" key={material.uiId}>
             <label className="micro-field">
@@ -479,7 +530,12 @@ export default function CostCalculator() {
             </p>
             {namedMaterialWithoutPrice ? (
               <p className="micro-cost-disclaimer">
-                مادة مسماة بلا سعر — لن تُحتسب حتى تعرف سعرها؛ هو «غير محدد بعد» لا صفر.
+                مستثنى من الحساب (مسماة بلا سعر — «غير محدد بعد» لا صفر):{" "}
+                {materials
+                  .filter(material => material.name.trim() && material.unitPriceMinor <= 0)
+                  .map(material => material.name.trim())
+                  .join("، ")}
+                .
               </p>
             ) : null}
             {!timeKnown ? (
