@@ -63,7 +63,7 @@ describe("SupplierPurchaseEditor hook-order regression (G5-S6, React error 310)"
       /* كعب خدمة المسودة — قراءة فارغة وحفظ ناجح؛ الصفحة تُختبر لا المخزن. */
       formDrafts: {
         read: vi.fn().mockResolvedValue({ ok: true, value: null }),
-        save: vi.fn().mockResolvedValue({ ok: true, value: undefined }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
         discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
       },
       supplierPurchases: {

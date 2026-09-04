@@ -89,6 +89,7 @@ describe("FinanceActivity reader surface (المجموعة ٥ — عقد ٣٠)",
     expect(screen.getByText("15.00")).toBeTruthy();
     /* رابط المصدر موجود على زر الصف. */
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
+    if (row === null) throw new Error("activity row missing");
     fireEvent.click(row.closest("button")!);
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
     expect(wouterMocks.navigate.mock.calls[0]?.[0]).toContain("/finance?event=");

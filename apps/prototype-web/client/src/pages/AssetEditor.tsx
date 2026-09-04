@@ -54,7 +54,7 @@ export default function AssetEditor() {
   const restoredFromOffer = useRef(false);
   /* الكتابة عند التغيير الفعلي فقط (قذر) وفي طور الصياغة — لا مسودة من مجرد فتح. */
   useEffect(() => {
-    if (!isDirty || draft.state.phase !== "drafting") return;
+    if (!isDirty || draft.state.phase === "restore-offer") return;
     draft.onValuesChanged({
       name,
       categoryLabel,

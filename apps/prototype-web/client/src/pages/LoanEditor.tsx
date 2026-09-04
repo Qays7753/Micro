@@ -57,7 +57,7 @@ export default function LoanEditor() {
   });
   const restoredFromOffer = useRef(false);
   useEffect(() => {
-    if (!isDirty || draft.state.phase !== "drafting") return;
+    if (!isDirty || draft.state.phase === "restore-offer") return;
     draft.onValuesChanged({ borrowerName, principalMinor, loanDate, sourceWalletId, purposeNote });
   }, [borrowerName, principalMinor, loanDate, sourceWalletId, purposeNote, isDirty, draft.state.phase]);
   useEffect(() => {

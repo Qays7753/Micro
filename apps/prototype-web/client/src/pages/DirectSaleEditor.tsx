@@ -249,7 +249,7 @@ export default function DirectSaleEditor() {
   });
   const restoredFromOffer = useRef(false);
   useEffect(() => {
-    if (editing || !isDirty || saleDraft.state.phase !== "drafting") return;
+    if (editing || !isDirty || saleDraft.state.phase === "restore-offer") return;
     saleDraft.onValuesChanged({
       itemName,
       quantity,

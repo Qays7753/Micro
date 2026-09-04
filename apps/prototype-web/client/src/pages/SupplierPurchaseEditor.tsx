@@ -149,7 +149,7 @@ export default function SupplierPurchaseEditor() {
   });
   const restoredFromOffer = useRef(false);
   useEffect(() => {
-    if (!isNew || !isDirty || purchaseDraft.state.phase !== "drafting") return;
+    if (!isNew || !isDirty || purchaseDraft.state.phase === "restore-offer") return;
     purchaseDraft.onValuesChanged({
       supplierName,
       note,
