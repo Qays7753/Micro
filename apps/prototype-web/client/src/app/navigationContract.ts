@@ -33,6 +33,10 @@ export type DeepLinkParams = {
   event: string | null;
   from: string | null;
   to: string | null;
+  /* المجموعة ٢ (عقد ٢٨ / TR-07): جسر الاستلام — يفتح محرر الاستلام بشراء محدد. */
+  purchase: string | null;
+  /* المجموعة ٢ (عقد ٢٨): مادة محددة في محررات الحركات — لا افتراض صامت لأول مادة. */
+  material: string | null;
 };
 
 const KNOWN_FOCUS_VALUES: readonly DeepLinkFocus[] = [
@@ -65,20 +69,26 @@ export function parseDeepLink(search: string | null | undefined): DeepLinkParams
   try {
     query = new URLSearchParams(search ?? "");
   } catch {
-    return { focus: null, layer: null, mode: null, event: null, from: null, to: null };
+    return { focus: null, layer: null, mode: null, event: null, from: null, to: null, purchase: null, material: null };
   }
   const from = query.get("from");
   const to = query.get("to");
+  /* المجموعة ٢ (عقد ٢٨): معرّفات الشراء والمادة كقيد الحدث — شكل معرّف آمن مقيد. */
+  const idShape = /^[A-Za-z0-9_-]{1,64}$/;
+  const purchase = query.get("purchase");
+  const material = query.get("material");
   return {
     focus: firstKnown(query.get("focus"), KNOWN_FOCUS_VALUES),
     layer: firstKnown(query.get("layer"), KNOWN_LAYER_VALUES),
     mode: firstKnown(query.get("mode"), KNOWN_MODE_VALUES),
     /* معرّف الحدث المالي حر الشكل لكنه مقصور ومقيد بالطول ومحارف آمنة. */
-    event: query.get("event") && /^[A-Za-z0-9_-]{1,64}$/.test(query.get("event") as string)
+    event: query.get("event") && idShape.test(query.get("event") as string)
       ? (query.get("event") as string)
       : null,
     from: from && isSafeInternalPath(from) ? from : null,
     to: to && isSafeInternalPath(to) ? to : null,
+    purchase: purchase && idShape.test(purchase) ? purchase : null,
+    material: material && idShape.test(material) ? material : null,
   };
 }
 

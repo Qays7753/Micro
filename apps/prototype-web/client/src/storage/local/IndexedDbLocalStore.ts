@@ -2,7 +2,7 @@
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
-import type { InventoryMovement, Material } from "@micro-domain/inventory-material/index.js";
+import type { InventoryMovement, InventoryShortage, Material } from "@micro-domain/inventory-material/index.js";
 import type {
   CatalogItem,
   CatalogTemplate,
@@ -57,6 +57,8 @@ const materialStore = "materials";
 const inventoryMovementStore = "inventory-movements";
 /* القرار ٩: سجل تفعيل المخزون المؤرّخ — مستودع منفرد بلا فهارس. */
 const inventoryActivationStore = "inventory-activations";
+/* المجموعة ٢ (عقد ٢٨ / D-027): سجلات نقص المخزون — تعيين موثّق بدل رصيد سالب. */
+const inventoryShortageStore = "inventory-shortages";
 const catalogItemStore = "catalog-items";
 const measurementUnitStore = "measurement-units";
 const directConversionStore = "direct-conversions";
@@ -251,6 +253,13 @@ function openDatabase(): Promise<IDBDatabase> {
       }
       if (!database.objectStoreNames.contains(inventoryActivationStore))
         database.createObjectStore(inventoryActivationStore, { keyPath: "id" });
+      /* المجموعة ٢ (عقد ٢٨ / D-027): سجلات النقص — محمية بفحص وجود فلا تعاد إنشاؤها. */
+      if (!database.objectStoreNames.contains(inventoryShortageStore)) {
+        const shortages = database.createObjectStore(inventoryShortageStore, { keyPath: "id" });
+        shortages.createIndex("materialId", "materialId");
+        shortages.createIndex("operationKey", "operationKey");
+        shortages.createIndex("status", "status");
+      }
       if (!database.objectStoreNames.contains(catalogItemStore)) {
         const catalogItems = database.createObjectStore(catalogItemStore, { keyPath: "id" });
         catalogItems.createIndex("active", "active");
@@ -1209,6 +1218,44 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
+  listInventoryShortages() {
+    return listAll<InventoryShortage>(
+      inventoryShortageStore,
+      (left, right) =>
+        right.occurredOn.localeCompare(left.occurredOn) || right.recordedAt.localeCompare(left.recordedAt),
+    );
+  }
+  /* المجموعة ٢ (عقد ٢٨ / D-027): معاملة ذرّية واحدة على المتاجر الثلاثة —
+   * المادة وحركاتها وسجل النقص معًا أو لا شيء. */
+  async commitInventoryWithShortage(
+    material: Material | null,
+    movements: readonly InventoryMovement[],
+    shortage: InventoryShortage | null,
+  ): Promise<StorageResult<{
+    material: Material | null;
+    movements: readonly InventoryMovement[];
+    shortage: InventoryShortage | null;
+  }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [materialStore, inventoryMovementStore, inventoryShortageStore],
+          "readwrite",
+        );
+        if (material) transaction.objectStore(materialStore).put(material);
+        movements.forEach(movement => transaction.objectStore(inventoryMovementStore).put(movement));
+        if (shortage) transaction.objectStore(inventoryShortageStore).put(shortage);
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.oncomplete = () => {
+          resolve({ ok: true, value: { material, movements, shortage } });
+        };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listCatalogItems() {
     return listAll<CatalogItem>(
       catalogItemStore,
@@ -1978,6 +2025,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             cashContinuityEntryStore,
             materialStore,
             inventoryMovementStore,
+            inventoryShortageStore,
             inventoryActivationStore,
             catalogItemStore,
             measurementUnitStore,
@@ -2008,6 +2056,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const cashContinuityEntries = transaction.objectStore(cashContinuityEntryStore).getAll();
         const materials = transaction.objectStore(materialStore).getAll();
         const inventoryMovements = transaction.objectStore(inventoryMovementStore).getAll();
+        /* المجموعة ٢ (عقد ٢٨): سجلات النقص جزء من اللقطة — إسقاطها يفقد البيانات عند التصدير. */
+        const inventoryShortages = transaction.objectStore(inventoryShortageStore).getAll();
         const inventoryActivation = transaction
           .objectStore(inventoryActivationStore)
           .get(localInventoryActivationId);
@@ -2045,6 +2095,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               cashContinuityEntries: cashContinuityEntries.result as CashContinuityEntry[],
               materials: materials.result as Material[],
               inventoryMovements: inventoryMovements.result as InventoryMovement[],
+              inventoryShortages: inventoryShortages.result as InventoryShortage[],
               inventoryActivation: (inventoryActivation.result as InventoryActivation | undefined) ?? null,
               catalogItems: catalogItems.result as CatalogItem[],
               measurementUnits: measurementUnits.result as MeasurementUnit[],
@@ -2082,6 +2133,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
         materials: snapshot.materials ?? [],
         inventoryMovements: snapshot.inventoryMovements ?? [],
+        inventoryShortages: snapshot.inventoryShortages ?? [],
         inventoryActivation: snapshot.inventoryActivation ?? null,
         catalogItems: snapshot.catalogItems ?? [],
         measurementUnits: snapshot.measurementUnits ?? [],
@@ -2114,6 +2166,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             materialStore,
             inventoryMovementStore,
             inventoryActivationStore,
+            inventoryShortageStore,
             catalogItemStore,
             measurementUnitStore,
             directConversionStore,
@@ -2143,6 +2196,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const cashContinuityEntries = transaction.objectStore(cashContinuityEntryStore);
         const materials = transaction.objectStore(materialStore);
         const inventoryMovements = transaction.objectStore(inventoryMovementStore);
+        const inventoryShortages = transaction.objectStore(inventoryShortageStore);
         const inventoryActivation = transaction.objectStore(inventoryActivationStore);
         const catalogItems = transaction.objectStore(catalogItemStore);
         const measurementUnits = transaction.objectStore(measurementUnitStore);
@@ -2170,6 +2224,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         cashContinuityEntries.clear();
         materials.clear();
         inventoryMovements.clear();
+        inventoryShortages.clear();
         inventoryActivation.clear();
         catalogItems.clear();
         measurementUnits.clear();
@@ -2197,6 +2252,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         normalized.cashContinuityEntries?.forEach(entry => cashContinuityEntries.put(entry));
         normalized.materials?.forEach(material => materials.put(material));
         normalized.inventoryMovements?.forEach(movement => inventoryMovements.put(movement));
+        /* المجموعة ٢ (عقد ٢٨): تنظيف وكتابة سجلات النقص — «ابدأ من جديد» لا يترك نقصًا قديمًا. */
+        normalized.inventoryShortages?.forEach(shortage => inventoryShortages.put(shortage));
         if (normalized.inventoryActivation) inventoryActivation.put(normalized.inventoryActivation);
         normalized.catalogItems?.forEach(item => catalogItems.put(item));
         normalized.measurementUnits?.forEach(unit => measurementUnits.put(unit));

@@ -5,6 +5,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { G5Service } from "@/application/g5/g5Service";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
@@ -119,6 +120,8 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
       g5,
       financialPulse: new FinancialPulseService(store),
       fulfillment: new FulfillmentService(store, now),
+      /* المجموعة ٢ (عقد ٢٨): خدمة المخزون الحقيقية فوق مخزن الذاكرة. */
+      inventory: new InventoryMaterialService(store, now),
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);

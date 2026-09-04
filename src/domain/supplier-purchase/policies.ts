@@ -78,10 +78,23 @@ const assertPaidAfterEdit = (paidAfterEdit: number, totalMinor: number) => {
   if (paidAfterEdit < 0) throw new Error("التعديل يجعل المدفوع سالبًا؛ راجع التراجعات المسجلة أولًا.");
 };
 
+/* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — نفس تحقق الإنشاء والتعديل. */
+const assertMaterialLink = (input: { materialId?: string | null; expectedQuantityMilli?: number | null }) => {
+  if (input.materialId !== undefined && input.materialId !== null && !input.materialId.trim())
+    throw new Error("اربط المادة بمعرّف موجود أو اتركه فارغًا.");
+  if (
+    input.expectedQuantityMilli !== undefined &&
+    input.expectedQuantityMilli !== null &&
+    (!Number.isInteger(input.expectedQuantityMilli) || input.expectedQuantityMilli <= 0)
+  )
+    throw new Error("أدخل الكمية المتوقعة رقمًا صحيحًا موجبًا، أو اتركها فارغة.");
+};
+
 export function createSupplierPurchase(input: CreateSupplierPurchaseInput): SupplierPurchase {
   assertText(input.id, "id");
   assertText(input.idempotencyKey, "idempotencyKey");
   assertPurchaseFields(input);
+  assertMaterialLink(input);
   const payments: readonly SupplierPurchasePayment[] =
     input.initialPaidMinor > 0
       ? [
@@ -108,6 +121,8 @@ export function createSupplierPurchase(input: CreateSupplierPurchaseInput): Supp
     status: statusFor(input.totalMinor, paidMinor),
     idempotencyKey: input.idempotencyKey,
     payments,
+    materialId: input.materialId?.trim() || null,
+    expectedQuantityMilli: input.expectedQuantityMilli ?? null,
     createdAt: input.recordedAt,
     updatedAt: input.recordedAt,
   });
@@ -152,6 +167,48 @@ export function recordSupplierPurchasePayment(
   });
 }
 
+/* المجموعة ٢ (عقد ٢٨): بناء مراجعة التعديل — استخراج يبقي تعقيد التعديل نفسه
+ * محكومًا، ويجمع قيم «قبل التصحيح» في مكان واحد قابل للفحص. */
+const buildEditRevision = (
+  purchase: SupplierPurchase,
+  input: UpdateSupplierPurchaseInput,
+  initialPaidMinor: number,
+): SupplierPurchaseRevision =>
+  Object.freeze({
+    kind: "edit",
+    idempotencyKey: input.idempotencyKey,
+    createdAt: input.recordedAt,
+    reason: input.reason.trim(),
+    beforeTotalMinor: purchase.totalMinor,
+    beforeInitialPaidMinor: initialPaidMinor,
+    beforeSupplierName: purchase.supplierName,
+    beforeNote: purchase.note,
+    beforePurchasedOn: purchase.purchasedOn,
+    beforeDueOn: purchase.dueOn,
+    beforeMaterialId: purchase.materialId ?? null,
+    beforeExpectedQuantityMilli: purchase.expectedQuantityMilli ?? null,
+  });
+
+/* المجموعة ٢ (§10.4): إعادة بناء الدفعات بعد التعديل — الدفع الأولي الجديد
+ * يُعاد بناؤه بمعرّفه القديم إن وُجد، والدفعات اللاحقة كما سُجّلت. */
+const rebuildPayments = (
+  purchase: SupplierPurchase,
+  input: UpdateSupplierPurchaseInput,
+): readonly SupplierPurchasePayment[] => {
+  const laterPayments = purchase.payments.filter(payment => payment.id !== `${purchase.id}:initial`);
+  if (input.initialPaidMinor <= 0) return laterPayments;
+  const initialPayment = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`);
+  const rebuiltInitial = Object.freeze({
+    id: `${purchase.id}:initial`,
+    amountMinor: input.initialPaidMinor,
+    occurredOn: input.purchasedOn,
+    recordedAt: input.recordedAt,
+    idempotencyKey: initialPayment?.idempotencyKey ?? `${input.idempotencyKey}:initial`,
+    note: "دفعة عند تسجيل الشراء",
+  });
+  return [rebuiltInitial, ...laterPayments];
+};
+
 /* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — التكلفة والدفع الأولي والبيانات
  * تصحح بمراجعة تُحفظ قيم ما قبل التصحيح؛ الدفعات اللاحقة وتراجعاتها لا تُمس،
  * والمدفوع بعد التعديل لا يتجاوز الإجمالي الجديد. لا يُحذف السجل الأصلي. */
@@ -163,40 +220,13 @@ export function updateSupplierPurchase(
   assertText(input.reason, "reason");
   if (purchase.revisions?.some(revision => revision.idempotencyKey === input.idempotencyKey)) return purchase;
   assertPurchaseFields(input);
+  assertMaterialLink(input);
 
   const paidAfterEdit = paidAfterEditFor(purchase, input);
   assertPaidAfterEdit(paidAfterEdit, input.totalMinor);
 
-  const laterPayments = purchase.payments.filter(payment => payment.id !== `${purchase.id}:initial`);
-
-  const initialPayment = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`) ?? null;
-  const payments: readonly SupplierPurchasePayment[] =
-    input.initialPaidMinor > 0
-      ? [
-          Object.freeze({
-            id: `${purchase.id}:initial`,
-            amountMinor: input.initialPaidMinor,
-            occurredOn: input.purchasedOn,
-            recordedAt: input.recordedAt,
-            idempotencyKey: initialPayment?.idempotencyKey ?? `${input.idempotencyKey}:initial`,
-            note: "دفعة عند تسجيل الشراء",
-          }),
-          ...laterPayments,
-        ]
-      : laterPayments;
-
-  const revision: SupplierPurchaseRevision = Object.freeze({
-    kind: "edit",
-    idempotencyKey: input.idempotencyKey,
-    createdAt: input.recordedAt,
-    reason: input.reason.trim(),
-    beforeTotalMinor: purchase.totalMinor,
-    beforeInitialPaidMinor: initialPayment?.amountMinor ?? 0,
-    beforeSupplierName: purchase.supplierName,
-    beforeNote: purchase.note,
-    beforePurchasedOn: purchase.purchasedOn,
-    beforeDueOn: purchase.dueOn,
-  });
+  const initialPayment = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`);
+  const revision = buildEditRevision(purchase, input, initialPayment?.amountMinor ?? 0);
   const next = recompute(
     {
       ...purchase,
@@ -205,7 +235,9 @@ export function updateSupplierPurchase(
       purchasedOn: input.purchasedOn,
       dueOn: input.dueOn?.trim() || null,
       totalMinor: input.totalMinor,
-      payments,
+      payments: rebuildPayments(purchase, input),
+      materialId: input.materialId?.trim() || null,
+      expectedQuantityMilli: input.expectedQuantityMilli ?? null,
       revisions: Object.freeze([...(purchase.revisions ?? []), revision]),
     },
     paidAfterEdit,

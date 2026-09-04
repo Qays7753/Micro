@@ -67,8 +67,12 @@ import type {
 } from "../../src/domain/g5/index.js";
 import type {
   InventoryMovement,
+  InventoryShortage,
   Material,
+  MaterialOpeningKnowledge,
+  MaterialTrackingState,
   MaterialUnit,
+  MovementCostKnowledge,
   WasteContext,
 } from "../../src/domain/inventory-material/index.js";
 import type {
@@ -124,8 +128,12 @@ export type __LockedTypeSurface = [
   ShortCashDeclaration,
   ShortCashResult,
   InventoryMovement,
+  InventoryShortage,
   Material,
+  MaterialOpeningKnowledge,
+  MaterialTrackingState,
   MaterialUnit,
+  MovementCostKnowledge,
   WasteContext,
   CreateOwnerEntitlementPolicyInput,
   OwnerEntitlementEvidence,
@@ -215,8 +223,13 @@ describe("قفل سطح الدومين العام (٢) — المجموعة ٦ (
     expect(typeof inventoryMaterial.assertInventoryRemainsNonNegative).toBe("function");
     expect(typeof inventoryMaterial.consumptionValueMinor).toBe("function");
     expect(typeof inventoryMaterial.createInventoryMovement).toBe("function");
+    expect(typeof inventoryMaterial.createInventoryShortage).toBe("function");
     expect(typeof inventoryMaterial.createMaterial).toBe("function");
+    expect(typeof inventoryMaterial.applyInventoryShortageResolution).toBe("function");
     expect(typeof inventoryMaterial.isCostBackedConsumption).toBe("function");
+    expect(typeof inventoryMaterial.materialIsTracked).toBe("function");
+    expect(typeof inventoryMaterial.materialQuantityKnowledge).toBe("function");
+    expect(typeof inventoryMaterial.positionCostKnowledge).toBe("function");
     expect(typeof inventoryMaterial.summarizeMaterialInventory).toBe("function");
   });
   it("recurringMargin: دوال العقد العام حاضرة وقت التشغيل", () => {

@@ -3,6 +3,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
 import { G5Service } from "@/application/g5/g5Service";
@@ -44,6 +45,8 @@ describe("Finance month-range validation stays inline (U-05)", () => {
       g5: new G5Service(store, projectFinance, now),
       financialPulse: new FinancialPulseService(store),
       fulfillment: new FulfillmentService(store, now),
+      /* المجموعة ٢ (عقد ٢٨): خدمة المخزون الحقيقية فوق مخزن الذاكرة. */
+      inventory: new InventoryMaterialService(store, now),
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);

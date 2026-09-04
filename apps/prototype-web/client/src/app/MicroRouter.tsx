@@ -103,6 +103,8 @@ export function MicroRouter() {
             {/* المجموعة ٢ (Scope B): ورقة التحصيل — تحصيل الذمم من كل المداخل المعتمدة. */}
             <Route path="/collect" component={Collect} />
             <Route path="/inventory/material/new" component={MaterialEditor} />
+            {/* المجموعة ٢ (عقد ٢٨): تأكيد رصيد مادة قائمة — نفس مكوّن الرحلة بوضع التأكيد. */}
+            <Route path="/inventory/material/:id/confirm" component={MaterialEditor} />
             <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
             <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
             <Route path="/inventory" component={InventoryMaterials} />

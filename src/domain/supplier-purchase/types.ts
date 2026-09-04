@@ -32,6 +32,10 @@ export type SupplierPurchaseRevision = {
   beforeNote: string;
   beforePurchasedOn: string;
   beforeDueOn: string | null;
+  /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة في مراجعة التعديل —
+   * القديمة بلاها تُقرأ فارغة (null) بلا تعبئة. */
+  beforeMaterialId?: string | null;
+  beforeExpectedQuantityMilli?: number | null;
 };
 export type SupplierPurchase = {
   id: string;
@@ -49,6 +53,11 @@ export type SupplierPurchase = {
   paymentReversals?: readonly SupplierPurchasePaymentReversal[];
   /** مراجعات موثقة لتعديل الشراء — القديمة بلاها تُقرأ فارغة. */
   revisions?: readonly SupplierPurchaseRevision[];
+  /* المجموعة ٢ (عقد ٢٨ / TR-07): مادة مرتبطة اختيارية — تُعبّئ جسر الاستلام
+   * (المادة + الكمية + القيمة المتبقية). غيابها = null (غير معروف) لا صفر. */
+  materialId?: string | null;
+  /** الكمية المتوقعة بوحدة المادة — اختيارية؛ null = غير مسجلة، والحد يبقى على القيمة. */
+  expectedQuantityMilli?: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -62,6 +71,8 @@ export type CreateSupplierPurchaseInput = {
   initialPaidMinor: number;
   recordedAt: string;
   idempotencyKey: string;
+  materialId?: string | null;
+  expectedQuantityMilli?: number | null;
 };
 export type RecordSupplierPurchasePaymentInput = {
   id: string;
@@ -71,7 +82,8 @@ export type RecordSupplierPurchasePaymentInput = {
   idempotencyKey: string;
   note: string;
 };
-/* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — التكلفة والدفع الأولي والبيانات. */
+/* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — التكلفة والدفع الأولي والبيانات
+ * وربط المادة والكمية المتوقعة (المجموعة ٢ — عقد ٢٨). */
 export type UpdateSupplierPurchaseInput = {
   supplierName: string;
   note: string;
@@ -82,6 +94,8 @@ export type UpdateSupplierPurchaseInput = {
   recordedAt: string;
   idempotencyKey: string;
   reason: string;
+  materialId?: string | null;
+  expectedQuantityMilli?: number | null;
 };
 export type ReverseSupplierPurchasePaymentInput = {
   id: string;
