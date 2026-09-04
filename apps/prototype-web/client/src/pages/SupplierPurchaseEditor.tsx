@@ -17,7 +17,7 @@ import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanne
 import { useFormDraft } from "@/components/forms/useFormDraft";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
-import { formatMoneyMinor, formatQuantityMilli, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor, formatQuantityMilli, localDateInAmman } from "@/presentation/formatters";
 import type {
   SupplierPurchase,
   SupplierPurchasePayment,
@@ -206,7 +206,10 @@ export default function SupplierPurchaseEditor() {
       return false;
     }
     notifyDataChanged();
-    if (!result.reused) await purchaseDraft.clearFormDraft();
+    /* مراجعة 5-RV-C: المسودة تُحذف بعد نجاح الحفظ في الحالتين — إعادة الاستخدام
+     * تعني أن السجل النهائي موجود أصلًا فبقاء المسودة يعرّض استعادتها لاحقًا
+     * لإنشاء تكرار. */
+    await purchaseDraft.clearFormDraft();
     setMessage(result.reused ? "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ شراء المواد محليًا.");
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     if (!result.reused) navigate(returnPath);
@@ -395,7 +398,7 @@ export default function SupplierPurchaseEditor() {
       ) : null}
       {isNew && purchaseDraft.state.phase === "drafting" && purchaseDraft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
-          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{purchaseDraft.state.lastSavedAt.slice(0, 10)}</bdi>؛ لم يُسجّل شراء بعد.
+          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(purchaseDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل شراء بعد.
         </p>
       ) : null}
       {mode === "edit" && purchase ? (

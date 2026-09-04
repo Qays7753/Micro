@@ -13,7 +13,10 @@ type Phase = "loading" | "off" | "enabling" | "on" | "disabling";
 const autoLockLabel = (minutes: number | null): string => {
   if (minutes === null) return "يدويًا فقط";
   if (minutes === 1) return "بعد دقيقة";
-  return `بعد ${minutes} دقائق`;
+  /* مراجعة 5-RV-D: قاعدة الجمع العربي ٣–١١ مفرد (٣ دقائق) و١٢+ جمع
+   * (٣٠ دقيقة) — الرقم 30 يدخل باب الجمع. */
+  if (minutes <= 10) return `بعد ${minutes} دقائق`;
+  return `بعد ${minutes} دقيقة`;
 };
 
 export function LockSettingsCard() {

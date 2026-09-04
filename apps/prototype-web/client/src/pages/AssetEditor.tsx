@@ -16,7 +16,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
 import { useFormDraft } from "@/components/forms/useFormDraft";
-import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
 export default function AssetEditor() {
   const [, navigate] = useLocation();
@@ -148,7 +148,7 @@ export default function AssetEditor() {
       ) : null}
       {draft.state.phase === "drafting" && draft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
-          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{draft.state.lastSavedAt.slice(0, 10)}</bdi>؛ لم تُسجّل أي حركة مالية بعد.
+          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(draft.state.lastSavedAt))}</bdi>؛ لم تُسجّل أي حركة مالية بعد.
         </p>
       ) : null}
       <label className="micro-field">

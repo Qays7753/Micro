@@ -111,14 +111,19 @@ export function AppLockGate({ children }: { children: ReactNode }) {
     setState({ phase: "locked", failedAttempts: attempts });
   }
 
-  if (state.phase !== "locked") return <>{children}</>;
-
+  /* مراجعة 5-RV-D: بنية ثابتة في الحالتين — غلاف المحتوى نفسه في كل إعادة
+   * رسم (لا إعادة تركيب عند القفل/الفتح فتبقى حالات النماذج محفوظة تحت
+   * الغطاء)، والخمول (inert) عند القفل فقط فيمنع تجاوز القفل بالمفاتيح
+   * وتجوال التركيز إلى ما تحت الغطاء؛ الغطاء نفسه بلا حالة فيأتي ويذهب. */
+  const locked = state.phase === "locked";
   return (
     <>
-      {/* المحتوى يبقى محمّلًا تحته — القفل غطاء لا إعادة توجيه، فلا يفقد
-          المالك نموذجًا مفتوحًا غير محفوظ. */}
-      <div aria-hidden="true" className="micro-lock-veil" />
-      <div className="micro-lock-overlay" role="dialog" aria-modal="true" aria-label="قفل Micro">
+      {locked ? (
+        <>
+          {/* المحتوى يبقى محمّلًا تحته — القفل غطاء لا إعادة توجيه، فلا يفقد
+              المالك نموذجًا مفتوحًا غير محفوظ. */}
+          <div aria-hidden="true" className="micro-lock-veil" />
+          <div className="micro-lock-overlay" role="dialog" aria-modal="true" aria-label="قفل Micro">
         <Lock aria-hidden="true" className="micro-lock-icon" />
         <h1>Micro مقفل</h1>
         <p>
@@ -158,10 +163,15 @@ export function AppLockGate({ children }: { children: ReactNode }) {
           </p>
         ) : null}
         <p className="micro-offline-truth">
-          نسيت الرمز؟ افتح الإعدادات من هذا الجهاز — إلغاء القفل يحتاج رمزك ولا يوجد بديل سحابي.
+          {/* مراجعة 5-RV-D: صياغة صادقة — لا مسار استرداد بلا الرمز؛ التعطيل من
+              الإعدادات يحتاج الرمز نفسه ولا بديل سحابي. */}
+          لا يوجد استرداد بلا الرمز: تعطيل القفل من إعدادات هذا الجهاز يتطلب الرمز
+          نفسه، ولا يوجد بديل سحابي. بياناتك تبقى محلية كما هي.
         </p>
-      </div>
-      {children}
+          </div>
+        </>
+      ) : null}
+      <div inert={locked}>{children}</div>
     </>
   );
 }

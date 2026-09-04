@@ -157,8 +157,8 @@ export default function FinanceActivity() {
       .read({
         limit: 120,
         perFamilyLimit: 20,
-        from: range === "all" || range === "custom" ? from || null : from || null,
-        to: range === "all" || range === "custom" ? to || null : to || null,
+        from: from || null,
+        to: to || null,
         families: family === "all" ? null : [family],
       })
       .then(result => {

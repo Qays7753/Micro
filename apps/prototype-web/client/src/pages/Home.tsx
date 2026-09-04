@@ -437,7 +437,9 @@ export default function Home() {
                 </span>
                 {change.amountMinor !== null && change.amountMinor !== undefined ? (
                   <b className="micro-home-recent-amount">
-                    <MoneyValue minor={change.amountMinor} />
+                    {/* مراجعة 5-RV-A: الوحدة مع الرقم — قراءة واحدة بلا لبس
+                        واتساقًا مع قارئ النشاط الكامل. */}
+                    <MoneyValue minor={change.amountMinor} /> د.أ
                   </b>
                 ) : null}
               </button>

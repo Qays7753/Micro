@@ -293,6 +293,71 @@ describe("activity reader (المجموعة ٥ — عقد ٣٠)", () => {
     expect(collection?.sourceHref).toBe("/orders/order-1");
   });
 
+
+  it("review 5-RV-A: a reversed order collection marks its original 'متراجع موثقًا' and the reversal carries cash_out", async () => {
+    const store = new MemoryLocalStore();
+    const events: OrderEvent[] = [
+      {
+        id: "ev-col",
+        type: "collection_recorded",
+        idempotencyKey: "o2-col",
+        createdAt: "2026-09-01T09:00:00.000Z",
+        amountMinor: 2000,
+      } as OrderEvent,
+      {
+        id: "ev-rev",
+        type: "collection_reversed",
+        idempotencyKey: "o2-col-rev",
+        createdAt: "2026-09-02T09:00:00.000Z",
+        amountMinor: 2000,
+        reversesEventId: "ev-col",
+      } as unknown as OrderEvent,
+    ];
+    const cost = calculateCostSnapshot("cost-order-2", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-25T08:00:00.000Z",
+      freshnessDays: null,
+    });
+    const created = {
+      ...createCraftOrder({
+        id: "order-2",
+        customerName: "زبون",
+        itemName: "قطعة",
+        specifications: "خيط أبيض",
+        quantity: 1,
+        agreedPriceMinor: 5000,
+        costSnapshot: cost,
+        createdAt: "2026-08-25T08:00:00.000Z",
+      }),
+      events,
+    };
+    const saved = await store.saveOrder({
+      id: "order-2",
+      order: created,
+      catalogItemId: null,
+      deliveryDate: "2026-09-10",
+      agreementSource: null,
+      createdAt: "2026-08-25T08:00:00.000Z",
+      updatedAt: "2026-09-02T09:00:00.000Z",
+    });
+    if (!saved.ok) throw new Error(saved.message);
+    const reader = new ActivityService(store);
+    const result = await reader.read({ limit: 10 });
+    if (!result.ok) throw new Error(result.message);
+    const original = result.value.find(row => row.id === "craft-orders:order-2:ev-col");
+    expect(original?.status).toBe("reversed");
+    const reversal = result.value.find(row => row.id === "craft-orders:order-2:ev-rev");
+    expect(reversal?.effect).toBe("cash_out");
+    expect(reversal?.family).toBe("correction");
+    expect(reversal?.reversalOfId).toBe("craft-orders:order-2:ev-col");
+  });
   it("empty store returns an honest empty list — no invented rows", async () => {
     const reader = new ActivityService(new MemoryLocalStore());
     const result = await reader.read({ limit: 8 });

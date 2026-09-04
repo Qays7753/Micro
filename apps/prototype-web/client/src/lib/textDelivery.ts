@@ -53,3 +53,20 @@ export function canShareText(): boolean {
   const navigatorWithShare = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
   return typeof navigator.share === "function" && (navigatorWithShare.canShare?.({ text: "" }) ?? true);
 }
+
+/** مراجعة 5-RV-D: نسخ صريح إلى الحافظة مباشرة — لا يفتح لوحة المشاركة أبدًا؛
+ * زر «انسخ النص» ينسخ، ولوحة المشاركة تبقى لزر «أرسل النص» وحده. */
+export async function copyTextManually(text: string): Promise<TextDeliveryOutcome> {
+  const navigatorWithClipboard = navigator as Navigator & {
+    clipboard?: { writeText?: (text: string) => Promise<void> };
+  };
+  if (typeof navigatorWithClipboard.clipboard?.writeText === "function") {
+    try {
+      await navigatorWithClipboard.clipboard.writeText(text);
+      return "copied";
+    } catch {
+      return "unsupported";
+    }
+  }
+  return "unsupported";
+}

@@ -415,6 +415,7 @@ export class IntegrityCheckService {
           (rebuilt.assetDeltaMinor ?? 0) !== (event.assetDeltaMinor ?? 0) ||
           (rebuilt.loanDeltaMinor ?? 0) !== (event.loanDeltaMinor ?? 0) ||
           (rebuilt.revenueDeltaMinor ?? 0) !== (event.revenueDeltaMinor ?? 0) ||
+          JSON.stringify(rebuilt.expenseContext ?? null) !== JSON.stringify(event.expenseContext ?? null) ||
           JSON.stringify(rebuilt.assetContext ?? null) !== JSON.stringify(event.assetContext ?? null) ||
           JSON.stringify(rebuilt.loanContext ?? null) !== JSON.stringify(event.loanContext ?? null) ||
           JSON.stringify(rebuilt.depositContext ?? null) !== JSON.stringify(event.depositContext ?? null)
@@ -438,7 +439,7 @@ export class IntegrityCheckService {
         id: "MIC-4",
         titleAr: "سلامة الأحداث والتوزيع",
         status: "PASS",
-        detailAr: `${events.length} حدثًا ماليًا طابق كلٌّ منها أثره الخماسي وحصصه عند إعادة الاشتقاق من عقد المجال.`,
+        detailAr: `${events.length} حدثًا ماليًا طابق كلٌّ منها أثره المالي وحصصه عند إعادة الاشتقاق من عقد المجال.`,
       };
     if (offenders.length === 0)
       return {

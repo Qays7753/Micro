@@ -13,7 +13,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
 import { useFormDraft } from "@/components/forms/useFormDraft";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type {
   DirectSaleCollectionStatus,
   DirectSale,
@@ -547,7 +547,7 @@ export default function DirectSaleEditor() {
       ) : null}
       {!editing && saleDraft.state.phase === "drafting" && saleDraft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
-          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{saleDraft.state.lastSavedAt.slice(0, 10)}</bdi>؛ لم يُسجّل البيع بعد.
+          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(saleDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل البيع بعد.
         </p>
       ) : null}
       <section className="micro-decision-card">

@@ -8,7 +8,7 @@ import { ArrowLeft, Copy, Send } from "lucide-react";
 import { useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { canShareText, shareTextManually } from "@/lib/textDelivery";
+import { canShareText, copyTextManually, shareTextManually } from "@/lib/textDelivery";
 import type { ShareDraft } from "@/application/share/shareMessageService";
 
 export type SharePreviewLocationState = { draft: ShareDraft } | null | undefined;
@@ -49,7 +49,9 @@ export default function SharePreview() {
 
   const copyNow = async () => {
     setNotice(null);
-    const outcome = await shareTextManually(` ${body}`);
+    /* مراجعة 5-RV-D: النسخ يذهب إلى الحافظة مباشرة — لا لوحة مشاركة؛
+     * ولصق ما رأى المستخدم حرفًا حرفًا بلا مسافة بادئة. */
+    const outcome = await copyTextManually(body);
     setNotice(
       outcome === "copied"
         ? "نُسخ النص للحافظة — الصقه حيث شئت."

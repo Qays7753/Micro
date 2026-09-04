@@ -162,6 +162,10 @@ function effectForOrderEvent(event: OrderEvent): ActivityEffectClass {
       return "cash_in";
     case "deposit_refunded":
       return "cash_out";
+    /* مراجعة 5-RV-A: تراجع القبض يُرجع الكاش للزبون — حركة نقد خارجة،
+     * لا «توثيقًا فقط»؛ محرك الحقيقة (كشف الفترة) يخصمها فالقارئ يطابقه. */
+    case "collection_reversed":
+      return "cash_out";
     case "debt_registered":
       return "payable";
     case "deposit_retained":
@@ -307,7 +311,9 @@ export class ActivityService {
           id: `${SALE_STORE_PREFIX}:${sale.id}:revision:${revision.idempotencyKey}`,
           family: "correction",
           detail: revision.reason,
-          occurredOn: null,
+          /* مراجعة 5-RV-A: تاريخ أثر فعلي (بتحويل عمان) لا null — فيحترم
+           * نافذة الفترة بدل الظهور في كل النطاقات. */
+          occurredOn: localDateInAmman(revision.createdAt),
           recordedAt: revision.createdAt,
           amountMinor: revision.beforeRevenueMinor ?? null,
           effect: "informational",
@@ -327,6 +333,18 @@ export class ActivityService {
     accept: (record: ActivityRecord) => boolean,
   ): void {
     for (const stored of orders) {
+      /* مراجعة 5-RV-A: الأحداث المتراجع عنها (قبض/تسليم) تُوسَم بدورها
+       * «متراجع موثقًا» كما في أحداث المال وحركات المخزون — لا يبقى الأصل
+       * «نشطًا» فوق تراجعه. */
+      const reversedOrderEventIds = new Set(
+        stored.order.events
+          .filter(
+            event =>
+              (event.type === "collection_reversed" || event.type === "delivery_reversed") &&
+              event.reversesEventId,
+          )
+          .map(event => event.reversesEventId as string),
+      );
       for (const event of stored.order.events) {
         const occurredOn = localDateInAmman(event.createdAt);
         const record: ActivityRecord = {
@@ -337,7 +355,7 @@ export class ActivityService {
           recordedAt: event.createdAt,
           amountMinor: event.amountMinor ?? null,
           effect: effectForOrderEvent(event),
-          status: "active",
+          status: reversedOrderEventIds.has(event.id) ? "reversed" : "active",
           reversalOfId:
             (event.type === "collection_reversed" || event.type === "delivery_reversed") && event.reversesEventId
               ? `${ORDER_STORE_PREFIX}:${stored.id}:${event.reversesEventId}`
@@ -356,6 +374,10 @@ export class ActivityService {
     accept: (record: ActivityRecord) => boolean,
   ): void {
     for (const purchase of purchases) {
+      /* مراجعة 5-RV-A: الدفعة المتراجع عنها تُوسَم «متراجع موثقًا»، والتراجع
+       * يحمل تاريخ أثره الحقيقي (occurredOn) لا null — فيحترم نافذة الفترة
+       * بدل الظهور في كل النطاقات بتاريخ «—». */
+      const reversedPaymentIds = new Set((purchase.paymentReversals ?? []).map(reversal => reversal.paymentId));
       for (const payment of purchase.payments) {
         const record: ActivityRecord = {
           id: `${PURCHASE_STORE_PREFIX}:${purchase.id}:payment:${payment.id}`,
@@ -365,7 +387,7 @@ export class ActivityService {
           recordedAt: payment.recordedAt,
           amountMinor: payment.amountMinor,
           effect: "cash_out",
-          status: "active",
+          status: reversedPaymentIds.has(payment.id) ? "reversed" : "active",
           reversalOfId: null,
           sourceHref: `/suppliers/purchase/${purchase.id}`,
           sourceStore: PURCHASE_STORE_PREFIX,
@@ -377,7 +399,7 @@ export class ActivityService {
           id: `${PURCHASE_STORE_PREFIX}:${purchase.id}:payment-reversal:${reversal.id}`,
           family: "correction",
           detail: reversal.reason,
-          occurredOn: null,
+          occurredOn: reversal.occurredOn,
           recordedAt: reversal.recordedAt,
           amountMinor: reversal.amountMinor,
           effect: "cash_in",
@@ -400,11 +422,28 @@ export class ActivityService {
     accept: (record: ActivityRecord) => boolean,
   ): void {
     const seenTransfers = new Set<string>();
-    const latestNoteByWallet = new Map<string, string>();
-    for (const entry of entries) {
-      if (!latestNoteByWallet.has(entry.walletId) || entry.recordedAt >= (latestNoteByWallet.get(entry.walletId) ?? ""))
-        latestNoteByWallet.set(entry.walletId, entry.note);
-    }
+    /* مراجعة 5-RV-A: الأصل المتراجع عنه (سطر أو ساق تحويل) يُوسَم «متراجع
+     * موثقًا» — بما فيه صف التحويل المجمّع إن عكس أحد ساقيه. */
+    const reversedEntryIds = new Set(
+      entries.filter(entry => entry.type === "reversal" && entry.reversesEntryId).map(entry => entry.reversesEntryId as string),
+    );
+    const reversedTransferIds = new Set(
+      entries
+        .filter(
+          entry =>
+            entry.type === "reversal" &&
+            entry.reversesEntryId &&
+            !reversedEntryIds.has(entry.id) &&
+            (entry.transferId ?? null) !== null &&
+            entries.some(
+              original =>
+                original.transferId === entry.transferId &&
+                (original.type === "transfer_out" || original.type === "transfer_in") &&
+                original.id === entry.reversesEntryId,
+            ),
+        )
+        .map(entry => entry.transferId as string),
+    );
     for (const entry of entries) {
       if ((entry.type === "transfer_out" || entry.type === "transfer_in") && entry.transferId) {
         if (seenTransfers.has(entry.transferId)) continue;
@@ -412,12 +451,12 @@ export class ActivityService {
         const record: ActivityRecord = {
           id: `${CASH_STORE_PREFIX}:transfer:${entry.transferId}`,
           family: "wallet_transfer",
-          detail: entry.note || latestNoteByWallet.get(entry.walletId) || null,
+          detail: entry.note || null,
           occurredOn: entry.occurredOn,
           recordedAt: entry.recordedAt,
           amountMinor: Math.abs(entry.cashDeltaMinor),
           effect: "informational",
-          status: "active",
+          status: reversedTransferIds.has(entry.transferId) ? "reversed" : "active",
           reversalOfId: null,
           sourceHref: `/cash/wallet/${entry.walletId}`,
           sourceStore: CASH_STORE_PREFIX,
@@ -451,7 +490,7 @@ export class ActivityService {
           recordedAt: entry.recordedAt,
           amountMinor: Math.abs(entry.cashDeltaMinor),
           effect: entry.cashDeltaMinor > 0 ? "cash_in" : "cash_out",
-          status: "active",
+          status: reversedEntryIds.has(entry.id) ? "reversed" : "active",
           reversalOfId: null,
           sourceHref: `/cash/wallet/${entry.walletId}`,
           sourceStore: CASH_STORE_PREFIX,
