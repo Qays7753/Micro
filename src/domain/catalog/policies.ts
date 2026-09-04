@@ -187,8 +187,7 @@ function resolveYieldReadiness(
   declared: CatalogTemplate["yieldReadiness"],
 ): CatalogTemplate["yieldReadiness"] {
   if (yieldValue === null) return "not_configured";
-  if (declared !== "ready" && declared !== "needs_conversion")
-    throw new Error("حالة ناتج القالب غير صالحة.");
+  if (declared !== "ready" && declared !== "needs_conversion") throw new Error("حالة ناتج القالب غير صالحة.");
   return declared;
 }
 
