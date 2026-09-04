@@ -14,9 +14,16 @@ import InventoryMaterials from "@/pages/InventoryMaterials";
 import InventoryMovementEditor from "@/pages/InventoryMovementEditor";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { MaterialSheet } from "@/components/cost/MaterialSheet";
-import type { DraftCostMaterial } from "@/storage/local/types";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
+import SupplierPurchaseEditor from "@/pages/SupplierPurchaseEditor";
+import CostEditor from "@/pages/CostEditor";
+import Finance from "@/pages/Finance";
+import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
+import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
+import { G5Service } from "@/application/g5/g5Service";
+import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import type { OrderDraft } from "@/storage/local/types";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -451,10 +458,35 @@ describe("Group 2 bridge prefill and remaining surfaces (SA-5 fixes)", () => {
     });
     await waitFor(() => {
       const valueInput = screen.getByLabelText("قيمة استلام الشراء") as HTMLInputElement;
-      expect(valueInput.value).toBe("60");
+      /* حد إدخال المال قاعدة التطبيق: منزلتان دائمًا — 60.00 لا 60. */
+      expect(valueInput.value).toBe("60.00");
     });
   });
 });
+
+/* ── SA-5 (F6): سياق محرر الشراء — الخدمتان الحقيقيتان فوق مخزن الذاكرة ── */
+function renderPurchaseEditorHarness(store: MemoryLocalStore, inventory: InventoryMaterialService) {
+  const contextRef: { current: Record<string, unknown> } = { current: {} };
+  const supplierPurchases = new SupplierPurchaseService(store, () => NOW);
+  mockedUsePrototypeServices.mockImplementation(
+    () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
+  );
+  function EditorHarness() {
+    const [version, setVersion] = React.useState(0);
+    contextRef.current = {
+      supplierPurchases,
+      inventory,
+      dataVersion: version,
+      notifyDataChanged: () => setVersion(current => current + 1),
+    };
+    return (
+      <UnsavedChangesProvider navigate={wouterState.navigate}>
+        <SupplierPurchaseEditor />
+      </UnsavedChangesProvider>
+    );
+  }
+  render(<EditorHarness />);
+}
 
 describe("Group 2 supplier bridge card and estimate suggestions (SA-5 F6)", () => {
   beforeEach(() => {
@@ -501,37 +533,66 @@ describe("Group 2 supplier bridge card and estimate suggestions (SA-5 F6)", () =
       }),
     );
     if (!purchaseResult.ok) throw new Error(purchaseResult.message);
-    /* سياق الخدمات: المحرر يقرأ supplierPurchases وinventory معًا. */
-    const contextRef: { current: Record<string, unknown> } = { current: {} };
-    const supplierPurchases = new SupplierPurchaseService(store, () => NOW);
-    mockedUsePrototypeServices.mockImplementation(
-      () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
-    );
-    function EditorHarness() {
-      const [version, setVersion] = React.useState(0);
-      contextRef.current = {
-        supplierPurchases,
-        inventory,
-        dataVersion: version,
-        notifyDataChanged: () => setVersion(current => current + 1),
-      };
-      return (
-        <UnsavedChangesProvider navigate={wouterState.navigate}>
-          <SupplierPurchaseEditor />
-        </UnsavedChangesProvider>
-      );
-    }
-    render(<EditorHarness />);
+    renderPurchaseEditorHarness(store, inventory);
     const card = await screen.findByTestId("purchase-receipt-card");
     expect(card.textContent).toContain("قيمة مستلمة");
-    expect(card.textContent).toContain("استُلمت");
-    /* لا CTA قبل وجود متبقٍ: صفر استلام → «استُلمت قيمة هذا الشراء كاملة.» على
-     * قيمة كاملة؟ المتبقي 9000 > 0 → CTA ظاهر مع رجوع آمن. */
+    /* صفر استلام مع متبقٍ: سطر الكمية صادق، والفعل الظاهر هو الجسر. */
+    expect(card.textContent).toContain("كمية مستلمة");
     const cta = screen.getByText("استلم المواد في المخزون");
     fireEvent.click(cta);
     expect(wouterState.navigate).toHaveBeenCalledWith(
       expect.stringMatching(/\/inventory\/movement\/receipt\?purchase=g2-bridge-purchase&from=/),
     );
+  });
+  it("F6: a fully received purchase states «استُلمت قيمة هذا الشراء كاملة.» and hides the bridge CTA", async () => {
+    const store = new MemoryLocalStore();
+    const { inventory } = makeContext(store);
+    const opened = await inventory.openMaterial({
+      name: "سكر",
+      unit: "kilogram",
+      tracking: "tracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: null,
+        sourceNote: null,
+      },
+      note: "بلا رصيد",
+      operationKey: "f6b-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    await store.saveSupplierPurchase(
+      createSupplierPurchase({
+        id: "g2-bridge-purchase",
+        supplierName: "مورد السكر",
+        note: "سكر أبيض",
+        purchasedOn: "2026-09-02",
+        dueOn: null,
+        totalMinor: 9000,
+        initialPaidMinor: 0,
+        recordedAt: "2026-09-02T00:00:00.000Z",
+        idempotencyKey: "f6b-key",
+        materialId: opened.value.material.id,
+        expectedQuantityMilli: 15000,
+      }),
+    );
+    const received = await inventory.receivePurchase({
+      materialId: opened.value.material.id,
+      purchaseId: "g2-bridge-purchase",
+      quantityMilli: 15000,
+      valueMinor: 9000,
+      occurredOn: "2026-09-03",
+      note: "استلام كامل",
+      operationKey: "f6b-receipt",
+    });
+    if (!received.ok) throw new Error(received.message);
+    renderPurchaseEditorHarness(store, inventory);
+    const card = await screen.findByTestId("purchase-receipt-card");
+    expect(card.textContent).toContain("استُلمت قيمة هذا الشراء كاملة.");
+    /* منع الاستلام المكرر بالحالة لا بالنسخ: لا فعل جسر بعد اكتمال الاستلام. */
+    expect(screen.queryByText("استلم المواد في المخزون")).toBeNull();
   });
   it("F6 (Scenario G): material suggestions fill the estimate row without creating any movement or event", async () => {
     const store = new MemoryLocalStore();
@@ -577,24 +638,206 @@ describe("Group 2 supplier bridge card and estimate suggestions (SA-5 F6)", () =
       operationKey: "f6-thread-receipt",
     });
     if (!received.ok) throw new Error(received.message);
-    renderWithHarness(<MaterialSheet value={{ index: null, draft: EMPTY_DRAFT }} message={null} validity={{}} />, store);
+    const movementsBefore = await inventory.movements();
+    if (!movementsBefore.ok) throw new Error(movementsBefore.message);
+    /* السطح الحقيقي (السيناريو G): محرر التكلفة يشتق المقترحات من المخزن نفسه
+     * عبر الخدمة الحقيقية — التعبئة بلمسة، والحفظ وحده يوثّق بندًا. */
+    const contextRef: { current: Record<string, unknown> } = { current: {} };
+    const drafts = {
+      get: vi.fn().mockResolvedValue({ ok: true, value: G2_COST_DRAFT }),
+    };
+    const costs = {
+      preview: vi.fn().mockReturnValue({
+        ok: true,
+        snapshot: {
+          knowledgeState: "incomplete",
+          priceFloorMinor: null,
+          unitCostMinor: null,
+          knowledgeGaps: [{ id: "time_incomplete", mandatory: true }],
+        },
+      }),
+      saveSnapshot: vi.fn(),
+    };
+    mockedUsePrototypeServices.mockImplementation(
+      () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    wouterState.params = { id: G2_COST_DRAFT.id };
+    wouterState.path = `/orders/draft/${G2_COST_DRAFT.id}/cost`;
+    function CostHarness() {
+      const [version, setVersion] = React.useState(0);
+      contextRef.current = {
+        drafts,
+        costs,
+        inventory,
+        dataVersion: version,
+        notifyDataChanged: () => setVersion(current => current + 1),
+      };
+      return (
+        <UnsavedChangesProvider navigate={wouterState.navigate}>
+          <CostEditor />
+        </UnsavedChangesProvider>
+      );
+    }
+    render(<CostHarness />);
+    fireEvent.click(await screen.findByRole("button", { name: "إضافة مادة" }));
     const chips = await screen.findByTestId("material-suggestions");
+    /* المصدر صادق: السعر من آخر استلام غير معكوس — 2000 د.أ على 5 متر = 4.00. */
     expect(chips.textContent).toContain("خيط");
-    fireEvent.click(screen.getByText(/خيط/));
-    /* التقدير لا يستهلك مخزونًا ولا ينشئ حدثًا — الرصيد كما هو. */
+    expect(chips.textContent).toContain("4.00");
+    fireEvent.click(screen.getByRole("button", { name: /خيط/ }));
+    /* التعبئة في الحقول أنفسها — بلا أي كتابة مخزون. */
+    expect((screen.getByLabelText("المادة") as HTMLInputElement).value).toBe("خيط");
+    expect((screen.getByLabelText("الوحدة") as HTMLInputElement).value).toBe("متر");
+    expect((screen.getByLabelText(/تكلفة الوحدة/) as HTMLInputElement).value).toBe("4.00");
+    expect((screen.getByLabelText("حالة الرقم") as HTMLSelectElement).value).toBe("known");
+    fireEvent.click(screen.getByText("حفظ بند المادة"));
+    expect(await screen.findByRole("button", { name: "تعديل مادة خيط" })).toBeTruthy();
+    /* التقدير لا يستهلك مخزونًا ولا ينشئ حدثًا — الرصيد والحركات كما هي. */
     const overview = await inventory.overview();
     if (!overview.ok) throw new Error(overview.message);
     expect(overview.value.materials[0]?.quantityMilli).toBe(10000);
+    const movementsAfter = await inventory.movements();
+    if (!movementsAfter.ok) throw new Error(movementsAfter.message);
+    expect(movementsAfter.value).toHaveLength(movementsBefore.value.length);
     const events = await store.listFinancialEvents();
     if (!events.ok) throw new Error(events.message);
     expect(events.value).toHaveLength(0);
   });
 });
 
-const EMPTY_DRAFT: DraftCostMaterial = {
-  name: "",
+/* ── SA-5 (F6): سطر هدر الفترة في مالي — غير نقدي، والمجهول لا يُعرض صفرًا واثقًا ── */
+describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () => {
+  beforeEach(() => {
+    wouterState.navigate.mockClear();
+    wouterState.params = {};
+    wouterState.search = "view=period";
+    wouterState.path = "/finance";
+    vi.clearAllMocks();
+  });
+  afterEach(() => cleanup());
+
+  function renderFinanceHarness(store: MemoryLocalStore, inventory: InventoryMaterialService) {
+    const projectFinance = new ProjectFinancialService(store, () => NOW);
+    const contextRef: { current: Record<string, unknown> } = { current: {} };
+    mockedUsePrototypeServices.mockImplementation(
+      () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    function FinanceHarness() {
+      const [version, setVersion] = React.useState(0);
+      contextRef.current = {
+        projectFinance,
+        correctionHistory: new CorrectionHistoryService(store),
+        ownerEntitlement: new OwnerEntitlementService(
+          store,
+          (from: string, to: string) => projectFinance.readRecordedPeriodResult(from, to),
+          () => NOW,
+        ),
+        g5: new G5Service(store, projectFinance, () => NOW),
+        financialPulse: new FinancialPulseService(store),
+        fulfillment: new FulfillmentService(store, () => NOW),
+        inventory,
+        dataVersion: version,
+        notifyDataChanged: () => setVersion(current => current + 1),
+      };
+      return <Finance />;
+    }
+    render(<FinanceHarness />);
+  }
+
+  it("shows the period's known-cost waste beside the period cost list as strictly non-cash", async () => {
+    const store = new MemoryLocalStore();
+    const { inventory } = makeContext(store);
+    const opened = await inventory.openMaterial({
+      name: "خيط",
+      unit: "meter",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 4000,
+        costState: "known",
+        valueMinor: 1000,
+        confirmedOn: "2026-09-01",
+        sourceNote: null,
+      },
+      note: "رصيد",
+      operationKey: "g2-finance-waste-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const wasted = await inventory.waste({
+      materialId: opened.value.material.id,
+      quantityMilli: 1000,
+      occurredOn: "2026-09-03",
+      note: "هدر قص",
+      reason: "قص خاطئ",
+      operationKey: "g2-finance-waste-1",
+    });
+    if (!wasted.ok) throw new Error(wasted.message);
+    renderFinanceHarness(store, inventory);
+    await waitFor(() =>
+      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
+    );
+    const label = await screen.findByText("هدر مخزون هذه الفترة");
+    const row = label.closest("div");
+    expect(row?.textContent).toContain("2.50");
+    expect(row?.textContent).toContain("لا يخرج كاش ولا يدخل نتيجة الفترة");
+    expect(row?.textContent).not.toContain("غير معروفة بعد");
+    /* الهدر حركة مخزون لا حدث نقدي — الكاش والنتيجة لا يتأثران. */
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    expect(events.value).toHaveLength(0);
+  });
+
+  it("shows unknown-cost waste as «قيمة الهدر غير معروفة بعد» — never a confident 0.00", async () => {
+    const store = new MemoryLocalStore();
+    const { inventory } = makeContext(store);
+    const opened = await inventory.openMaterial({
+      name: "غراء",
+      unit: "liter",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 2000,
+        costState: "unknown",
+        valueMinor: 0,
+        confirmedOn: "2026-09-01",
+        sourceNote: null,
+      },
+      note: "رصيد بتكلفة غير معروفة",
+      operationKey: "g2-finance-waste-unknown",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const wasted = await inventory.waste({
+      materialId: opened.value.material.id,
+      quantityMilli: 500,
+      occurredOn: "2026-09-03",
+      note: "هدر انسكاب",
+      reason: "انسكاب",
+      operationKey: "g2-finance-waste-2",
+    });
+    if (!wasted.ok) throw new Error(wasted.message);
+    renderFinanceHarness(store, inventory);
+    await waitFor(() =>
+      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
+    );
+    const label = await screen.findByText("هدر مخزون هذه الفترة");
+    const row = label.closest("div");
+    expect(row?.textContent).toContain("قيمة الهدر غير معروفة بعد");
+    expect(row?.textContent).toContain("لا يخرج كاش ولا يدخل نتيجة الفترة");
+    expect(row?.textContent).not.toContain("0.00");
+  });
+});
+
+const G2_COST_DRAFT: OrderDraft = {
+  id: "g2-cost-draft",
+  intent: "customer_order",
+  customerName: "",
+  itemName: "قطعة اختبار",
+  catalogItemId: null,
+  specifications: "",
   quantity: 1,
-  unit: "متر",
-  unitPriceMinor: 0,
-  confidence: "estimated",
+  costSnapshots: [],
+  activeCostSnapshotId: null,
+  linkedOrderId: null,
+  createdAt: "2026-09-02T08:00:00.000Z",
+  updatedAt: "2026-09-02T08:00:00.000Z",
 };

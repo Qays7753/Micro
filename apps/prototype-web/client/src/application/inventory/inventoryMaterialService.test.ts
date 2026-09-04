@@ -553,6 +553,38 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
       }),
     ).resolves.toMatchObject({ ok: false, code: "validation_error" });
   });
+  it("SA-5 (F2): extracting the remainder refuses an untracked material — no balance to extract", async () => {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-09-06T09:00:00.000Z");
+    const opened = await service.openMaterial({
+      name: "أكياس",
+      unit: "piece",
+      tracking: "untracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: null,
+        sourceNote: null,
+      },
+      note: "للتكلفة فقط",
+      operationKey: "f2-untracked-material",
+      });
+    if (!opened.ok) throw new Error("material should open");
+    const extracted = await service.extractRemainder({
+      materialId: opened.value.material.id,
+      occurredOn: "2026-09-06",
+      reason: "تلف",
+      operationKey: "f2-extract",
+    });
+    expect(extracted).toMatchObject({ ok: false, code: "validation_error" });
+    if (!extracted.ok) expect(extracted.message).toContain("غير متتبَّعة");
+    /* لا حركة إطلاقًا على المادة غير المتتبَّعة. */
+    const movements = await service.movements();
+    if (!movements.ok) throw new Error(movements.message);
+    expect(movements.value).toHaveLength(0);
+  });
 });
 
 /* ── المجموعة ٢ (عقد ٢٨): المتابعة الانتقائية والاستلام والنقص — اختبارات الخدمة ── */
@@ -870,6 +902,29 @@ describe("InventoryMaterialService — Group 2 selective tracking — shortage p
     if (!overview.ok) throw new Error(overview.message);
     expect(overview.value.materials[0]?.quantityMilli).toBe(0);
     expect(overview.value.materials[0]?.openShortageCount).toBe(1);
+    /* تكرار الإرسال آمن (SA-5): المفتاح نفسه يعيد الحركة والنقص كما هما — لا ازدواج. */
+    const partialAgain = await service.consumeWithShortage({
+      materialId,
+      orderId: null,
+      reason: "طلب كبير",
+      quantityMilli: 10000,
+      occurredOn: "2026-09-06",
+      note: "إرسال مكرر",
+      operationKey: "g2-partial",
+    });
+    expect(partialAgain).toMatchObject({
+      ok: true,
+      reused: true,
+      value: { shortage: { id: partial.value.shortage.id } },
+    });
+    const shortagesAfter = await service.shortages();
+    if (!shortagesAfter.ok) throw new Error(shortagesAfter.message);
+    expect(shortagesAfter.value).toHaveLength(1);
+    const movementsAfterRepeat = await service.movements();
+    if (!movementsAfterRepeat.ok) throw new Error(movementsAfterRepeat.message);
+    expect(
+      movementsAfterRepeat.value.filter(movement => movement.operationKey === "g2-partial"),
+    ).toHaveLength(1);
     /* الحل صريح، والتكرار idempotent. */
     const resolved = await service.resolveShortage({
       shortageId: partial.value.shortage.id,
