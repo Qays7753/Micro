@@ -80,6 +80,9 @@ export default function InventoryMovementEditor() {
   const [wasteCatalogItemId, setWasteCatalogItemId] = useState("");
   const [wasteTemplateId, setWasteTemplateId] = useState("");
   const [wasteAllocationNote, setWasteAllocationNote] = useState("");
+  /* عقد الإغلاق العميق (العقد ١ — الهدر): سؤال المالك — هل يؤثر الهدر على
+   * نتيجة المشروع أم يُسجّل إفصاحًا وحده؟ الخيار يُحفظ داخل الحدث. */
+  const [wasteProfitImpact, setWasteProfitImpact] = useState(false);
   const [quantityMilli, setQuantityMilli] = useState(0);
   const [valueMinor, setValueMinor] = useState(0);
   const [costKnown, setCostKnown] = useState(true);
@@ -325,6 +328,7 @@ export default function InventoryMovementEditor() {
                 reason,
                 operationKey: operationKey.current,
                 wasteContext,
+                profitImpact: wasteProfitImpact,
               })
             : await inventory.adjust({
                 materialId,
@@ -455,7 +459,11 @@ export default function InventoryMovementEditor() {
         : safeType === "waste"
           ? [
               `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} وتخرج قيمته من المخزون.`,
-              "هدر مخزون — بلا خروج نقد جديد ولا أثر في نتيجة الفترة.",
+              wasteProfitImpact
+                ? selectedPosition?.costKnowledge === "unknown"
+                  ? "قيمة الهدر غير محددة بعد — يبقى أثر الربح معلقًا حتى تحديد التكلفة، ولا يُفترض صفرًا أبدًا."
+                  : "يُسجَّل حدث خسارة غير نقدية بقيمة المخزون الخارجة — يؤثر على نتيجة المشروع بلا خروج نقد."
+                : "هدر مخزون — بلا خروج نقد جديد ولا أثر في نتيجة الفترة.",
             ]
           : [
               `رصيد المادة يصبح ${formatQuantityMilli(afterMilli)} ${unit} (فرق ${
@@ -721,6 +729,39 @@ export default function InventoryMovementEditor() {
                 />
               </label>
             ) : null}
+            {/* عقد الإغلاق العميق (العقد ١): السؤال المعتمد حرفيًا — نعم يُنشئ
+             * خسارة غير نقدية عند معرفة التكلفة، ولا يُنشئ خروجًا نقديًا أبدًا. */}
+            <fieldset className="micro-field" data-testid="waste-profit-impact-question">
+              <legend>هل تريد اعتبار هذا الهدر خسارة تؤثر على نتيجة المشروع؟</legend>
+              <label className="micro-radio-choice">
+                <input
+                  type="radio"
+                  name="waste-profit-impact"
+                  checked={!wasteProfitImpact}
+                  onChange={() => setWasteProfitImpact(false)}
+                />
+                <span>
+                  <b>لا، سجّله كهدر فقط</b>
+                  <small>يُوثّق الحدث والكمية دون أي أثر على الربح.</small>
+                </span>
+              </label>
+              <label className="micro-radio-choice">
+                <input
+                  type="radio"
+                  name="waste-profit-impact"
+                  checked={wasteProfitImpact}
+                  onChange={() => setWasteProfitImpact(true)}
+                />
+                <span>
+                  <b>نعم، يؤثر على الربح</b>
+                  <small>
+                    {selectedPosition?.costKnowledge === "unknown"
+                      ? "قيمة الهدر غير محددة بعد — يبقى الأثر معلقًا حتى تحديد التكلفة، ولا يُفترض صفر."
+                      : "خسارة غير نقدية بقيمة المخزون الخارجة — بلا خروج نقد من الصندوق."}
+                  </small>
+                </span>
+              </label>
+            </fieldset>
           </div>
         ) : null}
         {safeType === "adjust" ? (

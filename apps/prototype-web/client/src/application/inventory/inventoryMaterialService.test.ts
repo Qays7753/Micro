@@ -1149,3 +1149,178 @@ describe("InventoryMaterialService — Group 2 selective tracking — reads and 
     });
   });
 });
+
+/** عقد الإغلاق العميق (العقد ١ — الهدر): سؤال المالك محفوظ داخل الحدث،
+ * و«نعم» عند معرفة التكلفة تنشئ خسارة غير نقدية مرتبطة بالحركة في معاملة
+ * ذرّية واحدة؛ التكلفة غير المعروفة تبقى «غير محدد بعد» فلا تلمس النتيجة،
+ * والتراجع يعكس الحركة وحدث الخسارة معًا. */
+describe("InventoryMaterialService waste profit impact (عقد الإغلاق العميق — العقد ١)", () => {
+  async function seededMaterial(opening: {
+    quantityMilli: number;
+    valueMinor: number;
+    costState: "known" | "unknown";
+  }) {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-09-05T09:00:00.000Z");
+    const opened = await service.openMaterial({
+      name: "قماش",
+      unit: "meter",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: opening.quantityMilli,
+        costState: opening.costState,
+        valueMinor: opening.valueMinor,
+        confirmedOn: "2026-09-01",
+        sourceNote: null,
+      },
+      note: "رصيد",
+      operationKey: "waste-impact-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    return { store, service, materialId: opened.value.material.id };
+  }
+
+  it("waste with profit impact and known cost records a linked non-cash loss atomically", async () => {
+    const { store, service, materialId } = await seededMaterial({
+      quantityMilli: 4000,
+      valueMinor: 1600,
+      costState: "known",
+    });
+    const waste = await service.waste({
+      materialId,
+      quantityMilli: 1000,
+      occurredOn: "2026-09-05",
+      note: "قماش بلل",
+      reason: "بلل أثناء التخزين",
+      operationKey: "waste-p1",
+      profitImpact: true,
+    });
+    expect(waste.ok).toBe(true);
+    if (!waste.ok) return;
+    expect(waste.value.wasteProfitImpact).toBe(true);
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const loss = events.value.find(event => event.idempotencyKey === "waste-p1:loss");
+    expect(loss).toBeDefined();
+    expect(loss?.type).toBe("loss_non_cash");
+    expect(loss?.amountMinor).toBe(400);
+    /* أثر النتيجة بلا خروج نقد: خسارة تشغيلية غير نقدية فقط. */
+    expect(loss?.operatingExpenseDeltaMinor).toBe(400);
+    expect(loss?.cashDeltaMinor).toBe(0);
+    expect(loss?.note).toContain("بلل أثناء التخزين");
+  });
+
+  it("waste with profit impact and unknown cost keeps the choice without touching the result", async () => {
+    const { store, service, materialId } = await seededMaterial({
+      quantityMilli: 4000,
+      valueMinor: 0,
+      costState: "unknown",
+    });
+    const waste = await service.waste({
+      materialId,
+      quantityMilli: 1000,
+      occurredOn: "2026-09-05",
+      note: "قماش مجهول التكلفة",
+      reason: "تلف",
+      operationKey: "waste-p2",
+      profitImpact: true,
+    });
+    expect(waste.ok).toBe(true);
+    if (!waste.ok) return;
+    expect(waste.value.wasteProfitImpact).toBe(true);
+    expect(waste.value.costKnowledge).toBe("unknown");
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    /* لا حدث خسارة: القيمة غير محددة بعد ولا يُفترض صفر. */
+    expect(events.value.find(event => event.idempotencyKey === "waste-p2:loss")).toBeUndefined();
+  });
+
+  it("waste without profit impact stays disclosure-only (default behavior preserved)", async () => {
+    const { store, service, materialId } = await seededMaterial({
+      quantityMilli: 4000,
+      valueMinor: 1600,
+      costState: "known",
+    });
+    const waste = await service.waste({
+      materialId,
+      quantityMilli: 1000,
+      occurredOn: "2026-09-05",
+      note: "هدر فقط",
+      reason: "قص خاطئ",
+      operationKey: "waste-p3",
+    });
+    expect(waste.ok).toBe(true);
+    if (!waste.ok) return;
+    expect(waste.value.wasteProfitImpact).toBe(false);
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    expect(events.value).toHaveLength(0);
+  });
+
+  it("reversing a profit-impact waste reverses the movement and its loss together", async () => {
+    const { store, service, materialId } = await seededMaterial({
+      quantityMilli: 4000,
+      valueMinor: 1600,
+      costState: "known",
+    });
+    const waste = await service.waste({
+      materialId,
+      quantityMilli: 1000,
+      occurredOn: "2026-09-05",
+      note: "قماش بلل",
+      reason: "بلل",
+      operationKey: "waste-p4",
+      profitImpact: true,
+    });
+    if (!waste.ok) throw new Error(waste.message);
+    const reversal = await service.reverse({
+      movementId: waste.value.id,
+      occurredOn: "2026-09-06",
+      reason: "كان خطأ في الإدخال — التراجع",
+      operationKey: "reverse-p4",
+    });
+    expect(reversal.ok).toBe(true);
+    if (!reversal.ok) return;
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const loss = events.value.find(event => event.idempotencyKey === "waste-p4:loss");
+    const lossReversal = events.value.find(event => event.idempotencyKey === "reverse-p4:loss-reversal");
+    expect(lossReversal).toBeDefined();
+    expect(lossReversal?.correctionOfEventId).toBe(loss?.id);
+    /* صافي أثر الخسارة صفر — الرصيد عاد والنتيجة عادت معًا. */
+    expect((lossReversal?.operatingExpenseDeltaMinor ?? 0) + (loss?.operatingExpenseDeltaMinor ?? 0)).toBe(0);
+    const overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.quantityMilli).toBe(4000);
+    expect(overview.value.materials[0]?.valueMinor).toBe(1600);
+  });
+
+  it("replaying the same waste operation reuses both movement and loss event", async () => {
+    const { store, service, materialId } = await seededMaterial({
+      quantityMilli: 4000,
+      valueMinor: 1600,
+      costState: "known",
+    });
+    const input = {
+      materialId,
+      quantityMilli: 1000,
+      occurredOn: "2026-09-05",
+      note: "قماش بلل",
+      reason: "بلل",
+      operationKey: "waste-p5",
+      profitImpact: true,
+    };
+    const first = await service.waste(input);
+    const second = await service.waste(input);
+    expect(first.ok && second.ok).toBe(true);
+    if (!first.ok || !second.ok) return;
+    expect(second.value.id).toBe(first.value.id);
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    expect(events.value.filter(event => event.idempotencyKey === "waste-p5:loss")).toHaveLength(1);
+    const overview = await service.overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.materials[0]?.quantityMilli).toBe(3000);
+  });
+});

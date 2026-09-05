@@ -18,6 +18,11 @@ import {
 } from "@micro-domain/inventory-material/index.js";
 import type { CatalogItem, CatalogTemplate } from "@micro-domain/catalog/index.js";
 import {
+  createFinancialEvent,
+  createFinancialReversal,
+  type FinancialEvent,
+} from "@micro-domain/financial-event/index.js";
+import {
   localInventoryActivationId,
   type InventoryActivation,
   type PrototypeLocalStore,
@@ -136,6 +141,10 @@ export type WasteMaterialInput = {
   reason: string;
   operationKey: string;
   wasteContext?: WasteContext | null;
+  /* عقد الإغلاق العميق (العقد ١ — الهدر): خيار المالك — هل يُعتبر الهدر خسارة
+   * تؤثر على نتيجة المشروع (فعند معرفة التكلفة يُسجّل حدث خسارة غير نقدية
+   * مرتبطًا بالحركة) أم إفصاحًا وحده بلا أثر على الربح. */
+  profitImpact?: boolean;
 };
 /* القرار ٢٠: «أخرِج المتبقي» — المادة والسبب فقط؛ الكمية والقيمة تأتيان من المتبقي كاملًا. */
 export type ExtractRemainderInput = {
@@ -1183,6 +1192,32 @@ export class InventoryMaterialService {
         costKnowledge: target.costKnowledge ?? "known",
       });
       assertInventoryRemainsNonNegative(target.materialId, [...movements, reversal]);
+      /* عقد الإغلاق العميق (العقد ١): التراجع عن هدرٍ أثّر في النتيجة يعكس
+       * الحركة وحدث الخسارة معًا في معاملة واحدة — لا رصيد يعود وخسارة تبقى. */
+      if (target.type === "waste" && target.wasteProfitImpact === true) {
+        const eventsResult = await this.store.listFinancialEvents();
+        if (!eventsResult.ok) return storageFailure();
+        const lossEvent = eventsResult.value.find(
+          event =>
+            event.idempotencyKey === `${target.operationKey}:loss` &&
+            event.type === "loss_non_cash" &&
+            !event.correctionType,
+        );
+        if (lossEvent) {
+          const lossReversal = createFinancialReversal({
+            id: id("waste-loss-reverse"),
+            sourceEvent: lossEvent,
+            occurredOn: input.occurredOn,
+            recordedAt: this.now(),
+            idempotencyKey: `${input.operationKey}:loss-reversal`,
+            reason: input.reason,
+          });
+          const saved = await this.store.commitInventoryWithEvents(null, [reversal], [lossReversal]);
+          return saved.ok
+            ? { ok: true, value: saved.value.movements[0] ?? reversal, reused: saved.value.reused }
+            : storageFailure();
+        }
+      }
       const saved = await this.store.commitInventory(null, [reversal]);
       return saved.ok ? { ok: true, value: reversal } : storageFailure();
     } catch (error) {
@@ -1247,6 +1282,11 @@ export class InventoryMaterialService {
       const position = assertInventoryRemainsNonNegative(input.materialId, movements.value);
       const costUnknown = positionCostKnowledge(movements.value, input.materialId) === "unknown";
       const value = consumptionValueMinor(input.quantityMilli, position, costUnknown);
+      /* عقد الإغلاق العميق (العقد ١ — الهدر): خيار المالك يُحفظ داخل الحركة —
+       * نعم: عند معرفة التكلفة يُسجّل حدث خسارة غير نقدية مرتبط بمفتاح مشتق
+       * من مفتاح الحركة نفسها (معًا في معاملة ذرّية واحدة)؛ التكلفة غير
+       * المعروفة تبقى «غير محدد بعد» فلا يمس الرقم النتيجة حتى تُحدَّد. */
+      const profitImpact = input.profitImpact ?? false;
       const movement = createInventoryMovement({
         id: id("waste"),
         materialId: input.materialId,
@@ -1260,7 +1300,24 @@ export class InventoryMaterialService {
         operationKey: input.operationKey,
         wasteContext: input.wasteContext ?? { kind: "general_project" },
         costKnowledge: value === 0 ? "unknown" : "known",
+        wasteProfitImpact: profitImpact,
       });
+      if (profitImpact && value > 0) {
+        const lossEvent = createFinancialEvent({
+          id: id("waste-loss"),
+          type: "loss_non_cash",
+          amountMinor: value,
+          occurredOn: input.occurredOn,
+          recordedAt: this.now(),
+          idempotencyKey: `${input.operationKey}:loss`,
+          note: `خسارة هدر بلا خروج نقد — ${input.reason.trim()}`,
+          counterparty: null,
+        });
+        const saved = await this.store.commitInventoryWithEvents(null, [movement], [lossEvent]);
+        return saved.ok
+          ? { ok: true, value: saved.value.movements[0] ?? movement, reused: saved.value.reused }
+          : storageFailure();
+      }
       const saved = await this.store.commitInventory(null, [movement]);
       return saved.ok ? { ok: true, value: movement } : storageFailure();
     } catch (error) {

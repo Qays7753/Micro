@@ -1641,6 +1641,69 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
+  /* عقد الإغلاق العميق (العقد ١ — الهدر): حركة مخزون وحدث مالي في معاملة
+   * واحدة ذرّية — الحركة وحدث خسارة الهدر غير النقدية معًا أو لا شيء،
+   * والتراجع يعكس الاثنين معًا. الحتمية داخل المعاملة بمفتاحي العملية،
+   * والمخزّن سلفًا يُعاد كما هو (reused). */
+  async commitInventoryWithEvents(
+    material: Material | null,
+    movements: readonly InventoryMovement[],
+    events: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      events: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [materialStore, inventoryMovementStore, financialEventStore],
+          "readwrite",
+        );
+        const movementStore = transaction.objectStore(inventoryMovementStore);
+        const eventStore = transaction.objectStore(financialEventStore);
+        let reused = false;
+        let resultMovements: readonly InventoryMovement[] = movements;
+        let resultEvents: readonly FinancialEvent[] = events;
+        const movementScan = movementStore.getAll();
+        movementScan.onerror = () => resolve(failure(movementScan.error, database));
+        movementScan.onsuccess = () => {
+          const storedMovements = movementScan.result as InventoryMovement[];
+          const movementByKey = new Map(
+            storedMovements.map(movement => [movement.operationKey, movement] as const),
+          );
+          resultMovements = movements.map(movement => movementByKey.get(movement.operationKey) ?? movement);
+          const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
+          const eventScan = eventStore.getAll();
+          eventScan.onerror = () => resolve(failure(eventScan.error, database));
+          eventScan.onsuccess = () => {
+            const storedEvents = eventScan.result as FinancialEvent[];
+            const eventByKey = new Map(storedEvents.map(event => [event.idempotencyKey, event] as const));
+            resultEvents = events.map(event => eventByKey.get(event.idempotencyKey) ?? event);
+            const newEvents = events.filter(event => !eventByKey.has(event.idempotencyKey));
+            reused = newMovements.length < movements.length || newEvents.length < events.length;
+            if (material) transaction.objectStore(materialStore).put(material);
+            newMovements.forEach(movement => movementStore.put(movement));
+            newEvents.forEach(event => eventStore.put(event));
+          };
+        };
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.oncomplete = () => {
+          resolve({
+            ok: true,
+            value: { material, movements: resultMovements, events: resultEvents, reused },
+          });
+        };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listCatalogItems() {
     return listAll<CatalogItem>(
       catalogItemStore,

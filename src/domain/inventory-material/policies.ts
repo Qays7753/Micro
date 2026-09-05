@@ -166,6 +166,9 @@ export function createInventoryMovement(input: CreateInventoryMovementInput): In
     reversesMovementId: input.reversesMovementId ?? null,
     wasteContext,
     costKnowledge,
+    /* عقد الإغلاق العميق (العقد ١): الخيار يُحفظ داخل حركة الهدر فقط —
+     * أنواع الحركات الأخرى لا تحمله. */
+    wasteProfitImpact: type === "waste" ? (input.wasteProfitImpact ?? false) : null,
   };
 }
 

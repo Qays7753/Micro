@@ -427,6 +427,22 @@ export interface PrototypeLocalStore {
       shortage: InventoryShortage | null;
     }>
   >;
+  /** عقد الإغلاق العميق (العقد ١ — الهدر): حركة مخزون مع حدث مالي واحد في
+   * معاملة ذرّية — هدرٌ يؤثر على النتيجة يسجّل حركته وحدث خسارته غير النقدية
+   * معًا أو لا شيء؛ والتراجع عنه يعكس الاثنين معًا. الحتمية داخل المعاملة:
+   * الحركة بمفتاحها والحدث بمفتاحه. */
+  commitInventoryWithEvents(
+    material: Material | null,
+    movements: readonly InventoryMovement[],
+    events: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      events: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  >;
   listCatalogItems(): Promise<StorageResult<readonly CatalogItem[]>>;
   getCatalogItem(id: string): Promise<StorageResult<CatalogItem | null>>;
   saveCatalogItem(item: CatalogItem): Promise<StorageResult<CatalogItem>>;

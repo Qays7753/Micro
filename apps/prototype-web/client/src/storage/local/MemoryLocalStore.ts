@@ -568,6 +568,44 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       },
     };
   }
+  /* عقد الإغلاق العميق (العقد ١): محاكاة الذاكرة لنفس عقد محوّل IndexedDB —
+   * حركة + حدث مالي بمعاملة واحدة منطقيًا، والحتمية بمفتاحي العملية. */
+  async commitInventoryWithEvents(
+    material: Material | null,
+    movements: readonly InventoryMovement[],
+    events: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      events: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  > {
+    const movementByKey = new Map(
+      Array.from(this.inventoryMovements.values()).map(
+        movement => [movement.operationKey, movement] as const,
+      ),
+    );
+    const eventByKey = new Map(
+      Array.from(this.financialEvents.values()).map(event => [event.idempotencyKey, event] as const),
+    );
+    const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
+    const newEvents = events.filter(event => !eventByKey.has(event.idempotencyKey));
+    const reused = newMovements.length < movements.length || newEvents.length < events.length;
+    if (material) this.materials.set(material.id, clone(material));
+    newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    newEvents.forEach(event => this.financialEvents.set(event.id, clone(event)));
+    return {
+      ok: true,
+      value: {
+        material: material ? clone(material) : null,
+        movements: movements.map(movement => movementByKey.get(movement.operationKey) ?? movement).map(clone),
+        events: events.map(event => eventByKey.get(event.idempotencyKey) ?? event).map(clone),
+        reused,
+      },
+    };
+  }
   async listCatalogItems(): Promise<StorageResult<readonly CatalogItem[]>> {
     return {
       ok: true,
