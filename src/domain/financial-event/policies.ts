@@ -16,7 +16,11 @@ function assertNonBlank(value: string, field: string) {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 }
 function assertPositiveMinor(value: number, field = "amountMinor") {
-  if (!Number.isInteger(value) || value <= 0)
+  /* عقد الإغلاق العميق (AV-05 — حدود المبالغ): ٢^٥٣ يمرّ فحص Number.isInteger
+   * فتُخزَّن قيمة تفقد دقتها في أي جمع لاحق (المحفظة والكشوف تجمع أحداثًا).
+   * القروض والأصول والبيع المباشر تستخدم الحد الآمن منذ نشأتها (shared/numeric)
+   * — الآن حدث المال نفسه يحمل الحد ذاته: مبلغ فوق أقصى عدد صحيح آمن يُرفض. */
+  if (!Number.isSafeInteger(value) || value <= 0)
     throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا.`);
 }
 function assertDate(value: string, field: string) {

@@ -166,6 +166,31 @@ describe("financial event domain core", () => {
     ).toThrow("تسديد الالتزام يتطلب التزامًا مرتبطًا.");
   });
 
+  it("rejects amounts beyond the safe-integer bound — money that loses precision is refused (AV-05)", () => {
+    /* عقد الإغلاق العميق (AV-05): ٢^٥٣ يمرّ Number.isInteger لكنه يفقد الدقة
+     * في أي جمع لاحق (المحفظة والكشوف تجمع الأحداث) — يُرفض كما تُرفض القيمة
+     * غير الصحيحة، والقروض والأصول على الحد ذاته منذ نشأتها. */
+    expect(() =>
+      createFinancialEvent({
+        ...base,
+        id: "unsafe-amount",
+        type: "operating_expense_cash",
+        amountMinor: 2 ** 53,
+        idempotencyKey: "unsafe-amount",
+      }),
+    ).toThrow("المبلغ");
+    /* أقصى مبلغ آمن (٢^٥٣−١) يبقى مقبولًا — الحد لا يقصّ المشروعيات الصحيحة. */
+    expect(() =>
+      createFinancialEvent({
+        ...base,
+        id: "max-safe",
+        type: "operating_expense_cash",
+        amountMinor: Number.MAX_SAFE_INTEGER,
+        idempotencyKey: "max-safe",
+      }),
+    ).not.toThrow();
+  });
+
   it("creates one full, linked reversal for every supported general event type without mutating the original", () => {
     const cases = [
       ["owner_investment_cash", null],

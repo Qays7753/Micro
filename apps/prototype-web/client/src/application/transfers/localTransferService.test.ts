@@ -363,6 +363,8 @@ describe("LocalTransferService", () => {
       ],
     });
     const legacy = structuredClone(exported.value) as {
+      version: number;
+      schemaVersion: number;
       data: { financialEvents: Array<Record<string, unknown>> };
     };
     legacy.data.financialEvents.forEach(event => {
@@ -371,6 +373,10 @@ describe("LocalTransferService", () => {
       delete event.correctionReason;
     });
     legacy.data.financialEvents = legacy.data.financialEvents.filter(event => event.id === "transfer-source");
+    /* ملف قديم محاكى: زوج ٢٦/٣٤ (قبل مظروف التكامل) بلا بصمة ولا عدادات —
+     * ملف الإصدار الحالي بلا مظروف يُرفض الآن (AV-04 — عقد الإغلاق العميق). */
+    legacy.version = 26;
+    legacy.schemaVersion = 34;
     delete (legacy as Record<string, unknown>).integrity;
     delete (legacy as Record<string, unknown>).counts;
     delete (legacy as Record<string, unknown>).appVersion;

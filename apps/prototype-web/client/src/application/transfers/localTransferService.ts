@@ -75,7 +75,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isString = (value: unknown): value is string => typeof value === "string";
 const isDate = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value));
 const isMoney = (value: unknown): value is number =>
-  typeof value === "number" && Number.isInteger(value) && value >= 0;
+  /* عقد الإغلاق العميق (AV-05 — حدود المبالغ): المبلغ المستورد عدد صحيح آمن
+   * موجب — قيمة فوق ٢^٥٣−١ تفقد دقتها في الجمع فتُرفض قبل أي معاينة. */
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 const isOptionalMoney = (value: unknown): value is number | null => value === null || isMoney(value);
 const isTimeMinutes = (value: unknown): value is number | null =>
   value === null || (typeof value === "number" && Number.isFinite(value) && value >= 0);
@@ -2572,6 +2574,13 @@ export class LocalTransferService {
         return fail(
           "تُغيّر الملف بعد إنشائه فبصمة التكامل لا تطابقه؛ لا تعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
         );
+    } else if (isCurrent) {
+      /* عقد الإغلاق العميق (AV-04 — تلاعب المظروف): ملف الإصدار الحالي يُنشأ
+       * دومًا ببصمة تكامل وعدادات — حذفهما من ملف حالٍ تلاعبٌ يتخطى الفحصين؛ يُرفض كما تُرفض البصمة المعطوبة. الملفات القديمة (قبل
+       * المظروف) على مسارها الموروث. */
+      return fail(
+        "ملف الإصدار الحالي بلا بصمة تكامل — يبدو أن الملف فُتح وعُدّل وحُذف مظروف التحقق منه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
+      );
     }
     const raw = candidate.data;
     const migrated: LocalStoreSnapshot = {
@@ -2847,6 +2856,10 @@ export class LocalTransferService {
      * فتكشف تغيّرًا أو نقصًا صامتًا» ولم يكن يحدث. الآن: ملف الإصدار الحالي (٢٧)
      * بعدادات لا تطابق البيانات المُرحَّلة يُرفض — النقص أو التغيّر الصامت بعد
      * التلاعب أو القطع يُكشف. الملفات القديمة (بلا عدادات أصلًا) على مسارها. */
+    if (isCurrent && !isRecord(candidate.counts))
+      return fail(
+        "ملف الإصدار الحالي بلا عدادات تحقق — يبدو أن الملف فُتح وعُدّل وحُذف مظروف التحقق منه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
+      );
     if (isRecord(candidate.counts) && isCurrent) {
       const incomingCounts: Record<string, unknown> = candidate.counts;
       const migratedCounts = exportCountsOf(migrated);

@@ -110,10 +110,15 @@ describe("schema 31 export round-trip with expense category labels", () => {
       data: { financialEvents: { expenseContext?: Record<string, unknown> }[] };
     };
     file.data.financialEvents[0]!.expenseContext!.categoryLabel = "  بنزين     وقود   ";
-    /* المجموعة ٥: بلا مظروف تكامل — التعديل المُحاكى على ملف بلا بصمة. */
-    delete (file as Record<string, unknown>).integrity;
-    delete (file as Record<string, unknown>).counts;
-    delete (file as Record<string, unknown>).appVersion;
+    /* المجموعة ٥: بلا مظروف تكامل — التعديل المُحاكى على ملف قديم بلا بصمة
+     * (زوج ٢٦/٣٤ كما في اختبار الجارة أعلاه)؛ ملف الإصدار الحالي بلا مظروف
+     * يُرفض الآن (AV-04 — عقد الإغلاق العميق) فلا يعود مسارًا مشروعًا له. */
+    const legacy = file as unknown as Record<string, unknown>;
+    legacy.version = 26;
+    legacy.schemaVersion = 34;
+    delete legacy.integrity;
+    delete legacy.counts;
+    delete legacy.appVersion;
     const prepared = new LocalTransferService(new MemoryLocalStore(), now).prepareImport(
       JSON.stringify(file),
     );
