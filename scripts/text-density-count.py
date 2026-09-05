@@ -365,7 +365,11 @@ CAPS: dict[str, int] = {
     # strings moved behind the detail screen in the same scope (net prose reduced).
     # الإغلاق العميق (AR-14): حالة الخطأ gained reassurance + retry.
     # Orders 76 → 77 (2026-09-05).
-    "Orders": 77,
+    # الإغلاق العميق (WF-03 — عقد التنقل): وصلا العمل إلى المرجع والمواد —
+    # تسميتان مطابقتان لمفردة التطبيق نفسها (منتجاتي وخدماتي / المواد والمخزون
+    # كما في الرئيسية ومالي) لا نثرًا جديدًا؛ ملكية التنقل المطلوبة في العقد.
+    # Orders 77 → 79 (2026-09-06, deep closure WF-03).
+    "Orders": 79,
     # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
     # credit-sale customer identity field — one mandated label, no prose.
     # DirectSaleEditor 43 → 45 (2026-09-01, repair cycle P-002): catalog-reference

@@ -1,6 +1,6 @@
 /** Style: Micro decision path — stock is an explainable material fact, never an implied profit report. */
 import {
-  ArrowLeft,
+  ArrowRight,
   Boxes,
   CircleMinus,
   PackageMinus,
@@ -244,7 +244,7 @@ export default function InventoryMaterials() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> {returnPath === "/finance" ? "مالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "مالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مخزون بسيط</span>

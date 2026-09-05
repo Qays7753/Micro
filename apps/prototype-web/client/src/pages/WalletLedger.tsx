@@ -3,7 +3,7 @@
  * بالتسلسل مع تمييز الأنواع وتواريخها ومبالغها، ووصل كل تخصيص بمصدره.
  * كل صف قابل للوصول لتراجعه الموثق من سطحه الأصلي دون فقد سياق المحفظة.
  */
-import { ArrowLeft, Landmark, NotebookPen, RotateCcw } from "lucide-react";
+import { ArrowRight, Landmark, NotebookPen, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -78,7 +78,7 @@ export default function WalletLedger() {
   return (
     <section className="micro-page micro-wallet-ledger-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> محافظ الكاش
+        <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">دفتر محفظة · المبالغ (د.أ)</span>

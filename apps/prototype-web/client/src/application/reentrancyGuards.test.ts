@@ -64,10 +64,7 @@ describe("re-entry idempotency guards (P0)", () => {
       },
       idempotencyKey: "concurrent-expense-1",
     };
-    const [first, second] = await Promise.all([
-      projectFinance.record(input),
-      projectFinance.record(input),
-    ]);
+    const [first, second] = await Promise.all([projectFinance.record(input), projectFinance.record(input)]);
     if (!first.ok || !second.ok)
       throw new Error(`record failed: ${first.ok ? "" : first.message} | ${second.ok ? "" : second.message}`);
     expect(first.ok && second.ok).toBe(true);
@@ -115,10 +112,9 @@ describe("re-entry idempotency guards (P0)", () => {
     expect(position.value.walletCashMinor).toBe(4000);
     expect(position.value.unallocatedCashMinor).toBe(6000);
     const entries = await store.listCashContinuityEntries();
-    const allocations =
-      entries.ok
-        ? entries.value.filter(entry => entry.operationKey === "concurrent-attribute-1")
-        : [];
+    const allocations = entries.ok
+      ? entries.value.filter(entry => entry.operationKey === "concurrent-attribute-1")
+      : [];
     expect(allocations.length).toBe(1);
   });
 
@@ -169,10 +165,9 @@ describe("re-entry idempotency guards (P0)", () => {
     expect(position.value.walletCashMinor).toBe(3000);
     expect(position.value.unallocatedCashMinor).toBe(0);
     const entries = await store.listCashContinuityEntries();
-    const allocations =
-      entries.ok
-        ? entries.value.filter(entry => entry.operationKey === "concurrent-collect-1:attribute")
-        : [];
+    const allocations = entries.ok
+      ? entries.value.filter(entry => entry.operationKey === "concurrent-collect-1:attribute")
+      : [];
     expect(allocations.length).toBe(1);
   });
 });

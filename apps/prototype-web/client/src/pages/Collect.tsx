@@ -5,7 +5,7 @@
  * يعبّئ المتبقي قابلًا للتعديل، يفرض وجهة كاش صريحة (الدرج افتراضيًا حين يوجد)،
  * يمنع التحصيل فوق المتبقي، ويكتب بواقعية: كاش+ / متبقٍ− — لا إيراد ولا ربح.
  */
-import { ArrowLeft, HandCoins, Handshake, Landmark, ReceiptText } from "lucide-react";
+import { ArrowRight, HandCoins, Handshake, Landmark, ReceiptText } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -265,7 +265,7 @@ export default function Collect() {
         onClick={() => requestNavigation(returnPath)}
         disabled={saving}
       >
-        <ArrowLeft aria-hidden="true" /> رجوع
+        <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">ورقة تحصيل</span>

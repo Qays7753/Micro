@@ -300,6 +300,24 @@ export default function Orders() {
       >
         <BadgeDollarSign aria-hidden="true" /> تسجيل بيع مباشر
       </button>
+      {/* عقد الإغلاق العميق (WF-03 — عقد التنقل): العمل يملك المرجع والمواد —
+          وصلة هادئة لكل منهما بجوار أفعال العمل، لا مقاعد جديدة ولا شريط ثانٍ. */}
+      <div className="micro-form-actions micro-contextual-actions">
+        <button
+          className="micro-button micro-button-quiet"
+          type="button"
+          onClick={() => openFromWork("/catalog")}
+        >
+          منتجاتي وخدماتي
+        </button>
+        <button
+          className="micro-button micro-button-quiet"
+          type="button"
+          onClick={() => openFromWork("/inventory")}
+        >
+          المواد والمخزون
+        </button>
+      </div>
       {state.orders.length > 0 || state.drafts.length > 0 ? (
         <button
           className="micro-button micro-button-secondary"

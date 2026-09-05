@@ -2,6 +2,7 @@
 /* §2.2: المراجعة اندمجت نبضةً أعلى هذه الصفحة (F-003) — جلسة قراءة أسبوعية لا تستحق مقعدًا. */
 import { assetCountLabel, pendingDepositCountLabel } from "@/presentation/g5Plurals";
 import {
+  ArrowRight,
   ArrowLeft,
   CircleAlert,
   CircleDollarSign,
@@ -277,7 +278,7 @@ export default function Finance() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>

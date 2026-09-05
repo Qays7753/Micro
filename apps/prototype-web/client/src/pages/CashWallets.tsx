@@ -1,6 +1,6 @@
 /** Style: Micro «مسار القرار» — cash places are explicit local facts, never a hidden pooled balance. */
 import {
-  ArrowLeft,
+  ArrowRight,
   ArrowRightLeft,
   Calculator,
   HandCoins,
@@ -90,7 +90,7 @@ export default function CashWallets() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">استمرارية السجل</span>

@@ -717,6 +717,21 @@ export default function OrderDetail() {
                       — يبقى بعد الإلغاء «يحتاج مراجعة» حتى تردّه أو تحتفظ به صراحة، وهذا خيار صالح لا خطأ.
                     </p>
                   ) : null}
+                  {/* عقد الإغلاق العميق (AV-06 — أموال مقبوضة عند الإلغاء): تحصيلات
+                      غير العربون تبقى في السجل والكاش بعد الإلغاء بلا مسار تراجع
+                      مباشر (التراجع عن قبضة متاح ما دام الطلب حيًا) — التحذير
+                      يشرح الأثر ويقدّم الفعل التالي قبل قرار الإلغاء، لا بعده. */}
+                  {order.collectedMinor - order.depositCollectedMinor > 0 ? (
+                    <p className="micro-warning-copy" data-testid="cancel-collected-warning">
+                      يوجد تحصيل غير العربون بقيمة (
+                      <MoneyValue
+                        minor={order.collectedMinor - order.depositCollectedMinor}
+                        className="micro-inline-number"
+                      />{" "}
+                      د.أ) — بعد الإلغاء تبقى هذه القبضة في السجل والكاش بلا مسار تراجع عن طلب ملغى. إن كنت
+                      ستعيد المبلغ للزبون، تراجع عن القبضة أولًا من قسم التحصيلات ثم ألغِ.
+                    </p>
+                  ) : null}
                   <div className="micro-form-actions micro-contextual-actions">
                     <button
                       className="micro-button micro-button-secondary"

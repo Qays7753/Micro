@@ -464,31 +464,29 @@ export default function InventoryMovementEditor() {
             ]
         : safeType === "waste"
           ? outboundShortage
-            ? [
-                "الكمية المطلوبة أكبر من المتاحة — لا يُسمح برصيد سالب؛ سجّل الهدر على المتاح ثم وثّق النقص.",
-              ]
+            ? ["الكمية المطلوبة أكبر من المتاحة — لا يُسمح برصيد سالب؛ سجّل الهدر على المتاح ثم وثّق النقص."]
             : [
-              `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} وتخرج قيمته من المخزون.`,
-              wasteProfitImpact
-                ? selectedPosition?.costKnowledge === "unknown"
-                  ? "قيمة الهدر غير محددة بعد — يبقى أثر الربح معلقًا حتى تحديد التكلفة، ولا يُفترض صفرًا أبدًا."
-                  : "يُسجَّل حدث خسارة غير نقدية بقيمة المخزون الخارجة — يؤثر على نتيجة المشروع بلا خروج نقد."
-                : "هدر مخزون — بلا خروج نقد جديد ولا أثر في نتيجة الفترة.",
-            ]
+                `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} وتخرج قيمته من المخزون.`,
+                wasteProfitImpact
+                  ? selectedPosition?.costKnowledge === "unknown"
+                    ? "قيمة الهدر غير محددة بعد — يبقى أثر الربح معلقًا حتى تحديد التكلفة، ولا يُفترض صفرًا أبدًا."
+                    : "يُسجَّل حدث خسارة غير نقدية بقيمة المخزون الخارجة — يؤثر على نتيجة المشروع بلا خروج نقد."
+                  : "هدر مخزون — بلا خروج نقد جديد ولا أثر في نتيجة الفترة.",
+              ]
           : outboundShortage && direction === "decrease"
             ? [
                 "الكمية المطلوبة أكبر من المتاحة — لا يُسمح برصيد سالب؛ خفّض الكمية إلى المتاح أو سجّل الهدر/الضبط على المتاح.",
               ]
             : [
-              `رصيد المادة يصبح ${formatQuantityMilli(afterMilli)} ${unit} (فرق ${
-                direction === "increase" ? "+" : "−"
-              }${formatQuantityMilli(quantityMilli)}).`,
-              direction === "increase"
-                ? costKnown
-                  ? `قيمة الزيادة المعلنة ${formatMoneyMinor(valueMinor)} د.أ — لا يتغير الكاش.`
-                  : "قيمة الزيادة غير معروفة — قيمة صفرية موسومة، لا يتغير الكاش."
-                : "قيمة النقص تُشتق من رصيد المادة — لا يتغير الكاش ولا نتيجة الفترة.",
-            ];
+                `رصيد المادة يصبح ${formatQuantityMilli(afterMilli)} ${unit} (فرق ${
+                  direction === "increase" ? "+" : "−"
+                }${formatQuantityMilli(quantityMilli)}).`,
+                direction === "increase"
+                  ? costKnown
+                    ? `قيمة الزيادة المعلنة ${formatMoneyMinor(valueMinor)} د.أ — لا يتغير الكاش.`
+                    : "قيمة الزيادة غير معروفة — قيمة صفرية موسومة، لا يتغير الكاش."
+                  : "قيمة النقص تُشتق من رصيد المادة — لا يتغير الكاش ولا نتيجة الفترة.",
+              ];
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>

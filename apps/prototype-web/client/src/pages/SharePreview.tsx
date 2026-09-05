@@ -4,7 +4,7 @@
  * بالنص وحده أو يُنسخ للحافظة. لا إرسال تلقائي، ولا قراءة جهات اتصال، ولا
  * مكتبة ملاحظات دائمة (ميزة مستثناة من البرنامج كله).
  */
-import { ArrowLeft, Copy, Send } from "lucide-react";
+import { ArrowRight, Copy, Send } from "lucide-react";
 import { useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -66,7 +66,7 @@ export default function SharePreview() {
   return (
     <section className="micro-page micro-share-preview">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> رجوع
+        <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مشاركة يدوية</span>

@@ -157,4 +157,53 @@ describe("family-owned events are corrected only through their owner record (FT-
     expect(within(loanRow).getByRole("button", { name: "صحّحه من صفحة القرض" })).toBeTruthy();
     expect(within(loanRow).queryByRole("button", { name: "تراجع موثق" })).toBeNull();
   });
+
+  /* عقد الإغلاق العميق (FC-03 — العقد ٢): تحذير فترة صريح حين يقع البديل في
+   * شهر غير شهر الأصل — التراجع يُسجَّل بتاريخ اليوم والفرق يظهر في كشوف
+   * الشهرين؛ لا تغيير صامت لأرقام شهر قديم بلا علم المالك. */
+  it("warns when the replacement lands in a different monthly period than the original", async () => {
+    await projectFinance.record({
+      type: "operating_expense_cash",
+      amountMinor: 700,
+      occurredOn: "2026-08-02",
+      note: "مصروف آب",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "project",
+        behavior: "variable",
+        purpose: "order",
+        knowledge: "known",
+      },
+      idempotencyKey: "fc03-expense",
+    });
+
+    await openEventsLayer();
+
+    const rows = Array.from(document.querySelectorAll<HTMLElement>("article.micro-finance-event"));
+    const row = rows.find(
+      node =>
+        within(node).queryByText("مصروف مدفوع") !== null && node.textContent?.includes("02/08/2026") === true,
+    );
+    if (!row) throw new Error("event row should render");
+    fireEvent.click(within(row).getByRole("button", { name: "عدّل بقيم جديدة" }));
+    await waitFor(() => expect(screen.getByText("مراجعة قبل التعديل")).toBeTruthy());
+
+    /* نفس الفترة أولًا: لا تحذير — التعديل داخل الشهر نفسه هادئ. */
+    const dateInput = document.querySelector<HTMLInputElement>(
+      ".micro-finance-reversal-editor input[type='date']",
+    );
+    if (!dateInput) throw new Error("date input should render");
+    expect(screen.queryByTestId("edit-period-impact")).toBeNull();
+
+    /* شهر مختلف: التحذير يظهر بشرحه وأثره وفعه التالي. */
+    fireEvent.change(dateInput, { target: { value: "2026-09-02" } });
+    const warning = screen.getByTestId("edit-period-impact");
+    expect(warning.textContent).toContain("فترة شهر مختلفة");
+    expect(warning.textContent).toContain("رجّع التاريخ");
+
+    /* العودة إلى شهر الأصل: التحذير يختفي. */
+    fireEvent.change(dateInput, { target: { value: "2026-08-15" } });
+    expect(screen.queryByTestId("edit-period-impact")).toBeNull();
+  });
 });

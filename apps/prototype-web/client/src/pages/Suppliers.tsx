@@ -1,5 +1,5 @@
 /** Style: Micro «مسار القرار» — supplier purchases are operational facts, never disguised as expense or inventory. */
-import { ArrowLeft, Plus, WalletCards } from "lucide-react";
+import { ArrowRight, Plus, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -67,7 +67,7 @@ export default function Suppliers() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مواد وموردون</span>

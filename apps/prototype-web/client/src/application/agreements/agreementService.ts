@@ -211,7 +211,11 @@ export class AgreementService {
       const saved = await this.store.saveOrder(stored);
       return saved.ok
         ? { ok: true, stored: saved.value }
-        : { ok: false, code: "storage_error", message: "تعذر حفظ حالة التنفيذ — بياناتك كما هي؛ أعد المحاولة." };
+        : {
+            ok: false,
+            code: "storage_error",
+            message: "تعذر حفظ حالة التنفيذ — بياناتك كما هي؛ أعد المحاولة.",
+          };
     } catch (error) {
       return validation(error instanceof Error ? error.message : "تعذر بدء التنفيذ.");
     }

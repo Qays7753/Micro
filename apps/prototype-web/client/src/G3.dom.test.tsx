@@ -18,6 +18,7 @@ import { CostService } from "@/application/cost/costService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { ActualTimeService } from "@/application/time/actualTimeService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
@@ -499,5 +500,61 @@ describe("OrderDetail mid-journey deposit panel (عقد الإغلاق العم�
     expect(linked.length).toBe(1);
     expect(linked[0]?.cashDeltaMinor).toBe(500);
     expect(linked[0]?.sourceRefLineId).toContain(orderId);
+  });
+
+  /* عقد الإغلاق العميق (AV-06): تحصيل غير العربون بقي على طلب حي بعد عكس
+   * تسليم واستئناف — الإلغاء من غير تحذير كان يترك القبضة بلا مسار تراجع
+   * عن طلب ملغى؛ الآن لوحة الإلغاء تحذّر بالأثر وتقترح الفعل التالي قبل
+   * القرار (التراجع عن القبضة أولًا ما دام الطلب حيًا). */
+  it("warns before cancelling an order that still holds a non-deposit collection", async () => {
+    const created = await drafts.create("customer_order", {
+      itemName: "طقم شوكات",
+      customerName: "سليم",
+      specifications: "نقش يدوي",
+      quantity: 1,
+    });
+    if (!created.ok) throw new Error(created.message);
+    const costSaved = await costs.saveSnapshot(created.draft, {
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+    });
+    if (!costSaved.ok) throw new Error(costSaved.message);
+    const agreement = await agreements.createFromDraft(costSaved.draft, {
+      agreedPriceMinor: 10000,
+      deliveryDate: "2026-09-10",
+      depositMinor: 0,
+      agreementSource: null,
+    });
+    if (!agreement.ok) throw new Error(agreement.message);
+    const orderId = agreement.stored.id;
+    await agreements.startExecution(orderId);
+    await fulfillment.markReady(orderId);
+    const delivered = await fulfillment.deliver(orderId);
+    if (!delivered.ok) throw new Error(delivered.message);
+    /* تحصيل 50.00 على المسلَّم — دين يُقفل لا إيراد جديد. */
+    const collected = await fulfillment.collectFromSheet(orderId, 5000, "av06-collect-1");
+    if (!collected.ok) throw new Error(collected.message);
+    /* عكس التسليم ثم الاستئناف — القبضة تبقى معلقة على طلب حي قابل للإلغاء. */
+    const deliveryReview = new DeliveryReviewService(store, () => NOW);
+    const reversed = await deliveryReview.reverseDelivery(orderId, { reason: "خطأ في التسليم" });
+    if (!reversed.ok) throw new Error(reversed.message);
+    const resumed = await fulfillment.resumeAfterReview(orderId);
+    if (!resumed.ok) throw new Error(resumed.message);
+    wouterMocks.location = `/orders/${orderId}`;
+    wouterMocks.params = { id: orderId };
+    mockedUsePrototypeServices.mockImplementation(
+      () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    render(<G3Harness page={<OrderDetail />} />);
+    fireEvent.click(await screen.findByRole("button", { name: /إلغاء الطلب/ }));
+    const warning = await screen.findByTestId("cancel-collected-warning");
+    expect(warning.textContent).toContain("تحصيل غير العربون");
+    expect(warning.textContent).toContain("50.00");
+    expect(warning.textContent).toContain("تراجع عن القبضة أولًا");
   });
 });
