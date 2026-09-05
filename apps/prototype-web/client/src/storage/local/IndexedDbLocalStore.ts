@@ -690,6 +690,43 @@ async function writeOne<T>(storeName: string, value: T): Promise<StorageResult<T
   }
 }
 
+/* حتمية داخل المعاملة (إصلاح P0 — الإرسال المتزامن المزدوج): الفحص خارج
+ * المعاملة (قراءة ثم كتابة) يسمح لنداءين متزامنين بمفتاح واحد بالمرور معًا
+ * فيُخزَّن السجل مرتين ويُقترن المحفظة مرتين. هنا يُفحص المفتاح داخل معاملة
+ * الكتابة نفسها: إن وُجد سجل سابق بنفس المفتاح يُعاد كما هو دون كتابة ثانية —
+ * نفس عقد commitOrderDelivery/commitFinancialEventCorrection لا مسار ثانٍ. */
+async function writeOneIdempotent<T>(
+  storeName: string,
+  value: T,
+  isDuplicate: (existing: T) => boolean,
+): Promise<StorageResult<T>> {
+  try {
+    const database = await connection();
+    return await new Promise(resolve => {
+      const transaction = database.transaction(storeName, "readwrite");
+      const store = transaction.objectStore(storeName);
+      const scanRequest = store.getAll();
+      scanRequest.onerror = () => resolve(failure(scanRequest.error, database));
+      scanRequest.onsuccess = () => {
+        const existing = (scanRequest.result as T[]).find(isDuplicate);
+        if (existing) {
+          resolve({ ok: true, value: existing });
+          return;
+        }
+        const putRequest = store.put(value);
+        putRequest.onerror = () => resolve(failure(putRequest.error, database));
+      };
+      transaction.onabort = () => resolve(failure(transaction.error, database));
+      transaction.onerror = () => resolve(failure(transaction.error, database));
+      transaction.oncomplete = () => {
+        resolve({ ok: true, value });
+      };
+    });
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 /* القرار ٢١: حذف المسودة غير المرتبطة — حذف سجل بلا أثر مالي؛ لا يمس أحداث طلب. */
 async function deleteOne(storeName: string, key: string): Promise<StorageResult<null>> {
   try {
@@ -1198,8 +1235,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         right.occurredOn.localeCompare(left.occurredOn) || right.recordedAt.localeCompare(left.recordedAt),
     );
   }
+  /* P0 (إرسال متزامن): مفتاح الحتمية يُفحص داخل المعاملة — بيع بنفس المفتاح
+   * محفوظ سلفًا يُعاد كما هو فلا يتكرر السجل ولا يتضاعف الكاش. */
   saveDirectSale(sale: DirectSale) {
-    return writeOne(directSaleStore, sale);
+    return writeOneIdempotent(
+      directSaleStore,
+      sale,
+      existing => existing.id !== sale.id && existing.idempotencyKey === sale.idempotencyKey,
+    );
   }
   listSchedules() {
     return listAll<ScheduleEntry>(
@@ -1253,8 +1296,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   getFinancialEvent(id: string) {
     return readOne<FinancialEvent>(financialEventStore, id);
   }
+  /* P0 (إرسال متزامن): حدث مالي بنفس مفتاح الحتمية محفوظ سلفًا يُعاد كما هو —
+   * المفاتيح المتضاربة مرفوضة أصلًا في الخدمة، فلا مسار شرعي لتكرار المفتاح. */
   saveFinancialEvent(event: FinancialEvent) {
-    return writeOne(financialEventStore, event);
+    return writeOneIdempotent(
+      financialEventStore,
+      event,
+      existing => existing.id !== event.id && existing.idempotencyKey === event.idempotencyKey,
+    );
   }
   async commitFinancialEventCorrection(
     sourceEventId: string,
@@ -1488,8 +1537,23 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([cashWalletStore, cashContinuityEntryStore], "readwrite");
-        if (wallet) transaction.objectStore(cashWalletStore).put(wallet);
-        entries.forEach(entry => transaction.objectStore(cashContinuityEntryStore).put(entry));
+        const entriesStore = transaction.objectStore(cashContinuityEntryStore);
+        /* P0 (إرسال متزامن): مفتاح العملية يُفحص داخل المعاملة — القيد المكرر
+         * يُتخطى والمحفظة لا تُكتب إلا مع قيد جديد فعلي (أو تحديث محفظة خالص
+         * بلا قيود كإنشاء محفظة). إعادة إرسال نفس العملية لا تضاعف الرصيد
+         * ولا تجعل غير الموزع سالبًا. */
+        const scanRequest = entriesStore.getAll();
+        scanRequest.onerror = () => resolve(failure(scanRequest.error, database));
+        scanRequest.onsuccess = () => {
+          const existingKeys = new Set(
+            (scanRequest.result as CashContinuityEntry[]).map(entry => entry.operationKey),
+          );
+          const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
+          newEntries.forEach(entry => entriesStore.put(entry));
+          if (wallet && (newEntries.length > 0 || entries.length === 0)) {
+            transaction.objectStore(cashWalletStore).put(wallet);
+          }
+        };
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {

@@ -112,6 +112,10 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   const [categorySuggestions, setCategorySuggestions] = useState<readonly string[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /* P0 (إعادة الدخول): نبضة مزدوجة قبل إعادة الرسم أو نداء برمجي متزامن
+   * (حوار الخروج أثناء جارٍ) لا يُسجّل البيع/المصروف مرتين — مع حتمية المخزن
+   * كخط دفاع ثانٍ (نمط AI-02 نفسه في RepaymentSheet). */
+  const saveInFlightRef = useRef(false);
   const saleKeyRef = useRef(`sheet-sale-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   const expenseKeyRef = useRef(`sheet-expense-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
@@ -237,6 +241,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   }
 
   async function submitSale() {
+    if (saveInFlightRef.current) return;
     if (!saleAmountValid || !Number.isInteger(saleAmountMinor) || saleAmountMinor <= 0) {
       setFormError("أدخل مبلغ البيع بالأرقام 0–9.");
       return;
@@ -260,20 +265,26 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       }
     }
     setFormError(null);
+    saveInFlightRef.current = true;
     setSaving(true);
-    const result = await directSales.record({
-      itemName: saleName.trim() || "بيع نقدي",
-      quantity: 1,
-      revenueMinor: saleAmountMinor,
-      collectedMinor: saleOnCredit ? saleCollectedMinor : undefined,
-      collectionStatus: saleOnCredit ? "partial_debt" : undefined,
-      /* D-001: الزبون بيانات مستقلة — لا يُدفن اسمه في نص الملاحظة. */
-      customerName: saleOnCredit ? saleCustomer.trim() : null,
-      costMinor: saleCostKnown ? saleCostMinor : null,
-      occurredOn: localDateInAmman(),
-      note: saleOnCredit ? "بيع آجل من ورقة الإضافة" : "بيع مباشر من ورقة الإضافة",
-      idempotencyKey: saleKeyRef.current,
-    });
+    let result: Awaited<ReturnType<typeof directSales.record>>;
+    try {
+      result = await directSales.record({
+        itemName: saleName.trim() || "بيع نقدي",
+        quantity: 1,
+        revenueMinor: saleAmountMinor,
+        collectedMinor: saleOnCredit ? saleCollectedMinor : undefined,
+        collectionStatus: saleOnCredit ? "partial_debt" : undefined,
+        /* D-001: الزبون بيانات مستقلة — لا يُدفن اسمه في نص الملاحظة. */
+        customerName: saleOnCredit ? saleCustomer.trim() : null,
+        costMinor: saleCostKnown ? saleCostMinor : null,
+        occurredOn: localDateInAmman(),
+        note: saleOnCredit ? "بيع آجل من ورقة الإضافة" : "بيع مباشر من ورقة الإضافة",
+        idempotencyKey: saleKeyRef.current,
+      });
+    } finally {
+      saveInFlightRef.current = false;
+    }
     if (!result.ok) {
       setSaving(false);
       setFormError(result.message);
@@ -313,30 +324,37 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
   }
 
   async function submitExpense() {
+    if (saveInFlightRef.current) return;
     if (!expenseAmountValid || !Number.isInteger(expenseAmountMinor) || expenseAmountMinor <= 0) {
       setFormError("أدخل مبلغ المصروف بالأرقام 0–9.");
       return;
     }
     setFormError(null);
+    saveInFlightRef.current = true;
     setSaving(true);
-    const result = await projectFinance.record({
-      type: "operating_expense_cash",
-      amountMinor: expenseAmountMinor,
-      occurredOn: localDateInAmman(),
-      note: expenseNote.trim() || "مصروف مدفوع في لحظته",
-      counterparty: null,
-      relatedEventId: null,
-      expenseContext: {
-        relationship: "project",
-        behavior: "unknown",
-        purpose: "project_general",
-        knowledge: "known",
-        sharedProjectShare: null,
-        /* المجموعة ١ (تصنيفي للمصاريف): وسم سريع اختياري — لا يمس الدلتا. */
-        categoryLabel: expenseCategory || null,
-      },
-      idempotencyKey: expenseKeyRef.current,
-    });
+    let result: Awaited<ReturnType<typeof projectFinance.record>>;
+    try {
+      result = await projectFinance.record({
+        type: "operating_expense_cash",
+        amountMinor: expenseAmountMinor,
+        occurredOn: localDateInAmman(),
+        note: expenseNote.trim() || "مصروف مدفوع في لحظته",
+        counterparty: null,
+        relatedEventId: null,
+        expenseContext: {
+          relationship: "project",
+          behavior: "unknown",
+          purpose: "project_general",
+          knowledge: "known",
+          sharedProjectShare: null,
+          /* المجموعة ١ (تصنيفي للمصاريف): وسم سريع اختياري — لا يمس الدلتا. */
+          categoryLabel: expenseCategory || null,
+        },
+        idempotencyKey: expenseKeyRef.current,
+      });
+    } finally {
+      saveInFlightRef.current = false;
+    }
     if (!result.ok) {
       setSaving(false);
       setFormError(result.message);

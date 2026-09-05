@@ -178,6 +178,9 @@ export default function FinancialEventEditor() {
   const [relatedEventId, setRelatedEventId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /* P0 (إعادة الدخول): حوار «احفظ واستمر» أو ضغطة ثانية أثناء حفظ جارٍ لا
+   * تعيد نداء السجل نفسه — العهدة التزامنية كخط أول، وحتمية المخزن كخط ثانٍ. */
+  const saveInFlightRef = useRef(false);
   /* المجموعة ١ (SA-5/3): عهدة حفظ ناجح — تُغيّر رمز إعادة لقطة الوسخ فيصفر
    * الوسخ بعد الحفظ، فلا يفتح حارس «تغييرات غير محفوظة» بعد نجاح مسجّل. */
   const [savedEpoch, setSavedEpoch] = useState(0);
@@ -429,6 +432,7 @@ export default function FinancialEventEditor() {
   async function save(): Promise<boolean> {
     const selectedType = type;
     if (!selectedType) return false;
+    if (saveInFlightRef.current) return false;
     if (savedNote) {
       /* المال محفوظ والنص ظاهر: الخروج آمن — لا إعادة حفز مفتاح مستعمل. */
       leaveAfterSave();
@@ -447,19 +451,25 @@ export default function FinancialEventEditor() {
       return false;
     }
     setMessage(null);
+    saveInFlightRef.current = true;
     setSaving(true);
     const sharedExpense = sharedExpenseIntent;
-    const result = await projectFinance.record({
-      type: selectedType,
-      ...(sharedMode === "percentage" && isShared ? {} : { amountMinor }),
-      occurredOn: date,
-      note,
-      counterparty: counterparty || null,
-      relatedEventId: selectedType === "payable_settlement_cash" ? relatedEventId || null : null,
-      expenseContext,
-      sharedExpense,
-      idempotencyKey: idempotencyKey.current,
-    });
+    let result: Awaited<ReturnType<typeof projectFinance.record>>;
+    try {
+      result = await projectFinance.record({
+        type: selectedType,
+        ...(sharedMode === "percentage" && isShared ? {} : { amountMinor }),
+        occurredOn: date,
+        note,
+        counterparty: counterparty || null,
+        relatedEventId: selectedType === "payable_settlement_cash" ? relatedEventId || null : null,
+        expenseContext,
+        sharedExpense,
+        idempotencyKey: idempotencyKey.current,
+      });
+    } finally {
+      saveInFlightRef.current = false;
+    }
     if (!result.ok) {
       setSaving(false);
       setMessage(result.message);

@@ -330,6 +330,12 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     };
   }
   async saveDirectSale(sale: DirectSale): Promise<StorageResult<DirectSale>> {
+    /* P0 (إرسال متزامن): نفس عقد محوّل IndexedDB — مفتاح الحتمية يُفحص عند
+     * الكتابة نفسها فلا يُخزّن بيعان بمفتاح واحد. */
+    const existing = Array.from(this.directSales.values()).find(
+      candidate => candidate.id !== sale.id && candidate.idempotencyKey === sale.idempotencyKey,
+    );
+    if (existing) return { ok: true, value: clone(existing) };
     this.directSales.set(sale.id, clone(sale));
     return { ok: true, value: clone(sale) };
   }
@@ -388,6 +394,12 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     return { ok: true, value: event ? clone(event) : null };
   }
   async saveFinancialEvent(event: FinancialEvent): Promise<StorageResult<FinancialEvent>> {
+    /* P0 (إرسال متزامن): نفس عقد محوّل IndexedDB — حدث بنفس المفتاح يُعاد
+     * كما هو فلا يتكرر الأثر المالي. */
+    const existing = Array.from(this.financialEvents.values()).find(
+      candidate => candidate.id !== event.id && candidate.idempotencyKey === event.idempotencyKey,
+    );
+    if (existing) return { ok: true, value: clone(existing) };
     this.financialEvents.set(event.id, clone(event));
     return { ok: true, value: clone(event) };
   }
@@ -478,8 +490,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     wallet: CashWallet | null,
     entries: readonly CashContinuityEntry[],
   ): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>> {
-    if (wallet) this.cashWallets.set(wallet.id, clone(wallet));
-    entries.forEach(entry => this.cashContinuityEntries.set(entry.id, clone(entry)));
+    /* P0 (إرسال متزامن): قيد بنفس مفتاح العملية يُتخطى والمحفظة لا تُكتب
+     * إلا مع قيد جديد (أو تحديث خالص بلا قيود) — نفس عقد محوّل IndexedDB. */
+    const existingKeys = new Set(Array.from(this.cashContinuityEntries.values()).map(e => e.operationKey));
+    const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
+    newEntries.forEach(entry => this.cashContinuityEntries.set(entry.id, clone(entry)));
+    if (wallet && (newEntries.length > 0 || entries.length === 0)) {
+      this.cashWallets.set(wallet.id, clone(wallet));
+    }
     return { ok: true, value: { wallet: wallet ? clone(wallet) : null, entries: entries.map(clone) } };
   }
   async listMaterials(): Promise<StorageResult<readonly Material[]>> {
