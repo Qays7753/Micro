@@ -34,7 +34,12 @@ export default function AssetEditor() {
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const idempotencyKey = useRef(`asset-create-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+  /* المجموعة ٦ (تدقيق A2 — AI-02): عهدة تزامنية ضد الإرسال المزدوج —
+   * حالة `saving` لا تمنع نداءً ثانيًا قبل إعادة الرسم (نبضتان في دورة واحدة)
+   * ولا نداءً برمجيًا من حارس التغييرات غير المحفوظة أثناء الحفظ. العهدة
+   * المرجعية تُفحص فورًا وترد النداء المتزامن الثاني؛ والخدمة تولد معرفات
+   * جديدة لكل نداء فلا يحمينا إلا المنع هنا. */
+  const saveInFlightRef = useRef(false);
 
   const isDirty = useFormDirty([
     name,
@@ -123,32 +128,38 @@ export default function AssetEditor() {
   }
 
   async function save(): Promise<boolean> {
+    if (saveInFlightRef.current) return false;
     const problem = validate();
     if (problem) {
       setMessage(problem);
       return false;
     }
     setMessage(null);
+    saveInFlightRef.current = true;
     setSaving(true);
-    const result = await assets.create({
-      name,
-      categoryLabel: categoryLabel.trim() || null,
-      acquisitionAmountMinor: amountMinor,
-      acquisitionKind,
-      purchaseDate,
-      lifeMonths: longUse === "yes" && Number(lifeMonths) >= 1 ? Number(lifeMonths) : null,
-      depreciationStartOn: longUse === "yes" && startOn ? startOn : null,
-      note: note.trim() || null,
-    });
-    setSaving(false);
-    if (!result.ok) {
-      setMessage(result.message);
-      return false;
+    try {
+      const result = await assets.create({
+        name,
+        categoryLabel: categoryLabel.trim() || null,
+        acquisitionAmountMinor: amountMinor,
+        acquisitionKind,
+        purchaseDate,
+        lifeMonths: longUse === "yes" && Number(lifeMonths) >= 1 ? Number(lifeMonths) : null,
+        depreciationStartOn: longUse === "yes" && startOn ? startOn : null,
+        note: note.trim() || null,
+      });
+      if (!result.ok) {
+        setMessage(result.message);
+        return false;
+      }
+      notifyDataChanged();
+      await draft.clearFormDraft();
+      navigate(withFromReturn(returnPath, result.value.asset.id));
+      return true;
+    } finally {
+      saveInFlightRef.current = false;
+      setSaving(false);
     }
-    notifyDataChanged();
-    await draft.clearFormDraft();
-    navigate(withFromReturn(returnPath, result.value.asset.id));
-    return true;
   }
 
   return (

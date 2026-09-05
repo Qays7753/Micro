@@ -17,6 +17,7 @@ import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import Loans from "@/pages/Loans";
 import LoanEditor from "@/pages/LoanEditor";
 import LoanDetail from "@/pages/LoanDetail";
+import RepaymentSheet from "@/components/loans/RepaymentSheet";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -140,5 +141,61 @@ describe("G4 loans surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     render(<Harness page={<LoanDetail />} />);
     expect(await screen.findByText(/مسدَّد بالكامل — يبقى في التاريخ/)).toBeTruthy();
     expect(await screen.findByText(/دفعات السداد \(1\)/)).toBeTruthy();
+  });
+
+  /* ─── المجموعة ٦ (تدقيق A2 — AI-02): الإرسال المزدوج أثناء الحفظ ───
+   * نفس عهدة محرر الأصل: حارس الخروج يستدعي الحفظ برمجيًا بينما النداء الأول
+   * معلق — الخدمة تولد معرفات جديدة لكل نداء فلو مر الثاني لسُجّل القرض مرتين. */
+  it("ignores a guard-triggered save while a save is already in flight — one create call (G6/A2)", async () => {
+    let resolveCreate!: (value: unknown) => void;
+    const createPromise = new Promise(resolve => {
+      resolveCreate = resolve;
+    });
+    const create = vi.fn(() => createPromise);
+    loans = { create } as unknown as LoanService;
+    wouterMocks.location = "/loans/new";
+    render(<Harness page={<LoanEditor />} />);
+    fireEvent.change(await screen.findByPlaceholderText("مثال: أحمد، محمد، ورشة الجيران"), {
+      target: { value: "أحمد" },
+    });
+    const amount = await screen.findByLabelText("مبلغ القرض");
+    fireEvent.change(amount, { target: { value: "150" } });
+    fireEvent.blur(amount);
+    fireEvent.click(await screen.findByRole("button", { name: /احفظ القرض/ }));
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+    fireEvent.click(await screen.findByRole("button", { name: "القروض" }));
+    fireEvent.click(await screen.findByRole("button", { name: "احفظ واستمر" }));
+    expect(create).toHaveBeenCalledTimes(1);
+    resolveCreate({ ok: true, value: { loan: { id: "loan-g6a2" }, event: null } });
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
+  });
+
+  it("ignores a second confirm while the first repayment is still in flight (G6/A2)", async () => {
+    let resolveRepay!: (value: unknown) => void;
+    const repayPromise = new Promise(resolve => {
+      resolveRepay = resolve;
+    });
+    const recordRepayment = vi.fn(() => repayPromise);
+    loans = { recordRepayment } as unknown as LoanService;
+    const onDone = vi.fn();
+    const row = {
+      loan: { id: "loan-1", borrowerName: "أحمد" },
+      reading: { principalMinor: 15000, repaidActiveMinor: 0, outstandingMinor: 15000 },
+    } as unknown as Parameters<typeof RepaymentSheet>[0]["row"];
+    render(<Harness page={<RepaymentSheet row={row} onClose={() => {}} onDone={onDone} />} />);
+    const amount = await screen.findByLabelText("مبلغ الدفعة");
+    fireEvent.change(amount, { target: { value: "50" } });
+    fireEvent.blur(amount);
+    /* عقد ظاهر للمستخدم: نبضتان قبل اكتمال الأولى تكتبان دفعة واحدة فقط —
+     * يتحقق بطبقتين: تعطيل الزر أثناء الحفظ، وعهدة الإرسال المتزامن (G6/A2)
+     * نفس عهدة محررَي الأصل والقرض التي تختبرها حالة الحارس أعلاه. هنا نثبّت
+     * العقد الظاهر: لا كتابة مزدوجة مهما تكرر النقر. */
+    const confirm = await screen.findByRole("button", { name: /أكّد السداد/ });
+    fireEvent.click(confirm);
+    fireEvent.click(confirm);
+    fireEvent.click(confirm);
+    expect(recordRepayment).toHaveBeenCalledTimes(1);
+    resolveRepay({ ok: true, value: { loan: row.loan, event: null } });
+    await waitFor(() => expect(onDone).toHaveBeenCalled());
   });
 });

@@ -691,6 +691,15 @@ export class IntegrityCheckService {
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
     const warnOffenders: string[] = [];
+    /* المجموعة ٦ (تدقيق A2 — AI-01): مكنسة الاتجاه المعاكس — حدث مالي يحمل
+     * سياق أصل لا سجل له في المتجر فساد صريح (تلاعب يدوي أو تسريب مستقبلي)،
+     * والأثر يدخل الدفاتر بلا مالك قابل للتصحيح. الرفض عند الاستيراد هو الخط
+     * الأول؛ هذا المسح خط الدفاع الثاني على البيانات القائمة. */
+    const knownAssetIds = new Set(assets.map(asset => asset.id));
+    for (const event of events) {
+      if (event.assetContext && !knownAssetIds.has(event.assetContext.assetId))
+        offenders.push(`حدث-أصل-بلا-سجل:${event.id}`);
+    }
     for (const asset of assets) {
       const acquisition = events.find(event => event.id === asset.acquisitionEventId);
       if (!acquisition || acquisition.assetContext?.assetId !== asset.id) {
@@ -785,6 +794,13 @@ export class IntegrityCheckService {
     const loans = loansResult.value;
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
+    /* المجموعة ٦ (تدقيق A2 — AI-01): مكنسة الاتجاه المعاكس لسياق القروض —
+     * نفس منطق MIC-10: حدث يتيم بلا سجل قرض فساد يُعلن لا يُسكَت عنه. */
+    const knownLoanIds = new Set(loans.map(loan => loan.id));
+    for (const event of events) {
+      if (event.loanContext && !knownLoanIds.has(event.loanContext.loanId))
+        offenders.push(`حدث-قرض-بلا-سجل:${event.id}`);
+    }
     for (const loan of loans) {
       const principal = events.find(event => event.id === loan.principalEventId);
       if (!principal || principal.loanContext?.loanId !== loan.id) {

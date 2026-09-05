@@ -2394,6 +2394,16 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       if (repayment.reversal && !eventIds.has(repayment.reversal.reversalEventId)) return false;
     }
   }
+  /* المجموعة ٦ (تدقيق A2 — AI-01): اكتمال عقد العائلة بالاتجاهين — حدث
+   * بسياق أصل/قرض يشترط سجل مالكه في الملف نفسه، كما يشترط سياق عربون
+   * الطلب طلبًا موجودًا (فحص 4-c أعلاه). الملف المعبوث به أو المدموج يدويًا
+   * الذي يهرّب حدثًا يتيمًا كان يُستورد فيدخل دفاتره أثر لا سجل له، ولا
+   * سبيل لتصحيحه لاحقًا (حارس العائلة يمنع التصحيح العام ووصلته تقود لصفحة
+   * غير موجودة). الآن يُرفض قبل أي معاينة كما تُرفض البصمة المكسورة. */
+  for (const event of data.financialEvents) {
+    if (event.assetContext && !assetIds.has(event.assetContext.assetId)) return false;
+    if (event.loanContext && !loanIds.has(event.loanContext.loanId)) return false;
+  }
   return true;
 }
 

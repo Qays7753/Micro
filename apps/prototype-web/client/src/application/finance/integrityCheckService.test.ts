@@ -987,3 +987,74 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
     expect(mic4?.offenderSampleIds?.some(id => id === tampered.id)).toBe(true);
   });
 });
+
+/* ─── المجموعة ٦ (تدقيق A2 — AI-01): مكنسة الأيتام بالاتجاه المعاكس ───
+ * حدث مالي يحمل سياق أصل/قرض لا سجل له في المتجر (تلاعب يدوي أو ملف مكسور
+ * تسرب قبل إصلاح الاستيراد) يجب أن يُعلن فشلًا صريحًا في MIC-10/11 — لا أن
+ * يدخل الدفاتر أثرًا بلا مالك قابل للتصحيح. */
+describe("integrity checks MIC-10/11 ghost family contexts (المجموعة ٦ — تدقيق A2)", () => {
+  it("MIC-10 fails on a financial event whose asset context has no asset record", async () => {
+    const { store, services } = await cleanStore();
+    /* حدث اقتناء بسياق شبح — لا سجل أصل يقابله في المتجر. */
+    await store.saveFinancialEvent(
+      createFinancialEvent({
+        id: "ghost-asset-event",
+        type: "asset_purchase_cash",
+        amountMinor: 25000,
+        occurredOn: "2026-08-01",
+        recordedAt: now(),
+        idempotencyKey: "ghost-asset-event",
+        note: "حدث شبح",
+        counterparty: null,
+        assetContext: { assetId: "asset-ghost", name: "أصل وهمي" },
+      }),
+    );
+    const report = await services.integrityCheck.run();
+    const mic10 = report.checks.find(check => check.id === "MIC-10");
+    expect(mic10?.status).toBe("FAIL");
+    expect(mic10?.offenderSampleIds?.some(id => id.includes("حدث-أصل-بلا-سجل"))).toBe(true);
+  });
+
+  it("MIC-11 fails on a financial event whose loan context has no loan record", async () => {
+    const { store, services } = await cleanStore();
+    await store.saveFinancialEvent(
+      createFinancialEvent({
+        id: "ghost-loan-event",
+        type: "loan_outgoing_cash",
+        amountMinor: 12000,
+        occurredOn: "2026-08-01",
+        recordedAt: now(),
+        idempotencyKey: "ghost-loan-event",
+        note: "حدث شبح",
+        counterparty: "شبح",
+        loanContext: { loanId: "loan-ghost", borrower: "مستدين وهمي" },
+      }),
+    );
+    const report = await services.integrityCheck.run();
+    const mic11 = report.checks.find(check => check.id === "MIC-11");
+    expect(mic11?.status).toBe("FAIL");
+    expect(mic11?.offenderSampleIds?.some(id => id.includes("حدث-قرض-بلا-سجل"))).toBe(true);
+  });
+
+  it("MIC-10/11 stay PASS when every family event carries its own record", async () => {
+    const { services } = await cleanStore();
+    await services.assets.create({
+      name: "ماكينة سليمة",
+      acquisitionAmountMinor: 40000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-06-01",
+    });
+    await services.loans.create({
+      borrowerName: "أحمد",
+      principalMinor: 15000,
+      loanDate: "2026-07-01",
+    });
+    const report = await services.integrityCheck.run();
+    const mic10 = report.checks.find(check => check.id === "MIC-10");
+    const mic11 = report.checks.find(check => check.id === "MIC-11");
+    expect(mic10?.status).toBe("PASS");
+    expect(mic11?.status).toBe("PASS");
+  });
+});
