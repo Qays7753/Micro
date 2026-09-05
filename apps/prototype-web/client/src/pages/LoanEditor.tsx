@@ -31,7 +31,10 @@ export default function LoanEditor() {
   const [purposeNote, setPurposeNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const idempotencyKey = useRef(`loan-create-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+  /* المجموعة ٦ (تدقيق A2 — AI-02): عهدة تزامنية ضد الإرسال المزدوج —
+   * نفس منطق محرر الأصل: الحالة وحدها لا ترد نداءً متزامنًا ثانيًا، والخدمة
+   * تولد معرفات جديدة لكل نداء فالمنع هنا هو خط الدفاع الوحيد. */
+  const saveInFlightRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -74,6 +77,7 @@ export default function LoanEditor() {
   }, [draft.state.phase]);
 
   async function save(): Promise<boolean> {
+    if (saveInFlightRef.current) return false;
     if (!borrowerName.trim()) {
       setMessage("أكمل اسم المستدين — مثال: أحمد، أم خالد، ورشة الجيران.");
       return false;
@@ -83,29 +87,34 @@ export default function LoanEditor() {
       return false;
     }
     setMessage(null);
+    saveInFlightRef.current = true;
     setSaving(true);
-    const result = await loans.create({
-      borrowerName,
-      principalMinor,
-      loanDate,
-      purposeNote: purposeNote.trim() || null,
-      sourceWalletId: sourceWalletId || null,
-    });
-    setSaving(false);
-    if (!result.ok) {
-      setMessage(result.message);
-      return false;
+    try {
+      const result = await loans.create({
+        borrowerName,
+        principalMinor,
+        loanDate,
+        purposeNote: purposeNote.trim() || null,
+        sourceWalletId: sourceWalletId || null,
+      });
+      if (!result.ok) {
+        setMessage(result.message);
+        return false;
+      }
+      notifyDataChanged();
+      await draft.clearFormDraft();
+      /* المجموعة ٤ (تصحيح مراجعة 4-c): الذهاب للتفاصيل يحمل مصدره — زر الرجوع
+       * في التفاصيل يعود لقائمة القروض لا لقفزة مجهولة. */
+      navigate(
+        returnPath && returnPath !== "/loans"
+          ? returnPath
+          : withFrom(`/loans/${result.value.loan.id}`, "/loans"),
+      );
+      return true;
+    } finally {
+      saveInFlightRef.current = false;
+      setSaving(false);
     }
-    notifyDataChanged();
-    await draft.clearFormDraft();
-    /* المجموعة ٤ (تصحيح مراجعة 4-c): الذهاب للتفاصيل يحمل مصدره — زر الرجوع
-     * في التفاصيل يعود لقائمة القروض لا لقفزة مجهولة. */
-    navigate(
-      returnPath && returnPath !== "/loans"
-        ? returnPath
-        : withFrom(`/loans/${result.value.loan.id}`, "/loans"),
-    );
-    return true;
   }
 
   return (

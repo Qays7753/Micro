@@ -217,4 +217,34 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     expect(list.value[0]!.acquisitionKind).toBe("payable");
     expect(list.value[0]!.acquisitionEventId).toBe(replacements[0]!.id);
   });
+
+  /* ─── المجموعة ٦ (تدقيق A2 — AI-02): الإرسال المزدوج أثناء الحفظ ───
+   * حفظ زر + استدعاء برمجي من حارس الخروج «احفظ واستمر» قبل أن يكتمل الأول —
+   * الخدمة تولد معرفات جديدة لكل نداء فلو مر النداء الثاني لسُجّل الأصل مرتين.
+   * العهدة المرجعية ترد النداء المتزامن الثاني فيبقى النداء واحدًا. */
+  it("ignores a guard-triggered save while a save is already in flight — one create call (G6/A2)", async () => {
+    let resolveCreate!: (value: unknown) => void;
+    const createPromise = new Promise(resolve => {
+      resolveCreate = resolve;
+    });
+    const create = vi.fn(() => createPromise);
+    assets = { create } as unknown as AssetService;
+    wouterMocks.location = "/assets/new";
+    render(<Harness page={<AssetEditor />} />);
+    fireEvent.change(await screen.findByPlaceholderText("مثال: ثلاجة عرض للمحل"), {
+      target: { value: "ثلاجة عرض" },
+    });
+    const amount = await screen.findByLabelText("قيمة الشراء");
+    fireEvent.change(amount, { target: { value: "100" } });
+    fireEvent.blur(amount);
+    fireEvent.click(await screen.findByRole("button", { name: /احفظ الأصل/ }));
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+    /* الخروج أثناء الحفظ: الحارس يفتح خيار «احفظ واستمر» فيستدعي الحفظ
+     * برمجيًا بينما النداء الأول ما زال معلقًا — النداء الثاني يُرد فورًا. */
+    fireEvent.click(await screen.findByRole("button", { name: "الأصول" }));
+    fireEvent.click(await screen.findByRole("button", { name: "احفظ واستمر" }));
+    expect(create).toHaveBeenCalledTimes(1);
+    resolveCreate({ ok: true, value: { asset: { id: "asset-g6a2" }, event: null } });
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
+  });
 });

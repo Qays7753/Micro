@@ -4,7 +4,7 @@
  * السداد يرفع الكاش ويخفض القرض — لا إيراد جديد أبدًا.
  */
 import { HandCoins, Save } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -29,8 +29,13 @@ export default function RepaymentSheet({
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /* المجموعة ٦ (تدقيق A2 — AI-02): عهدة تزامنية ضد الإرسال المزدوج —
+   * سجل الدفعة يولد معرفات جديدة لكل نداء؛ الحالة وحدها لا ترد نداءً
+   * متزامنًا ثانيًا (نبضتان قبل الرسم أو نداء برمجي متزامن). */
+  const saveInFlightRef = useRef(false);
 
   async function save() {
+    if (saveInFlightRef.current) return;
     if (!validAmount || !Number.isInteger(amountMinor) || amountMinor <= 0) {
       setMessage("أدخل مبلغ الدفعة بالأرقام 0–9.");
       return;
@@ -42,14 +47,23 @@ export default function RepaymentSheet({
       return;
     }
     setMessage(null);
+    saveInFlightRef.current = true;
     setSaving(true);
-    const result = await loans.recordRepayment(row.loan.id, { amountMinor, date, note: note.trim() || null });
-    setSaving(false);
-    if (!result.ok) {
-      setMessage(result.message);
-      return;
+    try {
+      const result = await loans.recordRepayment(row.loan.id, {
+        amountMinor,
+        date,
+        note: note.trim() || null,
+      });
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
+      onDone();
+    } finally {
+      saveInFlightRef.current = false;
+      setSaving(false);
     }
-    onDone();
   }
 
   return (
