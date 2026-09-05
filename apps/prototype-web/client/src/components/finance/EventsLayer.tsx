@@ -381,10 +381,10 @@ function FinancialEventRow({
         familyOwner ? (
           <div className="micro-text-actions">
             <button className="micro-text-action" type="button" onClick={() => navigate(familyOwner.href)}>
-              استرجع/صحّح من {familyOwner.owner === "سجل الطلب" ? "صفحة الطلب" : familyOwner.owner === "سجل الأصل" ? "صفحة الأصل" : "صفحة القرض"}
+              {familyOwner.label}
             </button>
             <small className="micro-finance-event-audit">
-              استرجاع هذا الحدث يُدار من سجل عائلته ليبقى السجل وفحص السلامة متطابقين.
+              استرجاع/تصحيح هذا الحدث يُدار من سجل عائلته ليبقى السجل وفحص السلامة متطابقين.
             </small>
           </div>
         ) : (

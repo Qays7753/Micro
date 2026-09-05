@@ -311,7 +311,10 @@ CAPS: dict[str, int] = {
     # finance layers (الأصول والقروض with pending-retained visibility), four explicit
     # period-result lines (إهلاك/شطب/تخلص/عربون مصنَّف), and the canonical reader's new
     # reason strings in the feeding service — mandated labels only.
-    "Finance": 260,
+    # Finance 260 → 266 (2026-09-05, Group 6 audit A1 / FT-03): family-owner guard in
+    # the events layer — three deep-link labels, one shared guidance note, and the
+    # reverse note; integrity-communication copy only, no new data prose.
+    "Finance": 266,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -462,7 +465,10 @@ CAPS: dict[str, int] = {
     # current honest count — the contract-26 return label ("رجوع") honoring the
     # Foundation guided-import ?from; notices now render inline per section (S3-11)
     # so no new prose was added beyond the return label.
-    "Settings": 39,
+    # Settings 39 → 51 (2026-09-05, Group 6 audit A1 / SP-01): data-leaving actions
+    # (export/import/reset) now require PIN proof once per session — three gate
+    # title/description pairs plus dialog copy; security-communication strings only.
+    "Settings": 51,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
@@ -535,6 +541,12 @@ CAPS: dict[str, int] = {
     # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
     # two-step delete, honest not-found.
     "EstimateDetail": 36,
+    # المجموعة ٦ (تدقيق A1 — AR-04): أسطح الكاش/التحصيل/الدفتر التي كانت خارج
+    # القياس تدخل أول مرة بسقف = عددها الحالي (سابقة «تُقاس من يومها الأول») —
+    # القياس يتوسع بلا تخفيف: أي إضافة فوق العدد الحالي تحتاج قرارًا موثقًا.
+    "CashDistribution": 48,
+    "Collect": 45,
+    "WalletLedger": 37,
 }
 
 PAGES = [
@@ -587,6 +599,21 @@ PAGES = [
     "Loans",
     "LoanEditor",
     "LoanDetail",
+    # المجموعة ٦ (تدقيق A1 — AR-04): كل صفحات المسارات تدخل القياس — كان ١٢
+    # سطحًا (عائلة الكاش/التحصيل/الأطراف/الدفتر) خارج §10.1 بلا قياس، فكانت
+    # رسالة «كل الأسطح ضمن السقوف» أوسع من الحقيقة.
+    "CashAdjustmentEditor",
+    "CashCount",
+    "CashDistribution",
+    "CashOpeningLaterEditor",
+    "CashReversalEditor",
+    "CashTransferEditor",
+    "CashWalletEditor",
+    "Collect",
+    "InventoryReversalEditor",
+    "NewDraft",
+    "Parties",
+    "WalletLedger",
 ]
 
 
@@ -770,9 +797,14 @@ def main(argv: list[str]) -> int:
     breakdown = "--breakdown" in argv
 
     failures = []
+    missing_pages = []
     for name in PAGES:
         page = CLIENT_SRC / f"pages/{name}.tsx"
         if not page.is_file():
+            # المجموعة ٦ (تدقيق A1 — AR-04): الصفحة المدرجة لكن غائبة = فحص يفشل
+            # لا تجاوز صامت — إعادة تسمية أو حذف شاشة كان يخرجها من القياس بلا أثر.
+            missing_pages.append(name)
+            print(f"MISS {name:24s} listed in PAGES but pages/{name}.tsx does not exist")
             continue
         strings = count_screen(name)
         cap = CAPS.get(name, 30)
@@ -783,10 +815,24 @@ def main(argv: list[str]) -> int:
                 print(f"    - {value}")
         if len(strings) > cap:
             failures.append((name, len(strings), cap))
+    # المجموعة ٦ (تدقيق A1 — AR-04): كل صفحة مسار موجودة يجب أن تكون مقيسة —
+    # شاشة جديدة خارج القائمة تُفشل الفحص حتى تُدرج بسقف موثق (سابقة يوم أول).
+    listed = set(PAGES)
+    unmeasured = sorted(
+        path.stem
+        for path in (CLIENT_SRC / "pages").glob("*.tsx")
+        if path.stem not in listed and ".test." not in path.name
+    )
+    if unmeasured:
+        print("\nUNMEASURED PAGES (§10.1 — add them to PAGES with a documented cap):")
+        for name in unmeasured:
+            print(f"  {name}")
     if failures:
         print("\nOVER CAP (§10.1):")
         for name, count, cap in failures:
             print(f"  {name}: {count} > {cap}")
+        return 1
+    if missing_pages or unmeasured:
         return 1
     print("\nAll surfaces within §10 caps.")
     return 0

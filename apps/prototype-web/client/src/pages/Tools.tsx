@@ -40,6 +40,11 @@ export default function Tools() {
     notifyDataChanged,
   } = usePrototypeServices();
   const [message, setMessage] = useState<string | null>(null);
+  /* المجموعة ٦ (تدقيق A1 — UX-02): آلة الحالة القياسية (تحميل/خطأ/جاهز) كما في
+   * الصفحات الأخرى — القراءة الفاشلة كانت تُبتلع صامتًا فتبدو «أدواتي» فارغة
+   * وكأن تقديرات المالك ضاعت، والشاشة إحدى مقاعد التنقل الخمسة. */
+  const [phase, setPhase] = useState<"loading" | "error" | "ready">("loading");
+  const [reloadToken, setReloadToken] = useState(0);
   /* التقديرات المحفوظة + حالة الوحدات */
   const [savedEstimates, setSavedEstimates] = useState<readonly CostEstimate[]>([]);
   const [moduleStates, setModuleStates] = useState<readonly { label: string; state: ModuleState; href: string }[]>(
@@ -48,8 +53,12 @@ export default function Tools() {
 
   useEffect(() => {
     let active = true;
+    setPhase("loading");
+    let failed = false;
     costEstimates.list().then(result => {
-      if (active && result.ok) setSavedEstimates(result.value);
+      if (!active) return;
+      if (!result.ok) failed = true;
+      else setSavedEstimates(result.value);
     });
     /* D-006: حالات الوحدات مشتقة من بيانات فعلية — لا سلسلة مثبتة تقول «غير مفعّل»
      * لما فيه بيانات. الوحدة بلا منتج للحالة لا تدّعي حالة. */
@@ -61,7 +70,11 @@ export default function Tools() {
       supplierPurchases.readSummary(),
       partyLedger.read(),
     ]).then(([activation, units, items, scheduleOverview, purchases, parties]) => {
-      if (!active || !activation.ok || !units.ok || !items.ok) return;
+      if (!active) return;
+      if (!activation.ok || !units.ok || !items.ok || failed) {
+        setPhase("error");
+        return;
+      }
       const catalogConfigured = items.items.length > 0;
       const scheduleConfigured =
         scheduleOverview.ok &&
@@ -116,11 +129,12 @@ export default function Tools() {
         },
         { label: "السوق والتوصيل", state: "not_available", href: "/tools" },
       ]);
+      setPhase("ready");
     });
     return () => {
       active = false;
     };
-  }, [costEstimates, inventory, catalog, schedules, supplierPurchases, partyLedger, dataVersion]);
+  }, [costEstimates, inventory, catalog, schedules, supplierPurchases, partyLedger, dataVersion, reloadToken]);
 
   async function removeEstimate(id: string) {
     const result = await costEstimates.remove(id);
@@ -145,6 +159,27 @@ export default function Tools() {
         <p>حاسبة تفكير مستقلة: تعمل بلا طلب وبلا مخزون وبلا تسجيل منتج — والنتيجة تقديرية دومًا.</p>
       </div>
 
+      {phase === "loading" ? (
+        <p className="micro-route-loading" role="status" aria-live="polite">
+          جارٍ قراءة أدواتك المحلية…
+        </p>
+      ) : null}
+      {phase === "error" ? (
+        <div className="micro-storage-error" role="alert">
+          <strong>تعذر قراءة أدواتك المحلية.</strong>
+          <p>لم يتغير أي شيء — بياناتك كما هي على هذا الجهاز. أعد المحاولة.</p>
+          <button
+            className="micro-button micro-button-secondary"
+            type="button"
+            onClick={() => setReloadToken(token => token + 1)}
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      ) : null}
+
+      {phase === "ready" ? (
+        <>
       <section className="micro-decision-card" aria-label="قاعدة الأداة">
         <span>قاعدة هذه الأداة</span>
         <strong>هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.</strong>
@@ -291,6 +326,8 @@ export default function Tools() {
           </article>
         ))}
       </section>
+        </>
+      ) : null}
     </section>
   );
 }

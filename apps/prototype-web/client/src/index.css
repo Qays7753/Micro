@@ -5919,9 +5919,13 @@ button.micro-month-cell:hover {
   font-size: 12px;
 }
 .micro-chip button {
+  /* المجموعة ٦ (تدقيق A1 — UX-03): هدف لمس ٤٤ بكسل كحد أدنى — فعل الإيقاف شبه
+   * مدمر لا يصح في ٢٨ بكسل؛ الرقاقة تنمو لاستيعابه داخل سلم الفرق المعتمد. */
   display: inline-grid;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
+  margin-block: calc(var(--space-1) * -1);
+  margin-inline: calc(var(--space-1) * -1);
   place-items: center;
   border: 0;
   border-radius: 999px;
