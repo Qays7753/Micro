@@ -795,8 +795,24 @@ export class IntegrityCheckService {
         continue;
       }
       const principalActive = principal.correctionType !== "reverse" && !reversed.has(principal.id);
-      if (!principalActive) offenders.push(`أصل-معكوس:${loan.id}`);
-      else if (principal.amountMinor !== loan.principalMinor) offenders.push(`أصل-لا-يطابق:${loan.id}`);
+      /* المجموعة ٦ (تدقيق A1 — FT-03): الاسترجاع يعيد القيم الأصلية حدثًا جديدًا —
+       * حين يوجد استرجاع فعّال لنفس أصل القرض (مفتاح restore: الحتمي) فأثر الأصل
+       * قائم وإن بقي رابط سجل القرض يشير إلى الحدث المعكوس؛ نفس منطق MIC-10 (F-2b)
+       * — قبل ذلك كان MIC-11 يفشل للأبد بعد أي استرجاع عام. */
+      const restoredPrincipal = principalActive
+        ? null
+        : (events.find(
+            event =>
+              event.idempotencyKey === `restore:${loan.principalEventId}` &&
+              event.loanContext?.loanId === loan.id &&
+              event.type === principal.type &&
+              event.correctionType !== "reverse" &&
+              !reversed.has(event.id),
+          ) ?? null);
+      const effectivePrincipal = principalActive ? principal : restoredPrincipal;
+      if (!effectivePrincipal) offenders.push(`أصل-معكوس:${loan.id}`);
+      else if (effectivePrincipal.amountMinor !== loan.principalMinor)
+        offenders.push(`أصل-لا-يطابق:${loan.id}`);
       for (const repayment of loan.repayments) {
         const event = events.find(candidate => candidate.id === repayment.eventId);
         if (!event || event.loanContext?.loanId !== loan.id) {
