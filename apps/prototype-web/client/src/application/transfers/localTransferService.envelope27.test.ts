@@ -84,4 +84,35 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
     );
     expect(prepared.ok).toBe(true);
   });
+
+  /* المجموعة ٦ (تدقيق A1 — DP-01): العدادات خارج بصمة البيانات — ملف أُعيد
+   * دمجه يدويًا (أو قُطع نقله) بعدادات لا تطابق بياناته كان يُقبل صامتًا؛
+   * الآن يُرفض قبل أي معاينة. */
+  it("rejects a current-version file whose embedded counts disagree with its data", async () => {
+    const store = new MemoryLocalStore();
+    await seedExpense(store);
+    const transfers = new LocalTransferService(store, now);
+    const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    const withWrongCounts = JSON.parse(JSON.stringify(exported.value));
+    withWrongCounts.counts.financialEvents = 5; /* البصمة لا تغطي العدادات — تظل صالحة */
+    const prepared = transfers.prepareImport(JSON.stringify(withWrongCounts));
+    expect(prepared.ok).toBe(false);
+    if (!prepared.ok) expect(prepared.message).toContain("عدادات الملف");
+  });
+
+  /* المجموعة ٦ (تدقيق A1 — DP-09): بصمة حاضرة لكن معطوبة البنية كانت تُتجاهل
+   * صامتًا فيمر الملف بلا أي تحقق تكامل؛ الآن تُرفض. */
+  it("rejects a malformed integrity block instead of silently skipping verification", async () => {
+    const store = new MemoryLocalStore();
+    await seedExpense(store);
+    const transfers = new LocalTransferService(store, now);
+    const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    const broken = JSON.parse(JSON.stringify(exported.value));
+    broken.integrity = { algorithm: "sha512", digest: 42 };
+    const prepared = transfers.prepareImport(JSON.stringify(broken));
+    expect(prepared.ok).toBe(false);
+    if (!prepared.ok) expect(prepared.message).toContain("معطوبة");
+  });
 });

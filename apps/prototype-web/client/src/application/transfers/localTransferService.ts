@@ -2519,16 +2519,21 @@ export class LocalTransferService {
     if (!isDate(candidate.exportedAt) || !isRecord(candidate.data))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
     /* المجموعة ٥ (عقد ٣٩): تحقق التكامل عند وجود البصمة — تلاعب الملف بعد
-     * إنشائه يُرفض قبل أي معاينة؛ غياب البصمة (ملف قديم) يعني المسار القائم. */
+     * إنشائه يُرفض قبل أي معاينة؛ غياب البصمة (ملف قديم) يعني المسار القائم.
+     * المجموعة ٦ (تدقيق A1 — DP-09): البصمة الحاضرة لكن معطوبة البنية (خوارزمية
+     * مجهولة أو قيمة غير سلسلة) تُرفض بدل تجاهلها صامتًا — ملف الإصدار الحالي
+     * يُنشأ دائمًا ببصمة سليمة فلا مسار مشروع لبصمة معطوبة. */
     if (isRecord(candidate.integrity)) {
       const algorithm = candidate.integrity["algorithm"];
       const digest = candidate.integrity["digest"];
-      if (algorithm === "sha256" && typeof digest === "string") {
-        if (syncSha256Hex(JSON.stringify(candidate.data)) !== digest)
-          return fail(
-            "تُغيّر الملف بعد إنشائه فبصمة التكامل لا تطابقه؛ لا تعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
-          );
-      }
+      if (algorithm !== "sha256" || typeof digest !== "string")
+        return fail(
+          "كتلة التكامل في الملف معطوبة (خوارزمية أو بصمة غير صالحة)؛ لا يمكن الاعتماد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
+        );
+      if (syncSha256Hex(JSON.stringify(candidate.data)) !== digest)
+        return fail(
+          "تُغيّر الملف بعد إنشائه فبصمة التكامل لا تطابقه؛ لا تعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
+        );
     }
     const raw = candidate.data;
     const migrated: LocalStoreSnapshot = {
@@ -2795,6 +2800,25 @@ export class LocalTransferService {
      * ولا عدادات ولا إصدار تطبيق — فيُفقد تحقق التكامل لملفات هذا الإصدار نفسه.
      * الآن تُحمل مع الملف: البصمة تُعاد على البيانات بعد الترحيل فتبقى صادقة
      * على الملف الخارج نفسه، والملفات القديمة بلا بصمة تبقى على مسارها القائم. */
+    /* المجموعة ٦ (تدقيق A1 — DP-01): العدادات المضمّنة كانت تُعاد حسابًا وتُستبدل
+     * بلا مقارنة — تعليق التصميم يَعِد «تُقارن عند الاستيراد بعدد السجلات المهاجرة
+     * فتكشف تغيّرًا أو نقصًا صامتًا» ولم يكن يحدث. الآن: ملف الإصدار الحالي (٢٧)
+     * بعدادات لا تطابق البيانات المُرحَّلة يُرفض — النقص أو التغيّر الصامت بعد
+     * التلاعب أو القطع يُكشف. الملفات القديمة (بلا عدادات أصلًا) على مسارها. */
+    if (isRecord(candidate.counts) && isCurrent) {
+      const incomingCounts: Record<string, unknown> = candidate.counts;
+      const migratedCounts = exportCountsOf(migrated);
+      const mismatches = (Object.keys(migratedCounts) as Array<keyof LocalExportCounts>).filter(
+        key => {
+          const incoming = incomingCounts[key];
+          return typeof incoming === "number" && Number.isInteger(incoming) && incoming !== migratedCounts[key];
+        },
+      );
+      if (mismatches.length > 0)
+        return fail(
+          "عدادات الملف لا تطابق بياناته بعد الترحيل — يبدو أن الملف تغيّر أو نقص بعد إنشائه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
+        );
+    }
     const file: LocalExportFile = {
       format: localExportFormat,
       version: localExportVersion,
