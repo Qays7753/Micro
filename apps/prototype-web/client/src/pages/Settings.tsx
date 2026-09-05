@@ -112,7 +112,13 @@ export default function SettingsPage() {
   const [guidedPreview, setGuidedPreview] = useState<GuidedOpeningImportPreview | null>(null);
   /* S3-11: الإشعار يُعرض داخل القسم الذي أنتجه — لا في أسفل صفحة بطول ٨٤١ سطرًا. */
   const [notice, setNotice] = useState<{ text: string; section: "storage" | "mode" } | null>(null);
-  const setStorageNotice = (text: string) => setNotice({ text, section: "storage" });
+  /* جولة الاستئناف (استدلال QA حي): إشعارات التخزين (نجاح التصدير، رفض التلاعب،
+   * معاينة الاستيراد) تُعرض داخل طبقة «بيانات البداية والاستعادة» المطوية أصلًا —
+   * فتُفتح الطبقة مع كل إشعار تخزين حتى لا يبقى الأثر غير مرئي للمستخدم. */
+  const setStorageNotice = (text: string) => {
+    setNotice({ text, section: "storage" });
+    setGuidedLayerOpen(true);
+  };
   const setModeNotice = (text: string) => setNotice({ text, section: "mode" });
   const [isWorking, setIsWorking] = useState(false);
   const [operatingMode, setOperatingMode] = useState<OperatingModeState>({ phase: "loading" });
@@ -238,6 +244,8 @@ export default function SettingsPage() {
         return;
       }
       setPreview(prepared.value);
+      /* جولة الاستئناف: معاينة الاستيراد تعرض داخل الطبقة نفسها — نفتحها لتُرى. */
+      setGuidedLayerOpen(true);
     } catch {
       setStorageNotice("تعذر قراءة الملف. بقيت بيانات هذا الجهاز دون تغيير.");
     } finally {

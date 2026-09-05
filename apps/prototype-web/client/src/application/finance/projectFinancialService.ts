@@ -12,6 +12,9 @@ import {
   type FinancialEvent,
   type FinancialEventType,
   type OperatingExpenseContext,
+  type AssetEventContext,
+  type LoanEventContext,
+  type DepositEventContext,
 } from "@micro-domain/financial-event/index.js";
 import { formatMoneyWithUnit, localDateInAmman as ammanDate} from "@/presentation/formatters";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
@@ -156,6 +159,12 @@ export type FinancialRecordInput = {
   counterparty: string | null;
   relatedEventId: string | null;
   expenseContext?: OperatingExpenseContext | null;
+  /* جولة الاستئناف (F-2): سياقات العائلات المتخصصة تمر عبر التصحيح العام
+   * (استرجاع/تعديل) كما تمر عبر التسجيل — الأصل والقرض والعربون أحداث لها
+   * سياق إلزامي في عقد المجال، وتغيّره عند الاسترجاع كان يفشل بلا كتابة. */
+  assetContext?: AssetEventContext | null;
+  loanContext?: LoanEventContext | null;
+  depositContext?: DepositEventContext | null;
   idempotencyKey: string;
   sharedExpense?: SharedExpenseRecordInput;
 };
@@ -1079,6 +1088,9 @@ export class ProjectFinancialService {
         counterparty: input.counterparty,
         relatedEventId: source.relatedEventId,
         expenseContext: source.expenseContext ?? null,
+        assetContext: source.assetContext ?? null,
+        loanContext: source.loanContext ?? null,
+        depositContext: source.depositContext ?? null,
       });
       /* F-006 (دورة التدقيق النهائي): التعديل الذرّي يخضع لنفس حد الأمانة الذي يخضع
        * له التسجيل — رفع تسليم أو إنقاص استلام بما يتجاوز المحتجز فعليًا يجعل الرصيد
@@ -1159,6 +1171,9 @@ export class ProjectFinancialService {
       counterparty: source.counterparty,
       relatedEventId: source.relatedEventId,
       expenseContext: source.expenseContext ?? null,
+      assetContext: source.assetContext ?? null,
+      loanContext: source.loanContext ?? null,
+      depositContext: source.depositContext ?? null,
       idempotencyKey: input.idempotencyKey,
     });
   }
@@ -1230,6 +1245,9 @@ export class ProjectFinancialService {
         counterparty: input.counterparty,
         relatedEventId: input.relatedEventId,
         expenseContext,
+        assetContext: input.assetContext ?? null,
+        loanContext: input.loanContext ?? null,
+        depositContext: input.depositContext ?? null,
       });
       const saved = await this.store.saveFinancialEvent(event);
       return saved.ok

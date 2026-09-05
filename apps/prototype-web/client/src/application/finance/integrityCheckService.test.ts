@@ -491,6 +491,42 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
     expect(mic10?.detailAr).toContain("عمر نافع مجهول");
   });
 
+  /* جولة الاستئناف (F-2b): عكس الاقتناء من السجل العام ثم استرجاعه — الفحص
+   * يقرأ الأثر الفعلي: بعد الاسترجاع يعود الاقتناء قائمًا (حدث جديد بنفس
+   * القيم والسياق) فلا يبقى الأصل مُعلَّمًا اقتناء-معكوسًا إلى الأبد. */
+  it("MIC-10 returns to honest state after reverse-then-restore of the acquisition", async () => {
+    const { store, services } = await cleanStore();
+    const asset = await services.assets.create({
+      name: "ماكينة استرجاع",
+      acquisitionAmountMinor: 30000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-06-01",
+    });
+    if (!asset.ok) throw new Error(asset.message);
+    const acquisitionId = asset.value.asset.acquisitionEventId;
+    const reversed = await services.projectFinance.reverse({
+      sourceEventId: acquisitionId,
+      occurredOn: "2026-09-03",
+      reason: "عكس تجريبي",
+      idempotencyKey: "f2b-reverse",
+    });
+    if (!reversed.ok) throw new Error(reversed.message);
+    const afterReverse = await services.integrityCheck.run();
+    const mic10Reversed = afterReverse.checks.find(check => check.id === "MIC-10");
+    expect(mic10Reversed?.status).toBe("FAIL");
+    expect(mic10Reversed?.detailAr).toContain("سلامة الأصول مكسورة");
+    const restored = await services.projectFinance.restoreEvent({
+      sourceEventId: acquisitionId,
+      idempotencyKey: `restore:${acquisitionId}`,
+    });
+    if (!restored.ok) throw new Error(restored.message);
+    const afterRestore = await services.integrityCheck.run();
+    const mic10Restored = afterRestore.checks.find(check => check.id === "MIC-10");
+    expect(mic10Restored?.status).toBe("PASS");
+  });
+
   it("MIC-11 fails when a repayment event disagrees with the loan record", async () => {
     const { store, services } = await cleanStore();
     const created = await services.loans.create({

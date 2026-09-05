@@ -707,10 +707,25 @@ export class IntegrityCheckService {
         continue;
       }
       const acquisitionActive = acquisition.correctionType !== "reverse" && !reversed.has(acquisition.id);
-      if (!acquisitionActive) offenders.push(`اقتناء-معكوس:${asset.id}`);
+      /* جولة الاستئناف (F-2b): الاسترجاع يعيد القيم الأصلية حدثًا جديدًا — حين
+       * يوجد حدث استرجاع فعّال لنفس الاقتناء (مفتاح restore: الحتمي) فأثر
+       * الاقتناء قائم وإن بقي رابط سجل الأصل يشير إلى الحدث المعكوس. الفحص
+       * يقرأ الأثر الفعلي لا الرابط التاريخي. */
+      const restoredAcquisition = acquisitionActive
+        ? null
+        : (events.find(
+            event =>
+              event.idempotencyKey === `restore:${asset.acquisitionEventId}` &&
+              event.assetContext?.assetId === asset.id &&
+              event.type === acquisition.type &&
+              event.correctionType !== "reverse" &&
+              !reversed.has(event.id),
+          ) ?? null);
+      const effectiveAcquisition = acquisitionActive ? acquisition : restoredAcquisition;
+      if (!effectiveAcquisition) offenders.push(`اقتناء-معكوس:${asset.id}`);
       else if (
-        acquisition.amountMinor !== asset.acquisitionAmountMinor ||
-        acquisition.type !==
+        effectiveAcquisition.amountMinor !== asset.acquisitionAmountMinor ||
+        effectiveAcquisition.type !==
           (asset.acquisitionKind === "cash" ? "asset_purchase_cash" : "asset_purchase_payable")
       )
         offenders.push(`اقتناء-لا-يطابق:${asset.id}`);
@@ -723,7 +738,7 @@ export class IntegrityCheckService {
       const depreciation = active
         .filter(event => event.type === "asset_depreciation")
         .reduce((sum, event) => sum + event.amountMinor, 0);
-      if (acquisitionActive && depreciation > asset.acquisitionAmountMinor)
+      if (effectiveAcquisition && depreciation > asset.acquisitionAmountMinor)
         offenders.push(`إهلاك-فوق-القيمة:${asset.id}`);
       if (asset.status === "disposed" && !active.some(event => event.type === "asset_disposal_cash"))
         offenders.push(`تخلص-بلا-حدث:${asset.id}`);
