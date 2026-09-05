@@ -3,14 +3,27 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
 
 permissions:
   contents: read
 
+# المجموعة ٦ (تدقيق A1 — AR-01/AR-03/AR-10): إصدار قابل للتتبع ومهذب.
+# - الوسم v* يشغّل الفحوص نفسها (لا مراجعة خضراء فوق main وحدها بلا أثر محفوظ)،
+#   ونتاج البناء يُرفع أثرًا قابلًا للتنزيل من كل تشغيل موسوم.
+# - فحص الثغرات يعاد محاولته بحدّ أقصى (انقطاعات سجل npm موثقة في PRs #150-#152)
+#   بدل تعطيله أو إفراغ إعادة الدفع — سياسة موثقة في CONTRIBUTING.md.
+# - مجموعة التزامن توقف التشغيلات المتراكمة على نفس المرجع، ومدة قصوى تحمي
+#   من تشغيل معلّق بلا نهاية.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,11 +42,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Audit dependencies
-        run: pnpm audit --audit-level high
+      - name: Audit dependencies (bounded retry for registry outages)
+        run: |
+          for attempt in 1 2 3; do
+            if pnpm audit --audit-level high; then
+              echo "audit passed on attempt ${attempt}"
+              exit 0
+            fi
+            code=$?
+            echo "audit attempt ${attempt} failed (exit ${code})"
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::pnpm audit failed 3 times — treat as a real finding unless https://status.npmjs.org reports an outage"
+              exit $code
+            fi
+            echo "waiting 60s before retry (known registry endpoint outages: PRs #150/#151/#152)"
+            sleep 60
+          done
 
       - name: Lint source and tests
         run: pnpm lint
 
       - name: Verify domain and prototype
         run: pnpm check
+
+      - name: Verify no whitespace errors (PR checklist rule automated)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin "${{ github.event.pull_request.base.ref }}"
+          git diff --check "origin/${{ github.event.pull_request.base.ref }}...HEAD"
+
+      - name: Upload production PWA build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: micro-pwa-${{ github.sha }}
+          path: apps/prototype-web/dist/public
+          retention-days: 30
+          if-no-files-found: error
