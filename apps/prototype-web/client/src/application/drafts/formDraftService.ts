@@ -22,12 +22,10 @@ export type FormDraftSaveResult =
   | { ok: false; code: "storage_error"; message: string };
 
 export type FormDraftReadResult =
-  | { ok: true; value: FormDraftEnvelope | null }
-  | { ok: false; code: "storage_error"; message: string };
+  { ok: true; value: FormDraftEnvelope | null } | { ok: false; code: "storage_error"; message: string };
 
 export type FormDraftDeleteResult =
-  | { ok: true; value: null }
-  | { ok: false; code: "storage_error"; message: string };
+  { ok: true; value: null } | { ok: false; code: "storage_error"; message: string };
 
 /** إصدار شكل القيم لكل نوع — تغيّره يعني تجاهل القديم بلا انفجار. */
 const FORM_VALUES_VERSION = 1;

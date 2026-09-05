@@ -23,9 +23,9 @@ export default function LoanDetail() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
   const { loans, dataVersion, notifyDataChanged } = usePrototypeServices();
-  const [state, setState] = useState<{ phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: Reading }>(
-    { phase: "loading" },
-  );
+  const [state, setState] = useState<
+    { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: Reading }
+  >({ phase: "loading" });
   const [repayOpen, setRepayOpen] = useState(false);
   const [correctionOpen, setCorrectionOpen] = useState(false);
   const [newBorrower, setNewBorrower] = useState("");
@@ -55,12 +55,21 @@ export default function LoanDetail() {
 
   useEffect(load, [load, dataVersion]);
 
-  if (state.phase === "loading") return <p className="micro-route-loading" role="status">جارٍ قراءة القرض…</p>;
+  if (state.phase === "loading")
+    return (
+      <p className="micro-route-loading" role="status">
+        جارٍ قراءة القرض…
+      </p>
+    );
   if (state.phase === "error")
     return (
       <section className="micro-page">
-        <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>القروض</button>
-        <p className="micro-field-error" role="alert">{state.message}</p>
+        <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+          القروض
+        </button>
+        <p className="micro-field-error" role="alert">
+          {state.message}
+        </p>
       </section>
     );
   const { loan, reading, events } = state.reading;
@@ -86,7 +95,10 @@ export default function LoanDetail() {
   }
 
   async function correctLoan() {
-    if (!newBorrower.trim() && (!validPrincipal || !Number.isInteger(newPrincipalMinor) || newPrincipalMinor <= 0)) {
+    if (
+      !newBorrower.trim() &&
+      (!validPrincipal || !Number.isInteger(newPrincipalMinor) || newPrincipalMinor <= 0)
+    ) {
       setMessage("عدّل الاسم أو المبلغ قبل الحفظ.");
       return;
     }
@@ -97,7 +109,10 @@ export default function LoanDetail() {
     setBusy(true);
     const result = await loans.correctLoan(loan.id, {
       borrowerName: newBorrower.trim() || undefined,
-      principalMinor: validPrincipal && Number.isInteger(newPrincipalMinor) && newPrincipalMinor > 0 ? newPrincipalMinor : undefined,
+      principalMinor:
+        validPrincipal && Number.isInteger(newPrincipalMinor) && newPrincipalMinor > 0
+          ? newPrincipalMinor
+          : undefined,
       reason,
     });
     setBusy(false);
@@ -114,7 +129,9 @@ export default function LoanDetail() {
 
   return (
     <section className="micro-page micro-loan-detail">
-      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>القروض</button>
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+        القروض
+      </button>
       <div className="micro-page-heading">
         <span className="micro-overline">{reading.status === "open" ? "قرض قائم" : "قرض مسدَّد"}</span>
         <h1>{loan.borrowerName}</h1>
@@ -127,17 +144,23 @@ export default function LoanDetail() {
       <section className="micro-decision-card" aria-label="خلاصة القرض">
         <div>
           <span>المتبقي</span>
-          <strong><MoneyValue minor={reading.outstandingMinor} /> د.أ</strong>
+          <strong>
+            <MoneyValue minor={reading.outstandingMinor} /> د.أ
+          </strong>
           <p>
-            رجع منه <MoneyValue minor={reading.repaidActiveMinor} /> د.أ {loanInstallmentCountLabel(reading.repaymentCount)} —
-            المتبقي مشتق لا مخزن.
+            رجع منه <MoneyValue minor={reading.repaidActiveMinor} /> د.أ{" "}
+            {loanInstallmentCountLabel(reading.repaymentCount)} — المتبقي مشتق لا مخزن.
           </p>
         </div>
       </section>
 
       {reading.status === "open" ? (
         <div className="micro-form-actions">
-          <button className="micro-button micro-button-primary" type="button" onClick={() => setRepayOpen(true)}>
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={() => setRepayOpen(true)}
+          >
             <HandCoins aria-hidden="true" /> سجّل دفعة سداد
           </button>
         </div>
@@ -162,7 +185,8 @@ export default function LoanDetail() {
       {correctionOpen ? (
         <div className="micro-revision-form">
           <p className="micro-field-hint">
-            التصحيح موثق: يُعكس الحدث الأصلي ويُسجَّل بديل، والتاريخ يبقى كاملًا. المبلغ الجديد لا ينزل دون المسدَّد القائم.
+            التصحيح موثق: يُعكس الحدث الأصلي ويُسجَّل بديل، والتاريخ يبقى كاملًا. المبلغ الجديد لا ينزل دون
+            المسدَّد القائم.
           </p>
           <label className="micro-field">
             <span>اسم المستدين</span>
@@ -180,17 +204,30 @@ export default function LoanDetail() {
           </label>
           <label className="micro-field">
             <span>سبب التصحيح (مطلوب)</span>
-            <input value={reason} onChange={event => setReason(event.target.value)} placeholder="مثال: المبلغ الصحيح 500 لا 450" />
+            <input
+              value={reason}
+              onChange={event => setReason(event.target.value)}
+              placeholder="مثال: المبلغ الصحيح 500 لا 450"
+            />
           </label>
           <div className="micro-form-actions">
-            <button className="micro-button micro-button-primary" type="button" disabled={busy} onClick={() => void correctLoan()}>
+            <button
+              className="micro-button micro-button-primary"
+              type="button"
+              disabled={busy}
+              onClick={() => void correctLoan()}
+            >
               <Save aria-hidden="true" /> احفظ التصحيح
             </button>
           </div>
         </div>
       ) : null}
 
-      {message ? <p className="micro-field-error" role="alert">{message}</p> : null}
+      {message ? (
+        <p className="micro-field-error" role="alert">
+          {message}
+        </p>
+      ) : null}
 
       <details className="micro-finance-layer" open>
         <summary className="micro-finance-layer-summary">دفعات السداد ({loan.repayments.length})</summary>
@@ -255,7 +292,9 @@ export default function LoanDetail() {
           {events.map(event => (
             <li key={event.id} className="micro-event-row" data-type={event.type}>
               <strong>{event.type === "loan_outgoing_cash" ? "إقراض" : "سداد"}</strong>
-              <span><MoneyValue minor={event.amountMinor} /> د.أ · {formatLocalDate(event.occurredOn)}</span>
+              <span>
+                <MoneyValue minor={event.amountMinor} /> د.أ · {formatLocalDate(event.occurredOn)}
+              </span>
               {event.correctionType === "reverse" ? <small>تراجع موثق</small> : null}
             </li>
           ))}

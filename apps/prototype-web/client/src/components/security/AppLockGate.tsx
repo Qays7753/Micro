@@ -138,55 +138,63 @@ export function AppLockGate({ children }: { children: ReactNode }) {
               المالك نموذجًا مفتوحًا غير محفوظ. */}
           <div aria-hidden="true" className="micro-lock-veil" />
           <div className="micro-lock-overlay" role="dialog" aria-modal="true" aria-label="قفل Micro">
-        <Lock aria-hidden="true" className="micro-lock-icon" />
-        <h1>Micro مقفل</h1>
-        <p>
-          أدخل رمز القفل لمتابعة عملك كما تركته — بياناتك محلية على هذا الجهاز كما هي،
-          والقفل يحمي من النظرة العابرة فقط.
-        </p>
-        <form
-          className="micro-lock-form"
-          onSubmit={event => {
-            event.preventDefault();
-            void tryUnlock();
-          }}
-        >
-          <label className="micro-field">
-            <span>رمز القفل</span>
-            {/* رمز القفل نص أرقام إنجليزية بخط واحد — معيّن المدخلات الرقمي
+            <Lock aria-hidden="true" className="micro-lock-icon" />
+            <h1>Micro مقفل</h1>
+            <p>
+              أدخل رمز القفل لمتابعة عملك كما تركته — بياناتك محلية على هذا الجهاز كما هي، والقفل يحمي من
+              النظرة العابرة فقط.
+            </p>
+            <form
+              className="micro-lock-form"
+              onSubmit={event => {
+                event.preventDefault();
+                void tryUnlock();
+              }}
+            >
+              <label className="micro-field">
+                <span>رمز القفل</span>
+                {/* رمز القفل نص أرقام إنجليزية بخط واحد — معيّن المدخلات الرقمي
                 والاتجاه المعزول كنمط EnglishNumberInput بلا قيمة رقمية.
                 المجموعة ٦ (تدقيق A1): أرقام لوحة المفاتيح العربية (٠–٩)
                 تُطبّع إلى الإنجليزية عند الإدخال كما في كل حقول الأرقام،
                 والإدخال مقنّع عن النظرة الجانبية (نمط كلمة مرور). */}
-            <input
-              type="password"
-              value={pin}
-              onChange={event =>
-                setPin(normalizeAsciiDigits(event.target.value).replace(/[^0-9]/g, "").slice(0, 8))
-              }
-              inputMode="numeric"
-              autoComplete="off"
-              dir="ltr"
-              lang="en"
-              pattern="[0-9]*"
-              autoFocus
-            />
-          </label>
-          <button className="micro-button micro-button-primary" type="submit" disabled={pin.trim().length < 4}>
-            <LockOpen aria-hidden="true" /> افتح
-          </button>
-        </form>
-        {message ? (
-          <p className="micro-field-error" role="alert">
-            {message}
-          </p>
-        ) : null}
-        <p className="micro-offline-truth">
-          {/* مراجعة 5-RV-D: صياغة صادقة — لا مسار استرداد بلا الرمز؛ التعطيل من
+                <input
+                  type="password"
+                  value={pin}
+                  onChange={event =>
+                    setPin(
+                      normalizeAsciiDigits(event.target.value)
+                        .replace(/[^0-9]/g, "")
+                        .slice(0, 8),
+                    )
+                  }
+                  inputMode="numeric"
+                  autoComplete="off"
+                  dir="ltr"
+                  lang="en"
+                  pattern="[0-9]*"
+                  autoFocus
+                />
+              </label>
+              <button
+                className="micro-button micro-button-primary"
+                type="submit"
+                disabled={pin.trim().length < 4}
+              >
+                <LockOpen aria-hidden="true" /> افتح
+              </button>
+            </form>
+            {message ? (
+              <p className="micro-field-error" role="alert">
+                {message}
+              </p>
+            ) : null}
+            <p className="micro-offline-truth">
+              {/* مراجعة 5-RV-D: صياغة صادقة — لا مسار استرداد بلا الرمز؛ التعطيل من
               الإعدادات يحتاج الرمز نفسه ولا بديل سحابي. */}
-          لا يوجد استرداد بلا الرمز: تعطيل القفل من إعدادات هذا الجهاز يتطلب الرمز
-          نفسه، ولا يوجد بديل سحابي. بياناتك تبقى محلية كما هي.
-        </p>
+              لا يوجد استرداد بلا الرمز: تعطيل القفل من إعدادات هذا الجهاز يتطلب الرمز نفسه، ولا يوجد بديل
+              سحابي. بياناتك تبقى محلية كما هي.
+            </p>
           </div>
         </>
       ) : null}

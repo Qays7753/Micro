@@ -215,7 +215,10 @@ describe("G6 — OrderDetail compound collection reversal (S2-04a)", () => {
     expect(drawerBalance).toBe(5000);
     const stored = await store.getOrder("order-g6-1");
     expect(stored.ok && stored.value).toBeTruthy();
-    const order = stored.ok && stored.value ? stored.value.order : { collectedMinor: -1, events: [] as { type: string }[] };
+    const order =
+      stored.ok && stored.value
+        ? stored.value.order
+        : { collectedMinor: -1, events: [] as { type: string }[] };
     expect(order.collectedMinor).toBe(2000);
     expect(order.events.some(event => event.type === "collection_reversed")).toBe(true);
     const reversals = allEntries.filter(entry => entry.type === "reversal" && entry.reversesEntryId);
@@ -249,12 +252,8 @@ describe("G6 — OrderDetail compound collection reversal (S2-04a)", () => {
     fireEvent.click(await screen.findByRole("button", { name: /تراجع عن 30\.00 د\.أ/ }));
 
     /* لا مطابقة: لا زر مزدوج، والسبب الصادق يظهر بسطر واحد. */
-    await waitFor(() =>
-      expect(screen.getByText(/ما إلها تخصيص بمحفظة/)).toBeTruthy(),
-    );
-    expect(
-      screen.queryByRole("button", { name: "أكّد التراجع عن القبضة والتخصيص" }),
-    ).toBeNull();
+    await waitFor(() => expect(screen.getByText(/ما إلها تخصيص بمحفظة/)).toBeTruthy());
+    expect(screen.queryByRole("button", { name: "أكّد التراجع عن القبضة والتخصيص" })).toBeNull();
     /* المفرد يبقى: زر التأكيد الموثق القائم. */
     expect(await screen.findByRole("button", { name: "أكّد التراجع الموثق" })).toBeTruthy();
 
@@ -268,7 +267,6 @@ describe("G6 — OrderDetail compound collection reversal (S2-04a)", () => {
     });
   });
 });
-
 
 import OwnerEntitlement from "@/pages/OwnerEntitlement";
 import OwnerWithdrawalEditor from "@/pages/OwnerWithdrawalEditor";
@@ -374,7 +372,9 @@ describe("G6 — unified owner money screen «مال المالك» (S2-07)", ()
     expect(screen.getByRole("button", { name: "اسحب لنفسك" })).toBeTruthy();
     /* فعل الإدخال يذهب لمحرر الحدث مع العودة للدفتر الموحد. */
     fireEvent.click(screen.getByRole("button", { name: "أدخل مالًا للمشروع" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/finance/new/owner_investment_cash?from=%2Ffinance%2Fowner-entitlement");
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(
+      "/finance/new/owner_investment_cash?from=%2Ffinance%2Fowner-entitlement",
+    );
     /* السجل الموحد خلف إفصاح مسمّى ويظهر مصدرَي الحركة معًا. */
     fireEvent.click(screen.getByText("حركات مالك"));
     await waitFor(() => expect(screen.getByText("حدث عام")).toBeTruthy());
@@ -429,9 +429,7 @@ describe("G6 — OwnerWithdrawalEditor pre-entitlement draw (G6-U2-1)", () => {
     render(<G6OwnerHarness page={<OwnerWithdrawalEditor />} />);
     await screen.findByRole("heading", { name: "سحب من المشروع لنفسك؟" });
     /* الرسالة الصادقة للحالة: سياسة فعالة بس لا حق مسجل بعد. */
-    await waitFor(() =>
-      expect(screen.getByText(/سياسة حق مالك فعالة بس ما في حق مسجل بعد/)).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByText(/سياسة حق مالك فعالة بس ما في حق مسجل بعد/)).toBeTruthy());
     fireEvent.change(screen.getByLabelText("مبلغ السحب"), { target: { value: "20.00" } });
     fireEvent.click(screen.getByRole("button", { name: "سجّل السحب" }));
     await waitFor(async () => {
@@ -445,7 +443,9 @@ describe("G6 — OwnerWithdrawalEditor pre-entitlement draw (G6-U2-1)", () => {
     /* الكاش خرج من المحفظة — كتابة موثقة لا رسالة يأس. */
     const entries = await store.listCashContinuityEntries();
     const balance = entries.ok
-      ? entries.value.filter(entry => entry.walletId === "drawer-g6").reduce((sum, e) => sum + e.cashDeltaMinor, 0)
+      ? entries.value
+          .filter(entry => entry.walletId === "drawer-g6")
+          .reduce((sum, e) => sum + e.cashDeltaMinor, 0)
       : 0;
     expect(balance).toBe(5000 - 2000);
   });
@@ -468,9 +468,7 @@ describe("G6 — RestatementNote (S2-09)", () => {
 
   it("states the semantics in plain Arabic: original preserved, correction is a new record, shown number is the net", () => {
     const onOpen = vi.fn();
-    render(
-      <RestatementNote count={1} netAmountMinor={-5000} scopeLabel="هذه الفترة" onOpen={onOpen} />,
-    );
+    render(<RestatementNote count={1} netAmountMinor={-5000} scopeLabel="هذه الفترة" onOpen={onOpen} />);
     expect(screen.getByText(/تصحيح موثق واحد/)).toBeTruthy();
     expect(screen.getByText(/الأصل محفوظ كما هو؛ التصحيح سِجِل جديد/)).toBeTruthy();
     expect(screen.getByText(/صافي أثرِهما معًا/)).toBeTruthy();

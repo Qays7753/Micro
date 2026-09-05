@@ -23,14 +23,7 @@ import type { PrototypeLocalStore, StorageResult, StoredCraftOrder } from "@/sto
 import { localDateInAmman } from "@/presentation/formatters";
 
 export type ActivityEffectClass =
-  | "cash_in"
-  | "cash_out"
-  | "non_cash"
-  | "payable"
-  | "owner_money"
-  | "trust"
-  | "pending"
-  | "informational";
+  "cash_in" | "cash_out" | "non_cash" | "payable" | "owner_money" | "trust" | "pending" | "informational";
 
 export type ActivityFamily =
   | "sale"
@@ -203,16 +196,23 @@ export class ActivityService {
       return true;
     };
 
-    const [eventsResult, salesResult, ordersResult, purchasesResult, cashResult, movementsResult, materialsResult] =
-      await Promise.all([
-        this.store.listFinancialEvents(),
-        this.store.listDirectSales(),
-        this.store.listOrders(),
-        this.store.listSupplierPurchases(),
-        this.store.listCashContinuityEntries(),
-        this.store.listInventoryMovements(),
-        this.store.listMaterials(),
-      ]);
+    const [
+      eventsResult,
+      salesResult,
+      ordersResult,
+      purchasesResult,
+      cashResult,
+      movementsResult,
+      materialsResult,
+    ] = await Promise.all([
+      this.store.listFinancialEvents(),
+      this.store.listDirectSales(),
+      this.store.listOrders(),
+      this.store.listSupplierPurchases(),
+      this.store.listCashContinuityEntries(),
+      this.store.listInventoryMovements(),
+      this.store.listMaterials(),
+    ]);
     if (!eventsResult.ok) return eventsResult;
     if (!salesResult.ok) return salesResult;
     if (!ordersResult.ok) return ordersResult;
@@ -254,7 +254,9 @@ export class ActivityService {
     accept: (record: ActivityRecord) => boolean,
   ): void {
     const reversedIds = new Set(
-      events.filter(event => event.correctionType === "reverse").map(event => event.correctionOfEventId ?? ""),
+      events
+        .filter(event => event.correctionType === "reverse")
+        .map(event => event.correctionOfEventId ?? ""),
     );
     for (const event of events) {
       const isCorrection = event.correctionType === "reverse";
@@ -357,7 +359,8 @@ export class ActivityService {
           effect: effectForOrderEvent(event),
           status: reversedOrderEventIds.has(event.id) ? "reversed" : "active",
           reversalOfId:
-            (event.type === "collection_reversed" || event.type === "delivery_reversed") && event.reversesEventId
+            (event.type === "collection_reversed" || event.type === "delivery_reversed") &&
+            event.reversesEventId
               ? `${ORDER_STORE_PREFIX}:${stored.id}:${event.reversesEventId}`
               : null,
           sourceHref: `/orders/${stored.id}`,
@@ -377,7 +380,9 @@ export class ActivityService {
       /* مراجعة 5-RV-A: الدفعة المتراجع عنها تُوسَم «متراجع موثقًا»، والتراجع
        * يحمل تاريخ أثره الحقيقي (occurredOn) لا null — فيحترم نافذة الفترة
        * بدل الظهور في كل النطاقات بتاريخ «—». */
-      const reversedPaymentIds = new Set((purchase.paymentReversals ?? []).map(reversal => reversal.paymentId));
+      const reversedPaymentIds = new Set(
+        (purchase.paymentReversals ?? []).map(reversal => reversal.paymentId),
+      );
       for (const payment of purchase.payments) {
         const record: ActivityRecord = {
           id: `${PURCHASE_STORE_PREFIX}:${purchase.id}:payment:${payment.id}`,
@@ -425,7 +430,9 @@ export class ActivityService {
     /* مراجعة 5-RV-A: الأصل المتراجع عنه (سطر أو ساق تحويل) يُوسَم «متراجع
      * موثقًا» — بما فيه صف التحويل المجمّع إن عكس أحد ساقيه. */
     const reversedEntryIds = new Set(
-      entries.filter(entry => entry.type === "reversal" && entry.reversesEntryId).map(entry => entry.reversesEntryId as string),
+      entries
+        .filter(entry => entry.type === "reversal" && entry.reversesEntryId)
+        .map(entry => entry.reversesEntryId as string),
     );
     const reversedTransferIds = new Set(
       entries
@@ -507,7 +514,9 @@ export class ActivityService {
     accept: (record: ActivityRecord) => boolean,
   ): void {
     const reversedMovementIds = new Set(
-      movements.filter(m => m.type === "reversal" && m.reversesMovementId).map(m => m.reversesMovementId ?? ""),
+      movements
+        .filter(m => m.type === "reversal" && m.reversesMovementId)
+        .map(m => m.reversesMovementId ?? ""),
     );
     for (const movement of movements) {
       const materialName = materialNames.get(movement.materialId) ?? null;

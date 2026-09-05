@@ -412,10 +412,26 @@ function FinancialEventRow({
           intro="سيبقى السجل الأصلي كما هو. سيُضاف حدث تراجع بتاريخ اليوم يلغي كامل الأثر — لا إعادة كتابة للتاريخ."
           dimensions={[
             { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: -event.cashDeltaMinor },
-            { label: "الالتزامات", beforeMinor: event.payableDeltaMinor, afterMinor: -event.payableDeltaMinor },
-            { label: "مال المالك", beforeMinor: event.ownerCapitalDeltaMinor, afterMinor: -event.ownerCapitalDeltaMinor },
-            { label: "المصروف/النتيجة", beforeMinor: event.operatingExpenseDeltaMinor, afterMinor: -event.operatingExpenseDeltaMinor },
-            { label: "الأمانات", beforeMinor: event.amanahDeltaMinor ?? 0, afterMinor: -(event.amanahDeltaMinor ?? 0) },
+            {
+              label: "الالتزامات",
+              beforeMinor: event.payableDeltaMinor,
+              afterMinor: -event.payableDeltaMinor,
+            },
+            {
+              label: "مال المالك",
+              beforeMinor: event.ownerCapitalDeltaMinor,
+              afterMinor: -event.ownerCapitalDeltaMinor,
+            },
+            {
+              label: "المصروف/النتيجة",
+              beforeMinor: event.operatingExpenseDeltaMinor,
+              afterMinor: -event.operatingExpenseDeltaMinor,
+            },
+            {
+              label: "الأمانات",
+              beforeMinor: event.amanahDeltaMinor ?? 0,
+              afterMinor: -(event.amanahDeltaMinor ?? 0),
+            },
           ]}
           unchanged={["السجل الأصلي بقيمه وتاريخه", "سبب التراجع يُحفظ مع الحدث الجديد"]}
           reversibleNote="التراجع نفسه لا يُتراجع عنه؛ إن أردت إعادة الأثر فاستخدم «استرجع القيم الأصلية»."
@@ -465,7 +481,11 @@ function FinancialEventRow({
               aria-label="المبلغ الجديد"
             />
           </label>
-          <LocalDateField label="تاريخ الحدث الجديد" value={editDate} onChange={input => setEditDate(input.target.value)} />
+          <LocalDateField
+            label="تاريخ الحدث الجديد"
+            value={editDate}
+            onChange={input => setEditDate(input.target.value)}
+          />
           <label className="micro-field">
             <span>بيان البديل</span>
             <textarea value={editNote} onChange={input => setEditNote(input.target.value)} />
@@ -674,9 +694,7 @@ export function EventsLayer({
             aria-pressed={showAll}
             onClick={() => setShowAll(current => !current)}
           >
-            {showAll
-              ? "أعرض الأحدث فقط"
-              : `اعرض كل الأحداث (${events.length})`}
+            {showAll ? "أعرض الأحدث فقط" : `اعرض كل الأحداث (${events.length})`}
           </button>
         </div>
         {showAll && events.length > visibleEvents.length ? (

@@ -27,13 +27,7 @@ export default function CashWalletEditor() {
   const operationKey = useRef(`cash-wallet-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
-  const isDirty = useFormDirty([
-      name,
-      kind,
-      openingMinor,
-      date,
-      note,
-    ]);
+  const isDirty = useFormDirty([name, kind, openingMinor, date, note]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
@@ -62,11 +56,7 @@ export default function CashWalletEditor() {
   }
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">
@@ -126,16 +116,16 @@ export default function CashWalletEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-            <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
-          disabled={saving}
-          onClick={save}
-        >
-          <Save aria-hidden="true" />
-          {saving ? "جارٍ الحفظ…" : "حفظ محفظة ورصيد البداية"}
-        </button>
-          </div>
+          <button
+            className="micro-button micro-button-primary micro-save-cost"
+            type="button"
+            disabled={saving}
+            onClick={save}
+          >
+            <Save aria-hidden="true" />
+            {saving ? "جارٍ الحفظ…" : "حفظ محفظة ورصيد البداية"}
+          </button>
+        </div>
       </section>
     </section>
   );

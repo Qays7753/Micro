@@ -83,13 +83,14 @@ export class LoanService {
       this.store.getLoan(loanId),
       this.store.listFinancialEvents(),
     ]);
-    if (!loanResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل القرض المحلي.");
+    if (!loanResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل القرض المحلي.");
     const loan = loanResult.value;
     if (!loan) return failure("invalid_state", "القرض غير متاح محليًا.");
     const events = eventsResult.value
       .filter(event => event.loanContext?.loanId === loanId)
-      .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt) || right.id.localeCompare(left.id));
+      .sort(
+        (left, right) => right.recordedAt.localeCompare(left.recordedAt) || right.id.localeCompare(left.id),
+      );
     return { ok: true, value: { loan, reading: readLoan(loan), events } };
   }
 
@@ -172,8 +173,7 @@ export class LoanService {
       this.store.getLoan(loanId),
       this.store.listFinancialEvents(),
     ]);
-    if (!loanResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل القرض المحلي.");
+    if (!loanResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل القرض المحلي.");
     const loan = loanResult.value;
     if (!loan) return failure("invalid_state", "القرض غير متاح محليًا.");
     const repayment = loan.repayments.find(entry => entry.id === repaymentId);
@@ -208,14 +208,12 @@ export class LoanService {
       this.store.getLoan(loanId),
       this.store.listFinancialEvents(),
     ]);
-    if (!loanResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل القرض المحلي.");
+    if (!loanResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل القرض المحلي.");
     const loan = loanResult.value;
     if (!loan) return failure("invalid_state", "القرض غير متاح محليًا.");
     const source = eventsResult.value.find(event => event.id === loan.principalEventId);
     if (!source) return failure("invalid_state", "حدث أصل القرض غير موجود.");
-    if (source.correctionType === "reverse")
-      return failure("invalid_state", "حدث أصل القرض معكوس سابقًا.");
+    if (source.correctionType === "reverse") return failure("invalid_state", "حدث أصل القرض معكوس سابقًا.");
     /* تصحيح مراجعة 4-c: لا تصحيح بلا تغيير — عكس وبديل بلا فرق فعلي يلوّثان
      * التاريخ بضجيج بلا معنى؛ الطلب نفس القيم يُرفض برسالة صريحة. */
     const nextPrincipal = input.principalMinor ?? loan.principalMinor;
@@ -243,7 +241,12 @@ export class LoanService {
         counterparty: nextBorrower.trim(),
         loanContext: { loanId, borrower: nextBorrower.trim() },
       });
-      const corrected = correctLoanRecord(loan, { borrowerName: nextBorrower, principalMinor: nextPrincipal }, input.reason, now);
+      const corrected = correctLoanRecord(
+        loan,
+        { borrowerName: nextBorrower, principalMinor: nextPrincipal },
+        input.reason,
+        now,
+      );
       const next: LoanRecord = { ...corrected, principalEventId: replacement.id };
       const commit = await this.store.commitLoanCorrection(next, reversal, replacement);
       if (!commit.ok) return failure("storage_error", commit.message);

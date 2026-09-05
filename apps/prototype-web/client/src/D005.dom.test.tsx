@@ -65,9 +65,7 @@ function FinanceHarness() {
 
 async function openEventsLayer() {
   render(<FinanceHarness />);
-  await waitFor(() =>
-    expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-  );
+  await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
   const summary = Array.from(document.querySelectorAll("summary")).find(node =>
     node.textContent?.includes("السجل والأثر"),
   );
@@ -123,7 +121,9 @@ describe("D-005 corrections reach the UI from the event row", () => {
     /* سبب فارغ: يُرفض ولا يتغير السجل. */
     fireEvent.click(screen.getByText("أكّد التعديل الذرّي"));
     await waitFor(() =>
-      expect(screen.getByText("سبب التعديل مطلوب؛ التصحيح المالي يوثَّق بسبب واضح لا يُترك فارغًا.")).toBeTruthy(),
+      expect(
+        screen.getByText("سبب التعديل مطلوب؛ التصحيح المالي يوثَّق بسبب واضح لا يُترك فارغًا."),
+      ).toBeTruthy(),
     );
     /* تعبئة السبب وتغيير المبلغ ثم التأكيد. */
     fireEvent.change(screen.getByPlaceholderText("مثال: المبلغ الصحيح 12 دينارًا لا 21"), {
@@ -133,9 +133,7 @@ describe("D-005 corrections reach the UI from the event row", () => {
     fireEvent.click(screen.getByText("أكّد التعديل الذرّي"));
     await waitFor(() =>
       expect(
-        screen.getByText(
-          "تم التعديل بتراجع موثق وبديل جديد في معاملة واحدة؛ القيم القديمة باقية في السجل.",
-        ),
+        screen.getByText("تم التعديل بتراجع موثق وبديل جديد في معاملة واحدة؛ القيم القديمة باقية في السجل."),
       ).toBeTruthy(),
     );
     const events = await store.listFinancialEvents();
@@ -179,9 +177,7 @@ describe("D-005 corrections reach the UI from the event row", () => {
     );
     const events = await store.listFinancialEvents();
     if (!events.ok) throw new Error("events should list");
-    const restored = events.value.find(
-      event => event.idempotencyKey === `restore:${expense.id}`,
-    );
+    const restored = events.value.find(event => event.idempotencyKey === `restore:${expense.id}`);
     expect(restored).toMatchObject({ type: "operating_expense_cash", amountMinor: 7000 });
   });
 });

@@ -46,9 +46,7 @@ export default function WalletLedger() {
     walletLedger.read(params.id).then(result => {
       if (!active) return;
       setState(
-        result.ok
-          ? { phase: "ready", overview: result.value }
-          : { phase: "error", message: result.message },
+        result.ok ? { phase: "ready", overview: result.value } : { phase: "error", message: result.message },
       );
     });
     return () => {
@@ -74,15 +72,12 @@ export default function WalletLedger() {
     );
 
   const { overview } = state;
-  const walletHref = (path: string) => `${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent(`/cash/wallet/${overview.wallet.id}`)}`;
+  const walletHref = (path: string) =>
+    `${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent(`/cash/wallet/${overview.wallet.id}`)}`;
 
   return (
     <section className="micro-page micro-wallet-ledger-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => navigate(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         <ArrowLeft aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">

@@ -91,10 +91,20 @@ describe("share message service (المجموعة ٥ — عقد ٣٣)", () => {
   });
 
   it("statement draft: unavailable result stays «غير متاحة» — never a fake profit", () => {
-    const unavailable = statementShareDraft({ from: "2026-09-01", to: "2026-09-05", cashNetMinor: 12000, resultMinor: null });
+    const unavailable = statementShareDraft({
+      from: "2026-09-01",
+      to: "2026-09-05",
+      cashNetMinor: 12000,
+      resultMinor: null,
+    });
     expect(unavailable.body).toContain("غير متاحة");
     expect(unavailable.body).toContain("120.00 د.أ");
-    const available = statementShareDraft({ from: "2026-09-01", to: "2026-09-05", cashNetMinor: 12000, resultMinor: 3000 });
+    const available = statementShareDraft({
+      from: "2026-09-01",
+      to: "2026-09-05",
+      cashNetMinor: 12000,
+      resultMinor: 3000,
+    });
     expect(available.body).toContain("30.00 د.أ");
   });
 

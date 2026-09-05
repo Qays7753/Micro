@@ -66,7 +66,8 @@ describe("schema 33 export round-trip with product-sale links", () => {
       schemaVersion: number;
       data: { costEstimates: { materialItems: Record<string, unknown>[] }[] };
     };
-    legacy.version = 24;    delete (legacy as Record<string, unknown>).integrity;
+    legacy.version = 24;
+    delete (legacy as Record<string, unknown>).integrity;
     delete (legacy as Record<string, unknown>).counts;
     delete (legacy as Record<string, unknown>).appVersion;
 
@@ -90,7 +91,8 @@ describe("schema 33 export round-trip with product-sale links", () => {
 
     /* ملف أقدم من الموجتين (٢٣/٣١): يظل مقبولًا بالإرث المتسلسل — لا كسر خلفي. */
     const older = JSON.parse(text) as { version: number; schemaVersion: number };
-    older.version = 23;    delete (older as Record<string, unknown>).integrity;
+    older.version = 23;
+    delete (older as Record<string, unknown>).integrity;
     delete (older as Record<string, unknown>).counts;
     delete (older as Record<string, unknown>).appVersion;
 

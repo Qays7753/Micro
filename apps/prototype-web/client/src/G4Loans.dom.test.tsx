@@ -92,7 +92,11 @@ describe("G4 loans surfaces (المجموعة ٤ — عقد ٢٩)", () => {
   });
 
   it("repays from the bottom sheet with preview and over-repayment guard", async () => {
-    const created = await loans.create({ borrowerName: "أحمد", principalMinor: 15000, loanDate: "2026-07-01" });
+    const created = await loans.create({
+      borrowerName: "أحمد",
+      principalMinor: 15000,
+      loanDate: "2026-07-01",
+    });
     if (!created.ok) return;
     render(<Harness page={<Loans />} />);
     expect(await screen.findByText("أحمد")).toBeTruthy();
@@ -124,7 +128,11 @@ describe("G4 loans surfaces (المجموعة ٤ — عقد ٢٩)", () => {
   });
 
   it("keeps a settled loan visible in history with its payments", async () => {
-    const created = await loans.create({ borrowerName: "سالم", principalMinor: 5000, loanDate: "2026-07-01" });
+    const created = await loans.create({
+      borrowerName: "سالم",
+      principalMinor: 5000,
+      loanDate: "2026-07-01",
+    });
     if (!created.ok) return;
     await loans.recordRepayment(created.value.loan.id, { amountMinor: 5000, date: "2026-08-01" });
     wouterMocks.location = `/loans/${created.value.loan.id}`;

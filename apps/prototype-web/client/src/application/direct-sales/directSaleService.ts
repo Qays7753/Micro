@@ -48,8 +48,7 @@ export type DirectSaleResult<T> =
 const createId = () =>
   globalThis.crypto?.randomUUID?.() ?? `direct-sale-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-const CONFLICT_MESSAGE =
-  "هذا البيع عُدّل من نافذة أخرى بعد فتحك له؛ لم يُحفظ تعديلك. راجع ثم أعد الحفظ.";
+const CONFLICT_MESSAGE = "هذا البيع عُدّل من نافذة أخرى بعد فتحك له؛ لم يُحفظ تعديلك. راجع ثم أعد الحفظ.";
 
 export class DirectSaleService {
   constructor(
@@ -178,10 +177,7 @@ export class DirectSaleService {
     const source = existing.value.find(sale => sale.id === id);
     if (!source) return { ok: false, code: "not_found", message: "بيع مباشر غير موجود؛ لم يتغير شيء." };
     /* و٦: الإلغاء من نافذة متأخرة لا يطمس تعديلًا أحدث وصل قبله. */
-    if (
-      expectedRevisionCount !== undefined &&
-      expectedRevisionCount !== (source.revisions?.length ?? 0)
-    )
+    if (expectedRevisionCount !== undefined && expectedRevisionCount !== (source.revisions?.length ?? 0))
       return { ok: false, code: "conflict", message: CONFLICT_MESSAGE };
     const repeated = source.revisions?.find(revision => revision.idempotencyKey === idempotencyKey);
     if (repeated) return { ok: true, value: source, reused: true };

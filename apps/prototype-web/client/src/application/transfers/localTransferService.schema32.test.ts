@@ -190,7 +190,8 @@ describe("schema 32 export round-trip with selective inventory", () => {
       schemaVersion: number;
       data: Record<string, unknown>;
     };
-    legacyFile.version = 23;    delete (legacyFile as Record<string, unknown>).integrity;
+    legacyFile.version = 23;
+    delete (legacyFile as Record<string, unknown>).integrity;
     delete (legacyFile as Record<string, unknown>).counts;
     delete (legacyFile as Record<string, unknown>).appVersion;
 
@@ -346,7 +347,8 @@ describe("schema 32 export round-trip with selective inventory", () => {
     const danglingPurchase = JSON.parse(JSON.stringify(current.value));
     (danglingPurchase.data.supplierPurchases as Record<string, unknown>[])[0]!.materialId = "ghost-material";
     expect(
-      new LocalTransferService(new MemoryLocalStore(), now).prepareImport(JSON.stringify(danglingPurchase)).ok,
+      new LocalTransferService(new MemoryLocalStore(), now).prepareImport(JSON.stringify(danglingPurchase))
+        .ok,
     ).toBe(false);
     /* فشل التحضير لا يلمس بيانات المصدر. */
     const events = await store.listFinancialEvents();

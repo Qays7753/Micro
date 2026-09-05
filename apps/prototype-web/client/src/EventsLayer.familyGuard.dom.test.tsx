@@ -77,7 +77,9 @@ beforeEach(() => {
   store = new MemoryLocalStore();
   projectFinance = new ProjectFinancialService(store, () => NOW);
   vi.clearAllMocks();
-  mockedUsePrototypeServices.mockImplementation(() => contextRef.current as ReturnType<typeof usePrototypeServices>);
+  mockedUsePrototypeServices.mockImplementation(
+    () => contextRef.current as ReturnType<typeof usePrototypeServices>,
+  );
 });
 
 afterEach(() => {

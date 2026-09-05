@@ -17,8 +17,7 @@ export default function InventoryReversalEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const {
-  dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
   const [movement, setMovement] = useState<InventoryMovement | null>(null);
   const [date, setDate] = useState(ammanDate);
   const [reason, setReason] = useState("");
@@ -82,11 +81,7 @@ export default function InventoryReversalEditor() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">

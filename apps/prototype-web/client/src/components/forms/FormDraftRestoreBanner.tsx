@@ -31,8 +31,7 @@ export function FormDraftRestoreBanner({
   }, [savedAt]);
   if (!visible) return null;
   const days = ageInDays(savedAt, now);
-  const ageLabel =
-    days === 0 ? "اليوم" : days === 1 ? "أمس" : `قبل ${days} أيام`;
+  const ageLabel = days === 0 ? "اليوم" : days === 1 ? "أمس" : `قبل ${days} أيام`;
   return (
     <section className="micro-info-card" data-tone="accent" aria-label="مسودة غير محفوظة">
       <History aria-hidden="true" />
@@ -40,8 +39,8 @@ export function FormDraftRestoreBanner({
         <span className="micro-overline">عندك مسودة</span>
         <h2>مدخلاتك من آخر مرة محفوظة محليًا</h2>
         <p>
-          حُفظت <bdi dir="ltr">{formatLocalDate(savedAt.slice(0, 10)) ?? savedAt.slice(0, 10)}</bdi> ({ageLabel}) —
-          لم تُسجّل أي حركة مالية بعد؛ استرجعها لتكمل من حيث توقفت، أو تجاهلها وابدأ من جديد.
+          حُفظت <bdi dir="ltr">{formatLocalDate(savedAt.slice(0, 10)) ?? savedAt.slice(0, 10)}</bdi> (
+          {ageLabel}) — لم تُسجّل أي حركة مالية بعد؛ استرجعها لتكمل من حيث توقفت، أو تجاهلها وابدأ من جديد.
         </p>
         <div className="micro-form-actions">
           <button className="micro-button micro-button-primary" type="button" onClick={onRestore}>

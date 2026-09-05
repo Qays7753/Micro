@@ -28,8 +28,7 @@ export type LockVerifyResult =
   | { ok: false; code: "storage_error"; message: string };
 
 export type LockDisableResult =
-  | { ok: true; value: null }
-  | { ok: false; code: "wrong_pin" | "storage_error"; message: string };
+  { ok: true; value: null } | { ok: false; code: "wrong_pin" | "storage_error"; message: string };
 
 const MIN_PIN_LENGTH = 4;
 const MAX_PIN_LENGTH = 8;
@@ -53,13 +52,9 @@ async function sha256Hex(text: string): Promise<string> {
 const PIN_KDF_ITERATIONS = 120_000;
 
 async function pbkdf2Hex(salt: string, pin: string): Promise<string> {
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(pin),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
+  const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, [
+    "deriveBits",
+  ]);
   const bits = await crypto.subtle.deriveBits(
     { name: "PBKDF2", hash: "SHA-256", salt: new TextEncoder().encode(salt), iterations: PIN_KDF_ITERATIONS },
     keyMaterial,
@@ -83,7 +78,7 @@ async function verifyPin(
   const legacyHash = await sha256Hex(`${record.salt}:${normalized}`);
   if (legacyHash !== record.pinHash) return { matches: false, upgradedHash: null };
   /* فتح ناجح على السجل القديم: رقمية البصمة تُرقّى للمشتق البطيء فورًا —
- * لا يبقى سجل ضعيف على الجهاز بعد أن أثبت المالك رمزه. */
+   * لا يبقى سجل ضعيف على الجهاز بعد أن أثبت المالك رمزه. */
   const upgradedHash = await pbkdf2Hex(record.salt, normalized);
   return { matches: true, upgradedHash };
 }
@@ -182,14 +177,17 @@ export class LocalLockService {
       }
     }
     /* المجموعة ٦ (تدقيق A1 — SP-04): الوقفة التصاعدية مُنفَّذة لا معلنة فقط —
- * المحاولة داخل نافذة الوقفة تُرفض مبكرًا بلا زيادة العدّاد، فلا يُبنى قفل
- * دائم من نقر متكرر، ويبقى العدّاد المرئي صادقًا. */
+     * المحاولة داخل نافذة الوقفة تُرفض مبكرًا بلا زيادة العدّاد، فلا يُبنى قفل
+     * دائم من نقر متكرر، ويبقى العدّاد المرئي صادقًا. */
     const previousAttempts = record.failedAttempts;
     const backoffMs = delayForAttempts(previousAttempts);
     if (backoffMs > 0 && record.lastFailedAt) {
       const elapsed = Date.parse(this.now()) - Date.parse(record.lastFailedAt);
       if (elapsed >= 0 && elapsed < backoffMs) {
-        return { ok: true, value: { unlocked: false, failedAttempts: previousAttempts, retryInMs: backoffMs - elapsed } };
+        return {
+          ok: true,
+          value: { unlocked: false, failedAttempts: previousAttempts, retryInMs: backoffMs - elapsed },
+        };
       }
     }
     const failedAttempts = previousAttempts + 1;
@@ -199,14 +197,19 @@ export class LocalLockService {
       lastFailedAt: this.now(),
       updatedAt: this.now(),
     });
-    return { ok: true, value: { unlocked: false, failedAttempts, retryInMs: delayForAttempts(failedAttempts) } };
+    return {
+      ok: true,
+      value: { unlocked: false, failedAttempts, retryInMs: delayForAttempts(failedAttempts) },
+    };
   }
 
   static retryDelayMs(failedAttempts: number): number {
     return delayForAttempts(failedAttempts);
   }
 
-  async shouldLockNow(): Promise<{ ok: true; value: boolean } | { ok: false; code: "storage_error"; message: string }> {
+  async shouldLockNow(): Promise<
+    { ok: true; value: boolean } | { ok: false; code: "storage_error"; message: string }
+  > {
     const result = await this.store.getLocalSecurity();
     if (!result.ok) return { ok: false, code: "storage_error", message: result.message };
     const record = result.value;
@@ -239,8 +242,8 @@ export class LocalLockService {
       }
     }
     /* المجموعة ٦ (تدقيق A1 — DP-05): مسار التعطيل يخضع لنفس عدّاد المحاولات
- * والوقفة المُنفَّذة — النافذة التي تُفتح بلا قفل (SP-01) لا تُستعمل لهدر
- * التخمين بلا كلفة. */
+     * والوقفة المُنفَّذة — النافذة التي تُفتح بلا قفل (SP-01) لا تُستعمل لهدر
+     * التخمين بلا كلفة. */
     const previousAttempts = record.failedAttempts;
     const backoffMs = delayForAttempts(previousAttempts);
     if (backoffMs > 0 && record.lastFailedAt) {

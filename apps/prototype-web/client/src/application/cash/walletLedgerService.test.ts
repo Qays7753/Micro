@@ -3,10 +3,7 @@ import { describe, expect, it } from "vitest";
 import { WalletLedgerService } from "./walletLedgerService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import {
-  createCashContinuityEntry,
-  createCashWallet,
-} from "@micro-domain/cash-continuity/index.js";
+import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 
 const now = () => "2026-09-02T10:00:00.000Z";
 

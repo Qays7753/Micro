@@ -59,7 +59,11 @@ describe("OwnerProfileService", () => {
     const snapshot = await store.readSnapshot();
     expect(snapshot.ok && snapshot.value.ownerProfile?.displayName).toBe("أم عبد");
     const restored = new MemoryLocalStore();
-    await restored.replaceSnapshot(snapshot.ok ? snapshot.value : { profile: null, preferences: null, drafts: [], orders: [], schedules: [], financialEvents: [] });
+    await restored.replaceSnapshot(
+      snapshot.ok
+        ? snapshot.value
+        : { profile: null, preferences: null, drafts: [], orders: [], schedules: [], financialEvents: [] },
+    );
     const reread = await restored.getOwnerProfile();
     expect(reread.ok && reread.value?.displayName).toBe("أم عبد");
   });

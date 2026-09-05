@@ -10,10 +10,7 @@ import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 
 const now = () => "2026-09-05T07:00:00.000Z";
 
-async function saveEvent(
-  store: MemoryLocalStore,
-  input: Parameters<typeof createFinancialEvent>[0],
-) {
+async function saveEvent(store: MemoryLocalStore, input: Parameters<typeof createFinancialEvent>[0]) {
   const saved = await store.saveFinancialEvent(createFinancialEvent(input));
   if (!saved.ok) throw new Error("event should save");
   return saved.value;

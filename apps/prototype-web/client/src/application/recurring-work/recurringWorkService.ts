@@ -447,17 +447,11 @@ export class RecurringWorkService {
       const allocation =
         activePolicies.length === 1 ? calculateAllocationPolicy(activePolicies[0]!, evidence) : null;
       const reasons = [
-        ...(excludedOrderIds.length
-          ? ["طلبات مستبعدة"]
-          : []),
+        ...(excludedOrderIds.length ? ["طلبات مستبعدة"] : []),
         ...(material.notRecordedOrderCount ? ["مادة غير مسجلة"] : []),
         ...(time.notRecordedOrderCount ? ["لم تسجل وقتًا فعليًا لبعض الطلبات؛ هذا لا يعني صفر وقت."] : []),
-        ...(waste.totalWasteMinor
-          ? ["هدر مسجل"]
-          : []),
-        ...(activePolicies.length > 1
-          ? ["سياسات متداخلة"]
-          : []),
+        ...(waste.totalWasteMinor ? ["هدر مسجل"] : []),
+        ...(activePolicies.length > 1 ? ["سياسات متداخلة"] : []),
       ];
       const nextAction =
         allocation?.status === "known"
@@ -466,8 +460,7 @@ export class RecurringWorkService {
             ? "سجل المادة الفعلية"
             : activePolicies.length === 0
               ? "بلا سياسة توزيع"
-              : (allocation?.nextAction ??
-                "راجع السياسة والدليل");
+              : (allocation?.nextAction ?? "راجع السياسة والدليل");
       return {
         catalogItemId: item.id,
         periodFrom: from,

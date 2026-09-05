@@ -179,7 +179,9 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(overview.value[0]!.monthlyMinor).toBeNull();
     const proposal = await service.read(overview.value[0]!.asset.id);
     expect(proposal.ok && proposal.value.proposal.readiness).toBe("unknown_life");
-    const recordAttempt = await service.recordDepreciation(overview.value[0]!.asset.id, { asOf: "2026-12-31" });
+    const recordAttempt = await service.recordDepreciation(overview.value[0]!.asset.id, {
+      asOf: "2026-12-31",
+    });
     expect(recordAttempt.ok).toBe(false);
   });
 

@@ -9,8 +9,7 @@ import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/type
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
 export type PartyLedgerResult<T> =
-  | { ok: true; value: T }
-  | { ok: false; code: "storage_error"; message: string };
+  { ok: true; value: T } | { ok: false; code: "storage_error"; message: string };
 
 export type PartyMovementKind =
   | "order_debt"
@@ -110,8 +109,7 @@ export class PartyLedgerService {
      * (customerName)، والملاحظة القديمة مصدر احتياطي للسجلات التي سبق الحقل فقط. */
     for (const sale of sales.value as readonly DirectSale[]) {
       if ((sale.status ?? "active") !== "active") continue;
-      const name =
-        sale.customerName?.trim() || (sale.note?.trim() ? extractPartyFromNote(sale.note) : null);
+      const name = sale.customerName?.trim() || (sale.note?.trim() ? extractPartyFromNote(sale.note) : null);
       if (!name) continue;
       const entry = party(name);
       if (sale.collectionStatus === "partial_debt") {
@@ -143,10 +141,7 @@ export class PartyLedgerService {
       /* S2-08: الدفع الأولي يُلتمس بمعرفه لا بترتيب المصفوفة، وpaidMinor صار صافي
        * التراجعات بعد إصلاح S2-01 — فلا تتضخم «دفعات سُددت» بعد تراجع موثق. */
       const initialPayment = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`);
-      const paidAfterInitial = Math.max(
-        0,
-        purchase.paidMinor - (initialPayment?.amountMinor ?? 0),
-      );
+      const paidAfterInitial = Math.max(0, purchase.paidMinor - (initialPayment?.amountMinor ?? 0));
       if (paidAfterInitial > 0)
         entry.movements.push({
           id: `purchase-paid:${purchase.id}`,
@@ -183,14 +178,13 @@ export class PartyLedgerService {
     const list: readonly PartyEntry[] = Array.from(parties.values())
       .map(entry => ({
         ...entry,
-        movements: entry.movements
-          .slice()
-          .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn)),
+        movements: entry.movements.slice().sort((a, b) => b.occurredOn.localeCompare(a.occurredOn)),
       }))
       .filter(entry => entry.movements.length > 0 || entry.receivableMinor !== 0 || entry.payableMinor !== 0)
       .sort(
         (a, b) =>
-          Math.abs(b.receivableMinor) + Math.abs(b.payableMinor) -
+          Math.abs(b.receivableMinor) +
+          Math.abs(b.payableMinor) -
           (Math.abs(a.receivableMinor) + Math.abs(a.payableMinor)),
       );
 

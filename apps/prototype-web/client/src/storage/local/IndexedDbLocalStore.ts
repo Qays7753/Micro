@@ -2,7 +2,11 @@
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
-import type { InventoryMovement, InventoryShortage, Material } from "@micro-domain/inventory-material/index.js";
+import type {
+  InventoryMovement,
+  InventoryShortage,
+  Material,
+} from "@micro-domain/inventory-material/index.js";
 import type {
   CatalogItem,
   CatalogTemplate,
@@ -417,11 +421,7 @@ function openDatabase(): Promise<IDBDatabase> {
           };
         }
         if (openingStore) {
-          const cursor = guardUpgradeCursor(
-            openingStore.openCursor(),
-            request,
-            "أرصدة افتتاح حق المالك",
-          );
+          const cursor = guardUpgradeCursor(openingStore.openCursor(), request, "أرصدة افتتاح حق المالك");
           cursor.onsuccess = () => {
             const current = cursor.result;
             if (!current) return;
@@ -805,9 +805,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([orderStore, cashContinuityEntryStore], "readwrite");
         const orders = transaction.objectStore(orderStore);
         const cashEntries = transaction.objectStore(cashContinuityEntryStore);
-        let pending:
-          | StorageResult<{ order: StoredCraftOrder; cashEntry: CashContinuityEntry | null; reused: boolean }>
-          | null = null;
+        let pending: StorageResult<{
+          order: StoredCraftOrder;
+          cashEntry: CashContinuityEntry | null;
+          reused: boolean;
+        }> | null = null;
         const finish = (
           result: StorageResult<{
             order: StoredCraftOrder;
@@ -968,22 +970,22 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const shortageStore = transaction.objectStore(inventoryShortageStore);
         const wallets = transaction.objectStore(cashWalletStore);
         const cashEntries = transaction.objectStore(cashContinuityEntryStore);
-        let pending:
-          | StorageResult<{
-              order: StoredCraftOrder;
-              movements: readonly InventoryMovement[];
-              shortages: readonly InventoryShortage[];
-              cashEntry: CashContinuityEntry | null;
-              reused: boolean;
-            }>
-          | null = null;
-        const finish = (result: StorageResult<{
+        let pending: StorageResult<{
           order: StoredCraftOrder;
           movements: readonly InventoryMovement[];
           shortages: readonly InventoryShortage[];
           cashEntry: CashContinuityEntry | null;
           reused: boolean;
-        }>) => resolve(result);
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{
+            order: StoredCraftOrder;
+            movements: readonly InventoryMovement[];
+            shortages: readonly InventoryShortage[];
+            cashEntry: CashContinuityEntry | null;
+            reused: boolean;
+          }>,
+        ) => resolve(result);
         let deliveryReused = false;
         const orderRequest = orders.get(order.id);
         orderRequest.onerror = () => {
@@ -1114,18 +1116,18 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const orders = transaction.objectStore(orderStore);
         const movementStore = transaction.objectStore(inventoryMovementStore);
         let reversalReused = false;
-        let pending:
-          | StorageResult<{
-              order: StoredCraftOrder;
-              reversalMovements: readonly InventoryMovement[];
-              reused: boolean;
-            }>
-          | null = null;
-        const finish = (result: StorageResult<{
+        let pending: StorageResult<{
           order: StoredCraftOrder;
           reversalMovements: readonly InventoryMovement[];
           reused: boolean;
-        }>) => resolve(result);
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{
+            order: StoredCraftOrder;
+            reversalMovements: readonly InventoryMovement[];
+            reused: boolean;
+          }>,
+        ) => resolve(result);
         const orderRequest = orders.get(order.id);
         orderRequest.onerror = () => {
           pending = failure(orderRequest.error, database);
@@ -1311,7 +1313,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           if (events.some(event => event.id === reversal.id)) {
-            abortWith({ ok: false, code: "storage_error", message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." });
+            abortWith({
+              ok: false,
+              code: "storage_error",
+              message: "تعذر حفظ التراجع بسبب تعارض هوية محلية.",
+            });
             return;
           }
           if (
@@ -1356,14 +1362,18 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction(financialEventStore, "readwrite");
         const store = transaction.objectStore(financialEventStore);
         let settled = false;
-        let pendingAbortResult: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }> | null =
-          null;
+        let pendingAbortResult: StorageResult<{
+          reversal: FinancialEvent;
+          replacement: FinancialEvent;
+        }> | null = null;
         const finish = (result: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>) => {
           if (settled) return;
           settled = true;
           resolve(result);
         };
-        const abortWith = (result: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>) => {
+        const abortWith = (
+          result: StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>,
+        ) => {
           pendingAbortResult = result;
           try {
             transaction.abort();
@@ -1539,11 +1549,13 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
-  ): Promise<StorageResult<{
-    material: Material | null;
-    movements: readonly InventoryMovement[];
-    shortage: InventoryShortage | null;
-  }>> {
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      shortage: InventoryShortage | null;
+    }>
+  > {
     try {
       const database = await connection();
       return await new Promise(resolve => {
@@ -2605,8 +2617,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة سجل الأصول. */
   listAssets() {
-    return listAll<AssetRecord>(assetStore, (left, right) =>
-      left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id),
+    return listAll<AssetRecord>(
+      assetStore,
+      (left, right) => left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id),
     );
   }
   getAsset(id: string) {
@@ -2625,8 +2638,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([assetStore, financialEventStore], "readwrite");
         const assets = transaction.objectStore(assetStore);
         const events = transaction.objectStore(financialEventStore);
-        let pending: StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }> | null =
-          null;
+        let pending: StorageResult<{
+          record: AssetRecord;
+          event: FinancialEvent | null;
+          reused: boolean;
+        }> | null = null;
         const finish = (
           result: StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>,
         ) => {
@@ -2649,7 +2665,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               const request = eventCheck!;
               request.onsuccess = () => {
                 if (request.result) {
-                  pending = { ok: true, value: { record: existing ?? record, event: request.result as FinancialEvent, reused: true } };
+                  pending = {
+                    ok: true,
+                    value: {
+                      record: existing ?? record,
+                      event: request.result as FinancialEvent,
+                      reused: true,
+                    },
+                  };
                   try {
                     transaction.abort();
                   } catch {
@@ -2716,26 +2739,26 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     record: AssetRecord,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    record: AssetRecord;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>> {
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  > {
     try {
       const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([assetStore, financialEventStore], "readwrite");
         const assets = transaction.objectStore(assetStore);
         const events = transaction.objectStore(financialEventStore);
-        let pending:
-          | StorageResult<{
-              record: AssetRecord;
-              reversal: FinancialEvent;
-              replacement: FinancialEvent;
-              reused: boolean;
-            }>
-          | null = null;
+        let pending: StorageResult<{
+          record: AssetRecord;
+          reversal: FinancialEvent;
+          replacement: FinancialEvent;
+          reused: boolean;
+        }> | null = null;
         const finish = (
           result: StorageResult<{
             record: AssetRecord;
@@ -2801,8 +2824,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   /* المجموعة ٤ (عقد ٢٩ — القروض): قراءة سجل القروض. */
   listLoans() {
-    return listAll<LoanRecord>(loanStore, (left, right) =>
-      left.loanDate.localeCompare(right.loanDate) || left.id.localeCompare(right.id),
+    return listAll<LoanRecord>(
+      loanStore,
+      (left, right) => left.loanDate.localeCompare(right.loanDate) || left.id.localeCompare(right.id),
     );
   }
   getLoan(id: string) {
@@ -2820,8 +2844,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([loanStore, financialEventStore], "readwrite");
         const loans = transaction.objectStore(loanStore);
         const events = transaction.objectStore(financialEventStore);
-        let pending: StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }> | null = null;
-        const finish = (result: StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }>) => {
+        let pending: StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }> | null =
+          null;
+        const finish = (
+          result: StorageResult<{ record: LoanRecord; event: FinancialEvent; reused: boolean }>,
+        ) => {
           resolve(result);
         };
         const eventRequest = events.get(event.id);
@@ -2877,26 +2904,26 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     record: LoanRecord,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    record: LoanRecord;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>> {
+  ): Promise<
+    StorageResult<{
+      record: LoanRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  > {
     try {
       const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([loanStore, financialEventStore], "readwrite");
         const loans = transaction.objectStore(loanStore);
         const events = transaction.objectStore(financialEventStore);
-        let pending:
-          | StorageResult<{
-              record: LoanRecord;
-              reversal: FinancialEvent;
-              replacement: FinancialEvent;
-              reused: boolean;
-            }>
-          | null = null;
+        let pending: StorageResult<{
+          record: LoanRecord;
+          reversal: FinancialEvent;
+          replacement: FinancialEvent;
+          reused: boolean;
+        }> | null = null;
         const finish = (
           result: StorageResult<{
             record: LoanRecord;
@@ -2953,7 +2980,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!pending) pending = failure(transaction.error, database);
         };
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
-        transaction.oncomplete = () => finish({ ok: true, value: { record, reversal, replacement, reused: false } });
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { record, reversal, replacement, reused: false } });
       });
     } catch (error) {
       return failure(error);
@@ -2970,8 +2998,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([orderStore, financialEventStore], "readwrite");
         const orders = transaction.objectStore(orderStore);
         const events = transaction.objectStore(financialEventStore);
-        let pending: StorageResult<{ order: StoredCraftOrder; event: FinancialEvent; reused: boolean }> | null = null;
-        const finish = (result: StorageResult<{ order: StoredCraftOrder; event: FinancialEvent; reused: boolean }>) => {
+        let pending: StorageResult<{
+          order: StoredCraftOrder;
+          event: FinancialEvent;
+          reused: boolean;
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{ order: StoredCraftOrder; event: FinancialEvent; reused: boolean }>,
+        ) => {
           resolve(result);
         };
         const eventRequest = events.get(event.id);
@@ -3027,26 +3061,26 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     order: StoredCraftOrder,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    order: StoredCraftOrder;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>> {
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  > {
     try {
       const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([orderStore, financialEventStore], "readwrite");
         const orders = transaction.objectStore(orderStore);
         const events = transaction.objectStore(financialEventStore);
-        let pending:
-          | StorageResult<{
-              order: StoredCraftOrder;
-              reversal: FinancialEvent;
-              replacement: FinancialEvent;
-              reused: boolean;
-            }>
-          | null = null;
+        let pending: StorageResult<{
+          order: StoredCraftOrder;
+          reversal: FinancialEvent;
+          replacement: FinancialEvent;
+          reused: boolean;
+        }> | null = null;
         const finish = (
           result: StorageResult<{
             order: StoredCraftOrder;
@@ -3103,7 +3137,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!pending) pending = failure(transaction.error, database);
         };
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
-        transaction.oncomplete = () => finish({ ok: true, value: { order, reversal, replacement, reused: false } });
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { order, reversal, replacement, reused: false } });
       });
     } catch (error) {
       return failure(error);

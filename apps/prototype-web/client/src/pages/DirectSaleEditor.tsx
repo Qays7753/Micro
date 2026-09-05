@@ -14,10 +14,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
 import { useFormDraft } from "@/components/forms/useFormDraft";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import type {
-  DirectSaleCollectionStatus,
-  DirectSale,
-} from "@micro-domain/direct-sale/index.js";
+import type { DirectSaleCollectionStatus, DirectSale } from "@micro-domain/direct-sale/index.js";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
@@ -263,7 +260,22 @@ export default function DirectSaleEditor() {
       occurredOn,
       note,
     });
-  }, [itemName, quantity, revenueMinor, collectedEmpty, collectedMinor, costKnown, costMinor, customerName, catalogItemId, occurredOn, note, isDirty, editing, saleDraft.state.phase]);
+  }, [
+    itemName,
+    quantity,
+    revenueMinor,
+    collectedEmpty,
+    collectedMinor,
+    costKnown,
+    costMinor,
+    customerName,
+    catalogItemId,
+    occurredOn,
+    note,
+    isDirty,
+    editing,
+    saleDraft.state.phase,
+  ]);
   useEffect(() => {
     if (saleDraft.state.phase === "drafting" && restoredFromOffer.current) {
       restoredFromOffer.current = false;
@@ -483,8 +495,8 @@ export default function DirectSaleEditor() {
             عقد ٢٨ نفسه (معاينة ونقص موثق وتراجع). */}
         <section className="micro-decision-card" aria-label="ربط اختياري بالمخزون">
           <p>
-            فيك مواد متتبَّعة استُهلكت في هذا البيع؟ سجّل استهلاكها بصلة صريحة بهذا البيع —
-            اختياري تمامًا، والبيع صحيح بدونه.
+            فيك مواد متتبَّعة استُهلكت في هذا البيع؟ سجّل استهلاكها بصلة صريحة بهذا البيع — اختياري تمامًا،
+            والبيع صحيح بدونه.
           </p>
           <button
             className="micro-button micro-button-quiet"
@@ -506,9 +518,7 @@ export default function DirectSaleEditor() {
             className="micro-button micro-button-primary"
             type="button"
             onClick={() =>
-              requestNavigation(
-                withFrom(`/direct-sales/${encodeURIComponent(sale.id)}`, returnPath),
-              )
+              requestNavigation(withFrom(`/direct-sales/${encodeURIComponent(sale.id)}`, returnPath))
             }
           >
             <ReceiptText aria-hidden="true" /> افتح السجل
@@ -529,11 +539,7 @@ export default function DirectSaleEditor() {
 
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> {returnPath === "/orders" ? "العمل" : "رجوع"}
       </button>
       <div className="micro-page-heading">
@@ -554,7 +560,9 @@ export default function DirectSaleEditor() {
       ) : null}
       {!editing && saleDraft.state.phase === "drafting" && saleDraft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
-          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(saleDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل البيع بعد.
+          مسودتك محفوظة محليًا — آخر حفظ{" "}
+          <bdi dir="ltr">{formatLocalDate(localDateInAmman(saleDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل
+          البيع بعد.
         </p>
       ) : null}
       <section className="micro-decision-card">
@@ -586,7 +594,11 @@ export default function DirectSaleEditor() {
             <ul className="micro-direct-sale-revisions">
               {savedSale.revisions.map(revision => (
                 <li key={revision.idempotencyKey}>
-                  {revision.kind === "price_cut" ? "خفّضتُ السعر" : revision.kind === "cancel" ? "إلغاء" : "تعديل"}
+                  {revision.kind === "price_cut"
+                    ? "خفّضتُ السعر"
+                    : revision.kind === "cancel"
+                      ? "إلغاء"
+                      : "تعديل"}
                   {revision.beforeRevenueMinor != null
                     ? ` — السعر الأصلي: ${formatMoneyMinor(revision.beforeRevenueMinor)} د.أ`
                     : ""}
@@ -599,277 +611,298 @@ export default function DirectSaleEditor() {
       ) : null}
       <section className="micro-form-card">
         <fieldset disabled={savedSale?.status === "cancelled"} style={{ border: 0, padding: 0, margin: 0 }}>
-        <label className="micro-field">
-          <span>
-            ما الذي بعته؟ <small>اختياري</small>
-          </span>
-          <input value={itemName} onChange={event => setItemName(event.target.value)} placeholder="مثال: كوب جاهز" />
-        </label>
-        <label className="micro-field">
-          <span>الكمية</span>
-          <EnglishNumberInput
-            value={quantity}
-            kind="integer"
-            onNumericChange={setQuantity}
-            onTextValidityChange={setValidQuantity}
-            aria-label="الكمية"
-          />
-          {/* بند ٢٥ (قرارات المالك) + المجموعة ٦ (البند ٤ — S3-12، §10.2 قاعدة ١):
-              دلالة الكمية وراء إفصاح مسمّى 44px — الشرح يُصل عند طلبه لا يثقل الوجه. */}
-          <details className="micro-inline-disclosure">
-            <summary>معنى الكمية</summary>
-            <p>
-              عدد القطع في هذا البيع — للتوثيق. السعر الذي تدخله أدناه هو إجمالي البيع كاملًا، لا سعر
-              القطعة الواحدة.
-            </p>
-          </details>
-        </label>
-        <label className="micro-field">
-          <span>السعر المتفق عليه بالدينار الأردني</span>
-          <EnglishNumberInput
-            value={revenueMinor}
-            kind="money"
-            onNumericChange={setRevenueMinor}
-            onTextValidityChange={setValidRevenue}
-            aria-label="السعر المتفق عليه"
-          />
-        </label>
-        <label className="micro-field">
-          <span>
-            ما قبضت الآن بالدينار الأردني <small>اتركه فارغًا إذا قبضت كامل السعر</small>
-          </span>
-          <EnglishNumberInput
-            value={collectedMinor}
-            kind="money"
-            onNumericChange={value => {
-              setCollectedMinor(value);
-              setCollectedEmpty(false);
-            }}
-            onTextValidityChange={setValidCollected}
-            allowEmpty
-            onEmptyChange={() => setCollectedEmpty(true)}
-            aria-label="ما قبضت الآن"
-          />
-          {validCollected && difference > 0 ? (
-            <small>الفرق: {formatMoneyMinor(difference)} د.أ — عند الحفظ يسألك النظام عن قرارك ولا يقرّر عنك.</small>
-          ) : null}
-        </label>
-        <label className="micro-field">
-          <span>هل تعرف تكلفة ما بيع؟</span>
-          <select value={costKnown ? "known" : "unknown"} onChange={event => setCostKnown(event.target.value === "known")}>
-            <option value="unknown">لا أعرف الآن</option>
-            <option value="known">نعم، أعرفها</option>
-          </select>
-          <details className="micro-inline-disclosure">
-            <summary>معنى «لا أعرف الآن»</summary>
-            <p>عدم المعرفة يبقى معلومة ناقصة، ولا يسجل تكلفة صفرية.</p>
-          </details>
-        </label>
-        {costKnown ? (
-          <label className="micro-field">
-            <span>التكلفة بالدينار الأردني</span>
-            <EnglishNumberInput
-              value={costMinor}
-              kind="money"
-              onNumericChange={setCostMinor}
-              onTextValidityChange={setValidCost}
-              aria-label="تكلفة البيع"
-            />
-          </label>
-        ) : null}
-        {/* المجموعة ٦ (البند ٤ — S3-12): الربط الاختياري خلف إفصاح 44px — يُفتح
-            تلقائيًا عند التعبئة المسبقة من الكتالوج (?product=) لتبقى الحالة معلنة،
-            ويبقى إشعار المرجع (productNotice) خارج الإفصاح بلا إخفاء. */}
-        <details
-          className="micro-inline-disclosure"
-          open={Boolean(catalogItemId) && !editing ? true : undefined}
-        >
-          <summary>ربط مرجع (اختياري)</summary>
-        <label className="micro-field">
-          <span>
-            ربط مرجع <small>اختياري — من «منتجاتي وخدماتي»</small>
-          </span>
-          <select
-            value={catalogItemId}
-            aria-label="ربط مرجع"
-            onChange={event => {
-              const selectedId = event.target.value;
-              setCatalogItemId(selectedId);
-              const selected = references.find(
-                candidate => candidate.id === selectedId && candidate.active,
-              );
-              if (!editing) {
-                /* P-002 (الخيار أ): اختيار مرجع يعبّئ اسمه واقتراحاته كمقترح معلن
-                 * قابل للتعديل — والسعر الفعلي هو ما تؤكده أنت عند الحفظ.
-                 * لا نعبّئ شيئًا في وضع التعديل: قيم البيع المسجّلة هي الحقيقة. */
-                if (selected) {
-                  if (!itemName.trim() || references.some(ref => ref.name === itemName.trim()))
-                    setItemName(selected.name);
-                  if (selected.defaultPriceMinor != null && revenueMinor === 0 && quantity === 1)
-                    setRevenueMinor(selected.defaultPriceMinor);
-                  if (selected.defaultUnitCostMinor != null && quantity === 1 && !costKnown) {
-                    setCostKnown(true);
-                    setCostMinor(selected.defaultUnitCostMinor);
-                  }
-                }
-                setSuggestedReference(selected ?? null);
-              }
-            }}
-          >
-            <option value="">لا أربط هذا البيع بمرجع الآن</option>
-            {references
-              .filter(reference => reference.active || reference.id === catalogItemId)
-              .map(reference => (
-                <option key={reference.id} value={reference.id}>
-                  {reference.name}
-                  {reference.active ? "" : " · مرجع موقوف"}
-                </option>
-              ))}
-          </select>
-          {!editing ? (
-            <small>
-              {suggestedReference
-                ? suggestedReference.defaultPriceMinor != null
-                  ? quantity > 1
-                    ? `الاقتراح المسجّل سعرٌ للقطعة الواحدة (${formatMoneyMinor(
-                        suggestedReference.defaultPriceMinor,
-                      )} د.أ)؛ مع كمية أكبر من 1 لا يُعبّأ تلقائيًا — اضرب بنفسك وأدخل الإجمالي الفعلي.`
-                    : `سعر مقترح من المرجع: ${formatMoneyMinor(
-                        suggestedReference.defaultPriceMinor,
-                      )} د.أ — عدّله ليصير السعر الفعلي لهذا البيع.`
-                  : "هذا المرجع بلا سعر افتراضي مسجّل — السعر الفعلي ما تدخله بنفسك."
-                : "اختيار مرجع يعبّئ الاسم والاقتراحات فقط؛ لا يفرض سعرًا ولا يحسب مخزونًا."}
-            </small>
-          ) : (
-            <small>الربط لا يغيّر السعر ولا التكلفة المسجّلين؛ البيع يحتفظ بنسخته وقت حفظه.</small>
-          )}
-        </label>
-        {suggestedReference && suggestedReference.defaultUnitCostMinor != null && !editing ? (
-          <p className="micro-save-note" role="status">
-            تكلفة مقترحة من المرجع: {formatMoneyMinor(suggestedReference.defaultUnitCostMinor)} د.أ — نسخة
-            تُحفظ مع هذا البيع وحده؛ عدّلها أو اختر «لا أعرف الآن» فتبقى التكلفة مجهولة بصدق.
-          </p>
-        ) : null}
-        </details>
-        {productNotice ? (
-          <p className="micro-save-note" role="status">
-            {productNotice}
-          </p>
-        ) : null}
-        {/* D-001: الزبون حقل مستقل — يظهر عند وجود دين أو زبون مسجل، ويجتمع باسمه في دفتر الناس. */}
-        {difference > 0 || customerName.trim() !== "" ? (
-          <label className="micro-field">
-            <span>اسم الزبون</span>
-            <input
-              value={customerName}
-              onChange={event => setCustomerName(event.target.value)}
-              aria-label="اسم الزبون"
-            />
-          </label>
-        ) : null}
-        {/* المجموعة ٣ (Scope D — §10.1): وجهة القبض الصريحة عند الإنشاء — الدرج افتراضيًا
-            حين يوجد وغير الموزع خيار معلن؛ لا تخصيص صامت ولا محفظة تُختار نيابةً عن المالك. */}
-        {!editing && wallets.length > 0 ? (
           <label className="micro-field">
             <span>
-              وجهة القبض <small>الدرج افتراضيًا حين يوجد — غير الموزع خيار صريح</small>
+              ما الذي بعته؟ <small>اختياري</small>
             </span>
-            <select
-              value={saleWalletId}
-              onChange={event => setSaleWalletId(event.target.value)}
-              aria-label="وجهة القبض"
-            >
-              <option value="">غير موزع — يبقى هنا حتى توزّعه بقرار</option>
-              {wallets.map(wallet => (
-                <option key={wallet.id} value={wallet.id}>
-                  {wallet.name}
-                </option>
-              ))}
-            </select>
+            <input
+              value={itemName}
+              onChange={event => setItemName(event.target.value)}
+              placeholder="مثال: كوب جاهز"
+            />
           </label>
-        ) : null}
-        <LocalDateField label="تاريخ البيع" value={occurredOn} onChange={event => setOccurredOn(event.target.value)} />
-        <label className="micro-field">
-          <span>بيان مختصر</span>
-          <textarea value={note} onChange={event => setNote(event.target.value)} />
-        </label>
-        {savedSale?.collectionStatus ? (
-          <p className="micro-save-note" role="status">
-            حالة القبض الحالية: {collectionStatusLabel[savedSale.collectionStatus]}
-            {savedSale.collectionStatus !== "collected_in_full" &&
-            savedSale.revenueMinor > savedSale.collectedMinor
-              ? ` — الفرق ${formatMoneyMinor(savedSale.revenueMinor - savedSale.collectedMinor)} د.أ.`
-              : ""}
-          </p>
-        ) : null}
-        {message && !showDifferencePrompt ? (
-          <p className="micro-field-error" role="status">
-            {message}
-          </p>
-        ) : null}
-        {/* X-06 (و٤): «اتفقتَ على ١٠ وقبضتَ ٨ — الفرق ٢ دينار» — ثلاثة خيارات، والثالث صالح. */}
-        {showDifferencePrompt ? (
-          <section className="micro-difference-panel" aria-label="قرار الفرق بين المتفق والمقبوض">
-            <strong>
-              اتفقتَ على {formatMoneyMinor(revenueMinor)} وقبضتَ {formatMoneyMinor(resolvedCollected)} — الفرق{" "}
-              {formatMoneyMinor(difference)} د.أ.
-            </strong>
-            <p>النظام لا يقرّر عنك — اختر ما حدث فعلًا:</p>
-            <label className="micro-radio-choice">
-              <input
-                type="radio"
-                name="difference-choice"
-                checked={differenceChoice === "price_cut"}
-                onChange={() => setDifferenceChoice("price_cut")}
-              />
-              <span>
-                <b>خفّضتُ السعر</b>
-                <small>البيع يصير {formatMoneyMinor(resolvedCollected)} د.أ — لا دَين ولا تتبّع، ويسجَّل تخفيضًا موثَّقًا يحفظ السعر الأصلي.</small>
-              </span>
-            </label>
-            <label className="micro-radio-choice">
-              <input
-                type="radio"
-                name="difference-choice"
-                checked={differenceChoice === "remaining_debt"}
-                onChange={() => setDifferenceChoice("remaining_debt")}
-              />
-              <span>
-                <b>الباقي عليه</b>
-                <small>الـ{formatMoneyMinor(difference)} د.أ تظهر في «لي عند العملاء» حتى تحصّلها.</small>
-              </span>
-            </label>
-            <label className="micro-radio-choice">
-              <input
-                type="radio"
-                name="difference-choice"
-                checked={differenceChoice === "needs_review"}
-                onChange={() => setDifferenceChoice("needs_review")}
-              />
-              <span>
-                <b>يحتاج مراجعة</b>
-                <small>لم يُقرَّر بعد — خيار صالح لا خطأ، والفرق يبقى معلَّقًا على البيع حتى تحسمه.</small>
-              </span>
-            </label>
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
-              disabled={saving || differenceChoice === null}
-              onClick={() => {
-                void save();
+          <label className="micro-field">
+            <span>الكمية</span>
+            <EnglishNumberInput
+              value={quantity}
+              kind="integer"
+              onNumericChange={setQuantity}
+              onTextValidityChange={setValidQuantity}
+              aria-label="الكمية"
+            />
+            {/* بند ٢٥ (قرارات المالك) + المجموعة ٦ (البند ٤ — S3-12، §10.2 قاعدة ١):
+              دلالة الكمية وراء إفصاح مسمّى 44px — الشرح يُصل عند طلبه لا يثقل الوجه. */}
+            <details className="micro-inline-disclosure">
+              <summary>معنى الكمية</summary>
+              <p>
+                عدد القطع في هذا البيع — للتوثيق. السعر الذي تدخله أدناه هو إجمالي البيع كاملًا، لا سعر القطعة
+                الواحدة.
+              </p>
+            </details>
+          </label>
+          <label className="micro-field">
+            <span>السعر المتفق عليه بالدينار الأردني</span>
+            <EnglishNumberInput
+              value={revenueMinor}
+              kind="money"
+              onNumericChange={setRevenueMinor}
+              onTextValidityChange={setValidRevenue}
+              aria-label="السعر المتفق عليه"
+            />
+          </label>
+          <label className="micro-field">
+            <span>
+              ما قبضت الآن بالدينار الأردني <small>اتركه فارغًا إذا قبضت كامل السعر</small>
+            </span>
+            <EnglishNumberInput
+              value={collectedMinor}
+              kind="money"
+              onNumericChange={value => {
+                setCollectedMinor(value);
+                setCollectedEmpty(false);
               }}
+              onTextValidityChange={setValidCollected}
+              allowEmpty
+              onEmptyChange={() => setCollectedEmpty(true)}
+              aria-label="ما قبضت الآن"
+            />
+            {validCollected && difference > 0 ? (
+              <small>
+                الفرق: {formatMoneyMinor(difference)} د.أ — عند الحفظ يسألك النظام عن قرارك ولا يقرّر عنك.
+              </small>
+            ) : null}
+          </label>
+          <label className="micro-field">
+            <span>هل تعرف تكلفة ما بيع؟</span>
+            <select
+              value={costKnown ? "known" : "unknown"}
+              onChange={event => setCostKnown(event.target.value === "known")}
             >
-              {saving ? "جارٍ الحفظ…" : "أكمل الحفظ بالقرار المختار"}
-            </button>
-          </section>
-        ) : (
-          <div className="micro-form-actions micro-sticky-save">
-            <button className="micro-button micro-button-primary micro-save-cost" type="button" disabled={saving} onClick={save}>
-            <Save aria-hidden="true" />
-            {saving ? "جارٍ الحفظ…" : editing ? "حفظ تصحيح البيع" : "حفظ البيع المباشر"}
-          </button>
-          </div>
-        )}
+              <option value="unknown">لا أعرف الآن</option>
+              <option value="known">نعم، أعرفها</option>
+            </select>
+            <details className="micro-inline-disclosure">
+              <summary>معنى «لا أعرف الآن»</summary>
+              <p>عدم المعرفة يبقى معلومة ناقصة، ولا يسجل تكلفة صفرية.</p>
+            </details>
+          </label>
+          {costKnown ? (
+            <label className="micro-field">
+              <span>التكلفة بالدينار الأردني</span>
+              <EnglishNumberInput
+                value={costMinor}
+                kind="money"
+                onNumericChange={setCostMinor}
+                onTextValidityChange={setValidCost}
+                aria-label="تكلفة البيع"
+              />
+            </label>
+          ) : null}
+          {/* المجموعة ٦ (البند ٤ — S3-12): الربط الاختياري خلف إفصاح 44px — يُفتح
+            تلقائيًا عند التعبئة المسبقة من الكتالوج (?product=) لتبقى الحالة معلنة،
+            ويبقى إشعار المرجع (productNotice) خارج الإفصاح بلا إخفاء. */}
+          <details
+            className="micro-inline-disclosure"
+            open={Boolean(catalogItemId) && !editing ? true : undefined}
+          >
+            <summary>ربط مرجع (اختياري)</summary>
+            <label className="micro-field">
+              <span>
+                ربط مرجع <small>اختياري — من «منتجاتي وخدماتي»</small>
+              </span>
+              <select
+                value={catalogItemId}
+                aria-label="ربط مرجع"
+                onChange={event => {
+                  const selectedId = event.target.value;
+                  setCatalogItemId(selectedId);
+                  const selected = references.find(
+                    candidate => candidate.id === selectedId && candidate.active,
+                  );
+                  if (!editing) {
+                    /* P-002 (الخيار أ): اختيار مرجع يعبّئ اسمه واقتراحاته كمقترح معلن
+                     * قابل للتعديل — والسعر الفعلي هو ما تؤكده أنت عند الحفظ.
+                     * لا نعبّئ شيئًا في وضع التعديل: قيم البيع المسجّلة هي الحقيقة. */
+                    if (selected) {
+                      if (!itemName.trim() || references.some(ref => ref.name === itemName.trim()))
+                        setItemName(selected.name);
+                      if (selected.defaultPriceMinor != null && revenueMinor === 0 && quantity === 1)
+                        setRevenueMinor(selected.defaultPriceMinor);
+                      if (selected.defaultUnitCostMinor != null && quantity === 1 && !costKnown) {
+                        setCostKnown(true);
+                        setCostMinor(selected.defaultUnitCostMinor);
+                      }
+                    }
+                    setSuggestedReference(selected ?? null);
+                  }
+                }}
+              >
+                <option value="">لا أربط هذا البيع بمرجع الآن</option>
+                {references
+                  .filter(reference => reference.active || reference.id === catalogItemId)
+                  .map(reference => (
+                    <option key={reference.id} value={reference.id}>
+                      {reference.name}
+                      {reference.active ? "" : " · مرجع موقوف"}
+                    </option>
+                  ))}
+              </select>
+              {!editing ? (
+                <small>
+                  {suggestedReference
+                    ? suggestedReference.defaultPriceMinor != null
+                      ? quantity > 1
+                        ? `الاقتراح المسجّل سعرٌ للقطعة الواحدة (${formatMoneyMinor(
+                            suggestedReference.defaultPriceMinor,
+                          )} د.أ)؛ مع كمية أكبر من 1 لا يُعبّأ تلقائيًا — اضرب بنفسك وأدخل الإجمالي الفعلي.`
+                        : `سعر مقترح من المرجع: ${formatMoneyMinor(
+                            suggestedReference.defaultPriceMinor,
+                          )} د.أ — عدّله ليصير السعر الفعلي لهذا البيع.`
+                      : "هذا المرجع بلا سعر افتراضي مسجّل — السعر الفعلي ما تدخله بنفسك."
+                    : "اختيار مرجع يعبّئ الاسم والاقتراحات فقط؛ لا يفرض سعرًا ولا يحسب مخزونًا."}
+                </small>
+              ) : (
+                <small>الربط لا يغيّر السعر ولا التكلفة المسجّلين؛ البيع يحتفظ بنسخته وقت حفظه.</small>
+              )}
+            </label>
+            {suggestedReference && suggestedReference.defaultUnitCostMinor != null && !editing ? (
+              <p className="micro-save-note" role="status">
+                تكلفة مقترحة من المرجع: {formatMoneyMinor(suggestedReference.defaultUnitCostMinor)} د.أ — نسخة
+                تُحفظ مع هذا البيع وحده؛ عدّلها أو اختر «لا أعرف الآن» فتبقى التكلفة مجهولة بصدق.
+              </p>
+            ) : null}
+          </details>
+          {productNotice ? (
+            <p className="micro-save-note" role="status">
+              {productNotice}
+            </p>
+          ) : null}
+          {/* D-001: الزبون حقل مستقل — يظهر عند وجود دين أو زبون مسجل، ويجتمع باسمه في دفتر الناس. */}
+          {difference > 0 || customerName.trim() !== "" ? (
+            <label className="micro-field">
+              <span>اسم الزبون</span>
+              <input
+                value={customerName}
+                onChange={event => setCustomerName(event.target.value)}
+                aria-label="اسم الزبون"
+              />
+            </label>
+          ) : null}
+          {/* المجموعة ٣ (Scope D — §10.1): وجهة القبض الصريحة عند الإنشاء — الدرج افتراضيًا
+            حين يوجد وغير الموزع خيار معلن؛ لا تخصيص صامت ولا محفظة تُختار نيابةً عن المالك. */}
+          {!editing && wallets.length > 0 ? (
+            <label className="micro-field">
+              <span>
+                وجهة القبض <small>الدرج افتراضيًا حين يوجد — غير الموزع خيار صريح</small>
+              </span>
+              <select
+                value={saleWalletId}
+                onChange={event => setSaleWalletId(event.target.value)}
+                aria-label="وجهة القبض"
+              >
+                <option value="">غير موزع — يبقى هنا حتى توزّعه بقرار</option>
+                {wallets.map(wallet => (
+                  <option key={wallet.id} value={wallet.id}>
+                    {wallet.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          <LocalDateField
+            label="تاريخ البيع"
+            value={occurredOn}
+            onChange={event => setOccurredOn(event.target.value)}
+          />
+          <label className="micro-field">
+            <span>بيان مختصر</span>
+            <textarea value={note} onChange={event => setNote(event.target.value)} />
+          </label>
+          {savedSale?.collectionStatus ? (
+            <p className="micro-save-note" role="status">
+              حالة القبض الحالية: {collectionStatusLabel[savedSale.collectionStatus]}
+              {savedSale.collectionStatus !== "collected_in_full" &&
+              savedSale.revenueMinor > savedSale.collectedMinor
+                ? ` — الفرق ${formatMoneyMinor(savedSale.revenueMinor - savedSale.collectedMinor)} د.أ.`
+                : ""}
+            </p>
+          ) : null}
+          {message && !showDifferencePrompt ? (
+            <p className="micro-field-error" role="status">
+              {message}
+            </p>
+          ) : null}
+          {/* X-06 (و٤): «اتفقتَ على ١٠ وقبضتَ ٨ — الفرق ٢ دينار» — ثلاثة خيارات، والثالث صالح. */}
+          {showDifferencePrompt ? (
+            <section className="micro-difference-panel" aria-label="قرار الفرق بين المتفق والمقبوض">
+              <strong>
+                اتفقتَ على {formatMoneyMinor(revenueMinor)} وقبضتَ {formatMoneyMinor(resolvedCollected)} —
+                الفرق {formatMoneyMinor(difference)} د.أ.
+              </strong>
+              <p>النظام لا يقرّر عنك — اختر ما حدث فعلًا:</p>
+              <label className="micro-radio-choice">
+                <input
+                  type="radio"
+                  name="difference-choice"
+                  checked={differenceChoice === "price_cut"}
+                  onChange={() => setDifferenceChoice("price_cut")}
+                />
+                <span>
+                  <b>خفّضتُ السعر</b>
+                  <small>
+                    البيع يصير {formatMoneyMinor(resolvedCollected)} د.أ — لا دَين ولا تتبّع، ويسجَّل تخفيضًا
+                    موثَّقًا يحفظ السعر الأصلي.
+                  </small>
+                </span>
+              </label>
+              <label className="micro-radio-choice">
+                <input
+                  type="radio"
+                  name="difference-choice"
+                  checked={differenceChoice === "remaining_debt"}
+                  onChange={() => setDifferenceChoice("remaining_debt")}
+                />
+                <span>
+                  <b>الباقي عليه</b>
+                  <small>الـ{formatMoneyMinor(difference)} د.أ تظهر في «لي عند العملاء» حتى تحصّلها.</small>
+                </span>
+              </label>
+              <label className="micro-radio-choice">
+                <input
+                  type="radio"
+                  name="difference-choice"
+                  checked={differenceChoice === "needs_review"}
+                  onChange={() => setDifferenceChoice("needs_review")}
+                />
+                <span>
+                  <b>يحتاج مراجعة</b>
+                  <small>لم يُقرَّر بعد — خيار صالح لا خطأ، والفرق يبقى معلَّقًا على البيع حتى تحسمه.</small>
+                </span>
+              </label>
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={saving || differenceChoice === null}
+                onClick={() => {
+                  void save();
+                }}
+              >
+                {saving ? "جارٍ الحفظ…" : "أكمل الحفظ بالقرار المختار"}
+              </button>
+            </section>
+          ) : (
+            <div className="micro-form-actions micro-sticky-save">
+              <button
+                className="micro-button micro-button-primary micro-save-cost"
+                type="button"
+                disabled={saving}
+                onClick={save}
+              >
+                <Save aria-hidden="true" />
+                {saving ? "جارٍ الحفظ…" : editing ? "حفظ تصحيح البيع" : "حفظ البيع المباشر"}
+              </button>
+            </div>
+          )}
         </fieldset>
       </section>
       {editing && savedSale?.status !== "cancelled" ? (
@@ -882,7 +915,11 @@ export default function DirectSaleEditor() {
             </div>
           </div>
           {!cancelOpen ? (
-            <button className="micro-button micro-button-danger" type="button" onClick={() => setCancelOpen(true)}>
+            <button
+              className="micro-button micro-button-danger"
+              type="button"
+              onClick={() => setCancelOpen(true)}
+            >
               إظهار تأكيد الإلغاء
             </button>
           ) : (
@@ -897,10 +934,20 @@ export default function DirectSaleEditor() {
                 />
               </label>
               <div className="micro-form-actions">
-                <button className="micro-button micro-button-danger" type="button" disabled={saving} onClick={cancel}>
+                <button
+                  className="micro-button micro-button-danger"
+                  type="button"
+                  disabled={saving}
+                  onClick={cancel}
+                >
                   تأكيد إلغاء البيع
                 </button>
-                <button className="micro-button micro-button-secondary" type="button" disabled={saving} onClick={() => setCancelOpen(false)}>
+                <button
+                  className="micro-button micro-button-secondary"
+                  type="button"
+                  disabled={saving}
+                  onClick={() => setCancelOpen(false)}
+                >
                   إبقاء البيع
                 </button>
               </div>

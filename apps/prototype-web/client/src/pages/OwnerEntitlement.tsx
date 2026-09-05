@@ -73,7 +73,9 @@ export const supportedOwnerEntitlementPolicyKinds = [
  * ويوجه إلى المسار الصحيح. طبقة الدفتر تبقى للعمليات المرتبطة بسجلاته: تسوية حق
  * مسجل أو رصيد افتتاحي، وإرجاع السحب السابق، وحقن رأس مال جديد — لا للسحب الحر. */
 export const ownerMovementReasonsForKind = (kind: "draw" | "return"): readonly OwnerMovementReason[] =>
-  kind === "draw" ? ["entitlement_settlement", "opening_balance_settlement"] : ["opening_balance_settlement", "settlement_of_prior_draw", "new_capital_investment"];
+  kind === "draw"
+    ? ["entitlement_settlement", "opening_balance_settlement"]
+    : ["opening_balance_settlement", "settlement_of_prior_draw", "new_capital_investment"];
 export const successorPolicyFormRequirements = (kind: OwnerEntitlementPolicy["kind"]) => ({
   family: ownerEntitlementPolicyFamilyForKind(kind),
   valueKind: percentagePolicyKinds.has(kind) ? ("percentage" as const) : ("amount" as const),
@@ -338,7 +340,10 @@ export default function OwnerEntitlement() {
     const missingUnit = successorRequirements.requiresUnit && !successorUnitLabel.trim();
     const missingEnd = successorRequirements.requiresEndDate && !successorEndsOn;
     if (!successorPolicy || !successorSource.trim() || !successorNote.trim() || !successorStartsOn) {
-      setNotice({ tone: "error", text: "اختر سياسة فعالة وحدد تاريخ بدء النسخة الجديدة واكتب سببًا وملاحظة للتعديل." });
+      setNotice({
+        tone: "error",
+        text: "اختر سياسة فعالة وحدد تاريخ بدء النسخة الجديدة واكتب سببًا وملاحظة للتعديل.",
+      });
       return;
     }
     if (!successorRequirements.supported || successorKind === "fixed_shift") {
@@ -537,7 +542,9 @@ export default function OwnerEntitlement() {
     }
     setNotice({
       tone: "success",
-      text: result.reused ? "التراجع محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل تراجع كامل. الأصل محفوظ ولم يُعدّل.",
+      text: result.reused
+        ? "التراجع محفوظ سابقًا؛ لم يتكرر."
+        : "تم تسجيل تراجع كامل. الأصل محفوظ ولم يُعدّل.",
     });
     setReversalTarget(null);
     setReversalReason("");
@@ -644,9 +651,7 @@ export default function OwnerEntitlement() {
           className="micro-button micro-button-primary"
           type="button"
           onClick={() =>
-            navigate(
-              withFrom("/finance/new/owner_investment_cash", "/finance/owner-entitlement"),
-            )
+            navigate(withFrom("/finance/new/owner_investment_cash", "/finance/owner-entitlement"))
           }
         >
           <HandCoins aria-hidden="true" /> أدخل مالًا للمشروع
@@ -722,795 +727,802 @@ export default function OwnerEntitlement() {
           <strong>افتح الدفتر</strong>
         </summary>
         <div className="micro-owner-layer-body">
-      <section className="micro-owner-ledger">
-        <div className="micro-section-heading">
-          <div>
-            <span className="micro-overline">طبقة لا تغير الربح أو الكاش</span>
-            <h2>سياسات حق المالك</h2>
-          </div>
-          <span className="micro-g5-count">{overview.policies.length}</span>
-        </div>
-        {overview.policies.length === 0 ? (
-          <p className="micro-empty-state">لا توجد سياسة بعد. أضف أقل سياسة تحتاجها فقط.</p>
-        ) : (
-          <div className="micro-owner-list">
-            {overview.policies.map(policy => (
-              <article key={policy.id} className="micro-owner-list-row">
-                <div>
-                  <strong>{policyLabels[policy.kind]}</strong>
-                  <small>
-                    {policyFamilyLabels[policy.family]} · إصدار <bdi dir="ltr">{policy.version}</bdi> · تبدأ{" "}
-                    <bdi dir="ltr"><bdi dir="ltr">{formatLocalDate(policy.startsOn)}</bdi></bdi>
-                    {policy.endsOn ? ` · تنتهي ${formatLocalDate(policy.endsOn)}` : " · بلا تاريخ إيقاف"}
-                  </small>
-                  <small>
-                    المصدر: {policy.source} · {policy.status === "active" ? "فعالة" : "منتهية"}
-                  </small>
-                </div>
-                <b>
-                  {policy.amountMinor === null
-                    ? `${(policy.percentageBps ?? 0) / 100}%`
-                    : `${formatMoneyMinor(policy.amountMinor)} د.أ`}
-                </b>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-      <details className="micro-owner-layer">
-        <summary className="micro-owner-layer-summary">
-          <span>
-            <b>إضافة سياسة</b>
-            <small>أنشئ إصدارًا أولًا مع مصدر وملاحظة</small>
-          </span>
-          <strong>افتح الإجراء</strong>
-        </summary>
-        <section className="micro-form-card">
-          <div className="micro-section-heading">
-            <div>
-              <span className="micro-overline">إجراء واضح</span>
-              <h2>إضافة سياسة مستقلة</h2>
+          <section className="micro-owner-ledger">
+            <div className="micro-section-heading">
+              <div>
+                <span className="micro-overline">طبقة لا تغير الربح أو الكاش</span>
+                <h2>سياسات حق المالك</h2>
+              </div>
+              <span className="micro-g5-count">{overview.policies.length}</span>
             </div>
-          </div>
-          <div className="micro-field-grid">
-            <label className="micro-field">
-              <span>نوع السياسة</span>
-              <select
-                value={policyKind}
-                onChange={event => {
-                  const kind = event.target.value as OwnerEntitlementPolicy["kind"];
-                  setPolicyKind(kind);
-                }}
-              >
-                {supportedOwnerEntitlementPolicyKinds.map(kind => (
-                  <option key={kind} value={kind}>
-                    {policyLabels[kind]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {amountPolicyKinds.has(policyKind) ? (
-            <label className="micro-field">
-              <span>المبلغ بوحدة الدينار الأردني</span>
-              <EnglishNumberInput
-                value={policyAmount}
-                kind="money"
-                onNumericChange={setPolicyAmount}
-                onTextValidityChange={setPolicyAmountValid}
-                aria-label="مبلغ سياسة حق المالك"
-              />
-            </label>
-          ) : (
-            <label className="micro-field">
-              <span>النسبة (%)</span>
-              <EnglishNumberInput
-                value={policyPercentage}
-                kind="decimal"
-                onNumericChange={setPolicyPercentage}
-                onTextValidityChange={setPolicyPercentageValid}
-                aria-label="نسبة سياسة حق المالك"
-              />
-              <small>
-                تُحفظ النسبة كما أدخلتها بدقة كاملة، وتحسب من نتيجة الفترة المسجلة أو البيع المكتمل حسب
-                النوع.
-              </small>
-            </label>
-          )}
-          <div className="micro-field-grid">
-            <LocalDateField
-              label="تاريخ البداية المحلي"
-              value={policyStartsOn}
-              onChange={event => setPolicyStartsOn(event.target.value)}
-            />
-            <LocalDateField
-              label="تاريخ النهاية المعلن"
-              description="اتركه فارغًا للسياسات المستمرة، أما المبلغ الثابت للفترة فيحتاج نهاية صريحة."
-              value={policyEndsOn}
-              onChange={event => setPolicyEndsOn(event.target.value)}
-            />
-          </div>
-          {policyKind === "per_unit" || policyKind === "per_completed_work" ? (
-            <label className="micro-field">
-              <span>الوحدة</span>
-              <input value="وحدة/عمل" readOnly />
-            </label>
-          ) : null}
-          <label className="micro-field">
-            <span>
-              مصدر السياسة <small>مطلوب</small>
-            </span>
-            <input
-              value={policySource}
-              onChange={event => setPolicySource(event.target.value)}
-              placeholder="مثال: اتفاق مالك المشروع"
-            />
-          </label>
-          <label className="micro-field">
-            <span>
-              ملاحظة السياسة <small>مطلوب</small>
-            </span>
-            <textarea
-              value={policyNote}
-              onChange={event => setPolicyNote(event.target.value)}
-              placeholder="ما الذي يغطيه هذا الحق؟"
-            />
-          </label>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            disabled={saving}
-            onClick={() => void savePolicy()}
-          >
-            <Save aria-hidden="true" /> حفظ سياسة مستقلة
-          </button>
-        </section>
-      </details>
-      <details className="micro-owner-layer">
-        <summary className="micro-owner-layer-summary">
-          <span>
-            <b>تعديل سياسة</b>
-            <small>نسخة جديدة تبدأ من تاريخ؛ الحقوق السابقة تبقى كما هي</small>
-          </span>
-          <strong>افتح الإجراء</strong>
-        </summary>
-        <section className="micro-form-card">
-          <div className="micro-section-heading">
-            <div>
-              <span className="micro-overline">تعديل غير رجعي</span>
-              <h2>تعديل سياسة من تاريخ جديد</h2>
-            </div>
-          </div>
-          <p>
-            تنتهي النسخة السابقة في اليوم السابق لتاريخ النفاذ، وتنشأ نسخة جديدة بإعداداتك الجديدة.{" "}
-            <strong>لا تتغير الحقوق المسجلة سابقًا.</strong>
-          </p>
-          <label className="micro-field">
-            <span>السياسة الفعالة المصدر</span>
-            <select value={successorPolicyId} onChange={event => setSuccessorPolicyId(event.target.value)}>
-              <option value="">اختر سياسة فعالة</option>
-              {overview.activePolicies.map(policy => (
-                <option key={policy.id} value={policy.id}>
-                  {policyLabels[policy.kind]} · إصدار {policy.version} · تبدأ{" "}
-                  {formatLocalDate(policy.startsOn)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {successorPolicy ? (
-            <div className="micro-owner-calculation">
-              <strong>ملخص النسخة السابقة</strong>
-              <p>
-                {policyLabels[successorPolicy.kind]} ·{" "}
-                {successorPolicy.amountMinor === null
-                  ? `${(successorPolicy.percentageBps ?? 0) / 100}%`
-                  : `${formatMoneyMinor(successorPolicy.amountMinor)} د.أ`}{" "}
-                · {policyFamilyLabels[successorPolicy.family]}
-              </p>
-              <small>
-                سيبقى الإصدار {successorPolicy.version} وحقوقه الماضية ومعرّفاتها ومبالغها كما هي.
-              </small>
-            </div>
-          ) : null}
-          <div className="micro-field-grid">
-            <LocalDateField
-              label="تاريخ بدء النسخة الجديدة"
-              description="يبدأ أثر الإعداد الجديد من هذا التاريخ فقط."
-              value={successorStartsOn}
-              onChange={event => setSuccessorStartsOn(event.target.value)}
-            />
-            <label className="micro-field">
-              <span>نوع النسخة الجديدة</span>
-              <select
-                value={successorKind}
-                onChange={event => {
-                  const kind = event.target.value as OwnerEntitlementPolicy["kind"];
-                  setSuccessorKind(kind);
-                  if (kind !== "fixed_period") setSuccessorEndsOn("");
-                  if (kind !== "per_unit" && kind !== "per_completed_work") setSuccessorUnitLabel("");
-                }}
-              >
-                {supportedOwnerEntitlementPolicyKinds.map(kind => (
-                  <option key={kind} value={kind}>
-                    {policyLabels[kind]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {successorRequirements.valueKind === "amount" ? (
-            <label className="micro-field">
-              <span>مبلغ النسخة الجديدة بوحدة الدينار الأردني</span>
-              <EnglishNumberInput
-                value={successorAmount}
-                kind="money"
-                onNumericChange={setSuccessorAmount}
-                onTextValidityChange={setSuccessorAmountValid}
-                aria-label="مبلغ النسخة الجديدة لسياسة حق المالك"
-              />
-            </label>
-          ) : (
-            <label className="micro-field">
-              <span>نسبة النسخة الجديدة (%)</span>
-              <EnglishNumberInput
-                value={successorPercentage}
-                kind="decimal"
-                onNumericChange={setSuccessorPercentage}
-                onTextValidityChange={setSuccessorPercentageValid}
-                aria-label="نسبة النسخة الجديدة لسياسة حق المالك"
-              />
-              <small>تحسب من نتيجة الفترة المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.</small>
-            </label>
-          )}
-          {successorRequirements.requiresUnit ? (
-            <label className="micro-field">
-              <span>
-                الوحدة أو تعريف العمل <small>مطلوب</small>
-              </span>
-              <input
-                value={successorUnitLabel}
-                onChange={event => setSuccessorUnitLabel(event.target.value)}
-                placeholder="مثال: قطعة مكتملة أو طلب خدمة"
-              />
-              <small>يجب أن يصف هذا الحقل دليل المصدر؛ لا يسجل النظام صفرًا عند غيابه.</small>
-            </label>
-          ) : null}
-          {successorRequirements.requiresEndDate ? (
-            <LocalDateField
-              label="نهاية نطاق النسخة الجديدة"
-              description="مطلوبة. المبلغ الثابت للفترة يحتاج نطاقًا معلنًا كاملًا."
-              value={successorEndsOn}
-              onChange={event => setSuccessorEndsOn(event.target.value)}
-            />
-          ) : null}
-          <label className="micro-field">
-            <span>
-              سبب التعديل <small>مطلوب</small>
-            </span>
-            <input
-              value={successorSource}
-              onChange={event => setSuccessorSource(event.target.value)}
-              placeholder="مثال: تعديل الاتفاق من بداية 09/2026"
-            />
-          </label>
-          <label className="micro-field">
-            <span>
-              ملاحظة النسخة الجديدة <small>مطلوبة</small>
-            </span>
-            <textarea
-              value={successorNote}
-              onChange={event => setSuccessorNote(event.target.value)}
-              placeholder="ما الذي تغير في المبلغ أو النوع أو النطاق؟"
-            />
-          </label>
-          <p className="micro-decision-next">
-            النتيجة: النسخة الجديدة تحفظ إعدادات مختلفة عند الحاجة، والحقوق التاريخية لا يعاد احتسابها. إذا
-            احتاج النوع دليل وقت أو وحدة أو وردية غير موجود، سيبقى غير متاح بدل التخمين.
-          </p>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
-            disabled={saving || !successorPolicy}
-            onClick={() => void saveSuccessor()}
-          >
-            حفظ التعديل وإنهاء السابقة
-          </button>
-        </section>
-      </details>
-      <details className="micro-owner-layer">
-        <summary className="micro-owner-layer-summary">
-          <span>
-            <b>تسجيل حق</b>
-            <small>حق المالك لا يقبض المال ولا يغيّر الكاش</small>
-          </span>
-          <strong>افتح الإجراء</strong>
-        </summary>
-        <section className="micro-form-card">
-          <div className="micro-section-heading">
-            <div>
-              <span className="micro-overline">حق مستقل</span>
-              <h2>تسجيل حق المالك</h2>
-            </div>
-          </div>
-          <p>
-            تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. لا يُسجل الحق نفسه للفترة نفسها مرتين؛ تراجع عن السجل
-            فقط إذا كان خطأ.
-          </p>
-          <label className="micro-field">
-            <span>السياسة المصدر</span>
-            <select value={selectedPolicyId} onChange={event => setSelectedPolicyId(event.target.value)}>
-              <option value="">اختر سياسة</option>
-              {overview.policies.map(policy => (
-                <option key={policy.id} value={policy.id}>
-                  {policyLabels[policy.kind]} · إصدار {policy.version} · تبدأ{" "}
-                  {formatLocalDate(policy.startsOn)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="micro-field-grid">
-            <LocalDateField
-              label="من الفترة"
-              value={periodFrom}
-              onChange={event => setPeriodFrom(event.target.value)}
-            />
-            <LocalDateField
-              label="إلى الفترة"
-              value={periodTo}
-              onChange={event => setPeriodTo(event.target.value)}
-            />
-          </div>
-          <div
-            className="micro-owner-calculation"
-            data-known={calculation?.amountMinor !== null && calculation?.amountMinor !== undefined}
-          >
-            {calculation?.amountMinor === null || !calculation ? (
-              <>
-                <strong>الحق غير متاح بعد</strong>
-                <p>{calculation?.nextAction ?? "اختر سياسة وفترة صحيحتين."}</p>
-              </>
+            {overview.policies.length === 0 ? (
+              <p className="micro-empty-state">لا توجد سياسة بعد. أضف أقل سياسة تحتاجها فقط.</p>
             ) : (
-              <>
-                <strong>
-                  الحق المقترح:{" "}
-                  <bdi dir="ltr">{formatMoneyMinor(calculation.amountMinor)}</bdi>{" "}
-                  د.أ
-                </strong>
-                <p>
-                  الحالة: {calculation.knowledge === "known" ? "معروف" : "جزئي/يحتاج مراجعة"}. راجع المصدر قبل
-                  التسجيل.
-                </p>
-                <p>{calculation.nextAction}</p>
-              </>
-            )}
-          </div>
-          <LocalDateField
-            label="تاريخ تسجيل الحق"
-            value={entitlementDate}
-            onChange={event => setEntitlementDate(event.target.value)}
-          />
-          <label className="micro-field">
-            <span>
-              ملاحظة الحق <small>مطلوبة</small>
-            </span>
-            <textarea
-              value={entitlementNote}
-              onChange={event => setEntitlementNote(event.target.value)}
-              placeholder="مثال: حق شهر 08/2026 حسب السياسة 1"
-            />
-          </label>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            disabled={saving || !calculation || calculation.amountMinor === null}
-            onClick={() => void saveEntitlement()}
-          >
-            <HandCoins aria-hidden="true" /> تسجيل الحق دون قبض
-          </button>
-        </section>
-      </details>
-      <details className="micro-owner-layer">
-        <summary className="micro-owner-layer-summary">
-          <span>
-            <b>رصيد افتتاحي</b>
-            <small>سجل مصدرًا قديمًا قابلًا للتسوية أو التراجع</small>
-          </span>
-          <strong>افتح الإجراء</strong>
-        </summary>
-        <section className="micro-form-card">
-          <div className="micro-section-heading">
-            <div>
-              <span className="micro-overline">مصدر قابل للتسوية</span>
-              <h2>إضافة رصيد افتتاحي</h2>
-            </div>
-          </div>
-          <p>
-            هذه طبقة افتتاحية اختيارية بإشارة موجبة أو سالبة، مع سبب وملاحظة. لا تنشئ حركة ماضية، ويمكن
-            تسويتها أو التراجع عنها صراحة.
-          </p>
-          <div className="micro-field-grid">
-            <label className="micro-field">
-              <span>الرصيد بوحدة الدينار الأردني</span>
-              <EnglishNumberInput
-                value={openingAmount}
-                kind="signedInteger"
-                onNumericChange={setOpeningAmount}
-                onTextValidityChange={setOpeningAmountValid}
-                onEmptyChange={() => setOpeningAmount(null)}
-                allowEmpty
-                placeholder="مثال: 1500 أو -500"
-                aria-label="الرصيد الافتتاحي الموقّع"
-              />
-              <small>
-                الموجب: المشروع مدين لك ويمكن تسويته بسحب. السالب: سحوبات سابقة أكثر ويمكن تسويته بإرجاع.
-              </small>
-            </label>
-            <LocalDateField
-              label="التاريخ المحلي"
-              value={openingDate}
-              onChange={event => setOpeningDate(event.target.value)}
-            />
-          </div>
-          <label className="micro-field">
-            <span>
-              السبب <small>مطلوب</small>
-            </span>
-            <input
-              value={openingReason}
-              onChange={event => setOpeningReason(event.target.value)}
-              placeholder="مثال: رصيد دفتر سابق موثق"
-            />
-          </label>
-          <label className="micro-field">
-            <span>
-              ملاحظة <small>مطلوبة</small>
-            </span>
-            <textarea
-              value={openingNote}
-              onChange={event => setOpeningNote(event.target.value)}
-              placeholder="اشرح مصدر الرصيد الافتتاحي"
-            />
-          </label>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
-            disabled={saving}
-            onClick={() => void saveOpeningBalance()}
-          >
-            حفظ الرصيد الافتتاحي
-          </button>
-        </section>
-      </details>
-      <details className="micro-owner-layer">
-        <summary className="micro-owner-layer-summary">
-          <span>
-            <b>إرجاع أو تسوية دفتر</b>
-            <small>عمليات مرتبطة بسجلات الدفتر: تسوية محددة أو إرجاع، بمحفظة معينة</small>
-          </span>
-          <strong>افتح الإجراء</strong>
-        </summary>
-        <section className="micro-form-card">
-          <div className="micro-section-heading">
-            <div>
-              <span className="micro-overline">يغير الكاش فعليًا</span>
-              <h2>تسجيل إرجاع أو تسوية</h2>
-            </div>
-          </div>
-          <p>
-            السحب الشخصي العادي له مدخل واحد من «مالي» — «سجل سحبًا شخصيًا». ما هنا مرتبط بسجلات الدفتر:
-            تسوية حق أو رصيد محدد، إرجاع سحب سابق، أو حقن رأس مال جديد. كل حركة تحتاج محفظة وسببًا
-            وملاحظة، والسحب ليس مصروف تشغيل، والإرجاع كرأس مال جديد لا يسوي الحق.
-          </p>
-          <div className="micro-field-grid">
-            <label className="micro-field">
-              <span>نوع الحركة</span>
-              <select
-                value={movementKind}
-                onChange={event => setMovementKind(event.target.value as "draw" | "return")}
-              >
-                <option value="draw">سحب فعلي</option>
-                <option value="return">إرجاع فعلي</option>
-              </select>
-            </label>
-            <label className="micro-field">
-              <span>المبلغ بوحدة الدينار الأردني</span>
-              <EnglishNumberInput
-                value={movementAmount}
-                kind="money"
-                onNumericChange={setMovementAmount}
-                onTextValidityChange={setMovementAmountValid}
-                aria-label="مبلغ حركة المالك"
-              />
-            </label>
-          </div>
-          <label className="micro-field">
-            <span>السبب</span>
-            <select
-              value={movementReason}
-              onChange={event => setMovementReason(event.target.value as OwnerMovementReason)}
-            >
-              {reasonOptions.map(reason => (
-                <option key={reason} value={reason}>
-                  {movementReasonLabels[reason]}
-                </option>
-              ))}
-            </select>
-          </label>
-          {movementReason === "entitlement_settlement" ? (
-            <label className="micro-field">
-              <span>الحق الذي تتم تسويته</span>
-              <select
-                value={relatedEntitlementId}
-                onChange={event => setRelatedEntitlementId(event.target.value)}
-              >
-                <option value="">اختر حقًا مسجلًا</option>
-                {activeEntitlements.map(record => (
-                  <option key={record.id} value={record.id}>
-                    <bdi dir="ltr">{formatLocalDate(record.occurredOn)}</bdi> · {formatMoneyMinor(record.amountMinor)} د.أ ·{" "}
-                    {record.note}
-                  </option>
+              <div className="micro-owner-list">
+                {overview.policies.map(policy => (
+                  <article key={policy.id} className="micro-owner-list-row">
+                    <div>
+                      <strong>{policyLabels[policy.kind]}</strong>
+                      <small>
+                        {policyFamilyLabels[policy.family]} · إصدار <bdi dir="ltr">{policy.version}</bdi> ·
+                        تبدأ{" "}
+                        <bdi dir="ltr">
+                          <bdi dir="ltr">{formatLocalDate(policy.startsOn)}</bdi>
+                        </bdi>
+                        {policy.endsOn ? ` · تنتهي ${formatLocalDate(policy.endsOn)}` : " · بلا تاريخ إيقاف"}
+                      </small>
+                      <small>
+                        المصدر: {policy.source} · {policy.status === "active" ? "فعالة" : "منتهية"}
+                      </small>
+                    </div>
+                    <b>
+                      {policy.amountMinor === null
+                        ? `${(policy.percentageBps ?? 0) / 100}%`
+                        : `${formatMoneyMinor(policy.amountMinor)} د.أ`}
+                    </b>
+                  </article>
                 ))}
-              </select>
-            </label>
-          ) : null}
-          {movementReason === "opening_balance_settlement" ? (
-            <label className="micro-field">
-              <span>الرصيد الافتتاحي المصدر</span>
-              <select
-                value={relatedOpeningBalanceId}
-                onChange={event => setRelatedOpeningBalanceId(event.target.value)}
+              </div>
+            )}
+          </section>
+          <details className="micro-owner-layer">
+            <summary className="micro-owner-layer-summary">
+              <span>
+                <b>إضافة سياسة</b>
+                <small>أنشئ إصدارًا أولًا مع مصدر وملاحظة</small>
+              </span>
+              <strong>افتح الإجراء</strong>
+            </summary>
+            <section className="micro-form-card">
+              <div className="micro-section-heading">
+                <div>
+                  <span className="micro-overline">إجراء واضح</span>
+                  <h2>إضافة سياسة مستقلة</h2>
+                </div>
+              </div>
+              <div className="micro-field-grid">
+                <label className="micro-field">
+                  <span>نوع السياسة</span>
+                  <select
+                    value={policyKind}
+                    onChange={event => {
+                      const kind = event.target.value as OwnerEntitlementPolicy["kind"];
+                      setPolicyKind(kind);
+                    }}
+                  >
+                    {supportedOwnerEntitlementPolicyKinds.map(kind => (
+                      <option key={kind} value={kind}>
+                        {policyLabels[kind]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              {amountPolicyKinds.has(policyKind) ? (
+                <label className="micro-field">
+                  <span>المبلغ بوحدة الدينار الأردني</span>
+                  <EnglishNumberInput
+                    value={policyAmount}
+                    kind="money"
+                    onNumericChange={setPolicyAmount}
+                    onTextValidityChange={setPolicyAmountValid}
+                    aria-label="مبلغ سياسة حق المالك"
+                  />
+                </label>
+              ) : (
+                <label className="micro-field">
+                  <span>النسبة (%)</span>
+                  <EnglishNumberInput
+                    value={policyPercentage}
+                    kind="decimal"
+                    onNumericChange={setPolicyPercentage}
+                    onTextValidityChange={setPolicyPercentageValid}
+                    aria-label="نسبة سياسة حق المالك"
+                  />
+                  <small>
+                    تُحفظ النسبة كما أدخلتها بدقة كاملة، وتحسب من نتيجة الفترة المسجلة أو البيع المكتمل حسب
+                    النوع.
+                  </small>
+                </label>
+              )}
+              <div className="micro-field-grid">
+                <LocalDateField
+                  label="تاريخ البداية المحلي"
+                  value={policyStartsOn}
+                  onChange={event => setPolicyStartsOn(event.target.value)}
+                />
+                <LocalDateField
+                  label="تاريخ النهاية المعلن"
+                  description="اتركه فارغًا للسياسات المستمرة، أما المبلغ الثابت للفترة فيحتاج نهاية صريحة."
+                  value={policyEndsOn}
+                  onChange={event => setPolicyEndsOn(event.target.value)}
+                />
+              </div>
+              {policyKind === "per_unit" || policyKind === "per_completed_work" ? (
+                <label className="micro-field">
+                  <span>الوحدة</span>
+                  <input value="وحدة/عمل" readOnly />
+                </label>
+              ) : null}
+              <label className="micro-field">
+                <span>
+                  مصدر السياسة <small>مطلوب</small>
+                </span>
+                <input
+                  value={policySource}
+                  onChange={event => setPolicySource(event.target.value)}
+                  placeholder="مثال: اتفاق مالك المشروع"
+                />
+              </label>
+              <label className="micro-field">
+                <span>
+                  ملاحظة السياسة <small>مطلوب</small>
+                </span>
+                <textarea
+                  value={policyNote}
+                  onChange={event => setPolicyNote(event.target.value)}
+                  placeholder="ما الذي يغطيه هذا الحق؟"
+                />
+              </label>
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={saving}
+                onClick={() => void savePolicy()}
               >
-                <option value="">اختر رصيدًا افتتاحيًا</option>
-                {activeOpeningBalances
-                  .filter(balance =>
-                    movementKind === "draw" ? balance.amountMinor > 0 : balance.amountMinor < 0,
-                  )
-                  .map(balance => (
-                    <option key={balance.id} value={balance.id}>
-                      <bdi dir="ltr">{formatLocalDate(balance.occurredOn)}</bdi> · {formatMoneyMinor(balance.amountMinor)} د.أ ·{" "}
-                      {balance.note}
+                <Save aria-hidden="true" /> حفظ سياسة مستقلة
+              </button>
+            </section>
+          </details>
+          <details className="micro-owner-layer">
+            <summary className="micro-owner-layer-summary">
+              <span>
+                <b>تعديل سياسة</b>
+                <small>نسخة جديدة تبدأ من تاريخ؛ الحقوق السابقة تبقى كما هي</small>
+              </span>
+              <strong>افتح الإجراء</strong>
+            </summary>
+            <section className="micro-form-card">
+              <div className="micro-section-heading">
+                <div>
+                  <span className="micro-overline">تعديل غير رجعي</span>
+                  <h2>تعديل سياسة من تاريخ جديد</h2>
+                </div>
+              </div>
+              <p>
+                تنتهي النسخة السابقة في اليوم السابق لتاريخ النفاذ، وتنشأ نسخة جديدة بإعداداتك الجديدة.{" "}
+                <strong>لا تتغير الحقوق المسجلة سابقًا.</strong>
+              </p>
+              <label className="micro-field">
+                <span>السياسة الفعالة المصدر</span>
+                <select
+                  value={successorPolicyId}
+                  onChange={event => setSuccessorPolicyId(event.target.value)}
+                >
+                  <option value="">اختر سياسة فعالة</option>
+                  {overview.activePolicies.map(policy => (
+                    <option key={policy.id} value={policy.id}>
+                      {policyLabels[policy.kind]} · إصدار {policy.version} · تبدأ{" "}
+                      {formatLocalDate(policy.startsOn)}
                     </option>
                   ))}
-              </select>
-            </label>
-          ) : null}
-          {movementReason === "settlement_of_prior_draw" ? (
-            <label className="micro-field">
-              <span>السحب السابق الذي تعيده</span>
-              <select value={relatedMovementId} onChange={event => setRelatedMovementId(event.target.value)}>
-                <option value="">اختر سحبًا سابقًا</option>
-                {priorDraws.map(movement => (
-                  <option key={movement.id} value={movement.id}>
-                    <bdi dir="ltr">{formatLocalDate(movement.occurredOn)}</bdi> · {formatMoneyMinor(movement.amountMinor)} د.أ ·{" "}
-                    {movement.note}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-          <label className="micro-field">
-            <span>محفظة الكاش</span>
-            <select value={movementWalletId} onChange={event => setMovementWalletId(event.target.value)}>
-              <option value="">اختر محفظة</option>
-              {overview.walletBalances.map(wallet => (
-                <option key={wallet.id} value={wallet.id}>
-                  {wallet.name} · الرصيد {formatMoneyMinor(wallet.balanceMinor)} د.أ
-                </option>
-              ))}
-            </select>
-          </label>
-          <LocalDateField
-            label="تاريخ الحركة"
-            value={movementDate}
-            onChange={event => setMovementDate(event.target.value)}
-          />
-          <label className="micro-field">
-            <span>
-              ملاحظة الحركة <small>مطلوبة</small>
-            </span>
-            <textarea
-              value={movementNote}
-              onChange={event => setMovementNote(event.target.value)}
-              placeholder="مثال: سحبت مبلغًا لتسوية حق آب"
-            />
-          </label>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            disabled={saving}
-            onClick={() => void saveMovement()}
-          >
-            <WalletCards aria-hidden="true" /> حفظ الحركة وأثر الكاش
-          </button>
-        </section>
-      </details>
-      <details className="micro-owner-layer">
-        <summary className="micro-owner-layer-summary">
-          <span>
-            <b>السجل والأثر</b>
-            <small>الحقوق والأرصدة والحركات مع التراجع الموثق</small>
-          </span>
-          <strong>افتح السجل</strong>
-        </summary>
-        <section className="micro-owner-ledger">
-          <div className="micro-section-heading">
-            <div>
-              <span className="micro-overline">أثر غير قابل للمحو</span>
-              <h2>الحقوق والأرصدة والحركات</h2>
-            </div>
-          </div>
-          {overview.entitlements.length === 0 &&
-          overview.openingBalances.length === 0 &&
-          overview.movements.length === 0 ? (
-            <p className="micro-empty-state">لا توجد حقوق أو أرصدة أو حركات مالك بعد.</p>
-          ) : (
-            <div className="micro-owner-list">
-              {overview.entitlements.map(record => (
-                <article className="micro-owner-list-row" key={record.id}>
-                  <div>
+                </select>
+              </label>
+              {successorPolicy ? (
+                <div className="micro-owner-calculation">
+                  <strong>ملخص النسخة السابقة</strong>
+                  <p>
+                    {policyLabels[successorPolicy.kind]} ·{" "}
+                    {successorPolicy.amountMinor === null
+                      ? `${(successorPolicy.percentageBps ?? 0) / 100}%`
+                      : `${formatMoneyMinor(successorPolicy.amountMinor)} د.أ`}{" "}
+                    · {policyFamilyLabels[successorPolicy.family]}
+                  </p>
+                  <small>
+                    سيبقى الإصدار {successorPolicy.version} وحقوقه الماضية ومعرّفاتها ومبالغها كما هي.
+                  </small>
+                </div>
+              ) : null}
+              <div className="micro-field-grid">
+                <LocalDateField
+                  label="تاريخ بدء النسخة الجديدة"
+                  description="يبدأ أثر الإعداد الجديد من هذا التاريخ فقط."
+                  value={successorStartsOn}
+                  onChange={event => setSuccessorStartsOn(event.target.value)}
+                />
+                <label className="micro-field">
+                  <span>نوع النسخة الجديدة</span>
+                  <select
+                    value={successorKind}
+                    onChange={event => {
+                      const kind = event.target.value as OwnerEntitlementPolicy["kind"];
+                      setSuccessorKind(kind);
+                      if (kind !== "fixed_period") setSuccessorEndsOn("");
+                      if (kind !== "per_unit" && kind !== "per_completed_work") setSuccessorUnitLabel("");
+                    }}
+                  >
+                    {supportedOwnerEntitlementPolicyKinds.map(kind => (
+                      <option key={kind} value={kind}>
+                        {policyLabels[kind]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              {successorRequirements.valueKind === "amount" ? (
+                <label className="micro-field">
+                  <span>مبلغ النسخة الجديدة بوحدة الدينار الأردني</span>
+                  <EnglishNumberInput
+                    value={successorAmount}
+                    kind="money"
+                    onNumericChange={setSuccessorAmount}
+                    onTextValidityChange={setSuccessorAmountValid}
+                    aria-label="مبلغ النسخة الجديدة لسياسة حق المالك"
+                  />
+                </label>
+              ) : (
+                <label className="micro-field">
+                  <span>نسبة النسخة الجديدة (%)</span>
+                  <EnglishNumberInput
+                    value={successorPercentage}
+                    kind="decimal"
+                    onNumericChange={setSuccessorPercentage}
+                    onTextValidityChange={setSuccessorPercentageValid}
+                    aria-label="نسبة النسخة الجديدة لسياسة حق المالك"
+                  />
+                  <small>
+                    تحسب من نتيجة الفترة المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.
+                  </small>
+                </label>
+              )}
+              {successorRequirements.requiresUnit ? (
+                <label className="micro-field">
+                  <span>
+                    الوحدة أو تعريف العمل <small>مطلوب</small>
+                  </span>
+                  <input
+                    value={successorUnitLabel}
+                    onChange={event => setSuccessorUnitLabel(event.target.value)}
+                    placeholder="مثال: قطعة مكتملة أو طلب خدمة"
+                  />
+                  <small>يجب أن يصف هذا الحقل دليل المصدر؛ لا يسجل النظام صفرًا عند غيابه.</small>
+                </label>
+              ) : null}
+              {successorRequirements.requiresEndDate ? (
+                <LocalDateField
+                  label="نهاية نطاق النسخة الجديدة"
+                  description="مطلوبة. المبلغ الثابت للفترة يحتاج نطاقًا معلنًا كاملًا."
+                  value={successorEndsOn}
+                  onChange={event => setSuccessorEndsOn(event.target.value)}
+                />
+              ) : null}
+              <label className="micro-field">
+                <span>
+                  سبب التعديل <small>مطلوب</small>
+                </span>
+                <input
+                  value={successorSource}
+                  onChange={event => setSuccessorSource(event.target.value)}
+                  placeholder="مثال: تعديل الاتفاق من بداية 09/2026"
+                />
+              </label>
+              <label className="micro-field">
+                <span>
+                  ملاحظة النسخة الجديدة <small>مطلوبة</small>
+                </span>
+                <textarea
+                  value={successorNote}
+                  onChange={event => setSuccessorNote(event.target.value)}
+                  placeholder="ما الذي تغير في المبلغ أو النوع أو النطاق؟"
+                />
+              </label>
+              <p className="micro-decision-next">
+                النتيجة: النسخة الجديدة تحفظ إعدادات مختلفة عند الحاجة، والحقوق التاريخية لا يعاد احتسابها.
+                إذا احتاج النوع دليل وقت أو وحدة أو وردية غير موجود، سيبقى غير متاح بدل التخمين.
+              </p>
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={saving || !successorPolicy}
+                onClick={() => void saveSuccessor()}
+              >
+                حفظ التعديل وإنهاء السابقة
+              </button>
+            </section>
+          </details>
+          <details className="micro-owner-layer">
+            <summary className="micro-owner-layer-summary">
+              <span>
+                <b>تسجيل حق</b>
+                <small>حق المالك لا يقبض المال ولا يغيّر الكاش</small>
+              </span>
+              <strong>افتح الإجراء</strong>
+            </summary>
+            <section className="micro-form-card">
+              <div className="micro-section-heading">
+                <div>
+                  <span className="micro-overline">حق مستقل</span>
+                  <h2>تسجيل حق المالك</h2>
+                </div>
+              </div>
+              <p>
+                تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. لا يُسجل الحق نفسه للفترة نفسها مرتين؛ تراجع عن
+                السجل فقط إذا كان خطأ.
+              </p>
+              <label className="micro-field">
+                <span>السياسة المصدر</span>
+                <select value={selectedPolicyId} onChange={event => setSelectedPolicyId(event.target.value)}>
+                  <option value="">اختر سياسة</option>
+                  {overview.policies.map(policy => (
+                    <option key={policy.id} value={policy.id}>
+                      {policyLabels[policy.kind]} · إصدار {policy.version} · تبدأ{" "}
+                      {formatLocalDate(policy.startsOn)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="micro-field-grid">
+                <LocalDateField
+                  label="من الفترة"
+                  value={periodFrom}
+                  onChange={event => setPeriodFrom(event.target.value)}
+                />
+                <LocalDateField
+                  label="إلى الفترة"
+                  value={periodTo}
+                  onChange={event => setPeriodTo(event.target.value)}
+                />
+              </div>
+              <div
+                className="micro-owner-calculation"
+                data-known={calculation?.amountMinor !== null && calculation?.amountMinor !== undefined}
+              >
+                {calculation?.amountMinor === null || !calculation ? (
+                  <>
+                    <strong>الحق غير متاح بعد</strong>
+                    <p>{calculation?.nextAction ?? "اختر سياسة وفترة صحيحتين."}</p>
+                  </>
+                ) : (
+                  <>
                     <strong>
-                      حق · <bdi dir="ltr">{formatLocalDate(record.occurredOn)}</bdi>
-                      {record.reversalOfId ? " · تراجع كامل" : ""}
+                      الحق المقترح: <bdi dir="ltr">{formatMoneyMinor(calculation.amountMinor)}</bdi> د.أ
                     </strong>
-                    <small>
-                      <bdi dir="ltr">{formatLocalDate(record.periodFrom)} → {formatLocalDate(record.periodTo)}</bdi> ·{" "}
-                      {record.knowledge === "known" ? "معروف" : "جزئي"} · {record.note}
-                    </small>
-                    <small>
-                      المصدر: {record.sourceKeys.join(", ") || "فترة معلنة"}
-                      {record.reversalOfId
-                        ? ` · الأصل محفوظ كما هو · السبب: ${record.reversalReason}`
-                        : ""}
-                    </small>
-                  </div>
-                  <div className="micro-owner-list-actions">
-                    <b>
-                      <bdi dir="ltr">{formatMoneyMinor(record.amountMinor)}</bdi> د.أ
-                    </b>
-                    {!record.reversalOfId && !reversedEntitlementIds.has(record.id) ? (
-                      <button
-                        className="micro-text-action"
-                        type="button"
-                        onClick={() => {
-                          setReversalTarget({ kind: "entitlement", id: record.id });
-                          setReversalReason("");
-                        }}
-                      >
-                        <RotateCcw aria-hidden="true" /> تراجع كامل
-                      </button>
-                    ) : null}
-                  </div>
-                  {reversalTarget?.kind === "entitlement" && reversalTarget.id === record.id ? (
-                    <ReversalBox
-                      label="سبب التراجع عن الحق"
-                      value={reversalReason}
-                      onChange={setReversalReason}
-                      onConfirm={() => void reverseEntitlement()}
-                      onCancel={() => setReversalTarget(null)}
-                      saving={saving}
-                    />
-                  ) : null}
-                </article>
-              ))}
-              {overview.openingBalances.map(balance => (
-                <article className="micro-owner-list-row" key={balance.id}>
-                  <div>
-                    <strong>
-                      رصيد افتتاحي · <bdi dir="ltr">{formatLocalDate(balance.occurredOn)}</bdi>
-                      {balance.reversalOfId ? " · تراجع كامل" : ""}
-                    </strong>
-                    <small>
-                      <bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> د.أ · {balance.reason} ·{" "}
-                      {balance.note}
-                    </small>
-                    {balance.reversalOfId ? (
-                      <small>
-                        الأصل محفوظ كما هو · السبب: {balance.reversalReason}
-                      </small>
-                    ) : (
-                      <small>
-                        المتبقي بعد التسويات:{" "}
-                        <bdi dir="ltr">
-                          {formatMoneyMinor(
-                            balance.amountMinor +
-                              overview.movements
-                                .filter(movement => movement.relatedOpeningBalanceId === balance.id)
-                                .reduce((sum, movement) => sum + movement.openingBalanceDeltaMinor, 0),
-                          )}
-                        </bdi>{" "}
-                        د.أ
-                      </small>
-                    )}
-                  </div>
-                  <div className="micro-owner-list-actions">
-                    <b>
-                      <bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> د.أ
-                    </b>
-                    {!balance.reversalOfId && !reversedOpeningIds.has(balance.id) ? (
-                      <button
-                        className="micro-text-action"
-                        type="button"
-                        onClick={() => {
-                          setReversalTarget({ kind: "opening", id: balance.id });
-                          setReversalReason("");
-                        }}
-                      >
-                        <RotateCcw aria-hidden="true" /> تراجع كامل
-                      </button>
-                    ) : null}
-                  </div>
-                  {reversalTarget?.kind === "opening" && reversalTarget.id === balance.id ? (
-                    <ReversalBox
-                      label="سبب التراجع عن الرصيد الافتتاحي"
-                      value={reversalReason}
-                      onChange={setReversalReason}
-                      onConfirm={() => void reverseOpening()}
-                      onCancel={() => setReversalTarget(null)}
-                      saving={saving}
-                    />
-                  ) : null}
-                </article>
-              ))}
-              {overview.movements.map(movement => (
-                <article
-                  className="micro-owner-list-row"
-                  data-movement={movement.reversalOfId ? "reversal" : movement.kind}
-                  key={movement.id}
+                    <p>
+                      الحالة: {calculation.knowledge === "known" ? "معروف" : "جزئي/يحتاج مراجعة"}. راجع المصدر
+                      قبل التسجيل.
+                    </p>
+                    <p>{calculation.nextAction}</p>
+                  </>
+                )}
+              </div>
+              <LocalDateField
+                label="تاريخ تسجيل الحق"
+                value={entitlementDate}
+                onChange={event => setEntitlementDate(event.target.value)}
+              />
+              <label className="micro-field">
+                <span>
+                  ملاحظة الحق <small>مطلوبة</small>
+                </span>
+                <textarea
+                  value={entitlementNote}
+                  onChange={event => setEntitlementNote(event.target.value)}
+                  placeholder="مثال: حق شهر 08/2026 حسب السياسة 1"
+                />
+              </label>
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={saving || !calculation || calculation.amountMinor === null}
+                onClick={() => void saveEntitlement()}
+              >
+                <HandCoins aria-hidden="true" /> تسجيل الحق دون قبض
+              </button>
+            </section>
+          </details>
+          <details className="micro-owner-layer">
+            <summary className="micro-owner-layer-summary">
+              <span>
+                <b>رصيد افتتاحي</b>
+                <small>سجل مصدرًا قديمًا قابلًا للتسوية أو التراجع</small>
+              </span>
+              <strong>افتح الإجراء</strong>
+            </summary>
+            <section className="micro-form-card">
+              <div className="micro-section-heading">
+                <div>
+                  <span className="micro-overline">مصدر قابل للتسوية</span>
+                  <h2>إضافة رصيد افتتاحي</h2>
+                </div>
+              </div>
+              <p>
+                هذه طبقة افتتاحية اختيارية بإشارة موجبة أو سالبة، مع سبب وملاحظة. لا تنشئ حركة ماضية، ويمكن
+                تسويتها أو التراجع عنها صراحة.
+              </p>
+              <div className="micro-field-grid">
+                <label className="micro-field">
+                  <span>الرصيد بوحدة الدينار الأردني</span>
+                  <EnglishNumberInput
+                    value={openingAmount}
+                    kind="signedInteger"
+                    onNumericChange={setOpeningAmount}
+                    onTextValidityChange={setOpeningAmountValid}
+                    onEmptyChange={() => setOpeningAmount(null)}
+                    allowEmpty
+                    placeholder="مثال: 1500 أو -500"
+                    aria-label="الرصيد الافتتاحي الموقّع"
+                  />
+                  <small>
+                    الموجب: المشروع مدين لك ويمكن تسويته بسحب. السالب: سحوبات سابقة أكثر ويمكن تسويته بإرجاع.
+                  </small>
+                </label>
+                <LocalDateField
+                  label="التاريخ المحلي"
+                  value={openingDate}
+                  onChange={event => setOpeningDate(event.target.value)}
+                />
+              </div>
+              <label className="micro-field">
+                <span>
+                  السبب <small>مطلوب</small>
+                </span>
+                <input
+                  value={openingReason}
+                  onChange={event => setOpeningReason(event.target.value)}
+                  placeholder="مثال: رصيد دفتر سابق موثق"
+                />
+              </label>
+              <label className="micro-field">
+                <span>
+                  ملاحظة <small>مطلوبة</small>
+                </span>
+                <textarea
+                  value={openingNote}
+                  onChange={event => setOpeningNote(event.target.value)}
+                  placeholder="اشرح مصدر الرصيد الافتتاحي"
+                />
+              </label>
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={saving}
+                onClick={() => void saveOpeningBalance()}
+              >
+                حفظ الرصيد الافتتاحي
+              </button>
+            </section>
+          </details>
+          <details className="micro-owner-layer">
+            <summary className="micro-owner-layer-summary">
+              <span>
+                <b>إرجاع أو تسوية دفتر</b>
+                <small>عمليات مرتبطة بسجلات الدفتر: تسوية محددة أو إرجاع، بمحفظة معينة</small>
+              </span>
+              <strong>افتح الإجراء</strong>
+            </summary>
+            <section className="micro-form-card">
+              <div className="micro-section-heading">
+                <div>
+                  <span className="micro-overline">يغير الكاش فعليًا</span>
+                  <h2>تسجيل إرجاع أو تسوية</h2>
+                </div>
+              </div>
+              <p>
+                السحب الشخصي العادي له مدخل واحد من «مالي» — «سجل سحبًا شخصيًا». ما هنا مرتبط بسجلات الدفتر:
+                تسوية حق أو رصيد محدد، إرجاع سحب سابق، أو حقن رأس مال جديد. كل حركة تحتاج محفظة وسببًا
+                وملاحظة، والسحب ليس مصروف تشغيل، والإرجاع كرأس مال جديد لا يسوي الحق.
+              </p>
+              <div className="micro-field-grid">
+                <label className="micro-field">
+                  <span>نوع الحركة</span>
+                  <select
+                    value={movementKind}
+                    onChange={event => setMovementKind(event.target.value as "draw" | "return")}
+                  >
+                    <option value="draw">سحب فعلي</option>
+                    <option value="return">إرجاع فعلي</option>
+                  </select>
+                </label>
+                <label className="micro-field">
+                  <span>المبلغ بوحدة الدينار الأردني</span>
+                  <EnglishNumberInput
+                    value={movementAmount}
+                    kind="money"
+                    onNumericChange={setMovementAmount}
+                    onTextValidityChange={setMovementAmountValid}
+                    aria-label="مبلغ حركة المالك"
+                  />
+                </label>
+              </div>
+              <label className="micro-field">
+                <span>السبب</span>
+                <select
+                  value={movementReason}
+                  onChange={event => setMovementReason(event.target.value as OwnerMovementReason)}
                 >
-                  <div>
-                    <strong>
-                      {movement.kind === "draw" ? "سحب فعلي" : "إرجاع فعلي"}
-                      {movement.reversalOfId ? " · تراجع كامل" : ""}
-                    </strong>
-                    <small>
-                      {formatLocalDate(movement.occurredOn)} · {movementReasonLabels[movement.reason]} ·{" "}
-                      {movement.note}
-                    </small>
-                    <small>
-                      المحفظة:{" "}
-                      {overview.walletBalances.find(wallet => wallet.id === movement.walletId)?.name ??
-                        movement.walletId}{" "}
-                      · أثر الكاش: <bdi dir="ltr">{formatMoneyMinor(movement.cashDeltaMinor)}</bdi> د.أ
-                    </small>
-                    {movement.reversalOfId ? (
-                      <small>
-                        الأصل محفوظ كما هو · السبب: {movement.reversalReason}
-                      </small>
-                    ) : null}
-                  </div>
-                  <div className="micro-owner-list-actions">
-                    <b>
-                      <bdi dir="ltr">{formatMoneyMinor(movement.amountMinor)}</bdi> د.أ
-                    </b>
-                    {!movement.reversalOfId && !reversedMovementIds.has(movement.id) ? (
-                      <button
-                        className="micro-text-action"
-                        type="button"
-                        onClick={() => {
-                          setReversalTarget({ kind: "movement", id: movement.id });
-                          setReversalReason("");
-                        }}
-                      >
-                        <RotateCcw aria-hidden="true" /> تراجع كامل
-                      </button>
-                    ) : null}
-                  </div>
-                  {reversalTarget?.kind === "movement" && reversalTarget.id === movement.id ? (
-                    <ReversalBox
-                      label="سبب التراجع"
-                      value={reversalReason}
-                      onChange={setReversalReason}
-                      onConfirm={() => void reverseMovement()}
-                      onCancel={() => setReversalTarget(null)}
-                      saving={saving}
-                    />
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      </details>
+                  {reasonOptions.map(reason => (
+                    <option key={reason} value={reason}>
+                      {movementReasonLabels[reason]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {movementReason === "entitlement_settlement" ? (
+                <label className="micro-field">
+                  <span>الحق الذي تتم تسويته</span>
+                  <select
+                    value={relatedEntitlementId}
+                    onChange={event => setRelatedEntitlementId(event.target.value)}
+                  >
+                    <option value="">اختر حقًا مسجلًا</option>
+                    {activeEntitlements.map(record => (
+                      <option key={record.id} value={record.id}>
+                        <bdi dir="ltr">{formatLocalDate(record.occurredOn)}</bdi> ·{" "}
+                        {formatMoneyMinor(record.amountMinor)} د.أ · {record.note}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              {movementReason === "opening_balance_settlement" ? (
+                <label className="micro-field">
+                  <span>الرصيد الافتتاحي المصدر</span>
+                  <select
+                    value={relatedOpeningBalanceId}
+                    onChange={event => setRelatedOpeningBalanceId(event.target.value)}
+                  >
+                    <option value="">اختر رصيدًا افتتاحيًا</option>
+                    {activeOpeningBalances
+                      .filter(balance =>
+                        movementKind === "draw" ? balance.amountMinor > 0 : balance.amountMinor < 0,
+                      )
+                      .map(balance => (
+                        <option key={balance.id} value={balance.id}>
+                          <bdi dir="ltr">{formatLocalDate(balance.occurredOn)}</bdi> ·{" "}
+                          {formatMoneyMinor(balance.amountMinor)} د.أ · {balance.note}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              ) : null}
+              {movementReason === "settlement_of_prior_draw" ? (
+                <label className="micro-field">
+                  <span>السحب السابق الذي تعيده</span>
+                  <select
+                    value={relatedMovementId}
+                    onChange={event => setRelatedMovementId(event.target.value)}
+                  >
+                    <option value="">اختر سحبًا سابقًا</option>
+                    {priorDraws.map(movement => (
+                      <option key={movement.id} value={movement.id}>
+                        <bdi dir="ltr">{formatLocalDate(movement.occurredOn)}</bdi> ·{" "}
+                        {formatMoneyMinor(movement.amountMinor)} د.أ · {movement.note}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              <label className="micro-field">
+                <span>محفظة الكاش</span>
+                <select value={movementWalletId} onChange={event => setMovementWalletId(event.target.value)}>
+                  <option value="">اختر محفظة</option>
+                  {overview.walletBalances.map(wallet => (
+                    <option key={wallet.id} value={wallet.id}>
+                      {wallet.name} · الرصيد {formatMoneyMinor(wallet.balanceMinor)} د.أ
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <LocalDateField
+                label="تاريخ الحركة"
+                value={movementDate}
+                onChange={event => setMovementDate(event.target.value)}
+              />
+              <label className="micro-field">
+                <span>
+                  ملاحظة الحركة <small>مطلوبة</small>
+                </span>
+                <textarea
+                  value={movementNote}
+                  onChange={event => setMovementNote(event.target.value)}
+                  placeholder="مثال: سحبت مبلغًا لتسوية حق آب"
+                />
+              </label>
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={saving}
+                onClick={() => void saveMovement()}
+              >
+                <WalletCards aria-hidden="true" /> حفظ الحركة وأثر الكاش
+              </button>
+            </section>
+          </details>
+          <details className="micro-owner-layer">
+            <summary className="micro-owner-layer-summary">
+              <span>
+                <b>السجل والأثر</b>
+                <small>الحقوق والأرصدة والحركات مع التراجع الموثق</small>
+              </span>
+              <strong>افتح السجل</strong>
+            </summary>
+            <section className="micro-owner-ledger">
+              <div className="micro-section-heading">
+                <div>
+                  <span className="micro-overline">أثر غير قابل للمحو</span>
+                  <h2>الحقوق والأرصدة والحركات</h2>
+                </div>
+              </div>
+              {overview.entitlements.length === 0 &&
+              overview.openingBalances.length === 0 &&
+              overview.movements.length === 0 ? (
+                <p className="micro-empty-state">لا توجد حقوق أو أرصدة أو حركات مالك بعد.</p>
+              ) : (
+                <div className="micro-owner-list">
+                  {overview.entitlements.map(record => (
+                    <article className="micro-owner-list-row" key={record.id}>
+                      <div>
+                        <strong>
+                          حق · <bdi dir="ltr">{formatLocalDate(record.occurredOn)}</bdi>
+                          {record.reversalOfId ? " · تراجع كامل" : ""}
+                        </strong>
+                        <small>
+                          <bdi dir="ltr">
+                            {formatLocalDate(record.periodFrom)} → {formatLocalDate(record.periodTo)}
+                          </bdi>{" "}
+                          · {record.knowledge === "known" ? "معروف" : "جزئي"} · {record.note}
+                        </small>
+                        <small>
+                          المصدر: {record.sourceKeys.join(", ") || "فترة معلنة"}
+                          {record.reversalOfId
+                            ? ` · الأصل محفوظ كما هو · السبب: ${record.reversalReason}`
+                            : ""}
+                        </small>
+                      </div>
+                      <div className="micro-owner-list-actions">
+                        <b>
+                          <bdi dir="ltr">{formatMoneyMinor(record.amountMinor)}</bdi> د.أ
+                        </b>
+                        {!record.reversalOfId && !reversedEntitlementIds.has(record.id) ? (
+                          <button
+                            className="micro-text-action"
+                            type="button"
+                            onClick={() => {
+                              setReversalTarget({ kind: "entitlement", id: record.id });
+                              setReversalReason("");
+                            }}
+                          >
+                            <RotateCcw aria-hidden="true" /> تراجع كامل
+                          </button>
+                        ) : null}
+                      </div>
+                      {reversalTarget?.kind === "entitlement" && reversalTarget.id === record.id ? (
+                        <ReversalBox
+                          label="سبب التراجع عن الحق"
+                          value={reversalReason}
+                          onChange={setReversalReason}
+                          onConfirm={() => void reverseEntitlement()}
+                          onCancel={() => setReversalTarget(null)}
+                          saving={saving}
+                        />
+                      ) : null}
+                    </article>
+                  ))}
+                  {overview.openingBalances.map(balance => (
+                    <article className="micro-owner-list-row" key={balance.id}>
+                      <div>
+                        <strong>
+                          رصيد افتتاحي · <bdi dir="ltr">{formatLocalDate(balance.occurredOn)}</bdi>
+                          {balance.reversalOfId ? " · تراجع كامل" : ""}
+                        </strong>
+                        <small>
+                          <bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> د.أ · {balance.reason}{" "}
+                          · {balance.note}
+                        </small>
+                        {balance.reversalOfId ? (
+                          <small>الأصل محفوظ كما هو · السبب: {balance.reversalReason}</small>
+                        ) : (
+                          <small>
+                            المتبقي بعد التسويات:{" "}
+                            <bdi dir="ltr">
+                              {formatMoneyMinor(
+                                balance.amountMinor +
+                                  overview.movements
+                                    .filter(movement => movement.relatedOpeningBalanceId === balance.id)
+                                    .reduce((sum, movement) => sum + movement.openingBalanceDeltaMinor, 0),
+                              )}
+                            </bdi>{" "}
+                            د.أ
+                          </small>
+                        )}
+                      </div>
+                      <div className="micro-owner-list-actions">
+                        <b>
+                          <bdi dir="ltr">{formatMoneyMinor(balance.amountMinor)}</bdi> د.أ
+                        </b>
+                        {!balance.reversalOfId && !reversedOpeningIds.has(balance.id) ? (
+                          <button
+                            className="micro-text-action"
+                            type="button"
+                            onClick={() => {
+                              setReversalTarget({ kind: "opening", id: balance.id });
+                              setReversalReason("");
+                            }}
+                          >
+                            <RotateCcw aria-hidden="true" /> تراجع كامل
+                          </button>
+                        ) : null}
+                      </div>
+                      {reversalTarget?.kind === "opening" && reversalTarget.id === balance.id ? (
+                        <ReversalBox
+                          label="سبب التراجع عن الرصيد الافتتاحي"
+                          value={reversalReason}
+                          onChange={setReversalReason}
+                          onConfirm={() => void reverseOpening()}
+                          onCancel={() => setReversalTarget(null)}
+                          saving={saving}
+                        />
+                      ) : null}
+                    </article>
+                  ))}
+                  {overview.movements.map(movement => (
+                    <article
+                      className="micro-owner-list-row"
+                      data-movement={movement.reversalOfId ? "reversal" : movement.kind}
+                      key={movement.id}
+                    >
+                      <div>
+                        <strong>
+                          {movement.kind === "draw" ? "سحب فعلي" : "إرجاع فعلي"}
+                          {movement.reversalOfId ? " · تراجع كامل" : ""}
+                        </strong>
+                        <small>
+                          {formatLocalDate(movement.occurredOn)} · {movementReasonLabels[movement.reason]} ·{" "}
+                          {movement.note}
+                        </small>
+                        <small>
+                          المحفظة:{" "}
+                          {overview.walletBalances.find(wallet => wallet.id === movement.walletId)?.name ??
+                            movement.walletId}{" "}
+                          · أثر الكاش: <bdi dir="ltr">{formatMoneyMinor(movement.cashDeltaMinor)}</bdi> د.أ
+                        </small>
+                        {movement.reversalOfId ? (
+                          <small>الأصل محفوظ كما هو · السبب: {movement.reversalReason}</small>
+                        ) : null}
+                      </div>
+                      <div className="micro-owner-list-actions">
+                        <b>
+                          <bdi dir="ltr">{formatMoneyMinor(movement.amountMinor)}</bdi> د.أ
+                        </b>
+                        {!movement.reversalOfId && !reversedMovementIds.has(movement.id) ? (
+                          <button
+                            className="micro-text-action"
+                            type="button"
+                            onClick={() => {
+                              setReversalTarget({ kind: "movement", id: movement.id });
+                              setReversalReason("");
+                            }}
+                          >
+                            <RotateCcw aria-hidden="true" /> تراجع كامل
+                          </button>
+                        ) : null}
+                      </div>
+                      {reversalTarget?.kind === "movement" && reversalTarget.id === movement.id ? (
+                        <ReversalBox
+                          label="سبب التراجع"
+                          value={reversalReason}
+                          onChange={setReversalReason}
+                          onConfirm={() => void reverseMovement()}
+                          onCancel={() => setReversalTarget(null)}
+                          saving={saving}
+                        />
+                      ) : null}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          </details>
         </div>
       </details>
     </section>

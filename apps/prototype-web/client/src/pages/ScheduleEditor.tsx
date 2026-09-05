@@ -243,18 +243,18 @@ export default function ScheduleEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-            <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
-          disabled={saving}
-          onClick={() => {
-            void persistTiming();
-          }}
-        >
-          <Save aria-hidden="true" />
-          {saving ? "جارٍ حفظ الموعد…" : "حفظ الموعد"}
-        </button>
-          </div>
+          <button
+            className="micro-button micro-button-primary micro-save-cost"
+            type="button"
+            disabled={saving}
+            onClick={() => {
+              void persistTiming();
+            }}
+          >
+            <Save aria-hidden="true" />
+            {saving ? "جارٍ حفظ الموعد…" : "حفظ الموعد"}
+          </button>
+        </div>
         {schedule.status === "scheduled" || schedule.status === "postponed" ? (
           <button
             className="micro-button micro-button-secondary"

@@ -16,13 +16,10 @@ import {
   type LoanEventContext,
   type DepositEventContext,
 } from "@micro-domain/financial-event/index.js";
-import { formatMoneyWithUnit, localDateInAmman as ammanDate} from "@/presentation/formatters";
+import { formatMoneyWithUnit, localDateInAmman as ammanDate } from "@/presentation/formatters";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
-import {
-  createCashContinuityEntry,
-  summarizeCashContinuity,
-} from "@micro-domain/cash-continuity/index.js";
+import { createCashContinuityEntry, summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
 import { calculateBreakEvenUnits } from "@micro-domain/g5/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
@@ -301,18 +298,10 @@ function derivePeriodCogs(
     .filter(movement => movement.type === "waste")
     .reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
   const cogsReasons: string[] = [];
-  if (finals.length > 0 && cogsStatus === "not_available")
-    cogsReasons.push(
-      "نسخة تكلفة بديلة",
-    );
-  if (cogsStatus === "partial")
-    cogsReasons.push(
-      "تكلفة بيع جزئية",
-    );
-  if (unallocatedInventoryCostMinor > 0)
-    cogsReasons.push("استهلاك غير موزع");
-  if (generalInventoryWasteMinor > 0)
-    cogsReasons.push("هدر عام");
+  if (finals.length > 0 && cogsStatus === "not_available") cogsReasons.push("نسخة تكلفة بديلة");
+  if (cogsStatus === "partial") cogsReasons.push("تكلفة بيع جزئية");
+  if (unallocatedInventoryCostMinor > 0) cogsReasons.push("استهلاك غير موزع");
+  if (generalInventoryWasteMinor > 0) cogsReasons.push("هدر عام");
   return {
     snapshotDirectCostMinor,
     recordedCogsMinor,
@@ -363,13 +352,8 @@ export class ProjectFinancialService {
     const project = summarizeFinancialEvents(eventsResult.value);
     /* §٥-١٣ (المرحلة أ): تحصيل البيع المباشر كاش كأي تحصيل — يدخل الكاش غير الموزع
      * نظير تحصيلات الطلبات. البيع الملغى لا يُحتسب: نقضُه ينقض قبضه. */
-    const activeDirectSales = directSalesResult.value.filter(
-      sale => (sale.status ?? "active") === "active",
-    );
-    const directSalesCashMinor = activeDirectSales.reduce(
-      (sum, sale) => sum + sale.collectedMinor,
-      0,
-    );
+    const activeDirectSales = directSalesResult.value.filter(sale => (sale.status ?? "active") === "active");
+    const directSalesCashMinor = activeDirectSales.reduce((sum, sale) => sum + sale.collectedMinor, 0);
     /* X-06 (و٤): ما قرّره المالك دَينًا من فرق البيع المباشر يظهر في «لي عند العملاء» —
      * المال المستحق لا يُخفى. و«يحتاج مراجعة» فرق لم يُقرَّر بعد فلا يدخل الذمم. */
     const directSalesReceivablesMinor = activeDirectSales
@@ -469,15 +453,21 @@ export class ProjectFinancialService {
   }
 
   async readRecordedPeriodResult(from: string, to: string): Promise<FinanceResult<RecordedPeriodResult>> {
-    const [ordersResult, eventsResult, movementsResult, activationResult, materialsResult, directSalesResult] =
-      await Promise.all([
-        this.store.listOrders(),
-        this.store.listFinancialEvents(),
-        this.store.listInventoryMovements(),
-        this.store.getInventoryActivation(),
-        this.store.listMaterials(),
-        this.store.listDirectSales(),
-      ]);
+    const [
+      ordersResult,
+      eventsResult,
+      movementsResult,
+      activationResult,
+      materialsResult,
+      directSalesResult,
+    ] = await Promise.all([
+      this.store.listOrders(),
+      this.store.listFinancialEvents(),
+      this.store.listInventoryMovements(),
+      this.store.getInventoryActivation(),
+      this.store.listMaterials(),
+      this.store.listDirectSales(),
+    ]);
     if (
       !ordersResult.ok ||
       !eventsResult.ok ||
@@ -651,8 +641,7 @@ export class ProjectFinancialService {
     if (directSaleCostUnknownCount > 0) reasons.push("بيع مباشر بتكلفة غير معروفة");
     if (sharedEstimatedExpenseCount > 0) reasons.push("حصة تقديرية");
     if (sharedMissingBasisCount > 0) reasons.push("حصة بلا مصدر");
-    if (sharedUnallocatedExpenseCount > 0)
-      reasons.push("حصة غير موزعة");
+    if (sharedUnallocatedExpenseCount > 0) reasons.push("حصة غير موزعة");
     if (legacyUnclassifiedExpenseCount > 0) reasons.push("مصروفات غير مصنفة");
     /* المجموعة ٤: بنود مستقلة معلنة — لا تُخلط بالمصروفات التشغيلية. */
     if (assetDepreciationMinor > 0) reasons.push("إهلاك مسجّل");
@@ -786,8 +775,7 @@ export class ProjectFinancialService {
     const movementCount = movementsResult.value.filter(movement => inPeriod(movement.occurredOn)).length;
     const coverageReasons: string[] = [];
     if (finals.length === 0) coverageReasons.push("لا توجد طلبات مسلّمة بنتيجة نهائية في الفترة.");
-    if (periodResult.value.excludedOrderCount > 0)
-      coverageReasons.push("طلبات مستبعدة");
+    if (periodResult.value.excludedOrderCount > 0) coverageReasons.push("طلبات مستبعدة");
     if (reviewableFixed.some(event => event.expenseContext?.knowledge !== "known"))
       coverageReasons.push("مصروفات تحتاج مراجعة");
     if (
@@ -799,10 +787,7 @@ export class ProjectFinancialService {
       )
     )
       coverageReasons.push("مصروفات غير موزعة");
-    if (movementCount > 0)
-      coverageReasons.push(
-        "حركات مخزون فعلية",
-      );
+    if (movementCount > 0) coverageReasons.push("حركات مخزون فعلية");
     if (directMarginMinor <= 0) coverageReasons.push("هامش غير موجب");
     if (fixedExpenseMinor <= 0) coverageReasons.push("بلا مصروفات ثابتة");
     const coverageStatus: FinancialInsightStatus =
@@ -877,7 +862,8 @@ export class ProjectFinancialService {
     const reason = input.reason.trim();
     if (!sourceEventId)
       return { ok: false, code: "validation_error", message: "اختر الحدث الأصلي قبل تصحيحه." };
-    if (!reason) return { ok: false, code: "validation_error", message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
+    if (!reason)
+      return { ok: false, code: "validation_error", message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
     if (!idempotencyKey)
       return { ok: false, code: "validation_error", message: "مفتاح التصحيح مطلوب لمنع تكرار الأثر." };
     if (!isValidLocalDate(input.occurredOn))
@@ -909,7 +895,11 @@ export class ProjectFinancialService {
       event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
     );
     if (alreadyReversed)
-      return { ok: false, code: "validation_error", message: "تم التراجع عن هذا الحدث سابقًا؛ لا يُنشأ تراجع ثانٍ." };
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "تم التراجع عن هذا الحدث سابقًا؛ لا يُنشأ تراجع ثانٍ.",
+      };
     /* F-006 (دورة التدقيق النهائي): التراجع/الحذف يخضع لنفس حد الأمانة — التراجع عن
      * استلام أمانة جرى تسليم جزء منها يجعل الرصيد الأمين سالبًا (خصم زائد). المسار
      * الصحيح: تراجع عن التسليم أولًا ثم عن الاستلام. لا يُكتب شيء عند الرفض. */
@@ -919,11 +909,7 @@ export class ProjectFinancialService {
         return {
           ok: false,
           code: "validation_error",
-          message: amanahLimitMessage(
-            heldMinor,
-            source.amanahDeltaMinor ?? 0,
-            "التراجع عن استلام الأمانة",
-          ),
+          message: amanahLimitMessage(heldMinor, source.amanahDeltaMinor ?? 0, "التراجع عن استلام الأمانة"),
         };
     }
     try {
@@ -967,11 +953,8 @@ export class ProjectFinancialService {
     if (!walletsResult.ok || !entriesResult.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة المحافظ قبل التخصيص." };
     const wallet = walletsResult.value.find(candidate => candidate.id === input.walletId);
-    if (!wallet)
-      return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل التخصيص." };
-    const existingKey = entriesResult.value.find(
-      entry => entry.operationKey === (input.operationKey ?? ""),
-    );
+    if (!wallet) return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل التخصيص." };
+    const existingKey = entriesResult.value.find(entry => entry.operationKey === (input.operationKey ?? ""));
     if (input.operationKey && existingKey)
       return {
         ok: true,
@@ -987,8 +970,7 @@ export class ProjectFinancialService {
       return {
         ok: false,
         code: "validation_error",
-        message:
-          "المبلغ المطلوب أكبر من الكاش غير الموزع المتاح؛ لا يُخصم من رصيد المحافظ ولا يُخترع فرق.",
+        message: "المبلغ المطلوب أكبر من الكاش غير الموزع المتاح؛ لا يُخصم من رصيد المحافظ ولا يُخترع فرق.",
       };
     if (input.deltaMinor < 0 && walletBalanceMinor + input.deltaMinor < 0)
       return {
@@ -1034,8 +1016,7 @@ export class ProjectFinancialService {
   /** تعديل بسيط موثق (مبدأ ٥.٦): تراجع + بديل في معاملة ذرّية واحدة — الأثر يتجدد والسجل يبقى. */
   async editEvent(input: FinancialEditInput): Promise<FinanceResult<FinancialEvent>> {
     const existing = await this.store.listFinancialEvents();
-    if (!existing.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
     const source = existing.value.find(event => event.id === input.sourceEventId.trim());
     if (!source)
       return { ok: false, code: "validation_error", message: "لم يُعثر على الحدث الأصلي؛ لم يتغير السجل." };
@@ -1075,7 +1056,7 @@ export class ProjectFinancialService {
         occurredOn: ammanDate(this.now()),
         recordedAt: this.now(),
         idempotencyKey: `${input.idempotencyKey}:reversal`,
-        reason: (input.reason?.trim() || "تعديل موثق"),
+        reason: input.reason?.trim() || "تعديل موثق",
       });
       const replacement = createFinancialEvent({
         id: id(),
@@ -1158,11 +1139,9 @@ export class ProjectFinancialService {
     idempotencyKey: string;
   }): Promise<FinanceResult<FinancialEvent>> {
     const existing = await this.store.listFinancialEvents();
-    if (!existing.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
     const source = existing.value.find(event => event.id === input.sourceEventId.trim());
-    if (!source)
-      return { ok: false, code: "validation_error", message: "لم يُعثر على الحدث الأصلي." };
+    if (!source) return { ok: false, code: "validation_error", message: "لم يُعثر على الحدث الأصلي." };
     return this.record({
       type: source.type,
       amountMinor: source.amountMinor,

@@ -34,7 +34,12 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
     mockedUsePrototypeServices.mockReturnValue({
       /* المجموعة ٥: القفل المحلي وفحص السلامة بعد الاستعادة — موجودان في السياق الحقيقي. */
       localLock: new LocalLockService(new MemoryLocalStore()),
-      integrityCheck: new IntegrityCheckService(new MemoryLocalStore(), new ProjectFinancialService(new MemoryLocalStore()), new StatementService(new MemoryLocalStore(), new ProjectFinancialService(new MemoryLocalStore())), new CashContinuityService(new MemoryLocalStore())),
+      integrityCheck: new IntegrityCheckService(
+        new MemoryLocalStore(),
+        new ProjectFinancialService(new MemoryLocalStore()),
+        new StatementService(new MemoryLocalStore(), new ProjectFinancialService(new MemoryLocalStore())),
+        new CashContinuityService(new MemoryLocalStore()),
+      ),
       preferences: {
         load: vi.fn(async () => ({ ok: true, preference: "system" })),
         save: vi.fn(async () => ({ ok: true, preference: "dark" })),

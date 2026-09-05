@@ -41,13 +41,18 @@ export function normalizeJordanianPhone(raw: string): string {
 export function orderShareDraft(stored: StoredCraftOrder): ShareDraft {
   const order = stored.order;
   const lines: string[] = [];
-  lines.push(`طلبك من ${order.itemName || "الطلب"}${order.quantity > 1 ? ` (عدد ${order.quantity})` : ""} جاهز للمتابعة.`);
+  lines.push(
+    `طلبك من ${order.itemName || "الطلب"}${order.quantity > 1 ? ` (عدد ${order.quantity})` : ""} جاهز للمتابعة.`,
+  );
   lines.push(`السعر المتفق عليه: ${formatMoneyWithUnit(order.agreedPriceMinor)}.`);
   if (order.depositCollectedMinor > 0) {
     lines.push(`العربون المدفوع: ${formatMoneyWithUnit(order.depositCollectedMinor)}.`);
-    lines.push(`المتبقي: ${formatMoneyWithUnit(Math.max(0, order.agreedPriceMinor - order.depositCollectedMinor))}.`);
+    lines.push(
+      `المتبقي: ${formatMoneyWithUnit(Math.max(0, order.agreedPriceMinor - order.depositCollectedMinor))}.`,
+    );
   }
-  if (stored.deliveryDate) lines.push(`موعد التسليم المتفق: ${formatLocalDate(stored.deliveryDate) ?? stored.deliveryDate}.`);
+  if (stored.deliveryDate)
+    lines.push(`موعد التسليم المتفق: ${formatLocalDate(stored.deliveryDate) ?? stored.deliveryDate}.`);
   if (stored.order.customerName) lines.push(`مع تحياتي — طلب ${order.customerName}.`);
   return {
     kind: "order",
@@ -56,7 +61,11 @@ export function orderShareDraft(stored: StoredCraftOrder): ShareDraft {
   };
 }
 
-export function collectionShareDraft(stored: StoredCraftOrder, amountMinor: number, occurredOn: string): ShareDraft {
+export function collectionShareDraft(
+  stored: StoredCraftOrder,
+  amountMinor: number,
+  occurredOn: string,
+): ShareDraft {
   return {
     kind: "collection",
     title: `إشعار قبض — ${stored.order.customerName || "زبون"}`,
@@ -84,14 +93,20 @@ export function deliveryShareDraft(stored: StoredCraftOrder): ShareDraft {
   };
 }
 
-export function reminderShareDraft(stored: StoredCraftOrder, dueMinor: number, followUpDate: string | null): ShareDraft {
+export function reminderShareDraft(
+  stored: StoredCraftOrder,
+  dueMinor: number,
+  followUpDate: string | null,
+): ShareDraft {
   return {
     kind: "reminder",
     title: `تذكير ذمم — ${stored.order.customerName || "زبون"}`,
     body: [
       "سلام عليكم،",
       `أتذكر لك ${formatMoneyWithUnit(dueMinor)} من طلب «${stored.order.itemName || "طلب"}».`,
-      followUpDate ? `اتفاقنا كان على تسويتها بتاريخ ${formatLocalDate(followUpDate) ?? followUpDate}.` : null,
+      followUpDate
+        ? `اتفاقنا كان على تسويتها بتاريخ ${formatLocalDate(followUpDate) ?? followUpDate}.`
+        : null,
       "خبرني متى تناسبك التسوية، وأسعد بتحضيرها.",
     ]
       .filter(line => line !== null)

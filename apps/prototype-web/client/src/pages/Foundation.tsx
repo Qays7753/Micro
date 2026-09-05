@@ -64,11 +64,7 @@ export default function Foundation() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الموقف</h1>
         <p>لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
-          onClick={() => navigate("/")}
-        >
+        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/")}>
           مشروعي الآن
         </button>
       </section>
@@ -84,8 +80,8 @@ export default function Foundation() {
       <section className="micro-foundation-truth" aria-label="سطر الحقيقة">
         <span className="micro-overline">سطر الحقيقة</span>
         <p>
-          هذه الأرقام أساس كل ما سيقوله التطبيق. ما لا تسجّله الآن تُسلّطه لاحقًا من المكان نفسه — يظهر
-          «غير متاح» بسببه ولا يُخترع له صفر. والتعديل لاحقًا يكون تراجعًا موثقًا، لا حذفًا.
+          هذه الأرقام أساس كل ما سيقوله التطبيق. ما لا تسجّله الآن تُسلّطه لاحقًا من المكان نفسه — يظهر «غير
+          متاح» بسببه ولا يُخترع له صفر. والتعديل لاحقًا يكون تراجعًا موثقًا، لا حذفًا.
         </p>
       </section>
       <details className="micro-foundation-section" open>
@@ -93,9 +89,7 @@ export default function Foundation() {
           <span>
             <b>الكاش</b>
             <small>
-              {cash.wallets.length > 0
-                ? `${cash.wallets.length} محفظة · كاش المحافظ: `
-                : "لم تسجل محفظة بعد"}
+              {cash.wallets.length > 0 ? `${cash.wallets.length} محفظة · كاش المحافظ: ` : "لم تسجل محفظة بعد"}
               {cash.wallets.length > 0 ? <MoneyValue minor={cash.totalWalletCashMinor} /> : null}
             </small>
           </span>
@@ -103,8 +97,8 @@ export default function Foundation() {
         </summary>
         <div className="micro-foundation-body">
           <p>
-            <WalletCards aria-hidden="true" /> رصيد البداية ليس مال مالك ولا دخلًا؛ إنه نقطة معلنة تبدأ
-            منها مراجعة الكاش. تاريخ البداية يقبل يومًا سابقًا ويُعلن أنه أُدخل لاحقًا.
+            <WalletCards aria-hidden="true" /> رصيد البداية ليس مال مالك ولا دخلًا؛ إنه نقطة معلنة تبدأ منها
+            مراجعة الكاش. تاريخ البداية يقبل يومًا سابقًا ويُعلن أنه أُدخل لاحقًا.
           </p>
           <button
             className="micro-button micro-button-primary"
@@ -122,7 +116,8 @@ export default function Foundation() {
             <small>
               {owner.approvedEntitlementMinor > 0 || owner.openingBalanceMinor !== 0 ? (
                 <>
-                  حق مسجل: <MoneyValue minor={owner.approvedEntitlementMinor} className="micro-inline-number" />
+                  حق مسجل:{" "}
+                  <MoneyValue minor={owner.approvedEntitlementMinor} className="micro-inline-number" />
                 </>
               ) : (
                 "لم يسجل رأس مال بعد — اختياري بالكامل"
@@ -174,8 +169,8 @@ export default function Foundation() {
         </summary>
         <div className="micro-foundation-body">
           <p>
-            <Landmark aria-hidden="true" /> الدين التزام مسجل وليس كاشًا محصلًا، ولا يدخل نتيجة الفترة
-            حتى يُسدَّد أو يُوزَّع بقاعدة معلنة.
+            <Landmark aria-hidden="true" /> الدين التزام مسجل وليس كاشًا محصلًا، ولا يدخل نتيجة الفترة حتى
+            يُسدَّد أو يُوزَّع بقاعدة معلنة.
           </p>
           <div className="micro-foundation-actions">
             <button
@@ -236,22 +231,12 @@ export default function Foundation() {
         </button>
       </section>
       <section className="micro-foundation-exit" aria-label="الخروج من صفحة الأساس">
-        <p>
-          التخطي فعل واعٍ: كل ما تركته فارغًا يظهر في «مشروعي الآن» كطريق «سجّله»، ولا يتحول إلى صفر.
-        </p>
+        <p>التخطي فعل واعٍ: كل ما تركته فارغًا يظهر في «مشروعي الآن» كطريق «سجّله»، ولا يتحول إلى صفر.</p>
         <div className="micro-foundation-actions">
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
-            onClick={() => navigate("/")}
-          >
+          <button className="micro-button micro-button-secondary" type="button" onClick={() => navigate("/")}>
             تخطَّ وأكمل لاحقًا
           </button>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            onClick={() => navigate("/")}
-          >
+          <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/")}>
             ادخل إلى مشروعي <ArrowLeft aria-hidden="true" />
           </button>
         </div>

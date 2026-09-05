@@ -147,9 +147,7 @@ describe("Settings data actions are gated behind the local lock (Group 6 — SP-
     fireEvent.change(pinInput, { target: { value: "4179" } });
     fireEvent.submit(pinInput.closest("form")!);
     await waitFor(() => expect(createVerifiedExport).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(screen.queryByRole("alertdialog", { name: "تأكيد رمز القفل" })).toBeNull(),
-    );
+    await waitFor(() => expect(screen.queryByRole("alertdialog", { name: "تأكيد رمز القفل" })).toBeNull());
 
     /* الإثبات مرة واحدة في الجلسة — الضغطة الثانية تمضي مباشرة بلا بوابة. */
     fireEvent.click(screen.getByRole("button", { name: "تصدير البيانات المحلية" }));

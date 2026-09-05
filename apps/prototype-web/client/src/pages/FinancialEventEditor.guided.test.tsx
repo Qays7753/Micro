@@ -124,15 +124,9 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(screen.getByRole("button", { name: "بنزين" })).toBeTruthy();
     fireEvent.click(derivedChip);
     expect(derivedChip.getAttribute("aria-pressed")).toBe("true");
-    await userEvent
-      .setup()
-      .type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
-    await userEvent
-      .setup()
-      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "توصيل");
-    await userEvent
-      .setup()
-      .click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
+    await userEvent.setup().type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "توصيل");
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
     const payload = record.mock.calls[0]?.[0] as { expenseContext?: { categoryLabel?: string | null } };
     expect(payload.expenseContext?.categoryLabel).toBe("تغليف");
@@ -147,12 +141,8 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     fireEvent.change(screen.getByDisplayValue("مبلغ حصة معروف"), {
       target: { value: "percentage" },
     });
-    await userEvent
-      .setup()
-      .type(screen.getByLabelText("إجمالي المصروف المشترك"), "100");
-    await userEvent
-      .setup()
-      .type(screen.getByLabelText("نسبة حصة المشروع"), "60");
+    await userEvent.setup().type(screen.getByLabelText("إجمالي المصروف المشترك"), "100");
+    await userEvent.setup().type(screen.getByLabelText("نسبة حصة المشروع"), "60");
     expect(screen.getByText("توزيع المصروف المشترك")).toBeTruthy();
     expect(screen.getByText("حصة المشروع (60%)")).toBeTruthy();
     expect(screen.getByText("الباقي خارج حصة المشروع — بيت أو نشاط آخر")).toBeTruthy();
@@ -161,9 +151,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
 
   it("derives the effect preview from the committed intent — honest negative lines", async () => {
     renderEditor({ wallets });
-    await userEvent
-      .setup()
-      .type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
     expect(await screen.findByText("بعد الحفظ:")).toBeTruthy();
     expect(screen.getByText(/ينقص الكاش 25.00 د.أ من الكاش غير الموزع/)).toBeTruthy();
     expect(screen.getByText(/بلا حركة أمانة ولا سحب مالك/)).toBeTruthy();
@@ -223,9 +211,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
   it("keeps the path-guidance notes: suppliers link and the honest future-path line", async () => {
     renderEditor({});
     fireEvent.click(await screen.findByText("أضف سياقًا للمصروف"));
-    expect(
-      screen.getByText(/سجّله من الموردون والمشتريات — لا كمصروف عادي/),
-    ).toBeTruthy();
+    expect(screen.getByText(/سجّله من الموردون والمشتريات — لا كمصروف عادي/)).toBeTruthy();
     expect(screen.getByText(/الأصول طويلة الاستخدام والقروض الشخصية لا تُسجَّل من هنا/)).toBeTruthy();
   });
 
@@ -252,9 +238,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     renderEditor({ record: savedRecord });
     expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
-    await userEvent
-      .setup()
-      .click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(savedRecord).toHaveBeenCalledOnce());
     expect(window.localStorage.getItem(draftKey)).toBeNull();
   });
@@ -271,15 +255,9 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "تجاهلها" }));
     expect(window.localStorage.getItem(draftKey)).toBeNull();
-    await userEvent
-      .setup()
-      .type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
-    await userEvent
-      .setup()
-      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "حفظ");
-    await userEvent
-      .setup()
-      .click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
+    await userEvent.setup().type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "حفظ");
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
     expect(window.localStorage.getItem(draftKey)).toBeNull();
   });

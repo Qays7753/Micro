@@ -36,7 +36,17 @@ export default function AssetEditor() {
   const [saving, setSaving] = useState(false);
   const idempotencyKey = useRef(`asset-create-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
-  const isDirty = useFormDirty([name, categoryLabel, amountMinor, acquisitionKind, purchaseDate, longUse, lifeMonths, startOn, note]);
+  const isDirty = useFormDirty([
+    name,
+    categoryLabel,
+    amountMinor,
+    acquisitionKind,
+    purchaseDate,
+    longUse,
+    lifeMonths,
+    startOn,
+    note,
+  ]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
   /* المجموعة ٥ (عقد ٣٦): مسودة نصية لمحرر الأصل — تُكتب عند التعديل الفعلي
    * وتُستعاد صريحة بعد الإغلاق/التحديث؛ لا حدث مالي قبل الحفظ النهائي. */
@@ -66,7 +76,19 @@ export default function AssetEditor() {
       startOn,
       note,
     });
-  }, [name, categoryLabel, amountMinor, acquisitionKind, purchaseDate, longUse, lifeMonths, startOn, note, isDirty, draft.state.phase]);
+  }, [
+    name,
+    categoryLabel,
+    amountMinor,
+    acquisitionKind,
+    purchaseDate,
+    longUse,
+    lifeMonths,
+    startOn,
+    note,
+    isDirty,
+    draft.state.phase,
+  ]);
   /* تطبيق القيم المستعادة بعد «استرجع» فقط — الانتقال من العرض إلى الصياغة. */
   useEffect(() => {
     if (draft.state.phase === "drafting" && restoredFromOffer.current) {
@@ -148,7 +170,9 @@ export default function AssetEditor() {
       ) : null}
       {draft.state.phase === "drafting" && draft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
-          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(draft.state.lastSavedAt))}</bdi>؛ لم تُسجّل أي حركة مالية بعد.
+          مسودتك محفوظة محليًا — آخر حفظ{" "}
+          <bdi dir="ltr">{formatLocalDate(localDateInAmman(draft.state.lastSavedAt))}</bdi>؛ لم تُسجّل أي حركة
+          مالية بعد.
         </p>
       ) : null}
       <label className="micro-field">
@@ -196,7 +220,11 @@ export default function AssetEditor() {
           </button>
         </div>
       </fieldset>
-      <LocalDateField label="تاريخ الشراء" value={purchaseDate} onChange={event => setPurchaseDate(event.target.value)} />
+      <LocalDateField
+        label="تاريخ الشراء"
+        value={purchaseDate}
+        onChange={event => setPurchaseDate(event.target.value)}
+      />
       <fieldset className="micro-field">
         <legend>هذا الشيء للاستخدام لفترة طويلة؟</legend>
         <div className="micro-choice-row">
@@ -243,7 +271,11 @@ export default function AssetEditor() {
       ) : null}
       <label className="micro-field">
         <span>ملاحظة (اختياري)</span>
-        <input value={note} onChange={event => setNote(event.target.value)} placeholder="مثال: اشتريته من محل الجملة" />
+        <input
+          value={note}
+          onChange={event => setNote(event.target.value)}
+          placeholder="مثال: اشتريته من محل الجملة"
+        />
       </label>
       <section className="micro-decision-card" aria-label="أثر الحفظ">
         <Warehouse aria-hidden="true" />
@@ -255,12 +287,18 @@ export default function AssetEditor() {
               : `يُفتح التزام ${formatMoneyMinor(amountMinor)} د.أ`}
           </strong>
           <p>
-            لا يُسجَّل مصروفًا هذا الشهر{longUse === "yes" && lifeMonths ? "؛ والإهلاك الشهري يقترح تلقائيًا بعد البداية لكن لا يدخل ربحك إلا بتسجيله بنفسك" : " للأصل الرأسمالي"}.
+            لا يُسجَّل مصروفًا هذا الشهر
+            {longUse === "yes" && lifeMonths
+              ? "؛ والإهلاك الشهري يقترح تلقائيًا بعد البداية لكن لا يدخل ربحك إلا بتسجيله بنفسك"
+              : " للأصل الرأسمالي"}
+            .
           </p>
         </div>
       </section>
       {message ? (
-        <p className="micro-field-error" role="alert">{message}</p>
+        <p className="micro-field-error" role="alert">
+          {message}
+        </p>
       ) : null}
       <div className="micro-form-actions">
         {/* المجموعة ٤ (تصحيح مراجعة 4-c): «يُستهلك فورًا» = مصروف عادي — الحفظ

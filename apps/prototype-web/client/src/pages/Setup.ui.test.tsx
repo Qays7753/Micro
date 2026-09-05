@@ -49,9 +49,7 @@ describe("Setup wallet-skip path never asks and discards (F-002 regression)", ()
     fireEvent.click(skipButton);
 
     await waitFor(() => expect(save).toHaveBeenCalledWith("مشغل ليان"));
-    await waitFor(() =>
-      expect(wouterMocks.navigate).toHaveBeenCalledWith("/foundation", { replace: true }),
-    );
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/foundation", { replace: true }));
     expect(openWallet).not.toHaveBeenCalled();
     expect(screen.queryByText("شو وضع الدرج هلق؟")).toBeNull();
   });
@@ -82,9 +80,7 @@ describe("Setup wallet-skip path never asks and discards (F-002 regression)", ()
         expect.objectContaining({ name: "الدرج", openingMinor: 0, openingStatus: "known" }),
       ),
     );
-    await waitFor(() =>
-      expect(wouterMocks.navigate).toHaveBeenCalledWith("/foundation", { replace: true }),
-    );
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/foundation", { replace: true }));
   });
 });
 
@@ -114,7 +110,9 @@ describe("Setup progressive draft persistence (group 1 scope F)", () => {
         savedAt: "2026-09-01T10:00:00.000Z",
       }),
     );
-    mockedUsePrototypeServices.mockReturnValue(draftServices() as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedUsePrototypeServices.mockReturnValue(
+      draftServices() as unknown as ReturnType<typeof usePrototypeServices>,
+    );
 
     render(<Setup />);
 
@@ -126,7 +124,9 @@ describe("Setup progressive draft persistence (group 1 scope F)", () => {
 
   it("corrupted draft data is ignored without breaking setup", async () => {
     globalThis.localStorage?.setItem("micro.setup-draft.v1", "{not-json");
-    mockedUsePrototypeServices.mockReturnValue(draftServices() as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedUsePrototypeServices.mockReturnValue(
+      draftServices() as unknown as ReturnType<typeof usePrototypeServices>,
+    );
 
     render(<Setup />);
 
@@ -159,7 +159,9 @@ describe("Setup progressive draft persistence (group 1 scope F)", () => {
     );
     /* الإشعار نفسه يشرح الحقيقة: مجهول معلن لا صفر. */
     expect(
-      await screen.findByText(/ستبقى المحفظة «غير محددة» — تُظهر طريقًا لإدخال رصيد موثق لاحقًا، ولا تُعرض صفرًا أبدًا./),
+      await screen.findByText(
+        /ستبقى المحفظة «غير محددة» — تُظهر طريقًا لإدخال رصيد موثق لاحقًا، ولا تُعرض صفرًا أبدًا./,
+      ),
     ).toBeTruthy();
   });
 
@@ -175,7 +177,9 @@ describe("Setup progressive draft persistence (group 1 scope F)", () => {
         savedAt: "2026-09-01T10:00:00.000Z",
       }),
     );
-    mockedUsePrototypeServices.mockReturnValue(draftServices() as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedUsePrototypeServices.mockReturnValue(
+      draftServices() as unknown as ReturnType<typeof usePrototypeServices>,
+    );
 
     render(<Setup />);
     await screen.findByText("شو وضع الدرج هلق؟");

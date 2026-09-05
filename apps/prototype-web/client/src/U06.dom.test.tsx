@@ -158,9 +158,7 @@ describe("the empty intent editor creates the draft only on first real input (U-
     renderEditor();
     const saveButton = await screen.findByRole("button", { name: "حفظ مسودة" });
     await userEvent.click(saveButton);
-    await waitFor(() =>
-      expect(screen.getByText("لم تدخل بيانات بعد؛ لا تُحفظ مسودة فارغة.")).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByText("لم تدخل بيانات بعد؛ لا تُحفظ مسودة فارغة.")).toBeTruthy());
     expect(create).not.toHaveBeenCalled();
     expect(save).not.toHaveBeenCalled();
   });

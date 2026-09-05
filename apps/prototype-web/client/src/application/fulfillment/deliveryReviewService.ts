@@ -133,7 +133,9 @@ function deliveryIdempotencyKey(orderId: string, deliveryEventCount: number): st
 }
 
 function reversalIdempotencyKey(orderId: string, reversalEventCount: number): string {
-  return reversalEventCount === 0 ? `${orderId}:reverse-delivery` : `${orderId}:reverse-delivery-${reversalEventCount + 1}`;
+  return reversalEventCount === 0
+    ? `${orderId}:reverse-delivery`
+    : `${orderId}:reverse-delivery-${reversalEventCount + 1}`;
 }
 
 function quantityMilliOf(quantity: number): number {
@@ -150,8 +152,11 @@ export class DeliveryReviewService {
 
   /* القراءة فقط: كل ما سيتغير عند التسليم قبل أي كتابة — المال والمخزون
    * والمعرفة، بلا أثر جانبي. */
-  async buildReview(orderId: string): Promise<
-    { ok: true; value: DeliveryReview } | { ok: false; code: "storage_error" | "invalid_state"; message: string }
+  async buildReview(
+    orderId: string,
+  ): Promise<
+    | { ok: true; value: DeliveryReview }
+    | { ok: false; code: "storage_error" | "invalid_state"; message: string }
   > {
     const [ordersResult, materialsResult, movementsResult, templatesResult] = await Promise.all([
       this.store.getOrder(orderId),
@@ -180,7 +185,10 @@ export class DeliveryReviewService {
     const unlinkedItems: { name: string; quantity: number; unit: string }[] = [];
     /* SA-5 R3: بنود التكلفة المرتبطة بالمادة نفسها تُجمع كمياتها — بندان للمادة
      * الواحدة استهلاك واحد بمجموعهما لا صفان يطغى أحدهما على الآخر. */
-    const seenMaterialQuantities = new Map<string, { quantity: number; unitPriceMinor: number; unit: string }>();
+    const seenMaterialQuantities = new Map<
+      string,
+      { quantity: number; unitPriceMinor: number; unit: string }
+    >();
     for (const item of order.costSnapshot.input.materialItems) {
       const materialId = (item as { materialId?: string | null }).materialId ?? null;
       if (!materialId) {
@@ -199,7 +207,12 @@ export class DeliveryReviewService {
       });
     }
     for (const [materialId, aggregate] of seenMaterialQuantities) {
-      const item = { name: "", quantity: aggregate.quantity, unit: aggregate.unit, unitPriceMinor: aggregate.unitPriceMinor };
+      const item = {
+        name: "",
+        quantity: aggregate.quantity,
+        unit: aggregate.unit,
+        unitPriceMinor: aggregate.unitPriceMinor,
+      };
       const material = materials.find(candidate => candidate.id === materialId);
       if (!material) {
         warnings.push(`مادة مربوطة بالتكلفة غير موجودة في المخزون بعد — ستبقى بلا حركة كمية.`);
@@ -274,7 +287,10 @@ export class DeliveryReviewService {
           receivableMinor: order.receivableMinor,
           snapshotCostMinor: order.costSnapshot.plannedCostMinor,
           knowledgeState: order.costSnapshot.knowledgeState,
-          knowledgeGaps: knowledgeGapsOf(order.costSnapshot).map(gap => ({ id: gap.id, mandatory: gap.mandatory })),
+          knowledgeGaps: knowledgeGapsOf(order.costSnapshot).map(gap => ({
+            id: gap.id,
+            mandatory: gap.mandatory,
+          })),
           resultPreview: order.resultStatus,
         },
         consumption: {
@@ -367,8 +383,7 @@ export class DeliveryReviewService {
         return failure("validation_error", "مادة واحدة لكل صف — لا تكرر المادة في استهلاك التسليم.");
       seenRowMaterialIds.add(row.materialId);
       const material = materials.find(candidate => candidate.id === row.materialId);
-      if (!material)
-        return failure("validation_error", "اختر مواد موجودة قبل تسجيل استهلاك التسليم.");
+      if (!material) return failure("validation_error", "اختر مواد موجودة قبل تسجيل استهلاك التسليم.");
       if (!materialIsTracked(material) && row.action !== "skip")
         return failure(
           "validation_error",
@@ -409,7 +424,9 @@ export class DeliveryReviewService {
           });
           assertInventoryRemainsNonNegative(row.materialId, [...existingMovements, movement]);
           newMovements.push(movement);
-          consumedNotes.push(`${material.name} (${(consumeQuantity / 1000).toFixed(3).replace(/\.?0+$/, "") || "0"} ${UNIT_LABELS[material.unit] ?? ""})`.trim());
+          consumedNotes.push(
+            `${material.name} (${(consumeQuantity / 1000).toFixed(3).replace(/\.?0+$/, "") || "0"} ${UNIT_LABELS[material.unit] ?? ""})`.trim(),
+          );
         } catch (error) {
           return failure(
             "validation_error",
@@ -457,7 +474,10 @@ export class DeliveryReviewService {
           createdAt: timestamp,
         });
       } catch (error) {
-        return failure("invalid_state", error instanceof Error ? error.message : "تعذر توثيق استهلاك التسليم.");
+        return failure(
+          "invalid_state",
+          error instanceof Error ? error.message : "تعذر توثيق استهلاك التسليم.",
+        );
       }
     }
 
@@ -472,12 +492,14 @@ export class DeliveryReviewService {
       try {
         order = collectRemaining(order, collectNow.amountMinor, collectKey, timestamp);
       } catch (error) {
-        return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل القبض عند التسليم.");
+        return failure(
+          "invalid_state",
+          error instanceof Error ? error.message : "تعذر تسجيل القبض عند التسليم.",
+        );
       }
       if (collectNow.walletId) {
         wallet = wallets.find(candidate => candidate.id === collectNow.walletId) ?? null;
-        if (!wallet)
-          return failure("validation_error", "اختر محفظة موجودة لقبض التسليم أو اتركه غير موزع.");
+        if (!wallet) return failure("validation_error", "اختر محفظة موجودة لقبض التسليم أو اتركه غير موزع.");
         /* القبض يدخل الكاش غير الموزع في المعاملة نفسها (registeredCollectionsMinor)
          * فتخصيص قدره بالضبط مغطى دائمًا؛ الحارس الصارم يبقى في مسار التوزيع الموحد. */
         cashEntry = createCashContinuityEntry({
@@ -504,8 +526,7 @@ export class DeliveryReviewService {
       wallet,
       cashEntry,
     );
-    if (!committed.ok)
-      return failure("storage_error", "تعذر حفظ التسليم؛ لم يتغير أي رصيد أو حالة.");
+    if (!committed.ok) return failure("storage_error", "تعذر حفظ التسليم؛ لم يتغير أي رصيد أو حالة.");
 
     /* مواءمة المواعيد غير حاجرة — نمط deliver() القائم. */
     let notice: string | null = null;
@@ -542,7 +563,9 @@ export class DeliveryReviewService {
     const reversalAttempt = stored.order.events.filter(event => event.type === "delivery_reversed").length;
     const operationKey = input.operationKey ?? reversalIdempotencyKey(orderId, reversalAttempt);
     if (
-      stored.order.events.some(event => event.type === "delivery_reversed" && event.idempotencyKey === operationKey)
+      stored.order.events.some(
+        event => event.type === "delivery_reversed" && event.idempotencyKey === operationKey,
+      )
     ) {
       return { ok: true, value: { stored, reversalMovements: [], reused: true } };
     }

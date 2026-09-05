@@ -288,7 +288,12 @@ describe("CorrectionHistoryService — امتداد المجموعة ٥ (عقد 
       counterparty: null,
       relatedEventId: null,
       idempotencyKey: "pair-base",
-      expenseContext: { relationship: "project" as const, behavior: "fixed" as const, purpose: "period" as const, knowledge: "known" as const },
+      expenseContext: {
+        relationship: "project" as const,
+        behavior: "fixed" as const,
+        purpose: "period" as const,
+        knowledge: "known" as const,
+      },
     };
     const original = await store.saveFinancialEvent(
       createFinancialEvent({ id: "pair-1", amountMinor: 3000, recordedAt: now(), ...base }),
@@ -444,7 +449,13 @@ describe("CorrectionHistoryService — امتداد المجموعة ٥ (عقد 
         disposal: null,
         writeOff: null,
         contractRevisions: [
-          { revision: 1, lifeMonths: 48, depreciationStartOn: "2026-08-01", reason: "مراجعة عمر", changedAt: now() },
+          {
+            revision: 1,
+            lifeMonths: 48,
+            depreciationStartOn: "2026-08-01",
+            reason: "مراجعة عمر",
+            changedAt: now(),
+          },
         ],
         operationKey: "asset-h",
         createdAt: now(),

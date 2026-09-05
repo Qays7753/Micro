@@ -6,7 +6,11 @@ import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
-import type { InventoryMovement, InventoryShortage, Material } from "@micro-domain/inventory-material/index.js";
+import type {
+  InventoryMovement,
+  InventoryShortage,
+  Material,
+} from "@micro-domain/inventory-material/index.js";
 import type {
   CatalogItem,
   CatalogTemplate,
@@ -39,12 +43,7 @@ export const localExportFormat = "micro-prototype-local-export";
  * بلا بصمة، والزوجان القديمان كلها تبقى في قائمة الاستيراد المسموحة. */
 export const localExportVersion = 27;
 export const localSecurityId = "local-security";
-export type FormDraftKind =
-  | "asset"
-  | "loan"
-  | "supplier_purchase"
-  | "direct_sale"
-  | "inventory_movement";
+export type FormDraftKind = "asset" | "loan" | "supplier_purchase" | "direct_sale" | "inventory_movement";
 export type FormDraftEnvelope = {
   /** `${formKind}:${scopeId ?? "new"}` — مسودة واحدة لكل شاشة لكل نطاق. */
   id: string;
@@ -192,7 +191,7 @@ export type OrderDraft = {
   activeCostSnapshotId: string | null;
   linkedOrderId: string | null;
   /* U-004: مرجع التقدير الذي بدأت منه المسودة — أثر سجل فقط: التقدير لا يتغير،
-  * ومحرر التكلفة يعرض بنوده كاقتراحات قابلة للتعديل. حقل اختياري؛ القديم بلاه يُقرأ فارغًا. */
+   * ومحرر التكلفة يعرض بنوده كاقتراحات قابلة للتعديل. حقل اختياري؛ القديم بلاه يُقرأ فارغًا. */
   sourceEstimateId?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -421,11 +420,13 @@ export interface PrototypeLocalStore {
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
-  ): Promise<StorageResult<{
-    material: Material | null;
-    movements: readonly InventoryMovement[];
-    shortage: InventoryShortage | null;
-  }>>;
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      shortage: InventoryShortage | null;
+    }>
+  >;
   listCatalogItems(): Promise<StorageResult<readonly CatalogItem[]>>;
   getCatalogItem(id: string): Promise<StorageResult<CatalogItem | null>>;
   saveCatalogItem(item: CatalogItem): Promise<StorageResult<CatalogItem>>;
@@ -507,23 +508,27 @@ export interface PrototypeLocalStore {
     shortages: readonly InventoryShortage[],
     wallet: CashWallet | null,
     cashEntry: CashContinuityEntry | null,
-  ): Promise<StorageResult<{
-    order: StoredCraftOrder;
-    movements: readonly InventoryMovement[];
-    shortages: readonly InventoryShortage[];
-    cashEntry: CashContinuityEntry | null;
-    reused: boolean;
-  }>>;
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      movements: readonly InventoryMovement[];
+      shortages: readonly InventoryShortage[];
+      cashEntry: CashContinuityEntry | null;
+      reused: boolean;
+    }>
+  >;
   /* المجموعة ٣ (عقد D4): عكس التسليم ذرّيًا — الطلب المعكوس وحركات المرآة
    * تُكتبان معًا؛ لا حالة بينية (عكس بلا حركات أو حركات بلا عكس). */
   commitOrderDeliveryReversal(
     order: StoredCraftOrder,
     reversalMovements: readonly InventoryMovement[],
-  ): Promise<StorageResult<{
-    order: StoredCraftOrder;
-    reversalMovements: readonly InventoryMovement[];
-    reused: boolean;
-  }>>;
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      reversalMovements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  >;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
   /* المجموعة ٥ (عقد المسودة النصية): مسودات النماذج الطويلة — مخزن مستقل خارج
@@ -553,12 +558,14 @@ export interface PrototypeLocalStore {
     record: AssetRecord,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    record: AssetRecord;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>>;
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  >;
   /* المجموعة ٤ (عقد ٢٩ — القروض): قراءة سجل القروض. */
   listLoans(): Promise<StorageResult<readonly LoanRecord[]>>;
   getLoan(id: string): Promise<StorageResult<LoanRecord | null>>;
@@ -573,12 +580,14 @@ export interface PrototypeLocalStore {
     record: LoanRecord,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    record: LoanRecord;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>>;
+  ): Promise<
+    StorageResult<{
+      record: LoanRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  >;
   /* المجموعة ٤ (عقد ٢٩ — العربون المحتفظ): تصنيف معنى العربون والحدث المالي
    * المرتبط في معاملة واحدة؛ التراجع عن تصنيف: تراجع + بديل + الطلب معًا. */
   commitDepositClassification(
@@ -589,10 +598,12 @@ export interface PrototypeLocalStore {
     order: StoredCraftOrder,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    order: StoredCraftOrder;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>>;
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  >;
 }

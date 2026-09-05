@@ -14,7 +14,10 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
 import type { AssetSummaryRow } from "@/application/assets/assetService";
 
-type State = { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; rows: readonly AssetSummaryRow[] };
+type State =
+  | { phase: "loading" }
+  | { phase: "error"; message: string }
+  | { phase: "ready"; rows: readonly AssetSummaryRow[] };
 
 export default function Assets() {
   const [, navigate] = useLocation();
@@ -45,9 +48,13 @@ export default function Assets() {
         <p>ما تشتريه للاستخدام الطويل — يظهر بقيمته الدفترية، لا كربح ولا مصروف يوم الشراء.</p>
       </div>
       {state.phase === "loading" ? (
-        <p className="micro-route-loading" role="status">جارٍ قراءة الأصول…</p>
+        <p className="micro-route-loading" role="status">
+          جارٍ قراءة الأصول…
+        </p>
       ) : state.phase === "error" ? (
-        <p className="micro-field-error" role="alert">{state.message}</p>
+        <p className="micro-field-error" role="alert">
+          {state.message}
+        </p>
       ) : state.rows.length === 0 ? (
         <section className="micro-empty-state" aria-label="لا أصول بعد">
           <Boxes aria-hidden="true" />
@@ -58,7 +65,11 @@ export default function Assets() {
           <AssetsSummary rows={state.rows} />
           <ul className="micro-cards-list" aria-label="قائمة الأصول">
             {state.rows.map(row => (
-              <AssetCard key={row.asset.id} row={row} onOpen={() => navigate(withFrom(`/assets/${row.asset.id}`, "/assets"))} />
+              <AssetCard
+                key={row.asset.id}
+                row={row}
+                onOpen={() => navigate(withFrom(`/assets/${row.asset.id}`, "/assets"))}
+              />
             ))}
           </ul>
         </>
@@ -78,7 +89,9 @@ export default function Assets() {
 
 function AssetsSummary({ rows }: { rows: readonly AssetSummaryRow[] }) {
   const totalBookValue = rows.reduce((sum, row) => sum + row.bookValueMinor, 0);
-  const unknownCount = rows.filter(row => row.asset.status === "active" && (row.hasUnknownLife || row.hasUnknownStart)).length;
+  const unknownCount = rows.filter(
+    row => row.asset.status === "active" && (row.hasUnknownLife || row.hasUnknownStart),
+  ).length;
   const unrecorded = rows.reduce((sum, row) => sum + row.unrecordedDepreciationMinor, 0);
   return (
     <section className="micro-decision-card" aria-label="خلاصة الأصول">
@@ -89,13 +102,12 @@ function AssetsSummary({ rows }: { rows: readonly AssetSummaryRow[] }) {
         </strong>
         {unrecorded > 0 ? (
           <p>
-            إهلاك مستحق لم يُسجّل بعد: <MoneyValue minor={unrecorded} /> د.أ — لا يخصم من الربح إلا بتسجيل صريح من تفصيل الأصل.
+            إهلاك مستحق لم يُسجّل بعد: <MoneyValue minor={unrecorded} /> د.أ — لا يخصم من الربح إلا بتسجيل
+            صريح من تفصيل الأصل.
           </p>
         ) : null}
         {unknownCount > 0 ? (
-          <p>
-            {assetUnknownLifeCountLabel(unknownCount)} — يبقى بلا إهلاك حتى تُحدده بمراجعة موثقة.
-          </p>
+          <p>{assetUnknownLifeCountLabel(unknownCount)} — يبقى بلا إهلاك حتى تُحدده بمراجعة موثقة.</p>
         ) : null}
       </div>
     </section>
@@ -118,7 +130,10 @@ function AssetCard({ row, onOpen }: { row: AssetSummaryRow; onOpen: () => void }
         <p>
           {asset.status === "active" ? (
             row.hasUnknownLife || row.hasUnknownStart ? (
-              <>دفتري <MoneyValue minor={row.bookValueMinor} /> د.أ · الإهلاك {row.hasUnknownLife ? "عمره مجهول" : "بدايته غير محددة"}</>
+              <>
+                دفتري <MoneyValue minor={row.bookValueMinor} /> د.أ · الإهلاك{" "}
+                {row.hasUnknownLife ? "عمره مجهول" : "بدايته غير محددة"}
+              </>
             ) : (
               <>
                 دفتري <MoneyValue minor={row.bookValueMinor} /> د.أ · إهلاك شهري{" "}
@@ -131,7 +146,8 @@ function AssetCard({ row, onOpen }: { row: AssetSummaryRow; onOpen: () => void }
         </p>
         {row.accumulatedDepreciationMinor > 0 ? (
           <p className="micro-asset-depreciation">
-            <TrendingDown aria-hidden="true" /> إهلاك مسجّل: <MoneyValue minor={row.accumulatedDepreciationMinor} /> د.أ
+            <TrendingDown aria-hidden="true" /> إهلاك مسجّل:{" "}
+            <MoneyValue minor={row.accumulatedDepreciationMinor} /> د.أ
           </p>
         ) : null}
       </article>

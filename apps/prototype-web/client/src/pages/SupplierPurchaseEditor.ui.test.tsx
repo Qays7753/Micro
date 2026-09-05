@@ -19,7 +19,10 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
 }));
 
-const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn(), location: "/suppliers/purchase/purchase-1/payment" }));
+const wouterMocks = vi.hoisted(() => ({
+  navigate: vi.fn(),
+  location: "/suppliers/purchase/purchase-1/payment",
+}));
 
 vi.mock("wouter", () => ({
   useSearch: () => "?from=%2Fsuppliers",
@@ -42,7 +45,14 @@ function storedPurchase(): SupplierPurchase {
     status: "partially_paid",
     idempotencyKey: "purchase-key-1",
     payments: [
-      { id: "purchase-1:initial", amountMinor: 2000, occurredOn: "2026-09-02", recordedAt: "2026-09-02T09:00:00.000Z", idempotencyKey: "k-initial", note: "دفعة أولى" },
+      {
+        id: "purchase-1:initial",
+        amountMinor: 2000,
+        occurredOn: "2026-09-02",
+        recordedAt: "2026-09-02T09:00:00.000Z",
+        idempotencyKey: "k-initial",
+        note: "دفعة أولى",
+      },
     ],
     paymentReversals: [],
     revisions: [],
@@ -110,8 +120,8 @@ describe("SupplierPurchaseEditor hook-order regression (G5-S6, React error 310)"
       consoleError.mockRestore();
     }
     expect(renderError).toBeNull();
-    const reactErrors = consoleError.mock.calls.filter(call =>
-      String(call[0]).includes("310") || String(call[0]).includes("hooks"),
+    const reactErrors = consoleError.mock.calls.filter(
+      call => String(call[0]).includes("310") || String(call[0]).includes("hooks"),
     );
     expect(reactErrors).toHaveLength(0);
   });

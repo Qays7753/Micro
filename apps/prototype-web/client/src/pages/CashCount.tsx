@@ -67,7 +67,11 @@ export default function CashCount() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة المحافظ</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(returnPath)}
+        >
           محافظ الكاش
         </button>
       </section>
@@ -131,7 +135,11 @@ export default function CashCount() {
             بأثر مستقبلي فقط.
           </p>
         </section>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(returnPath)}
+        >
           محافظ الكاش <ArrowRight aria-hidden="true" />
         </button>
       </section>
@@ -176,7 +184,10 @@ export default function CashCount() {
             />
           </label>
           {wallet ? (
-            <section className="micro-decision-card" data-knowledge={differenceMinor === 0 ? "known" : "stale"}>
+            <section
+              className="micro-decision-card"
+              data-knowledge={differenceMinor === 0 ? "known" : "stale"}
+            >
               <span>الفرق عن المسجل</span>
               <strong>
                 <MoneyValue minor={differenceMinor} showPlus />
@@ -191,7 +202,10 @@ export default function CashCount() {
             </section>
           ) : null}
           {message ? (
-            <p className={message.startsWith("انسجّلت") ? "micro-save-note" : "micro-field-error"} role="status">
+            <p
+              className={message.startsWith("انسجّلت") ? "micro-save-note" : "micro-field-error"}
+              role="status"
+            >
               {message}
             </p>
           ) : null}

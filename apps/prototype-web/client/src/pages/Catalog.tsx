@@ -167,7 +167,7 @@ export const buildCatalogPerUnitPreview = (
   const label = unitName.trim() || "وحدة كاملة";
   return {
     allocationMinor,
-    text: `${((quantityMilli ?? 0) / 1000).toFixed(3)} ${label} × ${formatMoneyWithUnit((rateMinorPerWholeUnit ?? 0))} لكل 1.000 ${label} = ${formatMoneyWithUnit(allocationMinor ?? 0)}`,
+    text: `${((quantityMilli ?? 0) / 1000).toFixed(3)} ${label} × ${formatMoneyWithUnit(rateMinorPerWholeUnit ?? 0)} لكل 1.000 ${label} = ${formatMoneyWithUnit(allocationMinor ?? 0)}`,
     warning: null,
   };
 };
@@ -184,7 +184,7 @@ export default function Catalog() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { catalog, recurringWork, dataVersion, notifyDataChanged , inventory } = usePrototypeServices();
+  const { catalog, recurringWork, dataVersion, notifyDataChanged, inventory } = usePrototypeServices();
   const [kind, setKind] = useState<CatalogItemKind>("product");
   const [name, setName] = useState("");
   const [unitLabel, setUnitLabel] = useState("");
@@ -806,7 +806,7 @@ export default function Catalog() {
     unitLabel.trim() ||
     defaultPrice ||
     defaultCost ||
-    !defaultPriceEmpty && defaultPriceValid && defaultPrice > 0,
+    (!defaultPriceEmpty && defaultPriceValid && defaultPrice > 0),
   );
   const requestSafeNavigation = useUnsavedChangesGuard({
     isDirty: templateDirty || conversionDirty || referenceDirty,
@@ -904,44 +904,44 @@ export default function Catalog() {
             الأساسي (الاسم والوحدة) لا يتطلب فتحه. */}
         <details className="micro-inline-disclosure">
           <summary>اقتراحات السعر والتكلفة (اختيارية)</summary>
-        <div className="micro-form-grid">
-          <label className="micro-field">
-            <span>
-              سعر بيع افتراضي <small>اقتراح اختياري — ليس سعرًا مفروضًا</small>
-            </span>
-            <EnglishNumberInput
-              value={defaultPrice}
-              kind="money"
-              /* المجموعة ٣ (فحص حي): الكتابة تُخرج الحقل من حالة «الفراغ» — وإلا
+          <div className="micro-form-grid">
+            <label className="micro-field">
+              <span>
+                سعر بيع افتراضي <small>اقتراح اختياري — ليس سعرًا مفروضًا</small>
+              </span>
+              <EnglishNumberInput
+                value={defaultPrice}
+                kind="money"
+                /* المجموعة ٣ (فحص حي): الكتابة تُخرج الحقل من حالة «الفراغ» — وإلا
                  يُحفظ السعر المقترح null بصمت بينما التكلفة تُحفظ. */
-              onNumericChange={value => {
-                setDefaultPrice(value);
-                setDefaultPriceEmpty(false);
-              }}
-              onTextValidityChange={setDefaultPriceValid}
-              allowEmpty
-              onEmptyChange={() => setDefaultPriceEmpty(true)}
-              aria-label="سعر بيع افتراضي مقترح"
-            />
-          </label>
-          <label className="micro-field">
-            <span>
-              تكلفة وحدة افتراضية <small>اقتراح اختياري — ليس تكلفة فعلية</small>
-            </span>
-            <EnglishNumberInput
-              value={defaultCost}
-              kind="money"
-              onNumericChange={value => {
-                setDefaultCost(value);
-                setDefaultCostEmpty(false);
-              }}
-              onTextValidityChange={setDefaultCostValid}
-              allowEmpty
-              onEmptyChange={() => setDefaultCostEmpty(true)}
-              aria-label="تكلفة وحدة افتراضية مقترحة"
-            />
-          </label>
-        </div>
+                onNumericChange={value => {
+                  setDefaultPrice(value);
+                  setDefaultPriceEmpty(false);
+                }}
+                onTextValidityChange={setDefaultPriceValid}
+                allowEmpty
+                onEmptyChange={() => setDefaultPriceEmpty(true)}
+                aria-label="سعر بيع افتراضي مقترح"
+              />
+            </label>
+            <label className="micro-field">
+              <span>
+                تكلفة وحدة افتراضية <small>اقتراح اختياري — ليس تكلفة فعلية</small>
+              </span>
+              <EnglishNumberInput
+                value={defaultCost}
+                kind="money"
+                onNumericChange={value => {
+                  setDefaultCost(value);
+                  setDefaultCostEmpty(false);
+                }}
+                onTextValidityChange={setDefaultCostValid}
+                allowEmpty
+                onEmptyChange={() => setDefaultCostEmpty(true)}
+                aria-label="تكلفة وحدة افتراضية مقترحة"
+              />
+            </label>
+          </div>
         </details>
         <button
           className="micro-button micro-button-primary"
@@ -989,58 +989,58 @@ export default function Catalog() {
                     }}
                   >
                     <summary>عدّل الافتراضيات</summary>
-                  {defaultsEditingId === item.id ? (
-                    <div className="micro-form-grid">
-                      <label className="micro-field">
-                        <span>سعر مقترح جديد</span>
-                        <EnglishNumberInput
-                          value={editingPrice}
-                          kind="money"
-                          onNumericChange={value => {
-                            setEditingPrice(value);
-                            setEditingPriceEmpty(false);
-                          }}
-                          onTextValidityChange={setEditingPriceValid}
-                          allowEmpty
-                          onEmptyChange={() => setEditingPriceEmpty(true)}
-                          aria-label="سعر مقترح جديد"
-                        />
-                      </label>
-                      <label className="micro-field">
-                        <span>تكلفة مقترحة جديدة</span>
-                        <EnglishNumberInput
-                          value={editingCost}
-                          kind="money"
-                          onNumericChange={value => {
-                            setEditingCost(value);
-                            setEditingCostEmpty(false);
-                          }}
-                          onTextValidityChange={setEditingCostValid}
-                          allowEmpty
-                          onEmptyChange={() => setEditingCostEmpty(true)}
-                          aria-label="تكلفة مقترحة جديدة"
-                        />
-                      </label>
-                      <div className="micro-form-actions">
-                        <button
-                          className="micro-button micro-button-primary"
-                          type="button"
-                          disabled={saving}
-                          onClick={() => void saveDefaults(item.id)}
-                        >
-                          {saving ? "جارٍ الحفظ…" : "حفظ الاقتراحات"}
-                        </button>
-                        <button
-                          className="micro-button micro-button-secondary"
-                          type="button"
-                          disabled={saving}
-                          onClick={() => setDefaultsEditingId(null)}
-                        >
-                          إلغاء التعديل
-                        </button>
+                    {defaultsEditingId === item.id ? (
+                      <div className="micro-form-grid">
+                        <label className="micro-field">
+                          <span>سعر مقترح جديد</span>
+                          <EnglishNumberInput
+                            value={editingPrice}
+                            kind="money"
+                            onNumericChange={value => {
+                              setEditingPrice(value);
+                              setEditingPriceEmpty(false);
+                            }}
+                            onTextValidityChange={setEditingPriceValid}
+                            allowEmpty
+                            onEmptyChange={() => setEditingPriceEmpty(true)}
+                            aria-label="سعر مقترح جديد"
+                          />
+                        </label>
+                        <label className="micro-field">
+                          <span>تكلفة مقترحة جديدة</span>
+                          <EnglishNumberInput
+                            value={editingCost}
+                            kind="money"
+                            onNumericChange={value => {
+                              setEditingCost(value);
+                              setEditingCostEmpty(false);
+                            }}
+                            onTextValidityChange={setEditingCostValid}
+                            allowEmpty
+                            onEmptyChange={() => setEditingCostEmpty(true)}
+                            aria-label="تكلفة مقترحة جديدة"
+                          />
+                        </label>
+                        <div className="micro-form-actions">
+                          <button
+                            className="micro-button micro-button-primary"
+                            type="button"
+                            disabled={saving}
+                            onClick={() => void saveDefaults(item.id)}
+                          >
+                            {saving ? "جارٍ الحفظ…" : "حفظ الاقتراحات"}
+                          </button>
+                          <button
+                            className="micro-button micro-button-secondary"
+                            type="button"
+                            disabled={saving}
+                            onClick={() => setDefaultsEditingId(null)}
+                          >
+                            إلغاء التعديل
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ) : null}
+                    ) : null}
                   </details>
                   <div className="micro-form-actions">
                     {/* المجموعة ٣ (Scope C — §9.3): Product-to-Sale من صف المرجع — يفتح
@@ -1052,10 +1052,7 @@ export default function Catalog() {
                         type="button"
                         onClick={() =>
                           requestSafeNavigation(
-                            withFrom(
-                              `/direct-sales/new?product=${encodeURIComponent(item.id)}`,
-                              "/catalog",
-                            ),
+                            withFrom(`/direct-sales/new?product=${encodeURIComponent(item.id)}`, "/catalog"),
                           )
                         }
                       >
@@ -1446,35 +1443,35 @@ export default function Catalog() {
                         ? materials.find(material => material.id === component.materialId)
                         : null;
                       return (
-                      <div className="micro-list-item" key={component.id}>
-                        <div>
-                          <strong>{component.name}</strong>
-                          <p dir="ltr">
-                            {quantityLabel(component.quantityMilli)} ·{" "}
-                            {units.find(unit => unit.id === component.unitId)?.nameAr ?? "وحدة محفوظة"}
-                          </p>
-                          {linkedMaterial ? (
-                            <p className="micro-local-truth">
-                              مربوط بـ«{linkedMaterial.name}» ·{" "}
-                              {linkedMaterial.tracked ? "متتبَّعة" : "غير متتبَّعة — تكلفة فقط"}
+                        <div className="micro-list-item" key={component.id}>
+                          <div>
+                            <strong>{component.name}</strong>
+                            <p dir="ltr">
+                              {quantityLabel(component.quantityMilli)} ·{" "}
+                              {units.find(unit => unit.id === component.unitId)?.nameAr ?? "وحدة محفوظة"}
                             </p>
-                          ) : (
-                            <p className="micro-local-truth">مكوّن حر — بلا مادة مخزون</p>
-                          )}
+                            {linkedMaterial ? (
+                              <p className="micro-local-truth">
+                                مربوط بـ«{linkedMaterial.name}» ·{" "}
+                                {linkedMaterial.tracked ? "متتبَّعة" : "غير متتبَّعة — تكلفة فقط"}
+                              </p>
+                            ) : (
+                              <p className="micro-local-truth">مكوّن حر — بلا مادة مخزون</p>
+                            )}
+                          </div>
+                          <button
+                            className="micro-icon-button"
+                            type="button"
+                            aria-label={`إزالة ${component.name}`}
+                            onClick={() =>
+                              setTemplateComponents(current =>
+                                current.filter(entry => entry.id !== component.id),
+                              )
+                            }
+                          >
+                            <X aria-hidden="true" />
+                          </button>
                         </div>
-                        <button
-                          className="micro-icon-button"
-                          type="button"
-                          aria-label={`إزالة ${component.name}`}
-                          onClick={() =>
-                            setTemplateComponents(current =>
-                              current.filter(entry => entry.id !== component.id),
-                            )
-                          }
-                        >
-                          <X aria-hidden="true" />
-                        </button>
-                      </div>
                       );
                     })}
                   </div>
@@ -1491,7 +1488,9 @@ export default function Catalog() {
                   type="button"
                   onClick={() => setExtrasOpen(current => !current)}
                 >
-                  {extrasOpen ? "إخفاء بنود التكلفة الاختيارية" : "بنود اختيارية: عمل، تغليف، توصيل، هدر، هامش"}
+                  {extrasOpen
+                    ? "إخفاء بنود التكلفة الاختيارية"
+                    : "بنود اختيارية: عمل، تغليف، توصيل، هدر، هامش"}
                 </button>
                 {extrasOpen ? (
                   <div className="micro-form-grid">
@@ -1657,8 +1656,8 @@ export default function Catalog() {
                           <details className="micro-inline-disclosure">
                             <summary>حدود القالب</summary>
                             <p>
-                              هذا تذكّر تخطيطي فقط؛ لا شراء مواد ولا مخزون ولا استهلاك ولا تكلفة بيع ولا
-                              إيراد ولا هامش ينشأ منه.
+                              هذا تذكّر تخطيطي فقط؛ لا شراء مواد ولا مخزون ولا استهلاك ولا تكلفة بيع ولا إيراد
+                              ولا هامش ينشأ منه.
                             </p>
                           </details>
                         </div>
@@ -1728,8 +1727,9 @@ export default function Catalog() {
             </label>
           </div>
           <p className="micro-muted-copy">
-            الهامش المباشر هو السعر المحتسب عند التسليم للطلبات المسلّمة النهائية ناقص التكلفة المباشرة المحفوظة
-            في نسخة التكلفة. الوقت والهدر وتكلفة البيع قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا تلقائيًا.
+            الهامش المباشر هو السعر المحتسب عند التسليم للطلبات المسلّمة النهائية ناقص التكلفة المباشرة
+            المحفوظة في نسخة التكلفة. الوقت والهدر وتكلفة البيع قراءات منفصلة، وليست أجرًا أو مصروفًا أو خصمًا
+            تلقائيًا.
           </p>
           <div className="micro-subsection">
             <div className="micro-subsection-heading">
@@ -1946,8 +1946,10 @@ export default function Catalog() {
                       </p>
                       {reading?.directStatus === "recorded" ? (
                         <p>
-                          <strong>الهامش المباشر المسجل: {formatMoneyWithUnit(reading.directMarginMinor ?? 0)}</strong> ·{" "}
-                          {reading.finalOrderCount} طلب نهائي · كمية {reading.deliveredQuantity}
+                          <strong>
+                            الهامش المباشر المسجل: {formatMoneyWithUnit(reading.directMarginMinor ?? 0)}
+                          </strong>{" "}
+                          · {reading.finalOrderCount} طلب نهائي · كمية {reading.deliveredQuantity}
                         </p>
                       ) : (
                         <p>
@@ -2079,8 +2081,8 @@ export default function Catalog() {
                           <details className="micro-inline-disclosure">
                             <summary>الحقيقة والحدود</summary>
                             <p>
-                              الهدر لا يدخل تكلفة البيع ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح نهائيًا،
-                              ولا توصية سعر، ولا تتضمن تكاليف لم تُسجل.
+                              الهدر لا يدخل تكلفة البيع ولا المصروف تلقائيًا. القراءة لا تعني صافي ربح
+                              نهائيًا، ولا توصية سعر، ولا تتضمن تكاليف لم تُسجل.
                             </p>
                           </details>
                         </>

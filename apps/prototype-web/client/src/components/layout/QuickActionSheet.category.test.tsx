@@ -65,9 +65,7 @@ function renderSheet(record: ReturnType<typeof vi.fn>) {
       overview: vi.fn().mockResolvedValue({
         ok: true,
         value: {
-          wallets: [
-            { id: "drawer", name: "الدرج", kind: "cash_drawer", balanceMinor: 0, entryCount: 0 },
-          ],
+          wallets: [{ id: "drawer", name: "الدرج", kind: "cash_drawer", balanceMinor: 0, entryCount: 0 }],
         },
       }),
     },

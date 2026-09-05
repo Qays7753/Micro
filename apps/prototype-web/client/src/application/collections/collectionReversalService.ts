@@ -102,7 +102,9 @@ export class CollectionReversalService {
 
     const entries = entriesResult.value;
     const reversedEntryIds = new Set(
-      entries.filter(entry => entry.type === "reversal" && entry.reversesEntryId).map(e => e.reversesEntryId!),
+      entries
+        .filter(entry => entry.type === "reversal" && entry.reversesEntryId)
+        .map(e => e.reversesEntryId!),
     );
     /* المرشّحون يشملون المُتراجَع سابقًا — كشف حالة «التخصيص مُتراجَع» يتطلب
      * النظر في الكل قبل استبعاد المتراجَع من المطابقة. */
@@ -129,7 +131,8 @@ export class CollectionReversalService {
     const amountMatches = candidates.filter(entry => entry.cashDeltaMinor === collectionAmountMinor);
     const primary: CashContinuityEntry | null = keyMatch ?? lineMatch ?? null;
     const ambiguous = !primary && amountMatches.length > 1;
-    const matched: CashContinuityEntry | null = primary ?? (amountMatches.length === 1 ? amountMatches[0] : null);
+    const matched: CashContinuityEntry | null =
+      primary ?? (amountMatches.length === 1 ? amountMatches[0] : null);
 
     const wallets = walletsResult.value;
     const walletOf = (walletId: string) => wallets.find(wallet => wallet.id === walletId) ?? null;
@@ -257,7 +260,11 @@ export class CollectionReversalService {
     const reversalEventKey = `${input.orderId}:reverse-collection:${input.operationKey}`;
     /* إعادة الاستخدام: نفس مفتاح الجذر نفّذ فعلًا — أثر الكاش المطابق موجود أو
      * الحالة نصفية تُعلن بصدق؛ لا تكرار ولا إكمال صامت. */
-    if (stored.order.events.some(event => event.type === "collection_reversed" && event.idempotencyKey === reversalEventKey)) {
+    if (
+      stored.order.events.some(
+        event => event.type === "collection_reversed" && event.idempotencyKey === reversalEventKey,
+      )
+    ) {
       const matchingCash = entriesResult.value.find(
         entry => entry.operationKey === `${input.operationKey}:unattribute`,
       );
@@ -311,9 +318,7 @@ export class CollectionReversalService {
       /* نصف الكاش: مصنع النطاق القائم بعكس مطابق تمامًا — لا مسار ثانٍ لفك التخصيص. */
       let allocationReversal: CashContinuityEntry | null = null;
       if (input.alsoReverseAllocation && preview.value.allocation) {
-        const matched = entriesResult.value.find(
-          entry => entry.id === preview.value.allocation!.entryId,
-        );
+        const matched = entriesResult.value.find(entry => entry.id === preview.value.allocation!.entryId);
         if (!matched)
           return { ok: false, code: "validation_error", message: "لم نجد أثر التخصيص المطابق للتراجع." };
         allocationReversal = createCashContinuityEntry({
@@ -339,9 +344,7 @@ export class CollectionReversalService {
         return {
           ok: false,
           code: committed.code === "storage_stale" ? "storage_error" : "storage_error",
-          message:
-            committed.message ??
-            "تعذر حفظ التراجع ذريًا. بقي السجل دون تغيير؛ جرّب مرة ثانية.",
+          message: committed.message ?? "تعذر حفظ التراجع ذريًا. بقي السجل دون تغيير؛ جرّب مرة ثانية.",
         };
       return {
         ok: true,

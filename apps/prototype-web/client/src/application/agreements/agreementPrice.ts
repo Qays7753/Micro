@@ -15,6 +15,8 @@ export function protectionPriceIsReadyForAgreement(
   knowledgeState: string | null | undefined,
 ): protectionPriceMinor is number {
   return (
-    agreementPriceIsReady(protectionPriceMinor) && knowledgeState !== "incomplete" && knowledgeState !== "partial"
+    agreementPriceIsReady(protectionPriceMinor) &&
+    knowledgeState !== "incomplete" &&
+    knowledgeState !== "partial"
   );
 }

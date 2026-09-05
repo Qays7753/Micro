@@ -105,9 +105,7 @@ export class StatementMarkdownService {
     /* المجموعة ٥ (عقد ٣١): بنود عقد ٢٩ غير النقدية داخل النتيجة — تظهر
      * صراحةً في التقرير كما في الكشف. */
     const deep = blocks.deepFinance;
-    rows.push(
-      line("إهلاك الأصول في الفترة", money(deep.depreciationMinor), "غير نقدي — يخفض النتيجة"),
-    );
+    rows.push(line("إهلاك الأصول في الفترة", money(deep.depreciationMinor), "غير نقدي — يخفض النتيجة"));
     rows.push(line("خسارة شطب أصول", money(deep.writeOffLossMinor), "غير نقدي"));
     rows.push(line("نتيجة التخلص من أصول", money(deep.disposalResultMinor)));
     rows.push(
@@ -125,7 +123,11 @@ export class StatementMarkdownService {
     rows.push(line("الدفتري للأصول النشطة", money(deep.assetBookValueNowMinor), "ليس مصروفًا ولا كاشًا"));
     rows.push(line("القروض القائمة", money(deep.loansOutstandingNowMinor), "ذمم لصالح مشروعك — ليست نتيجة"));
     rows.push(
-      line("عربونات محتفظة بانتظار القرار", money(deep.pendingRetainedDepositsNowMinor), "ليست مالكًا ولا إيرادًا بعد"),
+      line(
+        "عربونات محتفظة بانتظار القرار",
+        money(deep.pendingRetainedDepositsNowMinor),
+        "ليست مالكًا ولا إيرادًا بعد",
+      ),
     );
     rows.push(line("لي عند العملاء (ذمم)", money(blocks.receivablesPayables.receivablesNowMinor)));
     rows.push(line("للموردين (التزامات)", money(blocks.receivablesPayables.payablesNowMinor)));

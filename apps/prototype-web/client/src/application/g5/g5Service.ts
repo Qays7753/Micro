@@ -467,11 +467,12 @@ export class G5Service {
         return { ok: false, code: "not_found", message: "الحدث المرتبط ليس التزام مصروف صالحًا." };
       const events = await this.store.listFinancialEvents();
       if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر التحقق من رصيد الالتزام." };
-      if (
-        event.value.correctionType === "reverse" ||
-        reversedEventIds(events.value).has(event.value.id)
-      )
-        return { ok: false, code: "validation_error", message: "لا يمكن ربط توقع بالتزام مالي تم التراجع عنه." };
+      if (event.value.correctionType === "reverse" || reversedEventIds(events.value).has(event.value.id))
+        return {
+          ok: false,
+          code: "validation_error",
+          message: "لا يمكن ربط توقع بالتزام مالي تم التراجع عنه.",
+        };
       const paid = activeSettlementsMinor(events.value, event.value!.id);
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid)

@@ -18,8 +18,7 @@ export default function CashAdjustmentEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const {
-  dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [wallet, setWallet] = useState<CashWalletBalance | null>(null);
   const [direction, setDirection] = useState<"increase" | "decrease">("decrease");
   const [amountMinor, setAmountMinor] = useState(0);
@@ -41,13 +40,7 @@ export default function CashAdjustmentEditor() {
   }, [cashContinuity, id, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
-  const isDirty = useFormDirty([
-      direction,
-      amountMinor,
-      date,
-      reason,
-      note,
-    ]);
+  const isDirty = useFormDirty([direction, amountMinor, date, reason, note]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
@@ -92,11 +85,7 @@ export default function CashAdjustmentEditor() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">
@@ -156,16 +145,16 @@ export default function CashAdjustmentEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-            <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
-          disabled={saving}
-          onClick={save}
-        >
-          <Save aria-hidden="true" />
-          {saving ? "جارٍ الحفظ…" : "حفظ ضبط الكاش"}
-        </button>
-          </div>
+          <button
+            className="micro-button micro-button-primary micro-save-cost"
+            type="button"
+            disabled={saving}
+            onClick={save}
+          >
+            <Save aria-hidden="true" />
+            {saving ? "جارٍ الحفظ…" : "حفظ ضبط الكاش"}
+          </button>
+        </div>
       </section>
     </section>
   );

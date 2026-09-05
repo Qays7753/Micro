@@ -204,7 +204,8 @@ export default function Home() {
       {model.awaySection ? (
         <section className="micro-away-card" aria-label="أثناء غيابك">
           <b>
-            <CloudSun aria-hidden="true" /> أثناء غيابك — آخر تسجيل قبل {model.awaySection.daysSinceLastActivity} يوم
+            <CloudSun aria-hidden="true" /> أثناء غيابك — آخر تسجيل قبل{" "}
+            {model.awaySection.daysSinceLastActivity} يوم
           </b>
           <ul>
             {/* U-002 (دورة التدقيق النهائي): ملخص «آخر يوم تسجيل» الصادق — لا شيء يتحرك
@@ -312,9 +313,7 @@ export default function Home() {
               className="micro-text-action"
               type="button"
               onClick={() =>
-                model.todaySection.nextUpcomingHref
-                  ? openFromHome(model.todaySection.nextUpcomingHref)
-                  : null
+                model.todaySection.nextUpcomingHref ? openFromHome(model.todaySection.nextUpcomingHref) : null
               }
             >
               افتح أقربها
@@ -433,7 +432,9 @@ export default function Home() {
                   </time>
                   <strong>{change.title}</strong>
                   {change.detail ? <small>{change.detail}</small> : null}
-                  {change.effectWord ? <small className="micro-home-recent-effect">{change.effectWord}</small> : null}
+                  {change.effectWord ? (
+                    <small className="micro-home-recent-effect">{change.effectWord}</small>
+                  ) : null}
                 </span>
                 {change.amountMinor !== null && change.amountMinor !== undefined ? (
                   <b className="micro-home-recent-amount">

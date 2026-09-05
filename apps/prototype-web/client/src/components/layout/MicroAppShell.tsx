@@ -91,11 +91,7 @@ function ShellContent({ location, children }: { location: string; children: Reac
     <div className="micro-app" data-route-kind={routeKind} data-keyboard-open={isKeyboardOpen} dir="rtl">
       <AppHeader
         contextLabel={
-          isSetup
-            ? "تأسيس محلي"
-            : CONTEXT_REPEATS_H1.has(pathname)
-              ? null
-              : getNavigationLabel(location)
+          isSetup ? "تأسيس محلي" : CONTEXT_REPEATS_H1.has(pathname) ? null : getNavigationLabel(location)
         }
         onOpenSettings={() => requestNavigation("/settings")}
       />
@@ -112,11 +108,13 @@ function ShellContent({ location, children }: { location: string; children: Reac
             onNavigate={requestNavigation}
             onOpenActions={() => setIsActionSheetOpen(true)}
           />
-          <Suspense fallback={null}><QuickActionSheet
-            open={isActionSheetOpen}
-            onOpenChange={setIsActionSheetOpen}
-            onAction={handleQuickAction}
-          /></Suspense>
+          <Suspense fallback={null}>
+            <QuickActionSheet
+              open={isActionSheetOpen}
+              onOpenChange={setIsActionSheetOpen}
+              onAction={handleQuickAction}
+            />
+          </Suspense>
         </>
       ) : null}
     </div>

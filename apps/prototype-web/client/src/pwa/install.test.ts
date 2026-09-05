@@ -27,7 +27,9 @@ describe("PWA install detection", () => {
 describe("install banner dismissal window (U-10)", () => {
   it("keeps a dismissal active for thirty days", () => {
     expect(isInstallBannerDismissalActive("2026-08-01T09:00:00.000Z", "2026-08-30T09:00:00.000Z")).toBe(true);
-    expect(isInstallBannerDismissalActive("2026-08-01T09:00:00.000Z", "2026-08-31T09:00:00.000Z")).toBe(false);
+    expect(isInstallBannerDismissalActive("2026-08-01T09:00:00.000Z", "2026-08-31T09:00:00.000Z")).toBe(
+      false,
+    );
   });
 
   it("treats missing or unreadable dismissal as not dismissed", () => {

@@ -68,7 +68,11 @@ export function DataActionPinGate({
             type="password"
             value={pin}
             onChange={event =>
-              setPin(normalizeAsciiDigits(event.target.value).replace(/[^0-9]/g, "").slice(0, 8))
+              setPin(
+                normalizeAsciiDigits(event.target.value)
+                  .replace(/[^0-9]/g, "")
+                  .slice(0, 8),
+              )
             }
             inputMode="numeric"
             autoComplete="off"

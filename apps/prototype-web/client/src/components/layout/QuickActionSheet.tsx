@@ -15,13 +15,7 @@ import {
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
@@ -165,17 +159,15 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
     if (mode === "sale-form")
       return Boolean(
         saleName.trim() ||
-          saleAmountMinor > 0 ||
-          saleCostKnown ||
-          saleOnCredit ||
-          saleCollectedMinor > 0 ||
-          saleCustomer.trim() ||
-          saleWalletId,
+        saleAmountMinor > 0 ||
+        saleCostKnown ||
+        saleOnCredit ||
+        saleCollectedMinor > 0 ||
+        saleCustomer.trim() ||
+        saleWalletId,
       );
     if (mode === "expense-form")
-      return Boolean(
-        expenseAmountMinor > 0 || expenseNote.trim() || expenseWalletId || expenseCategory,
-      );
+      return Boolean(expenseAmountMinor > 0 || expenseNote.trim() || expenseWalletId || expenseCategory);
     return false;
   }
 
@@ -241,9 +233,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
        * والدفع المسبق) — إعادة المحاولة أو التكرار لا يخصص الكاش مرتين. */
       operationKey: operationKey ?? undefined,
     });
-    return result.ok
-      ? { ok: true, message: null }
-      : { ok: false, message: result.message };
+    return result.ok ? { ok: true, message: null } : { ok: false, message: result.message };
   }
 
   async function submitSale() {
@@ -422,7 +412,11 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
           </div>
         </DrawerHeader>
         {confirmDiscard && (mode === "sale-form" || mode === "expense-form") ? (
-          <section className="micro-sheet-confirm" role="alertdialog" aria-labelledby="sheet-discard-question">
+          <section
+            className="micro-sheet-confirm"
+            role="alertdialog"
+            aria-labelledby="sheet-discard-question"
+          >
             <strong id="sheet-discard-question">في رقم مكتوب — تسجّله أو تتجاهله؟</strong>
             <p>الإغلاق الآن يفقد ما كتبته في هذه الورقة؛ لا يوجد حفظ تلقائي.</p>
             <div className="micro-form-actions">
@@ -579,9 +573,15 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                 {saleOnCredit ? (
                   <>
                     سيدخل الكاش {formatMoneyMinor(saleCollectedValid ? saleCollectedMinor : 0)} د.أ
-                    {saleWalletId ? ` إلى «${wallets.find(wallet => wallet.id === saleWalletId)?.name ?? ""}»` : " غير موزع"} ·
-                    ويسجل دين {formatMoneyMinor(Math.max(saleAmountMinor - (saleCollectedValid ? saleCollectedMinor : 0), 0))} د.أ
-                    على «{saleCustomer.trim() || "الزبون"}» — لا إيراد ولا ربح يُعرض قبل التسليم/البيع المسجل.
+                    {saleWalletId
+                      ? ` إلى «${wallets.find(wallet => wallet.id === saleWalletId)?.name ?? ""}»`
+                      : " غير موزع"}{" "}
+                    · ويسجل دين{" "}
+                    {formatMoneyMinor(
+                      Math.max(saleAmountMinor - (saleCollectedValid ? saleCollectedMinor : 0), 0),
+                    )}{" "}
+                    د.أ على «{saleCustomer.trim() || "الزبون"}» — لا إيراد ولا ربح يُعرض قبل التسليم/البيع
+                    المسجل.
                   </>
                 ) : (
                   <>
@@ -661,9 +661,7 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                     className="micro-suggest-chip"
                     aria-pressed={expenseCategory === suggestion}
                     title={suggestion}
-                    onClick={() =>
-                      setExpenseCategory(current => (current === suggestion ? "" : suggestion))
-                    }
+                    onClick={() => setExpenseCategory(current => (current === suggestion ? "" : suggestion))}
                   >
                     {suggestion}
                   </button>

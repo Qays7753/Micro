@@ -21,8 +21,7 @@ export default function G5DeclarationEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const {
-  dataVersion, g5, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, g5, notifyDataChanged } = usePrototypeServices();
   const [direction, setDirection] = useState<"collection" | "commitment">("collection");
   const [amountMinor, setAmountMinor] = useState<number | null>(null);
   const [amountValid, setAmountValid] = useState(true);
@@ -56,15 +55,15 @@ export default function G5DeclarationEditor() {
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
   const isDirty = useFormDirty([
-      direction,
-      amountMinor,
-      dueOn,
-      source,
-      knowledge,
-      note,
-      relatedOrderId,
-      relatedEventId,
-    ]);
+    direction,
+    amountMinor,
+    dueOn,
+    source,
+    knowledge,
+    note,
+    relatedOrderId,
+    relatedEventId,
+  ]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
@@ -107,11 +106,7 @@ export default function G5DeclarationEditor() {
 
   return (
     <section className="micro-page micro-g5-editor-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowLeft aria-hidden="true" /> القرار المالي
       </button>
       <div className="micro-page-heading">
@@ -225,8 +220,8 @@ export default function G5DeclarationEditor() {
         <p className="micro-local-truth">
           <CalendarClock aria-hidden="true" />
           <span>
-            هذا السجل المتوقع لا يزيد الكاش ولا ينقصه ولا يسجل قبضًا أو دفعًا. إذا تغيّر الحدث، صحّحه بتراجع موثق من
-            سطح القرار.
+            هذا السجل المتوقع لا يزيد الكاش ولا ينقصه ولا يسجل قبضًا أو دفعًا. إذا تغيّر الحدث، صحّحه بتراجع
+            موثق من سطح القرار.
           </span>
         </p>
         {message ? (

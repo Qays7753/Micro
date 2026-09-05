@@ -22,7 +22,7 @@ describe("InventoryMaterialService", () => {
       },
       note: "افتتاح",
       operationKey: "material-1",
-      });
+    });
     if (!opened.ok) throw new Error("material should open");
     const purchase = createSupplierPurchase({
       id: "purchase-1",
@@ -136,7 +136,7 @@ describe("InventoryMaterialService", () => {
       },
       note: "افتتاح",
       operationKey: "thread",
-      });
+    });
     if (!opened.ok) throw new Error("material should open");
     await expect(
       service.waste({
@@ -167,7 +167,7 @@ describe("InventoryMaterialService", () => {
       },
       note: "افتتاح",
       operationKey: "actual-material-open",
-      });
+    });
     if (!opened.ok) throw new Error("material should open");
     const cost = calculateCostSnapshot("actual-material-cost", {
       currency: "JOD",
@@ -276,7 +276,7 @@ describe("InventoryMaterialService purchase receipt quota after a reversal (A-02
       },
       note: "افتتاح",
       operationKey: "a02-material",
-      });
+    });
     if (!opened.ok) throw new Error("material should open");
     const purchase = createSupplierPurchase({
       id: "a02-purchase",
@@ -392,7 +392,7 @@ describe("InventoryMaterialService activation (decision 9)", () => {
       },
       note: "افتتاح",
       operationKey: "material-legacy",
-      });
+    });
     await expect(service.readActivation()).resolves.toMatchObject({
       ok: true,
       value: { activatedOn: "2026-08-01", source: "derived" },
@@ -418,7 +418,7 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
       },
       note: "افتتاح",
       operationKey: "silver-open",
-      });
+    });
     if (!opened.ok) throw new Error("material should open");
     const extracted = await service.extractRemainder({
       materialId: opened.value.material.id,
@@ -464,7 +464,7 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
       },
       note: "افتتاح",
       operationKey: "thread-open",
-      });
+    });
     if (!opened.ok) throw new Error("material should open");
     const consumed = await service.waste({
       materialId: opened.value.material.id,
@@ -520,7 +520,7 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
       },
       note: "افتتاح",
       operationKey: "glue-open",
-      });
+    });
     if (!opened.ok) throw new Error("material should open");
     await expect(
       service.extractRemainder({
@@ -570,7 +570,7 @@ describe("InventoryMaterialService extract remainder (decision 20, contract 11 a
       },
       note: "للتكلفة فقط",
       operationKey: "f2-untracked-material",
-      });
+    });
     if (!opened.ok) throw new Error("material should open");
     const extracted = await service.extractRemainder({
       materialId: opened.value.material.id,
@@ -601,20 +601,20 @@ async function openTracked(
   },
 ) {
   return service.openMaterial({
-      name: input.name,
-      unit: "kilogram",
-      tracking: "tracked",
-      opening: {
-        quantityState: input.confirmed ? "confirmed" : "unconfirmed",
-        quantityMilli: input.quantityMilli,
-        costState: input.valueMinor !== null ? "known" : "unknown",
-        valueMinor: input.valueMinor,
-        confirmedOn: input.confirmed ? "2026-09-01" : null,
-        sourceNote: "جرد",
-      },
-      note: "رصيد معلن",
-      operationKey: input.key,
-    });
+    name: input.name,
+    unit: "kilogram",
+    tracking: "tracked",
+    opening: {
+      quantityState: input.confirmed ? "confirmed" : "unconfirmed",
+      quantityMilli: input.quantityMilli,
+      costState: input.valueMinor !== null ? "known" : "unknown",
+      valueMinor: input.valueMinor,
+      confirmedOn: input.confirmed ? "2026-09-01" : null,
+      sourceNote: "جرد",
+    },
+    note: "رصيد معلن",
+    operationKey: input.key,
+  });
 }
 
 describe("InventoryMaterialService — Group 2 selective tracking — cost-only materials (Scenario A)", () => {
@@ -994,7 +994,11 @@ describe("InventoryMaterialService — Group 2 selective tracking — untrack/re
         operationKey: "g2-waste-after-untrack",
       }),
     ).resolves.toMatchObject({ ok: false, code: "validation_error" });
-    const repeatedUntrack = await service.untrackMaterial({ materialId, reason: null, operationKey: "g2-untrack-2" });
+    const repeatedUntrack = await service.untrackMaterial({
+      materialId,
+      reason: null,
+      operationKey: "g2-untrack-2",
+    });
     expect(repeatedUntrack).toMatchObject({ ok: true, reused: true });
     /* إعادة التفعيل: الرصيد يعود «غير محدد بعد». */
     const retracked = await service.retrackMaterial({ materialId, operationKey: "g2-retrack" });

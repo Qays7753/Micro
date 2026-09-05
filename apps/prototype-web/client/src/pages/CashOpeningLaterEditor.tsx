@@ -23,8 +23,7 @@ export default function CashOpeningLaterEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const {
-  dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<PageState>({ phase: "loading" });
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
@@ -32,9 +31,7 @@ export default function CashOpeningLaterEditor() {
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const operationKey = useRef(
-    `cash-opening-later-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
-  );
+  const operationKey = useRef(`cash-opening-later-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
   useEffect(() => {
     if (!id) return;
@@ -50,11 +47,7 @@ export default function CashOpeningLaterEditor() {
         setState({ phase: "error", message: "لم أجد هذه المحفظة؛ لم يتغير أي سجل." });
         return;
       }
-      setState(
-        wallet.openingUnknown
-          ? { phase: "ready", wallet }
-          : { phase: "already-known", wallet },
-      );
+      setState(wallet.openingUnknown ? { phase: "ready", wallet } : { phase: "already-known", wallet });
     });
     return () => {
       active = false;
@@ -106,7 +99,11 @@ export default function CashOpeningLaterEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح سجل الرصيد</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(returnPath)}
+        >
           محافظ الكاش
         </button>
       </section>
@@ -121,8 +118,8 @@ export default function CashOpeningLaterEditor() {
           <span className="micro-overline">حالة المحفظة</span>
           <h1>رصيد افتتاحي هذه المحفظة معروف أصلًا</h1>
           <p>
-            «{state.wallet.name}» لديها رصيد افتتاحي مسجل؛ التصحيح اللاحق لحقيقة الكاش يُسجل ضبط كاش بسبب،
-            لا افتتاحًا ثانيًا.
+            «{state.wallet.name}» لديها رصيد افتتاحي مسجل؛ التصحيح اللاحق لحقيقة الكاش يُسجل ضبط كاش بسبب، لا
+            افتتاحًا ثانيًا.
           </p>
         </div>
         <button
@@ -137,11 +134,7 @@ export default function CashOpeningLaterEditor() {
 
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation("/cash")}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation("/cash")}>
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">
@@ -191,16 +184,16 @@ export default function CashOpeningLaterEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-            <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
-          disabled={saving}
-          onClick={save}
-        >
-          <Save aria-hidden="true" />
-          {saving ? "جارٍ الحفظ…" : "سجّل الرصيد الموثق"}
-        </button>
-          </div>
+          <button
+            className="micro-button micro-button-primary micro-save-cost"
+            type="button"
+            disabled={saving}
+            onClick={save}
+          >
+            <Save aria-hidden="true" />
+            {saving ? "جارٍ الحفظ…" : "سجّل الرصيد الموثق"}
+          </button>
+        </div>
       </section>
     </section>
   );

@@ -234,7 +234,11 @@ export default function Orders() {
         state.scheduleOverview.today.length > 0 ||
         state.scheduleOverview.upcoming.length > 0 ? (
           <div className="micro-schedule-preview-list">
-            {[...state.scheduleOverview.overdue, ...state.scheduleOverview.today, ...state.scheduleOverview.upcoming]
+            {[
+              ...state.scheduleOverview.overdue,
+              ...state.scheduleOverview.today,
+              ...state.scheduleOverview.upcoming,
+            ]
               .slice(0, 5)
               .map(item => (
                 <button

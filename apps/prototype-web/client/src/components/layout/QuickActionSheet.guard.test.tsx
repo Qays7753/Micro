@@ -23,7 +23,11 @@ const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
 function mockSheetServices(saleOk = true) {
   return {
     directSales: {
-      record: vi.fn().mockResolvedValue(saleOk ? { ok: true, value: { id: "sale-1" } } : { ok: false, message: "فشل التسجيل" }),
+      record: vi
+        .fn()
+        .mockResolvedValue(
+          saleOk ? { ok: true, value: { id: "sale-1" } } : { ok: false, message: "فشل التسجيل" },
+        ),
     },
     projectFinance: {
       readPosition: vi.fn().mockResolvedValue({ ok: true, value: { recordedCashMinor: 2500 } }),

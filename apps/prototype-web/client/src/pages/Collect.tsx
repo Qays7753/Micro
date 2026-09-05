@@ -22,7 +22,12 @@ import { formatMoneyWithUnit } from "@/presentation/formatters";
 type PageState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
-  | { phase: "ready"; source: ReceivableSource | null; sources: readonly ReceivableSource[]; wallets: CashContinuityOverview }
+  | {
+      phase: "ready";
+      source: ReceivableSource | null;
+      sources: readonly ReceivableSource[];
+      wallets: CashContinuityOverview;
+    }
   | { phase: "done"; outcome: CollectionOutcome; personName: string };
 
 /** تحليل ?source دفاعيًا: order:<id> أو sale:<id> — غير ذلك يُهمل بهدوء (لا انفجار). */
@@ -74,13 +79,17 @@ export default function Collect() {
           return;
         }
         const found = requested
-          ? sourcesResult.value.find(
-              item => item.kind === requested.kind && item.id === requested.id,
-            ) ?? null
+          ? (sourcesResult.value.find(item => item.kind === requested.kind && item.id === requested.id) ??
+            null)
           : null;
         /* الوصلة العميقة قد تشير لذمة حُصّلت كاملة أو أُلغيت — نفتح المنتقي بهدوء لا خطأ. */
         setSelectedId(found ? `${found.kind}:${found.id}` : null);
-        setState({ phase: "ready", source: found, sources: sourcesResult.value, wallets: walletsResult.value });
+        setState({
+          phase: "ready",
+          source: found,
+          sources: sourcesResult.value,
+          wallets: walletsResult.value,
+        });
         if (found) setAmountMinor(found.outstandingMinor);
         const drawer = walletsResult.value.wallets.find(wallet => wallet.kind === "cash_drawer");
         setDestination(current => current || drawer?.id || "");
@@ -117,7 +126,7 @@ export default function Collect() {
   const destinationLabel =
     destination === ""
       ? "غير موزع — يُوزَّع لاحقًا بقرار صريح"
-      : walletOptions.find(wallet => wallet.id === destination)?.name ?? "غير موزع";
+      : (walletOptions.find(wallet => wallet.id === destination)?.name ?? "غير موزع");
 
   async function submit() {
     if (!source) {
@@ -169,7 +178,11 @@ export default function Collect() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح ورقة التحصيل</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(returnPath)}
+        >
           رجوع
         </button>
       </section>
@@ -202,7 +215,9 @@ export default function Collect() {
           {outcome.attributionNotice ? (
             <p className="micro-local-truth">وجهة المحفظة لم تُنفّذ: {outcome.attributionNotice}</p>
           ) : null}
-          <p className="micro-local-truth">بياناتك محفوظة على هذا الجهاز — التحصيل سُجل محليًا ولم يُرسل لأي مكان.</p>
+          <p className="micro-local-truth">
+            بياناتك محفوظة على هذا الجهاز — التحصيل سُجل محليًا ولم يُرسل لأي مكان.
+          </p>
         </section>
         <div className="micro-form-actions">
           <button
@@ -346,7 +361,14 @@ export default function Collect() {
               <option value="">غير موزع — يُوزَّع لاحقًا بقرار صريح</option>
               {walletOptions.map(wallet => (
                 <option key={wallet.id} value={wallet.id}>
-                  {wallet.name} ({wallet.kind === "cash_drawer" ? "درج" : wallet.kind === "bank_account" ? "حساب بنكي" : wallet.kind === "digital_wallet" ? "محفظة رقمية" : "مكان كاش"}{" "}
+                  {wallet.name} (
+                  {wallet.kind === "cash_drawer"
+                    ? "درج"
+                    : wallet.kind === "bank_account"
+                      ? "حساب بنكي"
+                      : wallet.kind === "digital_wallet"
+                        ? "محفظة رقمية"
+                        : "مكان كاش"}{" "}
                   — الرصيد {formatMoneyWithUnit(wallet.balanceMinor)})
                   {drawer && wallet.id === drawer.id ? " · الافتراضي" : ""}
                 </option>
@@ -369,9 +391,7 @@ export default function Collect() {
             <span>الأثر قبل الحفظ</span>
             <dl className="micro-collect-preview">
               <div>
-                <dt>
-                  {destination === "" ? "الكاش غير الموزع" : `كاش «${destinationLabel}»`}
-                </dt>
+                <dt>{destination === "" ? "الكاش غير الموزع" : `كاش «${destinationLabel}»`}</dt>
                 <dd>
                   <MoneyValue minor={validAmount ? amountMinor : 0} showPlus /> د.أ
                 </dd>
@@ -389,8 +409,8 @@ export default function Collect() {
             </dl>
             {overAmount ? (
               <p className="micro-field-error" role="alert">
-                المبلغ المُدخل يتجاوز المتبقي على {source.personName} — القبض لن يُسجّل حتى تصحّح
-                المبلغ؛ المتبقي أعلاه يبقى كما هو.
+                المبلغ المُدخل يتجاوز المتبقي على {source.personName} — القبض لن يُسجّل حتى تصحّح المبلغ؛
+                المتبقي أعلاه يبقى كما هو.
               </p>
             ) : null}
           </section>
@@ -409,12 +429,12 @@ export default function Collect() {
             {saving ? "جارٍ تسجيل القبض…" : "سجّل القبض"}
           </button>
           <p className="micro-home-truth-line">
-            <Landmark aria-hidden="true" /> القبض يُسجّل اليوم <bdi dir="ltr">{formatLocalDate(localDateInAmman())}</bdi> — كتابة
-            محلية واحدة، والضغط مرتين لا يضاعف أثرًا.
+            <Landmark aria-hidden="true" /> القبض يُسجّل اليوم{" "}
+            <bdi dir="ltr">{formatLocalDate(localDateInAmman())}</bdi> — كتابة محلية واحدة، والضغط مرتين لا
+            يضاعف أثرًا.
           </p>
         </section>
       ) : null}
     </section>
   );
 }
-

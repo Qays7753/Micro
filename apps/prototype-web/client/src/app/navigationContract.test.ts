@@ -26,7 +26,9 @@ describe("parseDeepLink", () => {
     });
   });
   it("يهمل القيم المجهولة والمشوهة بلا انفجار", () => {
-    const params = parseDeepLink("?focus=evil-focus&layer=<script>&mode=side&from=javascript:alert(1)&event=bad id");
+    const params = parseDeepLink(
+      "?focus=evil-focus&layer=<script>&mode=side&from=javascript:alert(1)&event=bad id",
+    );
     expect(params.focus).toBeNull();
     expect(params.layer).toBeNull();
     expect(params.mode).toBeNull();

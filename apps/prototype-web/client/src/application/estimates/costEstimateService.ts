@@ -3,7 +3,12 @@
  * Saving an estimate never creates a financial event, an inventory movement, or an order.
  */
 import { calculateCostSnapshot } from "@micro-domain/craft-order/index.js";
-import type { CostEstimate, DraftCostMaterial, DraftCostTime, PrototypeLocalStore } from "@/storage/local/types";
+import type {
+  CostEstimate,
+  DraftCostMaterial,
+  DraftCostTime,
+  PrototypeLocalStore,
+} from "@/storage/local/types";
 
 export type CostEstimateResult<T> =
   | { ok: true; value: T; reused?: boolean }

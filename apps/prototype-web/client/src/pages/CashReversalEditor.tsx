@@ -19,8 +19,7 @@ export default function CashReversalEditor() {
   const [location, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const {
-  dataVersion, cashContinuity, agreements, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, cashContinuity, agreements, notifyDataChanged } = usePrototypeServices();
   const [entry, setEntry] = useState<CashContinuityEntry | null>(null);
   const [sourceWarning, setSourceWarning] = useState<{ orderId: string; text: string } | null>(null);
   const [date, setDate] = useState(() => ammanDate());
@@ -43,12 +42,7 @@ export default function CashReversalEditor() {
   useEffect(() => {
     let active = true;
     void (async () => {
-      if (
-        !entry ||
-        entry.type !== "allocation" ||
-        entry.sourceRefKind !== "order" ||
-        !entry.sourceRefId
-      ) {
+      if (!entry || entry.type !== "allocation" || entry.sourceRefKind !== "order" || !entry.sourceRefId) {
         if (active) setSourceWarning(null);
         return;
       }
@@ -60,10 +54,7 @@ export default function CashReversalEditor() {
       }
       const events = orderResult.stored.order.events;
       const lineStillRecorded = entry.sourceRefLineId
-        ? events.some(
-            event =>
-              event.type === "collection_recorded" && event.id === entry.sourceRefLineId,
-          )
+        ? events.some(event => event.type === "collection_recorded" && event.id === entry.sourceRefLineId)
         : events.some(event => event.type === "collection_recorded");
       if (!lineStillRecorded) {
         setSourceWarning(null);
@@ -80,10 +71,7 @@ export default function CashReversalEditor() {
   }, [entry, agreements, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
-  const isDirty = useFormDirty([
-      date,
-      reason,
-    ]);
+  const isDirty = useFormDirty([date, reason]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
@@ -126,11 +114,7 @@ export default function CashReversalEditor() {
     );
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> محافظ الكاش
       </button>
       <div className="micro-page-heading">
@@ -180,16 +164,16 @@ export default function CashReversalEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-            <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
-          disabled={saving}
-          onClick={save}
-        >
-          <Save aria-hidden="true" />
-          {saving ? "جارٍ الحفظ…" : "حفظ التراجع"}
-        </button>
-          </div>
+          <button
+            className="micro-button micro-button-primary micro-save-cost"
+            type="button"
+            disabled={saving}
+            onClick={save}
+          >
+            <Save aria-hidden="true" />
+            {saving ? "جارٍ الحفظ…" : "حفظ التراجع"}
+          </button>
+        </div>
       </section>
     </section>
   );

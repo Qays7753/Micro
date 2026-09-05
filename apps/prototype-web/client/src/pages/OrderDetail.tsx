@@ -76,8 +76,20 @@ export default function OrderDetail() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو الطلبات كبديل قانوني. */
   const returnPath = useReturnPath();
-  const { actualTime, agreements, agreementContext, fulfillment, deliveryReview, inventory, drafts, costEstimates, collectionReversal, retainedDeposits, dataVersion, notifyDataChanged } =
-    usePrototypeServices();
+  const {
+    actualTime,
+    agreements,
+    agreementContext,
+    fulfillment,
+    deliveryReview,
+    inventory,
+    drafts,
+    costEstimates,
+    collectionReversal,
+    retainedDeposits,
+    dataVersion,
+    notifyDataChanged,
+  } = usePrototypeServices();
   const [stored, setStored] = useState<StoredCraftOrder | null>(null);
   const [state, setState] = useState<OrderDetailState>({ phase: "loading" });
   const [materialState, setMaterialState] = useState<MaterialState>({ phase: "loading" });
@@ -111,18 +123,14 @@ export default function OrderDetail() {
   /* المجموعة ٦ (البند ١): معاينة المطابقة + وضع التراجع (مزدوج/مفرد). */
   const [compoundPreview, setCompoundPreview] = useState<CollectionReversalPreview | null>(null);
   const [compoundMode, setCompoundMode] = useState(true);
-  const reversalOperationKeyRef = useRef(
-    `order-reversal-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
-  );
+  const reversalOperationKeyRef = useRef(`order-reversal-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
   /* المجموعة ٣ (عقد D4/D5): عكس التسليم المكتمل — تصحيح موثق من تفاصيل الطلب. */
   const [deliveryReversalOpen, setDeliveryReversalOpen] = useState(false);
   const [deliveryReversalReason, setDeliveryReversalReason] = useState("");
 
   const openReversalPanel = (eventId: string, amountMinor: number) => {
-    reversalOperationKeyRef.current = `order-reversal-${
-      globalThis.crypto?.randomUUID?.() ?? Date.now()
-    }`;
+    reversalOperationKeyRef.current = `order-reversal-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
     setCompoundMode(true);
     setReversalEventId(eventId);
     setReversalMinor(amountMinor);
@@ -196,8 +204,7 @@ export default function OrderDetail() {
     void (async () => {
       const draftsResult = await drafts.list();
       if (!active || !draftsResult.ok) return;
-      const draft =
-        draftsResult.value.find(candidate => candidate.linkedOrderId === params.id) ?? null;
+      const draft = draftsResult.value.find(candidate => candidate.linkedOrderId === params.id) ?? null;
       if (!draft?.sourceEstimateId) return;
       const estimateResult = await costEstimates.get(draft.sourceEstimateId);
       if (!active || !estimateResult.ok || !estimateResult.value) return;
@@ -241,8 +248,7 @@ export default function OrderDetail() {
    * حالة الطلب — قابل للاكتشاف بلا فتح، وبلا ذكر فعل لا ينطبق. */
   const correctionsSummary = [
     ...(["draft", "cancelled", "needs_review"].includes(order.status) ? [] : ["تعديل السعر"]),
-    ...(order.status !== "cancelled" &&
-    order.events.some(event => event.type === "collection_recorded")
+    ...(order.status !== "cancelled" && order.events.some(event => event.type === "collection_recorded")
       ? ["تراجع عن قبضة"]
       : []),
     ...(preDeliveryStatuses.includes(order.status) ? ["إلغاء الطلب"] : []),
@@ -468,65 +474,76 @@ export default function OrderDetail() {
             {/* المجموعة ٢ (§10.5): تعديل السعر بعد الاتفاق — تصحيح موثق داخل الطلب لا
                 إلغاء وإعادة إنشاء. الاتفاق الأصلي باقٍ في الأحداث والسبب إلزامي. */}
             {["draft", "cancelled", "needs_review"].includes(order.status) ? null : pricePanelOpen ? (
-        <section className="micro-cancel-panel" aria-label="تعديل السعر بعد الاتفاق">
-          <strong>عدّل السعر المتفق عليه</strong>
-          <label className="micro-field">
-            <span>السعر الجديد (د.أ)</span>
-            <EnglishNumberInput
-              value={newPriceMinor}
-              kind="money"
-              onNumericChange={setNewPriceMinor}
-              onTextValidityChange={setValidNewPrice}
-              aria-label="السعر الجديد بعد الاتفاق"
-            />
-          </label>
-          {validNewPrice && newPriceMinor !== order.agreedPriceMinor ? (
-            <CorrectionPreview
-              action="تعديل سعر الطلب بعد الاتفاق"
-              originalLabel={`اتفاق «${order.itemName}» بسعر ${formatMoneyMinor(order.agreedPriceMinor)} د.أ`}
-              originalDetail={`العربون ${formatMoneyMinor(order.depositCollectedMinor)} د.أ · المقبوض ${formatMoneyMinor(order.collectedMinor)} د.أ`}
-              intro="الطلب لا يُلغى ولا يُعاد إنشاؤه: السعر الجديد يفتح المتبقي من جديد، والعربون والقبضات المسجلة تبقى كما هي، والاتفاق الأصلي باقٍ في الأحداث."
-              dimensions={[
-                {
-                  label: "المتبقي على العميل",
-                  beforeMinor: order.receivableMinor,
-                  afterMinor: Math.max(newPriceMinor - order.collectedMinor, 0),
-                },
-                { label: "الكاش المقبوض", beforeMinor: order.collectedMinor, afterMinor: order.collectedMinor },
-                {
-                  label: "الإيراد المعروف بعد التسليم",
-                  beforeMinor: order.recognizedRevenueMinor,
-                  afterMinor: ["delivered", "settled"].includes(order.status) ? newPriceMinor : order.recognizedRevenueMinor,
-                },
-                { label: "أمانات", beforeMinor: 0, afterMinor: 0 },
-              ]}
-              unchanged={["العربون المحصل وقيمته", "القبضات المسجلة وتواريخها", "تكلفة الطلب"]}
-              resulting={[
-                { label: "المتبقي بعد التعديل", amountMinor: Math.max(newPriceMinor - order.collectedMinor, 0) },
-              ]}
-              reversibleNote="تصحيح موثق: يمكن تعديل لاحق بمراجعة جديدة؛ كل تعديل يُحفظ بسببه وبسعر ما قبله."
-              reason={priceReason}
-              onReasonChange={setPriceReason}
-              reasonPlaceholder="مثال: اتفقنا على زيادة بعد شغل إضافي"
-              error={message}
-              busy={isActing}
-              confirmLabel="أكّد تعديل السعر"
-              busyLabel="جارٍ حفظ التعديل…"
-              onConfirm={() => {
-                void run(() => fulfillment.revisePrice(stored.id, { newPriceMinor, reason: priceReason }));
-                setPriceReason("");
-              }}
-              onCancel={() => {
-                setPricePanelOpen(false);
-                setPriceReason("");
-                setNewPriceMinor(order.agreedPriceMinor);
-              }}
-            />
-          ) : null}
-          {validNewPrice && newPriceMinor === order.agreedPriceMinor && !priceReason ? (
-            <p className="micro-local-truth">السعر الجديد يطابق الحالي — لا تصحيح بلا تغيير.</p>
-          ) : null}
-        </section>
+              <section className="micro-cancel-panel" aria-label="تعديل السعر بعد الاتفاق">
+                <strong>عدّل السعر المتفق عليه</strong>
+                <label className="micro-field">
+                  <span>السعر الجديد (د.أ)</span>
+                  <EnglishNumberInput
+                    value={newPriceMinor}
+                    kind="money"
+                    onNumericChange={setNewPriceMinor}
+                    onTextValidityChange={setValidNewPrice}
+                    aria-label="السعر الجديد بعد الاتفاق"
+                  />
+                </label>
+                {validNewPrice && newPriceMinor !== order.agreedPriceMinor ? (
+                  <CorrectionPreview
+                    action="تعديل سعر الطلب بعد الاتفاق"
+                    originalLabel={`اتفاق «${order.itemName}» بسعر ${formatMoneyMinor(order.agreedPriceMinor)} د.أ`}
+                    originalDetail={`العربون ${formatMoneyMinor(order.depositCollectedMinor)} د.أ · المقبوض ${formatMoneyMinor(order.collectedMinor)} د.أ`}
+                    intro="الطلب لا يُلغى ولا يُعاد إنشاؤه: السعر الجديد يفتح المتبقي من جديد، والعربون والقبضات المسجلة تبقى كما هي، والاتفاق الأصلي باقٍ في الأحداث."
+                    dimensions={[
+                      {
+                        label: "المتبقي على العميل",
+                        beforeMinor: order.receivableMinor,
+                        afterMinor: Math.max(newPriceMinor - order.collectedMinor, 0),
+                      },
+                      {
+                        label: "الكاش المقبوض",
+                        beforeMinor: order.collectedMinor,
+                        afterMinor: order.collectedMinor,
+                      },
+                      {
+                        label: "الإيراد المعروف بعد التسليم",
+                        beforeMinor: order.recognizedRevenueMinor,
+                        afterMinor: ["delivered", "settled"].includes(order.status)
+                          ? newPriceMinor
+                          : order.recognizedRevenueMinor,
+                      },
+                      { label: "أمانات", beforeMinor: 0, afterMinor: 0 },
+                    ]}
+                    unchanged={["العربون المحصل وقيمته", "القبضات المسجلة وتواريخها", "تكلفة الطلب"]}
+                    resulting={[
+                      {
+                        label: "المتبقي بعد التعديل",
+                        amountMinor: Math.max(newPriceMinor - order.collectedMinor, 0),
+                      },
+                    ]}
+                    reversibleNote="تصحيح موثق: يمكن تعديل لاحق بمراجعة جديدة؛ كل تعديل يُحفظ بسببه وبسعر ما قبله."
+                    reason={priceReason}
+                    onReasonChange={setPriceReason}
+                    reasonPlaceholder="مثال: اتفقنا على زيادة بعد شغل إضافي"
+                    error={message}
+                    busy={isActing}
+                    confirmLabel="أكّد تعديل السعر"
+                    busyLabel="جارٍ حفظ التعديل…"
+                    onConfirm={() => {
+                      void run(() =>
+                        fulfillment.revisePrice(stored.id, { newPriceMinor, reason: priceReason }),
+                      );
+                      setPriceReason("");
+                    }}
+                    onCancel={() => {
+                      setPricePanelOpen(false);
+                      setPriceReason("");
+                      setNewPriceMinor(order.agreedPriceMinor);
+                    }}
+                  />
+                ) : null}
+                {validNewPrice && newPriceMinor === order.agreedPriceMinor && !priceReason ? (
+                  <p className="micro-local-truth">السعر الجديد يطابق الحالي — لا تصحيح بلا تغيير.</p>
+                ) : null}
+              </section>
             ) : (
               <button
                 className="micro-button micro-button-quiet"
@@ -550,10 +567,18 @@ export default function OrderDetail() {
                     intro="عكس موثق لا حذف: حدث التسليم وأثره يبقى في السجل، الإيراد والنتيجة يُحيَّدان إلى غياب المعرفة، وحركات استهلاك المواد المرتبطة بهذا التسليم تُعكس مرآةً فيرجع الرصيد. الكاش المقبوض لا يتأثر — عكس قبضة له مساره الخاص."
                     dimensions={[
                       { label: "الإيراد المعروف", beforeMinor: order.recognizedRevenueMinor, afterMinor: 0 },
-                      { label: "الكاش المقبوض", beforeMinor: order.collectedMinor, afterMinor: order.collectedMinor },
+                      {
+                        label: "الكاش المقبوض",
+                        beforeMinor: order.collectedMinor,
+                        afterMinor: order.collectedMinor,
+                      },
                       { label: "أمانات", beforeMinor: 0, afterMinor: 0 },
                     ]}
-                    unchanged={["القبضات المسجلة وتواريخها", "العربون ومسار تسويته إن وجد", "الأحداث السابقة كلها"]}
+                    unchanged={[
+                      "القبضات المسجلة وتواريخها",
+                      "العربون ومسار تسويته إن وجد",
+                      "الأحداث السابقة كلها",
+                    ]}
                     resulting={[{ label: "نتيجة الطلب بعد العكس", amountMinor: null, unknown: true }]}
                     reversibleNote="بعد العكس ينتقل الطلب إلى «يحتاج مراجعة»: استأنف التنفيذ بقرار صريح أو ألغِ موثقًا؛ إعادة التسليم لاحقًا تسجيل جديد لا تكرار."
                     reason={deliveryReversalReason}
@@ -595,14 +620,14 @@ export default function OrderDetail() {
                 <section className="micro-cancel-panel" aria-label="تأكيد إلغاء الطلب">
                   <strong>لماذا تلغي هذا الطلب؟</strong>
                   <p>
-                    السبب اختياري — اختر بنقرة أو تخطَّ. الإلغاء لا يحذف الطلب ولا أحداثه؛ يسجّل تسوية موثقة ويبقى
-                    في السجل.
+                    السبب اختياري — اختر بنقرة أو تخطَّ. الإلغاء لا يحذف الطلب ولا أحداثه؛ يسجّل تسوية موثقة
+                    ويبقى في السجل.
                   </p>
                   {order.depositCollectedMinor > 0 ? (
                     <p className="micro-warning-copy">
                       يوجد عربون محصل (
-                      <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) — يبقى
-                      بعد الإلغاء «يحتاج مراجعة» حتى تردّه أو تحتفظ به صراحة، وهذا خيار صالح لا خطأ.
+                      <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ)
+                      — يبقى بعد الإلغاء «يحتاج مراجعة» حتى تردّه أو تحتفظ به صراحة، وهذا خيار صالح لا خطأ.
                     </p>
                   ) : null}
                   <div className="micro-form-actions micro-contextual-actions">
@@ -704,7 +729,7 @@ export default function OrderDetail() {
                   };
                   const openCollections = collections.filter(event => remainingOf(event.id) > 0);
                   const target = reversalEventId
-                    ? order.events.find(event => event.id === reversalEventId) ?? null
+                    ? (order.events.find(event => event.id === reversalEventId) ?? null)
                     : null;
                   const preview = compoundPreview;
                   const allocation = preview?.allocation ?? null;
@@ -864,7 +889,8 @@ export default function OrderDetail() {
                                   openReversalPanel(event.id, remainingOf(event.id));
                                 }}
                               >
-                                <RotateCcw aria-hidden="true" /> تراجع عن {formatMoneyMinor(remainingOf(event.id))} د.أ
+                                <RotateCcw aria-hidden="true" /> تراجع عن{" "}
+                                {formatMoneyMinor(remainingOf(event.id))} د.أ
                               </button>
                             ))}
                           </div>
@@ -970,7 +996,8 @@ export default function OrderDetail() {
         <section className="micro-cancel-panel" aria-label="معنى العربون المحتفظ به">
           <strong>
             عربون محتفظ به (
-            <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) — شو بدك تعمل فيه؟
+            <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) — شو بدك
+            تعمل فيه؟
           </strong>
           {order.retainedMeaning == null ? (
             <>
@@ -982,10 +1009,10 @@ export default function OrderDetail() {
                * التأكيد — النمط المعتمد في بقية أسطح التصحيح؛ الرقم من السجل نفسه. */}
               <p className="micro-deposit-effect-line" role="note">
                 هذا التغيير سيؤثر على الرصيد كالتالي: «مال مالك» يرفع مال المالك{" "}
-                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ بلا أي أثر
-                على نتيجة الفترة؛ و«إيراد مشروع» يضيف{" "}
-                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ إلى نتيجة
-                فترة القرار بلا كاش جديد (الكاش قُبض سابقًا). كلاهما قابل للتصحيح الموثق لاحقًا.
+                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ بلا أي
+                أثر على نتيجة الفترة؛ و«إيراد مشروع» يضيف{" "}
+                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ إلى
+                نتيجة فترة القرار بلا كاش جديد (الكاش قُبض سابقًا). كلاهما قابل للتصحيح الموثق لاحقًا.
               </p>
               <label className="micro-field">
                 <span>سبب التصنيف (مطلوب عند الاختيار)</span>
@@ -1155,7 +1182,9 @@ export default function OrderDetail() {
         <summary className="micro-additional-details-summary">
           <span>تفاصيل إضافية</span>
           <small>
-            {executionStatuses.includes(order.status) ? "الاتفاق وسجل الطلب" : "الاتفاق، المواد، الوقت، وسجل الطلب"}
+            {executionStatuses.includes(order.status)
+              ? "الاتفاق وسجل الطلب"
+              : "الاتفاق، المواد، الوقت، وسجل الطلب"}
           </small>
         </summary>
         <div className="micro-additional-details-body">
@@ -1163,8 +1192,8 @@ export default function OrderDetail() {
             <section className="micro-form-card" aria-label="المصدر: تقدير">
               <h2 className="micro-section-title">المصدر: تقدير</h2>
               <p className="micro-muted-copy">
-                بدأ هذا الطلب من تقديرك «{sourceEstimate.title}» — نُسخت منه اقتراحات وقتها؛ لا يربط
-                السعر الحالي بشيء الآن.
+                بدأ هذا الطلب من تقديرك «{sourceEstimate.title}» — نُسخت منه اقتراحات وقتها؛ لا يربط السعر
+                الحالي بشيء الآن.
               </p>
               <button
                 className="micro-text-action"

@@ -17,11 +17,13 @@ import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanne
 import { useFormDraft } from "@/components/forms/useFormDraft";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate, formatMoneyMinor, formatQuantityMilli, localDateInAmman } from "@/presentation/formatters";
-import type {
-  SupplierPurchase,
-  SupplierPurchasePayment,
-} from "@micro-domain/supplier-purchase/index.js";
+import {
+  formatLocalDate,
+  formatMoneyMinor,
+  formatQuantityMilli,
+  localDateInAmman,
+} from "@/presentation/formatters";
+import type { SupplierPurchase, SupplierPurchasePayment } from "@micro-domain/supplier-purchase/index.js";
 import type { Material } from "@micro-domain/inventory-material/index.js";
 import type { PurchaseReceiptStatus } from "@/application/inventory/inventoryMaterialService";
 
@@ -34,11 +36,7 @@ export default function SupplierPurchaseEditor() {
   const [location, navigate] = useLocation();
   const isNew = id === "new";
   /* المجموعة ٢: `/suppliers/purchase/:id` = تفاصيل وتصحيح؛ `/payment` = دفعة. */
-  const mode: EditorMode = isNew
-    ? "new"
-    : /\/payment\/?$/u.test(location)
-      ? "payment"
-      : "edit";
+  const mode: EditorMode = isNew ? "new" : /\/payment\/?$/u.test(location) ? "payment" : "edit";
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
   const { supplierPurchases, inventory, notifyDataChanged, dataVersion, formDrafts } = usePrototypeServices();
@@ -160,7 +158,19 @@ export default function SupplierPurchaseEditor() {
       materialId,
       expectedQuantityMilli,
     });
-  }, [supplierName, note, purchasedOn, dueOn, totalMinor, initialPaidMinor, materialId, expectedQuantityMilli, isDirty, isNew, purchaseDraft.state.phase]);
+  }, [
+    supplierName,
+    note,
+    purchasedOn,
+    dueOn,
+    totalMinor,
+    initialPaidMinor,
+    materialId,
+    expectedQuantityMilli,
+    isDirty,
+    isNew,
+    purchaseDraft.state.phase,
+  ]);
   useEffect(() => {
     if (purchaseDraft.state.phase === "drafting" && restoredFromOffer.current) {
       restoredFromOffer.current = false;
@@ -352,22 +362,21 @@ export default function SupplierPurchaseEditor() {
       </section>
     );
 
-  const reversalPreview = reversalTarget && purchase ? {
-    payment: reversalTarget,
-    payableBefore: purchase.payableMinor,
-    payableAfter: purchase.payableMinor + reversalTarget.amountMinor,
-    paidBefore: purchase.paidMinor,
-    paidAfter: purchase.paidMinor - reversalTarget.amountMinor,
-  } : null;
+  const reversalPreview =
+    reversalTarget && purchase
+      ? {
+          payment: reversalTarget,
+          payableBefore: purchase.payableMinor,
+          payableAfter: purchase.payableMinor + reversalTarget.amountMinor,
+          paidBefore: purchase.paidMinor,
+          paidAfter: purchase.paidMinor - reversalTarget.amountMinor,
+        }
+      : null;
 
   const paymentMode = mode === "payment";
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> مشتريات المواد
       </button>
       <div className="micro-page-heading">
@@ -398,7 +407,9 @@ export default function SupplierPurchaseEditor() {
       ) : null}
       {isNew && purchaseDraft.state.phase === "drafting" && purchaseDraft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
-          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(purchaseDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل شراء بعد.
+          مسودتك محفوظة محليًا — آخر حفظ{" "}
+          <bdi dir="ltr">{formatLocalDate(localDateInAmman(purchaseDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل
+          شراء بعد.
         </p>
       ) : null}
       {mode === "edit" && purchase ? (
@@ -406,9 +417,8 @@ export default function SupplierPurchaseEditor() {
           <section className="micro-decision-card">
             <span>حقيقة هذا الشراء الآن (د.أ)</span>
             <strong>
-              <MoneyValue minor={purchase.totalMinor} /> إجمالي ·{" "}
-              <MoneyValue minor={purchase.paidMinor} /> مدفوع ·{" "}
-              <MoneyValue minor={purchase.payableMinor} /> متبقٍ
+              <MoneyValue minor={purchase.totalMinor} /> إجمالي · <MoneyValue minor={purchase.paidMinor} />{" "}
+              مدفوع · <MoneyValue minor={purchase.payableMinor} /> متبقٍ
             </strong>
             <p>
               {purchase.note} · اشتري في <LocalDateValue value={purchase.purchasedOn} />
@@ -419,21 +429,25 @@ export default function SupplierPurchaseEditor() {
                   {" · يستحق في "}
                   <LocalDateValue value={purchase.dueOn} />
                 </>
-              ) : ""}
+              ) : (
+                ""
+              )}
             </p>
-            <p>
-              تكلفة الشراء ليست مصروف بيع — تدخل النتيجة عند الاستهلاك مستقبلًا؛ أثره الآن كاش وذمة مورد.
-            </p>
+            <p>تكلفة الشراء ليست مصروف بيع — تدخل النتيجة عند الاستهلاك مستقبلًا؛ أثره الآن كاش وذمة مورد.</p>
           </section>
           {/* المجموعة ٢ (عقد ٢٨ / TR-07): بطاقة جسر الاستلام — المستلم والمتبقي
               قبل الدفعات (تدفق البضاعة مقابل تدفق النقد)، والفعل نص واضح لا تحويل صامت. */}
           {receiptStatus ? (
-            <section className="micro-inventory-inactive" aria-label="الاستلام في المخزون" data-testid="purchase-receipt-card">
+            <section
+              className="micro-inventory-inactive"
+              aria-label="الاستلام في المخزون"
+              data-testid="purchase-receipt-card"
+            >
               <PackagePlus aria-hidden="true" />
               <div>
                 <span className="micro-overline">الاستلام في المخزون</span>
                 <p>
-                  قيمة مستلمة: {" "}
+                  قيمة مستلمة:{" "}
                   <MoneyValue minor={receiptStatus.receivedValueMinor} className="micro-inline-number" /> من{" "}
                   <MoneyValue minor={receiptStatus.totalMinor} className="micro-inline-number" /> د.أ
                   {receiptStatus.remainingQuantityMilli !== null
@@ -447,8 +461,8 @@ export default function SupplierPurchaseEditor() {
                       <div key={receipt.id}>
                         <small>
                           <LocalDateValue value={receipt.occurredOn} /> ·{" "}
-                          <QuantityValue valueMilli={receipt.quantityMilli} className="micro-inline-number" /> ·{" "}
-                          <MoneyValue minor={receipt.valueMinor} className="micro-inline-number" />
+                          <QuantityValue valueMilli={receipt.quantityMilli} className="micro-inline-number" />{" "}
+                          · <MoneyValue minor={receipt.valueMinor} className="micro-inline-number" />
                           {receipt.reversed ? " · مرتدة موثقًا" : ""}
                         </small>
                       </div>
@@ -457,8 +471,8 @@ export default function SupplierPurchaseEditor() {
                 ) : null}
               </div>
               {receiptStatus.remainingValueMinor > 0 ? (
-                materialOptions.find(material => material.id === (purchase.materialId ?? materialId))?.tracking
-                  ?.status === "untracked" ? (
+                materialOptions.find(material => material.id === (purchase.materialId ?? materialId))
+                  ?.tracking?.status === "untracked" ? (
                   <small>للاستلام لاحقًا: فعّل متابعة المادة أولًا.</small>
                 ) : (
                   <button
@@ -529,14 +543,20 @@ export default function SupplierPurchaseEditor() {
               originalDetail={reversalPreview.payment.note}
               intro="الدفعة الأصلية تبقى في السجل وعلاقة التدقيق صريحة؛ التراجع يستعيد المتبقي للمورد ويرد أثر الكاش المدفوع."
               dimensions={[
-                { label: "الكاش المدفوع للمورد", beforeMinor: reversalPreview.paidBefore, afterMinor: reversalPreview.paidAfter },
-                { label: "ذمة المورد", beforeMinor: reversalPreview.payableBefore, afterMinor: reversalPreview.payableAfter },
+                {
+                  label: "الكاش المدفوع للمورد",
+                  beforeMinor: reversalPreview.paidBefore,
+                  afterMinor: reversalPreview.paidAfter,
+                },
+                {
+                  label: "ذمة المورد",
+                  beforeMinor: reversalPreview.payableBefore,
+                  afterMinor: reversalPreview.payableAfter,
+                },
                 { label: "مصروف/نتيجة الفترة", beforeMinor: 0, afterMinor: 0 },
               ]}
               unchanged={["تكلفة الشراء لا تتغير — لا مصروف يُنشأ ولا يُلغى"]}
-              resulting={[
-                { label: "المتبقي للمورد بعد التراجع", amountMinor: reversalPreview.payableAfter },
-              ]}
+              resulting={[{ label: "المتبقي للمورد بعد التراجع", amountMinor: reversalPreview.payableAfter }]}
               reversibleNote="تراجع واحد لكل دفعة — لا يُنشأ تراجع ثانٍ لنفس الدفعة."
               reason={reversalReason}
               onReasonChange={setReversalReason}
@@ -661,12 +681,21 @@ export default function SupplierPurchaseEditor() {
                   action="تعديل موثق لسجل الشراء"
                   originalLabel={`شراء من ${purchase.supplierName} · ${formatMoneyMinor(purchase.totalMinor)} د.أ`}
                   originalDetail={`دفع أولي ${formatMoneyMinor(
-                    purchase.payments.find(payment => payment.id === `${purchase.id}:initial`)?.amountMinor ?? 0,
+                    purchase.payments.find(payment => payment.id === `${purchase.id}:initial`)?.amountMinor ??
+                      0,
                   )} د.أ`}
                   intro="التعديل يُحفظ بمراجعة موثقة تحفظ القيم قبل التصحيح؛ الدفعات اللاحقة وتراجعاتها لا تُمس."
                   dimensions={[
-                    { label: "ذمة المورد", beforeMinor: editPreview.payableBefore, afterMinor: editPreview.payableAfter },
-                    { label: "الكاش المدفوع للمورد", beforeMinor: editPreview.cashBefore, afterMinor: editPreview.cashAfter },
+                    {
+                      label: "ذمة المورد",
+                      beforeMinor: editPreview.payableBefore,
+                      afterMinor: editPreview.payableAfter,
+                    },
+                    {
+                      label: "الكاش المدفوع للمورد",
+                      beforeMinor: editPreview.cashBefore,
+                      afterMinor: editPreview.cashAfter,
+                    },
                     { label: "مصروف/نتيجة الفترة", beforeMinor: 0, afterMinor: 0 },
                   ]}
                   unchanged={["الدفعات اللاحقة كما سُجّلت", "السجل الأصلي باقٍ في التاريخ"]}

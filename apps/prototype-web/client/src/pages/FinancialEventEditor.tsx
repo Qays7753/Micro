@@ -151,12 +151,7 @@ export default function FinancialEventEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const {
-    dataVersion,
-    projectFinance,
-    cashContinuity,
-    notifyDataChanged,
-  } = usePrototypeServices();
+  const { dataVersion, projectFinance, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const type = types.has(rawType as GuidedFinancialEventType) ? (rawType as GuidedFinancialEventType) : null;
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
@@ -572,8 +567,8 @@ export default function FinancialEventEditor() {
            * قبل الخروج، لا كذب ولا تجاهل ولا إعادة حفز المفتاح. */
           <div className="micro-draft-banner" role="status">
             <p>
-              حُفظ الحدث محليًا، لكن نسبته للمحفظة لم تتم: {savedNote.message} — المال محفوظ ضمن
-              الكاش غير الموزع حتى توزّعه بنفسك.
+              حُفظ الحدث محليًا، لكن نسبته للمحفظة لم تتم: {savedNote.message} — المال محفوظ ضمن الكاش غير
+              الموزع حتى توزّعه بنفسك.
             </p>
             <div className="micro-form-actions">
               <button
@@ -692,11 +687,12 @@ export default function FinancialEventEditor() {
               sharedTotalAmountMinor={sharedTotalAmountMinor}
               sharedPercentage={sharedPercentage}
               sharedValid={
-                validSharedTotal && sharedTotalAmountMinor > 0 && sharedPercentage > 0 && sharedPercentage <= 100
+                validSharedTotal &&
+                sharedTotalAmountMinor > 0 &&
+                sharedPercentage > 0 &&
+                sharedPercentage <= 100
               }
-              onOpenSuppliers={() =>
-                navigate(withFrom("/suppliers", `/finance/new/${type}`))
-              }
+              onOpenSuppliers={() => navigate(withFrom("/suppliers", `/finance/new/${type}`))}
             />
           </details>
         ) : null}
@@ -734,22 +730,22 @@ export default function FinancialEventEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-        <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
-          disabled={saving}
-          onClick={() => void save()}
-        >
-          <Save aria-hidden="true" />
-          {saving
-            ? "جارٍ الحفظ…"
-            : savedNote
-              ? "ارجع إلى الوضع المالي"
-              : isOperatingExpense
-                ? "حفظ المصروف المصنف"
-                : "حفظ الحدث"}
-        </button>
-      </div>
+          <button
+            className="micro-button micro-button-primary micro-save-cost"
+            type="button"
+            disabled={saving}
+            onClick={() => void save()}
+          >
+            <Save aria-hidden="true" />
+            {saving
+              ? "جارٍ الحفظ…"
+              : savedNote
+                ? "ارجع إلى الوضع المالي"
+                : isOperatingExpense
+                  ? "حفظ المصروف المصنف"
+                  : "حفظ الحدث"}
+          </button>
+        </div>
       </section>
     </section>
   );

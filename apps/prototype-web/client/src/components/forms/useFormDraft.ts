@@ -49,10 +49,19 @@ export function useFormDraft<Values extends FormDraftValues>(
       if (!active || !result.ok || result.value === null) return;
       const savedValues = result.value.values as Values;
       const hasRealInput = Object.values(savedValues).some(
-        value => value !== null && value !== undefined && value !== "" && !(Array.isArray(value) && value.length === 0),
+        value =>
+          value !== null &&
+          value !== undefined &&
+          value !== "" &&
+          !(Array.isArray(value) && value.length === 0),
       );
       if (!hasRealInput) return;
-      setState({ phase: "restore-offer", savedValues, savedAt: result.value.updatedAt, currentValues: latestValues.current });
+      setState({
+        phase: "restore-offer",
+        savedValues,
+        savedAt: result.value.updatedAt,
+        currentValues: latestValues.current,
+      });
     });
     return () => {
       active = false;
@@ -66,7 +75,12 @@ export function useFormDraft<Values extends FormDraftValues>(
       setState(current =>
         current.phase === "restore-offer"
           ? { ...current, currentValues: values }
-          : { phase: "drafting", values, lastSavedAt: savedAtRef.current, saving: current.phase === "drafting" ? current.saving : false },
+          : {
+              phase: "drafting",
+              values,
+              lastSavedAt: savedAtRef.current,
+              saving: current.phase === "drafting" ? current.saving : false,
+            },
       );
       void service.current.save(formKind, scopeId, values, savedAtRef.current).then(result => {
         if (result.ok) savedAtRef.current = result.value.updatedAt;

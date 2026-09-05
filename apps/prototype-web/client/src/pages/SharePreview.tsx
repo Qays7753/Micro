@@ -27,7 +27,11 @@ export default function SharePreview() {
       <section className="micro-page micro-not-found">
         <h1>لا نص للمشاركة</h1>
         <p>افتح هذه الشاشة من سجلٍ فيه ما تشاركه — طلب أو قبضة أو تذكير أو كشف.</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(returnPath)}
+        >
           رجوع
         </button>
       </section>
@@ -68,8 +72,8 @@ export default function SharePreview() {
         <span className="micro-overline">مشاركة يدوية</span>
         <h1>{draft.title}</h1>
         <p>
-          راجع النص وعدّله كما تشاء قبل أن يغادر جهازك — ما يخرج هو هذا النص وحده بعد ما
-          تراه أمامك؛ Micro لا يرسل شيئًا تلقائيًا ولا يقرأ جهات اتصالك.
+          راجع النص وعدّله كما تشاء قبل أن يغادر جهازك — ما يخرج هو هذا النص وحده بعد ما تراه أمامك؛ Micro لا
+          يرسل شيئًا تلقائيًا ولا يقرأ جهات اتصالك.
         </p>
       </div>
       <label className="micro-field micro-share-body">

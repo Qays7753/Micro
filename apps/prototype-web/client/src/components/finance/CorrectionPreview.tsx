@@ -117,7 +117,11 @@ export function CorrectionPreview({
                 {resulting.map(item => (
                   <span key={item.label}>
                     {item.label}{" "}
-                    {item.unknown || item.amountMinor === null ? "غير محدد بعد" : <MoneyValue minor={item.amountMinor} />}
+                    {item.unknown || item.amountMinor === null ? (
+                      "غير محدد بعد"
+                    ) : (
+                      <MoneyValue minor={item.amountMinor} />
+                    )}
                   </span>
                 ))}
               </dd>
@@ -154,7 +158,12 @@ export function CorrectionPreview({
         >
           {busy ? busyLabel : confirmLabel}
         </button>
-        <button className="micro-button micro-button-secondary" type="button" disabled={busy} onClick={onCancel}>
+        <button
+          className="micro-button micro-button-secondary"
+          type="button"
+          disabled={busy}
+          onClick={onCancel}
+        >
           إلغاء
         </button>
       </div>

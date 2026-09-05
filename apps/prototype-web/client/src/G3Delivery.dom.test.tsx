@@ -77,9 +77,7 @@ function Harness({ page }: { page: React.ReactNode }) {
 }
 
 const costInput: CostEditorInput = {
-  materialItems: [
-    { name: "قماش قطنية", quantity: 2, unit: "متر", unitPriceMinor: 500, confidence: "known" },
-  ],
+  materialItems: [{ name: "قماش قطنية", quantity: 2, unit: "متر", unitPriceMinor: 500, confidence: "known" }],
   time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
   packagingMinor: 0,
   deliveryMinor: 0,

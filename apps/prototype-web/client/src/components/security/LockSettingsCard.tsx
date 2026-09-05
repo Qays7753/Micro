@@ -11,7 +11,10 @@ import { normalizeAsciiDigits } from "@/application/input/englishNumeric";
 
 type Phase = "loading" | "off" | "enabling" | "on" | "disabling";
 
-const pinDigits = (value: string) => normalizeAsciiDigits(value).replace(/[^0-9]/g, "").slice(0, 8);
+const pinDigits = (value: string) =>
+  normalizeAsciiDigits(value)
+    .replace(/[^0-9]/g, "")
+    .slice(0, 8);
 
 const autoLockLabel = (minutes: number | null): string => {
   if (minutes === null) return "يدويًا فقط";
@@ -84,16 +87,15 @@ export function LockSettingsCard() {
       <div>
         <h2>قفل التطبيق المحلي</h2>
         <p>
-          رمز محلي يُقفل Micro بعد الخمول أو عند عودتك للتطبيق — يحمي من النظرة العابرة
-          على هذا الجهاز فقط، وليس تشفيرًا للبيانات ولا حسابًا سحابيًا. الرمز نفسه لا
-          يُخزَّن ولا يخرج من الجهاز أبدًا.
+          رمز محلي يُقفل Micro بعد الخمول أو عند عودتك للتطبيق — يحمي من النظرة العابرة على هذا الجهاز فقط،
+          وليس تشفيرًا للبيانات ولا حسابًا سحابيًا. الرمز نفسه لا يُخزَّن ولا يخرج من الجهاز أبدًا.
         </p>
         {phase === "loading" ? <p>يُقرأ إعداد القفل…</p> : null}
         {phase === "on" ? (
           <>
             <p>
-              مفعّل — يُقفل {autoLockLabel(autoLockMinutes)} من إخفاء التطبيق؛ نموذج مفتوح تبقى
-              قيمه محفوظة كممسودة نصية حيث تدعمها الشاشة.
+              مفعّل — يُقفل {autoLockLabel(autoLockMinutes)} من إخفاء التطبيق؛ نموذج مفتوح تبقى قيمه محفوظة
+              كممسودة نصية حيث تدعمها الشاشة.
             </p>
             <div className="micro-lock-admin">
               <label className="micro-field">

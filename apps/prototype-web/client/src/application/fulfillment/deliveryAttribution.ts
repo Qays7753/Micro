@@ -26,7 +26,10 @@ export function lastEffectiveDeliveryEvent(order: CraftOrder): OrderEvent | null
 }
 
 /** تاريخ آخر تسليم ساري بصيغة ISO المحلية (Amman) — أو null. */
-export function effectiveDeliveryDate(order: CraftOrder, toLocalDate: (timestamp: string) => string): string | null {
+export function effectiveDeliveryDate(
+  order: CraftOrder,
+  toLocalDate: (timestamp: string) => string,
+): string | null {
   const event = lastEffectiveDeliveryEvent(order);
   return event ? toLocalDate(event.createdAt) : null;
 }

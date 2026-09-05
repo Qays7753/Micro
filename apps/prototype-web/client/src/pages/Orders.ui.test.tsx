@@ -91,7 +91,14 @@ describe("Work destination", () => {
       schedules: {
         overview: vi.fn().mockResolvedValue({
           ok: true,
-          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+          value: {
+            overdue: [],
+            today: [],
+            upcoming: [],
+            week: [],
+            dailyCapacityMinutes: null,
+            completedOrClosed: 0,
+          },
         }),
       },
       dataVersion: 0,
@@ -133,7 +140,14 @@ describe("Work destination", () => {
       schedules: {
         overview: vi.fn().mockResolvedValue({
           ok: true,
-          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+          value: {
+            overdue: [],
+            today: [],
+            upcoming: [],
+            week: [],
+            dailyCapacityMinutes: null,
+            completedOrClosed: 0,
+          },
         }),
       },
       dataVersion: 0,
@@ -166,7 +180,14 @@ describe("Work destination", () => {
       schedules: {
         overview: vi.fn().mockResolvedValue({
           ok: true,
-          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+          value: {
+            overdue: [],
+            today: [],
+            upcoming: [],
+            week: [],
+            dailyCapacityMinutes: null,
+            completedOrClosed: 0,
+          },
         }),
       },
       dataVersion: 0,
@@ -194,7 +215,14 @@ describe("Work destination", () => {
       schedules: {
         overview: vi.fn().mockResolvedValue({
           ok: true,
-          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+          value: {
+            overdue: [],
+            today: [],
+            upcoming: [],
+            week: [],
+            dailyCapacityMinutes: null,
+            completedOrClosed: 0,
+          },
         }),
       },
       dataVersion: 0,
@@ -224,7 +252,14 @@ describe("Work destination", () => {
       schedules: {
         overview: vi.fn().mockResolvedValue({
           ok: true,
-          value: { overdue: [], today: [], upcoming: [], week: [], dailyCapacityMinutes: null, completedOrClosed: 0 },
+          value: {
+            overdue: [],
+            today: [],
+            upcoming: [],
+            week: [],
+            dailyCapacityMinutes: null,
+            completedOrClosed: 0,
+          },
         }),
       },
       dataVersion: 0,
@@ -258,7 +293,12 @@ describe("Work destination", () => {
             today: [],
             upcoming: [
               {
-                schedule: { id: "schedule-1", scheduledFor: "2026-09-01", scheduledTime: "16:00", status: "scheduled" },
+                schedule: {
+                  id: "schedule-1",
+                  scheduledFor: "2026-09-01",
+                  scheduledTime: "16:00",
+                  status: "scheduled",
+                },
                 order: savedOrder("order-schedule"),
                 bucket: "upcoming" as const,
               },

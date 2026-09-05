@@ -216,14 +216,12 @@ const isAssetEventType = (value: unknown) =>
   value === "asset_depreciation" ||
   value === "asset_disposal_cash" ||
   value === "asset_writeoff";
-const isLoanEventType = (value: unknown) =>
-  value === "loan_outgoing_cash" || value === "loan_repayment_cash";
+const isLoanEventType = (value: unknown) => value === "loan_outgoing_cash" || value === "loan_repayment_cash";
 const isDepositEventType = (value: unknown) =>
   value === "deposit_retained_revenue" || value === "deposit_retained_owner";
 const isSafeMoney = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
-const isSignedMoney = (value: unknown) =>
-  typeof value === "number" && Number.isSafeInteger(value);
+const isSignedMoney = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value);
 /* X-06: مراجعة البيع المباشر قد تكون تعديلًا أو إلغاءً أو تخفيض سعر موثقًا —
  * كلها سلوك نطامي تنتجه الوحدة، فلا يرفض التصدير المُتحقق أياها. */
 const isDirectSaleRevision = (value: unknown): boolean =>
@@ -289,7 +287,10 @@ function isDirectSale(value: unknown): value is DirectSale {
       value.cancellationReason === null ||
       (isString(value.cancellationReason) && value.cancellationReason.trim().length > 0)
     ) ||
-    !(value.revisions === undefined || (Array.isArray(value.revisions) && value.revisions.every(isDirectSaleRevision)))
+    !(
+      value.revisions === undefined ||
+      (Array.isArray(value.revisions) && value.revisions.every(isDirectSaleRevision))
+    )
   )
     return false;
   const status = value.status ?? "active";
@@ -663,8 +664,19 @@ function validAssetRecord(value: unknown): boolean {
     !(value.acquisitionKind === "cash" || value.acquisitionKind === "payable") ||
     !isString(value.purchaseDate) ||
     !isLocalDate(value.purchaseDate) ||
-    !(value.lifeMonths === null || value.lifeMonths === undefined || (typeof value.lifeMonths === "number" && Number.isInteger(value.lifeMonths) && (value.lifeMonths as number) >= 1 && (value.lifeMonths as number) <= 600)) ||
-    !(value.depreciationStartOn === null || value.depreciationStartOn === undefined || (isString(value.depreciationStartOn) && isLocalDate(value.depreciationStartOn as string))) ||
+    !(
+      value.lifeMonths === null ||
+      value.lifeMonths === undefined ||
+      (typeof value.lifeMonths === "number" &&
+        Number.isInteger(value.lifeMonths) &&
+        (value.lifeMonths as number) >= 1 &&
+        (value.lifeMonths as number) <= 600)
+    ) ||
+    !(
+      value.depreciationStartOn === null ||
+      value.depreciationStartOn === undefined ||
+      (isString(value.depreciationStartOn) && isLocalDate(value.depreciationStartOn as string))
+    ) ||
     !(value.status === "active" || value.status === "disposed" || value.status === "written_off") ||
     !isString(value.acquisitionEventId) ||
     value.acquisitionEventId.trim().length === 0 ||
@@ -715,7 +727,9 @@ function validAssetRecord(value: unknown): boolean {
       Number.isSafeInteger(revision.revision) &&
       (revision.revision as number) >= 1 &&
       (revision.lifeMonths === null ||
-        (typeof revision.lifeMonths === "number" && Number.isInteger(revision.lifeMonths) && (revision.lifeMonths as number) >= 1)) &&
+        (typeof revision.lifeMonths === "number" &&
+          Number.isInteger(revision.lifeMonths) &&
+          (revision.lifeMonths as number) >= 1)) &&
       (revision.depreciationStartOn === null ||
         (isString(revision.depreciationStartOn) && isLocalDate(revision.depreciationStartOn as string))) &&
       isString(revision.reason) &&
@@ -737,7 +751,11 @@ function validLoanRecord(value: unknown): boolean {
     !isString(value.loanDate) ||
     !isLocalDate(value.loanDate) ||
     !(value.purposeNote === null || value.purposeNote === undefined || isString(value.purposeNote)) ||
-    !(value.sourceWalletId === null || value.sourceWalletId === undefined || isString(value.sourceWalletId)) ||
+    !(
+      value.sourceWalletId === null ||
+      value.sourceWalletId === undefined ||
+      isString(value.sourceWalletId)
+    ) ||
     !isString(value.principalEventId) ||
     value.principalEventId.trim().length === 0 ||
     !Array.isArray(value.repayments) ||
@@ -750,42 +768,43 @@ function validLoanRecord(value: unknown): boolean {
     return false;
   const repaymentIds = new Set<string>();
   if (
-    !value.repayments.every(
-      (repayment: unknown) => {
-        const valid =
-          isRecord(repayment) &&
-          isString(repayment.id) &&
-          repayment.id.trim().length > 0 &&
-          !repaymentIds.has(repayment.id) &&
-          isMoney(repayment.amountMinor) &&
-          repayment.amountMinor !== 0 &&
-          isString(repayment.date) &&
-          isLocalDate(repayment.date as string) &&
-          (repayment.note === null || repayment.note === undefined || isString(repayment.note)) &&
-          isString(repayment.eventId) &&
-          repayment.eventId.trim().length > 0;
-        if (valid && isRecord(repayment) && isString(repayment.id)) repaymentIds.add(repayment.id);
-        return valid;
-      },
-    )
+    !value.repayments.every((repayment: unknown) => {
+      const valid =
+        isRecord(repayment) &&
+        isString(repayment.id) &&
+        repayment.id.trim().length > 0 &&
+        !repaymentIds.has(repayment.id) &&
+        isMoney(repayment.amountMinor) &&
+        repayment.amountMinor !== 0 &&
+        isString(repayment.date) &&
+        isLocalDate(repayment.date as string) &&
+        (repayment.note === null || repayment.note === undefined || isString(repayment.note)) &&
+        isString(repayment.eventId) &&
+        repayment.eventId.trim().length > 0;
+      if (valid && isRecord(repayment) && isString(repayment.id)) repaymentIds.add(repayment.id);
+      return valid;
+    })
   )
     return false;
-  return value.repayments.every(
-    (repayment: Record<string, unknown>) =>
-      repayment.reversal === null ||
-      repayment.reversal === undefined ||
-      (isRecord(repayment.reversal) &&
-        isString(repayment.reversal.reason) &&
-        repayment.reversal.reason.trim().length > 0 &&
-        isDate(repayment.reversal.at) &&
-        isString(repayment.reversal.reversalEventId) &&
-        repayment.reversal.reversalEventId.trim().length > 0),
-  ) && value.corrections.every(
-    (correction: unknown) =>
-      isRecord(correction) &&
-      isString(correction.reason) &&
-      correction.reason.trim().length > 0 &&
-      isDate(correction.at),
+  return (
+    value.repayments.every(
+      (repayment: Record<string, unknown>) =>
+        repayment.reversal === null ||
+        repayment.reversal === undefined ||
+        (isRecord(repayment.reversal) &&
+          isString(repayment.reversal.reason) &&
+          repayment.reversal.reason.trim().length > 0 &&
+          isDate(repayment.reversal.at) &&
+          isString(repayment.reversal.reversalEventId) &&
+          repayment.reversal.reversalEventId.trim().length > 0),
+    ) &&
+    value.corrections.every(
+      (correction: unknown) =>
+        isRecord(correction) &&
+        isString(correction.reason) &&
+        correction.reason.trim().length > 0 &&
+        isDate(correction.at),
+    )
   );
 }
 function validSupplierPurchase(value: unknown): boolean {
@@ -809,11 +828,16 @@ function validSupplierPurchase(value: unknown): boolean {
     !isDate(value.updatedAt) ||
     !Array.isArray(value.payments) ||
     /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة اختياري — الشكل فقط. */
-    !(value.materialId === undefined || value.materialId === null ||
-      (isString(value.materialId) && value.materialId.trim().length > 0)) ||
-    !(value.expectedQuantityMilli === undefined ||
+    !(
+      value.materialId === undefined ||
+      value.materialId === null ||
+      (isString(value.materialId) && value.materialId.trim().length > 0)
+    ) ||
+    !(
+      value.expectedQuantityMilli === undefined ||
       value.expectedQuantityMilli === null ||
-      (isMoney(value.expectedQuantityMilli) && value.expectedQuantityMilli > 0))
+      (isMoney(value.expectedQuantityMilli) && value.expectedQuantityMilli > 0)
+    )
   )
     return false;
   const paymentKeys = new Set<string>();
@@ -838,7 +862,9 @@ function validSupplierPurchase(value: unknown): boolean {
   /* S2-03: التراجعات الموثقة عن الدفعات جزء من الحالة الشرعية — المدفوع الفعلي =
    * الدفعات − التراجعات، وإلا رُفضت نسخة احتياطية صادقة بعد تراجع موثق. */
   const paymentsList = value.payments as readonly unknown[];
-  const reversals = Array.isArray(value.paymentReversals) ? (value.paymentReversals as readonly unknown[]) : [];
+  const reversals = Array.isArray(value.paymentReversals)
+    ? (value.paymentReversals as readonly unknown[])
+    : [];
   const reversalKeys = new Set<string>();
   const reversedPaymentIds = new Set<string>();
   const totalReversed = reversals.reduce<number>((sum, reversal) => {
@@ -976,8 +1002,7 @@ function validMaterial(value: unknown): boolean {
           ? isMoney(value.opening.valueMinor)
           : value.opening.valueMinor === null || value.opening.valueMinor === undefined) &&
         (value.opening.confirmedOn === null ||
-          (isString(value.opening.confirmedOn) &&
-            isDate(`${value.opening.confirmedOn}T12:00:00.000Z`))) &&
+          (isString(value.opening.confirmedOn) && isDate(`${value.opening.confirmedOn}T12:00:00.000Z`))) &&
         (value.opening.sourceNote === null || isString(value.opening.sourceNote))))
   );
 }
@@ -1003,8 +1028,12 @@ function validInventoryMovement(value: unknown): boolean {
     /* المجموعة ٣ (عقد D6): ربط البيع المباشر — null أو نص (اختياري). */
     !(value.saleId === undefined || value.saleId === null || isString(value.saleId)) ||
     !(value.reversesMovementId === null || isString(value.reversesMovementId)) ||
-    !(value.costKnowledge === undefined || value.costKnowledge === null ||
-      value.costKnowledge === "known" || value.costKnowledge === "unknown")
+    !(
+      value.costKnowledge === undefined ||
+      value.costKnowledge === null ||
+      value.costKnowledge === "known" ||
+      value.costKnowledge === "unknown"
+    )
   )
     return false;
   /* المجموعة ٢ (عقد ٢٨): قيمة صفرية ⇐ تكلفة غير معروفة — لا صفرًا واثقًا بلا وسم،
@@ -1174,7 +1203,7 @@ function validCatalogTemplate(value: unknown, catalogIds: Set<string>, unitIds: 
         /* المجموعة ٣ (عقد D5): هوية المادة اختيارية — null أو نص غير فارغ. */
         (component.materialId === undefined ||
           component.materialId === null ||
-          (isString(component.materialId) && component.materialId.trim().length > 0))
+          (isString(component.materialId) && component.materialId.trim().length > 0)),
     ) ||
     !(
       value.yield === null ||
@@ -1198,7 +1227,8 @@ function validCatalogTemplate(value: unknown, catalogIds: Set<string>, unitIds: 
   if (
     value.extras !== undefined &&
     value.extras !== null &&
-    !(isRecord(value.extras) &&
+    !(
+      isRecord(value.extras) &&
       (value.extras.timeMinutes === null ||
         (typeof value.extras.timeMinutes === "number" &&
           Number.isSafeInteger(value.extras.timeMinutes) &&
@@ -1218,7 +1248,8 @@ function validCatalogTemplate(value: unknown, catalogIds: Set<string>, unitIds: 
       value.extras.wasteMinor >= 0 &&
       typeof value.extras.safetyBufferMinor === "number" &&
       Number.isSafeInteger(value.extras.safetyBufferMinor) &&
-      value.extras.safetyBufferMinor >= 0)
+      value.extras.safetyBufferMinor >= 0
+    )
   )
     return false;
   return value.yield === null
@@ -1755,12 +1786,7 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
    * أي تكرار خارج هذين الزوجين الموثقين = ملف غير صالح. */
   const entriesByOperationKey = new Map<string, Record<string, unknown>[]>();
   for (const entry of data.cashContinuityEntries ?? []) {
-    if (
-      !validCashEntry(entry) ||
-      entryIds.has(entry.id) ||
-      !walletIds.has(entry.walletId)
-    )
-      return false;
+    if (!validCashEntry(entry) || entryIds.has(entry.id) || !walletIds.has(entry.walletId)) return false;
     entryIds.add(entry.id);
     entriesByOperationKey.set(entry.operationKey, [
       ...(entriesByOperationKey.get(entry.operationKey) ?? []),
@@ -1780,7 +1806,9 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     const sameTransfer =
       group.length === 2 &&
       group.every(
-        entry => isString(entry.transferId) && entry.transferId === (group[0] as { transferId?: unknown }).transferId,
+        entry =>
+          isString(entry.transferId) &&
+          entry.transferId === (group[0] as { transferId?: unknown }).transferId,
       );
     const isTransferPair =
       sameTransfer &&
@@ -1796,11 +1824,7 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       );
       /* SA-5 (4): التراجع عن تراجع غير مشروع في المسار الحي — يُرفض هنا أيضًا؛
        * لا تُقبل أزواج مراجعة متبادلة مصنوعة يدويًا. */
-      if (
-        !original ||
-        original.type === "reversal" ||
-        entry.cashDeltaMinor !== -original.cashDeltaMinor
-      )
+      if (!original || original.type === "reversal" || entry.cashDeltaMinor !== -original.cashDeltaMinor)
         return false;
     }
   }
@@ -1894,7 +1918,11 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   }
   /* المجموعة ٢ (عقد ٢٨): ربط الشراء بمادة — إن وُجد فالمادة موجودة فعلًا. */
   for (const purchase of data.supplierPurchases ?? []) {
-    if (purchase.materialId !== null && purchase.materialId !== undefined && !materialIds.has(purchase.materialId))
+    if (
+      purchase.materialId !== null &&
+      purchase.materialId !== undefined &&
+      !materialIds.has(purchase.materialId)
+    )
       return false;
   }
   const catalogIds = new Set<string>();
@@ -2677,7 +2705,9 @@ export class LocalTransferService {
                    * غياب = null بلا اختراع رابط ولا بنود. */
                   components: Array.isArray(template.components)
                     ? template.components.map(component =>
-                        isRecord(component) ? { ...component, materialId: component.materialId ?? null } : component,
+                        isRecord(component)
+                          ? { ...component, materialId: component.materialId ?? null }
+                          : component,
                       )
                     : template.components,
                   extras: template.extras ?? null,
@@ -2784,7 +2814,9 @@ export class LocalTransferService {
                   sourceWalletId: loan.sourceWalletId ?? null,
                   repayments: Array.isArray(loan.repayments)
                     ? loan.repayments.map((repayment: Record<string, unknown>) =>
-                        isRecord(repayment) ? { ...repayment, reversal: repayment.reversal ?? null } : repayment,
+                        isRecord(repayment)
+                          ? { ...repayment, reversal: repayment.reversal ?? null }
+                          : repayment,
                       )
                     : [],
                   corrections: Array.isArray(loan.corrections) ? loan.corrections : [],
@@ -2808,12 +2840,10 @@ export class LocalTransferService {
     if (isRecord(candidate.counts) && isCurrent) {
       const incomingCounts: Record<string, unknown> = candidate.counts;
       const migratedCounts = exportCountsOf(migrated);
-      const mismatches = (Object.keys(migratedCounts) as Array<keyof LocalExportCounts>).filter(
-        key => {
-          const incoming = incomingCounts[key];
-          return typeof incoming === "number" && Number.isInteger(incoming) && incoming !== migratedCounts[key];
-        },
-      );
+      const mismatches = (Object.keys(migratedCounts) as Array<keyof LocalExportCounts>).filter(key => {
+        const incoming = incomingCounts[key];
+        return typeof incoming === "number" && Number.isInteger(incoming) && incoming !== migratedCounts[key];
+      });
       if (mismatches.length > 0)
         return fail(
           "عدادات الملف لا تطابق بياناته بعد الترحيل — يبدو أن الملف تغيّر أو نقص بعد إنشائه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",

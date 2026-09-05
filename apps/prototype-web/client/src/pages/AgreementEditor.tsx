@@ -107,7 +107,14 @@ export default function AgreementEditor() {
     agreedPriceMinor: priceMinor,
     deliveryDate,
   });
-  const currentValues = { priceMinor, deliveryDate, depositMinor, source, acknowledgesBelowFloor, customerName };
+  const currentValues = {
+    priceMinor,
+    deliveryDate,
+    depositMinor,
+    source,
+    acknowledgesBelowFloor,
+    customerName,
+  };
   const isDirty = Boolean(
     initialValuesRef.current && !equalAgreementValues(currentValues, initialValuesRef.current),
   );
@@ -213,7 +220,6 @@ export default function AgreementEditor() {
       <div className="micro-page-heading">
         <span className="micro-overline">{agreementPresentation.label}</span>
         <h1>سجّل ما اتفقت عليه</h1>
-        
       </div>
       <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
         <span>سعر الحماية المشتق من نسخة التكلفة (د.أ)</span>
@@ -224,8 +230,8 @@ export default function AgreementEditor() {
           {!canUseProtectionPrice
             ? "وقت العمل أو بند مؤثر ما زال ناقصًا؛ لا نعرض هذه القراءة الجزئية كسعر حماية ولا نستخدمها لبداية الاتفاق."
             : preview.snapshot.knowledgeState === "known"
-            ? "قيمة مشتقة من التكلفة المسجلة، وليست السعر المتفق عليه."
-            : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تسجيل السعر."}
+              ? "قيمة مشتقة من التكلفة المسجلة، وليست السعر المتفق عليه."
+              : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تسجيل السعر."}
         </small>
       </section>
       <section className="micro-form-card">
@@ -331,18 +337,18 @@ export default function AgreementEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-            <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
-          disabled={isSaving}
-          onClick={() => {
-            void submit();
-          }}
-        >
-          <Save aria-hidden="true" />
-          {isSaving ? "جارٍ تسجيل الاتفاق…" : "تسجيل الاتفاق"}
-        </button>
-          </div>
+          <button
+            className="micro-button micro-button-primary micro-save-cost"
+            type="button"
+            disabled={isSaving}
+            onClick={() => {
+              void submit();
+            }}
+          >
+            <Save aria-hidden="true" />
+            {isSaving ? "جارٍ تسجيل الاتفاق…" : "تسجيل الاتفاق"}
+          </button>
+        </div>
       </section>
     </section>
   );

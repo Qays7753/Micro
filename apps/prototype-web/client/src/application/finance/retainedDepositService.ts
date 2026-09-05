@@ -160,7 +160,13 @@ export class RetainedDepositService {
         counterparty: stored.order.customerName,
         depositContext: { orderId },
       });
-      const order = reclassifyRetainedDeposit(stored.order, meaning, reason, `${orderId}:reclassify:${now}`, now);
+      const order = reclassifyRetainedDeposit(
+        stored.order,
+        meaning,
+        reason,
+        `${orderId}:reclassify:${now}`,
+        now,
+      );
       const commit = await this.store.commitDepositClassificationCorrection(
         { ...stored, order, updatedAt: now },
         reversal,
@@ -169,7 +175,11 @@ export class RetainedDepositService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return {
         ok: true,
-        value: { order: commit.value.order, reversal: commit.value.reversal, replacement: commit.value.replacement },
+        value: {
+          order: commit.value.order,
+          reversal: commit.value.reversal,
+          replacement: commit.value.replacement,
+        },
       };
     } catch (error) {
       return failure("validation_error", error instanceof Error ? error.message : "تصحيح التصنيف غير صالح.");

@@ -77,15 +77,17 @@ describe("DirectSaleService", () => {
         revisions: [{ kind: "edit", idempotencyKey: "sale-update-1" }],
       },
     });
-    await expect(service.update(recorded.value.id, {
-      itemName: "منتج مصحح",
-      quantity: 2,
-      revenueMinor: 900,
-      costMinor: 300,
-      occurredOn: "2026-08-28",
-      note: "المبلغ الصحيح",
-      idempotencyKey: "sale-update-1",
-    })).resolves.toMatchObject({ ok: true, reused: true });
+    await expect(
+      service.update(recorded.value.id, {
+        itemName: "منتج مصحح",
+        quantity: 2,
+        revenueMinor: 900,
+        costMinor: 300,
+        occurredOn: "2026-08-28",
+        note: "المبلغ الصحيح",
+        idempotencyKey: "sale-update-1",
+      }),
+    ).resolves.toMatchObject({ ok: true, reused: true });
     await expect(
       service.update(recorded.value.id, {
         itemName: "منتج مصحح",
@@ -133,9 +135,10 @@ describe("DirectSaleService", () => {
     await expect(
       service.cancel(recorded.value.id, "سُجل البيع بالخطأ", "sale-cancel-1"),
     ).resolves.toMatchObject({ ok: true, reused: true });
-    await expect(
-      service.cancel(recorded.value.id, "سبب آخر", "sale-cancel-2"),
-    ).resolves.toMatchObject({ ok: false, code: "validation_error" });
+    await expect(service.cancel(recorded.value.id, "سبب آخر", "sale-cancel-2")).resolves.toMatchObject({
+      ok: false,
+      code: "validation_error",
+    });
     await expect(store.listDirectSales()).resolves.toMatchObject({
       ok: true,
       value: [{ status: "cancelled", revisions: [{ kind: "cancel" }] }],
@@ -410,10 +413,9 @@ describe("DirectSaleService cancel mirrors wallet allocations (FT-02, Group 6 au
       operationKey: "ft02-wallet-open",
     });
     if (!wallet.ok) throw new Error(wallet.message);
-    const projectFinance = new (await import("@/application/finance/projectFinancialService")).ProjectFinancialService(
-      store,
-      () => NOW,
-    );
+    const projectFinance = new (
+      await import("@/application/finance/projectFinancialService")
+    ).ProjectFinancialService(store, () => NOW);
     const attributed = await projectFinance.distributeUnallocated({
       walletId: wallet.value.wallet.id,
       deltaMinor: 2000,

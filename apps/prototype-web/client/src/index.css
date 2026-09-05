@@ -273,9 +273,9 @@
     background 160ms var(--motion-out);
 }
 @media (hover: hover) and (pointer: fine) {
-.micro-icon-button:hover {
-  background: var(--color-bg-well);
-}
+  .micro-icon-button:hover {
+    background: var(--color-bg-well);
+  }
 }
 .micro-icon-button:active {
   transform: scale(0.97);
@@ -3987,10 +3987,10 @@ button.micro-month-cell:active {
   transform: scale(0.97);
 }
 @media (hover: hover) and (pointer: fine) {
-button.micro-month-cell:hover {
-  border-color: var(--color-accent-primary);
-  background: var(--color-accent-soft);
-}
+  button.micro-month-cell:hover {
+    border-color: var(--color-accent-primary);
+    background: var(--color-accent-soft);
+  }
 }
 .micro-month-cell[data-selected="true"] {
   border: 2px solid var(--color-accent-primary);
@@ -4326,9 +4326,9 @@ button.micro-month-cell:hover {
   background: transparent;
 }
 @media (hover: hover) and (pointer: fine) {
-.micro-button-quiet:hover {
-  background: var(--color-bg-well);
-}
+  .micro-button-quiet:hover {
+    background: var(--color-bg-well);
+  }
 }
 @media (max-width: 380px) {
   .micro-recurrence-appearances {
@@ -5289,9 +5289,9 @@ button.micro-month-cell:hover {
   cursor: pointer;
 }
 @media (hover: hover) and (pointer: fine) {
-.micro-home-recent-item:hover {
-  background: var(--color-bg-well);
-}
+  .micro-home-recent-item:hover {
+    background: var(--color-bg-well);
+  }
 }
 .micro-home-recent-item > span {
   display: grid;
@@ -5467,9 +5467,9 @@ button.micro-month-cell:hover {
   background: var(--color-danger-text);
 }
 @media (hover: hover) and (pointer: fine) {
-.micro-button-danger:hover {
-  background: color-mix(in srgb, var(--color-danger-text) 86%, var(--color-text-primary));
-}
+  .micro-button-danger:hover {
+    background: color-mix(in srgb, var(--color-danger-text) 86%, var(--color-text-primary));
+  }
 }
 .micro-button-danger svg {
   width: 18px;
@@ -5933,9 +5933,9 @@ button.micro-month-cell:hover {
   background: transparent;
 }
 @media (hover: hover) and (pointer: fine) {
-.micro-chip button:hover {
-  background: color-mix(in srgb, var(--color-accent-primary) 15%, transparent);
-}
+  .micro-chip button:hover {
+    background: color-mix(in srgb, var(--color-accent-primary) 15%, transparent);
+  }
 }
 .micro-chip button svg {
   width: 15px;
@@ -6384,10 +6384,10 @@ button.micro-month-cell:hover {
     color 160ms var(--motion-out);
 }
 @media (hover: hover) and (pointer: fine) {
-.micro-suggest-chip:hover {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-text);
-}
+  .micro-suggest-chip:hover {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-text);
+  }
 }
 .micro-suggest-chip[aria-pressed="true"] {
   background: var(--color-accent-soft);

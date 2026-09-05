@@ -150,9 +150,7 @@ export default function Schedule() {
     }
     notifyDataChanged();
     setCapacityMessage(
-      result.value === null
-        ? "أُزيلت السعة اليومية."
-        : `تم حفظ سعة يومية معلنة: ${result.value} دقيقة.`,
+      result.value === null ? "أُزيلت السعة اليومية." : `تم حفظ سعة يومية معلنة: ${result.value} دقيقة.`,
     );
   }
 
@@ -213,7 +211,11 @@ export default function Schedule() {
         <CapacityDecisionSurface
           day={decisionDay}
           capacityMinutes={overview.dailyCapacityMinutes}
-          onOpen={item => (item ? navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule")) : navigate(withFrom("/orders", "/schedule")))}
+          onOpen={item =>
+            item
+              ? navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))
+              : navigate(withFrom("/orders", "/schedule"))
+          }
           /* المجموعة ١ (Scope E): عند ضغط السعة، تحديدها فعل قابل للنقر من نفس القراءة. */
           onOpenCapacity={() => setCapacityLayerOpen(true)}
         />
@@ -482,14 +484,17 @@ function RecurrencePanel({
     const created = result.value.created.length;
     const skipped = result.value.skipped.length;
     setMessage(
-      `تم حفظ قالب ${frequencyLabel(result.value.recurrence.frequency)}. أُنشئت ${formatArabicPlural(created, {
-        zero: "لا مواعيد قادمة",
-        one: "موعد واحد قادم مستقل",
-        two: "موعدان قادمان مستقلان",
-        few: "مواعيد قادمة مستقلة",
-        many: "موعدًا قادمًا مستقلًا",
-        other: "موعدًا قادمًا مستقلًا",
-      })}${skipped > 0 ? `، وتجاوزنا ${skipped} لأن التاريخ موجود` : ""}.`,
+      `تم حفظ قالب ${frequencyLabel(result.value.recurrence.frequency)}. أُنشئت ${formatArabicPlural(
+        created,
+        {
+          zero: "لا مواعيد قادمة",
+          one: "موعد واحد قادم مستقل",
+          two: "موعدان قادمان مستقلان",
+          few: "مواعيد قادمة مستقلة",
+          many: "موعدًا قادمًا مستقلًا",
+          other: "موعدًا قادمًا مستقلًا",
+        },
+      )}${skipped > 0 ? `، وتجاوزنا ${skipped} لأن التاريخ موجود` : ""}.`,
     );
     onChanged();
   }
@@ -534,7 +539,8 @@ function RecurrencePanel({
             >
               {sources.map(item => (
                 <option key={item.schedule.id} value={item.schedule.id}>
-                  {item.order.order.itemName} · <bdi dir="ltr">{formatLocalDate(item.schedule.scheduledFor) ?? "غير متاح"}</bdi>
+                  {item.order.order.itemName} ·{" "}
+                  <bdi dir="ltr">{formatLocalDate(item.schedule.scheduledFor) ?? "غير متاح"}</bdi>
                 </option>
               ))}
             </select>
@@ -600,8 +606,7 @@ function RecurrencePanel({
                       many: "موعدًا قادمًا",
                       other: "موعدًا قادمًا",
                     })}{" "}
-                    · المصدر:{" "}
-                    {view.source ? <LocalDateValue value={view.source.scheduledFor} /> : "غير متاح"}
+                    · المصدر: {view.source ? <LocalDateValue value={view.source.scheduledFor} /> : "غير متاح"}
                   </p>
                 </div>
                 {view.recurrence.status === "active" ? (

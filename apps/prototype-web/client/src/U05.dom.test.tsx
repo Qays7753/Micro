@@ -66,9 +66,7 @@ describe("Finance month-range validation stays inline (U-05)", () => {
   it("shows a scoped message for an inverted range while the last valid reading stays rendered", async () => {
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "مالي" })).toBeTruthy();
-    await waitFor(() =>
-      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     /* المجموعة ٢ (§8): قراءة الفترة صارت وجهة «الفترة» — تُفتح من مبدّل القراءة. */
     fireEvent.click(screen.getByText("شو صار خلال الفترة"));
     // The ready reading is on screen: the period section with its heading.
@@ -81,7 +79,9 @@ describe("Finance month-range validation stays inline (U-05)", () => {
     fireEvent.change(toInput, { target: { value: "2026-01" } });
 
     await waitFor(() =>
-      expect(screen.getByText("اختر نطاقًا يبدأ قبل نهايته؛ القراءة أدناه تبقى على آخر نطاق صحيح.")).toBeTruthy(),
+      expect(
+        screen.getByText("اختر نطاقًا يبدأ قبل نهايته؛ القراءة أدناه تبقى على آخر نطاق صحيح."),
+      ).toBeTruthy(),
     );
     // The whole screen did NOT collapse to the page-level error.
     expect(screen.queryByRole("heading", { name: "تعذر قراءة الوضع المالي" })).not.toBeTruthy();

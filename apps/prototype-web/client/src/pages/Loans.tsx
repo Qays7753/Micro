@@ -3,7 +3,11 @@
  * قراءة من «مالي» بالمتبقي المشتق من الدفعات القائمة؛ سداد دفعة ورقة
  * سفلية سريعة بمعاينة أثرها (كاش يرتفع والقرض ينزل — لا ربح ولا مصروف).
  */
-import { assetCountLabel, loanInstallmentCountLabel, loanOutstandingCountLabel } from "@/presentation/g5Plurals";
+import {
+  assetCountLabel,
+  loanInstallmentCountLabel,
+  loanOutstandingCountLabel,
+} from "@/presentation/g5Plurals";
 import { HandCoins, Plus, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -15,7 +19,10 @@ import { formatLocalDate } from "@/presentation/formatters";
 import type { LoanSummaryRow } from "@/application/loans/loanService";
 import RepaymentSheet from "@/components/loans/RepaymentSheet";
 
-type State = { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; rows: readonly LoanSummaryRow[] };
+type State =
+  | { phase: "loading" }
+  | { phase: "error"; message: string }
+  | { phase: "ready"; rows: readonly LoanSummaryRow[] };
 
 export default function Loans() {
   const [, navigate] = useLocation();
@@ -47,9 +54,13 @@ export default function Loans() {
         <p>مالك ما زال لك، لكن عند غيرك — ليس مصروفًا ولا يخصم من ربحك لحظة الإقراض.</p>
       </div>
       {state.phase === "loading" ? (
-        <p className="micro-route-loading" role="status">جارٍ قراءة القروض…</p>
+        <p className="micro-route-loading" role="status">
+          جارٍ قراءة القروض…
+        </p>
       ) : state.phase === "error" ? (
-        <p className="micro-field-error" role="alert">{state.message}</p>
+        <p className="micro-field-error" role="alert">
+          {state.message}
+        </p>
       ) : state.rows.length === 0 ? (
         <section className="micro-empty-state" aria-label="لا قروض بعد">
           <Users aria-hidden="true" />
@@ -101,9 +112,12 @@ function LoansSummary({ rows }: { rows: readonly LoanSummaryRow[] }) {
     <section className="micro-decision-card" aria-label="خلاصة القروض">
       <div>
         <span>قائم عند الناس</span>
-        <strong><MoneyValue minor={outstanding} /> د.أ</strong>
+        <strong>
+          <MoneyValue minor={outstanding} /> د.أ
+        </strong>
         <p>
-          {loanOutstandingCountLabel(openCount)} من أصل {assetCountLabel(rows.length)} — المسدَّد يبقى في التاريخ للمراجعة.
+          {loanOutstandingCountLabel(openCount)} من أصل {assetCountLabel(rows.length)} — المسدَّد يبقى في
+          التاريخ للمراجعة.
         </p>
       </div>
     </section>
@@ -129,13 +143,18 @@ function LoanCard({
         <p>
           أصل <MoneyValue minor={row.reading.principalMinor} /> د.أ · {formatLocalDate(loan.loanDate)} ·{" "}
           {row.reading.status === "open" ? (
-            <>متبقٍ <MoneyValue minor={row.reading.outstandingMinor} /> د.أ</>
+            <>
+              متبقٍ <MoneyValue minor={row.reading.outstandingMinor} /> د.أ
+            </>
           ) : (
             "مسدَّد بالكامل"
           )}
         </p>
         {row.reading.repaidActiveMinor > 0 ? (
-          <p>رجع منه: <MoneyValue minor={row.reading.repaidActiveMinor} /> د.أ {loanInstallmentCountLabel(row.reading.repaymentCount)}</p>
+          <p>
+            رجع منه: <MoneyValue minor={row.reading.repaidActiveMinor} /> د.أ{" "}
+            {loanInstallmentCountLabel(row.reading.repaymentCount)}
+          </p>
         ) : null}
         {row.reading.status === "open" ? (
           <div className="micro-form-actions micro-contextual-actions">

@@ -405,8 +405,6 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     if (!after.ok) throw new Error(after.message);
     expect(after.value.recordedCashMinor).toBe(before.value.recordedCashMinor - 2500 + 3000);
     expect(after.value.walletCashMinor).toBe(before.value.walletCashMinor);
-    expect(after.value.unallocatedCashMinor).toBe(
-      before.value.unallocatedCashMinor - 2500 + 3000,
-    );
+    expect(after.value.unallocatedCashMinor).toBe(before.value.unallocatedCashMinor - 2500 + 3000);
   });
 });

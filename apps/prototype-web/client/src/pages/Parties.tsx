@@ -12,10 +12,7 @@ import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue
 import { formatLocalDate } from "@/presentation/formatters";
 import type { PartyLedgerOverview } from "@/application/parties/partyLedgerService";
 
-type State =
-  | { phase: "loading" }
-  | { phase: "error" }
-  | { phase: "ready"; overview: PartyLedgerOverview };
+type State = { phase: "loading" } | { phase: "error" } | { phase: "ready"; overview: PartyLedgerOverview };
 
 const movementLabel: Record<string, string> = {
   order_debt: "دين طلب",
@@ -30,9 +27,7 @@ const movementLabel: Record<string, string> = {
 /* المجموعة ٢ (§6.2): طريق التحصيل الصحيح من صف الطرف — يفتح ورقة التحصيل
  * بالذمة المصدر (طلبًا كانت أو بيعًا آجل) حيث التحصيل الموثق بالوجهة المختارة؛
  * الدفتر نفسه يبقى قراءة ولا يكتب الحركة من هنا. */
-function collectTargetHref(
-  party: PartyLedgerOverview["parties"][number],
-): string | null {
+function collectTargetHref(party: PartyLedgerOverview["parties"][number]): string | null {
   const debt = party.movements.find(
     movement => movement.kind === "order_debt" || movement.kind === "direct_sale_debt",
   );
@@ -83,7 +78,11 @@ export default function Parties() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر الناس</h1>
         <p>لم يتم تغيير بياناتك. أعد المحاولة.</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(withFrom("/finance", "/parties"))}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(withFrom("/finance", "/parties"))}
+        >
           الوضع المالي
         </button>
       </section>
@@ -173,7 +172,9 @@ export default function Parties() {
                     <button type="button" onClick={() => navigate(collectTargetHref(party)!)}>
                       <span>
                         <b>حصّل من {party.name}</b>
-                        <small>يفتح ورقة التحصيل بهذا الدين — مبلغ ووجهة كاش موثقة، ولا يُكتب شيء من الدفتر.</small>
+                        <small>
+                          يفتح ورقة التحصيل بهذا الدين — مبلغ ووجهة كاش موثقة، ولا يُكتب شيء من الدفتر.
+                        </small>
                       </span>
                       <HandCoins aria-hidden="true" />
                     </button>
@@ -183,7 +184,9 @@ export default function Parties() {
                   <li key={movement.id}>
                     <button type="button" onClick={() => navigate(withFrom(movement.href, "/parties"))}>
                       <span>
-                        <small><bdi dir="ltr">{formatLocalDate(movement.occurredOn)}</bdi></small>
+                        <small>
+                          <bdi dir="ltr">{formatLocalDate(movement.occurredOn)}</bdi>
+                        </small>
                         <b>
                           {movementLabel[movement.kind] ?? movement.kind} · {movement.label}
                         </b>

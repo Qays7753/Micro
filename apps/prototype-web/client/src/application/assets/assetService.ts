@@ -138,14 +138,15 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
     const asset = assetResult.value;
     if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
     const reversed = reversedEventIds(eventsResult.value);
     const events = eventsResult.value
       .filter(event => event.assetContext?.assetId === assetId)
-      .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt) || right.id.localeCompare(left.id));
+      .sort(
+        (left, right) => right.recordedAt.localeCompare(left.recordedAt) || right.id.localeCompare(left.id),
+      );
     return {
       ok: true,
       value: {
@@ -157,7 +158,9 @@ export class AssetService {
     };
   }
 
-  async create(input: AssetCreateInput): Promise<AssetResult<{ asset: AssetRecord; event: FinancialEvent | null }>> {
+  async create(
+    input: AssetCreateInput,
+  ): Promise<AssetResult<{ asset: AssetRecord; event: FinancialEvent | null }>> {
     try {
       const assetId = newId("asset");
       const createdAt = this.now();
@@ -191,10 +194,7 @@ export class AssetService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { asset: commit.value.record, event: commit.value.event } };
     } catch (error) {
-      return failure(
-        "validation_error",
-        error instanceof Error ? error.message : "بيانات الأصل غير صالحة.",
-      );
+      return failure("validation_error", error instanceof Error ? error.message : "بيانات الأصل غير صالحة.");
     }
   }
 
@@ -225,8 +225,7 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
     const asset = assetResult.value;
     if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
     const source = eventsResult.value.find(event => event.id === asset.acquisitionEventId);
@@ -290,17 +289,14 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
     const asset = assetResult.value;
     if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
     const proposal = planAssetDepreciation(asset, eventsResult.value, input.asOf);
     if (proposal.proposedMinor <= 0)
       return failure(
         "validation_error",
-        proposal.readiness === "ready"
-          ? "لا إهلاك مستحق جديد حتى هذا التاريخ."
-          : proposal.note,
+        proposal.readiness === "ready" ? "لا إهلاك مستحق جديد حتى هذا التاريخ." : proposal.note,
       );
     try {
       const now = this.now();
@@ -324,15 +320,21 @@ export class AssetService {
     }
   }
 
-  async reverseDepreciation(eventId: string, reason: string): Promise<AssetResult<{ reversal: FinancialEvent }>> {
+  async reverseDepreciation(
+    eventId: string,
+    reason: string,
+  ): Promise<AssetResult<{ reversal: FinancialEvent }>> {
     const eventsResult = await this.store.listFinancialEvents();
     if (!eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأحداث المالية.");
     const source = eventsResult.value.find(event => event.id === eventId);
     if (!source || source.type !== "asset_depreciation")
       return failure("invalid_state", "حدث الإهلاك غير موجود.");
-    if (source.correctionType === "reverse" || eventsResult.value.some(
+    if (
+      source.correctionType === "reverse" ||
+      eventsResult.value.some(
         event => event.correctionType === "reverse" && event.correctionOfEventId === eventId,
-      ))
+      )
+    )
       return failure("invalid_state", "هذا الإهلاك معكوس سابقًا.");
     try {
       const now = this.now();
@@ -360,8 +362,7 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
     const asset = assetResult.value;
     if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
     try {
@@ -398,13 +399,15 @@ export class AssetService {
     }
   }
 
-  async writeOff(assetId: string, input: AssetWriteOffInput): Promise<AssetResult<{ asset: AssetRecord; event: FinancialEvent }>> {
+  async writeOff(
+    assetId: string,
+    input: AssetWriteOffInput,
+  ): Promise<AssetResult<{ asset: AssetRecord; event: FinancialEvent }>> {
     const [assetResult, eventsResult] = await Promise.all([
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
     const asset = assetResult.value;
     if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
     try {
@@ -422,7 +425,12 @@ export class AssetService {
       });
       const next = applyAssetWriteOff(
         asset,
-        { on: input.on, bookValueMinor: prepared.bookValueMinor, eventId: event.id, reason: input.reason.trim() },
+        {
+          on: input.on,
+          bookValueMinor: prepared.bookValueMinor,
+          eventId: event.id,
+          reason: input.reason.trim(),
+        },
         now,
       );
       const commit = await this.store.commitAssetRecord(next, event);
