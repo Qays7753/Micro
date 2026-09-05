@@ -8,6 +8,8 @@ import {
   type DirectSaleCollectionStatus,
   type UpdateDirectSaleInput,
 } from "@micro-domain/direct-sale/index.js";
+import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
+import { localDateInAmman } from "@/presentation/formatters";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
 export type DirectSaleRecordInput = {
@@ -36,7 +38,7 @@ export type DirectSaleUpdateInput = UpdateDirectSaleInput & {
 };
 
 export type DirectSaleResult<T> =
-  | { ok: true; value: T; reused?: boolean }
+  | { ok: true; value: T; reused?: boolean; allocationReversalNotice?: string }
   | {
       ok: false;
       code: "validation_error" | "storage_error" | "not_found" | "conflict";
@@ -46,8 +48,7 @@ export type DirectSaleResult<T> =
 const createId = () =>
   globalThis.crypto?.randomUUID?.() ?? `direct-sale-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-const CONFLICT_MESSAGE =
-  "هذا البيع عُدّل من نافذة أخرى بعد فتحك له؛ لم يُحفظ تعديلك. راجع ثم أعد الحفظ.";
+const CONFLICT_MESSAGE = "هذا البيع عُدّل من نافذة أخرى بعد فتحك له؛ لم يُحفظ تعديلك. راجع ثم أعد الحفظ.";
 
 export class DirectSaleService {
   constructor(
@@ -176,10 +177,7 @@ export class DirectSaleService {
     const source = existing.value.find(sale => sale.id === id);
     if (!source) return { ok: false, code: "not_found", message: "بيع مباشر غير موجود؛ لم يتغير شيء." };
     /* و٦: الإلغاء من نافذة متأخرة لا يطمس تعديلًا أحدث وصل قبله. */
-    if (
-      expectedRevisionCount !== undefined &&
-      expectedRevisionCount !== (source.revisions?.length ?? 0)
-    )
+    if (expectedRevisionCount !== undefined && expectedRevisionCount !== (source.revisions?.length ?? 0))
       return { ok: false, code: "conflict", message: CONFLICT_MESSAGE };
     const repeated = source.revisions?.find(revision => revision.idempotencyKey === idempotencyKey);
     if (repeated) return { ok: true, value: source, reused: true };
@@ -207,8 +205,67 @@ export class DirectSaleService {
       };
     }
     const saved = await this.store.saveDirectSale(cancelled);
-    return saved.ok
-      ? { ok: true, value: saved.value }
-      : { ok: false, code: "storage_error", message: "تعذر حفظ إلغاء البيع المباشر محليًا؛ بقي الأصل دون تغيير." };
+    if (!saved.ok)
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "تعذر حفظ إلغاء البيع المباشر محليًا؛ بقي الأصل دون تغيير.",
+      };
+    /* المجموعة ٦ (تدقيق A1 — FT-02): الإلغاء ينقض القبض — تخصيصات المحفظة
+     * المرتبطة بهذا البيع (sourceRefKind=sale) تُعكس مرآةً في معاملة كاش واحدة
+     * ذات مفتاح حتمي (معرّف العكس مشتق من معرّف التخصيص نفسه) فبقاء محفظة
+     * «تُظهر» مبلغًا لبيعٍ ملغى يستحيل، والقيمة تعود إلى «غير الموزع» حيث
+     * مصيرها قرار المالك (ردّ فعلي أو ضبط). فشل هذه الكتابة لا يُفقد مالًا:
+     * النتيجة أثر صادق في غير الموزع يظهر لفحص MIC-14 — نبلغه في الرسالة. */
+    const mirror = await this.reverseAllocationsForCancelledSale(cancelled, reason);
+    if (!mirror.ok) return { ok: true, value: saved.value, allocationReversalNotice: mirror.message };
+    return { ok: true, value: saved.value };
+  }
+
+  private async reverseAllocationsForCancelledSale(
+    sale: DirectSale,
+    reason: string,
+  ): Promise<{ ok: true } | { ok: false; message: string }> {
+    const entriesResult = await this.store.listCashContinuityEntries();
+    if (!entriesResult.ok)
+      return { ok: false, message: "تعذر قراءة تخصيصات المحفظة لهذا البيع — راجع غير الموزع يدويًا." };
+    const entries = entriesResult.value;
+    const alreadyReversedIds = new Set(
+      entries
+        .filter(entry => entry.type === "reversal" && entry.reversesEntryId)
+        .map(entry => entry.reversesEntryId as string),
+    );
+    const targets = entries.filter(
+      entry =>
+        entry.type === "allocation" &&
+        entry.sourceRefId === sale.id &&
+        (entry.sourceRefKind ?? null) === "sale" &&
+        !alreadyReversedIds.has(entry.id) &&
+        entry.cashDeltaMinor !== 0,
+    );
+    if (targets.length === 0) return { ok: true };
+    try {
+      const reversals = targets.map(entry =>
+        createCashContinuityEntry({
+          id: `sale-cancel:${entry.id}`,
+          walletId: entry.walletId,
+          type: "reversal",
+          occurredOn: localDateInAmman(this.now()),
+          recordedAt: this.now(),
+          cashDeltaMinor: -entry.cashDeltaMinor,
+          note: `إلغاء بيع مباشر — عكس تخصيص: ${entry.note}`,
+          reason: reason.trim() || "إلغاء بيع مباشر",
+          operationKey: `sale-cancel:${sale.id}:${entry.id}`,
+          transferId: null,
+          reversesEntryId: entry.id,
+        }),
+      );
+      const saved = await this.store.commitCashContinuity(null, reversals);
+      if (!saved.ok)
+        return { ok: false, message: "تعذر عكس تخصيصات المحفظة بعد الإلغاء — راجع غير الموزع يدويًا." };
+      return { ok: true };
+    } catch {
+      return { ok: false, message: "تعذر عكس تخصيصات المحفظة بعد الإلغاء — راجع غير الموزع يدويًا." };
+    }
   }
 }

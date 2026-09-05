@@ -37,8 +37,7 @@ export default function EstimateDetail() {
   const [, navigate] = useLocation();
   /* المجموعة ٣ (§8.1): رجوع آمن للمصدر (?from) أو أدواتي بديلًا قانونيًا. */
   const returnPath = useReturnPath();
-  const {
-  dataVersion, costEstimates, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, costEstimates, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<DetailState>({ phase: "loading" });
   const [message, setMessage] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -214,7 +213,9 @@ export default function EstimateDetail() {
           <button
             className="micro-button micro-button-secondary"
             type="button"
-            onClick={() => navigate(withFrom(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, detailHref))}
+            onClick={() =>
+              navigate(withFrom(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, detailHref))
+            }
           >
             <BookOpen aria-hidden="true" /> عدّل التقدير
           </button>
@@ -228,8 +229,8 @@ export default function EstimateDetail() {
         {confirmDelete ? (
           <>
             <p>
-              حذف التقدير يزيله من هذا الجهاز — أداة تفكير بلا أثر مالي، فلا يتغير أي رصيد ولا
-              سجل. لا يمكن التراجع بعد الحذف.
+              حذف التقدير يزيله من هذا الجهاز — أداة تفكير بلا أثر مالي، فلا يتغير أي رصيد ولا سجل. لا يمكن
+              التراجع بعد الحذف.
             </p>
             <div className="micro-form-actions">
               <button

@@ -31,7 +31,17 @@ afterEach(clearDatabase);
 function cancelledRetainedOrder(): StoredCraftOrder {
   const snapshot = calculateCostSnapshot("snap-g4", {
     currency: "JOD",
-    materialItems: [{ name: "خيط", quantity: 1, unit: "متر", unitPriceMinor: 300, priceDate: "2026-09-01", source: "user_input", confidence: "known" }],
+    materialItems: [
+      {
+        name: "خيط",
+        quantity: 1,
+        unit: "متر",
+        unitPriceMinor: 300,
+        priceDate: "2026-09-01",
+        source: "user_input",
+        confidence: "known",
+      },
+    ],
     time: null,
     packagingMinor: 0,
     deliveryMinor: 0,
@@ -108,7 +118,11 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
     const assetId = created.value.asset.id;
     const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     expect(recorded.ok).toBe(true);
-    const disposed = await service.dispose(assetId, { on: "2026-09-10", proceedsMinor: 15000, reason: "بيع" });
+    const disposed = await service.dispose(assetId, {
+      on: "2026-09-10",
+      proceedsMinor: 15000,
+      reason: "بيع",
+    });
     expect(disposed.ok).toBe(true);
     const events = await store.listFinancialEvents();
     /* اقتناء + إهلاك + تخلص = ٣ أحداث مترابطة بسياق الأصل نفسه. */

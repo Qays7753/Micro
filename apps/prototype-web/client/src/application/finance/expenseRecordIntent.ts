@@ -73,8 +73,7 @@ export function expandExpenseRecordIntent(input: ExpenseRecordIntentInput): Expe
         },
       };
     } else if (input.sharedExpense.mode === "estimate") {
-      if (amountMinor === undefined)
-        return { ok: false, message: "أدخل حصة المالك التقديرية قبل الحفظ." };
+      if (amountMinor === undefined) return { ok: false, message: "أدخل حصة المالك التقديرية قبل الحفظ." };
       expenseContext = {
         ...expenseContext,
         knowledge: "estimated",
@@ -88,8 +87,7 @@ export function expandExpenseRecordIntent(input: ExpenseRecordIntentInput): Expe
         },
       };
     } else {
-      if (amountMinor === undefined)
-        return { ok: false, message: "أدخل مبلغ حصة المشروع قبل الحفظ." };
+      if (amountMinor === undefined) return { ok: false, message: "أدخل مبلغ حصة المشروع قبل الحفظ." };
       expenseContext = {
         ...expenseContext,
         knowledge: "known",
@@ -109,7 +107,6 @@ export function expandExpenseRecordIntent(input: ExpenseRecordIntentInput): Expe
       ok: false,
       message: "حدد كيف عرفت حصة المشروع من المصروف المشترك قبل الحفظ.",
     };
-  if (amountMinor === undefined)
-    return { ok: false, message: "أدخل مبلغًا صالحًا قبل الحفظ." };
+  if (amountMinor === undefined) return { ok: false, message: "أدخل مبلغًا صالحًا قبل الحفظ." };
   return { ok: true, amountMinor, expenseContext };
 }

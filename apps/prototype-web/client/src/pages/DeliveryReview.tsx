@@ -115,13 +115,21 @@ export default function DeliveryReviewPage() {
 
   const ready = state.phase === "ready" ? state.review : null;
   const priceChanged = ready !== null && finalPriceMinor !== ready.money.agreedPriceMinor;
-  const collectPlanned = ready !== null && collectAmountMinor > 0 && collectAmountMinor <= ready.money.receivableMinor;
+  const collectPlanned =
+    ready !== null && collectAmountMinor > 0 && collectAmountMinor <= ready.money.receivableMinor;
 
   const isDirty = useMemo(
-    () => state.phase === "ready" && (priceChanged || collectPlanned || Object.values(choices).some(choice => choice.action === "skip" || choice.quantityMilli > 0)),
+    () =>
+      state.phase === "ready" &&
+      (priceChanged ||
+        collectPlanned ||
+        Object.values(choices).some(choice => choice.action === "skip" || choice.quantityMilli > 0)),
     [state.phase, priceChanged, collectPlanned, choices],
   );
-  useFormDirty([finalPriceMinor, priceReason, collectAmountMinor, walletId, choices], state.phase === "ready");
+  useFormDirty(
+    [finalPriceMinor, priceReason, collectAmountMinor, walletId, choices],
+    state.phase === "ready",
+  );
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => submit() });
 
   async function submit(): Promise<boolean> {
@@ -169,11 +177,7 @@ export default function DeliveryReviewPage() {
 
   return (
     <section className="micro-page micro-delivery-review-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(orderHref)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(orderHref)}>
         <ArrowRight aria-hidden="true" /> تفاصيل الطلب
       </button>
       <div className="micro-page-heading">
@@ -181,7 +185,8 @@ export default function DeliveryReviewPage() {
         <h1>مراجعة التسليم</h1>
         {ready ? (
           <p>
-            {ready.itemName} · {ready.customerName} · موعد التسليم <LocalDateValue value={ready.deliveryDate} />
+            {ready.itemName} · {ready.customerName} · موعد التسليم{" "}
+            <LocalDateValue value={ready.deliveryDate} />
           </p>
         ) : null}
       </div>
@@ -218,7 +223,10 @@ export default function DeliveryReviewPage() {
               </strong>
             </div>
             <div>
-              <span>تكلفة النسخة ({knowledgeLabel[ready.money.knowledgeState] ?? ready.money.knowledgeState}) (د.أ)</span>
+              <span>
+                تكلفة النسخة ({knowledgeLabel[ready.money.knowledgeState] ?? ready.money.knowledgeState})
+                (د.أ)
+              </span>
               <strong>
                 <MoneyValue minor={ready.money.snapshotCostMinor} />
               </strong>
@@ -328,8 +336,8 @@ export default function DeliveryReviewPage() {
                           {choice.quantityMilli > row.availableQuantityMilli ? (
                             <p className="micro-cost-disclaimer">
                               <TriangleAlert aria-hidden="true" /> النقص المتوقع:{" "}
-                              {((choice.quantityMilli - row.availableQuantityMilli) / 1000).toFixed(3)} {row.unitLabel} —
-                              يُوثَّق نقصًا صريحًا ولا يصير الرصيد سالبًا.
+                              {((choice.quantityMilli - row.availableQuantityMilli) / 1000).toFixed(3)}{" "}
+                              {row.unitLabel} — يُوثَّق نقصًا صريحًا ولا يصير الرصيد سالبًا.
                             </p>
                           ) : null}
                         </div>
@@ -359,7 +367,11 @@ export default function DeliveryReviewPage() {
           </section>
 
           {/* إفصاح تدريجي: تصحيح السعر والقبض عند التسليم — الافتراضي أبسط رحلة. */}
-          <button className="micro-disclosure-button" type="button" onClick={() => setShowAdvanced(current => !current)}>
+          <button
+            className="micro-disclosure-button"
+            type="button"
+            onClick={() => setShowAdvanced(current => !current)}
+          >
             {showAdvanced ? "إخفاء خيارات التسليم المتقدمة" : "خيارات متقدمة: تعديل السعر والقبض عند التسليم"}
           </button>
           {showAdvanced ? (
@@ -376,8 +388,9 @@ export default function DeliveryReviewPage() {
               {priceChanged ? (
                 <>
                   <p className="micro-local-truth">
-                    الفرق عن المتفق عليه: {formatMoneyMinor(Math.abs(finalPriceMinor - ready.money.agreedPriceMinor))}{" "}
-                    د.أ — يُسجَّل تصحيحًا موثقًا بسببه ويبقى الاتفاق الأصلي في الأحداث.
+                    الفرق عن المتفق عليه:{" "}
+                    {formatMoneyMinor(Math.abs(finalPriceMinor - ready.money.agreedPriceMinor))} د.أ — يُسجَّل
+                    تصحيحًا موثقًا بسببه ويبقى الاتفاق الأصلي في الأحداث.
                   </p>
                   <label className="micro-field">
                     <span>سبب تعديل السعر</span>
@@ -469,15 +482,15 @@ export default function DeliveryReviewPage() {
           </h2>
           <ul className="micro-done-facts">
             <li>
-              الإيراد المعترف: <MoneyValue minor={state.revenueMinor} className="micro-inline-number" /> د.أ — مرة
-              واحدة.
+              الإيراد المعترف: <MoneyValue minor={state.revenueMinor} className="micro-inline-number" /> د.أ —
+              مرة واحدة.
             </li>
             <li>حركات استهلاك مخزون: {state.movementsCount}.</li>
             <li>سجلات نقص موثقة: {state.shortagesCount}.</li>
             {state.collectedMinor !== null ? (
               <li>
-                قُبض عند التسليم: <MoneyValue minor={state.collectedMinor} className="micro-inline-number" /> د.أ —
-                تحصيل لا إيراد.
+                قُبض عند التسليم: <MoneyValue minor={state.collectedMinor} className="micro-inline-number" />{" "}
+                د.أ — تحصيل لا إيراد.
               </li>
             ) : (
               <li>لم يُسجَّل قبض جديد عند التسليم.</li>

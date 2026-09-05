@@ -25,7 +25,14 @@ export function LocalDateField({ label, description, value, id, ...inputProps }:
         {label}
         {description ? <small>{description}</small> : null}
       </span>
-      <input {...inputProps} id={id} type="date" value={localValue} aria-describedby={describedBy} lang="en" />
+      <input
+        {...inputProps}
+        id={id}
+        type="date"
+        value={localValue}
+        aria-describedby={describedBy}
+        lang="en"
+      />
       <small id={displayId} className="micro-selected-date" data-empty={!readableDate} aria-live="polite">
         {readableDate ? (
           <>

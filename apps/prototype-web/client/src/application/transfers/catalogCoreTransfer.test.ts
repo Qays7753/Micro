@@ -184,7 +184,8 @@ describe("G4-A catalog transfer boundary", () => {
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
     const previous = structuredClone(exported.value);
-    previous.version = 14;    delete (previous as Record<string, unknown>).integrity;
+    previous.version = 14;
+    delete (previous as Record<string, unknown>).integrity;
     delete (previous as Record<string, unknown>).counts;
     delete (previous as Record<string, unknown>).appVersion;
 

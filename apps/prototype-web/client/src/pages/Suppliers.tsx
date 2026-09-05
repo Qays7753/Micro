@@ -126,7 +126,9 @@ export default function Suppliers() {
                 <button
                   className="micro-button micro-button-secondary"
                   type="button"
-                  onClick={() => navigate(withFrom(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))}
+                  onClick={() =>
+                    navigate(withFrom(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))
+                  }
                 >
                   سجل دفعة
                 </button>

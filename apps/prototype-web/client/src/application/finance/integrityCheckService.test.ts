@@ -29,7 +29,10 @@ function buildServices(store: MemoryLocalStore) {
   return { projectFinance, statement, cashContinuity, integrityCheck, assets, loans };
 }
 
-async function cleanStore(): Promise<{ store: MemoryLocalStore; services: ReturnType<typeof buildServices> }> {
+async function cleanStore(): Promise<{
+  store: MemoryLocalStore;
+  services: ReturnType<typeof buildServices>;
+}> {
   const store = new MemoryLocalStore();
   const services = buildServices(store);
   await services.projectFinance.record({
@@ -206,7 +209,18 @@ describe("integrity check service (فحص سلامة مالي)", () => {
       read: async () => {
         const reader = await services.projectFinance.readRecordedPeriodResult("2026-09-01", "2026-09-30");
         if (!reader.ok) throw new Error(reader.message);
-        return { ok: true as const, value: { result: { ...reader.value, resultMinor: 12345 }, blocks: null, position: null, cashNetMinor: 0, recognizedRevenueTotalMinor: 0, expenseCategories: [], truthLines: [] } };
+        return {
+          ok: true as const,
+          value: {
+            result: { ...reader.value, resultMinor: 12345 },
+            blocks: null,
+            position: null,
+            cashNetMinor: 0,
+            recognizedRevenueTotalMinor: 0,
+            expenseCategories: [],
+            truthLines: [],
+          },
+        };
       },
     } as unknown as StatementService;
     const integrityWithDrift = new IntegrityCheckService(
@@ -557,7 +571,17 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
       await import("@micro-domain/craft-order/index.js");
     const snapshotCost = calculateCostSnapshot("cost-mic12", {
       currency: "JOD",
-      materialItems: [{ name: "خيط", quantity: 1, unit: "meter", unitPriceMinor: 300, priceDate: "2026-09-01", source: "user_input", confidence: "known" }],
+      materialItems: [
+        {
+          name: "خيط",
+          quantity: 1,
+          unit: "meter",
+          unitPriceMinor: 300,
+          priceDate: "2026-09-01",
+          source: "user_input",
+          confidence: "known",
+        },
+      ],
       time: null,
       packagingMinor: 0,
       deliveryMinor: 0,
@@ -608,7 +632,11 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
     if (asset.ok) {
       await services.assets.recordDepreciation(asset.value.asset.id, { asOf: "2026-09-01" });
     }
-    const loan = await services.loans.create({ borrowerName: "أحمد", principalMinor: 15000, loanDate: "2026-07-01" });
+    const loan = await services.loans.create({
+      borrowerName: "أحمد",
+      principalMinor: 15000,
+      loanDate: "2026-07-01",
+    });
     if (loan.ok) {
       await services.loans.recordRepayment(loan.value.loan.id, { amountMinor: 15000, date: "2026-08-01" });
     }
@@ -629,14 +657,21 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
   it("يفشل حين يشير مفتاح حركة إلى حدث تسليم غير موجود", async () => {
     const store = new MemoryLocalStore();
     const services = buildServices(store);
-    const { calculateCostSnapshot, createCraftOrder, transitionOrder } = await import(
-      "@micro-domain/craft-order/index.js"
-    );
+    const { calculateCostSnapshot, createCraftOrder, transitionOrder } =
+      await import("@micro-domain/craft-order/index.js");
     const { createMaterial } = await import("@micro-domain/inventory-material/index.js");
     const snapshot = calculateCostSnapshot("cost-mic13", {
       currency: "JOD",
       materialItems: [
-        { name: "خيط", quantity: 1, unit: "meter", unitPriceMinor: 300, priceDate: "2026-08-01", source: "user_input", confidence: "known" },
+        {
+          name: "خيط",
+          quantity: 1,
+          unit: "meter",
+          unitPriceMinor: 300,
+          priceDate: "2026-08-01",
+          source: "user_input",
+          confidence: "known",
+        },
       ],
       time: null,
       packagingMinor: 0,
@@ -711,16 +746,22 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
   it("يفشل حين يكون التسليم معكوسًا وحركته بلا مرآة عكس", async () => {
     const store = new MemoryLocalStore();
     const services = buildServices(store);
-    const { calculateCostSnapshot, createCraftOrder, transitionOrder, reverseDelivery } = await import(
-      "@micro-domain/craft-order/index.js"
-    );
-    const { createMaterial, createInventoryMovement } = await import(
-      "@micro-domain/inventory-material/index.js"
-    );
+    const { calculateCostSnapshot, createCraftOrder, transitionOrder, reverseDelivery } =
+      await import("@micro-domain/craft-order/index.js");
+    const { createMaterial, createInventoryMovement } =
+      await import("@micro-domain/inventory-material/index.js");
     const snapshot = calculateCostSnapshot("cost-mic13b", {
       currency: "JOD",
       materialItems: [
-        { name: "خيط", quantity: 1, unit: "meter", unitPriceMinor: 300, priceDate: "2026-08-01", source: "user_input", confidence: "known" },
+        {
+          name: "خيط",
+          quantity: 1,
+          unit: "meter",
+          unitPriceMinor: 300,
+          priceDate: "2026-08-01",
+          source: "user_input",
+          confidence: "known",
+        },
       ],
       time: null,
       packagingMinor: 0,
@@ -750,7 +791,11 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
     ] as const) {
       order = transitionOrder(order, { to, idempotencyKey: key, createdAt: now() });
     }
-    order = reverseDelivery(order, { reason: "عكس تجريبي", idempotencyKey: "order-mic13b:rev", createdAt: now() });
+    order = reverseDelivery(order, {
+      reason: "عكس تجريبي",
+      idempotencyKey: "order-mic13b:rev",
+      createdAt: now(),
+    });
     await store.saveOrder({
       id: "order-mic13b",
       order,
@@ -932,13 +977,13 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
     };
     await store.replaceSnapshot({
       ...snapshot.value,
-      financialEvents: snapshot.value.financialEvents.map(event => (event.id === tampered.id ? tampered : event)),
+      financialEvents: snapshot.value.financialEvents.map(event =>
+        event.id === tampered.id ? tampered : event,
+      ),
     });
     const report = await services.integrityCheck.run();
     const mic4 = report.checks.find(check => check.id === "MIC-4");
     expect(mic4?.status).toBe("FAIL");
     expect(mic4?.offenderSampleIds?.some(id => id === tampered.id)).toBe(true);
   });
-
 });
-

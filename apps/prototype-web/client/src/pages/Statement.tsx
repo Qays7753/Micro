@@ -14,13 +14,20 @@ import { RestatementNote } from "@/components/finance/RestatementNote";
 import { StatementMarkdownService } from "@/application/finance/statementMarkdownService";
 import { categoryCountLabel } from "@/presentation/g5Plurals";
 import { canShareText, downloadTextFile, shareTextManually } from "@/lib/textDelivery";
-import { formatLocalDate, formatLocalDateLong, localDateInAmman , formatMoneyWithUnit } from "@/presentation/formatters";
-import type { StatementLine, StatementReading, StatementExpenseCategoryGroup } from "@/application/finance/statementService";
+import {
+  formatLocalDate,
+  formatLocalDateLong,
+  localDateInAmman,
+  formatMoneyWithUnit,
+} from "@/presentation/formatters";
+import type {
+  StatementLine,
+  StatementReading,
+  StatementExpenseCategoryGroup,
+} from "@/application/finance/statementService";
 
 type State =
-  | { phase: "loading" }
-  | { phase: "error"; message: string }
-  | { phase: "ready"; reading: StatementReading };
+  { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: StatementReading };
 
 type QuickRange = "this_week" | "last_week" | "this_month" | "custom";
 
@@ -35,7 +42,10 @@ function ExpenseCategoryGroupRow({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <article className="micro-finance-event" data-category-group={group.classified ? "classified" : "unclassified"}>
+    <article
+      className="micro-finance-event"
+      data-category-group={group.classified ? "classified" : "unclassified"}
+    >
       <div className="micro-finance-event-main">
         <div>
           <strong>{group.label}</strong>
@@ -158,9 +168,7 @@ export default function Statement() {
     statement.read(from, to).then(result => {
       if (!active) return;
       setState(
-        result.ok
-          ? { phase: "ready", reading: result.value }
-          : { phase: "error", message: result.message },
+        result.ok ? { phase: "ready", reading: result.value } : { phase: "error", message: result.message },
       );
     });
     return () => {
@@ -197,14 +205,19 @@ export default function Statement() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الكشف</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(returnPath)}
+        >
           رجوع
         </button>
       </section>
     );
 
   const { reading } = state;
-  const openWithReferrer = (path: string) => navigate(`${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent("/finance/statement")}`);
+  const openWithReferrer = (path: string) =>
+    navigate(`${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent("/finance/statement")}`);
   /* روابط المصادر تعود للكشف عبر ?from= لا للمالي — السياق محفوظ. */
   const sourceHref = new URLSearchParams(search).get("from");
 
@@ -281,9 +294,7 @@ export default function Statement() {
           <strong>
             <MoneyValue minor={reading.cashNetMinor} showPlus /> د.أ
           </strong>
-          <p>
-            حركة القبض والدفع — ليس ربحًا ولا نتيجة؛ الكاش قد يرتفع من دين تحصّل أو أمانة قُبضت.
-          </p>
+          <p>حركة القبض والدفع — ليس ربحًا ولا نتيجة؛ الكاش قد يرتفع من دين تحصّل أو أمانة قُبضت.</p>
         </div>
       </section>
       <section className="micro-supplier-list" aria-label="حركات الكاش داخل الفترة">
@@ -295,11 +306,7 @@ export default function Statement() {
           <p className="micro-empty-copy">لا حركات كاش داخلة في هذه الفترة.</p>
         ) : (
           reading.blocks.cashIn.map(line => (
-            <StatementLineRow
-              key={line.id}
-              line={line}
-              onOpenSource={path => openWithReferrer(path)}
-            />
+            <StatementLineRow key={line.id} line={line} onOpenSource={path => openWithReferrer(path)} />
           ))
         )}
         <div className="micro-finance-event-heading">
@@ -310,11 +317,7 @@ export default function Statement() {
           <p className="micro-empty-copy">لا حركات كاش خارجة في هذه الفترة.</p>
         ) : (
           reading.blocks.cashOut.map(line => (
-            <StatementLineRow
-              key={line.id}
-              line={line}
-              onOpenSource={path => openWithReferrer(path)}
-            />
+            <StatementLineRow key={line.id} line={line} onOpenSource={path => openWithReferrer(path)} />
           ))
         )}
         {reading.blocks.corrections.lines.length > 0 ? (
@@ -363,13 +366,17 @@ export default function Statement() {
         <div>
           <span>نتيجة الفترة المسجلة</span>
           <strong>
-            {reading.result.resultMinor === null ? "غير متاح" : <MoneyValue minor={reading.result.resultMinor} />}
+            {reading.result.resultMinor === null ? (
+              "غير متاح"
+            ) : (
+              <MoneyValue minor={reading.result.resultMinor} />
+            )}
             {reading.result.resultMinor === null ? null : " د.أ"}
           </strong>
           <p>
             {/* المجموعة ١ (قراءة الفترة الواحدة): المجموع مشتقّ في الخدمة — لا حساب فترة داخل الصفحة. */}
-            إيراد معترف به {formatMoneyWithUnit(reading.recognizedRevenueTotalMinor)}{" "}
-            − تكلفة مباشرة {formatMoneyWithUnit(reading.result.effectiveDirectCostMinor)} − مصروف موزّع{" "}
+            إيراد معترف به {formatMoneyWithUnit(reading.recognizedRevenueTotalMinor)} − تكلفة مباشرة{" "}
+            {formatMoneyWithUnit(reading.result.effectiveDirectCostMinor)} − مصروف موزّع{" "}
             {formatMoneyWithUnit(reading.result.recordedOperatingExpenseMinor)} — ضمن الفترة فقط.
             {reading.result.resultMinor === null
               ? " هناك تكلفة غير معروفة تمنع رقمًا نهائيًا — لا يُعرض ربح متوهَّم."
@@ -394,11 +401,7 @@ export default function Statement() {
           </summary>
           <section className="micro-finance-event-list">
             {reading.expenseCategories.map(group => (
-              <ExpenseCategoryGroupRow
-                key={group.label}
-                group={group}
-                onOpenSource={openWithReferrer}
-              />
+              <ExpenseCategoryGroupRow key={group.label} group={group} onOpenSource={openWithReferrer} />
             ))}
           </section>
         </details>
@@ -536,7 +539,8 @@ export default function Statement() {
             <MoneyValue minor={reading.blocks.receivablesPayables.receivablesNowMinor} /> د.أ
           </strong>
           <small>
-            تحصّل منها في الفترة {formatMoneyWithUnit(reading.blocks.receivablesPayables.collectionsInPeriodMinor)}
+            تحصّل منها في الفترة{" "}
+            {formatMoneyWithUnit(reading.blocks.receivablesPayables.collectionsInPeriodMinor)}
           </small>
         </div>
         <div>
@@ -557,11 +561,15 @@ export default function Statement() {
         <span className="micro-overline">تقرير الفترة المحلي</span>
         <h2>خذ التقرير معك</h2>
         <p>
-          ملف نصي (Markdown) عربي بأرقام هذه الفترة — يُولّد على جهازك ويعمل دون إنترنت؛
-          نسخة قراءة لحظة ليست حدثًا ماليًا. مشاركته إن شئت فعلٌ يدوي بيدك وحدك.
+          ملف نصي (Markdown) عربي بأرقام هذه الفترة — يُولّد على جهازك ويعمل دون إنترنت؛ نسخة قراءة لحظة ليست
+          حدثًا ماليًا. مشاركته إن شئت فعلٌ يدوي بيدك وحدك.
         </p>
         <div className="micro-form-actions">
-          <button className="micro-button micro-button-primary" type="button" onClick={() => void generateReport()}>
+          <button
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={() => void generateReport()}
+          >
             <Share2 aria-hidden="true" /> ولّد ونزّل التقرير
           </button>
         </div>
@@ -592,7 +600,6 @@ export default function Statement() {
     </section>
   );
 }
-
 
 function withFromFallback(returnPath: string): string {
   /* رجوع الكشف يمر عبر ?from المحفوظ أو البديل القانوني — لا وجهة ثابتة مفروضة. */

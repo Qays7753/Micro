@@ -36,7 +36,14 @@ async function readyOrderWithLinkedMaterials() {
     name: "خيط حريري",
     unit: "piece",
     tracking: "untracked",
-    opening: { quantityState: "unconfirmed", quantityMilli: null, costState: "unknown", valueMinor: null, confirmedOn: null, sourceNote: null },
+    opening: {
+      quantityState: "unconfirmed",
+      quantityMilli: null,
+      costState: "unknown",
+      valueMinor: null,
+      confirmedOn: null,
+      sourceNote: null,
+    },
     note: "مادة مرجع تكلفة",
     operationKey: "open-untracked-delivery-test",
   });
@@ -44,8 +51,22 @@ async function readyOrderWithLinkedMaterials() {
 
   const costInput: CostEditorInput = {
     materialItems: [
-      { name: "قماش قطنية", quantity: 4, unit: "متر", unitPriceMinor: 500, confidence: "known", materialId: trackedId },
-      { name: "خيط حريري", quantity: 1, unit: "قطعة", unitPriceMinor: 300, confidence: "known", materialId: untracked.value.material.id },
+      {
+        name: "قماش قطنية",
+        quantity: 4,
+        unit: "متر",
+        unitPriceMinor: 500,
+        confidence: "known",
+        materialId: trackedId,
+      },
+      {
+        name: "خيط حريري",
+        quantity: 1,
+        unit: "قطعة",
+        unitPriceMinor: 300,
+        confidence: "known",
+        materialId: untracked.value.material.id,
+      },
       { name: "علبة تغليف يدوية", quantity: 1, unit: "قطعة", unitPriceMinor: 200, confidence: "estimated" },
     ],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -191,9 +212,7 @@ describe("DeliveryReviewService — commitDelivery", () => {
     expect(trackedDeltas).toBe(6_000);
     const untrackedMovements = position.value.filter(candidate => candidate.materialId === untrackedId);
     expect(untrackedMovements).toHaveLength(0);
-    expect(
-      committed.value.stored.order.events.some(event => event.type === "delivery_consumed"),
-    ).toBe(true);
+    expect(committed.value.stored.order.events.some(event => event.type === "delivery_consumed")).toBe(true);
   });
 
   it("is idempotent: retrying the same delivery reuses it without duplicate revenue or movements", async () => {

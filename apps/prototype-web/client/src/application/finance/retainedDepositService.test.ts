@@ -14,7 +14,17 @@ import type { StoredCraftOrder } from "@/storage/local/types";
 
 const COST_INPUT: CostSnapshotInput = {
   currency: "JOD",
-  materialItems: [{ name: "قماش", quantity: 2, unit: "متر", unitPriceMinor: 500, priceDate: "2026-08-01", source: "user_input", confidence: "known" }],
+  materialItems: [
+    {
+      name: "قماش",
+      quantity: 2,
+      unit: "متر",
+      unitPriceMinor: 500,
+      priceDate: "2026-08-01",
+      source: "user_input",
+      confidence: "known",
+    },
+  ],
   time: null,
   packagingMinor: 0,
   deliveryMinor: 0,
@@ -173,10 +183,7 @@ describe("retained deposit service (المجموعة ٤ — عقد ٢٩)", () =>
     );
     expect(ownerActive).toHaveLength(0);
     /* التراجع نقض أثر المالك: صافي ownerCapital من الأحداث = صفر. */
-    const ownerNet = classifications.reduce(
-      (sum, event) => sum + event.ownerCapitalDeltaMinor,
-      0,
-    );
+    const ownerNet = classifications.reduce((sum, event) => sum + event.ownerCapitalDeltaMinor, 0);
     expect(ownerNet).toBe(0);
     const revenueNet = classifications.reduce((sum, event) => sum + (event.revenueDeltaMinor ?? 0), 0);
     expect(revenueNet).toBe(5000);

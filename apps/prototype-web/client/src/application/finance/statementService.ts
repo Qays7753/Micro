@@ -119,8 +119,11 @@ export type StatementResult =
   | { ok: true; value: StatementReading }
   | { ok: false; code: "storage_error" | "validation_error"; message: string };
 
-
-import { formatLocalDate, formatMoneyWithUnit, localDateInAmman as ammanDate } from "@/presentation/formatters";
+import {
+  formatLocalDate,
+  formatMoneyWithUnit,
+  localDateInAmman as ammanDate,
+} from "@/presentation/formatters";
 
 export class StatementService {
   constructor(
@@ -131,16 +134,23 @@ export class StatementService {
   async read(from: string, to: string): Promise<StatementResult> {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to)
       return { ok: false, code: "validation_error", message: "اختر نطاق كشف يبدأ قبل نهايته." };
-    const [eventsResult, salesResult, ordersResult, purchasesResult, movementsResult, periodResult, positionResult] =
-      await Promise.all([
-        this.store.listFinancialEvents(),
-        this.store.listDirectSales(),
-        this.store.listOrders(),
-        this.store.listSupplierPurchases(),
-        this.store.listOwnerMovements(),
-        this.projectFinance.readRecordedPeriodResult(from, to),
-        this.projectFinance.readPosition(),
-      ]);
+    const [
+      eventsResult,
+      salesResult,
+      ordersResult,
+      purchasesResult,
+      movementsResult,
+      periodResult,
+      positionResult,
+    ] = await Promise.all([
+      this.store.listFinancialEvents(),
+      this.store.listDirectSales(),
+      this.store.listOrders(),
+      this.store.listSupplierPurchases(),
+      this.store.listOwnerMovements(),
+      this.projectFinance.readRecordedPeriodResult(from, to),
+      this.projectFinance.readPosition(),
+    ]);
     if (
       !eventsResult.ok ||
       !salesResult.ok ||
@@ -168,10 +178,8 @@ export class StatementService {
     let orderCollectionsMinor = 0;
     for (const stored of ordersResult.value as readonly StoredCraftOrder[]) {
       for (const event of stored.order.events) {
-        const isCashIn =
-          event.type === "collection_recorded" || event.type === "deposit_collected";
-        const isCashReturned =
-          event.type === "collection_reversed" || event.type === "deposit_refunded";
+        const isCashIn = event.type === "collection_recorded" || event.type === "deposit_collected";
+        const isCashReturned = event.type === "collection_reversed" || event.type === "deposit_refunded";
         if (!isCashIn && !isCashReturned) continue;
         const date = ammanDate(event.createdAt);
         if (!inPeriod(date)) continue;
@@ -179,13 +187,15 @@ export class StatementService {
         if (amount <= 0) continue;
         orderCollectionsMinor += isCashIn ? amount : -amount;
         orderCollectionSources.push({
-          label: `${isCashIn
-            ? event.type === "deposit_collected"
-              ? "عربون"
-              : "تحصيل"
-            : event.type === "deposit_refunded"
-              ? "رد عربون"
-              : "تراجع عن قبضة"} — ${stored.order.itemName || "طلب"}`,
+          label: `${
+            isCashIn
+              ? event.type === "deposit_collected"
+                ? "عربون"
+                : "تحصيل"
+              : event.type === "deposit_refunded"
+                ? "رد عربون"
+                : "تراجع عن قبضة"
+          } — ${stored.order.itemName || "طلب"}`,
           href: `/orders/${stored.id}`,
           amountMinor: isCashIn ? amount : -amount,
         });
@@ -196,27 +206,20 @@ export class StatementService {
     const activeSalesInPeriod = sales.filter(
       sale => (sale.status ?? "active") === "active" && inPeriod(sale.occurredOn),
     );
-    const directSalesCollectedMinor = activeSalesInPeriod.reduce(
-      (sum, sale) => sum + sale.collectedMinor,
-      0,
-    );
+    const directSalesCollectedMinor = activeSalesInPeriod.reduce((sum, sale) => sum + sale.collectedMinor, 0);
 
     const familyEvent = (event: FinancialEvent) =>
       event.correctionType !== "reverse" && !reversedInPeriodIds.has(event.id);
 
     const cashEventLines = (types: readonly FinancialEvent["type"][]) => {
-      const matched = activeEvents.filter(
-        event => types.includes(event.type) && familyEvent(event),
-      );
+      const matched = activeEvents.filter(event => types.includes(event.type) && familyEvent(event));
       const total = matched.reduce((sum, event) => sum + event.cashDeltaMinor, 0);
       return { matched, total };
     };
 
     const investment = cashEventLines(["owner_investment_cash"]);
     const withdrawal = cashEventLines(["owner_withdrawal_cash"]);
-    const amanahHeld = activeEvents.filter(
-      event => event.type === "amanah_held_cash" && familyEvent(event),
-    );
+    const amanahHeld = activeEvents.filter(event => event.type === "amanah_held_cash" && familyEvent(event));
     const amanahReleased = activeEvents.filter(
       event => event.type === "amanah_released_cash" && familyEvent(event),
     );
@@ -308,9 +311,7 @@ export class StatementService {
       "loan_repayment_cash",
     ];
     const cashCorrectionLines: StatementCorrectionLine[] = activeEvents
-      .filter(
-        event => event.correctionType === "reverse" && cashMovingTypes.includes(event.type),
-      )
+      .filter(event => event.correctionType === "reverse" && cashMovingTypes.includes(event.type))
       .map(event => {
         const original = event.correctionOfEventId
           ? events.find(candidate => candidate.id === event.correctionOfEventId)
@@ -321,16 +322,12 @@ export class StatementService {
           occurredOn: event.occurredOn,
           familyLabel: familyLabelOf(event.type),
           reason: event.correctionReason ?? "",
-          netEffectMinor:
-            event.cashDeltaMinor + (originalInPeriod && original ? original.cashDeltaMinor : 0),
+          netEffectMinor: event.cashDeltaMinor + (originalInPeriod && original ? original.cashDeltaMinor : 0),
           sourceHref: original ? `/finance?event=${encodeURIComponent(original.id)}` : `/finance`,
           sourceLabel: original ? original.note || "الحدث الأصلي" : "الحدث الأصلي",
         };
       });
-    const correctionsNetMinor = cashCorrectionLines.reduce(
-      (sum, line) => sum + line.netEffectMinor,
-      0,
-    );
+    const correctionsNetMinor = cashCorrectionLines.reduce((sum, line) => sum + line.netEffectMinor, 0);
 
     /* G6-U2-2 (المجموعة ٦ — البند ٢): مسار المحفظة لحركات المالك يدخل كتلة
      * المالك — الإدخال/الإرجاع في «الملك» والسحب في «سحب»، بسطور مصدرها دفتر
@@ -527,9 +524,7 @@ export class StatementService {
         totalMinor: lines.reduce((sum, line) => sum + line.amountMinor, 0),
         lines,
       }))
-      .sort((a, b) =>
-        a.classified === b.classified ? b.totalMinor - a.totalMinor : a.classified ? -1 : 1,
-      );
+      .sort((a, b) => (a.classified === b.classified ? b.totalMinor - a.totalMinor : a.classified ? -1 : 1));
 
     const position = positionResult.value;
     const reading: StatementReading = {
@@ -584,56 +579,58 @@ export class StatementService {
           assetBookValueNowMinor: position.assetBookValueMinor,
           loansOutstandingNowMinor: position.loansOutstandingMinor,
           pendingRetainedDepositsNowMinor: position.pendingRetainedDepositsMinor,
-          unresolved: ([
-            periodResult.value.directSaleCostUnknownCount > 0
-              ? {
-                  id: "direct-sale-cost-unknown",
-                  label: "بيوع مباشرة بتكلفة غير معروفة — النتيجة غير متاحة حتى تُدخل",
-                  amountMinor: null,
-                  count: periodResult.value.directSaleCostUnknownCount,
-                }
-              : null,
-            periodResult.value.sharedUnallocatedExpenseCount > 0
-              ? {
-                  id: "shared-unallocated",
-                  label: "مصروف مشترك غير موزّع — لا يدخل النتيجة حتى توزيعه",
-                  amountMinor: periodResult.value.sharedUnallocatedExpenseMinor,
-                  count: periodResult.value.sharedUnallocatedExpenseCount,
-                }
-              : null,
-            periodResult.value.unallocatedInventoryCostMinor > 0
-              ? {
-                  id: "unallocated-inventory-cost",
-                  label: "قيمة مخزون غير موزّعة على الطلبات",
-                  amountMinor: periodResult.value.unallocatedInventoryCostMinor,
-                  count: null,
-                }
-              : null,
-            periodResult.value.expenseNeedsReviewCount > 0
-              ? {
-                  id: "expense-needs-review",
-                  label: "مصاريف تحتاج مراجعة",
-                  amountMinor: null,
-                  count: periodResult.value.expenseNeedsReviewCount,
-                }
-              : null,
-            periodResult.value.cogsMissingOrderCount > 0
-              ? {
-                  id: "cogs-missing",
-                  label: "طلبات مسلّمة بلا تكلفة مواد مكتملة",
-                  amountMinor: null,
-                  count: periodResult.value.cogsMissingOrderCount,
-                }
-              : null,
-            position.pendingRetainedDepositsMinor > 0
-              ? {
-                  id: "pending-retained-deposits",
-                  label: "عربونات محتفظة بانتظار قرارك — ليست مالكًا ولا إيرادًا بعد",
-                  amountMinor: position.pendingRetainedDepositsMinor,
-                  count: null,
-                }
-              : null,
-          ] as (StatementUnresolvedLine | null)[]).filter((line): line is StatementUnresolvedLine => line !== null),
+          unresolved: (
+            [
+              periodResult.value.directSaleCostUnknownCount > 0
+                ? {
+                    id: "direct-sale-cost-unknown",
+                    label: "بيوع مباشرة بتكلفة غير معروفة — النتيجة غير متاحة حتى تُدخل",
+                    amountMinor: null,
+                    count: periodResult.value.directSaleCostUnknownCount,
+                  }
+                : null,
+              periodResult.value.sharedUnallocatedExpenseCount > 0
+                ? {
+                    id: "shared-unallocated",
+                    label: "مصروف مشترك غير موزّع — لا يدخل النتيجة حتى توزيعه",
+                    amountMinor: periodResult.value.sharedUnallocatedExpenseMinor,
+                    count: periodResult.value.sharedUnallocatedExpenseCount,
+                  }
+                : null,
+              periodResult.value.unallocatedInventoryCostMinor > 0
+                ? {
+                    id: "unallocated-inventory-cost",
+                    label: "قيمة مخزون غير موزّعة على الطلبات",
+                    amountMinor: periodResult.value.unallocatedInventoryCostMinor,
+                    count: null,
+                  }
+                : null,
+              periodResult.value.expenseNeedsReviewCount > 0
+                ? {
+                    id: "expense-needs-review",
+                    label: "مصاريف تحتاج مراجعة",
+                    amountMinor: null,
+                    count: periodResult.value.expenseNeedsReviewCount,
+                  }
+                : null,
+              periodResult.value.cogsMissingOrderCount > 0
+                ? {
+                    id: "cogs-missing",
+                    label: "طلبات مسلّمة بلا تكلفة مواد مكتملة",
+                    amountMinor: null,
+                    count: periodResult.value.cogsMissingOrderCount,
+                  }
+                : null,
+              position.pendingRetainedDepositsMinor > 0
+                ? {
+                    id: "pending-retained-deposits",
+                    label: "عربونات محتفظة بانتظار قرارك — ليست مالكًا ولا إيرادًا بعد",
+                    amountMinor: position.pendingRetainedDepositsMinor,
+                    count: null,
+                  }
+                : null,
+            ] as (StatementUnresolvedLine | null)[]
+          ).filter((line): line is StatementUnresolvedLine => line !== null),
         },
       },
       result: periodResult.value,

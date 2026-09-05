@@ -115,7 +115,9 @@ describe("DirectSaleEditor", () => {
     fireEvent.change(screen.getByLabelText("الكمية"), { target: { value: "2" } });
     fireEvent.change(screen.getByLabelText("ربط مرجع"), { target: { value: "ref-1" } });
     expect(
-      await screen.findByText((content, element) => element?.tagName === "SMALL" && content.includes("سعرٌ للقطعة الواحدة")),
+      await screen.findByText(
+        (content, element) => element?.tagName === "SMALL" && content.includes("سعرٌ للقطعة الواحدة"),
+      ),
     ).toBeTruthy();
     /* السعر الفعلي بقي بيد المالك: لم يُعبّأ رقمًا عنه. */
     expect((screen.getByLabelText("السعر المتفق عليه") as HTMLInputElement).value).toBe("0.00");
@@ -125,7 +127,9 @@ describe("DirectSaleEditor", () => {
     fireEvent.change(screen.getByLabelText("ربط مرجع"), { target: { value: "" } });
     fireEvent.change(screen.getByLabelText("ربط مرجع"), { target: { value: "ref-1" } });
     expect(
-      await screen.findByText((content, element) => element?.tagName === "SMALL" && content.includes("سعر مقترح من المرجع")),
+      await screen.findByText(
+        (content, element) => element?.tagName === "SMALL" && content.includes("سعر مقترح من المرجع"),
+      ),
     ).toBeTruthy();
   });
 

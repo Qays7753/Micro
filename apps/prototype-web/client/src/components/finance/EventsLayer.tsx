@@ -4,6 +4,8 @@
 /* U-001 (دورة التدقيق النهائي): وصول عملي للأحداث الأقدم لا الأحدث الثلاثة فقط —
  * زر «اعرض كل الأحداث» + تركيز صف مصدر التصحيح القادم من «السجل» عبر ?event=. */
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "wouter";
+import { withFrom } from "@/app/navigationContract";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -70,6 +72,38 @@ export const expenseContextLabel = (event: FinancialEvent) => {
 
 type CorrectionMode = "reverse" | "edit" | "delete" | "restore";
 
+/* المجموعة ٦ (تدقيق A1 — FT-03): أحداث الأصول والقروض والعربونات المحتفظة
+ * تُصحّح من سجل عائلتها فقط (صفحة الأصل/القرض/الطلب تُحدّث الحدث والسجل
+ * معًا في معاملة واحدة) — المصحّح العام هنا كان يعكس الحدث ويُفشل فحوص
+ * MIC-10/11/12 بلا طريق إصلاح. الطبقة العامة تعرض وصلة المالك بدل الأزرار. */
+function familyEventOwner(event: FinancialEvent): { href: string; label: string; owner: string } | null {
+  if (event.type.startsWith("asset_") && event.assetContext?.assetId)
+    return {
+      href: withFrom(`/assets/${event.assetContext.assetId}`, "/finance"),
+      label: "صحّحه من صفحة الأصل",
+      owner: "سجل الأصل",
+    };
+  if (
+    (event.type === "loan_outgoing_cash" || event.type === "loan_repayment_cash") &&
+    event.loanContext?.loanId
+  )
+    return {
+      href: withFrom(`/loans/${event.loanContext.loanId}`, "/finance"),
+      label: "صحّحه من صفحة القرض",
+      owner: "سجل القرض",
+    };
+  if (
+    (event.type === "deposit_retained_revenue" || event.type === "deposit_retained_owner") &&
+    event.depositContext?.orderId
+  )
+    return {
+      href: withFrom(`/orders/${event.depositContext.orderId}`, "/finance"),
+      label: "صحّحه من صفحة الطلب",
+      owner: "سجل الطلب",
+    };
+  return null;
+}
+
 function FinancialEventRow({
   event,
   events,
@@ -83,6 +117,7 @@ function FinancialEventRow({
   onChanged: () => void;
   focused?: boolean;
 }) {
+  const [, navigate] = useLocation();
   const [open, setOpen] = useState<CorrectionMode | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -109,6 +144,7 @@ function FinancialEventRow({
       candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
     ) ?? null;
   const isReversal = event.correctionType === "reverse";
+  const familyOwner = familyEventOwner(event);
   const original =
     isReversal && event.correctionOfEventId
       ? (events.find(candidate => candidate.id === event.correctionOfEventId) ?? null)
@@ -318,22 +354,44 @@ function FinancialEventRow({
         </div>
       ) : null}
       {!isReversal && !reversal ? (
-        <div className="micro-text-actions">
-          <button className="micro-text-action" type="button" onClick={() => begin("reverse")}>
-            تراجع موثق
-          </button>
-          <button className="micro-text-action" type="button" onClick={() => begin("edit")}>
-            عدّل بقيم جديدة
-          </button>
-          <button className="micro-text-action" type="button" onClick={() => begin("delete")}>
-            حذف موثق
-          </button>
-        </div>
+        familyOwner ? (
+          <div className="micro-text-actions">
+            <button className="micro-text-action" type="button" onClick={() => navigate(familyOwner.href)}>
+              {familyOwner.label}
+            </button>
+            <small className="micro-finance-event-audit">
+              تصحيح هذا الحدث يُديره {familyOwner.owner} — يُحدّث الحدث وسجل عائلته معًا بلا فحص سلامة فاشل.
+            </small>
+          </div>
+        ) : (
+          <div className="micro-text-actions">
+            <button className="micro-text-action" type="button" onClick={() => begin("reverse")}>
+              تراجع موثق
+            </button>
+            <button className="micro-text-action" type="button" onClick={() => begin("edit")}>
+              عدّل بقيم جديدة
+            </button>
+            <button className="micro-text-action" type="button" onClick={() => begin("delete")}>
+              حذف موثق
+            </button>
+          </div>
+        )
       ) : null}
       {reversal ? (
-        <button className="micro-text-action" type="button" onClick={() => begin("restore")}>
-          استرجع القيم الأصلية
-        </button>
+        familyOwner ? (
+          <div className="micro-text-actions">
+            <button className="micro-text-action" type="button" onClick={() => navigate(familyOwner.href)}>
+              {familyOwner.label}
+            </button>
+            <small className="micro-finance-event-audit">
+              استرجاع/تصحيح هذا الحدث يُدار من سجل عائلته ليبقى السجل وفحص السلامة متطابقين.
+            </small>
+          </div>
+        ) : (
+          <button className="micro-text-action" type="button" onClick={() => begin("restore")}>
+            استرجع القيم الأصلية
+          </button>
+        )
       ) : null}
       {reversal ? (
         <p className="micro-finance-event-closed">
@@ -354,10 +412,26 @@ function FinancialEventRow({
           intro="سيبقى السجل الأصلي كما هو. سيُضاف حدث تراجع بتاريخ اليوم يلغي كامل الأثر — لا إعادة كتابة للتاريخ."
           dimensions={[
             { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: -event.cashDeltaMinor },
-            { label: "الالتزامات", beforeMinor: event.payableDeltaMinor, afterMinor: -event.payableDeltaMinor },
-            { label: "مال المالك", beforeMinor: event.ownerCapitalDeltaMinor, afterMinor: -event.ownerCapitalDeltaMinor },
-            { label: "المصروف/النتيجة", beforeMinor: event.operatingExpenseDeltaMinor, afterMinor: -event.operatingExpenseDeltaMinor },
-            { label: "الأمانات", beforeMinor: event.amanahDeltaMinor ?? 0, afterMinor: -(event.amanahDeltaMinor ?? 0) },
+            {
+              label: "الالتزامات",
+              beforeMinor: event.payableDeltaMinor,
+              afterMinor: -event.payableDeltaMinor,
+            },
+            {
+              label: "مال المالك",
+              beforeMinor: event.ownerCapitalDeltaMinor,
+              afterMinor: -event.ownerCapitalDeltaMinor,
+            },
+            {
+              label: "المصروف/النتيجة",
+              beforeMinor: event.operatingExpenseDeltaMinor,
+              afterMinor: -event.operatingExpenseDeltaMinor,
+            },
+            {
+              label: "الأمانات",
+              beforeMinor: event.amanahDeltaMinor ?? 0,
+              afterMinor: -(event.amanahDeltaMinor ?? 0),
+            },
           ]}
           unchanged={["السجل الأصلي بقيمه وتاريخه", "سبب التراجع يُحفظ مع الحدث الجديد"]}
           reversibleNote="التراجع نفسه لا يُتراجع عنه؛ إن أردت إعادة الأثر فاستخدم «استرجع القيم الأصلية»."
@@ -407,7 +481,11 @@ function FinancialEventRow({
               aria-label="المبلغ الجديد"
             />
           </label>
-          <LocalDateField label="تاريخ الحدث الجديد" value={editDate} onChange={input => setEditDate(input.target.value)} />
+          <LocalDateField
+            label="تاريخ الحدث الجديد"
+            value={editDate}
+            onChange={input => setEditDate(input.target.value)}
+          />
           <label className="micro-field">
             <span>بيان البديل</span>
             <textarea value={editNote} onChange={input => setEditNote(input.target.value)} />
@@ -616,9 +694,7 @@ export function EventsLayer({
             aria-pressed={showAll}
             onClick={() => setShowAll(current => !current)}
           >
-            {showAll
-              ? "أعرض الأحدث فقط"
-              : `اعرض كل الأحداث (${events.length})`}
+            {showAll ? "أعرض الأحدث فقط" : `اعرض كل الأحداث (${events.length})`}
           </button>
         </div>
         {showAll && events.length > visibleEvents.length ? (

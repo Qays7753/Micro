@@ -184,11 +184,7 @@ export class FulfillmentService {
    * S2-02: مفتاح العملية يُمرَّر من ورقة التحصيل كما في فرع المتبقي — إعادة
    * المحاولة بمفتاح واحد لا تسجّل تحصيلًا ثانيًا؛ مسار النموذج يبقى بطابعه
    * الزمني مع حماية single-flight في الواجهة. */
-  async collectDebt(
-    id: string,
-    amountMinor: number,
-    operationKey?: string,
-  ): Promise<FulfillmentResult> {
+  async collectDebt(id: string, amountMinor: number, operationKey?: string): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
     if (current.stored.order.settlementStatus !== "debt" || current.stored.order.receivableMinor <= 0)
@@ -211,11 +207,7 @@ export class FulfillmentService {
   /* المجموعة ٢ (§6.1): ورقة التحصيل تستدعي هذا المسار الواحد — يختار دالة النطاق
    * الصحيحة بحسب حالة الطلب (دين مسجل أو متبقٍ بعد التسليم) ويكتب تحصيلًا واحدًا
    * موثقًا. لا يُنشئ إيرادًا ولا يلمس النتيجة — التحصيل كاش ومتبقٍ فقط. */
-  async collectFromSheet(
-    id: string,
-    amountMinor: number,
-    operationKey: string,
-  ): Promise<FulfillmentResult> {
+  async collectFromSheet(id: string, amountMinor: number, operationKey: string): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
     const order = current.stored.order;
@@ -231,12 +223,7 @@ export class FulfillmentService {
         return failure("invalid_state", "التحصيل لا يمكن أن يتجاوز المتبقي على الطلب.");
       try {
         const timestamp = this.now();
-        const next = collectRemaining(
-          order,
-          amountMinor,
-          `${operationKey}`,
-          timestamp,
-        );
+        const next = collectRemaining(order, amountMinor, `${operationKey}`, timestamp);
         return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
       } catch (error) {
         return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التحصيل.");
@@ -255,8 +242,7 @@ export class FulfillmentService {
   ): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
-    if (!input.reason.trim())
-      return failure("invalid_state", "أكمل سبب التراجع قبل الحفظ.");
+    if (!input.reason.trim()) return failure("invalid_state", "أكمل سبب التراجع قبل الحفظ.");
     try {
       const timestamp = this.now();
       /* G6-F1-2: مفتاح جذر من المستدعي يجعل إعادة المحاولة قابلة للكشف بـeventExists —
@@ -284,8 +270,7 @@ export class FulfillmentService {
   ): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
-    if (!input.reason.trim())
-      return failure("invalid_state", "أكمل سبب تعديل السعر قبل الحفظ.");
+    if (!input.reason.trim()) return failure("invalid_state", "أكمل سبب تعديل السعر قبل الحفظ.");
     try {
       const timestamp = this.now();
       const order = reviseAgreedPrice(current.stored.order, {
@@ -380,8 +365,7 @@ export class FulfillmentService {
     { ok: true; value: DepositOverview } | Extract<FulfillmentResult, { ok: false }>
   > {
     const result = await this.store.listOrders();
-    if (!result.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة الطلبات المحلية." };
+    if (!result.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلبات المحلية." };
     const rows = result.value
       .filter(stored => stored.order.depositCollectedMinor > 0)
       .map(stored => ({

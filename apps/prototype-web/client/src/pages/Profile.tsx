@@ -154,7 +154,11 @@ export default function Profile() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح ملفك</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => window.location.reload()}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => window.location.reload()}
+        >
           إعادة المحاولة
         </button>
       </section>

@@ -83,4 +83,103 @@ describe("local lock service (المجموعة ٥ — عقد ٣٧)", () => {
     expect(JSON.stringify(snapshot.value)).not.toContain(enabled.value.pinHash);
     expect(JSON.stringify(snapshot.value)).not.toContain(enabled.value.salt);
   });
+
+  /* المجموعة ٦ (تدقيق A1 — SP-02): التفعيل الجديد يخزن بصمة PBKDF2، والسجل
+   * القديم (sha256 مفردة) يُفتح بمساره ثم يُرقّى تلقائيًا — لا قفل خارج صاحب الرمز. */
+  it("enables with a slow-derived hash (PBKDF2) and unlocks with the same pin", async () => {
+    const store = new MemoryLocalStore();
+    const lock = new LocalLockService(store, () => NOW);
+    const enabled = await lock.enable("4179", 10);
+    if (!enabled.ok) throw new Error(enabled.message);
+    expect(enabled.value.hashAlgo).toBe("pbkdf2");
+    const right = await lock.unlock("4179");
+    if (!right.ok) throw new Error(right.message);
+    expect(right.value.unlocked).toBe(true);
+    const wrong = await lock.unlock("4180");
+    if (!wrong.ok) throw new Error(wrong.message);
+    expect(wrong.value.unlocked).toBe(false);
+  });
+
+  it("legacy single-hash records still unlock and are upgraded transparently", async () => {
+    const store = new MemoryLocalStore();
+    const lock = new LocalLockService(store, () => NOW);
+    /* سجل قديم بالبصمة المفردة كما كان يُخزن قبل المجموعة ٦. */
+    const legacyHash = await sha256HexForTest("aabbccddeeff00112233445566778899:4179");
+    await store.saveLocalSecurity({
+      id: "local-security" as const,
+      pinHash: legacyHash,
+      salt: "aabbccddeeff00112233445566778899",
+      autoLockMinutes: 10,
+      lastActiveAt: NOW,
+      failedAttempts: 0,
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+    const wrong = await lock.unlock("0000");
+    if (!wrong.ok) throw new Error(wrong.message);
+    expect(wrong.value.unlocked).toBe(false);
+    const right = await lock.unlock("4179");
+    if (!right.ok) throw new Error(right.message);
+    expect(right.value.unlocked).toBe(true);
+    const saved = await store.getLocalSecurity();
+    if (!saved.ok) throw new Error(saved.message);
+    expect(saved.value?.hashAlgo).toBe("pbkdf2");
+    expect(saved.value?.pinHash).not.toBe(legacyHash);
+    /* بعد الترقية يبقى الرمز نفسه صالحًا والمسار الجديد هو المستخدم. */
+    const again = await lock.unlock("4179");
+    if (!again.ok) throw new Error(again.message);
+    expect(again.value.unlocked).toBe(true);
+  });
+
+  /* المجموعة ٦ (تدقيق A1 — SP-04): الوقفة مُنفَّذة — المحاولة داخل النافذة
+   * تُرفض مبكرًا بلا زيادة العدّاد. */
+  it("enforces wrong-pin backoff inside the window without inflating the counter", async () => {
+    const store = new MemoryLocalStore();
+    let clock = NOW;
+    const lock = new LocalLockService(store, () => clock);
+    await lock.enable("4179", 10);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const result = await lock.unlock("0000");
+      if (!result.ok) throw new Error(result.message);
+      expect(result.value.unlocked).toBe(false);
+    }
+    clock = minutesLater(0.01); /* ~٦ ثوانٍ بعد المحاولة الثالثة (الوقفة ٣ ثوان). */
+    const insideWindow = await lock.unlock("0000");
+    if (!insideWindow.ok) throw new Error(insideWindow.message);
+    expect(insideWindow.value.unlocked).toBe(false);
+    expect(insideWindow.value.failedAttempts).toBe(3);
+    expect(insideWindow.value.retryInMs).toBeGreaterThan(0);
+    clock = minutesLater(1); /* بعد النافذة: العدّاد يكمل عمله. */
+    const outsideWindow = await lock.unlock("0000");
+    if (!outsideWindow.ok) throw new Error(outsideWindow.message);
+    expect(outsideWindow.value.unlocked).toBe(false);
+    expect(outsideWindow.value.failedAttempts).toBe(4);
+  });
+
+  it("disable path counts wrong attempts and applies the same backoff", async () => {
+    const store = new MemoryLocalStore();
+    let clock = NOW;
+    const lock = new LocalLockService(store, () => clock);
+    await lock.enable("4179", null);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const result = await lock.disable("1111");
+      expect(result.ok).toBe(false);
+    }
+    clock = minutesLater(0.01);
+    const throttled = await lock.disable("1111");
+    expect(throttled.ok).toBe(false);
+    if (!throttled.ok) expect(throttled.message).toContain("انتظر");
+    clock = minutesLater(1);
+    const right = await lock.disable("4179");
+    expect(right.ok).toBe(true);
+  });
 });
+
+/** بصمة مفردة بنفس بناء المسار القديم — لأغراض اختبار الترقية فقط. */
+async function sha256HexForTest(text: string): Promise<string> {
+  const bytes = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
+}

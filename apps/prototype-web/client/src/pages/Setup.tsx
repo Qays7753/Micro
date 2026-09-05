@@ -88,11 +88,10 @@ export default function Setup() {
   const [openingValid, setOpeningValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [draftNotice, setDraftNotice] = useState<string | null>(
-    () =>
-      restoredDraft && (restoredDraft.activityName.trim() || restoredDraft.openingChoice)
-        ? "استعدنا مسودة إعدادك من آخر مرة — أكمل من حيث توقفت؛ لم يُسجّل شيء بعد."
-        : null,
+  const [draftNotice, setDraftNotice] = useState<string | null>(() =>
+    restoredDraft && (restoredDraft.activityName.trim() || restoredDraft.openingChoice)
+      ? "استعدنا مسودة إعدادك من آخر مرة — أكمل من حيث توقفت؛ لم يُسجّل شيء بعد."
+      : null,
   );
   /* U-003: كل تغيير يحفظ المسودة فورًا — كتابة صغيرة محلية بلا أثر مالي. */
   useEffect(() => {
@@ -227,9 +226,7 @@ export default function Setup() {
         <div className="micro-setup-step">
           <span>{step}</span>
           <div>
-            <b>
-              {step === 1 ? "سمّ سجل مشروعك" : step === 2 ? "أماكن الفلوس" : "الموقف الافتتاحي"}
-            </b>
+            <b>{step === 1 ? "سمّ سجل مشروعك" : step === 2 ? "أماكن الفلوس" : "الموقف الافتتاحي"}</b>
             <p>
               {step === 1
                 ? "سترى هذا الاسم في سجل الطلبات، وصفحة الأساس بعده اختيارية بالكامل."
@@ -356,7 +353,11 @@ export default function Setup() {
               <ArrowRight aria-hidden="true" /> خطوة سابقة
             </button>
           ) : null}
-          <button className="micro-button micro-button-primary micro-button-block" type="submit" disabled={isSaving}>
+          <button
+            className="micro-button micro-button-primary micro-button-block"
+            type="submit"
+            disabled={isSaving}
+          >
             {isSaving
               ? "جارٍ الحفظ…"
               : step === 1

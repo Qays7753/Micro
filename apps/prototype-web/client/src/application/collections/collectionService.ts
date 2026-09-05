@@ -156,8 +156,7 @@ export class CollectionService {
         input.amountMinor,
         input.idempotencyKey,
       );
-      if (!result.ok)
-        return { ok: false, code: "validation_error", message: result.message };
+      if (!result.ok) return { ok: false, code: "validation_error", message: result.message };
       remainingAfterMinor = result.stored.order.receivableMinor;
     } else {
       const saleResult = await this.directSales.get(input.sourceId);
@@ -201,15 +200,15 @@ export class CollectionService {
         /* المجموعة ٦ (S2-04أ): حدث القبضة المصدر — معرّف الحدث حتمي في النطاق
          * (orderId:idempotencyKey) فيُربط التخصيص بسطر التحصيل نفسه، ويصير
          * التراجع المزدوج «القبضة مع تخصيصها» قابلًا للمطابقة بلا تخمين. */
-        sourceRefLineId:
-          input.sourceKind === "order" ? `${input.sourceId}:${input.idempotencyKey}` : null,
+        sourceRefLineId: input.sourceKind === "order" ? `${input.sourceId}:${input.idempotencyKey}` : null,
       });
       if (attribution.ok) {
         reused = reused || (attribution.reused ?? false);
         attributedToWalletMinor = input.amountMinor;
         const wallets = await this.store.listCashWallets();
-        walletName =
-          wallets.ok ? wallets.value.find(wallet => wallet.id === input.walletId)?.name ?? null : null;
+        walletName = wallets.ok
+          ? (wallets.value.find(wallet => wallet.id === input.walletId)?.name ?? null)
+          : null;
       } else {
         /* (إصلاح تكاملي — مجموعة ٤): التحصيل والقبض سُجّلا قبل النسبة — فشل التخصيص
          * لا يعلن فشل التحصيل كله (كان يعيد خطأً بعد كتابةٍ نفّذت فعلًا: دين نقص

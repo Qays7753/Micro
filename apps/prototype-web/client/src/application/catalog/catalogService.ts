@@ -442,5 +442,4 @@ export class CatalogService {
       ? { ok: true, template: saved.value }
       : failure("تعذر إيقاف القالب محليًا.", "storage_error");
   }
-
 }

@@ -18,6 +18,7 @@ import {
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
+import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -49,9 +50,9 @@ const id = () =>
 const inPeriod = (date: string, from: string, to: string) => date >= from && date <= to;
 
 function deliveredOn(stored: StoredCraftOrder): string | null {
-  const delivered = stored.order.events.find(
-    event => event.type === "status_changed" && event.toStatus === "delivered",
-  );
+  /* المجموعة ٦ (تدقيق A1 — FT-01): آخر تسليم ساري — إيراد التسليم المعاد
+   * يُعزى لفترة إعادة التسليم لا لفترة التسليم المعكوس. */
+  const delivered = lastEffectiveDeliveryEvent(stored.order);
   if (!delivered) return null;
   const date = new Intl.DateTimeFormat("en", {
     timeZone: "Asia/Amman",
@@ -466,11 +467,12 @@ export class G5Service {
         return { ok: false, code: "not_found", message: "الحدث المرتبط ليس التزام مصروف صالحًا." };
       const events = await this.store.listFinancialEvents();
       if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر التحقق من رصيد الالتزام." };
-      if (
-        event.value.correctionType === "reverse" ||
-        reversedEventIds(events.value).has(event.value.id)
-      )
-        return { ok: false, code: "validation_error", message: "لا يمكن ربط توقع بالتزام مالي تم التراجع عنه." };
+      if (event.value.correctionType === "reverse" || reversedEventIds(events.value).has(event.value.id))
+        return {
+          ok: false,
+          code: "validation_error",
+          message: "لا يمكن ربط توقع بالتزام مالي تم التراجع عنه.",
+        };
       const paid = activeSettlementsMinor(events.value, event.value!.id);
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid)

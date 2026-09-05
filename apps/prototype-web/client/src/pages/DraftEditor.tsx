@@ -211,9 +211,7 @@ export default function DraftEditor() {
           /* و٥/و٦: المرجع يتحدّث لحظة نجاح الإنشاء — قبل الالتزام — كي لا يُنشئ
            * إدخال متزامن مسودة ثانية أثناء حل الوعد. */
           draftRef.current = result.draft;
-          setDraft(latest =>
-            latest ? { ...result.draft, ...draftFormValues(latest) } : result.draft,
-          );
+          setDraft(latest => (latest ? { ...result.draft, ...draftFormValues(latest) } : result.draft));
           initialValuesRef.current = draftFormValues(result.draft);
           notifyDataChanged();
           return result.draft;
@@ -288,8 +286,7 @@ export default function DraftEditor() {
   /* القرار ٢١ (R-2): الحد القاطع يُقرأ من الحقل — linkedOrderId !== null ⇒ الزر لا يظهر أصلًا.
    * الحذف بلا سبب وبلا أثر مالي: المسودة ليست طلبًا ولا تحمل مالًا.
    * و٥: المحرر الفارغ بلا سجل — لا شيء يُحذف بعد. */
-  const canDelete =
-    draft !== null && draft.id !== "new" && draft.linkedOrderId === null;
+  const canDelete = draft !== null && draft.id !== "new" && draft.linkedOrderId === null;
   async function deleteDraft() {
     if (!draft) return;
     setIsDeleting(true);
@@ -391,7 +388,9 @@ export default function DraftEditor() {
           <select
             value={draft.catalogItemId ?? ""}
             onChange={event =>
-              setDraft(current => (current ? { ...current, catalogItemId: event.target.value || null } : current))
+              setDraft(current =>
+                current ? { ...current, catalogItemId: event.target.value || null } : current,
+              )
             }
           >
             <option value="">لا أربط هذه المسودة بمرجع الآن</option>
@@ -449,9 +448,7 @@ export default function DraftEditor() {
           <textarea
             value={draft.specifications}
             onChange={event =>
-              setDraft(current =>
-                current ? { ...current, specifications: event.target.value } : current,
-              )
+              setDraft(current => (current ? { ...current, specifications: event.target.value } : current))
             }
             placeholder="لون، قياس، اسم أو تفاصيل مهمة…"
             rows={4}
@@ -494,8 +491,8 @@ export default function DraftEditor() {
             {confirmDelete ? (
               <>
                 <p>
-                  حذف المسودة يزيلها من هذا الجهاز نهائيًا — بلا سبب ولا أثر مالي، لأنها لم تصبح طلبًا.
-                  لا يمكن التراجع بعد الحذف.
+                  حذف المسودة يزيلها من هذا الجهاز نهائيًا — بلا سبب ولا أثر مالي، لأنها لم تصبح طلبًا. لا
+                  يمكن التراجع بعد الحذف.
                 </p>
                 <div className="micro-form-actions">
                   <button

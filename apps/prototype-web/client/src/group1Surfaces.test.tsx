@@ -111,9 +111,7 @@ describe("Finance doorway to the integrity surface (المجموعة ١)", () =>
       return <Finance />;
     }
     render(<FinanceHarness />);
-    await waitFor(() =>
-      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     const doorway = await screen.findByText(/فحص سلامة مالي — اطمن على أرقامك/);
     fireEvent.click(doorway);
     expect(wouterMocks.navigate).toHaveBeenCalledWith(

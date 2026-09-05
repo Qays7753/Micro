@@ -18,7 +18,11 @@ import type {
   IntegrityCheckStatus,
 } from "@/application/finance/integrityCheckService";
 
-type State = { phase: "idle" } | { phase: "running" } | { phase: "done"; report: IntegrityCheckReport } | { phase: "error"; message: string };
+type State =
+  | { phase: "idle" }
+  | { phase: "running" }
+  | { phase: "done"; report: IntegrityCheckReport }
+  | { phase: "error"; message: string };
 
 const statusMeta: Record<IntegrityCheckStatus, { word: string; Icon: typeof CheckCircle2 }> = {
   PASS: { word: "سليم", Icon: CheckCircle2 },
@@ -47,24 +51,20 @@ export default function ToolsIntegrity() {
     }
   }
 
-  const overall =
-    state.phase === "done"
-      ? statusMeta[state.report.overall]
-      : null;
+  const overall = state.phase === "done" ? statusMeta[state.report.overall] : null;
 
   return (
     <section className="micro-page micro-integrity-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => navigate(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         أدواتي
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">أداة قراءة</span>
         <h1>فحص سلامة مالي</h1>
-        <p>ستّة عشر فحصًا تقرأ أرقامك كما هي — النتيجة والكاش والأحداث والأمانات والمخزون والأصول والقروض والعربون.</p>
+        <p>
+          ستّة عشر فحصًا تقرأ أرقامك كما هي — النتيجة والكاش والأحداث والأمانات والمخزون والأصول والقروض
+          والعربون.
+        </p>
       </div>
       <section className="micro-decision-card" aria-label="وعد الفحص">
         <ShieldCheck aria-hidden="true" />
@@ -87,13 +87,12 @@ export default function ToolsIntegrity() {
                     : "يوجد خلل يحتاج تصحيحًا موثقًا";
               return (
                 <>
-                  <strong data-status={state.report.overall}>
-                    {`${overall.word} — ${verdictPhrase}`}
-                  </strong>
+                  <strong data-status={state.report.overall}>{`${overall.word} — ${verdictPhrase}`}</strong>
                   <p>
                     أُجري الفحص{" "}
                     <bdi dir="ltr">
-                      {formatLocalDateLong(state.report.runAt.slice(0, 10)) ?? state.report.runAt.slice(0, 10)}
+                      {formatLocalDateLong(state.report.runAt.slice(0, 10)) ??
+                        state.report.runAt.slice(0, 10)}
                     </bdi>{" "}
                     لفترة هذا الشهر حتى اليوم — كل فحص قراءة جديدة.
                   </p>
@@ -101,7 +100,8 @@ export default function ToolsIntegrity() {
                    * سليم لا يقول إن المشروع رابح؛ وعدًا مطابقًا للسلوك. */}
                   {state.report.overall === "PASS" ? (
                     <p className="micro-offline-truth" role="note">
-                      «لا خلل مكتشفًا» يعني أن أرقامك متسقة مع قواعدها — لا يعني أنك رابح؛ الفحص يقيس الاتساق لا الجدوى.
+                      «لا خلل مكتشفًا» يعني أن أرقامك متسقة مع قواعدها — لا يعني أنك رابح؛ الفحص يقيس الاتساق
+                      لا الجدوى.
                     </p>
                   ) : null}
                   <p className="micro-integrity-version">
@@ -133,7 +133,11 @@ export default function ToolsIntegrity() {
       </section>
       {state.phase === "done"
         ? state.report.checks.map(check => (
-            <IntegrityCheckRow key={check.id} check={check} onOpen={path => navigate(withFrom(path, "/tools/integrity"))} />
+            <IntegrityCheckRow
+              key={check.id}
+              check={check}
+              onOpen={path => navigate(withFrom(path, "/tools/integrity"))}
+            />
           ))
         : null}
       <div className="micro-offline-truth" role="note">

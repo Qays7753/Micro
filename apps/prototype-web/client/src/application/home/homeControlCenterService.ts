@@ -59,19 +59,29 @@ export class HomeControlCenterService {
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {
-    const [profile, followUp, position, schedules, events, purchases, inventory, dueFollowUps, preferences, directSales] =
-      await Promise.all([
-        this.store.getProfile(),
-        this.dailyFollowUp.read(),
-        this.projectFinance.readPosition(),
-        this.store.listSchedules(),
-        this.store.listFinancialEvents(),
-        this.supplierPurchases.readSummary(),
-        this.inventory.overview(),
-        this.agreementContext.dueFollowUps(),
-        this.store.getPreferences(),
-        this.store.listDirectSales(),
-      ]);
+    const [
+      profile,
+      followUp,
+      position,
+      schedules,
+      events,
+      purchases,
+      inventory,
+      dueFollowUps,
+      preferences,
+      directSales,
+    ] = await Promise.all([
+      this.store.getProfile(),
+      this.dailyFollowUp.read(),
+      this.projectFinance.readPosition(),
+      this.store.listSchedules(),
+      this.store.listFinancialEvents(),
+      this.supplierPurchases.readSummary(),
+      this.inventory.overview(),
+      this.agreementContext.dueFollowUps(),
+      this.store.getPreferences(),
+      this.store.listDirectSales(),
+    ]);
     if (
       !profile.ok ||
       !followUp.ok ||
@@ -475,9 +485,7 @@ export class HomeControlCenterService {
                   (total, event) => total + event.operatingExpenseDeltaMinor,
                   0,
                 ),
-                newOrderCount: orders.filter(
-                  stored => localDate(stored.order.createdAt) === lastDay,
-                ).length,
+                newOrderCount: orders.filter(stored => localDate(stored.order.createdAt) === lastDay).length,
                 upcomingFollowUpCount: dueFollowUps.value.upcoming.filter(
                   stored => stored.followUpDate != null,
                 ).length,

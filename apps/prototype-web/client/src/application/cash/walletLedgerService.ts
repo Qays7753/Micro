@@ -41,8 +41,7 @@ export type WalletLedgerOverview = {
 };
 
 export type WalletLedgerResult<T> =
-  | { ok: true; value: T }
-  | { ok: false; code: "storage_error" | "not_found"; message: string };
+  { ok: true; value: T } | { ok: false; code: "storage_error" | "not_found"; message: string };
 
 const sourceLabelFor = (entry: CashContinuityEntry): { href: string | null; label: string | null } => {
   if (entry.sourceRefId && entry.sourceRefKind) {
@@ -50,9 +49,15 @@ const sourceLabelFor = (entry: CashContinuityEntry): { href: string | null; labe
       case "sale":
         return { href: `/direct-sales/${entry.sourceRefId}`, label: "بيع مباشر — السجل المصدر" };
       case "expense":
-        return { href: `/finance?event=${encodeURIComponent(entry.sourceRefId)}`, label: "مصروف — الحدث المصدر" };
+        return {
+          href: `/finance?event=${encodeURIComponent(entry.sourceRefId)}`,
+          label: "مصروف — الحدث المصدر",
+        };
       case "collection":
-        return { href: `/finance?event=${encodeURIComponent(entry.sourceRefId)}`, label: "تحصيل — الحدث المصدر" };
+        return {
+          href: `/finance?event=${encodeURIComponent(entry.sourceRefId)}`,
+          label: "تحصيل — الحدث المصدر",
+        };
       case "order":
         return { href: `/orders/${entry.sourceRefId}`, label: "طلب — السجل المصدر" };
     }
@@ -71,12 +76,13 @@ export class WalletLedgerService {
     if (!wallets.ok || !entries.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة سجل المحفظة المحلي." };
     const wallet = wallets.value.find(candidate => candidate.id === walletId);
-    if (!wallet)
-      return { ok: false, code: "not_found", message: "لم تُعثر على هذه المحفظة." };
+    if (!wallet) return { ok: false, code: "not_found", message: "لم تُعثر على هذه المحفظة." };
     const walletEntries = entries.value
       .filter(entry => entry.walletId === walletId)
       .slice()
-      .sort((left, right) => left.recordedAt.localeCompare(right.recordedAt) || left.id.localeCompare(right.id));
+      .sort(
+        (left, right) => left.recordedAt.localeCompare(right.recordedAt) || left.id.localeCompare(right.id),
+      );
     const reversedEntryIds = new Set(
       walletEntries
         .filter(entry => entry.type === "reversal" && entry.reversesEntryId)
@@ -99,7 +105,7 @@ export class WalletLedgerService {
                   ? entry.cashDeltaMinor > 0
                     ? "allocation_in"
                     : "allocation_cover"
-                : "reversal";
+                  : "reversal";
       const label =
         kind === "opening"
           ? "رصيد بداية"

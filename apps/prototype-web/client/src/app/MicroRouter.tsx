@@ -82,80 +82,80 @@ export function MicroRouter() {
       <Suspense fallback={<RouteLoadingState />}>
         <StartupGate>
           <AppLockGate>
-          <Switch>
-            <Route path="/setup" component={Setup} />
-            {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
-            <Route path="/foundation" component={Foundation} />
-            <Route path="/orders/new" component={NewDraft} />
-            {/* و٥ (§٥-١): محرر النية الفارغ — المسودة تُنشأ عند أول إدخال حقيقي لا عند النقر.
-             * (المجموعة ٣): المسار الحرفي `/orders/draft/new` حُذف — كان يطابق أولًا في
-             * Switch بلا معاملات فيصل params.id غير معرّف للمحرر؛ النمط `:id` يغطيه
-             * بـ id="new" كما تختبره U-004/G3. */}
-            <Route path="/direct-sales/new" component={DirectSaleEditor} />
-            <Route path="/direct-sales/:id" component={DirectSaleEditor} />
-            <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
-            <Route path="/orders/draft/:id/cost" component={CostEditor} />
-            <Route path="/orders/draft/:id" component={DraftEditor} />
-            {/* المجموعة ٣ (عقد D5): مراجعة التسليم قبل المسار الأكثر تحديدًا */}
-            <Route path="/orders/:id/deliver" component={DeliveryReview} />
-            <Route path="/orders/:id" component={OrderDetail} />
-            <Route path="/schedule/:id" component={ScheduleEditor} />
-            <Route path="/schedule" component={Schedule} />
-            <Route path="/finance/new/:type" component={FinancialEventEditor} />
-            <Route path="/finance/withdraw" component={OwnerWithdrawalEditor} />
-            <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />
-            <Route path="/finance/g5/declaration" component={G5DeclarationEditor} />
-            <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />
-            <Route path="/suppliers/purchase/:id" component={SupplierPurchaseEditor} />
-            <Route path="/suppliers" component={Suppliers} />
-            <Route path="/cash/wallet/new" component={CashWalletEditor} />
-            {/* المجموعة ٢ (§9.1): دفتر المحفظة — قارئ، يبقى التنقل السفلي، ويعود لمحافظه. */}
-            <Route path="/cash/wallet/:id" component={WalletLedger} />
-            <Route path="/cash/wallet/:id/opening-later" component={CashOpeningLaterEditor} />
-            <Route path="/cash/transfer" component={CashTransferEditor} />
-            <Route path="/cash/distribute" component={CashDistribution} />
-            <Route path="/cash/count" component={CashCount} />
-            <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
-            <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
-            <Route path="/cash" component={CashWallets} />
-            {/* المجموعة ٢ (Scope B): ورقة التحصيل — تحصيل الذمم من كل المداخل المعتمدة. */}
-            <Route path="/collect" component={Collect} />
-            <Route path="/inventory/material/new" component={MaterialEditor} />
-            {/* المجموعة ٢ (عقد ٢٨): تأكيد رصيد مادة قائمة — نفس مكوّن الرحلة بوضع التأكيد. */}
-            <Route path="/inventory/material/:id/confirm" component={MaterialEditor} />
-            <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
-            <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
-            <Route path="/inventory" component={InventoryMaterials} />
-            <Route path="/catalog" component={Catalog} />
-            <Route path="/tools" component={Tools} />
-            {/* المجموعة ٣ (Scope A/B): حاسبة عميقة + تفصيل تقدير — يخفيان التنقل كإخوتهما المحررات. */}
-            <Route path="/tools/calculator" component={CostCalculator} />
-            <Route path="/tools/estimate/:id" component={EstimateDetail} />
-            {/* المجموعة ١ (فحص سلامة مالي): مسار سطح — قارئ يبقي التنقل السفلي. */}
-            <Route path="/tools/integrity" component={ToolsIntegrity} />
-            {/* المجموعة ٤ (عقد ٢٩): محررا الأصل والقرض قبل المسارات الأكثر تحديدًا */}
-            <Route path="/assets/new" component={AssetEditor} />
-            <Route path="/assets/:id" component={AssetDetail} />
-            <Route path="/assets" component={Assets} />
-            <Route path="/loans/new" component={LoanEditor} />
-            <Route path="/loans/:id" component={LoanDetail} />
-            <Route path="/loans" component={Loans} />
-            <Route path="/parties" component={Parties} />
-            <Route path="/finance" component={Finance} />
-            {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
-            <Route path="/finance/statement" component={Statement} />
-            <Route path="/finance/activity" component={FinanceActivity} />
-            <Route path="/share/preview" component={SharePreview} />
-            <Route path="/orders" component={Orders} />
-            {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
-            <Route path="/review">
-              <Redirect to="/finance" />
-            </Route>
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="/profile" component={Profile} />
-            <Route path="/" component={Home} />
-            <Route component={NotFound} />
-          </Switch>
+            <Switch>
+              <Route path="/setup" component={Setup} />
+              {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
+              <Route path="/foundation" component={Foundation} />
+              <Route path="/orders/new" component={NewDraft} />
+              {/* و٥ (§٥-١): محرر النية الفارغ — المسودة تُنشأ عند أول إدخال حقيقي لا عند النقر.
+               * (المجموعة ٣): المسار الحرفي `/orders/draft/new` حُذف — كان يطابق أولًا في
+               * Switch بلا معاملات فيصل params.id غير معرّف للمحرر؛ النمط `:id` يغطيه
+               * بـ id="new" كما تختبره U-004/G3. */}
+              <Route path="/direct-sales/new" component={DirectSaleEditor} />
+              <Route path="/direct-sales/:id" component={DirectSaleEditor} />
+              <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
+              <Route path="/orders/draft/:id/cost" component={CostEditor} />
+              <Route path="/orders/draft/:id" component={DraftEditor} />
+              {/* المجموعة ٣ (عقد D5): مراجعة التسليم قبل المسار الأكثر تحديدًا */}
+              <Route path="/orders/:id/deliver" component={DeliveryReview} />
+              <Route path="/orders/:id" component={OrderDetail} />
+              <Route path="/schedule/:id" component={ScheduleEditor} />
+              <Route path="/schedule" component={Schedule} />
+              <Route path="/finance/new/:type" component={FinancialEventEditor} />
+              <Route path="/finance/withdraw" component={OwnerWithdrawalEditor} />
+              <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />
+              <Route path="/finance/g5/declaration" component={G5DeclarationEditor} />
+              <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />
+              <Route path="/suppliers/purchase/:id" component={SupplierPurchaseEditor} />
+              <Route path="/suppliers" component={Suppliers} />
+              <Route path="/cash/wallet/new" component={CashWalletEditor} />
+              {/* المجموعة ٢ (§9.1): دفتر المحفظة — قارئ، يبقى التنقل السفلي، ويعود لمحافظه. */}
+              <Route path="/cash/wallet/:id" component={WalletLedger} />
+              <Route path="/cash/wallet/:id/opening-later" component={CashOpeningLaterEditor} />
+              <Route path="/cash/transfer" component={CashTransferEditor} />
+              <Route path="/cash/distribute" component={CashDistribution} />
+              <Route path="/cash/count" component={CashCount} />
+              <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
+              <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
+              <Route path="/cash" component={CashWallets} />
+              {/* المجموعة ٢ (Scope B): ورقة التحصيل — تحصيل الذمم من كل المداخل المعتمدة. */}
+              <Route path="/collect" component={Collect} />
+              <Route path="/inventory/material/new" component={MaterialEditor} />
+              {/* المجموعة ٢ (عقد ٢٨): تأكيد رصيد مادة قائمة — نفس مكوّن الرحلة بوضع التأكيد. */}
+              <Route path="/inventory/material/:id/confirm" component={MaterialEditor} />
+              <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
+              <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
+              <Route path="/inventory" component={InventoryMaterials} />
+              <Route path="/catalog" component={Catalog} />
+              <Route path="/tools" component={Tools} />
+              {/* المجموعة ٣ (Scope A/B): حاسبة عميقة + تفصيل تقدير — يخفيان التنقل كإخوتهما المحررات. */}
+              <Route path="/tools/calculator" component={CostCalculator} />
+              <Route path="/tools/estimate/:id" component={EstimateDetail} />
+              {/* المجموعة ١ (فحص سلامة مالي): مسار سطح — قارئ يبقي التنقل السفلي. */}
+              <Route path="/tools/integrity" component={ToolsIntegrity} />
+              {/* المجموعة ٤ (عقد ٢٩): محررا الأصل والقرض قبل المسارات الأكثر تحديدًا */}
+              <Route path="/assets/new" component={AssetEditor} />
+              <Route path="/assets/:id" component={AssetDetail} />
+              <Route path="/assets" component={Assets} />
+              <Route path="/loans/new" component={LoanEditor} />
+              <Route path="/loans/:id" component={LoanDetail} />
+              <Route path="/loans" component={Loans} />
+              <Route path="/parties" component={Parties} />
+              <Route path="/finance" component={Finance} />
+              {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
+              <Route path="/finance/statement" component={Statement} />
+              <Route path="/finance/activity" component={FinanceActivity} />
+              <Route path="/share/preview" component={SharePreview} />
+              <Route path="/orders" component={Orders} />
+              {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
+              <Route path="/review">
+                <Redirect to="/finance" />
+              </Route>
+              <Route path="/settings" component={SettingsPage} />
+              <Route path="/profile" component={Profile} />
+              <Route path="/" component={Home} />
+              <Route component={NotFound} />
+            </Switch>
           </AppLockGate>
         </StartupGate>
       </Suspense>

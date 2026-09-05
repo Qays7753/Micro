@@ -188,9 +188,7 @@ export default function CostEditor() {
         void costEstimates.get(sourceEstimateId).then(estimateResult => {
           if (!active) return;
           if (!estimateResult.ok || !estimateResult.value) {
-            setProposalNotice(
-              "لم نجد تقديرك المصدر (قد حُذف)؛ ابدأ التكلفة بنفسك — لم يتغير أي سجل.",
-            );
+            setProposalNotice("لم نجد تقديرك المصدر (قد حُذف)؛ ابدأ التكلفة بنفسك — لم يتغير أي سجل.");
             return;
           }
           const estimate = estimateResult.value;
@@ -336,7 +334,8 @@ export default function CostEditor() {
     );
   const status = preview?.ok
     ? knowledgeCopy[preview.snapshot.knowledgeState as keyof typeof knowledgeCopy]
-    : null;  const canShowProtectionPrice =
+    : null;
+  const canShowProtectionPrice =
     preview?.ok && !["incomplete", "partial"].includes(preview.snapshot.knowledgeState);
 
   return (
@@ -362,11 +361,7 @@ export default function CostEditor() {
         <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
           <span>سعر الحماية لكل قطعة (د.أ)</span>
           <strong>
-            {canShowProtectionPrice ? (
-              <MoneyValue minor={preview.snapshot.priceFloorMinor} />
-            ) : (
-              "—"
-            )}
+            {canShowProtectionPrice ? <MoneyValue minor={preview.snapshot.priceFloorMinor} /> : "—"}
           </strong>
           {canShowProtectionPrice ? (
             <small>
@@ -665,4 +660,3 @@ export default function CostEditor() {
     </section>
   );
 }
-

@@ -104,7 +104,12 @@ function reading(overrides: Partial<StatementReading> = {}): StatementReading {
         netMinor: -800,
       },
       owner: { investedMinor: 5000, withdrawnMinor: 0, sources: [] },
-      amanah: { heldInPeriodMinor: 500, releasedInPeriodMinor: 0, heldNowMinor: 500, trustLine: "أمانات بأمانتك" },
+      amanah: {
+        heldInPeriodMinor: 500,
+        releasedInPeriodMinor: 0,
+        heldNowMinor: 500,
+        trustLine: "أمانات بأمانتك",
+      },
       receivablesPayables: {
         receivablesNowMinor: 10000,
         payablesNowMinor: 4000,

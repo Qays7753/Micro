@@ -79,7 +79,17 @@ function Harness({ page }: { page: React.ReactNode }) {
 async function seedCancelledRetainedOrder(): Promise<void> {
   const snapshot = calculateCostSnapshot("snap-g4-dep", {
     currency: "JOD",
-    materialItems: [{ name: "خيط", quantity: 1, unit: "متر", unitPriceMinor: 300, priceDate: "2026-09-01", source: "user_input", confidence: "known" }],
+    materialItems: [
+      {
+        name: "خيط",
+        quantity: 1,
+        unit: "متر",
+        unitPriceMinor: 300,
+        priceDate: "2026-09-01",
+        source: "user_input",
+        confidence: "known",
+      },
+    ],
     time: null,
     packagingMinor: 0,
     deliveryMinor: 0,

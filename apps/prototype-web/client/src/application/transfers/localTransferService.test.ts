@@ -19,11 +19,7 @@ import { createInventoryMovement, createMaterial } from "@micro-domain/inventory
 import { createCatalogItem, createMeasurementUnit } from "@micro-domain/catalog/index.js";
 import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import { createActualTimeRecord, reverseActualTimeRecord } from "@micro-domain/actual-time/index.js";
-import {
-  cancelDirectSale,
-  createDirectSale,
-  updateDirectSale,
-} from "@micro-domain/direct-sale/index.js";
+import { cancelDirectSale, createDirectSale, updateDirectSale } from "@micro-domain/direct-sale/index.js";
 
 const profile = {
   id: localProfileId,
@@ -151,15 +147,15 @@ describe("LocalTransferService", () => {
       cancelDirectSale(
         updateDirectSale(
           createDirectSale({
-        id: "sale-known-cost",
-        itemName: "منتج محسوب",
-        quantity: 2,
-        revenueMinor: 1200,
-        costMinor: 500,
-        occurredOn: "2026-08-29",
-        recordedAt: "2026-08-29T11:00:00.000Z",
-        note: "بيع بتكلفة معلومة",
-        idempotencyKey: "sale-transfer-2",
+            id: "sale-known-cost",
+            itemName: "منتج محسوب",
+            quantity: 2,
+            revenueMinor: 1200,
+            costMinor: 500,
+            occurredOn: "2026-08-29",
+            recordedAt: "2026-08-29T11:00:00.000Z",
+            note: "بيع بتكلفة معلومة",
+            idempotencyKey: "sale-transfer-2",
           }),
           {
             itemName: "منتج محسوب مصحح",
@@ -421,7 +417,8 @@ describe("LocalTransferService", () => {
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
     const legacy = structuredClone(exported.value) as { version: number; schemaVersion: number };
-    legacy.version = 6;    delete (legacy as Record<string, unknown>).integrity;
+    legacy.version = 6;
+    delete (legacy as Record<string, unknown>).integrity;
     delete (legacy as Record<string, unknown>).counts;
     delete (legacy as Record<string, unknown>).appVersion;
 
@@ -519,7 +516,8 @@ describe("LocalTransferService", () => {
       },
     ]);
     const previous = structuredClone(exported.value) as { version: number; schemaVersion: number };
-    previous.version = 11;    delete (previous as Record<string, unknown>).integrity;
+    previous.version = 11;
+    delete (previous as Record<string, unknown>).integrity;
     delete (previous as Record<string, unknown>).counts;
     delete (previous as Record<string, unknown>).appVersion;
 
@@ -543,7 +541,8 @@ describe("LocalTransferService", () => {
       schemaVersion: number;
       data: { catalogItems?: unknown; drafts: Array<Record<string, unknown>> };
     };
-    legacy.version = 7;    delete (legacy as Record<string, unknown>).integrity;
+    legacy.version = 7;
+    delete (legacy as Record<string, unknown>).integrity;
     delete (legacy as Record<string, unknown>).counts;
     delete (legacy as Record<string, unknown>).appVersion;
 
@@ -631,9 +630,7 @@ describe("LocalTransferService", () => {
     });
     await expect(target.listCatalogItems()).resolves.toMatchObject({
       ok: true,
-      value: [
-        { id: "cup", defaultPriceMinor: 250, defaultUnitCostMinor: 120 },
-      ],
+      value: [{ id: "cup", defaultPriceMinor: 250, defaultUnitCostMinor: 120 }],
     });
     const corrupted = structuredClone(exported.value) as {
       data: { catalogItems: Array<{ defaultPriceMinor?: number | null }> };
@@ -1107,7 +1104,8 @@ describe("LocalTransferService", () => {
       schemaVersion: number;
       data: { shortCashDeclarations?: unknown };
     };
-    previous.version = 9;    delete (previous as Record<string, unknown>).integrity;
+    previous.version = 9;
+    delete (previous as Record<string, unknown>).integrity;
     delete (previous as Record<string, unknown>).counts;
     delete (previous as Record<string, unknown>).appVersion;
 
@@ -1239,7 +1237,8 @@ describe("LocalTransferService", () => {
       schemaVersion: number;
       data: { allocationPolicies: Array<Record<string, unknown>> };
     };
-    legacy.version = 16;    delete (legacy as Record<string, unknown>).integrity;
+    legacy.version = 16;
+    delete (legacy as Record<string, unknown>).integrity;
     delete (legacy as Record<string, unknown>).counts;
     delete (legacy as Record<string, unknown>).appVersion;
 
@@ -1397,7 +1396,8 @@ describe("LocalTransferService", () => {
       schemaVersion: number;
       data: { actualTimeRecords?: unknown };
     };
-    legacy.version = 7;    delete (legacy as Record<string, unknown>).integrity;
+    legacy.version = 7;
+    delete (legacy as Record<string, unknown>).integrity;
     delete (legacy as Record<string, unknown>).counts;
     delete (legacy as Record<string, unknown>).appVersion;
 
@@ -1645,7 +1645,8 @@ describe("LocalTransferService G6-B recurrence migration", () => {
       schemaVersion: number;
       data: { recurrences?: unknown; schedules: unknown[] };
     };
-    legacy.version = 10;    delete (legacy as Record<string, unknown>).integrity;
+    legacy.version = 10;
+    delete (legacy as Record<string, unknown>).integrity;
     delete (legacy as Record<string, unknown>).counts;
     delete (legacy as Record<string, unknown>).appVersion;
 
@@ -1785,7 +1786,8 @@ describe("inventory activation export and migration (decision 9)", () => {
       schemaVersion: number;
       data: { inventoryActivation?: unknown };
     };
-    previous.version = 19;    delete (previous as Record<string, unknown>).integrity;
+    previous.version = 19;
+    delete (previous as Record<string, unknown>).integrity;
     delete (previous as Record<string, unknown>).counts;
     delete (previous as Record<string, unknown>).appVersion;
 
@@ -1876,7 +1878,13 @@ describe("owner profile export and migration (group 1 owner profile foundation)"
       new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(previous)),
     ).toMatchObject({
       ok: true,
-      value: { file: { version: localExportVersion, schemaVersion: localSchemaVersion, data: { ownerProfile: null } } },
+      value: {
+        file: {
+          version: localExportVersion,
+          schemaVersion: localSchemaVersion,
+          data: { ownerProfile: null },
+        },
+      },
     });
   });
 
@@ -1908,83 +1916,83 @@ describe("owner profile export and migration (group 1 owner profile foundation)"
   });
 });
 
-  /* S2-03 (تدقيق المجموعة ٥): نسخة احتياطية مُتحقق منها بعد تراجع دفعة موثق —
-   * المدفوع الفعلي (الدفعات − التراجعات) حالة شرعية لا تُرفض. */
-  it("round-trips a verified export containing a documented payment reversal (S2-03)", async () => {
-    const source = new MemoryLocalStore();
-    await source.saveProfile(profile);
-    const purchase = createSupplierPurchase({
-      id: "purchase-rev",
-      supplierName: "مورد الأقمشة",
-      note: "قماش",
-      purchasedOn: "2026-08-22",
-      dueOn: null,
-      totalMinor: 5000,
-      initialPaidMinor: 0,
-      recordedAt: "2026-08-22T01:00:00.000Z",
-      idempotencyKey: "purchase-rev",
-    });
-    const withPayment = recordSupplierPurchasePayment(purchase, {
-      id: "payment-rev-1",
-      amountMinor: 5000,
-      occurredOn: "2026-08-23",
-      recordedAt: "2026-08-23T01:00:00.000Z",
-      idempotencyKey: "payment-rev-1",
-      note: "دفعة كاملة",
-    });
-    const afterReversal = reverseSupplierPurchasePayment(withPayment, {
-      id: "reversal-rev-1",
-      paymentId: "payment-rev-1",
-      reason: "رجع الشيك",
-      occurredOn: "2026-08-24",
-      recordedAt: "2026-08-24T01:00:00.000Z",
-      idempotencyKey: "reversal-rev-1",
-    });
-    const saved = await source.saveSupplierPurchase(afterReversal);
-    if (!saved.ok) throw new Error("reversed purchase should save");
-    /* createVerifiedExport نفسها: التحقق يقبل الحالة بعد التراجع. */
-    const verified = await new LocalTransferService(source).createVerifiedExport();
-    expect(verified).toMatchObject({ ok: true });
-    const target = new MemoryLocalStore();
-    const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(verified.value.file));
-    if (!preview.ok) throw new Error(`import should validate: ${preview.message}`);
-    await transfers.confirmImport(preview.value);
-    await expect(target.listSupplierPurchases()).resolves.toMatchObject({
-      ok: true,
-      value: [
-        {
-          id: "purchase-rev",
-          paidMinor: 0,
-          payableMinor: 5000,
-          status: "unpaid",
-        },
-      ],
-    });
+/* S2-03 (تدقيق المجموعة ٥): نسخة احتياطية مُتحقق منها بعد تراجع دفعة موثق —
+ * المدفوع الفعلي (الدفعات − التراجعات) حالة شرعية لا تُرفض. */
+it("round-trips a verified export containing a documented payment reversal (S2-03)", async () => {
+  const source = new MemoryLocalStore();
+  await source.saveProfile(profile);
+  const purchase = createSupplierPurchase({
+    id: "purchase-rev",
+    supplierName: "مورد الأقمشة",
+    note: "قماش",
+    purchasedOn: "2026-08-22",
+    dueOn: null,
+    totalMinor: 5000,
+    initialPaidMinor: 0,
+    recordedAt: "2026-08-22T01:00:00.000Z",
+    idempotencyKey: "purchase-rev",
   });
+  const withPayment = recordSupplierPurchasePayment(purchase, {
+    id: "payment-rev-1",
+    amountMinor: 5000,
+    occurredOn: "2026-08-23",
+    recordedAt: "2026-08-23T01:00:00.000Z",
+    idempotencyKey: "payment-rev-1",
+    note: "دفعة كاملة",
+  });
+  const afterReversal = reverseSupplierPurchasePayment(withPayment, {
+    id: "reversal-rev-1",
+    paymentId: "payment-rev-1",
+    reason: "رجع الشيك",
+    occurredOn: "2026-08-24",
+    recordedAt: "2026-08-24T01:00:00.000Z",
+    idempotencyKey: "reversal-rev-1",
+  });
+  const saved = await source.saveSupplierPurchase(afterReversal);
+  if (!saved.ok) throw new Error("reversed purchase should save");
+  /* createVerifiedExport نفسها: التحقق يقبل الحالة بعد التراجع. */
+  const verified = await new LocalTransferService(source).createVerifiedExport();
+  expect(verified).toMatchObject({ ok: true });
+  const target = new MemoryLocalStore();
+  const transfers = new LocalTransferService(target);
+  const preview = transfers.prepareImport(JSON.stringify(verified.value.file));
+  if (!preview.ok) throw new Error(`import should validate: ${preview.message}`);
+  await transfers.confirmImport(preview.value);
+  await expect(target.listSupplierPurchases()).resolves.toMatchObject({
+    ok: true,
+    value: [
+      {
+        id: "purchase-rev",
+        paidMinor: 0,
+        payableMinor: 5000,
+        status: "unpaid",
+      },
+    ],
+  });
+});
 
-  /* S5-05 (تدقيق المجموعة ٥): ملفات ١٨/٢٧ التاريخية (زوج صدر فعلًا) تُقبل —
-   * المقارنة كانت ضد الثابت الحي فرفضت الحقيقي. */
-  it("accepts the historical v18/27 export pair (S5-05)", async () => {
-    const source = new MemoryLocalStore();
-    await source.saveProfile(profile);
-    const exported = await new LocalTransferService(source).createExport();
-    if (!exported.ok) throw new Error("export should succeed");
-    const asV18 = {
-      ...exported.value,
-      version: 18,
-      schemaVersion: 27,
-    };
-    const transfers = new LocalTransferService(new MemoryLocalStore());
-    const preview = transfers.prepareImport(JSON.stringify(asV18));
-    expect(preview).toMatchObject({ ok: true });
-    const fakePair = {
-      ...exported.value,
-      version: 18,
-      schemaVersion: localSchemaVersion,
-    };
-    expect(transfers.prepareImport(JSON.stringify(fakePair))).toMatchObject({ ok: false });
-  });
+/* S5-05 (تدقيق المجموعة ٥): ملفات ١٨/٢٧ التاريخية (زوج صدر فعلًا) تُقبل —
+ * المقارنة كانت ضد الثابت الحي فرفضت الحقيقي. */
+it("accepts the historical v18/27 export pair (S5-05)", async () => {
+  const source = new MemoryLocalStore();
+  await source.saveProfile(profile);
+  const exported = await new LocalTransferService(source).createExport();
+  if (!exported.ok) throw new Error("export should succeed");
+  const asV18 = {
+    ...exported.value,
+    version: 18,
+    schemaVersion: 27,
+  };
+  const transfers = new LocalTransferService(new MemoryLocalStore());
+  const preview = transfers.prepareImport(JSON.stringify(asV18));
+  expect(preview).toMatchObject({ ok: true });
+  const fakePair = {
+    ...exported.value,
+    version: 18,
+    schemaVersion: localSchemaVersion,
+  };
+  expect(transfers.prepareImport(JSON.stringify(fakePair))).toMatchObject({ ok: false });
+});
 
 describe("Group 6 — allocation source line survives export/import round trip", () => {
   it("sourceRefLineId يمر التصدير والتحقق والاستيراد كما هو — بلا فقد ولا تحريف", async () => {

@@ -99,7 +99,9 @@ export class PreferenceService {
       ? { ok: true, enabled: result.value?.backupReminderEnabled ?? true }
       : { ok: false, code: "storage_error", message: "تعذر قراءة تفضيل تذكير النسخة." };
   }
-  async readLastVerifiedExport(): Promise<{ ok: true; exportedAt: string | null } | { ok: false; code: "storage_error"; message: string }> {
+  async readLastVerifiedExport(): Promise<
+    { ok: true; exportedAt: string | null } | { ok: false; code: "storage_error"; message: string }
+  > {
     const result = await this.store.getPreferences();
     return result.ok
       ? { ok: true, exportedAt: result.value?.lastVerifiedExportAt ?? null }

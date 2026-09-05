@@ -294,7 +294,8 @@ export class CashContinuityService {
     const repeated = entries.filter(entry => entry.operationKey === input.operationKey);
     if (repeated.length) return { ok: true, value: repeated, reused: true };
     const target = entries.find(entry => entry.id === input.entryId);
-    if (!target) return { ok: false, code: "validation_error", message: "لم نجد أثر الكاش الذي تريد التراجع عنه." };
+    if (!target)
+      return { ok: false, code: "validation_error", message: "لم نجد أثر الكاش الذي تريد التراجع عنه." };
     if (target.type === "reversal")
       return {
         ok: false,
@@ -305,7 +306,11 @@ export class CashContinuityService {
       ? entries.filter(entry => entry.transferId === target.transferId)
       : [target];
     if (targets.length === 0 || (target.transferId && targets.length !== 2))
-      return { ok: false, code: "validation_error", message: "أثر التحويل غير متوازن ولا يمكن التراجع عنه بأمان." };
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "أثر التحويل غير متوازن ولا يمكن التراجع عنه بأمان.",
+      };
     if (targets.some(entry => entries.some(candidate => candidate.reversesEntryId === entry.id)))
       return {
         ok: false,

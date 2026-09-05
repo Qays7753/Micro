@@ -20,10 +20,7 @@ import {
 
 const now = () => "2026-09-02T10:00:00.000Z";
 
-async function saveEvent(
-  store: MemoryLocalStore,
-  input: Parameters<typeof createFinancialEvent>[0],
-) {
+async function saveEvent(store: MemoryLocalStore, input: Parameters<typeof createFinancialEvent>[0]) {
   const saved = await store.saveFinancialEvent(createFinancialEvent(input));
   if (!saved.ok) throw new Error("event should save");
   return saved.value;
@@ -400,7 +397,9 @@ describe("StatementService — تراجعات القبض ورد العربون (
     /* العربون 2000 دخل، والقبضة 3000 دخلت ثم خرجت بالتراجع — الصافي 2000. */
     expect(orderLine?.amountMinor).toBe(2000);
     expect(
-      orderLine?.sources.some(source => source.amountMinor === -3000 && source.label.includes("تراجع عن قبضة")),
+      orderLine?.sources.some(
+        source => source.amountMinor === -3000 && source.label.includes("تراجع عن قبضة"),
+      ),
     ).toBe(true);
     /* صافي الكاش: 2000 فقط — بلا خصم التراجع كان سيتضخم إلى 5000 (G6-F1-3). */
     expect(reading.value.cashNetMinor).toBe(2000);
@@ -471,21 +470,21 @@ describe("StatementService — تراجعات القبض ورد العربون (
     const secondPeriod = await statement.read("2026-09-08", "2026-09-14");
     expect(secondPeriod.ok).toBe(true);
     if (secondPeriod.ok) {
-      expect(secondPeriod.value.blocks.cashIn.find(line => line.id === "order-collections")?.amountMinor).toBe(
-        -3000,
-      );
+      expect(
+        secondPeriod.value.blocks.cashIn.find(line => line.id === "order-collections")?.amountMinor,
+      ).toBe(-3000);
       expect(secondPeriod.value.cashNetMinor).toBe(-3000);
     }
     /* فترة القبضة الأصلية لم تُعد كتابتها (تاريخ مسجل لا يتغير). */
     const reread = await statement.read("2026-09-01", "2026-09-07");
     expect(reread.ok).toBe(true);
     if (reread.ok) {
-      expect(reread.value.blocks.cashIn.find(line => line.id === "order-collections")?.amountMinor).toBe(5000);
+      expect(reread.value.blocks.cashIn.find(line => line.id === "order-collections")?.amountMinor).toBe(
+        5000,
+      );
     }
   });
 });
-
-
 
 describe("StatementService — G6-U2-2: ledger owner movements in the owner block", () => {
   it("سحب مالك بمسار المحفظة يدخل كتلة المالك بسطر مصدره دفتر المحفظة", async () => {

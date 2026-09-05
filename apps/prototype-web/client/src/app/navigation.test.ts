@@ -5,12 +5,7 @@ import { isPublicLocalRecoveryRoute } from "./StartupGate";
 describe("Prototype navigation contract", () => {
   it("keeps the approved four-destination bar: project, work, finance, tools — My Tools is a first-class destination", () => {
     expect(primaryNavigation.map(item => item.href)).toEqual(["/", "/orders", "/finance", "/tools"]);
-    expect(primaryNavigation.map(item => item.label)).toEqual([
-      "مشروعي الآن",
-      "العمل",
-      "مالي",
-      "أدواتي",
-    ]);
+    expect(primaryNavigation.map(item => item.label)).toEqual(["مشروعي الآن", "العمل", "مالي", "أدواتي"]);
   });
 
   it("maps each known path to an Arabic contextual label with the unified finance name", () => {

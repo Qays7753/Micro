@@ -291,7 +291,8 @@ export class InventoryMaterialService {
             openShortageCount: openShortagesByMaterial.get(material.id) ?? 0,
             awaitingReceiptPurchaseCount: awaitingPurchases.length,
             awaitingReceiptRemainingMinor: awaitingPurchases.reduce(
-              (sum, purchase) => sum + (purchase.totalMinor - (receivedValueByPurchase.get(purchase.id) ?? 0)),
+              (sum, purchase) =>
+                sum + (purchase.totalMinor - (receivedValueByPurchase.get(purchase.id) ?? 0)),
               0,
             ),
           };
@@ -347,8 +348,7 @@ export class InventoryMaterialService {
   /** القرار ٩: تفعيل صريح بتاريخ اليوم — لحظة معلنة تُعرض، والرصيد يومها يكفي. */
   async activate(input: InventoryActivationInput): Promise<InventoryResult<InventoryActivation>> {
     const current = await this.store.getInventoryActivation();
-    if (!current.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة حالة تفعيل المخزون." };
+    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة حالة تفعيل المخزون." };
     if (current.value) return { ok: true, value: current.value, reused: true };
     const activation: InventoryActivation = {
       id: localInventoryActivationId,
@@ -432,16 +432,17 @@ export class InventoryMaterialService {
     };
   }
   async references(): Promise<InventoryResult<InventoryReferences>> {
-    const [materials, purchases, orders, catalogItems, catalogTemplates, movements, sales] = await Promise.all([
-      this.store.listMaterials(),
-      this.store.listSupplierPurchases(),
-      this.store.listOrders(),
-      this.store.listCatalogItems(),
-      this.store.listCatalogTemplates(),
-      this.store.listInventoryMovements(),
-      /* المجموعة ٣ (عقد D6): المبيعات المباشرة النشطة — مرجع استهلاك صريح. */
-      this.store.listDirectSales(),
-    ]);
+    const [materials, purchases, orders, catalogItems, catalogTemplates, movements, sales] =
+      await Promise.all([
+        this.store.listMaterials(),
+        this.store.listSupplierPurchases(),
+        this.store.listOrders(),
+        this.store.listCatalogItems(),
+        this.store.listCatalogTemplates(),
+        this.store.listInventoryMovements(),
+        /* المجموعة ٣ (عقد D6): المبيعات المباشرة النشطة — مرجع استهلاك صريح. */
+        this.store.listDirectSales(),
+      ]);
     if (
       !materials.ok ||
       !purchases.ok ||
@@ -520,16 +521,17 @@ export class InventoryMaterialService {
       const isTracked = input.tracking === "tracked";
       const confirmed = input.opening.quantityState === "confirmed";
       const quantityMilli = input.opening.quantityMilli;
-      const costKnown = isTracked && confirmed && (quantityMilli ?? 0) > 0 && input.opening.costState === "known";
+      const costKnown =
+        isTracked && confirmed && (quantityMilli ?? 0) > 0 && input.opening.costState === "known";
       if (!isTracked && input.opening.quantityState === "confirmed")
-        throw new Error(
-          "المادة غير المتتبَّعة لا تحتاج رصيد بداية — أنشئها للتكلفة فقط أو فعّل المتابعة.",
-        );
+        throw new Error("المادة غير المتتبَّعة لا تحتاج رصيد بداية — أنشئها للتكلفة فقط أو فعّل المتابعة.");
       if (confirmed && (quantityMilli === null || quantityMilli === undefined))
         throw new Error("الرصيد المؤكد يحتاج كمية معلومة.");
-      if (confirmed && (quantityMilli as number) < 0)
-        throw new Error("الكمية لا يمكن أن تكون سالبة.");
-      if (costKnown && (!Number.isInteger(input.opening.valueMinor) || (input.opening.valueMinor as number) <= 0))
+      if (confirmed && (quantityMilli as number) < 0) throw new Error("الكمية لا يمكن أن تكون سالبة.");
+      if (
+        costKnown &&
+        (!Number.isInteger(input.opening.valueMinor) || (input.opening.valueMinor as number) <= 0)
+      )
         throw new Error("قيمة الرصيد المعروفة يجب أن تكون رقمًا موجبًا — أو اختر «غير معروفة بعد».");
       const openingKnowledge: MaterialOpeningKnowledge | null = isTracked
         ? {
@@ -581,16 +583,13 @@ export class InventoryMaterialService {
   }
   /* المجموعة ٢ (عقد ٢٨): إيقاف المتابعة بعواقب معلنة — الحركات كلها تبقى، والرصيد
    * يجمَّد في السجل، وإعادة التفعيل تعيده «غير محدد بعد» حتى يؤكده المالك. */
-  async untrackMaterial(
-    input: UntrackMaterialInput,
-  ): Promise<InventoryResult<Material>> {
+  async untrackMaterial(input: UntrackMaterialInput): Promise<InventoryResult<Material>> {
     const materialsResult = await this.store.listMaterials();
     if (!materialsResult.ok) return storageFailure();
     const material = materialsResult.value.find(candidate => candidate.id === input.materialId);
     if (!material)
       return { ok: false, code: "validation_error", message: "لم نجد المادة التي تريد إيقاف متابعتها." };
-    if (!materialIsTracked(material))
-      return { ok: true, value: material, reused: true };
+    if (!materialIsTracked(material)) return { ok: true, value: material, reused: true };
     const updated: Material = {
       ...material,
       tracking: {
@@ -651,11 +650,12 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: { material, movement: repeated }, reused: true };
     if (input.actualQuantityMilli < 0)
       return { ok: false, code: "validation_error", message: "الكمية الفعلية لا يمكن أن تكون سالبة." };
-    if (
-      input.costKnown &&
-      (!Number.isInteger(input.valueMinor) || (input.valueMinor as number) < 0)
-    )
-      return { ok: false, code: "validation_error", message: "قيمة الرصيد المعروفة يجب أن تكون رقمًا غير سالب." };
+    if (input.costKnown && (!Number.isInteger(input.valueMinor) || (input.valueMinor as number) < 0))
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "قيمة الرصيد المعروفة يجب أن تكون رقمًا غير سالب.",
+      };
     try {
       let movement: InventoryMovement | null = null;
       if (delta !== 0) {
@@ -676,11 +676,7 @@ export class InventoryMaterialService {
           });
         } else {
           const costUnknownPosition = positionCostKnowledge(movements.value, material.id) === "unknown";
-          const value = consumptionValueMinor(
-            Math.abs(delta),
-            position,
-            costUnknownPosition,
-          );
+          const value = consumptionValueMinor(Math.abs(delta), position, costUnknownPosition);
           movement = createInventoryMovement({
             id: id("adjust-material"),
             materialId: material.id,
@@ -707,11 +703,12 @@ export class InventoryMaterialService {
           sourceNote: input.sourceNote?.trim() || null,
         },
       };
-      assertInventoryRemainsNonNegative(material.id, movement ? [...movements.value, movement] : movements.value);
+      assertInventoryRemainsNonNegative(
+        material.id,
+        movement ? [...movements.value, movement] : movements.value,
+      );
       const saved = await this.store.commitInventory(updated, movement ? [movement] : []);
-      return saved.ok
-        ? { ok: true, value: { material: updated, movement } }
-        : storageFailure();
+      return saved.ok ? { ok: true, value: { material: updated, movement } } : storageFailure();
     } catch (error) {
       return {
         ok: false,
@@ -760,10 +757,7 @@ export class InventoryMaterialService {
         movement.purchaseId === input.purchaseId &&
         !reversedMovementIds.has(movement.id),
     );
-    const receivedValue = activeReceipts.reduce(
-      (sum, movement) => sum + movement.valueDeltaMinor,
-      0,
-    );
+    const receivedValue = activeReceipts.reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
     if (receivedValue + input.valueMinor > purchase.totalMinor)
       return {
         ok: false,
@@ -773,10 +767,7 @@ export class InventoryMaterialService {
     /* المجموعة ٢ (عقد ٢٨): حد الكمية المتوقعة — الاستلام الجزئي المتعمد مسموح،
      * والتجاوز فوق المتوقع يُرفض بصدق (وحدة المادة واحدة لأن الربط ملزم أعلاه). */
     if (purchase.expectedQuantityMilli !== null && purchase.expectedQuantityMilli !== undefined) {
-      const receivedQuantity = activeReceipts.reduce(
-        (sum, movement) => sum + movement.quantityDeltaMilli,
-        0,
-      );
+      const receivedQuantity = activeReceipts.reduce((sum, movement) => sum + movement.quantityDeltaMilli, 0);
       if (receivedQuantity + input.quantityMilli > purchase.expectedQuantityMilli)
         return {
           ok: false,
@@ -812,9 +803,13 @@ export class InventoryMaterialService {
     const [materials, movements, order, sales] = await Promise.all([
       this.store.listMaterials(),
       this.store.listInventoryMovements(),
-      input.orderId ? this.store.getOrder(input.orderId) : Promise.resolve({ ok: true, value: null } as const),
+      input.orderId
+        ? this.store.getOrder(input.orderId)
+        : Promise.resolve({ ok: true, value: null } as const),
       /* المجموعة ٣ (عقد D6): تحقق وجود البيع المباشر المرتبط إن ذُكر. */
-      input.saleId ? this.store.listDirectSales() : Promise.resolve({ ok: true, value: [] as const } as const),
+      input.saleId
+        ? this.store.listDirectSales()
+        : Promise.resolve({ ok: true, value: [] as const } as const),
     ]);
     if (!materials.ok || !movements.ok || !order.ok || !sales.ok) return storageFailure();
     const repeated = movements.value.find(movement => movement.operationKey === input.operationKey);
@@ -936,7 +931,9 @@ export class InventoryMaterialService {
       this.store.listInventoryShortages(),
     ]);
     if (!materials.ok || !movements.ok || !shortages.ok) return storageFailure();
-    const repeated = shortages.value.find(shortage => shortage.operationKey === `${input.operationKey}:shortage`);
+    const repeated = shortages.value.find(
+      shortage => shortage.operationKey === `${input.operationKey}:shortage`,
+    );
     if (repeated) {
       const movement =
         movements.value.find(candidate => candidate.operationKey === input.operationKey) ?? null;
@@ -959,7 +956,11 @@ export class InventoryMaterialService {
         message: "الكمية متوفرة — استخدم الاستهلاك العادي، لا مسار النقص.",
       };
     if (position.quantityMilli <= 0)
-      return { ok: false, code: "validation_error", message: "لا متاح من هذه المادة الآن — سجّل النقص وحده." };
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "لا متاح من هذه المادة الآن — سجّل النقص وحده.",
+      };
     try {
       const costUnknown = positionCostKnowledge(movements.value, input.materialId) === "unknown";
       const value = consumptionValueMinor(position.quantityMilli, position, costUnknown);
@@ -1061,8 +1062,7 @@ export class InventoryMaterialService {
        * «غير معروفة» لا برفض (كسابقة الاستهلاك). */
       const costUnknown =
         position.valueMinor <= 0 && positionCostKnowledge(movements.value, input.materialId) === "unknown";
-      if (position.valueMinor <= 0 && !costUnknown)
-        throw new Error("لا متبقي من هذه المادة لإخراجه.");
+      if (position.valueMinor <= 0 && !costUnknown) throw new Error("لا متبقي من هذه المادة لإخراجه.");
       const movement = createInventoryMovement({
         id: id("extract-waste"),
         materialId: input.materialId,
@@ -1096,8 +1096,7 @@ export class InventoryMaterialService {
     const repeated = movements.value.find(movement => movement.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
-    if (!material)
-      return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل ضبطها." };
+    if (!material) return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل ضبطها." };
     if (!materialIsTracked(material))
       return {
         ok: false,

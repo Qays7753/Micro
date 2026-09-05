@@ -35,10 +35,7 @@ export function isBeforeInstallPromptEvent(event: Event): event is BeforeInstall
 /** نافذة إخفاء بطاقة التثبيت: ثلاثون يومًا، ثم يجوز للبطاقة العودة مرة واحدة. */
 const INSTALL_BANNER_DISMISSAL_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
-export function isInstallBannerDismissalActive(
-  dismissedAt: string | null | undefined,
-  now: string,
-): boolean {
+export function isInstallBannerDismissalActive(dismissedAt: string | null | undefined, now: string): boolean {
   if (!dismissedAt) return false;
   const dismissed = Date.parse(dismissedAt);
   const current = Date.parse(now);

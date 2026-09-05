@@ -53,24 +53,22 @@ export default function CashDistribution() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([cashContinuity.overview(), projectFinance.readPosition()]).then(
-      ([overview, position]) => {
-        if (!active) return;
-        if (!overview.ok || !position.ok) {
-          setState({ phase: "error", message: "تعذر قراءة المحافظ والكاش." });
-          return;
-        }
-        setState({ phase: "ready", overview: overview.value, position: position.value });
-        /* ?to= يختار محفظة معلنة فقط؛ غير ذلك أول محفظة — بلا اختراع.
-         * (إصلاح تكاملي — مجموعة ٤): عامل ?? لا يمرّر السلسلة الفارغة فلا تُختار
-         * أول محفظة أبدًا بينما يعرض <select> خياره الأول — القائمة والمقود متزامنان الآن. */
-        const requested =
-          toParam && overview.value.wallets.some(wallet => wallet.id === toParam) ? toParam : null;
-        setWalletId(current => requested || current || overview.value.wallets[0]?.id || "");
-        /* الكاش غير الموزع السالب يعني دفعة تحتاج تغطية — الاتجاه جاهز للتغطية لا للتوزيع. */
-        if (position.value.unallocatedCashMinor < 0) setDirection("cover_payment");
-      },
-    );
+    Promise.all([cashContinuity.overview(), projectFinance.readPosition()]).then(([overview, position]) => {
+      if (!active) return;
+      if (!overview.ok || !position.ok) {
+        setState({ phase: "error", message: "تعذر قراءة المحافظ والكاش." });
+        return;
+      }
+      setState({ phase: "ready", overview: overview.value, position: position.value });
+      /* ?to= يختار محفظة معلنة فقط؛ غير ذلك أول محفظة — بلا اختراع.
+       * (إصلاح تكاملي — مجموعة ٤): عامل ?? لا يمرّر السلسلة الفارغة فلا تُختار
+       * أول محفظة أبدًا بينما يعرض <select> خياره الأول — القائمة والمقود متزامنان الآن. */
+      const requested =
+        toParam && overview.value.wallets.some(wallet => wallet.id === toParam) ? toParam : null;
+      setWalletId(current => requested || current || overview.value.wallets[0]?.id || "");
+      /* الكاش غير الموزع السالب يعني دفعة تحتاج تغطية — الاتجاه جاهز للتغطية لا للتوزيع. */
+      if (position.value.unallocatedCashMinor < 0) setDirection("cover_payment");
+    });
     return () => {
       active = false;
     };
@@ -87,7 +85,11 @@ export default function CashDistribution() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الكاش</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(returnPath)}
+        >
           محافظ الكاش
         </button>
       </section>
@@ -152,8 +154,8 @@ export default function CashDistribution() {
         </p>
         {position.unallocatedCashMinor < 0 ? (
           <p className="micro-field-error" role="alert">
-            في دفعة تحتاج تغطية — الكاش غير الموزع سالب لأن دفعًا مسجلًا تجاوز ما دخل غير موزع.
-            غطِّ الفرق من محفظة فيها رصيد؛ التغطية نقل كاش لا مصروف ولا ربح.
+            في دفعة تحتاج تغطية — الكاش غير الموزع سالب لأن دفعًا مسجلًا تجاوز ما دخل غير موزع. غطِّ الفرق من
+            محفظة فيها رصيد؛ التغطية نقل كاش لا مصروف ولا ربح.
           </p>
         ) : null}
       </section>
@@ -208,10 +210,7 @@ export default function CashDistribution() {
               />
             </label>
             {message ? (
-              <p
-                className={message.startsWith("ان") ? "micro-save-note" : "micro-field-error"}
-                role="status"
-              >
+              <p className={message.startsWith("ان") ? "micro-save-note" : "micro-field-error"} role="status">
                 {message}
               </p>
             ) : null}

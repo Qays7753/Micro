@@ -30,8 +30,7 @@ export default function OwnerWithdrawalEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const {
-  dataVersion, ownerEntitlement, projectFinance, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, ownerEntitlement, projectFinance, notifyDataChanged } = usePrototypeServices();
   const [overview, setOverview] = useState<OwnerEntitlementOverview | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [amountMinor, setAmountMinor] = useState(0);
@@ -63,13 +62,7 @@ export default function OwnerWithdrawalEditor() {
 
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
-  const isDirty = useFormDirty([
-      amountMinor,
-      walletId,
-      entitlementId,
-      occurredOn,
-      note,
-    ]);
+  const isDirty = useFormDirty([amountMinor, walletId, entitlementId, occurredOn, note]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
@@ -133,7 +126,11 @@ export default function OwnerWithdrawalEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر المالك</h1>
         <p>{loadError}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/finance")}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate("/finance")}
+        >
           العودة إلى مالي
         </button>
       </section>
@@ -142,19 +139,15 @@ export default function OwnerWithdrawalEditor() {
   const path = overview ? unifiedWithdrawalPath(overview) : null;
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> مالي
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مدخل واحد · سحب المالك</span>
         <h1>سحب من المشروع لنفسك؟</h1>
         <p>
-          مال تأخذه من مشروعك لاستعمالك الشخصي. ينقص الكاش المسجل ولا يسجل مصروفًا تشغيليًا أبدًا — أثره
-          يظهر حيث ينتمي بحسب حال مشروعك، ولا حاجة لمعرفة الفرق التقني.
+          مال تأخذه من مشروعك لاستعمالك الشخصي. ينقص الكاش المسجل ولا يسجل مصروفًا تشغيليًا أبدًا — أثره يظهر
+          حيث ينتمي بحسب حال مشروعك، ولا حاجة لمعرفة الفرق التقني.
         </p>
       </div>
       <section className="micro-decision-card">
@@ -236,16 +229,16 @@ export default function OwnerWithdrawalEditor() {
           ) : null}
           <div className="micro-form-actions micro-sticky-save">
             <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
-            disabled={saving}
-            onClick={() => {
-              void save();
-            }}
-          >
-            <Save aria-hidden="true" />
-            {saving ? "جارٍ الحفظ…" : "سجّل السحب"}
-          </button>
+              className="micro-button micro-button-primary micro-save-cost"
+              type="button"
+              disabled={saving}
+              onClick={() => {
+                void save();
+              }}
+            >
+              <Save aria-hidden="true" />
+              {saving ? "جارٍ الحفظ…" : "سجّل السحب"}
+            </button>
           </div>
         </section>
       ) : (

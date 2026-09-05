@@ -33,7 +33,18 @@ afterEach(clearDatabase);
 function deliveredOrder(): StoredCraftOrder {
   const snapshot = calculateCostSnapshot("snap-1", {
     currency: "JOD",
-    materialItems: [{ name: "قماش", quantity: 2, unit: "متر", unitPriceMinor: 500, priceDate: "2026-09-01", source: "user_input", confidence: "known", materialId: "mat-1" }],
+    materialItems: [
+      {
+        name: "قماش",
+        quantity: 2,
+        unit: "متر",
+        unitPriceMinor: 500,
+        priceDate: "2026-09-01",
+        source: "user_input",
+        confidence: "known",
+        materialId: "mat-1",
+      },
+    ],
     time: null,
     packagingMinor: 0,
     deliveryMinor: 0,
@@ -54,13 +65,31 @@ function deliveredOrder(): StoredCraftOrder {
     createdAt: "2026-09-04T08:00:00.000Z",
   });
   const delivered = transitionOrder(
-    transitionOrder(transitionOrder(transitionOrder(order, { to: "provisional_agreement", idempotencyKey: "k-agree", createdAt: "2026-09-04T08:01:00.000Z" }), { to: "confirmed", idempotencyKey: "k-confirm", createdAt: "2026-09-04T08:02:00.000Z" }), { to: "in_progress", idempotencyKey: "k-start", createdAt: "2026-09-04T08:03:00.000Z" }), { to: "ready", idempotencyKey: "k-ready", createdAt: "2026-09-04T08:04:00.000Z" });
-  const withDelivery = transitionOrder(delivered, { to: "delivered", idempotencyKey: "order-1:deliver", createdAt: "2026-09-04T09:00:00.000Z" });
+    transitionOrder(
+      transitionOrder(
+        transitionOrder(order, {
+          to: "provisional_agreement",
+          idempotencyKey: "k-agree",
+          createdAt: "2026-09-04T08:01:00.000Z",
+        }),
+        { to: "confirmed", idempotencyKey: "k-confirm", createdAt: "2026-09-04T08:02:00.000Z" },
+      ),
+      { to: "in_progress", idempotencyKey: "k-start", createdAt: "2026-09-04T08:03:00.000Z" },
+    ),
+    { to: "ready", idempotencyKey: "k-ready", createdAt: "2026-09-04T08:04:00.000Z" },
+  );
+  const withDelivery = transitionOrder(delivered, {
+    to: "delivered",
+    idempotencyKey: "order-1:deliver",
+    createdAt: "2026-09-04T09:00:00.000Z",
+  });
   return {
     id: "order-1",
     order: noteDeliveryConsumption(withDelivery, {
       note: "مواد مستهلكة عند التسليم: قماش (2 متر)",
-      reversesEventId: withDelivery.events.find(event => event.type === "status_changed" && event.toStatus === "delivered")!.id,
+      reversesEventId: withDelivery.events.find(
+        event => event.type === "status_changed" && event.toStatus === "delivered",
+      )!.id,
       idempotencyKey: "order-1:deliver-consumed",
       createdAt: "2026-09-04T09:00:00.000Z",
     }),
@@ -85,7 +114,9 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
         recognizedCostMinor: 0,
         profitIndicatorMinor: null,
         events: delivered.order.events.filter(
-          event => !(event.type === "status_changed" && event.toStatus === "delivered") && event.type !== "delivery_consumed",
+          event =>
+            !(event.type === "status_changed" && event.toStatus === "delivered") &&
+            event.type !== "delivery_consumed",
         ),
       },
       updatedAt: "2026-09-04T08:59:00.000Z",
@@ -195,7 +226,9 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
             idempotencyKey: "order-1:reverse-delivery",
             createdAt: "2026-09-04T10:00:00.000Z",
             note: "سُلّم للزبون الخطأ",
-            reversesEventId: stored.order.events.find(event => event.type === "status_changed" && event.toStatus === "delivered")!.id,
+            reversesEventId: stored.order.events.find(
+              event => event.type === "status_changed" && event.toStatus === "delivered",
+            )!.id,
           },
         ],
       },

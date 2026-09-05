@@ -1,4 +1,8 @@
-import type { ActivityEffectClass, ActivityFamily, ActivityStatus } from "@/application/activity/activityService";
+import type {
+  ActivityEffectClass,
+  ActivityFamily,
+  ActivityStatus,
+} from "@/application/activity/activityService";
 
 /*
  * المجموعة ٥ (عقد ٣٠): خريطة تسميات واحدة لقارئ النشاط — الرئيس والمالي

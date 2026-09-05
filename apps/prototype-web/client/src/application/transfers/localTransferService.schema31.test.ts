@@ -78,7 +78,8 @@ describe("schema 31 export round-trip with expense category labels", () => {
       schemaVersion: number;
       data: { financialEvents: (FinancialEvent & Record<string, unknown>)[] };
     };
-    legacyFile.version = 22;    delete (legacyFile as Record<string, unknown>).integrity;
+    legacyFile.version = 22;
+    delete (legacyFile as Record<string, unknown>).integrity;
     delete (legacyFile as Record<string, unknown>).counts;
     delete (legacyFile as Record<string, unknown>).appVersion;
 
@@ -117,9 +118,7 @@ describe("schema 31 export round-trip with expense category labels", () => {
       JSON.stringify(file),
     );
     if (!prepared.ok) throw new Error(prepared.message);
-    expect(prepared.value.file.data.financialEvents[0]?.expenseContext?.categoryLabel).toBe(
-      "بنزين وقود",
-    );
+    expect(prepared.value.file.data.financialEvents[0]?.expenseContext?.categoryLabel).toBe("بنزين وقود");
     file.data.financialEvents[0]!.expenseContext!.categoryLabel = "   ";
     const blankPrepared = new LocalTransferService(new MemoryLocalStore(), now).prepareImport(
       JSON.stringify(file),

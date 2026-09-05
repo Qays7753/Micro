@@ -73,18 +73,18 @@ export default function MaterialEditor() {
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
   const isDirty = useFormDirty([
-      name,
-      unit,
-      tracking,
-      openingChoice,
-      quantityMilli,
-      costKnown,
-      valueMinor,
-      actualQuantityMilli,
-      date,
-      sourceNote,
-      note,
-    ]);
+    name,
+    unit,
+    tracking,
+    openingChoice,
+    quantityMilli,
+    costKnown,
+    valueMinor,
+    actualQuantityMilli,
+    date,
+    sourceNote,
+    note,
+  ]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   const confirmed = tracking === "tracked" && (openingChoice === "quantity" || openingChoice === "zero");
@@ -147,8 +147,7 @@ export default function MaterialEditor() {
       tracking,
       opening: {
         quantityState: confirmed ? "confirmed" : "unconfirmed",
-        quantityMilli:
-          openingChoice === "quantity" ? quantityMilli : openingChoice === "zero" ? 0 : null,
+        quantityMilli: openingChoice === "quantity" ? quantityMilli : openingChoice === "zero" ? 0 : null,
         costState: costKnown ? "known" : "unknown",
         valueMinor: openingChoice === "quantity" && costKnown ? valueMinor : null,
         confirmedOn: confirmed ? date : null,
@@ -185,22 +184,29 @@ export default function MaterialEditor() {
     );
 
   const unitText = unitLabel(unit);
-  const previewLines = confirmMode && material
-    ? confirmDelta === 0
-      ? ["لا فرق — يُؤكَّد الرصيد بلا حركة.", "لا يتغير الكاش ولا نتيجة الفترة."]
-      : [
-          `سيُسجَّل فرق ${confirmDelta > 0 ? "+" : "−"}${Math.abs(confirmDelta) / 1000} ${unitLabel(material.unit)} بحركة موثقة.`,
-          "لا يتغير الكاش ولا نتيجة الفترة.",
-        ]
-    : tracking === "untracked"
-      ? ["مادة للتكلفة فقط — بلا رصيد ولا حركة مخزون.", "لا يتغير الكاش ولا نتيجة الفترة."]
-      : openingChoice === "unconfirmed"
-        ? ["مادة متتبَّعة، رصيدها «غير محدد بعد» حتى تؤكده.", "لا يتغير الكاش ولا نتيجة الفترة."]
-        : openingChoice === "zero"
-          ? ["رصيد صفر مؤكد — لا حركة تُسجَّل للصفر.", "لا يتغير الكاش ولا نتيجة الفترة."]
-          : costKnown
-            ? [`سيُسجَّل رصيد بداية ${quantityMilli / 1000} ${unitText} بقيمة معروفة.`, "لا يتغير الكاش ولا نتيجة الفترة."]
-            : [`سيُسجَّل رصيد بداية ${quantityMilli / 1000} ${unitText} — تكلفته غير معروفة بعد، لا صفرًا.`, "لا يتغير الكاش ولا نتيجة الفترة."];
+  const previewLines =
+    confirmMode && material
+      ? confirmDelta === 0
+        ? ["لا فرق — يُؤكَّد الرصيد بلا حركة.", "لا يتغير الكاش ولا نتيجة الفترة."]
+        : [
+            `سيُسجَّل فرق ${confirmDelta > 0 ? "+" : "−"}${Math.abs(confirmDelta) / 1000} ${unitLabel(material.unit)} بحركة موثقة.`,
+            "لا يتغير الكاش ولا نتيجة الفترة.",
+          ]
+      : tracking === "untracked"
+        ? ["مادة للتكلفة فقط — بلا رصيد ولا حركة مخزون.", "لا يتغير الكاش ولا نتيجة الفترة."]
+        : openingChoice === "unconfirmed"
+          ? ["مادة متتبَّعة، رصيدها «غير محدد بعد» حتى تؤكده.", "لا يتغير الكاش ولا نتيجة الفترة."]
+          : openingChoice === "zero"
+            ? ["رصيد صفر مؤكد — لا حركة تُسجَّل للصفر.", "لا يتغير الكاش ولا نتيجة الفترة."]
+            : costKnown
+              ? [
+                  `سيُسجَّل رصيد بداية ${quantityMilli / 1000} ${unitText} بقيمة معروفة.`,
+                  "لا يتغير الكاش ولا نتيجة الفترة.",
+                ]
+              : [
+                  `سيُسجَّل رصيد بداية ${quantityMilli / 1000} ${unitText} — تكلفته غير معروفة بعد، لا صفرًا.`,
+                  "لا يتغير الكاش ولا نتيجة الفترة.",
+                ];
 
   return (
     <section className="micro-page micro-finance-page">
@@ -224,7 +230,9 @@ export default function MaterialEditor() {
           <div className="micro-effect-preview" data-testid="material-effect-preview" aria-live="polite">
             <span className="micro-effect-preview-label">بعد الحفظ:</span>
             {previewLines.map(line => (
-              <p className="micro-effect-preview-line" key={line}>{line}</p>
+              <p className="micro-effect-preview-line" key={line}>
+                {line}
+              </p>
             ))}
           </div>
         </div>
@@ -276,7 +284,11 @@ export default function MaterialEditor() {
               ) : null}
             </fieldset>
           ) : null}
-          <LocalDateField label="تاريخ التأكيد" value={date} onChange={event => setDate(event.target.value)} />
+          <LocalDateField
+            label="تاريخ التأكيد"
+            value={date}
+            onChange={event => setDate(event.target.value)}
+          />
           <label className="micro-field">
             <span>
               كيف عرفته؟ <small>اختياري</small>

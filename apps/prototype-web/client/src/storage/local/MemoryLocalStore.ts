@@ -2,7 +2,11 @@
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
-import type { InventoryMovement, InventoryShortage, Material } from "@micro-domain/inventory-material/index.js";
+import type {
+  InventoryMovement,
+  InventoryShortage,
+  Material,
+} from "@micro-domain/inventory-material/index.js";
 import type {
   CatalogItem,
   CatalogTemplate,
@@ -170,8 +174,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     StorageResult<{ order: StoredCraftOrder; cashEntry: CashContinuityEntry | null; reused: boolean }>
   > {
     const existing = this.orders.get(order.id);
-    if (!existing)
-      return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لتراجع القبضة." };
+    if (!existing) return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لتراجع القبضة." };
     const alreadyReversed = existing.order.events.some(
       event => event.type === "collection_reversed" && event.idempotencyKey === reversalEventKey,
     );
@@ -204,8 +207,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         message: "تم التراجع عن تخصيص هذه القبضة سابقًا؛ لم يتغير السجل.",
       };
     this.orders.set(order.id, clone(order));
-    if (allocationReversal)
-      this.cashContinuityEntries.set(allocationReversal.id, clone(allocationReversal));
+    if (allocationReversal) this.cashContinuityEntries.set(allocationReversal.id, clone(allocationReversal));
     return {
       ok: true,
       value: {
@@ -219,10 +221,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     return {
       ok: true,
       value: Array.from(this.directSales.values())
-        .sort(
-          (a, b) =>
-            b.occurredOn.localeCompare(a.occurredOn) || b.recordedAt.localeCompare(a.recordedAt),
-        )
+        .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn) || b.recordedAt.localeCompare(a.recordedAt))
         .map(clone),
     };
   }
@@ -307,8 +306,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }>
   > {
     const existing = this.orders.get(order.id);
-    if (!existing)
-      return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لعكس تسليمه." };
+    if (!existing) return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لعكس تسليمه." };
     const lastReversalKey = [...order.order.events]
       .reverse()
       .find(event => event.type === "delivery_reversed")?.idempotencyKey;
@@ -532,11 +530,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
-  ): Promise<StorageResult<{
-    material: Material | null;
-    movements: readonly InventoryMovement[];
-    shortage: InventoryShortage | null;
-  }>> {
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      shortage: InventoryShortage | null;
+    }>
+  > {
     if (material) this.materials.set(material.id, clone(material));
     movements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
     if (shortage) this.inventoryShortages.set(shortage.id, clone(shortage));
@@ -616,7 +616,11 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ previous: CatalogTemplate; next: CatalogTemplate }>> {
     const current = this.catalogTemplates.get(previous.id);
     if (!current || !current.active)
-      return { ok: false, code: "storage_error", message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ النسخة الجديدة." };
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ النسخة الجديدة.",
+      };
     const repeated = Array.from(this.catalogTemplates.values()).find(
       template => template.createdOperationKey === next.createdOperationKey,
     );
@@ -744,7 +748,11 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     );
     if (repeated) return { ok: true, value: clone(repeated) };
     if (this.shortCashDeclarations.has(reversal.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية التراجع عن السجل المتوقع؛ لم يتغير السجل." };
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "تعارض هوية التراجع عن السجل المتوقع؛ لم يتغير السجل.",
+      };
     this.shortCashDeclarations.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }
@@ -779,9 +787,17 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }
     const current = this.ownerEntitlementPolicies.get(previous.id);
     if (!current || current.status !== "active")
-      return { ok: false, code: "storage_error", message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ النسخة الجديدة." };
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ النسخة الجديدة.",
+      };
     if (this.ownerEntitlementPolicies.has(successor.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية النسخة الجديدة من السياسة؛ لم يتغير أي شيء." };
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "تعارض هوية النسخة الجديدة من السياسة؛ لم يتغير أي شيء.",
+      };
     this.ownerEntitlementPolicies.set(previous.id, clone(previous));
     this.ownerEntitlementPolicies.set(successor.id, clone(successor));
     return { ok: true, value: { previous: clone(previous), successor: clone(successor) } };
@@ -1095,7 +1111,12 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         },
       };
     }
-    if (!event && existing && record.contractRevisions.length > 0 && existing.contractRevisions.length >= record.contractRevisions.length) {
+    if (
+      !event &&
+      existing &&
+      record.contractRevisions.length > 0 &&
+      existing.contractRevisions.length >= record.contractRevisions.length
+    ) {
       return { ok: true, value: { record: clone(existing), event: null, reused: true } };
     }
     this.assets.set(record.id, clone(record));
@@ -1106,12 +1127,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     record: AssetRecord,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    record: AssetRecord;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>> {
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  > {
     if (this.financialEvents.has(reversal.id)) {
       const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
       return {
@@ -1127,7 +1150,15 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.assets.set(record.id, clone(record));
     this.financialEvents.set(reversal.id, clone(reversal));
     this.financialEvents.set(replacement.id, clone(replacement));
-    return { ok: true, value: { record: clone(record), reversal: clone(reversal), replacement: clone(replacement), reused: false } };
+    return {
+      ok: true,
+      value: {
+        record: clone(record),
+        reversal: clone(reversal),
+        replacement: clone(replacement),
+        reused: false,
+      },
+    };
   }
   async listLoans(): Promise<StorageResult<readonly LoanRecord[]>> {
     return {
@@ -1164,12 +1195,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     record: LoanRecord,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    record: LoanRecord;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>> {
+  ): Promise<
+    StorageResult<{
+      record: LoanRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  > {
     if (this.financialEvents.has(reversal.id)) {
       const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
       return {
@@ -1185,7 +1218,15 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.loans.set(record.id, clone(record));
     this.financialEvents.set(reversal.id, clone(reversal));
     this.financialEvents.set(replacement.id, clone(replacement));
-    return { ok: true, value: { record: clone(record), reversal: clone(reversal), replacement: clone(replacement), reused: false } };
+    return {
+      ok: true,
+      value: {
+        record: clone(record),
+        reversal: clone(reversal),
+        replacement: clone(replacement),
+        reused: false,
+      },
+    };
   }
   async commitDepositClassification(
     order: StoredCraftOrder,
@@ -1210,12 +1251,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     order: StoredCraftOrder,
     reversal: FinancialEvent,
     replacement: FinancialEvent,
-  ): Promise<StorageResult<{
-    order: StoredCraftOrder;
-    reversal: FinancialEvent;
-    replacement: FinancialEvent;
-    reused: boolean;
-  }>> {
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  > {
     if (this.financialEvents.has(reversal.id)) {
       const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
       return {
@@ -1231,6 +1274,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.orders.set(order.id, clone(order));
     this.financialEvents.set(reversal.id, clone(reversal));
     this.financialEvents.set(replacement.id, clone(replacement));
-    return { ok: true, value: { order: clone(order), reversal: clone(reversal), replacement: clone(replacement), reused: false } };
+    return {
+      ok: true,
+      value: {
+        order: clone(order),
+        reversal: clone(reversal),
+        replacement: clone(replacement),
+        reused: false,
+      },
+    };
   }
 }

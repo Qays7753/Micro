@@ -226,7 +226,8 @@ describe("O1 local transfer boundary", () => {
       schemaVersion: number;
       data: Record<string, unknown>;
     };
-    previous.version = 12;    delete (previous as Record<string, unknown>).integrity;
+    previous.version = 12;
+    delete (previous as Record<string, unknown>).integrity;
     delete (previous as Record<string, unknown>).counts;
     delete (previous as Record<string, unknown>).appVersion;
 

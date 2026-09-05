@@ -14,8 +14,7 @@ import {
 } from "@/storage/local/types";
 
 export type OwnerProfileReadResult =
-  | { ok: true; value: OwnerProfile | null }
-  | { ok: false; code: StorageFailureCode; message: string };
+  { ok: true; value: OwnerProfile | null } | { ok: false; code: StorageFailureCode; message: string };
 
 export type OwnerProfileSaveResult =
   | { ok: true; value: OwnerProfile }
@@ -91,18 +90,16 @@ export class OwnerProfileService {
     const current = await this.store.getOwnerProfile();
     if (!current.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة ملف المالك. حاول مرة أخرى." };
-    const base: OwnerProfile =
-      current.value ??
-      {
-        id: localOwnerProfileId,
-        ownerId: generateOwnerId(),
-        displayName: null,
-        email: null,
-        provider: null,
-        externalAccountId: null,
-        createdAt: this.now(),
-        updatedAt: this.now(),
-      };
+    const base: OwnerProfile = current.value ?? {
+      id: localOwnerProfileId,
+      ownerId: generateOwnerId(),
+      displayName: null,
+      email: null,
+      provider: null,
+      externalAccountId: null,
+      createdAt: this.now(),
+      updatedAt: this.now(),
+    };
     const next: OwnerProfile = {
       ...base,
       displayName,

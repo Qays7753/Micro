@@ -28,7 +28,11 @@ import {
   formatQuantityMilli,
   localDateInAmman,
 } from "@/presentation/formatters";
-import type { ActivityEffectClass, ActivityFamily, ActivityRecord } from "@/application/activity/activityService";
+import type {
+  ActivityEffectClass,
+  ActivityFamily,
+  ActivityRecord,
+} from "@/application/activity/activityService";
 
 type State =
   | { phase: "loading" }
@@ -89,7 +93,11 @@ const effectTone: Record<ActivityEffectClass, string> = {
 
 function ActivityRow({ row, onOpen }: { row: ActivityRecord; onOpen: (path: string) => void }) {
   return (
-    <article className="micro-finance-event micro-activity-row" data-status={row.status} data-effect={row.effect}>
+    <article
+      className="micro-finance-event micro-activity-row"
+      data-status={row.status}
+      data-effect={row.effect}
+    >
       <button className="micro-activity-row-button" type="button" onClick={() => onOpen(row.sourceHref)}>
         <span className="micro-activity-row-main">
           <span>
@@ -183,7 +191,11 @@ export default function FinanceActivity() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة النشاط</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate(returnPath)}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          onClick={() => navigate(returnPath)}
+        >
           رجوع
         </button>
       </section>
@@ -191,7 +203,9 @@ export default function FinanceActivity() {
 
   const referrer = new URLSearchParams(search).get("from");
   const openSource = (path: string) =>
-    navigate(`${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent(referrer ?? "/finance/activity")}`);
+    navigate(
+      `${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent(referrer ?? "/finance/activity")}`,
+    );
 
   return (
     <section className="micro-page micro-activity-page">

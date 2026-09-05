@@ -293,7 +293,6 @@ describe("activity reader (المجموعة ٥ — عقد ٣٠)", () => {
     expect(collection?.sourceHref).toBe("/orders/order-1");
   });
 
-
   it("review 5-RV-A: a reversed order collection marks its original 'متراجع موثقًا' and the reversal carries cash_out", async () => {
     const store = new MemoryLocalStore();
     const events: OrderEvent[] = [

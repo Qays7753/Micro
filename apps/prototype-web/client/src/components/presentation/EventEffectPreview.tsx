@@ -7,10 +7,7 @@
  */
 import { useMemo } from "react";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
-import type {
-  FinancialEventType,
-  OperatingExpenseContext,
-} from "@micro-domain/financial-event/index.js";
+import type { FinancialEventType, OperatingExpenseContext } from "@micro-domain/financial-event/index.js";
 import { expandExpenseRecordIntent } from "@/application/finance/expenseRecordIntent";
 import type { SharedExpenseRecordInput } from "@/application/finance/expenseRecordIntent";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
@@ -62,9 +59,9 @@ function describeDeltas(
   }
   if (type === "payable_settlement_cash")
     lines.push(`ينقص ما عليك ${amount} د.أ مع الكاش — لا يُسجل المصروف مرة ثانية.`);
-  if (type === "loss_non_cash")
-    lines.push(`يخفض ربح الفترة ${amount} د.أ كتكلفة ضائعة — بلا خروج نقدي.`);
-  if (deltas.ownerCapitalDeltaMinor > 0) lines.push(`يزيد مال المالك في المشروع ${amount} د.أ — ليس إيرادًا.`);
+  if (type === "loss_non_cash") lines.push(`يخفض ربح الفترة ${amount} د.أ كتكلفة ضائعة — بلا خروج نقدي.`);
+  if (deltas.ownerCapitalDeltaMinor > 0)
+    lines.push(`يزيد مال المالك في المشروع ${amount} د.أ — ليس إيرادًا.`);
   if (deltas.ownerCapitalDeltaMinor < 0) lines.push(`ينقص مال المالك ${amount} د.أ — ليس مصروفًا تشغيليًا.`);
   if (deltas.amanahDeltaMinor > 0) lines.push(`يرفع رصيد الأمانات ${amount} د.أ — ليس مالك ولا ربحك.`);
   if (deltas.amanahDeltaMinor < 0) lines.push(`يخفض رصيد الأمانات ${amount} د.أ — لا أثر على الربح.`);

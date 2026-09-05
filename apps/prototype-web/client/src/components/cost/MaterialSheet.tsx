@@ -99,7 +99,11 @@ export function MaterialSheet({
                         {suggestion.unitPriceMinor !== null ? (
                           <>
                             {" · "}
-                            <MoneyValue minor={suggestion.unitPriceMinor} className="micro-inline-number" /> د.أ
+                            <MoneyValue
+                              minor={suggestion.unitPriceMinor}
+                              className="micro-inline-number"
+                            />{" "}
+                            د.أ
                           </>
                         ) : null}
                       </button>

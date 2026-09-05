@@ -141,18 +141,14 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
   it("reveals the indicators layer inside the period reading with margins, cost, coverage, and liquidity", async () => {
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "مالي" })).toBeTruthy();
-    await waitFor(() =>
-      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
     fireEvent.click(screen.getByText("شو صار خلال الفترة"));
     /* تثبيت النطاق على آب ٢٠٢٦ — بيانات الاختبار مسجلة فيه؛ النطاق الافتراضي
      * (الشهر الحقيقي الحالي) يتغير مع تقويم الجهاز فلا يظل الاختبار هشًا. */
     fireEvent.change(screen.getByLabelText("بداية نطاق نتيجة الفترة"), { target: { value: "2026-08" } });
     fireEvent.change(screen.getByLabelText("نهاية نطاق نتيجة الفترة"), { target: { value: "2026-08" } });
-    await waitFor(() =>
-      expect(screen.getByText("المؤشرات")).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByText("المؤشرات")).toBeTruthy());
 
     /* F-077: طبقة المؤشرات داخل قراءة الفترة. */
     expect(screen.getByText("المؤشرات")).toBeTruthy();
@@ -170,9 +166,7 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
   it("reveals the full registered expectations record under coverage and break-even, including reversals", async () => {
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "مالي" })).toBeTruthy();
-    await waitFor(() =>
-      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
     fireEvent.click(screen.getByText("شو صار خلال الفترة"));
 
@@ -185,9 +179,7 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
   it("shows the unknown mark for break-even when coverage is not recordable", async () => {
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "مالي" })).toBeTruthy();
-    await waitFor(() =>
-      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
     fireEvent.click(screen.getByText("شو صار خلال الفترة"));
     /* بلا مصروف ثابت مسجل لا تُخترع وحدة تعادل — العلامة — لا جملة. */

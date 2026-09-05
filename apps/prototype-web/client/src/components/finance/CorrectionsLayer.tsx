@@ -78,21 +78,15 @@ function CorrectionRow({
         <div>
           <strong>{kindLabel[entry.kind]}</strong>
           <small>
-            <bdi dir="ltr">{formatLocalDate(entry.recordedAt.slice(0, 10)) ?? entry.recordedAt.slice(0, 10)}</bdi>
+            <bdi dir="ltr">
+              {formatLocalDate(entry.recordedAt.slice(0, 10)) ?? entry.recordedAt.slice(0, 10)}
+            </bdi>
             {entry.occurredOn && entry.occurredOn !== entry.recordedAt.slice(0, 10)
               ? ` · تاريخ الأثر ${formatLocalDate(entry.occurredOn) ?? entry.occurredOn}`
               : ""}
           </small>
         </div>
-        <b>
-          {entry.amountEffectMinor === null ? (
-            "—"
-          ) : (
-            <>
-              {formatMoneyMinor(entry.amountEffectMinor)} د.أ
-            </>
-          )}
-        </b>
+        <b>{entry.amountEffectMinor === null ? "—" : <>{formatMoneyMinor(entry.amountEffectMinor)} د.أ</>}</b>
       </div>
       {entry.reason ? (
         <p className="micro-finance-event-note">
@@ -132,8 +126,8 @@ function CorrectionRow({
       )}
       {open ? (
         <small className="micro-finance-event-audit">
-          تصحيح قراءة فقط من سجلك المحلي؛ لا يضيف هذا السجل حدثًا ولا يعدّل قيمة مسجّلة. أنواع التصحيح
-          الموثقة تُنفَّذ من صفوفها الأصلية في «السجل والأثر» و«مبيعاتي».
+          تصحيح قراءة فقط من سجلك المحلي؛ لا يضيف هذا السجل حدثًا ولا يعدّل قيمة مسجّلة. أنواع التصحيح الموثقة
+          تُنفَّذ من صفوفها الأصلية في «السجل والأثر» و«مبيعاتي».
         </small>
       ) : null}
     </article>
@@ -159,9 +153,7 @@ export function CorrectionsLayer({
       .list()
       .then(result => {
         setState(
-          result.ok
-            ? { phase: "ready", entries: result.value }
-            : { phase: "error", message: result.message },
+          result.ok ? { phase: "ready", entries: result.value } : { phase: "error", message: result.message },
         );
       })
       .catch(() => setState({ phase: "error", message: "تعذر قراءة سجل التصحيحات المحلي." }));
@@ -187,8 +179,7 @@ export function CorrectionsLayer({
   }, [reloadToken, correctionHistory]);
 
   const entries = state.phase === "ready" ? state.entries : [];
-  const filtered =
-    filter === "all" ? entries : entries.filter(entry => groupOf(entry.kind) === filter);
+  const filtered = filter === "all" ? entries : entries.filter(entry => groupOf(entry.kind) === filter);
   const counts: Record<CorrectionHistoryGroup, number> = {
     all: entries.length,
     events: entries.filter(entry => groupOf(entry.kind) === "events").length,

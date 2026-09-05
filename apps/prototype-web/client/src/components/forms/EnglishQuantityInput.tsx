@@ -1,7 +1,6 @@
 /** RTL-safe quantity input: accepts ASCII decimals and emits integer thousandths, never a persisted float. */
 import { type ComponentProps, useEffect, useRef, useState } from "react";
-import {
-  normalizeAsciiDigits, parseEnglishQuantityText } from "@/application/input/englishNumeric";
+import { normalizeAsciiDigits, parseEnglishQuantityText } from "@/application/input/englishNumeric";
 import { cn } from "@/lib/utils";
 
 const quantityPartial = /^\d*(?:\.\d{0,3})?$/;

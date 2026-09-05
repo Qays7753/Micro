@@ -26,27 +26,54 @@ vi.mock("wouter", () => ({
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
 
 function owner(value: { ownerId: string; displayName: string | null; email: string | null }) {
-  return { ok: true, value: { id: "local-owner-profile", provider: null, externalAccountId: null, createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-01T00:00:00.000Z", ...value } };
+  return {
+    ok: true,
+    value: {
+      id: "local-owner-profile",
+      provider: null,
+      externalAccountId: null,
+      createdAt: "2026-09-01T00:00:00.000Z",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+      ...value,
+    },
+  };
 }
 
 function mockServices(overrides: Record<string, unknown> = {}) {
   return {
     ownerProfile: {
-      ensureLocal: vi.fn().mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: null, email: null })),
+      ensureLocal: vi
+        .fn()
+        .mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: null, email: null })),
       read: vi.fn(),
       save: vi.fn().mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: "ليان", email: null })),
     },
     profiles: {
       load: vi.fn().mockResolvedValue({
         ok: true,
-        value: { id: "local-profile", activityName: "مشغل ليان", currency: "JOD", activityType: "custom_craft", createdAt: "2026-09-01T00:00:00.000Z", updatedAt: "2026-09-01T00:00:00.000Z" },
+        value: {
+          id: "local-profile",
+          activityName: "مشغل ليان",
+          currency: "JOD",
+          activityType: "custom_craft",
+          createdAt: "2026-09-01T00:00:00.000Z",
+          updatedAt: "2026-09-01T00:00:00.000Z",
+        },
       }),
-      save: vi.fn().mockResolvedValue({ ok: true, profile: { id: "local-profile", activityName: "مشغل ليان" } }),
+      save: vi
+        .fn()
+        .mockResolvedValue({ ok: true, profile: { id: "local-profile", activityName: "مشغل ليان" } }),
     },
     cashContinuity: {
       overview: vi.fn().mockResolvedValue({
         ok: true,
-        value: { wallets: [{ id: "w1", name: "الدرج", balanceMinor: 5000, entryCount: 1, openingUnknown: false }], totalWalletCashMinor: 5000, entryCount: 1, unknownOpeningCount: 0, truth: "" },
+        value: {
+          wallets: [{ id: "w1", name: "الدرج", balanceMinor: 5000, entryCount: 1, openingUnknown: false }],
+          totalWalletCashMinor: 5000,
+          entryCount: 1,
+          unknownOpeningCount: 0,
+          truth: "",
+        },
       }),
     },
     preferences: {
@@ -71,7 +98,9 @@ describe("Profile — owner identity and project profile", () => {
     mockedUsePrototypeServices.mockReturnValue(
       mockServices({
         ownerProfile: {
-          ensureLocal: vi.fn().mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: "ليان", email: null })),
+          ensureLocal: vi
+            .fn()
+            .mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: "ليان", email: null })),
           read: vi.fn(),
           save: vi.fn(),
         },
@@ -106,13 +135,24 @@ describe("Profile — owner identity and project profile", () => {
   });
 
   it("التعديل يحفظ الاسم والبريد واسم المشروع محليًا ويعود للعرض", async () => {
-    const saveOwner = vi.fn().mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: "ليان خ", email: "layan@mail.com" }));
+    const saveOwner = vi
+      .fn()
+      .mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: "ليان خ", email: "layan@mail.com" }));
     const saveProfile = vi.fn().mockResolvedValue({ ok: true, profile: { id: "local-profile" } });
     const notify = vi.fn();
     mockedUsePrototypeServices.mockReturnValue(
       mockServices({
-        ownerProfile: { ensureLocal: vi.fn().mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: null, email: null })), read: vi.fn(), save: saveOwner },
-        profiles: { load: vi.fn().mockResolvedValue({ ok: true, value: { activityName: "مشغل ليان" } }), save: saveProfile },
+        ownerProfile: {
+          ensureLocal: vi
+            .fn()
+            .mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: null, email: null })),
+          read: vi.fn(),
+          save: saveOwner,
+        },
+        profiles: {
+          load: vi.fn().mockResolvedValue({ ok: true, value: { activityName: "مشغل ليان" } }),
+          save: saveProfile,
+        },
         notifyDataChanged: notify,
       }),
     );
@@ -125,7 +165,9 @@ describe("Profile — owner identity and project profile", () => {
     fireEvent.change(screen.getByLabelText(/اسمك/), { target: { value: "ليان خ" } });
     fireEvent.change(screen.getByLabelText(/بريدك الإلكتروني/), { target: { value: "layan@mail.com" } });
     fireEvent.click(screen.getByRole("button", { name: "احفظ ملفك" }));
-    await waitFor(() => expect(saveOwner).toHaveBeenCalledWith({ displayName: "ليان خ", email: "layan@mail.com" }));
+    await waitFor(() =>
+      expect(saveOwner).toHaveBeenCalledWith({ displayName: "ليان خ", email: "layan@mail.com" }),
+    );
     await waitFor(() => expect(saveProfile).toHaveBeenCalledWith("مشغل ليان"));
     await waitFor(() => expect(notify).toHaveBeenCalled());
     expect(await screen.findByText(/حُفظ ملفك محليًا/)).toBeTruthy();
@@ -139,7 +181,13 @@ describe("Profile — owner identity and project profile", () => {
     });
     mockedUsePrototypeServices.mockReturnValue(
       mockServices({
-        ownerProfile: { ensureLocal: vi.fn().mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: null, email: null })), read: vi.fn(), save: saveOwner },
+        ownerProfile: {
+          ensureLocal: vi
+            .fn()
+            .mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: null, email: null })),
+          read: vi.fn(),
+          save: saveOwner,
+        },
       }),
     );
     render(
@@ -159,7 +207,13 @@ describe("Profile — owner identity and project profile", () => {
     const saveOwner = vi.fn();
     mockedUsePrototypeServices.mockReturnValue(
       mockServices({
-        ownerProfile: { ensureLocal: vi.fn().mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: "ليان", email: null })), read: vi.fn(), save: saveOwner },
+        ownerProfile: {
+          ensureLocal: vi
+            .fn()
+            .mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: "ليان", email: null })),
+          read: vi.fn(),
+          save: saveOwner,
+        },
       }),
     );
     render(
@@ -200,7 +254,13 @@ describe("Profile — owner identity and project profile", () => {
   it("حالة الخطأ تعرض رسالة صادقة وزر إعادة محاولة", async () => {
     mockedUsePrototypeServices.mockReturnValue(
       mockServices({
-        ownerProfile: { ensureLocal: vi.fn().mockResolvedValue({ ok: false, code: "storage_error", message: "تعذر قراءة ملف المالك." }), read: vi.fn(), save: vi.fn() },
+        ownerProfile: {
+          ensureLocal: vi
+            .fn()
+            .mockResolvedValue({ ok: false, code: "storage_error", message: "تعذر قراءة ملف المالك." }),
+          read: vi.fn(),
+          save: vi.fn(),
+        },
       }),
     );
     render(
@@ -218,7 +278,13 @@ describe("Profile — owner identity and project profile", () => {
         cashContinuity: {
           overview: vi.fn().mockResolvedValue({
             ok: true,
-            value: { wallets: [{ id: "w1", name: "الدرج", balanceMinor: 0, entryCount: 0, openingUnknown: true }], totalWalletCashMinor: 0, entryCount: 0, unknownOpeningCount: 1, truth: "" },
+            value: {
+              wallets: [{ id: "w1", name: "الدرج", balanceMinor: 0, entryCount: 0, openingUnknown: true }],
+              totalWalletCashMinor: 0,
+              entryCount: 0,
+              unknownOpeningCount: 1,
+              truth: "",
+            },
           }),
         },
       }),

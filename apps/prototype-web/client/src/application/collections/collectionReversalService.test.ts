@@ -446,9 +446,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
     expect(second.ok).toBe(true);
     expect(second.value.reused).toBe(true);
     const stored = (await store.getOrder("order-7")).value!;
-    expect(
-      stored.order.events.filter(e => e.type === "collection_reversed").length,
-    ).toBe(1);
+    expect(stored.order.events.filter(e => e.type === "collection_reversed").length).toBe(1);
     const entries = (await store.listCashContinuityEntries()).value!;
     expect(entries.filter(e => e.operationKey === "root-reverse-7:unattribute").length).toBe(1);
     const after = await positionOf(store, clock);

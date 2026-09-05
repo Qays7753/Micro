@@ -61,8 +61,7 @@ export default function InventoryMovementEditor() {
     const material = query.get("material");
     return material && ID_SHAPE.test(material) ? material : null;
   })();
-  const {
-  dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
   const [references, setReferences] = useState<InventoryReferences | null>(null);
   const [materialId, setMaterialId] = useState("");
   const [purchaseId, setPurchaseId] = useState("");
@@ -185,24 +184,24 @@ export default function InventoryMovementEditor() {
    * تُستدعى الخطافات قبل أي return شرطي (قواعد الخطافات): فرع «حركة غير
    * متاحة» يمر بها أيضًا بأمان (النموذج نظيف فالحارس خامل). */
   const isDirty = useFormDirty([
-      type,
-      materialId,
-      purchaseId,
-      orderId,
-      consumeTarget,
-      direction,
-      costKnown,
-      wasteContextKind,
-      wasteOrderId,
-      wasteCatalogItemId,
-      wasteTemplateId,
-      wasteAllocationNote,
-      quantityMilli,
-      valueMinor,
-      date,
-      reason,
-      note,
-    ]);
+    type,
+    materialId,
+    purchaseId,
+    orderId,
+    consumeTarget,
+    direction,
+    costKnown,
+    wasteContextKind,
+    wasteOrderId,
+    wasteCatalogItemId,
+    wasteTemplateId,
+    wasteAllocationNote,
+    quantityMilli,
+    valueMinor,
+    date,
+    reason,
+    note,
+  ]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   if (!safeType)
@@ -226,9 +225,7 @@ export default function InventoryMovementEditor() {
       </section>
     );
   const selectedMaterial = references?.materials.find(material => material.id === materialId) ?? null;
-  const selectedPosition = references?.materialPositions.find(
-    position => position.materialId === materialId,
-  );
+  const selectedPosition = references?.materialPositions.find(position => position.materialId === materialId);
   const availableMilli = selectedPosition?.quantityMilli ?? 0;
   const shortageImminent = safeType === "consume" && quantityMilli > availableMilli;
 
@@ -332,8 +329,7 @@ export default function InventoryMovementEditor() {
             : await inventory.adjust({
                 materialId,
                 quantityDeltaMilli: direction === "increase" ? quantityMilli : -quantityMilli,
-                valueMinorWhenIncrease:
-                  direction === "increase" ? (costKnown ? valueMinor : null) : null,
+                valueMinorWhenIncrease: direction === "increase" ? (costKnown ? valueMinor : null) : null,
                 increaseCostKnowledge: direction === "increase" && !costKnown ? "unknown" : "known",
                 occurredOn: date,
                 note,
@@ -413,11 +409,7 @@ export default function InventoryMovementEditor() {
   if (references.materials.length === 0)
     return (
       <section className="micro-page micro-not-found" data-testid="inventory-movement-no-materials">
-        <button
-          className="micro-back-button"
-          type="button"
-          onClick={() => requestNavigation(returnPath)}
-        >
+        <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
           <ArrowRight aria-hidden="true" /> المواد والمخزون
         </button>
         <div className="micro-page-heading">
@@ -477,11 +469,7 @@ export default function InventoryMovementEditor() {
             ];
   return (
     <section className="micro-page micro-finance-page">
-      <button
-        className="micro-back-button"
-        type="button"
-        onClick={() => requestNavigation(returnPath)}
-      >
+      <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">
@@ -531,7 +519,11 @@ export default function InventoryMovementEditor() {
           </select>
         </label>
         {safeType === "receipt" && receiptStatus ? (
-          <section className="micro-inventory-inactive" aria-label="حالة الاستلام" data-testid="receipt-status-card">
+          <section
+            className="micro-inventory-inactive"
+            aria-label="حالة الاستلام"
+            data-testid="receipt-status-card"
+          >
             <div>
               <span className="micro-overline">حالة الاستلام</span>
               <p>
@@ -823,7 +815,11 @@ export default function InventoryMovementEditor() {
         {/* المجموعة ٢ (عقد ٢٨ / D-027): بدائل النقص — آخر كتلة قبل المعاينة
             والحفظ (لا صفوف شرطية فوق حقول الإدخال — قانون عدم الاهتزاز). */}
         {shortageImminent && selectedMaterial ? (
-          <section className="micro-danger-zone" aria-labelledby="shortage-title" data-testid="shortage-panel">
+          <section
+            className="micro-danger-zone"
+            aria-labelledby="shortage-title"
+            data-testid="shortage-panel"
+          >
             <div className="micro-section-heading">
               <CircleMinus aria-hidden="true" />
               <div>
@@ -833,8 +829,8 @@ export default function InventoryMovementEditor() {
             </div>
             <p>
               المتاح الآن <QuantityValue valueMilli={availableMilli} className="micro-inline-number" /> من{" "}
-              {selectedMaterial.name}. لا يُسمح برصيد سالب في Micro — النقص يُوثَّق سجلًا يُحلّ لاحقًا،
-              لا رقمًا سالبًا يُخفى. اختر:
+              {selectedMaterial.name}. لا يُسمح برصيد سالب في Micro — النقص يُوثَّق سجلًا يُحلّ لاحقًا، لا
+              رقمًا سالبًا يُخفى. اختر:
             </p>
             <div className="micro-form-actions">
               <button
@@ -860,8 +856,8 @@ export default function InventoryMovementEditor() {
             </div>
             <p>
               <small>
-                «سجّل نقصًا»: بلا استهلاك — يُوثَّق النقص ويبقى مفتوحًا حتى الحل. · «استهلك المتاح»:
-                يُسجَّل الاستهلاك للجزء المتاح، والباقي نقصًا في حفظ ذرّي واحد.
+                «سجّل نقصًا»: بلا استهلاك — يُوثَّق النقص ويبقى مفتوحًا حتى الحل. · «استهلك المتاح»: يُسجَّل
+                الاستهلاك للجزء المتاح، والباقي نقصًا في حفظ ذرّي واحد.
               </small>
             </p>
           </section>

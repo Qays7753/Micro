@@ -179,9 +179,7 @@ export default function InventoryMaterials() {
       return;
     }
     notifyDataChanged();
-    setMessage(
-      "عادت المتابعة — رصيد المادة «غير محدد بعد» حتى تؤكده من جديد؛ أكّده ليعود رقمًا موثوقًا.",
-    );
+    setMessage("عادت المتابعة — رصيد المادة «غير محدد بعد» حتى تؤكده من جديد؛ أكّده ليعود رقمًا موثوقًا.");
   }
   /* المجموعة ٢ (عقد ٢٨ / D-027): حل النقص صريح — بيان الحل يُطلب وقت التنفيذ. */
   async function confirmResolve(shortage: InventoryShortage) {
@@ -382,7 +380,8 @@ export default function InventoryMaterials() {
                     ) : material.costKnowledge === "partial" ? (
                       <small>تكلفة معروفة جزئيًا</small>
                     ) : null}
-                    {material.opening?.quantityState === "confirmed" && material.opening?.quantityMilli === 0 ? (
+                    {material.opening?.quantityState === "confirmed" &&
+                    material.opening?.quantityMilli === 0 ? (
                       <small>صفر مؤكد</small>
                     ) : null}
                     {unconfirmed && material.movementCount > 0 ? (
@@ -407,7 +406,10 @@ export default function InventoryMaterials() {
                       type="button"
                       onClick={() =>
                         navigate(
-                          withFrom(`/inventory/material/${encodeURIComponent(material.id)}/confirm`, "/inventory"),
+                          withFrom(
+                            `/inventory/material/${encodeURIComponent(material.id)}/confirm`,
+                            "/inventory",
+                          ),
                         )
                       }
                     >
@@ -440,7 +442,10 @@ export default function InventoryMaterials() {
                   </button>
                 </div>
                 {shortagesForMaterial.length > 0 ? (
-                  <details className="micro-shortage-details" data-testid={`shortage-details-${material.name}`}>
+                  <details
+                    className="micro-shortage-details"
+                    data-testid={`shortage-details-${material.name}`}
+                  >
                     <summary>
                       نقص مفتوح: {openShortages.length} سجل
                       {shortagesForMaterial.length !== openShortages.length
@@ -460,7 +465,8 @@ export default function InventoryMaterials() {
                             {shortage.status === "resolved" ? (
                               <>
                                 {" · حُلّ بتاريخ "}
-                                <LocalDateValue value={shortage.resolvedOn ?? ""} /> — {shortage.resolutionNote}
+                                <LocalDateValue value={shortage.resolvedOn ?? ""} /> —{" "}
+                                {shortage.resolutionNote}
                               </>
                             ) : (
                               ""
@@ -522,9 +528,7 @@ export default function InventoryMaterials() {
             );
           })
         ) : (
-          <p>
-            لا مواد متتبَّعة بعد — أضف مادة واختر متابعة كميتها. لا يفرض Micro المخزون على الخدمة.
-          </p>
+          <p>لا مواد متتبَّعة بعد — أضف مادة واختر متابعة كميتها. لا يفرض Micro المخزون على الخدمة.</p>
         )}
       </section>
       {untracked.length > 0 ? (
@@ -584,8 +588,8 @@ export default function InventoryMaterials() {
           </div>
           <p>
             الرصيد الحالي:{" "}
-            <QuantityValue valueMilli={untrackTarget.quantityMilli} className="micro-inline-number" /> · القيمة:{" "}
-            <MoneyValue minor={untrackTarget.valueMinor} className="micro-inline-number" /> د.أ ·{" "}
+            <QuantityValue valueMilli={untrackTarget.quantityMilli} className="micro-inline-number" /> ·
+            القيمة: <MoneyValue minor={untrackTarget.valueMinor} className="micro-inline-number" /> د.أ ·{" "}
             {savedMovementCountLabel(untrackTarget.movementCount)}
             {untrackTarget.costKnowledge === "unknown" ? " · التكلفة غير معروفة" : ""}
           </p>
@@ -631,8 +635,8 @@ export default function InventoryMaterials() {
             سيُسجَّل <strong>هدر</strong> بكمية{" "}
             <QuantityValue valueMilli={extraction.quantityMilli} className="micro-inline-number" /> وقيمته
             كاملة <MoneyValue minor={extraction.valueMinor} className="micro-inline-number" /> د.أ — لا حذف
-            ولا شطبًا بلا أثر. يصير مخزون المادة بعدها صفرًا صادقًا والقيمة تظهر في الهدر. القدرة عامة: إن كانت
-            المادة تلفت كلها فهذا بابها أيضًا.
+            ولا شطبًا بلا أثر. يصير مخزون المادة بعدها صفرًا صادقًا والقيمة تظهر في الهدر. القدرة عامة: إن
+            كانت المادة تلفت كلها فهذا بابها أيضًا.
           </p>
           <label className="micro-field">
             <span>سبب الإخراج</span>
@@ -697,7 +701,9 @@ export default function InventoryMaterials() {
                     <button
                       className="micro-button micro-button-quiet"
                       type="button"
-                      onClick={() => navigate(withFrom(`/inventory/movement/${movement.id}/reverse`, "/inventory"))}
+                      onClick={() =>
+                        navigate(withFrom(`/inventory/movement/${movement.id}/reverse`, "/inventory"))
+                      }
                     >
                       <RotateCcw aria-hidden="true" /> تراجع
                     </button>

@@ -113,8 +113,7 @@ export default function CostCalculator() {
   const [location, navigate] = useLocation();
   /* المجموعة ٣ (§7): الحاسبة مسار عميق — الرجوع للمصدر (?from) أو أدواتي بديلًا. */
   const returnPath = useReturnPath();
-  const {
-  dataVersion, costEstimates, inventory, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, costEstimates, inventory, notifyDataChanged } = usePrototypeServices();
   /* المجموعة ٣ (عقد D5): مقترحات مواد الحاسبة — نفس دليل محرر التكلفة المشترك:
    * تعبئة أرقام مقترحة فقط؛ لا حركة مخزون ولا حدث نقدي من التقدير أبدًا. */
   const [materialSuggestions, setMaterialSuggestions] = useState<readonly MaterialSuggestion[]>([]);
@@ -214,8 +213,7 @@ export default function CostCalculator() {
   const namedMaterialWithoutPrice = materials.some(
     material => material.name.trim() && material.unitPriceMinor <= 0,
   );
-  const canShowPrice =
-    preview.ok && !["incomplete", "partial"].includes(preview.value.knowledgeState);
+  const canShowPrice = preview.ok && !["incomplete", "partial"].includes(preview.value.knowledgeState);
 
   const isDirty = useFormDirty(
     [
@@ -244,9 +242,7 @@ export default function CostCalculator() {
     }
     setSaving(true);
     setMessage(null);
-    const result = editingId
-      ? await costEstimates.update(editingId, input)
-      : await costEstimates.save(input);
+    const result = editingId ? await costEstimates.update(editingId, input) : await costEstimates.save(input);
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
@@ -368,9 +364,7 @@ export default function CostCalculator() {
                 kind="decimal"
                 onNumericChange={value =>
                   setMaterials(current =>
-                    current.map(item =>
-                      item.uiId === material.uiId ? { ...item, quantity: value } : item,
-                    ),
+                    current.map(item => (item.uiId === material.uiId ? { ...item, quantity: value } : item)),
                   )
                 }
                 aria-label={`كمية المادة ${index + 1}`}
@@ -409,9 +403,7 @@ export default function CostCalculator() {
               <button
                 className="micro-text-action micro-delete-row"
                 type="button"
-                onClick={() =>
-                  setMaterials(current => current.filter(item => item.uiId !== material.uiId))
-                }
+                onClick={() => setMaterials(current => current.filter(item => item.uiId !== material.uiId))}
               >
                 <Trash2 aria-hidden="true" /> احذف المادة
               </button>
@@ -541,9 +533,7 @@ export default function CostCalculator() {
             {!timeKnown ? (
               <p className="micro-cost-disclaimer">وقت العمل غير مُدخل — النتيجة بلا أجر وقتك.</p>
             ) : null}
-            <p className="micro-cost-disclaimer">
-              هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.
-            </p>
+            <p className="micro-cost-disclaimer">هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.</p>
           </section>
         ) : (
           <p className="micro-field-error" role="status">
@@ -551,10 +541,7 @@ export default function CostCalculator() {
           </p>
         )}
         {message ? (
-          <p
-            className={message.startsWith("حُفظ") ? "micro-save-note" : "micro-field-error"}
-            role="status"
-          >
+          <p className={message.startsWith("حُفظ") ? "micro-save-note" : "micro-field-error"} role="status">
             {message}
           </p>
         ) : null}
@@ -616,9 +603,7 @@ export default function CostCalculator() {
         <button
           className="micro-text-action"
           type="button"
-          onClick={() =>
-            navigate(withFrom(`/tools/estimate/${encodeURIComponent(editingId)}`, returnPath))
-          }
+          onClick={() => navigate(withFrom(`/tools/estimate/${encodeURIComponent(editingId)}`, returnPath))}
         >
           <ArrowRight aria-hidden="true" /> عرض صفحة التقدير
         </button>

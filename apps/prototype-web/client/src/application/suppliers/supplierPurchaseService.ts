@@ -175,9 +175,7 @@ export class SupplierPurchaseService {
    * الأولي والإجمالي، ويحفظ مراجعة بالقيم قبل التصحيح. لا يُحذف الأصل أبدًا.
    * المجموعة ٢ (عقد ٢٨): حارس الاستلام — التعديل لا يجعل الإجمالي/المتوقع أقل
    * من المستلم الموثّق فعلًا (الإيصالات حركات لا تُعاد بمجرد تعديل الشراء). */
-  async editPurchase(
-    input: SupplierPurchaseEditInput,
-  ): Promise<SupplierPurchaseResult<SupplierPurchase>> {
+  async editPurchase(input: SupplierPurchaseEditInput): Promise<SupplierPurchaseResult<SupplierPurchase>> {
     const [existing, movements] = await Promise.all([
       this.store.getSupplierPurchase(input.purchaseId),
       this.store.listInventoryMovements(),
@@ -203,10 +201,7 @@ export class SupplierPurchaseService {
         movement.purchaseId === input.purchaseId &&
         !reversedMovementIds.has(movement.id),
     );
-    const receivedValueMinor = activeReceipts.reduce(
-      (sum, movement) => sum + movement.valueDeltaMinor,
-      0,
-    );
+    const receivedValueMinor = activeReceipts.reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
     if (input.totalMinor < receivedValueMinor)
       return {
         ok: false,
@@ -221,7 +216,8 @@ export class SupplierPurchaseService {
       return {
         ok: false,
         code: "validation_error",
-        message: "لا يمكن تغيير ربط المادة مع إيصالات استلام قائمة على الربط الحالي — راجع إيصالات الاستلام أولًا.",
+        message:
+          "لا يمكن تغيير ربط المادة مع إيصالات استلام قائمة على الربط الحالي — راجع إيصالات الاستلام أولًا.",
       };
     if (input.expectedQuantityMilli !== null && input.expectedQuantityMilli !== undefined) {
       const receivedQuantityMilli = activeReceipts.reduce(

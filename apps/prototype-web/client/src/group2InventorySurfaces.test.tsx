@@ -68,14 +68,12 @@ function renderWithHarness(node: React.ReactNode, store: MemoryLocalStore): Harn
   function Harness() {
     const [version, setVersion] = React.useState(0);
     contextRef.current = {
-    formDrafts: new FormDraftService(store),
+      formDrafts: new FormDraftService(store),
       inventory,
       dataVersion: version,
       notifyDataChanged: () => setVersion(current => current + 1),
     };
-    return (
-      <UnsavedChangesProvider navigate={wouterState.navigate}>{node}</UnsavedChangesProvider>
-    );
+    return <UnsavedChangesProvider navigate={wouterState.navigate}>{node}</UnsavedChangesProvider>;
   }
   render(<Harness />);
   return { store, inventory };
@@ -155,7 +153,13 @@ describe("InventoryMaterials sections and lifecycle (المجموعة ٢ — ع�
 
   async function seedMaterial(
     inventory: InventoryMaterialService,
-    options: { name: string; confirmed: boolean; quantityMilli: number | null; valueMinor: number | null; key: string },
+    options: {
+      name: string;
+      confirmed: boolean;
+      quantityMilli: number | null;
+      valueMinor: number | null;
+      key: string;
+    },
   ) {
     const opened = await inventory.openMaterial({
       name: options.name,
@@ -249,9 +253,7 @@ describe("InventoryMaterials sections and lifecycle (المجموعة ٢ — ع�
     expect(screen.getByTestId("tracked-material-قماش")).toBeTruthy();
     fireEvent.click(screen.getByText("أوقف المتابعة"));
     fireEvent.click(await screen.findByText("أوقف المتابعة", { selector: "button.micro-button-danger" }));
-    await waitFor(() =>
-      expect(screen.getByTestId("untracked-material-قماش")).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByTestId("untracked-material-قماش")).toBeTruthy());
     /* الحركات محفوظة — لا حذف. */
     const movements = await inventory.movements();
     if (!movements.ok) throw new Error(movements.message);
@@ -383,7 +385,9 @@ describe("InventoryMovementEditor receipt bridge and shortage panel (المجم�
     expect(screen.getByTestId("consume-target-question")).toBeTruthy();
     fireEvent.click(screen.getByText("لعمل المشروع"));
     fireEvent.change(screen.getByLabelText("كمية حركة المادة"), { target: { value: "10" } });
-    fireEvent.change(screen.getByLabelText("بيان مختصر"), { target: { value: "استهلاك المتاح والباقي نقص" } });
+    fireEvent.change(screen.getByLabelText("بيان مختصر"), {
+      target: { value: "استهلاك المتاح والباقي نقص" },
+    });
     await screen.findByTestId("shortage-panel");
     expect(screen.getByText("الكمية المطلوبة أكبر من المتاحة")).toBeTruthy();
     expect(screen.getByText("سجّل نقصًا بدل الاستهلاك")).toBeTruthy();
@@ -783,9 +787,7 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
     });
     if (!wasted.ok) throw new Error(wasted.message);
     renderFinanceHarness(store, inventory);
-    await waitFor(() =>
-      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     const label = await screen.findByText("هدر مخزون هذه الفترة");
     const row = label.closest("div");
     expect(row?.textContent).toContain("2.50");
@@ -826,9 +828,7 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
     });
     if (!wasted.ok) throw new Error(wasted.message);
     renderFinanceHarness(store, inventory);
-    await waitFor(() =>
-      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     const label = await screen.findByText("هدر مخزون هذه الفترة");
     const row = label.closest("div");
     expect(row?.textContent).toContain("قيمة الهدر غير معروفة بعد");

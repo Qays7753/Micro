@@ -132,9 +132,9 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     render(<G3Harness page={<CostCalculator />} />);
     await screen.findByRole("heading", { name: "حاسبة التكلفة والسعر" });
     /* §7.3: القاعدة معلنة قبل أي رقم — في البطاقة وفي سطر النتيجة معًا. */
-    expect(
-      screen.getAllByText("هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.").length,
-    ).toBeGreaterThan(0);
+    expect(screen.getAllByText("هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.").length).toBeGreaterThan(
+      0,
+    );
     /* §7.2: المجهول معلن — وقت العمل غير مُدخل لا يصير صفرًا. */
     expect(screen.getByText("وقت العمل غير مُدخل — النتيجة بلا أجر وقتك.")).toBeTruthy();
 
@@ -237,9 +237,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     render(<G3Harness page={<Tools />} />);
     await screen.findByText("تقديراتي المحفوظة");
     fireEvent.click(screen.getByRole("button", { name: "كيكة مناسبة صغيرة" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/tools/estimate/${saved.value.id}?from=%2Ftools`,
-    );
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(`/tools/estimate/${saved.value.id}?from=%2Ftools`);
     /* بطاقة الحاسبة تفتح المسار العميق وتحفظ أدواتي مصدرًا. */
     fireEvent.click(screen.getByRole("button", { name: /افتح الحاسبة/ }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/tools/calculator?from=%2Ftools");
@@ -297,9 +295,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     await waitFor(() =>
       expect((screen.getByLabelText("ربط مرجع") as HTMLSelectElement).value).toBe(created.item.id),
     );
-    expect((screen.getByPlaceholderText("مثال: كوب جاهز") as HTMLInputElement).value).toBe(
-      "صابون غار",
-    );
+    expect((screen.getByPlaceholderText("مثال: كوب جاهز") as HTMLInputElement).value).toBe("صابون غار");
     await waitFor(() =>
       expect((screen.getByLabelText("السعر المتفق عليه") as HTMLInputElement).value).toBe("7.00"),
     );
@@ -377,9 +373,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     });
     if (!draftCreated.ok) throw new Error(draftCreated.message);
     const costSaved = await costs.saveSnapshot(draftCreated.draft, {
-      materialItems: [
-        { name: "خيط", quantity: 1, unit: "قطعة", unitPriceMinor: 300, confidence: "known" },
-      ],
+      materialItems: [{ name: "خيط", quantity: 1, unit: "قطعة", unitPriceMinor: 300, confidence: "known" }],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
       packagingMinor: 0,
       deliveryMinor: 0,

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildHomeControlCenterViewModel, type HomeControlCenterInput, type HomeTodayItem } from "./homeControlCenterModel";
+import {
+  buildHomeControlCenterViewModel,
+  type HomeControlCenterInput,
+  type HomeTodayItem,
+} from "./homeControlCenterModel";
 
 const action = (id: string, label = "افتح") => ({ id, label, href: `/${id}`, reason: `سبب ${id}` });
 const fact = (

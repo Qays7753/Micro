@@ -257,15 +257,15 @@ function UnsavedChangesDialog({
         <h2 id="unsaved-changes-title">تعديلات غير محفوظة</h2>
         <p>لن يُحفظ شيء تلقائيًا، وإذا أغلقت الصفحة أو التطبيق قبل الحفظ يفقد ما لم تحفظه.</p>
         <div className="micro-dialog-actions">
-          <button ref={stayButtonRef} className="micro-button micro-button-primary" type="button" onClick={onStay}>
+          <button
+            ref={stayButtonRef}
+            className="micro-button micro-button-primary"
+            type="button"
+            onClick={onStay}
+          >
             ابقَ في الصفحة
           </button>
-          <button
-            className="micro-text-action"
-            type="button"
-            disabled={isSaving}
-            onClick={onSaveAndContinue}
-          >
+          <button className="micro-text-action" type="button" disabled={isSaving} onClick={onSaveAndContinue}>
             {isSaving ? "جارٍ الحفظ…" : "احفظ واستمر"}
           </button>
           <button

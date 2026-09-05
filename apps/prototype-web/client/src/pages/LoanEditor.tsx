@@ -127,7 +127,9 @@ export default function LoanEditor() {
       ) : null}
       {draft.state.phase === "drafting" && draft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
-          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(draft.state.lastSavedAt))}</bdi>؛ لم تُسجّل أي حركة مالية بعد.
+          مسودتك محفوظة محليًا — آخر حفظ{" "}
+          <bdi dir="ltr">{formatLocalDate(localDateInAmman(draft.state.lastSavedAt))}</bdi>؛ لم تُسجّل أي حركة
+          مالية بعد.
         </p>
       ) : null}
       <label className="micro-field">
@@ -148,14 +150,20 @@ export default function LoanEditor() {
           aria-label="مبلغ القرض"
         />
       </label>
-      <LocalDateField label="تاريخ القرض" value={loanDate} onChange={event => setLoanDate(event.target.value)} />
+      <LocalDateField
+        label="تاريخ القرض"
+        value={loanDate}
+        onChange={event => setLoanDate(event.target.value)}
+      />
       {wallets.length > 0 ? (
         <label className="micro-field">
           <span>دُفع من (اختياري — للعرض)</span>
           <select value={sourceWalletId} onChange={event => setSourceWalletId(event.target.value)}>
             <option value="">غير محدد</option>
             {wallets.map(wallet => (
-              <option key={wallet.id} value={wallet.id}>{wallet.name}</option>
+              <option key={wallet.id} value={wallet.id}>
+                {wallet.name}
+              </option>
             ))}
           </select>
           <small>وسم يُعرض مع القرض؛ حركة المحفظة تُوزَّع لاحقًا من توزيع الكاش إن أردت.</small>
@@ -163,7 +171,11 @@ export default function LoanEditor() {
       ) : null}
       <label className="micro-field">
         <span>ملاحظة أو سبب (اختياري)</span>
-        <input value={purposeNote} onChange={event => setPurposeNote(event.target.value)} placeholder="مثال: مساعدة لحاجة، دفعة مقدمة لأحمد" />
+        <input
+          value={purposeNote}
+          onChange={event => setPurposeNote(event.target.value)}
+          placeholder="مثال: مساعدة لحاجة، دفعة مقدمة لأحمد"
+        />
       </label>
       <section className="micro-decision-card" aria-label="أثر الحفظ">
         <Users aria-hidden="true" />
@@ -173,9 +185,18 @@ export default function LoanEditor() {
           <p>لا يُخصم من ربحك — مالك ما زال لك، لكن عند غيره. السداد يعيده لاحقًا دفعةً دفعة.</p>
         </div>
       </section>
-      {message ? <p className="micro-field-error" role="alert">{message}</p> : null}
+      {message ? (
+        <p className="micro-field-error" role="alert">
+          {message}
+        </p>
+      ) : null}
       <div className="micro-form-actions">
-        <button className="micro-button micro-button-primary" type="button" disabled={saving} onClick={() => void save()}>
+        <button
+          className="micro-button micro-button-primary"
+          type="button"
+          disabled={saving}
+          onClick={() => void save()}
+        >
           <Save aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "احفظ القرض"}
         </button>
       </div>

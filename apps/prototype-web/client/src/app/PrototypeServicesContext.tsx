@@ -1,5 +1,14 @@
 /** Composition root: React receives application services, never the IndexedDB adapter itself. */
-import { createContext, useCallback, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { DraftService } from "@/application/drafts/draftService";
 /* المجموعة ٥ (عقد ٣٦): مسودات النماذج الطويلة — خارج اللقطة، بلا أثر مالي. */
 import { FormDraftService } from "@/application/drafts/formDraftService";

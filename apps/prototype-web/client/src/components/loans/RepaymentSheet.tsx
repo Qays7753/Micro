@@ -5,13 +5,7 @@
  */
 import { HandCoins, Save } from "lucide-react";
 import { useState } from "react";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -42,7 +36,9 @@ export default function RepaymentSheet({
       return;
     }
     if (amountMinor > row.reading.outstandingMinor) {
-      setMessage(`المتبقي من القرض ${formatMoneyMinor(row.reading.outstandingMinor)} د.أ — الدفعة لا تتخطاه.`);
+      setMessage(
+        `المتبقي من القرض ${formatMoneyMinor(row.reading.outstandingMinor)} د.أ — الدفعة لا تتخطاه.`,
+      );
       return;
     }
     setMessage(null);
@@ -66,9 +62,15 @@ export default function RepaymentSheet({
           </DrawerDescription>
         </DrawerHeader>
         <div className="micro-repayment-strip">
-          <span>الأصل: <MoneyValue minor={row.reading.principalMinor} /> د.أ</span>
-          <span>المسدَّد: <MoneyValue minor={row.reading.repaidActiveMinor} /> د.أ</span>
-          <span>المتبقي: <MoneyValue minor={row.reading.outstandingMinor} /> د.أ</span>
+          <span>
+            الأصل: <MoneyValue minor={row.reading.principalMinor} /> د.أ
+          </span>
+          <span>
+            المسدَّد: <MoneyValue minor={row.reading.repaidActiveMinor} /> د.أ
+          </span>
+          <span>
+            المتبقي: <MoneyValue minor={row.reading.outstandingMinor} /> د.أ
+          </span>
         </div>
         {row.reading.outstandingMinor > 0 ? (
           <button
@@ -92,9 +94,17 @@ export default function RepaymentSheet({
         <LocalDateField label="تاريخ الدفعة" value={date} onChange={event => setDate(event.target.value)} />
         <label className="micro-field">
           <span>ملاحظة (اختياري)</span>
-          <input value={note} onChange={event => setNote(event.target.value)} placeholder="مثال: دفعة أولى نقدًا" />
+          <input
+            value={note}
+            onChange={event => setNote(event.target.value)}
+            placeholder="مثال: دفعة أولى نقدًا"
+          />
         </label>
-        {message ? <p className="micro-field-error" role="alert">{message}</p> : null}
+        {message ? (
+          <p className="micro-field-error" role="alert">
+            {message}
+          </p>
+        ) : null}
         <div className="micro-form-actions micro-contextual-actions">
           <button
             className="micro-button micro-button-primary"

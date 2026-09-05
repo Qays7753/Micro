@@ -24,6 +24,7 @@ import {
   type OwnerEntitlementPolicyTerms,
 } from "@micro-domain/owner-entitlement/index.js";
 import { reversedEventIds, type FinancialEvent } from "@micro-domain/financial-event/index.js";
+import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@/presentation/formatters";
 
@@ -325,7 +326,9 @@ export class OwnerEntitlementService {
         deepLink: null,
       });
     }
-    rows.sort((left, right) => right.occurredOn.localeCompare(left.occurredOn) || left.id.localeCompare(right.id));
+    rows.sort(
+      (left, right) => right.occurredOn.localeCompare(left.occurredOn) || left.id.localeCompare(right.id),
+    );
     const ownerCapitalRecordedMinor =
       events.reduce((sum, event) => sum + event.ownerCapitalDeltaMinor, 0) +
       movements.reduce((sum, movement) => sum + movement.ownerCapitalDeltaMinor, 0);
@@ -382,7 +385,11 @@ export class OwnerEntitlementService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const previous = policies.value.find(policy => policy.id === policyId);
     if (!previous)
-      return { ok: false, code: "validation_error", message: "لم نجد السياسة الأصلية لإنشاء نسخة جديدة لها." };
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "لم نجد السياسة الأصلية لإنشاء نسخة جديدة لها.",
+      };
     if (previous.status !== "active")
       return {
         ok: false,
@@ -492,15 +499,12 @@ export class OwnerEntitlementService {
       .filter(stored => stored.order.resultStatus === "final")
       .map(stored => ({
         stored,
-        deliveredOn: stored.order.events.find(
-          event => event.type === "status_changed" && event.toStatus === "delivered",
-        )?.createdAt
-          ? ammanDate(
-              stored.order.events.find(
-                event => event.type === "status_changed" && event.toStatus === "delivered",
-              )!.createdAt,
-            )
-          : null,
+        /* المجموعة ٦ (تدقيق A1 — FT-01): دليل المالك يقرأ آخر تسليم ساري —
+         * إعادة التسليم بعد العكس تحدّث فترة الدليل لا فترة التسليم المعكوس. */
+        deliveredOn: (() => {
+          const event = lastEffectiveDeliveryEvent(stored.order);
+          return event ? ammanDate(event.createdAt) : null;
+        })(),
       }))
       .filter(
         item => item.deliveredOn !== null && item.deliveredOn >= periodFrom && item.deliveredOn <= periodTo,
@@ -637,7 +641,8 @@ export class OwnerEntitlementService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const source = records.value.find(record => record.id === input.recordId);
     if (!source) return { ok: false, code: "validation_error", message: "لم نجد سجل الحق الأصلي." };
-    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
+    if (source.reversalOfId)
+      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
     if (records.value.some(record => record.reversalOfId === source.id))
       return {
         ok: false,
@@ -719,7 +724,8 @@ export class OwnerEntitlementService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const source = balances.value.find(balance => balance.id === input.balanceId);
     if (!source) return { ok: false, code: "validation_error", message: "لم نجد الرصيد الافتتاحي الأصلي." };
-    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
+    if (source.reversalOfId)
+      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
     if (balances.value.some(balance => balance.reversalOfId === source.id))
       return {
         ok: false,
@@ -899,9 +905,14 @@ export class OwnerEntitlementService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const source = movements.value.find(movement => movement.id === input.movementId);
     if (!source) return { ok: false, code: "validation_error", message: "لم نجد حركة المالك الأصلية." };
-    if (source.reversalOfId) return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
+    if (source.reversalOfId)
+      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن تراجع سابق." };
     if (movements.value.some(movement => movement.reversalOfId === source.id))
-      return { ok: false, code: "validation_error", message: "تم التراجع عن هذه الحركة سابقًا؛ لا يُنشأ تراجع ثانٍ." };
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "تم التراجع عن هذه الحركة سابقًا؛ لا يُنشأ تراجع ثانٍ.",
+      };
     try {
       const reversal = createOwnerMovementReversal({
         id: id("owner-reversal"),

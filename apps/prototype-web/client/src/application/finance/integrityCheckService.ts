@@ -40,7 +40,7 @@ export type IntegrityCheckId =
   | "MIC-12"
   | "MIC-13"
   /* المجموعة ٥ (عقد ٣٥): صحة الكاش غير الموزّع، تفرّد مفاتيح الأحداث،
-  * وفصل مال المالك عن النتيجة والمصروف. */
+   * وفصل مال المالك عن النتيجة والمصروف. */
   | "MIC-14"
   | "MIC-15"
   | "MIC-16";
@@ -198,9 +198,10 @@ export class IntegrityCheckService {
           id: "MIC-1",
           titleAr: "تطابق نتيجة الفترة",
           status: "PASS",
-          detailAr: readerValue.resultMinor === null
-            ? `نتيجة الفترة غير متاحة (تكلفة غير معروفة) في كل الأسطح ولنفس الأسباب — مجهول لا يُعرض صفرًا.`
-            : `نفس نتيجة الفترة تظهر في مالي والكشف والمؤشرات من قارئ واحد.`,
+          detailAr:
+            readerValue.resultMinor === null
+              ? `نتيجة الفترة غير متاحة (تكلفة غير معروفة) في كل الأسطح ولنفس الأسباب — مجهول لا يُعرض صفرًا.`
+              : `نفس نتيجة الفترة تظهر في مالي والكشف والمؤشرات من قارئ واحد.`,
         },
         readerResultMinor: readerValue.resultMinor,
         readerStatus: readerValue.status,
@@ -243,9 +244,7 @@ export class IntegrityCheckService {
     for (const wallet of overview.value.wallets)
       if (wallet.balanceMinor < 0)
         review.push(
-          wallet.openingUnknown
-            ? `محفظة ${wallet.name} — رصيد افتتاحي غير معلن بعد`
-            : `محفظة ${wallet.name}`,
+          wallet.openingUnknown ? `محفظة ${wallet.name} — رصيد افتتاحي غير معلن بعد` : `محفظة ${wallet.name}`,
         );
 
     const walletIds = new Set(overview.value.wallets.map(wallet => wallet.id));
@@ -276,8 +275,7 @@ export class IntegrityCheckService {
         group.some(entry => entry.type === "transfer_out") &&
         group.some(entry => entry.type === "transfer_in");
       const isReversalPair = sameTransferId && group.every(entry => entry.type === "reversal");
-      if (!isTransferPair && !isReversalPair)
-        structural.push(...group.map(entry => entry.id));
+      if (!isTransferPair && !isReversalPair) structural.push(...group.map(entry => entry.id));
     }
     for (const group of transferGroups.values()) {
       const balanced =
@@ -291,11 +289,7 @@ export class IntegrityCheckService {
       if (entry.type !== "reversal") continue;
       const original = entries.find(candidate => candidate.id === entry.reversesEntryId);
       /* SA-5 (4): التراجع عن تراجع غير مشروع في المسار الحي — يُكتشف هنا أيضًا. */
-      if (
-        !original ||
-        original.type === "reversal" ||
-        entry.cashDeltaMinor !== -original.cashDeltaMinor
-      )
+      if (!original || original.type === "reversal" || entry.cashDeltaMinor !== -original.cashDeltaMinor)
         structural.push(entry.id);
     }
     for (const entry of entries) {
@@ -466,8 +460,7 @@ export class IntegrityCheckService {
   private async checkAmanahReadBack(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
     const amanahMinor = summarizeFinancialEvents(events).amanahMinor;
     const position = await this.projectFinance.readPosition();
-    if (!position.ok)
-      return this.fail("MIC-7", "تعذر قراءة الموقف المالي — أعد المحاولة.", []);
+    if (!position.ok) return this.fail("MIC-7", "تعذر قراءة الموقف المالي — أعد المحاولة.", []);
     if (amanahMinor < 0)
       return this.fail(
         "MIC-7",
@@ -689,13 +682,11 @@ export class IntegrityCheckService {
     };
   }
 
-
   /* ─── MIC-10 (المجموعة ٤): الأصول — الاقتناء مقابل الكاش/الذمم، والإهلاك
    * مقابل الدفتري، والتخلص/الشطب مقابل حالة السجل. كل عدم تطابق خلل صريح. */
   private async checkAssetIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
     const assetsResult = await this.store.listAssets();
-    if (!assetsResult.ok)
-      return this.fail("MIC-10", "تعذر قراءة سجل الأصول — أعد المحاولة.", []);
+    if (!assetsResult.ok) return this.fail("MIC-10", "تعذر قراءة سجل الأصول — أعد المحاولة.", []);
     const assets = assetsResult.value;
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
@@ -730,7 +721,10 @@ export class IntegrityCheckService {
       )
         offenders.push(`اقتناء-لا-يطابق:${asset.id}`);
       const active = events.filter(
-        event => event.assetContext?.assetId === asset.id && event.correctionType !== "reverse" && !reversed.has(event.id),
+        event =>
+          event.assetContext?.assetId === asset.id &&
+          event.correctionType !== "reverse" &&
+          !reversed.has(event.id),
       );
       let bookValue = 0;
       for (const event of active) bookValue += event.assetDeltaMinor ?? 0;
@@ -744,8 +738,12 @@ export class IntegrityCheckService {
         offenders.push(`تخلص-بلا-حدث:${asset.id}`);
       if (asset.status === "written_off" && !active.some(event => event.type === "asset_writeoff"))
         offenders.push(`شطب-بلا-حدث:${asset.id}`);
-      if (asset.status === "active" && (asset.disposal || asset.writeOff)) offenders.push(`حالة-متناقضة:${asset.id}`);
-      if (asset.disposal && active.some(event => event.id === asset.disposal!.eventId && event.correctionType === "reverse"))
+      if (asset.status === "active" && (asset.disposal || asset.writeOff))
+        offenders.push(`حالة-متناقضة:${asset.id}`);
+      if (
+        asset.disposal &&
+        active.some(event => event.id === asset.disposal!.eventId && event.correctionType === "reverse")
+      )
         warnOffenders.push(`تخلص-معكوس:${asset.id}`);
       /* تحذير: مستحق غير مسجّل — اقتراح ظاهر لا يخصم نفسه. */
       if (asset.status === "active" && asset.lifeMonths === null) warnOffenders.push(`عمر-مجهول:${asset.id}`);
@@ -783,8 +781,7 @@ export class IntegrityCheckService {
    * والسداد مقابل الكاش والدفعات، وتراجع الدفعات مقابل علاماتها. */
   private async checkLoanIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
     const loansResult = await this.store.listLoans();
-    if (!loansResult.ok)
-      return this.fail("MIC-11", "تعذر قراءة سجل القروض — أعد المحاولة.", []);
+    if (!loansResult.ok) return this.fail("MIC-11", "تعذر قراءة سجل القروض — أعد المحاولة.", []);
     const loans = loansResult.value;
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
@@ -795,8 +792,24 @@ export class IntegrityCheckService {
         continue;
       }
       const principalActive = principal.correctionType !== "reverse" && !reversed.has(principal.id);
-      if (!principalActive) offenders.push(`أصل-معكوس:${loan.id}`);
-      else if (principal.amountMinor !== loan.principalMinor) offenders.push(`أصل-لا-يطابق:${loan.id}`);
+      /* المجموعة ٦ (تدقيق A1 — FT-03): الاسترجاع يعيد القيم الأصلية حدثًا جديدًا —
+       * حين يوجد استرجاع فعّال لنفس أصل القرض (مفتاح restore: الحتمي) فأثر الأصل
+       * قائم وإن بقي رابط سجل القرض يشير إلى الحدث المعكوس؛ نفس منطق MIC-10 (F-2b)
+       * — قبل ذلك كان MIC-11 يفشل للأبد بعد أي استرجاع عام. */
+      const restoredPrincipal = principalActive
+        ? null
+        : (events.find(
+            event =>
+              event.idempotencyKey === `restore:${loan.principalEventId}` &&
+              event.loanContext?.loanId === loan.id &&
+              event.type === principal.type &&
+              event.correctionType !== "reverse" &&
+              !reversed.has(event.id),
+          ) ?? null);
+      const effectivePrincipal = principalActive ? principal : restoredPrincipal;
+      if (!effectivePrincipal) offenders.push(`أصل-معكوس:${loan.id}`);
+      else if (effectivePrincipal.amountMinor !== loan.principalMinor)
+        offenders.push(`أصل-لا-يطابق:${loan.id}`);
       for (const repayment of loan.repayments) {
         const event = events.find(candidate => candidate.id === repayment.eventId);
         if (!event || event.loanContext?.loanId !== loan.id) {
@@ -841,10 +854,11 @@ export class IntegrityCheckService {
 
   /* ─── MIC-12 (المجموعة ٤): تصنيف العربون المحتفظ — القرار مقابل الحدث،
    * ولا تصنيف مزدوج ولا إيراد معترف مرتين. المعلق تحذير ظاهر لا خلل. */
-  private async checkRetainedDepositIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
+  private async checkRetainedDepositIntegrity(
+    events: readonly FinancialEvent[],
+  ): Promise<IntegrityCheckResult> {
     const ordersResult = await this.store.listOrders();
-    if (!ordersResult.ok)
-      return this.fail("MIC-12", "تعذر قراءة الطلبات المحلية — أعد المحاولة.", []);
+    if (!ordersResult.ok) return this.fail("MIC-12", "تعذر قراءة الطلبات المحلية — أعد المحاولة.", []);
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
     let pendingCount = 0;
@@ -1047,11 +1061,7 @@ export class IntegrityCheckService {
    * وأنواع المالك لا تحمل مصروفًا ولا إيرادًا معلنًا. أي خلط = تسريب مال
    * المالك إلى النتيجة أو العكس — يُعرض لا يُصلح. */
   private checkOwnerMoneySeparation(events: readonly FinancialEvent[]): IntegrityCheckResult {
-    const OWNER_TYPES = new Set([
-      "owner_investment_cash",
-      "owner_withdrawal_cash",
-      "deposit_retained_owner",
-    ]);
+    const OWNER_TYPES = new Set(["owner_investment_cash", "owner_withdrawal_cash", "deposit_retained_owner"]);
     const offenders: string[] = [];
     for (const event of events) {
       const ownerDelta = event.ownerCapitalDeltaMinor;

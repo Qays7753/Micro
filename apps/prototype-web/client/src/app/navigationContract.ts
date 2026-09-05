@@ -20,11 +20,10 @@ export type DeepLinkFocus =
   | "today" /* الرئيسية: ركّز على قائمة اليوم */
   | "priority"; /* العمل: ركّز على الأولوية الآن */
 
-export type DeepLinkMode = "cover" /* طبقة كاملة فوق الشاشة القائمة */;
+export type DeepLinkMode = "cover"; /* طبقة كاملة فوق الشاشة القائمة */
 
 export type DeepLinkLayer =
-  | "corrections" /* مالي: سجل التصحيحات */
-  | "events"; /* مالي: سجل الأحداث المالية */
+  "corrections" /* مالي: سجل التصحيحات */ | "events"; /* مالي: سجل الأحداث المالية */
 
 export type DeepLinkParams = {
   focus: DeepLinkFocus | null;
@@ -69,7 +68,16 @@ export function parseDeepLink(search: string | null | undefined): DeepLinkParams
   try {
     query = new URLSearchParams(search ?? "");
   } catch {
-    return { focus: null, layer: null, mode: null, event: null, from: null, to: null, purchase: null, material: null };
+    return {
+      focus: null,
+      layer: null,
+      mode: null,
+      event: null,
+      from: null,
+      to: null,
+      purchase: null,
+      material: null,
+    };
   }
   const from = query.get("from");
   const to = query.get("to");
@@ -82,9 +90,10 @@ export function parseDeepLink(search: string | null | undefined): DeepLinkParams
     layer: firstKnown(query.get("layer"), KNOWN_LAYER_VALUES),
     mode: firstKnown(query.get("mode"), KNOWN_MODE_VALUES),
     /* معرّف الحدث المالي حر الشكل لكنه مقصور ومقيد بالطول ومحارف آمنة. */
-    event: query.get("event") && idShape.test(query.get("event") as string)
-      ? (query.get("event") as string)
-      : null,
+    event:
+      query.get("event") && idShape.test(query.get("event") as string)
+        ? (query.get("event") as string)
+        : null,
     from: from && isSafeInternalPath(from) ? from : null,
     to: to && isSafeInternalPath(to) ? to : null,
     purchase: purchase && idShape.test(purchase) ? purchase : null,

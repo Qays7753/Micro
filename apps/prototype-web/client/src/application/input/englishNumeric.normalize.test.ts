@@ -1,11 +1,7 @@
 /** المجموعة ٦ (البند ٥): تطبيع حدود الإدخال — أرقام هندية/فارسية → إنجليزية
  * قبل أي فحص نمط؛ المعنى الرقمي محفوظ حرفيًا ولا يُمس نص حر. */
 import { describe, expect, it } from "vitest";
-import {
-  allowsEnglishNumericText,
-  normalizeAsciiDigits,
-  parseEnglishNumericText,
-} from "./englishNumeric";
+import { allowsEnglishNumericText, normalizeAsciiDigits, parseEnglishNumericText } from "./englishNumeric";
 
 describe("normalizeAsciiDigits — تطبيع حدود الإدخال (المجموعة ٦، البند ٥)", () => {
   it("يحول الأرقام العربية-الهندية إلى إنجليزية بلا تغيير المعنى", () => {

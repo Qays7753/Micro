@@ -64,9 +64,7 @@ function FinanceHarness() {
 
 async function openEventsLayer() {
   render(<FinanceHarness />);
-  await waitFor(() =>
-    expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-  );
+  await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
   const summary = Array.from(document.querySelectorAll("summary")).find(node =>
     node.textContent?.includes("السجل والأثر"),
   );
@@ -158,16 +156,12 @@ describe("U-001 older events stay reachable from the finance record surface", ()
     fireEvent.click(sourceButton);
     /* الرابط العميق يقود إلى صف الحدث المصدر نفسه في الطبقة المالية —
      * (S1-03) يحمل مصدره ?from=/finance فيعود الرجوع إلى مالي. */
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/finance?event=${expense.id}&from=%2Ffinance`,
-    );
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(`/finance?event=${expense.id}&from=%2Ffinance`);
     /* الوصول العميق يفتح «السجل والأثر» كاملًا ويُبرز صف المصدر مركّزًا. */
     wouterMocks.search = `?event=${expense.id}`;
     cleanup();
     render(<FinanceHarness />);
-    await waitFor(() =>
-      expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     await waitFor(() => expect(screen.getByText("كل الأحداث العامة")).toBeTruthy());
     const focused = document.querySelector('article.micro-finance-event[data-focused="true"]');
     expect(focused).toBeTruthy();

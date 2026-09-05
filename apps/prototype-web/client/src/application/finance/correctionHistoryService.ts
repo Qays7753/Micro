@@ -66,8 +66,7 @@ export type CorrectionDigest = {
   entries: readonly CorrectionHistoryEntry[];
 };
 export type CorrectionDigestResult =
-  | { ok: true; value: CorrectionDigest }
-  | { ok: false; code: "storage_error"; message: string };
+  { ok: true; value: CorrectionDigest } | { ok: false; code: "storage_error"; message: string };
 
 const eventKindLabel: Record<FinancialEventType, string> = {
   owner_investment_cash: "استثمار المالك",
@@ -89,7 +88,6 @@ const eventKindLabel: Record<FinancialEventType, string> = {
   deposit_retained_revenue: "عربون محتفظ به كإيراد",
   deposit_retained_owner: "عربون محتفظ به كمال مالك",
 };
-
 
 /** استرجاع الحدث المالي يُوسَم بمفتاح «restore:<id>» من واجهة التصحيح — علامة صريحة لا تخمين. */
 const RESTORE_KEY_PREFIX = "restore:";
@@ -122,8 +120,7 @@ export class CorrectionHistoryService {
    * نطاق: كل التاريخ. الصافي مجموع الآثار الموقعة، وnull إن تعذر أي رقم. */
   async affecting(from?: string, to?: string): Promise<CorrectionDigestResult> {
     const list = await this.list();
-    if (!list.ok)
-      return { ok: false, code: "storage_error", message: list.message };
+    if (!list.ok) return { ok: false, code: "storage_error", message: list.message };
     const entries = list.value.filter(entry => {
       if (!entry.occurredOn) return from === undefined && to === undefined;
       if (from !== undefined && entry.occurredOn < from) return false;
@@ -138,17 +135,25 @@ export class CorrectionHistoryService {
   }
 
   async list(): Promise<CorrectionHistoryResult> {
-    const [eventsResult, salesResult, cashResult, purchasesResult, ordersResult, movementsResult, assetsResult, ownerMovementsResult] =
-      await Promise.all([
-        this.store.listFinancialEvents(),
-        this.store.listDirectSales(),
-        this.store.listCashContinuityEntries(),
-        this.store.listSupplierPurchases(),
-        this.store.listOrders(),
-        this.store.listInventoryMovements(),
-        this.store.listAssets(),
-        this.store.listOwnerMovements(),
-      ]);
+    const [
+      eventsResult,
+      salesResult,
+      cashResult,
+      purchasesResult,
+      ordersResult,
+      movementsResult,
+      assetsResult,
+      ownerMovementsResult,
+    ] = await Promise.all([
+      this.store.listFinancialEvents(),
+      this.store.listDirectSales(),
+      this.store.listCashContinuityEntries(),
+      this.store.listSupplierPurchases(),
+      this.store.listOrders(),
+      this.store.listInventoryMovements(),
+      this.store.listAssets(),
+      this.store.listOwnerMovements(),
+    ]);
     if (
       !eventsResult.ok ||
       !salesResult.ok ||
@@ -174,12 +179,12 @@ export class CorrectionHistoryService {
         /* المجموعة ٥ (عقد ٣٤): تعديلات المجموعة ٤ الذرّية — البديل بنفس الختم
          * عبر تحويل المفتاح، فيقترن التراجع ببديله وتُعرض «من → إلى». */
         const g4Key = g4ReplacementKey(event.idempotencyKey);
-        const g4Replacement = g4Key !== null ? byKey.get(g4Key) ?? null : null;
+        const g4Replacement = g4Key !== null ? (byKey.get(g4Key) ?? null) : null;
         const replacement = isEdit
-          ? events.find(
+          ? (events.find(
               candidate =>
                 candidate.idempotencyKey === event.idempotencyKey.slice(0, -EDIT_REVERSAL_SUFFIX.length),
-            ) ?? null
+            ) ?? null)
           : g4Replacement;
         let kind: CorrectionHistoryKind = isEdit && replacement ? "event_edit" : "event_reversal";
         if (g4Replacement) {
@@ -406,9 +411,7 @@ export class CorrectionHistoryService {
         reason: movement.note || movement.reason,
         originalLabel: `حركة مخزون · ${formatLocalDate(movement.occurredOn) ?? movement.occurredOn} · الكمية ${movement.quantityDeltaMilli / 1000}`,
         replacementLabel: "حُيّد أثر الحركة — الكمية والقيمة عادا كما كانا",
-        deepLink: movement.orderId
-          ? `/orders/${encodeURIComponent(movement.orderId)}`
-          : "/inventory",
+        deepLink: movement.orderId ? `/orders/${encodeURIComponent(movement.orderId)}` : "/inventory",
       });
     }
 

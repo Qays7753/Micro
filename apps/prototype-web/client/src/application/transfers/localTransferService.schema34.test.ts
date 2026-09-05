@@ -171,17 +171,20 @@ describe("schema 34 export round-trip (المجموعة ٤ — عقد ٢٩)", ()
     const retainedDeposits = new RetainedDepositService(store, () => NOW);
     /* بذر طلب ملغى بعربون محتفظ عبر المخزن مباشرة (عقد الدومين مختبر في
      * ملفه الخاص) — ثم التصنيف عبر الخدمة، ثم التصدير المتحقق. */
-    const {
-      calculateCostSnapshot,
-      cancelOrder,
-      collectDeposit,
-      createCraftOrder,
-      settleDepositRetain,
-    } = await import("@micro-domain/craft-order/index.js");
+    const { calculateCostSnapshot, cancelOrder, collectDeposit, createCraftOrder, settleDepositRetain } =
+      await import("@micro-domain/craft-order/index.js");
     const snapshot = calculateCostSnapshot("cost-g4", {
       currency: "JOD",
       materialItems: [
-        { name: "خيط", quantity: 1, unit: "متر", unitPriceMinor: 300, priceDate: "2026-08-01", source: "user_input", confidence: "known" },
+        {
+          name: "خيط",
+          quantity: 1,
+          unit: "متر",
+          unitPriceMinor: 300,
+          priceDate: "2026-08-01",
+          source: "user_input",
+          confidence: "known",
+        },
       ],
       time: null,
       packagingMinor: 0,
