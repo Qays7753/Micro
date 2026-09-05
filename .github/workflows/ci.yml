@@ -27,6 +27,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # عقد الإغلاق العميق (CI): تاريخ كامل — فحص المسافات البيضاء في PR
+          # يحسب قاعدة الدمج (base...HEAD) فلا يصلح مع الجلب السطحي (no merge base).
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
