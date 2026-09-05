@@ -541,7 +541,7 @@ export class InventoryMaterialService {
         costKnown &&
         (!Number.isInteger(input.opening.valueMinor) || (input.opening.valueMinor as number) <= 0)
       )
-        throw new Error("قيمة الرصيد المعروفة يجب أن تكون رقمًا موجبًا — أو اختر «غير معروفة بعد».");
+        throw new Error("قيمة الرصيد المعروفة يجب أن تكون رقمًا موجبًا — أو اختر «غير محدد بعد».");
       const openingKnowledge: MaterialOpeningKnowledge | null = isTracked
         ? {
             quantityState: input.opening.quantityState,

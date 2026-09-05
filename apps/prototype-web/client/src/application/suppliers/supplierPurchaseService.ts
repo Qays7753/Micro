@@ -125,7 +125,7 @@ export class SupplierPurchaseService {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ شراء المواد محليًا. لم يتم تأكيد نجاح العملية.",
+            message: "تعذر حفظ شراء المواد محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
       return {
@@ -160,7 +160,7 @@ export class SupplierPurchaseService {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ دفعة المورد محليًا. لم يتم تأكيد نجاح العملية.",
+            message: "تعذر حفظ دفعة المورد محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
       return {
@@ -251,7 +251,7 @@ export class SupplierPurchaseService {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ تعديل الشراء محليًا. بقي الأصل دون تغيير.",
+            message: "تعذر حفظ تعديل الشراء محليًا — بقي الأصل دون تغيير؛ أعد المحاولة.",
           };
     } catch (error) {
       return {

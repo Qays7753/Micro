@@ -77,7 +77,7 @@ describe("Group 1 label normalization (تطبيع الوسم)", () => {
   });
 
   it("rejects >80 after normalization — length is measured post-collapse, no silent truncation", () => {
-    expect(() => expense("label-long", projectContext("بنزين ".repeat(20).trim()))).toThrowError(/٨٠ حرفًا/);
+    expect(() => expense("label-long", projectContext("بنزين ".repeat(20).trim()))).toThrowError(/80 حرفًا/);
     /* الفراغات المتتالية تنهار قبل القياس — نفس قاعدة فحص الاستيراد. */
     const collapses = `بنزين${" ".repeat(100)}`;
     expect(collapses.length).toBeGreaterThan(80);

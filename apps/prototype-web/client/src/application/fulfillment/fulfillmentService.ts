@@ -63,7 +63,7 @@ export class FulfillmentService {
     const result = await this.store.saveOrder(stored);
     return result.ok
       ? success(result.value)
-      : failure("storage_error", "تعذر حفظ التغيير. لم يتم تأكيد نجاح العملية.");
+      : failure("storage_error", "تعذر حفظ التغيير — بياناتك كما هي؛ أعد المحاولة.");
   }
 
   async markReady(id: string): Promise<FulfillmentResult> {

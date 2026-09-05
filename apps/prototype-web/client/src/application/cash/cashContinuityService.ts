@@ -65,7 +65,7 @@ const id = (prefix: string) =>
 const storageFailure = <T>(): CashContinuityResult<T> => ({
   ok: false,
   code: "storage_error",
-  message: "تعذر حفظ استمرارية الكاش محليًا. لم يتم تأكيد نجاح العملية.",
+  message: "تعذر حفظ استمرارية الكاش محليًا — بياناتك كما هي؛ أعد المحاولة.",
 });
 
 export class CashContinuityService {

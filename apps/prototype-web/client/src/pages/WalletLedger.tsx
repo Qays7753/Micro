@@ -125,7 +125,7 @@ export default function WalletLedger() {
       })()}
       {overview.rows.length === 0 ? (
         <section className="micro-home-quiet" aria-label="دفتر فارغ">
-          <strong>لسه ما في حركات على هذه المحفظة.</strong>
+          <strong>لا توجد حركات على هذه المحفظة بعد.</strong>
           <p>التخصيص من «غير الموزع» أو الضبط بسبب أو التحويل — كلها تظهر هنا فور تسجيلها.</p>
         </section>
       ) : (

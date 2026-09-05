@@ -26,7 +26,7 @@ const localDate = (value: string, label: string) => {
 };
 const positiveMinor = (value: number | null, label: string) => {
   if (!Number.isSafeInteger(value) || value === null || value <= 0)
-    throw new Error(`${label} يجب أن يكون مبلغًا موجبًا بالوحدات الصغرى.`);
+    throw new Error(`${label} يجب أن يكون مبلغًا موجبًا بالدينار الأردني ضمن الدقة الآمنة.`);
   return value;
 };
 const positiveInteger = (value: number | null, label: string) => {

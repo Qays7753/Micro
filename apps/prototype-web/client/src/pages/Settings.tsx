@@ -224,7 +224,7 @@ export default function SettingsPage() {
     setCurrentSummary(result.value.summary);
     notifyDataChanged();
     setStorageNotice(
-      "النسخة جاهزة ومُتحقق منها ✓ — احفظها بمكان آمن، فيها كل أرقامك. لو ضاع الجهاز بتضيع معه؛ لا سحابة في هذا الإصدار.",
+      "النسخة جاهزة ومُتحقق منها ✓ — احفظها بمكان آمن، فيها كل أرقامك. لو ضاع الجهاز تضيع معه؛ لا سحابة في هذا الإصدار.",
     );
   }
 

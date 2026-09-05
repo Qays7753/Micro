@@ -146,7 +146,7 @@ export default function InventoryMaterials() {
     setExtractionReason("");
     extractionKeyRef.current = null;
     setMessage(
-      "سُجّل إخراج الفاقد — أنت سجّلت هدرًا: كامل المتبقي انتقل إلى الهدر بقيمته، ومخزون المادة صفر صادق. السجل محفوظ ولا يُحذف.",
+      "سُجّل إخراج الهدر — كامل المتبقي انتقل إلى الهدر بقيمته، ومخزون المادة صفر صادق. السجل محفوظ ولا يُحذف.",
     );
   }
   /* المجموعة ٢ (عقد ٢٨): إيقاف المتابعة — الحركات كلها تبقى، والرصيد يجمَّد في السجل. */
@@ -655,7 +655,7 @@ export default function InventoryMaterials() {
                 void confirmExtraction();
               }}
             >
-              {extracting ? "جارٍ التسجيل…" : "أكّد إخراج الفاقد"}
+              {extracting ? "جارٍ التسجيل…" : "أكّد إخراج الهدر"}
             </button>
             <button
               className="micro-button micro-button-secondary"
@@ -695,7 +695,11 @@ export default function InventoryMaterials() {
                     <QuantityValue valueMilli={movement.quantityDeltaMilli} className="micro-inline-number" />
                   </b>
                   <small>
-                    <MoneyValue minor={movement.valueDeltaMinor} showPlus className="micro-inline-number" />
+                    {movement.costKnowledge === "unknown" ? (
+                      <span className="micro-unknown-value">قيمة غير محددة بعد</span>
+                    ) : (
+                      <MoneyValue minor={movement.valueDeltaMinor} showPlus className="micro-inline-number" />
+                    )}
                   </small>
                   {movement.type !== "reversal" && !reversed ? (
                     <button

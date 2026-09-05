@@ -702,7 +702,7 @@ export default function OwnerEntitlement() {
               ))}
             </div>
           ) : (
-            <p className="micro-empty-state">ما في حركة مالك بعد — دخل مال أو اسحب ليبدأ السجل.</p>
+            <p className="micro-empty-state">لا توجد حركة مالك بعد — أدخل مالًا أو اسحب ليبدأ السجل.</p>
           )}
         </section>
       </details>

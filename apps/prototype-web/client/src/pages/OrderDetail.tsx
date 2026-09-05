@@ -723,10 +723,10 @@ export default function OrderDetail() {
                       type="button"
                       disabled={isActing}
                       onClick={() => {
-                        void cancelWithReason("غلط في السعر");
+                        void cancelWithReason("خطأ في السعر");
                       }}
                     >
-                      غلط في السعر
+                      خطأ في السعر
                     </button>
                     <button
                       className="micro-button micro-button-secondary"

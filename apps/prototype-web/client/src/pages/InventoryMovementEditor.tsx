@@ -231,6 +231,12 @@ export default function InventoryMovementEditor() {
   const selectedPosition = references?.materialPositions.find(position => position.materialId === materialId);
   const availableMilli = selectedPosition?.quantityMilli ?? 0;
   const shortageImminent = safeType === "consume" && quantityMilli > availableMilli;
+  /* عقد الإغلاق العميق (FC-07 — العقد ٦): تحذير داخل التدفق لأي عملية إخراج
+   * تتجاوز المتاح — الهدر وضبط النقص كالاستهلاك: لا رصيد سالب صامتًا ولا
+   * معاينة تعرض رصيدًا سالبًا واثقًا. */
+  const outboundShortage =
+    (safeType === "waste" || (safeType === "adjust" && direction === "decrease")) &&
+    quantityMilli > availableMilli;
 
   async function save(): Promise<boolean> {
     if (
@@ -457,7 +463,11 @@ export default function InventoryMovementEditor() {
               "لا يتغير الكاش ولا نتيجة الفترة الآن.",
             ]
         : safeType === "waste"
-          ? [
+          ? outboundShortage
+            ? [
+                "الكمية المطلوبة أكبر من المتاحة — لا يُسمح برصيد سالب؛ سجّل الهدر على المتاح ثم وثّق النقص.",
+              ]
+            : [
               `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} وتخرج قيمته من المخزون.`,
               wasteProfitImpact
                 ? selectedPosition?.costKnowledge === "unknown"
@@ -465,7 +475,11 @@ export default function InventoryMovementEditor() {
                   : "يُسجَّل حدث خسارة غير نقدية بقيمة المخزون الخارجة — يؤثر على نتيجة المشروع بلا خروج نقد."
                 : "هدر مخزون — بلا خروج نقد جديد ولا أثر في نتيجة الفترة.",
             ]
-          : [
+          : outboundShortage && direction === "decrease"
+            ? [
+                "الكمية المطلوبة أكبر من المتاحة — لا يُسمح برصيد سالب؛ خفّض الكمية إلى المتاح أو سجّل الهدر/الضبط على المتاح.",
+              ]
+            : [
               `رصيد المادة يصبح ${formatQuantityMilli(afterMilli)} ${unit} (فرق ${
                 direction === "increase" ? "+" : "−"
               }${formatQuantityMilli(quantityMilli)}).`,
@@ -870,8 +884,10 @@ export default function InventoryMovementEditor() {
             </div>
             <p>
               المتاح الآن <QuantityValue valueMilli={availableMilli} className="micro-inline-number" /> من{" "}
-              {selectedMaterial.name}. لا يُسمح برصيد سالب في Micro — النقص يُوثَّق سجلًا يُحلّ لاحقًا، لا
-              رقمًا سالبًا يُخفى. اختر:
+              {selectedMaterial.name} — المطلوب{" "}
+              <QuantityValue valueMilli={quantityMilli} className="micro-inline-number" />، و«استهلك المتاح»
+              يجعل الرصيد الناتج <QuantityValue valueMilli={0} className="micro-inline-number" />. لا يُسمح
+              برصيد سالب في Micro — النقص يُوثَّق سجلًا يُحلّ لاحقًا، لا رقمًا سالبًا يُخفى. اختر:
             </p>
             <div className="micro-form-actions">
               <button

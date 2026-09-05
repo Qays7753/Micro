@@ -1256,7 +1256,7 @@ export class ProjectFinancialService {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ الحدث المالي محليًا. لم يتم تأكيد نجاح العملية.",
+            message: "تعذر حفظ الحدث المالي محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
       return {

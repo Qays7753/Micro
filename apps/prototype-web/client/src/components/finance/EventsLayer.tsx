@@ -28,7 +28,7 @@ export const eventLabel: Record<FinancialEventType, string> = {
   asset_purchase_cash: "شراء أصل نقدًا",
   asset_purchase_payable: "شراء أصل بالذمم",
   asset_depreciation: "إهلاك أصل",
-  asset_disposal_cash: "تخلص من أصل",
+  asset_disposal_cash: "استبعاد أصل (تخلص)",
   asset_writeoff: "شطب أصل",
   loan_outgoing_cash: "قرض لشخص",
   loan_repayment_cash: "سداد قرض",

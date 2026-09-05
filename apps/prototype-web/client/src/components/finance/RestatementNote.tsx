@@ -5,11 +5,17 @@
 import type { ReactNode } from "react";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 
-const countPhrase = (count: number): string => {
-  if (count === 1) return "تصحيح موثق واحد";
-  if (count === 2) return "تصحيحان موثقان";
-  return `${count} تصحيحات موثقة`;
-};
+import { formatArabicPlural } from "@/presentation/formatters";
+
+const countPhrase = (count: number): string =>
+  formatArabicPlural(count, {
+    zero: "لا تصحيحات موثقة",
+    one: "تصحيح موثق واحد",
+    two: "تصحيحان موثقان",
+    few: "تصحيحات موثقة",
+    many: "تصحيحًا موثقًا",
+    other: "تصحيحًا موثقًا",
+  });
 
 export function RestatementNote({
   count,

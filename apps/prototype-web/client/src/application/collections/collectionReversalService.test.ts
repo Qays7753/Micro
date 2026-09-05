@@ -210,7 +210,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       collectionEventId: event.id,
     });
     expect(preview.value.status).toBe("no_allocation");
-    expect(preview.value.refusalReason).toContain("ما إلها تخصيص");
+    expect(preview.value.refusalReason).toContain("ليست مرتبطة بتخصيص");
 
     const compound = await collectionReversal.reverse({
       orderId: "order-2",
@@ -276,7 +276,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       collectionEventId: event.id,
     });
     expect(preview.value.status).toBe("ambiguous");
-    expect(preview.value.refusalReason).toContain("أكتر من تخصيص");
+    expect(preview.value.refusalReason).toContain("أكثر من تخصيص");
     const compound = await collectionReversal.reverse({
       orderId: "order-3",
       collectionEventId: event.id,

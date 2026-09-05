@@ -1019,7 +1019,7 @@ export default function Finance() {
               <summary className="micro-finance-layer-summary">
                 <span>
                   <b>سجل المتوقعات المسجلة</b>
-                  <small>كل ما سُجل — حتى المنقوضة</small>
+                  <small>كل ما سُجل — حتى المتراجع عنه</small>
                 </span>
                 <strong>
                   {declarations.length > 0 ? (
@@ -1054,7 +1054,7 @@ export default function Finance() {
                                 : "يحتاج مراجعة"}
                           </small>
                           <b data-state={entry.kind === "reversal" ? "reversed" : "active"}>
-                            {entry.kind === "reversal" ? "نقض موثق" : "ساري"}
+                            {entry.kind === "reversal" ? "تراجع موثق" : "ساري"}
                           </b>
                         </li>
                       ))}

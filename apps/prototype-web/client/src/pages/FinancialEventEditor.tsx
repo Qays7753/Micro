@@ -92,7 +92,7 @@ const definition: Record<
     counterparty: "صاحب الأمانة",
   },
   loss_non_cash: {
-    title: "تسجيل هالك أو تلف بلا خروج نقد",
+    title: "تسجيل هدر بلا خروج نقد",
     description: "خسارة مادية لم يرافقها دفع: بضاعة تلفت قبل تسجيلها في المخزون.",
     effect: "يخفض ربح الفترة كتكلفة ضائعة؛ لا يغيّر الكاش ولا الذمم.",
     counterparty: "اختياري: مصدر الخسارة",
@@ -827,7 +827,7 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
        * المصاري؟»؛ وسم حر اختياري لا يغير أي دلتا (اختبار التوائم يحرسه). */}
       <label className="micro-field">
         <span>
-          تصنيفك للمصروف <small>اختياري — على شو اندفعت المصاري؟ بنزين، رواتب، إيجار…</small>
+          تصنيفك للمصروف <small>اختياري — على ماذا أُنفق المصروف؟ بنزين، رواتب، إيجار…</small>
         </span>
         <input
           value={categoryLabel}

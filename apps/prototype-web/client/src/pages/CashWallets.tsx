@@ -120,7 +120,7 @@ export default function CashWallets() {
             <strong>
               <MoneyValue minor={state.position.amanahHeldMinor} /> د.أ
             </strong>
-            <p>هذا كاش موجود في الدرج، لكنه مش ربحك ولا مالك — قُبض وسُلّم من «تسجيل حركة» في مالي.</p>
+            <p>هذا كاش موجود في الدرج، لكنه ليس ربحك ولا مالكًا لك — قُبض وسُلّم من «تسجيل حركة» في مالي.</p>
           </div>
         </section>
       ) : null}

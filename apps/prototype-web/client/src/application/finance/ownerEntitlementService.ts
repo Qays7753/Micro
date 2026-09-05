@@ -883,7 +883,7 @@ export class OwnerEntitlementService {
       const saved = await this.store.commitOwnerMovement(movement, cashEntry);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : failure("تعذر حفظ حركة المالك والكاش ذريًا؛ لم يتم تأكيد نجاح العملية.");
+        : failure("تعذر حفظ حركة المالك والكاش ذريًا — بياناتك كما هي؛ أعد المحاولة.");
     } catch (error) {
       return {
         ok: false,

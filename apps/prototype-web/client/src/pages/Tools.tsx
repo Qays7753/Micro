@@ -222,7 +222,7 @@ export default function Tools() {
             </div>
             {savedEstimates.length === 0 ? (
               <p className="micro-home-quiet">
-                <strong>ما في تقديرات محفوظة بعد.</strong> احسب تكلفة منتج جديد وشوف كيف بتمشي.
+                <strong>لا توجد تقديرات محفوظة بعد.</strong> احسب تكلفة منتج جديد وشاهد كيف تسير الأرقام.
               </p>
             ) : (
               savedEstimates.map(estimate => (

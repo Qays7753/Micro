@@ -292,7 +292,7 @@ export class StatementService {
                 : type === "asset_purchase_cash"
                   ? "شراء أصل"
                   : type === "asset_disposal_cash"
-                    ? "تخلص من أصل"
+                    ? "استبعاد أصل (تخلص)"
                     : type === "loan_outgoing_cash"
                       ? "قرض أعطيته"
                       : type === "loan_repayment_cash"
@@ -381,7 +381,7 @@ export class StatementService {
         id: "amanah-held",
         label: "أمانات قُبضت",
         amountMinor: amanahHeld.reduce((sum, event) => sum + event.amountMinor, 0),
-        qualifier: "أمانات بأمانتك — كاش موجود، لكنه مش ربحك",
+        qualifier: "أمانات بأمانتك — كاش موجود، لكنه ليس ربحك",
         sources: amanahHeld.map(event => ({
           label: event.note,
           href: `/finance?event=${encodeURIComponent(event.id)}`,
@@ -390,7 +390,7 @@ export class StatementService {
       },
       {
         id: "asset-disposal-cash",
-        label: "متصل تخلص من أصل",
+        label: "متصل استبعاد أصل (تخلص)",
         amountMinor: assetDisposalReceived.total,
         qualifier: "مبلغ تخلص نقدي — ليس إيرادًا تشغيليًا",
         sources: assetDisposalReceived.matched.map(event => ({
@@ -555,7 +555,7 @@ export class StatementService {
           heldInPeriodMinor: amanahHeld.reduce((sum, event) => sum + event.amountMinor, 0),
           releasedInPeriodMinor: amanahReleased.reduce((sum, event) => sum + event.amountMinor, 0),
           heldNowMinor: position.amanahHeldMinor,
-          trustLine: `أمانات بأمانتك: ${formatMoneyWithUnit(position.amanahHeldMinor)} — هذا كاش موجود، لكنه مش ربحك ولا مالك.`,
+          trustLine: `أمانات بأمانتك: ${formatMoneyWithUnit(position.amanahHeldMinor)} — هذا كاش موجود، لكنه ليس ربحك ولا مالكًا لك.`,
         },
         receivablesPayables: {
           receivablesNowMinor: position.customerReceivablesMinor,

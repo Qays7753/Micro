@@ -35,6 +35,9 @@ export type DirectSaleUpdateInput = UpdateDirectSaleInput & {
   /* و٦ (§٥-٩): عدد المراجعات الذي رآه المحرر عند الفتح — إن تقدّم السجل فالتعديل
    * من نافذة أخرى أحدث، ولا يُطمس بصمت. */
   expectedRevisionCount?: number;
+  /* عقد الإغلاق العميق (FC-09 — العقد ٤): سبب المراجعة يفرّق التحصيل عن
+   * التصحيح في سجل التسويات — «تحصيل دفعة» ليس «تصحيح بيانات». */
+  revisionReason?: string;
 };
 
 export type DirectSaleResult<T> =
@@ -150,7 +153,7 @@ export class DirectSaleService {
         kind: "edit",
         idempotencyKey: input.idempotencyKey,
         createdAt: this.now(),
-        reason: "تصحيح بيانات البيع المباشر",
+        reason: input.revisionReason?.trim() || "تصحيح بيانات البيع المباشر",
       });
     } catch (error) {
       return {

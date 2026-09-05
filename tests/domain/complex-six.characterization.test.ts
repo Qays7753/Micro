@@ -508,7 +508,7 @@ describe("characterization: normalizeSharedProjectShare — guards (و٩)", () =
           calculatedShareMinor: 0,
         }),
       ),
-    ).toThrow("أدخل النسبة قيمة بين 1 و10000.");
+    ).toThrow("أدخل النسبة بين 0.01% و100%.");
     expect(() =>
       createFinancialEvent({
         ...share({

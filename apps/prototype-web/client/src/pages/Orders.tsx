@@ -39,6 +39,8 @@ export default function Orders() {
   const [location, navigate] = useLocation();
   const { dailyFollowUp, directSales, schedules, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<OrdersState>({ phase: "loading" });
+  /* AR-14: إعادة محاولة صريحة بعد فشل القراءة — رمز محلي يعيد تشغيل الحمل. */
+  const [reloadToken, setReloadToken] = useState(0);
   useEffect(() => {
     let active = true;
     Promise.all([dailyFollowUp.read(), directSales.list(), schedules.overview()]).then(
@@ -61,7 +63,7 @@ export default function Orders() {
     return () => {
       active = false;
     };
-  }, [dailyFollowUp, directSales, schedules, dataVersion]);
+  }, [dailyFollowUp, directSales, schedules, dataVersion, reloadToken]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -72,7 +74,14 @@ export default function Orders() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل الطلبات</h1>
-        <p>لم يتم تغيير شيء. أعد فتح التطبيق للمحاولة.</p>
+        <p>لم يتم تغيير شيء — بياناتك كما هي؛ أعد المحاولة.</p>
+        <button
+          className="micro-button micro-button-secondary"
+          type="button"
+          onClick={() => setReloadToken(token => token + 1)}
+        >
+          إعادة المحاولة
+        </button>
       </section>
     );
   /* المجموعة ١ (§8.1): كل فتح من «العمل» يحفظ مصدره — الرجوع يعود إلى العمل. */

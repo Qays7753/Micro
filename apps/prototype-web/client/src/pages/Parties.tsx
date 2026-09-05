@@ -131,7 +131,7 @@ export default function Parties() {
       </label>
       {overview.parties.length === 0 ? (
         <div className="micro-home-quiet">
-          <strong>لسه ما في حدا عليه فلوس.</strong>
+          <strong>لا يوجد ديون على أحد بعد.</strong>
           <p>لما تسجل دين طلب أو ذمة مورد بيظهروا هون مجمّعين بالاسم.</p>
         </div>
       ) : filteredParties.length === 0 ? (
