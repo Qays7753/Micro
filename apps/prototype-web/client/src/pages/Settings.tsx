@@ -17,6 +17,7 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { LockSettingsCard } from "@/components/security/LockSettingsCard";
+import { DataActionPinGate } from "@/components/security/DataActionPinGate";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { formatLocalDate } from "@/presentation/formatters";
@@ -57,8 +58,32 @@ export default function SettingsPage() {
   /* S1-13: زر رجوع موحد — الأساس بديل قانوني، و?from (من صفحة الأساس) يُحترم. */
   const returnPath = useReturnPath();
   const search = useSearch();
-  const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged, integrityCheck } =
+  const { actualTime, transfers, guidedOpeningImport, preferences, dataVersion, notifyDataChanged, integrityCheck, localLock } =
     usePrototypeServices();
+  /* المجموعة ٦ (تدقيق A1 — SP-01/DP-04): مسار الاسترداد معفى من الغطاء لكن
+   * إجراءات مغادرة البيانات (تصدير/استيراد/تصفير) تتطلب إثبات رمز القفل مرة
+   * واحدة في الجلسة — الجهاز المقفل لا يُصدّر أرقامه ولا يُمسح بلا الرمز. */
+  const lockVerifiedRef = useRef(false);
+  const pendingGatedActionRef = useRef<(() => void | Promise<void>) | null>(null);
+  const [gatedAction, setGatedAction] = useState<null | { title: string; description: string }>(null);
+  const runWhenUnlocked = async (
+    action: () => void | Promise<void>,
+    title: string,
+    description: string,
+  ) => {
+    if (lockVerifiedRef.current) {
+      await action();
+      return;
+    }
+    const status = await localLock.status();
+    /* فشل القراءة لا يحبس المالك عن بياناته — تخفي صادق كما في كل البوابات. */
+    if (!status.ok || !status.value.enabled) {
+      await action();
+      return;
+    }
+    pendingGatedActionRef.current = action;
+    setGatedAction({ title, description });
+  };
   /* المجموعة ٥ (عقد ٣٩): حكم فحص السلامة بعد الاستعادة — يُعرض مع رابط التفاصيل. */
   const [restoreCheck, setRestoreCheck] = useState<{ overall: "PASS" | "WARN" | "FAIL"; note: string } | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
@@ -162,6 +187,14 @@ export default function SettingsPage() {
   }
 
   async function exportLocal() {
+    await runWhenUnlocked(
+      performExportLocal,
+      "تصدير بياناتك يحتاج رمز القفل",
+      "التصدير يُنشئ ملفًا فيه كل أرقامك — تأكيد الرمز مرة واحدة في هذه الجلسة يفتح الإجراء، ويبقى الرمز في هذا الجهاز.",
+    );
+  }
+
+  async function performExportLocal() {
     setNotice(null);
     setIsWorking(true);
     /* ٥.٧: تصدير مُتحقق منه — يُعاد تحليل الملف دورة كاملة قبل إعلان جهوزيته. */
@@ -190,6 +223,14 @@ export default function SettingsPage() {
 
   /* ٥.٧: بوابة «ابدأ من جديد» — لا تصفير قبل نسخة مُتحقق منها، ولا استمرار إن فشل التصدير. */
   async function startResetFlow() {
+    await runWhenUnlocked(
+      performResetFlow,
+      "البدء من جديد يحتاج رمز القفل",
+      "المسار يمسح كل بيانات هذا الجهاز بعد نسخة احتياطية إلزامية — تأكيد الرمز يفتح البوابة.",
+    );
+  }
+
+  async function performResetFlow() {
     setNotice(null);
     setResetFlow({ phase: "exporting" });
     const result = await transfers.createVerifiedExport();
@@ -215,6 +256,14 @@ export default function SettingsPage() {
   }
 
   async function confirmReset() {
+    await runWhenUnlocked(
+      performReset,
+      "المسح النهائي يحتاج رمز القفل",
+      "آخر خطوة قبل مسح كل بيانات هذا الجهاز — أدخل رمز القفل للتأكيد النهائي.",
+    );
+  }
+
+  async function performReset() {
     setNotice(null);
     setIsWorking(true);
     /* S5-03: البدء من جديد يمسح مسودة الإعداد أيضًا — لا تُبعث بعد تصفير مقصود. */
@@ -254,6 +303,15 @@ export default function SettingsPage() {
   }
 
   async function confirmImport() {
+    if (!preview) return;
+    await runWhenUnlocked(
+      performImport,
+      "استبدال بياناتك يحتاج رمز القفل",
+      "الاستيراد يستبدل كل بيانات هذا الجهاز بملف النسخة التي راجعتها — أدخل رمز القفل للتأكيد.",
+    );
+  }
+
+  async function performImport() {
     if (!preview) return;
     setNotice(null);
     setIsWorking(true);
@@ -855,6 +913,23 @@ export default function SettingsPage() {
         ) : null}
         </div>
       </details>
+      {gatedAction ? (
+        <DataActionPinGate
+          actionTitle={gatedAction.title}
+          actionDescription={gatedAction.description}
+          onVerified={() => {
+            setGatedAction(null);
+            lockVerifiedRef.current = true;
+            const action = pendingGatedActionRef.current;
+            pendingGatedActionRef.current = null;
+            void action?.();
+          }}
+          onCancel={() => {
+            setGatedAction(null);
+            pendingGatedActionRef.current = null;
+          }}
+        />
+      ) : null}
     </section>
   );
 }

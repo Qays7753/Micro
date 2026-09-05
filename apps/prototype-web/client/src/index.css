@@ -6883,7 +6883,9 @@ button.micro-month-cell:hover {
   position: fixed;
   inset: 0;
   background: var(--color-surface);
-  opacity: 0.96;
+  /* المجموعة ٦ (تدقيق A1 — SP-05): غطاء معتم تمامًا — ٠.٩٦ كانت تكشف
+   * وميض المحتوى تحته للناظر عن قرب والوعد «حماية من النظرة العابرة». */
+  opacity: 1;
   z-index: 60;
 }
 .micro-lock-overlay {

@@ -58,16 +58,22 @@ export type FormDraftEnvelope = {
 };
 export type LocalSecurityRecord = {
   id: typeof localSecurityId;
-  /** بصمة sha256(salt + pin) بترميز سداسي عشري — الرمز نفسه لا يُخزن أبدًا. */
+  /** بصمة الرمز بترميز سداسي عشري — الرمز نفسه لا يُخزن أبدًا. */
   pinHash: string;
   /** ملح عشوائي مُولَّد مرة عند التفعيل (سلسلة سداسية عشرية). */
   salt: string;
+  /** المجموعة ٦ (تدقيق A1 — SP-02): خوارزمية البصمة — غيابها = السجل القديم
+   * (sha256 مفردة) ويُرقّى تلقائيًا إلى المشتق البطيء بعد أول فتح ناجح. */
+  hashAlgo?: "pbkdf2";
   /** دقائق الخمول قبل القفل التلقائي؛ null = القفل اليدوي فقط. */
   autoLockMinutes: number | null;
   /** آخر لحظة نشاط معلنة — أساس اكتشاف الخمول عبر إخفاء/ظهور التطبيق. */
   lastActiveAt: string | null;
   /** محاولات فتح فاشلة متتالية — تصفّر عند النجاح؛ عدّاد فقط بلا قفل دائم. */
   failedAttempts: number;
+  /** المجموعة ٦ (تدقيق A1 — SP-04): لحظة آخر محاولة فاشلة — أساس وقفة
+   * المحاولات المُنفَّذة؛ null = لا محاولات فاشلة حديثة. */
+  lastFailedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };

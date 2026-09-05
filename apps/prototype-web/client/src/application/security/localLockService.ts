@@ -3,11 +3,13 @@
  * ليس تشفيرًا ولا حسابًا سحابيًا ولا مصادقة بعيدة.
  *
  * عقد القفل:
- * - الرمز لا يُخزن أبدًا: بصمة sha256(salt + pin) بترميز سداسي عشري فقط،
- *   والملح عشوائي لكل تفعيل؛ السجل كله خارج اللقطة والتصدير والأسرار.
+ * - الرمز لا يُخزن أبدًا: بصمة مشتقة ببطء (PBKDF2-SHA256، ١٢٠ ألف دورة) من
+ *   (salt + pin)؛ السجلات القديمة ببصمة sha256 المفردة تُفتح بمسارها القديم
+ *   ثم تُرقّى تلقائيًا للمشتق البطيء بعد أول فتح ناجح — لا قفل خارج صاحب الرمز.
  * - الخمول بمراقبة إخفاء/ظهور التطبيق (visibilitychange) مع آخر نشاط محفوظ —
  *   يعمل مع تبديل التطبيق وقفل الشاشة وإعادة فتح PWA بعد ساعات.
- * - محاولات الفتح الفاشلة تُعدّ وتُصفّر عند النجاح — عدّاد ظاهر لا قفل دائم.
+ * - محاولات الفتح الفاشلة تُعدّ وتُصفّر عند النجاح — عدّاد ظاهر لا قفل دائم،
+ *   ووقفة تصاعدية مُنفَّذة فعليًا (٣/١٠/٣٠ ثانية) بعد ٣/٥/٨ محاولات فاشلة.
  * - التعطيل يتطلب الرمز الصحيح؛ والتخزين بلا حالة سوى السجل الواحد.
  */
 import type { LocalSecurityRecord, PrototypeLocalStore } from "@/storage/local/types";
@@ -22,7 +24,7 @@ export type LockEnableResult =
   | { ok: false; code: "validation_error" | "storage_error"; message: string };
 
 export type LockVerifyResult =
-  | { ok: true; value: { unlocked: boolean; failedAttempts: number } }
+  | { ok: true; value: { unlocked: boolean; failedAttempts: number; retryInMs?: number } }
   | { ok: false; code: "storage_error"; message: string };
 
 export type LockDisableResult =
@@ -42,6 +44,48 @@ async function sha256Hex(text: string): Promise<string> {
   return Array.from(new Uint8Array(digest))
     .map(byte => byte.toString(16).padStart(2, "0"))
     .join("");
+}
+
+/* المجموعة ٦ (تدقيق A1 — SP-02): بصمة مفردة قابلة للكسر بجدول مسبق على
+ * مساحة أرقام صغيرة؛ المشتق البطيء PBKDF2-SHA256 بمئة وعشرين ألف دورة
+ * يجعل كل تخمين محلي مكلفًا زمنيًا. الدالة لا تعتمد أي شيء بعيد — WebCrypto
+ * نفسه المستخدم في sha256Hex أعلاه. */
+const PIN_KDF_ITERATIONS = 120_000;
+
+async function pbkdf2Hex(salt: string, pin: string): Promise<string> {
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(pin),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt: new TextEncoder().encode(salt), iterations: PIN_KDF_ITERATIONS },
+    keyMaterial,
+    256,
+  );
+  return Array.from(new Uint8Array(bits))
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/** يُطابق الرمز مع بصمة السجل بالمسار المناسب لإصدارها، ثم يُعيد البصمة الجديدة
+ * إن وجب ترقية سجل قديم إلى المشتق البطيء (null = لا ترقية). */
+async function verifyPin(
+  record: LocalSecurityRecord,
+  normalized: string,
+): Promise<{ matches: boolean; upgradedHash: string | null }> {
+  if (record.hashAlgo === "pbkdf2") {
+    const pinHash = await pbkdf2Hex(record.salt, normalized);
+    return { matches: pinHash === record.pinHash, upgradedHash: null };
+  }
+  const legacyHash = await sha256Hex(`${record.salt}:${normalized}`);
+  if (legacyHash !== record.pinHash) return { matches: false, upgradedHash: null };
+  /* فتح ناجح على السجل القديم: رقمية البصمة تُرقّى للمشتق البطيء فورًا —
+ * لا يبقى سجل ضعيف على الجهاز بعد أن أثبت المالك رمزه. */
+  const upgradedHash = await pbkdf2Hex(record.salt, normalized);
+  return { matches: true, upgradedHash };
 }
 
 function randomSalt(): string {
@@ -98,15 +142,17 @@ export class LocalLockService {
     if (!ALLOWED_AUTO_LOCK_MINUTES.includes(autoLockMinutes as never))
       return { ok: false, code: "validation_error", message: "اختر مدة الخمول من الخيارات المعروضة." };
     const salt = randomSalt();
-    const pinHash = await sha256Hex(`${salt}:${normalized}`);
+    const pinHash = await pbkdf2Hex(salt, normalized);
     const timestamp = this.now();
     const record: LocalSecurityRecord = {
       id: localSecurityId,
       pinHash,
       salt,
+      hashAlgo: "pbkdf2",
       autoLockMinutes,
       lastActiveAt: timestamp,
       failedAttempts: 0,
+      lastFailedAt: null,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -122,15 +168,38 @@ export class LocalLockService {
     if (record === null) return { ok: true, value: { unlocked: true, failedAttempts: 0 } };
     const normalized = normalizePin(pin);
     if (normalized !== null) {
-      const pinHash = await sha256Hex(`${record.salt}:${normalized}`);
-      if (pinHash === record.pinHash) {
-        await this.store.saveLocalSecurity({ ...record, failedAttempts: 0, lastActiveAt: this.now(), updatedAt: this.now() });
+      const { matches, upgradedHash } = await verifyPin(record, normalized);
+      if (matches) {
+        await this.store.saveLocalSecurity({
+          ...record,
+          ...(upgradedHash === null ? {} : { pinHash: upgradedHash, hashAlgo: "pbkdf2" as const }),
+          failedAttempts: 0,
+          lastFailedAt: null,
+          lastActiveAt: this.now(),
+          updatedAt: this.now(),
+        });
         return { ok: true, value: { unlocked: true, failedAttempts: 0 } };
       }
     }
-    const failedAttempts = record.failedAttempts + 1;
-    await this.store.saveLocalSecurity({ ...record, failedAttempts, updatedAt: this.now() });
-    return { ok: true, value: { unlocked: false, failedAttempts } };
+    /* المجموعة ٦ (تدقيق A1 — SP-04): الوقفة التصاعدية مُنفَّذة لا معلنة فقط —
+ * المحاولة داخل نافذة الوقفة تُرفض مبكرًا بلا زيادة العدّاد، فلا يُبنى قفل
+ * دائم من نقر متكرر، ويبقى العدّاد المرئي صادقًا. */
+    const previousAttempts = record.failedAttempts;
+    const backoffMs = delayForAttempts(previousAttempts);
+    if (backoffMs > 0 && record.lastFailedAt) {
+      const elapsed = Date.parse(this.now()) - Date.parse(record.lastFailedAt);
+      if (elapsed >= 0 && elapsed < backoffMs) {
+        return { ok: true, value: { unlocked: false, failedAttempts: previousAttempts, retryInMs: backoffMs - elapsed } };
+      }
+    }
+    const failedAttempts = previousAttempts + 1;
+    await this.store.saveLocalSecurity({
+      ...record,
+      failedAttempts,
+      lastFailedAt: this.now(),
+      updatedAt: this.now(),
+    });
+    return { ok: true, value: { unlocked: false, failedAttempts, retryInMs: delayForAttempts(failedAttempts) } };
   }
 
   static retryDelayMs(failedAttempts: number): number {
@@ -161,14 +230,35 @@ export class LocalLockService {
     if (record === null) return { ok: true, value: null };
     const normalized = normalizePin(pin);
     if (normalized !== null) {
-      const pinHash = await sha256Hex(`${record.salt}:${normalized}`);
-      if (pinHash === record.pinHash) {
+      const { matches, upgradedHash } = await verifyPin(record, normalized);
+      if (matches) {
         /* التعطيل يحذف السجل نهائيًا — لا بصمة ولا ملح يبقيان على الجهاز. */
         const removed = await this.store.deleteLocalSecurity();
         if (!removed.ok) return { ok: false, code: "storage_error", message: removed.message };
         return { ok: true, value: null };
       }
     }
+    /* المجموعة ٦ (تدقيق A1 — DP-05): مسار التعطيل يخضع لنفس عدّاد المحاولات
+ * والوقفة المُنفَّذة — النافذة التي تُفتح بلا قفل (SP-01) لا تُستعمل لهدر
+ * التخمين بلا كلفة. */
+    const previousAttempts = record.failedAttempts;
+    const backoffMs = delayForAttempts(previousAttempts);
+    if (backoffMs > 0 && record.lastFailedAt) {
+      const elapsed = Date.parse(this.now()) - Date.parse(record.lastFailedAt);
+      if (elapsed >= 0 && elapsed < backoffMs) {
+        return {
+          ok: false,
+          code: "wrong_pin",
+          message: `انتظر قليلًا قبل المحاولة التالية (${Math.ceil((backoffMs - elapsed) / 1000)} ثانية تقريبًا).`,
+        };
+      }
+    }
+    await this.store.saveLocalSecurity({
+      ...record,
+      failedAttempts: previousAttempts + 1,
+      lastFailedAt: this.now(),
+      updatedAt: this.now(),
+    });
     return { ok: false, code: "wrong_pin", message: "الرمز غير صحيح — التعطيل يحتاج الرمز الحالي." };
   }
 }

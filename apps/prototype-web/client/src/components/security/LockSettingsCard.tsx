@@ -7,8 +7,11 @@ import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LOCK_AUTO_LOCK_OPTIONS } from "@/application/security/localLockService";
+import { normalizeAsciiDigits } from "@/application/input/englishNumeric";
 
 type Phase = "loading" | "off" | "enabling" | "on" | "disabling";
+
+const pinDigits = (value: string) => normalizeAsciiDigits(value).replace(/[^0-9]/g, "").slice(0, 8);
 
 const autoLockLabel = (minutes: number | null): string => {
   if (minutes === null) return "يدويًا فقط";
@@ -96,9 +99,9 @@ export function LockSettingsCard() {
               <label className="micro-field">
                 <span>أدخل الرمز الحالي للتعطيل</span>
                 <input
-                  type="text"
+                  type="password"
                   value={pin}
-                  onChange={event => setPin(event.target.value.replace(/[^0-9]/g, "").slice(0, 8))}
+                  onChange={event => setPin(pinDigits(event.target.value))}
                   inputMode="numeric"
                   dir="ltr"
                   lang="en"
@@ -136,9 +139,9 @@ export function LockSettingsCard() {
               <label className="micro-field">
                 <span>رمز من 4 إلى 8 أرقام إنجليزية</span>
                 <input
-                  type="text"
+                  type="password"
                   value={pin}
-                  onChange={event => setPin(event.target.value.replace(/[^0-9]/g, "").slice(0, 8))}
+                  onChange={event => setPin(pinDigits(event.target.value))}
                   inputMode="numeric"
                   dir="ltr"
                   lang="en"
@@ -149,9 +152,9 @@ export function LockSettingsCard() {
               <label className="micro-field">
                 <span>أكّد الرمز</span>
                 <input
-                  type="text"
+                  type="password"
                   value={confirmPin}
-                  onChange={event => setConfirmPin(event.target.value.replace(/[^0-9]/g, "").slice(0, 8))}
+                  onChange={event => setConfirmPin(pinDigits(event.target.value))}
                   inputMode="numeric"
                   dir="ltr"
                   lang="en"
