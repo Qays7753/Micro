@@ -18,6 +18,7 @@ import {
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
+import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -49,9 +50,9 @@ const id = () =>
 const inPeriod = (date: string, from: string, to: string) => date >= from && date <= to;
 
 function deliveredOn(stored: StoredCraftOrder): string | null {
-  const delivered = stored.order.events.find(
-    event => event.type === "status_changed" && event.toStatus === "delivered",
-  );
+  /* المجموعة ٦ (تدقيق A1 — FT-01): آخر تسليم ساري — إيراد التسليم المعاد
+   * يُعزى لفترة إعادة التسليم لا لفترة التسليم المعكوس. */
+  const delivered = lastEffectiveDeliveryEvent(stored.order);
   if (!delivered) return null;
   const date = new Intl.DateTimeFormat("en", {
     timeZone: "Asia/Amman",

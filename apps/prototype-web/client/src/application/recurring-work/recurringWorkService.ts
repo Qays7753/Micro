@@ -10,6 +10,7 @@ import {
 } from "@micro-domain/recurring-margin/index.js";
 import type { AllocationEvidence } from "@micro-domain/recurring-margin/index.js";
 import type { InventoryMovement, WasteContext } from "@micro-domain/inventory-material/index.js";
+import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@/presentation/formatters";
 
@@ -293,15 +294,11 @@ export class RecurringWorkService {
       const deliveredOrdersInPeriod = orders.value
         .map(stored => ({
           stored,
-          deliveredOn: stored.order.events.find(
-            event => event.type === "status_changed" && event.toStatus === "delivered",
-          )?.createdAt
-            ? ammanDate(
-                stored.order.events.find(
-                  event => event.type === "status_changed" && event.toStatus === "delivered",
-                )!.createdAt,
-              )
-            : null,
+          /* المجموعة ٦ (تدقيق A1 — FT-01): آخر تسليم ساري — انظر deliveryAttribution. */
+          deliveredOn: (() => {
+            const event = lastEffectiveDeliveryEvent(stored.order);
+            return event ? ammanDate(event.createdAt) : null;
+          })(),
         }))
         .filter(
           candidate =>

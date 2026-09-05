@@ -25,6 +25,7 @@ import {
 } from "@micro-domain/cash-continuity/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
 import { calculateBreakEvenUnits } from "@micro-domain/g5/index.js";
+import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 
@@ -552,11 +553,11 @@ export class ProjectFinancialService {
     );
     /* التكلفة المجهولة تبقى مجهولة: جمعها هنا يعني «مجموع المعروف منها» لا «التكلفة صفر». */
     const directSaleCostUnknownCount = activeDirectSales.filter(sale => sale.costMinor === null).length;
+    /* المجموعة ٦ (تدقيق A1 — FT-01): الإيراد المعاد الاعتراف به يُعزى لآخر تسليم
+     * ساري (غير معكوس) — لا لأول حدث تسليم قديم قد يكون معكوسًا. */
     const delivered = ordersResult.value
       .map(stored => {
-        const event = stored.order.events.find(
-          candidate => candidate.type === "status_changed" && candidate.toStatus === "delivered",
-        );
+        const event = lastEffectiveDeliveryEvent(stored.order);
         return { order: stored.order, deliveredAt: event ? ammanDate(event.createdAt) : null };
       })
       .filter(item => item.deliveredAt !== null && inPeriod(item.deliveredAt));
@@ -729,11 +730,10 @@ export class ProjectFinancialService {
     if (!periodResult.ok || !ordersResult.ok || !eventsResult.ok || !movementsResult.ok || !positionResult.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة مؤشرات الفترة المحلية." };
     const inPeriod = (date: string) => date >= from && date <= to;
+    /* FT-01 (المجموعة ٦): آخر تسليم ساري — انظر أعلاه. */
     const delivered = ordersResult.value
       .map(stored => {
-        const event = stored.order.events.find(
-          candidate => candidate.type === "status_changed" && candidate.toStatus === "delivered",
-        );
+        const event = lastEffectiveDeliveryEvent(stored.order);
         return { order: stored.order, deliveredAt: event ? ammanDate(event.createdAt) : null };
       })
       .filter(item => item.deliveredAt !== null && inPeriod(item.deliveredAt));

@@ -24,6 +24,7 @@ import {
   type OwnerEntitlementPolicyTerms,
 } from "@micro-domain/owner-entitlement/index.js";
 import { reversedEventIds, type FinancialEvent } from "@micro-domain/financial-event/index.js";
+import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@/presentation/formatters";
 
@@ -492,15 +493,12 @@ export class OwnerEntitlementService {
       .filter(stored => stored.order.resultStatus === "final")
       .map(stored => ({
         stored,
-        deliveredOn: stored.order.events.find(
-          event => event.type === "status_changed" && event.toStatus === "delivered",
-        )?.createdAt
-          ? ammanDate(
-              stored.order.events.find(
-                event => event.type === "status_changed" && event.toStatus === "delivered",
-              )!.createdAt,
-            )
-          : null,
+        /* المجموعة ٦ (تدقيق A1 — FT-01): دليل المالك يقرأ آخر تسليم ساري —
+         * إعادة التسليم بعد العكس تحدّث فترة الدليل لا فترة التسليم المعكوس. */
+        deliveredOn: (() => {
+          const event = lastEffectiveDeliveryEvent(stored.order);
+          return event ? ammanDate(event.createdAt) : null;
+        })(),
       }))
       .filter(
         item => item.deliveredOn !== null && item.deliveredOn >= periodFrom && item.deliveredOn <= periodTo,
