@@ -9,7 +9,7 @@
  * - المجهول يظهر مجهولًا: صف بلا رقم صادق يعرض «—» لا صفرًا.
  * - التصفية بالعائلة والفترة أفعال عرض فقط لا تعيد تفسير السجل.
  */
-import { Activity, ArrowLeft, Receipt } from "lucide-react";
+import { Activity, ArrowLeft, ArrowRight, Receipt } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -210,7 +210,7 @@ export default function FinanceActivity() {
   return (
     <section className="micro-page micro-activity-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> رجوع
+        <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">سجل النشاط · المبالغ (د.أ)</span>

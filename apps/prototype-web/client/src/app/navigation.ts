@@ -33,6 +33,13 @@ export function getNavigationLabel(pathname: string) {
   /* المجموعة ٤ (عقد ٢٩): الأصول والقروض — تسميات سياقية بلا مقاعد جديدة. */
   if (pathname === "/assets" || pathname.startsWith("/assets/")) return "الأصول";
   if (pathname === "/loans" || pathname.startsWith("/loans/")) return "القروض";
+  /* عقد الإغلاق العميق (MR-04): تسميات سياقية للمسارات العميقة غير المغطاة —
+   * علامة الموقع لا تتكرر «مايكرو مايكرو» فوق أسطح المال. */
+  if (pathname === "/collect" || pathname.startsWith("/collect")) return "ورقة التحصيل";
+  if (pathname.startsWith("/direct-sales")) return "بيع مباشر";
+  if (pathname.startsWith("/catalog")) return "الكتالوج";
+  if (pathname.startsWith("/share")) return "معاينة المشاركة";
+  if (pathname.startsWith("/foundation")) return "صفحة الأساس";
   return (
     primaryNavigation.find(
       item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),

@@ -265,7 +265,12 @@ CAPS: dict[str, int] = {
     # النصية والقفل والمشاركة اليدوية والتصحيحات المرحَّلة من المجموعة ٤
     # (سطر الأثر الرقمي + جمع عربي صحيح + أسباب منفصلة). كل زيادة تسمية
     # مفروضة من عقد المجموعة ٥، لا نثرًا حرًا؛ القيمة = القياس الفعلي يومها.
-    "Home": 41,
+    # الإغلاق العميق (عقد المحتوى العربي AR-05): بطاقة «أثناء غيابك» تمر عبر
+    # محرك الجمع العربي (formatArabicPlural) — أشكال واحد/اثنان/قلة/كثرة لكل
+    # مفهوم (أيام الغياب، المبيعات، المصاريف، عمر النسخة) بدل قوالب تكسر
+    # القواعد. كل زيادة أشكال جمع مفروضة من معيار المحتوى، لا نثرًا حرًا.
+    # Home 41 → 53 (2026-09-05, deep closure AR-05).
+    "Home": 53,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.
@@ -314,7 +319,11 @@ CAPS: dict[str, int] = {
     # Finance 260 → 266 (2026-09-05, Group 6 audit A1 / FT-03): family-owner guard in
     # the events layer — three deep-link labels, one shared guidance note, and the
     # reverse note; integrity-communication copy only, no new data prose.
-    "Finance": 266,
+    # الإغلاق العميق (FC-05 — العقد ٣): بطاقة العربون الكاملة في طبقة
+    # العربونات (الوجهة، المطبَّق/المردود/المحتفظ، وصف أثر الربح لكل حالة)
+    # + تحديث سطر هدر الفترة (العقد ١ — دخول النتيجة بخيار المالك).
+    # Finance 266 → 277 (2026-09-05, deep closure FC-05/عقد ١).
+    "Finance": 277,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -345,12 +354,22 @@ CAPS: dict[str, int] = {
     # OrderDetail 143 → 147 (2026-09-04, Group 4 عقد 29): retained-deposit meaning
     # classification panel (owner/revenue/pending + documented correction) — the
     # three-outcome decision mandated by the contract.
-    "OrderDetail": 163,
+    # الإغلاق العميق (WF-01/FC-04 — العقد ٣): لوحة «سجّل عربونًا إضافيًا» على
+    # الطلب الحي — عنوان وشرح ومبلغ ووجهة ومعاينة وأزرار؛ تسميات مفروضة
+    # من العقد لا نثرًا.
+    # OrderDetail 163 → 171 (2026-09-05, deep closure WF-01/FC-04).
+    "OrderDetail": 171,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
     # strings moved behind the detail screen in the same scope (net prose reduced).
-    "Orders": 76,
+    # الإغلاق العميق (AR-14): حالة الخطأ gained reassurance + retry.
+    # Orders 76 → 77 (2026-09-05).
+    # الإغلاق العميق (WF-03 — عقد التنقل): وصلا العمل إلى المرجع والمواد —
+    # تسميتان مطابقتان لمفردة التطبيق نفسها (منتجاتي وخدماتي / المواد والمخزون
+    # كما في الرئيسية ومالي) لا نثرًا جديدًا؛ ملكية التنقل المطلوبة في العقد.
+    # Orders 77 → 79 (2026-09-06, deep closure WF-03).
+    "Orders": 79,
     # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
     # credit-sale customer identity field — one mandated label, no prose.
     # DirectSaleEditor 43 → 45 (2026-09-01, repair cycle P-002): catalog-reference
@@ -378,7 +397,10 @@ CAPS: dict[str, int] = {
     # disclosures. All primary-task fields stay visible; nothing deleted.
     # DirectSaleEditor 63 → 66 (2026-09-04, Group 3 D5/§5.6): optional explicit
     # inventory-linkage offer on the done receipt — no forced consumption.
-    "DirectSaleEditor": 75,
+    # الإغلاق العميق (AR-11/P0 حارس الإعادة): أشكال جمع شريط استعادة المسودة
+    # عبر محرك الجمع العربي — مفروضة من معيار المحتوى.
+    # DirectSaleEditor 75 → 81 (2026-09-05).
+    "DirectSaleEditor": 81,
     # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
     # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
     # mandated bridge labels; the draft form itself is unchanged.
@@ -393,7 +415,9 @@ CAPS: dict[str, int] = {
     # message) — the agreement step is the point where the name becomes required
     # (debt and collection are attributed by it); planned-design drafts from the
     # estimate bridge had no field to satisfy it, so the step was a dead end.
-    "AgreementEditor": 59,
+    # الإغلاق العميق (FC-04): وجهة كاش العربون عند الاتفاق — تسمية مفروضة (العقد ٣).
+    # AgreementEditor 59 → 60 (2026-09-05).
+    "AgreementEditor": 60,
     # Catalog 84 → 92 (2026-09-01, repair cycle P-002): optional suggested default
     # price/cost fields + per-item defaults editor labels — Option A mandated fields.
     # Catalog 92 → 94 (2026-09-02, Group 3 Scope C §9.3, owner-approved execution
@@ -424,11 +448,16 @@ CAPS: dict[str, int] = {
     # InventoryMovementEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
     # receipt bridge status card + cost-known question + consume-target question +
     # shortage alternative panel + effect preview. Decision record D-029.
-    "InventoryMovementEditor": 54,
+    # الإغلاق العميق (العقد ١ — FC-07/FC-10): سؤال أثر الهدر وبدائله، وتحذير
+    # النقص داخل التدفق، وكمية الناتج في لوحة النقص — تسميات مفروضة.
+    # InventoryMovementEditor 54 → 60 (2026-09-05).
+    "InventoryMovementEditor": 60,
     # SupplierPurchaseEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
     # material link + expected quantity fields + received-status bridge card.
     # Decision record D-029.
-    "SupplierPurchaseEditor": 71,
+    # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
+    # SupplierPurchaseEditor 71 → 77 (2026-09-05).
+    "SupplierPurchaseEditor": 77,
     # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
     # label + service truth line — the explicit distribution path is now a first-class
     # wallet-screen concept.
@@ -443,7 +472,9 @@ CAPS: dict[str, int] = {
     # CashWallets 72 → 75 (2026-09-04, Group 4 عقد 29): the export/import
     # service in this screen's closure gained the new collections' migration labels
     # (لا أصول ولا قروض…) — zero new on-screen labels.
-    "CashWallets": 75,
+    # الإغلاق العميق (AR-02): نص أمانات الواجهة بالفصحى (تسمية واحدة أطول).
+    # CashWallets 75 → 76 (2026-09-05).
+    "CashWallets": 76,
     # OwnerEntitlement 48 → 53 (2026-09-02, Group 6 Item 2, owner-approved
     # final-closure prompt — S2-07): the screen becomes the unified «مال المالك»
     # surface — mandated labels: unified overline ("دفتر واحد · المبالغ (د.أ)"),
@@ -499,7 +530,9 @@ CAPS: dict[str, int] = {
     # FinancialEventEditor 138 → 142 (2026-09-04, Group 4 عقد 29): the canonical
     # period reader feeding this editor gained four reason strings for the new
     # independent period lines (إهلاك مسجّل/شطب أصل/تخلص من أصل/عربون محتفظ كإيراد).
-    "FinancialEventEditor": 142,
+    # الإغلاق العميق (AR-07): عنوان «تسجيل هدر بلا خروج نقد» (توحيد مصطلح الهدر).
+    # FinancialEventEditor 142 → 143 (2026-09-05).
+    "FinancialEventEditor": 143,
     # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
     # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
     # labels and truth lines join the measured set; per-tag rows are data.
@@ -508,7 +541,9 @@ CAPS: dict[str, int] = {
     # paid, asset disposal received, loan given, loan repaid) with explicit
     # not-expense/not-withdrawal/not-revenue qualifiers + asset/loan source labels
     # + correction family labels — hiding cash movement was the defect being fixed.
-    "Statement": 202,
+    # الإغلاق العميق (AR-11): سطر أثر التصحيحات بأشكال الجمع العربية (6 بدل 3).
+    # Statement 202 → 205 (2026-09-05).
+    "Statement": 205,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
@@ -522,10 +557,16 @@ CAPS: dict[str, int] = {
     # المجموعة ٤ (عقد ٢٩ — 2026-09-04): أسطح الأصول والقروض مقيسة من يومها الأول.
     # AssetEditor 40: the long-use question journey (name/category/kind/date/life/
     # start/note + effect preview + unsaved-guard labels) — mandated contract copy.
-    "AssetEditor": 49,
+    # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
+    # AssetEditor 49 → 55 (2026-09-05).
+    "AssetEditor": 55,
     "Assets": 63,
-    "Loans": 70,
-    "LoanEditor": 31,
+    # الإغلاق العميق (AR-06): حالة خطأ القروض gained reassurance + retry.
+    # Loans 70 → 71 (2026-09-05).
+    "Loans": 71,
+    # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
+    # LoanEditor 31 → 37 (2026-09-05).
+    "LoanEditor": 37,
     # AssetDetail 36: book value + depreciation proposal/record + contract revision
     # + disposal/write-off + event history — every consequential action previews.
     # AssetDetail 36 → 41 (2026-09-04, Group 4 تصحيح مراجعة 4-c — owner decision):
@@ -544,9 +585,17 @@ CAPS: dict[str, int] = {
     # المجموعة ٦ (تدقيق A1 — AR-04): أسطح الكاش/التحصيل/الدفتر التي كانت خارج
     # القياس تدخل أول مرة بسقف = عددها الحالي (سابقة «تُقاس من يومها الأول») —
     # القياس يتوسع بلا تخفيف: أي إضافة فوق العدد الحالي تحتاج قرارًا موثقًا.
-    "CashDistribution": 48,
-    "Collect": 45,
-    "WalletLedger": 37,
+    # الإغلاق العميق (AR-02/AR-15): رسائل فصحى محدَّثة في الخدمة المُغذّية (أمانة البيانات + إعادة المحاولة).
+    # CashDistribution 48 → 49 (2026-09-05).
+    "CashDistribution": 49,
+    # الإغلاق العميق (FC-09 — العقد ٤): سبب مراجعة التحصيل «تحصيل دفعة من
+    # ورقة التحصيل» في الخدمة المُغذّية — تاريخ تسوية صادق لا «تصحيحًا» عامًا.
+    # Collect 45 → 46 (2026-09-05, deep closure FC-09).
+    "Collect": 46,
+    # الإغلاق العميق (AR-11): سطر «أثر التصحيحات» يمر عبر محرك الجمع العربي
+    # (6 أشكال بدل 3) — صحة لغوية مفروضة من معيار المحتوى.
+    # WalletLedger 37 → 40 (2026-09-05, deep closure AR-11).
+    "WalletLedger": 40,
 }
 
 PAGES = [

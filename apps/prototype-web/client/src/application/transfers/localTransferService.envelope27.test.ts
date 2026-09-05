@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { syncSha256Hex } from "@/lib/syncSha256";
 import { LocalTransferService } from "./localTransferService";
 
 const now = () => "2026-09-05T09:00:00.000Z";
@@ -114,5 +115,56 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
     const prepared = transfers.prepareImport(JSON.stringify(broken));
     expect(prepared.ok).toBe(false);
     if (!prepared.ok) expect(prepared.message).toContain("معطوبة");
+  });
+
+  /* عقد الإغلاق العميق (AV-04 — تلاعب المظروف): تطبيق اليوم يكتب بصمة التكامل
+   * والعدادات معًا دومًا عند التصدير. ملف إصدار حالٍ حُذف منه المظروف كاملًا
+   * (بلا عدّ عدادات ولا بصمة) كان يمر سليمًا فيدخل تلاعبٌ غير مكشوف — الآن
+   * يُرفض قبل أي معاينة كما تُرفض البصمة المعطوبة. الملفات القديمة (٢٦/٣٤)
+   * على مسارها الموروث فوق. */
+  it("rejects a current-version file with the whole envelope stripped (no integrity, no counts)", async () => {
+    const store = new MemoryLocalStore();
+    await seedExpense(store);
+    const transfers = new LocalTransferService(store, now);
+    const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    const stripped = JSON.parse(JSON.stringify(exported.value));
+    delete stripped.integrity;
+    const prepared = transfers.prepareImport(JSON.stringify(stripped));
+    expect(prepared.ok).toBe(false);
+    if (!prepared.ok) expect(prepared.code).toBe("validation_error");
+    if (!prepared.ok) expect(prepared.message).toContain("بلا بصمة تكامل");
+  });
+
+  it("rejects a current-version file with a valid digest but no verification counts", async () => {
+    const store = new MemoryLocalStore();
+    await seedExpense(store);
+    const transfers = new LocalTransferService(store, now);
+    const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    const noCounts = JSON.parse(JSON.stringify(exported.value));
+    delete noCounts.counts;
+    const prepared = transfers.prepareImport(JSON.stringify(noCounts));
+    expect(prepared.ok).toBe(false);
+    if (!prepared.ok) expect(prepared.code).toBe("validation_error");
+    if (!prepared.ok) expect(prepared.message).toContain("بلا عدادات تحقق");
+  });
+
+  /* عقد الإغلاق العميق (AV-05 — حدود المبالغ): مهاجم يعيد ختم المظروف
+   * (بصمة صحيحة على بيانات مزيفة وعدادات مطابقة) بحدث مبلغه ٢^٥٣ — البصمة
+   * تعبر فالرفض يقع في فحص البنية نفسه: مبلغ فوق الحد الصحيح الآمن يفقد
+   * دقته في الجمع فلا يدخل الدفاتر أصلًا. */
+  it("rejects a re-sealed forgery whose event amount exceeds the safe-integer bound", async () => {
+    const store = new MemoryLocalStore();
+    await seedExpense(store);
+    const transfers = new LocalTransferService(store, now);
+    const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    const forged = JSON.parse(JSON.stringify(exported.value));
+    forged.data.financialEvents[0].amountMinor = 2 ** 53;
+    forged.integrity.digest = syncSha256Hex(JSON.stringify(forged.data));
+    const prepared = transfers.prepareImport(JSON.stringify(forged));
+    expect(prepared.ok).toBe(false);
+    if (!prepared.ok) expect(prepared.code).toBe("validation_error");
   });
 });

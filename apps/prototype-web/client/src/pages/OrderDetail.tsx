@@ -87,6 +87,8 @@ export default function OrderDetail() {
     costEstimates,
     collectionReversal,
     retainedDeposits,
+    cashContinuity,
+    projectFinance,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
@@ -214,6 +216,31 @@ export default function OrderDetail() {
       active = false;
     };
   }, [drafts, costEstimates, params.id, dataVersion]);
+
+  /* عقد الإغلاق العميق (WF-01/FC-04): عربون إضافي أثناء الرحلة — المبلغ
+   * ووجهة الكاش صريحة قبل الحفظ، والعربون دَين مرتبط بالطلب لا إيران.
+   * (الخطافات قبل أي خروج مبكر — قاعدة الخطافات.) */
+  const [depositPanelOpen, setDepositPanelOpen] = useState(false);
+  const [extraDepositMinor, setExtraDepositMinor] = useState(0);
+  const [validExtraDeposit, setValidExtraDeposit] = useState(true);
+  const [depositWalletId, setDepositWalletId] = useState("");
+  const [walletOptions, setWalletOptions] = useState<readonly { id: string; name: string; kind: string }[]>(
+    [],
+  );
+  const depositOperationKeyRef = useRef(`order-deposit-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+
+  /* وجهات العربون: تُقرأ عند فتح اللوحة — كاش متاح فعلًا لا قوائم ثابتة. */
+  useEffect(() => {
+    if (!depositPanelOpen) return;
+    let active = true;
+    void (async () => {
+      const overview = await cashContinuity.overview();
+      if (active && overview.ok) setWalletOptions(overview.value.wallets);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [depositPanelOpen, cashContinuity, dataVersion]);
 
   if (state.phase === "loading")
     return (
@@ -348,6 +375,66 @@ export default function OrderDetail() {
     notifyDataChanged();
     closeReversalPanel();
     setCompoundMode(true);
+  }
+
+  /* WF-01/FC-04: إغلاق لوحة العربون وإعادة الحقول لهيئتها الآمنة. */
+  const closeDepositPanel = () => {
+    setDepositPanelOpen(false);
+    setExtraDepositMinor(0);
+    setValidExtraDeposit(true);
+    setDepositWalletId("");
+  };
+
+  /* WF-01/FC-04: العربون يُسجّل على الطلب أولًا (دومين ذرّي ومفتاح حتمي)، ثم
+   * إن اختار المالك محفظة يُخصّص الكاش إليها بمفتاح مشتق من مفتاح العربون
+   * نفسه — إعادة المحاولة أو النقر المزدوج لا يكرر التخصيص. فشل التخصيص
+   * لا يمس العربون المسجل: يبقى في غير الموزع ويعرض السبب بصدق. */
+  async function recordExtraDeposit(): Promise<void> {
+    if (state.phase !== "ready") return;
+    const order = state.stored.order;
+    const remainingMinor = order.agreedPriceMinor - order.collectedMinor;
+    if (!validExtraDeposit || !Number.isInteger(extraDepositMinor) || extraDepositMinor <= 0) {
+      setMessage("أدخل مبلغ العربون رقمًا صحيحًا موجبًا بالأرقام 0–9.");
+      return;
+    }
+    if (extraDepositMinor > remainingMinor) {
+      setMessage(`العربون لا يتجاوز المتبقي من السعر — المتبقي ${formatMoneyMinor(remainingMinor)} د.أ.`);
+      return;
+    }
+    setIsActing(true);
+    try {
+      const result = await fulfillment.collectDeposit(state.stored.id, {
+        amountMinor: extraDepositMinor,
+        operationKey: depositOperationKeyRef.current,
+      });
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
+      if (depositWalletId) {
+        const attribution = await projectFinance.distributeUnallocated({
+          walletId: depositWalletId,
+          deltaMinor: extraDepositMinor,
+          note: `عربون إضافي على طلب «${order.itemName}»`,
+          operationKey: `${depositOperationKeyRef.current}:attribute`,
+          sourceRefId: state.stored.id,
+          sourceRefKind: "order",
+          sourceRefLineId: `${state.stored.id}:${depositOperationKeyRef.current}`,
+        });
+        if (!attribution.ok) {
+          /* العربون محصل والتخصيص تعذّر — المال في غير الموزع والرسالة صادقة. */
+          setMessage(
+            `سُجّل العربون، وتعذر تخصيصه للمحفظة: ${attribution.message} — المبلغ في الكاش غير الموزع.`,
+          );
+        }
+      }
+      setStored(result.stored);
+      setState({ phase: "ready", stored: result.stored });
+      notifyDataChanged();
+      closeDepositPanel();
+    } finally {
+      setIsActing(false);
+    }
   }
 
   const contextualAction =
@@ -630,16 +717,31 @@ export default function OrderDetail() {
                       — يبقى بعد الإلغاء «يحتاج مراجعة» حتى تردّه أو تحتفظ به صراحة، وهذا خيار صالح لا خطأ.
                     </p>
                   ) : null}
+                  {/* عقد الإغلاق العميق (AV-06 — أموال مقبوضة عند الإلغاء): تحصيلات
+                      غير العربون تبقى في السجل والكاش بعد الإلغاء بلا مسار تراجع
+                      مباشر (التراجع عن قبضة متاح ما دام الطلب حيًا) — التحذير
+                      يشرح الأثر ويقدّم الفعل التالي قبل قرار الإلغاء، لا بعده. */}
+                  {order.collectedMinor - order.depositCollectedMinor > 0 ? (
+                    <p className="micro-warning-copy" data-testid="cancel-collected-warning">
+                      يوجد تحصيل غير العربون بقيمة (
+                      <MoneyValue
+                        minor={order.collectedMinor - order.depositCollectedMinor}
+                        className="micro-inline-number"
+                      />{" "}
+                      د.أ) — بعد الإلغاء تبقى هذه القبضة في السجل والكاش بلا مسار تراجع عن طلب ملغى. إن كنت
+                      ستعيد المبلغ للزبون، تراجع عن القبضة أولًا من قسم التحصيلات ثم ألغِ.
+                    </p>
+                  ) : null}
                   <div className="micro-form-actions micro-contextual-actions">
                     <button
                       className="micro-button micro-button-secondary"
                       type="button"
                       disabled={isActing}
                       onClick={() => {
-                        void cancelWithReason("غلط في السعر");
+                        void cancelWithReason("خطأ في السعر");
                       }}
                     >
-                      غلط في السعر
+                      خطأ في السعر
                     </button>
                     <button
                       className="micro-button micro-button-secondary"
@@ -708,6 +810,92 @@ export default function OrderDetail() {
                   onClick={() => setCancelPanelOpen(true)}
                 >
                   <XCircle aria-hidden="true" /> إلغاء الطلب
+                </button>
+              )
+            ) : null}
+            {/* عقد الإغلاق العميق (WF-01/MR-01): عربون إضافي أثناء الرحلة قبل
+                التسليم — المسار الذي كانت ورقة التحصيل توجه إليه بلا سطح فعلي.
+                العربون يرفع الكاش المقبوض ويبقى دينًا مرتبطًا بالطلب لا إيرادًا؛
+                الإيراد يُعرف مرة واحدة عند التسليم، ووجهة الكاش خيار صريح. */}
+            {preDeliveryStatuses.includes(order.status) &&
+            order.agreedPriceMinor - order.collectedMinor > 0 ? (
+              depositPanelOpen ? (
+                <section
+                  className="micro-cancel-panel"
+                  aria-label="تسجيل عربون إضافي"
+                  data-testid="extra-deposit-panel"
+                >
+                  <strong>سجّل عربونًا إضافيًا</strong>
+                  <p>
+                    دفعة قبل التسليم تُسجَّل عربونًا مرتبطًا بهذا الطلب والزبون — ترفع الكاش المقبوض ولا تُعدّ
+                    إيرادًا؛ عند التسليم تُطبَّق على قيمة الطلب مرة واحدة بلا تحصيل مزدوج.
+                  </p>
+                  <label className="micro-field">
+                    <span>مبلغ العربون بالدينار الأردني</span>
+                    <EnglishNumberInput
+                      value={extraDepositMinor}
+                      kind="money"
+                      onNumericChange={setExtraDepositMinor}
+                      onTextValidityChange={setValidExtraDeposit}
+                      aria-label="مبلغ العربون الإضافي"
+                    />
+                  </label>
+                  <label className="micro-field">
+                    <span>وجهة الكاش المحصل</span>
+                    <select
+                      value={depositWalletId}
+                      onChange={event => setDepositWalletId(event.target.value)}
+                      aria-label="وجهة العربون"
+                    >
+                      <option value="">غير موزع — يُوزَّع لاحقًا بقرار صريح</option>
+                      {walletOptions.map(wallet => (
+                        <option key={wallet.id} value={wallet.id}>
+                          {wallet.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {validExtraDeposit && extraDepositMinor > 0 ? (
+                    <p className="micro-muted-copy" data-testid="extra-deposit-preview">
+                      المتبقي على الطلب بعد العربون يصبح{" "}
+                      {formatMoneyMinor(
+                        Math.max(order.agreedPriceMinor - order.collectedMinor - extraDepositMinor, 0),
+                      )}{" "}
+                      د.أ · العربون ليس إيرادًا ولا ربحًا الآن.
+                    </p>
+                  ) : null}
+                  <div className="micro-form-actions micro-contextual-actions">
+                    <button
+                      className="micro-button micro-button-primary"
+                      type="button"
+                      disabled={isActing || !validExtraDeposit || extraDepositMinor <= 0}
+                      onClick={() => {
+                        void recordExtraDeposit();
+                      }}
+                    >
+                      سجّل العربون
+                    </button>
+                    <button
+                      className="micro-button micro-button-quiet"
+                      type="button"
+                      disabled={isActing}
+                      onClick={closeDepositPanel}
+                    >
+                      تراجع
+                    </button>
+                  </div>
+                </section>
+              ) : (
+                <button
+                  className="micro-button micro-button-quiet"
+                  type="button"
+                  disabled={isActing}
+                  onClick={() => {
+                    depositOperationKeyRef.current = `order-deposit-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
+                    setDepositPanelOpen(true);
+                  }}
+                >
+                  <HandCoins aria-hidden="true" /> سجّل عربونًا إضافيًا
                 </button>
               )
             ) : null}

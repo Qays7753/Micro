@@ -47,6 +47,7 @@ import {
   type StorageResult,
   type StoredCraftOrder,
 } from "./types";
+import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 
 const databaseName = "micro-prototype-local";
 const profileStore = "activity-profile";
@@ -690,6 +691,43 @@ async function writeOne<T>(storeName: string, value: T): Promise<StorageResult<T
   }
 }
 
+/* حتمية داخل المعاملة (إصلاح P0 — الإرسال المتزامن المزدوج): الفحص خارج
+ * المعاملة (قراءة ثم كتابة) يسمح لنداءين متزامنين بمفتاح واحد بالمرور معًا
+ * فيُخزَّن السجل مرتين ويُقترن المحفظة مرتين. هنا يُفحص المفتاح داخل معاملة
+ * الكتابة نفسها: إن وُجد سجل سابق بنفس المفتاح يُعاد كما هو دون كتابة ثانية —
+ * نفس عقد commitOrderDelivery/commitFinancialEventCorrection لا مسار ثانٍ. */
+async function writeOneIdempotent<T>(
+  storeName: string,
+  value: T,
+  isDuplicate: (existing: T) => boolean,
+): Promise<StorageResult<T>> {
+  try {
+    const database = await connection();
+    return await new Promise(resolve => {
+      const transaction = database.transaction(storeName, "readwrite");
+      const store = transaction.objectStore(storeName);
+      const scanRequest = store.getAll();
+      scanRequest.onerror = () => resolve(failure(scanRequest.error, database));
+      scanRequest.onsuccess = () => {
+        const existing = (scanRequest.result as T[]).find(isDuplicate);
+        if (existing) {
+          resolve({ ok: true, value: existing });
+          return;
+        }
+        const putRequest = store.put(value);
+        putRequest.onerror = () => resolve(failure(putRequest.error, database));
+      };
+      transaction.onabort = () => resolve(failure(transaction.error, database));
+      transaction.onerror = () => resolve(failure(transaction.error, database));
+      transaction.oncomplete = () => {
+        resolve({ ok: true, value });
+      };
+    });
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 /* القرار ٢١: حذف المسودة غير المرتبطة — حذف سجل بلا أثر مالي؛ لا يمس أحداث طلب. */
 async function deleteOne(storeName: string, key: string): Promise<StorageResult<null>> {
   try {
@@ -1198,8 +1236,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         right.occurredOn.localeCompare(left.occurredOn) || right.recordedAt.localeCompare(left.recordedAt),
     );
   }
+  /* P0 (إرسال متزامن): مفتاح الحتمية يُفحص داخل المعاملة — بيع بنفس المفتاح
+   * محفوظ سلفًا يُعاد كما هو فلا يتكرر السجل ولا يتضاعف الكاش. */
   saveDirectSale(sale: DirectSale) {
-    return writeOne(directSaleStore, sale);
+    return writeOneIdempotent(
+      directSaleStore,
+      sale,
+      existing => existing.id !== sale.id && existing.idempotencyKey === sale.idempotencyKey,
+    );
   }
   listSchedules() {
     return listAll<ScheduleEntry>(
@@ -1253,8 +1297,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   getFinancialEvent(id: string) {
     return readOne<FinancialEvent>(financialEventStore, id);
   }
+  /* P0 (إرسال متزامن): حدث مالي بنفس مفتاح الحتمية محفوظ سلفًا يُعاد كما هو —
+   * المفاتيح المتضاربة مرفوضة أصلًا في الخدمة، فلا مسار شرعي لتكرار المفتاح. */
   saveFinancialEvent(event: FinancialEvent) {
-    return writeOne(financialEventStore, event);
+    return writeOneIdempotent(
+      financialEventStore,
+      event,
+      existing => existing.id !== event.id && existing.idempotencyKey === event.idempotencyKey,
+    );
   }
   async commitFinancialEventCorrection(
     sourceEventId: string,
@@ -1488,8 +1538,23 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([cashWalletStore, cashContinuityEntryStore], "readwrite");
-        if (wallet) transaction.objectStore(cashWalletStore).put(wallet);
-        entries.forEach(entry => transaction.objectStore(cashContinuityEntryStore).put(entry));
+        const entriesStore = transaction.objectStore(cashContinuityEntryStore);
+        /* P0 (إرسال متزامن): مفتاح العملية يُفحص داخل المعاملة — القيد المكرر
+         * يُتخطى والمحفظة لا تُكتب إلا مع قيد جديد فعلي (أو تحديث محفظة خالص
+         * بلا قيود كإنشاء محفظة). إعادة إرسال نفس العملية لا تضاعف الرصيد
+         * ولا تجعل غير الموزع سالبًا. */
+        const scanRequest = entriesStore.getAll();
+        scanRequest.onerror = () => resolve(failure(scanRequest.error, database));
+        scanRequest.onsuccess = () => {
+          const existingKeys = new Set(
+            (scanRequest.result as CashContinuityEntry[]).map(entry => entry.operationKey),
+          );
+          const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
+          newEntries.forEach(entry => entriesStore.put(entry));
+          if (wallet && (newEntries.length > 0 || entries.length === 0)) {
+            transaction.objectStore(cashWalletStore).put(wallet);
+          }
+        };
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
@@ -1570,6 +1635,69 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
           resolve({ ok: true, value: { material, movements, shortage } });
+        };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* عقد الإغلاق العميق (العقد ١ — الهدر): حركة مخزون وحدث مالي في معاملة
+   * واحدة ذرّية — الحركة وحدث خسارة الهدر غير النقدية معًا أو لا شيء،
+   * والتراجع يعكس الاثنين معًا. الحتمية داخل المعاملة بمفتاحي العملية،
+   * والمخزّن سلفًا يُعاد كما هو (reused). */
+  async commitInventoryWithEvents(
+    material: Material | null,
+    movements: readonly InventoryMovement[],
+    events: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      events: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [materialStore, inventoryMovementStore, financialEventStore],
+          "readwrite",
+        );
+        const movementStore = transaction.objectStore(inventoryMovementStore);
+        const eventStore = transaction.objectStore(financialEventStore);
+        let reused = false;
+        let resultMovements: readonly InventoryMovement[] = movements;
+        let resultEvents: readonly FinancialEvent[] = events;
+        const movementScan = movementStore.getAll();
+        movementScan.onerror = () => resolve(failure(movementScan.error, database));
+        movementScan.onsuccess = () => {
+          const storedMovements = movementScan.result as InventoryMovement[];
+          const movementByKey = new Map(
+            storedMovements.map(movement => [movement.operationKey, movement] as const),
+          );
+          resultMovements = movements.map(movement => movementByKey.get(movement.operationKey) ?? movement);
+          const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
+          const eventScan = eventStore.getAll();
+          eventScan.onerror = () => resolve(failure(eventScan.error, database));
+          eventScan.onsuccess = () => {
+            const storedEvents = eventScan.result as FinancialEvent[];
+            const eventByKey = new Map(storedEvents.map(event => [event.idempotencyKey, event] as const));
+            resultEvents = events.map(event => eventByKey.get(event.idempotencyKey) ?? event);
+            const newEvents = events.filter(event => !eventByKey.has(event.idempotencyKey));
+            reused = newMovements.length < movements.length || newEvents.length < events.length;
+            if (material) transaction.objectStore(materialStore).put(material);
+            newMovements.forEach(movement => movementStore.put(movement));
+            newEvents.forEach(event => eventStore.put(event));
+          };
+        };
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.oncomplete = () => {
+          resolve({
+            ok: true,
+            value: { material, movements: resultMovements, events: resultEvents, reused },
+          });
         };
       });
     } catch (error) {
@@ -2833,7 +2961,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     return readOne<LoanRecord>(loanStore, id);
   }
   /* كتابة ذرّية: سجل القرض مع حدثه (إنشاء/سداد/تراجع سداد) — الحدث موجود
-   * سلفًا → إعادة استخدام؛ السجل بلا الدفعة المطابقة → حالة نصفية تُرفض. */
+   * سلفًا أو مفتاحه مستعمل → إعادة استخدام؛ العلاقة بين السجل المخزّن
+   * والوارد يجب أن تطابق عملية مجال واحدة (AV-02: تزامن الدفعات)، وإلا
+   * يُرفض الالتزام ويبقى السجل والأحداث متسقين. */
   async commitLoanRecord(
     record: LoanRecord,
     event: FinancialEvent,
@@ -2886,8 +3016,75 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             };
             return;
           }
-          loans.put(record);
-          events.put(event);
+          /* AV-02 + حتمية المفتاح: مسح الأحداث داخل المعاملة — حدث سابق بنفس
+           * مفتاح الحتمية (إعادة تشغيل تراجع/إنشاء بعد نجاح) يُعاد كما هو. */
+          const keyScanRequest = events.getAll();
+          keyScanRequest.onerror = () => {
+            pending = failure(keyScanRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          keyScanRequest.onsuccess = () => {
+            const keyReplay = findLoanEventByKey(
+              keyScanRequest.result as FinancialEvent[],
+              event.idempotencyKey,
+              event.id,
+            );
+            if (keyReplay) {
+              const loanRequest = loans.get(record.id);
+              loanRequest.onsuccess = () => {
+                const existingLoan = loanRequest.result as LoanRecord | undefined;
+                pending = {
+                  ok: true,
+                  value: { record: existingLoan ?? record, event: keyReplay, reused: true },
+                };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+              };
+              loanRequest.onerror = () => {
+                pending = failure(loanRequest.error, database);
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+              };
+              return;
+            }
+            /* AV-02: العلاقة بين السجل المخزّن والوارد تُفحص داخل المعاملة —
+             * دفعة متزامنة سبقت هذه الكتابة تكسر علاقة «دفعة واحدة بالضبط»
+             * فيُرفض الالتزام ويبقى السجل متسقًا مع أحداثه. */
+            const loanRequest = loans.get(record.id);
+            loanRequest.onsuccess = () => {
+              const storedLoan = loanRequest.result as LoanRecord | undefined;
+              const relation = validateLoanCommitRelation(storedLoan, record, event);
+              if (!relation.ok) {
+                pending = { ok: false, code: "storage_stale", message: relation.message };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+                return;
+              }
+              loans.put(record);
+              events.put(event);
+            };
+            loanRequest.onerror = () => {
+              pending = failure(loanRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+          };
         };
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);

@@ -147,4 +147,27 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     /* لا عكس ولا بديل — التاريخ لم يُلوَّث. */
     expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
   });
+
+  it("concurrent repayments never desync the loan record from its events (AV-02)", async () => {
+    const { service, created, store } = await seededLoan();
+    if (!created.ok) return;
+    const loanId = created.value.loan.id;
+    const [first, second] = await Promise.all([
+      service.recordRepayment(loanId, { amountMinor: 3000, date: "2026-08-01", note: "متزامن أول" }),
+      service.recordRepayment(loanId, { amountMinor: 3000, date: "2026-08-01", note: "متزامن ثانٍ" }),
+    ]);
+    /* واحد يلتزم والآخر يُرفض بصدق — لا يوجد مسار يخزّن حدثين بسجلٍ بدفعة. */
+    const successes = [first, second].filter(outcome => outcome.ok).length;
+    expect(successes).toBe(1);
+    const refused = [first, second].find(outcome => !outcome.ok);
+    expect(refused?.message).toContain("أعد المحاولة");
+    const events = await store.listFinancialEvents();
+    const repaymentEvents = events.value.filter(event => event.type === "loan_repayment_cash");
+    expect(repaymentEvents.length).toBe(1);
+    const loan = await store.getLoan(loanId);
+    if (!loan.ok || !loan.value) throw new Error("loan missing");
+    expect(loan.value.repayments.length).toBe(1);
+    /* السجل والأحداث متسقان: المتبقي محسوب من دفعة واحدة مسجلة في الموضعين. */
+    expect(loan.value.repayments[0]!.eventId).toBe(repaymentEvents[0]!.id);
+  });
 });

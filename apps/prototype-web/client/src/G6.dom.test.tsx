@@ -252,7 +252,7 @@ describe("G6 — OrderDetail compound collection reversal (S2-04a)", () => {
     fireEvent.click(await screen.findByRole("button", { name: /تراجع عن 30\.00 د\.أ/ }));
 
     /* لا مطابقة: لا زر مزدوج، والسبب الصادق يظهر بسطر واحد. */
-    await waitFor(() => expect(screen.getByText(/ما إلها تخصيص بمحفظة/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/ليست مرتبطة بتخصيص في محفظة/)).toBeTruthy());
     expect(screen.queryByRole("button", { name: "أكّد التراجع عن القبضة والتخصيص" })).toBeNull();
     /* المفرد يبقى: زر التأكيد الموثق القائم. */
     expect(await screen.findByRole("button", { name: "أكّد التراجع الموثق" })).toBeTruthy();

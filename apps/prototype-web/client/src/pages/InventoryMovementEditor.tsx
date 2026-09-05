@@ -80,6 +80,9 @@ export default function InventoryMovementEditor() {
   const [wasteCatalogItemId, setWasteCatalogItemId] = useState("");
   const [wasteTemplateId, setWasteTemplateId] = useState("");
   const [wasteAllocationNote, setWasteAllocationNote] = useState("");
+  /* عقد الإغلاق العميق (العقد ١ — الهدر): سؤال المالك — هل يؤثر الهدر على
+   * نتيجة المشروع أم يُسجّل إفصاحًا وحده؟ الخيار يُحفظ داخل الحدث. */
+  const [wasteProfitImpact, setWasteProfitImpact] = useState(false);
   const [quantityMilli, setQuantityMilli] = useState(0);
   const [valueMinor, setValueMinor] = useState(0);
   const [costKnown, setCostKnown] = useState(true);
@@ -228,6 +231,12 @@ export default function InventoryMovementEditor() {
   const selectedPosition = references?.materialPositions.find(position => position.materialId === materialId);
   const availableMilli = selectedPosition?.quantityMilli ?? 0;
   const shortageImminent = safeType === "consume" && quantityMilli > availableMilli;
+  /* عقد الإغلاق العميق (FC-07 — العقد ٦): تحذير داخل التدفق لأي عملية إخراج
+   * تتجاوز المتاح — الهدر وضبط النقص كالاستهلاك: لا رصيد سالب صامتًا ولا
+   * معاينة تعرض رصيدًا سالبًا واثقًا. */
+  const outboundShortage =
+    (safeType === "waste" || (safeType === "adjust" && direction === "decrease")) &&
+    quantityMilli > availableMilli;
 
   async function save(): Promise<boolean> {
     if (
@@ -325,6 +334,7 @@ export default function InventoryMovementEditor() {
                 reason,
                 operationKey: operationKey.current,
                 wasteContext,
+                profitImpact: wasteProfitImpact,
               })
             : await inventory.adjust({
                 materialId,
@@ -453,20 +463,30 @@ export default function InventoryMovementEditor() {
               "لا يتغير الكاش ولا نتيجة الفترة الآن.",
             ]
         : safeType === "waste"
-          ? [
-              `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} وتخرج قيمته من المخزون.`,
-              "هدر مخزون — بلا خروج نقد جديد ولا أثر في نتيجة الفترة.",
-            ]
-          : [
-              `رصيد المادة يصبح ${formatQuantityMilli(afterMilli)} ${unit} (فرق ${
-                direction === "increase" ? "+" : "−"
-              }${formatQuantityMilli(quantityMilli)}).`,
-              direction === "increase"
-                ? costKnown
-                  ? `قيمة الزيادة المعلنة ${formatMoneyMinor(valueMinor)} د.أ — لا يتغير الكاش.`
-                  : "قيمة الزيادة غير معروفة — قيمة صفرية موسومة، لا يتغير الكاش."
-                : "قيمة النقص تُشتق من رصيد المادة — لا يتغير الكاش ولا نتيجة الفترة.",
-            ];
+          ? outboundShortage
+            ? ["الكمية المطلوبة أكبر من المتاحة — لا يُسمح برصيد سالب؛ سجّل الهدر على المتاح ثم وثّق النقص."]
+            : [
+                `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} وتخرج قيمته من المخزون.`,
+                wasteProfitImpact
+                  ? selectedPosition?.costKnowledge === "unknown"
+                    ? "قيمة الهدر غير محددة بعد — يبقى أثر الربح معلقًا حتى تحديد التكلفة، ولا يُفترض صفرًا أبدًا."
+                    : "يُسجَّل حدث خسارة غير نقدية بقيمة المخزون الخارجة — يؤثر على نتيجة المشروع بلا خروج نقد."
+                  : "هدر مخزون — بلا خروج نقد جديد ولا أثر في نتيجة الفترة.",
+              ]
+          : outboundShortage && direction === "decrease"
+            ? [
+                "الكمية المطلوبة أكبر من المتاحة — لا يُسمح برصيد سالب؛ خفّض الكمية إلى المتاح أو سجّل الهدر/الضبط على المتاح.",
+              ]
+            : [
+                `رصيد المادة يصبح ${formatQuantityMilli(afterMilli)} ${unit} (فرق ${
+                  direction === "increase" ? "+" : "−"
+                }${formatQuantityMilli(quantityMilli)}).`,
+                direction === "increase"
+                  ? costKnown
+                    ? `قيمة الزيادة المعلنة ${formatMoneyMinor(valueMinor)} د.أ — لا يتغير الكاش.`
+                    : "قيمة الزيادة غير معروفة — قيمة صفرية موسومة، لا يتغير الكاش."
+                  : "قيمة النقص تُشتق من رصيد المادة — لا يتغير الكاش ولا نتيجة الفترة.",
+              ];
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
@@ -721,6 +741,39 @@ export default function InventoryMovementEditor() {
                 />
               </label>
             ) : null}
+            {/* عقد الإغلاق العميق (العقد ١): السؤال المعتمد حرفيًا — نعم يُنشئ
+             * خسارة غير نقدية عند معرفة التكلفة، ولا يُنشئ خروجًا نقديًا أبدًا. */}
+            <fieldset className="micro-field" data-testid="waste-profit-impact-question">
+              <legend>هل تريد اعتبار هذا الهدر خسارة تؤثر على نتيجة المشروع؟</legend>
+              <label className="micro-radio-choice">
+                <input
+                  type="radio"
+                  name="waste-profit-impact"
+                  checked={!wasteProfitImpact}
+                  onChange={() => setWasteProfitImpact(false)}
+                />
+                <span>
+                  <b>لا، سجّله كهدر فقط</b>
+                  <small>يُوثّق الحدث والكمية دون أي أثر على الربح.</small>
+                </span>
+              </label>
+              <label className="micro-radio-choice">
+                <input
+                  type="radio"
+                  name="waste-profit-impact"
+                  checked={wasteProfitImpact}
+                  onChange={() => setWasteProfitImpact(true)}
+                />
+                <span>
+                  <b>نعم، يؤثر على الربح</b>
+                  <small>
+                    {selectedPosition?.costKnowledge === "unknown"
+                      ? "قيمة الهدر غير محددة بعد — يبقى الأثر معلقًا حتى تحديد التكلفة، ولا يُفترض صفر."
+                      : "خسارة غير نقدية بقيمة المخزون الخارجة — بلا خروج نقد من الصندوق."}
+                  </small>
+                </span>
+              </label>
+            </fieldset>
           </div>
         ) : null}
         {safeType === "adjust" ? (
@@ -829,8 +882,10 @@ export default function InventoryMovementEditor() {
             </div>
             <p>
               المتاح الآن <QuantityValue valueMilli={availableMilli} className="micro-inline-number" /> من{" "}
-              {selectedMaterial.name}. لا يُسمح برصيد سالب في Micro — النقص يُوثَّق سجلًا يُحلّ لاحقًا، لا
-              رقمًا سالبًا يُخفى. اختر:
+              {selectedMaterial.name} — المطلوب{" "}
+              <QuantityValue valueMilli={quantityMilli} className="micro-inline-number" />، و«استهلك المتاح»
+              يجعل الرصيد الناتج <QuantityValue valueMilli={0} className="micro-inline-number" />. لا يُسمح
+              برصيد سالب في Micro — النقص يُوثَّق سجلًا يُحلّ لاحقًا، لا رقمًا سالبًا يُخفى. اختر:
             </p>
             <div className="micro-form-actions">
               <button

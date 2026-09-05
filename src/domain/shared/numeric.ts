@@ -75,7 +75,7 @@ export function assertPositiveMinor(value: number, field: string): void {
 
 export function assertNonNegativeInteger(value: number, field: string): void {
   if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا غير سالب بالوحدات الصغرى.`);
+    throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا غير سالب بالدينار الأردني ضمن الدقة الآمنة.`);
   }
 }
 

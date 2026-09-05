@@ -58,9 +58,15 @@ export default function Loans() {
           جارٍ قراءة القروض…
         </p>
       ) : state.phase === "error" ? (
-        <p className="micro-field-error" role="alert">
-          {state.message}
-        </p>
+        <section className="micro-empty-state" aria-label="تعذر قراءة القروض">
+          <p className="micro-field-error" role="alert">
+            {state.message}
+          </p>
+          <p>لم يتغير أي سجل — بياناتك كما هي؛ أعد المحاولة.</p>
+          <button className="micro-button micro-button-secondary" type="button" onClick={() => load()}>
+            إعادة المحاولة
+          </button>
+        </section>
       ) : state.rows.length === 0 ? (
         <section className="micro-empty-state" aria-label="لا قروض بعد">
           <Users aria-hidden="true" />

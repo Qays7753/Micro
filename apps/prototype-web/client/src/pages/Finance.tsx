@@ -2,6 +2,7 @@
 /* §2.2: المراجعة اندمجت نبضةً أعلى هذه الصفحة (F-003) — جلسة قراءة أسبوعية لا تستحق مقعدًا. */
 import { assetCountLabel, pendingDepositCountLabel } from "@/presentation/g5Plurals";
 import {
+  ArrowRight,
   ArrowLeft,
   CircleAlert,
   CircleDollarSign,
@@ -277,7 +278,7 @@ export default function Finance() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>
@@ -766,8 +767,10 @@ export default function Finance() {
                     <PeriodMoney value={period.generalInventoryWasteMinor} status={period.status} />
                   </dd>
                 </div>
-                {/* المجموعة ٢ (عقد ٢٨): هدر الفترة — غير نقدي، خارج نتيجة الفترة عمدًا؛
-                 * قيمة غير معروفة تُصرَّح بها ولا تُعرض 0.00 واثقة. */}
+                {/* المجموعة ٢ (عقد ٢٨) + عقد الإغلاق العميق (العقد ١): هدر الفترة —
+                 * غير نقدي دومًا؛ ودخوله في نتيجة الفترة بخيار المالك عند التسجيل
+                 * (نعم → حدث خسارة غير نقدية مرتبط). قيمة غير معروفة تُصرَّح بها
+                 * ولا تُعرض 0.00 واثقة. */}
                 {state.periodWaste && state.periodWaste.count > 0 ? (
                   <div>
                     <dt>هدر مخزون هذه الفترة</dt>
@@ -782,7 +785,7 @@ export default function Finance() {
                           ) : null}
                         </>
                       )}{" "}
-                      — غير نقدي: لا يخرج كاش ولا يدخل نتيجة الفترة.
+                      — غير نقدي: لا يخرج كاش، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر.
                     </dd>
                   </div>
                 ) : null}
@@ -1017,7 +1020,7 @@ export default function Finance() {
               <summary className="micro-finance-layer-summary">
                 <span>
                   <b>سجل المتوقعات المسجلة</b>
-                  <small>كل ما سُجل — حتى المنقوضة</small>
+                  <small>كل ما سُجل — حتى المتراجع عنه</small>
                 </span>
                 <strong>
                   {declarations.length > 0 ? (
@@ -1052,7 +1055,7 @@ export default function Finance() {
                                 : "يحتاج مراجعة"}
                           </small>
                           <b data-state={entry.kind === "reversal" ? "reversed" : "active"}>
-                            {entry.kind === "reversal" ? "نقض موثق" : "ساري"}
+                            {entry.kind === "reversal" ? "تراجع موثق" : "ساري"}
                           </b>
                         </li>
                       ))}

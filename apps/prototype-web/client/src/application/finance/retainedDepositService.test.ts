@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RetainedDepositService } from "./retainedDepositService";
+import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import {
   calculateCostSnapshot,
@@ -215,5 +216,43 @@ describe("retained deposit service (المجموعة ٤ — عقد ٢٩)", () =>
     expect(() => classifyOnOrder(order, "owner", "سبب", "order-3:classify", now())).toThrow(
       /يتبع قرار الاحتفاظ/,
     );
+  });
+
+  it("AV-03: generic reverse/edit refuse classification events — the order stays repairable", async () => {
+    const store = new MemoryLocalStore();
+    const service = new RetainedDepositService(store, now);
+    const finance = new ProjectFinancialService(store, now);
+    await cancelledOrderWithRetainedDeposit(store);
+    const classified = await service.classify("order-1", "owner", "العربون يعود لي");
+    expect(classified.ok).toBe(true);
+    if (!classified.ok) return;
+    const eventId = classified.value.event.id;
+    /* نداء الخدمة المباشر (لا الواجهة) كان يعكس التصنيف فيصبح الطلب معلقًا
+     * على حدث معكوس لا classify يصلحه ولا reclassify — الآن يُرفض في الخدمة. */
+    const reversed = await finance.reverse({
+      sourceEventId: eventId,
+      occurredOn: "2026-09-02",
+      reason: "عكس مباشر من المحرر العام",
+      idempotencyKey: "av03-reverse-key",
+    });
+    expect(reversed.ok).toBe(false);
+    if (reversed.ok) return;
+    expect(reversed.message).toContain("صفحة الطلب");
+    const edited = await finance.editEvent({
+      sourceEventId: eventId,
+      amountMinor: 4000,
+      occurredOn: "2026-09-02",
+      note: "تعديل مباشر من المحرر العام",
+      counterparty: null,
+      idempotencyKey: "av03-edit-key",
+      reason: "تعديل",
+    });
+    expect(edited.ok).toBe(false);
+    /* الحدث لم يُعكس ولم يُعدَّل — السجل قابل للإصلاح من مساره الموثق. */
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const active = events.value.find(event => event.id === eventId);
+    expect(active?.correctionType ?? null).toBeNull();
+    expect(events.value.filter(event => event.correctionOfEventId === eventId)).toHaveLength(0);
   });
 });

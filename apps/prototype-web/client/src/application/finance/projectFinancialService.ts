@@ -212,6 +212,20 @@ function id(): string {
 function amanahLimitMessage(availableMinor: number, requestedMinor: number, action: string): string {
   return `${action} يتجاوز الأمانات بحوزتك — المتاح لديك ${formatMoneyWithUnit(availableMinor)} والمطلوب ${formatMoneyWithUnit(requestedMinor)}. راجع رصيد الأمانات أولًا ثم سجّل ما يطابقه.`;
 }
+/* AV-03 (تدقيق المنتج التنافسي): عكس تصنيف عربون محتفظ به من المحرر العام
+ * يترك سجل الطلب معلّقًا على حدث معكوس — classify يرفض («مصنَّف سابقًا»)
+ * وreclassify يرفض («لا تصنيف قائم») فتستحيل الإصلاح. حرس الواجهة وحده
+ * كان يمنع ذلك؛ الآن الخدمة نفسها ترفض وتوجه لصفحة الطلب (سطح التصنيف
+ * المعتمد). أحداث الأصل والقرض تبقى خارج الحرس عمدًا: التصحيح العام لها
+ * سلوك معتمد مجرَّب (جولة F-2) وسياقاتها تُحمل في البديل والاسترجاع. */
+function familyCorrectionGuard(event: FinancialEvent): string | null {
+  if (
+    (event.type === "deposit_retained_revenue" || event.type === "deposit_retained_owner") &&
+    event.depositContext?.orderId
+  )
+    return "هذا الحدث مرتبط بعربون طلب — صحّحه من صفحة الطلب (إعادة التصنيف الموثقة) ليبقى ربط السجل سليمًا؛ لم يتغير السجل.";
+  return null;
+}
 function sharedExpenseHasMissingBasis(event: FinancialEvent) {
   return event.expenseContext?.relationship === "shared" && !event.expenseContext.sharedProjectShare;
 }
@@ -891,6 +905,10 @@ export class ProjectFinancialService {
       };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
       return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن حدث تراجع سابق." };
+    /* AV-03: حرس العائلة في الخدمة نفسها — لا يُعكس حدث مرتبط بسجل مالك
+     * من المحرر العام (كان الحرس في الواجهة فقط). */
+    const familyGuard = familyCorrectionGuard(source);
+    if (familyGuard) return { ok: false, code: "validation_error", message: familyGuard };
     const alreadyReversed = existing.value.find(
       event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
     );
@@ -1022,6 +1040,10 @@ export class ProjectFinancialService {
       return { ok: false, code: "validation_error", message: "لم يُعثر على الحدث الأصلي؛ لم يتغير السجل." };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
       return { ok: false, code: "validation_error", message: "لا يمكن تعديل سجل تراجع سابق." };
+    /* AV-03: حرس العائلة في الخدمة نفسها — التعديل العام لا يمس أحداث
+     * الأصل/القرض/العربون؛ سطح المالك يحمل سياقها الكامل. */
+    const familyGuard = familyCorrectionGuard(source);
+    if (familyGuard) return { ok: false, code: "validation_error", message: familyGuard };
     const alreadyReversed = existing.value.find(
       event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
     );
@@ -1234,7 +1256,7 @@ export class ProjectFinancialService {
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ الحدث المالي محليًا. لم يتم تأكيد نجاح العملية.",
+            message: "تعذر حفظ الحدث المالي محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
       return {

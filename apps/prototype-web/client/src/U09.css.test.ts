@@ -23,4 +23,11 @@ describe("touch targets stay tappable at phone widths (U-09)", () => {
     expect(block).toContain("min-height: 44px");
     expect(block).toContain("min-width: 48px");
   });
+
+  it("quiet buttons meet the 44px minimum height (عقد الإغلاق العميق — MR-03)", () => {
+    /* أزرار التصحيح/التراجع الهادئة (micro-button-quiet) تحمل مداخل مالية —
+     * لا يجوز أن تتقلص إلى 32px تحت إصبع المالك. */
+    const block = ruleBlock(".micro-button-quiet");
+    expect(block).toContain("min-height: 44px");
+  });
 });

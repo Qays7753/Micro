@@ -3241,7 +3241,10 @@ button.micro-finance-position-link:focus-visible {
   padding-top: var(--space-3);
 }
 .micro-button-quiet {
-  min-height: 32px;
+  /* عقد الإغلاق العميق (MR-03): هدف لمس 44px كحد أدنى — هذه الأزرار تحمل مداخل
+   * التصحيح والتراجع المالي (عدّل/تراجع/السجل والتصحيح) ولا يجوز أن تتقلص عن
+   * الحد الأدنى المعتمد في U09 (هدف لمس ٤٤ بكسل كحد أدنى). */
+  min-height: 44px;
   border: 1px solid var(--color-border);
   color: var(--color-accent-text);
   background: transparent;

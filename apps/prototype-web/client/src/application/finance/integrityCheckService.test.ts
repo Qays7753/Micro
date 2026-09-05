@@ -892,8 +892,17 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
       note: "نسخة معدّة يدويًا بمعرّف جديد",
       counterparty: null,
     });
-    const savedForged = await store.saveFinancialEvent(forged);
-    if (!savedForged.ok) throw new Error(savedForged.message);
+    /* P0 (إعادة الدخول): مسار الكتابة الحي (saveFinancialEvent) يرفض الآن
+     * التكرار داخل المعاملة نفسها، فالتزوير المتزامن لا يعود يصل إلى السجل.
+     * التكرار الواصل في الإنتاج يأتي من الاستيراد (استبدال اللقطة) — لذا
+     * يُحقن الاختبار عبر replaceSnapshot: مسار الوصول الفعلي للتكرار. */
+    const snapshot = await store.readSnapshot();
+    if (!snapshot.ok) throw new Error(snapshot.message);
+    const replaced = await store.replaceSnapshot({
+      ...snapshot.value,
+      financialEvents: [...snapshot.value.financialEvents, forged],
+    });
+    if (!replaced.ok) throw new Error(replaced.message);
     const report = await services.integrityCheck.run();
     const mic15 = report.checks.find(check => check.id === "MIC-15");
     expect(mic15?.status).toBe("FAIL");

@@ -87,6 +87,13 @@ export default function Tools() {
           state: "enabled",
           href: "/tools/calculator",
         },
+        /* عقد الإغلاق العميق (MR-06 — عقد التنقل): أدواتي يملك النسخ الاحتياطي —
+           وحدة إلى الإعدادات حيث بطاقات التصدير/الاستيراد/إعادة الضبط تعمل. */
+        {
+          label: "النسخ الاحتياطي والبيانات",
+          state: "enabled",
+          href: "/settings",
+        },
         /* المجموعة ١ (فحص سلامة مالي): متاح دائمًا — قراءة فقط لا يعتمد على
          * بيانات؛ حالته «مفعّل» صادقة من يومها الأول (D-006: مشتقة من حقيقة). */
         {
@@ -222,7 +229,7 @@ export default function Tools() {
             </div>
             {savedEstimates.length === 0 ? (
               <p className="micro-home-quiet">
-                <strong>ما في تقديرات محفوظة بعد.</strong> احسب تكلفة منتج جديد وشوف كيف بتمشي.
+                <strong>لا توجد تقديرات محفوظة بعد.</strong> احسب تكلفة منتج جديد وشاهد كيف تسير الأرقام.
               </p>
             ) : (
               savedEstimates.map(estimate => (

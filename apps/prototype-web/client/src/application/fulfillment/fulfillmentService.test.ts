@@ -4,6 +4,8 @@ import { CostService, type CostEditorInput } from "@/application/cost/costServic
 import { DraftService } from "@/application/drafts/draftService";
 import { FulfillmentService } from "./fulfillmentService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
+import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
 const costInput: CostEditorInput = {
@@ -334,4 +336,93 @@ it("keeps collectFromSheet debt retries idempotent under an advancing clock (S2-
     event => event.type === "collection_recorded" && event.amountMinor === 500,
   );
   expect(collectionEvents).toHaveLength(1);
+});
+
+/** عقد الإغلاق العميق (WF-01/FC-04/FC-05 — العقد ٣): عربون إضافي أثناء الرحلة
+ * قبل التسليم من سطح الطلب (المسار الذي كانت ورقة التحصيل توجه إليه بلا
+ * سطح فعلي)، ووجهة الكاش خيار صريح مرتبط بحدث العربون نفسه، وبطاقة
+ * العربون تحمل الحقول المعتمدة كاملة. */
+describe("FulfillmentService mid-journey deposit (عقد الإغلاق العميق — العقد ٣)", () => {
+  it("records a mid-journey deposit on an in-progress order and keeps it a deposit, not revenue", async () => {
+    const { store, orderId } = await activeOrder(500);
+    const service = new FulfillmentService(store, () => "2026-08-23T10:00:00.000Z");
+    const result = await service.collectDeposit(orderId, {
+      amountMinor: 700,
+      operationKey: "mid-deposit-1",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const order = result.stored.order;
+    expect(order.depositCollectedMinor).toBe(1200);
+    expect(order.collectedMinor).toBe(1200);
+    expect(order.status).toBe("in_progress");
+    /* الحدث موثق على الطلب — العربون قابل للعكس والتسوية من مساره. */
+    expect(
+      order.events.some(
+        event => event.type === "deposit_collected" && event.idempotencyKey === "mid-deposit-1",
+      ),
+    ).toBe(true);
+  });
+
+  it("replaying the same deposit operation key is an idempotent no-op (double submit safe)", async () => {
+    const { store, orderId } = await activeOrder(500);
+    const service = new FulfillmentService(store, () => "2026-08-23T10:00:00.000Z");
+    const input = { amountMinor: 700, operationKey: "mid-deposit-replay" };
+    const first = await service.collectDeposit(orderId, input);
+    const second = await service.collectDeposit(orderId, input);
+    expect(first.ok && second.ok).toBe(true);
+    if (!first.ok || !second.ok) return;
+    expect(second.stored.order.depositCollectedMinor).toBe(1200);
+    expect(second.stored.order.events.filter(event => event.type === "deposit_collected").length).toBe(2);
+  });
+
+  it("refuses a deposit beyond the agreed price and on delivered orders — honest guards", async () => {
+    const { store, orderId } = await activeOrder(500);
+    const service = new FulfillmentService(store, () => "2026-08-23T10:00:00.000Z");
+    const beyond = await service.collectDeposit(orderId, {
+      amountMinor: 5000,
+      operationKey: "mid-deposit-beyond",
+    });
+    expect(beyond.ok).toBe(false);
+    if (beyond.ok) return;
+    expect(beyond.message).toContain("العربون لا يمكن أن يتجاوز السعر المتفق عليه");
+  });
+
+  it("deposit card carries applied/refunded/retained/wallet/profit fields (FC-05)", async () => {
+    const { store, orderId } = await activeOrder(500);
+    const fulfillment = new FulfillmentService(store, () => "2026-08-23T10:00:00.000Z");
+    const finance = new ProjectFinancialService(store, () => "2026-08-23T10:00:00.000Z");
+    const cash = new CashContinuityService(store, () => "2026-08-23T10:00:00.000Z");
+    /* عربون إضافي مع وجهة محفظة صريحة — التخصيص مرتبط بحدث العربون. */
+    await fulfillment.collectDeposit(orderId, { amountMinor: 700, operationKey: "card-deposit" });
+    const wallet = await cash.openWallet({
+      name: "الدرج",
+      kind: "cash_drawer",
+      openingMinor: 0,
+      occurredOn: "2026-08-20",
+      note: "محفظة",
+      operationKey: "wallet-card",
+    });
+    if (!wallet.ok) throw new Error(wallet.message);
+    const attribution = await finance.distributeUnallocated({
+      walletId: wallet.value.wallet.id,
+      deltaMinor: 700,
+      note: "عربون",
+      operationKey: "card-deposit:attribute",
+      sourceRefId: orderId,
+      sourceRefKind: "order",
+      sourceRefLineId: `${orderId}:card-deposit`,
+    });
+    expect(attribution.ok).toBe(true);
+    const overview = await fulfillment.listDepositOverview();
+    expect(overview.ok).toBe(true);
+    if (!overview.ok) return;
+    const card = overview.value.deposits.find(row => row.orderId === orderId);
+    if (!card) throw new Error("deposit card missing");
+    expect(card.depositCollectedMinor).toBe(1200);
+    expect(card.walletName).toBe("الدرج");
+    expect(card.appliedToSaleMinor).toBe(0);
+    expect(card.profitEffectLabel).toContain("ليس إيرانًا ولا ربحًا");
+    expect(overview.value.collectedTotalMinor).toBe(1200);
+  });
 });

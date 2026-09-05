@@ -1,5 +1,6 @@
 /** Test adapter only. It mirrors the LocalStore port without making browser APIs part of application tests. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type {
@@ -330,6 +331,12 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     };
   }
   async saveDirectSale(sale: DirectSale): Promise<StorageResult<DirectSale>> {
+    /* P0 (إرسال متزامن): نفس عقد محوّل IndexedDB — مفتاح الحتمية يُفحص عند
+     * الكتابة نفسها فلا يُخزّن بيعان بمفتاح واحد. */
+    const existing = Array.from(this.directSales.values()).find(
+      candidate => candidate.id !== sale.id && candidate.idempotencyKey === sale.idempotencyKey,
+    );
+    if (existing) return { ok: true, value: clone(existing) };
     this.directSales.set(sale.id, clone(sale));
     return { ok: true, value: clone(sale) };
   }
@@ -388,6 +395,12 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     return { ok: true, value: event ? clone(event) : null };
   }
   async saveFinancialEvent(event: FinancialEvent): Promise<StorageResult<FinancialEvent>> {
+    /* P0 (إرسال متزامن): نفس عقد محوّل IndexedDB — حدث بنفس المفتاح يُعاد
+     * كما هو فلا يتكرر الأثر المالي. */
+    const existing = Array.from(this.financialEvents.values()).find(
+      candidate => candidate.id !== event.id && candidate.idempotencyKey === event.idempotencyKey,
+    );
+    if (existing) return { ok: true, value: clone(existing) };
     this.financialEvents.set(event.id, clone(event));
     return { ok: true, value: clone(event) };
   }
@@ -478,8 +491,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     wallet: CashWallet | null,
     entries: readonly CashContinuityEntry[],
   ): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>> {
-    if (wallet) this.cashWallets.set(wallet.id, clone(wallet));
-    entries.forEach(entry => this.cashContinuityEntries.set(entry.id, clone(entry)));
+    /* P0 (إرسال متزامن): قيد بنفس مفتاح العملية يُتخطى والمحفظة لا تُكتب
+     * إلا مع قيد جديد (أو تحديث خالص بلا قيود) — نفس عقد محوّل IndexedDB. */
+    const existingKeys = new Set(Array.from(this.cashContinuityEntries.values()).map(e => e.operationKey));
+    const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
+    newEntries.forEach(entry => this.cashContinuityEntries.set(entry.id, clone(entry)));
+    if (wallet && (newEntries.length > 0 || entries.length === 0)) {
+      this.cashWallets.set(wallet.id, clone(wallet));
+    }
     return { ok: true, value: { wallet: wallet ? clone(wallet) : null, entries: entries.map(clone) } };
   }
   async listMaterials(): Promise<StorageResult<readonly Material[]>> {
@@ -546,6 +565,44 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         material: material ? clone(material) : null,
         movements: movements.map(clone),
         shortage: shortage ? clone(shortage) : null,
+      },
+    };
+  }
+  /* عقد الإغلاق العميق (العقد ١): محاكاة الذاكرة لنفس عقد محوّل IndexedDB —
+   * حركة + حدث مالي بمعاملة واحدة منطقيًا، والحتمية بمفتاحي العملية. */
+  async commitInventoryWithEvents(
+    material: Material | null,
+    movements: readonly InventoryMovement[],
+    events: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      events: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  > {
+    const movementByKey = new Map(
+      Array.from(this.inventoryMovements.values()).map(
+        movement => [movement.operationKey, movement] as const,
+      ),
+    );
+    const eventByKey = new Map(
+      Array.from(this.financialEvents.values()).map(event => [event.idempotencyKey, event] as const),
+    );
+    const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
+    const newEvents = events.filter(event => !eventByKey.has(event.idempotencyKey));
+    const reused = newMovements.length < movements.length || newEvents.length < events.length;
+    if (material) this.materials.set(material.id, clone(material));
+    newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    newEvents.forEach(event => this.financialEvents.set(event.id, clone(event)));
+    return {
+      ok: true,
+      value: {
+        material: material ? clone(material) : null,
+        movements: movements.map(movement => movementByKey.get(movement.operationKey) ?? movement).map(clone),
+        events: events.map(event => eventByKey.get(event.idempotencyKey) ?? event).map(clone),
+        reused,
       },
     };
   }
@@ -1187,6 +1244,27 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         },
       };
     }
+    /* AV-02 + حتمية المفتاح: نفس حراس محوّل IndexedDB — إعادة تشغيل بنفس
+     * المفتاح تُعاد كما هي، والعلاقة مع السجل المخزّن تُفحص عند الكتابة. */
+    const keyReplay = findLoanEventByKey(
+      Array.from(this.financialEvents.values()),
+      event.idempotencyKey,
+      event.id,
+    );
+    if (keyReplay) {
+      const existing = this.loans.get(record.id);
+      return {
+        ok: true,
+        value: {
+          record: existing ? clone(existing) : clone(record),
+          event: clone(keyReplay),
+          reused: true,
+        },
+      };
+    }
+    const stored = this.loans.get(record.id);
+    const relation = validateLoanCommitRelation(stored, record, event);
+    if (!relation.ok) return { ok: false, code: "storage_stale", message: relation.message };
     this.loans.set(record.id, clone(record));
     this.financialEvents.set(event.id, clone(event));
     return { ok: true, value: { record: clone(record), event: clone(event), reused: false } };

@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
+import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
 import { withFrom } from "@/app/navigationContract";
 import type {
   HomeControlCenterViewModel,
@@ -205,7 +205,14 @@ export default function Home() {
         <section className="micro-away-card" aria-label="أثناء غيابك">
           <b>
             <CloudSun aria-hidden="true" /> أثناء غيابك — آخر تسجيل قبل{" "}
-            {model.awaySection.daysSinceLastActivity} يوم
+            {formatArabicPlural(model.awaySection.daysSinceLastActivity, {
+              zero: "أقل من يوم",
+              one: "يوم واحد",
+              two: "يومين",
+              few: "أيام",
+              many: "يومًا",
+              other: "يوم",
+            })}
           </b>
           <ul>
             {/* U-002 (دورة التدقيق النهائي): ملخص «آخر يوم تسجيل» الصادق — لا شيء يتحرك
@@ -222,14 +229,27 @@ export default function Home() {
                     model.awaySection.digest.lastRecordedOn}
                   ):
                   {model.awaySection.digest.salesCount > 0
-                    ? ` بِيع ${model.awaySection.digest.salesCount} بـ ${formatMoneyMinor(
-                        model.awaySection.digest.salesRevenueMinor,
-                      )} د.أ`
+                    ? ` ${formatArabicPlural(model.awaySection.digest.salesCount, {
+                        zero: "لم يُبَع شيء",
+                        one: "بِيع بيع واحد",
+                        two: "بِيع بيعان",
+                        few: "بيعت مبيعات",
+                        many: "بِيع",
+                        other: "بِيع",
+                      })} بـ ${formatMoneyMinor(model.awaySection.digest.salesRevenueMinor)} د.أ`
                     : ""}
                   {model.awaySection.digest.expenseCount > 0
-                    ? `${model.awaySection.digest.salesCount > 0 ? " ·" : ""} مصروف ${
-                        model.awaySection.digest.expenseCount
-                      } بـ ${formatMoneyMinor(model.awaySection.digest.expenseMinor)} د.أ`
+                    ? `${model.awaySection.digest.salesCount > 0 ? " ·" : ""} ${formatArabicPlural(
+                        model.awaySection.digest.expenseCount,
+                        {
+                          zero: "لا مصروف",
+                          one: "مصروف واحد",
+                          two: "مصروفان",
+                          few: "مصروفات",
+                          many: "مصروفًا",
+                          other: "مصروف",
+                        },
+                      )} بـ ${formatMoneyMinor(model.awaySection.digest.expenseMinor)} د.أ`
                     : ""}
                 </>
               )}
@@ -255,8 +275,15 @@ export default function Home() {
             ) : null}
             <li>
               {model.awaySection.daysSinceLastExport === null
-                ? "ما في نسخة احتياطية معتمدة بعد"
-                : `آخر نسخة احتياطية قبل ${model.awaySection.daysSinceLastExport} يوم`}{" "}
+                ? "لا توجد نسخة احتياطية معتمدة بعد"
+                : `آخر نسخة احتياطية قبل ${formatArabicPlural(model.awaySection.daysSinceLastExport, {
+                    zero: "أقل من يوم",
+                    one: "يوم واحد",
+                    two: "يومين",
+                    few: "أيام",
+                    many: "يومًا",
+                    other: "يوم",
+                  })}`}{" "}
               —{" "}
               <button className="micro-text-action" type="button" onClick={() => openFromHome("/settings")}>
                 انسخ الآن

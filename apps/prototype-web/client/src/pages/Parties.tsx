@@ -2,7 +2,7 @@
  * دفتر الناس (owner principle 5.3): a lightweight party ledger — name-level aggregation
  * over existing records. No CRM entity, no new stores: one honest read model.
  */
-import { ArrowLeft, HandCoins, Search, Users } from "lucide-react";
+import { ArrowRight, HandCoins, Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -93,7 +93,7 @@ export default function Parties() {
   return (
     <section className="micro-page micro-parties-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">دفتر الناس</span>
@@ -131,7 +131,7 @@ export default function Parties() {
       </label>
       {overview.parties.length === 0 ? (
         <div className="micro-home-quiet">
-          <strong>لسه ما في حدا عليه فلوس.</strong>
+          <strong>لا يوجد ديون على أحد بعد.</strong>
           <p>لما تسجل دين طلب أو ذمة مورد بيظهروا هون مجمّعين بالاسم.</p>
         </div>
       ) : filteredParties.length === 0 ? (

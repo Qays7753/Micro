@@ -61,6 +61,10 @@ export type InventoryMovement = {
   reversesMovementId: string | null;
   wasteContext: WasteContext | null;
   costKnowledge?: MovementCostKnowledge | null;
+  /* عقد الإغلاق العميق (العقد ١ — الهدر): خيار المالك المحفوظ داخل الحدث —
+   * هل يُعتبر الهدر خسارة تؤثر على نتيجة المشروع (عند معرفة التكلفة) أم
+   * إفصاح كمية بلا أثر على الربح. غياب الحقل = بلا أثر (السلوك السابق). */
+  wasteProfitImpact?: boolean | null;
 };
 export type CreateMaterialInput = {
   id: string;
@@ -81,6 +85,9 @@ export type CreateInventoryMovementInput = Omit<
   reversesMovementId?: string | null;
   wasteContext?: WasteContext | null;
   costKnowledge?: MovementCostKnowledge | null;
+  /* عقد الإغلاق العميق (العقد ١): خيار أثر الهدر على النتيجة — يُحفظ داخل
+   * الحركة، ولا يُنشئ أثرًا ماليًا إلا عبر الخدمة عند تكلفة معروفة. */
+  wasteProfitImpact?: boolean | null;
 };
 /* المجموعة ٢ (عقد ٢٨ / القرار D-027): سجل النقص — تعيين صريح موثّق بدل رصيد سالب.
  * الكمية الناقصة رقم موجب معلن، والسجل يبقى مفتوحًا حتى حلّ صريح من المالك. */

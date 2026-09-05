@@ -5,7 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { History } from "lucide-react";
-import { formatLocalDate } from "@/presentation/formatters";
+import { formatArabicPlural, formatLocalDate } from "@/presentation/formatters";
 
 function ageInDays(savedAt: string, now: () => string): number {
   const saved = Date.parse(savedAt);
@@ -31,7 +31,19 @@ export function FormDraftRestoreBanner({
   }, [savedAt]);
   if (!visible) return null;
   const days = ageInDays(savedAt, now);
-  const ageLabel = days === 0 ? "اليوم" : days === 1 ? "أمس" : `قبل ${days} أيام`;
+  const ageLabel =
+    days === 0
+      ? "اليوم"
+      : days === 1
+        ? "أمس"
+        : `قبل ${formatArabicPlural(days, {
+            zero: "أقل من يوم",
+            one: "يوم واحد",
+            two: "يومين",
+            few: "أيام",
+            many: "يومًا",
+            other: "يوم",
+          })}`;
   return (
     <section className="micro-info-card" data-tone="accent" aria-label="مسودة غير محفوظة">
       <History aria-hidden="true" />

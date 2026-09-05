@@ -1,6 +1,7 @@
 /* §10: طبقة «العربونات» وحدة مستقلة (إضافة المالك — القرار ١٩). */
 import { ArrowLeft } from "lucide-react";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
 
 /* §10: حالة العربون علامة قصيرة — الحد في النطاق لا في الجملة. */
@@ -58,8 +59,21 @@ export function DepositsLayer({
                   <small>
                     {row.customerName || "عميل بلا اسم"} · عربون مقبوض:{" "}
                     <MoneyValue minor={row.depositCollectedMinor} className="micro-inline-number" />
+                    {row.walletName ? ` · في محفظة «${row.walletName}»` : " · غير موزع"}
+                  </small>
+                  {/* عقد الإغلاق العميق (FC-05 — العقد ٣): تفصيل التطبيق والتسوية
+                      على البطاقة نفسها — رقم واحد لكل معنى، لا قراءة مزدوجة. */}
+                  <small>
+                    {row.appliedToSaleMinor > 0
+                      ? `مطبَّق على قيمة الطلب: ${formatMoneyMinor(row.appliedToSaleMinor)} د.أ`
+                      : row.refundedMinor > 0
+                        ? `مردود للعميل: ${formatMoneyMinor(row.refundedMinor)} د.أ`
+                        : row.retainedMinor > 0
+                          ? `محتفظ به: ${formatMoneyMinor(row.retainedMinor)} د.أ`
+                          : "لم يُطبَّق بعد — بانتظار التسليم"}
                   </small>
                   <small className="micro-row-next-action">{depositStateLabel(row)}</small>
+                  <small className="micro-muted-copy">{row.profitEffectLabel}</small>
                 </span>
                 <ArrowLeft aria-hidden="true" />
               </button>

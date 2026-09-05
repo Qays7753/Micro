@@ -5,7 +5,7 @@
  * يعبّئ المتبقي قابلًا للتعديل، يفرض وجهة كاش صريحة (الدرج افتراضيًا حين يوجد)،
  * يمنع التحصيل فوق المتبقي، ويكتب بواقعية: كاش+ / متبقٍ− — لا إيراد ولا ربح.
  */
-import { ArrowLeft, HandCoins, Handshake, Landmark, ReceiptText } from "lucide-react";
+import { ArrowRight, HandCoins, Handshake, Landmark, ReceiptText } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -59,6 +59,8 @@ export default function Collect() {
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /* P0 (إعادة الدخول): نداء «احفظ واستمر» المتزامن مع تحصيل جارٍ لا يُنفّذ مرتين. */
+  const saveInFlightRef = useRef(false);
   const [loadedToken, setLoadedToken] = useState(0);
   const idempotencyKeyRef = useRef(
     globalThis.crypto?.randomUUID?.() ?? `collect-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -129,6 +131,7 @@ export default function Collect() {
       : (walletOptions.find(wallet => wallet.id === destination)?.name ?? "غير موزع");
 
   async function submit() {
+    if (saveInFlightRef.current) return false;
     if (!source) {
       setMessage("اختر دين التحصيل أولًا.");
       return false;
@@ -143,17 +146,23 @@ export default function Collect() {
       );
       return false;
     }
+    saveInFlightRef.current = true;
     setSaving(true);
     setMessage(null);
-    const result = await collections.collect({
-      sourceKind: source.kind,
-      sourceId: source.id,
-      amountMinor,
-      walletId: destination === "" ? null : destination,
-      note: note.trim() || null,
-      idempotencyKey: idempotencyKeyRef.current,
-    });
-    setSaving(false);
+    let result: Awaited<ReturnType<typeof collections.collect>>;
+    try {
+      result = await collections.collect({
+        sourceKind: source.kind,
+        sourceId: source.id,
+        amountMinor,
+        walletId: destination === "" ? null : destination,
+        note: note.trim() || null,
+        idempotencyKey: idempotencyKeyRef.current,
+      });
+    } finally {
+      saveInFlightRef.current = false;
+      setSaving(false);
+    }
     if (!result.ok) {
       setMessage(result.message);
       return false;
@@ -256,7 +265,7 @@ export default function Collect() {
         onClick={() => requestNavigation(returnPath)}
         disabled={saving}
       >
-        <ArrowLeft aria-hidden="true" /> رجوع
+        <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">ورقة تحصيل</span>
@@ -308,10 +317,10 @@ export default function Collect() {
         </section>
       ) : ready && ready.sources.length === 0 ? (
         <section className="micro-home-quiet" aria-label="لا ديون">
-          <strong>ما في ديون قابلة للتحصيل الآن.</strong>
+          <strong>لا توجد ديون قابلة للتحصيل الآن.</strong>
           <p>
             الديون تظهر هنا بعد التسليم مع متبقٍ، أو بعد تسجيل الدين صراحة، أو من بيع آجل — التحصيل قبل
-            التسليم يُسجّل عربونًا من تفاصيل الطلب.
+            التسليم يُسجَّل عربونًا من صفحة الطلب («سجّل عربونًا إضافيًا»).
           </p>
           <button
             className="micro-button micro-button-secondary"

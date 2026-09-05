@@ -1,6 +1,7 @@
 /** Slice 4 financial boundary: delivery, collection, and debt are three distinct Domain operations. */
 import {
   cancelOrder,
+  collectDeposit,
   collectRegisteredDebt,
   collectRemaining,
   registerDebt,
@@ -23,6 +24,15 @@ export type DepositRow = {
   depositCollectedMinor: number;
   settlementStatus: StoredCraftOrder["order"]["settlementStatus"];
   depositSettlement: StoredCraftOrder["order"]["depositSettlement"];
+  /* عقد الإغلاق العميق (FC-05 — العقد ٣): بطاقة العربون الكاملة — المطبَّق
+   * من العربون على قيمة الطلب عند التسليم، والمردود، والمحتفظ به ومعناه،
+   * والمحفظة المرتبطة بتحصيله، ووصف أثر الربح الصادق لكل حالة. */
+  appliedToSaleMinor: number;
+  refundedMinor: number;
+  retainedMinor: number;
+  retainedMeaning: StoredCraftOrder["order"]["retainedMeaning"];
+  walletName: string | null;
+  profitEffectLabel: string;
 };
 export type DepositOverview = {
   deposits: readonly DepositRow[];
@@ -53,7 +63,7 @@ export class FulfillmentService {
     const result = await this.store.saveOrder(stored);
     return result.ok
       ? success(result.value)
-      : failure("storage_error", "تعذر حفظ التغيير. لم يتم تأكيد نجاح العملية.");
+      : failure("storage_error", "تعذر حفظ التغيير — بياناتك كما هي؛ أعد المحاولة.");
   }
 
   async markReady(id: string): Promise<FulfillmentResult> {
@@ -235,6 +245,25 @@ export class FulfillmentService {
     );
   }
 
+  /* عقد الإغلاق العميق (WF-01/FC-04): عربون إضافي أثناء الرحلة قبل التسليم —
+   * الدومين يقبله للاتفاق المؤقت/المؤكد/قيد التنفيذ/الجاهز، ومفتاح العملية
+   * من المستدعي يجعل إعادة المحاولة آمنة (eventExists). العربون يرفع الكاش
+   * المقبوض لا الإيراد — الإيراد يُعرف مرة واحدة عند التسليم. */
+  async collectDeposit(
+    id: string,
+    input: { amountMinor: number; operationKey: string },
+  ): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    try {
+      const timestamp = this.now();
+      const order = collectDeposit(current.stored.order, input.amountMinor, input.operationKey, timestamp);
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل العربون.");
+    }
+  }
+
   /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة من تفاصيل الطلب. */
   async reverseCollection(
     id: string,
@@ -360,22 +389,80 @@ export class FulfillmentService {
   }
 
   /* إضافة المالك (القرار ١٩): قسم يجمع العربونات — كم عربونًا مقبوضًا، على أي
-   * طلبات، وأيها ينتظر تسوية. قراءة فقط؛ لا تحصيل ولا تسوية من هنا. */
+   * طلبات، وأيها ينتظر تسوية. قراءة فقط؛ لا تحصيل ولا تسوية من هنا.
+   * عقد الإغلاق العميق (FC-05): البطاقة تعرض الحقول المعتمدة — المطبَّق والمردود
+   * والمحتفظ به والمحفظة وأثر الربح — لا رقمًا واحدًا يُقرأ مرتين. */
   async listDepositOverview(): Promise<
     { ok: true; value: DepositOverview } | Extract<FulfillmentResult, { ok: false }>
   > {
-    const result = await this.store.listOrders();
+    const [result, entriesResult, walletsResult] = await Promise.all([
+      this.store.listOrders(),
+      this.store.listCashContinuityEntries(),
+      this.store.listCashWallets(),
+    ]);
     if (!result.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلبات المحلية." };
+    if (!entriesResult.ok || !walletsResult.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة تخصيصات الكاش المحلية." };
+    const walletsById = new Map(walletsResult.value.map(wallet => [wallet.id, wallet.name] as const));
+    const entries = entriesResult.value.filter(
+      entry => entry.type === "allocation" && entry.sourceRefKind === "order",
+    );
     const rows = result.value
       .filter(stored => stored.order.depositCollectedMinor > 0)
-      .map(stored => ({
-        orderId: stored.id,
-        itemName: stored.order.itemName,
-        customerName: stored.order.customerName,
-        depositCollectedMinor: stored.order.depositCollectedMinor,
-        settlementStatus: stored.order.settlementStatus,
-        depositSettlement: stored.order.depositSettlement,
-      }))
+      .map(stored => {
+        const order = stored.order;
+        const depositEventKeys = new Set(
+          order.events
+            .filter(event => event.type === "deposit_collected")
+            .map(event => `${stored.id}:${event.idempotencyKey}`),
+        );
+        const attributedMinor = entries
+          .filter(
+            entry =>
+              entry.sourceRefId === stored.id &&
+              entry.sourceRefLineId !== null &&
+              depositEventKeys.has(entry.sourceRefLineId!),
+          )
+          .reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
+        const attributedWalletId =
+          entries.find(
+            entry =>
+              entry.sourceRefId === stored.id &&
+              entry.sourceRefLineId !== null &&
+              depositEventKeys.has(entry.sourceRefLineId!) &&
+              entry.cashDeltaMinor > 0,
+          )?.walletId ?? null;
+        const delivered = order.status === "delivered" || order.status === "settled";
+        const refunded = order.depositSettlement === "refund_deposit";
+        const retained = order.depositSettlement === "retain_deposit";
+        const appliedToSaleMinor = delivered && !refunded ? order.depositCollectedMinor : 0;
+        const profitEffectLabel = refunded
+          ? "مردود للعميل — لا إيراد ولا أثر في النتيجة."
+          : retained
+            ? order.retainedMeaning === "owner"
+              ? "محتفظ به كمال مالك — ليس ربحًا؛ يخرج بقرار سحب صريح."
+              : order.retainedMeaning === "revenue"
+                ? "محتفظ به كإيراد مشروع — دخل واحدًا في نتيجته."
+                : "محتفظ به بانتظار تصنيفك — إيراد مشروع أو مال مالك."
+            : delivered
+              ? "مطبَّق على إيراد الطلب المسلَّم — ضمن قيمة البيع مرة واحدة."
+              : "ليس إيرانًا ولا ربحًا — يُطبَّق على قيمة الطلب عند التسليم مرة واحدة.";
+        return {
+          orderId: stored.id,
+          itemName: order.itemName,
+          customerName: order.customerName,
+          depositCollectedMinor: order.depositCollectedMinor,
+          settlementStatus: order.settlementStatus,
+          depositSettlement: order.depositSettlement,
+          appliedToSaleMinor,
+          refundedMinor: refunded ? order.depositCollectedMinor : 0,
+          retainedMinor: retained ? order.depositCollectedMinor : 0,
+          retainedMeaning: order.retainedMeaning,
+          walletName:
+            attributedMinor > 0 && attributedWalletId ? (walletsById.get(attributedWalletId) ?? null) : null,
+          profitEffectLabel,
+        };
+      })
       .sort((left, right) => left.orderId.localeCompare(right.orderId));
     return {
       ok: true,

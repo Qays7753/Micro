@@ -791,7 +791,7 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
     const label = await screen.findByText("هدر مخزون هذه الفترة");
     const row = label.closest("div");
     expect(row?.textContent).toContain("2.50");
-    expect(row?.textContent).toContain("لا يخرج كاش ولا يدخل نتيجة الفترة");
+    expect(row?.textContent).toContain("لا يخرج كاش، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر");
     expect(row?.textContent).not.toContain("غير معروفة بعد");
     /* الهدر حركة مخزون لا حدث نقدي — الكاش والنتيجة لا يتأثران. */
     const events = await store.listFinancialEvents();
@@ -832,7 +832,7 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
     const label = await screen.findByText("هدر مخزون هذه الفترة");
     const row = label.closest("div");
     expect(row?.textContent).toContain("قيمة الهدر غير معروفة بعد");
-    expect(row?.textContent).toContain("لا يخرج كاش ولا يدخل نتيجة الفترة");
+    expect(row?.textContent).toContain("لا يخرج كاش، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر");
     expect(row?.textContent).not.toContain("0.00");
   });
 });
@@ -851,3 +851,87 @@ const G2_COST_DRAFT: OrderDraft = {
   createdAt: "2026-09-02T08:00:00.000Z",
   updatedAt: "2026-09-02T08:00:00.000Z",
 };
+
+/** عقد الإغلاق العميق (العقد ١ — الهدر): السؤال المعتمد يظهر في مسار الهدر،
+ * وخيار «نعم، يؤثر على الربح» مع تكلفة معروفة ينشئ الحركة وحدث الخسارة غير
+ * النقدية المرتبط بها في حفظ واحد؛ «لا» يبقي الإفصاح وحده. */
+describe("InventoryMovementEditor waste profit-impact question (عقد الإغلاق العميق — العقد ١)", () => {
+  beforeEach(() => {
+    wouterState.navigate.mockClear();
+    wouterState.params = { type: "waste" };
+    wouterState.search = "";
+    wouterState.path = "/inventory/movement/waste";
+    vi.clearAllMocks();
+  });
+  afterEach(() => cleanup());
+
+  async function seedKnownCostMaterial(store: MemoryLocalStore) {
+    const { inventory } = makeContext(store);
+    const opened = await inventory.openMaterial({
+      name: "قماش",
+      unit: "meter",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 4000,
+        costState: "known",
+        valueMinor: 1600,
+        confirmedOn: "2026-09-01",
+        sourceNote: null,
+      },
+      note: "رصيد",
+      operationKey: "waste-question-material",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    return { inventory, materialId: opened.value.material.id };
+  }
+
+  it("asks the approved question, defaults to disclosure-only, and shows both effects in the preview", async () => {
+    const store = new MemoryLocalStore();
+    const { inventory, materialId } = await seedKnownCostMaterial(store);
+    renderWithHarness(<InventoryMovementEditor />, store);
+    await waitFor(() => expect(screen.queryByText("جارٍ فتح حركة المادة…")).toBeNull());
+    const question = await screen.findByTestId("waste-profit-impact-question");
+    expect(question.textContent).toContain("هل تريد اعتبار هذا الهدر خسارة تؤثر على نتيجة المشروع؟");
+    expect(question.textContent).toContain("لا، سجّله كهدر فقط");
+    expect(question.textContent).toContain("نعم، يؤثر على الربح");
+    /* المعاينة الافتراضية: إفصاح بلا أثر على النتيجة. */
+    const preview = document.querySelector(".micro-effect-preview, .micro-form-card");
+    expect(preview?.textContent ?? "").toContain("بلا خروج نقد جديد ولا أثر في نتيجة الفترة");
+    fireEvent.change(screen.getByLabelText("كمية حركة المادة"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("السبب"), { target: { value: "بلل أثناء التخزين" } });
+    fireEvent.change(screen.getByLabelText("بيان مختصر"), { target: { value: "قماش تلف" } });
+    fireEvent.click(screen.getByText("نعم، يؤثر على الربح"));
+    await waitFor(() =>
+      expect(document.body.textContent).toContain("حدث خسارة غير نقدية بقيمة المخزون الخارجة"),
+    );
+    fireEvent.click(screen.getByText("حفظ حركة المادة"));
+    await waitFor(() => expect(wouterState.navigate).toHaveBeenCalled());
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const loss = events.value.find(event => event.type === "loss_non_cash");
+    expect(loss).toBeDefined();
+    expect(loss?.amountMinor).toBe(400);
+    expect(loss?.cashDeltaMinor).toBe(0);
+    const movements = await inventory.movements();
+    if (!movements.ok) throw new Error(movements.message);
+    const waste = movements.value.find(movement => movement.type === "waste");
+    expect(waste?.wasteProfitImpact).toBe(true);
+    expect(materialId).toBeTruthy();
+  });
+
+  it("keeping «لا» records the waste with no financial event at all", async () => {
+    const store = new MemoryLocalStore();
+    await seedKnownCostMaterial(store);
+    renderWithHarness(<InventoryMovementEditor />, store);
+    await waitFor(() => expect(screen.queryByText("جارٍ فتح حركة المادة…")).toBeNull());
+    fireEvent.change(screen.getByLabelText("كمية حركة المادة"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("السبب"), { target: { value: "قص خاطئ" } });
+    fireEvent.change(screen.getByLabelText("بيان مختصر"), { target: { value: "هدر فقط" } });
+    fireEvent.click(screen.getByText("حفظ حركة المادة"));
+    await waitFor(() => expect(wouterState.navigate).toHaveBeenCalled());
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    expect(events.value).toHaveLength(0);
+  });
+});

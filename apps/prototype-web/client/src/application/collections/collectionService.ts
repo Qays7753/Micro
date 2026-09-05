@@ -179,6 +179,8 @@ export class CollectionService {
         note: sale.note,
         idempotencyKey: input.idempotencyKey,
         expectedRevisionCount: sale.revisions?.length ?? 0,
+        /* FC-09 (العقد ٤): التحصيل يُوثَّق تحصيلًا في سجل المراجعات لا تصحيحًا. */
+        revisionReason: "تحصيل دفعة من ورقة التحصيل",
       });
       if (!update.ok) return { ok: false, code: "validation_error", message: update.message };
       reused = update.reused ?? false;

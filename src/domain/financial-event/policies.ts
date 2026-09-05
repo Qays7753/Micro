@@ -16,7 +16,11 @@ function assertNonBlank(value: string, field: string) {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 }
 function assertPositiveMinor(value: number, field = "amountMinor") {
-  if (!Number.isInteger(value) || value <= 0)
+  /* عقد الإغلاق العميق (AV-05 — حدود المبالغ): ٢^٥٣ يمرّ فحص Number.isInteger
+   * فتُخزَّن قيمة تفقد دقتها في أي جمع لاحق (المحفظة والكشوف تجمع أحداثًا).
+   * القروض والأصول والبيع المباشر تستخدم الحد الآمن منذ نشأتها (shared/numeric)
+   * — الآن حدث المال نفسه يحمل الحد ذاته: مبلغ فوق أقصى عدد صحيح آمن يُرفض. */
+  if (!Number.isSafeInteger(value) || value <= 0)
     throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا.`);
 }
 function assertDate(value: string, field: string) {
@@ -31,7 +35,7 @@ function assertDate(value: string, field: string) {
 export function calculateSharedProjectShareMinor(totalAmountMinor: number, percentageBps: number): number {
   assertPositiveMinor(totalAmountMinor, "totalAmountMinor");
   if (!Number.isInteger(percentageBps) || percentageBps < 1 || percentageBps > 10_000)
-    throw new Error("أدخل النسبة قيمة بين 1 و10000.");
+    throw new Error("أدخل النسبة بين 0.01% و100%.");
   const rounded = roundHalfUp(totalAmountMinor * percentageBps, 10_000);
   if (rounded === null) throw new Error("حصة المشروع تتجاوز الدقة الآمنة للأرقام الصحيحة.");
   return rounded;
@@ -100,7 +104,7 @@ function assertAllocatedShare(
     percentageBps !== null &&
     (!Number.isInteger(percentageBps) || percentageBps < 1 || percentageBps > 10_000)
   )
-    throw new Error("أدخل النسبة قيمة بين 1 و10000.");
+    throw new Error("أدخل النسبة بين 0.01% و100%.");
   if (percentageBps === null && calculatedShareMinor !== null)
     throw new Error("الحصة المحسوبة تتطلب نسبة صريحة.");
   if (
@@ -147,7 +151,7 @@ function normalizeCategoryLabel(value: string | null | undefined): string | null
   const normalized = value?.trim().replace(/\s+/gu, " ") ?? null;
   if (!normalized) return null;
   if (normalized.length > categoryLabelMaxLength)
-    throw new Error("تصنيف المصروف يتجاوز ٨٠ حرفًا؛ اختصره أو اتركه فارغًا.");
+    throw new Error("تصنيف المصروف يتجاوز 80 حرفًا؛ اختصره أو اتركه فارغًا.");
   return normalized;
 }
 function normalizeExpenseContext(

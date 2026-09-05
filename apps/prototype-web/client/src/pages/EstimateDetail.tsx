@@ -171,7 +171,7 @@ export default function EstimateDetail() {
             ))}
           </div>
         ) : (
-          <p className="micro-home-quiet">ما في مواد مسجلة في هذا التقدير.</p>
+          <p className="micro-home-quiet">لا توجد مواد مسجلة في هذا التقدير بعد.</p>
         )}
         <p className="micro-muted-copy">
           {estimate.time && estimate.time.minutes != null && estimate.time.hourlyRateMinor != null

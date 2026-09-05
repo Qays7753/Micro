@@ -146,7 +146,7 @@ export class AgreementContextService {
       : {
           ok: false,
           code: "storage_error",
-          message: "تعذر حفظ سياق الاتفاق محليًا. لم يتم تأكيد نجاح العملية.",
+          message: "تعذر حفظ سياق الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.",
         };
   }
 

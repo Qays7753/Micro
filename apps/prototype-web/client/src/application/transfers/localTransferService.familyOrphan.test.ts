@@ -35,13 +35,18 @@ async function seedFamily(store: MemoryLocalStore) {
   if (!loan.ok) throw new Error(loan.message);
 }
 
-/** ملف مدموج يدويًا: أسقط البصمة والعدادات وإصدار التطبيق — نفس ما يفعله من
- * يدمج ملفين قديمين خارج التطبيق؛ المسار القائم يقبله للملفات السليمة. */
+/** ملف مدموج يدويًا: أسقط البصمة والعدادات وإصدار التطبيق وأرجِع وسم الزوج
+ * إلى ٢٦/٣٤ — زوج المجموعة ٤ كما صدر فعلًا بلا مظروف تكامل. هذا هو مسار
+ * الدمج اليدوي القائم: دمج ملفات قديمة خارج التطبيق لا يُنشئ مظروفًا. ملف
+ * الإصدار الحالي بلا مظروف لم يعد مسارًا مشروعًا (AV-04 — عقد الإغلاق
+ * العميق) لأن تطبيق اليوم يكتب البصمة والعدادات دائمًا. */
 function handMergedFile(exported: object): Record<string, unknown> {
   const merged = JSON.parse(JSON.stringify(exported)) as Record<string, unknown>;
   delete merged.integrity;
   delete merged.counts;
   delete merged.appVersion;
+  merged.version = 26;
+  merged.schemaVersion = 34;
   return merged;
 }
 

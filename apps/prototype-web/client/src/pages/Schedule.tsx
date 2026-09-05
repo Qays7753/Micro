@@ -1,6 +1,6 @@
 /* مبدأ Micro: يعرض الموعد حالة الاتفاق كما هي وفعلها التالي، ولا يضيف اعتمادًا أو أثرًا ماليًا جديدًا. */
 import {
-  ArrowLeft,
+  ArrowRight,
   CalendarClock,
   CalendarDays,
   ChevronLeft,
@@ -201,7 +201,7 @@ export default function Schedule() {
   return (
     <section className="micro-page micro-schedule-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">التنظيم التشغيلي</span>

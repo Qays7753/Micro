@@ -3,7 +3,7 @@
  * الأمانات عن الذمم عن مال المالك، ويفسر المجهول بصدق، ويصل كل سطر بمصدره.
  * الأسبوع الحالي افتراضيًا؛ نطاقات سريعة ونطاق مخصص — والرجوع للمصدر محفوظ.
  */
-import { ArrowLeft, FileText, HandCoins, Landmark, ReceiptText, Share2, WalletCards } from "lucide-react";
+import { ArrowRight, FileText, HandCoins, Landmark, ReceiptText, Share2, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -249,7 +249,7 @@ export default function Statement() {
   return (
     <section className="micro-page micro-statement-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> رجوع
+        <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">كشف فترة · المبالغ (د.أ)</span>

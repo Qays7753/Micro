@@ -18,7 +18,7 @@ function assertLocalDate(value: string, field: string) {
 function assertBorrower(value: string) {
   const normalized = value.trim();
   if (!normalized) throw new Error("أكمل اسم المستدين قبل الحفظ.");
-  if (normalized.length > 200) throw new Error("اسم المستدين يتجاوز ٢٠٠ حرف؛ اختصره.");
+  if (normalized.length > 200) throw new Error("اسم المستدين يتجاوز 200 حرف؛ اختصره.");
 }
 
 function activeRepayments(loan: LoanRecord): readonly LoanRepaymentRecord[] {
@@ -31,7 +31,7 @@ export function createLoanRecord(input: CreateLoanRecordInput): LoanRecord {
   assertPositiveMinor(input.principalMinor, "principalMinor");
   assertLocalDate(input.loanDate, "loanDate");
   if (input.purposeNote && input.purposeNote.trim().length > 500)
-    throw new Error("ملاحظة القرض تتجاوز ٥٠٠ حرف؛ اختصرها.");
+    throw new Error("ملاحظة القرض تتجاوز 500 حرف؛ اختصرها.");
   if (!input.operationKey.trim()) throw new Error("مفتاح عملية القرض مطلوب.");
   if (Number.isNaN(Date.parse(input.createdAt))) throw new Error("أدخل وقت إنشاء القرض وقتًا صحيحًا.");
   return Object.freeze({

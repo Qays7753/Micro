@@ -79,7 +79,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
     const amanahLine = blocks.cashIn.find(line => line.id === "amanah-held");
     const ownerLine = blocks.cashIn.find(line => line.id === "owner-investment");
     expect(amanahLine?.amountMinor).toBe(5000);
-    expect(amanahLine?.qualifier).toContain("مش ربحك");
+    expect(amanahLine?.qualifier).toContain("ليس ربحك");
     expect(ownerLine?.qualifier).toContain("ليس إيرادًا");
     /* كاش خارج: مصروف 1500. */
     expect(blocks.cashOut.find(line => line.id === "expenses-paid")?.amountMinor).toBe(-1500);
@@ -89,7 +89,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
     /* الأمانات ليست في النتيجة ولا في مال المالك. */
     expect(blocks.owner.investedMinor).toBe(3000);
     expect(blocks.amanah.heldNowMinor).toBe(5000);
-    expect(blocks.amanah.trustLine).toContain("مش ربحك");
+    expect(blocks.amanah.trustLine).toContain("ليس ربحك");
   });
 
   it("حدود الفترة تُحترم: حركة خارج النطاق لا تدخل الكشف", async () => {

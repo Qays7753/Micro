@@ -74,6 +74,9 @@ export default function DirectSaleEditor() {
   const [note, setNote] = useState("بيع مباشر");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /* P0 (إعادة الدخول): عهدة تزامنية — حوار «احفظ واستمر» أو نبضة ثانية أثناء
+   * حفظ جارٍ لا تُعيد نداء الحفظ نفسه؛ الحتمية محفوظة في المخزن أيضًا كخط دفاع ثانٍ. */
+  const saveInFlightRef = useRef(false);
   const [loadingSale, setLoadingSale] = useState(editing);
   const [savedSale, setSavedSale] = useState<DirectSale | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -296,6 +299,7 @@ export default function DirectSaleEditor() {
   }, [saleDraft.state.phase]);
 
   async function save(): Promise<boolean> {
+    if (saveInFlightRef.current) return false;
     if (savedSale?.status === "cancelled") {
       setMessage("هذا البيع ملغى ولا يمكن تعديله.");
       return false;
@@ -336,38 +340,44 @@ export default function DirectSaleEditor() {
     /* و٦: رقم المراجعة الذي فُتح عليه السجل — يحرس من طمس تعديل أحدث من نافذة أخرى. */
     const openedRevisionCount = savedSale?.revisions?.length ?? 0;
     setMessage(null);
+    saveInFlightRef.current = true;
     setSaving(true);
-    const result = editing
-      ? await directSales.update(saleId!, {
-          itemName: itemName.trim() || "بيع نقدي",
-          quantity,
-          /* «خفّضتُ السعر» على تعديل قائم: السعر يهبط إلى المقبوض، والمراجعة تحمل الأصل. */
-          revenueMinor: priceCutChosen ? resolvedCollected : revenueMinor,
-          collectedMinor: resolvedCollected,
-          collectionStatus: priceCutChosen ? "collected_in_full" : status,
-          catalogItemId: catalogItemId || null,
-          customerName: customerName.trim() || null,
-          costMinor: costKnown ? costMinor : null,
-          occurredOn,
-          note,
-          idempotencyKey: correctionIdempotencyKey.current,
-          expectedRevisionCount: openedRevisionCount,
-        })
-      : await directSales.record({
-          itemName: itemName.trim() || "بيع نقدي",
-          quantity,
-          revenueMinor,
-          collectedMinor: resolvedCollected,
-          collectionStatus: priceCutChosen ? undefined : status,
-          catalogItemId: catalogItemId || null,
-          customerName: customerName.trim() || null,
-          costMinor: costKnown ? costMinor : null,
-          occurredOn,
-          note,
-          idempotencyKey: idempotencyKey.current,
-          priceCut: priceCutChosen,
-        });
-    setSaving(false);
+    let result: Awaited<ReturnType<typeof directSales.record>>;
+    try {
+      result = editing
+        ? await directSales.update(saleId!, {
+            itemName: itemName.trim() || "بيع نقدي",
+            quantity,
+            /* «خفّضتُ السعر» على تعديل قائم: السعر يهبط إلى المقبوض، والمراجعة تحمل الأصل. */
+            revenueMinor: priceCutChosen ? resolvedCollected : revenueMinor,
+            collectedMinor: resolvedCollected,
+            collectionStatus: priceCutChosen ? "collected_in_full" : status,
+            catalogItemId: catalogItemId || null,
+            customerName: customerName.trim() || null,
+            costMinor: costKnown ? costMinor : null,
+            occurredOn,
+            note,
+            idempotencyKey: correctionIdempotencyKey.current,
+            expectedRevisionCount: openedRevisionCount,
+          })
+        : await directSales.record({
+            itemName: itemName.trim() || "بيع نقدي",
+            quantity,
+            revenueMinor,
+            collectedMinor: resolvedCollected,
+            collectionStatus: priceCutChosen ? undefined : status,
+            catalogItemId: catalogItemId || null,
+            customerName: customerName.trim() || null,
+            costMinor: costKnown ? costMinor : null,
+            occurredOn,
+            note,
+            idempotencyKey: idempotencyKey.current,
+            priceCut: priceCutChosen,
+          });
+    } finally {
+      saveInFlightRef.current = false;
+      setSaving(false);
+    }
     if (!result.ok) {
       setMessage(result.message);
       /* و٦: عند التعارض يتحدّث السجل ورقم مراجعاته وتبقى كتابة المستخدم كما هي. */

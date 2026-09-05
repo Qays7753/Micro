@@ -1,5 +1,5 @@
 import {
-  ArrowLeft,
+  ArrowRight,
   BellRing,
   ChevronLeft,
   CircleDollarSign,
@@ -224,7 +224,7 @@ export default function SettingsPage() {
     setCurrentSummary(result.value.summary);
     notifyDataChanged();
     setStorageNotice(
-      "النسخة جاهزة ومُتحقق منها ✓ — احفظها بمكان آمن، فيها كل أرقامك. لو ضاع الجهاز بتضيع معه؛ لا سحابة في هذا الإصدار.",
+      "النسخة جاهزة ومُتحقق منها ✓ — احفظها بمكان آمن، فيها كل أرقامك. لو ضاع الجهاز تضيع معه؛ لا سحابة في هذا الإصدار.",
     );
   }
 
@@ -389,7 +389,7 @@ export default function SettingsPage() {
   return (
     <section className="micro-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">التحكم المحلي</span>

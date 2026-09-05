@@ -28,20 +28,20 @@ function assertLocalDate(value: string, field: string) {
 function assertName(value: string) {
   const normalized = value.trim();
   if (!normalized) throw new Error("أكمل اسم الأصل قبل الحفظ.");
-  if (normalized.length > 200) throw new Error("اسم الأصل يتجاوز ٢٠٠ حرف؛ اختصره.");
+  if (normalized.length > 200) throw new Error("اسم الأصل يتجاوز 200 حرف؛ اختصره.");
 }
 
 function normalizeCategoryLabel(value: string | null | undefined): string | null {
   const normalized = value?.trim().replace(/\s+/gu, " ") ?? null;
   if (!normalized) return null;
-  if (normalized.length > 80) throw new Error("تصنيف الأصل يتجاوز ٨٠ حرفًا؛ اختصره أو اتركه فارغًا.");
+  if (normalized.length > 80) throw new Error("تصنيف الأصل يتجاوز 80 حرفًا؛ اختصره أو اتركه فارغًا.");
   return normalized;
 }
 
 function assertLifeMonths(value: number | null | undefined) {
   if (value === null || value === undefined) return;
   if (!Number.isInteger(value) || value < 1 || value > 600)
-    throw new Error("أدخل العمر النافع عددًا صحيحًا بين ١ و٦٠٠ شهرًا، أو اتركه «مجهولًا».");
+    throw new Error("أدخل العمر النافع عددًا صحيحًا بين 1 و600 شهرًا، أو اتركه فارغًا ليبقى مجهولًا.");
 }
 
 /** الأحداث النشطة المرتبطة بأصل: لا تراجعات ولا معكوسات — الحقيقة الجارية. */

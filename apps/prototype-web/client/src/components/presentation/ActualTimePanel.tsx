@@ -34,9 +34,13 @@ const comparisonCopy: Record<
   ActualTimeComparison["status"],
   { title: string; truth: string; tone?: "warning" }
 > = {
-  not_recorded: { title: "لا يوجد وقت فعلي مسجل", truth: "—" },
-  recorded: { title: "فرق وقت مسجل", truth: "—" },
-  needs_review: { title: "فرق الوقت يحتاج مراجعة", truth: "—", tone: "warning" },
+  not_recorded: { title: "لا يوجد وقت فعلي مسجل", truth: "لم يُسجَّل وقت فعلي بعد — لا مقارنة حتى التسجيل." },
+  recorded: { title: "فرق وقت مسجل", truth: "الفرق معلن للقراءة فقط ولا يغيّر النتيجة المالية." },
+  needs_review: {
+    title: "فرق الوقت يحتاج مراجعة",
+    truth: "الفرق كبير — راجعه قبل الاعتماد عليه.",
+    tone: "warning",
+  },
 };
 const formatVariance = (minutes: number | null) => (minutes === null ? "غير متاح" : minutesLabel(minutes));
 

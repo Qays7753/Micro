@@ -145,7 +145,7 @@ export class CollectionReversalService {
     if (reversedSoFar > 0 || remainingMinor < collectionAmountMinor) {
       status = "partial_only";
       refusalReason =
-        "التراجع المزدوج بيدعم القبضة كاملة بس — للتراجع الجزئي، تراجع عن القبضة لحالها وبعدين عدّل التخصيص من دفتر المحفظة.";
+        "التراجع المزدوج يدعم القبضة الكاملة فقط — للتراجع الجزئي، تراجع عن القبضة وحدها ثم عدّل التخصيص من دفتر المحفظة.";
     } else if (candidates.length === 0) {
       if (primary && reversedEntryIds.has(primary.id)) {
         status = "allocation_already_reversed";
@@ -153,20 +153,20 @@ export class CollectionReversalService {
       } else {
         status = "no_allocation";
         refusalReason =
-          "هذي القبضة ما إلها تخصيص بمحفظة — الكاش تابع لغير الموزع؛ التراجع بيكون عن القبضة لحالها.";
+          "هذه القبضة ليست مرتبطة بتخصيص في محفظة — الكاش ضمن غير الموزع؛ سيكون التراجع عن القبضة وحدها.";
       }
     } else if (ambiguous) {
       status = "ambiguous";
       refusalReason =
-        "في أكتر من تخصيص مرتبط بنفس الطلب وما نقدر نحدد المطابق — راجع دفتر المحفظة وتراجع يدويًا.";
+        "يوجد أكثر من تخصيص مرتبط بنفس الطلب ولا يمكن تحديد المطابق — راجع دفتر المحفظة وتراجع يدويًا.";
     } else if (!matched) {
       status = "amount_mismatch";
       refusalReason =
-        "مبلغ التخصيص بالمحفظة ما عاد يساوي مبلغ القبضة — ما نتراجع عنه تلقائيًا مشان ما نخسر رقم.";
+        "مبلغ التخصيص في المحفظة لم يعد يساوي مبلغ القبضة — لن يُتراجَع عنه تلقائيًا حفاظًا على دقة الأرقام.";
     } else if (matched.cashDeltaMinor !== collectionAmountMinor) {
       status = "amount_mismatch";
       refusalReason =
-        "مبلغ التخصيص بالمحفظة ما عاد يساوي مبلغ القبضة — ما نتراجع عنه تلقائيًا مشان ما نخسر رقم.";
+        "مبلغ التخصيص في المحفظة لم يعد يساوي مبلغ القبضة — لن يُتراجَع عنه تلقائيًا حفاظًا على دقة الأرقام.";
     } else if (reversedEntryIds.has(matched.id)) {
       status = "allocation_already_reversed";
       refusalReason = "التخصيص المطابق مُتراجَع سابقًا؛ يتبقى التراجع عن القبضة نفسها.";

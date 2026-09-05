@@ -1,5 +1,5 @@
 /* مبدأ Micro: المتوقع يظل سجلًا منفصلًا عن الكاش، مع تاريخ قابل للفهم. */
-import { ArrowLeft, CalendarClock, Save } from "lucide-react";
+import { ArrowRight, CalendarClock, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
@@ -107,7 +107,7 @@ export default function G5DeclarationEditor() {
   return (
     <section className="micro-page micro-g5-editor-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowLeft aria-hidden="true" /> القرار المالي
+        <ArrowRight aria-hidden="true" /> القرار المالي
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">سجل متوقع لا يتحول إلى حركة مالية</span>
