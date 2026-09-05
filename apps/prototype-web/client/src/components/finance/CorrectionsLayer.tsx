@@ -24,6 +24,16 @@ const kindLabel: Record<CorrectionHistoryKind, string> = {
   payment_reversal: "تراجع عن دفعة مورد",
   order_price_revision: "تعديل سعر طلب بعد الاتفاق",
   order_collection_reversal: "تراجع عن قبضة طلب",
+  /* المجموعة ٥ (عقد ٣٤): عائلات عقد ٢٩ والأصحاب الجديدة — لغة هادئة بصيغة
+   * الماضي: ما حدث + ما بقي محفوظًا. */
+  asset_correction: "تصحيح قيمة أو طريقة اقتناء أصل",
+  loan_correction: "تصحيح أصل قرض موثق",
+  deposit_reclassification: "تغيير معنى عربون محتفظ به",
+  delivery_reversal: "عكس تسليم موثق",
+  deposit_classification: "تصنيف عربون محتفظ به",
+  inventory_reversal: "عكس حركة مخزون موثق",
+  owner_reversal: "تراجع عن حركة مال المالك",
+  asset_contract_revision: "تعديل مدة الإهلاك أو بدايته",
 };
 const groupOf = (kind: CorrectionHistoryKind): Exclude<CorrectionHistoryGroup, "all"> =>
   kind === "sale_edit" || kind === "sale_cancel" || kind === "sale_price_cut"
@@ -32,7 +42,11 @@ const groupOf = (kind: CorrectionHistoryKind): Exclude<CorrectionHistoryGroup, "
       ? "cash"
       : kind === "purchase_edit" || kind === "payment_reversal"
         ? "purchases"
-        : kind === "order_price_revision" || kind === "order_collection_reversal"
+        : kind === "order_price_revision" ||
+            kind === "order_collection_reversal" ||
+            kind === "delivery_reversal" ||
+            kind === "deposit_classification" ||
+            kind === "deposit_reclassification"
           ? "orders"
           : "events";
 const groupLabel: Record<CorrectionHistoryGroup, string> = {

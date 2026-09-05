@@ -26,11 +26,71 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
 
-export const localSchemaVersion = 34;
+/* المجموعة ٥ (الاستمرارية): المخطط ٣٥ يضيف مخزني `form-drafts` و`local-security`
+ * بمُنشئ محروس — لا حقول جديدة على أي سجل قائم ولا ترحيل بيانات؛ القديم يفتح
+ * ويجد المخزنين الفارغين. كلا المخزنين مستثنى من لقطة التصدير عمدًا: المسودات
+ * النصية دخول عابر لا حقيقة مالية، ورمز القفل سرٌّ محلي لا يغادر الجهاز أبدًا. */
+export const localSchemaVersion = 35;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-export const localExportVersion = 26;
+/* المجموعة ٥ (عقد النسخ الاحتياطي): النسخة ٢٧ تضيف حقول تكامل اختيارية
+ * (بصمة sha256 + عدادات مضمّنة + إصدار التطبيق)؛ ملفات ٢٦ وأقدم تُقبل كما هي
+ * بلا بصمة، والزوجان القديمان كلها تبقى في قائمة الاستيراد المسموحة. */
+export const localExportVersion = 27;
+export const localSecurityId = "local-security";
+export type FormDraftKind =
+  | "asset"
+  | "loan"
+  | "supplier_purchase"
+  | "direct_sale"
+  | "inventory_movement";
+export type FormDraftEnvelope = {
+  /** `${formKind}:${scopeId ?? "new"}` — مسودة واحدة لكل شاشة لكل نطاق. */
+  id: string;
+  formKind: FormDraftKind;
+  scopeId: string | null;
+  /** إصدار شكل القيم لكل نوع — تغيّره يعني تجاهل المسودة القديمة بلا انفجار. */
+  valuesVersion: number;
+  values: unknown;
+  createdAt: string;
+  updatedAt: string;
+};
+export type LocalSecurityRecord = {
+  id: typeof localSecurityId;
+  /** بصمة sha256(salt + pin) بترميز سداسي عشري — الرمز نفسه لا يُخزن أبدًا. */
+  pinHash: string;
+  /** ملح عشوائي مُولَّد مرة عند التفعيل (سلسلة سداسية عشرية). */
+  salt: string;
+  /** دقائق الخمول قبل القفل التلقائي؛ null = القفل اليدوي فقط. */
+  autoLockMinutes: number | null;
+  /** آخر لحظة نشاط معلنة — أساس اكتشاف الخمول عبر إخفاء/ظهور التطبيق. */
+  lastActiveAt: string | null;
+  /** محاولات فتح فاشلة متتالية — تصفّر عند النجاح؛ عدّاد فقط بلا قفل دائم. */
+  failedAttempts: number;
+  createdAt: string;
+  updatedAt: string;
+};
+export type LocalExportIntegrity = {
+  algorithm: "sha256";
+  /** بصمة sha256 للنص القانوني لـ data (JSON.stringify بلا فراغات). */
+  digest: string;
+};
+export type LocalExportCounts = {
+  orders: number;
+  directSales: number;
+  financialEvents: number;
+  supplierPurchases: number;
+  cashWallets: number;
+  cashContinuityEntries: number;
+  materials: number;
+  inventoryMovements: number;
+  inventoryShortages: number;
+  assets: number;
+  loans: number;
+  schedules: number;
+  drafts: number;
+};
 /* المجموعة ٢ (عقد ٢٨ — مخزون انتقائي): مخزن ٣٢/نسخة ٢٤ أضافتا قرار المتابعة
  * ومعرفة رصيد البداية لكل مادة، ووسم معرفة التكلفة على الحركات، وربط الشراء
  * بمادة وكمية متوقعة، وسجلات نقص المخزون (متجر جديد `inventory-shortages`).
@@ -267,6 +327,11 @@ export type LocalExportFile = {
   schemaVersion: typeof localSchemaVersion;
   exportedAt: string;
   data: LocalStoreSnapshot;
+  /* المجموعة ٥: تكامل الملف — اختيارية كلها فتبقى ملفات ٢٦ وأقدم صالحة؛
+   * البصمة تُتحقق عند وجودها وغيابها يعني ملفًا قديمًا يُعامل كالسابق. */
+  integrity?: LocalExportIntegrity;
+  counts?: LocalExportCounts;
+  appVersion?: string;
 };
 export type StorageFailureCode =
   "storage_unavailable" | "storage_error" | "storage_upgrade_failed" | "storage_blocked" | "storage_stale";
@@ -455,6 +520,18 @@ export interface PrototypeLocalStore {
   }>>;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
   replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
+  /* المجموعة ٥ (عقد المسودة النصية): مسودات النماذج الطويلة — مخزن مستقل خارج
+   * اللقطة؛ لا حدث مالي ولا مخزون ولا تغيير رصيد يحدث عبر هذه المسارات أبدًا.
+   * الاستعادة عرضٌ صريح يقبله المستخدم؛ التعارض مع سجل نهائي يرفض التطبيق الصامت. */
+  getFormDraft(id: string): Promise<StorageResult<FormDraftEnvelope | null>>;
+  saveFormDraft(draft: FormDraftEnvelope): Promise<StorageResult<FormDraftEnvelope>>;
+  deleteFormDraft(id: string): Promise<StorageResult<null>>;
+  /* المجموعة ٥ (القفل المحلي): سجل أمان واحد بمعرّف ثابت — خارج اللقطة والتصدير
+   * والأسرار؛ تخزين الرمز نفسه ممنوع، البصمة فقط. */
+  getLocalSecurity(): Promise<StorageResult<LocalSecurityRecord | null>>;
+  saveLocalSecurity(security: LocalSecurityRecord): Promise<StorageResult<LocalSecurityRecord>>;
+  /** تعطيل القفل يحذف سجل الأمان نهائيًا — لا أثر يبقى في الجهاز. */
+  deleteLocalSecurity(): Promise<StorageResult<null>>;
   /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة سجل الأصول. */
   listAssets(): Promise<StorageResult<readonly AssetRecord[]>>;
   getAsset(id: string): Promise<StorageResult<AssetRecord | null>>;

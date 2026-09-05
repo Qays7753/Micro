@@ -17,6 +17,11 @@ const eventLabel: Record<string, string> = {
    * تسقط إلى «تحديث الطلب» — السجل يسمي فعله الحقيقي لا تسمية عامة. */
   price_revised: "تعديل السعر بعد الاتفاق",
   collection_reversed: "التراجع عن قبضة",
+  /* المجموعة ٥ (عقد ٣٤): أحداث عقد ٢٩/عقد D2 التي كانت تسقط إلى تسمية عامة —
+   * السجل يسمّي فعله الحقيقي. */
+  delivery_consumed: "استهلاك مواد عند التسليم",
+  delivery_reversed: "عكس تسليم موثق",
+  deposit_classified: "تصنيف العربون المحتفظ به",
 };
 
 export function OrderEventLog({ events }: { events: readonly OrderEvent[] }) {

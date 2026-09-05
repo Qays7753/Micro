@@ -11,7 +11,9 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
+import { useFormDraft } from "@/components/forms/useFormDraft";
+import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type {
   DirectSaleCollectionStatus,
   DirectSale,
@@ -48,7 +50,7 @@ export default function DirectSaleEditor() {
   const search = useSearch();
   /* المجموعة ١ (Scope A): الرجوع والخروج بعد النجاح يعودان للمصدر (?from) لا لهدف ثابت. */
   const returnPath = useReturnPath();
-  const { directSales, catalog, projectFinance, cashContinuity, dataVersion, notifyDataChanged } =
+  const { directSales, catalog, projectFinance, cashContinuity, dataVersion, notifyDataChanged, formDrafts } =
     usePrototypeServices();
   const saleMatch = location.match(/^\/direct-sales\/([^/?]+)$/);
   const saleId = saleMatch?.[1] && saleMatch[1] !== "new" ? decodeURIComponent(saleMatch[1]) : null;
@@ -230,6 +232,56 @@ export default function DirectSaleEditor() {
     loadedToken,
   );
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+  /* المجموعة ٥ (عقد ٣٦): مسودة للبيع جديد فقط — التعديل فوق سجل قائم بلا
+   * مسودة (تعارضه مع النهائي يمنع الاستعادة الصامتة). */
+  const saleDraft = useFormDraft(formDrafts, "direct_sale", editing ? null : "new", {
+    itemName: "",
+    quantity: 1,
+    revenueMinor: 0,
+    collectedEmpty: true,
+    collectedMinor: 0,
+    costKnown: false,
+    costMinor: 0,
+    customerName: "",
+    catalogItemId: "",
+    occurredOn: localDateInAmman(),
+    note: "",
+  });
+  const restoredFromOffer = useRef(false);
+  useEffect(() => {
+    if (editing || !isDirty || saleDraft.state.phase === "restore-offer") return;
+    saleDraft.onValuesChanged({
+      itemName,
+      quantity,
+      revenueMinor,
+      collectedEmpty,
+      collectedMinor,
+      costKnown,
+      costMinor,
+      customerName,
+      catalogItemId,
+      occurredOn,
+      note,
+    });
+  }, [itemName, quantity, revenueMinor, collectedEmpty, collectedMinor, costKnown, costMinor, customerName, catalogItemId, occurredOn, note, isDirty, editing, saleDraft.state.phase]);
+  useEffect(() => {
+    if (saleDraft.state.phase === "drafting" && restoredFromOffer.current) {
+      restoredFromOffer.current = false;
+      const saved = saleDraft.state.values;
+      setItemName(String(saved.itemName ?? ""));
+      setQuantity(Number(saved.quantity ?? 1));
+      setRevenueMinor(Number(saved.revenueMinor ?? 0));
+      setCollectedEmpty(saved.collectedEmpty !== false);
+      setCollectedMinor(Number(saved.collectedMinor ?? 0));
+      setCostKnown(saved.costKnown === true);
+      setCostMinor(Number(saved.costMinor ?? 0));
+      setCustomerName(String(saved.customerName ?? ""));
+      setCatalogItemId(String(saved.catalogItemId ?? ""));
+      setOccurredOn(String(saved.occurredOn ?? localDateInAmman()));
+      setNote(String(saved.note ?? ""));
+    }
+    if (saleDraft.state.phase === "restore-offer") restoredFromOffer.current = true;
+  }, [saleDraft.state.phase]);
 
   async function save(): Promise<boolean> {
     if (savedSale?.status === "cancelled") {
@@ -314,6 +366,7 @@ export default function DirectSaleEditor() {
       return false;
     }
     notifyDataChanged();
+    if (!editing) await saleDraft.clearFormDraft();
     /* التعديل يخرج لمصدره كما كان — لا شاشة نتيجة لسجل قائم. */
     if (editing) {
       navigate(returnPath);
@@ -485,6 +538,18 @@ export default function DirectSaleEditor() {
             : "سجّل ما بعته وقيمته من دون إنشاء طلب. المبلغ هو الحقل الإلزامي الوحيد، وما عداه اختياري."}
         </p>
       </div>
+      {!editing && saleDraft.state.phase === "restore-offer" ? (
+        <FormDraftRestoreBanner
+          savedAt={saleDraft.state.savedAt}
+          onRestore={saleDraft.restoreDraft}
+          onDiscard={saleDraft.discardDraft}
+        />
+      ) : null}
+      {!editing && saleDraft.state.phase === "drafting" && saleDraft.state.lastSavedAt ? (
+        <p className="micro-offline-truth" role="status">
+          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(saleDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل البيع بعد.
+        </p>
+      ) : null}
       <section className="micro-decision-card">
         <div>
           <span>حد الحقيقة</span>

@@ -13,13 +13,15 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
+import { useFormDraft } from "@/components/forms/useFormDraft";
 import { useFormDirty } from "@/components/forms/useFormDirty";
-import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
 export default function LoanEditor() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { loans, cashContinuity, notifyDataChanged, dataVersion } = usePrototypeServices();
+  const { loans, cashContinuity, notifyDataChanged, dataVersion, formDrafts } = usePrototypeServices();
   const [borrowerName, setBorrowerName] = useState("");
   const [principalMinor, setPrincipalMinor] = useState(0);
   const [validPrincipal, setValidPrincipal] = useState(true);
@@ -44,6 +46,32 @@ export default function LoanEditor() {
 
   const isDirty = useFormDirty([borrowerName, principalMinor, loanDate, sourceWalletId, purposeNote]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
+  /* المجموعة ٥ (عقد ٣٦): مسودة نصية لمحرر القرض — استعادة صريحة بعد الإغلاق؛
+   * لا حدث مالي ولا حركة محفظة قبل الحفظ النهائي. */
+  const draft = useFormDraft(formDrafts, "loan", "new", {
+    borrowerName: "",
+    principalMinor: 0,
+    loanDate: localDateInAmman(),
+    sourceWalletId: "",
+    purposeNote: "",
+  });
+  const restoredFromOffer = useRef(false);
+  useEffect(() => {
+    if (!isDirty || draft.state.phase === "restore-offer") return;
+    draft.onValuesChanged({ borrowerName, principalMinor, loanDate, sourceWalletId, purposeNote });
+  }, [borrowerName, principalMinor, loanDate, sourceWalletId, purposeNote, isDirty, draft.state.phase]);
+  useEffect(() => {
+    if (draft.state.phase === "drafting" && restoredFromOffer.current) {
+      restoredFromOffer.current = false;
+      const saved = draft.state.values;
+      setBorrowerName(String(saved.borrowerName ?? ""));
+      setPrincipalMinor(Number(saved.principalMinor ?? 0));
+      setLoanDate(String(saved.loanDate ?? localDateInAmman()));
+      setSourceWalletId(String(saved.sourceWalletId ?? ""));
+      setPurposeNote(String(saved.purposeNote ?? ""));
+    }
+    if (draft.state.phase === "restore-offer") restoredFromOffer.current = true;
+  }, [draft.state.phase]);
 
   async function save(): Promise<boolean> {
     if (!borrowerName.trim()) {
@@ -69,6 +97,7 @@ export default function LoanEditor() {
       return false;
     }
     notifyDataChanged();
+    await draft.clearFormDraft();
     /* المجموعة ٤ (تصحيح مراجعة 4-c): الذهاب للتفاصيل يحمل مصدره — زر الرجوع
      * في التفاصيل يعود لقائمة القروض لا لقفزة مجهولة. */
     navigate(
@@ -89,6 +118,18 @@ export default function LoanEditor() {
         <h1>أعطيت مالًا يُعاد</h1>
         <p>القرض مالك ينتقل من الصندوق إلى يد أمينة — يظهر «قائمًا» حتى يعود.</p>
       </div>
+      {draft.state.phase === "restore-offer" ? (
+        <FormDraftRestoreBanner
+          savedAt={draft.state.savedAt}
+          onRestore={draft.restoreDraft}
+          onDiscard={draft.discardDraft}
+        />
+      ) : null}
+      {draft.state.phase === "drafting" && draft.state.lastSavedAt ? (
+        <p className="micro-offline-truth" role="status">
+          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(draft.state.lastSavedAt))}</bdi>؛ لم تُسجّل أي حركة مالية بعد.
+        </p>
+      ) : null}
       <label className="micro-field">
         <span>اسم المستدين</span>
         <input

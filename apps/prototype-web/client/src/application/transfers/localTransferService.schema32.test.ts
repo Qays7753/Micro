@@ -113,8 +113,8 @@ describe("schema 32 export round-trip with selective inventory", () => {
     expect(verified.value.file.schemaVersion).toBe(localSchemaVersion);
     /* المجموعة ٣ (عقد D3): زوج الإصدار انتقل إلى ٢٥/٣٣ مع حقول ربط المنتج
      * بالبيع — السلوك المدقق نفسه يبقى على الزوج الحي. */
-    expect(verified.value.file.version).toBe(26);
-    expect(verified.value.file.schemaVersion).toBe(34);
+    expect(verified.value.file.version).toBe(27);
+    expect(verified.value.file.schemaVersion).toBe(35);
     expect(verified.value.summary).toMatchObject({ materials: 3, inventoryShortages: 1 });
 
     const target = new MemoryLocalStore();
@@ -190,8 +190,14 @@ describe("schema 32 export round-trip with selective inventory", () => {
       schemaVersion: number;
       data: Record<string, unknown>;
     };
-    legacyFile.version = 23;
+    legacyFile.version = 23;    delete (legacyFile as Record<string, unknown>).integrity;
+    delete (legacyFile as Record<string, unknown>).counts;
+    delete (legacyFile as Record<string, unknown>).appVersion;
+
     legacyFile.schemaVersion = 31;
+    delete (legacyFile as Record<string, unknown>).integrity;
+    delete (legacyFile as Record<string, unknown>).counts;
+    delete (legacyFile as Record<string, unknown>).appVersion;
     for (const material of legacyFile.data.materials as Record<string, unknown>[]) {
       delete material.tracking;
       delete material.opening;

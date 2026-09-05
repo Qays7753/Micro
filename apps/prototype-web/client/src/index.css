@@ -5307,6 +5307,24 @@ button.micro-month-cell:hover {
   color: var(--color-text-secondary);
   font-size: 11px;
 }
+/* المجموعة ٥ (عقد ٣٠): كلمة الأثر والمبلغ في صفوف «آخر ما حدث» — رقم بفواصل
+ * الآلاف داخل عزل اتجاهي، وكلمة الأثر بلون ثانوي هادئ لا شارة صارخة. */
+.micro-home-recent-effect {
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+.micro-home-recent-amount {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+.micro-home-recent-open {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-1);
+}
 .micro-home-recent-item svg {
   flex: 0 0 auto;
   width: 17px;
@@ -6639,7 +6657,7 @@ button.micro-month-cell:hover {
   display: grid;
   gap: var(--space-1);
   background: var(--color-surface);
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: var(--space-3);
   font-size: 13px;
@@ -6668,7 +6686,7 @@ button.micro-month-cell:hover {
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-1);
   padding: var(--space-2);
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   font-size: 12px;
   color: var(--color-text-secondary);
@@ -6690,7 +6708,7 @@ button.micro-month-cell:hover {
   display: grid;
   gap: 2px;
   padding: var(--space-2);
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   font-size: 13px;
   color: var(--color-text-secondary);
@@ -6717,7 +6735,7 @@ button.micro-month-cell:hover {
   flex: 1 1 160px;
   min-width: 0;
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   font-size: 13px;
   font-family: inherit;
@@ -6733,4 +6751,203 @@ button.micro-month-cell:hover {
   color: var(--color-text-secondary);
   font-size: 12px;
   margin: var(--space-2) 0 0;
+}
+
+/* المجموعة ٥ (عقد ٣٠ — قارئ النشاط): صفوف «آخر ما حدث» فوق نمط صف الأحداث
+ * القائم — زر صف كامل هدف لمس 44px، كلمة أثر بلون واحد هادئ لكل تصنيف، وسطر
+ * ميتا صغير (تاريخ + أثر + حالة) بفواصل نقطية. */
+.micro-activity-row {
+  border-bottom: 1px solid var(--color-border);
+}
+.micro-activity-row[data-status="reversed"] {
+  opacity: 0.75;
+}
+.micro-activity-row-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  padding: var(--space-3) 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+.micro-activity-row-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.micro-activity-row-main > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-activity-row-main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.micro-activity-row-main small {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+.micro-activity-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.micro-activity-row-meta > span + span::before {
+  content: "·";
+  margin-inline-end: var(--space-1);
+  color: var(--color-text-secondary);
+}
+.micro-activity-effect {
+  font-weight: 600;
+}
+.micro-activity-effect-in {
+  color: var(--color-success-text);
+}
+.micro-activity-effect-out {
+  color: var(--color-danger-text);
+}
+.micro-activity-effect-pending {
+  color: var(--color-warning-text);
+}
+.micro-activity-effect-quiet {
+  color: var(--color-text-secondary);
+}
+.micro-activity-note {
+  color: var(--color-text-secondary);
+}
+.micro-activity-row-main > b {
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+.micro-activity-row-button > svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  color: var(--color-accent-text);
+}
+.micro-activity-filters {
+  flex-wrap: wrap;
+}
+.micro-activity-page .micro-empty-state {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-3);
+}
+
+/* المجموعة ٥ (عقد ٣١): قائمة القيم غير المحلولة في الكشف — سطر واضح + قيمة أو
+ * عدّاد؛ بلا اختزال للصفر ولا إخفاء. */
+.micro-activity-unresolved {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-activity-unresolved li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.micro-activity-unresolved li > span {
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+.micro-activity-unresolved li > b {
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+/* المجموعة ٥ (عقد ٣٥): سطر ختم إصدار الفحص — ثانوي هادئ أسفل الخلاصة. */
+.micro-integrity-version {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  margin: var(--space-1) 0 0;
+}
+
+/* المجموعة ٥ (عقد ٣٧): غطاء القفل — حجاب ثابت كامل الشاشة فوق كل شيء
+ * (طبقة القوة ٦٠ أعلى التنقل والأوراق، دون الطبقات النظامية)؛ النماذج تبقى
+ * محمّلة تحته فلا يُفقد شيء غير محفوظ. */
+.micro-lock-veil {
+  position: fixed;
+  inset: 0;
+  background: var(--color-surface);
+  opacity: 0.96;
+  z-index: 60;
+}
+.micro-lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  text-align: center;
+}
+.micro-lock-overlay h1 {
+  font-size: 20px;
+  margin: 0;
+}
+.micro-lock-overlay > p {
+  max-width: 34ch;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  margin: 0;
+}
+.micro-lock-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-accent-text);
+}
+.micro-lock-form {
+  display: grid;
+  gap: var(--space-3);
+  width: min(320px, 100%);
+  text-align: start;
+}
+.micro-lock-form input {
+  text-align: center;
+  letter-spacing: 0.3em;
+}
+
+/* المجموعة ٥ (عقد ٣٧): نموذج إدارة القفل داخل الإعدادات. */
+.micro-lock-admin {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  max-width: 340px;
+}
+.micro-lock-admin input {
+  text-align: center;
+  letter-spacing: 0.3em;
+}
+
+/* المجموعة ٥ (عقد ٣٣): معاينة المشاركة — منطقة نص واسعة بحدود واضحة. */
+.micro-share-body textarea {
+  min-height: 160px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.8;
+}
+
+/* المجموعة ٥: سطر الأثر الرقمي قبل تأكيد تصنيف العربون — دَين المجموعة ٤ بند ٢. */
+.micro-deposit-effect-line {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  border-inline-start: 3px solid var(--color-border);
+  padding-inline-start: var(--space-2);
+  margin: 0;
 }

@@ -3,6 +3,7 @@
  * الأحداث، والمجهول (عمر/بداية) يظهر مجهولًا لا صفرًا. الإضافة محرر عميق،
  * والتفصيل مسار عميق لكل أصل؛ هذا السطح يبقي شريط التنقل (قارئ).
  */
+import { assetUnknownLifeCountLabel } from "@/presentation/g5Plurals";
 import { Boxes, Plus, TrendingDown } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -93,7 +94,7 @@ function AssetsSummary({ rows }: { rows: readonly AssetSummaryRow[] }) {
         ) : null}
         {unknownCount > 0 ? (
           <p>
-            {unknownCount} أصلًا بعمر أو بداية مجهولة — يبقى بلا إهلاك حتى تُحدده بمراجعة موثقة.
+            {assetUnknownLifeCountLabel(unknownCount)} — يبقى بلا إهلاك حتى تُحدده بمراجعة موثقة.
           </p>
         ) : null}
       </div>

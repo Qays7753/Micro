@@ -9,6 +9,8 @@ import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { FormDraftService } from "@/application/drafts/formDraftService";
+import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import DirectSaleEditor from "@/pages/DirectSaleEditor";
 
@@ -29,6 +31,7 @@ const NOW = "2026-08-29T09:00:00.000Z";
 
 function servicesContext() {
   return {
+    formDrafts: new FormDraftService(new MemoryLocalStore()),
     directSales: {
       get: vi.fn().mockResolvedValue({ ok: true, value: null }),
       record: vi.fn().mockResolvedValue({ ok: true, value: { id: "new-sale" } }),

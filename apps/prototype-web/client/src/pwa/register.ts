@@ -1,3 +1,4 @@
+import { hasDirtyForms } from "./dirtyRegistry";
 import { registerSW } from "virtual:pwa-register";
 
 export type PwaRuntimeState = {
@@ -48,6 +49,10 @@ export function registerPwaServiceWorker() {
       emit();
     },
     onNeedReload() {
+      /* المجموعة ٥ (عقد ٣٨): لا إعادة تحميل تلقائية فوق نموذج قذر — العمل
+       * غير المحفوظ أغلى من سرعة التحديث؛ يُطلب القرار اليدوي من البطاقة.
+       * (تصحيح S2-11: كان السلوك يعيد التحميل مباشرة بلا سؤال.) */
+      if (hasDirtyForms()) return;
       if (reloadRequested) return;
       reloadRequested = true;
       window.location.reload();

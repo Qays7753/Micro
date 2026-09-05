@@ -11,6 +11,7 @@ import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/finance/retainedDepositService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { FormDraftService } from "@/application/drafts/formDraftService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import Assets from "@/pages/Assets";
 import AssetEditor from "@/pages/AssetEditor";
@@ -46,6 +47,7 @@ const contextRef: { current: Record<string, unknown> } = { current: {} };
 function Harness({ page }: { page: React.ReactNode }) {
   const [version, setVersion] = React.useState(0);
   contextRef.current = {
+    formDrafts: new FormDraftService(store),
     assets,
     loans: new LoanService(store, () => NOW),
     retainedDeposits: new RetainedDepositService(store, () => NOW),
@@ -131,7 +133,7 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     expect(await screen.findByText("ثلاجة عرض")).toBeTruthy();
     expect(screen.getByText(/عمره مجهول/)).toBeTruthy();
     /* المجهول يظهر مجهولًا: بطاقة الخلاصة تعلن الأصل بلا جدول إهلاك. */
-    expect(screen.getByText(/١?1? أصلًا بعمر أو بداية مجهولة|أصلًا بعمر أو بداية مجهولة/)).toBeTruthy();
+    expect(screen.getByText(/أصل واحد بعمر أو بداية مجهولة|أصلان بعمر أو بداية مجهولة/)).toBeTruthy();
   });
 
   it("asset detail records proposed depreciation after explicit confirm and previews the non-cash effect", async () => {

@@ -25,6 +25,7 @@ import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchas
 import { PartyLedgerService } from "@/application/parties/partyLedgerService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { FormDraftService } from "@/application/drafts/formDraftService";
 import CostCalculator from "@/pages/CostCalculator";
 import EstimateDetail from "@/pages/EstimateDetail";
 import Tools from "@/pages/Tools";
@@ -67,6 +68,7 @@ const contextRef: { current: Record<string, unknown> } = { current: {} };
 function G3Harness({ page }: { page: React.ReactNode }) {
   const [version, setVersion] = React.useState(0);
   contextRef.current = {
+    formDrafts: new FormDraftService(store),
     costEstimates,
     drafts,
     catalog,

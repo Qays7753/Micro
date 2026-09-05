@@ -1,6 +1,10 @@
 /** Composition root: React receives application services, never the IndexedDB adapter itself. */
 import { createContext, useCallback, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { DraftService } from "@/application/drafts/draftService";
+/* المجموعة ٥ (عقد ٣٦): مسودات النماذج الطويلة — خارج اللقطة، بلا أثر مالي. */
+import { FormDraftService } from "@/application/drafts/formDraftService";
+/* المجموعة ٥ (عقد ٣٧): القفل المحلي — بصمة الرمز فقط، خارج اللقطة. */
+import { LocalLockService } from "@/application/security/localLockService";
 import { CostService } from "@/application/cost/costService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { AgreementContextService } from "@/application/agreements/agreementContextService";
@@ -42,6 +46,8 @@ import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+/* المجموعة ٥ (عقد ٣٠): القارئ الموحّد للنشاط. */
+import { ActivityService } from "@/application/activity/activityService";
 
 type PrototypeServices = {
   profiles: ProfileService;
@@ -50,6 +56,10 @@ type PrototypeServices = {
   preferences: PreferenceService;
   actualTime: ActualTimeService;
   drafts: DraftService;
+  /* المجموعة ٥ (عقد ٣٦): مسودات النماذج الطويلة. */
+  formDrafts: FormDraftService;
+  /* المجموعة ٥ (عقد ٣٧): القفل المحلي. */
+  localLock: LocalLockService;
   directSales: DirectSaleService;
   costs: CostService;
   agreements: AgreementService;
@@ -85,6 +95,8 @@ type PrototypeServices = {
   walletLedger: WalletLedgerService;
   /* المجموعة ٢ (§9.2): كشف الفترة — كاش/نتيجة/أمانات/ذمم/مال المالك. */
   statement: StatementService;
+  /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد — «آخر ما حدث» في الرئيس ومالي. */
+  activity: ActivityService;
   /* المجموعة ١ (فحص سلامة مالي): قراءة فقط — «يقرأ أرقامك ولا يغيّر شيئًا». */
   integrityCheck: IntegrityCheckService;
   /* المجموعة ٤ (عقد ٢٩): الأصول والإهلاك، والقروض الصادرة، وتصنيف العربون
@@ -152,12 +164,15 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
   const deliveryReview = new DeliveryReviewService(store, undefined, projectFinance, schedules);
   const cashContinuity = new CashContinuityService(store);
   const statement = new StatementService(store, projectFinance);
+  const activity = new ActivityService(store);
   return {
     profiles: new ProfileService(store),
     ownerProfile: new OwnerProfileService(store),
     preferences: new PreferenceService(store),
     actualTime: new ActualTimeService(store),
     drafts: new DraftService(store),
+    formDrafts: new FormDraftService(store),
+    localLock: new LocalLockService(store),
     directSales: directSales,
     costs,
     agreements: new AgreementService(store, costs),
@@ -180,6 +195,7 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
       supplierPurchases,
       inventory,
       agreementContext,
+      activity,
     ),
     schedules,
     recurrences,
@@ -193,6 +209,7 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
     collectionReversal: new CollectionReversalService(store, projectFinance),
     walletLedger: new WalletLedgerService(store),
     statement,
+    activity,
     integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
     assets: new AssetService(store),
     loans: new LoanService(store),

@@ -70,6 +70,12 @@ describe("DirectSaleEditor", () => {
     };
     const create = vi.fn().mockResolvedValue({ ok: true, value: { ...sale, id: "sale-new" } });
     mockedUsePrototypeServices.mockReturnValue({
+      /* كعب خدمة المسودة — قراءة فارغة وحفظ ناجح؛ الصفحة تُختبر لا المخزن. */
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
       catalog: {
         list: vi.fn().mockResolvedValue({ ok: true, items: [catalogItem] }),
       },
@@ -127,6 +133,12 @@ describe("DirectSaleEditor", () => {
     const update = vi.fn().mockResolvedValue({ ok: true, value: sale });
     const notifyDataChanged = vi.fn();
     mockedUsePrototypeServices.mockReturnValue({
+      /* كعب خدمة المسودة — قراءة فارغة وحفظ ناجح؛ الصفحة تُختبر لا المخزن. */
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
       catalog: {
         list: vi.fn().mockResolvedValue({ ok: true, items: [] }),
       },
@@ -175,6 +187,12 @@ describe("DirectSaleEditor", () => {
       value: { ...sale, status: "cancelled" },
     });
     mockedUsePrototypeServices.mockReturnValue({
+      /* كعب خدمة المسودة — قراءة فارغة وحفظ ناجح؛ الصفحة تُختبر لا المخزن. */
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
       catalog: {
         list: vi.fn().mockResolvedValue({ ok: true, items: [] }),
       },

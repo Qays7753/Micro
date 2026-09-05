@@ -1,3 +1,4 @@
+import { setDirtyForms } from "@/pwa/dirtyRegistry";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 export type UnsavedExitChoice = "save" | "discard" | "cancel";
@@ -50,6 +51,10 @@ export function UnsavedChangesProvider({
     const token = Symbol("unsaved-guard");
     guardRef.current = { ...guard, token };
     setHasDirtyGuard(guard.isDirty);
+    /* المجموعة ٥ (إصلاح عقد ٣٨): الجسر المفقود — سجل القذارة على مستوى الوحدة
+     * كان مستوردًا بلا استدعاء فبقي صفرًا أبدًا: إعادة التحميل التلقائية وزر
+     * التحديث لم يريا نموذجًا قذرًا قط. الآن يُزامن مع كل تسجيل حارس. */
+    setDirtyForms(guard.isDirty ? 1 : 0);
     if (guard.isDirty && !sentinelArmedRef.current) {
       history.pushState({ microGuard: true }, "");
       sentinelArmedRef.current = true;
@@ -58,6 +63,7 @@ export function UnsavedChangesProvider({
       if (guardRef.current?.token === token) {
         guardRef.current = null;
         setHasDirtyGuard(false);
+        setDirtyForms(0);
         sentinelArmedRef.current = false;
       }
     };

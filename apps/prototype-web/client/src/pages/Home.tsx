@@ -414,7 +414,9 @@ export default function Home() {
           <div className="micro-section-title">
             <Receipt aria-hidden="true" />
             <div>
-              <h2 id="home-recent-title">ما تغير مؤخرًا</h2>
+              {/* المجموعة ٥ (عقد ٣٠): نافذة هادئة من القارئ الموحّد — تسمية الأثر
+               * كلمة واحدة، والمبلغ حيث يوجد رقم صادق فقط. */}
+              <h2 id="home-recent-title">آخر ما حدث</h2>
             </div>
           </div>
           <div className="micro-home-recent-list">
@@ -430,12 +432,26 @@ export default function Home() {
                     {formatLocalDateLong(change.occurredOn) ?? change.occurredOn}
                   </time>
                   <strong>{change.title}</strong>
-                  <small>{change.detail}</small>
+                  {change.detail ? <small>{change.detail}</small> : null}
+                  {change.effectWord ? <small className="micro-home-recent-effect">{change.effectWord}</small> : null}
                 </span>
-                <ArrowLeft aria-hidden="true" />
+                {change.amountMinor !== null && change.amountMinor !== undefined ? (
+                  <b className="micro-home-recent-amount">
+                    {/* مراجعة 5-RV-A: الوحدة مع الرقم — قراءة واحدة بلا لبس
+                        واتساقًا مع قارئ النشاط الكامل. */}
+                    <MoneyValue minor={change.amountMinor} /> د.أ
+                  </b>
+                ) : null}
               </button>
             ))}
           </div>
+          <button
+            className="micro-text-action micro-home-recent-open"
+            type="button"
+            onClick={() => openFromHome("/finance/activity")}
+          >
+            افتح السجل الكامل
+          </button>
         </section>
       ) : null}
       {/* المجموعة ١ (§7.1): سطر المكان/العمل بلا اتصال — بديل صادق عن نص النطاق. */}

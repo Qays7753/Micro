@@ -42,8 +42,8 @@ describe("schema 33 export round-trip with product-sale links", () => {
     const service = new LocalTransferService(store, now);
     const exported = await service.createExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.version).toBe(26);
-    expect(exported.value.schemaVersion).toBe(34);
+    expect(exported.value.version).toBe(27);
+    expect(exported.value.schemaVersion).toBe(35);
     const text = JSON.stringify(exported.value);
 
     /* الاستيراد في جهاز جديد: الهوية تعبر حرفيًا لا تُخترع ولا تُفقد. */
@@ -66,8 +66,14 @@ describe("schema 33 export round-trip with product-sale links", () => {
       schemaVersion: number;
       data: { costEstimates: { materialItems: Record<string, unknown>[] }[] };
     };
-    legacy.version = 24;
+    legacy.version = 24;    delete (legacy as Record<string, unknown>).integrity;
+    delete (legacy as Record<string, unknown>).counts;
+    delete (legacy as Record<string, unknown>).appVersion;
+
     legacy.schemaVersion = 32;
+    delete (legacy as Record<string, unknown>).integrity;
+    delete (legacy as Record<string, unknown>).counts;
+    delete (legacy as Record<string, unknown>).appVersion;
     for (const estimate of legacy.data.costEstimates ?? []) {
       for (const item of estimate.materialItems ?? []) delete item.materialId;
     }
@@ -84,8 +90,14 @@ describe("schema 33 export round-trip with product-sale links", () => {
 
     /* ملف أقدم من الموجتين (٢٣/٣١): يظل مقبولًا بالإرث المتسلسل — لا كسر خلفي. */
     const older = JSON.parse(text) as { version: number; schemaVersion: number };
-    older.version = 23;
+    older.version = 23;    delete (older as Record<string, unknown>).integrity;
+    delete (older as Record<string, unknown>).counts;
+    delete (older as Record<string, unknown>).appVersion;
+
     older.schemaVersion = 31;
+    delete (older as Record<string, unknown>).integrity;
+    delete (older as Record<string, unknown>).counts;
+    delete (older as Record<string, unknown>).appVersion;
     const olderResult = await new LocalTransferService(new MemoryLocalStore(), now).prepareImport(
       JSON.stringify(older),
     );

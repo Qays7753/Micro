@@ -24,8 +24,10 @@ import type { LoanRecord } from "@micro-domain/loan/index.js";
 import type {
   ActivityProfile,
   CostEstimate,
+  FormDraftEnvelope,
   InventoryActivation,
   LocalPreferences,
+  LocalSecurityRecord,
   LocalStoreSnapshot,
   OrderDraft,
   OwnerProfile,
@@ -71,6 +73,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — تطابق المتصفح اختبارًا وسلوكًا. */
   private assets = new Map<string, AssetRecord>();
   private loans = new Map<string, LoanRecord>();
+  /* المجموعة ٥ (الاستمرارية): مسودات النماذج وسجل القفل — خارج اللقطة في
+   * المتصفح؛ هنا أيضًا لا تدخل readSnapshot/replaceSnapshot فتطابق الاستعادة. */
+  private formDrafts = new Map<string, FormDraftEnvelope>();
+  private security: LocalSecurityRecord | null = null;
 
   async getProfile(): Promise<StorageResult<ActivityProfile | null>> {
     return { ok: true, value: this.profile ? clone(this.profile) : null };
@@ -92,6 +98,29 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async savePreferences(preferences: LocalPreferences): Promise<StorageResult<LocalPreferences>> {
     this.preferences = clone(preferences);
     return { ok: true, value: clone(preferences) };
+  }
+  async getFormDraft(id: string): Promise<StorageResult<FormDraftEnvelope | null>> {
+    const draft = this.formDrafts.get(id);
+    return { ok: true, value: draft ? clone(draft) : null };
+  }
+  async saveFormDraft(draft: FormDraftEnvelope): Promise<StorageResult<FormDraftEnvelope>> {
+    this.formDrafts.set(draft.id, clone(draft));
+    return { ok: true, value: clone(draft) };
+  }
+  async deleteFormDraft(id: string): Promise<StorageResult<null>> {
+    this.formDrafts.delete(id);
+    return { ok: true, value: null };
+  }
+  async getLocalSecurity(): Promise<StorageResult<LocalSecurityRecord | null>> {
+    return { ok: true, value: this.security ? clone(this.security) : null };
+  }
+  async saveLocalSecurity(security: LocalSecurityRecord): Promise<StorageResult<LocalSecurityRecord>> {
+    this.security = clone(security);
+    return { ok: true, value: clone(security) };
+  }
+  async deleteLocalSecurity(): Promise<StorageResult<null>> {
+    this.security = null;
+    return { ok: true, value: null };
   }
   async listDrafts(): Promise<StorageResult<readonly OrderDraft[]>> {
     return {

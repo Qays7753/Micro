@@ -11,6 +11,7 @@ import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { eventCountLabel } from "@/presentation/g5Plurals";
 
 export const eventLabel: Record<FinancialEventType, string> = {
   owner_investment_cash: "استثمار المالك",
@@ -582,7 +583,7 @@ export function EventsLayer({
           <b>السجل والأثر</b>
           <small>
             {showAll
-              ? `السجل كاملًا (${events.length} حدثًا)؛ افتح الصف لرؤية الأثر وتصحيحه`
+              ? `السجل كاملًا (${eventCountLabel(events.length)})؛ افتح الصف لرؤية الأثر وتصحيحه`
               : "آخر ثلاثة أحداث؛ افتح الصف لرؤية الأثر الكامل وتصحيحه"}
           </small>
         </span>

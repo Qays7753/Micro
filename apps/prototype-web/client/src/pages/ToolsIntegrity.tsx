@@ -64,7 +64,7 @@ export default function ToolsIntegrity() {
       <div className="micro-page-heading">
         <span className="micro-overline">أداة قراءة</span>
         <h1>فحص سلامة مالي</h1>
-        <p>تحقق واحد أن أرقامك متسقة — النتيجة والكاش والأحداث والأمانات وصدق المعرفة.</p>
+        <p>ستّة عشر فحصًا تقرأ أرقامك كما هي — النتيجة والكاش والأحداث والأمانات والمخزون والأصول والقروض والعربون.</p>
       </div>
       <section className="micro-decision-card" aria-label="وعد الفحص">
         <ShieldCheck aria-hidden="true" />
@@ -97,6 +97,17 @@ export default function ToolsIntegrity() {
                     </bdi>{" "}
                     لفترة هذا الشهر حتى اليوم — كل فحص قراءة جديدة.
                   </p>
+                  {/* المجموعة ٥ (عقد ٣٥): الصحة تعني الاتساق لا الجدوى — فحص
+                   * سليم لا يقول إن المشروع رابح؛ وعدًا مطابقًا للسلوك. */}
+                  {state.report.overall === "PASS" ? (
+                    <p className="micro-offline-truth" role="note">
+                      «لا خلل مكتشفًا» يعني أن أرقامك متسقة مع قواعدها — لا يعني أنك رابح؛ الفحص يقيس الاتساق لا الجدوى.
+                    </p>
+                  ) : null}
+                  <p className="micro-integrity-version">
+                    إصدار الفحص: قواعد المخطط <bdi dir="ltr">{state.report.schemaVersion}</bdi> · التصدير{" "}
+                    <bdi dir="ltr">{state.report.exportVersion}</bdi>
+                  </p>
                 </>
               );
             })()
@@ -125,6 +136,9 @@ export default function ToolsIntegrity() {
             <IntegrityCheckRow key={check.id} check={check} onOpen={path => navigate(withFrom(path, "/tools/integrity"))} />
           ))
         : null}
+      <div className="micro-offline-truth" role="note">
+        يعمل بلا إنترنت — الفحص يقرأ سجلك المحلي ولا يغيّر شيئًا.
+      </div>
     </section>
   );
 }

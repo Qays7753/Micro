@@ -4,6 +4,12 @@ import React from "react";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { LocalLockService } from "@/application/security/localLockService";
+import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
+import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { StatementService } from "@/application/finance/statementService";
+import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import Settings from "@/pages/Settings";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
@@ -26,6 +32,9 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
       vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
     );
     mockedUsePrototypeServices.mockReturnValue({
+      /* المجموعة ٥: القفل المحلي وفحص السلامة بعد الاستعادة — موجودان في السياق الحقيقي. */
+      localLock: new LocalLockService(new MemoryLocalStore()),
+      integrityCheck: new IntegrityCheckService(new MemoryLocalStore(), new ProjectFinancialService(new MemoryLocalStore()), new StatementService(new MemoryLocalStore(), new ProjectFinancialService(new MemoryLocalStore())), new CashContinuityService(new MemoryLocalStore())),
       preferences: {
         load: vi.fn(async () => ({ ok: true, preference: "system" })),
         save: vi.fn(async () => ({ ok: true, preference: "dark" })),

@@ -13,9 +13,11 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
+import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
+import { useFormDraft } from "@/components/forms/useFormDraft";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
-import { formatMoneyMinor, formatQuantityMilli, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor, formatQuantityMilli, localDateInAmman } from "@/presentation/formatters";
 import type {
   SupplierPurchase,
   SupplierPurchasePayment,
@@ -39,7 +41,7 @@ export default function SupplierPurchaseEditor() {
       : "edit";
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { supplierPurchases, inventory, notifyDataChanged, dataVersion } = usePrototypeServices();
+  const { supplierPurchases, inventory, notifyDataChanged, dataVersion, formDrafts } = usePrototypeServices();
   const [purchase, setPurchase] = useState<SupplierPurchase | null>(null);
   const [loading, setLoading] = useState(!isNew);
   const [loadedToken, setLoadedToken] = useState(0);
@@ -133,6 +135,47 @@ export default function SupplierPurchaseEditor() {
     isDirty,
     onSave: () => (mode === "payment" ? savePayment() : mode === "edit" ? saveEdit() : savePurchase()),
   });
+  /* المجموعة ٥ (عقد ٣٦): مسودة نصية لشراء جديد فقط — وضع الدفع/التعديل فوق
+   * سجل قائم لا مسودة له (تعارضه مع السجل النهائي يمنع الاستعادة الصامتة). */
+  const purchaseDraft = useFormDraft(formDrafts, "supplier_purchase", isNew ? "new" : null, {
+    supplierName: "",
+    note: "",
+    purchasedOn: ammanDate(),
+    dueOn: "",
+    totalMinor: 0,
+    initialPaidMinor: 0,
+    materialId: "",
+    expectedQuantityMilli: 0,
+  });
+  const restoredFromOffer = useRef(false);
+  useEffect(() => {
+    if (!isNew || !isDirty || purchaseDraft.state.phase === "restore-offer") return;
+    purchaseDraft.onValuesChanged({
+      supplierName,
+      note,
+      purchasedOn,
+      dueOn,
+      totalMinor,
+      initialPaidMinor,
+      materialId,
+      expectedQuantityMilli,
+    });
+  }, [supplierName, note, purchasedOn, dueOn, totalMinor, initialPaidMinor, materialId, expectedQuantityMilli, isDirty, isNew, purchaseDraft.state.phase]);
+  useEffect(() => {
+    if (purchaseDraft.state.phase === "drafting" && restoredFromOffer.current) {
+      restoredFromOffer.current = false;
+      const saved = purchaseDraft.state.values;
+      setSupplierName(String(saved.supplierName ?? ""));
+      setNote(String(saved.note ?? ""));
+      setPurchasedOn(String(saved.purchasedOn ?? ammanDate()));
+      setDueOn(String(saved.dueOn ?? ""));
+      setTotalMinor(Number(saved.totalMinor ?? 0));
+      setInitialPaidMinor(Number(saved.initialPaidMinor ?? 0));
+      setMaterialId(String(saved.materialId ?? ""));
+      setExpectedQuantityMilli(Number(saved.expectedQuantityMilli ?? 0));
+    }
+    if (purchaseDraft.state.phase === "restore-offer") restoredFromOffer.current = true;
+  }, [purchaseDraft.state.phase]);
 
   async function savePurchase(): Promise<boolean> {
     if (!validMoney || totalMinor <= 0 || initialPaidMinor < 0) {
@@ -163,6 +206,10 @@ export default function SupplierPurchaseEditor() {
       return false;
     }
     notifyDataChanged();
+    /* مراجعة 5-RV-C: المسودة تُحذف بعد نجاح الحفظ في الحالتين — إعادة الاستخدام
+     * تعني أن السجل النهائي موجود أصلًا فبقاء المسودة يعرّض استعادتها لاحقًا
+     * لإنشاء تكرار. */
+    await purchaseDraft.clearFormDraft();
     setMessage(result.reused ? "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ شراء المواد محليًا.");
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     if (!result.reused) navigate(returnPath);
@@ -342,6 +389,18 @@ export default function SupplierPurchaseEditor() {
               : "سجل واقع الشراء والدفع المتفق عليه. لن تحوله Micro إلى تكلفة بيع أو مخزون حتى المرحلة التالية."}
         </p>
       </div>
+      {isNew && purchaseDraft.state.phase === "restore-offer" ? (
+        <FormDraftRestoreBanner
+          savedAt={purchaseDraft.state.savedAt}
+          onRestore={purchaseDraft.restoreDraft}
+          onDiscard={purchaseDraft.discardDraft}
+        />
+      ) : null}
+      {isNew && purchaseDraft.state.phase === "drafting" && purchaseDraft.state.lastSavedAt ? (
+        <p className="micro-offline-truth" role="status">
+          مسودتك محفوظة محليًا — آخر حفظ <bdi dir="ltr">{formatLocalDate(localDateInAmman(purchaseDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل شراء بعد.
+        </p>
+      ) : null}
       {mode === "edit" && purchase ? (
         <>
           <section className="micro-decision-card">

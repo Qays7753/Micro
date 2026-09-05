@@ -23,10 +23,12 @@ import {
   localOwnerProfileId,
   localProfileId,
   localSchemaVersion,
+  type LocalExportCounts,
   type LocalExportFile,
   type LocalStoreSnapshot,
   type PrototypeLocalStore,
 } from "@/storage/local/types";
+import { syncSha256Hex } from "@/lib/syncSha256";
 
 export type TransferSummary = {
   profile: boolean;
@@ -2422,6 +2424,8 @@ export class LocalTransferService {
         code: "storage_error",
         message: "تعذر قراءة البيانات المحلية للتصدير. لم يُنشأ ملف.",
       };
+    /* المجموعة ٥ (عقد ٣٩ — مظروف النسخة ٢٧): بصمة تكامل وعدادات مضمّنة
+     * وإصدار تطبيق — كلها اختيارية للقارئ فتبقى الملفات القديمة مقبولة. */
     return {
       ok: true,
       value: {
@@ -2430,6 +2434,12 @@ export class LocalTransferService {
         schemaVersion: localSchemaVersion,
         exportedAt: this.now(),
         data: snapshot.value,
+        integrity: {
+          algorithm: "sha256" as const,
+          digest: syncSha256Hex(JSON.stringify(snapshot.value)),
+        },
+        counts: exportCountsOf(snapshot.value),
+        appVersion: "micro-prototype-web",
       },
     };
   }
@@ -2471,8 +2481,10 @@ export class LocalTransferService {
     const isPreviousProductSaleLink = candidate.version === 24 && candidate.schemaVersion === 32;
     /* المجموعة ٤ (التمويل العميق): نسخة ٢٥/مخطط ٣٣ قبل الأصول والقروض وتصنيف
      * العربون المحتفظ به وعلم الخصم التلقائي — تُقبل وتُهاجر بقوائم فارغة
-     * ودلتات صفر بلا اختراع أصول ولا قروض ولا معاني. */
+     * ودلتات صفر بلا اختراع أصول ولا قروض ولا معاني. نسخة ٢٦/مخطط ٣٤ زوج
+     * المجموعة ٤ كما صدر فعلًا (بلا مظروف التكامل) — تُقبل كذلك. */
     const isPreviousDeepFinance = candidate.version === 25 && candidate.schemaVersion === 33;
+    const isPreviousGroup4Envelope = candidate.version === 26 && candidate.schemaVersion === 34;
     const isPreviousO1 =
       (candidate.version === 12 && candidate.schemaVersion === 21) ||
       (candidate.version === 13 && candidate.schemaVersion === 22);
@@ -2495,6 +2507,7 @@ export class LocalTransferService {
       !isPreviousSelectiveInventory &&
       !isPreviousProductSaleLink &&
       !isPreviousDeepFinance &&
+      !isPreviousGroup4Envelope &&
       !isPreviousO1 &&
       !isPreviousG3 &&
       !isG3Legacy &&
@@ -2505,6 +2518,18 @@ export class LocalTransferService {
       return fail("إصدار الملف غير مدعوم في هذا الإصدار من التطبيق؛ بقيت بيانات هذا الجهاز دون تغيير.");
     if (!isDate(candidate.exportedAt) || !isRecord(candidate.data))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
+    /* المجموعة ٥ (عقد ٣٩): تحقق التكامل عند وجود البصمة — تلاعب الملف بعد
+     * إنشائه يُرفض قبل أي معاينة؛ غياب البصمة (ملف قديم) يعني المسار القائم. */
+    if (isRecord(candidate.integrity)) {
+      const algorithm = candidate.integrity["algorithm"];
+      const digest = candidate.integrity["digest"];
+      if (algorithm === "sha256" && typeof digest === "string") {
+        if (syncSha256Hex(JSON.stringify(candidate.data)) !== digest)
+          return fail(
+            "تُغيّر الملف بعد إنشائه فبصمة التكامل لا تطابقه؛ لا تعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
+          );
+      }
+    }
     const raw = candidate.data;
     const migrated: LocalStoreSnapshot = {
       ...raw,
@@ -2765,12 +2790,24 @@ export class LocalTransferService {
     } as unknown as LocalStoreSnapshot;
     if (!validateSnapshot(migrated))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
+    /* المجموعة ٥ (عقد ٣٩ — إصلاح الجولة الكاملة): الحقول الاختيارية للمظروف ٢٧
+     * كانت تُتجاهل عند إعادة بناء الملف هنا فخرج تصدير «مُتحقق منه» بلا بصمة
+     * ولا عدادات ولا إصدار تطبيق — فيُفقد تحقق التكامل لملفات هذا الإصدار نفسه.
+     * الآن تُحمل مع الملف: البصمة تُعاد على البيانات بعد الترحيل فتبقى صادقة
+     * على الملف الخارج نفسه، والملفات القديمة بلا بصمة تبقى على مسارها القائم. */
     const file: LocalExportFile = {
       format: localExportFormat,
       version: localExportVersion,
       schemaVersion: localSchemaVersion,
       exportedAt: candidate.exportedAt,
       data: migrated,
+      ...(isRecord(candidate.integrity)
+        ? { integrity: { algorithm: "sha256" as const, digest: syncSha256Hex(JSON.stringify(migrated)) } }
+        : {}),
+      /* العدادات تُعاد من البيانات المُرحَّلة نفسها — مطابقة النوع دومًا
+       * وصادقة على الملف الخارج مهما كان مصدر الملف الداخل. */
+      ...(isRecord(candidate.counts) ? { counts: exportCountsOf(migrated) } : {}),
+      ...(typeof candidate.appVersion === "string" ? { appVersion: candidate.appVersion } : {}),
     };
     return { ok: true, value: { file, summary: summary(file) } };
   }
@@ -2851,4 +2888,24 @@ export class LocalTransferService {
       };
     return { ok: true, value: null };
   }
+}
+
+/* المجموعة ٥ (عقد ٣٩): عدادات مظروف النسخة ٢٧ — من اللقطة نفسها قبل أي ترحيل،
+ * فتُقارن عند الاستيراد بعدد السجلات المهاجرة فتكشف تغيّرًا أو نقصًا صامتًا. */
+function exportCountsOf(snapshot: LocalStoreSnapshot): LocalExportCounts {
+  return {
+    orders: snapshot.orders?.length ?? 0,
+    directSales: snapshot.directSales?.length ?? 0,
+    financialEvents: snapshot.financialEvents?.length ?? 0,
+    supplierPurchases: snapshot.supplierPurchases?.length ?? 0,
+    cashWallets: snapshot.cashWallets?.length ?? 0,
+    cashContinuityEntries: snapshot.cashContinuityEntries?.length ?? 0,
+    materials: snapshot.materials?.length ?? 0,
+    inventoryMovements: snapshot.inventoryMovements?.length ?? 0,
+    inventoryShortages: snapshot.inventoryShortages?.length ?? 0,
+    assets: snapshot.assets?.length ?? 0,
+    loans: snapshot.loans?.length ?? 0,
+    schedules: snapshot.schedules?.length ?? 0,
+    drafts: snapshot.drafts?.length ?? 0,
+  };
 }

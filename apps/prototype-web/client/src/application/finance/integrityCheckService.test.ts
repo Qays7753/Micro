@@ -4,6 +4,8 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
+import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
@@ -93,6 +95,10 @@ describe("integrity check service (فحص سلامة مالي)", () => {
       "MIC-11",
       "MIC-12",
       "MIC-13",
+      /* المجموعة ٥ (عقد ٣٥): فحوص الاستمرارية الثلاثة تنضم للفحوص القراءة فقط. */
+      "MIC-14",
+      "MIC-15",
+      "MIC-16",
     ]);
     for (const check of report.checks) expect(check.status).toBe("PASS");
   });
@@ -485,6 +491,42 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
     expect(mic10?.detailAr).toContain("عمر نافع مجهول");
   });
 
+  /* جولة الاستئناف (F-2b): عكس الاقتناء من السجل العام ثم استرجاعه — الفحص
+   * يقرأ الأثر الفعلي: بعد الاسترجاع يعود الاقتناء قائمًا (حدث جديد بنفس
+   * القيم والسياق) فلا يبقى الأصل مُعلَّمًا اقتناء-معكوسًا إلى الأبد. */
+  it("MIC-10 returns to honest state after reverse-then-restore of the acquisition", async () => {
+    const { store, services } = await cleanStore();
+    const asset = await services.assets.create({
+      name: "ماكينة استرجاع",
+      acquisitionAmountMinor: 30000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-06-01",
+    });
+    if (!asset.ok) throw new Error(asset.message);
+    const acquisitionId = asset.value.asset.acquisitionEventId;
+    const reversed = await services.projectFinance.reverse({
+      sourceEventId: acquisitionId,
+      occurredOn: "2026-09-03",
+      reason: "عكس تجريبي",
+      idempotencyKey: "f2b-reverse",
+    });
+    if (!reversed.ok) throw new Error(reversed.message);
+    const afterReverse = await services.integrityCheck.run();
+    const mic10Reversed = afterReverse.checks.find(check => check.id === "MIC-10");
+    expect(mic10Reversed?.status).toBe("FAIL");
+    expect(mic10Reversed?.detailAr).toContain("سلامة الأصول مكسورة");
+    const restored = await services.projectFinance.restoreEvent({
+      sourceEventId: acquisitionId,
+      idempotencyKey: `restore:${acquisitionId}`,
+    });
+    if (!restored.ok) throw new Error(restored.message);
+    const afterRestore = await services.integrityCheck.run();
+    const mic10Restored = afterRestore.checks.find(check => check.id === "MIC-10");
+    expect(mic10Restored?.status).toBe("PASS");
+  });
+
   it("MIC-11 fails when a repayment event disagrees with the loan record", async () => {
     const { store, services } = await cleanStore();
     const created = await services.loans.create({
@@ -750,4 +792,153 @@ describe("MIC-13 — ربط استهلاك التسليم يُمسك التلف 
     expect(mic13?.status).toBe("FAIL");
     expect(mic13?.offenderSampleIds?.some(id => id.includes("mv-mic13b-orphan"))).toBe(true);
   });
+
+  /* ─── المجموعة ٥ (عقد ٣٥): فحوص الاستمرارية MIC-14/15/16 ─── */
+
+  it("MIC-14: negative unallocated cash is a WARN with the amount; zero/positive stays PASS", async () => {
+    const { store, services } = await cleanStore();
+    const report = await services.integrityCheck.run();
+    let mic14 = report.checks.find(check => check.id === "MIC-14");
+    expect(mic14?.status).toBe("PASS");
+
+    /* محاكاة إنفاق فوق المصادر المسجلة: حدث كاش خارج بلا مصدر يعادل مصدرًا
+     * مكشوفًا — عبر كتابة مباشرة تُحاكي عبور الاستيراد/العد الخارجي. */
+    const overspend = createFinancialEvent({
+      id: "mic14-overspend",
+      type: "payable_settlement_cash",
+      amountMinor: 900000,
+      occurredOn: "2026-09-02",
+      recordedAt: now(),
+      idempotencyKey: "mic14-overspend",
+      note: "تسديد ضخم",
+      counterparty: null,
+      relatedEventId: "legacy-mic14-payable",
+    });
+    const saved = await store.saveFinancialEvent(overspend);
+    if (!saved.ok) throw new Error(saved.message);
+    const after = await services.integrityCheck.run();
+    mic14 = after.checks.find(check => check.id === "MIC-14");
+    expect(mic14?.status).toBe("WARN");
+    expect(mic14?.driftMinor ?? 0).toBeGreaterThan(0);
+    expect(mic14?.deepLink).toBe("/cash");
+  });
+
+  it("MIC-15: a duplicated idempotency key with a fresh id fails — import-grade check on the live store", async () => {
+    const { store, services } = await cleanStore();
+    const original = createFinancialEvent({
+      id: "mic15-original",
+      type: "operating_expense_cash",
+      amountMinor: 1200,
+      occurredOn: "2026-09-01",
+      recordedAt: now(),
+      idempotencyKey: "mic15-key",
+      note: "أصل",
+      counterparty: null,
+    });
+    const savedOriginal = await store.saveFinancialEvent(original);
+    if (!savedOriginal.ok) throw new Error(savedOriginal.message);
+    const forged = createFinancialEvent({
+      id: "mic15-forged",
+      type: "operating_expense_cash",
+      amountMinor: 1200,
+      occurredOn: "2026-09-02",
+      recordedAt: now(),
+      idempotencyKey: "mic15-key",
+      note: "نسخة معدّة يدويًا بمعرّف جديد",
+      counterparty: null,
+    });
+    const savedForged = await store.saveFinancialEvent(forged);
+    if (!savedForged.ok) throw new Error(savedForged.message);
+    const report = await services.integrityCheck.run();
+    const mic15 = report.checks.find(check => check.id === "MIC-15");
+    expect(mic15?.status).toBe("FAIL");
+    expect(mic15?.offenderSampleIds).toContain("mic15-forged");
+  });
+
+  it("MIC-16: owner-capital delta on a non-owner type fails the separation check", async () => {
+    const store = new MemoryLocalStore();
+    const services = buildServices(store);
+    const tampered = {
+      ...createFinancialEvent({
+        id: "mic16-leak",
+        type: "operating_expense_cash",
+        amountMinor: 1000,
+        occurredOn: "2026-09-01",
+        recordedAt: now(),
+        idempotencyKey: "mic16-leak",
+        note: "مصروف يحمل دلتا مالك",
+        counterparty: null,
+      }),
+      ownerCapitalDeltaMinor: 1000,
+    };
+    const saved = await store.saveFinancialEvent(tampered);
+    if (!saved.ok) throw new Error(saved.message);
+    const report = await services.integrityCheck.run();
+    const mic16 = report.checks.find(check => check.id === "MIC-16");
+    expect(mic16?.status).toBe("FAIL");
+    expect(mic16?.offenderSampleIds?.some(id => id.includes("mic16-leak"))).toBe(true);
+  });
+
+  it("the report carries schema and export version stamps (المجموعة ٥)", async () => {
+    const { services } = await cleanStore();
+    const report = await services.integrityCheck.run();
+    expect(report.schemaVersion).toBe(localSchemaVersion);
+    expect(report.exportVersion).toBe(localExportVersion);
+  });
+
+  /* المجموعة ٥ (إصلاح MIC-4): أحداث الأصول/القروض/تصنيف العربون كانت تُوسم
+   * «خللًا» كذبًا لأن إعادة الاشتقاق لم تمرّر سياقها المرتبط الذي يوجبه عقد
+   * المجال — المُنشئ يرمي فيقع السجل السليم في فرع الخلل. الآن السياق يُمرّر
+   * ويُقارن، والسليم يبقى سليمًا والمُلاعَب يُكشف. */
+  it("asset/loan/deposit-context events: MIC-4 PASS on healthy linked events (false-positive regression)", async () => {
+    const { store, services } = await cleanStore();
+    await services.assets.create({
+      name: "مكينة خياطة",
+      acquisitionAmountMinor: 45000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-09-05",
+      lifeMonths: 60,
+      depreciationStartOn: "2026-09-05",
+    });
+    await services.loans.create({
+      borrowerName: "أحمد",
+      principalMinor: 30000,
+      loanDate: "2026-09-05",
+      sourceWalletId: null,
+      purposeNote: "قرض اختبار",
+    });
+    const report = await services.integrityCheck.run();
+    const mic4 = report.checks.find(check => check.id === "MIC-4");
+    expect(mic4?.status).toBe("PASS");
+  });
+
+  it("tampered asset context: MIC-4 FAIL — context comparison catches it", async () => {
+    const { store, services } = await cleanStore();
+    await services.assets.create({
+      name: "ثلاجة عرض",
+      acquisitionAmountMinor: 60000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-09-05",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-09-05",
+    });
+    const snapshot = await store.readSnapshot();
+    if (!snapshot.ok) throw new Error(snapshot.message);
+    const assetEvent = snapshot.value.financialEvents.find(event => event.type === "asset_purchase_cash")!;
+    /* سياق يكسر عقد المجال (بلا اسم) — إعادة الاشتقاق ترفضه فيُوسم الحدث. */
+    const tampered = {
+      ...assetEvent,
+      assetContext: { assetId: assetEvent.assetContext!.assetId, name: "" },
+    };
+    await store.replaceSnapshot({
+      ...snapshot.value,
+      financialEvents: snapshot.value.financialEvents.map(event => (event.id === tampered.id ? tampered : event)),
+    });
+    const report = await services.integrityCheck.run();
+    const mic4 = report.checks.find(check => check.id === "MIC-4");
+    expect(mic4?.status).toBe("FAIL");
+    expect(mic4?.offenderSampleIds?.some(id => id === tampered.id)).toBe(true);
+  });
+
 });
+
