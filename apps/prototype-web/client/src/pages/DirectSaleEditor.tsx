@@ -423,6 +423,13 @@ export default function DirectSaleEditor() {
       return false;
     }
     notifyDataChanged();
+    /* المجموعة ٦ (تدقيق A1 — FT-02): عكس تخصيصات المحفظة بعد الإلغاء قد يفشل
+     * (تخزين) — الإلغاء نفسه نجح لكن المال بقي في غير الموزع بانتظار قرار؛
+     * نُبقي الصفحة مفتوحة بالرسالة بدل مغادرة صامتة. */
+    if (result.allocationReversalNotice) {
+      setMessage(result.allocationReversalNotice);
+      return true;
+    }
     navigate(returnPath);
     return true;
   }

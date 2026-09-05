@@ -376,3 +376,107 @@ describe("DirectSaleService agreed vs collected (X-06, و٤)", () => {
     expect(updated).toMatchObject({ ok: true, value: { catalogItemId: null } });
   });
 });
+
+/* المجموعة ٦ (تدقيق A1 — FT-02): إلغاء البيع المباشر يعكس تخصيصات محفظته
+ * مرآةً — المحفظة لا تبقى «تُظهر» مبلغًا لبيعٍ ملغى، والقيمة تعود إلى غير
+ * الموزع بانتظار قرار المالك. المفتاح حتمي فإعادة المحاولة بعد انقطاع لا
+ * تكرر العكس. */
+describe("DirectSaleService cancel mirrors wallet allocations (FT-02, Group 6 audit)", () => {
+  const NOW = "2026-09-05T10:00:00.000Z";
+
+  async function saleWithWalletAllocation() {
+    const store = new MemoryLocalStore();
+    const service = new DirectSaleService(store, () => NOW);
+    const recorded = await service.record({
+      itemName: "منتج جاهز",
+      quantity: 1,
+      revenueMinor: 2000,
+      costMinor: null,
+      occurredOn: "2026-09-04",
+      note: "بيع من المحل",
+      idempotencyKey: "ft02-sale",
+      collectedMinor: 2000,
+    });
+    if (!recorded.ok) throw new Error(recorded.message);
+    /* فتح محفظة ثم تخصيص قبضة البيع إليها — النمط نفسه الذي يكتبه المحرر. */
+    const { CashContinuityService } = await import("@/application/cash/cashContinuityService");
+    const cash = new CashContinuityService(store, () => NOW);
+    const wallet = await cash.openWallet({
+      name: "الدرج",
+      kind: "cash_drawer",
+      openingMinor: 0,
+      occurredOn: "2026-09-01",
+      note: "افتتاح",
+      operationKey: "ft02-wallet-open",
+    });
+    if (!wallet.ok) throw new Error(wallet.message);
+    const projectFinance = new (await import("@/application/finance/projectFinancialService")).ProjectFinancialService(
+      store,
+      () => NOW,
+    );
+    const attributed = await projectFinance.distributeUnallocated({
+      walletId: wallet.value.wallet.id,
+      deltaMinor: 2000,
+      note: "قبض بيع مباشر",
+      operationKey: "ft02-sale-key:attribute",
+      sourceRefId: recorded.value.id,
+      sourceRefKind: "sale",
+    });
+    if (!attributed.ok) throw new Error(attributed.message);
+    return { store, service, id: recorded.value.id, walletId: wallet.value.wallet.id };
+  }
+
+  it("reverses the sale's wallet allocation when the sale is cancelled", async () => {
+    const { store, service, id, walletId } = await saleWithWalletAllocation();
+    const cancelled = await service.cancel(id, "أُلغي البيع", "ft02-cancel");
+    expect(cancelled).toMatchObject({ ok: true });
+
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error(entries.message);
+    const allocation = entries.value.find(entry => entry.type === "allocation");
+    const reversal = entries.value.find(entry => entry.type === "reversal");
+    expect(allocation?.cashDeltaMinor).toBe(2000);
+    expect(reversal).toMatchObject({
+      walletId,
+      cashDeltaMinor: -2000,
+      reversesEntryId: allocation?.id,
+      reason: "أُلغي البيع",
+    });
+    /* مجموع دفتر المحفظة صفر بعد العكس — لا مال معروض لبيعٍ ملغى. */
+    const walletSum = entries.value
+      .filter(entry => entry.walletId === walletId)
+      .reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
+    expect(walletSum).toBe(0);
+  });
+
+  it("repeated cancellation does not duplicate the mirror reversal (idempotent identity)", async () => {
+    const { store, service, id } = await saleWithWalletAllocation();
+    await service.cancel(id, "أُلغي البيع", "ft02-cancel");
+    const again = await service.cancel(id, "أُلغي البيع", "ft02-cancel");
+    expect(again).toMatchObject({ ok: true, reused: true });
+
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error(entries.message);
+    expect(entries.value.filter(entry => entry.type === "reversal")).toHaveLength(1);
+  });
+
+  it("cancel with no wallet attribution changes no cash entries at all", async () => {
+    const store = new MemoryLocalStore();
+    const service = new DirectSaleService(store, () => NOW);
+    const recorded = await service.record({
+      itemName: "منتج",
+      quantity: 1,
+      revenueMinor: 900,
+      costMinor: null,
+      occurredOn: "2026-09-04",
+      note: "بيع نقدي بلا محفظة",
+      idempotencyKey: "ft02-plain",
+      collectedMinor: 900,
+    });
+    if (!recorded.ok) throw new Error(recorded.message);
+    await service.cancel(recorded.value.id, "إلغاء بلا تخصيص", "ft02-plain-cancel");
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error(entries.message);
+    expect(entries.value).toHaveLength(0);
+  });
+});
