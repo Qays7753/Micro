@@ -1,5 +1,6 @@
 /** Test adapter only. It mirrors the LocalStore port without making browser APIs part of application tests. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type {
@@ -1205,6 +1206,27 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         },
       };
     }
+    /* AV-02 + حتمية المفتاح: نفس حراس محوّل IndexedDB — إعادة تشغيل بنفس
+     * المفتاح تُعاد كما هي، والعلاقة مع السجل المخزّن تُفحص عند الكتابة. */
+    const keyReplay = findLoanEventByKey(
+      Array.from(this.financialEvents.values()),
+      event.idempotencyKey,
+      event.id,
+    );
+    if (keyReplay) {
+      const existing = this.loans.get(record.id);
+      return {
+        ok: true,
+        value: {
+          record: existing ? clone(existing) : clone(record),
+          event: clone(keyReplay),
+          reused: true,
+        },
+      };
+    }
+    const stored = this.loans.get(record.id);
+    const relation = validateLoanCommitRelation(stored, record, event);
+    if (!relation.ok) return { ok: false, code: "storage_stale", message: relation.message };
     this.loans.set(record.id, clone(record));
     this.financialEvents.set(event.id, clone(event));
     return { ok: true, value: { record: clone(record), event: clone(event), reused: false } };

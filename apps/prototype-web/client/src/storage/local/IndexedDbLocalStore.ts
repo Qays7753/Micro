@@ -47,6 +47,7 @@ import {
   type StorageResult,
   type StoredCraftOrder,
 } from "./types";
+import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 
 const databaseName = "micro-prototype-local";
 const profileStore = "activity-profile";
@@ -2897,7 +2898,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     return readOne<LoanRecord>(loanStore, id);
   }
   /* كتابة ذرّية: سجل القرض مع حدثه (إنشاء/سداد/تراجع سداد) — الحدث موجود
-   * سلفًا → إعادة استخدام؛ السجل بلا الدفعة المطابقة → حالة نصفية تُرفض. */
+   * سلفًا أو مفتاحه مستعمل → إعادة استخدام؛ العلاقة بين السجل المخزّن
+   * والوارد يجب أن تطابق عملية مجال واحدة (AV-02: تزامن الدفعات)، وإلا
+   * يُرفض الالتزام ويبقى السجل والأحداث متسقين. */
   async commitLoanRecord(
     record: LoanRecord,
     event: FinancialEvent,
@@ -2950,8 +2953,75 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             };
             return;
           }
-          loans.put(record);
-          events.put(event);
+          /* AV-02 + حتمية المفتاح: مسح الأحداث داخل المعاملة — حدث سابق بنفس
+           * مفتاح الحتمية (إعادة تشغيل تراجع/إنشاء بعد نجاح) يُعاد كما هو. */
+          const keyScanRequest = events.getAll();
+          keyScanRequest.onerror = () => {
+            pending = failure(keyScanRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          keyScanRequest.onsuccess = () => {
+            const keyReplay = findLoanEventByKey(
+              keyScanRequest.result as FinancialEvent[],
+              event.idempotencyKey,
+              event.id,
+            );
+            if (keyReplay) {
+              const loanRequest = loans.get(record.id);
+              loanRequest.onsuccess = () => {
+                const existingLoan = loanRequest.result as LoanRecord | undefined;
+                pending = {
+                  ok: true,
+                  value: { record: existingLoan ?? record, event: keyReplay, reused: true },
+                };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+              };
+              loanRequest.onerror = () => {
+                pending = failure(loanRequest.error, database);
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+              };
+              return;
+            }
+            /* AV-02: العلاقة بين السجل المخزّن والوارد تُفحص داخل المعاملة —
+             * دفعة متزامنة سبقت هذه الكتابة تكسر علاقة «دفعة واحدة بالضبط»
+             * فيُرفض الالتزام ويبقى السجل متسقًا مع أحداثه. */
+            const loanRequest = loans.get(record.id);
+            loanRequest.onsuccess = () => {
+              const storedLoan = loanRequest.result as LoanRecord | undefined;
+              const relation = validateLoanCommitRelation(storedLoan, record, event);
+              if (!relation.ok) {
+                pending = { ok: false, code: "storage_stale", message: relation.message };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+                return;
+              }
+              loans.put(record);
+              events.put(event);
+            };
+            loanRequest.onerror = () => {
+              pending = failure(loanRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+          };
         };
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
