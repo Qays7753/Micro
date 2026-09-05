@@ -43,11 +43,29 @@ function equalAgreementValues(left: AgreementFormValues | null, right: Agreement
 export default function AgreementEditor() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const { drafts, costs, agreements, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { drafts, costs, agreements, cashContinuity, projectFinance, dataVersion, notifyDataChanged } =
+    usePrototypeServices();
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [priceMinor, setPriceMinor] = useState<number | null>(startAgreementPrice());
   const [deliveryDate, setDeliveryDate] = useState("");
   const [depositMinor, setDepositMinor] = useState<number | null>(null);
+  /* عقد الإغلاق العميق (FC-04 — العقد ٣): وجهة كاش العربون عند الاتفاق — خيار
+   * صريح للمالك (محفظة أو غير موزع)، والعربون يبقى دينًا مرتبطًا بالطلب لا
+   * إيرانًا. الوجهة تُكتب تخصيصًا موثقًا مرتبطًا بحدث العربون نفسه. */
+  const [depositWalletId, setDepositWalletId] = useState("");
+  const [walletOptions, setWalletOptions] = useState<readonly { id: string; name: string; kind: string }[]>(
+    [],
+  );
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const overview = await cashContinuity.overview();
+      if (active && overview.ok) setWalletOptions(overview.value.wallets);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [cashContinuity, dataVersion]);
   const [source, setSource] = useState<AgreementSource | "">("");
   const [acknowledgesBelowFloor, setAcknowledgesBelowFloor] = useState(false);
   /* (إصلاح تكاملي — مجموعة ٤): الاسم يُعبّأ من المسودة إن وُجد؛ يُطلب هنا فقط عند نقصه. */
@@ -170,6 +188,24 @@ export default function AgreementEditor() {
       setMessage(result.message);
       return null;
     }
+    /* FC-04: وجهة العربون المختارة — تخصيص بمفتاح مشتق من حدث العربون نفسه
+     * (`${orderId}:initial-deposit`)؛ فشل التخصيص لا يمس الاتفاق: المبلغ
+     * يبقى في غير الموزع والرسالة تعلن السبب. */
+    if (depositWalletId && (depositMinor ?? 0) > 0) {
+      const attribution = await projectFinance.distributeUnallocated({
+        walletId: depositWalletId,
+        deltaMinor: depositMinor ?? 0,
+        note: `عربون طلب «${draftForAgreement.itemName}»`,
+        operationKey: `${result.stored.id}:initial-deposit:attribute`,
+        sourceRefId: result.stored.id,
+        sourceRefKind: "order",
+        sourceRefLineId: `${result.stored.id}:initial-deposit`,
+      });
+      if (!attribution.ok)
+        setMessage(
+          `سُجّل الاتفاق والعربون، وتعذر تخصيص الكاش للمحفظة: ${attribution.message} — المبلغ في الكاش غير الموزع.`,
+        );
+    }
     notifyDataChanged();
     return result.stored.id;
   }
@@ -200,6 +236,8 @@ export default function AgreementEditor() {
   async function submit() {
     const storedId = await persistAgreement();
     if (storedId) navigate(`/orders/${storedId}`);
+    /* إن تعذّر تخصيص الكاش للوجهة المختارة يبقى المبلغ في غير الموزع بأمان —
+     * صفحة الطلب تظهر العربون المحصل، والتوزيع قرار صريح من مالي لاحقًا. */
   }
   function useProtectionPriceAsStart() {
     if (!canUseProtectionPrice) return;
@@ -301,6 +339,23 @@ export default function AgreementEditor() {
             onTextValidityChange={setIsDepositValid}
           />
         </label>
+        {(depositMinor ?? 0) > 0 ? (
+          <label className="micro-field">
+            <span>وجهة كاش العربون</span>
+            <select
+              value={depositWalletId}
+              onChange={event => setDepositWalletId(event.target.value)}
+              aria-label="وجهة كاش العربون"
+            >
+              <option value="">غير موزع — يُوزّع لاحقًا بقرار صريح</option>
+              {walletOptions.map(wallet => (
+                <option key={wallet.id} value={wallet.id}>
+                  {wallet.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <p className="micro-deposit-truth">
           <CircleAlert aria-hidden="true" /> العربون كاش محصل مرتبط بالطلب، وليس ربحًا نهائيًا أو تسليمًا
           تلقائيًا.

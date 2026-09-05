@@ -317,10 +317,10 @@ export default function Collect() {
         </section>
       ) : ready && ready.sources.length === 0 ? (
         <section className="micro-home-quiet" aria-label="لا ديون">
-          <strong>ما في ديون قابلة للتحصيل الآن.</strong>
+          <strong>لا توجد ديون قابلة للتحصيل الآن.</strong>
           <p>
             الديون تظهر هنا بعد التسليم مع متبقٍ، أو بعد تسجيل الدين صراحة، أو من بيع آجل — التحصيل قبل
-            التسليم يُسجّل عربونًا من تفاصيل الطلب.
+            التسليم يُسجَّل عربونًا من صفحة الطلب («سجّل عربونًا إضافيًا»).
           </p>
           <button
             className="micro-button micro-button-secondary"

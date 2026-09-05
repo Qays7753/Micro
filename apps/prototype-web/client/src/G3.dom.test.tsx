@@ -414,3 +414,90 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     );
   });
 });
+
+/** عقد الإغلاق العميق (WF-01/MR-01 — العقد ٣): «سجّل عربونًا إضافيًا» ظاهر
+ * على الطلب الحي قبل التسليم؛ الحفظ يسجل العربون ويربط وجهة المحفظة
+ * المختارة بحدثه — والزر يختفي عند اكتمال السعر المقبوض. */
+describe("OrderDetail mid-journey deposit panel (عقد الإغلاق العميق — العقد ٣)", () => {
+  beforeEach(() => {
+    store = new MemoryLocalStore();
+    costEstimates = new CostEstimateService(store, () => NOW);
+    drafts = new DraftService(store, () => NOW);
+    catalog = new CatalogService(store, () => NOW);
+    costs = new CostService(store, () => NOW);
+    agreements = new AgreementService(store, costs, () => NOW);
+    fulfillment = new FulfillmentService(store, () => NOW);
+    wouterMocks.location = "/orders";
+    wouterMocks.params = {};
+    wouterMocks.navigate.mockReset();
+  });
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+  it("offers and records a mid-journey deposit with an explicit wallet destination", async () => {
+    const created = await drafts.create("customer_order", {
+      itemName: "لوحة خشبية",
+      customerName: "ليلى",
+      specifications: "حفر",
+      quantity: 1,
+    });
+    if (!created.ok) throw new Error(created.message);
+    const costSaved = await costs.saveSnapshot(created.draft, {
+      materialItems: [{ name: "خشب", quantity: 1, unit: "لوح", unitPriceMinor: 2000, confidence: "known" }],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+    });
+    if (!costSaved.ok) throw new Error(costSaved.message);
+    const agreement = await agreements.createFromDraft(costSaved.draft, {
+      agreedPriceMinor: 10000,
+      deliveryDate: "2026-09-10",
+      depositMinor: 1000,
+      agreementSource: null,
+    });
+    if (!agreement.ok) throw new Error(agreement.message);
+    const orderId = agreement.stored.id;
+    const cash = new CashContinuityService(store, () => NOW);
+    const opened = await cash.openWallet({
+      name: "الدرج",
+      kind: "cash_drawer",
+      openingMinor: 0,
+      occurredOn: "2026-09-01",
+      note: "محفظة",
+      operationKey: "wallet-mid-deposit",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    wouterMocks.location = `/orders/${orderId}`;
+    wouterMocks.params = { id: orderId };
+    mockedUsePrototypeServices.mockImplementation(
+      () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    render(<G3Harness page={<OrderDetail />} />);
+    /* الزر الهدفي: عربون إضافي أثناء الرحلة (اتفاق بلا تسليم — الحالة «الاتفاق المؤقت»). */
+    const depositButton = await screen.findByRole("button", { name: /سجّل عربونًا إضافيًا/ });
+    fireEvent.click(depositButton);
+    const panel = await screen.findByTestId("extra-deposit-panel");
+    expect(panel.textContent).toContain("لا تُعدّ إيرادًا");
+    fireEvent.change(screen.getByLabelText("مبلغ العربون الإضافي"), { target: { value: "5" } });
+    await waitFor(() => expect(screen.getByTestId("extra-deposit-preview").textContent).toContain("85"));
+    fireEvent.change(screen.getByLabelText("وجهة العربون"), { target: { value: opened.value.wallet.id } });
+    fireEvent.click(screen.getByRole("button", { name: "سجّل العربون" }));
+    await waitFor(() => expect(screen.queryByTestId("extra-deposit-panel")).toBeNull());
+    /* العربون سُجل: 15.00 عربون (10.00 اتفاق + 5.00 إضافي) والمقبوض 15.00. */
+    const order = await store.getOrder(orderId);
+    if (!order.ok || !order.value) throw new Error("order missing");
+    expect(order.value.order.depositCollectedMinor).toBe(1500);
+    expect(order.value.order.collectedMinor).toBe(1500);
+    /* وجهة المحفظة: تخصيص واحد مرتبط بحدث العربون لا غير. */
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error(entries.message);
+    const linked = entries.value.filter(entry => entry.walletId === opened.value.wallet.id);
+    expect(linked.length).toBe(1);
+    expect(linked[0]?.cashDeltaMinor).toBe(500);
+    expect(linked[0]?.sourceRefLineId).toContain(orderId);
+  });
+});
