@@ -167,6 +167,64 @@ export class MemoryLocalStore implements PrototypeLocalStore {
    * قبل أي كتابة: إن وُجد حدث التراجع نفسه فمسار إعادة الاستخدام (مع أثر الكاش
    * المطابق)، وإن وُجد أثر كاش متراجع سابقًا لنفس التخصيص فرفض صادق، وإلا
    * تُكتب الحالتان معًا. الحالة النصفية تُعلن لا تُكمل بصمت. */
+  async commitDepositRefundSettlement(
+    order: StoredCraftOrder,
+    allocationReversals: readonly CashContinuityEntry[],
+    refundEventKey: string,
+  ): Promise<
+    StorageResult<{ order: StoredCraftOrder; cashEntries: readonly CashContinuityEntry[]; reused: boolean }>
+  > {
+    /* FC-06: الطلب وأثر المحفظة معًا — إعادة نفس المفتاح تعيد النتيجة نفسها. */
+    const existing = this.orders.get(order.id);
+    if (!existing) return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لرد العربون." };
+    const alreadyRefunded = existing.order.events.some(
+      event => event.type === "deposit_refunded" && event.idempotencyKey === refundEventKey,
+    );
+    if (alreadyRefunded) {
+      const matching = Array.from(this.cashContinuityEntries.values()).filter(entry =>
+        allocationReversals.some(reversal => reversal.operationKey === entry.operationKey),
+      );
+      return { ok: true, value: { order: clone(existing), cashEntries: matching.map(clone), reused: true } };
+    }
+    /* رفض فك يتجاوز التخصيص الأصلي — الفك الجزئي المتكرر مسموح ما دام
+     * مجموعه لا يتجاوز التخصيص نفسه. */
+    const existingIds = new Set(Array.from(this.cashContinuityEntries.values()).map(entry => entry.id));
+    const allEntries = Array.from(this.cashContinuityEntries.values());
+    const originalById = new Map(allEntries.map(entry => [entry.id, entry] as const));
+    const reversedPerEntry = new Map<string, number>();
+    for (const entry of allEntries) {
+      if (entry.type === "reversal" && entry.reversesEntryId) {
+        reversedPerEntry.set(
+          entry.reversesEntryId,
+          (reversedPerEntry.get(entry.reversesEntryId) ?? 0) - entry.cashDeltaMinor,
+        );
+      }
+    }
+    for (const reversal of allocationReversals) {
+      if (existingIds.has(reversal.id))
+        return { ok: false, code: "storage_error", message: "أثر فك تخصيص مكرر — لم يتغير السجل." };
+      if (reversal.reversesEntryId) {
+        const original = originalById.get(reversal.reversesEntryId);
+        const reversedSoFar = reversedPerEntry.get(reversal.reversesEntryId) ?? 0;
+        const additional = -reversal.cashDeltaMinor;
+        const cap = original ? original.cashDeltaMinor : Number.POSITIVE_INFINITY;
+        if (reversedSoFar + additional > cap)
+          return {
+            ok: false,
+            code: "storage_error",
+            message: "فك التخصيص يتجاوز مبلغ التخصيص الأصلي؛ لم يتغير السجل.",
+          };
+        reversedPerEntry.set(reversal.reversesEntryId, reversedSoFar + additional);
+      }
+    }
+    this.orders.set(order.id, clone(order));
+    for (const reversal of allocationReversals) this.cashContinuityEntries.set(reversal.id, clone(reversal));
+    return {
+      ok: true,
+      value: { order: clone(order), cashEntries: allocationReversals.map(clone), reused: false },
+    };
+  }
+
   async commitOrderCollectionReversal(
     order: StoredCraftOrder,
     allocationReversal: CashContinuityEntry | null,

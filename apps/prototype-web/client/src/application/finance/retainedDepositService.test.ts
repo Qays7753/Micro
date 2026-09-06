@@ -160,7 +160,10 @@ describe("retained deposit service (المجموعة ٤ — عقد ٢٩)", () =>
     await cancelledOrderWithRetainedDeposit(store);
     const first = await service.classify("order-1", "owner", "قرار أول");
     expect(first.ok).toBe(true);
-    const correction = await service.reclassify("order-1", "revenue", "القرار الأول كان متسرعًا");
+    const correction = await service.reclassify("order-1", {
+      toMeaning: "revenue",
+      reason: "القرار الأول كان متسرعًا",
+    });
     expect(correction.ok).toBe(true);
     if (!correction.ok) return;
     expect(correction.value.order.order.retainedMeaning).toBe("revenue");

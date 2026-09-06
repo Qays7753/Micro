@@ -426,3 +426,135 @@ describe("FulfillmentService mid-journey deposit (عقد الإغلاق العم
     expect(overview.value.collectedTotalMinor).toBe(1200);
   });
 });
+
+/* Conflict E (FC-06): رد العربون من محفظة المصدر — التخصيص المسجل يُفك بمقدار
+ * الرد من محفظته الفعلية، والباقي غير المخصص يخرج من غير الموزع؛ الكتابة
+ * ذرّية (الطلب وأثر المحفظة معًا) وإعادة المحاولة لا تكرر الأثر. */
+describe("FulfillmentService deposit refund from source wallet (FC-06 / Conflict E)", () => {
+  async function cancelledOrderWithAttributedDeposit() {
+    const store = new MemoryLocalStore();
+    const drafts = new DraftService(store, () => "2026-09-01T00:00:00.000Z");
+    const created = await drafts.create("customer_order");
+    if (!created.ok) throw new Error(created.message);
+    const saved = await drafts.save({
+      ...created.draft,
+      customerName: "سليم",
+      itemName: "رف خشبي",
+      specifications: "مقاس كبير",
+      quantity: 1,
+    });
+    if (!saved.ok) throw new Error(saved.message);
+    const costs = new CostService(store, () => "2026-09-01T00:01:00.000Z");
+    const withCost = await costs.saveSnapshot(saved.draft, costInput);
+    if (!withCost.ok) throw new Error(withCost.message);
+    const agreements = new AgreementService(store, costs, () => "2026-09-01T01:00:00.000Z");
+    const agreed = await agreements.createFromDraft(withCost.draft, {
+      agreedPriceMinor: 5000,
+      deliveryDate: "2026-09-20",
+      depositMinor: 2000,
+      agreementSource: null,
+    });
+    if (!agreed.ok) throw new Error(agreed.message);
+    const orderId = agreed.stored.id;
+    /* محفظة + تخصيص عربون الاتفاق إليها — المسار نفسه الذي يكتبه المحرر. */
+    const cash = new CashContinuityService(store, () => "2026-09-01T01:05:00.000Z");
+    const wallet = await cash.openWallet({
+      name: "درج المحل",
+      kind: "cash_drawer",
+      openingMinor: 5000,
+      occurredOn: "2026-09-01",
+      note: "رصيد بداية",
+      operationKey: "fc06-open",
+    });
+    if (!wallet.ok) throw new Error(wallet.message);
+    const projectFinance = new ProjectFinancialService(store, () => "2026-09-01T01:06:00.000Z");
+    const attribution = await projectFinance.distributeUnallocated({
+      walletId: wallet.value.wallet.id,
+      deltaMinor: 2000,
+      note: "عربون طلب رف خشبي",
+      operationKey: `${orderId}:initial-deposit:attribute`,
+      sourceRefId: orderId,
+      sourceRefKind: "order",
+      sourceRefLineId: `${orderId}:initial-deposit`,
+    });
+    if (!attribution.ok) throw new Error(attribution.message);
+    /* التنفيذ يبدأ من خدمة الاتفاقات (المسار القائم) ثم الإلغاء من الاستلام. */
+    const executing = await agreements.startExecution(orderId);
+    if (!executing.ok) throw new Error(executing.message);
+    const fulfillment = new FulfillmentService(store, () => "2026-09-01T02:00:00.000Z");
+    await fulfillment.cancel(orderId, "انسحب العميل");
+    return { store, orderId, walletId: wallet.value.wallet.id, projectFinance };
+  }
+
+  it("refunds from the attributed wallet — the allocation is reversed by the refunded amount, atomically with the order", async () => {
+    const { store, orderId, walletId } = await cancelledOrderWithAttributedDeposit();
+    const service = new FulfillmentService(store, () => "2026-09-02T02:00:00.000Z");
+    const refunded = await service.refundDeposit(orderId, "رد كامل من الدرج");
+    expect(refunded.ok).toBe(true);
+    if (!refunded.ok) return;
+    expect(refunded.stored.order.depositSettlement).toBe("refund_deposit");
+    expect(refunded.stored.order.collectedMinor).toBe(0);
+    /* أثر المحفظة: فك التخصيص الكامل (−2000) مكتوب مع الطلب في معاملة واحدة. */
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error(entries.message);
+    const reversal = entries.value.find(
+      entry =>
+        entry.type === "reversal" &&
+        entry.walletId === walletId &&
+        entry.cashDeltaMinor === -2000 &&
+        entry.note.includes("رد عربون"),
+    );
+    expect(reversal).toBeTruthy();
+    expect(reversal?.reversesEntryId).toBeTruthy();
+    /* رصيد المحفظة: 5000 افتتاحي + 2000 تخصيص − 2000 فك = 5000. */
+    const walletEntries = entries.value.filter(entry => entry.walletId === walletId);
+    const balance = walletEntries.reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
+    expect(balance).toBe(5000);
+  });
+
+  it("refunds partially — partial allocation reversal, remainder pending, second refund completes", async () => {
+    const { store, orderId, walletId } = await cancelledOrderWithAttributedDeposit();
+    const service = new FulfillmentService(store, () => "2026-09-02T02:00:00.000Z");
+    const partial = await service.refundDeposit(orderId, "رد جزئي متفق", 800);
+    expect(partial.ok).toBe(true);
+    if (!partial.ok) return;
+    expect(partial.stored.order.depositSettlement).toBe("needs_review");
+    expect(partial.stored.order.depositCollectedMinor).toBe(1200);
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error(entries.message);
+    const partialReversal = entries.value.find(
+      entry => entry.type === "reversal" && entry.walletId === walletId && entry.cashDeltaMinor === -800,
+    );
+    expect(partialReversal).toBeTruthy();
+    /* الإكمال: رد الباقي يقفل الحالة ويكسر فك تخصيص إضافيًا بمقدار الباقي. */
+    const completed = await service.refundDeposit(orderId, "رد الباقي", 1200);
+    expect(completed.ok).toBe(true);
+    if (!completed.ok) return;
+    expect(completed.stored.order.depositSettlement).toBe("refund_deposit");
+    expect(completed.stored.order.collectedMinor).toBe(0);
+    const finalEntries = await store.listCashContinuityEntries();
+    if (!finalEntries.ok) throw new Error(finalEntries.message);
+    const walletReversals = finalEntries.value.filter(
+      entry => entry.type === "reversal" && entry.walletId === walletId && entry.cashDeltaMinor < 0,
+    );
+    expect(walletReversals.reduce((sum, entry) => sum + -entry.cashDeltaMinor, 0)).toBe(2000);
+  });
+
+  it("retains partially then refunds the remainder — the retained part stays collected, the refund drops only the remainder", async () => {
+    const { store, orderId } = await cancelledOrderWithAttributedDeposit();
+    const service = new FulfillmentService(store, () => "2026-09-02T02:00:00.000Z");
+    const retained = await service.retainDeposit(orderId, "تغطية تكلفة المواد", 1500);
+    expect(retained.ok).toBe(true);
+    if (!retained.ok) return;
+    expect(retained.stored.order.depositRetainedMinor).toBe(1500);
+    expect(retained.stored.order.depositSettlement).toBe("needs_review");
+    expect(retained.stored.order.collectedMinor).toBe(2000);
+    const closed = await service.refundDeposit(orderId, "رد الباقي", 500);
+    expect(closed.ok).toBe(true);
+    if (!closed.ok) return;
+    expect(closed.stored.order.depositSettlement).toBe("retain_deposit");
+    expect(closed.stored.order.settlementStatus).toBe("cancelled_retained");
+    expect(closed.stored.order.depositCollectedMinor).toBe(1500);
+    expect(closed.stored.order.collectedMinor).toBe(1500);
+  });
+});

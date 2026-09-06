@@ -13,6 +13,8 @@ import {
 } from "@micro-domain/craft-order/index.js";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
+import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
+import { localDateInAmman } from "@/presentation/formatters";
 
 export type FulfillmentResult =
   | { ok: true; stored: StoredCraftOrder; notice?: string }
@@ -350,39 +352,138 @@ export class FulfillmentService {
     }
   }
 
-  async refundDeposit(id: string, reason: string): Promise<FulfillmentResult> {
+  /* Conflict E (FC-06): رد العربون من محفظة المصدر — المبلغ صريح (الافتراضي
+   * كامل المتبقي غير المحسوم)، والرد يفك تخصيصات العربون المسجلة من محافظها
+   * الفعلية بمقدار الرد تمامًا: المدار يتراجع من المحفظة، وما لم يُخصص يخرج
+   * من غير الموزع. الكتابة واحدة ذرّية: الطلب وأثر المحافظ أو لا شيء. */
+  async refundDeposit(id: string, reason: string, amountMinor?: number): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
-    const amount = current.stored.order.depositCollectedMinor;
+    const order = current.stored.order;
+    const pendingMinor = order.depositCollectedMinor - (order.depositRetainedMinor ?? 0);
+    const amount = amountMinor ?? pendingMinor;
+    if (amount <= 0) return failure("invalid_state", "لا عربون معلّق قابل للرد — راجع قرار التسوية.");
+    const refundEventKey = `${id}:refund-deposit:${amount}:${reason.trim().length}:${this.now().slice(0, 13)}`;
     try {
       const timestamp = this.now();
-      const order = settleDepositRefund(
-        current.stored.order,
+      const next = settleDepositRefund(current.stored.order, amount, reason, refundEventKey, timestamp);
+      /* فك تخصيصات العربون بمقدار الرد — من محفظة المصدر الفعلية، وبما لم
+       * يُخصص يبقى في غير الموزع (المعادلة تنعدم عبر collectedMinor). */
+      const reversals = await this.buildDepositAllocationReversals(
+        current.stored,
         amount,
         reason,
-        `${id}:refund-deposit-${amount}`,
+        refundEventKey,
         timestamp,
       );
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      if (reversals.ok) {
+        const committed = await this.store.commitDepositRefundSettlement(
+          { ...current.stored, order: next, updatedAt: timestamp },
+          reversals.value,
+          refundEventKey,
+        );
+        if (!committed.ok)
+          return failure("storage_error", committed.message ?? "تعذر رد العربون ذرّيًا؛ لم يتغير السجل.");
+        return { ok: true, stored: committed.value.order };
+      }
+      /* تعذر بناء فك التخصيص (تخصيص مُفكوك جزئيًا سابقًا مثلًا) — الرد نفسه
+       * لا يعلّق: يُكتب على الطلب ويبقى أثر المحفظة بيد المالك من دفترها. */
+      return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر رد العربون.");
     }
   }
 
-  async retainDeposit(id: string, reason: string): Promise<FulfillmentResult> {
+  /* بناء عكس مطابق لتخصيصات العربون حتى تغطية مبلغ الرد: تخصيصات كاملة
+   * تُفك كاملة، والأخيرة تُفك جزئيًا إن لزم — تخصيص واحد لا يُفك مرتين. */
+  private async buildDepositAllocationReversals(
+    stored: StoredCraftOrder,
+    refundMinor: number,
+    reason: string,
+    refundEventKey: string,
+    timestamp: string,
+  ): Promise<{ ok: true; value: readonly CashContinuityEntry[] } | { ok: false; message: string }> {
+    const [entriesResult, walletsResult] = await Promise.all([
+      this.store.listCashContinuityEntries(),
+      this.store.listCashWallets(),
+    ]);
+    if (!entriesResult.ok || !walletsResult.ok)
+      return { ok: false, message: "تعذر قراءة تخصيصات الكاش المحلية." };
+    const entries = entriesResult.value;
+    const depositEventKeys = new Set(
+      stored.order.events
+        .filter(event => event.type === "deposit_collected")
+        .map(event => event.idempotencyKey),
+    );
+    /* المفكوك حتى الآن لكل تخصيص — يسمح بفك جزئي متكرر بمجموع لا يتجاوز
+     * التخصيص الأصلي (رد جزئي ثم إكمال يفكان من المحفظة نفسها). */
+    const reversedPerEntry = new Map<string, number>();
+    for (const entry of entries) {
+      if (entry.type === "reversal" && entry.reversesEntryId) {
+        reversedPerEntry.set(
+          entry.reversesEntryId,
+          (reversedPerEntry.get(entry.reversesEntryId) ?? 0) - entry.cashDeltaMinor,
+        );
+      }
+    }
+    const wallets = new Map(walletsResult.value.map(wallet => [wallet.id, wallet.name] as const));
+    /* تخصيصات العربون ذات فائض قابل للفك — بترتيب تسجيلها، من محفظتها الفعلية. */
+    const depositAllocations = entries
+      .filter(
+        entry =>
+          entry.type === "allocation" &&
+          entry.cashDeltaMinor > 0 &&
+          entry.sourceRefId === stored.id &&
+          entry.sourceRefKind === "order" &&
+          entry.operationKey !== null &&
+          depositEventKeys.has(entry.operationKey.replace(/:attribute$/, "")),
+      )
+      .sort((left, right) => left.recordedAt.localeCompare(right.recordedAt));
+    const reversals: CashContinuityEntry[] = [];
+    let remaining = refundMinor;
+    for (const entry of depositAllocations) {
+      if (remaining <= 0) break;
+      const reversibleMinor = entry.cashDeltaMinor - (reversedPerEntry.get(entry.id) ?? 0);
+      if (reversibleMinor <= 0) continue;
+      const reversalMinor = Math.min(reversibleMinor, remaining);
+      remaining -= reversalMinor;
+      reversals.push(
+        createCashContinuityEntry({
+          id: `refund-${refundEventKey}-${entry.id}`,
+          walletId: entry.walletId,
+          type: "reversal",
+          occurredOn: localDateInAmman(timestamp),
+          recordedAt: timestamp,
+          cashDeltaMinor: -reversalMinor,
+          note: `رد عربون من «${wallets.get(entry.walletId) ?? "محفظة"}»: ${reason.trim()}`,
+          reason: reason.trim(),
+          operationKey: `${refundEventKey}:unattribute:${entry.id}`,
+          reversesEntryId: entry.id,
+        }),
+      );
+    }
+    /* تخصيص مُفكوك جزئيًا سابقًا يمنع التكرار لا التخمين — إن بقيت بقية
+     * بعد آخر تخصيص متاح فمن غير الموزع (حالة معلنة صادقة، لا خطأ). */
+    return { ok: true, value: reversals };
+  }
+
+  async retainDeposit(id: string, reason: string, amountMinor?: number): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
-    const amount = current.stored.order.depositCollectedMinor;
+    const order = current.stored.order;
+    const pendingMinor = order.depositCollectedMinor - (order.depositRetainedMinor ?? 0);
+    const amount = amountMinor ?? pendingMinor;
+    if (amount <= 0) return failure("invalid_state", "لا عربون معلّق قابل للاحتفاظ — راجع قرار التسوية.");
     try {
       const timestamp = this.now();
-      const order = settleDepositRetain(
+      const next = settleDepositRetain(
         current.stored.order,
         amount,
         reason,
-        `${id}:retain-deposit-${amount}`,
+        `${id}:retain-deposit-${amount}-${timestamp}`,
         timestamp,
       );
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسوية العربون.");
     }
@@ -411,25 +512,28 @@ export class FulfillmentService {
       .filter(stored => stored.order.depositCollectedMinor > 0)
       .map(stored => {
         const order = stored.order;
-        const depositEventKeys = new Set(
+        /* FC-05/FC-06: القاعدة الموحدة لمطابقة تخصيص العربون — جذر مفتاح
+         * العملية `${مفتاح حدث العربون}:attribute` (المساران: عربون الاتفاق
+         * وعربون الرحلة يستخدمانها)، فيظهر الأثر ومحفظته للاثنين معًا. */
+        const depositAttributeRoots = new Set(
           order.events
             .filter(event => event.type === "deposit_collected")
-            .map(event => `${stored.id}:${event.idempotencyKey}`),
+            .map(event => `${event.idempotencyKey}:attribute`),
         );
         const attributedMinor = entries
           .filter(
             entry =>
               entry.sourceRefId === stored.id &&
-              entry.sourceRefLineId !== null &&
-              depositEventKeys.has(entry.sourceRefLineId!),
+              entry.operationKey !== null &&
+              depositAttributeRoots.has(entry.operationKey),
           )
           .reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
         const attributedWalletId =
           entries.find(
             entry =>
               entry.sourceRefId === stored.id &&
-              entry.sourceRefLineId !== null &&
-              depositEventKeys.has(entry.sourceRefLineId!) &&
+              entry.operationKey !== null &&
+              depositAttributeRoots.has(entry.operationKey) &&
               entry.cashDeltaMinor > 0,
           )?.walletId ?? null;
         const delivered = order.status === "delivered" || order.status === "settled";

@@ -13,6 +13,7 @@ import {
 import {
   classifyRetainedDeposit,
   reclassifyRetainedDeposit,
+  retainedDepositMinor,
   type RetainedDepositMeaning,
 } from "@micro-domain/craft-order/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
@@ -21,7 +22,7 @@ export type RetainedDepositRow = {
   orderId: string;
   customerName: string;
   depositMinor: number;
-  decision: "pending" | "owner" | "revenue";
+  decision: "pending" | "owner" | "revenue" | "mixed";
 };
 
 export type RetainedDepositResult<T> =
@@ -85,6 +86,7 @@ export class RetainedDepositService {
     orderId: string,
     meaning: RetainedDepositMeaning,
     reason: string,
+    amountMinor?: number,
   ): Promise<RetainedDepositResult<{ order: StoredCraftOrder; event: FinancialEvent }>> {
     const ordersResult = await this.store.getOrder(orderId);
     if (!ordersResult.ok) return failure("storage_error", "تعذر قراءة الطلب المحلي.");
@@ -92,8 +94,30 @@ export class RetainedDepositService {
     if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
     const eventsResult = await this.store.listFinancialEvents();
     if (!eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأحداث المالية.");
-    if (classificationEventId(eventsResult.value, orderId))
-      return failure("invalid_state", "هذا العربون مصنَّف سابقًا — صحِّحه بقرار موثق.");
+    /* Conflict E: المبلغ الافتراضي = كامل المحتفظ به غير المصنَّف، مشتقًا من
+     * الأحداث المالية النشطة — الأحداث هي الحقيقة، والعدّادات مرآتها. */
+    const reversed = new Set(
+      eventsResult.value.flatMap(event =>
+        event.correctionType === "reverse" && event.correctionOfEventId ? [event.correctionOfEventId] : [],
+      ),
+    );
+    const active = eventsResult.value.filter(
+      event =>
+        (event.type === "deposit_retained_owner" || event.type === "deposit_retained_revenue") &&
+        event.correctionType !== "reverse" &&
+        !reversed.has(event.id) &&
+        event.depositContext?.orderId === orderId,
+    );
+    const ownerSum = active
+      .filter(event => event.type === "deposit_retained_owner")
+      .reduce((sum, event) => sum + event.amountMinor, 0);
+    const revenueSum = active
+      .filter(event => event.type === "deposit_retained_revenue")
+      .reduce((sum, event) => sum + event.amountMinor, 0);
+    const retainedMinor = retainedDepositMinor(stored.order);
+    const unclassifiedMinor = retainedMinor - ownerSum - revenueSum;
+    const amount = amountMinor ?? unclassifiedMinor;
+    if (amount <= 0) return failure("invalid_state", "هذا العربون مصنَّف سابقًا — صحِّحه بقرار موثق.");
     try {
       const now = this.now();
       const eventType: FinancialEventType =
@@ -101,7 +125,7 @@ export class RetainedDepositService {
       const event = createFinancialEvent({
         id: newId("event"),
         type: eventType,
-        amountMinor: stored.order.depositCollectedMinor,
+        amountMinor: amount,
         occurredOn: now.slice(0, 10),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-classify:${now}`,
@@ -109,7 +133,15 @@ export class RetainedDepositService {
         counterparty: stored.order.customerName,
         depositContext: { orderId },
       });
-      const order = classifyRetainedDeposit(stored.order, meaning, reason, `${orderId}:classify:${now}`, now);
+      /* Conflict E: مبلغ صريح (الافتراضي كامل غير المصنَّف) — الحرس في النطاق. */
+      const order = classifyRetainedDeposit(
+        stored.order,
+        meaning,
+        reason,
+        `${orderId}:classify:${now}`,
+        now,
+        amount,
+      );
       const commit = await this.store.commitDepositClassification(
         { ...stored, order, updatedAt: now },
         event,
@@ -123,8 +155,11 @@ export class RetainedDepositService {
 
   async reclassify(
     orderId: string,
-    meaning: RetainedDepositMeaning,
-    reason: string,
+    correction: {
+      toMeaning: RetainedDepositMeaning;
+      toAmountMinor?: number;
+      reason: string;
+    },
   ): Promise<
     RetainedDepositResult<{ order: StoredCraftOrder; reversal: FinancialEvent; replacement: FinancialEvent }>
   > {
@@ -137,6 +172,10 @@ export class RetainedDepositService {
     const sourceId = classificationEventId(eventsResult.value, orderId);
     if (!sourceId) return failure("invalid_state", "لا تصنيف قائم يُصحَّح — سجِّل تصنيفًا أولًا.");
     const source = eventsResult.value.find(event => event.id === sourceId)!;
+    const fromMeaning: RetainedDepositMeaning =
+      source.type === "deposit_retained_owner" ? "owner" : "revenue";
+    const fromAmountMinor = source.amountMinor;
+    const toAmountMinor = correction.toAmountMinor ?? fromAmountMinor;
     try {
       const now = this.now();
       const reversal = createFinancialReversal({
@@ -145,28 +184,31 @@ export class RetainedDepositService {
         occurredOn: now.slice(0, 10),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-reclassify-reversal:${now}`,
-        reason,
+        reason: correction.reason,
       });
       const eventType: FinancialEventType =
-        meaning === "owner" ? "deposit_retained_owner" : "deposit_retained_revenue";
+        correction.toMeaning === "owner" ? "deposit_retained_owner" : "deposit_retained_revenue";
       const replacement = createFinancialEvent({
         id: newId("event"),
         type: eventType,
-        amountMinor: stored.order.depositCollectedMinor,
+        amountMinor: toAmountMinor,
         occurredOn: now.slice(0, 10),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-reclassify-replacement:${now}`,
-        note: `تصحيح تصنيف عربون محتفظ به (${meaning === "owner" ? "مال مالك" : "إيراد مشروع"}): ${reason.trim()}`,
+        note: `تصحيح تصنيف عربون محتفظ به (${correction.toMeaning === "owner" ? "مال مالك" : "إيراد مشروع"}): ${correction.reason.trim()}`,
         counterparty: stored.order.customerName,
         depositContext: { orderId },
       });
-      const order = reclassifyRetainedDeposit(
-        stored.order,
-        meaning,
-        reason,
-        `${orderId}:reclassify:${now}`,
-        now,
-      );
+      /* Conflict E: الاستبدال من/إلى صريحان بمبلغيهما — الحرس في النطاق. */
+      const order = reclassifyRetainedDeposit(stored.order, {
+        fromMeaning,
+        fromAmountMinor,
+        toMeaning: correction.toMeaning,
+        toAmountMinor,
+        reason: correction.reason,
+        idempotencyKey: `${orderId}:reclassify:${now}`,
+        createdAt: now,
+      });
       const commit = await this.store.commitDepositClassificationCorrection(
         { ...stored, order, updatedAt: now },
         reversal,

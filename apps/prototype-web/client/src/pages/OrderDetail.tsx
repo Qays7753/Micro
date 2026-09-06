@@ -108,9 +108,13 @@ export default function OrderDetail() {
   const [otherReason, setOtherReason] = useState("");
   const [otherReasonOpen, setOtherReasonOpen] = useState(false);
   const [depositReason, setDepositReason] = useState("");
+  /* Conflict E: مبلغ صريح للتسوية (ردًا أو احتفاظًا) — يبدأ من الاقتراح
+   * القائم على التكلفة الموثقة ويقبل التعديل بتحذير وسبب موثق. */
+  const [settleAmount, setSettleAmount] = useState<number | null>(null);
   /* المجموعة ٤ (عقد ٢٩): معنى العربون المحتفظ به — قرار صريح يُوثَّق حدثًا ماليًا. */
   const [classifyMeaning, setClassifyMeaning] = useState<"owner" | "revenue" | null>(null);
   const [classifyReason, setClassifyReason] = useState("");
+  const [classifyAmount, setClassifyAmount] = useState<number | null>(null);
   /* §٥-١٦ (رحلة ٢): تحصيل الدين المسجل — المبلغ يُملأ بالمتبقي افتراضيًا. */
   const [debtCollectMinor, setDebtCollectMinor] = useState(0);
   const [validDebtCollect, setValidDebtCollect] = useState(true);
@@ -305,7 +309,17 @@ export default function OrderDetail() {
     if (!stored) return;
     setMessage(null);
     setIsActing(true);
-    const result = await retainedDeposits.classify(stored.id, meaning, reason);
+    /* Conflict E: مبلغ التصنيف صريح — الافتراضي كامل غير المصنَّف من المحتفظ به. */
+    const unclassifiedMinor =
+      (stored.order.depositRetainedMinor ?? 0) -
+      (stored.order.depositClassifiedOwnerMinor ?? 0) -
+      (stored.order.depositClassifiedRevenueMinor ?? 0);
+    const result = await retainedDeposits.classify(
+      stored.id,
+      meaning,
+      reason,
+      classifyAmount ?? (unclassifiedMinor > 0 ? unclassifiedMinor : undefined),
+    );
     setIsActing(false);
     if (!result.ok) {
       setMessage(result.message);
@@ -315,6 +329,7 @@ export default function OrderDetail() {
     setState({ phase: "ready", stored: result.value.order });
     setClassifyMeaning(null);
     setClassifyReason("");
+    setClassifyAmount(null);
     notifyDataChanged();
   }
 
@@ -322,7 +337,7 @@ export default function OrderDetail() {
     if (!stored) return;
     setMessage(null);
     setIsActing(true);
-    const result = await retainedDeposits.reclassify(stored.id, meaning, reason);
+    const result = await retainedDeposits.reclassify(stored.id, { toMeaning: meaning, reason });
     setIsActing(false);
     if (!result.ok) {
       setMessage(result.message);
@@ -1148,17 +1163,95 @@ export default function OrderDetail() {
           />
         </section>
       ) : null}
-      {/* القرار ١٩: عربون طلب ملغى ينتظر قرارًا — ثلاثة خيارات لا اثنان. */}
+      {/* القرار ١٩ + Conflict E: عربون طلب ملغى ينتظر قرارًا — رد كامل أو جزئي،
+          أو احتفاظ جزئي لتغطية التكلفة الموثقة، أو إبقاء معلق — مع معاينة أثر
+          رقمية إلزامية قبل القرار، والرد من محفظة المصدر حيث وُجد التخصيص. */}
       {order.status === "cancelled" && order.depositSettlement === "needs_review" ? (
         <section className="micro-cancel-panel" aria-label="تسوية عربون طلب ملغى">
           <strong>
             عربون محصل ينتظر قرارك (
             <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ)
           </strong>
-          <p>
-            ردّ العربون ينزل الرصيد المقبوض فعليًا، والاحتفاظ به يبقيه محصلًا. أو اتركه «يحتاج مراجعة» وتابع
-            لاحقًا — خيار صالح لا خطأ.
-          </p>
+          {/* معاينة الأثر الإلزامية (Conflict E): لا قرار بلا أرقام — التكلفة
+              الموثقة، ما استُهلك فعلًا، والاقتراح القائم عليها. */}
+          {(() => {
+            const pendingMinor = order.depositCollectedMinor - (order.depositRetainedMinor ?? 0);
+            const documentedCostMinor = order.costSnapshot.plannedCostMinor;
+            const coverProposalMinor = Math.min(pendingMinor, documentedCostMinor);
+            const refundProposalMinor = pendingMinor - coverProposalMinor;
+            return (
+              <div className="micro-finance-reversal-review" data-testid="deposit-settlement-preview">
+                <strong>معاينة أثر قرار العربون</strong>
+                <dl>
+                  <div>
+                    <dt>العربون المعلق</dt>
+                    <dd>
+                      <MoneyValue minor={pendingMinor} className="micro-inline-number" /> د.أ
+                      {(order.depositRetainedMinor ?? 0) > 0 ? (
+                        <small>
+                          {" "}
+                          (محتفظ به سابقًا:{" "}
+                          <MoneyValue
+                            minor={order.depositRetainedMinor ?? 0}
+                            className="micro-inline-number"
+                          />{" "}
+                          د.أ)
+                        </small>
+                      ) : null}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>التكلفة الموثقة للطلب</dt>
+                    <dd>
+                      <MoneyValue minor={documentedCostMinor} className="micro-inline-number" /> د.أ
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>ما استُهلك فعلًا</dt>
+                    <dd>
+                      0 د.أ — الطلب لم يُسلَّم؛ موادّه لم تُستهلك من المخزون
+                      {order.status === "cancelled" ? " والإلغاء نفسه لا يكتب مصروفًا" : ""}.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>الاقتراح بعد التكلفة الموثقة</dt>
+                    <dd>
+                      احتفظ بما يغطي التكلفة (حتى{" "}
+                      <MoneyValue minor={coverProposalMinor} className="micro-inline-number" /> د.أ) وردّ
+                      الباقي (
+                      <MoneyValue minor={refundProposalMinor} className="micro-inline-number" /> د.أ) — عدّل
+                      المبلغ كما تقرر؛ القرار سببه موثق دائمًا.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>أثر الرد على الكاش</dt>
+                    <dd>يخرج المردود من رصيدك المقبوض — ومن محفظة المصدر المسجلة حيث وُجد تخصيص العربون.</dd>
+                  </div>
+                  <div>
+                    <dt>أثر الاحتفاظ</dt>
+                    <dd>
+                      الكاش يبقى محصلًا بلا معنى حتى تصنّفه صراحة: مال مالك (ليس ربحًا) أو إيراد مشروع — لا
+                      تصنيف خفي.
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            );
+          })()}
+          <label className="micro-field">
+            <span>
+              مبلغ التسوية <small>اختياري — الافتراضي كامل المعلق</small>
+            </span>
+            <EnglishNumberInput
+              value={settleAmount ?? order.depositCollectedMinor - (order.depositRetainedMinor ?? 0)}
+              kind="money"
+              onNumericChange={value => setSettleAmount(value)}
+              aria-label="مبلغ تسوية العربون"
+            />
+            <small>
+              اتركه كما هو للتسوية الكاملة، أو اكتب جزئيًا — الباقي يبقى «يحتاج مراجعة» بلا قرار خفي.
+            </small>
+          </label>
           <label className="micro-field">
             <span>
               سبب التسوية <small>مطلوب عند الرد أو الاحتفاظ</small>
@@ -1175,8 +1268,11 @@ export default function OrderDetail() {
               type="button"
               disabled={isActing || !depositReason.trim()}
               onClick={() => {
-                void run(() => fulfillment.refundDeposit(stored.id, depositReason));
+                void run(() =>
+                  fulfillment.refundDeposit(stored.id, depositReason, settleAmount ?? undefined),
+                );
                 setDepositReason("");
+                setSettleAmount(null);
               }}
             >
               <HandCoins aria-hidden="true" /> رُدَّ العربون
@@ -1186,13 +1282,17 @@ export default function OrderDetail() {
               type="button"
               disabled={isActing || !depositReason.trim()}
               onClick={() => {
-                void run(() => fulfillment.retainDeposit(stored.id, depositReason));
+                void run(() =>
+                  fulfillment.retainDeposit(stored.id, depositReason, settleAmount ?? undefined),
+                );
                 setDepositReason("");
+                setSettleAmount(null);
               }}
             >
               احتفظ به رصيدًا
             </button>
           </div>
+          <p>أو اتركه «يحتاج مراجعة» وتابع لاحقًا — خيار صالح لا خطأ؛ يبقى ظاهرًا في فحص السلامة حتى تقرر.</p>
         </section>
       ) : null}
       {order.status === "cancelled" && order.depositSettlement === "refund_deposit" ? (
@@ -1208,21 +1308,75 @@ export default function OrderDetail() {
             <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) — شو بدك
             تعمل فيه؟
           </strong>
-          {order.retainedMeaning == null ? (
+          {(() => {
+            const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
+            const classifiedMinor =
+              (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
+            const unclassifiedMinor = retainedMinor - classifiedMinor;
+            return unclassifiedMinor > 0;
+          })() ? (
             <>
               <p>
                 الكاش محتفظ به بلا معنى بعد. صنّفه: مال مالك (تسحبه وقتما تشاء)، أو إيراد مشروع (يدخل ربح فترة
-                القرار). أو اتركه معلقًا — خيار صالح ظاهر حتى تقرر.
+                القرار) — بمبلغ صريح إن شئت جزئيًا، والباقي يبقى بانتظار قراره. أو اتركه معلقًا — خيار صالح
+                ظاهر حتى تقرر.
               </p>
-              {/* المجموعة ٥ (تسديد دَين المجموعة ٤ — بند ٢): سطر الأثر الرقمي قبل
-               * التأكيد — النمط المعتمد في بقية أسطح التصحيح؛ الرقم من السجل نفسه. */}
-              <p className="micro-deposit-effect-line" role="note">
-                هذا التغيير سيؤثر على الرصيد كالتالي: «مال مالك» يرفع مال المالك{" "}
-                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ بلا أي
-                أثر على نتيجة الفترة؛ و«إيراد مشروع» يضيف{" "}
-                <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ إلى
-                نتيجة فترة القرار بلا كاش جديد (الكاش قُبض سابقًا). كلاهما قابل للتصحيح الموثق لاحقًا.
-              </p>
+              {/* المجموعة ٥ (تسديد دَين المجموعة ٤ — بند ٢) + Conflict E: سطر الأثر
+               * الرقمي قبل التأكيد — بمبلغ التصنيف الفعلي لا الرقم الكامل فقط. */}
+              {(() => {
+                const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
+                const classifiedMinor =
+                  (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
+                const unclassifiedMinor = retainedMinor - classifiedMinor;
+                return (
+                  <p className="micro-deposit-effect-line" role="note">
+                    هذا التغيير سيؤثر على الرصيد كالتالي: «مال مالك» يرفع مال المالك{" "}
+                    <MoneyValue minor={classifyAmount ?? unclassifiedMinor} className="micro-inline-number" />{" "}
+                    د.أ بلا أي أثر على نتيجة الفترة؛ و«إيراد مشروع» يضيف{" "}
+                    <MoneyValue minor={classifyAmount ?? unclassifiedMinor} className="micro-inline-number" />{" "}
+                    د.أ إلى نتيجة فترة القرار بلا كاش جديد (الكاش قُبض سابقًا). كلاهما قابل للتصحيح الموثق
+                    لاحقًا.
+                    {(order.depositClassifiedOwnerMinor ?? 0) > 0 ||
+                    (order.depositClassifiedRevenueMinor ?? 0) > 0 ? (
+                      <small>
+                        {" "}
+                        المصنَّف سابقًا:{" "}
+                        <MoneyValue
+                          minor={order.depositClassifiedOwnerMinor ?? 0}
+                          className="micro-inline-number"
+                        />{" "}
+                        مال مالك و{" "}
+                        <MoneyValue
+                          minor={order.depositClassifiedRevenueMinor ?? 0}
+                          className="micro-inline-number"
+                        />{" "}
+                        إيراد — والمعلق{" "}
+                        <MoneyValue minor={unclassifiedMinor} className="micro-inline-number" /> د.أ بانتظار
+                        هذا القرار.
+                      </small>
+                    ) : null}
+                  </p>
+                );
+              })()}
+              {(() => {
+                const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
+                const classifiedMinor =
+                  (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
+                const unclassifiedMinor = retainedMinor - classifiedMinor;
+                return (
+                  <label className="micro-field">
+                    <span>
+                      مبلغ التصنيف <small>اختياري — الافتراضي كامل غير المصنَّف</small>
+                    </span>
+                    <EnglishNumberInput
+                      value={classifyAmount ?? unclassifiedMinor}
+                      kind="money"
+                      onNumericChange={value => setClassifyAmount(value)}
+                      aria-label="مبلغ تصنيف العربون"
+                    />
+                  </label>
+                );
+              })()}
               <label className="micro-field">
                 <span>سبب التصنيف (مطلوب عند الاختيار)</span>
                 <input
@@ -1255,7 +1409,9 @@ export default function OrderDetail() {
               <p>
                 {order.retainedMeaning === "owner"
                   ? "صُنّف مال مالك — يظهر في مال المالك، وتسحبه وقتما تشاء بلا إيراد جديد."
-                  : "صُنّف إيراد مشروع — يُعترف به مرة واحدة في نتيجة فترة القرار، لا كاش جديد."}
+                  : order.retainedMeaning === "mixed"
+                    ? "صُنّف مختلطًا — جزء مال مالك وجزء إيراد مشروع بمبلغين موثقين؛ راجع سجل الأحداث."
+                    : "صُنّف إيراد مشروع — يُعترف به مرة واحدة في نتيجة فترة القرار، لا كاش جديد."}
               </p>
               <button
                 className="micro-text-action"

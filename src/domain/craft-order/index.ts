@@ -5,6 +5,7 @@ export {
   isRegisteredCustomerDebt,
   knowledgeGapsOf,
   settleDepositRefund,
+  retainedDepositMinor,
   settleDepositRetain,
   classifyRetainedDeposit,
   reclassifyRetainedDeposit,
