@@ -145,6 +145,7 @@ describe("the empty intent editor creates the draft only on first real input (U-
     expect(create).toHaveBeenCalledWith("customer_order", {
       itemName: "ص",
       customerName: "",
+      orderName: null,
       catalogItemId: null,
       specifications: "",
       quantity: 1,

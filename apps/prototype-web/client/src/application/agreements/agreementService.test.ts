@@ -123,3 +123,45 @@ describe("AgreementService", () => {
     });
   });
 });
+
+/* Conflict B: الجهة اختيارية — اتفاق بلا اسم عميل يُسجّل (الدين غير المسمّى
+ * ظاهر بتحذير في ورقة التحصيل) والتسمية لاحقًا تعبئة باتجاه واحد. */
+describe("AgreementService optional party (Conflict B)", () => {
+  it("creates an agreement without a customer name and the order carries an optional display name", async () => {
+    const store = new MemoryLocalStore();
+    const drafts = new DraftService(store, () => "2026-09-02T00:00:00.000Z");
+    const created = await drafts.create("customer_order");
+    if (!created.ok) throw new Error(created.message);
+    const saved = await drafts.save({
+      ...created.draft,
+      customerName: "",
+      orderName: "طلب العيد",
+      itemName: "صندوق",
+      specifications: "أزرق",
+      quantity: 1,
+    });
+    if (!saved.ok) throw new Error(saved.message);
+    const costs = new CostService(store, () => "2026-09-02T00:01:00.000Z");
+    const withCost = await costs.saveSnapshot(saved.draft, {
+      materialItems: [],
+      time: { minutes: 30, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+    });
+    if (!withCost.ok) throw new Error(withCost.message);
+    const agreements = new AgreementService(store, costs, () => "2026-09-02T02:00:00.000Z");
+    const agreed = await agreements.createFromDraft(withCost.draft, {
+      agreedPriceMinor: 2000,
+      deliveryDate: "2026-09-20",
+      depositMinor: 0,
+      agreementSource: null,
+    });
+    expect(agreed.ok).toBe(true);
+    if (!agreed.ok) return;
+    expect(agreed.stored.order.customerName).toBe("");
+    expect(agreed.stored.order.orderName).toBe("طلب العيد");
+  });
+});

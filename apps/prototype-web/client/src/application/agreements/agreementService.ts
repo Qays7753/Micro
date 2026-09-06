@@ -89,7 +89,8 @@ export class AgreementService {
         };
       return { ok: true, stored: current.value };
     }
-    if (!draft.customerName.trim()) return validation("سجل اسم العميل قبل تسجيل الاتفاق.");
+    /* Conflict B: الجهة اختيارية — الطلب النقدي لا يُحجب؛ الاسم الفارغ يعني
+     * «زبون بلا اسم» ويمكن تسميته لاحقًا من صفحة الطلب (تعبئة باتجاه واحد). */
     if (!agreementSourceIsValid(input.agreementSource))
       return validation("اختر مصدر اتفاق من القائمة أو اتركه غير محدد.");
     if (!draft.itemName.trim() || !draft.specifications.trim())
@@ -117,6 +118,7 @@ export class AgreementService {
       let order: CraftOrder = createCraftOrder({
         id,
         customerName: draft.customerName,
+        orderName: draft.orderName ?? null,
         itemName: draft.itemName,
         specifications: draft.specifications,
         quantity: draft.quantity,

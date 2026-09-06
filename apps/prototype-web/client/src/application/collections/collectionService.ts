@@ -91,7 +91,15 @@ export class CollectionService {
         outstandingMinor: order.receivableMinor,
         occurredOn: stored.updatedAt.slice(0, 10),
         sourceHref: `/orders/${stored.id}`,
-        qualifier: isRegisteredDebt ? "دين مسجل بعد التسليم" : "متبقٍ بعد التسليم",
+        /* Conflict B: الدين غير المسمّى ظاهر بتحذير وفعل تالٍ — التسمية من
+         * صفحة الطلب (اختيار جهة قائمة أو اسم جديد يصبح جهة عند تكراره). */
+        qualifier: order.customerName.trim()
+          ? isRegisteredDebt
+            ? "دين مسجل بعد التسليم"
+            : "متبقٍ بعد التسليم"
+          : isRegisteredDebt
+            ? "دين غير مسمّى — سمِّ الجهة من صفحة الطلب"
+            : "متبقٍ غير مسمّى — سمِّ الجهة من صفحة الطلب",
       });
     }
     for (const sale of salesResult.value as readonly DirectSale[]) {

@@ -51,7 +51,8 @@ export default function Parties() {
 
   useEffect(() => {
     let active = true;
-    partyLedger.read().then(result => {
+    /* Conflict B: الجهات المتكررة فقط — الاسم لمرة واحدة يبقى محليًا في سجله. */
+    partyLedger.read({ repeatedOnly: true }).then(result => {
       if (!active) return;
       setState(result.ok ? { phase: "ready", overview: result.value } : { phase: "error" });
     });
@@ -98,7 +99,11 @@ export default function Parties() {
       <div className="micro-page-heading">
         <span className="micro-overline">دفتر الناس</span>
         <h1>مين عليه إلَي، وعليّ لمين؟</h1>
-        <p>تجميع حي بالاسم من الطلبات والمشتريات والالتزامات — لا كيانات إضافية ولا إدخال مزدوج.</p>
+        <p>
+          تجميع حي بالاسم من الطلبات والمشتريات والالتزامات — لا كيانات إضافية ولا إدخال مزدوج. يظهر هنا من
+          تكرر اسمه مرتين فأكثر؛ الاسم لمرة واحدة يبقى في سجله نفسه (الطلب أو البيعة) ولا يدخل الدفتر
+          تلقائيًا.
+        </p>
       </div>
       <section className="micro-home-facts" aria-label="خلاصة الدفتر">
         <article className="micro-home-fact" data-state="known">

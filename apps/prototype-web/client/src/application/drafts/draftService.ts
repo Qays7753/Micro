@@ -5,6 +5,7 @@ export type DraftInput = Pick<
   OrderDraft,
   | "intent"
   | "customerName"
+  | "orderName"
   | "itemName"
   | "catalogItemId"
   | "specifications"
@@ -46,6 +47,7 @@ export class DraftService {
       id: createId(),
       intent,
       customerName: "",
+      orderName: null,
       itemName: "",
       catalogItemId: null,
       specifications: "",
@@ -80,6 +82,7 @@ export class DraftService {
     const draft: OrderDraft = {
       ...input,
       customerName: input.customerName.trim(),
+      orderName: input.orderName?.trim() || null,
       itemName: input.itemName.trim(),
       specifications: input.specifications.trim(),
       updatedAt: this.now(),

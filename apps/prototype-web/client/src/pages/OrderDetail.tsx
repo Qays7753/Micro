@@ -93,6 +93,7 @@ export default function OrderDetail() {
     retainedDeposits,
     cashContinuity,
     projectFinance,
+    partyLedger,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
@@ -115,6 +116,10 @@ export default function OrderDetail() {
   const [classifyMeaning, setClassifyMeaning] = useState<"owner" | "revenue" | null>(null);
   const [classifyReason, setClassifyReason] = useState("");
   const [classifyAmount, setClassifyAmount] = useState<number | null>(null);
+  /* Conflict B: تسمية جهة الطلب غير المسمّى — تعبئة باتجاه واحد. */
+  const [assignNameOpen, setAssignNameOpen] = useState(false);
+  const [assignNameValue, setAssignNameValue] = useState("");
+  const [partySuggestions, setPartySuggestions] = useState<readonly string[]>([]);
   /* §٥-١٦ (رحلة ٢): تحصيل الدين المسجل — المبلغ يُملأ بالمتبقي افتراضيًا. */
   const [debtCollectMinor, setDebtCollectMinor] = useState(0);
   const [validDebtCollect, setValidDebtCollect] = useState(true);
@@ -250,6 +255,20 @@ export default function OrderDetail() {
     };
   }, [depositPanelOpen, cashContinuity, dataVersion]);
 
+  /* Conflict B: مقترحات تسمية الجهة — الجهات المتكررة القائمة. */
+  useEffect(() => {
+    if (!stored || stored.order.customerName.trim()) return;
+    let active = true;
+    void (async () => {
+      const ledger = await partyLedger.read({ repeatedOnly: true });
+      if (active && ledger.ok)
+        setPartySuggestions(ledger.value.parties.map(party => party.name).slice(0, 12));
+    })();
+    return () => {
+      active = false;
+    };
+  }, [stored, partyLedger, dataVersion]);
+
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -300,6 +319,24 @@ export default function OrderDetail() {
     }
     setStored(next.stored);
     setState({ phase: "ready", stored: next.stored });
+    notifyDataChanged();
+  }
+
+  /* Conflict B: تسمية جهة الطلب غير المسمّى — تعبئة باتجاه واحد عبر النطاق. */
+  async function assignCustomerName(name: string) {
+    if (!stored) return;
+    setMessage(null);
+    setIsActing(true);
+    const result = await fulfillment.assignCustomerName(stored.id, name);
+    setIsActing(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setStored(result.stored);
+    setState({ phase: "ready", stored: result.stored });
+    setAssignNameOpen(false);
+    setAssignNameValue("");
     notifyDataChanged();
   }
 
@@ -541,11 +578,73 @@ export default function OrderDetail() {
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">{label}</span>
-        <h1>{order.itemName}</h1>
+        {/* Conflict B: اسم الطلب الودّي يظهر فوق اسم العمل إن وُجد. */}
+        <h1>{order.orderName?.trim() ? order.orderName : order.itemName}</h1>
         <p>
-          {order.customerName} · الكمية: {order.quantity}
+          {order.customerName.trim() ? order.customerName : "زبون بلا اسم — سمِّ الجهة لاحقًا"} · الكمية:{" "}
+          {order.quantity}
+          {order.orderName?.trim() ? ` · ${order.itemName}` : ""}
         </p>
       </div>
+      {/* Conflict B: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد (اختيار جهة
+          قائمة أو اسم جديد يصبح جهة عند تكراره)؛ الديون غير المسماة تبقى
+          ظاهرة بتحذير في ورقة التحصيل حتى التسمية. */}
+      {order.status !== "cancelled" && !order.customerName.trim() ? (
+        assignNameOpen ? (
+          <section
+            className="micro-cancel-panel"
+            aria-label="تسمية جهة الطلب"
+            data-testid="assign-party-panel"
+          >
+            <strong>سمِّ جهة هذا الطلب</strong>
+            <p>
+              اسم الجهة يجعل الدين والتحصيل قابلين للتتبع في دفتر الناس (يظهر عند تكرار الاسم مرتين). هذا
+              الطلب بلا اسم حتى الآن — التسمية تعبئة باتجاه واحد لا إعادة تسمية.
+            </p>
+            <label className="micro-field">
+              <span>اسم الجهة</span>
+              <input
+                value={assignNameValue}
+                onChange={event => setAssignNameValue(event.target.value)}
+                placeholder="مثال: سارة"
+                aria-label="اسم جهة الطلب"
+                list="order-party-suggestions"
+              />
+              <datalist id="order-party-suggestions">
+                {partySuggestions.map(name => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+            </label>
+            <div className="micro-form-actions micro-contextual-actions">
+              <button
+                className="micro-button micro-button-primary"
+                type="button"
+                disabled={isActing || !assignNameValue.trim()}
+                onClick={() => void assignCustomerName(assignNameValue)}
+              >
+                احفظ اسم الجهة
+              </button>
+              <button
+                className="micro-button micro-button-quiet"
+                type="button"
+                onClick={() => setAssignNameOpen(false)}
+              >
+                لاحقًا
+              </button>
+            </div>
+          </section>
+        ) : (
+          <button
+            className="micro-text-action"
+            type="button"
+            onClick={() => setAssignNameOpen(true)}
+            data-testid="assign-party-opener"
+          >
+            سمِّ جهة هذا الطلب
+          </button>
+        )
+      ) : null}
       <section className="micro-decision-card">
         <span>الخطوة التالية</span>
         <strong>{agreement.nextAction}</strong>

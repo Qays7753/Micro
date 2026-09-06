@@ -52,10 +52,17 @@ export type PartyLedgerOverview = {
 
 const normalizeName = (name: string) => name.trim().replace(/\s+/g, " ");
 
+/* عدد السجلات المختلفة التي ربطت بهذا الاسم (طلب/بيع/شراء/حدث) — حركةتان
+ * من الطلب نفسه سجل واحد لا سجلان. */
+function distinctSourceCount(entry: PartyEntry): number {
+  const sourceIds = new Set(entry.movements.map(movement => movement.id.split(":").pop() ?? movement.id));
+  return sourceIds.size;
+}
+
 export class PartyLedgerService {
   constructor(private readonly store: PrototypeLocalStore) {}
 
-  async read(): Promise<PartyLedgerResult<PartyLedgerOverview>> {
+  async read(input: { repeatedOnly?: boolean } = {}): Promise<PartyLedgerResult<PartyLedgerOverview>> {
     const [orders, sales, purchases, events] = await Promise.all([
       this.store.listOrders(),
       this.store.listDirectSales(),
@@ -188,14 +195,22 @@ export class PartyLedgerService {
           (Math.abs(a.receivableMinor) + Math.abs(a.payableMinor)),
       );
 
+    /* Conflict B: الاسم الذي تكرر مرتين فأكثر (عبر سجلات مختلفة) هو «جهة» —
+     * الاسم لمرة واحدة يبقى محليًا في سجله ولا يدخل تحليل الجهات تلقائيًا.
+     * المسودة/الاتفاق تقرأ المقترحات بهذا الترشيح نفسه. */
+    let finalList = list;
+    if (input.repeatedOnly) {
+      finalList = list.filter(entry => distinctSourceCount(entry) >= 2);
+    }
+
     return {
       ok: true,
       value: {
-        parties: list,
-        totalReceivableMinor: list.reduce((sum, entry) => sum + entry.receivableMinor, 0),
-        totalPayableMinor: list.reduce((sum, entry) => sum + entry.payableMinor, 0),
-        receivablePartyCount: list.filter(entry => entry.receivableMinor > 0).length,
-        payablePartyCount: list.filter(entry => entry.payableMinor > 0).length,
+        parties: finalList,
+        totalReceivableMinor: finalList.reduce((sum, entry) => sum + entry.receivableMinor, 0),
+        totalPayableMinor: finalList.reduce((sum, entry) => sum + entry.payableMinor, 0),
+        receivablePartyCount: finalList.filter(entry => entry.receivableMinor > 0).length,
+        payablePartyCount: finalList.filter(entry => entry.payableMinor > 0).length,
       },
     };
   }

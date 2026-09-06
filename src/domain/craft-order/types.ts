@@ -141,7 +141,12 @@ export interface OrderEvent {
 
 export interface CraftOrder {
   id: string;
+  /* Conflict B: الجهة اختيارية — اسم فارغ = «زبون بلا اسم» (دين غير مسمّى
+   * بتحذير ظاهر)؛ التسمية لاحقًا تعبئة باتجاه واحد من الطلب نفسه. */
   customerName: string;
+  /* Conflict B: اسم طلب اختياري — تسمية ودّية للعرض فوق اسم العمل؛ اختياري
+   * تمامًا والقديم بلاه يُقرأ فارغًا. */
+  orderName?: string | null;
   itemName: string;
   specifications: string;
   quantity: number;
@@ -175,6 +180,7 @@ export interface CraftOrder {
 export interface CreateCraftOrderInput {
   id: string;
   customerName: string;
+  orderName?: string | null;
   itemName: string;
   specifications: string;
   quantity: number;

@@ -12,6 +12,7 @@ import {
   reclassifyRetainedDeposit,
   reviseOrderCost,
   settleDepositRefund,
+  assignOrderCustomerName,
   retainedDepositMinor,
   settleDepositRetain,
   transitionOrder,
@@ -968,6 +969,31 @@ describe("retained deposit classification (group 4)", () => {
     expect(() =>
       classifyRetainedDeposit(cancelledRetained(), "owner", "  ", "k", "2026-08-25T10:00:00Z"),
     ).toThrow(/سبب تصنيف العربون/);
+  });
+});
+
+/* Conflict B: الجهة والاسم الودّي اختياريان — الطلب النقدي لا يُحجب، والدين
+ * غير المسمّى قابل للتسمية لاحقًا بتعبئة باتجاه واحد لا إعادة تسمية. */
+describe("optional party and one-way naming (Conflict B)", () => {
+  it("creates an order without a customer name — cash flow is not blocked", () => {
+    const order = createCraftOrder({
+      ...makeOrder(),
+      customerName: "",
+      orderName: "طلب العيد",
+    });
+    expect(order.customerName).toBe("");
+    expect(order.orderName).toBe("طلب العيد");
+    /* الاسم الودّي اختياري تمامًا. */
+    const unnamed = createCraftOrder({ ...makeOrder(), customerName: "", orderName: null });
+    expect(unnamed.orderName).toBeNull();
+  });
+
+  it("names an unnamed order once — renaming a named order is refused honestly", () => {
+    const order = createCraftOrder({ ...makeOrder(), customerName: "" });
+    const named = assignOrderCustomerName(order, "سارة", "name-once");
+    expect(named.customerName).toBe("سارة");
+    expect(() => assignOrderCustomerName(named, "ليلى", "name-twice")).toThrow(/مسمّى سابقًا/);
+    expect(() => assignOrderCustomerName(order, "   ", "name-blank")).toThrow(/اكتب اسم الجهة/);
   });
 });
 

@@ -338,7 +338,8 @@ function resultStatusForKnowledge(knowledgeState: KnowledgeState): ResultStatus 
 
 export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
   if (!input.id.trim()) throw new Error("أكمل معرّف الطلب قبل الحفظ.");
-  if (!input.customerName.trim()) throw new Error("أكمل اسم العميل قبل الحفظ.");
+  /* Conflict B: الجهة اختيارية — الطلب النقدي لا يُحجب لغياب اسم؛ اسم فارغ
+   * يعني «زبون بلا اسم» ويظهر بتحذير صادق حيث يظهر الدين. */
   if (!input.itemName.trim()) throw new Error("أكمل اسم العمل قبل الحفظ.");
   if (!input.specifications.trim()) throw new Error("أكمل المواصفات قبل الحفظ.");
   assertValidQuantity(input.quantity);
@@ -351,7 +352,8 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
 
   const order: CraftOrder = {
     id: input.id,
-    customerName: input.customerName,
+    customerName: input.customerName.trim(),
+    orderName: input.orderName?.trim() || null,
     itemName: input.itemName,
     specifications: input.specifications,
     quantity: input.quantity,
@@ -855,6 +857,24 @@ export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput):
     note: input.reason.trim(),
     reversesEventId: deliveryEvent.id,
   });
+}
+
+/* Conflict B: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد لا إعادة تسمية:
+ * من «زبون بلا اسم» إلى اسم صريح فقط؛ إعادة تسمية اسم قائم تصحيح موثق
+ * لا تعديلًا صامتًا (تحليل الجهات يُبنى على الاسم). */
+export function assignOrderCustomerName(
+  order: CraftOrder,
+  name: string,
+  idempotencyKey: string,
+): CraftOrder {
+  assertIdempotencyKey(idempotencyKey);
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("اكتب اسم الجهة قبل الحفظ.");
+  if (order.customerName.trim()) {
+    throw new Error("هذا الطلب مسمّى سابقًا — إعادة التسمية تصحيح موثق لا تعديلًا صامتًا.");
+  }
+  if (order.customerName.trim() === trimmed) return order;
+  return { ...order, customerName: trimmed };
 }
 
 export function cancelOrder(

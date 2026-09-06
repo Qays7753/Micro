@@ -1,5 +1,6 @@
 /** Slice 4 financial boundary: delivery, collection, and debt are three distinct Domain operations. */
 import {
+  assignOrderCustomerName,
   cancelOrder,
   collectDeposit,
   collectRegisteredDebt,
@@ -356,6 +357,20 @@ export class FulfillmentService {
    * كامل المتبقي غير المحسوم)، والرد يفك تخصيصات العربون المسجلة من محافظها
    * الفعلية بمقدار الرد تمامًا: المدار يتراجع من المحفظة، وما لم يُخصص يخرج
    * من غير الموزع. الكتابة واحدة ذرّية: الطلب وأثر المحافظ أو لا شيء. */
+  /* Conflict B: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد من الطلب نفسه؛
+   * إعادة تسمية اسم قائم تُرفض (تصحيح موثق لا تعديل صامت). */
+  async assignCustomerName(id: string, name: string): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    try {
+      const timestamp = this.now();
+      const order = assignOrderCustomerName(current.stored.order, name, `${id}:assign-name:${name.trim()}`);
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسمية الجهة.");
+    }
+  }
+
   async refundDeposit(id: string, reason: string, amountMinor?: number): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
