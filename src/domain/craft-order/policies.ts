@@ -862,11 +862,7 @@ export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput):
 /* Conflict B: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد لا إعادة تسمية:
  * من «زبون بلا اسم» إلى اسم صريح فقط؛ إعادة تسمية اسم قائم تصحيح موثق
  * لا تعديلًا صامتًا (تحليل الجهات يُبنى على الاسم). */
-export function assignOrderCustomerName(
-  order: CraftOrder,
-  name: string,
-  idempotencyKey: string,
-): CraftOrder {
+export function assignOrderCustomerName(order: CraftOrder, name: string, idempotencyKey: string): CraftOrder {
   assertIdempotencyKey(idempotencyKey);
   const trimmed = name.trim();
   if (!trimmed) throw new Error("اكتب اسم الجهة قبل الحفظ.");
@@ -927,7 +923,8 @@ export function cancelOrder(
  * depositRetainedMinor تُقرأ بتوافق رجعي عبر retainedDepositMinor. */
 export function retainedDepositMinor(order: CraftOrder): MoneyMinor {
   return (
-    order.depositRetainedMinor ?? (order.depositSettlement === "retain_deposit" ? order.depositCollectedMinor : 0)
+    order.depositRetainedMinor ??
+    (order.depositSettlement === "retain_deposit" ? order.depositCollectedMinor : 0)
   );
 }
 
@@ -942,9 +939,7 @@ function assertSettleDepositAllowed(order: CraftOrder, amountMinor: MoneyMinor, 
   assertPositiveInteger(amountMinor, "مبلغ التسوية");
   const pendingMinor = order.depositCollectedMinor - retainedDepositMinor(order);
   if (amountMinor > pendingMinor) {
-    throw new Error(
-      `مبلغ التسوية يتجاوز المتبقي غير المحسوم من العربون (${pendingMinor / 100} د.أ).`,
-    );
+    throw new Error(`مبلغ التسوية يتجاوز المتبقي غير المحسوم من العربون (${pendingMinor / 100} د.أ).`);
   }
 }
 
@@ -966,7 +961,9 @@ function depositSettlementOutcome(
   | "nextAction"
 > {
   const collectedAfterMinor = isRefund ? order.collectedMinor - amountMinor : order.collectedMinor;
-  const depositAfterMinor = isRefund ? order.depositCollectedMinor - amountMinor : order.depositCollectedMinor;
+  const depositAfterMinor = isRefund
+    ? order.depositCollectedMinor - amountMinor
+    : order.depositCollectedMinor;
   const retainedAfterMinor = isRefund
     ? retainedDepositMinor(order)
     : retainedDepositMinor(order) + amountMinor;
@@ -1100,8 +1097,7 @@ export function classifyRetainedDeposit(
   if (eventExists(order, idempotencyKey, "deposit_classified")) return order;
   if (order.status !== "cancelled") throw new Error("تصنيف العربون المحتفظ به يتطلب طلبًا ملغى.");
   const retainedMinor = retainedDepositMinor(order);
-  if (retainedMinor <= 0)
-    throw new Error("التصنيف يتبع قرار الاحتفاظ — راجع تسوية العربون أولًا.");
+  if (retainedMinor <= 0) throw new Error("التصنيف يتبع قرار الاحتفاظ — راجع تسوية العربون أولًا.");
   const sums = classifiedSumsOf(order);
   const unclassifiedMinor = retainedMinor - sums.ownerMinor - sums.revenueMinor;
   if (unclassifiedMinor <= 0)
@@ -1120,9 +1116,7 @@ export function classifyRetainedDeposit(
     depositClassifiedRevenueMinor: nextRevenueMinor,
     retainedMeaning: nextMeaning,
     nextAction:
-      nextMeaning === null
-        ? "أكمل تصنيف باقي العربون المحتفظ به"
-        : "أرشِف قرار تصنيف العربون المحتفظ به",
+      nextMeaning === null ? "أكمل تصنيف باقي العربون المحتفظ به" : "أرشِف قرار تصنيف العربون المحتفظ به",
   };
   return appendEvent(next, {
     id: `${order.id}:${idempotencyKey}`,
@@ -1183,12 +1177,17 @@ export function reclassifyRetainedDeposit(
   assertPositiveInteger(correction.fromAmountMinor, "مبلغ التصنيف المصحَّح");
   assertPositiveInteger(correction.toAmountMinor, "مبلغ التصنيف البديل");
   /* استبدال: ينقص من المعنى القديم بمقداره ويضاف للجديد بمقداره. */
-  const nextSums = replaceClassificationSums(sums, correction.fromMeaning, correction.fromAmountMinor, correction.toMeaning, correction.toAmountMinor);
+  const nextSums = replaceClassificationSums(
+    sums,
+    correction.fromMeaning,
+    correction.fromAmountMinor,
+    correction.toMeaning,
+    correction.toAmountMinor,
+  );
   if (nextSums.ownerMinor < 0 || nextSums.revenueMinor < 0)
     throw new Error("مبلغ التصنيف المصحَّح يتجاوز المصنَّف بهذا المعنى.");
   const nextTotal = nextSums.ownerMinor + nextSums.revenueMinor;
-  if (nextTotal > retainedMinor)
-    throw new Error("التصنيف البديل يتجاوز العربون المحتفظ به غير المصنَّف.");
+  if (nextTotal > retainedMinor) throw new Error("التصنيف البديل يتجاوز العربون المحتفظ به غير المصنَّف.");
   const next: CraftOrder = {
     ...order,
     depositClassifiedOwnerMinor: nextSums.ownerMinor,

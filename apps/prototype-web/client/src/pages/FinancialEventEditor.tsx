@@ -147,14 +147,7 @@ const draftKeyFor = (type: GuidedFinancialEventType): string => `micro.finance-d
 const LOCAL_DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 const RELATIONSHIP_VALUES = ["project", "shared"] as const;
 const BEHAVIOR_VALUES = ["fixed", "variable", "mixed", "unknown"] as const;
-const PURPOSE_VALUES = [
-  "project_general",
-  "period",
-  "order",
-  "product",
-  "campaign",
-  "unallocated",
-] as const;
+const PURPOSE_VALUES = ["project_general", "period", "order", "product", "campaign", "unallocated"] as const;
 const KNOWLEDGE_VALUES = ["known", "estimated", "needs_review"] as const;
 const SHARED_MODE_VALUES = ["fixed", "percentage", "estimate", "defer"] as const;
 
@@ -170,9 +163,7 @@ function coerceEditorDraft(value: unknown): EditorDraft | null {
   const amountMinor = safeDraftAmount(draft.amountMinor);
   const note = safeDraftString(draft.note);
   const date =
-    typeof draft.date === "string" && LOCAL_DATE_PATTERN.test(draft.date)
-      ? draft.date
-      : ammanDate();
+    typeof draft.date === "string" && LOCAL_DATE_PATTERN.test(draft.date) ? draft.date : ammanDate();
   /* لا شيء ذو معنى قابل للترجيع؟ لا نعرض عرض استرجاع فارغًا. */
   if (amountMinor === 0 && note.trim() === "" && date === ammanDate()) return null;
   return {

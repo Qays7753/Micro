@@ -293,9 +293,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(await screen.findByText(/مسودة غير محفوظة من إدخال سابق — ترجّعها؟/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
     /* النموذج حي: البيان السليم رُجّع، والمبلغ سالب صُفّر (لا قيمة غير آمنة). */
-    const noteField = screen.getByPlaceholderText(
-      "مثال: دفعت توصيل الطلبات للأسبوع",
-    ) as HTMLTextAreaElement;
+    const noteField = screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع") as HTMLTextAreaElement;
     expect(noteField.value).toContain("ملاحظة سليمة");
     const amountField = screen.getByLabelText("المبلغ بالدينار الأردني") as HTMLInputElement;
     expect(Number(amountField.value || 0)).toBe(0);

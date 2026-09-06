@@ -209,7 +209,11 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
       reason: "فاتورة صحيحة",
     });
     expect(whileActive.ok).toBe(true);
-    const disposal = await service.dispose(assetId, { on: "2026-09-20", proceedsMinor: 20000, reason: "بعتُها" });
+    const disposal = await service.dispose(assetId, {
+      on: "2026-09-20",
+      proceedsMinor: 20000,
+      reason: "بعتُها",
+    });
     if (!disposal.ok) return;
     const afterArchive = await service.correctAcquisition(assetId, {
       acquisitionAmountMinor: 70000,

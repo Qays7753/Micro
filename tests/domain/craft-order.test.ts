@@ -1008,7 +1008,6 @@ function cancelledWithDeposit(depositMinor: number) {
 }
 
 describe("partial deposit settlement and mixed classification (Conflict E)", () => {
-
   it("refunds partially — the remainder stays honestly pending, full refund closes the settlement", () => {
     const cancelled = cancelledWithDeposit(5000);
     const partial = settleDepositRefund(
@@ -1024,7 +1023,13 @@ describe("partial deposit settlement and mixed classification (Conflict E)", () 
     expect(partial.events.at(-1)?.type).toBe("deposit_refunded");
     expect(partial.events.at(-1)?.amountMinor).toBe(2000);
     /* المتبقي يُرد كاملًا فتُقفل الحالة كما كانت تُقفل سابقًا. */
-    const closed = settleDepositRefund(partial, 3000, "رد الباقي", "partial-refund-2", "2026-08-24T10:00:00Z");
+    const closed = settleDepositRefund(
+      partial,
+      3000,
+      "رد الباقي",
+      "partial-refund-2",
+      "2026-08-24T10:00:00Z",
+    );
     expect(closed.depositSettlement).toBe("refund_deposit");
     expect(closed.settlementStatus).toBe("cancelled_refunded");
     expect(closed.collectedMinor).toBe(0);
@@ -1055,18 +1060,23 @@ describe("partial deposit settlement and mixed classification (Conflict E)", () 
     expect(refunded.depositSettlement).toBe("retain_deposit");
     expect(refunded.settlementStatus).toBe("cancelled_retained");
     /* التسوية ختامية — أي قرار إضافي يُرفض بصراحة لا يتجاوز صامت. */
-    expect(() =>
-      settleDepositRefund(refunded, 3000, "زيادة", "over-refund", "2026-08-25T10:00:00Z"),
-    ).toThrow(/محسومة سابقًا/);
+    expect(() => settleDepositRefund(refunded, 3000, "زيادة", "over-refund", "2026-08-25T10:00:00Z")).toThrow(
+      /محسومة سابقًا/,
+    );
   });
-
 });
 
 /* Conflict E (تكملة): التصنيف الجزئي والمختلط والتصحيح والقراءة الرجعية. */
 describe("partial classification and mixed meaning (Conflict E)", () => {
   it("classifies explicit partial amounts and records «mixed» when both meanings complete the deposit", () => {
     const cancelled = cancelledWithDeposit(5000);
-    const retained = settleDepositRetain(cancelled, 5000, "احتفاظ كامل", "mix-retain", "2026-08-23T10:00:00Z");
+    const retained = settleDepositRetain(
+      cancelled,
+      5000,
+      "احتفاظ كامل",
+      "mix-retain",
+      "2026-08-23T10:00:00Z",
+    );
     /* جزء إيراد مشروع وجزء مال مالك — بمبلغين صريحين. */
     const revenuePart = classifyRetainedDeposit(
       retained,
