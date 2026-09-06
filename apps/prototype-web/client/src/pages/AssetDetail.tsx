@@ -449,7 +449,11 @@ export default function AssetDetail() {
                 {event.correctionType !== "reverse" && reversedIds.has(event.id) ? (
                   <small>عُكِس لاحقًا</small>
                 ) : null}
-                {event.type === "asset_depreciation" && event.correctionType !== "reverse" ? (
+                {event.type === "asset_depreciation" &&
+                event.correctionType !== "reverse" &&
+                asset.status === "active" ? (
+                  /* عقد الأصول (AV-08): زر التراجع يظهر للأصل النشط فقط — الأرشفة
+                     تثبّت القيمة الدفترية والعكس بعدها يُحيي قيمة ملغاة. */
                   reversalTargetId === event.id ? (
                     <span className="micro-inline-reversal">
                       <input

@@ -125,6 +125,101 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(second.ok).toBe(false);
   });
 
+  /* AV-08 (عقد الأصول — فصل الإهلاك عن التخلص): عكس إهلاك بعد الأرشفة يُحيي
+   * قيمة دفترية ملغاة — الخدمة تحرسه والقيمة تبقى مثبتة كما كانت عند التخلص. */
+  it("blocks depreciation reversal after disposal — archived book value stays frozen", async () => {
+    const { service, store } = await seededAsset();
+    const overview = await service.overview();
+    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
+    if (!recorded.ok) return;
+    const disposal = await service.dispose(assetId, {
+      on: "2026-09-15",
+      proceedsMinor: 30000,
+      reason: "بعتُها",
+    });
+    if (!disposal.ok) return;
+    const reversal = await service.reverseDepreciation(recorded.value.event.id, "خطأ بالإهلاك");
+    expect(reversal.ok).toBe(false);
+    if (reversal.ok) return;
+    expect(reversal.message).toContain("مؤرشف");
+    /* القيمة الدفترية للأرشيف لم تُحيَ: ٦٠٠٠٠ − ٧٥٠٠ − ٥٢٥٠٠ = ٠. */
+    const detail = await service.read(assetId);
+    expect(detail.ok && detail.value.asset.status).toBe("disposed");
+    expect(detail.ok && detail.value.summary.bookValueMinor).toBe(0);
+    const events = await store.listFinancialEvents();
+    expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
+  });
+
+  it("blocks depreciation reversal after write-off as well", async () => {
+    const { service } = await seededAsset();
+    const overview = await service.overview();
+    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
+    if (!recorded.ok) return;
+    const writeOff = await service.writeOff(assetId, { on: "2026-09-15", reason: "تلف كلي" });
+    if (!writeOff.ok) return;
+    const reversal = await service.reverseDepreciation(recorded.value.event.id, "خطأ بالإهلاك");
+    expect(reversal.ok).toBe(false);
+  });
+
+  /* عقد الأصول (Conflict G): الإهلاك حتى الصفر لا يخلص من الأصل ولا يشطبه —
+   * يبقى مملوكًا نشطًا بقيمة دفترية صفر، والشطب مرفوض (لا رصيد)، والبيع ممكن. */
+  it("keeps the asset active and owned at zero book value — disposal, sale, and depreciation stay separate", async () => {
+    const { service } = await seededAsset();
+    const overview = await service.overview();
+    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    /* ٢٤ شهرًا كاملة × ٢٥٠٠ = ٦٠٠٠٠ — الوصول للصفر بقرار واحد. */
+    const swept = await service.recordDepreciation(assetId, { asOf: "2028-06-01" });
+    expect(swept.ok).toBe(true);
+    if (!swept.ok) return;
+    expect(swept.value.event.amountMinor).toBe(60000);
+    const detail = await service.read(assetId);
+    expect(detail.ok && detail.value.asset.status).toBe("active");
+    expect(detail.ok && detail.value.summary.bookValueMinor).toBe(0);
+    /* لا إهلاك جديد بعد الصفر — الدفتري صفر بمقتضى العقد. */
+    const more = await service.recordDepreciation(assetId, { asOf: "2028-07-01" });
+    expect(more.ok).toBe(false);
+    if (!more.ok) expect(more.message).toContain("الدفتري صفر");
+    /* لا شطب — لا رصيد دفتري يُشطب. */
+    const writeOff = await service.writeOff(assetId, { on: "2028-07-01", reason: "لا حاجة" });
+    expect(writeOff.ok).toBe(false);
+    if (!writeOff.ok) expect(writeOff.message).toContain("لا رصيد دفتري يُشطب");
+    /* البيع ما زال ممكنًا: مقابل كامل = ربح التصرف. */
+    const disposal = await service.dispose(assetId, {
+      on: "2028-07-01",
+      proceedsMinor: 10000,
+      reason: "بعتُها بقيمة دفترية صفر",
+    });
+    expect(disposal.ok).toBe(true);
+    if (disposal.ok) {
+      expect(disposal.value.event.cashDeltaMinor).toBe(10000);
+      expect(disposal.value.asset.status).toBe("disposed");
+    }
+  });
+
+  it("blocks acquisition correction on an archived asset — pre-disposal corrections stay available while active", async () => {
+    const { service } = await seededAsset();
+    const overview = await service.overview();
+    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    /* التصحيح الموثق متاح ما دام الأصل نشطًا. */
+    const whileActive = await service.correctAcquisition(assetId, {
+      acquisitionAmountMinor: 62000,
+      acquisitionKind: "cash",
+      reason: "فاتورة صحيحة",
+    });
+    expect(whileActive.ok).toBe(true);
+    const disposal = await service.dispose(assetId, { on: "2026-09-20", proceedsMinor: 20000, reason: "بعتُها" });
+    if (!disposal.ok) return;
+    const afterArchive = await service.correctAcquisition(assetId, {
+      acquisitionAmountMinor: 70000,
+      acquisitionKind: "cash",
+      reason: "محاولة بعد الأرشفة",
+    });
+    expect(afterArchive.ok).toBe(false);
+    if (!afterArchive.ok) expect(afterArchive.message).toContain("مؤرشف");
+  });
+
   it("writes off the remaining book value as a non-cash loss", async () => {
     const { service, store } = await seededAsset();
     const overview = await service.overview();
