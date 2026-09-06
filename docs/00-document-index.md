@@ -20,6 +20,7 @@
 | 8 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
 | 9 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
 | 10 | `docs/decisions/03-scenario-validation-and-system-scope.md` | CURRENT | قرار مجموعة السيناريوهات وحدود النظام |
+| 10أ | `docs/decisions/final-continuation-conflict-resolutions-v1.md` | APPROVED — يسود عند التعارض | مصالحة التعارضات التعاقدية للتنفيذ النهائي (Conflicts A–I) وإغلاق FC-02/FC-06/AV-07/AV-08/AV-09/WF-04 |
 | 11 | `docs/contracts/` | CURRENT | عقود النتيجة والطلب والتكلفة والمزامنة وسياسات المال P0، ومنها `05-financial-p0-policies.md` |
 | 12 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات المعتمد |
 | 12A | `docs/contracts/06-financial-event-prototype-contract.md` | CURRENT / PROTOTYPE | عقد الأحداث المالية المحلية للكاش والذمم ومال المالك وحدود «وضعي المالي» |
