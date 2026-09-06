@@ -931,17 +931,7 @@ export function retainedDepositMinor(order: CraftOrder): MoneyMinor {
   );
 }
 
-function settleDeposit(
-  order: CraftOrder,
-  decision: Exclude<DepositSettlementDecision, "needs_review">,
-  eventType: Extract<OrderEventType, "deposit_refunded" | "deposit_retained">,
-  amountMinor: MoneyMinor,
-  reason: string,
-  idempotencyKey: string,
-  createdAt: string,
-): CraftOrder {
-  assertIdempotencyKey(idempotencyKey);
-  if (eventExists(order, idempotencyKey, eventType)) return order;
+function assertSettleDepositAllowed(order: CraftOrder, amountMinor: MoneyMinor, reason: string): void {
   if (order.status !== "cancelled") {
     throw new Error("تسوية العربون تتطلب طلبًا ملغى.");
   }
@@ -956,22 +946,34 @@ function settleDeposit(
       `مبلغ التسوية يتجاوز المتبقي غير المحسوم من العربون (${pendingMinor / 100} د.أ).`,
     );
   }
+}
 
-  const isRefund = decision === "refund_deposit";
-  /* الرد الجزئي: الباقي يبقى معلقًا حتى قرار صريح؛ الرد الكامل يقفل الحالة. */
+/* نتيجة التسوية بمبلغ صريح: أرقام الطلب بعد الرد/الاحتفاظ والحالة الختامية —
+ * الحالة الختامية لا تُقفل إلا حين لا يبقى معلّق؛ وما تبقى محتفظًا فالاحتفاظ
+ * هو القرار الختامي، وما رُدّ كله فالرد. */
+function depositSettlementOutcome(
+  order: CraftOrder,
+  isRefund: boolean,
+  amountMinor: MoneyMinor,
+): Pick<
+  CraftOrder,
+  | "depositSettlement"
+  | "settlementStatus"
+  | "depositCollectedMinor"
+  | "depositRetainedMinor"
+  | "collectedMinor"
+  | "receivableMinor"
+  | "nextAction"
+> {
   const collectedAfterMinor = isRefund ? order.collectedMinor - amountMinor : order.collectedMinor;
   const depositAfterMinor = isRefund ? order.depositCollectedMinor - amountMinor : order.depositCollectedMinor;
   const retainedAfterMinor = isRefund
     ? retainedDepositMinor(order)
     : retainedDepositMinor(order) + amountMinor;
-  /* الحالة الختامية: لا معلّق بعد التسوية (المحصل − المحتفظ به = 0). */
-  /* الحالة الختامية: لا معلّق بعد التسوية (المحصل − المحتفظ به = 0)؛
-   * ما تبقى محتفظًا → الاحتفاظ هو القرار الختامي، وما رُدّ كله → الرد. */
   const settled = depositAfterMinor - retainedAfterMinor === 0;
   const finalDecision: Exclude<DepositSettlementDecision, "needs_review"> =
     settled && retainedAfterMinor > 0 ? "retain_deposit" : "refund_deposit";
-  const next: CraftOrder = {
-    ...order,
+  return {
     depositSettlement: settled ? finalDecision : "needs_review",
     settlementStatus: settled
       ? finalDecision === "refund_deposit"
@@ -984,7 +986,24 @@ function settleDeposit(
     receivableMinor: settled ? 0 : order.receivableMinor,
     nextAction: settled ? "أرشف قرار تسوية الإلغاء" : "أكمل تسوية باقي العربون المعلق",
   };
+}
 
+function settleDeposit(
+  order: CraftOrder,
+  decision: Exclude<DepositSettlementDecision, "needs_review">,
+  eventType: Extract<OrderEventType, "deposit_refunded" | "deposit_retained">,
+  amountMinor: MoneyMinor,
+  reason: string,
+  idempotencyKey: string,
+  createdAt: string,
+): CraftOrder {
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, eventType)) return order;
+  assertSettleDepositAllowed(order, amountMinor, reason);
+  const next: CraftOrder = {
+    ...order,
+    ...depositSettlementOutcome(order, decision === "refund_deposit", amountMinor),
+  };
   return appendEvent(next, {
     id: `${order.id}:${idempotencyKey}`,
     type: eventType,
@@ -1115,6 +1134,24 @@ export function classifyRetainedDeposit(
   });
 }
 
+/* استبدال مبالغ التصنيف بين المعنيين — الحساب النقي للجمع والطرح. */
+function replaceClassificationSums(
+  sums: { ownerMinor: MoneyMinor; revenueMinor: MoneyMinor },
+  fromMeaning: RetainedDepositMeaning,
+  fromAmountMinor: MoneyMinor,
+  toMeaning: RetainedDepositMeaning,
+  toAmountMinor: MoneyMinor,
+): { ownerMinor: MoneyMinor; revenueMinor: MoneyMinor } {
+  const fromOwner = fromMeaning === "owner" ? fromAmountMinor : 0;
+  const fromRevenue = fromMeaning === "revenue" ? fromAmountMinor : 0;
+  const toOwner = toMeaning === "owner" ? toAmountMinor : 0;
+  const toRevenue = toMeaning === "revenue" ? toAmountMinor : 0;
+  return {
+    ownerMinor: sums.ownerMinor - fromOwner + toOwner,
+    revenueMinor: sums.revenueMinor - fromRevenue + toRevenue,
+  };
+}
+
 /* تصحيح التصنيف: قرار جديد موثق يعلو القديم — الأصل يبقى في الأحداث،
  * والأثر المالي يُعكس ويُستبدل ذرّيًا في طبقة التخزين، لا هنا. التصحيح
  * يستبدل تصنيفًا قائمًا بمبلغه ومعناه (من/إلى صريحان — لا تخمين). */
@@ -1146,24 +1183,17 @@ export function reclassifyRetainedDeposit(
   assertPositiveInteger(correction.fromAmountMinor, "مبلغ التصنيف المصحَّح");
   assertPositiveInteger(correction.toAmountMinor, "مبلغ التصنيف البديل");
   /* استبدال: ينقص من المعنى القديم بمقداره ويضاف للجديد بمقداره. */
-  const nextOwnerMinor =
-    sums.ownerMinor -
-    (correction.fromMeaning === "owner" ? correction.fromAmountMinor : 0) +
-    (correction.toMeaning === "owner" ? correction.toAmountMinor : 0);
-  const nextRevenueMinor =
-    sums.revenueMinor -
-    (correction.fromMeaning === "revenue" ? correction.fromAmountMinor : 0) +
-    (correction.toMeaning === "revenue" ? correction.toAmountMinor : 0);
-  if (nextOwnerMinor < 0 || nextRevenueMinor < 0)
+  const nextSums = replaceClassificationSums(sums, correction.fromMeaning, correction.fromAmountMinor, correction.toMeaning, correction.toAmountMinor);
+  if (nextSums.ownerMinor < 0 || nextSums.revenueMinor < 0)
     throw new Error("مبلغ التصنيف المصحَّح يتجاوز المصنَّف بهذا المعنى.");
-  const nextTotal = nextOwnerMinor + nextRevenueMinor;
+  const nextTotal = nextSums.ownerMinor + nextSums.revenueMinor;
   if (nextTotal > retainedMinor)
     throw new Error("التصنيف البديل يتجاوز العربون المحتفظ به غير المصنَّف.");
   const next: CraftOrder = {
     ...order,
-    depositClassifiedOwnerMinor: nextOwnerMinor,
-    depositClassifiedRevenueMinor: nextRevenueMinor,
-    retainedMeaning: retainedMeaningFromSums(retainedMinor, nextOwnerMinor, nextRevenueMinor),
+    depositClassifiedOwnerMinor: nextSums.ownerMinor,
+    depositClassifiedRevenueMinor: nextSums.revenueMinor,
+    retainedMeaning: retainedMeaningFromSums(retainedMinor, nextSums.ownerMinor, nextSums.revenueMinor),
     nextAction: "أرشِف تصحيح تصنيف العربون المحتفظ به",
   };
   return appendEvent(next, {

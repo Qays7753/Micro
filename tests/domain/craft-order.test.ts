@@ -1000,12 +1000,14 @@ describe("optional party and one-way naming (Conflict B)", () => {
 /* Conflict E (تسوية جزئية): الرد الجزئي يبقي الباقي معلقًا، والاحتفاظ الجزئي
  * يُلحق بالمحتفظ به، والتصنيف بمبلغ صريح يجوز تكراره حتى «مختلط» — والحالة
  * الختامية لا تُقفل إلا بقرار صريح لا بصمت. */
+/* Conflict E: طلب ملغى بعربون معلق — بذرة مشتركة لاختبارات التسوية الجزئية. */
+function cancelledWithDeposit(depositMinor: number) {
+  let order = makeOrder({ agreedPriceMinor: 10000 });
+  order = collectDeposit(order, depositMinor, "partial-dep", "2026-08-21T10:10:00Z");
+  return cancelOrder(order, "إلغاء متفق عليه", "partial-cancel", "2026-08-22T10:00:00Z");
+}
+
 describe("partial deposit settlement and mixed classification (Conflict E)", () => {
-  function cancelledWithDeposit(depositMinor: number) {
-    let order = makeOrder({ agreedPriceMinor: 10000 });
-    order = collectDeposit(order, depositMinor, "partial-dep", "2026-08-21T10:10:00Z");
-    return cancelOrder(order, "إلغاء متفق عليه", "partial-cancel", "2026-08-22T10:00:00Z");
-  }
 
   it("refunds partially — the remainder stays honestly pending, full refund closes the settlement", () => {
     const cancelled = cancelledWithDeposit(5000);
@@ -1058,6 +1060,10 @@ describe("partial deposit settlement and mixed classification (Conflict E)", () 
     ).toThrow(/محسومة سابقًا/);
   });
 
+});
+
+/* Conflict E (تكملة): التصنيف الجزئي والمختلط والتصحيح والقراءة الرجعية. */
+describe("partial classification and mixed meaning (Conflict E)", () => {
   it("classifies explicit partial amounts and records «mixed» when both meanings complete the deposit", () => {
     const cancelled = cancelledWithDeposit(5000);
     const retained = settleDepositRetain(cancelled, 5000, "احتفاظ كامل", "mix-retain", "2026-08-23T10:00:00Z");
@@ -1089,7 +1095,10 @@ describe("partial deposit settlement and mixed classification (Conflict E)", () 
       classifyRetainedDeposit(mixed, "owner", "زيادة", "mix-over", "2026-08-26T10:00:00Z", 1000),
     ).toThrow(/مصنَّف سابقًا/);
   });
+});
 
+/* Conflict E (تصحيح التصنيف الجزئي): استبدال موثّق بمبالغ صريحة داخل المحتفظ به. */
+describe("partial classification correction (Conflict E)", () => {
   it("replaces a partial classification with a documented correction — sums stay within the retained amount", () => {
     const cancelled = cancelledWithDeposit(5000);
     const retained = settleDepositRetain(cancelled, 5000, "احتفاظ", "fix-retain", "2026-08-23T10:00:00Z");
@@ -1126,7 +1135,10 @@ describe("partial deposit settlement and mixed classification (Conflict E)", () 
       }),
     ).toThrow(/يتجاوز/);
   });
+});
 
+/* Conflict E (القراءة الرجعية): طلبات احتفاظ قديمة بلا عدادات تصنيف. */
+describe("legacy retained deposit reads (Conflict E)", () => {
   it("reads legacy full-retained orders without counters through retainedDepositMinor", () => {
     const cancelled = cancelledWithDeposit(5000);
     /* بيانات قديمة: احتفاظ كامل بلا depositRetainedMinor. */
