@@ -53,6 +53,10 @@ const resultLabel: Record<string, string> = {
 type OrderDetailState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; stored: StoredCraftOrder };
 const preDeliveryStatuses = ["provisional_agreement", "confirmed", "in_progress", "ready"];
+/* Conflict F (AV-07): الإلغاء متاح حيث يُتِمّ بأمان — يشمل «يحتاج مراجعة» بعد عكس
+ * التسليم (النطاق يسمح والقفل الموثق يحرس المسلّم غير المعكوس برسالة صادقة). */
+const cancellableStatuses = [...preDeliveryStatuses, "needs_review", "postponed"];
+const canCancelOrder = (order: { status: string }) => cancellableStatuses.includes(order.status);
 /* المجموعة ١ (Scope E): القدرات الحقيقية تُكشف في سياقها — الوقت والمادة الفعليان
  * يصعدان من «تفاصيل إضافية» إلى سطح الطلب عندما يصل التنفيذ؛ ما قبله يبقى مطويًا. */
 const executionStatuses = ["in_progress", "ready"];
@@ -278,7 +282,7 @@ export default function OrderDetail() {
     ...(order.status !== "cancelled" && order.events.some(event => event.type === "collection_recorded")
       ? ["تراجع عن قبضة"]
       : []),
-    ...(preDeliveryStatuses.includes(order.status) ? ["إلغاء الطلب"] : []),
+    ...(canCancelOrder(order) ? ["إلغاء الطلب"] : []),
   ].join(" · ");
 
   async function run(action: () => Promise<FulfillmentResult | AgreementResult>) {
@@ -700,12 +704,29 @@ export default function OrderDetail() {
                 </button>
               )
             ) : null}
-            {/* القرار ١٩: الإلغاء من أي حالة قبل التسليم عبر cancelOrder وحدها (عقد ٠٢) —
-                السبب اختياري بثلاثة أزرار بنقرة، والتخطي متاح. */}
-            {preDeliveryStatuses.includes(order.status) ? (
+            {/* القرار ١٩ + Conflict F (AV-07): الإلغاء من أي حالة قبل التسليم ومن
+                «يحتاج مراجعة»/«مؤجل» عبر cancelOrder وحدها (عقد ٠٢) — مع معاينة
+                أثر إلزامية قبل القرار؛ وإن تعذّر الإكمال الآمن يُقفل برسالة صادقة
+                من النطاق، لا إلغاء جزئي صامت. */}
+            {canCancelOrder(order) ? (
               cancelPanelOpen ? (
                 <section className="micro-cancel-panel" aria-label="تأكيد إلغاء الطلب">
                   <strong>لماذا تلغي هذا الطلب؟</strong>
+                  {/* معاينة الأثر الإلزامية (Conflict F): العواقب والأرقام قبل
+                      أزرار السبب — لا قرار بلا معاينة. */}
+                  <div className="micro-finance-reversal-review" data-testid="cancel-impact-preview">
+                    <strong>معاينة أثر الإلغاء</strong>
+                    <p>
+                      الطلب سيُعلَّم ملغًى ويبقى في السجل بتاريخه وأحداثه — لا حذف. الإلغاء نفسه لا يُنشئ
+                      إيرادًا ولا خسارة؛ تسوية العربون تُقرّرها بعد الإلغاء بصراحة.
+                    </p>
+                    {order.status === "needs_review" ? (
+                      <p className="micro-note-copy">
+                        هذا الطلب في «يحتاج مراجعة» بعد عكس تسليم موثق — الإلغاء يُتِمّ من هنا بأمان. وإن كان
+                        ثمة تسليم غير معكوس فسيُقفل الإلغاء برسالة تشرح السبب.
+                      </p>
+                    ) : null}
+                  </div>
                   <p>
                     السبب اختياري — اختر بنقرة أو تخطَّ. الإلغاء لا يحذف الطلب ولا أحداثه؛ يسجّل تسوية موثقة
                     ويبقى في السجل.
