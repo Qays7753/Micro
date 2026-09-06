@@ -182,7 +182,9 @@ export type DraftCostSnapshot = {
 export type OrderDraft = {
   id: string;
   intent: DraftIntent;
+  /* Conflict B: الجهة والاسم الودّي اختياريان في المسودة والاتفاق. */
   customerName: string;
+  orderName?: string | null;
   itemName: string;
   catalogItemId: string | null;
   specifications: string;
@@ -369,6 +371,16 @@ export interface PrototypeLocalStore {
     reversalEventKey: string,
   ): Promise<
     StorageResult<{ order: StoredCraftOrder; cashEntry: CashContinuityEntry | null; reused: boolean }>
+  >;
+  /* Conflict E (FC-06): رد العربون من محفظة المصدر — الطلب المرتد وأثر فك
+   * التخصيصات يُكتبان معًا أو لا يُكتب شيء؛ فحص هوية داخل المعاملة يمنع
+   * الرد المزدوج ويرفض فك تخصيص مُفكوك سابقًا. */
+  commitDepositRefundSettlement(
+    order: StoredCraftOrder,
+    allocationReversals: readonly CashContinuityEntry[],
+    refundEventKey: string,
+  ): Promise<
+    StorageResult<{ order: StoredCraftOrder; cashEntries: readonly CashContinuityEntry[]; reused: boolean }>
   >;
   listDirectSales(): Promise<StorageResult<readonly DirectSale[]>>;
   saveDirectSale(sale: DirectSale): Promise<StorageResult<DirectSale>>;

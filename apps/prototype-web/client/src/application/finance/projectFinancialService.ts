@@ -193,6 +193,9 @@ export type FinancialEditInput = {
   occurredOn: string;
   note: string;
   counterparty: string | null;
+  /* Conflict H (WF-04): تصحيح تصنيف المصروف بعد الحفظ — البديل يحمل التصنيف
+   * الجديد والأصل يبقى بتصنيفه؛ تمريره اختياري (غير مرّر = التصنيف كما هو). */
+  expenseContext?: OperatingExpenseContext | null;
   reason?: string | null;
   idempotencyKey: string;
 };
@@ -1071,6 +1074,13 @@ export class ProjectFinancialService {
     }
     if (existing.value.some(event => event.idempotencyKey === input.idempotencyKey))
       return { ok: false, code: "validation_error", message: "مفتاح التعديل مستخدم؛ اختر مفتاحًا جديدًا." };
+    /* Conflict H (WF-04): تصحيح التصنيف بعد الحفظ — يُقبل لأحداث المصروف فقط،
+     * ويطبّقه البديل بعد تحقق النطاق نفسه (normalizeExpenseContext) في createFinancialEvent. */
+    const isExpenseSource =
+      source.type === "operating_expense_cash" || source.type === "operating_expense_payable";
+    if (input.expenseContext != null && !isExpenseSource)
+      return { ok: false, code: "validation_error", message: "التصنيف يُصحَّح لأحداث المصروف فقط." };
+    const replacementExpenseContext = input.expenseContext ?? source.expenseContext ?? null;
     try {
       const reversal = createFinancialReversal({
         id: id(),
@@ -1090,7 +1100,7 @@ export class ProjectFinancialService {
         note: input.note.trim(),
         counterparty: input.counterparty,
         relatedEventId: source.relatedEventId,
-        expenseContext: source.expenseContext ?? null,
+        expenseContext: replacementExpenseContext,
         assetContext: source.assetContext ?? null,
         loanContext: source.loanContext ?? null,
         depositContext: source.depositContext ?? null,

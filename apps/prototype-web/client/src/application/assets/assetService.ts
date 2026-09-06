@@ -228,6 +228,14 @@ export class AssetService {
     if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
     const asset = assetResult.value;
     if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
+    /* عقد الأصول (فصل الإهلاك عن التخلص): الأصل المؤرشف — تخلص أو شطب — قيمته
+     * الدفترية مثبتة عند الأرشفة؛ تصحيح اقتنائه بعدها يُحيي قيمة ملغاة. التصحيح
+     * الموثق مسموح ما دام الأصل نشطًا. */
+    if (asset.status !== "active")
+      return failure(
+        "invalid_state",
+        "تعذّر تصحيح اقتناء أصل مؤرشف — قيمته الدفترية مثبتة عند التخلص أو الشطب. صحّح الخطأ والأصل نشط أولًا، أو سجّل الأثر الجديد كواقعة موثقة من مالي.",
+      );
     const source = eventsResult.value.find(event => event.id === asset.acquisitionEventId);
     if (!source) return failure("invalid_state", "حدث الاقتناء الأصلي غير موجود.");
     if (source.correctionType === "reverse")
@@ -329,6 +337,18 @@ export class AssetService {
     const source = eventsResult.value.find(event => event.id === eventId);
     if (!source || source.type !== "asset_depreciation")
       return failure("invalid_state", "حدث الإهلاك غير موجود.");
+    /* عقد الأصول (فصل الإهلاك عن التخلص — AV-08): عكس إهلاك بعد التخلص أو الشطب
+     * يُحيي قيمة دفترية ملغاة؛ الأصل المؤرشف مثبّت. عكس الخطأ الموثق يبقى متاحًا
+     * ما دام الأصل نشطًا (تصحيح ما قبل الأرشفة). */
+    const assetId = source.assetContext?.assetId;
+    if (assetId) {
+      const assetResult = await this.store.getAsset(assetId);
+      if (assetResult.ok && assetResult.value && assetResult.value.status !== "active")
+        return failure(
+          "invalid_state",
+          "تعذّر عكس إهلاك أصل مؤرشف — التخلص والشطب يثبّتان القيمة الدفترية نهائيًا، وعكس الإهلاك بعدهما يُحيي قيمة ملغاة. إن وجدت خطأ قبل الأرشفة فصحّحه والأصل نشط أولًا.",
+        );
+    }
     if (
       source.correctionType === "reverse" ||
       eventsResult.value.some(

@@ -338,7 +338,8 @@ function resultStatusForKnowledge(knowledgeState: KnowledgeState): ResultStatus 
 
 export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
   if (!input.id.trim()) throw new Error("أكمل معرّف الطلب قبل الحفظ.");
-  if (!input.customerName.trim()) throw new Error("أكمل اسم العميل قبل الحفظ.");
+  /* Conflict B: الجهة اختيارية — الطلب النقدي لا يُحجب لغياب اسم؛ اسم فارغ
+   * يعني «زبون بلا اسم» ويظهر بتحذير صادق حيث يظهر الدين. */
   if (!input.itemName.trim()) throw new Error("أكمل اسم العمل قبل الحفظ.");
   if (!input.specifications.trim()) throw new Error("أكمل المواصفات قبل الحفظ.");
   assertValidQuantity(input.quantity);
@@ -351,7 +352,8 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
 
   const order: CraftOrder = {
     id: input.id,
-    customerName: input.customerName,
+    customerName: input.customerName.trim(),
+    orderName: input.orderName?.trim() || null,
     itemName: input.itemName,
     specifications: input.specifications,
     quantity: input.quantity,
@@ -857,6 +859,20 @@ export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput):
   });
 }
 
+/* Conflict B: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد لا إعادة تسمية:
+ * من «زبون بلا اسم» إلى اسم صريح فقط؛ إعادة تسمية اسم قائم تصحيح موثق
+ * لا تعديلًا صامتًا (تحليل الجهات يُبنى على الاسم). */
+export function assignOrderCustomerName(order: CraftOrder, name: string, idempotencyKey: string): CraftOrder {
+  assertIdempotencyKey(idempotencyKey);
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("اكتب اسم الجهة قبل الحفظ.");
+  if (order.customerName.trim()) {
+    throw new Error("هذا الطلب مسمّى سابقًا — إعادة التسمية تصحيح موثق لا تعديلًا صامتًا.");
+  }
+  if (order.customerName.trim() === trimmed) return order;
+  return { ...order, customerName: trimmed };
+}
+
 export function cancelOrder(
   order: CraftOrder,
   reason: string,
@@ -901,6 +917,74 @@ export function cancelOrder(
   });
 }
 
+/* Conflict E (تسوية جزئية موثقة): المبلغ صريح ويجوز أن يكون جزئيًا — الرد
+ * الجزئي يبقي الباقي «يحتاج مراجعة»، والاحتفاظ الجزئي يُلحق بالمحتفظ به،
+ * والحالة الختامية تُقفل فقط حين لا يبقى معلّق. البيانات القديمة بلا
+ * depositRetainedMinor تُقرأ بتوافق رجعي عبر retainedDepositMinor. */
+export function retainedDepositMinor(order: CraftOrder): MoneyMinor {
+  return (
+    order.depositRetainedMinor ??
+    (order.depositSettlement === "retain_deposit" ? order.depositCollectedMinor : 0)
+  );
+}
+
+function assertSettleDepositAllowed(order: CraftOrder, amountMinor: MoneyMinor, reason: string): void {
+  if (order.status !== "cancelled") {
+    throw new Error("تسوية العربون تتطلب طلبًا ملغى.");
+  }
+  if (order.depositSettlement !== "needs_review") {
+    throw new Error("تسوية هذا العربون محسومة سابقًا.");
+  }
+  if (!reason.trim()) throw new Error("أكمل سبب تسوية العربون قبل الحفظ.");
+  assertPositiveInteger(amountMinor, "مبلغ التسوية");
+  const pendingMinor = order.depositCollectedMinor - retainedDepositMinor(order);
+  if (amountMinor > pendingMinor) {
+    throw new Error(`مبلغ التسوية يتجاوز المتبقي غير المحسوم من العربون (${pendingMinor / 100} د.أ).`);
+  }
+}
+
+/* نتيجة التسوية بمبلغ صريح: أرقام الطلب بعد الرد/الاحتفاظ والحالة الختامية —
+ * الحالة الختامية لا تُقفل إلا حين لا يبقى معلّق؛ وما تبقى محتفظًا فالاحتفاظ
+ * هو القرار الختامي، وما رُدّ كله فالرد. */
+function depositSettlementOutcome(
+  order: CraftOrder,
+  isRefund: boolean,
+  amountMinor: MoneyMinor,
+): Pick<
+  CraftOrder,
+  | "depositSettlement"
+  | "settlementStatus"
+  | "depositCollectedMinor"
+  | "depositRetainedMinor"
+  | "collectedMinor"
+  | "receivableMinor"
+  | "nextAction"
+> {
+  const collectedAfterMinor = isRefund ? order.collectedMinor - amountMinor : order.collectedMinor;
+  const depositAfterMinor = isRefund
+    ? order.depositCollectedMinor - amountMinor
+    : order.depositCollectedMinor;
+  const retainedAfterMinor = isRefund
+    ? retainedDepositMinor(order)
+    : retainedDepositMinor(order) + amountMinor;
+  const settled = depositAfterMinor - retainedAfterMinor === 0;
+  const finalDecision: Exclude<DepositSettlementDecision, "needs_review"> =
+    settled && retainedAfterMinor > 0 ? "retain_deposit" : "refund_deposit";
+  return {
+    depositSettlement: settled ? finalDecision : "needs_review",
+    settlementStatus: settled
+      ? finalDecision === "refund_deposit"
+        ? "cancelled_refunded"
+        : "cancelled_retained"
+      : order.settlementStatus,
+    depositCollectedMinor: depositAfterMinor,
+    depositRetainedMinor: retainedAfterMinor,
+    collectedMinor: collectedAfterMinor,
+    receivableMinor: settled ? 0 : order.receivableMinor,
+    nextAction: settled ? "أرشف قرار تسوية الإلغاء" : "أكمل تسوية باقي العربون المعلق",
+  };
+}
+
 function settleDeposit(
   order: CraftOrder,
   decision: Exclude<DepositSettlementDecision, "needs_review">,
@@ -912,28 +996,11 @@ function settleDeposit(
 ): CraftOrder {
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, eventType)) return order;
-  if (order.status !== "cancelled") {
-    throw new Error("تسوية العربون تتطلب طلبًا ملغى.");
-  }
-  if (order.depositSettlement !== "needs_review") {
-    throw new Error("تسوية هذا العربون محسومة سابقًا.");
-  }
-  if (!reason.trim()) throw new Error("أكمل سبب تسوية العربون قبل الحفظ.");
-  assertPositiveInteger(amountMinor, "مبلغ التسوية");
-  if (amountMinor !== order.depositCollectedMinor) {
-    throw new Error("مبلغ التسوية يجب أن يساوي العربون المحصل.");
-  }
-
-  const isRefund = decision === "refund_deposit";
+  assertSettleDepositAllowed(order, amountMinor, reason);
   const next: CraftOrder = {
     ...order,
-    depositSettlement: decision,
-    settlementStatus: isRefund ? "cancelled_refunded" : "cancelled_retained",
-    collectedMinor: isRefund ? order.collectedMinor - amountMinor : order.collectedMinor,
-    receivableMinor: 0,
-    nextAction: "أرشف قرار تسوية الإلغاء",
+    ...depositSettlementOutcome(order, decision === "refund_deposit", amountMinor),
   };
-
   return appendEvent(next, {
     id: `${order.id}:${idempotencyKey}`,
     type: eventType,
@@ -980,72 +1047,160 @@ export function settleDepositRetain(
   );
 }
 
-/* المجموعة ٤ (عقد ٢٩): تصنيف معنى العربون المحتفظ به — بعد قرار الاحتفاظ
- * يختار المالك: مال مالك، أو إيراد مشروع. المعلق يبقى معلقًا ظاهرًا (الافتراضي الآمن).
- * التصنيف حدث مالي مرتبط يُنشئه الكاتب الواحد خارج الدومين؛ هنا يوثَّق القرار
- * على الطلب نفسه. إعادة نفس المفتاح = إعادة استخدام صادقة بلا أثر جديد. */
+/* المجموعة ٤ (عقد ٢٩) + Conflict E: تصنيف معنى العربون المحتفظ به — مبلغ
+ * صريح يجوز أن يكون جزئيًا؛ الاحتفاظ الجزئي يُصنَّف على حدة فتظهر الحالة
+ * «مختلط» حين يكتمل المبلغ بمعنيين مختلفين. المعلق يبقى معلقًا ظاهرًا
+ * (الافتراضي الآمن). التصنيف حدث مالي مرتبط يُنشئه الكاتب الواحد خارج
+ * الدومين؛ هنا يوثَّق القرار على الطلب نفسه. إعادة نفس المفتاح = إعادة
+ * استخدام صادقة بلا أثر جديد. */
+function classifiedSumsOf(order: CraftOrder): { ownerMinor: MoneyMinor; revenueMinor: MoneyMinor } {
+  const retained = retainedDepositMinor(order);
+  if (order.depositClassifiedOwnerMinor != null || order.depositClassifiedRevenueMinor != null) {
+    return {
+      ownerMinor: order.depositClassifiedOwnerMinor ?? 0,
+      revenueMinor: order.depositClassifiedRevenueMinor ?? 0,
+    };
+  }
+  /* توافق رجعي: بيانات قديمة بلا عدّادات — التصنيف الكامل الواحد يُشتق من
+   * retainedMeaning نفسه، ولا شيء قبل القرار الأول. */
+  if (order.retainedMeaning != null && order.retainedMeaning !== "mixed") {
+    return {
+      ownerMinor: order.retainedMeaning === "owner" ? retained : 0,
+      revenueMinor: order.retainedMeaning === "revenue" ? retained : 0,
+    };
+  }
+  return { ownerMinor: 0, revenueMinor: 0 };
+}
+
+function retainedMeaningFromSums(
+  retainedMinor: MoneyMinor,
+  ownerMinor: MoneyMinor,
+  revenueMinor: MoneyMinor,
+): RetainedDepositMeaning | null {
+  const total = ownerMinor + revenueMinor;
+  if (total < retainedMinor) return null;
+  if (ownerMinor > 0 && revenueMinor > 0) return "mixed";
+  if (ownerMinor > 0) return "owner";
+  if (revenueMinor > 0) return "revenue";
+  return null;
+}
+
 export function classifyRetainedDeposit(
   order: CraftOrder,
   meaning: RetainedDepositMeaning,
   reason: string,
   idempotencyKey: string,
   createdAt: string,
+  amountMinor?: MoneyMinor,
 ): CraftOrder {
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, "deposit_classified")) return order;
   if (order.status !== "cancelled") throw new Error("تصنيف العربون المحتفظ به يتطلب طلبًا ملغى.");
-  if (order.depositSettlement !== "retain_deposit")
-    throw new Error("التصنيف يتبع قرار الاحتفاظ — راجع تسوية العربون أولًا.");
-  if (!reason.trim()) throw new Error("أكمل سبب تصنيف العربون قبل الحفظ.");
-  if (order.retainedMeaning != null)
+  const retainedMinor = retainedDepositMinor(order);
+  if (retainedMinor <= 0) throw new Error("التصنيف يتبع قرار الاحتفاظ — راجع تسوية العربون أولًا.");
+  const sums = classifiedSumsOf(order);
+  const unclassifiedMinor = retainedMinor - sums.ownerMinor - sums.revenueMinor;
+  if (unclassifiedMinor <= 0)
     throw new Error("هذا العربون مصنَّف سابقًا — صحِّحه بقرار موثق لا بتسجيل ثانٍ.");
+  if (!reason.trim()) throw new Error("أكمل سبب تصنيف العربون قبل الحفظ.");
+  const amount = amountMinor ?? unclassifiedMinor;
+  assertPositiveInteger(amount, "مبلغ تصنيف العربون");
+  if (amount > unclassifiedMinor)
+    throw new Error(`مبلغ التصنيف يتجاوز المحتفظ به غير المصنَّف (${unclassifiedMinor / 100} د.أ).`);
+  const nextOwnerMinor = sums.ownerMinor + (meaning === "owner" ? amount : 0);
+  const nextRevenueMinor = sums.revenueMinor + (meaning === "revenue" ? amount : 0);
+  const nextMeaning = retainedMeaningFromSums(retainedMinor, nextOwnerMinor, nextRevenueMinor);
   const next: CraftOrder = {
     ...order,
-    retainedMeaning: meaning,
+    depositClassifiedOwnerMinor: nextOwnerMinor,
+    depositClassifiedRevenueMinor: nextRevenueMinor,
+    retainedMeaning: nextMeaning,
     nextAction:
-      meaning === "owner" ? "أرشِف قرار عربون محتفظ به كمال مالك" : "أرشِف قرار عربون محتفظ به كإيراد مشروع",
+      nextMeaning === null ? "أكمل تصنيف باقي العربون المحتفظ به" : "أرشِف قرار تصنيف العربون المحتفظ به",
   };
   return appendEvent(next, {
     id: `${order.id}:${idempotencyKey}`,
     type: "deposit_classified",
     idempotencyKey,
     createdAt,
-    amountMinor: order.depositCollectedMinor,
-    note: `${meaning === "owner" ? "مال مالك" : "إيراد مشروع"} — ${reason.trim()}`,
+    amountMinor: amount,
+    note: `${meaning === "owner" ? "مال مالك" : "إيراد مشروع"} (${amount / 100} د.أ) — ${reason.trim()}`,
   });
 }
 
+/* استبدال مبالغ التصنيف بين المعنيين — الحساب النقي للجمع والطرح. */
+function replaceClassificationSums(
+  sums: { ownerMinor: MoneyMinor; revenueMinor: MoneyMinor },
+  fromMeaning: RetainedDepositMeaning,
+  fromAmountMinor: MoneyMinor,
+  toMeaning: RetainedDepositMeaning,
+  toAmountMinor: MoneyMinor,
+): { ownerMinor: MoneyMinor; revenueMinor: MoneyMinor } {
+  const fromOwner = fromMeaning === "owner" ? fromAmountMinor : 0;
+  const fromRevenue = fromMeaning === "revenue" ? fromAmountMinor : 0;
+  const toOwner = toMeaning === "owner" ? toAmountMinor : 0;
+  const toRevenue = toMeaning === "revenue" ? toAmountMinor : 0;
+  return {
+    ownerMinor: sums.ownerMinor - fromOwner + toOwner,
+    revenueMinor: sums.revenueMinor - fromRevenue + toRevenue,
+  };
+}
+
 /* تصحيح التصنيف: قرار جديد موثق يعلو القديم — الأصل يبقى في الأحداث،
- * والأثر المالي يُعكس ويُستبدل ذرّيًا في طبقة التخزين، لا هنا. */
+ * والأثر المالي يُعكس ويُستبدل ذرّيًا في طبقة التخزين، لا هنا. التصحيح
+ * يستبدل تصنيفًا قائمًا بمبلغه ومعناه (من/إلى صريحان — لا تخمين). */
 export function reclassifyRetainedDeposit(
   order: CraftOrder,
-  meaning: RetainedDepositMeaning,
-  reason: string,
-  idempotencyKey: string,
-  createdAt: string,
+  correction: {
+    fromMeaning: RetainedDepositMeaning;
+    fromAmountMinor: MoneyMinor;
+    toMeaning: RetainedDepositMeaning;
+    toAmountMinor: MoneyMinor;
+    reason: string;
+    idempotencyKey: string;
+    createdAt: string;
+  },
 ): CraftOrder {
-  assertIdempotencyKey(idempotencyKey);
-  if (eventExists(order, idempotencyKey, "deposit_classified")) return order;
-  if (order.status !== "cancelled") throw new Error("تصحيح تصنيف العربون يتطلب طلبًا ملغى.");
-  if (order.depositSettlement !== "retain_deposit")
-    throw new Error("تصحيح التصنيف يتبع قرار الاحتفاظ — راجع تسوية العربون أولًا.");
-  if (order.retainedMeaning == null) throw new Error("لا تصنيف قائم يُصحَّح — سجِّل تصنيفًا أولًا.");
-  if (order.retainedMeaning === meaning) throw new Error("التصنيف الجديد مطابق للقائم — لا تصحيح بلا تغيير.");
-  if (!reason.trim()) throw new Error("أكمل سبب تصحيح التصنيف قبل الحفظ.");
+  assertIdempotencyKey(correction.idempotencyKey);
+  if (eventExists(order, correction.idempotencyKey, "deposit_classified")) return order;
+  if (order.status !== "cancelled") throw new Error("تصحيح تصنيف العربون يتطلب طلبًا ملغًى.");
+  const retainedMinor = retainedDepositMinor(order);
+  const sums = classifiedSumsOf(order);
+  const total = sums.ownerMinor + sums.revenueMinor;
+  if (total <= 0) throw new Error("لا تصنيف قائم يُصحَّح — سجِّل تصنيفًا أولًا.");
+  if (
+    correction.fromMeaning === correction.toMeaning &&
+    correction.fromAmountMinor === correction.toAmountMinor
+  )
+    throw new Error("التصنيف الجديد مطابق للقائم — لا تصحيح بلا تغيير.");
+  if (!correction.reason.trim()) throw new Error("أكمل سبب تصحيح تصنيف العربون قبل الحفظ.");
+  assertPositiveInteger(correction.fromAmountMinor, "مبلغ التصنيف المصحَّح");
+  assertPositiveInteger(correction.toAmountMinor, "مبلغ التصنيف البديل");
+  /* استبدال: ينقص من المعنى القديم بمقداره ويضاف للجديد بمقداره. */
+  const nextSums = replaceClassificationSums(
+    sums,
+    correction.fromMeaning,
+    correction.fromAmountMinor,
+    correction.toMeaning,
+    correction.toAmountMinor,
+  );
+  if (nextSums.ownerMinor < 0 || nextSums.revenueMinor < 0)
+    throw new Error("مبلغ التصنيف المصحَّح يتجاوز المصنَّف بهذا المعنى.");
+  const nextTotal = nextSums.ownerMinor + nextSums.revenueMinor;
+  if (nextTotal > retainedMinor) throw new Error("التصنيف البديل يتجاوز العربون المحتفظ به غير المصنَّف.");
   const next: CraftOrder = {
     ...order,
-    retainedMeaning: meaning,
-    nextAction:
-      meaning === "owner"
-        ? "أرشِف تصحيح تصنيف عربون إلى مال مالك"
-        : "أرشِف تصحيح تصنيف عربون إلى إيراد مشروع",
+    depositClassifiedOwnerMinor: nextSums.ownerMinor,
+    depositClassifiedRevenueMinor: nextSums.revenueMinor,
+    retainedMeaning: retainedMeaningFromSums(retainedMinor, nextSums.ownerMinor, nextSums.revenueMinor),
+    nextAction: "أرشِف تصحيح تصنيف العربون المحتفظ به",
   };
   return appendEvent(next, {
-    id: `${order.id}:${idempotencyKey}`,
+    id: `${order.id}:${correction.idempotencyKey}`,
     type: "deposit_classified",
-    idempotencyKey,
-    createdAt,
-    amountMinor: order.depositCollectedMinor,
-    note: `تصحيح إلى ${meaning === "owner" ? "مال مالك" : "إيراد مشروع"} — ${reason.trim()}`,
+    idempotencyKey: correction.idempotencyKey,
+    createdAt: correction.createdAt,
+    amountMinor: correction.toAmountMinor,
+    note: `تصحيح إلى ${correction.toMeaning === "owner" ? "مال مالك" : "إيراد مشروع"} (${correction.toAmountMinor / 100} د.أ) — ${correction.reason.trim()}`,
   });
 }

@@ -830,6 +830,156 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
    * الطلب وأثر الكاش معًا أو لا شيء. فحص الهوية داخل المعاملة (نمط حركة المالك):
    * حدث التراجع موجود سلفًا → مسار إعادة استخدام مع أثر الكاش المطابق أو رفض
    * الحالة النصفية؛ أثر تراجع سابق لنفس التخصيص → رفض؛ وإلا كتابة الحالتين. */
+  async commitDepositRefundSettlement(
+    order: StoredCraftOrder,
+    allocationReversals: readonly CashContinuityEntry[],
+    refundEventKey: string,
+  ): Promise<
+    StorageResult<{ order: StoredCraftOrder; cashEntries: readonly CashContinuityEntry[]; reused: boolean }>
+  > {
+    /* Conflict E (FC-06): رد العربون وأثر فك التخصيصات في معاملة واحدة —
+     * نفس بروتوكول تراجع القبضة: فحص داخل المعاملة، إحباط عند أي تعارض،
+     * وإعادة استخدام صادقة عند تكرار المفتاح. */
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([orderStore, cashContinuityEntryStore], "readwrite");
+        const orders = transaction.objectStore(orderStore);
+        const cashEntries = transaction.objectStore(cashContinuityEntryStore);
+        let pending: StorageResult<{
+          order: StoredCraftOrder;
+          cashEntries: readonly CashContinuityEntry[];
+          reused: boolean;
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{
+            order: StoredCraftOrder;
+            cashEntries: readonly CashContinuityEntry[];
+            reused: boolean;
+          }>,
+        ) => {
+          resolve(result);
+        };
+        const orderRequest = orders.get(order.id);
+        orderRequest.onerror = () => {
+          pending = failure(orderRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        orderRequest.onsuccess = () => {
+          const existing = orderRequest.result as StoredCraftOrder | undefined;
+          if (!existing) {
+            pending = {
+              ok: false,
+              code: "storage_error",
+              message: "لم نجد الطلب المحلي لرد العربون.",
+            };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const alreadyRefunded = existing.order.events.some(
+            event => event.type === "deposit_refunded" && event.idempotencyKey === refundEventKey,
+          );
+          if (alreadyRefunded) {
+            const cashRequest = cashEntries.getAll();
+            cashRequest.onerror = () => {
+              pending = failure(cashRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            cashRequest.onsuccess = () => {
+              const operationKeys = new Set(allocationReversals.map(entry => entry.operationKey));
+              const matching = (cashRequest.result as CashContinuityEntry[]).filter(entry =>
+                operationKeys.has(entry.operationKey),
+              );
+              pending = {
+                ok: true,
+                value: { order: existing, cashEntries: matching, reused: true },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          const cashRequest = cashEntries.getAll();
+          cashRequest.onerror = () => {
+            pending = failure(cashRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          cashRequest.onsuccess = () => {
+            const all = cashRequest.result as CashContinuityEntry[];
+            /* فك جزئي متكرر مسموح ما دام المجموع لا يتجاوز التخصيص الأصلي. */
+            const originalById = new Map(all.map(entry => [entry.id, entry] as const));
+            const reversedPerEntry = new Map<string, number>();
+            for (const entry of all) {
+              if (entry.type === "reversal" && entry.reversesEntryId) {
+                reversedPerEntry.set(
+                  entry.reversesEntryId,
+                  (reversedPerEntry.get(entry.reversesEntryId) ?? 0) - entry.cashDeltaMinor,
+                );
+              }
+            }
+            let conflict = allocationReversals.some(reversal => all.some(entry => entry.id === reversal.id));
+            if (!conflict) {
+              for (const reversal of allocationReversals) {
+                if (!reversal.reversesEntryId) continue;
+                const original = originalById.get(reversal.reversesEntryId);
+                const reversedSoFar = reversedPerEntry.get(reversal.reversesEntryId) ?? 0;
+                const additional = -reversal.cashDeltaMinor;
+                const cap = original ? original.cashDeltaMinor : Number.POSITIVE_INFINITY;
+                if (reversedSoFar + additional > cap) {
+                  conflict = true;
+                  break;
+                }
+                reversedPerEntry.set(reversal.reversesEntryId, reversedSoFar + additional);
+              }
+            }
+            if (conflict) {
+              pending = {
+                ok: false,
+                code: "storage_error",
+                message: "فك التخصيص يتجاوز مبلغ التخصيص الأصلي؛ لم يتغير السجل.",
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            orders.put(order);
+            for (const reversal of allocationReversals) cashEntries.put(reversal);
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { order, cashEntries: allocationReversals, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+
   async commitOrderCollectionReversal(
     order: StoredCraftOrder,
     allocationReversal: CashContinuityEntry | null,

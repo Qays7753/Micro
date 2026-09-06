@@ -118,9 +118,10 @@ export type OrderEventType =
    * إيراد مشروع — بعد قرار الاحتفاظ؛ قرار قابل للعكس بتوثيق. */
   | "deposit_classified";
 
-/* المجموعة ٤ (عقد ٢٩): معنى العربون المحتفظ به بعد الإلغاء والاحتفاظ.
- * null (أو غياب الحقل للقديم) = قرار معلّق ظاهر بانتظار اختيار المالك. */
-export type RetainedDepositMeaning = "owner" | "revenue";
+/* المجموعة ٤ (عقد ٢٩) + Conflict E: معنى العربون المحتفظ به بعد الإلغاء
+ * والاحتفاظ. null (أو غياب الحقل للقديم) = قرار معلّق ظاهر بانتظار اختيار
+ * المالك. «مختلط» = اكتمل المبلغ بجزئين: إيراد مشروع ومال مالك معًا. */
+export type RetainedDepositMeaning = "owner" | "revenue" | "mixed";
 
 export interface OrderEvent {
   id: string;
@@ -140,7 +141,12 @@ export interface OrderEvent {
 
 export interface CraftOrder {
   id: string;
+  /* Conflict B: الجهة اختيارية — اسم فارغ = «زبون بلا اسم» (دين غير مسمّى
+   * بتحذير ظاهر)؛ التسمية لاحقًا تعبئة باتجاه واحد من الطلب نفسه. */
   customerName: string;
+  /* Conflict B: اسم طلب اختياري — تسمية ودّية للعرض فوق اسم العمل؛ اختياري
+   * تمامًا والقديم بلاه يُقرأ فارغًا. */
+  orderName?: string | null;
   itemName: string;
   specifications: string;
   quantity: number;
@@ -153,8 +159,13 @@ export interface CraftOrder {
   depositCollectedMinor: MoneyMinor;
   depositSettlement: DepositSettlementDecision | null;
   /* المجموعة ٤ (عقد ٢٩): معنى العربون المحتفظ به بعد قرار الاحتفاظ —
-   * مال مالك أو إيراد مشروع؛ null/غياب = معلق بانتظار القرار (الحالة الآمنة). */
+   * مال مالك أو إيراد مشروع أو مختلط؛ null/غياب = معلق بانتظار القرار (الحالة الآمنة). */
   retainedMeaning?: RetainedDepositMeaning | null;
+  /* Conflict E (تسوية جزئية): المحتفظ به حتى الآن والتصنيف المكتمل لكل معنى —
+   * حقول اختيارية تجمعية؛ البيانات القديمة تُقرأ بتوافق رجعي. */
+  depositRetainedMinor?: MoneyMinor;
+  depositClassifiedOwnerMinor?: MoneyMinor;
+  depositClassifiedRevenueMinor?: MoneyMinor;
   collectedMinor: MoneyMinor;
   receivableMinor: MoneyMinor;
   recognizedRevenueMinor: MoneyMinor;
@@ -169,6 +180,7 @@ export interface CraftOrder {
 export interface CreateCraftOrderInput {
   id: string;
   customerName: string;
+  orderName?: string | null;
   itemName: string;
   specifications: string;
   quantity: number;

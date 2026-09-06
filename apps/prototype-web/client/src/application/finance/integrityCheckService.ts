@@ -879,6 +879,10 @@ export class IntegrityCheckService {
     const offenders: string[] = [];
     let pendingCount = 0;
     let pendingMinor = 0;
+    let partialCount = 0;
+    let partialMinor = 0;
+    /* Conflict E: الأحداث المالية النشطة هي الحقيقة — مجموعها لكل معنى يقارن
+     * بالمحتفظ به، والعدّادات/المعنى مرآة يجب أن تطابقها. */
     const activeClassificationEventIds = new Set(
       events
         .filter(
@@ -889,17 +893,46 @@ export class IntegrityCheckService {
         )
         .map(event => event.depositContext?.orderId ?? `بلا-طلب:${event.id}`),
     );
+    const activeClassificationSum = (orderId: string) => {
+      const active = events.filter(
+        event =>
+          (event.type === "deposit_retained_revenue" || event.type === "deposit_retained_owner") &&
+          event.correctionType !== "reverse" &&
+          !reversed.has(event.id) &&
+          event.depositContext?.orderId === orderId,
+      );
+      return {
+        totalMinor: active.reduce((sum, event) => sum + event.amountMinor, 0),
+        ownerMinor: active
+          .filter(event => event.type === "deposit_retained_owner")
+          .reduce((sum, event) => sum + event.amountMinor, 0),
+        revenueMinor: active
+          .filter(event => event.type === "deposit_retained_revenue")
+          .reduce((sum, event) => sum + event.amountMinor, 0),
+      };
+    };
     for (const stored of ordersResult.value) {
       const order = stored.order;
       if (order.status !== "cancelled") continue;
       if (order.depositSettlement === "retain_deposit") {
         const hasActiveEvent = activeClassificationEventIds.has(stored.id);
         const meaning = order.retainedMeaning ?? null;
-        if (meaning !== null && !hasActiveEvent) offenders.push(`تصنيف-بلا-حدث:${stored.id}`);
-        if (meaning === null && hasActiveEvent) offenders.push(`حدث-بلا-تصنيف:${stored.id}`);
-        if (meaning === null) {
+        const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
+        const sums = activeClassificationSum(stored.id);
+        if (sums.totalMinor > retainedMinor) offenders.push(`تصنيف-فوق-الاحتفاظ:${stored.id}`);
+        if (meaning !== null && sums.totalMinor === 0) offenders.push(`تصنيف-بلا-حدث:${stored.id}`);
+        if (sums.totalMinor > 0) {
+          const mixed = sums.ownerMinor > 0 && sums.revenueMinor > 0;
+          if (meaning !== (mixed ? "mixed" : sums.ownerMinor > 0 ? "owner" : "revenue"))
+            offenders.push(`تصنيف-لا-يطابق-الأحداث:${stored.id}`);
+          if (sums.totalMinor < retainedMinor) {
+            /* تصنيف جزئي موثق — تحذير ظاهر لا خلل: المتبقي بانتظار القرار. */
+            partialCount += 1;
+            partialMinor += retainedMinor - sums.totalMinor;
+          }
+        } else if (meaning === null) {
           pendingCount += 1;
-          pendingMinor += order.depositCollectedMinor;
+          pendingMinor += retainedMinor;
         }
       } else if (activeClassificationEventIds.has(stored.id)) {
         offenders.push(`تصنيف-بلا-احتفاظ:${stored.id}`);
@@ -916,14 +949,18 @@ export class IntegrityCheckService {
         null,
         "/finance",
       );
-    if (pendingCount > 0)
+    if (pendingCount > 0 || partialCount > 0)
       return {
         id: "MIC-12",
         titleAr: INTEGRITY_TITLES["MIC-12"],
         status: "WARN",
-        detailAr: `عربونات محتفظة بانتظار قرارك: ${pendingCount} بقيمة ${Math.round(pendingMinor / 100)} د.أ — الكاش محتفظ به بلا معنى حتى تصنّفه (مال مالك أو إيراد مشروع) من صفحة الطلب.`,
-        offenderCount: pendingCount,
-        driftMinor: pendingMinor,
+        detailAr:
+          `عربونات محتفظة بانتظار قرارك: ${pendingCount} بقيمة ${Math.round(pendingMinor / 100)} د.أ — الكاش محتفظ به بلا معنى حتى تصنّفه (مال مالك أو إيراد مشروع) من صفحة الطلب.` +
+          (partialCount > 0
+            ? ` وفي ${partialCount} عربونًا تصنيف جزئي موثق — بقيمة ${Math.round(partialMinor / 100)} د.أ بانتظار تكملة القرار.`
+            : ""),
+        offenderCount: pendingCount + partialCount,
+        driftMinor: pendingMinor + partialMinor,
         deepLink: "/finance",
       };
     return {

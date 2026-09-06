@@ -140,11 +140,51 @@ type EditorDraft = {
   walletId: string;
 };
 const draftKeyFor = (type: GuidedFinancialEventType): string => `micro.finance-draft.${type}.v1`;
-const isEditorDraft = (value: unknown): value is EditorDraft =>
-  typeof value === "object" &&
-  value !== null &&
-  typeof (value as EditorDraft).amountMinor === "number" &&
-  typeof (value as EditorDraft).note === "string";
+
+/* Conflict I (AV-09): إكراه دفاعي لمسودة محلية تالفة — القيم غير الصالحة تُستبدل
+ * بقيم آمنة بدل أن تكسر النموذج أو تصل إلى الحفظ؛ التاريخ المشوّه يرجع لليوم،
+ * والمعدّات لا تقبل إلا أعدادًا صحيحة موجبة، والقيم المعدودة تُرشّح على قوائمها. */
+const LOCAL_DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const RELATIONSHIP_VALUES = ["project", "shared"] as const;
+const BEHAVIOR_VALUES = ["fixed", "variable", "mixed", "unknown"] as const;
+const PURPOSE_VALUES = ["project_general", "period", "order", "product", "campaign", "unallocated"] as const;
+const KNOWLEDGE_VALUES = ["known", "estimated", "needs_review"] as const;
+const SHARED_MODE_VALUES = ["fixed", "percentage", "estimate", "defer"] as const;
+
+const safeDraftAmount = (value: unknown): number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
+const safeDraftString = (value: unknown): string => (typeof value === "string" ? value : "");
+const safeDraftEnum = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T =>
+  typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
+
+function coerceEditorDraft(value: unknown): EditorDraft | null {
+  if (typeof value !== "object" || value === null) return null;
+  const draft = value as Record<string, unknown>;
+  const amountMinor = safeDraftAmount(draft.amountMinor);
+  const note = safeDraftString(draft.note);
+  const date =
+    typeof draft.date === "string" && LOCAL_DATE_PATTERN.test(draft.date) ? draft.date : ammanDate();
+  /* لا شيء ذو معنى قابل للترجيع؟ لا نعرض عرض استرجاع فارغًا. */
+  if (amountMinor === 0 && note.trim() === "" && date === ammanDate()) return null;
+  return {
+    amountMinor,
+    sharedTotalAmountMinor: safeDraftAmount(draft.sharedTotalAmountMinor),
+    sharedPercentage: safeDraftAmount(draft.sharedPercentage),
+    date,
+    note,
+    counterparty: safeDraftString(draft.counterparty),
+    relationship: safeDraftEnum(draft.relationship, RELATIONSHIP_VALUES, "project"),
+    behavior: safeDraftEnum(draft.behavior, BEHAVIOR_VALUES, "unknown"),
+    purpose: safeDraftEnum(draft.purpose, PURPOSE_VALUES, "project_general"),
+    knowledge: safeDraftEnum(draft.knowledge, KNOWLEDGE_VALUES, "known"),
+    sharedMode: safeDraftEnum(draft.sharedMode, SHARED_MODE_VALUES, "fixed"),
+    sharedNote: safeDraftString(draft.sharedNote),
+    /* وسم التصنيف محدود بـ٨٠ حرفًا في النطاق — القص هنا إكراه آمن لا تشويه صامت. */
+    categoryLabel: safeDraftString(draft.categoryLabel).slice(0, 80),
+    relatedEventId: safeDraftString(draft.relatedEventId),
+    walletId: safeDraftString(draft.walletId),
+  };
+}
 
 export default function FinancialEventEditor() {
   const { type: rawType } = useParams<{ type: string }>();
@@ -240,7 +280,10 @@ export default function FinancialEventEditor() {
       const raw = globalThis.localStorage?.getItem(key);
       if (raw) {
         const parsed: unknown = JSON.parse(raw);
-        if (isEditorDraft(parsed)) setDraftOffer(parsed);
+        /* AV-09: الإكراه الدفاعي يمنع المسودة التالفة من كسر النموذج أو حقن
+         * قيم غير آمنة — ترجيع آمن أو تجاهل صامت للمشفّر/الفارغ. */
+        const coerced = coerceEditorDraft(parsed);
+        if (coerced) setDraftOffer(coerced);
       }
     } catch {
       /* وضع خاص أو ملف تالف: تُتجاهل المسودة بصمت. */

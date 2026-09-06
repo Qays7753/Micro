@@ -127,6 +127,7 @@ async function seedCancelledRetainedOrder(): Promise<void> {
 beforeEach(() => {
   store = new MemoryLocalStore();
   retainedDeposits = new RetainedDepositService(store, () => NOW);
+  wouterMocks.params = { id: "order-g4" };
   vi.clearAllMocks();
   mockedUsePrototypeServices.mockImplementation(
     () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
@@ -168,6 +169,67 @@ describe("G4 retained deposit decision surface (المجموعة ٤ — عقد �
     const orders = await store.listOrders();
     if (!orders.ok) throw new Error(orders.message);
     expect(orders.value[0]!.order.retainedMeaning).toBe("revenue");
+  });
+
+  /* Conflict E: معاينة أثر إلزامية قبل قرار العربون المعلق + تسوية جزئية —
+   * الرد الجزئي يبقي الباقي معلقًا والاقتراح قائم على التكلفة الموثقة. */
+  it("shows the mandatory settlement impact preview and supports a partial refund that keeps the remainder pending", async () => {
+    /* طلب ملغى بعربون معلق (بلا تسوية بعد). */
+    const snapshot = calculateCostSnapshot("snap-g4-pending", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: NOW,
+      source: "price_approval",
+    });
+    let order: CraftOrder = createCraftOrder({
+      id: "order-g4-pending",
+      customerName: "ليلى",
+      itemName: "فستان",
+      specifications: "قياس مخصص",
+      quantity: 1,
+      agreedPriceMinor: 10000,
+      costSnapshot: snapshot,
+      createdAt: NOW,
+    });
+    order = collectDeposit(order, 5000, "order-g4-pending:dep", NOW);
+    order = cancelOrder(order, "العميلة ألغت", "order-g4-pending:cancel", NOW);
+    const stored: StoredCraftOrder = {
+      id: "order-g4-pending",
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-09-01",
+      agreementSource: "whatsapp",
+      createdAt: NOW,
+      updatedAt: NOW,
+    };
+    await store.saveOrder(stored);
+    wouterMocks.params = { id: "order-g4-pending" };
+    render(<Harness page={<OrderDetail />} />);
+    /* معاينة الأثر إلزامية: المعلق والتكلفة الموثقة والاقتراح ظاهرة. */
+    const preview = await screen.findByTestId("deposit-settlement-preview");
+    expect(preview.textContent).toContain("معاينة أثر قرار العربون");
+    expect(preview.textContent).toContain("التكلفة الموثقة للطلب");
+    expect(preview.textContent).toContain("لم تُستهلك");
+    expect(preview.textContent).toContain("الاقتراح بعد التكلفة الموثقة");
+    /* رد جزئي بمبلغ صريح: الباقي يبقى معلقًا. */
+    fireEvent.change(screen.getByLabelText(/مبلغ التسوية/), { target: { value: "20" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: رد العربون نقدًا في المحل"), {
+      target: { value: "رد جزئي متفق" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /رُدَّ العربون/ }));
+    await waitFor(async () => {
+      const orders = await store.listOrders();
+      const pending = orders.ok ? orders.value.find(row => row.id === "order-g4-pending") : null;
+      expect(pending?.order.depositSettlement).toBe("needs_review");
+      expect(pending?.order.depositCollectedMinor).toBe(3000);
+      expect(pending?.order.collectedMinor).toBe(3000);
+    });
   });
 
   it("reclassifies to owner money through a documented correction", async () => {

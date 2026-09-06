@@ -15,7 +15,7 @@ import type { CatalogItem } from "@micro-domain/catalog/index.js";
 type EditorState = "loading" | "ready" | "not_found" | "error";
 type DraftFormValues = Pick<
   OrderDraft,
-  "itemName" | "catalogItemId" | "customerName" | "quantity" | "specifications"
+  "itemName" | "catalogItemId" | "customerName" | "orderName" | "quantity" | "specifications"
 >;
 
 function draftFormValues(draft: OrderDraft): DraftFormValues {
@@ -23,6 +23,7 @@ function draftFormValues(draft: OrderDraft): DraftFormValues {
     itemName: draft.itemName,
     catalogItemId: draft.catalogItemId,
     customerName: draft.customerName,
+    orderName: draft.orderName ?? null,
     quantity: draft.quantity,
     specifications: draft.specifications,
   };
@@ -35,6 +36,7 @@ function equalDraftValues(left: DraftFormValues | null, right: DraftFormValues |
     left.itemName === right.itemName &&
     left.catalogItemId === right.catalogItemId &&
     left.customerName === right.customerName &&
+    (left.orderName ?? null) === (right.orderName ?? null) &&
     left.quantity === right.quantity &&
     left.specifications === right.specifications,
   );
@@ -123,6 +125,7 @@ export default function DraftEditor() {
           id: "new",
           intent,
           customerName: "",
+          orderName: null,
           itemName: "",
           catalogItemId: null,
           specifications: "",
@@ -413,18 +416,33 @@ export default function DraftEditor() {
           <BookOpen aria-hidden="true" /> منتجاتي وخدماتي
         </button>
         {isCustomerOrder ? (
-          <label className="micro-field">
-            <span>
-              اسم العميل <small>اختياري في المسودة</small>
-            </span>
-            <input
-              value={draft.customerName}
-              onChange={event =>
-                setDraft(current => (current ? { ...current, customerName: event.target.value } : current))
-              }
-              placeholder="مثال: سارة"
-            />
-          </label>
+          <>
+            {/* Conflict B: اسم طلب ودّي اختياري — يعبر إلى الاتفاق والطلب. */}
+            <label className="micro-field">
+              <span>
+                اسم الطلب <small>اختياري — تسمية تعرضها فوق اسم العمل</small>
+              </span>
+              <input
+                value={draft.orderName ?? ""}
+                onChange={event =>
+                  setDraft(current => (current ? { ...current, orderName: event.target.value } : current))
+                }
+                maxLength={80}
+              />
+            </label>
+            <label className="micro-field">
+              <span>
+                اسم الجهة <small>اختياري في المسودة</small>
+              </span>
+              <input
+                value={draft.customerName}
+                onChange={event =>
+                  setDraft(current => (current ? { ...current, customerName: event.target.value } : current))
+                }
+                placeholder="مثال: سارة"
+              />
+            </label>
+          </>
         ) : null}
         <label className="micro-field">
           <span>

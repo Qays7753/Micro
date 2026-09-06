@@ -557,4 +557,111 @@ describe("OrderDetail mid-journey deposit panel (عقد الإغلاق العم�
     expect(warning.textContent).toContain("50.00");
     expect(warning.textContent).toContain("تراجع عن القبضة أولًا");
   });
+
+  /* Conflict B: تسمية جهة الطلب غير المسمّى — زر ظاهر، وتعبئة باتجاه واحد
+   * عبر النطاق (لا إعادة تسمية)، والدين غير المسمّى معلَم في ورقة التحصيل. */
+  it("names an unnamed order party once from the order page", async () => {
+    const created = await drafts.create("customer_order", {
+      itemName: "طقم شاي",
+      customerName: "",
+      specifications: "نقش هندسي",
+      quantity: 1,
+    });
+    if (!created.ok) throw new Error(created.message);
+    const costSaved = await costs.saveSnapshot(created.draft, {
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+    });
+    if (!costSaved.ok) throw new Error(costSaved.message);
+    const agreement = await agreements.createFromDraft(costSaved.draft, {
+      agreedPriceMinor: 9000,
+      deliveryDate: "2026-09-18",
+      depositMinor: 0,
+      agreementSource: null,
+    });
+    if (!agreement.ok) throw new Error(agreement.message);
+    const orderId = agreement.stored.id;
+    wouterMocks.location = `/orders/${orderId}`;
+    wouterMocks.params = { id: orderId };
+    mockedUsePrototypeServices.mockImplementation(
+      () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    render(<G3Harness page={<OrderDetail />} />);
+    /* الطلب بلا اسم: زر التسمية ظاهر. */
+    const opener = await screen.findByTestId("assign-party-opener");
+    expect(opener.textContent).toContain("سمِّ جهة هذا الطلب");
+    fireEvent.click(opener);
+    fireEvent.change(screen.getByLabelText("اسم الجهة"), { target: { value: "آمنة" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ اسم الجهة" }));
+    await waitFor(async () => {
+      const stored = await store.getOrder(orderId);
+      expect(stored.ok && stored.value?.order.customerName).toBe("آمنة");
+    });
+    /* بعد التسمية: الزر يختفي (تعبئة باتجاه واحد). */
+    await waitFor(() => expect(screen.queryByTestId("assign-party-opener")).toBeNull());
+  });
+
+  /* Conflict F (AV-07): الإلغاء متاح من «يحتاج مراجعة» بعد عكس التسليم —
+   * معاينة أثر إلزامية قبل أزرار السبب، والإلغاء يكتمل بأمان (لا وعد
+   * بلا زر كما كان: nextAction يعد بـ«ألغِ موثقًا» والسطح مخفي). */
+  it("offers cancellation from needs_review with a mandatory impact preview and completes safely", async () => {
+    const created = await drafts.create("customer_order", {
+      itemName: "سجادة صوف",
+      customerName: "ليلى",
+      specifications: "نقش تقليدي",
+      quantity: 1,
+    });
+    if (!created.ok) throw new Error(created.message);
+    const costSaved = await costs.saveSnapshot(created.draft, {
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+    });
+    if (!costSaved.ok) throw new Error(costSaved.message);
+    const agreement = await agreements.createFromDraft(costSaved.draft, {
+      agreedPriceMinor: 8000,
+      deliveryDate: "2026-09-12",
+      depositMinor: 0,
+      agreementSource: null,
+    });
+    if (!agreement.ok) throw new Error(agreement.message);
+    const orderId = agreement.stored.id;
+    await agreements.startExecution(orderId);
+    await fulfillment.markReady(orderId);
+    const delivered = await fulfillment.deliver(orderId);
+    if (!delivered.ok) throw new Error(delivered.message);
+    /* عكس التسليم: الطلب في «يحتاج مراجعة» — الإلغاء هنا صار متاحًا. */
+    const deliveryReview = new DeliveryReviewService(store, () => NOW);
+    const reversed = await deliveryReview.reverseDelivery(orderId, { reason: "أعيد التنفيذ" });
+    if (!reversed.ok) throw new Error(reversed.message);
+    const afterReversal = await store.getOrder(orderId);
+    expect(afterReversal.ok && afterReversal.value?.order.status).toBe("needs_review");
+    wouterMocks.location = `/orders/${orderId}`;
+    wouterMocks.params = { id: orderId };
+    mockedUsePrototypeServices.mockImplementation(
+      () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    render(<G3Harness page={<OrderDetail />} />);
+    fireEvent.click(await screen.findByRole("button", { name: /إلغاء الطلب/ }));
+    /* معاينة الأثر إلزامية: تظهر قبل أزرار السبب وتفسر «يحتاج مراجعة». */
+    const preview = await screen.findByTestId("cancel-impact-preview");
+    expect(preview.textContent).toContain("معاينة أثر الإلغاء");
+    expect(preview.textContent).toContain("يحتاج مراجعة");
+    expect(preview.textContent).toContain("لا حذف");
+    /* الإلغاء يكتمل بأمان من needs_review — لا وعد بلا فعل. */
+    fireEvent.click(screen.getByRole("button", { name: "انسحب العميل" }));
+    await waitFor(async () => {
+      const stored = await store.getOrder(orderId);
+      expect(stored.ok && stored.value?.order.status).toBe("cancelled");
+    });
+  });
 });

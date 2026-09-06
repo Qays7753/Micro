@@ -404,3 +404,79 @@ describe("DeliveryReviewService — reverseDelivery", () => {
     expect(reversals).toHaveLength(1);
   });
 });
+
+/* Conflict C/D (مثال العقد الحرفي): البيع يُعرف عند التسليم فقط — ١٠٠٠٠ د.أ
+ * إيرادًا واحدًا، والعربون ٢٠٠٠ يُطبَّق مرة واحدة ضمن البيع، والمتبقي ٨٠٠٠
+ * دَين قابل للتحصيل؛ التحصيل اللاحق كاش فقط لا إيراد جديد. */
+describe("sale recognition at delivery only (Conflict C/D)", () => {
+  it("recognizes the full sale once at delivery, applies the deposit once, and treats later collection as cash-only", async () => {
+    const store = new MemoryLocalStore();
+    const drafts = new DraftService(store, () => "2026-09-02T00:00:00.000Z");
+    const created = await drafts.create("customer_order");
+    if (!created.ok) throw new Error(created.message);
+    const saved = await drafts.save({
+      ...created.draft,
+      customerName: "خالد",
+      itemName: "طقم مطرز",
+      specifications: "تطريز",
+      quantity: 1,
+    });
+    if (!saved.ok) throw new Error(saved.message);
+    const costs = new CostService(store, () => "2026-09-02T00:01:00.000Z");
+    const withCost = await costs.saveSnapshot(saved.draft, {
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+    });
+    if (!withCost.ok) throw new Error(withCost.message);
+    const agreements = new AgreementService(store, costs, () => "2026-09-02T01:00:00.000Z");
+    const agreed = await agreements.createFromDraft(withCost.draft, {
+      agreedPriceMinor: 10_000,
+      deliveryDate: "2026-09-20",
+      depositMinor: 2_000,
+      agreementSource: null,
+    });
+    if (!agreed.ok) throw new Error(agreed.message);
+    const orderId = agreed.stored.id;
+    /* قبل التسليم: لا إيراد — العربون سيولة مرتبطة بالطلب فقط. */
+    expect(agreed.stored.order.recognizedRevenueMinor).toBe(0);
+    expect(agreed.stored.order.collectedMinor).toBe(2_000);
+    await agreements.startExecution(orderId);
+    const fulfillment = new FulfillmentService(store, () => "2026-09-02T02:00:00.000Z");
+    await fulfillment.markReady(orderId);
+    const review = new DeliveryReviewService(store, () => "2026-09-21T03:00:00.000Z");
+    const committed = await review.commitDelivery(orderId, {
+      rows: [],
+      collectNow: null,
+      operationKey: "conflict-cd-deliver",
+    });
+    expect(committed.ok).toBe(true);
+    if (!committed.ok) return;
+    expect(committed.value.stored.order).toMatchObject({
+      status: "delivered",
+      recognizedRevenueMinor: 10_000,
+      collectedMinor: 2_000,
+      receivableMinor: 8_000,
+      depositCollectedMinor: 2_000,
+    });
+    /* تحصيل المتبقي لاحقًا: كاش فقط — لا إيراد جديد ولا مضاعفة. */
+    const collected = await fulfillment.collectFromSheet(orderId, 8_000, "conflict-cd-collect");
+    expect(collected.ok).toBe(true);
+    if (!collected.ok) return;
+    expect(collected.stored.order).toMatchObject({
+      status: "settled",
+      settlementStatus: "paid",
+      collectedMinor: 10_000,
+      receivableMinor: 0,
+      recognizedRevenueMinor: 10_000,
+    });
+    /* لا حدث مالي إيرادٍ بعد التحصيل — الإيراد عُرِف عند التسليم وحده. */
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    expect(events.value.filter(event => event.revenueDeltaMinor > 0)).toHaveLength(0);
+  });
+});

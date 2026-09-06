@@ -722,9 +722,15 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
     wouterState.params = {};
     wouterState.search = "view=period";
     wouterState.path = "/finance";
+    /* نفس تثبيت ساعة النظام (PR #157): عرض الفترة في Finance يشتق الشهر الحالي
+     * من localDateInAmman() — نثبّته على أيلول 2026 ليطابق بذور الهدر. */
+    vi.useFakeTimers({ now: new Date(NOW), toFake: ["Date"] });
     vi.clearAllMocks();
   });
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   function renderFinanceHarness(store: MemoryLocalStore, inventory: InventoryMaterialService) {
     const projectFinance = new ProjectFinancialService(store, () => NOW);

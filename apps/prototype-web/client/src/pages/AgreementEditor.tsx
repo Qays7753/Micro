@@ -43,8 +43,16 @@ function equalAgreementValues(left: AgreementFormValues | null, right: Agreement
 export default function AgreementEditor() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const { drafts, costs, agreements, cashContinuity, projectFinance, dataVersion, notifyDataChanged } =
-    usePrototypeServices();
+  const {
+    drafts,
+    costs,
+    agreements,
+    cashContinuity,
+    projectFinance,
+    partyLedger,
+    dataVersion,
+    notifyDataChanged,
+  } = usePrototypeServices();
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [priceMinor, setPriceMinor] = useState<number | null>(startAgreementPrice());
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -61,15 +69,24 @@ export default function AgreementEditor() {
     void (async () => {
       const overview = await cashContinuity.overview();
       if (active && overview.ok) setWalletOptions(overview.value.wallets);
+      /* Conflict B: الجهات المتكررة فقط — جهة قائمة تُختار باسمها (لا كيان
+       * إدخال مزدوج)، والاسم الجديد يصبح جهة عند تكراره. */
+      const ledger = await partyLedger.read({ repeatedOnly: true });
+      if (active && ledger.ok)
+        setPartySuggestions(ledger.value.parties.map(party => party.name).slice(0, 12));
     })();
     return () => {
       active = false;
     };
-  }, [cashContinuity, dataVersion]);
+  }, [cashContinuity, partyLedger, dataVersion]);
   const [source, setSource] = useState<AgreementSource | "">("");
   const [acknowledgesBelowFloor, setAcknowledgesBelowFloor] = useState(false);
-  /* (إصلاح تكاملي — مجموعة ٤): الاسم يُعبّأ من المسودة إن وُجد؛ يُطلب هنا فقط عند نقصه. */
+  /* (إصلاح تكاملي — مجموعة ٤): الاسم يُعبّأ من المسودة إن وُجد. */
   const [customerName, setCustomerName] = useState("");
+  /* Conflict B: اسم طلب ودّي اختياري — تسمية للعرض فوق اسم العمل. */
+  const [orderName, setOrderName] = useState("");
+  /* Conflict B: مقترحات الجهات المتكررة — اختيار جهة محفوظة أو إنشاء جديدة. */
+  const [partySuggestions, setPartySuggestions] = useState<readonly string[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -104,6 +121,7 @@ export default function AgreementEditor() {
       setSource(loadedValues.source);
       setAcknowledgesBelowFloor(loadedValues.acknowledgesBelowFloor);
       setCustomerName(loadedValues.customerName);
+      setOrderName(loaded.orderName ?? "");
       initialValuesRef.current = loadedValues;
       setState("ready");
     });
@@ -139,10 +157,6 @@ export default function AgreementEditor() {
   async function persistAgreement(): Promise<string | null> {
     if (!draft) return null;
     setMessage(null);
-    if (!customerName.trim()) {
-      setMessage("اسم العميل: سجّله قبل تسجيل الاتفاق — الدين والتحصيل يُنسبان باسمه.");
-      return null;
-    }
     if (!agreementPriceIsReady(priceMinor)) {
       setMessage("السعر المتفق عليه: أدخل مبلغًا أكبر من صفر أو استخدم سعر الحماية كبداية، ثم أعد التسجيل.");
       return null;
@@ -167,8 +181,16 @@ export default function AgreementEditor() {
     /* (إصلاح تكاملي — مجموعة ٤): الاسم المُدخل هنا يُحفظ في المسودة أولًا (مصدر واحد
      * للحقيقة) ثم يُبنى الاتفاق من المسودة المحدّثة — لا مسار كتابة موازٍ. */
     let draftForAgreement = draft;
-    if (customerName.trim() && customerName.trim() !== draft.customerName) {
-      const savedDraft = await drafts.save({ ...draft, customerName: customerName.trim() });
+    const nextOrderName = orderName.trim() || null;
+    if (
+      (customerName.trim() && customerName.trim() !== draft.customerName) ||
+      nextOrderName !== (draft.orderName ?? null)
+    ) {
+      const savedDraft = await drafts.save({
+        ...draft,
+        customerName: customerName.trim(),
+        orderName: nextOrderName,
+      });
       if (!savedDraft.ok) {
         setIsSaving(false);
         setMessage(savedDraft.message);
@@ -360,18 +382,41 @@ export default function AgreementEditor() {
           <CircleAlert aria-hidden="true" /> العربون كاش محصل مرتبط بالطلب، وليس ربحًا نهائيًا أو تسليمًا
           تلقائيًا.
         </p>
+        {/* Conflict B: اسم الطلب الودّي اختياري — تسمية للعرض فوق اسم العمل. */}
         <label className="micro-field">
           <span>
-            اسم العميل <small>مطلوب قبل تسجيل الاتفاق</small>
+            اسم الطلب <small>اختياري</small>
+          </span>
+          <input
+            value={orderName}
+            onChange={event => setOrderName(event.target.value)}
+            placeholder="مثال: طلب العيد"
+            aria-label="اسم الطلب"
+            maxLength={80}
+          />
+        </label>
+        <label className="micro-field">
+          <span>
+            اسم الجهة <small>اختياري</small>
           </span>
           <input
             value={customerName}
             onChange={event => setCustomerName(event.target.value)}
             placeholder="مثال: سارة"
-            aria-label="اسم العميل قبل تسجيل الاتفاق"
-            aria-invalid={hasFormError && !customerName.trim()}
-            aria-describedby={hasFormError ? "agreement-form-error" : undefined}
+            aria-label="اسم الجهة"
+            list="agreement-party-suggestions"
           />
+          <datalist id="agreement-party-suggestions">
+            {partySuggestions.map(name => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+          {!customerName.trim() ? (
+            <small className="micro-warning-copy" data-testid="unnamed-party-warning">
+              طلب بلا اسم جهة — أي دين لاحق سيظهر «زبون بلا اسم» في ورقة التحصيل مع تحذير، ويمكنك تسمية الجهة
+              لاحقًا من صفحة الطلب (اختيار جهة قائمة أو اسم جديد يصبح جهة عند تكراره).
+            </small>
+          ) : null}
         </label>
         <label className="micro-field">
           <span>

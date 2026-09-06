@@ -12,6 +12,8 @@ import {
   reclassifyRetainedDeposit,
   reviseOrderCost,
   settleDepositRefund,
+  assignOrderCustomerName,
+  retainedDepositMinor,
   settleDepositRetain,
   transitionOrder,
   type CostSnapshot,
@@ -433,9 +435,11 @@ describe("craft-order domain core", () => {
       "cancel-retain",
       "2026-08-21T10:11:00Z",
     );
+    /* Conflict E: المبلغ الصريح يجوز أن يكون جزئيًا — لكن تجاوز المتبقي غير
+     * المحسوم يُرفض برسالة تحمل الرقم الفعلي. */
     expect(() =>
       settleDepositRefund(cancelled, 600, "مبلغ أكبر من العربون", "refund-too-large", "2026-08-21T10:11:30Z"),
-    ).toThrow("مبلغ التسوية يجب أن يساوي العربون المحصل");
+    ).toThrow("مبلغ التسوية يتجاوز المتبقي غير المحسوم");
 
     const retained = settleDepositRetain(
       cancelled,
@@ -968,6 +972,206 @@ describe("retained deposit classification (group 4)", () => {
   });
 });
 
+/* Conflict B: الجهة والاسم الودّي اختياريان — الطلب النقدي لا يُحجب، والدين
+ * غير المسمّى قابل للتسمية لاحقًا بتعبئة باتجاه واحد لا إعادة تسمية. */
+describe("optional party and one-way naming (Conflict B)", () => {
+  it("creates an order without a customer name — cash flow is not blocked", () => {
+    const order = createCraftOrder({
+      ...makeOrder(),
+      customerName: "",
+      orderName: "طلب العيد",
+    });
+    expect(order.customerName).toBe("");
+    expect(order.orderName).toBe("طلب العيد");
+    /* الاسم الودّي اختياري تمامًا. */
+    const unnamed = createCraftOrder({ ...makeOrder(), customerName: "", orderName: null });
+    expect(unnamed.orderName).toBeNull();
+  });
+
+  it("names an unnamed order once — renaming a named order is refused honestly", () => {
+    const order = createCraftOrder({ ...makeOrder(), customerName: "" });
+    const named = assignOrderCustomerName(order, "سارة", "name-once");
+    expect(named.customerName).toBe("سارة");
+    expect(() => assignOrderCustomerName(named, "ليلى", "name-twice")).toThrow(/مسمّى سابقًا/);
+    expect(() => assignOrderCustomerName(order, "   ", "name-blank")).toThrow(/اكتب اسم الجهة/);
+  });
+});
+
+/* Conflict E (تسوية جزئية): الرد الجزئي يبقي الباقي معلقًا، والاحتفاظ الجزئي
+ * يُلحق بالمحتفظ به، والتصنيف بمبلغ صريح يجوز تكراره حتى «مختلط» — والحالة
+ * الختامية لا تُقفل إلا بقرار صريح لا بصمت. */
+/* Conflict E: طلب ملغى بعربون معلق — بذرة مشتركة لاختبارات التسوية الجزئية. */
+function cancelledWithDeposit(depositMinor: number) {
+  let order = makeOrder({ agreedPriceMinor: 10000 });
+  order = collectDeposit(order, depositMinor, "partial-dep", "2026-08-21T10:10:00Z");
+  return cancelOrder(order, "إلغاء متفق عليه", "partial-cancel", "2026-08-22T10:00:00Z");
+}
+
+describe("partial deposit settlement and mixed classification (Conflict E)", () => {
+  it("refunds partially — the remainder stays honestly pending, full refund closes the settlement", () => {
+    const cancelled = cancelledWithDeposit(5000);
+    const partial = settleDepositRefund(
+      cancelled,
+      2000,
+      "رد جزئي متفق عليه",
+      "partial-refund-1",
+      "2026-08-23T10:00:00Z",
+    );
+    expect(partial.depositSettlement).toBe("needs_review");
+    expect(partial.depositCollectedMinor).toBe(3000);
+    expect(partial.collectedMinor).toBe(3000);
+    expect(partial.events.at(-1)?.type).toBe("deposit_refunded");
+    expect(partial.events.at(-1)?.amountMinor).toBe(2000);
+    /* المتبقي يُرد كاملًا فتُقفل الحالة كما كانت تُقفل سابقًا. */
+    const closed = settleDepositRefund(
+      partial,
+      3000,
+      "رد الباقي",
+      "partial-refund-2",
+      "2026-08-24T10:00:00Z",
+    );
+    expect(closed.depositSettlement).toBe("refund_deposit");
+    expect(closed.settlementStatus).toBe("cancelled_refunded");
+    expect(closed.collectedMinor).toBe(0);
+  });
+
+  it("retains partially to cover documented cost, then refunds the remainder — no hidden classification", () => {
+    const cancelled = cancelledWithDeposit(5000);
+    const retained = settleDepositRetain(
+      cancelled,
+      2000,
+      "تغطية التكلفة الموثقة",
+      "partial-retain-1",
+      "2026-08-23T10:00:00Z",
+    );
+    expect(retained.depositRetainedMinor).toBe(2000);
+    expect(retained.depositSettlement).toBe("needs_review");
+    expect(retained.collectedMinor).toBe(5000);
+    /* رد المتبقي لا يمس المحتفظ به. */
+    const refunded = settleDepositRefund(
+      retained,
+      3000,
+      "رد الباقي للزبون",
+      "partial-refund-after-retain",
+      "2026-08-24T10:00:00Z",
+    );
+    expect(refunded.depositRetainedMinor).toBe(2000);
+    expect(refunded.depositCollectedMinor).toBe(2000);
+    expect(refunded.depositSettlement).toBe("retain_deposit");
+    expect(refunded.settlementStatus).toBe("cancelled_retained");
+    /* التسوية ختامية — أي قرار إضافي يُرفض بصراحة لا يتجاوز صامت. */
+    expect(() => settleDepositRefund(refunded, 3000, "زيادة", "over-refund", "2026-08-25T10:00:00Z")).toThrow(
+      /محسومة سابقًا/,
+    );
+  });
+});
+
+/* Conflict E (تكملة): التصنيف الجزئي والمختلط والتصحيح والقراءة الرجعية. */
+describe("partial classification and mixed meaning (Conflict E)", () => {
+  it("classifies explicit partial amounts and records «mixed» when both meanings complete the deposit", () => {
+    const cancelled = cancelledWithDeposit(5000);
+    const retained = settleDepositRetain(
+      cancelled,
+      5000,
+      "احتفاظ كامل",
+      "mix-retain",
+      "2026-08-23T10:00:00Z",
+    );
+    /* جزء إيراد مشروع وجزء مال مالك — بمبلغين صريحين. */
+    const revenuePart = classifyRetainedDeposit(
+      retained,
+      "revenue",
+      "جزء يعوض تكلفة مواد مستهلكة فعلًا",
+      "mix-classify-revenue",
+      "2026-08-24T10:00:00Z",
+      2000,
+    );
+    expect(revenuePart.retainedMeaning).toBeNull();
+    expect(revenuePart.depositClassifiedRevenueMinor).toBe(2000);
+    expect(revenuePart.nextAction).toContain("أكمل تصنيف");
+    const mixed = classifyRetainedDeposit(
+      revenuePart,
+      "owner",
+      "الباقي مالي لا ربح مشروع",
+      "mix-classify-owner",
+      "2026-08-25T10:00:00Z",
+      3000,
+    );
+    expect(mixed.retainedMeaning).toBe("mixed");
+    expect(mixed.depositClassifiedOwnerMinor).toBe(3000);
+    expect(mixed.depositClassifiedRevenueMinor).toBe(2000);
+    /* لا تصنيف فوق المحتفظ به غير المصنَّف. */
+    expect(() =>
+      classifyRetainedDeposit(mixed, "owner", "زيادة", "mix-over", "2026-08-26T10:00:00Z", 1000),
+    ).toThrow(/مصنَّف سابقًا/);
+  });
+});
+
+/* Conflict E (تصحيح التصنيف الجزئي): استبدال موثّق بمبالغ صريحة داخل المحتفظ به. */
+describe("partial classification correction (Conflict E)", () => {
+  it("replaces a partial classification with a documented correction — sums stay within the retained amount", () => {
+    const cancelled = cancelledWithDeposit(5000);
+    const retained = settleDepositRetain(cancelled, 5000, "احتفاظ", "fix-retain", "2026-08-23T10:00:00Z");
+    const classified = classifyRetainedDeposit(
+      retained,
+      "revenue",
+      "قرار أول",
+      "fix-classify-1",
+      "2026-08-24T10:00:00Z",
+      2000,
+    );
+    const corrected = reclassifyRetainedDeposit(classified, {
+      fromMeaning: "revenue",
+      fromAmountMinor: 2000,
+      toMeaning: "owner",
+      toAmountMinor: 2000,
+      reason: "هذا المبلغ مالي لا إيراد",
+      idempotencyKey: "fix-reclassify-1",
+      createdAt: "2026-08-26T10:00:00Z",
+    });
+    expect(corrected.depositClassifiedOwnerMinor).toBe(2000);
+    expect(corrected.depositClassifiedRevenueMinor).toBe(0);
+    expect(corrected.retainedMeaning).toBeNull();
+    /* البديل لا يتجاوز المحتفظ به (٥٠٠٠ محتفظ؛ ٢٠٠٠ مصحَّح + ٤٠٠٠ بديل = تجاوز). */
+    expect(() =>
+      reclassifyRetainedDeposit(corrected, {
+        fromMeaning: "owner",
+        fromAmountMinor: 2000,
+        toMeaning: "revenue",
+        toAmountMinor: 6000,
+        reason: "تجاوز",
+        idempotencyKey: "fix-reclassify-over",
+        createdAt: "2026-08-27T10:00:00Z",
+      }),
+    ).toThrow(/يتجاوز/);
+  });
+});
+
+/* Conflict E (القراءة الرجعية): طلبات احتفاظ قديمة بلا عدادات تصنيف. */
+describe("legacy retained deposit reads (Conflict E)", () => {
+  it("reads legacy full-retained orders without counters through retainedDepositMinor", () => {
+    const cancelled = cancelledWithDeposit(5000);
+    /* بيانات قديمة: احتفاظ كامل بلا depositRetainedMinor. */
+    const legacy: typeof cancelled = {
+      ...cancelled,
+      depositSettlement: "retain_deposit",
+      settlementStatus: "cancelled_retained",
+    };
+    expect(retainedDepositMinor(legacy)).toBe(5000);
+    const legacyClassified: typeof legacy = { ...legacy, retainedMeaning: "owner" };
+    /* التصنيف الكامل القديم يُشتق من retainedMeaning — لا تصنيف ثانٍ. */
+    expect(() =>
+      classifyRetainedDeposit(
+        legacyClassified,
+        "owner",
+        "قرار موثق",
+        "legacy-should-refuse",
+        "2026-08-24T10:00:00Z",
+      ),
+    ).toThrow(/مصنَّف سابقًا/);
+  });
+});
+
 /* المجموعة ٤: تصحيح التصنيف — وصف مستقل صغير تحت سقف الأسطر. */
 describe("retained deposit reclassification (group 4)", () => {
   it("reclassifies with a documented correction and keeps both decisions in history", () => {
@@ -978,18 +1182,28 @@ describe("retained deposit reclassification (group 4)", () => {
       "order-classify:classify",
       "2026-08-24T10:00:00Z",
     );
-    const corrected = reclassifyRetainedDeposit(
-      classified,
-      "owner",
-      "القرار الأول كان متسرعًا",
-      "order-classify:reclassify",
-      "2026-08-26T10:00:00Z",
-    );
+    const corrected = reclassifyRetainedDeposit(classified, {
+      fromMeaning: "revenue",
+      fromAmountMinor: 5000,
+      toMeaning: "owner",
+      toAmountMinor: 5000,
+      reason: "القرار الأول كان متسرعًا",
+      idempotencyKey: "order-classify:reclassify",
+      createdAt: "2026-08-26T10:00:00Z",
+    });
     expect(corrected.retainedMeaning).toBe("owner");
     expect(corrected.events.filter(event => event.type === "deposit_classified")).toHaveLength(2);
     /* رفض التصحيح بلا تغيير. */
     expect(() =>
-      reclassifyRetainedDeposit(corrected, "owner", "نفس القيمة", "k2", "2026-08-27T10:00:00Z"),
+      reclassifyRetainedDeposit(corrected, {
+        fromMeaning: "owner",
+        fromAmountMinor: 5000,
+        toMeaning: "owner",
+        toAmountMinor: 5000,
+        reason: "نفس القيمة",
+        idempotencyKey: "k2",
+        createdAt: "2026-08-27T10:00:00Z",
+      }),
     ).toThrow(/مطابق للقائم/);
   });
 });

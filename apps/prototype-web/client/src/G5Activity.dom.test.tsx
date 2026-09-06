@@ -50,11 +50,16 @@ function Harness() {
 
 beforeEach(() => {
   store = new MemoryLocalStore();
+  /* PR #157 (السبب الجذري): سطح النشاط يستنتج «هذا الأسبوع» من ساعة النظام الحقيقية
+   * عبر localDateInAmman() — نثبّت التاريخ ليطابق بذرة 2026-09-01 فلا يتأثر
+   * الاختبار بتغيّر الأسبوع الفعلي. */
+  vi.useFakeTimers({ now: new Date(NOW), toFake: ["Date"] });
   wouterMocks.navigate.mockReset();
 });
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.clearAllMocks();
 });
 
