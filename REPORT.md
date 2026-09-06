@@ -32,7 +32,7 @@ every pull request.
   **Confidence:** High.
 - **Fact:** the testing framework is `vitest`, run through workspace scripts.
   **Evidence:** `vitest` in dev dependencies; a root `vitest.config.ts` exists; test
-  scripts are `test:domain`, `test:prototype`, `check`.
+  scripts are `test` (domain suite), `prototype:test`, `check`.
   **Confidence:** High.
 - **Fact:** the analysis baseline commit is `1601fd9` (Merge pull request #156). The
   repository's integration branch is `main`; all feature work lands through pull
@@ -186,8 +186,8 @@ every pull request.
 
 - **Recommendation:** before modifying features, read the domain policies in
   `src/domain/` and the matching contract in `docs/contracts/` — comments cite IDs.
-- **Recommendation:** verify any storage/schema change with `pnpm test:domain`,
-  `pnpm test:prototype`, and the backup/restore tests in
+- **Recommendation:** verify any storage/schema change with `pnpm test`,
+  `pnpm prototype:test`, and the backup/restore tests in
   `localTransferService.*.test.ts`.
 - **Recommendation:** run `pnpm check` locally before pushing; the text-density and
   design-token guards fail on rule violations, not on style preference.
