@@ -123,14 +123,14 @@ describe("family-owned events are corrected only through their owner record (FT-
 
     /* حدث الأصل: وصلة المالك بلا أزرار التصحيح العامة. */
     expect(within(assetRow).getByRole("button", { name: "صحّحه من صفحة الأصل" })).toBeTruthy();
-    expect(within(assetRow).queryByRole("button", { name: "تراجع موثق" })).toBeNull();
-    expect(within(assetRow).queryByRole("button", { name: "عدّل بقيم جديدة" })).toBeNull();
-    expect(within(assetRow).queryByRole("button", { name: "حذف موثق" })).toBeNull();
+    expect(within(assetRow).queryByRole("button", { name: "إلغاء العملية" })).toBeNull();
+    expect(within(assetRow).queryByRole("button", { name: "تعديل العملية" })).toBeNull();
+    expect(within(assetRow).queryByRole("button", { name: "حذف العملية" })).toBeNull();
 
     /* الحدث العام: الأزرار الثلاثة كما هي. */
-    expect(within(expenseRow).getByRole("button", { name: "تراجع موثق" })).toBeTruthy();
-    expect(within(expenseRow).getByRole("button", { name: "عدّل بقيم جديدة" })).toBeTruthy();
-    expect(within(expenseRow).getByRole("button", { name: "حذف موثق" })).toBeTruthy();
+    expect(within(expenseRow).getByRole("button", { name: "إلغاء العملية" })).toBeTruthy();
+    expect(within(expenseRow).getByRole("button", { name: "تعديل العملية" })).toBeTruthy();
+    expect(within(expenseRow).getByRole("button", { name: "حذف العملية" })).toBeTruthy();
 
     /* الوصلة تقود لصفحة الأصل مع حفظ المصدر (مُرمَّزًا كقيمة استعلام). */
     fireEvent.click(within(assetRow).getByRole("button", { name: "صحّحه من صفحة الأصل" }));
@@ -155,7 +155,7 @@ describe("family-owned events are corrected only through their owner record (FT-
     const loanRow = rows.find(row => within(row).queryByText("قرض لشخص") !== null);
     if (!loanRow) throw new Error("loan event row should render");
     expect(within(loanRow).getByRole("button", { name: "صحّحه من صفحة القرض" })).toBeTruthy();
-    expect(within(loanRow).queryByRole("button", { name: "تراجع موثق" })).toBeNull();
+    expect(within(loanRow).queryByRole("button", { name: "إلغاء العملية" })).toBeNull();
   });
 
   /* عقد الإغلاق العميق (FC-03 — العقد ٢): تحذير فترة صريح حين يقع البديل في
@@ -186,7 +186,7 @@ describe("family-owned events are corrected only through their owner record (FT-
         within(node).queryByText("مصروف مدفوع") !== null && node.textContent?.includes("02/08/2026") === true,
     );
     if (!row) throw new Error("event row should render");
-    fireEvent.click(within(row).getByRole("button", { name: "عدّل بقيم جديدة" }));
+    fireEvent.click(within(row).getByRole("button", { name: "تعديل العملية" }));
     await waitFor(() => expect(screen.getByText("مراجعة قبل التعديل")).toBeTruthy());
 
     /* نفس الفترة أولًا: لا تحذير — التعديل داخل الشهر نفسه هادئ. */

@@ -169,7 +169,7 @@ function FinancialEventRow({
   const submitReverse = async () => {
     const trimmed = reason.trim();
     if (!trimmed) {
-      setError("سبب التصحيح مطلوب؛ اكتب لماذا سُجّل هذا الحدث خطأ قبل التراجع.");
+      setError("سبب الإلغاء مطلوب؛ اكتب لماذا سُجّلت هذه العملية خطأ قبل إلغائها.");
       return;
     }
     setError(null);
@@ -188,7 +188,7 @@ function FinancialEventRow({
     setOpen(null);
     setReason("");
     setSuccess(
-      result.reused ? "التراجع موثق مسبقًا؛ لم يُضاعف الأثر." : "تم تسجيل تراجع موثق. الأصل محفوظ ولم يتغير.",
+      result.reused ? "الإلغاء موثق مسبقًا؛ لم يُضاعف الأثر." : "أُلغيت العملية — أثرها خرج من أرقامك وسجلها الأصلي محفوظ.",
     );
     onChanged();
   };
@@ -228,7 +228,7 @@ function FinancialEventRow({
     setSuccess(
       result.reused
         ? "التعديل موثق مسبقًا؛ لم يُضاعف الأثر."
-        : "تم التعديل بتراجع موثق وبديل جديد في معاملة واحدة؛ القيم القديمة باقية في السجل.",
+        : "تم تعديل العملية — أرقامك تعرض القيم الجديدة، والقديمة محفوظة في السجل.",
     );
     onChanged();
   };
@@ -236,7 +236,7 @@ function FinancialEventRow({
   const submitDelete = async () => {
     const trimmed = reason.trim();
     if (!trimmed) {
-      setError("سبب الحذف مطلوب؛ «حذف» في هذا النظام تراجع موثق باقٍ في السجل لا محوه.");
+      setError("سبب الحذف مطلوب؛ «حذف العملية» يُلغي الأثر ويبقى مع سببه في السجل — لا محو.");
       return;
     }
     setError(null);
@@ -256,11 +256,11 @@ function FinancialEventRow({
     setSuccess(
       result.reused
         ? "الحذف موثق مسبقًا؛ لم يُضاعف الأثر."
-        : "تم حذف الأثر بتراجع موثق؛ السجل الأصلي باقٍ والقيمة صارت خارج الحساب.",
+        : "حُذفت العملية — أثرها صار خارج أرقامك، وأصلها باقٍ في السجل.",
     );
     onChanged();
   };
-  /* D-005: الاسترجاع — إعادة تسجيل القيم الأصلية كحدث جديد؛ الماضي لا يُلمس. */
+  /* D-005 + Conflict A: التراجع عن التصحيح — تعود أرقام العملية كما كانت؛ الماضي لا يُلمس. */
   const submitRestore = async () => {
     setError(null);
     setSaving(true);
@@ -276,8 +276,8 @@ function FinancialEventRow({
     setOpen(null);
     setSuccess(
       result.reused
-        ? "الاسترجاع موثق مسبقًا؛ لم يُضاعف الأثر."
-        : "أُعيد تسجيل القيم الأصلية كحدث جديد؛ التراجع السابق باقٍ في السجل.",
+        ? "التراجع عن التصحيح موثق مسبقًا؛ لم يُضاعف الأثر."
+        : "تم التراجع عن التصحيح — عادت أرقام العملية كما كانت قبل التصحيح.",
     );
     onChanged();
   };
@@ -295,7 +295,7 @@ function FinancialEventRow({
           <strong>{eventLabel[event.type]}</strong>
           <small>
             <LocalDateValue value={event.occurredOn} /> ·{" "}
-            {isReversal ? "تراجع موثق" : reversal ? "تم التراجع" : "مسجلة"}
+            {isReversal ? "إلغاء/تصحيح موثق" : reversal ? "أُلغيت أو صُحّحت" : "مسجلة"}
           </small>
         </div>
         <b>
@@ -365,14 +365,16 @@ function FinancialEventRow({
           </div>
         ) : (
           <div className="micro-text-actions">
+            {/* Conflict A (حدود التصحيح المعتمدة): أفعال بسيطة للمالك — المحرك
+             * الداخلي يبقى العكس والاستبدال الذرّي الموثق؛ لا محرّك تعديل موازٍ. */}
             <button className="micro-text-action" type="button" onClick={() => begin("reverse")}>
-              تراجع موثق
+              إلغاء العملية
             </button>
             <button className="micro-text-action" type="button" onClick={() => begin("edit")}>
-              عدّل بقيم جديدة
+              تعديل العملية
             </button>
             <button className="micro-text-action" type="button" onClick={() => begin("delete")}>
-              حذف موثق
+              حذف العملية
             </button>
           </div>
         )
@@ -389,13 +391,13 @@ function FinancialEventRow({
           </div>
         ) : (
           <button className="micro-text-action" type="button" onClick={() => begin("restore")}>
-            استرجع القيم الأصلية
+            التراجع عن التصحيح
           </button>
         )
       ) : null}
       {reversal ? (
         <p className="micro-finance-event-closed">
-          تم التراجع عنها مرة واحدة بتراجع كامل؛ لا يُسمح بتراجع ثانٍ. الاسترجاع يعيد القيم حدثًا جديدًا.
+          أُلغيت هذه العملية مرة واحدة ولا يمكن إلغاؤها مرة ثانية. «التراجع عن التصحيح» يعيد أثرها إن لزم.
         </p>
       ) : null}
       {success ? (
@@ -404,12 +406,13 @@ function FinancialEventRow({
         </p>
       ) : null}
       {open === "reverse" ? (
-        /* المجموعة ٢ (§10.2): معاينة التصحيح الموحدة — الأبعاد الخمسة بما فيها الأمانات. */
+        /* المجموعة ٢ (§10.2) + Conflict A: معاينة موحدة بلغة النتيجة — الأبعاد
+         * المالية الخمسة بما فيها الأمانات، بلا مصطلحات دفترية. */
         <CorrectionPreview
-          action="تراجع موثق عن الحدث"
+          action="إلغاء العملية"
           originalLabel={`${eventLabel[event.type]} · ${formatMoneyMinor(event.amountMinor)} د.أ`}
           originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
-          intro="سيبقى السجل الأصلي كما هو. سيُضاف حدث تراجع بتاريخ اليوم يلغي كامل الأثر — لا إعادة كتابة للتاريخ."
+          intro="سيُلغى أثر هذه العملية من أرقامك اليوم، ويبقى سجلها الأصلي محفوظًا للمراجعة — لا يُمحى شيء."
           dimensions={[
             { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: -event.cashDeltaMinor },
             {
@@ -433,15 +436,15 @@ function FinancialEventRow({
               afterMinor: -(event.amanahDeltaMinor ?? 0),
             },
           ]}
-          unchanged={["السجل الأصلي بقيمه وتاريخه", "سبب التراجع يُحفظ مع الحدث الجديد"]}
-          reversibleNote="التراجع نفسه لا يُتراجع عنه؛ إن أردت إعادة الأثر فاستخدم «استرجع القيم الأصلية»."
+          unchanged={["سجل العملية الأصلي بقيمه وتاريخه", "سبب الإلغاء يُحفظ مع السجل"]}
+          reversibleNote="الإلغاء نفسه لا يُلغى؛ إن أردت إعادة الأثر فاستخدم «التراجع عن التصحيح»."
           reason={reason}
           onReasonChange={setReason}
           reasonPlaceholder="مثال: سُجّل الحدث مرتين بالخطأ"
           error={error}
           busy={saving}
-          confirmLabel="أكّد التراجع الموثق"
-          busyLabel="جارٍ تسجيل التراجع…"
+          confirmLabel="أكّد إلغاء العملية"
+          busyLabel="جارٍ إلغاء العملية…"
           onConfirm={() => void submitReverse()}
           onCancel={cancel}
         />
@@ -451,8 +454,8 @@ function FinancialEventRow({
           <div className="micro-finance-reversal-review">
             <strong>مراجعة قبل التعديل</strong>
             <p>
-              التعديل الذرّي يسجّل تراجعًا عن الأصل وبديلًا بقيمك الجديدة في معاملة واحدة: إن فشل أي جزء لم
-              يتغير شيء. القيم القديمة تبقى في السجل ولا تُطمس.
+              سيظهر تعديلك في أرقامك بالقيم الجديدة، وتبقى العملية القديمة محفوظة في السجل للمراجعة. التطبيق
+              كله أو لا شيء: إن تعذّر لا يتغير أي رقم.
             </p>
             <dl>
               <div>
@@ -470,13 +473,13 @@ function FinancialEventRow({
                 </dd>
               </div>
             </dl>
-            {/* عقد الإغلاق العميق (FC-03 — العقد ٢): تحذير صريح حين يقع البديل في
-                فترة شهرية غير فترة الأصل — التراجع يُسجَّل بتاريخ اليوم والفرق
-                يظهر في كشوف الفترتين؛ لا تغيير صامت لأرقام شهر قديم. */}
+            {/* عقد الإغلاق العميق (FC-03 — العقد ٢) + Conflict A: تحذير بلغة
+                النتيجة حين يقع التعديل في شهر غير شهر الأصل — يظهر الأثر في
+                كشفي الشهرين؛ لا تغيير صامت لأرقام شهر قديم. */}
             {editDate.slice(0, 7) !== event.occurredOn.slice(0, 7) ? (
               <p className="micro-warning-copy" data-testid="edit-period-impact">
-                انتبه: التاريخ الجديد يقع في فترة شهر مختلفة عن الأصل — تراجع الأصل يُسجَّل بتاريخ اليوم،
-                والبديل بتاريخه الجديد، فتتغير نتيجتا الشهرين وكشفاهما. رجّع التاريخ إن كنت تقصد الفترة نفسها.
+                انتبه: التاريخ الجديد يقع في فترة شهر مختلفة عن الأصل — ستُحسب العملية في الشهر الجديد وتخرج
+                من حساب الشهر القديم، فيتغيّر رقم الشهرين في كشفك. رجّع التاريخ إن كنت تقصد الشهر نفسه.
               </p>
             ) : null}
           </div>
@@ -532,7 +535,7 @@ function FinancialEventRow({
               disabled={saving}
               onClick={() => void submitEdit()}
             >
-              {saving ? "جارٍ حفظ التعديل…" : "أكّد التعديل الذرّي"}
+              {saving ? "جارٍ حفظ التعديل…" : "أكّد تعديل العملية"}
             </button>
             <button
               className="micro-button micro-button-secondary"
@@ -547,10 +550,10 @@ function FinancialEventRow({
       ) : null}
       {open === "delete" ? (
         <CorrectionPreview
-          action="حذف موثق (تراجع كامل)"
+          action="حذف العملية"
           originalLabel={`${eventLabel[event.type]} · ${formatMoneyMinor(event.amountMinor)} د.أ`}
           originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
-          intro="«الحذف» هنا تراجع كامل موثق: الأثر يزول من الحساب، والسجل الأصلي والسبب يبقيان في التاريخ — لا محو صامت."
+          intro="سيُلغى أثر هذه العملية من أرقامك، ويبقى أصلها وسبب الحذف في السجل للمراجعة — لا محو صامت."
           dimensions={[
             { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: 0 },
             { label: "الالتزامات", beforeMinor: event.payableDeltaMinor, afterMinor: 0 },
@@ -558,16 +561,16 @@ function FinancialEventRow({
             { label: "المصروف/النتيجة", beforeMinor: event.operatingExpenseDeltaMinor, afterMinor: 0 },
             { label: "الأمانات", beforeMinor: event.amanahDeltaMinor ?? 0, afterMinor: 0 },
           ]}
-          unchanged={["السجل الأصلي باقٍ في التاريخ", "السبب جزء من السجل لا يُحذف"]}
-          reversibleNote="يمكن استرجاع القيم لاحقًا كحدث جديد إن كان الأصل صحيحًا."
+          unchanged={["سجل العملية الأصلي باقٍ في التاريخ", "سبب الحذف جزء من السجل لا يُحذف"]}
+          reversibleNote="يمكن التراجع عن هذا الحذف لاحقًا فيعود الأثر إلى أرقامك إن كان الأصل صحيحًا."
           reason={reason}
           onReasonChange={setReason}
           reasonPlaceholder="مثال: حدث اختباري سُجّل بالخطأ"
           error={error}
           busy={saving}
           danger
-          confirmLabel="أكّد الحذف الموثق"
-          busyLabel="جارٍ توثيق الحذف…"
+          confirmLabel="أكّد حذف العملية"
+          busyLabel="جارٍ حذف العملية…"
           onConfirm={() => void submitDelete()}
           onCancel={cancel}
         />
@@ -575,9 +578,9 @@ function FinancialEventRow({
       {open === "restore" ? (
         <div className="micro-finance-reversal-editor">
           <div className="micro-finance-reversal-review">
-            <strong>مراجعة قبل الاسترجاع</strong>
+            <strong>مراجعة قبل التراجع عن التصحيح</strong>
             <p>
-              يُعاد تسجيل القيم الأصلية كحدث جديد بحالته الأولى؛ التراجع السابق يبقى في السجل، والماضي لا
+              ستعود أرقام هذه العملية كما كانت قبل التصحيح؛ سجل التصحيح السابق يبقى في التاريخ، والماضي لا
               يُلمس ولا يُعاد كتابته.
             </p>
             <dl>
@@ -589,7 +592,7 @@ function FinancialEventRow({
                 </dd>
               </div>
               <div>
-                <dt>الأثر بعد الاسترجاع</dt>
+                <dt>الأثر بعد التراجع عن التصحيح</dt>
                 <dd>
                   كاش <MoneyValue minor={event.cashDeltaMinor} /> · التزام{" "}
                   <MoneyValue minor={event.payableDeltaMinor} /> · مال المالك{" "}
@@ -611,7 +614,7 @@ function FinancialEventRow({
               disabled={saving}
               onClick={() => void submitRestore()}
             >
-              {saving ? "جارٍ الاسترجاع…" : "أكّد استرجاع القيم الأصلية"}
+              {saving ? "جارٍ التراجع عن التصحيح…" : "أكّد التراجع عن التصحيح"}
             </button>
             <button
               className="micro-button micro-button-secondary"

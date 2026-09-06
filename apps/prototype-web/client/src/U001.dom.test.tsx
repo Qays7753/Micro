@@ -127,7 +127,7 @@ describe("U-001 older events stay reachable from the finance record surface", ()
     /* الأقدم نفسه (المصروف الأول بمبلغ ١٠٫٠٠) ظاهر بأفعال التصحيح الموثقة نفسها. */
     const firstRow = eventRows().find(row => row.textContent?.includes("10.00"));
     expect(firstRow).toBeTruthy();
-    expect(firstRow?.textContent).toContain("عدّل بقيم جديدة");
+    expect(firstRow?.textContent).toContain("تعديل العملية");
     /* الطيّ يعيد العرض المكثف للأحدث فقط. */
     fireEvent.click(screen.getByText("أعرض الأحدث فقط"));
     await waitFor(() => expect(screen.getByText("أحدث الأحداث العامة")).toBeTruthy());

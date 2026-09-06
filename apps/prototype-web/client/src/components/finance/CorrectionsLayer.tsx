@@ -13,9 +13,9 @@ import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 
 const kindLabel: Record<CorrectionHistoryKind, string> = {
-  event_reversal: "تراجع موثق عن حدث مالي",
-  event_edit: "تعديل موثق (تراجع + بديل)",
-  event_restore: "استرجاع قيم أصلية",
+  event_reversal: "إلغاء عملية مالية",
+  event_edit: "تعديل عملية مالية",
+  event_restore: "التراجع عن تصحيح",
   sale_edit: "تعديل بيع مباشر",
   sale_cancel: "إلغاء بيع مباشر",
   sale_price_cut: "تخفيض سعر موثّق",

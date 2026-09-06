@@ -112,14 +112,14 @@ describe("D-005 corrections reach the UI from the event row", () => {
     await recordExpense(5000, "d005-expense-edit");
     await openEventsLayer();
     fireEvent.click(screen.getByText("عرض الأثر الكامل"));
-    fireEvent.click(screen.getByText("عدّل بقيم جديدة"));
+    fireEvent.click(screen.getByRole("button", { name: "تعديل العملية" }));
     /* مراجعة الأثر قبل التأكيد ظاهرة. */
     expect(screen.getByText("مراجعة قبل التعديل")).toBeTruthy();
     /* النموذج معبّأ بقيم الحدث الحالية. */
     const amountInput = screen.getByLabelText("المبلغ الجديد") as HTMLInputElement;
     expect(amountInput.value).not.toBe("");
     /* سبب فارغ: يُرفض ولا يتغير السجل. */
-    fireEvent.click(screen.getByText("أكّد التعديل الذرّي"));
+    fireEvent.click(screen.getByRole("button", { name: "أكّد تعديل العملية" }));
     await waitFor(() =>
       expect(
         screen.getByText("سبب التعديل مطلوب؛ التصحيح المالي يوثَّق بسبب واضح لا يُترك فارغًا."),
@@ -130,10 +130,10 @@ describe("D-005 corrections reach the UI from the event row", () => {
       target: { value: "الفاتورة 45 لا 50" },
     });
     fireEvent.change(amountInput, { target: { value: "45.00" } });
-    fireEvent.click(screen.getByText("أكّد التعديل الذرّي"));
+    fireEvent.click(screen.getByRole("button", { name: "أكّد تعديل العملية" }));
     await waitFor(() =>
       expect(
-        screen.getByText("تم التعديل بتراجع موثق وبديل جديد في معاملة واحدة؛ القيم القديمة باقية في السجل."),
+        screen.getByText("تم تعديل العملية — أرقامك تعرض القيم الجديدة، والقديمة محفوظة في السجل."),
       ).toBeTruthy(),
     );
     const events = await store.listFinancialEvents();
@@ -147,32 +147,32 @@ describe("D-005 corrections reach the UI from the event row", () => {
     const expense = await recordExpense(7000, "d005-expense-delete");
     await openEventsLayer();
     fireEvent.click(screen.getByText("عرض الأثر الكامل"));
-    fireEvent.click(screen.getByText("حذف موثق"));
-    expect(screen.getByText("حذف موثق (تراجع كامل)")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "حذف العملية" }));
+    expect(screen.getByText("حذف العملية", { selector: "strong" })).toBeTruthy(); /* عنوان المعاينة */
     /* سبب الحذف إلزامي. */
-    fireEvent.click(screen.getByText("أكّد الحذف الموثق"));
+    fireEvent.click(screen.getByRole("button", { name: "أكّد حذف العملية" }));
     await waitFor(() =>
       expect(
-        screen.getByText("سبب الحذف مطلوب؛ «حذف» في هذا النظام تراجع موثق باقٍ في السجل لا محوه."),
+        screen.getByText("سبب الحذف مطلوب؛ «حذف العملية» يُلغي الأثر ويبقى مع سببه في السجل — لا محو."),
       ).toBeTruthy(),
     );
     fireEvent.change(screen.getByPlaceholderText("مثال: حدث اختباري سُجّل بالخطأ"), {
       target: { value: "حدث اختباري" },
     });
-    fireEvent.click(screen.getByText("أكّد الحذف الموثق"));
+    fireEvent.click(screen.getByRole("button", { name: "أكّد حذف العملية" }));
     await waitFor(() =>
       expect(
-        screen.getByText("تم حذف الأثر بتراجع موثق؛ السجل الأصلي باقٍ والقيمة صارت خارج الحساب."),
+        screen.getByText("حُذفت العملية — أثرها صار خارج أرقامك، وأصلها باقٍ في السجل."),
       ).toBeTruthy(),
     );
     /* الاسترجاع يعيد القيم الأصلية حدثًا جديدًا بعد التراجع. */
-    await waitFor(() => expect(screen.getByText("استرجع القيم الأصلية")).toBeTruthy());
-    fireEvent.click(screen.getByText("استرجع القيم الأصلية"));
-    expect(screen.getByText("مراجعة قبل الاسترجاع")).toBeTruthy();
-    fireEvent.click(screen.getByText("أكّد استرجاع القيم الأصلية"));
+    await waitFor(() => expect(screen.getByRole("button", { name: "التراجع عن التصحيح" })).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "التراجع عن التصحيح" }));
+    expect(screen.getByText("مراجعة قبل التراجع عن التصحيح")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "أكّد التراجع عن التصحيح" }));
     await waitFor(() =>
       expect(
-        screen.getByText("أُعيد تسجيل القيم الأصلية كحدث جديد؛ التراجع السابق باقٍ في السجل."),
+        screen.getByText("تم التراجع عن التصحيح — عادت أرقام العملية كما كانت قبل التصحيح."),
       ).toBeTruthy(),
     );
     const events = await store.listFinancialEvents();
