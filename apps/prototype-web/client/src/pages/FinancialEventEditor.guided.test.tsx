@@ -261,4 +261,60 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
     expect(window.localStorage.getItem(draftKey)).toBeNull();
   });
+
+  /* Conflict I (AV-09): مسودة تالفة في التخزين المحلي لا تكسر النموذج ولا تُحقن
+   * قيمًا غير آمنة — الإكراه الدفاعي يُرجّع السليم ويُصفّر/يُبدّل التالف،
+   * والمسودة غير القابلة للترجيع تُتجاهل بلا عرض استرجاع فارغ. */
+  it("restores a corrupted draft through defensive coercion — form stays functional and safe", async () => {
+    const draftKey = "micro.finance-draft.operating_expense_cash.v1";
+    window.localStorage.setItem(
+      draftKey,
+      JSON.stringify({
+        amountMinor: -5,
+        sharedTotalAmountMinor: "ليس عددًا",
+        sharedPercentage: true,
+        date: 42,
+        note: "ملاحظة سليمة",
+        counterparty: 7,
+        relationship: "bogus",
+        behavior: true,
+        purpose: null,
+        knowledge: "hax",
+        sharedMode: 42,
+        sharedNote: {},
+        categoryLabel: 99,
+        relatedEventId: [],
+        walletId: { op: 1 },
+      }),
+    );
+    const user = userEvent.setup();
+    const { record } = renderEditor({});
+    record.mockResolvedValueOnce({ ok: true, value: storedEvent(1200) });
+    expect(await screen.findByText(/مسودة غير محفوظة من إدخال سابق — ترجّعها؟/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+    /* النموذج حي: البيان السليم رُجّع، والمبلغ سالب صُفّر (لا قيمة غير آمنة). */
+    const noteField = screen.getByPlaceholderText(
+      "مثال: دفعت توصيل الطلبات للأسبوع",
+    ) as HTMLTextAreaElement;
+    expect(noteField.value).toContain("ملاحظة سليمة");
+    const amountField = screen.getByLabelText("المبلغ بالدينار الأردني") as HTMLInputElement;
+    expect(Number(amountField.value || 0)).toBe(0);
+    expect(amountField.value).not.toContain("-");
+    /* الحفظ يعمل بعد الاسترجاع المُكرّه — لا نموذج مكسور. */
+    await user.type(amountField, "12");
+    await user.click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(record).toHaveBeenCalledOnce());
+    expect(window.localStorage.getItem(draftKey)).toBeNull();
+  });
+
+  it("silently ignores a draft with nothing recoverable (garbage fields only)", async () => {
+    const draftKey = "micro.finance-draft.operating_expense_cash.v1";
+    window.localStorage.setItem(draftKey, JSON.stringify({ amountMinor: [], date: 99, note: 42 }));
+    renderEditor({});
+    /* لا عرض استرجاع فارغ — المحرر يفتح نظيفًا، والبقايا غير القابلة للترجيع
+     * تُنظّف من التخزين عند أول كتابة نظيفة. */
+    await waitFor(() => expect(screen.getByLabelText("المبلغ بالدينار الأردني")).toBeTruthy());
+    expect(screen.queryByText(/ترجّعها؟/)).toBeNull();
+    await waitFor(() => expect(window.localStorage.getItem(draftKey)).toBeNull());
+  });
 });
