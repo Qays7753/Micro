@@ -323,7 +323,12 @@ CAPS: dict[str, int] = {
     # العربونات (الوجهة، المطبَّق/المردود/المحتفظ، وصف أثر الربح لكل حالة)
     # + تحديث سطر هدر الفترة (العقد ١ — دخول النتيجة بخيار المالك).
     # Finance 266 → 277 (2026-09-05, deep closure FC-05/عقد ١).
-    "Finance": 277,
+    # Finance 277 → 257 (2026-09-06, resumption run — Conflict A/WF-04): per-event
+    # correction actions, previews, and the expense-classification form moved behind
+    # one collapsed named disclosure «تصحيح هذه العملية» (§10.2 rule 1 — same owner-
+    # approved pattern as OrderDetail's «تصحيحات موثقة على الطلب»). Nothing deleted;
+    # cap lowered 277→257 as a ratchet gain.
+    "Finance": 257,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.

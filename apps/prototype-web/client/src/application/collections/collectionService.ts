@@ -86,7 +86,7 @@ export class CollectionService {
       sources.push({
         id: stored.id,
         kind: "order",
-        personName: order.customerName || "عميل بلا اسم",
+        personName: order.customerName || "زبون بلا اسم",
         itemName: order.itemName || "طلب",
         outstandingMinor: order.receivableMinor,
         occurredOn: stored.updatedAt.slice(0, 10),
@@ -97,9 +97,7 @@ export class CollectionService {
           ? isRegisteredDebt
             ? "دين مسجل بعد التسليم"
             : "متبقٍ بعد التسليم"
-          : isRegisteredDebt
-            ? "دين غير مسمّى — سمِّ الجهة من صفحة الطلب"
-            : "متبقٍ غير مسمّى — سمِّ الجهة من صفحة الطلب",
+          : "غير مسمّى — سمِّ الجهة من صفحة الطلب",
       });
     }
     for (const sale of salesResult.value as readonly DirectSale[]) {

@@ -427,7 +427,6 @@ export default function DraftEditor() {
                 onChange={event =>
                   setDraft(current => (current ? { ...current, orderName: event.target.value } : current))
                 }
-                placeholder="مثال: طلب العيد"
                 maxLength={80}
               />
             </label>

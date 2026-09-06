@@ -596,7 +596,7 @@ describe("OrderDetail mid-journey deposit panel (عقد الإغلاق العم�
     const opener = await screen.findByTestId("assign-party-opener");
     expect(opener.textContent).toContain("سمِّ جهة هذا الطلب");
     fireEvent.click(opener);
-    fireEvent.change(screen.getByLabelText("اسم جهة الطلب"), { target: { value: "آمنة" } });
+    fireEvent.change(screen.getByLabelText("اسم الجهة"), { target: { value: "آمنة" } });
     fireEvent.click(screen.getByRole("button", { name: "احفظ اسم الجهة" }));
     await waitFor(async () => {
       const stored = await store.getOrder(orderId);

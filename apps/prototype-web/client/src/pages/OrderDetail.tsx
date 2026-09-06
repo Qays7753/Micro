@@ -581,7 +581,7 @@ export default function OrderDetail() {
         {/* Conflict B: اسم الطلب الودّي يظهر فوق اسم العمل إن وُجد. */}
         <h1>{order.orderName?.trim() ? order.orderName : order.itemName}</h1>
         <p>
-          {order.customerName.trim() ? order.customerName : "زبون بلا اسم — سمِّ الجهة لاحقًا"} · الكمية:{" "}
+          {order.customerName.trim() ? order.customerName : <>زبون بلا اسم — سمِّ الجهة لاحقًا</>} · الكمية:{" "}
           {order.quantity}
           {order.orderName?.trim() ? ` · ${order.itemName}` : ""}
         </p>
@@ -593,10 +593,10 @@ export default function OrderDetail() {
         assignNameOpen ? (
           <section
             className="micro-cancel-panel"
-            aria-label="تسمية جهة الطلب"
+            aria-labelledby="assign-party-heading"
             data-testid="assign-party-panel"
           >
-            <strong>سمِّ جهة هذا الطلب</strong>
+            <strong id="assign-party-heading">سمِّ جهة هذا الطلب</strong>
             <p>
               اسم الجهة يجعل الدين والتحصيل قابلين للتتبع في دفتر الناس (يظهر عند تكرار الاسم مرتين). هذا
               الطلب بلا اسم حتى الآن — التسمية تعبئة باتجاه واحد لا إعادة تسمية.
@@ -606,8 +606,6 @@ export default function OrderDetail() {
               <input
                 value={assignNameValue}
                 onChange={event => setAssignNameValue(event.target.value)}
-                placeholder="مثال: سارة"
-                aria-label="اسم جهة الطلب"
                 list="order-party-suggestions"
               />
               <datalist id="order-party-suggestions">
@@ -1308,8 +1306,7 @@ export default function OrderDetail() {
                   <div>
                     <dt>ما استُهلك فعلًا</dt>
                     <dd>
-                      0 د.أ — الطلب لم يُسلَّم؛ موادّه لم تُستهلك من المخزون
-                      {order.status === "cancelled" ? " والإلغاء نفسه لا يكتب مصروفًا" : ""}.
+                      0 د.أ — الطلب لم يُسلَّم؛ موادّه لم تُستهلك من المخزون، والإلغاء نفسه لا يكتب مصروفًا.
                     </dd>
                   </div>
                   <div>
@@ -1345,7 +1342,6 @@ export default function OrderDetail() {
               value={settleAmount ?? order.depositCollectedMinor - (order.depositRetainedMinor ?? 0)}
               kind="money"
               onNumericChange={value => setSettleAmount(value)}
-              aria-label="مبلغ تسوية العربون"
             />
             <small>
               اتركه كما هو للتسوية الكاملة، أو اكتب جزئيًا — الباقي يبقى «يحتاج مراجعة» بلا قرار خفي.
@@ -1471,7 +1467,6 @@ export default function OrderDetail() {
                       value={classifyAmount ?? unclassifiedMinor}
                       kind="money"
                       onNumericChange={value => setClassifyAmount(value)}
-                      aria-label="مبلغ تصنيف العربون"
                     />
                   </label>
                 );
@@ -1506,11 +1501,13 @@ export default function OrderDetail() {
           ) : (
             <>
               <p>
-                {order.retainedMeaning === "owner"
-                  ? "صُنّف مال مالك — يظهر في مال المالك، وتسحبه وقتما تشاء بلا إيراد جديد."
-                  : order.retainedMeaning === "mixed"
-                    ? "صُنّف مختلطًا — جزء مال مالك وجزء إيراد مشروع بمبلغين موثقين؛ راجع سجل الأحداث."
-                    : "صُنّف إيراد مشروع — يُعترف به مرة واحدة في نتيجة فترة القرار، لا كاش جديد."}
+                {order.retainedMeaning === "owner" ? (
+                  "صُنّف مال مالك — يظهر في مال المالك، وتسحبه وقتما تشاء بلا إيراد جديد."
+                ) : order.retainedMeaning === "mixed" ? (
+                  <>صُنّف مختلطًا — جزء مال مالك وجزء إيراد مشروع بمبلغين موثقين؛ راجع سجل الأحداث.</>
+                ) : (
+                  "صُنّف إيراد مشروع — يُعترف به مرة واحدة في نتيجة فترة القرار، لا كاش جديد."
+                )}
               </p>
               <button
                 className="micro-text-action"

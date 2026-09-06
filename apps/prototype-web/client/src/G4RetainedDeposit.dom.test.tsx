@@ -218,7 +218,7 @@ describe("G4 retained deposit decision surface (المجموعة ٤ — عقد �
     expect(preview.textContent).toContain("لم تُستهلك");
     expect(preview.textContent).toContain("الاقتراح بعد التكلفة الموثقة");
     /* رد جزئي بمبلغ صريح: الباقي يبقى معلقًا. */
-    fireEvent.change(screen.getByLabelText("مبلغ تسوية العربون"), { target: { value: "20" } });
+    fireEvent.change(screen.getByLabelText(/مبلغ التسوية/), { target: { value: "20" } });
     fireEvent.change(screen.getByPlaceholderText("مثال: رد العربون نقدًا في المحل"), {
       target: { value: "رد جزئي متفق" },
     });

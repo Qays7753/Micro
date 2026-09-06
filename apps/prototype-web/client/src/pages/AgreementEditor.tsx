@@ -385,7 +385,7 @@ export default function AgreementEditor() {
         {/* Conflict B: اسم الطلب الودّي اختياري — تسمية للعرض فوق اسم العمل. */}
         <label className="micro-field">
           <span>
-            اسم الطلب <small>اختياري — تسمية تعرضها فوق اسم العمل</small>
+            اسم الطلب <small>اختياري</small>
           </span>
           <input
             value={orderName}
@@ -397,7 +397,7 @@ export default function AgreementEditor() {
         </label>
         <label className="micro-field">
           <span>
-            اسم الجهة <small>اختياري — الجهة تحدد لاحقًا من صفحة الطلب</small>
+            اسم الجهة <small>اختياري</small>
           </span>
           <input
             value={customerName}

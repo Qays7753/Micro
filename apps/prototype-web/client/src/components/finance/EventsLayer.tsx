@@ -399,375 +399,375 @@ function FinancialEventRow({
           </div>
         </div>
       ) : null}
-      {!isReversal && !reversal ? (
-        familyOwner ? (
-          <div className="micro-text-actions">
-            <button className="micro-text-action" type="button" onClick={() => navigate(familyOwner.href)}>
-              {familyOwner.label}
-            </button>
-            <small className="micro-finance-event-audit">
-              تصحيح هذا الحدث يُديره {familyOwner.owner} — يُحدّث الحدث وسجل عائلته معًا بلا فحص سلامة فاشل.
-            </small>
-          </div>
-        ) : (
-          <div className="micro-text-actions">
-            {/* Conflict A (حدود التصحيح المعتمدة): أفعال بسيطة للمالك — المحرك
-             * الداخلي يبقى العكس والاستبدال الذرّي الموثق؛ لا محرّك تعديل موازٍ. */}
-            <button className="micro-text-action" type="button" onClick={() => begin("reverse")}>
-              إلغاء العملية
-            </button>
-            <button className="micro-text-action" type="button" onClick={() => begin("edit")}>
-              تعديل العملية
-            </button>
-            <button className="micro-text-action" type="button" onClick={() => begin("delete")}>
-              حذف العملية
-            </button>
-          </div>
-        )
-      ) : null}
-      {reversal ? (
-        familyOwner ? (
-          <div className="micro-text-actions">
-            <button className="micro-text-action" type="button" onClick={() => navigate(familyOwner.href)}>
-              {familyOwner.label}
-            </button>
-            <small className="micro-finance-event-audit">
-              استرجاع/تصحيح هذا الحدث يُدار من سجل عائلته ليبقى السجل وفحص السلامة متطابقين.
-            </small>
-          </div>
-        ) : (
-          <button className="micro-text-action" type="button" onClick={() => begin("restore")}>
-            التراجع عن التصحيح
+      {familyOwner ? (
+        <div className="micro-text-actions">
+          <button className="micro-text-action" type="button" onClick={() => navigate(familyOwner.href)}>
+            {familyOwner.label}
           </button>
-        )
-      ) : null}
-      {reversal ? (
-        <p className="micro-finance-event-closed">
-          أُلغيت هذه العملية مرة واحدة ولا يمكن إلغاؤها مرة ثانية. «التراجع عن التصحيح» يعيد أثرها إن لزم.
-        </p>
-      ) : null}
+          <small className="micro-finance-event-audit">
+            {reversal
+              ? "استرجاع/تصحيح هذا الحدث يُدار من سجل عائلته ليبقى السجل وفحص السلامة متطابقين."
+              : `تصحيح هذا الحدث يُديره ${familyOwner.owner} — يُحدّث الحدث وسجل عائلته معًا بلا فحص سلامة فاشل.`}
+          </small>
+        </div>
+      ) : (
+        /* Conflict A + §10.2 rule 1: أفعال التصحيح لحظة فعل لا حالة سكون — خلف
+         * إفصاح مسمّى مطوي كما «تصحيحات موثقة على الطلب» في صفحة الطلب. */
+        <details className="micro-event-corrections">
+          <summary>
+            <span>تصحيح هذه العملية</span>
+          </summary>
+          {!isReversal && !reversal ? (
+            <div className="micro-text-actions">
+              {/* Conflict A (حدود التصحيح المعتمدة): أفعال بسيطة للمالك — المحرك
+               * الداخلي يبقى العكس والاستبدال الذرّي الموثق؛ لا محرّك تعديل موازٍ. */}
+              <button className="micro-text-action" type="button" onClick={() => begin("reverse")}>
+                إلغاء العملية
+              </button>
+              <button className="micro-text-action" type="button" onClick={() => begin("edit")}>
+                تعديل العملية
+              </button>
+              <button className="micro-text-action" type="button" onClick={() => begin("delete")}>
+                حذف العملية
+              </button>
+            </div>
+          ) : null}
+          {reversal ? (
+            <div className="micro-text-actions">
+              <button className="micro-text-action" type="button" onClick={() => begin("restore")}>
+                التراجع عن التصحيح
+              </button>
+              <p className="micro-finance-event-closed">
+                أُلغيت هذه العملية مرة واحدة ولا يمكن إلغاؤها مرة ثانية. «التراجع عن التصحيح» يعيد أثرها إن
+                لزم.
+              </p>
+            </div>
+          ) : null}
+          {open === "reverse" ? (
+            /* المجموعة ٢ (§10.2) + Conflict A: معاينة موحدة بلغة النتيجة — الأبعاد
+             * المالية الخمسة بما فيها الأمانات، بلا مصطلحات دفترية. */
+            <CorrectionPreview
+              action="إلغاء العملية"
+              originalLabel={`${eventLabel[event.type]} · ${formatMoneyMinor(event.amountMinor)} د.أ`}
+              originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
+              intro="سيُلغى أثر هذه العملية من أرقامك اليوم، ويبقى سجلها الأصلي محفوظًا للمراجعة — لا يُمحى شيء."
+              dimensions={[
+                { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: -event.cashDeltaMinor },
+                {
+                  label: "الالتزامات",
+                  beforeMinor: event.payableDeltaMinor,
+                  afterMinor: -event.payableDeltaMinor,
+                },
+                {
+                  label: "مال المالك",
+                  beforeMinor: event.ownerCapitalDeltaMinor,
+                  afterMinor: -event.ownerCapitalDeltaMinor,
+                },
+                {
+                  label: "المصروف/النتيجة",
+                  beforeMinor: event.operatingExpenseDeltaMinor,
+                  afterMinor: -event.operatingExpenseDeltaMinor,
+                },
+                {
+                  label: "الأمانات",
+                  beforeMinor: event.amanahDeltaMinor ?? 0,
+                  afterMinor: -(event.amanahDeltaMinor ?? 0),
+                },
+              ]}
+              unchanged={["سجل العملية الأصلي بقيمه وتاريخه", "سبب الإلغاء يُحفظ مع السجل"]}
+              reversibleNote="الإلغاء نفسه لا يُلغى؛ إن أردت إعادة الأثر فاستخدم «التراجع عن التصحيح»."
+              reason={reason}
+              onReasonChange={setReason}
+              reasonPlaceholder="مثال: سُجّل الحدث مرتين بالخطأ"
+              error={error}
+              busy={saving}
+              confirmLabel="أكّد إلغاء العملية"
+              busyLabel="جارٍ إلغاء العملية…"
+              onConfirm={() => void submitReverse()}
+              onCancel={cancel}
+            />
+          ) : null}
+          {open === "edit" ? (
+            <div className="micro-finance-reversal-editor">
+              <div className="micro-finance-reversal-review">
+                <strong>مراجعة قبل التعديل</strong>
+                <p>
+                  سيظهر تعديلك في أرقامك بالقيم الجديدة، وتبقى العملية القديمة محفوظة في السجل للمراجعة.
+                  التطبيق كله أو لا شيء: إن تعذّر لا يتغير أي رقم.
+                </p>
+                <dl>
+                  <div>
+                    <dt>الأصل الحالي</dt>
+                    <dd>
+                      {eventLabel[event.type]} · <LocalDateValue value={event.occurredOn} /> ·{" "}
+                      {formatMoneyMinor(event.amountMinor)} د.أ
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>البديل الذي سُيسجّل</dt>
+                    <dd>
+                      {eventLabel[event.type]} · <LocalDateValue value={editDate} /> ·{" "}
+                      {validEditAmount ? formatMoneyMinor(editAmount) : "—"} د.أ
+                    </dd>
+                  </div>
+                </dl>
+                {/* عقد الإغلاق العميق (FC-03 — العقد ٢) + Conflict A: تحذير بلغة
+                النتيجة حين يقع التعديل في شهر غير شهر الأصل — يظهر الأثر في
+                كشفي الشهرين؛ لا تغيير صامت لأرقام شهر قديم. */}
+                {editDate.slice(0, 7) !== event.occurredOn.slice(0, 7) ? (
+                  <p className="micro-warning-copy" data-testid="edit-period-impact">
+                    انتبه: التاريخ الجديد يقع في فترة شهر مختلفة عن الأصل — ستُحسب العملية في الشهر الجديد
+                    وتخرج من حساب الشهر القديم، فيتغيّر رقم الشهرين في كشفك. رجّع التاريخ إن كنت تقصد الشهر
+                    نفسه.
+                  </p>
+                ) : null}
+              </div>
+              <label className="micro-field">
+                <span>المبلغ الجديد بالدينار الأردني</span>
+                <EnglishNumberInput
+                  value={editAmount}
+                  kind="money"
+                  onNumericChange={setEditAmount}
+                  onTextValidityChange={setValidEditAmount}
+                  aria-label="المبلغ الجديد"
+                />
+              </label>
+              <LocalDateField
+                label="تاريخ الحدث الجديد"
+                value={editDate}
+                onChange={input => setEditDate(input.target.value)}
+              />
+              <label className="micro-field">
+                <span>بيان البديل</span>
+                <textarea value={editNote} onChange={input => setEditNote(input.target.value)} />
+              </label>
+              <label className="micro-field">
+                <span>
+                  الجهة المقابلة <small>اختياري</small>
+                </span>
+                <input
+                  value={editCounterparty}
+                  onChange={input => setEditCounterparty(input.target.value)}
+                  aria-label="الجهة المقابلة للبديل"
+                />
+              </label>
+              {isExpenseEvent ? (
+                <div className="micro-finance-layer" data-testid="expense-classification-edit">
+                  <button
+                    className="micro-text-action"
+                    type="button"
+                    aria-expanded={classificationOpen}
+                    onClick={() => setClassificationOpen(current => !current)}
+                  >
+                    {classificationOpen ? "أخفِ تصحيح التصنيف" : "صحّح تصنيف المصروف"}
+                  </button>
+                  {classificationOpen ? (
+                    <div className="micro-form-card">
+                      <p className="micro-note-copy">
+                        التصنيف الحالي: {expenseContextLabel(event)} — التصحيح يركب العملية الجديدة، والقديم
+                        يبقى في السجل.
+                      </p>
+                      <label className="micro-field">
+                        <span>
+                          وسم التصنيف <small>اختياري · مثال: بنزين، تغليف</small>
+                        </span>
+                        <input
+                          value={editCategoryLabel}
+                          onChange={input => setEditCategoryLabel(input.target.value)}
+                          aria-label="وسم تصنيف المصروف"
+                          maxLength={80}
+                        />
+                      </label>
+                      <label className="micro-field">
+                        <span>علاقة المصروف بالمشروع</span>
+                        <select
+                          value={editRelationship}
+                          onChange={input =>
+                            setEditRelationship(input.target.value as OperatingExpenseContext["relationship"])
+                          }
+                          aria-label="علاقة المصروف بالمشروع"
+                        >
+                          <option value="project">للمشروع</option>
+                          <option value="shared">مشترك</option>
+                        </select>
+                      </label>
+                      <label className="micro-field">
+                        <span>سلوك المصروف</span>
+                        <select
+                          value={editBehavior}
+                          onChange={input =>
+                            setEditBehavior(input.target.value as OperatingExpenseContext["behavior"])
+                          }
+                          aria-label="سلوك المصروف"
+                        >
+                          <option value="fixed">ثابت</option>
+                          <option value="variable">متغير</option>
+                          <option value="mixed">مختلط</option>
+                          <option value="unknown">غير معروف</option>
+                        </select>
+                      </label>
+                      <label className="micro-field">
+                        <span>غرض المصروف</span>
+                        <select
+                          value={editPurpose}
+                          onChange={input =>
+                            setEditPurpose(input.target.value as OperatingExpenseContext["purpose"])
+                          }
+                          aria-label="غرض المصروف"
+                        >
+                          <option value="project_general">عام للمشروع</option>
+                          <option value="period">لفترة تشغيل</option>
+                          <option value="order">لطلب</option>
+                          <option value="product">لمنتج</option>
+                          <option value="campaign">لحملة</option>
+                          <option value="unallocated">غير مخصص</option>
+                        </select>
+                      </label>
+                      <label className="micro-field">
+                        <span>معرفة تكلفته</span>
+                        <select
+                          value={editKnowledge}
+                          onChange={input =>
+                            setEditKnowledge(input.target.value as OperatingExpenseContext["knowledge"])
+                          }
+                          aria-label="معرفة تكلفة المصروف"
+                        >
+                          <option value="known">معروفة</option>
+                          <option value="estimated">تقديرية</option>
+                          <option value="needs_review">تحتاج مراجعة</option>
+                        </select>
+                      </label>
+                      {editRelationship === "shared" ? (
+                        <p className="micro-note-copy">
+                          تفاصيل حصة المشروع تبقى كما سُجّلت أولًا؛ لتغييرها سجّل تراجعًا كاملًا ثم عِد
+                          بالتسجيل المصنف.
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              <label className="micro-field">
+                <span>
+                  سبب التعديل <small>مطلوب · لا يُقبل فارغًا</small>
+                </span>
+                <textarea
+                  value={reason}
+                  onChange={input => setReason(input.target.value)}
+                  placeholder="مثال: المبلغ الصحيح 12 دينارًا لا 21"
+                  autoFocus
+                />
+              </label>
+              {error ? (
+                <p className="micro-field-error" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <div className="micro-form-actions">
+                <button
+                  className="micro-button micro-button-primary"
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void submitEdit()}
+                >
+                  {saving ? "جارٍ حفظ التعديل…" : "أكّد تعديل العملية"}
+                </button>
+                <button
+                  className="micro-button micro-button-secondary"
+                  type="button"
+                  disabled={saving}
+                  onClick={cancel}
+                >
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          ) : null}
+          {open === "delete" ? (
+            <CorrectionPreview
+              action="حذف العملية"
+              originalLabel={`${eventLabel[event.type]} · ${formatMoneyMinor(event.amountMinor)} د.أ`}
+              originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
+              intro="سيُلغى أثر هذه العملية من أرقامك، ويبقى أصلها وسبب الحذف في السجل للمراجعة — لا محو صامت."
+              dimensions={[
+                { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: 0 },
+                { label: "الالتزامات", beforeMinor: event.payableDeltaMinor, afterMinor: 0 },
+                { label: "مال المالك", beforeMinor: event.ownerCapitalDeltaMinor, afterMinor: 0 },
+                { label: "المصروف/النتيجة", beforeMinor: event.operatingExpenseDeltaMinor, afterMinor: 0 },
+                { label: "الأمانات", beforeMinor: event.amanahDeltaMinor ?? 0, afterMinor: 0 },
+              ]}
+              unchanged={["سجل العملية الأصلي باقٍ في التاريخ", "سبب الحذف جزء من السجل لا يُحذف"]}
+              reversibleNote="يمكن التراجع عن هذا الحذف لاحقًا فيعود الأثر إلى أرقامك إن كان الأصل صحيحًا."
+              reason={reason}
+              onReasonChange={setReason}
+              reasonPlaceholder="مثال: حدث اختباري سُجّل بالخطأ"
+              error={error}
+              busy={saving}
+              danger
+              confirmLabel="أكّد حذف العملية"
+              busyLabel="جارٍ حذف العملية…"
+              onConfirm={() => void submitDelete()}
+              onCancel={cancel}
+            />
+          ) : null}
+          {open === "restore" ? (
+            <div className="micro-finance-reversal-editor">
+              <div className="micro-finance-reversal-review">
+                <strong>مراجعة قبل التراجع عن التصحيح</strong>
+                <p>
+                  ستعود أرقام هذه العملية كما كانت قبل التصحيح؛ سجل التصحيح السابق يبقى في التاريخ، والماضي لا
+                  يُلمس ولا يُعاد كتابته.
+                </p>
+                <dl>
+                  <div>
+                    <dt>القيم التي ستعود</dt>
+                    <dd>
+                      {eventLabel[event.type]} · <LocalDateValue value={event.occurredOn} /> ·{" "}
+                      {formatMoneyMinor(event.amountMinor)} د.أ
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>الأثر بعد التراجع عن التصحيح</dt>
+                    <dd>
+                      كاش <MoneyValue minor={event.cashDeltaMinor} /> · التزام{" "}
+                      <MoneyValue minor={event.payableDeltaMinor} /> · مال المالك{" "}
+                      <MoneyValue minor={event.ownerCapitalDeltaMinor} /> · مصروف{" "}
+                      <MoneyValue minor={event.operatingExpenseDeltaMinor} />
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+              {error ? (
+                <p className="micro-field-error" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <div className="micro-form-actions">
+                <button
+                  className="micro-button micro-button-primary"
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void submitRestore()}
+                >
+                  {saving ? "جارٍ التراجع عن التصحيح…" : "أكّد التراجع عن التصحيح"}
+                </button>
+                <button
+                  className="micro-button micro-button-secondary"
+                  type="button"
+                  disabled={saving}
+                  onClick={cancel}
+                >
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </details>
+      )}
       {success ? (
         <p className="micro-save-note" role="status">
           {success}
         </p>
-      ) : null}
-      {open === "reverse" ? (
-        /* المجموعة ٢ (§10.2) + Conflict A: معاينة موحدة بلغة النتيجة — الأبعاد
-         * المالية الخمسة بما فيها الأمانات، بلا مصطلحات دفترية. */
-        <CorrectionPreview
-          action="إلغاء العملية"
-          originalLabel={`${eventLabel[event.type]} · ${formatMoneyMinor(event.amountMinor)} د.أ`}
-          originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
-          intro="سيُلغى أثر هذه العملية من أرقامك اليوم، ويبقى سجلها الأصلي محفوظًا للمراجعة — لا يُمحى شيء."
-          dimensions={[
-            { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: -event.cashDeltaMinor },
-            {
-              label: "الالتزامات",
-              beforeMinor: event.payableDeltaMinor,
-              afterMinor: -event.payableDeltaMinor,
-            },
-            {
-              label: "مال المالك",
-              beforeMinor: event.ownerCapitalDeltaMinor,
-              afterMinor: -event.ownerCapitalDeltaMinor,
-            },
-            {
-              label: "المصروف/النتيجة",
-              beforeMinor: event.operatingExpenseDeltaMinor,
-              afterMinor: -event.operatingExpenseDeltaMinor,
-            },
-            {
-              label: "الأمانات",
-              beforeMinor: event.amanahDeltaMinor ?? 0,
-              afterMinor: -(event.amanahDeltaMinor ?? 0),
-            },
-          ]}
-          unchanged={["سجل العملية الأصلي بقيمه وتاريخه", "سبب الإلغاء يُحفظ مع السجل"]}
-          reversibleNote="الإلغاء نفسه لا يُلغى؛ إن أردت إعادة الأثر فاستخدم «التراجع عن التصحيح»."
-          reason={reason}
-          onReasonChange={setReason}
-          reasonPlaceholder="مثال: سُجّل الحدث مرتين بالخطأ"
-          error={error}
-          busy={saving}
-          confirmLabel="أكّد إلغاء العملية"
-          busyLabel="جارٍ إلغاء العملية…"
-          onConfirm={() => void submitReverse()}
-          onCancel={cancel}
-        />
-      ) : null}
-      {open === "edit" ? (
-        <div className="micro-finance-reversal-editor">
-          <div className="micro-finance-reversal-review">
-            <strong>مراجعة قبل التعديل</strong>
-            <p>
-              سيظهر تعديلك في أرقامك بالقيم الجديدة، وتبقى العملية القديمة محفوظة في السجل للمراجعة. التطبيق
-              كله أو لا شيء: إن تعذّر لا يتغير أي رقم.
-            </p>
-            <dl>
-              <div>
-                <dt>الأصل الحالي</dt>
-                <dd>
-                  {eventLabel[event.type]} · <LocalDateValue value={event.occurredOn} /> ·{" "}
-                  {formatMoneyMinor(event.amountMinor)} د.أ
-                </dd>
-              </div>
-              <div>
-                <dt>البديل الذي سُيسجّل</dt>
-                <dd>
-                  {eventLabel[event.type]} · <LocalDateValue value={editDate} /> ·{" "}
-                  {validEditAmount ? formatMoneyMinor(editAmount) : "—"} د.أ
-                </dd>
-              </div>
-            </dl>
-            {/* عقد الإغلاق العميق (FC-03 — العقد ٢) + Conflict A: تحذير بلغة
-                النتيجة حين يقع التعديل في شهر غير شهر الأصل — يظهر الأثر في
-                كشفي الشهرين؛ لا تغيير صامت لأرقام شهر قديم. */}
-            {editDate.slice(0, 7) !== event.occurredOn.slice(0, 7) ? (
-              <p className="micro-warning-copy" data-testid="edit-period-impact">
-                انتبه: التاريخ الجديد يقع في فترة شهر مختلفة عن الأصل — ستُحسب العملية في الشهر الجديد وتخرج
-                من حساب الشهر القديم، فيتغيّر رقم الشهرين في كشفك. رجّع التاريخ إن كنت تقصد الشهر نفسه.
-              </p>
-            ) : null}
-          </div>
-          <label className="micro-field">
-            <span>المبلغ الجديد بالدينار الأردني</span>
-            <EnglishNumberInput
-              value={editAmount}
-              kind="money"
-              onNumericChange={setEditAmount}
-              onTextValidityChange={setValidEditAmount}
-              aria-label="المبلغ الجديد"
-            />
-          </label>
-          <LocalDateField
-            label="تاريخ الحدث الجديد"
-            value={editDate}
-            onChange={input => setEditDate(input.target.value)}
-          />
-          <label className="micro-field">
-            <span>بيان البديل</span>
-            <textarea value={editNote} onChange={input => setEditNote(input.target.value)} />
-          </label>
-          <label className="micro-field">
-            <span>
-              الجهة المقابلة <small>اختياري</small>
-            </span>
-            <input
-              value={editCounterparty}
-              onChange={input => setEditCounterparty(input.target.value)}
-              aria-label="الجهة المقابلة للبديل"
-            />
-          </label>
-          {isExpenseEvent ? (
-            <div className="micro-finance-layer" data-testid="expense-classification-edit">
-              <button
-                className="micro-text-action"
-                type="button"
-                aria-expanded={classificationOpen}
-                onClick={() => setClassificationOpen(current => !current)}
-              >
-                {classificationOpen ? "أخفِ تصحيح التصنيف" : "صحّح تصنيف المصروف"}
-              </button>
-              {classificationOpen ? (
-                <div className="micro-form-card">
-                  <p className="micro-note-copy">
-                    التصنيف الحالي: {expenseContextLabel(event)} — التصحيح يركب العملية الجديدة، والقديم يبقى
-                    في السجل.
-                  </p>
-                  <label className="micro-field">
-                    <span>
-                      وسم التصنيف <small>اختياري · مثال: بنزين، تغليف</small>
-                    </span>
-                    <input
-                      value={editCategoryLabel}
-                      onChange={input => setEditCategoryLabel(input.target.value)}
-                      aria-label="وسم تصنيف المصروف"
-                      maxLength={80}
-                    />
-                  </label>
-                  <label className="micro-field">
-                    <span>علاقة المصروف بالمشروع</span>
-                    <select
-                      value={editRelationship}
-                      onChange={input =>
-                        setEditRelationship(input.target.value as OperatingExpenseContext["relationship"])
-                      }
-                      aria-label="علاقة المصروف بالمشروع"
-                    >
-                      <option value="project">للمشروع</option>
-                      <option value="shared">مشترك</option>
-                    </select>
-                  </label>
-                  <label className="micro-field">
-                    <span>سلوك المصروف</span>
-                    <select
-                      value={editBehavior}
-                      onChange={input =>
-                        setEditBehavior(input.target.value as OperatingExpenseContext["behavior"])
-                      }
-                      aria-label="سلوك المصروف"
-                    >
-                      <option value="fixed">ثابت</option>
-                      <option value="variable">متغير</option>
-                      <option value="mixed">مختلط</option>
-                      <option value="unknown">غير معروف</option>
-                    </select>
-                  </label>
-                  <label className="micro-field">
-                    <span>غرض المصروف</span>
-                    <select
-                      value={editPurpose}
-                      onChange={input =>
-                        setEditPurpose(input.target.value as OperatingExpenseContext["purpose"])
-                      }
-                      aria-label="غرض المصروف"
-                    >
-                      <option value="project_general">عام للمشروع</option>
-                      <option value="period">لفترة تشغيل</option>
-                      <option value="order">لطلب</option>
-                      <option value="product">لمنتج</option>
-                      <option value="campaign">لحملة</option>
-                      <option value="unallocated">غير مخصص</option>
-                    </select>
-                  </label>
-                  <label className="micro-field">
-                    <span>معرفة تكلفته</span>
-                    <select
-                      value={editKnowledge}
-                      onChange={input =>
-                        setEditKnowledge(input.target.value as OperatingExpenseContext["knowledge"])
-                      }
-                      aria-label="معرفة تكلفة المصروف"
-                    >
-                      <option value="known">معروفة</option>
-                      <option value="estimated">تقديرية</option>
-                      <option value="needs_review">تحتاج مراجعة</option>
-                    </select>
-                  </label>
-                  {editRelationship === "shared" ? (
-                    <p className="micro-note-copy">
-                      تفاصيل حصة المشروع تبقى كما سُجّلت أولًا؛ لتغييرها سجّل تراجعًا كاملًا ثم عِد بالتسجيل
-                      المصنف.
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-          <label className="micro-field">
-            <span>
-              سبب التعديل <small>مطلوب · لا يُقبل فارغًا</small>
-            </span>
-            <textarea
-              value={reason}
-              onChange={input => setReason(input.target.value)}
-              placeholder="مثال: المبلغ الصحيح 12 دينارًا لا 21"
-              autoFocus
-            />
-          </label>
-          {error ? (
-            <p className="micro-field-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
-              disabled={saving}
-              onClick={() => void submitEdit()}
-            >
-              {saving ? "جارٍ حفظ التعديل…" : "أكّد تعديل العملية"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={saving}
-              onClick={cancel}
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
-      ) : null}
-      {open === "delete" ? (
-        <CorrectionPreview
-          action="حذف العملية"
-          originalLabel={`${eventLabel[event.type]} · ${formatMoneyMinor(event.amountMinor)} د.أ`}
-          originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
-          intro="سيُلغى أثر هذه العملية من أرقامك، ويبقى أصلها وسبب الحذف في السجل للمراجعة — لا محو صامت."
-          dimensions={[
-            { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: 0 },
-            { label: "الالتزامات", beforeMinor: event.payableDeltaMinor, afterMinor: 0 },
-            { label: "مال المالك", beforeMinor: event.ownerCapitalDeltaMinor, afterMinor: 0 },
-            { label: "المصروف/النتيجة", beforeMinor: event.operatingExpenseDeltaMinor, afterMinor: 0 },
-            { label: "الأمانات", beforeMinor: event.amanahDeltaMinor ?? 0, afterMinor: 0 },
-          ]}
-          unchanged={["سجل العملية الأصلي باقٍ في التاريخ", "سبب الحذف جزء من السجل لا يُحذف"]}
-          reversibleNote="يمكن التراجع عن هذا الحذف لاحقًا فيعود الأثر إلى أرقامك إن كان الأصل صحيحًا."
-          reason={reason}
-          onReasonChange={setReason}
-          reasonPlaceholder="مثال: حدث اختباري سُجّل بالخطأ"
-          error={error}
-          busy={saving}
-          danger
-          confirmLabel="أكّد حذف العملية"
-          busyLabel="جارٍ حذف العملية…"
-          onConfirm={() => void submitDelete()}
-          onCancel={cancel}
-        />
-      ) : null}
-      {open === "restore" ? (
-        <div className="micro-finance-reversal-editor">
-          <div className="micro-finance-reversal-review">
-            <strong>مراجعة قبل التراجع عن التصحيح</strong>
-            <p>
-              ستعود أرقام هذه العملية كما كانت قبل التصحيح؛ سجل التصحيح السابق يبقى في التاريخ، والماضي لا
-              يُلمس ولا يُعاد كتابته.
-            </p>
-            <dl>
-              <div>
-                <dt>القيم التي ستعود</dt>
-                <dd>
-                  {eventLabel[event.type]} · <LocalDateValue value={event.occurredOn} /> ·{" "}
-                  {formatMoneyMinor(event.amountMinor)} د.أ
-                </dd>
-              </div>
-              <div>
-                <dt>الأثر بعد التراجع عن التصحيح</dt>
-                <dd>
-                  كاش <MoneyValue minor={event.cashDeltaMinor} /> · التزام{" "}
-                  <MoneyValue minor={event.payableDeltaMinor} /> · مال المالك{" "}
-                  <MoneyValue minor={event.ownerCapitalDeltaMinor} /> · مصروف{" "}
-                  <MoneyValue minor={event.operatingExpenseDeltaMinor} />
-                </dd>
-              </div>
-            </dl>
-          </div>
-          {error ? (
-            <p className="micro-field-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
-              disabled={saving}
-              onClick={() => void submitRestore()}
-            >
-              {saving ? "جارٍ التراجع عن التصحيح…" : "أكّد التراجع عن التصحيح"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={saving}
-              onClick={cancel}
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
       ) : null}
     </article>
   );
