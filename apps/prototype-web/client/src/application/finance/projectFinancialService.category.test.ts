@@ -115,3 +115,139 @@ describe("ProjectFinancialService category label invariance (service twins)", ()
     expect(restored.value.expenseContext?.categoryLabel).toBe("إيجار");
   });
 });
+
+/* Conflict H (WF-04): تصحيح تصنيف المصروف بعد الحفظ — البديل يحمل التصنيف
+ * الجديد، والتراجع والأصل يحتفظان بالقديم؛ لا إعادة تسجيل يدوية ولا محو. */
+describe("ProjectFinancialService post-save expense classification correction (Conflict H / WF-04)", () => {
+  it("replaces the classification on the atomic replacement while the original and reversal keep the old one", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const recorded = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 3000,
+      occurredOn: "2026-09-02",
+      note: "بنزين",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "project",
+        behavior: "variable",
+        purpose: "period",
+        knowledge: "known",
+        sharedProjectShare: null,
+        categoryLabel: "وقود",
+      },
+      idempotencyKey: "wf04-base",
+    });
+    if (!recorded.ok) throw new Error(recorded.message);
+    const corrected = await finance.editEvent({
+      sourceEventId: recorded.value.id,
+      amountMinor: 3000,
+      occurredOn: "2026-09-02",
+      note: "بنزين",
+      counterparty: null,
+      expenseContext: {
+        relationship: "project",
+        behavior: "fixed",
+        purpose: "project_general",
+        knowledge: "known",
+        sharedProjectShare: null,
+        categoryLabel: "توصيل",
+      },
+      reason: "هذا مصروف توصيل لا وقود",
+      idempotencyKey: "wf04-edit",
+    });
+    if (!corrected.ok) throw new Error(corrected.message);
+    expect(corrected.value.expenseContext?.categoryLabel).toBe("توصيل");
+    expect(corrected.value.expenseContext?.behavior).toBe("fixed");
+    expect(corrected.value.expenseContext?.purpose).toBe("project_general");
+    /* الدلتا المالية لم تتأثر بتغيير التصنيف — التصنيف بعد قراءة لا كتابة مالية. */
+    expect(corrected.value.cashDeltaMinor).toBe(-3000);
+    expect(corrected.value.operatingExpenseDeltaMinor).toBe(3000);
+    const all = await store.listFinancialEvents();
+    if (!all.ok) throw new Error(all.message);
+    const source = all.value.find(event => event.id === recorded.value.id);
+    expect(source?.expenseContext?.categoryLabel).toBe("وقود");
+    const reversal = all.value.find(
+      event => event.correctionType === "reverse" && event.correctionOfEventId === recorded.value.id,
+    );
+    expect(reversal?.expenseContext?.categoryLabel).toBe("وقود");
+  });
+
+  it("rejects classification correction on a non-expense event and drops the share when leaving shared", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const investment = await finance.record({
+      type: "owner_investment_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-09-02",
+      note: "رأس مال",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "wf04-invest",
+    });
+    if (!investment.ok) throw new Error(investment.message);
+    const rejected = await finance.editEvent({
+      sourceEventId: investment.value.id,
+      amountMinor: 5000,
+      occurredOn: "2026-09-02",
+      note: "رأس مال",
+      counterparty: null,
+      expenseContext: {
+        relationship: "project",
+        behavior: "fixed",
+        purpose: "period",
+        knowledge: "known",
+        sharedProjectShare: null,
+        categoryLabel: "لا يصح",
+      },
+      reason: "محاولة تصنيف غير مصروف",
+      idempotencyKey: "wf04-reject",
+    });
+    expect(rejected.ok).toBe(false);
+    if (!rejected.ok) expect(rejected.message).toContain("لأحداث المصروف فقط");
+
+    /* مصروف مشترك بحصة → التصحيح إلى «للمشروع» يسقط الحصة لا يحتفظ بها. */
+    const shared = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 2000,
+      occurredOn: "2026-09-02",
+      note: "فاتورة مشتركة",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "shared",
+        behavior: "variable",
+        purpose: "project_general",
+        knowledge: "known",
+        sharedProjectShare: { basis: "agreed_fixed_share", note: "نص" },
+        categoryLabel: "كهرباء",
+      },
+      sharedExpense: { mode: "fixed", amountMinor: 2000 },
+      idempotencyKey: "wf04-shared",
+    });
+    if (!shared.ok) throw new Error(shared.message);
+    const toProject = await finance.editEvent({
+      sourceEventId: shared.value.id,
+      amountMinor: 3000,
+      occurredOn: "2026-09-02",
+      note: "فاتورة مشتركة",
+      counterparty: null,
+      expenseContext: {
+        relationship: "project",
+        behavior: "variable",
+        purpose: "project_general",
+        knowledge: "known",
+        sharedProjectShare: null,
+        categoryLabel: "كهرباء",
+      },
+      reason: "صار للمشروع كله",
+      idempotencyKey: "wf04-to-project",
+    });
+    expect(toProject.ok).toBe(true);
+    if (toProject.ok) {
+      expect(toProject.value.expenseContext?.relationship).toBe("project");
+      expect(toProject.value.expenseContext?.sharedProjectShare).toBeNull();
+    }
+  });
+});

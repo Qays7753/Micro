@@ -161,9 +161,7 @@ describe("D-005 corrections reach the UI from the event row", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "أكّد حذف العملية" }));
     await waitFor(() =>
-      expect(
-        screen.getByText("حُذفت العملية — أثرها صار خارج أرقامك، وأصلها باقٍ في السجل."),
-      ).toBeTruthy(),
+      expect(screen.getByText("حُذفت العملية — أثرها صار خارج أرقامك، وأصلها باقٍ في السجل.")).toBeTruthy(),
     );
     /* الاسترجاع يعيد القيم الأصلية حدثًا جديدًا بعد التراجع. */
     await waitFor(() => expect(screen.getByRole("button", { name: "التراجع عن التصحيح" })).toBeTruthy());
@@ -179,5 +177,41 @@ describe("D-005 corrections reach the UI from the event row", () => {
     if (!events.ok) throw new Error("events should list");
     const restored = events.value.find(event => event.idempotencyKey === `restore:${expense.id}`);
     expect(restored).toMatchObject({ type: "operating_expense_cash", amountMinor: 7000 });
+  });
+
+  /* Conflict H (WF-04): تصنيف المصروف يُصحَّح بعد الحفظ من نفس مسار «تعديل العملية»
+   * — البديل يحمل الوسم الجديد، والأصل والتراجع يحتفظان بالقديم. */
+  it("corrects the expense classification after save through the edit flow", async () => {
+    const expense = await recordExpense(4200, "d005-expense-classify");
+    await openEventsLayer();
+    fireEvent.click(screen.getByText("عرض الأثر الكامل"));
+    fireEvent.click(screen.getByRole("button", { name: "تعديل العملية" }));
+    /* قسم تصحيح التصنيف يظهر لأحداث المصروف فقط ويبدأ من التصنيف الحالي. */
+    const classificationToggle = await screen.findByRole("button", { name: "صحّح تصنيف المصروف" });
+    fireEvent.click(classificationToggle);
+    const labelInput = screen.getByLabelText("وسم تصنيف المصروف") as HTMLInputElement;
+    expect(labelInput.value).toBe("");
+    fireEvent.change(labelInput, { target: { value: "وقود" } });
+    fireEvent.change(screen.getByLabelText("غرض المصروف"), { target: { value: "campaign" } });
+    fireEvent.change(screen.getByLabelText("معرفة تكلفة المصروف"), { target: { value: "estimated" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: المبلغ الصحيح 12 دينارًا لا 21"), {
+      target: { value: "هذا وقود حملة لا توصيل" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "أكّد تعديل العملية" }));
+    await waitFor(() =>
+      expect(
+        screen.getByText("تم تعديل العملية — أرقامك تعرض القيم الجديدة، والقديمة محفوظة في السجل."),
+      ).toBeTruthy(),
+    );
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error("events should list");
+    const replacement = events.value.find(event => event.idempotencyKey === `edit:${expense.id}`);
+    expect(replacement?.expenseContext?.categoryLabel).toBe("وقود");
+    expect(replacement?.expenseContext?.purpose).toBe("campaign");
+    expect(replacement?.expenseContext?.knowledge).toBe("estimated");
+    expect(replacement?.cashDeltaMinor).toBe(-4200);
+    const source = events.value.find(event => event.id === expense.id);
+    expect(source?.expenseContext?.categoryLabel ?? null).toBeNull();
+    expect(source?.expenseContext?.purpose).toBe("order");
   });
 });

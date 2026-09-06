@@ -11,7 +11,11 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
-import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
+import type {
+  FinancialEvent,
+  FinancialEventType,
+  OperatingExpenseContext,
+} from "@micro-domain/financial-event/index.js";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import { eventCountLabel } from "@/presentation/g5Plurals";
 
@@ -139,6 +143,24 @@ function FinancialEventRow({
   const [editDate, setEditDate] = useState(event.occurredOn);
   const [editNote, setEditNote] = useState(event.note);
   const [editCounterparty, setEditCounterparty] = useState(event.counterparty ?? "");
+  /* Conflict H (WF-04): تصحيح التصنيف بعد الحفظ — يُفتح عند الحاجة لأحداث المصروف
+   * فقط؛ الحقول تبدأ من تصنيف الحدث الحالي فلا تصحيح صامت ولا إعادة تسجيل يدوية. */
+  const isExpenseEvent =
+    event.type === "operating_expense_cash" || event.type === "operating_expense_payable";
+  const [classificationOpen, setClassificationOpen] = useState(false);
+  const [editCategoryLabel, setEditCategoryLabel] = useState(event.expenseContext?.categoryLabel ?? "");
+  const [editRelationship, setEditRelationship] = useState<OperatingExpenseContext["relationship"]>(
+    event.expenseContext?.relationship ?? "project",
+  );
+  const [editBehavior, setEditBehavior] = useState<OperatingExpenseContext["behavior"]>(
+    event.expenseContext?.behavior ?? "unknown",
+  );
+  const [editPurpose, setEditPurpose] = useState<OperatingExpenseContext["purpose"]>(
+    event.expenseContext?.purpose ?? "project_general",
+  );
+  const [editKnowledge, setEditKnowledge] = useState<OperatingExpenseContext["knowledge"]>(
+    event.expenseContext?.knowledge ?? "known",
+  );
   const reversal =
     events.find(
       candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
@@ -157,6 +179,12 @@ function FinancialEventRow({
     setEditDate(event.occurredOn);
     setEditNote(event.note);
     setEditCounterparty(event.counterparty ?? "");
+    setClassificationOpen(false);
+    setEditCategoryLabel(event.expenseContext?.categoryLabel ?? "");
+    setEditRelationship(event.expenseContext?.relationship ?? "project");
+    setEditBehavior(event.expenseContext?.behavior ?? "unknown");
+    setEditPurpose(event.expenseContext?.purpose ?? "project_general");
+    setEditKnowledge(event.expenseContext?.knowledge ?? "known");
     setDetailsOpen(true);
     setOpen(mode);
   };
@@ -188,7 +216,9 @@ function FinancialEventRow({
     setOpen(null);
     setReason("");
     setSuccess(
-      result.reused ? "الإلغاء موثق مسبقًا؛ لم يُضاعف الأثر." : "أُلغيت العملية — أثرها خرج من أرقامك وسجلها الأصلي محفوظ.",
+      result.reused
+        ? "الإلغاء موثق مسبقًا؛ لم يُضاعف الأثر."
+        : "أُلغيت العملية — أثرها خرج من أرقامك وسجلها الأصلي محفوظ.",
     );
     onChanged();
   };
@@ -207,6 +237,21 @@ function FinancialEventRow({
       setError("اكتب بيان البديل؛ الوصف جزء من السجل المالي.");
       return;
     }
+    /* Conflict H (WF-04): التصنيف المصحّح يركب البديل — الأصل يبقى بتصنيفه
+     * للمراجعة، والنطاق يتحقق منه factory النطاق نفسه عند البناء. */
+    const nextExpenseContext =
+      isExpenseEvent && classificationOpen
+        ? {
+            relationship: editRelationship,
+            behavior: editBehavior,
+            purpose: editPurpose,
+            knowledge: editKnowledge,
+            /* حصة المشروع المشتركة تُدار كما سُجّلت: تُحفظ للمشترك وتُسقط لغيره. */
+            sharedProjectShare:
+              editRelationship === "shared" ? (event.expenseContext?.sharedProjectShare ?? null) : null,
+            categoryLabel: editCategoryLabel.trim() || null,
+          }
+        : undefined;
     setError(null);
     setSaving(true);
     const result = await projectFinance.editEvent({
@@ -215,6 +260,7 @@ function FinancialEventRow({
       occurredOn: editDate,
       note: editNote,
       counterparty: editCounterparty.trim() || null,
+      expenseContext: nextExpenseContext,
       reason: trimmed,
       idempotencyKey: `edit:${event.id}`,
     });
@@ -512,6 +558,102 @@ function FinancialEventRow({
               aria-label="الجهة المقابلة للبديل"
             />
           </label>
+          {isExpenseEvent ? (
+            <div className="micro-finance-layer" data-testid="expense-classification-edit">
+              <button
+                className="micro-text-action"
+                type="button"
+                aria-expanded={classificationOpen}
+                onClick={() => setClassificationOpen(current => !current)}
+              >
+                {classificationOpen ? "أخفِ تصحيح التصنيف" : "صحّح تصنيف المصروف"}
+              </button>
+              {classificationOpen ? (
+                <div className="micro-form-card">
+                  <p className="micro-note-copy">
+                    التصنيف الحالي: {expenseContextLabel(event)} — التصحيح يركب العملية الجديدة، والقديم يبقى
+                    في السجل.
+                  </p>
+                  <label className="micro-field">
+                    <span>
+                      وسم التصنيف <small>اختياري · مثال: بنزين، تغليف</small>
+                    </span>
+                    <input
+                      value={editCategoryLabel}
+                      onChange={input => setEditCategoryLabel(input.target.value)}
+                      aria-label="وسم تصنيف المصروف"
+                      maxLength={80}
+                    />
+                  </label>
+                  <label className="micro-field">
+                    <span>علاقة المصروف بالمشروع</span>
+                    <select
+                      value={editRelationship}
+                      onChange={input =>
+                        setEditRelationship(input.target.value as OperatingExpenseContext["relationship"])
+                      }
+                      aria-label="علاقة المصروف بالمشروع"
+                    >
+                      <option value="project">للمشروع</option>
+                      <option value="shared">مشترك</option>
+                    </select>
+                  </label>
+                  <label className="micro-field">
+                    <span>سلوك المصروف</span>
+                    <select
+                      value={editBehavior}
+                      onChange={input =>
+                        setEditBehavior(input.target.value as OperatingExpenseContext["behavior"])
+                      }
+                      aria-label="سلوك المصروف"
+                    >
+                      <option value="fixed">ثابت</option>
+                      <option value="variable">متغير</option>
+                      <option value="mixed">مختلط</option>
+                      <option value="unknown">غير معروف</option>
+                    </select>
+                  </label>
+                  <label className="micro-field">
+                    <span>غرض المصروف</span>
+                    <select
+                      value={editPurpose}
+                      onChange={input =>
+                        setEditPurpose(input.target.value as OperatingExpenseContext["purpose"])
+                      }
+                      aria-label="غرض المصروف"
+                    >
+                      <option value="project_general">عام للمشروع</option>
+                      <option value="period">لفترة تشغيل</option>
+                      <option value="order">لطلب</option>
+                      <option value="product">لمنتج</option>
+                      <option value="campaign">لحملة</option>
+                      <option value="unallocated">غير مخصص</option>
+                    </select>
+                  </label>
+                  <label className="micro-field">
+                    <span>معرفة تكلفته</span>
+                    <select
+                      value={editKnowledge}
+                      onChange={input =>
+                        setEditKnowledge(input.target.value as OperatingExpenseContext["knowledge"])
+                      }
+                      aria-label="معرفة تكلفة المصروف"
+                    >
+                      <option value="known">معروفة</option>
+                      <option value="estimated">تقديرية</option>
+                      <option value="needs_review">تحتاج مراجعة</option>
+                    </select>
+                  </label>
+                  {editRelationship === "shared" ? (
+                    <p className="micro-note-copy">
+                      تفاصيل حصة المشروع تبقى كما سُجّلت أولًا؛ لتغييرها سجّل تراجعًا كاملًا ثم عِد بالتسجيل
+                      المصنف.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <label className="micro-field">
             <span>
               سبب التعديل <small>مطلوب · لا يُقبل فارغًا</small>
