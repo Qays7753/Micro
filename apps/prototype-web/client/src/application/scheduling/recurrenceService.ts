@@ -9,6 +9,7 @@ import type {
   ScheduleRecurrenceFrequency,
   StoredCraftOrder,
 } from "@/storage/local/types";
+import { storageFailureCode } from "@/storage/local/types";
 
 export type RecurrenceInput = {
   sourceScheduleId: string;
@@ -29,7 +30,16 @@ export type RecurrenceView = {
 };
 export type RecurrenceResult<T> =
   | { ok: true; value: T }
-  | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
+  | {
+      ok: false;
+      code: "validation_error" | "storage_error" | "storage_stale" | "not_found";
+      message: string;
+    };
+
+/* رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): تعارض التكرار/الإيقاف يصل كودًا
+ * مطبوعًا storage_stale (أعد الفتح ثم أعد المحاولة) والفشل الحقيقي يبقى
+ * storage_error — بلا تفسير نصوص عربية من المستدعين. التصنيف المشترك في
+ * طبقة التخزين (`storageFailureCode`). */
 
 const isActiveSchedule = (schedule: ScheduleEntry) =>
   schedule.status === "scheduled" || schedule.status === "postponed";
@@ -239,8 +249,9 @@ export class ScheduleRecurrenceService {
     if (!committed.ok)
       return {
         ok: false,
-        code: "storage_error",
-        message: "تعذر حفظ قالب التكرار ومواعيده القادمة محليًا. لم يتم تأكيد نجاح العملية.",
+        code: storageFailureCode(committed.code),
+        /* رسالة المتجر الصادقة كما هي — عقد الفشل يوجب رسالة غير فارغة. */
+        message: committed.message,
       };
     return {
       ok: true,
@@ -310,8 +321,9 @@ export class ScheduleRecurrenceService {
       ? { ok: true, value: saved.value.recurrence }
       : {
           ok: false,
-          code: "storage_error",
-          message: "تعذر إيقاف قالب التكرار ومواعيده القادمة محليًا. لم يتم تأكيد نجاح العملية.",
+          code: storageFailureCode(saved.code),
+          /* رسالة المتجر الصادقة كما هي — عقد الفشل يوجب رسالة غير فارغة. */
+          message: saved.message,
         };
   }
 }

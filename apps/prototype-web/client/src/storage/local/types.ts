@@ -347,6 +347,14 @@ export type StorageFailure = { ok: false; code: StorageFailureCode; message: str
 type StorageSuccess<T> = { ok: true; value: T };
 export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
 
+/* رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): تصنيف فشل التخزين لزوج خدمات
+ * التطبيق — تعارض القراءة-التعديل-الكتابة يصل المستدعي كودًا مطبوعًا
+ * storage_stale (أعد الفتح ثم أعد المحاولة) والفشل التخزيني الحقيقي يظل
+ * storage_error؛ الرسالة تبقى نص المتجر الصادق. يُعرَّف هنا بجوار مفردة
+ * الأكواد نفسها فلا تُكرر حرفية الكود في خدمات الشاشات. */
+export const storageFailureCode = (code: StorageFailureCode): "storage_error" | "storage_stale" =>
+  code === "storage_stale" ? "storage_stale" : "storage_error";
+
 export interface PrototypeLocalStore {
   getProfile(): Promise<StorageResult<ActivityProfile | null>>;
   saveProfile(profile: ActivityProfile): Promise<StorageResult<ActivityProfile>>;

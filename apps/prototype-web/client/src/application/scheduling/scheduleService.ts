@@ -8,6 +8,7 @@ import type {
   ScheduleStatus,
   StoredCraftOrder,
 } from "@/storage/local/types";
+import { storageFailureCode } from "@/storage/local/types";
 
 export type ScheduledOrder = {
   schedule: ScheduleEntry;
@@ -47,7 +48,17 @@ export type ScheduleTimingInput = {
 };
 export type ScheduleResult<T> =
   | { ok: true; value: T }
-  | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
+  | {
+      ok: false;
+      code: "validation_error" | "storage_error" | "storage_stale" | "not_found";
+      message: string;
+    };
+
+/* رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): تعارض القراءة-التعديل-الكتابة
+ * يصل المستدعي كودًا مطبوعًا storage_stale (أعد الفتح وأعد المحاولة) بلا
+ * تفسير نصوص؛ الفشل التخزيني الحقيقي يبقى storage_error — عقد المجموعة ٣
+ * لرحلة إعادة المحاولة الصريحة. التصنيف المشترك في طبقة التخزين
+ * (`storageFailureCode`). */
 
 const activeScheduleStatus = (status: ScheduleStatus) => status === "scheduled" || status === "postponed";
 const orderCanAppear = (stored: StoredCraftOrder) =>
@@ -237,9 +248,19 @@ export class ScheduleService {
           /* المجموعة ٢ (التحصين الكامل — HIGH-001): الإكمال التلقائي على مسار
            * قراءة — الحدث واحد بمفتاح حتمي؛ إعادة التشغيل نجاح بلا كتابة،
            * والتعارض مع مسار متزامن (تأجيل مثلًا) يُحل بإعادة قراءة واحدة
-           * صادقة لا بفشل القراءة كلها ولا بكتابة فوق تغيير الآخر. */
+           * صادقة لا بفشل القراءة كلها ولا بكتابة فوق تغيير الآخر (وثّقت
+           * رقعة الإغلاق هذا الطي المتعمد: الإكمال ليس عملية مستخدم معلنة،
+           * وعلامته تُعاد بناءها عند القراءة التالية)؛ أما الفشل التخزيني
+           * الحقيقي فيُعلن بصدقه ولا يُبتلع. */
           const saved = await this.store.commitScheduleUpdate(completed);
           if (!saved.ok) {
+            if (saved.code !== "storage_stale")
+              return {
+                ok: false,
+                code: "storage_error",
+                /* رسالة المتجر الصادقة كما هي — عقد الفشل يوجب رسالة غير فارغة. */
+                message: saved.message,
+              };
             const fresh = await this.store.getSchedule(schedule.id);
             if (!fresh.ok || !fresh.value)
               return {
@@ -477,14 +498,16 @@ export class ScheduleService {
       ],
     };
     /* المجموعة ٢ (التحصين الكامل — HIGH-001): الحدث واحد بمفتاح حتمي داخل
-     * معاملة واحدة — التعارض مع مسار متزامن يُعلن بصدقه (رسالة المتجر) ولا
-     * يُمحى أثر أي طرف؛ أعد المحاولة بعد إعادة الفتح. */
+     * معاملة واحدة — التعارض مع مسار متزامن يُعلن بصدقه (رسالة المتجر)
+     * ولا يُمحى أثر أي طرف؛ أعد المحاولة بعد إعادة الفتح. رقعة الإغلاق:
+     * الكود المطبوع يُحفظ — storage_stale للتعارض وstorage_error للفشل
+     * الحقيقي. */
     const saved = await this.store.commitScheduleUpdate(next);
     return saved.ok
       ? { ok: true, value: saved.value.schedule }
       : {
           ok: false,
-          code: "storage_error",
+          code: storageFailureCode(saved.code),
           message: saved.message ?? "تعذر حفظ الموعد محليًا. لم يتم تأكيد نجاح العملية.",
         };
   }

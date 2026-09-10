@@ -7,6 +7,7 @@ import {
   type SupplierPurchase,
 } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import { storageFailureCode } from "@/storage/local/types";
 import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
 
 export type SupplierPurchaseInput = {
@@ -60,7 +61,13 @@ export type SupplierPurchaseSummary = {
 };
 export type SupplierPurchaseResult<T> =
   | { ok: true; value: T; reused?: boolean }
-  | { ok: false; code: "validation_error" | "storage_error"; message: string };
+  | { ok: false; code: "validation_error" | "storage_error" | "storage_stale"; message: string };
+
+/* رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): كود المحوّل المطبوع يُحفظ عبر طبقة
+ * التطبيق — تعارض القراءة-التعديل-الكتابة يظهر storage_stale (أعد الفتح ثم
+ * أعد المحاولة) والفشل التخزيني الحقيقي يبقى storage_error؛ المستدعون لا
+ * يفسّرون النص العربي لمعرفة الصنف. التصنيف المشترك في طبقة التخزين
+ * (`storageFailureCode`). */
 
 const id = () =>
   globalThis.crypto?.randomUUID?.() ??
@@ -127,7 +134,7 @@ export class SupplierPurchaseService {
         ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
         : {
             ok: false,
-            code: "storage_error",
+            code: storageFailureCode(saved.code),
             message: saved.message ?? "تعذر حفظ شراء المواد محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
@@ -167,7 +174,7 @@ export class SupplierPurchaseService {
         ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
         : {
             ok: false,
-            code: "storage_error",
+            code: storageFailureCode(saved.code),
             message: saved.message ?? "تعذر حفظ دفعة المورد محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
@@ -261,7 +268,7 @@ export class SupplierPurchaseService {
         ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
         : {
             ok: false,
-            code: "storage_error",
+            code: storageFailureCode(saved.code),
             message: saved.message ?? "تعذر حفظ تعديل الشراء محليًا — بقي الأصل دون تغيير؛ أعد المحاولة.",
           };
     } catch (error) {
@@ -305,7 +312,7 @@ export class SupplierPurchaseService {
         ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
         : {
             ok: false,
-            code: "storage_error",
+            code: storageFailureCode(saved.code),
             message: saved.message ?? "تعذر حفظ التراجع محليًا. بقي الدفع دون تغيير.",
           };
     } catch (error) {

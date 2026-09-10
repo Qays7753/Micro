@@ -96,7 +96,9 @@ describe("supplier purchase local concurrency (HIGH-001)", () => {
     expect(successes.length).toBe(1);
     expect(failures.length).toBe(1);
     if (failures[0] && !failures[0].ok) {
-      expect(failures[0].code).toBe("storage_error");
+      /* رقعة إغلاق المجموعة ٢: التعارض يصل كودًا مطبوعًا storage_stale لا
+       * storage_error — المستدعي لا يفسّر النص لمعرفة الصنف. */
+      expect(failures[0].code).toBe("storage_stale");
       expect(failures[0].message).toContain("أعد المحاولة");
     }
     /* الدفعة الناجلة واحدة بالضبط — لا دمج صامت ولا اختفاء. */
@@ -316,7 +318,8 @@ describe("schedule local concurrency (HIGH-001)", () => {
     expect(successes.length).toBe(1);
     expect(failures.length).toBe(1);
     if (failures[0] && !failures[0].ok) {
-      expect(failures[0].code).toBe("storage_error");
+      /* رقعة إغلاق المجموعة ٢: التعارض المواعيدي كود مطبوع storage_stale. */
+      expect(failures[0].code).toBe("storage_stale");
       expect(failures[0].message).toContain("أعد المحاولة");
     }
     /* حدث تأجيل واحد بالضبط — حدث الخاسر لا وجود له في المخزن. */
