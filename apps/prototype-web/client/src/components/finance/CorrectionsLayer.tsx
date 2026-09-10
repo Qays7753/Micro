@@ -29,9 +29,9 @@ const kindLabel: Record<CorrectionHistoryKind, string> = {
   asset_correction: "تصحيح قيمة أو طريقة اقتناء أصل",
   loan_correction: "تصحيح أصل قرض موثق",
   deposit_reclassification: "تغيير معنى عربون محتفظ به",
-  delivery_reversal: "عكس تسليم موثق",
+  delivery_reversal: "تراجع موثق عن التسليم",
   deposit_classification: "تصنيف عربون محتفظ به",
-  inventory_reversal: "عكس حركة مخزون موثق",
+  inventory_reversal: "تراجع موثق عن حركة مخزون",
   owner_reversal: "تراجع عن حركة مال المالك",
   asset_contract_revision: "تعديل مدة الإهلاك أو بدايته",
 };

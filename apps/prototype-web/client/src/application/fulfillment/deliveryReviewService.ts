@@ -174,7 +174,7 @@ export class DeliveryReviewService {
       return failure(
         "invalid_state",
         order.status === "delivered" || order.status === "settled"
-          ? "هذا الطلب مسلّم سابقًا — راجع تفاصيله أو اعكس التسليم إن لزم."
+          ? "هذا الطلب مسلّم سابقًا — راجع تفاصيله أو سجّل تراجعًا موثقًا عن التسليم إن لزم."
           : "مراجعة التسليم تتطلب طلبًا جاهزًا للتسليم.",
       );
     }
@@ -558,7 +558,8 @@ export class DeliveryReviewService {
     if (!current.ok) return failure("storage_error", "تعذر قراءة الطلب المحلي.");
     const stored = current.value;
     if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
-    if (!input.reason.trim()) return failure("invalid_state", "أكمل سبب عكس التسليم قبل الحفظ.");
+    if (!input.reason.trim())
+      return failure("invalid_state", "أكمل سبب التراجع الموثق عن التسليم قبل الحفظ.");
     const timestamp = this.now();
     const reversalAttempt = stored.order.events.filter(event => event.type === "delivery_reversed").length;
     const operationKey = input.operationKey ?? reversalIdempotencyKey(orderId, reversalAttempt);
@@ -577,7 +578,10 @@ export class DeliveryReviewService {
         createdAt: timestamp,
       });
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر عكس التسليم.");
+      return failure(
+        "invalid_state",
+        error instanceof Error ? error.message : "تعذر التراجع الموثق عن التسليم.",
+      );
     }
     /* حركات مرآة لكل استهلاك تسليم غير معكوس — عقد ٢٨: المرآة تحمل معرفة
      * التكلفة الأصلية، وعملية التراجع لا تُكرر. */
@@ -607,7 +611,7 @@ export class DeliveryReviewService {
           recordedAt: timestamp,
           quantityDeltaMilli: -movement.quantityDeltaMilli,
           valueDeltaMinor: -movement.valueDeltaMinor,
-          note: `عكس تسليم: ${movement.note}`,
+          note: `تراجع موثق عن التسليم: ${movement.note}`,
           reason: input.reason.trim(),
           operationKey: `${movement.operationKey}:reversal`,
           reversesMovementId: movement.id,
@@ -618,13 +622,14 @@ export class DeliveryReviewService {
       } catch (error) {
         return failure(
           "invalid_state",
-          error instanceof Error ? error.message : "تعذر عكس حركات استهلاك التسليم.",
+          error instanceof Error ? error.message : "تعذر تسجيل مرايا تراجع حركات استهلاك التسليم.",
         );
       }
     }
     const nextStored: StoredCraftOrder = { ...stored, order, updatedAt: timestamp };
     const committed = await this.store.commitOrderDeliveryReversal(nextStored, reversalMovements);
-    if (!committed.ok) return failure("storage_error", "تعذر حفظ عكس التسليم؛ لم يتغير أي رصيد.");
+    if (!committed.ok)
+      return failure("storage_error", "تعذر حفظ التراجع الموثق عن التسليم؛ لم يتغير أي رصيد.");
     return {
       ok: true,
       value: {

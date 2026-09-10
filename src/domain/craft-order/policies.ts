@@ -821,12 +821,21 @@ export function noteDeliveryConsumption(order: CraftOrder, input: DeliveryConsum
  * وأثره في الأحداث) يبقى؛ الإيراد المعروف والتكلفة المعروفة تُحيَّدان إلى غياب
  * المعرفة (لا صفر مزيف: النتيجة «تحتاج مراجعة»)؛ الطلب ينتقل إلى «يحتاج مراجعة»
  * ليقرر المالك بعدها: إعادة تنفيذ (مؤكد ← قيد التنفيذ) أو إلغاء موثق. الكاش
- * المقبوض لا يُمس هنا — عكس قبضة له مساره الخاص. */
+ * المقبوض لا يُمس هنا — عكس قبضة له مساره الخاص.
+ * التحصين الكامل (D-031، المجموعة ٣): هذه العملية هي Use Case التصحيح الموثق
+ * المعتمد للسجل المسلّم المقفل داخل «يحتاج مراجعة» — تُقبل الحالة المقفلة
+ * (مسلّم + حدث تسليم بلا عكس) لأن العكس هو المخرج الموثق الوحيد من القفل
+ * (AGENTS.md §6)، وبعده يعمل القفل بمفتاح علاقة العكس لا بحالة عامة. */
 export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput): CraftOrder {
   assertIdempotencyKey(input.idempotencyKey);
   if (eventExists(order, input.idempotencyKey, "delivery_reversed")) return order;
-  if (order.status !== "delivered" && order.status !== "settled") {
-    throw new Error(`عكس التسليم يتطلب طلبًا مسلّمًا — الحالة الحالية «${ORDER_STATUS_AR[order.status]}».`);
+  /* D-031: حالة «يحتاج مراجعة» تُقبل فقط عندما يكون هناك حدث تسليم غير معكوس
+   * (القفل نفسه) — وإلا فالطلب ليس مسلّمًا فيُرفض كما كان. */
+  const lockedDeliveredReview = order.status === "needs_review" && hasDeliveredEvent(order);
+  if (order.status !== "delivered" && order.status !== "settled" && !lockedDeliveredReview) {
+    throw new Error(
+      `التراجع الموثق عن التسليم يتطلب طلبًا مسلّمًا — الحالة الحالية «${ORDER_STATUS_AR[order.status]}».`,
+    );
   }
   const deliveryEvent = [...order.events]
     .reverse()
@@ -839,9 +848,9 @@ export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput):
       event => event.type === "delivery_reversed" && event.reversesEventId === deliveryEvent.id,
     )
   ) {
-    throw new Error("عُكس هذا التسليم سابقًا؛ لا يُعكس التسليم نفسه مرتين.");
+    throw new Error("سُجّل التراجع الموثق عن هذا التسليم سابقًا؛ لا يتكرر على التسليم نفسه مرتين.");
   }
-  if (!input.reason.trim()) throw new Error("أكمل سبب عكس التسليم قبل الحفظ.");
+  if (!input.reason.trim()) throw new Error("أكمل سبب التراجع الموثق عن التسليم قبل الحفظ.");
 
   const next: CraftOrder = {
     ...order,
@@ -850,7 +859,7 @@ export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput):
     recognizedCostMinor: 0,
     profitIndicatorMinor: null,
     resultStatus: "review_required",
-    nextAction: "راجع الطلب بعد عكس التسليم — أعِد التنفيذ أو ألغِ موثقًا",
+    nextAction: "راجع الطلب بعد التراجع الموثق عن التسليم — أعِد التنفيذ أو ألغِ موثقًا",
   };
   const withStatusEvent = appendStatusChanged(
     next,

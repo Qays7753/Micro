@@ -20,7 +20,7 @@ const eventLabel: Record<string, string> = {
   /* المجموعة ٥ (عقد ٣٤): أحداث عقد ٢٩/عقد D2 التي كانت تسقط إلى تسمية عامة —
    * السجل يسمّي فعله الحقيقي. */
   delivery_consumed: "استهلاك مواد عند التسليم",
-  delivery_reversed: "عكس تسليم موثق",
+  delivery_reversed: "تراجع موثق عن التسليم",
   deposit_classified: "تصنيف العربون المحتفظ به",
 };
 
