@@ -60,7 +60,15 @@ describe("documentation consistency — Group 2 implemented on the remediation b
     expect(group3).toBeDefined();
     expect(group3?.trimStart().startsWith("- [x]")).toBe(true);
     expect(group3).toContain("PR #159 مفتوح وغير مدموج");
-    for (const group of ["المجموعة ٤", "المجموعة ٥", "المجموعة ٦"]) {
+    /* المجموعة ٤ أُنجزت لاحقًا على الفرع (D-034)؛ ٥ و٦ لم تبدآ بعد. */
+    const group4 = todo
+      .split("\n")
+      .find(
+        line => line.includes("المجموعة ٤ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
+      );
+    expect(group4?.trimStart().startsWith("- [x]")).toBe(true);
+    expect(group4).toContain("PR #159 مفتوح وغير مدموج");
+    for (const group of ["المجموعة ٥", "المجموعة ٦"]) {
       const lines = todo.split("\n").filter(line => line.includes(`${group} — برنامج التحصين الكامل`));
       expect(lines.length).toBeGreaterThan(0);
       for (const line of lines) {

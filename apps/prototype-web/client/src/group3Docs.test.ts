@@ -53,8 +53,15 @@ describe("documentation consistency — Group 3 implemented on the remediation b
     expect(group3Line).toContain("منفذة على الفرع");
   });
 
-  it("todo keeps Groups 4-6 of the hardening program not started", () => {
-    for (const group of ["المجموعة ٤", "المجموعة ٥", "المجموعة ٦"]) {
+  it("todo reflects the program truth: Group 4 implemented on the branch, Groups 5-6 not started", () => {
+    /* المجموعة ٤ أُنجزت لاحقًا على الفرع (D-034 — انظر group4Docs.test.ts)؛ ٥ و٦ لم تبدآ. */
+    const group4 = todo
+      .split("\n")
+      .find(
+        line => line.includes("المجموعة ٤ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
+      );
+    expect(group4?.trimStart().startsWith("- [x]")).toBe(true);
+    for (const group of ["المجموعة ٥", "المجموعة ٦"]) {
       const lines = todo.split("\n").filter(line => line.includes(`${group} — برنامج التحصين الكامل`));
       expect(lines.length).toBeGreaterThan(0);
       for (const line of lines) {
