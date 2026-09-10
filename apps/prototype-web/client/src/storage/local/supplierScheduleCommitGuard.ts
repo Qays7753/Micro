@@ -264,7 +264,14 @@ export function validateScheduleCreate(stored: ScheduleEntry | undefined): Sched
 
 /** تحديث موعد: حدث واحد جديد بالضبط في نهاية الأحداث، كل الأحداث السابقة كما
  * هي حرفيًا، وحقول «قبل» في الحدث الجديد تطابق حالة المخزّن الحية — هذا جوهر
- * التزامن المتفائل. إعادة التشغيل بالمفتاح نفسه تُعاد كما هي (نجاح بلا كتابة). */
+ * التزامن المتفائل. إعادة التشغيل بالمفتاح نفسه تُعاد كما هي (نجاح بلا كتابة).
+ * رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): العلاقة لا تكتمل بـ«قبل» وحدها —
+ * يجب أن تطابق حقول الموعد الواردة الحقول «الجديدة» التي يصرّح بها الحدث
+ * نفسه (scheduledFor/scheduledTime/durationMinutes)، فلا يمر سجل مزوّر
+ * تتفق قصته مع المخزّن وتخالف حقوله العليا حدثه الأخير، مهما كان مفتاح
+ * الحدث صالحًا. القيود النوعية مشتقة من منشئات الأحداث الفعلية في الخدمات:
+ * التأجيل يغيّر اليوم والسبب والحالة إلى postponed، وتغيير التوقيت لا يحرك
+ * اليوم ولا السبب، والإكمال يحرك الحالة فقط، والإلغاء لا يحرك أي توقيت. */
 export function validateScheduleUpdate(
   stored: ScheduleEntry | undefined,
   incoming: ScheduleEntry,
@@ -293,9 +300,17 @@ export function validateScheduleUpdate(
     newEvent.previousDurationMinutes !== stored.durationMinutes
   )
     return { ok: false, message: SCHEDULE_STALE_MESSAGE };
+  /* العلاقة الأمامية الموحدة: حقول الموعد الواردة = الحقول الجديدة المصرّح
+   * بها في الحدث الأخير — أي انحراف يعني سجلًا منفصلًا عن أحداثه. */
+  if (
+    incoming.scheduledFor !== newEvent.scheduledFor ||
+    incoming.scheduledTime !== newEvent.scheduledTime ||
+    incoming.durationMinutes !== newEvent.durationMinutes
+  )
+    return { ok: false, message: SCHEDULE_STALE_MESSAGE };
   /* القيود النوعية: كل نوع حدث يسمح بتغيير ما يقابله من حقول الموعد فقط —
-   * الاكتمال لا يحرك التاريخ، والتوقيت لا يحرك اليوم، والإلغاء والتأجيل
-   * يغيّران الحالة إلى ما يوثقه الحدث. */
+   * الاكتمال لا يحرك التاريخ، والتوقيت لا يحرك اليوم، والإلغاء لا يحرك أي
+   * توقيت، والتأجيل يوثّق حالته وسببه في الحدث نفسه. */
   if (newEvent.type === "completed") {
     if (
       incoming.status !== "completed" ||
@@ -308,11 +323,24 @@ export function validateScheduleUpdate(
     return { ok: true, reused: false };
   }
   if (newEvent.type === "cancelled") {
-    if (incoming.status !== "cancelled") return { ok: false, message: SCHEDULE_STALE_MESSAGE };
+    if (
+      incoming.status !== "cancelled" ||
+      incoming.scheduledFor !== stored.scheduledFor ||
+      incoming.scheduledTime !== stored.scheduledTime ||
+      incoming.durationMinutes !== stored.durationMinutes
+    )
+      return { ok: false, message: SCHEDULE_STALE_MESSAGE };
+    /* سبب الإلغاء حر: المنشئ يضع في الحقل سبب الإيقاف المختصر بينما واقعة
+     * الحدث تحمل العبارة الكاملة «إلغاء قالب التكرار: …» — فلا يُقيد الحقل
+     * بقيمة الحدث، بل تبقى القيود البنيوية (الحالة والتوقيت) وحدها. */
     return { ok: true, reused: false };
   }
   if (newEvent.type === "postponed") {
-    if (incoming.status !== "postponed" && incoming.status !== stored.status)
+    if (
+      incoming.status !== "postponed" ||
+      incoming.scheduledFor === stored.scheduledFor ||
+      incoming.postponeReason !== newEvent.reason
+    )
       return { ok: false, message: SCHEDULE_STALE_MESSAGE };
     return { ok: true, reused: false };
   }

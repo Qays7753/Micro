@@ -297,6 +297,28 @@ async function runConformanceScenarios(store: PrototypeLocalStore): Promise<void
   expect(storedAfterScheduleStale.scheduledFor).toBe("2026-09-11");
   expect(storedAfterScheduleStale.events.length).toBe(2);
 
+  /* ٦ب. رقعة إغلاق المجموعة ٢ — سجل مزوّر داخليًا: قصة الحدث متسقة مع
+   * المخزّن (المفتاح وحقول «قبل») وحقوله العليا تخالف ما يصرّح به الحدث
+   * نفسه؛ يُرفض بلا كتابة في كلا المحولين. كان هذا يمر قبل الإغلاق لأن
+   * الحارس لا يفحص العلاقة الأمامية. */
+  const storedForForgery = await getSchedule(store, "schedule-conf-1");
+  if (!storedForForgery) throw new Error("schedule missing");
+  const forged: ScheduleEntry = {
+    ...postponedSchedule(storedForForgery, "2026-09-12", "schedule-conf-1:postponed:forged"),
+    /* الحدث يقول إن الموعد انتقل إلى 2026-09-12 والسجل يزعم 2026-09-13. */
+    scheduledFor: "2026-09-13",
+  };
+  const forgedCommit = await store.commitScheduleUpdate(forged);
+  expect(forgedCommit.ok).toBe(false);
+  if (!forgedCommit.ok) expect(forgedCommit.code).toBe("storage_stale");
+  const afterForgery = await getSchedule(store, "schedule-conf-1");
+  if (!afterForgery) throw new Error("schedule missing");
+  expect(afterForgery.scheduledFor).toBe("2026-09-11");
+  expect(afterForgery.events.length).toBe(2);
+  expect(afterForgery.events.some(event => event.idempotencyKey === "schedule-conf-1:postponed:forged")).toBe(
+    false,
+  );
+
   /* ٧. الذرّية المرتبطة: قالب تكرار مع مظهرين — تعارض المظهر الثاني يُرجع
    * كل شيء (لا قالب بلا مواعيده ولا مواعيد بلا قالب). */
   const recurrence = {
