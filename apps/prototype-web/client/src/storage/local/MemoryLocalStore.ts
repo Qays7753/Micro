@@ -1,5 +1,11 @@
 /** Test adapter only. It mirrors the LocalStore port without making browser APIs part of application tests. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+import {
+  committedReversalMovements,
+  storedReversalMovementsFor,
+  validateDeliveryReversalCommit,
+  validateDeliveryReversalMovements,
+} from "./deliveryReversalCommitGuard";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 import {
   validateScheduleCreate,
@@ -364,7 +370,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       },
     };
   }
-  /* المجموعة ٣ (عقد D4): عكس التسليم ذرّيًا في الذاكرة. */
+  /* المجموعة ٣ (عقد D4) + رقعة إغلاق المجموعة ٣ (D-031، مراجعة مستقلة):
+   * عكس التسليم ذرّيًا في الذاكرة — لا كتابة عمياء فوق السجل الحي. الحارس
+   * يقرأ الحالة الحية داخل حد الكتابة نفسه: إعادة التشغيل بالمفتاح نفسه
+   * تُعاد كما هي، وعلاقة التصحيح نفسها (نفس حدث التسليم) بمفتاح آخر
+   * إعادة استخدام صادقة بلا كتابة، وأي تغيّر متزامن (حدث/حقل/غلاف/حركات)
+   * يُرفض بـ storage_stale ولا يُكتب شيء — لا طمر لتحصيل ولا إعادة كتابة
+   * تاريخ ولا حركة مرآة مكررة؛ حركات المرآة تُتحقق ضد الاستهلاك الحي. */
   async commitOrderDeliveryReversal(
     order: StoredCraftOrder,
     reversalMovements: readonly InventoryMovement[],
@@ -377,25 +389,36 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   > {
     const existing = this.orders.get(order.id);
     if (!existing) return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لعكس تسليمه." };
-    const lastReversalKey = [...order.order.events]
-      .reverse()
-      .find(event => event.type === "delivery_reversed")?.idempotencyKey;
-    const alreadyReversed =
-      lastReversalKey !== undefined &&
-      existing.order.events.some(
-        event => event.type === "delivery_reversed" && event.idempotencyKey === lastReversalKey,
-      );
-    if (!alreadyReversed) this.orders.set(order.id, clone(order));
-    const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
+    const guard = validateDeliveryReversalCommit(existing, order);
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    const storedMovements = Array.from(this.inventoryMovements.values());
+    if (guard.reused) {
+      /* إعادة الاستخدام لا تكتب شيئًا قط — السجل المخزّن هو النتيجة،
+       * والحركات المُعادَة هي المخزّنة المطابقة لا الواردة. */
+      const matching = storedReversalMovementsFor(reversalMovements, storedMovements);
+      return {
+        ok: true,
+        value: { order: clone(existing), reversalMovements: matching, reused: true },
+      };
+    }
+    const movementGuard = validateDeliveryReversalMovements(
+      order.id,
+      guard.deliveryEventId,
+      reversalMovements,
+      storedMovements,
+    );
+    if (!movementGuard.ok) return { ok: false, code: "storage_stale", message: movementGuard.message };
+    this.orders.set(order.id, clone(order));
+    const movementKeys = new Set(storedMovements.map(m => m.operationKey));
     reversalMovements
       .filter(movement => !movementKeys.has(movement.operationKey))
       .forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
     return {
       ok: true,
       value: {
-        order: clone(alreadyReversed ? existing : order),
-        reversalMovements: reversalMovements.map(clone),
-        reused: alreadyReversed,
+        order: clone(order),
+        reversalMovements: committedReversalMovements(reversalMovements, storedMovements).map(clone),
+        reused: false,
       },
     };
   }

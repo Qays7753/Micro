@@ -31,7 +31,7 @@ import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.j
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { ScheduleService } from "@/application/scheduling/scheduleService";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 
 export type DeliveryConsumptionAction = "consume" | "consume_with_shortage" | "record_shortage" | "skip";
@@ -101,12 +101,15 @@ export type DeliveryCommitResult =
     }
   | { ok: false; code: "storage_error" | "invalid_state" | "validation_error"; message: string };
 
+/* رقعة إغلاق المجموعة ٣ (D-031): التعارض المتزامن يظهر بكود مطبوع
+ * storage_stale (مثل عقد المورد/الموعد — بلا تفسير نصوص) — الرسالة من
+ * المخزّن نفسه حرفيًا. */
 export type ReverseDeliveryResult =
   | {
       ok: true;
       value: { stored: StoredCraftOrder; reversalMovements: readonly InventoryMovement[]; reused: boolean };
     }
-  | { ok: false; code: "storage_error" | "invalid_state"; message: string };
+  | { ok: false; code: "storage_error" | "storage_stale" | "invalid_state"; message: string };
 
 const UNIT_LABELS: Record<string, string> = {
   piece: "قطعة",
@@ -116,7 +119,7 @@ const UNIT_LABELS: Record<string, string> = {
   other: "وحدة أخرى",
 };
 
-function failure<C extends "storage_error" | "invalid_state" | "validation_error">(
+function failure<C extends "storage_error" | "storage_stale" | "invalid_state" | "validation_error">(
   code: C,
   message: string,
 ): { ok: false; code: C; message: string } {
@@ -628,8 +631,10 @@ export class DeliveryReviewService {
     }
     const nextStored: StoredCraftOrder = { ...stored, order, updatedAt: timestamp };
     const committed = await this.store.commitOrderDeliveryReversal(nextStored, reversalMovements);
-    if (!committed.ok)
-      return failure("storage_error", "تعذر حفظ التراجع الموثق عن التسليم؛ لم يتغير أي رصيد.");
+    /* رقعة إغلاق المجموعة ٣ (D-031): الكود المطبوع من المخزّن كما هو —
+     * تعارض storage_stale (أعد الفتح ثم أعد المحاولة) يبقى مميزًا عن
+     * الفشل التخزيني الحقيقي، والرسالة صادقة من الحارس لا نص مبتدع. */
+    if (!committed.ok) return failure(storageFailureCode(committed.code), committed.message);
     return {
       ok: true,
       value: {

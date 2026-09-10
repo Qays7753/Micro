@@ -49,6 +49,12 @@ import {
 } from "./types";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 import {
+  committedReversalMovements,
+  storedReversalMovementsFor,
+  validateDeliveryReversalCommit,
+  validateDeliveryReversalMovements,
+} from "./deliveryReversalCommitGuard";
+import {
   validateScheduleCreate,
   validateScheduleUpdate,
   validateSupplierPurchaseCommit,
@@ -1320,7 +1326,15 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
-  /* المجموعة ٣ (عقد D4): عكس التسليم ذرّيًا — الطلب المعكوس وحركات المرآة معًا. */
+  /* المجموعة ٣ (عقد D4) + رقعة إغلاق المجموعة ٣ (D-031، مراجعة مستقلة):
+   * عكس التسليم ذرّيًا داخل معاملة واحدة — لا كتابة عمياء فوق السجل الحي.
+   * الحارس يقرأ الطلب والحركات الحية داخل المعاملة نفسها (تسلسل معاملات
+   * IndexedDB يمنع أي تداخل بين القراءة والكتابة): إعادة التشغيل بالمفتاح
+   * نفسه تُعاد كما هي، وعلاقة التصحيح نفسها (نفس حدث التسليم) بمفتاح آخر
+   * إعادة استخدام صادقة بلا كتابة، وأي تغيّر متزامن يُرفض بـ storage_stale
+   * ولا يُكتب شيء — الطلب وحركاته يُكتبان معًا أو لا يُكتبان. حركات المرآة
+   * تُتحقق ضد الاستهلاك الحي قبل أي put. التحقق كله متزامن داخل استدعاءات
+   * الطلب فلا يفلت استثناء ولا يُختم نجاحًا كاذبًا. */
   async commitOrderDeliveryReversal(
     order: StoredCraftOrder,
     reversalMovements: readonly InventoryMovement[],
@@ -1337,7 +1351,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([orderStore, inventoryMovementStore], "readwrite");
         const orders = transaction.objectStore(orderStore);
         const movementStore = transaction.objectStore(inventoryMovementStore);
-        let reversalReused = false;
+        let committedMovements: readonly InventoryMovement[] = reversalMovements;
         let pending: StorageResult<{
           order: StoredCraftOrder;
           reversalMovements: readonly InventoryMovement[];
@@ -1350,6 +1364,20 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             reused: boolean;
           }>,
         ) => resolve(result);
+        const abortWith = (
+          result: StorageResult<{
+            order: StoredCraftOrder;
+            reversalMovements: readonly InventoryMovement[];
+            reused: boolean;
+          }>,
+        ) => {
+          pending = result;
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const orderRequest = orders.get(order.id);
         orderRequest.onerror = () => {
           pending = failure(orderRequest.error, database);
@@ -1362,27 +1390,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         orderRequest.onsuccess = () => {
           const existing = orderRequest.result as StoredCraftOrder | undefined;
           if (!existing) {
-            pending = {
-              ok: false,
-              code: "storage_error",
-              message: "لم نجد الطلب المحلي لعكس تسليمه.",
-            };
-            try {
-              transaction.abort();
-            } catch {
-              if (pending) finish(pending);
-            }
+            abortWith({ ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لعكس تسليمه." });
             return;
           }
-          const lastReversalKey = [...order.order.events]
-            .reverse()
-            .find(event => event.type === "delivery_reversed")?.idempotencyKey;
-          const alreadyReversed =
-            lastReversalKey !== undefined &&
-            existing.order.events.some(
-              event => event.type === "delivery_reversed" && event.idempotencyKey === lastReversalKey,
-            );
-          reversalReused = alreadyReversed;
+          const guard = validateDeliveryReversalCommit(existing, order);
+          if (!guard.ok) {
+            abortWith({ ok: false, code: "storage_stale", message: guard.message });
+            return;
+          }
           const movementRequest = movementStore.getAll();
           movementRequest.onerror = () => {
             pending = failure(movementRequest.error, database);
@@ -1393,13 +1408,30 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
           };
           movementRequest.onsuccess = () => {
-            const storedKeys = new Set(
-              (movementRequest.result as InventoryMovement[]).map(movement => movement.operationKey),
+            const storedMovements = movementRequest.result as InventoryMovement[];
+            if (guard.reused) {
+              /* إعادة الاستخدام لا تكتب شيئًا قط — تُقرأ الحركات المخزّنة قبل
+               * الإجهاد ثم تُعاد المطابقة منها لا الواردة. */
+              const matching = storedReversalMovementsFor(reversalMovements, storedMovements);
+              abortWith({ ok: true, value: { order: existing, reversalMovements: matching, reused: true } });
+              return;
+            }
+            const movementGuard = validateDeliveryReversalMovements(
+              order.id,
+              guard.deliveryEventId,
+              reversalMovements,
+              storedMovements,
             );
-            if (!alreadyReversed) orders.put(order);
+            if (!movementGuard.ok) {
+              abortWith({ ok: false, code: "storage_stale", message: movementGuard.message });
+              return;
+            }
+            orders.put(order);
+            const storedKeys = new Set(storedMovements.map(movement => movement.operationKey));
             reversalMovements
               .filter(movement => !storedKeys.has(movement.operationKey))
               .forEach(movement => movementStore.put(movement));
+            committedMovements = committedReversalMovements(reversalMovements, storedMovements);
           };
         };
         transaction.onerror = () => {
@@ -1407,7 +1439,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () =>
-          finish({ ok: true, value: { order, reversalMovements, reused: reversalReused } });
+          finish({ ok: true, value: { order, reversalMovements: committedMovements, reused: false } });
       });
     } catch (error) {
       return failure(error);
