@@ -48,6 +48,12 @@ import {
   type StoredCraftOrder,
 } from "./types";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
+import {
+  validateScheduleCreate,
+  validateScheduleUpdate,
+  validateSupplierPurchaseCommit,
+  type SupplierPurchaseCommit,
+} from "./supplierScheduleCommitGuard";
 
 const databaseName = "micro-prototype-local";
 const profileStore = "activity-profile";
@@ -61,6 +67,11 @@ const scheduleStore = "schedule-entries";
 const recurrenceStore = "schedule-recurrences";
 const financialEventStore = "financial-events";
 const supplierPurchaseStore = "supplier-purchases";
+
+/* المجموعة ٢ (التحصين الكامل — HIGH-001): رسالة تعارض قالب التكرار — مسار آخر
+ * كتب بين قراءة الخدمة والتزامها؛ لا يُكتب شيء ويُعاد المحاولة. */
+const RECURRENCE_STALE_MESSAGE =
+  "قالب التكرار أو مواعده تغيّرت من مسار آخر بعد فتحك لها — لم يُسجَّل شيء؛ أعد المحاولة.";
 const cashWalletStore = "cash-wallets";
 const cashContinuityEntryStore = "cash-continuity-entries";
 const materialStore = "materials";
@@ -196,15 +207,24 @@ function openDatabase(): Promise<IDBDatabase> {
       return;
     }
     const request = indexedDB.open(databaseName, localSchemaVersion);
-    request.onerror = () =>
+    let settled = false;
+    request.onerror = () => {
+      if (settled) return;
+      settled = true;
       reject(upgradeErrors.get(request) ?? request.error ?? new Error("تعذر فتح التخزين المحلي."));
-    request.onblocked = () =>
+    };
+    request.onblocked = () => {
+      if (settled) return;
+      settled = true;
       reject(
         new StorageOpenError(
           "storage_blocked",
           "Micro مفتوح في نافذة أخرى. أغلق النوافذ الأخرى ثم أعد المحاولة.",
         ),
       );
+      /* المجموعة ٢ (التحصين الكامل — RISK-003): النجاح المتأخر بعد الرفض
+       * يعالجه معالج onsuccess النهائي أسفل الدالة — يغلق الاتصال اليتيم. */
+    };
     request.onupgradeneeded = event => {
       const database = request.result;
       if (!database.objectStoreNames.contains(profileStore))
@@ -645,7 +665,21 @@ function openDatabase(): Promise<IDBDatabase> {
         }
       }
     };
-    request.onsuccess = () => resolve(attachVersionChangeRecovery(request.result));
+    request.onsuccess = () => {
+      if (settled) {
+        /* المجموعة ٢ (التحصين الكامل — RISK-003): نجاح متأخر بعد رفض
+         * onblocked — وعد الرفض حُسم فلا مالك لهذا الاتصال؛ يُغلق فورًا
+         * كي لا يبقى مفتوحًا يحجب ترقيات المستقبل ولا وعد معلق بلا حسم. */
+        try {
+          request.result.close();
+        } catch {
+          /* الاتصال قد يكون مغلقًا سلفًا — لا شيء للتصحيح. */
+        }
+        return;
+      }
+      settled = true;
+      resolve(attachVersionChangeRecovery(request.result));
+    };
   });
 }
 
@@ -1408,6 +1442,121 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   saveSchedule(schedule: ScheduleEntry) {
     return writeOne(scheduleStore, schedule);
   }
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): إنشاء موعد داخل معاملة واحدة —
+   * القراءة والكتابة معًا فلا يُنشأ فوق موعد موجود (المحتوى الحتمي يتقارب)،
+   * وإعادة التشغيل تعيد المخزّن كما هو. */
+  async commitScheduleCreate(
+    schedule: ScheduleEntry,
+  ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([scheduleStore], "readwrite");
+        const schedules = transaction.objectStore(scheduleStore);
+        let pending: StorageResult<{ schedule: ScheduleEntry; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ schedule: ScheduleEntry; reused: boolean }>) => {
+          resolve(result);
+        };
+        const storedRequest = schedules.get(schedule.id);
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = () => {
+          const stored = storedRequest.result as ScheduleEntry | undefined;
+          const guard = validateScheduleCreate(stored);
+          if (!guard.ok) {
+            pending = { ok: false, code: "storage_stale", message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            pending = { ok: true, value: { schedule: stored!, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          schedules.put(schedule);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { schedule, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): تحديث موعد داخل معاملة واحدة —
+   * العلاقة تُفحص على الحالة الحية داخل المعاملة (حدث واحد جديد بالضبط
+   * والأحداث السابقة حرفية وحقول «قبل» مطابقة)؛ التعارض storage_stale بلا
+   * كتابة، وإعادة التشغيل بالمفتاح نفسه تعيد المخزّن. */
+  async commitScheduleUpdate(
+    schedule: ScheduleEntry,
+  ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([scheduleStore], "readwrite");
+        const schedules = transaction.objectStore(scheduleStore);
+        let pending: StorageResult<{ schedule: ScheduleEntry; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ schedule: ScheduleEntry; reused: boolean }>) => {
+          resolve(result);
+        };
+        const storedRequest = schedules.get(schedule.id);
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = () => {
+          const stored = storedRequest.result as ScheduleEntry | undefined;
+          const guard = validateScheduleUpdate(stored, schedule);
+          if (!guard.ok) {
+            pending = { ok: false, code: "storage_stale", message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            pending = { ok: true, value: { schedule: stored!, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          schedules.put(schedule);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { schedule, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listRecurrences() {
     return listAll<ScheduleRecurrence>(recurrenceStore, (left, right) =>
       left.createdAt.localeCompare(right.createdAt),
@@ -1419,22 +1568,130 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   saveRecurrence(recurrence: ScheduleRecurrence) {
     return writeOne(recurrenceStore, recurrence);
   }
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): التزامن الذرّي لقالب التكرار
+   * ومواعيده — الحارس يقرأ الحالة الحية داخل المعاملة نفسها: إنشاء القالب
+   * كتابة أولى فقط (إعادة تشغيل تُعاد كما هي)، والإيقاف يمر بقالب نشط ويضيف
+   * لكل موعد متأثر حدث «إلغاء» واحدًا بالضبط بمفتاح حتمي. أي تعارض مع مسار
+   * متزامن (موعد تأجل أو أُكمل بعد قراءة الخدمة) يُرفض بـ storage_stale
+   * ولا يُكتب شيء — لا إعادة كتابة الجدول كاملًا فوق كتابات الآخرين. */
   async commitRecurrence(
     recurrence: ScheduleRecurrence,
     schedules: readonly ScheduleEntry[],
   ): Promise<StorageResult<{ recurrence: ScheduleRecurrence; schedules: readonly ScheduleEntry[] }>> {
+    const result: { recurrence: ScheduleRecurrence; schedules: readonly ScheduleEntry[] } = {
+      recurrence,
+      schedules: [],
+    };
     try {
       const database = await connection();
-      return await new Promise(resolve => {
+      const settled = await new Promise<StorageResult<null>>(resolve => {
         const transaction = database.transaction([recurrenceStore, scheduleStore], "readwrite");
-        transaction.objectStore(recurrenceStore).put(recurrence);
-        schedules.forEach(schedule => transaction.objectStore(scheduleStore).put(schedule));
-        transaction.onabort = () => resolve(failure(transaction.error, database));
-        transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.oncomplete = () => {
-          resolve({ ok: true, value: { recurrence, schedules } });
+        const recurrences = transaction.objectStore(recurrenceStore);
+        const scheduleObjects = transaction.objectStore(scheduleStore);
+        let pending: StorageResult<null> | null = null;
+        const finish = (value: StorageResult<null>) => resolve(value);
+        const abortWith = (value: StorageResult<null>) => {
+          pending = value;
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
         };
+        /* كل موعد مُمرَّر: غائب يُنشأ (إنشاء أول)، حاضر بمفتاح حدثه الأخير
+         * يُعاد كما هو، وحاضر بمحتوى مختلف يمر بعلاقة «حدث واحد جديد» —
+         * وإلا تعارض لا كتابة. */
+        const writeSchedule = (schedule: ScheduleEntry) => {
+          const newEventKey = schedule.events[schedule.events.length - 1]?.idempotencyKey ?? "";
+          const storedRequest = scheduleObjects.get(schedule.id);
+          storedRequest.onerror = () => {
+            if (!pending) pending = failure(storedRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          storedRequest.onsuccess = () => {
+            const stored = storedRequest.result as ScheduleEntry | undefined;
+            if (stored === undefined) {
+              scheduleObjects.put(schedule);
+              result.schedules = [...result.schedules, schedule];
+              return;
+            }
+            if (stored.events.some(event => event.idempotencyKey === newEventKey)) {
+              result.schedules = [...result.schedules, stored];
+              return;
+            }
+            const guard = validateScheduleUpdate(stored, schedule);
+            if (!guard.ok) {
+              abortWith({ ok: false, code: "storage_stale", message: guard.message });
+              return;
+            }
+            if (guard.reused) {
+              result.schedules = [...result.schedules, stored];
+              return;
+            }
+            scheduleObjects.put(schedule);
+            result.schedules = [...result.schedules, schedule];
+          };
+        };
+        const storedRecurrenceRequest = recurrences.get(recurrence.id);
+        storedRecurrenceRequest.onerror = () => {
+          pending = failure(storedRecurrenceRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRecurrenceRequest.onsuccess = () => {
+          const storedRecurrence = storedRecurrenceRequest.result as ScheduleRecurrence | undefined;
+          if (storedRecurrence === undefined) {
+            /* إنشاء أول: القالب يجب أن يكون جديدًا بنشاط — إعادة تشغيل بمفتاح
+             * مختلف أو قالب قائم تعني مسارًا آخر سبقنا. */
+            if (recurrence.status !== "active") {
+              abortWith({ ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE });
+              return;
+            }
+            recurrences.put(recurrence);
+            result.recurrence = recurrence;
+            schedules.forEach(writeSchedule);
+            return;
+          }
+          /* القالب قائم: إعادة استخدام صادقة عند تطابق المفتاح (إنشاء مُعاد
+           * أو إيقاف مُعاد)، ورفض تعارضي عند اختلافه. */
+          if (storedRecurrence.idempotencyKey !== recurrence.idempotencyKey) {
+            abortWith({ ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE });
+            return;
+          }
+          if (storedRecurrence.status === recurrence.status) {
+            result.recurrence = storedRecurrence;
+            schedules.forEach(writeSchedule);
+            return;
+          }
+          if (storedRecurrence.status !== "active" || recurrence.status !== "cancelled") {
+            abortWith({ ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE });
+            return;
+          }
+          recurrences.put(recurrence);
+          result.recurrence = recurrence;
+          schedules.forEach(writeSchedule);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => {
+          if (pending) {
+            resolve(pending);
+            return;
+          }
+          resolve(failure(transaction.error, database));
+        };
+        transaction.oncomplete = () => resolve({ ok: true, value: null });
       });
+      if (!settled.ok) return { ok: false, code: settled.code, message: settled.message };
+      return { ok: true, value: result };
     } catch (error) {
       return failure(error);
     }
@@ -1667,6 +1924,99 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   saveSupplierPurchase(purchase: SupplierPurchase) {
     return writeOne(supplierPurchaseStore, purchase);
+  }
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): كتابة ذرّية مُحروسة لسجل الشراء —
+   * فحص مفتاح الحتمية داخل المعاملة ثم علاقة «عملية مجال واحدة بالضبط» بين
+   * المخزّن والوارد؛ التعارض يُرفض بـ storage_stale ولا يُكتب شيء، وإعادة
+   * التشغيل بنفس المفتاح تعيد السجل الحالي كما هو. الإنشاء يفحص المفتاح على
+   * مستوى المتجر كله (مفتاح الشراء فريد عالميًا في مسار الكتابة). */
+  async commitSupplierPurchase(
+    commit: SupplierPurchaseCommit,
+  ): Promise<StorageResult<{ purchase: SupplierPurchase; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([supplierPurchaseStore], "readwrite");
+        const purchases = transaction.objectStore(supplierPurchaseStore);
+        let pending: StorageResult<{ purchase: SupplierPurchase; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ purchase: SupplierPurchase; reused: boolean }>) => {
+          resolve(result);
+        };
+        const settleGuard = (stored: SupplierPurchase | undefined) => {
+          const guard = validateSupplierPurchaseCommit(stored, commit);
+          if (!guard.ok) {
+            pending = { ok: false, code: "storage_stale", message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            pending = { ok: true, value: { purchase: stored ?? commit.purchase, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          purchases.put(commit.purchase);
+        };
+        const storedRequest = purchases.get(commit.purchase.id);
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = () => {
+          const stored = storedRequest.result as SupplierPurchase | undefined;
+          if (commit.kind !== "create") {
+            settleGuard(stored);
+            return;
+          }
+          /* الإنشاء: مسح المتجر داخل المعاملة — شراء قائم بمفتاح العملية
+           * نفسه إعادة تشغيل تُعاد كما هي؛ لا يُبعث سجل ثانٍ بنفس الهوية. */
+          const scanRequest = purchases.getAll();
+          scanRequest.onerror = () => {
+            pending = failure(scanRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          scanRequest.onsuccess = () => {
+            const replay = (scanRequest.result as SupplierPurchase[]).find(
+              candidate =>
+                candidate.idempotencyKey === commit.idempotencyKey && candidate.id !== commit.purchase.id,
+            );
+            if (replay) {
+              pending = { ok: true, value: { purchase: replay, reused: true } };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            settleGuard(stored);
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { purchase: commit.purchase, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
   }
   listCashWallets() {
     return listAll<CashWallet>(cashWalletStore, (left, right) =>

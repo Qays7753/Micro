@@ -7,6 +7,7 @@ import {
   type SupplierPurchase,
 } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
 
 export type SupplierPurchaseInput = {
   supplierName: string;
@@ -99,11 +100,6 @@ export class SupplierPurchaseService {
   }
 
   async recordPurchase(input: SupplierPurchaseInput): Promise<SupplierPurchaseResult<SupplierPurchase>> {
-    const existing = await this.store.listSupplierPurchases();
-    if (!existing.ok)
-      return { ok: false, code: "storage_error", message: "تعذر التحقق من مشتريات الموردين." };
-    const repeated = existing.value.find(purchase => purchase.idempotencyKey === input.idempotencyKey);
-    if (repeated) return { ok: true, value: repeated, reused: true };
     try {
       const purchase = createSupplierPurchase({
         id: id(),
@@ -119,13 +115,20 @@ export class SupplierPurchaseService {
         materialId: input.materialId ?? null,
         expectedQuantityMilli: input.expectedQuantityMilli ?? null,
       });
-      const saved = await this.store.saveSupplierPurchase(purchase);
+      /* المجموعة ٢ (التحصين الكامل — HIGH-001): الالتزام الذرّي — مفتاح الحتمية
+       * يُفحص داخل المعاملة (إعادة التشغيل تُعاد كما هي) ولا يُنشأ سجل فوق
+       * مسار متزامن آخر. */
+      const saved = await this.store.commitSupplierPurchase({
+        kind: "create",
+        purchase,
+        idempotencyKey: input.idempotencyKey,
+      });
       return saved.ok
-        ? { ok: true, value: saved.value }
+        ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ شراء المواد محليًا — بياناتك كما هي؛ أعد المحاولة.",
+            message: saved.message ?? "تعذر حفظ شراء المواد محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
       return {
@@ -143,8 +146,6 @@ export class SupplierPurchaseService {
     if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة شراء المورد." };
     if (!existing.value)
       return { ok: false, code: "validation_error", message: "اختر شراء مواد مسجلًا قبل تسجيل الدفعة." };
-    const repeated = existing.value.payments.some(payment => payment.idempotencyKey === input.idempotencyKey);
-    if (repeated) return { ok: true, value: existing.value, reused: true };
     try {
       const updated = recordSupplierPurchasePayment(existing.value, {
         id: id(),
@@ -154,13 +155,20 @@ export class SupplierPurchaseService {
         idempotencyKey: input.idempotencyKey,
         note: input.note,
       });
-      const saved = await this.store.saveSupplierPurchase(updated);
+      /* المجموعة ٢ (التحصين الكامل — HIGH-001): دفعة واحدة بالضبط داخل معاملة
+       * واحدة — مفتاح الحتمية يُفحص داخلها، والكتابة المتزامنة من مسار آخر
+       * تُرفض بوضوح ولا تُسقط أثر أي طرف بصمت. */
+      const saved = await this.store.commitSupplierPurchase({
+        kind: "payment",
+        purchase: updated,
+        idempotencyKey: input.idempotencyKey,
+      });
       return saved.ok
-        ? { ok: true, value: saved.value }
+        ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ دفعة المورد محليًا — بياناتك كما هي؛ أعد المحاولة.",
+            message: saved.message ?? "تعذر حفظ دفعة المورد محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
       return {
@@ -184,10 +192,6 @@ export class SupplierPurchaseService {
       return { ok: false, code: "storage_error", message: "تعذر قراءة شراء المورد." };
     if (!existing.value)
       return { ok: false, code: "validation_error", message: "اختر شراء مواد مسجلًا قبل تعديله." };
-    const repeated = existing.value.revisions?.some(
-      revision => revision.idempotencyKey === input.idempotencyKey,
-    );
-    if (repeated) return { ok: true, value: existing.value, reused: true };
     if (!input.reason.trim())
       return { ok: false, code: "validation_error", message: "اكتب سبب التعديل قبل الحفظ." };
     const reversedMovementIds = new Set(
@@ -245,13 +249,20 @@ export class SupplierPurchaseService {
         materialId: input.materialId,
         expectedQuantityMilli: input.expectedQuantityMilli,
       });
-      const saved = await this.store.saveSupplierPurchase(updated);
+      /* المجموعة ٢ (التحصين الكامل — HIGH-001): مراجعة واحدة بالضبط داخل
+       * معاملة واحدة — قيم «قبل التصحيح» تُطابق الحالة الحية داخلها، فتعديل
+       * بني على قراءة قديمة يُرفض ولا يمس الدفعات الموازية. */
+      const saved = await this.store.commitSupplierPurchase({
+        kind: "revision",
+        purchase: updated,
+        idempotencyKey: input.idempotencyKey,
+      });
       return saved.ok
-        ? { ok: true, value: saved.value }
+        ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ تعديل الشراء محليًا — بقي الأصل دون تغيير؛ أعد المحاولة.",
+            message: saved.message ?? "تعذر حفظ تعديل الشراء محليًا — بقي الأصل دون تغيير؛ أعد المحاولة.",
           };
     } catch (error) {
       return {
@@ -271,10 +282,6 @@ export class SupplierPurchaseService {
     if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة شراء المورد." };
     if (!existing.value)
       return { ok: false, code: "validation_error", message: "اختر شراء مواد مسجلًا قبل التراجع عن دفعته." };
-    const repeated = existing.value.paymentReversals?.some(
-      reversal => reversal.idempotencyKey === input.idempotencyKey,
-    );
-    if (repeated) return { ok: true, value: existing.value, reused: true };
     if (!input.reason.trim())
       return { ok: false, code: "validation_error", message: "اكتب سبب التراجع قبل الحفظ." };
     try {
@@ -286,13 +293,20 @@ export class SupplierPurchaseService {
         recordedAt: this.now(),
         idempotencyKey: input.idempotencyKey,
       });
-      const saved = await this.store.saveSupplierPurchase(updated);
+      /* المجموعة ٢ (التحصين الكامل — HIGH-001): تراجع واحد بالضبط داخل معاملة
+       * واحدة — الدفعة لم تُتراجَع سابقًا في الحالة الحية داخلها؛ أي مسار
+       * متزامن يُرفض بوضوح ولا يُكرر الأثر المالي. */
+      const saved = await this.store.commitSupplierPurchase({
+        kind: "payment_reversal",
+        purchase: updated,
+        idempotencyKey: input.idempotencyKey,
+      });
       return saved.ok
-        ? { ok: true, value: saved.value }
+        ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
         : {
             ok: false,
             code: "storage_error",
-            message: "تعذر حفظ التراجع محليًا. بقي الدفع دون تغيير.",
+            message: saved.message ?? "تعذر حفظ التراجع محليًا. بقي الدفع دون تغيير.",
           };
     } catch (error) {
       return {

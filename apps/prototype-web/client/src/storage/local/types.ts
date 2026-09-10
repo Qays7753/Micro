@@ -29,6 +29,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
 
 /* المجموعة ٥ (الاستمرارية): المخطط ٣٥ يضيف مخزني `form-drafts` و`local-security`
  * بمُنشئ محروس — لا حقول جديدة على أي سجل قائم ولا ترحيل بيانات؛ القديم يفتح
@@ -224,7 +225,7 @@ export type StoredCraftOrder = {
 
 export type ScheduleStatus = "scheduled" | "postponed" | "completed" | "cancelled";
 type ScheduleEventType = "created" | "postponed" | "timing_changed" | "completed" | "cancelled";
-type ScheduleEvent = {
+export type ScheduleEvent = {
   id: string;
   type: ScheduleEventType;
   idempotencyKey: string;
@@ -387,6 +388,18 @@ export interface PrototypeLocalStore {
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
   getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
   saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): إنشاء موعد كتابةً أولى فقط — وجوده
+   * سلفًا إعادة استخدام لا كتابة فوق مسار آخر (محتوى الإنشاء حتمي بمعرّفه ومفتاحه). */
+  commitScheduleCreate(
+    schedule: ScheduleEntry,
+  ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>>;
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): تحديث موعد بحدث واحد جديد بالضبط —
+   * الأحداث السابقة كما هي حرفيًا وحقول «قبل» في الحدث الجديد تطابق المخزّن الحي؛
+   * التعارض يُرفض بـ storage_stale ولا يُكتب شيء، وإعادة التشغيل بالمفتاح نفسه
+   * تعيد المخزّن كما هو. */
+  commitScheduleUpdate(
+    schedule: ScheduleEntry,
+  ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>>;
   listRecurrences(): Promise<StorageResult<readonly ScheduleRecurrence[]>>;
   getRecurrence(id: string): Promise<StorageResult<ScheduleRecurrence | null>>;
   saveRecurrence(recurrence: ScheduleRecurrence): Promise<StorageResult<ScheduleRecurrence>>;
@@ -410,6 +423,13 @@ export interface PrototypeLocalStore {
   listSupplierPurchases(): Promise<StorageResult<readonly SupplierPurchase[]>>;
   getSupplierPurchase(id: string): Promise<StorageResult<SupplierPurchase | null>>;
   saveSupplierPurchase(purchase: SupplierPurchase): Promise<StorageResult<SupplierPurchase>>;
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): كتابة ذرّية مُحروسة لسجل الشراء —
+   * فحص مفتاح الحتمية داخل المعاملة ثم علاقة «عملية مجال واحدة بالضبط» بين
+   * المخزّن والوارد؛ التعارض يُرفض بـ storage_stale ولا يُكتب شيء، وإعادة
+   * التشغيل بنفس المفتاح تعيد السجل الحالي كما هو. */
+  commitSupplierPurchase(
+    commit: SupplierPurchaseCommit,
+  ): Promise<StorageResult<{ purchase: SupplierPurchase; reused: boolean }>>;
   listCashWallets(): Promise<StorageResult<readonly CashWallet[]>>;
   listCashContinuityEntries(): Promise<StorageResult<readonly CashContinuityEntry[]>>;
   commitCashContinuity(

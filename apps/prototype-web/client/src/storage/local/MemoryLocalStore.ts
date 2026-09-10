@@ -1,6 +1,12 @@
 /** Test adapter only. It mirrors the LocalStore port without making browser APIs part of application tests. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
+import {
+  validateScheduleCreate,
+  validateScheduleUpdate,
+  validateSupplierPurchaseCommit,
+  type SupplierPurchaseCommit,
+} from "./supplierScheduleCommitGuard";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type {
@@ -44,6 +50,11 @@ import type {
 } from "./types";
 
 const clone = <T>(value: T): T => structuredClone(value);
+
+/* المجموعة ٢ (التحصين الكامل — HIGH-001): رسالة تعارض قالب التكرار — مطابقة
+ * لمحوّل IndexedDB حرفيًا فتتطابق رسائل المحوّلين أمام المستخدم. */
+const RECURRENCE_STALE_MESSAGE =
+  "قالب التكرار أو مواعده تغيّرت من مسار آخر بعد فتحك لها — لم يُسجَّل شيء؛ أعد المحاولة.";
 
 export class MemoryLocalStore implements PrototypeLocalStore {
   private profile: ActivityProfile | null = null;
@@ -416,6 +427,27 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.schedules.set(schedule.id, clone(schedule));
     return { ok: true, value: clone(schedule) };
   }
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): نفس عقد محوّل IndexedDB — إنشاء
+   * أول فقط (الحاضر يُعاد كما هو)، والتحديث بحدث واحد جديد بالضبط على الحالة
+   * الحية؛ التعارض storage_stale بلا كتابة. */
+  async commitScheduleCreate(
+    schedule: ScheduleEntry,
+  ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>> {
+    const stored = this.schedules.get(schedule.id);
+    if (stored) return { ok: true, value: { schedule: clone(stored), reused: true } };
+    this.schedules.set(schedule.id, clone(schedule));
+    return { ok: true, value: { schedule: clone(schedule), reused: false } };
+  }
+  async commitScheduleUpdate(
+    schedule: ScheduleEntry,
+  ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>> {
+    const stored = this.schedules.get(schedule.id);
+    const guard = validateScheduleUpdate(stored, schedule);
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (guard.reused) return { ok: true, value: { schedule: clone(stored!), reused: true } };
+    this.schedules.set(schedule.id, clone(schedule));
+    return { ok: true, value: { schedule: clone(schedule), reused: false } };
+  }
   async listRecurrences(): Promise<StorageResult<readonly ScheduleRecurrence[]>> {
     return {
       ok: true,
@@ -432,13 +464,65 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.recurrences.set(recurrence.id, clone(recurrence));
     return { ok: true, value: clone(recurrence) };
   }
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): نفس حراس محوّل IndexedDB — إنشاء
+   * القالب أول فقط، والإيقاف يمر بقالب نشط، وكل موعد مُمرَّر غائب يُنشأ وحاضر
+   * بمفتاح حدثه الأخير يُعاد وحاضر بمحتوى مختلف يمر بعلاقة «حدث واحد جديد».
+   * التحقق كله قبل أي كتابة (بنية الذاكرة بلا معاملات) فتظل الذرّية صحيحة:
+   * أي تعارض storage_stale بلا كتابة ولا إعادة كتابة الجدول كاملًا. */
   async commitRecurrence(
     recurrence: ScheduleRecurrence,
     schedules: readonly ScheduleEntry[],
   ): Promise<StorageResult<{ recurrence: ScheduleRecurrence; schedules: readonly ScheduleEntry[] }>> {
-    this.recurrences.set(recurrence.id, clone(recurrence));
-    schedules.forEach(schedule => this.schedules.set(schedule.id, clone(schedule)));
-    return { ok: true, value: { recurrence: clone(recurrence), schedules: schedules.map(clone) } };
+    const storedRecurrence = this.recurrences.get(recurrence.id);
+    if (storedRecurrence === undefined) {
+      if (recurrence.status !== "active")
+        return { ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE };
+    } else {
+      if (storedRecurrence.idempotencyKey !== recurrence.idempotencyKey)
+        return { ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE };
+      if (
+        storedRecurrence.status !== recurrence.status &&
+        (storedRecurrence.status !== "active" || recurrence.status !== "cancelled")
+      )
+        return { ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE };
+    }
+    /* التحقق من كل المواعيد قبل أي كتابة — فشل واحد يوقف الكل ولا يُكتب شيء. */
+    const outcomes = schedules.map(schedule => this.checkRecurrenceSchedule(schedule));
+    for (const outcome of outcomes) {
+      if (!outcome.ok) return { ok: false, code: "storage_stale", message: outcome.message };
+    }
+    /* إعادة التشغيل بالحالة نفسها تُبقي المخزّن (المفاتيح تتطابق)؛ الإنتقال
+     * نشط→موقوف يكتب النسخة الواردة؛ والإنشاء أول يكتبها كما هي. */
+    const resultRecurrence =
+      storedRecurrence !== undefined && storedRecurrence.status === recurrence.status
+        ? storedRecurrence
+        : recurrence;
+    if (resultRecurrence === recurrence) this.recurrences.set(recurrence.id, clone(recurrence));
+    const written: ScheduleEntry[] = [];
+    for (const [index, schedule] of schedules.entries()) {
+      const outcome = outcomes[index]!;
+      if (!outcome.ok) return { ok: false, code: "storage_stale", message: outcome.message };
+      if (outcome.stored) {
+        written.push(clone(outcome.stored));
+        continue;
+      }
+      this.schedules.set(schedule.id, clone(schedule));
+      written.push(clone(schedule));
+    }
+    return { ok: true, value: { recurrence: clone(resultRecurrence), schedules: written } };
+  }
+  private checkRecurrenceSchedule(
+    schedule: ScheduleEntry,
+  ): { ok: true; stored: ScheduleEntry | null } | { ok: false; message: string } {
+    const stored = this.schedules.get(schedule.id);
+    if (stored === undefined) return { ok: true, stored: null };
+    const newEventKey = schedule.events[schedule.events.length - 1]?.idempotencyKey ?? "";
+    if (stored.events.some(event => event.idempotencyKey === newEventKey))
+      return { ok: true, stored: clone(stored) };
+    const guard = validateScheduleUpdate(stored, schedule);
+    if (!guard.ok) return { ok: false, message: guard.message };
+    if (guard.reused) return { ok: true, stored: clone(stored) };
+    return { ok: true, stored: null };
   }
   async listFinancialEvents(): Promise<StorageResult<readonly FinancialEvent[]>> {
     return {
@@ -528,6 +612,26 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async saveSupplierPurchase(purchase: SupplierPurchase): Promise<StorageResult<SupplierPurchase>> {
     this.supplierPurchases.set(purchase.id, clone(purchase));
     return { ok: true, value: clone(purchase) };
+  }
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): نفس عقد محوّل IndexedDB — فحص
+   * المفتاح داخل «المعاملة» (الكتابة المتزامنة هنا ذرّية ببنية الذاكرة) ثم
+   * علاقة «عملية مجال واحدة بالضبط»؛ التعارض storage_stale بلا كتابة. */
+  async commitSupplierPurchase(
+    commit: SupplierPurchaseCommit,
+  ): Promise<StorageResult<{ purchase: SupplierPurchase; reused: boolean }>> {
+    if (commit.kind === "create") {
+      for (const existing of this.supplierPurchases.values()) {
+        if (existing.id !== commit.purchase.id && existing.idempotencyKey === commit.idempotencyKey)
+          return { ok: true, value: { purchase: clone(existing), reused: true } };
+      }
+    }
+    const stored = this.supplierPurchases.get(commit.purchase.id);
+    const guard = validateSupplierPurchaseCommit(stored, commit);
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (guard.reused)
+      return { ok: true, value: { purchase: clone(stored ?? commit.purchase), reused: true } };
+    this.supplierPurchases.set(commit.purchase.id, clone(commit.purchase));
+    return { ok: true, value: { purchase: clone(commit.purchase), reused: false } };
   }
   async listCashWallets(): Promise<StorageResult<readonly CashWallet[]>> {
     return {

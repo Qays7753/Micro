@@ -182,10 +182,12 @@ export class ScheduleService {
     const scheduledOrderIds = new Set(schedules.map(schedule => schedule.orderId));
     const missing = ordersResult.value.filter(order => !scheduledOrderIds.has(order.id)).map(initialSchedule);
     for (const schedule of missing) {
-      const saved = await this.store.saveSchedule(schedule);
+      /* المجموعة ٢ (التحصين الكامل — HIGH-001): التسديد الأول كتابة أولى فقط —
+       * وجوده من مسار آخر إعادة استخدام لا كتابة فوقه. */
+      const saved = await this.store.commitScheduleCreate(schedule);
       if (!saved.ok)
         return { ok: false, code: "storage_error", message: "تعذر تجهيز موعد محفوظ للطلب السابق." };
-      schedules.push(saved.value);
+      schedules.push(saved.value.schedule);
     }
     return { ok: true, value: { schedules, orders: ordersResult.value } };
   }
@@ -232,16 +234,26 @@ export class ScheduleService {
               ],
             };
         if (completed !== schedule) {
-          const saved = await this.store.saveSchedule(completed);
-          if (!saved.ok)
-            return {
-              ok: false,
-              code: "storage_error",
-              message:
-                "تم تسجيل التسليم، لكن تعذر تحديث متابعة الموعد محليًا. افتح جدول المواعيد للمحاولة مجددًا.",
-            };
+          /* المجموعة ٢ (التحصين الكامل — HIGH-001): الإكمال التلقائي على مسار
+           * قراءة — الحدث واحد بمفتاح حتمي؛ إعادة التشغيل نجاح بلا كتابة،
+           * والتعارض مع مسار متزامن (تأجيل مثلًا) يُحل بإعادة قراءة واحدة
+           * صادقة لا بفشل القراءة كلها ولا بكتابة فوق تغيير الآخر. */
+          const saved = await this.store.commitScheduleUpdate(completed);
+          if (!saved.ok) {
+            const fresh = await this.store.getSchedule(schedule.id);
+            if (!fresh.ok || !fresh.value)
+              return {
+                ok: false,
+                code: "storage_error",
+                message:
+                  "تم تسجيل التسليم، لكن تعذر تحديث متابعة الموعد محليًا. افتح جدول المواعيد للمحاولة مجددًا.",
+              };
+            const index = schedules.findIndex(candidate => candidate.id === schedule.id);
+            if (index >= 0) schedules[index] = fresh.value;
+            continue;
+          }
           const index = schedules.findIndex(candidate => candidate.id === schedule.id);
-          if (index >= 0) schedules[index] = saved.value;
+          if (index >= 0) schedules[index] = saved.value.schedule;
         }
       }
     }
@@ -464,10 +476,17 @@ export class ScheduleService {
         },
       ],
     };
-    const saved = await this.store.saveSchedule(next);
+    /* المجموعة ٢ (التحصين الكامل — HIGH-001): الحدث واحد بمفتاح حتمي داخل
+     * معاملة واحدة — التعارض مع مسار متزامن يُعلن بصدقه (رسالة المتجر) ولا
+     * يُمحى أثر أي طرف؛ أعد المحاولة بعد إعادة الفتح. */
+    const saved = await this.store.commitScheduleUpdate(next);
     return saved.ok
-      ? { ok: true, value: saved.value }
-      : { ok: false, code: "storage_error", message: "تعذر حفظ الموعد محليًا. لم يتم تأكيد نجاح العملية." };
+      ? { ok: true, value: saved.value.schedule }
+      : {
+          ok: false,
+          code: "storage_error",
+          message: saved.message ?? "تعذر حفظ الموعد محليًا. لم يتم تأكيد نجاح العملية.",
+        };
   }
 
   async postpone(id: string, scheduledFor: string, reason: string): Promise<ScheduleResult<ScheduleEntry>> {

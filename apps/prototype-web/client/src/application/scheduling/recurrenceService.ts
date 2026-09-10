@@ -265,13 +265,18 @@ export class ScheduleRecurrenceService {
     const schedules = await this.store.listSchedules();
     if (!schedules.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة مواعيد التكرار القادمة محليًا." };
-    const affected = schedules.value.map(schedule => {
-      const isFutureDerived =
-        schedule.recurrenceId === id && schedule.scheduledFor > today && isActiveSchedule(schedule);
-      if (!isFutureDerived) return schedule;
-      const idempotencyKey = `${schedule.id}:cancelled:${id}`;
-      if (schedule.events.some(event => event.idempotencyKey === idempotencyKey)) return schedule;
-      return {
+    /* المجموعة ٢ (التحصين الكامل — HIGH-001): تُمرَّر المواعيد المتأثرة
+     * وحدها — لا الجدول كاملًا — فيتحقق الالتزام من كل واحد على حالته الحية
+     * ولا يعيد كتابة مواعيد لم يمسها القرار فوق تغييرات مسار آخر. */
+    const affected = schedules.value
+      .filter(
+        schedule =>
+          schedule.recurrenceId === id &&
+          schedule.scheduledFor > today &&
+          isActiveSchedule(schedule) &&
+          !schedule.events.some(event => event.idempotencyKey === `${schedule.id}:cancelled:${id}`),
+      )
+      .map(schedule => ({
         ...schedule,
         status: "cancelled" as const,
         postponeReason: cancellationReason,
@@ -281,7 +286,7 @@ export class ScheduleRecurrenceService {
           {
             id: `${schedule.id}:cancelled:${schedule.events.length + 1}`,
             type: "cancelled" as const,
-            idempotencyKey,
+            idempotencyKey: `${schedule.id}:cancelled:${id}`,
             createdAt: timestamp,
             previousScheduledFor: schedule.scheduledFor,
             scheduledFor: schedule.scheduledFor,
@@ -292,8 +297,7 @@ export class ScheduleRecurrenceService {
             reason: `إلغاء قالب التكرار: ${cancellationReason}`,
           },
         ],
-      };
-    });
+      }));
     const cancelled: ScheduleRecurrence = {
       ...current.value,
       status: "cancelled",
