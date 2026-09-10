@@ -843,6 +843,7 @@ function validSupplierPurchase(value: unknown): boolean {
   )
     return false;
   const paymentKeys = new Set<string>();
+  const paymentIds = new Set<string>();
   const totalPaid = value.payments.reduce<number>((sum, payment) => {
     if (
       !isRecord(payment) ||
@@ -855,10 +856,16 @@ function validSupplierPurchase(value: unknown): boolean {
       !isString(payment.idempotencyKey) ||
       !isString(payment.note) ||
       !payment.note.trim() ||
-      paymentKeys.has(payment.idempotencyKey)
+      paymentKeys.has(payment.idempotencyKey) ||
+      paymentIds.has(payment.id)
     )
       return Number.NaN;
-    paymentKeys.add(payment.id);
+    /* المجموعة ٢ (التحصين الكامل — LOW-002): الطرح كان يضيف هوية الدفعة في
+     * مجموعة المفاتيح فتفلت الدفعات ذات المفتاح المكرر داخل الشراء الواحد —
+     * مسار الكتابة يمنعها أصلًا فلا ملف صادق يحملها؛ الآن المفتاح والهوية
+     * كلٌّ منهما في مجموعته. */
+    paymentKeys.add(payment.idempotencyKey);
+    paymentIds.add(payment.id);
     return sum + payment.amountMinor;
   }, 0);
   /* S2-03: التراجعات الموثقة عن الدفعات جزء من الحالة الشرعية — المدفوع الفعلي =
@@ -1526,6 +1533,21 @@ function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (!orderContextValid || !isRecord(stored) || !isRecord(stored.order) || !isString(stored.id))
       return false;
     const order = stored.order;
+    /* المجموعة ٢ (التحصين الكامل — LOW-002): تفرُّد الأحداث داخل الطلب على
+     * زوج (المفتاح، النوع) — نفس عقد مسار الكتابة (appendEvent يُكرم بالمفتاح
+     * والنوع معًا). نفس المفتاح بنوعين مختلفين مسموح (قبضة وتراجعها بمفتاح
+     * العملية الواحد)، والمفتاح نفسه بالنوع نفسه مرتين = تلاعب يُرفض. */
+    const orderEventKeyTypes = new Set<string>();
+    const orderEventUniquenessValid =
+      Array.isArray(order.events) &&
+      order.events.every(event => {
+        if (!isRecord(event) || !isString(event.idempotencyKey) || !isString(event.type)) return true;
+        const key = `${event.type}:${event.idempotencyKey}`;
+        if (orderEventKeyTypes.has(key)) return false;
+        orderEventKeyTypes.add(key);
+        return true;
+      });
+    if (!orderEventUniquenessValid) return false;
     const domainOrderValid =
       order.id === stored.id &&
       isString(order.customerName) &&
@@ -2450,6 +2472,35 @@ function summary(file: LocalExportFile): TransferSummary {
   };
 }
 
+/* المجموعة ٢ (التحصين الكامل — HIGH-002): سجل أزواج الإصدار التي صدرت فعلًا
+ * (نسخة التصدير/مخطط التخزين) — مصدر وحيد لبوابة القبول. أزواج المخطط ٢١–٢٥
+ * وأزواج ما قبل ٦/١٤ صدرت قبل حد القبول الحالي فتبقى مرفوضة عمدًا. الزوج
+ * ٨/١۷ صدر مع الالتزام 570eba1 في 2026-08-23 ويُقبل منذ هذه المجموعة بمفاتيحه
+ * الحرفية. أسباب الأزواج موثقة في تاريخ المستودع (تصعيد المخطط مع كل موجة). */
+const RELEASED_LEGACY_EXPORT_PAIRS: ReadonlySet<string> = new Set([
+  "26/34", // المجموعة ٤ كما صدرت فعلًا (بلا مظروف التكامل)
+  "25/33", // المجموعة ٤ قبل الأصول والقروض
+  "24/32", // ربط المنتج بالبيع
+  "23/31", // مخزون انتقائي
+  "22/30", // تصنيفي للمصاريف
+  "21/29", // ملف المالك — سابقًا
+  "20/28", // موجة إعادة التدفق
+  "19/27", // القرار ٩: بلا سجل تفعيل المخزون
+  "18/27", // S5-05: حملت مخطط ٢٧ حرفيًا (زوج صدر فعلًا)
+  "17/26", // تصعيد الكتالوج الأساسي (دمج G3–G5)
+  "16/25", // توسيع G4b
+  "15/24", // الجسر
+  "14/23", // نواة الكتالوج (O1)
+  "13/22", // O1 — أرصدة حق المالك
+  "12/21", // O1 — سياسات حق المالك
+  "11/20", // G3
+  "10/19", // G5 — التصريحات
+  "9/18", // G4 — الوقت الفعلي
+  "8/17", // D-1: زوج الالتزام 570eba1 — محتمل الاستخدام الميداني
+  "7/15", // G3 الحالي — إرث
+  "6/14", // G3 إرث
+]);
+
 export class LocalTransferService {
   constructor(
     private readonly store: PrototypeLocalStore,
@@ -2495,66 +2546,20 @@ export class LocalTransferService {
       return fail("هذا ليس ملف تصدير Micro المحلي. بقيت بيانات هذا الجهاز دون تغيير.");
     const isCurrent =
       candidate.version === localExportVersion && candidate.schemaVersion === localSchemaVersion;
-    /* S5-05: ملفات ١٨ التاريخية حملت مخطط ٢٧ حرفيًا (زوج صدر فعلًا) — المقارنة
-     * كانت ضد الثابت الحي فارتفعت معه إلى ٣٠ فقبلت زوجًا غير موجود ورفضت الحقيقي. */
-    const isPreviousDirectSale = candidate.version === 18 && candidate.schemaVersion === 27;
-    /* القرار ٩: ملفات 19/27 بلا سجل تفعيل المخزون تُقبل وتُهاجر بتفعيل غير معلن (null). */
-    const isPreviousInventoryActivation = candidate.version === 19 && candidate.schemaVersion === 27;
-    const isPreviousCatalogCore = candidate.version === 14 && candidate.schemaVersion === 23;
-    const isPreviousBridge = candidate.version === 15 && candidate.schemaVersion === 24;
-    const isPreviousG4bScale = candidate.version === 16 && candidate.schemaVersion === 25;
-    const isPreviousWorkDestination = candidate.version === 17 && candidate.schemaVersion === 26;
-    /* إرث موجة إعادة التدفق: نسخة ٢٠/مخطط ٢٨ قبل حقول الأمانات والتقديرات المستقلة. */
-    const isPreviousFlowRedesign = candidate.version === 20 && candidate.schemaVersion === 28;
-    /* المجموعة ١ (ملف المالك — سابقًا): نسخة ٢١/مخطط ٢٩ قبل مخزن هوية المالك — تُقبل
-     * وتُهاجر بـ ownerProfile=null؛ لا أعمدة مالية أو تاريخية تتغير. */
-    const isPreviousOwnerFoundation = candidate.version === 21 && candidate.schemaVersion === 29;
-    /* المجموعة ١ (تصنيفي للمصاريف): نسخة ٢٢/مخطط ٣٠ قبل وسم التصنيف — تُقبل
-     * وتُهاجر بغياب الوسم (undefined→null) بلا تعبئة افتراضية ولا اختراع تصنيف. */
-    const isPreviousExpenseCategory = candidate.version === 22 && candidate.schemaVersion === 30;
-    /* المجموعة ٢ (مخزون انتقائي): نسخة ٢٣/مخطط ٣١ قبل قرار المتابعة والنقص —
-     * تُقبل وتُهاجر بقيم null/[] آمنة بلا اختراع متابعة ولا رصيد ولا نقص. */
-    const isPreviousSelectiveInventory = candidate.version === 23 && candidate.schemaVersion === 31;
-    /* المجموعة ٣ (ربط المنتج بالبيع): نسخة ٢٤/مخطط ٣٢ قبل هوية المادة في بنود
-     * التكلفة والقوالب وبنود القالب الاختيارية وربط حركة المادة بالبيع المباشر —
-     * تُقبل وتُهاجر بغياب = null بلا اختراع روابط ولا أرقام. */
-    const isPreviousProductSaleLink = candidate.version === 24 && candidate.schemaVersion === 32;
-    /* المجموعة ٤ (التمويل العميق): نسخة ٢٥/مخطط ٣٣ قبل الأصول والقروض وتصنيف
-     * العربون المحتفظ به وعلم الخصم التلقائي — تُقبل وتُهاجر بقوائم فارغة
-     * ودلتات صفر بلا اختراع أصول ولا قروض ولا معاني. نسخة ٢٦/مخطط ٣٤ زوج
-     * المجموعة ٤ كما صدر فعلًا (بلا مظروف التكامل) — تُقبل كذلك. */
-    const isPreviousDeepFinance = candidate.version === 25 && candidate.schemaVersion === 33;
-    const isPreviousGroup4Envelope = candidate.version === 26 && candidate.schemaVersion === 34;
-    const isPreviousO1 =
-      (candidate.version === 12 && candidate.schemaVersion === 21) ||
-      (candidate.version === 13 && candidate.schemaVersion === 22);
-    const isPreviousG3 = candidate.version === 11 && candidate.schemaVersion === 20;
-    const isG3Legacy = candidate.version === 6 && candidate.schemaVersion === 14;
-    const isG3CurrentLegacy = candidate.version === 7 && candidate.schemaVersion === 15;
-    const isPreviousG4 = candidate.version === 9 && candidate.schemaVersion === 18;
-    const isPreviousG5 = candidate.version === 10 && candidate.schemaVersion === 19;
-    if (
-      !isCurrent &&
-      !isPreviousDirectSale &&
-      !isPreviousInventoryActivation &&
-      !isPreviousCatalogCore &&
-      !isPreviousBridge &&
-      !isPreviousG4bScale &&
-      !isPreviousWorkDestination &&
-      !isPreviousFlowRedesign &&
-      !isPreviousOwnerFoundation &&
-      !isPreviousExpenseCategory &&
-      !isPreviousSelectiveInventory &&
-      !isPreviousProductSaleLink &&
-      !isPreviousDeepFinance &&
-      !isPreviousGroup4Envelope &&
-      !isPreviousO1 &&
-      !isPreviousG3 &&
-      !isG3Legacy &&
-      !isG3CurrentLegacy &&
-      !isPreviousG4 &&
-      !isPreviousG5
-    )
+    /* المجموعة ٢ (التحصين الكامل — HIGH-002): مصدر واحد للحقيقة لأزواج الإصدار
+     * التي صدرت فعلًا — الزوج (نسخة التصدير/مخطط التخزين) يُقبل بمفاتيحه
+     * الحرفية لا بمقارنة الثابت الحي (S5-05)، وكل زوج هنا موثق بإصداره الذي
+     * صدر معه. زوج ٨/١٧ صدر مع الالتزام 570eba1 (2026-08-23) ويُعامل كمحتمل
+     * الاستخدام الميداني (D-1): يُقبل بمفاتيحه الحرفية، والحجب الوحيد يبقى
+     * للتحقق الصارم نفسه الذي يمر به كل زوج — لا تخفيف لأجل القبول. */
+    const isReleasedLegacyPair =
+      typeof candidate.version === "number" &&
+      typeof candidate.schemaVersion === "number" &&
+      /* المفتاح بدمج نصي لا قالب محرف — أدوات قياس الكثافة تُقرأ القوالب
+       * المفروقة عبر مَثْلَب داخل الاستيفاء فتنزاح المطابقة؛ الدمج أبسط
+       * وأصدق هنا ولا يغير الدلالة شيئًا. */
+      RELEASED_LEGACY_EXPORT_PAIRS.has(candidate.version + "/" + candidate.schemaVersion);
+    if (!isCurrent && !isReleasedLegacyPair)
       return fail("إصدار الملف غير مدعوم في هذا الإصدار من التطبيق؛ بقيت بيانات هذا الجهاز دون تغيير.");
     if (!isDate(candidate.exportedAt) || !isRecord(candidate.data))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
@@ -2860,14 +2865,26 @@ export class LocalTransferService {
       return fail(
         "ملف الإصدار الحالي بلا عدادات تحقق — يبدو أن الملف فُتح وعُدّل وحُذف مظروف التحقق منه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
       );
+    /* المجموعة ٢ (التحصين الكامل — MED-002): العدادات صارمة للملف الحالي —
+     * كل مفتاح من مفاتيح العد المعروفة يجب أن يكون حاضرًا عددًا صحيحًا غير
+     * سالب يطابق البيانات المُرحَّلة، وأي مفتاح غريب إضافي علامة تلاعب؛ الغائب
+     * وغير الصحيح والسالب والمتضارب كلها تُرفض قبل أي استبدال. الملفات
+     * القديمة (بلا عدادات أصلًا) على مسارها الموروث. */
     if (isRecord(candidate.counts) && isCurrent) {
       const incomingCounts: Record<string, unknown> = candidate.counts;
       const migratedCounts = exportCountsOf(migrated);
-      const mismatches = (Object.keys(migratedCounts) as Array<keyof LocalExportCounts>).filter(key => {
+      const expectedKeys = Object.keys(migratedCounts) as Array<keyof LocalExportCounts>;
+      const extraKeys = Object.keys(incomingCounts).filter(key => !(key in migratedCounts));
+      const invalid = expectedKeys.some(key => {
         const incoming = incomingCounts[key];
-        return typeof incoming === "number" && Number.isInteger(incoming) && incoming !== migratedCounts[key];
+        return (
+          typeof incoming !== "number" ||
+          !Number.isInteger(incoming) ||
+          incoming < 0 ||
+          incoming !== migratedCounts[key]
+        );
       });
-      if (mismatches.length > 0)
+      if (extraKeys.length > 0 || invalid)
         return fail(
           "عدادات الملف لا تطابق بياناته بعد الترحيل — يبدو أن الملف تغيّر أو نقص بعد إنشائه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
         );
