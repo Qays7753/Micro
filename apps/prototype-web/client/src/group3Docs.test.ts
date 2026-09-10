@@ -62,4 +62,33 @@ describe("documentation consistency — Group 3 implemented on the remediation b
       }
     }
   });
+
+  it("current-state records the Group 3 closure patch (§33) — the concurrency defect is closed", () => {
+    const section33 = currentState.split("## §33.")[1] ?? "";
+    expect(section33).toContain("commitOrderDeliveryReversal");
+    expect(section33).toContain("deliveryReversalCommitGuard");
+    expect(section33).toContain("كتابة عمياء");
+    expect(section33).toContain("storage_stale");
+    expect(section33).toContain("لا يوجد مسار كتابة لعلاقة ثانية على التسليم نفسه");
+    expect(section33).toContain("٣٥/٢٧ بلا تغيير");
+  });
+
+  it("closure section states the same PR and merge posture as §32 — open, unmerged, main unchanged", () => {
+    const section33 = currentState.split("## §33.")[1] ?? "";
+    expect(section33).toContain("PR #159 مفتوح وغير مدموج");
+    expect(section33).toContain("و`main` لم يتغير");
+    expect(section33).toContain("بوابة الدمج معلقة");
+  });
+
+  it("todo records the Group 3 closure note with the shared guard reference", () => {
+    const group3Line = todo
+      .split("\n")
+      .find(
+        line => line.includes("المجموعة ٣ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
+      );
+    expect(group3Line).toBeDefined();
+    expect(group3Line).toContain("رقعة الإغلاق");
+    expect(group3Line).toContain("deliveryReversalCommitGuard");
+    expect(group3Line).toContain("§33");
+  });
 });

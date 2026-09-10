@@ -12,6 +12,7 @@ import {
   calculateCostSnapshot,
   createCraftOrder,
   noteDeliveryConsumption,
+  reverseDelivery,
   transitionOrder,
 } from "@micro-domain/craft-order/index.js";
 import { localDateInAmman } from "@/presentation/formatters";
@@ -196,6 +197,9 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
     const store = new IndexedDbLocalStore(() => "2026-09-04T10:00:00.000Z");
     const stored = deliveredOrder();
     await store.saveOrder(stored);
+    const deliveryEventId = [...stored.order.events]
+      .reverse()
+      .find(event => event.type === "status_changed" && event.toStatus === "delivered")!.id;
     const original: InventoryMovement = createInventoryMovement({
       id: "mv-2",
       materialId: "mat-1",
@@ -205,37 +209,25 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
       quantityDeltaMilli: -2000,
       valueDeltaMinor: -1000,
       note: "استهلاك تسليم الطلب: فستان",
-      operationKey: "order-1:deliver:evt-1:mat-1",
+      operationKey: `order-1:deliver:${deliveryEventId}:mat-1`,
       orderId: "order-1",
       costKnowledge: "known",
     });
     await store.commitInventory(null, [original]);
+    /* رقعة الإغلاق: الحمولة تُبنى بدالة النطاق الحقيقية (حدثان ملحقان من
+     * قاعدة مسلّمة) — لا تحرير يدوي لأحداث الطلب. */
+    const reversedOrder = reverseDelivery(stored.order, {
+      reason: "سُلّم للزبون الخطأ",
+      idempotencyKey: "order-1:reverse-delivery",
+      createdAt: "2026-09-04T10:00:00.000Z",
+    });
     const reversedStored: StoredCraftOrder = {
       ...stored,
-      order: {
-        ...stored.order,
-        status: "needs_review",
-        recognizedRevenueMinor: 0,
-        recognizedCostMinor: 0,
-        resultStatus: "review_required",
-        events: [
-          ...stored.order.events,
-          {
-            id: "order-1:rev-1",
-            type: "delivery_reversed",
-            idempotencyKey: "order-1:reverse-delivery",
-            createdAt: "2026-09-04T10:00:00.000Z",
-            note: "سُلّم للزبون الخطأ",
-            reversesEventId: stored.order.events.find(
-              event => event.type === "status_changed" && event.toStatus === "delivered",
-            )!.id,
-          },
-        ],
-      },
+      order: reversedOrder,
       updatedAt: "2026-09-04T10:00:00.000Z",
     };
     const mirror = createInventoryMovement({
-      id: "mv-2-rev",
+      id: `delivery-reversal-${original.id}`,
       materialId: "mat-1",
       type: "reversal",
       occurredOn: "2026-09-04",
@@ -244,7 +236,7 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
       valueDeltaMinor: 1000,
       note: "تراجع موثق عن التسليم: استهلاك تسليم الطلب: فستان",
       reason: "سُلّم للزبون الخطأ",
-      operationKey: "order-1:deliver:evt-1:mat-1:reversal",
+      operationKey: `${original.operationKey}:reversal`,
       reversesMovementId: "mv-2",
       costKnowledge: "known",
     });
