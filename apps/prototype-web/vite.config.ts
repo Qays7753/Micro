@@ -1,5 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
@@ -218,6 +219,31 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
+/* D-034 (المجموعة ٤ — برنامج التحصين الكامل): بوابة الميزانية داخل البناء
+ * نفسه — الوسيط الخادم (closeBundle) يشغّل السكربت الواحد نفسه (مصدر الحقيقة
+ * واحد: scripts/check-bundle-budget.mjs) بعد كتابة المخرجات فيفشل البناء —
+ * حتى من مسار `vite build` المباشر لا من مسار pnpm وحده. تُتخطى في وضع
+ * المراقبة (watch) حيث لا معنى لبوابة نهائية على إعادة بناء متكررة. */
+function vitePluginBundleBudgetGate(): Plugin {
+  let watching = false;
+  return {
+    name: "micro-bundle-budget-gate",
+    configResolved(config) {
+      watching = Boolean(config.build.watch);
+    },
+    closeBundle() {
+      if (watching) return;
+      const checker = path.join(PROJECT_ROOT, "scripts", "check-bundle-budget.mjs");
+      const distDir = path.join(PROJECT_ROOT, "dist", "public");
+      const outcome = spawnSync(process.execPath, [checker, distDir], { encoding: "utf8" });
+      if (outcome.status === 0) return;
+      const detail = `${outcome.stdout ?? ""}${outcome.stderr ?? ""}`.trim();
+      throw new Error(`bundle budget gate failed (D-034):
+${detail}`);
+    },
+  };
+}
+
 const pwa = VitePWA({
   registerType: "prompt",
   injectRegister: false,
@@ -261,7 +287,7 @@ function devOnlyPlugins(mode: string) {
 }
 
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss(), ...devOnlyPlugins(mode), pwa],
+  plugins: [react(), tailwindcss(), ...devOnlyPlugins(mode), pwa, ...(mode === "production" ? [vitePluginBundleBudgetGate()] : [])],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -273,6 +299,9 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    /* D-034 (المجموعة ٤): بيّنة البناء — مصدر اختيار المدخل الرئيسي في
+     * بوابة الميزانية (لا تخمين أسماء التجزئة). */
+    manifest: true,
     rollupOptions: {
       output: {
         /* Q-003 (دورة التدقيق النهائي): أزيلت sonner من الشجرة؛ بقيت vaul فقط
