@@ -192,7 +192,11 @@ export default function DeliveryReviewPage() {
       </div>
 
       {state.phase === "loading" ? <p className="micro-local-truth">جارٍ تحضير المراجعة…</p> : null}
-      {state.phase === "error" ? <p className="micro-field-error">{state.message}</p> : null}
+      {state.phase === "error" ? (
+        <p className="micro-field-error" role="alert">
+          {state.message}
+        </p>
+      ) : null}
 
       {ready ? (
         <>
@@ -245,7 +249,7 @@ export default function DeliveryReviewPage() {
           {ready.warnings.length > 0 ? (
             <section className="micro-form-grid" aria-label="تنبيهات قبل التسليم">
               {ready.warnings.map(warning => (
-                <p className="micro-cost-disclaimer" key={warning}>
+                <p className="micro-warning-copy" key={warning}>
                   <TriangleAlert aria-hidden="true" /> {warning}
                 </p>
               ))}
@@ -334,7 +338,7 @@ export default function DeliveryReviewPage() {
                             </select>
                           </label>
                           {choice.quantityMilli > row.availableQuantityMilli ? (
-                            <p className="micro-cost-disclaimer">
+                            <p className="micro-warning-copy">
                               <TriangleAlert aria-hidden="true" /> النقص المتوقع:{" "}
                               {((choice.quantityMilli - row.availableQuantityMilli) / 1000).toFixed(3)}{" "}
                               {row.unitLabel} — يُوثَّق نقصًا صريحًا ولا يصير الرصيد سالبًا.
@@ -450,7 +454,11 @@ export default function DeliveryReviewPage() {
             </section>
           ) : null}
 
-          {message ? <p className="micro-field-error">{message}</p> : null}
+          {message ? (
+            <p className="micro-field-error" role="alert" data-testid="delivery-submit-error">
+              {message}
+            </p>
+          ) : null}
           <div className="micro-form-actions">
             <button
               className="micro-button micro-button-primary"
@@ -496,7 +504,11 @@ export default function DeliveryReviewPage() {
               <li>لم يُسجَّل قبض جديد عند التسليم.</li>
             )}
           </ul>
-          {state.notice ? <p className="micro-cost-disclaimer">{state.notice}</p> : null}
+          {state.notice ? (
+            <p className="micro-warning-copy" role="status">
+              {state.notice}
+            </p>
+          ) : null}
           <div className="micro-form-actions">
             <button
               className="micro-button micro-button-primary"

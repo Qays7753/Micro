@@ -8,6 +8,7 @@ import { useLocation, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { STALE_CONFLICT_NOTE, STALE_RELOAD_ACTION_LABEL, STALE_RELOADED_NOTE } from "@/app/resultFeedback";
 import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
@@ -51,7 +52,16 @@ export default function SupplierPurchaseEditor() {
   const [initialPaidMinor, setInitialPaidMinor] = useState(0);
   const [paymentMinor, setPaymentMinor] = useState(0);
   const [validMoney, setValidMoney] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
+  /* التحصين الكامل (المجموعة ٣): ملاحظة مُطبوعة النبرة بدل تخمين البادئة
+   * العربية — الفشل خطأ ظاهر دائمًا لا نجاحًا مزيفًا. */
+  const [feedback, setFeedback] = useState<{
+    tone: "error" | "success" | "info";
+    text: string;
+    source: "purchase" | "payment" | "edit" | "reversal";
+  } | null>(null);
+  /* عقد §31 (المجموعة ٢): تعارض قِدم التخزين يصل مُطبوعًا (storage_stale) —
+   * رحلة استرجاع صريحة: إعادة قراءة ثم قرار واعٍ، لا تكرار أعمى. */
+  const [staleConflict, setStaleConflict] = useState(false);
   const [saving, setSaving] = useState(false);
   /* المجموعة ٢ (عقد ٢٨ / TR-07): ربط المادة والكمية المتوقعة وحالة الاستلام. */
   const [materialId, setMaterialId] = useState("");
@@ -187,17 +197,45 @@ export default function SupplierPurchaseEditor() {
     if (purchaseDraft.state.phase === "restore-offer") restoredFromOffer.current = true;
   }, [purchaseDraft.state.phase]);
 
+  function reportFailure(
+    result: { ok: false; code: string; message: string },
+    source: "purchase" | "payment" | "edit" | "reversal",
+  ): void {
+    if (result.code === "storage_stale") setStaleConflict(true);
+    setFeedback({ tone: "error", text: result.message, source });
+  }
+
+  /* رحلة الاسترجاع (§31): إعادة قراءة الشراء الحالي عبر مسار القراءة المعتمد
+   * نفسه — قيم المستخدم غير المحفوظة تبقى في الحقول كما هي، ولا يُعاد إرسال
+   * القيم القديمة تلقائيًا؛ الحفظ الثاني قرار واعٍ بعد المراجعة. */
+  async function reloadCurrentPurchase(): Promise<void> {
+    if (!id || isNew) return;
+    const result = await supplierPurchases.list();
+    if (!result.ok) {
+      setFeedback({ tone: "error", text: result.message, source: "payment" });
+      return;
+    }
+    const found = result.value.find(item => item.id === id) ?? null;
+    setStaleConflict(false);
+    setPurchase(found);
+    if (found) setFeedback({ tone: "info", text: STALE_RELOADED_NOTE, source: "payment" });
+  }
+
   async function savePurchase(): Promise<boolean> {
     if (!validMoney || totalMinor <= 0 || initialPaidMinor < 0) {
-      setMessage("أدخل إجماليًا صالحًا بالأرقام 0–9.");
+      setFeedback({ tone: "error", text: "أدخل إجماليًا صالحًا بالأرقام 0–9.", source: "purchase" });
       return false;
     }
     if (initialPaidMinor > totalMinor) {
-      setMessage("لا يمكن أن يتجاوز المدفوع الآن إجمالي الشراء.");
+      setFeedback({
+        tone: "error",
+        text: "لا يمكن أن يتجاوز المدفوع الآن إجمالي الشراء.",
+        source: "purchase",
+      });
       return false;
     }
     setSaving(true);
-    setMessage(null);
+    setFeedback(null);
     const result = await supplierPurchases.recordPurchase({
       supplierName,
       note,
@@ -212,7 +250,7 @@ export default function SupplierPurchaseEditor() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      reportFailure(result, "purchase");
       return false;
     }
     notifyDataChanged();
@@ -220,18 +258,23 @@ export default function SupplierPurchaseEditor() {
      * تعني أن السجل النهائي موجود أصلًا فبقاء المسودة يعرّض استعادتها لاحقًا
      * لإنشاء تكرار. */
     await purchaseDraft.clearFormDraft();
-    setMessage(result.reused ? "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره." : "تم حفظ شراء المواد محليًا.");
+    setStaleConflict(false);
+    setFeedback(
+      result.reused
+        ? { tone: "info", text: "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره.", source: "purchase" }
+        : { tone: "success", text: "تم حفظ شراء المواد محليًا.", source: "purchase" },
+    );
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     if (!result.reused) navigate(returnPath);
     return true;
   }
   async function savePayment(): Promise<boolean> {
     if (!purchase || !validMoney || paymentMinor <= 0) {
-      setMessage("أدخل دفعة صالحة بالأرقام 0–9.");
+      setFeedback({ tone: "error", text: "أدخل دفعة صالحة بالأرقام 0–9.", source: "payment" });
       return false;
     }
     setSaving(true);
-    setMessage(null);
+    setFeedback(null);
     const result = await supplierPurchases.recordPayment({
       purchaseId: purchase.id,
       amountMinor: paymentMinor,
@@ -241,11 +284,16 @@ export default function SupplierPurchaseEditor() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      reportFailure(result, "payment");
       return false;
     }
     notifyDataChanged();
-    setMessage(result.reused ? "هذه الدفعة محفوظة سابقًا؛ لم نكرر أثرها." : "تم حفظ دفعة المورد محليًا.");
+    setStaleConflict(false);
+    setFeedback(
+      result.reused
+        ? { tone: "info", text: "هذه الدفعة محفوظة سابقًا؛ لم نكرر أثرها.", source: "payment" }
+        : { tone: "success", text: "تم حفظ دفعة المورد محليًا.", source: "payment" },
+    );
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     if (!result.reused) navigate(returnPath);
     return true;
@@ -254,11 +302,11 @@ export default function SupplierPurchaseEditor() {
   /* المجموعة ٢ (§10.4): التعديل الموثق — مراجعة + سبب + حفظ يمر بالخدمة. */
   async function saveEdit(): Promise<boolean> {
     if (!purchase || !validMoney || totalMinor <= 0 || initialPaidMinor < 0 || !quantityValid) {
-      setMessage("أدخل إجماليًا صالحًا بالأرقام 0–9.");
+      setFeedback({ tone: "error", text: "أدخل إجماليًا صالحًا بالأرقام 0–9.", source: "edit" });
       return false;
     }
     setSaving(true);
-    setMessage(null);
+    setFeedback(null);
     const result = await supplierPurchases.editPurchase({
       purchaseId: purchase.id,
       supplierName,
@@ -275,14 +323,19 @@ export default function SupplierPurchaseEditor() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      reportFailure(result, "edit");
       return false;
     }
     notifyDataChanged();
     setEditing(false);
     setEditReason("");
     editKeyRef.current = `supplier-edit-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
-    setMessage(result.reused ? "هذا التعديل موثق سابقًا؛ لم نكرر أثره." : "تم تعديل الشراء بمراجعة موثقة.");
+    setStaleConflict(false);
+    setFeedback(
+      result.reused
+        ? { tone: "info", text: "هذا التعديل موثق سابقًا؛ لم نكرر أثره.", source: "edit" }
+        : { tone: "success", text: "تم تعديل الشراء بمراجعة موثقة.", source: "edit" },
+    );
     if (!result.reused) {
       setPurchase(result.value);
       setLoadedToken(token => token + 1);
@@ -293,7 +346,7 @@ export default function SupplierPurchaseEditor() {
   async function savePaymentReversal(): Promise<boolean> {
     if (!purchase || !reversalTarget) return false;
     setSaving(true);
-    setMessage(null);
+    setFeedback(null);
     const result = await supplierPurchases.reversePayment({
       purchaseId: purchase.id,
       paymentId: reversalTarget.id,
@@ -303,14 +356,19 @@ export default function SupplierPurchaseEditor() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      reportFailure(result, "reversal");
       return false;
     }
     notifyDataChanged();
     setReversalTarget(null);
     setReversalReason("");
     reversalKeyRef.current = `payment-reversal-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
-    setMessage(result.reused ? "هذا التراجع موثق سابقًا؛ لم نكرر أثره." : "تم التراجع عن الدفعة موثقًا.");
+    setStaleConflict(false);
+    setFeedback(
+      result.reused
+        ? { tone: "info", text: "هذا التراجع موثق سابقًا؛ لم نكرر أثره.", source: "reversal" }
+        : { tone: "success", text: "تم التراجع عن الدفعة موثقًا.", source: "reversal" },
+    );
     if (!result.reused) {
       setPurchase(result.value);
       setLoadedToken(token => token + 1);
@@ -398,6 +456,25 @@ export default function SupplierPurchaseEditor() {
               : "سجل واقع الشراء والدفع المتفق عليه. لن تحوله Micro إلى تكلفة بيع أو مخزون حتى المرحلة التالية."}
         </p>
       </div>
+      {staleConflict ? (
+        <section className="micro-cancel-panel" data-testid="stale-conflict-card">
+          <p className="micro-warning-copy" role="alert">
+            {STALE_CONFLICT_NOTE}
+          </p>
+          <div className="micro-form-actions micro-contextual-actions">
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              disabled={saving}
+              onClick={() => {
+                void reloadCurrentPurchase();
+              }}
+            >
+              {STALE_RELOAD_ACTION_LABEL}
+            </button>
+          </div>
+        </section>
+      ) : null}
       {isNew && purchaseDraft.state.phase === "restore-offer" ? (
         <FormDraftRestoreBanner
           savedAt={purchaseDraft.state.savedAt}
@@ -561,7 +638,7 @@ export default function SupplierPurchaseEditor() {
               reason={reversalReason}
               onReasonChange={setReversalReason}
               reasonPlaceholder="مثال: رُدّت الدفعة بالتحويل خطأً"
-              error={message}
+              error={feedback?.tone === "error" && feedback.source === "reversal" ? feedback.text : null}
               busy={saving}
               confirmLabel="أكّد التراجع الموثق"
               busyLabel="جارٍ توثيق التراجع…"
@@ -671,11 +748,6 @@ export default function SupplierPurchaseEditor() {
                 value={dueOn}
                 onChange={event => setDueOn(event.target.value)}
               />
-              {message && message.startsWith("أدخل") ? (
-                <p className="micro-field-error" role="alert">
-                  {message}
-                </p>
-              ) : null}
               {editPreview ? (
                 <CorrectionPreview
                   action="تعديل موثق لسجل الشراء"
@@ -704,7 +776,7 @@ export default function SupplierPurchaseEditor() {
                   reason={editReason}
                   onReasonChange={setEditReason}
                   reasonPlaceholder="مثال: فاتورة مصححة من المورد"
-                  error={message}
+                  error={feedback?.tone === "error" && feedback.source === "edit" ? feedback.text : null}
                   busy={saving}
                   confirmLabel="أكّد تعديل الشراء"
                   busyLabel="جارٍ حفظ التعديل…"
@@ -717,9 +789,11 @@ export default function SupplierPurchaseEditor() {
               ) : null}
             </section>
           ) : null}
-          {message && !message.startsWith("أدخل") ? (
-            <p className="micro-save-note" role="status">
-              {message}
+          {/* الأخطاء تظهر داخل CorrectionPreview المفتوح (role=alert) — لا
+              تكرار مزدوج للرسالة نفسها بصفتين مختلفتين كما كان قبل المجموعة ٣. */}
+          {feedback && feedback.tone !== "error" ? (
+            <p className={feedback.tone === "info" ? "micro-local-truth" : "micro-save-note"} role="status">
+              {feedback.text}
             </p>
           ) : null}
         </>
@@ -854,16 +928,18 @@ export default function SupplierPurchaseEditor() {
                 </label>
               </>
             )}
-            {message ? (
+            {feedback ? (
               <p
                 className={
-                  message.startsWith("تم ") || message.startsWith("هذا ")
-                    ? "micro-save-note"
-                    : "micro-field-error"
+                  feedback.tone === "error"
+                    ? "micro-field-error"
+                    : feedback.tone === "info"
+                      ? "micro-local-truth"
+                      : "micro-save-note"
                 }
-                role="status"
+                role={feedback.tone === "error" ? "alert" : "status"}
               >
-                {message}
+                {feedback.text}
               </p>
             ) : null}
             <div className="micro-form-actions micro-sticky-save">

@@ -19,6 +19,7 @@ import { useLocation, useParams } from "wouter";
 import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { DELIVERED_REVIEW_LOCK_NOTE } from "@/app/resultFeedback";
 import type { AgreementResult } from "@/application/agreements/agreementService";
 import type { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
 import type {
@@ -298,11 +299,19 @@ export default function OrderDetail() {
   });
   const label = agreement.label;
   const result = resultLabel[order.resultStatus] ?? resultLabel.review_required;
+  /* التحصين الكامل (D-031، المجموعة ٣): القفل الحقيقي — سجل مسلّم داخل «يحتاج
+   * مراجعة» بلا تراجع موثق عن التسليم؛ مرآة حارس النطاق نفسه في policies.ts. */
+  const lockedInDeliveredReview =
+    order.status === "needs_review" &&
+    order.events.some(event => event.type === "status_changed" && event.toStatus === "delivered") &&
+    !lastDeliveryWasReversed(order);
   /* المجموعة ٦ (البند ٤ — S3-12): ملخص الإفصاح يسمي الأفعال المتاحة فعلًا حسب
    * حالة الطلب — قابل للاكتشاف بلا فتح، وبلا ذكر فعل لا ينطبق. */
   const correctionsSummary = [
     ...(["draft", "cancelled", "needs_review"].includes(order.status) ? [] : ["تعديل السعر"]),
-    ...(order.status !== "cancelled" && order.events.some(event => event.type === "collection_recorded")
+    ...(order.status !== "cancelled" &&
+    !lockedInDeliveredReview &&
+    order.events.some(event => event.type === "collection_recorded")
       ? ["تراجع عن قبضة"]
       : []),
     ...(canCancelOrder(order) ? ["إلغاء الطلب"] : []),
@@ -413,6 +422,15 @@ export default function OrderDetail() {
   /* المجموعة ٦ (البند ١): تنفيذ التراجع — مزدوجًا أو مفردًا — عبر الخدمة الذرّية
    * نفسها؛ إعادة المحاولة بمفتاح الجذر نفسه لا تكرر أي أثر. */
   async function runReversal(compound: boolean) {
+    if (!stored || !reversalEventId) return;
+    setIsActing(true);
+    try {
+      await runReversalCommit(compound);
+    } finally {
+      setIsActing(false);
+    }
+  }
+  async function runReversalCommit(compound: boolean) {
     if (!stored || !reversalEventId) return;
     const result = await collectionReversal.reverse({
       orderId: stored.id,
@@ -760,14 +778,17 @@ export default function OrderDetail() {
             {/* المجموعة ٣ (عقد D4/D5): عكس التسليم المكتمل — تصحيح موثق يحيّد الإيراد
                 ويعكس حركات الاستهلاك مرآةً ولا يمس الكاش المقبوض؛ الطلب ينتقل إلى
                 «يحتاج مراجعة» ويُستأنف تنفيذه بقرار صريح. */}
-            {["delivered", "settled"].includes(order.status) && !lastDeliveryWasReversed(order) ? (
+            {/* التحصين الكامل (D-031): لوحة التراجع الموثق تظهر أيضًا للسجل المسلّم
+                المقفل داخل «يحتاج مراجعة» — التراجع الموثق هو المخرج الوحيد. */}
+            {(order.status === "delivered" || order.status === "settled" || lockedInDeliveredReview) &&
+            !lastDeliveryWasReversed(order) ? (
               deliveryReversalOpen ? (
-                <section className="micro-cancel-panel" aria-label="عكس التسليم">
+                <section className="micro-cancel-panel" aria-label="تراجع موثق عن التسليم">
                   <CorrectionPreview
-                    action="عكس التسليم المكتمل"
+                    action="تراجع موثق عن التسليم المكتمل"
                     originalLabel={`تسليم «${order.itemName}» بإيراد معروف ${formatMoneyMinor(order.recognizedRevenueMinor)} د.أ`}
                     originalDetail={`المقبوض ${formatMoneyMinor(order.collectedMinor)} د.أ · التكلفة المعروفة ${formatMoneyMinor(order.recognizedCostMinor)} د.أ`}
-                    intro="عكس موثق لا حذف: حدث التسليم وأثره يبقى في السجل، الإيراد والنتيجة يُحيَّدان إلى غياب المعرفة، وحركات استهلاك المواد المرتبطة بهذا التسليم تُعكس مرآةً فيرجع الرصيد. الكاش المقبوض لا يتأثر — عكس قبضة له مساره الخاص."
+                    intro="تراجع موثق لا حذف: حدث التسليم وأثره يبقى في السجل، الإيراد والنتيجة يُحيَّدان إلى غياب المعرفة، وحركات استهلاك المواد المرتبطة بهذا التسليم يُسجَّل لها مرايا تراجع فيرجع الرصيد. الكاش المقبوض لا يتأثر — تراجع القبضة له مساره الخاص."
                     dimensions={[
                       { label: "الإيراد المعروف", beforeMinor: order.recognizedRevenueMinor, afterMinor: 0 },
                       {
@@ -782,15 +803,15 @@ export default function OrderDetail() {
                       "العربون ومسار تسويته إن وجد",
                       "الأحداث السابقة كلها",
                     ]}
-                    resulting={[{ label: "نتيجة الطلب بعد العكس", amountMinor: null, unknown: true }]}
-                    reversibleNote="بعد العكس ينتقل الطلب إلى «يحتاج مراجعة»: استأنف التنفيذ بقرار صريح أو ألغِ موثقًا؛ إعادة التسليم لاحقًا تسجيل جديد لا تكرار."
+                    resulting={[{ label: "نتيجة الطلب بعد التراجع", amountMinor: null, unknown: true }]}
+                    reversibleNote="بعد التراجع ينتقل الطلب إلى «يحتاج مراجعة»: استأنف التنفيذ بقرار صريح أو ألغِ موثقًا؛ إعادة التسليم لاحقًا تسجيل جديد لا تكرار."
                     reason={deliveryReversalReason}
                     onReasonChange={setDeliveryReversalReason}
                     reasonPlaceholder="مثال: سُلّم الطلب للزبون الخطأ"
                     error={message}
                     busy={isActing}
-                    confirmLabel="أكّد عكس التسليم"
-                    busyLabel="جارٍ عكس التسليم…"
+                    confirmLabel="أكّد التراجع الموثق عن التسليم"
+                    busyLabel="جارٍ توثيق التراجع…"
                     danger={true}
                     onConfirm={() => {
                       void (async () => {
@@ -812,7 +833,7 @@ export default function OrderDetail() {
                   disabled={isActing}
                   onClick={() => setDeliveryReversalOpen(true)}
                 >
-                  <RotateCcw aria-hidden="true" /> اعكس التسليم
+                  <RotateCcw aria-hidden="true" /> تراجع موثق عن التسليم
                 </button>
               )
             ) : null}
@@ -834,8 +855,8 @@ export default function OrderDetail() {
                     </p>
                     {order.status === "needs_review" ? (
                       <p className="micro-note-copy">
-                        هذا الطلب في «يحتاج مراجعة» بعد عكس تسليم موثق — الإلغاء يُتِمّ من هنا بأمان. وإن كان
-                        ثمة تسليم غير معكوس فسيُقفل الإلغاء برسالة تشرح السبب.
+                        هذا الطلب في «يحتاج مراجعة» بعد تراجع موثق عن التسليم — الإلغاء يُتِمّ من هنا بأمان.
+                        وإن كان ثمة تسليم غير متراجَع عنه فسيُقفل الإلغاء برسالة تشرح السبب.
                       </p>
                     ) : null}
                   </div>
@@ -1039,6 +1060,14 @@ export default function OrderDetail() {
               ? (() => {
                   const collections = order.events.filter(event => event.type === "collection_recorded");
                   if (collections.length === 0) return null;
+                  /* التحصين الكامل (D-031): السجل المسلّم المقفل — القبضات تبقى مرئية
+                   * للقراءة لكن لا تراجعًا عامًا عنها الآن؛ المخرج الموثق وحده أعلاه. */
+                  if (lockedInDeliveredReview)
+                    return (
+                      <section className="micro-cancel-panel" aria-label="تراجع موثق عن قبضة">
+                        <p className="micro-note-copy">{DELIVERED_REVIEW_LOCK_NOTE}</p>
+                      </section>
+                    );
                   const remainingOf = (eventId: string) => {
                     const source = order.events.find(event => event.id === eventId);
                     const reversed = order.events
