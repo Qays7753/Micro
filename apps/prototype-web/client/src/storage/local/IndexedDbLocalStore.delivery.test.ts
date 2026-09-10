@@ -242,7 +242,7 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
       recordedAt: "2026-09-04T10:00:00.000Z",
       quantityDeltaMilli: 2000,
       valueDeltaMinor: 1000,
-      note: "عكس تسليم: استهلاك تسليم الطلب: فستان",
+      note: "تراجع موثق عن التسليم: استهلاك تسليم الطلب: فستان",
       reason: "سُلّم للزبون الخطأ",
       operationKey: "order-1:deliver:evt-1:mat-1:reversal",
       reversesMovementId: "mv-2",

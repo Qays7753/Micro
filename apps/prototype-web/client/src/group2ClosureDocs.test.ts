@@ -49,8 +49,18 @@ describe("documentation consistency — Group 2 implemented on the remediation b
     expect(group2Line).toContain("منفذة على الفرع");
   });
 
-  it("todo keeps Groups 3-6 of the hardening program not started", () => {
-    for (const group of ["المجموعة ٣", "المجموعة ٤", "المجموعة ٥", "المجموعة ٦"]) {
+  it("todo keeps Groups 4-6 of the hardening program not started (Group 3 is now implemented on the branch)", () => {
+    /* المجموعة ٣ (التحصين الكامل) نُفذت على الفرع وبوابة الدمج معلقة —
+     * الحارس يتقدم مع الحقيقة: ٣ منفذة بانتظار الدمج، و٤–٦ لم تبدأ. */
+    const group3 = todo
+      .split("\n")
+      .find(
+        line => line.includes("المجموعة ٣ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
+      );
+    expect(group3).toBeDefined();
+    expect(group3?.trimStart().startsWith("- [x]")).toBe(true);
+    expect(group3).toContain("PR #159 مفتوح وغير مدموج");
+    for (const group of ["المجموعة ٤", "المجموعة ٥", "المجموعة ٦"]) {
       const lines = todo.split("\n").filter(line => line.includes(`${group} — برنامج التحصين الكامل`));
       expect(lines.length).toBeGreaterThan(0);
       for (const line of lines) {

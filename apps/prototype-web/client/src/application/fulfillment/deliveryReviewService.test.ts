@@ -399,7 +399,7 @@ describe("DeliveryReviewService — reverseDelivery", () => {
     );
     expect(consumptions).toHaveLength(2);
     const reversals = movements.value.filter(
-      movement => movement.type === "reversal" && movement.note.includes("عكس تسليم"),
+      movement => movement.type === "reversal" && movement.note.includes("تراجع موثق عن التسليم"),
     );
     expect(reversals).toHaveLength(1);
   });
