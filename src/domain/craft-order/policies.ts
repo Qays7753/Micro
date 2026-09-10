@@ -633,6 +633,11 @@ export function collectRegisteredDebt(
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, "collection_recorded")) return order;
   if (!isRegisteredCustomerDebt(order)) throw new Error("تحصيل الدين المسجل يتطلب دينًا مسجلًا بعد التسليم.");
+  /* المجموعة ٢ (التحصين الكامل — D-2): تحصيل الدين أثر مالي — لا يمر على سجل
+   * مسلّم مقفل في «يحتاج مراجعة». الحالة غير واصلة اليوم (الدين لا يقوم إلا
+   * على طلب مُسوّى)، لكن الحارس هنا يجعل القاعدة بنائية لا عرضية، وتفتح
+   * المحاولات مرة أخرى بعد عكس التسليم الموثق أو قرار المراجعة. */
+  assertNotLockedDeliveredReview(order);
   assertPositiveInteger(amountMinor, "مبلغ التحصيل");
   if (amountMinor + order.collectedMinor > order.agreedPriceMinor)
     throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
@@ -750,6 +755,12 @@ const settlementAfterCollectionReversal = (
 export function reverseOrderCollection(order: CraftOrder, input: ReverseCollectionInput): CraftOrder {
   assertIdempotencyKey(input.idempotencyKey);
   if (eventExists(order, input.idempotencyKey, "collection_reversed")) return order;
+  /* المجموعة ٢ (التحصين الكامل — D-031/D-2): التراجع عن قبضة أثر مالي على
+   * سجل مسلّم داخل «يحتاج مراجعة» — قبل عكس التسليم الموثق لا يُفتح أي باب
+   * مالي على السجل المقفل، كتحصيل المتبقي وتسجيل الدين وتصحيح السعر قبلها.
+   * إعادة التشغيل بنفس المفتاح تُعاد قبل هذا الحارس فلا تتأثر المحاولات
+   * البريئة؛ التصحيح المعلّق الوحيد هو عكس التسليم نفسه. */
+  assertNotLockedDeliveredReview(order);
   if (order.status === "cancelled")
     throw new Error("لا يُتراجع عن قبض في طلب ملغى؛ العربون له مسار تسويته الخاص.");
   const source = order.events.find(event => event.id === input.collectionEventId);
