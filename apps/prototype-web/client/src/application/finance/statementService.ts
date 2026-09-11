@@ -119,11 +119,8 @@ export type StatementResult =
   | { ok: true; value: StatementReading }
   | { ok: false; code: "storage_error" | "validation_error"; message: string };
 
-import {
-  formatLocalDate,
-  formatMoneyWithUnit,
-  localDateInAmman as ammanDate,
-} from "@/presentation/formatters";
+import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 
 export class StatementService {
   constructor(

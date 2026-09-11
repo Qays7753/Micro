@@ -20,7 +20,7 @@ import type { InventoryMovement, Material } from "@micro-domain/inventory-materi
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StorageResult, StoredCraftOrder } from "@/storage/local/types";
-import { localDateInAmman } from "@/presentation/formatters";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type ActivityEffectClass =
   "cash_in" | "cash_out" | "non_cash" | "payable" | "owner_money" | "trust" | "pending" | "informational";

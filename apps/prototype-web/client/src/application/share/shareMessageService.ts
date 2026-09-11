@@ -10,7 +10,8 @@
  * - أقل تفاصيل ممكنة: لا هامش ولا تكلفة ولا أي رقم خاص في نص الزبون.
  * - تطبيع رقم أردني اختياري: يُطبَّق فقط على رقم أدخله المستخدم صراحةً.
  */
-import { formatLocalDate, formatMoneyWithUnit, localDateInAmman } from "@/presentation/formatters";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 import type { StoredCraftOrder } from "@/storage/local/types";
 
 export type ShareDraftKind = "order" | "collection" | "delivery" | "reminder" | "statement";

@@ -24,7 +24,7 @@ import type { StatementService } from "@/application/finance/statementService";
 import type { CashContinuityService } from "@/application/cash/cashContinuityService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
-import { localDateInAmman as ammanDate } from "@/presentation/formatters";
+import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 
 export type IntegrityCheckStatus = "PASS" | "WARN" | "FAIL";
 export type IntegrityCheckId =

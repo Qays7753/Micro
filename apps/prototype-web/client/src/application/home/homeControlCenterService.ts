@@ -1,4 +1,5 @@
 import type { AgreementContextService } from "@/application/agreements/agreementContextService";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
@@ -23,16 +24,9 @@ import {
 export type HomeControlCenterResult =
   { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
 
-function localDate(iso: string): string {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(iso));
-  const value = (type: string) => parts.find(part => part.type === type)?.value ?? "";
-  return `${value("year")}-${value("month")}-${value("day")}`;
-}
+/* المجموعة ٩ (STR-029): تاريخ الأعمال من وحدة وقت الأعمال الكنسية —
+ * متغيّر الرمي لمدخلات موثوقة الإنشاء. */
+const localDate = localDateInAmman;
 
 function action(id: string, label: string, href: string, reason: string) {
   return { id, label, href, reason };

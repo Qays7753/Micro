@@ -16,7 +16,8 @@ import {
   type LoanEventContext,
   type DepositEventContext,
 } from "@micro-domain/financial-event/index.js";
-import { formatMoneyWithUnit, localDateInAmman as ammanDate } from "@/presentation/formatters";
+import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+import { formatMoneyWithUnit } from "@/presentation/formatters";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import { createCashContinuityEntry, summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";

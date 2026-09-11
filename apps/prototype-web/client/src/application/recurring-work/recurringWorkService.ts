@@ -13,7 +13,7 @@ import type { InventoryMovement, WasteContext } from "@micro-domain/inventory-ma
 import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
-import { localDateInAmman as ammanDate } from "@/presentation/formatters";
+import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 
 export type RecurringWorkFailure = {
   ok: false;

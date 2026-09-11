@@ -15,7 +15,7 @@ import {
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
-import { localDateInAmman } from "@/presentation/formatters";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type FulfillmentResult =
   | { ok: true; stored: StoredCraftOrder; notice?: string }

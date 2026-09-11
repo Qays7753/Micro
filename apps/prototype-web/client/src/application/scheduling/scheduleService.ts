@@ -9,6 +9,7 @@ import type {
   StoredCraftOrder,
 } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type ScheduledOrder = {
   schedule: ScheduleEntry;
@@ -74,16 +75,9 @@ const validMonth = (value: string) => {
 const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 const validDuration = (value: number) =>
   Number.isInteger(value) && value >= 15 && value <= 720 && value % 15 === 0;
-const localDateKey = (iso: string) => {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(iso));
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
-  return `${part("year")}-${part("month")}-${part("day")}`;
-};
+/* المجموعة ٩ (STR-029): مفتاح اليوم من وحدة وقت الأعمال الكنسية —
+ * كانت نسخة محلية بلا حارس مدخل؛ متغيّر الرمي لمدخلات موثوقة الإنشاء. */
+const localDateKey = localDateInAmman;
 const timeMinutes = (time: string) => {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;

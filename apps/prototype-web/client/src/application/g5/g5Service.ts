@@ -18,7 +18,7 @@ import {
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
-import { quantityMilliExact } from "@micro-domain/shared/index.js";
+import { localDateInAmman, quantityMilliExact } from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
@@ -52,17 +52,12 @@ const inPeriod = (date: string, from: string, to: string) => date >= from && dat
 
 function deliveredOn(stored: StoredCraftOrder): string | null {
   /* المجموعة ٦ (تدقيق A1 — FT-01): آخر تسليم ساري — إيراد التسليم المعاد
-   * يُعزى لفترة إعادة التسليم لا لفترة التسليم المعكوس. */
+   * يُعزى لفترة إعادة التسليم لا لفترة التسليم المعكوس.
+   * المجموعة ٩ (STR-029): تاريخ الأعمال من وحدة وقت الأعمال الكنسية —
+   * متغيّر الرمي؛ المدخلات هنا سجلات موثوقة الإنشاء. */
   const delivered = lastEffectiveDeliveryEvent(stored.order);
   if (!delivered) return null;
-  const date = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(delivered.createdAt));
-  const part = (type: string) => date.find(entry => entry.type === type)?.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
+  return localDateInAmman(delivered.createdAt);
 }
 
 /* المجموعة ٩ (STR-006): تحويل الكمية→ملي من مرجعه الكنسي (D-02) — كانت

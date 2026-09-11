@@ -26,7 +26,7 @@ import {
 import { reversedEventIds, type FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
-import { localDateInAmman as ammanDate } from "@/presentation/formatters";
+import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 
 export type OwnerEntitlementResult<T> =
   | { ok: true; value: T; reused?: boolean }

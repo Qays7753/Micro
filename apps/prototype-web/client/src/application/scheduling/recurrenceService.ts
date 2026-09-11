@@ -2,6 +2,7 @@
  * G6-B local recurrence: creates a bounded set of independent delivery schedules.
  * It never creates orders, agreements, reminders, or financial effects.
  */
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type {
   PrototypeLocalStore,
   ScheduleEntry,
@@ -45,16 +46,9 @@ const isActiveSchedule = (schedule: ScheduleEntry) =>
   schedule.status === "scheduled" || schedule.status === "postponed";
 const isActiveOrder = (order: StoredCraftOrder) =>
   !["delivered", "settled", "cancelled"].includes(order.order.status);
-const localDateKey = (iso: string) => {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(iso));
-  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find(part => part.type === type)?.value ?? "";
-  return `${value("year")}-${value("month")}-${value("day")}`;
-};
+/* المجموعة ٩ (STR-029): مفتاح اليوم من وحدة وقت الأعمال الكنسية —
+ * كانت نسخة محلية بلا حارس مدخل؛ متغيّر الرمي لمدخلات موثوقة الإنشاء. */
+const localDateKey = localDateInAmman;
 const validDate = (value: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T12:00:00.000Z`);
@@ -175,18 +169,8 @@ export class ScheduleRecurrenceService {
     const order = ordersResult.value.find(candidate => candidate.id === source.orderId);
     if (!order)
       return { ok: false, code: "not_found", message: "الطلب المرتبط بالموعد غير متاح؛ لم يُنشأ قالب." };
-    const today = new Intl.DateTimeFormat("en", {
-      timeZone: "Asia/Amman",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-      .formatToParts(new Date(this.now()))
-      .reduce<Record<string, string>>((result, part) => {
-        result[part.type] = part.value;
-        return result;
-      }, {});
-    const todayKey = `${today.year}-${today.month}-${today.day}`;
+    /* المجموعة ٩ (STR-029): مفتاح اليوم الحالي من وحدة وقت الأعمال الكنسية. */
+    const todayKey = localDateInAmman(this.now());
     if (!validDate(source.scheduledFor) || source.scheduledFor < todayKey)
       return {
         ok: false,

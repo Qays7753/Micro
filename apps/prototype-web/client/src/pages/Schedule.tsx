@@ -26,7 +26,12 @@ import type { RecurrenceView } from "@/application/scheduling/recurrenceService"
 import { buildCapacityDecisionViewModel } from "@/application/scheduling/capacityDecisionViewModel";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { IntegerValue, LocalDateValue, MonthValue, TimeValue } from "@/components/presentation/DisplayValue";
-import { formatArabicPlural, formatLocalDate, formatMonthLabel } from "@/presentation/formatters";
+import {
+  formatArabicPlural,
+  formatLocalDate,
+  formatMonthLabel,
+  localDateInAmman,
+} from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
 type ScheduleState =
@@ -53,25 +58,11 @@ const timingLabel = (schedule: ScheduledOrder["schedule"]) =>
 const capacityOptions = Array.from({ length: 48 }, (_, index) => (index + 1) * 15);
 const frequencyLabel = (frequency: "weekly" | "monthly") => (frequency === "weekly" ? "أسبوعي" : "شهري");
 
-function localParts(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
-  return { year: part("year"), month: part("month"), day: part("day") };
-}
-
-const currentLocalMonth = () => {
-  const { year, month } = localParts();
-  return `${year}-${month}`;
-};
-const currentLocalDate = () => {
-  const { year, month, day } = localParts();
-  return `${year}-${month}-${day}`;
-};
+/* المجموعة ٩ (STR-029): مفتاحا اليوم والشهر الحاليان من وحدة وقت الأعمال
+ * الكنسية عبر إعادة تصدير العرض (توافق مستوردي الصفحة) — لا نسخة محلية
+ * بعد اليوم؛ مفتاح الشهر أول سبعة أحرف من تاريخ الأعمال كما في العقد. */
+const currentLocalMonth = () => localDateInAmman().slice(0, 7);
+const currentLocalDate = () => localDateInAmman();
 const shiftMonth = (month: string, offset: number) => {
   const date = new Date(`${month}-15T12:00:00.000Z`);
   date.setUTCMonth(date.getUTCMonth() + offset);

@@ -22,6 +22,7 @@ import type {
 import type { MoneyMinor } from "../shared/index.js";
 import {
   JOD,
+  ammanDateOrNull,
   assertNonNegativeInteger,
   fieldLabelAr,
   quantityMilliExact,
@@ -76,20 +77,9 @@ function assertValidDate(value: string, field: string): void {
   }
 }
 
-function ammanLocalDate(isoTimestamp: string): string | null {
-  if (Number.isNaN(Date.parse(isoTimestamp))) return null;
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(isoTimestamp));
-  const part = (type: string) => parts.find(entry => entry.type === type)?.value ?? null;
-  const year = part("year");
-  const month = part("month");
-  const day = part("day");
-  return year && month && day ? `${year}-${month}-${day}` : null;
-}
+/* المجموعة ٩ (STR-029): تاريخ الصلاحية سؤال يوم تقويمي عند المالك (عمّان)
+ * — متغيّر الفارغ الكنسي من وحدة وقت الأعمال، لا نسخة محلية. */
+const ammanLocalDate = ammanDateOrNull;
 function localDateMinusDays(localDate: string, days: number): string {
   const [year, month, day] = localDate.split("-").map(Number);
   return new Date(Date.UTC(year!, month! - 1, day! - days)).toISOString().slice(0, 10);
