@@ -170,6 +170,11 @@ export default [
   /* S4-10/S5-13: طبقة التطبيق والتخزين تحت الفحص نفسه — لا any ولا استيراد React
    * (حدود الطبقات تُفرض لا تُفترض). جذر التركيب (app/) والسياقات وPWA مكونات
    * React مشروعة فتبقى بلا هذا القيد. */
+  /* المجموعة ٨ (المعالجة الرباعية — STR-005): طبقة التطبيق/التخزين لا تعتمد
+   * على الواجهة أصلًا — لا استيراد قيم ولا استيراد أنواع من @/components أو
+   * @/pages؛ النوع الذي يحتاجه التطبيق يملكه التطبيق (نقل MaterialSuggestion).
+   * لا استثناءات مشروعة اليوم (اختبارات التطبيق لا تستورد الواجهة)؛ أي
+   * استثناء مستقبلي يجب أن يكون ضيقًا وموثقًا هنا. */
   {
     files: [
       "apps/prototype-web/client/src/application/**/*.{ts,tsx}",
@@ -195,6 +200,12 @@ export default [
               group: ["react", "react-dom", "react/jsx-runtime"],
               message:
                 "Application/storage layers must stay UI-free: no React imports (the composition root owns React).",
+              allowTypeImports: false,
+            },
+            {
+              group: ["@/components/*", "@/pages/*"],
+              message:
+                "Application/storage layers must not depend on UI components or pages - not even type-only imports; a type the layer needs must be owned by that layer (Group 8, STR-005).",
               allowTypeImports: false,
             },
           ],

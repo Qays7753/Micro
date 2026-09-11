@@ -13,16 +13,9 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import type { DraftCostMaterial } from "@/storage/local/types";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-
-/* المجموعة ٢ (عقد ٢٨ — السيناريو G): مقترحات مواد من المخزون — تعبئة أرقام
- * فقط؛ لا حركة مخزون ولا حدث نقدي يُنشأ أبدًا من التقدير. */
-export type MaterialSuggestion = {
-  materialId: string;
-  name: string;
-  unit: string;
-  unitPriceMinor: number | null;
-  fromReceipt: boolean;
-};
+/* المجموعة ٨ (STR-005): نوع «مقترح المادة» صار يملكه حد التطبيق (المخزون)
+ * — الورقة تستورده من مالكه، والاتجاه القانوني: الواجهة ← التطبيق. */
+import type { MaterialSuggestion } from "@/application/inventory/materialSuggestions";
 
 export type MaterialSheetProps = {
   value: { index: number | null; draft: DraftCostMaterial } | null;

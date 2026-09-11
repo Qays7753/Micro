@@ -4,12 +4,22 @@
  * مصدر السعر «معروفة»، وبلا استلام الاسم والوحدة فقط «تقديرية»، وأقصى ٦ بندًا
  * ذا سعر أولًا). قراءة فقط: لا حركة مخزون ولا حدث نقدي يُنشأ أبدًا من التقدير.
  */
-import type { MaterialSuggestion } from "@/components/cost/MaterialSheet";
+/* المجموعة ٨ (المعالجة الرباعية — STR-005): نوع «مقترح المادة» يملكه حد
+ * التطبيق (المخزون) لا مكوّن واجهة — الأسفل يستورد من الأعلى لا العكس. */
 import type {
   InventoryMaterialService,
   InventoryOverview,
 } from "@/application/inventory/inventoryMaterialService";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
+
+/** مقترح مادة للتعبئة في محرري التكلفة (المجموعة ٢ — عقد ٢٨، السيناريو G). */
+export type MaterialSuggestion = {
+  materialId: string;
+  name: string;
+  unit: string;
+  unitPriceMinor: number | null;
+  fromReceipt: boolean;
+};
 
 export async function readMaterialSuggestions(
   inventory: Pick<InventoryMaterialService, "overview" | "movements">,

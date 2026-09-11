@@ -150,3 +150,49 @@ describe("layer boundary fixtures — pre-existing rules stay active (Group 6 mu
     expect(typeOnly).toEqual([]);
   });
 });
+
+/* المجموعة ٨ (المعالجة الرباعية — STR-005): طبقة التطبيق لا تعتمد على
+ * الواجهة إطلاقًا — لا قيمًا ولا أنواعًا من @/components أو @/pages؛
+ * النوع الذي يحتاجه التطبيق يملكه التطبيق (نقل MaterialSuggestion). */
+describe("layer boundary fixtures — application must not depend on UI (Group 8, STR-005)", () => {
+  it("blocks component/page imports from application files - value AND type-only", async () => {
+    const valueHit = await ruleIdsFor(
+      APPLICATION,
+      'import { MaterialSheet } from "@/components/cost/MaterialSheet";\nexport const x = MaterialSheet;\n',
+    );
+    expect(valueHit).toContain("no-restricted-imports");
+    const typeHit = await ruleIdsFor(
+      APPLICATION,
+      'import type { MaterialSuggestion } from "@/components/cost/MaterialSheet";\nexport type S = MaterialSuggestion;\n',
+    );
+    expect(typeHit).toContain("no-restricted-imports");
+    const pageHit = await ruleIdsFor(
+      APPLICATION,
+      'import type { CostCalculatorHandle } from "@/pages/CostCalculator";\nexport type H = CostCalculatorHandle;\n',
+    );
+    expect(pageHit).toContain("no-restricted-imports");
+    const storageTypeHit = await ruleIdsFor(
+      "apps/prototype-web/client/src/storage/local/FixtureStore.ts",
+      'import type { MaterialSuggestion } from "@/pages/CostCalculator";\nexport type S = MaterialSuggestion;\n',
+    );
+    expect(storageTypeHit).toContain("no-restricted-imports");
+  });
+
+  it("keeps legitimate application imports passing (application/domain/presentation) and the moved type clean", async () => {
+    const legitimate = await ruleIdsFor(
+      APPLICATION,
+      'import type { InventoryOverview } from "@/application/inventory/inventoryMaterialService";\nimport type { InventoryMovement } from "@micro-domain/inventory-material/index.js";\nexport type O = InventoryOverview & { m: InventoryMovement };\n',
+    );
+    expect(legitimate).toEqual([]);
+    /* الملف الحقيقي بعد نقل النوع يجب أن يمر نظيفًا على المحرك نفسه — البرهان
+     * أن الحارس لا يمنع المسار القانوني الذي أنشئ له. */
+    const realSource = await eslint.lintText(
+      (await import("node:fs")).readFileSync(
+        path.join(ROOT, "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts"),
+        "utf8",
+      ),
+      { filePath: path.join(ROOT, "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts") },
+    );
+    expect((realSource[0]?.messages ?? []).filter((m) => m.severity === 2)).toEqual([]);
+  });
+});
