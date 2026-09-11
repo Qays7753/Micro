@@ -110,7 +110,16 @@ export const catalogYieldReadinessLabel = (value: CatalogTemplate["yieldReadines
   value === "ready" ? "مهيأ" : value === "needs_conversion" ? "يحتاج تحويلًا صريحًا" : "غير مهيأ اختياريًا";
 export const isCatalogTemplateDirty = (fingerprint: string, baseline: string | null, hasDraft: boolean) =>
   baseline === null ? hasDraft : fingerprint !== baseline;
-const operationKey = (prefix: string) => `${prefix}:${crypto.randomUUID()}`;
+/* المجموعة ٨ (STR-007): مفتاح العملية/هوية مكوّن القالب المؤقتة يعملان في
+ * السياقات غير الآمنة أيضًا — نفس randomUUID حرفيًا عند توفره (المسار الآمن
+ * كما كان بايتًا ببايت)، وبديل حتمي-آمن عند غيابه بنفس عائلة البديل المعتمدة
+ * في بقية الصفحات (طابع زمني + عشوائية) — لا يعاد كتابة مفتاح مخزّن أبدًا
+ * ولا تتغير دلالة المفتاح. */
+export const catalogOperationUuid = (): string =>
+  globalThis.crypto?.randomUUID?.() ?? `catalog-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+/* مفتاح العملية نفسه يُصدَّر لاختبار تركيبه (بادئة:قيمة) كما تُصدَّر بقية
+ * معينات الصفحة النقية — لا تغيير للاسم ولا للدلالة (STR-040: لا rename). */
+export const operationKey = (prefix: string) => `${prefix}:${catalogOperationUuid()}`;
 const currentMonth = () => {
   /* S5-14: شهر عمان لا شهر الجهاز — نفس مصدر الحقيقة الذي تستعمله مالي والكشف. */
   const today = localDateInAmman();
@@ -634,7 +643,7 @@ export default function Catalog() {
     setTemplateComponents(current => [
       ...current,
       {
-        id: crypto.randomUUID(),
+        id: catalogOperationUuid(),
         name: componentName.trim(),
         quantityMilli,
         unitId: componentUnitId,
