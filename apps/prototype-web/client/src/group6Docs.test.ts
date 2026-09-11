@@ -152,7 +152,7 @@ describe("governance consistency — Group 6 prevention implemented on the remed
       .find(line => line.includes("خطة المعالجة الرباعية الموافَقة") && line.trimStart().startsWith("- ["));
     expect(remediationGate).toBeDefined();
     expect(remediationGate?.trimStart().startsWith("- [ ]")).toBe(true);
-    expect(remediationGate).toContain("لا تبدأ إلا بمراجعة المالك لتقرير المجموعة السابقة وقبوله");
+    expect(remediationGate).toContain("لا تبدأ أي منها إلا بمراجعة المالك لتقرير المجموعة السابقة وقبوله");
     expect(remediationGate).toContain("لا بدء تلقائي");
   });
 });

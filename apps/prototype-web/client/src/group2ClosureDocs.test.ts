@@ -94,6 +94,6 @@ describe("documentation consistency — Group 2 implemented on the remediation b
       .split("\n")
       .find(line => line.includes("خطة المعالجة الرباعية الموافَقة") && line.trimStart().startsWith("- ["));
     expect(remediationGate?.trimStart().startsWith("- [ ]")).toBe(true);
-    expect(remediationGate).toContain("لا تبدأ إلا بمراجعة المالك لتقرير المجموعة السابقة وقبوله");
+    expect(remediationGate).toContain("لا تبدأ أي منها إلا بمراجعة المالك لتقرير المجموعة السابقة وقبوله");
   });
 });
