@@ -237,6 +237,126 @@ export default [
       "@typescript-eslint/no-explicit-any": "error",
     },
   },
+  /* المجموعة ٨ (المعالجة الرباعية — STR-037): قشرة التطبيق app/ لا تلمس
+   * التخزين في زمن التشغيل — المرور عبر خدمات Application حصرًا كما في
+   * الصفحات/المكونات (استيراد الأنواع مسموح بالسياسة نفسها). الاستثناءان
+   * الموثقان الضيقان أدناه (StartupGate وجذر التركيب) هما كل حواف زمن
+   * التشغيل القائمة اليوم. */
+  {
+    files: ["apps/prototype-web/client/src/app/**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/storage/local/*"],
+              message:
+                "The app shell must route storage access through Application services (runtime imports banned; type-only allowed - same policy as pages/components). Group 8, STR-037.",
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  /* الاستثناء الأول (STR-037): StartupGate يطلب دوام التخزين من المتصفح مرة
+   * عند الإقلاع (navigator.storage.persist) — لا يصل لبيانات أعمال أبدًا.
+   * شرط الإزالة: انتقال طلب الدوام خلف خدمة Application صريحة. */
+  {
+    files: ["apps/prototype-web/client/src/app/StartupGate.tsx"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "no-restricted-imports": "off",
+    },
+  },
+  /* الاستثناء الثاني (STR-037): جذر التركيب PrototypeServicesContext يبني
+   * المخزن الواحد عبر المصنع — هذه وظيفته المعمارية الوحيدة. شرط الإزالة:
+   * انتقال بناء المخزن خارج القشرة. */
+  {
+    files: ["apps/prototype-web/client/src/app/PrototypeServicesContext.tsx"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "no-restricted-imports": "off",
+    },
+  },
+  /* المجموعة ٨ (STR-038): حظر Math.round/Math.floor في طبقة التطبيق —
+   * تحويلات المال/الكمية تمر بمعينات المجال المشتركة (roundHalfUp و
+   * quantityMilliExact — D-02). الاستثناءات الملفية الموثقة أدناه، وكلٌّ
+   * منها بسبب معلن وشرط إزالة؛ الحد المعلن بصدق: الاستثناء على مستوى
+   * الملف، فانزلاق جديد داخل ملف مستثنى يكشفه diff review لا العد. */
+  {
+    files: ["apps/prototype-web/client/src/application/**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.object.name='Math'][callee.property.name='round'], CallExpression[callee.object.name='Math'][callee.property.name='floor']",
+          message:
+            "Application money/quantity rounding must go through the domain shared helpers (roundHalfUp, quantityMilliExact - D-02); raw Math.round/Math.floor drift in application is banned (Group 8, STR-038). Math.ceil stays allowed.",
+        },
+      ],
+    },
+  },
+  /* استثناءات Math الموثقة (STR-038) — ثلاثة مالية مؤقتة تزيلها المجموعة ٩
+   * (توحيد الكمية/السعر بعد اختبارات توصيف أولًا)، وأربعة غير مالية دائمة
+   * بتصميم:
+   * 1) deliveryReviewService.ts + 2) g5Service.ts + 3) materialSuggestions.ts:
+   * تحويل كمية→ملي/اشتقاق سعر (STR-006) — الإزالة: المجموعة ٩.
+   * 4) localDiagnosticsService.ts: Math.floor على بايتات عشوائية لمعرّف
+   * الخطأ — غير مالي بالإطلاق.
+   * 5) integrityCheckService.ts: عرض دنانير مقروءة في نص الفحوص (قسمة /100
+   * للعرض فقط) — القيم المحكومة كلها minor.
+   * 6) homeControlCenterService.ts: فرق أيام بين تاريخين للعرض.
+   * 7) englishNumeric.ts: حد Number.MAX_SAFE_INTEGER للتحقق من المدخلات. */
+  {
+    files: [
+      "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts",
+      "apps/prototype-web/client/src/application/g5/g5Service.ts",
+      "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts",
+      "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
+      "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",
+      "apps/prototype-web/client/src/application/home/homeControlCenterService.ts",
+      "apps/prototype-web/client/src/application/input/englishNumeric.ts",
+    ],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
   /* المجموعة ٦ (التحصين الكامل): لا تخزين متصفح مباشر من الصفحات/المكونات —
    * المرور عبر خدمات Application وحدها (حدود G5 المسودة والحدود المعمارية)؛
    * يستهدف window/globalThis والمعرف المجرد معًا. */

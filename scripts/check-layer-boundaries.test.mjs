@@ -198,3 +198,89 @@ describe("layer boundary fixtures — application must not depend on UI (Group 8
     expect((realSource[0]?.messages ?? []).filter(m => m.severity === 2)).toEqual([]);
   });
 });
+
+/* المجموعة ٨ (المعالجة الرباعية — STR-037): قشرة التطبيق app/ لا تلمس
+ * التخزين في زمن التشغيل إلا بالاستثناءين الموثقين (StartupGate وجذر
+ * التركيب) — نفس سياسة الصفحات/المكونات مع سماح الأنواع. */
+describe("layer boundary fixtures — app shell storage boundary (Group 8, STR-037)", () => {
+  it("blocks runtime storage imports from unrelated app-shell files while allowing type-only imports", async () => {
+    const runtimeHit = await ruleIdsFor(
+      "apps/prototype-web/client/src/app/FixtureGate.tsx",
+      'import { requestPersistentStorage } from "@/storage/local/persistentStorage";\nexport const x = requestPersistentStorage;\n',
+    );
+    expect(runtimeHit).toContain("no-restricted-imports");
+    const storeHit = await ruleIdsFor(
+      "apps/prototype-web/client/src/app/FixtureRouter.tsx",
+      'import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";\nexport const s = createBrowserLocalStore;\n',
+    );
+    expect(storeHit).toContain("no-restricted-imports");
+    const typeOnly = await ruleIdsFor(
+      "apps/prototype-web/client/src/app/FixtureGate.tsx",
+      'import type { StorageFailure } from "@/storage/local/types";\nexport type F = StorageFailure;\n',
+    );
+    expect(typeOnly).toEqual([]);
+  });
+
+  it("proves the two documented exceptions pass on the real files (StartupGate persistence request, composition root store factory)", async () => {
+    const readReal = async relative =>
+      (await import("node:fs")).readFileSync(path.join(ROOT, relative), "utf8");
+    for (const relative of [
+      "apps/prototype-web/client/src/app/StartupGate.tsx",
+      "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+    ]) {
+      const [result] = await eslint.lintText(await readReal(relative), {
+        filePath: path.join(ROOT, relative),
+      });
+      expect(
+        (result?.messages ?? []).filter(m => m.ruleId === "no-restricted-imports"),
+        relative,
+      ).toEqual([]);
+    }
+  });
+});
+
+/* المجموعة ٨ (STR-038): حظر Math.round/Math.floor في طبقة التطبيق —
+ * تحويلات المال/الكمية لمعينات المجال (D-02)؛ الاستثناءات الملفية السبعة
+ * موثقة بأسبابها وشروط إزالتها في eslint.config.js. */
+describe("layer boundary fixtures — application Math rounding boundary (Group 8, STR-038)", () => {
+  it("blocks Math.round and Math.floor in application files while Math.ceil stays allowed", async () => {
+    const roundHit = await ruleIdsFor(APPLICATION, "export const r = Math.round(1.5);\n");
+    expect(roundHit).toContain("no-restricted-syntax");
+    const floorHit = await ruleIdsFor(APPLICATION, "export const f = Math.floor(2.5);\n");
+    expect(floorHit).toContain("no-restricted-syntax");
+    const ceilOk = await ruleIdsFor(APPLICATION, "export const c = Math.ceil(0.2);\n");
+    expect(ceilOk).toEqual([]);
+  });
+
+  it("proves the documented file-level exceptions pass on their real sources (no calculation changed)", async () => {
+    const readReal = async relative =>
+      (await import("node:fs")).readFileSync(path.join(ROOT, relative), "utf8");
+    for (const relative of [
+      "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts",
+      "apps/prototype-web/client/src/application/g5/g5Service.ts",
+      "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts",
+      "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
+      "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",
+      "apps/prototype-web/client/src/application/home/homeControlCenterService.ts",
+      "apps/prototype-web/client/src/application/input/englishNumeric.ts",
+    ]) {
+      const [result] = await eslint.lintText(await readReal(relative), {
+        filePath: path.join(ROOT, relative),
+      });
+      expect(
+        (result?.messages ?? []).filter(m => m.ruleId === "no-restricted-syntax"),
+        relative,
+      ).toEqual([]);
+    }
+    /* ملف تطبيق غير مستثنى (بلا Math.round/floor أصلًا — ceil فقط) يبقى
+     * نظيفًا؛ والحد المعلن بصدق: انزلاق Math جديد داخل ملف مستثنى يكشفه
+     * مراجعة diff لا العد. */
+    const [lockResult] = await eslint.lintText(
+      await readReal("apps/prototype-web/client/src/application/security/localLockService.ts"),
+      {
+        filePath: path.join(ROOT, "apps/prototype-web/client/src/application/security/localLockService.ts"),
+      },
+    );
+    expect((lockResult?.messages ?? []).filter(m => m.severity === 2)).toEqual([]);
+  });
+});
