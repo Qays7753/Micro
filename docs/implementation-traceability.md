@@ -633,3 +633,33 @@
   `app/routeKnowledgeSync.test.ts` (5).
 - لم يتغير: المخطط/التصدير (35/27)، `src/domain` بالكامل، بروتوكولات الالتزام،
   الأزواج المنشورة، المسارات والتحويلات، أي عملية حسابية.
+
+## المجموعة ٩ — خطة المعالجة الرباعية: مصادر الحقيقة ووقت الأعمال (2026-09-13)
+
+- الفرع: `remediation/micro-full-hardening-2026` (فوق رأس إغلاق المجموعة ٨ `28ba560`) — المرجع الحي:
+  `docs/operations/current-state.md` §38 وتقرير المسح في مستودع التوثيق (عقد `17b264c`).
+- **التوصيف (9-A):** `tests/domain/quantity-characterization.test.ts` (12)؛
+  `tests/domain/waste-context.characterization.test.ts` (5)؛
+  `application/fulfillment/deliveryAttribution.test.ts` (6)؛
+  `presentation/businessTime.characterization.test.ts` (9 — يمر عبر إعادة تصدير العرض
+  فيثبت أن نقل 9-C لا يغير أي متجه)؛ وتثبيت حد 1.001 داخل اختبار الخدمة نفسه.
+- **المصادر (9-B):** `quantityMilliExact` الكنسي في `g5Service`/`deliveryReviewService`
+  (تجميع فضاء الملي)/`recurringWorkService`؛ WasteContext في
+  `inventory-material/types.js`+`policies.js` مع إعادة تصدير `recurring-margin`
+  (types/policies) واستيراد `localTransferService` من المالك؛
+  `hasDeliveryReversal`/`hasDeliveredEvent` عبر barrel `craft-order` مع استيراد
+  `pages/OrderDetail.tsx`؛ `application/transfers/guidedOpeningImportService.g82.test.ts`
+  (يقرأ ملف العينات حيًا)؛ اختبارات المعينات النقية الثلاثة
+  (`expenseRecordIntent`/`expenseCategorySuggestions`/`materialSuggestions`).
+- **وقت الأعمال (9-C):** `src/domain/shared/businessTime.ts` (الوحدة الكنسية
+  ومتغيّرا عقد المدخل غير الصالح) + `tests/domain/businessTime.test.ts` (5)؛
+  إعادة تصدير `presentation/formatters.ts`؛ هجرة ١٤ خدمة وحذف ٦ نسخ محلية
+  (g5/المخزون/مركز اليوم/الجدولة/التكرار مفتاحان/سجل التصحيحات) و`pages/Schedule.tsx`
+  عبر إعادة التصدير؛ حارس النقاء في `scripts/check-layer-boundaries.test.mjs` (+3).
+- براهين الحدود: المتجهات الثابتة لم تتغير عبر النقل؛ domain+scripts **375** (33 ملفًا) ·
+  prototype **1,129** (159 ملفًا) · lint **36/37** (0 أخطاء — السقف كما هو) ·
+  دورات زمن التشغيل **221/0** · بوابة الحزمة **PASS 634,314/150,045**.
+- لم يتغير: المخطط/التصدير (35/27)، أي كتابة مالية أو ترحيل أو علاقة، المسارات
+  والتحويلات، بنية الواجهة، DELTA_TABLE واللقطات والأحداث التاريخية؛ الاستثناءان
+  الماليان المؤقتان لحظر Math أُزيل استخدامهما (الملفان تحت القاعدة العامة الآن)
+  واشتقاق سعر مقترحات المواد بقي مستثنى بقرار موثق ينتظر مالكًا.
