@@ -1,6 +1,7 @@
 /** التحصين الكامل (المجموعة ٥): فحص اتساق التوثيق الحي مع الحقيقة على الفرع —
  * §35 يسجل التصنيف والحد والترحيل وجدول الأمن والتشخيص وهوية البناء، بلا
- * ادّعاء دمج، والمخطط/التصدير من مصدر الثوابت نفسه، والمجموعة ٦ لم تبدأ. */
+ * ادّعاء دمج، والمخطط/التصدير من مصدر الثوابت نفسه، والمجموعة ٦ أُنجزت لاحقًا
+ * على الفرع (انظر group6Docs.test.ts) وبوابة المسح بعدها لم تبدأ. */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -84,6 +85,11 @@ describe("documentation consistency — Group 5 boundaries implemented on the re
         line => line.includes("المجموعة ٦ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
       );
     expect(group6).toBeDefined();
-    expect(group6?.trimStart().startsWith("- [ ]")).toBe(true);
+    expect(group6?.trimStart().startsWith("- [x]")).toBe(true);
+    expect(group6).toContain("PR #159 مفتوح وغير مدموج");
+    const scanGate = todo
+      .split("\n")
+      .find(line => line.includes("بوابة ما بعد البرنامج") && line.trimStart().startsWith("- ["));
+    expect(scanGate?.trimStart().startsWith("- [ ]")).toBe(true);
   });
 });
