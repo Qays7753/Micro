@@ -243,13 +243,13 @@ describe("RecurringWorkService G4-B", () => {
     expect(await store.getOrder(orders[0]!.id)).toEqual(before);
   });
 
-  it("characterizes the pre-unification quantity boundary: a stored-valid three-decimal final order degrades its allocation evidence (STR-006, Group 9)", async () => {
-    /* توصيف قبل التوحيد (المجموعة ٩): الكمية 1.001 مقبولة عند إنشاء الطلب
-     * بعقد النطاق الدقيق (quantityMilliExact = 1001 — نفس العقد الذي حَفظ
-     * الطلب)، لكن المحوّل المحلي الخالي من Math.round في هذه الخدمة يرفض
-     * عائلة 1.001 من قيم الفاصلة العائمة فيفقد السطر كمية إنتاجه المسندة.
-     * يوثّق هذا الاختبار السلوك الحالي قبل الاستبدال بالمرجع الكنسي، ثم
-     * يُحدَّث توقعه إلى 1_001 عند تنفيذ التوحيد المعتمد. */
+  it("reads a stored-valid three-decimal final order at its stored milli after the Group 9 quantity unification (STR-006)", async () => {
+    /* توصيف المجموعة ٩ أثبت السلوك السابق: المحوّل المحلي الخالي من
+     * Math.round كان يرفض عائلة 1.001 من قيم الفاصلة العائمة (المحفوظة
+     * صحيحة بعقد النطاق) فتفقد قراءة الهامش كمية إنتاجها المسندة. بعد
+     * التوحيد المعتمد على المرجع الكنسي quantityMilliExact (نفس العقد
+     * الذي قبل الكمية عند الإنشاء) تُقرأ الكمية كما خُزنت: 1.001 = 1001
+     * ملي. لا كتابة ولا إعادة تفسير — قراءة المتجر نفسه. */
     const { store, item } = await perUnitStore([1.001]);
     const service = new RecurringWorkService(store, now);
     await expect(
@@ -277,7 +277,7 @@ describe("RecurringWorkService G4-B", () => {
       value: {
         items: [
           {
-            outputQuantityMilli: null,
+            outputQuantityMilli: 1_001,
           },
         ],
       },

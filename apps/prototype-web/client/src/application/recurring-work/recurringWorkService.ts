@@ -10,6 +10,7 @@ import {
 } from "@micro-domain/recurring-margin/index.js";
 import type { AllocationEvidence } from "@micro-domain/recurring-margin/index.js";
 import type { InventoryMovement, WasteContext } from "@micro-domain/inventory-material/index.js";
+import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@/presentation/formatters";
@@ -127,13 +128,12 @@ const wasteValue = (context: WasteContext | null) =>
   context?.kind === "order" ||
   context?.kind === "catalog_item" ||
   context?.kind === "catalog_template";
-const toQuantityMilli = (quantity: number): number | null => {
-  if (!Number.isFinite(quantity) || quantity <= 0) return null;
-  const quantityMilli = quantity * 1000;
-  return Number.isSafeInteger(quantityMilli) && Math.abs(quantity - quantityMilli / 1000) < Number.EPSILON
-    ? quantityMilli
-    : null;
-};
+/* المجموعة ٩ (STR-006): تحويل الكمية→ملي من مرجعه الكنسي (D-02).
+ * النسخة المحلية السابقة كانت بلا Math.round فترفض قيمًا عشرية-ثلاث
+ * محفوظة صحيحة (مثل 1.001 — عائلة كاملة رفضها توصيف المجموعة ٩) فتفقد
+ * قراءة الهامش كمية إنتاجها المسندة؛ المرجع الكنسي هو نفس العقد الذي
+ * قبل الكمية عند إنشاء الطلب فيقرؤها كما خُزنت. */
+const toQuantityMilli = quantityMilliExact;
 const sumSafeIntegers = (values: readonly number[]): number | null => {
   let total = 0;
   for (const value of values) {

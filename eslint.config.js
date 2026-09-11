@@ -325,21 +325,26 @@ export default [
       ],
     },
   },
-  /* استثناءات Math الموثقة (STR-038) — ثلاثة مالية مؤقتة تزيلها المجموعة ٩
-   * (توحيد الكمية/السعر بعد اختبارات توصيف أولًا)، وأربعة غير مالية دائمة
-   * بتصميم:
-   * 1) deliveryReviewService.ts + 2) g5Service.ts + 3) materialSuggestions.ts:
-   * تحويل كمية→ملي/اشتقاق سعر (STR-006) — الإزالة: المجموعة ٩.
-   * 4) localDiagnosticsService.ts: Math.floor على بايتات عشوائية لمعرّف
-   * الخطأ — غير مالي بالإطلاق.
-   * 5) integrityCheckService.ts: عرض دنانير مقروءة في نص الفحوص (قسمة /100
-   * للعرض فقط) — القيم المحكومة كلها minor.
-   * 6) homeControlCenterService.ts: فرق أيام بين تاريخين للعرض.
-   * 7) englishNumeric.ts: حد Number.MAX_SAFE_INTEGER للتحقق من المدخلات. */
+  /* استثناءات Math الموثقة (STR-038) — المجموعة ٩ (توحيد الكمية) أزالت
+   * اثنين من الثلاثة المالية المؤقتة: تحويل كمية→ملي في deliveryReviewService
+   * (التجميع الآن في فضاء الملي عبر quantityMilliExact) وg5Service (المرجع
+   * الكنسي نفسه). الاستثناء المالي المتبقي:
+   * 1) materialSuggestions.ts: اشتقاق سعر الوحدة من آخر استلام
+   *    Math.round((value/quantityMilli)*1000) — ليس نسخة كمية→ملي (STR-006
+   *    لم يشمله)؛ إثبات المجموعة ٩: هذا التعبير ليس مكافئًا لroundHalfUp
+   *    الحساب الصحيح عند نصفي الحدود الدقيقة (مثال: 1001/2000 → 500.5:
+   *    الفاصلة العائمة تعطي 500 والعددي يعطي 501 — عينة موثقة)، ولا يوجد
+   *    عقد كانوني لقرار التقريب هنا؛ استبداله يغير سلوكًا ماليًا عرضيًا
+   *    بلا مرجع — يبقى حتى قرار مالك صريح، وسلوكه الحالي مثبت باختبار
+   *    مباشر (توصيف المجموعة ٩).
+   * 2) localDiagnosticsService.ts: Math.floor على بايتات عشوائية لمعرّف
+   *    الخطأ — غير مالي بالإطلاق.
+   * 3) integrityCheckService.ts: عرض دنانير مقروءة في نص الفحوص (قسمة /100
+   *    للعرض فقط) — القيم المحكومة كلها minor.
+   * 4) homeControlCenterService.ts: فرق أيام بين تاريخين للعرض.
+   * 5) englishNumeric.ts: حد Number.MAX_SAFE_INTEGER للتحقق من المدخلات. */
   {
     files: [
-      "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts",
-      "apps/prototype-web/client/src/application/g5/g5Service.ts",
       "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts",
       "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
       "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",

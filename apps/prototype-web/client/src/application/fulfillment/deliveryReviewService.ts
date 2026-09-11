@@ -28,6 +28,7 @@ import {
   type InventoryShortage,
 } from "@micro-domain/inventory-material/index.js";
 import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
+import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { ScheduleService } from "@/application/scheduling/scheduleService";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
@@ -141,10 +142,6 @@ function reversalIdempotencyKey(orderId: string, reversalEventCount: number): st
     : `${orderId}:reverse-delivery-${reversalEventCount + 1}`;
 }
 
-function quantityMilliOf(quantity: number): number {
-  return Math.round(quantity * 1000);
-}
-
 export class DeliveryReviewService {
   constructor(
     private readonly store: PrototypeLocalStore,
@@ -187,10 +184,14 @@ export class DeliveryReviewService {
     const rows: DeliveryConsumptionRow[] = [];
     const unlinkedItems: { name: string; quantity: number; unit: string }[] = [];
     /* SA-5 R3: بنود التكلفة المرتبطة بالمادة نفسها تُجمع كمياتها — بندان للمادة
-     * الواحدة استهلاك واحد بمجموعهما لا صفان يطغى أحدهما على الآخر. */
+     * الواحدة استهلاك واحد بمجموعهما لا صفان يطغى أحدهما على الآخر.
+     * المجموعة ٩ (STR-006): التجميع يجري في فضاء الملي الصحيح — كل بند
+     * محفوظ تحققه عقد النطاق الدقيق عند إنشاء النسخة، لكن جمع الكسور
+     * العشرية يحمل خطأ فاصلة عائمة يتجاوز تسامح EPSILON فيفسد العقد
+     * (توصيف المجموعة ٩)؛ مجموع المليات هو المجموع الصحيح نفسه. */
     const seenMaterialQuantities = new Map<
       string,
-      { quantity: number; unitPriceMinor: number; unit: string }
+      { quantityMilli: number; unitPriceMinor: number; unit: string }
     >();
     for (const item of order.costSnapshot.input.materialItems) {
       const materialId = (item as { materialId?: string | null }).materialId ?? null;
@@ -198,13 +199,22 @@ export class DeliveryReviewService {
         unlinkedItems.push({ name: item.name, quantity: item.quantity, unit: item.unit });
         continue;
       }
+      const itemMilli = quantityMilliExact(item.quantity);
+      if (itemMilli === null) {
+        /* حماية صدقة لبيانات فاسدة لا تصل عبر الإنشاء الصحيح: بند كمية خارج
+         * دقة أجزاء الألف يُعلن لا يُدار بصمت. */
+        return failure(
+          "invalid_state",
+          `كمية المادة «${item.name}» في نسخة التكلفة خارج دقة أجزاء الألف — راجع النسخة قبل التسليم.`,
+        );
+      }
       const previous = seenMaterialQuantities.get(materialId);
       if (previous) {
-        previous.quantity += item.quantity;
+        previous.quantityMilli += itemMilli;
         continue;
       }
       seenMaterialQuantities.set(materialId, {
-        quantity: item.quantity,
+        quantityMilli: itemMilli,
         unitPriceMinor: item.unitPriceMinor,
         unit: item.unit,
       });
@@ -212,7 +222,7 @@ export class DeliveryReviewService {
     for (const [materialId, aggregate] of seenMaterialQuantities) {
       const item = {
         name: "",
-        quantity: aggregate.quantity,
+        quantityMilli: aggregate.quantityMilli,
         unit: aggregate.unit,
         unitPriceMinor: aggregate.unitPriceMinor,
       };
@@ -221,7 +231,7 @@ export class DeliveryReviewService {
         warnings.push(`مادة مربوطة بالتكلفة غير موجودة في المخزون بعد — ستبقى بلا حركة كمية.`);
         continue;
       }
-      const planned = quantityMilliOf(item.quantity);
+      const planned = item.quantityMilli;
       if (!materialIsTracked(material)) {
         /* عقد ٢٨: المادة غير المتتبَّعة مرجع تكلفة فقط — لا حركة كمية أبدًا. */
         rows.push({

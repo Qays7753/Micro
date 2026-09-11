@@ -18,6 +18,7 @@ import {
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
+import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
@@ -64,13 +65,9 @@ function deliveredOn(stored: StoredCraftOrder): string | null {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-function toQuantityMilli(quantity: number): number | null {
-  if (!Number.isFinite(quantity) || quantity <= 0) return null;
-  const scaled = Math.round(quantity * 1000);
-  if (!Number.isSafeInteger(scaled) || scaled <= 0 || Math.abs(quantity - scaled / 1000) > Number.EPSILON)
-    return null;
-  return scaled;
-}
+/* المجموعة ٩ (STR-006): تحويل الكمية→ملي من مرجعه الكنسي (D-02) — كانت
+ * نسخة حرفية له هنا؛ السلوك كما هو بالضبط. */
+const toQuantityMilli = quantityMilliExact;
 
 function normalizeQuantity(
   quantityMilli: number,
