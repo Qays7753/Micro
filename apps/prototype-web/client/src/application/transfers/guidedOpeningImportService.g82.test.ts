@@ -125,7 +125,10 @@ describe("guided opening import — the documented g82 fixture scenarios (STR-01
       reused: true,
     });
     await expect(service.confirm(preview.value)).resolves.toMatchObject({ ok: true, reused: true });
-    await expect(store.listCashWallets()).resolves.toMatchObject({ ok: true, value: [{ name: "درج المحل" }] });
+    await expect(store.listCashWallets()).resolves.toMatchObject({
+      ok: true,
+      value: [{ name: "درج المحل" }],
+    });
     await expect(store.listCashContinuityEntries()).resolves.toMatchObject({
       ok: true,
       value: [{ cashDeltaMinor: 12500 }],

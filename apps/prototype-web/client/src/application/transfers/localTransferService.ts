@@ -1,10 +1,7 @@
 /** Slice 5 transfer boundary: parse and validate first; only an explicit confirmation may replace local IndexedDB state. */
 import { calculateSharedProjectShareMinor } from "@micro-domain/financial-event/index.js";
 import { appIdentity } from "@/application/identity/buildIdentity";
-import {
-  isValidAllocationPolicy,
-  type AllocationPolicy,
-} from "@micro-domain/recurring-margin/index.js";
+import { isValidAllocationPolicy, type AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 /* المجموعة ٩ (STR-030): محقق سياق الهدر من مالكه الكنسي (صاحب حركة
  * الهدر) — الاستيراد كان عبر recurring-margin لإعادة التصدير فقط. */
 import { isValidWasteContext } from "@micro-domain/inventory-material/index.js";
