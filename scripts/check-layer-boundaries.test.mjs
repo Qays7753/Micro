@@ -36,7 +36,7 @@ beforeAll(async () => {
 /** يمرر النص على المحرك ويعيد رسائل القواعد (severity 2) مع ruleId فقط. */
 async function ruleIdsFor(relativePath, code) {
   const [result] = await eslint.lintText(code, { filePath: absolute(relativePath) });
-  return (result?.messages ?? []).filter((m) => m.severity === 2).map((m) => m.ruleId);
+  return (result?.messages ?? []).filter(m => m.severity === 2).map(m => m.ruleId);
 }
 
 describe("layer boundary fixtures — domain purity (Group 6)", () => {
@@ -66,7 +66,7 @@ describe("layer boundary fixtures — domain purity (Group 6)", () => {
   it("blocks browser globals inside domain source", async () => {
     const windowHit = await ruleIdsFor(
       "src/domain/fixture/policies.ts",
-      'export const w = window.innerWidth;\n',
+      "export const w = window.innerWidth;\n",
     );
     expect(windowHit).toContain("no-restricted-globals");
     const storageHit = await ruleIdsFor(
@@ -77,10 +77,7 @@ describe("layer boundary fixtures — domain purity (Group 6)", () => {
   });
 
   it("keeps the D-02 Math ban active while preserving the shared exemption (no weakening by Group 6)", async () => {
-    const domain = await ruleIdsFor(
-      "src/domain/fixture/policies.ts",
-      "export const r = Math.round(1.5);\n",
-    );
+    const domain = await ruleIdsFor("src/domain/fixture/policies.ts", "export const r = Math.round(1.5);\n");
     expect(domain).toContain("no-restricted-syntax");
     const shared = await ruleIdsFor(
       "src/domain/shared/fixtureHelpers.ts",
@@ -191,8 +188,13 @@ describe("layer boundary fixtures — application must not depend on UI (Group 8
         path.join(ROOT, "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts"),
         "utf8",
       ),
-      { filePath: path.join(ROOT, "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts") },
+      {
+        filePath: path.join(
+          ROOT,
+          "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts",
+        ),
+      },
     );
-    expect((realSource[0]?.messages ?? []).filter((m) => m.severity === 2)).toEqual([]);
+    expect((realSource[0]?.messages ?? []).filter(m => m.severity === 2)).toEqual([]);
   });
 });
