@@ -68,12 +68,19 @@ describe("documentation consistency — Group 2 implemented on the remediation b
       );
     expect(group4?.trimStart().startsWith("- [x]")).toBe(true);
     expect(group4).toContain("PR #159 مفتوح وغير مدموج");
-    for (const group of ["المجموعة ٥", "المجموعة ٦"]) {
-      const lines = todo.split("\n").filter(line => line.includes(`${group} — برنامج التحصين الكامل`));
-      expect(lines.length).toBeGreaterThan(0);
-      for (const line of lines) {
-        expect(line.trimStart().startsWith("- [ ]")).toBe(true);
-      }
-    }
+    /* المجموعة ٥ أُنجزت لاحقًا على الفرع (عقود المسودة/الأمن/التشخيص — انظر
+     * group5Docs.test.ts)؛ المجموعة ٦ لم تبدأ بعد. */
+    const group5 = todo
+      .split("\n")
+      .find(
+        line => line.includes("المجموعة ٥ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
+      );
+    expect(group5?.trimStart().startsWith("- [x]")).toBe(true);
+    const group6 = todo
+      .split("\n")
+      .find(
+        line => line.includes("المجموعة ٦ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
+      );
+    expect(group6?.trimStart().startsWith("- [ ]")).toBe(true);
   });
 });

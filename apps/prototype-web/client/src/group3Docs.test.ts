@@ -61,13 +61,20 @@ describe("documentation consistency — Group 3 implemented on the remediation b
         line => line.includes("المجموعة ٤ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
       );
     expect(group4?.trimStart().startsWith("- [x]")).toBe(true);
-    for (const group of ["المجموعة ٥", "المجموعة ٦"]) {
-      const lines = todo.split("\n").filter(line => line.includes(`${group} — برنامج التحصين الكامل`));
-      expect(lines.length).toBeGreaterThan(0);
-      for (const line of lines) {
-        expect(line.trimStart().startsWith("- [ ]")).toBe(true);
-      }
-    }
+    /* المجموعة ٥ أُنجزت لاحقًا على الفرع (عقود المسودة/الأمن/التشخيص — انظر
+     * group5Docs.test.ts)؛ المجموعة ٦ لم تبدأ بعد. */
+    const group5 = todo
+      .split("\n")
+      .find(
+        line => line.includes("المجموعة ٥ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
+      );
+    expect(group5?.trimStart().startsWith("- [x]")).toBe(true);
+    const group6 = todo
+      .split("\n")
+      .find(
+        line => line.includes("المجموعة ٦ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
+      );
+    expect(group6?.trimStart().startsWith("- [ ]")).toBe(true);
   });
 
   it("current-state records the Group 3 closure patch (§33) — the concurrency defect is closed", () => {
