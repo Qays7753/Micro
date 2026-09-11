@@ -90,6 +90,14 @@ describe("documentation consistency — Group 5 boundaries implemented on the re
     const scanGate = todo
       .split("\n")
       .find(line => line.includes("بوابة ما بعد البرنامج") && line.trimStart().startsWith("- ["));
-    expect(scanGate?.trimStart().startsWith("- [ ]")).toBe(true);
+    /* المجموعة ٨ (المعالجة الرباعية): بوابة المسح أُغلقت بقبول المالك؛ الحارس
+     * انتقل إلى بوابة الخطة الرباعية (٨–١١) — لا بدء تلقائي. */
+    expect(scanGate?.trimStart().startsWith("- [x]")).toBe(true);
+    expect(scanGate).toContain("راجع المكتشفات وقبلها ووافق على خطة المعالجة الرباعية");
+    const remediationGate = todo
+      .split("\n")
+      .find(line => line.includes("خطة المعالجة الرباعية الموافَقة") && line.trimStart().startsWith("- ["));
+    expect(remediationGate?.trimStart().startsWith("- [ ]")).toBe(true);
+    expect(remediationGate).toContain("لا تبدأ إلا بمراجعة المالك لتقرير المجموعة السابقة وقبوله");
   });
 });
