@@ -610,3 +610,26 @@
 قاعدة الاستشهاد: عند الإشارة إلى أي من هذه الملفات اذكر الاسم الكامل بالامتداد؛
 لا يكفي «U1» ولا «U01» ولا «U001» وحدها. أي اختبار U جديد في الجذر يفتتح
 بسطر ترويسة يشرح ما يثبته، ويُدرج هنا عند الإضافة (بلا إعادة ترقيم القائم).
+
+## المجموعة ٨ — خطة المعالجة الرباعية: سلطة التوثيق والحدود الميكانيكية (2026-09-12)
+
+- الفرع: `remediation/micro-full-hardening-2026` (فوق رأس المسح `9a8c949`) — المرجع الحي:
+  `docs/operations/current-state.md` §37 وتقرير المسح في مستودع التوثيق (عقد `17b264c`).
+- **8-A (توثيق):** عقود ٣٠–٣٩ (`docs/contracts/30-…` حتى `39-…`)؛ تمييز ١٨–٢٣ في
+  الفهرس؛ AGENTS.md §6/§10/§11؛ سجل القرار D-030…D-035؛ ARCHITECTURE.md؛ تعليق جذر
+  التركيب؛ `docs/quality/security-boundaries.md`؛ خريطة U (أعلاه).
+- **8-B (حدود):** `MaterialSuggestion` → `application/inventory/materialSuggestions`
+  (المستهلكون: `MaterialSheet`/`CostCalculator`/`CostEditor`)؛ حذف استيرادَي
+  `navigationContract.ts`/`MemoryLocalStore.ts` الميتين؛ `catalogOperationUuid` +
+  `operationKey` في `pages/Catalog.tsx` مع `pages/Catalog.operationKey.test.ts`؛
+  `app/routeKnowledgeSync.test.ts` (حارس تزامن STR-010)؛ حدود app/→التخزين في
+  `eslint.config.js` (استثناءا StartupGate وجذر التركيب)؛
+  `scripts/check-runtime-cycles.mjs` (+اختباره) موصول بـ`pnpm guards`؛ حظر
+  Math.round/floor في التطبيق بسبعة استثناءات ملفية موثقة.
+- براهين الحدود: `scripts/check-layer-boundaries.test.mjs` (14 عينة عبر محرك ESLint
+  نفسه، منها الملفات الحقيقية المستثناة)؛ `scripts/check-runtime-cycles.test.mjs`
+  (9 اختبارات + فحص دخاني حي: 220 ملفًا، صفر دورات، والحافة النوعية المعروفة
+  تُتجاهل عمدًا)؛ `pages/Catalog.operationKey.test.ts` (5)؛
+  `app/routeKnowledgeSync.test.ts` (5).
+- لم يتغير: المخطط/التصدير (35/27)، `src/domain` بالكامل، بروتوكولات الالتزام،
+  الأزواج المنشورة، المسارات والتحويلات، أي عملية حسابية.
