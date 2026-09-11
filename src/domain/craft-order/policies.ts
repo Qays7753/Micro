@@ -276,13 +276,15 @@ function assertNotLockedDeliveredReview(order: CraftOrder): void {
   }
 }
 
-function hasDeliveredEvent(order: CraftOrder): boolean {
+export function hasDeliveredEvent(order: CraftOrder): boolean {
   return order.events.some(event => event.type === "status_changed" && event.toStatus === "delivered");
 }
 
 /* المجموعة ٣ (عقد D2): هل عُكس آخر تسليم؟ آخر حدث تسليم لا يزال بلا عكس مقابلاً
- * يعني أن العكس غير حاصل بعد. */
-function hasDeliveryReversal(order: CraftOrder): boolean {
+ * يعني أن العكس غير حاصل بعد. المجموعة ٩ (STR-008): مصدر الحقيقة الكنسي
+ * لهذا السؤال مُصدَّر من النطاق — الصفحات والمستهلكون يستوردونه ولا
+ * يعيدون مسح الأحداث محليًا. */
+export function hasDeliveryReversal(order: CraftOrder): boolean {
   const lastDelivery = [...order.events]
     .reverse()
     .find(event => event.type === "status_changed" && event.toStatus === "delivered");

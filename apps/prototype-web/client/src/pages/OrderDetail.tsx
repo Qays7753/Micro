@@ -40,6 +40,7 @@ import {
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
+import { hasDeliveredEvent, hasDeliveryReversal } from "@micro-domain/craft-order/index.js";
 import { formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
@@ -62,19 +63,9 @@ const canCancelOrder = (order: { status: string }) => cancellableStatuses.includ
  * يصعدان من «تفاصيل إضافية» إلى سطح الطلب عندما يصل التنفيذ؛ ما قبله يبقى مطويًا. */
 const executionStatuses = ["in_progress", "ready"];
 
-/* المجموعة ٣ (عقد D4 — SA-5 R4): هل عُكس آخر تسليم؟ منطق النطاق نفسه — آخر حدث
- * تسليم له عكس مقابل؛ لا يكفي وجود عكس قديم لتسليم أقدم. */
-function lastDeliveryWasReversed(order: {
-  events: readonly { id: string; type: string; toStatus?: string; reversesEventId?: string }[];
-}): boolean {
-  const lastDelivery = [...order.events]
-    .reverse()
-    .find(event => event.type === "status_changed" && event.toStatus === "delivered");
-  if (!lastDelivery) return false;
-  return order.events.some(
-    event => event.type === "delivery_reversed" && event.reversesEventId === lastDelivery.id,
-  );
-}
+/* المجموعة ٣ (عقد D4 — SA-5 R4): هل عُكس آخر تسليم؟ مصدر الحقيقة هو مسند
+ * النطاق نفسه (STR-008، المجموعة ٩) — الصفحة تستورده ولا تعيد مسح الأحداث
+ * محليًا؛ آخر حدث تسليم له عكس مقابل، ولا يكفي وجود عكس قديم لتسليم أقدم. */
 
 export default function OrderDetail() {
   const params = useParams<{ id: string }>();
@@ -300,11 +291,9 @@ export default function OrderDetail() {
   const label = agreement.label;
   const result = resultLabel[order.resultStatus] ?? resultLabel.review_required;
   /* التحصين الكامل (D-031، المجموعة ٣): القفل الحقيقي — سجل مسلّم داخل «يحتاج
-   * مراجعة» بلا تراجع موثق عن التسليم؛ مرآة حارس النطاق نفسه في policies.ts. */
+   * مراجعة» بلا تراجع موثق عن التسليم؛ مسندا النطاق نفسه (STR-008، المجموعة ٩). */
   const lockedInDeliveredReview =
-    order.status === "needs_review" &&
-    order.events.some(event => event.type === "status_changed" && event.toStatus === "delivered") &&
-    !lastDeliveryWasReversed(order);
+    order.status === "needs_review" && hasDeliveredEvent(order) && !hasDeliveryReversal(order);
   /* المجموعة ٦ (البند ٤ — S3-12): ملخص الإفصاح يسمي الأفعال المتاحة فعلًا حسب
    * حالة الطلب — قابل للاكتشاف بلا فتح، وبلا ذكر فعل لا ينطبق. */
   const correctionsSummary = [
@@ -549,7 +538,7 @@ export default function OrderDetail() {
         <CheckCircle2 aria-hidden="true" />
         راجع التسليم وسجّله
       </button>
-    ) : order.status === "needs_review" && lastDeliveryWasReversed(order) ? (
+    ) : order.status === "needs_review" && hasDeliveryReversal(order) ? (
       /* المجموعة ٣ (عقد D4): الاستئناف الموثق بعد عكس التسليم — انتقالات النطاق
        * نفسها لا مسار خاص؛ المراجعة تُغلق بقرار صريح لا صمتًا. */
       <button
@@ -781,7 +770,7 @@ export default function OrderDetail() {
             {/* التحصين الكامل (D-031): لوحة التراجع الموثق تظهر أيضًا للسجل المسلّم
                 المقفل داخل «يحتاج مراجعة» — التراجع الموثق هو المخرج الوحيد. */}
             {(order.status === "delivered" || order.status === "settled" || lockedInDeliveredReview) &&
-            !lastDeliveryWasReversed(order) ? (
+            !hasDeliveryReversal(order) ? (
               deliveryReversalOpen ? (
                 <section className="micro-cancel-panel" aria-label="تراجع موثق عن التسليم">
                   <CorrectionPreview
