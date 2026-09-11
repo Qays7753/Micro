@@ -1,4 +1,5 @@
 import {
+  Activity,
   ArrowRight,
   BellRing,
   ChevronLeft,
@@ -11,6 +12,7 @@ import {
   RotateCcw,
   Save,
   Shield,
+  ShieldAlert,
   Upload,
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
@@ -29,6 +31,11 @@ import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayVa
 import { useTheme } from "@/contexts/ThemeContext";
 import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { OperatingWorkMode } from "@/storage/local/types";
+import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
+import {
+  browserLegacyFormDraftStorage,
+  clearLegacyFormDraftStorage,
+} from "@/application/drafts/legacyFormDraftMigration";
 
 type OperatingModeState =
   { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; value: OperatingModeValue };
@@ -67,6 +74,7 @@ export default function SettingsPage() {
     notifyDataChanged,
     integrityCheck,
     localLock,
+    formDrafts,
   } = usePrototypeServices();
   /* المجموعة ٦ (تدقيق A1 — SP-01/DP-04): مسار الاسترداد معفى من الغطاء لكن
    * إجراءات مغادرة البيانات (تصدير/استيراد/تصفير) تتطلب إثبات رمز القفل مرة
@@ -88,6 +96,65 @@ export default function SettingsPage() {
     pendingGatedActionRef.current = action;
     setGatedAction({ title, description });
   };
+  /* المجموعة ٥ (التحصين الكامل): الاستبدال التدميري (استيراد كامل أو
+   * تأكيد إدخال البداية) لا يمر بلا حماية أبدًا — قفل مفعّل = بوابة
+   * الرمز القائمة؛ ولا قفل = حجب صريح حتى إتمام خطوة تفعيل الحماية
+   * (غياب القفل ليس تحقًا ولا يُعد تفويضًا صامتًا)؛ وفشل قراءة سجل
+   * القفل = إقفال صادق مصرح بلا تغيير أي بيانات. المعاينة وحدها قراءة خالصة
+   * قبل هذه البوابة. */
+  const [protectionBlocked, setProtectionBlocked] = useState<null | {
+    title: string;
+    message: string;
+  }>(null);
+  const runWhenProtected = async (action: () => void | Promise<void>, title: string, gateMessage: string) => {
+    if (lockVerifiedRef.current) {
+      await action();
+      return;
+    }
+    const status = await localLock.status();
+    if (!status.ok) {
+      setProtectionBlocked({
+        title,
+        message:
+          "لم نستطع قراءة إعداد القفل قبل إجراء يستبدل بياناتك؛ لم يتغير أي شيء. أعد المحاولة؛ فإن تكرر فافتح فحص السلامة من الأدوات.",
+      });
+      return;
+    }
+    if (!status.value.enabled) {
+      setProtectionBlocked({
+        title,
+        message:
+          "هذا الإجراء يستبدل بيانات هذا الجهاز ويحتاج حماية بالرمز أولاً — فعّل «قفل التطبيق المحلي» من قسم «احمِ بياناتك» أعلى هذه الصفحة ثم أعد المحاولة. المعاينة التي رأيتها لم تغيّر شيئًا.",
+      });
+      return;
+    }
+    pendingGatedActionRef.current = action;
+    setGatedAction({ title, description: gateMessage });
+  };
+  /* المجموعة ٥ (التحصين الكامل — نسخ تشخيص محلي خصوصي): أثر
+   * النسخ يظهر في موضعه دون فتح طبقة أخرى. */
+  const [diagnosticCopyResult, setDiagnosticCopyResult] = useState<null | { message: string }>(null);
+  async function copyDiagnosticReport() {
+    setDiagnosticCopyResult(null);
+    const clipboard = navigator.clipboard;
+    if (clipboard === undefined || typeof clipboard.writeText !== "function") {
+      setDiagnosticCopyResult({
+        message: "الحافظة غير متاحة في هذا المتصفح — لا يمكن نسخ التقرير.",
+      });
+      return;
+    }
+    try {
+      await clipboard.writeText(localDiagnostics.reportText());
+      setDiagnosticCopyResult({
+        message: "نُسخ تقرير التشخيص إلى الحافظة — بيانات محلية آمنة فقط؛ لا يُرسل شيء تلقائيًا أبدًا.",
+      });
+    } catch {
+      setDiagnosticCopyResult({
+        message: "تعذر النسخ إلى الحافظة — بقيت بياناتك كما هي ولم يُرسل شيء.",
+      });
+    }
+  }
+
   /* المجموعة ٥ (عقد ٣٩): حكم فحص السلامة بعد الاستعادة — يُعرض مع رابط التفاصيل. */
   const [restoreCheck, setRestoreCheck] = useState<{
     overall: "PASS" | "WARN" | "FAIL";
@@ -271,8 +338,6 @@ export default function SettingsPage() {
   async function performReset() {
     setNotice(null);
     setIsWorking(true);
-    /* S5-03: البدء من جديد يمسح مسودة الإعداد أيضًا — لا تُبعث بعد تصفير مقصود. */
-    globalThis.localStorage?.removeItem("micro.setup-draft.v1");
     const result = await transfers.resetAll();
     setIsWorking(false);
     if (!result.ok) {
@@ -280,8 +345,23 @@ export default function SettingsPage() {
       setStorageNotice(result.message);
       return;
     }
+    /* S5-03 + المجموعة ٥ (التحصين الكامل): سياسة المسودات المعلنة بعد نجاح التصفير
+     * فقط — تُمسح مسودات النماذج والإعداد العابرة ومفاتيحها القديمة؛ ويبقى سجل
+     * القفل المحلي كما هو (الحماية لا تُمسح بصامت). فشل مسح المسودات
+     * يُعلن صادقًا ولا يرد التصفير. */
+    const storage = browserLegacyFormDraftStorage();
+    if (storage !== null) clearLegacyFormDraftStorage(storage);
+    const cleared = await formDrafts.clearAll();
     setResetFlow({ phase: "done" });
     notifyDataChanged();
+    if (!cleared.ok) {
+      setNotice({
+        text: "تمت إعادة التعيين، لكن تعذر مسح مسودات النماذج غير المُسلّمة — لم يُسجّل أي أثر مالي؛ افتح النموذج وتجاهل مسودته.",
+        section: "storage",
+      });
+      setGuidedLayerOpen(true);
+      return;
+    }
     navigate("/setup");
   }
 
@@ -309,7 +389,9 @@ export default function SettingsPage() {
 
   async function confirmImport() {
     if (!preview) return;
-    await runWhenUnlocked(
+    /* المجموعة ٥ (التحصين الكامل): الاستبدال النهائي محمي دومًا —
+     * رمز إن وجد، وإلا خطوة تفعيل الحماية قبل أي كتابة. */
+    await runWhenProtected(
       performImport,
       "استبدال بياناتك يحتاج رمز القفل",
       "الاستيراد يستبدل كل بيانات هذا الجهاز بملف النسخة التي راجعتها — أدخل رمز القفل للتأكيد.",
@@ -328,7 +410,15 @@ export default function SettingsPage() {
     }
     setPreview(null);
     notifyDataChanged();
-    setStorageNotice("تم استبدال البيانات المحلية بالملف الذي راجعته.");
+    /* المجموعة ٥ (التحصين الكامل): المسودات العابرة لا تُمسح صامتًا ولا تُستبدل —
+     * السياسة المختارة: الإبقاء مع إفصاح صادق
+     * عن حالتها المستقلة عن الملف. */
+    const drafts = await formDrafts.list();
+    setStorageNotice(
+      drafts.ok && drafts.value.length > 0
+        ? `تم استبدال البيانات المحلية بالملف الذي راجعته؛ وأُبقيت ${drafts.value.length} مسودة نموذج غير مُسلّمة محليًا كما هي (مستقلة عن الملف) — تُعرض عند فتح نماذجها ويمكن تجاهلها هناك.`
+        : "تم استبدال البيانات المحلية بالملف الذي راجعته.",
+    );
     /* المجموعة ٥ (عقد ٣٩): فحص سلامة بعد الاستعادة مباشرة — قراءة جديدة فوق
      * البيانات المستعادة، بلا إصلاح تلقائي؛ النتيجة إجمالية مع رابط للتفاصيل. */
     const check = await integrityCheck.run();
@@ -365,6 +455,20 @@ export default function SettingsPage() {
   }
 
   async function confirmGuidedOpeningImport() {
+    if (!guidedPreview) return;
+    /* المجموعة ٥ (التحصين الكامل): تأكيد إدخال البداية فعل
+     * استبدال/كتابة حساس — المعاينة قراءة خالصة ثم
+     * نفس قاعدة الحماية الصريحة للاستيراد الكامل بلا استثناء. */
+    const guidedProtection = {
+      /* عنوان البوابة نفسه من حوار الرمز القائم — الوصف المختص يحمل تخصيص الإجراء. */
+      title: "تأكيد رمز القفل",
+      message:
+        "إدخال الموقف الافتتاحي يكتب على بيانات هذا الجهاز مرة واحدة آمنة التكرار — أدخل رمز القفل للتأكيد.",
+    };
+    await runWhenProtected(performGuidedOpeningImport, guidedProtection.title, guidedProtection.message);
+  }
+
+  async function performGuidedOpeningImport() {
     if (!guidedPreview) return;
     setNotice(null);
     setIsWorking(true);
@@ -445,6 +549,31 @@ export default function SettingsPage() {
           </article>
           {/* المجموعة ٥ (عقد ٣٧): قفل محلي اختياري — تفعيل وتعطيل بالرمز. */}
           <LockSettingsCard />
+          {/* المجموعة ٥ (التحصين الكامل): تشخيص محلي خصوصي — نسخ يدوي فقط لا إرسال أبدًا. */}
+          <article className="micro-setting-row">
+            <span className="micro-setting-icon">
+              <Activity aria-hidden="true" />
+            </span>
+            <div>
+              <h2>تقرير التشخيص المحلي</h2>
+              <p>
+                سجل حوادث محديد الحجم على هذا الجهاز فقط — معرّف حادثة وقالب مسار ورمز خطأ فقط؛ بلا أسماء أو
+                مبالغ أو رموز قفل؛ ولا يُرسل شيءًا تلقائيًا أبدًا.
+              </p>
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                onClick={() => void copyDiagnosticReport()}
+              >
+                <FileCheck2 aria-hidden="true" /> نسخ التقرير المحلي
+              </button>
+              {diagnosticCopyResult ? (
+                <p className="micro-save-note" role="status">
+                  {diagnosticCopyResult.message}
+                </p>
+              ) : null}
+            </div>
+          </article>
           {/* P-001: سياسة دقة المال معلنة — قرشان (منزلتان عشريتان) في كل مكان:
             الإدخال والحساب والعرض والتصدير وحدةً واحدة متسقة، بلا تحويل يدوي
             ولا تفسير جديد للوحدة. ما دون القرش يُقرّب عند الإدخال بثبات، لا
@@ -577,8 +706,9 @@ export default function SettingsPage() {
                 />
               </label>
               <p className="micro-field-error">
-                سيُمسح كل شيء على هذا الجهاز: الطلبات، الأحداث المالية، المحافظ، المخزون، والتقديرات. الملف
-                المحمّل هو نسختك الوحيدة.
+                سيُمسح كل شيء على هذا الجهاز: الطلبات، الأحداث المالية، المحافظ، المخزون، والتقديرات، مع
+                مسودات النماذج غير المُسلّمة (الإعداد والأحداث والنماذج المفتوحة). يبقى قفل التطبيق المحلي
+                مفعّلًا كما هو. الملف المحمّل هو نسختك الوحيدة.
               </p>
               <div className="micro-form-actions">
                 <button
@@ -925,6 +1055,27 @@ export default function SettingsPage() {
           ) : null}
         </div>
       </details>
+      {protectionBlocked ? (
+        <div
+          className="micro-lock-overlay"
+          role="alertdialog"
+          aria-modal="true"
+          aria-label={protectionBlocked.title}
+        >
+          <ShieldAlert aria-hidden="true" className="micro-lock-icon" />
+          <h1>{protectionBlocked.title}</h1>
+          <p>{protectionBlocked.message}</p>
+          <div className="micro-lock-form">
+            <button
+              className="micro-button micro-button-secondary"
+              type="button"
+              onClick={() => setProtectionBlocked(null)}
+            >
+              حسنًا
+            </button>
+          </div>
+        </div>
+      ) : null}
       {gatedAction ? (
         <DataActionPinGate
           actionTitle={gatedAction.title}
