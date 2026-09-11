@@ -3,9 +3,11 @@ import { calculateSharedProjectShareMinor } from "@micro-domain/financial-event/
 import { appIdentity } from "@/application/identity/buildIdentity";
 import {
   isValidAllocationPolicy,
-  isValidWasteContext,
   type AllocationPolicy,
 } from "@micro-domain/recurring-margin/index.js";
+/* المجموعة ٩ (STR-030): محقق سياق الهدر من مالكه الكنسي (صاحب حركة
+ * الهدر) — الاستيراد كان عبر recurring-margin لإعادة التصدير فقط. */
+import { isValidWasteContext } from "@micro-domain/inventory-material/index.js";
 import {
   isValidOwnerEntitlementOpeningBalance,
   isValidOwnerEntitlementPolicy,

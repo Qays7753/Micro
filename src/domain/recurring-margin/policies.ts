@@ -7,9 +7,13 @@ import {
   type AllocationCalculation,
   type CreateAllocationPolicyInput,
   type AllocationPolicyTerms,
-  type WasteContext,
 } from "./types.js";
 import { roundHalfUp } from "../shared/index.js";
+
+/* المجموعة ٩ (STR-030): محقق سياق الهدر الكنسي يعاد تصديره من صاحب
+ * الحركة (inventory-material) — سلوكه مطابق حرفيًا للنسخة المحلية
+ * السابقة؛ تثبته اختبارات التوأمة وتوصيف المجموعة ٩. */
+export { isValidWasteContext } from "../inventory-material/policies.js";
 
 const required = (value: string, message: string) => {
   if (!value.trim()) throw new Error(message);
@@ -409,25 +413,3 @@ export function isValidAllocationPolicy(value: unknown): value is AllocationPoli
   }
 }
 
-export function isValidWasteContext(value: unknown): value is WasteContext {
-  if (!value || typeof value !== "object") return false;
-  const context = value as Record<string, unknown>;
-  if (context.kind === "order" || context.kind === "catalog_item")
-    return (
-      typeof context[context.kind === "order" ? "orderId" : "catalogItemId"] === "string" &&
-      String(context[context.kind === "order" ? "orderId" : "catalogItemId"]).trim().length > 0
-    );
-  if (context.kind === "catalog_template")
-    return (
-      typeof context.catalogItemId === "string" &&
-      context.catalogItemId.trim().length > 0 &&
-      typeof context.templateId === "string" &&
-      context.templateId.trim().length > 0
-    );
-  if (context.kind === "general_project") return true;
-  return (
-    context.kind === "unallocated" &&
-    (context.allocationNote === null || typeof context.allocationNote === "string") &&
-    (context.allocationNote === null || context.allocationNote.trim().length > 0)
-  );
-}
