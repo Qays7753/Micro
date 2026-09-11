@@ -36,7 +36,7 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
     expect(exported.value.integrity?.algorithm).toBe("sha256");
     expect(exported.value.integrity?.digest).toMatch(/^[0-9a-f]{64}$/);
     expect(exported.value.counts?.financialEvents).toBe(1);
-    expect(exported.value.appVersion).toBe("micro-prototype-web");
+    expect(exported.value.appVersion).toBe("micro-local-dev");
     /* دورة كاملة عبر التحقق الذاتي — المظروف نفسه يعبر. */
     const verified = await transfers.createVerifiedExport();
     expect(verified.ok).toBe(true);
@@ -48,7 +48,7 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
     expect(verified.value.file.integrity?.algorithm).toBe("sha256");
     expect(verified.value.file.integrity?.digest).toMatch(/^[0-9a-f]{64}$/);
     expect(verified.value.file.counts?.financialEvents).toBe(1);
-    expect(verified.value.file.appVersion).toBe("micro-prototype-web");
+    expect(verified.value.file.appVersion).toBe("micro-local-dev");
     /* بصمة الملف الخارج تطابق بياناته هو — ملف يعبر prepareImport لاحقًا بلا رفض. */
     const rePrepared = transfers.prepareImport(JSON.stringify(verified.value.file));
     expect(rePrepared.ok).toBe(true);

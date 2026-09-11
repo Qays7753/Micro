@@ -1,5 +1,7 @@
 import { hasDirtyForms } from "./dirtyRegistry";
 import { registerSW } from "virtual:pwa-register";
+import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
+import { routeTemplateFor } from "@/application/diagnostics/routeTemplate";
 
 export type PwaRuntimeState = {
   serviceWorkerSupported: boolean;
@@ -25,6 +27,21 @@ const listeners = new Set<PwaListener>();
 
 function emit() {
   listeners.forEach(listener => listener());
+}
+
+/* المجموعة ٥ (التحصين الكامل): فشل تسجيل الخدمة يسجّل حادثة محلية
+ * بينتين الأماميات — رمز مطبوع وقالب مسار مخفي فقط؛ الكائن
+ * الخام لا يدخل السجل أبدًا؛ والفشل هنا لا ينتج خطأًثانيًا. */
+function recordPwaIncident(errorCode: "pwa_register_failed" | "pwa_update_failed"): void {
+  try {
+    localDiagnostics.recordIncident({
+      operation: "pwaRegister",
+      errorCode,
+      routeTemplate: routeTemplateFor(globalThis.location?.pathname ?? "/"),
+    });
+  } catch {
+    /* السجل رفاهية لا عقبة. */
+  }
 }
 
 function canRegisterServiceWorker() {
@@ -65,6 +82,7 @@ export function registerPwaServiceWorker() {
       state = { ...state, error: "تعذر تفعيل وضع التطبيق المحلي؛ سيستمر Micro من المتصفح." };
       emit();
       console.warn("Micro PWA registration failed", error);
+      recordPwaIncident("pwa_register_failed");
     },
   });
 
@@ -95,6 +113,7 @@ export async function applyPwaUpdate() {
     state = { ...state, updateAvailable: true, error: "تعذر تطبيق التحديث الآن؛ يمكنك المحاولة لاحقًا." };
     emit();
     console.warn("Micro PWA update failed", error);
+    recordPwaIncident("pwa_update_failed");
   }
 }
 

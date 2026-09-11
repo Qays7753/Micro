@@ -1,5 +1,6 @@
 /** Slice 5 transfer boundary: parse and validate first; only an explicit confirmation may replace local IndexedDB state. */
 import { calculateSharedProjectShareMinor } from "@micro-domain/financial-event/index.js";
+import { appIdentity } from "@/application/identity/buildIdentity";
 import {
   isValidAllocationPolicy,
   isValidWasteContext,
@@ -2501,6 +2502,8 @@ const RELEASED_LEGACY_EXPORT_PAIRS: ReadonlySet<string> = new Set([
   "6/14", // G3 إرث
 ]);
 
+const appVersion = appIdentity;
+
 export class LocalTransferService {
   constructor(
     private readonly store: PrototypeLocalStore,
@@ -2530,7 +2533,10 @@ export class LocalTransferService {
           digest: syncSha256Hex(JSON.stringify(snapshot.value)),
         },
         counts: exportCountsOf(snapshot.value),
-        appVersion: "micro-prototype-web",
+        /* المجموعة ٥ (التحصين الكامل): هوية بناء حقيقية من المصدر
+         * المشترك (بايئة التشخيص وبيانات التصدير) — لا ثابت إنشائي بعد
+         * اليوم؛ والبائع القديم يعثر في الاختبارات والتطوير المحلي. */
+        appVersion,
       },
     };
   }

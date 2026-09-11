@@ -286,6 +286,21 @@ function devOnlyPlugins(mode: string) {
   return [vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
 }
 
+/* المجموعة ٥ (التحصين الكامل — هوية البناء): مصدر واحد يُحقن في
+ * الحزمة عبر define — VITE_APP_VERSION إن حُدد صراحة؛ وإلا SHA البيئة
+ * (GITHUB_SHA في Actions أو CF_PAGES_COMMIT_SHA في Pages) متاحة تلقائيًا بلا أي تعديل على التدفق؛ وغيابها
+ * جميعًا = null فيرجع البديل المحلي الصادق (لا انتحال إنتاج). لا أسرار في الهوية أبدًا. */
+function buildIdentityFromEnv(): string | null {
+  const explicit = process.env.VITE_APP_VERSION?.trim();
+  if (explicit) return explicit;
+  const githubSha = process.env.GITHUB_SHA?.trim();
+  if (githubSha) return githubSha;
+  const pagesSha = process.env.CF_PAGES_COMMIT_SHA?.trim();
+  if (pagesSha) return pagesSha;
+  return null;
+}
+const MICRO_APP_IDENTITY = buildIdentityFromEnv();
+
 export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss(), ...devOnlyPlugins(mode), pwa, ...(mode === "production" ? [vitePluginBundleBudgetGate()] : [])],
   resolve: {
@@ -293,6 +308,11 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@micro-domain": path.resolve(import.meta.dirname, "..", "..", "src", "domain"),
     },
+  },
+  define: {
+    /* مصدر هوية البناء الواحد — يقرأه مدلل buildIdentity في الوبلنت
+     * وفيه تتشاركه بيانات التصدير والتشخيص (null = بديل محلي). */
+    __MICRO_APP_IDENTITY__: JSON.stringify(MICRO_APP_IDENTITY),
   },
   envDir: path.resolve(import.meta.dirname),
   root: path.resolve(import.meta.dirname, "client"),
