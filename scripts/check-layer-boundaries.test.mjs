@@ -255,9 +255,10 @@ describe("layer boundary fixtures — application Math rounding boundary (Group 
   it("proves the documented file-level exceptions pass on their real sources (no calculation changed)", async () => {
     const readReal = async relative =>
       (await import("node:fs")).readFileSync(path.join(ROOT, relative), "utf8");
+    /* المجموعة ٩ (STR-006): الاستثناءان الماليان المؤقتان السابقان
+     * (deliveryReviewService وg5Service) أُزيل فعليًا — توحيد الكمية ألغى
+     * حاجتهما، فالقاعدة العامة تحرسهما الآن مثل بقية ملفات التطبيق. */
     for (const relative of [
-      "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts",
-      "apps/prototype-web/client/src/application/g5/g5Service.ts",
       "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts",
       "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
       "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",
@@ -282,5 +283,62 @@ describe("layer boundary fixtures — application Math rounding boundary (Group 
       },
     );
     expect((lockResult?.messages ?? []).filter(m => m.severity === 2)).toEqual([]);
+  });
+});
+
+describe("layer boundary fixtures — Business Time purity (Group 9, STR-031)", () => {
+  it("keeps the canonical Business Time module dependent on nothing but domain-relative code", async () => {
+    /* العينة الموجبة: وحدة وقت الأعمال الحقيقية نظيفة تحت قاعدة نقاء المجال —
+     * لا React ولا مكونات ولا صفحات ولا استيراد عرض إطلاقًا. */
+    const real = (await import("node:fs")).readFileSync(
+      path.join(ROOT, "src/domain/shared/businessTime.ts"),
+      "utf8",
+    );
+    const [result] = await eslint.lintText(real, {
+      filePath: path.join(ROOT, "src/domain/shared/businessTime.ts"),
+    });
+    expect((result?.messages ?? []).filter(m => m.severity === 2)).toEqual([]);
+
+    const clean = await ruleIdsFor(
+      "src/domain/shared/businessTime.fixture.ts",
+      'import { addSafe } from "./numeric.js";\nexport const x = addSafe(1, 1);\n',
+    );
+    expect(clean).toEqual([]);
+  });
+
+  it("rejects Business Time importing React, presentation formatting, or UI modules", async () => {
+    const react = await ruleIdsFor(
+      "src/domain/shared/businessTime.fixture.ts",
+      'import { useMemo } from "react";\nexport const x = useMemo;\n',
+    );
+    expect(react).toContain("no-restricted-syntax");
+    const presentation = await ruleIdsFor(
+      "src/domain/shared/businessTime.fixture.ts",
+      'import { localDateInAmman } from "@/presentation/formatters";\nexport const d = localDateInAmman;\n',
+    );
+    expect(presentation).toContain("no-restricted-syntax");
+    const component = await ruleIdsFor(
+      "src/domain/shared/businessTime.fixture.ts",
+      'import { MaterialSheet } from "@/components/cost/MaterialSheet";\nexport const s = MaterialSheet;\n',
+    );
+    expect(component).toContain("no-restricted-syntax");
+    const page = await ruleIdsFor(
+      "src/domain/shared/businessTime.fixture.ts",
+      'import OrderDetail from "@/pages/OrderDetail";\nexport const p = OrderDetail;\n',
+    );
+    expect(page).toContain("no-restricted-syntax");
+  });
+
+  it("permits legitimate consumers: presentation re-export and application import of the canonical module", async () => {
+    const reexport = await ruleIdsFor(
+      "apps/prototype-web/client/src/presentation/formatters.fixture.ts",
+      'export { localDateInAmman } from "@micro-domain/shared/index.js";\n',
+    );
+    expect(reexport).toEqual([]);
+    const serviceUse = await ruleIdsFor(
+      APPLICATION,
+      'import { localDateInAmman } from "@micro-domain/shared/index.js";\nexport const today = () => localDateInAmman();\n',
+    );
+    expect(serviceUse).toEqual([]);
   });
 });
