@@ -1,8 +1,9 @@
 /** التحصين الكامل (المجموعة ٦): فحص اتساق الحوكمة والتوثيق الحي مع الحقيقة على
  * الفرع — §36 يسجل الحراس والسياسات والبوابة، وAGENTS.md يحمل قواعد التنفيذ
- * وبوابة المسح الهيكلي، وقالب PR يحمل الحقول الإلزامية، والأرقام الحدية
- * (35/27، سقف lint، سقفا الحزمة) متطابقة بين الكود والتوثيق بلا رفع صامت،
- * والمسح الهيكلي بعد المجموعة ٦ موثق ولم يبدأ ولا يجوز بدؤه تلقائيًا. */
+ * وبوابة المسح الهيكلي بعد تحديث المجموعة ٨ (المسح نُفّذ وقُبل وخطة المعالجة
+ * الرباعية ٨–١١ موافَقة ببوابة مالك بين المجموعات — لا بدء تلقائي)، وقالب PR
+ * يحمل الحقول الإلزامية، والأرقام الحدية (35/27، سقف lint، سقفا الحزمة)
+ * متطابقة بين الكود والتوثيق بلا رفع صامت. */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -44,13 +45,16 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(rules).toContain("لا قواعد مجال");
   });
 
-  it("AGENTS.md records the mandatory post-Group 6 structure-scan gate WITHOUT authorizing refactoring", () => {
+  it("AGENTS.md records the post-Group 6 structure-scan gate: scan performed and accepted, four-group plan owner-approved, no auto-start", () => {
     const gate = normalize(agents);
     expect(gate).toContain("## 11. بوابة ما بعد المجموعة ٦");
-    expect(gate).toContain("المسح الهيكلي للقراءة فقط");
-    expect(gate).toContain("لا يبدأ أي إعادة هيكلة بنيوية أو نقل ملفات جماعي");
-    expect(gate).toContain("المالك يراجع المكتشفات ويقررها قبل بدء أي معالجة هيكلية معتمدة");
-    expect(gate).toContain("لم يُنفذ المسح");
+    expect(gate).toContain("المسح الهيكلي");
+    expect(gate).toContain("structure-architecture-code-organization-scan-v1.md");
+    expect(gate).toContain("راجع المكتشفات وقبلها ووافق على خطة المعالجة الرباعية (المجموعات ٨–١١)");
+    expect(gate).toContain("لا معالجة هيكلية خارج الخطة الموافَقة");
+    expect(gate).toContain("بوابة مالك بين المجموعات");
+    expect(gate).toContain("لا يبدأ أي شيء تلقائيًا");
+    expect(gate).toContain("قرار المالك مطلوب");
   });
 
   it("the PR template requires every mandated field with explicit not-applicable reasons", () => {
@@ -126,7 +130,7 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(manifest.policy).toContain("لا يثبت كفاية الاختبارات دلاليًا");
   });
 
-  it("todo reflects the program truth: Group 6 implemented on the branch, structure scan NOT started", () => {
+  it("todo reflects the program truth: scan gate closed with owner acceptance; four-group plan gated per group", () => {
     const group6 = todo
       .split("\n")
       .find(
@@ -139,8 +143,16 @@ describe("governance consistency — Group 6 prevention implemented on the remed
       .split("\n")
       .find(line => line.includes("بوابة ما بعد البرنامج") && line.trimStart().startsWith("- ["));
     expect(scanGate).toBeDefined();
-    expect(scanGate?.trimStart().startsWith("- [ ]")).toBe(true);
-    expect(scanGate).toContain("للقراءة فقط، لم تبدأ");
-    expect(scanGate).toContain("قبل موافقة المالك");
+    expect(scanGate?.trimStart().startsWith("- [x]")).toBe(true);
+    expect(scanGate).toContain("للقراءة فقط — نُفّذ وأُغلق");
+    expect(scanGate).toContain("structure-architecture-code-organization-scan-v1.md");
+    expect(scanGate).toContain("راجع المكتشفات وقبلها ووافق على خطة المعالجة الرباعية");
+    const remediationGate = todo
+      .split("\n")
+      .find(line => line.includes("خطة المعالجة الرباعية الموافَقة") && line.trimStart().startsWith("- ["));
+    expect(remediationGate).toBeDefined();
+    expect(remediationGate?.trimStart().startsWith("- [ ]")).toBe(true);
+    expect(remediationGate).toContain("لا تبدأ إلا بمراجعة المالك لتقرير المجموعة السابقة وقبوله");
+    expect(remediationGate).toContain("لا بدء تلقائي");
   });
 });

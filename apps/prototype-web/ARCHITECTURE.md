@@ -19,11 +19,13 @@ prompt) عبر `vite-plugin-pwa`. لا تنفذ Cloud Sync أو Auth أو SaaS �
 
 ```text
 React UI
-  → Application services (40 خدمة موصولة عبر 30 مجلدًا؛ 43 ملف `*Service.ts` — العد عند `4af025d`: `new *Service(` في `PrototypeServicesContext.tsx` + `git ls-files 'apps/prototype-web/client/src/application/**/*Service.ts'`)
+  → Application services (40 خدمة موصولة عبر 32 مجلدًا؛ 44 ملف `*Service.ts` — العد الحي الموثق عند `9a8c949`، 2026-09-12/مسح المجموعة ٧ المعاد تحققه في المجموعة ٨: `new *Service(` في `PrototypeServicesContext.tsx` + `git ls-files 'apps/prototype-web/client/src/application/**/*Service.ts'`)
   → Micro Domain Core في ../../src/domain (13 وحدة نطاقية + معينات shared — `ls src/domain`)
   → LocalStore port (PrototypeLocalStore)
   → IndexedDB adapter (IndexedDbLocalStore — 32 مخزن كائنات، مخطط 35 — العد: `createObjectStore` في المهايئ)
 ```
+
+ملاحظة تسمية موثقة (توثيقًا لا تغييرًا): أربعة ملفات `*Service.ts` لا تُبنى في جذر التركيب دون أن تكسر أيٌّ منها حدود الطبقات — `capacityDecisionService` و`shareMessageService` وحدتا دوال نقية؛ و`statementMarkdownService` يُنشأ داخل `Statement.tsx` (بلا حالة فيبقى متسقًا)؛ و`localDiagnosticsService` مفرد على مستوى الوحدة (مقصود: يُستورد من `ErrorBoundary` بلا سياق React). هذه استثناءات تسمية معلنة لا عيوبًا هيكلية (مكتشف المسح STR-013).
 
 لا تستورد مكونات React `IndexedDbLocalStore` ولا تضع قواعد المال فيها. كل مال/كمية يمر عبر
 المدخلات الرقمية الموحدة (`EnglishNumberInput`/`EnglishQuantityInput` — أرقام ASCII/LTR،

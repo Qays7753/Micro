@@ -54,6 +54,7 @@
 | 22 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
 | 22A | `docs/quality/persona-context-simulation-protocol-v1.md` | CURRENT / EXECUTION PROTOCOL / DERIVED | غلاف سياق حتمي لتشغيل P01–P10 على Prototype؛ لا يستبدل مجموعة السيناريوهات canonical |
 | 22B | `docs/quality/persona-context-simulation-results-v1.md` | CURRENT / EXECUTION EVIDENCE | نتائج تشغيل P01–P10 على Prototype؛ تفصل الدليل الحي عن التشغيل المكتبي وحدود النطاق |
+| 22C | `docs/quality/security-boundaries.md` | CURRENT / PROTOTYPE / SECURITY REFERENCE | المرجع الموحّد لحدود الأمن والخصوصية المنفذة: التخزين المحلي وحده بلا خروج شبكي، ومستبعدات التصدير (local-security وform-drafts)، والقفل وبوابات الأفعال التدميرية، وتشخيص الثمانية حقول بلا رفع، وفحوص الأسرار، وحدود الاستبدال — كل حد بمرجع كوده واختباره (أُنشئ في المجموعة ٨ من برنامج المعالجة الرباعية تسديدًا لمكتشف STR-014) |
 | 23A | `docs/research/accounting-reference-review-v2.md` | SUPPORTING / REFERENCE REVIEW | دليل حي ومصدري لـAccounting ومصفوفة نقل مقيّدة إلى مبادئ تجربة Micro، لا كود أو هوية أو نموذج مالي |
 | 23B | `docs/product/capability-evolution-roadmap-v1.md` | CURRENT / PRODUCT ROADMAP | خارطة مرحلية للصورة المالية العامة وجدول المواعيد والقدرات المؤجلة واعتمادياتها وبوابات قرارها |
 | 23C | `docs/implementation/multi-activity-expansion-roadmap-v1.md` | CURRENT / ROADMAP | بوابات التوسع إلى Profiles والمشاريع المختلطة بعد G15/G16 |
