@@ -7,12 +7,6 @@ const moneyFormatter = new Intl.NumberFormat("en-US", {
   useGrouping: true,
 });
 const integerFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0, useGrouping: true });
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  timeZone: ammanTimeZone,
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: ammanTimeZone,
   year: "numeric",
@@ -122,13 +116,12 @@ export function formatMonthLabel(value: string) {
   return `${value.slice(5)}/${value.slice(0, 4)}`;
 }
 
-export function localDateInAmman(value: Date | string = new Date()) {
-  const parsed = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(parsed.valueOf())) throw new Error("Invalid instant");
-  const parts = dateFormatter.formatToParts(parsed);
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
-  return `${part("year")}-${part("month")}-${part("day")}`;
-}
+/* المجموعة ٩ (STR-031): وقت الأعمال يعيش في وحدة النطاق المشتركة
+ * (`domain/shared/businessTime`) — طبقة العرض تعيد التصدير فقط لتوافق
+ * مستورديها الحاليين ولا تملك المنطق بعد اليوم؛ المنطق نفسه حرفيًا كما
+ * كان (يثبته توصيف المجموعة ٩ بمتجهات اللحظات الثابتة). */
+import { localDateInAmman } from "@micro-domain/shared/index.js";
+export { localDateInAmman };
 
 export function formatTime(value: string | null | undefined) {
   return value && /^\d{2}:\d{2}$/.test(value) ? value : null;
