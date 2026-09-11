@@ -44,7 +44,11 @@ export const localExportFormat = "micro-prototype-local-export";
  * بلا بصمة، والزوجان القديمان كلها تبقى في قائمة الاستيراد المسموحة. */
 export const localExportVersion = 27;
 export const localSecurityId = "local-security";
-export type FormDraftKind = "asset" | "loan" | "supplier_purchase" | "direct_sale" | "inventory_movement";
+/* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
+ * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
+ * الإعداد (مهاجرة من مفتاحها القديم). كلاهما عابر بلا أثر مالي كما إخوتهما. */
+export type FormDraftKind =
+  "asset" | "loan" | "supplier_purchase" | "direct_sale" | "inventory_movement" | "finance_event" | "setup";
 export type FormDraftEnvelope = {
   /** `${formKind}:${scopeId ?? "new"}` — مسودة واحدة لكل شاشة لكل نطاق. */
   id: string;
@@ -593,6 +597,11 @@ export interface PrototypeLocalStore {
   getFormDraft(id: string): Promise<StorageResult<FormDraftEnvelope | null>>;
   saveFormDraft(draft: FormDraftEnvelope): Promise<StorageResult<FormDraftEnvelope>>;
   deleteFormDraft(id: string): Promise<StorageResult<null>>;
+  /* المجموعة ٥ (التحصين الكامل): تعداد المسودات العابرة ومسحها الذرّي —
+   * للسياسة المعلنة في إعادة التعيين ولملاحظة الاستيراد الصادقة؛ المخزن
+   * نفسه يبقى خارج اللقطة والتصدير كما كان. */
+  listFormDrafts(): Promise<StorageResult<readonly FormDraftEnvelope[]>>;
+  clearFormDrafts(): Promise<StorageResult<null>>;
   /* المجموعة ٥ (القفل المحلي): سجل أمان واحد بمعرّف ثابت — خارج اللقطة والتصدير
    * والأسرار؛ تخزين الرمز نفسه ممنوع، البصمة فقط. */
   getLocalSecurity(): Promise<StorageResult<LocalSecurityRecord | null>>;

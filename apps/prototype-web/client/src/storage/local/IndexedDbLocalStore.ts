@@ -834,6 +834,29 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   deleteFormDraft(id: string) {
     return deleteOne(formDraftStore, id);
   }
+  /* المجموعة ٥ (التحصين الكامل): تعداد المسودات العابرة (الأحدث أولًا) ومسحها
+   * كاملًا في معاملة واحدة ذرّية — سياسة إعادة التعيين المعلنة. */
+  listFormDrafts() {
+    return listAll<FormDraftEnvelope>(formDraftStore, (left, right) =>
+      right.updatedAt.localeCompare(left.updatedAt),
+    );
+  }
+  async clearFormDrafts(): Promise<StorageResult<null>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(formDraftStore, "readwrite");
+        const request = transaction.objectStore(formDraftStore).clear();
+        request.onerror = () => resolve(failure(request.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.oncomplete = () => {
+          resolve({ ok: true, value: null });
+        };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   getLocalSecurity() {
     return readOne<LocalSecurityRecord>(securityStore, localSecurityId);
   }

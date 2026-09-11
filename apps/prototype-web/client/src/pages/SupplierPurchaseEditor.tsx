@@ -482,7 +482,11 @@ export default function SupplierPurchaseEditor() {
           onDiscard={purchaseDraft.discardDraft}
         />
       ) : null}
-      {isNew && purchaseDraft.state.phase === "drafting" && purchaseDraft.state.lastSavedAt ? (
+      {isNew && purchaseDraft.state.phase === "drafting" && purchaseDraft.state.saveFailed ? (
+        <p className="micro-field-error" role="alert">
+          تعذر حفظ المسودة محليًا — قيمك أمامك كما هي ولم يُسجّل أي شراء؛ أكمل الكتابة أو الحفظ النهائي.
+        </p>
+      ) : isNew && purchaseDraft.state.phase === "drafting" && purchaseDraft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
           مسودتك محفوظة محليًا — آخر حفظ{" "}
           <bdi dir="ltr">{formatLocalDate(localDateInAmman(purchaseDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل

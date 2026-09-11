@@ -59,6 +59,54 @@ describe("form draft service (المجموعة ٥ — عقد ٣٦)", () => {
     expect(read.value).toBeNull();
   });
 
+  /* المجموعة ٥ (التحصين الكامل): كل الأنواع العابرة تعبر الحد نفسه — الأنواع
+   * الأصلية ونوعا محرر الحدث المالي والإعداد المهاجران حديثًا. */
+  it.each([
+    "asset",
+    "loan",
+    "supplier_purchase",
+    "direct_sale",
+    "inventory_movement",
+    "finance_event",
+    "setup",
+  ] as const)("kind %s loads, saves, restores, and clears through the one boundary", async kind => {
+    const store = new MemoryLocalStore();
+    const drafts = new FormDraftService(store, () => NOW);
+    const scope = kind === "finance_event" ? "operating_expense_cash" : null;
+    const saved = await drafts.save(kind, scope, { marker: "قيمة" });
+    expect(saved.ok).toBe(true);
+    const read = await drafts.read(kind, scope);
+    expect(read.ok && (read.value?.values as { marker?: string }).marker).toBe("قيمة");
+    await drafts.discard(kind, scope);
+    const cleared = await drafts.read(kind, scope);
+    expect(cleared.ok && cleared.value).toBeNull();
+  });
+
+  it("oversized values are rejected with a typed error and never written", async () => {
+    const store = new MemoryLocalStore();
+    const drafts = new FormDraftService(store, () => NOW);
+    const oversized = { blob: "ن".repeat(40_000) };
+    const result = await drafts.save("asset", "new", oversized);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("too_large");
+    const read = await drafts.read("asset", "new");
+    expect(read.ok && read.value).toBeNull();
+  });
+
+  it("list enumerates and clearAll wipes every ephemeral draft atomically", async () => {
+    const store = new MemoryLocalStore();
+    const drafts = new FormDraftService(store, () => NOW);
+    await drafts.save("asset", "new", { a: 1 });
+    await drafts.save("finance_event", "loss_non_cash", { b: 2 });
+    await drafts.save("setup", null, { c: 3 });
+    const listed = await drafts.list();
+    expect(listed.ok && listed.value).toHaveLength(3);
+    const cleared = await drafts.clearAll();
+    expect(cleared.ok).toBe(true);
+    const after = await drafts.list();
+    expect(after.ok && after.value).toHaveLength(0);
+  });
+
   it("drafts live outside the snapshot — restore never carries them", async () => {
     const store = new MemoryLocalStore();
     const drafts = new FormDraftService(store, () => NOW);

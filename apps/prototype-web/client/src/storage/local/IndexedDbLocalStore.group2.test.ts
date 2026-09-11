@@ -324,3 +324,59 @@ describe("form-drafts and local-security survive reset/import (LOW-003)", () => 
     expect(securityRead.value).not.toBeNull();
   });
 });
+
+/* ─── المجموعة ٥ (التحصين الكامل): تعداد ومسح المسودات العابرة — تطابق
+ * المحوّلين على عقد الحد الموحّد (الأحدث أولًا، ومسح ذرّي واحد لا يهدم
+ * سجل القفل ولا يلمس اللقطة المالية). ─── */
+
+const draftLater: FormDraftEnvelope = {
+  id: "finance_event:loss_non_cash",
+  formKind: "finance_event",
+  scopeId: "loss_non_cash",
+  valuesVersion: 1,
+  values: { note: "مسودة متأخرة" },
+  createdAt: TS,
+  updatedAt: "2026-09-09T10:00:00.000Z",
+};
+
+describe("listFormDrafts and clearFormDrafts parity (group 5 unified boundary)", () => {
+  it("IndexedDbLocalStore lists newest-first and clears atomically without touching security", async () => {
+    const store = new IndexedDbLocalStore();
+    await store.saveFormDraft(draft);
+    await store.saveFormDraft(draftLater);
+    await store.saveLocalSecurity(security);
+    const listed = await store.listFormDrafts();
+    if (!listed.ok) throw new Error(listed.message);
+    expect(listed.value).toHaveLength(2);
+    expect(listed.value[0]?.id).toBe("finance_event:loss_non_cash");
+    expect(listed.value[1]?.id).toBe("asset:new");
+    const cleared = await store.clearFormDrafts();
+    expect(cleared.ok).toBe(true);
+    const after = await store.listFormDrafts();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value).toHaveLength(0);
+    /* المسح لا يمس سجل القفل أبدًا — الحماية تبقى بعد إعادة التعيين. */
+    const securityRead = await store.getLocalSecurity();
+    if (!securityRead.ok) throw new Error(securityRead.message);
+    expect(securityRead.value?.pinHash).toBe("0123456789abcdef");
+  });
+
+  it("MemoryLocalStore matches the same contract", async () => {
+    const store = new MemoryLocalStore();
+    await store.saveFormDraft(draft);
+    await store.saveFormDraft(draftLater);
+    await store.saveLocalSecurity(security);
+    const listed = await store.listFormDrafts();
+    if (!listed.ok) throw new Error(listed.message);
+    expect(listed.value).toHaveLength(2);
+    expect(listed.value[0]?.id).toBe("finance_event:loss_non_cash");
+    const cleared = await store.clearFormDrafts();
+    expect(cleared.ok).toBe(true);
+    const after = await store.listFormDrafts();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value).toHaveLength(0);
+    const securityRead = await store.getLocalSecurity();
+    if (!securityRead.ok) throw new Error(securityRead.message);
+    expect(securityRead.value?.pinHash).toBe("0123456789abcdef");
+  });
+});

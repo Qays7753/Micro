@@ -7,6 +7,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { FormDraftService } from "@/application/drafts/formDraftService";
+import { legacyFinanceDraftKey } from "@/application/drafts/legacyFormDraftMigration";
+import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
+import type { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import FinancialEventEditor from "./FinancialEventEditor";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
@@ -72,8 +76,18 @@ const wallets = [
   { id: "bank", name: "حساب البنك", kind: "bank_account" },
 ];
 
-function renderEditor(overrides: { record?: ReturnType<typeof vi.fn>; wallets?: typeof wallets } = {}) {
+function renderEditor(
+  overrides: {
+    record?: ReturnType<typeof vi.fn>;
+    wallets?: typeof wallets;
+    store?: MemoryLocalStore;
+  } = {},
+) {
   const record = overrides.record ?? vi.fn();
+  /* المجموعة ٥: مسودات النموذج عبر حد المسودات الموحّد
+   * فوق مخزن حقيقي يفحصه الاختبار بإعادة القراءة —
+   * لا كبأرات تحالف المخزن فتخبط الأدلة. */
+  const store = overrides.store ?? createFormDraftHarness().store;
   mockedUsePrototypeServices.mockReturnValue({
     projectFinance: {
       record,
@@ -90,13 +104,14 @@ function renderEditor(overrides: { record?: ReturnType<typeof vi.fn>; wallets?: 
     },
     dataVersion: 0,
     notifyDataChanged: vi.fn(),
+    formDrafts: new FormDraftService(store),
   } as unknown as ReturnType<typeof usePrototypeServices>);
   render(
     <UnsavedChangesProvider navigate={() => undefined}>
       <FinancialEventEditor />
     </UnsavedChangesProvider>,
   );
-  return { record };
+  return { record, store };
 }
 
 describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
@@ -177,6 +192,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
       },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
+      formDrafts: new FormDraftService(createFormDraftHarness().store),
     } as unknown as ReturnType<typeof usePrototypeServices>);
     render(
       <UnsavedChangesProvider navigate={() => undefined}>
@@ -215,51 +231,80 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(screen.getByText(/الأصول طويلة الاستخدام والقروض الشخصية لا تُسجَّل من هنا/)).toBeTruthy();
   });
 
-  it("persists a draft, offers restore on reopen, and never auto-commits", async () => {
-    const first = renderEditor({});
+  it("persists a draft through the unified boundary, offers restore on reopen, and never auto-commits", async () => {
+    /* المجموعة ٥ (التحصين الكامل): مخزن واحد يعيش عبر الإعادات —
+     * لا كتابة مباشرة في تخزين الصفحة إطلاقًا. */
+    const store = createFormDraftHarness().store;
+    const first = renderEditor({ store });
     void first;
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
     await user.type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "مسودة");
-    const draftKey = "micro.finance-draft.operating_expense_cash.v1";
-    await waitFor(() => expect(window.localStorage.getItem(draftKey)).not.toBeNull());
+    await waitFor(async () => {
+      const saved = await store.getFormDraft("finance_event:operating_expense_cash");
+      if (!saved.ok) throw new Error("read failed");
+      expect(saved.value).not.toBeNull();
+    });
+    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).toBeNull();
     cleanup();
     /* إعادة الفتح: عرض الاسترجاع — لا تحويل سجل تلقائي أبدًا. */
-    const { record } = renderEditor({});
+    const { record } = renderEditor({ store });
     expect(await screen.findByText(/مسودة غير محفوظة من إدخال سابق — ترجّعها؟/)).toBeTruthy();
     expect(record).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
     expect((screen.getByLabelText("المبلغ بالدينار الأردني") as HTMLInputElement).value).toContain("30");
-    /* الاسترجاع يُعيد القيم والوسخ معًا — المسودة تمثل المدخل الحي فتبقى محفوظة
-     * حتى الحفظ أو التجاهل؛ لا تُحذف لمجرد الاسترجاع (نمط Zman نفسه). */
-    expect(window.localStorage.getItem(draftKey)).not.toBeNull();
     const savedRecord = vi.fn().mockResolvedValueOnce({ ok: true, value: storedEvent(3000) });
     cleanup();
-    renderEditor({ record: savedRecord });
+    renderEditor({ record: savedRecord, store });
     expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(savedRecord).toHaveBeenCalledOnce());
-    expect(window.localStorage.getItem(draftKey)).toBeNull();
+    const cleared = await store.getFormDraft("finance_event:operating_expense_cash");
+    expect(cleared.ok && cleared.value).toBeNull();
   });
 
-  it("discard clears the draft; a successful save clears it too", async () => {
+  it("discard clears the draft; a successful save clears it, and a failed save keeps it", async () => {
+    const store = createFormDraftHarness().store;
     const user = userEvent.setup();
-    renderEditor({});
+    renderEditor({ store });
     await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
-    const draftKey = "micro.finance-draft.operating_expense_cash.v1";
-    await waitFor(() => expect(window.localStorage.getItem(draftKey)).not.toBeNull());
+    await waitFor(async () => {
+      const saved = await store.getFormDraft("finance_event:operating_expense_cash");
+      expect(saved.ok && saved.value).not.toBeNull();
+    });
     cleanup();
-    const { record } = renderEditor({});
+    const { record } = renderEditor({ store });
     record.mockResolvedValueOnce({ ok: true, value: storedEvent(3000) });
     expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "تجاهلها" }));
-    expect(window.localStorage.getItem(draftKey)).toBeNull();
+    await waitFor(async () => {
+      const cleared = await store.getFormDraft("finance_event:operating_expense_cash");
+      expect(cleared.ok && cleared.value).toBeNull();
+    });
     await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
     await userEvent.setup().type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "حفظ");
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
-    expect(window.localStorage.getItem(draftKey)).toBeNull();
+    await waitFor(async () => {
+      const cleared = await store.getFormDraft("finance_event:operating_expense_cash");
+      expect(cleared.ok && cleared.value).toBeNull();
+    });
+  });
+
+  it("a failed financial save never clears the ephemeral draft (clearing is only after success)", async () => {
+    /* المجموعة ٥: مسح المسودة مشروط بنجاح الحفظ المالي
+     * — فشله يبقيها لأنّ قيم المالك ما زالت أمامه ولم تصل السجل. */
+    const store = createFormDraftHarness().store;
+    const user = userEvent.setup();
+    const { record } = renderEditor({ store });
+    record.mockResolvedValueOnce({ ok: false, code: "storage_error", message: "تعذر الحفظ على الجهاز." });
+    await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
+    await user.type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "حفظ فاشل");
+    await user.click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(record).toHaveBeenCalledOnce());
+    const kept = await store.getFormDraft("finance_event:operating_expense_cash");
+    expect(kept.ok && kept.value).not.toBeNull();
   });
 
   /* Conflict I (AV-09): مسودة تالفة في التخزين المحلي لا تكسر النموذج ولا تُحقن
@@ -305,14 +350,68 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(window.localStorage.getItem(draftKey)).toBeNull();
   });
 
-  it("silently ignores a draft with nothing recoverable (garbage fields only)", async () => {
-    const draftKey = "micro.finance-draft.operating_expense_cash.v1";
-    window.localStorage.setItem(draftKey, JSON.stringify({ amountMinor: [], date: 99, note: 42 }));
-    renderEditor({});
-    /* لا عرض استرجاع فارغ — المحرر يفتح نظيفًا، والبقايا غير القابلة للترجيع
-     * تُنظّف من التخزين عند أول كتابة نظيفة. */
+  it("a garbage legacy draft is rejected without an offer or a crash, and is never silently converted", async () => {
+    /* المجموعة ٥: المعطوب الغير القابل للترجيع يُرفض محفوظًا
+     * في مكانه (لا حذف لما لا يُقرأ) — لا عرض فارغًا ولا حدث مالي
+     * ولا مسودة جديدة في الحد الموحّد. */
+    window.localStorage.setItem(
+      "micro.finance-draft.operating_expense_cash.v1",
+      JSON.stringify({ amountMinor: [], date: 99, note: 42 }),
+    );
+    const store = createFormDraftHarness().store;
+    const { record } = renderEditor({ store });
     await waitFor(() => expect(screen.getByLabelText("المبلغ بالدينار الأردني")).toBeTruthy());
     expect(screen.queryByText(/ترجّعها؟/)).toBeNull();
-    await waitFor(() => expect(window.localStorage.getItem(draftKey)).toBeNull());
+    expect(record).not.toHaveBeenCalled();
+    const notMigrated = await store.getFormDraft("finance_event:operating_expense_cash");
+    expect(notMigrated.ok && notMigrated.value).toBeNull();
+    /* المفتاح القديم بقى في مكانه خاملًا — سياسة عدم الحذف الصامت لما لا يُقرأ. */
+    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).not.toBeNull();
+  });
+
+  it("a valid legacy page draft migrates exactly once and preserves its values — with no page storage writes afterward", async () => {
+    /* المجموعة ٥: الترحيل الوحيد — اكتب ← تحقق ← احذف؛
+     * المفتاح يزول مرة واحدة والقيم تعود في عرض
+     * الاسترجاع من الحد الموحّد لا من تخزين الصفحة. */
+    window.localStorage.setItem(
+      "micro.finance-draft.operating_expense_cash.v1",
+      JSON.stringify({
+        amountMinor: 3000,
+        sharedTotalAmountMinor: 0,
+        sharedPercentage: 0,
+        date: "2026-09-01",
+        note: "مسودة قديمة",
+        counterparty: "مورد",
+        relationship: "project",
+        behavior: "fixed",
+        purpose: "period",
+        knowledge: "known",
+        sharedMode: "fixed",
+        sharedNote: "",
+        categoryLabel: "تغليف",
+        relatedEventId: "",
+        walletId: "",
+      }),
+    );
+    const store = createFormDraftHarness().store;
+    const { record } = renderEditor({ store });
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+    const migrated = await store.getFormDraft("finance_event:operating_expense_cash");
+    expect(migrated.ok).toBe(true);
+    if (!migrated.ok) throw new Error("read failed");
+    expect(migrated.value).not.toBeNull();
+    expect((migrated.value?.values as { note?: string }).note).toBe("مسودة قديمة");
+    expect((migrated.value?.values as { amountMinor?: number }).amountMinor).toBe(3000);
+    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).toBeNull();
+    /* إعادة الفتح: حتمية التكرار — المفتاح غائب والعرض
+     * يأتي من الحد في قيمة واحدة لا تنسخ. */
+    cleanup();
+    renderEditor({ store });
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    const stillOne = await store.getFormDraft("finance_event:operating_expense_cash");
+    if (!stillOne.ok) throw new Error("read failed");
+    expect((stillOne.value?.values as { note?: string }).note).toBe("مسودة قديمة");
+    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).toBeNull();
   });
 });

@@ -8,16 +8,23 @@ import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import {
+  browserLegacyFormDraftStorage,
+  LEGACY_SETUP_DRAFT_KEY,
+  migrateLegacyFormDraft,
+} from "@/application/drafts/legacyFormDraftMigration";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { localDateInAmman } from "@/presentation/formatters";
 
 type Step = 1 | 2 | 3;
 type OpeningChoice = "known" | "unknown" | "zero";
 
-/* U-003: مسودة الإعداد تبقى محفوظة محليًا أثناء الكتابة — بلا أي حدث مالي حتى
- * تأكيد المالك. استعادة آمنة: بيانات معطوبة تُتجاهل بلا انفجار، والمسودة
- * تُمسح بعد الإتمام أو بإعادة تعيين صريحة. */
-const SETUP_DRAFT_KEY = "micro.setup-draft.v1";
+/* U-003: مسودة الإعداد مقيمة محليًا أثناء الكتابة — بلا أي حدث مالي
+ * حتى تأكيد المالك؛ استرجاع آمن: بيانات معطوبة تُتجاهل بلا انفجار؛ والمسودة تمحى بعد
+ * الإتمام أو إعادة التعيين الصريحة. */
+/* المجموعة ٥ (التحصين الكامل): المسودة داخل حد المسودات العابرة
+ * الموحّد (نوع setup) — مفتاحها القديم يُرحّل مرة واحدة (اكتب ← تحقق ← احذف)،
+ * والاستعادة فعلٌ صريح من المالك — لا تطبيق صامت عند الفتح بعد اليوم. */
 type SetupDraft = {
   step: Step;
   activityName: string;
@@ -26,84 +33,115 @@ type SetupDraft = {
   openingMinor: number;
   savedAt: string;
 };
-function readSetupDraft(): SetupDraft | null {
-  try {
-    const raw = globalThis.localStorage?.getItem(SETUP_DRAFT_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== "object" || parsed === null) return null;
-    const candidate = parsed as Partial<SetupDraft>;
-    const step: Step = candidate.step === 2 || candidate.step === 3 ? candidate.step : 1;
-    if (
-      typeof candidate.activityName !== "string" ||
-      typeof candidate.walletName !== "string" ||
-      (candidate.openingChoice !== null &&
-        candidate.openingChoice !== undefined &&
-        candidate.openingChoice !== "known" &&
-        candidate.openingChoice !== "unknown" &&
-        candidate.openingChoice !== "zero") ||
-      (candidate.openingMinor !== undefined &&
-        (typeof candidate.openingMinor !== "number" || !Number.isSafeInteger(candidate.openingMinor)))
-    )
-      return null;
-    return {
-      step,
-      activityName: candidate.activityName,
-      walletName: candidate.walletName || "الدرج",
-      openingChoice:
-        candidate.openingChoice === "known" ||
-        candidate.openingChoice === "unknown" ||
-        candidate.openingChoice === "zero"
-          ? candidate.openingChoice
-          : null,
-      openingMinor: typeof candidate.openingMinor === "number" ? candidate.openingMinor : 0,
-      savedAt: typeof candidate.savedAt === "string" ? candidate.savedAt : new Date().toISOString(),
-    };
-  } catch {
-    /* بيانات معطوبة أو بيئة بلا تخزين — تُتجاهل بلا انفجال. */
+/* الإكراه الدفاعي نفسه (قواعد U-003) — أي مصدر للقيم
+ * (مفتاح قديم مرحّل أو قيم مقروءة من الحد) يمر من هنا لا مباشرة. */
+function coerceSetupDraft(raw: unknown): SetupDraft | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const candidate = raw as Partial<SetupDraft>;
+  const step: Step = candidate.step === 2 || candidate.step === 3 ? candidate.step : 1;
+  if (
+    typeof candidate.activityName !== "string" ||
+    typeof candidate.walletName !== "string" ||
+    (candidate.openingChoice !== null &&
+      candidate.openingChoice !== undefined &&
+      candidate.openingChoice !== "known" &&
+      candidate.openingChoice !== "unknown" &&
+      candidate.openingChoice !== "zero") ||
+    (candidate.openingMinor !== undefined &&
+      (typeof candidate.openingMinor !== "number" || !Number.isSafeInteger(candidate.openingMinor)))
+  )
     return null;
-  }
+  return {
+    step,
+    activityName: candidate.activityName,
+    walletName: candidate.walletName || "الدرج",
+    openingChoice:
+      candidate.openingChoice === "known" ||
+      candidate.openingChoice === "unknown" ||
+      candidate.openingChoice === "zero"
+        ? candidate.openingChoice
+        : null,
+    openingMinor: typeof candidate.openingMinor === "number" ? candidate.openingMinor : 0,
+    savedAt: typeof candidate.savedAt === "string" ? candidate.savedAt : new Date().toISOString(),
+  };
 }
-function writeSetupDraft(draft: SetupDraft | null) {
-  try {
-    if (draft === null) globalThis.localStorage?.removeItem(SETUP_DRAFT_KEY);
-    else globalThis.localStorage?.setItem(SETUP_DRAFT_KEY, JSON.stringify(draft));
-  } catch {
-    /* لا تخزين متاح: تُفقد المسودة عند الانقطاع لكن لا يتعطل الإعداد. */
-  }
-}
+const hasRealSetupInput = (draft: Pick<SetupDraft, "step" | "activityName" | "openingChoice">): boolean =>
+  draft.step !== 1 || draft.activityName.trim() !== "" || draft.openingChoice !== null;
 
 export default function Setup() {
   const [, navigate] = useLocation();
-  const { profiles, cashContinuity, notifyDataChanged } = usePrototypeServices();
-  /* U-003: الاستعادة مرة واحدة عند الفتح — القيم المُدخلة سابقًا تعود كما كانت. */
-  const [restoredDraft] = useState<SetupDraft | null>(() => readSetupDraft());
-  const [step, setStep] = useState<Step>(() => restoredDraft?.step ?? 1);
-  const [activityName, setActivityName] = useState(() => restoredDraft?.activityName ?? "");
-  const [walletName, setWalletName] = useState(() => restoredDraft?.walletName ?? "الدرج");
-  const [openingChoice, setOpeningChoice] = useState<OpeningChoice | null>(
-    () => restoredDraft?.openingChoice ?? null,
-  );
-  const [openingMinor, setOpeningMinor] = useState(() => restoredDraft?.openingMinor ?? 0);
+  const { profiles, cashContinuity, notifyDataChanged, formDrafts } = usePrototypeServices();
+  const [step, setStep] = useState<Step>(1);
+  const [activityName, setActivityName] = useState("");
+  const [walletName, setWalletName] = useState("الدرج");
+  const [openingChoice, setOpeningChoice] = useState<OpeningChoice | null>(null);
+  const [openingMinor, setOpeningMinor] = useState(0);
   const [openingValid, setOpeningValid] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [draftNotice, setDraftNotice] = useState<string | null>(() =>
-    restoredDraft && (restoredDraft.activityName.trim() || restoredDraft.openingChoice)
-      ? "استعدنا مسودة إعدادك من آخر مرة — أكمل من حيث توقفت؛ لم يُسجّل شيء بعد."
-      : null,
-  );
-  /* U-003: كل تغيير يحفظ المسودة فورًا — كتابة صغيرة محلية بلا أثر مالي. */
+  /* U-003 + المجموعة ٥: القراءة عند الفتح تعرض استعادة صريحة — لا
+   * تطبيق للقيم إلا بفعل المالك؛ ومفتاح الصفحة
+   * القديم يُرحّل مرة واحدة قبل القراءة. */
+  const [draftOffer, setDraftOffer] = useState<SetupDraft | null>(null);
+  const [draftSaveFailed, setDraftSaveFailed] = useState(false);
   useEffect(() => {
-    writeSetupDraft({
+    let active = true;
+    const storage = browserLegacyFormDraftStorage();
+    void (async () => {
+      if (storage !== null) {
+        await migrateLegacyFormDraft({
+          service: formDrafts,
+          storage,
+          legacyKey: LEGACY_SETUP_DRAFT_KEY,
+          formKind: "setup",
+          scopeId: null,
+          parse: raw => {
+            const coerced = coerceSetupDraft(raw);
+            return coerced === null ? null : { ...coerced };
+          },
+        });
+      }
+      if (!active) return;
+      const result = await formDrafts.read("setup", null);
+      if (!active || !result.ok || result.value === null) return;
+      const coerced = coerceSetupDraft(result.value.values);
+      if (coerced !== null && hasRealSetupInput(coerced)) setDraftOffer(coerced);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [formDrafts]);
+  /* U-003: كل تغير حقيقي يحفظ المسودة فورًا — كتابة صغيرة محلية بلا أثر
+   * مالي؛ المسودة الفارغة من الإدخال الحقيقي لا تُنشأ أصلًا (وطلم
+   * الواجهة) والمسح يستقر إلى مصيره الصريح وحده. */
+  const offerPending = draftOffer !== null;
+  useEffect(() => {
+    if (offerPending) return;
+    const values = {
       step,
       activityName,
       walletName,
       openingChoice,
       openingMinor,
       savedAt: new Date().toISOString(),
+    } satisfies SetupDraft;
+    const real = hasRealSetupInput(values);
+    if (!real) {
+      setDraftSaveFailed(false);
+      void formDrafts.discard("setup", null);
+      return;
+    }
+    void formDrafts.save("setup", null, { ...values }).then(result => {
+      setDraftSaveFailed(result.ok === false && result.code !== "conflict");
     });
-  }, [step, activityName, walletName, openingChoice, openingMinor]);
+  }, [step, activityName, walletName, openingChoice, openingMinor, offerPending, formDrafts]);
+  /* إدخال جديد قبل حل عرض الاستعادة: الإدخال الجديد هو
+   * الأساس — يُخفى العرض وتُدار المسودة بقيم المستخدم (نفس
+   * دلالة محرر الأحداث). */
+  useEffect(() => {
+    if (!offerPending) return;
+    if (step !== 1 || activityName.trim() !== "" || openingChoice !== null) setDraftOffer(null);
+  }, [step, activityName, openingChoice, offerPending]);
 
   async function submit() {
     setIsSaving(true);
@@ -139,7 +177,7 @@ export default function Setup() {
     notifyDataChanged();
     setIsSaving(false);
     /* U-003: الإتمام الناجح يمسح المسودة — لا تعود بعد أن صارت بيانات فعلية. */
-    writeSetupDraft(null);
+    void formDrafts.discard("setup", null);
     /* §2.5: بعد الحد الأدنى، صفحة الأساس للعمق الاختياري — ثم الرئيسية بفعل واضح. */
     navigate("/foundation", { replace: true });
   }
@@ -175,26 +213,41 @@ export default function Setup() {
           <small>«ما بعرف» تبقى حالة معلنة — لا تُعرض صفرًا في أي شاشة.</small>
         </div>
       </div>
-      {/* U-003: إشعار الاستعادة مع إعادة تعيين صريحة عند الطلب. */}
-      {draftNotice ? (
+      {/* U-003 + المجموعة ٥: عرض استعادة صريح — لا تطبيق صامت
+          للقيم عند الفتح؛ الاستعادة أو البدء من جديد بفعل معلن. */}
+      {draftOffer ? (
         <p className="micro-save-note" role="status">
-          {draftNotice}{" "}
+          عندك مسودة إعداد من آخر مرة ولم يُسجّل شيء بعد — استعدها لتكمل من حيث توقفت، أو ابدأ من جديد.{" "}
           <button
             className="micro-text-action"
             type="button"
             onClick={() => {
-              writeSetupDraft(null);
-              setDraftNotice(null);
-              setStep(1);
-              setActivityName("");
-              setWalletName("الدرج");
-              setOpeningChoice(null);
-              setOpeningMinor(0);
+              setStep(draftOffer.step);
+              setActivityName(draftOffer.activityName);
+              setWalletName(draftOffer.walletName);
+              setOpeningChoice(draftOffer.openingChoice);
+              setOpeningMinor(draftOffer.openingMinor);
+              setDraftOffer(null);
               setError(null);
+            }}
+          >
+            استعدها وأكمل
+          </button>{" "}
+          <button
+            className="micro-text-action"
+            type="button"
+            onClick={() => {
+              void formDrafts.discard("setup", null);
+              setDraftOffer(null);
             }}
           >
             ابدأ الإعداد من جديد
           </button>
+        </p>
+      ) : null}
+      {draftSaveFailed ? (
+        <p className="micro-field-error" role="alert">
+          تعذر حفظ مسودة الإعداد محليًا — قيمك أمامك كما هي ولم يُسجّل أي شيء؛ أكمل ثم اضغط الحفظ.
         </p>
       ) : null}
       <form

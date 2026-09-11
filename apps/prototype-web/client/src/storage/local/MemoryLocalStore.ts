@@ -133,6 +133,19 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.formDrafts.delete(id);
     return { ok: true, value: null };
   }
+  /* المجموعة ٥ (التحصين الكامل): تعداد ومسح المسودات العابرة — تُعاد نسخة
+   * مستقلة كما في كل قراءة فلا يتسرب كائن حي إلى المستدعي. */
+  async listFormDrafts(): Promise<StorageResult<readonly FormDraftEnvelope[]>> {
+    /* الأحدث أولًا — مطابقة محوّل IndexedDB حرفيًا (updatedAt تنازليًا). */
+    const listed = Array.from(this.formDrafts.values(), draft => clone(draft)).sort((left, right) =>
+      right.updatedAt.localeCompare(left.updatedAt),
+    );
+    return { ok: true, value: listed };
+  }
+  async clearFormDrafts(): Promise<StorageResult<null>> {
+    this.formDrafts.clear();
+    return { ok: true, value: null };
+  }
   async getLocalSecurity(): Promise<StorageResult<LocalSecurityRecord | null>> {
     return { ok: true, value: this.security ? clone(this.security) : null };
   }

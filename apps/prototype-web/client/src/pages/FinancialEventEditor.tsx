@@ -22,6 +22,11 @@ import {
   deriveExpenseCategorySuggestions,
   normalizeCategoryLabelInput,
 } from "@/application/finance/expenseCategorySuggestions";
+import {
+  browserLegacyFormDraftStorage,
+  legacyFinanceDraftKey,
+  migrateLegacyFormDraft,
+} from "@/application/drafts/legacyFormDraftMigration";
 import type { SettleablePayable } from "@/application/finance/projectFinancialService";
 import type {
   FinancialEventType,
@@ -139,7 +144,6 @@ type EditorDraft = {
   relatedEventId: string;
   walletId: string;
 };
-const draftKeyFor = (type: GuidedFinancialEventType): string => `micro.finance-draft.${type}.v1`;
 
 /* Conflict I (AV-09): إكراه دفاعي لمسودة محلية تالفة — القيم غير الصالحة تُستبدل
  * بقيم آمنة بدل أن تكسر النموذج أو تصل إلى الحفظ؛ التاريخ المشوّه يرجع لليوم،
@@ -191,7 +195,8 @@ export default function FinancialEventEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { dataVersion, projectFinance, cashContinuity, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, projectFinance, cashContinuity, notifyDataChanged, formDrafts } =
+    usePrototypeServices();
   const type = types.has(rawType as GuidedFinancialEventType) ? (rawType as GuidedFinancialEventType) : null;
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
@@ -228,9 +233,16 @@ export default function FinancialEventEditor() {
    * ظاهرًا قبل أي انتقال مع وصلة للسجل، لا كذب ولا تجاهل (SA-3). */
   const [savedNote, setSavedNote] = useState<{ eventId: string; message: string } | null>(null);
   const savedRef = useRef(false);
+  /* المجموعة ٥: المسح يجي فقط بعد وسخ حقيقي ثم عودة إلى
+   * النقاء — لا مسح عند الفتح (يحفظ المسودة لعرض الاسترجاع لا يمسحها) ولا سباق
+   * لقراءة الفتح والترحيل. */
+  const wasDirtyRef = useRef(false);
   const idempotencyKey = useRef(`finance-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* المجموعة ١ (مسودة محفوظة): عرض استرجاع عند الفتح فقط — وضع الإنشاء حصريًا. */
   const [draftOffer, setDraftOffer] = useState<EditorDraft | null>(null);
+  /* المجموعة ٥ (التحصين الكامل): فشل حفظ المسودة ظاهر لا صامت — القيم تبقى
+   * أمام المستخدم ولا أي أثر مالي يتغير. */
+  const [draftSaveFailed, setDraftSaveFailed] = useState(false);
 
   useEffect(() => {
     projectFinance.listSettleablePayables().then(result => {
@@ -272,23 +284,39 @@ export default function FinancialEventEditor() {
       active = false;
     };
   }, [cashContinuity, type, dataVersion]);
-  /* المجموعة ١ (مسودة محفوظة): العرض عند الفتح، والكتابة عند الوسخ فقط. */
+  /* المجموعة ٥ (التحصين الكامل): مفتاح الصفحة القديم يُرحَّل مرة واحدة عبر
+   * المهاجئ الضيق (اكتب ← تحقق ← احذف) ثم تصبح القراءة من الحد الموحّد فقط —
+   * لا وصول مباشرًا لتخزين الصفحة في الكود الطبيعي بعد اليوم. */
   useEffect(() => {
     if (!type) return;
-    const key = draftKeyFor(type);
-    try {
-      const raw = globalThis.localStorage?.getItem(key);
-      if (raw) {
-        const parsed: unknown = JSON.parse(raw);
-        /* AV-09: الإكراه الدفاعي يمنع المسودة التالفة من كسر النموذج أو حقن
-         * قيم غير آمنة — ترجيع آمن أو تجاهل صامت للمشفّر/الفارغ. */
-        const coerced = coerceEditorDraft(parsed);
-        if (coerced) setDraftOffer(coerced);
+    let active = true;
+    const storage = browserLegacyFormDraftStorage();
+    void (async () => {
+      if (storage !== null) {
+        await migrateLegacyFormDraft({
+          service: formDrafts,
+          storage,
+          legacyKey: legacyFinanceDraftKey(type),
+          formKind: "finance_event",
+          scopeId: type,
+          parse: raw => {
+            const coerced = coerceEditorDraft(raw);
+            return coerced === null ? null : { ...coerced };
+          },
+        });
       }
-    } catch {
-      /* وضع خاص أو ملف تالف: تُتجاهل المسودة بصمت. */
-    }
-  }, [type]);
+      if (!active) return;
+      const result = await formDrafts.read("finance_event", type);
+      if (!active || !result.ok || result.value === null) return;
+      /* AV-09: الإكراه الدفاعي يبقى على القيم المقروءة كما كان — القيم غير
+       * الصالحة لا تكسر النموذج ولا تصل إلى الحفظ. */
+      const coerced = coerceEditorDraft(result.value.values);
+      if (coerced) setDraftOffer(coerced);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [type, formDrafts]);
 
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة في محرر الأحداث —
    * الرجوع يمر بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ».
@@ -319,39 +347,40 @@ export default function FinancialEventEditor() {
     `${type}:${savedEpoch}`,
   );
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
-
-  /* المجموعة ١ (مسودة محفوظة): الكتابة عند الوسخ فقط — بعد تعريف الوسخ لا قبله.
-   * الحفظ الناجح يوقف الكتابة (savedRef) ويمسح المفتاح في save(). */
+  /* المجموعة ١ (مسودة محفوطة): الكتابة عند الوسخ فقط — بعد تعريف الوسخ لا قبله؛
+   * الحفظ الناجح يوقف الكتابة (savedRef) ويمسح المسودة في save().
+   * المجموعة ٥ (التحصين الكامل): الكتابة عبر الحد الموحّد — فشل الحفظ يُعلن
+   * والقيم تبقى في الذاكرة كما هي؛ التعارض يعني أن كتابة أحدث من هذه
+   * النافذة هبطت قبلها فلا يُعرض كفشل. */
   useEffect(() => {
     if (!type || savedRef.current) return;
-    const key = draftKeyFor(type);
-    try {
-      if (isDirty) {
-        globalThis.localStorage?.setItem(
-          key,
-          JSON.stringify({
-            amountMinor,
-            sharedTotalAmountMinor,
-            sharedPercentage,
-            date,
-            note,
-            counterparty,
-            relationship,
-            behavior,
-            purpose,
-            knowledge,
-            sharedMode,
-            sharedNote,
-            categoryLabel,
-            relatedEventId,
-            walletId,
-          } satisfies EditorDraft),
-        );
-      } else {
-        globalThis.localStorage?.removeItem(key);
-      }
-    } catch {
-      /* وضع خاص أو حصة ممتلئة: المسودة رفاهية لا عقبة أمام الحفظ. */
+    if (isDirty) {
+      wasDirtyRef.current = true;
+      void formDrafts
+        .save("finance_event", type, {
+          amountMinor,
+          sharedTotalAmountMinor,
+          sharedPercentage,
+          date,
+          note,
+          counterparty,
+          relationship,
+          behavior,
+          purpose,
+          knowledge,
+          sharedMode,
+          sharedNote,
+          categoryLabel,
+          relatedEventId,
+          walletId,
+        } satisfies EditorDraft)
+        .then(result => {
+          setDraftSaveFailed(result.ok === false && result.code !== "conflict");
+        });
+    } else if (wasDirtyRef.current) {
+      wasDirtyRef.current = false;
+      setDraftSaveFailed(false);
+      void formDrafts.discard("finance_event", type);
     }
   }, [
     type,
@@ -371,6 +400,7 @@ export default function FinancialEventEditor() {
     categoryLabel,
     relatedEventId,
     walletId,
+    formDrafts,
   ]);
 
   if (!type)
@@ -437,11 +467,7 @@ export default function FinancialEventEditor() {
 
   function clearDraft() {
     if (!type) return;
-    try {
-      globalThis.localStorage?.removeItem(draftKeyFor(type));
-    } catch {
-      /* تجاهل — المسودة رفاهية. */
-    }
+    void formDrafts.discard("finance_event", type);
   }
   function restoreDraft() {
     if (!draftOffer) return;
@@ -614,6 +640,11 @@ export default function FinancialEventEditor() {
               </button>
             </div>
           </div>
+        ) : null}
+        {draftSaveFailed ? (
+          <p className="micro-field-error" role="alert">
+            تعذر حفظ المسودة محليًا — قيمك أمامك كما هي ولم يُسجّل أي شيء؛ أكمل الكتابة أو اضغط الحفظ.
+          </p>
         ) : null}
         {savedNote ? (
           /* المجموعة ١ (صدق النسبة): الحدث محفوظ والمال غير موزع — النص والوصلة
