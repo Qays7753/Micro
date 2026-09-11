@@ -243,6 +243,47 @@ describe("RecurringWorkService G4-B", () => {
     expect(await store.getOrder(orders[0]!.id)).toEqual(before);
   });
 
+  it("characterizes the pre-unification quantity boundary: a stored-valid three-decimal final order degrades its allocation evidence (STR-006, Group 9)", async () => {
+    /* توصيف قبل التوحيد (المجموعة ٩): الكمية 1.001 مقبولة عند إنشاء الطلب
+     * بعقد النطاق الدقيق (quantityMilliExact = 1001 — نفس العقد الذي حَفظ
+     * الطلب)، لكن المحوّل المحلي الخالي من Math.round في هذه الخدمة يرفض
+     * عائلة 1.001 من قيم الفاصلة العائمة فيفقد السطر كمية إنتاجه المسندة.
+     * يوثّق هذا الاختبار السلوك الحالي قبل الاستبدال بالمرجع الكنسي، ثم
+     * يُحدَّث توقعه إلى 1_001 عند تنفيذ التوحيد المعتمد. */
+    const { store, item } = await perUnitStore([1.001]);
+    const service = new RecurringWorkService(store, now);
+    await expect(
+      service.createPolicy({
+        catalogItemId: item.id,
+        kind: "per_output_unit",
+        amountMinor: null,
+        rateMinor: null,
+        rateMinorPerWholeUnit: 50,
+        percentageBps: null,
+        unitId: "unit-piece",
+        periodFrom: "2026-08-01",
+        periodTo: "2026-08-31",
+        startsOn: "2026-08-01",
+        endsOn: "2026-08-31",
+        source: "سجل الإنتاج",
+        reason: "توزيع لكل قطعة",
+        note: "المعدل لكل وحدة كاملة",
+        idempotencyKey: "policy-per-piece-1001",
+      }),
+    ).resolves.toMatchObject({ ok: true });
+    const reading = await service.readRecurringWork("2026-08-01", "2026-08-31");
+    expect(reading).toMatchObject({
+      ok: true,
+      value: {
+        items: [
+          {
+            outputQuantityMilli: null,
+          },
+        ],
+      },
+    });
+  });
+
   it("shows 12.000 units at 0.50 JOD per whole unit as 6.00 JOD", async () => {
     const { store, item } = await perUnitStore([12]);
     const service = new RecurringWorkService(store, now);
