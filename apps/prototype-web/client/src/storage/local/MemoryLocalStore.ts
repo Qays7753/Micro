@@ -868,6 +868,18 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     previous: CatalogTemplate,
     next: CatalogTemplate,
   ): Promise<StorageResult<{ previous: CatalogTemplate; next: CatalogTemplate }>> {
+    /* المجموعة ١٠ (مطابقة المحوّلات): فحص مفتاح الحتمية أولًا كما في محوّل
+     * IndexedDB — إعادة التشغيل بالمفتاح نفسه إعادة استخدام صادقة حتى بعد
+     * أن تحوّلت النسخة السابقة إلى موقوفة بفعل الالتزام الأول نفسه؛ ترتيب
+     * الفحص القديم (النشاط قبل المفتاح) كان يرفض الإعادة الصادقة على الذاكرة
+     * وحدها (انفصام مطابقة أثبتته مصفوفة المجموعة ١٠ وأُغلق بها). */
+    const repeated = Array.from(this.catalogTemplates.values()).find(
+      template => template.createdOperationKey === next.createdOperationKey,
+    );
+    if (repeated) {
+      const current = this.catalogTemplates.get(previous.id) ?? previous;
+      return { ok: true, value: { previous: clone(current), next: clone(repeated) } };
+    }
     const current = this.catalogTemplates.get(previous.id);
     if (!current || !current.active)
       return {
@@ -875,10 +887,6 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         code: "storage_error",
         message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ النسخة الجديدة.",
       };
-    const repeated = Array.from(this.catalogTemplates.values()).find(
-      template => template.createdOperationKey === next.createdOperationKey,
-    );
-    if (repeated) return { ok: true, value: { previous: clone(current), next: clone(repeated) } };
     if (this.catalogTemplates.has(next.id))
       return { ok: false, code: "storage_error", message: "تعارض هوية نسخة القالب؛ لم تتغير البيانات." };
     this.catalogTemplates.set(previous.id, clone(previous));
