@@ -99,6 +99,31 @@ describe("check-entity-touchpoints — extraction", () => {
   });
 });
 
+describe("check-entity-touchpoints — split storage sources (Group 10)", () => {
+  it("reads constants and createObjectStore calls from two files as one source", () => {
+    const root = makeMiniRepo({
+      manifest: { objectStores: [baseEntry("alpha"), baseEntry("beta")] },
+    });
+    /* الثوابت في ملف والإنشاء في آخر — الفحص يقرأهما معًا (المجموعة ١٠). */
+    fs.writeFileSync(path.join(root, "storage", "indexedDbStores.ts"), STORE_SOURCE);
+    fs.writeFileSync(path.join(root, "storage", "indexedDbMigrations.ts"), "");
+    fs.writeFileSync(
+      path.join(root, "storage", "IndexedDbLocalStore.ts"),
+      "/* decomposed: constants and creation moved out */\n",
+    );
+    seedReferencedTests(root);
+    const { ok, findings } = validateEntityTouchpoints({
+      repoRoot: root,
+      manifestPath: "manifest.json",
+      storeSourcePaths: ["storage/indexedDbStores.ts", "storage/indexedDbMigrations.ts"],
+      typesSourcePath: "storage/types.ts",
+      minExpectedStores: 2,
+    });
+    expect(findings).toEqual([]);
+    expect(ok).toBe(true);
+  });
+});
+
 describe("check-entity-touchpoints — manifest validation", () => {
   it("passes a complete manifest where every omission has a reason", () => {
     const root = makeMiniRepo({
@@ -143,7 +168,7 @@ describe("check-entity-touchpoints — manifest validation", () => {
     expect(findings).toContainEqual({
       code: "MANIFEST_STORE_UNKNOWN",
       entity: "ghost",
-      detail: "store not created in IndexedDbLocalStore.ts",
+      detail: "store not created in the IndexedDB storage sources (indexedDbStores/indexedDbMigrations)",
     });
   });
 
@@ -287,7 +312,12 @@ describe("check-entity-touchpoints — CLI and live repository", () => {
       "};",
       "",
     ].join("\n");
-    fs.writeFileSync(path.join(storeDir, "IndexedDbLocalStore.ts"), storeSource);
+    /* المجموعة ١٠: الثوابت والإنشاء في ملفين — كما في المصدر الحقيقي بعد التفكيك. */
+    fs.writeFileSync(path.join(storeDir, "indexedDbStores.ts"), storeNames.map((name) => `const ${name}Store = "${name}";`).join("\n") + "\n");
+    fs.writeFileSync(
+      path.join(storeDir, "indexedDbMigrations.ts"),
+      storeNames.map((name) => `database.createObjectStore(${name}Store, { keyPath: "id" });`).join("\n") + "\n",
+    );
     fs.writeFileSync(path.join(storeDir, "types.ts"), typesSource);
     fs.writeFileSync(path.join(storeDir, "IndexedDbLocalStore.test.ts"), "// test\n");
     const manifest = {

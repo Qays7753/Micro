@@ -15,7 +15,8 @@
  * الاكتمال الدلالي فهو مخطئ، والوثيقة تقول ذلك صراحة.
  *
  * الاستخراج من المصدر: أسماء الـ stores من حرفيات `createObjectStore("…")`
- * في `IndexedDbLocalStore.ts` (أسماء نصية ثابتة)، وحقول اللقطة من
+ * في مصادر التخزين (فُكّكت بالمجموعة ١٠ إلى `indexedDbStores.ts` للثوابت
+ * و`indexedDbMigrations.ts` للإنشاء — تُقرأ معًا)، وحقول اللقطة من
  * `LocalStoreSnapshot` في `types.ts`. تغيير بنية المصدر إلى أسماء ديناميكية
  * يُفشل الفحص بصدق (STORE_EXTRACT_FAIL) لا أن يمر بصمت.
  *
@@ -31,7 +32,13 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 
 export const DEFAULTS = {
   manifestPath: "docs/quality/persistent-entity-touchpoints.json",
-  storeSourcePath: "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+  /* المجموعة ١٠ (المرحلة 10-ب): ثوابت أسماء المخازن وإنشاءها فُصلا إلى
+   * وحدتين داخليتين خلف الواجهة نفسها — يُقرآن معًا كي يبقى الاستخراج
+   * بنفس القوة (تعطيل أي منهما أو تحويل الأسماء إلى ديناميكية يُفشل الفحص). */
+  storeSourcePaths: [
+    "apps/prototype-web/client/src/storage/local/indexedDbStores.ts",
+    "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts",
+  ],
   typesSourcePath: "apps/prototype-web/client/src/storage/local/types.ts",
 };
 
@@ -88,14 +95,15 @@ function checkPathExists(repoRoot, finding, entity, relativePath, code) {
 export function validateEntityTouchpoints({
   repoRoot = ROOT,
   manifestPath = DEFAULTS.manifestPath,
-  storeSourcePath = DEFAULTS.storeSourcePath,
+  storeSourcePath = null,
+  storeSourcePaths = DEFAULTS.storeSourcePaths,
   typesSourcePath = DEFAULTS.typesSourcePath,
   minExpectedStores = MIN_EXPECTED_STORES,
 } = {}) {
+  const sourcePaths = storeSourcePath !== null ? [storeSourcePath] : storeSourcePaths;
   const findings = [];
   const root = path.resolve(repoRoot);
   const manifestFile = path.join(root, manifestPath);
-  const storeFile = path.join(root, storeSourcePath);
   const typesFile = path.join(root, typesSourcePath);
 
   if (!fs.existsSync(manifestFile)) {
@@ -110,14 +118,19 @@ export function validateEntityTouchpoints({
       findings: [{ code: "MANIFEST_INVALID_JSON", entity: "-", detail: manifestPath }],
     };
   }
-  if (!fs.existsSync(storeFile)) {
-    return { ok: false, findings: [{ code: "STORE_SOURCE_MISSING", entity: "-", detail: storeSourcePath }] };
+  const storeFiles = sourcePaths.map(sourcePath => path.join(root, sourcePath));
+  const missingSource = storeFiles.find(storePath => !fs.existsSync(storePath));
+  if (missingSource !== undefined) {
+    return {
+      ok: false,
+      findings: [{ code: "STORE_SOURCE_MISSING", entity: "-", detail: sourcePaths[storeFiles.indexOf(missingSource)] }],
+    };
   }
   if (!fs.existsSync(typesFile)) {
     return { ok: false, findings: [{ code: "TYPES_SOURCE_MISSING", entity: "-", detail: typesSourcePath }] };
   }
 
-  const storeSource = fs.readFileSync(storeFile, "utf8");
+  const storeSource = storeFiles.map(storePath => fs.readFileSync(storePath, "utf8")).join("\n");
   const typesSource = fs.readFileSync(typesFile, "utf8");
   const codeStores = extractObjectStores(storeSource);
   if (codeStores.length < minExpectedStores || new Set(codeStores).size !== codeStores.length) {
@@ -142,7 +155,7 @@ export function validateEntityTouchpoints({
     manifestStores.add(entity);
 
     if (codeStores.length >= minExpectedStores && !codeStores.includes(entity)) {
-      findings.push({ code: "MANIFEST_STORE_UNKNOWN", entity, detail: "store not created in IndexedDbLocalStore.ts" });
+      findings.push({ code: "MANIFEST_STORE_UNKNOWN", entity, detail: "store not created in the IndexedDB storage sources (indexedDbStores/indexedDbMigrations)" });
     }
 
     const exported = typeof entry?.snapshotField === "string" && entry.snapshotField.length > 0;
