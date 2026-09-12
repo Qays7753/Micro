@@ -695,3 +695,55 @@
   ومفاتيحها الحرفية، مظروف ٢٧ والأزواج المنشورة وقبول الاستيراد (29–34 + الموروثة)، توقيعات المنفذ/الواجهة،
   الأساليب العامة للنقل (prepareImport/confirmImport/resetAll/createVerifiedExport/createExport)، أي قاعدة
   مالية أو تاريخية.
+
+## المجموعة ١١ — خطة المعالجة الرباعية: القيم الدقيقة وبنية الواجهة وتغطية الصفحات والإغلاق المعماري النهائي (2026-09-13)
+
+- الفرع: `remediation/micro-full-hardening-2026` (فوق رأس إغلاق المجموعة ١٠ `dcf60db`) — المرجع الحي:
+  `docs/operations/current-state.md` §40.
+- **القيم الدقيقة (11-0 — سياسة المالك EXACT_VALUES_NO_SILENT_ROUNDING، مرحلة مستقلة قابلة للتراجع وحدها):**
+  `tests/domain/exact-values.characterization.test.ts` + `client/src/exact-values.characterization.test.ts`
+  (١٨ اختبارًا تثبت أمثلة المالك: 2.7/8.9/6.3/1520.4/1783.9/**1.001=1001 ملي**، ودون-القروش والكمية الرباعية
+  تُرفض عند حد الإدخال، ودورات إدخال←عرض←قراءة بلا تغيير قيمة)؛ `client/src/exact-values.cross-surface.test.ts`
+  (٦ اختبارات: أصناف حدود المقترحات، جولة التخزين 2.7/152,040، مسار الخدمة، **تثبيت 35/27**)؛ المعالجة الكنسية:
+  `percentToBpsExact`/`echoQuantityMilli` في `application/input/englishNumeric.ts`، و`formatQuantityMilli`
+  (بناء صحيح بلا قسم فاصلة عائمة) + `formatQuantityMilliFixed3` في `presentation/formatters.ts`؛ اشتقاقان
+  دقيقان: `application/inventory/materialSuggestions.ts` (roundHalfUp على عدد صحيح، مثبت 1001/2000→501 —
+  كانت 24/80,000 زوجًا تنحرف −1 قروش) و`src/domain/craft-order/policies.ts` سقف كلفة الوحدة
+  (`ceilRatio(cost×1000, qMilli)`: 21/0.7→30 الدقيق بدل 31 — **النطاق الوحيد في src/domain، مصرّح بالسياسة،
+  مسارات الإنتاج الصحيحية متطابقة**)؛ سجل استثناءات Math في `eslint.config.js` ضُيّق 5→3 مواقع موثقة سببًا
+  بيقظ `scripts/check-layer-boundaries.test.mjs`.
+- **تفكيك الكتالوج (11-أ):** `presentation/catalogPresentation.ts` (معينات صرفة + بديل السياق غير الآمن
+  لـrandomUUID) + `components/catalog/CatalogItemsSection` و`CatalogUnitsSection` و`CatalogReadingsSection`
+  و`CatalogTemplatesSection` و`CatalogPoliciesSection` خلف منسق `pages/Catalog.tsx` (2,133→924 سطرًا)؛
+  اختبارا `Catalog.operationKey` و`Catalog.ui` يمران كما هما.
+- **تفكيك الإعدادات (11-ب):** `components/settings/SettingsDataProtectionSection` (خلف أقفال PIN/الجلسة) و
+  `SettingsGuidedOpeningSection` (معاينة قراءة-فقط وتأكيد مقفل) و`SettingsOperatingModeSection` و
+  `SettingsAppearanceSection` خلف `pages/Settings.tsx` (1,139→621)؛ `Settings.lockGate.dom.test.tsx`
+  (15+ اختبار قفل/بوابة/تصفير/تشخيص) يمر بلا تعديل واحد.
+- **تفكيك دفتر المالك وتفاصيل الطلب (11-ج):** `components/owner/OwnerPolicyFormsSection` و
+  `OwnerLedgerFormsSection` + `presentation/ownerEntitlementPresentation` خلف `pages/OwnerEntitlement.tsx`
+  (1,590→1,096)؛ `components/orders/OrderDepositPanels` (رد/احتفاظ/تصنيف المعنى) خلف `pages/OrderDetail.tsx`
+  (1,724→1,412)؛ سلوك `needs_review` والقفل الموثق محفوظ بأجنحة G3/G3Delivery/G3Hardening/G4RetainedDeposit/G6
+  القائمة كلها خضراء بلا تعديل.
+- **تفكيك المالية (11-د):** `components/finance/FinancePeriodResultSection` (قراءة الفترة بنطاقها المعلن)
+  خلف `pages/Finance.tsx` (1,441→988)؛ **`ProjectFinancialService` بقي نواة القراءة المالية كما هي — لم يُنقل
+  إليها ولا منها أي حكم مالي أو كتابة**.
+- **رحلات الصفحات (11-هـ — إغلاق فجوة STR-033 المسمّاة):** `client/src/CashJourneys.dom.test.tsx`
+  (7: عدّ الصندوق وتوزيع الكاش — الفرق الدقيق +2.40/الرصيد 152.40 بقراءة راجعة 15,240، الرفض الصادر
+  150.005 بلا كتابة، توزيع 271.00 كاملة، منع الصفر الصامت)؛ `client/src/Home.dom.test.tsx` (5: جهوزية بعنوان
+  النشاط الدائم + يوم مفتوح صادق، الرصيد الافتتاحي 152,040 عبر قراءة الرئيسية، عقد `?from` من «صفحة الأساس»،
+  إقلاع أول **ببوابة يحكمها الاختبار — لا سباق ولا نوم ولا نقرة زر إعادة التحميل**، وخطأ صادق بزر إعادة المحاولة
+  المعلن غير المنقور)؛ `client/src/FinanceJourneys.dom.test.tsx` (3: الكاش المسجل 1,520.40 المعروض
+  والمقروء 152,040، شريط الكاش غير الموزع 271.00 بطريقه PA-002، وعرض الفترة عبر الطبقة المستخرجة).
+- **الإغلاق المعماري (11-و):** كل بنود مسح المجموعة ٧ مصنفة نهائيًا — «أصلح الآن» (STR-001..015) كلها مغلقة
+  بدليل عبر المجموعات ٨–١١، و«الحفظ» (STR-016..027) محفوظ بحرّاسه، و«التأجيل» أُغلق ما لزم إغلاقه
+  (STR-029/031 وقت الأعمال في ٩، STR-032 المعينات النقية في ٩، STR-033 عنقود الكاش والرئيسية ومالي في 11-هـ،
+  STR-034 مصفوفة 28×2 في ١٠، STR-035 الكتالوج في 11-أ، STR-036 تنسيق الكمية الكنسي في 11-0، STR-037/038
+  حظر Math في طبقة التطبيق في ٨) وSTR-030/STR-028/STR-039..044 بحالتها الموثقة (قرار مالك أو نطاق صريح
+  بأدلة) — **لا عيب قابل للإصلاح متأخر (deferred)**.
+- براهين الحدود: domain+scripts **391** (35 ملفًا) · prototype **1,166** (166 ملفًا) · lint **36/37** (0 أخطاء) ·
+  دورات زمن التشغيل **246/0** · بوابة الحزمة **PASS 633,197/150,606** · `pnpm check` كاملة **EXIT 0** ·
+  `git diff --check` نظيف.
+- لم يتغير: المخطط/التصدير (35/27)، أي كتابة مالية أو تاريخية (لا أحداث ولا لقطات ولا أرصدة ولا تعيينات)،
+  توقيعات منفذ التخزين أو واجهة النقل أو عقودهما العامة، المسارات، أصناف الصفحات (لا `features/` ولا `shared`
+  عامة)، أي حد رقمي أو حارس أو عتبة.

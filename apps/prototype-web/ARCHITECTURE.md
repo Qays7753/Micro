@@ -34,6 +34,19 @@ React UI
 من ملف النقل، ثم يستدعي LocalStore فقط بعد تأكيد صريح من المستخدم؛ تصديره المُتحقق يعيد دورة
 كاملة (تصدير → استيراد → تحقق) قبل إعلان جهوزية النسخة.
 
+بنية الصفحات بعد المجموعة ١١ (توثيقًا للموجود): الصفحات الكبيرة منسقات (orchestrators) للحالة
+والتنسيق فقط، وأقسام عرضها الصرفة خلفها — `components/catalog/*` (خمسة أقسام خلف `Catalog.tsx`
+مع `presentation/catalogPresentation.ts`) و`components/settings/*` (أربعة خلف `Settings.tsx`) و
+`components/owner/*` (قسما السياسة والنماذج خلف `OwnerEntitlement.tsx` مع
+`presentation/ownerEntitlementPresentation.ts`) و`components/orders/OrderDepositPanels.tsx` و
+`components/finance/FinancePeriodResultSection.tsx` (قراءة الفترة خلف `Finance.tsx`). لا يملك أي
+قسم عرض حكمًا ماليًا أو كتابة؛ **`ProjectFinancialService` يبقى نواة القراءة المالية الوحيدة**.
+القيم الدقيقة (D-036 — سياسة المالك): الإدخال والعرض والاشتقاق كلها عبر المصادر الكنسية
+(`englishNumeric.ts` لحدود الإدخال و`formatters.ts` للعرض و`roundHalfUp`/`ceilRatio` على أعداد
+صحيحة للاشتقاقات)؛ الدقة غير المدعومة تُرفض عند الحد (fail closed) ولا يوجد تقريب صامت لأي
+قيمة أعمال، وأمثلة المالك (2.7 و8.9 و6.3 و1520.4 و1783.9 و1.001=1001 ملي) مثبتة باختبار توصيفي
+ومن اختبارات العبور بين الأسطح.
+
 ## ما يحفظه Prototype محليًا
 
 الملف الشخصي، التفضيلات، المسودات، الطلبات (`StoredCraftOrder`)، المبيعات المباشرة، الأحداث
