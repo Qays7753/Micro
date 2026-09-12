@@ -663,3 +663,35 @@
   والتحويلات، بنية الواجهة، DELTA_TABLE واللقطات والأحداث التاريخية؛ الاستثناءان
   الماليان المؤقتان لحظر Math أُزيل استخدامهما (الملفان تحت القاعدة العامة الآن)
   واشتقاق سعر مقترحات المواد بقي مستثنى بقرار موثق ينتظر مالكًا.
+
+## المجموعة ١٠ — خطة المعالجة الرباعية: بوابة التقريب ومطابقة المحوّلات وخدمة النقل (2026-09-13)
+
+- الفرع: `remediation/micro-full-hardening-2026` (فوق رأس إغلاق المجموعة ٩ `255974a`) — المرجع الحي:
+  `docs/operations/current-state.md` §39.
+- **بوابة التقريب (10-0):** `tests/domain/rounding-boundaries.characterization.test.ts` (6 اختبارات: النصفان
+  بإشارتيهما، حد الأمان الصحيح (2^53−1)/2، وحد السقفي الكسري الكامن 21/0.7→31)؛ تحقيق كامل
+  (35+ موقعًا مصنفًا) بإثبات تجريبي حي خارج المستودع — **قرار لا-تغيير موثق؛ 10-R مُتخطاة** (لا رقعة تقريب)؛
+  كمية 1.001=1001 ملي عقد مستقل لم تُفتح.
+- **مطابقة المحوّلات (10-أ):** `apps/prototype-web/client/src/storage/local/adapterConformance.group10.test.ts`
+  (عمليات الالتزام الـ28 كلها × Memory/IndexedDB بقالب موحد: نجاح، إعادة تشغيل بالمفتاح نفسه = إعادة
+  استخدام صادقة مع إعادة قراءة برهان، تعارض/قدم = رفض بلا كتابة جزئية + جولة لقطة-استرجاع)؛ تصحيح المطابقة
+  الوحيد: `MemoryLocalStore.commitCatalogTemplateRevision` يفحص مفتاح الحتمية قبل النشاط كعقد IndexedDB
+  (05d14bf) — لا تغيير إنتاجي عبر الخدمات.
+- **تفكيك التخزين (10-ب):** `indexedDbStores.ts` (33 ثابت أسماء) و`indexedDbMigrations.ts` (StorageOpenError
+  وسجلات الترقية وapplySchemaUpgrade) و`indexedDbLifecycle.ts` (S5-07/G6-P4-2/versionchange) و
+  `indexedDbPrimitives.ts` (readOne/writeOne/writeOneIdempotent/deleteOne/listAll) و`indexedDbSnapshot.ts`
+  (قراءة/استبدال اللقطة) — منقولات حرفية خلف المنفذ والواجهة (3,899→2,915 سطرًا في المحوّل)؛ حارس
+  `scripts/check-entity-touchpoints.mjs` يقرأ المصدرين كواحد بلا إضعاف (f480fb9) وسجل
+  `docs/quality/persistent-entity-touchpoints.json` سياسته تحدث للمصادر الجديدة.
+- **توصيف النقل (10-ج):** أجنحة النقل الخضراء قبل التفكيك: 14 ملفًا/105 اختبارات
+  (releasedPairs 19/schema29–34/envelope27/familyOrphan/directSaleRoundTrip/guidedOpening+g82/…) + خريطة
+  مسؤوليات (زوج 27/35 الحالي + 21 زوجًا موروثًا، بصمة sha256، 13 عدادًا صارمًا، validateSnapshot كمنسق).
+- **تفكيك النقل (10-د):** `transferFamilyValidators.ts` و`transferSnapshotValidation.ts` و`transferEnvelope.ts`
+  و`transferCounters.ts` و`transferSnapshotMigrations.ts` منقولات حرفيًا خلف الأساليب العامة نفسها؛ الخدمة
+  3,010→278 سطرًا؛ خلل تسوية else-if أمسكته أجنحة الاختبار نفسها قبل الالتزام وأُصلح قبل الدفع.
+- براهين الحدود: domain+scripts **382** (34 ملفًا) · prototype **1,131** (160 ملفًا) · lint **36/37** (0 أخطاء) ·
+  دورات زمن التشغيل **231/0** · بوابة الحزمة **PASS 632,403/150,439** · `git diff --check` نظيف.
+- لم يتغير: المخطط/التصدير (35/27)، `src/domain` بالكامل (صفر فرق)، أسماء المخازن وأشكال السجلات والترحيلات
+  ومفاتيحها الحرفية، مظروف ٢٧ والأزواج المنشورة وقبول الاستيراد (29–34 + الموروثة)، توقيعات المنفذ/الواجهة،
+  الأساليب العامة للنقل (prepareImport/confirmImport/resetAll/createVerifiedExport/createExport)، أي قاعدة
+  مالية أو تاريخية.
