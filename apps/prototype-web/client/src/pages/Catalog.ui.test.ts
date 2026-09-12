@@ -15,7 +15,7 @@ import {
   parseCatalogPercentageBps,
   parseCatalogPositiveSafeInteger,
   parseCatalogQuantityMilli,
-} from "./Catalog";
+} from "@/presentation/catalogPresentation";
 import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
 
 describe("Catalog G4-A UI capability model", () => {

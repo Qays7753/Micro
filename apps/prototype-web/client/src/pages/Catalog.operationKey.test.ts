@@ -6,7 +6,7 @@
  * فريدًا لا مفتاحًا معلقًا ولا قيمة فارغة، وتركيب مفتاح العملية
  * (بادئة:قيمة) لا يتغير. */
 import { afterEach, describe, expect, it } from "vitest";
-import { catalogOperationUuid, operationKey } from "./Catalog";
+import { catalogOperationUuid, operationKey } from "@/presentation/catalogPresentation";
 
 type CryptoLike = typeof globalThis.crypto;
 
