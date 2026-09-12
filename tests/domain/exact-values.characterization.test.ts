@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  ceilRatio,
-  floorRatio,
-  quantityMilliExact,
-  roundHalfUp,
-} from "../../src/domain/shared/index.js";
+import { ceilRatio, floorRatio, quantityMilliExact, roundHalfUp } from "../../src/domain/shared/index.js";
 
 /**
  * المجموعة ١١ (المرحلة 11-0): تجميد القيم الدقيقة المعتمدة من المالك —

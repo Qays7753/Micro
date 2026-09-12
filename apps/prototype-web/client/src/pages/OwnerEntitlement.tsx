@@ -7,6 +7,7 @@ import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
+import { percentToBpsExact } from "@/application/input/englishNumeric";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type {
   OwnerEntitlementOverview,
@@ -283,19 +284,31 @@ export default function OwnerEntitlement() {
 
   async function savePolicy() {
     const fixedPeriodIncomplete = policyKind === "fixed_period" && !policyEndsOn;
+    /* المجموعة ١١ (11-0 — سياسة القيم الدقيقة): النسبة تُحوّل إلى bps تحويلًا
+     * دقيقًا فقط؛ الدقة الأدق من منزلتين تُرفض برسالة آمنة — لا تقريب صامت. */
+    const policyPercentageBps = percentagePolicyKinds.has(policyKind)
+      ? percentToBpsExact(policyPercentage)
+      : null;
     if (
       !policySource.trim() ||
       !policyNote.trim() ||
       (amountPolicyKinds.has(policyKind) && (!policyAmountValid || policyAmount <= 0)) ||
       (percentagePolicyKinds.has(policyKind) &&
         (!policyPercentageValid || policyPercentage <= 0 || policyPercentage > 100)) ||
+      (percentagePolicyKinds.has(policyKind) && policyPercentageBps === null) ||
       fixedPeriodIncomplete
     ) {
       setNotice({
         tone: "error",
         text: fixedPeriodIncomplete
           ? "المبلغ الثابت يحتاج تاريخ نهاية معلنًا."
-          : "أكمل مصدر السياسة وملاحظتها وأدخل مبلغًا أو نسبة صحيحة.",
+          : percentagePolicyKinds.has(policyKind) &&
+              policyPercentageValid &&
+              policyPercentage > 0 &&
+              policyPercentage <= 100 &&
+              policyPercentageBps === null
+            ? "دقة النسبة أدق من المدعوم — أدخل نسبة بمنزلتين عشريتين كحد أقصى (خطوة 0.01%)."
+            : "أكمل مصدر السياسة وملاحظتها وأدخل مبلغًا أو نسبة صحيحة.",
       });
       return;
     }
@@ -306,7 +319,7 @@ export default function OwnerEntitlement() {
       family: ownerEntitlementPolicyFamilyForKind(policyKind),
       kind: policyKind,
       amountMinor: amountPolicyKinds.has(policyKind) ? policyAmount : null,
-      percentageBps: percentagePolicyKinds.has(policyKind) ? Math.round(policyPercentage * 100) : null,
+      percentageBps: percentagePolicyKinds.has(policyKind) ? policyPercentageBps : null,
       unitLabel: policyKind === "per_unit" || policyKind === "per_completed_work" ? "وحدة/عمل" : null,
       startsOn: policyStartsOn,
       endsOn: policyEndsOn || null,
@@ -333,10 +346,19 @@ export default function OwnerEntitlement() {
   }
 
   async function saveSuccessor() {
+    /* المجموعة ١١ (11-0 — سياسة القيم الدقيقة): نفس عقد الدقة للنسبة هنا. */
+    const successorPercentageBps =
+      successorRequirements.valueKind === "percentage" ? percentToBpsExact(successorPercentage) : null;
     const invalidValue =
       successorRequirements.valueKind === "amount"
         ? !successorAmountValid || successorAmount <= 0
         : !successorPercentageValid || successorPercentage <= 0 || successorPercentage > 100;
+    const precisionRejected =
+      successorRequirements.valueKind === "percentage" &&
+      successorPercentageValid &&
+      successorPercentage > 0 &&
+      successorPercentage <= 100 &&
+      successorPercentageBps === null;
     const missingUnit = successorRequirements.requiresUnit && !successorUnitLabel.trim();
     const missingEnd = successorRequirements.requiresEndDate && !successorEndsOn;
     if (!successorPolicy || !successorSource.trim() || !successorNote.trim() || !successorStartsOn) {
@@ -363,6 +385,13 @@ export default function OwnerEntitlement() {
       });
       return;
     }
+    if (precisionRejected) {
+      setNotice({
+        tone: "error",
+        text: "دقة النسبة أدق من المدعوم — أدخل نسبة بمنزلتين عشريتين كحد أقصى (خطوة 0.01%).",
+      });
+      return;
+    }
     if (missingUnit) {
       setNotice({ tone: "error", text: "أدخل اسم الوحدة أو العمل صراحة؛ لا نخفي معنى الوحدة بقيمة ثابتة." });
       return;
@@ -375,8 +404,7 @@ export default function OwnerEntitlement() {
     const result = await ownerEntitlement.createPolicySuccessor(successorPolicy.id, {
       kind: successorKind,
       amountMinor: successorRequirements.valueKind === "amount" ? successorAmount : null,
-      percentageBps:
-        successorRequirements.valueKind === "percentage" ? Math.round(successorPercentage * 100) : null,
+      percentageBps: successorRequirements.valueKind === "percentage" ? successorPercentageBps : null,
       unitLabel: successorRequirements.requiresUnit ? successorUnitLabel : null,
       endsOn: successorRequirements.requiresEndDate ? successorEndsOn : null,
       startsOn: successorStartsOn,

@@ -32,7 +32,7 @@ import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { ScheduleService } from "@/application/scheduling/scheduleService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { formatMoneyMinor } from "@/presentation/formatters";
+import { formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
 import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 
@@ -439,7 +439,7 @@ export class DeliveryReviewService {
           assertInventoryRemainsNonNegative(row.materialId, [...existingMovements, movement]);
           newMovements.push(movement);
           consumedNotes.push(
-            `${material.name} (${(consumeQuantity / 1000).toFixed(3).replace(/\.?0+$/, "") || "0"} ${UNIT_LABELS[material.unit] ?? ""})`.trim(),
+            `${material.name} (${formatQuantityMilli(consumeQuantity)} ${UNIT_LABELS[material.unit] ?? ""})`.trim(),
           );
         } catch (error) {
           return failure(

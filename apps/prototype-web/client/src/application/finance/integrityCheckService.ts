@@ -25,6 +25,7 @@ import type { CashContinuityService } from "@/application/cash/cashContinuitySer
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+import { formatMoneyWithUnit } from "@/presentation/formatters";
 
 export type IntegrityCheckStatus = "PASS" | "WARN" | "FAIL";
 export type IntegrityCheckId =
@@ -955,9 +956,9 @@ export class IntegrityCheckService {
         titleAr: INTEGRITY_TITLES["MIC-12"],
         status: "WARN",
         detailAr:
-          `عربونات محتفظة بانتظار قرارك: ${pendingCount} بقيمة ${Math.round(pendingMinor / 100)} د.أ — الكاش محتفظ به بلا معنى حتى تصنّفه (مال مالك أو إيراد مشروع) من صفحة الطلب.` +
+          `عربونات محتفظة بانتظار قرارك: ${pendingCount} بقيمة ${formatMoneyWithUnit(pendingMinor)} — الكاش محتفظ به بلا معنى حتى تصنّفه (مال مالك أو إيراد مشروع) من صفحة الطلب.` +
           (partialCount > 0
-            ? ` وفي ${partialCount} عربونًا تصنيف جزئي موثق — بقيمة ${Math.round(partialMinor / 100)} د.أ بانتظار تكملة القرار.`
+            ? ` وفي ${partialCount} عربونًا تصنيف جزئي موثق — بقيمة ${formatMoneyWithUnit(partialMinor)} بانتظار تكملة القرار.`
             : ""),
         offenderCount: pendingCount + partialCount,
         driftMinor: pendingMinor + partialMinor,
@@ -1063,14 +1064,14 @@ export class IntegrityCheckService {
         id: "MIC-14",
         titleAr: INTEGRITY_TITLES["MIC-14"],
         status: "WARN",
-        detailAr: `الكاش غير الموزّع سالب (${Math.round(-unallocated / 100)} د.أ) — أنفقت أو خصّصت أكثر من مصادر الكاش المسجلة؛ راجع مصدر الفرق قبل الاعتماد على أي رصيد محفظة.`,
+        detailAr: `الكاش غير الموزّع سالب (${formatMoneyWithUnit(-unallocated)}) — أنفقت أو خصّصت أكثر من مصادر الكاش المسجلة؛ راجع مصدر الفرق قبل الاعتماد على أي رصيد محفظة.`,
         driftMinor: -unallocated,
         deepLink: "/cash",
       };
     }
     const pendingNote =
       needsReview.length > 0
-        ? ` وفيها ${needsReview.length} طلبًا ملغى بعربون بلا تسوية (${Math.round(needsReviewMinor / 100)} د.أ) — قراري الرد/الاحتفاظ بانتظارك من صفحة الطلب.`
+        ? ` وفيها ${needsReview.length} طلبًا ملغى بعربون بلا تسوية (${formatMoneyWithUnit(needsReviewMinor)}) — قراري الرد/الاحتفاظ بانتظارك من صفحة الطلب.`
         : "";
     return {
       id: "MIC-14",
@@ -1079,7 +1080,7 @@ export class IntegrityCheckService {
       detailAr:
         unallocated === 0
           ? "لا كاش غير موزّع — كل ما سُجل مصادرّه وتخصيصاته متسقة."
-          : `كاش غير موزّع: ${Math.round(unallocated / 100)} د.أ — حالة معلنة لا خطأً: عربونات اتفاق وقبض لم يوزّع بعد؛ وزّعه للمحافظ حين تجهز.${pendingNote}`,
+          : `كاش غير موزّع: ${formatMoneyWithUnit(unallocated)} — حالة معلنة لا خطأً: عربونات اتفاق وقبض لم يوزّع بعد؛ وزّعه للمحافظ حين تجهز.${pendingNote}`,
       driftMinor: unallocated,
       deepLink: "/cash",
     };

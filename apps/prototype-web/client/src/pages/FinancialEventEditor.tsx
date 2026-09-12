@@ -28,6 +28,7 @@ import {
   migrateLegacyFormDraft,
 } from "@/application/drafts/legacyFormDraftMigration";
 import type { SettleablePayable } from "@/application/finance/projectFinancialService";
+import { percentToBpsExact } from "@/application/input/englishNumeric";
 import type {
   FinancialEventType,
   OperatingExpenseContext,
@@ -443,22 +444,30 @@ export default function FinancialEventEditor() {
           sharedProjectShare: null,
           categoryLabel: normalizedCategoryLabel,
         };
+  /* المجموعة ١١ (11-0 — سياسة القيم الدقيقة): تحويل النسبة إلى bps دقيقًا فقط؛
+   * الدقة الأدق من منزلتين تُرفض (null) فيُمنع الحفظ برسالة آمنة وتعود
+   * المعاينة للنص الثابت — لا تقريب صامت أبدًا. */
+  const sharedPercentageBps =
+    isShared && sharedMode === "percentage" ? percentToBpsExact(sharedPercentage) : null;
   const primaryAmountValid =
     isShared && sharedMode === "percentage"
       ? validSharedTotal &&
         sharedTotalAmountMinor > 0 &&
         validSharedPercentage &&
         sharedPercentage > 0 &&
-        sharedPercentage <= 100
+        sharedPercentage <= 100 &&
+        sharedPercentageBps !== null
       : validAmount && amountMinor > 0;
   const selectedWallet = wallets.find(wallet => wallet.id === walletId) ?? null;
   const sharedExpenseIntent = isShared
     ? sharedMode === "percentage"
-      ? {
-          mode: "percentage" as const,
-          sharedTotalAmountMinor,
-          sharedPercentageBps: Math.round(sharedPercentage * 100),
-        }
+      ? sharedPercentageBps === null
+        ? undefined
+        : {
+            mode: "percentage" as const,
+            sharedTotalAmountMinor,
+            sharedPercentageBps,
+          }
       : sharedMode === "defer"
         ? { mode: "defer" as const, sharedTotalAmountMinor: amountMinor }
         : { mode: sharedMode, amountMinor }
@@ -510,7 +519,12 @@ export default function FinancialEventEditor() {
     if (!primaryAmountValid) {
       setMessage(
         isShared && sharedMode === "percentage"
-          ? "أدخل إجماليًا ونسبة صحيحة بين 0 و100 قبل الحفظ."
+          ? validSharedPercentage &&
+            sharedPercentage > 0 &&
+            sharedPercentage <= 100 &&
+            sharedPercentageBps === null
+            ? "دقة النسبة أدق من المدعوم — أدخل نسبة بمنزلتين عشريتين كحد أقصى (خطوة 0.01%) ثم أعد الحفظ."
+            : "أدخل إجماليًا ونسبة صحيحة بين 0 و100 قبل الحفظ."
           : "أدخل مبلغًا صالحًا بالأرقام 0–9 قبل الحفظ.",
       );
       return false;

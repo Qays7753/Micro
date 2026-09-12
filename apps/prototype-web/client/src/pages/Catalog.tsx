@@ -13,6 +13,7 @@ import {
   formatLocalDateLong,
   formatMoneyMinor,
   formatMoneyWithUnit,
+  formatQuantityMilliFixed3,
   localDateInAmman,
 } from "@/presentation/formatters";
 import { templateComponentCountLabel } from "@/presentation/plurals";
@@ -40,7 +41,9 @@ const dimensions: readonly { value: UnitDimension; label: string }[] = [
 ];
 const dimensionLabel = (dimension: UnitDimension) =>
   dimensions.find(entry => entry.value === dimension)?.label ?? dimension;
-const quantityLabel = (quantityMilli: number) => (quantityMilli / 1000).toFixed(3);
+/* المجموعة ١١ (11-0): تنسيق الكمية من المعيّن الكنسي وحده — منزلة الألف
+ * الثابتة معلنة هنا كسياسة عرض لعقد الملي، لا حسابًا مستقلًا في الصفحة. */
+const quantityLabel = formatQuantityMilliFixed3;
 const parseQuantityMilli = (value: string) => {
   const result = parseEnglishQuantityText(value);
   return result !== null && result > 0 ? result : null;
@@ -176,7 +179,7 @@ export const buildCatalogPerUnitPreview = (
   const label = unitName.trim() || "وحدة كاملة";
   return {
     allocationMinor,
-    text: `${((quantityMilli ?? 0) / 1000).toFixed(3)} ${label} × ${formatMoneyWithUnit(rateMinorPerWholeUnit ?? 0)} لكل 1.000 ${label} = ${formatMoneyWithUnit(allocationMinor ?? 0)}`,
+    text: `${formatQuantityMilliFixed3(quantityMilli ?? 0)} ${label} × ${formatMoneyWithUnit(rateMinorPerWholeUnit ?? 0)} لكل 1.000 ${label} = ${formatMoneyWithUnit(allocationMinor ?? 0)}`,
     warning: null,
   };
 };

@@ -6,7 +6,7 @@ import { ammanDateOrNull } from "@micro-domain/shared/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
-import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit, formatQuantityMilli } from "@/presentation/formatters";
 
 export type CorrectionHistoryKind =
   | "event_reversal"
@@ -410,7 +410,7 @@ export class CorrectionHistoryService {
         occurredOn: movement.occurredOn,
         amountEffectMinor: null,
         reason: movement.note || movement.reason,
-        originalLabel: `حركة مخزون · ${formatLocalDate(movement.occurredOn) ?? movement.occurredOn} · الكمية ${movement.quantityDeltaMilli / 1000}`,
+        originalLabel: `حركة مخزون · ${formatLocalDate(movement.occurredOn) ?? movement.occurredOn} · الكمية ${formatQuantityMilli(movement.quantityDeltaMilli)}`,
         replacementLabel: "حُيّد أثر الحركة — الكمية والقيمة عادا كما كانا",
         deepLink: movement.orderId ? `/orders/${encodeURIComponent(movement.orderId)}` : "/inventory",
       });

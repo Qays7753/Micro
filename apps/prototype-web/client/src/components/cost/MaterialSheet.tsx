@@ -16,6 +16,7 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 /* المجموعة ٨ (STR-005): نوع «مقترح المادة» صار يملكه حد التطبيق (المخزون)
  * — الورقة تستورده من مالكه، والاتجاه القانوني: الواجهة ← التطبيق. */
 import type { MaterialSuggestion } from "@/application/inventory/materialSuggestions";
+import { echoQuantityMilli } from "@/application/input/englishNumeric";
 
 export type MaterialSheetProps = {
   value: { index: number | null; draft: DraftCostMaterial } | null;
@@ -117,7 +118,7 @@ export function MaterialSheet({
                   الكمية <small>أرقام 0–9 وحتى 3 منازل</small>
                 </span>
                 <EnglishQuantityInput
-                  valueMilli={Math.round(value.draft.quantity * 1000)}
+                  valueMilli={echoQuantityMilli(value.draft.quantity)}
                   min="0"
                   aria-invalid={validity.quantity === false}
                   onMilliChange={quantityMilli => onChange({ quantity: quantityMilli / 1000 })}

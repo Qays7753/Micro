@@ -16,7 +16,7 @@ import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatMoneyMinor } from "@/presentation/formatters";
+import { formatMoneyMinor, formatQuantityMilli, formatQuantityMilliFixed3 } from "@/presentation/formatters";
 import type {
   DeliveryConsumptionAction,
   DeliveryReview,
@@ -287,8 +287,8 @@ export default function DeliveryReviewPage() {
                         <span>
                           {row.tracked ? (
                             <>
-                              المتاح: {(row.availableQuantityMilli / 1000).toFixed(3).replace(/\.?0+$/, "")}{" "}
-                              {row.unitLabel} · تكلفة الرصيد:{" "}
+                              المتاح: {formatQuantityMilli(row.availableQuantityMilli)} {row.unitLabel} ·
+                              تكلفة الرصيد:{" "}
                               {row.costKnowledge === "unknown"
                                 ? "غير معروفة"
                                 : row.costKnowledge === "partial"
@@ -340,7 +340,7 @@ export default function DeliveryReviewPage() {
                           {choice.quantityMilli > row.availableQuantityMilli ? (
                             <p className="micro-warning-copy">
                               <TriangleAlert aria-hidden="true" /> النقص المتوقع:{" "}
-                              {((choice.quantityMilli - row.availableQuantityMilli) / 1000).toFixed(3)}{" "}
+                              {formatQuantityMilliFixed3(choice.quantityMilli - row.availableQuantityMilli)}{" "}
                               {row.unitLabel} — يُوثَّق نقصًا صريحًا ولا يصير الرصيد سالبًا.
                             </p>
                           ) : null}

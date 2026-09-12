@@ -192,7 +192,9 @@ export default function CostCalculator() {
       deliveryMinor,
       wasteMinor,
       safetyBufferMinor,
-      quantity: Math.max(1, Math.round(quantity)),
+      /* المجموعة ١١ (11-0): الإدخال عدد صحيح بعقد kind="integer" — لا حاجة
+       * لتقريب صفحة؛ حد القطعة الواحدة ≥ 1 يبقى كما هو. */
+      quantity: Math.max(1, quantity),
       note: null,
     }),
     [

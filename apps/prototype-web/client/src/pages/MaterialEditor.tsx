@@ -12,7 +12,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { MaterialUnit } from "@micro-domain/inventory-material/index.js";
 import type { InventoryMaterialOverview } from "@/application/inventory/inventoryMaterialService";
-import { localDateInAmman } from "@/presentation/formatters";
+import { localDateInAmman, formatQuantityMilliFixed3 } from "@/presentation/formatters";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 const ammanDate = () => localDateInAmman();
 const unitLabel = (unit: MaterialUnit): string =>
@@ -218,7 +218,7 @@ export default function MaterialEditor() {
         <h1>{confirmMode ? `أكّد رصيد ${material?.name ?? ""}` : "أي مادة تسجّل؟"}</h1>
         <p>
           {confirmMode
-            ? `الكمية المسجلة الآن ${((material?.quantityMilli ?? 0) / 1000).toFixed(3)} ${unitLabel(material?.unit ?? "piece")} — أدخل الكمية الفعلية، وسيُسجَّل الفرق بحركة موثقة.`
+            ? `الكمية المسجلة الآن ${formatQuantityMilliFixed3(material?.quantityMilli ?? 0)} ${unitLabel(material?.unit ?? "piece")} — أدخل الكمية الفعلية، وسيُسجَّل الفرق بحركة موثقة.`
             : "سجّل اسم المادة ووحدتها، ثم أخبرنا إن كنت ستتابع كميتها في المخزون."}
         </p>
       </div>

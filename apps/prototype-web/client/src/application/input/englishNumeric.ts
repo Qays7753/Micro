@@ -70,6 +70,34 @@ export function formatEnglishNumericValue(value: number | null, kind: EnglishNum
   return String(value);
 }
 
+/**
+ * المجموعة ١١ (المرحلة 11-0 — سياسة EXACT_VALUES_NO_SILENT_ROUNDING):
+ * تحويل النسبة المئوية إلى أساس نقطة (bps) تحويلًا دقيقًا لا يقرّب صامتًا —
+ * يقبل فقط القيم الممثلة بأساس نقطة صحيح (منزلتان عشريتان كحد أعلى للنسبة)
+ * ويرفض ما هو أدق بنتيجة null (fail closed) ليتولى المستدعي رسالة آمنة
+ * للمستخدم. Math.round هنا استرجاع للعدد الصحيح المقصود من مضاعفة الفاصلة
+ * العائمة (خطأ ~1e-13 لا يعبر حد النصف)، وفحص التمثيل (bps/100 === percent)
+ * هو الذي يرفض الدقة غير المدعومة — لا تقريبًا لها.
+ */
+export function percentToBpsExact(percent: number): number | null {
+  if (!Number.isFinite(percent) || percent < 0) return null;
+  const bps = Math.round(percent * 100);
+  if (!Number.isSafeInteger(bps) || bps / 100 !== percent) return null;
+  return bps;
+}
+
+/**
+ * المجموعة ١١ (المرحلة 11-0): صدى الكمية المخزنة/المشتقة إلى ملي صحيح —
+ * حد إدخال/عرض فقط (لا قرار عمل هنا): يقبل الصفر، ويرفض ما ليس ممثلاً
+ * تمثيلًا دقيقًا بالملي بنتيجة null (فارغ) بدل تقريبه صامتًا.
+ */
+export function echoQuantityMilli(quantity: number): number | null {
+  if (!Number.isFinite(quantity) || quantity < 0) return null;
+  const milli = Math.round(quantity * 1000);
+  if (!Number.isSafeInteger(milli) || Math.abs(quantity - milli / 1000) > Number.EPSILON) return null;
+  return milli;
+}
+
 export function focusEnglishNumericText(
   value: number | null,
   text: string,

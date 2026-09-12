@@ -153,7 +153,9 @@ function G5DecisionPanel({
             value={
               contribution.contributionMarginPerUnitMinor === null
                 ? "غير متاح"
-                : formatted(Math.round(contribution.contributionMarginPerUnitMinor))
+                : /* المجموعة ١١ (11-0): قيمة المجال minor صحيح من roundHalfUp —
+                   * بلا تقريب صفحة إضافي (كان Math.round دفاعيًا بلا أثر). */
+                  formatted(contribution.contributionMarginPerUnitMinor)
             }
           />
         </div>

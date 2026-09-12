@@ -65,11 +65,31 @@ export function formatInteger(value: number | null | undefined) {
 }
 
 export function formatQuantityMilli(value: number | null | undefined) {
-  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
-  return (value / 1000)
-    .toFixed(3)
-    .replace(/\.0+$/, "")
-    .replace(/(\.\d*?)0+$/, "$1");
+  if (value === null || value === undefined || !Number.isSafeInteger(value)) return "—";
+  return trimTrailingZeros(quantityMilliToFixed3(value));
+}
+
+/* المجموعة ١١ (المرحلة 11-0 — سياسة القيم الدقيقة): التنسيق الكمي الكنسي
+ * واحد يُبنى بإنشاء السلسلة العشرية من عدد الملي الصحيح مباشرة — قسمة
+ * صحيحة/صحيحة وبقية صحيحة فلا شوائب ثنائية أصلًا (لا 0.30000000000000004)،
+ * ولا يغيّر التنسيق القيمة أبدًا: تطبيع الأصفار اللاحقة تمثيل لا تقريب. */
+function quantityMilliToFixed3(milli: number): string {
+  const sign = milli < 0 ? "-" : "";
+  const abs = Math.abs(milli);
+  const whole = Math.floor(abs / 1000);
+  const fraction = abs - whole * 1000;
+  return `${sign}${whole}.${String(fraction).padStart(3, "0")}`;
+}
+
+function trimTrailingZeros(text: string): string {
+  return text.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+}
+
+/** عرض الكمية بمنزلة الألف الثابتة حيث يُبلَّغ عقد الدقة نفسه (الكتالوج وفروق
+ * التسليم) — نفس المصدر الكنسي وسياسة عرض موثقة لا تغيّر القيمة. */
+export function formatQuantityMilliFixed3(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isSafeInteger(value)) return "—";
+  return quantityMilliToFixed3(value);
 }
 
 export type BreakEvenDisplay = { number: string; scale: string };

@@ -6,11 +6,7 @@ import {
   parseEnglishQuantityText,
 } from "@/application/input/englishNumeric";
 import { blurQuantityText } from "@/components/forms/EnglishQuantityInput";
-import {
-  formatMoneyMinor,
-  formatMoneyWithUnit,
-  formatQuantityMilli,
-} from "@/presentation/formatters";
+import { formatMoneyMinor, formatMoneyWithUnit, formatQuantityMilli } from "@/presentation/formatters";
 
 /**
  * المجموعة ١١ (المرحلة 11-0): تجميد القيم الدقيقة عبر أسطح الإدخال والعرض —
