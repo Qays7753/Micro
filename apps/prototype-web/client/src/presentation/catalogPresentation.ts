@@ -163,6 +163,8 @@ export const buildCatalogPerUnitPreview = (
     warning: null,
   };
 };
+export type CatalogConversionPreview = ReturnType<typeof buildCatalogConversionPreview>;
+export type CatalogPerUnitPreview = ReturnType<typeof buildCatalogPerUnitPreview>;
 export const catalogAllocationStatusLabel = (status: "known" | "needs_review" | "incomplete" | null) =>
   status === "known"
     ? "مكتمل"
