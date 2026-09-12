@@ -24,6 +24,7 @@ import {
   JOD,
   ammanDateOrNull,
   assertNonNegativeInteger,
+  ceilRatio,
   fieldLabelAr,
   quantityMilliExact,
   roundHalfUp,
@@ -198,6 +199,25 @@ function materialItemCostMinor(item: MaterialCostItem): number {
   return itemCostMinor;
 }
 
+/* المجموعة ١١ (11-0 — سياسة EXACT_VALUES_NO_SILENT_ROUNDING): سقف تكلفة
+ * الوحدة على النسبة الدقيقة بالملي — ceilRatio(plannedCost×1000،
+ * quantityMilli) — بدل قسمة الفاصلة العائمة التي ترفع حدها الأعلى عند
+ * الكسور العشرية (كانت 21/0.7 تعطي 31 والصحيح 30). المسارات الإنتاجية
+ * (كميات صحيحة) بلا أي تغيير: قسمة صحيح/صحيح دقيقة في FP أصلا. الدقة
+ * غير الآمنة تُرفض صريحة لا تُقرَّب. */
+function unitCostCeilingMinor(plannedCostMinor: number, quantity: number): number {
+  const quantityMilli = quantityMilliExact(quantity);
+  const numerator = plannedCostMinor * 1000;
+  if (quantityMilli === null || !Number.isSafeInteger(numerator) || numerator < 0) {
+    throw new Error("تكلفة الوحدة تتجاوز الدقة الآمنة للأرقام الصحيحة؛ لم يُقرّب الرقم.");
+  }
+  const unitCostMinor = ceilRatio(numerator, quantityMilli);
+  if (unitCostMinor === null) {
+    throw new Error("تكلفة الوحدة تتجاوز الدقة الآمنة للأرقام الصحيحة؛ لم يُقرّب الرقم.");
+  }
+  return unitCostMinor;
+}
+
 export function calculateCostSnapshot(id: string, input: CostSnapshotInput): CostSnapshot {
   if (!id.trim()) throw new Error("أكمل معرّف نسخة التكلفة قبل الحساب.");
   if (input.currency !== JOD) throw new Error("العملة المدعومة في هذا الإصدار هي الدينار الأردني فقط.");
@@ -232,7 +252,7 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
 
   const plannedCostMinor =
     materialCostMinor + timeCostMinor + input.packagingMinor + input.deliveryMinor + input.wasteMinor;
-  const unitCostMinor = Math.ceil(plannedCostMinor / input.quantity);
+  const unitCostMinor = unitCostCeilingMinor(plannedCostMinor, input.quantity);
   const priceFloorMinor = unitCostMinor + input.safetyBufferMinor;
 
   return freezeCostSnapshot({

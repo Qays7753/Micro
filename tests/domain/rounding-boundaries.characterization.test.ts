@@ -98,10 +98,11 @@ describe("Group 10 domain-integration rounding boundaries (Phase 10-0: preserve 
       source: "draft",
     });
     expect(integerPath.unitCostMinor).toBe(21);
-    /* الحد الكسري (غير قابل للوصول من الواجهة اليوم): 21/0.7 = 30 بالضبط
-     * حسابيًا، لكن 21/0.7 في الفاصلة العائمة = 30.000000000000004 فيرفعها
-     * السقف إلى 31. هذا سلوك المجال الحالي — مثبت بأمانة كتوصيف حتى قرار
-     * مالك مستقبلي (مصفوفة المجموعة ١٠، خيار التقسية M4.1). */
+    /* المجموعة ١١ (11-0 — سياسة القيم الدقيقة المعتمدة): الحد الكسري
+     * 21/0.7 = 30 بالضبط حسابيًا، والاشتقاق بالملي الصحيح
+     * ceilRatio(21×1000، 700) يعطي 30 — كانت قسمة الفاصلة العائمة تعطي
+     * 30.000000000000004 فترفع السقف إلى 31 فأُزيلت (تقسية M4.1 في
+     * مصفوفة قرار المجموعة ١٠ — نفذتها سياسة المالك المعتمدة). */
     const fractionalBoundary = calculateCostSnapshot("rounding-freeze-frac", {
       currency: "JOD",
       materialItems: [],
@@ -114,6 +115,6 @@ describe("Group 10 domain-integration rounding boundaries (Phase 10-0: preserve 
       createdAt: "2026-09-12T00:00:00Z",
       source: "draft",
     });
-    expect(fractionalBoundary.unitCostMinor).toBe(31);
+    expect(fractionalBoundary.unitCostMinor).toBe(30);
   });
 });

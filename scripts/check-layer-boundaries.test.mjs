@@ -259,9 +259,7 @@ describe("layer boundary fixtures — application Math rounding boundary (Group 
      * (deliveryReviewService وg5Service) أُزيل فعليًا — توحيد الكمية ألغى
      * حاجتهما، فالقاعدة العامة تحرسهما الآن مثل بقية ملفات التطبيق. */
     for (const relative of [
-      "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts",
       "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
-      "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",
       "apps/prototype-web/client/src/application/home/homeControlCenterService.ts",
       "apps/prototype-web/client/src/application/input/englishNumeric.ts",
     ]) {
@@ -273,16 +271,24 @@ describe("layer boundary fixtures — application Math rounding boundary (Group 
         relative,
       ).toEqual([]);
     }
-    /* ملف تطبيق غير مستثنى (بلا Math.round/floor أصلًا — ceil فقط) يبقى
-     * نظيفًا؛ والحد المعلن بصدق: انزلاق Math جديد داخل ملف مستثنى يكشفه
-     * مراجعة diff لا العد. */
-    const [lockResult] = await eslint.lintText(
-      await readReal("apps/prototype-web/client/src/application/security/localLockService.ts"),
-      {
-        filePath: path.join(ROOT, "apps/prototype-web/client/src/application/security/localLockService.ts"),
-      },
-    );
-    expect((lockResult?.messages ?? []).filter(m => m.severity === 2)).toEqual([]);
+    /* المجموعة ١١ (11-0): استثناءا Math الماليان السابقان أُزيل فعليًا —
+     * materialSuggestions (اشتقاق roundHalfUp الكنسي) وintegrityCheckService
+     * (formatMoneyWithUnit الكنسي) صارا تحت الحظر العام ويظلان نظيفين،
+     * فالحد المعلن بصدق: انزلاق Math جديد في أي ملف تطبيق يكشفه الحارس. */
+    for (const relative of [
+      "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts",
+      "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",
+      "apps/prototype-web/client/src/application/security/localLockService.ts",
+    ]) {
+      const [result] = await eslint.lintText(await readReal(relative), {
+        filePath: path.join(ROOT, relative),
+      });
+      expect((result?.messages ?? []).filter(m => m.severity === 2)).toEqual([]);
+      expect(
+        (result?.messages ?? []).filter(m => m.ruleId === "no-restricted-syntax"),
+        relative,
+      ).toEqual([]);
+    }
   });
 });
 

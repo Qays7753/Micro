@@ -148,16 +148,17 @@ describe("materialSuggestionsFrom (pure helper, STR-032)", () => {
     expect(suggestions.slice(4).every(suggestion => !suggestion.fromReceipt)).toBe(true);
   });
 
-  it("pins the current floating-point unit-price derivation at the exact half boundary (documented Math exception)", () => {
-    /* استلام 10.01 د.أ لكل 2.000 وحدة: الحساب الدقيق نصف-أعلى يعطي 501،
-     * لكن تعبير الفاصلة العائمة الحالي يعطي 500 — السلوك الحالي مثبت هنا
-     * كما هو (استثناء Math الموثق)، ولا يُغير إلا بقرار مالك صريح لأنه
-     * عرض سعر تعبئة لا قيمة محفوظة. */
+  it("derives the unit price exactly at the half boundary under the approved exact-values policy", () => {
+    /* المجموعة ١١ (11-0 — سياسة EXACT_VALUES_NO_SILENT_ROUNDING المعتمدة من
+     * المالك): استلام 10.01 د.أ لكل 2.000 وحدة = 500.5 قرش/وحدة بالضبط —
+     * الاشتقاق الصحيح الدقيق roundHalfUp(1001×1000، 2000) يعطي 501؛
+     * تعبير الفاصلة العائمة القديم كان يعطي 500 (−1 قرش في 0.030% من
+     * الأزواج الواقعية) فأُزيل. عرض تعبئة يؤكده المستخدم — لا قيمة محفوظة. */
     const movements = [receipt("receipt-half", "mat-half", "2026-08-01", 2_000, 1_001)];
     const suggestions = materialSuggestionsFrom(
       overview([overviewMaterial("mat-half", "kilogram")]),
       movements,
     );
-    expect(byId(suggestions, "mat-half")).toMatchObject({ unitPriceMinor: 500, fromReceipt: true });
+    expect(byId(suggestions, "mat-half")).toMatchObject({ unitPriceMinor: 501, fromReceipt: true });
   });
 });
