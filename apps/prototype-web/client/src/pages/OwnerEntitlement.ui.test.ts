@@ -3,7 +3,7 @@ import {
   ownerMovementReasonsForKind,
   successorPolicyFormRequirements,
   supportedOwnerEntitlementPolicyKinds,
-} from "./OwnerEntitlement";
+} from "@/presentation/ownerEntitlementPresentation";
 
 describe("OwnerEntitlement UI capability model", () => {
   it("does not expose fixed-shift without shift evidence", () => {
