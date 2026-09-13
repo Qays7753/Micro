@@ -1,0 +1,47 @@
+{
+  "run": "micro-standard-ui-aux-integration-20260914",
+  "generated": "2026-09-14",
+  "base_commit": "c0469e265f24c70427eb7826dee717be117cff87",
+  "base_commit_subject": "Merge pull request #159 from Qays7753/remediation/micro-full-hardening-2026",
+  "base_tree_sha": "6ca4a2fb7eb980875f5754bfe4efccbdd913e326",
+  "file_count": 776,
+  "file_count_by_extension": {
+    ".ts": 295,
+    ".md": 275,
+    ".tsx": 149,
+    ".json": 11,
+    ".mjs": 11,
+    ".woff2": 10,
+    "(none)": 5,
+    ".png": 5,
+    ".docx": 3,
+    ".css": 2,
+    ".js": 2,
+    ".yaml": 2,
+    ".py": 2,
+    ".yml": 1,
+    ".html": 1,
+    ".svg": 1,
+    ".sh": 1
+  },
+  "key_source_shas": {
+    "apps/prototype-web/client/src/index.css": "6584001f7e41fc6dcba3b8279d355644116e5f5b",
+    "apps/prototype-web/client/src/App.tsx": "a64ada54e5a109f028d75a176e70f30e23e64682",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx": "b5f62bfa166be0941476677dff9bd898d74d877d",
+    "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx": "aacde6f0e92202bb669d1af363692943b3f3002d",
+    "apps/prototype-web/client/src/app/navigation.ts": "7612d5b35fd83555d8625f2bb8d54b5f753a8a8e",
+    "apps/prototype-web/client/src/presentation/formatters.ts": "d7f00cf8dd24e62185d018c62e6d8de2520a7207",
+    "apps/prototype-web/client/src/components/layout/QuickActionSheet.tsx": "d81f4dc8096291112c1ad6459a70ecf318a1abec",
+    "apps/prototype-web/client/src/components/forms/UnsavedChangesGuard.tsx": "ce113f473efded8c8d2fb9b7a3a14287151df739",
+    "scripts/design-token-guards.py": "a3fb05b8e2dc0616f1819fac8ecf066ce7ae6c2b",
+    "vite.config.ts": "f04efb74d46559c432168d86e6a6374536ccb6b8",
+    "public/micro-mark.svg": "eceef89c1922243d46faebdadccbfde0b0128efa"
+  },
+  "baseline_check_status": {
+    "pnpm_check": "PASS (typecheck, lint, format:check, text-density, design-guards, guards, test, prototype:check, prototype:test, prototype:build, bundle-budget)",
+    "root_tests": "35 files / 391 tests passed",
+    "client_tests": "166 files / 1166 tests passed",
+    "bundle": "entry 633197 raw / 150606 gzip bytes vs limits 650000 / 155000 — PASS"
+  },
+  "blob_sha_count": 776
+}

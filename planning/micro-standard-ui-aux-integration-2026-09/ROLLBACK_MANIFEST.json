@@ -1,0 +1,17 @@
+{
+  "run": "micro-standard-ui-aux-integration-20260914",
+  "strategy": "per-wave revertible commits; every wave lands as one or more commits, each independently revertable",
+  "global_rollback": {
+    "base_commit": "c0469e265f24c70427eb7826dee717be117cff87",
+    "restore_command": "git checkout c0469e265f24c70427eb7826dee717be117cff87",
+    "verify_command": "git rev-parse HEAD  # must print c0469e265f24c70427eb7826dee717be117cff87"
+  },
+  "wave_boundaries": [
+    {
+      "wave": "W0",
+      "commit": "TBD at commit time",
+      "contents": "run folder documents only — zero product-source changes"
+    }
+  ],
+  "proof": "Working tree at branch point was clean (git status empty); base commit is the exact origin/main HEAD recorded in BASELINE_MANIFEST.json; rollback restores it byte-for-byte by definition of git commit revert."
+}
