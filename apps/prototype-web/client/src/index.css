@@ -44,7 +44,6 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
-  --space-7: 32px; /* dead at W1 (0 consumers) — retirement inventory, W6 */
   --radius-control: var(--vf-radius-control);
   --radius-card: var(--vf-radius-card);
   --radius-sheet: var(--vf-radius-sheet);
@@ -52,7 +51,6 @@
   --elevation-2: var(--vf-shadow-e2);
   --elevation-3: var(--vf-shadow-e3);
   --motion-out: cubic-bezier(0.23, 1, 0.32, 1); /* Micro legacy easing — kept */
-  --motion-in-out: cubic-bezier(0.77, 0, 0.175, 1); /* dead at W1 — W6 inventory */
   /* W1 runtime mapping (D-01/U-01): Micro names → Micro Standard v2 contracts.
      Values now resolve through ./styles/vf-tokens.css. Retired v0 palette
      (#cc785c/#964e33/#079fa0/…) no longer feeds the light layer. */
@@ -64,7 +62,6 @@
   --color-text-primary: var(--vf-ink);
   --color-text-strong: var(--vf-ink);
   --color-text-secondary: var(--vf-ink-secondary);
-  --color-text-tertiary: #b7b2a6; /* dead at W1 (0 consumers) — W6 inventory */
   --color-brand-primary: var(--vf-clay);
   --color-brand-pressed: var(--vf-clay-interactive);
   --color-brand-text: var(--vf-ink); /* retired #964e33 — brand text is text-safe ink */
@@ -81,8 +78,6 @@
   --color-warning-text: #7a5c20; /* Micro-owned knowledge/attention pair (68 consumers)
      — per-surface migration per U-05/U-11/U-12, W5 */
   --color-warning-bg: #f6eccf; /* Micro-owned — W5 migration */
-  --color-withdrawal-text: #3e5c76; /* dead at W1 (0 consumers) — W6 inventory */
-  --color-withdrawal-bg: #e8eef3; /* dead at W1 — W6 inventory */
   --color-ink-on-color: var(--vf-ink);
   --background: var(--color-bg-canvas);
   --foreground: var(--color-text-primary);
@@ -121,7 +116,6 @@
   --color-text-primary: #fff7ed;
   --color-text-strong: #fff7ed;
   --color-text-secondary: #d6c9ba;
-  --color-text-tertiary: #a89b8c;
   --color-brand-primary: #d59172;
   --color-brand-pressed: #cc785c;
   --color-brand-text: #8fd5d6;
@@ -135,8 +129,6 @@
   --color-danger-bg: #332d27;
   --color-warning-text: #e2c268;
   --color-warning-bg: #332d27;
-  --color-withdrawal-text: #8aa5b8;
-  --color-withdrawal-bg: #332d27;
   --background: var(--color-bg-canvas);
   --foreground: var(--color-text-primary);
   --card: var(--color-surface);
@@ -1983,21 +1975,6 @@ textarea:disabled,
 .micro-review-empty p {
   color: var(--color-text-secondary);
 }
-.micro-button-block {
-  width: 100%;
-  justify-content: center;
-}
-.micro-home-heading {
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-decision-surface {
-  display: grid;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-brand-primary);
-  padding: var(--space-4);
-  background: var(--color-bg-well);
-}
 .micro-decision-surface[data-tone="warning"] {
   border-inline-start-color: var(--color-warning-text);
   background: var(--color-warning-bg);
@@ -2081,11 +2058,6 @@ textarea:disabled,
   height: 19px;
   color: var(--color-accent-text);
 }
-.micro-record-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-block: 1px solid var(--color-border);
-}
 .micro-record-summary > div {
   display: grid;
   gap: var(--space-1);
@@ -2108,14 +2080,6 @@ textarea:disabled,
   line-height: 1.15;
   text-align: right;
   unicode-bidi: isolate;
-}
-.micro-financial-pulse {
-  display: grid;
-  gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-4);
-  background: var(--color-surface);
 }
 .micro-financial-pulse-heading {
   display: flex;
@@ -2172,13 +2136,6 @@ textarea:disabled,
   display: inline;
   font-size: 14px;
 }
-.micro-scope-line {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-}
 .micro-scope-line svg {
   width: 18px;
   height: 18px;
@@ -2191,13 +2148,6 @@ textarea:disabled,
 }
 .micro-scope-line .micro-text-action {
   grid-column: 2;
-}
-.micro-review-result {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 3px solid var(--color-success-text);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-4) 0;
 }
 .micro-review-result[data-result="estimated"],
 .micro-review-result[data-result="review_required"] {
@@ -2222,33 +2172,12 @@ textarea:disabled,
   display: inline;
   font-size: 16px;
 }
-.micro-review-empty {
-  display: grid;
-  gap: var(--space-3);
-  border-block: 1px solid var(--color-border);
-  padding: var(--space-5) 0;
-}
 .micro-review-empty h2,
 .micro-review-empty p {
   margin: 0;
 }
 .micro-review-empty p {
   color: var(--color-text-secondary);
-}
-.micro-button-block {
-  width: 100%;
-  justify-content: center;
-}
-.micro-home-heading {
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-decision-surface {
-  display: grid;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-brand-primary);
-  padding: var(--space-4);
-  background: var(--color-bg-well);
 }
 .micro-decision-surface[data-tone="warning"] {
   border-inline-start-color: var(--color-warning-text);
@@ -2606,11 +2535,6 @@ button.micro-finance-position-link:focus-visible {
   height: 19px;
   color: var(--color-accent-text);
 }
-.micro-record-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-block: 1px solid var(--color-border);
-}
 .micro-record-summary > div {
   display: grid;
   gap: var(--space-1);
@@ -2633,14 +2557,6 @@ button.micro-finance-position-link:focus-visible {
   line-height: 1.15;
   text-align: right;
   unicode-bidi: isolate;
-}
-.micro-financial-pulse {
-  display: grid;
-  gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-4);
-  background: var(--color-surface);
 }
 .micro-financial-pulse-heading {
   display: flex;
@@ -2697,13 +2613,6 @@ button.micro-finance-position-link:focus-visible {
   display: inline;
   font-size: 14px;
 }
-.micro-scope-line {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-}
 .micro-scope-line svg {
   width: 18px;
   height: 18px;
@@ -2716,13 +2625,6 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-scope-line .micro-text-action {
   grid-column: 2;
-}
-.micro-review-result {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 3px solid var(--color-success-text);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-4) 0;
 }
 .micro-review-result[data-result="estimated"],
 .micro-review-result[data-result="review_required"] {
@@ -2746,12 +2648,6 @@ button.micro-finance-position-link:focus-visible {
 .micro-review-result p .micro-number {
   display: inline;
   font-size: 16px;
-}
-.micro-review-empty {
-  display: grid;
-  gap: var(--space-3);
-  border-block: 1px solid var(--color-border);
-  padding: var(--space-5) 0;
 }
 .micro-review-empty h2,
 .micro-review-empty p {
