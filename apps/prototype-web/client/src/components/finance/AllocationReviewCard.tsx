@@ -6,6 +6,7 @@
  * — المعاينة والحفظ مصدر واحد، والتقريب نصف الأعلى نفسه.
  */
 import { calculateSharedProjectShareMinor } from "@micro-domain/financial-event/index.js";
+import { percentToBpsExact } from "@/application/input/englishNumeric";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 
 export type AllocationReviewMode = "fixed" | "percentage" | "estimate" | "defer";
@@ -25,21 +26,23 @@ export function AllocationReviewCard(props: AllocationReviewCardProps) {
   const { mode, amountMinor, sharedTotalAmountMinor, sharedPercentage, valid } = props;
   let percentageRows: readonly { label: string; minor: number; note?: string }[] | null = null;
   if (mode === "percentage" && valid && sharedTotalAmountMinor > 0 && sharedPercentage > 0) {
-    try {
-      const shareMinor = calculateSharedProjectShareMinor(
-        sharedTotalAmountMinor,
-        Math.round(sharedPercentage * 100),
-      );
-      percentageRows = [
-        { label: "إجمالي المصروف المشترك", minor: sharedTotalAmountMinor },
-        { label: `حصة المشروع (${sharedPercentage}%)`, minor: shareMinor },
-        {
-          label: "الباقي خارج حصة المشروع — بيت أو نشاط آخر",
-          minor: sharedTotalAmountMinor - shareMinor,
-        },
-      ];
-    } catch {
-      percentageRows = null;
+    /* المجموعة ١١ (11-0): النسبة تُحوَّل إلى bps تحويلًا دقيقًا فقط — الدقة
+     * الأدق من منزلتين تُرفض فتخلو المعاينة بدل أن تعرض حصة مقرَّبة صامتة. */
+    const sharedPercentageBps = percentToBpsExact(sharedPercentage);
+    if (sharedPercentageBps !== null) {
+      try {
+        const shareMinor = calculateSharedProjectShareMinor(sharedTotalAmountMinor, sharedPercentageBps);
+        percentageRows = [
+          { label: "إجمالي المصروف المشترك", minor: sharedTotalAmountMinor },
+          { label: `حصة المشروع (${sharedPercentage}%)`, minor: shareMinor },
+          {
+            label: "الباقي خارج حصة المشروع — بيت أو نشاط آخر",
+            minor: sharedTotalAmountMinor - shareMinor,
+          },
+        ];
+      } catch {
+        percentageRows = null;
+      }
     }
   }
   return (

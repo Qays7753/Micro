@@ -14,7 +14,15 @@ import type { FormDraftService, FormDraftValues } from "@/application/drafts/for
 
 export type FormDraftState<Values extends FormDraftValues> =
   | { phase: "clean"; values: Values }
-  | { phase: "drafting"; values: Values; lastSavedAt: string | null; saving: boolean }
+  | {
+      phase: "drafting";
+      values: Values;
+      lastSavedAt: string | null;
+      saving: boolean;
+      /* المجموعة ٥ (التحصين الكامل): فشل حفظ المسودة ظاهر لا صامت — القيم
+       * تبقى أمام المستخدم والنص صادق بلا أي ادعاء مالي. */
+      saveFailed: boolean;
+    }
   | { phase: "restore-offer"; savedValues: Values; savedAt: string; currentValues: Values };
 
 export type FormDraftController<Values extends FormDraftValues> = {
@@ -80,13 +88,23 @@ export function useFormDraft<Values extends FormDraftValues>(
               values,
               lastSavedAt: savedAtRef.current,
               saving: current.phase === "drafting" ? current.saving : false,
+              saveFailed: current.phase === "drafting" ? current.saveFailed : false,
             },
       );
       void service.current.save(formKind, scopeId, values, savedAtRef.current).then(result => {
-        if (result.ok) savedAtRef.current = result.value.updatedAt;
+        if (result.ok) {
+          savedAtRef.current = result.value.updatedAt;
+        }
         setState(current => {
           if (current.phase !== "drafting") return current;
-          return { ...current, lastSavedAt: savedAtRef.current, saving: false, values: latestValues.current };
+          return {
+            ...current,
+            lastSavedAt: savedAtRef.current,
+            saving: false,
+            /* فشل الحفظ يُعلن والقيم تبقى في الذاكرة كما هي — لا كذب ولا مسح. */
+            saveFailed: !result.ok,
+            values: latestValues.current,
+          };
         });
       });
     },
@@ -104,7 +122,13 @@ export function useFormDraft<Values extends FormDraftValues>(
     latestValues.current = values;
     savedAtRef.current = state.savedAt;
     suppressWrite.current = true;
-    setState({ phase: "drafting", values, lastSavedAt: state.savedAt, saving: false });
+    setState({
+      phase: "drafting",
+      values,
+      lastSavedAt: state.savedAt,
+      saving: false,
+      saveFailed: false,
+    });
     /* إعادة التطبيق لا تعيد الكتابة — القيم نفسها محفوظة سلفًا. */
     globalThis.setTimeout(() => {
       suppressWrite.current = false;

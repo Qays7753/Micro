@@ -17,7 +17,7 @@ import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-doma
 import { reverseOrderCollection } from "@micro-domain/craft-order/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
-import { localDateInAmman } from "@/presentation/formatters";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type CollectionAllocationMatchStatus =
   | "full_match"

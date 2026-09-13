@@ -28,10 +28,12 @@ import {
   type InventoryShortage,
 } from "@micro-domain/inventory-material/index.js";
 import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
+import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { ScheduleService } from "@/application/scheduling/scheduleService";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
+import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 
 export type DeliveryConsumptionAction = "consume" | "consume_with_shortage" | "record_shortage" | "skip";
@@ -101,12 +103,15 @@ export type DeliveryCommitResult =
     }
   | { ok: false; code: "storage_error" | "invalid_state" | "validation_error"; message: string };
 
+/* رقعة إغلاق المجموعة ٣ (D-031): التعارض المتزامن يظهر بكود مطبوع
+ * storage_stale (مثل عقد المورد/الموعد — بلا تفسير نصوص) — الرسالة من
+ * المخزّن نفسه حرفيًا. */
 export type ReverseDeliveryResult =
   | {
       ok: true;
       value: { stored: StoredCraftOrder; reversalMovements: readonly InventoryMovement[]; reused: boolean };
     }
-  | { ok: false; code: "storage_error" | "invalid_state"; message: string };
+  | { ok: false; code: "storage_error" | "storage_stale" | "invalid_state"; message: string };
 
 const UNIT_LABELS: Record<string, string> = {
   piece: "قطعة",
@@ -116,7 +121,7 @@ const UNIT_LABELS: Record<string, string> = {
   other: "وحدة أخرى",
 };
 
-function failure<C extends "storage_error" | "invalid_state" | "validation_error">(
+function failure<C extends "storage_error" | "storage_stale" | "invalid_state" | "validation_error">(
   code: C,
   message: string,
 ): { ok: false; code: C; message: string } {
@@ -136,10 +141,6 @@ function reversalIdempotencyKey(orderId: string, reversalEventCount: number): st
   return reversalEventCount === 0
     ? `${orderId}:reverse-delivery`
     : `${orderId}:reverse-delivery-${reversalEventCount + 1}`;
-}
-
-function quantityMilliOf(quantity: number): number {
-  return Math.round(quantity * 1000);
 }
 
 export class DeliveryReviewService {
@@ -174,7 +175,7 @@ export class DeliveryReviewService {
       return failure(
         "invalid_state",
         order.status === "delivered" || order.status === "settled"
-          ? "هذا الطلب مسلّم سابقًا — راجع تفاصيله أو اعكس التسليم إن لزم."
+          ? "هذا الطلب مسلّم سابقًا — راجع تفاصيله أو سجّل تراجعًا موثقًا عن التسليم إن لزم."
           : "مراجعة التسليم تتطلب طلبًا جاهزًا للتسليم.",
       );
     }
@@ -184,10 +185,14 @@ export class DeliveryReviewService {
     const rows: DeliveryConsumptionRow[] = [];
     const unlinkedItems: { name: string; quantity: number; unit: string }[] = [];
     /* SA-5 R3: بنود التكلفة المرتبطة بالمادة نفسها تُجمع كمياتها — بندان للمادة
-     * الواحدة استهلاك واحد بمجموعهما لا صفان يطغى أحدهما على الآخر. */
+     * الواحدة استهلاك واحد بمجموعهما لا صفان يطغى أحدهما على الآخر.
+     * المجموعة ٩ (STR-006): التجميع يجري في فضاء الملي الصحيح — كل بند
+     * محفوظ تحققه عقد النطاق الدقيق عند إنشاء النسخة، لكن جمع الكسور
+     * العشرية يحمل خطأ فاصلة عائمة يتجاوز تسامح EPSILON فيفسد العقد
+     * (توصيف المجموعة ٩)؛ مجموع المليات هو المجموع الصحيح نفسه. */
     const seenMaterialQuantities = new Map<
       string,
-      { quantity: number; unitPriceMinor: number; unit: string }
+      { quantityMilli: number; unitPriceMinor: number; unit: string }
     >();
     for (const item of order.costSnapshot.input.materialItems) {
       const materialId = (item as { materialId?: string | null }).materialId ?? null;
@@ -195,13 +200,22 @@ export class DeliveryReviewService {
         unlinkedItems.push({ name: item.name, quantity: item.quantity, unit: item.unit });
         continue;
       }
+      const itemMilli = quantityMilliExact(item.quantity);
+      if (itemMilli === null) {
+        /* حماية صدقة لبيانات فاسدة لا تصل عبر الإنشاء الصحيح: بند كمية خارج
+         * دقة أجزاء الألف يُعلن لا يُدار بصمت. */
+        return failure(
+          "invalid_state",
+          `كمية المادة «${item.name}» في نسخة التكلفة خارج دقة أجزاء الألف — راجع النسخة قبل التسليم.`,
+        );
+      }
       const previous = seenMaterialQuantities.get(materialId);
       if (previous) {
-        previous.quantity += item.quantity;
+        previous.quantityMilli += itemMilli;
         continue;
       }
       seenMaterialQuantities.set(materialId, {
-        quantity: item.quantity,
+        quantityMilli: itemMilli,
         unitPriceMinor: item.unitPriceMinor,
         unit: item.unit,
       });
@@ -209,7 +223,7 @@ export class DeliveryReviewService {
     for (const [materialId, aggregate] of seenMaterialQuantities) {
       const item = {
         name: "",
-        quantity: aggregate.quantity,
+        quantityMilli: aggregate.quantityMilli,
         unit: aggregate.unit,
         unitPriceMinor: aggregate.unitPriceMinor,
       };
@@ -218,7 +232,7 @@ export class DeliveryReviewService {
         warnings.push(`مادة مربوطة بالتكلفة غير موجودة في المخزون بعد — ستبقى بلا حركة كمية.`);
         continue;
       }
-      const planned = quantityMilliOf(item.quantity);
+      const planned = item.quantityMilli;
       if (!materialIsTracked(material)) {
         /* عقد ٢٨: المادة غير المتتبَّعة مرجع تكلفة فقط — لا حركة كمية أبدًا. */
         rows.push({
@@ -425,7 +439,7 @@ export class DeliveryReviewService {
           assertInventoryRemainsNonNegative(row.materialId, [...existingMovements, movement]);
           newMovements.push(movement);
           consumedNotes.push(
-            `${material.name} (${(consumeQuantity / 1000).toFixed(3).replace(/\.?0+$/, "") || "0"} ${UNIT_LABELS[material.unit] ?? ""})`.trim(),
+            `${material.name} (${formatQuantityMilli(consumeQuantity)} ${UNIT_LABELS[material.unit] ?? ""})`.trim(),
           );
         } catch (error) {
           return failure(
@@ -558,7 +572,8 @@ export class DeliveryReviewService {
     if (!current.ok) return failure("storage_error", "تعذر قراءة الطلب المحلي.");
     const stored = current.value;
     if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
-    if (!input.reason.trim()) return failure("invalid_state", "أكمل سبب عكس التسليم قبل الحفظ.");
+    if (!input.reason.trim())
+      return failure("invalid_state", "أكمل سبب التراجع الموثق عن التسليم قبل الحفظ.");
     const timestamp = this.now();
     const reversalAttempt = stored.order.events.filter(event => event.type === "delivery_reversed").length;
     const operationKey = input.operationKey ?? reversalIdempotencyKey(orderId, reversalAttempt);
@@ -577,7 +592,10 @@ export class DeliveryReviewService {
         createdAt: timestamp,
       });
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر عكس التسليم.");
+      return failure(
+        "invalid_state",
+        error instanceof Error ? error.message : "تعذر التراجع الموثق عن التسليم.",
+      );
     }
     /* حركات مرآة لكل استهلاك تسليم غير معكوس — عقد ٢٨: المرآة تحمل معرفة
      * التكلفة الأصلية، وعملية التراجع لا تُكرر. */
@@ -607,7 +625,7 @@ export class DeliveryReviewService {
           recordedAt: timestamp,
           quantityDeltaMilli: -movement.quantityDeltaMilli,
           valueDeltaMinor: -movement.valueDeltaMinor,
-          note: `عكس تسليم: ${movement.note}`,
+          note: `تراجع موثق عن التسليم: ${movement.note}`,
           reason: input.reason.trim(),
           operationKey: `${movement.operationKey}:reversal`,
           reversesMovementId: movement.id,
@@ -618,13 +636,16 @@ export class DeliveryReviewService {
       } catch (error) {
         return failure(
           "invalid_state",
-          error instanceof Error ? error.message : "تعذر عكس حركات استهلاك التسليم.",
+          error instanceof Error ? error.message : "تعذر تسجيل مرايا تراجع حركات استهلاك التسليم.",
         );
       }
     }
     const nextStored: StoredCraftOrder = { ...stored, order, updatedAt: timestamp };
     const committed = await this.store.commitOrderDeliveryReversal(nextStored, reversalMovements);
-    if (!committed.ok) return failure("storage_error", "تعذر حفظ عكس التسليم؛ لم يتغير أي رصيد.");
+    /* رقعة إغلاق المجموعة ٣ (D-031): الكود المطبوع من المخزّن كما هو —
+     * تعارض storage_stale (أعد الفتح ثم أعد المحاولة) يبقى مميزًا عن
+     * الفشل التخزيني الحقيقي، والرسالة صادقة من الحارس لا نص مبتدع. */
+    if (!committed.ok) return failure(storageFailureCode(committed.code), committed.message);
     return {
       ok: true,
       value: {

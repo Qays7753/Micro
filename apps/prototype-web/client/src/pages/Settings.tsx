@@ -1,4 +1,5 @@
 import {
+  Activity,
   ArrowRight,
   BellRing,
   ChevronLeft,
@@ -11,6 +12,7 @@ import {
   RotateCcw,
   Save,
   Shield,
+  ShieldAlert,
   Upload,
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
@@ -29,28 +31,20 @@ import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayVa
 import { useTheme } from "@/contexts/ThemeContext";
 import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { OperatingWorkMode } from "@/storage/local/types";
+import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
+import {
+  browserLegacyFormDraftStorage,
+  clearLegacyFormDraftStorage,
+} from "@/application/drafts/legacyFormDraftMigration";
 
-type OperatingModeState =
-  { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; value: OperatingModeValue };
-
-const modeOptions: Array<{ value: "" | OperatingWorkMode; label: string; description: string }> = [
-  { value: "", label: "لم أحدد بعد", description: "يبقى الاختيار مفتوحًا، وتظهر الأدوات عند الحاجة فقط." },
-  {
-    value: "material_focused",
-    label: "المادة أولًا",
-    description: "مفيد عندما يكون فرق المادة أهم ما أراجعه في الطلب.",
-  },
-  {
-    value: "time_focused",
-    label: "الوقت أولًا",
-    description: "مفيد عندما يكون وقت التنفيذ مؤثرًا في العمل أو الخدمة.",
-  },
-  {
-    value: "mixed",
-    label: "المادة والوقت معًا",
-    description: "مفيد عندما يؤثر كل من المادة ووقت التنفيذ في القرار.",
-  },
-];
+import { SettingsDataProtectionSection } from "@/components/settings/SettingsDataProtectionSection";
+import {
+  SettingsOperatingModeSection,
+  modeOptions,
+  type OperatingModeState,
+} from "@/components/settings/SettingsOperatingModeSection";
+import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
+import { SettingsGuidedOpeningSection } from "@/components/settings/SettingsGuidedOpeningSection";
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
@@ -67,6 +61,7 @@ export default function SettingsPage() {
     notifyDataChanged,
     integrityCheck,
     localLock,
+    formDrafts,
   } = usePrototypeServices();
   /* المجموعة ٦ (تدقيق A1 — SP-01/DP-04): مسار الاسترداد معفى من الغطاء لكن
    * إجراءات مغادرة البيانات (تصدير/استيراد/تصفير) تتطلب إثبات رمز القفل مرة
@@ -88,6 +83,65 @@ export default function SettingsPage() {
     pendingGatedActionRef.current = action;
     setGatedAction({ title, description });
   };
+  /* المجموعة ٥ (التحصين الكامل): الاستبدال التدميري (استيراد كامل أو
+   * تأكيد إدخال البداية) لا يمر بلا حماية أبدًا — قفل مفعّل = بوابة
+   * الرمز القائمة؛ ولا قفل = حجب صريح حتى إتمام خطوة تفعيل الحماية
+   * (غياب القفل ليس تحقًا ولا يُعد تفويضًا صامتًا)؛ وفشل قراءة سجل
+   * القفل = إقفال صادق مصرح بلا تغيير أي بيانات. المعاينة وحدها قراءة خالصة
+   * قبل هذه البوابة. */
+  const [protectionBlocked, setProtectionBlocked] = useState<null | {
+    title: string;
+    message: string;
+  }>(null);
+  const runWhenProtected = async (action: () => void | Promise<void>, title: string, gateMessage: string) => {
+    if (lockVerifiedRef.current) {
+      await action();
+      return;
+    }
+    const status = await localLock.status();
+    if (!status.ok) {
+      setProtectionBlocked({
+        title,
+        message:
+          "لم نستطع قراءة إعداد القفل قبل إجراء يستبدل بياناتك؛ لم يتغير أي شيء. أعد المحاولة؛ فإن تكرر فافتح فحص السلامة من الأدوات.",
+      });
+      return;
+    }
+    if (!status.value.enabled) {
+      setProtectionBlocked({
+        title,
+        message:
+          "هذا الإجراء يستبدل بيانات هذا الجهاز ويحتاج حماية بالرمز أولاً — فعّل «قفل التطبيق المحلي» من قسم «احمِ بياناتك» أعلى هذه الصفحة ثم أعد المحاولة. المعاينة التي رأيتها لم تغيّر شيئًا.",
+      });
+      return;
+    }
+    pendingGatedActionRef.current = action;
+    setGatedAction({ title, description: gateMessage });
+  };
+  /* المجموعة ٥ (التحصين الكامل — نسخ تشخيص محلي خصوصي): أثر
+   * النسخ يظهر في موضعه دون فتح طبقة أخرى. */
+  const [diagnosticCopyResult, setDiagnosticCopyResult] = useState<null | { message: string }>(null);
+  async function copyDiagnosticReport() {
+    setDiagnosticCopyResult(null);
+    const clipboard = navigator.clipboard;
+    if (clipboard === undefined || typeof clipboard.writeText !== "function") {
+      setDiagnosticCopyResult({
+        message: "الحافظة غير متاحة في هذا المتصفح — لا يمكن نسخ التقرير.",
+      });
+      return;
+    }
+    try {
+      await clipboard.writeText(localDiagnostics.reportText());
+      setDiagnosticCopyResult({
+        message: "نُسخ تقرير التشخيص إلى الحافظة — بيانات محلية آمنة فقط؛ لا يُرسل شيء تلقائيًا أبدًا.",
+      });
+    } catch {
+      setDiagnosticCopyResult({
+        message: "تعذر النسخ إلى الحافظة — بقيت بياناتك كما هي ولم يُرسل شيء.",
+      });
+    }
+  }
+
   /* المجموعة ٥ (عقد ٣٩): حكم فحص السلامة بعد الاستعادة — يُعرض مع رابط التفاصيل. */
   const [restoreCheck, setRestoreCheck] = useState<{
     overall: "PASS" | "WARN" | "FAIL";
@@ -147,6 +201,18 @@ export default function SettingsPage() {
   /* جولة الاستئناف (استدلال QA حي): إشعارات التخزين (نجاح التصدير، رفض التلاعب،
    * معاينة الاستيراد) تُعرض داخل طبقة «بيانات البداية والاستعادة» المطوية أصلًا —
    * فتُفتح الطبقة مع كل إشعار تخزين حتى لا يبقى الأثر غير مرئي للمستخدم. */
+  const toggleBackupReminder = () => {
+    const next = !backupReminder;
+    setBackupReminder(next);
+    void preferences.saveBackupReminderEnabled(next).then(result => {
+      if (!result.ok) {
+        setBackupReminder(!next);
+        setStorageNotice(result.message);
+        return;
+      }
+      notifyDataChanged();
+    });
+  };
   const setStorageNotice = (text: string) => {
     setNotice({ text, section: "storage" });
     setGuidedLayerOpen(true);
@@ -271,8 +337,6 @@ export default function SettingsPage() {
   async function performReset() {
     setNotice(null);
     setIsWorking(true);
-    /* S5-03: البدء من جديد يمسح مسودة الإعداد أيضًا — لا تُبعث بعد تصفير مقصود. */
-    globalThis.localStorage?.removeItem("micro.setup-draft.v1");
     const result = await transfers.resetAll();
     setIsWorking(false);
     if (!result.ok) {
@@ -280,8 +344,23 @@ export default function SettingsPage() {
       setStorageNotice(result.message);
       return;
     }
+    /* S5-03 + المجموعة ٥ (التحصين الكامل): سياسة المسودات المعلنة بعد نجاح التصفير
+     * فقط — تُمسح مسودات النماذج والإعداد العابرة ومفاتيحها القديمة؛ ويبقى سجل
+     * القفل المحلي كما هو (الحماية لا تُمسح بصامت). فشل مسح المسودات
+     * يُعلن صادقًا ولا يرد التصفير. */
+    const storage = browserLegacyFormDraftStorage();
+    if (storage !== null) clearLegacyFormDraftStorage(storage);
+    const cleared = await formDrafts.clearAll();
     setResetFlow({ phase: "done" });
     notifyDataChanged();
+    if (!cleared.ok) {
+      setNotice({
+        text: "تمت إعادة التعيين، لكن تعذر مسح مسودات النماذج غير المُسلّمة — لم يُسجّل أي أثر مالي؛ افتح النموذج وتجاهل مسودته.",
+        section: "storage",
+      });
+      setGuidedLayerOpen(true);
+      return;
+    }
     navigate("/setup");
   }
 
@@ -309,7 +388,9 @@ export default function SettingsPage() {
 
   async function confirmImport() {
     if (!preview) return;
-    await runWhenUnlocked(
+    /* المجموعة ٥ (التحصين الكامل): الاستبدال النهائي محمي دومًا —
+     * رمز إن وجد، وإلا خطوة تفعيل الحماية قبل أي كتابة. */
+    await runWhenProtected(
       performImport,
       "استبدال بياناتك يحتاج رمز القفل",
       "الاستيراد يستبدل كل بيانات هذا الجهاز بملف النسخة التي راجعتها — أدخل رمز القفل للتأكيد.",
@@ -328,7 +409,15 @@ export default function SettingsPage() {
     }
     setPreview(null);
     notifyDataChanged();
-    setStorageNotice("تم استبدال البيانات المحلية بالملف الذي راجعته.");
+    /* المجموعة ٥ (التحصين الكامل): المسودات العابرة لا تُمسح صامتًا ولا تُستبدل —
+     * السياسة المختارة: الإبقاء مع إفصاح صادق
+     * عن حالتها المستقلة عن الملف. */
+    const drafts = await formDrafts.list();
+    setStorageNotice(
+      drafts.ok && drafts.value.length > 0
+        ? `تم استبدال البيانات المحلية بالملف الذي راجعته؛ وأُبقيت ${drafts.value.length} مسودة نموذج غير مُسلّمة محليًا كما هي (مستقلة عن الملف) — تُعرض عند فتح نماذجها ويمكن تجاهلها هناك.`
+        : "تم استبدال البيانات المحلية بالملف الذي راجعته.",
+    );
     /* المجموعة ٥ (عقد ٣٩): فحص سلامة بعد الاستعادة مباشرة — قراءة جديدة فوق
      * البيانات المستعادة، بلا إصلاح تلقائي؛ النتيجة إجمالية مع رابط للتفاصيل. */
     const check = await integrityCheck.run();
@@ -365,6 +454,20 @@ export default function SettingsPage() {
   }
 
   async function confirmGuidedOpeningImport() {
+    if (!guidedPreview) return;
+    /* المجموعة ٥ (التحصين الكامل): تأكيد إدخال البداية فعل
+     * استبدال/كتابة حساس — المعاينة قراءة خالصة ثم
+     * نفس قاعدة الحماية الصريحة للاستيراد الكامل بلا استثناء. */
+    const guidedProtection = {
+      /* عنوان البوابة نفسه من حوار الرمز القائم — الوصف المختص يحمل تخصيص الإجراء. */
+      title: "تأكيد رمز القفل",
+      message:
+        "إدخال الموقف الافتتاحي يكتب على بيانات هذا الجهاز مرة واحدة آمنة التكرار — أدخل رمز القفل للتأكيد.",
+    };
+    await runWhenProtected(performGuidedOpeningImport, guidedProtection.title, guidedProtection.message);
+  }
+
+  async function performGuidedOpeningImport() {
     if (!guidedPreview) return;
     setNotice(null);
     setIsWorking(true);
@@ -418,513 +521,84 @@ export default function SettingsPage() {
           <ChevronLeft aria-hidden="true" />
         </button>
       </section>
-      <details className="micro-decision-layer" open>
-        <summary className="micro-decision-layer-summary">
-          <span>
-            <b>بيانات ونسخ احتياطي محلي</b>
-            <small>تصدير واستيراد حساس؛ راجع الملف قبل استبدال بيانات الجهاز.</small>
-          </span>
-          <strong>افتح البيانات</strong>
-        </summary>
-        <section className="micro-settings-list" aria-labelledby="data-protection-title">
-          <div className="micro-section-heading">
-            <div>
-              <span className="micro-overline">حماية البيانات</span>
-              <h2 id="data-protection-title">احمِ بياناتك</h2>
-            </div>
-            <Shield aria-hidden="true" />
-          </div>
-          <article className="micro-setting-row">
-            <span className="micro-setting-icon">
-              <Shield aria-hidden="true" />
-            </span>
-            <div>
-              <h2>بياناتك على هذا الجهاز</h2>
-              <p>لا توجد مزامنة سحابية أو تسجيل دخول أو نسخة احتياطية تلقائية هنا.</p>
-            </div>
-          </article>
-          {/* المجموعة ٥ (عقد ٣٧): قفل محلي اختياري — تفعيل وتعطيل بالرمز. */}
-          <LockSettingsCard />
-          {/* P-001: سياسة دقة المال معلنة — قرشان (منزلتان عشريتان) في كل مكان:
-            الإدخال والحساب والعرض والتصدير وحدةً واحدة متسقة، بلا تحويل يدوي
-            ولا تفسير جديد للوحدة. ما دون القرش يُقرّب عند الإدخال بثبات، لا
-            يُعرض رقمًا نصف قرش. */}
-          <article className="micro-setting-row">
-            <span className="micro-setting-icon">
-              <CircleDollarSign aria-hidden="true" />
-            </span>
-            <div>
-              <h2>دقة المال: قرشان للدينار</h2>
-              <p>
-                كل مبلغ في Micro يُدخل ويُحسب ويُعرض بمنزلتين عشريتين (القرش) — سعر البيع والتكلفة والمصروف
-                والتصدير سواء. الثمن بثلاث منزلات يُدخل بقيمة القرش المقرّبة عند الكتابة، بلا قيم نصف قرش ولا
-                وحدتين مختلفتين.
-              </p>
-            </div>
-          </article>
-          {/* O-001: تذكير نسخة دوري هادئ قابل للإطفاء — لا إزعاج يومي ولا حجب. */}
-          <article className="micro-setting-row">
-            <span className="micro-setting-icon">
-              <BellRing aria-hidden="true" />
-            </span>
-            <div>
-              <h2>تذكير النسخة الاحتياطية</h2>
-              {backupReminder === null ? (
-                <p>يُقرأ التفضيل…</p>
-              ) : (
-                <>
-                  <p>
-                    {backupReminder
-                      ? "مفعّل — سطر هادئ في الشاشة الرئيسية بعد 7 أيام من آخر تصدير مُتحقق."
-                      : "مطفأ — لن يظهر سطر التذكير؛ تصديرك وعمر نسختك يبقيان كما هما في الإعدادات."}
-                  </p>
-                  <button
-                    className="micro-text-action"
-                    type="button"
-                    disabled={isWorking}
-                    onClick={() => {
-                      const next = !backupReminder;
-                      setBackupReminder(next);
-                      void preferences.saveBackupReminderEnabled(next).then(result => {
-                        if (!result.ok) {
-                          setBackupReminder(!next);
-                          setStorageNotice(result.message);
-                          return;
-                        }
-                        notifyDataChanged();
-                      });
-                    }}
-                  >
-                    {backupReminder ? "أطفئ التذكير" : "فعّل التذكير"}
-                  </button>
-                </>
-              )}
-            </div>
-          </article>
-          {persistence !== null ? (
-            <article className="micro-setting-row">
-              <span className="micro-setting-icon">
-                <Shield aria-hidden="true" />
-              </span>
-              <div>
-                <h2>{persistence.title}</h2>
-                <p>{persistence.text}</p>
-              </div>
-            </article>
-          ) : null}
-          <StorageRow
-            icon={Download}
-            title={lastExport ? "تصدير محلي مُتحقق" : "تصدير محلي"}
-            text={
-              lastExport
-                ? `آخر نسخة مُتحقق منها: ${formatLocalDate(lastExport.slice(0, 10)) ?? lastExport.slice(0, 10)} — يُعاد التحقق من الملف دورة كاملة قبل إعلان جهوزيته.`
-                : "ينشئ ملف نسخة مُتحققًا منه لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
-            }
-            actionLabel="تصدير"
-            label="تصدير البيانات المحلية"
-            disabled={isWorking}
-            onClick={exportLocal}
-          />
-          <StorageRow
-            icon={Upload}
-            title="استيراد محلي"
-            text="نقرأ الملف ونتحقق منه أولًا، ثم نعرض ملخصًا قبل استبدال أي بيانات."
-            actionLabel="استيراد"
-            label="اختيار ملف استيراد"
-            disabled={isWorking}
-            onClick={() => inputRef.current?.click()}
-          />
-          <input
-            ref={inputRef}
-            className="micro-visually-hidden"
-            type="file"
-            accept="application/json,.json"
-            onChange={chooseImport}
-          />
-          {/* ٥.٧: بوابة «ابدأ من جديد» — تصدير مُتحقق ثم تأكيد مزدوج؛ الفشل يوقف كل شيء. */}
-          {resetFlow.phase === "idle" || resetFlow.phase === "done" ? (
-            <StorageRow
-              icon={RotateCcw}
-              title="ابدأ من جديد"
-              text="يمسح كل بيانات هذا الجهاز بعد نسخة احتياطية مُتحقق منها إلزاميًا. الفشل يوقف العملية بالكامل."
-              actionLabel="ابدأ"
-              label="بدء مسار المشروع الجديد"
-              disabled={isWorking}
-              onClick={() => void startResetFlow()}
-            />
-          ) : null}
-          {resetFlow.phase === "exporting" ? (
-            <p className="micro-save-note" role="status">
-              جارٍ إنشاء نسخة احتياطية مُتحقق منها والتحقق منها… لم يُمس أي شيء بعد.
-            </p>
-          ) : null}
-          {resetFlow.phase === "confirm" ? (
-            <section className="micro-import-preview" aria-live="polite">
-              <span className="micro-overline">
-                <RotateCcw aria-hidden="true" /> بوابة البدء من جديد
-              </span>
-              <h2>النسخة الاحتياطية جاهزة ومُتحقق منها</h2>
-              <p>
-                حُمّل الملف إلى جهازك (micro-local-{lastExport?.slice(0, 10) ?? ""}.json). لتأكيد المسح اكتب
-                «ابدأ من جديد» في الحقل أدناه.
-              </p>
-              <label className="micro-field">
-                <span>اكتب «ابدأ من جديد» للتأكيد</span>
-                <input
-                  value={resetNameConfirmation}
-                  onChange={event => setResetNameConfirmation(event.target.value)}
-                  placeholder="ابدأ من جديد"
-                />
-              </label>
-              <p className="micro-field-error">
-                سيُمسح كل شيء على هذا الجهاز: الطلبات، الأحداث المالية، المحافظ، المخزون، والتقديرات. الملف
-                المحمّل هو نسختك الوحيدة.
-              </p>
-              <div className="micro-form-actions">
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
-                  disabled={isWorking}
-                  onClick={() => setResetFlow({ phase: "idle" })}
-                >
-                  إلغاء — بياناتي تبقى
-                </button>
-                <button
-                  className="micro-button micro-button-danger"
-                  type="button"
-                  disabled={isWorking || resetNameConfirmation.trim() !== "ابدأ من جديد"}
-                  onClick={() => void confirmReset()}
-                >
-                  {isWorking ? "جارٍ المسح…" : "امسح وابدأ من جديد"}
-                </button>
-              </div>
-            </section>
-          ) : null}
-        </section>
-      </details>
-      <details className="micro-decision-layer" open>
-        <summary className="micro-decision-layer-summary">
-          <span>
-            <b>تفضيلات العمل اليومية</b>
-            <small>اختر طريقة العمل وتتبّع الوقت دون تغيير السجل المالي.</small>
-          </span>
-          <strong>افتح التفضيل</strong>
-        </summary>
-        <section className="micro-form-card" aria-labelledby="operating-mode-title">
-          <div className="micro-section-heading">
-            <div>
-              <span className="micro-overline">تفضيل اختياري</span>
-              <h2 id="operating-mode-title">كيف تنجز عملك غالبًا؟</h2>
-            </div>
-            <Hammer aria-hidden="true" />
-          </div>
-          <p>
-            يساعد هذا الاختيار Micro على تقديم الأداة الأقرب لسؤالك في الطلب. لا يغير نوع النشاط أو سجلًا
-            تاريخيًا أو أي رقم مالي.
-          </p>
-          {operatingMode.phase === "loading" ? (
-            <p className="micro-route-loading" role="status">
-              جارٍ قراءة تفضيل طريقة العمل…
-            </p>
-          ) : null}
-          {operatingMode.phase === "error" ? (
-            <div className="micro-storage-error" role="alert">
-              <strong>تعذر قراءة التفضيل المحلي</strong>
-              <p>{operatingMode.message}</p>
-            </div>
-          ) : null}
-          {operatingMode.phase === "ready" ? (
-            <>
-              <label className="micro-field">
-                <span>طريقة العمل المعتادة</span>
-                <select
-                  value={selectedMode}
-                  onChange={event => setSelectedMode(event.target.value as "" | OperatingWorkMode)}
-                  aria-describedby="operating-mode-help"
-                >
-                  {modeOptions.map(option => (
-                    <option key={option.value || "none"} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p id="operating-mode-help" className="micro-local-truth">
-                {selectedModeDescription}
-              </p>
-              <label className="micro-confirm-warning micro-setting-toggle">
-                <input
-                  type="checkbox"
-                  checked={trackingEnabled}
-                  onChange={event => setTrackingEnabled(event.target.checked)}
-                />
-                <span>
-                  <b>تفعيل تتبع الوقت المحلي</b> يتيح تسجيل وقت فعلي للطلب لاحقًا عند الحاجة، ولا يشغّل مؤقتًا
-                  في الخلفية.
-                </span>
-              </label>
-              <p className="micro-cost-disclaimer">
-                عدم الاختيار أو إيقاف التتبع لا يمنع إنشاء الطلب أو تسجيل المال أو المادة؛ لكنه يعني أن مقارنة
-                الوقت لن تكون متاحة بلا سجل.
-              </p>
-              <button
-                className="micro-button micro-button-primary micro-save-cost"
-                type="button"
-                disabled={isSavingOperatingMode}
-                onClick={saveOperatingMode}
-              >
-                <Save aria-hidden="true" />
-                {isSavingOperatingMode ? "جارٍ حفظ التفضيل…" : "حفظ طريقة العمل"}
-              </button>
-              {notice?.section === "mode" ? (
-                <p className="micro-save-note" role="status">
-                  {notice.text}
-                </p>
-              ) : null}
-            </>
-          ) : null}
-        </section>
-      </details>
-      <details className="micro-decision-layer" open>
-        <summary className="micro-decision-layer-summary">
-          <span>
-            <b>المظهر</b>
-            <small>تغيير العرض اليومي فقط.</small>
-          </span>
-          <strong>افتح المظهر</strong>
-        </summary>
-        <section className="micro-settings-list" aria-label="إعدادات المظهر">
-          <article className="micro-setting-row">
-            <span className="micro-setting-icon">
-              <MoonStar aria-hidden="true" />
-            </span>
-            <div>
-              <h2>المظهر</h2>
-              <p>الوضع الحالي: {theme === "dark" ? "داكن" : "فاتح"}.</p>
-            </div>
-            <button className="micro-button micro-button-secondary" type="button" onClick={toggleTheme}>
-              التبديل إلى {theme === "dark" ? "الفاتح" : "الداكن"}
-            </button>
-          </article>
-        </section>
-      </details>
-      <details
-        className="micro-decision-layer"
-        open={guidedLayerOpen || undefined}
-        onToggle={event => setGuidedLayerOpen((event.target as HTMLDetailsElement).open)}
-      >
-        <summary className="micro-decision-layer-summary">
-          <span>
-            <b>بيانات البداية والاستعادة</b>
-            <small>إدخال أو استبدال محلي حساس؛ راجع الملخص قبل الكتابة.</small>
-          </span>
-          <strong>افتح البيانات</strong>
-        </summary>
+      <SettingsDataProtectionSection
+        persistence={persistence}
+        lastExport={lastExport}
+        backupReminder={backupReminder}
+        setBackupReminder={setBackupReminder}
+        currentSummary={currentSummary}
+        resetFlow={resetFlow}
+        setResetFlow={setResetFlow}
+        resetNameConfirmation={resetNameConfirmation}
+        setResetNameConfirmation={setResetNameConfirmation}
+        diagnosticCopyResult={diagnosticCopyResult}
+        preview={preview}
+        isWorking={isWorking}
+        notice={notice}
+        copyDiagnosticReport={copyDiagnosticReport}
+        exportLocal={exportLocal}
+        startResetFlow={startResetFlow}
+        chooseImport={chooseImport}
+        confirmReset={confirmReset}
+        setStorageNotice={setStorageNotice}
+        notifyDataChanged={notifyDataChanged}
+        onToggleBackupReminder={toggleBackupReminder}
+        inputRef={inputRef}
+      />
+
+      <SettingsOperatingModeSection
+        operatingMode={operatingMode}
+        selectedMode={selectedMode}
+        setSelectedMode={setSelectedMode}
+        trackingEnabled={trackingEnabled}
+        setTrackingEnabled={setTrackingEnabled}
+        isSavingOperatingMode={isSavingOperatingMode}
+        selectedModeDescription={selectedModeDescription}
+        notice={notice}
+        saveOperatingMode={saveOperatingMode}
+      />
+
+      <SettingsAppearanceSection theme={theme} toggleTheme={toggleTheme} />
+
+      <SettingsGuidedOpeningSection
+        guidedLayerOpen={guidedLayerOpen}
+        setGuidedLayerOpen={setGuidedLayerOpen}
+        guidedPreview={guidedPreview}
+        setGuidedPreview={setGuidedPreview}
+        currentSummary={currentSummary}
+        restoreCheck={restoreCheck}
+        isWorking={isWorking}
+        preview={preview}
+        setPreview={setPreview}
+        notice={notice}
+        chooseGuidedOpeningImport={chooseGuidedOpeningImport}
+        confirmGuidedOpeningImport={confirmGuidedOpeningImport}
+        confirmImport={confirmImport}
+        navigate={navigate}
+        guidedCardRef={guidedCardRef}
+        guidedInputRef={guidedInputRef}
+      />
+      {protectionBlocked ? (
         <div
-          ref={guidedCardRef}
-          className="micro-settings-focused-card"
-          data-focused={guidedLayerOpen || undefined}
+          className="micro-lock-overlay"
+          role="alertdialog"
+          aria-modal="true"
+          aria-label={protectionBlocked.title}
         >
-          <section className="micro-form-card" aria-labelledby="guided-opening-title">
-            <div className="micro-section-heading">
-              <div>
-                <span className="micro-overline">بداية محدودة</span>
-                <h2 id="guided-opening-title">إدخال موقف افتتاحي</h2>
-              </div>
-              <Upload aria-hidden="true" />
-            </div>
-            <p>
-              أدخل نشاطًا ومحافظ كاش وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى
-              مبيعات أو ربح أو ديون.
-            </p>
+          <ShieldAlert aria-hidden="true" className="micro-lock-icon" />
+          <h1>{protectionBlocked.title}</h1>
+          <p>{protectionBlocked.message}</p>
+          <div className="micro-lock-form">
             <button
               className="micro-button micro-button-secondary"
               type="button"
-              disabled={isWorking}
-              onClick={() => guidedInputRef.current?.click()}
+              onClick={() => setProtectionBlocked(null)}
             >
-              اختيار ملف البداية
+              حسنًا
             </button>
-            <input
-              ref={guidedInputRef}
-              className="micro-visually-hidden"
-              type="file"
-              accept="application/json,.json"
-              onChange={chooseGuidedOpeningImport}
-            />
-          </section>
-          {guidedPreview ? (
-            <section className="micro-import-preview" aria-live="polite">
-              <span className="micro-overline">
-                <FileCheck2 aria-hidden="true" /> مراجعة قبل الكتابة
-              </span>
-              <h2>لم نغير بياناتك بعد</h2>
-              <p>سيُدخل الملف موقفًا افتتاحيًا محدودًا فقط:</p>
-              <ul>
-                <li>
-                  <IntegerValue
-                    value={guidedPreview.summary.acceptedWallets}
-                    className="micro-inline-number"
-                  />{" "}
-                  محفظة كاش بقيمة{" "}
-                  <IntegerValue
-                    value={guidedPreview.summary.acceptedCashMinor}
-                    className="micro-inline-number"
-                  />{" "}
-                  قرشًا
-                </li>
-                <li>
-                  <IntegerValue
-                    value={guidedPreview.summary.acceptedMaterials}
-                    className="micro-inline-number"
-                  />{" "}
-                  مادة بكمية{" "}
-                  <IntegerValue
-                    value={guidedPreview.summary.acceptedMaterialQuantityMilli}
-                    className="micro-inline-number"
-                  />{" "}
-                  (أجزاء من ألف)
-                </li>
-                <li>
-                  <IntegerValue
-                    value={guidedPreview.summary.estimatedRecords}
-                    className="micro-inline-number"
-                  />{" "}
-                  قيمة تقديرية تحتاج مراجعة
-                </li>
-              </ul>
-              <p className="micro-local-truth">
-                الإدخال يكتب مرة واحدة على بيانات فارغة، وإعادة المحاولة لا تكرر الأثر. لا توجد استعادة
-                تلقائية بعد التأكيد.
-              </p>
-              <div className="micro-form-actions">
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
-                  disabled={isWorking}
-                  onClick={() => setGuidedPreview(null)}
-                >
-                  إلغاء
-                </button>
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
-                  disabled={isWorking}
-                  onClick={confirmGuidedOpeningImport}
-                >
-                  {isWorking ? "جارٍ الإدخال…" : "تأكيد إدخال البداية"}
-                </button>
-              </div>
-            </section>
-          ) : null}
-          {preview ? (
-            <section className="micro-import-preview" aria-live="polite">
-              <span className="micro-overline">
-                <FileCheck2 aria-hidden="true" /> ملف جاهز للمراجعة
-              </span>
-              <h2>لم نغير بياناتك بعد</h2>
-              <p>
-                الملف صادر في <DateTimeValue value={preview.summary.exportedAt} /> ويحتوي على:
-              </p>
-              <ul>
-                <li>{preview.summary.profile ? "ملف نشاط واحد" : "لا يحتوي ملف نشاط"}</li>
-                <li>
-                  {preview.summary.preferences ? "تفضيل مظهر وطريقة عمل محفوظ" : "لا يحتوي تفضيلًا محفوظًا"}
-                </li>
-                <li>
-                  <IntegerValue value={preview.summary.drafts} className="micro-inline-number" /> مسودة
-                </li>
-                <li>
-                  <IntegerValue value={preview.summary.orders} className="micro-inline-number" /> طلب ·{" "}
-                  <IntegerValue value={preview.summary.directSales} className="micro-inline-number" /> بيع
-                  مباشر
-                </li>
-                <li>
-                  <IntegerValue value={preview.summary.schedules} className="micro-inline-number" /> موعد
-                </li>
-                <li>
-                  <IntegerValue value={preview.summary.supplierPurchases} className="micro-inline-number" />{" "}
-                  شراء مواد
-                </li>
-                <li>
-                  <IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ
-                  كاش و
-                  <IntegerValue
-                    value={preview.summary.cashContinuityEntries}
-                    className="micro-inline-number"
-                  />{" "}
-                  آثار افتتاح/تحويل/تصحيح
-                </li>
-                <li>
-                  <IntegerValue value={preview.summary.materials} className="micro-inline-number" /> مواد و
-                  <IntegerValue
-                    value={preview.summary.inventoryMovements}
-                    className="micro-inline-number"
-                  />{" "}
-                  حركات مخزون
-                </li>
-                <li>
-                  <IntegerValue value={preview.summary.snapshots} className="micro-inline-number" /> نسخة
-                  تكلفة و<IntegerValue value={preview.summary.events} className="micro-inline-number" /> حدث
-                  مالي/تشغيلي داخل الطلب
-                </li>
-                <li>
-                  <IntegerValue value={preview.summary.actualTimeRecords} className="micro-inline-number" />{" "}
-                  سجل وقت فعلي تفسيري مستقل عن المال
-                </li>
-              </ul>
-              <p className="micro-field-error">
-                التأكيد سيستبدل البيانات المحلية الحالية بهذا الملف. لا توجد استعادة تلقائية بعد الضغط.
-              </p>
-              {/* ٥.٧: معاينة الاستعادة تعرض ما سيُستبدل — أرقامك الحالية مقابل محتوى الملف. */}
-              {currentSummary ? (
-                <p>
-                  <b>ما سيُستبدل من بياناتك الحالية:</b> {currentSummary.orders} طلب ·{" "}
-                  {currentSummary.directSales} بيع مباشر · {currentSummary.financialEvents} حدث مالي ·{" "}
-                  {currentSummary.costEstimates} تقدير محفوظ · {currentSummary.cashWallets} محفظة.
-                </p>
-              ) : null}
-              <div className="micro-form-actions">
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
-                  disabled={isWorking}
-                  onClick={() => setPreview(null)}
-                >
-                  إلغاء
-                </button>
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
-                  disabled={isWorking}
-                  onClick={confirmImport}
-                >
-                  {isWorking ? "جارٍ الاستيراد…" : "استبدال البيانات المحلية"}
-                </button>
-              </div>
-            </section>
-          ) : null}
-          {notice?.section === "storage" ? (
-            <p className="micro-save-note" role="status">
-              {notice.text}
-            </p>
-          ) : null}
-          {restoreCheck ? (
-            <article className="micro-setting-row" data-status={restoreCheck.overall}>
-              <div>
-                <strong data-status={restoreCheck.overall}>{restoreCheck.note}</strong>
-                <button
-                  className="micro-text-action"
-                  type="button"
-                  onClick={() => navigate(withFrom("/tools/integrity", "/settings"))}
-                >
-                  افتح فحص السلامة
-                </button>
-              </div>
-            </article>
-          ) : null}
+          </div>
         </div>
-      </details>
+      ) : null}
       {gatedAction ? (
         <DataActionPinGate
           actionTitle={gatedAction.title}
@@ -943,45 +617,5 @@ export default function SettingsPage() {
         />
       ) : null}
     </section>
-  );
-}
-
-function StorageRow({
-  icon: Icon,
-  title,
-  text,
-  actionLabel,
-  label,
-  disabled,
-  onClick,
-}: {
-  icon: typeof Download;
-  title: string;
-  text: string;
-  actionLabel: string;
-  label: string;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <article className="micro-setting-row">
-      <span className="micro-setting-icon">
-        <Icon aria-hidden="true" />
-      </span>
-      <div>
-        <h2>{title}</h2>
-        <p>{text}</p>
-      </div>
-      <button
-        className="micro-button micro-button-secondary"
-        type="button"
-        disabled={disabled}
-        onClick={onClick}
-        aria-label={label}
-      >
-        <Icon aria-hidden="true" />
-        {actionLabel}
-      </button>
-    </article>
   );
 }

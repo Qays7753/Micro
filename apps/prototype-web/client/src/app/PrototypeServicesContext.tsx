@@ -142,8 +142,9 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
   /* S5-08 (المجموعة ٦ — البند ٦): الخدمات والمخزن عناصر بلا حالة — تُنشأ مرة
    * واحدة على مستوى الوحدة (singleton)، وdataVersion يعيد تركيب غلاف السياق
    * الرخيص فقط: هوية السياق تتغير فيلتقط التأثيرات المفتاحة على dataVersion
-   * التحديث، وهويات الخدمات الداخلية تبقى مستقرة فلا يُعاد بناء ~35 خدمة عند
-   * كل كتابة، ويبقى المخزن واحدًا فوق الاتصال المخزَّن (S5-07). */
+   * التحديث، وهويات الخدمات الداخلية تبقى مستقرة فلا يُعاد بناء الخدمات الأربعون
+   * (40 — العد الموثق عند 9a8c949) عند كل كتابة، ويبقى المخزن واحدًا فوق الاتصال
+   * المخزَّن (S5-07). */
   const services = useMemo<PrototypeServices>(
     () => ({ ...singletonServices, dataVersion, notifyDataChanged }),
     [dataVersion, notifyDataChanged],

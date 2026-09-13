@@ -134,7 +134,11 @@ export default function LoanEditor() {
           onDiscard={draft.discardDraft}
         />
       ) : null}
-      {draft.state.phase === "drafting" && draft.state.lastSavedAt ? (
+      {draft.state.phase === "drafting" && draft.state.saveFailed ? (
+        <p className="micro-field-error" role="alert">
+          تعذر حفظ المسودة محليًا — قيمك أمامك كما هي ولم يُسجّل أي حركة مالية؛ أكمل الكتابة أو الحفظ النهائي.
+        </p>
+      ) : draft.state.phase === "drafting" && draft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
           مسودتك محفوظة محليًا — آخر حفظ{" "}
           <bdi dir="ltr">{formatLocalDate(localDateInAmman(draft.state.lastSavedAt))}</bdi>؛ لم تُسجّل أي حركة

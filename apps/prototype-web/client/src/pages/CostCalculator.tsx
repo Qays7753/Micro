@@ -16,8 +16,10 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { CostEstimateInput } from "@/application/estimates/costEstimateService";
 import type { CostEstimate } from "@/storage/local/types";
-import type { MaterialSuggestion } from "@/components/cost/MaterialSheet";
-import { readMaterialSuggestions } from "@/application/inventory/materialSuggestions";
+import {
+  readMaterialSuggestions,
+  type MaterialSuggestion,
+} from "@/application/inventory/materialSuggestions";
 
 type EditableMaterial = {
   uiId: string;
@@ -190,7 +192,9 @@ export default function CostCalculator() {
       deliveryMinor,
       wasteMinor,
       safetyBufferMinor,
-      quantity: Math.max(1, Math.round(quantity)),
+      /* المجموعة ١١ (11-0): الإدخال عدد صحيح بعقد kind="integer" — لا حاجة
+       * لتقريب صفحة؛ حد القطعة الواحدة ≥ 1 يبقى كما هو. */
+      quantity: Math.max(1, quantity),
       note: null,
     }),
     [

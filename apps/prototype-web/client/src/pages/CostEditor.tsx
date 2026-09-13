@@ -7,8 +7,11 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CostEditorInput } from "@/application/cost/costService";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
-import { MaterialSheet, type MaterialSuggestion } from "@/components/cost/MaterialSheet";
-import { readMaterialSuggestions } from "@/application/inventory/materialSuggestions";
+import { MaterialSheet } from "@/components/cost/MaterialSheet";
+import {
+  readMaterialSuggestions,
+  type MaterialSuggestion,
+} from "@/application/inventory/materialSuggestions";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 

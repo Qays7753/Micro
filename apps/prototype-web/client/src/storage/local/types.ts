@@ -29,6 +29,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
 
 /* المجموعة ٥ (الاستمرارية): المخطط ٣٥ يضيف مخزني `form-drafts` و`local-security`
  * بمُنشئ محروس — لا حقول جديدة على أي سجل قائم ولا ترحيل بيانات؛ القديم يفتح
@@ -43,7 +44,11 @@ export const localExportFormat = "micro-prototype-local-export";
  * بلا بصمة، والزوجان القديمان كلها تبقى في قائمة الاستيراد المسموحة. */
 export const localExportVersion = 27;
 export const localSecurityId = "local-security";
-export type FormDraftKind = "asset" | "loan" | "supplier_purchase" | "direct_sale" | "inventory_movement";
+/* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
+ * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
+ * الإعداد (مهاجرة من مفتاحها القديم). كلاهما عابر بلا أثر مالي كما إخوتهما. */
+export type FormDraftKind =
+  "asset" | "loan" | "supplier_purchase" | "direct_sale" | "inventory_movement" | "finance_event" | "setup";
 export type FormDraftEnvelope = {
   /** `${formKind}:${scopeId ?? "new"}` — مسودة واحدة لكل شاشة لكل نطاق. */
   id: string;
@@ -224,7 +229,7 @@ export type StoredCraftOrder = {
 
 export type ScheduleStatus = "scheduled" | "postponed" | "completed" | "cancelled";
 type ScheduleEventType = "created" | "postponed" | "timing_changed" | "completed" | "cancelled";
-type ScheduleEvent = {
+export type ScheduleEvent = {
   id: string;
   type: ScheduleEventType;
   idempotencyKey: string;
@@ -346,6 +351,14 @@ export type StorageFailure = { ok: false; code: StorageFailureCode; message: str
 type StorageSuccess<T> = { ok: true; value: T };
 export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
 
+/* رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): تصنيف فشل التخزين لزوج خدمات
+ * التطبيق — تعارض القراءة-التعديل-الكتابة يصل المستدعي كودًا مطبوعًا
+ * storage_stale (أعد الفتح ثم أعد المحاولة) والفشل التخزيني الحقيقي يظل
+ * storage_error؛ الرسالة تبقى نص المتجر الصادق. يُعرَّف هنا بجوار مفردة
+ * الأكواد نفسها فلا تُكرر حرفية الكود في خدمات الشاشات. */
+export const storageFailureCode = (code: StorageFailureCode): "storage_error" | "storage_stale" =>
+  code === "storage_stale" ? "storage_stale" : "storage_error";
+
 export interface PrototypeLocalStore {
   getProfile(): Promise<StorageResult<ActivityProfile | null>>;
   saveProfile(profile: ActivityProfile): Promise<StorageResult<ActivityProfile>>;
@@ -387,6 +400,18 @@ export interface PrototypeLocalStore {
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
   getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
   saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): إنشاء موعد كتابةً أولى فقط — وجوده
+   * سلفًا إعادة استخدام لا كتابة فوق مسار آخر (محتوى الإنشاء حتمي بمعرّفه ومفتاحه). */
+  commitScheduleCreate(
+    schedule: ScheduleEntry,
+  ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>>;
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): تحديث موعد بحدث واحد جديد بالضبط —
+   * الأحداث السابقة كما هي حرفيًا وحقول «قبل» في الحدث الجديد تطابق المخزّن الحي؛
+   * التعارض يُرفض بـ storage_stale ولا يُكتب شيء، وإعادة التشغيل بالمفتاح نفسه
+   * تعيد المخزّن كما هو. */
+  commitScheduleUpdate(
+    schedule: ScheduleEntry,
+  ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>>;
   listRecurrences(): Promise<StorageResult<readonly ScheduleRecurrence[]>>;
   getRecurrence(id: string): Promise<StorageResult<ScheduleRecurrence | null>>;
   saveRecurrence(recurrence: ScheduleRecurrence): Promise<StorageResult<ScheduleRecurrence>>;
@@ -410,6 +435,13 @@ export interface PrototypeLocalStore {
   listSupplierPurchases(): Promise<StorageResult<readonly SupplierPurchase[]>>;
   getSupplierPurchase(id: string): Promise<StorageResult<SupplierPurchase | null>>;
   saveSupplierPurchase(purchase: SupplierPurchase): Promise<StorageResult<SupplierPurchase>>;
+  /* المجموعة ٢ (التحصين الكامل — HIGH-001): كتابة ذرّية مُحروسة لسجل الشراء —
+   * فحص مفتاح الحتمية داخل المعاملة ثم علاقة «عملية مجال واحدة بالضبط» بين
+   * المخزّن والوارد؛ التعارض يُرفض بـ storage_stale ولا يُكتب شيء، وإعادة
+   * التشغيل بنفس المفتاح تعيد السجل الحالي كما هو. */
+  commitSupplierPurchase(
+    commit: SupplierPurchaseCommit,
+  ): Promise<StorageResult<{ purchase: SupplierPurchase; reused: boolean }>>;
   listCashWallets(): Promise<StorageResult<readonly CashWallet[]>>;
   listCashContinuityEntries(): Promise<StorageResult<readonly CashContinuityEntry[]>>;
   commitCashContinuity(
@@ -565,6 +597,11 @@ export interface PrototypeLocalStore {
   getFormDraft(id: string): Promise<StorageResult<FormDraftEnvelope | null>>;
   saveFormDraft(draft: FormDraftEnvelope): Promise<StorageResult<FormDraftEnvelope>>;
   deleteFormDraft(id: string): Promise<StorageResult<null>>;
+  /* المجموعة ٥ (التحصين الكامل): تعداد المسودات العابرة ومسحها الذرّي —
+   * للسياسة المعلنة في إعادة التعيين ولملاحظة الاستيراد الصادقة؛ المخزن
+   * نفسه يبقى خارج اللقطة والتصدير كما كان. */
+  listFormDrafts(): Promise<StorageResult<readonly FormDraftEnvelope[]>>;
+  clearFormDrafts(): Promise<StorageResult<null>>;
   /* المجموعة ٥ (القفل المحلي): سجل أمان واحد بمعرّف ثابت — خارج اللقطة والتصدير
    * والأسرار؛ تخزين الرمز نفسه ممنوع، البصمة فقط. */
   getLocalSecurity(): Promise<StorageResult<LocalSecurityRecord | null>>;

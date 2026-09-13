@@ -243,6 +243,47 @@ describe("RecurringWorkService G4-B", () => {
     expect(await store.getOrder(orders[0]!.id)).toEqual(before);
   });
 
+  it("reads a stored-valid three-decimal final order at its stored milli after the Group 9 quantity unification (STR-006)", async () => {
+    /* توصيف المجموعة ٩ أثبت السلوك السابق: المحوّل المحلي الخالي من
+     * Math.round كان يرفض عائلة 1.001 من قيم الفاصلة العائمة (المحفوظة
+     * صحيحة بعقد النطاق) فتفقد قراءة الهامش كمية إنتاجها المسندة. بعد
+     * التوحيد المعتمد على المرجع الكنسي quantityMilliExact (نفس العقد
+     * الذي قبل الكمية عند الإنشاء) تُقرأ الكمية كما خُزنت: 1.001 = 1001
+     * ملي. لا كتابة ولا إعادة تفسير — قراءة المتجر نفسه. */
+    const { store, item } = await perUnitStore([1.001]);
+    const service = new RecurringWorkService(store, now);
+    await expect(
+      service.createPolicy({
+        catalogItemId: item.id,
+        kind: "per_output_unit",
+        amountMinor: null,
+        rateMinor: null,
+        rateMinorPerWholeUnit: 50,
+        percentageBps: null,
+        unitId: "unit-piece",
+        periodFrom: "2026-08-01",
+        periodTo: "2026-08-31",
+        startsOn: "2026-08-01",
+        endsOn: "2026-08-31",
+        source: "سجل الإنتاج",
+        reason: "توزيع لكل قطعة",
+        note: "المعدل لكل وحدة كاملة",
+        idempotencyKey: "policy-per-piece-1001",
+      }),
+    ).resolves.toMatchObject({ ok: true });
+    const reading = await service.readRecurringWork("2026-08-01", "2026-08-31");
+    expect(reading).toMatchObject({
+      ok: true,
+      value: {
+        items: [
+          {
+            outputQuantityMilli: 1_001,
+          },
+        ],
+      },
+    });
+  });
+
   it("shows 12.000 units at 0.50 JOD per whole unit as 6.00 JOD", async () => {
     const { store, item } = await perUnitStore([12]);
     const service = new RecurringWorkService(store, now);

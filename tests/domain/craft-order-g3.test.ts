@@ -119,15 +119,16 @@ describe("Group 3 craft-order domain — reverseDelivery and delivery consumptio
         createdAt: "2026-09-04T10:05:00.000Z",
       }),
     ).toBe(first);
-    /* مفتاح جديد على التسليم المعكوس نفسه: رفض صريح — حارس الحالة يسبق (الطلب
-     * صار «يحتاج مراجعة» فلا يُعكس تسليم ثانٍ منه إلا بعد تسليم جديد). */
+    /* مفتاح جديد على التسليم المعكوس نفسه: رفض صريح — (التحصين الكامل D-031،
+     * المجموعة ٣): «يحتاج مراجعة» مع حدث تسليم تُقبل الآن ليعمل العكس كمخرج
+     * موثق من القفل، فيصير رافض التكرار هو الحارس الفعلي هنا؛ الرفض نفسه باقٍ. */
     expect(() =>
       reverseDelivery(first, {
         reason: "عكس ثانٍ",
         idempotencyKey: "o-g3:reverse-delivery-2",
         createdAt: "2026-09-04T10:06:00.000Z",
       }),
-    ).toThrow("عكس التسليم يتطلب طلبًا مسلّمًا");
+    ).toThrow("سُجّل التراجع الموثق عن هذا التسليم سابقًا");
   });
 
   it("unlocks the delivered-review lock exactly for reversed deliveries — re-execution and cancellation work after reversal", () => {

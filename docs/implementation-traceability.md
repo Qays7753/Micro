@@ -592,3 +592,158 @@
 - الاختبارات الجديدة: قفل محلي ٩ + بوابة إعدادات ٤ + إعادة التسليم ٣ + عكس
   تخصيص الإلغاء ٣ + حارس عائلات الأحداث ٢ + مظروف ٢.
 - التقرير الكامل: مستودع Documents — مجلد الوكيل ١ (انظر current-state §28).
+
+## خريطة أرقام اختبارات الواجهة المتشابهة (U-series) — إرشاد استشهاد بلا إعادة تسمية
+
+> أُضيفت في المجموعة ٨ من برنامج المعالجة الرباعية (2026-09-12) تسديدًا لمكتشف
+> المسح STR-015: أرقام ملفات الاختبار في جذر مصدر النموذج متشابهة برقم واحد
+> فاصل، والاستشهاد بها خطأً شائع للبشر والوكلاء معًا. **لا تُعاد تسمية أي ملف** —
+> الأسماء روابط تاريخية في التقارير والسجلات؛ الغرض هنا خريطة اكتشاف فقط.
+
+| ملف الاختبار | ما يثبته فعلًا (من ترويسة الوصف داخله) |
+|---|---|
+| `U01.dom.test.tsx` | «U-01 DOM guards» — عقد حارس التغييرات غير المحفوظة (`UnsavedChangesGuard`) على مستوى السلوك |
+| `U001.dom.test.tsx` | «U-001 older events stay reachable from the finance record surface» — الأحداث الأقدم تظل قابلًا للوصول من سطح السجل مع وصلة `?event=` العميقة |
+| `U05.dom.test.tsx` | «U-05 Finance month-range validation stays inline» — تحقق نطاق شهر مالي يبقى داخل السطر في مالي |
+| `U005.dom.test.tsx` | «U-005 the direct-sale editor protects unsaved input» — محرر البيع المباشر يسجل حارس المدخلات غير المحفوظة (حوار الخيارات الثلاثة) |
+
+قاعدة الاستشهاد: عند الإشارة إلى أي من هذه الملفات اذكر الاسم الكامل بالامتداد؛
+لا يكفي «U1» ولا «U01» ولا «U001» وحدها. أي اختبار U جديد في الجذر يفتتح
+بسطر ترويسة يشرح ما يثبته، ويُدرج هنا عند الإضافة (بلا إعادة ترقيم القائم).
+
+## المجموعة ٨ — خطة المعالجة الرباعية: سلطة التوثيق والحدود الميكانيكية (2026-09-12)
+
+- الفرع: `remediation/micro-full-hardening-2026` (فوق رأس المسح `9a8c949`) — المرجع الحي:
+  `docs/operations/current-state.md` §37 وتقرير المسح في مستودع التوثيق (عقد `17b264c`).
+- **8-A (توثيق):** عقود ٣٠–٣٩ (`docs/contracts/30-…` حتى `39-…`)؛ تمييز ١٨–٢٣ في
+  الفهرس؛ AGENTS.md §6/§10/§11؛ سجل القرار D-030…D-035؛ ARCHITECTURE.md؛ تعليق جذر
+  التركيب؛ `docs/quality/security-boundaries.md`؛ خريطة U (أعلاه).
+- **8-B (حدود):** `MaterialSuggestion` → `application/inventory/materialSuggestions`
+  (المستهلكون: `MaterialSheet`/`CostCalculator`/`CostEditor`)؛ حذف استيرادَي
+  `navigationContract.ts`/`MemoryLocalStore.ts` الميتين؛ `catalogOperationUuid` +
+  `operationKey` في `pages/Catalog.tsx` مع `pages/Catalog.operationKey.test.ts`؛
+  `app/routeKnowledgeSync.test.ts` (حارس تزامن STR-010)؛ حدود app/→التخزين في
+  `eslint.config.js` (استثناءا StartupGate وجذر التركيب)؛
+  `scripts/check-runtime-cycles.mjs` (+اختباره) موصول بـ`pnpm guards`؛ حظر
+  Math.round/floor في التطبيق بسبعة استثناءات ملفية موثقة.
+- براهين الحدود: `scripts/check-layer-boundaries.test.mjs` (14 عينة عبر محرك ESLint
+  نفسه، منها الملفات الحقيقية المستثناة)؛ `scripts/check-runtime-cycles.test.mjs`
+  (9 اختبارات + فحص دخاني حي: 220 ملفًا، صفر دورات، والحافة النوعية المعروفة
+  تُتجاهل عمدًا)؛ `pages/Catalog.operationKey.test.ts` (5)؛
+  `app/routeKnowledgeSync.test.ts` (5).
+- لم يتغير: المخطط/التصدير (35/27)، `src/domain` بالكامل، بروتوكولات الالتزام،
+  الأزواج المنشورة، المسارات والتحويلات، أي عملية حسابية.
+
+## المجموعة ٩ — خطة المعالجة الرباعية: مصادر الحقيقة ووقت الأعمال (2026-09-13)
+
+- الفرع: `remediation/micro-full-hardening-2026` (فوق رأس إغلاق المجموعة ٨ `28ba560`) — المرجع الحي:
+  `docs/operations/current-state.md` §38 وتقرير المسح في مستودع التوثيق (عقد `17b264c`).
+- **التوصيف (9-A):** `tests/domain/quantity-characterization.test.ts` (12)؛
+  `tests/domain/waste-context.characterization.test.ts` (5)؛
+  `application/fulfillment/deliveryAttribution.test.ts` (6)؛
+  `presentation/businessTime.characterization.test.ts` (9 — يمر عبر إعادة تصدير العرض
+  فيثبت أن نقل 9-C لا يغير أي متجه)؛ وتثبيت حد 1.001 داخل اختبار الخدمة نفسه.
+- **المصادر (9-B):** `quantityMilliExact` الكنسي في `g5Service`/`deliveryReviewService`
+  (تجميع فضاء الملي)/`recurringWorkService`؛ WasteContext في
+  `inventory-material/types.js`+`policies.js` مع إعادة تصدير `recurring-margin`
+  (types/policies) واستيراد `localTransferService` من المالك؛
+  `hasDeliveryReversal`/`hasDeliveredEvent` عبر barrel `craft-order` مع استيراد
+  `pages/OrderDetail.tsx`؛ `application/transfers/guidedOpeningImportService.g82.test.ts`
+  (يقرأ ملف العينات حيًا)؛ اختبارات المعينات النقية الثلاثة
+  (`expenseRecordIntent`/`expenseCategorySuggestions`/`materialSuggestions`).
+- **وقت الأعمال (9-C):** `src/domain/shared/businessTime.ts` (الوحدة الكنسية
+  ومتغيّرا عقد المدخل غير الصالح) + `tests/domain/businessTime.test.ts` (5)؛
+  إعادة تصدير `presentation/formatters.ts`؛ هجرة ١٤ خدمة وحذف ٦ نسخ محلية
+  (g5/المخزون/مركز اليوم/الجدولة/التكرار مفتاحان/سجل التصحيحات) و`pages/Schedule.tsx`
+  عبر إعادة التصدير؛ حارس النقاء في `scripts/check-layer-boundaries.test.mjs` (+3).
+- براهين الحدود: المتجهات الثابتة لم تتغير عبر النقل؛ domain+scripts **375** (33 ملفًا) ·
+  prototype **1,129** (159 ملفًا) · lint **36/37** (0 أخطاء — السقف كما هو) ·
+  دورات زمن التشغيل **221/0** · بوابة الحزمة **PASS 634,314/150,045**.
+- لم يتغير: المخطط/التصدير (35/27)، أي كتابة مالية أو ترحيل أو علاقة، المسارات
+  والتحويلات، بنية الواجهة، DELTA_TABLE واللقطات والأحداث التاريخية؛ الاستثناءان
+  الماليان المؤقتان لحظر Math أُزيل استخدامهما (الملفان تحت القاعدة العامة الآن)
+  واشتقاق سعر مقترحات المواد بقي مستثنى بقرار موثق ينتظر مالكًا.
+
+## المجموعة ١٠ — خطة المعالجة الرباعية: بوابة التقريب ومطابقة المحوّلات وخدمة النقل (2026-09-13)
+
+- الفرع: `remediation/micro-full-hardening-2026` (فوق رأس إغلاق المجموعة ٩ `255974a`) — المرجع الحي:
+  `docs/operations/current-state.md` §39.
+- **بوابة التقريب (10-0):** `tests/domain/rounding-boundaries.characterization.test.ts` (6 اختبارات: النصفان
+  بإشارتيهما، حد الأمان الصحيح (2^53−1)/2، وحد السقفي الكسري الكامن 21/0.7→31)؛ تحقيق كامل
+  (35+ موقعًا مصنفًا) بإثبات تجريبي حي خارج المستودع — **قرار لا-تغيير موثق؛ 10-R مُتخطاة** (لا رقعة تقريب)؛
+  كمية 1.001=1001 ملي عقد مستقل لم تُفتح.
+- **مطابقة المحوّلات (10-أ):** `apps/prototype-web/client/src/storage/local/adapterConformance.group10.test.ts`
+  (عمليات الالتزام الـ28 كلها × Memory/IndexedDB بقالب موحد: نجاح، إعادة تشغيل بالمفتاح نفسه = إعادة
+  استخدام صادقة مع إعادة قراءة برهان، تعارض/قدم = رفض بلا كتابة جزئية + جولة لقطة-استرجاع)؛ تصحيح المطابقة
+  الوحيد: `MemoryLocalStore.commitCatalogTemplateRevision` يفحص مفتاح الحتمية قبل النشاط كعقد IndexedDB
+  (05d14bf) — لا تغيير إنتاجي عبر الخدمات.
+- **تفكيك التخزين (10-ب):** `indexedDbStores.ts` (33 ثابت أسماء) و`indexedDbMigrations.ts` (StorageOpenError
+  وسجلات الترقية وapplySchemaUpgrade) و`indexedDbLifecycle.ts` (S5-07/G6-P4-2/versionchange) و
+  `indexedDbPrimitives.ts` (readOne/writeOne/writeOneIdempotent/deleteOne/listAll) و`indexedDbSnapshot.ts`
+  (قراءة/استبدال اللقطة) — منقولات حرفية خلف المنفذ والواجهة (3,899→2,915 سطرًا في المحوّل)؛ حارس
+  `scripts/check-entity-touchpoints.mjs` يقرأ المصدرين كواحد بلا إضعاف (f480fb9) وسجل
+  `docs/quality/persistent-entity-touchpoints.json` سياسته تحدث للمصادر الجديدة.
+- **توصيف النقل (10-ج):** أجنحة النقل الخضراء قبل التفكيك: 14 ملفًا/105 اختبارات
+  (releasedPairs 19/schema29–34/envelope27/familyOrphan/directSaleRoundTrip/guidedOpening+g82/…) + خريطة
+  مسؤوليات (زوج 27/35 الحالي + 21 زوجًا موروثًا، بصمة sha256، 13 عدادًا صارمًا، validateSnapshot كمنسق).
+- **تفكيك النقل (10-د):** `transferFamilyValidators.ts` و`transferSnapshotValidation.ts` و`transferEnvelope.ts`
+  و`transferCounters.ts` و`transferSnapshotMigrations.ts` منقولات حرفيًا خلف الأساليب العامة نفسها؛ الخدمة
+  3,010→278 سطرًا؛ خلل تسوية else-if أمسكته أجنحة الاختبار نفسها قبل الالتزام وأُصلح قبل الدفع.
+- براهين الحدود: domain+scripts **382** (34 ملفًا) · prototype **1,131** (160 ملفًا) · lint **36/37** (0 أخطاء) ·
+  دورات زمن التشغيل **231/0** · بوابة الحزمة **PASS 632,403/150,439** · `git diff --check` نظيف.
+- لم يتغير: المخطط/التصدير (35/27)، `src/domain` بالكامل (صفر فرق)، أسماء المخازن وأشكال السجلات والترحيلات
+  ومفاتيحها الحرفية، مظروف ٢٧ والأزواج المنشورة وقبول الاستيراد (29–34 + الموروثة)، توقيعات المنفذ/الواجهة،
+  الأساليب العامة للنقل (prepareImport/confirmImport/resetAll/createVerifiedExport/createExport)، أي قاعدة
+  مالية أو تاريخية.
+
+## المجموعة ١١ — خطة المعالجة الرباعية: القيم الدقيقة وبنية الواجهة وتغطية الصفحات والإغلاق المعماري النهائي (2026-09-13)
+
+- الفرع: `remediation/micro-full-hardening-2026` (فوق رأس إغلاق المجموعة ١٠ `dcf60db`) — المرجع الحي:
+  `docs/operations/current-state.md` §40.
+- **القيم الدقيقة (11-0 — سياسة المالك EXACT_VALUES_NO_SILENT_ROUNDING، مرحلة مستقلة قابلة للتراجع وحدها):**
+  `tests/domain/exact-values.characterization.test.ts` + `client/src/exact-values.characterization.test.ts`
+  (١٨ اختبارًا تثبت أمثلة المالك: 2.7/8.9/6.3/1520.4/1783.9/**1.001=1001 ملي**، ودون-القروش والكمية الرباعية
+  تُرفض عند حد الإدخال، ودورات إدخال←عرض←قراءة بلا تغيير قيمة)؛ `client/src/exact-values.cross-surface.test.ts`
+  (٦ اختبارات: أصناف حدود المقترحات، جولة التخزين 2.7/152,040، مسار الخدمة، **تثبيت 35/27**)؛ المعالجة الكنسية:
+  `percentToBpsExact`/`echoQuantityMilli` في `application/input/englishNumeric.ts`، و`formatQuantityMilli`
+  (بناء صحيح بلا قسم فاصلة عائمة) + `formatQuantityMilliFixed3` في `presentation/formatters.ts`؛ اشتقاقان
+  دقيقان: `application/inventory/materialSuggestions.ts` (roundHalfUp على عدد صحيح، مثبت 1001/2000→501 —
+  كانت 24/80,000 زوجًا تنحرف −1 قروش) و`src/domain/craft-order/policies.ts` سقف كلفة الوحدة
+  (`ceilRatio(cost×1000, qMilli)`: 21/0.7→30 الدقيق بدل 31 — **النطاق الوحيد في src/domain، مصرّح بالسياسة،
+  مسارات الإنتاج الصحيحية متطابقة**)؛ سجل استثناءات Math في `eslint.config.js` ضُيّق 5→3 مواقع موثقة سببًا
+  بيقظ `scripts/check-layer-boundaries.test.mjs`.
+- **تفكيك الكتالوج (11-أ):** `presentation/catalogPresentation.ts` (معينات صرفة + بديل السياق غير الآمن
+  لـrandomUUID) + `components/catalog/CatalogItemsSection` و`CatalogUnitsSection` و`CatalogReadingsSection`
+  و`CatalogTemplatesSection` و`CatalogPoliciesSection` خلف منسق `pages/Catalog.tsx` (2,133→924 سطرًا)؛
+  اختبارا `Catalog.operationKey` و`Catalog.ui` يمران كما هما.
+- **تفكيك الإعدادات (11-ب):** `components/settings/SettingsDataProtectionSection` (خلف أقفال PIN/الجلسة) و
+  `SettingsGuidedOpeningSection` (معاينة قراءة-فقط وتأكيد مقفل) و`SettingsOperatingModeSection` و
+  `SettingsAppearanceSection` خلف `pages/Settings.tsx` (1,139→621)؛ `Settings.lockGate.dom.test.tsx`
+  (15+ اختبار قفل/بوابة/تصفير/تشخيص) يمر بلا تعديل واحد.
+- **تفكيك دفتر المالك وتفاصيل الطلب (11-ج):** `components/owner/OwnerPolicyFormsSection` و
+  `OwnerLedgerFormsSection` + `presentation/ownerEntitlementPresentation` خلف `pages/OwnerEntitlement.tsx`
+  (1,590→1,096)؛ `components/orders/OrderDepositPanels` (رد/احتفاظ/تصنيف المعنى) خلف `pages/OrderDetail.tsx`
+  (1,724→1,412)؛ سلوك `needs_review` والقفل الموثق محفوظ بأجنحة G3/G3Delivery/G3Hardening/G4RetainedDeposit/G6
+  القائمة كلها خضراء بلا تعديل.
+- **تفكيك المالية (11-د):** `components/finance/FinancePeriodResultSection` (قراءة الفترة بنطاقها المعلن)
+  خلف `pages/Finance.tsx` (1,441→988)؛ **`ProjectFinancialService` بقي نواة القراءة المالية كما هي — لم يُنقل
+  إليها ولا منها أي حكم مالي أو كتابة**.
+- **رحلات الصفحات (11-هـ — إغلاق فجوة STR-033 المسمّاة):** `client/src/CashJourneys.dom.test.tsx`
+  (7: عدّ الصندوق وتوزيع الكاش — الفرق الدقيق +2.40/الرصيد 152.40 بقراءة راجعة 15,240، الرفض الصادر
+  150.005 بلا كتابة، توزيع 271.00 كاملة، منع الصفر الصامت)؛ `client/src/Home.dom.test.tsx` (5: جهوزية بعنوان
+  النشاط الدائم + يوم مفتوح صادق، الرصيد الافتتاحي 152,040 عبر قراءة الرئيسية، عقد `?from` من «صفحة الأساس»،
+  إقلاع أول **ببوابة يحكمها الاختبار — لا سباق ولا نوم ولا نقرة زر إعادة التحميل**، وخطأ صادق بزر إعادة المحاولة
+  المعلن غير المنقور)؛ `client/src/FinanceJourneys.dom.test.tsx` (3: الكاش المسجل 1,520.40 المعروض
+  والمقروء 152,040، شريط الكاش غير الموزع 271.00 بطريقه PA-002، وعرض الفترة عبر الطبقة المستخرجة).
+- **الإغلاق المعماري (11-و):** كل بنود مسح المجموعة ٧ مصنفة نهائيًا — «أصلح الآن» (STR-001..015) كلها مغلقة
+  بدليل عبر المجموعات ٨–١١، و«الحفظ» (STR-016..027) محفوظ بحرّاسه، و«التأجيل» أُغلق ما لزم إغلاقه
+  (STR-029/031 وقت الأعمال في ٩، STR-032 المعينات النقية في ٩، STR-033 عنقود الكاش والرئيسية ومالي في 11-هـ،
+  STR-034 مصفوفة 28×2 في ١٠، STR-035 الكتالوج في 11-أ، STR-036 تنسيق الكمية الكنسي في 11-0، STR-037/038
+  حظر Math في طبقة التطبيق في ٨) وSTR-030/STR-028/STR-039..044 بحالتها الموثقة (قرار مالك أو نطاق صريح
+  بأدلة) — **لا عيب قابل للإصلاح متأخر (deferred)**.
+- براهين الحدود: domain+scripts **391** (35 ملفًا) · prototype **1,166** (166 ملفًا) · lint **36/37** (0 أخطاء) ·
+  دورات زمن التشغيل **246/0** · بوابة الحزمة **PASS 633,197/150,606** · `pnpm check` كاملة **EXIT 0** ·
+  `git diff --check` نظيف.
+- لم يتغير: المخطط/التصدير (35/27)، أي كتابة مالية أو تاريخية (لا أحداث ولا لقطات ولا أرصدة ولا تعيينات)،
+  توقيعات منفذ التخزين أو واجهة النقل أو عقودهما العامة، المسارات، أصناف الصفحات (لا `features/` ولا `shared`
+  عامة)، أي حد رقمي أو حارس أو عتبة.

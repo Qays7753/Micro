@@ -11,6 +11,7 @@ import {
   type MaterialOpeningKnowledge,
   type MaterialTrackingState,
   type ResolveInventoryShortageInput,
+  type WasteContext,
 } from "./types.js";
 
 const nonEmpty = (value: string, label: string) => {
@@ -30,7 +31,11 @@ const positive = (value: number, label: string) => {
   if (integer(value, label) <= 0) throw new Error(`${label} يجب أن يكون أكبر من صفر.`);
   return value;
 };
-const validWasteContext = (value: unknown) => {
+/* المجموعة ٩ (STR-030): سياق الهدر تعريفه ومحققه الكنسيان هنا — صاحب
+ * الحركة (عقد ٢٨)؛ وrecurring-margin يعيد تصديرهما لاستقرار عقد حدوده
+ * بلا تكرار تعريف. السلوك مطابق حرفيًا للنسختين السابقتين (تثبته اختبارات
+ * التوأمة). */
+export function isValidWasteContext(value: unknown): value is WasteContext {
   if (!value || typeof value !== "object") return false;
   const context = value as Record<string, unknown>;
   if (context.kind === "order")
@@ -50,7 +55,7 @@ const validWasteContext = (value: unknown) => {
     (context.allocationNote === null || typeof context.allocationNote === "string") &&
     (context.allocationNote === null || context.allocationNote.trim().length > 0)
   );
-};
+}
 
 /* المجموعة ٢ (عقد ٢٨): قرار المتابعة لكل مادة — غياب الحقل يعني متتبَّعة (إرث محفوظ). */
 export function materialIsTracked(material: Material): boolean {
@@ -145,7 +150,7 @@ export function createInventoryMovement(input: CreateInventoryMovementInput): In
   if (type === "reversal" && !input.reversesMovementId) throw new Error("التراجع يحتاج مرجع الحركة الأصلية.");
   if (type !== "reversal" && input.reversesMovementId) throw new Error("مرجع التراجع خاص بحركة التراجع فقط.");
   if (
-    (type === "waste" && !validWasteContext(wasteContext)) ||
+    (type === "waste" && !isValidWasteContext(wasteContext)) ||
     (type !== "waste" && input.wasteContext !== undefined && input.wasteContext !== null)
   )
     throw new Error("سياق الهدر غير صالح أو مستخدم خارج حركة الهدر.");

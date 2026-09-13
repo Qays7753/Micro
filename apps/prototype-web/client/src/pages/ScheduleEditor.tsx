@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { STALE_CONFLICT_NOTE, STALE_RELOAD_ACTION_LABEL, STALE_RELOADED_NOTE } from "@/app/resultFeedback";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { IntegerValue, LocalDateValue, TimeValue } from "@/components/presentation/DisplayValue";
@@ -50,7 +51,12 @@ export default function ScheduleEditor() {
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState("");
   const [reason, setReason] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  /* التحصين الكامل (المجموعة ٣): ملاحظة مُطبوعة النبرة — الفشل خطأ ظاهر
+   * بـ role=alert لا نجاحًا مزيفًا بقراءة بادئة النص. */
+  const [feedback, setFeedback] = useState<{ tone: "error" | "success" | "info"; text: string } | null>(null);
+  /* عقد §31 (المجموعة ٢): storage_stale المطبوع يحرّك رحلة الاسترجاع —
+   * إعادة قراءة ثم قرار واعٍ؛ لا تكرار أعمى للقيم القديمة. */
+  const [staleConflict, setStaleConflict] = useState(false);
   const [saving, setSaving] = useState(false);
   const [postponing, setPostponing] = useState(false);
   const initialValuesRef = useRef<ScheduleFormValues | null>(null);
@@ -80,13 +86,31 @@ export default function ScheduleEditor() {
       active = false;
     };
   }, [dataVersion, id, schedules]);
+  /* رحلة الاسترجاع (§31): إعادة قراءة الموعد الحالي عبر مسار القراءة
+   * المعتمد نفسه — قيم المستخدم غير المحفوظة تبقى في الحقول كما هي. */
+  async function reloadCurrentSchedule(): Promise<void> {
+    const result = await schedules.get(id);
+    if (!result.ok) {
+      setFeedback({ tone: "error", text: result.message });
+      return;
+    }
+    setStaleConflict(false);
+    setSchedule(result.value);
+    initialValuesRef.current = {
+      date: result.value.scheduledFor,
+      time: result.value.scheduledTime ?? "",
+      duration: result.value.durationMinutes?.toString() ?? "",
+      reason: "",
+    };
+    setFeedback({ tone: "info", text: STALE_RELOADED_NOTE });
+  }
   const currentValues = { date, time, duration, reason };
   const isDirty = Boolean(
     initialValuesRef.current && !equalScheduleValues(currentValues, initialValuesRef.current),
   );
   async function persistTiming(): Promise<boolean> {
     if (!schedule) return false;
-    setMessage(null);
+    setFeedback(null);
     setSaving(true);
     const result = await schedules.updateTiming(schedule.id, {
       scheduledFor: date,
@@ -96,7 +120,8 @@ export default function ScheduleEditor() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      if (result.code === "storage_stale") setStaleConflict(true);
+      setFeedback({ tone: "error", text: result.message });
       return false;
     }
     const nextValues = {
@@ -112,10 +137,11 @@ export default function ScheduleEditor() {
     setReason(nextValues.reason);
     initialValuesRef.current = nextValues;
     notifyDataChanged();
-    setMessage(
+    setStaleConflict(false);
+    setFeedback(
       result.value.status === "postponed"
-        ? "تم حفظ التأجيل محليًا مع سبب وتاريخ الموعد السابق."
-        : "تم حفظ وقت الموعد ومدته محليًا مع سجل التعديل.",
+        ? { tone: "success", text: "تم حفظ التأجيل محليًا مع سبب وتاريخ الموعد السابق." }
+        : { tone: "success", text: "تم حفظ وقت الموعد ومدته محليًا مع سجل التعديل." },
     );
     return true;
   }
@@ -124,7 +150,7 @@ export default function ScheduleEditor() {
    * لا يخترع سببًا؛ يسجّل ما فُعل بالضبط، ومن أراد تاريخًا أو سببًا آخر يستخدم النموذج. */
   async function postponeOneDay() {
     if (!schedule) return;
-    setMessage(null);
+    setFeedback(null);
     setPostponing(true);
     const nextDay = new Date(`${schedule.scheduledFor}T12:00:00.000Z`);
     nextDay.setUTCDate(nextDay.getUTCDate() + 1);
@@ -135,7 +161,8 @@ export default function ScheduleEditor() {
     );
     setPostponing(false);
     if (!result.ok) {
-      setMessage(result.message);
+      if (result.code === "storage_stale") setStaleConflict(true);
+      setFeedback({ tone: "error", text: result.message });
       return;
     }
     setSchedule(result.value);
@@ -147,7 +174,11 @@ export default function ScheduleEditor() {
       reason: "",
     };
     notifyDataChanged();
-    setMessage("تم تأجيل الموعد يومًا واحدًا — التأجيل موثق في سجل الموعد.");
+    setStaleConflict(false);
+    setFeedback({
+      tone: "success",
+      text: "تم تأجيل الموعد يومًا واحدًا — التأجيل موثق في سجل الموعد.",
+    });
   }
   if (phase === "loading")
     return (
@@ -237,9 +268,37 @@ export default function ScheduleEditor() {
         <p className="micro-schedule-editor-note">
           <Clock3 aria-hidden="true" /> وقت غير محدد لا يحسب كأنه صفر ولا يدخل في تحذير التعارض أو ضغط القدرة.
         </p>
-        {message ? (
-          <p className={message.startsWith("تم ") ? "micro-save-note" : "micro-field-error"} role="status">
-            {message}
+        {staleConflict ? (
+          <section className="micro-cancel-panel" data-testid="stale-conflict-card">
+            <p className="micro-warning-copy" role="alert">
+              {STALE_CONFLICT_NOTE}
+            </p>
+            <div className="micro-form-actions micro-contextual-actions">
+              <button
+                className="micro-button micro-button-secondary"
+                type="button"
+                disabled={saving || postponing}
+                onClick={() => {
+                  void reloadCurrentSchedule();
+                }}
+              >
+                {STALE_RELOAD_ACTION_LABEL}
+              </button>
+            </div>
+          </section>
+        ) : null}
+        {feedback ? (
+          <p
+            className={
+              feedback.tone === "error"
+                ? "micro-field-error"
+                : feedback.tone === "info"
+                  ? "micro-local-truth"
+                  : "micro-save-note"
+            }
+            role={feedback.tone === "error" ? "alert" : "status"}
+          >
+            {feedback.text}
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">

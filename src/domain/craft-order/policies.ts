@@ -22,7 +22,9 @@ import type {
 import type { MoneyMinor } from "../shared/index.js";
 import {
   JOD,
+  ammanDateOrNull,
   assertNonNegativeInteger,
+  ceilRatio,
   fieldLabelAr,
   quantityMilliExact,
   roundHalfUp,
@@ -76,20 +78,9 @@ function assertValidDate(value: string, field: string): void {
   }
 }
 
-function ammanLocalDate(isoTimestamp: string): string | null {
-  if (Number.isNaN(Date.parse(isoTimestamp))) return null;
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(isoTimestamp));
-  const part = (type: string) => parts.find(entry => entry.type === type)?.value ?? null;
-  const year = part("year");
-  const month = part("month");
-  const day = part("day");
-  return year && month && day ? `${year}-${month}-${day}` : null;
-}
+/* المجموعة ٩ (STR-029): تاريخ الصلاحية سؤال يوم تقويمي عند المالك (عمّان)
+ * — متغيّر الفارغ الكنسي من وحدة وقت الأعمال، لا نسخة محلية. */
+const ammanLocalDate = ammanDateOrNull;
 function localDateMinusDays(localDate: string, days: number): string {
   const [year, month, day] = localDate.split("-").map(Number);
   return new Date(Date.UTC(year!, month! - 1, day! - days)).toISOString().slice(0, 10);
@@ -208,6 +199,25 @@ function materialItemCostMinor(item: MaterialCostItem): number {
   return itemCostMinor;
 }
 
+/* المجموعة ١١ (11-0 — سياسة EXACT_VALUES_NO_SILENT_ROUNDING): سقف تكلفة
+ * الوحدة على النسبة الدقيقة بالملي — ceilRatio(plannedCost×1000،
+ * quantityMilli) — بدل قسمة الفاصلة العائمة التي ترفع حدها الأعلى عند
+ * الكسور العشرية (كانت 21/0.7 تعطي 31 والصحيح 30). المسارات الإنتاجية
+ * (كميات صحيحة) بلا أي تغيير: قسمة صحيح/صحيح دقيقة في FP أصلا. الدقة
+ * غير الآمنة تُرفض صريحة لا تُقرَّب. */
+function unitCostCeilingMinor(plannedCostMinor: number, quantity: number): number {
+  const quantityMilli = quantityMilliExact(quantity);
+  const numerator = plannedCostMinor * 1000;
+  if (quantityMilli === null || !Number.isSafeInteger(numerator) || numerator < 0) {
+    throw new Error("تكلفة الوحدة تتجاوز الدقة الآمنة للأرقام الصحيحة؛ لم يُقرّب الرقم.");
+  }
+  const unitCostMinor = ceilRatio(numerator, quantityMilli);
+  if (unitCostMinor === null) {
+    throw new Error("تكلفة الوحدة تتجاوز الدقة الآمنة للأرقام الصحيحة؛ لم يُقرّب الرقم.");
+  }
+  return unitCostMinor;
+}
+
 export function calculateCostSnapshot(id: string, input: CostSnapshotInput): CostSnapshot {
   if (!id.trim()) throw new Error("أكمل معرّف نسخة التكلفة قبل الحساب.");
   if (input.currency !== JOD) throw new Error("العملة المدعومة في هذا الإصدار هي الدينار الأردني فقط.");
@@ -242,7 +252,7 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
 
   const plannedCostMinor =
     materialCostMinor + timeCostMinor + input.packagingMinor + input.deliveryMinor + input.wasteMinor;
-  const unitCostMinor = Math.ceil(plannedCostMinor / input.quantity);
+  const unitCostMinor = unitCostCeilingMinor(plannedCostMinor, input.quantity);
   const priceFloorMinor = unitCostMinor + input.safetyBufferMinor;
 
   return freezeCostSnapshot({
@@ -276,13 +286,15 @@ function assertNotLockedDeliveredReview(order: CraftOrder): void {
   }
 }
 
-function hasDeliveredEvent(order: CraftOrder): boolean {
+export function hasDeliveredEvent(order: CraftOrder): boolean {
   return order.events.some(event => event.type === "status_changed" && event.toStatus === "delivered");
 }
 
 /* المجموعة ٣ (عقد D2): هل عُكس آخر تسليم؟ آخر حدث تسليم لا يزال بلا عكس مقابلاً
- * يعني أن العكس غير حاصل بعد. */
-function hasDeliveryReversal(order: CraftOrder): boolean {
+ * يعني أن العكس غير حاصل بعد. المجموعة ٩ (STR-008): مصدر الحقيقة الكنسي
+ * لهذا السؤال مُصدَّر من النطاق — الصفحات والمستهلكون يستوردونه ولا
+ * يعيدون مسح الأحداث محليًا. */
+export function hasDeliveryReversal(order: CraftOrder): boolean {
   const lastDelivery = [...order.events]
     .reverse()
     .find(event => event.type === "status_changed" && event.toStatus === "delivered");
@@ -633,6 +645,11 @@ export function collectRegisteredDebt(
   assertIdempotencyKey(idempotencyKey);
   if (eventExists(order, idempotencyKey, "collection_recorded")) return order;
   if (!isRegisteredCustomerDebt(order)) throw new Error("تحصيل الدين المسجل يتطلب دينًا مسجلًا بعد التسليم.");
+  /* المجموعة ٢ (التحصين الكامل — D-2): تحصيل الدين أثر مالي — لا يمر على سجل
+   * مسلّم مقفل في «يحتاج مراجعة». الحالة غير واصلة اليوم (الدين لا يقوم إلا
+   * على طلب مُسوّى)، لكن الحارس هنا يجعل القاعدة بنائية لا عرضية، وتفتح
+   * المحاولات مرة أخرى بعد عكس التسليم الموثق أو قرار المراجعة. */
+  assertNotLockedDeliveredReview(order);
   assertPositiveInteger(amountMinor, "مبلغ التحصيل");
   if (amountMinor + order.collectedMinor > order.agreedPriceMinor)
     throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
@@ -750,6 +767,12 @@ const settlementAfterCollectionReversal = (
 export function reverseOrderCollection(order: CraftOrder, input: ReverseCollectionInput): CraftOrder {
   assertIdempotencyKey(input.idempotencyKey);
   if (eventExists(order, input.idempotencyKey, "collection_reversed")) return order;
+  /* المجموعة ٢ (التحصين الكامل — D-031/D-2): التراجع عن قبضة أثر مالي على
+   * سجل مسلّم داخل «يحتاج مراجعة» — قبل عكس التسليم الموثق لا يُفتح أي باب
+   * مالي على السجل المقفل، كتحصيل المتبقي وتسجيل الدين وتصحيح السعر قبلها.
+   * إعادة التشغيل بنفس المفتاح تُعاد قبل هذا الحارس فلا تتأثر المحاولات
+   * البريئة؛ التصحيح المعلّق الوحيد هو عكس التسليم نفسه. */
+  assertNotLockedDeliveredReview(order);
   if (order.status === "cancelled")
     throw new Error("لا يُتراجع عن قبض في طلب ملغى؛ العربون له مسار تسويته الخاص.");
   const source = order.events.find(event => event.id === input.collectionEventId);
@@ -810,12 +833,21 @@ export function noteDeliveryConsumption(order: CraftOrder, input: DeliveryConsum
  * وأثره في الأحداث) يبقى؛ الإيراد المعروف والتكلفة المعروفة تُحيَّدان إلى غياب
  * المعرفة (لا صفر مزيف: النتيجة «تحتاج مراجعة»)؛ الطلب ينتقل إلى «يحتاج مراجعة»
  * ليقرر المالك بعدها: إعادة تنفيذ (مؤكد ← قيد التنفيذ) أو إلغاء موثق. الكاش
- * المقبوض لا يُمس هنا — عكس قبضة له مساره الخاص. */
+ * المقبوض لا يُمس هنا — عكس قبضة له مساره الخاص.
+ * التحصين الكامل (D-031، المجموعة ٣): هذه العملية هي Use Case التصحيح الموثق
+ * المعتمد للسجل المسلّم المقفل داخل «يحتاج مراجعة» — تُقبل الحالة المقفلة
+ * (مسلّم + حدث تسليم بلا عكس) لأن العكس هو المخرج الموثق الوحيد من القفل
+ * (AGENTS.md §6)، وبعده يعمل القفل بمفتاح علاقة العكس لا بحالة عامة. */
 export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput): CraftOrder {
   assertIdempotencyKey(input.idempotencyKey);
   if (eventExists(order, input.idempotencyKey, "delivery_reversed")) return order;
-  if (order.status !== "delivered" && order.status !== "settled") {
-    throw new Error(`عكس التسليم يتطلب طلبًا مسلّمًا — الحالة الحالية «${ORDER_STATUS_AR[order.status]}».`);
+  /* D-031: حالة «يحتاج مراجعة» تُقبل فقط عندما يكون هناك حدث تسليم غير معكوس
+   * (القفل نفسه) — وإلا فالطلب ليس مسلّمًا فيُرفض كما كان. */
+  const lockedDeliveredReview = order.status === "needs_review" && hasDeliveredEvent(order);
+  if (order.status !== "delivered" && order.status !== "settled" && !lockedDeliveredReview) {
+    throw new Error(
+      `التراجع الموثق عن التسليم يتطلب طلبًا مسلّمًا — الحالة الحالية «${ORDER_STATUS_AR[order.status]}».`,
+    );
   }
   const deliveryEvent = [...order.events]
     .reverse()
@@ -828,9 +860,9 @@ export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput):
       event => event.type === "delivery_reversed" && event.reversesEventId === deliveryEvent.id,
     )
   ) {
-    throw new Error("عُكس هذا التسليم سابقًا؛ لا يُعكس التسليم نفسه مرتين.");
+    throw new Error("سُجّل التراجع الموثق عن هذا التسليم سابقًا؛ لا يتكرر على التسليم نفسه مرتين.");
   }
-  if (!input.reason.trim()) throw new Error("أكمل سبب عكس التسليم قبل الحفظ.");
+  if (!input.reason.trim()) throw new Error("أكمل سبب التراجع الموثق عن التسليم قبل الحفظ.");
 
   const next: CraftOrder = {
     ...order,
@@ -839,7 +871,7 @@ export function reverseDelivery(order: CraftOrder, input: ReverseDeliveryInput):
     recognizedCostMinor: 0,
     profitIndicatorMinor: null,
     resultStatus: "review_required",
-    nextAction: "راجع الطلب بعد عكس التسليم — أعِد التنفيذ أو ألغِ موثقًا",
+    nextAction: "راجع الطلب بعد التراجع الموثق عن التسليم — أعِد التنفيذ أو ألغِ موثقًا",
   };
   const withStatusEvent = appendStatusChanged(
     next,

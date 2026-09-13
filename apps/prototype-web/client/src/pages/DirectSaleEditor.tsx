@@ -568,7 +568,11 @@ export default function DirectSaleEditor() {
           onDiscard={saleDraft.discardDraft}
         />
       ) : null}
-      {!editing && saleDraft.state.phase === "drafting" && saleDraft.state.lastSavedAt ? (
+      {!editing && saleDraft.state.phase === "drafting" && saleDraft.state.saveFailed ? (
+        <p className="micro-field-error" role="alert">
+          تعذر حفظ المسودة محليًا — قيمك أمامك كما هي ولم يُسجّل أي بيع؛ أكمل الكتابة أو الحفظ النهائي.
+        </p>
+      ) : !editing && saleDraft.state.phase === "drafting" && saleDraft.state.lastSavedAt ? (
         <p className="micro-offline-truth" role="status">
           مسودتك محفوظة محليًا — آخر حفظ{" "}
           <bdi dir="ltr">{formatLocalDate(localDateInAmman(saleDraft.state.lastSavedAt))}</bdi>؛ لم يُسجّل

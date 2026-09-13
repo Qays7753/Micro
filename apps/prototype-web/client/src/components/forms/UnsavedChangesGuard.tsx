@@ -44,6 +44,9 @@ export function UnsavedChangesProvider({
   const [pendingExit, setPendingExit] = useState<"app" | "back">("app");
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  /* التحصين الكامل (المجموعة ٣): فشل الحفظ داخل الحوار يُعلن هنا — لا يعود
+   * المستخدم لحوار بلا تفسير والمعلومة خلف الغطاء الشاشي. */
+  const [saveFailure, setSaveFailure] = useState<{ text: string } | null>(null);
   const [hasDirtyGuard, setHasDirtyGuard] = useState(false);
   const sentinelArmedRef = useRef(false);
   const suppressHistoryGuardRef = useRef(false);
@@ -150,6 +153,7 @@ export function UnsavedChangesProvider({
     const exit = pendingExit;
     const target = pendingTarget;
     setIsSaving(true);
+    setSaveFailure(null);
     const saved = await completeSaveNavigation(
       guard.onSave,
       () => {
@@ -162,7 +166,12 @@ export function UnsavedChangesProvider({
       exit === "app" ? (target ?? "") : "",
     );
     setIsSaving(false);
-    if (!saved) return;
+    if (!saved) {
+      setSaveFailure({
+        text: "تعذر الحفظ — راجع رسالة الخطأ في الصفحة ثم قرر: ابقَ وحاول بعد معالجتها، أو اخرج دون حفظ.",
+      });
+      return;
+    }
   }, [isSaving, pendingExit, pendingTarget, runExit]);
 
   return (
@@ -171,6 +180,7 @@ export function UnsavedChangesProvider({
       {isOpen ? (
         <UnsavedChangesDialog
           isSaving={isSaving}
+          saveFailure={saveFailure?.text ?? null}
           onStay={close}
           onSaveAndContinue={saveAndContinue}
           onDiscard={discard}
@@ -199,11 +209,13 @@ export function useUnsavedChangesNavigation() {
  * الحوار ويعود إلى الزر الأول (الأقل تدميرًا) عند الفتح، وEsc يبقيك (غير تدميري). */
 function UnsavedChangesDialog({
   isSaving,
+  saveFailure,
   onStay,
   onSaveAndContinue,
   onDiscard,
 }: {
   isSaving: boolean;
+  saveFailure: string | null;
   onStay: () => void;
   onSaveAndContinue: () => void;
   onDiscard: () => void;
@@ -256,6 +268,11 @@ function UnsavedChangesDialog({
       >
         <h2 id="unsaved-changes-title">تعديلات غير محفوظة</h2>
         <p>لن يُحفظ شيء تلقائيًا، وإذا أغلقت الصفحة أو التطبيق قبل الحفظ يفقد ما لم تحفظه.</p>
+        {saveFailure ? (
+          <p className="micro-warning-copy" role="alert" data-testid="guard-save-failure">
+            {saveFailure}
+          </p>
+        ) : null}
         <div className="micro-dialog-actions">
           <button
             ref={stayButtonRef}

@@ -1,3 +1,4 @@
+import { OrderDepositPanels } from "@/components/orders/OrderDepositPanels";
 /* مبدأ Micro: يعرض الطلب حالته الفعلية وفعلًا تاليًا واحدًا، ولا يساوي الحفظ ببدء التنفيذ أو التحصيل. */
 import { Share2 } from "lucide-react";
 import {
@@ -19,6 +20,7 @@ import { useLocation, useParams } from "wouter";
 import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { DELIVERED_REVIEW_LOCK_NOTE } from "@/app/resultFeedback";
 import type { AgreementResult } from "@/application/agreements/agreementService";
 import type { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
 import type {
@@ -39,6 +41,7 @@ import {
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
+import { hasDeliveredEvent, hasDeliveryReversal } from "@micro-domain/craft-order/index.js";
 import { formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
@@ -61,19 +64,9 @@ const canCancelOrder = (order: { status: string }) => cancellableStatuses.includ
  * يصعدان من «تفاصيل إضافية» إلى سطح الطلب عندما يصل التنفيذ؛ ما قبله يبقى مطويًا. */
 const executionStatuses = ["in_progress", "ready"];
 
-/* المجموعة ٣ (عقد D4 — SA-5 R4): هل عُكس آخر تسليم؟ منطق النطاق نفسه — آخر حدث
- * تسليم له عكس مقابل؛ لا يكفي وجود عكس قديم لتسليم أقدم. */
-function lastDeliveryWasReversed(order: {
-  events: readonly { id: string; type: string; toStatus?: string; reversesEventId?: string }[];
-}): boolean {
-  const lastDelivery = [...order.events]
-    .reverse()
-    .find(event => event.type === "status_changed" && event.toStatus === "delivered");
-  if (!lastDelivery) return false;
-  return order.events.some(
-    event => event.type === "delivery_reversed" && event.reversesEventId === lastDelivery.id,
-  );
-}
+/* المجموعة ٣ (عقد D4 — SA-5 R4): هل عُكس آخر تسليم؟ مصدر الحقيقة هو مسند
+ * النطاق نفسه (STR-008، المجموعة ٩) — الصفحة تستورده ولا تعيد مسح الأحداث
+ * محليًا؛ آخر حدث تسليم له عكس مقابل، ولا يكفي وجود عكس قديم لتسليم أقدم. */
 
 export default function OrderDetail() {
   const params = useParams<{ id: string }>();
@@ -298,11 +291,17 @@ export default function OrderDetail() {
   });
   const label = agreement.label;
   const result = resultLabel[order.resultStatus] ?? resultLabel.review_required;
+  /* التحصين الكامل (D-031، المجموعة ٣): القفل الحقيقي — سجل مسلّم داخل «يحتاج
+   * مراجعة» بلا تراجع موثق عن التسليم؛ مسندا النطاق نفسه (STR-008، المجموعة ٩). */
+  const lockedInDeliveredReview =
+    order.status === "needs_review" && hasDeliveredEvent(order) && !hasDeliveryReversal(order);
   /* المجموعة ٦ (البند ٤ — S3-12): ملخص الإفصاح يسمي الأفعال المتاحة فعلًا حسب
    * حالة الطلب — قابل للاكتشاف بلا فتح، وبلا ذكر فعل لا ينطبق. */
   const correctionsSummary = [
     ...(["draft", "cancelled", "needs_review"].includes(order.status) ? [] : ["تعديل السعر"]),
-    ...(order.status !== "cancelled" && order.events.some(event => event.type === "collection_recorded")
+    ...(order.status !== "cancelled" &&
+    !lockedInDeliveredReview &&
+    order.events.some(event => event.type === "collection_recorded")
       ? ["تراجع عن قبضة"]
       : []),
     ...(canCancelOrder(order) ? ["إلغاء الطلب"] : []),
@@ -413,6 +412,15 @@ export default function OrderDetail() {
   /* المجموعة ٦ (البند ١): تنفيذ التراجع — مزدوجًا أو مفردًا — عبر الخدمة الذرّية
    * نفسها؛ إعادة المحاولة بمفتاح الجذر نفسه لا تكرر أي أثر. */
   async function runReversal(compound: boolean) {
+    if (!stored || !reversalEventId) return;
+    setIsActing(true);
+    try {
+      await runReversalCommit(compound);
+    } finally {
+      setIsActing(false);
+    }
+  }
+  async function runReversalCommit(compound: boolean) {
     if (!stored || !reversalEventId) return;
     const result = await collectionReversal.reverse({
       orderId: stored.id,
@@ -531,7 +539,7 @@ export default function OrderDetail() {
         <CheckCircle2 aria-hidden="true" />
         راجع التسليم وسجّله
       </button>
-    ) : order.status === "needs_review" && lastDeliveryWasReversed(order) ? (
+    ) : order.status === "needs_review" && hasDeliveryReversal(order) ? (
       /* المجموعة ٣ (عقد D4): الاستئناف الموثق بعد عكس التسليم — انتقالات النطاق
        * نفسها لا مسار خاص؛ المراجعة تُغلق بقرار صريح لا صمتًا. */
       <button
@@ -760,14 +768,17 @@ export default function OrderDetail() {
             {/* المجموعة ٣ (عقد D4/D5): عكس التسليم المكتمل — تصحيح موثق يحيّد الإيراد
                 ويعكس حركات الاستهلاك مرآةً ولا يمس الكاش المقبوض؛ الطلب ينتقل إلى
                 «يحتاج مراجعة» ويُستأنف تنفيذه بقرار صريح. */}
-            {["delivered", "settled"].includes(order.status) && !lastDeliveryWasReversed(order) ? (
+            {/* التحصين الكامل (D-031): لوحة التراجع الموثق تظهر أيضًا للسجل المسلّم
+                المقفل داخل «يحتاج مراجعة» — التراجع الموثق هو المخرج الوحيد. */}
+            {(order.status === "delivered" || order.status === "settled" || lockedInDeliveredReview) &&
+            !hasDeliveryReversal(order) ? (
               deliveryReversalOpen ? (
-                <section className="micro-cancel-panel" aria-label="عكس التسليم">
+                <section className="micro-cancel-panel" aria-label="تراجع موثق عن التسليم">
                   <CorrectionPreview
-                    action="عكس التسليم المكتمل"
+                    action="تراجع موثق عن التسليم المكتمل"
                     originalLabel={`تسليم «${order.itemName}» بإيراد معروف ${formatMoneyMinor(order.recognizedRevenueMinor)} د.أ`}
                     originalDetail={`المقبوض ${formatMoneyMinor(order.collectedMinor)} د.أ · التكلفة المعروفة ${formatMoneyMinor(order.recognizedCostMinor)} د.أ`}
-                    intro="عكس موثق لا حذف: حدث التسليم وأثره يبقى في السجل، الإيراد والنتيجة يُحيَّدان إلى غياب المعرفة، وحركات استهلاك المواد المرتبطة بهذا التسليم تُعكس مرآةً فيرجع الرصيد. الكاش المقبوض لا يتأثر — عكس قبضة له مساره الخاص."
+                    intro="تراجع موثق لا حذف: حدث التسليم وأثره يبقى في السجل، الإيراد والنتيجة يُحيَّدان إلى غياب المعرفة، وحركات استهلاك المواد المرتبطة بهذا التسليم يُسجَّل لها مرايا تراجع فيرجع الرصيد. الكاش المقبوض لا يتأثر — تراجع القبضة له مساره الخاص."
                     dimensions={[
                       { label: "الإيراد المعروف", beforeMinor: order.recognizedRevenueMinor, afterMinor: 0 },
                       {
@@ -782,15 +793,15 @@ export default function OrderDetail() {
                       "العربون ومسار تسويته إن وجد",
                       "الأحداث السابقة كلها",
                     ]}
-                    resulting={[{ label: "نتيجة الطلب بعد العكس", amountMinor: null, unknown: true }]}
-                    reversibleNote="بعد العكس ينتقل الطلب إلى «يحتاج مراجعة»: استأنف التنفيذ بقرار صريح أو ألغِ موثقًا؛ إعادة التسليم لاحقًا تسجيل جديد لا تكرار."
+                    resulting={[{ label: "نتيجة الطلب بعد التراجع", amountMinor: null, unknown: true }]}
+                    reversibleNote="بعد التراجع ينتقل الطلب إلى «يحتاج مراجعة»: استأنف التنفيذ بقرار صريح أو ألغِ موثقًا؛ إعادة التسليم لاحقًا تسجيل جديد لا تكرار."
                     reason={deliveryReversalReason}
                     onReasonChange={setDeliveryReversalReason}
                     reasonPlaceholder="مثال: سُلّم الطلب للزبون الخطأ"
                     error={message}
                     busy={isActing}
-                    confirmLabel="أكّد عكس التسليم"
-                    busyLabel="جارٍ عكس التسليم…"
+                    confirmLabel="أكّد التراجع الموثق عن التسليم"
+                    busyLabel="جارٍ توثيق التراجع…"
                     danger={true}
                     onConfirm={() => {
                       void (async () => {
@@ -812,7 +823,7 @@ export default function OrderDetail() {
                   disabled={isActing}
                   onClick={() => setDeliveryReversalOpen(true)}
                 >
-                  <RotateCcw aria-hidden="true" /> اعكس التسليم
+                  <RotateCcw aria-hidden="true" /> تراجع موثق عن التسليم
                 </button>
               )
             ) : null}
@@ -834,8 +845,8 @@ export default function OrderDetail() {
                     </p>
                     {order.status === "needs_review" ? (
                       <p className="micro-note-copy">
-                        هذا الطلب في «يحتاج مراجعة» بعد عكس تسليم موثق — الإلغاء يُتِمّ من هنا بأمان. وإن كان
-                        ثمة تسليم غير معكوس فسيُقفل الإلغاء برسالة تشرح السبب.
+                        هذا الطلب في «يحتاج مراجعة» بعد تراجع موثق عن التسليم — الإلغاء يُتِمّ من هنا بأمان.
+                        وإن كان ثمة تسليم غير متراجَع عنه فسيُقفل الإلغاء برسالة تشرح السبب.
                       </p>
                     ) : null}
                   </div>
@@ -1039,6 +1050,14 @@ export default function OrderDetail() {
               ? (() => {
                   const collections = order.events.filter(event => event.type === "collection_recorded");
                   if (collections.length === 0) return null;
+                  /* التحصين الكامل (D-031): السجل المسلّم المقفل — القبضات تبقى مرئية
+                   * للقراءة لكن لا تراجعًا عامًا عنها الآن؛ المخرج الموثق وحده أعلاه. */
+                  if (lockedInDeliveredReview)
+                    return (
+                      <section className="micro-cancel-panel" aria-label="تراجع موثق عن قبضة">
+                        <p className="micro-note-copy">{DELIVERED_REVIEW_LOCK_NOTE}</p>
+                      </section>
+                    );
                   const remainingOf = (eventId: string) => {
                     const source = order.events.find(event => event.id === eventId);
                     const reversed = order.events
@@ -1224,346 +1243,33 @@ export default function OrderDetail() {
           </div>
         </details>
       ) : null}
-      {order.depositCollectedMinor > 0 ? (
-        <section className="micro-deposit-truth">
-          <CircleDollarSign aria-hidden="true" />
-          <span>
-            <b>
-              عربون محصل (د.أ):{" "}
-              <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" />
-            </b>
-            <small>كاش مرتبط بالطلب</small>
-          </span>
-        </section>
-      ) : (
-        <section className="micro-note-card">
-          <span>العربون</span>
-          <p>لم يُسجَّل عربون لهذا الطلب.</p>
-        </section>
-      )}
-      {contextualAction}
-      {/* المجموعة ١ (Scope E): أثناء التنفيذ — قراءة الوقت والمادة الفعلية ظاهرة
-          بلا طي، ووصلة استهلاك المادة تحفظ سياق الطلب الأصلي للتعبئة والرجوع. */}
-      {executionStatuses.includes(order.status) ? (
-        <section className="micro-execution-layer" aria-label="قراءة التنفيذ">
-          <ActualMaterialPanel
-            state={materialState}
-            onRecord={() =>
-              navigate(`/inventory/movement/consume?order=${stored.id}&from=/orders/${stored.id}`)
-            }
-          />
-          <ActualTimePanel
-            orderId={stored.id}
-            actualTime={actualTime}
-            dataVersion={dataVersion}
-            notifyDataChanged={notifyDataChanged}
-          />
-        </section>
-      ) : null}
-      {/* القرار ١٩ + Conflict E: عربون طلب ملغى ينتظر قرارًا — رد كامل أو جزئي،
-          أو احتفاظ جزئي لتغطية التكلفة الموثقة، أو إبقاء معلق — مع معاينة أثر
-          رقمية إلزامية قبل القرار، والرد من محفظة المصدر حيث وُجد التخصيص. */}
-      {order.status === "cancelled" && order.depositSettlement === "needs_review" ? (
-        <section className="micro-cancel-panel" aria-label="تسوية عربون طلب ملغى">
-          <strong>
-            عربون محصل ينتظر قرارك (
-            <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ)
-          </strong>
-          {/* معاينة الأثر الإلزامية (Conflict E): لا قرار بلا أرقام — التكلفة
-              الموثقة، ما استُهلك فعلًا، والاقتراح القائم عليها. */}
-          {(() => {
-            const pendingMinor = order.depositCollectedMinor - (order.depositRetainedMinor ?? 0);
-            const documentedCostMinor = order.costSnapshot.plannedCostMinor;
-            const coverProposalMinor = Math.min(pendingMinor, documentedCostMinor);
-            const refundProposalMinor = pendingMinor - coverProposalMinor;
-            return (
-              <div className="micro-finance-reversal-review" data-testid="deposit-settlement-preview">
-                <strong>معاينة أثر قرار العربون</strong>
-                <dl>
-                  <div>
-                    <dt>العربون المعلق</dt>
-                    <dd>
-                      <MoneyValue minor={pendingMinor} className="micro-inline-number" /> د.أ
-                      {(order.depositRetainedMinor ?? 0) > 0 ? (
-                        <small>
-                          {" "}
-                          (محتفظ به سابقًا:{" "}
-                          <MoneyValue
-                            minor={order.depositRetainedMinor ?? 0}
-                            className="micro-inline-number"
-                          />{" "}
-                          د.أ)
-                        </small>
-                      ) : null}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>التكلفة الموثقة للطلب</dt>
-                    <dd>
-                      <MoneyValue minor={documentedCostMinor} className="micro-inline-number" /> د.أ
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>ما استُهلك فعلًا</dt>
-                    <dd>
-                      0 د.أ — الطلب لم يُسلَّم؛ موادّه لم تُستهلك من المخزون، والإلغاء نفسه لا يكتب مصروفًا.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>الاقتراح بعد التكلفة الموثقة</dt>
-                    <dd>
-                      احتفظ بما يغطي التكلفة (حتى{" "}
-                      <MoneyValue minor={coverProposalMinor} className="micro-inline-number" /> د.أ) وردّ
-                      الباقي (
-                      <MoneyValue minor={refundProposalMinor} className="micro-inline-number" /> د.أ) — عدّل
-                      المبلغ كما تقرر؛ القرار سببه موثق دائمًا.
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>أثر الرد على الكاش</dt>
-                    <dd>يخرج المردود من رصيدك المقبوض — ومن محفظة المصدر المسجلة حيث وُجد تخصيص العربون.</dd>
-                  </div>
-                  <div>
-                    <dt>أثر الاحتفاظ</dt>
-                    <dd>
-                      الكاش يبقى محصلًا بلا معنى حتى تصنّفه صراحة: مال مالك (ليس ربحًا) أو إيراد مشروع — لا
-                      تصنيف خفي.
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            );
-          })()}
-          <label className="micro-field">
-            <span>
-              مبلغ التسوية <small>اختياري — الافتراضي كامل المعلق</small>
-            </span>
-            <EnglishNumberInput
-              value={settleAmount ?? order.depositCollectedMinor - (order.depositRetainedMinor ?? 0)}
-              kind="money"
-              onNumericChange={value => setSettleAmount(value)}
-            />
-            <small>
-              اتركه كما هو للتسوية الكاملة، أو اكتب جزئيًا — الباقي يبقى «يحتاج مراجعة» بلا قرار خفي.
-            </small>
-          </label>
-          <label className="micro-field">
-            <span>
-              سبب التسوية <small>مطلوب عند الرد أو الاحتفاظ</small>
-            </span>
-            <input
-              value={depositReason}
-              onChange={event => setDepositReason(event.target.value)}
-              placeholder="مثال: رد العربون نقدًا في المحل"
-            />
-          </label>
-          <div className="micro-form-actions micro-contextual-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
-              disabled={isActing || !depositReason.trim()}
-              onClick={() => {
-                void run(() =>
-                  fulfillment.refundDeposit(stored.id, depositReason, settleAmount ?? undefined),
-                );
-                setDepositReason("");
-                setSettleAmount(null);
-              }}
-            >
-              <HandCoins aria-hidden="true" /> رُدَّ العربون
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
-              disabled={isActing || !depositReason.trim()}
-              onClick={() => {
-                void run(() =>
-                  fulfillment.retainDeposit(stored.id, depositReason, settleAmount ?? undefined),
-                );
-                setDepositReason("");
-                setSettleAmount(null);
-              }}
-            >
-              احتفظ به رصيدًا
-            </button>
-          </div>
-          <p>أو اتركه «يحتاج مراجعة» وتابع لاحقًا — خيار صالح لا خطأ؛ يبقى ظاهرًا في فحص السلامة حتى تقرر.</p>
-        </section>
-      ) : null}
-      {order.status === "cancelled" && order.depositSettlement === "refund_deposit" ? (
-        <section className="micro-note-card">
-          <HandCoins aria-hidden="true" />
-          <p>عربون مُرَدّ بتسوية موثقة.</p>
-        </section>
-      ) : null}
-      {order.status === "cancelled" && order.depositSettlement === "retain_deposit" ? (
-        <section className="micro-cancel-panel" aria-label="معنى العربون المحتفظ به">
-          <strong>
-            عربون محتفظ به (
-            <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" /> د.أ) — شو بدك
-            تعمل فيه؟
-          </strong>
-          {(() => {
-            const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
-            const classifiedMinor =
-              (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
-            const unclassifiedMinor = retainedMinor - classifiedMinor;
-            return unclassifiedMinor > 0;
-          })() ? (
-            <>
-              <p>
-                الكاش محتفظ به بلا معنى بعد. صنّفه: مال مالك (تسحبه وقتما تشاء)، أو إيراد مشروع (يدخل ربح فترة
-                القرار) — بمبلغ صريح إن شئت جزئيًا، والباقي يبقى بانتظار قراره. أو اتركه معلقًا — خيار صالح
-                ظاهر حتى تقرر.
-              </p>
-              {/* المجموعة ٥ (تسديد دَين المجموعة ٤ — بند ٢) + Conflict E: سطر الأثر
-               * الرقمي قبل التأكيد — بمبلغ التصنيف الفعلي لا الرقم الكامل فقط. */}
-              {(() => {
-                const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
-                const classifiedMinor =
-                  (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
-                const unclassifiedMinor = retainedMinor - classifiedMinor;
-                return (
-                  <p className="micro-deposit-effect-line" role="note">
-                    هذا التغيير سيؤثر على الرصيد كالتالي: «مال مالك» يرفع مال المالك{" "}
-                    <MoneyValue minor={classifyAmount ?? unclassifiedMinor} className="micro-inline-number" />{" "}
-                    د.أ بلا أي أثر على نتيجة الفترة؛ و«إيراد مشروع» يضيف{" "}
-                    <MoneyValue minor={classifyAmount ?? unclassifiedMinor} className="micro-inline-number" />{" "}
-                    د.أ إلى نتيجة فترة القرار بلا كاش جديد (الكاش قُبض سابقًا). كلاهما قابل للتصحيح الموثق
-                    لاحقًا.
-                    {(order.depositClassifiedOwnerMinor ?? 0) > 0 ||
-                    (order.depositClassifiedRevenueMinor ?? 0) > 0 ? (
-                      <small>
-                        {" "}
-                        المصنَّف سابقًا:{" "}
-                        <MoneyValue
-                          minor={order.depositClassifiedOwnerMinor ?? 0}
-                          className="micro-inline-number"
-                        />{" "}
-                        مال مالك و{" "}
-                        <MoneyValue
-                          minor={order.depositClassifiedRevenueMinor ?? 0}
-                          className="micro-inline-number"
-                        />{" "}
-                        إيراد — والمعلق{" "}
-                        <MoneyValue minor={unclassifiedMinor} className="micro-inline-number" /> د.أ بانتظار
-                        هذا القرار.
-                      </small>
-                    ) : null}
-                  </p>
-                );
-              })()}
-              {(() => {
-                const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
-                const classifiedMinor =
-                  (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
-                const unclassifiedMinor = retainedMinor - classifiedMinor;
-                return (
-                  <label className="micro-field">
-                    <span>
-                      مبلغ التصنيف <small>اختياري — الافتراضي كامل غير المصنَّف</small>
-                    </span>
-                    <EnglishNumberInput
-                      value={classifyAmount ?? unclassifiedMinor}
-                      kind="money"
-                      onNumericChange={value => setClassifyAmount(value)}
-                    />
-                  </label>
-                );
-              })()}
-              <label className="micro-field">
-                <span>سبب التصنيف (مطلوب عند الاختيار)</span>
-                <input
-                  value={classifyReason}
-                  onChange={event => setClassifyReason(event.target.value)}
-                  placeholder="مثال: العميل تنازل عن العربون مقابل الإلغاء"
-                />
-              </label>
-              <div className="micro-form-actions micro-contextual-actions">
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
-                  disabled={isActing || !classifyReason.trim()}
-                  onClick={() => void classifyDeposit("owner", classifyReason)}
-                >
-                  مال مالك
-                </button>
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
-                  disabled={isActing || !classifyReason.trim()}
-                  onClick={() => void classifyDeposit("revenue", classifyReason)}
-                >
-                  إيراد مشروع
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p>
-                {order.retainedMeaning === "owner" ? (
-                  "صُنّف مال مالك — يظهر في مال المالك، وتسحبه وقتما تشاء بلا إيراد جديد."
-                ) : order.retainedMeaning === "mixed" ? (
-                  <>صُنّف مختلطًا — جزء مال مالك وجزء إيراد مشروع بمبلغين موثقين؛ راجع سجل الأحداث.</>
-                ) : (
-                  "صُنّف إيراد مشروع — يُعترف به مرة واحدة في نتيجة فترة القرار، لا كاش جديد."
-                )}
-              </p>
-              <button
-                className="micro-text-action"
-                type="button"
-                aria-expanded={classifyMeaning !== null}
-                onClick={() => setClassifyMeaning(current => (current === null ? "revenue" : null))}
-              >
-                صحِّح التصنيف بقرار موثق
-              </button>
-              {classifyMeaning !== null ? (
-                <div className="micro-revision-form">
-                  {/* أزرار الاختيار داخل fieldset لا label — الاسم المتاح لكل زر
-                   * يبقى نصه، والتسمية الشاملة عبر legend (و٩: إمكانية الوصول). */}
-                  <fieldset className="micro-field">
-                    <legend>التصنيف الجديد</legend>
-                    <div className="micro-choice-row">
-                      <button
-                        className={`micro-button ${classifyMeaning === "owner" ? "micro-button-primary" : "micro-button-secondary"}`}
-                        type="button"
-                        onClick={() => setClassifyMeaning("owner")}
-                      >
-                        مال مالك
-                      </button>
-                      <button
-                        className={`micro-button ${classifyMeaning === "revenue" ? "micro-button-primary" : "micro-button-secondary"}`}
-                        type="button"
-                        onClick={() => setClassifyMeaning("revenue")}
-                      >
-                        إيراد مشروع
-                      </button>
-                    </div>
-                  </fieldset>
-                  <label className="micro-field">
-                    <span>سبب التصحيح (مطلوب)</span>
-                    <input
-                      value={classifyReason}
-                      onChange={event => setClassifyReason(event.target.value)}
-                      placeholder="مثال: القرار الأول كان متسرعًا"
-                    />
-                  </label>
-                  <div className="micro-form-actions">
-                    <button
-                      className="micro-button micro-button-primary"
-                      type="button"
-                      disabled={isActing || !classifyReason.trim()}
-                      onClick={() => void reclassifyDeposit(classifyMeaning, classifyReason)}
-                    >
-                      احفظ التصحيح الموثق
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </>
-          )}
-        </section>
-      ) : null}
+      <OrderDepositPanels
+        order={order}
+        stored={stored}
+        isActing={isActing}
+        message={message}
+        settleAmount={settleAmount}
+        setSettleAmount={setSettleAmount}
+        classifyMeaning={classifyMeaning}
+        setClassifyMeaning={setClassifyMeaning}
+        classifyReason={classifyReason}
+        setClassifyReason={setClassifyReason}
+        classifyAmount={classifyAmount}
+        setClassifyAmount={setClassifyAmount}
+        depositReason={depositReason}
+        setDepositReason={setDepositReason}
+        classifyDeposit={classifyDeposit}
+        reclassifyDeposit={reclassifyDeposit}
+        contextualAction={contextualAction}
+        executionStatuses={executionStatuses}
+        materialState={materialState}
+        actualTime={actualTime}
+        dataVersion={dataVersion}
+        notifyDataChanged={notifyDataChanged}
+        run={run}
+        navigate={navigate}
+        fulfillment={fulfillment}
+      />
       {order.status === "cancelled" && order.depositCollectedMinor === 0 ? (
         <section className="micro-note-card">
           <XCircle aria-hidden="true" />

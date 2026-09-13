@@ -2,6 +2,7 @@
  * G6-B local recurrence: creates a bounded set of independent delivery schedules.
  * It never creates orders, agreements, reminders, or financial effects.
  */
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type {
   PrototypeLocalStore,
   ScheduleEntry,
@@ -9,6 +10,7 @@ import type {
   ScheduleRecurrenceFrequency,
   StoredCraftOrder,
 } from "@/storage/local/types";
+import { storageFailureCode } from "@/storage/local/types";
 
 export type RecurrenceInput = {
   sourceScheduleId: string;
@@ -29,22 +31,24 @@ export type RecurrenceView = {
 };
 export type RecurrenceResult<T> =
   | { ok: true; value: T }
-  | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
+  | {
+      ok: false;
+      code: "validation_error" | "storage_error" | "storage_stale" | "not_found";
+      message: string;
+    };
+
+/* رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): تعارض التكرار/الإيقاف يصل كودًا
+ * مطبوعًا storage_stale (أعد الفتح ثم أعد المحاولة) والفشل الحقيقي يبقى
+ * storage_error — بلا تفسير نصوص عربية من المستدعين. التصنيف المشترك في
+ * طبقة التخزين (`storageFailureCode`). */
 
 const isActiveSchedule = (schedule: ScheduleEntry) =>
   schedule.status === "scheduled" || schedule.status === "postponed";
 const isActiveOrder = (order: StoredCraftOrder) =>
   !["delivered", "settled", "cancelled"].includes(order.order.status);
-const localDateKey = (iso: string) => {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(iso));
-  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find(part => part.type === type)?.value ?? "";
-  return `${value("year")}-${value("month")}-${value("day")}`;
-};
+/* المجموعة ٩ (STR-029): مفتاح اليوم من وحدة وقت الأعمال الكنسية —
+ * كانت نسخة محلية بلا حارس مدخل؛ متغيّر الرمي لمدخلات موثوقة الإنشاء. */
+const localDateKey = localDateInAmman;
 const validDate = (value: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T12:00:00.000Z`);
@@ -165,18 +169,8 @@ export class ScheduleRecurrenceService {
     const order = ordersResult.value.find(candidate => candidate.id === source.orderId);
     if (!order)
       return { ok: false, code: "not_found", message: "الطلب المرتبط بالموعد غير متاح؛ لم يُنشأ قالب." };
-    const today = new Intl.DateTimeFormat("en", {
-      timeZone: "Asia/Amman",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-      .formatToParts(new Date(this.now()))
-      .reduce<Record<string, string>>((result, part) => {
-        result[part.type] = part.value;
-        return result;
-      }, {});
-    const todayKey = `${today.year}-${today.month}-${today.day}`;
+    /* المجموعة ٩ (STR-029): مفتاح اليوم الحالي من وحدة وقت الأعمال الكنسية. */
+    const todayKey = localDateInAmman(this.now());
     if (!validDate(source.scheduledFor) || source.scheduledFor < todayKey)
       return {
         ok: false,
@@ -239,8 +233,9 @@ export class ScheduleRecurrenceService {
     if (!committed.ok)
       return {
         ok: false,
-        code: "storage_error",
-        message: "تعذر حفظ قالب التكرار ومواعيده القادمة محليًا. لم يتم تأكيد نجاح العملية.",
+        code: storageFailureCode(committed.code),
+        /* رسالة المتجر الصادقة كما هي — عقد الفشل يوجب رسالة غير فارغة. */
+        message: committed.message,
       };
     return {
       ok: true,
@@ -265,13 +260,18 @@ export class ScheduleRecurrenceService {
     const schedules = await this.store.listSchedules();
     if (!schedules.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة مواعيد التكرار القادمة محليًا." };
-    const affected = schedules.value.map(schedule => {
-      const isFutureDerived =
-        schedule.recurrenceId === id && schedule.scheduledFor > today && isActiveSchedule(schedule);
-      if (!isFutureDerived) return schedule;
-      const idempotencyKey = `${schedule.id}:cancelled:${id}`;
-      if (schedule.events.some(event => event.idempotencyKey === idempotencyKey)) return schedule;
-      return {
+    /* المجموعة ٢ (التحصين الكامل — HIGH-001): تُمرَّر المواعيد المتأثرة
+     * وحدها — لا الجدول كاملًا — فيتحقق الالتزام من كل واحد على حالته الحية
+     * ولا يعيد كتابة مواعيد لم يمسها القرار فوق تغييرات مسار آخر. */
+    const affected = schedules.value
+      .filter(
+        schedule =>
+          schedule.recurrenceId === id &&
+          schedule.scheduledFor > today &&
+          isActiveSchedule(schedule) &&
+          !schedule.events.some(event => event.idempotencyKey === `${schedule.id}:cancelled:${id}`),
+      )
+      .map(schedule => ({
         ...schedule,
         status: "cancelled" as const,
         postponeReason: cancellationReason,
@@ -281,7 +281,7 @@ export class ScheduleRecurrenceService {
           {
             id: `${schedule.id}:cancelled:${schedule.events.length + 1}`,
             type: "cancelled" as const,
-            idempotencyKey,
+            idempotencyKey: `${schedule.id}:cancelled:${id}`,
             createdAt: timestamp,
             previousScheduledFor: schedule.scheduledFor,
             scheduledFor: schedule.scheduledFor,
@@ -292,8 +292,7 @@ export class ScheduleRecurrenceService {
             reason: `إلغاء قالب التكرار: ${cancellationReason}`,
           },
         ],
-      };
-    });
+      }));
     const cancelled: ScheduleRecurrence = {
       ...current.value,
       status: "cancelled",
@@ -306,8 +305,9 @@ export class ScheduleRecurrenceService {
       ? { ok: true, value: saved.value.recurrence }
       : {
           ok: false,
-          code: "storage_error",
-          message: "تعذر إيقاف قالب التكرار ومواعيده القادمة محليًا. لم يتم تأكيد نجاح العملية.",
+          code: storageFailureCode(saved.code),
+          /* رسالة المتجر الصادقة كما هي — عقد الفشل يوجب رسالة غير فارغة. */
+          message: saved.message,
         };
   }
 }

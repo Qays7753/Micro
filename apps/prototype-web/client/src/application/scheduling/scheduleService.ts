@@ -8,6 +8,8 @@ import type {
   ScheduleStatus,
   StoredCraftOrder,
 } from "@/storage/local/types";
+import { storageFailureCode } from "@/storage/local/types";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type ScheduledOrder = {
   schedule: ScheduleEntry;
@@ -47,7 +49,17 @@ export type ScheduleTimingInput = {
 };
 export type ScheduleResult<T> =
   | { ok: true; value: T }
-  | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
+  | {
+      ok: false;
+      code: "validation_error" | "storage_error" | "storage_stale" | "not_found";
+      message: string;
+    };
+
+/* رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): تعارض القراءة-التعديل-الكتابة
+ * يصل المستدعي كودًا مطبوعًا storage_stale (أعد الفتح وأعد المحاولة) بلا
+ * تفسير نصوص؛ الفشل التخزيني الحقيقي يبقى storage_error — عقد المجموعة ٣
+ * لرحلة إعادة المحاولة الصريحة. التصنيف المشترك في طبقة التخزين
+ * (`storageFailureCode`). */
 
 const activeScheduleStatus = (status: ScheduleStatus) => status === "scheduled" || status === "postponed";
 const orderCanAppear = (stored: StoredCraftOrder) =>
@@ -63,16 +75,9 @@ const validMonth = (value: string) => {
 const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 const validDuration = (value: number) =>
   Number.isInteger(value) && value >= 15 && value <= 720 && value % 15 === 0;
-const localDateKey = (iso: string) => {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(iso));
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
-  return `${part("year")}-${part("month")}-${part("day")}`;
-};
+/* المجموعة ٩ (STR-029): مفتاح اليوم من وحدة وقت الأعمال الكنسية —
+ * كانت نسخة محلية بلا حارس مدخل؛ متغيّر الرمي لمدخلات موثوقة الإنشاء. */
+const localDateKey = localDateInAmman;
 const timeMinutes = (time: string) => {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
@@ -182,10 +187,12 @@ export class ScheduleService {
     const scheduledOrderIds = new Set(schedules.map(schedule => schedule.orderId));
     const missing = ordersResult.value.filter(order => !scheduledOrderIds.has(order.id)).map(initialSchedule);
     for (const schedule of missing) {
-      const saved = await this.store.saveSchedule(schedule);
+      /* المجموعة ٢ (التحصين الكامل — HIGH-001): التسديد الأول كتابة أولى فقط —
+       * وجوده من مسار آخر إعادة استخدام لا كتابة فوقه. */
+      const saved = await this.store.commitScheduleCreate(schedule);
       if (!saved.ok)
         return { ok: false, code: "storage_error", message: "تعذر تجهيز موعد محفوظ للطلب السابق." };
-      schedules.push(saved.value);
+      schedules.push(saved.value.schedule);
     }
     return { ok: true, value: { schedules, orders: ordersResult.value } };
   }
@@ -232,16 +239,36 @@ export class ScheduleService {
               ],
             };
         if (completed !== schedule) {
-          const saved = await this.store.saveSchedule(completed);
-          if (!saved.ok)
-            return {
-              ok: false,
-              code: "storage_error",
-              message:
-                "تم تسجيل التسليم، لكن تعذر تحديث متابعة الموعد محليًا. افتح جدول المواعيد للمحاولة مجددًا.",
-            };
+          /* المجموعة ٢ (التحصين الكامل — HIGH-001): الإكمال التلقائي على مسار
+           * قراءة — الحدث واحد بمفتاح حتمي؛ إعادة التشغيل نجاح بلا كتابة،
+           * والتعارض مع مسار متزامن (تأجيل مثلًا) يُحل بإعادة قراءة واحدة
+           * صادقة لا بفشل القراءة كلها ولا بكتابة فوق تغيير الآخر (وثّقت
+           * رقعة الإغلاق هذا الطي المتعمد: الإكمال ليس عملية مستخدم معلنة،
+           * وعلامته تُعاد بناءها عند القراءة التالية)؛ أما الفشل التخزيني
+           * الحقيقي فيُعلن بصدقه ولا يُبتلع. */
+          const saved = await this.store.commitScheduleUpdate(completed);
+          if (!saved.ok) {
+            if (saved.code !== "storage_stale")
+              return {
+                ok: false,
+                code: "storage_error",
+                /* رسالة المتجر الصادقة كما هي — عقد الفشل يوجب رسالة غير فارغة. */
+                message: saved.message,
+              };
+            const fresh = await this.store.getSchedule(schedule.id);
+            if (!fresh.ok || !fresh.value)
+              return {
+                ok: false,
+                code: "storage_error",
+                message:
+                  "تم تسجيل التسليم، لكن تعذر تحديث متابعة الموعد محليًا. افتح جدول المواعيد للمحاولة مجددًا.",
+              };
+            const index = schedules.findIndex(candidate => candidate.id === schedule.id);
+            if (index >= 0) schedules[index] = fresh.value;
+            continue;
+          }
           const index = schedules.findIndex(candidate => candidate.id === schedule.id);
-          if (index >= 0) schedules[index] = saved.value;
+          if (index >= 0) schedules[index] = saved.value.schedule;
         }
       }
     }
@@ -464,10 +491,19 @@ export class ScheduleService {
         },
       ],
     };
-    const saved = await this.store.saveSchedule(next);
+    /* المجموعة ٢ (التحصين الكامل — HIGH-001): الحدث واحد بمفتاح حتمي داخل
+     * معاملة واحدة — التعارض مع مسار متزامن يُعلن بصدقه (رسالة المتجر)
+     * ولا يُمحى أثر أي طرف؛ أعد المحاولة بعد إعادة الفتح. رقعة الإغلاق:
+     * الكود المطبوع يُحفظ — storage_stale للتعارض وstorage_error للفشل
+     * الحقيقي. */
+    const saved = await this.store.commitScheduleUpdate(next);
     return saved.ok
-      ? { ok: true, value: saved.value }
-      : { ok: false, code: "storage_error", message: "تعذر حفظ الموعد محليًا. لم يتم تأكيد نجاح العملية." };
+      ? { ok: true, value: saved.value.schedule }
+      : {
+          ok: false,
+          code: storageFailureCode(saved.code),
+          message: saved.message ?? "تعذر حفظ الموعد محليًا. لم يتم تأكيد نجاح العملية.",
+        };
   }
 
   async postpone(id: string, scheduledFor: string, reason: string): Promise<ScheduleResult<ScheduleEntry>> {

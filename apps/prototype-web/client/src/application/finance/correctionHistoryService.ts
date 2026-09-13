@@ -2,10 +2,11 @@
  * لا يكتب شيئًا ولا يعيد تفسير الماضي؛ يجمع ما سُجّل فعلًا من مصادر كل مخزن.
  * المجموعة ٢: توسّع بعائلات الشراء/الدفعات وتعديل سعر الطلب والتراجع عن القبض. */
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
+import { ammanDateOrNull } from "@micro-domain/shared/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
-import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit, formatQuantityMilli } from "@/presentation/formatters";
 
 export type CorrectionHistoryKind =
   | "event_reversal"
@@ -409,7 +410,7 @@ export class CorrectionHistoryService {
         occurredOn: movement.occurredOn,
         amountEffectMinor: null,
         reason: movement.note || movement.reason,
-        originalLabel: `حركة مخزون · ${formatLocalDate(movement.occurredOn) ?? movement.occurredOn} · الكمية ${movement.quantityDeltaMilli / 1000}`,
+        originalLabel: `حركة مخزون · ${formatLocalDate(movement.occurredOn) ?? movement.occurredOn} · الكمية ${formatQuantityMilli(movement.quantityDeltaMilli)}`,
         replacementLabel: "حُيّد أثر الحركة — الكمية والقيمة عادا كما كانا",
         deepLink: movement.orderId ? `/orders/${encodeURIComponent(movement.orderId)}` : "/inventory",
       });
@@ -453,18 +454,6 @@ export class CorrectionHistoryService {
   }
 }
 
-/* تاريخ محلي (عمّان) من طابع زمني — لأحداث الطلب التي تسجل وقت التنفيذ. */
-function ammanDateOf(timestamp: string): string | null {
-  if (Number.isNaN(Date.parse(timestamp))) return null;
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(timestamp));
-  const value = (type: string) => parts.find(part => part.type === type)?.value;
-  const year = value("year");
-  const month = value("month");
-  const day = value("day");
-  return year && month && day ? `${year}-${month}-${day}` : null;
-}
+/* المجموعة ٩ (STR-029): تاريخ محلي (عمّان) من وحدة وقت الأعمال الكنسية —
+ * متغيّر الفارغ كما كان: إعلان غياب المعرفة لا افتراضها. */
+const ammanDateOf = ammanDateOrNull;

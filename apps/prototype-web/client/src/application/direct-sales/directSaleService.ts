@@ -9,7 +9,7 @@ import {
   type UpdateDirectSaleInput,
 } from "@micro-domain/direct-sale/index.js";
 import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
-import { localDateInAmman } from "@/presentation/formatters";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
 export type DirectSaleRecordInput = {

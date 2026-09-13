@@ -16,6 +16,7 @@ import {
   type MaterialUnit,
   type WasteContext,
 } from "@micro-domain/inventory-material/index.js";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { CatalogItem, CatalogTemplate } from "@micro-domain/catalog/index.js";
 import {
   createFinancialEvent,
@@ -231,16 +232,9 @@ const storageFailure = <T>(): InventoryResult<T> => ({
   code: "storage_error",
   message: "تعذر حفظ حركة المادة محليًا. لم يتم تأكيد نجاح العملية.",
 });
-const ammanLocalDate = (iso: string): string => {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Amman",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(iso));
-  const part = (type: string) => parts.find(entry => entry.type === type)?.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
-};
+/* المجموعة ٩ (STR-029): تاريخ الأعمال من وحدة وقت الأعمال الكنسية —
+ * كانت نسخة محلية بلا حارس مدخل؛ متغيّر الرمي لمدخلات موثوقة الإنشاء. */
+const ammanLocalDate = localDateInAmman;
 
 export class InventoryMaterialService {
   constructor(

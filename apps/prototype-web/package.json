@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
+    "build": "vite build && node scripts/check-bundle-budget.mjs",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
     "test": "vitest run",

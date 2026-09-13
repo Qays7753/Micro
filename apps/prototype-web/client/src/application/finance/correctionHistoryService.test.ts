@@ -362,7 +362,7 @@ describe("CorrectionHistoryService — امتداد المجموعة ٥ (عقد 
           recordedAt: now(),
           quantityDeltaMilli: 500,
           valueDeltaMinor: 300,
-          note: "عكس تسليم: خطأ كمية",
+          note: "تراجع موثق عن التسليم: خطأ كمية",
           reason: null,
           operationKey: "mov-h-rev",
           purchaseId: null,

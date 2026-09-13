@@ -13,7 +13,8 @@
  * - يعمل دون اتصال: توليد نص محلي خالص؛ التنزيل/المشاركة فعل صريح في الصفحة.
  */
 import type { StatementReading } from "./statementService";
-import { formatLocalDate, formatMoneyWithUnit, localDateInAmman } from "@/presentation/formatters";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 
 export type StatementMarkdownResult =
   | { ok: true; value: { markdown: string; filename: string } }

@@ -4,12 +4,23 @@
  * مصدر السعر «معروفة»، وبلا استلام الاسم والوحدة فقط «تقديرية»، وأقصى ٦ بندًا
  * ذا سعر أولًا). قراءة فقط: لا حركة مخزون ولا حدث نقدي يُنشأ أبدًا من التقدير.
  */
-import type { MaterialSuggestion } from "@/components/cost/MaterialSheet";
+/* المجموعة ٨ (المعالجة الرباعية — STR-005): نوع «مقترح المادة» يملكه حد
+ * التطبيق (المخزون) لا مكوّن واجهة — الأسفل يستورد من الأعلى لا العكس. */
 import type {
   InventoryMaterialService,
   InventoryOverview,
 } from "@/application/inventory/inventoryMaterialService";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
+import { roundHalfUp } from "@micro-domain/shared/index.js";
+
+/** مقترح مادة للتعبئة في محرري التكلفة (المجموعة ٢ — عقد ٢٨، السيناريو G). */
+export type MaterialSuggestion = {
+  materialId: string;
+  name: string;
+  unit: string;
+  unitPriceMinor: number | null;
+  fromReceipt: boolean;
+};
 
 export async function readMaterialSuggestions(
   inventory: Pick<InventoryMaterialService, "overview" | "movements">,
@@ -39,8 +50,14 @@ export function materialSuggestionsFrom(
       )
       .sort((left, right) => right.occurredOn.localeCompare(left.occurredOn));
     const lastReceipt = receipts[0];
+    /* المجموعة ١١ (11-0 — سياسة EXACT_VALUES_NO_SILENT_ROUNDING): اشتقاق
+     * سعر الوحدة من آخر استلام بحساب صحيح دقيق عبر المعيّن الكنسي —
+     * roundHalfUp(valueDeltaMinor×1000، quantityDeltaMilli) — فلا انحراف
+     * فاصلة عائمة عند النصوف الدقيقة (كانت تعطي −1 قرش في 0.030% من الأزواج
+     * الواقعية). الضرب يتجاوز الدقة الآمنة → null (fail closed) لا تقريب.
+     * عرض تعبئة يؤكده المستخدم قبل أي تخزين — لا قيمة محفوظة تتغير. */
     const unitPriceMinor = lastReceipt
-      ? Math.round((lastReceipt.valueDeltaMinor / lastReceipt.quantityDeltaMilli) * 1000)
+      ? roundHalfUp(lastReceipt.valueDeltaMinor * 1000, lastReceipt.quantityDeltaMilli)
       : null;
     return {
       materialId: material.id,

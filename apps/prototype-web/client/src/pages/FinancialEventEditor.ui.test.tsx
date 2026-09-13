@@ -5,6 +5,8 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { FormDraftService } from "@/application/drafts/formDraftService";
+import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import FinancialEventEditor from "./FinancialEventEditor";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
@@ -74,6 +76,8 @@ describe("FinancialEventEditor save honesty (U-02)", () => {
       },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
+      /* المجموعة ٥: المسودة عبر الحد الموحّد — مخزن حقيقي لا كبأخرة. */
+      formDrafts: new FormDraftService(createFormDraftHarness().store),
     } as unknown as ReturnType<typeof usePrototypeServices>);
     render(
       <UnsavedChangesProvider navigate={() => undefined}>
@@ -135,6 +139,8 @@ describe("FinancialEventEditor note requirement (U-04)", () => {
       },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
+      /* المجموعة ٥: المسودة عبر الحد الموحّد — مخزن حقيقي لا كبأخرة. */
+      formDrafts: new FormDraftService(createFormDraftHarness().store),
     } as unknown as ReturnType<typeof usePrototypeServices>);
     render(
       <UnsavedChangesProvider navigate={() => undefined}>

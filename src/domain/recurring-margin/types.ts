@@ -92,9 +92,7 @@ export type AllocationCalculation = {
   calculationNote: string;
 };
 
-export type WasteContext =
-  | { kind: "order"; orderId: string }
-  | { kind: "catalog_item"; catalogItemId: string }
-  | { kind: "catalog_template"; catalogItemId: string; templateId: string }
-  | { kind: "general_project" }
-  | { kind: "unallocated"; allocationNote: string | null };
+/* المجموعة ٩ (STR-030): سياق الهدر تعريفٌ واحد لصاحب الحركة
+ * (inventory-material) — يعاد تصديره هنا لاستقرار عقد حد النطاق
+ * وتوافق مستوردِيه الحاليين، بلا تكرار للتعريف. */
+export type { WasteContext } from "../inventory-material/types.js";

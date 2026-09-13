@@ -7,12 +7,6 @@ const moneyFormatter = new Intl.NumberFormat("en-US", {
   useGrouping: true,
 });
 const integerFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0, useGrouping: true });
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  timeZone: ammanTimeZone,
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: ammanTimeZone,
   year: "numeric",
@@ -71,11 +65,31 @@ export function formatInteger(value: number | null | undefined) {
 }
 
 export function formatQuantityMilli(value: number | null | undefined) {
-  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
-  return (value / 1000)
-    .toFixed(3)
-    .replace(/\.0+$/, "")
-    .replace(/(\.\d*?)0+$/, "$1");
+  if (value === null || value === undefined || !Number.isSafeInteger(value)) return "—";
+  return trimTrailingZeros(quantityMilliToFixed3(value));
+}
+
+/* المجموعة ١١ (المرحلة 11-0 — سياسة القيم الدقيقة): التنسيق الكمي الكنسي
+ * واحد يُبنى بإنشاء السلسلة العشرية من عدد الملي الصحيح مباشرة — قسمة
+ * صحيحة/صحيحة وبقية صحيحة فلا شوائب ثنائية أصلًا (لا 0.30000000000000004)،
+ * ولا يغيّر التنسيق القيمة أبدًا: تطبيع الأصفار اللاحقة تمثيل لا تقريب. */
+function quantityMilliToFixed3(milli: number): string {
+  const sign = milli < 0 ? "-" : "";
+  const abs = Math.abs(milli);
+  const whole = Math.floor(abs / 1000);
+  const fraction = abs - whole * 1000;
+  return `${sign}${whole}.${String(fraction).padStart(3, "0")}`;
+}
+
+function trimTrailingZeros(text: string): string {
+  return text.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+}
+
+/** عرض الكمية بمنزلة الألف الثابتة حيث يُبلَّغ عقد الدقة نفسه (الكتالوج وفروق
+ * التسليم) — نفس المصدر الكنسي وسياسة عرض موثقة لا تغيّر القيمة. */
+export function formatQuantityMilliFixed3(value: number | null | undefined) {
+  if (value === null || value === undefined || !Number.isSafeInteger(value)) return "—";
+  return quantityMilliToFixed3(value);
 }
 
 export type BreakEvenDisplay = { number: string; scale: string };
@@ -122,13 +136,12 @@ export function formatMonthLabel(value: string) {
   return `${value.slice(5)}/${value.slice(0, 4)}`;
 }
 
-export function localDateInAmman(value: Date | string = new Date()) {
-  const parsed = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(parsed.valueOf())) throw new Error("Invalid instant");
-  const parts = dateFormatter.formatToParts(parsed);
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
-  return `${part("year")}-${part("month")}-${part("day")}`;
-}
+/* المجموعة ٩ (STR-031): وقت الأعمال يعيش في وحدة النطاق المشتركة
+ * (`domain/shared/businessTime`) — طبقة العرض تعيد التصدير فقط لتوافق
+ * مستورديها الحاليين ولا تملك المنطق بعد اليوم؛ المنطق نفسه حرفيًا كما
+ * كان (يثبته توصيف المجموعة ٩ بمتجهات اللحظات الثابتة). */
+import { localDateInAmman } from "@micro-domain/shared/index.js";
+export { localDateInAmman };
 
 export function formatTime(value: string | null | undefined) {
   return value && /^\d{2}:\d{2}$/.test(value) ? value : null;
