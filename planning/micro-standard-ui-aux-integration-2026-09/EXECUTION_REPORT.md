@@ -44,13 +44,21 @@ The approved UI/AUX integration strategy (**Contract-first → Token-driven → 
 ## 6. Answers required by the completion rule
 
 - **Micro branch URL:** https://github.com/Qays7753/Micro/tree/micro-standard-ui-aux-integration-20260914 — final commit `129a5d5` (pushed and verified).
-- **Documents branch/folder/commit:** branch `micro-standard-ui-aux-integration-20260914`, folder `planning/micro-standard-ui-aux-integration-2026-09/` — commit recorded in the upload log below.
+- **Documents branch/folder/commit:** branch `micro-standard-ui-aux-integration-20260914`, folder `planning/micro-standard-ui-aux-integration-2026-09/` — **UPLOAD FAILED (403, token scope)**: the provided token (`MICRO_WRITE_ACCESS_TOKEN`) can push to Micro but is denied Contents:Write on Documents. The complete run-folder commit exists locally (`54608b7` on the prepared branch, based on Documents/main `f919982c`) and is delivered in this run's downloadable artifacts. See §8.
 - **Exact Micro base commit:** `c0469e265f24c70427eb7826dee717be117cff87`. **Documents Standard commit consumed:** `f919982c692e5ba78cf3284a4240c45f66be91c6`.
 - **Waves + SHAs:** W0 `6ead563` · W1 `c81489a` (+`d0a412f` docs) · W2 `825df4b` (+`8061ab2`) · W3 `7e76e63` · W4 `8598cba` (+`0854c7c`) · W5/W6/W7 `33dd43b` + docs `129a5d5`.
 - **Test commands and results:** `pnpm check` (full pipeline) — PASS end-to-end; `pnpm test` 391/391; `pnpm prototype:test` 1,224/1,224; bundle budget PASS.
 - **Rollback:** per-wave revertible commits (ROLLBACK_MANIFEST.json); global restore = `git checkout c0469e2`. Verified boundaries at every wave.
 - **Micro/main changed?** **No.** **Documents/main changed?** **No.** **Prototype is product code?** **No.**
 - **Limitations / unexecuted tests / unresolved decisions:** device/screen-reader/zoom-capture testing not performed (not claimed); dark-mode parity deferred to its owner gate; 114 legacy primary-button uses remain for per-action reclassification (matrix); remaining duplicated family groups (partial-overlap copy 3) and `.micro-status-chip` CSS rule await the consolidation pass; period-chip variant deferred (no consumer); link-ink ratification and warning/withdrawal ink fate remain Micro-owned owner decisions (documented divergences in SOURCE_OF_TRUTH_MATRIX.md).
+
+## 8. Upload status (explicit, per the run rules)
+
+- **Micro repository: UPLOADED AND VERIFIED.** Branch `micro-standard-ui-aux-integration-20260914`, final commit `094e1086d4336a80171e4adb0fa07ee87be5edee` (11 commits from base `c0469e2`); verified via `git ls-remote`. `Micro/main` unchanged (`c0469e2`).
+- **Documents repository: UPLOAD FAILED — reported, not claimed.** `git push` returned `Permission to Qays7753/Documents.git denied (403)`: the token authenticates as Qays7753 and can push to Micro, but lacks write permission on Documents. No retry tricks, no token exposure, no `main` push attempted. `Documents/main` unchanged (`f919982c`).
+- **Remediation (owner action, one command):** push the prepared local branch — it contains the complete run folder (26 files incl. this report, all wave reports, catalogs, matrix, hashes, and visual-review captures) as a single commit `54608b7` based on `Documents/main`:
+  `cd documents-clone && git push origin micro-standard-ui-aux-integration-20260914`
+  (or issue a Documents-scoped write token and the branch pushes as-is). Full downloadable copies of every deliverable accompany this report regardless.
 
 ## 7. Traceability
 
