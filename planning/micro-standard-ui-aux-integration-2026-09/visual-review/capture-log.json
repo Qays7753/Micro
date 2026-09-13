@@ -1,0 +1,35 @@
+{
+  "captured": "2026-09-13T22:22:44.093Z",
+  "mode": "production build via vite preview; light theme; RTL",
+  "note": "Visual review evidence only — not product truth",
+  "results": [
+    {
+      "route": "/",
+      "width": 320,
+      "file": "home-320.png",
+      "horizontalOverflowPx": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/finance",
+      "width": 320,
+      "file": "finance-320.png",
+      "horizontalOverflowPx": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "file": "home-390.png",
+      "horizontalOverflowPx": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/finance",
+      "width": 390,
+      "file": "finance-390.png",
+      "horizontalOverflowPx": 0,
+      "consoleErrors": 0
+    }
+  ]
+}
