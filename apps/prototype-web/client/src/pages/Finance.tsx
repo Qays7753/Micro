@@ -29,7 +29,12 @@ import type { G5Decision } from "@/application/g5/g5Service";
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
-import { IntegerValue, LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
+import {
+  IntegerValue,
+  LocalDateValue,
+  MoneyValue,
+  MoneyWithUnit,
+} from "@/components/presentation/DisplayValue";
 import G5DecisionPanel from "@/components/finance/G5DecisionPanel";
 import { EventsLayer } from "@/components/finance/EventsLayer";
 import { CorrectionsLayer } from "@/components/finance/CorrectionsLayer";
@@ -936,8 +941,9 @@ function CashDecisionSurface({
           <div>
             <strong>في دفعة تحتاج تغطية</strong>
             <p>
-              الكاش غير الموزع الآن <MoneyValue minor={unallocatedCashMinor} /> د.أ — سالب لأن دفعًا مسجلًا
-              تجاوز ما دخل غير موزع. مصدر الفرق ظاهر في المصادر المسجلة، وهو ليس مصروفًا أو ربحًا جديدًا.
+              الكاش غير الموزع الآن <MoneyWithUnit minor={unallocatedCashMinor} unit="د.أ" /> — سالب لأن دفعًا
+              مسجلًا تجاوز ما دخل غير موزع. مصدر الفرق ظاهر في المصادر المسجلة، وهو ليس مصروفًا أو ربحًا
+              جديدًا.
             </p>
           </div>
           <button className="micro-button micro-button-secondary" type="button" onClick={onCoverPayment}>
