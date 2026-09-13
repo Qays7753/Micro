@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import { StatusChip } from "@/components/primitives";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryShortage, InventoryMovement } from "@micro-domain/inventory-material/index.js";
@@ -366,15 +367,9 @@ export default function InventoryMaterials() {
                   </small>
                   <div className="micro-material-knowledge">
                     {openShortages.length > 0 ? (
-                      <span className="micro-status-chip" data-status="warn">
-                        نقص مفتوح: {openShortages.length}
-                      </span>
+                      <StatusChip state="incomplete">نقص مفتوح: {openShortages.length}</StatusChip>
                     ) : null}
-                    {unconfirmed ? (
-                      <span className="micro-status-chip" data-status="warn">
-                        غير محدد بعد
-                      </span>
-                    ) : null}
+                    {unconfirmed ? <StatusChip state="unconfirmed">غير محدد بعد</StatusChip> : null}
                     {material.costKnowledge === "unknown" ? (
                       <small>التكلفة غير معروفة</small>
                     ) : material.costKnowledge === "partial" ? (

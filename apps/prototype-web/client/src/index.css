@@ -4,6 +4,8 @@
 /* W1: Micro Standard v2 runtime token mapping — the single owner of Standard
    hex values. Micro runtime names below bind to --vf-* contracts. */
 @import "./styles/vf-tokens.css";
+/* W2: shared primitives (components/primitives) — contract styles */
+@import "./styles/primitives.css";
 
 @custom-variant dark (&:is(.dark *));
 

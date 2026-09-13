@@ -1,7 +1,7 @@
-import type { ActivityStatus } from "@/application/activity/activityService";
-
 /*
  * W1 — المهايئ المركزي للحالات (State Adapter) — عقد Micro Standard v2.
+ * (طبقة عرض صرفة: لا تستورد أي وحدة application — حتى نوعيًا — حتى لا
+ * تُسحب خدمة تطبيقية إلى عدّاد كثافة النص لأي شاشة تستهلك هذا المهايئ.)
  * ---------------------------------------------------------------------------
  * يربط حالات Micro الموجودة (كلماتها وتسمياتها لا تُمسّ) بعقود العرض في
  * المعيار: كلمة + علامة غير لونية + نغمة دلالية. المهايئ لا يُنتج كلمات
@@ -62,7 +62,10 @@ export type SemanticStateKey =
   // فراغات صادقة
   | "unrecorded"
   | "unavailable"
-  | "measured-zero";
+  | "measured-zero"
+  // فراغات العرض (empty-loading-error-states.md): لا بيانات ≠ لا نتائج — كلاهما ليس فشلًا
+  | "no-data"
+  | "no-results";
 
 /** مفاتيح حالات المعرفة (جودة المعلومة — ليست نتائج). */
 export type KnowledgeStateKey =
@@ -80,6 +83,8 @@ const OUTCOME_PRESENTATIONS: Record<SemanticStateKey, StatePresentation> = {
   unrecorded: { markerRole: "dot", tone: "neutral", family: "void", isKnowledge: false },
   unavailable: { markerRole: "none", tone: "neutral", family: "void", isKnowledge: false },
   "measured-zero": { markerRole: "none", tone: "neutral", family: "void", isKnowledge: false },
+  "no-data": { markerRole: "none", tone: "neutral", family: "void", isKnowledge: false },
+  "no-results": { markerRole: "none", tone: "neutral", family: "void", isKnowledge: false },
 };
 
 const KNOWLEDGE_PRESENTATIONS: Record<KnowledgeStateKey, StatePresentation> = {
@@ -90,8 +95,13 @@ const KNOWLEDGE_PRESENTATIONS: Record<KnowledgeStateKey, StatePresentation> = {
   "unknown-magnitude": { markerRole: "question", tone: "neutral", family: "knowledge", isKnowledge: true },
 };
 
+/** حالات النشاط الحية في Micro — نفس مفاتيح ActivityStatus في
+ * application/activity/activityService؛ اختبار المطابقة النوعية في ملف
+ * الاختبار يمنع انحراف الاتحاد عن المصدر. */
+export type MicroActivityStatus = "active" | "pending" | "reversed" | "cancelled";
+
 /** حالات النشاط الحية في Micro (ActivityStatus) — الكلمات في activityStatusLabel. */
-const ACTIVITY_PRESENTATIONS: Record<ActivityStatus, StatePresentation> = {
+const ACTIVITY_PRESENTATIONS: Record<MicroActivityStatus, StatePresentation> = {
   active: { markerRole: "check", tone: "success", family: "activity", isKnowledge: false },
   pending: { markerRole: "clock", tone: "info", family: "activity", isKnowledge: false },
   reversed: { markerRole: "return", tone: "info", family: "activity", isKnowledge: false },
@@ -109,7 +119,7 @@ export function knowledgeStatePresentation(key: KnowledgeStateKey): StatePresent
 }
 
 /** عرض حالة نشاط Micro (بدون إعادة تسمية — الكلمات ملك قاموس Micro). */
-export function activityStatePresentation(status: ActivityStatus): StatePresentation {
+export function activityStatePresentation(status: MicroActivityStatus): StatePresentation {
   return ACTIVITY_PRESENTATIONS[status];
 }
 

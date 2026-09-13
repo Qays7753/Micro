@@ -11,6 +11,7 @@ import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { withFrom } from "@/app/navigationContract";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { IntegerValue, LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation/DisplayValue";
+import { Button, StatusChip } from "@/components/primitives";
 import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
@@ -332,18 +333,14 @@ export default function Orders() {
           <span className="micro-empty-symbol">
             <BadgeDollarSign aria-hidden="true" />
           </span>
-          <span className="micro-status-chip">لا توجد سجلات عمل بعد</span>
+          <StatusChip state="no-data">لا توجد سجلات عمل بعد</StatusChip>
           <h2 id="work-empty-title">يومك مفتوح — سجّل أول بيع</h2>
           <p>
             بيع واحد مسجل يكفي لتبدأ؛ الربح يظهر بعد معرفة التكلفة، وما لا تعرفه يبقى «غير محدد بعد» لا صفرًا.
           </p>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            onClick={() => openFromWork("/direct-sales/new")}
-          >
+          <Button action="create" onClick={() => openFromWork("/direct-sales/new")}>
             سجّل أول بيع
-          </button>
+          </Button>
         </section>
       ) : null}
     </section>

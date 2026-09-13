@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { Button, StatusChip } from "@/components/primitives";
 import { withFrom } from "@/app/navigationContract";
 import type {
   MonthOverview,
@@ -243,16 +244,12 @@ export default function Schedule() {
           <span className="micro-empty-symbol">
             <CalendarDays aria-hidden="true" />
           </span>
-          <span className="micro-status-chip">لا توجد مواعيد تشغيلية</span>
+          <StatusChip state="no-data">لا توجد مواعيد تشغيلية</StatusChip>
           <h2>لا توجد طلبات تحتاج موعدًا الآن</h2>
           <p>عند تسجيل اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</p>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            onClick={() => navigate("/orders/draft/new?intent=customer_order")}
-          >
+          <Button action="create" onClick={() => navigate("/orders/draft/new?intent=customer_order")}>
             بدء طلب
-          </button>
+          </Button>
         </section>
       ) : null}
       <details className="micro-decision-layer">

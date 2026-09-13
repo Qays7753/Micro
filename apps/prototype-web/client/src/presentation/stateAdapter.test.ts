@@ -10,6 +10,17 @@ import {
   type StatePresentation,
 } from "./stateAdapter";
 import { activityStatusLabel } from "./activityLabels";
+import type { ActivityStatus } from "@/application/activity/activityService";
+import type { MicroActivityStatus } from "./stateAdapter";
+
+/* فحص المطابقة النوعية: الاتحاد المحلي يجب أن يطابق ActivityStatus تمامًا
+ * (يمنع انحراف المهايئ عن المصدر دون سحب الخدمة إلى عدّاد كثافة النص). */
+type _ActivityStatusSync = MicroActivityStatus extends ActivityStatus
+  ? ActivityStatus extends MicroActivityStatus
+    ? true
+    : never
+  : never;
+const activityStatusSync: _ActivityStatusSync = true;
 
 /*
  * W1 — اختبارات مهايئ الحالات: صون كلمات Micro، صدق الحالات، وعقود العرض.
@@ -30,6 +41,8 @@ const ALL_SEMANTIC = [
   "unrecorded",
   "unavailable",
   "measured-zero",
+  "no-data",
+  "no-results",
 ] as const;
 
 const ALL_KNOWLEDGE = [
@@ -41,6 +54,10 @@ const ALL_KNOWLEDGE = [
 ] as const;
 
 describe("W1 State Adapter: state-word preservation (no renames)", () => {
+  it("the local activity union stays in lockstep with the source ActivityStatus type", () => {
+    expect(activityStatusSync).toBe(true);
+  });
+
   it("keeps Micro's existing activity status words exactly as they are", () => {
     expect(activityStatusLabel.active).toBe("ساري");
     expect(activityStatusLabel.pending).toBe("بانتظار قرار");
