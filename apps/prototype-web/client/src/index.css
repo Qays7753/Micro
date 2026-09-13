@@ -1,6 +1,9 @@
 /* مبدأ Micro: تستخدم الصفحة توكنات المشروع وإيقاع 4px وIBM Plex Arabic مع أسطح آمنة للهاتف. */
 @import "tailwindcss";
 @import "tw-animate-css";
+/* W1: Micro Standard v2 runtime token mapping — the single owner of Standard
+   hex values. Micro runtime names below bind to --vf-* contracts. */
+@import "./styles/vf-tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -39,50 +42,60 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
-  --space-7: 32px;
-  --radius-control: 12px;
-  --radius-card: 16px;
-  --radius-sheet: 20px;
-  --elevation-1: 0 1px 2px rgba(60, 50, 40, 0.06), 0 4px 12px rgba(60, 50, 40, 0.06);
-  --elevation-2: 0 6px 20px rgba(60, 50, 40, 0.1);
-  --elevation-3: 0 16px 40px rgba(60, 50, 40, 0.16);
-  --motion-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --motion-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --color-bg-canvas: #faf9f5;
-  --color-bg-well: #f0eee6;
-  --color-surface: #ffffff;
-  --color-border: #eae6dc;
-  --color-divider: #dad5c8;
-  --color-text-primary: #1f1e1d;
-  --color-text-strong: #33322e;
-  --color-text-secondary: #6e6a60;
-  --color-text-tertiary: #b7b2a6;
-  --color-brand-primary: #cc785c;
-  --color-brand-pressed: #b4613f;
-  --color-brand-text: #964e33;
-  --color-brand-soft: #f4e4db;
-  --color-accent-primary: #079fa0;
-  --color-accent-text: #057b7c;
-  --color-accent-soft: #e3f5f5;
-  --color-success-text: #256b4a; /* S3-06: 5.5:1 على خلفيته الفاتحة */
-  --color-success-bg: #e4f2ea;
-  --color-danger-text: #b42318;
-  --color-danger-bg: #fbe7e6;
-  --color-warning-text: #7a5c20; /* S3-06: 5.3:1 على خلفيته الفاتحة */
-  --color-warning-bg: #f6eccf;
-  --color-withdrawal-text: #3e5c76;
-  --color-withdrawal-bg: #e8eef3;
-  --color-ink-on-color: #1f1e1d;
+  --space-7: 32px; /* dead at W1 (0 consumers) — retirement inventory, W6 */
+  --radius-control: var(--vf-radius-control);
+  --radius-card: var(--vf-radius-card);
+  --radius-sheet: var(--vf-radius-sheet);
+  --elevation-1: var(--vf-shadow-e1);
+  --elevation-2: var(--vf-shadow-e2);
+  --elevation-3: var(--vf-shadow-e3);
+  --motion-out: cubic-bezier(0.23, 1, 0.32, 1); /* Micro legacy easing — kept */
+  --motion-in-out: cubic-bezier(0.77, 0, 0.175, 1); /* dead at W1 — W6 inventory */
+  /* W1 runtime mapping (D-01/U-01): Micro names → Micro Standard v2 contracts.
+     Values now resolve through ./styles/vf-tokens.css. Retired v0 palette
+     (#cc785c/#964e33/#079fa0/…) no longer feeds the light layer. */
+  --color-bg-canvas: var(--vf-canvas);
+  --color-bg-well: var(--vf-recessed);
+  --color-surface: var(--vf-surface);
+  --color-border: var(--vf-tint); /* quiet hairline tier (--vf-border-soft) */
+  --color-divider: var(--vf-soft);
+  --color-text-primary: var(--vf-ink);
+  --color-text-strong: var(--vf-ink);
+  --color-text-secondary: var(--vf-ink-secondary);
+  --color-text-tertiary: #b7b2a6; /* dead at W1 (0 consumers) — W6 inventory */
+  --color-brand-primary: var(--vf-clay);
+  --color-brand-pressed: var(--vf-clay-interactive);
+  --color-brand-text: var(--vf-ink); /* retired #964e33 — brand text is text-safe ink */
+  --color-brand-soft: var(--vf-tint); /* quiet grouping surface, no clay tint exists */
+  --color-accent-primary: var(--vf-clay-interactive); /* chosen/current edge role */
+  --color-accent-text: var(--vf-ink); /* interactive ink + focus (U-02: teal retired) */
+  --color-accent-soft: var(--vf-tint); /* selected/hover quiet surface */
+  --color-success-text: #256b4a; /* Micro-owned text-safe success ink (5.5:1) —
+     Standard #629987 (--vf-success) is a non-text mark; W2 StatusChip adopts
+     the Standard grammar (word in ink + marker hue) */
+  --color-success-bg: #e4f2ea; /* Micro-owned tint pair — W2+ migration */
+  --color-danger-text: var(--vf-error);
+  --color-danger-bg: var(--vf-ground); /* Standard tint grammar: warm ground + semantic ink */
+  --color-warning-text: #7a5c20; /* Micro-owned knowledge/attention pair (68 consumers)
+     — per-surface migration per U-05/U-11/U-12, W5 */
+  --color-warning-bg: #f6eccf; /* Micro-owned — W5 migration */
+  --color-withdrawal-text: #3e5c76; /* dead at W1 (0 consumers) — W6 inventory */
+  --color-withdrawal-bg: #e8eef3; /* dead at W1 — W6 inventory */
+  --color-ink-on-color: var(--vf-ink);
   --background: var(--color-bg-canvas);
   --foreground: var(--color-text-primary);
   --card: var(--color-surface);
   --card-foreground: var(--color-text-primary);
   --popover: var(--color-surface);
   --popover-foreground: var(--color-text-primary);
-  --primary: var(--color-brand-text);
-  --primary-foreground: var(--color-surface);
-  --secondary: var(--color-accent-text);
-  --secondary-foreground: var(--color-surface);
+  /* Action classes (owner-approved ladder): primary button + FAB are the
+     text-bearing CREATE class (Clay + dark ink). Ordinary save/confirm and
+     high-consequence commit bindings are consumed by the W2 Button primitive;
+     per-action reclassification happens in W2–W6 with tests. */
+  --primary: var(--vf-action-create);
+  --primary-foreground: var(--vf-action-create-ink);
+  --secondary: var(--vf-btn-secondary-bg);
+  --secondary-foreground: var(--vf-btn-secondary-ink);
   --muted: var(--color-bg-well);
   --muted-foreground: var(--color-text-secondary);
   --accent: var(--color-accent-soft);
@@ -91,7 +104,7 @@
   --destructive-foreground: var(--color-surface);
   --border: var(--color-border);
   --input: var(--color-border);
-  --ring: var(--color-accent-text);
+  --ring: var(--vf-focus);
 }
 
 .dark {
@@ -712,7 +725,7 @@ textarea:disabled,
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: color-mix(in srgb, #1f1e1d 45%, transparent);
+  background: var(--vf-scrim); /* W1: warm ink #141413 at 45% — Standard overlay scrim */
 }
 .micro-dialog {
   position: fixed;

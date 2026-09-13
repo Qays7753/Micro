@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """§9 design-token guards — the build fails over a raw hex or an off-scale value.
 
-Per design-system-v1 §9:
+Per design-system-v1 §9 (W1 amendment — Micro Standard v2 integration):
 1. No raw hex, rgb, or hsl literal in .tsx or component CSS outside the frozen
    token definitions — enforced here by scanning TSX sources and CSS outside
-   the :root / .dark / @theme token blocks. The single sanctioned exception is
-   the sheet/dialog overlay scrim `color-mix(in srgb, #1f1e1d 45%, transparent)`
-   written verbatim in §3.3.
+   the :root / .dark / @theme token blocks. W1 removed the former §3.3 scrim
+   exception: the overlay scrim is now the token --vf-scrim defined in
+   styles/vf-tokens.css (Micro Standard v2 runtime mapping).
 2. No spacing, radius, font-size, or z-index value outside §1 — enforced at the
    part level (each whitespace-separated component of the declaration value).
 
-Colors: the palette is frozen; tokens are defined exactly twice (light + dark).
+Colors: the palette is frozen; Standard --vf-* contracts live in
+styles/vf-tokens.css; Micro runtime names mirror them in :root/.dark.
 """
 from __future__ import annotations
 
@@ -37,8 +38,8 @@ FONT_SIZES = {
 FONT_RE = re.compile(r"^var\(--")
 Z_LADDER = {"0", "1", "20", "30", "40", "50", "60", "70"}
 
-# Doc-sanctioned raw-color exception (§3.3 overlay scrim, verbatim).
-SANCTIONED_RAW = "color-mix(in srgb, #1f1e1d 45%, transparent)"
+# W1: no sanctioned raw-color exceptions remain — the scrim is tokenized
+# (--vf-scrim in styles/vf-tokens.css).
 
 PROP_RULES: dict[str, tuple[set[str], re.Pattern | None]] = {
     "gap": (SPACE_PX, SPACE_RE),
@@ -96,8 +97,6 @@ def scan_css_colors(path: Path) -> list[str]:
             continue
         line = source.count("\n", 0, match.start()) + 1
         context = source[max(0, match.start() - 40) : match.end() + 10].replace("\n", " ")
-        if SANCTIONED_RAW[:30] in context:
-            continue  # §3.3 scrim — sanctioned verbatim
         problems.append(f"{path.name}:{line}: raw hex {match.group(0)} — {context.strip()[:70]}")
     return problems
 

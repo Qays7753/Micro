@@ -1,0 +1,167 @@
+/* ============================================================================
+   Micro Standard v2 — Runtime Token Mapping (layer 2 of the authority ladder)
+   ----------------------------------------------------------------------------
+   Source of truth: Documents/main micro-standard-v2/design-tokens.css @
+   Documents main f919982c692e5ba78cf3284a4240c45f66be91c6 (31-file package,
+   verified byte-identical to the promoted reconciliation-final package).
+
+   This file is the ONE place where Standard hex values live in Micro.
+   Rules (W1, owner-approved D-01/U-01):
+   - No hex value may appear anywhere else outside a token zone.
+   - Micro runtime names (index.css :root) bind to these --vf-* contracts.
+   - Legacy Micro names are preserved as aliases; nothing is deleted in W1.
+   - No new palette values. The only derivatives are the two disclosed
+     functional alpha composites (scrim, translucent header) and the recorded
+     elevation shadow tone.
+   - Light-only: the .dark layer remains Micro-local legacy until its own
+     owner gate (register U-03; see DARK_MODE_BOUNDARY.md).
+   Naming note: the Standard's unprefixed tokens (type scale, motion, ease)
+   carry a --vf- prefix here so the --vf- namespace remains the single
+   Standard-contract namespace inside the Micro runtime.
+   ============================================================================ */
+
+:root {
+  /* -- Approved surfaces ------------------------------------------------ */
+  --vf-canvas: #faf9f5;
+  --vf-ground: #f5f4ed;
+  --vf-recessed: #f0eee6;
+  --vf-surface: #ffffff;
+  --vf-tint: #e8e6dc;
+  --vf-soft: #d1cfc5;
+  --vf-border: #d1cfc5;
+  --vf-border-interactive: #87867f;
+  --vf-border-soft: var(--vf-tint); /* quiet hairline tier; alias of #E8E6DC */
+
+  /* -- Approved ink ------------------------------------------------------ */
+  --vf-ink: #141413;
+  --vf-ink-secondary: #4d4c48;
+  --vf-ink-tertiary: #6b6962;
+  --vf-ink-on-dark: #ffffff;
+  --vf-ink-on-tint: #141413;
+  --vf-ink-pressed: #3d3d3a;
+  --vf-disabled-surface: #f0eee6;
+  --vf-disabled-ink: #55524a;
+  --vf-focus: #141413;
+  --vf-field-border-focus: #87867f;
+
+  /* -- Approved identity + semantic roles --------------------------------- */
+  --vf-clay: #d97757; /* identity/create/FAB — never a financial value */
+  --vf-clay-interactive: #c96442; /* pressed/chosen/current edge or underline */
+  --vf-info: #2c84db; /* attention/pending mark */
+  --vf-status: #1490ff; /* reviewed/current mark */
+  --vf-success: #629987; /* settled/success mark (non-text on Surface) */
+  --vf-error: #b53333; /* error/destructive mark (text-safe) */
+
+  /* -- Action contracts (owner-approved) ----------------------------------- */
+  --vf-action-create: var(--vf-clay);
+  --vf-action-create-pressed: var(--vf-clay-interactive);
+  --vf-action-create-ink: var(--vf-ink); /* text-bearing create/add */
+  --vf-action-create-icon-ink: var(--vf-ink-on-dark); /* icon-only FAB/icon button */
+  --vf-action-save-bg: var(--vf-ground);
+  --vf-action-save-ink: var(--vf-ink);
+  --vf-action-save-pressed-edge: var(--vf-clay-interactive);
+  --vf-action-commit-bg: var(--vf-ink);
+  --vf-action-commit-ink: var(--vf-ink-on-dark);
+  --vf-action-commit-pressed: var(--vf-ink-pressed);
+
+  /* -- Button bindings ------------------------------------------------------ */
+  --vf-btn-primary-bg: var(--vf-ink); /* high-consequence commit only */
+  --vf-btn-primary-bg-pressed: #3d3d3a;
+  --vf-btn-primary-ink: var(--vf-ink-on-dark);
+  --vf-btn-save-bg: var(--vf-action-save-bg);
+  --vf-btn-save-ink: var(--vf-action-save-ink);
+  --vf-btn-save-pressed-edge: var(--vf-action-save-pressed-edge);
+  --vf-btn-create-bg: var(--vf-action-create);
+  --vf-btn-create-ink: var(--vf-action-create-ink);
+  --vf-btn-create-pressed: var(--vf-action-create-pressed);
+  --vf-btn-secondary-bg: var(--vf-tint);
+  --vf-btn-secondary-bg-pressed: var(--vf-soft);
+  --vf-btn-secondary-ink: var(--vf-ink-on-tint);
+  --vf-btn-outline-bg: var(--vf-surface);
+  --vf-btn-outline-ink: var(--vf-ink);
+  --vf-btn-outline-border: var(--vf-border-interactive);
+  --vf-btn-ghost-ink: var(--vf-ink-tertiary);
+  --vf-btn-destructive-ink: var(--vf-error);
+  --vf-btn-destructive-border: var(--vf-error);
+
+  /* -- Control geometry (Standard values; Micro §1 ladders already conform) -- */
+  --vf-control-height: 48px;
+  --vf-touch-target: 44px;
+  --vf-control-height-compact: 36px; /* period chip visual height */
+  --vf-topbar-height: 56px;
+  --vf-nav-height-min: 64px;
+  --vf-fab-size: 56px;
+  --vf-fab-offset: 16px;
+  --vf-icon-sm: 20px;
+  --vf-icon-md: 24px;
+  --vf-progress-track-height: 8px;
+  --vf-radius-control: 12px;
+  --vf-radius-card: 16px;
+  --vf-radius-segment: 18px;
+  --vf-radius-sheet: 20px;
+  --vf-radius-full: 999px;
+
+  /* -- Type scale (recorded basis; floors per typography.md) ---------------- */
+  --vf-text-title-size: 28px;
+  --vf-text-title-line: 1.3;
+  --vf-text-title-weight: 700;
+  --vf-text-title-sm-size: 20px;
+  --vf-text-title-sm-line: 1.3;
+  --vf-text-title-sm-weight: 700;
+  --vf-text-section-size: 17px;
+  --vf-text-section-line: 1.4;
+  --vf-text-section-weight: 600;
+  --vf-text-card-title-size: 15px;
+  --vf-text-card-title-line: 1.4;
+  --vf-text-card-title-weight: 600;
+  --vf-text-body-size: 15px;
+  --vf-text-body-line: 1.6;
+  --vf-text-body-weight: 400;
+  --vf-text-label-size: 13px;
+  --vf-text-label-line: 1.4;
+  --vf-text-label-weight: 500;
+  --vf-text-caption-size: 12px;
+  --vf-text-caption-line: 1.5;
+  --vf-text-caption-weight: 400; /* non-financial metadata only */
+  --vf-text-kpi-size: 24px;
+  --vf-text-kpi-weight: 600;
+  --vf-text-kpi-hero-size: 28px;
+  --vf-text-kpi-hero-weight: 600;
+  --vf-text-amount-size: 15px;
+  --vf-text-amount-weight: 600;
+  --vf-text-amount-input-size: 24px;
+  --vf-text-amount-input-weight: 600;
+  --vf-font-sans: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --vf-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* -- Motion (recorded timing system) -------------------------------------- */
+  --vf-motion-press: 80ms;
+  --vf-motion-fast: 120ms;
+  --vf-motion-normal: 200ms;
+  --vf-motion-sheet-in: 240ms;
+  --vf-motion-sheet-out: 180ms;
+  --vf-motion-dialog-in: 160ms;
+  --vf-motion-dialog-out: 120ms;
+  --vf-motion-scrim: 200ms;
+  --vf-motion-skeleton: 1.5s;
+  --vf-motion-snackbar-hold: 5000ms;
+  --vf-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --vf-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --vf-ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+
+  /* -- Elevation (recorded warm shadow tone — decoration, not palette) ------- */
+  --vf-shadow-sm: 0 1px 2px rgba(60, 50, 40, 0.06);
+  --vf-shadow-e1: 0 1px 2px rgba(60, 50, 40, 0.06), 0 4px 12px rgba(60, 50, 40, 0.06);
+  --vf-shadow-e2: 0 6px 20px rgba(60, 50, 40, 0.1);
+  --vf-shadow-e3: 0 16px 40px rgba(60, 50, 40, 0.16);
+
+  /* -- Functional derivatives of approved values (disclosed, not palette) ---- */
+  --vf-scrim: rgba(20, 20, 19, 0.45); /* warm ink #141413 at 45% */
+  --vf-header-translucent: rgba(250, 249, 245, 0.86); /* canvas #FAF9F5 at 86% */
+
+  /* -- Deliberate divergence (documented, not a Standard token) ---------------
+     Micro keeps its documented §1.8 z-ladder (0/1/20/30/40/50/60/70 — denser,
+     guard-enforced) instead of the gallery-relative Standard z tokens
+     (250/300/400/500). The layering CONTRACT (scrim < overlay < fab < snackbar)
+     is satisfied by Micro's ladder; see SOURCE_OF_TRUTH_MATRIX.md. */
+}
