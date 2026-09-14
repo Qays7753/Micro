@@ -68,3 +68,17 @@
 - `index.css :root` — Micro runtime aliases. Owner: runtime token mapping.
 - `presentation/stateAdapter.ts` — state→presentation contracts (markers/tone only, no words). Owner: presentation layer.
 - Product words, labels, and financial meaning — domain/application + existing label maps. Untouched.
+
+
+## Completion-run additions (2026-09-14)
+
+| Concept | Authoritative definition | Consumers | Notes |
+|---|---|---|---|
+| Button `quiet` action | `components/primitives/Button.tsx` + `styles/primitives.css` | 36 documented correction/reversal entries | MR-03/U09 touch floor (48px base) |
+| ChoiceRow/ChoiceButton selection | `components/primitives/ChoiceRow.tsx` | AssetEditor, OrderDepositPanels, G5DeclarationEditor | 2px clay-interactive edge + weight; aria-pressed; never a fill |
+| FeedbackNote message classification | `components/primitives/Notice.tsx` (FeedbackNote) | Catalog + 7 mixed-channel surfaces | success-prefix → QuietCompletion; screen advisory regex → Notice; else InlineError; failure never wears the check |
+| EmptyState honest-state slot | `components/primitives/EmptyState.tsx` | Orders, Schedule (no-data chips) | state slot between symbol and title |
+| Legacy-class prohibition | `client/src/legacyClassCensus.test.ts` | whole repo (mechanical) | all source roots incl. app/; 10 retired classes; CSS-definition absence |
+| Raw-color prohibition (hardened) | `scripts/design-token-guards.py` | whole repo | hex AND rgb/hsl, CSS and TSX, outside token zones |
+| Permanent future-agent docs | `docs/architecture/**` + AGENTS.md wiring | every future agent | UI_AUX_ARCHITECTURE, SOURCE_OF_TRUTH, EXTENSION_PLAYBOOK, CHANGE_PROTOCOL, COMPONENT_CONTRACTS, MIGRATION_STATUS, ADRs 001-008 |
+| Navigation weight convention | ADR-008 | Home/OrderDetail primary CTAs (save) vs auxiliary navigation (secondary) | weight never commit semantics |

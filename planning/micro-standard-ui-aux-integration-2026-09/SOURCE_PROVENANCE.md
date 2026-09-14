@@ -23,3 +23,16 @@ Rule: nothing is claimed as "read" unless it was opened from the canonical sourc
 **Note on counts (per REPORTS_RECONCILIATION.md):** Flash figures are the operational baseline with their definitions preserved: 57 route elements, 60 page TSX files (52 non-test), 47 non-test component files, 275 exact `د.أ` literals across 53 files, ≈256 duplicated CSS lines. Deviations between reports are recorded, not silently resolved.
 
 **No missing canonical source.** All documents named in the execution prompt were available. No reconstruction from memory was performed. `SOURCE_ACCESS_BLOCKED` was not triggered.
+
+
+## Completion run (2026-09-14, re-executed after session loss)
+
+| # | Source | Canonical URL / ref | Commit | Path | Status |
+|---|---|---|---|---|---|
+| C1 | Micro branch (start) | `micro-standard-ui-aux-integration-20260914` | `295c87c57fb1959d6a3bfc9352f9bef03dcd5bc9` (ls-remote verified) | full clone | READ — the lost first attempt's local commits (7957dcc…72e92dd) were never pushed; live tree is authoritative |
+| C2 | Micro source (completion scope) | branch @ C1 | as above | `client/src/**` all source roots incl. `app/`, `pwa/`, `contexts/` | READ (lead + Agents 2-5 with file:line evidence) |
+| C3 | Prior run reports | branch @ C1 | as above | `planning/micro-standard-ui-aux-integration-2026-09/**` | READ (evidence and cross-checks only — independently re-verified, never blindly executed) |
+| C4 | Standard (re-verified) | Documents `main` → `micro-standard-v2/` | `f919982c692e5ba78cf3284a4240c45f66be91c6` (re-fetched) | 31 files | READ (button-system.md §action classes, component-contracts.md §selection, empty-loading-error-states.md re-read for the completion decisions) |
+| C5 | Documents run branch | `micro-standard-ui-aux-integration-2026-09` | `3ee0eda7c251fe3a27b7d329f82c6d72fa680741` (owner-pushed mirror) | `planning/…/` | READ (mirror state verified before append) |
+
+**Session-loss disclosure:** the first completion attempt's work existed only in a lost local worktree (never pushed). Per the canonical-source rule, the live repository overrode the transcript; the work was re-executed from `295c87c` and is strictly stronger (all lost-attempt audit findings incorporated). No `SOURCE_MISMATCH` fired: every supplied SHA matched the live state at start.
