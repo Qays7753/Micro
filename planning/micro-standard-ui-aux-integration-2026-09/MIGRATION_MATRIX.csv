@@ -1,53 +1,53 @@
-﻿page,lines,legacy_micro_button_primary_uses,legacy_micro_status_chip_uses,money_unit_literals,new_primitives_adopted,status,test_coverage,migration_wave
-AgreementEditor,456,2,0,3,-,legacy,none-found,"planned (post-run, per-family)"
-AssetDetail,516,3,0,17,-,legacy,journey/dom,"planned (post-run, per-family)"
-AssetEditor,345,5,0,3,-,legacy,journey/dom,"planned (post-run, per-family)"
-Assets,157,1,0,7,-,legacy,journey/dom,"planned (post-run, per-family)"
-CashAdjustmentEditor,162,2,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-CashCount,226,3,0,2,-,legacy,journey/dom,"planned (post-run, per-family)"
-CashDistribution,235,2,0,2,-,legacy,journey/dom,"planned (post-run, per-family)"
-CashOpeningLaterEditor,201,3,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-CashReversalEditor,181,2,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-CashTransferEditor,162,2,0,3,-,legacy,journey/dom,"planned (post-run, per-family)"
-CashWalletEditor,133,1,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-CashWallets,310,2,0,5,-,legacy,none-found,"planned (post-run, per-family)"
-Catalog,925,0,0,0,MoneyWithUnit,migrated-partial,journey/dom,"planned (post-run, per-family)"
-Collect,450,3,0,5,MoneyWithUnit,migrated-partial,journey/dom,"planned (post-run, per-family)"
-CostCalculator,620,2,0,6,-,legacy,journey/dom,"planned (post-run, per-family)"
-CostEditor,666,2,0,3,-,legacy,journey/dom,"planned (post-run, per-family)"
-DeliveryReview,526,2,0,12,-,legacy,journey/dom,"planned (post-run, per-family)"
-DirectSaleEditor,975,3,0,14,-,legacy,colocated,"planned (post-run, per-family)"
-DraftEditor,550,4,0,2,-,legacy,journey/dom,"planned (post-run, per-family)"
-EstimateDetail,266,3,0,0,MoneyWithUnit,migrated-partial,journey/dom,"planned (post-run, per-family)"
-Finance,995,4,0,11,MoneyWithUnit,migrated-partial,journey/dom,W4 (pilots done)
-FinanceActivity,295,1,0,2,-,legacy,journey/dom,"planned (post-run, per-family)"
-FinancialEventEditor,1056,3,0,1,-,legacy,colocated,"planned (post-run, per-family)"
-Foundation,247,3,0,0,-,legacy,colocated,"planned (post-run, per-family)"
-G5DeclarationEditor,254,1,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-Home,490,1,0,3,Button;MoneyWithUnit,migrated-partial,journey/dom,W4 (pilots done)
-InventoryMaterials,719,4,0,4,StatusChip,migrated-partial,journey/dom,"planned (post-run, per-family)"
-InventoryMovementEditor,948,5,0,3,-,legacy,journey/dom,"planned (post-run, per-family)"
-InventoryReversalEditor,131,2,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-LoanDetail,319,2,0,6,-,legacy,journey/dom,"planned (post-run, per-family)"
-LoanEditor,220,1,0,2,-,legacy,journey/dom,"planned (post-run, per-family)"
-Loans,176,1,0,4,-,legacy,journey/dom,"planned (post-run, per-family)"
-MaterialEditor,497,2,0,0,-,legacy,journey/dom,"planned (post-run, per-family)"
-NewDraft,18,0,0,0,-,legacy,journey/dom,"planned (post-run, per-family)"
-NotFound,18,1,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-OrderDetail,1413,10,0,22,-,legacy,journey/dom,"planned (post-run, per-family)"
-Orders,349,0,0,3,Button;StatusChip;MoneyWithUnit,migrated-partial,colocated,"planned (post-run, per-family)"
-OwnerEntitlement,1097,3,0,10,-,legacy,journey/dom,"planned (post-run, per-family)"
-OwnerWithdrawalEditor,252,2,0,2,-,legacy,journey/dom,"planned (post-run, per-family)"
-Parties,214,1,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-Profile,338,2,0,0,-,legacy,colocated,"planned (post-run, per-family)"
-Schedule,1026,3,0,0,Button;StatusChip,migrated-partial,journey/dom,"planned (post-run, per-family)"
-ScheduleEditor,363,2,0,0,-,legacy,journey/dom,"planned (post-run, per-family)"
-Settings,622,0,0,0,-,legacy,journey/dom,"planned (post-run, per-family)"
-Setup,428,1,0,2,-,legacy,colocated,"planned (post-run, per-family)"
-SharePreview,107,2,0,0,-,legacy,none-found,"planned (post-run, per-family)"
-Statement,608,2,0,17,MoneyWithUnit,migrated-partial,journey/dom,"planned (post-run, per-family)"
-SupplierPurchaseEditor,966,4,0,11,-,legacy,colocated,"planned (post-run, per-family)"
-Suppliers,186,2,0,2,-,legacy,none-found,"planned (post-run, per-family)"
-Tools,349,0,0,0,-,legacy,journey/dom,"planned (post-run, per-family)"
-ToolsIntegrity,215,1,0,1,-,legacy,journey/dom,"planned (post-run, per-family)"
-WalletLedger,187,1,0,3,-,legacy,journey/dom,"planned (post-run, per-family)"
+page,lines,legacy_micro_button_primary_uses,legacy_micro_status_chip_uses,new_primitives_adopted,status,test_coverage,migration_wave
+AgreementEditor,458,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+AssetDetail,517,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+AssetEditor,334,0,0,Button;ChoiceRow,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+Assets,160,0,0,Button;EmptyState,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+CashAdjustmentEditor,164,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+CashCount,227,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+CashDistribution,236,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+CashOpeningLaterEditor,203,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+CashReversalEditor,183,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+CashTransferEditor,175,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+CashWalletEditor,135,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+CashWallets,311,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+Catalog,948,0,0,QuietCompletion;Notice;InlineError,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+Collect,451,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+CostCalculator,621,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+CostEditor,664,0,0,Button;QuietCompletion,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+DeliveryReview,529,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+DirectSaleEditor,973,0,0,Button;QuietCompletion,migrated,colocated,completed (completion run W2/W4/W5/W6 — all-roots census)
+DraftEditor,547,0,0,Button;QuietCompletion,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+EstimateDetail,267,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+Finance,996,0,0,Button;MoneyWithUnit,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+FinanceActivity,295,0,0,Button;EmptyState,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+FinancialEventEditor,1065,0,0,Button,migrated,colocated,completed (completion run W2/W4/W5/W6 — all-roots census)
+Foundation,248,0,0,Button,migrated,colocated,completed (completion run W2/W4/W5/W6 — all-roots census)
+G5DeclarationEditor,252,0,0,Button;ChoiceRow,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+Home,490,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+InventoryMaterials,715,0,0,Button;StatusChip;QuietCompletion,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+InventoryMovementEditor,950,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+InventoryReversalEditor,133,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+LoanDetail,320,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+LoanEditor,227,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+Loans,179,0,0,Button;EmptyState,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+MaterialEditor,500,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+NewDraft,18,0,0,-,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+NotFound,19,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+OrderDetail,1418,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+Orders,353,0,0,Button;StatusChip;EmptyState,migrated,colocated,completed (completion run W2/W4/W5/W6 — all-roots census)
+OwnerEntitlement,1101,0,0,Button;EmptyState;Notice,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+OwnerWithdrawalEditor,254,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+Parties,215,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+Profile,339,0,0,Button,migrated,colocated,completed (completion run W2/W4/W5/W6 — all-roots census)
+Schedule,1027,0,0,Button;StatusChip;EmptyState,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+ScheduleEditor,365,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+Settings,623,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+Setup,425,0,0,Button,migrated,colocated,completed (completion run W2/W4/W5/W6 — all-roots census)
+SharePreview,108,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+Statement,609,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+SupplierPurchaseEditor,968,0,0,Button,migrated,colocated,completed (completion run W2/W4/W5/W6 — all-roots census)
+Suppliers,188,0,0,Button,migrated,none-found,completed (completion run W2/W4/W5/W6 — all-roots census)
+Tools,350,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+ToolsIntegrity,216,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)
+WalletLedger,188,0,0,Button,migrated,journey/dom,completed (completion run W2/W4/W5/W6 — all-roots census)

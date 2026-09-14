@@ -16,11 +16,14 @@
 4. `docs/00-document-index.md` لمعرفة سلطة الوثائق ومسار القراءة.
 5. `docs/implementation/03-pre-build-alignment-v1.md` لتثبيت حدود المنتج الكامل وPrototype المرحلة 2 وMVP التجاري اللاحق.
 
+6. إن كانت مهمتك تلمس واجهة أو تجربة أو تصميمًا بأي شكل: **ملفات `docs/architecture/` الخمسة + `ADRs/` + `MIGRATION_STATUS.md` قراءة إلزامية قبل أي تعديل** — هذه هي سلطة تكامل Micro Standard v2 (الاستراتيجية الثابتة، سلّم السلطة، عقود المكوّنات الأولية، بروتوكول التغيير، وحالة الترحيل لكل سطح). أي تعديل UI بلا قراءتها مخالف لعقد المستودع.
+
 | إذا ستلمس | اقرأ قبل التعديل |
 |---|---|
 | تعريف المنتج أو المعمارية أو قرار مرحلة | `docs/01-product-and-technical-blueprint.md`، و`docs/research/global-build-reference-library-v1.md`، ثم `docs/research/micro-build-logic-v1.md` |
 | Domain أو تكلفة أو سعر أو ربح أو كاش أو مخزون أو دين أو مصروف | `docs/contracts/05-financial-p0-policies.md`، و`docs/contracts/` ذات الصلة، و`docs/implementation/02-domain-contract-coverage.md`، و`docs/product/financial-operating-model-v1.md`، و`docs/scenarios/scenario-test-set-v1.md`، و`docs/quality/scenario-coverage-matrix-v1.md`، إضافة إلى مهارات المالية والسيناريوهات |
 | Prototype أو صفحة أو مكوّن أو RTL أو حالات واجهة | `docs/product/mobile-ui-ux-reference-v1.md`، و`docs/implementation/mobile-prototype-spec-v1.md`، و`docs/implementation/prototype-build-charter-v1.md`، و`ai-skills/micro-web-native-ux/`، و`ai-skills/micro-prototype-qa/`، و`ai-skills/micro-anti-vibe-interface-audit/` |
+| أي زر أو لون أو رمز تصميم أو حالة عرض أو shell أو طبقة UI/AUX عمومًا (بعد تكامل Micro Standard v2) | `docs/architecture/UI_AUX_ARCHITECTURE.md`، و`docs/architecture/SOURCE_OF_TRUTH.md`، و`docs/architecture/EXTENSION_PLAYBOOK.md`، و`docs/architecture/CHANGE_PROTOCOL.md`، و`docs/architecture/COMPONENT_CONTRACTS.md`، و`docs/architecture/ADRs/`، و`docs/architecture/MIGRATION_STATUS.md` — بهذا الترتيب؛ لا تُنشئ مصدر رموز ثانيًا ولا تُعيد تعريف عقد معرّف |
 | IndexedDB أو LocalStore أو المسودات أو Export/Import | `docs/contracts/04-limited-sync-contract.md`، و`docs/implementation/02-domain-contract-coverage.md`، و`ai-skills/micro-local-first-prototype/`، مع إبقاء `localSchemaVersion` و`localExportVersion` تحت حارس صريح |
 | قبول Slice أو PR أو تسليم أو مراجعة Agent سابق | `docs/operations/agent-handoff-protocol-v1.md`، و`docs/operations/slice-handoff-template.md`، و`.github/pull_request_template.md`، و`docs/quality/cloud-code-first-read-findings-v1.md`، و`docs/quality/unified-audit-resolution-v1.md` |
 | Profiles أو Activity أو مشروع مختلط أو سياق نشاط | `docs/product/activity-profiles-and-hybrid-projects-v1.md`، ومراجع المنتج والسيناريوهات أعلاه؛ لا تُنشئ عقدًا أو ترحيلًا من الوثيقة وحدها |
