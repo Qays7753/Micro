@@ -100,7 +100,7 @@ def scan_css_colors(path: Path) -> list[str]:
         problems.append(f"{path.name}:{line}: raw hex {match.group(0)} — {context.strip()[:70]}")
     # W2 (completion — Agent 3, F6): literal color functions (rgb/hsl) are
     # checked in CSS as in TSX — outside token-definition zones only.
-    
+
     for match in RGB_HSL.finditer(source):
         if any(start <= match.start() < end for start, end in zones):
             continue
