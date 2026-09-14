@@ -45,6 +45,7 @@ import { hasDeliveredEvent, hasDeliveryReversal } from "@micro-domain/craft-orde
 import { formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
+import { Button } from "@/components/primitives";
 /* §10.2: الحقيقة في الرقم والتسمية — النتيجة تسمية حالتها، بلا جملة تشرح نفسها. */
 const resultLabel: Record<string, string> = {
   final: "نتيجة الطلب معروفة",
@@ -272,13 +273,13 @@ export default function OrderDetail() {
     return (
       <section className="micro-page micro-not-found">
         <h1>الطلب غير متاح محليًا</h1>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           الطلبات
-        </button>
+        </Button>
       </section>
     );
 
@@ -503,9 +504,10 @@ export default function OrderDetail() {
 
   const contextualAction =
     order.status === "provisional_agreement" ? (
-      <button
-        className="micro-button micro-button-primary micro-save-cost"
-        type="button"
+      <Button
+        action="save"
+        block
+
         disabled={isActing}
         onClick={() => {
           void run(() => agreements.startExecution(stored.id));
@@ -513,11 +515,12 @@ export default function OrderDetail() {
       >
         <Play aria-hidden="true" />
         {isActing ? "جارٍ بدء التنفيذ…" : "ابدأ التنفيذ"}
-      </button>
+      </Button>
     ) : order.status === "in_progress" ? (
-      <button
-        className="micro-button micro-button-primary micro-save-cost"
-        type="button"
+      <Button
+        action="save"
+        block
+
         disabled={isActing}
         onClick={() => {
           void run(() => fulfillment.markReady(stored.id));
@@ -525,26 +528,28 @@ export default function OrderDetail() {
       >
         <PackageCheck aria-hidden="true" />
         {isActing ? "جارٍ حفظ الجاهزية…" : "الطلب جاهز للتسليم"}
-      </button>
+      </Button>
     ) : order.status === "ready" ? (
       /* المجموعة ٣ (عقد D5): لا تسليم بنقرة واحدة — مراجعة كاملة قبل الالتزام:
        * المال والمخزون المقترح والقبض الاختياري ثم تأكيد واحد لمعاملة ذرّية. */
-      <button
-        className="micro-button micro-button-primary micro-save-cost"
-        type="button"
+      <Button
+        action="save"
+        block
+
         onClick={() => {
           navigate(withFrom(`/orders/${stored.id}/deliver`, `/orders/${stored.id}`));
         }}
       >
         <CheckCircle2 aria-hidden="true" />
         راجع التسليم وسجّله
-      </button>
+      </Button>
     ) : order.status === "needs_review" && hasDeliveryReversal(order) ? (
       /* المجموعة ٣ (عقد D4): الاستئناف الموثق بعد عكس التسليم — انتقالات النطاق
        * نفسها لا مسار خاص؛ المراجعة تُغلق بقرار صريح لا صمتًا. */
-      <button
-        className="micro-button micro-button-primary micro-save-cost"
-        type="button"
+      <Button
+        action="save"
+        block
+
         disabled={isActing}
         onClick={() => {
           void run(() => fulfillment.resumeAfterReview(stored.id));
@@ -552,30 +557,30 @@ export default function OrderDetail() {
       >
         <Play aria-hidden="true" />
         {isActing ? "جارٍ الاستئناف…" : "استئناف التنفيذ بعد المراجعة"}
-      </button>
+      </Button>
     ) : order.status === "delivered" && order.receivableMinor > 0 ? (
       <div className="micro-form-actions micro-contextual-actions">
         {/* المجموعة ٣ (عقد D5): التحصيل عبر ورقة التحصيل — وجهة محفظة صريحة
             وتحصيل واحد موثق؛ لا قبض بلا وجهة من هنا. */}
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => {
             navigate(withFrom(`/collect?source=order:${stored.id}`, `/orders/${stored.id}`));
           }}
         >
           <HandCoins aria-hidden="true" /> تحصيل المتبقي الآن
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        </Button>
+        <Button
+          action="secondary"
+
           disabled={isActing}
           onClick={() => {
             void run(() => fulfillment.registerRemainingDebt(stored.id));
           }}
         >
           <Landmark aria-hidden="true" /> تسجيله دينًا
-        </button>
+        </Button>
       </div>
     ) : null;
 
@@ -623,21 +628,21 @@ export default function OrderDetail() {
               </datalist>
             </label>
             <div className="micro-form-actions micro-contextual-actions">
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              <Button
+                action="save"
+
                 disabled={isActing || !assignNameValue.trim()}
                 onClick={() => void assignCustomerName(assignNameValue)}
               >
                 احفظ اسم الجهة
-              </button>
-              <button
-                className="micro-button micro-button-quiet"
-                type="button"
+              </Button>
+              <Button
+                action="quiet"
+
                 onClick={() => setAssignNameOpen(false)}
               >
                 لاحقًا
-              </button>
+              </Button>
             </div>
           </section>
         ) : (
@@ -756,14 +761,14 @@ export default function OrderDetail() {
                 ) : null}
               </section>
             ) : (
-              <button
-                className="micro-button micro-button-quiet"
-                type="button"
+              <Button
+                action="quiet"
+
                 disabled={isActing}
                 onClick={() => setPricePanelOpen(true)}
               >
                 <PencilLine aria-hidden="true" /> عدّل السعر بعد الاتفاق
-              </button>
+              </Button>
             )}
             {/* المجموعة ٣ (عقد D4/D5): عكس التسليم المكتمل — تصحيح موثق يحيّد الإيراد
                 ويعكس حركات الاستهلاك مرآةً ولا يمس الكاش المقبوض؛ الطلب ينتقل إلى
@@ -817,14 +822,14 @@ export default function OrderDetail() {
                   />
                 </section>
               ) : (
-                <button
-                  className="micro-button micro-button-quiet"
-                  type="button"
+                <Button
+                  action="quiet"
+
                   disabled={isActing}
                   onClick={() => setDeliveryReversalOpen(true)}
                 >
                   <RotateCcw aria-hidden="true" /> تراجع موثق عن التسليم
-                </button>
+                </Button>
               )
             ) : null}
             {/* القرار ١٩ + Conflict F (AV-07): الإلغاء من أي حالة قبل التسليم ومن
@@ -877,51 +882,51 @@ export default function OrderDetail() {
                     </p>
                   ) : null}
                   <div className="micro-form-actions micro-contextual-actions">
-                    <button
-                      className="micro-button micro-button-secondary"
-                      type="button"
+                    <Button
+                      action="secondary"
+
                       disabled={isActing}
                       onClick={() => {
                         void cancelWithReason("خطأ في السعر");
                       }}
                     >
                       خطأ في السعر
-                    </button>
-                    <button
-                      className="micro-button micro-button-secondary"
-                      type="button"
+                    </Button>
+                    <Button
+                      action="secondary"
+
                       disabled={isActing}
                       onClick={() => {
                         void cancelWithReason("انسحب العميل");
                       }}
                     >
                       انسحب العميل
-                    </button>
-                    <button
-                      className="micro-button micro-button-secondary"
-                      type="button"
+                    </Button>
+                    <Button
+                      action="secondary"
+
                       disabled={isActing}
                       onClick={() => setOtherReasonOpen(true)}
                     >
                       سبب آخر
-                    </button>
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    </Button>
+                    <Button
+                      action="quiet"
+
                       disabled={isActing}
                       onClick={() => {
                         void cancelWithReason("");
                       }}
                     >
                       تخطّى السبب وألغِ
-                    </button>
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    </Button>
+                    <Button
+                      action="quiet"
+
                       onClick={() => setCancelPanelOpen(false)}
                     >
                       تراجع
-                    </button>
+                    </Button>
                   </div>
                   {otherReasonOpen ? (
                     <div className="micro-form-actions micro-contextual-actions">
@@ -933,28 +938,28 @@ export default function OrderDetail() {
                           placeholder="مثال: تغيرت مواصفات الطلب"
                         />
                       </label>
-                      <button
-                        className="micro-button micro-button-primary"
-                        type="button"
+                      <Button
+                        action="destructive"
+
                         disabled={isActing || !otherReason.trim()}
                         onClick={() => {
                           void cancelWithReason(otherReason);
                         }}
                       >
                         ألغِ الطلب بهذا السبب
-                      </button>
+                      </Button>
                     </div>
                   ) : null}
                 </section>
               ) : (
-                <button
-                  className="micro-button micro-button-quiet"
-                  type="button"
+                <Button
+                  action="quiet"
+
                   disabled={isActing}
                   onClick={() => setCancelPanelOpen(true)}
                 >
                   <XCircle aria-hidden="true" /> إلغاء الطلب
-                </button>
+                </Button>
               )
             ) : null}
             {/* عقد الإغلاق العميق (WF-01/MR-01): عربون إضافي أثناء الرحلة قبل
@@ -1009,30 +1014,30 @@ export default function OrderDetail() {
                     </p>
                   ) : null}
                   <div className="micro-form-actions micro-contextual-actions">
-                    <button
-                      className="micro-button micro-button-primary"
-                      type="button"
+                    <Button
+                      action="save"
+
                       disabled={isActing || !validExtraDeposit || extraDepositMinor <= 0}
                       onClick={() => {
                         void recordExtraDeposit();
                       }}
                     >
                       سجّل العربون
-                    </button>
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    </Button>
+                    <Button
+                      action="quiet"
+
                       disabled={isActing}
                       onClick={closeDepositPanel}
                     >
                       تراجع
-                    </button>
+                    </Button>
                   </div>
                 </section>
               ) : (
-                <button
-                  className="micro-button micro-button-quiet"
-                  type="button"
+                <Button
+                  action="quiet"
+
                   disabled={isActing}
                   onClick={() => {
                     depositOperationKeyRef.current = `order-deposit-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
@@ -1040,7 +1045,7 @@ export default function OrderDetail() {
                   }}
                 >
                   <HandCoins aria-hidden="true" /> سجّل عربونًا إضافيًا
-                </button>
+                </Button>
               )
             ) : null}
             {/* المجموعة ٦ (البند ١ — S2-04أ): التراجع الموثق عن قبضة مسجلة،
@@ -1187,23 +1192,23 @@ export default function OrderDetail() {
                               onCancel={closeReversalPanel}
                             >
                               {useCompound ? (
-                                <button
-                                  className="micro-button micro-button-quiet"
-                                  type="button"
+                                <Button
+                                  action="quiet"
+
                                   disabled={isActing}
                                   onClick={() => setCompoundMode(false)}
                                 >
                                   تراجع عن القبضة لحالها بدلًا
-                                </button>
+                                </Button>
                               ) : compoundAvailable ? (
-                                <button
-                                  className="micro-button micro-button-quiet"
-                                  type="button"
+                                <Button
+                                  action="quiet"
+
                                   disabled={isActing}
                                   onClick={() => setCompoundMode(true)}
                                 >
                                   تراجع عن القبضة والتخصيص معًا
-                                </button>
+                                </Button>
                               ) : preview?.refusalReason ? (
                                 <p className="micro-local-truth">{preview.refusalReason}</p>
                               ) : null}
@@ -1220,10 +1225,10 @@ export default function OrderDetail() {
                           <strong>قبضات مسجلة قابلة للتراجع الموثق</strong>
                           <div className="micro-form-actions micro-contextual-actions">
                             {openCollections.map(event => (
-                              <button
+                              <Button
                                 key={event.id}
-                                className="micro-button micro-button-quiet"
-                                type="button"
+                                action="quiet"
+
                                 disabled={isActing}
                                 onClick={() => {
                                   openReversalPanel(event.id, remainingOf(event.id));
@@ -1231,7 +1236,7 @@ export default function OrderDetail() {
                               >
                                 <RotateCcw aria-hidden="true" /> تراجع عن{" "}
                                 {formatMoneyMinor(remainingOf(event.id))} د.أ
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         </>
@@ -1292,15 +1297,15 @@ export default function OrderDetail() {
           </strong>
           <p>حصّله من ورقة التحصيل بوجهة محفظة واضحة — التحصيل كاش ومتبقٍ فقط، لا إيراد جديد.</p>
           <div className="micro-form-actions micro-contextual-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="create"
+
               onClick={() => {
                 navigate(withFrom(`/collect?source=order:${stored.id}`, `/orders/${stored.id}`));
               }}
             >
               <HandCoins aria-hidden="true" /> حصّل الدين من ورقة التحصيل
-            </button>
+            </Button>
           </div>
         </section>
       ) : null}

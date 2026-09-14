@@ -10,6 +10,7 @@ import type {
   QuickActionWalletOption,
 } from "./quickActionFormTypes";
 
+import { Button } from "@/components/primitives";
 /*
  * W3 — نموذج البيع السريع (نمط مالية، لا قشرة): يملك حقوله وتحققه وتسجيله.
  * القشرة توزّع فقط. الملكية المالية (المعنى) تبقى في domain/application —
@@ -279,16 +280,16 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
           {formError}
         </p>
       ) : null}
-      <button
-        className="micro-button micro-button-primary"
-        type="button"
+      <Button
+        action="save"
+
         disabled={saving}
         onClick={() => {
           void submit();
         }}
       >
         {saving ? "جارٍ التسجيل…" : "سجّل البيع"}
-      </button>
+      </Button>
       <button className="micro-text-action" type="button" onClick={onBackToMenu}>
         رجوع إلى القائمة <ArrowRight aria-hidden="true" />
       </button>

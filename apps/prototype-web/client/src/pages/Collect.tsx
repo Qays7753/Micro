@@ -19,6 +19,7 @@ import type { CashContinuityOverview } from "@/application/cash/cashContinuitySe
 import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 type PageState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -187,13 +188,13 @@ export default function Collect() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح ورقة التحصيل</h1>
         <p>{state.message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           رجوع
-        </button>
+        </Button>
       </section>
     );
   if (state.phase === "done") {
@@ -229,20 +230,20 @@ export default function Collect() {
           </p>
         </section>
         <div className="micro-form-actions">
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => requestNavigation(outcome.sourceHref)}
           >
             <ReceiptText aria-hidden="true" /> افتح السجل
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             onClick={() => requestNavigation(returnPath)}
           >
             تم
-          </button>
+          </Button>
         </div>
       </section>
     );
@@ -322,13 +323,13 @@ export default function Collect() {
             الديون تظهر هنا بعد التسليم مع متبقٍ، أو بعد تسجيل الدين صراحة، أو من بيع آجل — التحصيل قبل
             التسليم يُسجَّل عربونًا من صفحة الطلب («سجّل عربونًا إضافيًا»).
           </p>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => requestNavigation(returnPath)}
           >
             رجوع
-          </button>
+          </Button>
         </section>
       ) : null}
       {source ? (
@@ -428,15 +429,15 @@ export default function Collect() {
               {message}
             </p>
           ) : null}
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             disabled={saving}
             onClick={() => void submit()}
           >
             <Handshake aria-hidden="true" />
             {saving ? "جارٍ تسجيل القبض…" : "سجّل القبض"}
-          </button>
+          </Button>
           <p className="micro-home-truth-line">
             <Landmark aria-hidden="true" /> القبض يُسجّل اليوم{" "}
             <bdi dir="ltr">{formatLocalDate(localDateInAmman())}</bdi> — كتابة محلية واحدة، والضغط مرتين لا

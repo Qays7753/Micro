@@ -21,6 +21,7 @@ import {
 import { templateComponentCountLabel } from "@/presentation/plurals";
 import type { CatalogItem, CatalogTemplate, MeasurementUnit } from "@micro-domain/catalog/index.js";
 
+import { Button } from "@/components/primitives";
 export type CatalogTemplatesSectionProps = {
   selectedItemId: string;
   setSelectedItemId: Dispatch<SetStateAction<string>>;
@@ -262,9 +263,9 @@ export function CatalogTemplatesSection({
                   </select>
                 </label>
               </div>
-              <button className="micro-button micro-button-secondary" type="button" onClick={addComponent}>
+              <Button action="secondary" onClick={addComponent}>
                 <Plus aria-hidden="true" /> أضف مكوّنًا للقالب
-              </button>
+              </Button>
               {templateComponents.length ? (
                 <div className="micro-list micro-list-compact">
                   {templateComponents.map(component => {
@@ -312,13 +313,13 @@ export function CatalogTemplatesSection({
               {/* المجموعة ٣ (عقد D5): بنود تكلفة اختيارية على مستوى القالب — إفصاح
                     تدريجي؛ الافتراضي قالب ببندات مواد فقط، والعمل/التغليف/التوصيل/
                     الهدر/هامش الحماية خلف فعل واضح. مرجع تخطيط بلا أثر مخزون أو سعر. */}
-              <button
-                className="micro-button micro-button-quiet"
-                type="button"
+              <Button
+                action="quiet"
+
                 onClick={() => setExtrasOpen(current => !current)}
               >
                 {extrasOpen ? "إخفاء بنود التكلفة الاختيارية" : "بنود اختيارية: عمل، تغليف، توصيل، هدر، هامش"}
-              </button>
+              </Button>
               {extrasOpen ? (
                 <div className="micro-form-grid">
                   <label className="micro-field">
@@ -430,23 +431,23 @@ export function CatalogTemplatesSection({
                 </div>
               ) : null}
               <div className="micro-action-row">
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
+                <Button
+                  action="save"
+
                   disabled={saving || !selectedItemId}
                   onClick={saveTemplate}
                 >
                   {editingTemplateId ? <RotateCcw aria-hidden="true" /> : <Check aria-hidden="true" />}{" "}
                   {saving ? "جارٍ الحفظ…" : editingTemplateId ? "احفظ النسخة الجديدة" : "احفظ القالب"}
-                </button>
+                </Button>
                 {editingTemplateId ? (
-                  <button
-                    className="micro-button micro-button-secondary"
-                    type="button"
+                  <Button
+                    action="secondary"
+
                     onClick={resetTemplateForm}
                   >
                     إلغاء التعديل
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </div>
@@ -491,20 +492,20 @@ export function CatalogTemplatesSection({
                       <div className="micro-action-column">
                         {template.active ? (
                           <>
-                            <button
-                              className="micro-button micro-button-secondary"
-                              type="button"
+                            <Button
+                              action="secondary"
+
                               onClick={() => startRevision(template)}
                             >
                               <RotateCcw aria-hidden="true" /> نسخة جديدة
-                            </button>
-                            <button
-                              className="micro-button micro-button-secondary"
-                              type="button"
+                            </Button>
+                            <Button
+                              action="secondary"
+
                               onClick={() => deactivateTemplate(template.id)}
                             >
                               <ArchiveX aria-hidden="true" /> إيقاف
-                            </button>
+                            </Button>
                           </>
                         ) : null}
                       </div>

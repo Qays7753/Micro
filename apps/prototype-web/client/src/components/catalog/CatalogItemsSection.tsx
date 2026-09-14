@@ -17,6 +17,7 @@ import {
 import { withFrom } from "@/app/navigationContract";
 import type { CatalogItem, CatalogItemKind, MeasurementUnit } from "@micro-domain/catalog/index.js";
 
+import { Button } from "@/components/primitives";
 export type CatalogItemsSectionProps = {
   kind: CatalogItemKind;
   setKind: Dispatch<SetStateAction<CatalogItemKind>>;
@@ -202,14 +203,14 @@ export function CatalogItemsSection({
             </label>
           </div>
         </details>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           disabled={saving || !name.trim()}
           onClick={create}
         >
           <Plus aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "أضف مرجعًا"}
-        </button>
+        </Button>
       </section>
 
       <section className="micro-section" aria-labelledby="catalog-items-title">
@@ -281,22 +282,22 @@ export function CatalogItemsSection({
                           />
                         </label>
                         <div className="micro-form-actions">
-                          <button
-                            className="micro-button micro-button-primary"
-                            type="button"
+                          <Button
+                            action="save"
+
                             disabled={saving}
                             onClick={() => void saveDefaults(item.id)}
                           >
                             {saving ? "جارٍ الحفظ…" : "حفظ الاقتراحات"}
-                          </button>
-                          <button
-                            className="micro-button micro-button-secondary"
-                            type="button"
+                          </Button>
+                          <Button
+                            action="secondary"
+
                             disabled={saving}
                             onClick={() => setDefaultsEditingId(null)}
                           >
                             إلغاء التعديل
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ) : null}
@@ -306,9 +307,9 @@ export function CatalogItemsSection({
                         محرر البيع بمرجع مُختار مسبقًا (?product=) ويحفظ الكتالوج مصدرًا؛
                         الموقوف لا يُباع من هنا حتى يُفعّل. */}
                     {item.active ? (
-                      <button
-                        className="micro-button micro-button-primary"
-                        type="button"
+                      <Button
+                        action="create"
+
                         onClick={() =>
                           requestSafeNavigation(
                             withFrom(`/direct-sales/new?product=${encodeURIComponent(item.id)}`, "/catalog"),
@@ -316,7 +317,7 @@ export function CatalogItemsSection({
                         }
                       >
                         {item.kind === "product" ? "سجّل بيع هذا المنتج" : "سجّل بيع هذه الخدمة"}
-                      </button>
+                      </Button>
                     ) : null}
                   </div>
                 </div>

@@ -18,6 +18,7 @@ import { useFormDraft } from "@/components/forms/useFormDraft";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 export default function LoanEditor() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
@@ -204,14 +205,14 @@ export default function LoanEditor() {
         </p>
       ) : null}
       <div className="micro-form-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="save"
+
           disabled={saving}
           onClick={() => void save()}
         >
           <Save aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "احفظ القرض"}
-        </button>
+        </Button>
       </div>
       <p className="micro-offline-truth">يعمل بلا إنترنت — يُحفظ محليًا على جهازك.</p>
     </section>

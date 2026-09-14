@@ -21,6 +21,7 @@ import {
   type MaterialSuggestion,
 } from "@/application/inventory/materialSuggestions";
 
+import { Button } from "@/components/primitives";
 type EditableMaterial = {
   uiId: string;
   name: string;
@@ -549,9 +550,9 @@ export default function CostCalculator() {
             {message}
           </p>
         ) : null}
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="save"
+
           disabled={saving || !preview.ok}
           onClick={() => void save()}
         >
@@ -561,7 +562,7 @@ export default function CostCalculator() {
             : editingId
               ? "احفظ التعديلات على هذا التقدير"
               : "احفظ التقدير لمراجعته لاحقًا"}
-        </button>
+        </Button>
       </section>
 
       {savedId ? (
@@ -574,16 +575,16 @@ export default function CostCalculator() {
             </div>
           </div>
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate(withFrom(`/tools/estimate/${encodeURIComponent(savedId)}`, "/tools"))}
             >
               افتح التقدير
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               onClick={() =>
                 navigate(
                   withFrom(
@@ -595,7 +596,7 @@ export default function CostCalculator() {
               }
             >
               ابدأ مسودة من هذا التقدير
-            </button>
+            </Button>
           </div>
           <p className="micro-home-quiet">
             يمكن المتابعة بالحساب والتعديل — الحفظ التالي يحدّث التقدير نفسه ولا يكرره.

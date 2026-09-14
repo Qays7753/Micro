@@ -11,6 +11,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletKind } from "@micro-domain/cash-continuity/index.js";
 import { localDateInAmman } from "@/presentation/formatters";
+import { Button } from "@/components/primitives";
 export default function CashWalletEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
@@ -116,15 +117,16 @@ export default function CashWalletEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={save}
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ الحفظ…" : "حفظ محفظة ورصيد البداية"}
-          </button>
+          </Button>
         </div>
       </section>
     </section>

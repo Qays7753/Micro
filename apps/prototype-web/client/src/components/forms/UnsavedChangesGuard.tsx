@@ -1,6 +1,7 @@
 import { setDirtyForms } from "@/pwa/dirtyRegistry";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
 
+import { Button } from "@/components/primitives";
 export type UnsavedExitChoice = "save" | "discard" | "cancel";
 export type UnsavedGuardRegistration = { isDirty: boolean; onSave: () => Promise<boolean> };
 export type UnsavedExitDecision = { kind: "save" | "discard"; target: string } | { kind: "cancel" };
@@ -274,26 +275,26 @@ function UnsavedChangesDialog({
           </p>
         ) : null}
         <div className="micro-dialog-actions">
-          <button
+          <Button
             ref={stayButtonRef}
-            className="micro-button micro-button-primary"
-            type="button"
+            action="secondary"
+
             onClick={onStay}
           >
             ابقَ في الصفحة
-          </button>
+          </Button>
           <button className="micro-text-action" type="button" disabled={isSaving} onClick={onSaveAndContinue}>
             {isSaving ? "جارٍ الحفظ…" : "احفظ واستمر"}
           </button>
-          <button
-            className="micro-button micro-button-danger"
-            type="button"
+          <Button
+            action="destructive"
+
             disabled={isSaving}
             style={{ marginInlineStart: "auto" }}
             onClick={onDiscard}
           >
             اخرج دون حفظ
-          </button>
+          </Button>
         </div>
       </div>
     </div>

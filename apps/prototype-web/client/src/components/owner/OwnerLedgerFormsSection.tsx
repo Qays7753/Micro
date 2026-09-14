@@ -27,6 +27,7 @@ import {
   supportedOwnerEntitlementPolicyKinds,
 } from "@/presentation/ownerEntitlementPresentation";
 
+import { Button } from "@/components/primitives";
 export type OwnerLedgerFormsSectionProps = {
   overview: OwnerEntitlementOverview;
   calculation: { amountMinor: number | null; knowledge: string; nextAction: string } | null;
@@ -214,14 +215,14 @@ export function OwnerLedgerFormsSection({
               placeholder="مثال: حق شهر 08/2026 حسب السياسة 1"
             />
           </label>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             disabled={saving || !calculation || calculation.amountMinor === null}
             onClick={() => void saveEntitlement()}
           >
             <HandCoins aria-hidden="true" /> تسجيل الحق دون قبض
-          </button>
+          </Button>
         </section>
       </details>
       <details className="micro-owner-layer">
@@ -286,14 +287,14 @@ export function OwnerLedgerFormsSection({
               placeholder="اشرح مصدر الرصيد الافتتاحي"
             />
           </label>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             disabled={saving}
             onClick={() => void saveOpeningBalance()}
           >
             حفظ الرصيد الافتتاحي
-          </button>
+          </Button>
         </section>
       </details>
       <details className="micro-owner-layer">
@@ -429,14 +430,14 @@ export function OwnerLedgerFormsSection({
               placeholder="مثال: سحبت مبلغًا لتسوية حق آب"
             />
           </label>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             disabled={saving}
             onClick={() => void saveMovement()}
           >
             <WalletCards aria-hidden="true" /> حفظ الحركة وأثر الكاش
-          </button>
+          </Button>
         </section>
       </details>
     </>

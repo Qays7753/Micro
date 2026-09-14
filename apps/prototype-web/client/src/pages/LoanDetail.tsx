@@ -16,6 +16,7 @@ import RepaymentSheet from "@/components/loans/RepaymentSheet";
 import type { LoanRecord, LoanReading } from "@micro-domain/loan/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
+import { Button } from "@/components/primitives";
 type Reading = { loan: LoanRecord; reading: LoanReading; events: readonly FinancialEvent[] };
 
 export default function LoanDetail() {
@@ -156,13 +157,13 @@ export default function LoanDetail() {
 
       {reading.status === "open" ? (
         <div className="micro-form-actions">
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="create"
+
             onClick={() => setRepayOpen(true)}
           >
             <HandCoins aria-hidden="true" /> سجّل دفعة سداد
-          </button>
+          </Button>
         </div>
       ) : (
         <section className="micro-note-card" aria-label="قرض مسدَّد">
@@ -211,14 +212,14 @@ export default function LoanDetail() {
             />
           </label>
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="save"
+
               disabled={busy}
               onClick={() => void correctLoan()}
             >
               <Save aria-hidden="true" /> احفظ التصحيح
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

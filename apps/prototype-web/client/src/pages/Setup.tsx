@@ -16,6 +16,7 @@ import {
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { localDateInAmman } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 type Step = 1 | 2 | 3;
 type OpeningChoice = "known" | "unknown" | "zero";
 
@@ -398,19 +399,15 @@ export default function Setup() {
         </div>
         <div className="micro-form-actions">
           {step > 1 ? (
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => setStep(current => (current === 3 ? 2 : 1))}
             >
               <ArrowRight aria-hidden="true" /> خطوة سابقة
-            </button>
+            </Button>
           ) : null}
-          <button
-            className="micro-button micro-button-primary micro-button-block"
-            type="submit"
-            disabled={isSaving}
-          >
+          <Button action="save" block type="submit" disabled={isSaving}>
             {isSaving
               ? "جارٍ الحفظ…"
               : step === 1
@@ -419,7 +416,7 @@ export default function Setup() {
                   ? "التالي"
                   : "احفظ وافتح صفحة الأساس"}
             {step === 3 && !isSaving ? <ArrowLeft aria-hidden="true" /> : null}
-          </button>
+          </Button>
         </div>
       </form>
     </section>

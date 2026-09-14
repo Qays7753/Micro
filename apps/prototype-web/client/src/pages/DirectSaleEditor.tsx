@@ -18,6 +18,7 @@ import type { DirectSaleCollectionStatus, DirectSale } from "@micro-domain/direc
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
+import { Button } from "@/components/primitives";
 type DifferenceChoice = "price_cut" | "remaining_debt" | "needs_review";
 
 const collectionStatusLabel: Record<DirectSaleCollectionStatus, string> = {
@@ -508,9 +509,9 @@ export default function DirectSaleEditor() {
             فيك مواد متتبَّعة استُهلكت في هذا البيع؟ سجّل استهلاكها بصلة صريحة بهذا البيع — اختياري تمامًا،
             والبيع صحيح بدونه.
           </p>
-          <button
-            className="micro-button micro-button-quiet"
-            type="button"
+          <Button
+            action="quiet"
+
             onClick={() =>
               requestNavigation(
                 withFrom(
@@ -521,25 +522,25 @@ export default function DirectSaleEditor() {
             }
           >
             سجّل استهلاك مواد لهذا البيع
-          </button>
+          </Button>
         </section>
         <div className="micro-form-actions">
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() =>
               requestNavigation(withFrom(`/direct-sales/${encodeURIComponent(sale.id)}`, returnPath))
             }
           >
             <ReceiptText aria-hidden="true" /> افتح السجل
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             onClick={() => requestNavigation(returnPath)}
           >
             تم
-          </button>
+          </Button>
         </div>
       </section>
     );
@@ -893,28 +894,29 @@ export default function DirectSaleEditor() {
                   <small>لم يُقرَّر بعد — خيار صالح لا خطأ، والفرق يبقى معلَّقًا على البيع حتى تحسمه.</small>
                 </span>
               </label>
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              <Button
+                action="save"
+
                 disabled={saving || differenceChoice === null}
                 onClick={() => {
                   void save();
                 }}
               >
                 {saving ? "جارٍ الحفظ…" : "أكمل الحفظ بالقرار المختار"}
-              </button>
+              </Button>
             </section>
           ) : (
             <div className="micro-form-actions micro-sticky-save">
-              <button
-                className="micro-button micro-button-primary micro-save-cost"
-                type="button"
+              <Button
+                action="save"
+                block
+
                 disabled={saving}
                 onClick={save}
               >
                 <Save aria-hidden="true" />
                 {saving ? "جارٍ الحفظ…" : editing ? "حفظ تصحيح البيع" : "حفظ البيع المباشر"}
-              </button>
+              </Button>
             </div>
           )}
         </fieldset>
@@ -929,13 +931,13 @@ export default function DirectSaleEditor() {
             </div>
           </div>
           {!cancelOpen ? (
-            <button
-              className="micro-button micro-button-danger"
-              type="button"
+            <Button
+              action="destructive"
+
               onClick={() => setCancelOpen(true)}
             >
               إظهار تأكيد الإلغاء
-            </button>
+            </Button>
           ) : (
             <>
               <p>سيبقى البيع ظاهرًا في «مبيعاتي» بحالة ملغى، ولن يُحذف بصمت.</p>
@@ -948,22 +950,22 @@ export default function DirectSaleEditor() {
                 />
               </label>
               <div className="micro-form-actions">
-                <button
-                  className="micro-button micro-button-danger"
-                  type="button"
+                <Button
+                  action="destructive"
+
                   disabled={saving}
                   onClick={cancel}
                 >
                   تأكيد إلغاء البيع
-                </button>
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
+                </Button>
+                <Button
+                  action="secondary"
+
                   disabled={saving}
                   onClick={() => setCancelOpen(false)}
                 >
                   إبقاء البيع
-                </button>
+                </Button>
               </div>
             </>
           )}

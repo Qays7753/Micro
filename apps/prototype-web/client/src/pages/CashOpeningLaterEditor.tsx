@@ -12,6 +12,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletBalance } from "@/application/cash/cashContinuityService";
 import { localDateInAmman } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 type PageState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -99,13 +100,13 @@ export default function CashOpeningLaterEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح سجل الرصيد</h1>
         <p>{state.message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           محافظ الكاش
-        </button>
+        </Button>
       </section>
     );
   if (state.phase === "already-known")
@@ -122,13 +123,13 @@ export default function CashOpeningLaterEditor() {
             افتتاحًا ثانيًا.
           </p>
         </div>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(`/cash/wallet/${state.wallet.id}/adjust`)}
         >
           ضبط الكاش بسبب
-        </button>
+        </Button>
       </section>
     );
 
@@ -184,15 +185,16 @@ export default function CashOpeningLaterEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={save}
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ الحفظ…" : "سجّل الرصيد الموثق"}
-          </button>
+          </Button>
         </div>
       </section>
     </section>

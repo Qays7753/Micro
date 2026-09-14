@@ -259,18 +259,6 @@
 .micro-header-actions {
   gap: var(--space-2);
 }
-.micro-status-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  border-radius: 999px;
-  padding-inline: var(--space-2);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-success-text);
-  background: var(--color-success-bg);
-}
 .micro-icon-button {
   display: inline-grid;
   width: 44px;
@@ -443,50 +431,6 @@
 .micro-priority-truth strong {
   color: var(--color-text-strong);
   font-size: 15px;
-}
-.micro-button {
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  width: fit-content;
-  border: 0;
-  border-radius: var(--radius-control);
-  padding: 0 var(--space-4);
-  font-size: 15px;
-  font-weight: 600;
-  transition:
-    transform 160ms var(--motion-out),
-    background 160ms var(--motion-out),
-    color 160ms var(--motion-out);
-}
-.micro-button svg {
-  width: 20px;
-  height: 20px;
-}
-.micro-button:active {
-  transform: scale(0.97);
-}
-.micro-button-primary {
-  color: var(--primary-foreground);
-  background: var(--primary);
-  box-shadow: var(--elevation-1);
-}
-@media (hover: hover) and (pointer: fine) {
-  .micro-button-primary:hover,
-  .micro-fab:hover {
-    background: var(--color-brand-pressed);
-  }
-}
-.micro-button-secondary {
-  color: var(--secondary-foreground);
-  background: var(--secondary);
-}
-@media (hover: hover) and (pointer: fine) {
-  .micro-button-secondary:hover {
-    background: var(--color-accent-primary);
-  }
 }
 .micro-section {
   display: flex;
@@ -936,7 +880,7 @@ textarea:disabled,
   gap: var(--space-3);
   padding: 0 var(--space-4) var(--space-4);
 }
-.micro-sheet-form .micro-button-primary {
+.micro-sheet-form .micro-prim-button--save {
   width: 100%;
 }
 .micro-sheet-receipt {
@@ -1215,7 +1159,7 @@ textarea:disabled,
   margin-inline: calc(var(--space-3) * -1);
   padding: var(--space-3) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
 }
-.micro-form-actions.micro-sticky-save .micro-button {
+.micro-form-actions.micro-sticky-save .micro-prim-button {
   flex: 1 1 auto;
 }
 .micro-save-note {
@@ -1507,7 +1451,7 @@ textarea:disabled,
   border-top: 1px solid var(--color-border);
   padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
 }
-.micro-sheet-footer .micro-button {
+.micro-sheet-footer .micro-prim-button {
   width: 100%;
 }
 .micro-field-grid {
@@ -1533,10 +1477,6 @@ textarea:disabled,
   width: 18px;
   height: 18px;
   flex: 0 0 auto;
-}
-.micro-save-cost {
-  width: 100%;
-  justify-content: center;
 }
 .micro-cost-disclaimer {
   margin: 0;
@@ -1729,7 +1669,7 @@ textarea:disabled,
 .micro-collection-actions {
   align-items: stretch;
 }
-.micro-collection-actions .micro-button {
+.micro-collection-actions .micro-prim-button {
   min-height: 48px;
   flex: 1 1 180px;
   justify-content: center;
@@ -1782,10 +1722,6 @@ textarea:disabled,
 }
 .micro-import-preview .micro-field-error {
   color: var(--color-danger-text);
-}
-.micro-button-block {
-  width: 100%;
-  justify-content: center;
 }
 .micro-home-heading {
   padding-bottom: var(--space-2);
@@ -2340,7 +2276,7 @@ textarea:disabled,
   font-size: 13px;
   line-height: 1.7;
 }
-.micro-finance-unallocated-alert .micro-button {
+.micro-finance-unallocated-alert .micro-prim-button {
   justify-self: start;
 }
 
@@ -2766,7 +2702,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-schedule-capacity .micro-field {
   gap: var(--space-1);
 }
-.micro-schedule-capacity .micro-button {
+.micro-schedule-capacity .micro-prim-button {
   justify-self: start;
 }
 .micro-week-agenda {
@@ -3001,7 +2937,7 @@ button.micro-finance-position-link:focus-visible {
   padding: var(--space-3);
   background: var(--color-success-bg);
 }
-.micro-setup-decision .micro-button-primary {
+.micro-setup-decision .micro-prim-button--save {
   min-height: 52px;
 }
 @keyframes micro-enter {
@@ -3058,9 +2994,6 @@ button.micro-finance-position-link:focus-visible {
   font-size: 13px;
   line-height: 1.65;
 }
-.micro-full-action {
-  width: 100%;
-}
 .micro-supplier-list {
   display: grid;
   gap: var(--space-3);
@@ -3091,7 +3024,7 @@ button.micro-finance-position-link:focus-visible {
   justify-items: end;
   flex: 0 0 auto;
 }
-.micro-supplier-balance .micro-button {
+.micro-supplier-balance .micro-prim-button {
   min-height: 44px;
   padding: 0 var(--space-3);
   font-size: 12px;
@@ -3131,15 +3064,11 @@ button.micro-finance-position-link:focus-visible {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
 }
-.micro-cash-actions .micro-button {
+.micro-cash-actions .micro-prim-button {
   width: 100%;
   min-height: 52px;
   padding-inline: var(--space-2);
   font-size: 13px;
-}
-.micro-cash-actions .micro-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 /* مبدأ Micro: الفعل المشروط يشرح شرطه القريب بدل زر معطل بلا تفسير. */
 .micro-later-action {
@@ -3164,19 +3093,6 @@ button.micro-finance-position-link:focus-visible {
 .micro-cash-history {
   border-top: 3px solid var(--color-accent-primary);
   padding-top: var(--space-3);
-}
-.micro-button-quiet {
-  /* عقد الإغلاق العميق (MR-03): هدف لمس 44px كحد أدنى — هذه الأزرار تحمل مداخل
-   * التصحيح والتراجع المالي (عدّل/تراجع/السجل والتصحيح) ولا يجوز أن تتقلص عن
-   * الحد الأدنى المعتمد في U09 (هدف لمس ٤٤ بكسل كحد أدنى). */
-  min-height: 44px;
-  border: 1px solid var(--color-border);
-  color: var(--color-accent-text);
-  background: transparent;
-  box-shadow: none;
-}
-.micro-button-quiet:hover {
-  background: var(--color-accent-soft);
 }
 @media (min-width: 641px) {
   body {
@@ -3628,7 +3544,7 @@ button.micro-finance-position-link:focus-visible {
   justify-content: end;
   gap: var(--space-1);
 }
-.micro-install-actions .micro-button {
+.micro-install-actions .micro-prim-button {
   min-height: 44px;
   padding-inline: var(--space-3);
   font-size: 13px;
@@ -3646,7 +3562,7 @@ button.micro-finance-position-link:focus-visible {
     grid-column: 2;
     justify-content: start;
   }
-  .micro-install-actions .micro-button {
+  .micro-install-actions .micro-prim-button {
     flex: 1 1 auto;
   }
 }
@@ -3709,7 +3625,7 @@ button.micro-finance-position-link:focus-visible {
   justify-content: end;
   gap: var(--space-1);
 }
-.micro-runtime-actions .micro-button {
+.micro-runtime-actions .micro-prim-button {
   min-height: 44px;
   padding-inline: var(--space-3);
   font-size: 13px;
@@ -3732,7 +3648,7 @@ button.micro-finance-position-link:focus-visible {
     grid-column: 2;
     justify-content: start;
   }
-  .micro-runtime-actions .micro-button {
+  .micro-runtime-actions .micro-prim-button {
     flex: 1 1 auto;
   }
   .micro-runtime-confirmation {
@@ -3759,7 +3675,7 @@ button.micro-finance-position-link:focus-visible {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
-.micro-g5-reversal-editor .micro-button {
+.micro-g5-reversal-editor .micro-prim-button {
   width: 100%;
 }
 
@@ -4248,16 +4164,6 @@ button.micro-month-cell:active {
   color: var(--color-warning-text) !important;
   font-size: 12px !important;
 }
-.micro-button-quiet {
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  background: transparent;
-}
-@media (hover: hover) and (pointer: fine) {
-  .micro-button-quiet:hover {
-    background: var(--color-bg-well);
-  }
-}
 @media (max-width: 380px) {
   .micro-recurrence-appearances {
     grid-template-columns: 1fr;
@@ -4697,7 +4603,7 @@ button.micro-month-cell:active {
   color: var(--color-text-secondary);
   font-size: 12px;
 }
-.micro-home-finance-unit .micro-button {
+.micro-home-finance-unit .micro-prim-button {
   flex: 0 0 auto;
 }
 /* قسم «اليوم» (F-078): أولوية صباحية — المتابعات والمواعيد والديون من شاشة واحدة. */
@@ -4872,7 +4778,7 @@ button.micro-month-cell:active {
   font-size: 12px;
   line-height: 1.7;
 }
-.micro-inventory-inactive .micro-button {
+.micro-inventory-inactive .micro-prim-button {
   flex: 0 0 auto;
 }
 /* F-082: إيقاف سياسة توزيع فعالة — تأكيد مزدوج يبيّن أثره. */
@@ -5390,19 +5296,6 @@ button.micro-month-cell:active {
   height: 20px;
   color: var(--color-danger-text);
 }
-.micro-button-danger {
-  color: var(--color-surface);
-  background: var(--color-danger-text);
-}
-@media (hover: hover) and (pointer: fine) {
-  .micro-button-danger:hover {
-    background: color-mix(in srgb, var(--color-danger-text) 86%, var(--color-text-primary));
-  }
-}
-.micro-button-danger svg {
-  width: 18px;
-  height: 18px;
-}
 
 .micro-cash-decision {
   display: grid;
@@ -5459,7 +5352,7 @@ button.micro-month-cell:active {
   color: var(--color-text-strong);
   font-size: 14px;
 }
-.micro-cash-decision-footer .micro-button {
+.micro-cash-decision-footer .micro-prim-button {
   width: 100%;
 }
 .micro-cash-decision-truth {
@@ -5502,7 +5395,7 @@ button.micro-month-cell:active {
   flex-wrap: wrap;
   gap: var(--space-2);
 }
-.micro-optional-cost-actions .micro-button {
+.micro-optional-cost-actions .micro-prim-button {
   min-height: 44px;
 }
 .micro-optional-cost-field {
@@ -5724,7 +5617,7 @@ button.micro-month-cell:active {
   direction: ltr;
   unicode-bidi: isolate;
 }
-.micro-owner-page .micro-button svg {
+.micro-owner-page .micro-prim-button svg {
   width: 17px;
   height: 17px;
 }
@@ -5961,7 +5854,7 @@ button.micro-month-cell:active {
     flex-direction: row;
     width: 100%;
   }
-  .micro-action-column .micro-button {
+  .micro-action-column .micro-prim-button {
     flex: 1 1 140px;
   }
 }
@@ -6030,11 +5923,6 @@ button.micro-month-cell:active {
 /* First-use acceptance: keep the agreement commit target clear of the fixed nav/FAB when the form is scrolled to its end. */
 .micro-main[data-route-kind="surface"] .micro-agreement-page .micro-form-card {
   padding-bottom: calc(var(--space-4) + 88px + env(safe-area-inset-bottom));
-}
-.micro-agreement-page .micro-save-cost {
-  position: relative;
-  z-index: 1;
-  min-height: 52px;
 }
 
 /* Final-only review totals must expose the excluded delivered sources next to the scope note. */
@@ -6673,11 +6561,6 @@ button.micro-month-cell:active {
   font-family: inherit;
   background: var(--color-surface);
   color: var(--color-text-primary);
-}
-.micro-choice-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
 }
 .micro-offline-truth {
   color: var(--color-text-secondary);

@@ -11,6 +11,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { G5LinkOptions } from "@/application/g5/g5Service";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 /* مبدأ Micro: يبدأ المتوقع بالواقعة الأساسية، وتبقى المعرفة والربط والملاحظة خلف تفاصيل مقصودة. */
 
 function todayInAmman() {
@@ -230,22 +231,24 @@ export default function G5DeclarationEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-button-block"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={() => void save()}
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ حفظ المتوقع…" : "حفظ المتوقع"}
-          </button>
-          <button
-            className="micro-button micro-button-secondary micro-button-block"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+            block
+
             onClick={() => navigate("/finance")}
           >
             إلغاء
-          </button>
+          </Button>
         </div>
       </section>
     </section>

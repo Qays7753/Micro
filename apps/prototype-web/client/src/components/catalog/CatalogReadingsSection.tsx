@@ -19,6 +19,7 @@ import type {
   RecurringWorkReadings,
 } from "@/application/recurring-work/recurringWorkService";
 
+import { Button } from "@/components/primitives";
 export type CatalogReadingsSectionProps = {
   readings: RecurringWorkReadings | null;
   items: readonly CatalogItem[];
@@ -160,13 +161,13 @@ export function CatalogReadingsSection({
                                   : ""}{" "}
                                 · {policy.source} · السبب: {policy.reason} · {policy.note}
                                 {policy.status === "active" ? (
-                                  <button
-                                    className="micro-button micro-button-secondary"
-                                    type="button"
+                                  <Button
+                                    action="secondary"
+
                                     onClick={() => startPolicyRevision(policy)}
                                   >
                                     أنشئ نسخة جديدة
-                                  </button>
+                                  </Button>
                                 ) : null}
                                 {/* F-082 (القرار ١٦): زر إيقاف بجانب كل سياسة فعالة، مع تأكيد يبيّن أثره. */}
                                 {policy.status === "active" ? (
@@ -177,31 +178,31 @@ export function CatalogReadingsSection({
                                           الإيقاف يمنع توزيعات جديدة بهذه السياسة؛ القراءات السابقة تبقى
                                           بتوثيقها ولا يُحذف شيء.
                                         </small>
-                                        <button
-                                          className="micro-button micro-button-secondary"
-                                          type="button"
+                                        <Button
+                                          action="secondary"
+
                                           onClick={() => {
                                             void deactivateAllocationPolicy(policy.id);
                                           }}
                                         >
                                           أكّد الإيقاف
-                                        </button>
-                                        <button
-                                          className="micro-button micro-button-quiet"
-                                          type="button"
+                                        </Button>
+                                        <Button
+                                          action="quiet"
+
                                           onClick={() => setPolicyStopId(null)}
                                         >
                                           تراجع
-                                        </button>
+                                        </Button>
                                       </>
                                     ) : (
-                                      <button
-                                        className="micro-button micro-button-quiet"
-                                        type="button"
+                                      <Button
+                                        action="quiet"
+
                                         onClick={() => setPolicyStopId(policy.id)}
                                       >
                                         إيقاف
-                                      </button>
+                                      </Button>
                                     )}
                                   </span>
                                 ) : null}
@@ -222,13 +223,13 @@ export function CatalogReadingsSection({
                     )}
                   </div>
                   {item.active ? (
-                    <button
-                      className="micro-button micro-button-secondary"
-                      type="button"
+                    <Button
+                      action="secondary"
+
                       onClick={() => deactivate(item.id)}
                     >
                       <ArchiveX aria-hidden="true" /> إيقاف
-                    </button>
+                    </Button>
                   ) : null}
                 </article>
               );

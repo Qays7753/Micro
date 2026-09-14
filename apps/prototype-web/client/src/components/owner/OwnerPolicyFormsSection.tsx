@@ -27,6 +27,7 @@ import {
   supportedOwnerEntitlementPolicyKinds,
 } from "@/presentation/ownerEntitlementPresentation";
 
+import { Button } from "@/components/primitives";
 export type OwnerPolicyFormsSectionProps = {
   overview: OwnerEntitlementOverview;
   calculation: { amountMinor: number | null; knowledge: string; nextAction: string } | null;
@@ -226,14 +227,14 @@ export function OwnerPolicyFormsSection({
               placeholder="ما الذي يغطيه هذا الحق؟"
             />
           </label>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             disabled={saving}
             onClick={() => void savePolicy()}
           >
             <Save aria-hidden="true" /> حفظ سياسة مستقلة
-          </button>
+          </Button>
         </section>
       </details>
       <details className="micro-owner-layer">
@@ -377,14 +378,14 @@ export function OwnerPolicyFormsSection({
             النتيجة: النسخة الجديدة تحفظ إعدادات مختلفة عند الحاجة، والحقوق التاريخية لا يعاد احتسابها. إذا
             احتاج النوع دليل وقت أو وحدة أو وردية غير موجود، سيبقى غير متاح بدل التخمين.
           </p>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             disabled={saving || !successorPolicy}
             onClick={() => void saveSuccessor()}
           >
             حفظ التعديل وإنهاء السابقة
-          </button>
+          </Button>
         </section>
       </details>
     </>

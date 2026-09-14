@@ -76,13 +76,13 @@ export default function Orders() {
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل الطلبات</h1>
         <p>لم يتم تغيير شيء — بياناتك كما هي؛ أعد المحاولة.</p>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => setReloadToken(token => token + 1)}
         >
           إعادة المحاولة
-        </button>
+        </Button>
       </section>
     );
   /* المجموعة ١ (§8.1): كل فتح من «العمل» يحفظ مصدره — الرجوع يعود إلى العمل. */
@@ -294,39 +294,39 @@ export default function Orders() {
         </button>
       </section>
       {/* §8.1: CTA ثانوي واضح حيث يملك هذا السطح المبيعات. */}
-      <button
-        className="micro-button micro-button-secondary"
-        type="button"
+      <Button
+        action="secondary"
+
         onClick={() => openFromWork("/direct-sales/new")}
       >
         <BadgeDollarSign aria-hidden="true" /> تسجيل بيع مباشر
-      </button>
+      </Button>
       {/* عقد الإغلاق العميق (WF-03 — عقد التنقل): العمل يملك المرجع والمواد —
           وصلة هادئة لكل منهما بجوار أفعال العمل، لا مقاعد جديدة ولا شريط ثانٍ. */}
       <div className="micro-form-actions micro-contextual-actions">
-        <button
-          className="micro-button micro-button-quiet"
-          type="button"
+        <Button
+          action="quiet"
+
           onClick={() => openFromWork("/catalog")}
         >
           منتجاتي وخدماتي
-        </button>
-        <button
-          className="micro-button micro-button-quiet"
-          type="button"
+        </Button>
+        <Button
+          action="quiet"
+
           onClick={() => openFromWork("/inventory")}
         >
           المواد والمخزون
-        </button>
+        </Button>
       </div>
       {state.orders.length > 0 || state.drafts.length > 0 ? (
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => openFromWork("/orders/draft/new?intent=customer_order")}
         >
           إنشاء مسودة أخرى
-        </button>
+        </Button>
       ) : null}
       {isEmptyWorkState ? (
         <section className="micro-empty-state" aria-labelledby="work-empty-title">

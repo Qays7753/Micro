@@ -24,6 +24,7 @@ import { formatLocalDate } from "@/presentation/formatters";
 import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
 
+import { Button } from "@/components/primitives";
 export type SettingsDataProtectionSectionProps = {
   persistence: BrowserPersistenceReading | null;
   lastExport: string | null;
@@ -114,13 +115,13 @@ export function SettingsDataProtectionSection({
               سجل حوادث محديد الحجم على هذا الجهاز فقط — معرّف حادثة وقالب مسار ورمز خطأ فقط؛ بلا أسماء أو
               مبالغ أو رموز قفل؛ ولا يُرسل شيءًا تلقائيًا أبدًا.
             </p>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => void copyDiagnosticReport()}
             >
               <FileCheck2 aria-hidden="true" /> نسخ التقرير المحلي
-            </button>
+            </Button>
             {diagnosticCopyResult ? (
               <p className="micro-save-note" role="status">
                 {diagnosticCopyResult.message}
@@ -254,22 +255,22 @@ export function SettingsDataProtectionSection({
               هو. الملف المحمّل هو نسختك الوحيدة.
             </p>
             <div className="micro-form-actions">
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={isWorking}
                 onClick={() => setResetFlow({ phase: "idle" })}
               >
                 إلغاء — بياناتي تبقى
-              </button>
-              <button
-                className="micro-button micro-button-danger"
-                type="button"
+              </Button>
+              <Button
+                action="destructive"
+
                 disabled={isWorking || resetNameConfirmation.trim() !== "ابدأ من جديد"}
                 onClick={() => void confirmReset()}
               >
                 {isWorking ? "جارٍ المسح…" : "امسح وابدأ من جديد"}
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}
@@ -304,16 +305,16 @@ function StorageRow({
         <h2>{title}</h2>
         <p>{text}</p>
       </div>
-      <button
-        className="micro-button micro-button-secondary"
-        type="button"
+      <Button
+        action="secondary"
+
         disabled={disabled}
         onClick={onClick}
         aria-label={label}
       >
         <Icon aria-hidden="true" />
         {actionLabel}
-      </button>
+      </Button>
     </article>
   );
 }

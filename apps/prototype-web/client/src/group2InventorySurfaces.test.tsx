@@ -252,7 +252,14 @@ describe("InventoryMaterials sections and lifecycle (المجموعة ٢ — ع�
     expect(screen.queryByTestId("untrack-dialog")).toBeNull();
     expect(screen.getByTestId("tracked-material-قماش")).toBeTruthy();
     fireEvent.click(screen.getByText("أوقف المتابعة"));
-    fireEvent.click(await screen.findByText("أوقف المتابعة", { selector: "button.micro-button-danger" }));
+    /* W2 (completion): زر التأكيد صار المكوّن الأولي — الاسم نفسه موجود أيضًا
+     * على مدخل الفعل النصي، فيُميَّز التأكيد بعقد الإتلاف (صنف الحبر الخطأ). */
+    const stopButtons = await screen.findAllByRole("button", { name: "أوقف المتابعة" });
+    const stopConfirm = stopButtons.find(button =>
+      button.className.includes("micro-prim-button--destructive"),
+    );
+    expect(stopConfirm).toBeTruthy();
+    fireEvent.click(stopConfirm!);
     await waitFor(() => expect(screen.getByTestId("untracked-material-قماش")).toBeTruthy());
     /* الحركات محفوظة — لا حذف. */
     const movements = await inventory.movements();
@@ -291,11 +298,12 @@ describe("InventoryMaterials sections and lifecycle (المجموعة ٢ — ع�
     const details = await screen.findByTestId("shortage-details-مسمار");
     fireEvent.click(details.querySelector("summary") as HTMLElement);
     expect(details.textContent).toContain("نقص لتجربة طلبي");
-    fireEvent.click(screen.getByText("سجّل الحل", { selector: "button" }));
+    /* W2 (completion): الاستعلام بالدور/الاسم — التسمية داخل مكوّن أولي الآن. */
+    fireEvent.click(screen.getByRole("button", { name: "سجّل الحل" }));
     fireEvent.change(screen.getByLabelText("بيان الحل"), {
       target: { value: "استلمت بديلًا من المورد" },
     });
-    fireEvent.click(screen.getByText("سجّل الحل", { selector: "button" }));
+    fireEvent.click(screen.getByRole("button", { name: "سجّل الحل" }));
     await waitFor(() => {
       const detailsAfter = screen.getByTestId("shortage-details-مسمار");
       expect(detailsAfter.textContent).toContain("حُلّ");

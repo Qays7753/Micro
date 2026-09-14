@@ -10,6 +10,7 @@ import type {
   QuickActionWalletOption,
 } from "./quickActionFormTypes";
 
+import { Button } from "@/components/primitives";
 /*
  * W3 — نموذج المصروف السريع (نمط مالية، لا قشرة): مبلغ إلزامي واحد وبند
  * اختياري ورقاقات وسم اختيارية بنقرة (المجموعة ١) — المسار السريع لا يفتح
@@ -184,16 +185,16 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
             {formError}
           </p>
         ) : null}
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="save"
+
           disabled={saving}
           onClick={() => {
             void submit();
           }}
         >
           {saving ? "جارٍ التسجيل…" : "سجّل المصروف"}
-        </button>
+        </Button>
         <button className="micro-text-action" type="button" onClick={onBackToMenu}>
           رجوع إلى القائمة <ArrowRight aria-hidden="true" />
         </button>

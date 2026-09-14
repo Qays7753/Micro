@@ -12,6 +12,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletBalance } from "@/application/cash/cashContinuityService";
 import { localDateInAmman } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();
 export default function CashAdjustmentEditor() {
   const { id } = useParams<{ id: string }>();
@@ -78,9 +79,9 @@ export default function CashAdjustmentEditor() {
       <section className="micro-page micro-not-found">
         <h1>لم نجد محفظة الكاش</h1>
         <p>ارجع إلى المحافظ واختر مكان كاش مسجلًا.</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
+        <Button action="secondary" onClick={() => navigate("/cash")}>
           محافظ الكاش
-        </button>
+        </Button>
       </section>
     );
   return (
@@ -145,15 +146,16 @@ export default function CashAdjustmentEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={save}
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ الحفظ…" : "حفظ ضبط الكاش"}
-          </button>
+          </Button>
         </div>
       </section>
     </section>

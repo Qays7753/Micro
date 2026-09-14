@@ -46,6 +46,7 @@ import {
 import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
 import { SettingsGuidedOpeningSection } from "@/components/settings/SettingsGuidedOpeningSection";
 
+import { Button } from "@/components/primitives";
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
@@ -589,13 +590,13 @@ export default function SettingsPage() {
           <h1>{protectionBlocked.title}</h1>
           <p>{protectionBlocked.message}</p>
           <div className="micro-lock-form">
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => setProtectionBlocked(null)}
             >
               حسنًا
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

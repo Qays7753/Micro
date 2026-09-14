@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, Ref } from "react";
 import clsx from "clsx";
 
 /*
@@ -7,13 +7,16 @@ import clsx from "clsx";
  * الأصناف: create (هوية Clay، حبر داكن للنص) · save (سطح دافئ + حبر داكن +
  * حافة clay-interactive عند الضغط — الضغط ليس نجاحًا) · commit (حبر دافئ ممتلئ +
  * نص أبيض — للالتزام عالي العواقب فقط، مع مسار تأكيد مستقل عند الاستهلاك)
- * · secondary/outline/ghost (محايدة) · destructive (حبر الخطأ + تأكيد).
+ * · secondary/outline/ghost (محايدة) · quiet (مداخل التصحيح والتراجع الموثقة —
+ * حد شعري، خلفية شفافة، 48px قاعدة، عقد اللمس MR-03/U09) · destructive
+ * (حبر الخطأ + تأكيد).
  * الأساس المشترك: 48px، radius-control، 600، تركيز مرئي، منع الإرسال
  * المزدوج، تحميل بلا إزاحة تخطيط (الأيقونة تدور، التسمية تبقى).
  * لا معنى ماليًا داخل الزر — الأفعال تُفسَّر في سياق الشاشة.
  */
 
-export type ButtonAction = "create" | "save" | "commit" | "secondary" | "outline" | "ghost" | "destructive";
+export type ButtonAction =
+  "create" | "save" | "commit" | "secondary" | "outline" | "ghost" | "quiet" | "destructive";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** صنف الفعل (افتراضيًا save — الفعل الاعتيادي الأكثر شيوعًا). */
@@ -22,6 +25,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   /** عرض كامل داخل الحاوية. */
   block?: boolean;
+  /** React 19: المرجع prop اعتيادي — يُمرَّر إلى عنصر الزر كما هو. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function Button({
@@ -32,11 +37,13 @@ export function Button({
   children,
   disabled,
   onClick,
+  ref,
   type = "button",
   ...rest
 }: ButtonProps) {
   return (
     <button
+      ref={ref}
       type={type}
       aria-busy={loading || undefined}
       disabled={disabled || loading}

@@ -32,6 +32,7 @@ import type {
   QuickActionWalletOption,
 } from "@/components/finance/quickActionFormTypes";
 
+import { Button } from "@/components/primitives";
 export type QuickAction = "sale" | "expense" | "order" | "estimate" | "collection";
 export type QuickActionItem = {
   action: QuickAction;
@@ -219,19 +220,19 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
             <strong id="sheet-discard-question">في رقم مكتوب — تسجّله أو تتجاهله؟</strong>
             <p>الإغلاق الآن يفقد ما كتبته في هذه الورقة؛ لا يوجد حفظ تلقائي.</p>
             <div className="micro-form-actions">
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              <Button
+                action="save"
+
                 disabled={formSaving}
                 onClick={() => {
                   void confirmBySaving();
                 }}
               >
                 سجّله الآن
-              </button>
-              <button className="micro-button micro-button-danger" type="button" onClick={discardTypedInput}>
+              </Button>
+              <Button action="destructive" onClick={discardTypedInput}>
                 تجاهل ما كتبت
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}
@@ -309,9 +310,9 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                 {receipt.attributionNote ? <p>{receipt.attributionNote}</p> : null}
                 <p>أُغلق التسجيل فوق شاشتك؛ صحّح من «العمل» أو «مالي» عند الحاجة.</p>
                 {receipt.recordHref ? (
-                  <button
-                    className="micro-button micro-button-secondary"
-                    type="button"
+                  <Button
+                    action="secondary"
+
                     onClick={() => {
                       const href = receipt.recordHref ?? "";
                       handleOpenChange(false);
@@ -319,17 +320,17 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
                     }}
                   >
                     افتح السجل
-                  </button>
+                  </Button>
                 ) : null}
               </>
             ) : null}
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => handleOpenChange(false)}
             >
               تم
-            </button>
+            </Button>
           </div>
         )}
       </DrawerContent>

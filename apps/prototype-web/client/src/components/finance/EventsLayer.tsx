@@ -19,6 +19,7 @@ import type {
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import { eventCountLabel } from "@/presentation/g5Plurals";
 
+import { Button } from "@/components/primitives";
 export const eventLabel: Record<FinancialEventType, string> = {
   owner_investment_cash: "استثمار المالك",
   owner_withdrawal_cash: "سحب شخصي",
@@ -664,22 +665,22 @@ function FinancialEventRow({
                 </p>
               ) : null}
               <div className="micro-form-actions">
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
+                <Button
+                  action="commit"
+
                   disabled={saving}
                   onClick={() => void submitEdit()}
                 >
                   {saving ? "جارٍ حفظ التعديل…" : "أكّد تعديل العملية"}
-                </button>
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
+                </Button>
+                <Button
+                  action="secondary"
+
                   disabled={saving}
                   onClick={cancel}
                 >
                   إلغاء
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
@@ -743,22 +744,22 @@ function FinancialEventRow({
                 </p>
               ) : null}
               <div className="micro-form-actions">
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
+                <Button
+                  action="commit"
+
                   disabled={saving}
                   onClick={() => void submitRestore()}
                 >
                   {saving ? "جارٍ التراجع عن التصحيح…" : "أكّد التراجع عن التصحيح"}
-                </button>
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
+                </Button>
+                <Button
+                  action="secondary"
+
                   disabled={saving}
                   onClick={cancel}
                 >
                   إلغاء
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}

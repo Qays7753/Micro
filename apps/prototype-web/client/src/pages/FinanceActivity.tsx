@@ -34,6 +34,7 @@ import type {
   ActivityRecord,
 } from "@/application/activity/activityService";
 
+import { Button } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -191,13 +192,13 @@ export default function FinanceActivity() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة النشاط</h1>
         <p>{state.message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           رجوع
-        </button>
+        </Button>
       </section>
     );
 

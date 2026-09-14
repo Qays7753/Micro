@@ -22,6 +22,7 @@ import type {
   DeliveryReview,
 } from "@/application/fulfillment/deliveryReviewService";
 
+import { Button } from "@/components/primitives";
 type PageState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -460,9 +461,9 @@ export default function DeliveryReviewPage() {
             </p>
           ) : null}
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="commit"
+
               disabled={submitting}
               onClick={() => {
                 void submit();
@@ -470,15 +471,15 @@ export default function DeliveryReviewPage() {
             >
               <CheckCircle2 aria-hidden="true" />
               {submitting ? "جارٍ تأكيد التسليم…" : "أكّد التسليم"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               disabled={submitting}
               onClick={() => requestNavigation(orderHref)}
             >
               رجوع بلا تسليم
-            </button>
+            </Button>
           </div>
         </>
       ) : null}
@@ -510,13 +511,13 @@ export default function DeliveryReviewPage() {
             </p>
           ) : null}
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate(orderHref)}
             >
               فتح تفاصيل الطلب
-            </button>
+            </Button>
           </div>
         </section>
       ) : null}

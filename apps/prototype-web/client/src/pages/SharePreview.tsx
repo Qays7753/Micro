@@ -11,6 +11,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { canShareText, copyTextManually, shareTextManually } from "@/lib/textDelivery";
 import type { ShareDraft } from "@/application/share/shareMessageService";
 
+import { Button } from "@/components/primitives";
 export type SharePreviewLocationState = { draft: ShareDraft } | null | undefined;
 
 export default function SharePreview() {
@@ -27,13 +28,13 @@ export default function SharePreview() {
       <section className="micro-page micro-not-found">
         <h1>لا نص للمشاركة</h1>
         <p>افتح هذه الشاشة من سجلٍ فيه ما تشاركه — طلب أو قبضة أو تذكير أو كشف.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           رجوع
-        </button>
+        </Button>
       </section>
     );
   }
@@ -86,12 +87,12 @@ export default function SharePreview() {
         />
       </label>
       <div className="micro-form-actions">
-        <button className="micro-button micro-button-primary" type="button" onClick={() => void shareNow()}>
+        <Button action="save" onClick={() => void shareNow()}>
           <Send aria-hidden="true" /> {canShareText() ? "شارك" : "أرسل النص"}
-        </button>
-        <button className="micro-button micro-button-secondary" type="button" onClick={() => void copyNow()}>
+        </Button>
+        <Button action="secondary" onClick={() => void copyNow()}>
           <Copy aria-hidden="true" /> انسخ النص
-        </button>
+        </Button>
       </div>
       {notice ? (
         <p className="micro-offline-truth" role="status">

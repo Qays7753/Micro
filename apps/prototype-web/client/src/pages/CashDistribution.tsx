@@ -15,6 +15,7 @@ import { formatMoneyMinor } from "@/presentation/formatters";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
 
+import { Button } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -85,13 +86,13 @@ export default function CashDistribution() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الكاش</h1>
         <p>{state.message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           محافظ الكاش
-        </button>
+        </Button>
       </section>
     );
 
@@ -214,15 +215,15 @@ export default function CashDistribution() {
                 {message}
               </p>
             ) : null}
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="save"
+
               disabled={saving}
               onClick={() => void distribute()}
             >
               <WalletCards aria-hidden="true" />
               {saving ? "جارٍ التوزيع…" : "سجّل التوزيع"}
-            </button>
+            </Button>
           </>
         )}
       </section>

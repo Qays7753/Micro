@@ -13,6 +13,7 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
 import type { LoanSummaryRow } from "@/application/loans/loanService";
 
+import { Button } from "@/components/primitives";
 export default function RepaymentSheet({
   row,
   onClose,
@@ -120,18 +121,18 @@ export default function RepaymentSheet({
           </p>
         ) : null}
         <div className="micro-form-actions micro-contextual-actions">
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             disabled={saving}
             onClick={() => void save()}
           >
             {saving ? "جارٍ الحفظ…" : "أكّد السداد"}
             {saving ? null : <Save aria-hidden="true" />}
-          </button>
-          <button className="micro-button micro-button-secondary" type="button" onClick={onClose}>
+          </Button>
+          <Button action="secondary" onClick={onClose}>
             ألغِ
-          </button>
+          </Button>
         </div>
         <p className="micro-offline-truth">
           <HandCoins aria-hidden="true" /> يعمل بلا إنترنت — يُحفظ محليًا على جهازك.

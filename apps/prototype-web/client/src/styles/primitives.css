@@ -98,6 +98,15 @@
 }
 .micro-prim-button__label {
   min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+.micro-prim-button__label > svg {
+  flex: 0 0 auto;
+  width: var(--vf-icon-sm);
+  height: var(--vf-icon-sm);
 }
 .micro-prim-button:active {
   transform: scale(0.97);
@@ -156,6 +165,17 @@
   color: var(--vf-btn-ghost-ink);
   background: transparent;
 }
+/* Quiet — documented correction/reversal entry points (MR-03/U09 touch floor).
+   Hairline border, transparent surface, interactive ink; the 48px base of the
+   primitive exceeds the approved 44px minimum for these financial entries. */
+.micro-prim-button--quiet {
+  color: var(--vf-ink);
+  border: 1px solid var(--color-border);
+  background: transparent;
+}
+.micro-prim-button--quiet:hover {
+  background: var(--vf-ground);
+}
 /* Destructive — error ink + icon + confirmation at the consuming surface. */
 .micro-prim-button--destructive {
   color: var(--vf-btn-destructive-ink);
@@ -180,6 +200,56 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* -- ChoiceRow / ChoiceButton (selection contract) -------------------------
+   component-contracts.md: selected/current = 2px clay-interactive edge + a
+   non-color cue (heavier weight). Selected never becomes a black or identity
+   fill. */
+.micro-prim-choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.micro-prim-choice {
+  display: inline-flex;
+  min-height: var(--vf-control-height);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: fit-content;
+  border: 0;
+  border-radius: var(--vf-radius-control);
+  padding: 0 var(--space-4);
+  font-family: inherit;
+  font-size: var(--vf-text-body-size);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--vf-btn-secondary-ink);
+  background: var(--vf-btn-secondary-bg);
+  transition:
+    transform var(--vf-motion-press) var(--vf-ease-standard),
+    box-shadow var(--vf-motion-fast) var(--vf-ease-standard);
+  cursor: pointer;
+}
+.micro-prim-choice:active {
+  transform: scale(0.97);
+}
+.micro-prim-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.micro-prim-choice--selected {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px var(--vf-clay-interactive);
+}
+.micro-prim-choice--selected::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--vf-radius-full);
+  background: var(--vf-clay-interactive);
 }
 
 /* -- Notice / QuietCompletion / InlineError ----------------------------------

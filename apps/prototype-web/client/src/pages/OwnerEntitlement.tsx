@@ -31,6 +31,7 @@ import {
   type OwnerMovementReason,
 } from "@micro-domain/owner-entitlement/index.js";
 
+import { Button } from "@/components/primitives";
 type Notice = { tone: "success" | "error"; text: string } | null;
 const monthStart = () => `${localDateInAmman().slice(0, 7)}-01`;
 const idempotency = (prefix: string) => `${prefix}:${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
@@ -220,13 +221,13 @@ export default function OwnerEntitlement() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر المالك</h1>
         <p>{error ?? "لم تتوفر بيانات محلية."}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/finance")}
         >
           الوضع المالي
-        </button>
+        </Button>
       </section>
     );
 
@@ -623,22 +624,22 @@ export default function OwnerEntitlement() {
         </div>
       </section>
       <div className="micro-form-actions micro-contextual-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() =>
             navigate(withFrom("/finance/new/owner_investment_cash", "/finance/owner-entitlement"))
           }
         >
           <HandCoins aria-hidden="true" /> أدخل مالًا للمشروع
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        </Button>
+        <Button
+          action="secondary"
+
           onClick={() => navigate(withFrom("/finance/withdraw", "/finance/owner-entitlement"))}
         >
           <ArrowRight aria-hidden="true" /> اسحب لنفسك
-        </button>
+        </Button>
       </div>
       <details className="micro-owner-layer">
         <summary className="micro-owner-layer-summary">
@@ -666,13 +667,13 @@ export default function OwnerEntitlement() {
                     <bdi dir="ltr">{formatMoneyMinor(row.amountMinor)}</bdi> د.أ
                   </b>
                   {row.deepLink ? (
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    <Button
+                      action="quiet"
+
                       onClick={() => navigate(withFrom(row.deepLink!, "/finance/owner-entitlement"))}
                     >
                       افتح الأصل
-                    </button>
+                    </Button>
                   ) : null}
                 </article>
               ))}
@@ -1064,22 +1065,22 @@ function ReversalBox({
         />
       </label>
       <div className="micro-form-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="commit"
+
           disabled={saving}
           onClick={onConfirm}
         >
           تأكيد التراجع الموثق
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        </Button>
+        <Button
+          action="secondary"
+
           disabled={saving}
           onClick={onCancel}
         >
           إلغاء
-        </button>
+        </Button>
       </div>
     </div>
   );

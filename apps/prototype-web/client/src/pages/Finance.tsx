@@ -57,6 +57,7 @@ import {
   localDateInAmman,
 } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 export type FinanceState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -263,9 +264,9 @@ export default function Finance() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الوضع المالي</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/")}>
+        <Button action="secondary" onClick={() => navigate("/")}>
           مشروعي الآن
-        </button>
+        </Button>
       </section>
     );
   const { position, period, insights, decision, declarations, owner, pulse } = state;
@@ -410,13 +411,13 @@ export default function Finance() {
                     </strong>
                     <small>وزّعه على محفظة الآن، أو اتركه حتى تعرف وجهته — لا يُخصص شيء بصمت.</small>
                   </div>
-                  <button
-                    className="micro-button micro-button-secondary"
-                    type="button"
+                  <Button
+                    action="secondary"
+
                     onClick={() => navigate(withFrom("/cash/distribute", "/finance"))}
                   >
                     وزّع على محفظة
-                  </button>
+                  </Button>
                 </div>
               ) : null}
               {/* §2.7 (F-031): الحقيقة غير المسجلة طريق — لا عدد أصفار عاجز. */}
@@ -631,13 +632,13 @@ export default function Finance() {
               <span>قصة الأسبوع ببساطة</span>
               <p>كشف بأسطر عربية مفصولة: كاش، نتيجة، أمانات، ذمم، مال المالك — وكل سطر بمصدره.</p>
             </div>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate(withFrom("/finance/statement", "/finance"))}
             >
               افتح كشف الفترة
-            </button>
+            </Button>
           </section>
         </>
       )}
@@ -650,83 +651,83 @@ export default function Finance() {
           <strong>افتح الإجراءات</strong>
         </summary>
         <section className="micro-finance-actions" aria-label="تسجيل حدث مالي">
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/cash", "/finance"))}
           >
             محافظ الكاش
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/suppliers", "/finance"))}
           >
             الموردون والمشتريات
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/inventory", "/finance"))}
           >
             المواد والمخزون
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/finance/new/operating_expense_cash", "/finance"))}
           >
             سجل مصروفًا مدفوعًا
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/finance/new/operating_expense_payable", "/finance"))}
           >
             سجل التزامًا لمورد
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             /* المجموعة ٦ (البند ٢ — S2-07): مدخل مالك واحد من «مالي» — الدفتر الموحد
              * يحمل فعل الإدخال والسحب وسياسة الحق (X-05 محفوظ داخل الدفتر). */
             onClick={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
           >
             مال المالك
-          </button>
+          </Button>
           {position.supplierPayablesMinor > 0 ? (
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate(withFrom("/finance/new/payable_settlement_cash", "/finance"))}
             >
               سدد التزام مصروف
-            </button>
+            </Button>
           ) : null}
           {/* المبدأ ١٣: الأمانات والهالك مسارات صريحة — لا تُسجل إيرادًا ولا مصروفًا عاديًا. */}
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/finance/new/amanah_held_cash", "/finance"))}
           >
             سجل أمانة قُبضت
-          </button>
+          </Button>
           {position.amanahHeldMinor > 0 ? (
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate(withFrom("/finance/new/amanah_released_cash", "/finance"))}
             >
               سجل أمانة سُلّمت
-            </button>
+            </Button>
           ) : null}
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/finance/new/loss_non_cash", "/finance"))}
           >
             سجل هالكًا بلا خروج نقد
-          </button>
+          </Button>
         </section>
       </details>
       {/* المجموعة ٥ (عقد ٣٠): مدخل القارئ الكامل — كل العائلات في مكان واحد؛
@@ -872,9 +873,9 @@ function OwnerDecisionCard({
         <Metric label="رأس مالك في المشروع" value={formatMoneyMinor(capitalRecordedMinor)} />
         <Metric label="حق مسجل متبقٍ" value={formatMoneyMinor(overview.remainingEntitlementBalanceMinor)} />
       </div>
-      <button className="micro-button micro-button-primary" type="button" onClick={onOpen}>
+      <Button action="secondary" onClick={onOpen}>
         افتح مال المالك
-      </button>
+      </Button>
     </section>
   );
 }
@@ -932,9 +933,9 @@ function CashDecisionSurface({
           <strong>{shortStatusLabel(cash.status)}</strong>
           <p>{cash.nextAction}</p>
         </div>
-        <button className="micro-button micro-button-primary" type="button" onClick={onDeclare}>
+        <Button action="create" onClick={onDeclare}>
           أعلن تحصيلًا أو التزامًا قريبًا
-        </button>
+        </Button>
       </div>
       {unallocatedCashMinor < 0 ? (
         <div className="micro-finance-unallocated-alert" role="status">
@@ -946,9 +947,9 @@ function CashDecisionSurface({
               جديدًا.
             </p>
           </div>
-          <button className="micro-button micro-button-secondary" type="button" onClick={onCoverPayment}>
+          <Button action="secondary" onClick={onCoverPayment}>
             غطِّ الدفعة من محفظة
-          </button>
+          </Button>
         </div>
       ) : null}
     </section>

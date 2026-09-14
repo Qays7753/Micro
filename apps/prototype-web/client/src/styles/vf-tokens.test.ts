@@ -195,9 +195,12 @@ describe("W1: dark layer remains Micro-local legacy (not re-bound by this wave)"
 });
 
 describe("W1: guard integrity (U09 geometry rules still first-matchable)", () => {
-  it("keeps the three U09-asserted selectors in index.css untouched", () => {
+  it("keeps the three U09-asserted selectors in their live homes", () => {
     expect(indexCss).toContain(".micro-period-range-fields input");
     expect(indexCss).toContain(".micro-text-action");
-    expect(indexCss).toContain(".micro-button-quiet");
+    /* W2 (completion): عقد الأزرار الهادئة انتقل من index.css إلى طبقة المكوّنات
+     * الأولية — الحارس يتبع الموطن الجديد للعقد (MR-03/U09). */
+    const primCss = readFileSync(fileURLToPath(new URL("./primitives.css", import.meta.url)), "utf8");
+    expect(primCss).toContain(".micro-prim-button--quiet");
   });
 });

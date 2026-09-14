@@ -10,6 +10,7 @@ import { Lock, LockOpen } from "lucide-react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { normalizeAsciiDigits } from "@/application/input/englishNumeric";
 
+import { Button } from "@/components/primitives";
 export function DataActionPinGate({
   actionTitle,
   actionDescription,
@@ -82,16 +83,12 @@ export function DataActionPinGate({
             autoFocus
           />
         </label>
-        <button
-          className="micro-button micro-button-primary"
-          type="submit"
-          disabled={busy || pin.trim().length < 4}
-        >
+        <Button action="save" type="submit" disabled={busy || pin.trim().length < 4}>
           <LockOpen aria-hidden="true" /> أكمل الإجراء
-        </button>
-        <button className="micro-button micro-button-secondary" type="button" onClick={onCancel}>
+        </Button>
+        <Button action="secondary" onClick={onCancel}>
           إلغاء
-        </button>
+        </Button>
       </form>
       {message ? (
         <p className="micro-field-error" role="alert">

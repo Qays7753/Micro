@@ -8,6 +8,7 @@ import type { ActualTimeService, OperatingModeValue } from "@/application/time/a
 import type { ActualTimeComparison } from "@micro-domain/actual-time/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 
+import { Button } from "@/components/primitives";
 type Props = {
   orderId: string;
   actualTime: ActualTimeService;
@@ -266,17 +267,32 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
             ))}
         </div>
       )}
-      <button
-        className={guidedByPreference ? "micro-button micro-button-secondary" : "micro-text-action"}
-        type="button"
-        disabled={isSaving}
-        onClick={() => {
-          setMessage(null);
-          setShowRecordForm(value => !value);
-        }}
-      >
-        {showRecordForm ? "إخفاء نموذج الوقت" : "سجل وقتًا فعليًا"}
-      </button>
+      {/* الوضع الموجّه: زر ثانوي هادئ؛ غير الموجّه: فعل نصي هادئ — نفس الفعل،
+       * وزنان مختلفان بحسب سياق التمكين (تصنيف بالمعنى لا بالشكل). */}
+      {guidedByPreference ? (
+        <Button
+          action="secondary"
+          disabled={isSaving}
+          onClick={() => {
+            setMessage(null);
+            setShowRecordForm(value => !value);
+          }}
+        >
+          {showRecordForm ? "إخفاء نموذج الوقت" : "سجل وقتًا فعليًا"}
+        </Button>
+      ) : (
+        <button
+          className="micro-text-action"
+          type="button"
+          disabled={isSaving}
+          onClick={() => {
+            setMessage(null);
+            setShowRecordForm(value => !value);
+          }}
+        >
+          {showRecordForm ? "إخفاء نموذج الوقت" : "سجل وقتًا فعليًا"}
+        </button>
+      )}
       {!guidedByPreference ? (
         <p className="micro-cost-disclaimer">
           لم تحدد طريقة عمل أو لم تفعّل التتبع؛ يبقى التسجيل متاحًا هنا عند الحاجة دون سؤال يومي أو إلزام.
@@ -310,15 +326,16 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
               placeholder="مثال: تنفيذ الجزء الأول"
             />
           </label>
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={isSaving}
             onClick={saveRecord}
           >
             <Save aria-hidden="true" />
             {isSaving ? "جارٍ حفظ الوقت…" : "حفظ وقت التنفيذ"}
-          </button>
+          </Button>
         </section>
       ) : null}
       {reverseTarget ? (
@@ -357,15 +374,16 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
               placeholder="مثال: سجلت الدقائق بالخطأ"
             />
           </label>
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={isSaving}
             onClick={saveReverse}
           >
             <RotateCcw aria-hidden="true" />
             {isSaving ? "جارٍ حفظ التراجع…" : "حفظ التراجع عن سجل الوقت"}
-          </button>
+          </Button>
         </section>
       ) : null}
       {message ? (

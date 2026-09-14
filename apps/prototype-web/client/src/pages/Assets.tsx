@@ -14,6 +14,7 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
 import type { AssetSummaryRow } from "@/application/assets/assetService";
 
+import { Button } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -75,13 +76,13 @@ export default function Assets() {
         </>
       )}
       <div className="micro-form-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => navigate(withFrom("/assets/new", "/assets"))}
         >
           <Plus aria-hidden="true" /> سجّل أصلًا
-        </button>
+        </Button>
       </div>
     </section>
   );

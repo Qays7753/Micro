@@ -18,6 +18,7 @@ import type {
   IntegrityCheckStatus,
 } from "@/application/finance/integrityCheckService";
 
+import { Button } from "@/components/primitives";
 type State =
   | { phase: "idle" }
   | { phase: "running" }
@@ -119,15 +120,15 @@ export default function ToolsIntegrity() {
             <p>لم يُجرَ الفحص بعد — اضغط «افحص الآن» لقراءة الأرقام كما هي.</p>
           )}
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="save"
+
               disabled={state.phase === "running"}
               onClick={() => void runCheck()}
             >
               <ShieldCheck aria-hidden="true" />
               {state.phase === "running" ? "جارٍ الفحص…" : "افحص الآن"}
-            </button>
+            </Button>
           </div>
         </div>
       </section>

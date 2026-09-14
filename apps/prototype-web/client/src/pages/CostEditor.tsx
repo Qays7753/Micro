@@ -15,6 +15,7 @@ import {
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 
+import { Button } from "@/components/primitives";
 type EditableCostMaterial = DraftCostMaterial & { uiId: string };
 type EditableCostInput = Omit<CostEditorInput, "materialItems"> & { materialItems: EditableCostMaterial[] };
 
@@ -326,13 +327,13 @@ export default function CostEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح التكلفة</h1>
         <p>ارجع للمسودة ثم أعد المحاولة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/orders")}
         >
           الطلبات
-        </button>
+        </Button>
       </section>
     );
   const status = preview?.ok
@@ -570,14 +571,14 @@ export default function CostEditor() {
           {optionalCostFields
             .filter(({ field }) => !visibleOptionalCosts[field])
             .map(({ field, label }) => (
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 key={field}
                 onClick={() => revealOptionalCost(field)}
               >
                 أضف {label}
-              </button>
+              </Button>
             ))}
         </div>
         <div className="micro-field-grid">
@@ -631,9 +632,10 @@ export default function CostEditor() {
         </p>
       ) : null}
       <div className="micro-form-actions micro-sticky-save">
-        <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
+        <Button
+          action="save"
+          block
+
           disabled={isSaving || hasInvalidNumericInput || !preview?.ok}
           aria-busy={isSaving}
           onClick={() => {
@@ -645,15 +647,15 @@ export default function CostEditor() {
           {preview?.ok && preview.snapshot.knowledgeState === "incomplete"
             ? "حفظ مسودة تكلفة ناقصة"
             : "حفظ نسخة التكلفة"}
-        </button>
+        </Button>
         {draft.activeCostSnapshotId ? (
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => requestNavigation(`/orders/draft/${draft.id}/agreement`)}
           >
             تسجيل الاتفاق
-          </button>
+          </Button>
         ) : null}
       </div>
       <p className="micro-cost-disclaimer">

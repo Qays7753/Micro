@@ -6,6 +6,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { MoonStar } from "lucide-react";
 
+import { Button } from "@/components/primitives";
 export type SettingsAppearanceSectionProps = {
   theme: string | null;
   toggleTheme: (() => void) | undefined;
@@ -30,9 +31,9 @@ export function SettingsAppearanceSection({ theme, toggleTheme }: SettingsAppear
             <h2>المظهر</h2>
             <p>الوضع الحالي: {theme === "dark" ? "داكن" : "فاتح"}.</p>
           </div>
-          <button className="micro-button micro-button-secondary" type="button" onClick={toggleTheme}>
+          <Button action="secondary" onClick={toggleTheme}>
             التبديل إلى {theme === "dark" ? "الفاتح" : "الداكن"}
-          </button>
+          </Button>
         </article>
       </section>
     </details>

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { History } from "lucide-react";
 import { formatArabicPlural, formatLocalDate } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 function ageInDays(savedAt: string, now: () => string): number {
   const saved = Date.parse(savedAt);
   const current = Date.parse(now());
@@ -55,12 +56,12 @@ export function FormDraftRestoreBanner({
           {ageLabel}) — لم تُسجّل أي حركة مالية بعد؛ استرجعها لتكمل من حيث توقفت، أو تجاهلها وابدأ من جديد.
         </p>
         <div className="micro-form-actions">
-          <button className="micro-button micro-button-primary" type="button" onClick={onRestore}>
+          <Button action="save" onClick={onRestore}>
             استرجع المسودة
-          </button>
-          <button className="micro-button micro-button-quiet" type="button" onClick={() => void onDiscard()}>
+          </Button>
+          <Button action="quiet" onClick={() => void onDiscard()}>
             تجاهلها
-          </button>
+          </Button>
         </div>
       </div>
     </section>

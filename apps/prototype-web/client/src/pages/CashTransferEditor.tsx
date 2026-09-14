@@ -11,6 +11,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletBalance } from "@/application/cash/cashContinuityService";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { Button } from "@/components/primitives";
 export default function CashTransferEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
@@ -71,13 +72,13 @@ export default function CashTransferEditor() {
       <section className="micro-page micro-not-found">
         <h1>تحتاج محافظتين للتحويل</h1>
         <p>أضف مكان كاش آخر أولًا؛ التحويل لا ينشئ كاشًا جديدًا.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => navigate("/cash/wallet/new")}
         >
           أضف محفظة
-        </button>
+        </Button>
       </section>
     );
   return (
@@ -145,15 +146,16 @@ export default function CashTransferEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={save}
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ الحفظ…" : "حفظ التحويل"}
-          </button>
+          </Button>
         </div>
       </section>
     </section>

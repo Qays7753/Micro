@@ -5,6 +5,7 @@
 import type { ReactNode } from "react";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 
+import { Button } from "@/components/primitives";
 export type CorrectionPreviewDimension = {
   /** اسم البعد المالي بالعربية: كاش، التزام، أمانات، مصروف… */
   label: string;
@@ -150,22 +151,19 @@ export function CorrectionPreview({
         </p>
       ) : null}
       <div className="micro-form-actions">
-        <button
-          className={`micro-button ${danger ? "micro-button-danger" : "micro-button-primary"}`}
-          type="button"
-          disabled={busy}
-          onClick={onConfirm}
-        >
+        {/* تصنيف الفعل بالمعنى: تأكيد تصحيح عالي العواقب — حبر دافئ ممتلئ؛
+         * والخطر منه (danger) — عقد الإتلاف. المعاينة أعلاه هي مسار التأكيد المستقل. */}
+        <Button action={danger ? "destructive" : "commit"} disabled={busy} onClick={onConfirm}>
           {busy ? busyLabel : confirmLabel}
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        </Button>
+        <Button
+          action="secondary"
+
           disabled={busy}
           onClick={onCancel}
         >
           إلغاء
-        </button>
+        </Button>
       </div>
     </div>
   );

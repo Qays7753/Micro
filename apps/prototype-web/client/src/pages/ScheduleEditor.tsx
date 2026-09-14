@@ -10,6 +10,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { IntegerValue, LocalDateValue, TimeValue } from "@/components/presentation/DisplayValue";
 import type { ScheduleEntry } from "@/storage/local/types";
 
+import { Button } from "@/components/primitives";
 type EditorState = "loading" | "ready" | "error";
 type ScheduleFormValues = { date: string; time: string; duration: string; reason: string };
 const eventLabel: Record<string, string> = {
@@ -191,13 +192,13 @@ export default function ScheduleEditor() {
       <section className="micro-page micro-not-found">
         <h1>الموعد غير متاح محليًا</h1>
         <p>ارجع إلى جدول المواعيد وأعد المحاولة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/schedule")}
         >
           المواعيد
-        </button>
+        </Button>
       </section>
     );
   return (
@@ -274,16 +275,16 @@ export default function ScheduleEditor() {
               {STALE_CONFLICT_NOTE}
             </p>
             <div className="micro-form-actions micro-contextual-actions">
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={saving || postponing}
                 onClick={() => {
                   void reloadCurrentSchedule();
                 }}
               >
                 {STALE_RELOAD_ACTION_LABEL}
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}
@@ -302,9 +303,10 @@ export default function ScheduleEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={() => {
               void persistTiming();
@@ -312,12 +314,12 @@ export default function ScheduleEditor() {
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ حفظ الموعد…" : "حفظ الموعد"}
-          </button>
+          </Button>
         </div>
         {schedule.status === "scheduled" || schedule.status === "postponed" ? (
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             disabled={postponing || saving}
             onClick={() => {
               void postponeOneDay();
@@ -325,7 +327,7 @@ export default function ScheduleEditor() {
           >
             <CalendarPlus aria-hidden="true" />
             {postponing ? "جارٍ التأجيل…" : "أجّل يومًا"}
-          </button>
+          </Button>
         ) : null}
       </section>
       <section className="micro-form-card">

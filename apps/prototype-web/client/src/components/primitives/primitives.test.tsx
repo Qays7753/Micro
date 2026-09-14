@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import {
   Button,
+  ChoiceButton,
+  ChoiceRow,
   EmptyState,
   Field,
   InlineError,
@@ -103,6 +105,59 @@ describe("W2 Button: action classes, loading, duplicate-submit protection", () =
   it("defaults to type=button (no implicit submit)", () => {
     const { container } = render(<Button>حفظ</Button>);
     expect(container.querySelector("button")?.getAttribute("type")).toBe("button");
+  });
+});
+
+describe("W2 (completion) Button quiet: documented correction/reversal entry contract", () => {
+  it("renders the quiet action class for correction and reversal entries", () => {
+    const { container } = render(<Button action="quiet">عدّل هذا السجل</Button>);
+    expect(container.querySelector(".micro-prim-button--quiet")).toBeTruthy();
+    expect(screen.getByText("عدّل هذا السجل")).toBeTruthy();
+  });
+
+  it("quiet keeps the 48px primitive base (exceeds the 44px MR-03/U09 touch floor)", () => {
+    const css = readFileSync("client/src/styles/primitives.css", "utf8");
+    expect(css).toContain(".micro-prim-button--quiet");
+    expect(css).toContain("min-height: var(--vf-control-height)");
+  });
+});
+
+describe("W2 (completion) ChoiceRow: selected/current edge contract — never a fill", () => {
+  it("exposes aria-pressed and the selected edge class on the chosen option only", () => {
+    const { container } = render(
+      <ChoiceRow>
+        <ChoiceButton selected onClick={() => {}}>
+          دفعت نقدًا
+        </ChoiceButton>
+        <ChoiceButton onClick={() => {}}>على الذمم</ChoiceButton>
+      </ChoiceRow>,
+    );
+    const options = container.querySelectorAll(".micro-prim-choice");
+    expect(options.length).toBe(2);
+    expect(options[0].getAttribute("aria-pressed")).toBe("true");
+    expect(options[1].getAttribute("aria-pressed")).toBe("false");
+    expect(container.querySelectorAll(".micro-prim-choice--selected").length).toBe(1);
+  });
+
+  it("the selected presentation is the clay-interactive edge + weight, never a black or identity fill", () => {
+    const css = readFileSync("client/src/styles/primitives.css", "utf8");
+    const selectedRule = css.match(/\.micro-prim-choice--selected\s*\{[^}]*\}/)?.[0] ?? "";
+    expect(selectedRule).toContain("var(--vf-clay-interactive)");
+    expect(selectedRule).not.toContain("var(--vf-btn-primary-bg)");
+    expect(selectedRule).not.toContain("var(--vf-btn-create-bg)");
+  });
+
+  it("disabled options are marked and do not fire", () => {
+    const onClick = vi.fn();
+    const { container } = render(
+      <ChoiceButton disabled onClick={onClick}>
+        خيار
+      </ChoiceButton>,
+    );
+    const option = container.querySelector(".micro-prim-choice") as HTMLButtonElement;
+    expect(option.hasAttribute("disabled")).toBe(true);
+    fireEvent.click(option);
+    expect(onClick).not.toHaveBeenCalled();
   });
 });
 

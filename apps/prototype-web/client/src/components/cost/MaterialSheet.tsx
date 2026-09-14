@@ -18,6 +18,7 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { MaterialSuggestion } from "@/application/inventory/materialSuggestions";
 import { echoQuantityMilli } from "@/application/input/englishNumeric";
 
+import { Button } from "@/components/primitives";
 export type MaterialSheetProps = {
   value: { index: number | null; draft: DraftCostMaterial } | null;
   message: string | null;
@@ -162,13 +163,11 @@ export function MaterialSheet({
             </div>
             <DrawerFooter className="micro-sheet-footer">
               <DrawerClose asChild>
-                <button className="micro-button micro-button-secondary" type="button">
-                  إلغاء
-                </button>
+                <Button action="secondary">إلغاء</Button>
               </DrawerClose>
-              <button className="micro-button micro-button-primary" type="button" onClick={onSave}>
+              <Button action="save" onClick={onSave}>
                 حفظ بند المادة
-              </button>
+              </Button>
             </DrawerFooter>
           </>
         ) : null}

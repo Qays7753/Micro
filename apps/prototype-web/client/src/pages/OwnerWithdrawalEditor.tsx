@@ -15,6 +15,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
 
+import { Button } from "@/components/primitives";
 /* مفتاح القرار (X-05): وجود سياسة حق مالك فعالة يوجه السحب إلى مسار الدفتر
  * (تسوية حق بمحفظة محددة)، وغيابها يوجهه إلى الحدث المالي العام.
  * G6-U2-1 (المجموعة ٦): وجود حق قابل للتسوية شرط تسوية الحق — بلا حق مسجل
@@ -126,13 +127,13 @@ export default function OwnerWithdrawalEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر المالك</h1>
         <p>{loadError}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/finance")}
         >
           العودة إلى مالي
-        </button>
+        </Button>
       </section>
     );
 
@@ -228,9 +229,10 @@ export default function OwnerWithdrawalEditor() {
             </p>
           ) : null}
           <div className="micro-form-actions micro-sticky-save">
-            <button
-              className="micro-button micro-button-primary micro-save-cost"
-              type="button"
+            <Button
+              action="save"
+              block
+
               disabled={saving}
               onClick={() => {
                 void save();
@@ -238,7 +240,7 @@ export default function OwnerWithdrawalEditor() {
             >
               <Save aria-hidden="true" />
               {saving ? "جارٍ الحفظ…" : "سجّل السحب"}
-            </button>
+            </Button>
           </div>
         </section>
       ) : (

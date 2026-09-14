@@ -14,6 +14,7 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 import type { CostEstimate } from "@/storage/local/types";
 
+import { Button } from "@/components/primitives";
 type DetailState =
   | { phase: "loading" }
   | { phase: "not_found" }
@@ -83,13 +84,13 @@ export default function EstimateDetail() {
         <span className="micro-overline">تقدير محفوظ</span>
         <h1>لم نجد هذا التقدير</h1>
         <p>قد يكون حُذف محليًا — حذف التقدير حر وبلا أثر مالي، فلا يتغير أي رصيد.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           رجوع
-        </button>
+        </Button>
       </section>
     );
   if (state.phase === "error")
@@ -97,13 +98,13 @@ export default function EstimateDetail() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح التقدير</h1>
         <p>لم يتم تغيير بياناتك. أعد المحاولة من أدواتي.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/tools")}
         >
           رجوع
-        </button>
+        </Button>
       </section>
     );
 
@@ -196,9 +197,9 @@ export default function EstimateDetail() {
 
       <section className="micro-form-card" aria-label="أفعال التقدير">
         <div className="micro-form-actions micro-contextual-actions">
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="create"
+
             onClick={() =>
               navigate(
                 withFrom(
@@ -209,16 +210,16 @@ export default function EstimateDetail() {
             }
           >
             <ClipboardPlus aria-hidden="true" /> ابدأ مسودة من هذا التقدير
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             onClick={() =>
               navigate(withFrom(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, detailHref))
             }
           >
             <BookOpen aria-hidden="true" /> عدّل التقدير
-          </button>
+          </Button>
         </div>
         <p className="micro-home-quiet">
           بدء المسودة ينسخ اقتراحات قابلة للتعديل — التقدير نفسه لا يتغير ولا يُنشأ شيء مالي.
@@ -233,31 +234,31 @@ export default function EstimateDetail() {
               التراجع بعد الحذف.
             </p>
             <div className="micro-form-actions">
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={deleting}
                 onClick={() => void deleteEstimate()}
               >
                 <Trash2 aria-hidden="true" /> {deleting ? "جارٍ الحذف…" : "احذف التقدير نهائيًا"}
-              </button>
-              <button
-                className="micro-button micro-button-quiet"
-                type="button"
+              </Button>
+              <Button
+                action="quiet"
+
                 onClick={() => setConfirmDelete(false)}
               >
                 تراجع
-              </button>
+              </Button>
             </div>
           </>
         ) : (
-          <button
-            className="micro-button micro-button-quiet"
-            type="button"
+          <Button
+            action="quiet"
+
             onClick={() => setConfirmDelete(true)}
           >
             <Trash2 aria-hidden="true" /> احذف التقدير
-          </button>
+          </Button>
         )}
       </div>
     </section>

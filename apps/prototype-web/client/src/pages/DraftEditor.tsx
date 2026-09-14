@@ -12,6 +12,7 @@ import { formatMoneyMinor } from "@/presentation/formatters";
 import type { CostEstimate, DraftIntent, OrderDraft } from "@/storage/local/types";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
+import { Button } from "@/components/primitives";
 type EditorState = "loading" | "ready" | "not_found" | "error";
 type DraftFormValues = Pick<
   OrderDraft,
@@ -313,13 +314,13 @@ export default function DraftEditor() {
       <section className="micro-page micro-not-found">
         <h1>لم نجد هذه المسودة</h1>
         <p>قد تكون حذفت محليًا أو لم تُحفظ بعد.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/orders")}
         >
           العودة للطلبات
-        </button>
+        </Button>
       </section>
     );
   if (state === "error" || !draft)
@@ -327,13 +328,13 @@ export default function DraftEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح المسودة</h1>
         <p>لم يتم تغيير بياناتك. أعد المحاولة من قائمة الطلبات.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/orders")}
         >
           العودة للطلبات
-        </button>
+        </Button>
       </section>
     );
   if (draft.linkedOrderId)
@@ -342,13 +343,13 @@ export default function DraftEditor() {
         <span className="micro-overline">اتفاق محفوظ</span>
         <h1>هذه المسودة أصبحت طلبًا محليًا</h1>
         <p>لا نعدل تفاصيلها من هنا حتى لا يختلف الوصف عن الاتفاق وسجل التكلفة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(`/orders/${draft.linkedOrderId}`)}
         >
           فتح الطلب
-        </button>
+        </Button>
       </section>
     );
   const isCustomerOrder = draft.intent === "customer_order";
@@ -408,13 +409,13 @@ export default function DraftEditor() {
           </select>
           <small>لا يغيّر المرجع السعر أو نسخة التكلفة أو تكلفة طلب سابق.</small>
         </label>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => requestNavigation(linkTo("/catalog"))}
         >
           <BookOpen aria-hidden="true" /> منتجاتي وخدماتي
-        </button>
+        </Button>
         {isCustomerOrder ? (
           <>
             {/* Conflict B: اسم طلب ودّي اختياري — يعبر إلى الاتفاق والطلب. */}
@@ -483,26 +484,26 @@ export default function DraftEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions">
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             disabled={isSaving || !isQuantityValid}
             onClick={() => {
               void save(false);
             }}
           >
             <Save aria-hidden="true" /> حفظ مسودة
-          </button>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          </Button>
+          <Button
+            action="save"
+
             disabled={isSaving || !isQuantityValid || !draft.itemName.trim()}
             onClick={() => {
               void save(true);
             }}
           >
             {isSaving ? "جارٍ الحفظ…" : "احسب التكلفة"}
-          </button>
+          </Button>
         </div>
         {canDelete ? (
           <div className="micro-draft-delete-zone">
@@ -513,33 +514,33 @@ export default function DraftEditor() {
                   يمكن التراجع بعد الحذف.
                 </p>
                 <div className="micro-form-actions">
-                  <button
-                    className="micro-button micro-button-secondary"
-                    type="button"
+                  <Button
+                    action="secondary"
+
                     disabled={isDeleting}
                     onClick={() => {
                       void deleteDraft();
                     }}
                   >
                     <Trash2 aria-hidden="true" /> {isDeleting ? "جارٍ الحذف…" : "احذف المسودة نهائيًا"}
-                  </button>
-                  <button
-                    className="micro-button micro-button-quiet"
-                    type="button"
+                  </Button>
+                  <Button
+                    action="quiet"
+
                     onClick={() => setConfirmDelete(false)}
                   >
                     تراجع
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
-              <button
-                className="micro-button micro-button-quiet"
-                type="button"
+              <Button
+                action="quiet"
+
                 onClick={() => setConfirmDelete(true)}
               >
                 <Trash2 aria-hidden="true" /> احذف المسودة
-              </button>
+              </Button>
             )}
           </div>
         ) : null}

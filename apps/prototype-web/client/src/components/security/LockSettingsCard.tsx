@@ -9,6 +9,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LOCK_AUTO_LOCK_OPTIONS } from "@/application/security/localLockService";
 import { normalizeAsciiDigits } from "@/application/input/englishNumeric";
 
+import { Button } from "@/components/primitives";
 type Phase = "loading" | "off" | "enabling" | "on" | "disabling";
 
 const pinDigits = (value: string) =>
@@ -111,14 +112,14 @@ export function LockSettingsCard() {
                   autoComplete="off"
                 />
               </label>
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={pin.trim().length < 4}
                 onClick={() => void disable()}
               >
                 عطّل القفل
-              </button>
+              </Button>
             </div>
           </>
         ) : null}
@@ -164,14 +165,14 @@ export function LockSettingsCard() {
                   autoComplete="off"
                 />
               </label>
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              <Button
+                action="save"
+
                 disabled={pin.trim().length < 4 || confirmPin.trim().length < 4}
                 onClick={() => void enable()}
               >
                 فعّل القفل
-              </button>
+              </Button>
             </div>
           </>
         ) : null}

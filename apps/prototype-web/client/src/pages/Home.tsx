@@ -391,14 +391,14 @@ export default function Home() {
         </div>
         <div className="micro-home-finance-unit">
           <div></div>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             onClick={() => openFromHome(model.catalogUnit.action.href)}
           >
             {model.catalogUnit.action.label}
             <ArrowLeft aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </section>
       {model.optionalModules.length > 0 ? (
