@@ -1,0 +1,602 @@
+{
+  "base": "ece7be3630739d551b9ba7caf37d30a9a63c872f",
+  "head_at_writing": "c3a2142cfb1e59425de11050e4e6e6b2a1d1056b",
+  "commits": [
+    "c3a2142cfb1e59425de11050e4e6e6b2a1d1056b R5: revert out-of-scope prettier normalization on untouched guard scripts",
+    "218bd2cbb8c470b5e885c77cb501a4112c97a724 R4/W5: pixel-level Light+Dark verification — cascade fix + capture evidence",
+    "0f018428243c09d3936c7ab6fc14d180782e4a05 W5 (D1): permanent Dark Mode — one semantic layer, deliberate palette, mechanical floors",
+    "9b4f02ce7d777a010c462d66587bf0f414fba8ad R2 (D7/D8 + guards): honest voids, explicit pressed states, mechanical boundaries",
+    "d44f91340c949965e3403168363f92f4cd904cd9 R1 (D6+error-separation): explicit typed feedback channels; OrderDetail error vs not-found split",
+    "4d631d954dbfa04e2842f103b5390d0ec557b96a R0 (resume): state verified — interrupted-run commits unrecoverable, resume from verified remote head ece7be3"
+  ],
+  "fileCount": 116,
+  "protectedBoundariesUntouched": [
+    "src/domain/",
+    "src/application/",
+    "src/storage/",
+    "Documents",
+    "micro-standard-v2"
+  ],
+  "files": [
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/index.html",
+      "class": "build/config chrome twin"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/App.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "A",
+      "path": "apps/prototype-web/client/src/R1.orderDetailVoid.test.tsx",
+      "class": "test"
+    },
+    {
+      "status": "A",
+      "path": "apps/prototype-web/client/src/R2.financeActivityVoid.test.tsx",
+      "class": "test"
+    },
+    {
+      "status": "A",
+      "path": "apps/prototype-web/client/src/R2.keyboardFocus.test.tsx",
+      "class": "test"
+    },
+    {
+      "status": "A",
+      "path": "apps/prototype-web/client/src/R2.renderSmoke.test.tsx",
+      "class": "test"
+    },
+    {
+      "status": "A",
+      "path": "apps/prototype-web/client/src/R3.themeBehavior.test.tsx",
+      "class": "test"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/U09.css.test.ts",
+      "class": "test"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/components/primitives/Notice.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/components/primitives/index.ts",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/components/primitives/primitives.test.tsx",
+      "class": "test"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/components/settings/SettingsGuidedOpeningSection.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/contexts/ThemeContext.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/index.css",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/pages/Catalog.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/pages/CostEditor.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/pages/DraftEditor.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/pages/FinanceActivity.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/pages/InventoryMaterials.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+      "class": "production: UI/AUX only"
+    },
+    {
+      "status": "A",
+      "path": "apps/prototype-web/client/src/styles/theme-dark.css",
+      "class": "production: dark token layer (new)"
+    },
+    {
+      "status": "M",
+      "path": "apps/prototype-web/client/src/styles/vf-tokens.test.ts",
+      "class": "test"
+    },
+    {
+      "status": "A",
+      "path": "docs/architecture/ADRs/ADR-009-permanent-dark-mode.md",
+      "class": "documentation"
+    },
+    {
+      "status": "A",
+      "path": "docs/architecture/SURFACE_TONE_SYNTAX.md",
+      "class": "documentation"
+    },
+    {
+      "status": "M",
+      "path": "eslint.config.js",
+      "class": "build/config chrome twin"
+    },
+    {
+      "status": "M",
+      "path": "package.json",
+      "class": "build/config chrome twin"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/RESUME_STATE_REPORT.md",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/ROUTE_STATE_COVERAGE_MATRIX.csv",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/THEME_PARITY_MATRIX.csv",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/activity-filters-pressed-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/activity-no-data-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/activity-no-data-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/assets-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/assets-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/assets-new-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/assets-new-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/capture-log.json",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-count-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-count-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-distribute-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-distribute-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-transfer-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-transfer-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-wallet-new-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/cash-wallet-new-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/catalog-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/catalog-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/collect-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/collect-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/direct-sales-new-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/direct-sales-new-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-activity-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-activity-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-g5-declaration-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-g5-declaration-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-owner-entitlement-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-owner-entitlement-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-statement-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-statement-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-withdraw-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/finance-withdraw-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/foundation-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/foundation-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/home-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/home-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/inventory-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/inventory-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/inventory-material-new-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/inventory-material-new-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/loans-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/loans-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/loans-new-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/loans-new-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/order-not-found-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/orders-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/orders-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/orders-new-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/orders-new-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/parties-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/parties-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/pixel-verification.json",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/profile-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/profile-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/review-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/review-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/schedule-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/schedule-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/settings-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/settings-dark-toggled-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/settings-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/setup-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/setup-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/share-preview-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/share-preview-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/sheet-discard-question-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/sheet-open-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/sheet-open-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/suppliers-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/suppliers-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/tools-calculator-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/tools-calculator-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/tools-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/tools-integrity-dark-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/tools-integrity-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "A",
+      "path": "planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/visual-review/tools-light-390.png",
+      "class": "evidence"
+    },
+    {
+      "status": "M",
+      "path": "scripts/design-token-guards.py",
+      "class": "guard tooling"
+    },
+    {
+      "status": "M",
+      "path": "scripts/text-density-count.py",
+      "class": "guard tooling"
+    },
+    {
+      "status": "A",
+      "path": "scripts/theme-contrast-guard.py",
+      "class": "guard tooling"
+    }
+  ]
+}
