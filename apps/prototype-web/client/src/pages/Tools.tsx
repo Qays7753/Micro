@@ -182,7 +182,7 @@ export default function Tools() {
           <strong>تعذر قراءة أدواتك المحلية.</strong>
           <p>لم يتغير أي شيء — بياناتك كما هي على هذا الجهاز. أعد المحاولة.</p>
           <Button
-            action="secondary"
+            action="save"
 
             onClick={() => setReloadToken(token => token + 1)}
           >

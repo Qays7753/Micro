@@ -60,14 +60,11 @@ import type {
   RecurringWorkReadings,
 } from "@/application/recurring-work/recurringWorkService";
 
-import { InlineError, Notice, QuietCompletion } from "@/components/primitives";
+import { FeedbackNote } from "@/components/primitives";
 
-/* W2 (completion — تدقيق الوكيل ٢، F2): رسالة الشاشة تحمل ثلاثة معانٍ لا واحد —
- * إتمام هادئ (تبدأ بـ«تم »/«تمت ») · إرشاد محايد (وضع التعديل) · وإلا فهي
- * خطأ/فشل تحميل. التصنيف بالبادئة هو نمط Micro القائم (CostEditor/Schedule)
- * مع توسعة صادقة للإرشاد؛ النصوص نفسها لا تتغير. (تعبيرات نمطية لا نصوصًا
- * حرفية كي لا تدخل عدّاد كثافة النص.) */
-const SUCCESS_MESSAGE = /^تم[ت ]/;
+/* W2 (completion — تدقيق الوكيل ٢، F2 ثم الوكيل ٤، HIGH-1): رسالة الشاشة
+ * تحمل ثلاثة معانٍ — التصنيف المعتمد (إتمام/إرشاد/خطأ) انتقل إلى المكوّن
+ * الأولي FeedbackNote؛ نمط الإرشاد المحايد خاص بهذه الشاشة وحده. */
 const ADVISORY_MESSAGE = /^(أنت تعدل|تعديل القالب)/;
 export default function Catalog() {
   const [, navigate] = useLocation();
@@ -933,15 +930,7 @@ export default function Catalog() {
         deactivateAllocationPolicy={deactivateAllocationPolicy}
         startPolicyRevision={startPolicyRevision}
       />
-      {message ? (
-        SUCCESS_MESSAGE.test(message) ? (
-          <QuietCompletion word={message} />
-        ) : ADVISORY_MESSAGE.test(message) ? (
-          <Notice>{message}</Notice>
-        ) : (
-          <InlineError>{message}</InlineError>
-        )
-      ) : null}
+      {message ? <FeedbackNote word={message} advisory={ADVISORY_MESSAGE} /> : null}
     </section>
   );
 }

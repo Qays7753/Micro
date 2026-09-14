@@ -21,6 +21,12 @@ Per-route adoption and honest test evidence: see the matrix (12 routes carry `no
 | `.dark` legacy block | Dark Mode boundary — not activated (ADR-007) |
 | `micro-text-action` link actions | ratified quiet link pattern, not a button class |
 | `.micro-owner-page .micro-prim-button svg { 17px }` | documented divergence: dense owner-page rows; icon size only, meaning/contrast unaffected (registered for the next visual pass) |
+| Raw positive-only money compositions (~30 sites, EventsLayer/QuickSaleForm/Home/etc.) | render acceptably as single LTR islands today; the negative-capable site (CorrectionsLayer) is isolated; mass `MoneyValue` adoption belongs to the Row-convergence visual wave (registered) |
+| Settings.tsx success text containing a literal ✓ beside QuietCompletion's marker | cosmetic double glyph; the word is product-owned and frozen — removing the literal is an owner copy decision (registered) |
+| FinanceActivity empty scope wording without a no-results chip | wording is scope-honest and invites widening the range; a filtered-vs-empty chip split is a product copy decision (registered) |
+| Setup wizard «التالي» (steps 1–2) wearing save | validates and advances only; final step is the real save — weight-only, documented |
+| Schedule «حفظ سعة اليوم» / recurrence-stop confirm wearing secondary | deliberate de-emphasis of optional preferences inside open panels; consequence paths exist (documented) |
+| `quiet` openers for record-entry panels (DirectSaleEditor consumption link, OrderDetail extra deposit) | panel openers adjacent to correction/reversal entries; reclassifying to secondary is a weight-only tweak deferred to the next visual pass |
 
 ## Deferred to owner decisions (registered, not silently skipped)
 

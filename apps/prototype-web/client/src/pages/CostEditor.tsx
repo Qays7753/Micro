@@ -15,7 +15,10 @@ import {
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 
-import { Button, QuietCompletion } from "@/components/primitives";
+import { Button, FeedbackNote } from "@/components/primitives";
+/* إرشاد محايد خاص بهذه الشاشة (تصنيف الرسالة — عرض فقط) */
+const advisoryPattern = /^بنود مقترحة/;
+
 type EditableCostMaterial = DraftCostMaterial & { uiId: string };
 type EditableCostInput = Omit<CostEditorInput, "materialItems"> & { materialItems: EditableCostMaterial[] };
 
@@ -356,7 +359,7 @@ export default function CostEditor() {
         <h1>{draft.itemName || "وصف القطعة"}</h1>
       </div>
       {/* U-004: إشعار البنود المقترحة من التقدير المصدر — معلنة لا مفترضة. */}
-      {proposalNotice ? <QuietCompletion word={proposalNotice} /> : null}
+      {proposalNotice ? <FeedbackNote advisory={advisoryPattern} word={proposalNotice} /> : null}
       {preview?.ok ? (
         <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
           <span>سعر الحماية لكل قطعة (د.أ)</span>

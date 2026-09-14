@@ -7,7 +7,8 @@
 - **commit (8 + 1 conditional)** — high-consequence confirmation behind an independent path (delivery review, correction dialogs, data replacement, reversal editors with documented reason); the CorrectionPreview confirm is `destructive` when its correction is dangerous, else `commit`.
 - **destructive (1 + danger family 8)** — order cancellation with reason; legacy danger entries.
 - **save (72 + 1)** — ordinary saves/confirms, retries (including the StartupGate storage-recovery reload, per the Home pilot precedent), run/report actions, in-flow section actions.
-- **secondary (45 + legacy 113)** — navigation and neutral dialog choices; navigation is never a commit.
+- **secondary (45 + legacy 113)** — auxiliary navigation and neutral dialog choices; navigation is never a commit.
+- **Navigation weight convention (Agent-4 MEDIUM-2, ratified):** a navigation control that carries its screen's PRIMARY next action (Home's finance/catalog unit CTAs, OrderDetail's «راجع التسليم وسجّله») wears `save` — the moderate-emphasis ordinary class — matching the W4 pilot decision; auxiliary navigation and dialog choices wear `secondary`. The class communicates weight, never commit semantics; no navigation button ever posts data.
 - **quiet (36)** — documented correction/reversal entry points (MR-03/U09 touch floor), added to the primitive as a proven action class.
 - **ChoiceRow (9 toggles)** — selection pairs use the edge contract, never fills.
 **Consequences:** Visual hierarchy now matches meaning (create Clay, save warm+edge, commit ink, destructive error-ink, navigation neutral). One-tap lifecycle transitions without confirmation paths deliberately use `save`, not `commit` — the commit class requires an independent confirmation path per the Standard; inventing dialogs is a product decision (registered in MIGRATION_STATUS, not taken). The census covers all source roots and is guarded by `legacyClassCensus.test.ts`.

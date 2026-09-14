@@ -881,9 +881,11 @@ export default function OrderDetail() {
                       ستعيد المبلغ للزبون، تراجع عن القبضة أولًا من قسم التحصيلات ثم ألغِ.
                     </p>
                   ) : null}
+                  {/* W7 (تدقيق الوكيل ٤، MEDIUM-1): مسارات التنفيذ الثلاثة
+                   * للإلغاء فعل إتلاف واحد — حبر واحد (عقد الإتلاف). */}
                   <div className="micro-form-actions micro-contextual-actions">
                     <Button
-                      action="secondary"
+                      action="destructive"
 
                       disabled={isActing}
                       onClick={() => {
@@ -893,7 +895,7 @@ export default function OrderDetail() {
                       خطأ في السعر
                     </Button>
                     <Button
-                      action="secondary"
+                      action="destructive"
 
                       disabled={isActing}
                       onClick={() => {
@@ -911,7 +913,7 @@ export default function OrderDetail() {
                       سبب آخر
                     </Button>
                     <Button
-                      action="quiet"
+                      action="destructive"
 
                       disabled={isActing}
                       onClick={() => {

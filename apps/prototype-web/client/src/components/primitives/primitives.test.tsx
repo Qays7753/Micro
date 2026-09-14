@@ -6,6 +6,7 @@ import {
   ChoiceButton,
   ChoiceRow,
   EmptyState,
+  FeedbackNote,
   Field,
   InlineError,
   Notice,
@@ -163,6 +164,18 @@ describe("W2 (completion) ChoiceRow: selected/current edge contract — never a 
 });
 
 describe("W2 Notice family: inline feedback regime (U-07)", () => {
+  it("FeedbackNote classifies mixed channels: success word, advisory pattern, else error", () => {
+    const { container, rerender } = render(<FeedbackNote word="تم حفظ التفضيل" />);
+    expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeTruthy();
+    rerender(<FeedbackNote word="هذا المرجع موقوف" advisory={/^هذا المرجع/} />);
+    expect(container.querySelector(".micro-prim-notice--info, .micro-prim-notice")).toBeTruthy();
+    rerender(<FeedbackNote word="تعذر حفظ التفضيل" />);
+    expect(container.querySelector(".micro-prim-notice--error-inline")).toBeTruthy();
+    // failure text never wears the success check marker
+    rerender(<FeedbackNote word="تعذر قراءة البيانات" />);
+    expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeNull();
+  });
+
   it("Notice carries role=status", () => {
     render(<Notice>تم</Notice>);
     expect(screen.getByRole("status")).toBeTruthy();

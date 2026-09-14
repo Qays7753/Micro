@@ -13,7 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { Button, QuietCompletion, StatusChip } from "@/components/primitives";
+import { Button, FeedbackNote, StatusChip } from "@/components/primitives";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryShortage, InventoryMovement } from "@micro-domain/inventory-material/index.js";
@@ -252,7 +252,7 @@ export default function InventoryMaterials() {
         <h1>المواد والمخزون</h1>
         <p>سجّل ما يتوفر فعلًا، ثم اربط الاستهلاك أو الهدر بحدث واضح. شراء المواد لا يصبح تكلفة بيع هنا.</p>
       </div>
-      {message ? <QuietCompletion word={message} /> : null}
+      {message ? <FeedbackNote word={message} /> : null}
       {/* القرار ٩ + §٢.٨: قبل التفعيل الموضع غير نشط معلنًا — لا بوابة، والتفعيل بتاريخ اليوم. */}
       {notActivated ? (
         <section className="micro-inventory-inactive" aria-labelledby="inventory-inactive-title">

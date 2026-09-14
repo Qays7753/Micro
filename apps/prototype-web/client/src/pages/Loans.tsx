@@ -64,7 +64,7 @@ export default function Loans() {
             {state.message}
           </p>
           <p>لم يتغير أي سجل — بياناتك كما هي؛ أعد المحاولة.</p>
-          <Button action="secondary" onClick={() => load()}>
+          <Button action="save" onClick={() => load()}>
             إعادة المحاولة
           </Button>
         </section>

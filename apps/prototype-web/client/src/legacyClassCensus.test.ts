@@ -24,6 +24,7 @@ const LEGACY_CLASSES = [
   "micro-full-action",
   "micro-choice-row",
   "micro-status-chip",
+  "micro-g5-choice",
 ];
 
 function listFiles(dir: string, exts: string[]): string[] {

@@ -24,7 +24,7 @@ import { formatLocalDate } from "@/presentation/formatters";
 import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
 
-import { Button, QuietCompletion } from "@/components/primitives";
+import { Button, FeedbackNote } from "@/components/primitives";
 export type SettingsDataProtectionSectionProps = {
   persistence: BrowserPersistenceReading | null;
   lastExport: string | null;
@@ -122,7 +122,7 @@ export function SettingsDataProtectionSection({
             >
               <FileCheck2 aria-hidden="true" /> نسخ التقرير المحلي
             </Button>
-            {diagnosticCopyResult ? <QuietCompletion word={diagnosticCopyResult.message} /> : null}
+            {diagnosticCopyResult ? <FeedbackNote word={diagnosticCopyResult.message} /> : null}
           </div>
         </article>
         {/* P-001: سياسة دقة المال معلنة — قرشان (منزلتان عشريتان) في كل مكان:

@@ -12,7 +12,7 @@ import { formatMoneyMinor } from "@/presentation/formatters";
 import type { CostEstimate, DraftIntent, OrderDraft } from "@/storage/local/types";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
-import { Button, QuietCompletion } from "@/components/primitives";
+import { Button, FeedbackNote } from "@/components/primitives";
 type EditorState = "loading" | "ready" | "not_found" | "error";
 type DraftFormValues = Pick<
   OrderDraft,
@@ -365,7 +365,7 @@ export default function DraftEditor() {
         <p>نسجل القصة والكمية الآن. التكلفة والاتفاق يأتيان بعد ذلك.</p>
       </div>
       {/* U-004: إشعار الجسر من التقدير — اقتراحات معلنة لا أسعار مؤكدة. */}
-      {estimateNotice ? <QuietCompletion word={estimateNotice} /> : null}
+      {estimateNotice ? <FeedbackNote word={estimateNotice} /> : null}
       <section className="micro-form-card">
         <label className="micro-field">
           <span>

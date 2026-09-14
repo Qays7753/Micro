@@ -822,6 +822,13 @@ textarea:disabled,
 .micro-fab:active {
   transform: translateY(-20px) scale(0.97);
 }
+/* W7 (تدقيق الوكيل ٥، INFO-2): عاد تفاعل المؤشر لأجهزة الفأرة — إزالة قاعدة
+ * hover القديمة مع تقاعد أصناف الأزرار أسقطتها عن الفاب فقط؛ اللمس لا يتأثر. */
+@media (hover: hover) and (pointer: fine) {
+  .micro-fab:hover {
+    background: var(--vf-clay-interactive);
+  }
+}
 .micro-bottom-sheet {
   max-width: 640px;
   margin-inline: auto;
@@ -1023,7 +1030,9 @@ textarea:disabled,
 }
 .micro-field small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): مؤهل داخل التسمية — طبقة البيانات
+   * الوصفية الموثقة 12px (تحت الأرضية التفاعلية، فوق الشذوذ). */
+  font-size: 12px;
   font-weight: 400;
 }
 .micro-field input,
@@ -2268,7 +2277,8 @@ button.micro-finance-position-link:focus-visible {
   display: grid;
   gap: 2px;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): تسميات حقول — أرضية 13px. */
+  font-size: var(--vf-text-label-size);
 }
 .micro-period-heading input {
   min-width: 116px;
@@ -3093,26 +3103,6 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-g5-declaration small {
   direction: rtl;
-}
-.micro-g5-choice-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-.micro-g5-choice {
-  min-height: 48px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-2);
-  color: var(--color-text-secondary);
-  background: var(--color-surface);
-  font-size: 13px;
-  font-weight: 600;
-}
-.micro-g5-choice[data-selected="true"] {
-  border-color: var(--color-accent-primary);
-  color: var(--color-accent-text);
-  background: var(--color-accent-soft);
 }
 .micro-g5-editor-page {
   gap: var(--space-4);
@@ -4098,7 +4088,8 @@ button.micro-month-cell:active {
 }
 .micro-finance-event-toggle {
   justify-self: start;
-  font-size: 12px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): مفتاح تفاعلي — أرضية 13px. */
+  font-size: var(--vf-text-label-size);
 }
 .micro-finance-event-detail {
   display: grid;
@@ -4831,9 +4822,11 @@ button.micro-month-cell:active {
     align-items: start;
     padding-inline: var(--space-2);
   }
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-3): أرضية اللصائق التفاعلية 13px لا تنكسر
+   * في أضيق الهواتف — الالتفاف يحمي التخطيط بدل تصغير النص التفاعلي. */
   .micro-home-attention-item .micro-text-action,
   .micro-home-optional-item .micro-text-action {
-    font-size: 11px;
+    font-size: var(--vf-text-label-size);
   }
 }
 
@@ -5023,7 +5016,8 @@ button.micro-month-cell:active {
   display: grid;
   gap: 2px;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): تسميات حقول — أرضية 13px. */
+  font-size: var(--vf-text-label-size);
 }
 .micro-period-range-fields input {
   min-width: 0;
@@ -5387,7 +5381,8 @@ button.micro-month-cell:active {
   padding: 0 var(--space-2) 0 var(--space-1);
   color: var(--color-accent-text);
   background: var(--color-accent-soft);
-  font-size: 12px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): أرضية اللصائق 13px. */
+  font-size: var(--vf-text-label-size);
 }
 .micro-chip button {
   /* المجموعة ٦ (تدقيق A1 — UX-03): هدف لمس ٤٤ بكسل كحد أدنى — فعل الإيقاف شبه

@@ -78,6 +78,27 @@ export default function CashTransferEditor() {
         جارٍ قراءة محافظ الكاش…
       </div>
     );
+  /* W7 (تدقيق الوكيل ٤، HIGH-2): فشل القراءة ليس «لا محافظ كافية» — فرع خطأ
+   * صريح يمنع خلق محفظة مكررة بعد عطل تخزين. */
+  if (message && wallets.length === 0)
+    return (
+      <section className="micro-page micro-finance-page">
+        <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
+          <ArrowRight aria-hidden="true" /> محافظ الكاش
+        </button>
+        <div className="micro-page-heading">
+          <span className="micro-overline">تحويل بين المحافظ</span>
+          <h1>تعذر قراءة محافظ الكاش</h1>
+        </div>
+        <p className="micro-field-error" role="alert">
+          {message}
+        </p>
+        <p>لم يتغير أي سجل. أعد فتح التطبيق للمحاولة.</p>
+        <Button action="save" onClick={() => window.location.reload()}>
+          إعادة المحاولة
+        </Button>
+      </section>
+    );
   if (wallets.length < 2)
     return (
       <section className="micro-page micro-not-found">

@@ -77,7 +77,7 @@ export default function Orders() {
         <h1>تعذر تحميل الطلبات</h1>
         <p>لم يتم تغيير شيء — بياناتك كما هي؛ أعد المحاولة.</p>
         <Button
-          action="secondary"
+          action="save"
 
           onClick={() => setReloadToken(token => token + 1)}
         >
