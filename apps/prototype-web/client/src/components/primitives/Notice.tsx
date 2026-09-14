@@ -66,31 +66,35 @@ export function InlineError({
 }
 
 /*
- * W7 (تدقيق الوكيل ٤، HIGH-1) — FeedbackNote: تصنيف قناة الرسالة المختلطة.
+ * R1 (D6) — FeedbackNote: قناة التغذية الراجعة الصريحة المُصنَّفة.
  * ---------------------------------------------------------------------------
- * سابقات الشاشات (CostEditor/Schedule ثم Catalog) تصنف رسالتها بالبادئة:
- * إتمام هادئ (تبدأ بـ«تم »/«تمت ») · إرشاد محايد (نمط الشاشة) · وإلا فهي
- * خطأ. هذا المكوّن يجمع التصنيف المعتمد في مكان واحد بدل تكراره — الكلمة
- * نفسها ملك الشاشة ولا تتغير؛ التصنيف عرض صرف. تعبيرات نمطية لا نصوصًا
- * حرفية كي لا تدخل عدّاد كثافة النص.
+ * القرار الملزم: لا تخمين بالبادئة أبدًا. الشاشة تعرف حقيقة ما حدث وقت
+ * الحدث نفسه، فتُعلن القناة صراحة عبر kind: إتمام (فعل موثق تم) · إرشاد
+ * (معرفة محايدة عن حالة العرض) · خطأ (تعذّر أو طلب تصحيح). الكلمة ملك
+ * الشاشة ولا تتغير لتطابق التصنيف؛ التصنيف عرض صرف مصدره الحقيقة نفسها.
+ * حلّ هذا محل تصنيف البادئات (تم…) الذي أخطأ عرض إتمامات مثل «سُجّل…»
+ * و«أُوقفت…» و«عادت…» و«حُلّ…» كأخطاء.
  */
-const FEEDBACK_SUCCESS = /^تم[ت ]/;
+export type FeedbackKind = "completion" | "advisory" | "error";
 
-export interface FeedbackNoteProps extends HTMLAttributes<HTMLDivElement> {
-  /** نص الرسالة — ملك الشاشة (التصنيف يطبق على النصوص). */
-  word: ReactNode;
-  /** نمط الإرشاد المحايد الخاص بالشاشة (اختياري) — ما طابقه يُعرض إشعارًا. */
-  advisory?: RegExp;
+/** رسالة موقّتة بقناة صريحة — الحقيقة تُحدَّد وقت الحدث لا وقت العرض. */
+export interface FeedbackMessage {
+  readonly kind: FeedbackKind;
+  readonly word: string;
 }
 
-export function FeedbackNote({ word, advisory, ...rest }: FeedbackNoteProps) {
-  if (typeof word === "string") {
-    if (FEEDBACK_SUCCESS.test(word)) {
-      return <QuietCompletion word={word} {...rest} />;
-    }
-    if (advisory?.test(word)) {
-      return <Notice {...rest}>{word}</Notice>;
-    }
+export interface FeedbackNoteProps extends HTMLAttributes<HTMLDivElement> {
+  /** القناة الصريحة — إلزامية؛ لا تصنيف تلقائي. */
+  kind: FeedbackKind;
+  /** نص الرسالة — ملك الشاشة، لا يُعدَّل لتطابق القناة. */
+  word: ReactNode;
+}
+
+export function FeedbackNote({ kind, word, ...rest }: FeedbackNoteProps) {
+  if (kind === "completion") {
+    return <QuietCompletion word={word} {...rest} />;
+  }
+  if (kind === "error") {
     return <InlineError {...rest}>{word}</InlineError>;
   }
   return <Notice {...rest}>{word}</Notice>;

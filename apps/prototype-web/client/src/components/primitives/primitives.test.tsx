@@ -163,19 +163,43 @@ describe("W2 (completion) ChoiceRow: selected/current edge contract — never a 
   });
 });
 
-describe("W2 Notice family: inline feedback regime (U-07)", () => {
-  it("FeedbackNote classifies mixed channels: success word, advisory pattern, else error", () => {
-    const { container, rerender } = render(<FeedbackNote word="تم حفظ التفضيل" />);
+describe("R1 FeedbackNote: explicit typed channel (D6 — no prefix guessing)", () => {
+  it("kind=completion renders the quiet completion regardless of the word's prefix", () => {
+    // سُجّل/أُوقفت/عادت/حُلّ previously misclassified as errors by prefix guessing
+    const { container, rerender } = render(<FeedbackNote kind="completion" word="سُجّل إخراج الهدر" />);
     expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeTruthy();
-    rerender(<FeedbackNote word="هذا المرجع موقوف" advisory={/^هذا المرجع/} />);
-    expect(container.querySelector(".micro-prim-notice--info, .micro-prim-notice")).toBeTruthy();
-    rerender(<FeedbackNote word="تعذر حفظ التفضيل" />);
-    expect(container.querySelector(".micro-prim-notice--error-inline")).toBeTruthy();
-    // failure text never wears the success check marker
-    rerender(<FeedbackNote word="تعذر قراءة البيانات" />);
-    expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeNull();
+    rerender(<FeedbackNote kind="completion" word="أُوقفت المتابعة" />);
+    expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeTruthy();
+    rerender(<FeedbackNote kind="completion" word="تم الحفظ" />);
+    expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeTruthy();
   });
 
+  it("kind=advisory renders the neutral notice — knowledge, not outcome", () => {
+    const { container } = render(<FeedbackNote kind="advisory" word="هذا المرجع موقوف" />);
+    expect(container.querySelector(".micro-prim-notice--error-inline")).toBeNull();
+    expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeNull();
+    expect(container.querySelector(".micro-prim-notice")).toBeTruthy();
+  });
+
+  it("kind=error renders the inline error and never the success marker", () => {
+    const { container, rerender } = render(<FeedbackNote kind="error" word="تعذر حفظ التفضيل" />);
+    expect(container.querySelector(".micro-prim-notice--error-inline")).toBeTruthy();
+    // an error word must never wear the quiet-completion check even if it starts with تم
+    rerender(<FeedbackNote kind="error" word="تم إيقاف القراءة بسبب خلل" />);
+    expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeNull();
+    expect(container.querySelector(".micro-prim-notice--error-inline")).toBeTruthy();
+  });
+
+  it("the channel is declared, not inferred: the same word can carry different truths", () => {
+    // the screen owns the truth at event time; identical wording may be a completion or an error
+    const { container, rerender } = render(<FeedbackNote kind="completion" word="إيقاف المتابعة" />);
+    expect(container.querySelector(".micro-prim-notice--quiet-completion")).toBeTruthy();
+    rerender(<FeedbackNote kind="error" word="إيقاف المتابعة" />);
+    expect(container.querySelector(".micro-prim-notice--error-inline")).toBeTruthy();
+  });
+});
+
+describe("Notice family: inline feedback regime (U-07)", () => {
   it("Notice carries role=status", () => {
     render(<Notice>تم</Notice>);
     expect(screen.getByRole("status")).toBeTruthy();

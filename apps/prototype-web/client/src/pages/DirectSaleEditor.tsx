@@ -19,8 +19,6 @@ import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
 import { Button, FeedbackNote } from "@/components/primitives";
-/* إرشاد محايد خاص بهذه الشاشة (تصنيف الرسالة — عرض فقط) */
-const advisoryPattern = /^هذا المرجع/;
 
 type DifferenceChoice = "price_cut" | "remaining_debt" | "needs_review";
 
@@ -790,7 +788,7 @@ export default function DirectSaleEditor() {
               </p>
             ) : null}
           </details>
-          {productNotice ? <FeedbackNote advisory={advisoryPattern} word={productNotice} /> : null}
+          {productNotice ? <FeedbackNote kind="advisory" word={productNotice} /> : null}
           {/* D-001: الزبون حقل مستقل — يظهر عند وجود دين أو زبون مسجل، ويجتمع باسمه في دفتر الناس. */}
           {difference > 0 || customerName.trim() !== "" ? (
             <label className="micro-field">

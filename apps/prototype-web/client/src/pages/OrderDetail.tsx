@@ -55,7 +55,10 @@ const resultLabel: Record<string, string> = {
 };
 
 type OrderDetailState =
-  { phase: "loading" } | { phase: "error" } | { phase: "ready"; stored: StoredCraftOrder };
+  | { phase: "loading" }
+  | { phase: "error" }
+  | { phase: "not_found" }
+  | { phase: "ready"; stored: StoredCraftOrder };
 const preDeliveryStatuses = ["provisional_agreement", "confirmed", "in_progress", "ready"];
 /* Conflict F (AV-07): الإلغاء متاح حيث يُتِمّ بأمان — يشمل «يحتاج مراجعة» بعد عكس
  * التسليم (النطاق يسمح والقفل الموثق يحرس المسلّم غير المعكوس برسالة صادقة). */
@@ -93,6 +96,8 @@ export default function OrderDetail() {
   } = usePrototypeServices();
   const [stored, setStored] = useState<StoredCraftOrder | null>(null);
   const [state, setState] = useState<OrderDetailState>({ phase: "loading" });
+  /* R1: إعادة المحاولة بعد فشل قراءة — تكرار القراءة نفسه لا إنشاء شيء. */
+  const [reloadNonce, setReloadNonce] = useState(0);
   const [materialState, setMaterialState] = useState<MaterialState>({ phase: "loading" });
   /* المجموعة ٣ (Scope E — §11.3): التقدير المصدر — وصلة أثر فقط؛ إن حُذف لا تُعرض. */
   const [sourceEstimate, setSourceEstimate] = useState<CostEstimate | null>(null);
@@ -188,8 +193,14 @@ export default function OrderDetail() {
     Promise.all([agreements.get(params.id), inventory.readOrderActualMaterialComparison(params.id)])
       .then(([orderResult, materialResult]) => {
         if (!active) return;
-        if (!orderResult.ok || !orderResult.stored) {
+        /* R1: فصل صادق — فشل القراءة خطأ (إعادة محاولة)، والسجل الغائب
+         * بعد قراءة ناجحة هو «غير موجود» (عودة)؛ لا يُخلط الاثنان أبدًا. */
+        if (!orderResult.ok) {
           setState({ phase: "error" });
+          return;
+        }
+        if (!orderResult.stored) {
+          setState({ phase: "not_found" });
           return;
         }
         setStored(orderResult.stored);
@@ -204,7 +215,7 @@ export default function OrderDetail() {
     return () => {
       active = false;
     };
-  }, [agreements, inventory, dataVersion, params.id]);
+  }, [agreements, inventory, dataVersion, params.id, reloadNonce]);
 
   /* المجموعة ٣ (§11.3): «المصدر: تقدير» — المسودة المرتبطة تحمل معرّف التقدير؛
    * العرض وصلة قراءة لا تغيّر شيئًا، والتقدير المحذوف يُغيب بصدق لا بخطأ. */
@@ -269,9 +280,31 @@ export default function OrderDetail() {
         جارٍ فتح الطلب…
       </div>
     );
-  if (state.phase === "error" || !stored)
+  if (state.phase === "error")
     return (
-      <section className="micro-page micro-not-found">
+      <section className="micro-page micro-not-found" data-void="error">
+        <h1>تعذر قراءة الطلب</h1>
+        <p>لم يتغير أي سجل؛ أعِد المحاولة أو ارجع للطلبات.</p>
+        <div className="micro-form-actions">
+          <Button
+            action="secondary"
+
+            onClick={() => {
+              setState({ phase: "loading" });
+              setReloadNonce(reloadNonce + 1);
+            }}
+          >
+            إعادة المحاولة
+          </Button>
+          <Button action="quiet" onClick={() => navigate(returnPath)}>
+            الطلبات
+          </Button>
+        </div>
+      </section>
+    );
+  if (state.phase === "not_found" || !stored)
+    return (
+      <section className="micro-page micro-not-found" data-void="no-data">
         <h1>الطلب غير متاح محليًا</h1>
         <Button
           action="secondary"

@@ -16,6 +16,8 @@ export {
   type NoticeProps,
   type QuietCompletionProps,
   type FeedbackNoteProps,
+  type FeedbackKind,
+  type FeedbackMessage,
 } from "./Notice";
 export { Row, RowList, type RowProps, type RowStripeTone } from "./Row";
 export { Field, type FieldProps } from "./Field";

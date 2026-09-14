@@ -46,7 +46,7 @@ import {
 import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
 import { SettingsGuidedOpeningSection } from "@/components/settings/SettingsGuidedOpeningSection";
 
-import { Button } from "@/components/primitives";
+import { Button, type FeedbackKind } from "@/components/primitives";
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
@@ -121,12 +121,16 @@ export default function SettingsPage() {
   };
   /* المجموعة ٥ (التحصين الكامل — نسخ تشخيص محلي خصوصي): أثر
    * النسخ يظهر في موضعه دون فتح طبقة أخرى. */
-  const [diagnosticCopyResult, setDiagnosticCopyResult] = useState<null | { message: string }>(null);
+  const [diagnosticCopyResult, setDiagnosticCopyResult] = useState<null | {
+    kind: FeedbackKind;
+    message: string;
+  }>(null);
   async function copyDiagnosticReport() {
     setDiagnosticCopyResult(null);
     const clipboard = navigator.clipboard;
     if (clipboard === undefined || typeof clipboard.writeText !== "function") {
       setDiagnosticCopyResult({
+        kind: "error",
         message: "الحافظة غير متاحة في هذا المتصفح — لا يمكن نسخ التقرير.",
       });
       return;
@@ -134,10 +138,12 @@ export default function SettingsPage() {
     try {
       await clipboard.writeText(localDiagnostics.reportText());
       setDiagnosticCopyResult({
+        kind: "completion",
         message: "نُسخ تقرير التشخيص إلى الحافظة — بيانات محلية آمنة فقط؛ لا يُرسل شيء تلقائيًا أبدًا.",
       });
     } catch {
       setDiagnosticCopyResult({
+        kind: "error",
         message: "تعذر النسخ إلى الحافظة — بقيت بياناتك كما هي ولم يُرسل شيء.",
       });
     }
@@ -198,7 +204,11 @@ export default function SettingsPage() {
   const [preview, setPreview] = useState<TransferPreview | null>(null);
   const [guidedPreview, setGuidedPreview] = useState<GuidedOpeningImportPreview | null>(null);
   /* S3-11: الإشعار يُعرض داخل القسم الذي أنتجه — لا في أسفل صفحة بطول ٨٤١ سطرًا. */
-  const [notice, setNotice] = useState<{ text: string; section: "storage" | "mode" } | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: FeedbackKind;
+    text: string;
+    section: "storage" | "mode";
+  } | null>(null);
   /* جولة الاستئناف (استدلال QA حي): إشعارات التخزين (نجاح التصدير، رفض التلاعب،
    * معاينة الاستيراد) تُعرض داخل طبقة «بيانات البداية والاستعادة» المطوية أصلًا —
    * فتُفتح الطبقة مع كل إشعار تخزين حتى لا يبقى الأثر غير مرئي للمستخدم. */
@@ -208,17 +218,17 @@ export default function SettingsPage() {
     void preferences.saveBackupReminderEnabled(next).then(result => {
       if (!result.ok) {
         setBackupReminder(!next);
-        setStorageNotice(result.message);
+        setStorageNotice("error", result.message);
         return;
       }
       notifyDataChanged();
     });
   };
-  const setStorageNotice = (text: string) => {
-    setNotice({ text, section: "storage" });
+  const setStorageNotice = (kind: FeedbackKind, text: string) => {
+    setNotice({ kind, text, section: "storage" });
     setGuidedLayerOpen(true);
   };
-  const setModeNotice = (text: string) => setNotice({ text, section: "mode" });
+  const setModeNotice = (kind: FeedbackKind, text: string) => setNotice({ kind, text, section: "mode" });
   const [isWorking, setIsWorking] = useState(false);
   const [operatingMode, setOperatingMode] = useState<OperatingModeState>({ phase: "loading" });
   const [selectedMode, setSelectedMode] = useState<"" | OperatingWorkMode>("");
@@ -252,12 +262,12 @@ export default function SettingsPage() {
     });
     setIsSavingOperatingMode(false);
     if (!result.ok) {
-      setModeNotice(result.message);
+      setModeNotice("error", result.message);
       return;
     }
     setOperatingMode({ phase: "ready", value: result.value });
     notifyDataChanged();
-    setModeNotice("تم حفظ طريقة العمل وتتبع الوقت على هذا الجهاز فقط.");
+    setModeNotice("completion", "تم حفظ طريقة العمل وتتبع الوقت على هذا الجهاز فقط.");
   }
 
   async function exportLocal() {
@@ -275,7 +285,7 @@ export default function SettingsPage() {
     const result = await transfers.createVerifiedExport();
     setIsWorking(false);
     if (!result.ok) {
-      setStorageNotice(result.message);
+      setStorageNotice("error", result.message);
       return;
     }
     const blob = new Blob([JSON.stringify(result.value.file, null, 2)], { type: "application/json" });
@@ -291,7 +301,8 @@ export default function SettingsPage() {
     setCurrentSummary(result.value.summary);
     notifyDataChanged();
     setStorageNotice(
-      "النسخة جاهزة ومُتحقق منها ✓ — احفظها بمكان آمن، فيها كل أرقامك. لو ضاع الجهاز تضيع معه؛ لا سحابة في هذا الإصدار.",
+      "completion",
+      "النسخة جاهزة ومُتحقق منها — احفظها بمكان آمن، فيها كل أرقامك. لو ضاع الجهاز تضيع معه؛ لا سحابة في هذا الإصدار.",
     );
   }
 
@@ -310,7 +321,10 @@ export default function SettingsPage() {
     const result = await transfers.createVerifiedExport();
     if (!result.ok) {
       setResetFlow({ phase: "idle" });
-      setStorageNotice(`${result.message} بياناتك كما هي — لا يبدأ أي تصفير قبل نسخة احتياطية ناجحة.`);
+      setStorageNotice(
+        "error",
+        `${result.message} بياناتك كما هي — لا يبدأ أي تصفير قبل نسخة احتياطية ناجحة.`,
+      );
       return;
     }
     const blob = new Blob([JSON.stringify(result.value.file, null, 2)], { type: "application/json" });
@@ -342,7 +356,7 @@ export default function SettingsPage() {
     setIsWorking(false);
     if (!result.ok) {
       setResetFlow({ phase: "idle" });
-      setStorageNotice(result.message);
+      setStorageNotice("error", result.message);
       return;
     }
     /* S5-03 + المجموعة ٥ (التحصين الكامل): سياسة المسودات المعلنة بعد نجاح التصفير
@@ -356,6 +370,7 @@ export default function SettingsPage() {
     notifyDataChanged();
     if (!cleared.ok) {
       setNotice({
+        kind: "error",
         text: "تمت إعادة التعيين، لكن تعذر مسح مسودات النماذج غير المُسلّمة — لم يُسجّل أي أثر مالي؛ افتح النموذج وتجاهل مسودته.",
         section: "storage",
       });
@@ -374,14 +389,14 @@ export default function SettingsPage() {
     try {
       const prepared = transfers.prepareImport(await file.text());
       if (!prepared.ok) {
-        setStorageNotice(prepared.message);
+        setStorageNotice("error", prepared.message);
         return;
       }
       setPreview(prepared.value);
       /* جولة الاستئناف: معاينة الاستيراد تعرض داخل الطبقة نفسها — نفتحها لتُرى. */
       setGuidedLayerOpen(true);
     } catch {
-      setStorageNotice("تعذر قراءة الملف. بقيت بيانات هذا الجهاز دون تغيير.");
+      setStorageNotice("error", "تعذر قراءة الملف. بقيت بيانات هذا الجهاز دون تغيير.");
     } finally {
       setIsWorking(false);
     }
@@ -405,7 +420,7 @@ export default function SettingsPage() {
     const result = await transfers.confirmImport(preview);
     setIsWorking(false);
     if (!result.ok) {
-      setStorageNotice(result.message);
+      setStorageNotice("error", result.message);
       return;
     }
     setPreview(null);
@@ -415,6 +430,7 @@ export default function SettingsPage() {
      * عن حالتها المستقلة عن الملف. */
     const drafts = await formDrafts.list();
     setStorageNotice(
+      "completion",
       drafts.ok && drafts.value.length > 0
         ? `تم استبدال البيانات المحلية بالملف الذي راجعته؛ وأُبقيت ${drafts.value.length} مسودة نموذج غير مُسلّمة محليًا كما هي (مستقلة عن الملف) — تُعرض عند فتح نماذجها ويمكن تجاهلها هناك.`
         : "تم استبدال البيانات المحلية بالملف الذي راجعته.",
@@ -443,12 +459,12 @@ export default function SettingsPage() {
     try {
       const prepared = await guidedOpeningImport.prepare(await file.text());
       if (!prepared.ok) {
-        setStorageNotice(prepared.message);
+        setStorageNotice("error", prepared.message);
         return;
       }
       setGuidedPreview(prepared.value);
     } catch {
-      setStorageNotice("تعذر قراءة ملف البداية. بقيت بيانات هذا الجهاز دون تغيير.");
+      setStorageNotice("error", "تعذر قراءة ملف البداية. بقيت بيانات هذا الجهاز دون تغيير.");
     } finally {
       setIsWorking(false);
     }
@@ -475,12 +491,13 @@ export default function SettingsPage() {
     const result = await guidedOpeningImport.confirm(guidedPreview);
     setIsWorking(false);
     if (!result.ok) {
-      setStorageNotice(result.message);
+      setStorageNotice("error", result.message);
       return;
     }
     setGuidedPreview(null);
     notifyDataChanged();
     setStorageNotice(
+      "completion",
       result.reused
         ? "تم التعرف على هذه المحاولة مسبقًا؛ لم يتكرر أي أثر."
         : "تم إدخال الموقف الافتتاحي المحدود مع إبقاء ما لم نعرفه خارج السجل.",

@@ -8,7 +8,7 @@ import { Hammer, Save } from "lucide-react";
 import type { OperatingWorkMode } from "@/storage/local/types";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
 
-import { Button, FeedbackNote } from "@/components/primitives";
+import { Button, FeedbackNote, type FeedbackKind } from "@/components/primitives";
 export type OperatingModeState =
   { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; value: OperatingModeValue };
 
@@ -39,7 +39,7 @@ export type SettingsOperatingModeSectionProps = {
   setTrackingEnabled: Dispatch<SetStateAction<boolean>>;
   isSavingOperatingMode: boolean;
   selectedModeDescription: string | undefined;
-  notice: { text: string; section: "storage" | "mode" } | null;
+  notice: { kind: FeedbackKind; text: string; section: "storage" | "mode" } | null;
   saveOperatingMode: () => Promise<void>;
 };
 
@@ -130,7 +130,7 @@ export function SettingsOperatingModeSection({
               <Save aria-hidden="true" />
               {isSavingOperatingMode ? "جارٍ حفظ التفضيل…" : "حفظ طريقة العمل"}
             </Button>
-            {notice?.section === "mode" ? <FeedbackNote word={notice.text} /> : null}
+            {notice?.section === "mode" ? <FeedbackNote kind={notice.kind} word={notice.text} /> : null}
           </>
         ) : null}
       </section>

@@ -60,12 +60,11 @@ import type {
   RecurringWorkReadings,
 } from "@/application/recurring-work/recurringWorkService";
 
-import { FeedbackNote } from "@/components/primitives";
+import { FeedbackMessage, FeedbackNote } from "@/components/primitives";
 
 /* W2 (completion — تدقيق الوكيل ٢، F2 ثم الوكيل ٤، HIGH-1): رسالة الشاشة
- * تحمل ثلاثة معانٍ — التصنيف المعتمد (إتمام/إرشاد/خطأ) انتقل إلى المكوّن
- * الأولي FeedbackNote؛ نمط الإرشاد المحايد خاص بهذه الشاشة وحده. */
-const ADVISORY_MESSAGE = /^(أنت تعدل|تعديل القالب)/;
+ * تحمل ثلاثة معانٍ — التصنيف (إتمام/إرشاد/خطأ) صار صريحًا من مصدر الحدث
+ * (R1/D6)؛ لا نمط بادئات لهذه الشاشة بعد الآن. */
 export default function Catalog() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
@@ -101,7 +100,7 @@ export default function Catalog() {
   const [units, setUnits] = useState<readonly MeasurementUnit[]>([]);
   const [conversions, setConversions] = useState<readonly DirectConversion[]>([]);
   const [templates, setTemplates] = useState<readonly CatalogTemplate[]>([]);
-  const [message, setMessage] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   const [saving, setSaving] = useState(false);
   const [policyKind, setPolicyKind] = useState<RecurringWorkPolicyInput["kind"]>("manual_amount");
   const [policyAmount, setPolicyAmount] = useState<number | null>(null);
@@ -188,15 +187,15 @@ export default function Catalog() {
         inventory.overview(),
       ]);
     if (itemResult.ok) setItems(itemResult.items);
-    else setMessage(itemResult.message);
+    else setFeedback({ kind: "error", word: itemResult.message });
     if (readingResult.ok) setReadings(readingResult.value);
-    else setMessage(readingResult.message);
+    else setFeedback({ kind: "error", word: readingResult.message });
     if (unitResult.ok) setUnits(unitResult.units);
-    else setMessage(unitResult.message);
+    else setFeedback({ kind: "error", word: unitResult.message });
     if (conversionResult.ok) setConversions(conversionResult.conversions);
-    else setMessage(conversionResult.message);
+    else setFeedback({ kind: "error", word: conversionResult.message });
     if (templateResult.ok) setTemplates(templateResult.templates);
-    else setMessage(templateResult.message);
+    else setFeedback({ kind: "error", word: templateResult.message });
     if (materialsResult.ok)
       setMaterials(
         materialsResult.value.materials.map(material => ({
@@ -231,7 +230,7 @@ export default function Catalog() {
 
   async function create() {
     setSaving(true);
-    setMessage(null);
+    setFeedback(null);
     const result = await catalog.create({
       kind,
       name,
@@ -243,7 +242,7 @@ export default function Catalog() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     setName("");
@@ -256,7 +255,10 @@ export default function Catalog() {
     setSelectedItemId(result.item.id);
     notifyDataChanged();
     await load();
-    setMessage("تم حفظ مرجع العمل محليًا. يمكنك إضافة القياس أو القالب لاحقًا، وليس ذلك مطلوبًا للحفظ.");
+    setFeedback({
+      kind: "completion",
+      word: "تم حفظ مرجع العمل محليًا. يمكنك إضافة القياس أو القالب لاحقًا، وليس ذلك مطلوبًا للحفظ.",
+    });
   }
 
   /* P-002: فتح محرر اقتراحات مرجع قائم بقيمه الحالية. */
@@ -281,35 +283,38 @@ export default function Catalog() {
   /* P-002: حفظ الاقتراحات الجديدة — لا يعدّل أي بيع سابق؛ البيع يحتفظ بنسخته. */
   async function saveDefaults(id: string) {
     if (!editingPriceValid || !editingCostValid) {
-      setMessage("أدخل الاقتراحات بالأرقام 0–9 أو اتركها فارغة بلا قيمة.");
+      setFeedback({ kind: "error", word: "أدخل الاقتراحات بالأرقام 0–9 أو اتركها فارغة بلا قيمة." });
       return;
     }
     setSaving(true);
-    setMessage(null);
+    setFeedback(null);
     const result = await catalog.updateDefaults(id, {
       defaultPriceMinor: editingPriceEmpty ? null : editingPrice,
       defaultUnitCostMinor: editingCostEmpty ? null : editingCost,
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     setDefaultsEditingId(null);
     notifyDataChanged();
     await load();
-    setMessage("تم حفظ الاقتراحات الجديدة؛ لا يتأثر أي بيع سابق بقيمه المسجّلة.");
+    setFeedback({
+      kind: "completion",
+      word: "تم حفظ الاقتراحات الجديدة؛ لا يتأثر أي بيع سابق بقيمه المسجّلة.",
+    });
   }
 
   async function deactivate(id: string) {
     const result = await catalog.deactivate(id);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     await load();
-    setMessage("تم إيقاف المرجع للطلبات الجديدة مع بقاء تاريخه محفوظًا.");
+    setFeedback({ kind: "completion", word: "تم إيقاف المرجع للطلبات الجديدة مع بقاء تاريخه محفوظًا." });
   }
 
   /* F-082 (القرار ١٦): إيقاف سياسة توزيع فعالة بزر ظاهر مع تأكيد يبيّن أثره —
@@ -318,13 +323,16 @@ export default function Catalog() {
   async function deactivateAllocationPolicy(policyId: string) {
     const result = await recurringWork.deactivatePolicy(policyId);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     setPolicyStopId(null);
     notifyDataChanged();
     await load();
-    setMessage("تم إيقاف سياسة التوزيع — لا تُوزّع بها حصص جديدة، والقراءات السابقة تبقى بتوثيقها.");
+    setFeedback({
+      kind: "completion",
+      word: "تم إيقاف سياسة التوزيع — لا تُوزّع بها حصص جديدة، والقراءات السابقة تبقى بتوثيقها.",
+    });
   }
 
   function startPolicyRevision(policy: RecurringWorkReading["policies"][number]) {
@@ -351,12 +359,15 @@ export default function Catalog() {
         ? `${year}-${String(monthNumber).padStart(2, "0")}-${String(monthEndDate(year!, monthNumber!)).padStart(2, "0")}`
         : month.to,
     );
-    setMessage("أنت تعدل نسخة جديدة؛ ستبقى السياسة السابقة محفوظة وتنتهي قبل بداية النسخة الجديدة.");
+    setFeedback({
+      kind: "advisory",
+      word: "أنت تعدل نسخة جديدة؛ ستبقى السياسة السابقة محفوظة وتنتهي قبل بداية النسخة الجديدة.",
+    });
   }
 
   async function savePolicy() {
     if (!selectedItemId) {
-      setMessage("اختر مرجع عمل قبل إضافة سياسة توزيع.");
+      setFeedback({ kind: "error", word: "اختر مرجع عمل قبل إضافة سياسة توزيع." });
       return;
     }
     const amountMinor = policyKind === "manual_amount" ? policyAmount : null;
@@ -372,22 +383,28 @@ export default function Catalog() {
       (policyKind === "completed_revenue_percentage" &&
         (!policyPercentageValid || percentageBps === null || percentageBps <= 0 || percentageBps > 10_000))
     ) {
-      setMessage("أدخل أساس التوزيع بصيغة موجبة واضحة؛ لا نستخدم صفرًا بدل البيانات الناقصة.");
+      setFeedback({
+        kind: "error",
+        word: "أدخل أساس التوزيع بصيغة موجبة واضحة؛ لا نستخدم صفرًا بدل البيانات الناقصة.",
+      });
       return;
     }
     if (
       policyKind === "per_output_unit" &&
       (!policyUnitId || !selectedItem?.unitId || policyUnitId !== selectedItem.unitId)
     ) {
-      setMessage("اختر وحدة ناتج منظمة متوافقة مع وحدة مرجع العمل؛ لا نحوّل الناتج تلقائيًا.");
+      setFeedback({
+        kind: "error",
+        word: "اختر وحدة ناتج منظمة متوافقة مع وحدة مرجع العمل؛ لا نحوّل الناتج تلقائيًا.",
+      });
       return;
     }
     if (!policySource.trim() || !policyReason.trim() || !policyNote.trim()) {
-      setMessage("مصدر السياسة وسببها وملاحظتها حقول إلزامية.");
+      setFeedback({ kind: "error", word: "مصدر السياسة وسببها وملاحظتها حقول إلزامية." });
       return;
     }
     setSaving(true);
-    setMessage(null);
+    setFeedback(null);
     const input: RecurringWorkPolicyInput = {
       catalogItemId: selectedItemId,
       kind: policyKind,
@@ -411,7 +428,7 @@ export default function Catalog() {
       : await recurringWork.createPolicy(input);
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     setPolicyAmount(null);
@@ -426,40 +443,46 @@ export default function Catalog() {
     setPolicyRevisionId(null);
     notifyDataChanged();
     await load();
-    setMessage("تم حفظ سياسة التوزيع كقراءة تفسيرية مؤرخة؛ لم ينشأ منها أثر مالي أو تغيير في نسخة التكلفة.");
+    setFeedback({
+      kind: "completion",
+      word: "تم حفظ سياسة التوزيع كقراءة تفسيرية مؤرخة؛ لم ينشأ منها أثر مالي أو تغيير في نسخة التكلفة.",
+    });
   }
 
   async function createUnit() {
-    setMessage(null);
+    setFeedback(null);
     const result = await catalog.createUnit({
       nameAr: unitName,
       dimension: unitDimension,
       operationKey: operationKey("unit"),
     });
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     setUnitName("");
     setUnitId(result.unit.id);
     notifyDataChanged();
     await load();
-    setMessage("تمت إضافة الوحدة. لم تُنشأ كمية أو حركة مخزون.");
+    setFeedback({ kind: "completion", word: "تمت إضافة الوحدة. لم تُنشأ كمية أو حركة مخزون." });
   }
 
   async function deactivateUnit(id: string) {
     const result = await catalog.deactivateUnit(id);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     await load();
-    setMessage("تم إيقاف الوحدة للاختيار الجديد مع إبقاء المراجع القديمة قابلة للقراءة.");
+    setFeedback({
+      kind: "completion",
+      word: "تم إيقاف الوحدة للاختيار الجديد مع إبقاء المراجع القديمة قابلة للقراءة.",
+    });
   }
 
   async function createConversion(): Promise<boolean> {
-    setMessage(null);
+    setFeedback(null);
     const numerator = conversionNumerator;
     const denominator = conversionDenominator;
     if (
@@ -470,7 +493,10 @@ export default function Catalog() {
       numerator <= 0 ||
       denominator <= 0
     ) {
-      setMessage("أدخل بسطًا ومقامًا صحيحين موجبين بالأرقام 0–9 فقط، من دون تقريب أو نص إضافي.");
+      setFeedback({
+        kind: "error",
+        word: "أدخل بسطًا ومقامًا صحيحين موجبين بالأرقام 0–9 فقط، من دون تقريب أو نص إضافي.",
+      });
       return false;
     }
     const result = await catalog.createConversion({
@@ -482,7 +508,7 @@ export default function Catalog() {
       operationKey: operationKey("conversion"),
     });
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return false;
     }
     setConversionFrom("");
@@ -494,19 +520,22 @@ export default function Catalog() {
     setConversionNote("");
     notifyDataChanged();
     await load();
-    setMessage("تم حفظ التحويل المباشر الصريح. لن نمر عبر وحدات أخرى تلقائيًا.");
+    setFeedback({
+      kind: "completion",
+      word: "تم حفظ التحويل المباشر الصريح. لن نمر عبر وحدات أخرى تلقائيًا.",
+    });
     return true;
   }
 
   async function deactivateConversion(id: string) {
     const result = await catalog.deactivateConversion(id);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     await load();
-    setMessage("تم إيقاف التحويل القديم مع إبقاء سجله قابلًا للقراءة.");
+    setFeedback({ kind: "completion", word: "تم إيقاف التحويل القديم مع إبقاء سجله قابلًا للقراءة." });
   }
 
   function addComponent() {
@@ -518,7 +547,7 @@ export default function Catalog() {
       quantityMilli <= 0 ||
       !componentUnitId
     ) {
-      setMessage("أدخل اسم المكوّن وكمية موجبة حتى ثلاثة منازل ووحدة نشطة.");
+      setFeedback({ kind: "error", word: "أدخل اسم المكوّن وكمية موجبة حتى ثلاثة منازل ووحدة نشطة." });
       return;
     }
     setTemplateComponents(current => [
@@ -589,21 +618,24 @@ export default function Catalog() {
         autoConsumeOnDelivery: template.autoConsumeOnDelivery === true,
       }),
     );
-    setMessage(`تعديل القالب من النسخة ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`);
+    setFeedback({
+      kind: "advisory",
+      word: `تعديل القالب من النسخة ${template.revision}. سيبقى القالب السابق محفوظًا للقراءة.`,
+    });
   }
 
   async function saveTemplate(): Promise<boolean> {
     if (!selectedItemId) {
-      setMessage("اختر مرجع عمل قبل إضافة قالب.");
+      setFeedback({ kind: "error", word: "اختر مرجع عمل قبل إضافة قالب." });
       return false;
     }
     const parsedYield = yieldEnabled ? yieldQuantity : null;
     if (yieldEnabled && (!yieldQuantityValid || parsedYield === null || parsedYield <= 0 || !yieldUnitId)) {
-      setMessage("أدخل كمية ناتج موجبة حتى ثلاثة منازل ووحدة ناتج.");
+      setFeedback({ kind: "error", word: "أدخل كمية ناتج موجبة حتى ثلاثة منازل ووحدة ناتج." });
       return false;
     }
     setSaving(true);
-    setMessage(null);
+    setFeedback(null);
     /* المجموعة ٣ (عقد D5): البنود الاختيارية تُبنى مما دخل فعلًا — الوقت بلا
      * أجر أو الأجر بلا وقت يبقى «غير معرف بعد» (null/null) لا صفرًا مفترضًا. */
     const extras =
@@ -637,29 +669,31 @@ export default function Catalog() {
       : await catalog.createTemplate(input);
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return false;
     }
     resetTemplateForm();
     notifyDataChanged();
     await load();
-    setMessage(
-      result.template.yieldReadiness === "needs_conversion"
-        ? "تم حفظ القالب، لكن الناتج غير مهيأ بعد: أضف تحويلًا صريحًا داخل البعد نفسه."
-        : "تم حفظ القالب كمرجع تخطيطي فقط؛ لم يتغير المخزون أو السعر أو أي نسخة تكلفة.",
-    );
+    setFeedback({
+      kind: "completion",
+      word:
+        result.template.yieldReadiness === "needs_conversion"
+          ? "تم حفظ القالب، لكن الناتج غير مهيأ بعد: أضف تحويلًا صريحًا داخل البعد نفسه."
+          : "تم حفظ القالب كمرجع تخطيطي فقط؛ لم يتغير المخزون أو السعر أو أي نسخة تكلفة.",
+    });
     return true;
   }
 
   async function deactivateTemplate(id: string) {
     const result = await catalog.deactivateTemplate(id);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     await load();
-    setMessage("تم إيقاف القالب، وبقيت مراجعته السابقة محفوظة.");
+    setFeedback({ kind: "completion", word: "تم إيقاف القالب، وبقيت مراجعته السابقة محفوظة." });
   }
 
   const currentTemplateFingerprint = JSON.stringify({
@@ -930,7 +964,7 @@ export default function Catalog() {
         deactivateAllocationPolicy={deactivateAllocationPolicy}
         startPolicyRevision={startPolicyRevision}
       />
-      {message ? <FeedbackNote word={message} advisory={ADVISORY_MESSAGE} /> : null}
+      {feedback ? <FeedbackNote kind={feedback.kind} word={feedback.word} /> : null}
     </section>
   );
 }

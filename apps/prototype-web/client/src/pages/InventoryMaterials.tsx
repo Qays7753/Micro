@@ -13,7 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { Button, FeedbackNote, StatusChip } from "@/components/primitives";
+import { Button, FeedbackMessage, FeedbackNote, StatusChip } from "@/components/primitives";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryShortage, InventoryMovement } from "@micro-domain/inventory-material/index.js";
@@ -70,7 +70,7 @@ export default function InventoryMaterials() {
   const { inventory, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   const [activating, setActivating] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   /* القرار ٢٠: حالة إخراج الفاقد — مسودة الفعل وسببه ومفتاح العملية. */
   const [extraction, setExtraction] = useState<ExtractionDraft | null>(null);
   const [extractionReason, setExtractionReason] = useState("");
@@ -113,11 +113,14 @@ export default function InventoryMaterials() {
     const result = await inventory.activate({ operationKey: operationKeyRef.current });
     setActivating(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
-    setMessage(`تم تفعيل المخزون بتاريخ ${result.value.activatedOn} — اللحظة معلنة في السجل.`);
+    setFeedback({
+      kind: "completion",
+      word: `تم تفعيل المخزون بتاريخ ${result.value.activatedOn} — اللحظة معلنة في السجل.`,
+    });
   }
   /* القرار ٢٠ (عقد ١١ المعدّل): إخراج الفاقد — حركة هدر بقيمة المتبقي كاملة، لا حذف.
    * الإشعار قبل التأكيد وبعده يبيّن أن المالك يسجّل هدرًا وبأي قيمة. */
@@ -125,7 +128,7 @@ export default function InventoryMaterials() {
     if (!extraction) return;
     const reason = extractionReason.trim();
     if (!reason) {
-      setMessage("اكتب سبب الإخراج قبل تأكيده — سبب الهدر مطلوب كالعادة.");
+      setFeedback({ kind: "error", word: "اكتب سبب الإخراج قبل تأكيده — سبب الهدر مطلوب كالعادة." });
       return;
     }
     if (!extractionKeyRef.current)
@@ -139,16 +142,17 @@ export default function InventoryMaterials() {
     });
     setExtracting(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     setExtraction(null);
     setExtractionReason("");
     extractionKeyRef.current = null;
-    setMessage(
-      "سُجّل إخراج الهدر — كامل المتبقي انتقل إلى الهدر بقيمته، ومخزون المادة صفر صادق. السجل محفوظ ولا يُحذف.",
-    );
+    setFeedback({
+      kind: "completion",
+      word: "سُجّل إخراج الهدر — كامل المتبقي انتقل إلى الهدر بقيمته، ومخزون المادة صفر صادق. السجل محفوظ ولا يُحذف.",
+    });
   }
   /* المجموعة ٢ (عقد ٢٨): إيقاف المتابعة — الحركات كلها تبقى، والرصيد يجمَّد في السجل. */
   async function confirmUntrack() {
@@ -161,12 +165,15 @@ export default function InventoryMaterials() {
     });
     setTrackingBusy(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     setUntrackTarget(null);
-    setMessage("أُوقفت المتابعة — الحركات محفوظة وإعادة التفعيل متاحة لاحقًا.");
+    setFeedback({
+      kind: "completion",
+      word: "أُوقفت المتابعة — الحركات محفوظة وإعادة التفعيل متاحة لاحقًا.",
+    });
   }
   async function retrack(material: InventoryMaterialOverview) {
     setTrackingBusy(true);
@@ -176,16 +183,19 @@ export default function InventoryMaterials() {
     });
     setTrackingBusy(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
-    setMessage("عادت المتابعة — رصيد المادة «غير محدد بعد» حتى تؤكده من جديد؛ أكّده ليعود رقمًا موثوقًا.");
+    setFeedback({
+      kind: "completion",
+      word: "عادت المتابعة — رصيد المادة «غير محدد بعد» حتى تؤكده من جديد؛ أكّده ليعود رقمًا موثوقًا.",
+    });
   }
   /* المجموعة ٢ (عقد ٢٨ / D-027): حل النقص صريح — بيان الحل يُطلب وقت التنفيذ. */
   async function confirmResolve(shortage: InventoryShortage) {
     if (!resolutionNote.trim()) {
-      setMessage("اكتب بيان الحل — مثال: استلمت بديلًا من المورد.");
+      setFeedback({ kind: "error", word: "اكتب بيان الحل — مثال: استلمت بديلًا من المورد." });
       return;
     }
     setTrackingBusy(true);
@@ -196,13 +206,16 @@ export default function InventoryMaterials() {
     });
     setTrackingBusy(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     setResolvingId(null);
     setResolutionNote("");
-    setMessage("حُلّ سجل النقص — توثيق الحل محفوظ مع السجل الأصلي، ولا شيء حُذف.");
+    setFeedback({
+      kind: "completion",
+      word: "حُلّ سجل النقص — توثيق الحل محفوظ مع السجل الأصلي، ولا شيء حُذف.",
+    });
   }
   if (state.phase === "loading")
     return (
@@ -252,7 +265,7 @@ export default function InventoryMaterials() {
         <h1>المواد والمخزون</h1>
         <p>سجّل ما يتوفر فعلًا، ثم اربط الاستهلاك أو الهدر بحدث واضح. شراء المواد لا يصبح تكلفة بيع هنا.</p>
       </div>
-      {message ? <FeedbackNote word={message} /> : null}
+      {feedback ? <FeedbackNote kind={feedback.kind} word={feedback.word} /> : null}
       {/* القرار ٩ + §٢.٨: قبل التفعيل الموضع غير نشط معلنًا — لا بوابة، والتفعيل بتاريخ اليوم. */}
       {notActivated ? (
         <section className="micro-inventory-inactive" aria-labelledby="inventory-inactive-title">

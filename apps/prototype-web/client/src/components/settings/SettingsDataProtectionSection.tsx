@@ -24,7 +24,7 @@ import { formatLocalDate } from "@/presentation/formatters";
 import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
 
-import { Button, FeedbackNote } from "@/components/primitives";
+import { Button, FeedbackNote, type FeedbackKind } from "@/components/primitives";
 export type SettingsDataProtectionSectionProps = {
   persistence: BrowserPersistenceReading | null;
   lastExport: string | null;
@@ -37,7 +37,7 @@ export type SettingsDataProtectionSectionProps = {
   >;
   resetNameConfirmation: string;
   setResetNameConfirmation: Dispatch<SetStateAction<string>>;
-  diagnosticCopyResult: { message: string } | null;
+  diagnosticCopyResult: { kind: FeedbackKind; message: string } | null;
   preview: TransferPreview | null;
   isWorking: boolean;
   notice: { text: string; section: "storage" | "mode" } | null;
@@ -46,7 +46,7 @@ export type SettingsDataProtectionSectionProps = {
   startResetFlow: () => Promise<void>;
   chooseImport: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   confirmReset: () => Promise<void>;
-  setStorageNotice: (text: string) => void;
+  setStorageNotice: (kind: FeedbackKind, text: string) => void;
   notifyDataChanged: () => void;
   onToggleBackupReminder: () => void;
   inputRef: RefObject<HTMLInputElement | null>;
@@ -122,7 +122,9 @@ export function SettingsDataProtectionSection({
             >
               <FileCheck2 aria-hidden="true" /> نسخ التقرير المحلي
             </Button>
-            {diagnosticCopyResult ? <FeedbackNote word={diagnosticCopyResult.message} /> : null}
+            {diagnosticCopyResult ? (
+              <FeedbackNote kind={diagnosticCopyResult.kind} word={diagnosticCopyResult.message} />
+            ) : null}
           </div>
         </article>
         {/* P-001: سياسة دقة المال معلنة — قرشان (منزلتان عشريتان) في كل مكان:

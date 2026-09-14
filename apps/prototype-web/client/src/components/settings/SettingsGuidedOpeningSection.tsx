@@ -11,7 +11,7 @@ import type { TransferPreview, TransferSummary } from "@/application/transfers/l
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDateTime } from "@/presentation/formatters";
 
-import { Button, FeedbackNote } from "@/components/primitives";
+import { Button, FeedbackNote, type FeedbackKind } from "@/components/primitives";
 export type SettingsGuidedOpeningSectionProps = {
   guidedLayerOpen: boolean;
   setGuidedLayerOpen: Dispatch<SetStateAction<boolean>>;
@@ -22,7 +22,7 @@ export type SettingsGuidedOpeningSectionProps = {
   isWorking: boolean;
   preview: TransferPreview | null;
   setPreview: Dispatch<SetStateAction<TransferPreview | null>>;
-  notice: { text: string; section: "storage" | "mode" } | null;
+  notice: { kind: FeedbackKind; text: string; section: "storage" | "mode" } | null;
   chooseGuidedOpeningImport: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   confirmGuidedOpeningImport: () => Promise<void>;
   confirmImport: () => Promise<void>;
@@ -242,7 +242,7 @@ export function SettingsGuidedOpeningSection({
             </div>
           </section>
         ) : null}
-        {notice?.section === "storage" ? <FeedbackNote word={notice.text} /> : null}
+        {notice?.section === "storage" ? <FeedbackNote kind={notice.kind} word={notice.text} /> : null}
         {restoreCheck ? (
           <article className="micro-setting-row" data-status={restoreCheck.overall}>
             <div>
