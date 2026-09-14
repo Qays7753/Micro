@@ -445,8 +445,10 @@ export default function DeliveryReviewPage() {
                       </select>
                     </label>
                   ) : null}
+                  {/* W2 (completion — تدقيق الوكيل ٢، F9): خطأ تحقق مُعلَن مثل
+                   * بقية أخطاء الحقول — لا صمتًا في قارئ الشاشة. */}
                   {collectAmountMinor > ready.money.receivableMinor ? (
-                    <p className="micro-field-error">
+                    <p className="micro-field-error" role="alert">
                       المقبوض يتجاوز المتبقي ({formatMoneyMinor(ready.money.receivableMinor)} د.أ).
                     </p>
                   ) : null}

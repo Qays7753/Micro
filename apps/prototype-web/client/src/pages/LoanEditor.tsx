@@ -40,7 +40,13 @@ export default function LoanEditor() {
   useEffect(() => {
     let active = true;
     cashContinuity.overview().then(result => {
-      if (!active || !result.ok) return;
+      if (!active) return;
+      /* W2 (completion — تدقيق الوكيل ٢، F3): فشل قراءة المحافظ لم يعد يُبتلع
+       * صامتًا — قائمة المصدر تبقى فارغة والسبب معروضًا (role=alert أدناه). */
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
       setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
     });
     return () => {

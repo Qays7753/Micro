@@ -60,7 +60,15 @@ import type {
   RecurringWorkReadings,
 } from "@/application/recurring-work/recurringWorkService";
 
-import { QuietCompletion } from "@/components/primitives";
+import { InlineError, Notice, QuietCompletion } from "@/components/primitives";
+
+/* W2 (completion — تدقيق الوكيل ٢، F2): رسالة الشاشة تحمل ثلاثة معانٍ لا واحد —
+ * إتمام هادئ (تبدأ بـ«تم »/«تمت ») · إرشاد محايد (وضع التعديل) · وإلا فهي
+ * خطأ/فشل تحميل. التصنيف بالبادئة هو نمط Micro القائم (CostEditor/Schedule)
+ * مع توسعة صادقة للإرشاد؛ النصوص نفسها لا تتغير. (تعبيرات نمطية لا نصوصًا
+ * حرفية كي لا تدخل عدّاد كثافة النص.) */
+const SUCCESS_MESSAGE = /^تم[ت ]/;
+const ADVISORY_MESSAGE = /^(أنت تعدل|تعديل القالب)/;
 export default function Catalog() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
@@ -168,6 +176,9 @@ export default function Catalog() {
       : null;
   const selectedTemplates = templates.filter(template => template.catalogItemId === selectedItemId);
 
+  /* W2 (completion — تدقيق الوكيل ٢، F6): بوابة قراءة أولى صادقة — الفراغ أثناء
+   * التحميل ليس «لا بيانات»؛ إعادة التحميل بعد الأفعال لا تعيد البوابة. */
+  const [ready, setReady] = useState(false);
   async function load() {
     const [itemResult, readingResult, unitResult, conversionResult, templateResult, materialsResult] =
       await Promise.all([
@@ -207,6 +218,7 @@ export default function Catalog() {
           tracked: !material.tracking || material.tracking.status === "tracked",
         })),
       );
+    setReady(true);
   }
 
   useEffect(() => {
@@ -714,6 +726,12 @@ export default function Catalog() {
       : null;
 
   /* مبدأ Micro: يبدأ الكتالوج بمرجع عملي، وتأتي القياسات والقوالب والقراءات عند الحاجة فقط. */
+  if (!ready)
+    return (
+      <div className="micro-route-loading" role="status" aria-live="polite">
+        جارٍ قراءة الفهرس المحلي…
+      </div>
+    );
   return (
     <section className="micro-page">
       <button className="micro-back-button" type="button" onClick={() => requestSafeNavigation(returnPath)}>
@@ -915,7 +933,15 @@ export default function Catalog() {
         deactivateAllocationPolicy={deactivateAllocationPolicy}
         startPolicyRevision={startPolicyRevision}
       />
-      {message ? <QuietCompletion word={message} /> : null}
+      {message ? (
+        SUCCESS_MESSAGE.test(message) ? (
+          <QuietCompletion word={message} />
+        ) : ADVISORY_MESSAGE.test(message) ? (
+          <Notice>{message}</Notice>
+        ) : (
+          <InlineError>{message}</InlineError>
+        )
+      ) : null}
     </section>
   );
 }

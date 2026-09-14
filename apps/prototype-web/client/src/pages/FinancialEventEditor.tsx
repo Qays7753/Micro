@@ -248,7 +248,9 @@ export default function FinancialEventEditor() {
 
   useEffect(() => {
     projectFinance.listSettleablePayables().then(result => {
+      /* W2 (completion — تدقيق الوكيل ٢، F4): فشل قراءة الخيارات لم يعد صامتًا. */
       if (result.ok) setPayableOptions(result.value);
+      else setMessage(result.message);
     });
   }, [projectFinance, dataVersion]);
   /* F-006: رصيد الأمانات الحالي أمام العين قبل تسليم أي مبلغ — لا اكتشاف بعد الحفظ. */
@@ -257,7 +259,9 @@ export default function FinancialEventEditor() {
     if (type !== "amanah_released_cash") return;
     let active = true;
     projectFinance.readPosition().then(result => {
-      if (active && result.ok) setAmanahHeldMinor(result.value.amanahHeldMinor);
+      if (!active) return;
+      if (result.ok) setAmanahHeldMinor(result.value.amanahHeldMinor);
+      else setMessage(result.message);
     });
     return () => {
       active = false;
@@ -268,7 +272,9 @@ export default function FinancialEventEditor() {
     if (type !== "operating_expense_cash" && type !== "operating_expense_payable") return;
     let active = true;
     projectFinance.listEvents().then(result => {
-      if (active && result.ok) setSuggestions(deriveExpenseCategorySuggestions(result.value));
+      if (!active) return;
+      if (result.ok) setSuggestions(deriveExpenseCategorySuggestions(result.value));
+      else setMessage(result.message);
     });
     return () => {
       active = false;
@@ -279,8 +285,9 @@ export default function FinancialEventEditor() {
     if (type !== "operating_expense_cash") return;
     let active = true;
     cashContinuity.overview().then(result => {
-      if (active && result.ok)
-        setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+      if (!active) return;
+      if (result.ok) setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+      else setMessage(result.message);
     });
     return () => {
       active = false;

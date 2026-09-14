@@ -18,6 +18,9 @@ export default function CashTransferEditor() {
   const returnPath = useReturnPath();
   const { dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [wallets, setWallets] = useState<readonly CashWalletBalance[]>([]);
+  /* W2 (completion — تدقيق الوكيل ٢، F7): بوابة قراءة أولى — المحافظ أثناء
+   * التحميل ليست «لا محافظ كافية». */
+  const [loading, setLoading] = useState(true);
   const [fromWalletId, setFromWalletId] = useState("");
   const [toWalletId, setToWalletId] = useState("");
   const [amountMinor, setAmountMinor] = useState(0);
@@ -31,11 +34,13 @@ export default function CashTransferEditor() {
     cashContinuity.overview().then(result => {
       if (!result.ok) {
         setMessage(result.message);
+        setLoading(false);
         return;
       }
       setWallets(result.value.wallets);
       setFromWalletId(result.value.wallets[0]?.id ?? "");
       setToWalletId(result.value.wallets[1]?.id ?? "");
+      setLoading(false);
     });
   }, [cashContinuity, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
@@ -67,6 +72,12 @@ export default function CashTransferEditor() {
     navigate(returnPath);
     return true;
   }
+  if (loading)
+    return (
+      <div className="micro-route-loading" role="status" aria-live="polite">
+        جارٍ قراءة محافظ الكاش…
+      </div>
+    );
   if (wallets.length < 2)
     return (
       <section className="micro-page micro-not-found">
