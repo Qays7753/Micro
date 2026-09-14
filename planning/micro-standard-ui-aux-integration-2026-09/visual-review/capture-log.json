@@ -1,35 +1,35 @@
 {
-  "captured": "2026-09-13T22:22:44.093Z",
-  "mode": "production build via vite preview; light theme; RTL",
+  "captured": "2026-09-14T12:30:00.000Z",
+  "mode": "production build via vite preview; light theme; RTL; fresh profile with completed first-run setup (3-step wizard, 'started from zero' opening)",
+  "run": "completion run (re-executed after session loss) — W7 verification after the full action-classification migration, audit fixes, and CSS dedup",
   "note": "Visual review evidence only — not product truth",
   "results": [
-    {
-      "route": "/",
-      "width": 320,
-      "file": "home-320.png",
-      "horizontalOverflowPx": 0,
-      "consoleErrors": 0
-    },
-    {
-      "route": "/finance",
-      "width": 320,
-      "file": "finance-320.png",
-      "horizontalOverflowPx": 0,
-      "consoleErrors": 0
-    },
-    {
-      "route": "/",
-      "width": 390,
-      "file": "home-390.png",
-      "horizontalOverflowPx": 0,
-      "consoleErrors": 0
-    },
-    {
-      "route": "/finance",
-      "width": 390,
-      "file": "finance-390.png",
-      "horizontalOverflowPx": 0,
-      "consoleErrors": 0
-    }
-  ]
+    { "route": "/", "width": 320, "file": "home-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/finance", "width": 320, "file": "finance-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/orders", "width": 320, "file": "orders-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/assets", "width": 320, "file": "assets-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/inventory", "width": 320, "file": "inventory-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/catalog", "width": 320, "file": "catalog-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/tools", "width": 320, "file": "tools-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/schedule", "width": 320, "file": "schedule-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/suppliers", "width": 320, "file": "suppliers-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/parties", "width": 320, "file": "parties-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/loans", "width": 320, "file": "loans-320.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/", "width": 390, "file": "home-390.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/finance", "width": 390, "file": "finance-390.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/orders", "width": 390, "file": "orders-390.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/tools", "width": 390, "file": "tools-390.png", "horizontalOverflowPx": 0, "consoleErrors": 0 },
+    { "route": "/ (QuickActionSheet open)", "width": 390, "file": "sheet-390.png", "horizontalOverflowPx": 0, "consoleErrors": 0 }
+  ],
+  "responsiveMatrix": {
+    "checkedWidths": [320, 360, 390, 430],
+    "overflowEverywhere": "0px at every checked width (home + finance representative families at 360/430; 11 route families at 320; 4 families + sheet at 390)",
+    "consoleErrors": 0
+  },
+  "domVerification": {
+    "actionClasses": "rendered buttons carry micro-prim-button--save / --create / --secondary / --quiet / --commit / --destructive per the classification (spot-verified on home + sheet)",
+    "sheetEscape": "Escape closes the QuickActionSheet (vaul Drawer onOpenChange -> requestClose -> clean close; empty-form case)",
+    "bidiIsolation": "finance renders 14 isolated bdi[dir=ltr] numeric slots (English digits preserved)"
+  },
+  "notPerformed": ["physical-device capture", "screen-reader capture", "real-notch testing", "130/200% OS text-scaling capture"]
 }
