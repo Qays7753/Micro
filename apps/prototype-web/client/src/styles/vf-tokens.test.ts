@@ -85,6 +85,7 @@ function rootBlock(css: string): string {
 function darkBlock(css: string): string {
   const source = stripComments(css);
   const start = source.indexOf(".dark {");
+  if (start === -1) return "";
   const open = source.indexOf("{", start);
   let depth = 0;
   for (let i = open; i < source.length; i += 1) {
@@ -185,12 +186,68 @@ describe("W1: overlay scrim is the Standard token", () => {
   });
 });
 
-describe("W1: dark layer remains Micro-local legacy (not re-bound by this wave)", () => {
-  it("the .dark block still exists and keeps its own legacy values", () => {
-    const dark = darkBlock(indexCss);
-    expect(dark.length).toBeGreaterThan(200);
-    expect(dark).toContain("--color-bg-canvas: #1c1917");
-    expect(dark).toContain("--primary: var(--color-brand-primary)");
+describe("W5 (D1): permanent dark layer — single owner, no retired values", () => {
+  const darkCss = readFileSync(fileURLToPath(new URL("./theme-dark.css", import.meta.url)), "utf8");
+  const dark = darkBlock(darkCss);
+
+  it("index.css no longer carries any .dark runtime block (single owner: theme-dark.css)", () => {
+    expect(darkBlock(indexCss)).toBe("");
+  });
+
+  it("the dark layer declares color-scheme: dark and :root declares light", () => {
+    expect(dark).toContain("color-scheme: dark");
+    expect(rootBlock(indexCss)).toContain("color-scheme: light");
+  });
+
+  it("the dark layer rebinds the same semantic contracts — no second alias grammar", () => {
+    expect(dark).toContain("--vf-canvas:");
+    expect(dark).toContain("--color-bg-canvas: var(--vf-canvas)");
+    expect(dark).toContain("--color-text-primary: var(--vf-ink)");
+    expect(dark).toContain("--primary: var(--vf-action-create)");
+    expect(dark).toContain("--ring: var(--vf-focus)");
+  });
+
+  it("identity is preserved exactly in dark: clay + pressed + their roles", () => {
+    expect(dark).toContain("--vf-clay: #d97757");
+    expect(dark).toContain("--vf-clay-interactive: #c96442");
+    expect(dark).toContain("--vf-action-create-ink: #141413");
+    expect(dark).toContain("--color-ink-on-color: #141413");
+  });
+
+  it("the retired v0 dark palette is gone from the dark layer", () => {
+    const darkNoComments = stripComments(darkCss).toLowerCase();
+    for (const hex of [
+      "#1c1917",
+      "#332d27",
+      "#27231f",
+      "#51473c",
+      "#62564b",
+      "#fff7ed",
+      "#d6c9ba",
+      "#d59172",
+      "#8fd5d6",
+      "#5ec0c1",
+      "#7fc49e",
+      "#e47975",
+      "#e2c268",
+      "#cc785c",
+      "#964e33",
+      "#5f3120",
+      "#079fa0",
+    ]) {
+      expect(darkNoComments, `retired ${hex} leaked into the dark layer`).not.toContain(hex);
+    }
+  });
+
+  it("every --vf-* referenced inside the dark layer resolves (chains included)", () => {
+    const defined = new Set(
+      [...vfCss.matchAll(/(--vf-[a-z0-9-]+)\s*:/g), ...darkCss.matchAll(/(--vf-[a-z0-9-]+)\s*:/g)].map(
+        m => m[1],
+      ),
+    );
+    const referenced = new Set([...darkCss.matchAll(/var\((--vf-[a-z0-9-]+)/g)].map(m => m[1]));
+    const unresolved = [...referenced].filter(name => !defined.has(name));
+    expect(unresolved, `unresolved --vf-* in dark layer: ${unresolved.join(", ")}`).toEqual([]);
   });
 });
 

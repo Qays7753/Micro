@@ -1,0 +1,12 @@
+# ADR-009: Dark Mode is a permanent, user-selected theme
+
+**Status:** Accepted (R3/W5 of the remediation-closure run — supersedes ADR-007 per its own clause: "Superseding this ADR requires the owner-approved dark wave and its own ADR". The owner approved the dark wave.)
+**Context:** ADR-007 kept the `.dark` block as unaudited Micro-local legacy pending an owner gate. The owner has now approved the permanent Light + Dark implementation (D1). A deliberate dark palette was required — no silent inversion, no reuse of retired v0 values.
+**Decision:**
+1. **One semantic-role mapping layer.** The `--vf-*` contracts (defined for light in `styles/vf-tokens.css`) are rebound for dark in `styles/theme-dark.css` — the single owner of dark hex values. The Micro alias names in `index.css :root` resolve through the same contracts in both themes. No dark components, no dark-only primitives, no second alias layer.
+2. **Light untouched.** The 18 approved light values and the Micro-owned light tint pairs are unchanged; `scripts/theme-contrast-guard.py` (D5) mechanically verifies the WCAG floors (text ≥ 4.5:1, non-text marks ≥ 3:1) in BOTH themes on every run, wired into `pnpm design-guards`.
+3. **Identity preserved.** Clay `#D97757` remains identity/create/FAB; `#C96442` remains pressed/chosen; the Warm-Ink commitment role keeps the highest-contrast fill — in dark that fill is deliberately inverted to the warm paper ink `#F2EEE6` with dark ink text (the single sanctioned inversion, documented in `theme-dark.css`).
+4. **Retired values banned mechanically.** `scripts/design-token-guards.py` fails the build on any v0 identity value (`#CC785C`, `#964E33`, `#5F3120`, `#079FA0`) or retired v0 dark value anywhere in runtime CSS, and enforces that dark hexes appear only in `theme-dark.css`.
+5. **Light is the default; Dark is explicit and persisted.** `defaultTheme="light"`; the toggle persists through the existing preference service. Native controls follow `color-scheme` (`:root` light, `.dark` dark).
+6. **PWA twins.** The dark meta theme-color is `#211D18` (approved dark canvas); the runtime meta rewrite in `ThemeContext` continues to carry the live computed canvas color.
+**Consequences:** Dark is now a supported production surface and part of the route matrix (see `THEME_PARITY_MATRIX.csv`). Rollback of the dark layer is additive and safe: removing the `theme-dark.css` import + `.dark` class restores light-only with zero light-layer change. ADR-007's boundary file (`DARK_MODE_BOUNDARY.md`) is closed as historical.

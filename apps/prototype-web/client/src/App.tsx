@@ -10,7 +10,9 @@ function App() {
   return (
     <ErrorBoundary>
       <PrototypeServicesProvider>
-        <ThemeProvider defaultTheme="system" switchable>
+        {/* W5 (D1): الفاتح هو الوضع الافتراضي؛ الداكن اختيار صريح محفوظ
+            للمالك — لا يتبع النظام تلقائيًا أبدًا. */}
+        <ThemeProvider defaultTheme="light" switchable>
           {/* W6 (GAP-21): أُزيل مزوّد التلميح الميت — لم يُعرض قطّ، وحزمة
               radix كانت تُشحن بلا مستهلك. */}
           <MicroRouter />

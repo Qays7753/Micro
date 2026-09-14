@@ -12,6 +12,16 @@ Per design-system-v1 §9 (W1 amendment — Micro Standard v2 integration):
 
 Colors: the palette is frozen; Standard --vf-* contracts live in
 styles/vf-tokens.css; Micro runtime names mirror them in :root/.dark.
+
+R3/W5 amendments (permanent Dark Mode, D1):
+3. Retired values are banned from the ENTIRE runtime CSS (token zones
+   included, comments stripped): the v0 identity palette (#CC785C, #964E33,
+   #5F3120, #079FA0 teal) and the retired v0 dark set. They may never return.
+4. Single source for dark: raw hex inside a .dark block is allowed ONLY in
+   styles/theme-dark.css. index.css .dark blocks fail (the runtime layer binds
+   through tokens, never raw values).
+5. color-scheme is declared for native controls: :root (light) in index.css
+   and .dark (dark) in theme-dark.css.
 """
 from __future__ import annotations
 
@@ -21,10 +31,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CLIENT_SRC = ROOT / "apps/prototype-web/client/src"
+DARK_OWNER = "theme-dark.css"
 
 HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
 RGB_HSL = re.compile(r"\b(?:rgb|rgba|hsl|hsla)\(")
 COLOR_FUNC = re.compile(r"\b(?:rgb|rgba|hsl|hsla|color|oklch|oklab|lab|lch)\(")
+
+# R3/W5: the retired palettes — banned everywhere in runtime CSS (lowercase).
+RETIRED_VALUES = {
+    # v0 identity (never again)
+    "#cc785c", "#964e33", "#5f3120", "#079fa0",
+    # retired v0 dark set
+    "#1c1917", "#332d27", "#27231f", "#51473c", "#62564b", "#fff7ed",
+    "#d6c9ba", "#d59172", "#8fd5d6", "#5ec0c1", "#7fc49e", "#e47975",
+    "#e2c268",
+}
+
 
 # §1.3 scale + the four derivations of §1.1 are calc() forms and pass as calc.
 SPACE_PX = {"2px", "4px", "8px", "12px", "16px", "20px", "24px", "32px", "0"}
@@ -93,7 +115,30 @@ def scan_css_colors(path: Path) -> list[str]:
     zones = token_definition_zones(source)
     problems: list[str] = []
     for match in HEX.finditer(source):
+        # R3/W5 (3): retired values are banned everywhere, zones included.
+        if match.group(0).lower() in RETIRED_VALUES:
+            line = source.count("\n", 0, match.start()) + 1
+            problems.append(f"{path.name}:{line}: retired value {match.group(0)} — banned from the runtime path")
+            continue
         if any(start <= match.start() < end for start, end in zones):
+            # R3/W5 (4): raw hex inside a .dark zone only in the dark owner file.
+            zone_src = next(
+                (source[s:e] for s, e in zones if s <= match.start() < e), ""
+            )
+            if zone_src.lstrip().startswith(".dark") and path.name != DARK_OWNER:
+                line = source.count("\n", 0, match.start()) + 1
+                problems.append(
+                    f"{path.name}:{line}: raw hex {match.group(0)} inside .dark outside {DARK_OWNER} — dark values have a single owner"
+                )
+                continue
+            if zone_src.lstrip().startswith(":root") and path.name not in (
+                "vf-tokens.css", "index.css"
+            ):
+                line = source.count("\n", 0, match.start()) + 1
+                problems.append(
+                    f"{path.name}:{line}: raw hex {match.group(0)} inside :root outside vf-tokens.css/index.css — light values have a single owner"
+                )
+                continue
             continue
         line = source.count("\n", 0, match.start()) + 1
         context = source[max(0, match.start() - 40) : match.end() + 10].replace("\n", " ")
@@ -170,11 +215,41 @@ def scan_tsx_colors(path: Path) -> list[str]:
     return problems
 
 
+def scan_color_scheme() -> list[str]:
+    """R3/W5 (5): color-scheme must be declared for native controls."""
+    problems: list[str] = []
+    index = (CLIENT_SRC / "index.css").read_text(encoding="utf-8")
+    root_zone = parse_zone_body(index, ":root")
+    if "color-scheme: light" not in root_zone:
+        problems.append("index.css :root: missing `color-scheme: light` for native controls")
+    dark = (CLIENT_SRC / "styles" / DARK_OWNER).read_text(encoding="utf-8")
+    dark_zone = parse_zone_body(dark, ".dark")
+    if "color-scheme: dark" not in dark_zone:
+        problems.append(f"{DARK_OWNER} .dark: missing `color-scheme: dark` for native controls")
+    return problems
+
+
+def parse_zone_body(source: str, selector: str) -> str:
+    match = re.search(re.escape(selector) + r"\s*\{", source)
+    if not match:
+        return ""
+    depth = 0
+    for idx in range(match.end() - 1, len(source)):
+        if source[idx] == "{":
+            depth += 1
+        elif source[idx] == "}":
+            depth -= 1
+            if depth == 0:
+                return source[match.end() : idx]
+    return ""
+
+
 def main() -> int:
     problems: list[str] = []
     for css_file in CLIENT_SRC.rglob("*.css"):
         problems += scan_css_colors(css_file)
         problems += scan_css_values(css_file)
+    problems += scan_color_scheme()
     for tsx_file in list(CLIENT_SRC.rglob("*.tsx")) + list(CLIENT_SRC.rglob("*.ts")):
         if ".test." in tsx_file.name:
             continue
