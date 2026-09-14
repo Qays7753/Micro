@@ -19,7 +19,7 @@ import { formatLocalDate } from "@/presentation/formatters";
 import type { LoanSummaryRow } from "@/application/loans/loanService";
 import RepaymentSheet from "@/components/loans/RepaymentSheet";
 
-import { Button } from "@/components/primitives";
+import { Button, EmptyState } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -69,10 +69,12 @@ export default function Loans() {
           </Button>
         </section>
       ) : state.rows.length === 0 ? (
-        <section className="micro-empty-state" aria-label="لا قروض بعد">
-          <Users aria-hidden="true" />
-          <p>لا قروض صادرة بعد. سجّل قرضًا حين تعطي أحدًا مالًا واعدًا بإرجاعه.</p>
-        </section>
+        <EmptyState
+          aria-label="لا قروض بعد"
+          symbol={<Users />}
+          title={<>لا قروض صادرة بعد.</>}
+          description={<>سجّل قرضًا حين تعطي أحدًا مالًا واعدًا بإرجاعه.</>}
+        />
       ) : (
         <>
           <LoansSummary rows={state.rows} />

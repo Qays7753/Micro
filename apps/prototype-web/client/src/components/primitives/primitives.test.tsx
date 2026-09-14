@@ -17,6 +17,7 @@ import {
 } from "./index";
 import { MoneyWithUnit } from "@/components/presentation/DisplayValue";
 import { readFileSync } from "node:fs";
+import { Activity } from "lucide-react";
 
 /*
  * W2 — اختبارات المكوّنات الأولية: العقود والحالات وحدود الملكية.
@@ -271,6 +272,19 @@ describe("W2 EmptyState: no-data is not failure", () => {
     expect(screen.getByRole("button", { name: "سجّل" })).toBeTruthy();
     const symbol = document.querySelector(".micro-prim-empty__symbol");
     expect(symbol?.getAttribute("aria-hidden")).toBe("true");
+  });
+  it("renders the optional honest-state slot between symbol and title (no-data is not failure)", () => {
+    const { container } = render(
+      <EmptyState
+        symbol={<Activity />}
+        state={<StatusChip state="no-data">لا توجد مواعيد تشغيلية</StatusChip>}
+        title="لا توجد طلبات تحتاج موعدًا الآن"
+        description="شرح موجّه."
+      />,
+    );
+    const empty = container.querySelector(".micro-prim-empty");
+    expect(empty?.querySelector(".micro-prim-empty__state .micro-prim-chip")).toBeTruthy();
+    expect(screen.getByText("لا توجد مواعيد تشغيلية")).toBeTruthy();
   });
 });
 

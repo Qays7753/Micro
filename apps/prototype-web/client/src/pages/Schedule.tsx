@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { Button, StatusChip } from "@/components/primitives";
+import { Button, EmptyState, StatusChip } from "@/components/primitives";
 import { withFrom } from "@/app/navigationContract";
 import type {
   MonthOverview,
@@ -240,17 +240,17 @@ export default function Schedule() {
         />
       ) : null}
       {total === 0 ? (
-        <section className="micro-empty-state">
-          <span className="micro-empty-symbol">
-            <CalendarDays aria-hidden="true" />
-          </span>
-          <StatusChip state="no-data">لا توجد مواعيد تشغيلية</StatusChip>
-          <h2>لا توجد طلبات تحتاج موعدًا الآن</h2>
-          <p>عند تسجيل اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</p>
-          <Button action="create" onClick={() => navigate("/orders/draft/new?intent=customer_order")}>
-            بدء طلب
-          </Button>
-        </section>
+        <EmptyState
+          symbol={<CalendarDays />}
+          state={<StatusChip state="no-data">لا توجد مواعيد تشغيلية</StatusChip>}
+          title={<h2>لا توجد طلبات تحتاج موعدًا الآن</h2>}
+          description={<>عند تسجيل اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</>}
+          action={
+            <Button action="create" onClick={() => navigate("/orders/draft/new?intent=customer_order")}>
+              بدء طلب
+            </Button>
+          }
+        />
       ) : null}
       <details className="micro-decision-layer">
         <summary className="micro-decision-layer-summary">

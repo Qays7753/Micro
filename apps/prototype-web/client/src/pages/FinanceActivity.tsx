@@ -34,7 +34,7 @@ import type {
   ActivityRecord,
 } from "@/application/activity/activityService";
 
-import { Button } from "@/components/primitives";
+import { Button, EmptyState } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -268,12 +268,11 @@ export default function FinanceActivity() {
         </div>
       </section>
       {state.rows.length === 0 ? (
-        <div className="micro-empty-state">
-          <Activity aria-hidden="true" />
-          <p className="micro-empty-copy">
-            لا نشاط في هذا النطاق. أول تسجيل من زر «سجّل» يظهر هنا مع أثره، أو وسّع النطاق إلى «منذ البداية».
-          </p>
-        </div>
+        <EmptyState
+          symbol={<Activity />}
+          title={<>لا نشاط في هذا النطاق.</>}
+          description={<>أول تسجيل من زر «سجّل» يظهر هنا مع أثره، أو وسّع النطاق إلى «منذ البداية».</>}
+        />
       ) : (
         <section className="micro-supplier-list" aria-label="صفوف النشاط">
           <div className="micro-finance-event-heading">

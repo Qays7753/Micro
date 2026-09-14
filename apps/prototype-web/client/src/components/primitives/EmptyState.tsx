@@ -12,6 +12,8 @@ import clsx from "clsx";
 export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
   /** رمز هادئ (أيقونة) — اختياري. */
   symbol?: ReactNode;
+  /** خانة حالة اختيارية (شريحة الحالة الصادقة — «لا بيانات» ليس فشلًا). */
+  state?: ReactNode;
   /** العنوان (مستوى العنوان مسؤولية الشاشة — يُمرَّر جاهزًا). */
   title: ReactNode;
   /** الشرح الموجّه. */
@@ -20,7 +22,15 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   action?: ReactNode;
 }
 
-export function EmptyState({ symbol, title, description, action, className, ...rest }: EmptyStateProps) {
+export function EmptyState({
+  symbol,
+  state,
+  title,
+  description,
+  action,
+  className,
+  ...rest
+}: EmptyStateProps) {
   return (
     <section className={clsx("micro-prim-empty", className)} {...rest}>
       {symbol ? (
@@ -28,6 +38,7 @@ export function EmptyState({ symbol, title, description, action, className, ...r
           {symbol}
         </span>
       ) : null}
+      {state ? <span className="micro-prim-empty__state">{state}</span> : null}
       <span className="micro-prim-empty__title">{title}</span>
       {description ? <span className="micro-prim-empty__description">{description}</span> : null}
       {action ? <span className="micro-prim-empty__action">{action}</span> : null}

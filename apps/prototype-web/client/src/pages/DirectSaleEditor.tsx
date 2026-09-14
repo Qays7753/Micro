@@ -18,7 +18,7 @@ import type { DirectSaleCollectionStatus, DirectSale } from "@micro-domain/direc
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
-import { Button } from "@/components/primitives";
+import { Button, QuietCompletion } from "@/components/primitives";
 type DifferenceChoice = "price_cut" | "remaining_debt" | "needs_review";
 
 const collectionStatusLabel: Record<DirectSaleCollectionStatus, string> = {
@@ -787,11 +787,7 @@ export default function DirectSaleEditor() {
               </p>
             ) : null}
           </details>
-          {productNotice ? (
-            <p className="micro-save-note" role="status">
-              {productNotice}
-            </p>
-          ) : null}
+          {productNotice ? <QuietCompletion word={productNotice} /> : null}
           {/* D-001: الزبون حقل مستقل — يظهر عند وجود دين أو زبون مسجل، ويجتمع باسمه في دفتر الناس. */}
           {difference > 0 || customerName.trim() !== "" ? (
             <label className="micro-field">

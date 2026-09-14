@@ -443,6 +443,9 @@
   width: var(--vf-icon-md);
   height: var(--vf-icon-md);
 }
+.micro-prim-empty__state {
+  display: inline-flex;
+}
 .micro-prim-empty__title {
   color: var(--vf-ink);
   font-size: var(--vf-text-title-sm-size);

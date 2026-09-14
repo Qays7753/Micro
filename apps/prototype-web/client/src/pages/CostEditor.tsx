@@ -15,7 +15,7 @@ import {
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 
-import { Button } from "@/components/primitives";
+import { Button, QuietCompletion } from "@/components/primitives";
 type EditableCostMaterial = DraftCostMaterial & { uiId: string };
 type EditableCostInput = Omit<CostEditorInput, "materialItems"> & { materialItems: EditableCostMaterial[] };
 
@@ -356,11 +356,7 @@ export default function CostEditor() {
         <h1>{draft.itemName || "وصف القطعة"}</h1>
       </div>
       {/* U-004: إشعار البنود المقترحة من التقدير المصدر — معلنة لا مفترضة. */}
-      {proposalNotice ? (
-        <p className="micro-save-note" role="status">
-          {proposalNotice}
-        </p>
-      ) : null}
+      {proposalNotice ? <QuietCompletion word={proposalNotice} /> : null}
       {preview?.ok ? (
         <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
           <span>سعر الحماية لكل قطعة (د.أ)</span>

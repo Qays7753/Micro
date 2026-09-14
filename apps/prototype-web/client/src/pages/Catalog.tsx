@@ -60,6 +60,7 @@ import type {
   RecurringWorkReadings,
 } from "@/application/recurring-work/recurringWorkService";
 
+import { QuietCompletion } from "@/components/primitives";
 export default function Catalog() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
@@ -914,11 +915,7 @@ export default function Catalog() {
         deactivateAllocationPolicy={deactivateAllocationPolicy}
         startPolicyRevision={startPolicyRevision}
       />
-      {message ? (
-        <p className="micro-save-note" role="status">
-          {message}
-        </p>
-      ) : null}
+      {message ? <QuietCompletion word={message} /> : null}
     </section>
   );
 }

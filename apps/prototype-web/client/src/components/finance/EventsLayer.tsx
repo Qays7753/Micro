@@ -19,7 +19,7 @@ import type {
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import { eventCountLabel } from "@/presentation/g5Plurals";
 
-import { Button } from "@/components/primitives";
+import { Button, QuietCompletion } from "@/components/primitives";
 export const eventLabel: Record<FinancialEventType, string> = {
   owner_investment_cash: "استثمار المالك",
   owner_withdrawal_cash: "سحب شخصي",
@@ -765,11 +765,7 @@ function FinancialEventRow({
           ) : null}
         </details>
       )}
-      {success ? (
-        <p className="micro-save-note" role="status">
-          {success}
-        </p>
-      ) : null}
+      {success ? <QuietCompletion word={success} /> : null}
     </article>
   );
 }

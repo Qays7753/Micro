@@ -8,7 +8,7 @@ import { Hammer, Save } from "lucide-react";
 import type { OperatingWorkMode } from "@/storage/local/types";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
 
-import { Button } from "@/components/primitives";
+import { Button, QuietCompletion } from "@/components/primitives";
 export type OperatingModeState =
   { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; value: OperatingModeValue };
 
@@ -130,11 +130,7 @@ export function SettingsOperatingModeSection({
               <Save aria-hidden="true" />
               {isSavingOperatingMode ? "جارٍ حفظ التفضيل…" : "حفظ طريقة العمل"}
             </Button>
-            {notice?.section === "mode" ? (
-              <p className="micro-save-note" role="status">
-                {notice.text}
-              </p>
-            ) : null}
+            {notice?.section === "mode" ? <QuietCompletion word={notice.text} /> : null}
           </>
         ) : null}
       </section>
