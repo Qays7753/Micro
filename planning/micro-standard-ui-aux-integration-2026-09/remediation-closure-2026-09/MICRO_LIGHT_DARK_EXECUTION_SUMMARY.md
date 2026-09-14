@@ -13,10 +13,11 @@
 
 ## Key numbers
 
-- Commits on top of `ece7be3`: 8 (R0 → R6 incl. the scope-hygiene revert; all small and revertible)
+- Commits on top of `ece7be3`: **7 before R7** — R0, R1, R2, W5 implementation, W5 verification, scope-hygiene revert, R6 evidence (`git rev-list --count ece7be3..77ede9a` = 7; all small and revertible); 8 including the R7 evidence-and-documentation reconciliation commit
 - Tests: 391 root + 1,258 prototype, all passing (+25 new/extended)
 - Contrast pairs verified in both themes: 82
-- Routes captured per theme: 35 families (55 registered routes smoke-rendered per theme)
+- Route counts (different measures, not interchangeable): **52** = historical migration/action inventory (`MIGRATION_MATRIX.csv` page rows); **55** = registered routes render-smoke-verified in each theme (the 55 path-bearing `<Route>` registrations in `MicroRouter.tsx`); **35** = route families with real visual captures this run (70 route captures + 8 state captures = 78 PNGs)
+- Files changed `ece7be3..77ede9a`: 127 (34 implementation-side + 93 evidence pack; full inventory in `CHANGED_FILES_MANIFEST.json`)
 - Files outside UI/tests/docs/guards touched: **none** (domain/application/storage untouched; `Micro/main` unchanged)
 
 ## Where to look
@@ -26,5 +27,5 @@
 - Route × theme evidence: `THEME_PARITY_MATRIX.csv` + `visual-review/capture-log.json` + `pixel-verification.json`
 - State coverage: `ROUTE_STATE_COVERAGE_MATRIX.csv`
 - Test evidence: `TEST_EVIDENCE_MATRIX.csv`
-- Rollback: `ROLLBACK_MANIFEST.json` + `ROLLBACK_INSTRUCTIONS.md` (restore point `ece7be3`, rehearsed)
+- Rollback: `ROLLBACK_MANIFEST.json` + `ROLLBACK_INSTRUCTIONS.md` (restore point `ece7be3`, rehearsed; final pre-R7 head `77ede9a`)
 - Honest gaps: `FINAL_LIMITATIONS.md`

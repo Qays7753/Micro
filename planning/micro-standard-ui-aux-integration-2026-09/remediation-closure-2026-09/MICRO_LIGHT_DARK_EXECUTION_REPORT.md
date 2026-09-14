@@ -17,7 +17,9 @@ The interrupted run's local workspace was **unavailable** — its reported commi
 | `0f01842` + `218bd2c` (full SHAs in CHANGED_FILES_MANIFEST.json) | R3+R4/W5 | Permanent Dark Mode implementation: theme-dark.css single owner, color-scheme, light default + persisted dark, contrast guard (D5), retired-value bans, ADR-009 |
 | `218bd2c` | R4/W5 | Pixel-level verification + the cascade fix (`:root.dark` specificity) + 70 captures + parity/state matrices |
 | `c3a2142cfb1e59425de11050e4e6e6b2a1d1056b` | R5a | Revert of out-of-scope prettier normalization (scope hygiene) |
-| `3de91eabcd39464564caef6c628126615d36026b` | R6 | Evidence pack + permanent docs (this commit) |
+| `77ede9a5adc73bfbec06a0e6a71cc81506bfa832` | R6 | Evidence pack + permanent docs |
+
+**R7 (evidence-and-documentation reconciliation, 2026-09-15):** one further commit sits on top of `77ede9a`, containing only documentation/manifest corrections — final-head references, the regenerated changed-files manifest, the integrity files (`SHA256SUMS.txt`, `ROLLBACK_MANIFEST.json`, `ROLLBACK_INSTRUCTIONS.md`), route-count and commit-count clarifications, and `MIGRATION_STATUS.md` wording. It touches no implementation file, token, test, or protected boundary. It is the single commit in `77ede9a..HEAD`; a commit cannot embed its own SHA, so the authoritative final head of the pushed branch is `git rev-parse origin/micro-standard-ui-aux-integration-20260914` (also reported in the delivery message).
 
 ## 3. What was implemented and verified
 
@@ -55,6 +57,14 @@ Real production build (`vite preview`) + real Chromium (390×844, `ar-JO`, Asia/
 ### 3.7 Render-smoke + keyboard/focus coverage
 `R2.renderSmoke.test.tsx` mounts the FULL real app (real services over fake-indexeddb, real router) and walks **all 55 registered routes in light AND dark** via the real preference path — no mocks. `R2.keyboardFocus.test.tsx` verifies Escape-close (clean), Escape-asks-discard (dirty form — no silent loss), native-controls-only operability, Tab reaching the create FAB, and the token-bound focus ring.
 
+### 3.8 Route-count terminology (52 vs 55 vs 35)
+
+Three route counts appear across this run's documents. They measure different things, are not interchangeable, and none inflates another:
+
+- **52 — historical migration/action inventory.** The 52 page rows of `planning/micro-standard-ui-aux-integration-2026-09/MIGRATION_MATRIX.csv` ("52/52 migrated" in `MIGRATION_STATUS.md`), carried over from the integration run: an inventory of *pages and their action migrations to the shared primitives*, not URL routes.
+- **55 — registered routes exercised by the render-smoke in each theme.** The 55 path-bearing `<Route>` registrations in `MicroRouter.tsx` (the 56th `<Route>` element is the pathless NotFound fallback), each walked in light AND dark by `R2.renderSmoke.test.tsx` over the real service stack (jsdom).
+- **35 — route families with real visual captures in this run.** The 35 rows of `THEME_PARITY_MATRIX.csv`, each captured in BOTH themes on real Chromium at 390×844: 70 route captures + 8 state captures (sheet open ×2, discard question, no-data ×2, pressed filters, not-found, dark-toggled) = 78 PNGs in `visual-review/`.
+
 ## 4. Verification totals (all green, this run, this machine)
 
 | Gate | Result |
@@ -81,7 +91,7 @@ Real production build (`vite preview`) + real Chromium (390×844, `ar-JO`, Asia/
 
 ## 6. Files changed (summary)
 
-29 production/test/doc files + 2 guard scripts + 1 new guard + 1 new token layer + the planning evidence pack (this folder). Full inventory with per-file classification: `CHANGED_FILES_MANIFEST.json`.
+`git diff --name-status ece7be3..77ede9a` = **127 files** (102 added, 25 modified): 34 implementation-side files — 17 production UI/AUX (16 modified + the new `theme-dark.css` token layer), 8 tests, 3 docs (ADR-009, `SURFACE_TONE_SYNTAX.md`, `MIGRATION_STATUS.md`), 3 guard scripts (2 modified + the new `theme-contrast-guard.py`), 3 chrome/config twins (`index.html`, `eslint.config.js`, `package.json`) — plus the 93-file evidence pack in this folder (13 documents + 80 visual-review assets: 78 PNGs + `capture-log.json` + `pixel-verification.json`). Full inventory with per-file status and classification: `CHANGED_FILES_MANIFEST.json` (regenerated at `77ede9a`; the R7 commit edits only paths already present in that inventory, so the count is unchanged by R7).
 
 ## 7. NOT_RUN (kept honest)
 

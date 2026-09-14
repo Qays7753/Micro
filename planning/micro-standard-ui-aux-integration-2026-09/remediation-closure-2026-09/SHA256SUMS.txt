@@ -1,15 +1,23 @@
-48a4e29c88e0391ac99573ff016a04951f8f860fbb98ec30485b1285a70f6200  ./CHANGED_FILES_MANIFEST.json
+# SHA256SUMS — remediation-closure-2026-09 evidence folder
+# Convention (clear, reproducible, non-recursive): one "<sha256>  ./<path>" line per file,
+# paths relative to this folder, subfolder entries (visual-review/) listed explicitly by
+# path — no directory recursion, no wildcards, no nested checksum files. Order: ASCII sort
+# of the relative paths (uppercase document names first, then visual-review/).
+# SHA256SUMS.txt itself is NOT self-hashed (a checksum file cannot contain its own hash);
+# it is the only file in this folder omitted from this list.
+# Verify from this folder: sha256sum -c SHA256SUMS.txt
+36a25c54d97a7ee4df5acc75f7347bd509c94d43043d67d42cc9e1f34563937d  ./CHANGED_FILES_MANIFEST.json
 ffc6e8e56031bb375b92815dbc443579edcc3feec6d01e58f51f7a09f319fd5c  ./FINAL_LIMITATIONS.md
-e462b9ef5ff939a1b6d28c28a6dadfb5f5612954407014f4e355c1f074ca5efe  ./MICRO_LIGHT_DARK_EXECUTION_REPORT.md
-bc75a4b3919c9335c07497054f616884aa34a7d148ae6af7d31f4e00be2c71ad  ./MICRO_LIGHT_DARK_EXECUTION_SUMMARY.md
+e394e5fcb77547c1ce7703722d87fb5683e13eeb41d910dbb6769918f10662f0  ./MICRO_LIGHT_DARK_EXECUTION_REPORT.md
+f7509b243fd1f3775c02d7ca54f2c98aba82aeec04be6dfa8c9fecce72c64bba  ./MICRO_LIGHT_DARK_EXECUTION_SUMMARY.md
 e6543cce0413a671d035da7b39c881995dbda0c14198ee54a1ac2819963f2b6f  ./OWNER_DECISIONS_IMPLEMENTED.md
-09f2873670452383d7c4a4bfcf80f3b778ce9a0887984d6b08b062b78cad55af  ./RESUME_STATE_REPORT.md
-fddbaace01be3537e8d5a363ef4f32ad586f787912b966709a5ff0395f36d9e1  ./ROLLBACK_INSTRUCTIONS.md
-8a6fcb1910daad0b24bca7dd11f8df95b8a465933ecc2dc7879eae037d1de0f8  ./ROLLBACK_MANIFEST.json
+a16b87a504dc3a0b730067584c29c1b2ed735a5dda0975fb04b3b9cf6e2fbd05  ./RESUME_STATE_REPORT.md
+11c782525db3e0d69bcd91a2828c47bba980f9216b38a739432aa73956394f69  ./ROLLBACK_INSTRUCTIONS.md
+8ab565e97124d73ea4492f3e75a04af247f8d0fe9306008e96c9480588fd9ac1  ./ROLLBACK_MANIFEST.json
 19be13bdeefd69eda9169c81f0c4859250b0dfa3c77a2193f8ef6db721cdc357  ./ROUTE_STATE_COVERAGE_MATRIX.csv
 51eca85febe08729b82506a17dfdae364e41ea4ce60cb5dce66cf700b294e255  ./TEST_EVIDENCE_MATRIX.csv
 596e733da6c4548d26769f8e4c30af7d380638dfefa0aae9183344d883d13745  ./THEME_PARITY_MATRIX.csv
-2e27080877476968310beedbd9117b27ac486fd6bb511e6a19981c9f721af7bd  ./WAVE_STATUS_MATRIX.csv
+7dacd4250c923bafe9a0872e89eef845f1ab82c6af0d821c59ce8ae40161a8ef  ./WAVE_STATUS_MATRIX.csv
 0981ebcadc1237ca337034cfd4a4b6f4457e5f0fdadd181745446b2c499f4eb7  ./visual-review/activity-filters-pressed-light-390.png
 cc269eedb011afe9d731229fed39102e5b560d96074c2198e81383ad6b2d7737  ./visual-review/activity-no-data-dark-390.png
 0981ebcadc1237ca337034cfd4a4b6f4457e5f0fdadd181745446b2c499f4eb7  ./visual-review/activity-no-data-light-390.png

@@ -1,14 +1,22 @@
 {
   "globalRestorePoint": "ece7be3630739d551b9ba7caf37d30a9a63c872f",
   "restorePointMeaning": "the verified remote head before this resume run; the last accepted boundary",
+  "finalPreR7Head": "77ede9a5adc73bfbec06a0e6a71cc81506bfa832",
+  "finalPreR7HeadMeaning": "R6 (W6) — evidence pack + permanent docs; the implementation-complete head immediately before the R7 documentation-reconciliation commit",
   "commitsToRevert": [
-    "c3a2142cfb1e59425de11050e4e6e6b2a1d1056b R5: revert out-of-scope prettier normalization on untouched guard scripts",
-    "218bd2cbb8c470b5e885c77cb501a4112c97a724 R4/W5: pixel-level Light+Dark verification — cascade fix + capture evidence",
-    "0f018428243c09d3936c7ab6fc14d180782e4a05 W5 (D1): permanent Dark Mode — one semantic layer, deliberate palette, mechanical floors",
-    "9b4f02ce7d777a010c462d66587bf0f414fba8ad R2 (D7/D8 + guards): honest voids, explicit pressed states, mechanical boundaries",
+    "4d631d954dbfa04e2842f103b5390d0ec557b96a R0 (resume): state verified — interrupted-run commits unrecoverable, resume from verified remote head ece7be3",
     "d44f91340c949965e3403168363f92f4cd904cd9 R1 (D6+error-separation): explicit typed feedback channels; OrderDetail error vs not-found split",
-    "4d631d954dbfa04e2842f103b5390d0ec557b96a R0 (resume): state verified — interrupted-run commits unrecoverable, resume from verified remote head ece7be3"
+    "9b4f02ce7d777a010c462d66587bf0f414fba8ad R2 (D7/D8 + guards): honest voids, explicit pressed states, mechanical boundaries",
+    "0f018428243c09d3936c7ab6fc14d180782e4a05 W5 (D1): permanent Dark Mode — one semantic layer, deliberate palette, mechanical floors",
+    "218bd2cbb8c470b5e885c77cb501a4112c97a724 R4/W5: pixel-level Light+Dark verification — cascade fix + capture evidence",
+    "c3a2142cfb1e59425de11050e4e6e6b2a1d1056b R5: revert out-of-scope prettier normalization on untouched guard scripts",
+    "77ede9a5adc73bfbec06a0e6a71cc81506bfa832 R6 (W6): evidence pack + permanent docs — remediation closure verified"
   ],
+  "r7DocumentationReconciliation": {
+    "description": "single revertible documentation/manifest-correction commit on top of 77ede9a5adc73bfbec06a0e6a71cc81506bfa832; touches no implementation file, token, test, or protected boundary",
+    "identification": "the only commit in 77ede9a..HEAD (git log --oneline 77ede9a..HEAD shows exactly one); a commit cannot embed its own SHA, so identify it as that single commit",
+    "rollback": "git revert <that single commit> — restores the R6 evidence pack byte-for-byte (see ROLLBACK_INSTRUCTIONS.md, Option R7)"
+  },
   "rehearsal": {
     "performed": true,
     "method": "detached scratch worktree at the restore point (no branch movement, no history rewrite, no force)",
@@ -20,7 +28,7 @@
         "v0DarkBlockPresent": true
       },
       "scratchWorktreeRemoved": true,
-      "realBranchUntouched": "c3a2142cfb1e59425de11050e4e6e6b2a1d1056b"
+      "branchHeadAtRehearsal": "c3a2142cfb1e59425de11050e4e6e6b2a1d1056b (historical value — the rehearsal preceded the R6 evidence commit; the branch has since advanced to 77ede9a5adc73bfbec06a0e6a71cc81506bfa832 and then the single R7 documentation commit)"
     }
   },
   "darkLayerOnlyRollback": {
@@ -43,5 +51,6 @@
     "force-push",
     "history rewriting",
     "merging main"
-  ]
+  ],
+  "generationConvention": "flat, non-recursive record generated from git rev-list --reverse ece7be3630739d551b9ba7caf37d30a9a63c872f..77ede9a5adc73bfbec06a0e6a71cc81506bfa832; lists restore points, the run's commits, and rollback procedures directly — no file hashes, no references to other manifests. Evidence-folder integrity hashes live solely in SHA256SUMS.txt."
 }
