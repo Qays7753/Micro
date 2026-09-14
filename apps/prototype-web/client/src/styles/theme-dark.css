@@ -23,7 +23,9 @@
      form chrome) dark; :root declares color-scheme: light.
    ============================================================================ */
 
-.dark {
+:root.dark {
+  /* :root.dark (0,2,0) — must beat index.css :root (0,1,0) regardless of
+     import order: the .dark overrides own the html element in dark mode. */
   color-scheme: dark;
 
   /* -- Surfaces (warm dark paper family) --------------------------------- */

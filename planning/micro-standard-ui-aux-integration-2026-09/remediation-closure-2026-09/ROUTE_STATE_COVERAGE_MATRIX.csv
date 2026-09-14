@@ -1,0 +1,24 @@
+state_or_surface,where_verified,evidence,method
+loading,all routes (route transitions render micro-route-loading before ready),capture-log results contentLength + jsdom render smoke,browser + jsdom
+empty / no-data,FinanceActivity fresh ledger,activity-no-data-light/dark-390.png; states.financeActivityNoData,browser pixel capture
+no-results (filter excludes),FinanceActivity filtered range/family,R2.financeActivityVoid.test.tsx (3 tests),jsdom behavioral
+not-found (missing id),OrderDetail fake id,order-not-found-light-390.png; states.orderNotFound,browser pixel capture
+read error (retry offered),OrderDetail failed read,R1.orderDetailVoid.test.tsx (3 tests),jsdom behavioral
+zero / measured-zero,stateAdapter contract + existing page renderings,stateAdapter.test.ts; capture of finance/cash routes,unit + browser
+unavailable / not-recorded,honest-void presentations,stateAdapter.test.ts (isPermissibleTone + voids),unit
+pending / unknown,activityStatus presentations,stateAdapter.test.ts; ACTIVITY_PRESENTATIONS,unit
+success / error / advisory feedback,FeedbackNote channels,primitives.test.tsx R1 channel contract (4 tests),jsdom behavioral
+retry,OrderDetail error screen,R1.orderDetailVoid.test.tsx (retry repeats read),jsdom behavioral
+destructive,Button action=destructive (existing classification),primitives.test.tsx; MIGRATION_MATRIX (completion run),unit + prior evidence
+selected / pressed,aria-pressed filters + ChoiceRow,activity-filters-pressed-light-390.png; U09 pressed assertion; primitives ChoiceRow tests,browser pixel + unit
+disabled,ChoiceButton disabled,"primitives.test.tsx (disabled marked, no fire)",jsdom behavioral
+overlays / sheets / dialogs,QuickActionSheet + discard dialog,sheet-open-light/dark-390.png; sheet-discard-question-light-390.png; R2.keyboardFocus tests,browser pixel + jsdom
+navigation / FAB,bottom nav + create FAB,home captures (clay FAB present both themes); keyboardFocus Tab test,browser pixel + jsdom
+focus / keyboard,global focus ring + Escape + Tab,R2.keyboardFocus.test.tsx (3 tests),jsdom behavioral
+RTL / Arabic wrapping,all captures dir=rtl ar-JO locale,capture-log results dir=rtl,browser
+English digits / bidi / amount alignment,numeric slots bdi ltr mono,prior G-series evidence preserved; captures render amounts,browser (visual) + unit (formatters)
+responsive widths,390px captures zero overflow,capture-log overflowPx=0 everywhere; prior 320/360/430 matrix from completion run,browser
+reduced motion,prefers-reduced-motion rules exist (4 media blocks),index.css reduced-motion blocks (prior runs); NOT re-captured this run,static + prior evidence
+theme persistence,dark persists across reload; back to light persists,dom.darkPersistedAfterReload; dom.backToLight; R3.themeBehavior tests,browser + jsdom
+native controls color-scheme,color-scheme dark in dark,dom.darkToggle.colorScheme=dark; guard assertion,browser + mechanical
+meta theme-color rewrite,runtime rewrite to computed canvas,dom.darkToggle.meta=#211d18; dom.lightDefault.meta=#faf9f5,browser

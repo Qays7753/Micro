@@ -91,10 +91,10 @@ def hex_or_none(value: str) -> str | None:
 
 # --- token sources -----------------------------------------------------------
 light = parse_zone(LIGHT_CSS, ":root")
-dark = parse_zone(DARK_CSS, ".dark")
+dark = parse_zone(DARK_CSS, ":root.dark")
 # Micro-owned pairs live in index.css :root (light) and .dark (dark)
 index_light = parse_zone(INDEX_CSS, ":root")
-index_dark = parse_zone(INDEX_CSS, ".dark")
+index_dark = parse_zone(INDEX_CSS, ":root.dark")
 
 
 def build(theme: str) -> dict[str, str]:

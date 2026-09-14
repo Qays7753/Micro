@@ -90,9 +90,10 @@ DECL = re.compile(r"^\s*([a-z-]+)\s*:\s*([^;{}]+);")
 
 
 def token_definition_zones(source: str) -> list[tuple[int, int]]:
-    """Char ranges of :root {}, .dark {}, and @theme blocks (token definitions)."""
+    """Char ranges of :root{}, :root.dark{}, .dark{}, and @theme blocks (token
+    definitions). :root.dark is the dark owner's specificity-robust selector."""
     zones: list[tuple[int, int]] = []
-    for match in re.finditer(r"(?m)^(:root|\.dark|@theme[^\{]*)\s*\{", source):
+    for match in re.finditer(r"(?m)^(:root\.dark|:root|\.dark|@theme[^\{]*)\s*\{", source):
         start = match.start()
         depth = 0
         for idx in range(match.end() - 1, len(source)):
@@ -121,24 +122,26 @@ def scan_css_colors(path: Path) -> list[str]:
             problems.append(f"{path.name}:{line}: retired value {match.group(0)} — banned from the runtime path")
             continue
         if any(start <= match.start() < end for start, end in zones):
-            # R3/W5 (4): raw hex inside a .dark zone only in the dark owner file.
+            # R3/W5 (4): raw hex inside a dark zone only in the dark owner file;
+            # inside a light :root zone only in vf-tokens.css/index.css.
             zone_src = next(
                 (source[s:e] for s, e in zones if s <= match.start() < e), ""
             )
-            if zone_src.lstrip().startswith(".dark") and path.name != DARK_OWNER:
-                line = source.count("\n", 0, match.start()) + 1
-                problems.append(
-                    f"{path.name}:{line}: raw hex {match.group(0)} inside .dark outside {DARK_OWNER} — dark values have a single owner"
-                )
+            zone_head = zone_src.lstrip()
+            if zone_head.startswith((".dark", ":root.dark")):
+                if path.name != DARK_OWNER:
+                    line = source.count("\n", 0, match.start()) + 1
+                    problems.append(
+                        f"{path.name}:{line}: raw hex {match.group(0)} inside .dark outside {DARK_OWNER} — dark values have a single owner"
+                    )
                 continue
-            if zone_src.lstrip().startswith(":root") and path.name not in (
+            if zone_head.startswith(":root") and path.name not in (
                 "vf-tokens.css", "index.css"
             ):
                 line = source.count("\n", 0, match.start()) + 1
                 problems.append(
                     f"{path.name}:{line}: raw hex {match.group(0)} inside :root outside vf-tokens.css/index.css — light values have a single owner"
                 )
-                continue
             continue
         line = source.count("\n", 0, match.start()) + 1
         context = source[max(0, match.start() - 40) : match.end() + 10].replace("\n", " ")
@@ -223,7 +226,7 @@ def scan_color_scheme() -> list[str]:
     if "color-scheme: light" not in root_zone:
         problems.append("index.css :root: missing `color-scheme: light` for native controls")
     dark = (CLIENT_SRC / "styles" / DARK_OWNER).read_text(encoding="utf-8")
-    dark_zone = parse_zone_body(dark, ".dark")
+    dark_zone = parse_zone_body(dark, ":root.dark")
     if "color-scheme: dark" not in dark_zone:
         problems.append(f"{DARK_OWNER} .dark: missing `color-scheme: dark` for native controls")
     return problems

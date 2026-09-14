@@ -84,7 +84,7 @@ function rootBlock(css: string): string {
 
 function darkBlock(css: string): string {
   const source = stripComments(css);
-  const start = source.indexOf(".dark {");
+  const start = source.indexOf(":root.dark {");
   if (start === -1) return "";
   const open = source.indexOf("{", start);
   let depth = 0;
@@ -192,6 +192,15 @@ describe("W5 (D1): permanent dark layer — single owner, no retired values", ()
 
   it("index.css no longer carries any .dark runtime block (single owner: theme-dark.css)", () => {
     expect(darkBlock(indexCss)).toBe("");
+  });
+
+  it("the dark owner uses :root.dark — specificity beats index.css :root literals", () => {
+    /* عقد التتالي: :root.dark (0,2,0) يهزم :root (0,1,0) مهما كان ترتيب
+     * الاستيراد — بدونه تبقى أزواج Micro الحرفية (نجاح/تحذير/ink-on-color)
+     * فاتحة داخل الداكن. هذا العقد تعاقدي بعد رصده في الالتقاط الحقيقي. */
+    const strippedDark = stripComments(darkCss);
+    expect(strippedDark).toContain(":root.dark {");
+    expect(strippedDark).not.toMatch(/^\.dark \{/m);
   });
 
   it("the dark layer declares color-scheme: dark and :root declares light", () => {

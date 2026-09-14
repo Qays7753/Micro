@@ -111,7 +111,7 @@ function main() {
   if (findings.length > 0) {
     process.stderr.write(
       `check-test-focus: FAIL FOCUS_FOUND — ${findings.length} occurrence(s) of .only/.skip — (file:method:line)\n` +
-        findings.map((f) => `  ${f.file} : .${f.method}( : line ${f.line}`).join("\n") +
+        findings.map(f => `  ${f.file} : .${f.method}( : line ${f.line}`).join("\n") +
         "\n",
     );
     return 1;

@@ -175,15 +175,12 @@ describe("check-entity-touchpoints — manifest validation", () => {
   it("fails when a not-exported entity has no explicit reason", () => {
     const root = makeMiniRepo({
       manifest: {
-        objectStores: [
-          baseEntry("alpha"),
-          baseEntry("beta", { notExportedReason: "" }),
-        ],
+        objectStores: [baseEntry("alpha"), baseEntry("beta", { notExportedReason: "" })],
       },
     });
     seedReferencedTests(root);
     const { findings } = validateFor(root);
-    expect(findings.some((f) => f.code === "REASON_REQUIRED" && f.entity === "beta")).toBe(true);
+    expect(findings.some(f => f.code === "REASON_REQUIRED" && f.entity === "beta")).toBe(true);
   });
 
   it("fails when the declared snapshot field is absent from the types source", () => {
@@ -192,7 +189,7 @@ describe("check-entity-touchpoints — manifest validation", () => {
     });
     seedReferencedTests(root);
     const { findings } = validateFor(root);
-    expect(findings.some((f) => f.code === "SNAPSHOT_FIELD_ABSENT" && f.entity === "alpha")).toBe(true);
+    expect(findings.some(f => f.code === "SNAPSHOT_FIELD_ABSENT" && f.entity === "alpha")).toBe(true);
   });
 
   it("fails when the domain type is absent, adapters are wrong, or docs are missing", () => {
@@ -206,9 +203,9 @@ describe("check-entity-touchpoints — manifest validation", () => {
     });
     seedReferencedTests(root);
     const { findings } = validateFor(root);
-    expect(findings.some((f) => f.code === "DOMAIN_TYPE_ABSENT" && f.entity === "alpha")).toBe(true);
-    expect(findings.some((f) => f.code === "ADAPTERS_INVALID" && f.entity === "alpha")).toBe(true);
-    expect(findings.some((f) => f.code === "DOCS_REQUIRED" && f.entity === "alpha")).toBe(true);
+    expect(findings.some(f => f.code === "DOMAIN_TYPE_ABSENT" && f.entity === "alpha")).toBe(true);
+    expect(findings.some(f => f.code === "ADAPTERS_INVALID" && f.entity === "alpha")).toBe(true);
+    expect(findings.some(f => f.code === "DOCS_REQUIRED" && f.entity === "alpha")).toBe(true);
   });
 
   it("fails on empty adapter tests, missing test files, and exported entities without transfer tests", () => {
@@ -225,16 +222,14 @@ describe("check-entity-touchpoints — manifest validation", () => {
     });
     seedReferencedTests(root);
     const { findings } = validateFor(root);
-    expect(findings.some((f) => f.code === "TEST_PATH_NOT_FOUND" && f.entity === "alpha")).toBe(true);
-    expect(findings.some((f) => f.code === "TRANSFER_TESTS_REQUIRED" && f.entity === "alpha")).toBe(true);
+    expect(findings.some(f => f.code === "TEST_PATH_NOT_FOUND" && f.entity === "alpha")).toBe(true);
+    expect(findings.some(f => f.code === "TRANSFER_TESTS_REQUIRED" && f.entity === "alpha")).toBe(true);
     const empty = makeMiniRepo({
       manifest: { objectStores: [baseEntry("alpha", { adapterTests: [] }), baseEntry("beta")] },
     });
     seedReferencedTests(empty);
     expect(
-      validateFor(empty).findings.some(
-        (f) => f.code === "ADAPTER_TESTS_REQUIRED" && f.entity === "alpha",
-      ),
+      validateFor(empty).findings.some(f => f.code === "ADAPTER_TESTS_REQUIRED" && f.entity === "alpha"),
     ).toBe(true);
   });
 
@@ -255,7 +250,7 @@ describe("check-entity-touchpoints — manifest validation", () => {
     });
     seedReferencedTests(dynamicRoot);
     const { findings } = validateFor(dynamicRoot);
-    expect(findings.some((f) => f.code === "STORE_EXTRACT_FAIL")).toBe(true);
+    expect(findings.some(f => f.code === "STORE_EXTRACT_FAIL")).toBe(true);
   });
 
   it("validates local-only records: storage kind, reason, tests, and no IDB overlap", () => {
@@ -284,11 +279,11 @@ describe("check-entity-touchpoints — manifest validation", () => {
     seedReferencedTests(root);
     fs.writeFileSync(path.join(root, "exists.test.ts"), "// test\n");
     const { findings } = validateFor(root);
-    expect(findings.some((f) => f.code === "LOCAL_RECORD_IS_STORE" && f.entity === "alpha")).toBe(true);
-    expect(findings.some((f) => f.code === "LOCAL_RECORD_INVALID" && f.entity === "micro.x.v1")).toBe(true);
-    expect(findings.some((f) => f.code === "REASON_REQUIRED" && f.entity === "micro.y.v1")).toBe(true);
-    expect(findings.some((f) => f.code === "DOCS_REQUIRED" && f.entity === "micro.y.v1")).toBe(true);
-    expect(findings.some((f) => f.code === "TEST_PATH_NOT_FOUND" && f.entity === "micro.x.v1")).toBe(true);
+    expect(findings.some(f => f.code === "LOCAL_RECORD_IS_STORE" && f.entity === "alpha")).toBe(true);
+    expect(findings.some(f => f.code === "LOCAL_RECORD_INVALID" && f.entity === "micro.x.v1")).toBe(true);
+    expect(findings.some(f => f.code === "REASON_REQUIRED" && f.entity === "micro.y.v1")).toBe(true);
+    expect(findings.some(f => f.code === "DOCS_REQUIRED" && f.entity === "micro.y.v1")).toBe(true);
+    expect(findings.some(f => f.code === "TEST_PATH_NOT_FOUND" && f.entity === "micro.x.v1")).toBe(true);
   });
 });
 
@@ -301,27 +296,31 @@ describe("check-entity-touchpoints — CLI and live repository", () => {
     fs.mkdirSync(path.join(root, "docs/quality"), { recursive: true });
     const storeNames = Array.from({ length: 21 }, (_, index) => `entity${index + 1}`);
     const storeSource = [
-      ...storeNames.map((name) => `const ${name}Store = "${name}";`),
-      ...storeNames.map((name) => `database.createObjectStore(${name}Store, { keyPath: "id" });`),
+      ...storeNames.map(name => `const ${name}Store = "${name}";`),
+      ...storeNames.map(name => `database.createObjectStore(${name}Store, { keyPath: "id" });`),
       "",
     ].join("\n");
     const typesSource = [
-      ...storeNames.map((name) => `export type ${name}Record = { id: string };`),
+      ...storeNames.map(name => `export type ${name}Record = { id: string };`),
       "export type LocalStoreSnapshot = {",
-      ...storeNames.map((name) => `  ${name}: readonly ${name}Record[];`),
+      ...storeNames.map(name => `  ${name}: readonly ${name}Record[];`),
       "};",
       "",
     ].join("\n");
     /* المجموعة ١٠: الثوابت والإنشاء في ملفين — كما في المصدر الحقيقي بعد التفكيك. */
-    fs.writeFileSync(path.join(storeDir, "indexedDbStores.ts"), storeNames.map((name) => `const ${name}Store = "${name}";`).join("\n") + "\n");
+    fs.writeFileSync(
+      path.join(storeDir, "indexedDbStores.ts"),
+      storeNames.map(name => `const ${name}Store = "${name}";`).join("\n") + "\n",
+    );
     fs.writeFileSync(
       path.join(storeDir, "indexedDbMigrations.ts"),
-      storeNames.map((name) => `database.createObjectStore(${name}Store, { keyPath: "id" });`).join("\n") + "\n",
+      storeNames.map(name => `database.createObjectStore(${name}Store, { keyPath: "id" });`).join("\n") +
+        "\n",
     );
     fs.writeFileSync(path.join(storeDir, "types.ts"), typesSource);
     fs.writeFileSync(path.join(storeDir, "IndexedDbLocalStore.test.ts"), "// test\n");
     const manifest = {
-      objectStores: storeNames.slice(0, 20).map((name) => ({
+      objectStores: storeNames.slice(0, 20).map(name => ({
         store: name,
         snapshotField: name,
         domainType: `${name}Record`,

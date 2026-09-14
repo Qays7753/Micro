@@ -16,10 +16,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { ROOT, isSecretFileName, scanContent, scanTree } from "./check-secrets.mjs";
 
-const SCRIPT_PATH = fileURLToPath(import.meta.url).replace(
-  /check-secrets\.test\.mjs$/,
-  "check-secrets.mjs",
-);
+const SCRIPT_PATH = fileURLToPath(import.meta.url).replace(/check-secrets\.test\.mjs$/, "check-secrets.mjs");
 
 const FAKE_GITHUB_CLASSIC = `ghp_${"A".repeat(40)}`;
 const FAKE_GITHUB_FINE = `github_pat_${"B".repeat(50)}`;
@@ -58,7 +55,7 @@ describe("check-secrets — pattern detection", () => {
       `line five ${FAKE_PRIVATE_KEY}`,
     ].join("\n");
     const findings = scanContent(content);
-    const names = findings.map((f) => f.patternName);
+    const names = findings.map(f => f.patternName);
     expect(names).toContain("github-classic-token");
     expect(names).toContain("github-fine-grained-token");
     expect(names).toContain("aws-access-key-id");
@@ -117,7 +114,7 @@ describe("check-secrets — tree scan on fixtures", () => {
     ]);
     fs.writeFileSync(path.join(root, "image.png"), buffer);
     const findings = scanTree(root);
-    expect(findings.map((f) => f.patternName)).toContain("private-key-block");
+    expect(findings.map(f => f.patternName)).toContain("private-key-block");
   });
 });
 
