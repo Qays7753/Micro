@@ -31,7 +31,7 @@ const focusCall = (name, method, label) =>
   [name, ".", method, "(", JSON.stringify(label), ", () => {});"].join("");
 
 /* حرفية `${method}(` مركّبة وقت التشغيل للاستخدام في التوكّدات. */
-const dotCall = method => [".", method, "("].join("");
+const dotCall = (method) => [".", method, "("].join("");
 
 const tempDirs = [];
 function makeTempDir() {
@@ -123,7 +123,11 @@ describe("check-test-focus — detection", () => {
 describe("check-test-focus — CLI behavior", () => {
   it("exits 1 with file:method:line when a focus call exists", () => {
     const root = makeTempDir();
-    writeTestFile(root, "src/d.test.ts", ['it("a", () => {});', focusCall("it", "only", "b"), ""].join("\n"));
+    writeTestFile(
+      root,
+      "src/d.test.ts",
+      ['it("a", () => {});', focusCall("it", "only", "b"), ""].join("\n"),
+    );
     const result = runCli(root);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("FOCUS_FOUND");

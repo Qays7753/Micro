@@ -123,9 +123,7 @@ export function validateEntityTouchpoints({
   if (missingSource !== undefined) {
     return {
       ok: false,
-      findings: [
-        { code: "STORE_SOURCE_MISSING", entity: "-", detail: sourcePaths[storeFiles.indexOf(missingSource)] },
-      ],
+      findings: [{ code: "STORE_SOURCE_MISSING", entity: "-", detail: sourcePaths[storeFiles.indexOf(missingSource)] }],
     };
   }
   if (!fs.existsSync(typesFile)) {
@@ -157,11 +155,7 @@ export function validateEntityTouchpoints({
     manifestStores.add(entity);
 
     if (codeStores.length >= minExpectedStores && !codeStores.includes(entity)) {
-      findings.push({
-        code: "MANIFEST_STORE_UNKNOWN",
-        entity,
-        detail: "store not created in the IndexedDB storage sources (indexedDbStores/indexedDbMigrations)",
-      });
+      findings.push({ code: "MANIFEST_STORE_UNKNOWN", entity, detail: "store not created in the IndexedDB storage sources (indexedDbStores/indexedDbMigrations)" });
     }
 
     const exported = typeof entry?.snapshotField === "string" && entry.snapshotField.length > 0;
@@ -170,11 +164,7 @@ export function validateEntityTouchpoints({
         findings.push({ code: "SNAPSHOT_FIELD_ABSENT", entity, detail: entry.snapshotField });
       }
       if (!Array.isArray(entry.transferTests) || entry.transferTests.length === 0) {
-        findings.push({
-          code: "TRANSFER_TESTS_REQUIRED",
-          entity,
-          detail: "exported entity needs >=1 transfer/import test path",
-        });
+        findings.push({ code: "TRANSFER_TESTS_REQUIRED", entity, detail: "exported entity needs >=1 transfer/import test path" });
       } else {
         for (const testPath of entry.transferTests) {
           checkPathExists(root, findings, entity, testPath, "TEST_PATH_NOT_FOUND");
@@ -203,11 +193,7 @@ export function validateEntityTouchpoints({
     }
 
     if (!Array.isArray(entry?.adapterTests) || entry.adapterTests.length === 0) {
-      findings.push({
-        code: "ADAPTER_TESTS_REQUIRED",
-        entity,
-        detail: ">=1 test exercising this store through an adapter",
-      });
+      findings.push({ code: "ADAPTER_TESTS_REQUIRED", entity, detail: ">=1 test exercising this store through an adapter" });
     } else {
       for (const testPath of entry.adapterTests) {
         checkPathExists(root, findings, entity, testPath, "TEST_PATH_NOT_FOUND");
@@ -215,21 +201,13 @@ export function validateEntityTouchpoints({
     }
 
     if (typeof entry?.docs !== "string" || entry.docs.trim().length === 0) {
-      findings.push({
-        code: "DOCS_REQUIRED",
-        entity,
-        detail: "docs pointer (current-state section) required",
-      });
+      findings.push({ code: "DOCS_REQUIRED", entity, detail: "docs pointer (current-state section) required" });
     }
   }
 
   for (const store of codeStores) {
     if (!manifestStores.has(store)) {
-      findings.push({
-        code: "MANIFEST_STORE_MISSING",
-        entity: store,
-        detail: "created in code but absent from the manifest",
-      });
+      findings.push({ code: "MANIFEST_STORE_MISSING", entity: store, detail: "created in code but absent from the manifest" });
     }
   }
 
@@ -237,21 +215,13 @@ export function validateEntityTouchpoints({
   for (const record of localRecords) {
     const entity = typeof record?.record === "string" ? record.record : "(unnamed)";
     if (codeStores.includes(entity)) {
-      findings.push({
-        code: "LOCAL_RECORD_IS_STORE",
-        entity,
-        detail: "IndexedDB store must be listed under objectStores",
-      });
+      findings.push({ code: "LOCAL_RECORD_IS_STORE", entity, detail: "IndexedDB store must be listed under objectStores" });
     }
     if (record?.storage !== "localStorage") {
       findings.push({ code: "LOCAL_RECORD_INVALID", entity, detail: "storage must be 'localStorage'" });
     }
     if (typeof record?.notExportedReason !== "string" || record.notExportedReason.trim().length < 10) {
-      findings.push({
-        code: "REASON_REQUIRED",
-        entity,
-        detail: "local-only record needs explicit notExportedReason",
-      });
+      findings.push({ code: "REASON_REQUIRED", entity, detail: "local-only record needs explicit notExportedReason" });
     }
     if (!Array.isArray(record?.adapterTests) || record.adapterTests.length === 0) {
       findings.push({ code: "ADAPTER_TESTS_REQUIRED", entity, detail: ">=1 test exercising this record" });
@@ -284,7 +254,7 @@ function main() {
   if (!ok) {
     process.stderr.write(
       `check-entity-touchpoints: FAIL — ${findings.length} finding(s) — (code:entity:detail)\n` +
-        findings.map(f => `  ${f.code} : ${f.entity} : ${f.detail}`).join("\n") +
+        findings.map((f) => `  ${f.code} : ${f.entity} : ${f.detail}`).join("\n") +
         "\n",
     );
     return 1;

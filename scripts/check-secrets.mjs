@@ -86,7 +86,7 @@ export function scanContent(content, patterns = SECRET_PATTERNS) {
 
 /** فحص اسم ملف — هل هو اسم ملف سر بديهي؟ */
 export function isSecretFileName(fileName) {
-  return SECRET_FILE_NAMES.some(regex => regex.test(path.basename(fileName)));
+  return SECRET_FILE_NAMES.some((regex) => regex.test(path.basename(fileName)));
 }
 
 /** فحص شجرة كاملة — يعيد الإصابات بلا أي نص مطابق. */
@@ -126,7 +126,7 @@ function main() {
   if (findings.length > 0) {
     process.stderr.write(
       `check-secrets: FAIL SECRET_FOUND — ${findings.length} hit(s) — (file:pattern:line, values never printed)\n` +
-        findings.map(f => `  ${f.file} : ${f.patternName} : line ${f.line}`).join("\n") +
+        findings.map((f) => `  ${f.file} : ${f.patternName} : line ${f.line}`).join("\n") +
         "\n",
     );
     return 1;
