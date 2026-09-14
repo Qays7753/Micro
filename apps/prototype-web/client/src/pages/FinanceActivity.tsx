@@ -34,7 +34,7 @@ import type {
   ActivityRecord,
 } from "@/application/activity/activityService";
 
-import { Button, EmptyState } from "@/components/primitives";
+import { Button, EmptyState, StatusChip } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -181,6 +181,19 @@ export default function FinanceActivity() {
     };
   }, [activity, from, to, family, range, dataVersion]);
 
+  /* R2 (D8): تعدّد صامت واحد بلا حدود — هل يوجد أي نشاط مسجّل أصلًا؟
+   * قراءة عرض فقط تميّز «لا بيانات» عن «لا نتائج»؛ لا تنشئ شيئًا. */
+  const [ledgerHasAny, setLedgerHasAny] = useState<boolean | null>(null);
+  useEffect(() => {
+    let active = true;
+    activity.read({ limit: 1, perFamilyLimit: 1, from: null, to: null, families: null }).then(result => {
+      if (active && result.ok) setLedgerHasAny(result.value.length > 0);
+    });
+    return () => {
+      active = false;
+    };
+  }, [activity, dataVersion]);
+
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -268,11 +281,25 @@ export default function FinanceActivity() {
         </div>
       </section>
       {state.rows.length === 0 ? (
-        <EmptyState
-          symbol={<Activity />}
-          title={<>لا نشاط في هذا النطاق.</>}
-          description={<>أول تسجيل من زر «سجّل» يظهر هنا مع أثره، أو وسّع النطاق إلى «منذ البداية».</>}
-        />
+        /* R2 (D8): لا بيانات ≠ لا نتائج — السجل كله فارغ يعني «لا تسجيل بعد»؛
+         * أما المرشّح فروجه الصادقة إزالة المرشّح. التعداد الصامت يحسم الحقيقة. */
+        ledgerHasAny === false ? (
+          <EmptyState
+            symbol={<Activity />}
+            state={<StatusChip state="no-data">لا نشاط مسجّل بعد</StatusChip>}
+            title={<>لم يُسجَّل أي نشاط حتى الآن.</>}
+            description={<>أول تسجيل من زر «سجّل» يظهر هنا مع أثره الكامل.</>}
+          />
+        ) : (
+          <EmptyState
+            symbol={<Activity />}
+            state={<StatusChip state="no-results">لا نتائج في هذا النطاق</StatusChip>}
+            title={<>لا نشاط يطابق النطاق أو العائلة المختارة.</>}
+            description={
+              <>وسّع النطاق إلى «منذ البداية» أو أعِد العائلة إلى «الكل» لرؤية ما هو مسجّل فعلًا.</>
+            }
+          />
+        )
       ) : (
         <section className="micro-supplier-list" aria-label="صفوف النشاط">
           <div className="micro-finance-event-heading">

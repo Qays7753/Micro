@@ -169,6 +169,37 @@ export default [
       ],
     },
   },
+  /* R2 (D7 hardening — Agent 5 recommendation): المكوّنات الأولية أوراق. الإنتاج
+   * فيها لا يستورد إلا react/clsx/lucide وإخوته النسبيين و@/presentation
+   * (طبقة عرض صرفة). ممنوع: الصفحات وقشرة app والخدمات والتخزين وأي مكوّن
+   * خارج العائلة — الحدود تُفرز آليًا لا تُفترض (كانت عرفًا موثقًا فقط).
+   * ملفات الاختبار خارج النطاق: تختبر العقد من خارجه. */
+  {
+    files: ["apps/prototype-web/client/src/components/primitives/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.*"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/pages/*", "@/app/*", "@/application/*", "@/storage/*", "@/components/*"],
+              message:
+                "Primitives are leaves: react/clsx/lucide, relative siblings, and @/presentation only (IMPORT_BOUNDARIES rule 2).",
+              allowTypeImports: false,
+            },
+          ],
+        },
+      ],
+    },
+  },
   /* S4-10/S5-13: طبقة التطبيق والتخزين تحت الفحص نفسه — لا any ولا استيراد React
    * (حدود الطبقات تُفرض لا تُفترض). جذر التركيب (app/) والسياقات وPWA مكونات
    * React مشروعة فتبقى بلا هذا القيد. */

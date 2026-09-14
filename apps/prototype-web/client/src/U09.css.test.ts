@@ -33,4 +33,13 @@ describe("touch targets stay tappable at phone widths (U-09)", () => {
     expect(primCss).toContain(".micro-prim-button--quiet");
     expect(primCss).toContain("min-height: var(--vf-control-height)");
   });
+
+  it("aria-pressed text actions carry an explicit chosen presentation (R2/D7)", () => {
+    /* الحالة المختارة معلنة بالتسطير لا بالنية: تحتاج حافة clay-interactive
+     * بوزن وإزاحة — لا يعتمد المعنى على القراءة الضمنية للون النص. */
+    const block = ruleBlock('.micro-text-action[aria-pressed="true"]');
+    expect(block).toContain("text-decoration: underline");
+    expect(block).toContain("text-decoration-thickness: 2px");
+    expect(block).toContain("text-decoration-color: var(--vf-clay-interactive)");
+  });
 });

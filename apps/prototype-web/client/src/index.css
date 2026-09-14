@@ -511,6 +511,15 @@ textarea:disabled,
   width: 18px;
   height: 18px;
 }
+/* R2 (D7): المختار معلن بصريًا — تسطير clay-interactive بوزن واضح تحت الكلمة
+   المختارة (نفس قواعد الحافة/التسطير للمعيار)؛ الحالة يقرأها aria-pressed
+   والتسطير يحملها بصريًا في الوضعين، لا لونًا وحده. */
+.micro-text-action[aria-pressed="true"] {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--vf-clay-interactive);
+}
 .micro-decision-panel {
   display: grid;
   gap: var(--space-3);
