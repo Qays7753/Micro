@@ -79,8 +79,8 @@ A. Repository/provenance/patch: branch verified at start; mains unchanged; workt
 
 ## 8. Upload and delivery status
 
-- **Micro repository: PUSHED** to the existing branch (fast-forward; no force-push). Final remote SHA recorded below after the push. `Micro/main` unchanged.
-- **Documents mirror:** appended to the existing run branch/folder; exact status recorded in `DOCUMENTS_UPLOAD_STATUS.md` (never claimed without verification).
+- **Micro repository: PUSHED AND VERIFIED.** Branch `micro-standard-ui-aux-integration-20260914`, final remote commit **`81b193392205c9d45529d350d46de2274e7395fb`** (fast-forward `295c87c..81b1933`; no force-push; verified via `git ls-remote`). `Micro/main` unchanged (`c0469e2`).
+- **Documents mirror: UPLOADED AND VERIFIED.** Branch `micro-standard-ui-aux-integration-2026-09`, folder `planning/micro-standard-ui-aux-integration-2026-09/`, mirror commit **`fe3f8db1640e6e5d306350a23ec29a55eb26df99`** (append on the owner-pushed `3ee0eda`; `Documents/main` unchanged at `f919982c`). Full live-verification record in `DOCUMENTS_UPLOAD_STATUS.md`.
 - **Downloadable deliverables:** complete run-folder copies + this report in the session download directory.
 
 ## 9. Traceability
