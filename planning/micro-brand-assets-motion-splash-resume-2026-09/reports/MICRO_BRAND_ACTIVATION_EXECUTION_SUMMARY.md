@@ -26,12 +26,12 @@ The interrupted execution was resumed without rebuilding: the local workspace, s
 
 | Repository | Branch | Head |
 | --- | --- | --- |
-| Micro (work) | `micro-brand-assets-motion-splash-resume-20260915` | `3eb4020d8ba8b2ed35dbebab0d856f22c1ad3b02` |
-| Micro (bridge) | `micro-brand-assets-motion-splash-resume-bridge-20260915` | `3eb4020d8ba8b2ed35dbebab0d856f22c1ad3b02` |
+| Micro (work) | `micro-brand-assets-motion-splash-resume-20260915` | `c2db0a8d29c1c2cf3f938ddbcb1499ed51699ed2` |
+| Micro (bridge) | `micro-brand-assets-motion-splash-resume-bridge-20260915` | `c2db0a8d29c1c2cf3f938ddbcb1499ed51699ed2` |
 | Micro baseline (untouched `main`) | — | `c7dedadc669a9c1a918a107e206d8a0ddff73e5f` |
 | Documents (review) | `micro-brand-assets-motion-splash-resume-review-20260915` | `5fde8a26401683ed1a6be72c956b62046cfff16e` |
 
-**Remote verification (via `git ls-remote`, this session):** Micro work + bridge = `25a5ec18f4b90b91ba93295770ac032cf1d9090c`; Documents review = `5fde8a26401683ed1a6be72c956b62046cfff16e`; `Micro/main` = `c7dedadc669a9c1a918a107e206d8a0ddff73e5f` (unchanged); `Documents/main` = `f919982c692e5ba78cf3284a4240c45f66be91c6` (unchanged).
+**Remote verification (via `git ls-remote`, this session):** Micro work + bridge = `c2db0a8d29c1c2cf3f938ddbcb1499ed51699ed2` (final; includes the SHA-recording commit); Documents review = `5fde8a26401683ed1a6be72c956b62046cfff16e`; `Micro/main` = `c7dedadc669a9c1a918a107e206d8a0ddff73e5f` (unchanged); `Documents/main` = `f919982c692e5ba78cf3284a4240c45f66be91c6` (unchanged).
 
 **Delivery repair disclosure (transparent):** the Documents archive commit `a1b5162` was made from a `--no-checkout` clone whose working tree lacked the rest of `main`, so it accidentally recorded 580 pre-existing files as deleted. The follow-up commit `5fde8a2` restores all of them byte-for-byte from `origin/main` (append-only; no force push). The verified net tree of the review branch tip = `origin/main` + the 145-file review archive, nothing else.
 
