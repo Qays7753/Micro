@@ -18,6 +18,7 @@ import InventoryMaterials from "@/pages/InventoryMaterials";
 import InventoryMovementEditor from "@/pages/InventoryMovementEditor";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
+import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import SupplierPurchaseEditor from "@/pages/SupplierPurchaseEditor";
 import CostEditor from "@/pages/CostEditor";
@@ -485,6 +486,8 @@ describe("Group 2 bridge prefill and remaining surfaces (SA-5 fixes)", () => {
 function renderPurchaseEditorHarness(store: MemoryLocalStore, inventory: InventoryMaterialService) {
   const contextRef: { current: Record<string, unknown> } = { current: {} };
   const supplierPurchases = new SupplierPurchaseService(store, () => NOW);
+  /* FIN-003: المحافظ لمصدر الدفعة — الخدمة الحقيقية فوق المخزن نفسه. */
+  const cashContinuity = new CashContinuityService(store, () => NOW);
   mockedUsePrototypeServices.mockImplementation(
     () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
   );
@@ -493,6 +496,7 @@ function renderPurchaseEditorHarness(store: MemoryLocalStore, inventory: Invento
     contextRef.current = {
       supplierPurchases,
       inventory,
+      cashContinuity,
       formDrafts: new FormDraftService(store),
       dataVersion: version,
       notifyDataChanged: () => setVersion(current => current + 1),
