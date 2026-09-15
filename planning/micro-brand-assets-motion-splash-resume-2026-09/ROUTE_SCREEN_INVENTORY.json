@@ -1,0 +1,1227 @@
+{
+  "meta": {
+    "generated_at": "2026-09-15 (resume run)",
+    "source_of_truth": "apps/prototype-web/client/src/app/MicroRouter.tsx + navigation.ts + routeClassifier.ts + pages/* (verified against the running production build)",
+    "actual_screen_count": 64,
+    "captured_screen_count": 63,
+    "note": "S61 /review is a redirect to /finance — recorded, not screenshotted. Every other screen has Light+Dark full-page captures at 390x844 canonical viewport (splash: one per theme). title_exact values are the live DOM h1 texts at capture time."
+  },
+  "screens": [
+    {
+      "screen_id": "01",
+      "title_exact": "مشروع النخبة",
+      "route": "/",
+      "surface_type": "page",
+      "canonical_state": "after local setup — home with truth banner, finance and catalog sections",
+      "navigation_entry": "bottom nav «مشروعي الآن»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "01__مشروع_النخبة__home__dark__390xFULL.png",
+        "01__مشروع_النخبة__home__light-320w__320xFULL.png",
+        "01__مشروع_النخبة__home__light-430w__430xFULL.png",
+        "01__مشروع_النخبة__home__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "02",
+      "title_exact": "ما اسم مشروعك؟",
+      "route": "/setup (step 1)",
+      "surface_type": "page",
+      "canonical_state": "fresh local storage — setup step 1",
+      "navigation_entry": "auto-redirect on first launch",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "captured on a fresh disposable profile",
+      "files": [
+        "02__ما_اسم_مشروعك؟__setup-step1__dark__390xFULL.png",
+        "02__ما_اسم_مشروعك؟__setup-step1__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "03",
+      "title_exact": "وين تحط فلوسك؟",
+      "route": "/setup (step 2)",
+      "surface_type": "page",
+      "canonical_state": "setup step 2 — default wallet question",
+      "navigation_entry": "setup step 1 → التالي",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "03__وين_تحط_فلوسك؟__setup-step2__dark__390xFULL.png",
+        "03__وين_تحط_فلوسك؟__setup-step2__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "04",
+      "title_exact": "شو وضع الدرج هلق؟",
+      "route": "/setup (step 3)",
+      "surface_type": "page",
+      "canonical_state": "setup step 3 — opening drawer/cash state",
+      "navigation_entry": "setup step 2 → التالي",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "04__شو_وضع_الدرج_هلق؟__setup-step3__dark__390xFULL.png",
+        "04__شو_وضع_الدرج_هلق؟__setup-step3__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "05",
+      "title_exact": "شو عندك هلق؟",
+      "route": "/foundation",
+      "surface_type": "page",
+      "canonical_state": "foundation surface after setup",
+      "navigation_entry": "setup completion / home",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "05__شو_عندك_هلق؟__foundation__dark__390xFULL.png",
+        "05__شو_عندك_هلق؟__foundation__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "06",
+      "title_exact": "العمل",
+      "route": "/orders",
+      "surface_type": "page",
+      "canonical_state": "orders hub with created local draft",
+      "navigation_entry": "bottom nav «العمل»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "06__العمل__orders__dark__390xFULL.png",
+        "06__العمل__orders__light-430w__430xFULL.png",
+        "06__العمل__orders__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "07",
+      "title_exact": "تصميم مخطط",
+      "route": "/orders/new?intent=planned_design",
+      "surface_type": "page",
+      "canonical_state": "planned-design intent draft editor (empty)",
+      "navigation_entry": "orders → إنشاء مسودة أخرى / quick actions",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "customer-order twin captured as 08 draft-editor-new-customer",
+      "files": [
+        "07__تصميم_مخطط__orders-new-planned__dark__390xFULL.png",
+        "07__تصميم_مخطط__orders-new-planned__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "08",
+      "title_exact": "طلب من عميل",
+      "route": "/orders/draft/:id",
+      "surface_type": "page",
+      "canonical_state": "draft editor with saved local draft (مجسم شعار من الجبس)",
+      "navigation_entry": "orders list row",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "extra light state: /orders/draft/new fresh-intent editor",
+      "files": [
+        "08__طلب_من_عميل__draft-editor-new-customer__light__390xFULL.png",
+        "08__طلب_من_عميل__draft-editor__dark__390xFULL.png",
+        "08__طلب_من_عميل__draft-editor__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "09",
+      "title_exact": "سجّل ما اتفقت عليه",
+      "route": "/orders/draft/:id/agreement",
+      "surface_type": "page",
+      "canonical_state": "agreement editor after incomplete-cost save",
+      "navigation_entry": "draft editor → الاتفاق",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "09__سجّل_ما_اتفقت_عليه__draft-agreement__dark__390xFULL.png",
+        "09__سجّل_ما_اتفقت_عليه__draft-agreement__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "10",
+      "title_exact": "مجسم شعار من الجبس",
+      "route": "/orders/draft/:id/cost",
+      "surface_type": "page",
+      "canonical_state": "cost editor for the canonical draft",
+      "navigation_entry": "draft editor → التكلفة",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "10__مجسم_شعار_من_الجبس__draft-cost__dark__390xFULL.png",
+        "10__مجسم_شعار_من_الجبس__draft-cost__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "11",
+      "title_exact": "الطلب غير متاح محليًا",
+      "route": "/orders/:id",
+      "surface_type": "page",
+      "canonical_state": "route-level safe recovery state",
+      "navigation_entry": "orders list row (posted order)",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "real posted-order instance requires a posting action — not triggered per capture policy",
+      "files": [
+        "11__الطلب_غير_متاح_محليًا__order-detail-safe__dark__390xFULL.png",
+        "11__الطلب_غير_متاح_محليًا__order-detail-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "12",
+      "title_exact": "مراجعة التسليم",
+      "route": "/orders/:id/deliver",
+      "surface_type": "page",
+      "canonical_state": "delivery review surface on the canonical draft (read-only, confirm NOT clicked)",
+      "navigation_entry": "order surface delivery action",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "12__مراجعة_التسليم__delivery-review-safe__dark__390xFULL.png",
+        "12__مراجعة_التسليم__delivery-review-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "13",
+      "title_exact": "تسجيل بيع مباشر",
+      "route": "/direct-sales/new",
+      "surface_type": "page",
+      "canonical_state": "direct sale editor, empty entry state",
+      "navigation_entry": "orders → تسجيل بيع مباشر",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "posting (submit) not triggered per capture policy",
+      "files": [
+        "13__تسجيل_بيع_مباشر__direct-sale-new__dark__390xFULL.png",
+        "13__تسجيل_بيع_مباشر__direct-sale-new__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "14",
+      "title_exact": "تصحيح بيع مباشر",
+      "route": "/direct-sales/:id",
+      "surface_type": "page",
+      "canonical_state": "route-level safe correction state",
+      "navigation_entry": "created direct sale row",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "real instance requires posting — not triggered",
+      "files": [
+        "14__تصحيح_بيع_مباشر__direct-sale-safe__dark__390xFULL.png",
+        "14__تصحيح_بيع_مباشر__direct-sale-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "15",
+      "title_exact": "المواعيد",
+      "route": "/schedule",
+      "surface_type": "page",
+      "canonical_state": "schedule list (empty state)",
+      "navigation_entry": "home/schedule links",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "15__المواعيد__schedule__dark__390xFULL.png",
+        "15__المواعيد__schedule__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "16",
+      "title_exact": "الموعد غير متاح محليًا",
+      "route": "/schedule/:id",
+      "surface_type": "page",
+      "canonical_state": "route-level safe recovery state",
+      "navigation_entry": "schedule row",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "schedule entries arise from agreement flows not triggered",
+      "files": [
+        "16__الموعد_غير_متاح_محليًا__schedule-editor-safe__dark__390xFULL.png",
+        "16__الموعد_غير_متاح_محليًا__schedule-editor-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "17",
+      "title_exact": "مالي",
+      "route": "/finance",
+      "surface_type": "page",
+      "canonical_state": "finance overview after setup",
+      "navigation_entry": "bottom nav «مالي»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "17__مالي__finance__dark__390xFULL.png",
+        "17__مالي__finance__light-320w__320xFULL.png",
+        "17__مالي__finance__light-430w__430xFULL.png",
+        "17__مالي__finance__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "18",
+      "title_exact": "تسجيل استثمار المالك",
+      "route": "/finance/new/:type",
+      "surface_type": "page",
+      "canonical_state": "financial event editor, owner_investment_cash instance",
+      "navigation_entry": "finance actions",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "other type values render the same editor surface; submission not triggered",
+      "files": [
+        "18__تسجيل_استثمار_المالك__finance-event__dark__390xFULL.png",
+        "18__تسجيل_استثمار_المالك__finance-event__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "19",
+      "title_exact": "سحب من المشروع لنفسك؟",
+      "route": "/finance/withdraw",
+      "surface_type": "page",
+      "canonical_state": "owner withdrawal editor, empty",
+      "navigation_entry": "finance actions",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "submission not triggered",
+      "files": [
+        "19__سحب_من_المشروع_لنفسك؟__owner-withdrawal__dark__390xFULL.png",
+        "19__سحب_من_المشروع_لنفسك؟__owner-withdrawal__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "20",
+      "title_exact": "مال المالك",
+      "route": "/finance/owner-entitlement",
+      "surface_type": "page",
+      "canonical_state": "owner entitlement reader",
+      "navigation_entry": "finance actions",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "20__مال_المالك__owner-entitlement__dark__390xFULL.png",
+        "20__مال_المالك__owner-entitlement__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "21",
+      "title_exact": "تحصيل أو التزام قريب",
+      "route": "/finance/g5/declaration",
+      "surface_type": "page",
+      "canonical_state": "G5 declaration surface",
+      "navigation_entry": "finance actions",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "21__تحصيل_أو_التزام_قريب__g5-declaration__dark__390xFULL.png",
+        "21__تحصيل_أو_التزام_قريب__g5-declaration__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "22",
+      "title_exact": "كشف الفترة",
+      "route": "/finance/statement",
+      "surface_type": "page",
+      "canonical_state": "period statement reader",
+      "navigation_entry": "finance section link",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "22__كشف_الفترة__statement__dark__390xFULL.png",
+        "22__كشف_الفترة__statement__light-320w__320xFULL.png",
+        "22__كشف_الفترة__statement__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "23",
+      "title_exact": "آخر ما حدث",
+      "route": "/finance/activity",
+      "surface_type": "page",
+      "canonical_state": "full activity reader",
+      "navigation_entry": "finance section link",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "23__آخر_ما_حدث__finance-activity__dark__390xFULL.png",
+        "23__آخر_ما_حدث__finance-activity__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "24",
+      "title_exact": "لا نص للمشاركة",
+      "route": "/share/preview",
+      "surface_type": "page",
+      "canonical_state": "share preview with no share source",
+      "navigation_entry": "share action on entities",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "real share source exists on posted entities — not triggered",
+      "files": [
+        "24__لا_نص_للمشاركة__share-preview-default__dark__390xFULL.png",
+        "24__لا_نص_للمشاركة__share-preview-default__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "25",
+      "title_exact": "محافظ الكاش",
+      "route": "/cash",
+      "surface_type": "page",
+      "canonical_state": "wallets list with setup wallet الدرج",
+      "navigation_entry": "finance wallets link",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "25__محافظ_الكاش__cash-wallets__dark__390xFULL.png",
+        "25__محافظ_الكاش__cash-wallets__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "26",
+      "title_exact": "أين يوجد الكاش الآن؟",
+      "route": "/cash/wallet/new",
+      "surface_type": "page",
+      "canonical_state": "wallet editor, empty",
+      "navigation_entry": "cash «محفظة ورصيد بداية»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "26__أين_يوجد_الكاش_الآن؟__wallet-new__dark__390xFULL.png",
+        "26__أين_يوجد_الكاش_الآن؟__wallet-new__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "27",
+      "title_exact": "الدرج",
+      "route": "/cash/wallet/:id",
+      "surface_type": "page",
+      "canonical_state": "wallet ledger (دفتر فارغ — opening balance 0, no entries)",
+      "navigation_entry": "cash wallet row",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "entries require posted events — not triggered",
+      "files": [
+        "27__الدرج__wallet-ledger__dark__390xFULL.png",
+        "27__الدرج__wallet-ledger__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "28",
+      "title_exact": "رصيد افتتاحي هذه المحفظة معروف أصلًا",
+      "route": "/cash/wallet/:id/opening-later",
+      "surface_type": "page",
+      "canonical_state": "opening-later surface (already-known state → adjust redirect)",
+      "navigation_entry": "wallet ledger action",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "28__رصيد_افتتاحي_هذه_المحفظة_معروف_أصلًا__opening-later__dark__390xFULL.png",
+        "28__رصيد_افتتاحي_هذه_المحفظة_معروف_أصلًا__opening-later__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "29",
+      "title_exact": "اضبط كاش الدرج",
+      "route": "/cash/wallet/:id/adjust",
+      "surface_type": "page",
+      "canonical_state": "cash adjustment editor, empty",
+      "navigation_entry": "wallet ledger action",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "submission not triggered",
+      "files": [
+        "29__اضبط_كاش_الدرج__wallet-adjust__dark__390xFULL.png",
+        "29__اضبط_كاش_الدرج__wallet-adjust__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "30",
+      "title_exact": "تحتاج محفظتين للتحويل",
+      "route": "/cash/transfer",
+      "surface_type": "page",
+      "canonical_state": "transfer editor — two-wallet requirement state",
+      "navigation_entry": "cash actions",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "30__تحتاج_محافظتين_للتحويل__cash-transfer__dark__390xFULL.png",
+        "30__تحتاج_محافظتين_للتحويل__cash-transfer__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "31",
+      "title_exact": "وزّع الكاش غير الموزع",
+      "route": "/cash/distribute",
+      "surface_type": "page",
+      "canonical_state": "cash distribution surface",
+      "navigation_entry": "cash actions",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "31__وزّع_الكاش_غير_الموزع__cash-distribute__dark__390xFULL.png",
+        "31__وزّع_الكاش_غير_الموزع__cash-distribute__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "32",
+      "title_exact": "عدّ اللي في الدرج فعلًا",
+      "route": "/cash/count",
+      "surface_type": "page",
+      "canonical_state": "cash count surface",
+      "navigation_entry": "cash actions",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "32__عدّ_اللي_في_الدرج_فعلًا__cash-count__dark__390xFULL.png",
+        "32__عدّ_اللي_في_الدرج_فعلًا__cash-count__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "33",
+      "title_exact": "جارٍ فتح الأثر…",
+      "route": "/cash/entry/:id/reverse",
+      "surface_type": "page",
+      "canonical_state": "route's genuine loading state for an unknown entry id",
+      "navigation_entry": "wallet ledger entry action",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "real instance requires a posted entry — not triggered; loading state is the route's honest behavior for unknown ids",
+      "files": [
+        "33__جارٍ_فتح_الأثر__cash-reversal-safe__dark__390xFULL.png",
+        "33__جارٍ_فتح_الأثر__cash-reversal-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "34",
+      "title_exact": "حصّل من مين عليه إلَي",
+      "route": "/collect",
+      "surface_type": "page",
+      "canonical_state": "collection sheet — no debts state",
+      "navigation_entry": "quick actions «تحصيل»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "34__حصّل_من_مين_عليه_إلَي__collect__dark__390xFULL.png",
+        "34__حصّل_من_مين_عليه_إلَي__collect__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "35",
+      "title_exact": "المواد والمخزون",
+      "route": "/inventory",
+      "surface_type": "page",
+      "canonical_state": "materials list with tracked material fixture",
+      "navigation_entry": "tools/inventory links",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "35__المواد_والمخزون__inventory__dark__390xFULL.png",
+        "35__المواد_والمخزون__inventory__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "36",
+      "title_exact": "أي مادة تسجّل؟",
+      "route": "/inventory/material/new",
+      "surface_type": "page",
+      "canonical_state": "material editor, empty",
+      "navigation_entry": "inventory «مادة جديدة»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "36__أي_مادة_تسجّل؟__material-new__dark__390xFULL.png",
+        "36__أي_مادة_تسجّل؟__material-new__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "37",
+      "title_exact": "أكّد رصيد قماش تغليف",
+      "route": "/inventory/material/:id/confirm",
+      "surface_type": "page",
+      "canonical_state": "confirm-balance journey on the unconfirmed material fixture",
+      "navigation_entry": "material row «أكّد الرصيد»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "confirm not submitted",
+      "files": [
+        "37__أكّد_رصيد_قماش_تغليف__material-confirm__dark__390xFULL.png",
+        "37__أكّد_رصيد_قماش_تغليف__material-confirm__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "38",
+      "title_exact": "استلم شراء مواد",
+      "route": "/inventory/movement/receipt",
+      "surface_type": "page",
+      "canonical_state": "receipt movement editor, empty",
+      "navigation_entry": "inventory «استلام شراء»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "submission not triggered",
+      "files": [
+        "38__استلم_شراء_مواد__movement-receipt__dark__390xFULL.png",
+        "38__استلم_شراء_مواد__movement-receipt__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "38b",
+      "title_exact": "استهلك مادة",
+      "route": "/inventory/movement/consume",
+      "surface_type": "page",
+      "canonical_state": "consume movement editor, empty",
+      "navigation_entry": "inventory «استهلاك أو استلام نقص»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "submission not triggered",
+      "files": [
+        "38b__استهلك_مادة__movement-consume__dark__390xFULL.png",
+        "38b__استهلك_مادة__movement-consume__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "38c",
+      "title_exact": "سجل هدر مادة",
+      "route": "/inventory/movement/waste",
+      "surface_type": "page",
+      "canonical_state": "waste movement editor, empty",
+      "navigation_entry": "inventory «هدر أو ضبط»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "submission not triggered",
+      "files": [
+        "38c__سجل_هدر_مادة__movement-waste__dark__390xFULL.png",
+        "38c__سجل_هدر_مادة__movement-waste__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "39",
+      "title_exact": "جارٍ فتح حركة المادة…",
+      "route": "/inventory/movement/:id/reverse",
+      "surface_type": "page",
+      "canonical_state": "route's genuine loading state for an unknown movement id",
+      "navigation_entry": "movement row «تراجع»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "real instance requires a posted movement — not triggered",
+      "files": [
+        "39__جارٍ_فتح_حركة_المادة__movement-reverse-safe__dark__390xFULL.png",
+        "39__جارٍ_فتح_حركة_المادة__movement-reverse-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "40",
+      "title_exact": "منتجاتي وخدماتي",
+      "route": "/catalog",
+      "surface_type": "page",
+      "canonical_state": "catalog list (empty)",
+      "navigation_entry": "tools/orders links",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "40__منتجاتي_وخدماتي__catalog__dark__390xFULL.png",
+        "40__منتجاتي_وخدماتي__catalog__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "41",
+      "title_exact": "احسب قبل أن تلتزم",
+      "route": "/tools",
+      "surface_type": "page",
+      "canonical_state": "tools hub with saved estimate and unit status",
+      "navigation_entry": "bottom nav «أدواتي»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "41__احسب_قبل_أن_تلتزم__tools__dark__390xFULL.png",
+        "41__احسب_قبل_أن_تلتزم__tools__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "42",
+      "title_exact": "حاسبة التكلفة والسعر",
+      "route": "/tools/calculator",
+      "surface_type": "page",
+      "canonical_state": "calculator entry state",
+      "navigation_entry": "tools «افتح الحاسبة»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "42__حاسبة_التكلفة_والسعر__cost-calculator__dark__390xFULL.png",
+        "42__حاسبة_التكلفة_والسعر__cost-calculator__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "43",
+      "title_exact": "تقدير المجسم",
+      "route": "/tools/estimate/:id",
+      "surface_type": "page",
+      "canonical_state": "saved estimate reader (fixture estimate)",
+      "navigation_entry": "tools «تقديراتي المحفوظة»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "43__تقدير_المجسم__estimate-detail__dark__390xFULL.png",
+        "43__تقدير_المجسم__estimate-detail__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "44",
+      "title_exact": "فحص سلامة مالي",
+      "route": "/tools/integrity",
+      "surface_type": "page",
+      "canonical_state": "integrity reader",
+      "navigation_entry": "tools «فحص سلامة مالي»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "44__فحص_سلامة_مالي__tools-integrity__dark__390xFULL.png",
+        "44__فحص_سلامة_مالي__tools-integrity__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "45",
+      "title_exact": "الأصول",
+      "route": "/assets",
+      "surface_type": "page",
+      "canonical_state": "assets list (empty)",
+      "navigation_entry": "tools «الأصول»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "45__الأصول__assets__dark__390xFULL.png",
+        "45__الأصول__assets__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "46",
+      "title_exact": "شراء للاستخدام الطويل",
+      "route": "/assets/new",
+      "surface_type": "page",
+      "canonical_state": "asset editor, empty",
+      "navigation_entry": "assets «إضافة أصل»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "creation may post cash — not triggered",
+      "files": [
+        "46__شراء_للاستخدام_الطويل__asset-new__dark__390xFULL.png",
+        "46__شراء_للاستخدام_الطويل__asset-new__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "47",
+      "title_exact": "الأصل غير متاح محليًا",
+      "route": "/assets/:id",
+      "surface_type": "page",
+      "canonical_state": "route-level safe recovery state",
+      "navigation_entry": "assets row",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "real instance requires posting — not triggered",
+      "files": [
+        "47__الأصل_غير_متاح_محليًا__asset-detail-safe__dark__390xFULL.png",
+        "47__الأصل_غير_متاح_محليًا__asset-detail-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "48",
+      "title_exact": "القروض",
+      "route": "/loans",
+      "surface_type": "page",
+      "canonical_state": "loans list (empty)",
+      "navigation_entry": "tools «القروض»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "48__القروض__loans__dark__390xFULL.png",
+        "48__القروض__loans__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "49",
+      "title_exact": "أعطيت مالًا يُعاد",
+      "route": "/loans/new",
+      "surface_type": "page",
+      "canonical_state": "loan editor, empty",
+      "navigation_entry": "loans «إضافة قرض»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "creation posts cash — not triggered",
+      "files": [
+        "49__أعطيت_مالًا_يُعاد__loan-new__dark__390xFULL.png",
+        "49__أعطيت_مالًا_يُعاد__loan-new__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "50",
+      "title_exact": "القرض غير متاح محليًا",
+      "route": "/loans/:id",
+      "surface_type": "page",
+      "canonical_state": "route-level safe recovery state",
+      "navigation_entry": "loans row",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "real instance requires posting — not triggered",
+      "files": [
+        "50__القرض_غير_متاح_محليًا__loan-detail-safe__dark__390xFULL.png",
+        "50__القرض_غير_متاح_محليًا__loan-detail-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "51",
+      "title_exact": "الموردون والمشتريات",
+      "route": "/suppliers",
+      "surface_type": "page",
+      "canonical_state": "suppliers and purchases hub (empty)",
+      "navigation_entry": "tools «الموردون»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "51__الموردون_والمشتريات__suppliers__dark__390xFULL.png",
+        "51__الموردون_والمشتريات__suppliers__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "52",
+      "title_exact": "سجل شراء مواد",
+      "route": "/suppliers/purchase/new",
+      "surface_type": "page",
+      "canonical_state": "supplier purchase editor, empty",
+      "navigation_entry": "suppliers «سجل شراء مواد»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "creation creates payable record — not triggered",
+      "files": [
+        "52__سجل_شراء_مواد__supplier-purchase-new__dark__390xFULL.png",
+        "52__سجل_شراء_مواد__supplier-purchase-new__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "52b",
+      "title_exact": "شراء المواد غير موجود",
+      "route": "/suppliers/purchase/:id",
+      "surface_type": "page",
+      "canonical_state": "route-level safe recovery state",
+      "navigation_entry": "purchase row",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "52b__شراء_المواد_غير_موجود__supplier-purchase-safe__dark__390xFULL.png",
+        "52b__شراء_المواد_غير_موجود__supplier-purchase-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "53",
+      "title_exact": "شراء المواد غير موجود",
+      "route": "/suppliers/purchase/:id/payment",
+      "surface_type": "page",
+      "canonical_state": "payment surface safe state",
+      "navigation_entry": "purchase row payment action",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "payment posts cash — not triggered",
+      "files": [
+        "53__شراء_المواد_غير_موجود__purchase-payment-safe__dark__390xFULL.png",
+        "53__شراء_المواد_غير_موجود__purchase-payment-safe__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "54",
+      "title_exact": "مين عليه إلَي، وعليّ لمين؟",
+      "route": "/parties",
+      "surface_type": "page",
+      "canonical_state": "parties reader (empty)",
+      "navigation_entry": "tools «دفتر الناس»",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "54__مين_عليه_إلَي،_وعليّ_لمين؟__parties__dark__390xFULL.png",
+        "54__مين_عليه_إلَي،_وعليّ_لمين؟__parties__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "55",
+      "title_exact": "الإعدادات",
+      "route": "/settings",
+      "surface_type": "page",
+      "canonical_state": "settings hub",
+      "navigation_entry": "header settings gear",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "55__الإعدادات__settings__dark__390xFULL.png",
+        "55__الإعدادات__settings__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "56",
+      "title_exact": "ملفك وملف مشروعك",
+      "route": "/profile",
+      "surface_type": "page",
+      "canonical_state": "owner profile reader",
+      "navigation_entry": "settings/header profile entry",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "56__ملفك_وملف_مشروعك__profile__dark__390xFULL.png",
+        "56__ملفك_وملف_مشروعك__profile__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "57",
+      "title_exact": "هذه الصفحة ليست جزءًا من هذا الإصدار",
+      "route": "/nonexistent-route (catch-all)",
+      "surface_type": "page",
+      "canonical_state": "NotFound route-level screen",
+      "navigation_entry": "direct navigation to unknown path",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": null,
+      "files": [
+        "57__هذه_الصفحة_ليست_جزءًا_من_هذا_الإصدار__not-found__dark__390xFULL.png",
+        "57__هذه_الصفحة_ليست_جزءًا_من_هذا_الإصدار__not-found__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "58",
+      "title_exact": "Micro مقفل",
+      "route": "AppLockGate overlay (engaged on /finance after idle return)",
+      "surface_type": "dialog",
+      "canonical_state": "local lock gate, engaged via 1-minute auto-lock after context freeze + idle reopen",
+      "navigation_entry": "settings → قفل التطبيق المحلي",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "full-page capture: gate covers the viewport region; page below the fold is the covered surface (fixed-overlay capture behavior)",
+      "files": [
+        "58__Micro_مقفل__app-lock-gate__dark__390xFULL.png",
+        "58__Micro_مقفل__app-lock-gate__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "59",
+      "title_exact": "شاشة الإطلاق (Light)",
+      "route": "BrandLaunchSplash at boot",
+      "surface_type": "dialog",
+      "canonical_state": "one-shot assembly motion mid-flight, light pairing",
+      "navigation_entry": "fresh page load",
+      "theme_required": [
+        "light"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "viewport-sized fixed overlay — surface fully covered",
+      "files": [
+        "59__شاشة_الإطلاق__splash__light__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "60",
+      "title_exact": "شاشة الإطلاق (Dark)",
+      "route": "BrandLaunchSplash at boot",
+      "surface_type": "dialog",
+      "canonical_state": "one-shot assembly motion mid-flight, dark pairing, dark canvas (no white flash)",
+      "navigation_entry": "fresh page load with dark preference",
+      "theme_required": [
+        "dark"
+      ],
+      "screenshot_required": true,
+      "status": "captured",
+      "failure_reason": "viewport-sized fixed overlay — surface fully covered",
+      "files": [
+        "60__شاشة_الإطلاق__splash__dark__390xFULL.png"
+      ]
+    },
+    {
+      "screen_id": "61",
+      "title_exact": "/review",
+      "route": "/review",
+      "surface_type": "page",
+      "canonical_state": "REDIRECT to /finance (route exists, not a screen)",
+      "navigation_entry": "legacy link",
+      "theme_required": [
+        "light",
+        "dark"
+      ],
+      "screenshot_required": false,
+      "status": "redirect",
+      "failure_reason": "no screenshot by definition",
+      "files": []
+    }
+  ]
+}
