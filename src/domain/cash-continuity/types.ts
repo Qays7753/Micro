@@ -7,8 +7,10 @@ export type CashContinuityEntryType =
 export type CashWalletOpeningStatus = "known" | "unknown";
 /* المجموعة ٢ (§9.1): مصدر التخصيص — ربط صريح بين حركة التخصيص في سجل المحفظة
  * والسجل المصدر الذي أنشأ الكاش (بيع/مصروف/تحصيل/طلب)، فيصل صاحب السجل للمصدر
- * من دفتر المحفظة بلا مسار كتابة ثانٍ. حقل اختياري: القديم بلاه يُقرأ فارغًا. */
-type CashAllocationSourceKind = "sale" | "expense" | "collection" | "order";
+ * من دفتر المحفظة بلا مسار كتابة ثانٍ. حقل اختياري: القديم بلاه يُقرأ فارغًا.
+ * FIN-003 (قرار المالك ٢٠٢٦-٠٩-١٦): دفعات المورديم تنسب لمصدرها وقت التسجيل —
+ * نوع المصدر «supplier_purchase» يصل دفتر المحفظة بشراء المورد نفسه. */
+type CashAllocationSourceKind = "sale" | "expense" | "collection" | "order" | "supplier_purchase";
 export type CashWallet = {
   id: string;
   name: string;

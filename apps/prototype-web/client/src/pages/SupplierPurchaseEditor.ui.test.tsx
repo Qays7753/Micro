@@ -83,6 +83,10 @@ describe("SupplierPurchaseEditor hook-order regression (G5-S6, React error 310)"
         reversePayment: vi.fn(),
         recordPurchase: vi.fn(),
       } as unknown as SupplierPurchaseService,
+      /* FIN-003: المحافظ لمصدر الدفعة — كعب فارغ يكفي لرحلة الانحدار هذه. */
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
+      },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
@@ -148,5 +152,120 @@ describe("SupplierPurchaseEditor hook-order regression (G5-S6, React error 310)"
     await waitFor(() => {
       expect(wouterMocks.navigate).toHaveBeenCalledWith("/suppliers");
     });
+  });
+});
+
+/* FIN-003 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): قواعد مصدر الصرف في دفعة المورد —
+ * محفظة واحدة تُعيَّن مسبقًا بشكل مرئي، ومحافظ متعددة تُلزم باختيار صريح
+ * (محفظة أو الكاش غير الموزع)، والمصدر المختار يصل الخدمة كما هو. */
+describe("SupplierPurchaseEditor payment source rules (FIN-003)", () => {
+  const recordPaymentWallet = vi.fn();
+  const listWallet = vi.fn();
+
+  function mockServices(wallets: readonly { id: string; name: string }[]) {
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-16T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      supplierPurchases: {
+        list: listWallet,
+        recordPayment: recordPaymentWallet,
+        editPurchase: vi.fn(),
+        reversePayment: vi.fn(),
+        recordPurchase: vi.fn(),
+      } as unknown as SupplierPurchaseService,
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets } }),
+      },
+      dataVersion: 0,
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+  }
+
+  beforeEach(() => {
+    wouterMocks.navigate.mockClear();
+    /* تنفيذ مستمر (لا Once): الحفظ الناجح يعيد شراءً محدّثًا، والعدّ في
+     * الاختبار نفسه يتحقق من نداء واحد لا أكثر. */
+    recordPaymentWallet.mockReset();
+    recordPaymentWallet.mockImplementation(async () => ({ ok: true, value: storedPurchase() }));
+    listWallet.mockReset();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("preselects the single wallet visibly and passes it to the service", async () => {
+    mockServices([{ id: "drawer", name: "درج-FIN003" }]);
+    listWallet.mockResolvedValueOnce({ ok: true, value: [storedPurchase()] });
+    render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <SupplierPurchaseEditor />
+      </UnsavedChangesProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { level: 1, name: /دفعة إلى مورد الأقمشة/ })).toBeTruthy();
+    });
+    const selector = await screen.findByLabelText(/مصدر صرف دفعة المورد/);
+    expect((selector as HTMLSelectElement).value).toBe("drawer");
+    expect(screen.getByText("درج-FIN003 — تغطية من رصيدها")).toBeTruthy();
+    /* الكاش غير الموزع خيار صريح إلى جانب المحفظة المعيَّنة. */
+    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    await userEvent.type(screen.getByLabelText(/مبلغ دفعة المورد/), "10.00");
+    await userEvent.click(screen.getByRole("button", { name: /حفظ الدفعة/ }));
+    await waitFor(() => {
+      expect(recordPaymentWallet).toHaveBeenCalledTimes(1);
+      expect(recordPaymentWallet.mock.calls[0][0].walletId).toBe("drawer");
+    });
+  });
+
+  it("requires an explicit choice when multiple wallets exist", async () => {
+    mockServices([
+      { id: "drawer", name: "درج-FIN003" },
+      { id: "bank", name: "بنك-FIN003" },
+    ]);
+    listWallet.mockResolvedValueOnce({ ok: true, value: [storedPurchase()] });
+    render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <SupplierPurchaseEditor />
+      </UnsavedChangesProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { level: 1, name: /دفعة إلى مورد الأقمشة/ })).toBeTruthy();
+    });
+    const selector = await screen.findByLabelText(/مصدر صرف دفعة المورد/);
+    expect((selector as HTMLSelectElement).value).toBe("__unset__");
+    expect(screen.getByText("اختر مصدر الصرف")).toBeTruthy();
+    /* المحاولة بلا اختيار تُرفض برسالة صريحة ولا تستدعي الخدمة. */
+    await userEvent.type(screen.getByLabelText(/مبلغ دفعة المورد/), "10.00");
+    await userEvent.click(screen.getByRole("button", { name: /حفظ الدفعة/ }));
+    expect(await screen.findByText(/اختر مصدر الصرف لهذه الدفعة/)).toBeTruthy();
+    expect(recordPaymentWallet).not.toHaveBeenCalled();
+    /* اختيار غير الموزع صراحةً يمر كما هو. */
+    await userEvent.selectOptions(selector, "");
+    await userEvent.click(screen.getByRole("button", { name: /حفظ الدفعة/ }));
+    await waitFor(() => {
+      expect(recordPaymentWallet).toHaveBeenCalledTimes(1);
+      expect(recordPaymentWallet.mock.calls[0][0].walletId).toBeNull();
+    });
+  });
+
+  it("explains the unallocated fallback before saving when no wallet exists", async () => {
+    mockServices([]);
+    listWallet.mockResolvedValueOnce({ ok: true, value: [storedPurchase()] });
+    render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <SupplierPurchaseEditor />
+      </UnsavedChangesProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { level: 1, name: /دفعة إلى مورد الأقمشة/ })).toBeTruthy();
+    });
+    expect(
+      await screen.findByText(/ستُسجَّل الدفعة من الكاش غير الموزع، ويمكن تغطيتها من محفظة لاحقًا/),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText(/مصدر صرف دفعة المورد/)).toBeNull();
   });
 });

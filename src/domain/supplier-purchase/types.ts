@@ -7,6 +7,10 @@ export type SupplierPurchasePayment = {
   recordedAt: string;
   idempotencyKey: string;
   note: string;
+  /* FIN-003 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): محفظة مصدر الدفعة إن عُيّنت
+   * وقت التسجيل — حقل اختياري متوافق رجعيًا: الدفعات القديمة بلاه تُقرأ
+   * «من الكاش غير الموزع» ولا يُعاد إسنادها تاريخيًا أبدًا. */
+  walletId?: string | null;
 };
 /* المجموعة ٢ (§10.4): تراجع موثق عن دفعة مورد — يستعيد ما بقي للمورد ويُرجع أثر
  * الكاش؛ لا يُحذف الدفع الأصلي بل تبقى علاقة التدقيق صريحة عبر paymentId. */
@@ -73,6 +77,8 @@ export type CreateSupplierPurchaseInput = {
   idempotencyKey: string;
   materialId?: string | null;
   expectedQuantityMilli?: number | null;
+  /* FIN-003: مصدر الدفعة الأولية إن دُفع شيء الآن — نفس دلالة walletId في الدفعة. */
+  initialPaymentWalletId?: string | null;
 };
 export type RecordSupplierPurchasePaymentInput = {
   id: string;
@@ -81,6 +87,8 @@ export type RecordSupplierPurchasePaymentInput = {
   recordedAt: string;
   idempotencyKey: string;
   note: string;
+  /* FIN-003: محفظة مصدر الدفعة — null/غياب = من الكاش غير الموزع. */
+  walletId?: string | null;
 };
 /* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — التكلفة والدفع الأولي والبيانات
  * وربط المادة والكمية المتوقعة (المجموعة ٢ — عقد ٢٨). */

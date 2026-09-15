@@ -468,7 +468,11 @@ CAPS: dict[str, int] = {
     # Decision record D-029.
     # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
     # SupplierPurchaseEditor 71 → 77 (2026-09-05).
-    "SupplierPurchaseEditor": 77,
+    # SupplierPurchaseEditor 77 → 81 (2026-09-16, financial-trust package FIN-003,
+    # owner-approved): the cash-source selector for supplier payments — label,
+    # helper, neutral placeholder «اختر مصدر الصرف», and the no-wallet
+    # unallocated-fallback warning shown before saving.
+    "SupplierPurchaseEditor": 81,
     # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
     # label + service truth line — the explicit distribution path is now a first-class
     # wallet-screen concept.

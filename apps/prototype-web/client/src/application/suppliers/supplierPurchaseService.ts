@@ -6,6 +6,7 @@ import {
   updateSupplierPurchase,
   type SupplierPurchase,
 } from "@micro-domain/supplier-purchase/index.js";
+import { createCashContinuityEntry, summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
 import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
@@ -22,6 +23,9 @@ export type SupplierPurchaseInput = {
    * والكمية المتوقعة والقيمة المتبقية. null = غير معروف (لا صفر). */
   materialId?: string | null;
   expectedQuantityMilli?: number | null;
+  /* FIN-003 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): محفظة مصدر الدفعة الأولية —
+   * تُتحقق وتُخصم مرة واحدة قبل إعلان النجاح؛ غيابها = الكاش غير الموزع. */
+  initialPaymentWalletId?: string | null;
 };
 export type SupplierPurchasePaymentInput = {
   purchaseId: string;
@@ -29,6 +33,8 @@ export type SupplierPurchasePaymentInput = {
   occurredOn: string;
   note: string;
   idempotencyKey: string;
+  /* FIN-003: محفظة مصدر الدفعة — null = من الكاش غير الموزع. */
+  walletId?: string | null;
 };
 /* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — يعرض الأثر قبل التنفيذ من الواجهة. */
 export type SupplierPurchaseEditInput = {
@@ -60,7 +66,7 @@ export type SupplierPurchaseSummary = {
   truth: string;
 };
 export type SupplierPurchaseResult<T> =
-  | { ok: true; value: T; reused?: boolean }
+  | { ok: true; value: T; reused?: boolean; attributionNote?: string | null }
   | { ok: false; code: "validation_error" | "storage_error" | "storage_stale"; message: string };
 
 /* رقعة إغلاق المجموعة ٢ (مراجعة مستقلة): كود المحوّل المطبوع يُحفظ عبر طبقة
@@ -73,11 +79,84 @@ const id = () =>
   globalThis.crypto?.randomUUID?.() ??
   `supplier-purchase-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+const initialPaidPositive = (input: SupplierPurchaseInput): boolean =>
+  Number.isInteger(input.initialPaidMinor) && input.initialPaidMinor > 0;
+
 export class SupplierPurchaseService {
   constructor(
     private readonly store: PrototypeLocalStore,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
+
+  /* FIN-003 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): فحص تغطية المحفظة قبل أي كتابة —
+   * رصيد لا يغطي الدفعة يُرفض برسالة صريحة تُرجع صاحبها لاختيار محفظة أخرى
+   * أو الكاش غير الموزع صراحةً؛ لا تحويل صامت ولا حفظ جزئي. */
+  private async validateWalletCoverage(
+    walletId: string,
+    amountMinor: number,
+  ): Promise<SupplierPurchaseResult<never> | { ok: true; value: { walletBalanceMinor: number } }> {
+    const [walletsResult, entriesResult] = await Promise.all([
+      this.store.listCashWallets(),
+      this.store.listCashContinuityEntries(),
+    ]);
+    if (!walletsResult.ok || !entriesResult.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة المحافظ قبل تسجيل الدفعة." };
+    const wallet = walletsResult.value.find(candidate => candidate.id === walletId);
+    if (!wallet) return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل حفظ الدفعة." };
+    const walletBalanceMinor = summarizeCashContinuity(
+      entriesResult.value.filter(entry => entry.walletId === wallet.id),
+    );
+    if (walletBalanceMinor < amountMinor)
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "رصيد المحفظة لا يغطي هذه الدفعة — اختر محفظة أخرى أو اصرفها من الكاش غير الموزع صراحةً.",
+      };
+    return { ok: true, value: { walletBalanceMinor } };
+  }
+
+  /* FIN-003: نسبة دفعة مورد لمحفظتها بعد حفظها — تخصيص واحد سالب يغطي من رصيد
+   * المحفظة ويرجع أثرها إلى «غير الموزع» فلا يصبح سالبًا مرتين، بمفتاح حتمية
+   * مشتق (الإعادة لا تكرر) وربط مصدر «supplier_purchase» يصل دفتر المحفظة
+   * بالشراء نفسه. الفشل المتأخر يُعلن في الوصل لا يُبتلع. */
+  private async attributePaymentToWallet(input: {
+    walletId: string;
+    amountMinor: number;
+    occurredOn: string;
+    sourceRefId: string;
+    operationKey: string;
+  }): Promise<string | null> {
+    try {
+      const [walletsResult, entriesResult] = await Promise.all([
+        this.store.listCashWallets(),
+        this.store.listCashContinuityEntries(),
+      ]);
+      if (!walletsResult.ok || !entriesResult.ok)
+        return "تعذّرت نسبة الدفعة للمحفظة — هي محفوظة الآن ضمن الكاش غير الموزع؛ راجعها من مالي.";
+      const wallet = walletsResult.value.find(candidate => candidate.id === input.walletId);
+      if (!wallet)
+        return "المحفظة المختارة لم تُوجد بعد الحفظ — الدفعة محفوظة ضمن الكاش غير الموزع؛ راجعها من مالي.";
+      if (entriesResult.value.some(entry => entry.operationKey === input.operationKey)) return null;
+      const entry = createCashContinuityEntry({
+        id: `supplier-payment-attr-${id()}`,
+        walletId: wallet.id,
+        type: "allocation",
+        occurredOn: input.occurredOn,
+        recordedAt: this.now(),
+        cashDeltaMinor: -input.amountMinor,
+        note: "تغطية دفعة مورد من رصيد المحفظة",
+        operationKey: input.operationKey,
+        sourceRefId: input.sourceRefId,
+        sourceRefKind: "supplier_purchase",
+      });
+      const saved = await this.store.commitCashContinuity(wallet, [entry]);
+      if (!saved.ok)
+        return "تعذّرت نسبة الدفعة للمحفظة — هي محفوظة الآن ضمن الكاش غير الموزع؛ راجعها من مالي.";
+      return null;
+    } catch {
+      return "تعذّرت نسبة الدفعة للمحفظة — هي محفوظة الآن ضمن الكاش غير الموزع؛ راجعها من مالي.";
+    }
+  }
 
   async list(): Promise<SupplierPurchaseResult<readonly SupplierPurchase[]>> {
     const purchases = await this.store.listSupplierPurchases();
@@ -107,7 +186,15 @@ export class SupplierPurchaseService {
   }
 
   async recordPurchase(input: SupplierPurchaseInput): Promise<SupplierPurchaseResult<SupplierPurchase>> {
+    const initialPaymentWalletId = input.initialPaymentWalletId?.trim() || null;
     try {
+      /* FIN-003: تحقق الرصيد قبل أي كتابة — الدفعة من محفظة لا تُحفظ أصلًا إن
+       * كان رصيدها لا يغطيها؛ لا حالة نصف مكتملة مضللة. */
+      const walletGuard =
+        initialPaidPositive(input) && initialPaymentWalletId
+          ? await this.validateWalletCoverage(initialPaymentWalletId, input.initialPaidMinor)
+          : null;
+      if (walletGuard && !walletGuard.ok) return walletGuard;
       const purchase = createSupplierPurchase({
         id: id(),
         supplierName: input.supplierName,
@@ -121,6 +208,8 @@ export class SupplierPurchaseService {
         /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — اختياري، null = غير معروف. */
         materialId: input.materialId ?? null,
         expectedQuantityMilli: input.expectedQuantityMilli ?? null,
+        /* FIN-003: مصدر الدفعة الأولية يُحفظ على الدفعة نفسها. */
+        initialPaymentWalletId,
       });
       /* المجموعة ٢ (التحصين الكامل — HIGH-001): الالتزام الذرّي — مفتاح الحتمية
        * يُفحص داخل المعاملة (إعادة التشغيل تُعاد كما هي) ولا يُنشأ سجل فوق
@@ -130,13 +219,25 @@ export class SupplierPurchaseService {
         purchase,
         idempotencyKey: input.idempotencyKey,
       });
-      return saved.ok
-        ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
-        : {
-            ok: false,
-            code: storageFailureCode(saved.code),
-            message: saved.message ?? "تعذر حفظ شراء المواد محليًا — بياناتك كما هي؛ أعد المحاولة.",
-          };
+      if (!saved.ok)
+        return {
+          ok: false,
+          code: storageFailureCode(saved.code),
+          message: saved.message ?? "تعذر حفظ شراء المواد محليًا — بياناتك كما هي؛ أعد المحاولة.",
+        };
+      /* FIN-003: بعد نجاح حفظ الشراء تُنسب الدفعة الأولية لمحفظتها بتخصيص
+       * سالب واحد — لا خصم مزدوج ولا سالب غير موزع. فشل متأخر يُعلن صادقًا. */
+      const attributionNote =
+        !saved.value.reused && initialPaidPositive(input) && initialPaymentWalletId
+          ? await this.attributePaymentToWallet({
+              walletId: initialPaymentWalletId,
+              amountMinor: input.initialPaidMinor,
+              occurredOn: input.purchasedOn,
+              sourceRefId: saved.value.purchase.id,
+              operationKey: `${input.idempotencyKey}:initial-attribute`,
+            })
+          : null;
+      return { ok: true, value: saved.value.purchase, reused: saved.value.reused, attributionNote };
     } catch (error) {
       return {
         ok: false,
@@ -153,7 +254,11 @@ export class SupplierPurchaseService {
     if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة شراء المورد." };
     if (!existing.value)
       return { ok: false, code: "validation_error", message: "اختر شراء مواد مسجلًا قبل تسجيل الدفعة." };
+    const walletId = input.walletId?.trim() || null;
     try {
+      /* FIN-003: تحقق الرصيد قبل أي كتابة — رفض صريح بلا حفظ جزئي. */
+      const walletGuard = walletId ? await this.validateWalletCoverage(walletId, input.amountMinor) : null;
+      if (walletGuard && !walletGuard.ok) return walletGuard;
       const updated = recordSupplierPurchasePayment(existing.value, {
         id: id(),
         amountMinor: input.amountMinor,
@@ -161,6 +266,8 @@ export class SupplierPurchaseService {
         recordedAt: this.now(),
         idempotencyKey: input.idempotencyKey,
         note: input.note,
+        /* FIN-003: مصدر الدفعة يُحفظ معها. */
+        walletId,
       });
       /* المجموعة ٢ (التحصين الكامل — HIGH-001): دفعة واحدة بالضبط داخل معاملة
        * واحدة — مفتاح الحتمية يُفحص داخلها، والكتابة المتزامنة من مسار آخر
@@ -170,13 +277,25 @@ export class SupplierPurchaseService {
         purchase: updated,
         idempotencyKey: input.idempotencyKey,
       });
-      return saved.ok
-        ? { ok: true, value: saved.value.purchase, reused: saved.value.reused }
-        : {
-            ok: false,
-            code: storageFailureCode(saved.code),
-            message: saved.message ?? "تعذر حفظ دفعة المورد محليًا — بياناتك كما هي؛ أعد المحاولة.",
-          };
+      if (!saved.ok)
+        return {
+          ok: false,
+          code: storageFailureCode(saved.code),
+          message: saved.message ?? "تعذر حفظ دفعة المورد محليًا — بياناتك كما هي؛ أعد المحاولة.",
+        };
+      /* FIN-003: نسبة الدفعة لمحفظتها بعد الحفظ الناجح — تخصيص واحد سالب
+       * بمفتاح حتمية مشتق؛ الإعادة لا تخصم مرتين. */
+      const attributionNote =
+        !saved.value.reused && walletId
+          ? await this.attributePaymentToWallet({
+              walletId,
+              amountMinor: input.amountMinor,
+              occurredOn: input.occurredOn,
+              sourceRefId: input.purchaseId,
+              operationKey: `${input.idempotencyKey}:attribute`,
+            })
+          : null;
+      return { ok: true, value: saved.value.purchase, reused: saved.value.reused, attributionNote };
     } catch (error) {
       return {
         ok: false,

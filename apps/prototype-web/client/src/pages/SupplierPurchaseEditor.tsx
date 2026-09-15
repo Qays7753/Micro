@@ -33,6 +33,11 @@ const ammanDate = () => localDateInAmman();
 
 type EditorMode = "new" | "payment" | "edit";
 
+/* FIN-003 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): مصدر دفعة المورد — القيمة
+ * الفارغة = الكاش غير الموزع (خيار صريح)، والقيمة الحرجة تعني «لم يُختر
+ * بعد» في حالة المحافظ المتعددة حيث الاختيار إلزامي. */
+const UNSET_PAYMENT_SOURCE = "__unset__";
+
 export default function SupplierPurchaseEditor() {
   const { id } = useParams<{ id?: string }>();
   const [location, navigate] = useLocation();
@@ -41,7 +46,8 @@ export default function SupplierPurchaseEditor() {
   const mode: EditorMode = isNew ? "new" : /\/payment\/?$/u.test(location) ? "payment" : "edit";
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { supplierPurchases, inventory, notifyDataChanged, dataVersion, formDrafts } = usePrototypeServices();
+  const { supplierPurchases, inventory, notifyDataChanged, dataVersion, formDrafts, cashContinuity } =
+    usePrototypeServices();
   const [purchase, setPurchase] = useState<SupplierPurchase | null>(null);
   const [loading, setLoading] = useState(!isNew);
   const [loadedToken, setLoadedToken] = useState(0);
@@ -79,6 +85,32 @@ export default function SupplierPurchaseEditor() {
   const idempotencyKey = useRef(`supplier-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   const editKeyRef = useRef(`supplier-edit-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   const reversalKeyRef = useRef(`payment-reversal-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+  /* FIN-003: خيارات المحافظ ومصدر الدفعة المختار — لا تذكر آخر اختيار. */
+  const [walletOptions, setWalletOptions] = useState<readonly { id: string; name: string }[]>([]);
+  const [paymentWalletId, setPaymentWalletId] = useState<string>(UNSET_PAYMENT_SOURCE);
+  const paymentSourceChosenRef = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const overview = await cashContinuity.overview();
+      if (active && overview.ok)
+        setWalletOptions(overview.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+    })();
+    return () => {
+      active = false;
+    };
+  }, [cashContinuity, dataVersion]);
+
+  /* FIN-003: قاعدة مصدر الصرف — بلا محافظ: غير الموزع (بتحذير معلن)؛
+   * محفظة واحدة: تُعيّن مسبقًا بشكل مرئي؛ محافظ متعددة: اختيار إلزامي صريح
+   * (محفظة أو الكاش غير الموزع) — لا اختيار صامت نيابة عن المالك. */
+  useEffect(() => {
+    if (paymentSourceChosenRef.current) return;
+    if (walletOptions.length === 1) setPaymentWalletId(walletOptions[0]!.id);
+    else if (walletOptions.length === 0) setPaymentWalletId("");
+    else setPaymentWalletId(UNSET_PAYMENT_SOURCE);
+  }, [walletOptions]);
 
   useEffect(() => {
     if (isNew || !id) return;
@@ -206,6 +238,17 @@ export default function SupplierPurchaseEditor() {
     setFeedback({ tone: "error", text: result.message, source });
   }
 
+  /* FIN-003: وصل صادق يذكر مصدر الدفعة — ما يقوله الوصل هو ما حدث فعلًا. */
+  function paymentFeedbackText(amountMinor: number): string {
+    if (!(amountMinor > 0)) return "تم الحفظ محليًا.";
+    if (walletOptions.length === 0)
+      return "تم حفظ الدفعة من الكاش غير الموزع — لا محافظ معلنة بعد؛ يمكن تغطيتها لاحقًا من مالي.";
+    const walletName = walletOptions.find(wallet => wallet.id === paymentWalletId)?.name;
+    return walletName
+      ? `تم حفظ الدفعة من «${walletName}» — خُصمت من رصيدها مرة واحدة.`
+      : "تم حفظ الدفعة من الكاش غير الموزع — وزّعها أو غطّها من محفظة لاحقًا من مالي.";
+  }
+
   /* رحلة الاسترجاع (§31): إعادة قراءة الشراء الحالي عبر مسار القراءة المعتمد
    * نفسه — قيم المستخدم غير المحفوظة تبقى في الحقول كما هي، ولا يُعاد إرسال
    * القيم القديمة تلقائيًا؛ الحفظ الثاني قرار واعٍ بعد المراجعة. */
@@ -235,6 +278,15 @@ export default function SupplierPurchaseEditor() {
       });
       return false;
     }
+    /* FIN-003: مصدر الدفعة الأولية — إلزامي صريح عند تعدد المحافظ. */
+    if (initialPaidMinor > 0 && walletOptions.length > 1 && paymentWalletId === UNSET_PAYMENT_SOURCE) {
+      setFeedback({
+        tone: "error",
+        text: "اختر مصدر الصرف لهذه الدفعة: محفظة أو الكاش غير الموزع.",
+        source: "purchase",
+      });
+      return false;
+    }
     setSaving(true);
     setFeedback(null);
     const result = await supplierPurchases.recordPurchase({
@@ -248,6 +300,11 @@ export default function SupplierPurchaseEditor() {
       /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — اختياري. */
       materialId: materialId || null,
       expectedQuantityMilli: expectedQuantityMilli > 0 ? expectedQuantityMilli : null,
+      /* FIN-003: مصدر الدفعة الأولية كما اختاره المالك. */
+      initialPaymentWalletId:
+        initialPaidMinor > 0 && paymentWalletId && paymentWalletId !== UNSET_PAYMENT_SOURCE
+          ? paymentWalletId
+          : null,
     });
     setSaving(false);
     if (!result.ok) {
@@ -263,8 +320,16 @@ export default function SupplierPurchaseEditor() {
     setFeedback(
       result.reused
         ? { tone: "info", text: "هذا الشراء محفوظ سابقًا؛ لم نكرر أثره.", source: "purchase" }
-        : { tone: "success", text: "تم حفظ شراء المواد محليًا.", source: "purchase" },
+        : {
+            tone: "success",
+            text: paymentFeedbackText(initialPaidMinor),
+            source: "purchase",
+          },
     );
+    if (result.attributionNote) {
+      setFeedback({ tone: "info", text: result.attributionNote, source: "purchase" });
+      return true;
+    }
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     if (!result.reused) navigate(returnPath);
     return true;
@@ -272,6 +337,15 @@ export default function SupplierPurchaseEditor() {
   async function savePayment(): Promise<boolean> {
     if (!purchase || !validMoney || paymentMinor <= 0) {
       setFeedback({ tone: "error", text: "أدخل دفعة صالحة بالأرقام 0–9.", source: "payment" });
+      return false;
+    }
+    /* FIN-003: الاختيار إلزامي عند تعدد المحافظ — محفظة أو غير الموزع صراحةً. */
+    if (walletOptions.length > 1 && paymentWalletId === UNSET_PAYMENT_SOURCE) {
+      setFeedback({
+        tone: "error",
+        text: "اختر مصدر الصرف لهذه الدفعة: محفظة أو الكاش غير الموزع.",
+        source: "payment",
+      });
       return false;
     }
     setSaving(true);
@@ -282,6 +356,8 @@ export default function SupplierPurchaseEditor() {
       occurredOn: purchasedOn,
       note: note || "دفعة مورد",
       idempotencyKey: idempotencyKey.current,
+      /* FIN-003: مصدر الدفعة كما اختاره المالك — يُتحقق ويُخصم مرة واحدة. */
+      walletId: paymentWalletId && paymentWalletId !== UNSET_PAYMENT_SOURCE ? paymentWalletId : null,
     });
     setSaving(false);
     if (!result.ok) {
@@ -293,8 +369,17 @@ export default function SupplierPurchaseEditor() {
     setFeedback(
       result.reused
         ? { tone: "info", text: "هذه الدفعة محفوظة سابقًا؛ لم نكرر أثرها.", source: "payment" }
-        : { tone: "success", text: "تم حفظ دفعة المورد محليًا.", source: "payment" },
+        : {
+            tone: "success",
+            text: paymentFeedbackText(paymentMinor),
+            source: "payment",
+          },
     );
+    /* FIN-003: فشل النسبة المتأخر يُعلن قبل الخروج — لا حالة مضللة. */
+    if (result.attributionNote) {
+      setFeedback({ tone: "info", text: result.attributionNote, source: "payment" });
+      return true;
+    }
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     if (!result.reused) navigate(returnPath);
     return true;
@@ -598,6 +683,10 @@ export default function SupplierPurchaseEditor() {
                         </strong>
                         <small>
                           <LocalDateValue value={payment.occurredOn} />
+                          {/* FIN-003: مصدر الدفعة يظهر معها — والقديمة بلا مصدر تبقى «غير الموزع». */}
+                          {payment.walletId
+                            ? ` · من «${walletOptions.find(wallet => wallet.id === payment.walletId)?.name ?? "محفظة محذوفة"}»`
+                            : " · من الكاش غير الموزع"}
                           {reversed ? " · مرتدة موثقًا" : ""}
                         </small>
                       </div>
@@ -899,6 +988,40 @@ export default function SupplierPurchaseEditor() {
                     />
                   </label>
                 </div>
+                {/* FIN-003: مصدر الدفعة الأولية — يُستعمل عند دفع مبلغ الآن. */}
+                {initialPaidMinor > 0 && walletOptions.length > 0 ? (
+                  <label className="micro-field">
+                    <span>
+                      مصدر الصرف <small>المحفظة تُغطى الدفعة من رصيدها مرة واحدة</small>
+                    </span>
+                    <select
+                      value={paymentWalletId}
+                      onChange={event => {
+                        paymentSourceChosenRef.current = true;
+                        setPaymentWalletId(event.target.value);
+                      }}
+                      aria-label="مصدر صرف الدفعة الأولية"
+                    >
+                      {walletOptions.length > 1 ? (
+                        <option value={UNSET_PAYMENT_SOURCE} disabled>
+                          اختر مصدر الصرف
+                        </option>
+                      ) : null}
+                      <option value="">الكاش غير الموزع</option>
+                      {walletOptions.map(wallet => (
+                        <option key={wallet.id} value={wallet.id}>
+                          {wallet.name} — تغطية من رصيدها
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+                {initialPaidMinor > 0 && walletOptions.length === 0 ? (
+                  <p className="micro-offline-truth" role="status">
+                    لا محافظ معلنة بعد — سيُسجَّل ما دُفع الآن من الكاش غير الموزع، ويمكن تغطيته من محفظة
+                    لاحقًا من مالي.
+                  </p>
+                ) : null}
                 <LocalDateField
                   label="تاريخ الاستحقاق إن عرفت"
                   description="اتركه فارغًا إذا لم تتفق على موعد واضح."
@@ -918,6 +1041,39 @@ export default function SupplierPurchaseEditor() {
                     aria-label="مبلغ دفعة المورد"
                   />
                 </label>
+                {/* FIN-003: مصدر الدفعة اللاحقة — نفس مفردات «مصدر الصرف». */}
+                {walletOptions.length > 0 ? (
+                  <label className="micro-field">
+                    <span>
+                      مصدر الصرف <small>المحفظة تُغطى الدفعة من رصيدها مرة واحدة</small>
+                    </span>
+                    <select
+                      value={paymentWalletId}
+                      onChange={event => {
+                        paymentSourceChosenRef.current = true;
+                        setPaymentWalletId(event.target.value);
+                      }}
+                      aria-label="مصدر صرف دفعة المورد"
+                    >
+                      {walletOptions.length > 1 ? (
+                        <option value={UNSET_PAYMENT_SOURCE} disabled>
+                          اختر مصدر الصرف
+                        </option>
+                      ) : null}
+                      <option value="">الكاش غير الموزع</option>
+                      {walletOptions.map(wallet => (
+                        <option key={wallet.id} value={wallet.id}>
+                          {wallet.name} — تغطية من رصيدها
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <p className="micro-offline-truth" role="status">
+                    لا محافظ معلنة بعد — ستُسجَّل الدفعة من الكاش غير الموزع، ويمكن تغطيتها من محفظة لاحقًا من
+                    مالي.
+                  </p>
+                )}
                 <LocalDateField
                   label="تاريخ الدفعة"
                   value={purchasedOn}

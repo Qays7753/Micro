@@ -105,6 +105,9 @@ export function createSupplierPurchase(input: CreateSupplierPurchaseInput): Supp
             recordedAt: input.recordedAt,
             idempotencyKey: `${input.idempotencyKey}:initial`,
             note: "دفعة عند تسجيل الشراء",
+            /* FIN-003: مصدر الدفعة الأولية إن عُيّن — حركة التغطية تكتبها
+             * خدمة التطبيق بعد حفظ الشراء نفسه. */
+            walletId: input.initialPaymentWalletId?.trim() || null,
           }),
         ]
       : [];
@@ -151,6 +154,8 @@ export function recordSupplierPurchasePayment(
     recordedAt: input.recordedAt,
     idempotencyKey: input.idempotencyKey,
     note: input.note.trim(),
+    /* FIN-003: محفظة مصدر الدفعة إن عُيّنت — غيابها = الكاش غير الموزع. */
+    walletId: input.walletId?.trim() || null,
   });
   const payments = Object.freeze([...purchase.payments, payment]);
   /* S2-01: المدفوع بعد الدفعة الجديدة يطرح التراجعات الموثقة نفسها. */

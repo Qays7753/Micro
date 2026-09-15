@@ -45,8 +45,9 @@ export function createCashWallet(input: CreateCashWalletInput): CashWallet {
 }
 
 /* المجموعة ٢ (§9.1): مصدر التخصيص — وصل قراءة فقط في سجل المحفظة؛ يُقبل في
- * حركات التخصيص حصرًا ومعه نوع مصدر معلوم، وبلا معرّف لا يُقبل نوع. */
-const SOURCE_REF_KINDS = ["sale", "expense", "collection", "order"] as const;
+ * حركات التخصيص حصرًا ومعه نوع مصدر معلوم، وبلا معرّف لا يُقبل نوع.
+ * FIN-003: دفعة المورد مصدر تخصيص معترف به (تغطية سالبة من رصيد المحفظة). */
+const SOURCE_REF_KINDS = ["sale", "expense", "collection", "order", "supplier_purchase"] as const;
 type SourceRefKind = (typeof SOURCE_REF_KINDS)[number];
 
 function normalizeSourceRef(input: CreateCashEntryInput): {
