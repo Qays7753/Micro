@@ -393,17 +393,31 @@ interface displayed. All captured data is fictitious test data.
 
 ## 15. Deployment verification
 
-Pushing `main` triggers the Cloudflare Pages deployment for
-https://micro-prototype.pages.dev/. The final `main` SHA and the live smoke
-re-verification (empty-state truth, first-debt visibility, supplier wallet
-selection, immediate Home refresh, quick-expense wallet rule, on a clean
-session) are recorded here once the deployment workflow completes:
+Pushing `main` triggered the Cloudflare Pages deployment for
+https://micro-prototype.pages.dev/. Verified on the live deployment with a
+clean browser session and fictitious test data only:
 
-- Final `main` SHA (local, after fast-forward merge): recorded in the Git
-  summary of the delivery message; remote SHA re-verified via `git ls-remote`.
+- Final `main` SHA (local and remote, re-verified via `git ls-remote`):
+  `f3333e4fdc302916953892578eb4f6a2dce9e19e` (fast-forward from `f21f777`;
+  the entry chunk hash is environment-dependent, so the new build was
+  identified by content markers — the live quick-sheet chunk serves
+  «مصدر الصرف» / «اختر مصدر الصرف» / «لا محافظ معلنة بعد», strings that exist
+  only in this package).
 - Deployed URL: https://micro-prototype.pages.dev/
-- Verification time: see the delivery message (chat) — performed on the live
-  deployment with a clean session and fictitious data only.
-- If the live deployment could not be re-verified in time, the delivery
-  message reports `MERGED_TO_MAIN — DEPLOYMENT_NOT_VERIFIED` instead of
-  claiming production contains the fix.
+- Verification time: 2026-09-16 ~00:50 Asia/Amman.
+- Live smoke results (clean session, 390×844 device emulation):
+  - **Empty-state truth** — a brand-new project's Finance shows «غير مسجل» in
+    all four position cards. PASS.
+  - **First debt visibility** — a first deferred sale (عميل-دخان, 15/5)
+    appears immediately in the live People Ledger («لك 10.00 · 1 حركة»). PASS.
+  - **Supplier wallet selection** — the purchase form shows the source
+    selector with the single wallet preselected; a 4.00 wallet-funded initial
+    payment leaves wallets at 96.00 and unallocated at 5.00 (no negative
+    unallocated, exact total). PASS.
+  - **Immediate Home refresh** — after a 3.00 wallet-funded quick expense and
+    closing the receipt (no reload), Home reads «الكاش المسجل 98.00» with no
+    false negative-unallocated warning. PASS.
+  - **Quick-expense wallet rule** — the quick expense opens with the single
+    wallet preselected («درج-دخان — تغطية من رصيدها»). PASS.
+
+`FINANCIAL_TRUST_FIXES_MERGED_TO_MAIN — DEPLOYMENT_VERIFIED`
