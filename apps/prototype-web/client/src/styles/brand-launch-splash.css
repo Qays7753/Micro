@@ -1,0 +1,120 @@
+/* BrandLaunchSplash — one-shot launch assembly motion (W3).
+ *
+ * Motion source of truth: brand/motion/micro-assembly.json (60fps, 55 frames, Lottie).
+ * Each of the four supplied layer SVGs runs one 42-frame (700ms) window, staggered by
+ * 4 frames (66.67ms); the last layer settles at frame 54 (900ms) = the locked mark.
+ * Easing approximates the Lottie segments (i 0.16/1, o 0.3/0). The motion plays once,
+ * never loops, and never appears during route transitions or data operations.
+ */
+
+.micro-launch-splash {
+  position: fixed;
+  inset: 0;
+  /* Above the whole shell scale (content 0 … toast 70) — the splash precedes everything. */
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  /* Same canvas token as the shell + theme-color metas: no white flash before Dark mode,
+   * no seam between splash release and shell paint. */
+  background: var(--color-bg-canvas);
+  /* viewport-fit=cover: honor phone safe areas on every edge. */
+  padding:
+    calc(env(safe-area-inset-top, 0px) + var(--space-6))
+    calc(env(safe-area-inset-right, 0px) + var(--space-6))
+    calc(env(safe-area-inset-bottom, 0px) + var(--space-6))
+    calc(env(safe-area-inset-left, 0px) + var(--space-6));
+  transition: opacity 240ms var(--motion-out);
+}
+
+.micro-launch-splash[data-releasing="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Screen-reader contract preserved from the previous startup loading state. */
+.micro-launch-splash-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.micro-launch-splash-mark {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+/* Static resolved mark and every motion layer share the same box: zero layout shift
+ * when the assembly resolves into the locked mark. */
+.micro-launch-splash-mark img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.micro-launch-splash-layer {
+  opacity: 0;
+  transform-origin: 50% 50%;
+  animation-duration: 700ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 0);
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+}
+
+.micro-launch-splash-layer-1 { animation-name: micro-splash-layer-1; animation-delay: 0ms; }
+.micro-launch-splash-layer-2 { animation-name: micro-splash-layer-2; animation-delay: 66.67ms; }
+.micro-launch-splash-layer-3 { animation-name: micro-splash-layer-3; animation-delay: 133.33ms; }
+.micro-launch-splash-layer-4 { animation-name: micro-splash-layer-4; animation-delay: 200ms; }
+
+/* Layer 1 — top ink: settle rotate 0, scale 1.025 (locked geometry of micro-quad.svg). */
+@keyframes micro-splash-layer-1 {
+  0%     { opacity: 0; transform: rotate(-95deg) scale(0.738); }
+  33.33% { opacity: 1; }
+  71.43% { opacity: 1; transform: rotate(2deg) scale(1.0455); }
+  100%   { opacity: 1; transform: rotate(0deg) scale(1.025); }
+}
+
+/* Layer 2 — right turquoise: settle rotate 90, scale 1.0. */
+@keyframes micro-splash-layer-2 {
+  0%     { opacity: 0; transform: rotate(-5deg) scale(0.72); }
+  33.33% { opacity: 1; }
+  71.43% { opacity: 1; transform: rotate(92deg) scale(1.02); }
+  100%   { opacity: 1; transform: rotate(90deg) scale(1); }
+}
+
+/* Layer 3 — bottom taupe: settle rotate 180, scale 0.975. */
+@keyframes micro-splash-layer-3 {
+  0%     { opacity: 0; transform: rotate(85deg) scale(0.702); }
+  33.33% { opacity: 1; }
+  71.43% { opacity: 1; transform: rotate(182deg) scale(0.9945); }
+  100%   { opacity: 1; transform: rotate(180deg) scale(0.975); }
+}
+
+/* Layer 4 — left terracotta: settle rotate 270, scale 1.0. */
+@keyframes micro-splash-layer-4 {
+  0%     { opacity: 0; transform: rotate(175deg) scale(0.72); }
+  33.33% { opacity: 1; }
+  71.43% { opacity: 1; transform: rotate(272deg) scale(1.02); }
+  100%   { opacity: 1; transform: rotate(270deg) scale(1); }
+}
+
+/* OS-level reduced motion: the final static mark is shown immediately (layers frozen
+ * assembled). The component also takes the static path via matchMedia — this media
+ * query is the CSS safety net for the same contract. */
+@media (prefers-reduced-motion: reduce) {
+  .micro-launch-splash-layer {
+    animation: none;
+    opacity: 1;
+  }
+  .micro-launch-splash {
+    transition: none;
+  }
+}

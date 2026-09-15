@@ -247,7 +247,18 @@ ${detail}`);
 const pwa = VitePWA({
   registerType: "prompt",
   injectRegister: false,
-  includeAssets: ["micro-mark.svg", "micro-mark-192.png", "micro-mark-512.png"],
+  /* W2 (brand): approved symbol-only PWA/favicon assets — previous runtime mark set replaced.
+   * App-shell brand surfaces (mark, favicon, install icons) precache with the shell;
+   * splash motion layers + platform-ready splash references precache too so the launch
+   * moment works offline. No API, financial or storage behavior enters the SW. */
+  includeAssets: [
+    "brand/mark/*.svg",
+    "brand/motion/*.svg",
+    "brand/motion/light/*.svg",
+    "brand/motion/dark/*.svg",
+    "brand/favicon/*",
+    "brand/pwa/*",
+  ],
   manifest: {
     id: "/",
     name: "Micro — شريك مشروعك",
@@ -261,9 +272,13 @@ const pwa = VitePWA({
     dir: "rtl",
     background_color: "#FAF9F5",
     theme_color: "#FAF9F5", /* W1 (D-01/U-01): canvas chrome — matches index.html meta + ThemeContext runtime value; identity lives on the create surface, not app chrome */
+    /* W2 (brand): approved symbol-only icons. 512 any stays the install anchor; the
+     * maskable 512 is declared separately with purpose "maskable" so platforms never
+     * letterbox or crop the any-purpose mark. */
     icons: [
-      { src: "/micro-mark-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/micro-mark-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+      { src: "/brand/pwa/ios-android-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/brand/pwa/ios-android-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/brand/pwa/web-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   },
   workbox: {

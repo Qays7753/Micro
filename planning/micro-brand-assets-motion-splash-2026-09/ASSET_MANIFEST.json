@@ -1,0 +1,395 @@
+{
+  "generated_at": "2026-09-15",
+  "package": {
+    "name": "#MicroFinancialLogoSystem.zip (owner-approved Micro brand package, 79 files)",
+    "recovered_from": "Documents branch micro-standard-v2-zai-execution-handoff-20260913 → planning/micro-standard-v2-execution-handoff-2026-09/reference/brand-assets/",
+    "verification": "all filenames required by the task contract present; symbol-only; zero lockup/wordmark assets imported"
+  },
+  "rules": [
+    "Symbol-only marks only; every lockup/wordmark asset rejected.",
+    "Vector geometry, clear space, open centre, proportions and colors preserved byte-for-byte.",
+    "Old micro-mark assets remain in place until the W2 migration gate."
+  ],
+  "assets": [
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-quad.svg",
+      "target_path": "apps/prototype-web/client/public/brand/mark/micro-quad.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 1272,
+      "purpose": "Brand mark — Light theme",
+      "role": "runtime",
+      "sha256": "53e731dd2f38f6dfd537c4c0add44da4c0e97527f667ad32f3a4c3e1be2d3aac"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-quad-dark.svg",
+      "target_path": "apps/prototype-web/client/public/brand/mark/micro-quad-dark.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 1271,
+      "purpose": "Brand mark — Dark theme",
+      "role": "runtime",
+      "sha256": "ce3e4c0f70becb91df816be6aae219402489da49760046e022432693867d2a9f"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-quad-compact.svg",
+      "target_path": "apps/prototype-web/client/public/brand/mark/micro-quad-compact.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 1272,
+      "purpose": "Brand mark — small/space-constrained surfaces",
+      "role": "runtime",
+      "sha256": "7591adea1db23c99ef050ec87947d5a0becba21acf4eeac8f455bfe4ab226508"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/micro-assembly.json",
+      "target_path": "apps/prototype-web/client/public/brand/motion/micro-assembly.json",
+      "type": "json",
+      "dimensions": null,
+      "bytes": 6531,
+      "purpose": "Lottie assembly — reference source of truth for motion timings (not loaded at runtime)",
+      "role": "reference",
+      "sha256": "087c24019a557b148adc4df096d74dbbd72f3ddcd19185fb6135dfc121ef45b1"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/micro-mark-layered.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/micro-mark-layered.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 1534,
+      "purpose": "Layered mark — reference for layer geometry",
+      "role": "reference",
+      "sha256": "ee6a4a5308d4fcb7d5476c78663cfeaf1adcc321f7a8372108ba892be2f074d7"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/micro-mark-layered-dark.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/micro-mark-layered-dark.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 1548,
+      "purpose": "Layered mark dark — reference",
+      "role": "reference",
+      "sha256": "5ac2da9bcb6e8579394fe4573e1fcc55275e984f1a56bc4b2323909d2832e387"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/light/1-top-ink.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/light/1-top-ink.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 483,
+      "purpose": "Launch motion layer 1 — light",
+      "role": "runtime",
+      "sha256": "be302355f5d98435ce7b512fb818506c0c0244bc1835b6467f4b452036389f2f"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/light/2-right-turquoise.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/light/2-right-turquoise.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 480,
+      "purpose": "Launch motion layer 2 — light",
+      "role": "runtime",
+      "sha256": "3076b91f185cd4e35aff78651b8c86f768e3ada766a3d261a686a428d1be521a"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/light/3-bottom-taupe.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/light/3-bottom-taupe.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 485,
+      "purpose": "Launch motion layer 3 — light",
+      "role": "runtime",
+      "sha256": "5338a0c98e19fb75aebca64dbc186aa34e7c662f22db7748eafc07ebb66c7fa5"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/light/4-left-terracotta.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/light/4-left-terracotta.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 481,
+      "purpose": "Launch motion layer 4 — light",
+      "role": "runtime",
+      "sha256": "548a1c8b37fc924091b7dd8918e726e38bfc9bb4d93ce9d12276459288c8a7b5"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/dark/1-top-ink.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/dark/1-top-ink.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 483,
+      "purpose": "Launch motion layer 1 — dark",
+      "role": "runtime",
+      "sha256": "e37fcff4ebdb1885cb2208f8afa738511f20c43ed6f4db3c0054c95561332470"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/dark/2-right-turquoise.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/dark/2-right-turquoise.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 480,
+      "purpose": "Launch motion layer 2 — dark",
+      "role": "runtime",
+      "sha256": "d724c6407c34dd6211cda904a428f8a273dd61dcf29e27a0203dbbeabe90ca9d"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/dark/3-bottom-taupe.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/dark/3-bottom-taupe.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 484,
+      "purpose": "Launch motion layer 3 — dark",
+      "role": "runtime",
+      "sha256": "14d94b3d64399b3ca4f3f1278d4aafe73761eb15eba7e071dbab4f2a43f4da0d"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/motion/dark/4-left-terracotta.svg",
+      "target_path": "apps/prototype-web/client/public/brand/motion/dark/4-left-terracotta.svg",
+      "type": "svg",
+      "dimensions": "192x192",
+      "bytes": 481,
+      "purpose": "Launch motion layer 4 — dark",
+      "role": "runtime",
+      "sha256": "13f2de733f41bca82c8c5372fe86f36272f97c569004a9bd07ef5e53fbabee6c"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/splash/android-960x960-icon.svg",
+      "target_path": "apps/prototype-web/client/public/brand/splash/android-960x960-icon.svg",
+      "type": "svg",
+      "dimensions": "960x960",
+      "bytes": 1429,
+      "purpose": "Android platform-ready splash source (reference, not native)",
+      "role": "reference",
+      "sha256": "c8e199fb37b65571be33e9650669dd7e0247b0cb2c68a5bee1ab8c868308c33c"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/splash/android-960x960-icon-dark.svg",
+      "target_path": "apps/prototype-web/client/public/brand/splash/android-960x960-icon-dark.svg",
+      "type": "svg",
+      "dimensions": "960x960",
+      "bytes": 1428,
+      "purpose": "Android platform-ready splash source dark (reference)",
+      "role": "reference",
+      "sha256": "755b280d903f0b04d28a9a6a9f9b35193dd7cb36f06433da9f7e20062142f1b0"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/splash/ios-1179x2556.svg",
+      "target_path": "apps/prototype-web/client/public/brand/splash/ios-1179x2556.svg",
+      "type": "svg",
+      "dimensions": "1179x2556",
+      "bytes": 1440,
+      "purpose": "iOS platform-ready splash source (reference)",
+      "role": "reference",
+      "sha256": "67a5e2367060f215207c4c7fb07c446a083413f8a17b81f8faad61a9cde873e6"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/splash/ios-1290x2796.svg",
+      "target_path": "apps/prototype-web/client/public/brand/splash/ios-1290x2796.svg",
+      "type": "svg",
+      "dimensions": "1290x2796",
+      "bytes": 1438,
+      "purpose": "iOS platform-ready splash source (reference)",
+      "role": "reference",
+      "sha256": "339a3b7328adfc03a2cbe9f0c3c148efa6bbbb3f66c4fc8fe5aaa0e8f91f3fd0"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/splash/ios-1290x2796-dark.svg",
+      "target_path": "apps/prototype-web/client/public/brand/splash/ios-1290x2796-dark.svg",
+      "type": "svg",
+      "dimensions": "1290x2796",
+      "bytes": 1437,
+      "purpose": "iOS platform-ready splash source dark (reference)",
+      "role": "reference",
+      "sha256": "465d6d014aeba364dc930b644513d44cf216f624ba7b0a9e40969b357b91f6b0"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/splash/ipad-2048x2732.svg",
+      "target_path": "apps/prototype-web/client/public/brand/splash/ipad-2048x2732.svg",
+      "type": "svg",
+      "dimensions": "2048x2732",
+      "bytes": 1438,
+      "purpose": "iPad platform-ready splash source (reference)",
+      "role": "reference",
+      "sha256": "fa731d13d5856addaf8dc31771fbcc6ec8d18eae2bc544f80d72f5958eccb409"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-appicon-quad.svg",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/micro-appicon-quad.svg",
+      "type": "svg",
+      "dimensions": "512x512",
+      "bytes": 1423,
+      "purpose": "PWA app icon SVG — light",
+      "role": "runtime",
+      "sha256": "3b38477c46956f3c2ab8eaf8595fa56c5b67f81e90828853dbe362050dfb1f74"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-appicon-quad-dark.svg",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/micro-appicon-quad-dark.svg",
+      "type": "svg",
+      "dimensions": "512x512",
+      "bytes": 1422,
+      "purpose": "PWA app icon SVG — dark",
+      "role": "runtime",
+      "sha256": "95e3ae24a9106db2b87a7e90c0abb99d35bdd775cbec3eaf91e71f6fb7da9488"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-maskable.svg",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/micro-maskable.svg",
+      "type": "svg",
+      "dimensions": "512x512",
+      "bytes": 1403,
+      "purpose": "Maskable icon SVG source",
+      "role": "runtime",
+      "sha256": "c0bebd3574089fdbfc1a61734bd3bd16b1a3efd0bb67d89f7ac99a4d8dd1aad1"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-adaptive-foreground.svg",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/micro-adaptive-foreground.svg",
+      "type": "svg",
+      "dimensions": "432x432",
+      "bytes": 1345,
+      "purpose": "Android adaptive foreground SVG",
+      "role": "runtime",
+      "sha256": "ba72ecda6c9a052cc894f2b49346b91e5e4d9578b8ab263d399d560b0bf5def1"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-adaptive-background.svg",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/micro-adaptive-background.svg",
+      "type": "svg",
+      "dimensions": "432x432",
+      "bytes": 186,
+      "purpose": "Android adaptive background SVG",
+      "role": "runtime",
+      "sha256": "7480fb4dca5b0c3c4d34b0c5e74d1f73bc912b43b60f8cc0fafce0fb7eff5312"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/ios-android-192.png",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/ios-android-192.png",
+      "type": "png",
+      "dimensions": "192x192",
+      "bytes": 4826,
+      "purpose": "Manifest icon 192x192 (any)",
+      "role": "runtime",
+      "sha256": "2806a39f60a2d62a5a8591915ad36302a38e429522575ba27c027425cced990a"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/ios-android-512.png",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/ios-android-512.png",
+      "type": "png",
+      "dimensions": "512x512",
+      "bytes": 17173,
+      "purpose": "Manifest icon 512x512 (any)",
+      "role": "runtime",
+      "sha256": "95a853545acce4bf277fe4d3874bc9f2cc5619a39bfc7798ec31b23e7874919f"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/ios-android-180.png",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/ios-android-180.png",
+      "type": "png",
+      "dimensions": "180x180",
+      "bytes": 4490,
+      "purpose": "Apple touch icon 180x180",
+      "role": "runtime",
+      "sha256": "44a3f53bb52b13adef9db84217ed6fc009c156ac8f97c611e807e4b36cc86f30"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/web-maskable-512.png",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/web-maskable-512.png",
+      "type": "png",
+      "dimensions": "512x512",
+      "bytes": 11576,
+      "purpose": "Manifest icon 512x512 (maskable)",
+      "role": "runtime",
+      "sha256": "ac0c927c1bee2c9720bbbddc3ecf642ea478eaea5cb00ddede30e3f6408c70be"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/android-adaptive-foreground-108.png",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/android-adaptive-foreground-108.png",
+      "type": "png",
+      "dimensions": "108x108",
+      "bytes": 1642,
+      "purpose": "Android adaptive foreground 108",
+      "role": "runtime",
+      "sha256": "06f6e4801d4794adb374dc5e7d1ee2ce8fb55c1c4650bf0cd7d190e5f702a407"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/android-adaptive-foreground-216.png",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/android-adaptive-foreground-216.png",
+      "type": "png",
+      "dimensions": "216x216",
+      "bytes": 3662,
+      "purpose": "Android adaptive foreground 216",
+      "role": "runtime",
+      "sha256": "f47bc014256042558243d91674ad5af827b6a606ee0d5837209b3d544e1099a4"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/android-adaptive-foreground-432.png",
+      "target_path": "apps/prototype-web/client/public/brand/pwa/android-adaptive-foreground-432.png",
+      "type": "png",
+      "dimensions": "432x432",
+      "bytes": 9137,
+      "purpose": "Android adaptive foreground 432",
+      "role": "runtime",
+      "sha256": "7dc15fe069228c95846c84689096e940e694ea2ba14bda7355623dc48848ea72"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/favicon.ico",
+      "target_path": "apps/prototype-web/client/public/brand/favicon/favicon.ico",
+      "type": "ico",
+      "dimensions": "48x48",
+      "bytes": 2734,
+      "purpose": "Multi-resolution favicon.ico",
+      "role": "runtime",
+      "sha256": "59222578d29fc553cf95807c4ae0483ee027554303947d07f802105dd9810d7d"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-favicon-field.svg",
+      "target_path": "apps/prototype-web/client/public/brand/favicon/micro-favicon-field.svg",
+      "type": "svg",
+      "dimensions": "64x64",
+      "bytes": 1393,
+      "purpose": "SVG favicon — light (media light)",
+      "role": "runtime",
+      "sha256": "96d0726e47dd9dae84e06d6a2018efc2fbe30c9cc0bed1b81053dbe378f43471"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/micro-favicon-field-dark.svg",
+      "target_path": "apps/prototype-web/client/public/brand/favicon/micro-favicon-field-dark.svg",
+      "type": "svg",
+      "dimensions": "64x64",
+      "bytes": 1392,
+      "purpose": "SVG favicon — dark (media dark)",
+      "role": "runtime",
+      "sha256": "47224e1594e96e25dd0ec78899e3b41bee59aa52a5c4ee4452478fbafea374dc"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/favicon-16.png",
+      "target_path": "apps/prototype-web/client/public/brand/favicon/favicon-16.png",
+      "type": "png",
+      "dimensions": "16x16",
+      "bytes": 395,
+      "purpose": "Favicon PNG 16",
+      "role": "runtime",
+      "sha256": "ccdcff6230941241e8d1f865b9fc189357224782cb83ec965222b7dc1ddacc74"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/favicon-32.png",
+      "target_path": "apps/prototype-web/client/public/brand/favicon/favicon-32.png",
+      "type": "png",
+      "dimensions": "32x32",
+      "bytes": 636,
+      "purpose": "Favicon PNG 32",
+      "role": "runtime",
+      "sha256": "ef478fdc270f68de17d49067692a51763c4b18537d41258a29f13c8925202ecf"
+    },
+    {
+      "source_path": "#MicroFinancialLogoSystem.zip!/assets/png/icon/favicon-48.png",
+      "target_path": "apps/prototype-web/client/public/brand/favicon/favicon-48.png",
+      "type": "png",
+      "dimensions": "48x48",
+      "bytes": 877,
+      "purpose": "Favicon PNG 48",
+      "role": "runtime",
+      "sha256": "9827f0129e7c4d01494ed7a622fc83b067b184bc9093699d9f3f636f08615ba5"
+    }
+  ]
+}

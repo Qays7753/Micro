@@ -1,6 +1,7 @@
 /** Anti-vibe chrome: visible brand and contextual route label without a repeated decorative local badge. */
 import { useEffect, useState } from "react";
 import { Moon, Settings, Sun } from "lucide-react";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { useTheme } from "@/contexts/ThemeContext";
 
 type AppHeaderProps = {
@@ -25,7 +26,7 @@ export function AppHeader({ contextLabel, onOpenSettings }: AppHeaderProps) {
       <div className="micro-header-inner">
         <div className="micro-brand-lockup" aria-label="Micro">
           <span className="micro-brand-mark-frame">
-            <img src="/micro-mark.svg" alt="" className="micro-brand-mark" />
+            <BrandMark size={36} className="micro-brand-mark" />
           </span>
           <div className="micro-brand-copy">
             <span className="micro-wordmark" lang="ar">

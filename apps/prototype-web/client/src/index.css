@@ -9,6 +9,8 @@
 /* W5 (D1): permanent dark theme — the single owner of dark values; the .dark
    layer rebinds the same --vf-* contracts + Micro aliases for dark. */
 @import "./styles/theme-dark.css";
+/* W3 (brand launch splash): one-shot startup assembly — component-owned styles. */
+@import "./styles/brand-launch-splash.css";
 
 @custom-variant dark (&:is(.dark *));
 

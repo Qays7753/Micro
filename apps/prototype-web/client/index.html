@@ -13,8 +13,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Micro" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/micro-mark-192.png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="/micro-mark-192.png" />
+    <!-- W2 (brand): approved symbol-only favicon set. SVG field marks follow the
+         resolved scheme; PNG + ICO remain the compatible fallback. -->
+    <link rel="icon" href="/brand/favicon/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/brand/favicon/micro-favicon-field.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/brand/favicon/micro-favicon-field-dark.svg" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/brand/pwa/ios-android-180.png" />
     <!-- S5-01: خطوط IBM Plex مستضافة محليًا (OFL) — لا نداءات شبكة إطلاقًا،
          وتُخزَّن مسبقًا في PWA precache مع بقية الأصول. -->
     <link rel="stylesheet" href="/fonts/fonts.css" />

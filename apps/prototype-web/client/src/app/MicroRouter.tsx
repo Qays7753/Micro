@@ -2,10 +2,12 @@
  * Micro design reminder: routes render inside one continuous Android-like shell;
  * every destination has a clear next action and no desktop-only navigation split.
  */
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Redirect, Route, Switch } from "wouter";
 import { MicroAppShell } from "@/components/layout/MicroAppShell";
 import { StartupGate } from "@/app/StartupGate";
+/* W3 (brand launch splash): one-shot in-app launch splash at the existing startup boundary. */
+import { BrandLaunchSplash } from "@/components/brand/BrandLaunchSplash";
 /* المجموعة ٥ (عقد ٣٧): بوابة القفل المحلي — غطاء فوق المحتوى بعد الإقلاع. */
 import { AppLockGate } from "@/components/security/AppLockGate";
 
@@ -77,10 +79,15 @@ const FinanceActivity = lazy(() => import("@/pages/FinanceActivity"));
 const SharePreview = lazy(() => import("@/pages/SharePreview"));
 
 export function MicroRouter() {
+  /* W3: the splash mounts once per page load, overlays the shell until the startup gate
+   * settles and the bounded motion finishes, then unmounts — it never reappears on
+   * ordinary navigation (state lives here, set to false only). */
+  const [splashActive, setSplashActive] = useState(true);
+  const [gateSettled, setGateSettled] = useState(false);
   return (
     <MicroAppShell>
       <Suspense fallback={<RouteLoadingState />}>
-        <StartupGate>
+        <StartupGate onSettled={() => setGateSettled(true)}>
           <AppLockGate>
             <Switch>
               <Route path="/setup" component={Setup} />
@@ -159,6 +166,9 @@ export function MicroRouter() {
           </AppLockGate>
         </StartupGate>
       </Suspense>
+      {splashActive ? (
+        <BrandLaunchSplash gateSettled={gateSettled} onRelease={() => setSplashActive(false)} />
+      ) : null}
     </MicroAppShell>
   );
 }

@@ -1,5 +1,5 @@
 /** Local boot gate: load the activity profile once and route a first-time owner to minimal setup. */
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { Button } from "@/components/primitives";
@@ -33,11 +33,19 @@ export function storageRecoveryCopy(failure: StorageFailure): { title: string; d
   }
 }
 
-export function StartupGate({ children }: { children: ReactNode }) {
+export function StartupGate({ children, onSettled }: { children: ReactNode; onSettled?: () => void }) {
   const { profiles, ownerProfile, dataVersion } = usePrototypeServices();
   const [location, navigate] = useLocation();
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [storageFailure, setStorageFailure] = useState<StorageFailure | null>(null);
+  /* W3 (brand launch splash): one-shot signal that the existing readiness state has settled
+   * (ready OR recovery) — additive only; the gate's own boot behavior is unchanged. */
+  const settledRef = useRef(false);
+  useEffect(() => {
+    if (state === "loading" || settledRef.current) return;
+    settledRef.current = true;
+    onSettled?.();
+  }, [state, onSettled]);
   // P-01 الطبقة 0: يُطلب الدوام مرة عند الإقلاع. نتيجته لا تعطل الإقلاع ولا
   // تُخزَّن؛ تُقرأ حيّة في الإعدادات، فلا schema ولا export يتغيران.
   useEffect(() => {
