@@ -566,7 +566,6 @@ export default function FinancialEventEditor() {
       setMessage(result.message);
       return false;
     }
-    notifyDataChanged();
     if (result.reused) {
       setSaving(false);
       setMessage(
@@ -592,12 +591,16 @@ export default function FinancialEventEditor() {
         operationKey: `${idempotencyKey.current}:attribute`,
       });
       setSaving(false);
+      /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال كل
+       * الكتابات (الحدث ثم تغطية المحفظة) — إبطال حالة واحدة بعد النجاح. */
+      notifyDataChanged();
       if (!attribution.ok) {
         setSavedNote({ eventId: result.value.id, message: attribution.message });
         return true;
       }
     } else {
       setSaving(false);
+      notifyDataChanged();
     }
     setMessage("تم حفظ الحدث المالي محليًا.");
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */

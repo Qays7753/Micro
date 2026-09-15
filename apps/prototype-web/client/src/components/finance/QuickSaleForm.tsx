@@ -122,7 +122,6 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       setFormError(result.message);
       return;
     }
-    notifyDataChanged();
     /* ٥.٢: نسبة المقبوض للمحفظة المختارة إن حُددت — تحصيلًا لا دينًا. */
     const attributedMinor = saleOnCredit ? saleCollectedMinor : saleAmountMinor;
     let attributionNote: string | null = null;
@@ -138,6 +137,9 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
           `${saleKeyRef.current}:attribute`,
         )
       ).message;
+    /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال الكتابتين
+     * (البيع ثم نسبة المحفظة) — لا حالة وسيطة تُقرأ تحت الورقة. */
+    notifyDataChanged();
     const cashMinor = await cashNow(projectFinance);
     setSaving(false);
     onSavingChange?.(false);

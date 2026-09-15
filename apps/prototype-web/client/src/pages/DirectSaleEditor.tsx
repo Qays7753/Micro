@@ -389,10 +389,11 @@ export default function DirectSaleEditor() {
       }
       return false;
     }
-    notifyDataChanged();
     if (!editing) await saleDraft.clearFormDraft();
     /* التعديل يخرج لمصدره كما كان — لا شاشة نتيجة لسجل قائم. */
     if (editing) {
+      /* FIN-004: تعديل السجل القائم كتابة واحدة — الإشعار بعدها مباشرة. */
+      notifyDataChanged();
       navigate(returnPath);
       return true;
     }
@@ -418,6 +419,9 @@ export default function DirectSaleEditor() {
         setMessage(attribution.message);
       }
     }
+    /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال كل الكتابات
+     * (البيع ثم نسبة المحفظة) — الحالة الملتزَمة فقط تُعلن. */
+    notifyDataChanged();
     /* نجاح محلي مكتمل: يُعاد ضبط لقطة الوسخ فلا يعترض الخروج من شاشة النتيجة. */
     setLoadedToken(token => token + 1);
     setDone({ sale: result.value, walletName, attributedMinor });

@@ -85,7 +85,6 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         setFormError(result.message);
         return;
       }
-      notifyDataChanged();
       /* ٥.٢: إن حُددت محفظة، يُغطى الصرف منها بتخصيص سالب — بلا تخصيص صامت. */
       let attributionNote: string | null = null;
       if (expenseWalletId && expenseAmountMinor > 0)
@@ -100,6 +99,11 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
             `${expenseKeyRef.current}:attribute`,
           )
         ).message;
+      /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): إشعار واحد بعد اكتمال كل
+       * الكتابات (الحدث ثم التخصيص) — الرئيسية لا تقرأ حالة وسيطة أبدًا،
+       * ولا تحذير سالب كاذب بعد الحفظ الناجح. فشل النسبة بعد الحدث
+       * المحفوظ يُعلن في الوصل صادقًا. */
+      notifyDataChanged();
       const cashMinor = await cashNow(projectFinance);
       setSaving(false);
       onSavingChange?.(false);
