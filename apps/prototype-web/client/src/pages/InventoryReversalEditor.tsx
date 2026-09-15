@@ -11,6 +11,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman } from "@/presentation/formatters";
+import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();
 export default function InventoryReversalEditor() {
   const { id } = useParams<{ id: string }>();
@@ -70,13 +71,13 @@ export default function InventoryReversalEditor() {
       <section className="micro-page micro-not-found">
         <h1>لم نجد حركة المادة</h1>
         <p>ارجع إلى المواد واختر حركة محفوظة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/inventory")}
         >
           المواد والمخزون
-        </button>
+        </Button>
       </section>
     );
   return (
@@ -115,15 +116,16 @@ export default function InventoryReversalEditor() {
             {message}
           </p>
         ) : null}
-        <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
+        <Button
+          action="commit"
+          block
+
           disabled={saving}
           onClick={save}
         >
           <Save aria-hidden="true" />
           {saving ? "جارٍ الحفظ…" : "حفظ التراجع"}
-        </button>
+        </Button>
       </section>
     </section>
   );

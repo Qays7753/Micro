@@ -20,6 +20,7 @@ import {
   type InventoryMovementRouteType,
 } from "@/application/inventory/inventoryMovementRoute";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
+import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();
 const ID_SHAPE = /^[A-Za-z0-9_-]{1,64}$/;
 type MovementType = InventoryMovementRouteType;
@@ -218,13 +219,13 @@ export default function InventoryMovementEditor() {
           <h1>حركة غير متاحة</h1>
           <p>نوع الحركة المطلوب غير معروف، لذلك لم نفتح نموذجًا ولم نسجل أي أثر للمخزون.</p>
         </div>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/inventory")}
         >
           العودة إلى المواد والمخزون
-        </button>
+        </Button>
       </section>
     );
   const selectedMaterial = references?.materials.find(material => material.id === materialId) ?? null;
@@ -407,13 +408,13 @@ export default function InventoryMovementEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح حركة المادة</h1>
         <p>{message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/inventory")}
         >
           المواد والمخزون
-        </button>
+        </Button>
       </section>
     );
   if (references.materials.length === 0)
@@ -427,13 +428,13 @@ export default function InventoryMovementEditor() {
           <h1>لا مواد متتبَّعة بعد</h1>
           <p>سجّل مادة وفعّل متابعة كميتها أولًا — حركة المخزون تحتاج مادة متتبَّعة.</p>
         </div>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => navigate("/inventory/material/new")}
         >
           مادة جديدة
-        </button>
+        </Button>
       </section>
     );
   const unit = unitWord(selectedMaterial?.unit ?? "other");
@@ -888,26 +889,26 @@ export default function InventoryMovementEditor() {
               برصيد سالب في Micro — النقص يُوثَّق سجلًا يُحلّ لاحقًا، لا رقمًا سالبًا يُخفى. اختر:
             </p>
             <div className="micro-form-actions">
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={saving || !note.trim()}
                 onClick={() => {
                   void saveShortageOnly();
                 }}
               >
                 سجّل نقصًا بدل الاستهلاك
-              </button>
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              </Button>
+              <Button
+                action="save"
+
                 disabled={saving || !note.trim() || availableMilli <= 0}
                 onClick={() => {
                   void saveConsumeAvailableWithShortage();
                 }}
               >
                 استهلك المتاح
-              </button>
+              </Button>
             </div>
             <p>
               <small>
@@ -932,15 +933,16 @@ export default function InventoryMovementEditor() {
             </p>
           ))}
         </div>
-        <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
+        <Button
+          action="save"
+          block
+
           disabled={saving}
           onClick={save}
         >
           <Save aria-hidden="true" />
           {saving ? "جارٍ الحفظ…" : "حفظ حركة المادة"}
-        </button>
+        </Button>
       </section>
     </section>
   );

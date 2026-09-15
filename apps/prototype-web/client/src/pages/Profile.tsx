@@ -12,6 +12,7 @@ import { resolveReturnPath } from "@/app/navigationContract";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useReturnPath } from "@/app/useReturnNavigation";
 
+import { Button } from "@/components/primitives";
 type ProfileState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -154,13 +155,13 @@ export default function Profile() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح ملفك</h1>
         <p>{state.message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="save"
+
           onClick={() => window.location.reload()}
         >
           إعادة المحاولة
-        </button>
+        </Button>
       </section>
     );
 
@@ -302,27 +303,27 @@ export default function Profile() {
         <div className="micro-form-actions">
           {isEditing ? (
             <>
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={isSaving}
                 onClick={cancelEdit}
               >
                 إلغاء التعديل
-              </button>
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              </Button>
+              <Button
+                action="save"
+
                 disabled={isSaving}
                 onClick={() => void save()}
               >
                 {isSaving ? "جارٍ الحفظ…" : "احفظ ملفك"}
-              </button>
+              </Button>
             </>
           ) : (
-            <button className="micro-button micro-button-secondary" type="button" onClick={beginEdit}>
+            <Button action="secondary" onClick={beginEdit}>
               عدّل ملفك
-            </button>
+            </Button>
           )}
         </div>
       </section>

@@ -12,6 +12,7 @@ import { formatMoneyMinor } from "@/presentation/formatters";
 import type { CostEstimate, DraftIntent, OrderDraft } from "@/storage/local/types";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
+import { Button, FeedbackMessage, FeedbackNote } from "@/components/primitives";
 type EditorState = "loading" | "ready" | "not_found" | "error";
 type DraftFormValues = Pick<
   OrderDraft,
@@ -103,7 +104,7 @@ export default function DraftEditor() {
   const estimateId = estimateIdFromSearch(search);
   const [state, setState] = useState<EditorState>("loading");
   const [draft, setDraft] = useState<OrderDraft | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   /* U-004: إشعار الاقتراحات المنسوخة من تقدير — القيم مقترحة قابلة للتعديل. */
   const [estimateNotice, setEstimateNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -208,7 +209,7 @@ export default function DraftEditor() {
         .then(result => {
           materializePromiseRef.current = null;
           if (!result.ok) {
-            setMessage(result.message);
+            setFeedback({ kind: "error", word: result.message });
             return null;
           }
           /* و٥/و٦: المرجع يتحدّث لحظة نجاح الإنشاء — قبل الالتزام — كي لا يُنشئ
@@ -232,15 +233,18 @@ export default function DraftEditor() {
   async function save(andContinue: boolean): Promise<boolean> {
     if (!draft) return false;
     if (andContinue && !draft.itemName.trim()) {
-      setMessage("وصف القطعة: اكتب وصفًا مختصرًا ثم أعد المحاولة للانتقال للتكلفة.");
+      setFeedback({
+        kind: "error",
+        word: "وصف القطعة: اكتب وصفًا مختصرًا ثم أعد المحاولة للانتقال للتكلفة.",
+      });
       return false;
     }
     if (!isQuantityValid) {
-      setMessage("الكمية: استخدم أرقام 0–9 صحيحة ثم أعد الحفظ.");
+      setFeedback({ kind: "error", word: "الكمية: استخدم أرقام 0–9 صحيحة ثم أعد الحفظ." });
       return false;
     }
     if (andContinue && !draft.specifications.trim()) {
-      setMessage("ملاحظات التخصيص: أضف ما يلزم للاتفاق قبل الانتقال للتكلفة.");
+      setFeedback({ kind: "error", word: "ملاحظات التخصيص: أضف ما يلزم للاتفاق قبل الانتقال للتكلفة." });
       return false;
     }
     let toSave = draft;
@@ -249,18 +253,18 @@ export default function DraftEditor() {
     if (draft.id === "new") {
       const materialized = await ensureMaterialized();
       if (!materialized) {
-        setMessage("لم تدخل بيانات بعد؛ لا تُحفظ مسودة فارغة.");
+        setFeedback({ kind: "error", word: "لم تدخل بيانات بعد؛ لا تُحفظ مسودة فارغة." });
         return false;
       }
       const latest = draftRef.current;
       toSave = latest ? { ...materialized, ...draftFormValues(latest) } : materialized;
     }
     setIsSaving(true);
-    setMessage(null);
+    setFeedback(null);
     const result = await drafts.save(toSave, toSave.id === draft.id ? expectedUpdatedAt : undefined);
     setIsSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       /* و٦: عند التعارض يتحدّث رقم المسودة وما جُدّد فيها من نافذة أخرى،
        * وتبقى كتابة المستخدم في الحقول كما هي — يراجع ثم يعيد الحفظ. */
       if (result.code === "conflict" && !isNewDraft) {
@@ -276,7 +280,7 @@ export default function DraftEditor() {
     setDraft(result.draft);
     initialValuesRef.current = draftFormValues(result.draft);
     notifyDataChanged();
-    setMessage("تم حفظ المسودة على هذا الجهاز.");
+    setFeedback({ kind: "completion", word: "تم حفظ المسودة على هذا الجهاز." });
     if (andContinue) navigate(`/orders/draft/${toSave.id}/cost`);
     return true;
   }
@@ -296,7 +300,7 @@ export default function DraftEditor() {
     const result = await drafts.delete(draft.id);
     setIsDeleting(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
@@ -313,13 +317,13 @@ export default function DraftEditor() {
       <section className="micro-page micro-not-found">
         <h1>لم نجد هذه المسودة</h1>
         <p>قد تكون حذفت محليًا أو لم تُحفظ بعد.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/orders")}
         >
           العودة للطلبات
-        </button>
+        </Button>
       </section>
     );
   if (state === "error" || !draft)
@@ -327,13 +331,13 @@ export default function DraftEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح المسودة</h1>
         <p>لم يتم تغيير بياناتك. أعد المحاولة من قائمة الطلبات.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/orders")}
         >
           العودة للطلبات
-        </button>
+        </Button>
       </section>
     );
   if (draft.linkedOrderId)
@@ -342,17 +346,17 @@ export default function DraftEditor() {
         <span className="micro-overline">اتفاق محفوظ</span>
         <h1>هذه المسودة أصبحت طلبًا محليًا</h1>
         <p>لا نعدل تفاصيلها من هنا حتى لا يختلف الوصف عن الاتفاق وسجل التكلفة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(`/orders/${draft.linkedOrderId}`)}
         >
           فتح الطلب
-        </button>
+        </Button>
       </section>
     );
   const isCustomerOrder = draft.intent === "customer_order";
-  const hasFormError = Boolean(message && !message.startsWith("تم "));
+  const hasFormError = feedback?.kind === "error";
   return (
     <section className="micro-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
@@ -364,11 +368,7 @@ export default function DraftEditor() {
         <p>نسجل القصة والكمية الآن. التكلفة والاتفاق يأتيان بعد ذلك.</p>
       </div>
       {/* U-004: إشعار الجسر من التقدير — اقتراحات معلنة لا أسعار مؤكدة. */}
-      {estimateNotice ? (
-        <p className="micro-save-note" role="status">
-          {estimateNotice}
-        </p>
-      ) : null}
+      {estimateNotice ? <FeedbackNote kind="advisory" word={estimateNotice} /> : null}
       <section className="micro-form-card">
         <label className="micro-field">
           <span>
@@ -408,13 +408,13 @@ export default function DraftEditor() {
           </select>
           <small>لا يغيّر المرجع السعر أو نسخة التكلفة أو تكلفة طلب سابق.</small>
         </label>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => requestNavigation(linkTo("/catalog"))}
         >
           <BookOpen aria-hidden="true" /> منتجاتي وخدماتي
-        </button>
+        </Button>
         {isCustomerOrder ? (
           <>
             {/* Conflict B: اسم طلب ودّي اختياري — يعبر إلى الاتفاق والطلب. */}
@@ -473,36 +473,28 @@ export default function DraftEditor() {
             aria-describedby={hasFormError ? "draft-form-error" : undefined}
           />
         </label>
-        {message ? (
-          <p
-            id="draft-form-error"
-            className={message.startsWith("تم ") ? "micro-save-note" : "micro-field-error"}
-            role={message.startsWith("تم ") ? "status" : "alert"}
-          >
-            {message}
-          </p>
-        ) : null}
+        {feedback ? <FeedbackNote id="draft-form-error" kind={feedback.kind} word={feedback.word} /> : null}
         <div className="micro-form-actions">
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             disabled={isSaving || !isQuantityValid}
             onClick={() => {
               void save(false);
             }}
           >
             <Save aria-hidden="true" /> حفظ مسودة
-          </button>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          </Button>
+          <Button
+            action="save"
+
             disabled={isSaving || !isQuantityValid || !draft.itemName.trim()}
             onClick={() => {
               void save(true);
             }}
           >
             {isSaving ? "جارٍ الحفظ…" : "احسب التكلفة"}
-          </button>
+          </Button>
         </div>
         {canDelete ? (
           <div className="micro-draft-delete-zone">
@@ -513,33 +505,33 @@ export default function DraftEditor() {
                   يمكن التراجع بعد الحذف.
                 </p>
                 <div className="micro-form-actions">
-                  <button
-                    className="micro-button micro-button-secondary"
-                    type="button"
+                  <Button
+                    action="secondary"
+
                     disabled={isDeleting}
                     onClick={() => {
                       void deleteDraft();
                     }}
                   >
                     <Trash2 aria-hidden="true" /> {isDeleting ? "جارٍ الحذف…" : "احذف المسودة نهائيًا"}
-                  </button>
-                  <button
-                    className="micro-button micro-button-quiet"
-                    type="button"
+                  </Button>
+                  <Button
+                    action="quiet"
+
                     onClick={() => setConfirmDelete(false)}
                   >
                     تراجع
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
-              <button
-                className="micro-button micro-button-quiet"
-                type="button"
+              <Button
+                action="quiet"
+
                 onClick={() => setConfirmDelete(true)}
               >
                 <Trash2 aria-hidden="true" /> احذف المسودة
-              </button>
+              </Button>
             )}
           </div>
         ) : null}

@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { Button } from "@/components/primitives";
 import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
 import { withFrom } from "@/app/navigationContract";
 import type {
@@ -162,13 +163,10 @@ export default function Home() {
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل مشروعك</h1>
         <p>{state.message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
-          onClick={() => window.location.reload()}
-        >
+        {/* W4: فعل الإعادة فعل اعتيادي — صنف الحفظ (سطح دافئ + حبر). */}
+        <Button action="save" onClick={() => window.location.reload()}>
           إعادة المحاولة
-        </button>
+        </Button>
       </section>
     );
   const { model } = state;
@@ -376,14 +374,11 @@ export default function Home() {
               صفحة الأساس <ArrowLeft aria-hidden="true" />
             </button>
           </div>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            onClick={() => openFromHome(model.financeUnit.action.href)}
-          >
+          {/* W4: فعل تنقل اعتيادي إلى المالية — صنف الحفظ لا صنف الإنشاء. */}
+          <Button action="save" onClick={() => openFromHome(model.financeUnit.action.href)}>
             {model.financeUnit.action.label}
             <ArrowLeft aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </section>
       {/* الكتلة ٣ من ٣ — «منتجاتي وخدماتي» (قرار المالك على بند ١١). */}
@@ -396,14 +391,14 @@ export default function Home() {
         </div>
         <div className="micro-home-finance-unit">
           <div></div>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             onClick={() => openFromHome(model.catalogUnit.action.href)}
           >
             {model.catalogUnit.action.label}
             <ArrowLeft aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </section>
       {model.optionalModules.length > 0 ? (
@@ -466,7 +461,9 @@ export default function Home() {
                 {change.amountMinor !== null && change.amountMinor !== undefined ? (
                   <b className="micro-home-recent-amount">
                     {/* مراجعة 5-RV-A: الوحدة مع الرقم — قراءة واحدة بلا لبس
-                        واتساقًا مع قارئ النشاط الكامل. */}
+                        واتساقًا مع قارئ النشاط الكامل. (W4: يبقى التكوين
+                        الحرفي — حد كثافة النص يقيس الوحدة كنص مستقل هنا،
+                        وتكوين MoneyWithUnit معتمد في رحلة المالية.) */}
                     <MoneyValue minor={change.amountMinor} /> د.أ
                   </b>
                 ) : null}

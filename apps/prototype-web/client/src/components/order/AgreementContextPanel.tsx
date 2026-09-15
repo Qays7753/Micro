@@ -9,6 +9,7 @@ import type { AgreementSource, StoredCraftOrder } from "@/storage/local/types";
 import { LocalDateValue } from "@/components/presentation/DisplayValue";
 import { classifyFollowUpDate, localDateInAmman } from "@/application/agreements/followUpDate";
 
+import { Button } from "@/components/primitives";
 const agreementSourceLabel: Record<string, string> = {
   instagram: "Instagram",
   whatsapp: "WhatsApp",
@@ -183,15 +184,16 @@ export function AgreementContextPanel({
             {saveState.text}
           </p>
         ) : null}
-        <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
+        <Button
+          action="save"
+          block
+
           disabled={saving}
           onClick={save}
         >
           <Save aria-hidden="true" />
           {saving ? "جارٍ حفظ السياق…" : "حفظ سياق الاتفاق"}
-        </button>
+        </Button>
       </div>
       {(stored.followUpEvents ?? []).length > 0 ? (
         <div className="micro-context-history">

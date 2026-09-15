@@ -12,6 +12,7 @@ import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPu
 import type { InventoryOverview } from "@/application/inventory/inventoryMaterialService";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 
+import { Button } from "@/components/primitives";
 type FoundationState =
   | { phase: "loading" }
   | { phase: "error" }
@@ -64,9 +65,9 @@ export default function Foundation() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الموقف</h1>
         <p>لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة.</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/")}>
+        <Button action="secondary" onClick={() => navigate("/")}>
           مشروعي الآن
-        </button>
+        </Button>
       </section>
     );
   const { cash, owner, suppliers, materials } = state;
@@ -100,13 +101,13 @@ export default function Foundation() {
             <WalletCards aria-hidden="true" /> رصيد البداية ليس مال مالك ولا دخلًا؛ إنه نقطة معلنة تبدأ منها
             مراجعة الكاش. تاريخ البداية يقبل يومًا سابقًا ويُعلن أنه أُدخل لاحقًا.
           </p>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="create"
+
             onClick={() => navigate("/cash/wallet/new")}
           >
             محفظة ورصيد بداية <ArrowLeft aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </details>
       <details className="micro-foundation-section" open>
@@ -132,20 +133,20 @@ export default function Foundation() {
             مصروف. ابدأ باستثمار نقدي، أو برصيد سابق لحقك عند المشروع.
           </p>
           <div className="micro-foundation-actions">
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate("/finance/new/owner_investment_cash")}
             >
               سجل استثمارًا نقديًا
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               onClick={() => navigate("/finance/owner-entitlement")}
             >
               رصيد سابق لحق المالك
-            </button>
+            </Button>
           </div>
         </div>
       </details>
@@ -173,20 +174,20 @@ export default function Foundation() {
             يُسدَّد أو يُوزَّع بقاعدة معلنة.
           </p>
           <div className="micro-foundation-actions">
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate("/finance/new/operating_expense_payable")}
             >
               سجل التزامًا لمورد
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               onClick={() => navigate("/suppliers/purchase/new")}
             >
               شراء مواد قائم
-            </button>
+            </Button>
           </div>
         </div>
       </details>
@@ -207,13 +208,13 @@ export default function Foundation() {
           <strong>اختياري — افتحه عند الحاجة</strong>
         </summary>
         <div className="micro-foundation-body">
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => navigate("/inventory/material/new")}
           >
             مادة ورصيد بداية <ArrowLeft aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </details>
       <section className="micro-foundation-file">
@@ -233,12 +234,12 @@ export default function Foundation() {
       <section className="micro-foundation-exit" aria-label="الخروج من صفحة الأساس">
         <p>التخطي فعل واعٍ: كل ما تركته فارغًا يظهر في «مشروعي الآن» كطريق «سجّله»، ولا يتحول إلى صفر.</p>
         <div className="micro-foundation-actions">
-          <button className="micro-button micro-button-secondary" type="button" onClick={() => navigate("/")}>
+          <Button action="secondary" onClick={() => navigate("/")}>
             تخطَّ وأكمل لاحقًا
-          </button>
-          <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/")}>
+          </Button>
+          <Button action="secondary" onClick={() => navigate("/")}>
             ادخل إلى مشروعي <ArrowLeft aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </section>
     </section>

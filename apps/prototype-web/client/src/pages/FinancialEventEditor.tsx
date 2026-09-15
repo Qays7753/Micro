@@ -35,6 +35,7 @@ import type {
   SharedProjectShareBasis,
 } from "@micro-domain/financial-event/index.js";
 
+import { Button } from "@/components/primitives";
 type SharedMode = "fixed" | "percentage" | "estimate" | "defer";
 /* المجموعة ٤ (عقد ٢٩): أحداث الأصول والقروض وتصنيف العربون تُنشأ من أسطحها
  * المخصصة لأنها تتطلب ربط سجل مصدر (أصل/قرض/طلب) — المحرر العام يبقى
@@ -247,7 +248,9 @@ export default function FinancialEventEditor() {
 
   useEffect(() => {
     projectFinance.listSettleablePayables().then(result => {
+      /* W2 (completion — تدقيق الوكيل ٢، F4): فشل قراءة الخيارات لم يعد صامتًا. */
       if (result.ok) setPayableOptions(result.value);
+      else setMessage(result.message);
     });
   }, [projectFinance, dataVersion]);
   /* F-006: رصيد الأمانات الحالي أمام العين قبل تسليم أي مبلغ — لا اكتشاف بعد الحفظ. */
@@ -256,7 +259,9 @@ export default function FinancialEventEditor() {
     if (type !== "amanah_released_cash") return;
     let active = true;
     projectFinance.readPosition().then(result => {
-      if (active && result.ok) setAmanahHeldMinor(result.value.amanahHeldMinor);
+      if (!active) return;
+      if (result.ok) setAmanahHeldMinor(result.value.amanahHeldMinor);
+      else setMessage(result.message);
     });
     return () => {
       active = false;
@@ -267,7 +272,9 @@ export default function FinancialEventEditor() {
     if (type !== "operating_expense_cash" && type !== "operating_expense_payable") return;
     let active = true;
     projectFinance.listEvents().then(result => {
-      if (active && result.ok) setSuggestions(deriveExpenseCategorySuggestions(result.value));
+      if (!active) return;
+      if (result.ok) setSuggestions(deriveExpenseCategorySuggestions(result.value));
+      else setMessage(result.message);
     });
     return () => {
       active = false;
@@ -278,8 +285,9 @@ export default function FinancialEventEditor() {
     if (type !== "operating_expense_cash") return;
     let active = true;
     cashContinuity.overview().then(result => {
-      if (active && result.ok)
-        setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+      if (!active) return;
+      if (result.ok) setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
+      else setMessage(result.message);
     });
     return () => {
       active = false;
@@ -409,13 +417,13 @@ export default function FinancialEventEditor() {
       <section className="micro-page micro-not-found">
         <h1>نوع الحدث غير متاح</h1>
         <p>ارجع إلى الوضع المالي واختر حدثًا واضحًا.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/finance")}
         >
           الوضع المالي
-        </button>
+        </Button>
       </section>
     );
 
@@ -646,12 +654,12 @@ export default function FinancialEventEditor() {
           <div className="micro-draft-banner" role="status">
             <p>عندك مسودة غير محفوظة من إدخال سابق — ترجّعها؟</p>
             <div className="micro-form-actions">
-              <button className="micro-button micro-button-primary" type="button" onClick={restoreDraft}>
+              <Button action="save" onClick={restoreDraft}>
                 استرجع المسودة
-              </button>
-              <button className="micro-button micro-button-secondary" type="button" onClick={discardDraft}>
+              </Button>
+              <Button action="secondary" onClick={discardDraft}>
                 تجاهلها
-              </button>
+              </Button>
             </div>
           </div>
         ) : null}
@@ -828,9 +836,10 @@ export default function FinancialEventEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={() => void save()}
           >
@@ -842,7 +851,7 @@ export default function FinancialEventEditor() {
                 : isOperatingExpense
                   ? "حفظ المصروف المصنف"
                   : "حفظ الحدث"}
-          </button>
+          </Button>
         </div>
       </section>
     </section>

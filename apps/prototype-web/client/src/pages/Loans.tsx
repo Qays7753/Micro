@@ -19,6 +19,7 @@ import { formatLocalDate } from "@/presentation/formatters";
 import type { LoanSummaryRow } from "@/application/loans/loanService";
 import RepaymentSheet from "@/components/loans/RepaymentSheet";
 
+import { Button, EmptyState } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -63,15 +64,17 @@ export default function Loans() {
             {state.message}
           </p>
           <p>لم يتغير أي سجل — بياناتك كما هي؛ أعد المحاولة.</p>
-          <button className="micro-button micro-button-secondary" type="button" onClick={() => load()}>
+          <Button action="save" onClick={() => load()}>
             إعادة المحاولة
-          </button>
+          </Button>
         </section>
       ) : state.rows.length === 0 ? (
-        <section className="micro-empty-state" aria-label="لا قروض بعد">
-          <Users aria-hidden="true" />
-          <p>لا قروض صادرة بعد. سجّل قرضًا حين تعطي أحدًا مالًا واعدًا بإرجاعه.</p>
-        </section>
+        <EmptyState
+          aria-label="لا قروض بعد"
+          symbol={<Users />}
+          title={<>لا قروض صادرة بعد.</>}
+          description={<>سجّل قرضًا حين تعطي أحدًا مالًا واعدًا بإرجاعه.</>}
+        />
       ) : (
         <>
           <LoansSummary rows={state.rows} />
@@ -88,13 +91,13 @@ export default function Loans() {
         </>
       )}
       <div className="micro-form-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => navigate(withFrom("/loans/new", "/loans"))}
         >
           <Plus aria-hidden="true" /> سجّل قرضًا
-        </button>
+        </Button>
       </div>
       {repayTarget ? (
         <RepaymentSheet
@@ -164,9 +167,9 @@ function LoanCard({
         ) : null}
         {row.reading.status === "open" ? (
           <div className="micro-form-actions micro-contextual-actions">
-            <button className="micro-button micro-button-secondary" type="button" onClick={onRepay}>
+            <Button action="secondary" onClick={onRepay}>
               <HandCoins aria-hidden="true" /> سجّل دفعة
-            </button>
+            </Button>
           </div>
         ) : null}
       </article>

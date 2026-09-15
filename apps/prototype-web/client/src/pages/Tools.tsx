@@ -13,6 +13,7 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
 import type { CostEstimate } from "@/storage/local/types";
 
+import { Button } from "@/components/primitives";
 type ModuleState = "not_available" | "available_not_enabled" | "enabled" | "partially_configured";
 
 const moduleStateLabel: Record<ModuleState, string> = {
@@ -180,13 +181,13 @@ export default function Tools() {
         <div className="micro-storage-error" role="alert">
           <strong>تعذر قراءة أدواتك المحلية.</strong>
           <p>لم يتغير أي شيء — بياناتك كما هي على هذا الجهاز. أعد المحاولة.</p>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="save"
+
             onClick={() => setReloadToken(token => token + 1)}
           >
             إعادة المحاولة
-          </button>
+          </Button>
         </div>
       ) : null}
 

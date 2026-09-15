@@ -13,6 +13,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();
 export default function CashReversalEditor() {
   const { id } = useParams<{ id: string }>();
@@ -107,9 +108,9 @@ export default function CashReversalEditor() {
       <section className="micro-page micro-not-found">
         <h1>لم نجد أثر الكاش</h1>
         <p>قد يكون السجل حُذف من هذا الجهاز أو تم التراجع عنه سابقًا.</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
+        <Button action="secondary" onClick={() => navigate("/cash")}>
           محافظ الكاش
-        </button>
+        </Button>
       </section>
     );
   return (
@@ -137,15 +138,15 @@ export default function CashReversalEditor() {
       {sourceWarning ? (
         <section className="micro-note-card" aria-label="تحذير ارتباط المصدر">
           <p>{sourceWarning.text}</p>
-          <button
-            className="micro-button micro-button-quiet"
-            type="button"
+          <Button
+            action="quiet"
+
             onClick={() =>
               navigate(withFrom(`/orders/${sourceWarning.orderId}`, location.split("?")[0] ?? location))
             }
           >
             افتح الطلب
-          </button>
+          </Button>
         </section>
       ) : null}
       <section className="micro-form-card">
@@ -164,15 +165,16 @@ export default function CashReversalEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="commit"
+            block
+
             disabled={saving}
             onClick={save}
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ الحفظ…" : "حفظ التراجع"}
-          </button>
+          </Button>
         </div>
       </section>
     </section>

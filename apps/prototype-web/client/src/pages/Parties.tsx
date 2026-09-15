@@ -12,6 +12,7 @@ import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue
 import { formatLocalDate } from "@/presentation/formatters";
 import type { PartyLedgerOverview } from "@/application/parties/partyLedgerService";
 
+import { Button } from "@/components/primitives";
 type State = { phase: "loading" } | { phase: "error" } | { phase: "ready"; overview: PartyLedgerOverview };
 
 const movementLabel: Record<string, string> = {
@@ -79,13 +80,13 @@ export default function Parties() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر الناس</h1>
         <p>لم يتم تغيير بياناتك. أعد المحاولة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(withFrom("/finance", "/parties"))}
         >
           الوضع المالي
-        </button>
+        </Button>
       </section>
     );
 

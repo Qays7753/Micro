@@ -1,6 +1,14 @@
 /* مبدأ Micro: تستخدم الصفحة توكنات المشروع وإيقاع 4px وIBM Plex Arabic مع أسطح آمنة للهاتف. */
 @import "tailwindcss";
 @import "tw-animate-css";
+/* W1: Micro Standard v2 runtime token mapping — the single owner of Standard
+   hex values. Micro runtime names below bind to --vf-* contracts. */
+@import "./styles/vf-tokens.css";
+/* W2: shared primitives (components/primitives) — contract styles */
+@import "./styles/primitives.css";
+/* W5 (D1): permanent dark theme — the single owner of dark values; the .dark
+   layer rebinds the same --vf-* contracts + Micro aliases for dark. */
+@import "./styles/theme-dark.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -31,6 +39,9 @@
 }
 
 :root {
+  /* R3/W5: native controls (inputs, scrollbars, form chrome) follow the
+     light scheme; .dark declares color-scheme: dark in theme-dark.css. */
+  color-scheme: light;
   --font-arabic: "IBM Plex Sans Arabic", sans-serif;
   --font-numeric: "IBM Plex Mono", monospace;
   --space-1: 4px;
@@ -39,50 +50,55 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
-  --space-7: 32px;
-  --radius-control: 12px;
-  --radius-card: 16px;
-  --radius-sheet: 20px;
-  --elevation-1: 0 1px 2px rgba(60, 50, 40, 0.06), 0 4px 12px rgba(60, 50, 40, 0.06);
-  --elevation-2: 0 6px 20px rgba(60, 50, 40, 0.1);
-  --elevation-3: 0 16px 40px rgba(60, 50, 40, 0.16);
-  --motion-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --motion-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --color-bg-canvas: #faf9f5;
-  --color-bg-well: #f0eee6;
-  --color-surface: #ffffff;
-  --color-border: #eae6dc;
-  --color-divider: #dad5c8;
-  --color-text-primary: #1f1e1d;
-  --color-text-strong: #33322e;
-  --color-text-secondary: #6e6a60;
-  --color-text-tertiary: #b7b2a6;
-  --color-brand-primary: #cc785c;
-  --color-brand-pressed: #b4613f;
-  --color-brand-text: #964e33;
-  --color-brand-soft: #f4e4db;
-  --color-accent-primary: #079fa0;
-  --color-accent-text: #057b7c;
-  --color-accent-soft: #e3f5f5;
-  --color-success-text: #256b4a; /* S3-06: 5.5:1 على خلفيته الفاتحة */
-  --color-success-bg: #e4f2ea;
-  --color-danger-text: #b42318;
-  --color-danger-bg: #fbe7e6;
-  --color-warning-text: #7a5c20; /* S3-06: 5.3:1 على خلفيته الفاتحة */
-  --color-warning-bg: #f6eccf;
-  --color-withdrawal-text: #3e5c76;
-  --color-withdrawal-bg: #e8eef3;
-  --color-ink-on-color: #1f1e1d;
+  --radius-control: var(--vf-radius-control);
+  --radius-card: var(--vf-radius-card);
+  --radius-sheet: var(--vf-radius-sheet);
+  --elevation-1: var(--vf-shadow-e1);
+  --elevation-2: var(--vf-shadow-e2);
+  --elevation-3: var(--vf-shadow-e3);
+  --motion-out: cubic-bezier(0.23, 1, 0.32, 1); /* Micro legacy easing — kept */
+  /* W1 runtime mapping (D-01/U-01): Micro names → Micro Standard v2 contracts.
+     Values now resolve through ./styles/vf-tokens.css. Retired v0 palette
+     (#cc785c/#964e33/#079fa0/…) no longer feeds the light layer. */
+  --color-bg-canvas: var(--vf-canvas);
+  --color-bg-well: var(--vf-recessed);
+  --color-surface: var(--vf-surface);
+  --color-border: var(--vf-tint); /* quiet hairline tier (--vf-border-soft) */
+  --color-divider: var(--vf-soft);
+  --color-text-primary: var(--vf-ink);
+  --color-text-strong: var(--vf-ink);
+  --color-text-secondary: var(--vf-ink-secondary);
+  --color-brand-primary: var(--vf-clay);
+  --color-brand-pressed: var(--vf-clay-interactive);
+  --color-brand-text: var(--vf-ink); /* retired #964e33 — brand text is text-safe ink */
+  --color-brand-soft: var(--vf-tint); /* quiet grouping surface, no clay tint exists */
+  --color-accent-primary: var(--vf-clay-interactive); /* chosen/current edge role */
+  --color-accent-text: var(--vf-ink); /* interactive ink + focus (U-02: teal retired) */
+  --color-accent-soft: var(--vf-tint); /* selected/hover quiet surface */
+  --color-success-text: #256b4a; /* Micro-owned text-safe success ink (5.5:1) —
+     Standard #629987 (--vf-success) is a non-text mark; W2 StatusChip adopts
+     the Standard grammar (word in ink + marker hue) */
+  --color-success-bg: #e4f2ea; /* Micro-owned tint pair — W2+ migration */
+  --color-danger-text: var(--vf-error);
+  --color-danger-bg: var(--vf-ground); /* Standard tint grammar: warm ground + semantic ink */
+  --color-warning-text: #7a5c20; /* Micro-owned knowledge/attention pair (68 consumers)
+     — per-surface migration per U-05/U-11/U-12, W5 */
+  --color-warning-bg: #f6eccf; /* Micro-owned — W5 migration */
+  --color-ink-on-color: var(--vf-ink);
   --background: var(--color-bg-canvas);
   --foreground: var(--color-text-primary);
   --card: var(--color-surface);
   --card-foreground: var(--color-text-primary);
   --popover: var(--color-surface);
   --popover-foreground: var(--color-text-primary);
-  --primary: var(--color-brand-text);
-  --primary-foreground: var(--color-surface);
-  --secondary: var(--color-accent-text);
-  --secondary-foreground: var(--color-surface);
+  /* Action classes (owner-approved ladder): primary button + FAB are the
+     text-bearing CREATE class (Clay + dark ink). Ordinary save/confirm and
+     high-consequence commit bindings are consumed by the W2 Button primitive;
+     per-action reclassification happens in W2–W6 with tests. */
+  --primary: var(--vf-action-create);
+  --primary-foreground: var(--vf-action-create-ink);
+  --secondary: var(--vf-btn-secondary-bg);
+  --secondary-foreground: var(--vf-btn-secondary-ink);
   --muted: var(--color-bg-well);
   --muted-foreground: var(--color-text-secondary);
   --accent: var(--color-accent-soft);
@@ -91,57 +107,11 @@
   --destructive-foreground: var(--color-surface);
   --border: var(--color-border);
   --input: var(--color-border);
-  --ring: var(--color-accent-text);
+  --ring: var(--vf-focus);
 }
 
-.dark {
-  --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.12);
-  --elevation-2: 0 6px 20px rgba(0, 0, 0, 0.2);
-  --elevation-3: 0 16px 40px rgba(0, 0, 0, 0.28);
-  --color-bg-canvas: #1c1917;
-  --color-bg-well: #332d27;
-  --color-surface: #27231f;
-  --color-border: #51473c;
-  --color-divider: #62564b;
-  --color-text-primary: #fff7ed;
-  --color-text-strong: #fff7ed;
-  --color-text-secondary: #d6c9ba;
-  --color-text-tertiary: #a89b8c;
-  --color-brand-primary: #d59172;
-  --color-brand-pressed: #cc785c;
-  --color-brand-text: #8fd5d6;
-  --color-brand-soft: #332d27;
-  --color-accent-primary: #5ec0c1;
-  --color-accent-text: #8fd5d6;
-  --color-accent-soft: #332d27;
-  --color-success-text: #7fc49e;
-  --color-success-bg: #332d27;
-  --color-danger-text: #e47975;
-  --color-danger-bg: #332d27;
-  --color-warning-text: #e2c268;
-  --color-warning-bg: #332d27;
-  --color-withdrawal-text: #8aa5b8;
-  --color-withdrawal-bg: #332d27;
-  --background: var(--color-bg-canvas);
-  --foreground: var(--color-text-primary);
-  --card: var(--color-surface);
-  --card-foreground: var(--color-text-primary);
-  --popover: var(--color-surface);
-  --popover-foreground: var(--color-text-primary);
-  --primary: var(--color-brand-primary);
-  --primary-foreground: var(--color-ink-on-color);
-  --secondary: var(--color-accent-primary);
-  --secondary-foreground: var(--color-ink-on-color);
-  --muted: var(--color-bg-well);
-  --muted-foreground: var(--color-text-secondary);
-  --accent: var(--color-accent-soft);
-  --accent-foreground: var(--color-accent-text);
-  --destructive: var(--color-danger-text);
-  --destructive-foreground: var(--color-ink-on-color);
-  --border: var(--color-border);
-  --input: var(--color-border);
-  --ring: var(--color-accent-text);
-}
+/* W5 (D1): the .dark runtime layer moved to styles/theme-dark.css —
+   the single owner of dark values (the retired v0 block is deleted). */
 
 @layer base {
   * {
@@ -234,30 +204,23 @@
 .micro-wordmark {
   display: block;
   color: var(--color-brand-text);
-  font-size: 18px;
+  /* W3: توحيد القاعدة المزدوجة (كانت 18px ثم 20px لاحقًا يغلب) — قاعدة
+     واحدة بالقيمة الفعلية السارية 20px. */
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.25;
 }
 .micro-header-context {
   display: block;
   color: var(--color-text-secondary);
+  /* W3: قاعدة موحدة (كانت مزدوجة 12px ثم 11px يغلب) — بيانات وصفية غير
+     مالية فأرضية الترجمة 12px (typography.md)، مع وزن 600 كالسائد فعليًا. */
   font-size: 12px;
+  font-weight: 600;
   line-height: 1.35;
 }
 .micro-header-actions {
   gap: var(--space-2);
-}
-.micro-status-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  border-radius: 999px;
-  padding-inline: var(--space-2);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-success-text);
-  background: var(--color-success-bg);
 }
 .micro-icon-button {
   display: inline-grid;
@@ -301,7 +264,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  animation: micro-enter 260ms var(--motion-out);
+  /* W3: انتقال المسار بتوقيت المعيار --vf-motion-normal (200ms) —
+     الظهور يتباطأ ولا حركة تخطيط صفحة كاملة (motion-interaction.md). */
+  animation: micro-enter var(--vf-motion-normal) var(--vf-ease-out);
 }
 .micro-page-heading {
   display: flex;
@@ -379,8 +344,8 @@
   opacity: 0.16;
   filter: saturate(0.65);
 }
-/* §4 بند ١٧: في الداكن كل الألوان الناعمة #332d27 — الفصل بنيوي:
-   حد رقيق بلون نص الحالة يميز السطح الملوّن بلا هيكس جديد */
+/* §4 بند ١٧ (W5): في الداكن الأسطح الناعمة تأتي من طبقة theme-dark.css —
+   الفصل بنيوي: حد رقيق بلون نص الحالة يميز السطح الملوّن بلا هيكس جديد */
 .dark [data-tone="accent"] {
   border: 1px solid color-mix(in srgb, var(--color-accent-text) 40%, transparent);
 }
@@ -429,50 +394,6 @@
 .micro-priority-truth strong {
   color: var(--color-text-strong);
   font-size: 15px;
-}
-.micro-button {
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  width: fit-content;
-  border: 0;
-  border-radius: var(--radius-control);
-  padding: 0 var(--space-4);
-  font-size: 15px;
-  font-weight: 600;
-  transition:
-    transform 160ms var(--motion-out),
-    background 160ms var(--motion-out),
-    color 160ms var(--motion-out);
-}
-.micro-button svg {
-  width: 20px;
-  height: 20px;
-}
-.micro-button:active {
-  transform: scale(0.97);
-}
-.micro-button-primary {
-  color: var(--primary-foreground);
-  background: var(--primary);
-  box-shadow: var(--elevation-1);
-}
-@media (hover: hover) and (pointer: fine) {
-  .micro-button-primary:hover,
-  .micro-fab:hover {
-    background: var(--color-brand-pressed);
-  }
-}
-.micro-button-secondary {
-  color: var(--secondary-foreground);
-  background: var(--secondary);
-}
-@media (hover: hover) and (pointer: fine) {
-  .micro-button-secondary:hover {
-    background: var(--color-accent-primary);
-  }
 }
 .micro-section {
   display: flex;
@@ -552,6 +473,15 @@ textarea:disabled,
 .micro-text-action svg {
   width: 18px;
   height: 18px;
+}
+/* R2 (D7): المختار معلن بصريًا — تسطير clay-interactive بوزن واضح تحت الكلمة
+   المختارة (نفس قواعد الحافة/التسطير للمعيار)؛ الحالة يقرأها aria-pressed
+   والتسطير يحملها بصريًا في الوضعين، لا لونًا وحده. */
+.micro-text-action[aria-pressed="true"] {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--vf-clay-interactive);
 }
 .micro-decision-panel {
   display: grid;
@@ -712,7 +642,7 @@ textarea:disabled,
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: color-mix(in srgb, #1f1e1d 45%, transparent);
+  background: var(--vf-scrim); /* W1: warm ink #141413 at 45% — Standard overlay scrim */
 }
 .micro-dialog {
   position: fixed;
@@ -796,6 +726,7 @@ textarea:disabled,
 }
 .micro-nav-item {
   display: flex;
+  min-width: 44px;
   min-height: 56px;
   align-items: center;
   justify-content: center;
@@ -806,8 +737,14 @@ textarea:disabled,
   /* §4 بند ١٥: غير النشط بلون النص القوي — كان الثانوي أضعف نص على الشاشة */
   color: var(--color-text-strong);
   background: transparent;
-  font-size: 11px;
+  /* W3 (U-04): تسميات التنقل لا تقل عن 13px — أرضية اللصائق في المعيار،
+     مع حارس قصّ حتى لا يفيض أوسع تسمية على 320px. */
+  font-size: var(--vf-text-label-size);
   font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition:
     color 160ms var(--motion-out),
     background 160ms var(--motion-out),
@@ -841,8 +778,11 @@ textarea:disabled,
   color: var(--primary-foreground);
   background: var(--primary);
   box-shadow: var(--elevation-3);
-  font-size: 11px;
+  /* W3 (U-04): تسمية الزر العائم تسمية فعل — أرضية 13px (U-09: يبقى
+     الزر داخل الشبكة مع تسميته). */
+  font-size: var(--vf-text-label-size);
   font-weight: 700;
+  line-height: 1.1;
   transition:
     transform 160ms var(--motion-out),
     background 160ms var(--motion-out);
@@ -853,6 +793,13 @@ textarea:disabled,
 }
 .micro-fab:active {
   transform: translateY(-20px) scale(0.97);
+}
+/* W7 (تدقيق الوكيل ٥، INFO-2): عاد تفاعل المؤشر لأجهزة الفأرة — إزالة قاعدة
+ * hover القديمة مع تقاعد أصناف الأزرار أسقطتها عن الفاب فقط؛ اللمس لا يتأثر. */
+@media (hover: hover) and (pointer: fine) {
+  .micro-fab:hover {
+    background: var(--vf-clay-interactive);
+  }
 }
 .micro-bottom-sheet {
   max-width: 640px;
@@ -901,12 +848,18 @@ textarea:disabled,
   line-height: 1.6;
 }
 /* §٥-١٤: نماذج اللحظة داخل ورقة الإضافة — فعل عابر فوق شاشة الوقوف. */
+/* W3: نموذجا الورقة يبقيان محمّلين طوال الجلسة (لا إعادة تعيين صامتة
+   للمدخل المكتوب عند التنقل قائمة/نموذج) — الإخفاء بالسمة hidden. */
+.micro-sheet-actions[hidden],
+.micro-sheet-form[hidden] {
+  display: none;
+}
 .micro-sheet-form {
   display: grid;
   gap: var(--space-3);
   padding: 0 var(--space-4) var(--space-4);
 }
-.micro-sheet-form .micro-button-primary {
+.micro-sheet-form .micro-prim-button--save {
   width: 100%;
 }
 .micro-sheet-receipt {
@@ -1049,7 +1002,9 @@ textarea:disabled,
 }
 .micro-field small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): مؤهل داخل التسمية — طبقة البيانات
+   * الوصفية الموثقة 12px (تحت الأرضية التفاعلية، فوق الشذوذ). */
+  font-size: 12px;
   font-weight: 400;
 }
 .micro-field input,
@@ -1185,7 +1140,7 @@ textarea:disabled,
   margin-inline: calc(var(--space-3) * -1);
   padding: var(--space-3) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
 }
-.micro-form-actions.micro-sticky-save .micro-button {
+.micro-form-actions.micro-sticky-save .micro-prim-button {
   flex: 1 1 auto;
 }
 .micro-save-note {
@@ -1477,7 +1432,7 @@ textarea:disabled,
   border-top: 1px solid var(--color-border);
   padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
 }
-.micro-sheet-footer .micro-button {
+.micro-sheet-footer .micro-prim-button {
   width: 100%;
 }
 .micro-field-grid {
@@ -1503,10 +1458,6 @@ textarea:disabled,
   width: 18px;
   height: 18px;
   flex: 0 0 auto;
-}
-.micro-save-cost {
-  width: 100%;
-  justify-content: center;
 }
 .micro-cost-disclaimer {
   margin: 0;
@@ -1699,7 +1650,7 @@ textarea:disabled,
 .micro-collection-actions {
   align-items: stretch;
 }
-.micro-collection-actions .micro-button {
+.micro-collection-actions .micro-prim-button {
   min-height: 48px;
   flex: 1 1 180px;
   justify-content: center;
@@ -1752,10 +1703,6 @@ textarea:disabled,
 }
 .micro-import-preview .micro-field-error {
   color: var(--color-danger-text);
-}
-.micro-button-block {
-  width: 100%;
-  justify-content: center;
 }
 .micro-home-heading {
   padding-bottom: var(--space-2);
@@ -1944,44 +1891,6 @@ textarea:disabled,
 }
 .micro-review-empty p {
   color: var(--color-text-secondary);
-}
-.micro-button-block {
-  width: 100%;
-  justify-content: center;
-}
-.micro-home-heading {
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-decision-surface {
-  display: grid;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-brand-primary);
-  padding: var(--space-4);
-  background: var(--color-bg-well);
-}
-.micro-decision-surface[data-tone="warning"] {
-  border-inline-start-color: var(--color-warning-text);
-  background: var(--color-warning-bg);
-}
-.micro-decision-surface h2 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 24px;
-  line-height: 1.4;
-}
-.micro-decision-surface p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-.micro-decision-surface .micro-decision-next {
-  color: var(--color-text-strong);
-  font-weight: 600;
-}
-.micro-row-next-action {
-  color: var(--color-accent-text) !important;
-  font-weight: 600;
 }
 .micro-schedule-page {
   gap: var(--space-5);
@@ -2043,202 +1952,10 @@ textarea:disabled,
   height: 19px;
   color: var(--color-accent-text);
 }
-.micro-record-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-block: 1px solid var(--color-border);
-}
-.micro-record-summary > div {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) 0;
-}
-.micro-record-summary > div + div {
-  padding-inline-start: var(--space-3);
-  border-inline-start: 1px solid var(--color-border);
-}
-.micro-record-summary span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-number {
-  color: var(--color-text-primary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 26px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-  text-align: right;
-  unicode-bidi: isolate;
-}
-.micro-financial-pulse {
-  display: grid;
-  gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-4);
-  background: var(--color-surface);
-}
-.micro-financial-pulse-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-3);
-}
-.micro-financial-pulse-heading h2 {
-  margin: var(--space-1) 0 0;
-  font-size: 18px;
-}
-.micro-financial-pulse-heading > span {
-  color: var(--color-text-secondary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 12px;
-}
-.micro-financial-pulse dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0;
-}
-.micro-financial-pulse dl > div {
-  display: grid;
-  gap: var(--space-1);
-  min-height: 96px;
-  padding: var(--space-3) 0;
-}
-.micro-financial-pulse dl > div:nth-child(odd) {
-  padding-inline-end: var(--space-3);
-  border-inline-end: 1px solid var(--color-border);
-}
-.micro-financial-pulse dl > div:nth-child(-n + 2) {
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-financial-pulse dt,
-.micro-financial-pulse small,
-.micro-financial-pulse-note {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-financial-pulse dd {
-  margin: 0;
-  font-size: 24px;
-}
-.micro-financial-pulse-note {
-  margin: 0;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-}
-.micro-financial-pulse-note .micro-number {
-  display: inline;
-  font-size: 14px;
-}
-.micro-scope-line {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-}
-.micro-scope-line svg {
-  width: 18px;
-  height: 18px;
-  margin-top: 4px;
-  color: var(--color-accent-text);
-}
-.micro-scope-line p {
-  margin: 0;
-  font-size: 13px;
-}
-.micro-scope-line .micro-text-action {
-  grid-column: 2;
-}
-.micro-review-result {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 3px solid var(--color-success-text);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-4) 0;
-}
-.micro-review-result[data-result="estimated"],
-.micro-review-result[data-result="review_required"] {
-  border-top-color: var(--color-warning-text);
-}
-.micro-review-result[data-result="incomplete"] {
-  border-top-color: var(--color-accent-text);
-}
-.micro-review-result h2,
-.micro-review-result p {
-  margin: 0;
-}
-.micro-review-result span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-review-result p {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-review-result p .micro-number {
-  display: inline;
-  font-size: 16px;
-}
-.micro-review-empty {
-  display: grid;
-  gap: var(--space-3);
-  border-block: 1px solid var(--color-border);
-  padding: var(--space-5) 0;
-}
-.micro-review-empty h2,
-.micro-review-empty p {
-  margin: 0;
-}
-.micro-review-empty p {
-  color: var(--color-text-secondary);
-}
-.micro-button-block {
-  width: 100%;
-  justify-content: center;
-}
-.micro-home-heading {
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-decision-surface {
-  display: grid;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-brand-primary);
-  padding: var(--space-4);
-  background: var(--color-bg-well);
-}
-.micro-decision-surface[data-tone="warning"] {
-  border-inline-start-color: var(--color-warning-text);
-  background: var(--color-warning-bg);
-}
-.micro-decision-surface h2 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 24px;
-  line-height: 1.4;
-}
-.micro-decision-surface p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-.micro-decision-surface .micro-decision-next {
-  color: var(--color-text-strong);
-  font-weight: 600;
-}
 .micro-home-links {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-}
-.micro-row-next-action {
-  color: var(--color-accent-text) !important;
-  font-weight: 600;
 }
 .micro-finance-page {
   gap: var(--space-5);
@@ -2373,7 +2090,7 @@ textarea:disabled,
   font-size: 13px;
   line-height: 1.7;
 }
-.micro-finance-unallocated-alert .micro-button {
+.micro-finance-unallocated-alert .micro-prim-button {
   justify-self: start;
 }
 
@@ -2508,220 +2225,6 @@ button.micro-finance-position-link:focus-visible {
   flex: 0 0 auto;
   font-size: 15px;
 }
-.micro-schedule-page {
-  gap: var(--space-5);
-}
-.micro-schedule-section {
-  display: grid;
-  gap: var(--space-2);
-}
-.micro-schedule-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-3);
-  border-inline-start: 3px solid var(--color-divider);
-  padding-inline-start: var(--space-3);
-}
-.micro-schedule-heading > div {
-  display: grid;
-  gap: var(--space-1);
-}
-.micro-schedule-heading h2 {
-  margin: 0;
-  font-size: 15px;
-}
-.micro-schedule-heading > span {
-  display: inline-grid;
-  min-width: 28px;
-  min-height: 28px;
-  place-items: center;
-  border-radius: 999px;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-well);
-  font-family: var(--font-numeric);
-  font-size: 12px;
-}
-.micro-schedule-section[data-tone="warning"] .micro-schedule-heading {
-  border-inline-start-color: var(--color-warning-text);
-}
-.micro-schedule-section[data-tone="warning"] .micro-overline {
-  color: var(--color-warning-text);
-}
-.micro-schedule-section[data-tone="accent"] .micro-schedule-heading {
-  border-inline-start-color: var(--color-accent-primary);
-}
-.micro-schedule-closed-note {
-  margin: 0;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-section-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.micro-section-title svg {
-  width: 19px;
-  height: 19px;
-  color: var(--color-accent-text);
-}
-.micro-record-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-block: 1px solid var(--color-border);
-}
-.micro-record-summary > div {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) 0;
-}
-.micro-record-summary > div + div {
-  padding-inline-start: var(--space-3);
-  border-inline-start: 1px solid var(--color-border);
-}
-.micro-record-summary span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-number {
-  color: var(--color-text-primary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 26px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-  text-align: right;
-  unicode-bidi: isolate;
-}
-.micro-financial-pulse {
-  display: grid;
-  gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-4);
-  background: var(--color-surface);
-}
-.micro-financial-pulse-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-3);
-}
-.micro-financial-pulse-heading h2 {
-  margin: var(--space-1) 0 0;
-  font-size: 18px;
-}
-.micro-financial-pulse-heading > span {
-  color: var(--color-text-secondary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 12px;
-}
-.micro-financial-pulse dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0;
-}
-.micro-financial-pulse dl > div {
-  display: grid;
-  gap: var(--space-1);
-  min-height: 96px;
-  padding: var(--space-3) 0;
-}
-.micro-financial-pulse dl > div:nth-child(odd) {
-  padding-inline-end: var(--space-3);
-  border-inline-end: 1px solid var(--color-border);
-}
-.micro-financial-pulse dl > div:nth-child(-n + 2) {
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-financial-pulse dt,
-.micro-financial-pulse small,
-.micro-financial-pulse-note {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-.micro-financial-pulse dd {
-  margin: 0;
-  font-size: 24px;
-}
-.micro-financial-pulse-note {
-  margin: 0;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-}
-.micro-financial-pulse-note .micro-number {
-  display: inline;
-  font-size: 14px;
-}
-.micro-scope-line {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-}
-.micro-scope-line svg {
-  width: 18px;
-  height: 18px;
-  margin-top: 4px;
-  color: var(--color-accent-text);
-}
-.micro-scope-line p {
-  margin: 0;
-  font-size: 13px;
-}
-.micro-scope-line .micro-text-action {
-  grid-column: 2;
-}
-.micro-review-result {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 3px solid var(--color-success-text);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-4) 0;
-}
-.micro-review-result[data-result="estimated"],
-.micro-review-result[data-result="review_required"] {
-  border-top-color: var(--color-warning-text);
-}
-.micro-review-result[data-result="incomplete"] {
-  border-top-color: var(--color-accent-text);
-}
-.micro-review-result h2,
-.micro-review-result p {
-  margin: 0;
-}
-.micro-review-result span {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-.micro-review-result p {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.micro-review-result p .micro-number {
-  display: inline;
-  font-size: 16px;
-}
-.micro-review-empty {
-  display: grid;
-  gap: var(--space-3);
-  border-block: 1px solid var(--color-border);
-  padding: var(--space-5) 0;
-}
-.micro-review-empty h2,
-.micro-review-empty p {
-  margin: 0;
-}
-.micro-review-empty p {
-  color: var(--color-text-secondary);
-}
 .micro-period-result {
   display: grid;
   gap: var(--space-3);
@@ -2746,7 +2249,8 @@ button.micro-finance-position-link:focus-visible {
   display: grid;
   gap: 2px;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): تسميات حقول — أرضية 13px. */
+  font-size: var(--vf-text-label-size);
 }
 .micro-period-heading input {
   min-width: 116px;
@@ -2832,7 +2336,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-schedule-capacity .micro-field {
   gap: var(--space-1);
 }
-.micro-schedule-capacity .micro-button {
+.micro-schedule-capacity .micro-prim-button {
   justify-self: start;
 }
 .micro-week-agenda {
@@ -2975,15 +2479,6 @@ button.micro-finance-position-link:focus-visible {
   /* §1.3: أضيق فجوة قانونية لزوج تسمية/قيمة */
   gap: 2px;
 }
-.micro-wordmark {
-  font-size: 20px;
-  font-weight: 700;
-}
-.micro-header-context {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  font-weight: 600;
-}
 .micro-setup-page {
   gap: var(--space-6);
 }
@@ -3076,7 +2571,7 @@ button.micro-finance-position-link:focus-visible {
   padding: var(--space-3);
   background: var(--color-success-bg);
 }
-.micro-setup-decision .micro-button-primary {
+.micro-setup-decision .micro-prim-button--save {
   min-height: 52px;
 }
 @keyframes micro-enter {
@@ -3133,9 +2628,6 @@ button.micro-finance-position-link:focus-visible {
   font-size: 13px;
   line-height: 1.65;
 }
-.micro-full-action {
-  width: 100%;
-}
 .micro-supplier-list {
   display: grid;
   gap: var(--space-3);
@@ -3166,10 +2658,12 @@ button.micro-finance-position-link:focus-visible {
   justify-items: end;
   flex: 0 0 auto;
 }
-.micro-supplier-balance .micro-button {
+.micro-supplier-balance .micro-prim-button {
+  /* W2 (completion — تدقيق الوكيل ٣، F5): 12px كان تحت أرضية اللصائق
+   * المعتمدة (13px) — التصحيح لأرضية المعيار؛ 44px يبقى (عقد اللمس MR-03). */
   min-height: 44px;
   padding: 0 var(--space-3);
-  font-size: 12px;
+  font-size: 13px;
 }
 .micro-supplier-payable {
   color: var(--color-text-strong);
@@ -3206,15 +2700,11 @@ button.micro-finance-position-link:focus-visible {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
 }
-.micro-cash-actions .micro-button {
+.micro-cash-actions .micro-prim-button {
   width: 100%;
   min-height: 52px;
   padding-inline: var(--space-2);
   font-size: 13px;
-}
-.micro-cash-actions .micro-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 /* مبدأ Micro: الفعل المشروط يشرح شرطه القريب بدل زر معطل بلا تفسير. */
 .micro-later-action {
@@ -3239,19 +2729,6 @@ button.micro-finance-position-link:focus-visible {
 .micro-cash-history {
   border-top: 3px solid var(--color-accent-primary);
   padding-top: var(--space-3);
-}
-.micro-button-quiet {
-  /* عقد الإغلاق العميق (MR-03): هدف لمس 44px كحد أدنى — هذه الأزرار تحمل مداخل
-   * التصحيح والتراجع المالي (عدّل/تراجع/السجل والتصحيح) ولا يجوز أن تتقلص عن
-   * الحد الأدنى المعتمد في U09 (هدف لمس ٤٤ بكسل كحد أدنى). */
-  min-height: 44px;
-  border: 1px solid var(--color-border);
-  color: var(--color-accent-text);
-  background: transparent;
-  box-shadow: none;
-}
-.micro-button-quiet:hover {
-  background: var(--color-accent-soft);
 }
 @media (min-width: 641px) {
   body {
@@ -3599,26 +3076,6 @@ button.micro-finance-position-link:focus-visible {
 .micro-g5-declaration small {
   direction: rtl;
 }
-.micro-g5-choice-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-.micro-g5-choice {
-  min-height: 48px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  padding: var(--space-2);
-  color: var(--color-text-secondary);
-  background: var(--color-surface);
-  font-size: 13px;
-  font-weight: 600;
-}
-.micro-g5-choice[data-selected="true"] {
-  border-color: var(--color-accent-primary);
-  color: var(--color-accent-text);
-  background: var(--color-accent-soft);
-}
 .micro-g5-editor-page {
   gap: var(--space-4);
 }
@@ -3703,7 +3160,7 @@ button.micro-finance-position-link:focus-visible {
   justify-content: end;
   gap: var(--space-1);
 }
-.micro-install-actions .micro-button {
+.micro-install-actions .micro-prim-button {
   min-height: 44px;
   padding-inline: var(--space-3);
   font-size: 13px;
@@ -3721,7 +3178,7 @@ button.micro-finance-position-link:focus-visible {
     grid-column: 2;
     justify-content: start;
   }
-  .micro-install-actions .micro-button {
+  .micro-install-actions .micro-prim-button {
     flex: 1 1 auto;
   }
 }
@@ -3784,7 +3241,7 @@ button.micro-finance-position-link:focus-visible {
   justify-content: end;
   gap: var(--space-1);
 }
-.micro-runtime-actions .micro-button {
+.micro-runtime-actions .micro-prim-button {
   min-height: 44px;
   padding-inline: var(--space-3);
   font-size: 13px;
@@ -3807,7 +3264,7 @@ button.micro-finance-position-link:focus-visible {
     grid-column: 2;
     justify-content: start;
   }
-  .micro-runtime-actions .micro-button {
+  .micro-runtime-actions .micro-prim-button {
     flex: 1 1 auto;
   }
   .micro-runtime-confirmation {
@@ -3834,7 +3291,7 @@ button.micro-finance-position-link:focus-visible {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
-.micro-g5-reversal-editor .micro-button {
+.micro-g5-reversal-editor .micro-prim-button {
   width: 100%;
 }
 
@@ -4323,16 +3780,6 @@ button.micro-month-cell:active {
   color: var(--color-warning-text) !important;
   font-size: 12px !important;
 }
-.micro-button-quiet {
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  background: transparent;
-}
-@media (hover: hover) and (pointer: fine) {
-  .micro-button-quiet:hover {
-    background: var(--color-bg-well);
-  }
-}
 @media (max-width: 380px) {
   .micro-recurrence-appearances {
     grid-template-columns: 1fr;
@@ -4533,10 +3980,6 @@ button.micro-month-cell:active {
   display: grid;
   gap: var(--space-3);
 }
-.micro-finance-event-heading {
-  display: grid;
-  gap: var(--space-1);
-}
 .micro-finance-event-heading h2,
 .micro-finance-event-heading p {
   margin: 0;
@@ -4617,7 +4060,8 @@ button.micro-month-cell:active {
 }
 .micro-finance-event-toggle {
   justify-self: start;
-  font-size: 12px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): مفتاح تفاعلي — أرضية 13px. */
+  font-size: var(--vf-text-label-size);
 }
 .micro-finance-event-detail {
   display: grid;
@@ -4772,7 +4216,7 @@ button.micro-month-cell:active {
   color: var(--color-text-secondary);
   font-size: 12px;
 }
-.micro-home-finance-unit .micro-button {
+.micro-home-finance-unit .micro-prim-button {
   flex: 0 0 auto;
 }
 /* قسم «اليوم» (F-078): أولوية صباحية — المتابعات والمواعيد والديون من شاشة واحدة. */
@@ -4947,7 +4391,7 @@ button.micro-month-cell:active {
   font-size: 12px;
   line-height: 1.7;
 }
-.micro-inventory-inactive .micro-button {
+.micro-inventory-inactive .micro-prim-button {
   flex: 0 0 auto;
 }
 /* F-082: إيقاف سياسة توزيع فعالة — تأكيد مزدوج يبيّن أثره. */
@@ -5350,9 +4794,11 @@ button.micro-month-cell:active {
     align-items: start;
     padding-inline: var(--space-2);
   }
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-3): أرضية اللصائق التفاعلية 13px لا تنكسر
+   * في أضيق الهواتف — الالتفاف يحمي التخطيط بدل تصغير النص التفاعلي. */
   .micro-home-attention-item .micro-text-action,
   .micro-home-optional-item .micro-text-action {
-    font-size: 11px;
+    font-size: var(--vf-text-label-size);
   }
 }
 
@@ -5465,19 +4911,6 @@ button.micro-month-cell:active {
   height: 20px;
   color: var(--color-danger-text);
 }
-.micro-button-danger {
-  color: var(--color-surface);
-  background: var(--color-danger-text);
-}
-@media (hover: hover) and (pointer: fine) {
-  .micro-button-danger:hover {
-    background: color-mix(in srgb, var(--color-danger-text) 86%, var(--color-text-primary));
-  }
-}
-.micro-button-danger svg {
-  width: 18px;
-  height: 18px;
-}
 
 .micro-cash-decision {
   display: grid;
@@ -5534,7 +4967,7 @@ button.micro-month-cell:active {
   color: var(--color-text-strong);
   font-size: 14px;
 }
-.micro-cash-decision-footer .micro-button {
+.micro-cash-decision-footer .micro-prim-button {
   width: 100%;
 }
 .micro-cash-decision-truth {
@@ -5555,7 +4988,8 @@ button.micro-month-cell:active {
   display: grid;
   gap: 2px;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): تسميات حقول — أرضية 13px. */
+  font-size: var(--vf-text-label-size);
 }
 .micro-period-range-fields input {
   min-width: 0;
@@ -5577,7 +5011,7 @@ button.micro-month-cell:active {
   flex-wrap: wrap;
   gap: var(--space-2);
 }
-.micro-optional-cost-actions .micro-button {
+.micro-optional-cost-actions .micro-prim-button {
   min-height: 44px;
 }
 .micro-optional-cost-field {
@@ -5799,7 +5233,7 @@ button.micro-month-cell:active {
   direction: ltr;
   unicode-bidi: isolate;
 }
-.micro-owner-page .micro-button svg {
+.micro-owner-page .micro-prim-button svg {
   width: 17px;
   height: 17px;
 }
@@ -5919,7 +5353,8 @@ button.micro-month-cell:active {
   padding: 0 var(--space-2) 0 var(--space-1);
   color: var(--color-accent-text);
   background: var(--color-accent-soft);
-  font-size: 12px;
+  /* W7 (تدقيق الوكيل ٤، MEDIUM-4): أرضية اللصائق 13px. */
+  font-size: var(--vf-text-label-size);
 }
 .micro-chip button {
   /* المجموعة ٦ (تدقيق A1 — UX-03): هدف لمس ٤٤ بكسل كحد أدنى — فعل الإيقاف شبه
@@ -6036,7 +5471,7 @@ button.micro-month-cell:active {
     flex-direction: row;
     width: 100%;
   }
-  .micro-action-column .micro-button {
+  .micro-action-column .micro-prim-button {
     flex: 1 1 140px;
   }
 }
@@ -6105,11 +5540,6 @@ button.micro-month-cell:active {
 /* First-use acceptance: keep the agreement commit target clear of the fixed nav/FAB when the form is scrolled to its end. */
 .micro-main[data-route-kind="surface"] .micro-agreement-page .micro-form-card {
   padding-bottom: calc(var(--space-4) + 88px + env(safe-area-inset-bottom));
-}
-.micro-agreement-page .micro-save-cost {
-  position: relative;
-  z-index: 1;
-  min-height: 52px;
 }
 
 /* Final-only review totals must expose the excluded delivered sources next to the scope note. */
@@ -6748,11 +6178,6 @@ button.micro-month-cell:active {
   font-family: inherit;
   background: var(--color-surface);
   color: var(--color-text-primary);
-}
-.micro-choice-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
 }
 .micro-offline-truth {
   color: var(--color-text-secondary);

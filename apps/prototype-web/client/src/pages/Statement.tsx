@@ -26,6 +26,7 @@ import type {
   StatementExpenseCategoryGroup,
 } from "@/application/finance/statementService";
 
+import { Button } from "@/components/primitives";
 type State =
   { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: StatementReading };
 
@@ -205,13 +206,13 @@ export default function Statement() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الكشف</h1>
         <p>{state.message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           رجوع
-        </button>
+        </Button>
       </section>
     );
 
@@ -565,13 +566,13 @@ export default function Statement() {
           حدثًا ماليًا. مشاركته إن شئت فعلٌ يدوي بيدك وحدك.
         </p>
         <div className="micro-form-actions">
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             onClick={() => void generateReport()}
           >
             <Share2 aria-hidden="true" /> ولّد ونزّل التقرير
-          </button>
+          </Button>
         </div>
         {reportNotice ? (
           <p className="micro-offline-truth" role="status">
@@ -580,13 +581,13 @@ export default function Statement() {
         ) : null}
       </section>
       <div className="micro-finance-actions">
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(sourceHref ? sourceHref : withFromFallback(returnPath))}
         >
           <Landmark aria-hidden="true" /> الوضع المالي
-        </button>
+        </Button>
       </div>
       <section className="micro-finance-truth" aria-label="حدود هذا الكشف">
         <FileText aria-hidden="true" />

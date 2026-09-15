@@ -22,6 +22,7 @@ import type {
   DeliveryReview,
 } from "@/application/fulfillment/deliveryReviewService";
 
+import { Button } from "@/components/primitives";
 type PageState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -444,8 +445,10 @@ export default function DeliveryReviewPage() {
                       </select>
                     </label>
                   ) : null}
+                  {/* W2 (completion — تدقيق الوكيل ٢، F9): خطأ تحقق مُعلَن مثل
+                   * بقية أخطاء الحقول — لا صمتًا في قارئ الشاشة. */}
                   {collectAmountMinor > ready.money.receivableMinor ? (
-                    <p className="micro-field-error">
+                    <p className="micro-field-error" role="alert">
                       المقبوض يتجاوز المتبقي ({formatMoneyMinor(ready.money.receivableMinor)} د.أ).
                     </p>
                   ) : null}
@@ -460,9 +463,9 @@ export default function DeliveryReviewPage() {
             </p>
           ) : null}
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="commit"
+
               disabled={submitting}
               onClick={() => {
                 void submit();
@@ -470,15 +473,15 @@ export default function DeliveryReviewPage() {
             >
               <CheckCircle2 aria-hidden="true" />
               {submitting ? "جارٍ تأكيد التسليم…" : "أكّد التسليم"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               disabled={submitting}
               onClick={() => requestNavigation(orderHref)}
             >
               رجوع بلا تسليم
-            </button>
+            </Button>
           </div>
         </>
       ) : null}
@@ -510,13 +513,13 @@ export default function DeliveryReviewPage() {
             </p>
           ) : null}
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate(orderHref)}
             >
               فتح تفاصيل الطلب
-            </button>
+            </Button>
           </div>
         </section>
       ) : null}

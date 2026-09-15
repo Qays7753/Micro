@@ -28,6 +28,7 @@ import type { SupplierPurchase, SupplierPurchasePayment } from "@micro-domain/su
 import type { Material } from "@micro-domain/inventory-material/index.js";
 import type { PurchaseReceiptStatus } from "@/application/inventory/inventoryMaterialService";
 
+import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();
 
 type EditorMode = "new" | "payment" | "edit";
@@ -410,13 +411,13 @@ export default function SupplierPurchaseEditor() {
       <section className="micro-page micro-not-found">
         <h1>شراء المواد غير موجود</h1>
         <p>قد يكون السجل حُذف من هذا الجهاز أو لم يعد متاحًا.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/suppliers")}
         >
           مشتريات المواد
-        </button>
+        </Button>
       </section>
     );
 
@@ -462,16 +463,16 @@ export default function SupplierPurchaseEditor() {
             {STALE_CONFLICT_NOTE}
           </p>
           <div className="micro-form-actions micro-contextual-actions">
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               disabled={saving}
               onClick={() => {
                 void reloadCurrentPurchase();
               }}
             >
               {STALE_RELOAD_ACTION_LABEL}
-            </button>
+            </Button>
           </div>
         </section>
       ) : null}
@@ -556,9 +557,9 @@ export default function SupplierPurchaseEditor() {
                   ?.tracking?.status === "untracked" ? (
                   <small>للاستلام لاحقًا: فعّل متابعة المادة أولًا.</small>
                 ) : (
-                  <button
-                    className="micro-button micro-button-primary"
-                    type="button"
+                  <Button
+                    action="create"
+
                     onClick={() =>
                       navigate(
                         withFrom(
@@ -569,7 +570,7 @@ export default function SupplierPurchaseEditor() {
                     }
                   >
                     <PackagePlus aria-hidden="true" /> استلم المواد في المخزون
-                  </button>
+                  </Button>
                 )
               ) : (
                 <small>استُلمت قيمة هذا الشراء كاملة.</small>
@@ -601,16 +602,16 @@ export default function SupplierPurchaseEditor() {
                         </small>
                       </div>
                       {!reversed ? (
-                        <button
-                          className="micro-button micro-button-quiet"
-                          type="button"
+                        <Button
+                          action="quiet"
+
                           onClick={() => {
                             setReversalTarget(payment);
                             setReversalReason("");
                           }}
                         >
                           <RotateCcw aria-hidden="true" /> تراجع موثق
-                        </button>
+                        </Button>
                       ) : null}
                     </article>
                   );
@@ -655,22 +656,22 @@ export default function SupplierPurchaseEditor() {
           ) : null}
           {!editing ? (
             <div className="micro-form-actions">
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              <Button
+                action="secondary"
+
                 onClick={() => setEditing(true)}
               >
                 <Undo2 aria-hidden="true" /> عدّل هذا الشراء
-              </button>
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              </Button>
+              <Button
+                action="secondary"
+
                 onClick={() =>
                   requestNavigation(`/suppliers/purchase/${encodeURIComponent(purchase.id)}/payment`)
                 }
               >
                 سجّل دفعة إضافية
-              </button>
+              </Button>
             </div>
           ) : null}
           {editing ? (
@@ -947,15 +948,16 @@ export default function SupplierPurchaseEditor() {
               </p>
             ) : null}
             <div className="micro-form-actions micro-sticky-save">
-              <button
-                className="micro-button micro-button-primary micro-save-cost"
-                type="button"
+              <Button
+                action="save"
+                block
+
                 disabled={saving}
                 onClick={paymentMode ? savePayment : savePurchase}
               >
                 <Save aria-hidden="true" />
                 {saving ? "جارٍ الحفظ…" : paymentMode ? "حفظ الدفعة" : "حفظ شراء المواد"}
-              </button>
+              </Button>
             </div>
           </section>
         </>

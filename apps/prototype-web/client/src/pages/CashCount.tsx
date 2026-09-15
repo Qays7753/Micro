@@ -19,6 +19,7 @@ import {
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 
+import { Button } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -67,13 +68,13 @@ export default function CashCount() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة المحافظ</h1>
         <p>{state.message}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           محافظ الكاش
-        </button>
+        </Button>
       </section>
     );
 
@@ -135,13 +136,13 @@ export default function CashCount() {
             بأثر مستقبلي فقط.
           </p>
         </section>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(returnPath)}
         >
           محافظ الكاش <ArrowRight aria-hidden="true" />
-        </button>
+        </Button>
       </section>
     );
   }
@@ -209,15 +210,15 @@ export default function CashCount() {
               {message}
             </p>
           ) : null}
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             disabled={saving}
             onClick={() => void settle()}
           >
             <Calculator aria-hidden="true" />
             {saving ? "جارٍ التسجيل…" : "سجّل التسوية"}
-          </button>
+          </Button>
         </section>
       )}
     </section>

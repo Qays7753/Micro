@@ -16,6 +16,7 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { AgreementSource, OrderDraft } from "@/storage/local/types";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
+import { Button } from "@/components/primitives";
 type AgreementFormValues = {
   priceMinor: number | null;
   deliveryDate: string;
@@ -246,13 +247,13 @@ export default function AgreementEditor() {
       <section className="micro-page micro-not-found">
         <h1>التكلفة المطلوبة غير متاحة</h1>
         <p>احفظ نسخة تكلفة صالحة قبل تسجيل الاتفاق.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(`/orders/draft/${params.id}/cost`)}
         >
           فتح التكلفة
-        </button>
+        </Button>
       </section>
     );
   async function submit() {
@@ -437,9 +438,10 @@ export default function AgreementEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={isSaving}
             onClick={() => {
               void submit();
@@ -447,7 +449,7 @@ export default function AgreementEditor() {
           >
             <Save aria-hidden="true" />
             {isSaving ? "جارٍ تسجيل الاتفاق…" : "تسجيل الاتفاق"}
-          </button>
+          </Button>
         </div>
       </section>
     </section>

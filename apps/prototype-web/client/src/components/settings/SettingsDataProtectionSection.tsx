@@ -24,6 +24,7 @@ import { formatLocalDate } from "@/presentation/formatters";
 import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
 
+import { Button, FeedbackNote, type FeedbackKind } from "@/components/primitives";
 export type SettingsDataProtectionSectionProps = {
   persistence: BrowserPersistenceReading | null;
   lastExport: string | null;
@@ -36,7 +37,7 @@ export type SettingsDataProtectionSectionProps = {
   >;
   resetNameConfirmation: string;
   setResetNameConfirmation: Dispatch<SetStateAction<string>>;
-  diagnosticCopyResult: { message: string } | null;
+  diagnosticCopyResult: { kind: FeedbackKind; message: string } | null;
   preview: TransferPreview | null;
   isWorking: boolean;
   notice: { text: string; section: "storage" | "mode" } | null;
@@ -45,7 +46,7 @@ export type SettingsDataProtectionSectionProps = {
   startResetFlow: () => Promise<void>;
   chooseImport: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   confirmReset: () => Promise<void>;
-  setStorageNotice: (text: string) => void;
+  setStorageNotice: (kind: FeedbackKind, text: string) => void;
   notifyDataChanged: () => void;
   onToggleBackupReminder: () => void;
   inputRef: RefObject<HTMLInputElement | null>;
@@ -114,17 +115,15 @@ export function SettingsDataProtectionSection({
               سجل حوادث محديد الحجم على هذا الجهاز فقط — معرّف حادثة وقالب مسار ورمز خطأ فقط؛ بلا أسماء أو
               مبالغ أو رموز قفل؛ ولا يُرسل شيءًا تلقائيًا أبدًا.
             </p>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => void copyDiagnosticReport()}
             >
               <FileCheck2 aria-hidden="true" /> نسخ التقرير المحلي
-            </button>
+            </Button>
             {diagnosticCopyResult ? (
-              <p className="micro-save-note" role="status">
-                {diagnosticCopyResult.message}
-              </p>
+              <FeedbackNote kind={diagnosticCopyResult.kind} word={diagnosticCopyResult.message} />
             ) : null}
           </div>
         </article>
@@ -254,22 +253,22 @@ export function SettingsDataProtectionSection({
               هو. الملف المحمّل هو نسختك الوحيدة.
             </p>
             <div className="micro-form-actions">
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={isWorking}
                 onClick={() => setResetFlow({ phase: "idle" })}
               >
                 إلغاء — بياناتي تبقى
-              </button>
-              <button
-                className="micro-button micro-button-danger"
-                type="button"
+              </Button>
+              <Button
+                action="destructive"
+
                 disabled={isWorking || resetNameConfirmation.trim() !== "ابدأ من جديد"}
                 onClick={() => void confirmReset()}
               >
                 {isWorking ? "جارٍ المسح…" : "امسح وابدأ من جديد"}
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}
@@ -304,16 +303,16 @@ function StorageRow({
         <h2>{title}</h2>
         <p>{text}</p>
       </div>
-      <button
-        className="micro-button micro-button-secondary"
-        type="button"
+      <Button
+        action="secondary"
+
         disabled={disabled}
         onClick={onClick}
         aria-label={label}
       >
         <Icon aria-hidden="true" />
         {actionLabel}
-      </button>
+      </Button>
     </article>
   );
 }

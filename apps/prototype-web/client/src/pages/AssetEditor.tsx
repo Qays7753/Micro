@@ -18,6 +18,7 @@ import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanne
 import { useFormDraft } from "@/components/forms/useFormDraft";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
+import { Button, ChoiceButton, ChoiceRow } from "@/components/primitives";
 export default function AssetEditor() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
@@ -218,22 +219,18 @@ export default function AssetEditor() {
       </label>
       <fieldset className="micro-field">
         <legend>الدفع</legend>
-        <div className="micro-choice-row">
-          <button
-            type="button"
-            className={`micro-button ${acquisitionKind === "cash" ? "micro-button-primary" : "micro-button-secondary"}`}
-            onClick={() => setAcquisitionKind("cash")}
-          >
+        {/* W2 (completion): عقد الاختيار — حافة clay-interactive للمختار + وزن أثقل. */}
+        <ChoiceRow>
+          <ChoiceButton selected={acquisitionKind === "cash"} onClick={() => setAcquisitionKind("cash")}>
             دفعت نقدًا
-          </button>
-          <button
-            type="button"
-            className={`micro-button ${acquisitionKind === "payable" ? "micro-button-primary" : "micro-button-secondary"}`}
+          </ChoiceButton>
+          <ChoiceButton
+            selected={acquisitionKind === "payable"}
             onClick={() => setAcquisitionKind("payable")}
           >
             على الذمم (أدفع لاحقًا)
-          </button>
-        </div>
+          </ChoiceButton>
+        </ChoiceRow>
       </fieldset>
       <LocalDateField
         label="تاريخ الشراء"
@@ -242,22 +239,14 @@ export default function AssetEditor() {
       />
       <fieldset className="micro-field">
         <legend>هذا الشيء للاستخدام لفترة طويلة؟</legend>
-        <div className="micro-choice-row">
-          <button
-            type="button"
-            className={`micro-button ${longUse === "yes" ? "micro-button-primary" : "micro-button-secondary"}`}
-            onClick={() => setLongUse("yes")}
-          >
+        <ChoiceRow>
+          <ChoiceButton selected={longUse === "yes"} onClick={() => setLongUse("yes")}>
             نعم، عمره طويل
-          </button>
-          <button
-            type="button"
-            className={`micro-button ${longUse === "no" ? "micro-button-primary" : "micro-button-secondary"}`}
-            onClick={() => setLongUse("no")}
-          >
+          </ChoiceButton>
+          <ChoiceButton selected={longUse === "no"} onClick={() => setLongUse("no")}>
             لا، يُستهلك فورًا
-          </button>
-        </div>
+          </ChoiceButton>
+        </ChoiceRow>
         <p className="micro-field-hint">
           {longUse === "no"
             ? "إذًا هو مصروف عادي — سجّله من «سجّل ← تسجيل مصروف» ليدخل نتيجة فترته."
@@ -318,14 +307,14 @@ export default function AssetEditor() {
       <div className="micro-form-actions">
         {/* المجموعة ٤ (تصحيح مراجعة 4-c): «يُستهلك فورًا» = مصروف عادي — الحفظ
          * كأصل محجوب والإرشاد يوجّه لمسار المصروف؛ لا تناقض بين القول والفعل. */}
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="save"
+
           disabled={saving || longUse === "no"}
           onClick={() => void save()}
         >
           <Save aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "احفظ الأصل"}
-        </button>
+        </Button>
       </div>
       <p className="micro-offline-truth">يعمل بلا إنترنت — يُحفظ محليًا على جهازك.</p>
       <ArrowRight aria-hidden="true" className="micro-visual-hidden" />

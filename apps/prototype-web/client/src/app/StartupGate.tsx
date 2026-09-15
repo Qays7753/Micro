@@ -2,6 +2,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { Button } from "@/components/primitives";
 import { requestPersistentStorage } from "@/storage/local/persistentStorage";
 import type { StorageFailure } from "@/storage/local/types";
 
@@ -77,13 +78,12 @@ export function StartupGate({ children }: { children: ReactNode }) {
       <div className="micro-storage-error" role="alert">
         <strong>{copy.title}</strong>
         <p>{copy.description}</p>
-        <button
-          type="button"
-          className="micro-button micro-button-secondary"
-          onClick={() => window.location.reload()}
-        >
+        {/* W2 (completion): إعادة المحاولة = صنف الحفظ (سابقة رحلة الرئيسية
+         * المعتمدة في W4 — نفس فعل window.location.reload)؛ يكسب الزر عقد
+         * المكوّن الأولي: 48px، تركيز مرئي، منع التكرار. */}
+        <Button action="save" onClick={() => window.location.reload()}>
           إعادة المحاولة
-        </button>
+        </Button>
       </div>
     );
   }

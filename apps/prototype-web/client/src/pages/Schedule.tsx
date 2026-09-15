@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { Button, EmptyState, StatusChip } from "@/components/primitives";
 import { withFrom } from "@/app/navigationContract";
 import type {
   MonthOverview,
@@ -162,20 +163,20 @@ export default function Schedule() {
         <h1>تعذر تحميل المواعيد</h1>
         <p>{state.message} لم يتم تغيير أي موعد.</p>
         <div className="micro-form-actions">
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             onClick={() => setReloadToken(token => token + 1)}
           >
             إعادة المحاولة
-          </button>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+
             onClick={() => navigate("/orders")}
           >
             الطلبات
-          </button>
+          </Button>
         </div>
       </section>
     );
@@ -239,21 +240,17 @@ export default function Schedule() {
         />
       ) : null}
       {total === 0 ? (
-        <section className="micro-empty-state">
-          <span className="micro-empty-symbol">
-            <CalendarDays aria-hidden="true" />
-          </span>
-          <span className="micro-status-chip">لا توجد مواعيد تشغيلية</span>
-          <h2>لا توجد طلبات تحتاج موعدًا الآن</h2>
-          <p>عند تسجيل اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</p>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            onClick={() => navigate("/orders/draft/new?intent=customer_order")}
-          >
-            بدء طلب
-          </button>
-        </section>
+        <EmptyState
+          symbol={<CalendarDays />}
+          state={<StatusChip state="no-data">لا توجد مواعيد تشغيلية</StatusChip>}
+          title={<h2>لا توجد طلبات تحتاج موعدًا الآن</h2>}
+          description={<>عند تسجيل اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</>}
+          action={
+            <Button action="create" onClick={() => navigate("/orders/draft/new?intent=customer_order")}>
+              بدء طلب
+            </Button>
+          }
+        />
       ) : null}
       <details className="micro-decision-layer">
         <summary className="micro-decision-layer-summary">
@@ -378,14 +375,14 @@ export default function Schedule() {
               {capacityMessage}
             </p>
           ) : null}
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             disabled={savingCapacity}
             onClick={saveCapacity}
           >
             {savingCapacity ? "جارٍ حفظ السعة…" : "حفظ سعة اليوم"}
-          </button>
+          </Button>
         </section>
       </details>
     </section>
@@ -415,13 +412,14 @@ function CapacityDecisionSurface({
         tone={decision.tone}
       />
       <div className="micro-capacity-actions">
-        <button
-          className="micro-button micro-button-primary micro-button-block"
-          type="button"
+        <Button
+          action="secondary"
+          block
+
           onClick={() => onOpen(nextItem)}
         >
           {nextItem ? "فتح أقرب متابعة" : "فتح الطلبات"}
-        </button>
+        </Button>
         {underPressure ? (
           <button className="micro-text-action" type="button" onClick={onOpenCapacity}>
             حدّد سعة اليوم
@@ -562,14 +560,14 @@ function RecurrencePanel({
             <CalendarDays aria-hidden="true" /> التكرار ينقل اليوم والوقت والمدة كما هي. الوقت غير المحدد يبقى
             غير محدد، والتعارض أو تجاوز السعة يظهران كتحذير فقط.
           </p>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             disabled={saving || !selectedSourceId}
             onClick={create}
           >
             {saving ? "جارٍ حفظ القالب…" : "حفظ قالب التكرار"}
-          </button>
+          </Button>
         </div>
       )}
       {message ? (
@@ -645,17 +643,17 @@ function RecurrencePanel({
                       />
                     </label>
                     <div className="micro-form-actions">
-                      <button
-                        className="micro-button micro-button-secondary"
-                        type="button"
+                      <Button
+                        action="secondary"
+
                         disabled={saving}
                         onClick={() => cancel(view.recurrence.id)}
                       >
                         إيقاف المواعيد القادمة
-                      </button>
-                      <button
-                        className="micro-button micro-button-quiet"
-                        type="button"
+                      </Button>
+                      <Button
+                        action="quiet"
+
                         disabled={saving}
                         onClick={() => {
                           setCancellingId(null);
@@ -663,7 +661,7 @@ function RecurrencePanel({
                         }}
                       >
                         إلغاء
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (

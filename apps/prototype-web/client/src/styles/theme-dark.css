@@ -1,0 +1,150 @@
+/* ============================================================================
+   Micro — Permanent Dark Theme (the single owner of dark values)
+   ----------------------------------------------------------------------------
+   R3/W5 (D1): Dark Mode is a permanent, user-selected, persisted theme.
+   Rules (owner-approved dark wave; supersedes ADR-007 per its own clause):
+   - ONE semantic-role mapping layer: the --vf-* contracts defined in
+     styles/vf-tokens.css (:root, light) are REBOUND here for .dark. No dark
+     components, no dark-only primitives, no second Micro alias layer.
+   - Light layer untouched: the 18 approved light hexes and the Micro-owned
+     light tint pairs stay exactly as they are.
+   - This file is the ONLY place dark hex values may live
+     (scripts/design-token-guards.py enforces the single source).
+   - The retired v0 dark palette (#1c1917/#d59172/#8fd5d6/#5ec0c1/#cc785c…)
+     is gone from the runtime path — none of it returns.
+   - Identity is preserved: Clay #D97757 remains identity/create/FAB;
+     #C96442 remains pressed/chosen; the Warm-Ink commitment ROLE keeps the
+     highest-contrast fill — in dark that fill is deliberately inverted to
+     the warm paper ink (#F2EEE6) with dark ink text, documented here as the
+     single sanctioned inversion.
+   - Floors are mechanically verified in BOTH themes by
+     scripts/theme-contrast-guard.py (text >= 4.5:1, marks >= 3:1).
+   - color-scheme: dark renders native controls (inputs, scrollbars,
+     form chrome) dark; :root declares color-scheme: light.
+   ============================================================================ */
+
+:root.dark {
+  /* :root.dark (0,2,0) — must beat index.css :root (0,1,0) regardless of
+     import order: the .dark overrides own the html element in dark mode. */
+  color-scheme: dark;
+
+  /* -- Surfaces (warm dark paper family) --------------------------------- */
+  --vf-canvas: #211d18;
+  --vf-ground: #2a2520;
+  --vf-recessed: #1b1814;
+  --vf-surface: #2b2620;
+  --vf-tint: #353028;
+  --vf-soft: #463f34;
+  --vf-border: #3f382f;
+  --vf-border-interactive: #8f897c;
+
+  /* -- Ink ---------------------------------------------------------------- */
+  --vf-ink: #f2eee6;
+  --vf-ink-secondary: #c8c1b2;
+  --vf-ink-tertiary: #a59e8f;
+  --vf-ink-on-dark: #141413; /* stays dark: it sits ON clay fills */
+  --vf-ink-on-tint: #f2eee6;
+  --vf-ink-pressed: #d8d3c6; /* pressed shade of the light commit fill */
+  --vf-disabled-surface: #2b2620;
+  --vf-disabled-ink: #8f897c;
+  --vf-focus: #f2eee6;
+  --vf-field-border-focus: #8f897c;
+
+  /* -- Identity + semantic roles ------------------------------------------ */
+  --vf-clay: #d97757; /* identity preserved exactly */
+  --vf-clay-interactive: #c96442; /* pressed/chosen preserved exactly */
+  --vf-info: #6aa6ec;
+  --vf-status: #55a4ff;
+  --vf-success: #7cb8a1;
+  --vf-error: #e0796f;
+
+  /* -- Action contracts ---------------------------------------------------- */
+  --vf-action-create: var(--vf-clay);
+  --vf-action-create-pressed: var(--vf-clay-interactive);
+  --vf-action-create-ink: #141413; /* dark ink on clay — same as light */
+  --vf-action-create-icon-ink: #ffffff;
+  --vf-action-save-bg: var(--vf-tint);
+  --vf-action-save-ink: var(--vf-ink);
+  --vf-action-save-pressed-edge: var(--vf-clay-interactive);
+  --vf-action-commit-bg: #f2eee6; /* deliberate documented inversion of the
+     Warm-Ink commitment fill: in dark, commitment = the lightest surface */
+  --vf-action-commit-ink: #141413;
+  --vf-action-commit-pressed: var(--vf-ink-pressed);
+
+  /* -- Button bindings ------------------------------------------------------ */
+  --vf-btn-primary-bg: #f2eee6;
+  --vf-btn-primary-bg-pressed: #d8d3c6;
+  --vf-btn-primary-ink: #141413;
+  --vf-btn-save-bg: var(--vf-tint);
+  --vf-btn-save-ink: var(--vf-ink);
+  --vf-btn-save-pressed-edge: var(--vf-clay-interactive);
+  --vf-btn-create-bg: var(--vf-clay);
+  --vf-btn-create-ink: #141413;
+  --vf-btn-create-pressed: var(--vf-clay-interactive);
+  --vf-btn-secondary-bg: var(--vf-tint);
+  --vf-btn-secondary-bg-pressed: var(--vf-soft);
+  --vf-btn-secondary-ink: var(--vf-ink-on-tint);
+  --vf-btn-outline-bg: var(--vf-surface);
+  --vf-btn-outline-ink: var(--vf-ink);
+  --vf-btn-outline-border: var(--vf-border-interactive);
+  --vf-btn-ghost-ink: var(--vf-ink-tertiary);
+  --vf-btn-destructive-ink: var(--vf-error);
+  --vf-btn-destructive-border: var(--vf-error);
+
+  /* -- Elevation (deep warm shadows — decoration, not palette) -------------- */
+  --vf-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --vf-shadow-e1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --vf-shadow-e2: 0 6px 20px rgba(0, 0, 0, 0.42);
+  --vf-shadow-e3: 0 16px 40px rgba(0, 0, 0, 0.55);
+
+  /* -- Functional derivatives ------------------------------------------------ */
+  --vf-scrim: rgba(12, 11, 9, 0.62);
+  --vf-header-translucent: rgba(33, 29, 24, 0.88);
+
+  /* -- Micro runtime aliases (mode-adaptive names of index.css :root) -------- */
+  --color-bg-canvas: var(--vf-canvas);
+  --color-bg-well: var(--vf-recessed);
+  --color-surface: var(--vf-surface);
+  --color-border: var(--vf-tint);
+  --color-divider: var(--vf-soft);
+  --color-text-primary: var(--vf-ink);
+  --color-text-strong: var(--vf-ink);
+  --color-text-secondary: var(--vf-ink-secondary);
+  --color-brand-primary: var(--vf-clay);
+  --color-brand-pressed: var(--vf-clay-interactive);
+  --color-brand-text: var(--vf-ink);
+  --color-brand-soft: var(--vf-recessed);
+  --color-accent-primary: var(--vf-clay-interactive);
+  --color-accent-text: var(--vf-ink);
+  --color-accent-soft: var(--vf-tint);
+  --color-success-text: #7cb8a1;
+  --color-success-bg: #242e27;
+  --color-danger-text: var(--vf-error);
+  --color-danger-bg: #34211d;
+  --color-warning-text: #d9b978;
+  --color-warning-bg: #33301f;
+  --color-ink-on-color: #141413; /* ink ON clay/colored fills — never the
+     theme ink: it must stay dark in dark mode (clay is a light fill) */
+  --background: var(--color-bg-canvas);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--vf-action-create);
+  --primary-foreground: var(--color-ink-on-color);
+  --secondary: var(--vf-btn-secondary-bg);
+  --secondary-foreground: var(--vf-btn-secondary-ink);
+  --muted: var(--color-bg-well);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-accent-soft);
+  --accent-foreground: var(--color-accent-text);
+  --destructive: var(--color-danger-text);
+  --destructive-foreground: var(--color-ink-on-color);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--vf-focus);
+  --elevation-1: var(--vf-shadow-e1);
+  --elevation-2: var(--vf-shadow-e2);
+  --elevation-3: var(--vf-shadow-e3);
+}

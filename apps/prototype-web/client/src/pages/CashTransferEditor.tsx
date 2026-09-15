@@ -11,12 +11,16 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletBalance } from "@/application/cash/cashContinuityService";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { Button } from "@/components/primitives";
 export default function CashTransferEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
   const { dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [wallets, setWallets] = useState<readonly CashWalletBalance[]>([]);
+  /* W2 (completion — تدقيق الوكيل ٢، F7): بوابة قراءة أولى — المحافظ أثناء
+   * التحميل ليست «لا محافظ كافية». */
+  const [loading, setLoading] = useState(true);
   const [fromWalletId, setFromWalletId] = useState("");
   const [toWalletId, setToWalletId] = useState("");
   const [amountMinor, setAmountMinor] = useState(0);
@@ -30,11 +34,13 @@ export default function CashTransferEditor() {
     cashContinuity.overview().then(result => {
       if (!result.ok) {
         setMessage(result.message);
+        setLoading(false);
         return;
       }
       setWallets(result.value.wallets);
       setFromWalletId(result.value.wallets[0]?.id ?? "");
       setToWalletId(result.value.wallets[1]?.id ?? "");
+      setLoading(false);
     });
   }, [cashContinuity, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
@@ -66,18 +72,45 @@ export default function CashTransferEditor() {
     navigate(returnPath);
     return true;
   }
+  if (loading)
+    return (
+      <div className="micro-route-loading" role="status" aria-live="polite">
+        جارٍ قراءة محافظ الكاش…
+      </div>
+    );
+  /* W7 (تدقيق الوكيل ٤، HIGH-2): فشل القراءة ليس «لا محافظ كافية» — فرع خطأ
+   * صريح يمنع خلق محفظة مكررة بعد عطل تخزين. */
+  if (message && wallets.length === 0)
+    return (
+      <section className="micro-page micro-finance-page">
+        <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
+          <ArrowRight aria-hidden="true" /> محافظ الكاش
+        </button>
+        <div className="micro-page-heading">
+          <span className="micro-overline">تحويل بين المحافظ</span>
+          <h1>تعذر قراءة محافظ الكاش</h1>
+        </div>
+        <p className="micro-field-error" role="alert">
+          {message}
+        </p>
+        <p>لم يتغير أي سجل. أعد فتح التطبيق للمحاولة.</p>
+        <Button action="save" onClick={() => window.location.reload()}>
+          إعادة المحاولة
+        </Button>
+      </section>
+    );
   if (wallets.length < 2)
     return (
       <section className="micro-page micro-not-found">
         <h1>تحتاج محافظتين للتحويل</h1>
         <p>أضف مكان كاش آخر أولًا؛ التحويل لا ينشئ كاشًا جديدًا.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => navigate("/cash/wallet/new")}
         >
           أضف محفظة
-        </button>
+        </Button>
       </section>
     );
   return (
@@ -145,15 +178,16 @@ export default function CashTransferEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-save-cost"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={save}
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ الحفظ…" : "حفظ التحويل"}
-          </button>
+          </Button>
         </div>
       </section>
     </section>

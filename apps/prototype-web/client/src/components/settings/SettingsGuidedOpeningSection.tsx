@@ -11,6 +11,7 @@ import type { TransferPreview, TransferSummary } from "@/application/transfers/l
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDateTime } from "@/presentation/formatters";
 
+import { Button, FeedbackNote, type FeedbackKind } from "@/components/primitives";
 export type SettingsGuidedOpeningSectionProps = {
   guidedLayerOpen: boolean;
   setGuidedLayerOpen: Dispatch<SetStateAction<boolean>>;
@@ -21,7 +22,7 @@ export type SettingsGuidedOpeningSectionProps = {
   isWorking: boolean;
   preview: TransferPreview | null;
   setPreview: Dispatch<SetStateAction<TransferPreview | null>>;
-  notice: { text: string; section: "storage" | "mode" } | null;
+  notice: { kind: FeedbackKind; text: string; section: "storage" | "mode" } | null;
   chooseGuidedOpeningImport: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   confirmGuidedOpeningImport: () => Promise<void>;
   confirmImport: () => Promise<void>;
@@ -78,14 +79,14 @@ export function SettingsGuidedOpeningSection({
             أدخل نشاطًا ومحافظ كاش وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى
             مبيعات أو ربح أو ديون.
           </p>
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             disabled={isWorking}
             onClick={() => guidedInputRef.current?.click()}
           >
             اختيار ملف البداية
-          </button>
+          </Button>
           <input
             ref={guidedInputRef}
             className="micro-visually-hidden"
@@ -136,22 +137,22 @@ export function SettingsGuidedOpeningSection({
               بعد التأكيد.
             </p>
             <div className="micro-form-actions">
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={isWorking}
                 onClick={() => setGuidedPreview(null)}
               >
                 إلغاء
-              </button>
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              </Button>
+              <Button
+                action="save"
+
                 disabled={isWorking}
                 onClick={confirmGuidedOpeningImport}
               >
                 {isWorking ? "جارٍ الإدخال…" : "تأكيد إدخال البداية"}
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}
@@ -222,30 +223,26 @@ export function SettingsGuidedOpeningSection({
               </p>
             ) : null}
             <div className="micro-form-actions">
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={isWorking}
                 onClick={() => setPreview(null)}
               >
                 إلغاء
-              </button>
-              <button
-                className="micro-button micro-button-primary"
-                type="button"
+              </Button>
+              <Button
+                action="commit"
+
                 disabled={isWorking}
                 onClick={confirmImport}
               >
                 {isWorking ? "جارٍ الاستيراد…" : "استبدال البيانات المحلية"}
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}
-        {notice?.section === "storage" ? (
-          <p className="micro-save-note" role="status">
-            {notice.text}
-          </p>
-        ) : null}
+        {notice?.section === "storage" ? <FeedbackNote kind={notice.kind} word={notice.text} /> : null}
         {restoreCheck ? (
           <article className="micro-setting-row" data-status={restoreCheck.overall}>
             <div>

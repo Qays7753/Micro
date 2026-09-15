@@ -1,0 +1,7 @@
+# ADR-004: AUX shell owns chrome, never business workflows
+
+**Status:** Accepted (W3, commit 7e76e63; re-verified in the completion run — 15 sheet tests green after the action migration)
+**Context:** The QuickActionSheet originally interleaved shell behavior with sale/expense form logic, risking policy leakage into the shell and silent input resets.
+**Decision:** The AUX shell (`components/layout/`) owns: header, bottom navigation, FAB, safe areas, keyboard chrome hiding (`data-keyboard-open`), route chrome classification, scroll ownership, the overlay z-ladder, and the QuickActionSheet's mode dispatch, open/close lifecycle, forms-protection discard question, receipt display, and read-only prefetch. Finance feature patterns (`QuickSaleForm`, `QuickExpenseForm`) own fields, validation, submission, wallet attribution, and idempotency. Forms stay mounted (hidden) for the whole sheet session — no silent reset.
+**Sanctioned imports (boundary precision):** the shell imports feature forms for composition and application helpers for read-only prefetch — dispatch only, never product policy. This is the documented exception to strict downward-only imports at layer 4; the runtime-cycle guard plus review enforce the policy boundary.
+**Consequences:** A shell that imports a domain service to make a product decision is a boundary violation. AUX changes require the shell-adjacent suites (15 sheet tests, navigation contracts, lock gates, unsaved-changes).

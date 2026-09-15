@@ -42,7 +42,7 @@ CLIENT_SRC = ROOT / "apps/prototype-web/client/src"
 ARABIC = re.compile(r"[\u0600-\u06FF]")
 
 MOMENT_LINE = re.compile(
-    r"throw new Error|setMessage\(|setError\(|setNotice\(|setSuccess\(|setSaved\(|setReversalError\(|message:|message =|aria-invalid|text:|validation\(|setSaveState\("
+    r"throw new Error|setMessage\(|setError\(|setNotice\(|setSuccess\(|setSaved\(|setReversalError\(|setFeedback\(|message:|word:|message =|aria-invalid|text:|validation\(|setSaveState\("
     r"|failure\(|\bfail\(|\berr\(|invalid_input"
 )
 # Loading/progress labels on action buttons appear only while acting.
@@ -363,7 +363,10 @@ CAPS: dict[str, int] = {
     # الطلب الحي — عنوان وشرح ومبلغ ووجهة ومعاينة وأزرار؛ تسميات مفروضة
     # من العقد لا نثرًا.
     # OrderDetail 163 → 171 (2026-09-05, deep closure WF-01/FC-04).
-    "OrderDetail": 171,
+    # OrderDetail 171 → 174 (2026-09-15, R1 remediation D6/error-separation): the
+    # honest read-error screen ("تعذر قراءة الطلب" + no-record-changed line + retry
+    # label) split from not-found — a mandated truthful state, not prose creep.
+    "OrderDetail": 174,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision

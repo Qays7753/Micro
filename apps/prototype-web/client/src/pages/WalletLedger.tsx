@@ -12,6 +12,7 @@ import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayVal
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import type { WalletLedgerOverview } from "@/application/cash/walletLedgerService";
 
+import { Button } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -65,9 +66,9 @@ export default function WalletLedger() {
       <section className="micro-page micro-not-found">
         <h1>دفتر محفظة غير متاح</h1>
         <p>{state.message}</p>
-        <button className="micro-button micro-button-primary" type="button" onClick={() => navigate("/cash")}>
+        <Button action="secondary" onClick={() => navigate("/cash")}>
           محافظ الكاش
-        </button>
+        </Button>
       </section>
     );
 
@@ -156,22 +157,22 @@ export default function WalletLedger() {
                   <MoneyValue minor={row.amountMinor} showPlus /> د.أ
                 </b>
                 {row.sourceHref ? (
-                  <button
-                    className="micro-button micro-button-quiet"
-                    type="button"
+                  <Button
+                    action="quiet"
+
                     onClick={() => navigate(walletHref(row.sourceHref!))}
                   >
                     {row.sourceLabel}
-                  </button>
+                  </Button>
                 ) : null}
                 {row.reversible ? (
-                  <button
-                    className="micro-button micro-button-quiet"
-                    type="button"
+                  <Button
+                    action="quiet"
+
                     onClick={() => navigate(walletHref(`/cash/entry/${row.id}/reverse`))}
                   >
                     <RotateCcw aria-hidden="true" /> تراجع
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </article>

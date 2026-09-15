@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const css = readFileSync(fileURLToPath(new URL("./index.css", import.meta.url)), "utf8");
+const primCss = readFileSync(fileURLToPath(new URL("./styles/primitives.css", import.meta.url)), "utf8");
 
 function ruleBlock(selector: string): string {
   const start = css.indexOf(selector);
@@ -25,9 +26,20 @@ describe("touch targets stay tappable at phone widths (U-09)", () => {
   });
 
   it("quiet buttons meet the 44px minimum height (عقد الإغلاق العميق — MR-03)", () => {
-    /* أزرار التصحيح/التراجع الهادئة (micro-button-quiet) تحمل مداخل مالية —
-     * لا يجوز أن تتقلص إلى 32px تحت إصبع المالك. */
-    const block = ruleBlock(".micro-button-quiet");
-    expect(block).toContain("min-height: 44px");
+    /* أزرار التصحيح/التراجع الهادئة تحمل مداخل مالية — لا يجوز أن تتقلص إلى
+     * 32px تحت إصبع المالك. W2 (completion): العقد انتقل إلى المكوّن الأولي
+     * (.micro-prim-button--quiet فوق قاعدة 48px) — الحارس يتبع العقد.
+     * قيمة --vf-control-height (48px) تُحرس في اختبار طبقة الربط. */
+    expect(primCss).toContain(".micro-prim-button--quiet");
+    expect(primCss).toContain("min-height: var(--vf-control-height)");
+  });
+
+  it("aria-pressed text actions carry an explicit chosen presentation (R2/D7)", () => {
+    /* الحالة المختارة معلنة بالتسطير لا بالنية: تحتاج حافة clay-interactive
+     * بوزن وإزاحة — لا يعتمد المعنى على القراءة الضمنية للون النص. */
+    const block = ruleBlock('.micro-text-action[aria-pressed="true"]');
+    expect(block).toContain("text-decoration: underline");
+    expect(block).toContain("text-decoration-thickness: 2px");
+    expect(block).toContain("text-decoration-color: var(--vf-clay-interactive)");
   });
 });

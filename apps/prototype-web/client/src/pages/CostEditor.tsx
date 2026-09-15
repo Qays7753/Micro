@@ -15,6 +15,8 @@ import {
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 
+import { Button, FeedbackMessage, FeedbackNote } from "@/components/primitives";
+
 type EditableCostMaterial = DraftCostMaterial & { uiId: string };
 type EditableCostInput = Omit<CostEditorInput, "materialItems"> & { materialItems: EditableCostMaterial[] };
 
@@ -143,7 +145,7 @@ export default function CostEditor() {
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [form, setForm] = useState<EditableCostInput | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   /* U-004: بنود مقترحة من تقدير المصدر — تُعرض معلّنة كما هي: اقتراح لا تكلفة مؤكدة. */
   const [proposalNotice, setProposalNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -285,28 +287,28 @@ export default function CostEditor() {
 
   async function saveSnapshot(): Promise<boolean> {
     if (!draft || !form) return false;
-    setMessage(null);
+    setFeedback(null);
     if (hasInvalidNumericInput) {
-      setMessage({ kind: "error", text: "أكمل أو صحح الحقل العددي. استخدم أرقام 0–9 فقط." });
+      setFeedback({ kind: "error", word: "أكمل أو صحح الحقل العددي. استخدم أرقام 0–9 فقط." });
       return false;
     }
     if (!preview?.ok) {
-      if (preview) setMessage({ kind: "error", text: preview.message });
+      if (preview) setFeedback({ kind: "error", word: preview.message });
       return false;
     }
     setIsSaving(true);
     const result = await costs.saveSnapshot(draft, toServiceInput(form));
     setIsSaving(false);
     if (!result.ok) {
-      setMessage({ kind: "error", text: result.message });
+      setFeedback({ kind: "error", word: result.message });
       return false;
     }
     initialFormRef.current = form;
     setDraft(result.draft!);
     notifyDataChanged();
-    setMessage({
-      kind: "ok",
-      text:
+    setFeedback({
+      kind: "completion",
+      word:
         preview.snapshot.knowledgeState === "incomplete"
           ? `تم حفظ مسودة تكلفة ناقصة ${result.draft!.costSnapshots.length} على هذا الجهاز.`
           : `تم حفظ نسخة التكلفة ${result.draft!.costSnapshots.length} على هذا الجهاز.`,
@@ -326,13 +328,13 @@ export default function CostEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح التكلفة</h1>
         <p>ارجع للمسودة ثم أعد المحاولة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/orders")}
         >
           الطلبات
-        </button>
+        </Button>
       </section>
     );
   const status = preview?.ok
@@ -355,11 +357,7 @@ export default function CostEditor() {
         <h1>{draft.itemName || "وصف القطعة"}</h1>
       </div>
       {/* U-004: إشعار البنود المقترحة من التقدير المصدر — معلنة لا مفترضة. */}
-      {proposalNotice ? (
-        <p className="micro-save-note" role="status">
-          {proposalNotice}
-        </p>
-      ) : null}
+      {proposalNotice ? <FeedbackNote kind="advisory" word={proposalNotice} /> : null}
       {preview?.ok ? (
         <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
           <span>سعر الحماية لكل قطعة (د.أ)</span>
@@ -570,14 +568,14 @@ export default function CostEditor() {
           {optionalCostFields
             .filter(({ field }) => !visibleOptionalCosts[field])
             .map(({ field, label }) => (
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 key={field}
                 onClick={() => revealOptionalCost(field)}
               >
                 أضف {label}
-              </button>
+              </Button>
             ))}
         </div>
         <div className="micro-field-grid">
@@ -616,14 +614,7 @@ export default function CostEditor() {
           </p>
         ) : null}
       </section>
-      {message ? (
-        <p
-          className={message.kind === "ok" ? "micro-save-note" : "micro-field-error"}
-          role={message.kind === "ok" ? "status" : "alert"}
-        >
-          {message.text}
-        </p>
-      ) : null}
+      {feedback ? <FeedbackNote kind={feedback.kind} word={feedback.word} /> : null}
       {preview?.ok && preview.snapshot.knowledgeState === "incomplete" ? (
         <p className="micro-cost-save-guidance">
           يمكنك حفظ ما تعرفه الآن كمسودة ناقصة. أضف دقائق العمل وسعر الساعة لاحقًا لتكتمل قراءة التكلفة؛ لا
@@ -631,9 +622,10 @@ export default function CostEditor() {
         </p>
       ) : null}
       <div className="micro-form-actions micro-sticky-save">
-        <button
-          className="micro-button micro-button-primary micro-save-cost"
-          type="button"
+        <Button
+          action="save"
+          block
+
           disabled={isSaving || hasInvalidNumericInput || !preview?.ok}
           aria-busy={isSaving}
           onClick={() => {
@@ -645,15 +637,15 @@ export default function CostEditor() {
           {preview?.ok && preview.snapshot.knowledgeState === "incomplete"
             ? "حفظ مسودة تكلفة ناقصة"
             : "حفظ نسخة التكلفة"}
-        </button>
+        </Button>
         {draft.activeCostSnapshotId ? (
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => requestNavigation(`/orders/draft/${draft.id}/agreement`)}
           >
             تسجيل الاتفاق
-          </button>
+          </Button>
         ) : null}
       </div>
       <p className="micro-cost-disclaimer">

@@ -18,6 +18,7 @@ import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { AssetDepreciationProposal, AssetEventSummary } from "@micro-domain/asset/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
+import { Button } from "@/components/primitives";
 type Reading = {
   asset: AssetRecord;
   summary: AssetEventSummary;
@@ -166,16 +167,16 @@ export default function AssetDetail() {
                   onChange={event => setDepreciationAsOf(event.target.value)}
                 />
                 <div className="micro-form-actions">
-                  <button
-                    className="micro-button micro-button-primary"
-                    type="button"
+                  <Button
+                    action="save"
+
                     disabled={busy || proposal.proposedMinor <= 0}
                     onClick={() =>
                       void run(() => assets.recordDepreciation(asset.id, { asOf: depreciationAsOf }))
                     }
                   >
                     سجّل الإهلاك المستحق
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
@@ -241,9 +242,9 @@ export default function AssetDetail() {
                   : "أدخل قيمة أو طريقة مختلفة عن المسجّلة لتفعل التصحيح."}
               </p>
               <div className="micro-form-actions">
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
+                <Button
+                  action="save"
+
                   disabled={
                     busy ||
                     !acquisitionReason.trim() ||
@@ -263,7 +264,7 @@ export default function AssetDetail() {
                   }
                 >
                   <Pencil aria-hidden="true" /> صحّح الاقتناء
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
@@ -312,9 +313,9 @@ export default function AssetDetail() {
                 />
               </label>
               <div className="micro-form-actions">
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
+                <Button
+                  action="save"
+
                   disabled={busy || !contractReason.trim()}
                   onClick={() =>
                     void run(() =>
@@ -327,7 +328,7 @@ export default function AssetDetail() {
                   }
                 >
                   <Save aria-hidden="true" /> احفظ المراجعة
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
@@ -370,9 +371,9 @@ export default function AssetDetail() {
                   : `الشطب خسارة غير نقدية بالدفتري (${formatMoneyMinor(summary.bookValueMinor)} د.أ) — لا كاش يدخل أو يخرج.`}
               </p>
               <div className="micro-form-actions micro-contextual-actions">
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
+                <Button
+                  action="secondary"
+
                   disabled={busy || !disposalReason.trim() || !validProceeds || proceedsMinor <= 0}
                   onClick={() =>
                     void run(() =>
@@ -385,10 +386,10 @@ export default function AssetDetail() {
                   }
                 >
                   <HandCoins aria-hidden="true" /> تخلّص بمقابل
-                </button>
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
+                </Button>
+                <Button
+                  action="secondary"
+
                   disabled={
                     busy || !disposalReason.trim() || proceedsMinor > 0 || summary.bookValueMinor <= 0
                   }
@@ -399,7 +400,7 @@ export default function AssetDetail() {
                   }
                 >
                   <Trash2 aria-hidden="true" /> اشطب الأصل
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}

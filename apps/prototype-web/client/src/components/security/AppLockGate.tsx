@@ -18,6 +18,7 @@ import { LocalLockService } from "@/application/security/localLockService";
 import { normalizeAsciiDigits } from "@/application/input/englishNumeric";
 import { isPublicLocalRecoveryRoute } from "@/app/StartupGate";
 
+import { Button } from "@/components/primitives";
 const HEARTBEAT_MS = 30_000;
 
 type GateState = { phase: "checking" } | { phase: "open" } | { phase: "locked"; failedAttempts: number };
@@ -176,13 +177,9 @@ export function AppLockGate({ children }: { children: ReactNode }) {
                   autoFocus
                 />
               </label>
-              <button
-                className="micro-button micro-button-primary"
-                type="submit"
-                disabled={pin.trim().length < 4}
-              >
+              <Button action="save" type="submit" disabled={pin.trim().length < 4}>
                 <LockOpen aria-hidden="true" /> افتح
-              </button>
+              </Button>
             </form>
             {message ? (
               <p className="micro-field-error" role="alert">

@@ -15,6 +15,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 
+import { Button, ChoiceButton, ChoiceRow } from "@/components/primitives";
 export type OrderDepositPanelsProps = {
   order: CraftOrder;
   stored: { id: string; order: CraftOrder };
@@ -206,9 +207,9 @@ export function OrderDepositPanels({
             />
           </label>
           <div className="micro-form-actions micro-contextual-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="save"
+
               disabled={isActing || !depositReason.trim()}
               onClick={() => {
                 void run(() =>
@@ -219,10 +220,10 @@ export function OrderDepositPanels({
               }}
             >
               <HandCoins aria-hidden="true" /> رُدَّ العربون
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               disabled={isActing || !depositReason.trim()}
               onClick={() => {
                 void run(() =>
@@ -233,7 +234,7 @@ export function OrderDepositPanels({
               }}
             >
               احتفظ به رصيدًا
-            </button>
+            </Button>
           </div>
           <p>أو اتركه «يحتاج مراجعة» وتابع لاحقًا — خيار صالح لا خطأ؛ يبقى ظاهرًا في فحص السلامة حتى تقرر.</p>
         </section>
@@ -328,22 +329,22 @@ export function OrderDepositPanels({
                 />
               </label>
               <div className="micro-form-actions micro-contextual-actions">
-                <button
-                  className="micro-button micro-button-primary"
-                  type="button"
+                <Button
+                  action="save"
+
                   disabled={isActing || !classifyReason.trim()}
                   onClick={() => void classifyDeposit("owner", classifyReason)}
                 >
                   مال مالك
-                </button>
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
+                </Button>
+                <Button
+                  action="secondary"
+
                   disabled={isActing || !classifyReason.trim()}
                   onClick={() => void classifyDeposit("revenue", classifyReason)}
                 >
                   إيراد مشروع
-                </button>
+                </Button>
               </div>
             </>
           ) : (
@@ -371,22 +372,21 @@ export function OrderDepositPanels({
                    * يبقى نصه، والتسمية الشاملة عبر legend (و٩: إمكانية الوصول). */}
                   <fieldset className="micro-field">
                     <legend>التصنيف الجديد</legend>
-                    <div className="micro-choice-row">
-                      <button
-                        className={`micro-button ${classifyMeaning === "owner" ? "micro-button-primary" : "micro-button-secondary"}`}
-                        type="button"
+                    {/* W2 (completion): عقد الاختيار — حافة clay-interactive للمختار + وزن أثقل، لا امتلاء أبدًا. */}
+                    <ChoiceRow>
+                      <ChoiceButton
+                        selected={classifyMeaning === "owner"}
                         onClick={() => setClassifyMeaning("owner")}
                       >
                         مال مالك
-                      </button>
-                      <button
-                        className={`micro-button ${classifyMeaning === "revenue" ? "micro-button-primary" : "micro-button-secondary"}`}
-                        type="button"
+                      </ChoiceButton>
+                      <ChoiceButton
+                        selected={classifyMeaning === "revenue"}
                         onClick={() => setClassifyMeaning("revenue")}
                       >
                         إيراد مشروع
-                      </button>
-                    </div>
+                      </ChoiceButton>
+                    </ChoiceRow>
                   </fieldset>
                   <label className="micro-field">
                     <span>سبب التصحيح (مطلوب)</span>
@@ -397,14 +397,14 @@ export function OrderDepositPanels({
                     />
                   </label>
                   <div className="micro-form-actions">
-                    <button
-                      className="micro-button micro-button-primary"
-                      type="button"
+                    <Button
+                      action="save"
+
                       disabled={isActing || !classifyReason.trim()}
                       onClick={() => void reclassifyDeposit(classifyMeaning, classifyReason)}
                     >
                       احفظ التصحيح الموثق
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : null}

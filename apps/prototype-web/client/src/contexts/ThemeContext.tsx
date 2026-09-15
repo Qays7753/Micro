@@ -18,8 +18,10 @@ interface ThemeProviderProps {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 function resolveTheme(preference: ThemePreference): Theme {
-  if (preference !== "system") return preference;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  /* W5 (D1): الفاتح هو الوضع الافتراضي للمنتج. القيمة غير المحفوظة تُقرأ
+   * «system» من خدمة التفضيلات — تُحلّ فاتحًا: لا يتبع Micro نظام التشغيل
+   * أبدًا؛ الداكن اختيار صريح محفوظ فقط. */
+  return preference === "dark" ? "dark" : "light";
 }
 
 export function ThemeProvider({ children, defaultTheme = "system", switchable = false }: ThemeProviderProps) {
@@ -36,13 +38,9 @@ export function ThemeProvider({ children, defaultTheme = "system", switchable = 
     };
   }, [dataVersion, preferences]);
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const updateTheme = () => setTheme(resolveTheme(preference));
-    updateTheme();
-    if (preference === "system") {
-      mediaQuery.addEventListener("change", updateTheme);
-      return () => mediaQuery.removeEventListener("change", updateTheme);
-    }
+    /* W5 (D1): لا متابعة للنظام — resolveTheme يحسم التفضيل محليًا؛ هذا
+     * الأثر يزامن السمة الفعلية مع حالة التفضيل بعد التحميل/التبديل. */
+    setTheme(resolveTheme(preference));
   }, [preference]);
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");

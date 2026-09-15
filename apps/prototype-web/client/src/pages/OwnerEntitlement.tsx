@@ -31,6 +31,7 @@ import {
   type OwnerMovementReason,
 } from "@micro-domain/owner-entitlement/index.js";
 
+import { Button, EmptyState } from "@/components/primitives";
 type Notice = { tone: "success" | "error"; text: string } | null;
 const monthStart = () => `${localDateInAmman().slice(0, 7)}-01`;
 const idempotency = (prefix: string) => `${prefix}:${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
@@ -220,13 +221,13 @@ export default function OwnerEntitlement() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر المالك</h1>
         <p>{error ?? "لم تتوفر بيانات محلية."}</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate("/finance")}
         >
           الوضع المالي
-        </button>
+        </Button>
       </section>
     );
 
@@ -623,22 +624,22 @@ export default function OwnerEntitlement() {
         </div>
       </section>
       <div className="micro-form-actions micro-contextual-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() =>
             navigate(withFrom("/finance/new/owner_investment_cash", "/finance/owner-entitlement"))
           }
         >
           <HandCoins aria-hidden="true" /> أدخل مالًا للمشروع
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        </Button>
+        <Button
+          action="secondary"
+
           onClick={() => navigate(withFrom("/finance/withdraw", "/finance/owner-entitlement"))}
         >
           <ArrowRight aria-hidden="true" /> اسحب لنفسك
-        </button>
+        </Button>
       </div>
       <details className="micro-owner-layer">
         <summary className="micro-owner-layer-summary">
@@ -666,19 +667,22 @@ export default function OwnerEntitlement() {
                     <bdi dir="ltr">{formatMoneyMinor(row.amountMinor)}</bdi> د.أ
                   </b>
                   {row.deepLink ? (
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    <Button
+                      action="quiet"
+
                       onClick={() => navigate(withFrom(row.deepLink!, "/finance/owner-entitlement"))}
                     >
                       افتح الأصل
-                    </button>
+                    </Button>
                   ) : null}
                 </article>
               ))}
             </div>
           ) : (
-            <p className="micro-empty-state">لا توجد حركة مالك بعد — أدخل مالًا أو اسحب ليبدأ السجل.</p>
+            <EmptyState
+              title={<>لا توجد حركة مالك بعد.</>}
+              description={<>أدخل مالًا أو اسحب ليبدأ السجل.</>}
+            />
           )}
         </section>
       </details>
@@ -712,7 +716,7 @@ export default function OwnerEntitlement() {
               <span className="micro-g5-count">{overview.policies.length}</span>
             </div>
             {overview.policies.length === 0 ? (
-              <p className="micro-empty-state">لا توجد سياسة بعد. أضف أقل سياسة تحتاجها فقط.</p>
+              <EmptyState title={<>لا توجد سياسة بعد.</>} description={<>أضف أقل سياسة تحتاجها فقط.</>} />
             ) : (
               <div className="micro-owner-list">
                 {overview.policies.map(policy => (
@@ -862,7 +866,7 @@ export default function OwnerEntitlement() {
               {overview.entitlements.length === 0 &&
               overview.openingBalances.length === 0 &&
               overview.movements.length === 0 ? (
-                <p className="micro-empty-state">لا توجد حقوق أو أرصدة أو حركات مالك بعد.</p>
+                <EmptyState title={<>لا توجد حقوق أو أرصدة أو حركات مالك بعد.</>} />
               ) : (
                 <div className="micro-owner-list">
                   {overview.entitlements.map(record => (
@@ -1064,22 +1068,22 @@ function ReversalBox({
         />
       </label>
       <div className="micro-form-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="commit"
+
           disabled={saving}
           onClick={onConfirm}
         >
           تأكيد التراجع الموثق
-        </button>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        </Button>
+        <Button
+          action="secondary"
+
           disabled={saving}
           onClick={onCancel}
         >
           إلغاء
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ import {
 import { formatMoneyMinor } from "@/presentation/formatters";
 import type { DirectConversion, MeasurementUnit, UnitDimension } from "@micro-domain/catalog/index.js";
 
+import { Button } from "@/components/primitives";
 export type CatalogUnitsSectionProps = {
   unitName: string;
   setUnitName: Dispatch<SetStateAction<string>>;
@@ -126,14 +127,14 @@ export function CatalogUnitsSection({
                 </select>
               </label>
             </div>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               disabled={!unitName.trim()}
               onClick={createUnit}
             >
               <Plus aria-hidden="true" /> أضف وحدة
-            </button>
+            </Button>
             <div className="micro-chip-list">
               {units.length ? (
                 units.map(unit => (
@@ -266,9 +267,9 @@ export function CatalogUnitsSection({
                 </p>
               </div>
             ) : null}
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               disabled={
                 !conversionFrom ||
                 !conversionTo ||
@@ -279,7 +280,7 @@ export function CatalogUnitsSection({
               onClick={createConversion}
             >
               <GitCompareArrows aria-hidden="true" /> أضف تحويلًا صريحًا
-            </button>
+            </Button>
             <div className="micro-list micro-list-compact">
               {conversions.length ? (
                 conversions.map(conversion => {
@@ -300,13 +301,13 @@ export function CatalogUnitsSection({
                         </p>
                       </div>
                       {conversion.active ? (
-                        <button
-                          className="micro-button micro-button-secondary"
-                          type="button"
+                        <Button
+                          action="secondary"
+
                           onClick={() => deactivateConversion(conversion.id)}
                         >
                           <ArchiveX aria-hidden="true" /> إيقاف
-                        </button>
+                        </Button>
                       ) : null}
                     </div>
                   );

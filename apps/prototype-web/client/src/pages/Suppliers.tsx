@@ -10,6 +10,7 @@ import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPu
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatArabicPlural } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 type PageState =
   | { phase: "loading" }
   | { phase: "error" }
@@ -46,13 +47,13 @@ export default function Suppliers() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الموردين والمشتريات</h1>
         <p>لم يتم تغيير أي سجل. أعد فتح التطبيق للمحاولة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(withFrom("/finance", "/suppliers"))}
         >
           الوضع المالي
-        </button>
+        </Button>
       </section>
     );
   const open = state.purchases.filter(purchase => purchase.payableMinor > 0);
@@ -84,13 +85,14 @@ export default function Suppliers() {
           <p>{state.summary.truth}</p>
         </div>
       </section>
-      <button
-        className="micro-button micro-button-primary micro-full-action"
-        type="button"
+      <Button
+        action="create"
+        block
+
         onClick={() => navigate(withFrom("/suppliers/purchase/new", "/suppliers"))}
       >
         <Plus aria-hidden="true" /> سجل شراء مواد
-      </button>
+      </Button>
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">
           <span className="micro-overline">المشتريات المفتوحة</span>
@@ -123,23 +125,23 @@ export default function Suppliers() {
                 ) : (
                   <small>لا يوجد تاريخ استحقاق مسجل</small>
                 )}
-                <button
-                  className="micro-button micro-button-secondary"
-                  type="button"
+                <Button
+                  action="secondary"
+
                   onClick={() =>
                     navigate(withFrom(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))
                   }
                 >
                   سجل دفعة
-                </button>
+                </Button>
                 {/* المجموعة ٢ (§10.1): تصحيح الشراء من صفّه — لا إيماءة مخفية ولا لون فقط. */}
-                <button
-                  className="micro-button micro-button-quiet"
-                  type="button"
+                <Button
+                  action="quiet"
+
                   onClick={() => navigate(withFrom(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
                 >
                   عدّل/تراجع
-                </button>
+                </Button>
               </div>
             </article>
           ))
@@ -168,13 +170,13 @@ export default function Suppliers() {
                   <b>
                     <MoneyValue minor={purchase.totalMinor} />
                   </b>
-                  <button
-                    className="micro-button micro-button-quiet"
-                    type="button"
+                  <Button
+                    action="quiet"
+
                     onClick={() => navigate(withFrom(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
                   >
                     السجل والتصحيح
-                  </button>
+                  </Button>
                 </div>
               </article>
             ))}

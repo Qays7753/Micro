@@ -9,6 +9,7 @@ import {
   isStandaloneMode,
 } from "./install";
 
+import { Button } from "@/components/primitives";
 export function PwaInstallControl() {
   const { preferences } = usePrototypeServices();
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
@@ -97,15 +98,15 @@ export function PwaInstallControl() {
         </div>
         <div className="micro-install-actions">
           {showAndroidInstall ? (
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="save"
+
               disabled={isPrompting}
               onClick={promptForInstall}
             >
               <Download aria-hidden="true" />
               {isPrompting ? "جارٍ فتح تأكيد النظام…" : "تثبيت Micro"}
-            </button>
+            </Button>
           ) : null}
           <button
             className="micro-icon-button"

@@ -14,6 +14,7 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
 import type { AssetSummaryRow } from "@/application/assets/assetService";
 
+import { Button, EmptyState } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -56,10 +57,12 @@ export default function Assets() {
           {state.message}
         </p>
       ) : state.rows.length === 0 ? (
-        <section className="micro-empty-state" aria-label="لا أصول بعد">
-          <Boxes aria-hidden="true" />
-          <p>لا أصول مسجلة بعد. سجّل أول أصل: آلة، جهاز، أو أي شيء يخدمك أكثر من سنة.</p>
-        </section>
+        <EmptyState
+          aria-label="لا أصول بعد"
+          symbol={<Boxes />}
+          title={<>لا أصول مسجلة بعد.</>}
+          description={<>سجّل أول أصل: آلة، جهاز، أو أي شيء يخدمك أكثر من سنة.</>}
+        />
       ) : (
         <>
           <AssetsSummary rows={state.rows} />
@@ -75,13 +78,13 @@ export default function Assets() {
         </>
       )}
       <div className="micro-form-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => navigate(withFrom("/assets/new", "/assets"))}
         >
           <Plus aria-hidden="true" /> سجّل أصلًا
-        </button>
+        </Button>
       </div>
     </section>
   );

@@ -86,7 +86,17 @@ function CorrectionRow({
               : ""}
           </small>
         </div>
-        <b>{entry.amountEffectMinor === null ? "—" : <>{formatMoneyMinor(entry.amountEffectMinor)} د.أ</>}</b>
+        <b>
+          {/* W7 (تدقيق الوكيل ٤، MEDIUM-5): أثر التصحيح قد يكون سالبًا — العزل
+           * ثنائي الاتجاه يمنع انفصال إشارة السالب في السياق العربي. */}
+          {entry.amountEffectMinor === null ? (
+            "—"
+          ) : (
+            <>
+              <bdi dir="ltr">{formatMoneyMinor(entry.amountEffectMinor)}</bdi> د.أ
+            </>
+          )}
+        </b>
       </div>
       {entry.reason ? (
         <p className="micro-finance-event-note">

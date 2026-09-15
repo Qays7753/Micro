@@ -1,0 +1,107 @@
+{
+  "verified": 70,
+  "problems": 0,
+  "detail": [],
+  "sampleBackgrounds": {
+    "home-light-390.png": {
+      "stripBg": [
+        250,
+        249,
+        245
+      ],
+      "matched": [
+        "#faf9f5"
+      ]
+    },
+    "orders-light-390.png": {
+      "stripBg": [
+        250,
+        249,
+        245
+      ],
+      "matched": [
+        "#faf9f5"
+      ]
+    },
+    "orders-new-light-390.png": {
+      "stripBg": [
+        255,
+        255,
+        255
+      ],
+      "matched": [
+        "#ffffff"
+      ]
+    },
+    "finance-light-390.png": {
+      "stripBg": [
+        255,
+        255,
+        255
+      ],
+      "matched": [
+        "#ffffff"
+      ]
+    },
+    "finance-activity-light-390.png": {
+      "stripBg": [
+        255,
+        255,
+        255
+      ],
+      "matched": [
+        "#ffffff"
+      ]
+    },
+    "finance-statement-light-390.png": {
+      "stripBg": [
+        255,
+        255,
+        255
+      ],
+      "matched": [
+        "#ffffff"
+      ]
+    },
+    "finance-owner-entitlement-light-390.png": {
+      "stripBg": [
+        240,
+        238,
+        230
+      ],
+      "matched": [
+        "#f0eee6"
+      ]
+    },
+    "finance-g5-declaration-light-390.png": {
+      "stripBg": [
+        255,
+        255,
+        255
+      ],
+      "matched": [
+        "#ffffff"
+      ]
+    },
+    "finance-withdraw-light-390.png": {
+      "stripBg": [
+        232,
+        230,
+        220
+      ],
+      "matched": [
+        "#e8e6dc"
+      ]
+    },
+    "cash-light-390.png": {
+      "stripBg": [
+        232,
+        230,
+        220
+      ],
+      "matched": [
+        "#e8e6dc"
+      ]
+    }
+  }
+}

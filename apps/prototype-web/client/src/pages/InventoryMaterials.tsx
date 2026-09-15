@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import { Button, FeedbackMessage, FeedbackNote, StatusChip } from "@/components/primitives";
 import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryShortage, InventoryMovement } from "@micro-domain/inventory-material/index.js";
@@ -69,7 +70,7 @@ export default function InventoryMaterials() {
   const { inventory, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   const [activating, setActivating] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   /* القرار ٢٠: حالة إخراج الفاقد — مسودة الفعل وسببه ومفتاح العملية. */
   const [extraction, setExtraction] = useState<ExtractionDraft | null>(null);
   const [extractionReason, setExtractionReason] = useState("");
@@ -112,11 +113,14 @@ export default function InventoryMaterials() {
     const result = await inventory.activate({ operationKey: operationKeyRef.current });
     setActivating(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
-    setMessage(`تم تفعيل المخزون بتاريخ ${result.value.activatedOn} — اللحظة معلنة في السجل.`);
+    setFeedback({
+      kind: "completion",
+      word: `تم تفعيل المخزون بتاريخ ${result.value.activatedOn} — اللحظة معلنة في السجل.`,
+    });
   }
   /* القرار ٢٠ (عقد ١١ المعدّل): إخراج الفاقد — حركة هدر بقيمة المتبقي كاملة، لا حذف.
    * الإشعار قبل التأكيد وبعده يبيّن أن المالك يسجّل هدرًا وبأي قيمة. */
@@ -124,7 +128,7 @@ export default function InventoryMaterials() {
     if (!extraction) return;
     const reason = extractionReason.trim();
     if (!reason) {
-      setMessage("اكتب سبب الإخراج قبل تأكيده — سبب الهدر مطلوب كالعادة.");
+      setFeedback({ kind: "error", word: "اكتب سبب الإخراج قبل تأكيده — سبب الهدر مطلوب كالعادة." });
       return;
     }
     if (!extractionKeyRef.current)
@@ -138,16 +142,17 @@ export default function InventoryMaterials() {
     });
     setExtracting(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     setExtraction(null);
     setExtractionReason("");
     extractionKeyRef.current = null;
-    setMessage(
-      "سُجّل إخراج الهدر — كامل المتبقي انتقل إلى الهدر بقيمته، ومخزون المادة صفر صادق. السجل محفوظ ولا يُحذف.",
-    );
+    setFeedback({
+      kind: "completion",
+      word: "سُجّل إخراج الهدر — كامل المتبقي انتقل إلى الهدر بقيمته، ومخزون المادة صفر صادق. السجل محفوظ ولا يُحذف.",
+    });
   }
   /* المجموعة ٢ (عقد ٢٨): إيقاف المتابعة — الحركات كلها تبقى، والرصيد يجمَّد في السجل. */
   async function confirmUntrack() {
@@ -160,12 +165,15 @@ export default function InventoryMaterials() {
     });
     setTrackingBusy(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     setUntrackTarget(null);
-    setMessage("أُوقفت المتابعة — الحركات محفوظة وإعادة التفعيل متاحة لاحقًا.");
+    setFeedback({
+      kind: "completion",
+      word: "أُوقفت المتابعة — الحركات محفوظة وإعادة التفعيل متاحة لاحقًا.",
+    });
   }
   async function retrack(material: InventoryMaterialOverview) {
     setTrackingBusy(true);
@@ -175,16 +183,19 @@ export default function InventoryMaterials() {
     });
     setTrackingBusy(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
-    setMessage("عادت المتابعة — رصيد المادة «غير محدد بعد» حتى تؤكده من جديد؛ أكّده ليعود رقمًا موثوقًا.");
+    setFeedback({
+      kind: "completion",
+      word: "عادت المتابعة — رصيد المادة «غير محدد بعد» حتى تؤكده من جديد؛ أكّده ليعود رقمًا موثوقًا.",
+    });
   }
   /* المجموعة ٢ (عقد ٢٨ / D-027): حل النقص صريح — بيان الحل يُطلب وقت التنفيذ. */
   async function confirmResolve(shortage: InventoryShortage) {
     if (!resolutionNote.trim()) {
-      setMessage("اكتب بيان الحل — مثال: استلمت بديلًا من المورد.");
+      setFeedback({ kind: "error", word: "اكتب بيان الحل — مثال: استلمت بديلًا من المورد." });
       return;
     }
     setTrackingBusy(true);
@@ -195,13 +206,16 @@ export default function InventoryMaterials() {
     });
     setTrackingBusy(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setFeedback({ kind: "error", word: result.message });
       return;
     }
     notifyDataChanged();
     setResolvingId(null);
     setResolutionNote("");
-    setMessage("حُلّ سجل النقص — توثيق الحل محفوظ مع السجل الأصلي، ولا شيء حُذف.");
+    setFeedback({
+      kind: "completion",
+      word: "حُلّ سجل النقص — توثيق الحل محفوظ مع السجل الأصلي، ولا شيء حُذف.",
+    });
   }
   if (state.phase === "loading")
     return (
@@ -214,13 +228,13 @@ export default function InventoryMaterials() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة المواد</h1>
         <p>لم يتغير أي سجل. أعد فتح التطبيق للمحاولة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(withFrom("/finance", "/inventory"))}
         >
           مالي
-        </button>
+        </Button>
       </section>
     );
   const tracked = state.overview.materials.filter(
@@ -251,11 +265,7 @@ export default function InventoryMaterials() {
         <h1>المواد والمخزون</h1>
         <p>سجّل ما يتوفر فعلًا، ثم اربط الاستهلاك أو الهدر بحدث واضح. شراء المواد لا يصبح تكلفة بيع هنا.</p>
       </div>
-      {message ? (
-        <p className="micro-save-note" role="status">
-          {message}
-        </p>
-      ) : null}
+      {feedback ? <FeedbackNote kind={feedback.kind} word={feedback.word} /> : null}
       {/* القرار ٩ + §٢.٨: قبل التفعيل الموضع غير نشط معلنًا — لا بوابة، والتفعيل بتاريخ اليوم. */}
       {notActivated ? (
         <section className="micro-inventory-inactive" aria-labelledby="inventory-inactive-title">
@@ -268,16 +278,16 @@ export default function InventoryMaterials() {
               التفعيل تكفي — لا يُطلب استيراد تاريخ سابق.
             </p>
           </div>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
+          <Button
+            action="save"
+
             disabled={activating}
             onClick={() => {
               void activateInventory();
             }}
           >
             {activating ? "جارٍ التفعيل…" : "تفعيل بتاريخ اليوم"}
-          </button>
+          </Button>
         </section>
       ) : (
         <section className="micro-decision-card">
@@ -293,21 +303,21 @@ export default function InventoryMaterials() {
       )}
       {/* مبدأ Micro: أفعال المادة لا تظهر كأنها متاحة قبل وجود مادة مسجلة. */}
       <div className="micro-cash-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => navigate(withFrom("/inventory/material/new", "/inventory"))}
         >
           <Plus aria-hidden="true" /> مادة جديدة
-        </button>
+        </Button>
         {tracked.length ? (
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/inventory/movement/receipt", "/inventory"))}
           >
             <PackagePlus aria-hidden="true" /> استلام شراء
-          </button>
+          </Button>
         ) : (
           <div className="micro-later-action" role="status">
             <strong>استلام شراء — لاحقًا</strong>
@@ -318,20 +328,20 @@ export default function InventoryMaterials() {
       <div className="micro-cash-actions">
         {tracked.length ? (
           <>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            <Button
+              action="secondary"
+
               onClick={() => navigate(withFrom("/inventory/movement/consume", "/inventory"))}
             >
               <Scissors aria-hidden="true" /> استهلاك أو استلام نقص
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               onClick={() => navigate(withFrom("/inventory/movement/waste", "/inventory"))}
             >
               <CircleMinus aria-hidden="true" /> هدر أو ضبط
-            </button>
+            </Button>
           </>
         ) : (
           <div className="micro-later-action" role="status">
@@ -366,15 +376,9 @@ export default function InventoryMaterials() {
                   </small>
                   <div className="micro-material-knowledge">
                     {openShortages.length > 0 ? (
-                      <span className="micro-status-chip" data-status="warn">
-                        نقص مفتوح: {openShortages.length}
-                      </span>
+                      <StatusChip state="incomplete">نقص مفتوح: {openShortages.length}</StatusChip>
                     ) : null}
-                    {unconfirmed ? (
-                      <span className="micro-status-chip" data-status="warn">
-                        غير محدد بعد
-                      </span>
-                    ) : null}
+                    {unconfirmed ? <StatusChip state="unconfirmed">غير محدد بعد</StatusChip> : null}
                     {material.costKnowledge === "unknown" ? (
                       <small>التكلفة غير معروفة</small>
                     ) : material.costKnowledge === "partial" ? (
@@ -401,9 +405,9 @@ export default function InventoryMaterials() {
                     <MoneyValue minor={material.valueMinor} className="micro-inline-number" />
                   </small>
                   {unconfirmed ? (
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    <Button
+                      action="quiet"
+
                       onClick={() =>
                         navigate(
                           withFrom(
@@ -414,11 +418,11 @@ export default function InventoryMaterials() {
                       }
                     >
                       أكّد الرصيد
-                    </button>
+                    </Button>
                   ) : material.quantityMilli > 0 ? (
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    <Button
+                      action="quiet"
+
                       onClick={() => {
                         extractionKeyRef.current = null;
                         setExtractionReason("");
@@ -431,7 +435,7 @@ export default function InventoryMaterials() {
                       }}
                     >
                       <PackageMinus aria-hidden="true" /> أخرِج المتبقي
-                    </button>
+                    </Button>
                   ) : null}
                   <button
                     className="micro-text-action"
@@ -485,39 +489,39 @@ export default function InventoryMaterials() {
                                 />
                               </label>
                               <div className="micro-form-actions">
-                                <button
-                                  className="micro-button micro-button-primary"
-                                  type="button"
+                                <Button
+                                  action="save"
+
                                   disabled={trackingBusy}
                                   onClick={() => {
                                     void confirmResolve(shortage);
                                   }}
                                 >
                                   سجّل الحل
-                                </button>
-                                <button
-                                  className="micro-button micro-button-secondary"
-                                  type="button"
+                                </Button>
+                                <Button
+                                  action="secondary"
+
                                   onClick={() => {
                                     setResolvingId(null);
                                     setResolutionNote("");
                                   }}
                                 >
                                   إلغاء
-                                </button>
+                                </Button>
                               </div>
                             </div>
                           ) : (
-                            <button
-                              className="micro-button micro-button-quiet"
-                              type="button"
+                            <Button
+                              action="quiet"
+
                               onClick={() => {
                                 setResolvingId(shortage.id);
                                 setResolutionNote("");
                               }}
                             >
                               سجّل الحل
-                            </button>
+                            </Button>
                           )
                         ) : null}
                       </div>
@@ -600,24 +604,24 @@ export default function InventoryMaterials() {
             <li>يمكنك إعادة التفعيل لاحقًا — ويعود رصيدها «غير محدد بعد» حتى تؤكده من جديد.</li>
           </ul>
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-danger"
-              type="button"
+            <Button
+              action="destructive"
+
               disabled={trackingBusy}
               onClick={() => {
                 void confirmUntrack();
               }}
             >
               {trackingBusy ? "جارٍ الإيقاف…" : "أوقف المتابعة"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               disabled={trackingBusy}
               onClick={() => setUntrackTarget(null)}
             >
               إلغاء
-            </button>
+            </Button>
           </div>
         </section>
       ) : null}
@@ -647,19 +651,19 @@ export default function InventoryMaterials() {
             />
           </label>
           <div className="micro-form-actions">
-            <button
-              className="micro-button micro-button-danger"
-              type="button"
+            <Button
+              action="destructive"
+
               disabled={extracting}
               onClick={() => {
                 void confirmExtraction();
               }}
             >
               {extracting ? "جارٍ التسجيل…" : "أكّد إخراج الهدر"}
-            </button>
-            <button
-              className="micro-button micro-button-secondary"
-              type="button"
+            </Button>
+            <Button
+              action="secondary"
+
               disabled={extracting}
               onClick={() => {
                 setExtraction(null);
@@ -668,7 +672,7 @@ export default function InventoryMaterials() {
               }}
             >
               إلغاء
-            </button>
+            </Button>
           </div>
         </section>
       ) : null}
@@ -702,15 +706,15 @@ export default function InventoryMaterials() {
                     )}
                   </small>
                   {movement.type !== "reversal" && !reversed ? (
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    <Button
+                      action="quiet"
+
                       onClick={() =>
                         navigate(withFrom(`/inventory/movement/${movement.id}/reverse`, "/inventory"))
                       }
                     >
                       <RotateCcw aria-hidden="true" /> تراجع
-                    </button>
+                    </Button>
                   ) : null}
                 </div>
               </article>

@@ -1,0 +1,8 @@
+wave,scope,delivered,commit,status
+R0,resume verification + baseline,interrupted-run commits unrecoverable; fast-forward to ece7be3; full baseline green,4d631d9,COMPLETE
+R1,feedback truth (D6) + OrderDetail error/not-found,typed channels across 6 surfaces + retry separation; +6 tests; density cap documented,d44f913,COMPLETE
+R2,honest voids (D8) + pressed states (D7) + leaf guard + docs (D4) + smoke/keyboard,FinanceActivity census voids; aria-pressed underline; eslint leaf rule; SURFACE_TONE_SYNTAX; 55x2 render smoke; keyboard/focus,9b4f02c,COMPLETE
+R3/W5-impl,permanent dark implementation,theme-dark.css single owner; color-scheme; light default + persisted dark; contrast guard (82 pairs); retired bans; ADR-009,0f01842,COMPLETE
+R4/W5-verify,pixel/capture verification,cascade defect found+fixed (:root.dark); 70 captures 0 overflow 0 errors; PNG pixel analysis; identity verified; persistence verified; matrices,218bd2c,COMPLETE
+R5a,scope hygiene,reverted out-of-scope prettier normalization on 3 guard scripts + tests; guards re-verified,c3a2142,COMPLETE
+R5b/W6,acceptance + evidence + docs,full pipeline green; boundary proof; rollback rehearsal; evidence pack; MIGRATION_STATUS updated; this push,77ede9a,COMPLETE

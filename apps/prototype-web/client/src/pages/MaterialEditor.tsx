@@ -14,6 +14,7 @@ import type { MaterialUnit } from "@micro-domain/inventory-material/index.js";
 import type { InventoryMaterialOverview } from "@/application/inventory/inventoryMaterialService";
 import { localDateInAmman, formatQuantityMilliFixed3 } from "@/presentation/formatters";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
+import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();
 const unitLabel = (unit: MaterialUnit): string =>
   unit === "piece"
@@ -309,15 +310,16 @@ export default function MaterialEditor() {
             </p>
           ) : null}
           <div className="micro-form-actions micro-sticky-save">
-            <button
-              className="micro-button micro-button-primary micro-save-cost"
-              type="button"
+            <Button
+              action="save"
+              block
+
               disabled={saving}
               onClick={save}
             >
               <Save aria-hidden="true" />
               {saving ? "جارٍ الحفظ…" : "أكّد الرصيد"}
-            </button>
+            </Button>
           </div>
         </section>
       ) : (
@@ -479,15 +481,16 @@ export default function MaterialEditor() {
             </p>
           ) : null}
           <div className="micro-form-actions micro-sticky-save">
-            <button
-              className="micro-button micro-button-primary micro-save-cost"
-              type="button"
+            <Button
+              action="save"
+              block
+
               disabled={saving}
               onClick={save}
             >
               <Save aria-hidden="true" />
               {saving ? "جارٍ الحفظ…" : movementWillBeWritten ? "حفظ المادة ورصيد البداية" : "حفظ المادة"}
-            </button>
+            </Button>
           </div>
         </section>
       )}

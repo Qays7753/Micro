@@ -260,7 +260,7 @@ const pwa = VitePWA({
     lang: "ar",
     dir: "rtl",
     background_color: "#FAF9F5",
-    theme_color: "#CC785C",
+    theme_color: "#FAF9F5", /* W1 (D-01/U-01): canvas chrome — matches index.html meta + ThemeContext runtime value; identity lives on the create surface, not app chrome */
     icons: [
       { src: "/micro-mark-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/micro-mark-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },

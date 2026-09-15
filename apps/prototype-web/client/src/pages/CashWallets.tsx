@@ -21,6 +21,7 @@ import type { CashContinuityOverview } from "@/application/cash/cashContinuitySe
 import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { cashWalletCountLabel, savedImpactCountLabel } from "@/presentation/plurals";
+import { Button } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error" }
@@ -78,13 +79,13 @@ export default function CashWallets() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة محافظ الكاش</h1>
         <p>لم يتغير أي سجل. أعد فتح التطبيق للمحاولة.</p>
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => navigate(withFrom("/finance", "/cash"))}
         >
           الوضع المالي
-        </button>
+        </Button>
       </section>
     );
   return (
@@ -150,21 +151,21 @@ export default function CashWallets() {
       </section>
       {/* مبدأ Micro: لا يظهر الفعل المشروط كزر معطل؛ يظهر شرط إنجازه قريبًا. */}
       <div className="micro-cash-actions">
-        <button
-          className="micro-button micro-button-primary"
-          type="button"
+        <Button
+          action="create"
+
           onClick={() => navigate(withFrom("/cash/wallet/new", "/cash"))}
         >
           <Plus aria-hidden="true" /> محفظة ورصيد بداية
-        </button>
+        </Button>
         {state.overview.wallets.length > 0 ? (
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/cash/count", "/cash"))}
           >
             <Calculator aria-hidden="true" /> عدّ الصندوق
-          </button>
+          </Button>
         ) : (
           <div className="micro-later-action" role="status">
             <strong>عدّ الصندوق — لاحقًا</strong>
@@ -172,22 +173,22 @@ export default function CashWallets() {
           </div>
         )}
         {state.position.unallocatedCashMinor !== 0 ? (
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/cash/distribute", "/cash"))}
           >
             <SlidersHorizontal aria-hidden="true" /> وزّع غير الموزع
-          </button>
+          </Button>
         ) : null}
         {state.overview.wallets.length >= 2 ? (
-          <button
-            className="micro-button micro-button-secondary"
-            type="button"
+          <Button
+            action="secondary"
+
             onClick={() => navigate(withFrom("/cash/transfer", "/cash"))}
           >
             <ArrowRightLeft aria-hidden="true" /> تحويل بين المحافظ
-          </button>
+          </Button>
         ) : (
           <div className="micro-later-action" role="status">
             <strong>تحويل بين المحافظ — لاحقًا</strong>
@@ -236,29 +237,29 @@ export default function CashWallets() {
                 <b>
                   <MoneyValue minor={wallet.balanceMinor} />
                 </b>
-                <button
-                  className="micro-button micro-button-quiet"
-                  type="button"
+                <Button
+                  action="quiet"
+
                   onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}`, "/cash"))}
                 >
                   <NotebookPen aria-hidden="true" /> السجل
-                </button>
+                </Button>
                 {wallet.openingUnknown ? (
-                  <button
-                    className="micro-button micro-button-secondary"
-                    type="button"
+                  <Button
+                    action="secondary"
+
                     onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}/opening-later`, "/cash"))}
                   >
                     سجّل رصيدًا موثقًا لاحقًا
-                  </button>
+                  </Button>
                 ) : (
-                  <button
-                    className="micro-button micro-button-secondary"
-                    type="button"
+                  <Button
+                    action="secondary"
+
                     onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}/adjust`, "/cash"))}
                   >
                     <SlidersHorizontal aria-hidden="true" /> ضبط بسبب
-                  </button>
+                  </Button>
                 )}
               </div>
             </article>
@@ -291,13 +292,13 @@ export default function CashWallets() {
                     <MoneyValue minor={entry.cashDeltaMinor} showPlus />
                   </b>
                   {entry.type !== "reversal" ? (
-                    <button
-                      className="micro-button micro-button-quiet"
-                      type="button"
+                    <Button
+                      action="quiet"
+
                       onClick={() => navigate(withFrom(`/cash/entry/${entry.id}/reverse`, "/cash"))}
                     >
                       <RotateCcw aria-hidden="true" /> تراجع
-                    </button>
+                    </Button>
                   ) : null}
                 </div>
               </article>

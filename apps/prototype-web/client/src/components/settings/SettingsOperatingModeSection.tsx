@@ -8,6 +8,7 @@ import { Hammer, Save } from "lucide-react";
 import type { OperatingWorkMode } from "@/storage/local/types";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
 
+import { Button, FeedbackNote, type FeedbackKind } from "@/components/primitives";
 export type OperatingModeState =
   { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; value: OperatingModeValue };
 
@@ -38,7 +39,7 @@ export type SettingsOperatingModeSectionProps = {
   setTrackingEnabled: Dispatch<SetStateAction<boolean>>;
   isSavingOperatingMode: boolean;
   selectedModeDescription: string | undefined;
-  notice: { text: string; section: "storage" | "mode" } | null;
+  notice: { kind: FeedbackKind; text: string; section: "storage" | "mode" } | null;
   saveOperatingMode: () => Promise<void>;
 };
 
@@ -119,20 +120,17 @@ export function SettingsOperatingModeSection({
               عدم الاختيار أو إيقاف التتبع لا يمنع إنشاء الطلب أو تسجيل المال أو المادة؛ لكنه يعني أن مقارنة
               الوقت لن تكون متاحة بلا سجل.
             </p>
-            <button
-              className="micro-button micro-button-primary micro-save-cost"
-              type="button"
+            <Button
+              action="save"
+              block
+
               disabled={isSavingOperatingMode}
               onClick={saveOperatingMode}
             >
               <Save aria-hidden="true" />
               {isSavingOperatingMode ? "جارٍ حفظ التفضيل…" : "حفظ طريقة العمل"}
-            </button>
-            {notice?.section === "mode" ? (
-              <p className="micro-save-note" role="status">
-                {notice.text}
-              </p>
-            ) : null}
+            </Button>
+            {notice?.section === "mode" ? <FeedbackNote kind={notice.kind} word={notice.text} /> : null}
           </>
         ) : null}
       </section>

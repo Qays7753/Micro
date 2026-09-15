@@ -4,6 +4,7 @@ import { Component, createRef, type ReactNode } from "react";
 import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
 import { routeTemplateFor } from "@/application/diagnostics/routeTemplate";
 
+import { Button } from "@/components/primitives";
 interface Props {
   children: ReactNode;
 }
@@ -68,13 +69,9 @@ class ErrorBoundary extends Component<Props, State> {
               <bdi dir="ltr">{this.state.incidentId}</bdi>
             </p>
           ) : null}
-          <button
-            type="button"
-            className="micro-button micro-button-primary"
-            onClick={() => window.location.reload()}
-          >
+          <Button action="save" onClick={() => window.location.reload()}>
             <RotateCcw aria-hidden="true" /> إعادة الفتح
-          </button>
+          </Button>
         </main>
       );
     }

@@ -1,0 +1,87 @@
+{
+ "run": "micro-standard-ui-aux-integration-20260914",
+ "base_commit": "c0469e265f24c70427eb7826dee717be117cff87",
+ "strategy": "per-wave revertible commits; revert a wave to remove exactly that wave's changes",
+ "global_rollback": {
+  "restore_command": "git checkout c0469e265f24c70427eb7826dee717be117cff87",
+  "note": "branch tip before this run's first commit; product sources return byte-for-byte"
+ },
+ "wave_boundaries": [
+  {
+   "wave": "W0",
+   "commit": "6ead563",
+   "contents": "baseline + context acknowledgement + architecture re-scan + rollback manifests (docs only)"
+  },
+  {
+   "wave": "W1",
+   "commit": "c81489a",
+   "contents": "runtime token mapping + State Adapter (+ d0a412f docs)"
+  },
+  {
+   "wave": "W2",
+   "commit": "825df4b",
+   "contents": "shared primitives + warn-defect fix (+ 8061ab2 docs)"
+  },
+  {
+   "wave": "W3",
+   "commit": "7e76e63",
+   "contents": "AUX shell hardening + QuickActionSheet separation"
+  },
+  {
+   "wave": "W4",
+   "commit": "8598cba",
+   "contents": "pilot screens Home + Finance (+ 0854c7c docs + visual review)"
+  },
+  {
+   "wave": "W5/W6/W7",
+   "commit": "33dd43b",
+   "contents": "retirement batch 1 + pattern/dark/migration docs (this commit)"
+  }
+ ],
+ "verified": "Baseline pnpm check green at base; full pnpm check green at tip; every wave committed with its full gate green before the next wave started.",
+ "completion_run": {
+  "start_commit": "295c87c57fb1959d6a3bfc9352f9bef03dcd5bc9",
+  "note": "re-executed after session loss; per-wave revertible commits on the same branch; verified in a clean worktree (install + typecheck + 391/391 tests green at the boundary)",
+  "wave_boundaries": [
+   {
+    "wave": "W0-completion",
+    "commit": "78288bb",
+    "contents": "context acknowledgement (docs only)"
+   },
+   {
+    "wave": "W2-completion",
+    "commit": "131992c",
+    "contents": "all-roots action migration + ChoiceRow/quiet primitives + census guard + 22 CSS retirements"
+   },
+   {
+    "wave": "W4+W5-completion",
+    "commit": "859fe75",
+    "contents": "EmptyState/QuietCompletion adoption (9+6 surfaces)"
+   },
+   {
+    "wave": "W6-completion",
+    "commit": "69bfe3a",
+    "contents": "75-block dedup + Agents 2/3 fix batch"
+   },
+   {
+    "wave": "docs-completion",
+    "commit": "11cbf37",
+    "contents": "permanent future-agent documentation + matrix"
+   },
+   {
+    "wave": "W7-completion",
+    "commit": "f0ea1e6",
+    "contents": "visual captures"
+   },
+   {
+    "wave": "final-fixes",
+    "commit": "db03aaf",
+    "contents": "Agents 4/5 fix batch (g5 survivors, FeedbackNote, error branches, floors)"
+   }
+  ],
+  "global_rollback": {
+   "restore_command": "git checkout 295c87c57fb1959d6a3bfc9352f9bef03dcd5bc9",
+   "note": "returns the branch to the pre-completion-run state; the foundation run remains revertible via the original boundaries above"
+  }
+ }
+}

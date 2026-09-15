@@ -11,6 +11,7 @@ import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { withFrom } from "@/app/navigationContract";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { IntegerValue, LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation/DisplayValue";
+import { Button, EmptyState, StatusChip } from "@/components/primitives";
 import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
@@ -75,13 +76,13 @@ export default function Orders() {
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل الطلبات</h1>
         <p>لم يتم تغيير شيء — بياناتك كما هي؛ أعد المحاولة.</p>
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        <Button
+          action="save"
+
           onClick={() => setReloadToken(token => token + 1)}
         >
           إعادة المحاولة
-        </button>
+        </Button>
       </section>
     );
   /* المجموعة ١ (§8.1): كل فتح من «العمل» يحفظ مصدره — الرجوع يعود إلى العمل. */
@@ -293,58 +294,58 @@ export default function Orders() {
         </button>
       </section>
       {/* §8.1: CTA ثانوي واضح حيث يملك هذا السطح المبيعات. */}
-      <button
-        className="micro-button micro-button-secondary"
-        type="button"
+      <Button
+        action="secondary"
+
         onClick={() => openFromWork("/direct-sales/new")}
       >
         <BadgeDollarSign aria-hidden="true" /> تسجيل بيع مباشر
-      </button>
+      </Button>
       {/* عقد الإغلاق العميق (WF-03 — عقد التنقل): العمل يملك المرجع والمواد —
           وصلة هادئة لكل منهما بجوار أفعال العمل، لا مقاعد جديدة ولا شريط ثانٍ. */}
       <div className="micro-form-actions micro-contextual-actions">
-        <button
-          className="micro-button micro-button-quiet"
-          type="button"
+        <Button
+          action="quiet"
+
           onClick={() => openFromWork("/catalog")}
         >
           منتجاتي وخدماتي
-        </button>
-        <button
-          className="micro-button micro-button-quiet"
-          type="button"
+        </Button>
+        <Button
+          action="quiet"
+
           onClick={() => openFromWork("/inventory")}
         >
           المواد والمخزون
-        </button>
+        </Button>
       </div>
       {state.orders.length > 0 || state.drafts.length > 0 ? (
-        <button
-          className="micro-button micro-button-secondary"
-          type="button"
+        <Button
+          action="secondary"
+
           onClick={() => openFromWork("/orders/draft/new?intent=customer_order")}
         >
           إنشاء مسودة أخرى
-        </button>
+        </Button>
       ) : null}
       {isEmptyWorkState ? (
-        <section className="micro-empty-state" aria-labelledby="work-empty-title">
-          <span className="micro-empty-symbol">
-            <BadgeDollarSign aria-hidden="true" />
-          </span>
-          <span className="micro-status-chip">لا توجد سجلات عمل بعد</span>
-          <h2 id="work-empty-title">يومك مفتوح — سجّل أول بيع</h2>
-          <p>
-            بيع واحد مسجل يكفي لتبدأ؛ الربح يظهر بعد معرفة التكلفة، وما لا تعرفه يبقى «غير محدد بعد» لا صفرًا.
-          </p>
-          <button
-            className="micro-button micro-button-primary"
-            type="button"
-            onClick={() => openFromWork("/direct-sales/new")}
-          >
-            سجّل أول بيع
-          </button>
-        </section>
+        <EmptyState
+          aria-labelledby="work-empty-title"
+          symbol={<BadgeDollarSign />}
+          state={<StatusChip state="no-data">لا توجد سجلات عمل بعد</StatusChip>}
+          title={<h2 id="work-empty-title">يومك مفتوح — سجّل أول بيع</h2>}
+          description={
+            <>
+              بيع واحد مسجل يكفي لتبدأ؛ الربح يظهر بعد معرفة التكلفة، وما لا تعرفه يبقى «غير محدد بعد» لا
+              صفرًا.
+            </>
+          }
+          action={
+            <Button action="create" onClick={() => openFromWork("/direct-sales/new")}>
+              سجّل أول بيع
+            </Button>
+          }
+        />
       ) : null}
     </section>
   );

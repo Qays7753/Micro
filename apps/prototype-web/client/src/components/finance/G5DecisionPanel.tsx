@@ -12,6 +12,7 @@ import {
   localDateInAmman,
 } from "@/presentation/formatters";
 
+import { Button } from "@/components/primitives";
 export const formatted = (minor: number) => formatMoneyMinor(minor);
 export const displayContributionAmount = (value: number, status: G5Decision["period"]["status"]) =>
   status === "invalid" ? "غير متاح" : formatMoneyMinor(value);
@@ -255,22 +256,22 @@ function G5DecisionPanel({
                       المتوقع الأصلي محفوظًا.
                     </p>
                     <div className="micro-form-actions">
-                      <button
-                        className="micro-button micro-button-primary"
-                        type="button"
+                      <Button
+                        action="commit"
+
                         disabled={reversing}
                         onClick={() => void submitReverse()}
                       >
                         {reversing ? "جارٍ حفظ التصحيح…" : "تنفيذ التراجع بسبب موثق"}
-                      </button>
-                      <button
-                        className="micro-button micro-button-secondary"
-                        type="button"
+                      </Button>
+                      <Button
+                        action="secondary"
+
                         disabled={reversing}
                         onClick={cancelReverse}
                       >
                         إلغاء
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : null}

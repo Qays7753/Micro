@@ -21,6 +21,32 @@ export function MoneyValue({ minor, className = "micro-number", showPlus = false
   );
 }
 
+/*
+ * W2 — تكوين المبلغ + وحدة العملة (عقد منطقة القيمة المالية):
+ * الوحدة بجوار القيمة خارج العزل الاتجاهي، لا داخل الرقم أبدًا.
+ * الوحدة تُمرَّر إلزاميًا (د.أ / دأ حسب سياق المنتج) — هذا المكوّن المشترك
+ * يبقى خاليًا من نصوص عربية ثابتة (حد كثافة النص لكل شاشة).
+ */
+export function MoneyWithUnit({
+  minor,
+  unit,
+  className = "micro-number",
+  showPlus = false,
+  unitClassName = "micro-money-unit",
+}: ValueProps & {
+  minor: number | null | undefined;
+  unit: string;
+  showPlus?: boolean;
+  unitClassName?: string;
+}) {
+  return (
+    <span className="micro-money-with-unit">
+      <MoneyValue minor={minor} className={className} showPlus={showPlus} />
+      <span className={unitClassName}>{unit}</span>
+    </span>
+  );
+}
+
 export function IntegerValue({
   value,
   className = "micro-number",

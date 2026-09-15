@@ -19,6 +19,7 @@ import {
 import type { CatalogItem, MeasurementUnit } from "@micro-domain/catalog/index.js";
 import type { RecurringWorkPolicyInput } from "@/application/recurring-work/recurringWorkService";
 
+import { Button } from "@/components/primitives";
 export type CatalogPoliciesSectionProps = {
   periodFrom: string;
   setPeriodFrom: Dispatch<SetStateAction<string>>;
@@ -297,14 +298,14 @@ export function CatalogPoliciesSection({
                   />
                 </label>
               </div>
-              <button
-                className="micro-button micro-button-secondary"
-                type="button"
+              <Button
+                action="secondary"
+
                 disabled={saving}
                 onClick={savePolicy}
               >
                 <Check aria-hidden="true" /> {saving ? "جارٍ الحفظ…" : "احفظ السياسة"}
-              </button>
+              </Button>
             </>
           ) : (
             <p className="micro-empty-copy">اختر مرجع عمل إذا أردت تسجيل سياسة توزيع اختيارية.</p>

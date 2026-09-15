@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { applyPwaUpdate, getPwaRuntimeState, subscribePwa } from "./register";
 import { hasDirtyForms } from "./dirtyRegistry";
 
+import { Button } from "@/components/primitives";
 export function PwaRuntimeNotice() {
   const [runtime, setRuntime] = useState(getPwaRuntimeState());
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
@@ -67,15 +68,15 @@ export function PwaRuntimeNotice() {
             ) : null}
           </div>
           <div className="micro-runtime-actions">
-            <button
-              className="micro-button micro-button-primary"
-              type="button"
+            <Button
+              action="save"
+
               disabled={isApplying}
               onClick={updateNow}
             >
               <RefreshCw aria-hidden="true" />
               {isApplying ? "جارٍ التحديث…" : "حدّث الآن"}
-            </button>
+            </Button>
             <button
               className="micro-icon-button"
               type="button"

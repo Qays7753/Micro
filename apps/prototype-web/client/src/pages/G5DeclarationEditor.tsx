@@ -11,6 +11,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { G5LinkOptions } from "@/application/g5/g5Service";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
+import { Button, ChoiceButton, ChoiceRow } from "@/components/primitives";
 /* مبدأ Micro: يبدأ المتوقع بالواقعة الأساسية، وتبقى المعرفة والربط والملاحظة خلف تفاصيل مقصودة. */
 
 function todayInAmman() {
@@ -39,7 +40,10 @@ export default function G5DeclarationEditor() {
   useEffect(() => {
     let active = true;
     void g5.listLinkOptions().then(result => {
-      if (active && result.ok) setLinks(result.value);
+      if (!active) return;
+      /* W2 (completion — تدقيق الوكيل ٢، F8): فشل قراءة خيارات الربط ظاهر لا صامت. */
+      if (result.ok) setLinks(result.value);
+      else setMessage(result.message);
     });
     return () => {
       active = false;
@@ -120,24 +124,16 @@ export default function G5DeclarationEditor() {
       <section className="micro-form-card">
         <div className="micro-field">
           <span>نوع التدفق</span>
-          <div className="micro-g5-choice-row">
-            <button
-              className="micro-g5-choice"
-              data-selected={direction === "collection"}
-              type="button"
-              onClick={() => selectDirection("collection")}
-            >
+          {/* W2 (completion — تدقيق الوكيل ٢، F5): عقد الاختيار المعتمد — حافة
+           * clay-interactive للمختار + وزن أثقل + aria-pressed (كان غائبًا). */}
+          <ChoiceRow>
+            <ChoiceButton selected={direction === "collection"} onClick={() => selectDirection("collection")}>
               تحصيل من عميل
-            </button>
-            <button
-              className="micro-g5-choice"
-              data-selected={direction === "commitment"}
-              type="button"
-              onClick={() => selectDirection("commitment")}
-            >
+            </ChoiceButton>
+            <ChoiceButton selected={direction === "commitment"} onClick={() => selectDirection("commitment")}>
               التزام قريب
-            </button>
-          </div>
+            </ChoiceButton>
+          </ChoiceRow>
         </div>
         <label className="micro-field">
           <span>
@@ -230,22 +226,24 @@ export default function G5DeclarationEditor() {
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">
-          <button
-            className="micro-button micro-button-primary micro-button-block"
-            type="button"
+          <Button
+            action="save"
+            block
+
             disabled={saving}
             onClick={() => void save()}
           >
             <Save aria-hidden="true" />
             {saving ? "جارٍ حفظ المتوقع…" : "حفظ المتوقع"}
-          </button>
-          <button
-            className="micro-button micro-button-secondary micro-button-block"
-            type="button"
+          </Button>
+          <Button
+            action="secondary"
+            block
+
             onClick={() => navigate("/finance")}
           >
             إلغاء
-          </button>
+          </Button>
         </div>
       </section>
     </section>
