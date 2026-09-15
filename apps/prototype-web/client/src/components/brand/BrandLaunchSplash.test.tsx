@@ -61,7 +61,9 @@ describe("BrandLaunchSplash", () => {
     const { container } = render(<BrandLaunchSplash gateSettled={false} onRelease={onRelease} />);
     const srcs = splashImgs(container).map(img => img.getAttribute("src"));
     expect(srcs).toEqual(LIGHT_LAYERS);
-    expect(document.body.querySelector(".micro-launch-splash-status")?.textContent).toContain("جارٍ فتح مشروعك المحلي");
+    expect(document.body.querySelector(".micro-launch-splash-status")?.textContent).toContain(
+      "جارٍ فتح مشروعك المحلي",
+    );
     expect(onRelease).not.toHaveBeenCalled();
   });
 
@@ -143,7 +145,9 @@ describe("BrandLaunchSplash", () => {
 
   it("renders no wordmark and no lockup — symbol-only surfaces only", () => {
     render(<BrandLaunchSplash gateSettled={false} onRelease={vi.fn()} />);
-    const srcs = splashImgs(document.body).map(img => img.getAttribute("src")).join(" ");
+    const srcs = splashImgs(document.body)
+      .map(img => img.getAttribute("src"))
+      .join(" ");
     expect(srcs).not.toMatch(/lockup|arabic-|latin-|wordmark|micro-mark/i);
     expect(document.body.querySelector(".micro-launch-splash")?.textContent ?? "").not.toContain("Micro");
   });

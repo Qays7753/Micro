@@ -56,7 +56,9 @@ describe("brand migration gate (W2)", () => {
     expect(viteConfig).toContain("/brand/pwa/ios-android-192.png");
     expect(viteConfig).toContain("/brand/pwa/ios-android-512.png");
     expect(viteConfig).toContain("/brand/pwa/web-maskable-512.png");
-    expect(viteConfig).not.toMatch(/lockup|arabic-light|arabic-dark|latin-light|latin-dark|appicon-terracotta/);
+    expect(viteConfig).not.toMatch(
+      /lockup|arabic-light|arabic-dark|latin-light|latin-dark|appicon-terracotta/,
+    );
   });
 
   it("keeps lang=ar, dir=rtl and both theme-color metas intact", () => {
@@ -88,7 +90,10 @@ describe("brand migration gate (W2)", () => {
   });
 
   it("keeps git-tracked source tree free of lockup/wordmark assets", () => {
-    const out = execSync("git ls-files apps/prototype-web/client/public", { cwd: APP_ROOT, encoding: "utf8" });
+    const out = execSync("git ls-files apps/prototype-web/client/public", {
+      cwd: APP_ROOT,
+      encoding: "utf8",
+    });
     expect(out).not.toMatch(/lockup|arabic-light|arabic-dark|latin-light|latin-dark|appicon-terracotta/);
   });
 });

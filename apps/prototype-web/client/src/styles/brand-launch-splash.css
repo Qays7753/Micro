@@ -10,16 +10,15 @@
 .micro-launch-splash {
   position: fixed;
   inset: 0;
-  /* Above the whole shell scale (content 0 … toast 70) — the splash precedes everything. */
-  z-index: 80;
+  /* Above the shell content and toast layer; DOM order keeps the splash on top. */
+  z-index: 70;
   display: grid;
   place-items: center;
   /* Same canvas token as the shell + theme-color metas: no white flash before Dark mode,
    * no seam between splash release and shell paint. */
   background: var(--color-bg-canvas);
   /* viewport-fit=cover: honor phone safe areas on every edge. */
-  padding:
-    calc(env(safe-area-inset-top, 0px) + var(--space-6))
+  padding: calc(env(safe-area-inset-top, 0px) + var(--space-6))
     calc(env(safe-area-inset-right, 0px) + var(--space-6))
     calc(env(safe-area-inset-bottom, 0px) + var(--space-6))
     calc(env(safe-area-inset-left, 0px) + var(--space-6));
@@ -36,7 +35,7 @@
   position: absolute;
   width: 1px;
   height: 1px;
-  margin: -1px;
+  margin: 0;
   padding: 0;
   overflow: hidden;
   clip: rect(0 0 0 0);
@@ -69,10 +68,22 @@
   will-change: transform, opacity;
 }
 
-.micro-launch-splash-layer-1 { animation-name: micro-splash-layer-1; animation-delay: 0ms; }
-.micro-launch-splash-layer-2 { animation-name: micro-splash-layer-2; animation-delay: 66.67ms; }
-.micro-launch-splash-layer-3 { animation-name: micro-splash-layer-3; animation-delay: 133.33ms; }
-.micro-launch-splash-layer-4 { animation-name: micro-splash-layer-4; animation-delay: 200ms; }
+.micro-launch-splash-layer-1 {
+  animation-name: micro-splash-layer-1;
+  animation-delay: 0ms;
+}
+.micro-launch-splash-layer-2 {
+  animation-name: micro-splash-layer-2;
+  animation-delay: 66.67ms;
+}
+.micro-launch-splash-layer-3 {
+  animation-name: micro-splash-layer-3;
+  animation-delay: 133.33ms;
+}
+.micro-launch-splash-layer-4 {
+  animation-name: micro-splash-layer-4;
+  animation-delay: 200ms;
+}
 
 /*
  * The supplied layer SVGs already contain their final 0/90/180/270-degree geometry.
@@ -83,34 +94,78 @@
 
 /* Layer 1 — top ink: enter gently from the center toward its supplied top position. */
 @keyframes micro-splash-layer-1 {
-  0%     { opacity: 0; transform: translateY(28px) scale(0.32); }
-  33.33% { opacity: 1; }
-  71.43% { opacity: 1; transform: translateY(2px) scale(1.02); }
-  100%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.32);
+  }
+  33.33% {
+    opacity: 1;
+  }
+  71.43% {
+    opacity: 1;
+    transform: translateY(2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 /* Layer 2 — right turquoise: the SVG already owns the right-facing geometry. */
 @keyframes micro-splash-layer-2 {
-  0%     { opacity: 0; transform: translateX(-28px) scale(0.32); }
-  33.33% { opacity: 1; }
-  71.43% { opacity: 1; transform: translateX(-2px) scale(1.02); }
-  100%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateX(-28px) scale(0.32);
+  }
+  33.33% {
+    opacity: 1;
+  }
+  71.43% {
+    opacity: 1;
+    transform: translateX(-2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 /* Layer 3 — bottom taupe: enter from the center toward its supplied bottom position. */
 @keyframes micro-splash-layer-3 {
-  0%     { opacity: 0; transform: translateY(-28px) scale(0.32); }
-  33.33% { opacity: 1; }
-  71.43% { opacity: 1; transform: translateY(-2px) scale(1.02); }
-  100%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(-28px) scale(0.32);
+  }
+  33.33% {
+    opacity: 1;
+  }
+  71.43% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 /* Layer 4 — left terracotta: the SVG already owns the left-facing geometry. */
 @keyframes micro-splash-layer-4 {
-  0%     { opacity: 0; transform: translateX(28px) scale(0.32); }
-  33.33% { opacity: 1; }
-  71.43% { opacity: 1; transform: translateX(2px) scale(1.02); }
-  100%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateX(28px) scale(0.32);
+  }
+  33.33% {
+    opacity: 1;
+  }
+  71.43% {
+    opacity: 1;
+    transform: translateX(2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 /* OS-level reduced motion: the final static mark is shown immediately (layers frozen

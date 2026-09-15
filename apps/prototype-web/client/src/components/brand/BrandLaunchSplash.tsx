@@ -38,13 +38,17 @@ const SPLASH_MAX_MS = 4000; // hard cap — the app is never blocked by the spla
 export const SPLASH_TIMINGS = { MOTION_TOTAL_MS, MOTION_FALLBACK_MS, RELEASE_FADE_MS, SPLASH_MAX_MS };
 
 function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return (
+    typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 export function BrandLaunchSplash({ gateSettled, onRelease }: BrandLaunchSplashProps) {
   const { theme } = useTheme();
   /* jsdom and reduced-motion environments take the static path: deterministic, no animation. */
-  const [phase, setPhase] = useState<"assemble" | "resolved">(() => (prefersReducedMotion() ? "resolved" : "assemble"));
+  const [phase, setPhase] = useState<"assemble" | "resolved">(() =>
+    prefersReducedMotion() ? "resolved" : "assemble",
+  );
   const [releasing, setReleasing] = useState(false);
   const releasedRef = useRef(false);
   const onReleaseRef = useRef(onRelease);
@@ -68,24 +72,17 @@ export function BrandLaunchSplash({ gateSettled, onRelease }: BrandLaunchSplashP
   useEffect(() => {
     const t = window.setTimeout(beginRelease, SPLASH_MAX_MS);
     return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* Release = gate settled AND motion finished (or skipped/failed), without exceeding the cap. */
   useEffect(() => {
     if (phase === "resolved" && gateSettled) beginRelease();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, gateSettled]);
 
   const handleLayerError = () => setPhase("resolved");
 
   const content = (
-    <div
-      className="micro-launch-splash"
-      data-releasing={releasing || undefined}
-      data-theme={theme}
-      dir="rtl"
-    >
+    <div className="micro-launch-splash" data-releasing={releasing || undefined} data-theme={theme} dir="rtl">
       <p className="micro-launch-splash-status" role="status" aria-live="polite">
         جارٍ فتح مشروعك المحلي…
       </p>
