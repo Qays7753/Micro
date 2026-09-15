@@ -49,6 +49,22 @@ export type ProjectFinancialPosition = {
   assetBookValueMinor: number;
   loansOutstandingMinor: number;
   pendingRetainedDepositsMinor: number;
+  /* FIN-001 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): حالة الدليل لكل مقياس —
+   * «غير مسجل» لا يُعرض رقمًا مؤكدًا؛ القيم العددية أعلاه تبقى كما هي
+   * (حسابًا) والعرض يتبع الحالة. صفر موثق ≠ غياب تسجيل. */
+  evidence: ProjectFinancialEvidence;
+};
+/* FIN-001: القيمة العددية تبقى عددًا (لا nullable واسع يكسر الحسابات) —
+ * الحالة تُقرأ منفصلة عن القيمة كما في الرئيسية تمامًا. */
+export type FinancialMetricEvidence = "recorded" | "not_recorded";
+export type ProjectFinancialEvidence = {
+  cash: FinancialMetricEvidence;
+  customerReceivables: FinancialMetricEvidence;
+  supplierPayables: FinancialMetricEvidence;
+  ownerCapital: FinancialMetricEvidence;
+  walletCash: FinancialMetricEvidence;
+  unallocatedCash: FinancialMetricEvidence;
+  operatingExpenses: FinancialMetricEvidence;
 };
 export type CogsStatus = "recorded" | "partial" | "not_available";
 export type RecordedPeriodResult = {
@@ -418,11 +434,60 @@ export class ProjectFinancialService {
           (stored.order.retainedMeaning ?? null) === null,
       )
       .reduce((sum, stored) => sum + stored.order.depositCollectedMinor, 0);
+    /* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): دليل كل مقياس يُحسب مع القيمة نفسها —
+     * نفس منطق الرئيسية (homeControlCenterService) مصدرًا واحدًا: الطلب/الحدث/
+     * الشراء/المحفظة/البيع المباشر أدلة تسجيل، والصفر المحسوب فوق سجلات قائمة
+     * يبقى صفرًا موثقًا (0.00) لا «غير مسجل». */
+    const hasOrders = ordersResult.value.length > 0;
+    const hasActiveDirectSales = activeDirectSales.length > 0;
+    const hasWallets = walletsResult.value.length > 0;
+    const hasPurchases = purchasesResult.value.length > 0;
+    const customerReceivablesMinorValue = orderPulse.registeredDebtMinor + directSalesReceivablesMinor;
+    const hasCashEvidence =
+      project.eventCount > 0 ||
+      orderPulse.registeredCollectionsMinor !== 0 ||
+      hasPurchases ||
+      hasWallets ||
+      hasActiveDirectSales;
+    const hasUnallocatedEvidence =
+      project.eventCount > 0 ||
+      orderPulse.registeredCollectionsMinor !== 0 ||
+      hasPurchases ||
+      hasActiveDirectSales ||
+      allocatedToWalletsMinor !== 0;
+    const evidence: ProjectFinancialEvidence = {
+      cash: hasCashEvidence ? "recorded" : "not_recorded",
+      customerReceivables:
+        hasOrders ||
+        orderPulse.registeredCollectionsMinor !== 0 ||
+        customerReceivablesMinorValue !== 0 ||
+        hasActiveDirectSales
+          ? "recorded"
+          : "not_recorded",
+      supplierPayables:
+        hasPurchases ||
+        eventsResult.value.some(
+          event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
+        )
+          ? "recorded"
+          : "not_recorded",
+      ownerCapital:
+        eventsResult.value.some(
+          event => event.type === "owner_investment_cash" || event.type === "owner_withdrawal_cash",
+        ) || ownerMovementsResult.value.length > 0
+          ? "recorded"
+          : "not_recorded",
+      walletCash: hasWallets ? "recorded" : "not_recorded",
+      unallocatedCash: hasUnallocatedEvidence ? "recorded" : "not_recorded",
+      operatingExpenses: eventsResult.value.some(event => event.operatingExpenseDeltaMinor !== 0)
+        ? "recorded"
+        : "not_recorded",
+    };
     return {
       ok: true,
       value: {
         recordedCashMinor: unallocatedCashMinor + walletCashMinor,
-        customerReceivablesMinor: orderPulse.registeredDebtMinor + directSalesReceivablesMinor,
+        customerReceivablesMinor: customerReceivablesMinorValue,
         supplierPayablesMinor: project.payableMinor + supplierMaterialPayablesMinor,
         ownerCapitalRecordedMinor: project.ownerCapitalMinor + ownerCapitalFromMovementsMinor,
         operatingExpensesRecordedMinor: project.operatingExpenseMinor,
@@ -438,6 +503,7 @@ export class ProjectFinancialService {
         assetBookValueMinor: project.assetMinor,
         loansOutstandingMinor: project.loanMinor,
         pendingRetainedDepositsMinor,
+        evidence,
       },
     };
   }

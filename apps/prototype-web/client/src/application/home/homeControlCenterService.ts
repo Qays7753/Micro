@@ -95,24 +95,13 @@ export class HomeControlCenterService {
     const orders = followUp.orders;
     const openDrafts = followUp.drafts;
     const positionValue = position.value;
-    const orderEvidence =
-      orders.length > 0 ||
-      positionValue.orderCollectionsMinor !== 0 ||
-      positionValue.customerReceivablesMinor !== 0;
-    const financeEvidence = positionValue.projectEventCount > 0;
-    const cashEvidence =
-      financeEvidence ||
-      positionValue.orderCollectionsMinor !== 0 ||
-      positionValue.supplierPurchaseCount > 0 ||
-      positionValue.cashWalletCount > 0;
-    const capitalEvidence = events.value.some(
-      event => event.type === "owner_investment_cash" || event.type === "owner_withdrawal_cash",
-    );
-    const payableEvidence =
-      positionValue.supplierPurchaseCount > 0 ||
-      events.value.some(
-        event => event.type === "operating_expense_payable" || event.type === "payable_settlement_cash",
-      );
+    /* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): الرئيسية ومالي تقرآن حالة الدليل من
+     * المصدر الواحد نفسه (readPosition) — «غير مسجل» تعني الشيء نفسه في
+     * الشاشتين، والبيع المباشر صار دليل كاش كما هو فعلًا. */
+    const orderEvidence = positionValue.evidence.customerReceivables === "recorded";
+    const cashEvidence = positionValue.evidence.cash === "recorded";
+    const capitalEvidence = positionValue.evidence.ownerCapital === "recorded";
+    const payableEvidence = positionValue.evidence.supplierPayables === "recorded";
     /* §2.7: كل حقيقة غير مسجلة تعرض طريقها — «غير مسجل — سجّله (نقرة)» — لا «غير مهيأ» عاجزة. */
     const factRoads: Record<"cash" | "receivables" | "payables" | "owner_capital", HomeAction> = {
       cash: action("road-cash", "سجّله", "/cash/wallet/new", ""),

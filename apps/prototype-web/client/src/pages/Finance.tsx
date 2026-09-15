@@ -20,6 +20,7 @@ import type { LocalFinancialPulse } from "@/application/financial-pulse/financia
 import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
 import type {
   FinancialInsights,
+  FinancialMetricEvidence,
   ProjectFinancialPosition,
   ProjectFinancialService,
   RecordedPeriodResult,
@@ -85,8 +86,17 @@ export type FinanceState =
       assetsOverview: readonly AssetSummaryRow[];
       loansOverview: readonly LoanSummaryRow[];
       pendingRetainedDeposits: readonly RetainedDepositRow[];
+      /* FIN-001: دليل نبضة المراجعة — طلبات مسجلة / نتائج نهائية قائمة. */
+      ordersRecorded: boolean;
+      finalOrdersRecorded: boolean;
     };
 const currentMonth = () => localDateInAmman().slice(0, 7);
+/* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): تسمية واحدة لحالة «غير مسجل» في كل مالي —
+ * القيمة العددية باقية كما هي، والعرض يتبع حالة الدليل لا العدد. */
+const NOT_RECORDED_LABEL = "غير مسجل";
+const unknownValue = () => <span className="micro-unknown-value">{NOT_RECORDED_LABEL}</span>;
+const evidenceValue = (state: FinancialMetricEvidence, minor: number) =>
+  state === "recorded" ? <MoneyValue minor={minor} /> : unknownValue();
 const validMonth = (month: string) =>
   /^\d{4}-\d{2}$/.test(month) && Number(month.slice(5)) >= 1 && Number(month.slice(5)) <= 12;
 function monthBounds(month: string) {
@@ -232,6 +242,11 @@ export default function Finance() {
           assetsOverview: assetsResult.value,
           loansOverview: loansResult.value,
           pendingRetainedDeposits: pendingRetainedResult.value,
+          /* FIN-001: دليل نبضة المراجعة — من الطلبات الفعلية لا من مجموع فارغ. */
+          ordersRecorded: pulseResult.orders.length > 0,
+          finalOrdersRecorded: pulseResult.orders.some(stored =>
+            ["delivered", "settled"].includes(stored.order.status),
+          ),
         });
       },
     );
@@ -316,12 +331,16 @@ export default function Finance() {
         <>
           <ReviewPulseSection
             pulse={pulse}
+            ordersRecorded={state.ordersRecorded}
+            finalOrdersRecorded={state.finalOrdersRecorded}
             excludedOrders={state.excludedOrders}
             onOpenOrder={orderId => navigate(withFrom(`/orders/${orderId}`, "/finance"))}
           />
           <CashDecisionSurface
             decision={decision}
             unallocatedCashMinor={position.unallocatedCashMinor}
+            cashRecorded={position.evidence.cash === "recorded"}
+            declarationsRecorded={state.declarations.some(declaration => declaration.kind !== "reversal")}
             onDeclare={() => navigate(withFrom("/finance/g5/declaration", "/finance"))}
             onCoverPayment={() =>
               navigate(appendQueryParams("/cash/distribute", { mode: "cover", from: "/finance" }))
@@ -330,6 +349,7 @@ export default function Finance() {
           <OwnerDecisionCard
             overview={owner}
             capitalRecordedMinor={position.ownerCapitalRecordedMinor}
+            capitalEvidence={position.evidence.ownerCapital}
             onOpen={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
           />
           <section
@@ -339,18 +359,21 @@ export default function Finance() {
             <PositionCard
               label="الكاش المسجل"
               value={position.recordedCashMinor}
+              state={position.evidence.cash}
               helper="محافظ معلنة + كاش غير موزع"
               icon={WalletCards}
             />
             <PositionCard
               label="لي عند العملاء"
               value={position.customerReceivablesMinor}
+              state={position.evidence.customerReceivables}
               helper="دين مسجل بعد التسليم"
               icon={HandCoins}
             />
             <PositionCard
               label="عليّ للموردين"
               value={position.supplierPayablesMinor}
+              state={position.evidence.supplierPayables}
               helper="مصروفات أو مشتريات مستحقة"
               icon={Landmark}
             />
@@ -363,7 +386,7 @@ export default function Finance() {
               <CircleDollarSign aria-hidden="true" />
               <span>مال المالك</span>
               <strong>
-                <MoneyValue minor={position.ownerCapitalRecordedMinor} />
+                {evidenceValue(position.evidence.ownerCapital, position.ownerCapitalRecordedMinor)}
               </strong>
               <small>رأس مالك · افتح الدفتر الموحد</small>
             </button>
@@ -382,14 +405,13 @@ export default function Finance() {
               <h2>ما نعرفه الآن</h2>
               <p>
                 كاش المحافظ المعلن (د.أ):{" "}
-                <MoneyValue minor={position.walletCashMinor} className="micro-inline-number" /> · الكاش غير
-                الموزع (د.أ):{" "}
-                <MoneyValue minor={position.unallocatedCashMinor} className="micro-inline-number" /> · محافظ
-                مسجلة: {position.cashWalletCount}
+                {evidenceValue(position.evidence.walletCash, position.walletCashMinor)} · الكاش غير الموزع
+                (د.أ): {evidenceValue(position.evidence.unallocatedCash, position.unallocatedCashMinor)} ·
+                محافظ مسجلة: {position.cashWalletCount}
               </p>
               <p>
                 المصاريف التشغيلية المسجلة (د.أ):{" "}
-                <MoneyValue minor={position.operatingExpensesRecordedMinor} className="micro-inline-number" />{" "}
+                {evidenceValue(position.evidence.operatingExpenses, position.operatingExpensesRecordedMinor)}{" "}
                 · شراء مواد مسجل: {position.supplierPurchaseCount} · الأحداث العامة:{" "}
                 {position.projectEventCount}
               </p>
@@ -498,7 +520,9 @@ export default function Finance() {
               </span>
               <strong>
                 {assetCountLabel(state.assetsOverview.length)} ·{" "}
-                {formatMoneyMinor(state.assetsOverview.reduce((sum, row) => sum + row.bookValueMinor, 0))} د.أ
+                {state.assetsOverview.length > 0
+                  ? `${formatMoneyMinor(state.assetsOverview.reduce((sum, row) => sum + row.bookValueMinor, 0))} د.أ`
+                  : NOT_RECORDED_LABEL}
               </strong>
             </summary>
             <p className="micro-period-status">
@@ -526,10 +550,11 @@ export default function Finance() {
                 {state.pendingRetainedDeposits.filter(row => row.decision === "pending").length > 0
                   ? `${pendingDepositCountLabel(state.pendingRetainedDeposits.filter(row => row.decision === "pending").length)} · `
                   : ""}
-                {formatMoneyMinor(
-                  state.loansOverview.reduce((sum, row) => sum + row.reading.outstandingMinor, 0),
-                )}{" "}
-                د.أ قائمًا
+                {state.loansOverview.length > 0 || state.pendingRetainedDeposits.length > 0
+                  ? `${formatMoneyMinor(
+                      state.loansOverview.reduce((sum, row) => sum + row.reading.outstandingMinor, 0),
+                    )} د.أ قائمًا`
+                  : NOT_RECORDED_LABEL}
               </strong>
             </summary>
             <p className="micro-period-status">
@@ -762,13 +787,21 @@ export default function Finance() {
 
 function ReviewPulseSection({
   pulse,
+  ordersRecorded,
+  finalOrdersRecorded,
   excludedOrders,
   onOpenOrder,
 }: {
   pulse: LocalFinancialPulse;
+  ordersRecorded: boolean;
+  finalOrdersRecorded: boolean;
   excludedOrders: readonly StoredCraftOrder[];
   onOpenOrder: (orderId: string) => void;
 }) {
+  /* FIN-001: نبضة المراجعة تتبع دليل الطلبات — مشروع بلا طلبات لا يعرض
+   * أصفارًا مؤكدة بل «غير مسجل»، كما تفعل الرئيسية بالضبط. */
+  const pulseValue = (recorded: boolean, minor: number) =>
+    recorded ? <MoneyValue minor={minor} /> : unknownValue();
   return (
     <section className="micro-financial-pulse" aria-labelledby="finance-review-pulse-title">
       <div className="micro-financial-pulse-heading">
@@ -781,30 +814,22 @@ function ReviewPulseSection({
       <dl>
         <div>
           <dt>قبض مسجل من الطلبات</dt>
-          <dd>
-            <MoneyValue minor={pulse.registeredCollectionsMinor} />
-          </dd>
+          <dd>{pulseValue(ordersRecorded, pulse.registeredCollectionsMinor)}</dd>
           <small>لا يساوي كاش المشروع</small>
         </div>
         <div>
           <dt>دين مسجل بعد التسليم</dt>
-          <dd>
-            <MoneyValue minor={pulse.registeredDebtMinor} />
-          </dd>
+          <dd>{pulseValue(ordersRecorded, pulse.registeredDebtMinor)}</dd>
           <small>لا يدخل في القبض</small>
         </div>
         <div>
           <dt>سعر محتسب عند التسليم</dt>
-          <dd>
-            <MoneyValue minor={pulse.recognizedRevenueFromFinalOrdersMinor} />
-          </dd>
+          <dd>{pulseValue(finalOrdersRecorded, pulse.recognizedRevenueFromFinalOrdersMinor)}</dd>
           <small>من نتائج معروفة فقط</small>
         </div>
         <div>
           <dt>تكلفة محتسبة عند التسليم</dt>
-          <dd>
-            <MoneyValue minor={pulse.recognizedCostFromFinalOrdersMinor} />
-          </dd>
+          <dd>{pulseValue(finalOrdersRecorded, pulse.recognizedCostFromFinalOrdersMinor)}</dd>
           <small>من نتائج معروفة فقط</small>
         </div>
       </dl>
@@ -843,14 +868,20 @@ function ReviewPulseSection({
 function OwnerDecisionCard({
   overview,
   capitalRecordedMinor,
+  capitalEvidence,
   onOpen,
 }: {
   overview: OwnerEntitlementOverview;
   capitalRecordedMinor: number;
+  capitalEvidence: FinancialMetricEvidence;
   onOpen: () => void;
 }) {
   /* المجموعة ٦ (البند ٢ — S2-07): بطاقة مالك واحدة برقمين مفصولين — رأس المال
    * والحق المسجل المتبقي — ومدخل واحد للدفتر الموحد «مال المالك». */
+  /* FIN-001: دليل الحق المتبقي من مصادره الخاصة (استحقاقات/أرصدة افتتاحية/
+   * حركات) — دفتر مالك فارغ لا يعرض صفرًا مؤكدًا. */
+  const entitlementRecorded =
+    overview.entitlements.length > 0 || overview.openingBalances.length > 0 || overview.movements.length > 0;
   return (
     <section
       className="micro-owner-decision-card"
@@ -870,8 +901,18 @@ function OwnerDecisionCard({
         </span>
       </div>
       <div className="micro-owner-decision-grid">
-        <Metric label="رأس مالك في المشروع" value={formatMoneyMinor(capitalRecordedMinor)} />
-        <Metric label="حق مسجل متبقٍ" value={formatMoneyMinor(overview.remainingEntitlementBalanceMinor)} />
+        <Metric
+          label="رأس مالك في المشروع"
+          value={capitalEvidence === "recorded" ? formatMoneyMinor(capitalRecordedMinor) : NOT_RECORDED_LABEL}
+        />
+        <Metric
+          label="حق مسجل متبقٍ"
+          value={
+            entitlementRecorded
+              ? formatMoneyMinor(overview.remainingEntitlementBalanceMinor)
+              : NOT_RECORDED_LABEL
+          }
+        />
       </div>
       <Button action="secondary" onClick={onOpen}>
         افتح مال المالك
@@ -883,15 +924,23 @@ function OwnerDecisionCard({
 function CashDecisionSurface({
   decision,
   unallocatedCashMinor,
+  cashRecorded,
+  declarationsRecorded,
   onDeclare,
   onCoverPayment,
 }: {
   decision: G5Decision;
   unallocatedCashMinor: number;
+  cashRecorded: boolean;
+  declarationsRecorded: boolean;
   onDeclare: () => void;
   onCoverPayment: () => void;
 }) {
   const cash = decision.shortCash;
+  /* FIN-001: مقاييس قرار الكاش تتبع دليلها — كاش غير مسجل أو متوقعات غير
+   * مسجلة تُعرض «غير مسجل» لا 0.00 مؤكدًا، باتساق مع «الكاش المتوقع». */
+  const declaredValue = (minor: number, status: G5Decision["shortCash"]["status"]) =>
+    !declarationsRecorded ? NOT_RECORDED_LABEL : displayCashAmount(minor, status);
   return (
     <section className="micro-cash-decision" aria-labelledby="cash-decision-title">
       <div className="micro-cash-decision-heading">
@@ -902,18 +951,17 @@ function CashDecisionSurface({
       <div className="micro-cash-decision-metrics">
         <Metric
           label="الكاش المسجل الآن"
-          value={displayCashAmount(cash.recordedCashMinor, cash.status)}
-          negative={cash.status !== "invalid" && cash.recordedCashMinor < 0}
+          value={cashRecorded ? displayCashAmount(cash.recordedCashMinor, cash.status) : NOT_RECORDED_LABEL}
+          negative={cashRecorded && cash.status !== "invalid" && cash.recordedCashMinor < 0}
         />
-        <Metric
-          label="قبض متوقع قريب"
-          value={displayCashAmount(cash.declaredCollectionsMinor, cash.status)}
-        />
+        <Metric label="قبض متوقع قريب" value={declaredValue(cash.declaredCollectionsMinor, cash.status)} />
         <Metric
           label="دفع متوقع قريب"
-          value={displayCashAmount(cash.declaredCommitmentsMinor, cash.status)}
+          value={declaredValue(cash.declaredCommitmentsMinor, cash.status)}
           negative={
-            cash.status !== "invalid" && cash.declaredCommitmentsMinor > cash.declaredCollectionsMinor
+            declarationsRecorded &&
+            cash.status !== "invalid" &&
+            cash.declaredCommitmentsMinor > cash.declaredCollectionsMinor
           }
         />
         <Metric
@@ -961,7 +1009,7 @@ function Metric({ label, value, negative = false }: { label: string; value: stri
     <div>
       <span>{label}</span>
       {/* S3-07: الحالة العربية خارج صنف الأرقام — هادئة لا الصوت الأعلى في الخلية. */}
-      {value === "غير متاح" ? (
+      {value === "غير متاح" || value === NOT_RECORDED_LABEL ? (
         <span className="micro-unknown-value">{value}</span>
       ) : (
         <strong className="micro-number" data-negative={negative}>
@@ -974,21 +1022,21 @@ function Metric({ label, value, negative = false }: { label: string; value: stri
 function PositionCard({
   label,
   value,
+  state = "recorded",
   helper,
   icon: Icon,
 }: {
   label: string;
   value: number;
+  state?: FinancialMetricEvidence;
   helper: string;
   icon: typeof WalletCards;
 }) {
   return (
-    <article className="micro-finance-position-card">
+    <article className="micro-finance-position-card" data-evidence={state}>
       <Icon aria-hidden="true" />
       <span>{label}</span>
-      <strong>
-        <MoneyValue minor={value} />
-      </strong>
+      <strong>{evidenceValue(state, value)}</strong>
       <small>{helper}</small>
     </article>
   );

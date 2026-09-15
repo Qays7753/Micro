@@ -328,7 +328,10 @@ CAPS: dict[str, int] = {
     # one collapsed named disclosure «تصحيح هذه العملية» (§10.2 rule 1 — same owner-
     # approved pattern as OrderDetail's «تصحيحات موثقة على الطلب»). Nothing deleted;
     # cap lowered 277→257 as a ratchet gain.
-    "Finance": 257,
+    # Finance 257 → 258 (2026-09-16, financial-trust package FIN-001, owner-approved):
+    # one new at-rest truth label «غير مسجل» — metrics without recorded evidence
+    # must not render as a confirmed 0.00 anywhere on the finance surface.
+    "Finance": 258,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
