@@ -6,8 +6,8 @@
   "counts": {
     "code_and_config": 15,
     "brand_assets": 38,
-    "planning_evidence": 176,
-    "total": 229
+    "planning_evidence": 145,
+    "total": 198
   },
   "code_and_config_changes": [
     {
@@ -339,10 +339,6 @@
       "bytes": 3015
     },
     {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/ROUTE_SCREEN_INVENTORY.json",
-      "status": "A"
-    },
-    {
       "path": "planning/micro-brand-assets-motion-splash-2026-09/W0_BASELINE.md",
       "status": "A",
       "sha256": "3acb74e4cc2e315f86779a41a82966d2f2f230d87d31215e5437830ab78253c5",
@@ -355,152 +351,10 @@
       "bytes": 2564
     },
     {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/01__مشروع_النخبة__home__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/02__ما_اسم_مشروعك__setup-step1__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/03__وين_تحط_فلوسك__setup-step2__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/04__شو_وضع_الدرج_هلق__setup-step3__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/05__شو_عندك_هلق؟__foundation__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/06__العمل__orders__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/07__تصميم_مخطط__orders-new-planned__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/08__طلب_من_عميل__draft-editor-new-customer__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/08__طلب_من_عميل__draft-editor__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/09__سجّل_ما_اتفقت_عليه__draft-agreement__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/10__مجسم_شعار_من_الجبس__draft-cost__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/11__الطلب_غير_متاح_محليًا__order-detail-safe__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/12__مراجعة_التسليم__delivery-review-safe__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/13__تسجيل_بيع_مباشر__direct-sale-new__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/14__تصحيح_بيع_مباشر__direct-sale-safe__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/15__المواعيد__schedule__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/16__الموعد_غير_متاح_محليًا__schedule-editor-safe__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/17__مالي__finance__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/18__تسجيل_استثمار_المالك__finance-event__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/19__سحب_من_المشروع_لنفسك؟__owner-withdrawal__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/20__مال_المالك__owner-entitlement__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/21__تحصيل_أو_التزام_قريب__g5-declaration__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/22__كشف_الفترة__statement__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/23__آخر_ما_حدث__finance-activity__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/24__لا_نص_للمشاركة__share-preview-default__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/25__محافظ_الكاش__cash-wallets__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/27__الدرج__wallet-ledger__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/28__رصيد_افتتاحي_هذه_المحفظة_معروف_أصلًا__opening-later__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/29__اضبط_كاش_الدرج__wallet-adjust__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/30__تحتاج_محافظتين_للتحويل__cash-transfer__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/31__وزّع_الكاش_غير_الموزع__cash-distribute__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/32__عدّ_اللي_في_الدرج_فعلًا__cash-count__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/33__جارٍ_فتح_الأثر__cash-reversal-safe__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/34__حصّل_من_مين_عليه_إلَي__collect__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/35__المواد_والمخزون__inventory__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/36__أي_مادة_تسجّل؟__material-new__light__390xFULL.png",
-      "status": "A"
-    },
-    {
-      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/59__شاشة_الإطلاق__splash__light__390xFULL.png",
-      "status": "A"
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/ASSET_MANIFEST.json",
+      "status": "A",
+      "sha256": "d35a80c8ab556af4578e9d32d8f7269a13093e35adf1167e351f8db31bc7a3c7",
+      "bytes": 17136
     },
     {
       "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/CAPTURE_RUN_LOG.md",
@@ -509,16 +363,52 @@
       "bytes": 3711
     },
     {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/CHANGED_FILES_MANIFEST.json",
+      "status": "A",
+      "sha256": "ec3dee4bfef467b73f82d511584188dc935dfa3f9c17405c112c9aa96b9b43cf",
+      "bytes": 58927
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/FINAL_LIMITATIONS.md",
+      "status": "A",
+      "sha256": "795d8dbd11673e8b0187274ce22da1bd0b06274fed2838aecedb47ca7f8e0c97",
+      "bytes": 3298
+    },
+    {
       "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/RESUME_STATE_REPORT.md",
       "status": "A",
       "sha256": "eac54151516849606ec5bdae8df5abfa7c7cff1800ab7986f6bbfeb784b8f108",
       "bytes": 5059
     },
     {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/ROLLBACK_MANIFEST.json",
+      "status": "A",
+      "sha256": "afc638544a74c7b725e323bc418648b210e5c7934dc8958f9dfd98c6d1e2a281",
+      "bytes": 1054
+    },
+    {
       "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/ROUTE_SCREEN_INVENTORY.json",
       "status": "A",
       "sha256": "f32ad91716b3434c7b14a2d98d5fbe17a18691894e681fef3d768ef09f875d7f",
       "bytes": 42086
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/reports/MICRO_BRAND_ACTIVATION_EXECUTION_REPORT.md",
+      "status": "A",
+      "sha256": "64e467984b351a335f9ca1baf2c7a6314af252ad243b0a0c26b5aecb5ffa934b",
+      "bytes": 6258
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/reports/MICRO_BRAND_ACTIVATION_EXECUTION_SUMMARY.md",
+      "status": "A",
+      "sha256": "809ac5a086174c008523ad8e98e1fc5e153aae101382eca7e8622a30d375b3ac",
+      "bytes": 3145
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/reports/SCREEN_COVERAGE_REPORT.md",
+      "status": "A",
+      "sha256": "83f9d2040f7dbef3db69277cb25a48ebe27144f9dbf17f9e1f96ac0535ec07b8",
+      "bytes": 6651
     },
     {
       "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/01__مشروع_النخبة__home__dark__390xFULL.png",

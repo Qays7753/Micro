@@ -10,7 +10,7 @@
     "git push origin --delete micro-brand-assets-motion-splash-resume-20260915 micro-brand-assets-motion-splash-resume-bridge-20260915  # optional remote cleanup"
   ],
   "verified_state": {
-    "work_branch_head_at_generation": "8c22814d3fa6ea019ed49e90c570ee4192f39216",
+    "work_branch_head_at_generation": "d6d140e5587e10e5f9a5dcd485a6d0e54e08e2b2",
     "old_runtime_assets_restorable_from": "baseline commit paths apps/prototype-web/client/public/micro-mark*.png|svg",
     "pwa_manifest_reverts_to": "micro-mark-192/512 icon set (baseline vite.config.ts)"
   },
