@@ -91,8 +91,8 @@ export class CollectionService {
         outstandingMinor: order.receivableMinor,
         occurredOn: stored.updatedAt.slice(0, 10),
         sourceHref: `/orders/${stored.id}`,
-        /* Conflict B: الدين غير المسمّى ظاهر بتحذير وفعل تالٍ — التسمية من
-         * صفحة الطلب (اختيار جهة قائمة أو اسم جديد يصبح جهة عند تكراره). */
+        /* FIN-002: الدين غير المسمّى ظاهر بتحذير وفعل تالٍ — التسمية من
+         * صفحة الطلب (اختيار اسم مسجل أو اسم جديد يظهر في الدفتر من أول حركة). */
         qualifier: order.customerName.trim()
           ? isRegisteredDebt
             ? "دين مسجل بعد التسليم"

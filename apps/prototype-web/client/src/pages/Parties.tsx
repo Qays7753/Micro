@@ -52,8 +52,9 @@ export default function Parties() {
 
   useEffect(() => {
     let active = true;
-    /* Conflict B: الجهات المتكررة فقط — الاسم لمرة واحدة يبقى محليًا في سجله. */
-    partyLedger.read({ repeatedOnly: true }).then(result => {
+    /* FIN-002 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): كل اسم حقيقي يدخل الدفتر من
+     * أول حركة — التكرار شارة لا شرط إخفاء. */
+    partyLedger.read().then(result => {
       if (!active) return;
       setState(result.ok ? { phase: "ready", overview: result.value } : { phase: "error" });
     });
@@ -101,9 +102,8 @@ export default function Parties() {
         <span className="micro-overline">دفتر الناس</span>
         <h1>مين عليه إلَي، وعليّ لمين؟</h1>
         <p>
-          تجميع حي بالاسم من الطلبات والمشتريات والالتزامات — لا كيانات إضافية ولا إدخال مزدوج. يظهر هنا من
-          تكرر اسمه مرتين فأكثر؛ الاسم لمرة واحدة يبقى في سجله نفسه (الطلب أو البيعة) ولا يدخل الدفتر
-          تلقائيًا.
+          تجميع حي بالاسم من الطلبات والمشتريات والالتزامات — لا كيانات إضافية ولا إدخال مزدوج. كل اسم سجّلت
+          له دينًا أو ذمة يظهر هنا من أول حركة، والمتكرر يوسم «متكرر» شارةً بلا إخفاء أحد.
         </p>
       </div>
       <section className="micro-home-facts" aria-label="خلاصة الدفتر">
@@ -115,6 +115,7 @@ export default function Parties() {
           <strong>
             <MoneyValue minor={overview.totalReceivableMinor} />
           </strong>
+          <small>الديون المسماة — ما بلا اسم يبقى في «لي عند العملاء»</small>
         </article>
         <article className="micro-home-fact" data-state="known">
           <div className="micro-home-fact-heading">
@@ -152,6 +153,7 @@ export default function Parties() {
               <summary className="micro-party-summary">
                 <span>
                   <b>{party.name}</b>
+                  {party.repeated ? <small className="micro-party-repeat-mark">متكرر</small> : null}
                   <small>
                     {party.receivableMinor > 0 ? (
                       <>

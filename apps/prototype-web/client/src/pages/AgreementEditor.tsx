@@ -70,9 +70,9 @@ export default function AgreementEditor() {
     void (async () => {
       const overview = await cashContinuity.overview();
       if (active && overview.ok) setWalletOptions(overview.value.wallets);
-      /* Conflict B: الجهات المتكررة فقط — جهة قائمة تُختار باسمها (لا كيان
-       * إدخال مزدوج)، والاسم الجديد يصبح جهة عند تكراره. */
-      const ledger = await partyLedger.read({ repeatedOnly: true });
+      /* FIN-002: مقترحات الجهات — كل الأسماء المسجلة (الأكثر حركة أولًا)،
+       * وكل اسم يظهر في الدفتر من أول حركة مسجلة. */
+      const ledger = await partyLedger.read();
       if (active && ledger.ok)
         setPartySuggestions(ledger.value.parties.map(party => party.name).slice(0, 12));
     })();
@@ -415,7 +415,7 @@ export default function AgreementEditor() {
           {!customerName.trim() ? (
             <small className="micro-warning-copy" data-testid="unnamed-party-warning">
               طلب بلا اسم جهة — أي دين لاحق سيظهر «زبون بلا اسم» في ورقة التحصيل مع تحذير، ويمكنك تسمية الجهة
-              لاحقًا من صفحة الطلب (اختيار جهة قائمة أو اسم جديد يصبح جهة عند تكراره).
+              لاحقًا من صفحة الطلب (اختيار اسم مسجل أو اسم جديد يظهر في دفتر الناس من أول حركة).
             </small>
           ) : null}
         </label>

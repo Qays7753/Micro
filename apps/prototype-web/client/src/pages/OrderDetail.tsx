@@ -260,12 +260,12 @@ export default function OrderDetail() {
     };
   }, [depositPanelOpen, cashContinuity, dataVersion]);
 
-  /* Conflict B: مقترحات تسمية الجهة — الجهات المتكررة القائمة. */
+  /* FIN-002: مقترحات تسمية الجهة — كل الأسماء المسجلة، الأكثر تكرارًا أولًا. */
   useEffect(() => {
     if (!stored || stored.order.customerName.trim()) return;
     let active = true;
     void (async () => {
-      const ledger = await partyLedger.read({ repeatedOnly: true });
+      const ledger = await partyLedger.read();
       if (active && ledger.ok)
         setPartySuggestions(ledger.value.parties.map(party => party.name).slice(0, 12));
     })();
@@ -632,9 +632,9 @@ export default function OrderDetail() {
           {order.orderName?.trim() ? ` · ${order.itemName}` : ""}
         </p>
       </div>
-      {/* Conflict B: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد (اختيار جهة
-          قائمة أو اسم جديد يصبح جهة عند تكراره)؛ الديون غير المسماة تبقى
-          ظاهرة بتحذير في ورقة التحصيل حتى التسمية. */}
+      {/* FIN-002: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد (اختيار اسم
+          مسجل أو اسم جديد يظهر في دفتر الناس من أول حركة)؛ الديون غير
+          المسماة تبقى ظاهرة بتحذير في ورقة التحصيل حتى التسمية. */}
       {order.status !== "cancelled" && !order.customerName.trim() ? (
         assignNameOpen ? (
           <section
@@ -644,8 +644,8 @@ export default function OrderDetail() {
           >
             <strong id="assign-party-heading">سمِّ جهة هذا الطلب</strong>
             <p>
-              اسم الجهة يجعل الدين والتحصيل قابلين للتتبع في دفتر الناس (يظهر عند تكرار الاسم مرتين). هذا
-              الطلب بلا اسم حتى الآن — التسمية تعبئة باتجاه واحد لا إعادة تسمية.
+              اسم الجهة يجعل الدين والتحصيل قابلين للتتبع في دفتر الناس من أول حركة. هذا الطلب بلا اسم حتى
+              الآن — التسمية تعبئة باتجاه واحد لا إعادة تسمية.
             </p>
             <label className="micro-field">
               <span>اسم الجهة</span>

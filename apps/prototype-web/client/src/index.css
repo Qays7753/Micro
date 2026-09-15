@@ -5696,6 +5696,18 @@ button.micro-month-cell:active {
   font-size: 15px;
   color: var(--color-text-primary);
 }
+/* FIN-002: شارة «متكرر» — علامة هادئة بجانب الاسم، لا شرط إخفاء لأحد. */
+.micro-party-repeat-mark {
+  display: inline-block;
+  margin-inline-start: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--vf-radius-full);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.8;
+  vertical-align: middle;
+}
 .micro-party-summary small {
   color: var(--color-text-secondary);
   font-size: 12px;

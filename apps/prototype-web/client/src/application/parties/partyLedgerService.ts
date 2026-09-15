@@ -38,9 +38,12 @@ export type PartyEntry = {
   /** عليك للطرف (ذمم دائنة) — المتبقي الحالي. */
   payableMinor: number;
   movements: readonly PartyMovement[];
+  /* FIN-002 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): التكرار عبر سجلين مختلفين
+   * فأكثر شارة على الجهة — لا شرط إخفاء. كل اسم حقيقي يظهر من أول حركة. */
+  repeated: boolean;
 };
 
-type MutablePartyEntry = Omit<PartyEntry, "movements"> & { movements: PartyMovement[] };
+type MutablePartyEntry = Omit<PartyEntry, "movements" | "repeated"> & { movements: PartyMovement[] };
 
 export type PartyLedgerOverview = {
   parties: readonly PartyEntry[];
@@ -53,8 +56,8 @@ export type PartyLedgerOverview = {
 const normalizeName = (name: string) => name.trim().replace(/\s+/g, " ");
 
 /* عدد السجلات المختلفة التي ربطت بهذا الاسم (طلب/بيع/شراء/حدث) — حركةتان
- * من الطلب نفسه سجل واحد لا سجلان. */
-function distinctSourceCount(entry: PartyEntry): number {
+ * من الطلب نفسه سجل واحد لا سجلان. FIN-002: صار مصدر شارة «متكرر» فقط. */
+function distinctSourceCount(entry: Pick<PartyEntry, "movements">): number {
   const sourceIds = new Set(entry.movements.map(movement => movement.id.split(":").pop() ?? movement.id));
   return sourceIds.size;
 }
@@ -62,7 +65,7 @@ function distinctSourceCount(entry: PartyEntry): number {
 export class PartyLedgerService {
   constructor(private readonly store: PrototypeLocalStore) {}
 
-  async read(input: { repeatedOnly?: boolean } = {}): Promise<PartyLedgerResult<PartyLedgerOverview>> {
+  async read(): Promise<PartyLedgerResult<PartyLedgerOverview>> {
     const [orders, sales, purchases, events] = await Promise.all([
       this.store.listOrders(),
       this.store.listDirectSales(),
@@ -193,24 +196,20 @@ export class PartyLedgerService {
           Math.abs(b.receivableMinor) +
           Math.abs(b.payableMinor) -
           (Math.abs(a.receivableMinor) + Math.abs(a.payableMinor)),
-      );
+      )
+      .map(entry => ({ ...entry, repeated: distinctSourceCount(entry) >= 2 }));
 
-    /* Conflict B: الاسم الذي تكرر مرتين فأكثر (عبر سجلات مختلفة) هو «جهة» —
-     * الاسم لمرة واحدة يبقى محليًا في سجله ولا يدخل تحليل الجهات تلقائيًا.
-     * المسودة/الاتفاق تقرأ المقترحات بهذا الترشيح نفسه. */
-    let finalList = list;
-    if (input.repeatedOnly) {
-      finalList = list.filter(entry => distinctSourceCount(entry) >= 2);
-    }
-
+    /* FIN-002 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الدفتر يعرض كل اسم حقيقي من
+     * أول حركة مسجلة — التكرار شارة على الجهة لا شرط دخول؛ والمجاميع تُحسب
+     * من كامل المجتمع المرئي فتطابق «لي عند العملاء» في مالي للديون المسماة. */
     return {
       ok: true,
       value: {
-        parties: finalList,
-        totalReceivableMinor: finalList.reduce((sum, entry) => sum + entry.receivableMinor, 0),
-        totalPayableMinor: finalList.reduce((sum, entry) => sum + entry.payableMinor, 0),
-        receivablePartyCount: finalList.filter(entry => entry.receivableMinor > 0).length,
-        payablePartyCount: finalList.filter(entry => entry.payableMinor > 0).length,
+        parties: list,
+        totalReceivableMinor: list.reduce((sum, entry) => sum + entry.receivableMinor, 0),
+        totalPayableMinor: list.reduce((sum, entry) => sum + entry.payableMinor, 0),
+        receivablePartyCount: list.filter(entry => entry.receivableMinor > 0).length,
+        payablePartyCount: list.filter(entry => entry.payableMinor > 0).length,
       },
     };
   }
