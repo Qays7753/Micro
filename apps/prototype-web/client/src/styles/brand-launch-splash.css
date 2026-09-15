@@ -74,36 +74,43 @@
 .micro-launch-splash-layer-3 { animation-name: micro-splash-layer-3; animation-delay: 133.33ms; }
 .micro-launch-splash-layer-4 { animation-name: micro-splash-layer-4; animation-delay: 200ms; }
 
-/* Layer 1 — top ink: settle rotate 0, scale 1.025 (locked geometry of micro-quad.svg). */
+/*
+ * The supplied layer SVGs already contain their final 0/90/180/270-degree geometry.
+ * Do not rotate the <img> elements again: a second CSS rotation disassembles the mark.
+ * The repair uses only a small center-to-final translation and scale, so every layer keeps
+ * its supplied geometry and settles into the same coordinate system as micro-quad.svg.
+ */
+
+/* Layer 1 — top ink: enter gently from the center toward its supplied top position. */
 @keyframes micro-splash-layer-1 {
-  0%     { opacity: 0; transform: rotate(-95deg) scale(0.738); }
+  0%     { opacity: 0; transform: translateY(28px) scale(0.32); }
   33.33% { opacity: 1; }
-  71.43% { opacity: 1; transform: rotate(2deg) scale(1.0455); }
-  100%   { opacity: 1; transform: rotate(0deg) scale(1.025); }
+  71.43% { opacity: 1; transform: translateY(2px) scale(1.02); }
+  100%   { opacity: 1; transform: translate(0, 0) scale(1); }
 }
 
-/* Layer 2 — right turquoise: settle rotate 90, scale 1.0. */
+/* Layer 2 — right turquoise: the SVG already owns the right-facing geometry. */
 @keyframes micro-splash-layer-2 {
-  0%     { opacity: 0; transform: rotate(-5deg) scale(0.72); }
+  0%     { opacity: 0; transform: translateX(-28px) scale(0.32); }
   33.33% { opacity: 1; }
-  71.43% { opacity: 1; transform: rotate(92deg) scale(1.02); }
-  100%   { opacity: 1; transform: rotate(90deg) scale(1); }
+  71.43% { opacity: 1; transform: translateX(-2px) scale(1.02); }
+  100%   { opacity: 1; transform: translate(0, 0) scale(1); }
 }
 
-/* Layer 3 — bottom taupe: settle rotate 180, scale 0.975. */
+/* Layer 3 — bottom taupe: enter from the center toward its supplied bottom position. */
 @keyframes micro-splash-layer-3 {
-  0%     { opacity: 0; transform: rotate(85deg) scale(0.702); }
+  0%     { opacity: 0; transform: translateY(-28px) scale(0.32); }
   33.33% { opacity: 1; }
-  71.43% { opacity: 1; transform: rotate(182deg) scale(0.9945); }
-  100%   { opacity: 1; transform: rotate(180deg) scale(0.975); }
+  71.43% { opacity: 1; transform: translateY(-2px) scale(1.02); }
+  100%   { opacity: 1; transform: translate(0, 0) scale(1); }
 }
 
-/* Layer 4 — left terracotta: settle rotate 270, scale 1.0. */
+/* Layer 4 — left terracotta: the SVG already owns the left-facing geometry. */
 @keyframes micro-splash-layer-4 {
-  0%     { opacity: 0; transform: rotate(175deg) scale(0.72); }
+  0%     { opacity: 0; transform: translateX(28px) scale(0.32); }
   33.33% { opacity: 1; }
-  71.43% { opacity: 1; transform: rotate(272deg) scale(1.02); }
-  100%   { opacity: 1; transform: rotate(270deg) scale(1); }
+  71.43% { opacity: 1; transform: translateX(2px) scale(1.02); }
+  100%   { opacity: 1; transform: translate(0, 0) scale(1); }
 }
 
 /* OS-level reduced motion: the final static mark is shown immediately (layers frozen
