@@ -1,0 +1,1310 @@
+{
+  "generated_at": "2026-09-15",
+  "baseline_commit": "c7dedadc669a9c1a918a107e206d8a0ddff73e5f",
+  "work_branch": "micro-brand-assets-motion-splash-resume-20260915",
+  "note": "Diff vs verified Micro main baseline. No domain, application, storage, financial, permission, sync, or route-semantic files touched (verified: empty diff over client/src/application, client/src/storage, src/domain).",
+  "counts": {
+    "code_and_config": 15,
+    "brand_assets": 38,
+    "planning_evidence": 176,
+    "total": 229
+  },
+  "code_and_config_changes": [
+    {
+      "path": "apps/prototype-web/client/index.html",
+      "status": "M",
+      "sha256": "8a9cb14dfa16821bfe9b82fc1fef855f59b08bb8f3d1be3a95b5fcf4065c28c4",
+      "bytes": 2681
+    },
+    {
+      "path": "apps/prototype-web/client/public/micro-mark-192.png",
+      "status": "D"
+    },
+    {
+      "path": "apps/prototype-web/client/public/micro-mark-512.png",
+      "status": "D"
+    },
+    {
+      "path": "apps/prototype-web/client/public/micro-mark.svg",
+      "status": "D"
+    },
+    {
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "status": "M",
+      "sha256": "bff169e565df0644d8cd4a32e0b145a8b2ecdc8dc3af5c1947cb3da59ebe7a35",
+      "bytes": 13090
+    },
+    {
+      "path": "apps/prototype-web/client/src/app/StartupGate.tsx",
+      "status": "M",
+      "sha256": "928f7b629462bbbeb7eb62ec36a2bde8d66b3f14253ff53b6c4e7df08af29c39",
+      "bytes": 4989
+    },
+    {
+      "path": "apps/prototype-web/client/src/components/brand/BrandLaunchSplash.test.tsx",
+      "status": "A",
+      "sha256": "d26500766d8b4041236e2245f1ca053e468cf26c197bc31b3be18aeeca060b0d",
+      "bytes": 6028
+    },
+    {
+      "path": "apps/prototype-web/client/src/components/brand/BrandLaunchSplash.tsx",
+      "status": "A",
+      "sha256": "b6e2c26aaddc1a38fd240304ce7d52ad37abf98dd78656b889ea5a2689ed1dce",
+      "bytes": 4850
+    },
+    {
+      "path": "apps/prototype-web/client/src/components/brand/BrandMark.test.tsx",
+      "status": "A",
+      "sha256": "acf591cb482ccd0d1c890b6fedac455772d6a8778ffdbef9730154e9bcc8c2fd",
+      "bytes": 3423
+    },
+    {
+      "path": "apps/prototype-web/client/src/components/brand/BrandMark.tsx",
+      "status": "A",
+      "sha256": "96d67132088732515a71046f71c0db5416761698cee2cec480ceb23c71c6040c",
+      "bytes": 2000
+    },
+    {
+      "path": "apps/prototype-web/client/src/components/brand/BrandMigrationGate.test.ts",
+      "status": "A",
+      "sha256": "0fe52bbcb4a5c6ffecc14a1acde5a1bd0b0ea850b30e8ee62e8374132c14d7d1",
+      "bytes": 4147
+    },
+    {
+      "path": "apps/prototype-web/client/src/components/layout/AppHeader.tsx",
+      "status": "M",
+      "sha256": "2ffb9f38b23c3f76bcb6bfca23622d6a030f6c119cf25912da94f89d3a8aace0",
+      "bytes": 2649
+    },
+    {
+      "path": "apps/prototype-web/client/src/index.css",
+      "status": "M",
+      "sha256": "7a70ea49328dffb1977be478478c6cd9a57bdac3cc32161fd120e8f42d6a78c6",
+      "bytes": 161873
+    },
+    {
+      "path": "apps/prototype-web/client/src/styles/brand-launch-splash.css",
+      "status": "A",
+      "sha256": "171aa9c3f0d9b0c5bbf36889fdbba7e08c6bf1ab4e286aea43f44c3fdbe923ee",
+      "bytes": 4262
+    },
+    {
+      "path": "apps/prototype-web/vite.config.ts",
+      "status": "M",
+      "sha256": "fc8db98c58a0fbb0f1ca48b84eca14025a0cd7742effe40fb2482e461635c299",
+      "bytes": 14698
+    }
+  ],
+  "brand_asset_changes": [
+    {
+      "path": "apps/prototype-web/client/public/brand/favicon/favicon-16.png",
+      "status": "A",
+      "sha256": "ccdcff6230941241e8d1f865b9fc189357224782cb83ec965222b7dc1ddacc74",
+      "bytes": 395
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/favicon/favicon-32.png",
+      "status": "A",
+      "sha256": "ef478fdc270f68de17d49067692a51763c4b18537d41258a29f13c8925202ecf",
+      "bytes": 636
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/favicon/favicon-48.png",
+      "status": "A",
+      "sha256": "9827f0129e7c4d01494ed7a622fc83b067b184bc9093699d9f3f636f08615ba5",
+      "bytes": 877
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/favicon/favicon.ico",
+      "status": "A",
+      "sha256": "59222578d29fc553cf95807c4ae0483ee027554303947d07f802105dd9810d7d",
+      "bytes": 2734
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/favicon/micro-favicon-field-dark.svg",
+      "status": "A",
+      "sha256": "47224e1594e96e25dd0ec78899e3b41bee59aa52a5c4ee4452478fbafea374dc",
+      "bytes": 1392
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/favicon/micro-favicon-field.svg",
+      "status": "A",
+      "sha256": "96d0726e47dd9dae84e06d6a2018efc2fbe30c9cc0bed1b81053dbe378f43471",
+      "bytes": 1393
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/mark/micro-quad-compact.svg",
+      "status": "A",
+      "sha256": "7591adea1db23c99ef050ec87947d5a0becba21acf4eeac8f455bfe4ab226508",
+      "bytes": 1272
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/mark/micro-quad-dark.svg",
+      "status": "A",
+      "sha256": "ce3e4c0f70becb91df816be6aae219402489da49760046e022432693867d2a9f",
+      "bytes": 1271
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/mark/micro-quad.svg",
+      "status": "A",
+      "sha256": "53e731dd2f38f6dfd537c4c0add44da4c0e97527f667ad32f3a4c3e1be2d3aac",
+      "bytes": 1272
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/dark/1-top-ink.svg",
+      "status": "A",
+      "sha256": "e37fcff4ebdb1885cb2208f8afa738511f20c43ed6f4db3c0054c95561332470",
+      "bytes": 483
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/dark/2-right-turquoise.svg",
+      "status": "A",
+      "sha256": "d724c6407c34dd6211cda904a428f8a273dd61dcf29e27a0203dbbeabe90ca9d",
+      "bytes": 480
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/dark/3-bottom-taupe.svg",
+      "status": "A",
+      "sha256": "14d94b3d64399b3ca4f3f1278d4aafe73761eb15eba7e071dbab4f2a43f4da0d",
+      "bytes": 484
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/dark/4-left-terracotta.svg",
+      "status": "A",
+      "sha256": "13f2de733f41bca82c8c5372fe86f36272f97c569004a9bd07ef5e53fbabee6c",
+      "bytes": 481
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/light/1-top-ink.svg",
+      "status": "A",
+      "sha256": "be302355f5d98435ce7b512fb818506c0c0244bc1835b6467f4b452036389f2f",
+      "bytes": 483
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/light/2-right-turquoise.svg",
+      "status": "A",
+      "sha256": "3076b91f185cd4e35aff78651b8c86f768e3ada766a3d261a686a428d1be521a",
+      "bytes": 480
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/light/3-bottom-taupe.svg",
+      "status": "A",
+      "sha256": "5338a0c98e19fb75aebca64dbc186aa34e7c662f22db7748eafc07ebb66c7fa5",
+      "bytes": 485
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/light/4-left-terracotta.svg",
+      "status": "A",
+      "sha256": "548a1c8b37fc924091b7dd8918e726e38bfc9bb4d93ce9d12276459288c8a7b5",
+      "bytes": 481
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/micro-assembly.json",
+      "status": "A",
+      "sha256": "087c24019a557b148adc4df096d74dbbd72f3ddcd19185fb6135dfc121ef45b1",
+      "bytes": 6531
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/micro-mark-layered-dark.svg",
+      "status": "A",
+      "sha256": "5ac2da9bcb6e8579394fe4573e1fcc55275e984f1a56bc4b2323909d2832e387",
+      "bytes": 1548
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/motion/micro-mark-layered.svg",
+      "status": "A",
+      "sha256": "ee6a4a5308d4fcb7d5476c78663cfeaf1adcc321f7a8372108ba892be2f074d7",
+      "bytes": 1534
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/android-adaptive-foreground-108.png",
+      "status": "A",
+      "sha256": "06f6e4801d4794adb374dc5e7d1ee2ce8fb55c1c4650bf0cd7d190e5f702a407",
+      "bytes": 1642
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/android-adaptive-foreground-216.png",
+      "status": "A",
+      "sha256": "f47bc014256042558243d91674ad5af827b6a606ee0d5837209b3d544e1099a4",
+      "bytes": 3662
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/android-adaptive-foreground-432.png",
+      "status": "A",
+      "sha256": "7dc15fe069228c95846c84689096e940e694ea2ba14bda7355623dc48848ea72",
+      "bytes": 9137
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/ios-android-180.png",
+      "status": "A",
+      "sha256": "44a3f53bb52b13adef9db84217ed6fc009c156ac8f97c611e807e4b36cc86f30",
+      "bytes": 4490
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/ios-android-192.png",
+      "status": "A",
+      "sha256": "2806a39f60a2d62a5a8591915ad36302a38e429522575ba27c027425cced990a",
+      "bytes": 4826
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/ios-android-512.png",
+      "status": "A",
+      "sha256": "95a853545acce4bf277fe4d3874bc9f2cc5619a39bfc7798ec31b23e7874919f",
+      "bytes": 17173
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/micro-adaptive-background.svg",
+      "status": "A",
+      "sha256": "7480fb4dca5b0c3c4d34b0c5e74d1f73bc912b43b60f8cc0fafce0fb7eff5312",
+      "bytes": 186
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/micro-adaptive-foreground.svg",
+      "status": "A",
+      "sha256": "ba72ecda6c9a052cc894f2b49346b91e5e4d9578b8ab263d399d560b0bf5def1",
+      "bytes": 1345
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/micro-appicon-quad-dark.svg",
+      "status": "A",
+      "sha256": "95e3ae24a9106db2b87a7e90c0abb99d35bdd775cbec3eaf91e71f6fb7da9488",
+      "bytes": 1422
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/micro-appicon-quad.svg",
+      "status": "A",
+      "sha256": "3b38477c46956f3c2ab8eaf8595fa56c5b67f81e90828853dbe362050dfb1f74",
+      "bytes": 1423
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/micro-maskable.svg",
+      "status": "A",
+      "sha256": "c0bebd3574089fdbfc1a61734bd3bd16b1a3efd0bb67d89f7ac99a4d8dd1aad1",
+      "bytes": 1403
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/pwa/web-maskable-512.png",
+      "status": "A",
+      "sha256": "ac0c927c1bee2c9720bbbddc3ecf642ea478eaea5cb00ddede30e3f6408c70be",
+      "bytes": 11576
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/splash/android-960x960-icon-dark.svg",
+      "status": "A",
+      "sha256": "755b280d903f0b04d28a9a6a9f9b35193dd7cb36f06433da9f7e20062142f1b0",
+      "bytes": 1428
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/splash/android-960x960-icon.svg",
+      "status": "A",
+      "sha256": "c8e199fb37b65571be33e9650669dd7e0247b0cb2c68a5bee1ab8c868308c33c",
+      "bytes": 1429
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/splash/ios-1179x2556.svg",
+      "status": "A",
+      "sha256": "67a5e2367060f215207c4c7fb07c446a083413f8a17b81f8faad61a9cde873e6",
+      "bytes": 1440
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/splash/ios-1290x2796-dark.svg",
+      "status": "A",
+      "sha256": "465d6d014aeba364dc930b644513d44cf216f624ba7b0a9e40969b357b91f6b0",
+      "bytes": 1437
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/splash/ios-1290x2796.svg",
+      "status": "A",
+      "sha256": "339a3b7328adfc03a2cbe9f0c3c148efa6bbbb3f66c4fc8fe5aaa0e8f91f3fd0",
+      "bytes": 1438
+    },
+    {
+      "path": "apps/prototype-web/client/public/brand/splash/ipad-2048x2732.svg",
+      "status": "A",
+      "sha256": "fa731d13d5856addaf8dc31771fbcc6ec8d18eae2bc544f80d72f5958eccb409",
+      "bytes": 1438
+    }
+  ],
+  "planning_evidence_changes": [
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/ASSET_MANIFEST.json",
+      "status": "A",
+      "sha256": "d35a80c8ab556af4578e9d32d8f7269a13093e35adf1167e351f8db31bc7a3c7",
+      "bytes": 17136
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/OLD_BRAND_REFERENCE_INVENTORY.md",
+      "status": "A",
+      "sha256": "378ba397c14f7fbe8308da7681d195d3ab84b46950ed45fd40f9c84c66a5ec56",
+      "bytes": 3015
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/ROUTE_SCREEN_INVENTORY.json",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/W0_BASELINE.md",
+      "status": "A",
+      "sha256": "3acb74e4cc2e315f86779a41a82966d2f2f230d87d31215e5437830ab78253c5",
+      "bytes": 3148
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/W4_PWA_VERIFICATION.md",
+      "status": "A",
+      "sha256": "98cf7757b064afee1277f40b0184fd6cfc277d0cf28094f6314ea0c6e4a152d3",
+      "bytes": 2564
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/01__مشروع_النخبة__home__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/02__ما_اسم_مشروعك__setup-step1__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/03__وين_تحط_فلوسك__setup-step2__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/04__شو_وضع_الدرج_هلق__setup-step3__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/05__شو_عندك_هلق؟__foundation__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/06__العمل__orders__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/07__تصميم_مخطط__orders-new-planned__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/08__طلب_من_عميل__draft-editor-new-customer__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/08__طلب_من_عميل__draft-editor__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/09__سجّل_ما_اتفقت_عليه__draft-agreement__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/10__مجسم_شعار_من_الجبس__draft-cost__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/11__الطلب_غير_متاح_محليًا__order-detail-safe__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/12__مراجعة_التسليم__delivery-review-safe__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/13__تسجيل_بيع_مباشر__direct-sale-new__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/14__تصحيح_بيع_مباشر__direct-sale-safe__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/15__المواعيد__schedule__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/16__الموعد_غير_متاح_محليًا__schedule-editor-safe__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/17__مالي__finance__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/18__تسجيل_استثمار_المالك__finance-event__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/19__سحب_من_المشروع_لنفسك؟__owner-withdrawal__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/20__مال_المالك__owner-entitlement__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/21__تحصيل_أو_التزام_قريب__g5-declaration__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/22__كشف_الفترة__statement__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/23__آخر_ما_حدث__finance-activity__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/24__لا_نص_للمشاركة__share-preview-default__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/25__محافظ_الكاش__cash-wallets__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/27__الدرج__wallet-ledger__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/28__رصيد_افتتاحي_هذه_المحفظة_معروف_أصلًا__opening-later__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/29__اضبط_كاش_الدرج__wallet-adjust__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/30__تحتاج_محافظتين_للتحويل__cash-transfer__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/31__وزّع_الكاش_غير_الموزع__cash-distribute__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/32__عدّ_اللي_في_الدرج_فعلًا__cash-count__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/33__جارٍ_فتح_الأثر__cash-reversal-safe__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/34__حصّل_من_مين_عليه_إلَي__collect__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/35__المواد_والمخزون__inventory__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/36__أي_مادة_تسجّل؟__material-new__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-2026-09/screenshots/59__شاشة_الإطلاق__splash__light__390xFULL.png",
+      "status": "A"
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/CAPTURE_RUN_LOG.md",
+      "status": "A",
+      "sha256": "09a2e320fa2d264a7b946fbbe5d315b36c0ea9202d51a6fee7e964b2b7ec905d",
+      "bytes": 3711
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/RESUME_STATE_REPORT.md",
+      "status": "A",
+      "sha256": "eac54151516849606ec5bdae8df5abfa7c7cff1800ab7986f6bbfeb784b8f108",
+      "bytes": 5059
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/ROUTE_SCREEN_INVENTORY.json",
+      "status": "A",
+      "sha256": "f32ad91716b3434c7b14a2d98d5fbe17a18691894e681fef3d768ef09f875d7f",
+      "bytes": 42086
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/01__مشروع_النخبة__home__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "b4b7340147895e70fea492648d630f05de5cbdc35e89375d2e4b69aa76abca29",
+      "bytes": 90156
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/01__مشروع_النخبة__home__light-320w__320xFULL.png",
+      "status": "A",
+      "sha256": "d5457fb6d985e4e20adc9773630efcf61fd001faca4ba1e575d8ed19479567d9",
+      "bytes": 69867
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/01__مشروع_النخبة__home__light-430w__430xFULL.png",
+      "status": "A",
+      "sha256": "84ebdfa43cedfd034d365a8d3784b0d873968ecb9836be7c734dfedc405df49e",
+      "bytes": 70120
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/01__مشروع_النخبة__home__light__390xFULL.png",
+      "status": "A",
+      "sha256": "248e92008cd444ef658b818ecedc7397d0acf142570deda7bb1beb769829513e",
+      "bytes": 69691
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/02__ما_اسم_مشروعك؟__setup-step1__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "2f5b503054ea88986d39fe439c4a26fd70099f96daad78cf9a22407ca06aa0c0",
+      "bytes": 47333
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/02__ما_اسم_مشروعك؟__setup-step1__light__390xFULL.png",
+      "status": "A",
+      "sha256": "b5609880638eb00fb45ff38174f1dfdab4160721d71dc94eedd8fdc80a4f843a",
+      "bytes": 58303
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/03__وين_تحط_فلوسك؟__setup-step2__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "01518eaa84f87f7219c1bac1e76f3099d4ecffd272841e1575d86cedebc7507c",
+      "bytes": 54255
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/03__وين_تحط_فلوسك؟__setup-step2__light__390xFULL.png",
+      "status": "A",
+      "sha256": "2e97485cad7bbb28537142b0ccefb0176379f2079d922197866d9c992e532938",
+      "bytes": 53314
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/04__شو_وضع_الدرج_هلق؟__setup-step3__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "be47fef6e7e9b63dd4e956570a74329d25fb9499a5b643d02c83e69895c958d7",
+      "bytes": 53782
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/04__شو_وضع_الدرج_هلق؟__setup-step3__light__390xFULL.png",
+      "status": "A",
+      "sha256": "7f6a6aaac0305a1d5f46b6a671ed1ef33ace9829f5ccd215f2420b22006eae1d",
+      "bytes": 53085
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/05__شو_عندك_هلق؟__foundation__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "10495ae8ebc1cb241b341eb82e6777764fe9b06dff3a7ca8d9958656f6a0ec0f",
+      "bytes": 111392
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/05__شو_عندك_هلق؟__foundation__light__390xFULL.png",
+      "status": "A",
+      "sha256": "30d20dc16dbbc7d284bd1bd44422cd4199895366d38b0678774ab94a7a25dd3a",
+      "bytes": 106977
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/06__العمل__orders__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "5d920a313c6b7a2dbe9811b1288574b2165318e91a254cd0f82fcb2a4d440b25",
+      "bytes": 82612
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/06__العمل__orders__light-430w__430xFULL.png",
+      "status": "A",
+      "sha256": "8971a569bd265cd7aec68b42078ee58549c5849763cec45e07e20e1beba68d4d",
+      "bytes": 93596
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/06__العمل__orders__light__390xFULL.png",
+      "status": "A",
+      "sha256": "da30ad2d2d3122e97eea53e271ab35baae7df604e79c10bbca32936fa199d36e",
+      "bytes": 84167
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/07__تصميم_مخطط__orders-new-planned__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "a61287b193dc2eaee82ead19d00f4893f0cab0a71af03f3f34877343ee6d48a2",
+      "bytes": 51094
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/07__تصميم_مخطط__orders-new-planned__light__390xFULL.png",
+      "status": "A",
+      "sha256": "3d57099a5164775546585ea6f1669b33cc0f88d8e1ad9aa030bedd2a9913087e",
+      "bytes": 50131
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/08__طلب_من_عميل__draft-editor-new-customer__light__390xFULL.png",
+      "status": "A",
+      "sha256": "68c5d499f649ca6081629ad78650761a1a308e0254368b5b612770cc78fba771",
+      "bytes": 58439
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/08__طلب_من_عميل__draft-editor__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "ded58f3c04be12d164b2b5d693ca77ff4fca3946e6610b6b36cb50e69bab0f99",
+      "bytes": 61996
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/08__طلب_من_عميل__draft-editor__light__390xFULL.png",
+      "status": "A",
+      "sha256": "1519f89e4b7f4aeacac6925cbc41ee44dc2a12b343b679b065f1f173a60ecec1",
+      "bytes": 61659
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/09__سجّل_ما_اتفقت_عليه__draft-agreement__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "22ae1f018c31ba26adedc94cee9800cd476e4163e2087f2da81aa4cdfed98daa",
+      "bytes": 60339
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/09__سجّل_ما_اتفقت_عليه__draft-agreement__light__390xFULL.png",
+      "status": "A",
+      "sha256": "6af590433cdf0902bb473933f1bc0c7715302fb8cfaeff7fef325da77286c576",
+      "bytes": 59437
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/10__مجسم_شعار_من_الجبس__draft-cost__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "635cdc255ee8166109b448d7769e3d57c162831f299434cb98bce2b04e6075d3",
+      "bytes": 84478
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/10__مجسم_شعار_من_الجبس__draft-cost__light__390xFULL.png",
+      "status": "A",
+      "sha256": "d282ef9fc8e731cfcc64fde0fb6672bfe74c68c5f38c919e27a62fc59ee54000",
+      "bytes": 81689
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/11__الطلب_غير_متاح_محليًا__order-detail-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "ab37486cc7ac94eaec6878f5aa1b67cbd236e22dcf7d35f72d43034dd0a926ee",
+      "bytes": 23280
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/11__الطلب_غير_متاح_محليًا__order-detail-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "100c7d59d4df98495cc0f7c517bd3aad0c395ae8d2b2716dba01d9ceb055c24e",
+      "bytes": 22669
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/12__مراجعة_التسليم__delivery-review-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "e4a5089c0d4eb386541b84eb4e79c757adef2489bc3f94830c4d5d5db26b0b17",
+      "bytes": 17674
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/12__مراجعة_التسليم__delivery-review-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "32e21a0f5332d392335f7e9cf4bb4d73bf4a49829f9a2ab85e0738c1704f0bbe",
+      "bytes": 17186
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/13__تسجيل_بيع_مباشر__direct-sale-new__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "996eb0d7e1b6cc5bc5029757a0dfd6edd4e163ac0f11bf61960e898a9b5d9f09",
+      "bytes": 67415
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/13__تسجيل_بيع_مباشر__direct-sale-new__light__390xFULL.png",
+      "status": "A",
+      "sha256": "2a6fec02a12ee0bf659ba7e18cc3562175e59a2f7e083ef3bdfdfe7dd04590b6",
+      "bytes": 66289
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/14__تصحيح_بيع_مباشر__direct-sale-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "21d5ef75482606418d319f27ca00b81bc0f192c4c196751875596d022b8cbd51",
+      "bytes": 70892
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/14__تصحيح_بيع_مباشر__direct-sale-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "9e81230e4a039a5bcb045a0e0fd20e01bdc165264b1471caa99387ff2c6d4082",
+      "bytes": 69780
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/15__المواعيد__schedule__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "88eb9c9ab269952222584c225a93b71eceddab08b9194907478ab48ee664089b",
+      "bytes": 67489
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/15__المواعيد__schedule__light__390xFULL.png",
+      "status": "A",
+      "sha256": "bcfa7cff09a93f78d58704993b7d17ecb28bbdf145514746991b8c9dabd0ad77",
+      "bytes": 63951
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/16__الموعد_غير_متاح_محليًا__schedule-editor-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "f4201872cf2366908103f5b7ac133f4b03b26fcccb27349e891b05dd3d59747b",
+      "bytes": 17859
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/16__الموعد_غير_متاح_محليًا__schedule-editor-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "7f14622adad71b722ed590003748b243f5c941444bde85e08ff7979c9e14010e",
+      "bytes": 17594
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/17__مالي__finance__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "569f811dec9c3c83391a0d3b8630c8b3fc43c88f128e064fca15772246087257",
+      "bytes": 170082
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/17__مالي__finance__light-320w__320xFULL.png",
+      "status": "A",
+      "sha256": "b569f808895b72151c67b9d4749f6c90465bc7a7cdff93f0e016d182172cc4bc",
+      "bytes": 181587
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/17__مالي__finance__light-430w__430xFULL.png",
+      "status": "A",
+      "sha256": "653f835f81d09a74f67982e623ccd8ab52617059fbec9933fcbba5f368938d75",
+      "bytes": 182068
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/17__مالي__finance__light__390xFULL.png",
+      "status": "A",
+      "sha256": "24dbd59e8cc6927513cab94b1a1550fdc2d0ccefd17b65d0bfd9993d153c470e",
+      "bytes": 166190
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/18__تسجيل_استثمار_المالك__finance-event__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "581ead850b9e9096112ce670b5c88ba82531a822e21e5d8a8a564f57572d70e4",
+      "bytes": 52002
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/18__تسجيل_استثمار_المالك__finance-event__light__390xFULL.png",
+      "status": "A",
+      "sha256": "34c04dbd20a3ffe57c589bc231b0b81cab89b52d6b2b277e9685d01450643ff6",
+      "bytes": 50793
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/19__سحب_من_المشروع_لنفسك؟__owner-withdrawal__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "5468b84d11e636346808fe273271e5dee7b32f4a5771067c83e5f8f209f9b8e8",
+      "bytes": 57750
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/19__سحب_من_المشروع_لنفسك؟__owner-withdrawal__light__390xFULL.png",
+      "status": "A",
+      "sha256": "5d542cb144dbd8935e301e373a64d607b3c8bef421c984702f430bcc780cb95f",
+      "bytes": 56887
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/20__مال_المالك__owner-entitlement__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "45ccc7e1e2052d13537ee413dfddc9644a9066a2671bd158917e3580a53dc654",
+      "bytes": 50838
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/20__مال_المالك__owner-entitlement__light__390xFULL.png",
+      "status": "A",
+      "sha256": "7a2482b6f6e13e2d68c02cb840edf27f2604d6f2fffd248944900d41b37bdb02",
+      "bytes": 49819
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/21__تحصيل_أو_التزام_قريب__g5-declaration__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "8ac91d66b9b956d06b66c562a7746d1ce1d66164c6902697c11ba0d32b6f23a0",
+      "bytes": 63522
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/21__تحصيل_أو_التزام_قريب__g5-declaration__light__390xFULL.png",
+      "status": "A",
+      "sha256": "2dc1f5f5156bd3e135e146536b864247884ee8508fb5ac4dca83a49b6e60aa85",
+      "bytes": 63020
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/22__كشف_الفترة__statement__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "d72e9b91e9ec5fac9540bcca45de2b20cf0d77bf28c74a675e346ecc66ad5361",
+      "bytes": 166116
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/22__كشف_الفترة__statement__light-320w__320xFULL.png",
+      "status": "A",
+      "sha256": "9de89e15ccf2b1041e3a9aeacfbb0d516b17679fbc656adc2a282d4f36b43de4",
+      "bytes": 180428
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/22__كشف_الفترة__statement__light__390xFULL.png",
+      "status": "A",
+      "sha256": "6dd5856cea327940413eb756762103cfbe465902456a060b17f77d35d7368e56",
+      "bytes": 163694
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/23__آخر_ما_حدث__finance-activity__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "11beda29fd9a3558912a79e0eb724d24e61b725d2f6382821269c451fe97bf32",
+      "bytes": 65583
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/23__آخر_ما_حدث__finance-activity__light__390xFULL.png",
+      "status": "A",
+      "sha256": "f818a8c45c8f18995ebeb8f486d60ca7f8031247aab76afa2846ce0b0ed93eae",
+      "bytes": 61273
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/24__لا_نص_للمشاركة__share-preview-default__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "a1cfdf6dbfbe74aa6cb1a482764cf81867c4877a73f0c1b402553116ec81e514",
+      "bytes": 20755
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/24__لا_نص_للمشاركة__share-preview-default__light__390xFULL.png",
+      "status": "A",
+      "sha256": "96a1f511373c341c79f670d05265887ca17cd166249b45ec792a2dceba51436b",
+      "bytes": 20528
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/25__محافظ_الكاش__cash-wallets__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "f57d66921f4d57b428da17b6359cfd6ac536c23840613a3185bbda827d46f553",
+      "bytes": 78382
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/25__محافظ_الكاش__cash-wallets__light__390xFULL.png",
+      "status": "A",
+      "sha256": "ccb59fec335b7e7057f162010629b01bb92e5d89f758c40890f43ea7e77358b3",
+      "bytes": 76587
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/26__أين_يوجد_الكاش_الآن؟__wallet-new__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "1b6ee139e8dda65f641ae12cd44981e4557539be5eb0dbb9676654026f93fd98",
+      "bytes": 58245
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/26__أين_يوجد_الكاش_الآن؟__wallet-new__light__390xFULL.png",
+      "status": "A",
+      "sha256": "36f4628a82519316756ccc60a4bafff1ab2a44b16c461ae90a9f0855ede22fce",
+      "bytes": 57488
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/27__الدرج__wallet-ledger__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "980823d37ec3c36ec4b24b808554db3a896da9e6aa0df5c1ea0cb51771e0e683",
+      "bytes": 57704
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/27__الدرج__wallet-ledger__light__390xFULL.png",
+      "status": "A",
+      "sha256": "1bf60df70be8d0b8161d2e39d94b87ba6d72c3fd22c3fac916baab1f15a3dd70",
+      "bytes": 56555
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/28__رصيد_افتتاحي_هذه_المحفظة_معروف_أصلًا__opening-later__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "cf8a94c3ec136dde3b5fc8cf2f604e70e7dd7d083f6424a48b20d8849f749f33",
+      "bytes": 31039
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/28__رصيد_افتتاحي_هذه_المحفظة_معروف_أصلًا__opening-later__light__390xFULL.png",
+      "status": "A",
+      "sha256": "17a4e01fb1445c3664d6e1f34b3446d0bae35006d34f743c96619d7be225478f",
+      "bytes": 30434
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/29__اضبط_كاش_الدرج__wallet-adjust__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "3e123cd5cb54dd40f818d85ba6e1a5e2abeac4ff8d70876860d69bc5b1c4ddb0",
+      "bytes": 54847
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/29__اضبط_كاش_الدرج__wallet-adjust__light__390xFULL.png",
+      "status": "A",
+      "sha256": "2bf16c9329ee6cf8b31eaa04b8b625adb61dbe823cd3950d553d0ac002a432ae",
+      "bytes": 54003
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/30__تحتاج_محافظتين_للتحويل__cash-transfer__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "1e401e97507cb5237ad768d3120c5d1f81407097d18876e966242c9bd112d8bd",
+      "bytes": 21441
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/30__تحتاج_محافظتين_للتحويل__cash-transfer__light__390xFULL.png",
+      "status": "A",
+      "sha256": "5fd454048591b0d9121603828fbce331d0a5b8cd8548d14ec1af03c052918a41",
+      "bytes": 21068
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/31__وزّع_الكاش_غير_الموزع__cash-distribute__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "8eae9b9f97b7dd1dc1f42ecd3fdf1af0b6e8501167260a56aad0a54f7095a474",
+      "bytes": 60038
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/31__وزّع_الكاش_غير_الموزع__cash-distribute__light__390xFULL.png",
+      "status": "A",
+      "sha256": "f1dda868cddbb7f00827fb9ded5f9c3b7424292ac66c61512d6a7fc8e0e75524",
+      "bytes": 59180
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/32__عدّ_اللي_في_الدرج_فعلًا__cash-count__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "e2d3142b8a0b488690582156675038468c1dd7e880fc4d6d9da16c4be1d7a0b0",
+      "bytes": 42667
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/32__عدّ_اللي_في_الدرج_فعلًا__cash-count__light__390xFULL.png",
+      "status": "A",
+      "sha256": "d66b0ae600469b14e626c00ad8595ed565f70e91aa265bb07206128f5d7dcc58",
+      "bytes": 41892
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/33__جارٍ_فتح_الأثر__cash-reversal-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "01b8ceb9095b34a619905766bc60f6a9888c6b7edf44288080a97652ec1ecf8e",
+      "bytes": 11330
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/33__جارٍ_فتح_الأثر__cash-reversal-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "4bfe023c39f0d9bee54221f40692c570400972cbf921224a7d7a68a8db258f0a",
+      "bytes": 11096
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/34__حصّل_من_مين_عليه_إلَي__collect__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "31f390d9581705767943b5de3f7ee0dc140d7e76b85da59ed35e18589b817531",
+      "bytes": 35690
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/34__حصّل_من_مين_عليه_إلَي__collect__light__390xFULL.png",
+      "status": "A",
+      "sha256": "233fc99434b19bdc98f83e5835e40e5b9f7230836942744f9e6bb5d0e39903f8",
+      "bytes": 35317
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/35__المواد_والمخزون__inventory__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "33049f6f47949656b8211d50104e82baa5ae6cfb34142a7867bd12ea5b3c6b70",
+      "bytes": 77571
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/35__المواد_والمخزون__inventory__light__390xFULL.png",
+      "status": "A",
+      "sha256": "dcbb35a1f43170eb2aa2199b1147d4e7e345a3504147d194823987ba0c33630f",
+      "bytes": 64652
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/36__أي_مادة_تسجّل؟__material-new__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "0278cd583cf5e943b2cb7c762d533cae89d7a0f098d40f9de5249e7ecf69e975",
+      "bytes": 113707
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/36__أي_مادة_تسجّل؟__material-new__light__390xFULL.png",
+      "status": "A",
+      "sha256": "8cef066de43f07a1cac4a3f8d55191b6e38a8a65a486d84cfd9b5a2f3762e9a9",
+      "bytes": 110714
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/37__أكّد_رصيد_قماش_تغليف__material-confirm__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "a63ae9a66061406a189c7b89990e97bfe5fb8c412d0a5dd4b5480775e8ed114c",
+      "bytes": 60522
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/37__أكّد_رصيد_قماش_تغليف__material-confirm__light__390xFULL.png",
+      "status": "A",
+      "sha256": "7c4b43f317e77af37ea209ac5204941a27d55676084bcc9c4faaa51cb7fd06e5",
+      "bytes": 59525
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/38__استلم_شراء_مواد__movement-receipt__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "58773ad13db8196edf2af07eb51215fbae01de6d7a2b403a980e89efabd7a68e",
+      "bytes": 84554
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/38__استلم_شراء_مواد__movement-receipt__light__390xFULL.png",
+      "status": "A",
+      "sha256": "54847f876bfc0a02be1ad3f6e40bdfa5825f4465b69c94b20d253e1a2d5d8840",
+      "bytes": 83177
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/38b__استهلك_مادة__movement-consume__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "0ca5196847424bb57469d78d962f915cd6772d0fca8340c2ec93490a626f25a4",
+      "bytes": 86301
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/38b__استهلك_مادة__movement-consume__light__390xFULL.png",
+      "status": "A",
+      "sha256": "6186d1b9907c467492226b04af35a5a5a0ec2365fcbebb005e8f2627a66d3186",
+      "bytes": 84807
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/38c__سجل_هدر_مادة__movement-waste__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "914d02a1f98fe55e878a4c472331cb3cb220c7c2785e806b27ac4f732420be12",
+      "bytes": 98429
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/38c__سجل_هدر_مادة__movement-waste__light__390xFULL.png",
+      "status": "A",
+      "sha256": "610961cab7b7bd3e0cd6214c067d8ea0174aa0afbc8f35667f7e988dc01f1b9b",
+      "bytes": 96304
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/39__جارٍ_فتح_حركة_المادة__movement-reverse-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "93189ed16a744ede6ac70d81ca0579f7b6f44a13536702ddd732176a633cf1c3",
+      "bytes": 12079
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/39__جارٍ_فتح_حركة_المادة__movement-reverse-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "4e224319ceddb3356a5610c4115643398943eea64f38f397ad1f78285d39cb7a",
+      "bytes": 11835
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/40__منتجاتي_وخدماتي__catalog__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "79e8c9cbaf363595bfd12512b23e368801f8702b9fe026483e5ac2d0ddea9c40",
+      "bytes": 91650
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/40__منتجاتي_وخدماتي__catalog__light__390xFULL.png",
+      "status": "A",
+      "sha256": "592be6418e3df360819d9d68ba97e971821a29a3a563f34a3651958f06e0011d",
+      "bytes": 88930
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/41__احسب_قبل_أن_تلتزم__tools__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "1c5b816f151ae5b18ee410cbed0c09fa77f6e9c01f4e7c6f5cd0c0def898003d",
+      "bytes": 119788
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/41__احسب_قبل_أن_تلتزم__tools__light__390xFULL.png",
+      "status": "A",
+      "sha256": "480d4156196c97c8b9205e12e417c95300c6cb47540272a9fe9825dde3165f40",
+      "bytes": 114206
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/42__حاسبة_التكلفة_والسعر__cost-calculator__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "981260c8c68b710833a1e9cdf3c45394b01856361c1ed04fa419153e3aafc4cb",
+      "bytes": 110364
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/42__حاسبة_التكلفة_والسعر__cost-calculator__light__390xFULL.png",
+      "status": "A",
+      "sha256": "6bcbffc8ec585ac24e3b1b8ae3355107352872078afc3b11e01ffc7b25fc82d4",
+      "bytes": 108423
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/43__تقدير_المجسم__estimate-detail__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "c4e7074b0a4468de1c5e72aefb1eac4f360c3f11fbb2baa18ac32b95d9ff7304",
+      "bytes": 66278
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/43__تقدير_المجسم__estimate-detail__light__390xFULL.png",
+      "status": "A",
+      "sha256": "d14009278b36ef258abb40f3c073fd62c39f22d63089725aeecbe242379b5e11",
+      "bytes": 64890
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/44__فحص_سلامة_مالي__tools-integrity__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "4f82f4282130b19f37762be2ee991adc0222965a8b279ac2d6ac7f2ec81a63c8",
+      "bytes": 58604
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/44__فحص_سلامة_مالي__tools-integrity__light__390xFULL.png",
+      "status": "A",
+      "sha256": "77c2b8eb9c0821e60e549c47e3abd63a09792bd299ba4b8aba6a0ee8db3ed9b7",
+      "bytes": 57542
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/45__الأصول__assets__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "e3801ec3dabeef71b724b91ef9599a3175ed40dbb5e614e35afc5a27271de309",
+      "bytes": 38768
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/45__الأصول__assets__light__390xFULL.png",
+      "status": "A",
+      "sha256": "4a8045b5ed67e31a70a7c3b93c15a227b7e3a987b70d38ea9dfbe88ca4e9ca79",
+      "bytes": 37968
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/46__شراء_للاستخدام_الطويل__asset-new__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "0f7b024c1e4f56351aef572a5f177e4fdb9a5bdc7dbb27dba2479232e64f2bd1",
+      "bytes": 81588
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/46__شراء_للاستخدام_الطويل__asset-new__light__390xFULL.png",
+      "status": "A",
+      "sha256": "c2c0c5f2e722e5b5f55c734626c05bc03f7178224d79c06372590c23831dd1f7",
+      "bytes": 79650
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/47__الأصل_غير_متاح_محليًا__asset-detail-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "b0fb54f8ba76ebe57a5d5c52608e0a050f0bb6a865e3944aa6feb67071a53be3",
+      "bytes": 11776
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/47__الأصل_غير_متاح_محليًا__asset-detail-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "ddc6fae5459d5a8932c1367143338d534e943009f6b86fbc481db7c6bec5523f",
+      "bytes": 11489
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/48__القروض__loans__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "1eb541c09a23e2e7c8a044884846d670ff19596eae11d66c758f01f4fd208dc7",
+      "bytes": 38428
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/48__القروض__loans__light__390xFULL.png",
+      "status": "A",
+      "sha256": "79fbab4b767da2f8c60abe21ec142e1896d1de3a3b25683857dcb3426e4ba429",
+      "bytes": 37580
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/49__أعطيت_مالًا_يُعاد__loan-new__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "c10b2d386a836ffdc00e19ce5317703d321b74cdd1c8950ff2156c3f12df82ae",
+      "bytes": 68943
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/49__أعطيت_مالًا_يُعاد__loan-new__light__390xFULL.png",
+      "status": "A",
+      "sha256": "ba6f32bdb0d5b930273834254d628807de4110cd418ddfab9bb3aa9d5b5b2fe8",
+      "bytes": 66946
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/50__القرض_غير_متاح_محليًا__loan-detail-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "3b567235d4a813625236cb08a03d63031a8ceaf6275d9744f70134ca12d24aae",
+      "bytes": 12054
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/50__القرض_غير_متاح_محليًا__loan-detail-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "00e16de062a806b2ef41d782a3338f780ba97ffa957e5851a4e4aa7b8445d420",
+      "bytes": 11758
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/51__الموردون_والمشتريات__suppliers__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "e5abc469dee8028f4cbdbb9c657c2e4278af56f172ae03658ea296adb56974f8",
+      "bytes": 53786
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/51__الموردون_والمشتريات__suppliers__light__390xFULL.png",
+      "status": "A",
+      "sha256": "9454815c79abb35a54b3fa03b60d55f6faf5f35a6fb0162c21509d8a8ecdf067",
+      "bytes": 53003
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/52__سجل_شراء_مواد__supplier-purchase-new__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "048bcaa43e379f78365e7a35658090d1d6d27a7250d4d909f0b242cd75f77912",
+      "bytes": 69182
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/52__سجل_شراء_مواد__supplier-purchase-new__light__390xFULL.png",
+      "status": "A",
+      "sha256": "a74f6a061c867a8f0b21048daf0c3cd952320c3bab0f7e2b8ff1cede16edbfa6",
+      "bytes": 67847
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/52b__شراء_المواد_غير_موجود__supplier-purchase-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "fdfccae138237eb3bf4215ee40ca07655a33cd6ea42915ab0a6f8ff3386451ff",
+      "bytes": 20632
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/52b__شراء_المواد_غير_موجود__supplier-purchase-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "6e2675f08aec4371c85e89dea403562f9c039cd5f750fc67269eab0261142827",
+      "bytes": 20404
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/53__شراء_المواد_غير_موجود__purchase-payment-safe__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "fdfccae138237eb3bf4215ee40ca07655a33cd6ea42915ab0a6f8ff3386451ff",
+      "bytes": 20632
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/53__شراء_المواد_غير_موجود__purchase-payment-safe__light__390xFULL.png",
+      "status": "A",
+      "sha256": "6e2675f08aec4371c85e89dea403562f9c039cd5f750fc67269eab0261142827",
+      "bytes": 20404
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/54__مين_عليه_إلَي،_وعليّ_لمين؟__parties__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "634b25b974ac48094eabedb4be37a52624ae19af7935369d68d3587a9d3fe90f",
+      "bytes": 60221
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/54__مين_عليه_إلَي،_وعليّ_لمين؟__parties__light__390xFULL.png",
+      "status": "A",
+      "sha256": "1a90e3e6712f473061f313f01359949d1519162404e461923df642807bd5d3a2",
+      "bytes": 59189
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/55__الإعدادات__settings__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "c43b851b570e747f14bfd6b343aff230d6419ea92c379dac5c69a9c8494cb75a",
+      "bytes": 254047
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/55__الإعدادات__settings__light__390xFULL.png",
+      "status": "A",
+      "sha256": "acf7dbe94f4fc9c0e95faf0c26481b6a2627ae9f68c670ebb2b23d6844b1e195",
+      "bytes": 244759
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/56__ملفك_وملف_مشروعك__profile__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "ad08b9efe5cf13edd2a41bd56cceaba39a8404f9e71a8588dde8b5063968810a",
+      "bytes": 74581
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/56__ملفك_وملف_مشروعك__profile__light__390xFULL.png",
+      "status": "A",
+      "sha256": "63f49d63383c323f9b8838e5f88a5dd86a893c6c49118d37d858681a963a7ba5",
+      "bytes": 71917
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/57__هذه_الصفحة_ليست_جزءًا_من_هذا_الإصدار__not-found__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "a618dffed4c1575616b65fbd7be74f7b1f9e1fabab48aa8b433851c9fad43415",
+      "bytes": 34451
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/57__هذه_الصفحة_ليست_جزءًا_من_هذا_الإصدار__not-found__light__390xFULL.png",
+      "status": "A",
+      "sha256": "0d00d2c637cf808891df2ef9801bc040ea33c026dfa4c2b4d0620f66cba609ed",
+      "bytes": 33772
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/58__Micro_مقفل__app-lock-gate__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "200cbc21eec2482428bffbc53a76b2fa9ae0748bcc8d9951058713d6e7e7affe",
+      "bytes": 155698
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/58__Micro_مقفل__app-lock-gate__light__390xFULL.png",
+      "status": "A",
+      "sha256": "62ac2cfca8270460240a45e6166e0a09904c5a819ab904dd531b82984c71cfd2",
+      "bytes": 139575
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/59__شاشة_الإطلاق__splash__light__390xFULL.png",
+      "status": "A",
+      "sha256": "eb4db14d6a27b51027f44a0034fe0ed06c8b6e8016318e0786fbd39912f76ee3",
+      "bytes": 5029
+    },
+    {
+      "path": "planning/micro-brand-assets-motion-splash-resume-2026-09/screenshots/60__شاشة_الإطلاق__splash__dark__390xFULL.png",
+      "status": "A",
+      "sha256": "c556e107a0c267cc9fbc60bd6fe1fe82f97001823d37a963bc14e944aeb4c1c9",
+      "bytes": 7439
+    }
+  ]
+}

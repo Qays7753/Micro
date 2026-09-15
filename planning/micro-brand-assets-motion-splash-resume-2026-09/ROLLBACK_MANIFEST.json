@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-09-15",
+  "rollback_boundary": {
+    "commit": "c7dedadc669a9c1a918a107e206d8a0ddff73e5f",
+    "meaning": "Verified Micro main HEAD before any change. Returning to it fully undoes the brand activation."
+  },
+  "procedure": [
+    "git checkout main  # already at the boundary; main was never modified",
+    "git branch -D micro-brand-assets-motion-splash-resume-20260915 micro-brand-assets-motion-splash-resume-bridge-20260915  # drop the review branches",
+    "git push origin --delete micro-brand-assets-motion-splash-resume-20260915 micro-brand-assets-motion-splash-resume-bridge-20260915  # optional remote cleanup"
+  ],
+  "verified_state": {
+    "work_branch_head_at_generation": "8c22814d3fa6ea019ed49e90c570ee4192f39216",
+    "old_runtime_assets_restorable_from": "baseline commit paths apps/prototype-web/client/public/micro-mark*.png|svg",
+    "pwa_manifest_reverts_to": "micro-mark-192/512 icon set (baseline vite.config.ts)"
+  },
+  "main_branches_touched": {
+    "Micro/main": false,
+    "Documents/main": false
+  }
+}
