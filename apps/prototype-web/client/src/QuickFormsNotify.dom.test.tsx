@@ -88,6 +88,12 @@ async function openWallet(name: string, openingMinor: number) {
   return overview.value.wallets[0]!;
 }
 
+async function seedProfile() {
+  const { ProfileService } = await import("@/application/profile/profileService");
+  const saved = await new ProfileService(store, () => NOW).save("مشغل اختبار FIN-004");
+  if (!saved.ok) throw new Error(saved.message);
+}
+
 describe("Quick forms notify after committed state (FIN-004)", () => {
   it("notifies exactly once AFTER the wallet allocation completes — no intermediate read", async () => {
     const wallet = await openWallet("درج-FIN004", 10000);
@@ -102,7 +108,7 @@ describe("Quick forms notify after committed state (FIN-004)", () => {
     );
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
-    await user.selectOptions(screen.getByLabelText(/وجهة الصرف/), wallet.id);
+    await user.selectOptions(screen.getByLabelText(/مصدر الصرف/), wallet.id);
     orderLog = [];
     await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
     await waitForReceipt(submitted);
@@ -142,7 +148,61 @@ describe("Quick forms notify after committed state (FIN-004)", () => {
     expect(position.value.walletCashMinor).toBe(11500);
     expect(position.value.unallocatedCashMinor).toBe(0);
   });
+
+  it("keeps Home equal to Finance immediately after a wallet-funded expense — no reload", async () => {
+    await seedProfile();
+    const wallet = await openWallet("درج-FIN004", 10000);
+    const submitted: QuickActionReceipt[] = [];
+    render(
+      <QuickExpenseForm
+        wallets={[{ id: wallet.id, name: "درج-FIN004" }]}
+        categorySuggestions={[]}
+        onSubmitted={receipt => submitted.push(receipt)}
+        onBackToMenu={() => undefined}
+      />,
+    );
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    await user.selectOptions(screen.getByLabelText(/مصدر الصرف/), wallet.id);
+    await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
+    await waitForReceipt(submitted);
+    /* بعد الإشعار مباشرة — بلا تنقل ولا إعادة تحميل — الرئيسية ومالي تقرآن
+     * الحالة الملتزَمة نفسها: محفظة 97.00، لا بطاقة «كاش غير موزع» سالبة،
+     * ولا تحذير «فرق سالب — راجع مصدره». */
+    const home = await readHome();
+    const position = await projectFinance.readPosition();
+    if (!position.ok) throw new Error(position.message);
+    const cashFact = home.facts.find(fact => fact.id === "cash");
+    expect(cashFact?.state).toBe("known");
+    expect(cashFact?.valueMinor).toBe(position.value.recordedCashMinor);
+    expect(cashFact?.valueMinor).toBe(9700);
+    const unallocatedFact = home.facts.find(fact => fact.id === "unallocated");
+    expect(unallocatedFact).toBeUndefined();
+    expect(home.facts.some(fact => fact.qualifier?.includes("فرق سالب"))).toBe(false);
+  });
 });
+
+async function readHome() {
+  const { HomeControlCenterService } = await import("@/application/home/homeControlCenterService");
+  const { DailyFollowUpService } = await import("@/application/follow-up/dailyFollowUpService");
+  const { SupplierPurchaseService } = await import("@/application/suppliers/supplierPurchaseService");
+  const { InventoryMaterialService } = await import("@/application/inventory/inventoryMaterialService");
+  const { AgreementContextService } = await import("@/application/agreements/agreementContextService");
+  const { ActivityService } = await import("@/application/activity/activityService");
+  const home = new HomeControlCenterService(
+    store,
+    new DailyFollowUpService(store),
+    projectFinance,
+    new SupplierPurchaseService(store, () => NOW),
+    new InventoryMaterialService(store, () => NOW),
+    new AgreementContextService(store),
+    new ActivityService(store),
+    () => NOW,
+  );
+  const result = await home.read();
+  if (!result.ok) throw new Error(result.message);
+  return result.value;
+}
 
 async function waitForReceipt(submitted: QuickActionReceipt[]) {
   for (let attempt = 0; attempt < 50 && submitted.length === 0; attempt += 1) {
