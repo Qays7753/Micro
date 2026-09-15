@@ -121,10 +121,14 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
   });
   afterEach(() => cleanup());
 
-  it("asks the wallet question with sheet-identical vocabulary when wallets exist", async () => {
+  it("asks the wallet-source question with sheet-identical vocabulary when wallets exist", async () => {
     renderEditor({ wallets });
-    expect(await screen.findByText("وجهة الصرف")).toBeTruthy();
-    const select = screen.getByDisplayValue("من الكاش غير الموزع");
+    /* FIN-005: محفظتان — اختيار إلزامي صريح، بعبارة محايدة حتى يختار المالك. */
+    expect(await screen.findByText("مصدر الصرف")).toBeTruthy();
+    const select = (await screen.findByLabelText(/مصدر الصرف/)) as HTMLSelectElement;
+    await waitFor(() => expect(select.value).toBe("__unset__"));
+    expect(screen.getByText("اختر مصدر الصرف")).toBeTruthy();
+    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
     expect(screen.getByText("الدرج — تغطية من رصيدها")).toBeTruthy();
     expect(screen.getByText("حساب البنك — تغطية من رصيدها")).toBeTruthy();
     fireEvent.change(select, { target: { value: "bank" } });
@@ -139,8 +143,13 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(screen.getByRole("button", { name: "بنزين" })).toBeTruthy();
     fireEvent.click(derivedChip);
     expect(derivedChip.getAttribute("aria-pressed")).toBe("true");
+    /* FIN-005: محفظتان — لا حفظ قبل اختيار مصدر الصرف صراحةً. */
     await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
     await userEvent.setup().type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "توصيل");
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(screen.getByText("اختر مصدر الصرف: محفظة أو الكاش غير الموزع.")).toBeTruthy());
+    expect(record).not.toHaveBeenCalled();
+    await userEvent.setup().selectOptions(screen.getByLabelText(/مصدر الصرف/), "");
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
     const payload = record.mock.calls[0]?.[0] as { expenseContext?: { categoryLabel?: string | null } };
@@ -199,7 +208,8 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
         <FinancialEventEditor />
       </UnsavedChangesProvider>,
     );
-    fireEvent.change(await screen.findByDisplayValue("من الكاش غير الموزع"), {
+    /* FIN-005: محفظتان — اختيار صريح من العبارة المحايدة قبل الحفظ. */
+    fireEvent.change(await screen.findByLabelText(/مصدر الصرف/), {
       target: { value: "drawer" },
     });
     const user = userEvent.setup();

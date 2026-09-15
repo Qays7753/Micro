@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -26,6 +26,11 @@ type QuickExpenseFormProps = {
   hidden?: boolean;
 };
 
+/* FIN-005 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): قيمة «لم يُختر بعد» — تُميّز
+ * عدم الاختيار عن الخيار الصريح «الكاش غير الموزع» (قيمة فارغة) في حالة
+ * المحافظ المتعددة حيث الاختيار إلزامي. */
+const UNSET_EXPENSE_SOURCE = "__unset__";
+
 export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFormProps>(
   function QuickExpenseForm(
     { wallets, categorySuggestions, onSubmitted, onBackToMenu, onSavingChange, hidden = false },
@@ -36,20 +41,44 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
     const [expenseAmountValid, setExpenseAmountValid] = useState(true);
     const [expenseNote, setExpenseNote] = useState("");
     const [expenseCategory, setExpenseCategory] = useState("");
-    const [expenseWalletId, setExpenseWalletId] = useState("");
+    const [expenseWalletId, setExpenseWalletId] = useState(UNSET_EXPENSE_SOURCE);
+    const expenseSourceChosenRef = useRef(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const saveInFlightRef = useRef(false);
     const expenseKeyRef = useRef(`sheet-expense-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
+    /* FIN-005: قاعدة مصدر الصرف — بلا محافظ: الكاش غير الموزع بتحذير معلن؛
+     * محفظة واحدة: تُعيَّن مسبقًا بشكل مرئي؛ محافظ متعددة: اختيار إلزامي
+     * صريح (محفظة أو الكاش غير الموزع). لا تُذكر آخر محفظة اختيرت. */
+    const appliedSourceRef = useRef(UNSET_EXPENSE_SOURCE);
+    useEffect(() => {
+      if (expenseSourceChosenRef.current) return;
+      const next = wallets.length === 1 ? wallets[0]!.id : wallets.length === 0 ? "" : UNSET_EXPENSE_SOURCE;
+      appliedSourceRef.current = next;
+      setExpenseWalletId(next);
+    }, [wallets]);
+
+    /* الوسخ يقارن بالقيمة المعيَّنة بالقاعدة — التعيين المسبق ليس وسخًا،
+     * وتبديل المالك للقاعدة هو الاختيار الواعي. */
     function isDirty(): boolean {
-      return Boolean(expenseAmountMinor > 0 || expenseNote.trim() || expenseWalletId || expenseCategory);
+      return Boolean(
+        expenseAmountMinor > 0 ||
+        expenseNote.trim() ||
+        expenseCategory ||
+        expenseWalletId !== appliedSourceRef.current,
+      );
     }
 
     async function submit() {
       if (saveInFlightRef.current) return;
       if (!expenseAmountValid || !Number.isInteger(expenseAmountMinor) || expenseAmountMinor <= 0) {
         setFormError("أدخل مبلغ المصروف بالأرقام 0–9.");
+        return;
+      }
+      /* FIN-005: محافظ متعددة — لا حفظ بلا اختيار صريح لمصدر الصرف. */
+      if (wallets.length > 1 && expenseWalletId === UNSET_EXPENSE_SOURCE) {
+        setFormError("اختر مصدر الصرف: محفظة أو الكاش غير الموزع.");
         return;
       }
       setFormError(null);
@@ -87,7 +116,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
       }
       /* ٥.٢: إن حُددت محفظة، يُغطى الصرف منها بتخصيص سالب — بلا تخصيص صامت. */
       let attributionNote: string | null = null;
-      if (expenseWalletId && expenseAmountMinor > 0)
+      if (expenseWalletId && expenseWalletId !== UNSET_EXPENSE_SOURCE && expenseAmountMinor > 0)
         attributionNote = (
           await attributeToWallet(
             projectFinance,
@@ -144,10 +173,27 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         {wallets.length > 0 ? (
           <label className="micro-field">
             <span>
-              وجهة الصرف <small>غير الموزع افتراضيًا؛ المحفظة تغطي من رصيدها</small>
+              مصدر الصرف{" "}
+              <small>
+                {wallets.length === 1
+                  ? "المحفظة الوحيدة معيَّنة مسبقًا — الكاش غير الموزع خيار صريح"
+                  : "اختر محفظة أو الكاش غير الموزع"}
+              </small>
             </span>
-            <select value={expenseWalletId} onChange={event => setExpenseWalletId(event.target.value)}>
-              <option value="">من الكاش غير الموزع</option>
+            <select
+              value={expenseWalletId}
+              onChange={event => {
+                expenseSourceChosenRef.current = true;
+                setExpenseWalletId(event.target.value);
+              }}
+              aria-label="مصدر الصرف للمصروف"
+            >
+              {wallets.length > 1 ? (
+                <option value={UNSET_EXPENSE_SOURCE} disabled>
+                  اختر مصدر الصرف
+                </option>
+              ) : null}
+              <option value="">الكاش غير الموزع</option>
               {wallets.map(wallet => (
                 <option key={wallet.id} value={wallet.id}>
                   {wallet.name} — تغطية من رصيدها
@@ -155,7 +201,13 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
               ))}
             </select>
           </label>
-        ) : null}
+        ) : (
+          /* FIN-005: بلا محافظ — المصروف يُسجَّل من غير الموزع بتحذير معلن
+           * قبل الحفظ، مع فعل المتابعة المتاح لاحقًا. */
+          <p className="micro-offline-truth" role="status">
+            لا محافظ معلنة بعد — سيُسجَّل المصروف من الكاش غير الموزع، ويمكن تغطيته من محفظة لاحقًا من مالي.
+          </p>
+        )}
         {categorySuggestions.length > 0 ? (
           /* المجموعة ١ (تصنيفي للمصاريف): رقاقات اختيارية بعد الحقول وقبل سطر
            * الأثر — نقرة واحدة بلا لوحة مفاتيح، ولا ترفع مدخلات المسار السريع. */
@@ -178,9 +230,11 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         {expenseAmountMinor > 0 && expenseAmountValid ? (
           <p className="micro-local-truth" role="status">
             سينقص الكاش {formatMoneyMinor(expenseAmountMinor)} د.أ
-            {expenseWalletId
+            {expenseWalletId && expenseWalletId !== UNSET_EXPENSE_SOURCE
               ? ` من «${wallets.find(wallet => wallet.id === expenseWalletId)?.name ?? ""}»`
-              : " من غير الموزع"}{" "}
+              : expenseWalletId === ""
+                ? " من غير الموزع"
+                : " — اختر مصدر الصرف أولًا"}{" "}
             — مصروف مسجل لا يُعدّ ربحًا ولا يُخصم من دين، وبلا حركة أمانة ولا سحب مالك.
           </p>
         ) : null}

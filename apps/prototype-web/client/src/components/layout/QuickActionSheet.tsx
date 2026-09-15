@@ -103,8 +103,9 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
       if (!result.ok) return;
       setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
       /* المجموعة ٢ (Scope A): الدرج وجهة القبض الافتراضية حين يوجد — غير الموزع
-       * خيار صريح لا اختيارًا صامتًا. المصروف: من غير الموزع افتراضيًا صادقًا
-       * (لا نختار محفظة نيابةً عن الصرف)، وتغطية المحفظة خيار معلن. */
+       * خيار صريح لا اختيارًا صامتًا. المصروف (FIN-005 — قرار المالك ٢٠٢٦-٠٩-١٦):
+       * بلا محافظ يُصرف من غير الموزع بتحذير معلن؛ محفظة واحدة تُعيَّن مسبقًا
+       * بشكل مرئي؛ ومحافظ متعددة تُلزم باختيار صريح — لا تذكر آخر محفظة. */
       const drawer = result.value.wallets.find(wallet => wallet.kind === "cash_drawer");
       setSaleDefaultWalletId(drawer?.id ?? "");
     });

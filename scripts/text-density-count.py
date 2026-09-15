@@ -547,7 +547,11 @@ CAPS: dict[str, int] = {
     # independent period lines (إهلاك مسجّل/شطب أصل/تخلص من أصل/عربون محتفظ كإيراد).
     # الإغلاق العميق (AR-07): عنوان «تسجيل هدر بلا خروج نقد» (توحيد مصطلح الهدر).
     # FinancialEventEditor 142 → 143 (2026-09-05).
-    "FinancialEventEditor": 143,
+    # FinancialEventEditor 143 → 145 (2026-09-16, financial-trust package FIN-005,
+    # owner-approved): the expense cash-source rules — the multi-wallet neutral
+    # placeholder «اختر مصدر الصرف» and the no-wallet unallocated-fallback
+    # warning shown before saving.
+    "FinancialEventEditor": 145,
     # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
     # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
     # labels and truth lines join the measured set; per-tag rows are data.

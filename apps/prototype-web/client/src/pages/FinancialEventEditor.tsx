@@ -156,6 +156,9 @@ const BEHAVIOR_VALUES = ["fixed", "variable", "mixed", "unknown"] as const;
 const PURPOSE_VALUES = ["project_general", "period", "order", "product", "campaign", "unallocated"] as const;
 const KNOWLEDGE_VALUES = ["known", "estimated", "needs_review"] as const;
 const SHARED_MODE_VALUES = ["fixed", "percentage", "estimate", "defer"] as const;
+/* FIN-005 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): «لم يُختر بعد» — غير الخيار
+ * الصريح «الكاش غير الموزع»؛ إلزامي التخطي عند تعدد المحافظ. */
+const UNSET_EXPENSE_SOURCE = "__unset__";
 
 const safeDraftAmount = (value: unknown): number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
@@ -218,9 +221,13 @@ export default function FinancialEventEditor() {
   /* المجموعة ١ (تصنيفي للمصاريف): وسم اختياري حر مع مقترحات مشتقة. */
   const [categoryLabel, setCategoryLabel] = useState("");
   const [suggestions, setSuggestions] = useState<readonly string[]>([]);
-  /* المجموعة ١ (الإدخال الموجّه): «من وين طلع المبلغ؟» — وجهة الصرف للمصروف المدفوع. */
+  /* المجموعة ١ (الإدخال الموجّه): «من وين طلع المبلغ؟» — مصدر الصرف للمصروف المدفوع.
+   * FIN-005 (قرار المالك ٢٠٢٦-٠٩-١٦): بلا محافظ = غير الموزع بتحذير معلن؛
+   * محفظة واحدة = معيَّنة مسبقًا بشكل مرئي؛ محافظ متعددة = اختيار إلزامي
+   * صريح (محفظة أو الكاش غير الموزع) — ولا تُذكر آخر محفظة اختيرت. */
   const [wallets, setWallets] = useState<readonly { id: string; name: string }[]>([]);
-  const [walletId, setWalletId] = useState("");
+  const [walletId, setWalletId] = useState(UNSET_EXPENSE_SOURCE);
+  const walletSourceChosenRef = useRef(false);
   const [payableOptions, setPayableOptions] = useState<readonly SettleablePayable[]>([]);
   const [relatedEventId, setRelatedEventId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -280,7 +287,7 @@ export default function FinancialEventEditor() {
       active = false;
     };
   }, [projectFinance, type, dataVersion]);
-  /* المجموعة ١: المحافظ لسؤال وجهة الصرف (المصروف المدفوع فقط). */
+  /* المجموعة ١: المحافظ لسؤال مصدر الصرف (المصروف المدفوع فقط). */
   useEffect(() => {
     if (type !== "operating_expense_cash") return;
     let active = true;
@@ -293,6 +300,13 @@ export default function FinancialEventEditor() {
       active = false;
     };
   }, [cashContinuity, type, dataVersion]);
+  /* FIN-005: قاعدة التعيين عند تغيّر المحافظ — ما لم يختر المالك صراحةً. */
+  useEffect(() => {
+    if (walletSourceChosenRef.current) return;
+    if (wallets.length === 1) setWalletId(wallets[0]!.id);
+    else if (wallets.length === 0) setWalletId("");
+    else setWalletId(UNSET_EXPENSE_SOURCE);
+  }, [wallets]);
   /* المجموعة ٥ (التحصين الكامل): مفتاح الصفحة القديم يُرحَّل مرة واحدة عبر
    * المهاجئ الضيق (اكتب ← تحقق ← احذف) ثم تصبح القراءة من الحد الموحّد فقط —
    * لا وصول مباشرًا لتخزين الصفحة في الكود الطبيعي بعد اليوم. */
@@ -351,7 +365,9 @@ export default function FinancialEventEditor() {
       sharedNote,
       categoryLabel,
       relatedEventId,
-      walletId,
+      /* FIN-005: التعيين المسبق بالقاعدة ليس وسخًا — الوسخ اختيار المالك
+       * الصريح لمصدر غير المعيَّن. */
+      walletSourceChosenRef.current ? walletId : "",
     ],
     `${type}:${savedEpoch}`,
   );
@@ -381,7 +397,8 @@ export default function FinancialEventEditor() {
           sharedNote,
           categoryLabel,
           relatedEventId,
-          walletId,
+          /* FIN-005: «لم يُختر بعد» لا يُحفظ في المسودة — الفارغ يعني غير الموزع. */
+          walletId: walletId === UNSET_EXPENSE_SOURCE ? "" : walletId,
         } satisfies EditorDraft)
         .then(result => {
           setDraftSaveFailed(result.ok === false && result.code !== "conflict");
@@ -502,7 +519,12 @@ export default function FinancialEventEditor() {
     setSharedNote(draftOffer.sharedNote);
     setCategoryLabel(draftOffer.categoryLabel);
     setRelatedEventId(draftOffer.relatedEventId);
-    setWalletId(draftOffer.walletId);
+    /* FIN-005: مسودة بمحفظة مختارة = اختيار صريح يُحترم؛ المسودة الفارغة
+     * تتبع قاعدة عدد المحافظ عند التسجيل. */
+    if (draftOffer.walletId) {
+      walletSourceChosenRef.current = true;
+      setWalletId(draftOffer.walletId);
+    }
     setDraftOffer(null);
     clearDraft();
   }
@@ -539,6 +561,15 @@ export default function FinancialEventEditor() {
     }
     if (!note.trim()) {
       setMessage("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.");
+      return false;
+    }
+    /* FIN-005: محافظ متعددة — لا حفظ لمصروف نقدي بلا اختيار صريح لمصدره. */
+    if (
+      selectedType === "operating_expense_cash" &&
+      wallets.length > 1 &&
+      walletId === UNSET_EXPENSE_SOURCE
+    ) {
+      setMessage("اختر مصدر الصرف: محفظة أو الكاش غير الموزع.");
       return false;
     }
     setMessage(null);
@@ -581,7 +612,7 @@ export default function FinancialEventEditor() {
     /* المجموعة ١ (وجهة الصرف): تغطية المحفظة المختارة بعد التسجيل — نفس توقيع
      * ورقة الإضافة (مفتاح مشتق من مفتاح السجل) فلا تخصيص مزدوج عند الإعادة.
      * فشل النسبة لا يمس الحدث: المال محفوظ غير موزع، والنص يظهر قبل الخروج. */
-    if (selectedType === "operating_expense_cash" && walletId) {
+    if (selectedType === "operating_expense_cash" && walletId && walletId !== UNSET_EXPENSE_SOURCE) {
       const attribution = await projectFinance.distributeUnallocated({
         walletId,
         deltaMinor: -result.value.amountMinor,
@@ -742,20 +773,43 @@ export default function FinancialEventEditor() {
         )}
         {type === "operating_expense_cash" ? (
           /* المجموعة ١ (الإدخال الموجّه): «من وين طلع المبلغ؟» — نفس مفردات ورقة
-           * الإضافة (وجهة الصرف) حتى لا تتعدد مفردات المفهوم الواحد. */
-          <label className="micro-field">
-            <span>
-              وجهة الصرف <small>من وين طلع المبلغ؟ غير الموزع افتراضيًا؛ المحفظة تغطي من رصيدها.</small>
-            </span>
-            <select value={walletId} onChange={event => setWalletId(event.target.value)}>
-              <option value="">من الكاش غير الموزع</option>
-              {wallets.map(wallet => (
-                <option key={wallet.id} value={wallet.id}>
-                  {wallet.name} — تغطية من رصيدها
-                </option>
-              ))}
-            </select>
-          </label>
+           * الإضافة (مصدر الصرف) حتى لا تتعدد مفردات المفهوم الواحد.
+           * FIN-005: نفس قاعدة الورقة بعدد المحافظ — بلا تحويل صامت. */
+          wallets.length > 0 ? (
+            <label className="micro-field">
+              <span>
+                مصدر الصرف{" "}
+                <small>
+                  {wallets.length === 1
+                    ? "المحفظة الوحيدة معيَّنة مسبقًا — الكاش غير الموزع خيار صريح"
+                    : "اختر محفظة أو الكاش غير الموزع"}
+                </small>
+              </span>
+              <select
+                value={walletId}
+                onChange={event => {
+                  walletSourceChosenRef.current = true;
+                  setWalletId(event.target.value);
+                }}
+              >
+                {wallets.length > 1 ? (
+                  <option value={UNSET_EXPENSE_SOURCE} disabled>
+                    اختر مصدر الصرف
+                  </option>
+                ) : null}
+                <option value="">الكاش غير الموزع</option>
+                {wallets.map(wallet => (
+                  <option key={wallet.id} value={wallet.id}>
+                    {wallet.name} — تغطية من رصيدها
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <p className="micro-offline-truth" role="status">
+              لا محافظ معلنة بعد — سيُسجَّل المصروف من الكاش غير الموزع، ويمكن تغطيته من محفظة لاحقًا من مالي.
+            </p>
+          )
         ) : null}
         <LocalDateField label="تاريخ الحدث" value={date} onChange={event => setDate(event.target.value)} />
         <label className="micro-field">
