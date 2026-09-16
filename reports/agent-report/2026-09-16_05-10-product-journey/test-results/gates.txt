@@ -1,0 +1,39 @@
+حزمة رحلة المنتج — نتائج الأبواب التقنية (Asia/Amman، 2026-09-16 ~04:45)
+=====================================================================
+الفرع: feat/product-journey-20260916-0238 من main @ 7138c51
+
+نوع الشيكات (npm scripts الفعلية للمستودع):
+- pnpm typecheck (جذر + ويب): نجاح — 0 أخطاء
+- eslint --max-warnings 37: نجاح — 0 أخطاء / 36 تحذيرًا (ضمن الميزانية)
+- prettier --check: نجاح — كل الملفات مطابقة
+- text-density-count.py: نجاح — كل الأسطح ضمن السقوف الموثقة
+- design-token-guards.py: نجاح — لا hex خام وكل القيم على السلم
+- theme-contrast-guard.py: نجاح — 82 زوجًا ≥ المقاييس في الوضعين
+- stylelint: نجاح — 0 مشاكل
+- check-secrets: نجاح — 1184 ملفًا، 0 نمط أسرار
+- check-test-focus: نجاح — 225 ملف اختبار، 0 .only/.skip
+- check-entity-touchpoints: نجاح — المخطط يغطي كل المخازن
+- check-runtime-cycles: نجاح — 264 ملفًا، 0 دورات تشغيل
+- vitest (جذر): 36 ملفًا / 404 اختبارات — كلها ناجحة (391 أساس + 13 ORD-003 دومين)
+- vitest (ويب): 189 ملفًا / 1334 اختبارات — كلها ناجحة (1280 أساس + 54 جديدة/محدثة)
+- vite build + check-bundle-budget: نجاح — 646,723 / 650,000 خام؛ 154,343 / 155,000 gzip
+
+اختبارات جديدة في هذه الحزمة:
+- tests/domain/craft-order-delivery-terms.test.ts (13)
+- client/src/Ops001MovementSelection.dom.test.tsx (5)
+- client/src/OrdJourneys.dom.test.tsx (6)
+- client/src/Nav001.dom.test.tsx (6)
+- client/src/Set003Capabilities.dom.test.tsx (4)
+- integrityCheckService.test.ts +2 (TOOL-001)
+- ToolsIntegrity.ui.test.tsx موسّع (عدّ ديناميكي + مجاميع متفقة)
+
+اختبارات محدّثة إلى السلوك المعتمد الجديد:
+- group2InventorySurfaces: اختيار صريح بدل أول مادة (3 اختبارات)
+- G3Delivery: عنوان الإيصال المعتمد «تم تسليم الطلب بنجاح» وحقوله
+- Setup.ui: الإتمام يفتح «/?setup=1» والتسمية الجديدة (5 مواضع)
+- navigation.test: المقاعد الخمسة والتسمية «المالية»
+- R2.renderSmoke: عقد لوحة المفاتيح يصل مقاعد الشريط؛ /market مضاف
+- G5Activity: نص اليوم الهادئ الجديد
+- Home.dom: غلاف مزوّد التسجيل السريع
+
+لا اختبارات محذوفة. لا فشول متبقية.
