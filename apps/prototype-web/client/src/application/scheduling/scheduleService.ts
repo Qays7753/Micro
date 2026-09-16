@@ -289,7 +289,11 @@ export class ScheduleService {
     /* EXE-002 (AUD-NEW-02): التحديث عبر بوابة merge الموحدة — سعة اليوم لا
      * تُسقط disabledCapabilities ولا أي حقل قائم (كانت الكتابة الكاملة اليدوية
      * تعيد تفعيل القدرات الموقوفة بصمت). */
-    const saved = await updateLocalPreferences(this.store, { dailyScheduleCapacityMinutes: minutes }, this.now);
+    const saved = await updateLocalPreferences(
+      this.store,
+      { dailyScheduleCapacityMinutes: minutes },
+      this.now,
+    );
     return saved.ok
       ? { ok: true, value: saved.value.dailyScheduleCapacityMinutes }
       : {

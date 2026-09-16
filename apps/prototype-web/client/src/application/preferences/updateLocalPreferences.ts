@@ -11,13 +11,10 @@
 import { localPreferencesId, type LocalPreferences, type PrototypeLocalStore } from "@/storage/local/types";
 
 /** الحقول القابلة للتحقيق فقط — الهوية وطابع التحديث تملكهما البوابة. */
-export type LocalPreferencesPatch = Partial<
-  Omit<LocalPreferences, "id" | "updatedAt">
->;
+export type LocalPreferencesPatch = Partial<Omit<LocalPreferences, "id" | "updatedAt">>;
 
 export type LocalPreferencesUpdateResult =
-  | { ok: true; value: LocalPreferences }
-  | { ok: false; code: "storage_error"; message: string };
+  { ok: true; value: LocalPreferences } | { ok: false; code: "storage_error"; message: string };
 
 /** سجل البداية عند أول كتابة على جهاز بلا تفضيلات — نفس الافتراضات
  * التي كانت الكتّاب السبعة تبنيها يدويًا قبل التوحيد. */

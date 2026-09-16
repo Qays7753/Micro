@@ -86,8 +86,7 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
       },
       {
         name: "operating mode (actualTimeService.saveOperatingMode)",
-        run: () =>
-          time.saveOperatingMode({ workMode: "time_focused", actualTimeTrackingEnabled: false }),
+        run: () => time.saveOperatingMode({ workMode: "time_focused", actualTimeTrackingEnabled: false }),
         mutateExpected: () => {
           expected.workMode = "time_focused";
           expected.actualTimeTrackingEnabled = false;
@@ -142,7 +141,9 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
       expect(record.value.dailyScheduleCapacityMinutes, `${writer.name} capacity`).toBe(
         expected.dailyScheduleCapacityMinutes,
       );
-      expect(record.value.backupReminderEnabled, `${writer.name} reminder`).toBe(expected.backupReminderEnabled);
+      expect(record.value.backupReminderEnabled, `${writer.name} reminder`).toBe(
+        expected.backupReminderEnabled,
+      );
       expect(record.value.lastVerifiedExportAt, `${writer.name} export stamp`).toBe(
         expected.lastVerifiedExportAt,
       );

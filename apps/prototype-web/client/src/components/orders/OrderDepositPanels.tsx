@@ -44,8 +44,7 @@ export type OrderDepositPanelsProps = {
   fulfillment: FulfillmentService;
 };
 
-const freshRefundOperationKey = () =>
-  `deposit-refund-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
+const freshRefundOperationKey = () => `deposit-refund-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 
 export function OrderDepositPanels({
   order,
