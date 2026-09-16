@@ -146,8 +146,14 @@ export default function OrderDetail() {
   const [termsCostMinor, setTermsCostMinor] = useState<number | null>(null);
   const [termsFeeInPrice, setTermsFeeInPrice] = useState(false);
   const [termsCostInProduct, setTermsCostInProduct] = useState(false);
+  /* إصلاح المتابعة (ORD-003): حصتا التكلفة المشتركة قابلتان للتحرير هنا كما
+   * في محرر الاتفاق — كان مسار التحرير يصفّرهما بصمت عند أي تعديل للشروط. */
+  const [termsProjectShareMinor, setTermsProjectShareMinor] = useState<number | null>(null);
+  const [termsCustomerShareMinor, setTermsCustomerShareMinor] = useState<number | null>(null);
   const [validTermsFee, setValidTermsFee] = useState(true);
   const [validTermsCost, setValidTermsCost] = useState(true);
+  const [validTermsProjectShare, setValidTermsProjectShare] = useState(true);
+  const [validTermsCustomerShare, setValidTermsCustomerShare] = useState(true);
   const termsOperationKeyRef = useRef(`order-terms-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة على الطلب.
    * المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة مع تخصيصها
@@ -366,12 +372,41 @@ export default function OrderDetail() {
     ...(canCancelOrder(order) ? ["إلغاء الطلب"] : []),
   ].join(" · ");
 
+  /* إصلاح المتابعة (ORD-003): فتح لوحة الشروط يبدأ من القيم المسجلة نفسها
+   * لا من فراغ — فالحفظ غير المقصود كان يمسح أجرة/كلفة/حصصًا مسجلة سابقًا.
+   * ومفتاح عملية جديد لكل فتح لوحة: التعديل الثاني بعد نجاح الأول تعديل
+   * موثق جديد (نمط لوحة التراجع نفسه)، لا صمتًا بحتمية المفتاح القديم. */
+  const openTermsPanel = () => {
+    termsOperationKeyRef.current = `order-terms-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
+    const terms = state.phase === "ready" ? (state.stored.order.deliveryTerms ?? null) : null;
+    setTermsResponsibility(terms?.responsibility ?? "project_pays");
+    setTermsFeeMinor(terms?.feeChargedMinor ?? null);
+    setTermsCostMinor(terms?.costPaidMinor ?? null);
+    setTermsFeeInPrice(terms?.feeIncludedInPrice ?? false);
+    setTermsCostInProduct(terms?.costIncludedInProductCost ?? false);
+    setTermsProjectShareMinor(terms?.projectShareMinor ?? null);
+    setTermsCustomerShareMinor(terms?.customerShareMinor ?? null);
+    setValidTermsFee(true);
+    setValidTermsCost(true);
+    setValidTermsProjectShare(true);
+    setValidTermsCustomerShare(true);
+    setTermsPanelOpen(true);
+  };
+
   /* ORD-003: حفظ شروط النقل — مفتاح تحرير واحد لكل محاولة تحرير، فالنقر
    * المزدوج لا يكرر الحدث، والدومين يعيد اشتقاق المتبقي ويوثّق التعديل. */
   async function saveDeliveryTerms(): Promise<void> {
     if (state.phase !== "ready") return;
     if (!validTermsFee || !validTermsCost) {
       setMessage("مبالغ النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
+      return;
+    }
+    if (termsResponsibility === "shared" && termsProjectShareMinor !== null && !validTermsProjectShare) {
+      setMessage("حصة المشروع من النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة.");
+      return;
+    }
+    if (termsResponsibility === "shared" && termsCustomerShareMinor !== null && !validTermsCustomerShare) {
+      setMessage("حصة الزبون من النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة.");
       return;
     }
     setIsActing(true);
@@ -386,8 +421,10 @@ export default function OrderDetail() {
           costIncludedInProductCost: termsCostInProduct,
           feeChargedMinor: feeApplies ? termsFeeMinor : null,
           costPaidMinor: costApplies ? termsCostMinor : null,
-          projectShareMinor: null,
-          customerShareMinor: null,
+          /* إصلاح المتابعة (ORD-003): الحصص المشتركة تُحفظ كما في محرر
+           * الاتفاق — خارج المسؤولية المشتركة تُصفَّر عمدًا (عقد الدومين). */
+          projectShareMinor: termsResponsibility === "shared" ? termsProjectShareMinor : null,
+          customerShareMinor: termsResponsibility === "shared" ? termsCustomerShareMinor : null,
         },
         termsOperationKeyRef.current,
       );
@@ -1533,6 +1570,12 @@ export default function OrderDetail() {
                 {order.deliveryTerms.costPaidMinor !== null && !order.deliveryTerms.costIncludedInProductCost
                   ? ` · كلفة نقل دفعها المشروع: ${formatMoneyMinor(order.deliveryTerms.costPaidMinor)} د.أ`
                   : ""}
+                {order.deliveryTerms.projectShareMinor !== null
+                  ? ` · حصة المشروع من النقل: ${formatMoneyMinor(order.deliveryTerms.projectShareMinor)} د.أ`
+                  : ""}
+                {order.deliveryTerms.customerShareMinor !== null
+                  ? ` · حصة الزبون من النقل: ${formatMoneyMinor(order.deliveryTerms.customerShareMinor)} د.أ`
+                  : ""}
                 {order.deliveryTerms.feeIncludedInPrice ? " · الأجرة محتواة في السعر" : ""}
                 {order.deliveryTerms.costIncludedInProductCost ? " · الكلفة محتواة في تكلفة المنتج" : ""}
               </p>
@@ -1610,6 +1653,40 @@ export default function OrderDetail() {
                       </label>
                     </>
                   ) : null}
+                  {termsResponsibility === "shared" ? (
+                    <div className="micro-shared-costs">
+                      <label className="micro-field">
+                        <span>
+                          حصة المشروع (د.أ) <small>اختياري</small>
+                        </span>
+                        <EnglishNumberInput
+                          value={termsProjectShareMinor}
+                          kind="money"
+                          min="0"
+                          allowEmpty
+                          aria-label="تعديل حصة المشروع من النقل"
+                          onNumericChange={setTermsProjectShareMinor}
+                          onEmptyChange={() => setTermsProjectShareMinor(null)}
+                          onTextValidityChange={setValidTermsProjectShare}
+                        />
+                      </label>
+                      <label className="micro-field">
+                        <span>
+                          حصة الزبون (د.أ) <small>اختياري</small>
+                        </span>
+                        <EnglishNumberInput
+                          value={termsCustomerShareMinor}
+                          kind="money"
+                          min="0"
+                          allowEmpty
+                          aria-label="تعديل حصة الزبون من النقل"
+                          onNumericChange={setTermsCustomerShareMinor}
+                          onEmptyChange={() => setTermsCustomerShareMinor(null)}
+                          onTextValidityChange={setValidTermsCustomerShare}
+                        />
+                      </label>
+                    </div>
+                  ) : null}
                   <div className="micro-form-actions">
                     <Button
                       action="save"
@@ -1626,7 +1703,7 @@ export default function OrderDetail() {
                   </div>
                 </div>
               ) : (
-                <button className="micro-text-action" type="button" onClick={() => setTermsPanelOpen(true)}>
+                <button className="micro-text-action" type="button" onClick={openTermsPanel}>
                   {order.deliveryTerms ? "تعديل شروط النقل والتوصيل" : "تسجيل شروط النقل والتوصيل"}
                 </button>
               )

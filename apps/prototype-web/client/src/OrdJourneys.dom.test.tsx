@@ -185,6 +185,128 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     expect(panel.textContent).toContain("لا يُضاف إلى أي نتيجة رسمية");
   });
 
+  /* ── إصلاح المتابعة (ORD-003): تحرير الشروط المشتركة من صفحة الطلب ──
+   * كان مسار التحرير يفتح اللوحة من فراغ (فيمسح أجرة/كلفة/حصصًا مسجلة
+   * بحفظ غير مقصود)، ويصفّر حصتي التكلفة المشتركة دائمًا، ويحتفظ بمفتاح
+   * حتمية واحد طوال عمر الصفحة فيصير التعديل الثاني صمتًا. */
+
+  it("ORD-003 follow-up: editing existing shared terms prefills every field and keeps the shares", async () => {
+    const stored = await agreedOrder();
+    const applied = await fulfillment.applyDeliveryTerms(
+      stored.id,
+      {
+        responsibility: "shared",
+        feeIncludedInPrice: false,
+        costIncludedInProductCost: false,
+        feeChargedMinor: 200,
+        costPaidMinor: 100,
+        projectShareMinor: 60,
+        customerShareMinor: 40,
+      },
+      "ord003-followup-initial",
+    );
+    if (!applied.ok) throw new Error(applied.message);
+    wouterMocks.params = { id: stored.id };
+    render(<Harness page={<OrderDetail />} />);
+    await screen.findByText("رف خشبي");
+    /* العرض يُظهر الحصتين المسجلتين — الحصص بيانات موثقة لا تختفي. */
+    const panel = screen.getByTestId("delivery-terms-panel");
+    await waitFor(() => expect(panel.textContent).toContain("تكلفة مشتركة"));
+    expect(panel.textContent).toContain("حصة المشروع من النقل: 0.60");
+    expect(panel.textContent).toContain("حصة الزبون من النقل: 0.40");
+    /* فتح التحرير يملأ كل الحقول بالقيم المسجلة نفسها — لا من فراغ. */
+    fireEvent.click(screen.getByText("تعديل شروط النقل والتوصيل"));
+    const select = screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل") as HTMLSelectElement;
+    expect(select.value).toBe("shared");
+    expect((screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع") as HTMLInputElement).value).toBe("2.00");
+    expect((screen.getByLabelText("تعديل كلفة النقل المدفوعة من المشروع") as HTMLInputElement).value).toBe(
+      "1.00",
+    );
+    expect((screen.getByLabelText("تعديل حصة المشروع من النقل") as HTMLInputElement).value).toBe("0.60");
+    expect((screen.getByLabelText("تعديل حصة الزبون من النقل") as HTMLInputElement).value).toBe("0.40");
+    /* تعديل حصة واحدة يحفظ الحصتين معًا — لا تصفير صامت. */
+    fireEvent.change(screen.getByLabelText("تعديل حصة المشروع من النقل"), { target: { value: "0.75" } });
+    fireEvent.click(screen.getByText("حفظ شروط النقل"));
+    await waitFor(() =>
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("حصة المشروع من النقل: 0.75"),
+    );
+    const saved = await store.getOrder(stored.id);
+    if (!saved.ok || !saved.value) throw new Error("order should exist");
+    expect(saved.value.order.deliveryTerms?.responsibility).toBe("shared");
+    expect(saved.value.order.deliveryTerms?.projectShareMinor).toBe(75);
+    expect(saved.value.order.deliveryTerms?.customerShareMinor).toBe(40);
+    expect(saved.value.order.deliveryTerms?.feeChargedMinor).toBe(200);
+    expect(saved.value.order.deliveryTerms?.costPaidMinor).toBe(100);
+  });
+
+  it("ORD-003 follow-up: a second edit after a successful save is a new documented event, not a silent no-op", async () => {
+    const stored = await agreedOrder();
+    wouterMocks.params = { id: stored.id };
+    render(<Harness page={<OrderDetail />} />);
+    await screen.findByText("رف خشبي");
+    /* التعديل الأول عبر الواجهة. */
+    fireEvent.click(screen.getByText("تسجيل شروط النقل والتوصيل"));
+    fireEvent.change(screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل"), {
+      target: { value: "shared" },
+    });
+    fireEvent.change(screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع"), { target: { value: "2" } });
+    fireEvent.click(screen.getByText("حفظ شروط النقل"));
+    await waitFor(() =>
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("أجرة محصلة عبر المشروع: 2.00"),
+    );
+    /* التعديل الثاني على الصفحة نفسها — مفتاح عملية جديد لكل فتح لوحة. */
+    fireEvent.click(screen.getByText("تعديل شروط النقل والتوصيل"));
+    fireEvent.change(screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع"), { target: { value: "3" } });
+    fireEvent.click(screen.getByText("حفظ شروط النقل"));
+    await waitFor(() =>
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("أجرة محصلة عبر المشروع: 3.00"),
+    );
+    const saved = await store.getOrder(stored.id);
+    if (!saved.ok || !saved.value) throw new Error("order should exist");
+    expect(saved.value.order.deliveryTerms?.feeChargedMinor).toBe(300);
+    const termsEvents = saved.value.order.events.filter(event => event.type === "delivery_terms_recorded");
+    expect(termsEvents.length).toBe(2);
+    /* القيمة القابلة للتحصيل: 50 + 3 = 53. */
+    expect(saved.value.order.receivableMinor).toBe(5300);
+  });
+
+  it("ORD-003 follow-up: switching the responsibility away from shared clears the shares deliberately", async () => {
+    const stored = await agreedOrder();
+    const applied = await fulfillment.applyDeliveryTerms(
+      stored.id,
+      {
+        responsibility: "shared",
+        feeIncludedInPrice: false,
+        costIncludedInProductCost: false,
+        feeChargedMinor: 200,
+        costPaidMinor: 100,
+        projectShareMinor: 60,
+        customerShareMinor: 40,
+      },
+      "ord003-followup-away",
+    );
+    if (!applied.ok) throw new Error(applied.message);
+    wouterMocks.params = { id: stored.id };
+    render(<Harness page={<OrderDetail />} />);
+    await screen.findByText("رف خشبي");
+    fireEvent.click(screen.getByText("تعديل شروط النقل والتوصيل"));
+    fireEvent.change(screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل"), {
+      target: { value: "project_pays" },
+    });
+    /* حقلا الحصتين يختفيان خارج المسؤولية المشتركة — عقد الدومين. */
+    expect(screen.queryByLabelText("تعديل حصة المشروع من النقل")).toBeNull();
+    expect(screen.queryByLabelText("تعديل حصة الزبون من النقل")).toBeNull();
+    fireEvent.click(screen.getByText("حفظ شروط النقل"));
+    await waitFor(() =>
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("المشروع يدفع للناقل"),
+    );
+    const saved = await store.getOrder(stored.id);
+    if (!saved.ok || !saved.value) throw new Error("order should exist");
+    expect(saved.value.order.deliveryTerms?.responsibility).toBe("project_pays");
+    expect(saved.value.order.deliveryTerms?.projectShareMinor).toBeNull();
+    expect(saved.value.order.deliveryTerms?.customerShareMinor).toBeNull();
+  });
+
   it("ORD-002: first delivery shows the dedicated receipt with verified fields only", async () => {
     const stored = await agreedOrder({ depositMinor: 1000 });
     await agreements.startExecution(stored.id);
