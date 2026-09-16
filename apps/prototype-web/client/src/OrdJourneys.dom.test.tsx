@@ -252,14 +252,18 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     fireEvent.change(screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع"), { target: { value: "2" } });
     fireEvent.click(screen.getByText("حفظ شروط النقل"));
     await waitFor(() =>
-      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("أجرة محصلة عبر المشروع: 2.00"),
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain(
+        "أجرة محصلة عبر المشروع: 2.00",
+      ),
     );
     /* التعديل الثاني على الصفحة نفسها — مفتاح عملية جديد لكل فتح لوحة. */
     fireEvent.click(screen.getByText("تعديل شروط النقل والتوصيل"));
     fireEvent.change(screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع"), { target: { value: "3" } });
     fireEvent.click(screen.getByText("حفظ شروط النقل"));
     await waitFor(() =>
-      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("أجرة محصلة عبر المشروع: 3.00"),
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain(
+        "أجرة محصلة عبر المشروع: 3.00",
+      ),
     );
     const saved = await store.getOrder(stored.id);
     if (!saved.ok || !saved.value) throw new Error("order should exist");
