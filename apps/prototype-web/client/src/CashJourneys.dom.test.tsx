@@ -184,3 +184,67 @@ describe("CashDistribution journeys (Group 11-E)", () => {
     await waitFor(() => expect(screen.getByText("أدخل مبلغًا صحيحًا موجبًا بالأرقام 0–9.")).toBeTruthy());
   });
 });
+
+/* EXE-001 (AUD-NEW-01 / CASH-002): التوزيع الثاني في الزيارة نفسها قيد
+ * مستقل لا ابتلاع صامت — قبل الإصلاح كان مفتاح العملية الواحد للصفحة يجعل
+ * الخدمة تعيد {reused:true} بلا كتابة بينما تعرض الواجهة نجاحًا كاذبًا. */
+describe("EXE-001 — sequential distributions in one visit", () => {
+  it("records two distributions in the same visit as two ledger entries with reconciled balances", async () => {
+    await openWalletWith(10000, "درج");
+    /* كاش غير موزع حقيقي: استثمار نقدي 60.00 د.أ بلا نسبة محفظة. */
+    const finance = new ProjectFinancialService(store, () => NOW);
+    const invested = await finance.record({
+      type: "owner_investment_cash",
+      amountMinor: 6000,
+      occurredOn: "2026-09-12",
+      note: "استثمار لاختبار التوزيع المتتابع",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "exe001-seed-invest",
+    });
+    if (!invested.ok) throw new Error(invested.message);
+
+    render(<Harness page={<CashDistribution />} />);
+    expect(await screen.findByRole("heading", { name: "وزّع الكاش غير الموزع" })).toBeTruthy();
+    await waitFor(() => expect(screen.getByLabelText("نموذج التوزيع")).toBeTruthy());
+
+    /* التوزيع الأول: 20.00 د.أ إلى المحفظة. */
+    fireEvent.change(screen.getByLabelText("مبلغ التوزيع"), { target: { value: "20" } });
+    fireEvent.click(screen.getByRole("button", { name: "سجّل التوزيع" }));
+    await waitFor(() => expect(screen.getByText(/انخصص الكاش/)).toBeTruthy());
+
+    /* التوزيع الثاني في الزيارة نفسها: 30.00 د.أ — قبل الإصلاح كان يُبتلع
+     * بصمت مع رسالة نجاح؛ الآن قيد ثانٍ والأرصدة تتحدث فعليًا. */
+    await waitFor(() => expect(screen.getByLabelText("مبلغ التوزيع")).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("مبلغ التوزيع"), { target: { value: "30" } });
+    fireEvent.click(screen.getByRole("button", { name: "سجّل التوزيع" }));
+    await waitFor(() => expect(screen.getByText(/انخصص الكاش/)).toBeTruthy());
+
+    /* قيدا تخصيص موجبان في دفتر المحفظة: +20.00 و +30.00. */
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error("entries should read");
+    const allocations = entries.value
+      .filter(entry => entry.type === "allocation" && entry.cashDeltaMinor > 0)
+      .map(entry => entry.cashDeltaMinor)
+      .sort((left, right) => left - right);
+    expect(allocations).toEqual([2000, 3000]);
+
+    /* الأرصدة: المحفظة 150.00، غير الموزع 10.00، والهوية متصالحة. */
+    const cash = new CashContinuityService(store, () => NOW);
+    const overview = await cash.overview();
+    if (!overview.ok) throw new Error("overview failed");
+    expect(overview.value.wallets[0]!.balanceMinor).toBe(15000);
+    const position = await finance.readPosition();
+    if (!position.ok) throw new Error(position.message);
+    expect(position.value.unallocatedCashMinor).toBe(1000);
+    expect(position.value.recordedCashMinor).toBe(
+      position.value.walletCashMinor + position.value.unallocatedCashMinor,
+    );
+    expect(position.value.recordedCashMinor).toBe(16000);
+
+    /* ملاحظة قيد الحزمة: خيار المحفظة وبطاقة «المتاح الآن» يُحدّثان عبر
+     * dataVersion في التطبيق الحي؛ حزمة هذا الملف تثبّت dataVersion (غير
+     * تفاعلية بالتصميم)، لذا الدليل الحاسم هنا على مستوى المخزن والدفتر
+     * أعلاه: قيدان مستقلان وأرصدة متصالحة وهوية كاش سليمة. */
+  });
+});
