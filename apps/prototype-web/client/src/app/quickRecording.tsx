@@ -7,7 +7,7 @@
 import { type ReactNode, Suspense, createContext, lazy, useContext, useMemo, useState } from "react";
 import type { QuickAction } from "@/components/layout/QuickActionSheet";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 
 const QuickActionSheet = lazy(async () => {
   const module = await import("@/components/layout/QuickActionSheet");
@@ -44,9 +44,9 @@ export function QuickRecordingProvider({ children }: { children: ReactNode }) {
   function handleQuickAction(action: QuickAction) {
     setOpen(false);
     /* §٥-١ (و٥): النقر يفتح المحرر بلا إنشاء — المسودة تُنشأ عند أول إدخال حقيقي. */
-    if (action === "order") navigate("/orders/draft/new?intent=customer_order&from=/");
-    else if (action === "estimate") navigate("/orders/draft/new?intent=planned_design&from=/");
-    else if (action === "collection") navigate(withFrom("/collect", "/"));
+    if (action === "order") navigate(withReturnTo("/orders/draft/new?intent=customer_order", "/"));
+    else if (action === "estimate") navigate(withReturnTo("/orders/draft/new?intent=planned_design", "/"));
+    else if (action === "collection") navigate(withReturnTo("/collect", "/"));
   }
   return (
     <QuickRecordingContext.Provider value={value}>

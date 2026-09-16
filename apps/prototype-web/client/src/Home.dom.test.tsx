@@ -11,7 +11,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 /* NAV-001: الرئيسية تستدعي سياق التسجيل السريع — المزوّد فوقها في الاختبار كما في القشرة. */
 import { QuickRecordingProvider } from "@/app/quickRecording";
@@ -134,7 +134,7 @@ describe("Home journeys (Group 11-E)", () => {
     /* وحدة «مالي» الدائمة (القرار ٧): زر «صفحة الأساس» باسم مستقر لا لبس فيه —
      * الرحلة تحترم عقد التنقل ٢٦: المصدر الرئيسية يُحفظ في ?from. */
     fireEvent.click(screen.getByRole("button", { name: "صفحة الأساس" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(withFrom("/foundation", "/"));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(withReturnTo("/foundation", "/"));
   });
 
   it("shows the first-boot loading state until the read resolves, then the ready surface", async () => {

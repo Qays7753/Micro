@@ -4,7 +4,7 @@
 import { ArrowRight, Ban, ReceiptText, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -528,7 +528,7 @@ export default function DirectSaleEditor() {
 
             onClick={() =>
               requestNavigation(
-                withFrom(
+                withReturnTo(
                   `/inventory/movement/consume?sale=${encodeURIComponent(sale.id)}`,
                   `/direct-sales/${encodeURIComponent(sale.id)}`,
                 ),
@@ -543,7 +543,7 @@ export default function DirectSaleEditor() {
             action="secondary"
 
             onClick={() =>
-              requestNavigation(withFrom(`/direct-sales/${encodeURIComponent(sale.id)}`, returnPath))
+              requestNavigation(withReturnTo(`/direct-sales/${encodeURIComponent(sale.id)}`, returnPath))
             }
           >
             <ReceiptText aria-hidden="true" /> افتح السجل

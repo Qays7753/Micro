@@ -10,7 +10,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -162,7 +162,7 @@ describe("Finance journeys (Group 11-E)", () => {
     expect(within(strip as HTMLElement).getByText("271.00")).toBeTruthy();
     /* الطريق: زر «وزّع على محفظة» يحفظ المصدر (?from=/finance). */
     fireEvent.click(screen.getByRole("button", { name: "وزّع على محفظة" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(withFrom("/cash/distribute", "/finance"));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(withReturnTo("/cash/distribute", "/finance"));
     /* القراءة الراجعة: غير الموزع 27,100 قروشًا بالضبط بلا تقريب. */
     const position = await projectFinance.readPosition();
     expect(position.ok && position.value.unallocatedCashMinor).toBe(27100);

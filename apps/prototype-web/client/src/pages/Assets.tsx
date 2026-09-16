@@ -7,7 +7,7 @@ import { assetUnknownLifeCountLabel } from "@/presentation/g5Plurals";
 import { Boxes, Plus, TrendingDown } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
@@ -71,7 +71,7 @@ export default function Assets() {
               <AssetCard
                 key={row.asset.id}
                 row={row}
-                onOpen={() => navigate(withFrom(`/assets/${row.asset.id}`, "/assets"))}
+                onOpen={() => navigate(withReturnTo(`/assets/${row.asset.id}`, "/assets"))}
               />
             ))}
           </ul>
@@ -81,7 +81,7 @@ export default function Assets() {
         <Button
           action="create"
 
-          onClick={() => navigate(withFrom("/assets/new", "/assets"))}
+          onClick={() => navigate(withReturnTo("/assets/new", "/assets"))}
         >
           <Plus aria-hidden="true" /> سجّل أصلًا
         </Button>

@@ -14,7 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
@@ -82,7 +82,7 @@ export default function CashWallets() {
         <Button
           action="secondary"
 
-          onClick={() => navigate(withFrom("/finance", "/cash"))}
+          onClick={() => navigate(withReturnTo("/finance", "/cash"))}
         >
           الوضع المالي
         </Button>
@@ -154,7 +154,7 @@ export default function CashWallets() {
         <Button
           action="create"
 
-          onClick={() => navigate(withFrom("/cash/wallet/new", "/cash"))}
+          onClick={() => navigate(withReturnTo("/cash/wallet/new", "/cash"))}
         >
           <Plus aria-hidden="true" /> محفظة ورصيد بداية
         </Button>
@@ -162,7 +162,7 @@ export default function CashWallets() {
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/cash/count", "/cash"))}
+            onClick={() => navigate(withReturnTo("/cash/count", "/cash"))}
           >
             <Calculator aria-hidden="true" /> عدّ الصندوق
           </Button>
@@ -176,7 +176,7 @@ export default function CashWallets() {
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/cash/distribute", "/cash"))}
+            onClick={() => navigate(withReturnTo("/cash/distribute", "/cash"))}
           >
             <SlidersHorizontal aria-hidden="true" /> وزّع غير الموزع
           </Button>
@@ -185,7 +185,7 @@ export default function CashWallets() {
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/cash/transfer", "/cash"))}
+            onClick={() => navigate(withReturnTo("/cash/transfer", "/cash"))}
           >
             <ArrowRightLeft aria-hidden="true" /> تحويل بين المحافظ
           </Button>
@@ -240,7 +240,7 @@ export default function CashWallets() {
                 <Button
                   action="quiet"
 
-                  onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}`, "/cash"))}
+                  onClick={() => navigate(withReturnTo(`/cash/wallet/${wallet.id}`, "/cash"))}
                 >
                   <NotebookPen aria-hidden="true" /> السجل
                 </Button>
@@ -248,7 +248,7 @@ export default function CashWallets() {
                   <Button
                     action="secondary"
 
-                    onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}/opening-later`, "/cash"))}
+                    onClick={() => navigate(withReturnTo(`/cash/wallet/${wallet.id}/opening-later`, "/cash"))}
                   >
                     سجّل رصيدًا موثقًا لاحقًا
                   </Button>
@@ -256,7 +256,7 @@ export default function CashWallets() {
                   <Button
                     action="secondary"
 
-                    onClick={() => navigate(withFrom(`/cash/wallet/${wallet.id}/adjust`, "/cash"))}
+                    onClick={() => navigate(withReturnTo(`/cash/wallet/${wallet.id}/adjust`, "/cash"))}
                   >
                     <SlidersHorizontal aria-hidden="true" /> ضبط بسبب
                   </Button>
@@ -295,7 +295,7 @@ export default function CashWallets() {
                     <Button
                       action="quiet"
 
-                      onClick={() => navigate(withFrom(`/cash/entry/${entry.id}/reverse`, "/cash"))}
+                      onClick={() => navigate(withReturnTo(`/cash/entry/${entry.id}/reverse`, "/cash"))}
                     >
                       <RotateCcw aria-hidden="true" /> تراجع
                     </Button>

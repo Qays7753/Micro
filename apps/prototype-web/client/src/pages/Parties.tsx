@@ -6,7 +6,7 @@ import { ArrowRight, HandCoins, Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
@@ -36,10 +36,10 @@ function collectTargetHref(party: PartyLedgerOverview["parties"][number]): strin
   if (debt.kind === "order_debt") {
     const orderId = debt.href.replace(/^\/orders\//u, "");
     /* S1-01: الرجوع من ورقة التحصيل يعود إلى دفتر الناس لا إلى الرئيسية (عقد ٢٦ §٢.٣). */
-    return orderId ? withFrom(`/collect?source=order:${orderId}`, "/parties") : null;
+    return orderId ? withReturnTo(`/collect?source=order:${orderId}`, "/parties") : null;
   }
   const saleId = debt.href.replace(/^\/direct-sales\//u, "");
-  return saleId ? withFrom(`/collect?source=sale:${saleId}`, "/parties") : null;
+  return saleId ? withReturnTo(`/collect?source=sale:${saleId}`, "/parties") : null;
 }
 
 export default function Parties() {
@@ -84,7 +84,7 @@ export default function Parties() {
         <Button
           action="secondary"
 
-          onClick={() => navigate(withFrom("/finance", "/parties"))}
+          onClick={() => navigate(withReturnTo("/finance", "/parties"))}
         >
           الوضع المالي
         </Button>
@@ -190,7 +190,7 @@ export default function Parties() {
                 ) : null}
                 {party.movements.map(movement => (
                   <li key={movement.id}>
-                    <button type="button" onClick={() => navigate(withFrom(movement.href, "/parties"))}>
+                    <button type="button" onClick={() => navigate(withReturnTo(movement.href, "/parties"))}>
                       <span>
                         <small>
                           <bdi dir="ltr">{formatLocalDate(movement.occurredOn)}</bdi>

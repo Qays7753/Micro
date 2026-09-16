@@ -1,12 +1,13 @@
 /**
- * خطافات عقد التنقل (المجموعة ١): قراءة المصدر وبناء روابط تحفظه ورجوع آمن.
- * تُستهلك من الصفحات؛ المنطق الصرف نفسه في navigationContract.ts ومختبر هناك.
+ * خطافات عقد التنقل (المجموعة ١ + EXE-016): قراءة وجهة الرجوع وبناء روابط
+ * تحفظها ورجوع آمن — المنطق الصرف نفسه في navigationContract.ts ومختبر هناك.
+ * الإنتاج `?returnTo=` (EXE-016)؛ قراءة `?from=` القديم توافق خلفي فقط.
  */
 import { useCallback } from "react";
 import { useLocation, useSearch } from "wouter";
-import { canonicalReturnFor, resolveReturnPath, withFrom } from "@/app/navigationContract";
+import { canonicalReturnFor, resolveReturnPath, withReturnTo } from "@/app/navigationContract";
 
-/** مسار الرجوع الآمن: `?from` الصالح أو البديل القانوني للمسار الحالي. */
+/** مسار الرجوع الآمن: `?returnTo` الصالح (أو `?from` القديم توافقًا) أو البديل القانوني. */
 export function useReturnPath(explicitFallback?: string): string {
   const [location] = useLocation();
   const search = useSearch();
@@ -14,8 +15,8 @@ export function useReturnPath(explicitFallback?: string): string {
   return resolveReturnPath(search, fallback, location);
 }
 
-/** روابط تحفظ الشاشة الحالية مصدرًا: `linkTo("/orders/1")` → `/orders/1?from=<هنا>`. */
+/** روابط تحفظ الشاشة الحالية وجهة رجوع: `linkTo("/orders/1")` → `/orders/1?returnTo=<هنا>`. */
 export function useReferrerLinks(): (target: string) => string {
   const [location] = useLocation();
-  return useCallback((target: string) => withFrom(target, location), [location]);
+  return useCallback((target: string) => withReturnTo(target, location), [location]);
 }

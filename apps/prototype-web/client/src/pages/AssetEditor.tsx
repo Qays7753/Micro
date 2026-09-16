@@ -7,7 +7,7 @@
 import { ArrowRight, Save, Warehouse } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -155,7 +155,7 @@ export default function AssetEditor() {
       }
       notifyDataChanged();
       await draft.clearFormDraft();
-      navigate(withFromReturn(returnPath, result.value.asset.id));
+      navigate(withReturnTarget(returnPath, result.value.asset.id));
       return true;
     } finally {
       saveInFlightRef.current = false;
@@ -322,12 +322,12 @@ export default function AssetEditor() {
   );
 }
 
-function withFromReturn(returnPath: string, assetId: string): string {
+function withReturnTarget(returnPath: string, assetId: string): string {
   /* المجموعة ٤ (تصحيح مراجعة 4-c): الذهاب للتفاصيل يحمل مصدره — زر الرجوع
    * في التفاصيل يعود لقائمة الأصول لا لقفزة مجهولة. */
-  return returnPath && returnPath !== "/assets" ? returnPath : withFromLocal(assetId);
+  return returnPath && returnPath !== "/assets" ? returnPath : withLocalAssetTarget(assetId);
 }
 
-function withFromLocal(assetId: string): string {
-  return withFrom(`/assets/${assetId}`, "/assets");
+function withLocalAssetTarget(assetId: string): string {
+  return withReturnTo(`/assets/${assetId}`, "/assets");
 }

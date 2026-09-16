@@ -6,6 +6,7 @@
 import { ArrowRight, Landmark, NotebookPen, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
@@ -73,8 +74,7 @@ export default function WalletLedger() {
     );
 
   const { overview } = state;
-  const walletHref = (path: string) =>
-    `${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent(`/cash/wallet/${overview.wallet.id}`)}`;
+  const walletHref = (path: string) => withReturnTo(path, `/cash/wallet/${overview.wallet.id}`);
 
   return (
     <section className="micro-page micro-wallet-ledger-page">

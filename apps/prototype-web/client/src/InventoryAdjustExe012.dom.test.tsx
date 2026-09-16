@@ -94,7 +94,7 @@ describe("EXE-012 documented inventory adjustment (AUD-NEW-06)", () => {
     expect(wasteEntry).not.toBe(adjustEntry);
     fireEvent.click(adjustEntry);
     await waitFor(() => {
-      expect(wouterMocks.navigate).toHaveBeenCalledWith("/inventory/movement/adjust?from=%2Finventory");
+      expect(wouterMocks.navigate).toHaveBeenCalledWith("/inventory/movement/adjust?returnTo=%2Finventory");
     });
   });
 

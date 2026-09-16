@@ -7,7 +7,7 @@
 import { AlertTriangle, CheckCircle2, CircleSlash, OctagonX, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
@@ -158,7 +158,7 @@ export default function ToolsIntegrity() {
             <IntegrityCheckRow
               key={check.id}
               check={check}
-              onOpen={path => navigate(withFrom(path, "/tools/integrity"))}
+              onOpen={path => navigate(withReturnTo(path, "/tools/integrity"))}
             />
           ))
         : null}

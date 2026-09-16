@@ -5,7 +5,7 @@
  */
 import { type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from "react";
 import { Download, FileCheck2, Upload } from "lucide-react";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
 import type { LocalExportFile } from "@/storage/local/types";
@@ -283,7 +283,7 @@ export function SettingsGuidedOpeningSection({
               <button
                 className="micro-text-action"
                 type="button"
-                onClick={() => navigate(withFrom("/tools/integrity", "/settings"))}
+                onClick={() => navigate(withReturnTo("/tools/integrity", "/settings"))}
               >
                 افتح فحص السلامة
               </button>

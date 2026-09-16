@@ -1,79 +1,122 @@
-/** عقد التنقل: فحص التحليل الدفاعي، الوصلات العميقة، والمصدر/الرجوع. */
+/** عقد التنقل: فحص التحليل الدفاعي، الوصلات العميقة، ووجهة الرجوع.
+ * EXE-016 (الموجة ٣ — NAV-003): `returnTo` هو الإنتاج القانوني لوجهة الرجوع
+ * (مسار داخلي فقط — لا Open Redirect)، و`from` القديم يُقرأ توافقًا لا إنتاجًا،
+ * والمعامل العام `to` تقاعد فلا يُقرأ ولا يُنتج، وقيم `export`/`today`/
+ * `priority` الميتة حُذفت من المعجم. */
 import { describe, expect, it } from "vitest";
 import {
   appendQueryParams,
   canonicalReturnFor,
   isSafeInternalPath,
   parseDeepLink,
+  referrerPath,
   resolveReturnPath,
-  withFrom,
+  withReturnTo,
 } from "./navigationContract";
 
 describe("parseDeepLink", () => {
   it("يقرأ المعاملات المعروفة كما هي", () => {
     const params = parseDeepLink(
-      "?focus=capacity&from=/orders&event=evt_12&mode=cover&layer=events&to=/cash&purchase=pur_9&material=mat_3",
+      "?focus=capacity&returnTo=/orders&event=evt_12&mode=cover&layer=events&purchase=pur_9&material=mat_3",
     );
     expect(params).toEqual({
       focus: "capacity",
       layer: "events",
       mode: "cover",
       event: "evt_12",
-      from: "/orders",
-      to: "/cash",
+      returnTo: "/orders",
+      from: null,
       purchase: "pur_9",
       material: "mat_3",
     });
   });
   it("يهمل القيم المجهولة والمشوهة بلا انفجار", () => {
     const params = parseDeepLink(
-      "?focus=evil-focus&layer=<script>&mode=side&from=javascript:alert(1)&event=bad id",
+      "?focus=evil-focus&layer=<script>&mode=side&returnTo=javascript:alert(1)&event=bad id",
     );
     expect(params.focus).toBeNull();
     expect(params.layer).toBeNull();
     expect(params.mode).toBeNull();
-    expect(params.from).toBeNull();
+    expect(params.returnTo).toBeNull();
     expect(params.event).toBeNull();
     expect(params.purchase).toBeNull();
     expect(params.material).toBeNull();
   });
   it("يقبل null أو سلسلة فارغة أو معطوبة", () => {
     expect(parseDeepLink(null).focus).toBeNull();
-    expect(parseDeepLink("").to).toBeNull();
+    expect(parseDeepLink("").returnTo).toBeNull();
     expect(parseDeepLink("??not-a-query").event).toBeNull();
   });
   it("يرفض معرّف حدث بطول أو محارف غير آمنة", () => {
     expect(parseDeepLink("?event=" + "a".repeat(65)).event).toBeNull();
     expect(parseDeepLink("?event=has space").event).toBeNull();
   });
-  it("يرفض مصدرًا خارجيًا أو مزدوج الشرطة ويقبل مسارًا داخليًا باستعلامه", () => {
+  it("يرفض وجهة رجوع خارجية أو مزدوجة الشرطة ويقبل مسارًا داخليًا باستعلامه", () => {
+    expect(parseDeepLink("?returnTo=//evil.com").returnTo).toBeNull();
+    expect(parseDeepLink("?returnTo=/finance?event=1").returnTo).toBe("/finance?event=1");
+    expect(parseDeepLink("?returnTo=https://evil.com").returnTo).toBeNull();
+  });
+  it("EXE-016: المعامل العام to تقاعد — لا يُقرأ أبدًا (الرابط القديم الغامض يُهمل بأمان)", () => {
+    const params = parseDeepLink("?to=/cash");
+    expect(params).not.toHaveProperty("to");
+    /* لا يظهر كوجهة رجوع ولا كمصدر — مهما كانت قيمته. */
+    expect(referrerPath("?to=/cash")).toBeNull();
+    expect(resolveReturnPath("?to=/cash", "/orders")).toBe("/orders");
+  });
+  it("EXE-016: قيم focus الميتة (export/today/priority) حُذفت من المعجم", () => {
+    expect(parseDeepLink("?focus=export").focus).toBeNull();
+    expect(parseDeepLink("?focus=today").focus).toBeNull();
+    expect(parseDeepLink("?focus=priority").focus).toBeNull();
+    /* القيم الحية تبقى. */
+    expect(parseDeepLink("?focus=capacity").focus).toBe("capacity");
+    expect(parseDeepLink("?focus=recurrence").focus).toBe("recurrence");
+    expect(parseDeepLink("?focus=guided-import").focus).toBe("guided-import");
+  });
+  it("EXE-016: from القديم يُقرأ توافقًا خلفيًا فقط — بنفس حراسة المسار الداخلي", () => {
+    expect(parseDeepLink("?from=/orders").from).toBe("/orders");
     expect(parseDeepLink("?from=//evil.com").from).toBeNull();
     expect(parseDeepLink("?from=/finance?event=1").from).toBe("/finance?event=1");
   });
 });
 
-describe("appendQueryParams / withFrom", () => {
+describe("appendQueryParams / withReturnTo", () => {
   it("يحفظ الاستعلام القائم ولا يكرر المعامل نفسه", () => {
     expect(appendQueryParams("/a?x=1", { y: "2" })).toBe("/a?x=1&y=2");
     expect(appendQueryParams("/a?x=1", { x: "1" })).toBe("/a?x=1");
     expect(appendQueryParams("/a", { x: null })).toBe("/a");
   });
-  it("withFrom يضيف المصدر لمسار داخلي فقط", () => {
-    expect(withFrom("/orders/1", "/")).toBe("/orders/1?from=%2F");
-    expect(withFrom("/orders/1", "http://evil.com")).toBe("/orders/1");
+  it("EXE-016: withReturnTo يُنتج returnTo حصرًا — لا from ولا to أبدًا", () => {
+    expect(withReturnTo("/orders/1", "/")).toBe("/orders/1?returnTo=%2F");
+    expect(withReturnTo("/orders/1", "http://evil.com")).toBe("/orders/1");
+    expect(withReturnTo("/cash/distribute?mode=cover", "/finance")).toBe(
+      "/cash/distribute?mode=cover&returnTo=%2Ffinance",
+    );
+    /* الإنتاج الجديد لا يديم الروابط القديمة. */
+    const produced = withReturnTo("/x", "/y");
+    expect(produced).not.toContain("from=");
+    expect(produced).not.toContain("to=");
   });
 });
 
-describe("resolveReturnPath", () => {
-  it("يعود للمصدر الصالح عند وجوده", () => {
+describe("resolveReturnPath / referrerPath", () => {
+  it("يعود لوجهة returnTo الصالحة عند وجودها", () => {
+    expect(resolveReturnPath("?returnTo=/orders", "/")).toBe("/orders");
+  });
+  it("EXE-016: التوافق الخلفي — from القديم ما يزال يعيد لمصدره", () => {
     expect(resolveReturnPath("?from=/orders", "/")).toBe("/orders");
+    expect(referrerPath("?from=/tools")).toBe("/tools");
   });
-  it("يسقط للبديل القانوني عند غياب المصدر أو فساده", () => {
+  it("EXE-016: returnTo القانوني يتقدم على from القديم عند اجتماعهما", () => {
+    expect(resolveReturnPath("?returnTo=/tools&from=/orders", "/")).toBe("/tools");
+    expect(referrerPath("?returnTo=/tools&from=/orders")).toBe("/tools");
+  });
+  it("يسقط للبديل القانوني عند غياب الوجهة أو فسادها", () => {
     expect(resolveReturnPath(null, "/orders")).toBe("/orders");
-    expect(resolveReturnPath("?from=javascript:x", "/cash")).toBe("/cash");
+    expect(resolveReturnPath("?returnTo=javascript:x", "/cash")).toBe("/cash");
+    expect(resolveReturnPath("?returnTo=//evil.com", "/cash")).toBe("/cash");
   });
-  it("يهمل مصدرًا يساوي المسار الحالي (لا دوران)", () => {
-    expect(resolveReturnPath("?from=/orders/1", "/orders", "/orders/1")).toBe("/orders");
+  it("يهمل وجهة تساوي المسار الحالي (لا دوران)", () => {
+    expect(resolveReturnPath("?returnTo=/orders/1", "/orders", "/orders/1")).toBe("/orders");
   });
 });
 

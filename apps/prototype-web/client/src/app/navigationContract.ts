@@ -1,23 +1,25 @@
 /**
- * عقد التنقل الموحّد (المجموعة ١ — أساس التجربة):
- * كل مسار يمكن فتحه من أكثر من سياق يحفظ أصله ويعود إليه بأمان.
+ * عقد التنقل الموحّد (المجموعة ١ — أساس التجربة) + EXE-016 (الموجة ٣ — NAV-003):
+ * كل مسار يمكن فتحه من أكثر من سياق يحفظ وجهة رجوعه ويعود إليه بأمان.
  *
  * القواعد الملزمة (وثّقت في docs/contracts/26-navigation-referrer-and-deep-link-contract.md):
- * 1. `?from=<internal-path>` هو وعاء المصدر الوحيد؛ قيمته مسار داخلي فقط، وإلا
- *    يُهمل ويُستعمل البديل القانوني (canonical fallback) الموثّق لكل محرر.
- * 2. معاملات الوصل العميقة معجم محصور: `focus` / `layer` / `mode` / `event` /
- *    `from` / `to`. أي قيمة مجهولة أو معطوبة تُهمل بصمت — لا انفجار ولا سلوك غريب.
- * 3. الوصلة العميقة الصحيحة تفتح القسم أو الفعل المعنيّ، لا الصفحة العامة.
+ * 1. `?returnTo=<internal-path>` هو وعاء وجهة الرجوع القانوني (EXE-016)؛
+ *    قيمته مسار داخلي فقط (لا Open Redirect ولا مخطط خارجي)، وإلا يُهمل
+ *    ويُستعمل البديل القانوني الموثّق لكل محرر. الرابط القديم `?from=`
+ *    يُقرأ للتوافق الخلفي فقط — الإنتاج الجديد يُنتج `returnTo` حصرًا.
+ * 2. معاملات الوصل العميقة معجم محصور وموثق: `focus` / `layer` / `mode` /
+ *    `event` / `returnTo` / `purchase` / `material`. أي قيمة مجهولة أو معطوبة
+ *    تُهمل بصمت — لا انفجار ولا سلوك غريب. المعامل العام `?to` تقاعد مع
+ *    EXE-016 (كان محجوزًا بلا منتج ولا مستهلك)؛ ووجهة المحفظة في التوزيع
+ *    صارت `destinationWalletId` الدلالية — لا قيمة متعددة المعاني أبدًا.
+ * 3. الوصلة العميقة الصحيحة تفتح القسم أو الفعل المعيّن، لا الصفحة العامة.
  * 4. البدء البارد أو التحديث يحفظ النية (المسار+المعاملات في URL) أو يُخفّضها بأمان.
  */
 
 export type DeepLinkFocus =
   | "capacity" /* جدول المواعيد: افتح طبقة السعة حيث يُقرأ الضغط */
   | "recurrence" /* جدول المواعيد: افتح طبقة التكرار */
-  | "guided-import" /* الإعدادات: افتح بطاقة إدخال الموقف الافتتاحي */
-  | "export" /* الإعدادات: افتح حماية البيانات/التصدير */
-  | "today" /* الرئيسية: ركّز على قائمة اليوم */
-  | "priority"; /* العمل: ركّز على الأولوية الآن */
+  | "guided-import"; /* الإعدادات: افتح بطاقة إدخال الموقف الافتتاحي */
 
 export type DeepLinkMode = "cover"; /* طبقة كاملة فوق الشاشة القائمة */
 
@@ -29,22 +31,17 @@ export type DeepLinkParams = {
   layer: DeepLinkLayer | null;
   mode: DeepLinkMode | null;
   event: string | null;
+  /* وجهة الرجوع القانونية (EXE-016) — إنتاج جديد حصرًا. */
+  returnTo: string | null;
+  /* التوافق الخلفي فقط: الرابط القديم `?from=` يُقرأ ولا يُنتج. */
   from: string | null;
-  to: string | null;
   /* المجموعة ٢ (عقد ٢٨ / TR-07): جسر الاستلام — يفتح محرر الاستلام بشراء محدد. */
   purchase: string | null;
   /* المجموعة ٢ (عقد ٢٨): مادة محددة في محررات الحركات — لا افتراض صامت لأول مادة. */
   material: string | null;
 };
 
-const KNOWN_FOCUS_VALUES: readonly DeepLinkFocus[] = [
-  "capacity",
-  "recurrence",
-  "guided-import",
-  "export",
-  "today",
-  "priority",
-];
+const KNOWN_FOCUS_VALUES: readonly DeepLinkFocus[] = ["capacity", "recurrence", "guided-import"];
 const KNOWN_LAYER_VALUES: readonly DeepLinkLayer[] = ["corrections", "events"];
 const KNOWN_MODE_VALUES: readonly DeepLinkMode[] = ["cover"];
 
@@ -72,14 +69,17 @@ export function parseDeepLink(search: string | null | undefined): DeepLinkParams
       layer: null,
       mode: null,
       event: null,
+      returnTo: null,
       from: null,
-      to: null,
       purchase: null,
       material: null,
     };
   }
+  /* EXE-016: returnTo هو الإنتاج القانوني؛ from يُقرأ للتوافق الخلفي فقط.
+   * المعامل العام `to` تقاعد ولا يُقرأ أبدًا — الرابط القديم الغامض يُهمل
+   * بأمان (لا يختار وجهة ولا محفظة عشوائية). */
+  const returnTo = query.get("returnTo");
   const from = query.get("from");
-  const to = query.get("to");
   /* المجموعة ٢ (عقد ٢٨): معرّفات الشراء والمادة كقيد الحدث — شكل معرّف آمن مقيد. */
   const idShape = /^[A-Za-z0-9_-]{1,64}$/;
   const purchase = query.get("purchase");
@@ -93,8 +93,8 @@ export function parseDeepLink(search: string | null | undefined): DeepLinkParams
       query.get("event") && idShape.test(query.get("event") as string)
         ? (query.get("event") as string)
         : null,
+    returnTo: returnTo && isSafeInternalPath(returnTo) ? returnTo : null,
     from: from && isSafeInternalPath(from) ? from : null,
-    to: to && isSafeInternalPath(to) ? to : null,
     purchase: purchase && idShape.test(purchase) ? purchase : null,
     material: material && idShape.test(material) ? material : null,
   };
@@ -113,29 +113,42 @@ export function appendQueryParams(path: string, params: Record<string, string | 
   return search ? `${pathname}?${search}` : pathname;
 }
 
-/** وصلة تحفظ المصدر: `withFrom(target, source)` — المصدر مسار داخلي فقط. */
-export function withFrom(target: string, source: string): string {
+/** وصلة تحفظ وجهة الرجوع: `withReturnTo(target, source)` — الوجهة مسار داخلي فقط.
+ * (EXE-016) المُسلسِل القانوني الوحيد لمعامل الرجوع — يُنتج `?returnTo=`
+ * حصرًا ولا يُنتج `?from=` ولا `?to=` أبدًا؛ قراءة `from` القديمة توافقٌ لا إنتاج. */
+export function withReturnTo(target: string, source: string): string {
   if (!isSafeInternalPath(source)) return target;
-  return appendQueryParams(target, { from: source });
+  return appendQueryParams(target, { returnTo: source });
 }
 
 /**
- * حل مسار الرجوع: `?from` إن وُجد وصالح، وإلا البديل القانوني الموثّق.
- * المصدر الذي يساوي المسار الحالي نفسه (حلقة) يُهمل — رجوع للأصل لا دوران.
+ * حل مسار الرجوع: `?returnTo` (القانوني) ثم `?from` (توافق قديم) إن وُجدا
+ * وصالحين، وإلا البديل القانوني الموثّق. الوجهة التي تساوي المسار الحالي
+ * نفسه (حلقة) تُهمل — رجوع للأصل لا دوران.
  */
 export function resolveReturnPath(
   search: string | null | undefined,
   canonicalFallback: string,
   currentPathname?: string,
 ): string {
-  const { from } = parseDeepLink(search);
-  if (from && from !== currentPathname && isSafeInternalPath(from)) return from;
+  const { returnTo, from } = parseDeepLink(search);
+  const source = returnTo ?? from;
+  if (source && source !== currentPathname && isSafeInternalPath(source)) return source;
   return canonicalFallback;
 }
 
 /**
+ * (EXE-016) مصدر الرجوع الفعّال لسلسلة استعلام — `returnTo` ثم `from` القديم.
+ * لأسطح تعيد نشر المصدر في روابطها (الكشف/النشاط) بدل قراءة خام مزدوجة.
+ */
+export function referrerPath(search: string | null | undefined): string | null {
+  const { returnTo, from } = parseDeepLink(search);
+  return returnTo ?? from;
+}
+
+/**
  * البديل القانوني لكل مسار عميق — سجل واحد، لا أهداف رجوع ثابتة مبعثرة في الصفحات.
- * عند غياب `?from` هذه هي الوجهة الموثّقة (نفس سلوك ما قبل المجموعة ١ حيث وُجد).
+ * عند غياب `?returnTo` هذه هي الوجهة الموثّقة (نفس سلوك ما قبل المجموعة ١ حيث وُجد).
  */
 export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   "/direct-sales/new": "/orders",
@@ -195,5 +208,3 @@ export function canonicalReturnFor(pathname: string): string {
   if (pathname === "/profile") return "/";
   return "/";
 }
-
-/** هل المسار سطح (يُبقي التنقل السفلي)؟ يُستعمل لتصنيف المصدر عند الحاجة. */

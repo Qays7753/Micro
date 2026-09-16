@@ -2,7 +2,7 @@
  * سطح قراءة لا نظام كتابة ثانيًا: لا يعدّل حدثًا ولا يعيد تفسير الماضي. */
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import type {
   CorrectionHistoryEntry,
   CorrectionHistoryGroup,
@@ -266,7 +266,7 @@ export function CorrectionsLayer({
                     <CorrectionRow
                       key={entry.id}
                       entry={entry}
-                      onOpenSource={path => navigate(withFrom(path, "/finance"))}
+                      onOpenSource={path => navigate(withReturnTo(path, "/finance"))}
                     />
                   ))}
                 </div>

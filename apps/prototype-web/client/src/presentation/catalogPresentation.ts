@@ -9,7 +9,7 @@ import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.j
 import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application/input/englishNumeric";
 import { formatMoneyWithUnit, formatQuantityMilliFixed3, localDateInAmman } from "@/presentation/formatters";
 import type { CatalogTemplate, UnitDimension } from "@micro-domain/catalog/index.js";
-import type { RecurringWorkReading } from "@/application/recurring-work/recurringWorkService";
+import type { RecurringWorkReading } from "@/application/finance/recurringWorkService";
 
 const dimensions: readonly { value: UnitDimension; label: string }[] = [
   { value: "count", label: "عدد" },

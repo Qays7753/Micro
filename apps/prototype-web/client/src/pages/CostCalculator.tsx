@@ -8,7 +8,7 @@ import { ArrowRight, Calculator, PackageOpen, Save, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
@@ -578,7 +578,9 @@ export default function CostCalculator() {
             <Button
               action="secondary"
 
-              onClick={() => navigate(withFrom(`/tools/estimate/${encodeURIComponent(savedId)}`, "/tools"))}
+              onClick={() =>
+                navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(savedId)}`, "/tools"))
+              }
             >
               افتح التقدير
             </Button>
@@ -587,7 +589,7 @@ export default function CostCalculator() {
 
               onClick={() =>
                 navigate(
-                  withFrom(
+                  withReturnTo(
                     `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(savedId)}`,
                     /* رحلة §12: بدء مسودة من الحاسبة يعود إلى التقدير نفسه عند الرجوع. */
                     `/tools/estimate/${encodeURIComponent(savedId)}`,
@@ -608,7 +610,9 @@ export default function CostCalculator() {
         <button
           className="micro-text-action"
           type="button"
-          onClick={() => navigate(withFrom(`/tools/estimate/${encodeURIComponent(editingId)}`, returnPath))}
+          onClick={() =>
+            navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(editingId)}`, returnPath))
+          }
         >
           <ArrowRight aria-hidden="true" /> عرض صفحة التقدير
         </button>

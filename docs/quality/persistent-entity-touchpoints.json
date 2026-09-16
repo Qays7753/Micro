@@ -383,7 +383,7 @@
       "domainType": "AllocationPolicy",
       "adapters": ["memory", "indexeddb"],
       "adapterTests": [
-        "apps/prototype-web/client/src/application/recurring-work/recurringWorkService.test.ts",
+        "apps/prototype-web/client/src/application/finance/recurringWorkService.test.ts",
         "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts"
       ],
       "transferTests": [

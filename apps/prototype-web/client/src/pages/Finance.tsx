@@ -15,7 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { appendQueryParams, withFrom } from "@/app/navigationContract";
+import { appendQueryParams, withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
 import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
@@ -335,23 +335,23 @@ export default function Finance() {
             ordersRecorded={state.ordersRecorded}
             finalOrdersRecorded={state.finalOrdersRecorded}
             excludedOrders={state.excludedOrders}
-            onOpenOrder={orderId => navigate(withFrom(`/orders/${orderId}`, "/finance"))}
+            onOpenOrder={orderId => navigate(withReturnTo(`/orders/${orderId}`, "/finance"))}
           />
           <CashDecisionSurface
             decision={decision}
             unallocatedCashMinor={position.unallocatedCashMinor}
             cashRecorded={position.evidence.cash === "recorded"}
             declarationsRecorded={state.declarations.some(declaration => declaration.kind !== "reversal")}
-            onDeclare={() => navigate(withFrom("/finance/g5/declaration", "/finance"))}
+            onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
             onCoverPayment={() =>
-              navigate(appendQueryParams("/cash/distribute", { mode: "cover", from: "/finance" }))
+              navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
             }
           />
           <OwnerDecisionCard
             overview={owner}
             capitalRecordedMinor={position.ownerCapitalRecordedMinor}
             capitalEvidence={position.evidence.ownerCapital}
-            onOpen={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
+            onOpen={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance"))}
           />
           <section
             className="micro-finance-position"
@@ -402,7 +402,7 @@ export default function Finance() {
               type="button"
               className="micro-finance-position-card micro-finance-position-link"
               aria-label="افتح مال المالك"
-              onClick={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
+              onClick={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance"))}
             >
               <CircleDollarSign aria-hidden="true" />
               <span>مال المالك</span>
@@ -417,7 +417,7 @@ export default function Finance() {
               count={state.correctionsAllTime.count}
               netAmountMinor={state.correctionsAllTime.netAmountMinor}
               scopeLabel="هذه الأرصدة"
-              onOpen={() => navigate(withFrom("/finance?layer=corrections", "/finance"))}
+              onOpen={() => navigate(withReturnTo("/finance?layer=corrections", "/finance"))}
             />
           ) : null}
           <section className="micro-finance-truth">
@@ -457,7 +457,7 @@ export default function Finance() {
                   <Button
                     action="secondary"
 
-                    onClick={() => navigate(withFrom("/cash/distribute", "/finance"))}
+                    onClick={() => navigate(withReturnTo("/cash/distribute", "/finance"))}
                   >
                     وزّع على محفظة
                   </Button>
@@ -470,7 +470,7 @@ export default function Finance() {
                   <button
                     className="micro-text-action"
                     type="button"
-                    onClick={() => navigate(withFrom("/cash/wallet/new", "/finance"))}
+                    onClick={() => navigate(withReturnTo("/cash/wallet/new", "/finance"))}
                   >
                     سجّل محفظة ورصيد بداية
                   </button>
@@ -483,7 +483,7 @@ export default function Finance() {
                 <button
                   className="micro-text-action"
                   type="button"
-                  onClick={() => navigate(withFrom("/parties", "/finance"))}
+                  onClick={() => navigate(withReturnTo("/parties", "/finance"))}
                 >
                   افتح دفتر الناس — مين عليه إلَي وعليّ لمين
                 </button>{" "}
@@ -491,7 +491,7 @@ export default function Finance() {
                 <button
                   className="micro-text-action"
                   type="button"
-                  onClick={() => navigate(withFrom("/suppliers", "/finance"))}
+                  onClick={() => navigate(withReturnTo("/suppliers", "/finance"))}
                 >
                   الموردون والمشتريات — استحقاقاتك ودفعاتك
                 </button>{" "}
@@ -499,7 +499,7 @@ export default function Finance() {
                 <button
                   className="micro-text-action"
                   type="button"
-                  onClick={() => navigate(withFrom("/cash/count", "/finance"))}
+                  onClick={() => navigate(withReturnTo("/cash/count", "/finance"))}
                 >
                   عدّ الصندوق — طابق الدرج مع السجل
                 </button>
@@ -508,7 +508,7 @@ export default function Finance() {
                 <button
                   className="micro-text-action"
                   type="button"
-                  onClick={() => navigate(withFrom("/finance/statement", "/finance"))}
+                  onClick={() => navigate(withReturnTo("/finance/statement", "/finance"))}
                 >
                   كشف الفترة — بسيط ومفصول بالعربية
                 </button>{" "}
@@ -521,7 +521,7 @@ export default function Finance() {
                 <button
                   className="micro-text-action"
                   type="button"
-                  onClick={() => navigate(withFrom("/tools/integrity", "/finance"))}
+                  onClick={() => navigate(withReturnTo("/tools/integrity", "/finance"))}
                 >
                   فحص سلامة مالي — اطمن على أرقامك
                 </button>
@@ -530,7 +530,7 @@ export default function Finance() {
           </section>
           <DepositsLayer
             deposits={state.deposits}
-            onOpenOrder={orderId => navigate(withFrom(`/orders/${orderId}`, "/finance"))}
+            onOpenOrder={orderId => navigate(withReturnTo(`/orders/${orderId}`, "/finance"))}
           />
           {/* المجموعة ٤ (عقد ٢٩): الأصول والقروض — طبقتان مستقلتان بمدخلين، بلا مقعد تنقل جديد. */}
           <details className="micro-finance-layer">
@@ -555,7 +555,7 @@ export default function Finance() {
               <button
                 className="micro-text-action"
                 type="button"
-                onClick={() => navigate(withFrom("/assets", "/finance"))}
+                onClick={() => navigate(withReturnTo("/assets", "/finance"))}
               >
                 افتح سجل الأصول
               </button>
@@ -587,7 +587,7 @@ export default function Finance() {
               <button
                 className="micro-text-action"
                 type="button"
-                onClick={() => navigate(withFrom("/loans", "/finance"))}
+                onClick={() => navigate(withReturnTo("/loans", "/finance"))}
               >
                 افتح سجل القروض
               </button>
@@ -619,7 +619,7 @@ export default function Finance() {
             <G5DecisionPanel
               decision={decision}
               g5={g5}
-              onDeclare={() => navigate(withFrom("/finance/g5/declaration", "/finance"))}
+              onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
               onChanged={notifyDataChanged}
             />
             {/* و٧ (F-079): سجل المتوقعات المسجلة كاملًا — حتى المنقوضة — بلا تصحيح من هنا. */}
@@ -681,7 +681,7 @@ export default function Finance() {
             <Button
               action="secondary"
 
-              onClick={() => navigate(withFrom("/finance/statement", "/finance"))}
+              onClick={() => navigate(withReturnTo("/finance/statement", "/finance"))}
             >
               افتح كشف الفترة
             </Button>
@@ -700,35 +700,35 @@ export default function Finance() {
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/cash", "/finance"))}
+            onClick={() => navigate(withReturnTo("/cash", "/finance"))}
           >
             محافظ الكاش
           </Button>
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/suppliers", "/finance"))}
+            onClick={() => navigate(withReturnTo("/suppliers", "/finance"))}
           >
             الموردون والمشتريات
           </Button>
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/inventory", "/finance"))}
+            onClick={() => navigate(withReturnTo("/inventory", "/finance"))}
           >
             المواد والمخزون
           </Button>
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/finance/new/operating_expense_cash", "/finance"))}
+            onClick={() => navigate(withReturnTo("/finance/new/operating_expense_cash", "/finance"))}
           >
             سجل مصروفًا مدفوعًا
           </Button>
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/finance/new/operating_expense_payable", "/finance"))}
+            onClick={() => navigate(withReturnTo("/finance/new/operating_expense_payable", "/finance"))}
           >
             سجل التزامًا لمورد
           </Button>
@@ -737,7 +737,7 @@ export default function Finance() {
 
             /* المجموعة ٦ (البند ٢ — S2-07): مدخل مالك واحد من «مالي» — الدفتر الموحد
              * يحمل فعل الإدخال والسحب وسياسة الحق (X-05 محفوظ داخل الدفتر). */
-            onClick={() => navigate(withFrom("/finance/owner-entitlement", "/finance"))}
+            onClick={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance"))}
           >
             مال المالك
           </Button>
@@ -745,7 +745,7 @@ export default function Finance() {
             <Button
               action="secondary"
 
-              onClick={() => navigate(withFrom("/finance/new/payable_settlement_cash", "/finance"))}
+              onClick={() => navigate(withReturnTo("/finance/new/payable_settlement_cash", "/finance"))}
             >
               سدد التزام مصروف
             </Button>
@@ -754,7 +754,7 @@ export default function Finance() {
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/finance/new/amanah_held_cash", "/finance"))}
+            onClick={() => navigate(withReturnTo("/finance/new/amanah_held_cash", "/finance"))}
           >
             سجل أمانة قُبضت
           </Button>
@@ -762,7 +762,7 @@ export default function Finance() {
             <Button
               action="secondary"
 
-              onClick={() => navigate(withFrom("/finance/new/amanah_released_cash", "/finance"))}
+              onClick={() => navigate(withReturnTo("/finance/new/amanah_released_cash", "/finance"))}
             >
               سجل أمانة سُلّمت
             </Button>
@@ -770,7 +770,7 @@ export default function Finance() {
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/finance/new/loss_non_cash", "/finance"))}
+            onClick={() => navigate(withReturnTo("/finance/new/loss_non_cash", "/finance"))}
           >
             سجل هالكًا بلا خروج نقد
           </Button>
@@ -782,7 +782,7 @@ export default function Finance() {
         <button
           className="micro-text-action"
           type="button"
-          onClick={() => navigate(withFrom("/finance/activity", "/finance"))}
+          onClick={() => navigate(withReturnTo("/finance/activity", "/finance"))}
         >
           آخر ما حدث — القارئ الكامل لكل النشاط
         </button>

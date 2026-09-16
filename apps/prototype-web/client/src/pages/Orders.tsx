@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { IntegerValue, LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation/DisplayValue";
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
@@ -98,7 +98,7 @@ export default function Orders() {
       </section>
     );
   /* المجموعة ١ (§8.1): كل فتح من «العمل» يحفظ مصدره — الرجوع يعود إلى العمل. */
-  const openFromWork = (href: string) => navigate(withFrom(href, location));
+  const openFromWork = (href: string) => navigate(withReturnTo(href, location));
   const tone = state.followUp.kind === "recorded_debt" ? "warning" : "accent";
   /* «الأولوية الآن» دائمًا: حالة «لا طلبات» تُقال بصدق لا تُخفى، ولا تُفبرك أولوية. */
   const isEmptyWorkState =

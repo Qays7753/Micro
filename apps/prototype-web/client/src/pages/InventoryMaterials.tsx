@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { Button, FeedbackMessage, FeedbackNote, StatusChip } from "@/components/primitives";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { InventoryShortage, InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import type {
@@ -231,7 +231,7 @@ export default function InventoryMaterials() {
         <Button
           action="secondary"
 
-          onClick={() => navigate(withFrom("/finance", "/inventory"))}
+          onClick={() => navigate(withReturnTo("/finance", "/inventory"))}
         >
           مالي
         </Button>
@@ -306,7 +306,7 @@ export default function InventoryMaterials() {
         <Button
           action="create"
 
-          onClick={() => navigate(withFrom("/inventory/material/new", "/inventory"))}
+          onClick={() => navigate(withReturnTo("/inventory/material/new", "/inventory"))}
         >
           <Plus aria-hidden="true" /> مادة جديدة
         </Button>
@@ -314,7 +314,7 @@ export default function InventoryMaterials() {
           <Button
             action="secondary"
 
-            onClick={() => navigate(withFrom("/inventory/movement/receipt", "/inventory"))}
+            onClick={() => navigate(withReturnTo("/inventory/movement/receipt", "/inventory"))}
           >
             <PackagePlus aria-hidden="true" /> استلام شراء
           </Button>
@@ -331,7 +331,7 @@ export default function InventoryMaterials() {
             <Button
               action="secondary"
 
-              onClick={() => navigate(withFrom("/inventory/movement/consume", "/inventory"))}
+              onClick={() => navigate(withReturnTo("/inventory/movement/consume", "/inventory"))}
             >
               <Scissors aria-hidden="true" /> استهلاك أو استلام نقص
             </Button>
@@ -340,7 +340,7 @@ export default function InventoryMaterials() {
             <Button
               action="secondary"
 
-              onClick={() => navigate(withFrom("/inventory/movement/waste", "/inventory"))}
+              onClick={() => navigate(withReturnTo("/inventory/movement/waste", "/inventory"))}
             >
               <CircleMinus aria-hidden="true" /> هدر مادة
             </Button>
@@ -348,7 +348,7 @@ export default function InventoryMaterials() {
               action="secondary"
               data-testid="inventory-adjust-entry"
 
-              onClick={() => navigate(withFrom("/inventory/movement/adjust", "/inventory"))}
+              onClick={() => navigate(withReturnTo("/inventory/movement/adjust", "/inventory"))}
             >
               <SlidersHorizontal aria-hidden="true" /> ضبط جرد — قرار مالك
             </Button>
@@ -392,7 +392,7 @@ export default function InventoryMaterials() {
                           data-testid={`awaiting-receipt-link-${material.name}`}
                           onClick={() =>
                             navigate(
-                              withFrom(
+                              withReturnTo(
                                 `/inventory/movement/receipt?material=${encodeURIComponent(material.id)}`,
                                 "/inventory",
                               ),
@@ -441,7 +441,7 @@ export default function InventoryMaterials() {
 
                       onClick={() =>
                         navigate(
-                          withFrom(
+                          withReturnTo(
                             `/inventory/material/${encodeURIComponent(material.id)}/confirm`,
                             "/inventory",
                           ),
@@ -741,7 +741,7 @@ export default function InventoryMaterials() {
                       action="quiet"
 
                       onClick={() =>
-                        navigate(withFrom(`/inventory/movement/${movement.id}/reverse`, "/inventory"))
+                        navigate(withReturnTo(`/inventory/movement/${movement.id}/reverse`, "/inventory"))
                       }
                     >
                       <RotateCcw aria-hidden="true" /> تراجع

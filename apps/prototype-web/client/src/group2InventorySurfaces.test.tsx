@@ -228,7 +228,7 @@ describe("InventoryMaterials sections and lifecycle (المجموعة ٢ — ع�
     const confirm = screen.getByText("أكّد الرصيد");
     fireEvent.click(confirm);
     expect(wouterState.navigate).toHaveBeenCalledWith(
-      expect.stringMatching(/\/inventory\/material\/[^/]+\/confirm\?from=/),
+      expect.stringMatching(/\/inventory\/material\/[^/]+\/confirm\?returnTo=/),
     );
   });
   it("untracking states the four consequences, cancels safely, then confirms and moves the row", async () => {
@@ -565,7 +565,7 @@ describe("Group 2 supplier bridge card and estimate suggestions (SA-5 F6)", () =
     const cta = screen.getByText("استلم المواد في المخزون");
     fireEvent.click(cta);
     expect(wouterState.navigate).toHaveBeenCalledWith(
-      expect.stringMatching(/\/inventory\/movement\/receipt\?purchase=g2-bridge-purchase&from=/),
+      expect.stringMatching(/\/inventory\/movement\/receipt\?purchase=g2-bridge-purchase&returnTo=/),
     );
   });
   it("F6: a fully received purchase states «استُلمت قيمة هذا الشراء كاملة.» and hides the bridge CTA", async () => {

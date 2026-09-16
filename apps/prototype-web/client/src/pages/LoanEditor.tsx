@@ -7,7 +7,7 @@
 import { Save, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -115,7 +115,7 @@ export default function LoanEditor() {
       navigate(
         returnPath && returnPath !== "/loans"
           ? returnPath
-          : withFrom(`/loans/${result.value.loan.id}`, "/loans"),
+          : withReturnTo(`/loans/${result.value.loan.id}`, "/loans"),
       );
       return true;
     } finally {

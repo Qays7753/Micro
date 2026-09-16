@@ -16,7 +16,7 @@ import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import type {
   MonthOverview,
   ScheduleDay,
@@ -205,8 +205,8 @@ export default function Schedule() {
           capacityMinutes={overview.dailyCapacityMinutes}
           onOpen={item =>
             item
-              ? navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))
-              : navigate(withFrom("/orders", "/schedule"))
+              ? navigate(withReturnTo(`/schedule/${item.schedule.id}`, "/schedule"))
+              : navigate(withReturnTo("/orders", "/schedule"))
           }
           /* المجموعة ١ (Scope E): عند ضغط السعة، تحديدها فعل قابل للنقر من نفس القراءة. */
           onOpenCapacity={() => setCapacityLayerOpen(true)}
@@ -218,7 +218,7 @@ export default function Schedule() {
           description="تجاوزت موعدها"
           tone="warning"
           items={overview.overdue}
-          onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
+          onOpen={item => navigate(withReturnTo(`/schedule/${item.schedule.id}`, "/schedule"))}
         />
       ) : null}
       {overview.today.length > 0 ? (
@@ -227,7 +227,7 @@ export default function Schedule() {
           description="موعدها اليوم"
           tone="accent"
           items={overview.today}
-          onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
+          onOpen={item => navigate(withReturnTo(`/schedule/${item.schedule.id}`, "/schedule"))}
         />
       ) : null}
       {overview.upcoming.length > 0 ? (
@@ -236,7 +236,7 @@ export default function Schedule() {
           description="مواعيد قادمة"
           tone="support"
           items={overview.upcoming}
-          onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
+          onOpen={item => navigate(withReturnTo(`/schedule/${item.schedule.id}`, "/schedule"))}
         />
       ) : null}
       {total === 0 ? (
@@ -265,7 +265,7 @@ export default function Schedule() {
           selectedDate={selectedDate}
           onChangeMonth={changeMonth}
           onSelectDate={setSelectedDate}
-          onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
+          onOpen={item => navigate(withReturnTo(`/schedule/${item.schedule.id}`, "/schedule"))}
         />
         {weekWithWork.length > 0 ? (
           <section className="micro-week-agenda" aria-label="خطة الأيام السبعة">
@@ -281,7 +281,7 @@ export default function Schedule() {
                 <WeekDay
                   key={day.date}
                   day={day}
-                  onOpen={item => navigate(withFrom(`/schedule/${item.schedule.id}`, "/schedule"))}
+                  onOpen={item => navigate(withReturnTo(`/schedule/${item.schedule.id}`, "/schedule"))}
                 />
               ))}
             </div>

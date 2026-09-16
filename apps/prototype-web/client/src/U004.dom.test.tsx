@@ -93,7 +93,7 @@ describe("U-004 estimate-to-draft bridge", () => {
     fireEvent.click(bridgeButton);
     /* المجموعة ١ (Scope A): الجسر يحفظ أدواتي مصدرًا — الرجوع من المسودة يعود إليها. */
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(saved.value.id)}&from=%2Ftools`,
+      `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(saved.value.id)}&returnTo=%2Ftools`,
     );
 
     /* الخطوة ٢: المحرر يفتح على القيم المقترحة، والإشعار يعلن أنها مقترحات. */

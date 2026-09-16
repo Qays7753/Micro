@@ -233,7 +233,7 @@ describe("Work destination", () => {
     const sale = await screen.findByRole("button", { name: "فتح بيع كوب جاهز" });
     fireEvent.click(sale);
     /* المجموعة ١ (Scope A): الرابط يحفظ مصدره — الرجوع من المحرر يعود إلى «العمل». */
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/sale-open?from=%2Forders");
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/sale-open?returnTo=%2Forders");
   });
 
   it("keeps the appointments section permanent with an honest empty state (F-070)", async () => {
@@ -316,7 +316,7 @@ describe("Work destination", () => {
 
     const appointment = await screen.findByRole("button", { name: /طاولة اختبار/ });
     fireEvent.click(appointment);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/schedule/schedule-1?from=%2Forders");
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/schedule/schedule-1?returnTo=%2Forders");
   });
 
   /* المجموعة ١ (§8.1): «الأولوية الآن» دائمًا حتى بلا سجلات — بصدق لا بفبركة. */
@@ -330,7 +330,7 @@ describe("Work destination", () => {
     render(<Orders />);
     const cta = await screen.findByRole("button", { name: /تسجيل بيع مباشر/ });
     fireEvent.click(cta);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/new?from=%2Forders");
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/new?returnTo=%2Forders");
     const firstSale = screen.getByRole("button", { name: /سجّل أول بيع/ });
     expect(firstSale).toBeTruthy();
   });

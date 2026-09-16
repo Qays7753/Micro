@@ -373,7 +373,7 @@ describe("G6 — unified owner money screen «مال المالك» (S2-07)", ()
     /* فعل الإدخال يذهب لمحرر الحدث مع العودة للدفتر الموحد. */
     fireEvent.click(screen.getByRole("button", { name: "أدخل مالًا للمشروع" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      "/finance/new/owner_investment_cash?from=%2Ffinance%2Fowner-entitlement",
+      "/finance/new/owner_investment_cash?returnTo=%2Ffinance%2Fowner-entitlement",
     );
     /* السجل الموحد خلف إفصاح مسمّى ويظهر مصدرَي الحركة معًا. */
     fireEvent.click(screen.getByText("حركات مالك"));

@@ -14,7 +14,7 @@ import {
   parseCatalogQuantityMilli,
   quantityLabel,
 } from "@/presentation/catalogPresentation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import type { CatalogItem, CatalogItemKind, MeasurementUnit } from "@micro-domain/catalog/index.js";
 
 import { Button } from "@/components/primitives";
@@ -312,7 +312,10 @@ export function CatalogItemsSection({
 
                         onClick={() =>
                           requestSafeNavigation(
-                            withFrom(`/direct-sales/new?product=${encodeURIComponent(item.id)}`, "/catalog"),
+                            withReturnTo(
+                              `/direct-sales/new?product=${encodeURIComponent(item.id)}`,
+                              "/catalog",
+                            ),
                           )
                         }
                       >

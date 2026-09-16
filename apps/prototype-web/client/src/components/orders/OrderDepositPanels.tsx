@@ -4,6 +4,7 @@
  * OrderDetail.tsx حرفيًا؛ الصفحة تبقى الموزّع وتمرّر كل شيء خصائصِ أدناة.
  * لا منطق ماليًا هنا — عرض واستدعاء إجراءات الصفحة فقط، بنفس السلوك.
  */
+import { withReturnTo } from "@/app/navigationContract";
 import { CircleDollarSign, HandCoins, Undo2, XCircle } from "lucide-react";
 import { type Dispatch, type ReactNode, type SetStateAction, useRef, useState } from "react";
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
@@ -194,7 +195,7 @@ export function OrderDepositPanels({
           <ActualMaterialPanel
             state={materialState}
             onRecord={() =>
-              navigate(`/inventory/movement/consume?order=${stored.id}&from=/orders/${stored.id}`)
+              navigate(withReturnTo(`/inventory/movement/consume?order=${stored.id}`, `/orders/${stored.id}`))
             }
           />
           <ActualTimePanel

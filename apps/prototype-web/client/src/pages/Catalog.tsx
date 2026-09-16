@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArchiveX, ArrowRight, Check, GitCompareArrows, Plus, RotateCcw, X } from "lucide-react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
@@ -58,7 +58,7 @@ import type {
   RecurringWorkPolicyInput,
   RecurringWorkReading,
   RecurringWorkReadings,
-} from "@/application/recurring-work/recurringWorkService";
+} from "@/application/finance/recurringWorkService";
 
 import { FeedbackMessage, FeedbackNote } from "@/components/primitives";
 

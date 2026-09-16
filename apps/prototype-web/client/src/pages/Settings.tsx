@@ -20,7 +20,7 @@ import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { LockSettingsCard } from "@/components/security/LockSettingsCard";
 import { DataActionPinGate } from "@/components/security/DataActionPinGate";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { formatLocalDate } from "@/presentation/formatters";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
@@ -613,7 +613,7 @@ export default function SettingsPage() {
         <button
           className="micro-text-action"
           type="button"
-          onClick={() => navigate("/profile?from=%2Fsettings")}
+          onClick={() => navigate(withReturnTo("/profile", "/settings"))}
         >
           افتح الملف
           <ChevronLeft aria-hidden="true" />

@@ -28,12 +28,14 @@ type State =
 export default function CashDistribution() {
   const [, navigate] = useLocation();
   const search = useSearch();
-  /* المجموعة ٢ (§7.3): تفعيل المعاملات المحجوزة — ?mode=cover يفتح التوزيع
-   * جاهزًا لتغطية صرف من محفظة، و?to=<walletId> يختار المحفظة مسبقًا. القيم
-   * المجهولة تُهمل بهدوء (عقد ٢٦ §3.2). */
+  /* المجموعة ٢ (§7.3) + EXE-016 (NAV-003): تفعيل المعاملات المحجوزة —
+   * ?mode=cover يفتح التوزيع جاهزًا لتغطية صرف من محفظة، و?destinationWalletId
+   * يختار المحفظة المطلوبة مسبقًا بعقد دلالي واحد (المعامل العام ?to تقاعد:
+   * لم ينتجه الكود أبدًا وغمضَت دلالته — يُهمل بأمان ولا يختار محفظة).
+   * القيم المجهولة تُهمل بهدوء (عقد ٢٦ §3.2). */
   const query = new URLSearchParams(search);
   const modeParam = query.get("mode");
-  const toParam = query.get("to");
+  const destinationWalletId = query.get("destinationWalletId");
   /* المجموعة ٢ (§8): الرجوع للمصدر (?from) أو المحافظ كبديل قانوني. */
   const returnPath = useReturnPath();
   const { cashContinuity, projectFinance, dataVersion, notifyDataChanged } = usePrototypeServices();
@@ -61,12 +63,23 @@ export default function CashDistribution() {
         return;
       }
       setState({ phase: "ready", overview: overview.value, position: position.value });
-      /* ?to= يختار محفظة معلنة فقط؛ غير ذلك أول محفظة — بلا اختراع.
-       * (إصلاح تكاملي — مجموعة ٤): عامل ?? لا يمرّر السلسلة الفارغة فلا تُختار
-       * أول محفظة أبدًا بينما يعرض <select> خياره الأول — القائمة والمقود متزامنان الآن. */
-      const requested =
-        toParam && overview.value.wallets.some(wallet => wallet.id === toParam) ? toParam : null;
-      setWalletId(current => requested || current || overview.value.wallets[0]?.id || "");
+      /* EXE-016: ?destinationWalletId يختار محفظة معلنة فقط — التحقق من وجود
+       * المحفظة المقصودة صريح: معرّف غير صالح لا يختر أول محفظة ولا يسقط بصمت،
+       * بل يترك الاختيار فارغًا بإشعار صادق، والقيمة الصالحة تُختار من البداية
+       * الباردة وبعد التحديث (المعامل في الـURL نفسه). */
+      if (destinationWalletId) {
+        const requested = overview.value.wallets.some(wallet => wallet.id === destinationWalletId)
+          ? destinationWalletId
+          : null;
+        if (requested) {
+          setWalletId(requested);
+        } else {
+          setWalletId("");
+          setMessage("الرابط طلب محفظة غير موجودة أو محذوفة — اختر محفظة بنفسك قبل التوزيع.");
+        }
+      } else {
+        setWalletId(current => current || overview.value.wallets[0]?.id || "");
+      }
       /* الكاش غير الموزع السالب يعني دفعة تحتاج تغطية — الاتجاه جاهز للتغطية لا للتوزيع. */
       if (position.value.unallocatedCashMinor < 0) setDirection("cover_payment");
     });
@@ -192,6 +205,10 @@ export default function CashDistribution() {
             <label className="micro-field">
               <span>المحفظة</span>
               <select value={walletId} onChange={event => setWalletId(event.target.value)}>
+                {/* EXE-016: خيار العنصر النائب يظهر فقط حين لا محفظة مختارة
+                 * (رابط وجهة غير صالح) — القائمة والمقود متزامنان، والحفظ يطالب
+                 * باختيار صريح ولا يختر أول محفظة عشوائيًا. */}
+                {walletId === "" ? <option value="">اختر محفظة…</option> : null}
                 {overview.wallets.map(wallet => (
                   /* (إصلاح تكاملي — مجموعة ٤): نص خالص داخل <option> — MoneyValue يرسم
                    * <bdi> والمتصفح يرفض تعشيشه داخل option فيسجّل أخطاء كونسول. */

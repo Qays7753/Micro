@@ -9,7 +9,7 @@ import { ArrowRight, CheckCircle2, PackageOpen, TriangleAlert, Zap } from "lucid
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
@@ -205,7 +205,7 @@ export default function DeliveryReviewPage() {
     return true;
   }
 
-  const orderHref = withFrom(`/orders/${orderId}`, returnPath);
+  const orderHref = withReturnTo(`/orders/${orderId}`, returnPath);
 
   return (
     <section className="micro-page micro-delivery-review-page">

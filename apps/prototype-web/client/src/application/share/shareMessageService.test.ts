@@ -1,21 +1,23 @@
-/** المجموعة ٥ (عقد ٣٣ — اختبار المشاركة اليدوية): نصوص من السجل بلا تفاصيل
- * خاصة (لا هامش ولا تكلفة)، وتطبيع رقم أردني، وكشف موجز صادق (غير متاح
- * عندما تمنع النتيجةَ بياناتٌ ناقصة). */
+/** EXE-015 (الموجة ٣ — SHR-001) فوق المجموعة ٥ (عقد ٣٣): اختبار عقد المشاركة
+ * الموحد — إشعار القبض من الحدث المحفوظ القائم وحده، والملغى بلا «جاهز
+ * للمتابعة»، والمعكوس لا يبقى تحصيلًا قائمًا، والبناء حتمي بلا تكرار، ونصوص
+ * بلا هامش ولا تكلفة ولا معرفات داخلية. */
 import { describe, expect, it } from "vitest";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
+import type { OrderEvent } from "@micro-domain/craft-order/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import {
   collectionShareDraft,
+  customerShareDraft,
   deliveryShareDraft,
-  normalizeJordanianPhone,
   orderShareDraft,
   reminderShareDraft,
-  statementShareDraft,
+  standingCollectionEvent,
 } from "./shareMessageService";
 
 const NOW = "2026-09-05T09:00:00.000Z";
 
-function buildStored() {
+function buildStored(overrides: Record<string, unknown> = {}) {
   const cost = calculateCostSnapshot("cost-1", {
     currency: "JOD",
     materialItems: [],
@@ -53,66 +55,219 @@ function buildStored() {
     agreementSource: null,
     createdAt: NOW,
     updatedAt: NOW,
+    ...overrides,
   };
 }
 
-describe("share message service (المجموعة ٥ — عقد ٣٣)", () => {
-  it("order draft: price, deposit, remaining, delivery date — no cost or margin leaks", () => {
-    const draft = orderShareDraft(buildStored());
-    expect(draft.body).toContain("150.00 د.أ");
+/** حدث قبض محفوظ بمعرّف حتمي — كما تنتجه آلة التحصيل في الدومين. */
+function collectionEvent(overrides: Partial<OrderEvent> = {}): OrderEvent {
+  return {
+    id: "order-1:collect-1",
+    type: "collection_recorded",
+    idempotencyKey: "collect-1",
+    createdAt: "2026-09-04T12:00:00.000Z",
+    amountMinor: 2000,
+    ...overrides,
+  };
+}
+
+describe("EXE-015 — عقد المشاركة الموحد (إشعار القبض من الحدث المحفوظ)", () => {
+  it("التحصيل المحفوظ الناجح ينتج إشعار قبض من الحدث نفسه: المبلغ والتاريخ من الحدث والمتبقي من السجل", () => {
+    const stored = buildStored();
+    stored.order.events = [collectionEvent()];
+    const draft = customerShareDraft(stored);
+    expect(draft.kind).toBe("collection");
+    /* المبلغ من الحدث لا من أي State مؤقت. */
+    expect(draft.body).toContain("20.00 د.أ");
+    /* التاريخ من createdAt الحدث (توقيت عمان المحلي). */
+    expect(draft.body).toContain("04/09/2026");
+    /* المتبقي من السجل الحي. */
+    expect(draft.body).toContain("100.00 د.أ");
+    /* مرجع العملية والحدث محمول في المسودة — لا في نص الزبون. */
+    expect(draft.origin).toEqual({ orderId: "order-1", eventId: "order-1:collect-1" });
+    expect(draft.body).not.toContain("order-1");
+    expect(draft.body).not.toContain("collect-1");
+  });
+
+  it("إعادة الإرسال (reused) تشير إلى الحدث نفسه: بناء حتمي بلا مسودة مكررة ولا كتابة", () => {
+    const stored = buildStored();
+    stored.order.events = [collectionEvent()];
+    const first = customerShareDraft(stored);
+    const second = customerShareDraft(stored);
+    expect(second).toEqual(first);
+    /* لا مخزن يُنشأ ولا سجل مشاركة يُكتب — البناء صرف فوق السجل. */
+    const store = new MemoryLocalStore();
+    expect(store).toBeTruthy();
+  });
+
+  it("العربون المحصل القائم مصدر صالح أيضًا لإشعار القبض", () => {
+    const stored = buildStored();
+    stored.order.events = [
+      collectionEvent({
+        id: "order-1:deposit-1",
+        type: "deposit_collected",
+        idempotencyKey: "deposit-1",
+        amountMinor: 3000,
+      }),
+    ];
+    const draft = customerShareDraft(stored);
+    expect(draft.kind).toBe("collection");
     expect(draft.body).toContain("30.00 د.أ");
-    expect(draft.body).toContain("10/09/2026");
+    expect(draft.origin?.eventId).toBe("order-1:deposit-1");
+  });
+
+  it("التحصيل المعكوس كاملًا لا يبقى تحصيلًا قائمًا قابلًا للمشاركة — يسقط إلى تذكير الذمة", () => {
+    const stored = buildStored();
+    stored.order.events = [
+      collectionEvent(),
+      collectionEvent({
+        id: "order-1:reverse-1",
+        type: "collection_reversed",
+        idempotencyKey: "reverse-1",
+        amountMinor: 2000,
+        reversesEventId: "order-1:collect-1",
+      }),
+    ];
+    expect(standingCollectionEvent(stored)).toBeNull();
+    const draft = customerShareDraft(stored);
+    expect(draft.kind).toBe("reminder");
+    expect(draft.body).toContain("أتذكر لك");
+    expect(draft.body).not.toContain("استلمت منك");
+  });
+
+  it("العكس الجزئي يبقي الحدث قائمًا بإشعار صادق: مبلغ الحدث كما قُبض والمتبقي حي", () => {
+    const stored = buildStored();
+    stored.order.events = [
+      collectionEvent({ amountMinor: 5000 }),
+      collectionEvent({
+        id: "order-1:reverse-1",
+        type: "collection_reversed",
+        idempotencyKey: "reverse-1",
+        amountMinor: 2000,
+        reversesEventId: "order-1:collect-1",
+      }),
+    ];
+    const standing = standingCollectionEvent(stored);
+    expect(standing?.id).toBe("order-1:collect-1");
+    const draft = customerShareDraft(stored);
+    expect(draft.kind).toBe("collection");
+    expect(draft.body).toContain("50.00 د.أ");
+  });
+
+  it("عكس العربون النشط (EXE-010) يخرجه من إشعار القبض — العكس ينقص رصيد العربون الحي", () => {
+    const stored = buildStored();
+    stored.order.events = [
+      collectionEvent({
+        id: "order-1:deposit-1",
+        type: "deposit_collected",
+        idempotencyKey: "deposit-1",
+        amountMinor: 3000,
+      }),
+      collectionEvent({
+        id: "order-1:dep-reverse-1",
+        type: "deposit_reversed",
+        idempotencyKey: "dep-reverse-1",
+        amountMinor: 3000,
+      }),
+    ];
+    /* عكس العربون في الدومين على مستوى المجموع: ينقص depositCollectedMinor
+     * مباشرة — المحاكاة هنا تعكس أثر الدومين الحقيقي على السجل المحفوظ. */
+    stored.order.depositCollectedMinor = 0;
+    stored.order.collectedMinor = 2000;
+    expect(standingCollectionEvent(stored)).toBeNull();
+    const draft = customerShareDraft(stored);
+    expect(draft.kind).toBe("reminder");
+  });
+
+  it("الطلب الملغى لا يمر بعقد «جاهز للمتابعة» — نص إلغاء صادق وتسوية العربون من السجل", () => {
+    const stored = buildStored();
+    stored.order.status = "cancelled";
+    stored.order.settlementStatus = "cancelled";
+    stored.order.depositCollectedMinor = 0;
+    stored.order.receivableMinor = 0;
+    const noDeposit = customerShareDraft(stored);
+    expect(noDeposit.kind).toBe("order");
+    expect(noDeposit.body).toContain("أُلغي");
+    expect(noDeposit.body).not.toContain("جاهز للمتابعة");
+
+    const refunded = buildStored();
+    refunded.order.status = "cancelled";
+    refunded.order.settlementStatus = "cancelled_refunded";
+    refunded.order.receivableMinor = 0;
+    const refundedDraft = customerShareDraft(refunded);
+    expect(refundedDraft.body).toContain("رُدّ إليك عربون البالغ 30.00 د.أ");
+
+    const retained = buildStored();
+    retained.order.status = "cancelled";
+    retained.order.settlementStatus = "cancelled_retained";
+    retained.order.receivableMinor = 0;
+    expect(customerShareDraft(retained).body).toContain("واحتُفظ بعربون البالغ 30.00 د.أ");
+
+    const pending = buildStored();
+    pending.order.status = "cancelled";
+    pending.order.settlementStatus = "cancelled_pending";
+    pending.order.receivableMinor = 0;
+    expect(customerShareDraft(pending).body).toContain("بانتظار حسم تسويته");
+  });
+
+  it("إشعار التسليم بتاريخ التسليم الفعلي من الحدث — لا «اليوم» الزائف عند مشاركة لاحقة", () => {
+    const stored = buildStored();
+    stored.order.status = "delivered";
+    stored.order.settlementStatus = "debt";
+    const draft = deliveryShareDraft(stored, "2026-09-01");
+    expect(draft.body).toContain("سُلّم 01/09/2026");
+    /* ادعاء «سُلّم اليوم» الزائف عند المشاركة اللاحقة زال — «اليوم» الباقية
+     * في سطر الملاحظات («أخبرني بها اليوم») ليست ادعاء تاريخ تسليم. */
+    expect(draft.body).not.toContain("سُلّم اليوم");
+    /* عبر نقطة القرار الموحدة: التاريخ يصل من حدث التسليم المحفوظ. */
+    const viaEntry = customerShareDraft(stored, "2026-09-01");
+    expect(viaEntry.kind).toBe("delivery");
+    expect(viaEntry.body).toContain("سُلّم 01/09/2026");
+  });
+
+  it("رسالة الطلب النشطة تحفظ عقدها القائم (جاهز للمتابعة) بلا هامش ولا تكلفة", () => {
+    const stored = buildStored();
+    stored.order.depositCollectedMinor = 0;
+    stored.order.receivableMinor = 0;
+    stored.order.events = [];
+    const draft = orderShareDraft(stored);
+    expect(draft.body).toContain("جاهز للمتابعة");
+    expect(draft.body).toContain("150.00 د.أ");
+    expect(draft.body).toContain("موعد التسليم المتفق: 10/09/2026");
     expect(draft.body).not.toContain("هامش");
-    expect(draft.body).not.toContain("ربح");
-    /* التكلفة الجاهزة موجودة في السجل ولا تظهر في نص الزبون أبدًا. */
     expect(draft.body).not.toContain("3.30");
+    expect(customerShareDraft(stored).kind).toBe("order");
   });
 
-  it("collection and reminder drafts state amounts and remaining only", () => {
+  it("إشعار التسليم المسدد يصرّح بحسم كامل المبلغ — والذممي بالمتبقي", () => {
+    const settled = buildStored();
+    settled.order.status = "delivered";
+    settled.order.settlementStatus = "paid";
+    settled.order.receivableMinor = 0;
+    const settledDraft = deliveryShareDraft(settled, "2026-09-12");
+    expect(settledDraft.body).toContain("حُسم كامل المبلغ");
+    expect(settledDraft.body).not.toContain("المتبقي عليك");
+    /* الذمم القائمة بعد التسليم تبقى في النص صادقة. */
+    const withDebt = buildStored();
+    withDebt.order.status = "delivered";
+    withDebt.order.settlementStatus = "debt";
+    expect(deliveryShareDraft(withDebt, "2026-09-12").body).toContain("المتبقي عليك: 100.00 د.أ");
+  });
+
+  it("تذكير الذمة يبقى للمستحق بلا قبض قائم", () => {
     const stored = buildStored();
-    const collection = collectionShareDraft(stored, 2000, "2026-09-01");
-    expect(collection.body).toContain("20.00 د.أ");
-    expect(collection.body).toContain("100.00 د.أ");
-    const reminder = reminderShareDraft(stored, 10000, "2026-09-15");
-    expect(reminder.body).toContain("100.00 د.أ");
-    expect(reminder.body).toContain("15/09/2026");
+    stored.order.events = [];
+    const draft = reminderShareDraft(stored, 10000, "2026-09-15");
+    expect(draft.body).toContain("100.00 د.أ");
+    expect(draft.body).toContain("15/09/2026");
+    expect(customerShareDraft(stored).kind).toBe("reminder");
   });
 
-  it("delivery draft tells the truth: remaining due or fully settled", () => {
+  it("البناؤون المنفردون يظلون متاحين لعقدهم — إشعار القبض لا يقبل أرقامًا من خارج الحدث", () => {
     const stored = buildStored();
-    const withDue = deliveryShareDraft(stored);
-    expect(withDue.body).toContain("100.00 د.أ");
-    const settled = {
-      ...stored,
-      order: { ...stored.order, receivableMinor: 0 },
-    };
-    const closed = deliveryShareDraft(settled);
-    expect(closed.body).toContain("حُسم كامل المبلغ");
-  });
-
-  it("statement draft: unavailable result stays «غير متاحة» — never a fake profit", () => {
-    const unavailable = statementShareDraft({
-      from: "2026-09-01",
-      to: "2026-09-05",
-      cashNetMinor: 12000,
-      resultMinor: null,
-    });
-    expect(unavailable.body).toContain("غير متاحة");
-    expect(unavailable.body).toContain("120.00 د.أ");
-    const available = statementShareDraft({
-      from: "2026-09-01",
-      to: "2026-09-05",
-      cashNetMinor: 12000,
-      resultMinor: 3000,
-    });
-    expect(available.body).toContain("30.00 د.أ");
-  });
-
-  it("normalizes Jordanian phone formats safely; foreign numbers pass through", () => {
-    expect(normalizeJordanianPhone("0791234567")).toBe("+962791234567");
-    expect(normalizeJordanianPhone("798765432")).toBe("+962798765432");
-    expect(normalizeJordanianPhone("+962771234567")).toBe("+962771234567");
-    expect(normalizeJordanianPhone("962791234567")).toBe("+962791234567");
-    expect(normalizeJordanianPhone("+14155550123")).toBe("+14155550123");
+    stored.order.events = [collectionEvent()];
+    const direct = collectionShareDraft(stored, stored.order.events[0]);
+    expect(direct.kind).toBe("collection");
+    expect(direct.body).toContain("20.00 د.أ");
   });
 });

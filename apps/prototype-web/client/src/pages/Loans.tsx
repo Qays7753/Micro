@@ -11,7 +11,7 @@ import {
 import { HandCoins, Plus, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
@@ -83,7 +83,7 @@ export default function Loans() {
               <LoanCard
                 key={row.loan.id}
                 row={row}
-                onOpen={() => navigate(withFrom(`/loans/${row.loan.id}`, "/loans"))}
+                onOpen={() => navigate(withReturnTo(`/loans/${row.loan.id}`, "/loans"))}
                 onRepay={() => setRepayTarget(row)}
               />
             ))}
@@ -94,7 +94,7 @@ export default function Loans() {
         <Button
           action="create"
 
-          onClick={() => navigate(withFrom("/loans/new", "/loans"))}
+          onClick={() => navigate(withReturnTo("/loans/new", "/loans"))}
         >
           <Plus aria-hidden="true" /> سجّل قرضًا
         </Button>
