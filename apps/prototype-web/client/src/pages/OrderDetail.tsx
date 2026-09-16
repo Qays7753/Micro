@@ -452,6 +452,9 @@ export default function OrderDetail() {
     }
     setStored(next.stored);
     setState({ phase: "ready", stored: next.stored });
+    /* EXE-004: الحتمية الصادقة — إعادة تأكيد عملية سابقة (reused) تُعرض
+     * إشعارًا بأن لا حدث جديدًا، لا نجاحًا جديدًا فوق كتابة لم تحدث. */
+    if ("notice" in next && next.notice) setMessage(next.notice);
     notifyDataChanged();
   }
 

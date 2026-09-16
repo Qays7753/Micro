@@ -5,7 +5,7 @@
  * لا منطق ماليًا هنا — عرض واستدعاء إجراءات الصفحة فقط، بنفس السلوك.
  */
 import { CircleDollarSign, HandCoins, XCircle } from "lucide-react";
-import { type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { type Dispatch, type ReactNode, type SetStateAction, useRef } from "react";
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
 import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import type { ActualTimeService } from "@/application/time/actualTimeService";
@@ -44,6 +44,9 @@ export type OrderDepositPanelsProps = {
   fulfillment: FulfillmentService;
 };
 
+const freshRefundOperationKey = () =>
+  `deposit-refund-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
+
 export function OrderDepositPanels({
   order,
   stored,
@@ -71,6 +74,10 @@ export function OrderDepositPanels({
   navigate,
   fulfillment,
 }: OrderDepositPanelsProps) {
+  /* EXE-004 (AUD-NEW-07): مفتاح عملية لكل تأكيد رد مستقل — ردّان جزئيان
+   * متساويان في الساعة نفسها حدثان مستقلان، والنقر المزدوج على التأكيد
+   * الواحد يظل محتميًا بالمفتاح نفسه حتى يكتمل نجاحه فيُجدد. */
+  const refundOperationKeyRef = useRef(freshRefundOperationKey());
   return (
     <>
       {order.depositCollectedMinor > 0 ? (
@@ -212,9 +219,17 @@ export function OrderDepositPanels({
 
               disabled={isActing || !depositReason.trim()}
               onClick={() => {
-                void run(() =>
-                  fulfillment.refundDeposit(stored.id, depositReason, settleAmount ?? undefined),
-                );
+                const operationKey = refundOperationKeyRef.current;
+                void run(async () => {
+                  const result = await fulfillment.refundDeposit(
+                    stored.id,
+                    depositReason,
+                    settleAmount ?? undefined,
+                    operationKey,
+                  );
+                  if (result.ok) refundOperationKeyRef.current = freshRefundOperationKey();
+                  return result;
+                });
                 setDepositReason("");
                 setSettleAmount(null);
               }}

@@ -557,4 +557,44 @@ describe("FulfillmentService deposit refund from source wallet (FC-06 / Conflict
     expect(closed.stored.order.depositCollectedMinor).toBe(1500);
     expect(closed.stored.order.collectedMinor).toBe(1500);
   });
+
+  /* EXE-004 (AUD-NEW-007): مفتاح عملية لكل تأكيد رد مستقل — ردّان جزئيان
+   * متساويان بالسبب نفسه في الساعة نفسها (now ثابت في الاختبار عمدًا) حدثان
+   * مستقلان؛ كان الاشتقاق القديم (مبلغ+طول سبب+ساعة) يبتلع الثاني بصمت. */
+  it("EXE-004: refunds two equal partial amounts in the same hour as two independent events when each confirm carries its own operation key", async () => {
+    const { store, orderId } = await activeOrder(1000);
+    const service = new FulfillmentService(store, () => "2026-09-16T10:00:00.000Z");
+    await service.cancel(orderId, "إلغاء لاختبار الرد الجزئي المتتابع");
+    const first = await service.refundDeposit(orderId, "رد جزئي متفق عليه", 500, "exe004-confirm-a");
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    expect(first.stored.order.depositSettlement).toBe("needs_review");
+    expect(first.stored.order.depositCollectedMinor).toBe(500);
+    const second = await service.refundDeposit(orderId, "رد جزئي متفق عليه", 500, "exe004-confirm-b");
+    expect(second.ok).toBe(true);
+    if (!second.ok) return;
+    expect(second.stored.order.depositSettlement).toBe("refund_deposit");
+    expect(second.stored.order.settlementStatus).toBe("cancelled_refunded");
+    expect(second.stored.order.collectedMinor).toBe(0);
+    const events = second.stored.order.events.filter(event => event.type === "deposit_refunded");
+    expect(events).toHaveLength(2);
+    expect(new Set(events.map(event => event.idempotencyKey)).size).toBe(2);
+  });
+
+  it("EXE-004: replays the same refund confirm as an honest notice without writing a second event", async () => {
+    const { store, orderId } = await activeOrder(1000);
+    const service = new FulfillmentService(store, () => "2026-09-16T10:00:00.000Z");
+    await service.cancel(orderId, "إلغاء لاختبار إعادة تأكيد الرد");
+    const first = await service.refundDeposit(orderId, "رد جزئي متفق عليه", 500, "exe004-replay-key");
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    expect(first.stored.order.events.filter(event => event.type === "deposit_refunded")).toHaveLength(1);
+    /* إعادة التأكيد نفسه (نقر مزدوج أو إعادة إرسال): لا كتابة جديدة — إشعار صادق. */
+    const replay = await service.refundDeposit(orderId, "رد جزئي متفق عليه", 500, "exe004-replay-key");
+    expect(replay.ok).toBe(true);
+    if (!replay.ok) return;
+    expect(replay.notice).toContain("لم يُنشأ حدث جديد");
+    expect(replay.stored.order.events.filter(event => event.type === "deposit_refunded")).toHaveLength(1);
+    expect(replay.stored.order.depositCollectedMinor).toBe(500);
+  });
 });
