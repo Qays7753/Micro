@@ -74,6 +74,10 @@ export type TransferSummary = {
 export type TransferPreview = { file: LocalExportFile; summary: TransferSummary };
 export type TransferResult<T> =
   { ok: true; value: T } | { ok: false; code: "validation_error" | "storage_error"; message: string };
+/* EXE-014 (DATA-001 / AUD-NEW-09): نتيجة الاستعادة الكاملة — الملخص نفسه
+ * مع نسخة ما قبل الاستبدال القابلة للاسترجاع، مُنشأة بآلية التصدير المتحقق
+ * نفسها قبل أي كتابة؛ تعذّرها يمنع التأكيد فلا يُوهم المستخدم بنجاح آمن. */
+export type RestoreResult = TransferSummary & { backup: LocalExportFile };
 const fail = <T>(message: string): TransferResult<T> => ({ ok: false, code: "validation_error", message });
 function summary(file: LocalExportFile): TransferSummary {
   const snapshots =
@@ -196,7 +200,18 @@ export class LocalTransferService {
     return { ok: true, value: { file, summary: summary(file) } };
   }
 
-  async confirmImport(preview: TransferPreview): Promise<TransferResult<TransferSummary>> {
+  async confirmImport(preview: TransferPreview): Promise<TransferResult<RestoreResult>> {
+    /* EXE-014 (DATA-001): نسخة قابلة للاسترجاع قبل الاستبدال — ملف مُتحقق
+     * منه دورة كاملة للبيانات الحالية؛ إن تعذر إنشاؤها أو التحقق منها يُمنع
+     * التأكيد ولا يُمس أي شيء، فلا استبدال بلا طريق رجوع. */
+    const backup = await this.createVerifiedExport();
+    if (!backup.ok)
+      return {
+        ok: false,
+        code: "storage_error",
+        message:
+          "تعذر إنشاء نسخة احتياطية قابلة للاسترجاع قبل الاستبدال — لم يُمس أي شيء. صدّر بياناتك يدويًا أولًا ثم أعد المحاولة.",
+      };
     const replacement = await this.store.replaceSnapshot(preview.file.data);
     if (!replacement.ok)
       return {
@@ -204,7 +219,7 @@ export class LocalTransferService {
         code: "storage_error",
         message: "تعذر استبدال البيانات المحلية. لم يتم تأكيد نجاح الاستيراد.",
       };
-    return { ok: true, value: preview.summary };
+    return { ok: true, value: { ...preview.summary, backup: backup.value.file } };
   }
 
   /** نسخة مُتحقق منها (P-01): يُعاد تحليل الملف دورة كاملة قبل إعلان جهوزيته. */

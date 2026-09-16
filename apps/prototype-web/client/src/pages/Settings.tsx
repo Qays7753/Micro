@@ -30,7 +30,7 @@ import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
-import type { OperatingWorkMode } from "@/storage/local/types";
+import type { OperatingWorkMode, LocalExportFile } from "@/storage/local/types";
 import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
 import {
   browserLegacyFormDraftStorage,
@@ -160,6 +160,10 @@ export default function SettingsPage() {
     overall: "PASS" | "WARN" | "UNAVAILABLE" | "FAIL";
     note: string;
   } | null>(null);
+  /* EXE-014 (DATA-001 / AUD-NEW-09): نسخة ما قبل الاستبدال القابلة
+   * للاسترجاع — تُنشأ داخل confirmImport قبل أي كتابة وتُعرض للتنزيل
+   * بعد الاستعادة حتى لا تضيع بغلقة الصفحة. */
+  const [restoreBackup, setRestoreBackup] = useState<LocalExportFile | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
   /* المجموعة ١ (Scope A/E): ?focus=guided-import يفتح بطاقة إدخال الموقف الافتتاحي
    * مباشرة — الوصلة من صفحة الأساس تصل للموضع لا لصفحة عامة. القيمة المجهولة تُهمل. */
@@ -431,6 +435,9 @@ export default function SettingsPage() {
     }
     setPreview(null);
     notifyDataChanged();
+    /* EXE-014 (DATA-001 / AUD-NEW-09): نسخة ما قبل الاستبدال جاهزة للتنزيل —
+     * الاستعادة الكاملة لا تحدث بلا طريق رجوع محفوظ بيد المالك. */
+    setRestoreBackup(result.value.backup);
     /* المجموعة ٥ (التحصين الكامل): المسودات العابرة لا تُمسح صامتًا ولا تُستبدل —
      * السياسة المختارة: الإبقاء مع إفصاح صادق
      * عن حالتها المستقلة عن الملف. */
@@ -438,8 +445,8 @@ export default function SettingsPage() {
     setStorageNotice(
       "completion",
       drafts.ok && drafts.value.length > 0
-        ? `تم استبدال البيانات المحلية بالملف الذي راجعته؛ وأُبقيت ${drafts.value.length} مسودة نموذج غير مُسلّمة محليًا كما هي (مستقلة عن الملف) — تُعرض عند فتح نماذجها ويمكن تجاهلها هناك.`
-        : "تم استبدال البيانات المحلية بالملف الذي راجعته.",
+        ? `تم استبدال البيانات المحلية بالملف الذي راجعته؛ وأُبقيت ${drafts.value.length} مسودة نموذج غير مُسلّمة محليًا كما هي (مستقلة عن الملف) — تُعرض عند فتح نماذجها ويمكن تجاهلها هناك، ونسخة ما قبل الاستبدال جاهزة للتنزيل أدناه.`
+        : "تم استبدال البيانات المحلية بالملف الذي راجعته؛ نسخة ما قبل الاستبدال جاهزة للتنزيل أدناه.",
     );
     /* المجموعة ٥ (عقد ٣٩): فحص سلامة بعد الاستعادة مباشرة — قراءة جديدة فوق
      * البيانات المستعادة، بلا إصلاح تلقائي؛ النتيجة إجمالية مع رابط للتفاصيل. */
@@ -456,6 +463,20 @@ export default function SettingsPage() {
               : "فحص السلامة بعد الاستعادة: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
     });
     if (!result.value.profile) navigate("/setup");
+  }
+
+  /* EXE-014 (DATA-001): تنزيل نسخة ما قبل الاستبدال — نفس آلية التصدير
+   * المتحقق منه (Blob + رابط مؤجل الإبطال)؛ النسخة محفوظة في الحالة فلا
+   * تضيع بالتنقل قبل التنزيل. */
+  function downloadRestoreBackup() {
+    if (!restoreBackup) return;
+    const blob = new Blob([JSON.stringify(restoreBackup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `micro-backup-before-restore-${restoreBackup.exportedAt.slice(0, 10)}.json`;
+    link.click();
+    globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
   }
 
   async function chooseGuidedOpeningImport(event: ChangeEvent<HTMLInputElement>) {
@@ -503,6 +524,7 @@ export default function SettingsPage() {
       return;
     }
     setGuidedPreview(null);
+    setRestoreBackup(null);
     notifyDataChanged();
     setStorageNotice(
       "completion",
@@ -510,6 +532,21 @@ export default function SettingsPage() {
         ? "تم التعرف على هذه المحاولة مسبقًا؛ لم يتكرر أي أثر."
         : "تم إدخال الموقف الافتتاحي المحدود مع إبقاء ما لم نعرفه خارج السجل.",
     );
+    /* EXE-014 (DATA-001): فحص سلامة بعد الاستيراد الافتتاحي أيضًا — نفس
+     * قاعدة الاستعادة الكاملة: قراءة جديدة فوق ما كُتب، بلا إصلاح تلقائي،
+     * والنتيجة ظاهرة برابط التفاصيل. */
+    const check = await integrityCheck.run();
+    setRestoreCheck({
+      overall: check.overall,
+      note:
+        check.overall === "PASS"
+          ? "فحص السلامة بعد الاستيراد الافتتاحي: سليم — الأرقام المُدخلة متسقة مع قواعدها (الاتساق لا الجدوى)."
+          : check.overall === "WARN"
+            ? "فحص السلامة بعد الاستيراد الافتتاحي: توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل."
+            : check.overall === "UNAVAILABLE"
+              ? "فحص السلامة بعد الاستيراد الافتتاحي: تعذّرت قراءة بعض الفحوص — أعد تشغيل الفحص من أدواته."
+              : "فحص السلامة بعد الاستيراد الافتتاحي: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
+    });
   }
 
   const selectedModeDescription = modeOptions.find(option => option.value === selectedMode)?.description;
@@ -604,6 +641,8 @@ export default function SettingsPage() {
         setGuidedPreview={setGuidedPreview}
         currentSummary={currentSummary}
         restoreCheck={restoreCheck}
+        restoreBackup={restoreBackup}
+        downloadRestoreBackup={downloadRestoreBackup}
         isWorking={isWorking}
         preview={preview}
         setPreview={setPreview}
