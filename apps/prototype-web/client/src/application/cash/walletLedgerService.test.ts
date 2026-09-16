@@ -120,4 +120,39 @@ describe("WalletLedgerService — دفتر المحفظة (المجموعة ٢ �
     expect(result.ok && result.value.openingUnknown).toBe(true);
     expect(result.ok && result.value.balanceMinor).toBe(0);
   });
+
+  /* EXE-008: دفعة مورّد منسوبة لشرائها (sourceRefKind = supplier_purchase) —
+   * صف الدفتر يعرض وصلة الشراء نفسه، لا يبقى بلا مصدر. */
+  it("تغطية دفعة مورّد تعرض وصلة شراء المورد كمصدرها", async () => {
+    const store = new MemoryLocalStore();
+    const wallet = createCashWallet({
+      id: "drawer-supplier",
+      name: "درج الدفعات",
+      kind: "cash_drawer",
+      createdAt: "2026-09-01T08:00:00Z",
+      createdOperationKey: "supplier-open-key",
+    });
+    const paymentCover = createCashContinuityEntry({
+      id: "supplier-payment-cover",
+      walletId: wallet.id,
+      type: "allocation",
+      occurredOn: "2026-09-03",
+      recordedAt: "2026-09-03T09:00:00Z",
+      cashDeltaMinor: -1200,
+      note: "تغطية دفعة مورّد",
+      operationKey: "supplier-payment-key:attribute",
+      sourceRefId: "purchase-7",
+      sourceRefKind: "supplier_purchase",
+    });
+    const committed = await store.commitCashContinuity(wallet, [paymentCover]);
+    if (!committed.ok) throw new Error("should commit");
+    const ledger = new WalletLedgerService(store);
+    const result = await ledger.read("drawer-supplier");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const row = result.value.rows.find(candidate => candidate.id === "supplier-payment-cover");
+    expect(row).toBeDefined();
+    expect(row?.sourceHref).toBe("/suppliers/purchase/purchase-7");
+    expect(row?.sourceLabel).toContain("شراء مورّد");
+  });
 });

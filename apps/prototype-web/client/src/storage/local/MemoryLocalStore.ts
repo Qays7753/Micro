@@ -7,6 +7,7 @@ import {
   validateDeliveryReversalMovements,
 } from "./deliveryReversalCommitGuard";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
+import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import {
   validateScheduleUpdate,
   validateSupplierPurchaseCommit,
@@ -692,6 +693,15 @@ export class MemoryLocalStore implements PrototypeLocalStore {
      * إلا مع قيد جديد (أو تحديث خالص بلا قيود) — نفس عقد محوّل IndexedDB. */
     const existingKeys = new Set(Array.from(this.cashContinuityEntries.values()).map(e => e.operationKey));
     const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
+    /* EXE-008 (CASH-001): نفس حرس المحوّل الدائم — افتتاح ثانٍ لمحفظة لها
+     * افتتاح مسجل يُرفض ولا يُكتب شيء؛ التوأمان لا ينفصلان في السلوك. */
+    const secondOpening = findSecondWalletOpening(
+      Array.from(this.cashContinuityEntries.values()),
+      newEntries,
+    );
+    if (secondOpening) {
+      return { ok: false, code: "storage_stale", message: SECOND_WALLET_OPENING_MESSAGE };
+    }
     newEntries.forEach(entry => this.cashContinuityEntries.set(entry.id, clone(entry)));
     if (wallet && (newEntries.length > 0 || entries.length === 0)) {
       this.cashWallets.set(wallet.id, clone(wallet));

@@ -60,6 +60,10 @@ const sourceLabelFor = (entry: CashContinuityEntry): { href: string | null; labe
         };
       case "order":
         return { href: `/orders/${entry.sourceRefId}`, label: "طلب — السجل المصدر" };
+      /* EXE-008: دفعة مورّد منسوبة لشرائها (FIN-003) — الوصلة العميقة التي
+       * يَعِد بها تعليق supplierPurchaseService عند نسبة الدفعة لمصدرها. */
+      case "supplier_purchase":
+        return { href: `/suppliers/purchase/${entry.sourceRefId}`, label: "شراء مورّد — السجل المصدر" };
     }
   }
   return { href: null, label: null };

@@ -47,6 +47,7 @@ import {
   type StoredCraftOrder,
 } from "./types";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
+import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -1394,6 +1395,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return await new Promise(resolve => {
         const transaction = database.transaction([cashWalletStore, cashContinuityEntryStore], "readwrite");
         const entriesStore = transaction.objectStore(cashContinuityEntryStore);
+        let rejection: StorageFailure | null = null;
         /* P0 (إرسال متزامن): مفتاح العملية يُفحص داخل المعاملة — القيد المكرر
          * يُتخطى والمحفظة لا تُكتب إلا مع قيد جديد فعلي (أو تحديث محفظة خالص
          * بلا قيود كإنشاء محفظة). إعادة إرسال نفس العملية لا تضاعف الرصيد
@@ -1405,13 +1407,26 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             (scanRequest.result as CashContinuityEntry[]).map(entry => entry.operationKey),
           );
           const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
+          /* EXE-008 (CASH-001): عمق دفاعي داخل المعاملة — قيد افتتاح ثانٍ
+           * لمحفظة لها افتتاح مسجل يُرفض بالكامل ولا يُكتب شيء (بما فيه تحديث
+           * المحفظة). إعادة الإرسال بالمفتاح نفسه تتخطاها فلترة المفتاح أعلاه
+           * فلا يصل الحرس إلا لافتتاح فعلي جديد بمفتاح مختلف. */
+          const secondOpening = findSecondWalletOpening(
+            scanRequest.result as CashContinuityEntry[],
+            newEntries,
+          );
+          if (secondOpening) {
+            rejection = { ok: false, code: "storage_stale", message: SECOND_WALLET_OPENING_MESSAGE };
+            transaction.abort();
+            return;
+          }
           newEntries.forEach(entry => entriesStore.put(entry));
           if (wallet && (newEntries.length > 0 || entries.length === 0)) {
             transaction.objectStore(cashWalletStore).put(wallet);
           }
         };
         transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(rejection ?? failure(transaction.error, database));
         transaction.oncomplete = () => {
           resolve({ ok: true, value: { wallet, entries } });
         };

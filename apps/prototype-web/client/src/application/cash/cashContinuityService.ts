@@ -110,6 +110,10 @@ export class CashContinuityService {
       : { ok: false, code: "storage_error", message: "تعذر قراءة سجل استمرارية الكاش." };
   }
 
+  /* EXE-008 (حوكمة الكاش — القرار المعتمد): الافتتاح متاح أثناء التأسيس/إنشاء المحفظة
+   * فقط، و«الافتتاح اللاحق» مقصور على رفع ختم المجهول لمحفظة أُنشئت بلا رقم —
+   * وبعده ضبط كاش موثق بسبب هو الطريق الوحيد. المنع مزدوج الطبقة: هنا في الخدمة،
+   * وعمقًا دفاعيًا داخل معاملة المخزن (cashContinuityCommitGuard). */
   async openWallet(
     input: OpenWalletInput,
   ): Promise<CashContinuityResult<{ wallet: CashWallet; opening: CashContinuityEntry | null }>> {
@@ -158,7 +162,9 @@ export class CashContinuityService {
     }
   }
 
-  /** PA-007: رصيد افتتاحي موثق لاحقًا لمحفظة قائمة — occurredOn للماضي وrecordedAt للآن، ويُرفع ختم المجهول. */
+  /** PA-007: رصيد افتتاحي موثق لاحقًا لمحفظة قائمة — occurredOn للماضي وrecordedAt للآن، ويُرفع ختم المجهول.
+   *  EXE-008: ثاني افتتاح لمحفظة معروفة الرصيد ممنوع من هنا ومن المخزن معًا —
+   *  المتاح بعده ضبط الكاش الموثق بسبب (CashAdjustmentEditor). */
   async recordOpeningBalanceLater(
     input: RecordOpeningLaterInput,
   ): Promise<CashContinuityResult<CashContinuityEntry>> {
