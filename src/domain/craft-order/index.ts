@@ -2,6 +2,7 @@ export * from "./types.js";
 export {
   calculateCostSnapshot,
   cancelOrder,
+  DELIVERY_RESPONSIBILITY_AR,
   hasDeliveredEvent,
   hasDeliveryReversal,
   isRegisteredCustomerDebt,
@@ -17,6 +18,9 @@ export {
   collectRegisteredDebt,
   createCraftOrder,
   noteDeliveryConsumption,
+  orderResultBreakdown,
+  orderValueMinor,
+  recordDeliveryTerms,
   registerDebt,
   reverseDelivery,
   reviseAgreedPrice,

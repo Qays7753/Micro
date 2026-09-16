@@ -5,6 +5,7 @@
 import {
   collectDeposit,
   createCraftOrder,
+  recordDeliveryTerms,
   transitionOrder,
   type CraftOrder,
 } from "@micro-domain/craft-order/index.js";
@@ -17,11 +18,25 @@ import type {
   StoredCraftOrder,
 } from "@/storage/local/types";
 
+/* ORD-003: شروط النقل والتوصيل عند الاتفاق — المسؤولية والأعلام والمبالغ؛
+ * المفتاح والوقت تشتقهما الخدمة (حدث موثق في خط زمن الطلب). */
+export type AgreementDeliveryTerms = {
+  responsibility: "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
+  feeIncludedInPrice: boolean;
+  costIncludedInProductCost: boolean;
+  feeChargedMinor: number | null;
+  costPaidMinor: number | null;
+  projectShareMinor: number | null;
+  customerShareMinor: number | null;
+};
+
 export type AgreementInput = {
   agreedPriceMinor: number;
   deliveryDate: string;
   depositMinor: number;
   agreementSource: AgreementSource | "conversation" | "call" | "in_person" | string | null;
+  /* ORD-003: اختيارية تمامًا — غيابها = لا شروط نقل مسجلة (سلوك رجدي). */
+  deliveryTerms?: AgreementDeliveryTerms | null;
 };
 export type AgreementResult =
   | { ok: true; stored: StoredCraftOrder }
@@ -99,8 +114,19 @@ export class AgreementService {
       return validation("أدخل سعرًا متفقًا عليه أكبر من صفر.");
     if (!Number.isInteger(input.depositMinor) || input.depositMinor < 0)
       return validation("العربون يجب أن يكون صفرًا أو مبلغًا صحيحًا.");
-    if (input.depositMinor > input.agreedPriceMinor)
-      return validation("لا يمكن أن يتجاوز العربون السعر المتفق عليه.");
+    /* ORD-003: سقف العربون يتبع قيمة الطلب الكاملة — السعر + الأجرة المسجلة
+     * عبر المشروع (غير المحتواة في السعر). الأجرة غير المسجلة لا تُخترع. */
+    const billableFeeMinor =
+      input.deliveryTerms &&
+      (input.deliveryTerms.responsibility === "customer_pays_project" ||
+        input.deliveryTerms.responsibility === "shared") &&
+      !input.deliveryTerms.feeIncludedInPrice
+        ? (input.deliveryTerms.feeChargedMinor ?? 0)
+        : 0;
+    if (input.depositMinor > input.agreedPriceMinor + billableFeeMinor)
+      return validation(
+        "لا يمكن أن يتجاوز العربون قيمة الطلب المتفق عليها (السعر + أجرة التوصيل المسجلة عبر المشروع إن وجدت).",
+      );
     if (!dateIsValid(input.deliveryDate)) return validation("أدخل موعد تسليم صحيحًا.");
     const active = draft.costSnapshots.find(snapshot => snapshot.id === draft.activeCostSnapshotId);
     if (!active)
@@ -126,6 +152,15 @@ export class AgreementService {
         costSnapshot: cost.snapshot,
         createdAt: timestamp,
       });
+      /* ORD-003: شروط النقل تُسجّل قبل القبض — الأجرة المسجلة عبر المشروع
+       * تدخل قيمة الطلب قبل العربون فلا يُخترق سقف القبض. */
+      if (input.deliveryTerms) {
+        order = recordDeliveryTerms(order, {
+          ...input.deliveryTerms,
+          idempotencyKey: `${id}:initial-delivery-terms`,
+          createdAt: timestamp,
+        });
+      }
       order = transitionOrder(order, {
         to: "provisional_agreement",
         idempotencyKey: `${id}:provisional-agreement`,

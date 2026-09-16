@@ -369,7 +369,14 @@ CAPS: dict[str, int] = {
     # OrderDetail 171 → 174 (2026-09-15, R1 remediation D6/error-separation): the
     # honest read-error screen ("تعذر قراءة الطلب" + no-record-changed line + retry
     # label) split from not-found — a mandated truthful state, not prose creep.
-    "OrderDetail": 174,
+    # OrderDetail 174 → 176 (2026-09-16, product-journey package ORD-001, owner-approved):
+    # success banner after agreement recording — «سُجّل الاتفاق بنجاح» line showing
+    # order number, state, confirmed financial effect, and next action; the two new
+    # at-rest strings are the next-action prefix and the no-financial-effect clause.
+    # OrderDetail 176 → 179 (2026-09-16, product-journey package ORD-002, owner-approved):
+    # delivered-order summary on reopen — original delivery moment + short receipt
+    # (collected/remaining/next action), never the original success message again.
+    "OrderDetail": 179,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -428,7 +435,11 @@ CAPS: dict[str, int] = {
     # estimate bridge had no field to satisfy it, so the step was a dead end.
     # الإغلاق العميق (FC-04): وجهة كاش العربون عند الاتفاق — تسمية مفروضة (العقد ٣).
     # AgreementEditor 59 → 60 (2026-09-05).
-    "AgreementEditor": 60,
+    # ORD-001/ORD-003 (2026-09-16): قسم «النقل والتوصيل ومسؤولية كلفته» القابل
+    # للطي — خيارات المسؤولية الأربعة وأعلام الاحتواء وتحذير الدفع المباشر
+    # للناقل (قرار مالك معتمد: معلومات متقدمة لا تُفتح في الطلب البسيط).
+    # AgreementEditor 60 → 61.
+    "AgreementEditor": 61,
     # Catalog 84 → 92 (2026-09-01, repair cycle P-002): optional suggested default
     # price/cost fields + per-item defaults editor labels — Option A mandated fields.
     # Catalog 92 → 94 (2026-09-02, Group 3 Scope C §9.3, owner-approved execution
@@ -575,7 +586,11 @@ CAPS: dict[str, int] = {
     "CostCalculator": 59,
     # DeliveryReview (new 2026-09-04, Group 3 D5): the full pre-commitment delivery
     # surface — measured from day one per the Profile/CostCalculator precedent.
-    "DeliveryReview": 48,
+    # DeliveryReview 48 → 51 (2026-09-16, product-journey package ORD-002, owner-approved):
+    # dedicated first-delivery success receipt — order number, delivery moment,
+    # new state, collected, remaining, cash destination, inventory effect, next
+    # action; unrecorded values show «غير مسجل» never zero.
+    "DeliveryReview": 51,
     # المجموعة ٤ (عقد ٢٩ — 2026-09-04): أسطح الأصول والقروض مقيسة من يومها الأول.
     # AssetEditor 40: the long-use question journey (name/category/kind/date/life/
     # start/note + effect preview + unsaved-guard labels) — mandated contract copy.

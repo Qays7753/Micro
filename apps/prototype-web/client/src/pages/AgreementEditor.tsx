@@ -15,6 +15,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { AgreementSource, OrderDraft } from "@/storage/local/types";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
+import type { DeliveryResponsibility } from "@micro-domain/craft-order/index.js";
 
 import { Button } from "@/components/primitives";
 type AgreementFormValues = {
@@ -26,6 +27,14 @@ type AgreementFormValues = {
   /* (إصلاح تكاملي — مجموعة ٤): اسم العميل يُطلب عند الاتفاق لا عند المسودة —
    * مسودة «تصميم مخطط» بلا حقل اسم لا يمكنها بلوغ الاتفاق أبدًا إلا من هنا. */
   customerName: string;
+  /* ORD-003: قسم النقل والتوصيل المتقدم — اختياري بالكامل. */
+  deliveryResponsibility: DeliveryResponsibility | "";
+  feeChargedMinor: number | null;
+  costPaidMinor: number | null;
+  feeIncludedInPrice: boolean;
+  costIncludedInProductCost: boolean;
+  projectShareMinor: number | null;
+  customerShareMinor: number | null;
 };
 
 function equalAgreementValues(left: AgreementFormValues | null, right: AgreementFormValues | null) {
@@ -37,7 +46,14 @@ function equalAgreementValues(left: AgreementFormValues | null, right: Agreement
     left.depositMinor === right.depositMinor &&
     left.source === right.source &&
     left.acknowledgesBelowFloor === right.acknowledgesBelowFloor &&
-    left.customerName === right.customerName,
+    left.customerName === right.customerName &&
+    left.deliveryResponsibility === right.deliveryResponsibility &&
+    left.feeChargedMinor === right.feeChargedMinor &&
+    left.costPaidMinor === right.costPaidMinor &&
+    left.feeIncludedInPrice === right.feeIncludedInPrice &&
+    left.costIncludedInProductCost === right.costIncludedInProductCost &&
+    left.projectShareMinor === right.projectShareMinor &&
+    left.customerShareMinor === right.customerShareMinor,
   );
 }
 
@@ -88,6 +104,21 @@ export default function AgreementEditor() {
   const [orderName, setOrderName] = useState("");
   /* Conflict B: مقترحات الجهات المتكررة — اختيار جهة محفوظة أو إنشاء جديدة. */
   const [partySuggestions, setPartySuggestions] = useState<readonly string[]>([]);
+  /* ORD-003: شروط النقل والتوصيل — معلومات متقدمة داخل قسم قابل للطي؛
+   * بلا اختيار = لا شروط نقل (الطلب البسيط لا يفتح القسم أبدًا). */
+  const [deliveryResponsibility, setDeliveryResponsibility] = useState<DeliveryResponsibility | "">(
+    "",
+  );
+  const [feeChargedMinor, setFeeChargedMinor] = useState<number | null>(null);
+  const [costPaidMinor, setCostPaidMinor] = useState<number | null>(null);
+  const [feeIncludedInPrice, setFeeIncludedInPrice] = useState(false);
+  const [costIncludedInProductCost, setCostIncludedInProductCost] = useState(false);
+  const [projectShareMinor, setProjectShareMinor] = useState<number | null>(null);
+  const [customerShareMinor, setCustomerShareMinor] = useState<number | null>(null);
+  const [isFeeValid, setIsFeeValid] = useState(true);
+  const [isDeliveryCostValid, setIsDeliveryCostValid] = useState(true);
+  const [isProjectShareValid, setIsProjectShareValid] = useState(true);
+  const [isCustomerShareValid, setIsCustomerShareValid] = useState(true);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -114,6 +145,13 @@ export default function AgreementEditor() {
         source: "" as const,
         acknowledgesBelowFloor: false,
         customerName: loaded.customerName,
+        deliveryResponsibility: "" as const,
+        feeChargedMinor: null,
+        costPaidMinor: null,
+        feeIncludedInPrice: false,
+        costIncludedInProductCost: false,
+        projectShareMinor: null,
+        customerShareMinor: null,
       };
       setDraft(loaded);
       setPriceMinor(loadedValues.priceMinor);
@@ -151,10 +189,23 @@ export default function AgreementEditor() {
     source,
     acknowledgesBelowFloor,
     customerName,
+    deliveryResponsibility,
+    feeChargedMinor,
+    costPaidMinor,
+    feeIncludedInPrice,
+    costIncludedInProductCost,
+    projectShareMinor,
+    customerShareMinor,
   };
   const isDirty = Boolean(
     initialValuesRef.current && !equalAgreementValues(currentValues, initialValuesRef.current),
   );
+  const feeApplies =
+    deliveryResponsibility === "customer_pays_project" || deliveryResponsibility === "shared";
+  const costApplies =
+    deliveryResponsibility === "project_pays" ||
+    deliveryResponsibility === "customer_pays_project" ||
+    deliveryResponsibility === "shared";
   async function persistAgreement(): Promise<string | null> {
     if (!draft) return null;
     setMessage(null);
@@ -177,6 +228,25 @@ export default function AgreementEditor() {
     if (isBelowFloor && !acknowledgesBelowFloor) {
       setMessage("إقرار سعر الحماية: فعّل مربع الإقرار بعد مراجعة السبب، ثم أعد التسجيل.");
       return null;
+    }
+    /* ORD-003: تحقق صلاحية مبالغ النقل قبل أي كتابة. */
+    if (feeApplies && feeChargedMinor !== null && !isFeeValid) {
+      setMessage("أجرة التوصيل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
+      return null;
+    }
+    if (costApplies && costPaidMinor !== null && !isDeliveryCostValid) {
+      setMessage("كلفة النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
+      return null;
+    }
+    if (deliveryResponsibility === "shared") {
+      if (projectShareMinor !== null && !isProjectShareValid) {
+        setMessage("حصة المشروع من النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة.");
+        return null;
+      }
+      if (customerShareMinor !== null && !isCustomerShareValid) {
+        setMessage("حصة الزبون من النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة.");
+        return null;
+      }
     }
     setIsSaving(true);
     /* (إصلاح تكاملي — مجموعة ٤): الاسم المُدخل هنا يُحفظ في المسودة أولًا (مصدر واحد
@@ -205,6 +275,19 @@ export default function AgreementEditor() {
       deliveryDate,
       depositMinor: depositMinor ?? 0,
       agreementSource: source || null,
+      /* ORD-003: الشروط تُمرر فقط عند اختيار مسؤولية صريحة — بلا اختيار
+       * لا شروط نقل (توافق رجدي كامل). */
+      deliveryTerms: deliveryResponsibility
+        ? {
+            responsibility: deliveryResponsibility,
+            feeIncludedInPrice,
+            costIncludedInProductCost,
+            feeChargedMinor: feeApplies ? feeChargedMinor : null,
+            costPaidMinor: costApplies ? costPaidMinor : null,
+            projectShareMinor: deliveryResponsibility === "shared" ? projectShareMinor : null,
+            customerShareMinor: deliveryResponsibility === "shared" ? customerShareMinor : null,
+          }
+        : null,
     });
     setIsSaving(false);
     if (!result.ok) {
@@ -258,7 +341,9 @@ export default function AgreementEditor() {
     );
   async function submit() {
     const storedId = await persistAgreement();
-    if (storedId) navigate(`/orders/${storedId}`);
+    /* ORD-001: بعد كل فعل ناجح — وصول بمعلمة نجاح تعرض رقم الطلب وحالته
+     * وأثره المالي والفعل التالي الموصى به. */
+    if (storedId) navigate(`/orders/${storedId}?created=1`);
     /* إن تعذّر تخصيص الكاش للوجهة المختارة يبقى المبلغ في غير الموزع بأمان —
      * صفحة الطلب تظهر العربون المحصل، والتوزيع قرار صريح من مالي لاحقًا. */
   }
@@ -432,6 +517,123 @@ export default function AgreementEditor() {
             <option value="other">أخرى</option>
           </select>
         </label>
+        {/* ORD-001/ORD-003: معلومات متقدمة داخل قسم قابل للطي باسم صريح —
+            الطلب البسيط يُسجَّل دون فتح هذا القسم أبدًا. */}
+        <details className="micro-advanced-section" data-testid="delivery-terms-section">
+          <summary>النقل والتوصيل ومسؤولية كلفته</summary>
+          <p className="micro-field-hint">
+            اختياري بالكامل. اختر من يدفع أجرة التوصيل وكلفة الناقل — تدخل الأجرة
+            المحصلة عبر المشروع قيمة الطلب مرة واحدة، ولا يُحتسب أي مبلغ مرتين.
+          </p>
+          <label className="micro-field">
+            <span>من يدفع كلفة النقل والتوصيل؟</span>
+            <select
+              value={deliveryResponsibility}
+              aria-label="مسؤولية كلفة النقل والتوصيل"
+              onChange={event => setDeliveryResponsibility(event.target.value as DeliveryResponsibility | "")}
+            >
+              <option value="">بدون شروط نقل — تسجيل لاحق</option>
+              <option value="project_pays">المشروع يدفع للناقل</option>
+              <option value="customer_pays_project">الزبون يدفع للمشروع</option>
+              <option value="customer_pays_courier">الزبون يدفع للناقل مباشرة</option>
+              <option value="shared">تكلفة مشتركة بين المشروع والزبون</option>
+            </select>
+          </label>
+          {deliveryResponsibility === "customer_pays_courier" ? (
+            <p className="micro-field-hint">
+              معلومة سياقية فقط: ليست كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة — لا
+              تدخل نتيجة الطلب ولا أي سجل مالي.
+            </p>
+          ) : null}
+          {feeApplies ? (
+            <>
+              <label className="micro-field">
+                <span>
+                  أجرة التوصيل المحصلة عبر المشروع (د.أ) <small>اتركها فارغة إذا لم تُسجل بعد</small>
+                </span>
+                <EnglishNumberInput
+                  value={feeChargedMinor}
+                  kind="money"
+                  min="0"
+                  allowEmpty
+                  aria-label="أجرة التوصيل عبر المشروع بالأرقام 0–9"
+                  onNumericChange={setFeeChargedMinor}
+                  onEmptyChange={() => setFeeChargedMinor(null)}
+                  onTextValidityChange={setIsFeeValid}
+                />
+              </label>
+              <label className="micro-confirm-warning">
+                <input
+                  type="checkbox"
+                  checked={feeIncludedInPrice}
+                  onChange={event => setFeeIncludedInPrice(event.target.checked)}
+                />
+                <span>الأجرة محتواة أصلًا داخل السعر المتفق عليه — لا تُضاف مرة ثانية.</span>
+              </label>
+            </>
+          ) : null}
+          {costApplies ? (
+            <>
+              <label className="micro-field">
+                <span>
+                  كلفة النقل التي دفعها المشروع (د.أ) <small>اتركها فارغة إذا لم تُسجل بعد</small>
+                </span>
+                <EnglishNumberInput
+                  value={costPaidMinor}
+                  kind="money"
+                  min="0"
+                  allowEmpty
+                  aria-label="كلفة النقل المدفوعة من المشروع بالأرقام 0–9"
+                  onNumericChange={setCostPaidMinor}
+                  onEmptyChange={() => setCostPaidMinor(null)}
+                  onTextValidityChange={setIsDeliveryCostValid}
+                />
+              </label>
+              <label className="micro-confirm-warning">
+                <input
+                  type="checkbox"
+                  checked={costIncludedInProductCost}
+                  onChange={event => setCostIncludedInProductCost(event.target.checked)}
+                />
+                <span>الكلفة محتواة أصلًا داخل تكلفة المنتج — لا تُطرح مرة ثانية.</span>
+              </label>
+            </>
+          ) : null}
+          {deliveryResponsibility === "shared" ? (
+            <div className="micro-shared-costs">
+              <label className="micro-field">
+                <span>
+                  حصة المشروع (د.أ) <small>اختياري</small>
+                </span>
+                <EnglishNumberInput
+                  value={projectShareMinor}
+                  kind="money"
+                  min="0"
+                  allowEmpty
+                  aria-label="حصة المشروع من النقل بالأرقام 0–9"
+                  onNumericChange={setProjectShareMinor}
+                  onEmptyChange={() => setProjectShareMinor(null)}
+                  onTextValidityChange={setIsProjectShareValid}
+                />
+              </label>
+              <label className="micro-field">
+                <span>
+                  حصة الزبون (د.أ) <small>اختياري</small>
+                </span>
+                <EnglishNumberInput
+                  value={customerShareMinor}
+                  kind="money"
+                  min="0"
+                  allowEmpty
+                  aria-label="حصة الزبون من النقل بالأرقام 0–9"
+                  onNumericChange={setCustomerShareMinor}
+                  onEmptyChange={() => setCustomerShareMinor(null)}
+                  onTextValidityChange={setIsCustomerShareValid}
+                />
+              </label>
+            </div>
+          ) : null}
+        </details>
         {message ? (
           <p id="agreement-form-error" className="micro-field-error" role="alert">
             {message}

@@ -16,7 +16,12 @@ import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatMoneyMinor, formatQuantityMilli, formatQuantityMilliFixed3 } from "@/presentation/formatters";
+import {
+  formatLocalDateTime,
+  formatMoneyMinor,
+  formatQuantityMilli,
+  formatQuantityMilliFixed3,
+} from "@/presentation/formatters";
 import type {
   DeliveryConsumptionAction,
   DeliveryReview,
@@ -29,10 +34,16 @@ type PageState =
   | { phase: "ready"; review: DeliveryReview }
   | {
       phase: "done";
+      orderId: string;
+      deliveredAt: string | null;
+      newStatus: string;
       revenueMinor: number;
       movementsCount: number;
       shortagesCount: number;
       collectedMinor: number | null;
+      remainingMinor: number;
+      cashDestination: string;
+      nextAction: string;
       notice: string | null;
     };
 
@@ -163,12 +174,26 @@ export default function DeliveryReviewPage() {
       return false;
     }
     notifyDataChanged();
+    /* ORD-002: إيصال نجاح مخصص بعد أول تسليم — بيانات موثقة فقط: رقم
+     * الطلب، لحظة التسليم، الحالة الجديدة، المقبوض، المتبقي، وجهة الكاش،
+     * أثر المخزون، والفعل التالي؛ والناقص يبقى «غير مسجل» لا صفرًا. */
+    const deliveredEvent = [...result.value.stored.order.events]
+      .reverse()
+      .find(event => event.toStatus === "delivered");
     setState({
       phase: "done",
+      orderId,
+      deliveredAt: deliveredEvent?.createdAt ?? null,
+      newStatus: result.value.stored.order.status,
       revenueMinor: result.value.stored.order.recognizedRevenueMinor,
       movementsCount: result.value.movements.length,
       shortagesCount: result.value.shortages.length,
       collectedMinor: collectAmountMinor > 0 ? collectAmountMinor : null,
+      remainingMinor: result.value.stored.order.receivableMinor,
+      cashDestination: collectAmountMinor > 0
+        ? (wallets.find(wallet => wallet.id === walletId)?.name ?? "غير موزع — يُوزّع لاحقًا بقرار صريح")
+        : "لم يُسجَّل قبض جديد — لا وجهة",
+      nextAction: result.value.stored.order.nextAction,
       notice: result.value.notice,
     });
     return true;
@@ -487,25 +512,27 @@ export default function DeliveryReviewPage() {
       ) : null}
 
       {state.phase === "done" ? (
-        <section className="micro-delivery-done" aria-label="نتيجة التسليم">
+        <section className="micro-delivery-done" aria-label="نتيجة التسليم" data-testid="delivery-success-receipt">
           <h2>
-            <CheckCircle2 aria-hidden="true" /> تم تسجيل التسليم
+            <CheckCircle2 aria-hidden="true" /> تم تسليم الطلب بنجاح
           </h2>
           <ul className="micro-done-facts">
+            <li>{`رقم الطلب: ${state.orderId}`}</li>
+            <li>{`لحظة التسليم: ${state.deliveredAt ? formatLocalDateTime(state.deliveredAt) : "غير مسجلة"}`}</li>
+            <li>{`الحالة الجديدة: ${state.newStatus === "settled" ? "تمت التسوية" : "تم التسليم"}`}</li>
             <li>
               الإيراد المعترف: <MoneyValue minor={state.revenueMinor} className="micro-inline-number" /> د.أ —
               مرة واحدة.
             </li>
-            <li>حركات استهلاك مخزون: {state.movementsCount}.</li>
-            <li>سجلات نقص موثقة: {state.shortagesCount}.</li>
-            {state.collectedMinor !== null ? (
-              <li>
-                قُبض عند التسليم: <MoneyValue minor={state.collectedMinor} className="micro-inline-number" />{" "}
-                د.أ — تحصيل لا إيراد.
-              </li>
-            ) : (
-              <li>لم يُسجَّل قبض جديد عند التسليم.</li>
-            )}
+            <li>
+              {`المقبوض عند التسليم: ${
+                state.collectedMinor !== null ? `${formatMoneyMinor(state.collectedMinor)} د.أ` : "غير مسجل"
+              }`}
+            </li>
+            <li>{`المتبقي بعد التسليم: ${formatMoneyMinor(state.remainingMinor)} د.أ`}</li>
+            <li>{`وجهة الكاش: ${state.cashDestination}`}</li>
+            <li>{`أثر المخزون: ${state.movementsCount} حركة استهلاك · ${state.shortagesCount} سجل نقص`}</li>
+            <li>{`الفعل التالي: ${state.nextAction}`}</li>
           </ul>
           {state.notice ? (
             <p className="micro-warning-copy" role="status">

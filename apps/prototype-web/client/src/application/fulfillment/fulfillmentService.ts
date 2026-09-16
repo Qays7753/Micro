@@ -5,6 +5,7 @@ import {
   collectDeposit,
   collectRegisteredDebt,
   collectRemaining,
+  recordDeliveryTerms,
   registerDebt,
   reviseAgreedPrice,
   reverseOrderCollection,
@@ -90,6 +91,37 @@ export class FulfillmentService {
       return this.persist({ ...current.stored, order, updatedAt: timestamp });
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل الجاهزية.");
+    }
+  }
+
+  /* ORD-003: تسجيل/تعديل شروط النقل والتوصيل قبل التسليم — الدومين يوثّق
+   * الحدث ويعيد اشتقاق المتبقي؛ إعادة المحاولة بمفتاح جديد تعديل موثق
+   * جديد لا تكرارًا صامتًا، وبعد التسليم يُرفض التغيير (الباب الموثق الوحيد
+   * هو عكس التسليم). */
+  async applyDeliveryTerms(
+    id: string,
+    terms: {
+      responsibility: "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
+      feeIncludedInPrice: boolean;
+      costIncludedInProductCost: boolean;
+      feeChargedMinor: number | null;
+      costPaidMinor: number | null;
+      projectShareMinor: number | null;
+      customerShareMinor: number | null;
+    },
+    operationKey: string,
+  ): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    try {
+      const timestamp = this.now();
+      const order = recordDeliveryTerms(current.stored.order, { ...terms, idempotencyKey: operationKey, createdAt: timestamp });
+      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+    } catch (error) {
+      return failure(
+        "invalid_state",
+        error instanceof Error ? error.message : "تعذر تسجيل شروط النقل والتوصيل.",
+      );
     }
   }
 

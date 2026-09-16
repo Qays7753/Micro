@@ -14,6 +14,33 @@ export type KnowledgeGap = { id: KnowledgeGapId; mandatory: boolean };
 
 export type ResultStatus = "final" | "estimated" | "incomplete" | "review_required";
 
+/* ORD-003: مسؤولية النقل والتوصيل — خيار صريح واحد لكل طلب يحدد من يدفع
+ * أجرة التوصيل ومن يدفع كلفة الناقل، مع أعلام احتواء تمنع الاحتساب المزدوج.
+ * غياب الشروط كليًا (null أو حقل غير موجود) = لا شروط نقل مسجلة — سلوك
+ * رجعي مطابق للطلبات القديمة تمامًا. */
+export type DeliveryResponsibility =
+  | "project_pays"
+  | "customer_pays_project"
+  | "customer_pays_courier"
+  | "shared";
+
+export interface OrderDeliveryTerms {
+  responsibility: DeliveryResponsibility;
+  /* أجرة التوصيل محتواة أصلًا داخل سعر البيع — لا تُضاف مرة ثانية إلى قيمة الطلب. */
+  feeIncludedInPrice: boolean;
+  /* كلفة النقل محتواة أصلًا داخل تكلفة المنتج/المواد — لا تُطرح مرة ثانية من النتيجة. */
+  costIncludedInProductCost: boolean;
+  /* أجرة التوصيل التي يحتسبها المشروع على الزبون (يدفع الزبون للمشروع) —
+   * null = غير مسجلة بعد؛ الصفر قيمة صريحة صحيحة. */
+  feeChargedMinor: MoneyMinor | null;
+  /* كلفة النقل التي دفعها المشروع للناقل — null = غير مسجلة بعد؛ الصفر صريح. */
+  costPaidMinor: MoneyMinor | null;
+  /* التكلفة المشتركة: حصة المشروع — null = غير مسجلة. */
+  projectShareMinor: MoneyMinor | null;
+  /* التكلفة المشتركة: حصة الزبون — null = غير مسجلة. */
+  customerShareMinor: MoneyMinor | null;
+}
+
 export type DepositSettlementDecision = "refund_deposit" | "retain_deposit" | "needs_review";
 
 type CostSource = "user_input" | "historical_price" | "estimate";
@@ -114,6 +141,9 @@ export type OrderEventType =
   /* المجموعة ٣ (عقد D2): عكس موثق لتسليم مكتمل — الإيراد والنتيجة تُحيَّد، الحركات
    * تُعكس مرآةً، الكاش المقبوض لا يُمس؛ الأصل باقٍ في الأحداث. */
   | "delivery_reversed"
+  /* ORD-003: تسجيل/تعديل شروط النقل والتوصيل قبل التسليم — المسؤولية
+   * والأعلام والمبالغ موثقة في خط زمن الطلب. */
+  | "delivery_terms_recorded"
   /* المجموعة ٤ (عقد ٢٩): تصنيف صريح لمعنى العربون المحتفظ به — مال مالك أو
    * إيراد مشروع — بعد قرار الاحتفاظ؛ قرار قابل للعكس بتوثيق. */
   | "deposit_classified";
@@ -172,6 +202,9 @@ export interface CraftOrder {
   recognizedCostMinor: MoneyMinor;
   profitIndicatorMinor: MoneyMinor | null;
   resultStatus: ResultStatus;
+  /* ORD-003: شروط النقل والتوصيل — اختيارية تمامًا؛ الطلبات القديمة بلا
+   * الحقل تُقرأ «لا شروط نقل مسجلة» بلا أي أثر محاسبي جديد. */
+  deliveryTerms?: OrderDeliveryTerms | null;
   nextAction: string;
   events: OrderEvent[];
   createdAt: string;
@@ -231,4 +264,32 @@ export interface DeliveryConsumptionNoteInput {
   reversesEventId: string;
   idempotencyKey: string;
   createdAt: string;
+}
+
+/* ORD-003: تسجيل شروط النقل والتوصيل قبل التسليم — تصحيح ما بعد التسليم
+ * محمي (عكس التسليم هو الباب الموثق الوحيد). المبالغ اختيارية: null =
+ * غير مسجلة، والصفر قيمة صريحة صحيحة. */
+export interface RecordDeliveryTermsInput {
+  responsibility: DeliveryResponsibility;
+  feeIncludedInPrice: boolean;
+  costIncludedInProductCost: boolean;
+  feeChargedMinor: MoneyMinor | null;
+  costPaidMinor: MoneyMinor | null;
+  projectShareMinor: MoneyMinor | null;
+  customerShareMinor: MoneyMinor | null;
+  idempotencyKey: string;
+  createdAt: string;
+}
+
+/* ORD-003: تفصيل نتيجة الطلب بمكوناتها — كل مبلغ يظهر مرة واحدة، والناقص
+ * يبقى ناقصًا معلنًا لا صفرًا. null = المكون غير مسجل بعد. */
+export interface OrderResultBreakdown {
+  priceMinor: MoneyMinor;
+  billableDeliveryFeeMinor: MoneyMinor | null;
+  productCostMinor: MoneyMinor;
+  projectDeliveryCostMinor: MoneyMinor | null;
+  revenueMinor: MoneyMinor | null;
+  costMinor: MoneyMinor | null;
+  resultMinor: MoneyMinor | null;
+  incompleteReasons: readonly string[];
 }

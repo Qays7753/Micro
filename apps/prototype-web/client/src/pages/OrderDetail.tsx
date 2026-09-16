@@ -16,7 +16,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useParams } from "wouter";
+import { useLocation, useParams, useSearch } from "wouter";
 import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -41,8 +41,9 @@ import {
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
-import { hasDeliveredEvent, hasDeliveryReversal } from "@micro-domain/craft-order/index.js";
-import { formatMoneyMinor } from "@/presentation/formatters";
+import { hasDeliveredEvent, hasDeliveryReversal, orderResultBreakdown, DELIVERY_RESPONSIBILITY_AR } from "@micro-domain/craft-order/index.js";
+import type { DeliveryResponsibility } from "@micro-domain/craft-order/index.js";
+import { formatLocalDateTime, formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
 import { Button } from "@/components/primitives";
@@ -75,6 +76,11 @@ const executionStatuses = ["in_progress", "ready"];
 export default function OrderDetail() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  /* ORD-001: معامل النجاح ?created=1 من تسجيل الاتفاق — لافتة نجاح تظهر رقم
+   * الطلب وحالته وأثره المالي والفعل التالي، وتختفي عند أي تنقل (المعامل
+   * يغادر الرابط فلا تتكرر الرسالة عند إعادة الفتح لاحقًا). */
+  const search = useSearch();
+  const createdBanner = new URLSearchParams(search ?? "").get("created") === "1";
   /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو الطلبات كبديل قانوني. */
   const returnPath = useReturnPath();
   const {
@@ -127,6 +133,19 @@ export default function OrderDetail() {
   const [newPriceMinor, setNewPriceMinor] = useState(0);
   const [validNewPrice, setValidNewPrice] = useState(true);
   const [priceReason, setPriceReason] = useState("");
+  /* ORD-003: تحرير شروط النقل والتوصيل قبل التسليم — نموذج داخل «تفاصيل
+   * إضافية» يمر بخدمة التنفيذ والدومين (حدث موثق). */
+  const [termsPanelOpen, setTermsPanelOpen] = useState(false);
+  const [termsResponsibility, setTermsResponsibility] = useState<DeliveryResponsibility>("project_pays");
+  const [termsFeeMinor, setTermsFeeMinor] = useState<number | null>(null);
+  const [termsCostMinor, setTermsCostMinor] = useState<number | null>(null);
+  const [termsFeeInPrice, setTermsFeeInPrice] = useState(false);
+  const [termsCostInProduct, setTermsCostInProduct] = useState(false);
+  const [validTermsFee, setValidTermsFee] = useState(true);
+  const [validTermsCost, setValidTermsCost] = useState(true);
+  const termsOperationKeyRef = useRef(
+    `order-terms-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
+  );
   /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة على الطلب.
    * المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة مع تخصيصها
    * المطابق — مفتاح جذر واحد لكل فتح لوحة يجعل إعادة المحاولة آمنة. */
@@ -325,6 +344,8 @@ export default function OrderDetail() {
   });
   const label = agreement.label;
   const result = resultLabel[order.resultStatus] ?? resultLabel.review_required;
+  /* ORD-002: لحظة التسليم الأصلية من حدث التسليم نفسه — لا وقت فتح الصفحة. */
+  const deliveredAtIso = [...order.events].reverse().find(event => event.toStatus === "delivered")?.createdAt ?? null;
   /* التحصين الكامل (D-031، المجموعة ٣): القفل الحقيقي — سجل مسلّم داخل «يحتاج
    * مراجعة» بلا تراجع موثق عن التسليم؛ مسندا النطاق نفسه (STR-008، المجموعة ٩). */
   const lockedInDeliveredReview =
@@ -340,6 +361,45 @@ export default function OrderDetail() {
       : []),
     ...(canCancelOrder(order) ? ["إلغاء الطلب"] : []),
   ].join(" · ");
+
+  /* ORD-003: حفظ شروط النقل — مفتاح تحرير واحد لكل محاولة تحرير، فالنقر
+   * المزدوج لا يكرر الحدث، والدومين يعيد اشتقاق المتبقي ويوثّق التعديل. */
+  async function saveDeliveryTerms(): Promise<void> {
+    if (state.phase !== "ready") return;
+    if (!validTermsFee || !validTermsCost) {
+      setMessage("مبالغ النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
+      return;
+    }
+    setIsActing(true);
+    try {
+      const feeApplies =
+        termsResponsibility === "customer_pays_project" || termsResponsibility === "shared";
+      const costApplies = termsResponsibility !== "customer_pays_courier";
+      const result = await fulfillment.applyDeliveryTerms(
+        state.stored.id,
+        {
+          responsibility: termsResponsibility,
+          feeIncludedInPrice: termsFeeInPrice,
+          costIncludedInProductCost: termsCostInProduct,
+          feeChargedMinor: feeApplies ? termsFeeMinor : null,
+          costPaidMinor: costApplies ? termsCostMinor : null,
+          projectShareMinor: null,
+          customerShareMinor: null,
+        },
+        termsOperationKeyRef.current,
+      );
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
+      setStored(result.stored);
+      setState({ phase: "ready", stored: result.stored });
+      notifyDataChanged();
+      setTermsPanelOpen(false);
+    } finally {
+      setIsActing(false);
+    }
+  }
 
   async function run(action: () => Promise<FulfillmentResult | AgreementResult>) {
     setMessage(null);
@@ -632,6 +692,22 @@ export default function OrderDetail() {
           {order.orderName?.trim() ? ` · ${order.itemName}` : ""}
         </p>
       </div>
+      {/* ORD-001: نجاح موثق بعد تسجيل الاتفاق — رقم الطلب والحالة والأثر
+          المالي الحقيقي والفعل التالي؛ يختفي مع مغادرة الرابط فلا يتكرر عند
+          إعادة فتح طلب مسلّم لاحقًا (ORD-002: لا رسالة نجاح قديمة). */}
+      {createdBanner ? (
+        <section className="micro-note-card" data-testid="order-created-banner" role="status">
+          <CheckCircle2 aria-hidden="true" />
+          <p>
+            {`سُجّل الاتفاق بنجاح — رقم الطلب ${stored.id} · الحالة: ${label} · `}
+            {order.depositCollectedMinor > 0
+              ? `أثر مالي موثق: عربون محصل ${formatMoneyMinor(order.depositCollectedMinor)} د.أ`
+              : `لا أثر مالي بعد — لم يُقبض شيء ولم يُخصم مخزون`}
+            {" · الفعل التالي: "}
+            {order.nextAction}
+          </p>
+        </section>
+      ) : null}
       {/* FIN-002: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد (اختيار اسم
           مسجل أو اسم جديد يظهر في دفتر الناس من أول حركة)؛ الديون غير
           المسماة تبقى ظاهرة بتحذير في ورقة التحصيل حتى التسمية. */}
@@ -1368,6 +1444,19 @@ export default function OrderDetail() {
           <Share2 aria-hidden="true" /> شارك رسالة مع الزبون
         </button>
       </div>
+      {/* ORD-002: إعادة فتح طلب مسلّم — ملخص استلام قصير بلحظة التسليم
+          الأصلية، بلا رسالة النجاح القديمة وبلا معاملة الحالة كخطأ. */}
+      {["delivered", "settled"].includes(order.status) && deliveredAtIso ? (
+        <section className="micro-note-card" data-testid="delivered-summary" aria-label="ملخص الاستلام">
+          <PackageCheck aria-hidden="true" />
+          <p>
+            {`سُلّم هذا الطلب في ${formatLocalDateTime(deliveredAtIso)} · المقبوض: ${formatMoneyMinor(
+              order.collectedMinor,
+            )} د.أ · المتبقي: ${formatMoneyMinor(order.receivableMinor)} د.أ · `}
+            {order.receivableMinor > 0 ? "الفعل التالي: حصّل المتبقي أو سجّله دينًا" : "الفعل التالي: راجع النتيجة والخطوة التالية"}
+          </p>
+        </section>
+      ) : null}
       {["delivered", "settled"].includes(order.status) ? (
         <section className="micro-result-card" data-result={order.resultStatus}>
           <span>{result}</span>
@@ -1395,6 +1484,143 @@ export default function OrderDetail() {
           </small>
         </summary>
         <div className="micro-additional-details-body">
+          {/* ORD-003: الربح التقديري قبل التسليم — موسوم «تقديري» دائمًا، ولا
+              يدخل النتائج الرسمية؛ والناقص يُعرض ناقصًا لا صفرًا كاذبًا. */}
+          {!["delivered", "settled"].includes(order.status) ? (
+            <section className="micro-form-card" aria-label="الربح التقديري" data-testid="estimated-result-panel">
+              <h2 className="micro-section-title">الربح التقديري</h2>
+              <p className="micro-muted-copy">
+                {orderResultBreakdown(order).incompleteReasons.length > 0
+                  ? orderResultBreakdown(order).incompleteReasons.join(" · ")
+                  : order.costSnapshot.knowledgeState === "estimated" ||
+                      order.costSnapshot.knowledgeState === "known"
+                    ? `تقديري: السعر ${formatMoneyMinor(
+                        orderResultBreakdown(order).revenueMinor ?? order.agreedPriceMinor,
+                      )} − التكلفة ${formatMoneyMinor(
+                        orderResultBreakdown(order).costMinor ?? order.costSnapshot.plannedCostMinor,
+                      )} = ${
+                        orderResultBreakdown(order).resultMinor !== null
+                          ? formatMoneyMinor(orderResultBreakdown(order).resultMinor ?? 0)
+                          : "غير مكتمل"
+                      } د.أ`
+                    : "التكلفة غير مسجلة بعد — لا يُحتسب ربح كاذب بصفر"}
+              </p>
+              <p className="micro-muted-copy">
+                الرقم أعلاه تقدير للاستئناس فقط؛ لا يُضاف إلى أي نتيجة رسمية إلا بعد تأكيد مكوناتها عند التسليم.
+              </p>
+            </section>
+          ) : null}
+          {/* ORD-003: شروط النقل والتوصيل — عرض دائم، وتحرير قبل التسليم فقط
+              (بعده الباب الموثق الوحيد هو عكس التسليم). */}
+          <section className="micro-form-card" aria-label="النقل والتوصيل" data-testid="delivery-terms-panel">
+            <h2 className="micro-section-title">النقل والتوصيل</h2>
+            {order.deliveryTerms ? (
+              <p className="micro-muted-copy">
+                {`مسؤولية الكلفة: ${DELIVERY_RESPONSIBILITY_AR[order.deliveryTerms.responsibility]}`}
+                {order.deliveryTerms.feeChargedMinor !== null && !order.deliveryTerms.feeIncludedInPrice
+                  ? ` · أجرة محصلة عبر المشروع: ${formatMoneyMinor(order.deliveryTerms.feeChargedMinor)} د.أ`
+                  : ""}
+                {order.deliveryTerms.costPaidMinor !== null && !order.deliveryTerms.costIncludedInProductCost
+                  ? ` · كلفة نقل دفعها المشروع: ${formatMoneyMinor(order.deliveryTerms.costPaidMinor)} د.أ`
+                  : ""}
+                {order.deliveryTerms.feeIncludedInPrice ? " · الأجرة محتواة في السعر" : ""}
+                {order.deliveryTerms.costIncludedInProductCost ? " · الكلفة محتواة في تكلفة المنتج" : ""}
+              </p>
+            ) : (
+              <p className="micro-muted-copy">لا شروط نقل وتوصيل مسجلة لهذا الطلب.</p>
+            )}
+            {preDeliveryStatuses.includes(order.status) ? (
+              termsPanelOpen ? (
+                <div className="micro-subsection">
+                  <label className="micro-field">
+                    <span>من يدفع كلفة النقل والتوصيل؟</span>
+                    <select
+                      value={termsResponsibility}
+                      aria-label="تعديل مسؤولية كلفة النقل والتوصيل"
+                      onChange={event => setTermsResponsibility(event.target.value as DeliveryResponsibility)}
+                    >
+                      <option value="project_pays">المشروع يدفع للناقل</option>
+                      <option value="customer_pays_project">الزبون يدفع للمشروع</option>
+                      <option value="customer_pays_courier">الزبون يدفع للناقل مباشرة</option>
+                      <option value="shared">تكلفة مشتركة</option>
+                    </select>
+                  </label>
+                  {termsResponsibility === "customer_pays_courier" ? (
+                    <p className="micro-muted-copy">معلومة سياقية فقط — ليست كاش مشروع ولا إيرادًا ولا مصروفًا.</p>
+                  ) : null}
+                  {termsResponsibility === "customer_pays_project" || termsResponsibility === "shared" ? (
+                    <>
+                      <label className="micro-field">
+                        <span>أجرة التوصيل عبر المشروع (د.أ)</span>
+                        <EnglishNumberInput
+                          value={termsFeeMinor}
+                          kind="money"
+                          min="0"
+                          allowEmpty
+                          aria-label="تعديل أجرة التوصيل عبر المشروع"
+                          onNumericChange={setTermsFeeMinor}
+                          onEmptyChange={() => setTermsFeeMinor(null)}
+                          onTextValidityChange={setValidTermsFee}
+                        />
+                      </label>
+                      <label className="micro-confirm-warning">
+                        <input
+                          type="checkbox"
+                          checked={termsFeeInPrice}
+                          onChange={event => setTermsFeeInPrice(event.target.checked)}
+                        />
+                        <span>الأجرة محتواة أصلًا داخل السعر — لا تُضاف مرة ثانية.</span>
+                      </label>
+                    </>
+                  ) : null}
+                  {termsResponsibility !== "customer_pays_courier" ? (
+                    <>
+                      <label className="micro-field">
+                        <span>كلفة النقل التي دفعها المشروع (د.أ)</span>
+                        <EnglishNumberInput
+                          value={termsCostMinor}
+                          kind="money"
+                          min="0"
+                          allowEmpty
+                          aria-label="تعديل كلفة النقل المدفوعة من المشروع"
+                          onNumericChange={setTermsCostMinor}
+                          onEmptyChange={() => setTermsCostMinor(null)}
+                          onTextValidityChange={setValidTermsCost}
+                        />
+                      </label>
+                      <label className="micro-confirm-warning">
+                        <input
+                          type="checkbox"
+                          checked={termsCostInProduct}
+                          onChange={event => setTermsCostInProduct(event.target.checked)}
+                        />
+                        <span>الكلفة محتواة أصلًا داخل تكلفة المنتج — لا تُطرح مرة ثانية.</span>
+                      </label>
+                    </>
+                  ) : null}
+                  <div className="micro-form-actions">
+                    <Button
+                      action="save"
+                      disabled={isActing}
+                      onClick={() => {
+                        void saveDeliveryTerms();
+                      }}
+                    >
+                      {isActing ? "جارٍ حفظ شروط النقل…" : "حفظ شروط النقل"}
+                    </Button>
+                    <Button action="secondary" onClick={() => setTermsPanelOpen(false)}>
+                      إلغاء
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button className="micro-text-action" type="button" onClick={() => setTermsPanelOpen(true)}>
+                  {order.deliveryTerms ? "تعديل شروط النقل والتوصيل" : "تسجيل شروط النقل والتوصيل"}
+                </button>
+              )
+            ) : null}
+          </section>
+
           {sourceEstimate ? (
             <section className="micro-form-card" aria-label="المصدر: تقدير">
               <h2 className="micro-section-title">المصدر: تقدير</h2>

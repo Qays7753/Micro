@@ -176,9 +176,11 @@ describe("G3 delivery surfaces — review before commitment", () => {
     expect(screen.getByText(/المتاح: 10 متر/)).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "أكّد التسليم" }));
-    await waitFor(() => expect(screen.getByText("تم تسجيل التسليم")).toBeTruthy());
-    expect(screen.getByText(/حركات استهلاك مخزون: 1/)).toBeTruthy();
-    expect(screen.getByText(/لم يُسجَّل قبض جديد عند التسليم/)).toBeTruthy();
+    /* ORD-002 (2026-09-16): إيصال التسليم المعتمد — العنوان وحقوله الموثقة. */
+    await waitFor(() => expect(screen.getByText("تم تسليم الطلب بنجاح")).toBeTruthy());
+    expect(screen.getByText(/أثر المخزون: 1 حركة استهلاك/)).toBeTruthy();
+    expect(screen.getByText(/المقبوض عند التسليم: غير مسجل/)).toBeTruthy();
+    expect(screen.getByText(/وجهة الكاش: لم يُسجَّل قبض جديد/)).toBeTruthy();
 
     /* الحكم الحاسم: حركة واحدة مربوطة بالطلب، ولا حدث مالي مستقل، وإيراد مرة واحدة. */
     const movements = await store.listInventoryMovements();

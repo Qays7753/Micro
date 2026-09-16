@@ -4,14 +4,18 @@ import type {
   CraftOrder,
   CreateCraftOrderInput,
   DeliveryConsumptionNoteInput,
+  DeliveryResponsibility,
   DepositSettlementDecision,
   KnowledgeGap,
   KnowledgeState,
   MaterialCostItem,
+  OrderDeliveryTerms,
   OrderEvent,
   OrderEventType,
+  OrderResultBreakdown,
   OrderStatus,
   OrderTransitionInput,
+  RecordDeliveryTermsInput,
   ResultStatus,
   RetainedDepositMeaning,
   ReviseAgreedPriceInput,
@@ -55,6 +59,15 @@ const ORDER_STATUS_AR: Record<OrderStatus, string> = {
   postponed: "مؤجل",
   cancelled: "ملغى",
   needs_review: "يحتاج مراجعة",
+};
+
+/* ORD-003: أسماء عربية معتمدة لمسؤولية النقل والتوصيل — مصطلح واحد لكل
+ * خيار في كل الأسطح (عقد المصطلحات). */
+export const DELIVERY_RESPONSIBILITY_AR: Record<DeliveryResponsibility, string> = {
+  project_pays: "المشروع يدفع للناقل",
+  customer_pays_project: "الزبون يدفع للمشروع",
+  customer_pays_courier: "الزبون يدفع للناقل مباشرة",
+  shared: "تكلفة مشتركة بين المشروع والزبون",
 };
 
 function assertPositiveInteger(value: number, field: string): void {
@@ -330,7 +343,9 @@ function appendStatusChanged(
 }
 
 function withSettlement(order: CraftOrder): CraftOrder {
-  const receivableMinor = Math.max(order.agreedPriceMinor - order.collectedMinor, 0);
+  /* ORD-003: قيمة الطلب القابلة للتحصيل تشمل أجرة التوصيل المسجلة عبر
+   * المشروع — الأجرة غير المسجلة لا تُخترع فتبقى القيمة على السعر وحده. */
+  const receivableMinor = Math.max(orderValueMinor(order) - order.collectedMinor, 0);
   const settlementStatus =
     order.collectedMinor === 0 ? "unpaid" : receivableMinor === 0 ? "paid" : "partially_paid";
 
@@ -346,6 +361,122 @@ function resultStatusForKnowledge(knowledgeState: KnowledgeState): ResultStatus 
     return "review_required";
   }
   return "estimated";
+}
+
+/* ── ORD-003: مسؤولية النقل والتوصيل ونتيجة الطلب بمكوناتها ── */
+
+/* أجرة التوصيل القابلة للفاتورة عبر المشروع — تُضاف إلى قيمة الطلب مرة
+ * واحدة، فقط عندما يدفع الزبون للمشروع ولم تكن محتواة في سعر البيع.
+ * null = مطلوبة لكنها غير مسجلة بعد؛ لا يُخترع لها صفر. */
+function billableDeliveryFeeMinor(order: CraftOrder): MoneyMinor | null {
+  const terms = order.deliveryTerms ?? null;
+  if (!terms) return 0;
+  if (terms.responsibility !== "customer_pays_project" && terms.responsibility !== "shared") return 0;
+  if (terms.feeIncludedInPrice) return 0;
+  return terms.feeChargedMinor;
+}
+
+/* كلفة النقل التي تحملها المشروع — تدخل في النتيجة مرة واحدة، فقط عندما
+ * لم تكن محتواة أصلًا داخل تكلفة المنتج. الزبون يدفع للناقل مباشرة
+ * = معلومة سياقية فقط: لا كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة. */
+function projectDeliveryCostMinor(order: CraftOrder): MoneyMinor | null {
+  const terms = order.deliveryTerms ?? null;
+  if (!terms) return 0;
+  if (terms.responsibility === "customer_pays_courier") return 0;
+  if (terms.costIncludedInProductCost) return 0;
+  return terms.costPaidMinor;
+}
+
+/* قيمة الطلب القابلة للتحصيل: السعر المتفق عليه + أجرة التوصيل المسجلة
+ * عبر المشروع — الأساس الموحد لسقوف القبض والمتبقي. */
+export function orderValueMinor(order: CraftOrder): MoneyMinor {
+  const fee = billableDeliveryFeeMinor(order);
+  return order.agreedPriceMinor + (fee ?? 0);
+}
+
+export function orderResultBreakdown(order: CraftOrder): OrderResultBreakdown {
+  const fee = billableDeliveryFeeMinor(order);
+  const deliveryCost = projectDeliveryCostMinor(order);
+  const incompleteReasons: string[] = [];
+  if (fee === null) incompleteReasons.push("أجرة التوصيل عبر المشروع غير مسجلة بعد.");
+  if (deliveryCost === null) incompleteReasons.push("كلفة النقل التي دفعها المشروع غير مسجلة بعد.");
+  const priceMinor = order.agreedPriceMinor;
+  const productCostMinor = order.costSnapshot.plannedCostMinor;
+  const revenueMinor = fee === null ? null : priceMinor + fee;
+  const costMinor = deliveryCost === null ? null : productCostMinor + deliveryCost;
+  const resultMinor = revenueMinor === null || costMinor === null ? null : revenueMinor - costMinor;
+  return {
+    priceMinor,
+    billableDeliveryFeeMinor: fee,
+    productCostMinor,
+    projectDeliveryCostMinor: deliveryCost,
+    revenueMinor,
+    costMinor,
+    resultMinor,
+    incompleteReasons: Object.freeze(incompleteReasons) as readonly string[],
+  };
+}
+
+function assertNonNegativeMinor(value: MoneyMinor | null, label: string): MoneyMinor | null {
+  if (value === null) return null;
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`${label} يجب أن تكون رقمًا صحيحًا غير سالب — الصفر قيمة صريحة صحيحة.`);
+  }
+  return value;
+}
+
+/* ORD-003: تحقق شروط النقل — المبالغ غير السالبة والتوافق مع المسؤولية؛
+ * الحارس منفصل ليظل مسار التسجيل نفسه بسيطًا وقابلًا للقراءة. */
+function buildDeliveryTerms(input: RecordDeliveryTermsInput): OrderDeliveryTerms {
+  const feeChargedMinor = assertNonNegativeMinor(input.feeChargedMinor, "أجرة التوصيل عبر المشروع");
+  const costPaidMinor = assertNonNegativeMinor(input.costPaidMinor, "كلفة النقل المدفوعة من المشروع");
+  const projectShareMinor = assertNonNegativeMinor(input.projectShareMinor, "حصة المشروع من النقل");
+  const customerShareMinor = assertNonNegativeMinor(input.customerShareMinor, "حصة الزبون من النقل");
+  const feeAppliesToProject =
+    input.responsibility === "customer_pays_project" || input.responsibility === "shared";
+  if (!feeAppliesToProject && feeChargedMinor !== null) {
+    throw new Error("أجرة التوصيل عبر المشروع تُسجَّل فقط عندما يدفع الزبون للمشروع أو عند التكلفة المشتركة.");
+  }
+  if (input.responsibility === "customer_pays_courier" && (costPaidMinor !== null || projectShareMinor !== null)) {
+    throw new Error("الزبون يدفع للناقل مباشرة: معلومة سياقية فقط — لا تُسجَّل كلفة على المشروع.");
+  }
+  if (input.responsibility !== "shared" && (projectShareMinor !== null || customerShareMinor !== null)) {
+    throw new Error("الحصص المشتركة تُسجَّل فقط عند اختيار التكلفة المشتركة.");
+  }
+  return {
+    responsibility: input.responsibility,
+    feeIncludedInPrice: input.feeIncludedInPrice,
+    costIncludedInProductCost: input.costIncludedInProductCost,
+    feeChargedMinor,
+    costPaidMinor,
+    projectShareMinor,
+    customerShareMinor,
+  };
+}
+
+export function recordDeliveryTerms(order: CraftOrder, input: RecordDeliveryTermsInput): CraftOrder {
+  assertIdempotencyKey(input.idempotencyKey);
+  if (eventExists(order, input.idempotencyKey, "delivery_terms_recorded")) return order;
+  assertNotLockedDeliveredReview(order);
+  if (order.status === "delivered" || order.status === "settled" || order.status === "cancelled") {
+    throw new Error(
+      "شروط النقل والتوصيل تُسجَّل قبل التسليم؛ بعد التسليم التصحيح الموثق الوحيد هو عكس التسليم.",
+    );
+  }
+  const terms = buildDeliveryTerms(input);
+  /* الأجرة المسجلة تدخل قيمة الطلب القابلة للتحصيل — يُعاد اشتقاق المتبقي
+   * والتسوية من القيمة الموحدة، والقبض القائم لا يُمس. */
+  const next = withSettlement({ ...order, deliveryTerms: terms });
+  const termsEvent: OrderEvent = {
+    id: `${order.id}:${input.idempotencyKey}`,
+    type: "delivery_terms_recorded",
+    idempotencyKey: input.idempotencyKey,
+    createdAt: input.createdAt,
+    note: `مسؤولية النقل: ${DELIVERY_RESPONSIBILITY_AR[input.responsibility]}`,
+  };
+  if (terms.feeChargedMinor !== null) termsEvent.amountMinor = terms.feeChargedMinor;
+  else if (terms.costPaidMinor !== null) termsEvent.amountMinor = terms.costPaidMinor;
+  return appendEvent(next, termsEvent);
 }
 
 export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
@@ -396,6 +527,41 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
   });
 }
 
+/* الفعل التالي لحالة الطلب — خريطة واحدة على مستوى الوحدة. */
+function nextActionForStatus(order: CraftOrder, to: OrderStatus): string {
+  const deliveredAction =
+    order.receivableMinor > 0 ? "حصّل المتبقي أو سجل الدين" : "راجع النتيجة والخطوة التالية";
+  const byStatus: Record<OrderStatus, string> = {
+    draft: "سجل الاتفاق أو راجع المواصفات",
+    provisional_agreement: "أكد السعر والموعد",
+    confirmed: "ابدأ التنفيذ",
+    in_progress: "سجل الجاهزية أو سبب التأجيل",
+    ready: "سجل التسليم",
+    delivered: deliveredAction,
+    settled: "راجع النتيجة والخطوة التالية",
+    postponed: "حدد موعد متابعة",
+    cancelled: "راجع إغلاق الطلب وتسوية العربون إن وجدت",
+    needs_review: "راجع التعارض أو النقص",
+  };
+  return byStatus[to];
+}
+
+/* ORD-003: الإيراد المعروف عند التسليم/التسوية يشمل أجرة التوصيل المسجلة عبر
+ * المشروع، ونتيجة الطلب تُحتسب من المكونات المكتملة — الناقص معلن لا صفر. */
+function recognizeDeliveryValues(order: CraftOrder): CraftOrder {
+  const breakdown = orderResultBreakdown(order);
+  const knowledgeStatus = resultStatusForKnowledge(order.costSnapshot.knowledgeState);
+  const resultStatus = breakdown.incompleteReasons.length > 0 ? "incomplete" : knowledgeStatus;
+  const profitIndicatorMinor = resultStatus === "final" ? breakdown.resultMinor : null;
+  return {
+    ...order,
+    recognizedRevenueMinor: breakdown.revenueMinor ?? order.agreedPriceMinor,
+    recognizedCostMinor: order.costSnapshot.plannedCostMinor,
+    profitIndicatorMinor,
+    resultStatus,
+  };
+}
+
 export function transitionOrder(order: CraftOrder, input: OrderTransitionInput): CraftOrder {
   assertIdempotencyKey(input.idempotencyKey);
   if (eventExists(order, input.idempotencyKey, "status_changed")) return order;
@@ -409,25 +575,10 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
     throw new Error("لا تُسوّى الطلب إلا بمتبقٍ صفري أو دين مسجل.");
   }
 
-  const deliveredAction =
-    order.receivableMinor > 0 ? "حصّل المتبقي أو سجل الدين" : "راجع النتيجة والخطوة التالية";
-  const nextActionByStatus: Record<OrderStatus, string> = {
-    draft: "سجل الاتفاق أو راجع المواصفات",
-    provisional_agreement: "أكد السعر والموعد",
-    confirmed: "ابدأ التنفيذ",
-    in_progress: "سجل الجاهزية أو سبب التأجيل",
-    ready: "سجل التسليم",
-    delivered: deliveredAction,
-    settled: "راجع النتيجة والخطوة التالية",
-    postponed: "حدد موعد متابعة",
-    cancelled: "راجع إغلاق الطلب وتسوية العربون إن وجدت",
-    needs_review: "راجع التعارض أو النقص",
-  };
-
   const next = {
     ...order,
     status: input.to,
-    nextAction: nextActionByStatus[input.to],
+    nextAction: nextActionForStatus(order, input.to),
   };
   const reviewSafe =
     input.to === "needs_review"
@@ -436,20 +587,7 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
 
   const recognized =
     input.to === "delivered" || input.to === "settled"
-      ? (() => {
-          const resultStatus = resultStatusForKnowledge(reviewSafe.costSnapshot.knowledgeState);
-          const profitIndicatorMinor =
-            resultStatus === "final"
-              ? reviewSafe.agreedPriceMinor - reviewSafe.costSnapshot.plannedCostMinor
-              : null;
-          return {
-            ...reviewSafe,
-            recognizedRevenueMinor: reviewSafe.agreedPriceMinor,
-            recognizedCostMinor: reviewSafe.costSnapshot.plannedCostMinor,
-            profitIndicatorMinor,
-            resultStatus,
-          };
-        })()
+      ? recognizeDeliveryValues(reviewSafe)
       : reviewSafe;
 
   const shouldSettleAfterDelivery =
@@ -540,7 +678,7 @@ export function collectDeposit(
     throw new Error(`لا يمكن تسجيل العربون والطلب في حالة «${ORDER_STATUS_AR[order.status]}».`);
   }
   assertPositiveInteger(amountMinor, "العربون");
-  if (amountMinor + order.collectedMinor > order.agreedPriceMinor) {
+  if (amountMinor + order.collectedMinor > orderValueMinor(order)) {
     throw new Error("العربون لا يمكن أن يتجاوز السعر المتفق عليه.");
   }
 
@@ -573,7 +711,7 @@ export function collectRemaining(
     throw new Error("تحصيل المتبقي يتطلب طلبًا مسلّمًا.");
   }
   assertPositiveInteger(amountMinor, "مبلغ التحصيل");
-  if (amountMinor + order.collectedMinor > order.agreedPriceMinor) {
+  if (amountMinor + order.collectedMinor > orderValueMinor(order)) {
     throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
   }
 
@@ -711,8 +849,14 @@ export function reviseAgreedPrice(order: CraftOrder, input: ReviseAgreedPriceInp
   if (input.newPriceMinor < order.collectedMinor)
     throw new Error("السعر الجديد لا يمكن أن يقل عمّا قُبض فعليًا (بما فيه العربون).");
 
-  const receivableMinor = Math.max(input.newPriceMinor - order.collectedMinor, 0);
+  const receivableMinor = Math.max(
+    input.newPriceMinor + (billableDeliveryFeeMinor(order) ?? 0) - order.collectedMinor,
+    0,
+  );
   const wasDelivered = hasDeliveredEvent(order);
+  /* ORD-003: الإيراد المعروف بعد تعديل السعر يتبع القيمة الجديدة + أجرة
+   * التوصيل المسجلة عبر المشروع؛ والنتيجة تُحتسب من المكونات المكتملة. */
+  const revisedBreakdown = orderResultBreakdown({ ...order, agreedPriceMinor: input.newPriceMinor });
   const next: CraftOrder = {
     ...order,
     agreedPriceMinor: input.newPriceMinor,
@@ -724,10 +868,12 @@ export function reviseAgreedPrice(order: CraftOrder, input: ReviseAgreedPriceInp
           ? "تابع تحصيل الدين وفق السعر المعدل"
           : "حصّل المتبقي أو سجّل الدين وفق السعر المعدل"
         : order.nextAction,
-    recognizedRevenueMinor: wasDelivered ? input.newPriceMinor : order.recognizedRevenueMinor,
+    recognizedRevenueMinor: wasDelivered
+      ? (revisedBreakdown.revenueMinor ?? input.newPriceMinor)
+      : order.recognizedRevenueMinor,
     profitIndicatorMinor:
       wasDelivered && order.resultStatus === "final"
-        ? input.newPriceMinor - order.recognizedCostMinor
+        ? revisedBreakdown.resultMinor
         : order.profitIndicatorMinor,
   };
   return appendEvent(next, {
