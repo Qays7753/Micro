@@ -18,7 +18,8 @@ export type SettingsGuidedOpeningSectionProps = {
   guidedPreview: GuidedOpeningImportPreview | null;
   setGuidedPreview: Dispatch<SetStateAction<GuidedOpeningImportPreview | null>>;
   currentSummary: TransferSummary | null;
-  restoreCheck: { overall: "PASS" | "WARN" | "FAIL"; note: string } | null;
+  /* TOOL-001: «غير متاح» حالة صادقة مستقلة — الاتحاد الكامل لحالات الفحص. */
+  restoreCheck: { overall: "PASS" | "WARN" | "UNAVAILABLE" | "FAIL"; note: string } | null;
   isWorking: boolean;
   preview: TransferPreview | null;
   setPreview: Dispatch<SetStateAction<TransferPreview | null>>;

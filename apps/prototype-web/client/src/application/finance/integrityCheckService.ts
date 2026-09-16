@@ -27,7 +27,9 @@ import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
 
-export type IntegrityCheckStatus = "PASS" | "WARN" | "FAIL";
+/* TOOL-001 (قرار المالك ٢٠٢٦-٠٩-١٦): «غير متاح» حالة صادقة مستقلة — تعذّر
+ * القراءة ليس خللًا في الأرقام ولا نجاحًا؛ لا يُحتسب نجاحًا في الخلاصة أبدًا. */
+export type IntegrityCheckStatus = "PASS" | "WARN" | "UNAVAILABLE" | "FAIL";
 export type IntegrityCheckId =
   | "MIC-1"
   | "MIC-2"
@@ -80,6 +82,7 @@ const FAIL_TEXT = "خلل";
 export const integrityStatusWord: Record<IntegrityCheckStatus, string> = {
   PASS: PASS_TEXT,
   WARN: WARN_TEXT,
+  UNAVAILABLE: "غير متاح",
   FAIL: FAIL_TEXT,
 };
 
@@ -92,15 +95,32 @@ export class IntegrityCheckService {
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
+  /** TOOL-001: عدد الفحوص المسجلة يُشتق من السجل نفسه — إضافة فحص أو إزالته
+   * تحدّث العدّ الظاهر في الواجهة بلا تعديل نص يدوي. */
+  registeredCheckCount(): number {
+    return Object.keys(INTEGRITY_TITLES).length;
+  }
+
   /** الفحص كله قراءة — لا يكتب ولا يصلح؛ إعادة التشغيل قراءة جديدة كل مرة. */
   async run(): Promise<IntegrityCheckReport> {
     const to = ammanDate(this.now());
     const from = `${to.slice(0, 7)}-01`;
     const eventsResult = await this.store.listFinancialEvents();
     if (!eventsResult.ok)
-      return this.report(from, to, [
-        this.fail("MIC-4", "تعذر قراءة سجل الأحداث المالية — أعد المحاولة.", []),
-      ]);
+      /* TOOL-001: تعذّر القراءة لا يقلّص القائمة — كل الفحوص المسجلة تظهر
+       * «غير متاح» كي يوافق الطول العدّ المسجل، ولا يبدو أي فحص ناجحًا. */
+      return this.report(
+        from,
+        to,
+        (Object.keys(INTEGRITY_TITLES) as IntegrityCheckId[]).map(id =>
+          this.unavailable(
+            id,
+            id === "MIC-4"
+              ? "تعذر قراءة سجل الأحداث المالية — أعد المحاولة."
+              : "تعذّرت قراءة مصدر هذا الفحص — أعد المحاولة.",
+          ),
+        ),
+      );
     const events = eventsResult.value;
 
     /* MIC-1 أولًا (يستعمل القارئ الكنسي) ثم بقية الفحوص — قراءات متسلسلة كي لا
@@ -151,6 +171,8 @@ export class IntegrityCheckService {
       ? "FAIL"
       : checks.some(check => check.status === "WARN")
         ? "WARN"
+        : checks.some(check => check.status === "UNAVAILABLE")
+        ? "UNAVAILABLE"
         : "PASS";
     return {
       runAt: this.now(),
@@ -181,7 +203,7 @@ export class IntegrityCheckService {
     const insights = await this.projectFinance.readFinancialInsights(from, to);
     if (!reader.ok || !statement.ok || !insights.ok)
       return {
-        result: this.fail("MIC-1", "تعذر قراءة نتيجة الفترة من السجلات المحلية — أعد المحاولة.", []),
+        result: this.unavailable("MIC-1", "تعذر قراءة نتيجة الفترة من السجلات المحلية — أعد المحاولة."),
         readerResultMinor: null,
         readerStatus: "invalid",
         readerReasons: [],
@@ -237,7 +259,7 @@ export class IntegrityCheckService {
       this.cashContinuity.entries(),
     ]);
     if (!overview.ok || !entriesResult.ok)
-      return this.fail("MIC-2", "تعذر قراءة محافظ الكاش — أعد المحاولة.", []);
+      return this.unavailable("MIC-2", "تعذر قراءة محافظ الكاش — أعد المحاولة.");
     const entries = entriesResult.value;
     const structural: string[] = [];
     const review: string[] = [];
@@ -461,7 +483,7 @@ export class IntegrityCheckService {
   private async checkAmanahReadBack(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
     const amanahMinor = summarizeFinancialEvents(events).amanahMinor;
     const position = await this.projectFinance.readPosition();
-    if (!position.ok) return this.fail("MIC-7", "تعذر قراءة الموقف المالي — أعد المحاولة.", []);
+    if (!position.ok) return this.unavailable("MIC-7", "تعذر قراءة الموقف المالي — أعد المحاولة.");
     if (amanahMinor < 0)
       return this.fail(
         "MIC-7",
@@ -584,7 +606,7 @@ export class IntegrityCheckService {
       !purchasesResult.ok ||
       !ordersResult.ok
     )
-      return this.fail("MIC-8", "تعذر قراءة سجل المخزون والمواد — أعد المحاولة.", []);
+      return this.unavailable("MIC-8", "تعذر قراءة سجل المخزون والمواد — أعد المحاولة.");
     const materials = materialsResult.value;
     const movements = movementsResult.value;
     const shortages = shortagesResult.value;
@@ -687,7 +709,7 @@ export class IntegrityCheckService {
    * مقابل الدفتري، والتخلص/الشطب مقابل حالة السجل. كل عدم تطابق خلل صريح. */
   private async checkAssetIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
     const assetsResult = await this.store.listAssets();
-    if (!assetsResult.ok) return this.fail("MIC-10", "تعذر قراءة سجل الأصول — أعد المحاولة.", []);
+    if (!assetsResult.ok) return this.unavailable("MIC-10", "تعذر قراءة سجل الأصول — أعد المحاولة.");
     const assets = assetsResult.value;
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
@@ -791,7 +813,7 @@ export class IntegrityCheckService {
    * والسداد مقابل الكاش والدفعات، وتراجع الدفعات مقابل علاماتها. */
   private async checkLoanIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
     const loansResult = await this.store.listLoans();
-    if (!loansResult.ok) return this.fail("MIC-11", "تعذر قراءة سجل القروض — أعد المحاولة.", []);
+    if (!loansResult.ok) return this.unavailable("MIC-11", "تعذر قراءة سجل القروض — أعد المحاولة.");
     const loans = loansResult.value;
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
@@ -875,7 +897,7 @@ export class IntegrityCheckService {
     events: readonly FinancialEvent[],
   ): Promise<IntegrityCheckResult> {
     const ordersResult = await this.store.listOrders();
-    if (!ordersResult.ok) return this.fail("MIC-12", "تعذر قراءة الطلبات المحلية — أعد المحاولة.", []);
+    if (!ordersResult.ok) return this.unavailable("MIC-12", "تعذر قراءة الطلبات المحلية — أعد المحاولة.");
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
     let pendingCount = 0;
@@ -983,7 +1005,7 @@ export class IntegrityCheckService {
       this.store.listInventoryMovements(),
     ]);
     if (!ordersResult.ok || !movementsResult.ok)
-      return this.fail("MIC-13", "تعذر قراءة بيانات استهلاك التسليم — أعد المحاولة.", []);
+      return this.unavailable("MIC-13", "تعذر قراءة بيانات استهلاك التسليم — أعد المحاولة.");
     const movements = movementsResult.value;
     const offenders: string[] = [];
     for (const stored of ordersResult.value) {
@@ -1053,7 +1075,7 @@ export class IntegrityCheckService {
       this.store.listOrders(),
     ]);
     if (!positionResult.ok || !ordersResult.ok)
-      return this.fail("MIC-14", "تعذر قراءة مركز الكاش غير الموزّع — أعد المحاولة.", []);
+      return this.unavailable("MIC-14", "تعذر قراءة مركز الكاش غير الموزّع — أعد المحاولة.");
     const unallocated = positionResult.value.unallocatedCashMinor;
     const needsReview = ordersResult.value.filter(
       stored => stored.order.status === "cancelled" && stored.order.depositSettlement === "needs_review",
@@ -1160,6 +1182,17 @@ export class IntegrityCheckService {
       offenderCount: offenders.length,
       offenderSampleIds: offenders.slice(0, 5),
       deepLink,
+    };
+  }
+
+  /* TOOL-001: فحص تعذّرت قراءة مصدره — غير متاح، لا خلل ولا نجاح؛ والسبب
+   * يظهر كما هو ليُعاد التشغيل بدل افتراض أرقام سليمة أو معطوبة. */
+  private unavailable(id: IntegrityCheckId, detailAr: string): IntegrityCheckResult {
+    return {
+      id,
+      titleAr: INTEGRITY_TITLES[id],
+      status: "UNAVAILABLE",
+      detailAr,
     };
   }
 }

@@ -4,14 +4,14 @@
  * القانوني /tools. الحالة كلمة وأيقونة لا لونًا وحده؛ لا إصلاح تلقائي أبدًا —
  * الفحص يشير والتصحيح مساره الموثق في أسطحه الأصلية.
  */
-import { AlertTriangle, CheckCircle2, OctagonX, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleSlash, OctagonX, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { withFrom } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDateLong } from "@/presentation/formatters";
+import { formatArabicPlural, formatLocalDateLong, formatLocalDateTime } from "@/presentation/formatters";
 import type {
   IntegrityCheckReport,
   IntegrityCheckResult,
@@ -28,8 +28,22 @@ type State =
 const statusMeta: Record<IntegrityCheckStatus, { word: string; Icon: typeof CheckCircle2 }> = {
   PASS: { word: "سليم", Icon: CheckCircle2 },
   WARN: { word: "تحذير", Icon: AlertTriangle },
+  UNAVAILABLE: { word: "غير متاح", Icon: CircleSlash },
   FAIL: { word: "خلل", Icon: OctagonX },
 };
+
+/* TOOL-001: مجاميع الحالات من نتائج التشغيل نفسها — العدّ والقائمة متفقان
+ * دائمًا لأنهما من المصدر نفسه. */
+function countStatusTotals(checks: readonly IntegrityCheckResult[]) {
+  const totals = { pass: 0, warn: 0, unavailable: 0, fail: 0 };
+  for (const check of checks) {
+    if (check.status === "PASS") totals.pass += 1;
+    else if (check.status === "WARN") totals.warn += 1;
+    else if (check.status === "UNAVAILABLE") totals.unavailable += 1;
+    else totals.fail += 1;
+  }
+  return totals;
+}
 
 export default function ToolsIntegrity() {
   const [, navigate] = useLocation();
@@ -63,8 +77,14 @@ export default function ToolsIntegrity() {
         <span className="micro-overline">أداة قراءة</span>
         <h1>فحص سلامة مالي</h1>
         <p>
-          ستّة عشر فحصًا تقرأ أرقامك كما هي — النتيجة والكاش والأحداث والأمانات والمخزون والأصول والقروض
-          والعربون.
+          {`${formatArabicPlural(integrityCheck.registeredCheckCount(), {
+            zero: "لا فحوص مسجلة بعد",
+            one: "فحص واحد يقرأ",
+            two: "فحصان يقرآن",
+            few: "فحوص تقرأ",
+            many: "فحصًا يقرأ",
+            other: "فحصًا يقرأ",
+          })} أرقامك كما هي — النتيجة والكاش والأحداث والأمانات والمخزون والأصول والقروض والعربون.`}
         </p>
       </div>
       <section className="micro-decision-card" aria-label="وعد الفحص">
@@ -86,17 +106,15 @@ export default function ToolsIntegrity() {
                   : state.report.overall === "WARN"
                     ? "توجد ملاحظات للمراجعة"
                     : "يوجد خلل يحتاج تصحيحًا موثقًا";
+              const totals = countStatusTotals(state.report.checks);
               return (
                 <>
                   <strong data-status={state.report.overall}>{`${overall.word} — ${verdictPhrase}`}</strong>
                   <p>
-                    أُجري الفحص{" "}
-                    <bdi dir="ltr">
-                      {formatLocalDateLong(state.report.runAt.slice(0, 10)) ??
-                        state.report.runAt.slice(0, 10)}
-                    </bdi>{" "}
-                    لفترة هذا الشهر حتى اليوم — كل فحص قراءة جديدة.
+                    {`آخر تشغيل مكتمل: ${formatLocalDateTime(state.report.runAt)} — لفترة هذا الشهر حتى اليوم، وكل تشغيل قراءة جديدة.`}
                   </p>
+                  {/* TOOL-001: مجاميع الحالات توافق طول القائمة والعدّ المسجل. */}
+                  <p className="micro-integrity-totals" data-testid="integrity-status-totals">{`${totals.pass} سليم · ${totals.warn} تحذير · ${totals.unavailable} غير متاح · ${totals.fail} خلل — من أصل ${state.report.checks.length} فحصًا مسجلًا.`}</p>
                   {/* المجموعة ٥ (عقد ٣٥): الصحة تعني الاتساق لا الجدوى — فحص
                    * سليم لا يقول إن المشروع رابح؛ وعدًا مطابقًا للسلوك. */}
                   {state.report.overall === "PASS" ? (
@@ -117,7 +135,7 @@ export default function ToolsIntegrity() {
               {state.message}
             </p>
           ) : (
-            <p>لم يُجرَ الفحص بعد — اضغط «افحص الآن» لقراءة الأرقام كما هي.</p>
+            <p>لم تُشغَّل بعد — اضغط «افحص الآن» لقراءة الأرقام كما هي.</p>
           )}
           <div className="micro-form-actions">
             <Button

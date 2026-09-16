@@ -1067,3 +1067,28 @@ describe("integrity checks MIC-10/11 ghost family contexts (المجموعة ٦ 
     expect(mic11?.status).toBe("PASS");
   });
 });
+/* TOOL-001 (2026-09-16): العدّ الديناميكي وحالة «غير متاح» — تعذّر القراءة
+ * ليس خللًا ولا نجاحًا، والعدّ مشتق من السجل فلا رقم مقفولًا في النصوص. */
+describe("TOOL-001 — dynamic count and unavailable honesty", () => {
+  it("registeredCheckCount derives from the registry and matches the executed list length", async () => {
+    const store = new MemoryLocalStore();
+    const service = buildServices(store).integrityCheck;
+    const registered = service.registeredCheckCount();
+    expect(registered).toBeGreaterThanOrEqual(13);
+    const report = await service.run();
+    expect(report.checks).toHaveLength(registered);
+  });
+
+  it("a store that fails reads yields UNAVAILABLE — never a healthy pass nor a false failure count", async () => {
+    const failing = {
+      ...new MemoryLocalStore(),
+      listFinancialEvents: () => Promise.resolve({ ok: false, code: "storage_error" as const }),
+    } as unknown as MemoryLocalStore;
+    const service = buildServices(failing).integrityCheck;
+    const report = await service.run();
+    expect(report.overall).toBe("UNAVAILABLE");
+    const unavailable = report.checks.filter(check => check.status === "UNAVAILABLE");
+    expect(unavailable.length).toBeGreaterThan(0);
+    expect(report.checks).toHaveLength(service.registeredCheckCount());
+  });
+});

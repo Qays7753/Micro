@@ -44,6 +44,8 @@ ARABIC = re.compile(r"[\u0600-\u06FF]")
 MOMENT_LINE = re.compile(
     r"throw new Error|setMessage\(|setError\(|setNotice\(|setSuccess\(|setSaved\(|setReversalError\(|setFeedback\(|message:|word:|message =|aria-invalid|text:|validation\(|setSaveState\("
     r"|failure\(|\bfail\(|\berr\(|invalid_input"
+    # TOOL-001 (2026-09-16): رسائل «تعذّرت القراءة» لحظة تشغيل كإخواتها في fail()
+    r"|\bunavailable\("
 )
 # Loading/progress labels on action buttons appear only while acting.
 LOADING_LINE = re.compile(r"جارٍ|…")
@@ -537,7 +539,9 @@ CAPS: dict[str, int] = {
     # Settings 39 → 51 (2026-09-05, Group 6 audit A1 / SP-01): data-leaving actions
     # (export/import/reset) now require PIN proof once per session — three gate
     # title/description pairs plus dialog copy; security-communication strings only.
-    "Settings": 51,
+    # Settings 51 → 52 (2026-09-16, product-journey package TOOL-001): honest
+    # post-restore note for the new «غير متاح» integrity state.
+    "Settings": 52,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
@@ -556,7 +560,10 @@ CAPS: dict[str, int] = {
     # ToolsIntegrity 34 → 45 (2026-09-04, Group 4 عقد 29): the MIC registry grew by
     # four read-only checks (MIC-10..13: assets, loans, retained deposits, delivery
     # consumption) — their titles and verdict strings render on this reader surface.
-    "ToolsIntegrity": 52,
+    # ToolsIntegrity 52 → 57 (2026-09-16, product-journey package TOOL-001, owner-approved):
+    # dynamic check count via the Arabic plural engine (registry-derived, no
+    # hardcoded number) + the «غير متاح» state in the status vocabulary.
+    "ToolsIntegrity": 57,
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
     "FinanceActivity": 55,
     "SharePreview": 24,

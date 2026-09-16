@@ -151,7 +151,8 @@ export default function SettingsPage() {
 
   /* المجموعة ٥ (عقد ٣٩): حكم فحص السلامة بعد الاستعادة — يُعرض مع رابط التفاصيل. */
   const [restoreCheck, setRestoreCheck] = useState<{
-    overall: "PASS" | "WARN" | "FAIL";
+    /* TOOL-001: «غير متاح» حالة صادقة مستقلة — الاتحاد الكامل لحالات الفحص. */
+    overall: "PASS" | "WARN" | "UNAVAILABLE" | "FAIL";
     note: string;
   } | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
@@ -445,7 +446,9 @@ export default function SettingsPage() {
           ? "فحص السلامة بعد الاستعادة: سليم — الأرقام المستعادة متسقة مع قواعدها (الاتساق لا الجدوى)."
           : check.overall === "WARN"
             ? "فحص السلامة بعد الاستعادة: توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل."
-            : "فحص السلامة بعد الاستعادة: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
+            : check.overall === "UNAVAILABLE"
+              ? "فحص السلامة بعد الاستعادة: تعذّرت قراءة بعض الفحوص — أعد تشغيل الفحص من أدواته."
+              : "فحص السلامة بعد الاستعادة: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
     });
     if (!result.value.profile) navigate("/setup");
   }

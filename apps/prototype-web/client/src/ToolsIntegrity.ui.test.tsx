@@ -56,10 +56,24 @@ describe("ToolsIntegrity page (فحص سلامة مالي)", () => {
 
     /* الحالة الابتدائية: الوعد المعلن + لم يُجرَ الفحص بعد. */
     expect(screen.getByText("يقرأ أرقامك ولا يغيّر شيئًا.")).toBeTruthy();
-    expect(screen.getByText(/لم يُجرَ الفحص بعد/)).toBeTruthy();
+    /* TOOL-001 (2026-09-16): هوية التشغيل قبل أول تنفيذ + عدّ مشتق من السجل. */
+    expect(screen.getByText(/لم تُشغَّل بعد/)).toBeTruthy();
+    const service = services.integrityCheck;
+    const registered = service.registeredCheckCount();
+    expect(registered).toBeGreaterThanOrEqual(13);
+    expect(
+      screen.getByText(new RegExp(`${registered} (فحصًا|فحوص|فحص)`)),
+    ).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
     expect(await screen.findByText(/الأرقام متسقة/)).toBeTruthy();
+    /* TOOL-001: مجاميع الحالات توافق طول القائمة والعدّ المسجل، وتوقيت آخر
+     * تشغيل ظاهر بلحظته لا بلحظة فتح الصفحة. */
+    const totals = screen.getByTestId("integrity-status-totals");
+    const rows = screen.getAllByText(/سليم|تحذير|غير متاح|خلل/).length;
+    expect(rows).toBeGreaterThanOrEqual(registered);
+    expect(totals.textContent).toContain(`من أصل ${registered} فحصًا مسجلًا`);
+    expect(screen.getByText(/آخر تشغيل مكتمل:/)).toBeTruthy();
     /* الحالة كلمة لا لونًا: سليم ظاهرة نصًّا لكل فحص ناجح. */
     expect(screen.getAllByText("سليم").length).toBeGreaterThanOrEqual(5);
     expect(screen.getByText("تطابق نتيجة الفترة")).toBeTruthy();
