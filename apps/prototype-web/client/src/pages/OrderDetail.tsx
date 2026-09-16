@@ -18,6 +18,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
 import { withFrom } from "@/app/navigationContract";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { DELIVERED_REVIEW_LOCK_NOTE } from "@/app/resultFeedback";
@@ -32,12 +33,7 @@ import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import { AgreementContextPanel } from "@/components/order/AgreementContextPanel";
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
 import { OrderEventLog } from "@/components/order/OrderEventLog";
-import {
-  collectionShareDraft,
-  deliveryShareDraft,
-  orderShareDraft,
-  reminderShareDraft,
-} from "@/application/share/shareMessageService";
+import { customerShareDraft } from "@/application/share/shareMessageService";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
@@ -1470,18 +1466,20 @@ export default function OrderDetail() {
           <p>تم التحصيل الكامل وإغلاق الطلب.</p>
         </section>
       ) : null}
-      {/* المجموعة ٥ (عقد ٣٣): مشاركة يدوية مع الزبون — نص من السجل يُعرض ويُعدّل
-       * قبل أن يغادر الجهاز؛ لا إرسال تلقائي ولا قراءة جهات اتصال. */}
+      {/* المجموعة ٥ (عقد ٣٣) + EXE-015 (SHR-001): مشاركة يدوية مع الزبون — نقطة
+       * قرار واحدة (customerShareDraft) تبني النص من السجل المحفوظ وحده:
+       * إشعار القبض من حدث القبض القائم نفسه، وإشعار التسليم بتاريخه الفعلي،
+       * والملغى نصُه إلغاء صادق بلا «جاهز للمتابعة». يُعرض ويُعدّل قبل أن
+       * يغادر الجهاز؛ لا إرسال تلقائي ولا قراءة جهات اتصال. */}
       <div className="micro-form-actions micro-contextual-actions">
         <button
           className="micro-text-action"
           type="button"
           onClick={() => {
-            const draft = ["delivered", "settled"].includes(order.status)
-              ? deliveryShareDraft(stored)
-              : order.receivableMinor > 0
-                ? reminderShareDraft(stored, order.receivableMinor, stored.followUpDate ?? null)
-                : orderShareDraft(stored);
+            const draft = customerShareDraft(
+              stored,
+              deliveredAtIso ? localDateInAmman(deliveredAtIso) : null,
+            );
             navigate(withFrom("/share/preview", `/orders/${stored.id}`), { state: { draft } });
           }}
         >
