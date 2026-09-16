@@ -370,9 +370,30 @@ export default function InventoryMaterials() {
                   </strong>
                   <small>
                     {unitWord(material.unit)} · {savedMovementCountLabel(material.movementCount)}
-                    {material.awaitingReceiptPurchaseCount > 0
-                      ? ` · بانتظار الاستلام: ${formatMoneyMinor(material.awaitingReceiptRemainingMinor)} د.أ من ${material.awaitingReceiptPurchaseCount} شراء`
-                      : ""}
+                    {material.awaitingReceiptPurchaseCount > 0 ? (
+                      <>
+                        {" · "}
+                        {/* EXE-011 (AUD-NEW-08): حالة «بانتظار الاستلام» رحلة
+                            لا نصًا ساكنًا — تفتح الاستلام محضّرة بالمادة نفسها،
+                            والشراء المرجعي يبقى اختيارًا صريحًا (OPS-001). */}
+                        <button
+                          className="micro-text-action"
+                          type="button"
+                          data-testid={`awaiting-receipt-link-${material.name}`}
+                          onClick={() =>
+                            navigate(
+                              withFrom(
+                                `/inventory/movement/receipt?material=${encodeURIComponent(material.id)}`,
+                                "/inventory",
+                              ),
+                            )
+                          }
+                        >
+                          بانتظار الاستلام: {formatMoneyMinor(material.awaitingReceiptRemainingMinor)} د.أ من{" "}
+                          {material.awaitingReceiptPurchaseCount} شراء
+                        </button>
+                      </>
+                    ) : null}
                   </small>
                   <div className="micro-material-knowledge">
                     {openShortages.length > 0 ? (

@@ -82,6 +82,10 @@ export default function SupplierPurchaseEditor() {
   /* وضع التراجع عن دفعة: الدفعة المستهدفة وسببها. */
   const [reversalTarget, setReversalTarget] = useState<SupplierPurchasePayment | null>(null);
   const [reversalReason, setReversalReason] = useState("");
+  /* EXE-011 (PUR-001 / AUD-NEW-08): شراء مرتبط بمادة متتبَّعة — استمرار صريح
+   * إلى رحلة الاستلام بعد الحفظ بدل الخروج الصامت إلى القائمة؛ والعودة إلى
+   * المصدر تبقى فعلًا ثانيًا صريحًا فيحيى عقد ٢٦ قاعدة ٣ بلا حذف. */
+  const [receiptContinuation, setReceiptContinuation] = useState<{ purchaseId: string } | null>(null);
   const idempotencyKey = useRef(`supplier-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   const editKeyRef = useRef(`supplier-edit-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   const reversalKeyRef = useRef(`payment-reversal-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
@@ -328,6 +332,17 @@ export default function SupplierPurchaseEditor() {
     );
     if (result.attributionNote) {
       setFeedback({ tone: "info", text: result.attributionNote, source: "purchase" });
+    }
+    /* EXE-011 (PUR-001 / AUD-NEW-08): حفظ شراء مرتبط بمادة متتبَّعة يعرض
+     * استمرارًا واضحًا إلى الاستلام — الشراء نفسه لا يضيف مخزونًا، والجسر
+     * هو الرحلة الصريحة. المادة غير المتتبَّعة تبقى على مسارها المعلن
+     * (تفعيل المتابعة أولًا) فلا نعرض زر استلام مضللًا. */
+    const linkedMaterialTracked =
+      materialId &&
+      (materialOptions.find(material => material.id === materialId)?.tracking?.status ?? "untracked") !==
+        "untracked";
+    if (!result.reused && result.value.materialId && linkedMaterialTracked) {
+      setReceiptContinuation({ purchaseId: result.value.id });
       return true;
     }
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
@@ -1103,18 +1118,53 @@ export default function SupplierPurchaseEditor() {
                 {feedback.text}
               </p>
             ) : null}
-            <div className="micro-form-actions micro-sticky-save">
-              <Button
-                action="save"
-                block
-
-                disabled={saving}
-                onClick={paymentMode ? savePayment : savePurchase}
+            {receiptContinuation ? (
+              /* EXE-011: استمرار الاستلام يحل مكان الحفظ اللصقي — لا حفظ ثانٍ
+               * بعد النجاح، بل الخطوة التالية في الرحلة أو عودة صريحة للمصدر. */
+              <div
+                className="micro-form-actions micro-sticky-save"
+                data-testid="purchase-receipt-continuation"
               >
-                <Save aria-hidden="true" />
-                {saving ? "جارٍ الحفظ…" : paymentMode ? "حفظ الدفعة" : "حفظ شراء المواد"}
-              </Button>
-            </div>
+                <Button
+                  action="create"
+                  block
+
+                  onClick={() =>
+                    navigate(
+                      withFrom(
+                        `/inventory/movement/receipt?purchase=${encodeURIComponent(receiptContinuation.purchaseId)}`,
+                        `/suppliers/purchase/${encodeURIComponent(receiptContinuation.purchaseId)}`,
+                      ),
+                    )
+                  }
+                >
+                  <PackagePlus aria-hidden="true" /> استلام المخزون
+                </Button>
+                <Button
+                  action="quiet"
+
+                  onClick={() => {
+                    setReceiptContinuation(null);
+                    navigate(returnPath);
+                  }}
+                >
+                  عودة إلى المصدر
+                </Button>
+              </div>
+            ) : (
+              <div className="micro-form-actions micro-sticky-save">
+                <Button
+                  action="save"
+                  block
+
+                  disabled={saving}
+                  onClick={paymentMode ? savePayment : savePurchase}
+                >
+                  <Save aria-hidden="true" />
+                  {saving ? "جارٍ الحفظ…" : paymentMode ? "حفظ الدفعة" : "حفظ شراء المواد"}
+                </Button>
+              </div>
+            )}
           </section>
         </>
       )}
