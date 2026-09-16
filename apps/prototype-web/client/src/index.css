@@ -4356,6 +4356,10 @@ button.micro-month-cell:active {
 /* H01-B: decision-led local control center */
 .micro-home-control-center {
   display: grid;
+  /* NAV-001/MOB-001: الصف القابل للتمرير (أزرار التسجيل السريع) يساهم
+     * بمحتوى أقصى أوسع من الشاشة — minmax(0,1fr) يبقي العمود ضمن الحاوية
+     * فيختفي التمرير الأفقي للصفحة، والتمرير يبقى داخل الصف وحده. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
 }
 .micro-home-heading > p {

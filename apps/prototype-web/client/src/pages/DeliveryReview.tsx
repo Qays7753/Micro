@@ -87,8 +87,12 @@ export default function DeliveryReviewPage() {
 
   const orderId = params.id ?? "";
 
+  /* ORD-002: وصل النجاح بعد أول تسليم يبقى ظاهرًا — تحديث البيانات بعد
+   * الالتزام لا يعيد بناء المراجعة فيطغى «مسلّم سابقًا» على الإيصال. */
+  const receiptShownRef = useRef(false);
   useEffect(() => {
     let active = true;
+    if (receiptShownRef.current) return;
     setState({ phase: "loading" });
     Promise.all([deliveryReview.buildReview(orderId), cashContinuity.overview()]).then(
       ([reviewResult, walletsResult]) => {
@@ -174,6 +178,7 @@ export default function DeliveryReviewPage() {
       return false;
     }
     notifyDataChanged();
+    receiptShownRef.current = true;
     /* ORD-002: إيصال نجاح مخصص بعد أول تسليم — بيانات موثقة فقط: رقم
      * الطلب، لحظة التسليم، الحالة الجديدة، المقبوض، المتبقي، وجهة الكاش،
      * أثر المخزون، والفعل التالي؛ والناقص يبقى «غير مسجل» لا صفرًا. */
