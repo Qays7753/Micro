@@ -8,7 +8,7 @@ import { ArrowRight, BookOpen, Calculator, ClipboardPlus, Trash2 } from "lucide-
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
@@ -202,7 +202,7 @@ export default function EstimateDetail() {
 
             onClick={() =>
               navigate(
-                withFrom(
+                withReturnTo(
                   `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`,
                   detailHref,
                 ),
@@ -215,7 +215,7 @@ export default function EstimateDetail() {
             action="secondary"
 
             onClick={() =>
-              navigate(withFrom(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, detailHref))
+              navigate(withReturnTo(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, detailHref))
             }
           >
             <BookOpen aria-hidden="true" /> عدّل التقدير

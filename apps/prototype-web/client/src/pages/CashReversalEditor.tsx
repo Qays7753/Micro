@@ -3,7 +3,7 @@
 import { ArrowRight, RotateCcw, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
@@ -142,7 +142,7 @@ export default function CashReversalEditor() {
             action="quiet"
 
             onClick={() =>
-              navigate(withFrom(`/orders/${sourceWarning.orderId}`, location.split("?")[0] ?? location))
+              navigate(withReturnTo(`/orders/${sourceWarning.orderId}`, location.split("?")[0] ?? location))
             }
           >
             افتح الطلب

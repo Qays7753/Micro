@@ -6,7 +6,7 @@ import { ArrowRight, PackagePlus, RotateCcw, Save, Undo2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { STALE_CONFLICT_NOTE, STALE_RELOAD_ACTION_LABEL, STALE_RELOADED_NOTE } from "@/app/resultFeedback";
 import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
@@ -662,7 +662,7 @@ export default function SupplierPurchaseEditor() {
 
                     onClick={() =>
                       navigate(
-                        withFrom(
+                        withReturnTo(
                           `/inventory/movement/receipt?purchase=${encodeURIComponent(purchase.id)}`,
                           `/suppliers/purchase/${encodeURIComponent(purchase.id)}`,
                         ),
@@ -1131,7 +1131,7 @@ export default function SupplierPurchaseEditor() {
 
                   onClick={() =>
                     navigate(
-                      withFrom(
+                      withReturnTo(
                         `/inventory/movement/receipt?purchase=${encodeURIComponent(receiptContinuation.purchaseId)}`,
                         `/suppliers/purchase/${encodeURIComponent(receiptContinuation.purchaseId)}`,
                       ),

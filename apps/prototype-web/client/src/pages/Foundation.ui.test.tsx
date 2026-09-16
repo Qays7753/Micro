@@ -108,7 +108,7 @@ describe("Foundation page (decisions 4–8)", () => {
 
     // F-076 + المجموعة ١: بديل الملف باب إلى الاستيراد الموجه — يصل للبطاقة نفسها.
     fireEvent.click(screen.getByRole("button", { name: /فتح الاستيراد/ }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/settings?focus=guided-import&from=%2Ffoundation");
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/settings?focus=guided-import&returnTo=%2Ffoundation");
   });
 
   it("offers both exits and lands on Home without closing the step (decision 7)", async () => {

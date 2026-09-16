@@ -115,7 +115,7 @@ describe("Finance doorway to the integrity surface (المجموعة ١)", () =>
     const doorway = await screen.findByText(/فحص سلامة مالي — اطمن على أرقامك/);
     fireEvent.click(doorway);
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      expect.stringMatching(/\/tools\/integrity\?from=%2Ffinance|\/tools\/integrity\?from=\/finance/),
+      expect.stringMatching(/\/tools\/integrity\?returnTo=%2Ffinance|\/tools\/integrity\?returnTo=\/finance/),
     );
   });
 });

@@ -12,6 +12,7 @@
 import { Activity, ArrowLeft, ArrowRight, Receipt } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
+import { referrerPath, withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -215,11 +216,8 @@ export default function FinanceActivity() {
       </section>
     );
 
-  const referrer = new URLSearchParams(search).get("from");
-  const openSource = (path: string) =>
-    navigate(
-      `${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent(referrer ?? "/finance/activity")}`,
-    );
+  const referrer = referrerPath(search);
+  const openSource = (path: string) => navigate(withReturnTo(path, referrer ?? "/finance/activity"));
 
   return (
     <section className="micro-page micro-activity-page">

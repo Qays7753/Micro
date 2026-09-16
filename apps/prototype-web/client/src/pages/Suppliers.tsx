@@ -3,7 +3,7 @@ import { ArrowRight, Plus, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
@@ -50,7 +50,7 @@ export default function Suppliers() {
         <Button
           action="secondary"
 
-          onClick={() => navigate(withFrom("/finance", "/suppliers"))}
+          onClick={() => navigate(withReturnTo("/finance", "/suppliers"))}
         >
           الوضع المالي
         </Button>
@@ -89,7 +89,7 @@ export default function Suppliers() {
         action="create"
         block
 
-        onClick={() => navigate(withFrom("/suppliers/purchase/new", "/suppliers"))}
+        onClick={() => navigate(withReturnTo("/suppliers/purchase/new", "/suppliers"))}
       >
         <Plus aria-hidden="true" /> سجل شراء مواد
       </Button>
@@ -129,7 +129,7 @@ export default function Suppliers() {
                   action="secondary"
 
                   onClick={() =>
-                    navigate(withFrom(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))
+                    navigate(withReturnTo(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))
                   }
                 >
                   سجل دفعة
@@ -138,7 +138,7 @@ export default function Suppliers() {
                 <Button
                   action="quiet"
 
-                  onClick={() => navigate(withFrom(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
+                  onClick={() => navigate(withReturnTo(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
                 >
                   عدّل/تراجع
                 </Button>
@@ -173,7 +173,7 @@ export default function Suppliers() {
                   <Button
                     action="quiet"
 
-                    onClick={() => navigate(withFrom(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
+                    onClick={() => navigate(withReturnTo(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
                   >
                     السجل والتصحيح
                   </Button>

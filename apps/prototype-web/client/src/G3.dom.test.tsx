@@ -126,7 +126,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
   });
 
   it("calculator: live result with honest unknowns, save with zero financial effect, then next actions", async () => {
-    wouterMocks.location = "/tools/calculator?from=%2Ftools";
+    wouterMocks.location = "/tools/calculator?returnTo=%2Ftools";
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
@@ -160,7 +160,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     const estimateId = list.value[0]!.id;
     fireEvent.click(bridgeButton);
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/orders/draft/new?intent=planned_design&estimate=${estimateId}&from=%2Ftools%2Festimate%2F${estimateId}`,
+      `/orders/draft/new?intent=planned_design&estimate=${estimateId}&returnTo=%2Ftools%2Festimate%2F${estimateId}`,
     );
 
     /* الحكم الحاسم: لا حدث مالي ولا حركة كاش ولا مخزون. */
@@ -176,7 +176,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
   it("estimate detail: inputs/result/qualifier, start-draft bridge preserves the estimate as referrer, edit link keeps context", async () => {
     const saved = await costEstimates.save(estimateInput);
     if (!saved.ok) throw new Error(saved.message);
-    wouterMocks.location = `/tools/estimate/${saved.value.id}?from=%2Ftools`;
+    wouterMocks.location = `/tools/estimate/${saved.value.id}?returnTo=%2Ftools`;
     wouterMocks.params = { id: saved.value.id };
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
@@ -192,19 +192,19 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
 
     fireEvent.click(screen.getByRole("button", { name: "ابدأ مسودة من هذا التقدير" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/orders/draft/new?intent=planned_design&estimate=${saved.value.id}&from=%2Ftools%2Festimate%2F${saved.value.id}`,
+      `/orders/draft/new?intent=planned_design&estimate=${saved.value.id}&returnTo=%2Ftools%2Festimate%2F${saved.value.id}`,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "عدّل التقدير" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/tools/calculator?estimate=${saved.value.id}&from=%2Ftools%2Festimate%2F${saved.value.id}`,
+      `/tools/calculator?estimate=${saved.value.id}&returnTo=%2Ftools%2Festimate%2F${saved.value.id}`,
     );
   });
 
   it("calculator edit mode (?estimate=) loads the original and updates it in place — no duplicate", async () => {
     const saved = await costEstimates.save(estimateInput);
     if (!saved.ok) throw new Error(saved.message);
-    wouterMocks.location = `/tools/calculator?estimate=${saved.value.id}&from=%2Ftools%2Festimate%2F${saved.value.id}`;
+    wouterMocks.location = `/tools/calculator?estimate=${saved.value.id}&returnTo=%2Ftools%2Festimate%2F${saved.value.id}`;
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
@@ -238,10 +238,10 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     render(<G3Harness page={<Tools />} />);
     await screen.findByText("تقديراتي المحفوظة");
     fireEvent.click(screen.getByRole("button", { name: "كيكة مناسبة صغيرة" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(`/tools/estimate/${saved.value.id}?from=%2Ftools`);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(`/tools/estimate/${saved.value.id}?returnTo=%2Ftools`);
     /* بطاقة الحاسبة تفتح المسار العميق وتحفظ أدواتي مصدرًا. */
     fireEvent.click(screen.getByRole("button", { name: /افتح الحاسبة/ }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/tools/calculator?from=%2Ftools");
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/tools/calculator?returnTo=%2Ftools");
   });
 
   it("catalog row sell action opens the sale editor with the product preselected and the catalog as referrer", async () => {
@@ -262,7 +262,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     const sellButton = await screen.findByRole("button", { name: "سجّل بيع هذا المنتج" });
     fireEvent.click(sellButton);
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/direct-sales/new?product=${created.item.id}&from=%2Fcatalog`,
+      `/direct-sales/new?product=${created.item.id}&returnTo=%2Fcatalog`,
     );
   });
 
@@ -286,7 +286,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     const walletSaved = await store.commitCashContinuity(wallet, []);
     if (!walletSaved.ok) throw new Error(walletSaved.message);
 
-    wouterMocks.location = `/direct-sales/new?product=${created.item.id}&from=%2Fcatalog`;
+    wouterMocks.location = `/direct-sales/new?product=${created.item.id}&returnTo=%2Fcatalog`;
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
@@ -350,7 +350,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     const deactivated = await catalog.deactivate(created.item.id);
     if (!deactivated.ok) throw new Error(deactivated.message);
 
-    wouterMocks.location = `/direct-sales/new?product=${created.item.id}&from=%2Fcatalog`;
+    wouterMocks.location = `/direct-sales/new?product=${created.item.id}&returnTo=%2Fcatalog`;
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
@@ -411,7 +411,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     expect(screen.getByText("تعديل السعر بعد الاتفاق")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /افتح التقدير/ }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/tools/estimate/${savedEstimate.value.id}?from=%2Forders%2F${orderId}`,
+      `/tools/estimate/${savedEstimate.value.id}?returnTo=%2Forders%2F${orderId}`,
     );
   });
 });

@@ -4,7 +4,7 @@
 import { ArrowLeft, Boxes, CircleDollarSign, FileUp, Landmark, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
@@ -307,7 +307,7 @@ export default function Foundation() {
         <button
           className="micro-text-action"
           type="button"
-          onClick={() => navigate("/settings?focus=guided-import&from=%2Ffoundation")}
+          onClick={() => navigate(withReturnTo("/settings?focus=guided-import", "/foundation"))}
         >
           فتح الاستيراد <ArrowLeft aria-hidden="true" />
         </button>

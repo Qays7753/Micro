@@ -135,7 +135,7 @@ describe("family-owned events are corrected only through their owner record (FT-
     /* الوصلة تقود لصفحة الأصل مع حفظ المصدر (مُرمَّزًا كقيمة استعلام). */
     fireEvent.click(within(assetRow).getByRole("button", { name: "صحّحه من صفحة الأصل" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/assets/${created.value.asset.id}?from=${encodeURIComponent("/finance")}`,
+      `/assets/${created.value.asset.id}?returnTo=${encodeURIComponent("/finance")}`,
     );
   });
 

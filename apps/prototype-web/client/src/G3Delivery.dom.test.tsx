@@ -214,7 +214,7 @@ describe("G3 delivery surfaces — review before commitment", () => {
     const reviewButton = await screen.findByRole("button", { name: "راجع التسليم وسجّله" });
     fireEvent.click(reviewButton);
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/orders/${orderId}/deliver?from=%2Forders%2F${orderId}`,
+      `/orders/${orderId}/deliver?returnTo=%2Forders%2F${orderId}`,
     );
     /* لا زر تسليم بنقرة واحدة بعد الآن. */
     expect(screen.queryByRole("button", { name: "تم التسليم" })).toBeNull();

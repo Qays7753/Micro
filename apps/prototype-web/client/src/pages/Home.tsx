@@ -26,7 +26,7 @@ import { useQuickRecording } from "@/app/quickRecording";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import type {
   HomeControlCenterViewModel,
   HomeFinancialFact,
@@ -194,7 +194,7 @@ export default function Home() {
     );
   const { model } = state;
   /* المجموعة ١ (§7.2): كل رحلة من الرئيسية تحفظ مصدرها — الرجوع يعود هنا لا لصفحة عامة. */
-  const openFromHome = (href: string) => navigate(withFrom(href, "/"));
+  const openFromHome = (href: string) => navigate(withReturnTo(href, "/"));
   const todayRows = model.priorityBlock
     ? model.todaySection.items.filter(item => item.id !== model.priorityBlock!.id)
     : model.todaySection.items;
@@ -259,14 +259,14 @@ export default function Home() {
               <button
                 className="micro-quick-action"
                 type="button"
-                onClick={() => navigate("/orders/draft/new?intent=customer_order&from=/")}
+                onClick={() => navigate(withReturnTo("/orders/draft/new?intent=customer_order", "/"))}
               >
                 <ClipboardPlus aria-hidden="true" /> طلب من عميل
               </button>
               <button
                 className="micro-quick-action"
                 type="button"
-                onClick={() => navigate("/orders/draft/new?intent=planned_design&from=/")}
+                onClick={() => navigate(withReturnTo("/orders/draft/new?intent=planned_design", "/"))}
               >
                 <FilePen aria-hidden="true" /> مسودة تصميم
               </button>
@@ -275,7 +275,7 @@ export default function Home() {
           <button
             className="micro-quick-action"
             type="button"
-            onClick={() => navigate(withFrom("/collect", "/"))}
+            onClick={() => navigate(withReturnTo("/collect", "/"))}
           >
             <HandCoins aria-hidden="true" /> عربون أو تحصيل
           </button>

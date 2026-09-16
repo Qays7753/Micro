@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -670,7 +670,7 @@ export default function OrderDetail() {
         block
 
         onClick={() => {
-          navigate(withFrom(`/orders/${stored.id}/deliver`, `/orders/${stored.id}`));
+          navigate(withReturnTo(`/orders/${stored.id}/deliver`, `/orders/${stored.id}`));
         }}
       >
         <CheckCircle2 aria-hidden="true" />
@@ -699,7 +699,7 @@ export default function OrderDetail() {
           action="create"
 
           onClick={() => {
-            navigate(withFrom(`/collect?source=order:${stored.id}`, `/orders/${stored.id}`));
+            navigate(withReturnTo(`/collect?source=order:${stored.id}`, `/orders/${stored.id}`));
           }}
         >
           <HandCoins aria-hidden="true" /> تحصيل المتبقي الآن
@@ -1452,7 +1452,7 @@ export default function OrderDetail() {
               action="create"
 
               onClick={() => {
-                navigate(withFrom(`/collect?source=order:${stored.id}`, `/orders/${stored.id}`));
+                navigate(withReturnTo(`/collect?source=order:${stored.id}`, `/orders/${stored.id}`));
               }}
             >
               <HandCoins aria-hidden="true" /> حصّل الدين من ورقة التحصيل
@@ -1480,7 +1480,7 @@ export default function OrderDetail() {
               stored,
               deliveredAtIso ? localDateInAmman(deliveredAtIso) : null,
             );
-            navigate(withFrom("/share/preview", `/orders/${stored.id}`), { state: { draft } });
+            navigate(withReturnTo("/share/preview", `/orders/${stored.id}`), { state: { draft } });
           }}
         >
           <Share2 aria-hidden="true" /> شارك رسالة مع الزبون
@@ -1724,7 +1724,7 @@ export default function OrderDetail() {
                 type="button"
                 onClick={() =>
                   navigate(
-                    withFrom(
+                    withReturnTo(
                       `/tools/estimate/${encodeURIComponent(sourceEstimate.id)}`,
                       `/orders/${stored.id}`,
                     ),
@@ -1750,7 +1750,7 @@ export default function OrderDetail() {
                 state={materialState}
                 onRecord={() =>
                   /* S1-06: نفس نمط فرع التنفيذ — الاستهلاك مرتبط بطلبه لا بأول طلب في القائمة. */
-                  navigate(`/inventory/movement/consume?order=${stored.id}&from=/orders/${stored.id}`)
+                  navigate(withReturnTo(`/inventory/movement/consume?order=${stored.id}`, `/orders/${stored.id}`))
                 }
               />
               <ActualTimePanel

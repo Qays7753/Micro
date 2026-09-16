@@ -144,7 +144,7 @@ describe("EXE-015 — عقد المشاركة الموحد من سطح الطل�
 
     expect(url).toContain("/share/preview");
     /* المصدر محفوظ في الرابط (مرمّزًا كما يليق بمسار داخلي آمن). */
-    expect(decodeURIComponent(url)).toContain(`from=/orders/${stored.id}`);
+    expect(decodeURIComponent(url)).toContain(`returnTo=/orders/${stored.id}`);
     expect(draft.kind).toBe("collection");
     expect(draft.body).toContain("استلمت منك");
     expect(draft.body).toContain("10.00 د.أ");

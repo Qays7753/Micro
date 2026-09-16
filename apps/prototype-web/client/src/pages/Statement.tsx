@@ -6,6 +6,7 @@
 import { ArrowRight, FileText, HandCoins, Landmark, ReceiptText, Share2, WalletCards } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
+import { referrerPath, withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -217,10 +218,10 @@ export default function Statement() {
     );
 
   const { reading } = state;
-  const openWithReferrer = (path: string) =>
-    navigate(`${path}${path.includes("?") ? "&" : "?"}from=${encodeURIComponent("/finance/statement")}`);
-  /* روابط المصادر تعود للكشف عبر ?from= لا للمالي — السياق محفوظ. */
-  const sourceHref = new URLSearchParams(search).get("from");
+  const openWithReferrer = (path: string) => navigate(withReturnTo(path, "/finance/statement"));
+  /* روابط المصادر تعود للكشف عبر وجهة الرجوع (?returnTo — وfrom القديم توافقًا)
+   * لا للمالي — السياق محفوظ (EXE-016). */
+  const sourceHref = referrerPath(search);
 
   /* المجموعة ٥ (عقد ٣٢): تقرير محلي — التنزيل متاح دائمًا، والمشاركة تحسين
    * اختياري عبر نظام المشاركة بالنص وحده؛ التوليد لا يغيّر أي رقم ولا يسجل
@@ -584,7 +585,7 @@ export default function Statement() {
         <Button
           action="secondary"
 
-          onClick={() => navigate(sourceHref ? sourceHref : withFromFallback(returnPath))}
+          onClick={() => navigate(sourceHref ? sourceHref : withStatementFallback(returnPath))}
         >
           <Landmark aria-hidden="true" /> الوضع المالي
         </Button>
@@ -602,7 +603,7 @@ export default function Statement() {
   );
 }
 
-function withFromFallback(returnPath: string): string {
+function withStatementFallback(returnPath: string): string {
   /* رجوع الكشف يمر عبر ?from المحفوظ أو البديل القانوني — لا وجهة ثابتة مفروضة. */
   return returnPath && returnPath !== "/finance/statement" ? returnPath : "/finance";
 }

@@ -3,7 +3,7 @@ import { ArrowRight, CircleDollarSign, HandCoins, RotateCcw, Save, WalletCards }
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -678,7 +678,7 @@ export default function OwnerEntitlement() {
           action="create"
 
           onClick={() =>
-            navigate(withFrom("/finance/new/owner_investment_cash", "/finance/owner-entitlement"))
+            navigate(withReturnTo("/finance/new/owner_investment_cash", "/finance/owner-entitlement"))
           }
         >
           <HandCoins aria-hidden="true" /> أدخل مالًا للمشروع
@@ -686,7 +686,7 @@ export default function OwnerEntitlement() {
         <Button
           action="secondary"
 
-          onClick={() => navigate(withFrom("/finance/withdraw", "/finance/owner-entitlement"))}
+          onClick={() => navigate(withReturnTo("/finance/withdraw", "/finance/owner-entitlement"))}
         >
           <ArrowRight aria-hidden="true" /> اسحب لنفسك
         </Button>
@@ -727,7 +727,7 @@ export default function OwnerEntitlement() {
                     <Button
                       action="quiet"
 
-                      onClick={() => navigate(withFrom(row.deepLink!, "/finance/owner-entitlement"))}
+                      onClick={() => navigate(withReturnTo(row.deepLink!, "/finance/owner-entitlement"))}
                     >
                       افتح الأصل
                     </Button>

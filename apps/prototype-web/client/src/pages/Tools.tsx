@@ -7,7 +7,7 @@
 import { ArrowLeft, Calculator, Layers, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
@@ -211,7 +211,7 @@ export default function Tools() {
                   <button
                     className="micro-text-action"
                     type="button"
-                    onClick={() => navigate(withFrom("/tools/calculator", "/tools"))}
+                    onClick={() => navigate(withReturnTo("/tools/calculator", "/tools"))}
                   >
                     افتح الحاسبة <ArrowLeft aria-hidden="true" />
                   </button>
@@ -243,7 +243,7 @@ export default function Tools() {
                       className="micro-text-action"
                       type="button"
                       onClick={() =>
-                        navigate(withFrom(`/tools/estimate/${encodeURIComponent(estimate.id)}`, "/tools"))
+                        navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(estimate.id)}`, "/tools"))
                       }
                     >
                       <strong>{estimate.title}</strong>
@@ -261,7 +261,7 @@ export default function Tools() {
                         type="button"
                         onClick={() =>
                           navigate(
-                            withFrom(
+                            withReturnTo(
                               `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`,
                               "/tools",
                             ),
@@ -334,7 +334,7 @@ export default function Tools() {
                 <button
                   className="micro-text-action"
                   type="button"
-                  onClick={() => navigate(withFrom(module.href, "/tools"))}
+                  onClick={() => navigate(withReturnTo(module.href, "/tools"))}
                   disabled={module.state === "not_available"}
                 >
                   افتح <ArrowLeft aria-hidden="true" />

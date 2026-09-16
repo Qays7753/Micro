@@ -121,7 +121,7 @@ describe("EXE-011 purchase → receipt continuation (PUR-001 / AUD-NEW-08)", () 
     await waitFor(() => {
       expect(wouterMocks.navigate).toHaveBeenCalledWith(
         expect.stringMatching(
-          /^\/inventory\/movement\/receipt\?purchase=[^&]+&from=%2Fsuppliers%2Fpurchase%2F.+$/,
+          /^\/inventory\/movement\/receipt\?purchase=[^&]+&returnTo=%2Fsuppliers%2Fpurchase%2F.+$/,
         ),
       );
     });
@@ -193,7 +193,7 @@ describe("EXE-011 awaiting-receipt status leads to the journey (InventoryMateria
     /* الرحلة محضّرة بالمادة الصحيحة، والشراء المرجعي يبقى اختيارًا صريحًا. */
     await waitFor(() => {
       expect(wouterMocks.navigate).toHaveBeenCalledWith(
-        `/inventory/movement/receipt?material=${encodeURIComponent(materialId)}&from=%2Finventory`,
+        `/inventory/movement/receipt?material=${encodeURIComponent(materialId)}&returnTo=%2Finventory`,
       );
     });
   });

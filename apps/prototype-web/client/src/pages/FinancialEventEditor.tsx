@@ -8,7 +8,7 @@ import { ArrowRight, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useLocation, useParams } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -760,7 +760,7 @@ export default function FinancialEventEditor() {
       {(type === "owner_investment_cash" || type === "owner_withdrawal_cash") && duplicateWarning ? (
         <CrossModelDuplicateNotice
           duplicate={duplicateWarning}
-          onReviewLedger={() => navigate(withFrom("/finance/owner-entitlement", returnPath))}
+          onReviewLedger={() => navigate(withReturnTo("/finance/owner-entitlement", returnPath))}
           onConfirmDistinct={() => {
             confirmedDistinctRef.current = true;
             setDuplicateWarning(null);
@@ -801,7 +801,7 @@ export default function FinancialEventEditor() {
                 className="micro-text-action"
                 type="button"
                 onClick={() =>
-                  navigate(withFrom(`/finance?event=${encodeURIComponent(savedNote.eventId)}`, returnPath))
+                  navigate(withReturnTo(`/finance?event=${encodeURIComponent(savedNote.eventId)}`, returnPath))
                 }
               >
                 افتح السجل المحفوظ
@@ -953,7 +953,7 @@ export default function FinancialEventEditor() {
                 sharedPercentage > 0 &&
                 sharedPercentage <= 100
               }
-              onOpenSuppliers={() => navigate(withFrom("/suppliers", `/finance/new/${type}`))}
+              onOpenSuppliers={() => navigate(withReturnTo("/suppliers", `/finance/new/${type}`))}
             />
           </details>
         ) : null}

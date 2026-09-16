@@ -7,7 +7,7 @@ import { type Dispatch, type SetStateAction } from "react";
 import { formatLocalDate, formatMoneyMinor, formatMonthLabel } from "@/presentation/formatters";
 import { MoneyValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { RestatementNote } from "@/components/finance/RestatementNote";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import type { RecordedPeriodResult } from "@/application/finance/projectFinancialService";
 import type { FinanceState } from "@/pages/Finance";
 
@@ -106,7 +106,7 @@ export function FinancePeriodResultSection({
               count={state.correctionsInPeriod.count}
               netAmountMinor={state.correctionsInPeriod.netAmountMinor}
               scopeLabel="هذه الفترة"
-              onOpen={() => navigate(withFrom("/finance?layer=corrections", "/finance"))}
+              onOpen={() => navigate(withReturnTo("/finance?layer=corrections", "/finance"))}
             />
           ) : null}
           {/* F-005 + بند ٢٤ من قرارات المالك: نطاق القراءة معلن صراحة — ما يدخل

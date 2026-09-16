@@ -5,7 +5,7 @@
  * زر «اعرض كل الأحداث» + تركيز صف مصدر التصحيح القادم من «السجل» عبر ?event=. */
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -84,7 +84,7 @@ type CorrectionMode = "reverse" | "edit" | "delete" | "restore";
 function familyEventOwner(event: FinancialEvent): { href: string; label: string; owner: string } | null {
   if (event.type.startsWith("asset_") && event.assetContext?.assetId)
     return {
-      href: withFrom(`/assets/${event.assetContext.assetId}`, "/finance"),
+      href: withReturnTo(`/assets/${event.assetContext.assetId}`, "/finance"),
       label: "صحّحه من صفحة الأصل",
       owner: "سجل الأصل",
     };
@@ -93,7 +93,7 @@ function familyEventOwner(event: FinancialEvent): { href: string; label: string;
     event.loanContext?.loanId
   )
     return {
-      href: withFrom(`/loans/${event.loanContext.loanId}`, "/finance"),
+      href: withReturnTo(`/loans/${event.loanContext.loanId}`, "/finance"),
       label: "صحّحه من صفحة القرض",
       owner: "سجل القرض",
     };
@@ -102,7 +102,7 @@ function familyEventOwner(event: FinancialEvent): { href: string; label: string;
     event.depositContext?.orderId
   )
     return {
-      href: withFrom(`/orders/${event.depositContext.orderId}`, "/finance"),
+      href: withReturnTo(`/orders/${event.depositContext.orderId}`, "/finance"),
       label: "صحّحه من صفحة الطلب",
       owner: "سجل الطلب",
     };

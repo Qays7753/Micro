@@ -7,7 +7,7 @@ import { ArrowRight, HandCoins, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withFrom } from "@/app/navigationContract";
+import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
@@ -221,7 +221,7 @@ export default function OwnerWithdrawalEditor() {
       {overview && duplicateWarning ? (
         <CrossModelDuplicateNotice
           duplicate={duplicateWarning}
-          onReviewLedger={() => navigate(withFrom("/finance/owner-entitlement", "/finance/withdraw"))}
+          onReviewLedger={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance/withdraw"))}
           onConfirmDistinct={() => {
             confirmedDistinctRef.current = true;
             setDuplicateWarning(null);
@@ -241,7 +241,7 @@ export default function OwnerWithdrawalEditor() {
             <div className="micro-form-actions micro-contextual-actions">
               <Button
                 action="create"
-                onClick={() => navigate(withFrom("/cash/wallet/new", "/finance/withdraw"))}
+                onClick={() => navigate(withReturnTo("/cash/wallet/new", "/finance/withdraw"))}
               >
                 أنشئ محفظة كاش
               </Button>
