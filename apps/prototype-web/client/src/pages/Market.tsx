@@ -5,6 +5,7 @@
  * مالي يُنشأ من هذه الصفحة إطلاقًا.
  */
 import { Store } from "lucide-react";
+import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { ArrowRight } from "lucide-react";
 
@@ -12,9 +13,13 @@ import { Button } from "@/components/primitives";
 
 export default function Market() {
   const returnPath = useReturnPath();
+  /* EXE-005 (AUD-NEW-13): الزر يعد بوجهة معلنة فيتنقل إليها بالآلية المعتمدة
+   * نفسها التي تستعملها بقية الأسطح — لا window.history.back() الذي يهبط
+   * على صفحة عشوائية سابقة عند البدء البارد بوصلة عميقة. */
+  const [, navigate] = useLocation();
   return (
     <section className="micro-page micro-market-page" data-testid="market-soon-page">
-      <button className="micro-back-button" type="button" onClick={() => window.history.back()}>
+      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
       </button>
       <div className="micro-page-heading">
@@ -44,7 +49,7 @@ export default function Market() {
         <Button
           action="secondary"
           onClick={() => {
-            window.history.back();
+            navigate(returnPath);
           }}
         >
           رجوع لمشروعي
