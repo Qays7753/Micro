@@ -18,7 +18,7 @@ export type LocalPreferencesUpdateResult =
 
 /** سجل البداية عند أول كتابة على جهاز بلا تفضيلات — نفس الافتراضات
  * التي كانت الكتّاب السبعة تبنيها يدويًا قبل التوحيد. */
-const freshRecord = (): LocalPreferences => ({
+const freshRecord = (timestamp: string): LocalPreferences => ({
   id: localPreferencesId,
   theme: "system",
   dailyScheduleCapacityMinutes: null,
@@ -28,6 +28,7 @@ const freshRecord = (): LocalPreferences => ({
   lastVerifiedExportAt: null,
   backupReminderEnabled: true,
   disabledCapabilities: [],
+  updatedAt: timestamp,
 });
 
 export async function updateLocalPreferences(
@@ -38,7 +39,7 @@ export async function updateLocalPreferences(
   const current = await store.getPreferences();
   if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيلات المحلية." };
   const merged: LocalPreferences = {
-    ...(current.value ?? freshRecord()),
+    ...(current.value ?? freshRecord(now())),
     ...patch,
     id: localPreferencesId,
     updatedAt: now(),

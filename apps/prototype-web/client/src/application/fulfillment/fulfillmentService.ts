@@ -19,7 +19,7 @@ import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-doma
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type FulfillmentResult =
-  | { ok: true; stored: StoredCraftOrder; reused?: boolean }
+  | { ok: true; stored: StoredCraftOrder; notice?: string; reused?: boolean }
   | { ok: false; code: "storage_error" | "invalid_state"; message: string };
 export type DepositRow = {
   orderId: string;
