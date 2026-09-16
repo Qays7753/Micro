@@ -233,9 +233,25 @@ describe("EXE-015 — عقد المشاركة الموحد (إشعار القب�
     const draft = orderShareDraft(stored);
     expect(draft.body).toContain("جاهز للمتابعة");
     expect(draft.body).toContain("150.00 د.أ");
+    expect(draft.body).toContain("موعد التسليم المتفق: 10/09/2026");
     expect(draft.body).not.toContain("هامش");
     expect(draft.body).not.toContain("3.30");
     expect(customerShareDraft(stored).kind).toBe("order");
+  });
+
+  it("إشعار التسليم المسدد يصرّح بحسم كامل المبلغ — والذممي بالمتبقي", () => {
+    const settled = buildStored();
+    settled.order.status = "delivered";
+    settled.order.settlementStatus = "paid";
+    settled.order.receivableMinor = 0;
+    const settledDraft = deliveryShareDraft(settled, "2026-09-12");
+    expect(settledDraft.body).toContain("حُسم كامل المبلغ");
+    expect(settledDraft.body).not.toContain("المتبقي عليك");
+    /* الذمم القائمة بعد التسليم تبقى في النص صادقة. */
+    const withDebt = buildStored();
+    withDebt.order.status = "delivered";
+    withDebt.order.settlementStatus = "debt";
+    expect(deliveryShareDraft(withDebt, "2026-09-12").body).toContain("المتبقي عليك: 100.00 د.أ");
   });
 
   it("تذكير الذمة يبقى للمستحق بلا قبض قائم", () => {
