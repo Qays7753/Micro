@@ -1,36 +1,20 @@
-/** Micro design reminder: phone-first task destinations with one creation affordance, never generic ERP chrome. */
-/* §2.2: مشروعي الآن | العمل | [FAB] | مالي — والمقعد الخامس شاغر معلن للسوق
- * حين يأتي (إعلان مرسوم لا مساحة معطلة تُعرض اليوم — م8). */
-import { Plus } from "lucide-react";
+/** Micro design reminder: phone-first task destinations, never generic ERP chrome. */
+/* NAV-001 (قرار المالك ٢٠٢٦-٠٩-١٦): خمسة مقاعد متساوية — مشروعي الآن | العمل |
+ * المالية | أدواتي | السوق. زر «سجّل» المركزي أُزيل نهائيًا بعد نقل أفعاله
+ * إلى أزرار التسجيل السريع في «مشروعي الآن»؛ لا نموذج تنقل مزدوج مخفي. */
 import type { NavigationItem } from "@/app/navigation";
 
 type BottomNavProps = {
   activePath: string;
   items: readonly NavigationItem[];
   onNavigate: (href: string) => void;
-  onOpenActions: () => void;
 };
 
-export function BottomNav({ activePath, items, onNavigate, onOpenActions }: BottomNavProps) {
+export function BottomNav({ activePath, items, onNavigate }: BottomNavProps) {
   return (
     <nav className="micro-bottom-nav" aria-label="التنقل الرئيسي">
       <div className="micro-bottom-nav-inner">
-        {items.slice(0, 2).map(item => (
-          <NavigationButton
-            key={item.href}
-            item={item}
-            isActive={isNavigationActive(activePath, item.href)}
-            onNavigate={onNavigate}
-          />
-        ))}
-        {/* §10 (دورة التدقيق النهائي): تسمية الزر المركزي «سجّل» تطابق البنية
-            المعتمدة حرفيًا: مشروعي الآن | العمل | سجّل | مالي | أدواتي — وهو
-            مدخل التسجيل الأساسي (F-003). */}
-        <button className="micro-fab" type="button" onClick={onOpenActions} aria-label="سجّل">
-          <Plus aria-hidden="true" />
-          <span>سجّل</span>
-        </button>
-        {items.slice(2).map(item => (
+        {items.map(item => (
           <NavigationButton
             key={item.href}
             item={item}

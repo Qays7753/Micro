@@ -102,6 +102,8 @@ const ROUTES: readonly string[] = [
   "/profile",
   "/settings",
   "/tools",
+  /* NAV-001: السوق — سطح إعلان «قريبًا» يرسم في الوضعين. */
+  "/market",
   "/tools/calculator",
   "/tools/estimate/estimate-x",
   "/tools/integrity",
@@ -190,17 +192,23 @@ describe("R2 render smoke — every route mounts in both themes", () => {
     );
     expect(fakeButtons).toEqual([]);
 
-    const fab = interactive.find(el => el.getAttribute("aria-label") === "سجّل");
-    expect(fab).toBeTruthy();
+    /* NAV-001 (2026-09-16): زر «سجّل» المركزي أُزيل — عقد لوحة المفاتيح يُثبت
+     * الآن الوصول بالتبويب إلى مقاعد الشريط الخمسة نفسها (مشروعي الآن). */
+    const navRegion = document.querySelector('nav[aria-label="التنقل الرئيسي"]');
+    const navButton = Array.from(document.querySelectorAll(".micro-bottom-nav button")).find(el =>
+      el.textContent?.includes("مشروعي الآن"),
+    );
+    expect(navButton).toBeTruthy();
+    expect(navRegion).toBeTruthy();
     const user = userEvent.setup();
     const starting = document.activeElement;
     let guard = 0;
-    while (document.activeElement !== fab && guard < 60) {
+    while (document.activeElement !== navButton && guard < 60) {
       await user.tab();
       guard += 1;
     }
-    expect(document.activeElement).toBe(fab);
-    expect(starting).not.toBe(fab);
+    expect(document.activeElement).toBe(navButton);
+    expect(starting).not.toBe(navButton);
     unmount();
   }, 30_000);
 });

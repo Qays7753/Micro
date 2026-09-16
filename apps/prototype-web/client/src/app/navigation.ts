@@ -3,23 +3,26 @@
  * the official semantic design system rather than a generic admin dashboard.
  */
 import type { LucideIcon } from "lucide-react";
-import { ClipboardList, House, WalletCards, Wrench } from "lucide-react";
+import { ClipboardList, House, Store, WalletCards, Wrench } from "lucide-react";
 
 export type NavigationItem = { href: string; label: string; icon: LucideIcon };
 
-/* §2.2 محدّثة بقرار «أدواتي» (مبدأ المالك ٥.٤): مشروعي الآن | العمل | [FAB] | مالي | أدواتي.
- * الحاسبة وأدوات التفكير صارت وجهة مستقلة — لا خطوة داخل مسار التزام.
- * الإعدادات ترسٌ في الترويسة، والسوق يبقى قرار توسعة مستقبليًا خارج الشريط. */
+/* NAV-001 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الشريط السفلي خمسة مقاعد ثابتة
+ * بهذا الترتيب: مشروعي الآن | العمل | المالية | أدواتي | السوق.
+ * زر «سجّل» المركزي أُزيل بعد نقل كل أفعاله إلى أزرار التسجيل السريع في
+ * «مشروعي الآن» (بيع/مصروف في الورقة نفسها، وطلب/تقدير/تحصيل مساراتها).
+ * السوق مقعد معلن «قريبًا» — إعلان مرسوم صادق لا وظيفة وهمية. */
 export const primaryNavigation: readonly NavigationItem[] = [
   { href: "/", label: "مشروعي الآن", icon: House },
   { href: "/orders", label: "العمل", icon: ClipboardList },
-  { href: "/finance", label: "مالي", icon: WalletCards },
+  { href: "/finance", label: "المالية", icon: WalletCards },
   { href: "/tools", label: "أدواتي", icon: Wrench },
+  { href: "/market", label: "السوق", icon: Store },
 ];
 
 export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/schedule")) return "المواعيد";
-  if (pathname.startsWith("/finance")) return "مالي";
+  if (pathname.startsWith("/finance")) return "المالية";
   if (pathname.startsWith("/cash")) return "محافظ الكاش";
   if (pathname.startsWith("/inventory")) return "المواد والمخزون";
   if (pathname.startsWith("/suppliers")) return "الموردون والمشتريات";

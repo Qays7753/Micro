@@ -105,7 +105,8 @@ describe("FinanceActivity reader surface (المجموعة ٥ — عقد ٣٠)",
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<Harness />);
-    const empty = await screen.findByText(/أول تسجيل من زر «سجّل»/);
+    /* NAV-001 (2026-09-16): أزرار التسجيل السريع في الرئيسية حلّت محل زر «سجّل». */
+    const empty = await screen.findByText(/أول تسجيل من أزرار «سجّل بسرعة»/);
     expect(empty).toBeTruthy();
   });
 

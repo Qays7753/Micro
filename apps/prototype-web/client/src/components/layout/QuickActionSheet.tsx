@@ -45,6 +45,9 @@ type QuickActionSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAction: (action: QuickAction) => void;
+  /* NAV-001: فتح مباشر في نموذج بيع/مصروف من أزرار التسجيل السريع في
+   * «مشروعي الآن» — القائمة تبقى داخل الورقة للتنقل بين النموذجين. */
+  initialMode?: "menu" | "sale-form" | "expense-form";
 };
 type SheetMode = "menu" | "sale-form" | "expense-form" | "receipt";
 /* المجموعة ٢ (Scope A): الوصل يفتح السجل المصدر — بيعًا أو حدثًا ماليًا. */
@@ -80,7 +83,7 @@ export const actionItems: readonly QuickActionItem[] = [
   },
 ];
 
-export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSheetProps) {
+export function QuickActionSheet({ open, onOpenChange, onAction, initialMode = "menu" }: QuickActionSheetProps) {
   const [, navigate] = useLocation();
   const { cashContinuity, projectFinance, dataVersion } = usePrototypeServices();
   const [mode, setMode] = useState<SheetMode>("menu");
@@ -99,6 +102,8 @@ export function QuickActionSheet({ open, onOpenChange, onAction }: QuickActionSh
 
   useEffect(() => {
     if (!open) return;
+    /* NAV-001: الفتح من زر سريع يدخل نموذجه مباشرة — وإلا القائمة. */
+    setMode(initialMode);
     cashContinuity.overview().then(result => {
       if (!result.ok) return;
       setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));

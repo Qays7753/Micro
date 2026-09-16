@@ -2,23 +2,18 @@
  * Micro design reminder: the shell keeps phone-first context persistent and sends
  * future financial actions to the application layer, never to UI state.
  */
-/* مبدأ Micro: يبقى السياق وحارس الرجوع مركزيين، ويظهر الكروم العام في الأسطح لا النماذج العميقة. */
-import { type ReactNode, Suspense, lazy, useEffect, useState } from "react";
+/* مبدأ Micro: يبقى السياق وحارس الرجوع مركزيين، ويظهر الكروم العام في الأسطح لا النماذج العميقة.
+ * NAV-001 (2026-09-16): ورقة «سجّل» العامة انتقلت إلى «مشروعي الآن» — أزرار
+ * التسجيل السريع وورقة البيع/المصروف يملكها سطح الرئيسية، فلا زر مركزي ولا
+ * نموذج تنقل مزدوج في القشرة. */
+import { type ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { getNavigationLabel, primaryNavigation } from "@/app/navigation";
-import { withFrom } from "@/app/navigationContract";
 import { getMicroRouteKind, showsGlobalChrome } from "@/app/routeClassifier";
 import { UnsavedChangesProvider, useUnsavedChangesNavigation } from "@/components/forms/UnsavedChangesGuard";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
-import type { QuickAction } from "@/components/layout/QuickActionSheet";
-/* S5-10 (المجموعة ٦ — البند ٦): ورقة الإضافة تفاعل عند الطلب — تُحمَّل كسولًا
- * (مع radix-runtime مشطوبة عن التحميل المسبق) وتُسبق جلبًا عند الخمول فتفتح
- * فورًا دون اتصال، ويبقى أول رسم خفيفًا بلا تكلفة vaul مقدمًا. */
-const QuickActionSheet = lazy(async () => {
-  const module = await import("@/components/layout/QuickActionSheet");
-  return { default: module.QuickActionSheet };
-});
+import { QuickRecordingProvider } from "@/app/quickRecording";
 import { PwaInstallControl } from "@/pwa/PwaInstallControl";
 import { PwaRuntimeNotice } from "@/pwa/PwaRuntimeNotice";
 
@@ -36,24 +31,16 @@ export function MicroAppShell({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
   return (
     <UnsavedChangesProvider navigate={navigate}>
-      <ShellContent location={location}>{children}</ShellContent>
+      <QuickRecordingProvider>
+        <ShellContent location={location}>{children}</ShellContent>
+      </QuickRecordingProvider>
     </UnsavedChangesProvider>
   );
 }
 
 function ShellContent({ location, children }: { location: string; children: ReactNode }) {
-  const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const requestNavigation = useUnsavedChangesNavigation();
-  /* S5-10: جلب الورقة عند الخمول — بعد أول تركيز يصبح فتحها فوريًا دون اتصال
-   * (precache يغطيها أصلًا بعد الزيارة الأولى؛ هذا يقفل المسار قبل أول فتح). */
-  useEffect(() => {
-    const prefetch = () => {
-      void import("@/components/layout/QuickActionSheet");
-    };
-    if (typeof requestIdleCallback === "function") requestIdleCallback(prefetch);
-    else setTimeout(prefetch, 1500);
-  }, []);
   const routeKind = getMicroRouteKind(location);
   const isSetup = routeKind === "setup";
   const showGlobalChrome = showsGlobalChrome(location);
@@ -67,26 +54,6 @@ function ShellContent({ location, children }: { location: string; children: Reac
     viewport.addEventListener("resize", update);
     return () => viewport.removeEventListener("resize", update);
   }, []);
-  function handleQuickAction(action: QuickAction) {
-    setIsActionSheetOpen(false);
-    /* §٥-١٤ (م٣): البيع والمصروف يتمان داخل الورقة نفسها (QuickActionSheet) — لا
-     * يصلان إلى هنا. ما يصل هنا بدايات المسارات الأعمق فقط. */
-    /* §٥-١ (و٥): النقر يفتح المحرر بلا إنشاء — المسودة تُنشأ عند أول إدخال حقيقي
-     * داخل المحرر، فلا يخلّف الاستكشاف مسودات فارغة. */
-    if (action === "order") {
-      requestNavigation("/orders/draft/new?intent=customer_order");
-      return;
-    }
-    if (action === "estimate") {
-      requestNavigation("/orders/draft/new?intent=planned_design");
-      return;
-    }
-    if (action === "collection") {
-      /* المجموعة ٢ (Scope B): التحصيل يفتح ورقة التحصيل مباشرة لا قائمة الطلبات —
-       * مع الحفاظ على السطح الحالي مصدرًا للرجوع (?from). */
-      requestNavigation(withFrom("/collect", pathname));
-    }
-  }
   return (
     <div className="micro-app" data-route-kind={routeKind} data-keyboard-open={isKeyboardOpen} dir="rtl">
       <AppHeader
@@ -101,21 +68,7 @@ function ShellContent({ location, children }: { location: string; children: Reac
         {children}
       </main>
       {showGlobalChrome ? (
-        <>
-          <BottomNav
-            activePath={location}
-            items={primaryNavigation}
-            onNavigate={requestNavigation}
-            onOpenActions={() => setIsActionSheetOpen(true)}
-          />
-          <Suspense fallback={null}>
-            <QuickActionSheet
-              open={isActionSheetOpen}
-              onOpenChange={setIsActionSheetOpen}
-              onAction={handleQuickAction}
-            />
-          </Suspense>
-        </>
+        <BottomNav activePath={location} items={primaryNavigation} onNavigate={requestNavigation} />
       ) : null}
     </div>
   );

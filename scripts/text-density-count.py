@@ -270,7 +270,12 @@ CAPS: dict[str, int] = {
     # مفهوم (أيام الغياب، المبيعات، المصاريف، عمر النسخة) بدل قوالب تكسر
     # القواعد. كل زيادة أشكال جمع مفروضة من معيار المحتوى، لا نثرًا حرًا.
     # Home 41 → 53 (2026-09-05, deep closure AR-05).
-    "Home": 53,
+    # Home 53 → 59 (2026-09-16, product-journey package NAV-001 + SET-002, owner-approved):
+    # quick-recording action row («سجّل بسرعة»: sale/expense/order/estimate/collection
+    # buttons) replacing the removed central سجّل button, plus the one-time setup
+    # success banner. The quick sale/expense sheet itself stays shell-owned
+    # (app/quickRecording.tsx) as before — no new form copy on this surface.
+    "Home": 59,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.
@@ -463,6 +468,10 @@ CAPS: dict[str, int] = {
     # untrack consequences dialog, awaiting-receipt line (contract-11 promise),
     # «مرتدة موثقًا» marker — decision record D-029.
     "InventoryMaterials": 56,
+    # Market first measurement (2026-09-16, product-journey package NAV-001): the
+    # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
+    # description; no suppliers, no purchase action, no records or effects.
+    "Market": 13,
     # MaterialEditor first measurement (2026-09-06, Group 2, عقد ٢٨): guided journey
     # (tracking question + opening-state question + cost question + effect preview)
     # — create + confirm-opening modes. Decision record D-029.
@@ -647,6 +656,7 @@ PAGES = [
     "Catalog",
     "InventoryMaterials",
     # المجموعة ٢ (عقد ٢٨): محررات المخزون تدخل القياس أول مرة (يوم القياس الأول).
+    "Market",
     "MaterialEditor",
     "InventoryMovementEditor",
     "SupplierPurchaseEditor",

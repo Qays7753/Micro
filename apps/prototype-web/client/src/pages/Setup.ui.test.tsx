@@ -67,7 +67,9 @@ describe("Setup wallet-skip path never asks and discards (F-002 regression)", ()
     fireEvent.click(skipButton);
 
     await waitFor(() => expect(save).toHaveBeenCalledWith("مشغل ليان"));
-    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/foundation", { replace: true }));
+    /* SET-002 (2026-09-16): البداية السريعة — الإتمام يفتح مشروعي الآن
+   مباشرة بلافتة نجاح؛ صفحة الأساس بقيت اختيارية من الرئيسية. */
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
     expect(openWallet).not.toHaveBeenCalled();
     expect(screen.queryByText("شو وضع الدرج هلق؟")).toBeNull();
   });
@@ -92,14 +94,16 @@ describe("Setup wallet-skip path never asks and discards (F-002 regression)", ()
 
     expect(await screen.findByText("شو وضع الدرج هلق؟")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("الموقف الافتتاحي"), { target: { value: "zero" } });
-    fireEvent.click(screen.getByRole("button", { name: "احفظ وافتح صفحة الأساس" }));
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ في مشروعي الآن" }));
 
     await waitFor(() =>
       expect(openWallet).toHaveBeenCalledWith(
         expect.objectContaining({ name: "الدرج", openingMinor: 0, openingStatus: "known" }),
       ),
     );
-    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/foundation", { replace: true }));
+    /* SET-002 (2026-09-16): البداية السريعة — الإتمام يفتح مشروعي الآن
+   مباشرة بلافتة نجاح؛ صفحة الأساس بقيت اختيارية من الرئيسية. */
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
   });
 });
 
@@ -210,7 +214,7 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
     fireEvent.click(screen.getByRole("button", { name: "التالي" }));
     await screen.findByText("شو وضع الدرج هلق؟");
     fireEvent.change(screen.getByLabelText(/الموقف الافتتاحي/), { target: { value: "unknown" } });
-    fireEvent.click(screen.getByRole("button", { name: "احفظ وافتح صفحة الأساس" }));
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ في مشروعي الآن" }));
 
     await waitFor(() =>
       expect(openWallet).toHaveBeenCalledWith(
@@ -279,7 +283,7 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
     await screen.findByText(/عندك مسودة إعداد من آخر مرة/);
     fireEvent.click(screen.getByRole("button", { name: "استعدها وأكمل" }));
     expect(await screen.findByText("شو وضع الدرج هلق؟")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "احفظ وافتح صفحة الأساس" }));
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ في مشروعي الآن" }));
     await waitFor(async () => {
       const cleared = await store.getFormDraft("setup:new");
       expect(cleared.ok && cleared.value).toBeNull();

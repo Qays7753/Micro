@@ -119,6 +119,8 @@ const SURFACE_ROUTES: readonly string[] = [
   "/catalog",
   "/tools",
   "/tools/integrity",
+  /* NAV-001 (2026-09-16): السوق — سطح إعلان «قريبًا» يبقي التنقل السفلي. */
+  "/market",
   "/assets",
   "/loans",
   "/parties",

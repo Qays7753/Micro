@@ -51,6 +51,8 @@ const InventoryReversalEditor = lazy(() => import("@/pages/InventoryReversalEdit
 const Catalog = lazy(() => import("@/pages/Catalog"));
 /* «أدواتي» (مبدأ المالك ٥.٤): وجهة مستقلة للحاسبة والتقديرات وحالة الوحدات. */
 const Tools = lazy(() => import("@/pages/Tools"));
+/* NAV-001: السوق — المقعد الخامس، إعلان «قريبًا» صادق بلا أي أثر مالي. */
+const Market = lazy(() => import("@/pages/Market"));
 /* المجموعة ٣ (Scope A): الحاسبة مسار عميق كامل — أداة تفكير بلا أثر مالي. */
 const CostCalculator = lazy(() => import("@/pages/CostCalculator"));
 /* المجموعة ٣ (Scope B): صفحة التقدير المحفوظ — قراءة وأفعال لا محرر ثانٍ. */
@@ -135,6 +137,8 @@ export function MicroRouter() {
               <Route path="/inventory" component={InventoryMaterials} />
               <Route path="/catalog" component={Catalog} />
               <Route path="/tools" component={Tools} />
+              {/* NAV-001: السوق — سطح يبقي التنقل السفلي؛ إعلان توسعة لا وظيفة. */}
+              <Route path="/market" component={Market} />
               {/* المجموعة ٣ (Scope A/B): حاسبة عميقة + تفصيل تقدير — يخفيان التنقل كإخوتهما المحررات. */}
               <Route path="/tools/calculator" component={CostCalculator} />
               <Route path="/tools/estimate/:id" component={EstimateDetail} />

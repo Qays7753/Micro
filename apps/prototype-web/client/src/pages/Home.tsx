@@ -1,9 +1,12 @@
 import {
   ArrowLeft,
+  BadgeDollarSign,
   BellRing,
   CalendarDays,
   CircleAlert,
+  CircleDollarSign,
   ClipboardList,
+  ClipboardPlus,
   CloudSun,
   FilePen,
   Gauge,
@@ -17,8 +20,9 @@ import {
   WalletCards,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useQuickRecording } from "@/app/quickRecording";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
@@ -136,6 +140,13 @@ export default function Home() {
   const [, navigate] = useLocation();
   const { homeControlCenter, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<HomeState>({ phase: "loading" });
+  /* NAV-001: أزرار التسجيل السريع في «مشروعي الآن» — البيع والمصروف يفتحان
+   * الورقة عبر سياق القشرة في نموذجهما مباشرة، والطلب والتقدير والتحصيل
+   * مساراتها العميقة. */
+  const quickRecording = useQuickRecording();
+  /* SET-002: لافتة نجاح الإعداد الأول — تظهر مرة بعد الحفظ وتغادر مع التنقل. */
+  const search = useSearch();
+  const setupDone = new URLSearchParams((search ?? "").replace(/^\?/, "")).get("setup") === "1";
   useEffect(() => {
     let active = true;
     /* S5-08 (المجموعة ٦ — البند ٦): تحديث خلفي لا وميض تحميل — القراءة السابقة
@@ -198,6 +209,50 @@ export default function Home() {
           </button>
         </div>
       </div>
+      {/* SET-002: نجاح واضح بعد الإعداد الأول — المشروع جاهز للاستخدام فورًا. */}
+      {setupDone ? (
+        <section className="micro-note-card" role="status" data-testid="setup-success-banner">
+          <ShieldCheck aria-hidden="true" />
+          <p>
+            {`تم إنشاء مشروعك «${model.heading.activityName}» — ابدأ الآن بتسجيل أول عملية من أزرار التسجيل السريع هنا؛ وصفحة الأساس عمق اختياري تكمله لاحقًا من «المالية».`}
+          </p>
+        </section>
+      ) : null}
+      {/* NAV-001: أزرار التسجيل السريع — صف أفقي قابل للتمرير داخل الرئيسية؛
+          زر «سجّل» المركزي أُزيل من الشريط بعد نقل كل أفعاله إلى هنا. */}
+      <section className="micro-home-quick-actions" aria-labelledby="home-quick-title">
+        <div className="micro-section-title">
+          <BadgeDollarSign aria-hidden="true" />
+          <div>
+            <h2 id="home-quick-title">سجّل بسرعة</h2>
+          </div>
+        </div>
+        <div className="micro-quick-actions" data-testid="home-quick-actions">
+          <button className="micro-quick-action" type="button" onClick={() => quickRecording.openQuickForm("sale-form")}>
+            <BadgeDollarSign aria-hidden="true" /> تسجيل بيع
+          </button>
+          <button className="micro-quick-action" type="button" onClick={() => quickRecording.openQuickForm("expense-form")}>
+            <CircleDollarSign aria-hidden="true" /> تسجيل مصروف
+          </button>
+          <button
+            className="micro-quick-action"
+            type="button"
+            onClick={() => navigate("/orders/draft/new?intent=customer_order&from=/")}
+          >
+            <ClipboardPlus aria-hidden="true" /> طلب من عميل
+          </button>
+          <button
+            className="micro-quick-action"
+            type="button"
+            onClick={() => navigate("/orders/draft/new?intent=planned_design&from=/")}
+          >
+            <FilePen aria-hidden="true" /> مسودة تصميم
+          </button>
+          <button className="micro-quick-action" type="button" onClick={() => navigate(withFrom("/collect", "/"))}>
+            <HandCoins aria-hidden="true" /> عربون أو تحصيل
+          </button>
+        </div>
+      </section>
       {/* التدفق ٢٣: بطاقة «أثناء غيابك» — تظهر بعد ٧ أيام بلا تسجيل وتختفي بالنشاط. */}
       {model.awaySection ? (
         <section className="micro-away-card" aria-label="أثناء غيابك">
@@ -328,7 +383,7 @@ export default function Home() {
         ) : (
           <div className="micro-home-quiet">
             <strong>يومك مفتوح</strong>
-            <p>سجّل أول بيع أو طلب من زر «سجّل» في الأسفل — ما لا تسجله لا يُخترع له رقم.</p>
+            <p>سجّل أول بيع أو طلب من أزرار «سجّل بسرعة» أعلى الصفحة — ما لا تسجله لا يُخترع له رقم.</p>
           </div>
         )}
         {model.todaySection.upcomingCount > 0 && model.todaySection.nextUpcomingDate ? (

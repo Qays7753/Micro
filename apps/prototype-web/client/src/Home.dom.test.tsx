@@ -13,6 +13,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { withFrom } from "@/app/navigationContract";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
+/* NAV-001: الرئيسية تستدعي سياق التسجيل السريع — المزوّد فوقها في الاختبار كما في القشرة. */
+import { QuickRecordingProvider } from "@/app/quickRecording";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
@@ -83,9 +85,11 @@ async function seedProfile() {
 
 function renderHome() {
   return render(
-    <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+    <QuickRecordingProvider>
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
       <Home />
-    </UnsavedChangesProvider>,
+      </UnsavedChangesProvider>
+    </QuickRecordingProvider>,
   );
 }
 
