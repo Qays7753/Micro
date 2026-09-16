@@ -10,6 +10,12 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { PreferenceService } from "@/application/preferences/preferenceService";
+import { AgreementService } from "@/application/agreements/agreementService";
+import { CostService } from "@/application/cost/costService";
+import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
+import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
+import { CatalogService } from "@/application/catalog/catalogService";
 import Settings from "@/pages/Settings";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
@@ -31,6 +37,10 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
       "matchMedia",
       vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
     );
+    /* إصلاح المتابعة (SET-003): الخدمات الحقيقية عبر مخزن ذاكرة — مضاعفة
+     * الاختبار موافقة للعقد بنيويًا، فأي دالة يفتقدها مضاعف يدوي صارت تفشل
+     * هنا بصوت عالٍ بدل رفض غير معالج صامت (عطل CI 16 خطأ). */
+    const settingsStore = new MemoryLocalStore();
     mockedUsePrototypeServices.mockReturnValue({
       /* المجموعة ٥: القفل المحلي وفحص السلامة بعد الاستعادة — موجودان في السياق الحقيقي. */
       localLock: new LocalLockService(new MemoryLocalStore()),
@@ -40,20 +50,11 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
         new StatementService(new MemoryLocalStore(), new ProjectFinancialService(new MemoryLocalStore())),
         new CashContinuityService(new MemoryLocalStore()),
       ),
-      preferences: {
-        load: vi.fn(async () => ({ ok: true, preference: "system" })),
-        save: vi.fn(async () => ({ ok: true, preference: "dark" })),
-        readBrowserPersistence: vi.fn(async () => ({
-          state: "unsupported",
-          title: "التخزين الدائم غير مدعوم في هذا المتصفح",
-          text: "لا يعلن هذا المتصفح حالة الدوام.",
-        })),
-        readLastVerifiedExport: vi.fn(async () => ({ ok: true, exportedAt: null })),
-        markVerifiedExport: vi.fn(async () => ({ ok: true, preference: "system" })),
-        /* O-001: مفتاح تذكير النسخة — افتراضي مفعّل. */
-        readBackupReminderEnabled: vi.fn(async () => ({ ok: true, enabled: true })),
-        saveBackupReminderEnabled: vi.fn(async (enabled: boolean) => ({ ok: true, enabled })),
-      },
+      preferences: new PreferenceService(settingsStore),
+      agreements: new AgreementService(settingsStore, new CostService(settingsStore)),
+      inventory: new InventoryMaterialService(settingsStore),
+      supplierPurchases: new SupplierPurchaseService(settingsStore),
+      catalog: new CatalogService(settingsStore),
       actualTime: {
         readOperatingMode: vi.fn(async () => ({
           ok: true,
