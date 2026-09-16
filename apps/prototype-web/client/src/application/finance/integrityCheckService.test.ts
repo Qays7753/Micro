@@ -5,7 +5,7 @@ import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
-import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import { createCashContinuityEntry, SOURCE_REF_KINDS } from "@micro-domain/cash-continuity/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -508,9 +508,12 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
     expect(mic10?.detailAr).toContain("عمر نافع مجهول");
   });
 
-  /* جولة الاستئناف (F-2b): عكس الاقتناء من السجل العام ثم استرجاعه — الفحص
-   * يقرأ الأثر الفعلي: بعد الاسترجاع يعود الاقتناء قائمًا (حدث جديد بنفس
-   * القيم والسياق) فلا يبقى الأصل مُعلَّمًا اقتناء-معكوسًا إلى الأبد. */
+  /* جولة الاستئناف (F-2b) ثم EXE-013 (AUD-NEW-15): عكس الاقتناء ثم
+   * استرجاعه. المسار العام يرفض الآن أحداث الأصل (حرس العائلة)، فالحالة
+   * المُختبَرة هي بيانات تاريخية: قيد عكس مكتوب مباشرة كما خلفته المسارات
+   * القديمة — الفحص يقرأ الأثر الفعلي: بعد الاسترجاع يعود الاقتناء قائمًا
+   * (حدث جديد بنفس القيم والسياق) فلا يبقى الأصل مُعلَّمًا اقتناء-معكوسًا
+   * إلى الأبد. */
   it("MIC-10 returns to honest state after reverse-then-restore of the acquisition", async () => {
     const { store, services } = await cleanStore();
     const asset = await services.assets.create({
@@ -523,13 +526,30 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
     });
     if (!asset.ok) throw new Error(asset.message);
     const acquisitionId = asset.value.asset.acquisitionEventId;
-    const reversed = await services.projectFinance.reverse({
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const acquisition = events.value.find(event => event.id === acquisitionId);
+    if (!acquisition) throw new Error("acquisition event should exist");
+    /* EXE-013: المسار العام مرفوض لأحداث الأصل — نتحقق من الرفض أولًا. */
+    const refused = await services.projectFinance.reverse({
       sourceEventId: acquisitionId,
       occurredOn: "2026-09-03",
       reason: "عكس تجريبي",
       idempotencyKey: "f2b-reverse",
     });
-    if (!reversed.ok) throw new Error(reversed.message);
+    expect(refused.ok).toBe(false);
+    if (refused.ok) return;
+    expect(refused.message).toContain("صفحة الأصل");
+    const legacyReversal = createFinancialReversal({
+      id: "f2b-legacy-reversal",
+      sourceEvent: acquisition,
+      occurredOn: "2026-09-03",
+      recordedAt: "2026-09-03T09:00:00.000Z",
+      idempotencyKey: "f2b-reverse",
+      reason: "عكس تجريبي تاريخي",
+    });
+    const savedReversal = await store.saveFinancialEvent(legacyReversal);
+    if (!savedReversal.ok) throw new Error(savedReversal.message);
     const afterReverse = await services.integrityCheck.run();
     const mic10Reversed = afterReverse.checks.find(check => check.id === "MIC-10");
     expect(mic10Reversed?.status).toBe("FAIL");

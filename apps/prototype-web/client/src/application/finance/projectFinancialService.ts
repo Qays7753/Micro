@@ -20,7 +20,11 @@ import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
-import { createCashContinuityEntry, summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
+import {
+  createCashContinuityEntry,
+  SOURCE_REF_KINDS,
+  summarizeCashContinuity,
+} from "@micro-domain/cash-continuity/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
 import { calculateBreakEvenUnits } from "@micro-domain/g5/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
@@ -198,7 +202,7 @@ export type UnallocatedDistributionInput = {
   operationKey?: string;
   occurredOn?: string;
   sourceRefId?: string | null;
-  sourceRefKind?: "sale" | "expense" | "collection" | "order" | null;
+  sourceRefKind?: (typeof SOURCE_REF_KINDS)[number] | null;
   /* المجموعة ٦ (S2-04أ): حدث القبضة المصدر — يربط التخصيص بسطر التحصيل نفسه
    * فيصير التراجع المزدوج قابلًا للتحديد المطابق بلا تخمين. */
   sourceRefLineId?: string | null;
@@ -236,14 +240,23 @@ function amanahLimitMessage(availableMinor: number, requestedMinor: number, acti
  * يترك سجل الطلب معلّقًا على حدث معكوس — classify يرفض («مصنَّف سابقًا»)
  * وreclassify يرفض («لا تصنيف قائم») فتستحيل الإصلاح. حرس الواجهة وحده
  * كان يمنع ذلك؛ الآن الخدمة نفسها ترفض وتوجه لصفحة الطلب (سطح التصنيف
- * المعتمد). أحداث الأصل والقرض تبقى خارج الحرس عمدًا: التصحيح العام لها
- * سلوك معتمد مجرَّب (جولة F-2) وسياقاتها تُحمل في البديل والاسترجاع. */
+ * المعتمد).
+ * EXE-013 (AUD-NEW-15): توسيع الحرس لأحداث القرض والأصل — المسار العام
+ * (إلغاء/تعديل/حذف) لم يكن آمنًا لها لأنه يترك سجل العائلة مخالفًا لمجموع
+ * أحداثها؛ التصحيح والتراجع القانونيان يعيشان في خدمتي القرض والأصل
+ * (تصحيح القرض/السداد، تصحيح الاقتناء/تراجع الإهلاك/التصرف) ولا يمران
+ * من هنا. الاسترجاع (restoreEvent) يبقى متاحًا للبيانات التاريخية لأنه
+ * يعيد تسجيل القيم الأصلية حرفيًا ولا يعدلها. */
 function familyCorrectionGuard(event: FinancialEvent): string | null {
   if (
     (event.type === "deposit_retained_revenue" || event.type === "deposit_retained_owner") &&
     event.depositContext?.orderId
   )
     return "هذا الحدث مرتبط بعربون طلب — صحّحه من صفحة الطلب (إعادة التصنيف الموثقة) ليبقى ربط السجل سليمًا؛ لم يتغير السجل.";
+  if (event.assetContext)
+    return "هذا الحدث مرتبط بسجل أصل — صحّحه أو اعكسه من صفحة الأصل (تصحيح الاقتناء وتراجع الإهلاك والتصرف الموثقة) ليبقى سجل الأصل مطابقًا لمجموع أحداثه؛ لم يتغير السجل.";
+  if (event.loanContext)
+    return "هذا الحدث مرتبط بسجل قرض — صحّحه أو اعكسه من صفحة القرض (تصحيح القرض والسداد والتراجع الموثقة) ليبقى سجل القرض مطابقًا لمجموع أحداثه؛ لم يتغير السجل.";
   return null;
 }
 function sharedExpenseHasMissingBasis(event: FinancialEvent) {

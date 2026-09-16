@@ -87,6 +87,8 @@ describe("QuickActionSheet expense category chip (المجموعة ١)", () => {
     fireEvent.click(chip);
     expect(chip.getAttribute("aria-pressed")).toBe("true");
     fireEvent.change(screen.getByLabelText("مبلغ المصروف"), { target: { value: "25" } });
+    /* EXE-007: الوصف إلزامي في المدخلين — لا نص مصنع. */
+    fireEvent.change(screen.getByLabelText(/البند/), { target: { value: "بنزين المولدة" } });
     fireEvent.click(screen.getByRole("button", { name: "سجّل المصروف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
     const payload = record.mock.calls[0]?.[0] as {
@@ -104,6 +106,8 @@ describe("QuickActionSheet expense category chip (المجموعة ١)", () => {
     fireEvent.click(chip);
     expect(chip.getAttribute("aria-pressed")).toBe("false");
     fireEvent.change(screen.getByLabelText("مبلغ المصروف"), { target: { value: "25" } });
+    /* EXE-007: الوصف إلزامي في المدخلين — لا نص مصنع. */
+    fireEvent.change(screen.getByLabelText(/البند/), { target: { value: "بنزين المولدة" } });
     fireEvent.click(screen.getByRole("button", { name: "سجّل المصروف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
     const payload = record.mock.calls[0]?.[0] as {

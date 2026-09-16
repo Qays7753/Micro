@@ -11,6 +11,7 @@ const eventLabel: Record<string, string> = {
   specification_revised: "تعديل المواصفات",
   cancelled: "إلغاء",
   deposit_refunded: "رد العربون",
+  deposit_reversed: "عكس عربون نشط",
   deposit_retained: "تسوية العربون",
   price_approved: "تسجيل السعر",
   /* المجموعة ٣ (Scope E — §11.3): تسميات أحداث تصحيح المجموعة ٢ التي كانت

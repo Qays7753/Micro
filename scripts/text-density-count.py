@@ -341,7 +341,10 @@ CAPS: dict[str, int] = {
     # Finance 258 → 261 (2026-09-16, product-journey package NAV-002, owner-approved):
     # «النتيجة المتاحة» joins level one as a decision card linking to the period
     # view — honest unavailable state, never mixed with cash.
-    "Finance": 261,
+    # Finance 261 → 263 (2026-09-17, Wave 2 EXE-007/008/009/010, owner-approved
+    # execution prompt): mandated financial-truth labels — expense source hints,
+    # wallet destination/source questions, reversal reasons and linked-entry notes.
+    "Finance": 263,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -386,7 +389,9 @@ CAPS: dict[str, int] = {
     # OrderDetail 176 → 179 (2026-09-16, product-journey package ORD-002, owner-approved):
     # delivered-order summary on reopen — original delivery moment + short receipt
     # (collected/remaining/next action), never the original success message again.
-    "OrderDetail": 179,
+    # OrderDetail 179 → 180 (2026-09-17, Wave 2 EXE-010, owner-approved): the
+    # active-deposit reversal panel labels (mandatory reason + confirm copy).
+    "OrderDetail": 180,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
@@ -428,7 +433,10 @@ CAPS: dict[str, int] = {
     # الإغلاق العميق (AR-11/P0 حارس الإعادة): أشكال جمع شريط استعادة المسودة
     # عبر محرك الجمع العربي — مفروضة من معيار المحتوى.
     # DirectSaleEditor 75 → 81 (2026-09-05).
-    "DirectSaleEditor": 81,
+    # DirectSaleEditor 81 → 85 (2026-09-17, Wave 2 EXE-010, owner-approved): the
+    # sale-collection reversal section — preview numbers, reason, and refusal
+    # explanations that name the alternative path.
+    "DirectSaleEditor": 85,
     # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
     # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
     # mandated bridge labels; the draft form itself is unchanged.
@@ -490,7 +498,9 @@ CAPS: dict[str, int] = {
     # OPS-001 (2026-09-16): خيارات العنصر الفارغ الصريحة («اختر مادة…» وأخواتها)
     # في كل قوائم الاختيار + رسالة المرجع غير الصالح — منع الاختيار الصامت
     # لأول سجل قرار مالك معتمد. InventoryMovementEditor 60 → 61.
-    "InventoryMovementEditor": 61,
+    # InventoryMovementEditor 61 → 63 (2026-09-17, Wave 2 EXE-012, owner-approved):
+    # the owner-action adjustment positioning (mandatory reason, waste separation).
+    "InventoryMovementEditor": 63,
     # SupplierPurchaseEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
     # material link + expected quantity fields + received-status bridge card.
     # Decision record D-029.
@@ -517,7 +527,9 @@ CAPS: dict[str, int] = {
     # (لا أصول ولا قروض…) — zero new on-screen labels.
     # الإغلاق العميق (AR-02): نص أمانات الواجهة بالفصحى (تسمية واحدة أطول).
     # CashWallets 75 → 76 (2026-09-05).
-    "CashWallets": 76,
+    # CashWallets 76 → 78 (2026-09-17, Wave 2 EXE-008/009, owner-approved): opening
+    # governance notes and owner-movement disclosure labels on the wallets surface.
+    "CashWallets": 78,
     # OwnerEntitlement 48 → 53 (2026-09-02, Group 6 Item 2, owner-approved
     # final-closure prompt — S2-07): the screen becomes the unified «مال المالك»
     # surface — mandated labels: unified overline ("دفتر واحد · المبالغ (د.أ)"),
@@ -526,7 +538,15 @@ CAPS: dict[str, int] = {
     # · "دفتر المالك" + empty state), and the ⓘ boundaries disclosure. The old
     # visible policies section moved inside the collapsed «حق المالك وسياسته»
     # layer in the same scope. Mandated unification labels, no prose padding.
-    "OwnerEntitlement": 53,
+    # OwnerEntitlement 53 → 62 (2026-09-17, Wave 2 EXE-009, owner-approved): the
+    # cross-model duplicate disclosure card, owner-draw metric labels, and the
+    # unified save guard copy — one journey, honest duplication warnings.
+    "OwnerEntitlement": 62,
+    # OwnerWithdrawalEditor 30 (default) → 41 (2026-09-17, Wave 2 EXE-009, first
+    # explicit cap): the unified withdrawal journey absorbed the legacy cash
+    # withdrawal route — wallet source question, attribution, cross-model duplicate
+    # guard, and the create-wallet next step replacing the dead end.
+    "OwnerWithdrawalEditor": 41,
     # Schedule 98 → 99 (2026-09-02, Group 5 S1-10): contract-26 return label ("رجوع")
     # when opened with ?from — one mandated navigation label.
     "Schedule": 99,
@@ -548,7 +568,9 @@ CAPS: dict[str, int] = {
     # «قدرات مشروعك» section (summary labels; body copy lives inside the collapsed
     # details) + feeding-service attribution for the capability count loaders
     # (agreements/inventory/supplierPurchases/catalog imported by the page).
-    "Settings": 57,
+    # Settings 57 → 61 (2026-09-17, Wave 2 EXE-014, owner-approved): intended-
+    # exceptions disclosure, pre-replace backup promise, and the backup row.
+    "Settings": 61,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
@@ -588,7 +610,11 @@ CAPS: dict[str, int] = {
     # owner-approved): the expense cash-source rules — the multi-wallet neutral
     # placeholder «اختر مصدر الصرف» and the no-wallet unallocated-fallback
     # warning shown before saving.
-    "FinancialEventEditor": 145,
+    # FinancialEventEditor 145 → 171 → 172 (2026-09-17, Wave 2 EXE-007/009, owner-approved):
+    # the unified expense model (required note, source rules, classification hints)
+    # and the owner wallet destination/source questions with their guards; the +1
+    # after prettier's line joins is the same set counted honestly.
+    "FinancialEventEditor": 172,
     # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
     # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
     # labels and truth lines join the measured set; per-tag rows are data.
@@ -599,7 +625,9 @@ CAPS: dict[str, int] = {
     # + correction family labels — hiding cash movement was the defect being fixed.
     # الإغلاق العميق (AR-11): سطر أثر التصحيحات بأشكال الجمع العربية (6 بدل 3).
     # Statement 202 → 205 (2026-09-05).
-    "Statement": 205,
+    # Statement 205 → 206 (2026-09-17, Wave 2 EXE-010, owner-approved): the
+    # cash-returned correction group label.
+    "Statement": 206,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
@@ -647,7 +675,9 @@ CAPS: dict[str, int] = {
     # القياس يتوسع بلا تخفيف: أي إضافة فوق العدد الحالي تحتاج قرارًا موثقًا.
     # الإغلاق العميق (AR-02/AR-15): رسائل فصحى محدَّثة في الخدمة المُغذّية (أمانة البيانات + إعادة المحاولة).
     # CashDistribution 48 → 49 (2026-09-05).
-    "CashDistribution": 49,
+    # CashDistribution 49 → 51 (2026-09-17, Wave 2 EXE-008/009, owner-approved):
+    # attribution source labels for owner events and supplier purchases.
+    "CashDistribution": 51,
     # الإغلاق العميق (FC-09 — العقد ٤): سبب مراجعة التحصيل «تحصيل دفعة من
     # ورقة التحصيل» في الخدمة المُغذّية — تاريخ تسوية صادق لا «تصحيحًا» عامًا.
     # Collect 45 → 46 (2026-09-05, deep closure FC-09).
@@ -655,7 +685,9 @@ CAPS: dict[str, int] = {
     # الإغلاق العميق (AR-11): سطر «أثر التصحيحات» يمر عبر محرك الجمع العربي
     # (6 أشكال بدل 3) — صحة لغوية مفروضة من معيار المحتوى.
     # WalletLedger 37 → 40 (2026-09-05, deep closure AR-11).
-    "WalletLedger": 40,
+    # WalletLedger 40 → 42 (2026-09-17, Wave 2 EXE-008/009, owner-approved): deep
+    # links for supplier purchases and owner events in the ledger rows.
+    "WalletLedger": 42,
 }
 
 PAGES = [

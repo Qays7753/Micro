@@ -176,7 +176,12 @@ export class StatementService {
     for (const stored of ordersResult.value as readonly StoredCraftOrder[]) {
       for (const event of stored.order.events) {
         const isCashIn = event.type === "collection_recorded" || event.type === "deposit_collected";
-        const isCashReturned = event.type === "collection_reversed" || event.type === "deposit_refunded";
+        const isCashReturned =
+          event.type === "collection_reversed" ||
+          event.type === "deposit_refunded" ||
+          /* EXE-010: عكس عربون نشط قبل التسليم يسترد كاشًا كما الرد — بلا خصمه
+           * يتضخم قبض الطلبات ويفترق صافي الكشف عن الكاش المسجل. */
+          event.type === "deposit_reversed";
         if (!isCashIn && !isCashReturned) continue;
         const date = ammanDate(event.createdAt);
         if (!inPeriod(date)) continue;
@@ -191,7 +196,9 @@ export class StatementService {
                 : "تحصيل"
               : event.type === "deposit_refunded"
                 ? "رد عربون"
-                : "تراجع عن قبضة"
+                : event.type === "deposit_reversed"
+                  ? "عكس عربون نشط"
+                  : "تراجع عن قبضة"
           } — ${stored.order.itemName || "طلب"}`,
           href: `/orders/${stored.id}`,
           amountMinor: isCashIn ? amount : -amount,

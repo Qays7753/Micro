@@ -14,6 +14,7 @@ import {
   type LocalStoreSnapshot,
   type PrototypeLocalStore,
 } from "@/storage/local/types";
+import { snapshotSystemIsEmpty } from "@/storage/local/influentialSnapshotFamilies";
 
 export const guidedOpeningImportFormat = "micro-guided-opening-import" as const;
 export const guidedOpeningImportVersion = 1 as const;
@@ -184,21 +185,12 @@ function parseFile(text: string, now: string): GuidedOpeningImportResult<GuidedO
   };
 }
 
-const emptySnapshot = (snapshot: LocalStoreSnapshot): boolean =>
-  snapshot.profile === null &&
-  snapshot.drafts.length === 0 &&
-  snapshot.orders.length === 0 &&
-  snapshot.schedules.length === 0 &&
-  (snapshot.recurrences?.length ?? 0) === 0 &&
-  snapshot.financialEvents.length === 0 &&
-  (snapshot.supplierPurchases?.length ?? 0) === 0 &&
-  (snapshot.cashWallets?.length ?? 0) === 0 &&
-  (snapshot.cashContinuityEntries?.length ?? 0) === 0 &&
-  (snapshot.materials?.length ?? 0) === 0 &&
-  (snapshot.inventoryMovements?.length ?? 0) === 0 &&
-  (snapshot.catalogItems?.length ?? 0) === 0 &&
-  (snapshot.actualTimeRecords?.length ?? 0) === 0 &&
-  (snapshot.shortCashDeclarations?.length ?? 0) === 0;
+/* EXE-014 (DATA-001 / AUD-NEW-09): بوابة الفراغ لم تعد قائمة يدوية — بل
+ * السجل التعاقدي الموحّد influentialSnapshotFamilies المشتق من شكل اللقطة
+ * نفسها (اكتمال مفروض وقت الترجمة)، فيغطي كل العائلات المؤثرة: التفضيلات
+ * وملف المالك والمبيعات المباشرة والأصول والقروض ودفتر المالك وغيرها — أي
+ * سجل واحد في أي عائلة يمنع الاستيراد الافتتاحي الصامت فوق بيانات قائمة. */
+const emptySnapshot = (snapshot: LocalStoreSnapshot): boolean => snapshotSystemIsEmpty(snapshot);
 
 export class GuidedOpeningImportService {
   constructor(
@@ -225,7 +217,7 @@ export class GuidedOpeningImportService {
     if (!emptySnapshot(current.value) && !alreadyImported)
       return fail(
         "non_empty_store",
-        "هذا الجهاز يحتوي بيانات محلية. صدّرها أولًا؛ لا يدمج الاستيراد الافتتاحي فوق سجل قائم.",
+        "هذا الجهاز يحتوي بيانات محلية (تفضيلات أو ملف مالك أو مبيعات أو أصول أو قروض أو دفتر مالك أو غيرها). صدّرها أولًا واستخدم الاستعادة الكاملة الموثقة؛ لا يدمج الاستيراد الافتتاحي فوق سجل قائم.",
       );
     if (alreadyImported)
       return {

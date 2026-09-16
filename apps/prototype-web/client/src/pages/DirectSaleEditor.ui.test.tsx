@@ -86,6 +86,13 @@ describe("DirectSaleEditor", () => {
       cashContinuity: {
         overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
       },
+      /* EXE-010 (AUD-NEW-04): قسم عكس التحصيل يقرأ القيود القابلة للعكس —
+       * كعب فارغ يكفي لاختبارات التحرير والإلغاء هنا. */
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
       projectFinance: {
         distributeUnallocated: vi.fn(),
       },
@@ -153,6 +160,13 @@ describe("DirectSaleEditor", () => {
       cashContinuity: {
         overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
       },
+      /* EXE-010 (AUD-NEW-04): قسم عكس التحصيل يقرأ القيود القابلة للعكس —
+       * كعب فارغ يكفي لاختبارات التحرير والإلغاء هنا. */
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
       projectFinance: {
         distributeUnallocated: vi.fn(),
       },
@@ -206,6 +220,13 @@ describe("DirectSaleEditor", () => {
       },
       cashContinuity: {
         overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
+      },
+      /* EXE-010 (AUD-NEW-04): قسم عكس التحصيل يقرأ القيود القابلة للعكس —
+       * كعب فارغ يكفي لاختبارات التحرير والإلغاء هنا. */
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
       },
       projectFinance: {
         distributeUnallocated: vi.fn(),

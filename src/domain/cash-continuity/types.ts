@@ -12,8 +12,17 @@ export type CashWalletOpeningStatus = "known" | "unknown";
  * نوع المصدر «supplier_purchase» يصل دفتر المحفظة بشراء المورد نفسه.
  * EXE-003 (AUD-NEW-03): القائمة القانونية معرّفة هنا مرة واحدة وتُصدَّر —
  * سياسات الدومين وفاحص السلامة MIC-2 وكل مستهلك يستوردونها من هذا المصدر،
- * فلا تنحرف نسخة مكررة عنه بعد اليوم. */
-export const SOURCE_REF_KINDS = ["sale", "expense", "collection", "order", "supplier_purchase"] as const;
+ * فلا تنحرف نسخة مكررة عنه بعد اليوم.
+ * EXE-009 (OWN-001): تخصيص/تغطية حدث مالك (استثمار أو سحب شخصي) ينسب للحدث
+ * نفسه — «owner_event» — فتصل حركة المحفظة بالحدث المالي المصدر. */
+export const SOURCE_REF_KINDS = [
+  "sale",
+  "expense",
+  "collection",
+  "order",
+  "supplier_purchase",
+  "owner_event",
+] as const;
 type CashAllocationSourceKind = (typeof SOURCE_REF_KINDS)[number];
 export type CashWallet = {
   id: string;

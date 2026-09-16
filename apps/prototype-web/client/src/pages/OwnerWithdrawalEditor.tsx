@@ -7,13 +7,18 @@ import { ArrowRight, HandCoins, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import { withFrom } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
+import { CrossModelDuplicateNotice } from "@/components/owner/CrossModelDuplicateNotice";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
+import type {
+  CrossModelOwnerDuplicate,
+  OwnerEntitlementOverview,
+} from "@/application/finance/ownerEntitlementService";
 
 import { Button } from "@/components/primitives";
 /* مفتاح القرار (X-05): وجود سياسة حق مالك فعالة يوجه السحب إلى مسار الدفتر
@@ -42,6 +47,13 @@ export default function OwnerWithdrawalEditor() {
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /* EXE-009 (OWN-001): حارس التكرار التقاطعي — يتوقف الحفظ بالإفصاح حتى تأكيد
+   * صريح أن العملية جديدة مختلفة، أو مراجعة الدفتر الموحد. */
+  const [duplicateWarning, setDuplicateWarning] = useState<CrossModelOwnerDuplicate | null>(null);
+  const confirmedDistinctRef = useRef(false);
+  /* EXE-009: مصدر الكاش لمسار الحدث المالي (بلا سياسة) — الكاش غير الموزع
+   * أو تغطية من محفظة محددة، بنفس نمط تغطية المصروف. */
+  const [eventWalletId, setEventWalletId] = useState("");
   const idempotencyKey = useRef(`owner-withdrawal-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
   useEffect(() => {
@@ -89,34 +101,72 @@ export default function OwnerWithdrawalEditor() {
       return false;
     }
     setMessage(null);
+    /* EXE-009 (OWN-001): الحارس التقاطعي قبل أي كتابة — سحب بنفس المبلغ
+     * والتاريخ موجود في النموذج الآخر؟ إيقاف بإفصاح وتأكيد صريح. */
+    if (!confirmedDistinctRef.current) {
+      const duplicate = await ownerEntitlement.findCrossModelOwnerDuplicate({
+        direction: "withdrawal",
+        amountMinor,
+        occurredOn,
+        writing: path === "ledger_movement" ? "movement" : "event",
+      });
+      if (duplicate.ok && duplicate.value) {
+        setDuplicateWarning(duplicate.value);
+        return false;
+      }
+    }
+    setDuplicateWarning(null);
     setSaving(true);
-    const result =
-      path === "ledger_movement"
-        ? await ownerEntitlement.recordMovement({
-            kind: "draw",
-            amountMinor,
-            walletId,
-            occurredOn,
-            note: note.trim() || "سحب من المشروع لنفسك",
-            reason: settlingEntitlement ? "entitlement_settlement" : "pre_entitlement_draw",
-            relatedEntitlementId: settlingEntitlement ? entitlementId : null,
-            idempotencyKey: idempotencyKey.current,
-          })
-        : await projectFinance.record({
-            type: "owner_withdrawal_cash",
-            amountMinor,
-            occurredOn,
-            note: note.trim(),
-            counterparty: null,
-            relatedEventId: null,
-            idempotencyKey: idempotencyKey.current,
-          });
+    /* EXE-009: مصدر السحب لمسار الحدث — تغطية من المحفظة المختارة بعد التسجيل
+     * (مفتاح مشتق من مفتاح الحدث فلا تخصيص مزدوج عند الإعادة) بنمط المصروف. */
+    let attributionNotice: string | null = null;
+    let result:
+      | Awaited<ReturnType<typeof ownerEntitlement.recordMovement>>
+      | Awaited<ReturnType<typeof projectFinance.record>>;
+    if (path === "ledger_movement") {
+      result = await ownerEntitlement.recordMovement({
+        kind: "draw",
+        amountMinor,
+        walletId,
+        occurredOn,
+        note: note.trim() || "سحب من المشروع لنفسك",
+        reason: settlingEntitlement ? "entitlement_settlement" : "pre_entitlement_draw",
+        relatedEntitlementId: settlingEntitlement ? entitlementId : null,
+        idempotencyKey: idempotencyKey.current,
+      });
+    } else {
+      result = await projectFinance.record({
+        type: "owner_withdrawal_cash",
+        amountMinor,
+        occurredOn,
+        note: note.trim(),
+        counterparty: null,
+        relatedEventId: null,
+        idempotencyKey: idempotencyKey.current,
+      });
+      if (result.ok && eventWalletId.trim() && !result.reused) {
+        const attribution = await projectFinance.distributeUnallocated({
+          walletId: eventWalletId,
+          deltaMinor: -amountMinor,
+          note: "تغطية سحب شخصي من رصيد المحفظة",
+          sourceRefId: result.value.id,
+          sourceRefKind: "owner_event",
+          operationKey: `${idempotencyKey.current}:attribute`,
+        });
+        if (!attribution.ok) attributionNotice = attribution.message;
+      }
+    }
     setSaving(false);
     if (!result.ok) {
       setMessage(result.message);
       return false;
     }
     notifyDataChanged();
+    if (attributionNotice) {
+      /* الحدث محفوظ والتغطية تعذرت — إفصاح صادق لا نجاح صامت. */
+      setMessage(`سُجّل السحب إلى الكاش غير الموزع، وتعذرت تغطية المحفظة: ${attributionNotice}`);
+      return true;
+    }
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     navigate(returnPath);
     return true;
@@ -167,6 +217,38 @@ export default function OwnerWithdrawalEditor() {
           </p>
         </div>
       </section>
+      {/* EXE-009: حارس التكرار التقاطعي — يظهر مكان الحفظ حتى الحسم. */}
+      {overview && duplicateWarning ? (
+        <CrossModelDuplicateNotice
+          duplicate={duplicateWarning}
+          onReviewLedger={() => navigate(withFrom("/finance/owner-entitlement", "/finance/withdraw"))}
+          onConfirmDistinct={() => {
+            confirmedDistinctRef.current = true;
+            setDuplicateWarning(null);
+            void save();
+          }}
+        />
+      ) : null}
+      {/* EXE-009 (OWN-002): لا طريق مسدود — سياسة فعالة بلا محافظ: خطوة تالية
+       * موثقة (إنشاء محفظة) بدل خيار «لا محفظة معلنة بعد» الذي لا يمكن حفظه. */}
+      {overview && path === "ledger_movement" && overview.walletBalances.length === 0 ? (
+        <section className="micro-decision-card" data-owner-no-wallets="true">
+          <HandCoins aria-hidden="true" />
+          <div>
+            <span>خطوة تالية قبل السحب</span>
+            <strong>سياستك الفعالة تسحب من محفظة، وما في محفظة معلنة بعد.</strong>
+            <p>أنشئ محفظة كاش أولًا (درج أو حساب) ليخرج السحب من رصيدها الموثق.</p>
+            <div className="micro-form-actions micro-contextual-actions">
+              <Button
+                action="create"
+                onClick={() => navigate(withFrom("/cash/wallet/new", "/finance/withdraw"))}
+              >
+                أنشئ محفظة كاش
+              </Button>
+            </div>
+          </div>
+        </section>
+      ) : null}
       {overview ? (
         <section className="micro-form-card">
           <label className="micro-field">
@@ -209,6 +291,28 @@ export default function OwnerWithdrawalEditor() {
                 <small>سياسة حق مالك فعالة عندك؛ السحب يسوّي حقك المسجل ويظهر في دفتر المالك.</small>
               </label>
             </>
+          ) : null}
+          {path === "financial_event" && overview.walletBalances.length > 0 ? (
+            /* EXE-009: مصدر الكاش لمسار الحدث — الكاش غير الموزع (الافتراضي)
+             * أو تغطية من محفظة محددة بعد التسجيل، بنفس قاعدة المصروف. */
+            <label className="micro-field">
+              <span>
+                مصدر السحب{" "}
+                <small>
+                  {overview.walletBalances.length === 1
+                    ? "المحفظة الوحيدة معروضة — الكاش غير الموزع خيار صريح"
+                    : "اختر محفظة أو الكاش غير الموزع"}
+                </small>
+              </span>
+              <select value={eventWalletId} onChange={event => setEventWalletId(event.target.value)}>
+                <option value="">الكاش غير الموزع</option>
+                {overview.walletBalances.map(wallet => (
+                  <option key={wallet.id} value={wallet.id}>
+                    {wallet.name} — تغطية من رصيدها
+                  </option>
+                ))}
+              </select>
+            </label>
           ) : null}
           <LocalDateField
             label="تاريخ السحب"

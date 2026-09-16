@@ -4,8 +4,8 @@
  * OrderDetail.tsx حرفيًا؛ الصفحة تبقى الموزّع وتمرّر كل شيء خصائصِ أدناة.
  * لا منطق ماليًا هنا — عرض واستدعاء إجراءات الصفحة فقط، بنفس السلوك.
  */
-import { CircleDollarSign, HandCoins, XCircle } from "lucide-react";
-import { type Dispatch, type ReactNode, type SetStateAction, useRef } from "react";
+import { CircleDollarSign, HandCoins, Undo2, XCircle } from "lucide-react";
+import { type Dispatch, type ReactNode, type SetStateAction, useRef, useState } from "react";
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
 import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import type { ActualTimeService } from "@/application/time/actualTimeService";
@@ -45,6 +45,8 @@ export type OrderDepositPanelsProps = {
 };
 
 const freshRefundOperationKey = () => `deposit-refund-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
+/* EXE-010 (AUD-NEW-05): مفتاح لكل تأكيد عكس مستقل — بنمط رد العربون (EXE-004). */
+const freshReversalOperationKey = () => `deposit-reverse-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 
 export function OrderDepositPanels({
   order,
@@ -77,6 +79,19 @@ export function OrderDepositPanels({
    * متساويان في الساعة نفسها حدثان مستقلان، والنقر المزدوج على التأكيد
    * الواحد يظل محتميًا بالمفتاح نفسه حتى يكتمل نجاحه فيُجدد. */
   const refundOperationKeyRef = useRef(freshRefundOperationKey());
+  /* EXE-010: حالة نموذج عكس العربون النشط — محلية للوحة لأنها لا تشارك
+   * حالة الصفحة؛ المفتاح لكل تأكيد بنمط الرد. */
+  const reversalOperationKeyRef = useRef(freshReversalOperationKey());
+  const [reverseAmount, setReverseAmount] = useState<number | null>(null);
+  const [reverseReason, setReverseReason] = useState("");
+  /* العربون القائم القابل للعكس: المحصل − المحتفظ (المحصل ينقص مع كل عكس
+   * فالسقف يتقلص طبيعيًا — لا جمع مزدوج مع أحداث العكس). */
+  const standingDepositMinor = Math.max(order.depositCollectedMinor - (order.depositRetainedMinor ?? 0), 0);
+  const activePreDelivery =
+    order.status !== "delivered" &&
+    order.status !== "settled" &&
+    order.status !== "cancelled" &&
+    order.status !== "draft";
   return (
     <>
       {order.depositCollectedMinor > 0 ? (
@@ -97,6 +112,81 @@ export function OrderDepositPanels({
         </section>
       )}
       {contextualAction}
+      {/* EXE-010 (AUD-NEW-05): عكس عربون نشط قبل التسليم — «عربون خاطئ قبل
+          التسليم يُعكس بخطوة موثقة واحدة تصحح التخصيص أيضًا». إجراء صريح بسبب
+          إلزامي؛ الأصل باقٍ في الخط الزمني، والعكس يصحح العربون والمقبوض
+          وتخصيص المحفظة معًا. ما بعد التسليم أو الملغى لا يظهر هنا — لكل
+          حالته سطرها الموثق. */}
+      {activePreDelivery && standingDepositMinor > 0 ? (
+        <details className="micro-owner-layer" data-testid="active-deposit-reversal">
+          <summary className="micro-owner-layer-summary">
+            <span>
+              <b>عكس عربون نشط</b>
+              <small>سُجّل عربون خطأ قبل التسليم؟ اعكسه بخطوة موثقة واحدة</small>
+            </span>
+            <strong>افتح العكس</strong>
+          </summary>
+          <section className="micro-form-card">
+            <div className="micro-decision-card">
+              <Undo2 aria-hidden="true" />
+              <div>
+                <span>حد الحقيقة</span>
+                <strong>العكس يصحح السجل والتخصيص معًا — ولا يحذف شيئًا.</strong>
+                <p>
+                  ينقص العربون القائم والمقبوض معًا فيعود الدين بقوته، وما وُزّع على محفظة يُفك منها بقيد
+                  مرتبط بالأصل. بعد التسليم لا عكس — اعكس التسليم أولًا؛ والملغى له لوحة تسويته.
+                </p>
+              </div>
+            </div>
+            <label className="micro-field">
+              <span>
+                مبلغ العكس <small>اختياري — الافتراضي كامل العربون القائم</small>
+              </span>
+              <EnglishNumberInput
+                value={reverseAmount ?? standingDepositMinor}
+                kind="money"
+                onNumericChange={value => setReverseAmount(value)}
+              />
+              <small>
+                العربون القائم الآن{" "}
+                <MoneyValue minor={standingDepositMinor} className="micro-inline-number" /> د.أ بعد العكوس
+                السابقة؛ اتركه كما هو للعكس الكامل أو اكتب جزئيًا.
+              </small>
+            </label>
+            <label className="micro-field">
+              <span>
+                سبب العكس <small>مطلوب</small>
+              </span>
+              <input
+                value={reverseReason}
+                onChange={event => setReverseReason(event.target.value)}
+                placeholder="مثال: سُجّل العربون على الطلب الخطأ"
+              />
+            </label>
+            <Button
+              action="save"
+              disabled={isActing || !reverseReason.trim()}
+              onClick={() => {
+                const operationKey = reversalOperationKeyRef.current;
+                void run(async () => {
+                  const result = await fulfillment.reverseDeposit(
+                    stored.id,
+                    reverseReason,
+                    reverseAmount ?? undefined,
+                    operationKey,
+                  );
+                  if (result.ok) reversalOperationKeyRef.current = freshReversalOperationKey();
+                  return result;
+                });
+                setReverseReason("");
+                setReverseAmount(null);
+              }}
+            >
+              <Undo2 aria-hidden="true" /> اعكس العربون
+            </Button>
+          </section>
+        </details>
+      ) : null}
       {/* المجموعة ١ (Scope E): أثناء التنفيذ — قراءة الوقت والمادة الفعلية ظاهرة
           بلا طي، ووصلة استهلاك المادة تحفظ سياق الطلب الأصلي للتعبئة والرجوع. */}
       {executionStatuses.includes(order.status) ? (

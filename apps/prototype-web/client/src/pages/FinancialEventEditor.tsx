@@ -17,6 +17,14 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { EventEffectPreview } from "@/components/presentation/EventEffectPreview";
 import { AllocationReviewCard } from "@/components/finance/AllocationReviewCard";
+import { CrossModelDuplicateNotice } from "@/components/owner/CrossModelDuplicateNotice";
+import {
+  EXPENSE_NOTE_REQUIRED_MESSAGE,
+  EXPENSE_SOURCE_UNSET as UNSET_EXPENSE_SOURCE,
+  coverExpenseFromWallet,
+  expenseSourceHint,
+  expenseSourceRuleViolation,
+} from "@/components/finance/expenseFormModel";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import {
   deriveExpenseCategorySuggestions,
@@ -28,6 +36,7 @@ import {
   migrateLegacyFormDraft,
 } from "@/application/drafts/legacyFormDraftMigration";
 import type { SettleablePayable } from "@/application/finance/projectFinancialService";
+import type { CrossModelOwnerDuplicate } from "@/application/finance/ownerEntitlementService";
 import { percentToBpsExact } from "@/application/input/englishNumeric";
 import type {
   FinancialEventType,
@@ -158,7 +167,8 @@ const KNOWLEDGE_VALUES = ["known", "estimated", "needs_review"] as const;
 const SHARED_MODE_VALUES = ["fixed", "percentage", "estimate", "defer"] as const;
 /* FIN-005 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): «لم يُختر بعد» — غير الخيار
  * الصريح «الكاش غير الموزع»؛ إلزامي التخطي عند تعدد المحافظ. */
-const UNSET_EXPENSE_SOURCE = "__unset__";
+/* EXE-007: القيمة المحجوزة مستوردة من المواصفة الموحدة (expenseFormModel)
+ * ومُعاد تسميتها محليًا للحفاظ على نصوص الكود القائمة — تعريف واحد. */
 
 const safeDraftAmount = (value: unknown): number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
@@ -200,7 +210,7 @@ export default function FinancialEventEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { dataVersion, projectFinance, cashContinuity, notifyDataChanged, formDrafts } =
+  const { dataVersion, projectFinance, cashContinuity, notifyDataChanged, formDrafts, ownerEntitlement } =
     usePrototypeServices();
   const type = types.has(rawType as GuidedFinancialEventType) ? (rawType as GuidedFinancialEventType) : null;
   const [amountMinor, setAmountMinor] = useState(0);
@@ -228,6 +238,10 @@ export default function FinancialEventEditor() {
   const [wallets, setWallets] = useState<readonly { id: string; name: string }[]>([]);
   const [walletId, setWalletId] = useState(UNSET_EXPENSE_SOURCE);
   const walletSourceChosenRef = useRef(false);
+  /* EXE-009 (OWN-001): حارس التكرار التقاطعي لأحداث المالك — إيقاف بإفصاح
+   * وتأكيد صريح قبل أي كتابة. */
+  const [duplicateWarning, setDuplicateWarning] = useState<CrossModelOwnerDuplicate | null>(null);
+  const confirmedDistinctRef = useRef(false);
   const [payableOptions, setPayableOptions] = useState<readonly SettleablePayable[]>([]);
   const [relatedEventId, setRelatedEventId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -287,9 +301,15 @@ export default function FinancialEventEditor() {
       active = false;
     };
   }, [projectFinance, type, dataVersion]);
-  /* المجموعة ١: المحافظ لسؤال مصدر الصرف (المصروف المدفوع فقط). */
+  /* المجموعة ١: المحافظ لسؤال مصدر الصرف (المصروف المدفوع) ولوجهة/مصدر
+   * الكاش لأحداث المالك (EXE-009: الاستثمار يحدد وجهة الكاش والسحب مصدره). */
   useEffect(() => {
-    if (type !== "operating_expense_cash") return;
+    if (
+      type !== "operating_expense_cash" &&
+      type !== "owner_investment_cash" &&
+      type !== "owner_withdrawal_cash"
+    )
+      return;
     let active = true;
     cashContinuity.overview().then(result => {
       if (!active) return;
@@ -300,13 +320,20 @@ export default function FinancialEventEditor() {
       active = false;
     };
   }, [cashContinuity, type, dataVersion]);
-  /* FIN-005: قاعدة التعيين عند تغيّر المحافظ — ما لم يختر المالك صراحةً. */
+  /* FIN-005: قاعدة التعيين عند تغيّر المحافظ — ما لم يختر المالك صراحةً.
+   * EXE-009: التعيين المسبق للمحفظة الوحيدة يخص المصروف فقط؛ أحداث المالك
+   * وجهتها/مصدرها الافتراضي الصريح هو الكاش غير الموزع (سلوك الحدث الأصلي)
+   * — لا تعيين صامت لمحفظة يغير معنى الاستثمار/السحب دون قرار. */
   useEffect(() => {
-    if (walletSourceChosenRef.current) return;
-    if (wallets.length === 1) setWalletId(wallets[0]!.id);
-    else if (wallets.length === 0) setWalletId("");
-    else setWalletId(UNSET_EXPENSE_SOURCE);
-  }, [wallets]);
+    if (type === "operating_expense_cash") {
+      if (walletSourceChosenRef.current) return;
+      if (wallets.length === 1) setWalletId(wallets[0]!.id);
+      else if (wallets.length === 0) setWalletId("");
+      else setWalletId(UNSET_EXPENSE_SOURCE);
+      return;
+    }
+    setWalletId(current => (current === UNSET_EXPENSE_SOURCE ? "" : current));
+  }, [wallets, type]);
   /* المجموعة ٥ (التحصين الكامل): مفتاح الصفحة القديم يُرحَّل مرة واحدة عبر
    * المهاجئ الضيق (اكتب ← تحقق ← احذف) ثم تصبح القراءة من الحد الموحّد فقط —
    * لا وصول مباشرًا لتخزين الصفحة في الكود الطبيعي بعد اليوم. */
@@ -560,19 +587,37 @@ export default function FinancialEventEditor() {
       return false;
     }
     if (!note.trim()) {
-      setMessage("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.");
+      setMessage(EXPENSE_NOTE_REQUIRED_MESSAGE);
       return false;
     }
-    /* FIN-005: محافظ متعددة — لا حفظ لمصروف نقدي بلا اختيار صريح لمصدره. */
-    if (
-      selectedType === "operating_expense_cash" &&
-      wallets.length > 1 &&
-      walletId === UNSET_EXPENSE_SOURCE
-    ) {
-      setMessage("اختر مصدر الصرف: محفظة أو الكاش غير الموزع.");
-      return false;
+    /* FIN-005: محافظ متعددة — لا حفظ لمصروف نقدي بلا اختيار صريح لمصدره.
+     * EXE-007: القاعدة من المواصفة الموحدة مع ورقة الإضافة السريعة. */
+    if (selectedType === "operating_expense_cash") {
+      const sourceViolation = expenseSourceRuleViolation(wallets.length, walletId);
+      if (sourceViolation) {
+        setMessage(sourceViolation);
+        return false;
+      }
     }
     setMessage(null);
+    /* EXE-009 (OWN-001): الحارس التقاطعي لأحداث المالك — إدخال/سحب بنفس
+     * المبلغ والتاريخ موجود في نموذج حركة الدفتر؟ إيقاف بإفصاح وتأكيد صريح. */
+    if (
+      (selectedType === "owner_investment_cash" || selectedType === "owner_withdrawal_cash") &&
+      !confirmedDistinctRef.current
+    ) {
+      const duplicate = await ownerEntitlement.findCrossModelOwnerDuplicate({
+        direction: selectedType === "owner_investment_cash" ? "injection" : "withdrawal",
+        amountMinor,
+        occurredOn: date,
+        writing: "event",
+      });
+      if (duplicate.ok && duplicate.value) {
+        setDuplicateWarning(duplicate.value);
+        return false;
+      }
+    }
+    setDuplicateWarning(null);
     saveInFlightRef.current = true;
     setSaving(true);
     const sharedExpense = sharedExpenseIntent;
@@ -611,22 +656,50 @@ export default function FinancialEventEditor() {
     clearDraft();
     /* المجموعة ١ (وجهة الصرف): تغطية المحفظة المختارة بعد التسجيل — نفس توقيع
      * ورقة الإضافة (مفتاح مشتق من مفتاح السجل) فلا تخصيص مزدوج عند الإعادة.
-     * فشل النسبة لا يمس الحدث: المال محفوظ غير موزع، والنص يظهر قبل الخروج. */
-    if (selectedType === "operating_expense_cash" && walletId && walletId !== UNSET_EXPENSE_SOURCE) {
-      const attribution = await projectFinance.distributeUnallocated({
-        walletId,
-        deltaMinor: -result.value.amountMinor,
-        note: "تغطية مصروف من رصيد المحفظة",
-        sourceRefId: result.value.id,
-        sourceRefKind: "expense",
-        operationKey: `${idempotencyKey.current}:attribute`,
-      });
+     * فشل النسبة لا يمس الحدث: المال محفوظ غير موزع، والنص يظهر قبل الخروج.
+     * EXE-009: الاستثمار يخصص إلى المحفظة (+) والسحب يغطي منها (−) — بنفس
+     * الآلية ونوع مصدر owner_event الرابط بالحدث نفسه. */
+    if (
+      (selectedType === "operating_expense_cash" ||
+        selectedType === "owner_investment_cash" ||
+        selectedType === "owner_withdrawal_cash") &&
+      walletId &&
+      walletId !== UNSET_EXPENSE_SOURCE
+    ) {
+      /* EXE-007: فرع المصروف يمر بالتوقيع الموحد من المواصفة نفسها التي
+       * تستعملها ورقة الإضافة السريعة — تغطية واحدة بتعريف واحد. */
+      const attribution =
+        selectedType === "operating_expense_cash"
+          ? await coverExpenseFromWallet(projectFinance, {
+              walletId,
+              amountMinor: result.value.amountMinor,
+              eventId: result.value.id,
+              operationKey: idempotencyKey.current,
+            })
+          : await projectFinance.distributeUnallocated({
+              walletId,
+              deltaMinor:
+                selectedType === "owner_investment_cash"
+                  ? result.value.amountMinor
+                  : -result.value.amountMinor,
+              note:
+                selectedType === "owner_investment_cash"
+                  ? "تخصيص استثمار مالك إلى المحفظة"
+                  : "تغطية سحب شخصي من رصيد المحفظة",
+              sourceRefId: result.value.id,
+              sourceRefKind: "owner_event",
+              operationKey: `${idempotencyKey.current}:attribute`,
+            });
       setSaving(false);
       /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال كل
        * الكتابات (الحدث ثم تغطية المحفظة) — إبطال حالة واحدة بعد النجاح. */
       notifyDataChanged();
       if (!attribution.ok) {
-        setSavedNote({ eventId: result.value.id, message: attribution.message });
+        setSavedNote({
+          eventId: result.value.id,
+          message:
+            attribution.message ?? "تعذرت تغطية المحفظة بعد حفظ الحدث؛ المال محفوظ في الكاش غير الموزع.",
+        });
         return true;
       }
     } else {
@@ -682,6 +755,19 @@ export default function FinancialEventEditor() {
           </p>
         ) : null}
       </section>
+      {/* EXE-009 (OWN-001): حارس التكرار التقاطعي لأحداث المالك — يظهر مكان
+       * الحفظ حتى الحسم بالتأكيد أو المراجعة. */}
+      {(type === "owner_investment_cash" || type === "owner_withdrawal_cash") && duplicateWarning ? (
+        <CrossModelDuplicateNotice
+          duplicate={duplicateWarning}
+          onReviewLedger={() => navigate(withFrom("/finance/owner-entitlement", returnPath))}
+          onConfirmDistinct={() => {
+            confirmedDistinctRef.current = true;
+            setDuplicateWarning(null);
+            void save();
+          }}
+        />
+      ) : null}
       <section className="micro-form-card">
         {draftOffer ? (
           /* المجموعة ١ (مسودة محفوظة): استرجاع بفعل صريح — لا تحويل سجل تلقائي أبدًا. */
@@ -771,18 +857,28 @@ export default function FinancialEventEditor() {
             </small>
           </label>
         )}
-        {type === "operating_expense_cash" ? (
+        {type === "operating_expense_cash" ||
+        type === "owner_investment_cash" ||
+        type === "owner_withdrawal_cash" ? (
           /* المجموعة ١ (الإدخال الموجّه): «من وين طلع المبلغ؟» — نفس مفردات ورقة
            * الإضافة (مصدر الصرف) حتى لا تتعدد مفردات المفهوم الواحد.
-           * FIN-005: نفس قاعدة الورقة بعدد المحافظ — بلا تحويل صامت. */
+           * FIN-005: نفس قاعدة الورقة بعدد المحافظ — بلا تحويل صامت.
+           * EXE-009: أحداث المالك — الاستثمار يسأل «وجهة الكاش» والسحب «مصدر
+           * السحب»؛ الافتراضي الصريح الكاش غير الموزع (سلوك الحدث الأصلي). */
           wallets.length > 0 ? (
             <label className="micro-field">
               <span>
-                مصدر الصرف{" "}
+                {type === "owner_investment_cash"
+                  ? "وجهة الكاش "
+                  : type === "owner_withdrawal_cash"
+                    ? "مصدر السحب "
+                    : "مصدر الصرف "}
                 <small>
-                  {wallets.length === 1
-                    ? "المحفظة الوحيدة معيَّنة مسبقًا — الكاش غير الموزع خيار صريح"
-                    : "اختر محفظة أو الكاش غير الموزع"}
+                  {type === "operating_expense_cash"
+                    ? expenseSourceHint(wallets.length)
+                    : type === "owner_investment_cash"
+                      ? "الكاش غير الموزع هو الافتراضي — اختر محفظة لتخصيص المال إليها"
+                      : "الكاش غير الموزع هو الافتراضي — اختر محفظة لتغطية السحب من رصيدها"}
                 </small>
               </span>
               <select
@@ -792,7 +888,7 @@ export default function FinancialEventEditor() {
                   setWalletId(event.target.value);
                 }}
               >
-                {wallets.length > 1 ? (
+                {type === "operating_expense_cash" && wallets.length > 1 ? (
                   <option value={UNSET_EXPENSE_SOURCE} disabled>
                     اختر مصدر الصرف
                   </option>
@@ -800,16 +896,18 @@ export default function FinancialEventEditor() {
                 <option value="">الكاش غير الموزع</option>
                 {wallets.map(wallet => (
                   <option key={wallet.id} value={wallet.id}>
-                    {wallet.name} — تغطية من رصيدها
+                    {type === "owner_investment_cash"
+                      ? `${wallet.name} — تخصيص إلى رصيدها`
+                      : `${wallet.name} — تغطية من رصيدها`}
                   </option>
                 ))}
               </select>
             </label>
-          ) : (
+          ) : type === "operating_expense_cash" ? (
             <p className="micro-offline-truth" role="status">
               لا محافظ معلنة بعد — سيُسجَّل المصروف من الكاش غير الموزع، ويمكن تغطيته من محفظة لاحقًا من مالي.
             </p>
-          )
+          ) : null
         ) : null}
         <LocalDateField label="تاريخ الحدث" value={date} onChange={event => setDate(event.target.value)} />
         <label className="micro-field">

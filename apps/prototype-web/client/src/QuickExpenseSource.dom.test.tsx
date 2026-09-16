@@ -6,7 +6,7 @@
  * غير الموزع) ولا تُذكر آخر محفظة. المحفظة المختارة هي وجهة التخصيص
  * الفعلية المخزنة. */
 import React from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -71,6 +71,8 @@ function renderForm(wallets: readonly { id: string; name: string }[], submitted:
 async function submitExpense(selectorValue?: string) {
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+  /* EXE-007: الوصف إلزامي في المدخلين — القاعدة الموحدة من expenseFormModel. */
+  await user.type(screen.getByLabelText(/البند/), "أكياس تغليف");
   if (selectorValue !== undefined) {
     await waitFor(() => expect(screen.getByLabelText(/مصدر الصرف/)).toBeTruthy());
     await user.selectOptions(screen.getByLabelText(/مصدر الصرف/), selectorValue);
@@ -128,9 +130,11 @@ describe("QuickExpenseForm cash-source rules (FIN-005)", () => {
     const selector = await screen.findByLabelText(/مصدر الصرف/);
     await waitFor(() => expect((selector as HTMLSelectElement).value).toBe("__unset__"));
     expect(screen.getByText("اختر مصدر الصرف")).toBeTruthy();
-    /* المحاولة بلا اختيار تُرفض بلا أي كتابة. */
+    /* المحاولة بلا اختيار تُرفض بلا أي كتابة — الوصف المطلوب مُدخل أولًا
+     * فالرفض سببه قاعدة المحفظة لا حقلًا ناقصًا (EXE-007: قاعدة واحدة). */
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    await user.type(screen.getByLabelText(/البند/), "أكياس تغليف");
     await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
     expect(await screen.findByText("اختر مصدر الصرف: محفظة أو الكاش غير الموزع.")).toBeTruthy();
     expect(submitted).toHaveLength(0);
@@ -181,6 +185,8 @@ describe("QuickExpenseForm cash-source rules (FIN-005)", () => {
     await waitFor(() => expect((selector as HTMLSelectElement).value).toBe("__unset__"));
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    /* EXE-007: الوصف إلزامي في المدخلين — القاعدة الموحدة. */
+    await user.type(screen.getByLabelText(/البند/), "أكياس تغليف");
     await user.selectOptions(selector, bank.id);
     await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
     await waitFor(() => expect(firstSubmitted.length).toBeGreaterThan(0));
@@ -196,5 +202,132 @@ describe("QuickExpenseForm cash-source rules (FIN-005)", () => {
     );
     const reopened = await screen.findByLabelText(/مصدر الصرف/);
     await waitFor(() => expect((reopened as HTMLSelectElement).value).toBe("__unset__"));
+  });
+});
+
+describe("EXE-007 — quick sheet is the compact mode of the same expense journey", () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it("requires the note in the quick sheet too — no manufactured text attributed to the owner", async () => {
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([], submitted);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
+    expect(await screen.findByText("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.")).toBeTruthy();
+    expect(submitted).toHaveLength(0);
+    /* لا يوجد أي حدث مالي مكتوب — القاعدة أوقفت الكتابة قبل الخدمة. */
+    const events = await store.listFinancialEvents();
+    expect(events.ok && events.value).toHaveLength(0);
+  });
+
+  it("records with the owner's own note — the saved event carries it verbatim", async () => {
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([], submitted);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    await user.type(screen.getByLabelText(/البند/), "أكياس تغليف للمشروع");
+    await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
+    await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
+    const events = await store.listFinancialEvents();
+    const event = events.ok ? events.value[0] : null;
+    expect(event).not.toBeNull();
+    expect(event!.note).toBe("أكياس تغليف للمشروع");
+  });
+
+  it("edits the date like the guided editor — a past date flows to the saved event", async () => {
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([], submitted);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    await user.type(screen.getByLabelText(/البند/), "مصروف بتاريخ ماض");
+    const dateField = await screen.findByLabelText(/تاريخ المصروف/);
+    await user.clear(dateField);
+    await user.type(dateField, "2026-09-01");
+    await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
+    await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
+    const events = await store.listFinancialEvents();
+    const event = events.ok ? events.value[0] : null;
+    expect(event).not.toBeNull();
+    expect(event!.occurredOn).toBe("2026-09-01");
+  });
+
+  it("double-clicking save records one expense and one wallet coverage only", async () => {
+    const wallet = await openWallet("درج-EXE007", 10000);
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([{ id: wallet.id, name: "درج-EXE007" }], submitted);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    await user.type(screen.getByLabelText(/البند/), "نقرة مزدوجة");
+    const saveButton = screen.getByRole("button", { name: "سجّل المصروف" });
+    /* نقرتان متتابعتان قبل اكتمال الأولى — عهدة التزامن + مفتاح الحتمية. */
+    fireEvent.click(saveButton);
+    fireEvent.click(saveButton);
+    await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "سجّل المصروف" }).getAttribute("disabled")).toBeNull(),
+    );
+    const events = await store.listFinancialEvents();
+    expect(events.ok && events.value).toHaveLength(1);
+    const entries = await store.listCashContinuityEntries();
+    /* افتتاح المحفظة + تغطية واحدة فقط — لا تكرار أثر. */
+    expect(entries.ok && entries.value).toHaveLength(2);
+    const position = await projectFinance.readPosition();
+    if (!position.ok) throw new Error(position.message);
+    expect(position.value.walletCashMinor).toBe(9700);
+    expect(position.value.recordedCashMinor).toBe(9700);
+  });
+
+  it("produces an equivalent event to the guided editor for the same expense", async () => {
+    /* نفس المصروف (مبلغ/وصف/تاريخ/تصنيف/غير موزع) من الورقة السريعة ثم من
+     * المحرر الموجه — النموذجان يكتبان عبر الخدمة نفسها بقيم متكافئة:
+     * النوع والدلتا والرصيد والوصف والتصنيف الافتراضي متطابقة. */
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([], submitted);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("مبلغ المصروف"), "4");
+    await user.type(screen.getByLabelText(/البند/), "توصيل طلبات");
+    const dateField = await screen.findByLabelText(/تاريخ المصروف/);
+    await user.clear(dateField);
+    await user.type(dateField, "2026-09-10");
+    await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
+    await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
+    const quickEvents = await store.listFinancialEvents();
+    const quickEvent = quickEvents.ok ? quickEvents.value[0] : null;
+    expect(quickEvent).not.toBeNull();
+
+    /* المحرر الموجه: نفس المدخلات عبر مساره هو — التصنيف الافتراضي هناك
+     * (مشروع/غير معروف/عام/معروف) هو نفسه تصنيف الوضع المختصر. */
+    const guidedRecord = await projectFinance.record({
+      type: "operating_expense_cash",
+      amountMinor: 400,
+      occurredOn: "2026-09-10",
+      note: "توصيل طلبات",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "project",
+        behavior: "unknown",
+        purpose: "project_general",
+        knowledge: "known",
+        sharedProjectShare: null,
+        categoryLabel: null,
+      },
+      idempotencyKey: "guided-equi-key",
+    });
+    expect(guidedRecord.ok).toBe(true);
+    const guidedEvent = guidedRecord.ok ? guidedRecord.value : null;
+    expect(guidedEvent).not.toBeNull();
+    /* التكافؤ: نفس النوع والمبلغ والتاريخ والوصف والسياق والدلتا. */
+    expect(quickEvent!.type).toBe(guidedEvent!.type);
+    expect(quickEvent!.amountMinor).toBe(guidedEvent!.amountMinor);
+    expect(quickEvent!.occurredOn).toBe(guidedEvent!.occurredOn);
+    expect(quickEvent!.note).toBe(guidedEvent!.note);
+    expect(quickEvent!.cashDeltaMinor).toBe(guidedEvent!.cashDeltaMinor);
+    expect(quickEvent!.operatingExpenseDeltaMinor).toBe(guidedEvent!.operatingExpenseDeltaMinor);
+    expect(quickEvent!.expenseContext).toEqual(guidedEvent!.expenseContext);
   });
 });

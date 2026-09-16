@@ -13,6 +13,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
 import { useFormDraft } from "@/components/forms/useFormDraft";
+import { SaleCollectionReversalSection } from "@/components/direct-sales/SaleCollectionReversalSection";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { DirectSaleCollectionStatus, DirectSale } from "@micro-domain/direct-sale/index.js";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
@@ -49,8 +50,16 @@ export default function DirectSaleEditor() {
   const search = useSearch();
   /* المجموعة ١ (Scope A): الرجوع والخروج بعد النجاح يعودان للمصدر (?from) لا لهدف ثابت. */
   const returnPath = useReturnPath();
-  const { directSales, catalog, projectFinance, cashContinuity, dataVersion, notifyDataChanged, formDrafts } =
-    usePrototypeServices();
+  const {
+    directSales,
+    catalog,
+    projectFinance,
+    cashContinuity,
+    saleCollectionReversal,
+    dataVersion,
+    notifyDataChanged,
+    formDrafts,
+  } = usePrototypeServices();
   const saleMatch = location.match(/^\/direct-sales\/([^/?]+)$/);
   const saleId = saleMatch?.[1] && saleMatch[1] !== "new" ? decodeURIComponent(saleMatch[1]) : null;
   const editing = saleId !== null;
@@ -629,6 +638,13 @@ export default function DirectSaleEditor() {
           </div>
         </section>
       ) : null}
+      <SaleCollectionReversalSection
+        saleId={saleId}
+        saleStatus={savedSale?.status ?? "active"}
+        saleCollectionReversal={saleCollectionReversal}
+        dataVersion={dataVersion}
+        notifyDataChanged={notifyDataChanged}
+      />
       <section className="micro-form-card">
         <fieldset disabled={savedSale?.status === "cancelled"} style={{ border: 0, padding: 0, margin: 0 }}>
           <label className="micro-field">

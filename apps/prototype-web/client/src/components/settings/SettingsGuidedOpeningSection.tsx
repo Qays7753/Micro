@@ -4,10 +4,11 @@
  * وبوابة الرمز) وتمرّر كل شيء خصائصِ أدناه. نفس السلوك حرفيًا.
  */
 import { type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from "react";
-import { FileCheck2, Upload } from "lucide-react";
+import { Download, FileCheck2, Upload } from "lucide-react";
 import { withFrom } from "@/app/navigationContract";
 import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
+import type { LocalExportFile } from "@/storage/local/types";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDateTime } from "@/presentation/formatters";
 
@@ -20,6 +21,9 @@ export type SettingsGuidedOpeningSectionProps = {
   currentSummary: TransferSummary | null;
   /* TOOL-001: «غير متاح» حالة صادقة مستقلة — الاتحاد الكامل لحالات الفحص. */
   restoreCheck: { overall: "PASS" | "WARN" | "UNAVAILABLE" | "FAIL"; note: string } | null;
+  /* EXE-014 (DATA-001): نسخة ما قبل الاستبدال القابلة للاسترجاع + تنزيلها. */
+  restoreBackup: LocalExportFile | null;
+  downloadRestoreBackup: () => void;
   isWorking: boolean;
   preview: TransferPreview | null;
   setPreview: Dispatch<SetStateAction<TransferPreview | null>>;
@@ -39,6 +43,8 @@ export function SettingsGuidedOpeningSection({
   setGuidedPreview,
   currentSummary,
   restoreCheck,
+  restoreBackup,
+  downloadRestoreBackup,
   isWorking,
   preview,
   setPreview,
@@ -223,6 +229,17 @@ export function SettingsGuidedOpeningSection({
                 {currentSummary.costEstimates} تقدير محفوظ · {currentSummary.cashWallets} محفظة.
               </p>
             ) : null}
+            {/* EXE-014 (DATA-001 / AUD-NEW-09): الاستثناءات المقصودة تُفصح في
+                المعاينة بوضوح — تبقى خارج الاستبدال ولا تتحول لبيانات مالية
+                مستعادة دون قرار. */}
+            <p className="micro-local-truth">
+              يبقى خارج الاستبدال: رمز القفل المحلي وحماية هذا الجهاز، ومسودات النماذج غير المُسلّمة — تُحفظ
+              كما هي وتُعرض عند فتح نماذجها.
+            </p>
+            <p className="micro-local-truth">
+              قبل الاستبدال تُنشأ نسخة احتياطية مُتحقّقة من بياناتك الحالية وتظهر هنا للتنزيل فور نجاح
+              الاستعادة — لا استبدال بلا طريق رجوع.
+            </p>
             <div className="micro-form-actions">
               <Button
                 action="secondary"
@@ -244,6 +261,21 @@ export function SettingsGuidedOpeningSection({
           </section>
         ) : null}
         {notice?.section === "storage" ? <FeedbackNote kind={notice.kind} word={notice.text} /> : null}
+        {restoreBackup ? (
+          <article className="micro-setting-row" data-testid="restore-backup-row">
+            <div>
+              <strong>نسخة ما قبل الاستبدال جاهزة</strong>
+              <small>
+                مُنشأة قبل الكتابة ومُتحقّقة دورة كاملة — صدرت{" "}
+                <DateTimeValue value={restoreBackup.exportedAt} />؛ نزّلها واحفظها خارج الجهاز قبل أي خطوة
+                لاحقة.
+              </small>
+            </div>
+            <Button action="secondary" onClick={downloadRestoreBackup}>
+              <Download aria-hidden="true" /> نزّل النسخة الاحتياطية
+            </Button>
+          </article>
+        ) : null}
         {restoreCheck ? (
           <article className="micro-setting-row" data-status={restoreCheck.overall}>
             <div>

@@ -22,6 +22,7 @@ export {
   orderValueMinor,
   recordDeliveryTerms,
   registerDebt,
+  reverseActiveDeposit,
   reverseDelivery,
   reviseAgreedPrice,
   reviseOrderCost,

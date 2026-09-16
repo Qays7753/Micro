@@ -1,4 +1,5 @@
 import type { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { SOURCE_REF_KINDS } from "@micro-domain/cash-continuity/index.js";
 
 /*
  * W3 — أدوات تسجيل مشتركة لنموذجي البيع/المصروف السريعين (طبقة أنماط المالية).
@@ -13,14 +14,16 @@ export async function cashNow(projectFinance: Services["projectFinance"]): Promi
   return position.ok ? position.value.recordedCashMinor : null;
 }
 
-/** تخصيص صريح بعد التسجيل — النتيجة تعاد للفاعل لا تُبتلع (إصلاح تكاملي م٤). */
+/** تخصيص صريح بعد التسجيل — النتيجة تعاد للفاعل لا تُبتلع (إصلاح تكاملي م٤).
+ * EXE-009: نوع المصدر يُستمد من قائمة الدومين القانونية نفسها — لا اتحاد
+ * منسوخ يدويًا ينحرف عنها عند إضافة نوع جديد. */
 export async function attributeToWallet(
   projectFinance: Services["projectFinance"],
   walletId: string,
   deltaMinor: number,
   note: string,
   sourceRefId?: string,
-  sourceRefKind?: "sale" | "expense" | "collection" | "order",
+  sourceRefKind?: (typeof SOURCE_REF_KINDS)[number],
   operationKey?: string,
 ): Promise<{ ok: boolean; message: string | null }> {
   if (!walletId || deltaMinor === 0) return { ok: true, message: null };

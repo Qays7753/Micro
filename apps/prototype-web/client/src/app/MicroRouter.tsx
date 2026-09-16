@@ -3,7 +3,7 @@
  * every destination has a clear next action and no desktop-only navigation split.
  */
 import { lazy, Suspense, useState } from "react";
-import { Redirect, Route, Switch } from "wouter";
+import { Redirect, Route, Switch, useLocation } from "wouter";
 import { MicroAppShell } from "@/components/layout/MicroAppShell";
 import { StartupGate } from "@/app/StartupGate";
 /* W3 (brand launch splash): one-shot in-app launch splash at the existing startup boundary. */
@@ -80,6 +80,14 @@ const FinanceActivity = lazy(() => import("@/pages/FinanceActivity"));
 /* المجموعة ٥ (عقد ٣٣): معاينة المشاركة اليدوية — محرر نص عميق يحرس المدخلات. */
 const SharePreview = lazy(() => import("@/pages/SharePreview"));
 
+/* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
+ * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
+export function OwnerWithdrawalLegacyRedirect() {
+  const [location] = useLocation();
+  const query = location.includes("?") ? location.slice(location.indexOf("?")) : "";
+  return <Redirect to={`/finance/withdraw${query}`} />;
+}
+
 export function MicroRouter() {
   /* W3: the splash mounts once per page load, overlays the shell until the startup gate
    * settles and the bounded motion finishes, then unmounts — it never reappears on
@@ -110,6 +118,13 @@ export function MicroRouter() {
               <Route path="/orders/:id" component={OrderDetail} />
               <Route path="/schedule/:id" component={ScheduleEditor} />
               <Route path="/schedule" component={Schedule} />
+              {/* EXE-009 (OWN-002): المسار الموازي القديم لسحب المالك (حدث عام
+               * مباشر) يحال للمدخل الموحد /finance/withdraw الذي يوجه للمسار
+               * الصحيح بحسب السياسة — لا كاتب موازٍ يتجاوز التوجيه. الوسم ?from
+               * يبقى محفوظًا في الإحالة. */}
+              <Route path="/finance/new/owner_withdrawal_cash">
+                <OwnerWithdrawalLegacyRedirect />
+              </Route>
               <Route path="/finance/new/:type" component={FinancialEventEditor} />
               <Route path="/finance/withdraw" component={OwnerWithdrawalEditor} />
               <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />

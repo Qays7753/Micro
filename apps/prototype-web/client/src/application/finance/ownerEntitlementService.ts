@@ -66,12 +66,30 @@ export type OwnerMoneyRow = {
   reversalLabel: string | null;
   note: string;
   deepLink: string | null;
+  /** EXE-009: هذا الصف له تطابق تقاطعي في النموذج الآخر — يُبرز للمراجعة. */
+  crossModelDuplicate: boolean;
 };
 export type OwnerMoneyOverview = {
   ownerCapitalRecordedMinor: number;
   remainingEntitlementBalanceMinor: number;
   balanceState: "positive" | "zero" | "negative";
   rows: readonly OwnerMoneyRow[];
+  /** EXE-009 (OWN-001): عدد أزواج التطابق التقاطعي في الدفتر — صفوف من النموذجين
+   * بنفس الاتجاه والمبلغ والتاريخ؛ تُبرز للمراجعة لا تُحجب. */
+  crossModelDuplicatePairCount: number;
+};
+/* EXE-009 (OWN-001): حارس التكرار التقاطعي — النموذجان التاريخيان لمال المالك
+ * (حدث مالي عام وحركة دفتر مالك) يخزنان في مخزنين مختلفين ومفاتيح حتمية
+ * مختلفة، فالعملية نفسها يمكن أن تُسجل مرتين (حدث + حركة) بصمت. المطابقة
+ * على (الاتجاه، المبلغ، اليوم) بين النموذجين — التراجعات والمتراجَعة مستبعدة.
+ * الحارس يوقف الحفظ بإفصاح ويطلب تأكيدًا صريحًا أن هذه عملية جديدة مختلفة،
+ * ولا يمنع العملية المتعمدة (المالك قد يحقن المبلغ نفسه مرتين فعلًا). */
+export type CrossModelOwnerDuplicate = {
+  direction: "injection" | "withdrawal";
+  amountMinor: number;
+  occurredOn: string;
+  eventIds: readonly string[];
+  movementIds: readonly string[];
 };
 export type OwnerPolicyInput = Omit<CreateOwnerEntitlementPolicyInput, "createdAt">;
 export type OwnerPolicySuccessorInput = OwnerEntitlementPolicyTerms & {
@@ -175,6 +193,59 @@ const signedMovementTotal = (
   selector: (movement: OwnerMovement) => number,
 ) => values.reduce((sum, value) => sum + selector(value) * (value.reversalOfId ? -1 : 1), 0);
 
+/* EXE-009 (OWN-001): التطابق التقاطعي النقي — أزواج (حدث مالك × حركة دفتر)
+ * بنفس الاتجاه (دخول/خروج) والمطلق للمبلغ والتاريخ. التراجعات والمُتراجَعة
+ * مستبعدة من الطرفين، والأحداث غير الملكية لا تدخل المقارنة أصلًا. قراءة
+ * فقط: لا تُغير معنى أي مخزن — تُستخدم للحرس قبل الحفظ وللإبراز في الدفتر. */
+function crossModelOwnerDuplicates(
+  events: readonly FinancialEvent[],
+  movements: readonly OwnerMovement[],
+): CrossModelOwnerDuplicate[] {
+  const reversedIds = reversedEventIds(events);
+  const ownerEvents = events.filter(
+    event =>
+      (event.type === "owner_investment_cash" || event.type === "owner_withdrawal_cash") &&
+      !reversedIds.has(event.id),
+  );
+  const reversedMovementIds = new Set(
+    movements.filter(movement => movement.reversalOfId !== null).map(movement => movement.reversalOfId),
+  );
+  const activeMovements = movements.filter(
+    movement => movement.reversalOfId === null && !reversedMovementIds.has(movement.id),
+  );
+  const duplicates: CrossModelOwnerDuplicate[] = [];
+  for (const event of ownerEvents) {
+    const direction = event.type === "owner_investment_cash" ? "injection" : "withdrawal";
+    const amountMinor = Math.abs(event.ownerCapitalDeltaMinor);
+    if (amountMinor === 0) continue;
+    const matchingMovements = activeMovements.filter(
+      movement =>
+        movement.occurredOn === event.occurredOn &&
+        Math.abs(movement.cashDeltaMinor) === amountMinor &&
+        (direction === "injection" ? movement.cashDeltaMinor > 0 : movement.cashDeltaMinor < 0),
+    );
+    if (matchingMovements.length === 0) continue;
+    const existing = duplicates.find(
+      duplicate =>
+        duplicate.direction === direction &&
+        duplicate.amountMinor === amountMinor &&
+        duplicate.occurredOn === event.occurredOn,
+    );
+    if (existing) {
+      if (!existing.eventIds.includes(event.id)) existing.eventIds = [...existing.eventIds, event.id];
+      continue;
+    }
+    duplicates.push({
+      direction,
+      amountMinor,
+      occurredOn: event.occurredOn,
+      eventIds: [event.id],
+      movementIds: matchingMovements.map(movement => movement.id),
+    });
+  }
+  return duplicates;
+}
+
 export class OwnerEntitlementService {
   constructor(
     private readonly store: PrototypeLocalStore,
@@ -265,7 +336,9 @@ export class OwnerEntitlementService {
 
   /** المجموعة ٦ (البند ٢): الدفتر الموحد — أحداث المالك العامة + حركات الدفتر
    * بترتيب زمني واحد؛ رأس المال بنفس معادلة readPosition (الأحداث + حركات
-   * رأس المال) فلا رقم ثانٍ ولا معنى جديد. */
+   * رأس المال) فلا رقم ثانٍ ولا معنى جديد.
+   * EXE-009: الصفوف ذات التطابق التقاطعي (نفس الاتجاه والمبلغ والتاريخ في
+   * النموذجين) تُعلّم لتُبرز في العرض — إبراز للمراجعة لا حجب. */
   async readOwnerMoneyOverview(): Promise<OwnerEntitlementResult<OwnerMoneyOverview>> {
     const [eventsResult, movementsResult, walletsResult, overviewResult] = await Promise.all([
       this.store.listFinancialEvents(),
@@ -278,6 +351,9 @@ export class OwnerEntitlementService {
     const events = eventsResult.value as readonly FinancialEvent[];
     const movements = movementsResult.value;
     const reversedIds = reversedEventIds(events);
+    const duplicates = crossModelOwnerDuplicates(events, movements);
+    const duplicatedEventIds = new Set(duplicates.flatMap(duplicate => duplicate.eventIds));
+    const duplicatedMovementIds = new Set(duplicates.flatMap(duplicate => duplicate.movementIds));
     const walletNameOf = (walletId: string | null) => {
       if (!walletId) return null;
       const wallet = walletsResult.value.find(candidate => candidate.id === walletId);
@@ -296,6 +372,7 @@ export class OwnerEntitlementService {
         reversalLabel: reversedIds.has(event.id) ? "مُتراجَع موثقًا" : null,
         note: event.note,
         deepLink: `/finance?event=${encodeURIComponent(event.id)}`,
+        crossModelDuplicate: duplicatedEventIds.has(event.id),
       });
     }
     const reversedMovementIds = new Set(
@@ -324,6 +401,7 @@ export class OwnerEntitlementService {
         reversalLabel: isReversal ? "تراجع موثق عن حركة" : reversed ? "مُتراجَع موثقًا" : null,
         note: movement.note,
         deepLink: null,
+        crossModelDuplicate: duplicatedMovementIds.has(movement.id),
       });
     }
     rows.sort(
@@ -339,6 +417,73 @@ export class OwnerEntitlementService {
         remainingEntitlementBalanceMinor: overviewResult.value.remainingEntitlementBalanceMinor,
         balanceState: overviewResult.value.balanceState,
         rows,
+        crossModelDuplicatePairCount: duplicates.length,
+      },
+    };
+  }
+
+  /* EXE-009 (OWN-001): فحص قبل الحفظ — هل توجد مكافئة للعملية المراد تسجيلها
+   * في النموذج الآخر؟ (كتابة حدث ← فحص حركات الدفتر؛ كتابة حركة ← فحص الأحداث).
+   * المطابقة على (الاتجاه، المبلغ، التاريخ) مع استبعاد المُتراجَعة. النتيجة
+   * تُعاد للنموذج ليوقف الحفظ بإفصاح ويطلب تأكيدًا صريحًا — حارس يمنع الازدواج
+   * العرضي دون منع العملية المتعمدة (المالك قد يحقن المبلغ نفسه مرتين فعلًا). */
+  async findCrossModelOwnerDuplicate(input: {
+    direction: "injection" | "withdrawal";
+    amountMinor: number;
+    occurredOn: string;
+    writing: "event" | "movement";
+  }): Promise<OwnerEntitlementResult<CrossModelOwnerDuplicate | null>> {
+    const [eventsResult, movementsResult] = await Promise.all([
+      this.store.listFinancialEvents(),
+      this.store.listOwnerMovements(),
+    ]);
+    if (!eventsResult.ok || !movementsResult.ok)
+      return failure("تعذر قراءة سجل مال المالك للتحقق من التكرار.");
+    const events = eventsResult.value as readonly FinancialEvent[];
+    const movements = movementsResult.value;
+    if (input.writing === "event") {
+      const reversedMovementIds = new Set(
+        movements.filter(movement => movement.reversalOfId !== null).map(movement => movement.reversalOfId),
+      );
+      const matchingMovements = movements.filter(
+        movement =>
+          movement.reversalOfId === null &&
+          !reversedMovementIds.has(movement.id) &&
+          movement.occurredOn === input.occurredOn &&
+          Math.abs(movement.cashDeltaMinor) === input.amountMinor &&
+          (input.direction === "injection" ? movement.cashDeltaMinor > 0 : movement.cashDeltaMinor < 0),
+      );
+      if (matchingMovements.length === 0) return { ok: true, value: null };
+      return {
+        ok: true,
+        value: {
+          direction: input.direction,
+          amountMinor: input.amountMinor,
+          occurredOn: input.occurredOn,
+          eventIds: [],
+          movementIds: matchingMovements.map(movement => movement.id),
+        },
+      };
+    }
+    const reversedIds = reversedEventIds(events);
+    const matchingEvents = events.filter(
+      event =>
+        (input.direction === "injection"
+          ? event.type === "owner_investment_cash"
+          : event.type === "owner_withdrawal_cash") &&
+        !reversedIds.has(event.id) &&
+        event.occurredOn === input.occurredOn &&
+        Math.abs(event.ownerCapitalDeltaMinor) === input.amountMinor,
+    );
+    if (matchingEvents.length === 0) return { ok: true, value: null };
+    return {
+      ok: true,
+      value: {
+        direction: input.direction,
+        amountMinor: input.amountMinor,
+        occurredOn: input.occurredOn,
+        eventIds: matchingEvents.map(event => event.id),
+        movementIds: [],
       },
     };
   }

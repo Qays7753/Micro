@@ -335,12 +335,22 @@ export default function InventoryMaterials() {
             >
               <Scissors aria-hidden="true" /> استهلاك أو استلام نقص
             </Button>
+            {/* EXE-012 (AUD-NEW-06): الهدر والضبط فعلان منفصلان — اسم وسبب
+                وأثر مستقلان؛ الضبط قرار مالك يصحح الكمية بلا حذف حركة. */}
             <Button
               action="secondary"
 
               onClick={() => navigate(withFrom("/inventory/movement/waste", "/inventory"))}
             >
-              <CircleMinus aria-hidden="true" /> هدر أو ضبط
+              <CircleMinus aria-hidden="true" /> هدر مادة
+            </Button>
+            <Button
+              action="secondary"
+              data-testid="inventory-adjust-entry"
+
+              onClick={() => navigate(withFrom("/inventory/movement/adjust", "/inventory"))}
+            >
+              <SlidersHorizontal aria-hidden="true" /> ضبط جرد — قرار مالك
             </Button>
           </>
         ) : (
@@ -370,9 +380,30 @@ export default function InventoryMaterials() {
                   </strong>
                   <small>
                     {unitWord(material.unit)} · {savedMovementCountLabel(material.movementCount)}
-                    {material.awaitingReceiptPurchaseCount > 0
-                      ? ` · بانتظار الاستلام: ${formatMoneyMinor(material.awaitingReceiptRemainingMinor)} د.أ من ${material.awaitingReceiptPurchaseCount} شراء`
-                      : ""}
+                    {material.awaitingReceiptPurchaseCount > 0 ? (
+                      <>
+                        {" · "}
+                        {/* EXE-011 (AUD-NEW-08): حالة «بانتظار الاستلام» رحلة
+                            لا نصًا ساكنًا — تفتح الاستلام محضّرة بالمادة نفسها،
+                            والشراء المرجعي يبقى اختيارًا صريحًا (OPS-001). */}
+                        <button
+                          className="micro-text-action"
+                          type="button"
+                          data-testid={`awaiting-receipt-link-${material.name}`}
+                          onClick={() =>
+                            navigate(
+                              withFrom(
+                                `/inventory/movement/receipt?material=${encodeURIComponent(material.id)}`,
+                                "/inventory",
+                              ),
+                            )
+                          }
+                        >
+                          بانتظار الاستلام: {formatMoneyMinor(material.awaitingReceiptRemainingMinor)} د.أ من{" "}
+                          {material.awaitingReceiptPurchaseCount} شراء
+                        </button>
+                      </>
+                    ) : null}
                   </small>
                   <div className="micro-material-knowledge">
                     {openShortages.length > 0 ? (

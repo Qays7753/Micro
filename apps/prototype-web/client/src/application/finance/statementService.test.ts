@@ -6,7 +6,7 @@ import { OwnerEntitlementService } from "./ownerEntitlementService";
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import {
@@ -636,13 +636,27 @@ describe("StatementService — سطور الكاش للمجموعة ٤ (الأص
       relatedEventId: null,
       loanContext: { loanId: "loan-2", borrower: "أحمد" },
     });
-    const reversal = await finance.reverse({
+    /* EXE-013 (AUD-NEW-15): المسار العام يرفض الآن أحداث القرض — نتحقق من
+     * الرفض ثم نكتب قيد التراجع كما تكتبه عائلة القرض (بسياقه) لنختبر
+     * عرض الكشف نفسه. */
+    const refused = await finance.reverse({
       sourceEventId: original.id,
       occurredOn: "2026-09-03",
       reason: "سُجّل بالخطأ",
       idempotencyKey: "g4-stc-reverse",
     });
-    expect(reversal.ok).toBe(true);
+    expect(refused.ok).toBe(false);
+    const reversalSaved = await store.saveFinancialEvent(
+      createFinancialReversal({
+        id: "g4-stc-loan-reversal",
+        sourceEvent: original,
+        occurredOn: "2026-09-03",
+        recordedAt: now(),
+        idempotencyKey: "g4-stc-reverse",
+        reason: "سُجّل بالخطأ",
+      }),
+    );
+    expect(reversalSaved.ok).toBe(true);
     const reading = await statement.read("2026-09-01", "2026-09-07");
     expect(reading.ok).toBe(true);
     if (!reading.ok) return;

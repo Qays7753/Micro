@@ -1,12 +1,13 @@
-/** جولة الاستئناف (F-2): التصحيح العام عبر سجل الأحداث يجب أن يجتاز سياقات
- * العائلات المتخصصة (الأصل/القرض/العربون) كما يجتاز سياق المصروف — الاسترجاع
- * يعيد القيم الأصلية نسخة طبق الأصل، والتعديل يحمل السياق إلى البديل. قبل
- * الإصلاح كان createFinancialEvent يرفض الحدث لأن السياق لا يُمرَّر، فيفشل
- * الاسترجاع/التعديل بلا كتابة على عائلات المجموعة ٤ كاملة. */
+/** جولة الاستئناف (F-2) ثم EXE-013 (AUD-NEW-15): سياقات العائلات
+ * المتخصصة (الأصل/القرض/العربون). قبل الموجة الثانية كان التصحيح العام
+ * يجتازها بسياقها؛ قرار المالك في EXE-013 قلب الاتجاه: المسار العام
+ * (إلغاء/تعديل/حذف) يرفض أحداث العائلات ويوجه لسطحها القانوني، لأنه يترك
+ * سجل العائلة مخالفًا لمجموع أحداثها. الاسترجاع (restoreEvent) يبقى متاحًا
+ * للبيانات التاريخية المعكوسة سابقًا — يعيد تسجيل القيم الأصلية حرفيًا. */
 import { describe, expect, it } from "vitest";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 
 const now = () => "2026-09-05T07:00:00.000Z";
 
@@ -16,8 +17,8 @@ async function saveEvent(store: MemoryLocalStore, input: Parameters<typeof creat
   return saved.value;
 }
 
-describe("ProjectFinancialService — سياقات العائلات عبر التصحيح العام (F-2)", () => {
-  it("restoreEvent يعيد حدث شراء أصل معكوسًا بنجاح وسياقه باقٍ حرفيًا", async () => {
+describe("ProjectFinancialService — سياقات العائلات عبر التصحيح العام (F-2 → EXE-013)", () => {
+  it("المسار العام يرفض عكس حدث أصل ويوجه لصفحة الأصل بلا أي كتابة", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const purchase = await saveEvent(store, {
@@ -38,23 +39,17 @@ describe("ProjectFinancialService — سياقات العائلات عبر ال�
       reason: "خطأ في الإدخال",
       idempotencyKey: "f2-reverse-key",
     });
-    if (!reversed.ok) throw new Error(reversed.message);
-    const restored = await finance.restoreEvent({
-      sourceEventId: purchase.id,
-      idempotencyKey: `restore:${purchase.id}`,
-    });
-    if (!restored.ok) throw new Error(restored.message);
-    expect(restored.value.type).toBe("asset_purchase_cash");
-    expect(restored.value.amountMinor).toBe(35000);
-    expect(restored.value.assetContext).toEqual({ assetId: "asset-f2", name: "ماكينة خياطة" });
-    expect(restored.value.cashDeltaMinor).toBe(-35000);
-    /* الأصل المعكوس + الاسترجاع: صافي الكاش صفر — التاريخ محفوظ ولا محو. */
+    expect(reversed.ok).toBe(false);
+    if (reversed.ok) return;
+    expect(reversed.message).toContain("صفحة الأصل");
+    /* لم يتغير السجل: الحدث الأصلي وحده موجود. */
     const events = await store.listFinancialEvents();
     if (!events.ok) throw new Error(events.message);
-    expect(events.value).toHaveLength(3);
+    expect(events.value).toHaveLength(1);
+    expect(events.value[0]?.id).toBe(purchase.id);
   });
 
-  it("restoreEvent يعيد سداد قرض معكوسًا بسياق القرض والشفيع كما هو", async () => {
+  it("المسار العام يرفض تعديل حدث قرض ويوجه لصفحة القرض بلا أي كتابة", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const repayment = await saveEvent(store, {
@@ -69,59 +64,91 @@ describe("ProjectFinancialService — سياقات العائلات عبر ال�
       relatedEventId: null,
       loanContext: { loanId: "loan-f2", borrower: "سامي" },
     });
-    const reversed = await finance.reverse({
+    const edited = await finance.editEvent({
       sourceEventId: repayment.id,
-      occurredOn: "2026-09-05",
-      reason: "سُجّل مرتين بالخطأ",
-      idempotencyKey: "f2-repay-reverse-key",
+      amountMinor: 4000,
+      occurredOn: "2026-09-04",
+      note: "سداد مصحح",
+      counterparty: "سامي",
+      reason: "المبلغ الصحيح أقل",
+      idempotencyKey: "f2-edit-replacement-key",
     });
-    if (!reversed.ok) throw new Error(reversed.message);
-    const restored = await finance.restoreEvent({
-      sourceEventId: repayment.id,
-      idempotencyKey: `restore:${repayment.id}`,
-    });
-    if (!restored.ok) throw new Error(restored.message);
-    expect(restored.value.loanContext).toEqual({ loanId: "loan-f2", borrower: "سامي" });
-    expect(restored.value.counterparty).toBe("سامي");
+    expect(edited.ok).toBe(false);
+    if (edited.ok) return;
+    expect(edited.message).toContain("صفحة القرض");
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    expect(events.value).toHaveLength(1);
   });
 
-  it("editEvent يمرر سياق الأصل إلى البديل والتراجع معًا", async () => {
+  it("الحذف العام (deleteEvent) مرفوض كذلك لأحداث الأصل — نفس الحرس", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const purchase = await saveEvent(store, {
-      id: "f2-edit-purchase",
+      id: "f2-delete-purchase",
       type: "asset_purchase_cash",
-      amountMinor: 20000,
+      amountMinor: 9000,
       occurredOn: "2026-09-04",
       recordedAt: now(),
-      idempotencyKey: "f2-edit-key",
-      note: "شراء أولي",
+      idempotencyKey: "f2-delete-key",
+      note: "شراء أصل للحذف",
       counterparty: null,
       relatedEventId: null,
-      assetContext: { assetId: "asset-edit-f2", name: "كمبيوتر" },
+      assetContext: { assetId: "asset-delete-f2", name: "طاولة" },
     });
-    const edited = await finance.editEvent({
+    const deleted = await finance.deleteEvent({
       sourceEventId: purchase.id,
-      amountMinor: 24000,
-      occurredOn: "2026-09-04",
-      note: "شراء مصحح — الشحن داخل السعر",
-      counterparty: null,
-      reason: "المبلغ الصحيح يشمل الشحن",
-      idempotencyKey: "f2-edit-replacement-key",
+      reason: "حذف",
+      idempotencyKey: "f2-delete-attempt",
     });
-    if (!edited.ok) throw new Error(edited.message);
-    expect(edited.value.assetContext).toEqual({ assetId: "asset-edit-f2", name: "كمبيوتر" });
-    expect(edited.value.amountMinor).toBe(24000);
-    expect(edited.value.cashDeltaMinor).toBe(-24000);
-    const events = await store.listFinancialEvents();
-    if (!events.ok) throw new Error(events.message);
-    const reversal = events.value.find(
-      event => event.correctionType === "reverse" && event.correctionOfEventId === purchase.id,
-    );
-    expect(reversal?.assetContext).toEqual({ assetId: "asset-edit-f2", name: "كمبيوتر" });
+    expect(deleted.ok).toBe(false);
+    if (deleted.ok) return;
+    expect(deleted.message).toContain("صفحة الأصل");
   });
 
-  it("record يكتب حدث عربون مصنّف إيرادًا بسياق القرار مباشرة", async () => {
+  it("restoreEvent يعيد حدث أصل معكوسًا تاريخيًا (قبل الحرس) بسياقه حرفيًا", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const purchase = await saveEvent(store, {
+      id: "f2-legacy-asset",
+      type: "asset_purchase_cash",
+      amountMinor: 35000,
+      occurredOn: "2026-09-04",
+      recordedAt: now(),
+      idempotencyKey: "f2-legacy-key",
+      note: "شراء أصل تاريخي",
+      counterparty: null,
+      relatedEventId: null,
+      assetContext: { assetId: "asset-legacy-f2", name: "ماكينة خياطة" },
+    });
+    /* بيانات تاريخية: عكس وقع قبل الحرس — نبني قيد العكس بآلة الدومين نفسها
+     * (createFinancialReversal) كما خلفته المسارات القديمة، ثم الاسترجاع
+     * يعيد القيم الأصلية بسياقها. */
+    const legacyReversal = createFinancialReversal({
+      id: "f2-legacy-reversal",
+      sourceEvent: purchase,
+      occurredOn: "2026-09-05",
+      recordedAt: now(),
+      idempotencyKey: "f2-legacy-reversal-key",
+      reason: "خطأ قديم قبل الحرس",
+    });
+    const savedReversal = await store.saveFinancialEvent(legacyReversal);
+    if (!savedReversal.ok) throw new Error("legacy reversal should save");
+    const restored = await finance.restoreEvent({
+      sourceEventId: purchase.id,
+      idempotencyKey: `restore:${purchase.id}`,
+    });
+    if (!restored.ok) throw new Error(restored.message);
+    expect(restored.value.type).toBe("asset_purchase_cash");
+    expect(restored.value.amountMinor).toBe(35000);
+    expect(restored.value.assetContext).toEqual({ assetId: "asset-legacy-f2", name: "ماكينة خياطة" });
+    expect(restored.value.cashDeltaMinor).toBe(-35000);
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    expect(events.value).toHaveLength(3);
+  });
+
+  it("record يكتب حدث عربون مصنّف إيرادًا بسياق القرار مباشرة (بلا حرس — التسجيل ليس تصحيحًا)", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const classified = await finance.record({
