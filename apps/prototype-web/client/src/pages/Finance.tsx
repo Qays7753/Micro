@@ -9,6 +9,7 @@ import {
   HandCoins,
   Landmark,
   ReceiptText,
+  Scale,
   WalletCards,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -377,6 +378,24 @@ export default function Finance() {
               helper="مصروفات أو مشتريات مستحقة"
               icon={Landmark}
             />
+            {/* NAV-002 (قرار المالك ٢٠٢٦-٠٩-١٦): النتيجة المتاحة في المستوى
+                الأول — تقدير موثق لنتيجة الفترة بلا خلط مع الكاش؛ الناقص
+                «غير متاح» لا صفرًا، والتفصيل في عرض الفترة. */}
+            <button
+              type="button"
+              className="micro-finance-position-card micro-finance-position-link"
+              aria-label="افتح نتيجة الفترة"
+              onClick={() => switchView("period")}
+            >
+              <Scale aria-hidden="true" />
+              <span>النتيجة المتاحة</span>
+              <strong>{period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}</strong>
+              <small>
+                {period.status === "recorded_only"
+                  ? "نتيجة الفترة المسجلة — افتح التفصيل"
+                  : "مكونات ناقصة تمنع رقمًا نهائيًا صادقًا — افتح التفصيل"}
+              </small>
+            </button>
             <button
               type="button"
               className="micro-finance-position-card micro-finance-position-link"

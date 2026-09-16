@@ -338,7 +338,10 @@ CAPS: dict[str, int] = {
     # Finance 257 → 258 (2026-09-16, financial-trust package FIN-001, owner-approved):
     # one new at-rest truth label «غير مسجل» — metrics without recorded evidence
     # must not render as a confirmed 0.00 anywhere on the finance surface.
-    "Finance": 258,
+    # Finance 258 → 261 (2026-09-16, product-journey package NAV-002, owner-approved):
+    # «النتيجة المتاحة» joins level one as a decision card linking to the period
+    # view — honest unavailable state, never mixed with cash.
+    "Finance": 261,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -541,7 +544,11 @@ CAPS: dict[str, int] = {
     # title/description pairs plus dialog copy; security-communication strings only.
     # Settings 51 → 52 (2026-09-16, product-journey package TOOL-001): honest
     # post-restore note for the new «غير متاح» integrity state.
-    "Settings": 52,
+    # Settings 52 → 57 (2026-09-16, product-journey package SET-003, owner-approved):
+    # «قدرات مشروعك» section (summary labels; body copy lives inside the collapsed
+    # details) + feeding-service attribution for the capability count loaders
+    # (agreements/inventory/supplierPurchases/catalog imported by the page).
+    "Settings": 57,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate

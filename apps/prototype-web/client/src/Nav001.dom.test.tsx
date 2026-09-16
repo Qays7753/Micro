@@ -63,6 +63,8 @@ function Harness({ page }: { page: React.ReactNode }) {
     preferences: {
       load: async () => ({ ok: true, preference: { theme: "light" } }),
       save: async () => ({ ok: true }),
+      readDisabledCapabilities: async () => ({ ok: true, disabled: [] }),
+      saveDisabledCapabilities: async () => ({ ok: true, disabled: [] }),
     },
     dataVersion: version,
     notifyDataChanged: () => setVersion(current => current + 1),

@@ -138,12 +138,16 @@ function TodayItemRow({ item, onNavigate }: { item: HomeTodayItem; onNavigate: (
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { homeControlCenter, dataVersion } = usePrototypeServices();
+  const {
+    preferences, homeControlCenter, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<HomeState>({ phase: "loading" });
   /* NAV-001: أزرار التسجيل السريع في «مشروعي الآن» — البيع والمصروف يفتحان
    * الورقة عبر سياق القشرة في نموذجهما مباشرة، والطلب والتقدير والتحصيل
    * مساراتها العميقة. */
   const quickRecording = useQuickRecording();
+  /* SET-003: القدرات المتوقفة عن الإدخال تخفي أزرار إنشائها اليومية فقط —
+   * السجلات القائمة تبقى ظاهرة في كل دفاترها. */
+  const [disabledCapabilities, setDisabledCapabilities] = useState<readonly string[]>([]);
   /* SET-002: لافتة نجاح الإعداد الأول — تظهر مرة بعد الحفظ وتغادر مع التنقل. */
   const search = useSearch();
   const setupDone = new URLSearchParams((search ?? "").replace(/^\?/, "")).get("setup") === "1";
@@ -159,6 +163,15 @@ export default function Home() {
         result.ok ? { phase: "ready", model: result.value } : { phase: "error", message: result.message },
       );
     });
+    /* SET-003: قراءة القدرات — غياب الخدمة في بيئة اختبار لا يُسقط السطح. */
+    if (typeof preferences?.readDisabledCapabilities === "function") {
+      preferences
+        .readDisabledCapabilities()
+        .then(result => {
+          if (active && result.ok) setDisabledCapabilities(result.disabled);
+        })
+        .catch(() => undefined);
+    }
     return () => {
       active = false;
     };
@@ -234,20 +247,24 @@ export default function Home() {
           <button className="micro-quick-action" type="button" onClick={() => quickRecording.openQuickForm("expense-form")}>
             <CircleDollarSign aria-hidden="true" /> تسجيل مصروف
           </button>
-          <button
-            className="micro-quick-action"
-            type="button"
-            onClick={() => navigate("/orders/draft/new?intent=customer_order&from=/")}
-          >
-            <ClipboardPlus aria-hidden="true" /> طلب من عميل
-          </button>
-          <button
-            className="micro-quick-action"
-            type="button"
-            onClick={() => navigate("/orders/draft/new?intent=planned_design&from=/")}
-          >
-            <FilePen aria-hidden="true" /> مسودة تصميم
-          </button>
+          {disabledCapabilities.includes("orders") ? null : (
+            <>
+              <button
+                className="micro-quick-action"
+                type="button"
+                onClick={() => navigate("/orders/draft/new?intent=customer_order&from=/")}
+              >
+                <ClipboardPlus aria-hidden="true" /> طلب من عميل
+              </button>
+              <button
+                className="micro-quick-action"
+                type="button"
+                onClick={() => navigate("/orders/draft/new?intent=planned_design&from=/")}
+              >
+                <FilePen aria-hidden="true" /> مسودة تصميم
+              </button>
+            </>
+          )}
           <button className="micro-quick-action" type="button" onClick={() => navigate(withFrom("/collect", "/"))}>
             <HandCoins aria-hidden="true" /> عربون أو تحصيل
           </button>

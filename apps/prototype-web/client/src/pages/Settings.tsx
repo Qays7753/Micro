@@ -45,6 +45,7 @@ import {
 } from "@/components/settings/SettingsOperatingModeSection";
 import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
 import { SettingsGuidedOpeningSection } from "@/components/settings/SettingsGuidedOpeningSection";
+import { SettingsCapabilitiesSection } from "@/components/settings/SettingsCapabilitiesSection";
 
 import { Button, type FeedbackKind } from "@/components/primitives";
 export default function SettingsPage() {
@@ -58,6 +59,10 @@ export default function SettingsPage() {
     transfers,
     guidedOpeningImport,
     preferences,
+    agreements,
+    inventory,
+    supplierPurchases,
+    catalog,
     dataVersion,
     notifyDataChanged,
     integrityCheck,
@@ -577,6 +582,17 @@ export default function SettingsPage() {
         selectedModeDescription={selectedModeDescription}
         notice={notice}
         saveOperatingMode={saveOperatingMode}
+      />
+
+      {/* SET-003: قدرات المشروع — إيقاف الإدخال لا يمس السجلات القائمة. */}
+      <SettingsCapabilitiesSection
+        preferences={preferences}
+        agreements={agreements}
+        inventory={inventory}
+        supplierPurchases={supplierPurchases}
+        catalog={catalog}
+        dataVersion={dataVersion}
+        notifyDataChanged={notifyDataChanged}
       />
 
       <SettingsAppearanceSection theme={theme} toggleTheme={toggleTheme} />

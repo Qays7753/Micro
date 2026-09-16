@@ -13,6 +13,9 @@ export type InstallBannerDismissalResult =
   { ok: true; dismissedAt: string | null } | { ok: false; code: "storage_error"; message: string };
 export type BackupReminderResult =
   { ok: true; enabled: boolean } | { ok: false; code: "storage_error"; message: string };
+/* SET-003: قراءة/حفظ قائمة القدرات المتوقفة عن الإدخال. */
+export type DisabledCapabilitiesResult =
+  { ok: true; disabled: readonly string[] } | { ok: false; code: "storage_error"; message: string };
 
 export class PreferenceService {
   constructor(
@@ -42,6 +45,8 @@ export class PreferenceService {
       /* O-001: التفضيلات تُنقل كاملة — لا يفقد تغيير المظهر تاريخ النسخة ولا مفتاح التذكير. */
       lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
       backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
+      /* SET-003: القدرات المتوقفة تُنقل مع كل حفظ — لا يفقد أي تغيير تفضيل غيرها. */
+      disabledCapabilities: current.value?.disabledCapabilities ?? [],
       updatedAt: this.now(),
     });
     return result.ok
@@ -126,6 +131,37 @@ export class PreferenceService {
       ? { ok: true, dismissedAt: result.value.installBannerDismissedAt }
       : { ok: false, code: "storage_error", message: "تعذر حفظ حالة بطاقة التثبيت." };
   }
+  /* ── SET-003: قدرات المشروع — الإيقاف يخفي مداخل الإدخال اليومية فقط؛
+   * السجلات والديون والالتزامات القائمة تبقى ظاهرة قابلة للتدقيق دائمًا. ── */
+
+  async readDisabledCapabilities(): Promise<DisabledCapabilitiesResult> {
+    const result = await this.store.getPreferences();
+    return result.ok
+      ? { ok: true, disabled: result.value?.disabledCapabilities ?? [] }
+      : { ok: false, code: "storage_error", message: "تعذر قراءة تفضيلات القدرات المحلية." };
+  }
+
+  async saveDisabledCapabilities(disabled: readonly string[]): Promise<DisabledCapabilitiesResult> {
+    const current = await this.store.getPreferences();
+    if (!current.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيل المحلي." };
+    const result = await this.store.savePreferences({
+      id: localPreferencesId,
+      theme: current.value?.theme ?? "system",
+      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
+      workMode: current.value?.workMode ?? null,
+      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
+      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
+      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
+      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
+      disabledCapabilities: [...disabled],
+      updatedAt: this.now(),
+    });
+    return result.ok
+      ? { ok: true, disabled: result.value.disabledCapabilities ?? [] }
+      : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيلات القدرات." };
+  }
+
 }
 
 export type BrowserPersistenceReading = { state: PersistentStorageState; title: string; text: string };
@@ -134,4 +170,5 @@ export type BrowserPersistenceReading = { state: PersistentStorageState; title: 
 export async function readBrowserPersistence(): Promise<BrowserPersistenceReading> {
   const state = await readPersistentStorageState();
   return { state, ...persistentStorageCopy(state) };
+
 }

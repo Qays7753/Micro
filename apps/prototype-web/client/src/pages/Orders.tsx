@@ -38,12 +38,24 @@ const settlementDetail = (stored: StoredCraftOrder) => (
 
 export default function Orders() {
   const [location, navigate] = useLocation();
-  const { dailyFollowUp, directSales, schedules, dataVersion } = usePrototypeServices();
+  const { dailyFollowUp, directSales, schedules, preferences, dataVersion } = usePrototypeServices();
+  /* SET-003: القدرات المتوقفة تخفي مداخل الإدخال اليومية فقط — القوائم
+   * القائمة (طلبات/مسودات/مواعيد) تبقى ظاهرة دائمًا للتدقيق. */
+  const [disabledCapabilities, setDisabledCapabilities] = useState<readonly string[]>([]);
   const [state, setState] = useState<OrdersState>({ phase: "loading" });
   /* AR-14: إعادة محاولة صريحة بعد فشل القراءة — رمز محلي يعيد تشغيل الحمل. */
   const [reloadToken, setReloadToken] = useState(0);
   useEffect(() => {
     let active = true;
+    /* SET-003: قراءة القدرات — غياب الخدمة في بيئة اختبار لا يُسقط السطح. */
+    if (typeof preferences?.readDisabledCapabilities === "function") {
+      preferences
+        .readDisabledCapabilities()
+        .then(result => {
+          if (active && result.ok) setDisabledCapabilities(result.disabled);
+        })
+        .catch(() => undefined);
+    }
     Promise.all([dailyFollowUp.read(), directSales.list(), schedules.overview()]).then(
       ([result, sales, scheduleResult]) => {
         if (!active) return;
@@ -304,22 +316,27 @@ export default function Orders() {
       {/* عقد الإغلاق العميق (WF-03 — عقد التنقل): العمل يملك المرجع والمواد —
           وصلة هادئة لكل منهما بجوار أفعال العمل، لا مقاعد جديدة ولا شريط ثانٍ. */}
       <div className="micro-form-actions micro-contextual-actions">
-        <Button
-          action="quiet"
+        {disabledCapabilities.includes("catalog") ? null : (
+          <Button
+            action="quiet"
 
-          onClick={() => openFromWork("/catalog")}
-        >
-          منتجاتي وخدماتي
-        </Button>
-        <Button
-          action="quiet"
+            onClick={() => openFromWork("/catalog")}
+          >
+            منتجاتي وخدماتي
+          </Button>
+        )}
+        {disabledCapabilities.includes("inventory") ? null : (
+          <Button
+            action="quiet"
 
-          onClick={() => openFromWork("/inventory")}
-        >
-          المواد والمخزون
-        </Button>
+            onClick={() => openFromWork("/inventory")}
+          >
+            المواد والمخزون
+          </Button>
+        )}
       </div>
-      {state.orders.length > 0 || state.drafts.length > 0 ? (
+      {!disabledCapabilities.includes("orders") &&
+      (state.orders.length > 0 || state.drafts.length > 0) ? (
         <Button
           action="secondary"
 
