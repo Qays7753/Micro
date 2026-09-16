@@ -19,10 +19,7 @@ export type ResultStatus = "final" | "estimated" | "incomplete" | "review_requir
  * غياب الشروط كليًا (null أو حقل غير موجود) = لا شروط نقل مسجلة — سلوك
  * رجعي مطابق للطلبات القديمة تمامًا. */
 export type DeliveryResponsibility =
-  | "project_pays"
-  | "customer_pays_project"
-  | "customer_pays_courier"
-  | "shared";
+  "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
 
 export interface OrderDeliveryTerms {
   responsibility: DeliveryResponsibility;

@@ -2497,24 +2497,84 @@ button.micro-finance-position-link:focus-visible {
   max-width: 32ch;
   font-size: 16px;
 }
+/* ── SET-002: شرح عناصر صفحة الأساس — لماذا/ما يتأثر/الأثر/أين تظهر ── */
+.micro-foundation-explain {
+  display: grid;
+  gap: 4px;
+  margin-block: 12px;
+  padding: 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+}
+.micro-foundation-explain dt {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+.micro-foundation-explain dd {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.micro-capability-list {
+  display: grid;
+  gap: 12px;
+  margin-block-start: 12px;
+}
+.micro-capability-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  align-items: start;
+}
+.micro-capability-row strong {
+  display: block;
+  margin-block-end: 4px;
+}
+.micro-capability-row p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.micro-capability-row dl {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+.micro-capability-row dt {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+.micro-capability-row dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.micro-capability-row[data-disabled="true"] {
+  background: var(--color-bg-well);
+}
 /* ── NAV-001: إعلانات «قريبًا» — النقل والتوصيل و«اسأل Micro» والسوق ── */
 .micro-soon-backdrop {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: color-mix(in srgb, #1f1a14 32%, transparent);
+  background: color-mix(in srgb, var(--color-text-primary) 32%, transparent);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 84px 16px 16px;
+  padding: calc(var(--vf-topbar-height) + 24px) 16px 16px;
 }
 .micro-soon-panel {
   width: min(100%, 480px);
-  background: var(--color-surface, #fff);
-  border-radius: 16px;
-  border: 1px solid var(--color-line-soft, #e5e0d8);
-  box-shadow: 0 18px 40px rgba(31, 26, 20, 0.18);
-  padding: 14px 16px;
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--elevation-3);
+  padding: 12px 16px;
   display: grid;
   gap: 8px;
 }
@@ -2525,16 +2585,16 @@ button.micro-finance-position-link:focus-visible {
   gap: 8px;
 }
 .micro-soon-panel-head strong {
-  font-size: 1rem;
+  font-size: 15px;
 }
 .micro-soon-panel p {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 13px;
   line-height: 1.7;
 }
 .micro-soon-panel-footer {
-  color: var(--color-ink-soft, #6f675c);
-  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-size: 12px;
 }
 .micro-soon-card {
   display: flex;
@@ -2542,36 +2602,36 @@ button.micro-finance-position-link:focus-visible {
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
-  border: 1px solid var(--color-line-soft, #e5e0d8);
-  border-radius: 16px;
-  background: var(--color-surface-quiet, #faf8f4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-well);
   position: relative;
 }
 .micro-soon-card > svg {
   width: 34px;
   height: 34px;
   flex: none;
-  color: var(--color-ink-soft, #6f675c);
+  color: var(--color-text-secondary);
 }
 .micro-soon-card strong {
   display: block;
-  font-size: 1.02rem;
-  margin-block-end: 6px;
+  font-size: 15px;
+  margin-block-end: 8px;
 }
 .micro-soon-card p {
-  margin: 0 0 6px;
-  font-size: 0.92rem;
+  margin: 0 0 8px;
+  font-size: 13px;
   line-height: 1.7;
 }
 .micro-soon-badge {
   position: static;
   order: -1;
   align-self: flex-start;
-  background: var(--color-accent-soft, #efe7da);
-  color: var(--color-accent-text, #7a5a2f);
-  font-size: 0.78rem;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+  font-size: 12px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
 }
 /* ── NAV-001: صف أزرار التسجيل السريع في «مشروعي الآن» ── */
@@ -2580,7 +2640,7 @@ button.micro-finance-position-link:focus-visible {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 2px 0 6px;
+  padding: 4px 0 8px;
   -webkit-overflow-scrolling: touch;
 }
 .micro-quick-actions::-webkit-scrollbar {
@@ -2594,17 +2654,17 @@ button.micro-finance-position-link:focus-visible {
   gap: 4px;
   justify-items: center;
   align-content: center;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--color-line-soft, #e5e0d8);
-  background: var(--color-surface, #fff);
-  font-size: 0.86rem;
+  padding: 12px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 13px;
   font-weight: 600;
   color: inherit;
   text-align: center;
 }
 .micro-quick-action:active {
-  background: var(--color-accent-soft, #f4ede1);
+  background: var(--color-accent-soft);
 }
 .micro-quick-action > svg {
   width: 22px;
@@ -2612,17 +2672,17 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-setup-intro {
   display: grid;
-  gap: 6px;
-  margin-block-start: 10px;
-  padding: 12px 14px;
-  border: 1px solid var(--color-line-soft, #e5e0d8);
-  border-radius: 14px;
-  background: var(--color-surface-quiet, #faf8f4);
+  gap: 8px;
+  margin-block-start: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-well);
   text-align: start;
 }
 .micro-setup-intro p {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 13px;
   line-height: 1.65;
 }
 .micro-setup-impact {

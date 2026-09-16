@@ -190,9 +190,10 @@ export default function DeliveryReviewPage() {
       shortagesCount: result.value.shortages.length,
       collectedMinor: collectAmountMinor > 0 ? collectAmountMinor : null,
       remainingMinor: result.value.stored.order.receivableMinor,
-      cashDestination: collectAmountMinor > 0
-        ? (wallets.find(wallet => wallet.id === walletId)?.name ?? "غير موزع — يُوزّع لاحقًا بقرار صريح")
-        : "لم يُسجَّل قبض جديد — لا وجهة",
+      cashDestination:
+        collectAmountMinor > 0
+          ? (wallets.find(wallet => wallet.id === walletId)?.name ?? "غير موزع — يُوزّع لاحقًا بقرار صريح")
+          : "لم يُسجَّل قبض جديد — لا وجهة",
       nextAction: result.value.stored.order.nextAction,
       notice: result.value.notice,
     });
@@ -512,7 +513,11 @@ export default function DeliveryReviewPage() {
       ) : null}
 
       {state.phase === "done" ? (
-        <section className="micro-delivery-done" aria-label="نتيجة التسليم" data-testid="delivery-success-receipt">
+        <section
+          className="micro-delivery-done"
+          aria-label="نتيجة التسليم"
+          data-testid="delivery-success-receipt"
+        >
           <h2>
             <CheckCircle2 aria-hidden="true" /> تم تسليم الطلب بنجاح
           </h2>

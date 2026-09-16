@@ -114,7 +114,10 @@ export default function ToolsIntegrity() {
                     {`آخر تشغيل مكتمل: ${formatLocalDateTime(state.report.runAt)} — لفترة هذا الشهر حتى اليوم، وكل تشغيل قراءة جديدة.`}
                   </p>
                   {/* TOOL-001: مجاميع الحالات توافق طول القائمة والعدّ المسجل. */}
-                  <p className="micro-integrity-totals" data-testid="integrity-status-totals">{`${totals.pass} سليم · ${totals.warn} تحذير · ${totals.unavailable} غير متاح · ${totals.fail} خلل — من أصل ${state.report.checks.length} فحصًا مسجلًا.`}</p>
+                  <p
+                    className="micro-integrity-totals"
+                    data-testid="integrity-status-totals"
+                  >{`${totals.pass} سليم · ${totals.warn} تحذير · ${totals.unavailable} غير متاح · ${totals.fail} خلل — من أصل ${state.report.checks.length} فحصًا مسجلًا.`}</p>
                   {/* المجموعة ٥ (عقد ٣٥): الصحة تعني الاتساق لا الجدوى — فحص
                    * سليم لا يقول إن المشروع رابح؛ وعدًا مطابقًا للسلوك. */}
                   {state.report.overall === "PASS" ? (

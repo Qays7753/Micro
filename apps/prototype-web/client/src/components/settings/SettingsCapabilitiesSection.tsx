@@ -109,9 +109,9 @@ export function SettingsCapabilitiesSection({
         <small>شغّل ما تستخدمه وأوقف ما لا يلزمك — السجلات القائمة لا تُمس.</small>
       </summary>
       <p className="micro-field-hint">
-        الأساس دائمًا مفعّل: البيع والمصروف والكاش والتحصيل ونتيجتك المتاحة. ما يلي اختياري، وإيقافه
-        يخفي مداخل الإدخال اليومية فقط — الديون والالتزامات والسجلات القائمة تبقى ظاهرة في دفاترها
-        للتدقيق، والتفعيل لاحقًا يعيد كل شيء كما كان.
+        الأساس دائمًا مفعّل: البيع والمصروف والكاش والتحصيل ونتيجتك المتاحة. ما يلي اختياري، وإيقافه يخفي
+        مداخل الإدخال اليومية فقط — الديون والالتزامات والسجلات القائمة تبقى ظاهرة في دفاترها للتدقيق،
+        والتفعيل لاحقًا يعيد كل شيء كما كان.
       </p>
       {(() => {
         /* بيانات القدرات داخل جسم الملف المطوي — تُعرض عند الفتح فقط. */
@@ -152,46 +152,46 @@ export function SettingsCapabilitiesSection({
         return (
           <div className="micro-capability-list">
             {CAPABILITIES.map(capability => {
-          const isDisabled = disabled.includes(capability.id);
-          const existing = countFor(capability.id);
-          return (
-            <section key={capability.id} className="micro-capability-row" data-disabled={isDisabled}>
-              <div>
-                <strong>{capability.label}</strong>
-                <p>{capability.why}</p>
-                <dl>
+              const isDisabled = disabled.includes(capability.id);
+              const existing = countFor(capability.id);
+              return (
+                <section key={capability.id} className="micro-capability-row" data-disabled={isDisabled}>
                   <div>
-                    <dt>ما الذي يتأثر؟</dt>
-                    <dd>{capability.affects}</dd>
+                    <strong>{capability.label}</strong>
+                    <p>{capability.why}</p>
+                    <dl>
+                      <div>
+                        <dt>ما الذي يتأثر؟</dt>
+                        <dd>{capability.affects}</dd>
+                      </div>
+                      <div>
+                        <dt>الأثر المالي للإيقاف</dt>
+                        <dd>{capability.financialEffect}</dd>
+                      </div>
+                      <div>
+                        <dt>أين تظهر النتائج؟</dt>
+                        <dd>{capability.appearsIn}</dd>
+                      </div>
+                    </dl>
+                    {isDisabled && existing > 0 ? (
+                      <p className="micro-warning-copy" role="status">
+                        {`عندك ${existing} سجلًا قائمًا في هذه القدرة — الإيقاف يخفي مداخل الإدخال فقط، وسجلاتك تبقى ظاهرة قابلة للتدقيق في دفاترها.`}
+                      </p>
+                    ) : null}
                   </div>
-                  <div>
-                    <dt>الأثر المالي للإيقاف</dt>
-                    <dd>{capability.financialEffect}</dd>
-                  </div>
-                  <div>
-                    <dt>أين تظهر النتائج؟</dt>
-                    <dd>{capability.appearsIn}</dd>
-                  </div>
-                </dl>
-                {isDisabled && existing > 0 ? (
-                  <p className="micro-warning-copy" role="status">
-                    {`عندك ${existing} سجلًا قائمًا في هذه القدرة — الإيقاف يخفي مداخل الإدخال فقط، وسجلاتك تبقى ظاهرة قابلة للتدقيق في دفاترها.`}
-                  </p>
-                ) : null}
-              </div>
-              <button
-                className="micro-text-action"
-                type="button"
-                disabled={saving}
-                aria-pressed={isDisabled}
-                onClick={() => {
-                  void toggle(capability.id, !isDisabled);
-                }}
-              >
-                {isDisabled ? "تفعيل" : "إيقاف الإدخال"}
-              </button>
-            </section>
-          );
+                  <button
+                    className="micro-text-action"
+                    type="button"
+                    disabled={saving}
+                    aria-pressed={isDisabled}
+                    onClick={() => {
+                      void toggle(capability.id, !isDisabled);
+                    }}
+                  >
+                    {isDisabled ? "تفعيل" : "إيقاف الإدخال"}
+                  </button>
+                </section>
+              );
             })}
           </div>
         );

@@ -435,9 +435,14 @@ function buildDeliveryTerms(input: RecordDeliveryTermsInput): OrderDeliveryTerms
   const feeAppliesToProject =
     input.responsibility === "customer_pays_project" || input.responsibility === "shared";
   if (!feeAppliesToProject && feeChargedMinor !== null) {
-    throw new Error("أجرة التوصيل عبر المشروع تُسجَّل فقط عندما يدفع الزبون للمشروع أو عند التكلفة المشتركة.");
+    throw new Error(
+      "أجرة التوصيل عبر المشروع تُسجَّل فقط عندما يدفع الزبون للمشروع أو عند التكلفة المشتركة.",
+    );
   }
-  if (input.responsibility === "customer_pays_courier" && (costPaidMinor !== null || projectShareMinor !== null)) {
+  if (
+    input.responsibility === "customer_pays_courier" &&
+    (costPaidMinor !== null || projectShareMinor !== null)
+  ) {
     throw new Error("الزبون يدفع للناقل مباشرة: معلومة سياقية فقط — لا تُسجَّل كلفة على المشروع.");
   }
   if (input.responsibility !== "shared" && (projectShareMinor !== null || customerShareMinor !== null)) {
@@ -586,9 +591,7 @@ export function transitionOrder(order: CraftOrder, input: OrderTransitionInput):
       : next;
 
   const recognized =
-    input.to === "delivered" || input.to === "settled"
-      ? recognizeDeliveryValues(reviewSafe)
-      : reviewSafe;
+    input.to === "delivered" || input.to === "settled" ? recognizeDeliveryValues(reviewSafe) : reviewSafe;
 
   const shouldSettleAfterDelivery =
     input.to === "delivered" && recognized.receivableMinor === 0 && recognized.settlementStatus === "paid";

@@ -172,8 +172,8 @@ export class IntegrityCheckService {
       : checks.some(check => check.status === "WARN")
         ? "WARN"
         : checks.some(check => check.status === "UNAVAILABLE")
-        ? "UNAVAILABLE"
-        : "PASS";
+          ? "UNAVAILABLE"
+          : "PASS";
     return {
       runAt: this.now(),
       from,

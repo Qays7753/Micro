@@ -143,8 +143,7 @@ export class PreferenceService {
 
   async saveDisabledCapabilities(disabled: readonly string[]): Promise<DisabledCapabilitiesResult> {
     const current = await this.store.getPreferences();
-    if (!current.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيل المحلي." };
+    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيل المحلي." };
     const result = await this.store.savePreferences({
       id: localPreferencesId,
       theme: current.value?.theme ?? "system",
@@ -161,7 +160,6 @@ export class PreferenceService {
       ? { ok: true, disabled: result.value.disabledCapabilities ?? [] }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيلات القدرات." };
   }
-
 }
 
 export type BrowserPersistenceReading = { state: PersistentStorageState; title: string; text: string };
@@ -170,5 +168,4 @@ export type BrowserPersistenceReading = { state: PersistentStorageState; title: 
 export async function readBrowserPersistence(): Promise<BrowserPersistenceReading> {
   const state = await readPersistentStorageState();
   return { state, ...persistentStorageCopy(state) };
-
 }

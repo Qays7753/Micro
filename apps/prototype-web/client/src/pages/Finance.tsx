@@ -389,7 +389,9 @@ export default function Finance() {
             >
               <Scale aria-hidden="true" />
               <span>النتيجة المتاحة</span>
-              <strong>{period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}</strong>
+              <strong>
+                {period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}
+              </strong>
               <small>
                 {period.status === "recorded_only"
                   ? "نتيجة الفترة المسجلة — افتح التفصيل"

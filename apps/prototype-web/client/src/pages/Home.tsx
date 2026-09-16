@@ -138,8 +138,7 @@ function TodayItemRow({ item, onNavigate }: { item: HomeTodayItem; onNavigate: (
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const {
-    preferences, homeControlCenter, dataVersion } = usePrototypeServices();
+  const { preferences, homeControlCenter, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<HomeState>({ phase: "loading" });
   /* NAV-001: أزرار التسجيل السريع في «مشروعي الآن» — البيع والمصروف يفتحان
    * الورقة عبر سياق القشرة في نموذجهما مباشرة، والطلب والتقدير والتحصيل
@@ -241,10 +240,18 @@ export default function Home() {
           </div>
         </div>
         <div className="micro-quick-actions" data-testid="home-quick-actions">
-          <button className="micro-quick-action" type="button" onClick={() => quickRecording.openQuickForm("sale-form")}>
+          <button
+            className="micro-quick-action"
+            type="button"
+            onClick={() => quickRecording.openQuickForm("sale-form")}
+          >
             <BadgeDollarSign aria-hidden="true" /> تسجيل بيع
           </button>
-          <button className="micro-quick-action" type="button" onClick={() => quickRecording.openQuickForm("expense-form")}>
+          <button
+            className="micro-quick-action"
+            type="button"
+            onClick={() => quickRecording.openQuickForm("expense-form")}
+          >
             <CircleDollarSign aria-hidden="true" /> تسجيل مصروف
           </button>
           {disabledCapabilities.includes("orders") ? null : (
@@ -265,7 +272,11 @@ export default function Home() {
               </button>
             </>
           )}
-          <button className="micro-quick-action" type="button" onClick={() => navigate(withFrom("/collect", "/"))}>
+          <button
+            className="micro-quick-action"
+            type="button"
+            onClick={() => navigate(withFrom("/collect", "/"))}
+          >
             <HandCoins aria-hidden="true" /> عربون أو تحصيل
           </button>
         </div>

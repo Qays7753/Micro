@@ -61,9 +61,7 @@ describe("ToolsIntegrity page (فحص سلامة مالي)", () => {
     const service = services.integrityCheck;
     const registered = service.registeredCheckCount();
     expect(registered).toBeGreaterThanOrEqual(13);
-    expect(
-      screen.getByText(new RegExp(`${registered} (فحصًا|فحوص|فحص)`)),
-    ).toBeTruthy();
+    expect(screen.getByText(new RegExp(`${registered} (فحصًا|فحوص|فحص)`))).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
     expect(await screen.findByText(/الأرقام متسقة/)).toBeTruthy();

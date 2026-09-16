@@ -335,8 +335,7 @@ export default function Orders() {
           </Button>
         )}
       </div>
-      {!disabledCapabilities.includes("orders") &&
-      (state.orders.length > 0 || state.drafts.length > 0) ? (
+      {!disabledCapabilities.includes("orders") && (state.orders.length > 0 || state.drafts.length > 0) ? (
         <Button
           action="secondary"
 

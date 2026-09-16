@@ -156,7 +156,9 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
       target: { value: "customer_pays_project" },
     });
     fireEvent.change(screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع"), { target: { value: "2" } });
-    fireEvent.change(screen.getByLabelText("تعديل كلفة النقل المدفوعة من المشروع"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("تعديل كلفة النقل المدفوعة من المشروع"), {
+      target: { value: "1" },
+    });
     fireEvent.click(screen.getByText("حفظ شروط النقل"));
     await waitFor(() =>
       expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("الزبون يدفع للمشروع"),
@@ -227,7 +229,13 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     const stored = await agreedOrder({ depositMinor: 1000 });
     await agreements.startExecution(stored.id);
     await fulfillment.markReady(stored.id);
-    await deliveryReview.commitDelivery(stored.id, { rows: [], finalPriceMinor: null, priceRevisionReason: null, collectNow: null, operationKey: "ord-deliver-1" });
+    await deliveryReview.commitDelivery(stored.id, {
+      rows: [],
+      finalPriceMinor: null,
+      priceRevisionReason: null,
+      collectNow: null,
+      operationKey: "ord-deliver-1",
+    });
     wouterMocks.params = { id: stored.id };
     wouterMocks.location = `/orders/${stored.id}`;
     render(<Harness page={<OrderDetail />} />);

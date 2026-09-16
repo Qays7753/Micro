@@ -41,7 +41,12 @@ import {
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
-import { hasDeliveredEvent, hasDeliveryReversal, orderResultBreakdown, DELIVERY_RESPONSIBILITY_AR } from "@micro-domain/craft-order/index.js";
+import {
+  hasDeliveredEvent,
+  hasDeliveryReversal,
+  orderResultBreakdown,
+  DELIVERY_RESPONSIBILITY_AR,
+} from "@micro-domain/craft-order/index.js";
 import type { DeliveryResponsibility } from "@micro-domain/craft-order/index.js";
 import { formatLocalDateTime, formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
@@ -143,9 +148,7 @@ export default function OrderDetail() {
   const [termsCostInProduct, setTermsCostInProduct] = useState(false);
   const [validTermsFee, setValidTermsFee] = useState(true);
   const [validTermsCost, setValidTermsCost] = useState(true);
-  const termsOperationKeyRef = useRef(
-    `order-terms-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
-  );
+  const termsOperationKeyRef = useRef(`order-terms-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة على الطلب.
    * المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة مع تخصيصها
    * المطابق — مفتاح جذر واحد لكل فتح لوحة يجعل إعادة المحاولة آمنة. */
@@ -345,7 +348,8 @@ export default function OrderDetail() {
   const label = agreement.label;
   const result = resultLabel[order.resultStatus] ?? resultLabel.review_required;
   /* ORD-002: لحظة التسليم الأصلية من حدث التسليم نفسه — لا وقت فتح الصفحة. */
-  const deliveredAtIso = [...order.events].reverse().find(event => event.toStatus === "delivered")?.createdAt ?? null;
+  const deliveredAtIso =
+    [...order.events].reverse().find(event => event.toStatus === "delivered")?.createdAt ?? null;
   /* التحصين الكامل (D-031، المجموعة ٣): القفل الحقيقي — سجل مسلّم داخل «يحتاج
    * مراجعة» بلا تراجع موثق عن التسليم؛ مسندا النطاق نفسه (STR-008، المجموعة ٩). */
   const lockedInDeliveredReview =
@@ -372,8 +376,7 @@ export default function OrderDetail() {
     }
     setIsActing(true);
     try {
-      const feeApplies =
-        termsResponsibility === "customer_pays_project" || termsResponsibility === "shared";
+      const feeApplies = termsResponsibility === "customer_pays_project" || termsResponsibility === "shared";
       const costApplies = termsResponsibility !== "customer_pays_courier";
       const result = await fulfillment.applyDeliveryTerms(
         state.stored.id,
@@ -1453,7 +1456,9 @@ export default function OrderDetail() {
             {`سُلّم هذا الطلب في ${formatLocalDateTime(deliveredAtIso)} · المقبوض: ${formatMoneyMinor(
               order.collectedMinor,
             )} د.أ · المتبقي: ${formatMoneyMinor(order.receivableMinor)} د.أ · `}
-            {order.receivableMinor > 0 ? "الفعل التالي: حصّل المتبقي أو سجّله دينًا" : "الفعل التالي: راجع النتيجة والخطوة التالية"}
+            {order.receivableMinor > 0
+              ? "الفعل التالي: حصّل المتبقي أو سجّله دينًا"
+              : "الفعل التالي: راجع النتيجة والخطوة التالية"}
           </p>
         </section>
       ) : null}
@@ -1487,7 +1492,11 @@ export default function OrderDetail() {
           {/* ORD-003: الربح التقديري قبل التسليم — موسوم «تقديري» دائمًا، ولا
               يدخل النتائج الرسمية؛ والناقص يُعرض ناقصًا لا صفرًا كاذبًا. */}
           {!["delivered", "settled"].includes(order.status) ? (
-            <section className="micro-form-card" aria-label="الربح التقديري" data-testid="estimated-result-panel">
+            <section
+              className="micro-form-card"
+              aria-label="الربح التقديري"
+              data-testid="estimated-result-panel"
+            >
               <h2 className="micro-section-title">الربح التقديري</h2>
               <p className="micro-muted-copy">
                 {orderResultBreakdown(order).incompleteReasons.length > 0
@@ -1506,7 +1515,8 @@ export default function OrderDetail() {
                     : "التكلفة غير مسجلة بعد — لا يُحتسب ربح كاذب بصفر"}
               </p>
               <p className="micro-muted-copy">
-                الرقم أعلاه تقدير للاستئناس فقط؛ لا يُضاف إلى أي نتيجة رسمية إلا بعد تأكيد مكوناتها عند التسليم.
+                الرقم أعلاه تقدير للاستئناس فقط؛ لا يُضاف إلى أي نتيجة رسمية إلا بعد تأكيد مكوناتها عند
+                التسليم.
               </p>
             </section>
           ) : null}
@@ -1546,7 +1556,9 @@ export default function OrderDetail() {
                     </select>
                   </label>
                   {termsResponsibility === "customer_pays_courier" ? (
-                    <p className="micro-muted-copy">معلومة سياقية فقط — ليست كاش مشروع ولا إيرادًا ولا مصروفًا.</p>
+                    <p className="micro-muted-copy">
+                      معلومة سياقية فقط — ليست كاش مشروع ولا إيرادًا ولا مصروفًا.
+                    </p>
                   ) : null}
                   {termsResponsibility === "customer_pays_project" || termsResponsibility === "shared" ? (
                     <>

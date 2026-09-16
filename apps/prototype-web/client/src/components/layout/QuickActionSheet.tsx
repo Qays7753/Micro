@@ -83,7 +83,12 @@ export const actionItems: readonly QuickActionItem[] = [
   },
 ];
 
-export function QuickActionSheet({ open, onOpenChange, onAction, initialMode = "menu" }: QuickActionSheetProps) {
+export function QuickActionSheet({
+  open,
+  onOpenChange,
+  onAction,
+  initialMode = "menu",
+}: QuickActionSheetProps) {
   const [, navigate] = useLocation();
   const { cashContinuity, projectFinance, dataVersion } = usePrototypeServices();
   const [mode, setMode] = useState<SheetMode>("menu");

@@ -106,9 +106,7 @@ export default function AgreementEditor() {
   const [partySuggestions, setPartySuggestions] = useState<readonly string[]>([]);
   /* ORD-003: شروط النقل والتوصيل — معلومات متقدمة داخل قسم قابل للطي؛
    * بلا اختيار = لا شروط نقل (الطلب البسيط لا يفتح القسم أبدًا). */
-  const [deliveryResponsibility, setDeliveryResponsibility] = useState<DeliveryResponsibility | "">(
-    "",
-  );
+  const [deliveryResponsibility, setDeliveryResponsibility] = useState<DeliveryResponsibility | "">("");
   const [feeChargedMinor, setFeeChargedMinor] = useState<number | null>(null);
   const [costPaidMinor, setCostPaidMinor] = useState<number | null>(null);
   const [feeIncludedInPrice, setFeeIncludedInPrice] = useState(false);
@@ -522,8 +520,8 @@ export default function AgreementEditor() {
         <details className="micro-advanced-section" data-testid="delivery-terms-section">
           <summary>النقل والتوصيل ومسؤولية كلفته</summary>
           <p className="micro-field-hint">
-            اختياري بالكامل. اختر من يدفع أجرة التوصيل وكلفة الناقل — تدخل الأجرة
-            المحصلة عبر المشروع قيمة الطلب مرة واحدة، ولا يُحتسب أي مبلغ مرتين.
+            اختياري بالكامل. اختر من يدفع أجرة التوصيل وكلفة الناقل — تدخل الأجرة المحصلة عبر المشروع قيمة
+            الطلب مرة واحدة، ولا يُحتسب أي مبلغ مرتين.
           </p>
           <label className="micro-field">
             <span>من يدفع كلفة النقل والتوصيل؟</span>
@@ -541,8 +539,8 @@ export default function AgreementEditor() {
           </label>
           {deliveryResponsibility === "customer_pays_courier" ? (
             <p className="micro-field-hint">
-              معلومة سياقية فقط: ليست كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة — لا
-              تدخل نتيجة الطلب ولا أي سجل مالي.
+              معلومة سياقية فقط: ليست كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة — لا تدخل نتيجة الطلب ولا أي
+              سجل مالي.
             </p>
           ) : null}
           {feeApplies ? (

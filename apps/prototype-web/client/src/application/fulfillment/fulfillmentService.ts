@@ -115,7 +115,11 @@ export class FulfillmentService {
     if (!current.ok) return current;
     try {
       const timestamp = this.now();
-      const order = recordDeliveryTerms(current.stored.order, { ...terms, idempotencyKey: operationKey, createdAt: timestamp });
+      const order = recordDeliveryTerms(current.stored.order, {
+        ...terms,
+        idempotencyKey: operationKey,
+        createdAt: timestamp,
+      });
       return this.persist({ ...current.stored, order, updatedAt: timestamp });
     } catch (error) {
       return failure(

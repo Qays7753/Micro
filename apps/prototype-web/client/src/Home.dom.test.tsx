@@ -87,7 +87,7 @@ function renderHome() {
   return render(
     <QuickRecordingProvider>
       <UnsavedChangesProvider navigate={wouterMocks.navigate}>
-      <Home />
+        <Home />
       </UnsavedChangesProvider>
     </QuickRecordingProvider>,
   );
