@@ -16,6 +16,12 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { legacyFinanceDraftKey } from "@/application/drafts/legacyFormDraftMigration";
+import { PreferenceService } from "@/application/preferences/preferenceService";
+import { AgreementService } from "@/application/agreements/agreementService";
+import { CostService } from "@/application/cost/costService";
+import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
+import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
+import { CatalogService } from "@/application/catalog/catalogService";
 import Settings from "@/pages/Settings";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
@@ -78,19 +84,13 @@ describe("Settings data actions are gated behind the local lock (Group 6 — SP-
         new StatementService(store, new ProjectFinancialService(store)),
         new CashContinuityService(store),
       ),
-      preferences: {
-        load: vi.fn(async () => ({ ok: true, preference: "system" })),
-        save: vi.fn(async () => ({ ok: true, preference: "dark" })),
-        readBrowserPersistence: vi.fn(async () => ({
-          state: "unsupported",
-          title: "التخزين الدائم غير مدعوم في هذا المتصفح",
-          text: "لا يعلن هذا المتصفح حالة الدوام.",
-        })),
-        readLastVerifiedExport: vi.fn(async () => ({ ok: true, exportedAt: null })),
-        markVerifiedExport: vi.fn(async () => ({ ok: true, preference: "system" })),
-        readBackupReminderEnabled: vi.fn(async () => ({ ok: true, enabled: true })),
-        saveBackupReminderEnabled: vi.fn(async (enabled: boolean) => ({ ok: true, enabled })),
-      },
+      /* إصلاح المتابعة (SET-003): خدمات حقيقية موافقة للعقد بنيويًا — المضاعف اليدوي الناقص كان
+       * يسبب رفضًا غير معالجًا عند تصيير قسم القدرات (15 خطأً من هذا الملف في CI). */
+      preferences: new PreferenceService(store),
+      agreements: new AgreementService(store, new CostService(store)),
+      inventory: new InventoryMaterialService(store),
+      supplierPurchases: new SupplierPurchaseService(store),
+      catalog: new CatalogService(store),
       actualTime: {
         readOperatingMode: vi.fn(async () => ({
           ok: true,
@@ -250,19 +250,13 @@ describe("Group 5 — destructive replacement protection, reset policy, and loca
         new StatementService(store, new ProjectFinancialService(store)),
         new CashContinuityService(store),
       ),
-      preferences: {
-        load: vi.fn(async () => ({ ok: true, preference: "system" })),
-        save: vi.fn(async () => ({ ok: true, preference: "dark" })),
-        readBrowserPersistence: vi.fn(async () => ({
-          state: "unsupported",
-          title: "التخزين الدائم غير مدعوم في هذا المتصفح",
-          text: "لا يعلن هذا المتصفح حالة الدوام.",
-        })),
-        readLastVerifiedExport: vi.fn(async () => ({ ok: true, exportedAt: null })),
-        markVerifiedExport: vi.fn(async () => ({ ok: true })),
-        readBackupReminderEnabled: vi.fn(async () => ({ ok: true, enabled: true })),
-        saveBackupReminderEnabled: vi.fn(async (enabled: boolean) => ({ ok: true, enabled })),
-      },
+      /* إصلاح المتابعة (SET-003): خدمات حقيقية موافقة للعقد بنيويًا — المضاعف اليدوي الناقص كان
+       * يسبب رفضًا غير معالجًا عند تصيير قسم القدرات (15 خطأً من هذا الملف في CI). */
+      preferences: new PreferenceService(store),
+      agreements: new AgreementService(store, new CostService(store)),
+      inventory: new InventoryMaterialService(store),
+      supplierPurchases: new SupplierPurchaseService(store),
+      catalog: new CatalogService(store),
       actualTime: {
         readOperatingMode: vi.fn(async () => ({
           ok: true,

@@ -73,6 +73,9 @@ export class PreferenceService {
       installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
       lastVerifiedExportAt: exportedAt,
       backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
+      /* إصلاح المتابعة (SET-003): القدرات المتوقفة تُنقل مع هذا الحفظ أيضًا —
+       * كتابة السجل كاملًا كانت تُسقط الحقل فتعيد تفعيل كل القدرات بصمت. */
+      disabledCapabilities: current.value?.disabledCapabilities ?? [],
       updatedAt: exportedAt,
     });
     return result.ok
@@ -92,6 +95,9 @@ export class PreferenceService {
       installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
       lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
       backupReminderEnabled: enabled,
+      /* إصلاح المتابعة (SET-003): القدرات المتوقفة تُنقل مع هذا الحفظ أيضًا —
+       * كتابة السجل كاملًا كانت تُسقط الحقل فتعيد تفعيل كل القدرات بصمت. */
+      disabledCapabilities: current.value?.disabledCapabilities ?? [],
       updatedAt: this.now(),
     });
     return result.ok
@@ -125,6 +131,9 @@ export class PreferenceService {
       installBannerDismissedAt: dismissedAt,
       lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
       backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
+      /* إصلاح المتابعة (SET-003): القدرات المتوقفة تُنقل مع هذا الحفظ أيضًا —
+       * كتابة السجل كاملًا كانت تُسقط الحقل فتعيد تفعيل كل القدرات بصمت. */
+      disabledCapabilities: current.value?.disabledCapabilities ?? [],
       updatedAt: dismissedAt,
     });
     return result.ok
