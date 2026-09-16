@@ -50,14 +50,11 @@ export function standingCollectionEvent(stored: StoredCraftOrder): OrderEvent | 
   const remainingOf = (eventId: string) => {
     const source = events.find(event => event.id === eventId);
     const reversed = events
-      .filter(
-        event => event.type === "collection_reversed" && event.reversesEventId === eventId,
-      )
+      .filter(event => event.type === "collection_reversed" && event.reversesEventId === eventId)
       .reduce((sum, event) => sum + (event.amountMinor ?? 0), 0);
     return (source?.amountMinor ?? 0) - reversed;
   };
-  const standingDepositMinor =
-    stored.order.depositCollectedMinor - (stored.order.depositRetainedMinor ?? 0);
+  const standingDepositMinor = stored.order.depositCollectedMinor - (stored.order.depositRetainedMinor ?? 0);
   const standing = events.filter(
     event =>
       (event.type === "collection_recorded" && remainingOf(event.id) > 0) ||
@@ -72,7 +69,9 @@ export function orderShareDraft(stored: StoredCraftOrder): ShareDraft {
   /* الطلب الملغى: نص الإلغاء الصادق — لا «جاهز للمتابعة» ولا وعد متابعة،
    * وتسوية العربون (إن وجدت) من حالة التسوية المحفوظة حرفيًا. */
   if (order.status === "cancelled") {
-    const lines: string[] = [`طلبك من ${itemName}${order.quantity > 1 ? ` (عدد ${order.quantity})` : ""} أُلغي.`];
+    const lines: string[] = [
+      `طلبك من ${itemName}${order.quantity > 1 ? ` (عدد ${order.quantity})` : ""} أُلغي.`,
+    ];
     if (order.depositCollectedMinor > 0) {
       const depositLine = formatMoneyWithUnit(order.depositCollectedMinor);
       if (order.settlementStatus === "cancelled_refunded") {
@@ -91,9 +90,7 @@ export function orderShareDraft(stored: StoredCraftOrder): ShareDraft {
     };
   }
   const lines: string[] = [];
-  lines.push(
-    `طلبك من ${itemName}${order.quantity > 1 ? ` (عدد ${order.quantity})` : ""} جاهز للمتابعة.`,
-  );
+  lines.push(`طلبك من ${itemName}${order.quantity > 1 ? ` (عدد ${order.quantity})` : ""} جاهز للمتابعة.`);
   lines.push(`السعر المتفق عليه: ${formatMoneyWithUnit(order.agreedPriceMinor)}.`);
   if (order.depositCollectedMinor > 0) {
     lines.push(`العربون المدفوع: ${formatMoneyWithUnit(order.depositCollectedMinor)}.`);

@@ -312,7 +312,10 @@ export function CatalogItemsSection({
 
                         onClick={() =>
                           requestSafeNavigation(
-                            withReturnTo(`/direct-sales/new?product=${encodeURIComponent(item.id)}`, "/catalog"),
+                            withReturnTo(
+                              `/direct-sales/new?product=${encodeURIComponent(item.id)}`,
+                              "/catalog",
+                            ),
                           )
                         }
                       >

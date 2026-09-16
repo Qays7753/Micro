@@ -24,7 +24,7 @@ export type DeepLinkFocus =
 export type DeepLinkMode = "cover"; /* طبقة كاملة فوق الشاشة القائمة */
 
 export type DeepLinkLayer =
-  | "corrections" /* مالي: سجل التصحيحات */ | "events"; /* مالي: سجل الأحداث المالية */
+  "corrections" /* مالي: سجل التصحيحات */ | "events"; /* مالي: سجل الأحداث المالية */
 
 export type DeepLinkParams = {
   focus: DeepLinkFocus | null;

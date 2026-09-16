@@ -134,6 +134,7 @@ describe("EXE-015 — عقد المشاركة الموحد من سطح الطل�
     const stored = await agreedOrder({ depositMinor: 1000 });
     const savedOrder = await store.getOrder(stored.id);
     if (!savedOrder.ok) throw new Error(savedOrder.message);
+    if (!savedOrder.value) throw new Error("order missing after save");
     const depositEvent = savedOrder.value.order.events.find(event => event.type === "deposit_collected");
     expect(depositEvent).toBeTruthy();
 

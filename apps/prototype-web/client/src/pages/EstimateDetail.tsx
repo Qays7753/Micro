@@ -215,7 +215,9 @@ export default function EstimateDetail() {
             action="secondary"
 
             onClick={() =>
-              navigate(withReturnTo(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, detailHref))
+              navigate(
+                withReturnTo(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, detailHref),
+              )
             }
           >
             <BookOpen aria-hidden="true" /> عدّل التقدير

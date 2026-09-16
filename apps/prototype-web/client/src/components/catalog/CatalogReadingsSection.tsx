@@ -14,10 +14,7 @@ import {
   quantityLabel,
 } from "@/presentation/catalogPresentation";
 import type { CatalogItem, MeasurementUnit } from "@micro-domain/catalog/index.js";
-import type {
-  RecurringWorkReading,
-  RecurringWorkReadings,
-} from "@/application/finance/recurringWorkService";
+import type { RecurringWorkReading, RecurringWorkReadings } from "@/application/finance/recurringWorkService";
 
 import { Button } from "@/components/primitives";
 export type CatalogReadingsSectionProps = {

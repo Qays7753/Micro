@@ -1750,7 +1750,9 @@ export default function OrderDetail() {
                 state={materialState}
                 onRecord={() =>
                   /* S1-06: نفس نمط فرع التنفيذ — الاستهلاك مرتبط بطلبه لا بأول طلب في القائمة. */
-                  navigate(withReturnTo(`/inventory/movement/consume?order=${stored.id}`, `/orders/${stored.id}`))
+                  navigate(
+                    withReturnTo(`/inventory/movement/consume?order=${stored.id}`, `/orders/${stored.id}`),
+                  )
                 }
               />
               <ActualTimePanel

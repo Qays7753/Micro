@@ -801,7 +801,9 @@ export default function FinancialEventEditor() {
                 className="micro-text-action"
                 type="button"
                 onClick={() =>
-                  navigate(withReturnTo(`/finance?event=${encodeURIComponent(savedNote.eventId)}`, returnPath))
+                  navigate(
+                    withReturnTo(`/finance?event=${encodeURIComponent(savedNote.eventId)}`, returnPath),
+                  )
                 }
               >
                 افتح السجل المحفوظ

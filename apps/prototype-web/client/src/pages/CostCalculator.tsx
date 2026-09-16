@@ -578,7 +578,9 @@ export default function CostCalculator() {
             <Button
               action="secondary"
 
-              onClick={() => navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(savedId)}`, "/tools"))}
+              onClick={() =>
+                navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(savedId)}`, "/tools"))
+              }
             >
               افتح التقدير
             </Button>
@@ -608,7 +610,9 @@ export default function CostCalculator() {
         <button
           className="micro-text-action"
           type="button"
-          onClick={() => navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(editingId)}`, returnPath))}
+          onClick={() =>
+            navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(editingId)}`, returnPath))
+          }
         >
           <ArrowRight aria-hidden="true" /> عرض صفحة التقدير
         </button>

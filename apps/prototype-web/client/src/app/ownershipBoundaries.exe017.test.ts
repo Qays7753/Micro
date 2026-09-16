@@ -55,9 +55,9 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
       }
     }
     /* الخدمة نفسها موجودة في بيتها المالي — النقل موثق في تقرير الموجة ٣. */
-    expect(existsSync(fileURLToPath(new URL("../application/finance/recurringWorkService.ts", import.meta.url)))).toBe(
-      true,
-    );
+    expect(
+      existsSync(fileURLToPath(new URL("../application/finance/recurringWorkService.ts", import.meta.url))),
+    ).toBe(true);
   });
 
   it("سياسات استحقاق المالك: كاتبها الوحيد خارج التخزين هو ownerEntitlementService (المالية)", () => {
@@ -134,7 +134,10 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
     for (const [relative, allowed] of Object.entries(allowedServicesByPage)) {
       const content = readRepoFile(`../${relative}`);
       const destructure = content.match(/const\s*\{([^}]*)\}\s*=\s*usePrototypeServices\(\)/);
-      expect(destructure, `${relative} لم يعد يستخدم سياق الخدمات — حدّث قائمة التوافق في هذا الاختبار.`).not.toBeNull();
+      expect(
+        destructure,
+        `${relative} لم يعد يستخدم سياق الخدمات — حدّث قائمة التوافق في هذا الاختبار.`,
+      ).not.toBeNull();
       const consumed = (destructure?.[1] ?? "")
         .split(",")
         .map(name => name.trim())
@@ -162,7 +165,9 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
     /* وحدة الإعدادات/البيانات تملك النسخ والاستعادة: صفحتها ومكوناتها
      * (components/settings/*) وجذر التركيب الذي يبني الخدمات. */
     const isSettingsUnit = (path: string) =>
-      path === "pages/Settings.tsx" || path === "app/PrototypeServicesContext.tsx" || path.startsWith("components/settings/");
+      path === "pages/Settings.tsx" ||
+      path === "app/PrototypeServicesContext.tsx" ||
+      path.startsWith("components/settings/");
     for (const path of srcFiles) {
       if (isTestFile(path)) continue;
       const content = readSrcFile(path);
