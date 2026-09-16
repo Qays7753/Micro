@@ -335,12 +335,22 @@ export default function InventoryMaterials() {
             >
               <Scissors aria-hidden="true" /> استهلاك أو استلام نقص
             </Button>
+            {/* EXE-012 (AUD-NEW-06): الهدر والضبط فعلان منفصلان — اسم وسبب
+                وأثر مستقلان؛ الضبط قرار مالك يصحح الكمية بلا حذف حركة. */}
             <Button
               action="secondary"
 
               onClick={() => navigate(withFrom("/inventory/movement/waste", "/inventory"))}
             >
-              <CircleMinus aria-hidden="true" /> هدر أو ضبط
+              <CircleMinus aria-hidden="true" /> هدر مادة
+            </Button>
+            <Button
+              action="secondary"
+              data-testid="inventory-adjust-entry"
+
+              onClick={() => navigate(withFrom("/inventory/movement/adjust", "/inventory"))}
+            >
+              <SlidersHorizontal aria-hidden="true" /> ضبط جرد — قرار مالك
             </Button>
           </>
         ) : (
