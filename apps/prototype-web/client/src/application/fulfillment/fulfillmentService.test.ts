@@ -589,11 +589,12 @@ describe("FulfillmentService deposit refund from source wallet (FC-06 / Conflict
     expect(first.ok).toBe(true);
     if (!first.ok) return;
     expect(first.stored.order.events.filter(event => event.type === "deposit_refunded")).toHaveLength(1);
-    /* إعادة التأكيد نفسه (نقر مزدوج أو إعادة إرسال): لا كتابة جديدة — إشعار صادق. */
+    /* إعادة التأكيد نفسه (نقر مزدوج أو إعادة إرسال): لا كتابة جديدة — علم
+     * reused بنيوي والواجهة تعرض النص الصادق لحظة الفعل. */
     const replay = await service.refundDeposit(orderId, "رد جزئي متفق عليه", 500, "exe004-replay-key");
     expect(replay.ok).toBe(true);
     if (!replay.ok) return;
-    expect(replay.notice).toContain("لم يُنشأ حدث جديد");
+    expect(replay.reused).toBe(true);
     expect(replay.stored.order.events.filter(event => event.type === "deposit_refunded")).toHaveLength(1);
     expect(replay.stored.order.depositCollectedMinor).toBe(500);
   });

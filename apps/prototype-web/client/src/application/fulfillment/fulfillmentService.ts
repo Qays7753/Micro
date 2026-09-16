@@ -19,7 +19,7 @@ import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-doma
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type FulfillmentResult =
-  | { ok: true; stored: StoredCraftOrder; notice?: string }
+  | { ok: true; stored: StoredCraftOrder; reused?: boolean }
   | { ok: false; code: "storage_error" | "invalid_state"; message: string };
 export type DepositRow = {
   orderId: string;
@@ -428,16 +428,12 @@ export class FulfillmentService {
       ? `${id}:refund-deposit:${operationKey}`
       : `${id}:refund-deposit:${amount}:${reason.trim().length}:${this.now().slice(0, 13)}`;
     /* EXE-004: إعادة تأكيد العملية نفسها ليست ردًّا جديدًا — عودة صادقة بلا
-     * أي كتابة، بدل ابتلاع الثاني بصمت مع رسالة نجاح. */
+     * أي كتابة، بدل ابتلاع الثاني بصمت مع رسالة نجاح. الواجهة تعرض النص
+     * لحظة الفعل (setMessage) والخدمة تُرجع العلم البنيوي فقط. */
     const alreadyRefunded = order.events.some(
       event => event.type === "deposit_refunded" && event.idempotencyKey === refundEventKey,
     );
-    if (alreadyRefunded)
-      return {
-        ok: true,
-        stored: current.stored,
-        notice: "رد العربون هذا سُجّل سابقًا بنفس التأكيد — لم يُنشأ حدث جديد.",
-      };
+    if (alreadyRefunded) return { ok: true, stored: current.stored, reused: true };
     try {
       const timestamp = this.now();
       const next = settleDepositRefund(current.stored.order, amount, reason, refundEventKey, timestamp);
@@ -458,12 +454,7 @@ export class FulfillmentService {
         );
         if (!committed.ok)
           return failure("storage_error", committed.message ?? "تعذر رد العربون ذرّيًا؛ لم يتغير السجل.");
-        if (committed.value.reused)
-          return {
-            ok: true,
-            stored: committed.value.order,
-            notice: "رد العربون هذا سُجّل سابقًا بنفس التأكيد — لم يُنشأ حدث جديد.",
-          };
+        if (committed.value.reused) return { ok: true, stored: committed.value.order, reused: true };
         return { ok: true, stored: committed.value.order };
       }
       /* تعذر بناء فك التخصيص (تخصيص مُفكوك جزئيًا سابقًا مثلًا) — الرد نفسه
