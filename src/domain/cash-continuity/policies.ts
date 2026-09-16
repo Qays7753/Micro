@@ -1,4 +1,5 @@
 import { fieldLabelAr } from "../shared/index.js";
+import { SOURCE_REF_KINDS } from "./types.js";
 import type {
   CashContinuityEntry,
   CashContinuityEntryType,
@@ -46,8 +47,8 @@ export function createCashWallet(input: CreateCashWalletInput): CashWallet {
 
 /* المجموعة ٢ (§9.1): مصدر التخصيص — وصل قراءة فقط في سجل المحفظة؛ يُقبل في
  * حركات التخصيص حصرًا ومعه نوع مصدر معلوم، وبلا معرّف لا يُقبل نوع.
- * FIN-003: دفعة المورد مصدر تخصيص معترف به (تغطية سالبة من رصيد المحفظة). */
-const SOURCE_REF_KINDS = ["sale", "expense", "collection", "order", "supplier_purchase"] as const;
+ * FIN-003: دفعة المورد مصدر تخصيص معترف به (تغطية سالبة من رصيد المحفظة).
+ * EXE-003: القائمة القانونية مستوردة من types.js — مصدر واحد لا نسخ مكررة. */
 type SourceRefKind = (typeof SOURCE_REF_KINDS)[number];
 
 function normalizeSourceRef(input: CreateCashEntryInput): {
