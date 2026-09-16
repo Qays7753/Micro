@@ -94,6 +94,8 @@ export default function InventoryMovementEditor() {
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  /* OPS-001: معرّف وصلة لم يعد موجودًا — يُعلن صريحًا ولا يُعوّض بسجل آخر. */
+  const [linkIssue, setLinkIssue] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const operationKey = useRef(`inventory-${type}-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   const prefilledPurchaseRef = useRef<string | null>(null);
@@ -122,37 +124,43 @@ export default function InventoryMovementEditor() {
         return;
       }
       setReferences(result.value);
+      /* OPS-001: لا اختيار أول سجل لمجرد وجوده — التعيين المسبق يحدث فقط
+       * من وصلة عميقة صالحة (مادة/شراء/طلب/بيع) أو سياق صفحة صريح؛
+       * وما عداه يبدأ بلا اختيار ويطلب المالك اختيارًا صريحًا قبل الحفظ. */
       const linkedMaterial =
         linkedMaterialId && result.value.materials.some(material => material.id === linkedMaterialId)
           ? linkedMaterialId
           : null;
-      setMaterialId(
-        (linkedMaterial as string | null) ??
-          (linkedPurchaseId
-            ? (result.value.purchases.find(purchase => purchase.id === linkedPurchaseId)?.materialId ?? null)
-            : null) ??
-          result.value.materials[0]?.id ??
-          "",
-      );
       const purchaseFromLink = linkedPurchaseId
         ? result.value.purchases.find(purchase => purchase.id === linkedPurchaseId)
         : undefined;
-      setPurchaseId(purchaseFromLink ? purchaseFromLink.id : (result.value.purchases[0]?.id ?? ""));
+      setMaterialId((linkedMaterial as string | null) ?? purchaseFromLink?.materialId ?? "");
+      setPurchaseId(purchaseFromLink ? purchaseFromLink.id : "");
       /* SA-5 (F1): لا نُعلّم الإحالة هنا — بطاقة حالة الاستلام هي التي تعبّئ
        * (كمية/قيمة متبقية) مرة واحدة لكل شراء؛ الوصلة العميقة تمر بالمسار نفسه. */
       if (purchaseFromLink && safeType === "receipt" && purchaseFromLink.materialId) {
         setMaterialId(purchaseFromLink.materialId);
         setNote(`استلام شراء: ${purchaseFromLink.supplierName}`);
       }
-      /* سياق الطلب من الوصلة العميقة إن وُجد؛ وإلا أول طلب كالسلوك القائم. */
+      /* OPS-001: سياق الطلب/البيع من الوصلة العميقة فقط — المعرّف غير الصالح
+       * يُعلن برسالة، ولا نرجع صامتًا إلى أول سجل قائم. */
       const linked = linkedOrderId && result.value.orders.some(order => order.id === linkedOrderId);
-      setOrderId(linked ? (linkedOrderId as string) : (result.value.orders[0]?.id ?? ""));
-      /* المجموعة ٣ (عقد D6): بيع مباشر من الوصلة العميقة إن وُجد؛ وإلا أول بيع نشط. */
+      setOrderId(linked ? (linkedOrderId as string) : "");
       const linkedSale = linkedSaleId && result.value.sales.some(sale => sale.id === linkedSaleId);
-      setSaleId(linkedSale ? (linkedSaleId as string) : (result.value.sales[0]?.id ?? ""));
-      setWasteOrderId(result.value.orders[0]?.id ?? "");
-      setWasteCatalogItemId(result.value.catalogItems[0]?.id ?? "");
-      setWasteTemplateId(result.value.catalogTemplates[0]?.id ?? "");
+      setSaleId(linkedSale ? (linkedSaleId as string) : "");
+      setWasteOrderId("");
+      setWasteCatalogItemId("");
+      setWasteTemplateId("");
+      const invalidOrderLink = Boolean(linkedOrderId) && !linked;
+      const invalidSaleLink = Boolean(linkedSaleId) && !linkedSale;
+      const invalidPurchaseLink = Boolean(linkedPurchaseId) && !purchaseFromLink;
+      const invalidMaterialLink =
+        Boolean(linkedMaterialId) && !linkedMaterial && !purchaseFromLink?.materialId;
+      setLinkIssue(
+        invalidOrderLink || invalidSaleLink || invalidPurchaseLink || invalidMaterialLink
+          ? "لم نجد المرجع المطلوب في الوصلة — ربما حُذف أو لم يعد متاحًا. اختر المادة والسياق يدويًا قبل الحفظ؛ لن نختار سجلًا نيابةً عنك."
+          : null,
+      );
     });
   }, [inventory, safeType, linkedOrderId, linkedSaleId, linkedPurchaseId, linkedMaterialId, dataVersion]);
   /* المجموعة ٢ (عقد ٢٨ / TR-07): حالة الاستلام الحية للشراء المحدد — المستلم
@@ -504,6 +512,11 @@ export default function InventoryMovementEditor() {
               : "لا تحذف المادة من السجل؛ سجّل هدرًا أو فرقًا بسبب واضح."}
         </p>
       </div>
+      {linkIssue ? (
+        <p className="micro-field-error" role="status" data-testid="movement-link-issue">
+          {linkIssue}
+        </p>
+      ) : null}
       <section className="micro-decision-card">
         <Icon aria-hidden="true" />
         <div>
@@ -521,6 +534,7 @@ export default function InventoryMovementEditor() {
           <label className="micro-field">
             <span>شراء المواد المرجعي</span>
             <select value={purchaseId} onChange={event => setPurchaseId(event.target.value)}>
+              <option value="">اختر شراء المواد…</option>
               {references.purchases.map(purchase => (
                 <option key={purchase.id} value={purchase.id}>
                   {purchase.supplierName} · {purchase.note}
@@ -532,6 +546,7 @@ export default function InventoryMovementEditor() {
         <label className="micro-field">
           <span>المادة</span>
           <select value={materialId} onChange={event => setMaterialId(event.target.value)}>
+            <option value="">اختر مادة…</option>
             {references.materials.map(material => (
               <option key={material.id} value={material.id}>
                 {material.name}
@@ -643,6 +658,7 @@ export default function InventoryMovementEditor() {
               <label className="micro-field">
                 <span>الطلب الذي استهلك المادة</span>
                 <select value={orderId} onChange={event => setOrderId(event.target.value)}>
+                  <option value="">اختر طلبًا…</option>
                   {references.orders.map(order => (
                     <option key={order.id} value={order.id}>
                       {order.itemName} · {order.customerName}
@@ -655,6 +671,7 @@ export default function InventoryMovementEditor() {
               <label className="micro-field">
                 <span>البيع المباشر الذي استهلك المادة</span>
                 <select value={saleId} onChange={event => setSaleId(event.target.value)}>
+                  <option value="">اختر بيعًا مباشرًا…</option>
                   {references.sales.map(sale => (
                     <option key={sale.id} value={sale.id}>
                       {sale.itemName}
@@ -691,6 +708,7 @@ export default function InventoryMovementEditor() {
               <label className="micro-field">
                 <span>الطلب</span>
                 <select value={wasteOrderId} onChange={event => setWasteOrderId(event.target.value)}>
+                  <option value="">اختر الطلب…</option>
                   {references.orders.map(order => (
                     <option key={order.id} value={order.id}>
                       {order.itemName} · {order.customerName}
@@ -706,6 +724,7 @@ export default function InventoryMovementEditor() {
                   value={wasteCatalogItemId}
                   onChange={event => setWasteCatalogItemId(event.target.value)}
                 >
+                  <option value="">اختر مرجع العمل…</option>
                   {references.catalogItems
                     .filter(item => item.active)
                     .map(item => (
@@ -720,6 +739,7 @@ export default function InventoryMovementEditor() {
               <label className="micro-field">
                 <span>القالب</span>
                 <select value={wasteTemplateId} onChange={event => setWasteTemplateId(event.target.value)}>
+                  <option value="">اختر القالب…</option>
                   {references.catalogTemplates
                     .filter(template => template.catalogItemId === wasteCatalogItemId)
                     .map(template => (

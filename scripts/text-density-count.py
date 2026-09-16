@@ -462,7 +462,10 @@ CAPS: dict[str, int] = {
     # الإغلاق العميق (العقد ١ — FC-07/FC-10): سؤال أثر الهدر وبدائله، وتحذير
     # النقص داخل التدفق، وكمية الناتج في لوحة النقص — تسميات مفروضة.
     # InventoryMovementEditor 54 → 60 (2026-09-05).
-    "InventoryMovementEditor": 60,
+    # OPS-001 (2026-09-16): خيارات العنصر الفارغ الصريحة («اختر مادة…» وأخواتها)
+    # في كل قوائم الاختيار + رسالة المرجع غير الصالح — منع الاختيار الصامت
+    # لأول سجل قرار مالك معتمد. InventoryMovementEditor 60 → 61.
+    "InventoryMovementEditor": 61,
     # SupplierPurchaseEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
     # material link + expected quantity fields + received-status bridge card.
     # Decision record D-029.

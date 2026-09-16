@@ -392,6 +392,8 @@ describe("InventoryMovementEditor receipt bridge and shortage panel (المجم�
     renderWithHarness(<InventoryMovementEditor />, store);
     await waitFor(() => expect(screen.queryByText("جارٍ فتح حركة المادة…")).toBeNull());
     expect(screen.getByTestId("consume-target-question")).toBeTruthy();
+    /* OPS-001: لا تعيين أول مادة — الاختيار صريح الآن. */
+    fireEvent.change(screen.getByLabelText("المادة"), { target: { value: opened.value.material.id } });
     fireEvent.click(screen.getByText("لعمل المشروع"));
     fireEvent.change(screen.getByLabelText("كمية حركة المادة"), { target: { value: "10" } });
     fireEvent.change(screen.getByLabelText("بيان مختصر"), {
@@ -909,6 +911,8 @@ describe("InventoryMovementEditor waste profit-impact question (عقد الإغ�
     const { inventory, materialId } = await seedKnownCostMaterial(store);
     renderWithHarness(<InventoryMovementEditor />, store);
     await waitFor(() => expect(screen.queryByText("جارٍ فتح حركة المادة…")).toBeNull());
+    /* OPS-001: اختيار المادة صريح — لا أول سجل. */
+    fireEvent.change(screen.getByLabelText("المادة"), { target: { value: materialId } });
     const question = await screen.findByTestId("waste-profit-impact-question");
     expect(question.textContent).toContain("هل تريد اعتبار هذا الهدر خسارة تؤثر على نتيجة المشروع؟");
     expect(question.textContent).toContain("لا، سجّله كهدر فقط");
@@ -940,9 +944,10 @@ describe("InventoryMovementEditor waste profit-impact question (عقد الإغ�
 
   it("keeping «لا» records the waste with no financial event at all", async () => {
     const store = new MemoryLocalStore();
-    await seedKnownCostMaterial(store);
+    const { materialId } = await seedKnownCostMaterial(store);
     renderWithHarness(<InventoryMovementEditor />, store);
     await waitFor(() => expect(screen.queryByText("جارٍ فتح حركة المادة…")).toBeNull());
+    fireEvent.change(screen.getByLabelText("المادة"), { target: { value: materialId } });
     fireEvent.change(screen.getByLabelText("كمية حركة المادة"), { target: { value: "1" } });
     fireEvent.change(screen.getByLabelText("السبب"), { target: { value: "قص خاطئ" } });
     fireEvent.change(screen.getByLabelText("بيان مختصر"), { target: { value: "هدر فقط" } });
