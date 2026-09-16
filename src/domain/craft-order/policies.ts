@@ -1228,6 +1228,57 @@ export function settleDepositRetain(
   );
 }
 
+/* EXE-010 (AUD-NEW-05): عكس موثق لعربون نشط قبل التسليم — «عربون خاطئ قبل
+ * التسليم يُعكس بخطوة موثقة واحدة». المرآة النشطة لرد العربون الملغى:
+ * ينقص العربون القائم والمقبوض معًا (فيرجع الدين بقوته)، ويُكتب حدث
+ * deposit_reversed بالمبلغ والسبب — الأصل باقٍ في الخط الزمني لا يُحذف.
+ * المبلغ جزئي جائز بسقف تراكمي: مجموع العكوس لا يتجاوز العربون القائم،
+ * والمقبوض أرضية لا يهبط تحتها العكس. ما بعد التسليم ممنوع — الإيراد
+ * اعترف به والعربون صار جزءًا من القيمة المسلّمة، فالبديل المعلن هو عكس
+ * التسليم أولًا؛ والملغى له لوحة تسويته الخاصة (رد/احتفاظ). */
+export function reverseActiveDeposit(
+  order: CraftOrder,
+  amountMinor: MoneyMinor,
+  reason: string,
+  idempotencyKey: string,
+  createdAt: string,
+): CraftOrder {
+  assertIdempotencyKey(idempotencyKey);
+  if (eventExists(order, idempotencyKey, "deposit_reversed")) return order;
+  assertNotLockedDeliveredReview(order);
+  if (order.status === "delivered" || order.status === "settled")
+    throw new Error(
+      "عكس العربون بعد التسليم غير آمن — الإيراد اعترف به؛ اعكس التسليم الموثق أولًا ثم عكس أثره.",
+    );
+  if (order.status === "cancelled")
+    throw new Error("الطلب ملغى — عربونه يُسوَّى من لوحة تسوية الملغى (رد أو احتفاظ)، لا بعكس نشط.");
+  if (!reason.trim()) throw new Error("أكمل سبب عكس العربون قبل الحفظ.");
+  assertPositiveInteger(amountMinor, "مبلغ عكس العربون");
+  /* السقف هو العربون القائم نفسه — المحصل ينقص مع كل عكس (كما الرد)، فلا
+   * يجمع الحدثان مرتين؛ والمقبوض أرضية لا يهبط تحتها العكس. */
+  const standingMinor = order.depositCollectedMinor - retainedDepositMinor(order);
+  if (standingMinor <= 0)
+    throw new Error("لا عربون قائم قابل للعكس — العربون المسجل عُكس كاملًا أو سُوّي.");
+  if (amountMinor > standingMinor)
+    throw new Error(`مبلغ العكس يتجاوز العربون القائم بعد العكوس السابقة (${standingMinor / 100} د.أ).`);
+  if (amountMinor > order.collectedMinor)
+    throw new Error("مبلغ العكس يتجاوز المقبوض المسجل على الطلب.");
+  const next = withSettlement({
+    ...order,
+    depositCollectedMinor: order.depositCollectedMinor - amountMinor,
+    collectedMinor: order.collectedMinor - amountMinor,
+    nextAction: "نفّذ الطلب ثم سجل التسليم",
+  });
+  return appendEvent(next, {
+    id: `${order.id}:${idempotencyKey}`,
+    type: "deposit_reversed",
+    idempotencyKey,
+    createdAt,
+    amountMinor,
+    note: reason,
+  });
+}
+
 /* المجموعة ٤ (عقد ٢٩) + Conflict E: تصنيف معنى العربون المحتفظ به — مبلغ
  * صريح يجوز أن يكون جزئيًا؛ الاحتفاظ الجزئي يُصنَّف على حدة فتظهر الحالة
  * «مختلط» حين يكتمل المبلغ بمعنيين مختلفين. المعلق يبقى معلقًا ظاهرًا

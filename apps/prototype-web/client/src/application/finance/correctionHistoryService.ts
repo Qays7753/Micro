@@ -358,6 +358,21 @@ export class CorrectionHistoryService {
             deepLink: `/orders/${encodeURIComponent(stored.id)}`,
           });
         }
+        /* EXE-010 (AUD-NEW-05): عكس عربون نشط قبل التسليم — تصحيح موثق يظهر
+         * في تاريخ التصحيحات: الأصل باقٍ في الخط الزمني والعكس مرتبط به. */
+        if (event.type === "deposit_reversed") {
+          entries.push({
+            id: `${stored.id}:reverse-deposit:${event.idempotencyKey}`,
+            kind: "order_collection_reversal",
+            recordedAt: event.createdAt,
+            occurredOn: ammanDateOf(event.createdAt),
+            amountEffectMinor: -(event.amountMinor ?? 0),
+            reason: event.note ?? null,
+            originalLabel: `عربون على «${stored.order.itemName || "طلب"}» · ${formatMoneyWithUnit(event.amountMinor ?? 0)}`,
+            replacementLabel: `العربون القائم الآن ${formatMoneyWithUnit(stored.order.depositCollectedMinor)} — الأصل باقٍ في الخط الزمني`,
+            deepLink: `/orders/${encodeURIComponent(stored.id)}`,
+          });
+        }
       }
     }
 

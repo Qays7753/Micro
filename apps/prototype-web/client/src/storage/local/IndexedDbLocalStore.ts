@@ -198,12 +198,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     order: StoredCraftOrder,
     allocationReversals: readonly CashContinuityEntry[],
     refundEventKey: string,
+    eventType: "deposit_refunded" | "deposit_reversed" = "deposit_refunded",
   ): Promise<
     StorageResult<{ order: StoredCraftOrder; cashEntries: readonly CashContinuityEntry[]; reused: boolean }>
   > {
     /* Conflict E (FC-06): رد العربون وأثر فك التخصيصات في معاملة واحدة —
      * نفس بروتوكول تراجع القبضة: فحص داخل المعاملة، إحباط عند أي تعارض،
-     * وإعادة استخدام صادقة عند تكرار المفتاح. */
+     * وإعادة استخدام صادقة عند تكرار المفتاح. EXE-010: eventType يوسّع
+     * البروتوكول نفسه لعكس العربون النشط قبل التسليم. */
     try {
       const database = await connection();
       return await new Promise(resolve => {
@@ -249,7 +251,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           const alreadyRefunded = existing.order.events.some(
-            event => event.type === "deposit_refunded" && event.idempotencyKey === refundEventKey,
+            event => event.type === eventType && event.idempotencyKey === refundEventKey,
           );
           if (alreadyRefunded) {
             const cashRequest = cashEntries.getAll();
@@ -784,6 +786,154 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       sale,
       existing => existing.id !== sale.id && existing.idempotencyKey === sale.idempotencyKey,
     );
+  }
+  /* EXE-010 (AUD-NEW-04): عكس تحصيل البيع وتخصيص محفظته في معاملة IndexedDB
+   * واحدة — البيع وقيد العكس معًا أو لا شيء. فحص الهوية داخل المعاملة بنمط
+   * تراجع القبضة: مراجعة العكس موجودة سلفًا → إعادة استخدام مع أثر الكاش
+   * المطابق أو رفض الحالة النصفية؛ أثر عكس سابق لنفس التخصيص → رفض. */
+  async commitDirectSaleCollectionReversal(
+    sale: DirectSale,
+    allocationReversal: CashContinuityEntry | null,
+    revisionKey: string,
+  ): Promise<
+    StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([directSaleStore, cashContinuityEntryStore], "readwrite");
+        const sales = transaction.objectStore(directSaleStore);
+        const cashEntries = transaction.objectStore(cashContinuityEntryStore);
+        let pending: StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }> | null =
+          null;
+        const finish = (
+          result: StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>,
+        ) => {
+          resolve(result);
+        };
+        const saleRequest = sales.get(sale.id);
+        saleRequest.onerror = () => {
+          pending = failure(saleRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        saleRequest.onsuccess = () => {
+          const existing = saleRequest.result as DirectSale | undefined;
+          if (!existing) {
+            pending = { ok: false, code: "storage_error", message: "لم نجد البيع المباشر المحلي لعكس التحصيل." };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const alreadyReversed = (existing.revisions ?? []).some(
+            revision => revision.idempotencyKey === revisionKey,
+          );
+          if (alreadyReversed) {
+            if (!allocationReversal) {
+              pending = { ok: true, value: { sale: existing, cashEntry: null, reused: true } };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            const cashRequest = cashEntries.getAll();
+            cashRequest.onerror = () => {
+              pending = failure(cashRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            cashRequest.onsuccess = () => {
+              const matching = (cashRequest.result as CashContinuityEntry[]).find(
+                entry => entry.operationKey === allocationReversal.operationKey,
+              );
+              if (!matching) {
+                pending = {
+                  ok: false,
+                  code: "storage_error",
+                  message: "وجدت عكس تحصيل بلا أثر كاش مطابق؛ لم يتغير السجل.",
+                };
+              } else {
+                pending = { ok: true, value: { sale: existing, cashEntry: matching, reused: true } };
+              }
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          const cashScan = cashEntries.getAll();
+          cashScan.onerror = () => {
+            pending = failure(cashScan.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          cashScan.onsuccess = () => {
+            const allCash = cashScan.result as CashContinuityEntry[];
+            if (allocationReversal) {
+              if (allCash.some(entry => entry.id === allocationReversal.id)) {
+                pending = {
+                  ok: false,
+                  code: "storage_error",
+                  message: "أثر عكس تخصيص مكرر — لم يتغير السجل.",
+                };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+                return;
+              }
+              const original = allCash.find(entry => entry.id === allocationReversal.reversesEntryId);
+              const reversedSoFar = allCash
+                .filter(
+                  entry =>
+                    entry.type === "reversal" && entry.reversesEntryId === allocationReversal.reversesEntryId,
+                )
+                .reduce((sum, entry) => sum - entry.cashDeltaMinor, 0);
+              const additional = -allocationReversal.cashDeltaMinor;
+              if (original && reversedSoFar + additional > original.cashDeltaMinor) {
+                pending = {
+                  ok: false,
+                  code: "storage_error",
+                  message: "عكس التخصيص يتجاوز مبلغ التخصيص الأصلي؛ لم يتغير السجل.",
+                };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+                return;
+              }
+              cashEntries.put(allocationReversal);
+            }
+            sales.put(sale);
+          };
+        };
+        transaction.onerror = () => resolve(pending ?? failure(transaction.error, database));
+        transaction.onabort = () => resolve(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => {
+          resolve({ ok: true, value: { sale, cashEntry: allocationReversal, reused: false } });
+        };
+      });
+    } catch (error) {
+      return failure(error);
+    }
   }
   listSchedules() {
     return listAll<ScheduleEntry>(

@@ -201,14 +201,16 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     order: StoredCraftOrder,
     allocationReversals: readonly CashContinuityEntry[],
     refundEventKey: string,
+    eventType: "deposit_refunded" | "deposit_reversed" = "deposit_refunded",
   ): Promise<
     StorageResult<{ order: StoredCraftOrder; cashEntries: readonly CashContinuityEntry[]; reused: boolean }>
   > {
-    /* FC-06: الطلب وأثر المحفظة معًا — إعادة نفس المفتاح تعيد النتيجة نفسها. */
+    /* Conflict E (FC-06): الطلب وأثر المحفظة معًا — إعادة نفس المفتاح تعيد النتيجة نفسها.
+     * EXE-010: eventType يوسّع البروتوكول نفسه لعكس العربون النشط. */
     const existing = this.orders.get(order.id);
     if (!existing) return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لرد العربون." };
     const alreadyRefunded = existing.order.events.some(
-      event => event.type === "deposit_refunded" && event.idempotencyKey === refundEventKey,
+      event => event.type === eventType && event.idempotencyKey === refundEventKey,
     );
     if (alreadyRefunded) {
       const matching = Array.from(this.cashContinuityEntries.values()).filter(entry =>
@@ -444,6 +446,60 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (existing) return { ok: true, value: clone(existing) };
     this.directSales.set(sale.id, clone(sale));
     return { ok: true, value: clone(sale) };
+  }
+  /* EXE-010 (AUD-NEW-04): عكس تحصيل البيع وتخصيصه معًا — نفس عقد محوّل
+   * IndexedDB: إعادة المفتاح تعيد النتيجة، والحالة النصفية تُرفض بلا كتابة. */
+  async commitDirectSaleCollectionReversal(
+    sale: DirectSale,
+    allocationReversal: CashContinuityEntry | null,
+    revisionKey: string,
+  ): Promise<
+    StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>
+  > {
+    const existing = this.directSales.get(sale.id);
+    if (!existing)
+      return { ok: false, code: "storage_error", message: "لم نجد البيع المباشر المحلي لعكس التحصيل." };
+    const alreadyReversed = (existing.revisions ?? []).some(revision => revision.idempotencyKey === revisionKey);
+    if (alreadyReversed) {
+      if (!allocationReversal)
+        return { ok: true, value: { sale: clone(existing), cashEntry: null, reused: true } };
+      const matching = Array.from(this.cashContinuityEntries.values()).find(
+        entry => entry.operationKey === allocationReversal.operationKey,
+      );
+      if (!matching)
+        return {
+          ok: false,
+          code: "storage_error",
+          message: "وجدت عكس تحصيل بلا أثر كاش مطابق؛ لم يتغير السجل.",
+        };
+      return { ok: true, value: { sale: clone(existing), cashEntry: clone(matching), reused: true } };
+    }
+    if (allocationReversal) {
+      if (this.cashContinuityEntries.has(allocationReversal.id))
+        return { ok: false, code: "storage_error", message: "أثر عكس تخصيص مكرر — لم يتغير السجل." };
+      const original = allocationReversal.reversesEntryId
+        ? this.cashContinuityEntries.get(allocationReversal.reversesEntryId)
+        : undefined;
+      const reversedSoFar = Array.from(this.cashContinuityEntries.values())
+        .filter(
+          entry =>
+            entry.type === "reversal" && entry.reversesEntryId === allocationReversal.reversesEntryId,
+        )
+        .reduce((sum, entry) => sum - entry.cashDeltaMinor, 0);
+      const additional = -allocationReversal.cashDeltaMinor;
+      if (original && reversedSoFar + additional > original.cashDeltaMinor)
+        return {
+          ok: false,
+          code: "storage_error",
+          message: "عكس التخصيص يتجاوز مبلغ التخصيص الأصلي؛ لم يتغير السجل.",
+        };
+    }
+    this.directSales.set(sale.id, clone(sale));
+    if (allocationReversal) this.cashContinuityEntries.set(allocationReversal.id, clone(allocationReversal));
+    return {
+      ok: true,
+      value: { sale: clone(sale), cashEntry: allocationReversal ? clone(allocationReversal) : null, reused: false },
+    };
   }
   async listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>> {
     return {

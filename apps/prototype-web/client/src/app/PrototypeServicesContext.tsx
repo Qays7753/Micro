@@ -46,6 +46,7 @@ import { PartyLedgerService } from "@/application/parties/partyLedgerService";
 import { CollectionService } from "@/application/collections/collectionService";
 /* المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة وتخصيصها المطابق. */
 import { CollectionReversalService } from "@/application/collections/collectionReversalService";
+import { SaleCollectionReversalService } from "@/application/collections/saleCollectionReversalService";
 import { WalletLedgerService } from "@/application/cash/walletLedgerService";
 import { StatementService } from "@/application/finance/statementService";
 /* المجموعة ١ (فحص سلامة مالي): خدمة قراءة فقط فوق القارئ الكنسي والكشف والمحافظ. */
@@ -100,6 +101,7 @@ type PrototypeServices = {
   collections: CollectionService;
   /* المجموعة ٦ (البند ١): تراجع القبضة مع تخصيصها المطابق بنقطة واحدة ذرّية. */
   collectionReversal: CollectionReversalService;
+  saleCollectionReversal: SaleCollectionReversalService;
   /* المجموعة ٢ (§9.1): دفتر المحفظة — قراءة حركات كل محفظة بمصادرها. */
   walletLedger: WalletLedgerService;
   /* المجموعة ٢ (§9.2): كشف الفترة — كاش/نتيجة/أمانات/ذمم/مال المالك. */
@@ -217,6 +219,7 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
     partyLedger: new PartyLedgerService(store),
     collections: new CollectionService(store, fulfillment, directSales, projectFinance),
     collectionReversal: new CollectionReversalService(store, projectFinance),
+    saleCollectionReversal: new SaleCollectionReversalService(store, projectFinance),
     walletLedger: new WalletLedgerService(store),
     statement,
     activity,

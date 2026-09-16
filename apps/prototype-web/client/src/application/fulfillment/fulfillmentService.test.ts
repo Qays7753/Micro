@@ -599,3 +599,154 @@ describe("FulfillmentService deposit refund from source wallet (FC-06 / Conflict
     expect(replay.stored.order.depositCollectedMinor).toBe(500);
   });
 });
+
+/* ── EXE-010 (AUD-NEW-05): عكس عربون نشط قبل التسليم — خطوة موثقة واحدة ── */
+describe("FulfillmentService.reverseDeposit — active deposit reversal (EXE-010)", () => {
+  async function activeOrderWithAttributedDeposit() {
+    const store = new MemoryLocalStore();
+    const drafts = new DraftService(store, () => "2026-09-10T00:00:00.000Z");
+    const created = await drafts.create("customer_order");
+    if (!created.ok) throw new Error(created.message);
+    const saved = await drafts.save({
+      ...created.draft,
+      customerName: "نور",
+      itemName: "طاولة قهوة",
+      specifications: "خشب جوز",
+      quantity: 1,
+    });
+    if (!saved.ok) throw new Error(saved.message);
+    const costs = new CostService(store, () => "2026-09-10T00:01:00.000Z");
+    const withCost = await costs.saveSnapshot(saved.draft, costInput);
+    if (!withCost.ok) throw new Error(withCost.message);
+    const agreements = new AgreementService(store, costs, () => "2026-09-10T01:00:00.000Z");
+    const agreed = await agreements.createFromDraft(withCost.draft, {
+      agreedPriceMinor: 5000,
+      deliveryDate: "2026-09-25",
+      depositMinor: 2000,
+      agreementSource: null,
+    });
+    if (!agreed.ok) throw new Error(agreed.message);
+    const orderId = agreed.stored.id;
+    const cash = new CashContinuityService(store, () => "2026-09-10T01:05:00.000Z");
+    const wallet = await cash.openWallet({
+      name: "درج EXE010",
+      kind: "cash_drawer",
+      openingMinor: 5000,
+      occurredOn: "2026-09-10",
+      note: "رصيد بداية",
+      operationKey: "exe010-open",
+    });
+    if (!wallet.ok) throw new Error(wallet.message);
+    const projectFinance = new ProjectFinancialService(store, () => "2026-09-10T01:06:00.000Z");
+    const attribution = await projectFinance.distributeUnallocated({
+      walletId: wallet.value.wallet.id,
+      deltaMinor: 2000,
+      note: "عربون طاولة قهوة",
+      operationKey: `${orderId}:initial-deposit:attribute`,
+      sourceRefId: orderId,
+      sourceRefKind: "order",
+      sourceRefLineId: `${orderId}:initial-deposit`,
+    });
+    if (!attribution.ok) throw new Error(attribution.message);
+    const executing = await agreements.startExecution(orderId);
+    if (!executing.ok) throw new Error(executing.message);
+    const fulfillment = new FulfillmentService(store, () => "2026-09-10T02:00:00.000Z");
+    return { store, orderId, walletId: wallet.value.wallet.id, projectFinance, fulfillment };
+  }
+
+  it("reverses an active deposit before delivery in one documented step — record, wallet, and receivables all corrected", async () => {
+    const { store, orderId, walletId, projectFinance } = await activeOrderWithAttributedDeposit();
+    const service = new FulfillmentService(store, () => "2026-09-11T02:00:00.000Z");
+    const before = await projectFinance.readPosition();
+    if (!before.ok) throw new Error(before.message);
+    expect(before.value.walletCashMinor).toBe(7000);
+    expect(before.value.unallocatedCashMinor).toBe(0);
+    const result = await service.reverseDeposit(orderId, "العربون سُجل على الطلب الخطأ", undefined, "exe010-a");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const order = result.stored.order;
+    /* السجل: العربون والمقبوض نقصا معًا، والدين عاد بقوته، والأصل باقٍ. */
+    expect(order.depositCollectedMinor).toBe(0);
+    expect(order.collectedMinor).toBe(0);
+    expect(order.receivableMinor).toBe(5000);
+    expect(order.settlementStatus).toBe("unpaid");
+    expect(order.events.filter(event => event.type === "deposit_reversed")).toHaveLength(1);
+    expect(order.events.filter(event => event.type === "deposit_collected")).toHaveLength(1);
+    /* المحفظة: فك التخصيص الكامل بقيد مرآة مرتبط بالأصل. */
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error(entries.message);
+    const reversal = entries.value.find(
+      entry => entry.type === "reversal" && entry.operationKey.includes(":reverse-deposit:exe010-a:unattribute:"),
+    );
+    expect(reversal).toBeDefined();
+    expect(reversal!.cashDeltaMinor).toBe(-2000);
+    expect(reversal!.reversesEntryId).toBeDefined();
+    expect(reversal!.reason).toBe("العربون سُجل على الطلب الخطأ");
+    /* المعادلة: المحفظة عادت لرصيد الافتتاح، وغير الموزع صافي صفر. */
+    const after = await projectFinance.readPosition();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value.walletCashMinor).toBe(5000);
+    expect(after.value.unallocatedCashMinor).toBe(0);
+    expect(after.value.recordedCashMinor).toBe(before.value.recordedCashMinor - 2000);
+  });
+
+  it("replays the same confirm as an honest reused notice without a second event or a second cash entry", async () => {
+    const { store, orderId } = await activeOrderWithAttributedDeposit();
+    const service = new FulfillmentService(store, () => "2026-09-11T02:00:00.000Z");
+    const first = await service.reverseDeposit(orderId, "سبب موثق", undefined, "exe010-replay");
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    const replay = await service.reverseDeposit(orderId, "سبب موثق", undefined, "exe010-replay");
+    expect(replay.ok).toBe(true);
+    if (!replay.ok) return;
+    expect(replay.reused).toBe(true);
+    const events = replay.stored.order.events.filter(event => event.type === "deposit_reversed");
+    expect(events).toHaveLength(1);
+    const entries = await store.listCashContinuityEntries();
+    const reversals = entries.ok
+      ? entries.value.filter(entry => entry.operationKey.includes(":reverse-deposit:exe010-replay:unattribute:"))
+      : [];
+    expect(reversals).toHaveLength(1);
+  });
+
+  it("supports two partial reversals as independent events and blocks the cumulative overflow", async () => {
+    const { store, orderId } = await activeOrderWithAttributedDeposit();
+    const service = new FulfillmentService(store, () => "2026-09-11T02:00:00.000Z");
+    const first = await service.reverseDeposit(orderId, "عكس جزئي أول", 1200, "exe010-p1");
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    expect(first.stored.order.depositCollectedMinor).toBe(800);
+    expect(first.stored.order.receivableMinor).toBe(4200);
+    const second = await service.reverseDeposit(orderId, "عكس جزئي ثانٍ", 800, "exe010-p2");
+    expect(second.ok).toBe(true);
+    if (!second.ok) return;
+    expect(second.stored.order.depositCollectedMinor).toBe(0);
+    /* السقف التراكمي: لا عكس بعد استنفاد العربون القائم. */
+    const overflow = await service.reverseDeposit(orderId, "محاولة تجاوز", 100, "exe010-p3");
+    expect(overflow.ok).toBe(false);
+    if (overflow.ok) return;
+    expect(overflow.message).toContain("لا عربون قائم قابل للعكس");
+    const events = second.stored.order.events.filter(event => event.type === "deposit_reversed");
+    expect(events).toHaveLength(2);
+  });
+
+  it("refuses after delivery with the documented alternative, and refuses cancelled orders toward the settlement panel", async () => {
+    const { store, orderId } = await activeOrderWithAttributedDeposit();
+    const service = new FulfillmentService(store, () => "2026-09-11T02:00:00.000Z");
+    await service.markReady(orderId);
+    const delivered = await service.deliver(orderId);
+    expect(delivered.ok).toBe(true);
+    const afterDelivery = await service.reverseDeposit(orderId, "محاولة متأخرة", undefined, "exe010-late");
+    expect(afterDelivery.ok).toBe(false);
+    if (afterDelivery.ok) return;
+    expect(afterDelivery.message).toContain("اعكس التسليم الموثق أولًا");
+    /* الملغى: لوحة التسوية هي الطريق — الرسالة توجه إليها. */
+    const { store: store2, orderId: orderId2 } = await activeOrderWithAttributedDeposit();
+    const service2 = new FulfillmentService(store2, () => "2026-09-11T02:00:00.000Z");
+    await service2.cancel(orderId2, "انسحاب العميل");
+    const cancelledAttempt = await service2.reverseDeposit(orderId2, "محاولة على ملغى", undefined, "exe010-c");
+    expect(cancelledAttempt.ok).toBe(false);
+    if (cancelledAttempt.ok) return;
+    expect(cancelledAttempt.message).toContain("لوحة تسوية الملغى");
+  });
+});

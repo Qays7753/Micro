@@ -391,16 +391,29 @@ export interface PrototypeLocalStore {
   >;
   /* Conflict E (FC-06): رد العربون من محفظة المصدر — الطلب المرتد وأثر فك
    * التخصيصات يُكتبان معًا أو لا يُكتب شيء؛ فحص هوية داخل المعاملة يمنع
-   * الرد المزدوج ويرفض فك تخصيص مُفكوك سابقًا. */
+   * الرد المزدوج ويرفض فك تخصيص مُفكوك سابقًا.
+   * EXE-010: النوع الافتراضي deposit_refunded (رد الملغى)؛ reverse-deposit
+   * يعيد استخدام البروتوكول نفسه لعكس العربون النشط قبل التسليم. */
   commitDepositRefundSettlement(
     order: StoredCraftOrder,
     allocationReversals: readonly CashContinuityEntry[],
     refundEventKey: string,
+    eventType?: "deposit_refunded" | "deposit_reversed",
   ): Promise<
     StorageResult<{ order: StoredCraftOrder; cashEntries: readonly CashContinuityEntry[]; reused: boolean }>
   >;
   listDirectSales(): Promise<StorageResult<readonly DirectSale[]>>;
   saveDirectSale(sale: DirectSale): Promise<StorageResult<DirectSale>>;
+  /* EXE-010 (AUD-NEW-04): عكس تحصيل بيع مباشر — البيع المعدل (بمراجعة العكس
+   * الموثقة) وقيد عكس تخصيص المحفظة معًا أو لا شيء؛ فحص هوية داخل المعاملة
+   * يمنع تكرار العكس ويرفض الحالة النصفية بلا كتابة. */
+  commitDirectSaleCollectionReversal(
+    sale: DirectSale,
+    allocationReversal: CashContinuityEntry | null,
+    revisionKey: string,
+  ): Promise<
+    StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>
+  >;
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
   getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
   saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;

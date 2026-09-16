@@ -7,6 +7,7 @@ import {
   collectRemaining,
   recordDeliveryTerms,
   registerDebt,
+  reverseActiveDeposit,
   reviseAgreedPrice,
   reverseOrderCollection,
   settleDepositRefund,
@@ -462,6 +463,69 @@ export class FulfillmentService {
       return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر رد العربون.");
+    }
+  }
+
+  /* EXE-010 (AUD-NEW-05): عكس تحصيل العربون النشط قبل التسليم — «عربون خاطئ
+   * قبل التسليم يُعكس بخطوة موثقة واحدة تصحح التخصيص أيضًا». مرآة refundDeposit
+   * بمفتاح مساحة أسماء مستقل (reverse-deposit) ونوع حدث مستقل (deposit_reversed)
+   * مع إعادة استخدام آلة فك تخصيصات العربون نفسها بلا منطق موازٍ: ما وُزّع
+   * على محفظة يُفك منها، وما بقي بلا تخصيص يُعكس ضمن غير الموزع عبر معادلة
+   * المقبوض نفسها. الحتمية بنمط EXE-004: مفتاح لكل تأكيد، وإعادة التأكيد
+   * عودة صادقة بلا كتابة. */
+  async reverseDeposit(
+    id: string,
+    reason: string,
+    amountMinor?: number,
+    operationKey?: string,
+  ): Promise<FulfillmentResult> {
+    const current = await this.load(id);
+    if (!current.ok) return current;
+    const order = current.stored.order;
+    const reversalEventKey = operationKey
+      ? `${id}:reverse-deposit:${operationKey}`
+      : `${id}:reverse-deposit:${amountMinor ?? 0}:${reason.trim().length}:${this.now().slice(0, 13)}`;
+    /* إعادة تأكيد العملية نفسها ليست عكسًا جديدًا — عودة صادقة بلا كتابة.
+     * الفحص قبل حساب القائم: إعادة عكسٍ كاملٍ للعربون قائمُه صفر ويبقى
+     * إعادة استخدام صادقة لا رفضًا. */
+    const alreadyReversed = order.events.some(
+      event => event.type === "deposit_reversed" && event.idempotencyKey === reversalEventKey,
+    );
+    if (alreadyReversed) return { ok: true, stored: current.stored, reused: true };
+    /* القائم هو المحصل ناقص المحتفظ — المحصل ينقص مع كل عكس فالسقف يتقلص
+     * طبيعيًا (كما دلالات الرد)؛ لا جمع مزدوج مع أحداث العكس. */
+    const standingMinor = order.depositCollectedMinor - (order.depositRetainedMinor ?? 0);
+    const amount = amountMinor ?? standingMinor;
+    if (amount <= 0) return failure("invalid_state", "لا عربون قائم قابل للعكس على هذا الطلب.");
+    try {
+      const timestamp = this.now();
+      const next = reverseActiveDeposit(current.stored.order, amount, reason, reversalEventKey, timestamp);
+      /* فك تخصيصات العربون بمقدار العكس — الآلة نفسها، من المحفظة الفعلية،
+       * وبما لم يُوزّع يُعكس ضمن غير الموزع عبر معادلة المقبوض. */
+      const reversals = await this.buildDepositAllocationReversals(
+        current.stored,
+        amount,
+        reason,
+        reversalEventKey,
+        timestamp,
+      );
+      if (reversals.ok) {
+        const committed = await this.store.commitDepositRefundSettlement(
+          { ...current.stored, order: next, updatedAt: timestamp },
+          reversals.value,
+          reversalEventKey,
+          "deposit_reversed",
+        );
+        if (!committed.ok)
+          return failure("storage_error", committed.message ?? "تعذر عكس العربون ذرّيًا؛ لم يتغير السجل.");
+        if (committed.value.reused) return { ok: true, stored: committed.value.order, reused: true };
+        return { ok: true, stored: committed.value.order };
+      }
+      /* تعذر بناء فك التخصيص — العكس نفسه لا يعلّق: يُكتب على الطلب ويبقى
+       * أثر المحفظة بيد المالك من دفترها (نفس تدهور الرد الموثق). */
+      return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
+    } catch (error) {
+      return failure("invalid_state", error instanceof Error ? error.message : "تعذر عكس العربون.");
     }
   }
 
