@@ -39,5 +39,9 @@ describe("OwnerEntitlement UI capability model", () => {
       "settlement_of_prior_draw",
       "new_capital_investment",
     ]);
+    /* EXE-009 (OWN-003): السبب التاريخي owner_draw لا يُعرض كخيار إنشاء في
+     * أي نموذج — قراءة تاريخية وعرض مقياس فقط، لا كاتب UI جديد. */
+    expect(ownerMovementReasonsForKind("draw")).not.toContain("owner_draw");
+    expect(ownerMovementReasonsForKind("return")).not.toContain("owner_draw");
   });
 });

@@ -10,6 +10,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { percentToBpsExact } from "@/application/input/englishNumeric";
 import { OwnerPolicyFormsSection } from "@/components/owner/OwnerPolicyFormsSection";
 import { OwnerLedgerFormsSection } from "@/components/owner/OwnerLedgerFormsSection";
+import { CrossModelDuplicateNotice } from "@/components/owner/CrossModelDuplicateNotice";
 import {
   amountPolicyKinds,
   movementReasonLabels,
@@ -22,6 +23,7 @@ import {
 } from "@/presentation/ownerEntitlementPresentation";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type {
+  CrossModelOwnerDuplicate,
   OwnerEntitlementOverview,
   OwnerMoneyOverview,
 } from "@/application/finance/ownerEntitlementService";
@@ -103,6 +105,10 @@ export default function OwnerEntitlement() {
   } | null>(null);
   const [reversalReason, setReversalReason] = useState("");
   const [saving, setSaving] = useState(false);
+  /* EXE-009 (OWN-001): حارس التكرار التقاطعي لحركة الدفتر — إيقاف بإفصاح
+   * وتأكيد صريح قبل كتابة الحركة. */
+  const [movementDuplicateWarning, setMovementDuplicateWarning] = useState<CrossModelOwnerDuplicate | null>(null);
+  const confirmedDistinctMovementRef = useRef(false);
   const policyOperation = useRef(idempotency("owner-policy"));
   const successorOperation = useRef(idempotency("owner-successor"));
   const entitlementOperation = useRef(idempotency("owner-entitlement"));
@@ -467,6 +473,21 @@ export default function OwnerEntitlement() {
       setNotice({ tone: "error", text: "اختر السحب السابق الذي تعيده؛ لا نسجل إرجاعًا بلا أصل." });
       return;
     }
+    /* EXE-009 (OWN-001): الحارس التقاطعي قبل كتابة الحركة — نفس المبلغ
+     * والتاريخ موجود كحدث مالك عام؟ إيقاف بإفصاح وتأكيد صريح. */
+    if (!confirmedDistinctMovementRef.current) {
+      const duplicate = await ownerEntitlement.findCrossModelOwnerDuplicate({
+        direction: movementKind === "draw" ? "withdrawal" : "injection",
+        amountMinor: movementAmount,
+        occurredOn: movementDate,
+        writing: "movement",
+      });
+      if (duplicate.ok && duplicate.value) {
+        setMovementDuplicateWarning(duplicate.value);
+        return;
+      }
+    }
+    setMovementDuplicateWarning(null);
     setSaving(true);
     const result = await ownerEntitlement.recordMovement({
       kind: movementKind,
@@ -598,6 +619,28 @@ export default function OwnerEntitlement() {
           {notice.text}
         </p>
       ) : null}
+      {/* EXE-009 (OWN-001): حارس التكرار التقاطعي لحركة الدفتر — يظهر بعد فتح
+       * نموذج الحركة حتى الحسم بالتأكيد أو المراجعة. */}
+      {movementDuplicateWarning ? (
+        <CrossModelDuplicateNotice
+          duplicate={movementDuplicateWarning}
+          onReviewLedger={() => setMovementDuplicateWarning(null)}
+          onConfirmDistinct={() => {
+            confirmedDistinctMovementRef.current = true;
+            setMovementDuplicateWarning(null);
+            void saveMovement();
+          }}
+        />
+      ) : null}
+      {/* EXE-009: إبراز أزواج التطابق التقاطعي القائمة في الدفتر — مراجعة
+       * موصى بها لا حجب؛ الأصل يبقى بصريًا فوق القائمة. */}
+      {ownerMoney && ownerMoney.crossModelDuplicatePairCount > 0 ? (
+        <p className="micro-field-error" role="status">
+          يوجد {ownerMoney.crossModelDuplicatePairCount} عملية بنفس المبلغ والتاريخ مسجلة في نموذجي مال
+          المالك معًا (حدث عام + حركة دفتر) — راجع الأسطر الموسومة أدناه؛ إن كانت العملية نفسها مسجلة مرتين
+          فتراجع عن إحداهما من موضعها الأصلي.
+        </p>
+      ) : null}
       <section className="micro-owner-balance-card" data-balance={overview.balanceState}>
         <div className="micro-owner-balance-head">
           <CircleDollarSign aria-hidden="true" />
@@ -621,6 +664,11 @@ export default function OwnerEntitlement() {
           <Metric label="حق مسجل متبقٍ" value={overview.remainingEntitlementBalanceMinor} />
           <Metric label="الافتتاح المتبقي" value={overview.openingBalanceRemainingMinor} />
           <Metric label="إرجاع سحب سابق" value={overview.returnedForPriorDrawMinor} />
+          {/* EXE-009 (OWN-003): السحب الحر غير المرتبط بسياسة (owner_draw)
+           * يظهر عند وجوده التاريخي — الاستخدام داخل العرض لا بقايا ميتة. */}
+          {overview.ownerDrawMinor > 0 ? (
+            <Metric label="سحب حر غير مرتبط بسياسة" value={overview.ownerDrawMinor} />
+          ) : null}
         </div>
       </section>
       <div className="micro-form-actions micro-contextual-actions">
@@ -653,7 +701,11 @@ export default function OwnerEntitlement() {
           {ownerMoney && ownerMoney.rows.length > 0 ? (
             <div className="micro-owner-list">
               {ownerMoney.rows.map(row => (
-                <article key={row.id} className="micro-owner-list-row">
+                <article
+                  key={row.id}
+                  className="micro-owner-list-row"
+                  data-cross-model-duplicate={row.crossModelDuplicate ? "true" : undefined}
+                >
                   <div>
                     <strong>{row.source === "event" ? "حدث عام" : "دفتر المالك"}</strong>
                     <small>
@@ -661,6 +713,9 @@ export default function OwnerEntitlement() {
                       {row.cashPoolLabel ? ` · ${row.cashPoolLabel}` : ""}
                     </small>
                     <small>{row.note}</small>
+                    {row.crossModelDuplicate ? (
+                      <small className="micro-field-error">تطابق تقاطعي محتمل — راجعه</small>
+                    ) : null}
                     {row.reversalLabel ? <small>{row.reversalLabel}</small> : null}
                   </div>
                   <b>

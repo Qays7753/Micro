@@ -64,6 +64,13 @@ const sourceLabelFor = (entry: CashContinuityEntry): { href: string | null; labe
        * يَعِد بها تعليق supplierPurchaseService عند نسبة الدفعة لمصدرها. */
       case "supplier_purchase":
         return { href: `/suppliers/purchase/${entry.sourceRefId}`, label: "شراء مورّد — السجل المصدر" };
+      /* EXE-009: تخصيص/تغطية حدث مالك (استثمار أو سحب شخصي) — الوصلة تقود
+       * للحدث المالي المصدر نفسه في سجل المالية. */
+      case "owner_event":
+        return {
+          href: `/finance?event=${encodeURIComponent(entry.sourceRefId)}`,
+          label: "حركة مالك — الحدث المصدر",
+        };
     }
   }
   return { href: null, label: null };

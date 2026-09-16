@@ -20,7 +20,11 @@ import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
-import { createCashContinuityEntry, summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
+import {
+  createCashContinuityEntry,
+  SOURCE_REF_KINDS,
+  summarizeCashContinuity,
+} from "@micro-domain/cash-continuity/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
 import { calculateBreakEvenUnits } from "@micro-domain/g5/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
@@ -198,7 +202,7 @@ export type UnallocatedDistributionInput = {
   operationKey?: string;
   occurredOn?: string;
   sourceRefId?: string | null;
-  sourceRefKind?: "sale" | "expense" | "collection" | "order" | null;
+  sourceRefKind?: (typeof SOURCE_REF_KINDS)[number] | null;
   /* المجموعة ٦ (S2-04أ): حدث القبضة المصدر — يربط التخصيص بسطر التحصيل نفسه
    * فيصير التراجع المزدوج قابلًا للتحديد المطابق بلا تخمين. */
   sourceRefLineId?: string | null;

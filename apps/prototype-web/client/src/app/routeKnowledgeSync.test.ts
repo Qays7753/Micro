@@ -79,6 +79,9 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
   "/orders/:id/deliver": "مراجعة تسليم — محرر فعل قبل الالتزام",
   "/schedule/:id": "محرر موعد",
   "/finance/new/:type": "محرر حدث مالي",
+  /* EXE-009 (OWN-002): المسار القديم لسحب المالك — إحالة فورية للمحرر الموحد،
+   * عمقه محرر لأنه يفتح رحلة المحرر نفسها (لا سطح قراءة). */
+  "/finance/new/owner_withdrawal_cash": "إحالة للمحرر الموحد لسحب المالك — لا كاتب موازٍ (EXE-009)",
   "/finance/withdraw": "المدخل الموحد لسحب المالك (X-05)",
   "/finance/owner-entitlement": "دفتر حق المالك — محرر عميق",
   "/finance/g5/declaration": "محرر إعلان التعادل",

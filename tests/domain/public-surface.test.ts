@@ -178,6 +178,7 @@ describe("قفل سطح الدومين العام (١) — المجموعة ٦ (
       "collection",
       "order",
       "supplier_purchase",
+      "owner_event",
     ]);
   });
   it("catalog: دوال العقد العام حاضرة وقت التشغيل", () => {
