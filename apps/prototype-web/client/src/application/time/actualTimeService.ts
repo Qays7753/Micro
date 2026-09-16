@@ -5,7 +5,8 @@ import {
   type ActualTimeComparison,
   type ActualTimeRecord,
 } from "@micro-domain/actual-time/index.js";
-import { localPreferencesId, type OperatingWorkMode, type PrototypeLocalStore } from "@/storage/local/types";
+import { type OperatingWorkMode, type PrototypeLocalStore } from "@/storage/local/types";
+import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 
 type ServiceFailure = {
   ok: false;
@@ -57,25 +58,19 @@ export class ActualTimeService {
   }
 
   async saveOperatingMode(input: OperatingModeValue): Promise<ActualTimeResult<OperatingModeValue>> {
-    const current = await this.store.getPreferences();
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة طريقة العمل المحلية." };
-    const saved = await this.store.savePreferences({
-      id: localPreferencesId,
-      theme: current.value?.theme ?? "system",
-      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
-      workMode: input.workMode,
-      actualTimeTrackingEnabled: input.actualTimeTrackingEnabled,
-      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
-      /* O-001: التفضيلات تُنقل كاملة — لا تفقد عمليات الوقت تاريخ النسخة ولا مفتاح التذكير. */
-      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
-      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
-      updatedAt: this.now(),
-    });
+    /* EXE-002 (AUD-NEW-02): التحديث عبر بوابة merge الموحدة — طريقة العمل لا
+     * تُسقط disabledCapabilities ولا أي حقل قائم (كانت الكتابة الكاملة اليدوية
+     * تعيد تفعيل القدرات الموقوفة بصمت). */
+    const saved = await updateLocalPreferences(
+      this.store,
+      { workMode: input.workMode, actualTimeTrackingEnabled: input.actualTimeTrackingEnabled },
+      this.now,
+    );
     return saved.ok
       ? {
           ok: true,
           value: {
-            workMode: saved.value.workMode,
+            workMode: mode(saved.value.workMode),
             actualTimeTrackingEnabled: saved.value.actualTimeTrackingEnabled,
           },
         }

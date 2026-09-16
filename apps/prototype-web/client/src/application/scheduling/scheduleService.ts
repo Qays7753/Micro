@@ -10,6 +10,7 @@ import type {
 } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 
 export type ScheduledOrder = {
   schedule: ScheduleEntry;
@@ -285,21 +286,10 @@ export class ScheduleService {
   async setDailyCapacity(minutes: number | null): Promise<ScheduleResult<number | null>> {
     if (minutes !== null && !validDuration(minutes))
       return { ok: false, code: "validation_error", message: "سعة اليوم تكون مضاعف 15 دقيقة بين 15 و720." };
-    const current = await this.store.getPreferences();
-    if (!current.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة تفضيلات الجدول المحلية." };
-    const saved = await this.store.savePreferences({
-      id: "local-preferences",
-      theme: current.value?.theme ?? "system",
-      dailyScheduleCapacityMinutes: minutes,
-      workMode: current.value?.workMode ?? null,
-      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
-      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
-      /* O-001: التفضيلات تُنقل كاملة — لا تفقد عمليات الجدول تاريخ النسخة ولا مفتاح التذكير. */
-      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
-      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
-      updatedAt: this.now(),
-    });
+    /* EXE-002 (AUD-NEW-02): التحديث عبر بوابة merge الموحدة — سعة اليوم لا
+     * تُسقط disabledCapabilities ولا أي حقل قائم (كانت الكتابة الكاملة اليدوية
+     * تعيد تفعيل القدرات الموقوفة بصمت). */
+    const saved = await updateLocalPreferences(this.store, { dailyScheduleCapacityMinutes: minutes }, this.now);
     return saved.ok
       ? { ok: true, value: saved.value.dailyScheduleCapacityMinutes }
       : {
