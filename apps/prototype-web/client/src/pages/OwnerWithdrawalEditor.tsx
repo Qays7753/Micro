@@ -120,7 +120,9 @@ export default function OwnerWithdrawalEditor() {
     /* EXE-009: مصدر السحب لمسار الحدث — تغطية من المحفظة المختارة بعد التسجيل
      * (مفتاح مشتق من مفتاح الحدث فلا تخصيص مزدوج عند الإعادة) بنمط المصروف. */
     let attributionNotice: string | null = null;
-    let result: Awaited<ReturnType<typeof ownerEntitlement.recordMovement>> | Awaited<ReturnType<typeof projectFinance.record>>;
+    let result:
+      | Awaited<ReturnType<typeof ownerEntitlement.recordMovement>>
+      | Awaited<ReturnType<typeof projectFinance.record>>;
     if (path === "ledger_movement") {
       result = await ownerEntitlement.recordMovement({
         kind: "draw",

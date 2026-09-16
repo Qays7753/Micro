@@ -46,8 +46,7 @@ export type OrderDepositPanelsProps = {
 
 const freshRefundOperationKey = () => `deposit-refund-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 /* EXE-010 (AUD-NEW-05): مفتاح لكل تأكيد عكس مستقل — بنمط رد العربون (EXE-004). */
-const freshReversalOperationKey = () =>
-  `deposit-reverse-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
+const freshReversalOperationKey = () => `deposit-reverse-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 
 export function OrderDepositPanels({
   order,
@@ -87,10 +86,7 @@ export function OrderDepositPanels({
   const [reverseReason, setReverseReason] = useState("");
   /* العربون القائم القابل للعكس: المحصل − المحتفظ (المحصل ينقص مع كل عكس
    * فالسقف يتقلص طبيعيًا — لا جمع مزدوج مع أحداث العكس). */
-  const standingDepositMinor = Math.max(
-    order.depositCollectedMinor - (order.depositRetainedMinor ?? 0),
-    0,
-  );
+  const standingDepositMinor = Math.max(order.depositCollectedMinor - (order.depositRetainedMinor ?? 0), 0);
   const activePreDelivery =
     order.status !== "delivered" &&
     order.status !== "settled" &&
@@ -137,8 +133,8 @@ export function OrderDepositPanels({
                 <span>حد الحقيقة</span>
                 <strong>العكس يصحح السجل والتخصيص معًا — ولا يحذف شيئًا.</strong>
                 <p>
-                  ينقص العربون القائم والمقبوض معًا فيعود الدين بقوته، وما وُزّع على محفظة يُفك منها
-                  بقيد مرتبط بالأصل. بعد التسليم لا عكس — اعكس التسليم أولًا؛ والملغى له لوحة تسويته.
+                  ينقص العربون القائم والمقبوض معًا فيعود الدين بقوته، وما وُزّع على محفظة يُفك منها بقيد
+                  مرتبط بالأصل. بعد التسليم لا عكس — اعكس التسليم أولًا؛ والملغى له لوحة تسويته.
                 </p>
               </div>
             </div>

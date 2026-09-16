@@ -217,9 +217,7 @@ describe("EXE-007 — quick sheet is the compact mode of the same expense journe
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
     await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
-    expect(
-      await screen.findByText("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي."),
-    ).toBeTruthy();
+    expect(await screen.findByText("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.")).toBeTruthy();
     expect(submitted).toHaveLength(0);
     /* لا يوجد أي حدث مالي مكتوب — القاعدة أوقفت الكتابة قبل الخدمة. */
     const events = await store.listFinancialEvents();
@@ -269,7 +267,9 @@ describe("EXE-007 — quick sheet is the compact mode of the same expense journe
     fireEvent.click(saveButton);
     fireEvent.click(saveButton);
     await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
-    await waitFor(() => expect(screen.getByRole("button", { name: "سجّل المصروف" }).getAttribute("disabled")).toBeNull());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "سجّل المصروف" }).getAttribute("disabled")).toBeNull(),
+    );
     const events = await store.listFinancialEvents();
     expect(events.ok && events.value).toHaveLength(1);
     const entries = await store.listCashContinuityEntries();

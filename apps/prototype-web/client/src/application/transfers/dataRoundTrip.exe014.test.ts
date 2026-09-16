@@ -332,7 +332,11 @@ describe("EXE-014 export → change → restore returns every covered family int
       createdAt: NOW,
     });
     order = collectDeposit(order, 1500, "exe014-deposit", NOW);
-    order = transitionOrder(order, { to: "provisional_agreement", idempotencyKey: "exe014-prov", createdAt: NOW });
+    order = transitionOrder(order, {
+      to: "provisional_agreement",
+      idempotencyKey: "exe014-prov",
+      createdAt: NOW,
+    });
     order = transitionOrder(order, { to: "confirmed", idempotencyKey: "exe014-confirm", createdAt: NOW });
     const storedOrder: StoredCraftOrder = {
       id: order.id,

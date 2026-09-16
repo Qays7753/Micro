@@ -198,6 +198,9 @@ export default function SettingsPage() {
     void preferences.readBackupReminderEnabled().then(value => {
       if (active && value.ok) setBackupReminder(value.enabled);
     });
+    /* EXE-014 (D-034): خدمات النقل تُحمَّل خاملًا — يُنتظر جاهزيتها قبل
+     * قراءة ملخص البيانات الحالية. */
+    if (!transfers) return;
     void transfers.createExport().then(value => {
       if (active && value.ok) {
         const serialized = JSON.stringify(value.value, null, 2);
@@ -292,6 +295,11 @@ export default function SettingsPage() {
     setNotice(null);
     setIsWorking(true);
     /* ٥.٧: تصدير مُتحقق منه — يُعاد تحليل الملف دورة كاملة قبل إعلان جهوزيته. */
+    if (!transfers) {
+      setIsWorking(false);
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
     const result = await transfers.createVerifiedExport();
     setIsWorking(false);
     if (!result.ok) {
@@ -327,6 +335,11 @@ export default function SettingsPage() {
 
   async function performResetFlow() {
     setNotice(null);
+    if (!transfers) {
+      setResetFlow({ phase: "idle" });
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
     setResetFlow({ phase: "exporting" });
     const result = await transfers.createVerifiedExport();
     if (!result.ok) {
@@ -362,6 +375,12 @@ export default function SettingsPage() {
   async function performReset() {
     setNotice(null);
     setIsWorking(true);
+    if (!transfers) {
+      setIsWorking(false);
+      setResetFlow({ phase: "idle" });
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
     const result = await transfers.resetAll();
     setIsWorking(false);
     if (!result.ok) {
@@ -397,6 +416,10 @@ export default function SettingsPage() {
     setNotice(null);
     setIsWorking(true);
     try {
+      if (!transfers) {
+        setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+        return;
+      }
       const prepared = transfers.prepareImport(await file.text());
       if (!prepared.ok) {
         setStorageNotice("error", prepared.message);
@@ -425,6 +448,10 @@ export default function SettingsPage() {
 
   async function performImport() {
     if (!preview) return;
+    if (!transfers) {
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
     setNotice(null);
     setIsWorking(true);
     const result = await transfers.confirmImport(preview);
@@ -486,6 +513,10 @@ export default function SettingsPage() {
     setNotice(null);
     setIsWorking(true);
     try {
+      if (!guidedOpeningImport) {
+        setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+        return;
+      }
       const prepared = await guidedOpeningImport.prepare(await file.text());
       if (!prepared.ok) {
         setStorageNotice("error", prepared.message);
@@ -515,6 +546,10 @@ export default function SettingsPage() {
 
   async function performGuidedOpeningImport() {
     if (!guidedPreview) return;
+    if (!guidedOpeningImport) {
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
     setNotice(null);
     setIsWorking(true);
     const result = await guidedOpeningImport.confirm(guidedPreview);

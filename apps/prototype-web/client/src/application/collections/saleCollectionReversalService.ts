@@ -21,10 +21,7 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type SaleCollectionReversalStatus =
-  | "full_match"
-  | "sale_cancelled"
-  | "allocation_already_reversed"
-  | "amount_exceeds_collected";
+  "full_match" | "sale_cancelled" | "allocation_already_reversed" | "amount_exceeds_collected";
 
 export type ReversibleSaleCollection = {
   allocationEntryId: string;
@@ -78,7 +75,9 @@ export class SaleCollectionReversalService {
 
   /** التحصيلات القابلة للعكس: تخصيصات محفظة مرتبطة بالبيع وغير متراجَعة —
    *  المرجع القانوني هو التخصيص نفسه، لا البيع ولا المبلغ. */
-  async listReversibleCollections(saleId: string): Promise<SaleCollectionReversalResult<readonly ReversibleSaleCollection[]>> {
+  async listReversibleCollections(
+    saleId: string,
+  ): Promise<SaleCollectionReversalResult<readonly ReversibleSaleCollection[]>> {
     const [salesResult, entriesResult, walletsResult] = await Promise.all([
       this.store.listDirectSales(),
       this.store.listCashContinuityEntries(),
@@ -148,7 +147,12 @@ export class SaleCollectionReversalService {
         .map(entry => entry.reversesEntryId as string),
     );
     const matched = entries.find(entry => entry.id === input.allocationEntryId);
-    if (!matched || matched.type !== "allocation" || matched.sourceRefId !== input.saleId || matched.sourceRefKind !== "sale")
+    if (
+      !matched ||
+      matched.type !== "allocation" ||
+      matched.sourceRefId !== input.saleId ||
+      matched.sourceRefKind !== "sale"
+    )
       return {
         ok: false,
         code: "validation_error",
@@ -219,7 +223,9 @@ export class SaleCollectionReversalService {
 
   /** التنفيذ: كشف إعادة الاستخدام أولًا (مفتاح المراجعة)، ثم معاينة كاملة،
    *  ثم كتابة ذرّية واحدة — البيع المعدل وقيد العكس معًا أو لا شيء. */
-  async reverse(input: ReverseSaleCollectionInput): Promise<SaleCollectionReversalResult<SaleCollectionReversalOutcome>> {
+  async reverse(
+    input: ReverseSaleCollectionInput,
+  ): Promise<SaleCollectionReversalResult<SaleCollectionReversalOutcome>> {
     if (!input.reason.trim())
       return { ok: false, code: "validation_error", message: "أكمل سبب عكس التحصيل قبل الحفظ." };
     const [salesResult, entriesResult] = await Promise.all([

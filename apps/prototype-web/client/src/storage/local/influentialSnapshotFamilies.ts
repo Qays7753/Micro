@@ -29,7 +29,10 @@ export const INFLUENTIAL_SNAPSHOT_FAMILIES = {
   schedules: { label: "المواعيد", count: snapshot => snapshot.schedules.length },
   recurrences: { label: "التكرارات", count: snapshot => snapshot.recurrences?.length ?? 0 },
   financialEvents: { label: "الأحداث المالية", count: snapshot => snapshot.financialEvents.length },
-  supplierPurchases: { label: "مشتريات الموردين", count: snapshot => snapshot.supplierPurchases?.length ?? 0 },
+  supplierPurchases: {
+    label: "مشتريات الموردين",
+    count: snapshot => snapshot.supplierPurchases?.length ?? 0,
+  },
   cashWallets: { label: "محافظ الكاش", count: snapshot => snapshot.cashWallets?.length ?? 0 },
   cashContinuityEntries: {
     label: "قيود استمرارية الكاش",

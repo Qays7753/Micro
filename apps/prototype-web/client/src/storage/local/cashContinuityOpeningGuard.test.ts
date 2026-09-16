@@ -9,10 +9,7 @@
  */
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  createCashContinuityEntry,
-  createCashWallet,
-} from "@micro-domain/cash-continuity/index.js";
+import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { MemoryLocalStore } from "./MemoryLocalStore";
 import { SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";

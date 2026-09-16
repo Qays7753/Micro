@@ -679,7 +679,9 @@ export default function FinancialEventEditor() {
           : await projectFinance.distributeUnallocated({
               walletId,
               deltaMinor:
-                selectedType === "owner_investment_cash" ? result.value.amountMinor : -result.value.amountMinor,
+                selectedType === "owner_investment_cash"
+                  ? result.value.amountMinor
+                  : -result.value.amountMinor,
               note:
                 selectedType === "owner_investment_cash"
                   ? "تخصيص استثمار مالك إلى المحفظة"
@@ -695,7 +697,8 @@ export default function FinancialEventEditor() {
       if (!attribution.ok) {
         setSavedNote({
           eventId: result.value.id,
-          message: attribution.message ?? "تعذرت تغطية المحفظة بعد حفظ الحدث؛ المال محفوظ في الكاش غير الموزع.",
+          message:
+            attribution.message ?? "تعذرت تغطية المحفظة بعد حفظ الحدث؛ المال محفوظ في الكاش غير الموزع.",
         });
         return true;
       }
@@ -854,7 +857,9 @@ export default function FinancialEventEditor() {
             </small>
           </label>
         )}
-        {type === "operating_expense_cash" || type === "owner_investment_cash" || type === "owner_withdrawal_cash" ? (
+        {type === "operating_expense_cash" ||
+        type === "owner_investment_cash" ||
+        type === "owner_withdrawal_cash" ? (
           /* المجموعة ١ (الإدخال الموجّه): «من وين طلع المبلغ؟» — نفس مفردات ورقة
            * الإضافة (مصدر الصرف) حتى لا تتعدد مفردات المفهوم الواحد.
            * FIN-005: نفس قاعدة الورقة بعدد المحافظ — بلا تحويل صامت.

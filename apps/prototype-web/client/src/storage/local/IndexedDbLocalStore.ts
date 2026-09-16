@@ -795,17 +795,18 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     sale: DirectSale,
     allocationReversal: CashContinuityEntry | null,
     revisionKey: string,
-  ): Promise<
-    StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>
-  > {
+  ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>> {
     try {
       const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction([directSaleStore, cashContinuityEntryStore], "readwrite");
         const sales = transaction.objectStore(directSaleStore);
         const cashEntries = transaction.objectStore(cashContinuityEntryStore);
-        let pending: StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }> | null =
-          null;
+        let pending: StorageResult<{
+          sale: DirectSale;
+          cashEntry: CashContinuityEntry | null;
+          reused: boolean;
+        }> | null = null;
         const finish = (
           result: StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>,
         ) => {
@@ -823,7 +824,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         saleRequest.onsuccess = () => {
           const existing = saleRequest.result as DirectSale | undefined;
           if (!existing) {
-            pending = { ok: false, code: "storage_error", message: "لم نجد البيع المباشر المحلي لعكس التحصيل." };
+            pending = {
+              ok: false,
+              code: "storage_error",
+              message: "لم نجد البيع المباشر المحلي لعكس التحصيل.",
+            };
             try {
               transaction.abort();
             } catch {

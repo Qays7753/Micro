@@ -119,11 +119,11 @@ describe("SaleCollectionReversalService — عكس تحصيل البيع الم�
     /* المحفظة: قيد عكس مرآة مرتبط بالأصل. */
     const entries = await store.listCashContinuityEntries();
     if (!entries.ok) throw new Error(entries.message);
-    const originalAllocation = entries.value.find(entry => entry.operationKey === "exe010-sheet-key:attribute");
-    expect(originalAllocation).toBeDefined();
-    const cashReversal = entries.value.find(
-      entry => entry.operationKey === "exe010-reverse-a:unattribute",
+    const originalAllocation = entries.value.find(
+      entry => entry.operationKey === "exe010-sheet-key:attribute",
     );
+    expect(originalAllocation).toBeDefined();
+    const cashReversal = entries.value.find(entry => entry.operationKey === "exe010-reverse-a:unattribute");
     expect(cashReversal).toBeDefined();
     expect(cashReversal!.cashDeltaMinor).toBe(-3000);
     expect(cashReversal!.reversesEntryId).toBe(originalAllocation!.id);

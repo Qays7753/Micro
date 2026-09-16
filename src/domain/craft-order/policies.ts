@@ -1257,12 +1257,10 @@ export function reverseActiveDeposit(
   /* السقف هو العربون القائم نفسه — المحصل ينقص مع كل عكس (كما الرد)، فلا
    * يجمع الحدثان مرتين؛ والمقبوض أرضية لا يهبط تحتها العكس. */
   const standingMinor = order.depositCollectedMinor - retainedDepositMinor(order);
-  if (standingMinor <= 0)
-    throw new Error("لا عربون قائم قابل للعكس — العربون المسجل عُكس كاملًا أو سُوّي.");
+  if (standingMinor <= 0) throw new Error("لا عربون قائم قابل للعكس — العربون المسجل عُكس كاملًا أو سُوّي.");
   if (amountMinor > standingMinor)
     throw new Error(`مبلغ العكس يتجاوز العربون القائم بعد العكوس السابقة (${standingMinor / 100} د.أ).`);
-  if (amountMinor > order.collectedMinor)
-    throw new Error("مبلغ العكس يتجاوز المقبوض المسجل على الطلب.");
+  if (amountMinor > order.collectedMinor) throw new Error("مبلغ العكس يتجاوز المقبوض المسجل على الطلب.");
   const next = withSettlement({
     ...order,
     depositCollectedMinor: order.depositCollectedMinor - amountMinor,

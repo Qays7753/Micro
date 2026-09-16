@@ -19,8 +19,11 @@ import { AgreementService } from "@/application/agreements/agreementService";
 import { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewService";
-import { LocalTransferService } from "@/application/transfers/localTransferService";
-import { GuidedOpeningImportService } from "@/application/transfers/guidedOpeningImportService";
+/* EXE-014 (D-034 — أمانة الحزمة): خدمات النقل والاستعادة تُحمَّل عند الحاجة
+ * فقط — الإدخال المالي اليومي لا يدفع ثمن آلة الترحيل والتحقق في مسار الإقلاع.
+ * النوع هنا فقط (import type) فلا يسحب الوحدة إلى حزمة الدخول. */
+import type { LocalTransferService } from "@/application/transfers/localTransferService";
+import type { GuidedOpeningImportService } from "@/application/transfers/guidedOpeningImportService";
 import { PreferenceService } from "@/application/preferences/preferenceService";
 import { ProfileService } from "@/application/profile/profileService";
 import { OwnerProfileService } from "@/application/owner/ownerProfileService";
@@ -93,8 +96,10 @@ type PrototypeServices = {
   /* المجموعة ٣ (عقد D4): مراجعة التسليم وتنفيذه وعكسه — المسار الوحيد للتسليم
    * بحركات مخزون وقبض عند التسليم. */
   deliveryReview: DeliveryReviewService;
-  transfers: LocalTransferService;
-  guidedOpeningImport: GuidedOpeningImportService;
+  /* EXE-014: تُوفَّر عند اكتمال التحميل الخامل — null يعني «جارٍ التجهيز»،
+   * ومستهلكها الوحيد (الإعدادات) يعلن ذلك بصدق لا بفشل صامت. */
+  transfers: LocalTransferService | null;
+  guidedOpeningImport: GuidedOpeningImportService | null;
   costEstimates: CostEstimateService;
   partyLedger: PartyLedgerService;
   /* المجموعة ٢ (Scope B): ورقة التحصيل — المصدر الواحد لتحصيل الذمم. */
@@ -141,6 +146,29 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     setDataVersion(version => version + 1);
     channelRef.current?.postMessage("changed");
   }, []);
+  /* EXE-014 (D-034): خدمات النقل والاستعادة تُحمَّل ديناميكيًا بعد الإقلاع —
+   * كومة الترحيل والتحقق كبيرة ولا يحتاجها مسار الإقلاع؛ تُبنى فوق المخزن
+   * نفسه فور جاهزيتها ولا يُعاد بناؤها عند تحديث dataVersion. */
+  const [transferServices, setTransferServices] = useState<{
+    transfers: LocalTransferService;
+    guidedOpeningImport: GuidedOpeningImportService;
+  } | null>(null);
+  useEffect(() => {
+    let active = true;
+    void Promise.all([
+      import("@/application/transfers/localTransferService"),
+      import("@/application/transfers/guidedOpeningImportService"),
+    ]).then(([transferModule, guidedModule]) => {
+      if (!active) return;
+      setTransferServices({
+        transfers: new transferModule.LocalTransferService(singletonStore),
+        guidedOpeningImport: new guidedModule.GuidedOpeningImportService(singletonStore),
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   /* S5-08 (المجموعة ٦ — البند ٦): الخدمات والمخزن عناصر بلا حالة — تُنشأ مرة
    * واحدة على مستوى الوحدة (singleton)، وdataVersion يعيد تركيب غلاف السياق
    * الرخيص فقط: هوية السياق تتغير فيلتقط التأثيرات المفتاحة على dataVersion
@@ -148,16 +176,27 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
    * (40 — العد الموثق عند 9a8c949) عند كل كتابة، ويبقى المخزن واحدًا فوق الاتصال
    * المخزَّن (S5-07). */
   const services = useMemo<PrototypeServices>(
-    () => ({ ...singletonServices, dataVersion, notifyDataChanged }),
-    [dataVersion, notifyDataChanged],
+    () => ({
+      ...singletonServices,
+      ...(transferServices ?? { transfers: null, guidedOpeningImport: null }),
+      dataVersion,
+      notifyDataChanged,
+    }),
+    [transferServices, dataVersion, notifyDataChanged],
   );
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
 
 /* مجموعة الخدمات الواحدة — تُبنى مرة عند تحميل الوحدة. الخدمات كلها بلا حالة
- * (حقول قراءة فقط في منشئاتها) فلا حالة مشتركة تُفسد بين الأسطح. */
-function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataChanged"> {
-  const store = createBrowserLocalStore();
+ * (حقول قراءة فقط في منشئاتها) فلا حالة مشتركة تُفسد بين الأسطح.
+ * EXE-014: المخزن نفسه عنصر وحيد معلن — خدمات النقل الخاملة تُبنى فوقه
+ * لاحقًا فترى البيانات نفسها لا نسخة ثانية. */
+const singletonStore = createBrowserLocalStore();
+function createServices(): Omit<
+  PrototypeServices,
+  "dataVersion" | "notifyDataChanged" | "transfers" | "guidedOpeningImport" | "transferServices"
+> {
+  const store = singletonStore;
   const costs = new CostService(store);
   const projectFinance = new ProjectFinancialService(store);
   const ownerEntitlement = new OwnerEntitlementService(store, (from, to) =>
@@ -213,8 +252,6 @@ function createServices(): Omit<PrototypeServices, "dataVersion" | "notifyDataCh
     recurrences,
     fulfillment: fulfillment,
     deliveryReview,
-    transfers: new LocalTransferService(store),
-    guidedOpeningImport: new GuidedOpeningImportService(store),
     costEstimates: new CostEstimateService(store),
     partyLedger: new PartyLedgerService(store),
     collections: new CollectionService(store, fulfillment, directSales, projectFinance),

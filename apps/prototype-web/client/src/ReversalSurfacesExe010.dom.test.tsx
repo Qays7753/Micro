@@ -27,7 +27,12 @@ import { CostEstimateService } from "@/application/estimates/costEstimateService
 import { CollectionReversalService } from "@/application/collections/collectionReversalService";
 import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewService";
 import { CostService } from "@/application/cost/costService";
-import { calculateCostSnapshot, collectDeposit, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
+import {
+  calculateCostSnapshot,
+  collectDeposit,
+  createCraftOrder,
+  transitionOrder,
+} from "@micro-domain/craft-order/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import type { StoredCraftOrder } from "@/storage/local/types";
 import OrderDetail from "@/pages/OrderDetail";
@@ -85,7 +90,15 @@ async function seedActiveOrderWithDeposit(): Promise<StoredCraftOrder> {
   const snapshot = calculateCostSnapshot("snap-exe010", {
     currency: "JOD",
     materialItems: [
-      { name: "خشب", quantity: 1, unit: "متر", unitPriceMinor: 1000, priceDate: "2026-09-01", source: "user_input", confidence: "known" },
+      {
+        name: "خشب",
+        quantity: 1,
+        unit: "متر",
+        unitPriceMinor: 1000,
+        priceDate: "2026-09-01",
+        source: "user_input",
+        confidence: "known",
+      },
     ],
     time: null,
     packagingMinor: 0,
@@ -240,9 +253,7 @@ describe("EXE-010 — sale collection reversal surface in DirectSaleEditor", () 
       target: { value: "القبض سُجل على البيع الخطأ" },
     });
     fireEvent.click(screen.getByRole("button", { name: /اعكس التحصيل/ }));
-    await waitFor(() =>
-      expect(screen.getByText(/تم عكس التحصيل/)).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByText(/تم عكس التحصيل/)).toBeTruthy());
     /* السجل بعد العكس: المقبوض صفر والدين عاد. */
     const after = await directSales.get(recorded.value.id);
     if (!after.ok || !after.value) throw new Error("sale missing");
@@ -250,7 +261,9 @@ describe("EXE-010 — sale collection reversal surface in DirectSaleEditor", () 
     expect(after.value.collectionStatus).toBe("partial_debt");
     const entries = await store.listCashContinuityEntries();
     const reversal = entries.ok
-      ? entries.value.find(entry => entry.type === "reversal" && entry.reason === "القبض سُجل على البيع الخطأ")
+      ? entries.value.find(
+          entry => entry.type === "reversal" && entry.reason === "القبض سُجل على البيع الخطأ",
+        )
       : null;
     expect(reversal).toBeDefined();
     expect(reversal!.cashDeltaMinor).toBe(-3000);

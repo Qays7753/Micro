@@ -110,9 +110,7 @@ describe("EXE-011 purchase → receipt continuation (PUR-001 / AUD-NEW-08)", () 
 
   it("saving a tracked-material purchase shows the receipt continuation instead of a silent exit", async () => {
     const materialId = await seedMaterial("قماش قطني", "tracked");
-    render(
-      <Harness page={<SupplierPurchaseEditor />} />,
-    );
+    render(<Harness page={<SupplierPurchaseEditor />} />);
     await fillAndSavePurchase(materialId, "قماش قطني");
     const panel = await screen.findByTestId("purchase-receipt-continuation");
     expect(panel.textContent).toContain("استلام المخزون");
@@ -122,16 +120,16 @@ describe("EXE-011 purchase → receipt continuation (PUR-001 / AUD-NEW-08)", () 
     /* الوصلة العميقة تمر بالشراء الصحيح نفسه لا أول سجل، والعودة لتفاصيله. */
     await waitFor(() => {
       expect(wouterMocks.navigate).toHaveBeenCalledWith(
-        expect.stringMatching(/^\/inventory\/movement\/receipt\?purchase=[^&]+&from=%2Fsuppliers%2Fpurchase%2F.+$/),
+        expect.stringMatching(
+          /^\/inventory\/movement\/receipt\?purchase=[^&]+&from=%2Fsuppliers%2Fpurchase%2F.+$/,
+        ),
       );
     });
   });
 
   it("the explicit return action still honours S1-07 (?from) after the continuation appears", async () => {
     const materialId = await seedMaterial("قماش قطني", "tracked");
-    render(
-      <Harness page={<SupplierPurchaseEditor />} />,
-    );
+    render(<Harness page={<SupplierPurchaseEditor />} />);
     await fillAndSavePurchase(materialId, "قماش قطني");
     await screen.findByTestId("purchase-receipt-continuation");
     fireEvent.click(screen.getByRole("button", { name: /عودة إلى المصدر/ }));
@@ -141,9 +139,7 @@ describe("EXE-011 purchase → receipt continuation (PUR-001 / AUD-NEW-08)", () 
   });
 
   it("a purchase without a material keeps the classic S1-07 exit — no continuation panel", async () => {
-    render(
-      <Harness page={<SupplierPurchaseEditor />} />,
-    );
+    render(<Harness page={<SupplierPurchaseEditor />} />);
     await fillAndSavePurchase(null);
     await waitFor(() => {
       expect(wouterMocks.navigate).toHaveBeenCalledWith("/suppliers");
@@ -153,9 +149,7 @@ describe("EXE-011 purchase → receipt continuation (PUR-001 / AUD-NEW-08)", () 
 
   it("an untracked (cost-only) material link does not offer a misleading receipt continuation", async () => {
     const materialId = await seedMaterial("خيط تطريز", "untracked");
-    render(
-      <Harness page={<SupplierPurchaseEditor />} />,
-    );
+    render(<Harness page={<SupplierPurchaseEditor />} />);
     await fillAndSavePurchase(materialId);
     await waitFor(() => {
       expect(wouterMocks.navigate).toHaveBeenCalledWith("/suppliers");
@@ -191,9 +185,7 @@ describe("EXE-011 awaiting-receipt status leads to the journey (InventoryMateria
       initialPaymentWalletId: null,
     });
     if (!saved.ok) throw new Error(saved.message);
-    render(
-      <Harness page={<InventoryMaterials />} />,
-    );
+    render(<Harness page={<InventoryMaterials />} />);
     const link = await screen.findByTestId("awaiting-receipt-link-سكر");
     expect(link.textContent).toContain("بانتظار الاستلام");
     expect(link.textContent).toContain("شراء");

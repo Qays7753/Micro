@@ -33,7 +33,12 @@ async function setup() {
   return { store, service };
 }
 
-async function seedInvestmentEvent(store: MemoryLocalStore, id: string, amountMinor: number, occurredOn: string) {
+async function seedInvestmentEvent(
+  store: MemoryLocalStore,
+  id: string,
+  amountMinor: number,
+  occurredOn: string,
+) {
   const saved = await store.saveFinancialEvent(
     createFinancialEvent({
       id,
@@ -50,7 +55,12 @@ async function seedInvestmentEvent(store: MemoryLocalStore, id: string, amountMi
   if (!saved.ok) throw new Error("seed investment event failed");
 }
 
-async function seedWithdrawalEvent(store: MemoryLocalStore, id: string, amountMinor: number, occurredOn: string) {
+async function seedWithdrawalEvent(
+  store: MemoryLocalStore,
+  id: string,
+  amountMinor: number,
+  occurredOn: string,
+) {
   const saved = await store.saveFinancialEvent(
     createFinancialEvent({
       id,

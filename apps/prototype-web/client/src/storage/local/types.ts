@@ -411,9 +411,7 @@ export interface PrototypeLocalStore {
     sale: DirectSale,
     allocationReversal: CashContinuityEntry | null,
     revisionKey: string,
-  ): Promise<
-    StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>
-  >;
+  ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>>;
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
   getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
   saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;

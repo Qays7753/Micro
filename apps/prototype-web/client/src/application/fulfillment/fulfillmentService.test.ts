@@ -661,7 +661,12 @@ describe("FulfillmentService.reverseDeposit — active deposit reversal (EXE-010
     if (!before.ok) throw new Error(before.message);
     expect(before.value.walletCashMinor).toBe(7000);
     expect(before.value.unallocatedCashMinor).toBe(0);
-    const result = await service.reverseDeposit(orderId, "العربون سُجل على الطلب الخطأ", undefined, "exe010-a");
+    const result = await service.reverseDeposit(
+      orderId,
+      "العربون سُجل على الطلب الخطأ",
+      undefined,
+      "exe010-a",
+    );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const order = result.stored.order;
@@ -676,7 +681,8 @@ describe("FulfillmentService.reverseDeposit — active deposit reversal (EXE-010
     const entries = await store.listCashContinuityEntries();
     if (!entries.ok) throw new Error(entries.message);
     const reversal = entries.value.find(
-      entry => entry.type === "reversal" && entry.operationKey.includes(":reverse-deposit:exe010-a:unattribute:"),
+      entry =>
+        entry.type === "reversal" && entry.operationKey.includes(":reverse-deposit:exe010-a:unattribute:"),
     );
     expect(reversal).toBeDefined();
     expect(reversal!.cashDeltaMinor).toBe(-2000);
@@ -704,7 +710,9 @@ describe("FulfillmentService.reverseDeposit — active deposit reversal (EXE-010
     expect(events).toHaveLength(1);
     const entries = await store.listCashContinuityEntries();
     const reversals = entries.ok
-      ? entries.value.filter(entry => entry.operationKey.includes(":reverse-deposit:exe010-replay:unattribute:"))
+      ? entries.value.filter(entry =>
+          entry.operationKey.includes(":reverse-deposit:exe010-replay:unattribute:"),
+        )
       : [];
     expect(reversals).toHaveLength(1);
   });
@@ -744,7 +752,12 @@ describe("FulfillmentService.reverseDeposit — active deposit reversal (EXE-010
     const { store: store2, orderId: orderId2 } = await activeOrderWithAttributedDeposit();
     const service2 = new FulfillmentService(store2, () => "2026-09-11T02:00:00.000Z");
     await service2.cancel(orderId2, "انسحاب العميل");
-    const cancelledAttempt = await service2.reverseDeposit(orderId2, "محاولة على ملغى", undefined, "exe010-c");
+    const cancelledAttempt = await service2.reverseDeposit(
+      orderId2,
+      "محاولة على ملغى",
+      undefined,
+      "exe010-c",
+    );
     expect(cancelledAttempt.ok).toBe(false);
     if (cancelledAttempt.ok) return;
     expect(cancelledAttempt.message).toContain("لوحة تسوية الملغى");

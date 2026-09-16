@@ -233,12 +233,12 @@ export function SettingsGuidedOpeningSection({
                 المعاينة بوضوح — تبقى خارج الاستبدال ولا تتحول لبيانات مالية
                 مستعادة دون قرار. */}
             <p className="micro-local-truth">
-              يبقى خارج الاستبدال: رمز القفل المحلي وحماية هذا الجهاز، ومسودات
-              النماذج غير المُسلّمة — تُحفظ كما هي وتُعرض عند فتح نماذجها.
+              يبقى خارج الاستبدال: رمز القفل المحلي وحماية هذا الجهاز، ومسودات النماذج غير المُسلّمة — تُحفظ
+              كما هي وتُعرض عند فتح نماذجها.
             </p>
             <p className="micro-local-truth">
-              قبل الاستبدال تُنشأ نسخة احتياطية مُتحقّقة من بياناتك الحالية وتظهر
-              هنا للتنزيل فور نجاح الاستعادة — لا استبدال بلا طريق رجوع.
+              قبل الاستبدال تُنشأ نسخة احتياطية مُتحقّقة من بياناتك الحالية وتظهر هنا للتنزيل فور نجاح
+              الاستعادة — لا استبدال بلا طريق رجوع.
             </p>
             <div className="micro-form-actions">
               <Button
@@ -267,7 +267,8 @@ export function SettingsGuidedOpeningSection({
               <strong>نسخة ما قبل الاستبدال جاهزة</strong>
               <small>
                 مُنشأة قبل الكتابة ومُتحقّقة دورة كاملة — صدرت{" "}
-                <DateTimeValue value={restoreBackup.exportedAt} />؛ نزّلها واحفظها خارج الجهاز قبل أي خطوة لاحقة.
+                <DateTimeValue value={restoreBackup.exportedAt} />؛ نزّلها واحفظها خارج الجهاز قبل أي خطوة
+                لاحقة.
               </small>
             </div>
             <Button action="secondary" onClick={downloadRestoreBackup}>

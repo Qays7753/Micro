@@ -108,6 +108,8 @@ describe("Quick forms notify after committed state (FIN-004)", () => {
     );
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    /* EXE-007: البند مطلوب في المدخل السريع أيضًا — قاعدة الملكية الموحدة. */
+    await user.type(screen.getByLabelText(/البند/), "توصيل خامه");
     await user.selectOptions(screen.getByLabelText(/مصدر الصرف/), wallet.id);
     orderLog = [];
     await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
@@ -163,6 +165,8 @@ describe("Quick forms notify after committed state (FIN-004)", () => {
     );
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    /* EXE-007: البند مطلوب في المدخل السريع أيضًا — قاعدة الملكية الموحدة. */
+    await user.type(screen.getByLabelText(/البند/), "توصيل خامه");
     await user.selectOptions(screen.getByLabelText(/مصدر الصرف/), wallet.id);
     await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
     await waitForReceipt(submitted);

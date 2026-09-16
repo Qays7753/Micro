@@ -107,7 +107,9 @@ export default function OwnerEntitlement() {
   const [saving, setSaving] = useState(false);
   /* EXE-009 (OWN-001): حارس التكرار التقاطعي لحركة الدفتر — إيقاف بإفصاح
    * وتأكيد صريح قبل كتابة الحركة. */
-  const [movementDuplicateWarning, setMovementDuplicateWarning] = useState<CrossModelOwnerDuplicate | null>(null);
+  const [movementDuplicateWarning, setMovementDuplicateWarning] = useState<CrossModelOwnerDuplicate | null>(
+    null,
+  );
   const confirmedDistinctMovementRef = useRef(false);
   const policyOperation = useRef(idempotency("owner-policy"));
   const successorOperation = useRef(idempotency("owner-successor"));
@@ -636,9 +638,9 @@ export default function OwnerEntitlement() {
        * موصى بها لا حجب؛ الأصل يبقى بصريًا فوق القائمة. */}
       {ownerMoney && ownerMoney.crossModelDuplicatePairCount > 0 ? (
         <p className="micro-field-error" role="status">
-          يوجد {ownerMoney.crossModelDuplicatePairCount} عملية بنفس المبلغ والتاريخ مسجلة في نموذجي مال
-          المالك معًا (حدث عام + حركة دفتر) — راجع الأسطر الموسومة أدناه؛ إن كانت العملية نفسها مسجلة مرتين
-          فتراجع عن إحداهما من موضعها الأصلي.
+          يوجد {ownerMoney.crossModelDuplicatePairCount} عملية بنفس المبلغ والتاريخ مسجلة في نموذجي مال المالك
+          معًا (حدث عام + حركة دفتر) — راجع الأسطر الموسومة أدناه؛ إن كانت العملية نفسها مسجلة مرتين فتراجع عن
+          إحداهما من موضعها الأصلي.
         </p>
       ) : null}
       <section className="micro-owner-balance-card" data-balance={overview.balanceState}>

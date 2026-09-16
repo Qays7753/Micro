@@ -453,13 +453,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     sale: DirectSale,
     allocationReversal: CashContinuityEntry | null,
     revisionKey: string,
-  ): Promise<
-    StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>
-  > {
+  ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>> {
     const existing = this.directSales.get(sale.id);
     if (!existing)
       return { ok: false, code: "storage_error", message: "لم نجد البيع المباشر المحلي لعكس التحصيل." };
-    const alreadyReversed = (existing.revisions ?? []).some(revision => revision.idempotencyKey === revisionKey);
+    const alreadyReversed = (existing.revisions ?? []).some(
+      revision => revision.idempotencyKey === revisionKey,
+    );
     if (alreadyReversed) {
       if (!allocationReversal)
         return { ok: true, value: { sale: clone(existing), cashEntry: null, reused: true } };
@@ -482,8 +482,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         : undefined;
       const reversedSoFar = Array.from(this.cashContinuityEntries.values())
         .filter(
-          entry =>
-            entry.type === "reversal" && entry.reversesEntryId === allocationReversal.reversesEntryId,
+          entry => entry.type === "reversal" && entry.reversesEntryId === allocationReversal.reversesEntryId,
         )
         .reduce((sum, entry) => sum - entry.cashDeltaMinor, 0);
       const additional = -allocationReversal.cashDeltaMinor;
@@ -498,7 +497,11 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (allocationReversal) this.cashContinuityEntries.set(allocationReversal.id, clone(allocationReversal));
     return {
       ok: true,
-      value: { sale: clone(sale), cashEntry: allocationReversal ? clone(allocationReversal) : null, reused: false },
+      value: {
+        sale: clone(sale),
+        cashEntry: allocationReversal ? clone(allocationReversal) : null,
+        reused: false,
+      },
     };
   }
   async listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>> {
