@@ -65,7 +65,7 @@ Unallocated-cash writers: financial events (projectFinance record/reverse/edit/r
 
 ## New findings
 - NEW-001 CashDistribution operationKey reuse (P1) — see card.
-- NEW-002 (P3, defense-in-depth): ProjectFinancialService.reverse/editEvent accept loan/asset family events (guard only covers deposit types) — unreachable from UI (EventsLayer redirects), MIC-11 nets it. 
+- NEW-002 (P3, defense-in-depth): ProjectFinancialService.reverse/editEvent accept loan/asset family events (guard only covers deposit types) — unreachable from UI (EventsLayer redirects), MIC-11 nets it.
 - NEW-003 (P3): duplicate wallet names possible (no uniqueness) — user-model risk only.
 - (Checked, NOT findings: no direct store writes from pages/components; all writes via services. Export snapshot includes all stores in my rows — types.ts:305-339.)
 
