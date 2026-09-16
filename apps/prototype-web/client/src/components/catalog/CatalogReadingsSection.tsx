@@ -17,7 +17,7 @@ import type { CatalogItem, MeasurementUnit } from "@micro-domain/catalog/index.j
 import type {
   RecurringWorkReading,
   RecurringWorkReadings,
-} from "@/application/recurring-work/recurringWorkService";
+} from "@/application/finance/recurringWorkService";
 
 import { Button } from "@/components/primitives";
 export type CatalogReadingsSectionProps = {

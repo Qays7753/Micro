@@ -40,7 +40,7 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { ActualTimeService } from "@/application/time/actualTimeService";
-import { RecurringWorkService } from "@/application/recurring-work/recurringWorkService";
+import { RecurringWorkService } from "@/application/finance/recurringWorkService";
 import { G5Service } from "@/application/g5/g5Service";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";

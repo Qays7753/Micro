@@ -17,7 +17,7 @@ import {
   type CatalogPerUnitPreview,
 } from "@/presentation/catalogPresentation";
 import type { CatalogItem, MeasurementUnit } from "@micro-domain/catalog/index.js";
-import type { RecurringWorkPolicyInput } from "@/application/recurring-work/recurringWorkService";
+import type { RecurringWorkPolicyInput } from "@/application/finance/recurringWorkService";
 
 import { Button } from "@/components/primitives";
 export type CatalogPoliciesSectionProps = {

@@ -10,7 +10,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
 import { DraftService } from "@/application/drafts/draftService";
 import { CatalogService } from "@/application/catalog/catalogService";
-import { RecurringWorkService } from "@/application/recurring-work/recurringWorkService";
+import { RecurringWorkService } from "@/application/finance/recurringWorkService";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";

@@ -58,7 +58,7 @@ import type {
   RecurringWorkPolicyInput,
   RecurringWorkReading,
   RecurringWorkReadings,
-} from "@/application/recurring-work/recurringWorkService";
+} from "@/application/finance/recurringWorkService";
 
 import { FeedbackMessage, FeedbackNote } from "@/components/primitives";
 
