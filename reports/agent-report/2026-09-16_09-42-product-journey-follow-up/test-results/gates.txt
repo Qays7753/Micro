@@ -1,0 +1,37 @@
+جولة متابعة تصحيح حزمة رحلة المنتج — نتائج الأبواب التقنية (Asia/Amman، 2026-09-16 ~07:35)
+=====================================================================================
+الفرع: fix/product-journey-verification-20260916 من main @ db003f4fa0b1f237d4499a7a3633b290ec28f4fa
+
+سبب الجولة: فشل CI على main (Run 35046087986 — خطوة Verify domain and prototype):
+16 رفضًا غير معالجًا، كلها TypeError: preferences.readDisabledCapabilities is not a function
+عند SettingsCapabilitiesSection.tsx:56:44 (15 من Settings.lockGate.dom.test.tsx + 1 من U11.dom.test.tsx).
+أعيد الإنتاج محليًا قبل أي تعديل: lockGate وحده = 14 اختبارًا ناجحًا + 15 رفضًا غير معالج، خروج 1.
+
+الأوامر المركزة (صيغة المستودع الفعلية):
+- pnpm --filter @micro/prototype-web test -- client/src/Set003Capabilities.dom.test.tsx: خروج 0 — 4/4
+- pnpm --filter @micro/prototype-web test -- client/src/Settings.lockGate.dom.test.tsx client/src/U11.dom.test.tsx: خروج 0 — 15/15 — صفر رفض غير معالج
+- pnpm --filter @micro/prototype-web test -- client/src/OrdJourneys.dom.test.tsx: خروج 0 — 9/9 (6 قائمة + 3 انحدار جديدة)
+- pnpm --filter @micro/prototype-web test -- client/src/Set003SettingsSection.dom.test.tsx: خروج 0 — 1/1 (جديد)
+- pnpm --filter @micro/prototype-web test -- client/src/application/preferences/preferenceService.test.ts: خروج 0 — 6/6 (3 قائمة + 3 انحدار)
+- pnpm test -- tests/domain/craft-order-delivery-terms.test.ts: خروج 0 — 13/13 (الدومين غير ممسوس)
+
+الباب الكامل (npm scripts الفعلية للمستودع):
+- المحاولة 1 لـ pnpm check: خروج 1 — فشل prettier وحده في OrdJourneys.dom.test.tsx (تنسيق)
+- صُحح بـ prettier --write (المرحلة 68de2c1) ثم:
+- pnpm check (نهائي): خروج 0 كاملًا:
+  - typecheck (جذر + ويب): نجاح — 0 أخطاء
+  - eslint --max-warnings 37: نجاح — 0 أخطاء / 36 تحذيرًا (ضمن الميزانية، بلا رفع)
+  - prettier --check: نجاح — كل الملفات مطابقة
+  - text-density-count.py: نجاح — كل الأسطح ضمن السقوف؛ OrderDetail 179/179 كما هو (نصوص اللوحة داخل details مطوي ليست at-rest)
+  - design-token-guards.py + theme-contrast-guard.py + stylelint: نجاح
+  - check-secrets / check-test-focus (صفر .only/.skip) / check-entity-touchpoints / check-runtime-cycles: نجاح
+  - vitest (جذر): 36 ملفًا / 404 اختبارات — كلها ناجحة
+  - vitest (ويب): 190 ملفًا / 1341 اختبارًا — كلها ناجحة (1334 أساس + 7 جديدة في هذه الجولة) — صفر رفض غير معالج (تحقق نصي مباشر من السجل)
+  - vite build + check-bundle-budget: نجاح — 646,888 / 650,000 خام؛ 154,359 / 155,000 gzip
+
+اختبارات جديدة في هذه الجولة:
+- client/src/Set003SettingsSection.dom.test.tsx (1): سطح الفشل نفسه عبر خدمات حقيقية + تبديل قدرة عبر المخزن الحقيقي
+- preferenceService.test.ts (+3): بقاء disabledCapabilities عبر كل كاتب غير مرتبط + بقاء بقية الحقول؛ سجل قديم بلا الحقل = الكل مفعّل؛ تجميد عقد PreferenceService.prototype
+- OrdJourneys.dom.test.tsx (+3): تعبئة مسبقة وبقاء الحصص؛ التعديل الثاني حدث موثق ثانٍ (مفتاح لكل فتح لوحة) مع القيمة المشتقة 50+3=53؛ الخروج من المشتركة يخفي الحقلين ويصفّر الحصص عمدًا
+
+لا اختبارات محذوفة. لا فشل متبقية. لا رفع أي سقف رقمي محروس.
