@@ -369,3 +369,59 @@ describe("amanah position facts", () => {
     expect(position.value.supplierPayablesMinor).toBe(0);
   });
 });
+
+/* EXE-001 (AUD-NEW-01): عقد الحتمية الصادق لإعادة إرسال المفتاح نفسه —
+ * الخدمة تعيد {ok:true, reused:true} بلا كتابة جديدة، فتعرض الواجهة رسالة
+ * صادقة بدل نجاح كاذب، ويبقى القيد واحدًا. */
+describe("EXE-001 — same-key resubmission is an honest replay", () => {
+  it("resubmitting the same operation key writes one entry only and declares reused", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const cash = new CashContinuityService(store, now);
+    await finance.record({
+      type: "owner_investment_cash",
+      amountMinor: 10000,
+      occurredOn: "2026-08-28",
+      note: "استثمار نقدي",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "exe001-inv",
+    });
+    const wallet = await cash.openWallet({
+      name: "الدرج",
+      kind: "cash_drawer",
+      openingMinor: 0,
+      occurredOn: "2026-08-28",
+      note: "محفظة الدرج",
+      operationKey: "exe001-wallet",
+    });
+    if (!wallet.ok) throw new Error(wallet.message);
+    const first = await finance.distributeUnallocated({
+      walletId: wallet.value.wallet.id,
+      deltaMinor: 2000,
+      note: "توزيع أول",
+      operationKey: "exe001-same-key",
+    });
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    expect(first.reused).toBeUndefined();
+    /* إعادة إرسال التأكيد نفسه (نقر مزدوج/إعادة محاولة): لا قيد ثانٍ. */
+    const replay = await finance.distributeUnallocated({
+      walletId: wallet.value.wallet.id,
+      deltaMinor: 2000,
+      note: "توزيع أول",
+      operationKey: "exe001-same-key",
+    });
+    expect(replay.ok).toBe(true);
+    if (!replay.ok) return;
+    expect(replay.reused).toBe(true);
+    const entries = await store.listCashContinuityEntries();
+    if (!entries.ok) throw new Error("entries should read");
+    expect(entries.value.filter(entry => entry.type === "allocation")).toHaveLength(1);
+    /* الأرصدة لم تتأثر بإعادة الإرسال: 20.00 في المحفظة و80.00 غير موزعة. */
+    const position = await finance.readPosition();
+    if (!position.ok) throw new Error(position.message);
+    expect(position.value.walletCashMinor).toBe(2000);
+    expect(position.value.unallocatedCashMinor).toBe(8000);
+  });
+});

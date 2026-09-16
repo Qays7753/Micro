@@ -9,8 +9,12 @@ export type CashWalletOpeningStatus = "known" | "unknown";
  * والسجل المصدر الذي أنشأ الكاش (بيع/مصروف/تحصيل/طلب)، فيصل صاحب السجل للمصدر
  * من دفتر المحفظة بلا مسار كتابة ثانٍ. حقل اختياري: القديم بلاه يُقرأ فارغًا.
  * FIN-003 (قرار المالك ٢٠٢٦-٠٩-١٦): دفعات المورديم تنسب لمصدرها وقت التسجيل —
- * نوع المصدر «supplier_purchase» يصل دفتر المحفظة بشراء المورد نفسه. */
-type CashAllocationSourceKind = "sale" | "expense" | "collection" | "order" | "supplier_purchase";
+ * نوع المصدر «supplier_purchase» يصل دفتر المحفظة بشراء المورد نفسه.
+ * EXE-003 (AUD-NEW-03): القائمة القانونية معرّفة هنا مرة واحدة وتُصدَّر —
+ * سياسات الدومين وفاحص السلامة MIC-2 وكل مستهلك يستوردونها من هذا المصدر،
+ * فلا تنحرف نسخة مكررة عنه بعد اليوم. */
+export const SOURCE_REF_KINDS = ["sale", "expense", "collection", "order", "supplier_purchase"] as const;
+type CashAllocationSourceKind = (typeof SOURCE_REF_KINDS)[number];
 export type CashWallet = {
   id: string;
   name: string;

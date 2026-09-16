@@ -19,7 +19,7 @@ import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-doma
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type FulfillmentResult =
-  | { ok: true; stored: StoredCraftOrder; notice?: string }
+  | { ok: true; stored: StoredCraftOrder; notice?: string; reused?: boolean }
   | { ok: false; code: "storage_error" | "invalid_state"; message: string };
 export type DepositRow = {
   orderId: string;
@@ -407,14 +407,33 @@ export class FulfillmentService {
     }
   }
 
-  async refundDeposit(id: string, reason: string, amountMinor?: number): Promise<FulfillmentResult> {
+  async refundDeposit(
+    id: string,
+    reason: string,
+    amountMinor?: number,
+    operationKey?: string,
+  ): Promise<FulfillmentResult> {
     const current = await this.load(id);
     if (!current.ok) return current;
     const order = current.stored.order;
     const pendingMinor = order.depositCollectedMinor - (order.depositRetainedMinor ?? 0);
     const amount = amountMinor ?? pendingMinor;
     if (amount <= 0) return failure("invalid_state", "لا عربون معلّق قابل للرد — راجع قرار التسوية.");
-    const refundEventKey = `${id}:refund-deposit:${amount}:${reason.trim().length}:${this.now().slice(0, 13)}`;
+    /* EXE-004 (AUD-NEW-07): مفتاح الحدث. المسار الإنتاجي (لوحة التسوية) يمرر
+     * مفتاح عملية جديدًا لكل تأكيد مستقل، فيبقى ردّان جزئيان متساويان في
+     * الساعة نفسها حدثين مستقلين — بينما النقر المزدوج على التأكيد الواحد
+     * يظل محتميًا بالمفتاح نفسه. الاستدعاء المباشر بلا مفتاح يبقى على الاشتقاق
+     * القائم (توافقًا مع الاختبارات القائمة) ولا يُستخدم من الواجهة. */
+    const refundEventKey = operationKey
+      ? `${id}:refund-deposit:${operationKey}`
+      : `${id}:refund-deposit:${amount}:${reason.trim().length}:${this.now().slice(0, 13)}`;
+    /* EXE-004: إعادة تأكيد العملية نفسها ليست ردًّا جديدًا — عودة صادقة بلا
+     * أي كتابة، بدل ابتلاع الثاني بصمت مع رسالة نجاح. الواجهة تعرض النص
+     * لحظة الفعل (setMessage) والخدمة تُرجع العلم البنيوي فقط. */
+    const alreadyRefunded = order.events.some(
+      event => event.type === "deposit_refunded" && event.idempotencyKey === refundEventKey,
+    );
+    if (alreadyRefunded) return { ok: true, stored: current.stored, reused: true };
     try {
       const timestamp = this.now();
       const next = settleDepositRefund(current.stored.order, amount, reason, refundEventKey, timestamp);
@@ -435,6 +454,7 @@ export class FulfillmentService {
         );
         if (!committed.ok)
           return failure("storage_error", committed.message ?? "تعذر رد العربون ذرّيًا؛ لم يتغير السجل.");
+        if (committed.value.reused) return { ok: true, stored: committed.value.order, reused: true };
         return { ok: true, stored: committed.value.order };
       }
       /* تعذر بناء فك التخصيص (تخصيص مُفكوك جزئيًا سابقًا مثلًا) — الرد نفسه

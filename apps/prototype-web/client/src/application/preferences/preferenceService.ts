@@ -4,7 +4,8 @@ import {
   readPersistentStorageState,
   type PersistentStorageState,
 } from "@/storage/local/persistentStorage";
-import { localPreferencesId, type LocalPreferences, type PrototypeLocalStore } from "@/storage/local/types";
+import type { LocalPreferences, PrototypeLocalStore } from "@/storage/local/types";
+import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 
 export type ThemePreference = LocalPreferences["theme"];
 export type PreferenceResult =
@@ -33,22 +34,8 @@ export class PreferenceService {
       : { ok: false, code: "storage_error", message: "تعذر قراءة تفضيل المظهر المحلي." };
   }
   async save(theme: ThemePreference): Promise<PreferenceResult> {
-    const current = await this.store.getPreferences();
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة تفضيل المظهر المحلي." };
-    const result = await this.store.savePreferences({
-      id: localPreferencesId,
-      theme,
-      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
-      workMode: current.value?.workMode ?? null,
-      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
-      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
-      /* O-001: التفضيلات تُنقل كاملة — لا يفقد تغيير المظهر تاريخ النسخة ولا مفتاح التذكير. */
-      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
-      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
-      /* SET-003: القدرات المتوقفة تُنقل مع كل حفظ — لا يفقد أي تغيير تفضيل غيرها. */
-      disabledCapabilities: current.value?.disabledCapabilities ?? [],
-      updatedAt: this.now(),
-    });
+    /* EXE-002: تحديث merge — الحقول القائمة تُنقل كلها ولا يُمسّ غير المظهر. */
+    const result = await updateLocalPreferences(this.store, { theme }, this.now);
     return result.ok
       ? { ok: true, preference: result.value.theme }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيل المظهر المحلي." };
@@ -61,45 +48,21 @@ export class PreferenceService {
   }
   /** P-01 طبقة ١: تسجيل آخر تصدير مُتحقق منه — أساس تذكير النسخ الاحتياطي. */
   async markVerifiedExport(): Promise<PreferenceResult> {
-    const current = await this.store.getPreferences();
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيل المحلي." };
     const exportedAt = this.now();
-    const result = await this.store.savePreferences({
-      id: localPreferencesId,
-      theme: current.value?.theme ?? "system",
-      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
-      workMode: current.value?.workMode ?? null,
-      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
-      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
-      lastVerifiedExportAt: exportedAt,
-      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
-      /* إصلاح المتابعة (SET-003): القدرات المتوقفة تُنقل مع هذا الحفظ أيضًا —
-       * كتابة السجل كاملًا كانت تُسقط الحقل فتعيد تفعيل كل القدرات بصمت. */
-      disabledCapabilities: current.value?.disabledCapabilities ?? [],
-      updatedAt: exportedAt,
-    });
+    /* EXE-002: merge — طابع التحديث يطابق لحظة التصدير كما في السلوك القائم. */
+    const result = await updateLocalPreferences(
+      this.store,
+      { lastVerifiedExportAt: exportedAt },
+      () => exportedAt,
+    );
     return result.ok
       ? { ok: true, preference: result.value.theme }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تاريخ النسخة الاحتياطية." };
   }
   /* O-001: تذكير النسخة الدوري اختياري — إطفاؤه يخفي السطر من الرئيسية فقط. */
   async saveBackupReminderEnabled(enabled: boolean): Promise<BackupReminderResult> {
-    const current = await this.store.getPreferences();
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيل المحلي." };
-    const result = await this.store.savePreferences({
-      id: localPreferencesId,
-      theme: current.value?.theme ?? "system",
-      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
-      workMode: current.value?.workMode ?? null,
-      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
-      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
-      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
-      backupReminderEnabled: enabled,
-      /* إصلاح المتابعة (SET-003): القدرات المتوقفة تُنقل مع هذا الحفظ أيضًا —
-       * كتابة السجل كاملًا كانت تُسقط الحقل فتعيد تفعيل كل القدرات بصمت. */
-      disabledCapabilities: current.value?.disabledCapabilities ?? [],
-      updatedAt: this.now(),
-    });
+    /* EXE-002: merge — لا يُمسّ غير مفتاح التذكير. */
+    const result = await updateLocalPreferences(this.store, { backupReminderEnabled: enabled }, this.now);
     return result.ok
       ? { ok: true, enabled: result.value.backupReminderEnabled ?? true }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيل تذكير النسخة." };
@@ -119,23 +82,13 @@ export class PreferenceService {
       : { ok: false, code: "storage_error", message: "تعذر قراءة تاريخ النسخة الاحتياطية." };
   }
   async saveInstallBannerDismissal(): Promise<InstallBannerDismissalResult> {
-    const current = await this.store.getPreferences();
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة حالة بطاقة التثبيت." };
     const dismissedAt = this.now();
-    const result = await this.store.savePreferences({
-      id: localPreferencesId,
-      theme: current.value?.theme ?? "system",
-      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
-      workMode: current.value?.workMode ?? null,
-      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
-      installBannerDismissedAt: dismissedAt,
-      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
-      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
-      /* إصلاح المتابعة (SET-003): القدرات المتوقفة تُنقل مع هذا الحفظ أيضًا —
-       * كتابة السجل كاملًا كانت تُسقط الحقل فتعيد تفعيل كل القدرات بصمت. */
-      disabledCapabilities: current.value?.disabledCapabilities ?? [],
-      updatedAt: dismissedAt,
-    });
+    /* EXE-002: merge — طابع التحديث يطابق لحظة الإخفاء كما في السلوك القائم. */
+    const result = await updateLocalPreferences(
+      this.store,
+      { installBannerDismissedAt: dismissedAt },
+      () => dismissedAt,
+    );
     return result.ok
       ? { ok: true, dismissedAt: result.value.installBannerDismissedAt }
       : { ok: false, code: "storage_error", message: "تعذر حفظ حالة بطاقة التثبيت." };
@@ -151,20 +104,12 @@ export class PreferenceService {
   }
 
   async saveDisabledCapabilities(disabled: readonly string[]): Promise<DisabledCapabilitiesResult> {
-    const current = await this.store.getPreferences();
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيل المحلي." };
-    const result = await this.store.savePreferences({
-      id: localPreferencesId,
-      theme: current.value?.theme ?? "system",
-      dailyScheduleCapacityMinutes: current.value?.dailyScheduleCapacityMinutes ?? null,
-      workMode: current.value?.workMode ?? null,
-      actualTimeTrackingEnabled: current.value?.actualTimeTrackingEnabled ?? false,
-      installBannerDismissedAt: current.value?.installBannerDismissedAt ?? null,
-      lastVerifiedExportAt: current.value?.lastVerifiedExportAt ?? null,
-      backupReminderEnabled: current.value?.backupReminderEnabled ?? true,
-      disabledCapabilities: [...disabled],
-      updatedAt: this.now(),
-    });
+    /* EXE-002: merge — لا يُمسّ غير قائمة القدرات نفسها. */
+    const result = await updateLocalPreferences(
+      this.store,
+      { disabledCapabilities: [...disabled] },
+      this.now,
+    );
     return result.ok
       ? { ok: true, disabled: result.value.disabledCapabilities ?? [] }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيلات القدرات." };

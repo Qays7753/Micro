@@ -226,7 +226,7 @@ export default function Home() {
         <section className="micro-note-card" role="status" data-testid="setup-success-banner">
           <ShieldCheck aria-hidden="true" />
           <p>
-            {`تم إنشاء مشروعك «${model.heading.activityName}» — ابدأ الآن بتسجيل أول عملية من أزرار التسجيل السريع هنا؛ وصفحة الأساس عمق اختياري تكمله لاحقًا من «المالية».`}
+            {`تم إنشاء مشروعك «${model.heading.activityName}» — ابدأ الآن بتسجيل أول عملية من أزرار التسجيل السريع هنا؛ وصفحة الأساس عمق اختياري تكمله لاحقًا من زر «صفحة الأساس» في قسم «مالي» أسفل هذه الصفحة.`}
           </p>
         </section>
       ) : null}

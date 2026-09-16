@@ -137,6 +137,10 @@ describe("NAV-001 — approved five-seat navigation", () => {
     const banner = await screen.findByTestId("setup-success-banner");
     expect(banner.textContent).toContain("تم إنشاء مشروعك");
     expect(banner.textContent).toContain("مشروع-NAV3");
+    /* EXE-006 (AUD-NEW-11): اللافتة تدل على الموقع الحقيقي لصفحة الأساس —
+     * زر «صفحة الأساس» في قسم «مالي» بهذه الصفحة، لا مقعد «المالية». */
+    expect(banner.textContent).toContain("قسم «مالي»");
+    expect(banner.textContent).not.toContain("من «المالية»");
     cleanup();
     wouterMocks.search = "";
     render(<Harness page={<Home />} />);
@@ -158,6 +162,32 @@ describe("NAV-001 — approved five-seat navigation", () => {
     expect(orders.ok && orders.value).toHaveLength(0);
     expect(events.ok && events.value).toHaveLength(0);
     expect(purchases.ok && purchases.value).toHaveLength(0);
+  });
+
+  /* EXE-005 (AUD-NEW-13): زر «رجوع لمشروعي» وزر الرجوع في السوق يتنقلان إلى
+   * returnPath المعلن بالآلية المعتمدة — لا window.history.back() الذي يهبط
+   * على صفحة عشوائية سابقة عند البدء البارد بوصلة عميقة. */
+  it("EXE-005: market back buttons navigate to the declared return path, not history.back()", async () => {
+    wouterMocks.navigate.mockClear();
+    /* بدء بارد بلا ?from: الوجهة القانونية هي الرئيسية. */
+    wouterMocks.location = "/market";
+    wouterMocks.search = "";
+    render(<Harness page={<Market />} />);
+    expect(await screen.findByTestId("market-soon-page")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "رجوع لمشروعي" }));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/");
+    /* زر الرجوع العلوي يعد بالوجهة نفسها وينفذها. */
+    wouterMocks.navigate.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "مشروعي الآن" }));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/");
+    cleanup();
+    /* دخول بسياق عودة معتمد: ?from=/tools يعيد إلى الأدوات. */
+    wouterMocks.search = "?from=/tools";
+    render(<Harness page={<Market />} />);
+    expect(await screen.findByTestId("market-soon-page")).toBeTruthy();
+    wouterMocks.navigate.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "رجوع" }));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/tools");
   });
 
   it("the top bar carries transport and assistant قريبًا entries with honest copy", () => {

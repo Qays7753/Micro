@@ -1,0 +1,567 @@
+
+> micro@0.1.0 check /home/z/my-project/micro-repo-readonly
+> pnpm typecheck && pnpm lint && pnpm format:check && pnpm text-density && pnpm design-guards && pnpm guards && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build
+
+
+> micro@0.1.0 typecheck /home/z/my-project/micro-repo-readonly
+> tsc --noEmit
+
+
+> micro@0.1.0 lint /home/z/my-project/micro-repo-readonly
+> eslint src tests apps/prototype-web/client/src --max-warnings 37
+
+
+/home/z/my-project/micro-repo-readonly/src/domain/cash-continuity/policies.ts
+  78:8  warning  Function 'createCashContinuityEntry' has a complexity of 43. Maximum allowed is 12  complexity
+
+/home/z/my-project/micro-repo-readonly/src/domain/craft-order/policies.ts
+  570:8  warning  Function 'transitionOrder' has a complexity of 14. Maximum allowed is 12  complexity
+
+/home/z/my-project/micro-repo-readonly/src/domain/financial-event/policies.ts
+   95:1  warning  Function 'assertAllocatedShare' has a complexity of 17. Maximum allowed is 12     complexity
+  157:1  warning  Function 'normalizeExpenseContext' has a complexity of 20. Maximum allowed is 12  complexity
+  335:8  warning  Function 'createFinancialEvent' has a complexity of 25. Maximum allowed is 12     complexity
+
+/home/z/my-project/micro-repo-readonly/src/domain/g5/policies.ts
+   42:8  warning  Function 'createShortCashDeclaration' has a complexity of 17. Maximum allowed is 12  complexity
+  138:1  warning  Function 'validateOrder' has a complexity of 19. Maximum allowed is 12               complexity
+  569:8  warning  Function 'calculateBreakEven' has a complexity of 13. Maximum allowed is 12          complexity
+  645:1  warning  Function 'validateDeclaration' has a complexity of 23. Maximum allowed is 12         complexity
+  673:1  warning  Function 'activeDeclarations' has a complexity of 18. Maximum allowed is 12          complexity
+
+/home/z/my-project/micro-repo-readonly/src/domain/inventory-material/policies.ts
+   38:8  warning  Function 'isValidWasteContext' has a complexity of 16. Maximum allowed is 12      complexity
+  120:8  warning  Function 'createInventoryMovement' has a complexity of 47. Maximum allowed is 12  complexity
+
+/home/z/my-project/micro-repo-readonly/src/domain/owner-entitlement/policies.test.ts
+   28:38  warning  Arrow function has too many lines (250). Maximum allowed is 60  max-lines-per-function
+  201:93  warning  Arrow function has too many lines (65). Maximum allowed is 60   max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/src/domain/owner-entitlement/policies.ts
+  143:8  warning  Function 'createOwnerEntitlementPolicy' has a complexity of 29. Maximum allowed is 12          complexity
+  199:8  warning  Function 'createOwnerEntitlementRecord' has a complexity of 24. Maximum allowed is 12          complexity
+  256:8  warning  Function 'createOwnerEntitlementOpeningBalance' has a complexity of 13. Maximum allowed is 12  complexity
+  891:8  warning  Function 'isValidOwnerMovement' has a complexity of 18. Maximum allowed is 12                  complexity
+
+/home/z/my-project/micro-repo-readonly/src/domain/recurring-margin/policies.ts
+   57:8  warning  Function 'createAllocationPolicy' has too many lines (62). Maximum allowed is 60  max-lines-per-function
+   57:8  warning  Function 'createAllocationPolicy' has a complexity of 23. Maximum allowed is 12   complexity
+  381:8  warning  Function 'isValidAllocationPolicy' has a complexity of 28. Maximum allowed is 12  complexity
+
+/home/z/my-project/micro-repo-readonly/tests/domain/actual-time.test.ts
+  8:32  warning  Arrow function has too many lines (125). Maximum allowed is 60  max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/catalog.test.ts
+  8:33  warning  Arrow function has too many lines (118). Maximum allowed is 60  max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/craft-order-delivery-terms.test.ts
+  126:64  warning  Arrow function has too many lines (244). Maximum allowed is 60  max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/craft-order-g3.test.ts
+  81:88  warning  Arrow function has too many lines (134). Maximum allowed is 60  max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/craft-order.test.ts
+   97:37  warning  Arrow function has too many lines (491). Maximum allowed is 60  max-lines-per-function
+  799:86  warning  Arrow function has too many lines (86). Maximum allowed is 60   max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/financial-event.test.ts
+   16:41  warning  Arrow function has too many lines (610). Maximum allowed is 60  max-lines-per-function
+  344:96  warning  Arrow function has too many lines (69). Maximum allowed is 60   max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/g5.test.ts
+  61:28  warning  Arrow function has too many lines (327). Maximum allowed is 60  max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/inventory-material.test.ts
+  15:39  warning  Arrow function has too many lines (110). Maximum allowed is 60  max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/recurring-margin.test.ts
+  43:42  warning  Arrow function has too many lines (177). Maximum allowed is 60  max-lines-per-function
+  44:78  warning  Arrow function has too many lines (62). Maximum allowed is 60   max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/domain/shared.test.ts
+  18:42  warning  Arrow function has too many lines (105). Maximum allowed is 60  max-lines-per-function
+
+/home/z/my-project/micro-repo-readonly/tests/owner-entitlement.test.ts
+   55:38  warning  Arrow function has too many lines (334). Maximum allowed is 60  max-lines-per-function
+  241:93  warning  Arrow function has too many lines (66). Maximum allowed is 60   max-lines-per-function
+
+✖ 36 problems (0 errors, 36 warnings)
+
+
+> micro@0.1.0 format:check /home/z/my-project/micro-repo-readonly
+> prettier --check src tests apps/prototype-web/client/src
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> micro@0.1.0 text-density /home/z/my-project/micro-repo-readonly
+> python3 scripts/text-density-count.py
+
+OK  Home                       57 distinct at-rest strings (cap 59)
+OK  Finance                   261 distinct at-rest strings (cap 261)
+OK  OrderDetail               179 distinct at-rest strings (cap 179)
+OK  Orders                     77 distinct at-rest strings (cap 79)
+OK  DirectSaleEditor           81 distinct at-rest strings (cap 81)
+OK  DraftEditor                46 distinct at-rest strings (cap 47)
+OK  CostEditor                 58 distinct at-rest strings (cap 58)
+OK  AgreementEditor            61 distinct at-rest strings (cap 61)
+OK  Catalog                    91 distinct at-rest strings (cap 91)
+OK  InventoryMaterials         56 distinct at-rest strings (cap 56)
+OK  Market                     11 distinct at-rest strings (cap 13)
+OK  MaterialEditor             39 distinct at-rest strings (cap 39)
+OK  InventoryMovementEditor    61 distinct at-rest strings (cap 61)
+OK  SupplierPurchaseEditor     81 distinct at-rest strings (cap 81)
+OK  Suppliers                  21 distinct at-rest strings (cap 30)
+OK  Foundation                 29 distinct at-rest strings (cap 30)
+OK  Setup                      29 distinct at-rest strings (cap 30)
+OK  CashWallets                76 distinct at-rest strings (cap 76)
+OK  OwnerEntitlement           53 distinct at-rest strings (cap 53)
+OK  Schedule                   99 distinct at-rest strings (cap 99)
+OK  ScheduleEditor             44 distinct at-rest strings (cap 45)
+OK  OwnerWithdrawalEditor      30 distinct at-rest strings (cap 30)
+OK  G5DeclarationEditor        22 distinct at-rest strings (cap 30)
+OK  Profile                    28 distinct at-rest strings (cap 30)
+OK  CostCalculator             56 distinct at-rest strings (cap 59)
+OK  DeliveryReview             51 distinct at-rest strings (cap 51)
+OK  EstimateDetail             34 distinct at-rest strings (cap 36)
+OK  Tools                      21 distinct at-rest strings (cap 34)
+OK  Settings                   57 distinct at-rest strings (cap 57)
+OK  NotFound                    4 distinct at-rest strings (cap 30)
+OK  ToolsIntegrity             57 distinct at-rest strings (cap 57)
+OK  FinanceActivity            55 distinct at-rest strings (cap 55)
+OK  SharePreview               23 distinct at-rest strings (cap 24)
+OK  FinancialEventEditor      145 distinct at-rest strings (cap 145)
+OK  Statement                 205 distinct at-rest strings (cap 205)
+OK  Assets                     63 distinct at-rest strings (cap 63)
+OK  AssetEditor                55 distinct at-rest strings (cap 55)
+OK  AssetDetail                41 distinct at-rest strings (cap 41)
+OK  Loans                      71 distinct at-rest strings (cap 71)
+OK  LoanEditor                 37 distinct at-rest strings (cap 37)
+OK  LoanDetail                 73 distinct at-rest strings (cap 73)
+OK  CashAdjustmentEditor       26 distinct at-rest strings (cap 30)
+OK  CashCount                  22 distinct at-rest strings (cap 30)
+OK  CashDistribution           49 distinct at-rest strings (cap 49)
+OK  CashOpeningLaterEditor     25 distinct at-rest strings (cap 30)
+OK  CashReversalEditor         17 distinct at-rest strings (cap 30)
+OK  CashTransferEditor         28 distinct at-rest strings (cap 30)
+OK  CashWalletEditor           27 distinct at-rest strings (cap 30)
+OK  Collect                    46 distinct at-rest strings (cap 46)
+OK  InventoryReversalEditor    17 distinct at-rest strings (cap 30)
+OK  NewDraft                    0 distinct at-rest strings (cap 30)
+OK  Parties                    27 distinct at-rest strings (cap 30)
+OK  WalletLedger               40 distinct at-rest strings (cap 40)
+
+All surfaces within §10 caps.
+
+> micro@0.1.0 design-guards /home/z/my-project/micro-repo-readonly
+> python3 scripts/design-token-guards.py && python3 scripts/theme-contrast-guard.py && stylelint "apps/prototype-web/client/src/**/*.css"
+
+Design token guards (§9): no raw hex, all values on scale.
+Theme contrast guard (D5): 82 pairs pass — text >= 4.5:1, marks >= 3.0:1 in both themes.
+
+> micro@0.1.0 guards /home/z/my-project/micro-repo-readonly
+> node scripts/check-secrets.mjs && node scripts/check-test-focus.mjs && node scripts/check-entity-touchpoints.mjs && node scripts/check-runtime-cycles.mjs
+
+check-secrets: PASS — 1216 files scanned, 0 secret patterns
+check-test-focus: PASS — 227 test files, 0 .only/.skip occurrences
+check-entity-touchpoints: PASS — manifest covers every store, every declared path exists, every omission has a reason
+runtime-cycle-guard: 265 production files scanned, 0 runtime cycles (type-only edges ignored)
+
+> micro@0.1.0 test /home/z/my-project/micro-repo-readonly
+> vitest run
+
+
+ RUN  v4.1.11 /home/z/my-project/micro-repo-readonly
+
+ ✓ scripts/check-runtime-cycles.test.mjs (9 tests) 2885ms
+     ✓ exits 0 with a summary line on the live repo (type-only cycle ignored by design)  2015ms
+ ✓ scripts/check-layer-boundaries.test.mjs (17 tests) 1075ms
+     ✓ allows relative domain imports and blocks react, external packages, and dynamic imports  706ms
+ ✓ scripts/check-secrets.test.mjs (11 tests) 250ms
+ ✓ scripts/check-test-focus.test.mjs (8 tests) 186ms
+ ✓ scripts/check-entity-touchpoints.test.mjs (17 tests) 183ms
+ ✓ tests/domain/craft-order.test.ts (58 tests) 27ms
+ ✓ tests/domain/complex-six.characterization.test.ts (36 tests) 22ms
+ ✓ tests/domain/public-surface.test.ts (14 tests) 16ms
+ ✓ tests/domain/asset.test.ts (10 tests) 9ms
+ ✓ tests/domain/financial-event.test.ts (21 tests) 11ms
+ ✓ tests/domain/g5.test.ts (17 tests) 11ms
+ ✓ tests/domain/craft-order-delivery-terms.test.ts (13 tests) 11ms
+ ✓ src/domain/owner-entitlement/policies.test.ts (10 tests) 9ms
+ ✓ tests/domain/craft-order-corrections.test.ts (14 tests) 10ms
+ ✓ tests/domain/loan.test.ts (7 tests) 7ms
+ ✓ tests/owner-entitlement.test.ts (9 tests) 8ms
+ ✓ tests/domain/craft-order-g3.test.ts (7 tests) 9ms
+ ✓ tests/domain/inventory-material.test.ts (12 tests) 8ms
+ ✓ src/domain/direct-sale/policies.test.ts (13 tests) 8ms
+ ✓ tests/domain/craft-order-d031.test.ts (6 tests) 7ms
+ ✓ tests/domain/supplier-purchase-corrections.test.ts (9 tests) 8ms
+ ✓ tests/domain/cash-allocation.test.ts (6 tests) 5ms
+ ✓ tests/domain/expense-category-label.test.ts (5 tests) 7ms
+ ✓ tests/domain/shared.test.ts (4 tests) 6ms
+ ✓ tests/domain/recurring-margin.test.ts (9 tests) 7ms
+ ✓ tests/domain/waste-context.characterization.test.ts (5 tests) 6ms
+ ✓ tests/domain/craft-order-review-lock.test.ts (6 tests) 7ms
+ ✓ tests/domain/catalog.test.ts (5 tests) 6ms
+ ✓ tests/domain/amanah-loss.test.ts (6 tests) 5ms
+ ✓ tests/domain/businessTime.test.ts (5 tests) 6ms
+ ✓ tests/domain/quantity-characterization.test.ts (7 tests) 4ms
+ ✓ tests/domain/actual-time.test.ts (4 tests) 7ms
+ ✓ tests/domain/cash-continuity-source-ref.test.ts (8 tests) 5ms
+ ✓ tests/domain/rounding-boundaries.characterization.test.ts (6 tests) 5ms
+ ✓ tests/domain/exact-values.characterization.test.ts (9 tests) 5ms
+ ✓ tests/domain/cash-continuity.test.ts (1 test) 4ms
+
+ Test Files  36 passed (36)
+      Tests  404 passed (404)
+   Start at  12:08:52
+   Duration  11.62s (transform 820ms, setup 0ms, import 2.39s, tests 4.84s, environment 3ms)
+
+
+> micro@0.1.0 prototype:check /home/z/my-project/micro-repo-readonly
+> pnpm --filter @micro/prototype-web check
+
+
+> @micro/prototype-web@1.0.0 check /home/z/my-project/micro-repo-readonly/apps/prototype-web
+> tsc --noEmit
+
+
+> micro@0.1.0 prototype:test /home/z/my-project/micro-repo-readonly
+> pnpm --filter @micro/prototype-web test
+
+
+> @micro/prototype-web@1.0.0 test /home/z/my-project/micro-repo-readonly/apps/prototype-web
+> vitest run
+
+
+ RUN  v4.1.11 /home/z/my-project/micro-repo-readonly/apps/prototype-web
+
+ ✓ client/src/application/transfers/localTransferService.test.ts (30 tests) 72ms
+ ✓ client/src/application/finance/integrityCheckService.test.ts (32 tests) 69ms
+ ✓ client/src/application/collections/collectionReversalService.test.ts (10 tests) 27ms
+ ✓ client/src/application/finance/projectFinancialService.test.ts (46 tests) 51ms
+ ✓ client/src/application/inventory/inventoryMaterialService.test.ts (27 tests) 33ms
+ ✓ client/src/group2InventorySurfaces.test.tsx (18 tests) 932ms
+ ✓ client/src/storage/local/adapterConformance.group10.test.ts (2 tests) 99ms
+ ✓ client/src/G3.dom.test.tsx (12 tests) 851ms
+ ✓ client/src/storage/local/IndexedDbLocalStore.test.ts (18 tests) 74ms
+ ✓ client/src/application/transfers/localTransferService.releasedPairs.test.ts (19 tests) 31ms
+ ✓ client/src/G3Hardening.dom.test.tsx (6 tests) 617ms
+ ✓ client/src/Settings.lockGate.dom.test.tsx (14 tests) 2057ms
+ ✓ client/src/application/fulfillment/fulfillmentService.test.ts (24 tests) 43ms
+ ✓ client/src/application/finance/statementService.test.ts (12 tests) 23ms
+ ✓ client/src/application/finance/ownerEntitlementService.test.ts (14 tests) 23ms
+ ✓ client/src/application/home/homeControlCenterService.test.ts (16 tests) 27ms
+ ✓ client/src/application/fulfillment/deliveryReviewService.test.ts (12 tests) 34ms
+ ✓ client/src/pages/FinancialEventEditor.guided.test.tsx (12 tests) 1383ms
+     ✓ shows derived category suggestions and commits a selected chip through save  302ms
+ ✓ client/src/application/g5/g5Service.test.ts (12 tests) 27ms
+ ✓ client/src/G6.dom.test.tsx (7 tests) 654ms
+     ✓ full match: compound action moves wallet + keeps unallocated net, refusal hidden, honest preview dims  305ms
+ ✓ client/src/OrdJourneys.dom.test.tsx (9 tests) 653ms
+ ✓ client/src/application/finance/correctionHistoryService.test.ts (8 tests) 20ms
+ ✓ client/src/application/scheduling/scheduleService.test.ts (13 tests) 35ms
+ ✓ client/src/application/supplierScheduleConcurrency.test.ts (10 tests) 17ms
+ ✓ client/src/storage/local/deliveryReversalCommitGuard.test.ts (26 tests) 13ms
+ ✓ client/src/application/direct-sales/directSaleService.test.ts (16 tests) 58ms
+ ✓ client/src/application/collections/collectionService.test.ts (9 tests) 19ms
+ ✓ client/src/application/supplierScheduleStaleResults.test.ts (11 tests) 19ms
+ ✓ client/src/application/finance/unallocatedDistribution.test.ts (12 tests) 18ms
+ ✓ client/src/components/primitives/primitives.test.tsx (40 tests) 150ms
+ ✓ client/src/storage/local/IndexedDbLocalStore.group2.test.ts (8 tests) 87ms
+ ✓ client/src/storage/local/adapterConformance.test.ts (2 tests) 22ms
+ ✓ client/src/storage/local/adapterDeliveryReversal.test.ts (3 tests) 44ms
+ ✓ client/src/application/transfers/localTransferService.schema32.test.ts (3 tests) 25ms
+ ✓ client/src/application/assets/assetService.test.ts (14 tests) 18ms
+ ✓ client/src/application/transfers/localTransferService.schema34.test.ts (8 tests) 23ms
+ ✓ client/src/G4RetainedDeposit.dom.test.tsx (5 tests) 674ms
+ ✓ client/src/app/routeKnowledgeSync.test.ts (5 tests) 14ms
+ ✓ client/src/pages/Setup.ui.test.tsx (9 tests) 361ms
+ ✓ client/src/application/recurring-work/recurringWorkService.test.ts (6 tests) 18ms
+ ✓ client/src/storage/local/supplierScheduleCommitGuard.test.ts (25 tests) 6ms
+ ✓ client/src/G2.dom.test.tsx (7 tests) 263ms
+ ✓ client/src/application/activity/activityService.test.ts (7 tests) 10ms
+ ✓ client/src/CashJourneys.dom.test.tsx (8 tests) 305ms
+ ✓ client/src/G4Assets.dom.test.tsx (6 tests) 454ms
+ ✓ client/src/application/catalog/catalogCore.test.ts (7 tests) 21ms
+ ✓ client/src/D005.dom.test.tsx (3 tests) 808ms
+     ✓ edits an event atomically from a prefilled form and requires a reason  315ms
+     ✓ deletes an event as a documented reversal and restores the original values on demand  318ms
+ ✓ client/src/application/suppliers/supplierPurchaseService.test.ts (5 tests) 15ms
+ ✓ scripts/check-bundle-budget.test.mjs (18 tests) 304ms
+ ✓ client/src/G3Delivery.dom.test.tsx (3 tests) 231ms
+ ✓ client/src/pages/Profile.ui.test.tsx (9 tests) 286ms
+ ✓ client/src/pages/SupplierPurchaseEditor.ui.test.tsx (5 tests) 379ms
+ ✓ client/src/pages/Orders.ui.test.tsx (8 tests) 248ms
+ ✓ client/src/Nav001.dom.test.tsx (7 tests) 721ms
+     ✓ home hosts the quick-recording row and the sale sheet opens in place over it  387ms
+ ✓ client/src/application/suppliers/supplierPurchaseService.wallet.test.ts (6 tests) 21ms
+ ✓ client/src/application/transfers/localTransferService.schema31.test.ts (5 tests) 29ms
+ ✓ client/src/application/finance/retainedDepositService.test.ts (8 tests) 15ms
+ ✓ client/src/application/finance/projectFinancialService.category.test.ts (5 tests) 11ms
+ ✓ client/src/styles/vf-tokens.test.ts (18 tests) 11ms
+ ✓ client/src/Ops001MovementSelection.dom.test.tsx (5 tests) 251ms
+ ✓ client/src/G4Loans.dom.test.tsx (5 tests) 417ms
+ ✓ client/src/storage/local/IndexedDbLocalStore.delivery.test.ts (2 tests) 22ms
+ ✓ client/src/application/transfers/ownerEntitlementTransfer.test.ts (5 tests) 24ms
+ ✓ client/src/application/preferences/preferencesFieldPreservation.test.ts (3 tests) 6ms
+ ✓ client/src/exact-values.cross-surface.test.ts (6 tests) 11ms
+ ✓ client/src/EventsLayer.familyGuard.dom.test.tsx (3 tests) 291ms
+ ✓ client/src/group6Docs.test.ts (8 tests) 11ms
+ ✓ client/src/QuickFormsNotify.dom.test.tsx (3 tests) 290ms
+ ✓ client/src/FinanceJourneys.dom.test.tsx (3 tests) 280ms
+ ✓ client/src/application/drafts/legacyFormDraftMigration.test.ts (10 tests) 7ms
+ ✓ client/src/pages/DirectSaleEditor.ui.test.tsx (3 tests) 290ms
+ ✓ client/src/QuickExpenseSource.dom.test.tsx (5 tests) 371ms
+ ✓ client/src/application/agreements/agreementContextService.test.ts (5 tests) 9ms
+ ✓ client/src/group1Surfaces.test.tsx (4 tests) 108ms
+ ✓ client/src/application/transfers/localTransferService.envelope27.test.ts (8 tests) 15ms
+ ✓ client/src/U07.dom.test.tsx (3 tests) 356ms
+ ✓ client/src/application/finance/projectFinancialService.evidence.test.ts (5 tests) 36ms
+ ✓ client/src/application/security/localLockService.test.ts (9 tests) 449ms
+ ✓ client/src/application/cash/cashContinuityService.test.ts (4 tests) 13ms
+ ✓ client/src/U001.dom.test.tsx (2 tests) 243ms
+ ✓ client/src/Home.dom.test.tsx (5 tests) 256ms
+ ✓ client/src/application/estimates/costEstimateService.test.ts (8 tests) 15ms
+ ✓ client/src/storage/local/IndexedDbLocalStore.group4.test.ts (5 tests) 39ms
+ ✓ client/src/application/transfers/catalogCoreTransfer.test.ts (4 tests) 20ms
+ ✓ client/src/storage/local/OwnerEntitlementStorage.test.ts (3 tests) 23ms
+ ✓ client/src/application/loans/loanService.test.ts (8 tests) 16ms
+ ✓ client/src/application/time/actualTimeService.test.ts (4 tests) 12ms
+ ✓ client/src/application/diagnostics/localDiagnosticsService.test.ts (10 tests) 18ms
+ ✓ client/src/application/reentrancyGuards.test.ts (4 tests) 11ms
+ ✓ client/src/R2.renderSmoke.test.tsx (3 tests) 6572ms
+     ✓ light theme: all registered routes render without crashing  2292ms
+     ✓ dark theme: all registered routes render without crashing (real preference path)  2253ms
+     ✓ keyboard operability: interactive elements are native controls and Tab reaches the create FAB  2013ms
+ ✓ client/src/G3Cash.dom.test.tsx (3 tests) 335ms
+ ✓ client/src/U004.dom.test.tsx (2 tests) 142ms
+ ✓ client/src/FinanceEmptyTruth.dom.test.tsx (2 tests) 165ms
+ ✓ client/src/application/fulfillment/deliveryReversalStaleResults.test.ts (2 tests) 8ms
+ ✓ client/src/application/drafts/draftService.test.ts (10 tests) 13ms
+ ✓ client/src/U06.dom.test.tsx (7 tests) 350ms
+ ✓ client/src/application/finance/statementMarkdownService.test.ts (3 tests) 4ms
+ ✓ client/src/Set003Capabilities.dom.test.tsx (4 tests) 187ms
+ ✓ client/src/application/fulfillment/reviewLockBoundary.test.ts (3 tests) 8ms
+ ✓ client/src/presentation/stateAdapter.test.ts (16 tests) 6ms
+ ✓ client/src/application/catalog/catalogService.test.ts (6 tests) 10ms
+ ✓ client/src/group3Docs.test.ts (9 tests) 6ms
+ ✓ client/src/components/ErrorBoundary.dom.test.tsx (5 tests) 125ms
+ ✓ client/src/ToolsIntegrity.ui.test.tsx (2 tests) 181ms
+ ✓ client/src/application/preferences/preferenceService.test.ts (6 tests) 7ms
+ ✓ client/src/U01.dom.test.tsx (5 tests) 176ms
+ ✓ client/src/application/agreements/agreementService.test.ts (4 tests) 19ms
+ ✓ client/src/application/finance/projectFinancialService.familyContexts.test.ts (4 tests) 11ms
+ ✓ client/src/application/inventory/materialSuggestions.test.ts (6 tests) 7ms
+ ✓ client/src/application/finance/projectFinancialService.redelivery.test.ts (3 tests) 8ms
+ ✓ client/src/pages/FinancialEventEditor.ui.test.tsx (3 tests) 575ms
+ ✓ client/src/pages/Catalog.ui.test.ts (10 tests) 7ms
+ ✓ client/src/application/fulfillment/deliveryAttribution.test.ts (6 tests) 6ms
+ ✓ client/src/application/transfers/guidedOpeningImportService.g82.test.ts (7 tests) 11ms
+ ✓ client/src/application/home/homeControlCenterModel.test.ts (7 tests) 6ms
+ ✓ client/src/application/finance/periodResultCanonical.test.ts (4 tests) 15ms
+ ✓ client/src/presentation/formatters.test.ts (15 tests) 9ms
+ ✓ client/src/components/brand/BrandLaunchSplash.test.tsx (8 tests) 66ms
+ ✓ client/src/application/transfers/localTransferService.familyOrphan.test.ts (4 tests) 16ms
+ ✓ client/src/application/finance/expenseRecordIntent.test.ts (10 tests) 5ms
+ ✓ client/src/Set003SettingsSection.dom.test.tsx (1 test) 159ms
+ ✓ client/src/group2ClosureDocs.test.ts (6 tests) 5ms
+ ✓ client/src/group5Docs.test.ts (7 tests) 6ms
+ ✓ client/src/application/transfers/localTransferService.schema29.test.ts (3 tests) 17ms
+ ✓ client/src/application/fulfillment/deliveryReviewService.lockedReview.test.ts (3 tests) 8ms
+ ✓ client/src/components/layout/QuickActionSheet.guard.test.tsx (5 tests) 587ms
+ ✓ client/src/application/parties/partyLedgerService.customerName.test.ts (4 tests) 7ms
+ ✓ client/src/application/drafts/formDraftService.test.ts (13 tests) 14ms
+ ✓ client/src/pages/Foundation.ui.test.tsx (4 tests) 227ms
+ ✓ client/src/PartiesLedger.dom.test.tsx (3 tests) 135ms
+ ✓ client/src/exact-values.characterization.test.ts (9 tests) 7ms
+ ✓ client/src/components/layout/QuickActionSheet.category.test.tsx (3 tests) 488ms
+ ✓ client/src/pwa/register.dom.test.ts (6 tests) 19ms
+ ✓ client/src/U05.dom.test.tsx (1 test) 241ms
+ ✓ client/src/application/parties/partyLedgerService.visibility.test.ts (4 tests) 7ms
+ ✓ client/src/application/cash/walletLedgerService.test.ts (3 tests) 5ms
+ ✓ client/src/G5Activity.dom.test.tsx (3 tests) 152ms
+ ✓ client/src/U11.dom.test.tsx (1 test) 189ms
+ ✓ client/src/app/navigationContract.test.ts (14 tests) 6ms
+ ✓ client/src/application/transfers/localTransferService.schema33.test.ts (1 test) 14ms
+ ✓ client/src/R3.themeBehavior.test.tsx (3 tests) 2407ms
+     ✓ a fresh profile opens light even when the OS prefers dark  671ms
+     ✓ the settings toggle switches to dark and persists across a full remount  1031ms
+     ✓ switching back to light is persisted too  694ms
+ ✓ client/src/components/forms/UnsavedChangesGuard.history.test.tsx (5 tests) 291ms
+ ✓ client/src/presentation/businessTime.characterization.test.ts (9 tests) 5ms
+ ✓ client/src/U005.dom.test.tsx (2 tests) 185ms
+ ✓ client/src/application/financial-pulse/financialPulseService.test.ts (3 tests) 13ms
+ ✓ client/src/application/cost/costService.test.ts (6 tests) 9ms
+ ✓ client/src/R1.orderDetailVoid.test.tsx (3 tests) 117ms
+ ✓ client/src/application/share/shareMessageService.test.ts (5 tests) 6ms
+ ✓ client/src/application/transfers/guidedOpeningImportService.test.ts (6 tests) 9ms
+ ✓ client/src/components/forms/useFormDirty.dom.test.tsx (4 tests) 46ms
+ ✓ client/src/components/brand/BrandMigrationGate.test.ts (6 tests) 9ms
+ ✓ client/src/R2.keyboardFocus.test.tsx (3 tests) 246ms
+ ✓ client/src/application/input/englishNumeric.test.ts (7 tests) 6ms
+ ✓ client/src/storage/local/CatalogCoreStorage.test.ts (2 tests) 28ms
+ ✓ client/src/application/transfers/localTransferService.directSaleRoundTrip.test.ts (2 tests) 17ms
+ ✓ client/src/application/owner/ownerProfileService.test.ts (6 tests) 8ms
+ ✓ client/src/R2.financeActivityVoid.test.tsx (3 tests) 147ms
+ ✓ client/src/group4Docs.test.ts (6 tests) 4ms
+ ✓ client/src/components/brand/BrandMark.test.tsx (8 tests) 73ms
+ ✓ client/src/components/forms/UnsavedChangesGuard.saveFailure.dom.test.tsx (2 tests) 114ms
+ ✓ client/src/pwa/PwaRuntimeNotice.dom.test.tsx (4 tests) 107ms
+ ✓ client/src/application/finance/expenseCategorySuggestions.test.ts (5 tests) 4ms
+ ✓ client/src/pages/Catalog.operationKey.test.ts (5 tests) 5ms
+ ✓ client/src/application/follow-up/dailyFollowUpService.test.ts (4 tests) 4ms
+ ✓ client/src/storage/local/IndexedDbLocalStore.open-count.test.ts (2 tests) 21ms
+ ✓ client/src/legacyClassCensus.test.ts (2 tests) 22ms
+ ✓ client/src/U10.dom.test.tsx (2 tests) 125ms
+ ✓ client/src/storage/local/persistentStorage.test.ts (6 tests) 5ms
+ ✓ client/src/application/input/englishNumeric.exact.test.ts (5 tests) 4ms
+ ✓ client/src/U09.css.test.ts (4 tests) 3ms
+ ✓ client/src/components/forms/UnsavedChangesGuard.dirtyBridge.dom.test.tsx (2 tests) 26ms
+ ✓ client/src/components/layout/QuickActionSheet.test.ts (7 tests) 4ms
+ ✓ client/src/application/input/englishNumeric.normalize.test.ts (5 tests) 4ms
+ ✓ client/src/app/routeClassifier.test.ts (3 tests) 5ms
+ ✓ client/src/presentation/orderAgreementPresentation.test.ts (3 tests) 4ms
+ ✓ client/src/presentation/plurals.test.ts (4 tests) 3ms
+ ✓ client/src/pages/OwnerEntitlement.ui.test.ts (3 tests) 5ms
+ ✓ client/src/app/navigation.test.ts (4 tests) 4ms
+ ✓ client/src/application/scheduling/capacityDecisionViewModel.test.ts (5 tests) 4ms
+ ✓ client/src/pwa/install.test.ts (5 tests) 4ms
+ ✓ client/src/application/identity/buildIdentity.test.ts (4 tests) 3ms
+ ✓ client/src/application/profile/profileService.test.ts (2 tests) 5ms
+ ✓ client/src/application/agreements/agreementPrice.test.ts (4 tests) 3ms
+ ✓ client/src/presentation/cashCountMessages.test.ts (3 tests) 4ms
+ ✓ client/src/app/StartupGate.recovery.test.ts (3 tests) 3ms
+ ✓ client/src/components/forms/UnsavedChangesGuard.test.ts (5 tests) 5ms
+ ✓ client/src/application/scheduling/capacityDecisionService.test.ts (5 tests) 5ms
+ ✓ client/src/components/forms/EnglishQuantityInput.test.ts (4 tests) 4ms
+ ✓ client/src/application/agreements/followUpDate.test.ts (3 tests) 3ms
+ ✓ client/src/application/inventory/inventoryMovementRoute.test.ts (2 tests) 5ms
+ ✓ client/src/pages/OwnerWithdrawalEditor.ui.test.ts (2 tests) 3ms
+
+ Test Files  191 passed (191)
+      Tests  1353 passed (1353)
+   Start at  12:09:17
+   Duration  106.01s (transform 6.10s, setup 0ms, import 28.71s, tests 32.96s, environment 20.70s)
+
+
+> micro@0.1.0 prototype:build /home/z/my-project/micro-repo-readonly
+> pnpm --filter @micro/prototype-web build
+
+
+> @micro/prototype-web@1.0.0 build /home/z/my-project/micro-repo-readonly/apps/prototype-web
+> vite build && node scripts/check-bundle-budget.mjs
+
+vite v7.3.6 building client environment for production...
+(!) %VITE_ANALYTICS_*% is not defined in env variables found in /index.html. Is the variable mistyped?
+transforming...
+✓ 1900 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/manifest.webmanifest                             0.62 kB
+../dist/public/index.html                                       3.00 kB │ gzip:   1.35 kB
+../dist/public/.vite/manifest.json                             33.03 kB │ gzip:   3.39 kB
+../dist/public/assets/index-lOjXQ8fR.css                      163.58 kB │ gzip:  23.78 kB
+../dist/public/assets/useReturnNavigation-BNbbivSX.js           0.26 kB │ gzip:   0.20 kB
+../dist/public/assets/NewDraft-BlskLvPR.js                      0.28 kB │ gzip:   0.22 kB
+../dist/public/assets/useFormDirty-BYZNkzS6.js                  0.29 kB │ gzip:   0.22 kB
+../dist/public/assets/DecisionPanel-cCrAtOO5.js                 0.48 kB │ gzip:   0.30 kB
+../dist/public/assets/expenseCategorySuggestions-CXIt4qzi.js    0.49 kB │ gzip:   0.37 kB
+../dist/public/assets/ChoiceRow-M8qr_fDU.js                     0.50 kB │ gzip:   0.29 kB
+../dist/public/assets/EmptyState-C3mIqe5H.js                    0.63 kB │ gzip:   0.29 kB
+../dist/public/assets/NotFound-BrL1Hrgd.js                      0.70 kB │ gzip:   0.46 kB
+../dist/public/assets/markers-BFOYbt6X.js                       0.71 kB │ gzip:   0.33 kB
+../dist/public/assets/LocalDateField-CC34kNQU.js                0.73 kB │ gzip:   0.47 kB
+../dist/public/assets/materialSuggestions-BnlS5y-b.js           0.84 kB │ gzip:   0.53 kB
+../dist/public/assets/textDelivery-8uyUB71H.js                  0.89 kB │ gzip:   0.42 kB
+../dist/public/assets/plurals-CURjfqg0.js                       0.89 kB │ gzip:   0.34 kB
+../dist/public/assets/Notice-D5r1NApY.js                        0.98 kB │ gzip:   0.43 kB
+../dist/public/assets/RestatementNote-2xY2ML_W.js               1.07 kB │ gzip:   0.60 kB
+../dist/public/assets/resultFeedback-duNG-5eF.js                1.13 kB │ gzip:   0.57 kB
+../dist/public/assets/DisplayValue-w7HLt4t8.js                  1.32 kB │ gzip:   0.45 kB
+../dist/public/assets/EnglishQuantityInput-BSBf-OyV.js          1.36 kB │ gzip:   0.76 kB
+../dist/public/assets/legacyFormDraftMigration-Dn1M1wBk.js      1.44 kB │ gzip:   0.70 kB
+../dist/public/assets/g5Plurals-Ds58yZaw.js                     1.71 kB │ gzip:   0.52 kB
+../dist/public/assets/Market-V__pAuEs.js                        2.03 kB │ gzip:   0.98 kB
+../dist/public/assets/CorrectionPreview-DNLKY2a5.js             2.40 kB │ gzip:   1.02 kB
+../dist/public/assets/StatusChip-CyYiYAFy.js                    2.41 kB │ gzip:   0.70 kB
+../dist/public/assets/drawer-CTbtzF0u.js                        2.84 kB │ gzip:   0.84 kB
+../dist/public/assets/SharePreview-AI3SEJCh.js                  2.91 kB │ gzip:   1.31 kB
+../dist/public/assets/useFormDraft-DTXYdUVl.js                  2.96 kB │ gzip:   1.45 kB
+../dist/public/assets/RepaymentSheet-B0gD-xFa.js                3.09 kB │ gzip:   1.45 kB
+../dist/public/assets/InventoryReversalEditor-BDTvLTI8.js       3.16 kB │ gzip:   1.50 kB
+../dist/public/assets/CashWalletEditor-n1GbITdp.js              3.83 kB │ gzip:   1.70 kB
+../dist/public/assets/Assets-CIAPagKC.js                        4.12 kB │ gzip:   1.81 kB
+../dist/public/assets/CashAdjustmentEditor-CtrvKJ2G.js          4.13 kB │ gzip:   1.84 kB
+../dist/public/assets/CashReversalEditor-DXOuK34X.js            4.15 kB │ gzip:   1.98 kB
+../dist/public/assets/Loans-BRgMb2Ae.js                         4.21 kB │ gzip:   1.85 kB
+../dist/public/assets/Suppliers-bLeg1UO3.js                     4.91 kB │ gzip:   1.72 kB
+../dist/public/assets/CashTransferEditor-Cheed4gZ.js            4.98 kB │ gzip:   1.99 kB
+../dist/public/assets/WalletLedger-Bg4l92_v.js                  5.09 kB │ gzip:   2.22 kB
+../dist/public/assets/CashOpeningLaterEditor-BdCkXwsd.js        5.32 kB │ gzip:   2.29 kB
+../dist/public/assets/CashCount-DRsvEdk1.js                     5.53 kB │ gzip:   2.23 kB
+../dist/public/assets/LoanEditor-ByJGKXop.js                    5.55 kB │ gzip:   2.41 kB
+../dist/public/assets/workbox-window.prod.es5-BBnX5xw4.js       5.75 kB │ gzip:   2.36 kB
+../dist/public/assets/G5DeclarationEditor-B8cBQzxZ.js           5.84 kB │ gzip:   2.43 kB
+../dist/public/assets/ToolsIntegrity-DHDHEuUX.js                6.00 kB │ gzip:   2.40 kB
+../dist/public/assets/Parties-zKfh00Qo.js                       6.09 kB │ gzip:   2.33 kB
+../dist/public/assets/CashDistribution-DBql0v3M.js              6.16 kB │ gzip:   2.58 kB
+../dist/public/assets/OwnerWithdrawalEditor--mzhc4lj.js         6.45 kB │ gzip:   2.62 kB
+../dist/public/assets/EstimateDetail--KCl8Wfv.js                6.60 kB │ gzip:   2.49 kB
+../dist/public/assets/FinanceActivity-Z-ISuE9J.js               6.85 kB │ gzip:   2.88 kB
+../dist/public/assets/LoanDetail-CCyhPZZp.js                    7.15 kB │ gzip:   2.67 kB
+../dist/public/assets/Tools-CgXXkZD2.js                         7.42 kB │ gzip:   2.64 kB
+../dist/public/assets/Profile-n3H8RLXL.js                       7.46 kB │ gzip:   2.60 kB
+../dist/public/assets/AssetEditor-DIZxCtH7.js                   7.94 kB │ gzip:   3.15 kB
+../dist/public/assets/CashWallets-CYAUfhFN.js                   7.99 kB │ gzip:   2.66 kB
+../dist/public/assets/ScheduleEditor-BnEf0lYA.js                8.43 kB │ gzip:   2.86 kB
+../dist/public/assets/Orders-CQQr1nDz.js                        9.66 kB │ gzip:   3.13 kB
+../dist/public/assets/Setup-C7I9OANV.js                         9.66 kB │ gzip:   3.60 kB
+../dist/public/assets/Collect-2N_5BA43.js                      10.73 kB │ gzip:   3.95 kB
+../dist/public/assets/Foundation-C7qvyest.js                   11.22 kB │ gzip:   3.13 kB
+../dist/public/assets/DraftEditor-P6loX5iK.js                  11.45 kB │ gzip:   4.18 kB
+../dist/public/assets/AssetDetail-b6bi4oot.js                  12.56 kB │ gzip:   4.00 kB
+../dist/public/assets/CostCalculator-45IX9rDc.js               13.09 kB │ gzip:   4.29 kB
+../dist/public/assets/DeliveryReview-BO6BjNFV.js               13.31 kB │ gzip:   4.46 kB
+../dist/public/assets/MaterialEditor-fRFY5Y8r.js               13.36 kB │ gzip:   3.70 kB
+../dist/public/assets/Home-NK0xKhdc.js                         13.64 kB │ gzip:   3.82 kB
+../dist/public/assets/AgreementEditor-jwLEuU7L.js              16.13 kB │ gzip:   4.88 kB
+../dist/public/assets/QuickActionSheet-CiUKU29k.js             16.79 kB │ gzip:   5.52 kB
+../dist/public/assets/InventoryMaterials-CWesrfzy.js           17.03 kB │ gzip:   5.02 kB
+../dist/public/assets/CostEditor-Cy-oX733.js                   17.92 kB │ gzip:   5.82 kB
+../dist/public/assets/Statement-MKoQdsoh.js                    21.47 kB │ gzip:   5.85 kB
+../dist/public/assets/DirectSaleEditor-D6Yz3pmk.js             21.87 kB │ gzip:   7.18 kB
+../dist/public/assets/InventoryMovementEditor-b3wLYjRf.js      24.44 kB │ gzip:   6.51 kB
+../dist/public/assets/SupplierPurchaseEditor-BM09TDnO.js       25.26 kB │ gzip:   6.78 kB
+../dist/public/assets/iconography-DATiNW5T.js                  25.82 kB │ gzip:   7.82 kB
+../dist/public/assets/Schedule-Vxe_1Xsd.js                     25.98 kB │ gzip:   7.13 kB
+../dist/public/assets/EnglishNumberInput-DeGCgFlz.js           28.30 kB │ gzip:   9.13 kB
+../dist/public/assets/interaction-runtime-BHsuzWF6.js          29.09 kB │ gzip:   8.90 kB
+../dist/public/assets/FinancialEventEditor-BB4MpA6b.js         29.23 kB │ gzip:   9.08 kB
+../dist/public/assets/radix-runtime-Bn-oMfrd.js                38.08 kB │ gzip:  12.94 kB
+../dist/public/assets/Settings-CO4PpDbB.js                     41.23 kB │ gzip:  11.65 kB
+../dist/public/assets/OwnerEntitlement-B-VEZgWC.js             45.29 kB │ gzip:  10.48 kB
+../dist/public/assets/Catalog-Dgawryw9.js                      55.92 kB │ gzip:  14.39 kB
+../dist/public/assets/OrderDetail-N7cRvZi7.js                  70.09 kB │ gzip:  17.48 kB
+../dist/public/assets/Finance-Bztugl5I.js                      77.47 kB │ gzip:  18.72 kB
+../dist/public/assets/react-runtime-D-o6Z9it.js               198.16 kB │ gzip:  62.91 kB
+../dist/public/assets/index-Dv2NzdKB.js                       644.02 kB │ gzip: 154.60 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.39s
+
+PWA v1.3.0
+mode      generateSW
+precache  166 entries (2265.52 KiB)
+files generated
+  ../dist/public/sw.js
+  ../dist/public/workbox-2fbc6a65.js
+bundle-budget: dist=/home/z/my-project/micro-repo-readonly/apps/prototype-web/dist/public
+bundle-budget: entry=assets/index-Dv2NzdKB.js
+bundle-budget: raw=644022 bytes (limit 650000 decimal bytes — D-034 "650 KB")
+bundle-budget: gzip=154187 bytes (zlib level 9, limit 155000 — Vite console shows level 6)
+bundle-budget: node=v24.19.0 zlib=1.3.2.1-motley-3246f1b
+bundle-budget: PASS

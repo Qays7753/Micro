@@ -232,6 +232,75 @@ describe("G4 retained deposit decision surface (المجموعة ٤ — عقد �
     });
   });
 
+  it("EXE-004: a second equal partial refund in the same session records a second independent event — no silent swallow", async () => {
+    /* نفس بذرة الرد الجزئي أعلاه — طلب ملغى بعربون 50.00 معلق. */
+    const snapshot = calculateCostSnapshot("snap-exe004", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: NOW,
+      source: "price_approval",
+    });
+    let order: CraftOrder = createCraftOrder({
+      id: "order-exe004",
+      customerName: "نور",
+      itemName: "طوق",
+      specifications: "تطريز",
+      quantity: 1,
+      agreedPriceMinor: 10000,
+      costSnapshot: snapshot,
+      createdAt: NOW,
+    });
+    order = collectDeposit(order, 5000, "order-exe004:dep", NOW);
+    order = cancelOrder(order, "العميلة ألغت", "order-exe004:cancel", NOW);
+    const stored: StoredCraftOrder = {
+      id: "order-exe004",
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-09-01",
+      agreementSource: "whatsapp",
+      createdAt: NOW,
+      updatedAt: NOW,
+    };
+    await store.saveOrder(stored);
+    wouterMocks.params = { id: "order-exe004" };
+    render(<Harness page={<OrderDetail />} />);
+    await screen.findByTestId("deposit-settlement-preview");
+    /* الرد الجزئي الأول: 20.00. */
+    fireEvent.change(screen.getByLabelText(/مبلغ التسوية/), { target: { value: "20" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: رد العربون نقدًا في المحل"), {
+      target: { value: "رد جزئي متفق" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /رُدَّ العربون/ }));
+    await waitFor(async () => {
+      const orders = await store.listOrders();
+      const row = orders.ok ? orders.value.find(candidate => candidate.id === "order-exe004") : null;
+      expect(row?.order.depositCollectedMinor).toBe(3000);
+    });
+    /* الرد الجزئي الثاني بالسبب نفسه وطوله والمبلغ نفسه: الاشتقاق القديم
+     * (مبلغ+طول سبب+ساعة) كان يبتلعه بصمت؛ لوحة التسوية الآن تمنح كل تأكيد
+     * مفتاحه — حدث ثانٍ مستقل والباقي 10.00. */
+    await waitFor(() => expect(screen.getByTestId("deposit-settlement-preview")).toBeTruthy());
+    fireEvent.change(screen.getByLabelText(/مبلغ التسوية/), { target: { value: "20" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: رد العربون نقدًا في المحل"), {
+      target: { value: "رد جزئي متفق" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /رُدَّ العربون/ }));
+    await waitFor(async () => {
+      const orders = await store.listOrders();
+      const row = orders.ok ? orders.value.find(candidate => candidate.id === "order-exe004") : null;
+      expect(row?.order.depositCollectedMinor).toBe(1000);
+      const refunded = row?.order.events.filter(event => event.type === "deposit_refunded") ?? [];
+      expect(refunded).toHaveLength(2);
+      expect(new Set(refunded.map(event => event.idempotencyKey)).size).toBe(2);
+    });
+  });
+
   it("reclassifies to owner money through a documented correction", async () => {
     await seedCancelledRetainedOrder();
     render(<Harness page={<OrderDetail />} />);

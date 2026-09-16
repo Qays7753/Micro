@@ -123,6 +123,12 @@ export default function CashDistribution() {
       setMessage(result.message);
       return false;
     }
+    /* EXE-001 (AUD-NEW-01): إعادة إرسال التأكيد نفسه ليست توزيعًا جديدًا —
+     * رسالة صادقة بلا ادعاء نجاح جديد فوق كتابة لم تحدث. */
+    if (result.reused) {
+      setMessage("هذا التوزيع نفسه سُجّل سابقًا — لم يُنشأ قيد جديد بهذا التأكيد.");
+      return true;
+    }
     notifyDataChanged();
     setMessage(
       direction === "into_wallet"
@@ -131,6 +137,10 @@ export default function CashDistribution() {
     );
     setAmountMinor(0);
     setNote("");
+    /* EXE-001: كل تأكيد مقصود بعد نجاح سابق يملك مفتاح عملية جديدًا — الزيارة
+     * الواحدة تستقبل توزيعات متتابعة، بينما يظل النقر المزدوج على التأكيد
+     * الواحد محتميًا بالمفتاح نفسه حتى يكتمل نجاحه فيُجدد. */
+    operationKeyRef.current = `cash-distribute-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
     return true;
   }
 

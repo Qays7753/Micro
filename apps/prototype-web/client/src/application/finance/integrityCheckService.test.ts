@@ -6,9 +6,12 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import { createCashContinuityEntry, SOURCE_REF_KINDS } from "@micro-domain/cash-continuity/index.js";
+import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
+import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
 const now = () => "2026-09-03T09:00:00.000Z";
@@ -1090,5 +1093,120 @@ describe("TOOL-001 — dynamic count and unavailable honesty", () => {
     const unavailable = report.checks.filter(check => check.status === "UNAVAILABLE");
     expect(unavailable.length).toBeGreaterThan(0);
     expect(report.checks).toHaveLength(service.registeredCheckCount());
+  });
+});
+
+/* EXE-003 (AUD-NEW-03): MIC-2 يستورد أنواع المصادر القانونية من الدومين —
+ * دفعة مورد من محفظة (مسار FIN-003) لم تعد فشلًا زائفًا، وكل نوع دومين
+ * قانوني مفهوم للفحص (حرس تقاطع)، والمصدر غير القانوني يبقى خللًا بنيويًا. */
+describe("EXE-003 — MIC-2 consumes domain source kinds (no duplicated list drift)", () => {
+  it("a wallet-funded supplier payment passes MIC-2 and keeps the cash equation intact", async () => {
+    const store = new MemoryLocalStore();
+    const services = buildServices(store);
+    const opened = await services.cashContinuity.openWallet({
+      name: "درج-EXE003",
+      kind: "cash_drawer",
+      openingMinor: 10000,
+      occurredOn: "2026-09-16",
+      note: "رصيد بداية",
+      operationKey: "exe003-open",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const suppliers = new SupplierPurchaseService(store, now);
+    const purchased = await suppliers.recordPurchase({
+      supplierName: "مورد-EXE003",
+      note: "خامات",
+      purchasedOn: "2026-09-16",
+      dueOn: null,
+      totalMinor: 5000,
+      initialPaidMinor: 2000,
+      idempotencyKey: "exe003-purchase",
+      initialPaymentWalletId: opened.value.wallet.id,
+    });
+    if (!purchased.ok) throw new Error(purchased.message);
+    const report = await services.integrityCheck.run();
+    const mic2 = report.checks.find(check => check.id === "MIC-2");
+    expect(mic2?.status).toBe("PASS");
+    /* المعادلة: الكاش المسجل 80.00 = محافظ 80.00 + غير موزع 0. */
+    const position = await services.projectFinance.readPosition();
+    if (!position.ok) throw new Error(position.message);
+    expect(position.value.walletCashMinor).toBe(8000);
+    expect(position.value.unallocatedCashMinor).toBe(0);
+    expect(position.value.recordedCashMinor).toBe(8000);
+  });
+
+  it("every legal domain source kind is understood by MIC-2 — intersection guard", async () => {
+    const store = new MemoryLocalStore();
+    const services = buildServices(store);
+    const opened = await services.cashContinuity.openWallet({
+      name: "درج-EXE003-تقاطع",
+      kind: "cash_drawer",
+      openingMinor: 10000,
+      occurredOn: "2026-09-16",
+      note: "رصيد بداية",
+      operationKey: "exe003-intersection-open",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    /* لكل نوع في ثابت الدومين: تخصيص قانوني بمصدر موثق — كلهم يجب أن يفهمهم
+     * الفحص؛ أي انحراف مستقبلي بين الدومين والفاحص يكسر هذا الاختبار. */
+    const entries = SOURCE_REF_KINDS.map((kind, index) =>
+      createCashContinuityEntry({
+        id: `exe003-alloc-${index}`,
+        walletId: opened.value.wallet.id,
+        type: "allocation",
+        occurredOn: "2026-09-16",
+        recordedAt: now(),
+        cashDeltaMinor: 100 + index,
+        note: `تخصيص اختباري بنوع ${kind}`,
+        operationKey: `exe003-alloc-key-${index}`,
+        sourceRefId: `exe003-source-${index}`,
+        sourceRefKind: kind,
+        sourceRefLineId: null,
+      }),
+    );
+    const committed = await store.commitCashContinuity(null, entries);
+    if (!committed.ok) throw new Error(committed.message ?? "commit failed");
+    const report = await services.integrityCheck.run();
+    const mic2 = report.checks.find(check => check.id === "MIC-2");
+    expect(mic2?.status).toBe("PASS");
+  });
+
+  it("a genuinely illegal source kind remains a structural failure", async () => {
+    const store = new MemoryLocalStore();
+    const services = buildServices(store);
+    const opened = await services.cashContinuity.openWallet({
+      name: "درج-EXE003-تلف",
+      kind: "cash_drawer",
+      openingMinor: 10000,
+      occurredOn: "2026-09-16",
+      note: "رصيد بداية",
+      operationKey: "exe003-forged-open",
+    });
+    if (!opened.ok) throw new Error(opened.message);
+    const legal = createCashContinuityEntry({
+      id: "exe003-legal-base",
+      walletId: opened.value.wallet.id,
+      type: "allocation",
+      occurredOn: "2026-09-16",
+      recordedAt: now(),
+      cashDeltaMinor: 500,
+      note: "قيد قانوني حُرّف نوع مصدره للاختبار",
+      operationKey: "exe003-legal-base-key",
+      sourceRefId: "exe003-forged-source",
+      sourceRefKind: "sale",
+      sourceRefLineId: null,
+    });
+    const forged = {
+      ...legal,
+      id: "exe003-forged",
+      operationKey: "exe003-forged-key",
+      sourceRefKind: "bogus_source",
+    } as CashContinuityEntry;
+    const committed = await store.commitCashContinuity(null, [forged]);
+    if (!committed.ok) throw new Error(committed.message ?? "commit failed");
+    const report = await services.integrityCheck.run();
+    const mic2 = report.checks.find(check => check.id === "MIC-2");
+    expect(mic2?.status).toBe("FAIL");
+    expect(mic2?.detailAr).toContain("اختلال بنيوي");
   });
 });

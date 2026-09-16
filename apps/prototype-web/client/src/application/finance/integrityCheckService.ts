@@ -18,6 +18,10 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
+/* EXE-003 (AUD-NEW-03): القائمة القانونية لأنواع مصادر التخصيص تُستورد من
+ * الدومين نفسه — لا نسخة مكررة داخل الفاحص تنحرف عنه (المسار الذي جعل MIC-2
+ * يفشل زائفًا على دفعة مورد من محفظة بعد إصلاح FIN-003). */
+import { SOURCE_REF_KINDS } from "@micro-domain/cash-continuity/index.js";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { StatementService } from "@/application/finance/statementService";
@@ -69,7 +73,8 @@ export type IntegrityCheckReport = {
   exportVersion: number;
 };
 
-const SOURCE_REF_KINDS = ["sale", "expense", "collection", "order"] as const;
+/* EXE-003: النوع مشتق من ثابت الدومين المستورد — أي إضافة نوع مستقبلي تظهر
+ * تلقائيًا في الفحص بلا تحديث يدوي هنا. */
 type SourceRefKind = (typeof SOURCE_REF_KINDS)[number];
 
 const EVENTS_DEEP_LINK = "/finance?layer=events";

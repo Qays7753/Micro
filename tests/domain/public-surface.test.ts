@@ -169,6 +169,16 @@ describe("قفل سطح الدومين العام (١) — المجموعة ٦ (
     expect(typeof cashContinuity.createCashContinuityEntry).toBe("function");
     expect(typeof cashContinuity.createCashWallet).toBe("function");
     expect(typeof cashContinuity.summarizeCashContinuity).toBe("function");
+    /* EXE-003 (AUD-NEW-03): القائمة القانونية لأنواع مصادر التخصيص صارت جزءًا
+     * واعيًا من السطح العام — فاحص MIC-2 يستوردها من الدومين لا يكررها،
+     * ومحتواها مقفل هنا فلا ينحرف الدومين ولا الفاحص مستقبلًا بصمت. */
+    expect(cashContinuity.SOURCE_REF_KINDS).toEqual([
+      "sale",
+      "expense",
+      "collection",
+      "order",
+      "supplier_purchase",
+    ]);
   });
   it("catalog: دوال العقد العام حاضرة وقت التشغيل", () => {
     expect(typeof catalog.assertSameDimension).toBe("function");
