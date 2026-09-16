@@ -1,9 +1,19 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { LocalDateField } from "@/components/forms/LocalDateField";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import { attributeToWallet, cashNow } from "./quickFormHelpers";
+import { cashNow } from "./quickFormHelpers";
+import {
+  EXPENSE_NOTE_REQUIRED_MESSAGE,
+  EXPENSE_SOURCE_UNSET,
+  compactExpenseClassification,
+  coverExpenseFromWallet,
+  defaultExpenseSource,
+  expenseSourceHint,
+  expenseSourceRuleViolation,
+} from "./expenseFormModel";
 import type {
   QuickActionFormHandle,
   QuickActionReceipt,
@@ -13,8 +23,11 @@ import type {
 import { Button } from "@/components/primitives";
 /*
  * W3 — نموذج المصروف السريع (نمط مالية، لا قشرة): مبلغ إلزامي واحد وبند
- * اختياري ورقاقات وسم اختيارية بنقرة (المجموعة ١) — المسار السريع لا يفتح
- * لوحة مفاتيح للرقاقات ولا يفرض اختيارًا. معاينة الأثر الصادقة باقية.
+ * مطلوب ورقاقات وسم اختيارية بنقرة (المجموعة ١) — المسار السريع لا يفتح
+ * لوحة مفاتيح للرقاقات ولا يفرض اختيار تصنيف. معاينة الأثر الصادقة باقية.
+ * EXE-007 (FIN-006): هذه ورقة «الوضع المختصر» لرحلة إدخال المصروف نفسها —
+ * كل قواعد التحقق ومفردات الرسائل وتوقيع الحفظ تُستمد من expenseFormModel
+ * الموحدة مع المحرر الموجه؛ لا كاتب موازٍ ولا قاعدة تحقق ثانية.
  */
 
 type QuickExpenseFormProps = {
@@ -26,10 +39,8 @@ type QuickExpenseFormProps = {
   hidden?: boolean;
 };
 
-/* FIN-005 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): قيمة «لم يُختر بعد» — تُميّز
- * عدم الاختيار عن الخيار الصريح «الكاش غير الموزع» (قيمة فارغة) في حالة
- * المحافظ المتعددة حيث الاختيار إلزامي. */
-const UNSET_EXPENSE_SOURCE = "__unset__";
+/* FIN-005: القيمة المحجوزة «لم يُختر بعد» مستوردة من المواصفة الموحدة —
+ * تعريف واحد للمدخلين (EXE-007). */
 
 export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFormProps>(
   function QuickExpenseForm(
@@ -41,20 +52,23 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
     const [expenseAmountValid, setExpenseAmountValid] = useState(true);
     const [expenseNote, setExpenseNote] = useState("");
     const [expenseCategory, setExpenseCategory] = useState("");
-    const [expenseWalletId, setExpenseWalletId] = useState(UNSET_EXPENSE_SOURCE);
+    /* EXE-007: التاريخ قابل للتحرير كالمحرر الموجه — الوضع المختصر لا يفرض
+     * «اليوم فقط»؛ الافتراضي اليوم والقيمة من حقل صريح. */
+    const [expenseOccurredOn, setExpenseOccurredOn] = useState(() => localDateInAmman());
+    const [expenseWalletId, setExpenseWalletId] = useState(EXPENSE_SOURCE_UNSET);
     const expenseSourceChosenRef = useRef(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const saveInFlightRef = useRef(false);
     const expenseKeyRef = useRef(`sheet-expense-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
 
-    /* FIN-005: قاعدة مصدر الصرف — بلا محافظ: الكاش غير الموزع بتحذير معلن؛
-     * محفظة واحدة: تُعيَّن مسبقًا بشكل مرئي؛ محافظ متعددة: اختيار إلزامي
-     * صريح (محفظة أو الكاش غير الموزع). لا تُذكر آخر محفظة اختيرت. */
-    const appliedSourceRef = useRef(UNSET_EXPENSE_SOURCE);
+    /* FIN-005: قاعدة مصدر الصرف الموحدة من المواصفة — بلا محافظ: الكاش غير
+     * الموزع بتحذير معلن؛ محفظة واحدة: تُعيَّن مسبقًا بشكل مرئي؛ محافظ متعددة:
+     * اختيار إلزامي صريح. لا تُذكر آخر محفظة اختيرت. */
+    const appliedSourceRef = useRef(EXPENSE_SOURCE_UNSET);
     useEffect(() => {
       if (expenseSourceChosenRef.current) return;
-      const next = wallets.length === 1 ? wallets[0]!.id : wallets.length === 0 ? "" : UNSET_EXPENSE_SOURCE;
+      const next = defaultExpenseSource(wallets);
       appliedSourceRef.current = next;
       setExpenseWalletId(next);
     }, [wallets]);
@@ -76,9 +90,16 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         setFormError("أدخل مبلغ المصروف بالأرقام 0–9.");
         return;
       }
-      /* FIN-005: محافظ متعددة — لا حفظ بلا اختيار صريح لمصدر الصرف. */
-      if (wallets.length > 1 && expenseWalletId === UNSET_EXPENSE_SOURCE) {
-        setFormError("اختر مصدر الصرف: محفظة أو الكاش غير الموزع.");
+      /* EXE-007: الوصف إلزامي في المدخلين — القاعدة والرسالة من المواصفة
+       * الموحدة؛ لا نص مصنّع يُنسب للمالك. */
+      if (!expenseNote.trim()) {
+        setFormError(EXPENSE_NOTE_REQUIRED_MESSAGE);
+        return;
+      }
+      /* FIN-005 (قاعدة موحدة): محافظ متعددة — لا حفظ بلا اختيار صريح. */
+      const sourceViolation = expenseSourceRuleViolation(wallets.length, expenseWalletId);
+      if (sourceViolation) {
+        setFormError(sourceViolation);
         return;
       }
       setFormError(null);
@@ -90,19 +111,12 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         result = await projectFinance.record({
           type: "operating_expense_cash",
           amountMinor: expenseAmountMinor,
-          occurredOn: localDateInAmman(),
-          note: expenseNote.trim() || "مصروف مدفوع في لحظته",
+          occurredOn: expenseOccurredOn,
+          note: expenseNote.trim(),
           counterparty: null,
           relatedEventId: null,
-          expenseContext: {
-            relationship: "project",
-            behavior: "unknown",
-            purpose: "project_general",
-            knowledge: "known",
-            sharedProjectShare: null,
-            /* المجموعة ١ (تصنيفي للمصاريف): وسم سريع اختياري — لا يمس الدلتا. */
-            categoryLabel: expenseCategory || null,
-          },
+          /* EXE-007: تصنيف الوضع المختصر — من المواصفة الموحدة بتعريف واحد. */
+          expenseContext: compactExpenseClassification(expenseCategory),
           idempotencyKey: expenseKeyRef.current,
         });
       } finally {
@@ -114,19 +128,17 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         setFormError(result.message);
         return;
       }
-      /* ٥.٢: إن حُددت محفظة، يُغطى الصرف منها بتخصيص سالب — بلا تخصيص صامت. */
+      /* ٥.٢: إن حُددت محفظة، يُغطى الصرف منها بتخصيص سالب — التوقيع الموحد
+       * من المواصفة نفسها التي يستعملها المحرر الموجه (EXE-007). */
       let attributionNote: string | null = null;
-      if (expenseWalletId && expenseWalletId !== UNSET_EXPENSE_SOURCE && expenseAmountMinor > 0)
+      if (expenseWalletId && expenseWalletId !== EXPENSE_SOURCE_UNSET && expenseAmountMinor > 0)
         attributionNote = (
-          await attributeToWallet(
-            projectFinance,
-            expenseWalletId,
-            -expenseAmountMinor,
-            "تغطية مصروف من رصيد المحفظة",
-            result.value.id,
-            "expense",
-            `${expenseKeyRef.current}:attribute`,
-          )
+          await coverExpenseFromWallet(projectFinance, {
+            walletId: expenseWalletId,
+            amountMinor: expenseAmountMinor,
+            eventId: result.value.id,
+            operationKey: expenseKeyRef.current,
+          })
         ).message;
       /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): إشعار واحد بعد اكتمال كل
        * الكتابات (الحدث ثم التخصيص) — الرئيسية لا تقرأ حالة وسيطة أبدًا،
@@ -162,7 +174,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         </label>
         <label className="micro-field">
           <span>
-            البند <small>اختياري</small>
+            البند <small>مطلوب</small>
           </span>
           <input
             value={expenseNote}
@@ -170,15 +182,16 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
             placeholder="مثال: أكياس تغليف"
           />
         </label>
+        {/* EXE-007: التاريخ قابل للتحرير — تكافؤ كامل مع المحرر الموجه. */}
+        <LocalDateField
+          label="تاريخ المصروف"
+          value={expenseOccurredOn}
+          onChange={event => setExpenseOccurredOn(event.target.value)}
+        />
         {wallets.length > 0 ? (
           <label className="micro-field">
             <span>
-              مصدر الصرف{" "}
-              <small>
-                {wallets.length === 1
-                  ? "المحفظة الوحيدة معيَّنة مسبقًا — الكاش غير الموزع خيار صريح"
-                  : "اختر محفظة أو الكاش غير الموزع"}
-              </small>
+              مصدر الصرف <small>{expenseSourceHint(wallets.length)}</small>
             </span>
             <select
               value={expenseWalletId}
@@ -189,7 +202,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
               aria-label="مصدر الصرف للمصروف"
             >
               {wallets.length > 1 ? (
-                <option value={UNSET_EXPENSE_SOURCE} disabled>
+                <option value={EXPENSE_SOURCE_UNSET} disabled>
                   اختر مصدر الصرف
                 </option>
               ) : null}
@@ -230,7 +243,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         {expenseAmountMinor > 0 && expenseAmountValid ? (
           <p className="micro-local-truth" role="status">
             سينقص الكاش {formatMoneyMinor(expenseAmountMinor)} د.أ
-            {expenseWalletId && expenseWalletId !== UNSET_EXPENSE_SOURCE
+            {expenseWalletId && expenseWalletId !== EXPENSE_SOURCE_UNSET
               ? ` من «${wallets.find(wallet => wallet.id === expenseWalletId)?.name ?? ""}»`
               : expenseWalletId === ""
                 ? " من غير الموزع"

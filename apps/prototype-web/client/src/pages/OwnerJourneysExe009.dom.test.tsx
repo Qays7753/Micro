@@ -76,10 +76,10 @@ function renderInvestmentEditor(
     notifyDataChanged: vi.fn(),
     formDrafts: {
       read: vi.fn().mockResolvedValue({ ok: true, value: null }),
-      save: vi.fn().mockResolvedValue(undefined),
-      discard: vi.fn().mockResolvedValue(undefined),
-      clearDraft: vi.fn().mockResolvedValue(undefined),
-      loadDraft: vi.fn().mockResolvedValue(null),
+      save: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      clearDraft: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      loadDraft: vi.fn().mockResolvedValue({ ok: true, value: null }),
     },
   } as unknown as ReturnType<typeof usePrototypeServices>);
   wouterLocation = "/finance/new/owner_investment_cash";
