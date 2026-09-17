@@ -223,9 +223,16 @@ export default function FinanceMore() {
           </span>
           <div>
             <strong>سياسات الربح والتوزيع</strong>
-            <small>كيف يُحتسب ربح عملك المتكرر — سياسة لكل مرجع أو نسبة عامة بفترة نافذة معلنة</small>
+            <small>
+              موضعها المعتمد «ملخص الفترة» بجوار «التغطية والتعادل» — سياسة لكل مرجع أو نسبة عامة بفترة نافذة
+              معلنة
+            </small>
           </div>
-          <button className="micro-text-action" type="button" onClick={() => openFromMore("/catalog")}>
+          <button
+            className="micro-text-action"
+            type="button"
+            onClick={() => openFromMore("/finance?view=period")}
+          >
             افتح <ArrowLeft aria-hidden="true" />
           </button>
         </article>

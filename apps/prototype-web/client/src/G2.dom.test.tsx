@@ -8,9 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CollectionService } from "@/application/collections/collectionService";
 import { WalletLedgerService } from "@/application/cash/walletLedgerService";
+import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
-import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
@@ -60,6 +60,8 @@ function G2Harness({ page }: { page: React.ReactNode }) {
     walletLedger,
     statement,
     cashContinuity: new CashContinuityService(store, () => NOW),
+    /* P-4.2-5 (T7): دفتر المحفظة يقرأ الكاش غير الموزع من موقف المالية. */
+    projectFinance: new ProjectFinancialService(store),
     dataVersion: version,
     notifyDataChanged: () => setVersion(current => current + 1),
   };

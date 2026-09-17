@@ -344,7 +344,12 @@ CAPS: dict[str, int] = {
     # Finance 261 → 263 (2026-09-17, Wave 2 EXE-007/008/009/010, owner-approved
     # execution prompt): mandated financial-truth labels — expense source hints,
     # wallet destination/source questions, reversal reasons and linked-entry notes.
-    "Finance": 263,
+    # Finance 263 → 294 (2026-09-17, Wave 4.2 P-4.2-5, owner decision F02/T3):
+    # the recurring-profit distribution policies surface moved from the catalog
+    # into Finance's «ملخص الفترة» next to «التغطية والتعادل» — its form labels
+    # and policy-row strings moved with it (a surface move, not new density:
+    # Catalog dropped from 122 to 91 by the same transfer). No new writers.
+    "Finance": 294,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.

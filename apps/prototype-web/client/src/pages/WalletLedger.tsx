@@ -2,8 +2,13 @@
  * المجموعة ٢ (§9.1 — WalletLedger): دفتر محفظة واحدة — رصيدها وحركات كاشها
  * بالتسلسل مع تمييز الأنواع وتواريخها ومبالغها، ووصل كل تخصيص بمصدره.
  * كل صف قابل للوصول لتراجعه الموثق من سطحه الأصلي دون فقد سياق المحفظة.
+ *
+ * Wave 4.2 — P-4.2-5 (T7): الفعل السياقي «وزّع على هذه المحفظة» — المنتج
+ * المرئي القانوني الأول لمعامل destinationWalletId (عقد ٢٦ §3): يظهر فقط
+ * عند وجود كاش غير موزع قابل للتوزيع، ويفتح التوزيع والمحفظة مختارة مسبقًا
+ * بلا مطالبة المستخدم باختيارها مرة ثانية، والرجوع يعيد إلى هذا الدفتر.
  */
-import { ArrowRight, Landmark, NotebookPen, RotateCcw } from "lucide-react";
+import { ArrowRight, Coins, Landmark, NotebookPen, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
@@ -32,8 +37,11 @@ export default function WalletLedger() {
   const params = useParams<{ id: string }>();
   const search = useSearch();
   const returnPath = useReturnPath();
-  const { walletLedger, dataVersion } = usePrototypeServices();
+  const { walletLedger, projectFinance, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
+  /* T7 (Wave 4.2): الكاش غير الموزع القابل للتوزيع — نفس مصدر شريط المالية
+   * (قراءة موقف المالية)؛ مجهول = لا فعل سياقي (لا زر ميت ولا صفر مفترض). */
+  const [unallocatedCashMinor, setUnallocatedCashMinor] = useState<number | null>(null);
   /* S1-08: تركيز الحركة المقصودة (?entry=) — إبراز وتمرير مثل طبقة الأحداث. */
   const focusedEntryId = new URLSearchParams(search).get("entry");
   useEffect(() => {
@@ -51,10 +59,14 @@ export default function WalletLedger() {
         result.ok ? { phase: "ready", overview: result.value } : { phase: "error", message: result.message },
       );
     });
+    projectFinance.readPosition().then(position => {
+      if (!active || !position.ok) return;
+      setUnallocatedCashMinor(position.value.unallocatedCashMinor);
+    });
     return () => {
       active = false;
     };
-  }, [walletLedger, params.id, dataVersion]);
+  }, [walletLedger, projectFinance, params.id, dataVersion]);
 
   if (state.phase === "loading")
     return (
@@ -108,6 +120,24 @@ export default function WalletLedger() {
               : "هذا رصيد المحفظة لا ربحها — الكاش ليس نتيجة الفترة."}
           </p>
         </div>
+        {/* T7 (قرار المالك — Wave 4.2): فعل سياقي شرطي — لا زر ميت عند غياب
+            الكاش غير الموزع؛ الفتح يختار هذه المحفظة مسبقًا ويعود إلى الدفتر. */}
+        {(unallocatedCashMinor ?? 0) > 0 ? (
+          <Button
+            action="secondary"
+
+            onClick={() =>
+              navigate(
+                withReturnTo(
+                  `/cash/distribute?destinationWalletId=${encodeURIComponent(overview.wallet.id)}`,
+                  `/cash/wallet/${overview.wallet.id}`,
+                ),
+              )
+            }
+          >
+            <Coins aria-hidden="true" /> وزّع على هذه المحفظة
+          </Button>
+        ) : null}
       </section>
       {(() => {
         /* المجموعة ٦ (البند ٣ — S2-09): رصيد المحفظة صافي أثر الحركات

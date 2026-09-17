@@ -115,7 +115,8 @@ describe("P-4.2-4 — سطح «المالية ← المزيد» وREV-003", () 
       ["مال المالك — الدفتر الموحد", "/finance/owner-entitlement"],
       ["اسحب لنفسك", "/finance/withdraw"],
       ["أدخل مالًا للمشروع", "/finance/new/owner_investment_cash"],
-      ["سياسات الربح والتوزيع", "/catalog"],
+      /* P-4.2-5 (F02): موضع السياسات المعتمد — «ملخص الفترة» بجوار التغطية والتعادل. */
+      ["سياسات الربح والتوزيع", "/finance?view=period"],
     ];
     for (const [label] of entries) clickEntry(label);
     const calls = wouterMocks.navigate.mock.calls.map(call => call[0]);

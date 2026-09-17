@@ -3,9 +3,14 @@
  * من صفحة Catalog.tsx حرفيًا؛ الصفحة تبقى الموزّع الوحيد (تملك الحالة
  * والمعالجات وحارس التغييرات غير المحفوظة) وتمرّر كل شيء خصائصِ أدناه.
  * لا منطق ماليًا هنا ولا تخزين ولا مسارات — عرض فقط بنفس السلوك.
+ *
+ * Wave 4.2 — P-4.2-5 (F02/T3): الكتالوج بلا كتابة سياسات نهائيًا — السياسات
+ * تُعرض قراءةً (النتيجة والمعاينة) مع رابط سياقي واحد إلى سطحها المالي
+ * («ملخص الفترة» بجوار «التغطية والتعادل»)؛ أزرار النسخ والإيقاف انتقلت
+ * مع السطح إلى FinancePoliciesSection.
  */
-import { type Dispatch, type SetStateAction } from "react";
-import { ArchiveX } from "lucide-react";
+import { ArrowLeft, ArchiveX } from "lucide-react";
+import { withReturnTo } from "@/app/navigationContract";
 import { formatLocalDateLong, formatMoneyMinor, formatMoneyWithUnit } from "@/presentation/formatters";
 import {
   catalogAllocationKindLabel,
@@ -21,22 +26,17 @@ export type CatalogReadingsSectionProps = {
   readings: RecurringWorkReadings | null;
   items: readonly CatalogItem[];
   units: readonly MeasurementUnit[];
-  policyStopId: string | null;
-  setPolicyStopId: Dispatch<SetStateAction<string | null>>;
   deactivate: (id: string) => Promise<void>;
-  deactivateAllocationPolicy: (policyId: string) => Promise<void>;
-  startPolicyRevision: (policy: RecurringWorkReading["policies"][number]) => void;
+  /* P-4.2-5: رابط سياقي واحد إلى سطح السياسات المالي — لا كتابة من الكتالوج. */
+  navigate: (target: string) => void;
 };
 
 export function CatalogReadingsSection({
   readings,
   items,
   units,
-  policyStopId,
-  setPolicyStopId,
   deactivate,
-  deactivateAllocationPolicy,
-  startPolicyRevision,
+  navigate,
 }: CatalogReadingsSectionProps) {
   return (
     <details className="micro-decision-layer">
@@ -157,54 +157,17 @@ export function CatalogReadingsSection({
                                   ? ` · ${formatMoneyWithUnit(policy.rateMinorPerWholeUnit)} لكل 1.000 وحدة`
                                   : ""}{" "}
                                 · {policy.source} · السبب: {policy.reason} · {policy.note}
-                                {policy.status === "active" ? (
-                                  <Button
-                                    action="secondary"
-
-                                    onClick={() => startPolicyRevision(policy)}
-                                  >
-                                    أنشئ نسخة جديدة
-                                  </Button>
-                                ) : null}
-                                {/* F-082 (القرار ١٦): زر إيقاف بجانب كل سياسة فعالة، مع تأكيد يبيّن أثره. */}
-                                {policy.status === "active" ? (
-                                  <span className="micro-policy-stop">
-                                    {policyStopId === policy.id ? (
-                                      <>
-                                        <small>
-                                          الإيقاف يمنع توزيعات جديدة بهذه السياسة؛ القراءات السابقة تبقى
-                                          بتوثيقها ولا يُحذف شيء.
-                                        </small>
-                                        <Button
-                                          action="secondary"
-
-                                          onClick={() => {
-                                            void deactivateAllocationPolicy(policy.id);
-                                          }}
-                                        >
-                                          أكّد الإيقاف
-                                        </Button>
-                                        <Button
-                                          action="quiet"
-
-                                          onClick={() => setPolicyStopId(null)}
-                                        >
-                                          تراجع
-                                        </Button>
-                                      </>
-                                    ) : (
-                                      <Button
-                                        action="quiet"
-
-                                        onClick={() => setPolicyStopId(policy.id)}
-                                      >
-                                        إيقاف
-                                      </Button>
-                                    )}
-                                  </span>
-                                ) : null}
+                                /* P-4.2-5 (F02/T3): قراءة فقط — الإدارة (نسخ/إيقاف موثق) * من سطح المالية
+                                «ملخص الفترة»؛ هذا رابط سياقي واحد. */
                               </p>
                             ))}
+                            <button
+                              className="micro-text-action"
+                              type="button"
+                              onClick={() => navigate(withReturnTo("/finance?view=period", "/catalog"))}
+                            >
+                              إدارة هذه السياسات من المالية — ملخص الفترة <ArrowLeft aria-hidden="true" />
+                            </button>
                           </details>
                         ) : null}
                         <details className="micro-inline-disclosure">
