@@ -143,10 +143,13 @@ export default function CashDistribution() {
       return true;
     }
     notifyDataChanged();
+    /* F08 (قرار المالك — Wave 4.2، تنفيذ P-4.3-5): رسالة النجاح الموحدة
+     * «سُجّل التوزيع ✓» لاتجاه التوزيع؛ واتجاه التغطية بصيغة الفعل المعتمد
+     * نفسها «غطِّ» — لا مفردات لهجة ولا أرقام مختلقة. */
     setMessage(
       direction === "into_wallet"
-        ? `انخصص الكاش ✓ — انتقلت القيمة إلى «${selectedWallet?.name ?? "المحفظة"}». الإجمالي المسجل لم يتغير.`
-        : `انغطى الصرف ✓ — خرجت القيمة من «${selectedWallet?.name ?? "المحفظة"}» إلى غير الموزع. الإجمالي لم يتغير.`,
+        ? `سُجّل التوزيع ✓ — انتقلت القيمة إلى «${selectedWallet?.name ?? "المحفظة"}». الإجمالي المسجل لم يتغير.`
+        : `سُجّلت التغطية ✓ — خرجت القيمة من «${selectedWallet?.name ?? "المحفظة"}» إلى غير الموزع. الإجمالي لم يتغير.`,
     );
     setAmountMinor(0);
     setNote("");
@@ -238,7 +241,10 @@ export default function CashDistribution() {
               />
             </label>
             {message ? (
-              <p className={message.startsWith("ان") ? "micro-save-note" : "micro-field-error"} role="status">
+              <p
+                className={message.startsWith("سُجّل") ? "micro-save-note" : "micro-field-error"}
+                role="status"
+              >
                 {message}
               </p>
             ) : null}

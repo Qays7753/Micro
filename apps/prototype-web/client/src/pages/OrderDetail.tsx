@@ -1255,7 +1255,7 @@ export default function OrderDetail() {
                             <CorrectionPreview
                               action={
                                 useCompound
-                                  ? "تراجع موثق عن القبضة والتخصيص معًا"
+                                  ? "تراجع موثق عن القبضة والتوزيع معًا"
                                   : "تراجع موثق عن قبضة على الطلب"
                               }
                               originalLabel={`قبضة ${formatMoneyMinor(target.amountMinor ?? 0)} د.أ على «${order.itemName}»`}
@@ -1325,7 +1325,7 @@ export default function OrderDetail() {
                               ]}
                               reversibleNote={
                                 useCompound
-                                  ? "التراجع التراكمي لا يتجاوز مبلغ القبضة، وفك التخصيص يعيد قيمته إلى غير الموزع — الأصلان باقيان والعملية واحدة."
+                                  ? "التراجع التراكمي لا يتجاوز مبلغ القبضة، وفك التوزيع يعيد قيمته إلى غير الموزع — الأصلان باقيان والعملية واحدة."
                                   : "التراجع التراكمي لا يتجاوز مبلغ القبضة؛ عربون الطلب له مسار تسويته الخاص."
                               }
                               reason={reversalReason}
@@ -1334,7 +1334,7 @@ export default function OrderDetail() {
                               error={message}
                               busy={isActing}
                               confirmLabel={
-                                useCompound ? "أكّد التراجع عن القبضة والتخصيص" : "أكّد التراجع الموثق"
+                                useCompound ? "أكّد التراجع عن القبضة والتوزيع" : "أكّد التراجع الموثق"
                               }
                               busyLabel="جارٍ توثيق التراجع…"
                               onConfirm={() => {

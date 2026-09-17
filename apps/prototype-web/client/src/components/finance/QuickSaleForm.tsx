@@ -144,7 +144,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
           projectFinance,
           saleWalletId,
           attributedMinor,
-          "تخصيص قبض بيع من ورقة الإضافة",
+          "توزيع قبض بيع من ورقة الإضافة",
           result.value.id,
           "sale",
           `${saleKeyRef.current}:attribute`,

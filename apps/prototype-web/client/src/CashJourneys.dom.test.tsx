@@ -172,7 +172,7 @@ describe("CashDistribution journeys (Group 11-E)", () => {
     /* القيمة الدقيقة 271.00 د.أ تُوزّع كاملة بلا تقريب. */
     fireEvent.change(screen.getByLabelText("مبلغ التوزيع"), { target: { value: "271" } });
     fireEvent.click(screen.getByRole("button", { name: "سجّل التوزيع" }));
-    await waitFor(() => expect(screen.getByText(/انخصص الكاش/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/سُجّل التوزيع/)).toBeTruthy());
   });
 
   it("blocks distribution without a positive exact amount — no silent zero", async () => {
@@ -211,14 +211,14 @@ describe("EXE-001 — sequential distributions in one visit", () => {
     /* التوزيع الأول: 20.00 د.أ إلى المحفظة. */
     fireEvent.change(screen.getByLabelText("مبلغ التوزيع"), { target: { value: "20" } });
     fireEvent.click(screen.getByRole("button", { name: "سجّل التوزيع" }));
-    await waitFor(() => expect(screen.getByText(/انخصص الكاش/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/سُجّل التوزيع/)).toBeTruthy());
 
     /* التوزيع الثاني في الزيارة نفسها: 30.00 د.أ — قبل الإصلاح كان يُبتلع
      * بصمت مع رسالة نجاح؛ الآن قيد ثانٍ والأرصدة تتحدث فعليًا. */
     await waitFor(() => expect(screen.getByLabelText("مبلغ التوزيع")).toBeTruthy());
     fireEvent.change(screen.getByLabelText("مبلغ التوزيع"), { target: { value: "30" } });
     fireEvent.click(screen.getByRole("button", { name: "سجّل التوزيع" }));
-    await waitFor(() => expect(screen.getByText(/انخصص الكاش/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/سُجّل التوزيع/)).toBeTruthy());
 
     /* قيدا تخصيص موجبان في دفتر المحفظة: +20.00 و +30.00. */
     const entries = await store.listCashContinuityEntries();

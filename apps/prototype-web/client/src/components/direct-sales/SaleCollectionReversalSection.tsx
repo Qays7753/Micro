@@ -100,7 +100,7 @@ export function SaleCollectionReversalSection({
     setMessage(
       result.reused
         ? "العكس محفوظ سابقًا؛ لم يتكرر الأثر."
-        : "تم عكس التحصيل: المقبوض نقص، وتخصيص المحفظة فُك بقيد مرتبط بالأصل، والذمم عادت.",
+        : "تم عكس التحصيل: المقبوض نقص، وتوزيع المحفظة فُك بقيد مرتبط بالأصل، والذمم عادت.",
     );
     notifyDataChanged();
   }
@@ -110,7 +110,7 @@ export function SaleCollectionReversalSection({
       <summary className="micro-owner-layer-summary">
         <span>
           <b>عكس تحصيل</b>
-          <small>قبضت على محفظة خطأ؟ اعكسه بخطوة موثقة واحدة تصحح التخصيص أيضًا</small>
+          <small>قبضت على محفظة خطأ؟ اعكسه بخطوة موثقة واحدة تصحح التوزيع أيضًا</small>
         </span>
         <strong>افتح العكس</strong>
       </summary>
@@ -119,7 +119,7 @@ export function SaleCollectionReversalSection({
           <Undo2 aria-hidden="true" />
           <div>
             <span>حد الحقيقة</span>
-            <strong>العكس يصحح السجل والتخصيص معًا — ولا يحذف شيئًا.</strong>
+            <strong>العكس يصحح السجل والتوزيع معًا — ولا يحذف شيئًا.</strong>
             <p>
               التحصيل الأصلي يبقى ظاهرًا في سجل التصحيحات ودفتر المحفظة، والعكس يرتبط به بقيد مرآة. التحصيلات
               المسجلة على الكاش غير الموزع تُصحح من تعديل المقبوض أعلاه — لا تحتاج عكسًا هنا.

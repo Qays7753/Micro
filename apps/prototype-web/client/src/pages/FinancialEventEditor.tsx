@@ -684,7 +684,7 @@ export default function FinancialEventEditor() {
                   : -result.value.amountMinor,
               note:
                 selectedType === "owner_investment_cash"
-                  ? "تخصيص استثمار مالك إلى المحفظة"
+                  ? "توزيع استثمار مالك إلى المحفظة"
                   : "تغطية سحب شخصي من رصيد المحفظة",
               sourceRefId: result.value.id,
               sourceRefKind: "owner_event",
@@ -879,7 +879,7 @@ export default function FinancialEventEditor() {
                   {type === "operating_expense_cash"
                     ? expenseSourceHint(wallets.length)
                     : type === "owner_investment_cash"
-                      ? "الكاش غير الموزع هو الافتراضي — اختر محفظة لتخصيص المال إليها"
+                      ? "الكاش غير الموزع هو الافتراضي — اختر محفظة لتوزيع المال إليها"
                       : "الكاش غير الموزع هو الافتراضي — اختر محفظة لتغطية السحب من رصيدها"}
                 </small>
               </span>

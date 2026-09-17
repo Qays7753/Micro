@@ -1046,7 +1046,7 @@ export class ProjectFinancialService {
     input: UnallocatedDistributionInput,
   ): Promise<FinanceResult<{ unallocatedAfterMinor: number; walletBalanceAfterMinor: number }>> {
     if (!Number.isInteger(input.deltaMinor) || input.deltaMinor === 0)
-      return { ok: false, code: "validation_error", message: "أدخل مبلغ تخصيص صحيحًا غير صفري." };
+      return { ok: false, code: "validation_error", message: "أدخل مبلغ توزيع صحيحًا غير صفري." };
     const [walletsResult, entriesResult] = await Promise.all([
       this.store.listCashWallets(),
       this.store.listCashContinuityEntries(),
@@ -1054,7 +1054,7 @@ export class ProjectFinancialService {
     if (!walletsResult.ok || !entriesResult.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة المحافظ قبل التخصيص." };
     const wallet = walletsResult.value.find(candidate => candidate.id === input.walletId);
-    if (!wallet) return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل التخصيص." };
+    if (!wallet) return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل التوزيع." };
     const existingKey = entriesResult.value.find(entry => entry.operationKey === (input.operationKey ?? ""));
     if (input.operationKey && existingKey)
       return {
@@ -1089,7 +1089,7 @@ export class ProjectFinancialService {
         cashDeltaMinor: input.deltaMinor,
         note:
           (input.note?.trim() || null) ??
-          (input.deltaMinor > 0 ? "تخصيص كاش غير موزع إلى محفظة" : "تغطية صرف من رصيد محفظة"),
+          (input.deltaMinor > 0 ? "توزيع كاش غير موزع إلى محفظة" : "تغطية صرف من رصيد محفظة"),
         operationKey: input.operationKey ?? `allocation-${id()}`,
         sourceRefId: input.sourceRefId ?? null,
         sourceRefKind: input.sourceRefKind ?? null,
@@ -1097,7 +1097,7 @@ export class ProjectFinancialService {
       });
       const saved = await this.store.commitCashContinuity(wallet, [entry]);
       if (!saved.ok)
-        return { ok: false, code: "storage_error", message: "تعذر حفظ التخصيص؛ لم يتغير أي رصيد." };
+        return { ok: false, code: "storage_error", message: "تعذر حفظ التوزيع؛ لم يتغير أي رصيد." };
       return {
         ok: true,
         value: {

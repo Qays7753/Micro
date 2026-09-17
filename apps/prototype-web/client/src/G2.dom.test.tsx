@@ -281,7 +281,7 @@ describe("WalletLedger — دفتر المحفظة (المجموعة ٢ §9.1)",
     await waitFor(() => expect(screen.getByText("درج المحل")).toBeTruthy());
     /* الرصيد 50 + 15 = 65.00 د.أ */
     expect(screen.getByText("65.00")).toBeTruthy();
-    expect(screen.getByText("تخصيص من غير الموزع")).toBeTruthy();
+    expect(screen.getByText("توزيع من غير الموزع")).toBeTruthy();
     expect(screen.getByText("بيع مباشر — السجل المصدر")).toBeTruthy();
     /* عناصر السطر: الرصيد الجاري يظهر حيث يحمل معنى. */
     expect(screen.getByText("رصيد بداية")).toBeTruthy();

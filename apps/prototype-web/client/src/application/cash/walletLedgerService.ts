@@ -127,7 +127,7 @@ export class WalletLedgerService {
               : kind === "transfer_in"
                 ? "تحويل وارد"
                 : kind === "allocation_in"
-                  ? "تخصيص من غير الموزع"
+                  ? "توزيع من غير الموزع"
                   : kind === "allocation_cover"
                     ? "تغطية صرف إلى غير الموزع"
                     : "تراجع موثق عن أثر";

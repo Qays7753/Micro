@@ -210,7 +210,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       collectionEventId: event.id,
     });
     expect(preview.value.status).toBe("no_allocation");
-    expect(preview.value.refusalReason).toContain("ليست مرتبطة بتخصيص");
+    expect(preview.value.refusalReason).toContain("ليست مرتبطة بتوزيع");
 
     const compound = await collectionReversal.reverse({
       orderId: "order-2",
