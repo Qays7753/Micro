@@ -419,7 +419,9 @@ CAPS: dict[str, int] = {
     # تسميتان مطابقتان لمفردة التطبيق نفسها (منتجاتي وخدماتي / المواد والمخزون
     # كما في الرئيسية ومالي) لا نثرًا جديدًا؛ ملكية التنقل المطلوبة في العقد.
     # Orders 77 → 79 (2026-09-06, deep closure WF-03).
-    "Orders": 79,
+    # Orders 79 -> 84 (2026-09-18, Wave 4.3 P-4.3-4, owner-approved task
+    # section 11/F06): work-state groups (يحتاج تنفيذًا الآن / ينتظر العميل / ينتظر تحصيلًا / تم تسليمه / ملغاة + keep-for-audit summary) — task section 11 mandated group titles; cancelled orders stay visible collapsed.
+    "Orders": 84,
     # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
     # credit-sale customer identity field — one mandated label, no prose.
     # DirectSaleEditor 43 → 45 (2026-09-01, repair cycle P-002): catalog-reference
@@ -714,7 +716,9 @@ CAPS: dict[str, int] = {
     # الإغلاق العميق (FC-09 — العقد ٤): سبب مراجعة التحصيل «تحصيل دفعة من
     # ورقة التحصيل» في الخدمة المُغذّية — تاريخ تسوية صادق لا «تصحيحًا» عامًا.
     # Collect 45 → 46 (2026-09-05, deep closure FC-09).
-    "Collect": 46,
+    # Collect 46 -> 55 (2026-09-18, Wave 4.3 P-4.3-4, owner-approved task
+    # section 11/F06): F06 share-receipt entry after a successful order collection (button label) — the only new at-rest labels; failed collections and direct-sale sources add none.
+    "Collect": 55,
     # الإغلاق العميق (AR-11): سطر «أثر التصحيحات» يمر عبر محرك الجمع العربي
     # (6 أشكال بدل 3) — صحة لغوية مفروضة من معيار المحتوى.
     # WalletLedger 37 → 40 (2026-09-05, deep closure AR-11).

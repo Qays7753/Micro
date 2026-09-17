@@ -5,17 +5,25 @@
  * يعبّئ المتبقي قابلًا للتعديل، يفرض وجهة كاش صريحة (الدرج افتراضيًا حين يوجد)،
  * يمنع التحصيل فوق المتبقي، ويكتب بواقعية: كاش+ / متبقٍ− — لا إيراد ولا ربح.
  */
-import { ArrowRight, HandCoins, Handshake, Landmark, ReceiptText } from "lucide-react";
+import { ArrowRight, HandCoins, Handshake, Landmark, ReceiptText, Share2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { withReturnTo } from "@/app/navigationContract";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { CollectionOutcome, ReceivableSource } from "@/application/collections/collectionService";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
+/* Wave 4.3 — P-4.3-4 (F06): مشاركة إشعار القبض بعد النجاح الحقيقي فقط —
+ * المسودة من الحدث المحفوظ القائم نفسه عبر عقد المشاركة الموحد (عقد ٣٣). */
+import {
+  collectionShareDraft,
+  standingCollectionEvent,
+  type ShareDraft,
+} from "@/application/share/shareMessageService";
 import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
 
@@ -29,7 +37,13 @@ type PageState =
       sources: readonly ReceivableSource[];
       wallets: CashContinuityOverview;
     }
-  | { phase: "done"; outcome: CollectionOutcome; personName: string };
+  | {
+      phase: "done";
+      outcome: CollectionOutcome;
+      personName: string;
+      /* F06: مسودة إشعار القبض من الحدث المحفوظ — أو null فلا زر مشاركة. */
+      shareDraft: ShareDraft | null;
+    };
 
 /** تحليل ?source دفاعيًا: order:<id> أو sale:<id> — غير ذلك يُهمل بهدوء (لا انفجار). */
 function parseSourceParam(search: string): { kind: "order" | "direct_sale"; id: string } | null {
@@ -44,7 +58,7 @@ export default function Collect() {
   const [, navigate] = useLocation();
   const search = useSearch();
   const returnPath = useReturnPath();
-  const { collections, cashContinuity, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { collections, cashContinuity, agreements, dataVersion, notifyDataChanged } = usePrototypeServices();
   const requested = parseSourceParam(search);
 
   const [state, setState] = useState<PageState>({ phase: "loading" });
@@ -168,12 +182,23 @@ export default function Collect() {
       setMessage(result.message);
       return false;
     }
+    /* F06: مسودة المشاركة تُبنى بعد النجاح المكتمل فقط، ومن السجل المحفوظ
+     * نفسه (الحدث القائم الأحدث) — لا من الحقول المؤقتة؛ البيع المباشر بلا
+     * نوع مسودة زبون في العقد فلا زر له هنا (صدق لا حجب). */
+    let shareDraft: ShareDraft | null = null;
+    if (source.kind === "order") {
+      const orderRead = await agreements.get(source.id);
+      if (orderRead.ok && orderRead.stored) {
+        const standing = standingCollectionEvent(orderRead.stored);
+        if (standing) shareDraft = collectionShareDraft(orderRead.stored, standing);
+      }
+    }
     /* نجاح محلي مكتمل: يُعرض كما هو، والنموذج يُفرّغ فلا يعترض الخروج بعده. */
     doneRef.current = true;
     setAmountMinor(0);
     setNote("");
     notifyDataChanged();
-    setState({ phase: "done", outcome: result.value, personName: source.personName });
+    setState({ phase: "done", outcome: result.value, personName: source.personName, shareDraft });
     return true;
   }
 
@@ -237,6 +262,19 @@ export default function Collect() {
           >
             <ReceiptText aria-hidden="true" /> افتح السجل
           </Button>
+          {/* F06: «شارك إشعار القبض» يظهر بعد نجاح التحصيل الحقيقي فقط — من
+              الحدث المحفوظ القائم؛ لا زر للتحصيل غير الناجح ولا للملغى. */}
+          {state.shareDraft ? (
+            <Button
+              action="save"
+              data-testid="share-receipt-entry"
+              onClick={() =>
+                navigate(withReturnTo("/share/preview", "/collect"), { state: { draft: state.shareDraft } })
+              }
+            >
+              <Share2 aria-hidden="true" /> شارك إشعار القبض
+            </Button>
+          ) : null}
           <Button
             action="secondary"
 

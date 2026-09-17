@@ -6480,6 +6480,32 @@ button.micro-month-cell:active {
 .micro-integrity-offender-guide {
   flex: 0 0 auto;
 }
+/* Wave 4.3 — P-4.3-4 (§11): مجموعات العمل في «العمل» — عنوان هادئ فوق
+ * صفوف مجموعته؛ التنفيذ أولًا والملغاة مطوية بلا حذف. */
+.micro-orders-group {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+}
+.micro-orders-group > h3 {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.micro-orders-cancelled {
+  margin-top: var(--space-2);
+}
+.micro-orders-cancelled > summary {
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.micro-orders-cancelled[open] > summary {
+  margin-bottom: var(--space-2);
+}
 /* Wave 4.3 — P-4.3-3 (F09/D8): سطح «شو عليّ؟» — بطاقة التزامات موحدة
  * بمصدرَيها ومسارَي تسديدهما؛ الصف المجموع أولًا ثم الصفان بمصدرهما. */
 .micro-obligations-card {

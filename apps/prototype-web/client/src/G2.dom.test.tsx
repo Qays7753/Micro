@@ -13,6 +13,8 @@ import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
+import { AgreementService } from "@/application/agreements/agreementService";
+import { CostService } from "@/application/cost/costService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import Collect from "@/pages/Collect";
@@ -62,6 +64,9 @@ function G2Harness({ page }: { page: React.ReactNode }) {
     cashContinuity: new CashContinuityService(store, () => NOW),
     /* P-4.2-5 (T7): دفتر المحفظة يقرأ الكاش غير الموزع من موقف المالية. */
     projectFinance: new ProjectFinancialService(store),
+    /* Wave 4.3 — P-4.3-4 (F06): ورقة التحصيل تقرأ الطلب المحفوظ بعد النجاح
+     * لبناء مسودة إشعار القبض من الحدث القائم (عقد ٣٣). */
+    agreements: new AgreementService(store, new CostService(store, () => NOW), () => NOW),
     dataVersion: version,
     notifyDataChanged: () => setVersion(current => current + 1),
   };
