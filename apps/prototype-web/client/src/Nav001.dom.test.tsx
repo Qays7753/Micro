@@ -138,8 +138,9 @@ describe("NAV-001 — approved five-seat navigation", () => {
     expect(banner.textContent).toContain("تم إنشاء مشروعك");
     expect(banner.textContent).toContain("مشروع-NAV3");
     /* EXE-006 (AUD-NEW-11): اللافتة تدل على الموقع الحقيقي لصفحة الأساس —
-     * زر «صفحة الأساس» في قسم «مالي» بهذه الصفحة، لا مقعد «المالية». */
-    expect(banner.textContent).toContain("قسم «مالي»");
+     * زر «صفحة الأساس» في قسم «المالية» بهذه الصفحة (N-03 الاسم الموحد)،
+     * لا إحالة لمقعد المالية بوصفه مصدر الصفحة. */
+    expect(banner.textContent).toContain("قسم «المالية»");
     expect(banner.textContent).not.toContain("من «المالية»");
     cleanup();
     wouterMocks.search = "";
