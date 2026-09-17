@@ -36,6 +36,40 @@ const settlementDetail = (stored: StoredCraftOrder) => (
   </>
 );
 
+/* Wave 4.3 — P-4.3-4 (§11): الطلبات حسب حالة العمل — ما يحتاج تنفيذًا الآن،
+ * ما ينتظر العميل، ما ينتظر تحصيلًا، وما تم تسليمه؛ الملغاة مطوية بلا حذف
+ * (السجل يبقى مرئيًا للتدقيق). الطلب البسيط لا يُجبر على رحلة طويلة —
+ * التجميع عرض فقط ولا مسّ للمنطق ولا للكتاب. */
+type OrderWorkGroup = {
+  id: "executing" | "waiting_customer" | "awaiting_collection" | "delivered" | "cancelled";
+  title: string;
+  orders: readonly StoredCraftOrder[];
+};
+function groupOrdersByWorkState(orders: readonly StoredCraftOrder[]): OrderWorkGroup[] {
+  const executing: StoredCraftOrder[] = [];
+  const waitingCustomer: StoredCraftOrder[] = [];
+  const awaitingCollection: StoredCraftOrder[] = [];
+  const delivered: StoredCraftOrder[] = [];
+  const cancelled: StoredCraftOrder[] = [];
+  for (const stored of orders) {
+    const status = stored.order.status;
+    if (status === "cancelled") cancelled.push(stored);
+    else if (status === "delivered" || status === "settled") {
+      if (stored.order.receivableMinor > 0) awaitingCollection.push(stored);
+      else delivered.push(stored);
+    } else if (status === "in_progress" || status === "ready" || status === "needs_review")
+      executing.push(stored);
+    else waitingCustomer.push(stored);
+  }
+  return [
+    { id: "executing", title: "يحتاج تنفيذًا الآن", orders: executing },
+    { id: "waiting_customer", title: "ينتظر العميل", orders: waitingCustomer },
+    { id: "awaiting_collection", title: "ينتظر تحصيلًا", orders: awaitingCollection },
+    { id: "delivered", title: "تم تسليمه", orders: delivered },
+    { id: "cancelled", title: "ملغاة", orders: cancelled },
+  ];
+}
+
 export default function Orders() {
   const [location, navigate] = useLocation();
   const { dailyFollowUp, directSales, schedules, preferences, dataVersion } = usePrototypeServices();
@@ -130,35 +164,27 @@ export default function Orders() {
               <h2 id="work-orders-title">طلباتي</h2>
             </div>
           </div>
-          {state.orders.map(stored => {
-            const agreement = getAgreementPresentation({
-              status: stored.order.status,
-              agreedPriceMinor: stored.order.agreedPriceMinor,
-              deliveryDate: stored.deliveryDate,
-              nextAction: stored.order.nextAction,
-            });
-            return (
-              <button
-                className="micro-draft-row"
-                type="button"
-                key={stored.id}
-                onClick={() => openFromWork(`/orders/${stored.id}`)}
-              >
-                <span className="micro-draft-symbol">
-                  <ClipboardCheck aria-hidden="true" />
-                </span>
-                <span>
-                  <strong>{stored.order.itemName}</strong>
-                  <small>
-                    {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
-                  </small>
-                  <small>{settlementDetail(stored)}</small>
-                  <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
-                </span>
-                <ChevronLeft aria-hidden="true" />
-              </button>
-            );
-          })}
+          {/* P-4.3-4 (§11): المجموعات بترتيب العمل — التنفيذ أولًا ثم انتظار
+              العميل ثم التحصيل ثم المسلّم؛ الملغاة مطوية (مرئية للتدقيق). */}
+          {groupOrdersByWorkState(state.orders).map(group =>
+            group.orders.length === 0 ? null : group.id === "cancelled" ? (
+              <details className="micro-orders-cancelled" key={group.id}>
+                <summary>
+                  {group.title} ({group.orders.length}) — تبقى في السجل للتدقيق
+                </summary>
+                {group.orders.map(stored => (
+                  <OrderWorkRow key={stored.id} stored={stored} onOpen={openFromWork} />
+                ))}
+              </details>
+            ) : (
+              <div className="micro-orders-group" data-group={group.id} key={group.id}>
+                <h3>{group.title}</h3>
+                {group.orders.map(stored => (
+                  <OrderWorkRow key={stored.id} stored={stored} onOpen={openFromWork} />
+                ))}
+              </div>
+            ),
+          )}
         </section>
       ) : null}
       <section className="micro-decision-surface" data-tone="accent" aria-labelledby="direct-sales-title">
@@ -364,5 +390,32 @@ export default function Orders() {
         />
       ) : null}
     </section>
+  );
+}
+
+/* P-4.3-4 (§11): صف طلب واحد داخل مجموعات العمل — الحالة والتسليم والمتبقي
+ * والخطوة التالية من خريطة العرض الموحدة نفسها؛ لا تغيير للمنطق. */
+function OrderWorkRow({ stored, onOpen }: { stored: StoredCraftOrder; onOpen: (href: string) => void }) {
+  const agreement = getAgreementPresentation({
+    status: stored.order.status,
+    agreedPriceMinor: stored.order.agreedPriceMinor,
+    deliveryDate: stored.deliveryDate,
+    nextAction: stored.order.nextAction,
+  });
+  return (
+    <button className="micro-draft-row" type="button" onClick={() => onOpen(`/orders/${stored.id}`)}>
+      <span className="micro-draft-symbol">
+        <ClipboardCheck aria-hidden="true" />
+      </span>
+      <span>
+        <strong>{stored.order.itemName}</strong>
+        <small>
+          {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
+        </small>
+        <small>{settlementDetail(stored)}</small>
+        <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
+      </span>
+      <ChevronLeft aria-hidden="true" />
+    </button>
   );
 }
