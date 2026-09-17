@@ -91,7 +91,7 @@ describe("SET-003 — layered capability behavior", () => {
     const row = await screen.findByTestId("home-quick-actions");
     expect(row.textContent).toContain("طلب من عميل");
     expect(row.textContent).toContain("مسودة تصميم");
-    expect(row.textContent).toContain("تسجيل بيع");
+    expect(row.textContent).toContain("سجّل بيعًا");
   });
 
   it("disabling orders hides the order/estimate quick actions but never the sale/expense core", async () => {
@@ -102,8 +102,8 @@ describe("SET-003 — layered capability behavior", () => {
     expect(row.textContent).not.toContain("طلب من عميل");
     expect(row.textContent).not.toContain("مسودة تصميم");
     /* الأساس دائمًا مفعّل. */
-    expect(row.textContent).toContain("تسجيل بيع");
-    expect(row.textContent).toContain("تسجيل مصروف");
+    expect(row.textContent).toContain("سجّل بيعًا");
+    expect(row.textContent).toContain("سجّل مصروفًا");
     expect(row.textContent).toContain("عربون أو تحصيل");
   });
 

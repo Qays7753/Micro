@@ -245,14 +245,14 @@ export default function Home() {
             type="button"
             onClick={() => quickRecording.openQuickForm("sale-form")}
           >
-            <BadgeDollarSign aria-hidden="true" /> تسجيل بيع
+            <BadgeDollarSign aria-hidden="true" /> سجّل بيعًا
           </button>
           <button
             className="micro-quick-action"
             type="button"
             onClick={() => quickRecording.openQuickForm("expense-form")}
           >
-            <CircleDollarSign aria-hidden="true" /> تسجيل مصروف
+            <CircleDollarSign aria-hidden="true" /> سجّل مصروفًا
           </button>
           {disabledCapabilities.includes("orders") ? null : (
             <>

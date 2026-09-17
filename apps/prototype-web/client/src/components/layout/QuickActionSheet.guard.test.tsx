@@ -55,7 +55,7 @@ describe("QuickActionSheet quiet unsaved-input guard", () => {
     mockedUsePrototypeServices.mockReturnValue(mockSheetServices());
     render(<QuickActionSheet open onOpenChange={onOpenChange} onAction={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /تسجيل بيع/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل بيعًا/ }));
     fireEvent.change(await screen.findByLabelText(/ما الذي بعته؟/), { target: { value: "كوب قهوة" } });
 
     fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
@@ -70,7 +70,7 @@ describe("QuickActionSheet quiet unsaved-input guard", () => {
     mockedUsePrototypeServices.mockReturnValue(mockSheetServices());
     render(<QuickActionSheet open onOpenChange={onOpenChange} onAction={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /تسجيل بيع/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل بيعًا/ }));
     fireEvent.change(await screen.findByLabelText(/ما الذي بعته؟/), { target: { value: "كوب قهوة" } });
     fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
     fireEvent.click(await screen.findByRole("button", { name: "تجاهل ما كتبت" }));
@@ -84,7 +84,7 @@ describe("QuickActionSheet quiet unsaved-input guard", () => {
     mockedUsePrototypeServices.mockReturnValue(services);
     render(<QuickActionSheet open onOpenChange={onOpenChange} onAction={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /تسجيل بيع/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل بيعًا/ }));
     const amount = await screen.findByLabelText("مبلغ البيع");
     fireEvent.change(amount.querySelector("input") ?? amount, { target: { value: "12.50" } });
     fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
@@ -100,7 +100,7 @@ describe("QuickActionSheet quiet unsaved-input guard", () => {
     mockedUsePrototypeServices.mockReturnValue(mockSheetServices());
     render(<QuickActionSheet open onOpenChange={onOpenChange} onAction={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /تسجيل مصروف/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل مصروفًا/ }));
     await screen.findByLabelText("مبلغ المصروف");
     fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
 
@@ -113,7 +113,7 @@ describe("QuickActionSheet quiet unsaved-input guard", () => {
     mockedUsePrototypeServices.mockReturnValue(mockSheetServices());
     render(<QuickActionSheet open onOpenChange={onOpenChange} onAction={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /تسجيل مصروف/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل مصروفًا/ }));
     fireEvent.change(await screen.findByLabelText(/البند/), { target: { value: "أكياس تغليف" } });
     fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
 

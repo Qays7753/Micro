@@ -97,10 +97,10 @@ describe("Foundation page (decisions 4–8)", () => {
     fireEvent.click(walletButton);
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/cash/wallet/new");
 
-    fireEvent.click(screen.getByRole("button", { name: /سجل التزامًا لمورد/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل التزامًا لمورد/ }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/finance/new/operating_expense_payable");
 
-    fireEvent.click(screen.getByRole("button", { name: /سجل استثمارًا نقديًا/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل استثمارًا نقديًا/ }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/finance/new/owner_investment_cash");
 
     fireEvent.click(screen.getByRole("button", { name: /مادة ورصيد بداية/ }));

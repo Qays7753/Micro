@@ -108,11 +108,11 @@ describe("NAV-001 — approved five-seat navigation", () => {
     if (!saved.ok) throw new Error(saved.message);
     render(<Harness page={<Home />} />);
     const row = await screen.findByTestId("home-quick-actions");
-    for (const label of ["تسجيل بيع", "تسجيل مصروف", "طلب من عميل", "عربون أو تحصيل"]) {
+    for (const label of ["سجّل بيعًا", "سجّل مصروفًا", "طلب من عميل", "عربون أو تحصيل"]) {
       expect(row.textContent).toContain(label);
     }
     /* البيع يفتح الورقة في نموذجها مباشرة فوق الرئيسية المركّبة. */
-    fireEvent.click(screen.getByText("تسجيل بيع"));
+    fireEvent.click(screen.getByText("سجّل بيعًا"));
     await waitFor(() => expect(screen.getByText("سجّل بيعًا الآن")).toBeTruthy());
     expect(screen.getByLabelText("مبلغ البيع")).toBeTruthy();
   });
@@ -122,7 +122,7 @@ describe("NAV-001 — approved five-seat navigation", () => {
     await profiles.save("مشروع-NAV2");
     render(<Harness page={<Home />} />);
     await screen.findByTestId("home-quick-actions");
-    fireEvent.click(screen.getByText("تسجيل مصروف"));
+    fireEvent.click(screen.getByText("سجّل مصروفًا"));
     await waitFor(() => expect(screen.getByText("سجّل مصروفًا الآن")).toBeTruthy());
     expect(screen.getByLabelText("مبلغ المصروف")).toBeTruthy();
     /* FIN-005: بلا محافظ — الصرف من غير الموزع بتحذير معلن. */

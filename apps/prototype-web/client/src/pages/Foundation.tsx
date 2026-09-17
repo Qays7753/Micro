@@ -177,7 +177,7 @@ export default function Foundation() {
 
               onClick={() => navigate("/finance/new/owner_investment_cash")}
             >
-              سجل استثمارًا نقديًا
+              سجّل استثمارًا نقديًا
             </Button>
             <Button
               action="secondary"
@@ -238,7 +238,7 @@ export default function Foundation() {
 
               onClick={() => navigate("/finance/new/operating_expense_payable")}
             >
-              سجل التزامًا لمورد
+              سجّل التزامًا لمورد
             </Button>
             <Button
               action="secondary"

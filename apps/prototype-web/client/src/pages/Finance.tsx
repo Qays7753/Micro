@@ -723,14 +723,14 @@ export default function Finance() {
 
             onClick={() => navigate(withReturnTo("/finance/new/operating_expense_cash", "/finance"))}
           >
-            سجل مصروفًا مدفوعًا
+            سجّل مصروفًا مدفوعًا
           </Button>
           <Button
             action="secondary"
 
             onClick={() => navigate(withReturnTo("/finance/new/operating_expense_payable", "/finance"))}
           >
-            سجل التزامًا لمورد
+            سجّل التزامًا لمورد
           </Button>
           <Button
             action="secondary"
@@ -756,7 +756,7 @@ export default function Finance() {
 
             onClick={() => navigate(withReturnTo("/finance/new/amanah_held_cash", "/finance"))}
           >
-            سجل أمانة قُبضت
+            سجّل أمانة قُبضت
           </Button>
           {position.amanahHeldMinor > 0 ? (
             <Button
@@ -764,7 +764,7 @@ export default function Finance() {
 
               onClick={() => navigate(withReturnTo("/finance/new/amanah_released_cash", "/finance"))}
             >
-              سجل أمانة سُلّمت
+              سجّل أمانة سُلّمت
             </Button>
           ) : null}
           <Button
@@ -772,7 +772,7 @@ export default function Finance() {
 
             onClick={() => navigate(withReturnTo("/finance/new/loss_non_cash", "/finance"))}
           >
-            سجل هالكًا بلا خروج نقد
+            سجّل هالكًا بلا خروج نقد
           </Button>
         </section>
       </details>

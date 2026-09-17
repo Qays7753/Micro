@@ -58,13 +58,13 @@ type Receipt = QuickActionReceipt;
 export const actionItems: readonly QuickActionItem[] = [
   {
     action: "sale",
-    label: "تسجيل بيع",
+    label: "سجّل بيعًا",
     description: "احفظ بيعًا مباشرًا من دون إنشاء طلب.",
     icon: BadgeDollarSign,
   },
   {
     action: "expense",
-    label: "تسجيل مصروف",
+    label: "سجّل مصروفًا",
     description: "سجّل مصروفًا مدفوعًا في لحظته، من أي مكان.",
     icon: CircleDollarSign,
   },

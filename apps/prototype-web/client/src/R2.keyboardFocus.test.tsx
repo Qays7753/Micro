@@ -58,7 +58,7 @@ describe("R2 keyboard/focus contract", () => {
       mockedUsePrototypeServices.mockReturnValue(mockSheetServices());
       render(<QuickActionSheet open onOpenChange={onOpenChange} onAction={vi.fn()} />);
 
-      await screen.findByRole("button", { name: /تسجيل بيع/ });
+      await screen.findByRole("button", { name: /سجّل بيعًا/ });
       fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
       await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
       expect(screen.queryByText(/تخلي عن المدخلات/)).toBeNull();
@@ -69,7 +69,7 @@ describe("R2 keyboard/focus contract", () => {
       mockedUsePrototypeServices.mockReturnValue(mockSheetServices());
       render(<QuickActionSheet open onOpenChange={onOpenChange} onAction={vi.fn()} />);
 
-      fireEvent.click(screen.getByRole("button", { name: /تسجيل بيع/ }));
+      fireEvent.click(screen.getByRole("button", { name: /سجّل بيعًا/ }));
       fireEvent.change(await screen.findByLabelText(/ما الذي بعته؟/), { target: { value: "كوب قهوة" } });
       fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
       await waitFor(() => expect(screen.getByText(/تسجّله أو تتجاهله/)).toBeTruthy());

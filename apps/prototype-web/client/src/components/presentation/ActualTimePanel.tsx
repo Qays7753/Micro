@@ -278,7 +278,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
             setShowRecordForm(value => !value);
           }}
         >
-          {showRecordForm ? "إخفاء نموذج الوقت" : "سجل وقتًا فعليًا"}
+          {showRecordForm ? "إخفاء نموذج الوقت" : "سجّل وقتًا فعليًا"}
         </Button>
       ) : (
         <button
@@ -290,7 +290,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
             setShowRecordForm(value => !value);
           }}
         >
-          {showRecordForm ? "إخفاء نموذج الوقت" : "سجل وقتًا فعليًا"}
+          {showRecordForm ? "إخفاء نموذج الوقت" : "سجّل وقتًا فعليًا"}
         </button>
       )}
       {!guidedByPreference ? (
