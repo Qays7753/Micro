@@ -6449,6 +6449,98 @@ button.micro-month-cell:active {
   font-size: 12px;
   color: var(--color-text-secondary);
 }
+/* Wave 4.3 — P-4.3-3 (D9): صف السجل المتأثر المقروء — اسم العملية والتاريخ
+ * والمبلغ ورابط فتح السجل؛ لا معرّف تقني خام حيث يمكن الاسم. */
+.micro-integrity-offender {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-well);
+}
+.micro-integrity-offender > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.micro-integrity-offender strong {
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+.micro-integrity-offender small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-integrity-offender .micro-text-action {
+  flex: 0 0 auto;
+}
+.micro-integrity-offender-guide {
+  flex: 0 0 auto;
+}
+/* Wave 4.3 — P-4.3-3 (F09/D8): سطح «شو عليّ؟» — بطاقة التزامات موحدة
+ * بمصدرَيها ومسارَي تسديدهما؛ الصف المجموع أولًا ثم الصفان بمصدرهما. */
+.micro-obligations-card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.micro-obligations-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.micro-obligations-total > span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+.micro-obligations-total > strong {
+  color: var(--color-text-primary);
+  font-size: 20px;
+}
+.micro-obligations-total > strong .micro-number {
+  font-size: 20px;
+}
+.micro-obligations-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0 0;
+  border-top: 1px solid var(--color-divider);
+}
+.micro-obligations-row > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.micro-obligations-row strong {
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+.micro-obligations-row .micro-number {
+  font-size: 14px;
+}
+.micro-obligations-row small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.micro-obligations-row .micro-text-action {
+  flex: 0 0 auto;
+}
+.micro-obligations-empty {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
 
 /* المجموعة ٣ (عقد D5): مراجعة التسليم — بنية صفوف الاستهلاك المقترح وقائمة
  * نتيجة التسليم؛ على رموز التصميم نفسها (لا لون خام ولا مقاس خارج السلم). */

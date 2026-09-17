@@ -45,6 +45,8 @@ import { FinancePeriodResultSection } from "@/components/finance/FinancePeriodRe
 /* Wave 4.2 — P-4.2-5 (F02/T3): سياسات الربح والتوزيع — السطح المالي بعد نقله
  * من الكتالوج؛ موضعه «ملخص الفترة» بجوار «التغطية والتعادل». */
 import { FinancePoliciesSection } from "@/components/finance/FinancePoliciesSection";
+/* Wave 4.3 — P-4.3-3 (F09): سطح «شو عليّ؟» الموحد بمصدرَيه ومسارَي تسديدهما. */
+import { FinanceObligationsCard } from "@/components/finance/FinanceObligationsCard";
 import type { CorrectionDigest } from "@/application/finance/correctionHistoryService";
 import type { PeriodWasteReading } from "@/application/inventory/inventoryMaterialService";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
@@ -342,22 +344,9 @@ export default function Finance() {
             excludedOrders={state.excludedOrders}
             onOpenOrder={orderId => navigate(withReturnTo(`/orders/${orderId}`, "/finance"))}
           />
-          <CashDecisionSurface
-            decision={decision}
-            unallocatedCashMinor={position.unallocatedCashMinor}
-            cashRecorded={position.evidence.cash === "recorded"}
-            declarationsRecorded={state.declarations.some(declaration => declaration.kind !== "reversal")}
-            onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
-            onCoverPayment={() =>
-              navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
-            }
-          />
-          <OwnerDecisionCard
-            overview={owner}
-            capitalRecordedMinor={position.ownerCapitalRecordedMinor}
-            capitalEvidence={position.evidence.ownerCapital}
-            onOpen={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance"))}
-          />
+          {/* Wave 4.3 — P-4.3-3: بطاقات المركز المالي القابلة للفتح — كل رقم
+              يفتح مصدره (D8)؛ لا بطاقة زينة؛ «عليّ للموردين» انتقل إلى سطح
+              «شو عليّ؟» الموحد الأغنى تحتها مباشرة (F09). */}
           <section
             className="micro-finance-position"
             aria-label="تفاصيل الوضع المالي المسجل · المبالغ بالدينار الأردني"
@@ -368,20 +357,17 @@ export default function Finance() {
               state={position.evidence.cash}
               helper="محافظ معلنة + كاش غير موزع"
               icon={WalletCards}
+              openLabel="افتح محافظ الكاش"
+              onOpen={() => navigate(withReturnTo("/cash", "/finance"))}
             />
             <PositionCard
               label="لي عند العملاء"
               value={position.customerReceivablesMinor}
               state={position.evidence.customerReceivables}
-              helper="دين مسجل بعد التسليم"
+              helper="دين مسجل بعد التسليم — افتح دفتر الناس"
               icon={HandCoins}
-            />
-            <PositionCard
-              label="عليّ للموردين"
-              value={position.supplierPayablesMinor}
-              state={position.evidence.supplierPayables}
-              helper="مصروفات أو مشتريات مستحقة"
-              icon={Landmark}
+              openLabel="افتح دفتر الناس"
+              onOpen={() => navigate(withReturnTo("/parties", "/finance"))}
             />
             {/* NAV-002 (قرار المالك ٢٠٢٦-٠٩-١٦): النتيجة المتاحة في المستوى
                 الأول — تقدير موثق لنتيجة الفترة بلا خلط مع الكاش؛ الناقص
@@ -417,6 +403,26 @@ export default function Finance() {
               <small>رأس مالك · افتح الدفتر الموحد</small>
             </button>
           </section>
+          {/* Wave 4.3 — P-4.3-3 (F09): «شو عليّ؟» — السطح الموحد للالتزامات
+              بمصدرَيه ومسارَي تسديدهما بالكاتب الرسمي القائم؛ يلي بطاقات
+              المركز مباشرة في ترتيب القراءة المعتمد. */}
+          <FinanceObligationsCard position={position} onNavigate={navigate} />
+          <CashDecisionSurface
+            decision={decision}
+            unallocatedCashMinor={position.unallocatedCashMinor}
+            cashRecorded={position.evidence.cash === "recorded"}
+            declarationsRecorded={state.declarations.some(declaration => declaration.kind !== "reversal")}
+            onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
+            onCoverPayment={() =>
+              navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
+            }
+          />
+          <OwnerDecisionCard
+            overview={owner}
+            capitalRecordedMinor={position.ownerCapitalRecordedMinor}
+            capitalEvidence={position.evidence.ownerCapital}
+            onOpen={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance"))}
+          />
           {state.correctionsAllTime && state.correctionsAllTime.count > 0 ? (
             <RestatementNote
               count={state.correctionsAllTime.count}
@@ -1057,13 +1063,35 @@ function PositionCard({
   state = "recorded",
   helper,
   icon: Icon,
+  openLabel,
+  onOpen,
 }: {
   label: string;
   value: number;
   state?: FinancialMetricEvidence;
   helper: string;
   icon: typeof WalletCards;
+  /* Wave 4.3 — P-4.3-3 (D8): البطاقة التي تعرض رقمًا تفتح مصدره — زر كامل
+   * لا بطاقة زينة؛ بلا onOpen تبقى قراءة صامتة حيث لا سطح أعمق. */
+  openLabel?: string;
+  onOpen?: () => void;
 }) {
+  if (onOpen) {
+    return (
+      <button
+        type="button"
+        className="micro-finance-position-card micro-finance-position-link"
+        aria-label={openLabel ?? `افتح ${label}`}
+        onClick={onOpen}
+        data-evidence={state}
+      >
+        <Icon aria-hidden="true" />
+        <span>{label}</span>
+        <strong>{evidenceValue(state, value)}</strong>
+        <small>{helper}</small>
+      </button>
+    );
+  }
   return (
     <article className="micro-finance-position-card" data-evidence={state}>
       <Icon aria-hidden="true" />

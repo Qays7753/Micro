@@ -356,7 +356,12 @@ CAPS: dict[str, int] = {
     # into Finance's «ملخص الفترة» next to «التغطية والتعادل» — its form labels
     # and policy-row strings moved with it (a surface move, not new density:
     # Catalog dropped from 122 to 91 by the same transfer). No new writers.
-    "Finance": 294,
+    # Finance 294 -> 297 (2026-09-18, Wave 4.3 P-4.3-3, owner-approved task
+    # section 10/F09): the unified «شو عليّ؟» obligations surface — helper line,
+    # total, two source rows with their honest descriptions and settle paths.
+    # Removed with the same scope: the plain «عليّ للموردين» position card
+    # (absorbed by the richer surface) — net +3 mandated labels.
+    "Finance": 297,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -608,7 +613,12 @@ CAPS: dict[str, int] = {
     # the back button became source-dynamic — it names the return destination
     # («المزيد من المالية»/«المالية»/«أدواتي»/«الإعدادات»/«رجوع») instead of the
     # hardcoded «أدواتي», per contract 26 §2.1 (named-destination return).
-    "ToolsIntegrity": 61,
+    # ToolsIntegrity 61 -> 85 (2026-09-18, Wave 4.3 P-4.3-3, owner-approved task
+    # section 10/D9): readable affected-record rows — operation names via the
+    # shared financial-event label map (presentation/financialEventLabels.ts,
+    # single source, moved out of EventsLayer), kind labels, open-record action,
+    # and the honest fallback guidance. Raw ids remain only as unresolved backup.
+    "ToolsIntegrity": 85,
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
     "FinanceActivity": 55,
     # FinanceMore (2026-09-17, Wave 4.2 P-4.2-4, owner decision F01): first
