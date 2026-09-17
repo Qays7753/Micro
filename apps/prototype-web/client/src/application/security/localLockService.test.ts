@@ -13,9 +13,21 @@ describe("local lock service (المجموعة ٥ — عقد ٣٧)", () => {
     const lock = new LocalLockService(store, () => NOW);
     const enabled = await lock.enable("4179", 10);
     if (!enabled.ok) throw new Error(enabled.message);
-    expect(enabled.value.pinHash).not.toContain("4179");
+    /* العقد: بصمة لا رمز — والفحص الحتمي لا الاحتمالي:
+     * (١) تخزين الرمز نفسه يستحيل أن يطابق صيغة ٦٤ خانة سداسية عشرية.
+     * (٢) البصمة تعتمد الملح العشوائي: تفعيل الرمز نفسه مرتين ينتج بصمتين
+     * وملحين مختلفين (احتمال التصادم ~2⁻²⁵⁶) — وهو ما يكشف أي تضمين
+     * حتمي للرمز داخل البصمة، وهو غرض فحص المقطع الفرعي القديم نفسه.
+     * فحص not.toContain(pin) السابق كان احتماليًا: أرقام الرمز قد تظهر
+     * مصادفةً كمقطع فرعي داخل أي بصمة سداسية دون أن يعني ذلك تسريبًا
+     * (فشل حقيقي سابقًا على main في دمج 1620fff لهذا السبب تحديدًا). */
     expect(enabled.value.pinHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(enabled.value.pinHash).not.toBe("4179");
     expect(enabled.value.salt).toMatch(/^[0-9a-f]{32}$/);
+    const enabledAgain = await new LocalLockService(new MemoryLocalStore(), () => NOW).enable("4179", 10);
+    if (!enabledAgain.ok) throw new Error(enabledAgain.message);
+    expect(enabledAgain.value.pinHash).not.toBe(enabled.value.pinHash);
+    expect(enabledAgain.value.salt).not.toBe(enabled.value.salt);
     const wrong = await lock.unlock("0000");
     if (!wrong.ok) throw new Error(wrong.message);
     expect(wrong.value.unlocked).toBe(false);

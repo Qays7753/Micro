@@ -234,11 +234,15 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(screen.getByRole("button", { name: "ارجع إلى المالية" })).toBeTruthy();
   });
 
-  it("keeps the path-guidance notes: suppliers link and the honest future-path line", async () => {
+  it("keeps the path-guidance notes: suppliers link and honest referrals to the implemented homes", async () => {
+    /* Wave 4.3 — P-4.3-6 (GAP-4.3-08/REV-005): السطر القديم وعد بـ«مسارات
+     * قادمة» لميزتين منفذتين — الاستبدال بإحالتين صادقتين قرار جرد معتمد. */
     renderEditor({});
     fireEvent.click(await screen.findByText("أضف سياقًا للمصروف"));
     expect(screen.getByText(/سجّله من الموردون والمشتريات — لا كمصروف عادي/)).toBeTruthy();
-    expect(screen.getByText(/الأصول طويلة الاستخدام والقروض الشخصية لا تُسجَّل من هنا/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /سجّله من الأصول — لا كمصروف عادي/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /سجّله من القروض — ليس مصروفًا ولا مبيعًا/ })).toBeTruthy();
+    expect(screen.queryByText(/مساراتها قادمة لاحقًا/)).toBeNull();
   });
 
   it("persists a draft through the unified boundary, offers restore on reopen, and never auto-commits", async () => {

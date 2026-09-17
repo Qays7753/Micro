@@ -649,7 +649,12 @@ CAPS: dict[str, int] = {
     # the unified expense model (required note, source rules, classification hints)
     # and the owner wallet destination/source questions with their guards; the +1
     # after prettier's line joins is the same set counted honestly.
-    "FinancialEventEditor": 172,
+    # FinancialEventEditor 172 -> 173 (2026-09-18, Wave 4.3 P-4.3-6,
+    # GAP-4.3-08/REV-005, owner-approved state-matrix 9-8): the misleading
+    # «مساراتها قادمة لاحقًا» promise replaced by two honest referrals to the
+    # IMPLEMENTED assets/loans homes — net +1 mandated label (removed one
+    # dead promise, added two real actions).
+    "FinancialEventEditor": 173,
     # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
     # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
     # labels and truth lines join the measured set; per-tag rows are data.

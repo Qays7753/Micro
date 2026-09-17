@@ -706,7 +706,9 @@ export default function FinancialEventEditor() {
       setSaving(false);
       notifyDataChanged();
     }
-    setMessage("تم حفظ الحدث المالي محليًا.");
+    /* N-92 (إصلاح نصي 4.3): صيغة الماضي الموحدة «حُفظ…» كإخواتها (الملف:
+     * «حُفظ ملفك محليًا») — بلا تغيير معنى. */
+    setMessage("حُفظ الحدث المالي محليًا.");
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     navigate(returnPath);
     return true;
@@ -956,6 +958,8 @@ export default function FinancialEventEditor() {
                 sharedPercentage <= 100
               }
               onOpenSuppliers={() => navigate(withReturnTo("/suppliers", `/finance/new/${type}`))}
+              onOpenAssets={() => navigate(withReturnTo("/assets", `/finance/new/${type}`))}
+              onOpenLoans={() => navigate(withReturnTo("/loans", `/finance/new/${type}`))}
             />
           </details>
         ) : null}
@@ -1038,6 +1042,9 @@ type ExpenseClassificationProps = {
   sharedPercentage: number;
   sharedValid: boolean;
   onOpenSuppliers: () => void;
+  /* GAP-4.3-08: إحالة لبيتي الأصول والقروض القائمين. */
+  onOpenAssets: () => void;
+  onOpenLoans: () => void;
 };
 
 function formatMoneyOption(minor: number) {
@@ -1067,6 +1074,8 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
     sharedPercentage,
     sharedValid,
     onOpenSuppliers,
+    onOpenAssets,
+    onOpenLoans,
   } = props;
   const sharedBasis = basisFromMode(sharedMode);
   const normalizedLabel = normalizeCategoryLabelInput(categoryLabel);
@@ -1207,14 +1216,22 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
         </label>
       )}
       {/* المجموعة ١ (تمييز المسار): شراء المخزون مساره الموردون (فعل حقيقي)،
-       * والأصول والقروض مسارات قادمة تُعلن بصدق — لا مسار مالي بديل يُخترع. */}
+       * والأصول والقروض مساران منفذان لهما بيتاهما — GAP-4.3-08 (W4-NEW-01/
+       * REV-005، Wave 4.3): إحالة صادقة للسطحين القائمين بدل وعد «لاحقًا»
+       * لميزتين موجودتين؛ لا مسار مالي بديل يُخترع. */}
       <p className="micro-expense-route-note">
         <button className="micro-text-action" type="button" onClick={onOpenSuppliers}>
           شراء خامات ستبقى في المخزون؟ سجّله من الموردون والمشتريات — لا كمصروف عادي.
         </button>
       </p>
       <p className="micro-expense-route-note">
-        الأصول طويلة الاستخدام والقروض الشخصية لا تُسجَّل من هنا — مساراتها قادمة لاحقًا.
+        <button className="micro-text-action" type="button" onClick={onOpenAssets}>
+          شراء للاستخدام الطويل؟ سجّله من الأصول — لا كمصروف عادي.
+        </button>{" "}
+        ·{" "}
+        <button className="micro-text-action" type="button" onClick={onOpenLoans}>
+          أعطيت مالًا يُعاد؟ سجّله من القروض — ليس مصروفًا ولا مبيعًا.
+        </button>
       </p>
     </section>
   );
