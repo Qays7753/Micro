@@ -37,3 +37,25 @@
 - Schema/Export: **35/27** — لم يُمس (لا تغيير في src/domain أو خدمات التصدير).
 - لا مقعد سادس: `primaryNavigation` كما هو (خمسة مقاعد) — يحرسه navigation.test.ts.
 - لا تغيير Routes، لا مصادر كتابة، لا عقود مالية — الحزمة نصوص وتسمية فقط.
+
+---
+
+## P-4.2-2 — تنظيف «أدواتي»
+
+| الفحص | النتيجة |
+|---|---|
+| `pnpm test` (domain) | ✅ 404/404 |
+| `pnpm prototype:test` (web) | ✅ **1446/1446** (+1: ToolsCleanup.w42.dom.test.tsx — حارس التنظيف) |
+| `pnpm lint` | ✅ 0 أخطاء، 37 تحذيرًا (السقف) |
+| `pnpm typecheck` + `prototype:check` | ✅ |
+| `pnpm guards` (secrets/test-focus/touchpoints) | ✅ PASS |
+| `pnpm prototype:build` + bundle budget | ✅ PASS |
+| المجموع | **1850/1850 — زيادة 1 عن خط الأساس (حارس جديد)** |
+
+### الاختبارات الجديدة/المحدثة في نفس الالتزام
+
+| الاختبار | ما يحرسه |
+|---|---|
+| `ToolsCleanup.w42.dom.test.tsx` (جديد) | السطح النظيف: لا حالة وحدات/نسخ/موردين/دفتر الناس/سوق ميت/فحص/كتالوج/مواعيد + الشرح الصادق الحرفي + بقاء الحاسبة والتقديرات |
+| `ownershipBoundaries.exe017.test.ts` | قائمة توافق أدواتي تقلصت إلى costEstimates/dataVersion/notifyDataChanged (عقد 40 §6-4 تحقق بالإزالة) |
+| عقد 40 (وثيقة) | إغلاق سطحَي التوافق (شارات الوحدات + بطاقة النسخ) وتأشير Backlog المنفذ |
