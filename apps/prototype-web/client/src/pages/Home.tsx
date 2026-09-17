@@ -11,12 +11,14 @@ import {
   FilePen,
   Gauge,
   HandCoins,
-  House,
   Landmark,
+  Lightbulb,
+  MoreHorizontal,
   Package,
   Receipt,
   Scale,
   ShieldCheck,
+  TrendingUp,
   WalletCards,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -30,6 +32,8 @@ import { withReturnTo } from "@/app/navigationContract";
 import type {
   HomeControlCenterViewModel,
   HomeFinancialFact,
+  HomeInsight,
+  HomePeriodNumber,
   HomeTodayItem,
 } from "@/application/home/homeControlCenterModel";
 
@@ -136,6 +140,59 @@ function TodayItemRow({ item, onNavigate }: { item: HomeTodayItem; onNavigate: (
   );
 }
 
+/* Wave 4.3 — P-4.3-2 (D7): رقم فترة واحد من القراءة الرسمية — قابل للفتح إلى
+ * مصدره (عرض الفترة)، والناقص وصف صادق لا صفر مضلل. */
+function PeriodNumberRow({
+  number,
+  onNavigate,
+}: {
+  number: HomePeriodNumber;
+  onNavigate: (href: string) => void;
+}) {
+  return (
+    <article className="micro-home-number" data-state={number.state}>
+      <span>{number.label}</span>
+      <strong>
+        {number.state === "known" && number.valueMinor !== null ? (
+          number.source ? (
+            <button
+              className="micro-text-action"
+              type="button"
+              aria-label={`افتح ${number.label}`}
+              onClick={() => onNavigate(number.source!)}
+            >
+              <MoneyValue minor={number.valueMinor} />
+            </button>
+          ) : (
+            <MoneyValue minor={number.valueMinor} />
+          )
+        ) : (
+          <span className="micro-home-number-note">{number.honestNote ?? "غير مكتملة"}</span>
+        )}
+      </strong>
+    </article>
+  );
+}
+
+/* P-4.3-2 (D6): Insight قصير — ماذا حدث، لماذا يهم، فعل منطقي واحد. */
+function InsightRow({ insight, onNavigate }: { insight: HomeInsight; onNavigate: (href: string) => void }) {
+  return (
+    <li className="micro-home-insight" data-testid="home-insight">
+      <Lightbulb aria-hidden="true" />
+      <div>
+        <p>{insight.what}</p>
+        {insight.why ? <small>{insight.why}</small> : null}
+      </div>
+      {insight.action ? (
+        <button className="micro-text-action" type="button" onClick={() => onNavigate(insight.action!.href)}>
+          {insight.action.label}
+          <ArrowLeft aria-hidden="true" />
+        </button>
+      ) : null}
+    </li>
+  );
+}
+
 export default function Home() {
   const [, navigate] = useLocation();
   const { preferences, homeControlCenter, dataVersion } = usePrototypeServices();
@@ -147,6 +204,9 @@ export default function Home() {
   /* SET-003: القدرات المتوقفة عن الإدخال تخفي أزرار إنشائها اليومية فقط —
    * السجلات القائمة تبقى ظاهرة في كل دفاترها. */
   const [disabledCapabilities, setDisabledCapabilities] = useState<readonly string[]>([]);
+  /* Wave 4.3 — P-4.3-2: «المزيد» يضم بقية الإجراءات المتكررة الأقل استخدامًا —
+   * لا قائمة طويلة تنافس الإجراء الأساسي. */
+  const [moreActionsOpen, setMoreActionsOpen] = useState(false);
   /* SET-002: لافتة نجاح الإعداد الأول — تظهر مرة بعد الحفظ وتغادر مع التنقل. */
   const search = useSearch();
   const setupDone = new URLSearchParams((search ?? "").replace(/^\?/, "")).get("setup") === "1";
@@ -174,7 +234,7 @@ export default function Home() {
     return () => {
       active = false;
     };
-  }, [dataVersion, homeControlCenter]);
+  }, [dataVersion, homeControlCenter, preferences]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -198,6 +258,20 @@ export default function Home() {
   const todayRows = model.priorityBlock
     ? model.todaySection.items.filter(item => item.id !== model.priorityBlock!.id)
     : model.todaySection.items;
+  const ordersEnabled = !disabledCapabilities.includes("orders");
+  /* P-4.3-2: الإجراءات الأقل تكرارًا خلف «المزيد» — يظهر الزر فقط حين يوجد
+   * شيء خلفه فعلًا (لا زر ميت). */
+  const moreActions =
+    ordersEnabled === false
+      ? []
+      : [
+          {
+            id: "estimate",
+            label: "مسودة تصميم",
+            icon: FilePen,
+            open: () => navigate(withReturnTo("/orders/draft/new?intent=planned_design", "/")),
+          },
+        ];
   return (
     <section className="micro-page micro-home-control-center">
       <div className="micro-page-heading micro-home-heading">
@@ -210,15 +284,8 @@ export default function Home() {
               {formatLocalDateLong(model.heading.todayLocal) ?? model.heading.todayLocal}
             </time>
           </p>
-          {/* المجموعة ١ (§7.1): ترويسة تُوجّه — اسم المشروع والتاريخ ومدخل الملف،
-              بلا منافسة مع فعل «سجّل» المركزي. */}
-          <button
-            className="micro-text-action micro-home-profile-link"
-            type="button"
-            onClick={() => openFromHome("/profile")}
-          >
-            <House aria-hidden="true" /> ملف المالك
-          </button>
+          {/* Wave 4.3 — P-4.3-1: مدخل الملف انتقل إلى قائمة الشعار الدائمة —
+              لا تكرار للمدخل نفسه فوق الرئيسية. */}
         </div>
       </div>
       {/* SET-002: نجاح واضح بعد الإعداد الأول — المشروع جاهز للاستخدام فورًا. */}
@@ -230,57 +297,27 @@ export default function Home() {
           </p>
         </section>
       ) : null}
-      {/* NAV-001: أزرار التسجيل السريع — صف أفقي قابل للتمرير داخل الرئيسية؛
-          زر «سجّل» المركزي أُزيل من الشريط بعد نقل كل أفعاله إلى هنا. */}
-      <section className="micro-home-quick-actions" aria-labelledby="home-quick-title">
-        <div className="micro-section-title">
-          <BadgeDollarSign aria-hidden="true" />
-          <div>
-            <h2 id="home-quick-title">سجّل بسرعة</h2>
+      {model.truthLine ? (
+        <p className="micro-home-truth-line" role="status">
+          <CircleAlert aria-hidden="true" /> {model.truthLine}{" "}
+          <button className="micro-text-action" type="button" onClick={() => openFromHome("/settings")}>
+            افتح الإعدادات
+          </button>
+        </p>
+      ) : null}
+      {/* Wave 4.3 — P-4.3-2 (D6 أولًا): الحالة الأهم الآن — تنبيه رئيسي واحد
+          قابل للتصرف؛ البقية في قائمة «اليوم» المختصرة أسفل الصفحة. */}
+      {model.priorityBlock ? (
+        <section className="micro-home-priority" aria-labelledby="home-priority-title">
+          <div className="micro-section-title">
+            <BellRing aria-hidden="true" />
+            <div>
+              <h2 id="home-priority-title">الأهم الآن</h2>
+            </div>
           </div>
-        </div>
-        <div className="micro-quick-actions" data-testid="home-quick-actions">
-          <button
-            className="micro-quick-action"
-            type="button"
-            onClick={() => quickRecording.openQuickForm("sale-form")}
-          >
-            <BadgeDollarSign aria-hidden="true" /> سجّل بيعًا
-          </button>
-          <button
-            className="micro-quick-action"
-            type="button"
-            onClick={() => quickRecording.openQuickForm("expense-form")}
-          >
-            <CircleDollarSign aria-hidden="true" /> سجّل مصروفًا
-          </button>
-          {disabledCapabilities.includes("orders") ? null : (
-            <>
-              <button
-                className="micro-quick-action"
-                type="button"
-                onClick={() => navigate(withReturnTo("/orders/draft/new?intent=customer_order", "/"))}
-              >
-                <ClipboardPlus aria-hidden="true" /> طلب من عميل
-              </button>
-              <button
-                className="micro-quick-action"
-                type="button"
-                onClick={() => navigate(withReturnTo("/orders/draft/new?intent=planned_design", "/"))}
-              >
-                <FilePen aria-hidden="true" /> مسودة تصميم
-              </button>
-            </>
-          )}
-          <button
-            className="micro-quick-action"
-            type="button"
-            onClick={() => navigate(withReturnTo("/collect", "/"))}
-          >
-            <HandCoins aria-hidden="true" /> عربون أو تحصيل
-          </button>
-        </div>
-      </section>
+          <TodayItemRow item={model.priorityBlock} onNavigate={openFromHome} />
+        </section>
+      ) : null}
       {/* التدفق ٢٣: بطاقة «أثناء غيابك» — تظهر بعد ٧ أيام بلا تسجيل وتختفي بالنشاط. */}
       {model.awaySection ? (
         <section className="micro-away-card" aria-label="أثناء غيابك">
@@ -373,28 +410,142 @@ export default function Home() {
           </ul>
         </section>
       ) : null}
-      {model.truthLine ? (
-        <p className="micro-home-truth-line" role="status">
-          <CircleAlert aria-hidden="true" /> {model.truthLine}{" "}
-          <button className="micro-text-action" type="button" onClick={() => openFromHome("/settings")}>
-            افتح الإعدادات
+      {/* P-4.3-2 (D6 ثانيًا): ملخص الأرقام — تقسيم واضح «اليوم» و«هذا الشهر»
+          ثم الوضع القائم، بدل عدد كبير من البطاقات دفعة واحدة. */}
+      <section className="micro-home-numbers-section" aria-labelledby="home-numbers-title">
+        <div className="micro-section-title">
+          <TrendingUp aria-hidden="true" />
+          <div>
+            <h2 id="home-numbers-title">أرقامك</h2>
+          </div>
+        </div>
+        <div className="micro-home-numbers" data-testid="home-numbers">
+          <div className="micro-home-numbers-period" data-period="today">
+            <h3>اليوم</h3>
+            <PeriodNumberRow number={model.periodNumbers.today.sales} onNavigate={openFromHome} />
+            <PeriodNumberRow number={model.periodNumbers.today.result} onNavigate={openFromHome} />
+          </div>
+          <div className="micro-home-numbers-period" data-period="month">
+            <h3>هذا الشهر</h3>
+            <PeriodNumberRow number={model.periodNumbers.month.sales} onNavigate={openFromHome} />
+            <PeriodNumberRow number={model.periodNumbers.month.result} onNavigate={openFromHome} />
+          </div>
+        </div>
+        <div className="micro-home-facts">
+          {model.facts.map(fact => (
+            <FactCard key={fact.id} fact={fact} onNavigate={openFromHome} />
+          ))}
+        </div>
+      </section>
+      {/* P-4.3-2 (D6 ثالثًا): الإجراءات السريعة — إجراء أساسي بارز، حتى أربعة
+          متكررة ظاهرة، والبقية في «المزيد»؛ القدرات المعطلة تخفي أزرارها. */}
+      <section className="micro-home-quick-actions" aria-labelledby="home-quick-title">
+        <div className="micro-section-title">
+          <BadgeDollarSign aria-hidden="true" />
+          <div>
+            <h2 id="home-quick-title">سجّل بسرعة</h2>
+          </div>
+        </div>
+        <div className="micro-quick-actions" data-testid="home-quick-actions">
+          <button
+            className="micro-quick-action micro-quick-action-primary"
+            type="button"
+            onClick={() => quickRecording.openQuickForm("sale-form")}
+          >
+            <BadgeDollarSign aria-hidden="true" /> سجّل بيعًا
           </button>
-        </p>
-      ) : null}
-      {/* المجموعة ١ (§7.1): كتلة أولوية واحدة — أهم بند قابل للفعل اليوم فوق القائمة؛
-          البطاقات والصفوف لا تنافس فعل «سجّل» المركزي. */}
-      {model.priorityBlock ? (
-        <section className="micro-home-priority" aria-labelledby="home-priority-title">
+          <button
+            className="micro-quick-action"
+            type="button"
+            onClick={() => quickRecording.openQuickForm("expense-form")}
+          >
+            <CircleDollarSign aria-hidden="true" /> سجّل مصروفًا
+          </button>
+          {ordersEnabled ? (
+            <button
+              className="micro-quick-action"
+              type="button"
+              onClick={() => navigate(withReturnTo("/orders/draft/new?intent=customer_order", "/"))}
+            >
+              <ClipboardPlus aria-hidden="true" /> طلب من عميل
+            </button>
+          ) : null}
+          <button
+            className="micro-quick-action"
+            type="button"
+            onClick={() => navigate(withReturnTo("/collect", "/"))}
+          >
+            <HandCoins aria-hidden="true" /> عربون أو تحصيل
+          </button>
+          <button
+            className="micro-quick-action"
+            type="button"
+            onClick={() => openFromHome(model.catalogUnit.action.href)}
+          >
+            <Package aria-hidden="true" /> منتجاتي وخدماتي
+          </button>
+          {moreActions.length > 0 ? (
+            <button
+              className="micro-quick-action"
+              type="button"
+              aria-expanded={moreActionsOpen}
+              onClick={() => setMoreActionsOpen(open => !open)}
+            >
+              <MoreHorizontal aria-hidden="true" /> المزيد
+            </button>
+          ) : null}
+        </div>
+        {moreActionsOpen && moreActions.length > 0 ? (
+          <div className="micro-quick-actions micro-quick-actions-more" data-testid="home-quick-actions-more">
+            {moreActions.map(entry => (
+              <button key={entry.id} className="micro-quick-action" type="button" onClick={entry.open}>
+                <entry.icon aria-hidden="true" /> {entry.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </section>
+      {/* P-4.3-2 (D6 رابعًا): Insights قصيرة من البيانات الحالية فقط — كل
+          ملحوظة ماذا حدث ولماذا يهم وفعل منطقي واحد، بلا تكرار للسبب الجذري. */}
+      {model.insights.length > 0 ? (
+        <section className="micro-home-insights-section" aria-labelledby="home-insights-title">
           <div className="micro-section-title">
-            <BellRing aria-hidden="true" />
+            <Lightbulb aria-hidden="true" />
             <div>
-              <h2 id="home-priority-title">الأهم الآن</h2>
+              <h2 id="home-insights-title">ملحوظات تهمك</h2>
             </div>
           </div>
-          <TodayItemRow item={model.priorityBlock} onNavigate={openFromHome} />
+          <ul className="micro-home-insights-list">
+            {model.insights.map(insight => (
+              <InsightRow key={insight.id} insight={insight} onNavigate={openFromHome} />
+            ))}
+          </ul>
         </section>
       ) : null}
-      {/* الكتلة ١ من ٣ — «اليوم»: أفعال محددة (حصّل/سلّم/أكمل/راجع) لا «افتح» العامة. */}
+      {/* الكتلة ٢ من ٣ — «مالي» (القرار ١٢): وحدة دائمة بلا شرط. */}
+      <section className="micro-home-finance-section" aria-labelledby="home-finance-title">
+        <div className="micro-section-title">
+          <Landmark aria-hidden="true" />
+          <div>
+            <h2 id="home-finance-title">المالية</h2>
+          </div>
+        </div>
+        <div className="micro-home-finance-unit">
+          <div>
+            {/* القرار ٧: صفحة الأساس دائمة الوصول ولا تُغلق بعد اليوم الأول. */}
+            <button className="micro-text-action" type="button" onClick={() => openFromHome("/foundation")}>
+              صفحة الأساس <ArrowLeft aria-hidden="true" />
+            </button>
+          </div>
+          {/* W4: فعل تنقل اعتيادي إلى المالية — صنف الحفظ لا صنف الإنشاء. */}
+          <Button action="save" onClick={() => openFromHome(model.financeUnit.action.href)}>
+            {model.financeUnit.action.label}
+            <ArrowLeft aria-hidden="true" />
+          </Button>
+        </div>
+      </section>
+      {/* الكتلة ١ من ٣ — «اليوم» (دمج بند ١٠): أفعال محددة (حصّل/سلّم/أكمل/راجع)
+          لا «افتح» العامة؛ قائمة مختصرة بعد الأولوية والأرقام والإجراءات. */}
       <section className="micro-home-today-section" aria-labelledby="home-today-title">
         <div className="micro-section-title">
           <CalendarDays aria-hidden="true" />
@@ -428,61 +579,6 @@ export default function Home() {
             </button>
           </p>
         ) : null}
-      </section>
-      <section className="micro-home-facts-section" aria-labelledby="home-facts-title">
-        <div className="micro-section-title">
-          <WalletCards aria-hidden="true" />
-          <div>
-            <h2 id="home-facts-title">ما هو مسجل حتى الآن؟</h2>
-          </div>
-        </div>
-        <div className="micro-home-facts">
-          {model.facts.map(fact => (
-            <FactCard key={fact.id} fact={fact} onNavigate={openFromHome} />
-          ))}
-        </div>
-      </section>
-      {/* الكتلة ٢ من ٣ — «مالي»: وحدة دائمة بلا شرط (القرار ١٢). */}
-      <section className="micro-home-finance-section" aria-labelledby="home-finance-title">
-        <div className="micro-section-title">
-          <Landmark aria-hidden="true" />
-          <div>
-            <h2 id="home-finance-title">المالية</h2>
-          </div>
-        </div>
-        <div className="micro-home-finance-unit">
-          <div>
-            {/* القرار ٧: صفحة الأساس دائمة الوصول ولا تُغلق بعد اليوم الأول. */}
-            <button className="micro-text-action" type="button" onClick={() => openFromHome("/foundation")}>
-              صفحة الأساس <ArrowLeft aria-hidden="true" />
-            </button>
-          </div>
-          {/* W4: فعل تنقل اعتيادي إلى المالية — صنف الحفظ لا صنف الإنشاء. */}
-          <Button action="save" onClick={() => openFromHome(model.financeUnit.action.href)}>
-            {model.financeUnit.action.label}
-            <ArrowLeft aria-hidden="true" />
-          </Button>
-        </div>
-      </section>
-      {/* الكتلة ٣ من ٣ — «منتجاتي وخدماتي» (قرار المالك على بند ١١). */}
-      <section className="micro-home-catalog-section" aria-labelledby="home-catalog-title">
-        <div className="micro-section-title">
-          <Package aria-hidden="true" />
-          <div>
-            <h2 id="home-catalog-title">منتجاتي وخدماتي</h2>
-          </div>
-        </div>
-        <div className="micro-home-finance-unit">
-          <div></div>
-          <Button
-            action="save"
-
-            onClick={() => openFromHome(model.catalogUnit.action.href)}
-          >
-            {model.catalogUnit.action.label}
-            <ArrowLeft aria-hidden="true" />
-          </Button>
-        </div>
       </section>
       {model.optionalModules.length > 0 ? (
         <section className="micro-home-optional-section" aria-labelledby="home-optional-title">

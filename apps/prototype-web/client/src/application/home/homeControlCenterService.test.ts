@@ -9,6 +9,7 @@ import { ProfileService } from "@/application/profile/profileService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { HomeControlCenterService } from "./homeControlCenterService";
 import { ActivityService } from "@/application/activity/activityService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 
 const now = () => "2026-08-25T09:00:00.000Z";
 function services(store: MemoryLocalStore) {
@@ -537,5 +538,59 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
     if (!result.ok) throw new Error(result.message);
     const capacity = result.value.todaySection.items.find(item => item.kind === "capacity_warning");
     expect(capacity?.href).toBe("/schedule?focus=capacity");
+  });
+
+  /* Wave 4.3 — P-4.3-2 (D6/D7): أرقام اليوم/الشهر من قراءة الفترة الرسمية
+   * وحدها، والنتيجة الناقصة توصف بصدق، والـInsights من البيانات الحالية
+   * فقط مع فعل منطقي واحد — لا معادلات داخل الواجهة. */
+  it("builds today/month numbers from the official period read and data-driven insights", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const sale = await new DirectSaleService(store, now).record({
+      itemName: "كوب اختبار",
+      quantity: 1,
+      revenueMinor: 1500,
+      costMinor: 600,
+      occurredOn: "2026-08-25",
+      note: "اختبار Wave 4.3",
+      idempotencyKey: "w43-quick-sale",
+    });
+    if (!sale.ok) throw new Error(sale.message);
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    expect(result.value.periodNumbers.today.sales).toMatchObject({
+      state: "known",
+      valueMinor: 1500,
+      source: "/finance?view=period",
+    });
+    expect(result.value.periodNumbers.today.result).toMatchObject({ state: "known", valueMinor: 900 });
+    expect(result.value.periodNumbers.month.sales).toMatchObject({ state: "known", valueMinor: 1500 });
+    /* القبض بلا محافظ → كاش غير موزع → ملحوظة توزيع واحدة بفعل منطقي. */
+    expect(result.value.insights.map(insight => insight.id)).toContain("unallocated-cash");
+    const distribute = result.value.insights.find(insight => insight.id === "unallocated-cash");
+    expect(distribute?.action).toMatchObject({ href: "/cash/distribute", label: "وزّعه" });
+  });
+
+  it("keeps the incomplete result honest instead of inventing a number (no cost data)", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const sale = await new DirectSaleService(store, now).record({
+      itemName: "كوب بلا تكلفة",
+      quantity: 1,
+      revenueMinor: 2000,
+      costMinor: null,
+      occurredOn: "2026-08-25",
+      note: "اختبار Wave 4.3",
+      idempotencyKey: "w43-quick-sale-unknown-cost",
+    });
+    if (!sale.ok) throw new Error(sale.message);
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    expect(result.value.periodNumbers.today.result).toMatchObject({
+      state: "incomplete",
+      valueMinor: null,
+      honestNote: "تحتاج بيانات تكلفة",
+    });
+    expect(result.value.insights.map(insight => insight.id)).toContain("incomplete-result");
   });
 });

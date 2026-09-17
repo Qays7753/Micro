@@ -15,7 +15,9 @@ import {
   type HomeAction,
   type HomeControlCenterViewModel,
   type HomeFinancialFact,
+  type HomeInsight,
   type HomeOptionalModule,
+  type HomePeriodNumbersSection,
   type HomeRecentChange,
   type HomeTodayItem,
   type HomeTodaySection,
@@ -40,6 +42,26 @@ function hasIncompleteCost(stored: StoredCraftOrder) {
 function hasIncompleteResult(stored: StoredCraftOrder) {
   return !["cancelled"].includes(stored.order.status) && stored.order.resultStatus !== "final";
 }
+/* Wave 4.3 — P-4.3-2: حسابات تواريخ فترة صرفة على صيغة YYYY-MM-DD المحلية —
+ * لا تلمس وقت الأعمال ولا منطق المال؛ حدود قراءة فقط. */
+function dayBefore(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+function monthStartBefore(isoDate: string): string {
+  const [year, month] = isoDate.split("-").map(part => Number(part));
+  const previous = month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
+  return `${String(previous.year).padStart(4, "0")}-${String(previous.month).padStart(2, "0")}-01`;
+}
+/* P-4.3-2 (D7): التسمية الصادقة للنتيجة الناقصة — لا «ربحًا نهائيًا» بلا
+ * تكلفة مكتملة؛ الوصف يتبع حالة المعرفة من القراءة الرسمية. */
+function honestResultNote(period: { resultMinor: number | null; cogsStatus: string }): string | null {
+  if (period.resultMinor !== null) return null;
+  if (period.cogsStatus === "not_available") return "تحتاج بيانات تكلفة";
+  if (period.cogsStatus === "partial") return "نتيجة تقديرية — تكلفة ناقصة";
+  return "النتيجة غير مكتملة";
+}
 export class HomeControlCenterService {
   constructor(
     private readonly store: PrototypeLocalStore,
@@ -53,6 +75,10 @@ export class HomeControlCenterService {
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {
+    /* Wave 4.3 — P-4.3-2: التاريخ يُحسم قبل القراءات — حدود فترات اليوم/الشهر
+     * والشهر السابق تُشتق منه ولا تُقرأ مرتين. */
+    const today = localDate(this.now());
+    const monthStart = `${today.slice(0, 7)}-01`;
     const [
       profile,
       followUp,
@@ -64,6 +90,9 @@ export class HomeControlCenterService {
       dueFollowUps,
       preferences,
       directSales,
+      todayPeriod,
+      monthPeriod,
+      previousMonthPeriod,
     ] = await Promise.all([
       this.store.getProfile(),
       this.dailyFollowUp.read(),
@@ -75,6 +104,11 @@ export class HomeControlCenterService {
       this.agreementContext.dueFollowUps(),
       this.store.getPreferences(),
       this.store.listDirectSales(),
+      /* Wave 4.3 — P-4.3-2 (D7): أرقام اليوم والشهر من قراءة الفترة الرسمية
+       * وحدها — لا معادلات في الواجهة؛ الشهر السابق للتغير الموثق فقط. */
+      this.projectFinance.readRecordedPeriodResult(today, today),
+      this.projectFinance.readRecordedPeriodResult(monthStart, today),
+      this.projectFinance.readRecordedPeriodResult(monthStartBefore(today), dayBefore(monthStart)),
     ]);
     if (
       !profile.ok ||
@@ -87,11 +121,13 @@ export class HomeControlCenterService {
       !dueFollowUps.ok ||
       !preferences.ok ||
       !directSales.ok ||
+      !todayPeriod.ok ||
+      !monthPeriod.ok ||
+      !previousMonthPeriod.ok ||
       !profile.value
     )
       return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
 
-    const today = localDate(this.now());
     const orders = followUp.orders;
     const openDrafts = followUp.drafts;
     const positionValue = position.value;
@@ -482,6 +518,96 @@ export class HomeControlCenterService {
     const backupReminderDue =
       backupReminderEnabled && hasAnyData && (daysSinceLastExport === null || daysSinceLastExport >= 7);
 
+    /* Wave 4.3 — P-4.3-2 (D6/D7): ملخص الأرقام — مبيعات/نتيجة اليوم والشهر من
+     * القراءة الرسمية للفترة؛ الرقم القابل للفتح يصل مصدره (عرض الفترة في
+     * المالية)، والناقص يوصف بصدق بلا أصفار. */
+    /* المبيعات بالتعريف الرسمي نفسه الذي يعرضه كشف الفترة
+     * (recognizedRevenueTotalMinor في statementService): إيراد الطلبات
+     * المعترف به + البيع المباشر — لا معادلة جديدة هنا. */
+    const totalSales = (period: { recognizedRevenueMinor: number; directSaleRevenueMinor: number }) =>
+      period.recognizedRevenueMinor + period.directSaleRevenueMinor;
+    const periodNumbers: HomePeriodNumbersSection = {
+      today: {
+        sales: {
+          id: "sales",
+          label: "مبيعات اليوم",
+          state: "known",
+          valueMinor: totalSales(todayPeriod.value),
+          honestNote: null,
+          source: "/finance?view=period",
+        },
+        result: {
+          id: "result",
+          label: "نتيجة اليوم",
+          state: todayPeriod.value.resultMinor === null ? "incomplete" : "known",
+          valueMinor: todayPeriod.value.resultMinor,
+          honestNote: honestResultNote(todayPeriod.value),
+          source: "/finance?view=period",
+        },
+      },
+      month: {
+        sales: {
+          id: "sales",
+          label: "مبيعات الشهر",
+          state: "known",
+          valueMinor: totalSales(monthPeriod.value),
+          honestNote: null,
+          source: "/finance?view=period",
+        },
+        result: {
+          id: "result",
+          label: "نتيجة الشهر",
+          state: monthPeriod.value.resultMinor === null ? "incomplete" : "known",
+          valueMinor: monthPeriod.value.resultMinor,
+          honestNote: honestResultNote(monthPeriod.value),
+          source: "/finance?view=period",
+        },
+      },
+    };
+    /* P-4.3-2 (D6): Insights من البيانات الحالية فقط — لكل ملحوظة ماذا حدث
+     * ولماذا يهم وفعل منطقي واحد؛ بلا تكرار لسبب جذري واحد (كل سبب مرة). */
+    const insights: HomeInsight[] = [];
+    if (cashEvidence && positionValue.unallocatedCashMinor > 0) {
+      insights.push({
+        id: "unallocated-cash",
+        what: "عندك كاش غير موزع في الدرج",
+        why: "قبض لم يُنسب لمحفظة — وزّعه ليُعرف مكانه",
+        action: action("distribute", "وزّعه", "/cash/distribute", "unallocated"),
+      });
+    }
+    if (orderEvidence && positionValue.customerReceivablesMinor > 0) {
+      insights.push({
+        id: "uncollected-receivables",
+        what: "مبالغ غير محصلة عند العملاء",
+        why: "دين مسجل بعد التسليم — ليس كاشًا بعد",
+        action: action("collect", "حصّل", "/collect", "receivables"),
+      });
+    }
+    if (
+      monthPeriod.value.resultMinor === null &&
+      (monthPeriod.value.cogsMissingOrderCount > 0 || monthPeriod.value.directSaleCostUnknownCount > 0)
+    ) {
+      insights.push({
+        id: "incomplete-result",
+        what: "بيانات تكلفة ناقصة تمنع نتيجة نهائية لهذا الشهر",
+        why: null,
+        action: action("review-result", "راجع التفاصيل", "/finance?view=period", "cogs"),
+      });
+    }
+    const monthRevenue = totalSales(monthPeriod.value);
+    const previousMonthRevenue = totalSales(previousMonthPeriod.value);
+    if (monthRevenue > 0 && previousMonthRevenue > 0 && monthRevenue !== previousMonthRevenue) {
+      const higher = monthRevenue > previousMonthRevenue;
+      insights.push({
+        id: "sales-change",
+        what: `مبيعات هذا الشهر ${higher ? "أعلى" : "أقل"} من الشهر الماضي بـ ${formatMoneyMinor(
+          Math.abs(monthRevenue - previousMonthRevenue),
+        )} د.أ`,
+        why: null,
+        action: action("open-period", "افتح ملخص الفترة", "/finance?view=period", "sales-change"),
+      });
+    }
+
     return {
       ok: true,
       value: buildHomeControlCenterViewModel({
@@ -497,6 +623,8 @@ export class HomeControlCenterService {
         optionalModules,
         recentChanges,
         awaySection,
+        periodNumbers,
+        insights,
       }),
     };
   }

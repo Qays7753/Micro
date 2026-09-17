@@ -87,11 +87,15 @@ describe("SET-003 — layered capability behavior", () => {
   afterEach(() => cleanup());
 
   it("all capabilities default to enabled — the legacy surface is unchanged", async () => {
+    /* Wave 4.3 — P-4.3-2: «مسودة تصميم» انتقل خلف «المزيد» (إجراء أقل تكرارًا) —
+     * التحديث موثق مع القرار المرئي المعتمد؛ القدرة نفسها ما زالت مفعلة. */
     render(<Harness page={<Home />} />);
     const row = await screen.findByTestId("home-quick-actions");
     expect(row.textContent).toContain("طلب من عميل");
-    expect(row.textContent).toContain("مسودة تصميم");
     expect(row.textContent).toContain("سجّل بيعًا");
+    fireEvent.click(screen.getByRole("button", { name: /المزيد/ }));
+    const more = await screen.findByTestId("home-quick-actions-more");
+    expect(more.textContent).toContain("مسودة تصميم");
   });
 
   it("disabling orders hides the order/estimate quick actions but never the sale/expense core", async () => {
@@ -137,7 +141,8 @@ describe("SET-003 — layered capability behavior", () => {
     if (!disabled.ok) throw new Error(disabled.message);
     render(<Harness page={<Home />} />);
     /* الوقائع (لي عند العملاء/الكاش) تبقى ظاهرة — الإيقاف لا يخفي التزامًا. */
-    await waitFor(() => expect(screen.getByText("ما هو مسجل حتى الآن؟")).toBeTruthy());
+    /* Wave 4.3 — P-4.3-2: قسم الحقائق صار «أرقامك» بتقسيم اليوم/الشهر ثم الوضع القائم. */
+    await waitFor(() => expect(screen.getByText("أرقامك")).toBeTruthy());
     const orders = await store.listOrders();
     if (!orders.ok) throw new Error(orders.message);
     /* لا حذف أبدًا — القدرة لا تمس السجلات. */

@@ -95,6 +95,33 @@ export type HomeAwaySection = {
   /* U-002: ملخص قصير قابل للفعل لا لوحة طويلة. */
   digest: HomeAwayDigest;
 };
+/* Wave 4.3 — P-4.3-2 (D6/D7): أرقام اليوم والشهر من قراءة الفترة الرسمية
+ * وحدها (readRecordedPeriodResult) — لا معادلات جديدة في الواجهة، والنتيجة
+ * الناقصة توصف بصدق لا بأصفار مضللة. */
+export type HomePeriodNumber = {
+  id: "sales" | "result";
+  label: string;
+  state: HomeValueState;
+  valueMinor: number | null;
+  honestNote: string | null;
+  source: string | null;
+};
+export type HomePeriodNumbers = {
+  sales: HomePeriodNumber;
+  result: HomePeriodNumber;
+};
+export type HomePeriodNumbersSection = {
+  today: HomePeriodNumbers;
+  month: HomePeriodNumbers;
+};
+/* Wave 4.3 — P-4.3-2 (D6): Insights قصيرة من البيانات الحالية فقط — ماذا
+ * حدث ولماذا يهم ورابط منطقي؛ لا توقعات ولا نصائح عامة بلا بيانات. */
+export type HomeInsight = {
+  id: string;
+  what: string;
+  why: string | null;
+  action: HomeAction | null;
+};
 export type HomeControlCenterInput = {
   activityName: string;
   todayLocal: string;
@@ -106,6 +133,8 @@ export type HomeControlCenterInput = {
   optionalModules: readonly HomeOptionalModule[];
   recentChanges: readonly HomeRecentChange[];
   awaySection: HomeAwaySection | null;
+  periodNumbers: HomePeriodNumbersSection;
+  insights: readonly HomeInsight[];
 };
 export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
@@ -120,6 +149,8 @@ export type HomeControlCenterViewModel = {
   optionalModules: readonly HomeOptionalModule[];
   recentChanges: readonly HomeRecentChange[];
   awaySection: HomeAwaySection | null;
+  periodNumbers: HomePeriodNumbersSection;
+  insights: readonly HomeInsight[];
 };
 
 const compareToday = (left: HomeTodayItem, right: HomeTodayItem) =>
@@ -153,5 +184,7 @@ export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): 
     optionalModules,
     recentChanges,
     awaySection: input.awaySection,
+    periodNumbers: input.periodNumbers,
+    insights: input.insights.slice(0, 4),
   };
 }
