@@ -4,7 +4,7 @@
  * والتفصيل مسار عميق لكل أصل؛ هذا السطح يبقي شريط التنقل (قارئ).
  */
 import { assetUnknownLifeCountLabel } from "@/presentation/g5Plurals";
-import { Boxes, Plus, TrendingDown } from "lucide-react";
+import { Boxes, Plus, TrendingDown, ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
@@ -41,7 +41,7 @@ export default function Assets() {
   return (
     <section className="micro-page micro-assets-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        مالي
+        <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">أصول المشروع</span>

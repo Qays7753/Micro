@@ -157,8 +157,8 @@ export function CatalogReadingsSection({
                                   ? ` · ${formatMoneyWithUnit(policy.rateMinorPerWholeUnit)} لكل 1.000 وحدة`
                                   : ""}{" "}
                                 · {policy.source} · السبب: {policy.reason} · {policy.note}
-                                /* P-4.2-5 (F02/T3): قراءة فقط — الإدارة (نسخ/إيقاف موثق) * من سطح المالية
-                                «ملخص الفترة»؛ هذا رابط سياقي واحد. */
+                                {/* P-4.2-5 (F02/T3): قراءة فقط — الإدارة (نسخ/إيقاف موثق)
+                                 * من سطح المالية «ملخص الفترة»؛ هذا رابط سياقي واحد. */}
                               </p>
                             ))}
                             <button

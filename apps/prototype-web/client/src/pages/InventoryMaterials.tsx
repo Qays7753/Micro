@@ -258,7 +258,7 @@ export default function InventoryMaterials() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "مالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مخزون بسيط</span>

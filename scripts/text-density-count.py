@@ -499,7 +499,10 @@ CAPS: dict[str, int] = {
     # («غير محدد بعد»/«صفر مؤكد»/«التكلفة غير معروفة»), shortage disclosure + resolve,
     # untrack consequences dialog, awaiting-receipt line (contract-11 promise),
     # «مرتدة موثقًا» marker — decision record D-029.
-    "InventoryMaterials": 56,
+    # InventoryMaterials 56 → 57 (2026-09-18, Wave 4.3 independent review P2 fix,
+    # N-03/REV-010 naming family): back button now uses the official name
+    # «المالية» instead of «مالي» — one mandated navigation label swap.
+    "InventoryMaterials": 57,
     # Market first measurement (2026-09-16, product-journey package NAV-001): the
     # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
     # description; no suppliers, no purchase action, no records or effects.
