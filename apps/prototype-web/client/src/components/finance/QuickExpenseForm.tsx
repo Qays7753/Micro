@@ -161,7 +161,17 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
     useImperativeHandle(ref, () => ({ isDirty, submit }));
 
     return (
-      <div className="micro-sheet-form" hidden={hidden || undefined}>
+      /* Wave 4.3 — P-4.3-2 (GAP-4.3-05/F13): نموذج حقيقي — Enter يسجّل المصروف
+       * متى كان آمنًا: نموذج قصير، التحقق داخل submit نفسه، ومنع التكرار قائم
+       * (saveInFlightRef + حتمية المخزن). ليس تصحيحًا عالي العواقب ولا حذفًا. */
+      <form
+        className="micro-sheet-form"
+        hidden={hidden || undefined}
+        onSubmit={event => {
+          event.preventDefault();
+          void submit();
+        }}
+      >
         <label className="micro-field">
           <span>المبلغ المدفوع بالدينار الأردني</span>
           <EnglishNumberInput
@@ -256,20 +266,13 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
             {formError}
           </p>
         ) : null}
-        <Button
-          action="save"
-
-          disabled={saving}
-          onClick={() => {
-            void submit();
-          }}
-        >
+        <Button action="save" type="submit" disabled={saving}>
           {saving ? "جارٍ التسجيل…" : "سجّل المصروف"}
         </Button>
         <button className="micro-text-action" type="button" onClick={onBackToMenu}>
           رجوع إلى القائمة <ArrowRight aria-hidden="true" />
         </button>
-      </div>
+      </form>
     );
   },
 );

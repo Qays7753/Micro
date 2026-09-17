@@ -277,7 +277,14 @@ CAPS: dict[str, int] = {
     # buttons) replacing the removed central سجّل button, plus the one-time setup
     # success banner. The quick sale/expense sheet itself stays shell-owned
     # (app/quickRecording.tsx) as before — no new form copy on this surface.
-    "Home": 59,
+    # Home 59 -> 76 (2026-09-18, Wave 4.3 P-4.3-2, owner-approved task section 9):
+    # professional dashboard order — numbers section (اليوم/هذا الشهر split with
+    # honest incomplete-result notes), insights (ملحوظات تهمك: unallocated cash,
+    # uncollected receivables, missing cost data — each with a single logical action),
+    # quick actions (منتجاتي وخدماتي contextual entry + المزيد row). Removed with
+    # the same scope: the standalone catalog section title and the heading profile
+    # link (moved to the permanent logo menu) — the catalog entry is not duplicated.
+    "Home": 76,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.

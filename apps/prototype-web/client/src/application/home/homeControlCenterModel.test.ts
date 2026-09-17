@@ -62,6 +62,46 @@ const baseInput = (): HomeControlCenterInput => ({
   ],
   optionalModules: [],
   recentChanges: [],
+  /* Wave 4.3 — P-4.3-2: أرقام الفترة والـInsights جزء إلزامي من المدخلات. */
+  periodNumbers: {
+    today: {
+      sales: {
+        id: "sales",
+        label: "مبيعات اليوم",
+        state: "known",
+        valueMinor: 0,
+        honestNote: null,
+        source: "/finance?view=period",
+      },
+      result: {
+        id: "result",
+        label: "نتيجة اليوم",
+        state: "known",
+        valueMinor: 0,
+        honestNote: null,
+        source: "/finance?view=period",
+      },
+    },
+    month: {
+      sales: {
+        id: "sales",
+        label: "مبيعات الشهر",
+        state: "known",
+        valueMinor: 0,
+        honestNote: null,
+        source: "/finance?view=period",
+      },
+      result: {
+        id: "result",
+        label: "نتيجة الشهر",
+        state: "known",
+        valueMinor: 0,
+        honestNote: null,
+        source: "/finance?view=period",
+      },
+    },
+  },
+  insights: [],
 });
 
 describe("buildHomeControlCenterViewModel", () => {
@@ -157,5 +197,64 @@ describe("buildHomeControlCenterViewModel", () => {
     });
     expect(model.recentChanges).toHaveLength(5);
     expect(model.recentChanges.at(-1)?.id).toBe("change-4");
+  });
+
+  /* Wave 4.3 — P-4.3-2: الأرقام تمر كما هي والنتيجة الناقصة تبقى ناقصة،
+   * والـInsights تُقصر إلى أربعة كحد أقصى حتى لا تنافس الأولوية. */
+  it("passes period numbers through unchanged and bounds insights to four rows", () => {
+    const model = buildHomeControlCenterViewModel({
+      ...baseInput(),
+      periodNumbers: {
+        today: {
+          sales: {
+            id: "sales",
+            label: "مبيعات اليوم",
+            state: "known",
+            valueMinor: 1500,
+            honestNote: null,
+            source: "/finance?view=period",
+          },
+          result: {
+            id: "result",
+            label: "نتيجة اليوم",
+            state: "incomplete",
+            valueMinor: null,
+            honestNote: "تحتاج بيانات تكلفة",
+            source: "/finance?view=period",
+          },
+        },
+        month: {
+          sales: {
+            id: "sales",
+            label: "مبيعات الشهر",
+            state: "known",
+            valueMinor: 32000,
+            honestNote: null,
+            source: "/finance?view=period",
+          },
+          result: {
+            id: "result",
+            label: "نتيجة الشهر",
+            state: "known",
+            valueMinor: 9100,
+            honestNote: null,
+            source: "/finance?view=period",
+          },
+        },
+      },
+      insights: Array.from({ length: 6 }, (_, index) => ({
+        id: `insight-${index}`,
+        what: `ملحوظة ${index}`,
+        why: null,
+        action: null,
+      })),
+    });
+    expect(model.periodNumbers.today.result).toMatchObject({
+      state: "incomplete",
+      valueMinor: null,
+      honestNote: "تحتاج بيانات تكلفة",
+    });
+    expect(model.periodNumbers.month.result).toMatchObject({ state: "known", valueMinor: 9100 });
+    expect(model.insights).toHaveLength(4);
   });
 });

@@ -2772,6 +2772,114 @@ button.micro-finance-position-link:focus-visible {
   width: 22px;
   height: 22px;
 }
+/* Wave 4.3 — P-4.3-2 (D6): الإجراء الأساسي البارز — البيع هو الفعل اليومي
+ * الأول؛ حبر دافئ ممتلئ هادئ يميزه عن بقية الصف بلا زخرفة. */
+.micro-quick-action-primary {
+  border-color: color-mix(in srgb, var(--color-accent-primary) 55%, var(--color-border));
+  background: var(--color-accent-soft);
+}
+.micro-quick-actions-more {
+  margin-top: var(--space-1);
+  padding-top: 0;
+}
+/* P-4.3-2 (D6): ملخص الأرقام — تقسيم «اليوم» و«هذا الشهر» بعمودين هادئين
+ * يلتفان عموديًا في المقاسات الضيقة؛ لا بطاقات ثقيلة حول كل رقم. */
+.micro-home-numbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.micro-home-numbers-period {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.micro-home-numbers-period > h3 {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.micro-home-number {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  border: 0;
+  border-top: 1px solid var(--color-divider);
+  padding-top: var(--space-2);
+}
+.micro-home-number > span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.micro-home-number > strong {
+  color: var(--color-text-primary);
+  font-size: 20px;
+  line-height: 1.3;
+}
+.micro-home-number[data-state="incomplete"] > strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.micro-home-number-note {
+  color: var(--color-warning-text);
+}
+.micro-home-number > strong .micro-number {
+  font-size: 20px;
+}
+/* P-4.3-2 (D6): Insights — صفوف خفيفة بلا بطاقات ثقيلة؛ أيقونة واحدة وسطر
+ * وفعل نصي واحد لكل ملحوظة. */
+.micro-home-insights-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-home-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-well);
+}
+.micro-home-insight > svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--color-accent-text);
+}
+.micro-home-insight > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.micro-home-insight p {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.micro-home-insight small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.micro-home-insight > .micro-text-action {
+  flex: 0 0 auto;
+}
 .micro-setup-intro {
   display: grid;
   gap: 8px;
