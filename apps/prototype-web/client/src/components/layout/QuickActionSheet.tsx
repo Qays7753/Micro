@@ -319,7 +319,7 @@ export function QuickActionSheet({
                 {/* (إصلاح تكاملي — مجموعة ٤): فشل نسبة المحفظة بعد التسجيل يظهر
                     في الوصل — المال محفوظ غير موزع، لا كذب على الكتابة ولا تجاهل. */}
                 {receipt.attributionNote ? <p>{receipt.attributionNote}</p> : null}
-                <p>أُغلق التسجيل فوق شاشتك؛ صحّح من «العمل» أو «مالي» عند الحاجة.</p>
+                <p>أُغلق التسجيل فوق شاشتك؛ صحّح من «العمل» أو «المالية» عند الحاجة.</p>
                 {receipt.recordHref ? (
                   <Button
                     action="secondary"

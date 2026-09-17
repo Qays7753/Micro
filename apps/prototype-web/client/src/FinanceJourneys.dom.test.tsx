@@ -127,7 +127,7 @@ describe("Finance journeys (Group 11-E)", () => {
     await seedProfile();
     renderFinance();
     /* عقد الجهوزية: عنوان «مالي» الدائم في الحالة الجاهزة. */
-    expect(await screen.findByRole("heading", { level: 1, name: "مالي" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     /* القيمة الدقيقة 1,520.40 د.أ تُعرض كما خُزنت (152,040 قروشًا) بلا تقريب. */
     expect(screen.getAllByText("1,520.40").length).toBeGreaterThan(0);
     expect(screen.getByText("الكاش المسجل")).toBeTruthy();
@@ -154,7 +154,7 @@ describe("Finance journeys (Group 11-E)", () => {
     if (!covered.ok) throw new Error(covered.message);
 
     renderFinance();
-    expect(await screen.findByRole("heading", { level: 1, name: "مالي" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     /* الشريط الصريح: كاش غير موزع 271.00 — لا كاش عالق بلا طريق حل. */
     const stripTitle = screen.getByText("كاش غير موزع:");
     const strip = stripTitle.closest(".micro-unallocated-strip");
@@ -172,9 +172,9 @@ describe("Finance journeys (Group 11-E)", () => {
     await openWalletWith(15000);
     await seedProfile();
     renderFinance();
-    expect(await screen.findByRole("heading", { level: 1, name: "مالي" })).toBeTruthy();
-    /* قرار القراءة: تبويب «شو صار خلال الفترة» يفتح عرض الفترة ويحفظه في الرابط. */
-    fireEvent.click(screen.getByRole("tab", { name: "شو صار خلال الفترة" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
+    /* قرار القراءة: تبويب «ملخص الفترة» (F02) يفتح عرض الفترة ويحفظه في الرابط. */
+    fireEvent.click(screen.getByRole("tab", { name: "ملخص الفترة" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/finance?view=period", { replace: true });
     /* طبقة قراءة الفترة المستخرجة (11-D): نتيجة الفترة المسجلة بنطاقها المعلن. */
     expect(await screen.findByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();

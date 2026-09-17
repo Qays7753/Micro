@@ -111,7 +111,7 @@ export default function G5DeclarationEditor() {
   return (
     <section className="micro-page micro-g5-editor-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowRight aria-hidden="true" /> القرار المالي
+        <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">سجل متوقع لا يتحول إلى حركة مالية</span>

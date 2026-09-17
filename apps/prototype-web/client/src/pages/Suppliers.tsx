@@ -52,7 +52,7 @@ export default function Suppliers() {
 
           onClick={() => navigate(withReturnTo("/finance", "/suppliers"))}
         >
-          الوضع المالي
+          المالية
         </Button>
       </section>
     );
@@ -68,7 +68,7 @@ export default function Suppliers() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مواد وموردون</span>

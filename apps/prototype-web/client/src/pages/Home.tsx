@@ -226,7 +226,7 @@ export default function Home() {
         <section className="micro-note-card" role="status" data-testid="setup-success-banner">
           <ShieldCheck aria-hidden="true" />
           <p>
-            {`تم إنشاء مشروعك «${model.heading.activityName}» — ابدأ الآن بتسجيل أول عملية من أزرار التسجيل السريع هنا؛ وصفحة الأساس عمق اختياري تكمله لاحقًا من زر «صفحة الأساس» في قسم «مالي» أسفل هذه الصفحة.`}
+            {`تم إنشاء مشروعك «${model.heading.activityName}» — ابدأ الآن بتسجيل أول عملية من أزرار التسجيل السريع هنا؛ وصفحة الأساس عمق اختياري تكمله لاحقًا من زر «صفحة الأساس» في قسم «المالية» أسفل هذه الصفحة.`}
           </p>
         </section>
       ) : null}
@@ -447,7 +447,7 @@ export default function Home() {
         <div className="micro-section-title">
           <Landmark aria-hidden="true" />
           <div>
-            <h2 id="home-finance-title">مالي</h2>
+            <h2 id="home-finance-title">المالية</h2>
           </div>
         </div>
         <div className="micro-home-finance-unit">

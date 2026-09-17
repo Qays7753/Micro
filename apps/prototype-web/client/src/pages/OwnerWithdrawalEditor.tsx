@@ -191,7 +191,7 @@ export default function OwnerWithdrawalEditor() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowRight aria-hidden="true" /> مالي
+        <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مدخل واحد · سحب المالك</span>

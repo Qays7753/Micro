@@ -234,7 +234,7 @@ export default function OwnerEntitlement() {
 
           onClick={() => navigate("/finance")}
         >
-          الوضع المالي
+          المالية
         </Button>
       </section>
     );
@@ -610,7 +610,7 @@ export default function OwnerEntitlement() {
   return (
     <section className="micro-page micro-finance-page micro-owner-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">دفتر واحد · المبالغ (د.أ)</span>

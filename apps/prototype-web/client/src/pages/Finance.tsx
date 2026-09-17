@@ -303,7 +303,7 @@ export default function Finance() {
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>
-        <h1>مالي</h1>
+        <h1>المالية</h1>
       </div>
       {/* المجموعة ٢ (§8.3): أول قرار واضح — الوضع الآن أو ما صار خلال الفترة. */}
       <div className="micro-form-actions" role="tablist" aria-label="اختيار قراءة مالي">
@@ -325,7 +325,9 @@ export default function Finance() {
           aria-pressed={view === "period"}
           onClick={() => switchView("period")}
         >
-          شو صار خلال الفترة
+          {/* F02 (قرار المالك — Wave 4.2): «ملخص الفترة» هو الاسم الرسمي للتبويب؛
+              «شو صار خلال الفترة؟» سطر مساعد داخلي فقط لا اسمًا رسميًا. */}
+          ملخص الفترة
         </button>
       </div>
       {view === "position" ? (
