@@ -592,9 +592,20 @@ CAPS: dict[str, int] = {
     # ToolsIntegrity 52 → 57 (2026-09-16, product-journey package TOOL-001, owner-approved):
     # dynamic check count via the Arabic plural engine (registry-derived, no
     # hardcoded number) + the «غير متاح» state in the status vocabulary.
-    "ToolsIntegrity": 57,
+    # ToolsIntegrity 57 → 61 (2026-09-17, Wave 4.2 P-4.2-4, owner decision F05):
+    # the back button became source-dynamic — it names the return destination
+    # («المزيد من المالية»/«المالية»/«أدواتي»/«الإعدادات»/«رجوع») instead of the
+    # hardcoded «أدواتي», per contract 26 §2.1 (named-destination return).
+    "ToolsIntegrity": 61,
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
     "FinanceActivity": 55,
+    # FinanceMore (2026-09-17, Wave 4.2 P-4.2-4, owner decision F01): first
+    # measurement day for the «المالية ← المزيد» organizing reader — heading +
+    # promise, integrity card, four organized groups (reports/advanced tools/
+    # owner & policies) with one honest footer; entries are static directory
+    # labels (no data-driven templates). Locked at the honest measured number
+    # (35) as a ratchet from day one.
+    "FinanceMore": 35,
     "SharePreview": 24,
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,
@@ -728,6 +739,8 @@ PAGES = [
     # المجموعة ١ (الإدخال المالي الموجّه): فحص السلامة + المحرر الموجّه + الكشف
     # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
     "ToolsIntegrity",
+    # Wave 4.2 — P-4.2-4 (F01): سطح «المزيد من المالية» — قارئ منظم.
+    "FinanceMore",
     # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل ومعاينة المشاركة — تُقاسان من يومهما الأول.
     "FinanceActivity",
     "SharePreview",

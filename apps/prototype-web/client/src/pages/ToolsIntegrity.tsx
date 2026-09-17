@@ -1,10 +1,12 @@
 /**
- * المجموعة ١ (فحص سلامة مالي): سطح قراءة فقط تحت «أدواتي» — «يقرأ أرقامك ولا
- * يغيّر شيئًا». مسار سطح (يبقى شريط التنقل) لأنه قارئ تفكير لا محرر؛ البديل
- * القانوني /tools. الحالة كلمة وأيقونة لا لونًا وحده؛ لا إصلاح تلقائي أبدًا —
- * الفحص يشير والتصحيح مساره الموثق في أسطحه الأصلية.
+ * سلامة الحسابات (Wave 4.2 — P-4.2-4/F05): سطح قراءة فقط — «يقرأ أرقامك ولا
+ * يغيّر شيئًا». المدخل المرئي صار «المالية ← المزيد ← سلامة الحسابات»؛ المسار
+ * التقني /tools/integrity يبقى للتوافق مع الروابط السابقة (قرار F05). زر
+ * الرجوع ديناميكي حسب مصدر الدخول (?returnTo) — لا يعرض «أدواتي» لمن دخل من
+ * المالية. الحالة كلمة وأيقونة لا لونًا وحده؛ لا إصلاح تلقائي أبدًا — الفحص
+ * يشير والتصحيح مساره الموثق في أسطحه الأصلية.
  */
-import { AlertTriangle, CheckCircle2, CircleSlash, OctagonX, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, CircleSlash, OctagonX, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
@@ -68,14 +70,25 @@ export default function ToolsIntegrity() {
 
   const overall = state.phase === "done" ? statusMeta[state.report.overall] : null;
 
+  /* F05: الرجوع ديناميكي حسب مصدر الدخول — اسم وجهة الأصل عند معرفته (عقد ٢٦ §2.1). */
+  const backLabel =
+    returnPath === "/finance/more"
+      ? "المزيد من المالية"
+      : returnPath === "/finance"
+        ? "المالية"
+        : returnPath === "/tools"
+          ? "أدواتي"
+          : returnPath === "/settings"
+            ? "الإعدادات"
+            : "رجوع";
   return (
     <section className="micro-page micro-integrity-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        أدواتي
+        <ArrowRight aria-hidden="true" /> {backLabel}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">أداة قراءة</span>
-        <h1>فحص سلامة مالي</h1>
+        <h1>سلامة الحسابات</h1>
         <p>
           {`${formatArabicPlural(integrityCheck.registeredCheckCount(), {
             zero: "لا فحوص مسجلة بعد",

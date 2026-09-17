@@ -518,14 +518,17 @@ export default function Finance() {
                 <button className="micro-text-action" type="button" onClick={() => switchView("period")}>
                   قراءة الفترة الكاملة
                 </button>
-                {/* المجموعة ١ (فحص سلامة مالي): باب مالي حيث يُشك بالرقم — قراءة فقط. */}
-                {" · "}
+              </p>
+              {/* Wave 4.2 — P-4.2-4 (F01/F05): مدخل «المزيد» — سلامة الحسابات
+                  والقراءات العميقة والمالك والسياسات تنظيمها هناك؛ التسجيل
+                  لا يدخل ذلك السطح أبدًا. */}
+              <p className="micro-fact-road-line">
                 <button
                   className="micro-text-action"
                   type="button"
-                  onClick={() => navigate(withReturnTo("/tools/integrity", "/finance"))}
+                  onClick={() => navigate(withReturnTo("/finance/more", "/finance"))}
                 >
-                  فحص سلامة مالي — اطمن على أرقامك
+                  المزيد من المالية — قراءات وتنظيم أعمق
                 </button>
               </p>
             </div>
