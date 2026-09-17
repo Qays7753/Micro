@@ -43,7 +43,6 @@ import {
 import { CatalogItemsSection } from "@/components/catalog/CatalogItemsSection";
 import { CatalogUnitsSection } from "@/components/catalog/CatalogUnitsSection";
 import { CatalogTemplatesSection } from "@/components/catalog/CatalogTemplatesSection";
-import { CatalogPoliciesSection } from "@/components/catalog/CatalogPoliciesSection";
 import { CatalogReadingsSection } from "@/components/catalog/CatalogReadingsSection";
 import { templateComponentCountLabel } from "@/presentation/plurals";
 import type {
@@ -93,26 +92,12 @@ export default function Catalog() {
   const month = useMemo(currentMonth, []);
   const [periodFrom, setPeriodFrom] = useState(month.from);
   const [periodTo, setPeriodTo] = useState(month.to);
-  const [policyPeriodFrom, setPolicyPeriodFrom] = useState(month.from);
-  const [policyPeriodTo, setPolicyPeriodTo] = useState(month.to);
-  const [policyRevisionId, setPolicyRevisionId] = useState<string | null>(null);
   const [readings, setReadings] = useState<RecurringWorkReadings | null>(null);
   const [units, setUnits] = useState<readonly MeasurementUnit[]>([]);
   const [conversions, setConversions] = useState<readonly DirectConversion[]>([]);
   const [templates, setTemplates] = useState<readonly CatalogTemplate[]>([]);
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   const [saving, setSaving] = useState(false);
-  const [policyKind, setPolicyKind] = useState<RecurringWorkPolicyInput["kind"]>("manual_amount");
-  const [policyAmount, setPolicyAmount] = useState<number | null>(null);
-  const [policyRate, setPolicyRate] = useState<number | null>(null);
-  const [policyPercentage, setPolicyPercentage] = useState<number | null>(null);
-  const [policyAmountValid, setPolicyAmountValid] = useState(true);
-  const [policyRateValid, setPolicyRateValid] = useState(true);
-  const [policyPercentageValid, setPolicyPercentageValid] = useState(true);
-  const [policyUnitId, setPolicyUnitId] = useState("");
-  const [policySource, setPolicySource] = useState("");
-  const [policyReason, setPolicyReason] = useState("");
-  const [policyNote, setPolicyNote] = useState("");
 
   const [unitName, setUnitName] = useState("");
   const [unitDimension, setUnitDimension] = useState<UnitDimension>("count");
@@ -161,15 +146,6 @@ export default function Catalog() {
   const selectedItemUnit = selectedItem?.unitId
     ? (units.find(unit => unit.id === selectedItem.unitId) ?? null)
     : null;
-  const selectedReading = readings?.items.find(entry => entry.catalogItemId === selectedItemId) ?? null;
-  const perUnitPreview =
-    policyKind === "per_output_unit"
-      ? buildCatalogPerUnitPreview(
-          selectedReading?.outputQuantityMilli ?? null,
-          policyRate,
-          selectedItemUnit?.nameAr ?? selectedItem?.unitLabel ?? "وحدة كاملة",
-        )
-      : null;
   const selectedTemplates = templates.filter(template => template.catalogItemId === selectedItemId);
 
   /* W2 (completion — تدقيق الوكيل ٢، F6): بوابة قراءة أولى صادقة — الفراغ أثناء
@@ -225,7 +201,6 @@ export default function Catalog() {
       setSelectedItemId(items.find(item => item.active)?.id ?? "");
     if (!componentUnitId && activeUnits[0]) setComponentUnitId(activeUnits[0].id);
     if (!yieldUnitId && activeUnits[0]) setYieldUnitId(activeUnits[0].id);
-    if (!policyUnitId && selectedItem?.unitId) setPolicyUnitId(selectedItem.unitId);
   }, [items, activeUnits, selectedItemId, componentUnitId, yieldUnitId]);
 
   async function create() {
@@ -315,138 +290,6 @@ export default function Catalog() {
     notifyDataChanged();
     await load();
     setFeedback({ kind: "completion", word: "تم إيقاف المرجع للطلبات الجديدة مع بقاء تاريخه محفوظًا." });
-  }
-
-  /* F-082 (القرار ١٦): إيقاف سياسة توزيع فعالة بزر ظاهر مع تأكيد يبيّن أثره —
-   * سياسة خاطئة لم تعد أبدية، والقراءات السابقة تبقى بتوثيقها. */
-  const [policyStopId, setPolicyStopId] = useState<string | null>(null);
-  async function deactivateAllocationPolicy(policyId: string) {
-    const result = await recurringWork.deactivatePolicy(policyId);
-    if (!result.ok) {
-      setFeedback({ kind: "error", word: result.message });
-      return;
-    }
-    setPolicyStopId(null);
-    notifyDataChanged();
-    await load();
-    setFeedback({
-      kind: "completion",
-      word: "تم إيقاف سياسة التوزيع — لا تُوزّع بها حصص جديدة، والقراءات السابقة تبقى بتوثيقها.",
-    });
-  }
-
-  function startPolicyRevision(policy: RecurringWorkReading["policies"][number]) {
-    const start = policy.endsOn ? nextDay(policy.endsOn) : month.from;
-    const [year, monthNumber] = start.split("-").map(Number);
-    const existingRateMinor =
-      policy.kind === "per_output_unit" ? policy.rateMinorPerWholeUnit : policy.rateMinor;
-    setSelectedItemId(policy.catalogItemId);
-    setPolicyRevisionId(policy.id);
-    setPolicyKind(policy.kind);
-    setPolicyAmount(policy.amountMinor);
-    setPolicyRate(existingRateMinor);
-    setPolicyPercentage(policy.percentageBps);
-    setPolicyAmountValid(true);
-    setPolicyRateValid(true);
-    setPolicyPercentageValid(true);
-    setPolicyUnitId(policy.unitId ?? "");
-    setPolicySource(policy.source);
-    setPolicyReason(policy.reason);
-    setPolicyNote(policy.note);
-    setPolicyPeriodFrom(start);
-    setPolicyPeriodTo(
-      policy.endsOn
-        ? `${year}-${String(monthNumber).padStart(2, "0")}-${String(monthEndDate(year!, monthNumber!)).padStart(2, "0")}`
-        : month.to,
-    );
-    setFeedback({
-      kind: "advisory",
-      word: "أنت تعدل نسخة جديدة؛ ستبقى السياسة السابقة محفوظة وتنتهي قبل بداية النسخة الجديدة.",
-    });
-  }
-
-  async function savePolicy() {
-    if (!selectedItemId) {
-      setFeedback({ kind: "error", word: "اختر مرجع عمل قبل إضافة سياسة توزيع." });
-      return;
-    }
-    const amountMinor = policyKind === "manual_amount" ? policyAmount : null;
-    const parsedRateMinor =
-      policyKind === "per_output_unit" || policyKind === "actual_time" ? policyRate : null;
-    const rateMinor = policyKind === "actual_time" ? parsedRateMinor : null;
-    const rateMinorPerWholeUnit = policyKind === "per_output_unit" ? parsedRateMinor : null;
-    const percentageBps = policyKind === "completed_revenue_percentage" ? policyPercentage : null;
-    if (
-      (policyKind === "manual_amount" && (!policyAmountValid || amountMinor === null || amountMinor <= 0)) ||
-      ((policyKind === "per_output_unit" || policyKind === "actual_time") &&
-        (!policyRateValid || parsedRateMinor === null || parsedRateMinor <= 0)) ||
-      (policyKind === "completed_revenue_percentage" &&
-        (!policyPercentageValid || percentageBps === null || percentageBps <= 0 || percentageBps > 10_000))
-    ) {
-      setFeedback({
-        kind: "error",
-        word: "أدخل أساس التوزيع بصيغة موجبة واضحة؛ لا نستخدم صفرًا بدل البيانات الناقصة.",
-      });
-      return;
-    }
-    if (
-      policyKind === "per_output_unit" &&
-      (!policyUnitId || !selectedItem?.unitId || policyUnitId !== selectedItem.unitId)
-    ) {
-      setFeedback({
-        kind: "error",
-        word: "اختر وحدة ناتج منظمة متوافقة مع وحدة مرجع العمل؛ لا نحوّل الناتج تلقائيًا.",
-      });
-      return;
-    }
-    if (!policySource.trim() || !policyReason.trim() || !policyNote.trim()) {
-      setFeedback({ kind: "error", word: "مصدر السياسة وسببها وملاحظتها حقول إلزامية." });
-      return;
-    }
-    setSaving(true);
-    setFeedback(null);
-    const input: RecurringWorkPolicyInput = {
-      catalogItemId: selectedItemId,
-      kind: policyKind,
-      amountMinor,
-      rateMinor,
-      rateMinorPerWholeUnit,
-      percentageBps,
-      unitId: policyKind === "per_output_unit" ? policyUnitId : null,
-      periodFrom: policyPeriodFrom,
-      periodTo: policyPeriodTo,
-      startsOn: policyPeriodFrom,
-      endsOn: policyPeriodTo,
-      source: policySource,
-      reason: policyReason,
-      note: policyNote,
-      idempotencyKey: operationKey("allocation-policy"),
-    };
-    const { catalogItemId: _catalogItemId, ...successorInput } = input;
-    const result = policyRevisionId
-      ? await recurringWork.createPolicySuccessor(policyRevisionId, successorInput)
-      : await recurringWork.createPolicy(input);
-    setSaving(false);
-    if (!result.ok) {
-      setFeedback({ kind: "error", word: result.message });
-      return;
-    }
-    setPolicyAmount(null);
-    setPolicyRate(null);
-    setPolicyPercentage(null);
-    setPolicyAmountValid(true);
-    setPolicyRateValid(true);
-    setPolicyPercentageValid(true);
-    setPolicySource("");
-    setPolicyReason("");
-    setPolicyNote("");
-    setPolicyRevisionId(null);
-    notifyDataChanged();
-    await load();
-    setFeedback({
-      kind: "completion",
-      word: "تم حفظ سياسة التوزيع كقراءة تفسيرية مؤرخة؛ لم ينشأ منها أثر مالي أو تغيير في نسخة التكلفة.",
-    });
   }
 
   async function createUnit() {
@@ -911,58 +754,12 @@ export default function Catalog() {
         resetTemplateForm={resetTemplateForm}
       />
 
-      <CatalogPoliciesSection
-        periodFrom={periodFrom}
-        setPeriodFrom={setPeriodFrom}
-        periodTo={periodTo}
-        setPeriodTo={setPeriodTo}
-        policyKind={policyKind}
-        setPolicyKind={setPolicyKind}
-        policyAmount={policyAmount}
-        setPolicyAmount={setPolicyAmount}
-        policyAmountValid={policyAmountValid}
-        setPolicyAmountValid={setPolicyAmountValid}
-        policyRate={policyRate}
-        setPolicyRate={setPolicyRate}
-        policyRateValid={policyRateValid}
-        setPolicyRateValid={setPolicyRateValid}
-        policyPercentage={policyPercentage}
-        setPolicyPercentage={setPolicyPercentage}
-        policyPercentageValid={policyPercentageValid}
-        setPolicyPercentageValid={setPolicyPercentageValid}
-        policyUnitId={policyUnitId}
-        setPolicyUnitId={setPolicyUnitId}
-        policySource={policySource}
-        setPolicySource={setPolicySource}
-        policyReason={policyReason}
-        setPolicyReason={setPolicyReason}
-        policyNote={policyNote}
-        setPolicyNote={setPolicyNote}
-        policyPeriodFrom={policyPeriodFrom}
-        setPolicyPeriodFrom={setPolicyPeriodFrom}
-        policyPeriodTo={policyPeriodTo}
-        setPolicyPeriodTo={setPolicyPeriodTo}
-        selectedItemId={selectedItemId}
-        setSelectedItemId={setSelectedItemId}
-        selectedItem={selectedItem}
-        selectedItemUnit={selectedItemUnit}
-        perUnitPreview={perUnitPreview}
-        items={items}
-        activeUnits={activeUnits}
-        saving={saving}
-        savePolicy={savePolicy}
-        resetTemplateForm={resetTemplateForm}
-      />
-
       <CatalogReadingsSection
         readings={readings}
         items={items}
         units={units}
-        policyStopId={policyStopId}
-        setPolicyStopId={setPolicyStopId}
         deactivate={deactivate}
-        deactivateAllocationPolicy={deactivateAllocationPolicy}
-        startPolicyRevision={startPolicyRevision}
+        navigate={navigate}
       />
       {feedback ? <FeedbackNote kind={feedback.kind} word={feedback.word} /> : null}
     </section>

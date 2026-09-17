@@ -42,6 +42,9 @@ import { EventsLayer } from "@/components/finance/EventsLayer";
 import { CorrectionsLayer } from "@/components/finance/CorrectionsLayer";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import { FinancePeriodResultSection } from "@/components/finance/FinancePeriodResultSection";
+/* Wave 4.2 — P-4.2-5 (F02/T3): سياسات الربح والتوزيع — السطح المالي بعد نقله
+ * من الكتالوج؛ موضعه «ملخص الفترة» بجوار «التغطية والتعادل». */
+import { FinancePoliciesSection } from "@/components/finance/FinancePoliciesSection";
 import type { CorrectionDigest } from "@/application/finance/correctionHistoryService";
 import type { PeriodWasteReading } from "@/application/inventory/inventoryMaterialService";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
@@ -676,6 +679,9 @@ export default function Finance() {
               </section>
             </details>
           </details>
+          {/* F02 (قرار المالك — Wave 4.2): سياسات الربح والتوزيع بجوار «التغطية
+              والتعادل» — نقل السطح من الكتالوج؛ الخدمة والكاتب كما هما بعقد 40. */}
+          <FinancePoliciesSection />
           {/* المجموعة ٢ (§9.2): من قراءة الفترة إلى الكشف البسيط — الرجوع محفوظ للمصدر. */}
           <section className="micro-decision-card" aria-label="كشف الفترة البسيط">
             <ReceiptText aria-hidden="true" />
