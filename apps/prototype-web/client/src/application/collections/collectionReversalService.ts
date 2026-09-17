@@ -153,7 +153,7 @@ export class CollectionReversalService {
       } else {
         status = "no_allocation";
         refusalReason =
-          "هذه القبضة ليست مرتبطة بتخصيص في محفظة — الكاش ضمن غير الموزع؛ سيكون التراجع عن القبضة وحدها.";
+          "هذه القبضة ليست مرتبطة بتوزيع في محفظة — الكاش ضمن غير الموزع؛ سيكون التراجع عن القبضة وحدها.";
       }
     } else if (ambiguous) {
       status = "ambiguous";

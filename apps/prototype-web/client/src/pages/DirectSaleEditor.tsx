@@ -415,7 +415,7 @@ export default function DirectSaleEditor() {
       const attribution = await projectFinance.distributeUnallocated({
         walletId: saleWalletId,
         deltaMinor: resolvedCollected,
-        note: "تخصيص قبض بيع من محرر البيع",
+        note: "توزيع قبض بيع من محرر البيع",
         operationKey: `${idempotencyKey.current}:attribute`,
         sourceRefId: result.value.id,
         sourceRefKind: "sale",
