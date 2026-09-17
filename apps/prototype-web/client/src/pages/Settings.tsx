@@ -44,7 +44,6 @@ import {
   type OperatingModeState,
 } from "@/components/settings/SettingsOperatingModeSection";
 import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
-import { SettingsGuidedOpeningSection } from "@/components/settings/SettingsGuidedOpeningSection";
 import { SettingsCapabilitiesSection } from "@/components/settings/SettingsCapabilitiesSection";
 
 import { Button, type FeedbackKind } from "@/components/primitives";
@@ -165,9 +164,12 @@ export default function SettingsPage() {
    * بعد الاستعادة حتى لا تضيع بغلقة الصفحة. */
   const [restoreBackup, setRestoreBackup] = useState<LocalExportFile | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
-  /* المجموعة ١ (Scope A/E): ?focus=guided-import يفتح بطاقة إدخال الموقف الافتتاحي
-   * مباشرة — الوصلة من صفحة الأساس تصل للموضع لا لصفحة عامة. القيمة المجهولة تُهمل. */
-  const [guidedLayerOpen, setGuidedLayerOpen] = useState(() => {
+  /* Wave 4.2 — P-4.2-3 (T2): القسم الموحد «البيانات والنسخ الاحتياطي» —
+   * الطبقتان القديمتان دُمجتا في قسم واحد مفتوح افتراضيًا؛ الوصلة العميقة
+   * ?focus=guided-import وإشعارات التخزين يفتحانه ويُمرّران النظر إلى بطاقة
+   * الإدخال الافتتاحي (السلوكان القائمان محفوظان). القيمة المجهولة تُهمل. */
+  const [dataSectionOpen, setDataSectionOpen] = useState(true);
+  const [guidedAttention, setGuidedAttention] = useState(() => {
     try {
       return new URLSearchParams(search ?? "").get("focus") === "guided-import";
     } catch {
@@ -175,8 +177,11 @@ export default function SettingsPage() {
     }
   });
   useEffect(() => {
-    if (guidedLayerOpen) guidedCardRef.current?.scrollIntoView({ block: "start" });
-  }, [guidedLayerOpen]);
+    if (guidedAttention) {
+      setDataSectionOpen(true);
+      guidedCardRef.current?.scrollIntoView({ block: "start" });
+    }
+  }, [guidedAttention]);
   const [persistence, setPersistence] = useState<BrowserPersistenceReading | null>(null);
   /* ٥.٧: حالة النسخة المُتحققة وبوابة «ابدأ من جديد». */
   const [lastExport, setLastExport] = useState<string | null>(null);
@@ -239,7 +244,7 @@ export default function SettingsPage() {
   };
   const setStorageNotice = (kind: FeedbackKind, text: string) => {
     setNotice({ kind, text, section: "storage" });
-    setGuidedLayerOpen(true);
+    setGuidedAttention(true);
   };
   const setModeNotice = (kind: FeedbackKind, text: string) => setNotice({ kind, text, section: "mode" });
   const [isWorking, setIsWorking] = useState(false);
@@ -403,7 +408,7 @@ export default function SettingsPage() {
         text: "تمت إعادة التعيين، لكن تعذر مسح مسودات النماذج غير المُسلّمة — لم يُسجّل أي أثر مالي؛ افتح النموذج وتجاهل مسودته.",
         section: "storage",
       });
-      setGuidedLayerOpen(true);
+      setGuidedAttention(true);
       return;
     }
     navigate("/setup");
@@ -426,8 +431,8 @@ export default function SettingsPage() {
         return;
       }
       setPreview(prepared.value);
-      /* جولة الاستئناف: معاينة الاستيراد تعرض داخل الطبقة نفسها — نفتحها لتُرى. */
-      setGuidedLayerOpen(true);
+      /* جولة الاستئناف: معاينة الاستيراد تعرض داخل القسم الموحد — نفتحه لتُرى. */
+      setGuidedAttention(true);
     } catch {
       setStorageNotice("error", "تعذر قراءة الملف. بقيت بيانات هذا الجهاز دون تغيير.");
     } finally {
@@ -620,6 +625,9 @@ export default function SettingsPage() {
         </button>
       </section>
       <SettingsDataProtectionSection
+        dataSectionOpen={dataSectionOpen}
+        onToggleDataSection={setDataSectionOpen}
+        guidedAttention={guidedAttention}
         persistence={persistence}
         lastExport={lastExport}
         backupReminder={backupReminder}
@@ -630,7 +638,13 @@ export default function SettingsPage() {
         resetNameConfirmation={resetNameConfirmation}
         setResetNameConfirmation={setResetNameConfirmation}
         diagnosticCopyResult={diagnosticCopyResult}
+        guidedPreview={guidedPreview}
+        setGuidedPreview={setGuidedPreview}
+        restoreCheck={restoreCheck}
+        restoreBackup={restoreBackup}
+        downloadRestoreBackup={downloadRestoreBackup}
         preview={preview}
+        setPreview={setPreview}
         isWorking={isWorking}
         notice={notice}
         copyDiagnosticReport={copyDiagnosticReport}
@@ -642,6 +656,12 @@ export default function SettingsPage() {
         notifyDataChanged={notifyDataChanged}
         onToggleBackupReminder={toggleBackupReminder}
         inputRef={inputRef}
+        chooseGuidedOpeningImport={chooseGuidedOpeningImport}
+        confirmGuidedOpeningImport={confirmGuidedOpeningImport}
+        confirmImport={confirmImport}
+        navigate={navigate}
+        guidedCardRef={guidedCardRef}
+        guidedInputRef={guidedInputRef}
       />
 
       <SettingsOperatingModeSection
@@ -668,27 +688,6 @@ export default function SettingsPage() {
       />
 
       <SettingsAppearanceSection theme={theme} toggleTheme={toggleTheme} />
-
-      <SettingsGuidedOpeningSection
-        guidedLayerOpen={guidedLayerOpen}
-        setGuidedLayerOpen={setGuidedLayerOpen}
-        guidedPreview={guidedPreview}
-        setGuidedPreview={setGuidedPreview}
-        currentSummary={currentSummary}
-        restoreCheck={restoreCheck}
-        restoreBackup={restoreBackup}
-        downloadRestoreBackup={downloadRestoreBackup}
-        isWorking={isWorking}
-        preview={preview}
-        setPreview={setPreview}
-        notice={notice}
-        chooseGuidedOpeningImport={chooseGuidedOpeningImport}
-        confirmGuidedOpeningImport={confirmGuidedOpeningImport}
-        confirmImport={confirmImport}
-        navigate={navigate}
-        guidedCardRef={guidedCardRef}
-        guidedInputRef={guidedInputRef}
-      />
       {protectionBlocked ? (
         <div
           className="micro-lock-overlay"
