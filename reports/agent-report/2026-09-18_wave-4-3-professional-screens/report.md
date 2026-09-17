@@ -1,7 +1,7 @@
 # تقرير Wave 4.3 — الشاشات الاحترافية والمكونات وتجربة المنتج
 
 **التاريخ:** 2026-09-17/18 (توقيت Asia/Amman) · **الحالة:** منفذة بالكامل ومدمجة
-**BASE_SHA:** `9179ea785d7c35790c422a997fa210aaf7e875a6` · **MAIN_SHA بعد الكود:** `a95fffa753` · **MAIN_SHA النهائي (بالتوثيق):** `FILL_AFTER_DOCS_MERGE`
+**BASE_SHA:** `9179ea785d7c35790c422a997fa210aaf7e875a6` · **MAIN_SHA بعد الكود:** `a95fffa753` · **توثيق الموجة:** تقرير+أدلة عبر [#179](https://github.com/Qays7753/Micro/pull/179) ← `884613b1db` (CI أخضر) · استكمال مراجع هذا التقرير عبر [#180](https://github.com/Qays7753/Micro/pull/180) — آخر دمج توثيقي؛ الـSHA الختامي مدوَّن في الرد الختامي للمهمة
 **المراجع الملزمة:** تقارير Waves 1–4.2 وعقودها · `target-information-architecture.md` · `naming-and-content-dictionary.md` · `implementation-packages.md` · `current-state.md` · `CHANGELOG` · `AGENTS.md`
 
 ---
@@ -17,7 +17,8 @@
 | خط الأساس المتوقع | `9179ea785d` | تحقق: تطابق، CI أخضر |
 | نهاية الحزم الست | `0d5df12956` | دمج PR #177 |
 | نهاية إصلاحات المراجعة P2 | `a95fffa753` | دمج PR #178، CI أخضر على Merge SHA |
-| نهاية التوثيق | `FILL_AFTER_DOCS_MERGE` | PR هذا التقرير |
+| تقرير + أدلة الموجة | `884613b1db` | دمج PR #179 — CI أخضر على Merge SHA |
+| استكمال مراجع التقرير | (دمج هذا الالتزام) | PR #180 — توثيق صرف |
 
 ## 3. قرارات المالك (مرحلة تثبيت التعريف قبل أي UI)
 
@@ -179,7 +180,7 @@
 - هذا التقرير: `reports/agent-report/2026-09-18_wave-4-3-professional-screens/report.md`
 - الأدلة: [evidence/](./evidence/) (37 لقطة موزعة على package-1..6 مع README لكل منها)
 - العقود: [screen-contract-matrix.md](./screen-contract-matrix.md) · [owner-decisions.md](./owner-decisions.md)
-- PRs: [#172](https://github.com/Qays7753/Micro/pull/172) · [#173](https://github.com/Qays7753/Micro/pull/173) · [#174](https://github.com/Qays7753/Micro/pull/174) · [#175](https://github.com/Qays7753/Micro/pull/175) · [#176](https://github.com/Qays7753/Micro/pull/176) · [#177](https://github.com/Qays7753/Micro/pull/177) · [#178](https://github.com/Qays7753/Micro/pull/178) · (PR التوثيق: `FILL_PR_NUMBER`)
+- PRs: [#172](https://github.com/Qays7753/Micro/pull/172) · [#173](https://github.com/Qays7753/Micro/pull/173) · [#174](https://github.com/Qays7753/Micro/pull/174) · [#175](https://github.com/Qays7753/Micro/pull/175) · [#176](https://github.com/Qays7753/Micro/pull/176) · [#177](https://github.com/Qays7753/Micro/pull/177) · [#178](https://github.com/Qays7753/Micro/pull/178) · (PR التوثيق: [#179](https://github.com/Qays7753/Micro/pull/179) + [#180](https://github.com/Qays7753/Micro/pull/180))
 
 ## 21. إقرار الإغلاق
 
