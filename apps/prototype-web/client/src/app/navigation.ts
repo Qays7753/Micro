@@ -40,7 +40,9 @@ export function getNavigationLabel(pathname: string) {
    * علامة الموقع لا تتكرر «مايكرو مايكرو» فوق أسطح المال. */
   if (pathname === "/collect" || pathname.startsWith("/collect")) return "ورقة التحصيل";
   if (pathname.startsWith("/direct-sales")) return "بيع مباشر";
-  if (pathname.startsWith("/catalog")) return "الكتالوج";
+  /* N-06 (Wave 4.2 — F-09/قرار المالك): الاسم الموحد للسطح «منتجاتي وخدماتي»
+   * في كل المواضع الظاهرة — «الكتالوج» مصطلح نظام لا اسم ملكية. */
+  if (pathname.startsWith("/catalog")) return "منتجاتي وخدماتي";
   if (pathname.startsWith("/share")) return "معاينة المشاركة";
   if (pathname.startsWith("/foundation")) return "صفحة الأساس";
   return (

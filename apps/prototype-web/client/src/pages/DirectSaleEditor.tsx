@@ -135,7 +135,7 @@ export default function DirectSaleEditor() {
         const selected = result.items.find(item => item.id === requestedProduct) ?? null;
         if (!selected) return;
         if (!selected.active) {
-          setProductNotice("هذا المرجع موقوف — سُجّل البيع بلا ربط أو فعّله من الكتالوج.");
+          setProductNotice("هذا المرجع موقوف — سُجّل البيع بلا ربط أو فعّله من منتجاتي وخدماتي.");
           return;
         }
         setCatalogItemId(selected.id);
