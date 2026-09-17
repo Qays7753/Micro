@@ -162,14 +162,15 @@
   /* §1.8 سلّم z: المحتوى 0 · داخل اللوحة 1 · اللواصق 20 · الشريط+FAB 30 · الترويسة 40 · الغطاء 50 · الورقة 60 · التوست 70 */
   z-index: 40;
   top: 0;
-  border-bottom: 1px solid var(--color-border);
-  /* §4 بند ١٦: الشعرة ترى فوق الكانفس الضبابي عند التمرير فقط */
+  /* Wave 4.3 — P-4.3-1 (D1): منطقة علوية مفتوحة — لا صندوق ولا خلفية
+   * منفصلة في وضع الراحة؛ خلفية الصفحة نفسها تمتد لأعلى الهاتف، والشعرة
+   * الوظيفية تظهر عند التمرير فقط (§4 بند ١٦). */
+  border-bottom: 1px solid transparent;
+  background: var(--color-bg-canvas);
   transition: border-color 160ms var(--motion-out);
 }
 .micro-app-header[data-scrolled="true"] {
   border-bottom-color: var(--color-divider);
-  background: color-mix(in srgb, var(--color-bg-canvas) 92%, transparent);
-  backdrop-filter: blur(18px);
 }
 .micro-header-inner,
 .micro-main,
@@ -196,6 +197,107 @@
 .micro-brand-lockup {
   gap: var(--space-2);
   min-width: 0;
+}
+/* Wave 4.3 — P-4.3-1 (D2): الشعار زر حقيقي — منطقة لمس لا تقل عن 44×44،
+ * بلا صندوق مرئي (منطقة مفتوحة) مع حالات تركيز/حواف/ضغط واضحة. */
+.micro-logo-button {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-control);
+  color: var(--color-brand-text);
+  background: transparent;
+  transition:
+    transform 160ms var(--motion-out),
+    background 160ms var(--motion-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .micro-logo-button:hover {
+    background: var(--color-bg-well);
+  }
+}
+.micro-logo-button:active {
+  transform: scale(0.98);
+}
+.micro-logo-button .micro-brand-mark {
+  width: 32px;
+  height: 32px;
+}
+.micro-logo-menu-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-secondary);
+  transition: transform 160ms var(--motion-out);
+}
+.micro-logo-menu-chevron[data-open="true"] {
+  transform: rotate(180deg);
+}
+/* Wave 4.3 — P-4.3-1 (D3): قائمة الشعار العمودية — Popover تحت الشعار،
+ * ضمن حدود الشاشة، RTL أصيل، إغلاق خارجها وبـEscape (السلوك في AppHeader). */
+.micro-logo-menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  inset-inline-end: var(--space-4);
+  display: flex;
+  width: min(280px, calc(100vw - 2 * var(--space-4)));
+  flex-direction: column;
+  padding: var(--space-2);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--elevation-2);
+}
+.micro-logo-menu-group + .micro-logo-menu-group {
+  border-top: 1px solid var(--color-divider);
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+}
+.micro-logo-menu-group-label {
+  margin: 0 var(--space-3) var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.micro-logo-menu-item {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  color: var(--color-text-strong);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: start;
+  background: transparent;
+  transition: background 160ms var(--motion-out);
+}
+.micro-logo-menu-item svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-secondary);
+}
+@media (hover: hover) and (pointer: fine) {
+  .micro-logo-menu-item:hover {
+    background: var(--color-bg-well);
+  }
+}
+.micro-logo-menu-item[data-account-state="false"] {
+  color: var(--color-accent-text);
+}
+.micro-logo-menu-note {
+  margin: var(--space-2) var(--space-3) 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
 }
 .micro-brand-mark {
   width: 36px;

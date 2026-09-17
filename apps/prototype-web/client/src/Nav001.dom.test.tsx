@@ -192,11 +192,14 @@ describe("NAV-001 — approved five-seat navigation", () => {
   });
 
   it("the top bar carries transport and assistant قريبًا entries with honest copy", () => {
+    /* Wave 4.3 — P-4.3-1: الترويسة تعيدت بنيتها (منطقة مفتوحة + قائمة الشعار)
+     * — الإعدادات والوضع الليلي لم يعودا أزرارًا مباشرة هنا (D4/D5)؛
+     * تحديث الاختبار موثق مع تغير القرار المرئي المعتمد. */
     render(
       <Harness
         page={
           <ThemeProvider>
-            <AppHeader contextLabel={null} onOpenSettings={() => {}} />
+            <AppHeader contextLabel={null} accountComplete={null} onNavigate={wouterMocks.navigate} />
           </ThemeProvider>
         }
       />,
@@ -210,5 +213,9 @@ describe("NAV-001 — approved five-seat navigation", () => {
     const assistant = screen.getByTestId("soon-panel");
     expect(assistant.textContent).toContain("قارئًا فقط");
     expect(assistant.textContent).toContain("لا تُرسل بيانات مشروعك إلى أي خدمة خارجية");
+    /* D4: لا زر وضع ليلي ولا زر إعدادات مباشر في المنطقة العلوية —
+     * مدخل الوضع الليلي الوحيد «الإعدادات ← المظهر». */
+    expect(screen.queryByRole("button", { name: /المظهر/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "الإعدادات" })).toBeNull();
   });
 });
