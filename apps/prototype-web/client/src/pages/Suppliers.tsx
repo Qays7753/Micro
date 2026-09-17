@@ -52,7 +52,7 @@ export default function Suppliers() {
 
           onClick={() => navigate(withReturnTo("/finance", "/suppliers"))}
         >
-          الوضع المالي
+          المالية
         </Button>
       </section>
     );
@@ -68,7 +68,7 @@ export default function Suppliers() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">مواد وموردون</span>
@@ -91,7 +91,7 @@ export default function Suppliers() {
 
         onClick={() => navigate(withReturnTo("/suppliers/purchase/new", "/suppliers"))}
       >
-        <Plus aria-hidden="true" /> سجل شراء مواد
+        <Plus aria-hidden="true" /> سجّل شراء مواد
       </Button>
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">
@@ -132,7 +132,7 @@ export default function Suppliers() {
                     navigate(withReturnTo(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))
                   }
                 >
-                  سجل دفعة
+                  سجّل دفعة
                 </Button>
                 {/* المجموعة ٢ (§10.1): تصحيح الشراء من صفّه — لا إيماءة مخفية ولا لون فقط. */}
                 <Button

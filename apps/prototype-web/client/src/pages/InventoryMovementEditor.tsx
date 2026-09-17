@@ -106,7 +106,7 @@ export default function InventoryMovementEditor() {
       : safeType === "consume"
         ? "استهلك مادة"
         : safeType === "waste"
-          ? "سجل هدر مادة"
+          ? "سجّل هدر مادة"
           : "اضبط كمية مادة";
   const Icon =
     safeType === "receipt"

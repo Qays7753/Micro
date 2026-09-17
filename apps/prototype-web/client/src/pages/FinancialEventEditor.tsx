@@ -460,13 +460,13 @@ export default function FinancialEventEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>نوع الحدث غير متاح</h1>
-        <p>ارجع إلى الوضع المالي واختر حدثًا واضحًا.</p>
+        <p>ارجع إلى المالية واختر حدثًا واضحًا.</p>
         <Button
           action="secondary"
 
           onClick={() => navigate("/finance")}
         >
-          الوضع المالي
+          المالية
         </Button>
       </section>
     );
@@ -719,7 +719,7 @@ export default function FinancialEventEditor() {
         type="button"
         onClick={() => (savedRef.current ? navigate(returnPath) : requestNavigation(returnPath))}
       >
-        <ArrowRight aria-hidden="true" /> الوضع المالي
+        <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">حدث مالي محلي</span>
@@ -1004,7 +1004,7 @@ export default function FinancialEventEditor() {
             {saving
               ? "جارٍ الحفظ…"
               : savedNote
-                ? "ارجع إلى الوضع المالي"
+                ? "ارجع إلى المالية"
                 : isOperatingExpense
                   ? "حفظ المصروف المصنف"
                   : "حفظ الحدث"}

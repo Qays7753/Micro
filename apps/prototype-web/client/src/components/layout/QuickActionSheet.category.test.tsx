@@ -82,7 +82,7 @@ describe("QuickActionSheet expense category chip (المجموعة ١)", () => {
   it("commits the selected optional chip through the quick save — no extra mandatory input", async () => {
     const record = vi.fn().mockResolvedValueOnce({ ok: true, value: savedEvent });
     renderSheet(record);
-    fireEvent.click(screen.getByRole("button", { name: /تسجيل مصروف/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل مصروفًا/ }));
     const chip = await screen.findByRole("button", { name: "بنزين" });
     fireEvent.click(chip);
     expect(chip.getAttribute("aria-pressed")).toBe("true");
@@ -100,7 +100,7 @@ describe("QuickActionSheet expense category chip (المجموعة ١)", () => {
   it("deselecting the chip saves with a null label — the label stays optional", async () => {
     const record = vi.fn().mockResolvedValueOnce({ ok: true, value: savedEvent });
     renderSheet(record);
-    fireEvent.click(screen.getByRole("button", { name: /تسجيل مصروف/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل مصروفًا/ }));
     const chip = await screen.findByRole("button", { name: "بنزين" });
     fireEvent.click(chip);
     fireEvent.click(chip);
@@ -119,7 +119,7 @@ describe("QuickActionSheet expense category chip (المجموعة ١)", () => {
   it("effect line declares the honest negatives: no amanah and no owner draw", async () => {
     const record = vi.fn().mockResolvedValueOnce({ ok: true, value: savedEvent });
     renderSheet(record);
-    fireEvent.click(screen.getByRole("button", { name: /تسجيل مصروف/ }));
+    fireEvent.click(screen.getByRole("button", { name: /سجّل مصروفًا/ }));
     fireEvent.change(screen.getByLabelText("مبلغ المصروف"), { target: { value: "25" } });
     expect(await screen.findByText(/بلا حركة أمانة ولا سحب مالك/)).toBeTruthy();
     expect(screen.getByText(/سينقص الكاش 25.00 د.أ/)).toBeTruthy();

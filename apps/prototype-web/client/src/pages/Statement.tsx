@@ -587,7 +587,7 @@ export default function Statement() {
 
           onClick={() => navigate(sourceHref ? sourceHref : withStatementFallback(returnPath))}
         >
-          <Landmark aria-hidden="true" /> الوضع المالي
+          <Landmark aria-hidden="true" /> المالية
         </Button>
       </div>
       <section className="micro-finance-truth" aria-label="حدود هذا الكشف">

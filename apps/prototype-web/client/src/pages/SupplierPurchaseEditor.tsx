@@ -547,7 +547,7 @@ export default function SupplierPurchaseEditor() {
             ? `دفعة إلى ${purchase?.supplierName ?? ""}`
             : mode === "edit"
               ? `شراء من ${purchase?.supplierName ?? ""}`
-              : "سجل شراء مواد"}
+              : "سجّل شراء مواد"}
         </h1>
         <p>
           {paymentMode

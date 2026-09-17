@@ -140,10 +140,10 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
 
   it("reveals the indicators layer inside the period reading with margins, cost, coverage, and liquidity", async () => {
     render(<Finance />);
-    expect(await screen.findByRole("heading", { name: "مالي" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
-    fireEvent.click(screen.getByText("شو صار خلال الفترة"));
+    fireEvent.click(screen.getByText("ملخص الفترة"));
     /* تثبيت النطاق على آب ٢٠٢٦ — بيانات الاختبار مسجلة فيه؛ النطاق الافتراضي
      * (الشهر الحقيقي الحالي) يتغير مع تقويم الجهاز فلا يظل الاختبار هشًا. */
     fireEvent.change(screen.getByLabelText("بداية نطاق نتيجة الفترة"), { target: { value: "2026-08" } });
@@ -165,10 +165,10 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
 
   it("reveals the full registered expectations record under coverage and break-even, including reversals", async () => {
     render(<Finance />);
-    expect(await screen.findByRole("heading", { name: "مالي" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
-    fireEvent.click(screen.getByText("شو صار خلال الفترة"));
+    fireEvent.click(screen.getByText("ملخص الفترة"));
 
     /* F-079: سجل المتوقعات المسجلة داخل التغطية والتعادل. */
     expect(screen.getByText("سجل المتوقعات المسجلة")).toBeTruthy();
@@ -178,10 +178,10 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
 
   it("shows the unknown mark for break-even when coverage is not recordable", async () => {
     render(<Finance />);
-    expect(await screen.findByRole("heading", { name: "مالي" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
     /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
-    fireEvent.click(screen.getByText("شو صار خلال الفترة"));
+    fireEvent.click(screen.getByText("ملخص الفترة"));
     /* بلا مصروف ثابت مسجل لا تُخترع وحدة تعادل — العلامة — لا جملة. */
     const breakEvenCell = screen.getByText("وحدات التعادل").closest("div");
     expect(breakEvenCell?.querySelector(".micro-insights-unknown")?.textContent).toBe("—");

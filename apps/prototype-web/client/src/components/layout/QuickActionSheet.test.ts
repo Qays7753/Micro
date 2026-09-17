@@ -38,7 +38,7 @@ describe("quick action contract — expense joins the moment's actions (F-036, d
   it("describes the expense as a moment's action, not a buried destination", () => {
     const expense = actionItems.find(item => item.action === "expense");
     expect(expense?.disabled).not.toBe(true);
-    expect(expense?.label).toBe("تسجيل مصروف");
+    expect(expense?.label).toBe("سجّل مصروفًا");
     expect(expense?.description).toContain("من أي مكان");
   });
 

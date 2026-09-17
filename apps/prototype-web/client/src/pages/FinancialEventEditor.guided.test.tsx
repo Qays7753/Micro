@@ -231,7 +231,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(await screen.findByText(/نسبته للمحفظة لم تتم/)).toBeTruthy();
     expect(screen.getByText(/المال محفوظ ضمن/)).toBeTruthy();
     expect(wouterMocks.navigate).not.toHaveBeenCalledWith("/finance");
-    expect(screen.getByRole("button", { name: "ارجع إلى الوضع المالي" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "ارجع إلى المالية" })).toBeTruthy();
   });
 
   it("keeps the path-guidance notes: suppliers link and the honest future-path line", async () => {

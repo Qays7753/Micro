@@ -58,13 +58,13 @@ type Receipt = QuickActionReceipt;
 export const actionItems: readonly QuickActionItem[] = [
   {
     action: "sale",
-    label: "تسجيل بيع",
+    label: "سجّل بيعًا",
     description: "احفظ بيعًا مباشرًا من دون إنشاء طلب.",
     icon: BadgeDollarSign,
   },
   {
     action: "expense",
-    label: "تسجيل مصروف",
+    label: "سجّل مصروفًا",
     description: "سجّل مصروفًا مدفوعًا في لحظته، من أي مكان.",
     icon: CircleDollarSign,
   },
@@ -319,7 +319,7 @@ export function QuickActionSheet({
                 {/* (إصلاح تكاملي — مجموعة ٤): فشل نسبة المحفظة بعد التسجيل يظهر
                     في الوصل — المال محفوظ غير موزع، لا كذب على الكتابة ولا تجاهل. */}
                 {receipt.attributionNote ? <p>{receipt.attributionNote}</p> : null}
-                <p>أُغلق التسجيل فوق شاشتك؛ صحّح من «العمل» أو «مالي» عند الحاجة.</p>
+                <p>أُغلق التسجيل فوق شاشتك؛ صحّح من «العمل» أو «المالية» عند الحاجة.</p>
                 {receipt.recordHref ? (
                   <Button
                     action="secondary"

@@ -108,7 +108,7 @@ export default function Tools() {
           href: "/inventory",
         },
         {
-          label: "الكتالوج والقوالب",
+          label: "منتجاتي وخدماتي",
           state: catalogConfigured
             ? "enabled"
             : units.units.length > 0

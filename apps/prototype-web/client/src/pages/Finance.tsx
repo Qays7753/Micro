@@ -303,7 +303,7 @@ export default function Finance() {
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>
-        <h1>مالي</h1>
+        <h1>المالية</h1>
       </div>
       {/* المجموعة ٢ (§8.3): أول قرار واضح — الوضع الآن أو ما صار خلال الفترة. */}
       <div className="micro-form-actions" role="tablist" aria-label="اختيار قراءة مالي">
@@ -325,7 +325,9 @@ export default function Finance() {
           aria-pressed={view === "period"}
           onClick={() => switchView("period")}
         >
-          شو صار خلال الفترة
+          {/* F02 (قرار المالك — Wave 4.2): «ملخص الفترة» هو الاسم الرسمي للتبويب؛
+              «شو صار خلال الفترة؟» سطر مساعد داخلي فقط لا اسمًا رسميًا. */}
+          ملخص الفترة
         </button>
       </div>
       {view === "position" ? (
@@ -723,14 +725,14 @@ export default function Finance() {
 
             onClick={() => navigate(withReturnTo("/finance/new/operating_expense_cash", "/finance"))}
           >
-            سجل مصروفًا مدفوعًا
+            سجّل مصروفًا مدفوعًا
           </Button>
           <Button
             action="secondary"
 
             onClick={() => navigate(withReturnTo("/finance/new/operating_expense_payable", "/finance"))}
           >
-            سجل التزامًا لمورد
+            سجّل التزامًا لمورد
           </Button>
           <Button
             action="secondary"
@@ -756,7 +758,7 @@ export default function Finance() {
 
             onClick={() => navigate(withReturnTo("/finance/new/amanah_held_cash", "/finance"))}
           >
-            سجل أمانة قُبضت
+            سجّل أمانة قُبضت
           </Button>
           {position.amanahHeldMinor > 0 ? (
             <Button
@@ -764,7 +766,7 @@ export default function Finance() {
 
               onClick={() => navigate(withReturnTo("/finance/new/amanah_released_cash", "/finance"))}
             >
-              سجل أمانة سُلّمت
+              سجّل أمانة سُلّمت
             </Button>
           ) : null}
           <Button
@@ -772,7 +774,7 @@ export default function Finance() {
 
             onClick={() => navigate(withReturnTo("/finance/new/loss_non_cash", "/finance"))}
           >
-            سجل هالكًا بلا خروج نقد
+            سجّل هالكًا بلا خروج نقد
           </Button>
         </section>
       </details>

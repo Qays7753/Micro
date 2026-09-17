@@ -118,7 +118,7 @@ describe("EXE-016 — عقود الروابط العميقة على التطبي
   it("الرابط القديم الواضح /review يمر عبر توافقه المحدود إلى مالي", async () => {
     navigateTo("/review");
     await mountApp();
-    expect(await screen.findByRole("heading", { level: 1, name: "مالي" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     expect(window.location.pathname).toBe("/finance");
   });
 

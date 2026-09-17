@@ -86,7 +86,7 @@ export default function Parties() {
 
           onClick={() => navigate(withReturnTo("/finance", "/parties"))}
         >
-          الوضع المالي
+          المالية
         </Button>
       </section>
     );
@@ -96,7 +96,7 @@ export default function Parties() {
   return (
     <section className="micro-page micro-parties-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "الوضع المالي" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">دفتر الناس</span>
