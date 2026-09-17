@@ -77,13 +77,16 @@ describe("P-4.2-5 — سطح السياسات المالي (F02) والفعل ا
     /* طبقة سياسات الربح والتوزيع — عنوان السطح بعد النقل. */
     expect(screen.getByText("سياسات الربح والتوزيع")).toBeTruthy();
 
-    /* اختيار المرجع ثم حفظ سياسة يدوية كاملة المصدر والسبب والملاحظة. */
+    /* اختيار المرجع ثم حفظ سياسة يدوية كاملة المصدر والسبب والملاحظة.
+     * Wave 4.3 (جذر السبب): خيارات المرجع تُحمَّل قراءةً غير متزامنة عند فتح
+     * الطبقة — تغيير القائمة قبل ظهور الخيار يُفقد الاختيار صامتًا (القيمة
+     * تصير فارغة) فلا يُرسم النموذج أبدًا. ننتظر الخيار نفسه قبل التغيير،
+     * ثم ننتظر أول حقل من النموذج — تحديد القفل الزمني الحقيقي بدل قراءة
+     * متزامنة سببت انقلابين عابرين في CI (#172 و#174). */
+    await waitFor(() => expect(screen.getByRole("option", { name: /صابون غار/ })).toBeTruthy());
     fireEvent.change(screen.getByLabelText(/مرجع العمل/), { target: { value: created.item.id } });
-    await waitFor(() => expect(screen.getByText("أضف توزيعًا واضحًا")).toBeTruthy());
-    /* Wave 4.3: انتظار الحقل بدل القراءة المتزامنة — الحقل يظهر بعد تحديث
-     * حالة غير متزامن، والقراءة المتزامنة سببت انقلابًا عابرًا في CI
-     * (الجولة الأولى على main بعد PR #172) رغم نجاحه محليًا 5/5. */
-    fireEvent.change(await screen.findByLabelText("المصدر"), { target: { value: "فاتورة كهرباء" } });
+    await waitFor(() => expect(screen.getByLabelText("المصدر")).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("المصدر"), { target: { value: "فاتورة كهرباء" } });
     fireEvent.change(screen.getByLabelText("السبب"), { target: { value: "تكلفة تشغيل مشتركة" } });
     fireEvent.change(screen.getByLabelText("ملاحظة القرار"), { target: { value: "أساس الشهر" } });
     fireEvent.change(screen.getByLabelText("مبلغ سياسة التوزيع"), { target: { value: "25.00" } });

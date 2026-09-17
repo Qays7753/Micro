@@ -13,10 +13,17 @@ import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatArabicPlural, formatLocalDateLong, formatLocalDateTime } from "@/presentation/formatters";
+import { financialEventLabel } from "@/presentation/financialEventLabels";
+import {
+  formatArabicPlural,
+  formatLocalDate,
+  formatLocalDateLong,
+  formatLocalDateTime,
+} from "@/presentation/formatters";
 import type {
   IntegrityCheckReport,
   IntegrityCheckResult,
+  IntegrityOffenderSummary,
   IntegrityCheckStatus,
 } from "@/application/finance/integrityCheckService";
 
@@ -182,6 +189,60 @@ export default function ToolsIntegrity() {
   );
 }
 
+/* Wave 4.3 — P-4.3-3 (D9): اسم العملية المقروء للسجل المتأثر — من خرائط
+ * العرض القائمة وحدها؛ نوع المشكلة هو نص الفحص نفسه. */
+const offenderKindLabel: Record<IntegrityOffenderSummary["kind"], string> = {
+  financial_event: "حدث مالي",
+  craft_order: "طلب",
+  cash_wallet: "محفظة كاش",
+  supplier_purchase: "شراء مورد",
+  asset: "أصل",
+  loan: "قرض",
+  material: "مادة",
+};
+function offenderOperationLabel(summary: IntegrityOffenderSummary): string {
+  if (summary.kind === "financial_event" && summary.eventType && summary.eventType in financialEventLabel)
+    return financialEventLabel[summary.eventType as keyof typeof financialEventLabel];
+  const kindWord = offenderKindLabel[summary.kind];
+  return summary.name ? `${kindWord}: ${summary.name}` : kindWord;
+}
+function OffenderSummaryRow({
+  summary,
+  onOpen,
+}: {
+  summary: IntegrityOffenderSummary;
+  onOpen: (path: string) => void;
+}) {
+  return (
+    <li className="micro-integrity-offender" data-testid="integrity-offender-summary">
+      <div>
+        <strong>{offenderOperationLabel(summary)}</strong>
+        <small>
+          {summary.dateLocal ? (
+            <time dateTime={summary.dateLocal}>
+              {formatLocalDate(summary.dateLocal) ?? summary.dateLocal}
+            </time>
+          ) : null}
+          {summary.amountMinor !== null ? (
+            <>
+              {summary.dateLocal ? " · " : ""}
+              <MoneyValue minor={summary.amountMinor} /> د.أ
+            </>
+          ) : null}
+        </small>
+      </div>
+      {summary.href ? (
+        <button className="micro-text-action" type="button" onClick={() => onOpen(summary.href!)}>
+          افتح السجل
+          <ArrowRight aria-hidden="true" />
+        </button>
+      ) : (
+        <small className="micro-integrity-offender-guide">افتحه من سطحه في التطبيق</small>
+      )}
+    </li>
+  );
+}
+
 function IntegrityCheckRow({
   check,
   onOpen,
@@ -212,12 +273,20 @@ function IntegrityCheckRow({
           {check.offenderCount && check.offenderCount > 0 ? (
             <details className="micro-integrity-offenders">
               <summary>{`أعرض السجلات المتأثرة (${check.offenderCount})`}</summary>
+              {/* Wave 4.3 — P-4.3-3 (D9): الملخص المقروء أولًا — اسم العملية
+                  والتاريخ والمبلغ ورابط السجل؛ المعرّف الخام يبقى احتياطًا
+                  صادقًا لما لم يُحل بعد. */}
               <ul>
-                {(check.offenderSampleIds ?? []).map(id => (
-                  <li key={id}>
-                    <bdi dir="ltr">{id}</bdi>
-                  </li>
+                {(check.offenderSample ?? []).map(summary => (
+                  <OffenderSummaryRow key={summary.id} summary={summary} onOpen={onOpen} />
                 ))}
+                {(check.offenderSampleIds ?? [])
+                  .filter(id => !(check.offenderSample ?? []).some(summary => summary.id === id))
+                  .map(id => (
+                    <li key={id}>
+                      <bdi dir="ltr">{id}</bdi>
+                    </li>
+                  ))}
               </ul>
             </details>
           ) : null}

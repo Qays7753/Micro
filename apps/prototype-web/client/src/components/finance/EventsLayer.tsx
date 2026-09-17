@@ -17,29 +17,13 @@ import type {
   OperatingExpenseContext,
 } from "@micro-domain/financial-event/index.js";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { financialEventLabel } from "@/presentation/financialEventLabels";
 import { eventCountLabel } from "@/presentation/g5Plurals";
 
 import { Button, QuietCompletion } from "@/components/primitives";
-export const eventLabel: Record<FinancialEventType, string> = {
-  owner_investment_cash: "استثمار المالك",
-  owner_withdrawal_cash: "سحب شخصي",
-  operating_expense_cash: "مصروف مدفوع",
-  operating_expense_payable: "مصروف مستحق",
-  payable_settlement_cash: "تسديد التزام",
-  amanah_held_cash: "أمانة قُبضت",
-  amanah_released_cash: "أمانة سُلّمت",
-  loss_non_cash: "هالك بلا خروج نقد",
-  /* المجموعة ٤ (عقد ٢٩): تسميات قراءة للأنواع الجديدة — تعرض في السجلات والتصحيحات. */
-  asset_purchase_cash: "شراء أصل نقدًا",
-  asset_purchase_payable: "شراء أصل بالذمم",
-  asset_depreciation: "إهلاك أصل",
-  asset_disposal_cash: "استبعاد أصل (تخلص)",
-  asset_writeoff: "شطب أصل",
-  loan_outgoing_cash: "قرض لشخص",
-  loan_repayment_cash: "سداد قرض",
-  deposit_retained_revenue: "عربون محتفظ به كإيراد",
-  deposit_retained_owner: "عربون محتفظ به كمال مالك",
-};
+/* Wave 4.3 — P-4.3-3 (D9): الخريطة انتقلت إلى presentation/financialEventLabels —
+ * بيتها الوحيد؛ نفس القيم حرفيًا. */
+export const eventLabel = financialEventLabel;
 export const expenseContextLabel = (event: FinancialEvent) => {
   if (
     event.operatingExpenseDeltaMinor <= 0 &&

@@ -60,6 +60,24 @@ export type IntegrityCheckResult = {
   offenderCount?: number;
   offenderSampleIds?: readonly string[];
   deepLink?: string | null;
+  /* Wave 4.3 — P-4.3-3 (D9): ملخص مقروء للسجلات المتأثرة — اسم العملية
+   * وتاريخها ومبلغها ورابطها حيث يمكن فتحها؛ حل تربيعي للمعرّفات التقنية
+   * الخام. لا يغير المنطق ولا عدد الفحوص — عرض أصدق فقط. */
+  offenderSample?: readonly IntegrityOffenderSummary[];
+};
+/* ملخص مقروء واحد لسجل متأثر — يحمل نوعه فقط؛ التسمية العربية للنوع تُبنى
+ * في الواجهة من خرائط العرض القائمة فلا تكرر هنا. */
+export type IntegrityOffenderSummary = {
+  id: string;
+  kind:
+    "financial_event" | "craft_order" | "cash_wallet" | "supplier_purchase" | "asset" | "loan" | "material";
+  /* اسم العملية حيث يوجد — المورد/الزبون/المادة/المحفظة… */
+  name: string | null;
+  /* نوع الحدث المالي إن كان السجل حدثًا — يُستخدم للتسمية في الواجهة. */
+  eventType?: string;
+  dateLocal: string | null;
+  amountMinor: number | null;
+  href: string | null;
 };
 export type IntegrityCheckReport = {
   runAt: string;
@@ -154,7 +172,7 @@ export class IntegrityCheckService {
     const mic14 = await this.checkUnallocatedCashTruth();
     const mic15 = this.checkEventKeyUniqueness(events);
     const mic16 = this.checkOwnerMoneySeparation(events);
-    return this.report(from, to, [
+    const checks = [
       mic1.result,
       mic2,
       mic4,
@@ -168,7 +186,114 @@ export class IntegrityCheckService {
       mic14,
       mic15,
       mic16,
+    ];
+    /* Wave 4.3 — P-4.3-3 (D9): إثراء قراءة فقط — يحوّل معرّفات السجلات
+     * المتأثرة إلى ملخصات مقروءة (اسم/تاريخ/مبلغ/رابط) من المخزن نفسه؛
+     * لا فحص يتغير ولا عدد ولا منطق — فقط أصدق عرض للنتيجة نفسها. */
+    await this.attachOffenderSummaries(checks);
+    return this.report(from, to, checks);
+  }
+
+  /* حل المعرّفات الخام إلى ملخصات مقروءة — قراءات إضافية تحدث فقط حين
+   * توجد متأثرون فعلًا؛ الفشل في الإثراء لا يفشل الفحص (المعرّف الخام يبقى). */
+  private async attachOffenderSummaries(checks: IntegrityCheckResult[]): Promise<void> {
+    const wanted = new Set<string>();
+    for (const check of checks) for (const id of check.offenderSampleIds ?? []) wanted.add(id);
+    if (wanted.size === 0) return;
+    const [events, orders, wallets, purchases, assets, loans, materials] = await Promise.all([
+      this.store.listFinancialEvents(),
+      this.store.listOrders(),
+      this.store.listCashWallets(),
+      this.store.listSupplierPurchases(),
+      this.store.listAssets(),
+      this.store.listLoans(),
+      this.store.listMaterials(),
     ]);
+    const summaries = new Map<string, IntegrityOffenderSummary>();
+    if (events.ok)
+      for (const event of events.value)
+        if (wanted.has(event.id))
+          summaries.set(event.id, {
+            id: event.id,
+            kind: "financial_event",
+            name: null,
+            eventType: event.type,
+            dateLocal: event.occurredOn,
+            amountMinor: event.amountMinor,
+            href: `/finance?layer=events&event=${encodeURIComponent(event.id)}`,
+          });
+    if (orders.ok)
+      for (const stored of orders.value)
+        if (wanted.has(stored.id))
+          summaries.set(stored.id, {
+            id: stored.id,
+            kind: "craft_order",
+            name: stored.order.itemName || stored.order.customerName || null,
+            dateLocal: stored.order.createdAt.slice(0, 10),
+            amountMinor: stored.order.agreedPriceMinor,
+            href: `/orders/${encodeURIComponent(stored.id)}`,
+          });
+    if (wallets.ok)
+      for (const wallet of wallets.value)
+        if (wanted.has(wallet.id))
+          summaries.set(wallet.id, {
+            id: wallet.id,
+            kind: "cash_wallet",
+            name: wallet.name,
+            dateLocal: wallet.createdAt.slice(0, 10),
+            amountMinor: null,
+            href: `/cash/wallet/${encodeURIComponent(wallet.id)}`,
+          });
+    if (purchases.ok)
+      for (const purchase of purchases.value)
+        if (wanted.has(purchase.id))
+          summaries.set(purchase.id, {
+            id: purchase.id,
+            kind: "supplier_purchase",
+            name: purchase.supplierName,
+            dateLocal: purchase.purchasedOn,
+            amountMinor: purchase.totalMinor,
+            href: `/suppliers/purchase/${encodeURIComponent(purchase.id)}`,
+          });
+    if (assets.ok)
+      for (const asset of assets.value)
+        if (wanted.has(asset.id))
+          summaries.set(asset.id, {
+            id: asset.id,
+            kind: "asset",
+            name: asset.name,
+            dateLocal: asset.purchaseDate,
+            amountMinor: asset.acquisitionAmountMinor,
+            href: `/assets/${encodeURIComponent(asset.id)}`,
+          });
+    if (loans.ok)
+      for (const loan of loans.value)
+        if (wanted.has(loan.id))
+          summaries.set(loan.id, {
+            id: loan.id,
+            kind: "loan",
+            name: loan.borrowerName,
+            dateLocal: loan.loanDate,
+            amountMinor: loan.principalMinor,
+            href: `/loans/${encodeURIComponent(loan.id)}`,
+          });
+    if (materials.ok)
+      for (const material of materials.value)
+        if (wanted.has(material.id))
+          summaries.set(material.id, {
+            id: material.id,
+            kind: "material",
+            name: material.name,
+            dateLocal: null,
+            amountMinor: null,
+            href: "/inventory",
+          });
+    for (const check of checks) {
+      const sample = (check.offenderSampleIds ?? [])
+        .map(id => summaries.get(id))
+        .filter((summary): summary is IntegrityOffenderSummary => summary !== undefined);
+      if (sample.length > 0) check.offenderSample = sample;
+    }
   }
 
   private report(from: string, to: string, checks: readonly IntegrityCheckResult[]): IntegrityCheckReport {
