@@ -8,7 +8,7 @@ import {
   loanInstallmentCountLabel,
   loanOutstandingCountLabel,
 } from "@/presentation/g5Plurals";
-import { HandCoins, Plus, Users } from "lucide-react";
+import { ArrowRight, HandCoins, Plus, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
@@ -47,7 +47,7 @@ export default function Loans() {
   return (
     <section className="micro-page micro-loans-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        مالي
+        <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">قروض أعطيتها</span>
