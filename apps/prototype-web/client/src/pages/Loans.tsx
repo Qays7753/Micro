@@ -4,7 +4,7 @@
  * سفلية سريعة بمعاينة أثرها (كاش يرتفع والقرض ينزل — لا ربح ولا مصروف).
  */
 import {
-  assetCountLabel,
+  loanCountLabel,
   loanInstallmentCountLabel,
   loanOutstandingCountLabel,
 } from "@/presentation/g5Plurals";
@@ -125,7 +125,7 @@ function LoansSummary({ rows }: { rows: readonly LoanSummaryRow[] }) {
           <MoneyValue minor={outstanding} /> د.أ
         </strong>
         <p>
-          {loanOutstandingCountLabel(openCount)} من أصل {assetCountLabel(rows.length)} — المسدَّد يبقى في
+          {loanOutstandingCountLabel(openCount)} من أصل {loanCountLabel(rows.length)} — المسدَّد يبقى في
           التاريخ للمراجعة.
         </p>
       </div>

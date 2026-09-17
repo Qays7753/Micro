@@ -6,10 +6,12 @@ import { formatArabicPlural } from "./formatters";
  * لا تتضخم أسطح تستورد مساعدات أخرى.
  */
 export function loanCountLabel(count: number): string {
+  /* GAP-4.3-09 (Wave 4.3): مستهلك هذا المساعد الوحيد سياق «من أصل …» —
+   * المثنى فيه مجرور «قرضين» لا مرفوع «قرضان». */
   return formatArabicPlural(count, {
     zero: "لا قروض",
     one: "قرض واحد",
-    two: "قرضان",
+    two: "قرضين",
     few: "قروض",
     many: "قرضًا",
     other: "قرض",
