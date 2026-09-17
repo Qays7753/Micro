@@ -43,6 +43,9 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
   const [saleCollectedMinor, setSaleCollectedMinor] = useState(0);
   const [saleCollectedValid, setSaleCollectedValid] = useState(true);
   const [saleCustomer, setSaleCustomer] = useState("");
+  /* Wave 4.3 — P-4.3-2 (GAP-4.3-06): تاريخ البيع قابل للتحرير — بيع الأمس من
+   * الورقة نفسها بلا محرر عميق؛ اليوم هو الافتراضي والمستقبل مرفوض بصدق. */
+  const [saleDate, setSaleDate] = useState(() => localDateInAmman());
   /* ٥.٢: نسبة الحركة لمحفظة عند الإدخال حينما يختار المالك ذلك — بلا تخصيص صامت. */
   const [saleWalletId, setSaleWalletId] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -66,12 +69,22 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       saleOnCredit ||
       saleCollectedMinor > 0 ||
       saleCustomer.trim() ||
-      saleWalletId,
+      saleWalletId ||
+      saleDate !== localDateInAmman(),
     );
   }
 
   async function submit() {
     if (saveInFlightRef.current) return;
+    /* GAP-4.3-06: التاريخ مطلوب وليس في المستقبل — الإيراد يُعرف بتاريخه. */
+    if (!saleDate) {
+      setFormError("اختر تاريخ البيع — اليوم أو تاريخًا ماضيًا.");
+      return;
+    }
+    if (saleDate > localDateInAmman()) {
+      setFormError("لا يُسجَّل بيع بتاريخ مستقبلي — اختر اليوم أو ماضيًا.");
+      return;
+    }
     if (!saleAmountValid || !Number.isInteger(saleAmountMinor) || saleAmountMinor <= 0) {
       setFormError("أدخل مبلغ البيع بالأرقام 0–9.");
       return;
@@ -109,7 +122,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         /* D-001: الزبون بيانات مستقلة — لا يُدفن اسمه في نص الملاحظة. */
         customerName: saleOnCredit ? saleCustomer.trim() : null,
         costMinor: saleCostKnown ? saleCostMinor : null,
-        occurredOn: localDateInAmman(),
+        occurredOn: saleDate,
         note: saleOnCredit ? "بيع آجل من ورقة الإضافة" : "بيع مباشر من ورقة الإضافة",
         idempotencyKey: saleKeyRef.current,
       });
@@ -160,7 +173,18 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
   useImperativeHandle(ref, () => ({ isDirty, submit }));
 
   return (
-    <div className="micro-sheet-form" hidden={hidden || undefined}>
+    /* Wave 4.3 — P-4.3-2 (GAP-4.3-05/F13): نموذج حقيقي — Enter يسجّل البيع
+     * متى كان آمنًا: نموذج قصير بلا textarea، التحقق داخل submit نفسه،
+     * ومنع التكرار قائم (saveInFlightRef + حتمية المخزن). ليس تصحيحًا
+     * عالي العواقب ولا حذفًا. */
+    <form
+      className="micro-sheet-form"
+      hidden={hidden || undefined}
+      onSubmit={event => {
+        event.preventDefault();
+        void submit();
+      }}
+    >
       <label className="micro-field">
         <span>
           ما الذي بعته؟ <small>اختياري</small>
@@ -172,13 +196,27 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         />
       </label>
       <label className="micro-field">
-        <span>المبلغ المحصل بالدينار الأردني</span>
+        {/* GAP-4.3-07 (W4-NEW-05): عند الآجل الحقل هو السعر الكامل للبيع —
+            التسمية لا توحي أنه المقبوض فقط. */}
+        <span>{saleOnCredit ? "سعر البيع الكامل بالدينار الأردني" : "المبلغ المحصل بالدينار الأردني"}</span>
         <EnglishNumberInput
           value={saleAmountMinor}
           kind="money"
           onNumericChange={setSaleAmountMinor}
           onTextValidityChange={setSaleAmountValid}
           aria-label="مبلغ البيع"
+        />
+      </label>
+      <label className="micro-field">
+        <span>
+          تاريخ البيع <small>اليوم افتراضيًا — عدّله لبيع سابق</small>
+        </span>
+        <input
+          type="date"
+          value={saleDate}
+          max={localDateInAmman()}
+          onChange={event => setSaleDate(event.target.value)}
+          aria-label="تاريخ البيع"
         />
       </label>
       <label className="micro-field">
@@ -282,19 +320,12 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
           {formError}
         </p>
       ) : null}
-      <Button
-        action="save"
-
-        disabled={saving}
-        onClick={() => {
-          void submit();
-        }}
-      >
+      <Button action="save" type="submit" disabled={saving}>
         {saving ? "جارٍ التسجيل…" : "سجّل البيع"}
       </Button>
       <button className="micro-text-action" type="button" onClick={onBackToMenu}>
         رجوع إلى القائمة <ArrowRight aria-hidden="true" />
       </button>
-    </div>
+    </form>
   );
 });
