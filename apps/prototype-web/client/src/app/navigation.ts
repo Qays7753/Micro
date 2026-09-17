@@ -27,6 +27,9 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/inventory")) return "المواد والمخزون";
   if (pathname.startsWith("/suppliers")) return "الموردون والمشتريات";
   if (pathname.startsWith("/parties")) return "دفتر الناس";
+  /* Wave 4.2 — P-4.2-4 (F05/N-22): التسمية السياقية لسطح سلامة الحسابات
+   * بموضعه المعتمد — قبل فحص /tools العام (المسار التقني يبقى للتوافق). */
+  if (pathname.startsWith("/tools/integrity")) return "سلامة الحسابات";
   if (pathname.startsWith("/tools")) return "أدواتي";
   if (pathname.startsWith("/settings")) return "الإعدادات";
   /* المجموعة ١: ملف المالك — تسمية سياقية للترويسة بلا مقعد تنقل جديد. */

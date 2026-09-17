@@ -128,6 +128,8 @@ const SURFACE_ROUTES: readonly string[] = [
   "/loans",
   "/parties",
   "/finance",
+  /* Wave 4.2 — P-4.2-4 (F01): «المزيد من المالية» — سطح قراءة منظم يبقي الشريط. */
+  "/finance/more",
   "/finance/statement",
   "/finance/activity",
   "/settings",

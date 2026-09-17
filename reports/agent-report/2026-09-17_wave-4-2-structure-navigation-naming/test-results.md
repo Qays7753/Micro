@@ -82,3 +82,39 @@
 | `SettingsDataBackupSection.w42.dom.test.tsx` (جديد) | القسم الموحد بالاسم المعتمد · اختفاء اسمَي الطبقتين القديمتين · احتواء القدرات الست · ترتيب «الأقل تدميرًا أولًا» · ترتيب مدخلي الملف (استعادة ثم افتتاحي — يعتمده حارس بوابة القفل) |
 | `Settings.lockGate.dom.test.tsx` (قائم — أخضر بلا تعديل) | حراس PIN الثمانية عشر على التصدير/الاستيراد/الافتتاحي/الاستبدال/التصفير بعد الدمج |
 | `U11.dom.test.tsx` (قائم — أخضر بلا تعديل) | تسميات التصدير/الاستيراد بالكلمات لا الأيقونات |
+
+---
+
+## P-4.2-4 — المالية ← المزيد وسلامة الحسابات وREV-003
+
+| الفحص | النتيجة |
+|---|---|
+| `pnpm test` (domain) | ✅ 404/404 |
+| `pnpm prototype:test` (web) | ✅ **1454/1454** (+6: FinanceMore.w42.dom.test.tsx) |
+| `pnpm lint` | ✅ 0 أخطاء، 37 تحذيرًا (السقف) |
+| `pnpm typecheck` + `prototype:check` | ✅ |
+| `pnpm check` كاملًا | ✅ خروج 0 (محاولة أولى فيها خطأ jsdom عابر من radix focus-scope — أعيد التشغيل فمرت نظيفة 1454/1454) |
+| text-density | ✅ ToolsIntegrity 61/61 (موثق 57→61) · FinanceMore جديد 35/35 |
+| `pnpm prototype:build` + bundle budget | ✅ PASS |
+| المجموع | **1858/1858** |
+
+### فحوص REV-003 المنفذة (FinanceMore.w42.dom.test.tsx + الحراس القائمون)
+
+| الفحص المطلوب | الدليل |
+|---|---|
+| البداية الباردة للسطح الجديد والروابط القديمة | FinanceMore test 1 + Nav003 (?destinationWalletId وغيرها باردة) + U001 (?event بارد) |
+| Refresh | قاعدة عقد ٢٦ §3.2 القائمة (النية في URL) — لم تتغير آلية |
+| returnTo | FinanceMore test 2+3 (كل مدخل ينتج returnTo=/finance/more) |
+| رابط قديم | U001.dom + G5Activity.dom بقيا أخضرين بلا تعديل واحد — المنتجون لم يتغيروا |
+| وجهة غير صالحة | navigationContract.test القائم (قيم مجهولة تُهمل) + FinanceMore test 5 |
+| منع Redirect loop | قاعدة §2.1-6 (الوجهة = المسار الحالي تُهمل) — يحرسها navigationContract.test |
+| زر رجوع الفحص الديناميكي | FinanceMore test 6: من المزيد/باردًا/من الإعدادات — لا «أدواتي» لمن دخل من المالية |
+
+### الاختبارات المحدثة في نفس الالتزام
+
+| الاختبار | التغيير |
+|---|---|
+| `FinanceMore.w42.dom.test.tsx` (جديد، 6 فحوص) | السطح المنظم + ترتيب المجموعات + returnTo + REV-003 + البدائل + الرجوع الديناميكي |
+| `routeKnowledgeSync.test.ts` | تسجيل `/finance/more` سطحًا (قرار عمق موثق) |
+| `group1Surfaces.test.tsx` | باب الفحص من المالية صار مدخل «المزيد» (يفتح /finance/more) |
+| `navigation.test.ts` | حارس تسمية «سلامة الحسابات» لـ/tools/integrity (N-22) |

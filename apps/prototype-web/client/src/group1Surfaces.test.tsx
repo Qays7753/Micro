@@ -112,10 +112,12 @@ describe("Finance doorway to the integrity surface (المجموعة ١)", () =>
     }
     render(<FinanceHarness />);
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
-    const doorway = await screen.findByText(/فحص سلامة مالي — اطمن على أرقامك/);
+    /* Wave 4.2 — P-4.2-4 (F01/F05): باب فحص السلامة انتقل إلى «المزيد من
+     * المالية» — المدخل من المستوى الأول صار سطح «المزيد» نفسه. */
+    const doorway = await screen.findByText(/المزيد من المالية — قراءات وتنظيم أعمق/);
     fireEvent.click(doorway);
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      expect.stringMatching(/\/tools\/integrity\?returnTo=%2Ffinance|\/tools\/integrity\?returnTo=\/finance/),
+      expect.stringMatching(/\/finance\/more\?returnTo=%2Ffinance|\/finance\/more\?returnTo=\/finance/),
     );
   });
 });

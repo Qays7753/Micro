@@ -61,7 +61,8 @@
 | `/collect` (المجموعة ٢ — ورقة التحصيل) | `/` |
 | `/tools/calculator`، `/tools/estimate/:id` (المجموعة ٣ — الحاسبة وصفحة التقدير) | `/tools` |
 | `/catalog` بلا مصدر (المجموعة ٣ — كان يعود لنفسه حلقةً) | `/tools` |
-| `/tools/integrity` (المجموعة ١ — برنامج النقل: فحص سلامة مالي؛ **سطح قارئ** يُبقي التنقل السفلي لا محرر عميق) | `/tools` |
+| `/tools/integrity` (Wave 4.2 — F05: المدخل المرئي صار «المالية ← المزيد ← سلامة الحسابات»؛ المسار التقني يبقى للتوافق؛ **سطح قارئ** يُبقي التنقل السفلي) | `/finance/more` |
+| `/finance/more` (Wave 4.2 — F01: «المزيد من المالية» — سطح قراءة منظم لا يكتب شيئًا) | `/finance` |
 | مسار غير معروف | `/` |
 
 صفحات المستوى ٢ تحمل بديلها الخاص عند فتحها من السياق الأعلى: مثلاً `/cash` مفتوح من
@@ -141,6 +142,38 @@
   PWA navigateFallback يخدم `/index.html` فتظل الوصلة تعمل دون اتصال.
 - تنبيه الرئيسية لا يهبط أبدًا على قائمة عامة غير مفلترة: بند «اليوم» يفتح مصدره
   (الطلب/المسودة/الموعد) مباشرة، وبند السعة يفتح `/schedule?focus=capacity`.
+
+### 3.3 خطة REV-003 — توافق `?event=`/`?layer=` مع سطح «المزيد» (Wave 4.2 — P-4.2-4)
+
+**القرار المنفذ (الخيار أ — التوافق الكامل):** طبقتا «سجل الأحداث» و«سجل التصحيحات»
+تبقيان مقيمتين في `/finance` ويفتحهما `?layer=events|corrections` وتركيز صف الحدث
+`?event=<id>` كما كان — **لم يتغير أي منتج ولم ينكسر أي رابط قديم**. سطح
+«المزيد من المالية» (`/finance/more`) يفتحهما بالروابط العميقة القائمة نفسها
+(`withReturnTo("/finance?layer=…", "/finance/more")`) فيرثان سلوك البدء البارد
+والتحديث وحفظ `returnTo` بلا أي ترحيل.
+
+**حصر منتجي `?event=` (كلهم كما هم — بلا تغيير):**
+
+| المنتج | الموضع |
+|---|---|
+| `activityService.ts` (مصدران) | `sourceHref` لقارئ النشاط + مصدر التصحيح |
+| `correctionHistoryService.ts` (٤ مواضع) | `deepLink` لسجل التصحيحات |
+| `ownerEntitlementService.ts` | `deepLink` لدفتر المالك |
+| `statementService.ts` (١٠ مواضع) | `sourceHref`/`href` لأسطر الكشف |
+| `walletLedgerService.ts` (٣ مواضع) | `href` لمصادر حركة المحفظة |
+| `integrityCheckService.ts` | `/finance?layer=events&event=<id>` لنتائج الفحص |
+| `QuickExpenseForm.tsx` | `recordHref` لنجاح المصروف السريع |
+| `FinancialEventEditor.tsx` | رجوع ما بعد الحفظ للحدث المحفوظ |
+| `U001.dom` + `G5Activity.dom` (حرستان) | يظلان يحرسان الوصلات كما هما |
+
+**حصر منتجي `?layer=` (كلهم كما هم — بلا تغيير):** `Statement.tsx` (طبقة التصحيحات
+عبر `openWithReferrer`)، `Finance.tsx` (RestatementNote)،
+`FinancePeriodResultSection.tsx`، `integrityCheckService.ts` — ومن الجديد:
+سطح `/finance/more` ينتج `?layer=events|corrections` ب`returnTo=/finance/more`.
+
+**فحوص REV-003 الملزمة (منفذة باختبارات P-4.2-4):** البدء البارد للوصلة القديمة
+`/finance?layer=…` و`?event=`؛ الرجوع ب`returnTo` من السطح الجديد؛ الرابط القديم
+يعمل من الموقعين؛ القيمة غير الصالحة تُهمل بأمان؛ لا حلقة رجوع (قاعدة §2.1-6).
 
 ## 4. سياق السجل في الوصلات العميقة (Scope E + المجموعة ٣)
 

@@ -31,6 +31,8 @@ describe("Prototype navigation contract", () => {
     expect(getNavigationLabel("/settings")).toBe("الإعدادات");
     /* N-06 (Wave 4.2): الاسم الموحد للكتالوج — «منتجاتي وخدماتي» لا «الكتالوج». */
     expect(getNavigationLabel("/catalog")).toBe("منتجاتي وخدماتي");
+    /* N-22 (Wave 4.2 — F05): التسمية السياقية لسطح سلامة الحسابات بموضعه المعتمد. */
+    expect(getNavigationLabel("/tools/integrity")).toBe("سلامة الحسابات");
   });
 
   it("falls back to the product identity for an unknown route", () => {
