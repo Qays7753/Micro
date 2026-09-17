@@ -112,21 +112,12 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
   });
 
   it("أدواتي: خدمات السياق المستهلكة محصورة في قائمة التوافق الموثقة (لا قارئ سجل جديد)", () => {
-    /* قائمة التوافق الحالية — كل إضافة قارئ سجل مالي من أدواتي قرار موثق،
-     * والأسطر الثلاثة الأولى (partyLedger/supplierPurchases للشارات،
-     * integrityCheck لسطح فحص السلامة المؤقت) موثقة في عقد خريطة الملكية
-     * كـ Compatibility Surfaces تنتظر الموجة الرابعة. */
+    /* قائمة التوافق بعد P-4.2-2 (F03/T4/T5/T6): أدواتي أدوات مستقلة فقط —
+     * حُذفت قراءات partyLedger/supplierPurchases (شارات الوحدات) وبطاقة
+     * النسخ وصف السوق الميت وقسم حالة الوحدات كله. صفحة ToolsIntegrity
+     * (مسار التوافق /tools/integrity — قرار F05) تستهلك فحص المالية وحده. */
     const allowedServicesByPage: Record<string, readonly string[]> = {
-      "pages/Tools.tsx": [
-        "costEstimates",
-        "inventory",
-        "catalog",
-        "schedules",
-        "supplierPurchases",
-        "partyLedger",
-        "dataVersion",
-        "notifyDataChanged",
-      ],
+      "pages/Tools.tsx": ["costEstimates", "dataVersion", "notifyDataChanged"],
       "pages/ToolsIntegrity.tsx": ["integrityCheck"],
       "pages/CostCalculator.tsx": ["dataVersion", "costEstimates", "inventory", "notifyDataChanged"],
       "pages/EstimateDetail.tsx": ["dataVersion", "costEstimates", "notifyDataChanged"],
