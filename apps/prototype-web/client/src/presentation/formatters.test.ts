@@ -51,7 +51,10 @@ describe("presentation formatters", () => {
 
   it("keeps a UTC instant on the correct Amman calendar date", () => {
     expect(localDateInAmman("2026-08-23T22:30:00.000Z")).toBe("2026-08-24");
-    expect(formatLocalDateTime("2026-08-23T22:30:00.000Z")).toBe("24/08/2026 01:30");
+    /* Wave 4.4 — P-4.4-2: عقد العرض الجديد — 12 ساعة بفترة عربية وفاصلة
+     * عربية، والمنطقة الزمنية معاملًا صريحًا لاختبارات حتمية (المكوّنات
+     * تستدعي بلا معامل فيتبع توقيت الجهاز). */
+    expect(formatLocalDateTime("2026-08-23T22:30:00.000Z", "Asia/Amman")).toBe("24/08/2026، 01:30 ص");
   });
 
   it("المجموعة ٦ (البند ٥): تسمية الشهر رقمية MM/YYYY — لا كلمات شهور", () => {

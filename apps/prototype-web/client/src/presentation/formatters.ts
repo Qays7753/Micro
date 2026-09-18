@@ -1,5 +1,3 @@
-const ammanTimeZone = "Asia/Amman";
-
 /* مبدأ Micro: تنسيق العرض لا يغيّر قيمة المال أو التاريخ المخزنة في الطبقات الداخلية. */
 const moneyFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
@@ -7,19 +5,48 @@ const moneyFormatter = new Intl.NumberFormat("en-US", {
   useGrouping: true,
 });
 const integerFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0, useGrouping: true });
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  timeZone: ammanTimeZone,
+/* المجموعة ٦ (البند ٥): قاعدة منتج نظامية — الأرقام الإنجليزية 0–9 والتاريخ
+ * الرقمي DD/MM/YYYY في كل ما يراه المستخدم. لا أسماء شهور ولا اختصاراتها ولا
+ * ترتيبًا آخر؛ التنسيق الطويل يصير رقميًا من منزلتين (05/03/2026) والصافي
+ * من فورمتر واحد مركزي هذا. */
+
+/* Wave 4.4 — P-4.4-2 (عقد التاريخ والوقت المعتمد):
+ * ---------------------------------------------------------------------------
+ * • التاريخ وحده: `16/09/2026` — أرقام فقط، DD/MM/YYYY، لا أسماء شهور، ولا
+ *   فرق بين 16/9 و16/09 (منزلتان دائمًا).
+ * • التاريخ مع الوقت: `16/09/2026، 03:30 م` — فاصلة عربية، نظام 12 ساعة،
+ *   ص/م، صفر بادئ للساعة والدقيقة.
+ * • الوقت المستقل: `03:30 م` بالقواعد نفسها.
+ * • اللحظة الكاملة تُعرض على توقيت جهاز المستخدم — لا منطقة مثبتة داخل
+ *   طبقة العرض (كانت Asia/Amman قبل هذه الموجة)؛ التخزين يبقى بصيغة UTC
+ *   الكنونية الموحدة ولا تتحول أي قيمة مخزنة بسبب التنسيق.
+ * • القيمة Date-only (YYYY-MM-DD) ليست لحظة: تُعرض كما هي بلا أي تحويل
+ *   منطقة زمنية — لا انزياح يوم عند حدود المناطق أبدًا.
+ * • المعامل الثاني (timeZone) اختياري للاختبارات الحتمية عبر المناطق
+ *   الموجبة والسالبة — لا يمرره أي مكوّن عرض؛ الافتراض هو توقيت الجهاز.
+ */
+const dateTimeFormatOptions: Intl.DateTimeFormatOptions = {
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
-  hour12: false,
-});
-/* المجموعة ٦ (البند ٥): قاعدة منتج نظامية — الأرقام الإنجليزية 0–9 والتاريخ
- * الرقمي DD/MM/YYYY في كل ما يراه المستخدم. لا أسماء شهور ولا اختصاراتها ولا
- * ترتيبًا آخر؛ التنسيق الطويل يصير رقميًا من منزلتين (05/03/2026) والصافي
- * من فورمتر واحد مركزي هذا. */
+  hour12: true,
+};
+const zonedDateTimeFormatters = new Map<string, Intl.DateTimeFormat>();
+function dateTimeFormatterFor(timeZone: string | undefined): Intl.DateTimeFormat {
+  if (timeZone === undefined) {
+    /* توقيت الجهاز: كائن جديد لكل نداء كي يتبع بيئة التشغيل الحية — لا كاش
+     * يثبّت منطقة أول تشغيل. */
+    return new Intl.DateTimeFormat("en-US", dateTimeFormatOptions);
+  }
+  let formatter = zonedDateTimeFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", { timeZone, ...dateTimeFormatOptions });
+    zonedDateTimeFormatters.set(timeZone, formatter);
+  }
+  return formatter;
+}
 
 /**
  * مبدأ Micro: الجمع العربي يتبع القواعد اللغوية (0، 1، 2، 3-10، 11-99، 100+).
@@ -106,9 +133,16 @@ export function formatBreakEvenDisplay(
   return { number: integerFormatter.format(value), scale };
 }
 
-/* S4-08: معيّن واحد لتاريخ محلي صحيح — نسخة المجال المرجعية (UTC Y/M/D). */
-import { isValidLocalDate as isValidLocalDateDomain } from "@micro-domain/shared/index.js";
+/* S4-08 + المجموعة ۹ (STR-031): معيّن المجال المرجعي — تحقق صلاحية Date-only
+ * وتاريخ الأعمال الكنوني بتوقيت عمّان يأتيان من النطاق لا من طبقة العرض؛
+ * إعادة التصدير لتوافق مستورديها الحاليين فقط. */
+import {
+  ammanDateOrNull,
+  isValidLocalDate as isValidLocalDateDomain,
+  localDateInAmman,
+} from "@micro-domain/shared/index.js";
 export const isValidLocalDate = isValidLocalDateDomain;
+export { localDateInAmman };
 
 export function formatLocalDate(value: string | null | undefined) {
   if (!value || !isValidLocalDate(value)) return null;
@@ -122,13 +156,19 @@ export function formatLocalDateLong(value: string | null | undefined) {
   return formatLocalDate(value);
 }
 
-export function formatLocalDateTime(value: string | null | undefined) {
+export function formatLocalDateTime(value: string | null | undefined, timeZone?: string) {
   if (!value) return null;
+  /* Date-only الكنوني ليس لحظة زمنية — يُعرض تاريخًا صرفًا بلا تحويل منطقة،
+   * فلا ينزيح يومًا عند حدود المناطق (سياسة P-4.4-2). */
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return formatLocalDate(value);
   const parsed = new Date(value);
   if (Number.isNaN(parsed.valueOf())) return null;
-  const parts = dateTimeFormatter.formatToParts(parsed);
+  const parts = dateTimeFormatterFor(timeZone).formatToParts(parsed);
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
-  return `${part("day")}/${part("month")}/${part("year")} ${part("hour")}:${part("minute")}`;
+  /* نظام 12 ساعة بفترة عربية ص/م وصفر بادئ للساعة — عقد العرض المعتمد. */
+  const hour = part("hour").padStart(2, "0");
+  const dayPeriod = part("dayPeriod").toUpperCase() === "PM" ? "م" : "ص";
+  return `${part("day")}/${part("month")}/${part("year")}، ${hour}:${part("minute")} ${dayPeriod}`;
 }
 
 export function formatMonthLabel(value: string) {
@@ -136,13 +176,24 @@ export function formatMonthLabel(value: string) {
   return `${value.slice(5)}/${value.slice(0, 4)}`;
 }
 
-/* المجموعة ٩ (STR-031): وقت الأعمال يعيش في وحدة النطاق المشتركة
- * (`domain/shared/businessTime`) — طبقة العرض تعيد التصدير فقط لتوافق
- * مستورديها الحاليين ولا تملك المنطق بعد اليوم؛ المنطق نفسه حرفيًا كما
- * كان (يثبته توصيف المجموعة ٩ بمتجهات اللحظات الثابتة). */
-import { localDateInAmman } from "@micro-domain/shared/index.js";
-export { localDateInAmman };
-
 export function formatTime(value: string | null | undefined) {
-  return value && /^\d{2}:\d{2}$/.test(value) ? value : null;
+  /* Wave 4.4 — P-4.4-2: الوقت المستقل بنظام 12 ساعة وفترة عربية —
+   * `03:30 م`؛ التخزين يبقى HH:MM بنظام 24 والتحويل عرض فقط لا قيمة. */
+  if (!value || !/^\d{2}:\d{2}$/.test(value)) return null;
+  const [hourText, minute] = value.split(":");
+  const hour = Number(hourText);
+  if (hour > 23 || Number(minute) > 59) return null;
+  const dayPeriod = hour < 12 ? "ص" : "م";
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+  return `${String(displayHour).padStart(2, "0")}:${minute} ${dayPeriod}`;
+}
+
+/* Wave 4.4 — P-4.4-2: اشتقاق تاريخ العرض من لحظة مسجلة — بتاريخ الأعمال
+ * الكنوني من عقد وقت الأعمال في النطاق (المجموعة ٩)، لا بقصّ UTC الذي كان
+ * يزيح اليوم عند حدود المناطق؛ الناتج canonical YYYY-MM-DD يمر عبر
+ * formatLocalDate للعرض. القيمة غير الصالحة تعلن غياب المعرفة (null). */
+export function businessDateFromTimestamp(value: string | null | undefined): string | null {
+  if (!value) return null;
+  if (isValidLocalDate(value)) return value;
+  return ammanDateOrNull(value);
 }

@@ -3,6 +3,7 @@
  * records — no CRM entity, no new stores. Reads orders, direct sales, purchases, and payables,
  * groups them by trimmed party name, and reports both directions with movement detail.
  */
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
@@ -98,7 +99,7 @@ export class PartyLedgerService {
           id: `order-debt:${stored.id}`,
           kind: "order_debt",
           label: `دين طلب: ${stored.order.itemName || "طلب"}`,
-          occurredOn: stored.updatedAt.slice(0, 10),
+          occurredOn: localDateInAmman(stored.updatedAt),
           amountMinor: stored.order.receivableMinor,
           href: `/orders/${stored.id}`,
         });
@@ -108,7 +109,7 @@ export class PartyLedgerService {
           id: `order-collected:${stored.id}`,
           kind: "order_collection",
           label: `تحصيلات طلب: ${stored.order.itemName || "طلب"}`,
-          occurredOn: stored.updatedAt.slice(0, 10),
+          occurredOn: localDateInAmman(stored.updatedAt),
           amountMinor: stored.order.collectedMinor,
           href: `/orders/${stored.id}`,
         });

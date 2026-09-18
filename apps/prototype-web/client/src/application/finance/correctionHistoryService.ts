@@ -305,7 +305,7 @@ export class CorrectionHistoryService {
           id: `${purchase.id}:revision:${revision.idempotencyKey}`,
           kind: "purchase_edit",
           recordedAt: revision.createdAt,
-          occurredOn: revision.createdAt.slice(0, 10),
+          occurredOn: ammanDateOrNull(revision.createdAt) ?? revision.createdAt.slice(0, 10),
           amountEffectMinor: revision.beforeTotalMinor - purchase.totalMinor,
           reason: revision.reason,
           originalLabel: `شراء من ${revision.beforeSupplierName} · الإجمالي قبل التصحيح ${formatMoneyWithUnit(revision.beforeTotalMinor)}`,

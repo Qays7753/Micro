@@ -5,6 +5,7 @@
  * قراءة فقط لا تخصم شيئًا؛ تسجيله حدث صريح قابل للتراجع. لا صفحة تكتب
  * في IndexedDB مباشرة — كل شيء من هنا.
  */
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import {
   applyAssetDisposal,
   applyAssetWriteOff,
@@ -120,7 +121,7 @@ export class AssetService {
     ]);
     if (!assetsResult.ok || !eventsResult.ok)
       return failure("storage_error", "تعذر قراءة سجل الأصول المحلي.");
-    const asOf = this.now().slice(0, 10);
+    const asOf = localDateInAmman(this.now());
     const rows = assetsResult.value.map(asset => {
       const summary = assetEventSummary(asset.id, eventsResult.value);
       const proposal = planAssetDepreciation(asset, eventsResult.value, asOf);
@@ -174,7 +175,7 @@ export class AssetService {
       value: {
         asset,
         summary: assetEventSummary(assetId, eventsResult.value),
-        proposal: planAssetDepreciation(asset, eventsResult.value, this.now().slice(0, 10)),
+        proposal: planAssetDepreciation(asset, eventsResult.value, localDateInAmman(this.now())),
         events: events.filter(event => event.correctionType !== "reverse" || !reversed.has(event.id)),
       },
     };

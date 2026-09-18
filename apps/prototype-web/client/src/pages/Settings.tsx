@@ -22,7 +22,7 @@ import { LockSettingsCard } from "@/components/security/LockSettingsCard";
 import { DataActionPinGate } from "@/components/security/DataActionPinGate";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { formatLocalDate } from "@/presentation/formatters";
+import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import type { OperatingModeValue } from "@/application/time/actualTimeService";
 import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
 import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
@@ -315,7 +315,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-local-${result.value.file.exportedAt.slice(0, 10)}.json`;
+    link.download = `micro-local-${businessDateFromTimestamp(result.value.file.exportedAt)}.json`;
     link.click();
     /* S5-11: الإبطال مؤجل — الإبطال الفوري المتزامن قد يجهض التنزيل في WebKit. */
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
@@ -359,7 +359,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-local-${result.value.file.exportedAt.slice(0, 10)}.json`;
+    link.download = `micro-local-${businessDateFromTimestamp(result.value.file.exportedAt)}.json`;
     link.click();
     /* S5-11: الإبطال مؤجل — الإبطال الفوري المتزامن قد يجهض التنزيل في WebKit. */
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
@@ -506,7 +506,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-backup-before-restore-${restoreBackup.exportedAt.slice(0, 10)}.json`;
+    link.download = `micro-backup-before-restore-${businessDateFromTimestamp(restoreBackup.exportedAt)}.json`;
     link.click();
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
   }

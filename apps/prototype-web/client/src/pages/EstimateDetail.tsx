@@ -11,7 +11,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
+import { businessDateFromTimestamp, formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 import type { CostEstimate } from "@/storage/local/types";
 
 import { Button } from "@/components/primitives";
@@ -126,8 +126,8 @@ export default function EstimateDetail() {
         <span className="micro-overline">تقدير محفوظ</span>
         <h1>{estimate.title}</h1>
         <p>
-          حُفظ في <bdi dir="ltr">{formatLocalDate(estimate.createdAt.slice(0, 10))}</bdi> · حالة المعرفة:{" "}
-          {knowledgeLabel[estimate.knowledgeState] ?? estimate.knowledgeState}
+          حُفظ في <bdi dir="ltr">{formatLocalDate(businessDateFromTimestamp(estimate.createdAt))}</bdi> · حالة
+          المعرفة: {knowledgeLabel[estimate.knowledgeState] ?? estimate.knowledgeState}
         </p>
       </div>
 

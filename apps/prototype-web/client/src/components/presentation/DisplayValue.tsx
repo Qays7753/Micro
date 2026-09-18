@@ -84,11 +84,10 @@ export function DateTimeValue({
   value,
   className = "micro-local-date",
 }: ValueProps & { value: string | null | undefined }) {
-  return (
-    <bdi dir="ltr" className={className}>
-      {formatLocalDateTime(value) ?? "—"}
-    </bdi>
-  );
+  /* Wave 4.4 — P-4.4-2: النص مختلط (تاريخ رقمي + فاصلة عربية + ص/م) —
+   * `bdi` بلا dir يعتمد auto الذي يتبع أول حرف قوي (عربي) فسياق RTL
+   * صحيح؛ لا فرض LTR على نص عربي. */
+  return <bdi className={className}>{formatLocalDateTime(value) ?? "—"}</bdi>;
 }
 
 export function MonthValue({ value, className = "micro-local-date" }: ValueProps & { value: string }) {
@@ -103,9 +102,6 @@ export function TimeValue({
   value,
   className = "micro-local-date",
 }: ValueProps & { value: string | null | undefined }) {
-  return (
-    <bdi dir="ltr" className={className}>
-      {formatTime(value) ?? "—"}
-    </bdi>
-  );
+  /* P-4.4-2: الوقت بفترة عربية (ص/م) — نفس قاعدة العزل الاتجاهي auto. */
+  return <bdi className={className}>{formatTime(value) ?? "—"}</bdi>;
 }
