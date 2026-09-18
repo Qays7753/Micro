@@ -527,9 +527,11 @@ function RecurrencePanel({
               aria-label="الموعد المصدر للتكرار"
             >
               {sources.map(item => (
+                /* P-4.4-6 (device QA — console): نص خالص داخل <option> — bdi داخل option
+                 * تعشيش مرفوض في HTML ويسجّل أخطاء كونسول؛ التاريخ DD/MM/YYYY كله أرقام
+                 * وفواصل فهو آمن الاتجاه كنص داخل option (نفس نمط CashDistribution). */
                 <option key={item.schedule.id} value={item.schedule.id}>
-                  {item.order.order.itemName} ·{" "}
-                  <bdi dir="ltr">{formatLocalDate(item.schedule.scheduledFor) ?? "غير متاح"}</bdi>
+                  {item.order.order.itemName} · {formatLocalDate(item.schedule.scheduledFor) ?? "غير متاح"}
                 </option>
               ))}
             </select>

@@ -361,9 +361,11 @@ export function OwnerLedgerFormsSection({
               >
                 <option value="">اختر حقًا مسجلًا</option>
                 {activeEntitlements.map(record => (
+                  /* P-4.4-6 (device QA — console): نص خالص داخل option — bdi تعشيش مرفوض؛
+                   * التاريخ DD/MM/YYYY أرقام وفواصل فقط فهو آمن الاتجاه كنص (نمط CashDistribution). */
                   <option key={record.id} value={record.id}>
-                    <bdi dir="ltr">{formatLocalDate(record.occurredOn)}</bdi> ·{" "}
-                    {formatMoneyMinor(record.amountMinor)} د.أ · {record.note}
+                    {formatLocalDate(record.occurredOn)} · {formatMoneyMinor(record.amountMinor)} د.أ ·{" "}
+                    {record.note}
                   </option>
                 ))}
               </select>
@@ -382,9 +384,11 @@ export function OwnerLedgerFormsSection({
                     movementKind === "draw" ? balance.amountMinor > 0 : balance.amountMinor < 0,
                   )
                   .map(balance => (
+                    /* P-4.4-6 (device QA — console): نص خالص داخل option — bdi تعشيش مرفوض؛
+                     * التاريخ DD/MM/YYYY أرقام وفواصل فقط فهو آمن الاتجاه كنص (نمط CashDistribution). */
                     <option key={balance.id} value={balance.id}>
-                      <bdi dir="ltr">{formatLocalDate(balance.occurredOn)}</bdi> ·{" "}
-                      {formatMoneyMinor(balance.amountMinor)} د.أ · {balance.note}
+                      {formatLocalDate(balance.occurredOn)} · {formatMoneyMinor(balance.amountMinor)} د.أ ·{" "}
+                      {balance.note}
                     </option>
                   ))}
               </select>
@@ -396,9 +400,11 @@ export function OwnerLedgerFormsSection({
               <select value={relatedMovementId} onChange={event => setRelatedMovementId(event.target.value)}>
                 <option value="">اختر سحبًا سابقًا</option>
                 {priorDraws.map(movement => (
+                  /* P-4.4-6 (device QA — console): نص خالص داخل option — bdi تعشيش مرفوض؛
+                   * التاريخ DD/MM/YYYY أرقام وفواصل فقط فهو آمن الاتجاه كنص (نمط CashDistribution). */
                   <option key={movement.id} value={movement.id}>
-                    <bdi dir="ltr">{formatLocalDate(movement.occurredOn)}</bdi> ·{" "}
-                    {formatMoneyMinor(movement.amountMinor)} د.أ · {movement.note}
+                    {formatLocalDate(movement.occurredOn)} · {formatMoneyMinor(movement.amountMinor)} د.أ ·{" "}
+                    {movement.note}
                   </option>
                 ))}
               </select>

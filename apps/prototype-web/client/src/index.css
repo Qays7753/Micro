@@ -3056,7 +3056,12 @@ button.micro-finance-position-link:focus-visible {
   display: grid;
   gap: var(--space-2);
   justify-items: end;
-  flex: 0 0 auto;
+  /* P-4.4-6 (device QA — reflow WCAG 1.4.10): كان «0 0 auto» يمنع انكماش العمود
+   * فتتجاوز بطاقة المورد عرض 360px عند أسماء/مبالغ طويلة (تمرير أفقي 111px).
+   * الانكماش بأرضية min-content: النص يلتف على المسافات والمبلغ/الأزرار لا تُقصّ
+   * ولا تفيض يسارًا (RTL) كما كان يحدث مع أرضية 0. */
+  flex: 0 1 auto;
+  min-width: min-content;
 }
 .micro-supplier-balance .micro-prim-button {
   /* W2 (completion — تدقيق الوكيل ٣، F5): 12px كان تحت أرضية اللصائق
@@ -3064,6 +3069,19 @@ button.micro-finance-position-link:focus-visible {
   min-height: 44px;
   padding: 0 var(--space-3);
   font-size: 0.8125rem;
+}
+@media (max-width: 340px) {
+  /* P-4.4-6 (device QA — reflow WCAG 1.4.10 عند 320 CSS px): بطاقات القوائم
+   * المشتركة (محافظ الكاش/الموردين/المخزون) بعمودين لا تتسع مع اسم طويل
+   * ومبالغ — درجة نزول §1.7: تكديس عمودي دون قصّ أو إخفاء معلومة مالية. */
+  .micro-supplier-list article {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .micro-supplier-balance {
+    justify-items: start;
+    width: 100%;
+  }
 }
 .micro-supplier-payable {
   color: var(--color-text-strong);
