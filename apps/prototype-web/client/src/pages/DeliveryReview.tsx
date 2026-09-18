@@ -73,6 +73,7 @@ export default function DeliveryReviewPage() {
 
   const [state, setState] = useState<PageState>({ phase: "loading" });
   const [wallets, setWallets] = useState<readonly { id: string; name: string; kind: string }[]>([]);
+  const [retryCount, setRetryCount] = useState(0);
   const [choices, setChoices] = useState<Record<string, RowChoice>>({});
   const [finalPriceMinor, setFinalPriceMinor] = useState<number>(0);
   const [priceReason, setPriceReason] = useState("");
@@ -127,7 +128,7 @@ export default function DeliveryReviewPage() {
     return () => {
       active = false;
     };
-  }, [deliveryReview, cashContinuity, orderId, dataVersion]);
+  }, [deliveryReview, cashContinuity, orderId, dataVersion, retryCount]);
 
   const ready = state.phase === "ready" ? state.review : null;
   const priceChanged = ready !== null && finalPriceMinor !== ready.money.agreedPriceMinor;
@@ -225,9 +226,16 @@ export default function DeliveryReviewPage() {
 
       {state.phase === "loading" ? <p className="micro-local-truth">جارٍ تحضير المراجعة…</p> : null}
       {state.phase === "error" ? (
-        <p className="micro-field-error" role="alert">
-          {state.message}
-        </p>
+        <div>
+          <p className="micro-field-error" role="alert">
+            {state.message}
+          </p>
+          <div className="micro-form-actions">
+            <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+              إعادة المحاولة
+            </Button>
+          </div>
+        </div>
       ) : null}
 
       {ready ? (

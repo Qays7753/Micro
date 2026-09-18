@@ -164,6 +164,7 @@ export default function Statement() {
   const [from, setFrom] = useState(thisWeek.from);
   const [to, setTo] = useState(thisWeek.to);
   const [state, setState] = useState<State>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -176,7 +177,7 @@ export default function Statement() {
     return () => {
       active = false;
     };
-  }, [statement, from, to, dataVersion]);
+  }, [statement, from, to, dataVersion, retryCount]);
 
   const applyQuick = (quick: QuickRange) => {
     setRange(quick);
@@ -207,6 +208,11 @@ export default function Statement() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الكشف</h1>
         <p>{state.message}</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

@@ -47,6 +47,7 @@ export default function CashWallets() {
   const returnPath = useReturnPath();
   const { cashContinuity, projectFinance, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
     let active = true;
     Promise.all([cashContinuity.overview(), cashContinuity.entries(), projectFinance.readPosition()]).then(
@@ -67,7 +68,7 @@ export default function CashWallets() {
     return () => {
       active = false;
     };
-  }, [cashContinuity, projectFinance, dataVersion]);
+  }, [cashContinuity, projectFinance, dataVersion, retryCount]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -78,7 +79,12 @@ export default function CashWallets() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة محافظ الكاش</h1>
-        <p>لم يتغير أي سجل. أعد فتح التطبيق للمحاولة.</p>
+        <p>لم يتغير أي سجل.</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

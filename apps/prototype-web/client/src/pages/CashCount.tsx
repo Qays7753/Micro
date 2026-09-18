@@ -33,6 +33,7 @@ export default function CashCount() {
   const [state, setState] = useState<State>({ phase: "loading" });
   const [walletId, setWalletId] = useState("");
   const [countedMinor, setCountedMinor] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
   const [valid, setValid] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -55,7 +56,7 @@ export default function CashCount() {
     return () => {
       active = false;
     };
-  }, [cashContinuity, dataVersion]);
+  }, [cashContinuity, dataVersion, retryCount]);
 
   if (state.phase === "loading")
     return (
@@ -68,6 +69,11 @@ export default function CashCount() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة المحافظ</h1>
         <p>{state.message}</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

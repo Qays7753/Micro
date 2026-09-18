@@ -54,9 +54,16 @@ export default function Assets() {
           جارٍ قراءة الأصول…
         </p>
       ) : state.phase === "error" ? (
-        <p className="micro-field-error" role="alert">
-          {state.message}
-        </p>
+        <div>
+          <p className="micro-field-error" role="alert">
+            {state.message}
+          </p>
+          <div className="micro-form-actions">
+            <Button action="save" onClick={() => load()}>
+              إعادة المحاولة
+            </Button>
+          </div>
+        </div>
       ) : state.overview.rows.length === 0 ? (
         <EmptyState
           aria-label="لا أصول بعد"

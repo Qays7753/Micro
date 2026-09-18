@@ -143,6 +143,7 @@ export default function FinanceActivity() {
   const thisMonth = monthBounds(today);
   const [range, setRange] = useState<PeriodRange>("this_week");
   const [from, setFrom] = useState(thisWeek.from);
+  const [retryCount, setRetryCount] = useState(0);
   const [to, setTo] = useState(thisWeek.to);
   const [family, setFamily] = useState<ActivityFamily | "all">("all");
   const [state, setState] = useState<State>({ phase: "loading" });
@@ -183,7 +184,7 @@ export default function FinanceActivity() {
     return () => {
       active = false;
     };
-  }, [activity, from, to, family, range, dataVersion]);
+  }, [activity, from, to, family, range, dataVersion, retryCount]);
 
   /* R2 (D8): تعدّد صامت واحد بلا حدود — هل يوجد أي نشاط مسجّل أصلًا؟
    * قراءة عرض فقط تميّز «لا بيانات» عن «لا نتائج»؛ لا تنشئ شيئًا. */
@@ -209,6 +210,11 @@ export default function FinanceActivity() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة النشاط</h1>
         <p>{state.message}</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

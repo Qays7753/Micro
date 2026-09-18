@@ -42,6 +42,7 @@ export default function WalletLedger() {
   /* T7 (Wave 4.2): الكاش غير الموزع القابل للتوزيع — نفس مصدر شريط المالية
    * (قراءة موقف المالية)؛ مجهول = لا فعل سياقي (لا زر ميت ولا صفر مفترض). */
   const [unallocatedCashMinor, setUnallocatedCashMinor] = useState<number | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   /* S1-08: تركيز الحركة المقصودة (?entry=) — إبراز وتمرير مثل طبقة الأحداث. */
   const focusedEntryId = new URLSearchParams(search).get("entry");
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function WalletLedger() {
     return () => {
       active = false;
     };
-  }, [walletLedger, projectFinance, params.id, dataVersion]);
+  }, [walletLedger, projectFinance, params.id, dataVersion, retryCount]);
 
   if (state.phase === "loading")
     return (
@@ -79,6 +80,11 @@ export default function WalletLedger() {
       <section className="micro-page micro-not-found">
         <h1>دفتر محفظة غير متاح</h1>
         <p>{state.message}</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button action="secondary" onClick={() => navigate("/cash")}>
           محافظ الكاش
         </Button>

@@ -69,6 +69,7 @@ export default function InventoryMaterials() {
   const returnPath = useReturnPath();
   const { inventory, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   const [activating, setActivating] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
   /* القرار ٢٠: حالة إخراج الفاقد — مسودة الفعل وسببه ومفتاح العملية. */
@@ -106,7 +107,7 @@ export default function InventoryMaterials() {
     return () => {
       active = false;
     };
-  }, [inventory, dataVersion]);
+  }, [inventory, dataVersion, retryCount]);
   /* القرار ٩: تفعيل صريح بتاريخ اليوم — لحظة معلنة تُعرض، والرصيد يومها يكفي. */
   async function activateInventory() {
     setActivating(true);
@@ -227,7 +228,12 @@ export default function InventoryMaterials() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة المواد</h1>
-        <p>لم يتغير أي سجل. أعد فتح التطبيق للمحاولة.</p>
+        <p>لم يتغير أي سجل.</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

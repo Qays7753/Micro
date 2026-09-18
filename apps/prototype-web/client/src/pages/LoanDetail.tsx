@@ -71,6 +71,11 @@ export default function LoanDetail() {
         <p className="micro-field-error" role="alert">
           {state.message}
         </p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => load()}>
+            إعادة المحاولة
+          </Button>
+        </div>
       </section>
     );
   const { loan, reading, events } = state.reading;
