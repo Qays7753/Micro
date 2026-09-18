@@ -49,6 +49,9 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
   /* ٥.٢: نسبة الحركة لمحفظة عند الإدخال حينما يختار المالك ذلك — بلا تخصيص صامت. */
   const [saleWalletId, setSaleWalletId] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  /* Wave 4.4 — P-4.4-5: تمييز خطأ التحقق الحقلي عن فشل الحفظ — aria-invalid
+   * تُرفع فقط عندما يكون الحقل نفسه خارجًا عن الشرط، لا عند فشل التخزين. */
+  const [fieldError, setFieldError] = useState(false);
   const [saving, setSaving] = useState(false);
   /* P0 (إعادة الدخول): نبضة مزدوجة قبل إعادة الرسم أو نداء برمجي متزامن لا
    * يسجل البيع مرتين — مع حتمية المخزن كخط دفاع ثانٍ (نمط AI-02). */
@@ -78,23 +81,28 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
     if (saveInFlightRef.current) return;
     /* GAP-4.3-06: التاريخ مطلوب وليس في المستقبل — الإيراد يُعرف بتاريخه. */
     if (!saleDate) {
+      setFieldError(true);
       setFormError("اختر تاريخ البيع — اليوم أو تاريخًا ماضيًا.");
       return;
     }
     if (saleDate > localDateInAmman()) {
+      setFieldError(true);
       setFormError("لا يُسجَّل بيع بتاريخ مستقبلي — اختر اليوم أو ماضيًا.");
       return;
     }
     if (!saleAmountValid || !Number.isInteger(saleAmountMinor) || saleAmountMinor <= 0) {
+      setFieldError(true);
       setFormError("أدخل مبلغ البيع بالأرقام 0–9.");
       return;
     }
     if (saleCostKnown && (!saleCostValid || saleCostMinor < 0)) {
+      setFieldError(true);
       setFormError("أدخل التكلفة بالأرقام 0–9 أو اختر «لا أعرف الآن».");
       return;
     }
     if (saleOnCredit) {
       if (!saleCollectedValid || !Number.isInteger(saleCollectedMinor) || saleCollectedMinor < 0) {
+        setFieldError(true);
         setFormError("أدخل المبلغ المحصل الآن بالأرقام 0–9.");
         return;
       }
@@ -108,6 +116,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       }
     }
     setFormError(null);
+    setFieldError(false);
     saveInFlightRef.current = true;
     setSaving(true);
     onSavingChange?.(true);
@@ -132,6 +141,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
     if (!result.ok) {
       setSaving(false);
       onSavingChange?.(false);
+      setFieldError(false);
       setFormError(result.message);
       return;
     }
@@ -205,6 +215,8 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
           onNumericChange={setSaleAmountMinor}
           onTextValidityChange={setSaleAmountValid}
           aria-label="مبلغ البيع"
+          aria-invalid={fieldError}
+          aria-describedby={formError ? "quick-sale-form-error" : undefined}
         />
       </label>
       <label className="micro-field">
@@ -217,6 +229,8 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
           max={localDateInAmman()}
           onChange={event => setSaleDate(event.target.value)}
           aria-label="تاريخ البيع"
+          aria-invalid={fieldError}
+          aria-describedby={formError ? "quick-sale-form-error" : undefined}
         />
       </label>
       <label className="micro-field">
@@ -316,7 +330,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         </p>
       ) : null}
       {formError ? (
-        <p className="micro-field-error" role="alert">
+        <p className="micro-field-error" role="alert" id="quick-sale-form-error">
           {formError}
         </p>
       ) : null}

@@ -260,7 +260,7 @@
 .micro-logo-menu-group-label {
   margin: 0 var(--space-3) var(--space-1);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.35;
 }
@@ -274,7 +274,7 @@
   border: 0;
   border-radius: var(--radius-control);
   color: var(--color-text-strong);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   text-align: start;
   background: transparent;
@@ -296,7 +296,7 @@
 .micro-logo-menu-note {
   margin: var(--space-2) var(--space-3) 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 .micro-brand-mark {
@@ -310,7 +310,7 @@
   color: var(--color-brand-text);
   /* W3: توحيد القاعدة المزدوجة (كانت 18px ثم 20px لاحقًا يغلب) — قاعدة
      واحدة بالقيمة الفعلية السارية 20px. */
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -319,7 +319,7 @@
   color: var(--color-text-secondary);
   /* W3: قاعدة موحدة (كانت مزدوجة 12px ثم 11px يغلب) — بيانات وصفية غير
      مالية فأرضية الترجمة 12px (typography.md)، مع وزن 600 كالسائد فعليًا. */
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.35;
 }
@@ -385,25 +385,25 @@
 }
 .micro-page h1 {
   color: var(--color-text-primary);
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.32;
 }
 .micro-page h2 {
   color: var(--color-text-primary);
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 600;
   line-height: 1.45;
 }
 .micro-page p {
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.8;
 }
 .micro-overline,
 .micro-card-eyebrow {
   color: var(--color-brand-text);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.4;
 }
@@ -413,7 +413,7 @@
   gap: var(--space-1);
   width: fit-content;
   color: var(--color-surface);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .micro-eyebrow svg {
@@ -427,7 +427,7 @@
   border-radius: var(--radius-card);
   color: var(--color-text-secondary);
   background: var(--color-bg-well);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-priority-panel {
   position: relative;
@@ -474,7 +474,7 @@
 }
 .micro-priority-content h1 {
   color: var(--color-text-primary);
-  font-size: 28px;
+  font-size: 1.75rem;
   max-width: 14ch;
 }
 .micro-priority-content > p {
@@ -492,12 +492,12 @@
 .micro-priority-truth span,
 .micro-decision-panel span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 .micro-priority-truth strong {
   color: var(--color-text-strong);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-section {
   display: flex;
@@ -570,7 +570,7 @@ textarea:disabled,
   padding-inline: var(--space-2);
   color: var(--color-accent-text);
   background: transparent;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-align: right;
 }
@@ -616,10 +616,10 @@ textarea:disabled,
 }
 .micro-decision-panel strong {
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-decision-panel p {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-empty-state {
   display: flex;
@@ -694,7 +694,7 @@ textarea:disabled,
 }
 .micro-truth-banner p {
   color: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-settings-list {
   display: flex;
@@ -718,10 +718,10 @@ textarea:disabled,
   min-width: 0;
 }
 .micro-setting-row h2 {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-setting-row p {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-setting-icon,
 .micro-sheet-action-icon {
@@ -766,14 +766,14 @@ textarea:disabled,
 }
 .micro-dialog h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.4;
   color: var(--color-text-primary);
 }
 .micro-dialog p {
   margin: 0;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.8;
   color: var(--color-text-secondary);
 }
@@ -941,14 +941,14 @@ textarea:disabled,
 .micro-sheet-title {
   color: var(--color-text-primary);
   font-family: var(--font-arabic);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1.4;
 }
 .micro-sheet-description {
   margin-top: var(--space-1);
   color: var(--color-text-secondary);
   font-family: var(--font-arabic);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 /* §٥-١٤: نماذج اللحظة داخل ورقة الإضافة — فعل عابر فوق شاشة الوقوف. */
@@ -973,12 +973,12 @@ textarea:disabled,
   text-align: center;
 }
 .micro-sheet-receipt strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-sheet-receipt p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .micro-sheet-actions {
@@ -997,13 +997,13 @@ textarea:disabled,
   background: var(--color-surface);
 }
 .micro-sheet-confirm > strong {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-text-primary);
 }
 .micro-sheet-confirm > p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 .micro-sheet-confirm .micro-form-actions {
@@ -1044,13 +1044,13 @@ textarea:disabled,
   display: block;
 }
 .micro-sheet-action strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 .micro-sheet-action small {
   margin-top: 2px;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-not-found {
   justify-content: center;
@@ -1074,12 +1074,12 @@ textarea:disabled,
 }
 .micro-error-boundary h1 {
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-error-boundary p {
   max-width: 32ch;
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-setup-page {
   gap: var(--space-5);
@@ -1095,7 +1095,7 @@ textarea:disabled,
   display: grid;
   gap: var(--space-2);
   color: var(--color-text-strong);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 .micro-field > span {
@@ -1108,7 +1108,7 @@ textarea:disabled,
   color: var(--color-text-secondary);
   /* W7 (تدقيق الوكيل ٤، MEDIUM-4): مؤهل داخل التسمية — طبقة البيانات
    * الوصفية الموثقة 12px (تحت الأرضية التفاعلية، فوق الشذوذ). */
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 400;
 }
 .micro-field input,
@@ -1135,7 +1135,7 @@ textarea:disabled,
 }
 .micro-selected-date {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 400;
   line-height: 1.5;
 }
@@ -1155,7 +1155,7 @@ textarea:disabled,
 .micro-field-error {
   margin: 0;
   color: var(--color-danger-text) !important;
-  font-size: 13px !important;
+  font-size: 0.8125rem !important;
 }
 .micro-setup-context {
   display: flex;
@@ -1165,7 +1165,7 @@ textarea:disabled,
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-3);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   letter-spacing: normal;
 }
 .micro-setup-context b {
@@ -1194,7 +1194,7 @@ textarea:disabled,
 }
 .micro-local-truth p {
   color: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-local-truth b {
   color: var(--color-text-primary);
@@ -1209,7 +1209,7 @@ textarea:disabled,
   padding: 0;
   color: var(--color-accent-text);
   background: transparent;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .micro-back-button svg {
@@ -1250,7 +1250,7 @@ textarea:disabled,
 .micro-save-note {
   margin: 0;
   color: var(--color-success-text) !important;
-  font-size: 13px !important;
+  font-size: 0.8125rem !important;
 }
 .micro-cost-save-guidance {
   margin: 0;
@@ -1259,7 +1259,7 @@ textarea:disabled,
   padding: var(--space-2) var(--space-3);
   color: var(--color-warning-text);
   background: var(--color-warning-bg);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .micro-intent-stack,
@@ -1310,12 +1310,12 @@ textarea:disabled,
 }
 .micro-intent-card strong,
 .micro-draft-row strong {
-  font-size: 16px;
+  font-size: 1rem;
 }
 .micro-intent-card small,
 .micro-draft-row small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-intent-card > svg,
 .micro-draft-row > svg {
@@ -1365,17 +1365,17 @@ textarea:disabled,
   box-shadow: var(--elevation-1);
 }
 .micro-cost-result > span {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 .micro-cost-result > strong {
   color: var(--color-text-primary);
-  font-size: 28px;
+  font-size: 1.75rem;
   letter-spacing: -0.02em;
 }
 .micro-cost-result > small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-cost-result > div {
   margin-top: var(--space-2);
@@ -1383,12 +1383,12 @@ textarea:disabled,
   padding-top: var(--space-2);
 }
 .micro-cost-result b {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-cost-result p {
   margin: var(--space-1) 0 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-cost-result[data-knowledge="incomplete"],
 .micro-cost-result[data-knowledge="stale"] {
@@ -1409,14 +1409,14 @@ textarea:disabled,
   gap: var(--space-2);
   color: var(--color-text-secondary);
   /* P-004 (دورة التدقيق النهائي): قائمة فجوات المعرفة مادة قراءة فعلية — 13px. */
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
 }
 .micro-knowledge-gaps li > b {
   flex: 0 0 auto;
   padding-inline: var(--space-1);
   border-radius: var(--radius-control);
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-text-secondary);
   background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
 }
@@ -1433,13 +1433,13 @@ textarea:disabled,
 .micro-cost-section-heading h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 .micro-cost-section-heading p,
 .micro-empty-inline {
   margin: var(--space-1) 0 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-icon-button,
 .micro-delete-row {
@@ -1511,11 +1511,11 @@ textarea:disabled,
   white-space: nowrap;
 }
 .micro-material-summary strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-material-summary small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-material-summary > svg {
   width: 20px;
@@ -1556,7 +1556,7 @@ textarea:disabled,
   gap: var(--space-2);
   margin: 0;
   color: var(--color-warning-text) !important;
-  font-size: 13px !important;
+  font-size: 0.8125rem !important;
 }
 .micro-missing-time svg {
   width: 18px;
@@ -1566,7 +1566,7 @@ textarea:disabled,
 .micro-cost-disclaimer {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-align: center;
 }
 .micro-agreement-page,
@@ -1581,7 +1581,7 @@ textarea:disabled,
   padding: var(--space-3);
   color: var(--color-warning-text);
   background: var(--color-warning-bg);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .micro-confirm-warning input {
@@ -1603,7 +1603,7 @@ textarea:disabled,
   padding: var(--space-3);
   color: var(--color-success-text);
   background: var(--color-success-bg);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .micro-deposit-truth svg {
@@ -1624,17 +1624,17 @@ textarea:disabled,
 }
 .micro-decision-card > span {
   color: var(--color-brand-text);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 .micro-decision-card strong {
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-decision-card p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-summary-grid {
   display: grid;
@@ -1650,16 +1650,16 @@ textarea:disabled,
 }
 .micro-summary-grid span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-summary-grid strong {
   color: var(--color-text-primary);
-  font-size: 16px;
+  font-size: 1rem;
 }
 .micro-section-title {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 .micro-event-list {
   display: grid;
@@ -1685,11 +1685,11 @@ textarea:disabled,
 }
 .micro-event-list b {
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-event-list small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-note-card {
   display: flex;
@@ -1709,13 +1709,13 @@ textarea:disabled,
 }
 .micro-note-card span {
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 .micro-note-card p {
   margin: 0;
   color: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .micro-result-card {
@@ -1728,18 +1728,18 @@ textarea:disabled,
   box-shadow: var(--elevation-1);
 }
 .micro-result-card > span {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 .micro-result-card strong {
   color: var(--color-text-primary);
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 .micro-result-card p,
 .micro-result-card small {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.55;
 }
 .micro-result-card[data-result="estimated"],
@@ -1789,12 +1789,12 @@ textarea:disabled,
 }
 .micro-import-preview h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 .micro-import-preview p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .micro-import-preview ul {
@@ -1803,7 +1803,7 @@ textarea:disabled,
   margin: 0;
   padding-inline-start: var(--space-4);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-import-preview .micro-field-error {
   color: var(--color-danger-text);
@@ -1826,13 +1826,13 @@ textarea:disabled,
 .micro-decision-surface h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 24px;
+  font-size: 1.5rem;
   line-height: 1.4;
 }
 .micro-decision-surface p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-decision-surface .micro-decision-next {
   color: var(--color-text-strong);
@@ -1858,13 +1858,13 @@ textarea:disabled,
 }
 .micro-record-summary span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-number {
   color: var(--color-text-primary);
   direction: ltr;
   font-family: var(--font-numeric);
-  font-size: 26px;
+  font-size: 1.625rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
   text-align: right;
@@ -1888,13 +1888,13 @@ textarea:disabled,
 }
 .micro-financial-pulse-heading h2 {
   margin: var(--space-1) 0 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 .micro-financial-pulse-heading > span {
   color: var(--color-text-secondary);
   direction: ltr;
   font-family: var(--font-numeric);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-financial-pulse dl {
   display: grid;
@@ -1918,11 +1918,11 @@ textarea:disabled,
 .micro-financial-pulse small,
 .micro-financial-pulse-note {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-financial-pulse dd {
   margin: 0;
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 .micro-financial-pulse-note {
   margin: 0;
@@ -1931,7 +1931,7 @@ textarea:disabled,
 }
 .micro-financial-pulse-note .micro-number {
   display: inline;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-scope-line {
   display: grid;
@@ -1948,7 +1948,7 @@ textarea:disabled,
 }
 .micro-scope-line p {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-scope-line .micro-text-action {
   grid-column: 2;
@@ -1973,15 +1973,15 @@ textarea:disabled,
 }
 .micro-review-result span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-review-result p {
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-review-result p .micro-number {
   display: inline;
-  font-size: 16px;
+  font-size: 1rem;
 }
 .micro-review-empty {
   display: grid;
@@ -2017,7 +2017,7 @@ textarea:disabled,
 }
 .micro-schedule-heading h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-schedule-heading > span {
   display: inline-grid;
@@ -2028,7 +2028,7 @@ textarea:disabled,
   color: var(--color-text-secondary);
   background: var(--color-bg-well);
   font-family: var(--font-numeric);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-schedule-section[data-tone="warning"] .micro-schedule-heading {
   border-inline-start-color: var(--color-warning-text);
@@ -2044,7 +2044,7 @@ textarea:disabled,
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-3);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-section-title {
   display: flex;
@@ -2104,19 +2104,19 @@ textarea:disabled,
 }
 .micro-finance-layer-summary b,
 .micro-owner-layer-summary b {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-finance-layer-summary small,
 .micro-owner-layer-summary small {
   overflow-wrap: anywhere;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-finance-layer-summary > strong,
 .micro-owner-layer-summary > strong {
   flex: 0 0 auto;
   color: var(--color-accent-text);
-  font-size: 12px;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 .micro-finance-layer[open] > summary,
@@ -2156,17 +2156,17 @@ textarea:disabled,
   min-width: 0;
 }
 .micro-decision-layer-summary b {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-decision-layer-summary small {
   overflow-wrap: anywhere;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-decision-layer-summary > strong {
   flex: 0 0 auto;
   color: var(--color-accent-text);
-  font-size: 12px;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 .micro-decision-layer[open] > summary {
@@ -2191,7 +2191,7 @@ textarea:disabled,
 .micro-finance-unallocated-alert p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
 }
 .micro-finance-unallocated-alert .micro-prim-button {
@@ -2238,10 +2238,10 @@ button.micro-finance-position-link:focus-visible {
 .micro-finance-position-card > span,
 .micro-finance-position-card small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-finance-position-card strong {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-number[data-negative="true"] {
   color: var(--color-warning-text);
@@ -2269,11 +2269,11 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-finance-truth p {
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-finance-truth .micro-number {
   display: inline;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-finance-actions {
   display: grid;
@@ -2295,7 +2295,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-finance-event-heading h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 .micro-finance-event-list > article {
   display: flex;
@@ -2316,18 +2316,18 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-finance-event-list article strong {
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-finance-event-list article small {
   overflow: hidden;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .micro-finance-event-list article > b {
   flex: 0 0 auto;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-period-result {
   display: grid;
@@ -2347,7 +2347,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-period-heading h2 {
   margin: var(--space-1) 0 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 .micro-period-heading label {
   display: grid;
@@ -2367,10 +2367,10 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-period-result-value > span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-period-result-value strong {
-  font-size: 31px;
+  font-size: 1.9375rem;
 }
 .micro-period-result dl {
   display: grid;
@@ -2395,16 +2395,16 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-period-result dt {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-period-result dd {
   margin: 0;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 .micro-period-truth {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.65;
 }
 .micro-schedule-capacity {
@@ -2429,12 +2429,12 @@ button.micro-finance-position-link:focus-visible {
   margin: 0;
 }
 .micro-schedule-capacity h2 {
-  font-size: 16px;
+  font-size: 1rem;
 }
 .micro-schedule-capacity p {
   margin-top: var(--space-1);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-schedule-capacity .micro-field {
@@ -2457,7 +2457,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-week-heading h2 {
   margin: var(--space-1) 0 0;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 .micro-week-heading > svg {
   width: 21px;
@@ -2490,15 +2490,15 @@ button.micro-finance-position-link:focus-visible {
   gap: var(--space-1);
 }
 .micro-week-day-heading strong {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-week-day-heading small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-week-day-heading .micro-number {
   display: inline;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-week-day-heading > svg {
   width: 18px;
@@ -2508,7 +2508,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-week-day > p {
   margin: 0;
   color: var(--color-warning-text);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-week-day > div:last-child {
   display: grid;
@@ -2534,13 +2534,13 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-week-day button b {
   overflow: hidden;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .micro-week-day button small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-week-day button > svg {
   flex: 0 0 auto;
@@ -2554,7 +2554,7 @@ button.micro-finance-position-link:focus-visible {
   gap: var(--space-2);
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-schedule-editor-note svg {
@@ -2593,11 +2593,11 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-setup-heading h1 {
   max-width: 15ch;
-  font-size: 31px;
+  font-size: 1.9375rem;
 }
 .micro-setup-heading > p {
   max-width: 32ch;
-  font-size: 16px;
+  font-size: 1rem;
 }
 /* ── SET-002: شرح عناصر صفحة الأساس — لماذا/ما يتأثر/الأثر/أين تظهر ── */
 .micro-foundation-explain {
@@ -2609,13 +2609,13 @@ button.micro-finance-position-link:focus-visible {
   border-radius: var(--radius-card);
 }
 .micro-foundation-explain dt {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-text-secondary);
 }
 .micro-foundation-explain dd {
   margin: 0 0 4px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .micro-capability-list {
@@ -2638,7 +2638,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-capability-row p {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 .micro-capability-row dl {
@@ -2647,13 +2647,13 @@ button.micro-finance-position-link:focus-visible {
   margin: 0;
 }
 .micro-capability-row dt {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-text-secondary);
 }
 .micro-capability-row dd {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.55;
 }
 .micro-capability-row[data-disabled="true"] {
@@ -2687,16 +2687,16 @@ button.micro-finance-position-link:focus-visible {
   gap: 8px;
 }
 .micro-soon-panel-head strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-soon-panel p {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
 }
 .micro-soon-panel-footer {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-soon-card {
   display: flex;
@@ -2717,12 +2717,12 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-soon-card strong {
   display: block;
-  font-size: 15px;
+  font-size: 0.9375rem;
   margin-block-end: 8px;
 }
 .micro-soon-card p {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
 }
 .micro-soon-badge {
@@ -2731,7 +2731,7 @@ button.micro-finance-position-link:focus-visible {
   align-self: flex-start;
   background: var(--color-accent-soft);
   color: var(--color-accent-text);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 999px;
@@ -2760,7 +2760,7 @@ button.micro-finance-position-link:focus-visible {
   border-radius: var(--radius-card);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: inherit;
   text-align: center;
@@ -2801,7 +2801,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-home-numbers-period > h3 {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.35;
 }
@@ -2816,23 +2816,23 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-home-number > span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 .micro-home-number > strong {
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1.3;
 }
 .micro-home-number[data-state="incomplete"] > strong {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .micro-home-number-note {
   color: var(--color-warning-text);
 }
 .micro-home-number > strong .micro-number {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 /* P-4.3-2 (D6): Insights — صفوف خفيفة بلا بطاقات ثقيلة؛ أيقونة واحدة وسطر
  * وفعل نصي واحد لكل ملحوظة. */
@@ -2868,13 +2868,13 @@ button.micro-finance-position-link:focus-visible {
 .micro-home-insight p {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.5;
 }
 .micro-home-insight small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 .micro-home-insight > .micro-text-action {
@@ -2892,7 +2892,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-setup-intro p {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 .micro-setup-impact {
@@ -2905,12 +2905,12 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-setup-impact > span {
   color: var(--color-brand-text);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 .micro-setup-impact strong {
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-setup-impact strong b {
   color: var(--color-brand-primary);
@@ -2918,13 +2918,13 @@ button.micro-finance-position-link:focus-visible {
 .micro-setup-impact em {
   direction: ltr;
   font-family: var(--font-numeric);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-style: normal;
   unicode-bidi: isolate;
 }
 .micro-setup-impact small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-setup-decision {
@@ -2949,7 +2949,7 @@ button.micro-finance-position-link:focus-visible {
   color: var(--color-surface);
   background: var(--color-brand-primary);
   font-family: var(--font-numeric);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-setup-step > div {
   display: grid;
@@ -2957,12 +2957,12 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-setup-step b {
   color: var(--color-text-primary);
-  font-size: 16px;
+  font-size: 1rem;
 }
 .micro-setup-step p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-local-truth {
@@ -3000,11 +3000,11 @@ button.micro-finance-position-link:focus-visible {
   margin: 0;
 }
 .micro-expense-classification h2 {
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 .micro-expense-classification > div > p {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-expense-classification .micro-field {
@@ -3016,7 +3016,7 @@ button.micro-finance-position-link:focus-visible {
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-3);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 .micro-period-review-note {
@@ -3025,7 +3025,7 @@ button.micro-finance-position-link:focus-visible {
   padding-inline-start: var(--space-3);
   color: var(--color-warning-text);
   /* P-004: نطاق القراءة وملاحظات المراجعة مادة قراءة — ١٣px بدل ١٢. */
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 .micro-supplier-list {
@@ -3049,7 +3049,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-supplier-list small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 .micro-supplier-balance {
@@ -3063,11 +3063,11 @@ button.micro-finance-position-link:focus-visible {
    * المعتمدة (13px) — التصحيح لأرضية المعيار؛ 44px يبقى (عقد اللمس MR-03). */
   min-height: 44px;
   padding: 0 var(--space-3);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-supplier-payable {
   color: var(--color-text-strong);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-supplier-settled {
   opacity: 0.86;
@@ -3089,11 +3089,11 @@ button.micro-finance-position-link:focus-visible {
 .micro-cash-facts span,
 .micro-cash-facts small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.5;
 }
 .micro-cash-facts strong {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-cash-actions {
   display: grid;
@@ -3104,7 +3104,7 @@ button.micro-finance-position-link:focus-visible {
   width: 100%;
   min-height: 52px;
   padding-inline: var(--space-2);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 /* مبدأ Micro: الفعل المشروط يشرح شرطه القريب بدل زر معطل بلا تفسير. */
 .micro-later-action {
@@ -3119,11 +3119,11 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-later-action strong {
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-later-action small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 .micro-cash-history {
@@ -3204,7 +3204,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-actual-time-reversed,
 .micro-actual-time-status {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 .micro-actual-time-row .micro-text-action {
@@ -3243,21 +3243,21 @@ button.micro-finance-position-link:focus-visible {
   align-items: flex-start;
 }
 .micro-actual-time-form > .micro-section-heading h2 {
-  font-size: 16px;
+  font-size: 1rem;
 }
 .micro-actual-time-form > .micro-section-heading .micro-icon-button {
   margin-block-start: calc(var(--space-1) * -1);
 }
 .micro-actual-time-form > p {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-empty-inline {
   margin: 0;
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-3);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 @media (max-width: 380px) {
   .micro-actual-time-row {
@@ -3284,11 +3284,11 @@ button.micro-finance-position-link:focus-visible {
 .micro-actual-time-comparison h3 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 16px;
+  font-size: 1rem;
 }
 .micro-actual-time-comparison p {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-actual-time-comparison-grid {
   display: grid;
@@ -3311,11 +3311,11 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-actual-time-comparison-grid dt {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-actual-time-comparison-grid dd {
   margin: 0;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-actual-time-comparison[data-tone="warning"] .micro-card-eyebrow,
 .micro-actual-time-comparison[data-tone="warning"] h3 {
@@ -3381,13 +3381,13 @@ button.micro-finance-position-link:focus-visible {
 .micro-g5-declaration small,
 .micro-g5-count {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   /* §4 بند ٨: التسمية تلتف أينما احتاجت — لا قصّ ولا nowrap */
   overflow-wrap: anywhere;
   min-width: 0;
 }
 .micro-g5-metrics .micro-number {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-g5-metrics-secondary {
   border-top: 1px dashed var(--color-divider);
@@ -3402,10 +3402,10 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-g5-break-even strong {
   color: var(--color-text-primary);
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 .micro-g5-break-even p {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-g5-guidance {
   display: grid;
@@ -3419,7 +3419,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-g5-guidance strong {
   color: var(--color-text-strong);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-g5-guidance ul {
   display: grid;
@@ -3427,12 +3427,12 @@ button.micro-finance-position-link:focus-visible {
   margin: 0;
   padding-inline-start: var(--space-4);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-g5-guidance .micro-decision-next {
   margin: 0;
   color: var(--color-text-strong);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .micro-g5-declarations {
@@ -3469,7 +3469,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-g5-declaration strong {
   overflow: hidden;
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3488,14 +3488,14 @@ button.micro-finance-position-link:focus-visible {
   margin: var(--space-2) 0 0;
   padding-inline-start: var(--space-4);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-g5-sources {
   margin: 0;
   border-top: 1px dashed var(--color-divider);
   padding-top: var(--space-2);
   color: var(--color-text-secondary);
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
 }
 .micro-g5-sources strong {
   color: var(--color-text-strong);
@@ -3545,13 +3545,13 @@ button.micro-finance-position-link:focus-visible {
 .micro-install-copy h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.45;
 }
 .micro-install-copy p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 .micro-install-actions {
@@ -3563,7 +3563,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-install-actions .micro-prim-button {
   min-height: 44px;
   padding-inline: var(--space-3);
-  font-size: 13px;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 .micro-install-actions .micro-icon-button {
@@ -3626,13 +3626,13 @@ button.micro-finance-position-link:focus-visible {
 .micro-runtime-copy h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.45;
 }
 .micro-runtime-copy p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 .micro-runtime-actions {
@@ -3644,7 +3644,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-runtime-actions .micro-prim-button {
   min-height: 44px;
   padding-inline: var(--space-3);
-  font-size: 13px;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 .micro-runtime-actions .micro-icon-button {
@@ -3717,11 +3717,11 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-month-heading h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-month-heading p {
   margin: 0;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-month-heading > svg {
   width: 24px;
@@ -3740,7 +3740,7 @@ button.micro-finance-position-link:focus-visible {
 .micro-month-navigation strong {
   color: var(--color-text-strong);
   font-family: var(--font-numeric);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   text-align: center;
   unicode-bidi: isolate;
@@ -3765,12 +3765,12 @@ button.micro-finance-position-link:focus-visible {
 .micro-month-summary dt {
   min-height: 2.4em;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.35;
 }
 .micro-month-summary dd {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-month-empty {
   display: grid;
@@ -3789,12 +3789,12 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-month-empty strong {
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-month-empty p {
   margin: var(--space-1) 0 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-month-calendar-scroll {
@@ -3816,7 +3816,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-month-weekdays {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-align: center;
 }
@@ -3877,7 +3877,7 @@ button.micro-month-cell:active {
   min-width: 0;
   color: var(--color-text-primary);
   font-family: var(--font-numeric);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -3888,7 +3888,7 @@ button.micro-month-cell:active {
 .micro-month-date small {
   color: var(--color-brand-text);
   font-family: var(--font-arabic);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 .micro-month-cell-count,
@@ -3902,17 +3902,17 @@ button.micro-month-cell:active {
 }
 .micro-month-cell-count {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.35;
 }
 .micro-month-cell-count b {
   display: inline;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-month-cell-time {
   color: var(--color-accent-text);
   font-family: var(--font-numeric);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-variant-numeric: tabular-nums;
   text-align: left;
   unicode-bidi: isolate;
@@ -3922,7 +3922,7 @@ button.micro-month-cell:active {
   align-items: center;
   gap: 2px;
   color: var(--color-warning-text);
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.25;
 }
 .micro-month-cell-warning svg {
@@ -3933,7 +3933,7 @@ button.micro-month-cell:active {
 .micro-month-prompt {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
 }
 .micro-month-day-detail {
   display: grid;
@@ -3955,12 +3955,12 @@ button.micro-month-cell:active {
 .micro-month-detail-heading h3 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1.45;
 }
 .micro-month-detail-heading > .micro-number {
   flex: 0 0 auto;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-month-warning {
   display: flex;
@@ -3968,7 +3968,7 @@ button.micro-month-cell:active {
   gap: var(--space-2);
   margin: 0;
   color: var(--color-warning-text) !important;
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
   line-height: 1.6 !important;
 }
 .micro-month-warning svg {
@@ -4009,11 +4009,11 @@ button.micro-month-cell:active {
   white-space: nowrap;
 }
 .micro-month-day-list strong {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-month-day-list small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-month-day-list > button > svg {
   width: 20px;
@@ -4033,13 +4033,13 @@ button.micro-month-cell:active {
     padding: var(--space-1);
   }
   .micro-month-date {
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .micro-month-cell-count {
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
   .micro-month-cell-time {
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -4083,7 +4083,7 @@ button.micro-month-cell:active {
 .micro-recurrence-card p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-recurrence-empty {
   display: flex;
@@ -4102,7 +4102,7 @@ button.micro-month-cell:active {
 .micro-recurrence-empty p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-recurrence-note {
   display: flex;
@@ -4110,7 +4110,7 @@ button.micro-month-cell:active {
   gap: var(--space-2);
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-recurrence-note svg {
@@ -4136,7 +4136,7 @@ button.micro-month-cell:active {
 .micro-recurrence-card-heading h3 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-recurrence-card-heading > svg {
   color: var(--color-success-text);
@@ -4158,14 +4158,14 @@ button.micro-month-cell:active {
   direction: ltr;
   color: var(--color-text-primary);
   font-family: var(--font-numeric);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   unicode-bidi: isolate;
 }
 .micro-recurrence-appearances small {
   overflow: hidden;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4178,7 +4178,7 @@ button.micro-month-cell:active {
 .micro-recurrence-cancelled {
   margin: 0;
   color: var(--color-warning-text) !important;
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
 }
 @media (max-width: 380px) {
   .micro-recurrence-appearances {
@@ -4218,7 +4218,7 @@ button.micro-month-cell:active {
 .micro-agreement-context-heading p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-context-summary {
   display: grid;
@@ -4235,12 +4235,12 @@ button.micro-month-cell:active {
 }
 .micro-context-summary span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-context-summary strong {
   overflow: hidden;
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4250,7 +4250,7 @@ button.micro-month-cell:active {
   gap: var(--space-2);
   margin: 0;
   color: var(--color-warning-text) !important;
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
   line-height: 1.6 !important;
 }
 .micro-context-legacy svg {
@@ -4271,11 +4271,11 @@ button.micro-month-cell:active {
 }
 .micro-context-history b {
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-context-history small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 @media (max-width: 380px) {
   .micro-context-summary {
@@ -4287,7 +4287,7 @@ button.micro-month-cell:active {
   unicode-bidi: isolate;
   color: var(--color-text-secondary);
   font-family: var(--font-numeric);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 /* A2 presentation contract: visible numeric/date values remain readable inside RTL copy. */
@@ -4324,12 +4324,12 @@ button.micro-month-cell:active {
 .micro-schedule-status-summary span,
 .micro-schedule-status-summary small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-schedule-status-summary strong {
   color: var(--color-text-primary);
   font-family: var(--font-numeric);
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 .micro-schedule-status-summary > div:first-child {
   border-inline-start: 3px solid var(--color-accent-primary);
@@ -4372,7 +4372,7 @@ button.micro-month-cell:active {
     grid-template-columns: 1fr;
   }
   .micro-schedule-status-summary strong {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
 }
 
@@ -4386,7 +4386,7 @@ button.micro-month-cell:active {
 }
 .micro-finance-event-heading p {
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-finance-event {
   display: grid;
@@ -4426,7 +4426,7 @@ button.micro-month-cell:active {
   border-radius: var(--radius-control);
   background: var(--color-surface);
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-finance-event-main {
   display: flex;
@@ -4441,12 +4441,12 @@ button.micro-month-cell:active {
 }
 .micro-finance-event-main strong {
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-finance-event-main small,
 .micro-finance-event-audit {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-finance-event-main > b {
@@ -4454,7 +4454,7 @@ button.micro-month-cell:active {
   color: var(--color-text-primary);
   direction: ltr;
   font-family: var(--font-numeric);
-  font-size: 16px;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
   unicode-bidi: isolate;
 }
@@ -4473,7 +4473,7 @@ button.micro-month-cell:active {
   margin: 0;
   color: var(--color-text-secondary);
   /* P-004: نص السبب والملاحظة مادة قراءة فعلية — ١٣px بدل ١٢ لقراءة أرخص. */
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .micro-finance-event-audit {
@@ -4486,7 +4486,7 @@ button.micro-month-cell:active {
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-2);
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-finance-event-effects span {
   display: flex;
@@ -4502,7 +4502,7 @@ button.micro-month-cell:active {
 .micro-finance-event-closed {
   margin: 0;
   color: var(--color-success-text) !important;
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
 }
 .micro-finance-reversal-editor {
   display: grid;
@@ -4520,11 +4520,11 @@ button.micro-month-cell:active {
 }
 .micro-finance-reversal-review strong {
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-finance-reversal-review p {
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-finance-reversal-review dl {
   display: grid;
@@ -4537,12 +4537,12 @@ button.micro-month-cell:active {
 }
 .micro-finance-reversal-review dt {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-finance-reversal-review dd {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-finance-reversal-review dd bdi {
   direction: ltr;
@@ -4550,10 +4550,10 @@ button.micro-month-cell:active {
   unicode-bidi: isolate;
 }
 .micro-finance-reversal-editor .micro-local-truth {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-finance-reversal-editor .micro-local-truth p {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-finance-event .micro-text-action {
   justify-self: start;
@@ -4578,7 +4578,7 @@ button.micro-month-cell:active {
   gap: var(--space-2);
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-home-heading > p svg {
   width: 16px;
@@ -4593,7 +4593,7 @@ button.micro-month-cell:active {
 }
 .micro-home-truth-line {
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-home-facts-section,
 .micro-home-finance-section,
@@ -4618,7 +4618,7 @@ button.micro-month-cell:active {
 .micro-home-finance-unit p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-home-finance-unit .micro-prim-button {
   flex: 0 0 auto;
@@ -4654,7 +4654,7 @@ button.micro-month-cell:active {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-home-today-item strong svg {
   flex: 0 0 auto;
@@ -4665,24 +4665,24 @@ button.micro-month-cell:active {
 .micro-home-today-item p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-home-today-item small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-home-today-item .micro-text-action {
   flex: 0 0 auto;
 }
 /* §2.7: سطر الحقيقة كطريق — «غير مسجل — سجّله (نقرة)». */
 .micro-home-fact .micro-fact-road {
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.6;
   text-align: start;
 }
 .micro-fact-road-line {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 /* القرار ١٩: لوحة الإلغاء وتسوية العربون — سبب اختياري بثلاثة أزرار، وعربون بثلاثة خيارات. */
 /* X-06 (و٤): لوحة قرار الفرق بين المتفق والمقبوض — ثلاثة خيارات والثالث صالح. */
@@ -4695,12 +4695,12 @@ button.micro-month-cell:active {
   background: var(--color-surface);
 }
 .micro-difference-panel > strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-difference-panel > p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-radio-choice {
   display: flex;
@@ -4722,11 +4722,11 @@ button.micro-month-cell:active {
   gap: 2px;
 }
 .micro-radio-choice b {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-radio-choice small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-direct-sale-revisions {
   margin: var(--space-2) 0 0;
@@ -4734,7 +4734,7 @@ button.micro-month-cell:active {
   display: grid;
   gap: 2px;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-cancel-panel {
   display: grid;
@@ -4745,12 +4745,12 @@ button.micro-month-cell:active {
   background: var(--color-surface);
 }
 .micro-cancel-panel > strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-cancel-panel > p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 /* القرار ٢١: حذف مسودة مهجورة — فعل بلا سبب ولا أثر مالي، بحارس مرئي. */
@@ -4763,7 +4763,7 @@ button.micro-month-cell:active {
 .micro-draft-delete-zone > p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 /* القرار ٩: موضع المخزون غير النشط قبل التفعيل الصريح المؤرّخ. */
@@ -4787,12 +4787,12 @@ button.micro-month-cell:active {
   min-width: 0;
 }
 .micro-inventory-inactive h2 {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-inventory-inactive p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 .micro-inventory-inactive .micro-prim-button {
@@ -4808,7 +4808,7 @@ button.micro-month-cell:active {
 }
 .micro-policy-stop small {
   color: var(--color-warning-text);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 /* صفحة الأساس (§2.5): قسم يمرّر بحرية — الكاش مفتوح والباقي مطوي بحالته بسطر واحد. */
 .micro-foundation-page {
@@ -4827,7 +4827,7 @@ button.micro-month-cell:active {
 .micro-foundation-truth p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 .micro-foundation-section {
@@ -4862,17 +4862,17 @@ button.micro-month-cell:active {
   min-width: 0;
 }
 .micro-foundation-summary b {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-foundation-summary small {
   overflow-wrap: anywhere;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-foundation-summary > strong {
   flex: 0 0 auto;
   color: var(--color-accent-text);
-  font-size: 12px;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 .micro-foundation-section[open] > summary {
@@ -4892,7 +4892,7 @@ button.micro-month-cell:active {
   gap: var(--space-2);
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 .micro-foundation-body p svg {
@@ -4924,12 +4924,12 @@ button.micro-month-cell:active {
   flex: 1;
 }
 .micro-foundation-file b {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-foundation-file p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-foundation-exit {
   display: grid;
@@ -4941,7 +4941,7 @@ button.micro-month-cell:active {
 .micro-foundation-exit p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 /* المجموعة ١ — ملف المالك والمشروع (/profile): سطح قراءة هادئ بلا مقعد تنقل. */
@@ -4974,12 +4974,12 @@ button.micro-month-cell:active {
 }
 .micro-profile-facts dt {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-profile-facts dd {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
 .micro-profile-fields {
@@ -4989,7 +4989,7 @@ button.micro-month-cell:active {
 .micro-profile-future-note {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 .micro-home-facts {
@@ -5017,7 +5017,7 @@ button.micro-month-cell:active {
   align-items: center;
   gap: var(--space-2);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-home-fact-heading svg {
   width: 17px;
@@ -5027,14 +5027,14 @@ button.micro-month-cell:active {
 .micro-home-fact > strong {
   min-height: 26px;
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-home-fact > strong .micro-number {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-home-fact > small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.5;
 }
 /* المجموعة ١ (§7.1) — ترويسة الرئيسية: التاريخ ومدخل الملف في صف واحد هادئ. */
@@ -5070,7 +5070,7 @@ button.micro-month-cell:active {
 /* مؤهل الأمانة داخل بطاقة الكاش: حقيقة مالية ظاهرة بلا لون إنذار. */
 .micro-home-fact-qualifier {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
@@ -5083,7 +5083,7 @@ button.micro-month-cell:active {
   padding: var(--space-3);
   color: var(--color-text-secondary);
   background: var(--color-bg-well);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-home-locality svg {
   flex: 0 0 auto;
@@ -5111,7 +5111,7 @@ button.micro-month-cell:active {
 .micro-home-quiet p {
   margin: var(--space-1) 0 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-home-attention-item .micro-text-action,
 .micro-home-optional-item .micro-text-action {
@@ -5156,7 +5156,7 @@ button.micro-month-cell:active {
 }
 .micro-home-recent-item small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 /* المجموعة ٥ (عقد ٣٠): كلمة الأثر والمبلغ في صفوف «آخر ما حدث» — رقم بفواصل
  * الآلاف داخل عزل اتجاهي، وكلمة الأثر بلون ثانوي هادئ لا شارة صارخة. */
@@ -5168,7 +5168,7 @@ button.micro-month-cell:active {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-primary);
 }
 .micro-home-recent-open {
@@ -5191,7 +5191,7 @@ button.micro-month-cell:active {
   }
   .micro-home-fact > strong,
   .micro-home-fact > strong .micro-number {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
   .micro-home-attention-item,
   .micro-home-optional-item {
@@ -5238,7 +5238,7 @@ button.micro-month-cell:active {
   border-radius: 999px;
   color: var(--color-accent-text);
   background: var(--color-accent-soft);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 .micro-additional-details[open] > .micro-additional-details-summary::after {
@@ -5249,13 +5249,13 @@ button.micro-month-cell:active {
   outline-offset: -2px;
 }
 .micro-additional-details-summary > span {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 .micro-additional-details-summary > small {
   flex: 1;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-align: right;
 }
 .micro-additional-details-body {
@@ -5273,7 +5273,7 @@ button.micro-month-cell:active {
   min-height: 44px;
   padding: var(--space-2) 0;
   color: var(--color-accent-text);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   list-style: none;
@@ -5295,7 +5295,7 @@ button.micro-month-cell:active {
 }
 .micro-inline-disclosure p {
   margin: 0;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.55;
 }
 @media (max-width: 380px) {
@@ -5332,14 +5332,14 @@ button.micro-month-cell:active {
 .micro-cash-decision-heading h2 {
   margin: 0;
   color: var(--color-accent-text);
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 .micro-cash-decision-heading p,
 .micro-cash-decision-truth,
 .micro-cash-decision-footer p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
 }
 .micro-cash-decision-metrics {
@@ -5356,10 +5356,10 @@ button.micro-month-cell:active {
 }
 .micro-cash-decision-metrics span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-cash-decision-metrics .micro-number {
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 .micro-cash-decision-footer {
   display: grid;
@@ -5369,7 +5369,7 @@ button.micro-month-cell:active {
 }
 .micro-cash-decision-footer strong {
   color: var(--color-text-strong);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-cash-decision-footer .micro-prim-button {
   width: 100%;
@@ -5377,7 +5377,7 @@ button.micro-month-cell:active {
 .micro-cash-decision-truth {
   border-top: 1px dashed color-mix(in srgb, var(--color-accent-text) 26%, transparent);
   padding-top: var(--space-3);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-derived-surface {
   opacity: 0.94;
@@ -5404,7 +5404,7 @@ button.micro-month-cell:active {
 .micro-period-range-label {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-g5-card-secondary {
   opacity: 0.92;
@@ -5444,7 +5444,7 @@ button.micro-month-cell:active {
 .micro-restatement-note {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
 }
 .micro-restatement-note strong {
@@ -5521,14 +5521,14 @@ button.micro-month-cell:active {
 .micro-owner-decision-grid span,
 .micro-owner-stat-grid span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-owner-decision-grid strong,
 .micro-owner-stat-grid strong {
   direction: ltr;
   unicode-bidi: isolate;
   font-family: var(--font-numeric);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-owner-balance-head svg {
   width: 28px;
@@ -5539,11 +5539,11 @@ button.micro-month-cell:active {
 .micro-owner-balance-value {
   color: var(--color-accent-text);
   direction: ltr;
-  font-size: 31px;
+  font-size: 1.9375rem;
   letter-spacing: -0.04em;
 }
 .micro-owner-balance-value small {
-  font-size: 13px;
+  font-size: 0.8125rem;
   letter-spacing: 0;
 }
 .micro-owner-list {
@@ -5681,7 +5681,7 @@ button.micro-month-cell:active {
   padding: 0;
   color: var(--color-text-primary);
   background: transparent;
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 700;
   text-align: right;
 }
@@ -5697,13 +5697,13 @@ button.micro-month-cell:active {
 }
 .micro-section-toggle small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 400;
 }
 .micro-muted-copy {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px !important;
+  font-size: 0.8125rem !important;
 }
 .micro-subsection-stack {
   display: grid;
@@ -5727,12 +5727,12 @@ button.micro-month-cell:active {
 }
 .micro-subsection-heading h3 {
   color: var(--color-text-primary);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.45;
 }
 .micro-subsection-heading p {
   max-width: 30ch;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 .micro-list-compact {
@@ -5788,7 +5788,7 @@ button.micro-month-cell:active {
   background: var(--color-bg-well);
 }
 .micro-chip small {
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-inline-heading {
   display: flex;
@@ -5802,11 +5802,11 @@ button.micro-month-cell:active {
 }
 .micro-inline-heading h4 {
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-inline-heading span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-checkbox {
   display: flex;
@@ -5814,7 +5814,7 @@ button.micro-month-cell:active {
   gap: var(--space-2);
   min-height: 44px;
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-checkbox input {
   width: 20px;
@@ -5834,11 +5834,11 @@ button.micro-month-cell:active {
 }
 .micro-warning-copy {
   color: var(--color-warning-text) !important;
-  font-size: 13px !important;
+  font-size: 0.8125rem !important;
 }
 .micro-success-copy {
   color: var(--color-success-text) !important;
-  font-size: 13px !important;
+  font-size: 0.8125rem !important;
 }
 .micro-inline-disclosure {
   border-top: 1px solid var(--color-border);
@@ -5847,12 +5847,12 @@ button.micro-month-cell:active {
 .micro-inline-disclosure summary {
   color: var(--color-accent-text);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 .micro-inline-disclosure p {
   margin-top: var(--space-2) !important;
-  font-size: 12px !important;
+  font-size: 0.75rem !important;
   line-height: 1.65 !important;
 }
 [dir="ltr"] {
@@ -5895,12 +5895,12 @@ button.micro-month-cell:active {
 }
 .micro-conversion-preview strong {
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-conversion-preview p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.65;
   overflow-wrap: anywhere;
 }
@@ -5914,7 +5914,7 @@ button.micro-month-cell:active {
 }
 @media (max-width: 380px) {
   .micro-conversion-preview p {
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
 }
 
@@ -5974,7 +5974,7 @@ button.micro-month-cell:active {
 .micro-review-exclusions p {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.65;
 }
 .micro-review-exclusions strong {
@@ -6009,13 +6009,13 @@ button.micro-month-cell:active {
 }
 .micro-insights-grid dt {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   overflow-wrap: anywhere;
 }
 .micro-insights-grid dd {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-insights-work-list {
   display: grid;
@@ -6036,17 +6036,17 @@ button.micro-month-cell:active {
 }
 .micro-insights-work-name {
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 .micro-insights-work-list small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   overflow-wrap: anywhere;
 }
 .micro-insights-work-list > li > b {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-primary);
 }
 .micro-insights-work-list > li > b[data-state="reversed"] {
@@ -6055,7 +6055,7 @@ button.micro-month-cell:active {
 .micro-insights-empty {
   margin: var(--space-2) 0 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-insights-unknown {
   color: var(--color-text-secondary);
@@ -6064,7 +6064,7 @@ button.micro-month-cell:active {
   margin: var(--space-2) 0 0;
   padding-inline-start: var(--space-4);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 
@@ -6095,7 +6095,7 @@ button.micro-month-cell:active {
   min-width: 0;
 }
 .micro-party-summary b {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--color-text-primary);
 }
 /* FIN-002: شارة «متكرر» — علامة هادئة بجانب الاسم، لا شرط إخفاء لأحد. */
@@ -6106,17 +6106,17 @@ button.micro-month-cell:active {
   border: 1px solid var(--color-border);
   border-radius: var(--vf-radius-full);
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.8;
   vertical-align: middle;
 }
 .micro-party-summary small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-party-summary strong {
   color: var(--color-accent-text);
-  font-size: 12px;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 .micro-party-movements {
@@ -6148,10 +6148,10 @@ button.micro-month-cell:active {
 }
 .micro-party-movements small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-party-movements b {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-primary);
 }
@@ -6174,11 +6174,11 @@ button.micro-month-cell:active {
   min-width: 0;
 }
 .micro-unallocated-strip strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-unallocated-strip small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 /* بطاقة «أثناء غيابك» أعلى الرئيسية. */
@@ -6192,7 +6192,7 @@ button.micro-month-cell:active {
   padding: var(--space-4);
 }
 .micro-away-card b {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--color-text-primary);
 }
 .micro-away-card ul {
@@ -6201,7 +6201,7 @@ button.micro-month-cell:active {
   margin: 0;
   padding-inline-start: var(--space-4);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 /* صف اختيار المحفظة داخل ورقة الإضافة والمحررات. */
@@ -6226,7 +6226,7 @@ button.micro-month-cell:active {
   white-space: nowrap;
   color: var(--color-text-secondary);
   background: var(--color-bg-well);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   transition:
     background 160ms var(--motion-out),
@@ -6253,7 +6253,7 @@ button.micro-month-cell:active {
 }
 .micro-suggest-group-label {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-suggest-chip-row {
   display: flex;
@@ -6273,7 +6273,7 @@ button.micro-month-cell:active {
 }
 .micro-material-knowledge small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 /* إفصاح سجلات النقص داخل صف المادة: العنوان زر ملخص، والمحتوى مسجلات
@@ -6286,7 +6286,7 @@ button.micro-month-cell:active {
 }
 .micro-shortage-details > summary {
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-text-secondary);
   min-height: 44px;
@@ -6303,12 +6303,12 @@ button.micro-month-cell:active {
   padding-block: var(--space-2);
 }
 .micro-shortage-record strong {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-shortage-record small {
   display: block;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-shortage-resolve {
   display: grid;
@@ -6323,7 +6323,7 @@ button.micro-month-cell:active {
   padding-inline-start: var(--space-5);
   display: grid;
   gap: var(--space-1);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--color-text-secondary);
 }
@@ -6339,13 +6339,13 @@ button.micro-month-cell:active {
   align-content: start;
 }
 .micro-effect-preview-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-text-secondary);
 }
 .micro-effect-preview-line {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 
@@ -6356,7 +6356,7 @@ button.micro-month-cell:active {
   padding: var(--space-3);
   border-radius: var(--radius-card);
   background: var(--color-accent-soft);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-draft-banner p {
   margin: 0;
@@ -6372,7 +6372,7 @@ button.micro-month-cell:active {
 }
 .micro-allocation-review h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-allocation-review dl {
   display: grid;
@@ -6387,12 +6387,12 @@ button.micro-month-cell:active {
   min-width: 0;
 }
 .micro-allocation-review dt {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 .micro-allocation-review dd {
   margin: 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -6426,16 +6426,16 @@ button.micro-month-cell:active {
 }
 .micro-integrity-detail {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-integrity-drift {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 .micro-integrity-offenders summary {
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
 .micro-integrity-offenders ul {
@@ -6446,7 +6446,7 @@ button.micro-month-cell:active {
   gap: var(--space-1);
 }
 .micro-integrity-offenders li {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
 }
 /* Wave 4.3 — P-4.3-3 (D9): صف السجل المتأثر المقروء — اسم العملية والتاريخ
@@ -6468,11 +6468,11 @@ button.micro-month-cell:active {
 }
 .micro-integrity-offender strong {
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-integrity-offender small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-integrity-offender .micro-text-action {
   flex: 0 0 auto;
@@ -6490,7 +6490,7 @@ button.micro-month-cell:active {
 .micro-orders-group > h3 {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.35;
 }
@@ -6500,7 +6500,7 @@ button.micro-month-cell:active {
 .micro-orders-cancelled > summary {
   cursor: pointer;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 .micro-orders-cancelled[open] > summary {
@@ -6524,15 +6524,15 @@ button.micro-month-cell:active {
 }
 .micro-obligations-total > span {
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 .micro-obligations-total > strong {
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-obligations-total > strong .micro-number {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .micro-obligations-row {
   display: flex;
@@ -6549,14 +6549,14 @@ button.micro-month-cell:active {
 }
 .micro-obligations-row strong {
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-obligations-row .micro-number {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .micro-obligations-row small {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-obligations-row .micro-text-action {
   flex: 0 0 auto;
@@ -6564,7 +6564,7 @@ button.micro-month-cell:active {
 .micro-obligations-empty {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 
@@ -6592,7 +6592,7 @@ button.micro-month-cell:active {
 }
 .micro-consumption-head span {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .micro-consumption-controls {
   display: grid;
@@ -6605,7 +6605,7 @@ button.micro-month-cell:active {
   margin: 0;
   padding: 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-done-facts {
   display: grid;
@@ -6631,13 +6631,13 @@ button.micro-month-cell:active {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: var(--space-3);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 .micro-asset-card strong,
 .micro-loan-card strong {
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .micro-asset-card[data-status="disposed"],
 .micro-asset-card[data-status="written_off"] {
@@ -6659,7 +6659,7 @@ button.micro-month-cell:active {
   padding: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
   text-align: center;
 }
@@ -6681,7 +6681,7 @@ button.micro-month-cell:active {
   padding: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
 .micro-event-row strong {
@@ -6708,14 +6708,14 @@ button.micro-month-cell:active {
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-family: inherit;
   background: var(--color-surface);
   color: var(--color-text-primary);
 }
 .micro-offline-truth {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   margin: var(--space-2) 0 0;
 }
 
@@ -6762,7 +6762,7 @@ button.micro-month-cell:active {
 }
 .micro-activity-row-main small {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .micro-activity-row-meta {
   display: flex;
@@ -6794,7 +6794,7 @@ button.micro-month-cell:active {
 }
 .micro-activity-row-main > b {
   flex: 0 0 auto;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-activity-row-button > svg {
   flex: 0 0 auto;
@@ -6828,17 +6828,17 @@ button.micro-month-cell:active {
 }
 .micro-activity-unresolved li > span {
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .micro-activity-unresolved li > b {
   flex: 0 0 auto;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 /* المجموعة ٥ (عقد ٣٥): سطر ختم إصدار الفحص — ثانوي هادئ أسفل الخلاصة. */
 .micro-integrity-version {
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   margin: var(--space-1) 0 0;
 }
 
@@ -6866,13 +6866,13 @@ button.micro-month-cell:active {
   text-align: center;
 }
 .micro-lock-overlay h1 {
-  font-size: 20px;
+  font-size: 1.25rem;
   margin: 0;
 }
 .micro-lock-overlay > p {
   max-width: 34ch;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   margin: 0;
 }
 .micro-lock-icon {
@@ -6914,7 +6914,7 @@ button.micro-month-cell:active {
 /* المجموعة ٥: سطر الأثر الرقمي قبل تأكيد تصنيف العربون — دَين المجموعة ٤ بند ٢. */
 .micro-deposit-effect-line {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.75rem;
   border-inline-start: 3px solid var(--color-border);
   padding-inline-start: var(--space-2);
   margin: 0;

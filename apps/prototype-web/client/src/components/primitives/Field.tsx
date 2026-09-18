@@ -1,3 +1,4 @@
+import React from "react";
 import type { HTMLAttributes, ReactNode } from "react";
 import clsx from "clsx";
 import { StateMarker } from "./markers";
@@ -27,6 +28,20 @@ export interface FieldProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export function Field({ label, hint, error, controlId, className, children, ...rest }: FieldProps) {
+  /* Wave 4.4 — P-4.4-5: الربط تلقائي الآن — عنصر التحكم الذي يمرر controlId
+   * يستلم aria-invalid وaria-describedby عند الخطأ (ترقية العقد الموثق في
+   * رأس الملف: الوصلات لم تعد عبئًا على كل مستهلك). */
+  const errorId = controlId ? `${controlId}-field-error` : undefined;
+  const wiredChildren =
+    error && errorId && React.isValidElement(children)
+      ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
+          "aria-invalid": true,
+          "aria-describedby":
+            [(children.props as Record<string, unknown>)["aria-describedby"] as string | undefined, errorId]
+              .filter(Boolean)
+              .join(" ") || undefined,
+        })
+      : children;
   return (
     <div
       className={clsx("micro-prim-field", error && "micro-prim-field--error")}
@@ -36,9 +51,9 @@ export function Field({ label, hint, error, controlId, className, children, ...r
       <label className="micro-prim-field__label" htmlFor={controlId}>
         {label}
       </label>
-      {children}
+      {wiredChildren}
       {error ? (
-        <p className="micro-prim-field__error" role="status">
+        <p className="micro-prim-field__error" role="status" id={errorId}>
           <StateMarker role="alert" />
           <span>{error}</span>
         </p>
