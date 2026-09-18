@@ -1,7 +1,7 @@
 # تقرير Wave 4.4 — الجودة النظامية والوصول والتعريب والقبول النهائي
 
 **التاريخ:** 2026-09-18/19 (توقيت Asia/Amman) · **الحالة:** منفذة بالكامل ومدمجة
-**BASE_SHA:** `e8a7b5a5f6678a4a93e3ab4c21814764f5895335` · **FINAL_MAIN_SHA:** يُدوَّن في الرد الختامي (بعد دمج حزمة الكود السادسة والتوثيق)
+**BASE_SHA:** `e8a7b5a5f6678a4a93e3ab4c21814764f5895335` · **FINAL_MAIN_SHA (حزم الكود):** `606740f5e1545dec36f2e30eebc8ce42736bb8c6` (دمج #186 — CI أخضر عليه) · دمج التوثيق النهائي يُعلن في الرد الختامي
 **المراجع الملزمة:** تقارير Waves 1–4.3 وعقودها · `AGENTS.md` · `current-state.md` · `CHANGELOG.md` · `screen-contract-matrix.md` (4.3)
 
 ---
@@ -20,8 +20,8 @@
 | P-4.4-3 دمج | `341879c57e19f8dbc4b65cc5582999fae830f364` |
 | P-4.4-4 دمج | `2441ad494b5abdc01d697bb5fee1bc7138bcd2d8` |
 | P-4.4-5 دمج | `5f2594abd4221723e69798dfd62346e5a5627a2a` |
-| P-4.4-6 دمج | (يُستكمل عند الدمج — PR هذه الحزمة) |
-| التوثيق النهائي | (دمج هذا الالتزام) |
+| P-4.4-6 دمج | `606740f5e1545dec36f2e30eebc8ce42736bb8c6` |
+| التوثيق النهائي | (دمج هذا الالتزام — يُعلن في الرد الختامي) |
 
 ## 3. خط الأساس
 
@@ -36,7 +36,7 @@
 | P-4.4-3 العربية وRTL والمحتوى | [#183](https://github.com/Qays7753/Micro/pull/183) | `6f8435e428` | `341879c57e` | 17 (+422/−29) | شدّة موحدة للأفعال؛ عزل Bidi للمعرفات/البريد؛ `dir="auto"` للأسماء الحرة؛ ماسح تركيب 0 عيوب على 12 سطحًا؛ المعجم الرسمي مسلّم |
 | P-4.4-4 الحالات والاسترداد | [#184](https://github.com/Qays7753/Micro/pull/184) | `9fe3fb60d0` | `2441ad494b` | 22 (+529/−37) | زر إعادة محاولة على 20 سطحًا؛ لا أصفار تحميل؛ حماية إرسال مزدوج؛ فشل مشاركة صادق؛ مصفوفة 57×5 + 13 سيناريو |
 | P-4.4-5 الوصول وZoom وReflow | [#185](https://github.com/Qays7753/Micro/pull/185) | `8edbbca4a0` | `5f2594abd4` | 10 (+747/−406) | 375 تعريف خط إلى rem؛ `aria-invalid`/`aria-describedby` للحقول؛ وصلات Field؛ لا Enter في textarea؛ px المتبقية موثقة عمدًا |
-| P-4.4-6 الجهاز وPWA والانحدار | (هذه الحزمة) | — | — | 7 (+كبير التوثيق) | مسح 152/152؛ إصلاح 3 عيوب reflow/console؛ PWA موثق على بناء الإنتاج؛ أداء مقيس؛ مصفوفة 35 رحلة؛ استيراد محمي بالرمز حيًا |
+| P-4.4-6 الجهاز وPWA والانحدار | [#186](https://github.com/Qays7753/Micro/pull/186) | `4f758daf9f` | `606740f5e1` | 7 (+كبير التوثيق) | مسح 152/152؛ إصلاح 3 عيوب reflow/console؛ PWA موثق على بناء الإنتاج؛ أداء مقيس؛ مصفوفة 35 رحلة؛ استيراد محمي بالرمز حيًا |
 
 ## 5. ملاحظات Wave 4.3 التي أُغلقت
 
@@ -159,7 +159,7 @@ REAL_DEVICE_QA_NOT_PERFORMED
 
 ## 31. الروابط إلى PRs والأدلة
 
-الحزم: [#181](https://github.com/Qays7753/Micro/pull/181) · [#182](https://github.com/Qays7753/Micro/pull/182) · [#183](https://github.com/Qays7753/Micro/pull/183) · [#184](https://github.com/Qays7753/Micro/pull/184) · [#185](https://github.com/Qays7753/Micro/pull/185) · (حزمة 6: PR هذه الحزمة).
+الحزم: [#181](https://github.com/Qays7753/Micro/pull/181) · [#182](https://github.com/Qays7753/Micro/pull/182) · [#183](https://github.com/Qays7753/Micro/pull/183) · [#184](https://github.com/Qays7753/Micro/pull/184) · [#185](https://github.com/Qays7753/Micro/pull/185) · [#186](https://github.com/Qays7753/Micro/pull/186).
 الأدلة: [evidence/package-1](./evidence/package-1/) · [package-2](./evidence/package-2/) · [package-3](./evidence/package-3/) · [package-4](./evidence/package-4/) · [package-5](./evidence/package-5/) · [package-6](./evidence/package-6/) (37+ لقطة موثقة الغرض في `screens/`).
 
 ## 32. إقرار الإغلاق
