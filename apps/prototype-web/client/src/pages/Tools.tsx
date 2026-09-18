@@ -17,7 +17,7 @@ import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate } from "@/presentation/formatters";
+import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import type { CostEstimate } from "@/storage/local/types";
 
 import { Button } from "@/components/primitives";
@@ -152,7 +152,7 @@ export default function Tools() {
                     <small>
                       تقديري · سعر الحماية{" "}
                       <MoneyValue minor={estimate.priceFloorMinor} className="micro-inline-number" /> ·{" "}
-                      <bdi dir="ltr">{formatLocalDate(estimate.updatedAt.slice(0, 10))}</bdi>
+                      <bdi dir="ltr">{formatLocalDate(businessDateFromTimestamp(estimate.updatedAt))}</bdi>
                     </small>
                     {/* U-004: جسر التقدير → المسودة — نسخ قيم مقترحة قابلة للتعديل؛ التقدير لا يتغير
                     ولا تُنشأ أي حركة مالية، والمسودة تُحفظ عند تأكيد المالك فقط. */}

@@ -18,7 +18,7 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
-import { isValidLocalDate } from "@micro-domain/shared/index.js";
+import { ammanDateOrNull, isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import {
   createCashContinuityEntry,
@@ -586,7 +586,7 @@ export class ProjectFinancialService {
       ((): string | null => {
         const evidence = [
           ...movementsResult.value.map(movement => movement.occurredOn),
-          ...materialsResult.value.map(material => material.createdAt.slice(0, 10)),
+          ...materialsResult.value.map(material => ammanDateOrNull(material.createdAt)),
         ].filter(date => date);
         return evidence.length > 0 ? evidence.slice().sort()[0]! : null;
       })();

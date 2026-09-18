@@ -329,7 +329,7 @@ export class InventoryMaterialService {
       };
     const evidenceDates = [
       ...movements.value.map(movement => movement.occurredOn),
-      ...materials.value.map(material => material.createdAt.slice(0, 10)),
+      ...materials.value.map(material => localDateInAmman(material.createdAt)),
     ].filter(date => date);
     if (evidenceDates.length === 0)
       return {

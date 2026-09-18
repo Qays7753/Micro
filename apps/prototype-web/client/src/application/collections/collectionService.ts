@@ -7,6 +7,7 @@
  * التحصيل ليس إيرادًا ولا يُنشئ حدثًا ماليًا مستقلًا — الكاش والمتبقي فقط.
  */
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import type { DirectSaleService } from "@/application/direct-sales/directSaleService";
@@ -89,7 +90,7 @@ export class CollectionService {
         personName: order.customerName || "زبون بلا اسم",
         itemName: order.itemName || "طلب",
         outstandingMinor: order.receivableMinor,
-        occurredOn: stored.updatedAt.slice(0, 10),
+        occurredOn: localDateInAmman(stored.updatedAt),
         sourceHref: `/orders/${stored.id}`,
         /* FIN-002: الدين غير المسمّى ظاهر بتحذير وفعل تالٍ — التسمية من
          * صفحة الطلب (اختيار اسم مسجل أو اسم جديد يظهر في الدفتر من أول حركة). */

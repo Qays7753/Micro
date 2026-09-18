@@ -9,7 +9,7 @@ import type {
   CorrectionHistoryKind,
   CorrectionHistoryService,
 } from "@/application/finance/correctionHistoryService";
-import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
+import { businessDateFromTimestamp, formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 
 const kindLabel: Record<CorrectionHistoryKind, string> = {
@@ -79,9 +79,9 @@ function CorrectionRow({
           <strong>{kindLabel[entry.kind]}</strong>
           <small>
             <bdi dir="ltr">
-              {formatLocalDate(entry.recordedAt.slice(0, 10)) ?? entry.recordedAt.slice(0, 10)}
+              {formatLocalDate(businessDateFromTimestamp(entry.recordedAt)) ?? entry.recordedAt.slice(0, 10)}
             </bdi>
-            {entry.occurredOn && entry.occurredOn !== entry.recordedAt.slice(0, 10)
+            {entry.occurredOn && entry.occurredOn !== businessDateFromTimestamp(entry.recordedAt)
               ? ` · تاريخ الأثر ${formatLocalDate(entry.occurredOn) ?? entry.occurredOn}`
               : ""}
           </small>

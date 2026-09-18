@@ -284,7 +284,10 @@ CAPS: dict[str, int] = {
     # quick actions (منتجاتي وخدماتي contextual entry + المزيد row). Removed with
     # the same scope: the standalone catalog section title and the heading profile
     # link (moved to the permanent logo menu) — the catalog entry is not duplicated.
-    "Home": 76,
+    # Home 76 -> 78 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Home": 78,
     # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
     # unallocated-distribution strip, amanah held line, party-ledger and cash-count
     # entries — mandated feature labels, not prose creep.
@@ -361,7 +364,10 @@ CAPS: dict[str, int] = {
     # total, two source rows with their honest descriptions and settle paths.
     # Removed with the same scope: the plain «عليّ للموردين» position card
     # (absorbed by the richer surface) — net +3 mandated labels.
-    "Finance": 297,
+    # Finance 297 -> 299 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Finance": 299,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -421,7 +427,10 @@ CAPS: dict[str, int] = {
     # Orders 77 → 79 (2026-09-06, deep closure WF-03).
     # Orders 79 -> 84 (2026-09-18, Wave 4.3 P-4.3-4, owner-approved task
     # section 11/F06): work-state groups (يحتاج تنفيذًا الآن / ينتظر العميل / ينتظر تحصيلًا / تم تسليمه / ملغاة + keep-for-audit summary) — task section 11 mandated group titles; cancelled orders stay visible collapsed.
-    "Orders": 84,
+    # Orders 84 -> 86 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Orders": 86,
     # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
     # credit-sale customer identity field — one mandated label, no prose.
     # DirectSaleEditor 43 → 45 (2026-09-01, repair cycle P-002): catalog-reference
@@ -455,16 +464,25 @@ CAPS: dict[str, int] = {
     # DirectSaleEditor 81 → 85 (2026-09-17, Wave 2 EXE-010, owner-approved): the
     # sale-collection reversal section — preview numbers, reason, and refusal
     # explanations that name the alternative path.
-    "DirectSaleEditor": 85,
+    # DirectSaleEditor 85 -> 87 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "DirectSaleEditor": 87,
     # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
     # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
     # mandated bridge labels; the draft form itself is unchanged.
-    "DraftEditor": 47,
+    # DraftEditor 47 -> 49 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "DraftEditor": 49,
     # CostEditor 53 → 54 (2026-09-01, repair cycle U-004): source-estimate proposal
     # notice — one mandated bridge label.
     # CostEditor 54 → 58 (2026-09-06, Group 2, عقد ٢٨): material suggestion chips
     # (Scenario G) — group label + unit literals for suggestions. Decision D-029.
-    "CostEditor": 58,
+    # CostEditor 58 -> 60 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "CostEditor": 60,
     # AgreementEditor 55 → 59 (2026-09-02, Group 4 final integration fix G4-6):
     # customer name field (label + required note + placeholder + its validation
     # message) — the agreement step is the point where the name becomes required
@@ -476,7 +494,10 @@ CAPS: dict[str, int] = {
     # للطي — خيارات المسؤولية الأربعة وأعلام الاحتواء وتحذير الدفع المباشر
     # للناقل (قرار مالك معتمد: معلومات متقدمة لا تُفتح في الطلب البسيط).
     # AgreementEditor 60 → 61.
-    "AgreementEditor": 61,
+    # AgreementEditor 61 -> 63 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "AgreementEditor": 63,
     # Catalog 84 → 92 (2026-09-01, repair cycle P-002): optional suggested default
     # price/cost fields + per-item defaults editor labels — Option A mandated fields.
     # Catalog 92 → 94 (2026-09-02, Group 3 Scope C §9.3, owner-approved execution
@@ -491,7 +512,10 @@ CAPS: dict[str, int] = {
     # Catalog 86 → 91 (2026-09-04, Group 3 D5/§5.2): per-component material link
     # with tracked/untracked honesty + template extras section (labor, packaging,
     # delivery, waste, safety margin) — planning reference, zero inventory effect.
-    "Catalog": 91,
+    # Catalog 91 -> 93 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Catalog": 93,
     # InventoryMaterials 49 → 50 (2026-09-02, Group 5 S1-10): contract-26 return
     # label ("رجوع") when opened with ?from — one mandated navigation label.
     # InventoryMaterials 50 → 56 (2026-09-06, Group 2 transfer program, عقد ٢٨):
@@ -502,7 +526,10 @@ CAPS: dict[str, int] = {
     # InventoryMaterials 56 → 57 (2026-09-18, Wave 4.3 independent review P2 fix,
     # N-03/REV-010 naming family): back button now uses the official name
     # «المالية» instead of «مالي» — one mandated navigation label swap.
-    "InventoryMaterials": 57,
+    # InventoryMaterials 57 -> 59 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "InventoryMaterials": 59,
     # Market first measurement (2026-09-16, product-journey package NAV-001): the
     # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
     # description; no suppliers, no purchase action, no records or effects.
@@ -510,7 +537,10 @@ CAPS: dict[str, int] = {
     # MaterialEditor first measurement (2026-09-06, Group 2, عقد ٢٨): guided journey
     # (tracking question + opening-state question + cost question + effect preview)
     # — create + confirm-opening modes. Decision record D-029.
-    "MaterialEditor": 39,
+    # MaterialEditor 39 -> 41 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "MaterialEditor": 41,
     # InventoryMovementEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
     # receipt bridge status card + cost-known question + consume-target question +
     # shortage alternative panel + effect preview. Decision record D-029.
@@ -522,7 +552,10 @@ CAPS: dict[str, int] = {
     # لأول سجل قرار مالك معتمد. InventoryMovementEditor 60 → 61.
     # InventoryMovementEditor 61 → 63 (2026-09-17, Wave 2 EXE-012, owner-approved):
     # the owner-action adjustment positioning (mandatory reason, waste separation).
-    "InventoryMovementEditor": 63,
+    # InventoryMovementEditor 63 -> 65 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "InventoryMovementEditor": 65,
     # SupplierPurchaseEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
     # material link + expected quantity fields + received-status bridge card.
     # Decision record D-029.
@@ -532,7 +565,10 @@ CAPS: dict[str, int] = {
     # owner-approved): the cash-source selector for supplier payments — label,
     # helper, neutral placeholder «اختر مصدر الصرف», and the no-wallet
     # unallocated-fallback warning shown before saving.
-    "SupplierPurchaseEditor": 81,
+    # SupplierPurchaseEditor 81 -> 83 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "SupplierPurchaseEditor": 83,
     # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
     # label + service truth line — the explicit distribution path is now a first-class
     # wallet-screen concept.
@@ -551,7 +587,10 @@ CAPS: dict[str, int] = {
     # CashWallets 75 → 76 (2026-09-05).
     # CashWallets 76 → 78 (2026-09-17, Wave 2 EXE-008/009, owner-approved): opening
     # governance notes and owner-movement disclosure labels on the wallets surface.
-    "CashWallets": 78,
+    # CashWallets 78 -> 80 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "CashWallets": 80,
     # OwnerEntitlement 48 → 53 (2026-09-02, Group 6 Item 2, owner-approved
     # final-closure prompt — S2-07): the screen becomes the unified «مال المالك»
     # surface — mandated labels: unified overline ("دفتر واحد · المبالغ (د.أ)"),
@@ -563,16 +602,28 @@ CAPS: dict[str, int] = {
     # OwnerEntitlement 53 → 62 (2026-09-17, Wave 2 EXE-009, owner-approved): the
     # cross-model duplicate disclosure card, owner-draw metric labels, and the
     # unified save guard copy — one journey, honest duplication warnings.
-    "OwnerEntitlement": 62,
+    # OwnerEntitlement 62 -> 64 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "OwnerEntitlement": 64,
     # OwnerWithdrawalEditor 30 (default) → 41 (2026-09-17, Wave 2 EXE-009, first
     # explicit cap): the unified withdrawal journey absorbed the legacy cash
     # withdrawal route — wallet source question, attribution, cross-model duplicate
     # guard, and the create-wallet next step replacing the dead end.
-    "OwnerWithdrawalEditor": 41,
+    # OwnerWithdrawalEditor 41 -> 43 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "OwnerWithdrawalEditor": 43,
     # Schedule 98 → 99 (2026-09-02, Group 5 S1-10): contract-26 return label ("رجوع")
     # when opened with ?from — one mandated navigation label.
-    "Schedule": 99,
-    "ScheduleEditor": 45,
+    # Schedule 99 -> 101 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Schedule": 101,
+    # ScheduleEditor 45 -> 47 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "ScheduleEditor": 47,
     # Profile (2026-09-02, Group 1 Scope G, owner-approved execution prompt): new
     # mandated screen — two identity sections, states, edit mode, and local-truth line;
     # locked at 27 with headroom of 3 for future mandated labels only.
@@ -592,7 +643,10 @@ CAPS: dict[str, int] = {
     # (agreements/inventory/supplierPurchases/catalog imported by the page).
     # Settings 57 → 61 (2026-09-17, Wave 2 EXE-014, owner-approved): intended-
     # exceptions disclosure, pre-replace backup promise, and the backup row.
-    "Settings": 61,
+    # Settings 61 -> 63 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Settings": 63,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
@@ -625,7 +679,10 @@ CAPS: dict[str, int] = {
     # and the honest fallback guidance. Raw ids remain only as unresolved backup.
     "ToolsIntegrity": 85,
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
-    "FinanceActivity": 55,
+    # FinanceActivity 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "FinanceActivity": 57,
     # FinanceMore (2026-09-17, Wave 4.2 P-4.2-4, owner decision F01): first
     # measurement day for the «المالية ← المزيد» organizing reader — heading +
     # promise, integrity card, four organized groups (reports/advanced tools/
@@ -657,7 +714,10 @@ CAPS: dict[str, int] = {
     # «مساراتها قادمة لاحقًا» promise replaced by two honest referrals to the
     # IMPLEMENTED assets/loans homes — net +1 mandated label (removed one
     # dead promise, added two real actions).
-    "FinancialEventEditor": 173,
+    # FinancialEventEditor 173 -> 175 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "FinancialEventEditor": 175,
     # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
     # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
     # labels and truth lines join the measured set; per-tag rows are data.
@@ -670,7 +730,10 @@ CAPS: dict[str, int] = {
     # Statement 202 → 205 (2026-09-05).
     # Statement 205 → 206 (2026-09-17, Wave 2 EXE-010, owner-approved): the
     # cash-returned correction group label.
-    "Statement": 206,
+    # Statement 206 -> 208 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Statement": 208,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
@@ -684,30 +747,51 @@ CAPS: dict[str, int] = {
     # dedicated first-delivery success receipt — order number, delivery moment,
     # new state, collected, remaining, cash destination, inventory effect, next
     # action; unrecorded values show «غير مسجل» never zero.
-    "DeliveryReview": 51,
+    # DeliveryReview 51 -> 53 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "DeliveryReview": 53,
     # المجموعة ٤ (عقد ٢٩ — 2026-09-04): أسطح الأصول والقروض مقيسة من يومها الأول.
     # AssetEditor 40: the long-use question journey (name/category/kind/date/life/
     # start/note + effect preview + unsaved-guard labels) — mandated contract copy.
     # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
     # AssetEditor 49 → 55 (2026-09-05).
-    "AssetEditor": 55,
-    "Assets": 63,
+    # AssetEditor 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "AssetEditor": 57,
+    # Assets 63 -> 65 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Assets": 65,
     # الإغلاق العميق (AR-06): حالة خطأ القروض gained reassurance + retry.
     # Loans 70 → 71 (2026-09-05).
-    "Loans": 71,
+    # Loans 71 -> 73 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Loans": 73,
     # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
     # LoanEditor 31 → 37 (2026-09-05).
-    "LoanEditor": 37,
+    # LoanEditor 37 -> 39 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "LoanEditor": 39,
     # AssetDetail 36: book value + depreciation proposal/record + contract revision
     # + disposal/write-off + event history — every consequential action previews.
     # AssetDetail 36 → 41 (2026-09-04, Group 4 تصحيح مراجعة 4-c — owner decision):
     # acquisition-correction card (the unreachable-surface defect), owner-chosen
     # depreciation asOf date, and inline documented reversal reason replace
     # window.prompt — each string is a mandated contract/UX element.
-    "AssetDetail": 41,
+    # AssetDetail 41 -> 43 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "AssetDetail": 43,
     # LoanDetail 31: reading + repayment history with traceable reversal + documented
     # correction + financial events layer.
-    "LoanDetail": 73,
+    # LoanDetail 73 -> 75 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "LoanDetail": 75,
     # EstimateDetail (2026-09-02, Group 3 Scope B, owner-approved execution prompt):
     # new mandated screen — read-only estimate summary (result, materials, time,
     # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
@@ -720,19 +804,35 @@ CAPS: dict[str, int] = {
     # CashDistribution 48 → 49 (2026-09-05).
     # CashDistribution 49 → 51 (2026-09-17, Wave 2 EXE-008/009, owner-approved):
     # attribution source labels for owner events and supplier purchases.
-    "CashDistribution": 51,
+    # CashDistribution 51 -> 53 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "CashDistribution": 53,
     # الإغلاق العميق (FC-09 — العقد ٤): سبب مراجعة التحصيل «تحصيل دفعة من
     # ورقة التحصيل» في الخدمة المُغذّية — تاريخ تسوية صادق لا «تصحيحًا» عامًا.
     # Collect 45 → 46 (2026-09-05, deep closure FC-09).
     # Collect 46 -> 55 (2026-09-18, Wave 4.3 P-4.3-4, owner-approved task
     # section 11/F06): F06 share-receipt entry after a successful order collection (button label) — the only new at-rest labels; failed collections and direct-sale sources add none.
-    "Collect": 55,
+    # Collect 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Collect": 57,
     # الإغلاق العميق (AR-11): سطر «أثر التصحيحات» يمر عبر محرك الجمع العربي
     # (6 أشكال بدل 3) — صحة لغوية مفروضة من معيار المحتوى.
     # WalletLedger 37 → 40 (2026-09-05, deep closure AR-11).
     # WalletLedger 40 → 42 (2026-09-17, Wave 2 EXE-008/009, owner-approved): deep
     # links for supplier purchases and owner events in the ledger rows.
-    "WalletLedger": 42,
+    # WalletLedger 42 -> 44 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "WalletLedger": 44,
+    # Foundation/Setup: أول سقفين صريحين (كانا على الافتراضي 30) — Wave 4.4
+    # P-4.4-2 (2026-09-18): عقد العرض المعتمد لنظام 12 ساعة يضيف محرفَي
+    # فترة النهار «ص»/«م» إلى كل سطح يعرض وقتًا، وهذان السطحان يعرضان
+    # وقتًا فأصبح الافتراضي غير كافٍ (+2 محرفي تنسيق معتمدين).
+    "Foundation": 32,
+    "Setup": 32,
+
 }
 
 PAGES = [

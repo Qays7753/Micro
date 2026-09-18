@@ -229,7 +229,7 @@ export class IntegrityCheckService {
             id: stored.id,
             kind: "craft_order",
             name: stored.order.itemName || stored.order.customerName || null,
-            dateLocal: stored.order.createdAt.slice(0, 10),
+            dateLocal: ammanDate(stored.order.createdAt),
             amountMinor: stored.order.agreedPriceMinor,
             href: `/orders/${encodeURIComponent(stored.id)}`,
           });
@@ -240,7 +240,7 @@ export class IntegrityCheckService {
             id: wallet.id,
             kind: "cash_wallet",
             name: wallet.name,
-            dateLocal: wallet.createdAt.slice(0, 10),
+            dateLocal: ammanDate(wallet.createdAt),
             amountMinor: null,
             href: `/cash/wallet/${encodeURIComponent(wallet.id)}`,
           });

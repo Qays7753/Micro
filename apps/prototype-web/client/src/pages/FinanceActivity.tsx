@@ -24,6 +24,7 @@ import {
   activityStatusLabel,
 } from "@/presentation/activityLabels";
 import {
+  businessDateFromTimestamp,
   formatLocalDate,
   formatLocalDateLong,
   formatQuantityMilli,
@@ -107,7 +108,9 @@ function ActivityRow({ row, onOpen }: { row: ActivityRecord; onOpen: (path: stri
             {row.detail ? <small>{row.detail}</small> : null}
             <small className="micro-activity-row-meta">
               <time dateTime={row.occurredOn ?? undefined}>
-                {formatLocalDate(row.occurredOn) ?? formatLocalDate(row.recordedAt.slice(0, 10)) ?? "—"}
+                {formatLocalDate(row.occurredOn) ??
+                  formatLocalDate(businessDateFromTimestamp(row.recordedAt)) ??
+                  "—"}
               </time>
               <span className={`micro-activity-effect micro-activity-effect-${effectTone[row.effect]}`}>
                 {activityEffectLabel[row.effect]}

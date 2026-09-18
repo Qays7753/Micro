@@ -238,7 +238,7 @@ export class HomeControlCenterService {
         kind: "draft",
         title: `مسودة: ${draft.itemName || "بلا وصف"}`,
         detail: null,
-        dateLocal: draft.updatedAt.slice(0, 10),
+        dateLocal: localDateInAmman(draft.updatedAt),
         timeLocal: null,
         href: `/orders/draft/${draft.id}`,
         /* المجموعة ١ (§7.1): أفعال محددة لا «افتح» العامة. */
@@ -434,7 +434,7 @@ export class HomeControlCenterService {
     const recentChanges: HomeRecentChange[] = activityRead.ok
       ? activityRead.value.map(record => ({
           id: record.id,
-          occurredOn: record.occurredOn ?? record.recordedAt.slice(0, 10),
+          occurredOn: record.occurredOn ?? localDateInAmman(record.recordedAt),
           title: activityFamilyLabel[record.family],
           detail: record.detail,
           href: record.sourceHref,
