@@ -37,7 +37,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(principal?.operatingExpenseDeltaMinor).toBe(0);
     expect(principal?.ownerCapitalDeltaMinor).toBe(0);
     const overview = await service.overview();
-    expect(overview.ok && overview.value[0]!.reading.outstandingMinor).toBe(15000);
+    expect(overview.ok && overview.value.rows[0]!.reading.outstandingMinor).toBe(15000);
   });
 
   it("records partial and full repayments with cash in and loan down, never revenue", async () => {
@@ -58,8 +58,8 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(full.ok).toBe(true);
     const overview = await service.overview();
     if (!overview.ok) return;
-    expect(overview.value[0]!.reading.status).toBe("settled");
-    expect(overview.value[0]!.reading.outstandingMinor).toBe(0);
+    expect(overview.value.rows[0]!.reading.status).toBe("settled");
+    expect(overview.value.rows[0]!.reading.outstandingMinor).toBe(0);
     /* المسدَّد يبقى في التاريخ. */
     const events = await store.listFinancialEvents();
     expect(events.value.filter(event => event.type === "loan_repayment_cash")).toHaveLength(2);
@@ -87,7 +87,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(reversal.ok).toBe(true);
     if (!reversal.ok) return;
     const overview = await service.overview();
-    expect(overview.ok && overview.value[0]!.reading.outstandingMinor).toBe(15000);
+    expect(overview.ok && overview.value.rows[0]!.reading.outstandingMinor).toBe(15000);
     const events = await store.listFinancialEvents();
     const reversals = events.value.filter(event => event.correctionType === "reverse");
     expect(reversals).toHaveLength(1);
@@ -115,7 +115,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     const events = await store.listFinancialEvents();
     expect(events.value.filter(event => event.type === "loan_outgoing_cash")).toHaveLength(3);
     const overview = await service.overview();
-    expect(overview.ok && overview.value[0]!.reading.outstandingMinor).toBe(20000);
+    expect(overview.ok && overview.value.rows[0]!.reading.outstandingMinor).toBe(20000);
   });
 
   it("rejects correcting below active repayments", async () => {

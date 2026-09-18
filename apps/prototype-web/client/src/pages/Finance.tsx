@@ -51,8 +51,8 @@ import type { CorrectionDigest } from "@/application/finance/correctionHistorySe
 import type { PeriodWasteReading } from "@/application/inventory/inventoryMaterialService";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
 /* المجموعة ٤ (عقد ٢٩): قراءات الأصول والقروض والعربون المحتفظ به. */
-import type { AssetSummaryRow } from "@/application/assets/assetService";
-import type { LoanSummaryRow } from "@/application/loans/loanService";
+import type { AssetOverviewRead } from "@/application/assets/assetService";
+import type { LoanOverviewRead } from "@/application/loans/loanService";
 import type { RetainedDepositRow } from "@/application/finance/retainedDepositService";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {
@@ -88,9 +88,11 @@ export type FinanceState =
       correctionsInPeriod: CorrectionDigest | null;
       /* المجموعة ٢ (عقد ٢٨): هدر المخزون داخل الفترة — قراءة مشتقة غير نقدية. */
       periodWaste: PeriodWasteReading | null;
-      /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة. */
-      assetsOverview: readonly AssetSummaryRow[];
-      loansOverview: readonly LoanSummaryRow[];
+      /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة.
+       * Wave 4.4 — P-4.4-1: التجميع من خدمة القراءة (rows + totals) لا من
+       * reduce داخل العرض — مصدر واحد للمعادلة (تماثل D7). */
+      assetsOverview: AssetOverviewRead;
+      loansOverview: LoanOverviewRead;
       pendingRetainedDeposits: readonly RetainedDepositRow[];
       /* FIN-001: دليل نبضة المراجعة — طلبات مسجلة / نتائج نهائية قائمة. */
       ordersRecorded: boolean;
@@ -554,16 +556,16 @@ export default function Finance() {
                 <small>دفتري مشتق من الأحداث — لا مس شراءً للربح</small>
               </span>
               <strong>
-                {assetCountLabel(state.assetsOverview.length)} ·{" "}
-                {state.assetsOverview.length > 0
-                  ? `${formatMoneyMinor(state.assetsOverview.reduce((sum, row) => sum + row.bookValueMinor, 0))} د.أ`
+                {assetCountLabel(state.assetsOverview.rows.length)} ·{" "}
+                {state.assetsOverview.rows.length > 0
+                  ? `${formatMoneyMinor(state.assetsOverview.totals.bookValueMinor)} د.أ`
                   : NOT_RECORDED_LABEL}
               </strong>
             </summary>
             <p className="micro-period-status">
-              {state.assetsOverview.length === 0
+              {state.assetsOverview.rows.length === 0
                 ? "لا أصول بعد — سجّل أول أصل طويل الاستخدام من «سجّل أصلًا»."
-                : `دفتري كلي ${formatMoneyMinor(state.assetsOverview.reduce((sum, row) => sum + row.bookValueMinor, 0))} د.أ؛ الإهلاك غير نقدي ولا يخصم من الصندوق.`}
+                : `دفتري كلي ${formatMoneyMinor(state.assetsOverview.totals.bookValueMinor)} د.أ؛ الإهلاك غير نقدي ولا يخصم من الصندوق.`}
             </p>
             <div className="micro-form-actions">
               <button
@@ -585,15 +587,13 @@ export default function Finance() {
                 {state.pendingRetainedDeposits.filter(row => row.decision === "pending").length > 0
                   ? `${pendingDepositCountLabel(state.pendingRetainedDeposits.filter(row => row.decision === "pending").length)} · `
                   : ""}
-                {state.loansOverview.length > 0 || state.pendingRetainedDeposits.length > 0
-                  ? `${formatMoneyMinor(
-                      state.loansOverview.reduce((sum, row) => sum + row.reading.outstandingMinor, 0),
-                    )} د.أ قائمًا`
+                {state.loansOverview.rows.length > 0 || state.pendingRetainedDeposits.length > 0
+                  ? `${formatMoneyMinor(state.loansOverview.totals.outstandingMinor)} د.أ قائمًا`
                   : NOT_RECORDED_LABEL}
               </strong>
             </summary>
             <p className="micro-period-status">
-              {state.loansOverview.length === 0 && state.pendingRetainedDeposits.length === 0
+              {state.loansOverview.rows.length === 0 && state.pendingRetainedDeposits.length === 0
                 ? "لا قروض ولا عربونات محتفظة — سجّل قرضًا حين تعطي مالًا يُعاد."
                 : "المتبقي مشتق من الدفعات القائمة؛ والعربون المحتفظ بلا قرار يبقى معلقًا ظاهرًا."}
             </p>

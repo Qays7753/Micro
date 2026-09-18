@@ -25,6 +25,18 @@ export type LoanSummaryRow = {
   reading: LoanReading;
 };
 
+/* Wave 4.4 — P-4.4-1: التجميع الرسمي لقراءة القروض في خدمة القراءة — نفس
+ * reduce القائم الذي كان في العرض (جمع outstandingMinor على الصفوف)؛ النقل
+ * لا يغيّر القيمة ولا الدلالة ويمنع المعادلة الموازية في الأسطح (D7). */
+export type LoanOverviewTotals = {
+  outstandingMinor: number;
+};
+
+export type LoanOverviewRead = {
+  rows: readonly LoanSummaryRow[];
+  totals: LoanOverviewTotals;
+};
+
 export type LoanCreateInput = {
   borrowerName: string;
   principalMinor: number;
@@ -63,12 +75,17 @@ export class LoanService {
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
-  async overview(): Promise<LoanResult<readonly LoanSummaryRow[]>> {
+  async overview(): Promise<LoanResult<LoanOverviewRead>> {
     const loansResult = await this.store.listLoans();
     if (!loansResult.ok) return failure("storage_error", "تعذر قراءة سجل القروض المحلي.");
+    const rows = loansResult.value.map(loan => ({ loan, reading: readLoan(loan) }));
+    /* P-4.4-1: نفس reduce العرض القديم حرفيًا — الآن في طبقة القراءة وحدها. */
     return {
       ok: true,
-      value: loansResult.value.map(loan => ({ loan, reading: readLoan(loan) })),
+      value: {
+        rows,
+        totals: { outstandingMinor: rows.reduce((sum, row) => sum + row.reading.outstandingMinor, 0) },
+      },
     };
   }
 

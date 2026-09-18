@@ -41,6 +41,11 @@ export type ProjectFinancialPosition = {
   projectEventCount: number;
   supplierPurchaseCount: number;
   supplierMaterialPayablesMinor: number;
+  /* Wave 4.4 — P-4.4-1: تقسيم «شو عليّ؟» بمصدرَيه يعيش في قراءة المركز —
+   * المصاريف المستحقة = مشروع الذمم العامة (project.payableMinor)، وهي
+   * بالضبط القيمة التي كان العرض يطرحها (supplierPayablesMinor −
+   * supplierMaterialPayablesMinor)؛ لا معادلة جديدة ولا مصدر ثانٍ. */
+  operatingPayablesMinor: number;
   walletCashMinor: number;
   unallocatedCashMinor: number;
   cashWalletCount: number;
@@ -508,6 +513,7 @@ export class ProjectFinancialService {
         projectEventCount: project.eventCount,
         supplierPurchaseCount: purchasesResult.value.length,
         supplierMaterialPayablesMinor,
+        operatingPayablesMinor: project.payableMinor,
         walletCashMinor,
         unallocatedCashMinor,
         cashWalletCount: walletsResult.value.length,

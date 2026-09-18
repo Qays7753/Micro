@@ -1,10 +1,11 @@
 /**
  * Wave 4.3 — P-4.3-3 (F09/D8): سطح «شو عليّ؟» الموحد في المالية.
  * ---------------------------------------------------------------------------
- * الرقم المجمع من قراءة المركز المالية الرسمية وحدها، مفسرًا بمصدرَيه:
- * مبالغ للموردين (شراء مواد لم يُسدد بعد) ومصاريف مستحقة (التزامات مسجلة لم
- * تُسدد بعد) — لكل نوع مسار تسديده بالكاتب الرسمي القائم نفسه؛ لا Writer
- * جديد ولا تسوية موازية ولا دمج كتابة (قرار F09).
+ * Wave 4.4 — P-4.4-1: تقسيم المصدرَين يقرأ من نموذج قراءة المركز الرسمي
+ * (operatingPayablesMinor/supplierMaterialPayablesMinor) — لا طرح داخل
+ * العرض؛ الرقم المجمع من قراءة المركز المالية وحدها، لكل نوع مسار تسديده
+ * بالكاتب الرسمي القائم نفسه؛ لا Writer جديد ولا تسوية موازية ولا دمج
+ * كتابة (قرار F09).
  */
 import { HandCoins, Landmark } from "lucide-react";
 import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
@@ -21,11 +22,9 @@ export function FinanceObligationsCard({
   onNavigate: (href: string) => void;
 }) {
   const recorded = position.evidence.supplierPayables === "recorded";
-  /* تحليل عرض فقط لمركز رسمي واحد: مصاريف مستحقة = إجمالي الالتزامات ناقص
-   * التزامات المشتريات — الحقلان معًا في قراءة المركز نفسها، لا معادلة مالية
-   * جديدة ولا مصدر ثانٍ. */
+  /* P-4.4-1: المصدران من القراءة الرسمية — لا حساب في العرض. */
   const suppliersMinor = position.supplierMaterialPayablesMinor;
-  const expensesMinor = position.supplierPayablesMinor - position.supplierMaterialPayablesMinor;
+  const expensesMinor = position.operatingPayablesMinor;
   const totalMinor = position.supplierPayablesMinor;
   return (
     <section

@@ -145,6 +145,15 @@ export class HomeControlCenterService {
       payables: action("road-payables", "سجّله", "/finance/new/operating_expense_payable", ""),
       owner_capital: action("road-owner-capital", "سجّله", "/finance/new/owner_investment_cash", ""),
     };
+    /* Wave 4.4 — P-4.4-1 (تماثل D8): كل حقيقة معروفة تفتح مصدرها الحقيقي القائم
+     * — الكاش محافظه، واللي عند العملاء دفتر الناس، وعليّ للموردين سطح «شو
+     * عليّ؟» في المالية؛ لا وجهة وهمية ولا مصدر مختلق. */
+    const factSources: Record<"cash" | "receivables" | "payables" | "unallocated", string> = {
+      cash: "/cash",
+      receivables: "/parties",
+      payables: "/finance",
+      unallocated: "/cash",
+    };
     /* المجموعة ١ (§7.1): مؤهل الأمانات — الكاش المسجل يشمل أمانات ليست مالك ولا ربحًا. */
     const cashQualifier =
       positionValue.amanahHeldMinor > 0
@@ -158,7 +167,7 @@ export class HomeControlCenterService {
         valueMinor: cashEvidence ? positionValue.recordedCashMinor : null,
         currency: "JOD",
         qualifier: cashQualifier,
-        source: null,
+        source: cashEvidence ? factSources.cash : null,
         period: null,
         helper: null,
         road: cashEvidence ? null : factRoads.cash,
@@ -170,7 +179,7 @@ export class HomeControlCenterService {
         valueMinor: orderEvidence ? positionValue.customerReceivablesMinor : null,
         currency: "JOD",
         qualifier: null,
-        source: null,
+        source: orderEvidence ? factSources.receivables : null,
         period: null,
         helper: null,
         road: orderEvidence ? null : factRoads.receivables,
@@ -182,7 +191,7 @@ export class HomeControlCenterService {
         valueMinor: payableEvidence ? positionValue.supplierPayablesMinor : null,
         currency: "JOD",
         qualifier: null,
-        source: null,
+        source: payableEvidence ? factSources.payables : null,
         period: null,
         helper: null,
         road: payableEvidence ? null : factRoads.payables,
@@ -212,7 +221,7 @@ export class HomeControlCenterService {
         valueMinor: positionValue.unallocatedCashMinor,
         currency: "JOD",
         qualifier: positionValue.unallocatedCashMinor < 0 ? "فرق سالب — راجع مصدره" : null,
-        source: null,
+        source: factSources.unallocated,
         period: null,
         helper: null,
         road: null,

@@ -41,7 +41,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(acquisition?.assetDeltaMinor).toBe(60000);
     expect(acquisition?.operatingExpenseDeltaMinor).toBe(0);
     const overview = await service.overview();
-    expect(overview.ok && overview.value[0]!.bookValueMinor).toBe(60000);
+    expect(overview.ok && overview.value.rows[0]!.bookValueMinor).toBe(60000);
   });
 
   it("proposes depreciation and records it as a non-cash event exactly once", async () => {
@@ -49,7 +49,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     const first = await service.recordDepreciation("nonexistent", { asOf: "2026-09-01" });
     expect(first.ok).toBe(false);
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     expect(recorded.ok).toBe(true);
     if (!recorded.ok) return;
@@ -67,7 +67,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("reverses a depreciation entry with a documented correction and no cash movement", async () => {
     const { service, store } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     if (!recorded.ok) return;
     const reversal = await service.reverseDepreciation(recorded.value.event.id, "تصحيح المدة");
@@ -86,7 +86,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("revises the contract without touching recorded depreciation", async () => {
     const { service } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     if (!recorded.ok) return;
     const revised = await service.reviseContract(assetId, {
@@ -104,7 +104,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("disposes with frozen book value, gain or loss declared, and the asset archived", async () => {
     const { service, store } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     if (!recorded.ok) return;
     const disposal = await service.dispose(assetId, {
@@ -130,7 +130,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("blocks depreciation reversal after disposal — archived book value stays frozen", async () => {
     const { service, store } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     if (!recorded.ok) return;
     const disposal = await service.dispose(assetId, {
@@ -154,7 +154,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("blocks depreciation reversal after write-off as well", async () => {
     const { service } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     const recorded = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     if (!recorded.ok) return;
     const writeOff = await service.writeOff(assetId, { on: "2026-09-15", reason: "تلف كلي" });
@@ -168,7 +168,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("keeps the asset active and owned at zero book value — disposal, sale, and depreciation stay separate", async () => {
     const { service } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     /* ٢٤ شهرًا كاملة × ٢٥٠٠ = ٦٠٠٠٠ — الوصول للصفر بقرار واحد. */
     const swept = await service.recordDepreciation(assetId, { asOf: "2028-06-01" });
     expect(swept.ok).toBe(true);
@@ -201,7 +201,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("blocks acquisition correction on an archived asset — pre-disposal corrections stay available while active", async () => {
     const { service } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     /* التصحيح الموثق متاح ما دام الأصل نشطًا. */
     const whileActive = await service.correctAcquisition(assetId, {
       acquisitionAmountMinor: 62000,
@@ -227,7 +227,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("writes off the remaining book value as a non-cash loss", async () => {
     const { service, store } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     const writeOff = await service.writeOff(assetId, { on: "2026-09-15", reason: "تلف كلي" });
     expect(writeOff.ok).toBe(true);
     if (!writeOff.ok) return;
@@ -241,7 +241,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
   it("corrects the acquisition with reversal + replacement atomically and keeps history", async () => {
     const { service, store } = await seededAsset();
     const overview = await service.overview();
-    const assetId = overview.ok ? overview.value[0]!.asset.id : "";
+    const assetId = overview.ok ? overview.value.rows[0]!.asset.id : "";
     const correction = await service.correctAcquisition(assetId, {
       acquisitionAmountMinor: 65000,
       acquisitionKind: "payable",
@@ -274,11 +274,11 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(created.ok).toBe(true);
     const overview = await service.overview();
     if (!overview.ok) return;
-    expect(overview.value[0]!.hasUnknownLife).toBe(true);
-    expect(overview.value[0]!.monthlyMinor).toBeNull();
-    const proposal = await service.read(overview.value[0]!.asset.id);
+    expect(overview.value.rows[0]!.hasUnknownLife).toBe(true);
+    expect(overview.value.rows[0]!.monthlyMinor).toBeNull();
+    const proposal = await service.read(overview.value.rows[0]!.asset.id);
     expect(proposal.ok && proposal.value.proposal.readiness).toBe("unknown_life");
-    const recordAttempt = await service.recordDepreciation(overview.value[0]!.asset.id, {
+    const recordAttempt = await service.recordDepreciation(overview.value.rows[0]!.asset.id, {
       asOf: "2026-12-31",
     });
     expect(recordAttempt.ok).toBe(false);
@@ -309,7 +309,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     const { service, store } = await seededAsset();
     const overview = await service.overview();
     if (!overview.ok) return;
-    const asset = overview.value[0]!.asset;
+    const asset = overview.value.rows[0]!.asset;
     const correction = await service.correctAcquisition(asset.id, {
       acquisitionAmountMinor: asset.acquisitionAmountMinor,
       acquisitionKind: asset.acquisitionKind,
