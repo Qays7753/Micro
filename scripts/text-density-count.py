@@ -367,7 +367,10 @@ CAPS: dict[str, int] = {
     # Finance 297 -> 299 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "Finance": 299,
+    # Finance 299 -> 300 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "Finance": 300,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -533,7 +536,10 @@ CAPS: dict[str, int] = {
     # InventoryMaterials 57 -> 59 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "InventoryMaterials": 59,
+    # InventoryMaterials 59 -> 60 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "InventoryMaterials": 60,
     # Market first measurement (2026-09-16, product-journey package NAV-001): the
     # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
     # description; no suppliers, no purchase action, no records or effects.
@@ -594,7 +600,10 @@ CAPS: dict[str, int] = {
     # CashWallets 78 -> 80 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "CashWallets": 80,
+    # CashWallets 80 -> 81 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "CashWallets": 81,
     # OwnerEntitlement 48 → 53 (2026-09-02, Group 6 Item 2, owner-approved
     # final-closure prompt — S2-07): the screen becomes the unified «مال المالك»
     # surface — mandated labels: unified overline ("دفتر واحد · المبالغ (د.أ)"),
@@ -686,7 +695,10 @@ CAPS: dict[str, int] = {
     # FinanceActivity 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "FinanceActivity": 57,
+    # FinanceActivity 57 -> 58 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "FinanceActivity": 58,
     # FinanceMore (2026-09-17, Wave 4.2 P-4.2-4, owner decision F01): first
     # measurement day for the «المالية ← المزيد» organizing reader — heading +
     # promise, integrity card, four organized groups (reports/advanced tools/
@@ -737,7 +749,10 @@ CAPS: dict[str, int] = {
     # Statement 206 -> 208 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "Statement": 208,
+    # Statement 208 -> 209 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "Statement": 209,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
@@ -789,18 +804,26 @@ CAPS: dict[str, int] = {
     # AssetDetail 41 -> 43 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "AssetDetail": 43,
+    # AssetDetail 43 -> 44 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "AssetDetail": 44,
     # LoanDetail 31: reading + repayment history with traceable reversal + documented
     # correction + financial events layer.
     # LoanDetail 73 -> 75 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "LoanDetail": 75,
+    # LoanDetail 75 -> 76 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "LoanDetail": 76,
     # EstimateDetail (2026-09-02, Group 3 Scope B, owner-approved execution prompt):
     # new mandated screen — read-only estimate summary (result, materials, time,
     # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
     # two-step delete, honest not-found.
-    "EstimateDetail": 36,
+    # EstimateDetail 36 -> 37 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد.
+    "EstimateDetail": 37,
     # المجموعة ٦ (تدقيق A1 — AR-04): أسطح الكاش/التحصيل/الدفتر التي كانت خارج
     # القياس تدخل أول مرة بسقف = عددها الحالي (سابقة «تُقاس من يومها الأول») —
     # القياس يتوسع بلا تخفيف: أي إضافة فوق العدد الحالي تحتاج قرارًا موثقًا.
@@ -811,7 +834,10 @@ CAPS: dict[str, int] = {
     # CashDistribution 51 -> 53 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "CashDistribution": 53,
+    # CashDistribution 53 -> 54 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "CashDistribution": 54,
     # الإغلاق العميق (FC-09 — العقد ٤): سبب مراجعة التحصيل «تحصيل دفعة من
     # ورقة التحصيل» في الخدمة المُغذّية — تاريخ تسوية صادق لا «تصحيحًا» عامًا.
     # Collect 45 → 46 (2026-09-05, deep closure FC-09).
@@ -820,7 +846,10 @@ CAPS: dict[str, int] = {
     # Collect 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "Collect": 57,
+    # Collect 57 -> 58 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "Collect": 58,
     # الإغلاق العميق (AR-11): سطر «أثر التصحيحات» يمر عبر محرك الجمع العربي
     # (6 أشكال بدل 3) — صحة لغوية مفروضة من معيار المحتوى.
     # WalletLedger 37 → 40 (2026-09-05, deep closure AR-11).
@@ -829,7 +858,10 @@ CAPS: dict[str, int] = {
     # WalletLedger 42 -> 44 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "WalletLedger": 44,
+    # WalletLedger 44 -> 45 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "WalletLedger": 45,
     # Foundation/Setup: أول سقفين صريحين (كانا على الافتراضي 30) — Wave 4.4
     # P-4.4-2 (2026-09-18): عقد العرض المعتمد لنظام 12 ساعة يضيف محرفَي
     # فترة النهار «ص»/«م» إلى كل سطح يعرض وقتًا، وهذان السطحان يعرضان

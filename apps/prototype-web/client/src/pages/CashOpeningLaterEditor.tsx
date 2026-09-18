@@ -27,6 +27,7 @@ export default function CashOpeningLaterEditor() {
   const { dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<PageState>({ phase: "loading" });
   const [amountMinor, setAmountMinor] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
   const [date, setDate] = useState(() => localDateInAmman());
   const [reason, setReason] = useState("");
@@ -53,7 +54,7 @@ export default function CashOpeningLaterEditor() {
     return () => {
       active = false;
     };
-  }, [cashContinuity, id, dataVersion]);
+  }, [cashContinuity, id, dataVersion, retryCount]);
 
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
@@ -100,6 +101,11 @@ export default function CashOpeningLaterEditor() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح سجل الرصيد</h1>
         <p>{state.message}</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

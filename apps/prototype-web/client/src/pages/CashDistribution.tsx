@@ -42,6 +42,7 @@ export default function CashDistribution() {
   const [state, setState] = useState<State>({ phase: "loading" });
   const [walletId, setWalletId] = useState("");
   const [amountMinor, setAmountMinor] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
   const [direction, setDirection] = useState<"into_wallet" | "cover_payment">(
     modeParam === "cover" ? "cover_payment" : "into_wallet",
   );
@@ -86,7 +87,7 @@ export default function CashDistribution() {
     return () => {
       active = false;
     };
-  }, [cashContinuity, projectFinance, dataVersion]);
+  }, [cashContinuity, projectFinance, dataVersion, retryCount]);
 
   if (state.phase === "loading")
     return (
@@ -99,6 +100,11 @@ export default function CashDistribution() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الكاش</h1>
         <p>{state.message}</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

@@ -48,6 +48,7 @@ export default function Parties() {
   const returnPath = useReturnPath();
   const { partyLedger, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -80,7 +81,12 @@ export default function Parties() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر الناس</h1>
-        <p>لم يتم تغيير بياناتك. أعد المحاولة.</p>
+        <p>لم يتم تغيير بياناتك.</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

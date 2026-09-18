@@ -47,6 +47,7 @@ export default function ScheduleEditor() {
   const returnPath = useReturnPath();
   const { schedules, notifyDataChanged, dataVersion } = usePrototypeServices();
   const [phase, setPhase] = useState<EditorState>("loading");
+  const [retryCount, setRetryCount] = useState(0);
   const [schedule, setSchedule] = useState<ScheduleEntry | null>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -86,7 +87,7 @@ export default function ScheduleEditor() {
     return () => {
       active = false;
     };
-  }, [dataVersion, id, schedules]);
+  }, [dataVersion, id, schedules, retryCount]);
   /* رحلة الاسترجاع (§31): إعادة قراءة الموعد الحالي عبر مسار القراءة
    * المعتمد نفسه — قيم المستخدم غير المحفوظة تبقى في الحقول كما هي. */
   async function reloadCurrentSchedule(): Promise<void> {
@@ -191,7 +192,12 @@ export default function ScheduleEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>الموعد غير متاح محليًا</h1>
-        <p>ارجع إلى جدول المواعيد وأعد المحاولة.</p>
+        <p>ارجه إلى جدول المواعيد أو أعد المحاولة.</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

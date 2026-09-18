@@ -29,6 +29,7 @@ export default function Foundation() {
   const { cashContinuity, ownerEntitlement, supplierPurchases, inventory, dataVersion } =
     usePrototypeServices();
   const [state, setState] = useState<FoundationState>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
     let active = true;
     Promise.all([
@@ -53,7 +54,7 @@ export default function Foundation() {
     return () => {
       active = false;
     };
-  }, [cashContinuity, ownerEntitlement, supplierPurchases, inventory, dataVersion]);
+  }, [cashContinuity, ownerEntitlement, supplierPurchases, inventory, dataVersion, retryCount]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -65,6 +66,11 @@ export default function Foundation() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الموقف</h1>
         <p>لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة.</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button action="secondary" onClick={() => navigate("/")}>
           مشروعي الآن
         </Button>

@@ -156,6 +156,7 @@ export default function Finance() {
     notifyDataChanged,
   } = usePrototypeServices();
   const [fromMonth, setFromMonth] = useState(currentMonth);
+  const [retryCount, setRetryCount] = useState(0);
   const [toMonth, setToMonth] = useState(currentMonth);
   const [appliedRange, setAppliedRange] = useState({ from: currentMonth(), to: currentMonth() });
   const [rangeInvalid, setRangeInvalid] = useState(false);
@@ -263,6 +264,7 @@ export default function Finance() {
     };
   }, [
     dataVersion,
+    retryCount,
     fromMonth,
     toMonth,
     projectFinance,
@@ -287,6 +289,11 @@ export default function Finance() {
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الوضع المالي</h1>
         <p>{state.message}</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button action="secondary" onClick={() => navigate("/")}>
           مشروعي الآن
         </Button>

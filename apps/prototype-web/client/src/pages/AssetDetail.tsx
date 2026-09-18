@@ -100,6 +100,11 @@ export default function AssetDetail() {
         <p className="micro-field-error" role="alert">
           {state.message}
         </p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => load()}>
+            إعادة المحاولة
+          </Button>
+        </div>
       </section>
     );
   const { asset, summary, proposal, events } = state.reading;

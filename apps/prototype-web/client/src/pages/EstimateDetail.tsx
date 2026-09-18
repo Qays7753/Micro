@@ -40,6 +40,7 @@ export default function EstimateDetail() {
   const returnPath = useReturnPath();
   const { dataVersion, costEstimates, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<DetailState>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -57,7 +58,7 @@ export default function EstimateDetail() {
     return () => {
       active = false;
     };
-  }, [costEstimates, params.id, dataVersion]);
+  }, [costEstimates, params.id, dataVersion, retryCount]);
 
   async function deleteEstimate() {
     if (state.phase !== "ready") return;
@@ -97,7 +98,12 @@ export default function EstimateDetail() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح التقدير</h1>
-        <p>لم يتم تغيير بياناتك. أعد المحاولة من أدواتي.</p>
+        <p>لم يتم تغيير بياناتك.</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

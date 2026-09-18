@@ -77,6 +77,7 @@ export default function Collect() {
   /* P0 (إعادة الدخول): نداء «احفظ واستمر» المتزامن مع تحصيل جارٍ لا يُنفّذ مرتين. */
   const saveInFlightRef = useRef(false);
   const [loadedToken, setLoadedToken] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
   const idempotencyKeyRef = useRef(
     globalThis.crypto?.randomUUID?.() ?? `collect-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
@@ -118,7 +119,7 @@ export default function Collect() {
     };
     /* requested مقصود خارج الاعتماديات: يُقرأ مرة عند الفتح لا مع كل بحث.
      * المعامل يُثبَّت في selectedId عند أول تحميل؛ تغيير البحث لا يعيد فتح الذمة. */
-  }, [collections, cashContinuity, dataVersion]);
+  }, [collections, cashContinuity, dataVersion, retryCount]);
 
   const ready = state.phase === "ready" ? state : null;
   const source = ready?.source ?? null;
@@ -213,6 +214,11 @@ export default function Collect() {
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح ورقة التحصيل</h1>
         <p>{state.message}</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 

@@ -22,6 +22,7 @@ export default function Suppliers() {
   const returnPath = useReturnPath();
   const { supplierPurchases, dataVersion } = usePrototypeServices();
   const [state, setState] = useState<PageState>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
     let active = true;
     Promise.all([supplierPurchases.list(), supplierPurchases.readSummary()]).then(([purchases, summary]) => {
@@ -35,7 +36,7 @@ export default function Suppliers() {
     return () => {
       active = false;
     };
-  }, [dataVersion, supplierPurchases]);
+  }, [dataVersion, supplierPurchases, retryCount]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -46,7 +47,12 @@ export default function Suppliers() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الموردين والمشتريات</h1>
-        <p>لم يتم تغيير أي سجل. أعد فتح التطبيق للمحاولة.</p>
+        <p>لم يتغير أي سجل.</p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
         <Button
           action="secondary"
 
