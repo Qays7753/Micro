@@ -519,7 +519,7 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
     recognizedCostMinor: 0,
     profitIndicatorMinor: null,
     resultStatus: "incomplete",
-    nextAction: "سجل الاتفاق أو راجع المواصفات",
+    nextAction: "سجّل الاتفاق أو راجع المواصفات",
     events: [],
     createdAt: input.createdAt,
   };
@@ -535,13 +535,13 @@ export function createCraftOrder(input: CreateCraftOrderInput): CraftOrder {
 /* الفعل التالي لحالة الطلب — خريطة واحدة على مستوى الوحدة. */
 function nextActionForStatus(order: CraftOrder, to: OrderStatus): string {
   const deliveredAction =
-    order.receivableMinor > 0 ? "حصّل المتبقي أو سجل الدين" : "راجع النتيجة والخطوة التالية";
+    order.receivableMinor > 0 ? "حصّل المتبقي أو سجّل الدين" : "راجع النتيجة والخطوة التالية";
   const byStatus: Record<OrderStatus, string> = {
-    draft: "سجل الاتفاق أو راجع المواصفات",
+    draft: "سجّل الاتفاق أو راجع المواصفات",
     provisional_agreement: "أكد السعر والموعد",
     confirmed: "ابدأ التنفيذ",
-    in_progress: "سجل الجاهزية أو سبب التأجيل",
-    ready: "سجل التسليم",
+    in_progress: "سجّل الجاهزية أو سبب التأجيل",
+    ready: "سجّل التسليم",
     delivered: deliveredAction,
     settled: "راجع النتيجة والخطوة التالية",
     postponed: "حدد موعد متابعة",
@@ -689,7 +689,7 @@ export function collectDeposit(
     ...order,
     depositCollectedMinor: order.depositCollectedMinor + amountMinor,
     collectedMinor: order.collectedMinor + amountMinor,
-    nextAction: "نفذ الطلب ثم سجل التسليم",
+    nextAction: "نفّذ الطلب ثم سجّل التسليم",
   });
 
   return appendEvent(next, {
@@ -1265,7 +1265,7 @@ export function reverseActiveDeposit(
     ...order,
     depositCollectedMinor: order.depositCollectedMinor - amountMinor,
     collectedMinor: order.collectedMinor - amountMinor,
-    nextAction: "نفّذ الطلب ثم سجل التسليم",
+    nextAction: "نفّذ الطلب ثم سجّل التسليم",
   });
   return appendEvent(next, {
     id: `${order.id}:${idempotencyKey}`,

@@ -18,7 +18,7 @@ const order = (
   deliveryDate: "2026-08-23",
   order: {
     itemName: overrides.itemName ?? "صندوق مخصص",
-    nextAction: overrides.nextAction ?? "سجل التسليم",
+    nextAction: overrides.nextAction ?? "سجّل التسليم",
     receivableMinor: overrides.receivableMinor ?? 0,
     settlementStatus: overrides.settlementStatus ?? "open",
     status: overrides.status ?? "in_progress",

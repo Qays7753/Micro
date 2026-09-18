@@ -527,7 +527,9 @@ export default function DeliveryReviewPage() {
             <CheckCircle2 aria-hidden="true" /> تم تسليم الطلب بنجاح
           </h2>
           <ul className="micro-done-facts">
-            <li>{`رقم الطلب: ${state.orderId}`}</li>
+            <li>
+              رقم الطلب: <bdi dir="ltr">{state.orderId}</bdi>
+            </li>
             <li>{`لحظة التسليم: ${state.deliveredAt ? formatLocalDateTime(state.deliveredAt) : "غير مسجلة"}`}</li>
             <li>{`الحالة الجديدة: ${state.newStatus === "settled" ? "تمت التسوية" : "تم التسليم"}`}</li>
             <li>

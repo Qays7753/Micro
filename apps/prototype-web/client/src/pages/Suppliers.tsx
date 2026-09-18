@@ -103,7 +103,7 @@ export default function Suppliers() {
             <article key={purchase.id}>
               {/* مبدأ Micro: نعرض قصة شراء المورد كاملة دون تحويلها إلى مصروف أو تكلفة بيع. */}
               <div>
-                <strong>{purchase.supplierName}</strong>
+                <strong dir="auto">{purchase.supplierName}</strong>
                 <small>الحالة: مفتوح</small>
                 {/* S3-05: العربية خارج صنف الأرقام الأحادي — الخط والمقاس والاتجاه للنص العربي. */}
                 <b className="micro-supplier-payable">
@@ -161,7 +161,7 @@ export default function Suppliers() {
             .map(purchase => (
               <article key={purchase.id}>
                 <div>
-                  <strong>{purchase.supplierName}</strong>
+                  <strong dir="auto">{purchase.supplierName}</strong>
                   <small>
                     <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
                   </small>

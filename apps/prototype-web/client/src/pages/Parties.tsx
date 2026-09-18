@@ -152,7 +152,7 @@ export default function Parties() {
             <details className="micro-party-entry" key={party.name}>
               <summary className="micro-party-summary">
                 <span>
-                  <b>{party.name}</b>
+                  <b dir="auto">{party.name}</b>
                   {party.repeated ? <small className="micro-party-repeat-mark">متكرر</small> : null}
                   <small>
                     {party.receivableMinor > 0 ? (

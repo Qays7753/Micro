@@ -117,7 +117,7 @@ function TodayItemRow({ item, onNavigate }: { item: HomeTodayItem; onNavigate: (
     <article className="micro-home-today-item" data-kind={item.kind}>
       <div>
         <strong>
-          <Icon aria-hidden="true" /> {item.title}
+          <Icon aria-hidden="true" /> <bdi dir="auto">{item.title}</bdi>
         </strong>
         {item.detail ? <p>{item.detail}</p> : null}
         {item.dateLocal ? (
@@ -631,7 +631,7 @@ export default function Home() {
                   <time dateTime={change.occurredOn}>
                     {formatLocalDateLong(change.occurredOn) ?? change.occurredOn}
                   </time>
-                  <strong>{change.title}</strong>
+                  <strong dir="auto">{change.title}</strong>
                   {change.detail ? <small>{change.detail}</small> : null}
                   {change.effectWord ? (
                     <small className="micro-home-recent-effect">{change.effectWord}</small>

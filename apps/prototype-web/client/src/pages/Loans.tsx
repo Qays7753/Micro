@@ -147,7 +147,7 @@ function LoanCard({
     <li>
       <article className="micro-loan-card" data-status={row.reading.status}>
         <button className="micro-text-action" type="button" onClick={onOpen}>
-          <strong>{loan.borrowerName}</strong>
+          <strong dir="auto">{loan.borrowerName}</strong>
         </button>
         <p>
           أصل <MoneyValue minor={row.reading.principalMinor} /> د.أ · {formatLocalDate(loan.loanDate)} ·{" "}

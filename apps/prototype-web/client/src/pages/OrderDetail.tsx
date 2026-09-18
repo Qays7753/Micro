@@ -725,10 +725,14 @@ export default function OrderDetail() {
       <div className="micro-page-heading">
         <span className="micro-overline">{label}</span>
         {/* Conflict B: اسم الطلب الودّي يظهر فوق اسم العمل إن وُجد. */}
-        <h1>{order.orderName?.trim() ? order.orderName : order.itemName}</h1>
+        <h1 dir="auto">{order.orderName?.trim() ? order.orderName : order.itemName}</h1>
         <p>
-          {order.customerName.trim() ? order.customerName : <>زبون بلا اسم — سمِّ الجهة لاحقًا</>} · الكمية:{" "}
-          {order.quantity}
+          {order.customerName.trim() ? (
+            <bdi dir="auto">{order.customerName}</bdi>
+          ) : (
+            <>زبون بلا اسم — سمِّ الجهة لاحقًا</>
+          )}{" "}
+          · الكمية: {order.quantity}
           {order.orderName?.trim() ? ` · ${order.itemName}` : ""}
         </p>
       </div>
@@ -739,7 +743,9 @@ export default function OrderDetail() {
         <section className="micro-note-card" data-testid="order-created-banner" role="status">
           <CheckCircle2 aria-hidden="true" />
           <p>
-            {`سُجّل الاتفاق بنجاح — رقم الطلب ${stored.id} · الحالة: ${label} · `}
+            {`سُجّل الاتفاق بنجاح — رقم الطلب `}
+            <bdi dir="ltr">{stored.id}</bdi>
+            {` · الحالة: ${label} · `}
             {order.depositCollectedMinor > 0
               ? `أثر مالي موثق: عربون محصل ${formatMoneyMinor(order.depositCollectedMinor)} د.أ`
               : `لا أثر مالي بعد — لم يُقبض شيء ولم يُخصم مخزون`}
