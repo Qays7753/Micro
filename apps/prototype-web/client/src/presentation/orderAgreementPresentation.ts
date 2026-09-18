@@ -73,7 +73,7 @@ export function getAgreementPresentation(input: AgreementPresentationInput): Agr
       return {
         kind: "execution",
         label: "جاهز للتسليم",
-        nextAction: "سجل التسليم",
+        nextAction: "سجّل التسليم",
       };
     case "delivered":
       return {

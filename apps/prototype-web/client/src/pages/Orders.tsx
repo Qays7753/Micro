@@ -212,7 +212,7 @@ export default function Orders() {
                   <BadgeDollarSign aria-hidden="true" />
                 </span>
                 <span>
-                  <strong>{sale.itemName}</strong>
+                  <strong dir="auto">{sale.itemName}</strong>
                   <small>
                     <LocalDateValue value={sale.occurredOn} /> · الكمية:{" "}
                     <IntegerValue value={sale.quantity} className="micro-inline-number" />
@@ -257,7 +257,7 @@ export default function Orders() {
                 <ClipboardPlus aria-hidden="true" />
               </span>
               <span>
-                <strong>{draft.itemName || "مسودة تحتاج وصفًا"}</strong>
+                <strong dir="auto">{draft.itemName || "مسودة تحتاج وصفًا"}</strong>
                 <small>
                   {draft.intent === "customer_order" ? "طلب من عميل" : "تصميم مخطط"} · الكمية:{" "}
                   <IntegerValue value={draft.quantity} className="micro-inline-number" />
@@ -299,7 +299,7 @@ export default function Orders() {
                     <CalendarDays aria-hidden="true" />
                   </span>
                   <span>
-                    <strong>{item.order.order.itemName || "موعد تسليم"}</strong>
+                    <strong dir="auto">{item.order.order.itemName || "موعد تسليم"}</strong>
                     <small>
                       {item.bucket === "overdue"
                         ? "متأخر · "

@@ -586,7 +586,7 @@ function unitEntitlement(
       quantity: null,
       calculationBasis: "unit",
       sourceKeys: [],
-      nextAction: "سجل كمية الوحدات المكتملة ووحدتها قبل الاعتماد؛ لا تخترع عددًا.",
+      nextAction: "سجّل كمية الوحدات المكتملة ووحدتها قبل الاعتماد؛ لا تخترع عددًا.",
     };
   const keys = evidence.unitSourceKeys ?? [];
   if (keys.length === 0)
@@ -608,7 +608,7 @@ function unitEntitlement(
       quantity,
       calculationBasis: "unit",
       sourceKeys: keys,
-      nextAction: "سجل كمية الوحدات بدقة أجزاء من ألف؛ الدقة الأعلى غير ممثلة في هذا الإصدار.",
+      nextAction: "سجّل كمية الوحدات بدقة أجزاء من ألف؛ الدقة الأعلى غير ممثلة في هذا الإصدار.",
     };
   const unitAmountMinor = roundHalfUp(quantityMilli * amount, 1000);
   if (unitAmountMinor === null)

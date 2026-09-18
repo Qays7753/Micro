@@ -414,7 +414,11 @@ CAPS: dict[str, int] = {
     # (collected/remaining/next action), never the original success message again.
     # OrderDetail 179 → 180 (2026-09-17, Wave 2 EXE-010, owner-approved): the
     # active-deposit reversal panel labels (mandatory reason + confirm copy).
-    "OrderDetail": 180,
+    # OrderDetail 180 -> 181 (2026-09-18, Wave 4.4 P-4.4-3): عزل معرّف الطلب
+    # داخل bdi dir="ltr" في لافتة النجاح فصل البادئة العربية إلى تعبير
+    # مستقل — النص نفسه للمستخدم (كان داخل قالب مُستوفى لا يُعدّ)؛ لا
+    # نثرًا جديدًا أُضيف.
+    "OrderDetail": 181,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision

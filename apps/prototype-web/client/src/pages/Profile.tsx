@@ -205,6 +205,8 @@ export default function Profile() {
                 onChange={event => setEmail(event.target.value)}
                 placeholder="مثال: name@mail.com"
                 inputMode="email"
+                dir="ltr"
+                lang="en"
               />
               <small>اختياري — لا يُستخدم لأي مزامنة في هذا الإصدار.</small>
             </label>
@@ -217,7 +219,7 @@ export default function Profile() {
             </div>
             <div>
               <dt>بريدك الإلكتروني</dt>
-              <dd>{owner.email ?? "غير مكتوب — اختياري"}</dd>
+              <dd>{owner.email ? <bdi dir="ltr">{owner.email}</bdi> : "غير مكتوب — اختياري"}</dd>
             </div>
             <div>
               <dt>معرّف المالك المحلي</dt>

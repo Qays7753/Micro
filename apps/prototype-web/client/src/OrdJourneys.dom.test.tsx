@@ -135,7 +135,7 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     expect(banner.textContent).toContain(stored.id);
     expect(banner.textContent).toContain("عربون محصل 10.00");
     /* العربون يغيّر الفعل التالي إلى تنفيذ الطلب — سلوك الدومين القائم. */
-    expect(banner.textContent).toContain("نفذ الطلب ثم سجل التسليم");
+    expect(banner.textContent).toContain("نفّذ الطلب ثم سجّل التسليم");
     cleanup();
     /* بلا المعامل — لا لافتة نجاح قديمة عند إعادة الفتح. */
     wouterMocks.location = `/orders/${stored.id}`;
