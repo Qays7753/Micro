@@ -16,14 +16,12 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
-import type { LoanSummaryRow } from "@/application/loans/loanService";
+import type { LoanOverviewRead, LoanSummaryRow } from "@/application/loans/loanService";
 import RepaymentSheet from "@/components/loans/RepaymentSheet";
 
 import { Button, EmptyState } from "@/components/primitives";
 type State =
-  | { phase: "loading" }
-  | { phase: "error"; message: string }
-  | { phase: "ready"; rows: readonly LoanSummaryRow[] };
+  { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; overview: LoanOverviewRead };
 
 export default function Loans() {
   const [, navigate] = useLocation();
@@ -38,7 +36,8 @@ export default function Loans() {
         setState({ phase: "error", message: result.message });
         return;
       }
-      setState({ phase: "ready", rows: result.value });
+      /* Wave 4.4 — P-4.4-1: الصفوف والتجميع من القراءة الرسمية الواحدة. */
+      setState({ phase: "ready", overview: result.value });
     });
   }, [loans]);
 
@@ -68,7 +67,7 @@ export default function Loans() {
             إعادة المحاولة
           </Button>
         </section>
-      ) : state.rows.length === 0 ? (
+      ) : state.overview.rows.length === 0 ? (
         <EmptyState
           aria-label="لا قروض بعد"
           symbol={<Users />}
@@ -77,9 +76,9 @@ export default function Loans() {
         />
       ) : (
         <>
-          <LoansSummary rows={state.rows} />
+          <LoansSummary overview={state.overview} />
           <ul className="micro-cards-list" aria-label="قائمة القروض">
-            {state.rows.map(row => (
+            {state.overview.rows.map(row => (
               <LoanCard
                 key={row.loan.id}
                 row={row}
@@ -114,9 +113,10 @@ export default function Loans() {
   );
 }
 
-function LoansSummary({ rows }: { rows: readonly LoanSummaryRow[] }) {
-  const outstanding = rows.reduce((sum, row) => sum + row.reading.outstandingMinor, 0);
-  const openCount = rows.filter(row => row.reading.status === "open").length;
+/* P-4.4-1: الخلاصة تقرأ التجميع الرسمي من خدمة القراءة — لا reduce داخل العرض. */
+function LoansSummary({ overview }: { overview: LoanOverviewRead }) {
+  const outstanding = overview.totals.outstandingMinor;
+  const openCount = overview.rows.filter(row => row.reading.status === "open").length;
   return (
     <section className="micro-decision-card" aria-label="خلاصة القروض">
       <div>
@@ -125,8 +125,8 @@ function LoansSummary({ rows }: { rows: readonly LoanSummaryRow[] }) {
           <MoneyValue minor={outstanding} /> د.أ
         </strong>
         <p>
-          {loanOutstandingCountLabel(openCount)} من أصل {loanCountLabel(rows.length)} — المسدَّد يبقى في
-          التاريخ للمراجعة.
+          {loanOutstandingCountLabel(openCount)} من أصل {loanCountLabel(overview.rows.length)} — المسدَّد يبقى
+          في التاريخ للمراجعة.
         </p>
       </div>
     </section>

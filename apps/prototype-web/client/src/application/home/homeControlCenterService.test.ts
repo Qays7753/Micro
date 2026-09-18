@@ -208,7 +208,8 @@ describe("HomeControlCenterService", () => {
           id: "cash",
           state: "known",
           valueMinor: 5000,
-          source: null,
+          /* Wave 4.4 — P-4.4-1 (D8): الحقيقة المعروفة تفتح مصدرها الحقيقي. */
+          source: "/cash",
         }),
         expect.objectContaining({ id: "owner_capital", state: "known", valueMinor: 5000 }),
         expect.objectContaining({ id: "receivables", state: "not_initialized", valueMinor: null }),

@@ -12,13 +12,13 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
-import type { AssetSummaryRow } from "@/application/assets/assetService";
+import type { AssetOverviewRead, AssetSummaryRow } from "@/application/assets/assetService";
 
 import { Button, EmptyState } from "@/components/primitives";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
-  | { phase: "ready"; rows: readonly AssetSummaryRow[] };
+  | { phase: "ready"; overview: AssetOverviewRead };
 
 export default function Assets() {
   const [, navigate] = useLocation();
@@ -32,7 +32,8 @@ export default function Assets() {
         setState({ phase: "error", message: result.message });
         return;
       }
-      setState({ phase: "ready", rows: result.value });
+      /* Wave 4.4 — P-4.4-1: الصفوف والتجميع من القراءة الرسمية الواحدة. */
+      setState({ phase: "ready", overview: result.value });
     });
   }, [assets]);
 
@@ -56,7 +57,7 @@ export default function Assets() {
         <p className="micro-field-error" role="alert">
           {state.message}
         </p>
-      ) : state.rows.length === 0 ? (
+      ) : state.overview.rows.length === 0 ? (
         <EmptyState
           aria-label="لا أصول بعد"
           symbol={<Boxes />}
@@ -65,9 +66,9 @@ export default function Assets() {
         />
       ) : (
         <>
-          <AssetsSummary rows={state.rows} />
+          <AssetsSummary overview={state.overview} />
           <ul className="micro-cards-list" aria-label="قائمة الأصول">
-            {state.rows.map(row => (
+            {state.overview.rows.map(row => (
               <AssetCard
                 key={row.asset.id}
                 row={row}
@@ -90,12 +91,13 @@ export default function Assets() {
   );
 }
 
-function AssetsSummary({ rows }: { rows: readonly AssetSummaryRow[] }) {
-  const totalBookValue = rows.reduce((sum, row) => sum + row.bookValueMinor, 0);
-  const unknownCount = rows.filter(
+/* P-4.4-1: الخلاصة تقرأ التجميع الرسمي من خدمة القراءة — لا reduce داخل العرض. */
+function AssetsSummary({ overview }: { overview: AssetOverviewRead }) {
+  const totalBookValue = overview.totals.bookValueMinor;
+  const unknownCount = overview.rows.filter(
     row => row.asset.status === "active" && (row.hasUnknownLife || row.hasUnknownStart),
   ).length;
-  const unrecorded = rows.reduce((sum, row) => sum + row.unrecordedDepreciationMinor, 0);
+  const unrecorded = overview.totals.unrecordedDepreciationMinor;
   return (
     <section className="micro-decision-card" aria-label="خلاصة الأصول">
       <div>

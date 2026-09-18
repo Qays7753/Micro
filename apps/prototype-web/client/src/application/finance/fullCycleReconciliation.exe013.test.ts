@@ -441,7 +441,7 @@ describe("EXE-013 family guard vs legal family paths (AUD-NEW-15)", () => {
     if (!legal.ok) throw new Error(legal.message);
     const overview = await loans.overview();
     if (!overview.ok) throw new Error(overview.message);
-    const loanRow = overview.value.find(row => row.loan.id === created.value.loan.id);
+    const loanRow = overview.value.rows.find(row => row.loan.id === created.value.loan.id);
     expect(loanRow?.reading.outstandingMinor).toBe(5000);
   });
 });

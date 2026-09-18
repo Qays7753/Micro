@@ -250,7 +250,6 @@ function IntegrityCheckRow({
   check: IntegrityCheckResult;
   onOpen: (path: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const meta = statusMeta[check.status];
   const Icon = meta.Icon;
   return (
@@ -300,16 +299,9 @@ function IntegrityCheckRow({
                 افتح السجل المعني
               </button>
             ) : null}
-            {check.offenderCount && check.offenderCount > 0 && !check.deepLink ? (
-              <button
-                className="micro-text-action"
-                type="button"
-                aria-expanded={open}
-                onClick={() => setOpen(current => !current)}
-              >
-                {open ? "إخفاء المعرّفات" : "أظهر المعرّفات"}
-              </button>
-            ) : null}
+            {/* Wave 4.4 — P-4.4-1: زر «أظهر المعرّفات» أُزيل — كان ميتًا بعد D9
+             * (بدّل حالة لا يقرأها عرض)، والمعرّفات الخام الاحتياطية تظهر داخل
+             * تفصيل السجلات المتأثرة أصلًا بلا زر. */}
           </div>
         </div>
       </article>

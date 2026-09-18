@@ -37,6 +37,20 @@ export type AssetSummaryRow = {
   unrecordedDepreciationMinor: number;
 };
 
+/* Wave 4.4 — P-4.4-1: التجميع الرسمي لقراءة الأصول يعيش في خدمة القراءة —
+ * المعادلة نفسها التي كانت تُحسب داخل العرض (جمع bookValueMinor وجمع
+ * unrecordedDepreciationMinor على الصفوف)؛ النقل لا يغيّر القيمة ولا
+ * الدلالة، ويمنع تكرار المعادلة في أكثر من سطح (تماثل D7). */
+export type AssetOverviewTotals = {
+  bookValueMinor: number;
+  unrecordedDepreciationMinor: number;
+};
+
+export type AssetOverviewRead = {
+  rows: readonly AssetSummaryRow[];
+  totals: AssetOverviewTotals;
+};
+
 export type AssetCreateInput = {
   name: string;
   categoryLabel?: string | null;
@@ -99,7 +113,7 @@ export class AssetService {
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
-  async overview(): Promise<AssetResult<readonly AssetSummaryRow[]>> {
+  async overview(): Promise<AssetResult<AssetOverviewRead>> {
     const [assetsResult, eventsResult] = await Promise.all([
       this.store.listAssets(),
       this.store.listFinancialEvents(),
@@ -107,22 +121,30 @@ export class AssetService {
     if (!assetsResult.ok || !eventsResult.ok)
       return failure("storage_error", "تعذر قراءة سجل الأصول المحلي.");
     const asOf = this.now().slice(0, 10);
+    const rows = assetsResult.value.map(asset => {
+      const summary = assetEventSummary(asset.id, eventsResult.value);
+      const proposal = planAssetDepreciation(asset, eventsResult.value, asOf);
+      return {
+        asset,
+        statusLabel: STATUS_LABELS[asset.status],
+        bookValueMinor: summary.bookValueMinor,
+        accumulatedDepreciationMinor: summary.depreciationMinor,
+        monthlyMinor: proposal.monthlyMinor,
+        hasUnknownLife: asset.lifeMonths === null,
+        hasUnknownStart: asset.depreciationStartOn === null,
+        unrecordedDepreciationMinor: proposal.proposedMinor,
+      };
+    });
+    /* P-4.4-1: نفس reduce العرض القديم حرفيًا — الآن في طبقة القراءة وحدها. */
     return {
       ok: true,
-      value: assetsResult.value.map(asset => {
-        const summary = assetEventSummary(asset.id, eventsResult.value);
-        const proposal = planAssetDepreciation(asset, eventsResult.value, asOf);
-        return {
-          asset,
-          statusLabel: STATUS_LABELS[asset.status],
-          bookValueMinor: summary.bookValueMinor,
-          accumulatedDepreciationMinor: summary.depreciationMinor,
-          monthlyMinor: proposal.monthlyMinor,
-          hasUnknownLife: asset.lifeMonths === null,
-          hasUnknownStart: asset.depreciationStartOn === null,
-          unrecordedDepreciationMinor: proposal.proposedMinor,
-        };
-      }),
+      value: {
+        rows,
+        totals: {
+          bookValueMinor: rows.reduce((sum, row) => sum + row.bookValueMinor, 0),
+          unrecordedDepreciationMinor: rows.reduce((sum, row) => sum + row.unrecordedDepreciationMinor, 0),
+        },
+      },
     };
   }
 

@@ -56,6 +56,11 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
   const [menuOpen, setMenuOpen] = useState(false);
   const logoButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  /* Wave 4.4 — P-4.4-1: مراجع مشغّلات لوحتي «قريبًا» — لإعادة التركيز إليها
+   * بعد الإغلاق (Escape/خارجي/زر) كسلوك قائمة الشعار نفسه. */
+  const transportButtonRef = useRef<HTMLButtonElement>(null);
+  const assistantButtonRef = useRef<HTMLButtonElement>(null);
+  const soonPanelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const update = () => setIsScrolled(window.scrollY > 4);
     update();
@@ -67,6 +72,61 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
     setMenuOpen(false);
     if (restoreFocus) logoButtonRef.current?.focus();
   }, []);
+
+  const closeSoonPanel = useCallback(
+    (restoreFocus: boolean) => {
+      setSoonPanel(null);
+      if (restoreFocus) {
+        const trigger = soonPanel === "transport" ? transportButtonRef.current : assistantButtonRef.current;
+        trigger?.focus();
+      }
+    },
+    [soonPanel],
+  );
+
+  /* Wave 4.4 — P-4.4-1: توحيد سلوك لوحتي «قريبًا» مع قائمة الشعار — Escape
+   * يغلق ويعيد التركيز للمشغّل، والنقر خارجيًا يغلق، وTab يبقى داخل اللوحة
+   * (حبس تركيز مناسب لـDialog) حتى إغلاقها. */
+  useEffect(() => {
+    if (!soonPanel) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        closeSoonPanel(true);
+        return;
+      }
+      if (event.key === "Tab") {
+        const focusables = Array.from(
+          soonPanelRef.current?.querySelectorAll<HTMLElement>(
+            "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+          ) ?? [],
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0]!;
+        const last = focusables[focusables.length - 1]!;
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [soonPanel, closeSoonPanel]);
+
+  /* P-4.4-1: عند فتح اللوحة يدخل التركيز إليها — الزر الأول داخلها. */
+  useEffect(() => {
+    if (!soonPanel) return;
+    const timer = window.setTimeout(() => {
+      soonPanelRef.current
+        ?.querySelectorAll<HTMLElement>("button, [href], [tabindex]:not([tabindex='-1'])")[0]
+        ?.focus();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [soonPanel]);
 
   /* D3: الإغلاق بالنقر خارج القائمة وبزر Escape — والتركيز يعود للشعار. */
   useEffect(() => {
@@ -166,6 +226,7 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
         </div>
         <div className="micro-header-actions">
           <button
+            ref={transportButtonRef}
             className="micro-icon-button"
             type="button"
             onClick={() => {
@@ -173,11 +234,13 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
               setSoonPanel("transport");
             }}
             aria-label="النقل والتوصيل — قريبًا"
+            aria-haspopup="dialog"
             title="النقل والتوصيل — قريبًا"
           >
             <Truck aria-hidden="true" />
           </button>
           <button
+            ref={assistantButtonRef}
             className="micro-icon-button"
             type="button"
             onClick={() => {
@@ -185,6 +248,7 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
               setSoonPanel("assistant");
             }}
             aria-label="اسأل Micro — قريبًا"
+            aria-haspopup="dialog"
             title="اسأل Micro — قريبًا"
           >
             <MessageCircleQuestion aria-hidden="true" />
@@ -225,8 +289,9 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
         </div>
       ) : null}
       {panel ? (
-        <div className="micro-soon-backdrop" role="presentation" onClick={() => setSoonPanel(null)}>
+        <div className="micro-soon-backdrop" role="presentation" onClick={() => closeSoonPanel(false)}>
           <section
+            ref={soonPanelRef}
             className="micro-soon-panel"
             role="dialog"
             aria-modal="false"
@@ -240,7 +305,7 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
                 className="micro-icon-button"
                 type="button"
                 aria-label="إغلاق"
-                onClick={() => setSoonPanel(null)}
+                onClick={() => closeSoonPanel(true)}
               >
                 <X aria-hidden="true" />
               </button>
