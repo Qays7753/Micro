@@ -58,6 +58,9 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
     const [expenseWalletId, setExpenseWalletId] = useState(EXPENSE_SOURCE_UNSET);
     const expenseSourceChosenRef = useRef(false);
     const [formError, setFormError] = useState<string | null>(null);
+    /* Wave 4.4 — P-4.4-5: تمييز خطأ التحقق الحقلي عن فشل الحفظ — aria-invalid
+     * للتحقق فقط لا لفشل التخزين. */
+    const [fieldError, setFieldError] = useState(false);
     const [saving, setSaving] = useState(false);
     const saveInFlightRef = useRef(false);
     const expenseKeyRef = useRef(`sheet-expense-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
@@ -87,22 +90,26 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
     async function submit() {
       if (saveInFlightRef.current) return;
       if (!expenseAmountValid || !Number.isInteger(expenseAmountMinor) || expenseAmountMinor <= 0) {
+        setFieldError(true);
         setFormError("أدخل مبلغ المصروف بالأرقام 0–9.");
         return;
       }
       /* EXE-007: الوصف إلزامي في المدخلين — القاعدة والرسالة من المواصفة
        * الموحدة؛ لا نص مصنّع يُنسب للمالك. */
       if (!expenseNote.trim()) {
+        setFieldError(true);
         setFormError(EXPENSE_NOTE_REQUIRED_MESSAGE);
         return;
       }
       /* FIN-005 (قاعدة موحدة): محافظ متعددة — لا حفظ بلا اختيار صريح. */
       const sourceViolation = expenseSourceRuleViolation(wallets.length, expenseWalletId);
       if (sourceViolation) {
+        setFieldError(true);
         setFormError(sourceViolation);
         return;
       }
       setFormError(null);
+      setFieldError(false);
       saveInFlightRef.current = true;
       setSaving(true);
       onSavingChange?.(true);
@@ -125,6 +132,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
       if (!result.ok) {
         setSaving(false);
         onSavingChange?.(false);
+        setFieldError(false);
         setFormError(result.message);
         return;
       }
@@ -180,6 +188,8 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
             onNumericChange={setExpenseAmountMinor}
             onTextValidityChange={setExpenseAmountValid}
             aria-label="مبلغ المصروف"
+            aria-invalid={fieldError}
+            aria-describedby={formError ? "quick-expense-form-error" : undefined}
           />
         </label>
         <label className="micro-field">
@@ -190,6 +200,8 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
             value={expenseNote}
             onChange={event => setExpenseNote(event.target.value)}
             placeholder="مثال: أكياس تغليف"
+            aria-invalid={fieldError}
+            aria-describedby={formError ? "quick-expense-form-error" : undefined}
           />
         </label>
         {/* EXE-007: التاريخ قابل للتحرير — تكافؤ كامل مع المحرر الموجه. */}
@@ -262,7 +274,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
           </p>
         ) : null}
         {formError ? (
-          <p className="micro-field-error" role="status">
+          <p className="micro-field-error" role="status" id="quick-expense-form-error">
             {formError}
           </p>
         ) : null}

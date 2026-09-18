@@ -31,6 +31,8 @@ export default function LoanEditor() {
   const [wallets, setWallets] = useState<readonly { id: string; name: string }[]>([]);
   const [purposeNote, setPurposeNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  /* Wave 4.4 — P-4.4-5: تمييز خطأ التحقق الحقلي عن فشل الحفظ/القراءة. */
+  const [fieldError, setFieldError] = useState(false);
   const [saving, setSaving] = useState(false);
   /* المجموعة ٦ (تدقيق A2 — AI-02): عهدة تزامنية ضد الإرسال المزدوج —
    * نفس منطق محرر الأصل: الحالة وحدها لا ترد نداءً متزامنًا ثانيًا، والخدمة
@@ -44,6 +46,7 @@ export default function LoanEditor() {
       /* W2 (completion — تدقيق الوكيل ٢، F3): فشل قراءة المحافظ لم يعد يُبتلع
        * صامتًا — قائمة المصدر تبقى فارغة والسبب معروضًا (role=alert أدناه). */
       if (!result.ok) {
+        setFieldError(false);
         setMessage(result.message);
         return;
       }
@@ -86,14 +89,17 @@ export default function LoanEditor() {
   async function save(): Promise<boolean> {
     if (saveInFlightRef.current) return false;
     if (!borrowerName.trim()) {
+      setFieldError(true);
       setMessage("أكمل اسم المستدين — مثال: أحمد، أم خالد، ورشة الجيران.");
       return false;
     }
     if (!validPrincipal || !Number.isInteger(principalMinor) || principalMinor <= 0) {
+      setFieldError(true);
       setMessage("أدخل مبلغ القرض بالأرقام 0–9.");
       return false;
     }
     setMessage(null);
+    setFieldError(false);
     saveInFlightRef.current = true;
     setSaving(true);
     try {
@@ -105,6 +111,7 @@ export default function LoanEditor() {
         sourceWalletId: sourceWalletId || null,
       });
       if (!result.ok) {
+        setFieldError(false);
         setMessage(result.message);
         return false;
       }
@@ -158,6 +165,8 @@ export default function LoanEditor() {
           value={borrowerName}
           onChange={event => setBorrowerName(event.target.value)}
           placeholder="مثال: أحمد، محمد، ورشة الجيران"
+          aria-invalid={fieldError}
+          aria-describedby={message ? "loan-form-error" : undefined}
         />
       </label>
       <label className="micro-field">
@@ -168,6 +177,8 @@ export default function LoanEditor() {
           onNumericChange={setPrincipalMinor}
           onTextValidityChange={setValidPrincipal}
           aria-label="مبلغ القرض"
+          aria-invalid={fieldError}
+          aria-describedby={message ? "loan-form-error" : undefined}
         />
       </label>
       <LocalDateField
@@ -206,7 +217,7 @@ export default function LoanEditor() {
         </div>
       </section>
       {message ? (
-        <p className="micro-field-error" role="alert">
+        <p className="micro-field-error" role="alert" id="loan-form-error">
           {message}
         </p>
       ) : null}

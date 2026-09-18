@@ -53,9 +53,13 @@ SPACE_PX = {"2px", "4px", "8px", "12px", "16px", "20px", "24px", "32px", "0"}
 SPACE_RE = re.compile(r"^var\(--space-[1-7]\)$|^calc\(|^env\(|^clamp\(")
 RADIUS_PX = {"0", "12px", "16px", "20px", "999px", "50%"}
 RADIUS_RE = re.compile(r"^var\(--radius-(control|card|sheet)\)$")
+# Wave 4.4 — P-4.4-5 (2026-09-18): عائلة الخطوط تحولت إلى rem كي يتكبر نص
+# المتصفح (WCAG 1.4.4 resize text) — نفس السلم بالضبط (NN/16) فالهوية البصرية
+# عند الجذر الافتراضي 16px لا تتغير؛ الأهداف اللمسية والمسافات تبقى px عمدًا.
 FONT_SIZES = {
-    "11px", "12px", "13px", "14px", "15px", "16px", "17px", "18px",
-    "20px", "24px", "26px", "28px", "31px",
+    "0.6875rem", "0.75rem", "0.8125rem", "0.875rem",
+    "0.9375rem", "1rem", "1.0625rem", "1.125rem",
+    "1.25rem", "1.5rem", "1.625rem", "1.75rem", "1.9375rem",
 }
 FONT_RE = re.compile(r"^var\(--")
 Z_LADDER = {"0", "1", "20", "30", "40", "50", "60", "70"}
