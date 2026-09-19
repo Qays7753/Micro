@@ -4,26 +4,35 @@
 
 ## الحالة
 
-رأس `main` عند تأسيس السجل: `87ebcf2ffa74752bf385eff3a10962454b45d33e`  
-الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 13 · BACKLOG: 2 · DEFERRED: 2 · VERIFIED: 7
+هذه اللقطة لا تثبت رأس `main`. ثبّت الرأس الحالي قبل الاعتماد عليها:
+
+```bash
+git fetch origin --prune
+git rev-parse origin/main
+python3 scripts/operations-control/validate.py
+```
+
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 10 · BACKLOG: 2 · REVIEW_REQUIRED: 10 · DEFERRED: 25 · VERIFIED: 7
 
 ## قبل أي تعديل
 
 1. `git fetch origin && git switch main && git pull --ff-only origin main`.
-2. شغّل `python3 scripts/operations-control/validate.py`.
+2. شغّل `python3 scripts/operations-control/validate.py`؛ يفشل إذا تعذر إثبات Git أو كانت Views/Excel قديمة.
 3. افحص PRs المفتوحة و`generated/ACTIVE-WORK.md`.
 4. ابحث عن ID والسبب الجذري في JSON والكود والاختبارات والـcommits.
-5. أنشئ Claim منفصلًا، ولا تتداخل مع `areas` أو `contracts` النشطة.
+5. أنشئ Claim منفصلًا، ولا تتداخل مع `areas` أو `contracts` النشطة، بما في ذلك تداخل الأب/الابن.
 
 ## بوابة البرنامج
 
-الـPilot `BLOCKED` حتى تصبح متطلبات `releases/pre-pilot.json` كلها `VERIFIED` ثم يصدر قرار مالك. UI/UX الجذري مؤجل حتى استقرار الوظائف والحدود.
+الـPilot `BLOCKED` حتى تصبح متطلبات `releases/pre-pilot.json` كلها `VERIFIED` ثم يصدر قرار مالك. UI/UX الجذري والتوسعات المستقبلية مؤجلة ولا تصبح `READY` تلقائيًا.
 
-## العمل النشط
+## العمل النشط أو المحتاج مراجعة
 
-> مولّد آليًا من Workstream claims.
+> مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-001 | IN_REVIEW | `docs/operations-control-v2` | 188 | CTRL-001 | مراجعة المالك وAgent مستقل؛ لا دمج قبل قبول الملاحظات. |
+| WS-001 | IN_REVIEW | \`docs/operations-control-v2\` | 188 | CTRL-001 | مراجعة المالك وAgent مستقل؛ لا دمج قبل قبول الملاحظات. |
+| WS-141 | REVIEW_REQUIRED | \`legacy-pr-141\` | 141 | CLEAN-001 | قارن مع main الحالي ثم قرر الإغلاق أو الاستخراج؛ لا تدمج كما هي. |
+| WS-161 | REVIEW_REQUIRED | \`report/deep-system-audit-20260916\` | 161 | AUDIT-001 | احفظ قيمة التقرير التاريخية أو أغلق PR بعد مراجعة المالك؛ لا تعتبره تدقيق main الحالي. |
 

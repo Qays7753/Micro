@@ -2,23 +2,43 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Micro workstream claim",
   "type": "object",
-  "required": ["id", "title", "status", "items", "branch", "base_sha", "areas", "contracts", "started_at", "updated_at", "next_action"],
+  "required": ["id", "title", "status", "items", "branch", "base_sha", "areas", "contracts", "agent", "pr", "started_at", "updated_at", "next_action", "status_history", "migration_baseline"],
   "properties": {
     "id": {"type": "string", "pattern": "^WS-[0-9]{3}$"},
-    "title": {"type": "string"},
-    "status": {"enum": ["CLAIMED", "IN_PROGRESS", "IN_REVIEW", "BLOCKED", "REVIEW_REQUIRED", "VERIFIED", "SUPERSEDED"]},
-    "items": {"type": "array", "minItems": 1, "items": {"type": "string"}},
-    "branch": {"type": "string"},
-    "base_sha": {"type": "string"},
-    "areas": {"type": "array", "items": {"type": "string"}},
-    "contracts": {"type": "array", "items": {"type": "string"}},
-    "agent": {"type": "string"},
+    "title": {"type": "string", "minLength": 3},
+    "status": {"type": "string", "enum": ["CLAIMED", "IN_PROGRESS", "IN_REVIEW", "MERGED_UNVERIFIED", "BLOCKED", "REVIEW_REQUIRED", "VERIFIED", "SUPERSEDED", "REOPENED", "DEFERRED"]},
+    "items": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"}},
+    "branch": {"type": "string", "minLength": 1},
+    "base_sha": {"type": "string", "minLength": 7},
+    "areas": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "contracts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "agent": {"type": "string", "minLength": 1},
     "pr": {"type": ["integer", "null"]},
-    "started_at": {"type": "string"},
-    "updated_at": {"type": "string"},
-    "next_action": {"type": "string"},
-    "notes": {"type": "array", "items": {"type": "string"}}
+    "started_at": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T.*)?"},
+    "updated_at": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T.*)?"},
+    "next_action": {"type": "string", "minLength": 1},
+    "notes": {"type": "array", "items": {"type": "string"}},
+    "merge_sha": {"type": "string"},
+    "verified_on_main_sha": {"type": "string"},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "blocked_reason": {"type": "string", "minLength": 1},
+    "deferred_reason": {"type": "string", "minLength": 1},
+    "status_history": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["status", "changed_at", "actor", "reason"],
+        "properties": {
+          "status": {"type": "string", "enum": ["CLAIMED", "IN_PROGRESS", "IN_REVIEW", "MERGED_UNVERIFIED", "BLOCKED", "REVIEW_REQUIRED", "VERIFIED", "SUPERSEDED", "REOPENED", "DEFERRED"]},
+          "changed_at": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T.*)?"},
+          "actor": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "migration_baseline": {"type": "boolean"}
   },
   "additionalProperties": false
 }
-

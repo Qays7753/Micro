@@ -19,9 +19,10 @@
     "format": "prettier --write src tests apps/prototype-web/client/src",
     "format:check": "prettier --check src tests apps/prototype-web/client/src",
     "lint": "eslint src tests apps/prototype-web/client/src --max-warnings 37",
-    "check": "pnpm operations-control:check && pnpm typecheck && pnpm lint && pnpm format:check && pnpm text-density && pnpm design-guards && pnpm guards && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build",
+    "check": "pnpm operations-control:test && pnpm operations-control:check && pnpm typecheck && pnpm lint && pnpm format:check && pnpm text-density && pnpm design-guards && pnpm guards && pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build",
     "operations-control:generate": "python3 scripts/operations-control/generate_tracker.py",
-    "operations-control:check": "python3 scripts/operations-control/validate.py"
+    "operations-control:check": "python3 scripts/operations-control/validate.py",
+    "operations-control:test": "python3 -m unittest discover -s scripts/operations-control -p 'test_*.py'"
   },
   "devDependencies": {
     "eslint": "^9.39.1",

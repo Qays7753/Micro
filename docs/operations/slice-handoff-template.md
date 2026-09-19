@@ -88,6 +88,9 @@
 | Contracts المحجوزة | `<paths>` |
 | فحص عدم التداخل | `python3 scripts/operations-control/validate.py` |
 | حالة PR | `IN_REVIEW`، ولا تستخدم `VERIFIED` قبل فحص Merge SHA على main |
+| الخطوة التالية | `<next_action>` |
+| سبب الحجب/التأجيل | `<blocked_reason أو deferred_reason أو لا ينطبق>` |
+| تاريخ الحالة | `status_history` محدث وآخره يطابق الحالة الحالية |
 
 - [ ] حُدث Item JSON وWorkstream JSON.
 - [ ] أعيد توليد Views واجتاز فحص freshness.

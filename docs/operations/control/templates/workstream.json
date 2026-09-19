@@ -12,6 +12,7 @@
   "started_at": "2026-09-19T00:00:00Z",
   "updated_at": "2026-09-19T00:00:00Z",
   "next_action": "أول خطوة قابلة للتحقق",
-  "notes": []
+  "notes": [],
+  "status_history": [{"status": "CLAIMED", "changed_at": "2026-09-19", "actor": "agent/session", "reason": "سبب إنشاء الـClaim."}],
+  "migration_baseline": false
 }
-
