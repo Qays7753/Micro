@@ -206,6 +206,7 @@ def main() -> int:
     expected = outputs()
     stale: list[str] = []
     for path, content in expected.items():
+        content = content.rstrip("\n") + "\n"
         if args.check:
             if not path.exists() or path.read_text(encoding="utf-8") != content:
                 stale.append(str(path.relative_to(ROOT)))
