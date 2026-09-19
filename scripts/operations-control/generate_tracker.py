@@ -46,9 +46,9 @@ def outputs() -> dict[Path, str]:
     tracker = "# Master Tracker\n\n> مولّد آليًا. عدّل ملفات `items/*.json` فقط.\n\n" + summary + "\n\n" + table(items) + "\n"
     active_md = "# Active Work\n\n> مولّد آليًا من Workstream claims.\n\n"
     if active:
-        active_md += "| ID | الحالة | الفرع | البنود | الخطوة التالية |\n|---|---|---|---|---|\n"
+        active_md += "| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |\n|---|---|---|---|---|---|\n"
         for w in active:
-            active_md += f"| {w['id']} | {w['status']} | `{w['branch']}` | {', '.join(w['items'])} | {w['next_action']} |\n"
+            active_md += f"| {w['id']} | {w['status']} | `{w['branch']}` | {w.get('pr') or '—'} | {', '.join(w['items'])} | {w['next_action']} |\n"
     else:
         active_md += "لا يوجد Workstream نشط.\n"
 
