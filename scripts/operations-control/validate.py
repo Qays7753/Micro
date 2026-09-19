@@ -255,6 +255,33 @@ def validate_migration_map(items: dict[str, dict[str, Any]], errors: list[str]) 
                 errors.append(f"migration-map.md: mapping for {iid} is missing")
 
 
+def validate_pre_pilot_gate(items: dict[str, dict[str, Any]], release: dict[str, Any], errors: list[str]) -> None:
+    required = release.get("required_items", [])
+    required_set = set(required)
+    safety_items = {f"G-{number:03d}" for number in range(1, 7)}
+    missing_safety = sorted(safety_items - required_set)
+    if missing_safety:
+        errors.append(f"pre-pilot: mandatory safety items missing from gate: {', '.join(missing_safety)}")
+    fix_before_pilot = {iid for iid, item in items.items() if item.get("classification") == "FIX_BEFORE_PILOT"}
+    missing_fix = sorted(fix_before_pilot - required_set)
+    if missing_fix:
+        errors.append(f"pre-pilot: FIX_BEFORE_PILOT items missing from gate: {', '.join(missing_fix)}")
+    final_gate = release.get("final_gate")
+    final = items.get(final_gate)
+    if final and final.get("status") in {"READY", "CLAIMED", "IN_PROGRESS", "IN_REVIEW", "MERGED_UNVERIFIED", "VERIFIED"}:
+        not_verified = [iid for iid in required if items.get(iid, {}).get("status") != "VERIFIED"]
+        if not_verified:
+            errors.append(f"pre-pilot: {final_gate} is actionable before required items are VERIFIED: {', '.join(not_verified)}")
+    roots: dict[str, list[str]] = {}
+    for iid, item in items.items():
+        root = item.get("root_cause", "").strip()
+        if root:
+            roots.setdefault(root, []).append(iid)
+    for root, ids in sorted(roots.items()):
+        if len(ids) > 1:
+            errors.append(f"duplicate root cause {root}: {', '.join(sorted(ids))}")
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
@@ -348,6 +375,7 @@ def main() -> int:
     for iid in release.get("required_items", []) + [release.get("final_gate")]:
         if iid not in items:
             errors.append(f"pre-pilot: unknown item {iid}")
+    validate_pre_pilot_gate(items, release, errors)
 
     reports = read_json(CONTROL / "reports" / "index.json")
     for report in reports.get("reports", []):

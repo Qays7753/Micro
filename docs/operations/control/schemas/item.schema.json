@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Micro control item",
   "type": "object",
-  "required": ["id", "title", "type", "status", "priority", "stage", "summary", "source", "acceptance", "areas", "contracts", "evidence", "dependencies", "related_items", "updated_at", "status_history", "migration_baseline", "next_action"],
+  "required": ["id", "title", "type", "status", "priority", "stage", "summary", "source", "acceptance", "areas", "contracts", "evidence", "dependencies", "related_items", "updated_at", "status_history", "migration_baseline", "next_action", "classification", "owner", "tests_required", "layers"],
   "properties": {
     "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"},
     "title": {"type": "string", "minLength": 3},
@@ -13,7 +13,11 @@
     "summary": {"type": "string", "minLength": 1},
     "finding_classification": {"type": "string", "enum": ["NEW_FINDING", "DEEPENS_EXISTING", "DUPLICATE", "REOPENED", "FALSE_POSITIVE", "NOT_APPLICABLE"]},
     "finding_state": {"type": "string", "enum": ["UNVERIFIED", "CONFIRMED", "PARTIAL", "NOT_APPLICABLE"]},
+    "classification": {"type": "string", "enum": ["FIX_BEFORE_PILOT", "BUILD_AFTER_EVIDENCE", "FUTURE_SCOPE", "PILOT_VALIDATION", "HISTORICAL", "GOVERNANCE", "HARDENING", "RELEASE_GATE"]},
     "root_cause": {"type": "string"},
+    "owner": {"type": "string", "minLength": 1},
+    "tests_required": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "layers": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
     "source": {
       "type": "object",
       "required": ["report", "discovered_at_sha", "evidence"],

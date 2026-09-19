@@ -1,6 +1,6 @@
 {
   "schema": "micro-operations-control-excel-provenance-v1",
-  "source_digest": "f1893358cfd90747545b385a7c4c2a7b814aa1c234a9460aa5e1decab328ce32",
+  "source_digest": "da6f0c0ea9d2f833d7362bcbb62e87fab2b10e8857f351f3cae470fc0820a8a4",
   "source_files": [
     "docs/operations/control/items/AUDIT-001.json",
     "docs/operations/control/items/BE-001.json",
@@ -10,6 +10,7 @@
     "docs/operations/control/items/BE-005.json",
     "docs/operations/control/items/CLEAN-001.json",
     "docs/operations/control/items/CTRL-001.json",
+    "docs/operations/control/items/CTRL-002.json",
     "docs/operations/control/items/DEVICE-001.json",
     "docs/operations/control/items/FIN-001.json",
     "docs/operations/control/items/FIN-002.json",
@@ -41,6 +42,11 @@
     "docs/operations/control/items/OPS-002.json",
     "docs/operations/control/items/OPS-003.json",
     "docs/operations/control/items/OPS-004.json",
+    "docs/operations/control/items/OPS-005.json",
+    "docs/operations/control/items/OPS-006.json",
+    "docs/operations/control/items/OPS-007.json",
+    "docs/operations/control/items/OPS-008.json",
+    "docs/operations/control/items/OPS-009.json",
     "docs/operations/control/items/PILOT-001.json",
     "docs/operations/control/items/REL-001.json",
     "docs/operations/control/items/SCOPE-001.json",
@@ -67,7 +73,7 @@
     "docs/operations/control/workstreams/review/WS-161.json"
   ],
   "workbook_path": "docs/operations/control/generated/MASTER-TRACKER.xlsx",
-  "workbook_sha256": "8293515f0b0b0048d218c79399b650f30a091f220ab7473493db5aaecae07f33",
+  "workbook_sha256": "f5f1e2d7f46389bd725f6dfaf40aa3e2ab11621066158bc8a813bb1f8bc4ab5f",
   "generated_by": "reviewed Excel view update + scripts/operations-control/generate_tracker.py --refresh-excel-meta",
   "generated_at": "2026-09-19",
   "read_only_view": true,

@@ -10,6 +10,8 @@
 
 كل Item يطابق `schemas/item.schema.json`، بما في ذلك `source` و`status_history` و`migration_baseline` و`next_action`. السجلات التاريخية ذات الحالة الواحدة تستخدم `migration_baseline: true` صراحةً؛ السجلات الجديدة تسجل كل انتقال مع التاريخ والفاعل والسبب.
 
+كل Item يحدد أيضًا `classification` و`owner` و`tests_required` و`layers`. التصنيف يفرق بين إصلاح قبل Pilot، وبناء بعد دليل، ونطاق مستقبلي، وفرضية تحقق Pilot، وسجل تاريخي، وحوكمة، وتحسين تحصيني، وبوابة إصدار. هذه الحقول تسجل قابلية التتبع ولا تمنح إذنًا بالتنفيذ.
+
 - `BLOCKED` يتطلب `blocked_reason`.
 - `DEFERRED` يتطلب `deferred_reason` وبوابة إعادة فتح.
 - `MERGED_UNVERIFIED` يتطلب `merge_sha`.
