@@ -38,21 +38,21 @@ def md_cell(value: object) -> str:
 def table(items: list[dict], *, include_action: bool = False) -> str:
     if include_action:
         rows = [
-            "| ID | الحالة | التصنيف | الأولوية | المرحلة | العنوان | المالك | الخطوة التالية | السبب/البوابة | الاعتماديات |",
-            "|---|---|---|---|---|---|---|---|---|---|",
+            "| ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الخطوة التالية | السبب/البوابة | الاعتماديات |",
+            "|---|---|---|---|---|---|---|---|---|---|---|",
         ]
         for item in items:
             reason = item.get("blocked_reason") or item.get("deferred_reason") or item.get("owner_decision", "") or "—"
             rows.append("| " + " | ".join([
-                md_cell(item["id"]), md_cell(item["status"]), md_cell(item["classification"]), md_cell(item["priority"]), md_cell(item["stage"]),
+                md_cell(item["id"]), md_cell(item["status"]), md_cell(item["classification"]), md_cell(item["gate_classification"]), md_cell(item["priority"]), md_cell(item["stage"]),
                 md_cell(item["title"]), md_cell(item["owner"]), md_cell(item.get("next_action", "")), md_cell(reason),
                 md_cell(", ".join(item.get("dependencies", [])) or "—"),
             ]) + " |")
     else:
-        rows = ["| ID | الحالة | التصنيف | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |", "|---|---|---|---|---|---|---|---|---|"]
+        rows = ["| ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |", "|---|---|---|---|---|---|---|---|---|---|"]
         for item in items:
             rows.append("| " + " | ".join([
-                md_cell(item["id"]), md_cell(item["status"]), md_cell(item["classification"]), md_cell(item["priority"]), md_cell(item["stage"]),
+                md_cell(item["id"]), md_cell(item["status"]), md_cell(item["classification"]), md_cell(item["gate_classification"]), md_cell(item["priority"]), md_cell(item["stage"]),
                 md_cell(item["title"]), md_cell(item["owner"]), md_cell(", ".join(item.get("layers", [])) or "—"),
                 md_cell(", ".join(item.get("dependencies", [])) or "—"),
             ]) + " |")
@@ -175,7 +175,7 @@ python3 scripts/operations-control/validate.py
 
 ## بوابة البرنامج
 
-الـPilot `BLOCKED` حتى تصبح متطلبات `releases/pre-pilot.json` كلها `VERIFIED` ثم يصدر قرار مالك. UI/UX الجذري والتوسعات المستقبلية مؤجلة ولا تصبح `READY` تلقائيًا.
+الـPilot `BLOCKED` حتى تصبح متطلبات `releases/pre-pilot.json` كلها `VERIFIED` ثم يصدر قرار مالك. البنود ذات `DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT` قد تتأجل من ناحية التنفيذ لكنها تحجب البوابة، بينما `PILOT_EVIDENCE_REQUIRED` و`OUT_OF_SCOPE` لا تتحول تلقائيًا إلى Features.
 
 ## العمل النشط أو المحتاج مراجعة
 
@@ -184,10 +184,10 @@ python3 scripts/operations-control/validate.py
 
     csv_buffer = io.StringIO(newline="")
     writer = csv.writer(csv_buffer, lineterminator="\n")
-    writer.writerow(["ID", "Title", "Type", "Status", "Classification", "Priority", "Stage", "Owner", "Layers", "Tests required", "Dependencies", "Owner decision", "Next action", "Blocked/Deferred reason", "Source", "Updated"])
+    writer.writerow(["ID", "Title", "Type", "Status", "Classification", "Gate classification", "Priority", "Stage", "Owner", "Layers", "Tests required", "Dependencies", "Owner decision", "Next action", "Blocked/Deferred reason", "Source", "Updated"])
     for item in items:
         writer.writerow([
-            item["id"], item["title"], item["type"], item["status"], item["classification"], item["priority"], item["stage"],
+            item["id"], item["title"], item["type"], item["status"], item["classification"], item["gate_classification"], item["priority"], item["stage"],
             item["owner"], "; ".join(item.get("layers", [])), " | ".join(item.get("tests_required", [])),
             "; ".join(item.get("dependencies", [])), item.get("owner_decision", ""), item.get("next_action", ""),
             item.get("blocked_reason") or item.get("deferred_reason", ""), item.get("source", {}).get("report", ""), item["updated_at"],

@@ -35,6 +35,7 @@ class OperationsControlTests(unittest.TestCase):
             'finding_classification': 'NEW_FINDING',
             'finding_state': 'UNVERIFIED',
             'classification': 'FIX_BEFORE_PILOT',
+            'gate_classification': 'NOT_APPLICABLE',
             'root_cause': '',
             'owner': 'test-owner',
             'tests_required': ['يمر'],

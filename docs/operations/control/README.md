@@ -41,7 +41,7 @@
 
 كل Item يحتاج `next_action`. وكل بند `BLOCKED` يحتاج `blocked_reason`، وكل بند `DEFERRED` يحتاج `deferred_reason`. يتطلب `MERGED_UNVERIFIED` `merge_sha`. ويتطلب `VERIFIED` `merge_sha` و`verified_on_main_sha` ودليلًا، مع إثبات أن الـcommits موجودة وقابلة للوصول من `origin/main`.
 
-كل Item يحتاج أيضًا `classification` و`owner` و`tests_required` و`layers`. التصنيف يميز بين `FIX_BEFORE_PILOT` و`BUILD_AFTER_EVIDENCE` و`FUTURE_SCOPE` و`PILOT_VALIDATION` و`HISTORICAL` و`GOVERNANCE` و`HARDENING` و`RELEASE_GATE`. هذه الحقول تنظّم الخطة ولا تمنح إذن تنفيذ.
+كل Item يحتاج أيضًا `classification` و`gate_classification` و`owner` و`tests_required` و`layers`. التصنيف يميز بين `FIX_BEFORE_PILOT` و`BUILD_AFTER_EVIDENCE` و`FUTURE_SCOPE` و`PILOT_VALIDATION` و`HISTORICAL` و`GOVERNANCE` و`HARDENING` و`RELEASE_GATE`. و`gate_classification` يوضح هل البند متطلب Gate مؤجل التنفيذ، أو يحتاج دليل Pilot، أو خارج النطاق، أو مكرر تاريخيًا، أو مثبت على main. لا تسمح `DEFERRED` بتجاوز متطلب قبل Pilot.
 
 ## Claims ومنع التداخل
 

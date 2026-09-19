@@ -33,7 +33,7 @@ ITEM_TRANSITIONS = {
     "MERGED_UNVERIFIED": {"VERIFIED", "REOPENED", "REVIEW_REQUIRED"},
     "VERIFIED": {"REOPENED", "SUPERSEDED"},
     "BLOCKED": {"READY", "IN_PROGRESS", "DEFERRED", "REVIEW_REQUIRED", "SUPERSEDED"},
-    "REVIEW_REQUIRED": {"READY", "IN_PROGRESS", "DEFERRED", "REOPENED", "SUPERSEDED"},
+    "REVIEW_REQUIRED": {"READY", "IN_PROGRESS", "MERGED_UNVERIFIED", "DEFERRED", "REOPENED", "SUPERSEDED"},
     "DEFERRED": {"READY", "REOPENED", "SUPERSEDED"},
     "REOPENED": {"READY", "CLAIMED", "IN_PROGRESS", "BLOCKED", "DEFERRED", "REVIEW_REQUIRED"},
     "SUPERSEDED": set(),
@@ -266,6 +266,14 @@ def validate_pre_pilot_gate(items: dict[str, dict[str, Any]], release: dict[str,
     missing_fix = sorted(fix_before_pilot - required_set)
     if missing_fix:
         errors.append(f"pre-pilot: FIX_BEFORE_PILOT items missing from gate: {', '.join(missing_fix)}")
+    for iid, item in sorted(items.items()):
+        gate_classification = item.get("gate_classification")
+        if item.get("status") == "DEFERRED" and gate_classification == "NOT_APPLICABLE":
+            errors.append(f"{iid}: DEFERRED requires an explicit gate_classification")
+        if gate_classification == "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT" and iid not in required_set:
+            errors.append(f"{iid}: dependency-gated pre-pilot item is missing from PRE-PILOT")
+        if gate_classification == "MAIN_VERIFIED" and item.get("status") != "VERIFIED":
+            errors.append(f"{iid}: MAIN_VERIFIED requires status VERIFIED")
     final_gate = release.get("final_gate")
     final = items.get(final_gate)
     if final and final.get("status") in {"READY", "CLAIMED", "IN_PROGRESS", "IN_REVIEW", "MERGED_UNVERIFIED", "VERIFIED"}:

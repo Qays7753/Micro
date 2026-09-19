@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_REVIEW: 2 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 10 · DEFERRED: 25 · VERIFIED: 7
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 2 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 7 · DEFERRED: 25 · VERIFIED: 10
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -26,7 +26,7 @@ python3 scripts/operations-control/validate.py
 
 ## بوابة البرنامج
 
-الـPilot `BLOCKED` حتى تصبح متطلبات `releases/pre-pilot.json` كلها `VERIFIED` ثم يصدر قرار مالك. UI/UX الجذري والتوسعات المستقبلية مؤجلة ولا تصبح `READY` تلقائيًا.
+الـPilot `BLOCKED` حتى تصبح متطلبات `releases/pre-pilot.json` كلها `VERIFIED` ثم يصدر قرار مالك. البنود ذات `DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT` قد تتأجل من ناحية التنفيذ لكنها تحجب البوابة، بينما `PILOT_EVIDENCE_REQUIRED` و`OUT_OF_SCOPE` لا تتحول تلقائيًا إلى Features.
 
 ## العمل النشط أو المحتاج مراجعة
 
