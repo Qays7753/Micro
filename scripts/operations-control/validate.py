@@ -112,7 +112,7 @@ def main() -> int:
                     errors.append(f"{iid}: missing local reference {reference}")
         reports = json.loads((CONTROL / "reports" / "index.json").read_text(encoding="utf-8"))
         for report in reports.get("reports", []):
-            if not (ROOT / report["path"]).exists():
+            if not report["path"].startswith(("http://", "https://")) and not (ROOT / report["path"]).exists():
                 errors.append(f"report index: missing {report['path']}")
 
         secret_patterns = [re.compile(r"gh[pousr]_[A-Za-z0-9_]{20,}"), re.compile(r"github_pat_[A-Za-z0-9_]{20,}"), re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")]
