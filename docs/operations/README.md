@@ -4,7 +4,7 @@
 
 هذا المجلد يجعل GitHub، لا ذاكرة محادثة أو حسابًا معينًا، مصدر الاستمرارية بين الوكلاء. لا يغير معنى المنتج أو المال أو العقود؛ يوضح فقط **ما هو موجود الآن، وما المسموح أن يفعله الوكيل التالي، وكيف يسلم الشريحة بأمان**.
 
-## الملفات الثلاثة التي يحتاجها كل Agent
+## الملفات التي يحتاجها كل Agent
 
 | الترتيب | الملف | الغرض |
 |---:|---|---|
@@ -12,6 +12,7 @@
 | 2 | [`micro-thinking-charter-v1.md`](micro-thinking-charter-v1.md) | هدف Micro وطريقة التفكير وحدود البساطة والصدق والاختيارية التي يجب فهمها قبل الكود. |
 | 3 | [`agent-handoff-protocol-v1.md`](agent-handoff-protocol-v1.md) | قواعد الاستلام والتنفيذ والتسليم وحدود سلطة كل ملف. |
 | 4 | [`slice-handoff-template.md`](slice-handoff-template.md) | القالب الذي يستخدمه الوكيل عند فتح أو إغلاق Slice. |
+| 5 | [`control/generated/AGENT-BRIEF.md`](control/generated/AGENT-BRIEF.md) | ملخص مولّد للعمل المفتوح والبوابات والـclaims؛ لا يغيّر سلطة الملفات السابقة. |
 
 ## قاعدة المصدر الواحد
 
@@ -34,3 +35,8 @@ git pull --ff-only origin main
 
 [1]: [تعليمات الوكلاء](../../AGENTS.md)
 [2]: [حوكمة الوثائق](../05-documentation-governance.md)
+
+
+## Operations Control v2
+
+تضيف `control/` سجلًا منظّمًا للبنود وWorkstreams وViews مولّدة. هي امتداد لهذا النظام وليست Tracker موازيًا. اتبع `control/README.md`، وشغّل التحقق قبل أي Claim أو PR. يبقى `current-state.md` حقيقة الحالة المندمجة، وتبقى العقود والقرارات حقيقة السلوك.

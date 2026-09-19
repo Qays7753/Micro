@@ -7,6 +7,7 @@
 | الترتيب | الملف | الحالة | متى يُقرأ؟ |
 |---:|---|---|---|
 | 0 | `docs/operations/current-state.md` | CURRENT / LIVE STATUS | الحالة المندمجة على `main`، وبوابة التوقف، والخطوة التالية المسموحة لأي Agent جديد |
+| 0D | `docs/operations/control/README.md` و`generated/AGENT-BRIEF.md` | CURRENT / COORDINATION | سجل البنود والـWorkstreams ومنع التداخل وViews المولدة؛ لا يغيّر سلطة العقود أو current-state |
 | 0A | `docs/operations/agent-handoff-protocol-v1.md` | CURRENT / OPERATIONAL | بروتوكول الاستلام والتنفيذ والتسليم بين الوكلاء |
 | 0B | `docs/operations/micro-thinking-charter-v1.md` | CURRENT / THINKING GATE | هدف Micro وطريقة التفكير وأسئلة النقد وبطاقة الفهم قبل أي كود |
 | 0C | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
