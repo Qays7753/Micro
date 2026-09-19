@@ -75,3 +75,23 @@
 - حدّث `docs/operations/current-state.md` بمستوى الحقيقة الجديد.
 - حدّث `todo.md` للبنود المندمجة فقط.
 - اذكر العقد أو البوابة التالية؛ لا تفتحها تلقائيًا. بعد إغلاق برنامج التحصين الكامل (المجموعات ١–٦): البوابة التالية هي **المسح الهيكلي للقراءة فقط** بموجب `AGENTS.md` §11 — لا إعادة هيكلة أو نقل ملفات قبل قرار المالك على مكتشفات المسح.
+
+
+## Operations Control v2
+
+| الحقل | القيمة |
+|---|---|
+| Item IDs | `<AREA-000>` |
+| Workstream ID | `<WS-000>` |
+| حالة البداية | `CLAIMED / IN_PROGRESS` |
+| Areas المحجوزة | `<paths/domains>` |
+| Contracts المحجوزة | `<paths>` |
+| فحص عدم التداخل | `python3 scripts/operations-control/validate.py` |
+| حالة PR | `IN_REVIEW`، ولا تستخدم `VERIFIED` قبل فحص Merge SHA على main |
+| الخطوة التالية | `<next_action>` |
+| سبب الحجب/التأجيل | `<blocked_reason أو deferred_reason أو لا ينطبق>` |
+| تاريخ الحالة | `status_history` محدث وآخره يطابق الحالة الحالية |
+
+- [ ] حُدث Item JSON وWorkstream JSON.
+- [ ] أعيد توليد Views واجتاز فحص freshness.
+- [ ] لا يوجد Workstream نشط متداخل.

@@ -67,3 +67,10 @@
 [2]: [ميثاق التفكير](micro-thinking-charter-v1.md)
 [3]: [قالب الشريحة](slice-handoff-template.md)
 [4]: [تعليمات الوكلاء](../../AGENTS.md)
+
+
+## 8. السجل المنظم والـClaims
+
+ابتداءً من Operations Control v2، لا تكفي بطاقة نصية وحدها. ينشئ الوكيل Workstream JSON قبل التعديل، ويحدّث Item JSON داخل PR نفسه. الترتيب الإلزامي: تحقق من `main` وPRs → Claim بلا تداخل → تنفيذ → `IN_REVIEW` → `MERGED_UNVERIFIED` → تحقق على `main` → `VERIFIED`.
+
+`docs/operations/control/authority-map.md` يحل أي التباس في السلطة. ملفات `generated/` وExcel Views فقط، و`docs/expansion/TRACKER.md` لا ينسخ إلى هذا السجل.

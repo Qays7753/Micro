@@ -1,0 +1,18 @@
+{
+  "id": "WS-000",
+  "title": "اسم الشريحة",
+  "status": "CLAIMED",
+  "items": ["AREA-000"],
+  "branch": "agent/area-000-short-name",
+  "base_sha": "FULL_MAIN_SHA",
+  "areas": ["path-or-domain"],
+  "contracts": [],
+  "agent": "agent/session identifier",
+  "pr": null,
+  "started_at": "2026-09-19T00:00:00Z",
+  "updated_at": "2026-09-19T00:00:00Z",
+  "next_action": "أول خطوة قابلة للتحقق",
+  "notes": [],
+  "status_history": [{"status": "CLAIMED", "changed_at": "2026-09-19", "actor": "agent/session", "reason": "سبب إنشاء الـClaim."}],
+  "migration_baseline": false
+}
