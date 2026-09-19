@@ -1,0 +1,23 @@
+{
+  "id": "AREA-000",
+  "title": "عنوان مباشر",
+  "type": "FEATURE",
+  "status": "BACKLOG",
+  "priority": "P2",
+  "stage": "pre-pilot",
+  "summary": "المشكلة والنتيجة المطلوبة دون وصف حل مفترض.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "UNVERIFIED",
+  "root_cause": "",
+  "source": {"report": "", "discovered_at_sha": "", "evidence": []},
+  "acceptance": ["معيار قابل للاختبار"],
+  "areas": ["path-or-domain"],
+  "contracts": [],
+  "evidence": [],
+  "dependencies": [],
+  "related_items": [],
+  "owner_decision": "",
+  "merge_sha": "",
+  "verified_on_main_sha": "",
+  "updated_at": "2026-09-19"
+}

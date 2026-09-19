@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-09-19",
+  "rule": "الفهرس يشير إلى التقارير ولا يعيد كتابة نتائجها. التقرير التاريخي لا يثبت حالة main اللاحقة.",
+  "reports": [
+    {"id":"AUDIT-2026-09-16","path":"https://github.com/Qays7753/Micro/blob/report/deep-system-audit-20260916/reports/agent-report/2026-09-16_13-00-deep-system-audit/report.md","scope":"deep audit","status":"OPEN_PR_161_HISTORICAL"},
+    {"id":"WAVE-2","path":"reports/agent-report/2026-09-17_wave-2-financial-data-foundations/report.md","scope":"financial/data foundations","status":"MERGED"},
+    {"id":"WAVE-4-1","path":"reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md","scope":"product UX blueprint","status":"MERGED"},
+    {"id":"WAVE-4-2","path":"reports/agent-report/2026-09-17_wave-4-2-structure-navigation-naming/report.md","scope":"structure/navigation/naming","status":"MERGED"},
+    {"id":"WAVE-4-4","path":"reports/agent-report/2026-09-18_wave-4-4-system-quality-final-qa/report.md","scope":"system quality/final local QA","status":"MERGED"}
+  ]
+}
