@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCashWallet } from "@micro-domain/cash-continuity/index.js";
+import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import {
   createOwnerEntitlementPolicy,
   createOwnerEntitlementPolicySuccessor,
@@ -55,7 +55,19 @@ describe("O1 local transfer boundary", () => {
     const source = new MemoryLocalStore();
     await source.saveOwnerEntitlementPolicy(policy);
     await source.saveOwnerEntitlementRecord(record);
-    await source.commitCashContinuity(wallet, []);
+    /* G-006: رصيد افتتاحي يغطي السحب — الحرس الكنوني يرفض السحب فوق الرصيد. */
+    await source.commitCashContinuity(wallet, [
+      createCashContinuityEntry({
+        id: "wallet-o1-opening",
+        walletId: wallet.id,
+        type: "opening_balance",
+        occurredOn: "2026-08-01",
+        recordedAt: "2026-08-01T08:00:00.000Z",
+        cashDeltaMinor: 100_000,
+        note: "افتتاح",
+        operationKey: "wallet-o1-opening",
+      }),
+    ]);
     const owner = new OwnerEntitlementService(source, undefined, () => "2026-08-31T09:00:00.000Z");
     await owner.recordMovement({
       kind: "draw",
@@ -77,7 +89,8 @@ describe("O1 local transfer boundary", () => {
       ownerEntitlementPolicies: 1,
       ownerEntitlementRecords: 1,
       ownerMovements: 1,
-      cashContinuityEntries: 1,
+      /* G-006: قيد الافتتاح المرافق للحركة ضمن الرصيد المزروع للاختبار. */
+      cashContinuityEntries: 2,
     });
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
       ok: true,
@@ -153,7 +166,19 @@ describe("O1 local transfer boundary", () => {
     const source = new MemoryLocalStore();
     await source.saveOwnerEntitlementPolicy(policy);
     await source.saveOwnerEntitlementRecord(record);
-    await source.commitCashContinuity(wallet, []);
+    /* G-006: رصيد افتتاحي يغطي السحب — الحرس الكنوني يرفض السحب فوق الرصيد. */
+    await source.commitCashContinuity(wallet, [
+      createCashContinuityEntry({
+        id: "wallet-o1-opening",
+        walletId: wallet.id,
+        type: "opening_balance",
+        occurredOn: "2026-08-01",
+        recordedAt: "2026-08-01T08:00:00.000Z",
+        cashDeltaMinor: 100_000,
+        note: "افتتاح",
+        operationKey: "wallet-o1-opening",
+      }),
+    ]);
     const owner = new OwnerEntitlementService(source, undefined, () => "2026-08-31T09:00:00.000Z");
     await owner.recordMovement({
       kind: "draw",
@@ -180,7 +205,19 @@ describe("O1 local transfer boundary", () => {
     const source = new MemoryLocalStore();
     await source.saveOwnerEntitlementPolicy(policy);
     await source.saveOwnerEntitlementRecord(record);
-    await source.commitCashContinuity(wallet, []);
+    /* G-006: رصيد افتتاحي يغطي السحب — الحرس الكنوني يرفض السحب فوق الرصيد. */
+    await source.commitCashContinuity(wallet, [
+      createCashContinuityEntry({
+        id: "wallet-o1-opening",
+        walletId: wallet.id,
+        type: "opening_balance",
+        occurredOn: "2026-08-01",
+        recordedAt: "2026-08-01T08:00:00.000Z",
+        cashDeltaMinor: 100_000,
+        note: "افتتاح",
+        operationKey: "wallet-o1-opening",
+      }),
+    ]);
     const owner = new OwnerEntitlementService(source, undefined, () => "2026-08-31T09:00:00.000Z");
     await owner.recordMovement({
       kind: "draw",

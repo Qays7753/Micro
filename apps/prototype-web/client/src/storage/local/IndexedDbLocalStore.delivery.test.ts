@@ -169,7 +169,14 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
       sourceRefKind: "order",
       sourceRefLineId: "evt-delivery",
     });
-    const committed = await store.commitOrderDelivery(stored, [movement], [shortage], wallet, cashEntry);
+    const committed = await store.commitOrderDelivery(
+      readyVersion,
+      stored,
+      [movement],
+      [shortage],
+      wallet,
+      cashEntry,
+    );
     expect(committed).toMatchObject({ ok: true, value: { reused: false } });
     const [orders, movements, shortages, entries] = await Promise.all([
       store.getOrder("order-1"),
@@ -184,7 +191,14 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
     expect(entries.value).toHaveLength(1);
 
     /* إعادة المحاولة بالطلب نفسه: لا كتابة مكررة — مفاتيح حتمية تُكتشف. */
-    const retried = await store.commitOrderDelivery(stored, [movement], [shortage], wallet, cashEntry);
+    const retried = await store.commitOrderDelivery(
+      readyVersion,
+      stored,
+      [movement],
+      [shortage],
+      wallet,
+      cashEntry,
+    );
     expect(retried).toMatchObject({ ok: true, value: { reused: true } });
     const movementsAfter = await store.listInventoryMovements();
     const entriesAfter = await store.listCashContinuityEntries();

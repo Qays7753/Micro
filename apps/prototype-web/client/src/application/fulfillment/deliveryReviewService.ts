@@ -15,6 +15,7 @@ import {
   reverseDelivery,
   reviseAgreedPrice,
   transitionOrder,
+  type CraftOrder,
 } from "@micro-domain/craft-order/index.js";
 import {
   assertInventoryRemainsNonNegative,
@@ -22,7 +23,9 @@ import {
   createInventoryMovement,
   createInventoryShortage,
   materialIsTracked,
+  orderLinkedConsumptionMilli,
   positionCostKnowledge,
+  remainingToConsumeMilli,
   summarizeMaterialInventory,
   type InventoryMovement,
   type InventoryShortage,
@@ -44,6 +47,12 @@ export type DeliveryConsumptionRow = {
   unitLabel: string;
   tracked: boolean;
   plannedQuantityMilli: number;
+  /* G-001 (تدقيق الإدارة المالية المتدرجة 2026-09-19): الاستهلاك اليدوي
+   * السابق المرتبط بنفس الطلب والمادة (عقد ١٣ — المستبعد منه المعكوس)،
+   * والمتبقي المخطط فعليًا بعد خصمه — فلا يُستهلك المخطط مرتين ولا يُختلق
+   * نقص كاذب بسبب استهلاك سابق صحيح. */
+  alreadyConsumedForOrderMilli: number;
+  remainingToConsumeMilli: number;
   availableQuantityMilli: number;
   availableKnown: boolean;
   costKnowledge: "known" | "partial" | "unknown";
@@ -101,7 +110,11 @@ export type DeliveryCommitResult =
         notice: string | null;
       };
     }
-  | { ok: false; code: "storage_error" | "invalid_state" | "validation_error"; message: string };
+  | {
+      ok: false;
+      code: "storage_error" | "storage_stale" | "invalid_state" | "validation_error";
+      message: string;
+    };
 
 /* رقعة إغلاق المجموعة ٣ (D-031): التعارض المتزامن يظهر بكود مطبوع
  * storage_stale (مثل عقد المورد/الموعد — بلا تفسير نصوص) — الرسالة من
@@ -141,6 +154,20 @@ function reversalIdempotencyKey(orderId: string, reversalEventCount: number): st
   return reversalEventCount === 0
     ? `${orderId}:reverse-delivery`
     : `${orderId}:reverse-delivery-${reversalEventCount + 1}`;
+}
+
+/* G-001: المخطط لكل مادة من نسخة التكلفة المجمدة — تجميع ميي صحيح لكل بنود
+ * المادة نفسها (نمط buildReview نفسه)، قراءة فقط لا تمس اللقطة التاريخية. */
+function snapshotMaterialPlannedMilli(order: CraftOrder, materialId: string): number {
+  let total = 0;
+  for (const item of order.costSnapshot.input.materialItems) {
+    const itemMaterialId = (item as { materialId?: string | null }).materialId ?? null;
+    if (itemMaterialId !== materialId) continue;
+    const milli = quantityMilliExact(item.quantity);
+    if (milli === null) continue;
+    total += milli;
+  }
+  return total;
 }
 
 export class DeliveryReviewService {
@@ -234,13 +261,15 @@ export class DeliveryReviewService {
       }
       const planned = item.quantityMilli;
       if (!materialIsTracked(material)) {
-        /* عقد ٢٨: المادة غير المتتبَّعة مرجع تكلفة فقط — لا حركة كمية أبدًا. */
+        /* عقد ٢٨: المادة غير المتتبعة مرجع تكلفة فقط — لا حركة كمية أبدًا. */
         rows.push({
           materialId,
           materialName: material.name,
           unitLabel: UNIT_LABELS[material.unit] ?? "وحدة أخرى",
           tracked: false,
           plannedQuantityMilli: planned,
+          alreadyConsumedForOrderMilli: 0,
+          remainingToConsumeMilli: planned,
           availableQuantityMilli: 0,
           availableKnown: false,
           costKnowledge: "unknown",
@@ -253,12 +282,33 @@ export class DeliveryReviewService {
       }
       const position = summarizeMaterialInventory(materialId, movements);
       const costKnowledge = positionCostKnowledge(movements, materialId);
-      const shortage = Math.max(planned - position.quantityMilli, 0);
+      /* G-001 (تدقيق الإدارة المالية المتدرجة 2026-09-19): الاستهلاك اليدوي
+       * السابق المرتبط بنفس الطلب والمادة يُخصم من المخطط — الاقتراح
+       * والنقص كلاهما على المتبقي لا على المخطط كاملًا، فلا استهلاك مزدوج
+       * ولا نقص كاذب؛ وبلا استهلاك سابق يبقى المتبقي = المخطط حرفيًا
+       * (سلوك اليوم كما هو بلا تغيير). */
+      const alreadyConsumedForOrderMilli = orderLinkedConsumptionMilli(orderId, materialId, movements);
+      const remainingToConsume = remainingToConsumeMilli(planned, alreadyConsumedForOrderMilli);
+      const shortage = Math.max(remainingToConsume - position.quantityMilli, 0);
       const suggestedAction: DeliveryConsumptionAction =
-        shortage <= 0 ? "consume" : position.quantityMilli > 0 ? "consume_with_shortage" : "record_shortage";
+        remainingToConsume <= 0
+          ? "skip"
+          : shortage <= 0
+            ? "consume"
+            : position.quantityMilli > 0
+              ? "consume_with_shortage"
+              : "record_shortage";
       if (shortage > 0)
         warnings.push(
-          `المادة «${material.name}»: المطلوب أكبر من المتاح — سيُسجَّل النقص صراحةً ولا يصير الرصيد سالبًا.`,
+          `المادة «${material.name}»: المطلوب أكبر من المتاح — سيُسجل النقص صراحةً ولا يصير الرصيد سالبًا.`,
+        );
+      if (alreadyConsumedForOrderMilli > 0)
+        warnings.push(
+          `المادة «${material.name}»: استُهلك لهذا الطلب سابقًا ${formatQuantityMilli(
+            alreadyConsumedForOrderMilli,
+          )} ${UNIT_LABELS[material.unit] ?? ""} — والمتبقي للاستهلاك ${formatQuantityMilli(
+            remainingToConsume,
+          )} ${UNIT_LABELS[material.unit] ?? ""}؛ الاقتراح بالمتبقي لا بالمخطط كاملًا.`,
         );
       rows.push({
         materialId,
@@ -266,6 +316,8 @@ export class DeliveryReviewService {
         unitLabel: UNIT_LABELS[material.unit] ?? "وحدة أخرى",
         tracked: true,
         plannedQuantityMilli: planned,
+        alreadyConsumedForOrderMilli,
+        remainingToConsumeMilli: remainingToConsume,
         availableQuantityMilli: position.quantityMilli,
         availableKnown: true,
         costKnowledge,
@@ -409,6 +461,25 @@ export class DeliveryReviewService {
       if (existingMovements.some(movement => movement.operationKey === operationKey)) continue;
       const position = summarizeMaterialInventory(row.materialId, existingMovements);
       const costUnknown = positionCostKnowledge(existingMovements, row.materialId) === "unknown";
+      /* G-001: حرس حد الكتابة — الكمية المطلوبة (استهلاكًا أو نقصًا مسجّلًا)
+       * لا تتجاوز المتبقي فعليًا بعد خصم الاستهلاك اليدوي السابق المرتبط
+       * بنفس الطلب والمادة (محسوبًا من الحركات الحية المعاد قراءتها هنا) —
+       * لا تُخفَّض بصمت ولا يُبتلع الخطأ: رفض صريح بأرقام صادقة، فلا يُستهلك
+       * المخطط مرتين ولا يُختلق نقص سببه تجاهل استهلاك سابق صحيح. */
+      const rowPlannedMilli = snapshotMaterialPlannedMilli(order, row.materialId);
+      const alreadyConsumedForOrderMilli = orderLinkedConsumptionMilli(
+        orderId,
+        row.materialId,
+        existingMovements,
+      );
+      const remainingToConsume = remainingToConsumeMilli(rowPlannedMilli, alreadyConsumedForOrderMilli);
+      if (row.action !== "skip" && row.quantityMilli > remainingToConsume)
+        return failure(
+          "validation_error",
+          `المادة «${material.name}»: الكمية المطلوبة أكبر من المتبقي للاستهلاك — ` +
+            `استُهلك سابقًا لهذا الطلب ${formatQuantityMilli(alreadyConsumedForOrderMilli)} ` +
+            `والمتبقي ${formatQuantityMilli(remainingToConsume)}؛ راجع الكمية قبل الحفظ.`,
+        );
       const consumeQuantity =
         row.action === "consume" || row.action === "consume_with_shortage"
           ? row.action === "consume"
@@ -534,13 +605,16 @@ export class DeliveryReviewService {
 
     const nextStored: StoredCraftOrder = { ...stored, order, updatedAt: timestamp };
     const committed = await this.store.commitOrderDelivery(
+      stored,
       nextStored,
       newMovements,
       newShortages,
       wallet,
       cashEntry,
     );
-    if (!committed.ok) return failure("storage_error", "تعذر حفظ التسليم؛ لم يتغير أي رصيد أو حالة.");
+    /* G-003: الكود المطبوع من المخزن كما هو (عقد رحلة storage_stale §31) —
+     * تعارض القراءة-الكتابة المتزامن على الطلب يُعاد بلا كتابة ولا طمر. */
+    if (!committed.ok) return failure(storageFailureCode(committed.code), committed.message);
 
     /* مواءمة المواعيد غير حاجرة — نمط deliver() القائم. */
     let notice: string | null = null;

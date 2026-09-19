@@ -21,7 +21,7 @@ import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type FulfillmentResult =
   | { ok: true; stored: StoredCraftOrder; notice?: string; reused?: boolean }
-  | { ok: false; code: "storage_error" | "invalid_state"; message: string };
+  | { ok: false; code: "storage_error" | "storage_stale" | "invalid_state"; message: string };
 export type DepositRow = {
   orderId: string;
   itemName: string;
@@ -64,11 +64,23 @@ export class FulfillmentService {
     return success(result.value);
   }
 
-  private async persist(stored: StoredCraftOrder): Promise<FulfillmentResult> {
-    const result = await this.store.saveOrder(stored);
-    return result.ok
-      ? success(result.value)
-      : failure("storage_error", "تعذر حفظ التغيير — بياناتك كما هي؛ أعد المحاولة.");
+  /* G-003 (تدقيق الإدارة المالية المتدرجة 2026-09-19): كل كتابة الطلب تمرّ
+   * بالالتزام المحروس لا saveOrder الأعمى — الحالة الحية تُتحقق داخل حد
+   * الكتابة (القاعدة مقابل الحي)، وإعادة تشغيل العملية نفسها بمفتاحها
+   * إعادة استخدام صادقة، والتعارض يظهر بكود مطبوع storage_stale (عقد §31)
+   * بلا كتابة — لا آخر-كاتب-يفوز ولا دمج صامت لحقول مالية/مخزنية. */
+  private async persistGuarded(
+    base: StoredCraftOrder,
+    next: StoredCraftOrder,
+    idempotencyKeys: readonly string[],
+  ): Promise<FulfillmentResult> {
+    const result = await this.store.commitOrderUpdate(base, next, idempotencyKeys);
+    if (result.ok)
+      return result.value.reused
+        ? { ok: true, stored: result.value.order, reused: true }
+        : success(result.value.order);
+    if (result.code === "storage_stale") return failure("storage_stale", result.message);
+    return failure("storage_error", "تعذر حفظ التغيير — بياناتك كما هي؛ أعد المحاولة.");
   }
 
   async markReady(id: string): Promise<FulfillmentResult> {
@@ -84,12 +96,15 @@ export class FulfillmentService {
       const readyAttempt = current.stored.order.events.filter(
         event => event.type === "status_changed" && event.toStatus === "ready",
       ).length;
+      const readyKey = readyAttempt === 0 ? `${id}:mark-ready` : `${id}:mark-ready-${readyAttempt + 1}`;
       const order = transitionOrder(current.stored.order, {
         to: "ready",
-        idempotencyKey: readyAttempt === 0 ? `${id}:mark-ready` : `${id}:mark-ready-${readyAttempt + 1}`,
+        idempotencyKey: readyKey,
         createdAt: timestamp,
       });
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        readyKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل الجاهزية.");
     }
@@ -121,7 +136,9 @@ export class FulfillmentService {
         idempotencyKey: operationKey,
         createdAt: timestamp,
       });
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        operationKey,
+      ]);
     } catch (error) {
       return failure(
         "invalid_state",
@@ -144,25 +161,29 @@ export class FulfillmentService {
       const confirmedAttempt = current.stored.order.events.filter(
         event => event.type === "status_changed" && event.toStatus === "confirmed",
       ).length;
+      const reconfirmKey =
+        confirmedAttempt === 0 ? `${id}:reconfirm` : `${id}:reconfirm-${confirmedAttempt + 1}`;
       const confirmed = transitionOrder(current.stored.order, {
         to: "confirmed",
-        idempotencyKey:
-          confirmedAttempt === 0 ? `${id}:reconfirm` : `${id}:reconfirm-${confirmedAttempt + 1}`,
+        idempotencyKey: reconfirmKey,
         createdAt: timestamp,
         note: "استئناف بعد مراجعة موثقة",
       });
       const executingAttempt = confirmed.events.filter(
         event => event.type === "status_changed" && event.toStatus === "in_progress",
       ).length;
+      const resumeKey =
+        executingAttempt === 0 ? `${id}:resume-execution` : `${id}:resume-execution-${executingAttempt + 1}`;
       const executing = transitionOrder(confirmed, {
         to: "in_progress",
-        idempotencyKey:
-          executingAttempt === 0
-            ? `${id}:resume-execution`
-            : `${id}:resume-execution-${executingAttempt + 1}`,
+        idempotencyKey: resumeKey,
         createdAt: timestamp,
       });
-      return this.persist({ ...current.stored, order: executing, updatedAt: timestamp });
+      return this.persistGuarded(
+        current.stored,
+        { ...current.stored, order: executing, updatedAt: timestamp },
+        [reconfirmKey, resumeKey],
+      );
     } catch (error) {
       return failure(
         "invalid_state",
@@ -190,12 +211,17 @@ export class FulfillmentService {
       const attempt = current.stored.order.events.filter(
         event => event.type === "status_changed" && event.toStatus === "delivered",
       ).length;
+      const deliverKey = attempt === 0 ? `${id}:deliver` : `${id}:deliver-${attempt + 1}`;
       const order = transitionOrder(current.stored.order, {
         to: "delivered",
-        idempotencyKey: attempt === 0 ? `${id}:deliver` : `${id}:deliver-${attempt + 1}`,
+        idempotencyKey: deliverKey,
         createdAt: timestamp,
       });
-      const saved = await this.persist({ ...current.stored, order, updatedAt: timestamp });
+      const saved = await this.persistGuarded(
+        current.stored,
+        { ...current.stored, order, updatedAt: timestamp },
+        [deliverKey],
+      );
       /* S2-10: فشل مواءمة الجدول بعد التسليم لا يُخفى ولا يُفشل التسليم نفسه —
        * إشعار غير حاجر بنمط إشعار نسبة المحفظة نفسه (المجموعة ٤). غياب موعد
        * مرتبط (not_found) حالة سليمة لا تستحق إشعارًا. */
@@ -222,8 +248,11 @@ export class FulfillmentService {
     try {
       const timestamp = this.now();
       const amount = current.stored.order.receivableMinor;
-      const order = collectRemaining(current.stored.order, amount, `${id}:collect-full-${amount}`, timestamp);
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      const collectKey = `${id}:collect-full-${amount}`;
+      const order = collectRemaining(current.stored.order, amount, collectKey, timestamp);
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        collectKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التحصيل.");
     }
@@ -242,13 +271,11 @@ export class FulfillmentService {
     if (current.stored.order.status === "cancelled") return current;
     try {
       const timestamp = this.now();
-      const order = collectRegisteredDebt(
-        current.stored.order,
-        amountMinor,
-        operationKey ?? `${id}:debt-collect-${amountMinor}-${timestamp}`,
-        timestamp,
-      );
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      const debtKey = operationKey ?? `${id}:debt-collect-${amountMinor}-${timestamp}`;
+      const order = collectRegisteredDebt(current.stored.order, amountMinor, debtKey, timestamp);
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        debtKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل تحصيل الدين.");
     }
@@ -274,7 +301,9 @@ export class FulfillmentService {
       try {
         const timestamp = this.now();
         const next = collectRemaining(order, amountMinor, `${operationKey}`, timestamp);
-        return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
+        return this.persistGuarded(current.stored, { ...current.stored, order: next, updatedAt: timestamp }, [
+          operationKey,
+        ]);
       } catch (error) {
         return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التحصيل.");
       }
@@ -298,7 +327,9 @@ export class FulfillmentService {
     try {
       const timestamp = this.now();
       const order = collectDeposit(current.stored.order, input.amountMinor, input.operationKey, timestamp);
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        input.operationKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل العربون.");
     }
@@ -316,16 +347,19 @@ export class FulfillmentService {
       const timestamp = this.now();
       /* G6-F1-2: مفتاح جذر من المستدعي يجعل إعادة المحاولة قابلة للكشف بـeventExists —
        * مفتاح الطابع الزمني السابق جعل كل محاولة فريدة فرُحّ تكرر التراجع الجزئي. */
+      const reverseKey =
+        input.operationKey ??
+        `${id}:reverse-collection-${input.collectionEventId}-${input.amountMinor}-${timestamp}`;
       const order = reverseOrderCollection(current.stored.order, {
         collectionEventId: input.collectionEventId,
         amountMinor: input.amountMinor,
         reason: input.reason,
-        idempotencyKey:
-          input.operationKey ??
-          `${id}:reverse-collection-${input.collectionEventId}-${input.amountMinor}-${timestamp}`,
+        idempotencyKey: reverseKey,
         createdAt: timestamp,
       });
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        reverseKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر التراجع عن القبض.");
     }
@@ -342,13 +376,16 @@ export class FulfillmentService {
     if (!input.reason.trim()) return failure("invalid_state", "أكمل سبب تعديل السعر قبل الحفظ.");
     try {
       const timestamp = this.now();
+      const priceKey = `${id}:revise-price-${input.newPriceMinor}-${timestamp}`;
       const order = reviseAgreedPrice(current.stored.order, {
         newPriceMinor: input.newPriceMinor,
         reason: input.reason,
-        idempotencyKey: `${id}:revise-price-${input.newPriceMinor}-${timestamp}`,
+        idempotencyKey: priceKey,
         createdAt: timestamp,
       });
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        priceKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تعديل السعر.");
     }
@@ -366,8 +403,11 @@ export class FulfillmentService {
     try {
       const timestamp = this.now();
       const amount = current.stored.order.receivableMinor;
-      const order = registerDebt(current.stored.order, `${id}:register-debt-${amount}`, timestamp);
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      const debtKey = `${id}:register-debt-${amount}`;
+      const order = registerDebt(current.stored.order, debtKey, timestamp);
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        debtKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل الدين.");
     }
@@ -384,7 +424,9 @@ export class FulfillmentService {
     try {
       const timestamp = this.now();
       const order = cancelOrder(current.stored.order, trimmed, `${id}:cancel`, timestamp);
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        `${id}:cancel`,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر إلغاء الطلب.");
     }
@@ -401,8 +443,11 @@ export class FulfillmentService {
     if (!current.ok) return current;
     try {
       const timestamp = this.now();
-      const order = assignOrderCustomerName(current.stored.order, name, `${id}:assign-name:${name.trim()}`);
-      return this.persist({ ...current.stored, order, updatedAt: timestamp });
+      const nameKey = `${id}:assign-name:${name.trim()}`;
+      const order = assignOrderCustomerName(current.stored.order, name, nameKey);
+      return this.persistGuarded(current.stored, { ...current.stored, order, updatedAt: timestamp }, [
+        nameKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسمية الجهة.");
     }
@@ -460,7 +505,9 @@ export class FulfillmentService {
       }
       /* تعذر بناء فك التخصيص (تخصيص مُفكوك جزئيًا سابقًا مثلًا) — الرد نفسه
        * لا يعلّق: يُكتب على الطلب ويبقى أثر المحفظة بيد المالك من دفترها. */
-      return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
+      return this.persistGuarded(current.stored, { ...current.stored, order: next, updatedAt: timestamp }, [
+        refundEventKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر رد العربون.");
     }
@@ -523,7 +570,9 @@ export class FulfillmentService {
       }
       /* تعذر بناء فك التخصيص — العكس نفسه لا يعلّق: يُكتب على الطلب ويبقى
        * أثر المحفظة بيد المالك من دفترها (نفس تدهور الرد الموثق). */
-      return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
+      return this.persistGuarded(current.stored, { ...current.stored, order: next, updatedAt: timestamp }, [
+        reversalEventKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر عكس العربون.");
     }
@@ -611,14 +660,11 @@ export class FulfillmentService {
     if (amount <= 0) return failure("invalid_state", "لا عربون معلّق قابل للاحتفاظ — راجع قرار التسوية.");
     try {
       const timestamp = this.now();
-      const next = settleDepositRetain(
-        current.stored.order,
-        amount,
-        reason,
-        `${id}:retain-deposit-${amount}-${timestamp}`,
-        timestamp,
-      );
-      return this.persist({ ...current.stored, order: next, updatedAt: timestamp });
+      const retainKey = `${id}:retain-deposit-${amount}-${timestamp}`;
+      const next = settleDepositRetain(current.stored.order, amount, reason, retainKey, timestamp);
+      return this.persistGuarded(current.stored, { ...current.stored, order: next, updatedAt: timestamp }, [
+        retainKey,
+      ]);
     } catch (error) {
       return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسوية العربون.");
     }

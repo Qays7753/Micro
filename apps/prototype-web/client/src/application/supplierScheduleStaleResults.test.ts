@@ -71,6 +71,20 @@ class GenuineFailureStore extends MemoryLocalStore {
       message: "فشل تخزيني حقيقي مفبرك للاختبار.",
     };
   }
+  /* G-002: مسار الخدمة الذرّي — الشراء/الدفعة وتخصيصها في التزام واحد. */
+  override async commitSupplierPurchaseWithAttribution(
+    commit: Parameters<MemoryLocalStore["commitSupplierPurchaseWithAttribution"]>[0],
+    attribution: Parameters<MemoryLocalStore["commitSupplierPurchaseWithAttribution"]>[1],
+  ) {
+    this.failedCommit = true;
+    void commit;
+    void attribution;
+    return {
+      ok: false as const,
+      code: "storage_error" as const,
+      message: "فشل تخزيني حقيقي مفبرك للاختبار.",
+    };
+  }
   override async commitScheduleUpdate(schedule: ScheduleEntry) {
     this.failedCommit = true;
     return {

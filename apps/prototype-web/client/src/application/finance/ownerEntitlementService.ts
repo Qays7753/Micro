@@ -24,6 +24,7 @@ import {
   type OwnerEntitlementPolicyTerms,
 } from "@micro-domain/owner-entitlement/index.js";
 import { reversedEventIds, type FinancialEvent } from "@micro-domain/financial-event/index.js";
+import { evaluateWithdrawalWalletCoverage } from "@/application/finance/withdrawalWalletGuard";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
@@ -932,6 +933,21 @@ export class OwnerEntitlementService {
         code: "validation_error",
         message: "اختر محفظة كاش موجودة؛ لا تحفظ حركة بلا محفظة.",
       };
+    /* G-006 (تدقيق الإدارة المالية المتدرجة ٢٠٢٦-٠٩-١٩): الحرس الكنوني
+     * المشترك لمساري السحب — مسار الدفتر يطبق فحص التغطية نفسه الذي يطبقه
+     * مسار الحدث قبل أي كتابة: رصيد لا يغطي السحب يُرفض برسالة تعرض المتاح
+     * والمطلوب، ولا تُكتب حركة ولا أثر كاش (لا كتابة جزئية ولا سالب صامت).
+     * الإرجاع/التسويات تضيف للرصيد فلا تُحرس هنا. */
+    if (input.kind === "draw") {
+      const withdrawalGuard = evaluateWithdrawalWalletCoverage({
+        walletId: input.walletId,
+        wallets: wallets.value,
+        cashEntries: cashEntries.value,
+        amountMinor: input.amountMinor,
+      });
+      if (!withdrawalGuard.ok)
+        return { ok: false, code: "validation_error", message: withdrawalGuard.message };
+    }
     const activeEntitlementRecords = activeOriginals(entitlements.value);
     if (input.reason === "entitlement_settlement") {
       if (

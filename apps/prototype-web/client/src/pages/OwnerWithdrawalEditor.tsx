@@ -143,6 +143,9 @@ export default function OwnerWithdrawalEditor() {
         counterparty: null,
         relatedEventId: null,
         idempotencyKey: idempotencyKey.current,
+        /* G-006: محفظة المصدر تمر مع الحدث — فحص التغطية قبل أي كتابة
+         * بالحرس الكنوني المشترك نفسه لمسار الدفتر. */
+        sourceWalletId: eventWalletId.trim() || null,
       });
       if (result.ok && eventWalletId.trim() && !result.reused) {
         const attribution = await projectFinance.distributeUnallocated({

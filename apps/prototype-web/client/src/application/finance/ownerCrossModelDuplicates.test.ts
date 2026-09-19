@@ -9,7 +9,7 @@
  * ٤) الدفتر الموحد يعلم الصفوف المتطابقة ويعلن عددها.
  */
 import { describe, expect, it } from "vitest";
-import { createCashWallet } from "@micro-domain/cash-continuity/index.js";
+import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import { OwnerEntitlementService } from "./ownerEntitlementService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -24,7 +24,19 @@ const wallet = createCashWallet({
 
 async function setup() {
   const store = new MemoryLocalStore();
-  await store.commitCashContinuity(wallet, []);
+  /* G-006: رصيد افتتاحي يغطي السحب — السحب فوق الرصيد يُرفض بالحرس الكنوني. */
+  await store.commitCashContinuity(wallet, [
+    createCashContinuityEntry({
+      id: "wallet-guard-opening",
+      walletId: wallet.id,
+      type: "opening_balance",
+      occurredOn: "2026-09-01",
+      recordedAt: "2026-09-01T08:00:00.000Z",
+      cashDeltaMinor: 100_000,
+      note: "افتتاح لاختبار التكرار",
+      operationKey: "wallet-guard-opening",
+    }),
+  ]);
   const service = new OwnerEntitlementService(
     store,
     async () => ({ ok: true as const, value: { resultMinor: 0, status: "recorded_only" as const } }),

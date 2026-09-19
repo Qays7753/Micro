@@ -6,7 +6,11 @@ import {
   updateSupplierPurchase,
   type SupplierPurchase,
 } from "@micro-domain/supplier-purchase/index.js";
-import { createCashContinuityEntry, summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
+import {
+  createCashContinuityEntry,
+  summarizeCashContinuity,
+  type CashContinuityEntry,
+} from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
 import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
@@ -115,47 +119,31 @@ export class SupplierPurchaseService {
     return { ok: true, value: { walletBalanceMinor } };
   }
 
-  /* FIN-003: نسبة دفعة مورد لمحفظتها بعد حفظها — تخصيص واحد سالب يغطي من رصيد
-   * المحفظة ويرجع أثرها إلى «غير الموزع» فلا يصبح سالبًا مرتين، بمفتاح حتمية
-   * مشتق (الإعادة لا تكرر) وربط مصدر «supplier_purchase» يصل دفتر المحفظة
-   * بالشراء نفسه. الفشل المتأخر يُعلن في الوصل لا يُبتلع. */
-  private async attributePaymentToWallet(input: {
+  /* FIN-003: نسبة دفعة مورد لمحفظتها — تُبنى قبل الالتزام وتُكتب معه في
+   * معاملة واحدة (G-002): تخصيص واحد سالب يغطي من رصيد المحفظة ويرجع أثرها
+   * إلى «غير الموزع» فلا يصبح سالبًا مرتين، بمفتاح حتمية مشتق (الإعادة لا
+   * تكرر) وربط مصدر «supplier_purchase» يصل دفتر المحفظة بالشراء نفسه.
+   * إعادة الإرسال بعد فشل/انقطاع تشفي التخصيص الناقص داخل المعاملة نفسها
+   * من الحقيقة المخزّنة — لا حالة نصفية دائمة. */
+  private buildAttributionEntry(input: {
     walletId: string;
     amountMinor: number;
     occurredOn: string;
     sourceRefId: string;
     operationKey: string;
-  }): Promise<string | null> {
-    try {
-      const [walletsResult, entriesResult] = await Promise.all([
-        this.store.listCashWallets(),
-        this.store.listCashContinuityEntries(),
-      ]);
-      if (!walletsResult.ok || !entriesResult.ok)
-        return "تعذّرت نسبة الدفعة للمحفظة — هي محفوظة الآن ضمن الكاش غير الموزع؛ راجعها من مالي.";
-      const wallet = walletsResult.value.find(candidate => candidate.id === input.walletId);
-      if (!wallet)
-        return "المحفظة المختارة لم تُوجد بعد الحفظ — الدفعة محفوظة ضمن الكاش غير الموزع؛ راجعها من مالي.";
-      if (entriesResult.value.some(entry => entry.operationKey === input.operationKey)) return null;
-      const entry = createCashContinuityEntry({
-        id: `supplier-payment-attr-${id()}`,
-        walletId: wallet.id,
-        type: "allocation",
-        occurredOn: input.occurredOn,
-        recordedAt: this.now(),
-        cashDeltaMinor: -input.amountMinor,
-        note: "تغطية دفعة مورد من رصيد المحفظة",
-        operationKey: input.operationKey,
-        sourceRefId: input.sourceRefId,
-        sourceRefKind: "supplier_purchase",
-      });
-      const saved = await this.store.commitCashContinuity(wallet, [entry]);
-      if (!saved.ok)
-        return "تعذّرت نسبة الدفعة للمحفظة — هي محفوظة الآن ضمن الكاش غير الموزع؛ راجعها من مالي.";
-      return null;
-    } catch {
-      return "تعذّرت نسبة الدفعة للمحفظة — هي محفوظة الآن ضمن الكاش غير الموزع؛ راجعها من مالي.";
-    }
+  }): CashContinuityEntry {
+    return createCashContinuityEntry({
+      id: `supplier-payment-attr-${id()}`,
+      walletId: input.walletId,
+      type: "allocation",
+      occurredOn: input.occurredOn,
+      recordedAt: this.now(),
+      cashDeltaMinor: -input.amountMinor,
+      note: "تغطية دفعة مورد من رصيد المحفظة",
+      operationKey: input.operationKey,
+      sourceRefId: input.sourceRefId,
+      sourceRefKind: "supplier_purchase",
+    });
   }
 
   async list(): Promise<SupplierPurchaseResult<readonly SupplierPurchase[]>> {
@@ -211,33 +199,34 @@ export class SupplierPurchaseService {
         /* FIN-003: مصدر الدفعة الأولية يُحفظ على الدفعة نفسها. */
         initialPaymentWalletId,
       });
-      /* المجموعة ٢ (التحصين الكامل — HIGH-001): الالتزام الذرّي — مفتاح الحتمية
-       * يُفحص داخل المعاملة (إعادة التشغيل تُعاد كما هي) ولا يُنشأ سجل فوق
-       * مسار متزامن آخر. */
-      const saved = await this.store.commitSupplierPurchase({
-        kind: "create",
-        purchase,
-        idempotencyKey: input.idempotencyKey,
-      });
+      /* G-002 (تدقيق الإدارة المالية المتدرجة 2026-09-19): الالتزام الذرّي
+       * الواحد — الشراء والدفع الأولي وتخصيص محفظته معًا أو لا شيء؛ إعادة
+       * الإرسال بعد فشل تشفي التخصيص من الحقيقة المخزّنة داخل المعاملة. */
+      const attribution =
+        initialPaidPositive(input) && initialPaymentWalletId
+          ? this.buildAttributionEntry({
+              walletId: initialPaymentWalletId,
+              amountMinor: input.initialPaidMinor,
+              occurredOn: input.purchasedOn,
+              sourceRefId: purchase.id,
+              operationKey: `${input.idempotencyKey}:initial-attribute`,
+            })
+          : null;
+      const saved = await this.store.commitSupplierPurchaseWithAttribution(
+        {
+          kind: "create",
+          purchase,
+          idempotencyKey: input.idempotencyKey,
+        },
+        attribution,
+      );
       if (!saved.ok)
         return {
           ok: false,
           code: storageFailureCode(saved.code),
           message: saved.message ?? "تعذر حفظ شراء المواد محليًا — بياناتك كما هي؛ أعد المحاولة.",
         };
-      /* FIN-003: بعد نجاح حفظ الشراء تُنسب الدفعة الأولية لمحفظتها بتخصيص
-       * سالب واحد — لا خصم مزدوج ولا سالب غير موزع. فشل متأخر يُعلن صادقًا. */
-      const attributionNote =
-        !saved.value.reused && initialPaidPositive(input) && initialPaymentWalletId
-          ? await this.attributePaymentToWallet({
-              walletId: initialPaymentWalletId,
-              amountMinor: input.initialPaidMinor,
-              occurredOn: input.purchasedOn,
-              sourceRefId: saved.value.purchase.id,
-              operationKey: `${input.idempotencyKey}:initial-attribute`,
-            })
-          : null;
-      return { ok: true, value: saved.value.purchase, reused: saved.value.reused, attributionNote };
+      return { ok: true, value: saved.value.purchase, reused: saved.value.reused, attributionNote: null };
     } catch (error) {
       return {
         ok: false,
@@ -269,33 +258,33 @@ export class SupplierPurchaseService {
         /* FIN-003: مصدر الدفعة يُحفظ معها. */
         walletId,
       });
-      /* المجموعة ٢ (التحصين الكامل — HIGH-001): دفعة واحدة بالضبط داخل معاملة
-       * واحدة — مفتاح الحتمية يُفحص داخلها، والكتابة المتزامنة من مسار آخر
-       * تُرفض بوضوح ولا تُسقط أثر أي طرف بصمت. */
-      const saved = await this.store.commitSupplierPurchase({
-        kind: "payment",
-        purchase: updated,
-        idempotencyKey: input.idempotencyKey,
-      });
+      /* G-002: الالتزام الذرّي الواحد — الدفعة وتخصيص محفظتها معًا أو لا شيء؛
+       * إعادة الإرسال بعد فشل تشفي التخصيص من الحقيقة المخزّنة داخل المعاملة
+       * نفسها فلا يُتخطى التخصيص لأن الدفعة «reused». */
+      const attribution = walletId
+        ? this.buildAttributionEntry({
+            walletId,
+            amountMinor: input.amountMinor,
+            occurredOn: input.occurredOn,
+            sourceRefId: input.purchaseId,
+            operationKey: `${input.idempotencyKey}:attribute`,
+          })
+        : null;
+      const saved = await this.store.commitSupplierPurchaseWithAttribution(
+        {
+          kind: "payment",
+          purchase: updated,
+          idempotencyKey: input.idempotencyKey,
+        },
+        attribution,
+      );
       if (!saved.ok)
         return {
           ok: false,
           code: storageFailureCode(saved.code),
           message: saved.message ?? "تعذر حفظ دفعة المورد محليًا — بياناتك كما هي؛ أعد المحاولة.",
         };
-      /* FIN-003: نسبة الدفعة لمحفظتها بعد الحفظ الناجح — تخصيص واحد سالب
-       * بمفتاح حتمية مشتق؛ الإعادة لا تخصم مرتين. */
-      const attributionNote =
-        !saved.value.reused && walletId
-          ? await this.attributePaymentToWallet({
-              walletId,
-              amountMinor: input.amountMinor,
-              occurredOn: input.occurredOn,
-              sourceRefId: input.purchaseId,
-              operationKey: `${input.idempotencyKey}:attribute`,
-            })
-          : null;
-      return { ok: true, value: saved.value.purchase, reused: saved.value.reused, attributionNote };
+      return { ok: true, value: saved.value.purchase, reused: saved.value.reused, attributionNote: null };
     } catch (error) {
       return {
         ok: false,

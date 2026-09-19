@@ -25,7 +25,11 @@ export type AgreementContextView = Pick<
 export type FollowUpRead = { due: readonly StoredCraftOrder[]; upcoming: readonly StoredCraftOrder[] };
 export type AgreementContextResult<T> =
   | { ok: true; value: T }
-  | { ok: false; code: "validation_error" | "storage_error" | "not_found"; message: string };
+  | {
+      ok: false;
+      code: "validation_error" | "storage_error" | "storage_stale" | "not_found";
+      message: string;
+    };
 
 const sources = new Set<AgreementSourceValue>([
   "instagram",
@@ -140,14 +144,17 @@ export class AgreementContextService {
       followUpEvents: events,
       updatedAt: timestamp,
     };
-    const saved = await this.store.saveOrder(updated);
-    return saved.ok
-      ? { ok: true, value: saved.value }
-      : {
-          ok: false,
-          code: "storage_error",
-          message: "تعذر حفظ سياق الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.",
-        };
+    /* G-003: سياق المتابعة غلاف فقط بلا أحداث طلب — الالتزام المحروس يتحقق
+     * الحالة الحية داخل حد الكتابة (مفاتيح فارغة: لا أحداث جديدة)، فتعديل
+     * متزامن على السجل بين القراءة والكتابة يُرفض بـstorage_stale بلا كتابة. */
+    const saved = await this.store.commitOrderUpdate(stored, updated, []);
+    if (saved.ok) return { ok: true, value: saved.value.order };
+    if (saved.code === "storage_stale") return { ok: false, code: "storage_stale", message: saved.message };
+    return {
+      ok: false,
+      code: "storage_error",
+      message: "تعذر حفظ سياق الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.",
+    };
   }
 
   async dueFollowUps(): Promise<AgreementContextResult<FollowUpRead>> {

@@ -39,10 +39,10 @@ export type AgreementInput = {
   deliveryTerms?: AgreementDeliveryTerms | null;
 };
 export type AgreementResult =
-  | { ok: true; stored: StoredCraftOrder }
+  | { ok: true; stored: StoredCraftOrder; reused?: boolean }
   | {
       ok: false;
-      code: "validation_error" | "storage_error" | "missing_cost" | "inconsistent_state";
+      code: "validation_error" | "storage_error" | "storage_stale" | "missing_cost" | "inconsistent_state";
       message: string;
     };
 const allowedAgreementSources = new Set([
@@ -245,14 +245,23 @@ export class AgreementService {
         createdAt: timestamp,
       });
       const stored = { ...existing.value, order: executing, updatedAt: timestamp };
-      const saved = await this.store.saveOrder(stored);
-      return saved.ok
-        ? { ok: true, stored: saved.value }
-        : {
-            ok: false,
-            code: "storage_error",
-            message: "تعذر حفظ حالة التنفيذ — بياناتك كما هي؛ أعد المحاولة.",
-          };
+      /* G-003: الالتزام المحروس — الحالة الحية تُتحقق داخل حد الكتابة؛
+       * إعادة تشغيل العملية نفسها بمفاتيحها إعادة استخدام صادقة، والتعارض
+       * storage_stale بلا كتابة (عقد §31). */
+      const saved = await this.store.commitOrderUpdate(existing.value, stored, [
+        `${id}:confirm`,
+        `${id}:start-execution`,
+      ]);
+      if (saved.ok)
+        return saved.value.reused
+          ? { ok: true, stored: saved.value.order, reused: true }
+          : { ok: true, stored: saved.value.order };
+      if (saved.code === "storage_stale") return { ok: false, code: "storage_stale", message: saved.message };
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "تعذر حفظ حالة التنفيذ — بياناتك كما هي؛ أعد المحاولة.",
+      };
     } catch (error) {
       return validation(error instanceof Error ? error.message : "تعذر بدء التنفيذ.");
     }

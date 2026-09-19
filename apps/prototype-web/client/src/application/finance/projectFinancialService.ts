@@ -18,6 +18,7 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { evaluateWithdrawalWalletCoverage } from "@/application/finance/withdrawalWalletGuard";
 import { ammanDateOrNull, isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import {
@@ -183,6 +184,10 @@ export type FinancialRecordInput = {
   counterparty: string | null;
   relatedEventId: string | null;
   expenseContext?: OperatingExpenseContext | null;
+  /* G-006 (تدقيق الإدارة المالية المتدرجة ٢٠٢٦-٠٩-١٩): محفظة مصدر سحب
+   * المالك — اختياري توافقي؛ عند تعيينه يُفحص تغطية رصيدها قبل أي كتابة
+   * بالحرس الكنوني المشترك نفسه لمسار الدفتر. غيابه = الكاش غير الموزع. */
+  sourceWalletId?: string | null;
   /* جولة الاستئناف (F-2): سياقات العائلات المتخصصة تمر عبر التصحيح العام
    * (استرجاع/تعديل) كما تمر عبر التسجيل — الأصل والقرض والعربون أحداث لها
    * سياق إلزامي في عقد المجال، وتغيّره عند الاسترجاع كان يفشل بلا كتابة. */
@@ -1329,6 +1334,24 @@ export class ProjectFinancialService {
           code: "validation_error",
           message: amanahLimitMessage(heldMinor, amountMinor, "المبلغ المُسلَّم"),
         };
+    }
+    /* G-006: حرس المحفظة الكنوني المشترك لمسار الحدث — قبل أي كتابة: رصيد
+     * لا يغطي السحب يُرفض برسالة تعرض المتاح والمطلوب، ولا يُكتب حدث ولا
+     * تخصيص (لا كتابة جزئية). غير الموزع مصدر صريح مسموح كما هو معلن. */
+    if (input.type === "owner_withdrawal_cash" && (input.sourceWalletId ?? null)) {
+      const [walletsResult, entriesResult] = await Promise.all([
+        this.store.listCashWallets(),
+        this.store.listCashContinuityEntries(),
+      ]);
+      if (!walletsResult.ok || !entriesResult.ok)
+        return { ok: false, code: "storage_error", message: "تعذر قراءة المحافظ قبل تسجيل السحب." };
+      const walletGuard = evaluateWithdrawalWalletCoverage({
+        walletId: input.sourceWalletId ?? null,
+        wallets: walletsResult.value,
+        cashEntries: entriesResult.value,
+        amountMinor: amountMinor ?? 0,
+      });
+      if (!walletGuard.ok) return { ok: false, code: "validation_error", message: walletGuard.message };
     }
     try {
       const event = createFinancialEvent({
