@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · READY: 11 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 22
+الحصيلة: BLOCKED: 3 · CLAIMED: 2 · READY: 9 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 22
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-167 | CLAIMED | \`stage-2/completion-remaining\` | — | OPS-007, OPS-009 | تنفيذ إغلاق فجوات صدق المقارنة (إعلان سبب needs_review) + دليل حتمية اللقطة التاريخية عند تغيّر السعر الحالي، ثم الاختبارات المركزة وpnpm check وPR. |
