@@ -7,6 +7,7 @@ import { BadgeDollarSign, CalendarDays, ClipboardCheck, ClipboardPlus, ChevronLe
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { withReturnTo } from "@/app/navigationContract";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
@@ -75,21 +76,13 @@ export default function Orders() {
   const { dailyFollowUp, directSales, schedules, preferences, dataVersion } = usePrototypeServices();
   /* SET-003: القدرات المتوقفة تخفي مداخل الإدخال اليومية فقط — القوائم
    * القائمة (طلبات/مسودات/مواعيد) تبقى ظاهرة دائمًا للتدقيق. */
-  const [disabledCapabilities, setDisabledCapabilities] = useState<readonly string[]>([]);
+  /* G-004: القارئ المركزي المشترك نفسه (لا نسخة ثانية). */
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
   const [state, setState] = useState<OrdersState>({ phase: "loading" });
   /* AR-14: إعادة محاولة صريحة بعد فشل القراءة — رمز محلي يعيد تشغيل الحمل. */
   const [reloadToken, setReloadToken] = useState(0);
   useEffect(() => {
     let active = true;
-    /* SET-003: قراءة القدرات — غياب الخدمة في بيئة اختبار لا يُسقط السطح. */
-    if (typeof preferences?.readDisabledCapabilities === "function") {
-      preferences
-        .readDisabledCapabilities()
-        .then(result => {
-          if (active && result.ok) setDisabledCapabilities(result.disabled);
-        })
-        .catch(() => undefined);
-    }
     Promise.all([dailyFollowUp.read(), directSales.list(), schedules.overview()]).then(
       ([result, sales, scheduleResult]) => {
         if (!active) return;

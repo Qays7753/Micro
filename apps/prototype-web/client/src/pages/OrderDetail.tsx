@@ -21,6 +21,7 @@ import { withReturnTo } from "@/app/navigationContract";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import {
   DELIVERED_REVIEW_LOCK_NOTE,
   STALE_CONFLICT_NOTE,
@@ -106,6 +107,10 @@ export default function OrderDetail() {
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
+  /* G-004: المخزون متوقف عن الإدخال — وصلة استهلاك المادة تختفي؛ قراءة
+   * المادة المنفذة القائمة تبقى كما هي. */
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  const inventoryEntryEnabled = !disabledCapabilities.includes("inventory");
   const [stored, setStored] = useState<StoredCraftOrder | null>(null);
   const [state, setState] = useState<OrderDetailState>({ phase: "loading" });
   /* R1: إعادة المحاولة بعد فشل قراءة — تكرار القراءة نفسه لا إنشاء شيء. */
@@ -1435,6 +1440,7 @@ export default function OrderDetail() {
         contextualAction={contextualAction}
         executionStatuses={executionStatuses}
         materialState={materialState}
+        inventoryEntryEnabled={inventoryEntryEnabled}
         actualTime={actualTime}
         dataVersion={dataVersion}
         notifyDataChanged={notifyDataChanged}
@@ -1784,11 +1790,17 @@ export default function OrderDetail() {
             <>
               <ActualMaterialPanel
                 state={materialState}
-                onRecord={() =>
-                  /* S1-06: نفس نمط فرع التنفيذ — الاستهلاك مرتبط بطلبه لا بأول طلب في القائمة. */
-                  navigate(
-                    withReturnTo(`/inventory/movement/consume?order=${stored.id}`, `/orders/${stored.id}`),
-                  )
+                onRecord={
+                  inventoryEntryEnabled
+                    ? () =>
+                        /* S1-06: نفس نمط فرع التنفيذ — الاستهلاك مرتبط بطلبه لا بأول طلب في القائمة. */
+                        navigate(
+                          withReturnTo(
+                            `/inventory/movement/consume?order=${stored.id}`,
+                            `/orders/${stored.id}`,
+                          ),
+                        )
+                    : undefined
                 }
               />
               <ActualTimePanel

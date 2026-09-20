@@ -6,6 +6,7 @@ import { lazy, Suspense, useState } from "react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { MicroAppShell } from "@/components/layout/MicroAppShell";
 import { StartupGate } from "@/app/StartupGate";
+import { CapabilityCreateGate } from "@/app/CapabilityRouteGate";
 /* W3 (brand launch splash): one-shot in-app launch splash at the existing startup boundary. */
 import { BrandLaunchSplash } from "@/components/brand/BrandLaunchSplash";
 /* المجموعة ٥ (عقد ٣٧): بوابة القفل المحلي — غطاء فوق المحتوى بعد الإقلاع. */
@@ -114,7 +115,15 @@ export function MicroRouter() {
               <Route path="/direct-sales/:id" component={DirectSaleEditor} />
               <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
               <Route path="/orders/draft/:id/cost" component={CostEditor} />
-              <Route path="/orders/draft/:id" component={DraftEditor} />
+              {/* G-004: حرس مسار الإنشاء — الرابط العميق البارد إلى مسودة
+               * جديدة والطلبات متوقفة يعرض وضع القدرة المتوقفة لا المحرر. */}
+              <Route path="/orders/draft/:id">
+                {params => (
+                  <CapabilityCreateGate capability="orders" isCreate={params.id === "new"}>
+                    <DraftEditor />
+                  </CapabilityCreateGate>
+                )}
+              </Route>
               {/* المجموعة ٣ (عقد D5): مراجعة التسليم قبل المسار الأكثر تحديدًا */}
               <Route path="/orders/:id/deliver" component={DeliveryReview} />
               <Route path="/orders/:id" component={OrderDetail} />
@@ -132,7 +141,14 @@ export function MicroRouter() {
               <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />
               <Route path="/finance/g5/declaration" component={G5DeclarationEditor} />
               <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />
-              <Route path="/suppliers/purchase/:id" component={SupplierPurchaseEditor} />
+              {/* G-004: حرس مسار الإنشاء — شراء مورد جديد والموردين متوقفة. */}
+              <Route path="/suppliers/purchase/:id">
+                {params => (
+                  <CapabilityCreateGate capability="suppliers" isCreate={params.id === "new"}>
+                    <SupplierPurchaseEditor />
+                  </CapabilityCreateGate>
+                )}
+              </Route>
               <Route path="/suppliers" component={Suppliers} />
               <Route path="/cash/wallet/new" component={CashWalletEditor} />
               {/* المجموعة ٢ (§9.1): دفتر المحفظة — قارئ، يبقى التنقل السفلي، ويعود لمحافظه. */}
@@ -146,11 +162,25 @@ export function MicroRouter() {
               <Route path="/cash" component={CashWallets} />
               {/* المجموعة ٢ (Scope B): ورقة التحصيل — تحصيل الذمم من كل المداخل المعتمدة. */}
               <Route path="/collect" component={Collect} />
-              <Route path="/inventory/material/new" component={MaterialEditor} />
+              {/* G-004: حرس مسار الإنشاء — مادة جديدة والمخزون متوقف.
+               * تأكيد رصيد مادة قائمة (/:id/confirm) تصحيح موثق لا يُحرس. */}
+              <Route path="/inventory/material/new">
+                <CapabilityCreateGate capability="inventory" isCreate={true}>
+                  <MaterialEditor />
+                </CapabilityCreateGate>
+              </Route>
               {/* المجموعة ٢ (عقد ٢٨): تأكيد رصيد مادة قائمة — نفس مكوّن الرحلة بوضع التأكيد. */}
               <Route path="/inventory/material/:id/confirm" component={MaterialEditor} />
               <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
-              <Route path="/inventory/movement/:type" component={InventoryMovementEditor} />
+              {/* G-004: حرس مسار الإنشاء — حركة جديدة (استلام/استهلاك/هدر/ضبط)
+               * والمخزون متوقف. عكس حركة قائمة (/:id/reverse) تصحيح موثق. */}
+              <Route path="/inventory/movement/:type">
+                {params => (
+                  <CapabilityCreateGate capability="inventory" isCreate={true}>
+                    <InventoryMovementEditor key={params.type} />
+                  </CapabilityCreateGate>
+                )}
+              </Route>
               <Route path="/inventory" component={InventoryMaterials} />
               <Route path="/catalog" component={Catalog} />
               <Route path="/tools" component={Tools} />

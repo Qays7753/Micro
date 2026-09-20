@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
 import { withReturnTo } from "@/app/navigationContract";
 import type {
@@ -78,6 +79,10 @@ export default function Schedule() {
   const returnPath = useReturnPath();
   const search = useSearch();
   const { schedules, recurrences, notifyDataChanged, dataVersion } = usePrototypeServices();
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  /* G-004: الطلبات متوقفة عن الإدخال — مدخل «بدء طلب» يختفي؛ المواعيد
+   * القائمة وقراءتها كما هي. */
+  const ordersEntryEnabled = !disabledCapabilities.includes("orders");
   const [selectedMonth, setSelectedMonth] = useState(currentLocalMonth);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -246,9 +251,11 @@ export default function Schedule() {
           title={<h2>لا توجد طلبات تحتاج موعدًا الآن</h2>}
           description={<>عند تسجيل اتفاق جديد ينشئ Micro موعد تسليم محليًا قابلًا للمتابعة.</>}
           action={
-            <Button action="create" onClick={() => navigate("/orders/draft/new?intent=customer_order")}>
-              بدء طلب
-            </Button>
+            ordersEntryEnabled ? (
+              <Button action="create" onClick={() => navigate("/orders/draft/new?intent=customer_order")}>
+                بدء طلب
+              </Button>
+            ) : null
           }
         />
       ) : null}

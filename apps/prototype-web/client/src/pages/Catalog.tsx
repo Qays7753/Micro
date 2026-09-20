@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
 import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application/input/englishNumeric";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -69,6 +70,15 @@ export default function Catalog() {
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
   const { catalog, recurringWork, dataVersion, notifyDataChanged, inventory } = usePrototypeServices();
+  /* G-004: الكتالوج متوقف عن الإدخال — كل أفعال الإنشاء (مرجع/وحدة/تحويل/قالب)
+   * تُرفض برسالة صادقة عند الحد نفسه، وقراء السجلات القائمة كما هي. */
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  const catalogEntryEnabled = !disabledCapabilities.includes("catalog");
+  const catalogPausedFeedback = () =>
+    setFeedback({
+      kind: "error",
+      word: "الكتالوج متوقف عن الإدخال من الإعدادات — المراجع القائمة تبقى مقروءة، وأعد تفعيله لتسجيل الجديد.",
+    });
   const [kind, setKind] = useState<CatalogItemKind>("product");
   const [name, setName] = useState("");
   const [unitLabel, setUnitLabel] = useState("");
@@ -204,6 +214,10 @@ export default function Catalog() {
   }, [items, activeUnits, selectedItemId, componentUnitId, yieldUnitId]);
 
   async function create() {
+    if (!catalogEntryEnabled) {
+      catalogPausedFeedback();
+      return;
+    }
     setSaving(true);
     setFeedback(null);
     const result = await catalog.create({
@@ -293,6 +307,10 @@ export default function Catalog() {
   }
 
   async function createUnit() {
+    if (!catalogEntryEnabled) {
+      catalogPausedFeedback();
+      return;
+    }
     setFeedback(null);
     const result = await catalog.createUnit({
       nameAr: unitName,
@@ -325,6 +343,10 @@ export default function Catalog() {
   }
 
   async function createConversion(): Promise<boolean> {
+    if (!catalogEntryEnabled) {
+      catalogPausedFeedback();
+      return false;
+    }
     setFeedback(null);
     const numerator = conversionNumerator;
     const denominator = conversionDenominator;
@@ -468,6 +490,10 @@ export default function Catalog() {
   }
 
   async function saveTemplate(): Promise<boolean> {
+    if (!catalogEntryEnabled) {
+      catalogPausedFeedback();
+      return false;
+    }
     if (!selectedItemId) {
       setFeedback({ kind: "error", word: "اختر مرجع عمل قبل إضافة قالب." });
       return false;

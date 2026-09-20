@@ -8,6 +8,7 @@ import { useLocation, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { STALE_CONFLICT_NOTE, STALE_RELOAD_ACTION_LABEL, STALE_RELOADED_NOTE } from "@/app/resultFeedback";
 import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -48,6 +49,10 @@ export default function SupplierPurchaseEditor() {
   const returnPath = useReturnPath();
   const { supplierPurchases, inventory, notifyDataChanged, dataVersion, formDrafts, cashContinuity } =
     usePrototypeServices();
+  /* G-004: المخزون متوقف عن الإدخال — وصلتا استلام المواد في المخزون تختفيان؛
+   * الشراء والدفعات والذمم القائمة كما هي (وعد الإعدادات). */
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  const inventoryEntryEnabled = !disabledCapabilities.includes("inventory");
   const [purchase, setPurchase] = useState<SupplierPurchase | null>(null);
   const [loading, setLoading] = useState(!isNew);
   const [loadedToken, setLoadedToken] = useState(0);
@@ -656,7 +661,7 @@ export default function SupplierPurchaseEditor() {
                 materialOptions.find(material => material.id === (purchase.materialId ?? materialId))
                   ?.tracking?.status === "untracked" ? (
                   <small>للاستلام لاحقًا: فعّل متابعة المادة أولًا.</small>
-                ) : (
+                ) : inventoryEntryEnabled ? (
                   <Button
                     action="create"
 
@@ -671,6 +676,8 @@ export default function SupplierPurchaseEditor() {
                   >
                     <PackagePlus aria-hidden="true" /> استلم المواد في المخزون
                   </Button>
+                ) : (
+                  <small>إدخال المخزون متوقف من الإعدادات — استُلم الشراء قيمته دون حركة مخزون.</small>
                 )
               ) : (
                 <small>استُلمت قيمة هذا الشراء كاملة.</small>
@@ -1125,21 +1132,25 @@ export default function SupplierPurchaseEditor() {
                 className="micro-form-actions micro-sticky-save"
                 data-testid="purchase-receipt-continuation"
               >
-                <Button
-                  action="create"
-                  block
+                {/* G-004: المخزون متوقف — لا استمرار استلام (إنشاء حركة)؛
+                 * الرجوع للمصدر وحده. */}
+                {inventoryEntryEnabled ? (
+                  <Button
+                    action="create"
+                    block
 
-                  onClick={() =>
-                    navigate(
-                      withReturnTo(
-                        `/inventory/movement/receipt?purchase=${encodeURIComponent(receiptContinuation.purchaseId)}`,
-                        `/suppliers/purchase/${encodeURIComponent(receiptContinuation.purchaseId)}`,
-                      ),
-                    )
-                  }
-                >
-                  <PackagePlus aria-hidden="true" /> استلام المخزون
-                </Button>
+                    onClick={() =>
+                      navigate(
+                        withReturnTo(
+                          `/inventory/movement/receipt?purchase=${encodeURIComponent(receiptContinuation.purchaseId)}`,
+                          `/suppliers/purchase/${encodeURIComponent(receiptContinuation.purchaseId)}`,
+                        ),
+                      )
+                    }
+                  >
+                    <PackagePlus aria-hidden="true" /> استلام المخزون
+                  </Button>
+                ) : null}
                 <Button
                   action="quiet"
 

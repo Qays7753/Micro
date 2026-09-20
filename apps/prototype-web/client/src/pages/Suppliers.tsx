@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
@@ -21,6 +22,10 @@ export default function Suppliers() {
   /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
   const returnPath = useReturnPath();
   const { supplierPurchases, dataVersion } = usePrototypeServices();
+  /* G-004: الموردين متوقفة عن الإدخال — زر الشراء الجديد يختفي؛ الدفعات
+   * والذمم القائمة وقراءتها تبقى كما وعدت الإعدادات. */
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  const suppliersEnabled = !disabledCapabilities.includes("suppliers");
   const [state, setState] = useState<PageState>({ phase: "loading" });
   const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
@@ -91,14 +96,16 @@ export default function Suppliers() {
           <p>{state.summary.truth}</p>
         </div>
       </section>
-      <Button
-        action="create"
-        block
-
-        onClick={() => navigate(withReturnTo("/suppliers/purchase/new", "/suppliers"))}
-      >
-        <Plus aria-hidden="true" /> سجّل شراء مواد
-      </Button>
+      {suppliersEnabled ? (
+        <Button
+          action="create"
+          block
+          data-testid="supplier-purchase-create"
+          onClick={() => navigate(withReturnTo("/suppliers/purchase/new", "/suppliers"))}
+        >
+          <Plus aria-hidden="true" /> سجّل شراء مواد
+        </Button>
+      ) : null}
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">
           <span className="micro-overline">المشتريات المفتوحة</span>

@@ -10,6 +10,7 @@ import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -117,6 +118,9 @@ export default function CostCalculator() {
   /* المجموعة ٣ (§7): الحاسبة مسار عميق — الرجوع للمصدر (?from) أو أدواتي بديلًا. */
   const returnPath = useReturnPath();
   const { dataVersion, costEstimates, inventory, notifyDataChanged } = usePrototypeServices();
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  /* G-004: الطلبات متوقفة عن الإدخال — مدخل بدء المسودة من التقدير يختفي. */
+  const ordersEntryEnabled = !disabledCapabilities.includes("orders");
   /* المجموعة ٣ (عقد D5): مقترحات مواد الحاسبة — نفس دليل محرر التكلفة المشترك:
    * تعبئة أرقام مقترحة فقط؛ لا حركة مخزون ولا حدث نقدي من التقدير أبدًا. */
   const [materialSuggestions, setMaterialSuggestions] = useState<readonly MaterialSuggestion[]>([]);
@@ -584,21 +588,22 @@ export default function CostCalculator() {
             >
               افتح التقدير
             </Button>
-            <Button
-              action="secondary"
-
-              onClick={() =>
-                navigate(
-                  withReturnTo(
-                    `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(savedId)}`,
-                    /* رحلة §12: بدء مسودة من الحاسبة يعود إلى التقدير نفسه عند الرجوع. */
-                    `/tools/estimate/${encodeURIComponent(savedId)}`,
-                  ),
-                )
-              }
-            >
-              ابدأ مسودة من هذا التقدير
-            </Button>
+            {ordersEntryEnabled ? (
+              <Button
+                action="secondary"
+                onClick={() =>
+                  navigate(
+                    withReturnTo(
+                      `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(savedId)}`,
+                      /* رحلة §12: بدء مسودة من الحاسبة يعود إلى التقدير نفسه عند الرجوع. */
+                      `/tools/estimate/${encodeURIComponent(savedId)}`,
+                    ),
+                  )
+                }
+              >
+                ابدأ مسودة من هذا التقدير
+              </Button>
+            ) : null}
           </div>
           <p className="micro-home-quiet">
             يمكن المتابعة بالحساب والتعديل — الحفظ التالي يحدّث التقدير نفسه ولا يكرره.

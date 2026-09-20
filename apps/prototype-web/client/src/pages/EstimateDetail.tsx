@@ -10,6 +10,7 @@ import { useLocation, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { businessDateFromTimestamp, formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 import type { CostEstimate } from "@/storage/local/types";
@@ -39,6 +40,9 @@ export default function EstimateDetail() {
   /* المجموعة ٣ (§8.1): رجوع آمن للمصدر (?from) أو أدواتي بديلًا قانونيًا. */
   const returnPath = useReturnPath();
   const { dataVersion, costEstimates, notifyDataChanged } = usePrototypeServices();
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  /* G-004: الطلبات متوقفة عن الإدخال — مدخل بدء المسودة من التقدير يختفي. */
+  const ordersEntryEnabled = !disabledCapabilities.includes("orders");
   const [state, setState] = useState<DetailState>({ phase: "loading" });
   const [retryCount, setRetryCount] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
@@ -203,20 +207,21 @@ export default function EstimateDetail() {
 
       <section className="micro-form-card" aria-label="أفعال التقدير">
         <div className="micro-form-actions micro-contextual-actions">
-          <Button
-            action="create"
-
-            onClick={() =>
-              navigate(
-                withReturnTo(
-                  `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`,
-                  detailHref,
-                ),
-              )
-            }
-          >
-            <ClipboardPlus aria-hidden="true" /> ابدأ مسودة من هذا التقدير
-          </Button>
+          {ordersEntryEnabled ? (
+            <Button
+              action="create"
+              onClick={() =>
+                navigate(
+                  withReturnTo(
+                    `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`,
+                    detailHref,
+                  ),
+                )
+              }
+            >
+              <ClipboardPlus aria-hidden="true" /> ابدأ مسودة من هذا التقدير
+            </Button>
+          ) : null}
           <Button
             action="secondary"
 

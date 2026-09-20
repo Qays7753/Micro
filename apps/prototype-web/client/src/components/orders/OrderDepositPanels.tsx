@@ -37,6 +37,9 @@ export type OrderDepositPanelsProps = {
   contextualAction: ReactNode;
   executionStatuses: readonly string[];
   materialState: MaterialState;
+  /* G-004: المخزون متوقف عن الإدخال — وصلة استهلاك المادة في طبقة التنفيذ
+   * تختفي (undefined يخفي زر الإنشاء لا قراءة المادة القائمة). */
+  inventoryEntryEnabled?: boolean;
   actualTime: ActualTimeService;
   dataVersion: number;
   notifyDataChanged: () => void;
@@ -69,6 +72,7 @@ export function OrderDepositPanels({
   contextualAction,
   executionStatuses,
   materialState,
+  inventoryEntryEnabled,
   actualTime,
   dataVersion,
   notifyDataChanged,
@@ -194,8 +198,13 @@ export function OrderDepositPanels({
         <section className="micro-execution-layer" aria-label="قراءة التنفيذ">
           <ActualMaterialPanel
             state={materialState}
-            onRecord={() =>
-              navigate(withReturnTo(`/inventory/movement/consume?order=${stored.id}`, `/orders/${stored.id}`))
+            onRecord={
+              inventoryEntryEnabled === false
+                ? undefined
+                : () =>
+                    navigate(
+                      withReturnTo(`/inventory/movement/consume?order=${stored.id}`, `/orders/${stored.id}`),
+                    )
             }
           />
           <ActualTimePanel
