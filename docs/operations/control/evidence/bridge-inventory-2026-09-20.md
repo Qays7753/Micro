@@ -1,9 +1,9 @@
 # Bridge inventory — 2026-09-20
 
-**Repository:** `Qays7753/Micro`  
-**Source:** `git ls-remote --heads origin`  
-**Current `main`:** `81fa524df48ee2d84161dd2248cbeff123dc08c1`  
-**Current remote branches:** **41**  
+**Repository:** `Qays7753/Micro`
+**Source:** `git ls-remote --heads origin`
+**Current `main`:** `81fa524df48ee2d84161dd2248cbeff123dc08c1`
+**Current remote branches:** **41**
 **Prior reported count:** 37; **delta:** +4 branches created by the Package A/B and Tracker closure PRs.
 
 ## Safety boundary
