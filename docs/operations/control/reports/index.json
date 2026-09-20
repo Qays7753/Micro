@@ -102,7 +102,13 @@
       "id": "STAGE-2-OPS-008",
       "path": "reports/agent-report/2026-09-21_stage-2-ops-008-time-honesty/report.md",
       "scope": "stage 2 wave 5 (OPS-008 honest time-comparison cause from its time source)",
-      "status": "OPEN_PR_201_IN_REVIEW"
+      "status": "MERGED_VERIFIED_MAIN_771DB4E"
+    },
+    {
+      "id": "STAGE-2-OPS-002",
+      "path": "reports/agent-report/2026-09-21_stage-2-ops-002-low-stock-alerts/report.md",
+      "scope": "stage 2 wave 6 (OPS-002 honest low-stock alerts on optional per-material thresholds)",
+      "status": "OPEN_PR_202_IN_REVIEW"
     }
   ]
 }
