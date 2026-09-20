@@ -24,6 +24,7 @@ import {
 import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { useQuickRecording } from "@/app/quickRecording";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
@@ -201,9 +202,10 @@ export default function Home() {
    * الورقة عبر سياق القشرة في نموذجهما مباشرة، والطلب والتقدير والتحصيل
    * مساراتها العميقة. */
   const quickRecording = useQuickRecording();
-  /* SET-003: القدرات المتوقفة عن الإدخال تخفي أزرار إنشائها اليومية فقط —
-   * السجلات القائمة تبقى ظاهرة في كل دفاترها. */
-  const [disabledCapabilities, setDisabledCapabilities] = useState<readonly string[]>([]);
+  /* SET-003 / G-004: القدرات المتوقفة عن الإدخال تخفي أزرار إنشائها اليومية
+   * فقط — السجلات القائمة تبقى ظاهرة في كل دفاترها؛ القارئ المركزي المشترك
+   * نفسه لكل الأسطح (useDisabledCapabilities). */
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
   /* Wave 4.3 — P-4.3-2: «المزيد» يضم بقية الإجراءات المتكررة الأقل استخدامًا —
    * لا قائمة طويلة تنافس الإجراء الأساسي. */
   const [moreActionsOpen, setMoreActionsOpen] = useState(false);
@@ -222,19 +224,10 @@ export default function Home() {
         result.ok ? { phase: "ready", model: result.value } : { phase: "error", message: result.message },
       );
     });
-    /* SET-003: قراءة القدرات — غياب الخدمة في بيئة اختبار لا يُسقط السطح. */
-    if (typeof preferences?.readDisabledCapabilities === "function") {
-      preferences
-        .readDisabledCapabilities()
-        .then(result => {
-          if (active && result.ok) setDisabledCapabilities(result.disabled);
-        })
-        .catch(() => undefined);
-    }
     return () => {
       active = false;
     };
-  }, [dataVersion, homeControlCenter, preferences]);
+  }, [dataVersion, homeControlCenter]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -477,13 +470,16 @@ export default function Home() {
           >
             <HandCoins aria-hidden="true" /> عربون أو تحصيل
           </button>
-          <button
-            className="micro-quick-action"
-            type="button"
-            onClick={() => openFromHome(model.catalogUnit.action.href)}
-          >
-            <Package aria-hidden="true" /> منتجاتي وخدماتي
-          </button>
+          {!disabledCapabilities.includes("catalog") ? (
+            <button
+              className="micro-quick-action"
+              type="button"
+              data-testid="home-catalog-entry"
+              onClick={() => openFromHome(model.catalogUnit.action.href)}
+            >
+              <Package aria-hidden="true" /> منتجاتي وخدماتي
+            </button>
+          ) : null}
           {moreActions.length > 0 ? (
             <button
               className="micro-quick-action"

@@ -8,20 +8,21 @@ import { formatLocalDate, formatMoneyMinor, formatMonthLabel } from "@/presentat
 import { MoneyValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import { withReturnTo } from "@/app/navigationContract";
-import type { RecordedPeriodResult } from "@/application/finance/projectFinancialService";
+import type { FinancialInsights, RecordedPeriodResult } from "@/application/finance/projectFinancialService";
 import type { FinanceState } from "@/pages/Finance";
 
 type ReadyFinanceState = Extract<FinanceState, { phase: "ready" }>;
 
-const recordedPeriodStatusLabel = (status: ReadyFinanceState["period"]["status"]) =>
+const recordedPeriodStatusLabel = (status: RecordedPeriodResult["status"]) =>
   status === "recorded_only" ? "مسجل" : status === "incomplete" ? "ناقص" : "غير متاح";
-const cogsStatusLabel = (status: ReadyFinanceState["period"]["cogsStatus"]) =>
+const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
   status === "recorded" ? "من الاستهلاك" : status === "partial" ? "جزئي" : "من نسخة التكلفة";
 
 export type FinancePeriodResultSectionProps = {
   state: ReadyFinanceState;
-  period: ReadyFinanceState["period"];
-  insights: ReadyFinanceState["insights"];
+  /* G-005: يُعرض هذا القسم فقط والكتلة سليمة — الحرس على مستوى الصفحة. */
+  period: RecordedPeriodResult;
+  insights: FinancialInsights;
   appliedRange: { from: string; to: string };
   fromMonth: string;
   setFromMonth: Dispatch<SetStateAction<string>>;

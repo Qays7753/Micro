@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
@@ -28,6 +29,11 @@ export default function Foundation() {
   const [, navigate] = useLocation();
   const { cashContinuity, ownerEntitlement, supplierPurchases, inventory, dataVersion } =
     usePrototypeServices();
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  /* G-004: الأساس يبقى دائم الوصول؛ مداخل الإدخال للقدرات المتوقفة
+   * تختفي والشرح يبقى (قرار الإعدادات: الأساس لا يُوقف). */
+  const suppliersEntryEnabled = !disabledCapabilities.includes("suppliers");
+  const inventoryEntryEnabled = !disabledCapabilities.includes("inventory");
   const [state, setState] = useState<FoundationState>({ phase: "loading" });
   const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
@@ -246,13 +252,11 @@ export default function Foundation() {
             >
               سجّل التزامًا لمورد
             </Button>
-            <Button
-              action="secondary"
-
-              onClick={() => navigate("/suppliers/purchase/new")}
-            >
-              شراء مواد قائم
-            </Button>
+            {suppliersEntryEnabled ? (
+              <Button action="secondary" onClick={() => navigate("/suppliers/purchase/new")}>
+                شراء مواد قائم
+              </Button>
+            ) : null}
           </div>
         </div>
       </details>
@@ -295,13 +299,11 @@ export default function Foundation() {
               <dd>في أرصدة المواد وحركاتها وقيمة المخزون.</dd>
             </div>
           </dl>
-          <Button
-            action="secondary"
-
-            onClick={() => navigate("/inventory/material/new")}
-          >
-            مادة ورصيد بداية <ArrowLeft aria-hidden="true" />
-          </Button>
+          {inventoryEntryEnabled ? (
+            <Button action="secondary" onClick={() => navigate("/inventory/material/new")}>
+              مادة ورصيد بداية <ArrowLeft aria-hidden="true" />
+            </Button>
+          ) : null}
         </div>
       </details>
       <section className="micro-foundation-file">

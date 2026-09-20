@@ -65,23 +65,30 @@ import {
 } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+/* G-005 (تدقيق الإدارة المالية المتدرجة 2026-09-19): كتل القراءة المعزولة
+ * الفشل — المجموعة الأساسية (المركز + النبضة) وحدها تحجب الصفحة عند فشلها،
+ * وكل كتلة متقدمة مستقلة: قيمتها null تعني تعذر قراءتها (لا صفرًا كاذبًا)،
+ * وfailedBlocks يحدد المعطوبة لبطاقة خطأ موجزة + إعادة محاولة لكل كتلة،
+ * والأسطح السليمة تبقى من مصادرها الحية. */
+export type FinanceBlockId =
+  "events" | "period" | "owner" | "g5" | "deposits" | "assets" | "loans" | "correctionsAllTime";
 export type FinanceState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
   | {
       phase: "ready";
       position: ProjectFinancialPosition;
-      events: readonly FinancialEvent[];
-      period: RecordedPeriodResult;
+      events: readonly FinancialEvent[] | null;
+      period: RecordedPeriodResult | null;
       /* و٧ (F-077): طبقة المؤشرات داخل قراءة الفترة. */
-      insights: FinancialInsights;
-      decision: G5Decision;
+      insights: FinancialInsights | null;
+      decision: G5Decision | null;
       /* و٧ (F-079): سجل المتوقعات المسجلة كاملًا داخل التغطية والتعادل. */
-      declarations: readonly ShortCashDeclaration[];
-      owner: OwnerEntitlementOverview;
+      declarations: readonly ShortCashDeclaration[] | null;
+      owner: OwnerEntitlementOverview | null;
       pulse: LocalFinancialPulse;
       excludedOrders: readonly StoredCraftOrder[];
-      deposits: DepositOverview;
+      deposits: DepositOverview | null;
       /* المجموعة ٦ (البند ٣ — S2-09): خلاصة أثر التصحيحات — كل التاريخ للوضع،
        * وبنطاق الفترة لقراءة الفترة. */
       correctionsAllTime: CorrectionDigest | null;
@@ -91,12 +98,14 @@ export type FinanceState =
       /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة.
        * Wave 4.4 — P-4.4-1: التجميع من خدمة القراءة (rows + totals) لا من
        * reduce داخل العرض — مصدر واحد للمعادلة (تماثل D7). */
-      assetsOverview: AssetOverviewRead;
-      loansOverview: LoanOverviewRead;
-      pendingRetainedDeposits: readonly RetainedDepositRow[];
+      assetsOverview: AssetOverviewRead | null;
+      loansOverview: LoanOverviewRead | null;
+      pendingRetainedDeposits: readonly RetainedDepositRow[] | null;
       /* FIN-001: دليل نبضة المراجعة — طلبات مسجلة / نتائج نهائية قائمة. */
       ordersRecorded: boolean;
       finalOrdersRecorded: boolean;
+      /* G-005: الكتل التي تعذرت قراءتها — بطاقة خطأ + إعادة محاولة لكل واحدة. */
+      failedBlocks: Partial<Record<FinanceBlockId, true>>;
     };
 const currentMonth = () => localDateInAmman().slice(0, 7);
 /* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): تسمية واحدة لحالة «غير مسجل» في كل مالي —
@@ -116,6 +125,17 @@ function monthBounds(month: string) {
 const { displayCashAmount, formatted, shortStatusLabel } = G5Display;
 const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
   status === "recorded" ? "من الاستهلاك" : status === "partial" ? "جزئي" : "من نسخة التكلفة";
+/* G-005: قارئ كتلة آمن — ok:false والرفض (rejected Promise) كلاهما فشل الكتلة
+ * لا فشل الصفحة ولا رفضًا غير معالج؛ المجموعة الأساسية وحدها تحجب الصفحة. */
+type BlockRead<T> = { ok: true; value: T } | { ok: false };
+async function safeBlock<T>(read: Promise<BlockRead<T>>): Promise<{ value: T | null; failed: boolean }> {
+  try {
+    const result = await read;
+    return result.ok ? { value: result.value, failed: false } : { value: null, failed: true };
+  } catch {
+    return { value: null, failed: true };
+  }
+}
 
 export default function Finance() {
   const [, navigate] = useLocation();
@@ -174,91 +194,101 @@ export default function Finance() {
     setAppliedRange({ from: fromMonth, to: toMonth });
     const from = monthBounds(fromMonth);
     const to = monthBounds(toMonth);
-    Promise.all([
-      projectFinance.readPosition(),
-      projectFinance.listEvents(),
-      projectFinance.readRecordedPeriodResult(from.from, to.to),
-      /* و٧: المؤشرات تُقرأ مع الفترة نفسها — طبقة واحدة داخل القراءة. */
-      projectFinance.readFinancialInsights(from.from, to.to),
-      g5.readDecision(from.from, to.to),
-      g5.listDeclarations(),
-      ownerEntitlement.readOverview(),
-      financialPulse.read(),
-      fulfillment.listDepositOverview(),
-      correctionHistory.affecting(),
-      correctionHistory.affecting(from.from, to.to),
-      /* المجموعة ٢ (عقد ٢٨): هدر الفترة — قراءة مشتقة بأساس occurredOn نفسه. */
-      inventory.readPeriodWaste(from.from, to.to),
-      /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة. */
-      assets.overview(),
-      loans.overview(),
-      retainedDeposits.listPending(),
-    ]).then(
-      ([
-        position,
-        events,
-        result,
-        insights,
-        decision,
-        declarations,
-        owner,
-        pulseResult,
-        depositsResult,
-        correctionsAll,
-        correctionsPeriod,
-        periodWaste,
-        assetsResult,
-        loansResult,
-        pendingRetainedResult,
-      ]) => {
-        if (!active) return;
-        if (
-          !position.ok ||
-          !events.ok ||
-          !result.ok ||
-          !insights.ok ||
-          !decision.ok ||
-          !declarations.ok ||
-          !owner.ok ||
-          !pulseResult.ok ||
-          !depositsResult.ok ||
-          !assetsResult.ok ||
-          !loansResult.ok ||
-          !pendingRetainedResult.ok
-        ) {
-          setState({ phase: "error", message: "لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة." });
-          return;
-        }
-        const completed = pulseResult.orders.filter(stored =>
-          ["delivered", "settled"].includes(stored.order.status),
-        );
-        setState({
-          phase: "ready",
-          position: position.value,
-          events: events.value,
-          period: result.value,
-          insights: insights.value,
-          decision: decision.value,
-          declarations: declarations.value,
-          owner: owner.value,
-          pulse: pulseResult.pulse,
-          excludedOrders: completed.filter(stored => stored.order.resultStatus !== "final"),
-          deposits: depositsResult.value,
-          correctionsAllTime: correctionsAll.ok ? correctionsAll.value : null,
-          correctionsInPeriod: correctionsPeriod.ok ? correctionsPeriod.value : null,
-          periodWaste: periodWaste.ok ? periodWaste.value : null,
-          /* المجموعة ٤ (عقد ٢٩): قراءات الطبقات الجديدة — القيم null تعني تعذر القراءة لا صفرًا. */
-          assetsOverview: assetsResult.value,
-          loansOverview: loansResult.value,
-          pendingRetainedDeposits: pendingRetainedResult.value,
-          /* FIN-001: دليل نبضة المراجعة — من الطلبات الفعلية لا من مجموع فارغ. */
-          ordersRecorded: pulseResult.orders.length > 0,
-          finalOrdersRecorded: pulseResult.orders.some(stored =>
+    /* G-005: المجموعة الأساسية أولًا (المركز + النبضة) — فشلها وحده يوجّه
+     * الصفحة كاملة للخطأ الصادق مع إعادة المحاولة كما كان؛ بقية الكتل تُقرأ
+     * بعدها كلٌّ على حدة: ok:false أو رفض وعد = فشل تلك الكتلة وحدها، والأسطح
+     * السليمة تبقى حية، ولا رفض غير معالج إطلاقًا (كل قراءة داخل safeBlock). */
+    const pulseSafe = (async () => {
+      try {
+        const result = await financialPulse.read();
+        return result.ok ? { value: result, failed: false } : { value: null, failed: true };
+      } catch {
+        return { value: null, failed: true };
+      }
+    })();
+    Promise.all([safeBlock(projectFinance.readPosition()), pulseSafe]).then(([positionRead, pulseRead]) => {
+      if (!active) return;
+      if (positionRead.failed || pulseRead.failed || pulseRead.value === null) {
+        setState({ phase: "error", message: "لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة." });
+        return;
+      }
+      const pulseResult = pulseRead.value;
+      Promise.all([
+        safeBlock(projectFinance.listEvents()),
+        safeBlock(projectFinance.readRecordedPeriodResult(from.from, to.to)),
+        /* و٧: المؤشرات تُقرأ مع الفترة نفسها — طبقة واحدة داخل القراءة. */
+        safeBlock(projectFinance.readFinancialInsights(from.from, to.to)),
+        safeBlock(g5.readDecision(from.from, to.to)),
+        safeBlock(g5.listDeclarations()),
+        safeBlock(ownerEntitlement.readOverview()),
+        safeBlock(fulfillment.listDepositOverview()),
+        safeBlock(correctionHistory.affecting()),
+        safeBlock(correctionHistory.affecting(from.from, to.to)),
+        /* المجموعة ٢ (عقد ٢٨): هدر الفترة — قراءة مشتقة بأساس occurredOn نفسه. */
+        safeBlock(inventory.readPeriodWaste(from.from, to.to)),
+        /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة. */
+        safeBlock(assets.overview()),
+        safeBlock(loans.overview()),
+        safeBlock(retainedDeposits.listPending()),
+      ]).then(
+        ([
+          eventsRead,
+          resultRead,
+          insightsRead,
+          decisionRead,
+          declarationsRead,
+          ownerRead,
+          depositsRead,
+          correctionsAll,
+          correctionsPeriod,
+          periodWaste,
+          assetsRead,
+          loansRead,
+          pendingRetainedRead,
+        ]) => {
+          if (!active) return;
+          const completed = pulseResult.orders.filter(stored =>
             ["delivered", "settled"].includes(stored.order.status),
-          ),
-        });
-      },
-    );
+          );
+          const failedBlocks: Partial<Record<FinanceBlockId, true>> = {};
+          if (eventsRead.failed) failedBlocks.events = true;
+          if (resultRead.failed || insightsRead.failed || correctionsPeriod.failed || periodWaste.failed)
+            failedBlocks.period = true;
+          if (correctionsAll.failed) failedBlocks.correctionsAllTime = true;
+          if (ownerRead.failed) failedBlocks.owner = true;
+          if (decisionRead.failed || declarationsRead.failed) failedBlocks.g5 = true;
+          if (depositsRead.failed) failedBlocks.deposits = true;
+          if (assetsRead.failed) failedBlocks.assets = true;
+          if (loansRead.failed || pendingRetainedRead.failed) failedBlocks.loans = true;
+          setState({
+            phase: "ready",
+            position: positionRead.value!,
+            events: eventsRead.value,
+            period: resultRead.value,
+            insights: insightsRead.value,
+            decision: decisionRead.value,
+            declarations: declarationsRead.value,
+            owner: ownerRead.value,
+            pulse: pulseResult.pulse,
+            excludedOrders: completed.filter(stored => stored.order.resultStatus !== "final"),
+            deposits: depositsRead.value,
+            /* القيم null تعني تعذر قراءة الكتلة لا صفرًا (عقد FIN-001 نفسه). */
+            correctionsAllTime: correctionsAll.value,
+            correctionsInPeriod: correctionsPeriod.value,
+            periodWaste: periodWaste.value,
+            assetsOverview: assetsRead.value,
+            loansOverview: loansRead.value,
+            pendingRetainedDeposits: pendingRetainedRead.value,
+            /* FIN-001: دليل نبضة المراجعة — من الطلبات الفعلية لا من مجموع فارغ. */
+            ordersRecorded: pulseResult.orders.length > 0,
+            finalOrdersRecorded: pulseResult.orders.some(stored =>
+              ["delivered", "settled"].includes(stored.order.status),
+            ),
+            failedBlocks,
+          });
+        },
+      );
+    });
     return () => {
       active = false;
     };
@@ -300,16 +330,20 @@ export default function Finance() {
       </section>
     );
   const { position, period, insights, decision, declarations, owner, pulse } = state;
-  const visibleEventIds = new Set(state.events.slice(0, 3).map(event => event.id));
-  state.events.slice(0, 3).forEach(event => {
+  /* G-005: كتلة الأحداث المعطوبة لا تُعرض كقائمة فارغة (فراغ ≠ بيانات) —
+   * طبقة السجل تعرض بطاقة الخطأ + إعادة المحاولة بدل الأحداث. */
+  const events = state.events ?? [];
+  const visibleEventIds = new Set(events.slice(0, 3).map(event => event.id));
+  events.slice(0, 3).forEach(event => {
     if (event.correctionType === "reverse" && event.correctionOfEventId)
       visibleEventIds.add(event.correctionOfEventId);
-    const reversal = state.events.find(
+    const reversal = events.find(
       candidate => candidate.correctionType === "reverse" && candidate.correctionOfEventId === event.id,
     );
     if (reversal) visibleEventIds.add(reversal.id);
   });
-  const visibleEvents = state.events.filter(event => visibleEventIds.has(event.id));
+  const visibleEvents = events.filter(event => visibleEventIds.has(event.id));
+  const retryBlocks = () => setRetryCount(count => count + 1);
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
@@ -390,12 +424,18 @@ export default function Finance() {
               <Scale aria-hidden="true" />
               <span>النتيجة المتاحة</span>
               <strong>
-                {period.resultMinor === null ? "غير متاح" : <MoneyValue minor={period.resultMinor} />}
+                {period === null || period.resultMinor === null ? (
+                  "غير متاح"
+                ) : (
+                  <MoneyValue minor={period.resultMinor} />
+                )}
               </strong>
               <small>
-                {period.status === "recorded_only"
-                  ? "نتيجة الفترة المسجلة — افتح التفصيل"
-                  : "مكونات ناقصة تمنع رقمًا نهائيًا صادقًا — افتح التفصيل"}
+                {period === null
+                  ? FINANCE_BLOCK_FAILURE_MESSAGES.period.message
+                  : period.status === "recorded_only"
+                    ? "نتيجة الفترة المسجلة — افتح التفصيل"
+                    : "مكونات ناقصة تمنع رقمًا نهائيًا صادقًا — افتح التفصيل"}
               </small>
             </button>
             <button
@@ -416,23 +456,37 @@ export default function Finance() {
               بمصدرَيه ومسارَي تسديدهما بالكاتب الرسمي القائم؛ يلي بطاقات
               المركز مباشرة في ترتيب القراءة المعتمد. */}
           <FinanceObligationsCard position={position} onNavigate={navigate} />
-          <CashDecisionSurface
-            decision={decision}
-            unallocatedCashMinor={position.unallocatedCashMinor}
-            cashRecorded={position.evidence.cash === "recorded"}
-            declarationsRecorded={state.declarations.some(declaration => declaration.kind !== "reversal")}
-            onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
-            onCoverPayment={() =>
-              navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
-            }
-          />
-          <OwnerDecisionCard
-            overview={owner}
-            capitalRecordedMinor={position.ownerCapitalRecordedMinor}
-            capitalEvidence={position.evidence.ownerCapital}
-            onOpen={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance"))}
-          />
-          {state.correctionsAllTime && state.correctionsAllTime.count > 0 ? (
+          {decision === null ? (
+            <FinanceBlockFallback block="g5" onRetry={retryBlocks} />
+          ) : (
+            <CashDecisionSurface
+              decision={decision}
+              unallocatedCashMinor={position.unallocatedCashMinor}
+              cashRecorded={position.evidence.cash === "recorded"}
+              declarationsRecorded={(state.declarations ?? []).some(
+                declaration => declaration.kind !== "reversal",
+              )}
+              onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
+              onCoverPayment={() =>
+                navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
+              }
+            />
+          )}
+          {owner === null ? (
+            <FinanceBlockFallback block="owner" onRetry={retryBlocks} />
+          ) : (
+            <OwnerDecisionCard
+              overview={owner}
+              capitalRecordedMinor={position.ownerCapitalRecordedMinor}
+              capitalEvidence={position.evidence.ownerCapital}
+              onOpen={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance"))}
+            />
+          )}
+          {state.correctionsAllTime === null ? (
+            /* G-005: فشل قراءة سجل التصحيحات كامل التاريخ — بطاقة صادقة لا
+             * سكوت (null ≠ لا تصحيحات). */
+            <FinanceBlockFallback block="correctionsAllTime" onRetry={retryBlocks} />
+          ) : state.correctionsAllTime.count > 0 ? (
             <RestatementNote
               count={state.correctionsAllTime.count}
               netAmountMinor={state.correctionsAllTime.netAmountMinor}
@@ -551,10 +605,14 @@ export default function Finance() {
               </p>
             </div>
           </section>
-          <DepositsLayer
-            deposits={state.deposits}
-            onOpenOrder={orderId => navigate(withReturnTo(`/orders/${orderId}`, "/finance"))}
-          />
+          {state.deposits === null ? (
+            <FinanceBlockFallback block="deposits" onRetry={retryBlocks} />
+          ) : (
+            <DepositsLayer
+              deposits={state.deposits}
+              onOpenOrder={orderId => navigate(withReturnTo(`/orders/${orderId}`, "/finance"))}
+            />
+          )}
           {/* المجموعة ٤ (عقد ٢٩): الأصول والقروض — طبقتان مستقلتان بمدخلين، بلا مقعد تنقل جديد. */}
           <details className="micro-finance-layer">
             <summary className="micro-finance-layer-summary">
@@ -563,17 +621,24 @@ export default function Finance() {
                 <small>دفتري مشتق من الأحداث — لا مس شراءً للربح</small>
               </span>
               <strong>
-                {assetCountLabel(state.assetsOverview.rows.length)} ·{" "}
-                {state.assetsOverview.rows.length > 0
-                  ? `${formatMoneyMinor(state.assetsOverview.totals.bookValueMinor)} د.أ`
-                  : NOT_RECORDED_LABEL}
+                {state.assetsOverview === null
+                  ? "غير متاح"
+                  : `${assetCountLabel(state.assetsOverview.rows.length)} · ${
+                      state.assetsOverview.rows.length > 0
+                        ? `${formatMoneyMinor(state.assetsOverview.totals.bookValueMinor)} د.أ`
+                        : NOT_RECORDED_LABEL
+                    }`}
               </strong>
             </summary>
-            <p className="micro-period-status">
-              {state.assetsOverview.rows.length === 0
-                ? "لا أصول بعد — سجّل أول أصل طويل الاستخدام من «سجّل أصلًا»."
-                : `دفتري كلي ${formatMoneyMinor(state.assetsOverview.totals.bookValueMinor)} د.أ؛ الإهلاك غير نقدي ولا يخصم من الصندوق.`}
-            </p>
+            {state.assetsOverview === null ? (
+              <FinanceBlockFallback block="assets" onRetry={retryBlocks} />
+            ) : (
+              <p className="micro-period-status">
+                {state.assetsOverview.rows.length === 0
+                  ? "لا أصول بعد — سجّل أول أصل طويل الاستخدام من «سجّل أصلًا»."
+                  : `دفتري كلي ${formatMoneyMinor(state.assetsOverview.totals.bookValueMinor)} د.أ؛ الإهلاك غير نقدي ولا يخصم من الصندوق.`}
+              </p>
+            )}
             <div className="micro-form-actions">
               <button
                 className="micro-text-action"
@@ -591,19 +656,30 @@ export default function Finance() {
                 <small>مالك عند غيرك — ليس مصروفًا ولا ربحًا</small>
               </span>
               <strong>
-                {state.pendingRetainedDeposits.filter(row => row.decision === "pending").length > 0
-                  ? `${pendingDepositCountLabel(state.pendingRetainedDeposits.filter(row => row.decision === "pending").length)} · `
-                  : ""}
-                {state.loansOverview.rows.length > 0 || state.pendingRetainedDeposits.length > 0
-                  ? `${formatMoneyMinor(state.loansOverview.totals.outstandingMinor)} د.أ قائمًا`
-                  : NOT_RECORDED_LABEL}
+                {state.loansOverview === null || state.pendingRetainedDeposits === null
+                  ? "غير متاح"
+                  : `${
+                      state.pendingRetainedDeposits.filter(row => row.decision === "pending").length > 0
+                        ? `${pendingDepositCountLabel(
+                            state.pendingRetainedDeposits.filter(row => row.decision === "pending").length,
+                          )} · `
+                        : ""
+                    }${
+                      state.loansOverview.rows.length > 0 || state.pendingRetainedDeposits.length > 0
+                        ? `${formatMoneyMinor(state.loansOverview.totals.outstandingMinor)} د.أ قائمًا`
+                        : NOT_RECORDED_LABEL
+                    }`}
               </strong>
             </summary>
-            <p className="micro-period-status">
-              {state.loansOverview.rows.length === 0 && state.pendingRetainedDeposits.length === 0
-                ? "لا قروض ولا عربونات محتفظة — سجّل قرضًا حين تعطي مالًا يُعاد."
-                : "المتبقي مشتق من الدفعات القائمة؛ والعربون المحتفظ بلا قرار يبقى معلقًا ظاهرًا."}
-            </p>
+            {state.loansOverview === null || state.pendingRetainedDeposits === null ? (
+              <FinanceBlockFallback block="loans" onRetry={retryBlocks} />
+            ) : (
+              <p className="micro-period-status">
+                {state.loansOverview.rows.length === 0 && state.pendingRetainedDeposits.length === 0
+                  ? "لا قروض ولا عربونات محتفظة — سجّل قرضًا حين تعطي مالًا يُعاد."
+                  : "المتبقي مشتق من الدفعات القائمة؛ والعربون المحتفظ بلا قرار يبقى معلقًا ظاهرًا."}
+              </p>
+            )}
             <div className="micro-form-actions micro-contextual-actions">
               <button
                 className="micro-text-action"
@@ -617,18 +693,22 @@ export default function Finance() {
         </>
       ) : (
         <>
-          <FinancePeriodResultSection
-            state={state}
-            period={period}
-            insights={insights}
-            appliedRange={appliedRange}
-            fromMonth={fromMonth}
-            setFromMonth={setFromMonth}
-            toMonth={toMonth}
-            setToMonth={setToMonth}
-            rangeInvalid={rangeInvalid}
-            navigate={navigate}
-          />
+          {period === null || insights === null ? (
+            <FinanceBlockFallback block="period" onRetry={retryBlocks} />
+          ) : (
+            <FinancePeriodResultSection
+              state={state}
+              period={period}
+              insights={insights}
+              appliedRange={appliedRange}
+              fromMonth={fromMonth}
+              setFromMonth={setFromMonth}
+              toMonth={toMonth}
+              setToMonth={setToMonth}
+              rangeInvalid={rangeInvalid}
+              navigate={navigate}
+            />
+          )}
           <details className="micro-finance-layer">
             <summary className="micro-finance-layer-summary">
               <span>
@@ -637,12 +717,16 @@ export default function Finance() {
               </span>
               <strong>افتح التفاصيل</strong>
             </summary>
-            <G5DecisionPanel
-              decision={decision}
-              g5={g5}
-              onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
-              onChanged={notifyDataChanged}
-            />
+            {decision === null ? (
+              <FinanceBlockFallback block="g5" onRetry={retryBlocks} />
+            ) : (
+              <G5DecisionPanel
+                decision={decision}
+                g5={g5}
+                onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
+                onChanged={notifyDataChanged}
+              />
+            )}
             {/* و٧ (F-079): سجل المتوقعات المسجلة كاملًا — حتى المنقوضة — بلا تصحيح من هنا. */}
             <details className="micro-finance-layer micro-declarations-record">
               <summary className="micro-finance-layer-summary">
@@ -651,45 +735,51 @@ export default function Finance() {
                   <small>كل ما سُجل — حتى المتراجع عنه</small>
                 </span>
                 <strong>
-                  {declarations.length > 0 ? (
+                  {declarations === null ? (
+                    "غير متاح"
+                  ) : declarations.length > 0 ? (
                     <IntegerValue value={declarations.length} className="micro-inline-number" />
                   ) : (
                     "افتح السجل"
                   )}
                 </strong>
               </summary>
-              <section
-                className="micro-period-result micro-derived-surface"
-                aria-label="سجل المتوقعات المسجلة"
-              >
-                {declarations.length === 0 ? (
-                  <p className="micro-insights-empty">— لا متوقعات مسجلة</p>
-                ) : (
-                  <ul className="micro-insights-work-list">
-                    {[...declarations]
-                      .sort((left, right) => left.createdAt.localeCompare(right.createdAt))
-                      .map(entry => (
-                        <li key={entry.id}>
-                          <span className="micro-insights-work-name">
-                            {entry.direction === "collection" ? "قبض متوقع" : "دفع متوقع"} · {entry.source}
-                          </span>
-                          <small>
-                            <MoneyValue minor={entry.amountMinor} className="micro-inline-number" /> ·{" "}
-                            {entry.dueOn ? <LocalDateValue value={entry.dueOn} /> : "بلا تاريخ"} ·{" "}
-                            {entry.knowledge === "known"
-                              ? "معروف"
-                              : entry.knowledge === "estimated"
-                                ? "تقديري"
-                                : "يحتاج مراجعة"}
-                          </small>
-                          <b data-state={entry.kind === "reversal" ? "reversed" : "active"}>
-                            {entry.kind === "reversal" ? "تراجع موثق" : "ساري"}
-                          </b>
-                        </li>
-                      ))}
-                  </ul>
-                )}
-              </section>
+              {declarations === null ? (
+                <FinanceBlockFallback block="g5" onRetry={retryBlocks} />
+              ) : (
+                <section
+                  className="micro-period-result micro-derived-surface"
+                  aria-label="سجل المتوقعات المسجلة"
+                >
+                  {declarations.length === 0 ? (
+                    <p className="micro-insights-empty">— لا متوقعات مسجلة</p>
+                  ) : (
+                    <ul className="micro-insights-work-list">
+                      {[...declarations]
+                        .sort((left, right) => left.createdAt.localeCompare(right.createdAt))
+                        .map(entry => (
+                          <li key={entry.id}>
+                            <span className="micro-insights-work-name">
+                              {entry.direction === "collection" ? "قبض متوقع" : "دفع متوقع"} · {entry.source}
+                            </span>
+                            <small>
+                              <MoneyValue minor={entry.amountMinor} className="micro-inline-number" /> ·{" "}
+                              {entry.dueOn ? <LocalDateValue value={entry.dueOn} /> : "بلا تاريخ"} ·{" "}
+                              {entry.knowledge === "known"
+                                ? "معروف"
+                                : entry.knowledge === "estimated"
+                                  ? "تقديري"
+                                  : "يحتاج مراجعة"}
+                            </small>
+                            <b data-state={entry.kind === "reversal" ? "reversed" : "active"}>
+                              {entry.kind === "reversal" ? "تراجع موثق" : "ساري"}
+                            </b>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </section>
+              )}
             </details>
           </details>
           {/* F02 (قرار المالك — Wave 4.2): سياسات الربح والتوزيع بجوار «التغطية
@@ -811,14 +901,18 @@ export default function Finance() {
           آخر ما حدث — القارئ الكامل لكل النشاط
         </button>
       </div>
-      <EventsLayer
-        visibleEvents={visibleEvents}
-        events={state.events}
-        projectFinance={projectFinance}
-        onChanged={notifyDataChanged}
-        focusEventId={focusEventId}
-        openOnLoad={layerParam === "events"}
-      />
+      {state.events === null ? (
+        <FinanceBlockFallback block="events" onRetry={retryBlocks} />
+      ) : (
+        <EventsLayer
+          visibleEvents={visibleEvents}
+          events={state.events}
+          projectFinance={projectFinance}
+          onChanged={notifyDataChanged}
+          focusEventId={focusEventId}
+          openOnLoad={layerParam === "events"}
+        />
+      )}
       {/* U-001: «السجل» — سطح قراءة واحد لكل تصحيح موثق عبر السجلات المدعومة؛
           لا يضيف حدثًا ولا يعدّل قيمة، ويُحدّث مع كل تغيير بيانات. */}
       <CorrectionsLayer
@@ -1106,5 +1200,58 @@ function PositionCard({
       <strong>{evidenceValue(state, value)}</strong>
       <small>{helper}</small>
     </article>
+  );
+}
+
+/* G-005 (تدقيق الإدارة المالية المتدرجة ٢026-09-19): بطاقة الكتلة المعطوبة —
+ * خطأ موجز بلا أرقام كاذبة (المجهول «غير متاح» لا 0.00) وفعل إعادة محاولة
+ * واحد بنفس لغة AR-14 القائمة؛ الكتل السليمة تبقى معروضة من مصادرها الحية. */
+/* رسائل فشل الكتل — نصوص لحظة تعذّر القراءة بمعيار «message:» نفسه في
+ * CorrectionsLayer (نصوص حالة لحظية لا نصوص سكون): تُعرض عبر
+ * FinanceBlockFallback عند فشل كتلتها وحدها، ولا تظهر أبدًا في السكون. */
+const FINANCE_BLOCK_FAILURE_MESSAGES: Record<FinanceBlockId, { message: string }> = {
+  owner: {
+    message:
+      "تعذّرت قراءة مال المالك — لم يتغير أي رصيد؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
+  },
+  deposits: {
+    message:
+      "تعذّرت قراءة عربونات الطلبات — لم يتغير أي رصيد؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
+  },
+  assets: {
+    message:
+      "تعذّرت قراءة الأصول — لم يتغير أي رصيد ولا أي إهلاك؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
+  },
+  loans: {
+    message:
+      "تعذّرت قراءة القروض والعربونات المحتفظة — لم يتغير أي رصيد؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
+  },
+  period: {
+    message: "تعذّرت قراءة نتيجة الفترة — أعد المحاولة من ملخص الفترة.",
+  },
+  g5: {
+    message:
+      "تعذّرت قراءة التغطية والتعادل ومتوقعاتها — لم يتغير أي رصيد؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
+  },
+  correctionsAllTime: {
+    message:
+      "تعذّرت قراءة سجل التصحيحات — لم يتغير أي سجل؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
+  },
+  events: {
+    message:
+      "تعذّرت قراءة سجل الأحداث المالية — لم يتغير أي حدث؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
+  },
+};
+
+function FinanceBlockFallback({ block, onRetry }: { block: FinanceBlockId; onRetry: () => void }) {
+  return (
+    <section className="micro-cancel-panel" role="alert" data-testid="finance-block-error">
+      <p className="micro-warning-copy">{FINANCE_BLOCK_FAILURE_MESSAGES[block].message}</p>
+      <div className="micro-form-actions micro-contextual-actions">
+        <Button action="save" onClick={onRetry}>
+          إعادة المحاولة
+        </Button>
+      </div>
+    </section>
   );
 }

@@ -7,7 +7,9 @@ import { InfoCard } from "@/components/presentation/InfoCard";
 export type MaterialState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; comparison: OrderActualMaterialComparison };
 
-export function ActualMaterialPanel({ state, onRecord }: { state: MaterialState; onRecord: () => void }) {
+/* G-004: onRecord اختياري — غيابه (المخزون متوقف عن الإدخال) يُبقي قراءة
+ * الحالة كما هي بلا زر إنشاء؛ القراءة القائمة لا تختفي أبدًا. */
+export function ActualMaterialPanel({ state, onRecord }: { state: MaterialState; onRecord?: () => void }) {
   if (state.phase === "loading")
     return (
       <section className="micro-note-card" aria-live="polite">
@@ -30,9 +32,14 @@ export function ActualMaterialPanel({ state, onRecord }: { state: MaterialState;
           <span className="micro-decision-label">المادة المنفذة مقابل المخطط</span>
           <strong>لم تسجل مادة منفذة لهذا الطلب بعد</strong>
         </div>
-        <button className="micro-text-action" type="button" onClick={onRecord}>
-          سجّل استهلاك مادة إذا كان مؤثرًا
-        </button>
+        {onRecord ? (
+          <button className="micro-text-action" type="button" onClick={onRecord}>
+            سجّل استهلاك مادة إذا كان مؤثرًا
+          </button>
+        ) : (
+          /* G-004: المخزون متوقف — لا زر إنشاء، والقراءة الصادقة تبقى. */
+          <span className="micro-decision-label">إدخال المخزون متوقف من الإعدادات</span>
+        )}
       </section>
     );
   /* S4-04: البطاقة عبر المكوّن المشترك بدل ترميز مكرر — نفس الفئات والنغمة. */

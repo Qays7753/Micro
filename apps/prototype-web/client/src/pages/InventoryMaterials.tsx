@@ -16,6 +16,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { Button, FeedbackMessage, FeedbackNote, StatusChip } from "@/components/primitives";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import type { InventoryShortage, InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import type {
   InventoryActivationState,
@@ -68,6 +69,10 @@ export default function InventoryMaterials() {
   /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
   const returnPath = useReturnPath();
   const { inventory, dataVersion, notifyDataChanged } = usePrototypeServices();
+  /* G-004: المخزون متوقف عن الإدخال — مداخل المادة والحركات الجديدة تختفي؛
+   * المواد والحركات والنقص القائمة تبقى مقروءة كما هي. */
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  const inventoryEnabled = !disabledCapabilities.includes("inventory");
   const [state, setState] = useState<State>({ phase: "loading" });
   const [retryCount, setRetryCount] = useState(0);
   const [activating, setActivating] = useState(false);
@@ -308,64 +313,68 @@ export default function InventoryMaterials() {
         </section>
       )}
       {/* مبدأ Micro: أفعال المادة لا تظهر كأنها متاحة قبل وجود مادة مسجلة. */}
-      <div className="micro-cash-actions">
-        <Button
-          action="create"
-
-          onClick={() => navigate(withReturnTo("/inventory/material/new", "/inventory"))}
-        >
-          <Plus aria-hidden="true" /> مادة جديدة
-        </Button>
-        {tracked.length ? (
-          <Button
-            action="secondary"
-
-            onClick={() => navigate(withReturnTo("/inventory/movement/receipt", "/inventory"))}
-          >
-            <PackagePlus aria-hidden="true" /> استلام شراء
-          </Button>
-        ) : (
-          <div className="micro-later-action" role="status">
-            <strong>استلام شراء — لاحقًا</strong>
-            <small>أضف مادة أولًا.</small>
-          </div>
-        )}
-      </div>
-      <div className="micro-cash-actions">
-        {tracked.length ? (
-          <>
+      {inventoryEnabled ? (
+        <>
+          <div className="micro-cash-actions">
             <Button
-              action="secondary"
-
-              onClick={() => navigate(withReturnTo("/inventory/movement/consume", "/inventory"))}
+              action="create"
+              data-testid="inventory-material-create"
+              onClick={() => navigate(withReturnTo("/inventory/material/new", "/inventory"))}
             >
-              <Scissors aria-hidden="true" /> استهلاك أو استلام نقص
+              <Plus aria-hidden="true" /> مادة جديدة
             </Button>
-            {/* EXE-012 (AUD-NEW-06): الهدر والضبط فعلان منفصلان — اسم وسبب
+            {tracked.length ? (
+              <Button
+                action="secondary"
+
+                onClick={() => navigate(withReturnTo("/inventory/movement/receipt", "/inventory"))}
+              >
+                <PackagePlus aria-hidden="true" /> استلام شراء
+              </Button>
+            ) : (
+              <div className="micro-later-action" role="status">
+                <strong>استلام شراء — لاحقًا</strong>
+                <small>أضف مادة أولًا.</small>
+              </div>
+            )}
+          </div>
+          <div className="micro-cash-actions">
+            {tracked.length ? (
+              <>
+                <Button
+                  action="secondary"
+
+                  onClick={() => navigate(withReturnTo("/inventory/movement/consume", "/inventory"))}
+                >
+                  <Scissors aria-hidden="true" /> استهلاك أو استلام نقص
+                </Button>
+                {/* EXE-012 (AUD-NEW-06): الهدر والضبط فعلان منفصلان — اسم وسبب
                 وأثر مستقلان؛ الضبط قرار مالك يصحح الكمية بلا حذف حركة. */}
-            <Button
-              action="secondary"
+                <Button
+                  action="secondary"
 
-              onClick={() => navigate(withReturnTo("/inventory/movement/waste", "/inventory"))}
-            >
-              <CircleMinus aria-hidden="true" /> هدر مادة
-            </Button>
-            <Button
-              action="secondary"
-              data-testid="inventory-adjust-entry"
+                  onClick={() => navigate(withReturnTo("/inventory/movement/waste", "/inventory"))}
+                >
+                  <CircleMinus aria-hidden="true" /> هدر مادة
+                </Button>
+                <Button
+                  action="secondary"
+                  data-testid="inventory-adjust-entry"
 
-              onClick={() => navigate(withReturnTo("/inventory/movement/adjust", "/inventory"))}
-            >
-              <SlidersHorizontal aria-hidden="true" /> ضبط جرد — قرار مالك
-            </Button>
-          </>
-        ) : (
-          <div className="micro-later-action" role="status">
-            <strong>الاستهلاك والهدر — لاحقًا</strong>
-            <small>أضف مادة وفعّل متابعتها أولًا حتى تختار سجلًا حقيقيًا.</small>
+                  onClick={() => navigate(withReturnTo("/inventory/movement/adjust", "/inventory"))}
+                >
+                  <SlidersHorizontal aria-hidden="true" /> ضبط جرد — قرار مالك
+                </Button>
+              </>
+            ) : (
+              <div className="micro-later-action" role="status">
+                <strong>الاستهلاك والهدر — لاحقًا</strong>
+                <small>أضف مادة وفعّل متابعتها أولًا حتى تختار سجلًا حقيقيًا.</small>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : null}
       <section className="micro-supplier-list">
         <div className="micro-finance-event-heading">
           <span className="micro-overline">المتاح الآن</span>

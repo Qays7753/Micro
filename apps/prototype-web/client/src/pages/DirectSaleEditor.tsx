@@ -7,6 +7,7 @@ import { useLocation, useSearch } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -60,6 +61,10 @@ export default function DirectSaleEditor() {
     notifyDataChanged,
     formDrafts,
   } = usePrototypeServices();
+  /* G-004: المخزون متوقف عن الإدخال — وصلة استهلاك مواد البيع تختفي؛
+   * البيع نفسه وقراءته كما هما. */
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  const inventoryEntryEnabled = !disabledCapabilities.includes("inventory");
   const saleMatch = location.match(/^\/direct-sales\/([^/?]+)$/);
   const saleId = saleMatch?.[1] && saleMatch[1] !== "new" ? decodeURIComponent(saleMatch[1]) : null;
   const editing = saleId !== null;
@@ -523,20 +528,25 @@ export default function DirectSaleEditor() {
             فيك مواد متتبَّعة استُهلكت في هذا البيع؟ سجّل استهلاكها بصلة صريحة بهذا البيع — اختياري تمامًا،
             والبيع صحيح بدونه.
           </p>
-          <Button
-            action="quiet"
+          {inventoryEntryEnabled ? (
+            <Button
+              action="quiet"
 
-            onClick={() =>
-              requestNavigation(
-                withReturnTo(
-                  `/inventory/movement/consume?sale=${encodeURIComponent(sale.id)}`,
-                  `/direct-sales/${encodeURIComponent(sale.id)}`,
-                ),
-              )
-            }
-          >
-            سجّل استهلاك مواد لهذا البيع
-          </Button>
+              onClick={() =>
+                requestNavigation(
+                  withReturnTo(
+                    `/inventory/movement/consume?sale=${encodeURIComponent(sale.id)}`,
+                    `/direct-sales/${encodeURIComponent(sale.id)}`,
+                  ),
+                )
+              }
+            >
+              سجّل استهلاك مواد لهذا البيع
+            </Button>
+          ) : (
+            /* G-004: إدخال المخزون متوقف — قراءة صادقة بلا زر إنشاء. */
+            <p className="micro-field-hint">إدخال المخزون متوقف من الإعدادات.</p>
+          )}
         </section>
         <div className="micro-form-actions">
           <Button

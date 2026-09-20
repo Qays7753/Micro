@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_REVIEW: 4 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 3 · DEFERRED: 25 · VERIFIED: 12
+BLOCKED: 3 · IN_REVIEW: 6 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 12
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -12,6 +12,8 @@ BLOCKED: 3 · IN_REVIEW: 4 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 3 · D
 | G-001 | IN_REVIEW | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | audit-2026-09-19 | فخ الاستهلاك المزدوج عند التسليم | Product owner / Manus coordination | cross-layer | — |
 | G-002 | IN_REVIEW | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | ذرية تخصيص دفعة المورد للمحفظة | Product owner / Manus coordination | cross-layer | — |
 | G-003 | IN_REVIEW | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | حرس القراءة القديمة عند حفظ الطلب | Product owner / Manus coordination | cross-layer | — |
+| G-004 | IN_REVIEW | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | مطابقة تعطيل القدرات للوعد المرئي | Product owner / Manus coordination | cross-layer | — |
+| G-005 | IN_REVIEW | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | عزل فشل قراءات صفحة المالية | Product owner / Manus coordination | cross-layer | — |
 | G-006 | IN_REVIEW | FIX_BEFORE_PILOT | NOT_APPLICABLE | P3 | audit-2026-09-19 | توحيد حرس السحب بين مساري مال المالك | Product owner / Manus coordination | cross-layer | — |
 | FIN-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | FIN-003 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | مقارنة الفترات وجسر الربح إلى الكاش | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-001 |
@@ -31,8 +33,6 @@ BLOCKED: 3 · IN_REVIEW: 4 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 3 · D
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |
 | GOV-001 | REVIEW_REQUIRED | GOVERNANCE | NOT_APPLICABLE | P1 | governance | مصالحة G10-A مع تعارض عقد C1 | Product owner / Manus coordination | governance, contracts | — |
-| G-004 | REVIEW_REQUIRED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | مطابقة تعطيل القدرات للوعد المرئي | Product owner / Manus coordination | cross-layer | — |
-| G-005 | REVIEW_REQUIRED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | عزل فشل قراءات صفحة المالية | Product owner / Manus coordination | cross-layer | — |
 | SCOPE-001 | DEFERRED | FUTURE_SCOPE | OUT_OF_SCOPE | P1 | future-scope | بوابة POS وCRM وWhatsApp والمزامنة وAuth والصلاحيات وCloud | Product owner / Manus coordination | future-scope | — |
 | UX-001 | DEFERRED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | stage-5 | إعادة تصميم UI وUX جذرية | Product owner / Manus coordination | ui/ux, presentation | CLEAN-001 |
 | BE-001 | DEFERRED | HISTORICAL | DUPLICATE_HISTORICAL | P2 | build-after-evidence | مصاريف متكررة محلية | Product owner / Manus coordination | future-capability | — |

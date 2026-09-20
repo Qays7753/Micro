@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import type { CostEstimate } from "@/storage/local/types";
@@ -25,6 +26,9 @@ import { Button } from "@/components/primitives";
 export default function Tools() {
   const [, navigate] = useLocation();
   const { costEstimates, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { disabled: disabledCapabilities } = useDisabledCapabilities();
+  /* G-004: الطلبات متوقفة عن الإدخال — مدخل بدء المسودة من التقدير يختفي. */
+  const ordersEntryEnabled = !disabledCapabilities.includes("orders");
   const [message, setMessage] = useState<string | null>(null);
   /* المجموعة ٦ (تدقيق A1 — UX-02): آلة الحالة القياسية (تحميل/خطأ/جاهز) كما في
    * الصفحات الأخرى — القراءة الفاشلة كانت تُبتلع صامتًا فتبدو «أدواتي» فارغة
@@ -157,20 +161,22 @@ export default function Tools() {
                     {/* U-004: جسر التقدير → المسودة — نسخ قيم مقترحة قابلة للتعديل؛ التقدير لا يتغير
                     ولا تُنشأ أي حركة مالية، والمسودة تُحفظ عند تأكيد المالك فقط. */}
                     <div className="micro-form-actions">
-                      <button
-                        className="micro-text-action"
-                        type="button"
-                        onClick={() =>
-                          navigate(
-                            withReturnTo(
-                              `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`,
-                              "/tools",
-                            ),
-                          )
-                        }
-                      >
-                        ابدأ مسودة من هذا التقدير
-                      </button>
+                      {ordersEntryEnabled ? (
+                        <button
+                          className="micro-text-action"
+                          type="button"
+                          onClick={() =>
+                            navigate(
+                              withReturnTo(
+                                `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(estimate.id)}`,
+                                "/tools",
+                              ),
+                            )
+                          }
+                        >
+                          ابدأ مسودة من هذا التقدير
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                   <button
