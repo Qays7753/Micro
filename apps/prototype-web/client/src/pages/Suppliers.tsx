@@ -8,6 +8,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
+import type { PayableDueRow, PayablesAgingOverview } from "@/application/finance/dueDatesService";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatArabicPlural } from "@/presentation/formatters";
 
@@ -15,13 +16,29 @@ import { Button } from "@/components/primitives";
 type PageState =
   | { phase: "loading" }
   | { phase: "error" }
-  | { phase: "ready"; purchases: readonly SupplierPurchase[]; summary: SupplierPurchaseSummary };
+  | {
+      phase: "ready";
+      purchases: readonly SupplierPurchase[];
+      summary: SupplierPurchaseSummary;
+      aging: PayablesAgingOverview;
+    };
+
+/* Stage 2 — OPS-001 (tracker): تسمية حالة موعد الاستحقاق المعروض — المتأخر
+ * والمستحق اليوم والحالي من قراءة التقادم الأساسي؛ المجهول يبقى «لا يوجد
+ * تاريخ استحقاق مسجل» كما هو — لا اختراع تاريخ اليوم ولا صفر. */
+const DUE_STATE_LABELS: Record<"overdue" | "today" | "upcoming", string> = {
+  overdue: "متأخر عن موعده",
+  today: "مستحق اليوم",
+  upcoming: "لم يحن بعد",
+};
+const dueStateLabel = (state: string | undefined): string | null =>
+  state && state in DUE_STATE_LABELS ? DUE_STATE_LABELS[state as "overdue" | "today" | "upcoming"] : null;
 
 export default function Suppliers() {
   const [, navigate] = useLocation();
   /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
   const returnPath = useReturnPath();
-  const { supplierPurchases, dataVersion } = usePrototypeServices();
+  const { supplierPurchases, dueDates, dataVersion } = usePrototypeServices();
   /* G-004: الموردين متوقفة عن الإدخال — زر الشراء الجديد يختفي؛ الدفعات
    * والذمم القائمة وقراءتها تبقى كما وعدت الإعدادات. */
   const { disabled: disabledCapabilities } = useDisabledCapabilities();
@@ -30,18 +47,22 @@ export default function Suppliers() {
   const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
     let active = true;
-    Promise.all([supplierPurchases.list(), supplierPurchases.readSummary()]).then(([purchases, summary]) => {
+    Promise.all([
+      supplierPurchases.list(),
+      supplierPurchases.readSummary(),
+      dueDates.readPayablesAging(),
+    ]).then(([purchases, summary, aging]) => {
       if (!active) return;
-      if (!purchases.ok || !summary.ok) {
+      if (!purchases.ok || !summary.ok || !aging.ok) {
         setState({ phase: "error" });
         return;
       }
-      setState({ phase: "ready", purchases: purchases.value, summary: summary.value });
+      setState({ phase: "ready", purchases: purchases.value, summary: summary.value, aging: aging.value });
     });
     return () => {
       active = false;
     };
-  }, [dataVersion, supplierPurchases, retryCount]);
+  }, [dataVersion, supplierPurchases, dueDates, retryCount]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -68,6 +89,9 @@ export default function Suppliers() {
       </section>
     );
   const open = state.purchases.filter(purchase => purchase.payableMinor > 0);
+  const agingById = new Map<string, PayableDueRow>(
+    state.aging.rows.map(row => [row.purchaseId, row] as const),
+  );
   const openPurchaseLabel = formatArabicPlural(open.length, {
     zero: "لا توجد مشتريات مفتوحة",
     one: "شراء واحد يحتاج متابعة",
@@ -112,52 +136,62 @@ export default function Suppliers() {
           <h2>{openPurchaseLabel}</h2>
         </div>
         {open.length ? (
-          open.map(purchase => (
-            <article key={purchase.id}>
-              {/* مبدأ Micro: نعرض قصة شراء المورد كاملة دون تحويلها إلى مصروف أو تكلفة بيع. */}
-              <div>
-                <strong dir="auto">{purchase.supplierName}</strong>
-                <small>الحالة: مفتوح</small>
-                {/* S3-05: العربية خارج صنف الأرقام الأحادي — الخط والمقاس والاتجاه للنص العربي. */}
-                <b className="micro-supplier-payable">
-                  المتبقي (د.أ): <MoneyValue minor={purchase.payableMinor} className="micro-inline-number" />
-                </b>
-              </div>
-              <div className="micro-supplier-balance">
-                <small className="micro-supplier-totals">
-                  الإجمالي: <MoneyValue minor={purchase.totalMinor} className="micro-inline-number" /> ·
-                  المدفوع: <MoneyValue minor={purchase.paidMinor} className="micro-inline-number" />
-                </small>
-                <small>
-                  تاريخ الشراء: <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
-                </small>
-                {purchase.dueOn ? (
-                  <small>
-                    الاستحقاق: <LocalDateValue value={purchase.dueOn} />
+          open.map(purchase => {
+            const dueLabel = dueStateLabel(agingById.get(purchase.id)?.dueState);
+            return (
+              <article key={purchase.id}>
+                {/* مبدأ Micro: نعرض قصة شراء المورد كاملة دون تحويلها إلى مصروف أو تكلفة بيع. */}
+                <div>
+                  <strong dir="auto">{purchase.supplierName}</strong>
+                  <small>الحالة: مفتوح</small>
+                  {/* S3-05: العربية خارج صنف الأرقام الأحادي — الخط والمقاس والاتجاه للنص العربي. */}
+                  <b className="micro-supplier-payable">
+                    المتبقي (د.أ):{" "}
+                    <MoneyValue minor={purchase.payableMinor} className="micro-inline-number" />
+                  </b>
+                </div>
+                <div className="micro-supplier-balance">
+                  <small className="micro-supplier-totals">
+                    الإجمالي: <MoneyValue minor={purchase.totalMinor} className="micro-inline-number" /> ·
+                    المدفوع: <MoneyValue minor={purchase.paidMinor} className="micro-inline-number" />
                   </small>
-                ) : (
-                  <small>لا يوجد تاريخ استحقاق مسجل</small>
-                )}
-                <Button
-                  action="secondary"
+                  <small>
+                    تاريخ الشراء: <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
+                  </small>
+                  {purchase.dueOn ? (
+                    <small>
+                      الاستحقاق: <LocalDateValue value={purchase.dueOn} />
+                      {dueLabel ? (
+                        <>
+                          {" · "}
+                          <span>{dueLabel}</span>
+                        </>
+                      ) : null}
+                    </small>
+                  ) : (
+                    <small>لا يوجد تاريخ استحقاق مسجل</small>
+                  )}
+                  <Button
+                    action="secondary"
 
-                  onClick={() =>
-                    navigate(withReturnTo(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))
-                  }
-                >
-                  سجّل دفعة
-                </Button>
-                {/* المجموعة ٢ (§10.1): تصحيح الشراء من صفّه — لا إيماءة مخفية ولا لون فقط. */}
-                <Button
-                  action="quiet"
+                    onClick={() =>
+                      navigate(withReturnTo(`/suppliers/purchase/${purchase.id}/payment`, "/suppliers"))
+                    }
+                  >
+                    سجّل دفعة
+                  </Button>
+                  {/* المجموعة ٢ (§10.1): تصحيح الشراء من صفّه — لا إيماءة مخفية ولا لون فقط. */}
+                  <Button
+                    action="quiet"
 
-                  onClick={() => navigate(withReturnTo(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
-                >
-                  عدّل/تراجع
-                </Button>
-              </div>
-            </article>
-          ))
+                    onClick={() => navigate(withReturnTo(`/suppliers/purchase/${purchase.id}`, "/suppliers"))}
+                  >
+                    عدّل/تراجع
+                  </Button>
+                </div>
+              </article>
+            );
+          })
         ) : (
           <p>لا تسجل شراء مواد كمصروف تشغيل. ابدأ من هذا السجل ليظهر الكاش والمتبقي بصدق.</p>
         )}

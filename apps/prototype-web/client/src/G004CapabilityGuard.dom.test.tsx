@@ -15,6 +15,12 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
+/* Stage 2 — OPS-001: خدمة مواعيد الاستحقاق في هيكل اختبار G-004 — نفس سلسلة
+ * الإنتاج الحقيقية فوق المخزن نفسه حتى يبقى سطح الموردين كامل الوظيفة. */
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { CollectionService } from "@/application/collections/collectionService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { ScheduleRecurrenceService } from "@/application/scheduling/recurrenceService";
@@ -64,6 +70,16 @@ function Harness({ page }: { page: React.ReactNode }) {
       preferences,
       inventory: new InventoryMaterialService(store, () => NOW),
       supplierPurchases: new SupplierPurchaseService(store, () => NOW),
+      dueDates: new DueDatesService(
+        store,
+        new CollectionService(
+          store,
+          new FulfillmentService(store, () => NOW),
+          new DirectSaleService(store, () => NOW),
+          new ProjectFinancialService(store, () => NOW),
+        ),
+        () => NOW,
+      ),
       projectFinance: new ProjectFinancialService(store, () => NOW),
       cashContinuity: new CashContinuityService(store, () => NOW),
       dailyFollowUp: new DailyFollowUpService(store),

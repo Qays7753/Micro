@@ -54,6 +54,8 @@ import { WalletLedgerService } from "@/application/cash/walletLedgerService";
 import { StatementService } from "@/application/finance/statementService";
 /* المجموعة ١ (فحص سلامة مالي): خدمة قراءة فقط فوق القارئ الكنسي والكشف والمحافظ. */
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
+/* Stage 2 — OPS-001 (tracker): مواعيد الاستحقاق والتقادم الأساسي — قراءة فقط. */
+import { DueDatesService } from "@/application/finance/dueDatesService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 /* المجموعة ٤ (عقد ٢٩): الأصول والقروض وتصنيف العربون المحتفظ به. */
 import { AssetService } from "@/application/assets/assetService";
@@ -104,6 +106,8 @@ type PrototypeServices = {
   partyLedger: PartyLedgerService;
   /* المجموعة ٢ (Scope B): ورقة التحصيل — المصدر الواحد لتحصيل الذمم. */
   collections: CollectionService;
+  /* Stage 2 — OPS-001: قراءة التقادم ومواعيد الاستحقاق — لا كتابة إطلاقًا. */
+  dueDates: DueDatesService;
   /* المجموعة ٦ (البند ١): تراجع القبضة مع تخصيصها المطابق بنقطة واحدة ذرّية. */
   collectionReversal: CollectionReversalService;
   saleCollectionReversal: SaleCollectionReversalService;
@@ -215,6 +219,9 @@ function createServices(): Omit<
   const deliveryReview = new DeliveryReviewService(store, undefined, projectFinance, schedules);
   const cashContinuity = new CashContinuityService(store);
   const statement = new StatementService(store, projectFinance);
+  /* Stage 2 — OPS-001: قراءة التقادم فوق مصدر الذمم القابلة للتحصيل نفسه. */
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections);
   const activity = new ActivityService(store);
   return {
     profiles: new ProfileService(store),
@@ -254,7 +261,8 @@ function createServices(): Omit<
     deliveryReview,
     costEstimates: new CostEstimateService(store),
     partyLedger: new PartyLedgerService(store),
-    collections: new CollectionService(store, fulfillment, directSales, projectFinance),
+    collections,
+    dueDates,
     collectionReversal: new CollectionReversalService(store, projectFinance),
     saleCollectionReversal: new SaleCollectionReversalService(store, projectFinance),
     walletLedger: new WalletLedgerService(store),
