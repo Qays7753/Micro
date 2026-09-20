@@ -36,8 +36,6 @@ const createId = () =>
     : `time-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const mode = (value: unknown): OperatingWorkMode | null =>
   value === "material_focused" || value === "time_focused" || value === "mixed" ? value : null;
-const knowledge = (value: string): "known" | "estimated" | "needs_review" =>
-  value === "known" ? "known" : value === "estimated" ? "estimated" : "needs_review";
 
 export class ActualTimeService {
   constructor(
@@ -167,14 +165,20 @@ export class ActualTimeService {
       return { ok: false, code: "storage_error", message: "تعذر قراءة مقارنة الوقت محليًا." };
     if (!order.value) return { ok: false, code: "not_found", message: "الطلب غير متاح محليًا." };
     const snapshotTime = order.value.order.costSnapshot.input.time;
+    /* Stage 2 — OPS-008 (عقد ١٦ §٤): معرفة مقارنة الوقت من مصدر الوقت نفسه لا من
+     * حالة اللقطة الكلية — لقطة بمواد تقديرية ووقت معروف تجعل مقارنة الوقت
+     * «مسجلة» (العقد: «يوجد وقت فعلي، ووقت Snapshot معروف»). والدقائق المخططة
+     * الصفرية/الغائبة يصنفها craft-order «ناقصة» فتُقرأ غير متاحة لا صفرًا واثقًا. */
+    const plannedKnown = snapshotTime !== null && snapshotTime.minutes !== null && snapshotTime.minutes > 0;
+    const plannedMinutes = plannedKnown ? (snapshotTime?.minutes ?? null) : null;
+    const timeKnowledge: "known" | "estimated" | "needs_review" = plannedKnown
+      ? snapshotTime?.confidence === "known"
+        ? "known"
+        : "estimated"
+      : "needs_review";
     return {
       ok: true,
-      value: summarizeActualTime(
-        orderId,
-        snapshotTime?.minutes ?? null,
-        records.value,
-        snapshotTime ? knowledge(order.value.order.costSnapshot.knowledgeState) : "needs_review",
-      ),
+      value: summarizeActualTime(orderId, plannedMinutes, records.value, timeKnowledge),
     };
   }
 }
