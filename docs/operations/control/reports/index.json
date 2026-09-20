@@ -73,6 +73,12 @@
       "path": "reports/agent-report/2026-09-20_pre-pilot-safety-package-b/report.md",
       "scope": "pre-pilot safety package B (G-004/G-005)",
       "status": "OPEN_PR_191_IN_REVIEW"
+    },
+    {
+      "id": "STAGE-2-OPS-001",
+      "path": "reports/agent-report/2026-09-20_stage-2-ops-001-due-dates/report.md",
+      "scope": "stage 2 wave 1 (OPS-001 due dates and basic aging)",
+      "status": "OPEN_PR_196_IN_REVIEW"
     }
   ]
 }

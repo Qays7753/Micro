@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · READY: 14 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 18
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 14 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 18
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-164 | CLAIMED | \`stage-2/ops-001-due-dates\` | — | OPS-001 | تنفيذ طبقة قراءة/تصنيف التقادم الأساسي مع اختبارات مركزة ثم PR للموجة 1. |
+| WS-164 | IN_REVIEW | \`stage-2/ops-001-due-dates\` | 196 | OPS-001 | انتظار CI على PR #196 ثم الدمج (مصرّح به لهذه الموجة) والتحقق على main قبل إغلاق الموجة. |
