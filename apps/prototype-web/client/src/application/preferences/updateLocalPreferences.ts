@@ -50,6 +50,8 @@ export async function updateLocalPreferences(
   merged.lastVerifiedExportAt = merged.lastVerifiedExportAt ?? null;
   merged.backupReminderEnabled = merged.backupReminderEnabled ?? true;
   merged.disabledCapabilities = merged.disabledCapabilities ?? [];
+  /* Stage 2 — OPS-002: غياب الحد = لا سياسة = لا تنبيه (افتراض صادق يُرسّى بأول حفظ). */
+  merged.lowStockThresholdsMilli = merged.lowStockThresholdsMilli ?? null;
   const saved = await store.savePreferences(merged);
   return saved.ok
     ? { ok: true, value: saved.value }

@@ -5,12 +5,14 @@ import {
   createInventoryMovement,
   createInventoryShortage,
   createMaterial,
+  lowStockAlertState,
   materialIsTracked,
   materialQuantityKnowledge,
   positionCostKnowledge,
   summarizeMaterialInventory,
   type InventoryMovement,
   type InventoryShortage,
+  type LowStockAlertState,
   type Material,
   type MaterialOpeningKnowledge,
   type MaterialUnit,
@@ -43,6 +45,11 @@ export type InventoryMaterialOverview = Material & {
   openShortageCount: number;
   awaitingReceiptPurchaseCount: number;
   awaitingReceiptRemainingMinor: number;
+  /* Stage 2 — OPS-002: حالة تنبيه انخفاض المخزون — مشتقة عند القراءة من
+   * الحد المعلن في التفضيلات والمعرفة الكمية نفسها؛ لا تُخزن أبدًا. */
+  lowStock: LowStockAlertState;
+  /* الحد المعلن نفسه (بالملي) كما قُرئ من التفضيلات — للعرض المفهوم فقط. */
+  lowStockThresholdMilli: number | null;
 };
 export type InventoryOverview = {
   materials: readonly InventoryMaterialOverview[];
@@ -285,6 +292,10 @@ export class InventoryMaterialService {
           (openShortagesByMaterial.get(shortage.materialId) ?? 0) + 1,
         );
     }
+    /* Stage 2 — OPS-002: حدود التنبيه من التفضيلات — فشل قراءتها = سياسة غير
+     * معروفة = لا تنبيه (تدهور صادق لا فشل عام للصفحة، ولا كتابة أبدًا). */
+    const preferences = await this.store.getPreferences();
+    const lowStockThresholds = preferences.ok ? (preferences.value?.lowStockThresholdsMilli ?? {}) : {};
     return {
       ok: true,
       value: {
@@ -307,6 +318,13 @@ export class InventoryMaterialService {
                 sum + (purchase.totalMinor - (receivedValueByPurchase.get(purchase.id) ?? 0)),
               0,
             ),
+            lowStock: lowStockAlertState({
+              tracked: materialIsTracked(material),
+              quantityKnowledge: materialQuantityKnowledge(material),
+              quantityMilli: fold.quantityMilli,
+              thresholdMilli: lowStockThresholds[material.id],
+            }),
+            lowStockThresholdMilli: lowStockThresholds[material.id] ?? null,
           };
         }),
         movementCount: movements.value.length,

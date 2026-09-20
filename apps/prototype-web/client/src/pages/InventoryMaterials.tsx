@@ -24,7 +24,14 @@ import type {
   InventoryOverview,
 } from "@/application/inventory/inventoryMaterialService";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
-import { localDateInAmman, formatArabicPlural, formatMoneyMinor } from "@/presentation/formatters";
+import {
+  localDateInAmman,
+  formatArabicPlural,
+  formatMoneyMinor,
+  formatQuantityMilli,
+} from "@/presentation/formatters";
+import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { savedMovementCountLabel } from "@/presentation/plurals";
 const label = (type: InventoryMovement["type"]) =>
   ({
@@ -68,7 +75,7 @@ export default function InventoryMaterials() {
   const [, navigate] = useLocation();
   /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
   const returnPath = useReturnPath();
-  const { inventory, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { inventory, preferences, dataVersion, notifyDataChanged } = usePrototypeServices();
   /* G-004: المخزون متوقف عن الإدخال — مداخل المادة والحركات الجديدة تختفي؛
    * المواد والحركات والنقص القائمة تبقى مقروءة كما هي. */
   const { disabled: disabledCapabilities } = useDisabledCapabilities();
@@ -437,6 +444,13 @@ export default function InventoryMaterials() {
                     {unconfirmed && material.movementCount > 0 ? (
                       <small>الكمية من الحركات فقط — رصيد البداية غير محدد بعد</small>
                     ) : null}
+                    {/* Stage 2 — OPS-002: التنبيه يظهر فقط تحت الحد المعلن مع كمية
+                        معروفة — القيمة المفهومة داخل النص المُقاد بالبيانات. */}
+                    {material.lowStock === "below" && material.lowStockThresholdMilli !== null ? (
+                      <small data-testid={`low-stock-alert-${material.name}`}>
+                        {`المخزون تحت الحد الذي حددته (${formatQuantityMilli(material.lowStockThresholdMilli)})`}
+                      </small>
+                    ) : null}
                   </div>
                 </div>
                 <div className="micro-supplier-balance">
@@ -581,6 +595,50 @@ export default function InventoryMaterials() {
           <p>لا مواد متتبَّعة بعد — أضف مادة واختر متابعة كميتها. لا يفرض Micro المخزون على الخدمة.</p>
         )}
       </section>
+      {/* Stage 2 — OPS-002: حدود التنبيه — إعداد اختياري داخل جسم <details> منهار
+          (خارج كثافة السكون)؛ التنبيه نفسه قراءة مشتقة لا تُخزن ولا تكتب شيئًا. */}
+      {inventoryEnabled && tracked.length > 0 ? (
+        <details className="micro-low-stock-settings" data-testid="low-stock-settings">
+          <summary>حدود تنبيه المخزون</summary>
+          <div className="micro-form-card">
+            <p className="micro-local-truth">
+              حدد لكل مادة حدًا بوحدتها نفسها — التنبيه قراءة فقط: لا يفترض Micro طلبًا مستقبليًا ولا يقترح
+              شراءً ولا يسجل حركة، والكمية غير المؤكدة أو غياب الحد يعني ببساطة لا تنبيه. إفراغ الحد وإعادة
+              الحفظ يعني إزالة السياسة.
+            </p>
+            {tracked.map(material => (
+              <LowStockThresholdRow
+                key={material.id}
+                material={material}
+                save={draftUnits => {
+                  const parsed = draftUnits === null ? null : quantityMilliExact(draftUnits);
+                  if (draftUnits !== null && parsed === null) {
+                    setFeedback({
+                      kind: "error",
+                      word: "أدخل حدًا موجبًا بثلاث منازل عشرية على الأكثر، أو اتركه فارغًا لإزالة الحد.",
+                    });
+                    return;
+                  }
+                  void preferences.saveLowStockThreshold(material.id, parsed).then(result => {
+                    if (!result.ok) {
+                      setFeedback({ kind: "error", word: result.message });
+                      return;
+                    }
+                    notifyDataChanged();
+                    setFeedback({
+                      kind: "completion",
+                      word:
+                        parsed === null
+                          ? "أُزيل الحد — لا سياسة معلنة يعني لا تنبيه."
+                          : "تم حفظ الحد — التنبيه قراءة تظهر عند تحقق شرطها وحده.",
+                    });
+                  });
+                }}
+              />
+            ))}
+          </div>
+        </details>
+      ) : null}
       {untracked.length > 0 ? (
         <section className="micro-supplier-list">
           <div className="micro-finance-event-heading">
@@ -769,5 +827,54 @@ export default function InventoryMaterials() {
         </section>
       ) : null}
     </section>
+  );
+}
+
+/* Stage 2 — OPS-002: صف حد تنبيه مادة واحدة — إدخال اختياري بوحدة المادة؛
+ * الحفظ بالإفراغ = إزالة السياسة (لا حد = لا تنبيه). كل النصوص هنا مُدارة
+ * بالبيانات أو داخل جسم <details> — تسمية «احفظ الحد» الوحيدة محسوبة سكونًا.
+ * لا يُنشئ التنبيه أي حدث مالي أو حركة إطلاقًا. */
+function LowStockThresholdRow({
+  material,
+  save,
+}: {
+  material: InventoryMaterialOverview;
+  save: (draftUnits: number | null) => void;
+}) {
+  const [draft, setDraft] = useState<number | null>(
+    material.lowStockThresholdMilli !== null ? material.lowStockThresholdMilli / 1000 : null,
+  );
+  return (
+    <div className="micro-shortage-record" data-testid={`low-stock-row-${material.name}`}>
+      <div>
+        <strong>{material.name}</strong>
+        <small>
+          {unitWord(material.unit)} ·{" "}
+          {material.quantityKnowledge === "known"
+            ? `المتاح الآن ${formatQuantityMilli(material.quantityMilli)}`
+            : "الكمية غير محددة بعد — لا تنبيه حتى تُعرَّف"}
+          {material.lowStockThresholdMilli !== null
+            ? ` · الحد المعلن ${formatQuantityMilli(material.lowStockThresholdMilli)}`
+            : ""}
+        </small>
+      </div>
+      <div className="micro-low-stock-editor">
+        <label className="micro-field">
+          <span>{`حد التنبيه (${unitWord(material.unit)})`}</span>
+          <EnglishNumberInput
+            value={draft}
+            kind="decimal"
+            allowEmpty
+            onEmptyChange={() => setDraft(null)}
+            onNumericChange={value => setDraft(value)}
+            aria-label={`حد تنبيه ${material.name}`}
+            data-testid={`low-stock-input-${material.name}`}
+          />
+        </label>
+        <Button action="secondary" onClick={() => save(draft)}>
+          احفظ الحد
+        </Button>
+      </div>
+    </div>
   );
 }

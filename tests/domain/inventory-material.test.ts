@@ -7,6 +7,7 @@ import {
   createInventoryShortage,
   createMaterial,
   isCostBackedConsumption,
+  lowStockAlertState,
   positionCostKnowledge,
   summarizeMaterialInventory,
   type MaterialTrackingState,
@@ -444,5 +445,49 @@ describe("inventory material domain — Group 2 selective tracking: shortage rec
         reversesMovementId: unknownWaste.id,
       }),
     ).toThrow("غير صفريتين");
+  });
+});
+
+describe("Stage 2 — OPS-002: حالة تنبيه انخفاض المخزون (قراءة-فقط صادقة)", () => {
+  it("المصفوفة الكاملة: تحت/عند/فوق الحد بلا سياسة معلنة لا تنبيه", () => {
+    const known = { tracked: true, quantityKnowledge: "known" as const, quantityMilli: 5000 };
+    expect(lowStockAlertState({ ...known, thresholdMilli: 8000 })).toBe("below");
+    expect(lowStockAlertState({ ...known, thresholdMilli: 5000 })).toBe("equal");
+    expect(lowStockAlertState({ ...known, thresholdMilli: 2000 })).toBe("above");
+  });
+  it("الحد الغائب أو الصفر = لا سياسة = لا تنبيه أبدًا (لا حد افتراضي مخترع)", () => {
+    const known = { tracked: true, quantityKnowledge: "known" as const, quantityMilli: 0 };
+    expect(lowStockAlertState({ ...known, thresholdMilli: null })).toBe("unset");
+    expect(lowStockAlertState({ ...known, thresholdMilli: undefined })).toBe("unset");
+    expect(lowStockAlertState({ ...known, thresholdMilli: 0 })).toBe("unset");
+    expect(lowStockAlertState({ ...known, thresholdMilli: -5 })).toBe("unset");
+  });
+  it("الكمية غير المؤكدة (بمعرفة أو بلا حركات) = مجهولة = لا تنبيه أبدًا", () => {
+    expect(
+      lowStockAlertState({
+        tracked: true,
+        quantityKnowledge: "unconfirmed",
+        quantityMilli: 0,
+        thresholdMilli: 5000,
+      }),
+    ).toBe("unknown_quantity");
+    expect(
+      lowStockAlertState({
+        tracked: true,
+        quantityKnowledge: "unconfirmed",
+        quantityMilli: 3000,
+        thresholdMilli: 5000,
+      }),
+    ).toBe("unknown_quantity");
+  });
+  it("المادة غير المتتبَّعة لا تُقيَّم إطلاقًا — هوية مرجع تكلفة فقط", () => {
+    expect(
+      lowStockAlertState({
+        tracked: false,
+        quantityKnowledge: "known",
+        quantityMilli: 0,
+        thresholdMilli: 5000,
+      }),
+    ).toBe("untracked");
   });
 });

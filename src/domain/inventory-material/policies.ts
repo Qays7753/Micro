@@ -66,6 +66,27 @@ export function materialIsTracked(material: Material): boolean {
 export function materialQuantityKnowledge(material: Material): "known" | "unconfirmed" {
   return material.opening?.quantityState === "unconfirmed" ? "unconfirmed" : "known";
 }
+/* Stage 2 — OPS-002: حالة تنبيه انخفاض المخزون — اشتقاق قراءة-فقط صادق:
+ * المادة غير المتتبَّعة لا تُقيَّم أبدًا (هوية مرجع تكلفة فقط)؛ الكمية غير
+ * المؤكدة (معرفة البداية «غير محدد بعد») = كمية مجهولة = لا تنبيه أبدًا؛
+ * الحد الغائب/الصفر = لا سياسة معلنة = لا تنبيه أبدًا (لا يُخترع حد افتراضيًا
+ * ولا يُفترض طلب مستقبلي)؛ المقارنة صارمة: «تحت الحد» أقل فقط — المساواة
+ * حالة معلنة مستقلة لا إلحاح مصنوع. لا كتابة ولا أثر مالي في أي مسار. */
+export type LowStockAlertState = "below" | "equal" | "above" | "unset" | "unknown_quantity" | "untracked";
+export function lowStockAlertState(input: {
+  tracked: boolean;
+  quantityKnowledge: "known" | "unconfirmed";
+  quantityMilli: number;
+  thresholdMilli: number | null | undefined;
+}): LowStockAlertState {
+  if (!input.tracked) return "untracked";
+  if (input.quantityKnowledge !== "known") return "unknown_quantity";
+  const threshold = input.thresholdMilli ?? null;
+  if (threshold === null || !Number.isSafeInteger(threshold) || threshold <= 0) return "unset";
+  if (input.quantityMilli < threshold) return "below";
+  if (input.quantityMilli === threshold) return "equal";
+  return "above";
+}
 const isString = (value: unknown): value is string => typeof value === "string";
 const isNonNegativeInteger = (value: unknown): boolean =>
   typeof value === "number" && Number.isInteger(value) && value >= 0;

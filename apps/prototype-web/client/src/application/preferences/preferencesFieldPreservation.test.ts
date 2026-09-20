@@ -49,6 +49,10 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
     expect(seededExport.ok).toBe(true);
     const seededBanner = await preferences.saveInstallBannerDismissal();
     expect(seededBanner.ok).toBe(true);
+    /* Stage 2 — OPS-002: بذر حدود التنبيه — يجب أن تنجو من كل كاتب آخر. */
+    const seededThresholds = await preferences.saveLowStockThreshold("wood", 8000);
+    expect(seededThresholds.ok).toBe(true);
+    if (seededThresholds.ok) expect(seededThresholds.thresholds.get("wood")).toBe(8000);
 
     const baseline = await store.getPreferences();
     if (!baseline.ok || !baseline.value) throw new Error("baseline preferences should read");
@@ -150,6 +154,10 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
       expect(record.value.installBannerDismissedAt, `${writer.name} banner stamp`).toBe(
         expected.installBannerDismissedAt,
       );
+      /* Stage 2 — OPS-002: حدود التنبيه لا تسقط بأي كاتب آخر. */
+      expect(record.value.lowStockThresholdsMilli, `${writer.name} kept lowStockThresholdsMilli`).toEqual({
+        wood: 8000,
+      });
     }
 
     /* كاتب القدرات نفسه يغيّر حقه فقط ولا يمسّ بقية السجل (بقيم ما بعد الكتّاب). */
@@ -164,6 +172,7 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
     expect(record.value.dailyScheduleCapacityMinutes).toBe(expected.dailyScheduleCapacityMinutes);
     expect(record.value.backupReminderEnabled).toBe(expected.backupReminderEnabled);
     expect(record.value.lastVerifiedExportAt).toBe(expected.lastVerifiedExportAt);
+    expect(record.value.lowStockThresholdsMilli).toEqual({ wood: 8000 });
   });
 
   it("a fresh device (no record) gets honest defaults and the first writer establishes the record", async () => {

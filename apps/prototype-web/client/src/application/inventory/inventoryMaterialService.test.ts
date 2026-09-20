@@ -4,6 +4,8 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import { readMaterialSuggestions } from "@/application/inventory/materialSuggestions";
+import { PreferenceService } from "@/application/preferences/preferenceService";
+import { localPreferencesId } from "@/storage/local/types";
 
 describe("InventoryMaterialService", () => {
   it("keeps purchase cash semantics separate while receiving, consuming, wasting, and reversing stock", async () => {
@@ -1563,5 +1565,188 @@ describe("Stage 2 — OPS-007/OPS-009: إعلان سبب المراجعة وحت
     if (!comparisonBefore.ok || !comparisonAfter.ok) return;
     expect(comparisonAfter.value.plannedMaterialMinor).toBe(2000);
     expect(comparisonAfter.value.plannedMaterialMinor).toBe(comparisonBefore.value.plannedMaterialMinor);
+  });
+});
+
+describe("Stage 2 — OPS-002: تنبيه انخفاض المخزون — اشتقاق قراءة-فقط من الحد المعلن في التفضيلات", () => {
+  async function storeSaveThresholds(store: MemoryLocalStore, thresholds: Record<string, number>) {
+    await store.savePreferences({
+      id: localPreferencesId,
+      theme: "system",
+      dailyScheduleCapacityMinutes: null,
+      workMode: null,
+      actualTimeTrackingEnabled: false,
+      installBannerDismissedAt: null,
+      lastVerifiedExportAt: null,
+      backupReminderEnabled: true,
+      disabledCapabilities: [],
+      lowStockThresholdsMilli: thresholds,
+      updatedAt: "2026-09-16T09:00:00.000Z",
+    });
+  }
+  async function seedWithThresholds(thresholds: Record<string, number> | null) {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-09-16T09:00:00.000Z");
+    const wood = await service.openMaterial({
+      name: "خشب",
+      unit: "piece",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 5000,
+        costState: "known",
+        valueMinor: 2000,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
+      note: "افتتاح",
+      operationKey: "ops2-wood",
+    });
+    if (!wood.ok) throw new Error("material should open");
+    const cloth = await service.openMaterial({
+      name: "قماش",
+      unit: "meter",
+      tracking: "tracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
+      note: "افتتاح غير محدد",
+      operationKey: "ops2-cloth",
+    });
+    if (!cloth.ok) throw new Error("material should open");
+    const ribbon = await service.openMaterial({
+      name: "شريط",
+      unit: "piece",
+      tracking: "untracked",
+      opening: {
+        quantityState: "unconfirmed",
+        quantityMilli: null,
+        costState: "unknown",
+        valueMinor: null,
+        confirmedOn: null,
+        sourceNote: null,
+      },
+      note: "للتكلفة فقط",
+      operationKey: "ops2-ribbon",
+    });
+    if (!ribbon.ok) throw new Error("material should open");
+    if (thresholds !== null) await storeSaveThresholds(store, thresholds);
+    return {
+      store,
+      service,
+      woodId: wood.value.material.id,
+      clothId: cloth.value.material.id,
+      ribbonId: ribbon.value.material.id,
+    };
+  }
+
+  it("الحد المعلن يقارن صراحة: تحت/عند/فوق — والكمية غير المؤكدة وغير المتتبَّعة لا تُقيَّمان", async () => {
+    const seeded = await seedWithThresholds(null);
+    const { service } = seeded;
+    const { woodId, clothId, ribbonId } = seeded;
+    await storeSaveThresholds(seeded.store, {
+      [woodId]: 8000,
+      [clothId]: 2000,
+      [ribbonId]: 1000,
+    });
+    const overview = await service.overview();
+    expect(overview.ok).toBe(true);
+    if (!overview.ok) return;
+    const byId = new Map(overview.value.materials.map(material => [material.id, material]));
+    /* خشب معلوم 5000 وحد 8000 → تحت الحد (تنبيه). */
+    expect(byId.get(woodId)?.lowStock).toBe("below");
+    expect(byId.get(woodId)?.lowStockThresholdMilli).toBe(8000);
+    /* قماش غير محدد البداية → كمية مجهولة → لا تنبيه مهما كان الحد. */
+    expect(byId.get(clothId)?.lowStock).toBe("unknown_quantity");
+    /* شريط غير متتبَّع → لا تقييم إطلاقًا. */
+    expect(byId.get(ribbonId)?.lowStock).toBe("untracked");
+  });
+
+  it("المساواة حالة معلنة مستقلة لا تنبيه، وفوق الحد لا تنبيه", async () => {
+    const seeded = await seedWithThresholds(null);
+    const { service, woodId } = seeded;
+    await storeSaveThresholds(seeded.store, { [woodId]: 5000 });
+    const equal = await service.overview();
+    expect(equal.ok).toBe(true);
+    if (!equal.ok) return;
+    expect(equal.value.materials.find(material => material.id === woodId)?.lowStock).toBe("equal");
+    /* خفض الكمية تحت الحد عبر استهلاك يقلب الحالة إلى below بعد إعادة الاشتقاق. */
+  });
+
+  it("بلا حقل حدود (سجل قديم): لا سياسة = لا تنبيه لأي مادة — لا يُخترع حد", async () => {
+    const { service, woodId, clothId, ribbonId } = await seedWithThresholds(null);
+    const overview = await service.overview();
+    expect(overview.ok).toBe(true);
+    if (!overview.ok) return;
+    const byId = new Map(overview.value.materials.map(material => [material.id, material]));
+    expect(byId.get(woodId)?.lowStock).toBe("unset");
+    expect(byId.get(clothId)?.lowStock).toBe("unknown_quantity");
+    expect(byId.get(ribbonId)?.lowStock).toBe("untracked");
+    expect(byId.get(woodId)?.lowStockThresholdMilli).toBeNull();
+  });
+
+  it("حفظ الحد عبر بوابة التفضيلات الموحدة يبقى بعد إعادة القراءة، وإزالته تعيّد «لا سياسة»", async () => {
+    const { store, service, woodId } = await seedWithThresholds(null);
+    const preferences = new PreferenceService(store, () => "2026-09-16T10:00:00.000Z");
+    const saved = await preferences.saveLowStockThreshold(woodId, 8000);
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) return;
+    const afterSave = await service.overview();
+    expect(afterSave.ok).toBe(true);
+    if (!afterSave.ok) return;
+    expect(afterSave.value.materials.find(material => material.id === woodId)?.lowStock).toBe("below");
+    /* الإزالة تعيد الحالة الصادقة «لا سياسة». */
+    const removed = await preferences.saveLowStockThreshold(woodId, null);
+    expect(removed.ok).toBe(true);
+    const afterRemove = await service.overview();
+    expect(afterRemove.ok).toBe(true);
+    if (!afterRemove.ok) return;
+    expect(afterRemove.value.materials.find(material => material.id === woodId)?.lowStock).toBe("unset");
+    /* حد غير صالح يُرفض صادقًا — لا مسار ثانٍ للتحقق. */
+    const invalid = await preferences.saveLowStockThreshold(woodId, 0);
+    expect(invalid).toMatchObject({ ok: false, code: "validation_error" });
+  });
+
+  it("قراءة التطبيق لا تكتب شيئًا — مطابقة لقطة المخزن الكاملة قبل/بعد مع الحدود", async () => {
+    const seeded = await seedWithThresholds(null);
+    const { store, service, woodId } = seeded;
+    await storeSaveThresholds(store, { [woodId]: 8000 });
+    const before = await store.readSnapshot();
+    const first = await service.overview();
+    const second = await service.overview();
+    const after = await store.readSnapshot();
+    expect(first.ok && second.ok).toBe(true);
+    if (!first.ok || !second.ok) return;
+    expect(second.value).toEqual(first.value);
+    expect(after.ok && before.ok ? after.value : after).toEqual(before.ok ? before.value : before);
+  });
+
+  it("فشل قراءة التفضيلات = سياسة غير معروفة = لا تنبيه (تدهور صادق لا فشل صفحة)", async () => {
+    const { service } = await seedWithThresholds(null);
+    class FailingPreferencesStore extends MemoryLocalStore {
+      override async getPreferences() {
+        return { ok: false as const, code: "storage_error" as const, message: "فشل قراءة مفتعل" };
+      }
+    }
+    const failing = new InventoryMaterialService(
+      new FailingPreferencesStore(),
+      () => "2026-09-16T09:00:00.000Z",
+    );
+    const overview = await failing.overview();
+    expect(overview.ok).toBe(true);
+    if (!overview.ok) return;
+    expect(
+      overview.value.materials.every(
+        material =>
+          material.lowStock === "unset" ||
+          material.lowStock === "unknown_quantity" ||
+          material.lowStock === "untracked",
+      ),
+    ).toBe(true);
   });
 });

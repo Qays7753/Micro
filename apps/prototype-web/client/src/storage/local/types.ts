@@ -157,6 +157,11 @@ export type LocalPreferences = {
    * يخفي مداخل الإنشاء اليومية فقط؛ السجلات والديون والالتزامات القائمة تبقى
    * ظاهرة قابلة للتدقيق في دفاترها، والمحذوف أبدًا. غياب الحقل = الكل مفعّل. */
   disabledCapabilities?: string[];
+  /* Stage 2 — OPS-002: حدود تنبيه انخفاض المخزون لكل مادة (بالملي بوحدة المادة
+   * نفسها) — سياسة تنبيه للقراءة فقط لا معنى ماليًا ولا تدخل التكلفة. الغياب أو
+   * الفراغ = لا سياسة معلنة = لا تنبيه أبدًا؛ لا يُخترع حد افتراضيًا ولا يُفترض
+   * طلب مستقبلي. حقل اختياري ينتقل مع السجل كما disabledCapabilities. */
+  lowStockThresholdsMilli?: Record<string, number> | null;
   updatedAt: string;
 };
 export type DraftIntent = "customer_order" | "planned_design";

@@ -17,6 +17,14 @@ export type BackupReminderResult =
 /* SET-003: قراءة/حفظ قائمة القدرات المتوقفة عن الإدخال. */
 export type DisabledCapabilitiesResult =
   { ok: true; disabled: readonly string[] } | { ok: false; code: "storage_error"; message: string };
+/* Stage 2 — OPS-002: قراءة/حفظ حدود تنبيه انخفاض المخزون لكل مادة (بالملي).
+ * سياسة تنبيه قراءة-فقط لا معنى ماليًا؛ الغياب = لا سياسة = لا تنبيه. */
+export type LowStockThresholdsResult =
+  | { ok: true; thresholds: ReadonlyMap<string, number> }
+  | { ok: false; code: "storage_error"; message: string };
+export type LowStockThresholdSaveResult =
+  | { ok: true; thresholds: ReadonlyMap<string, number> }
+  | { ok: false; code: "validation_error" | "storage_error"; message: string };
 
 export class PreferenceService {
   constructor(
@@ -113,6 +121,38 @@ export class PreferenceService {
     return result.ok
       ? { ok: true, disabled: result.value.disabledCapabilities ?? [] }
       : { ok: false, code: "storage_error", message: "تعذر حفظ تفضيلات القدرات." };
+  }
+  async readLowStockThresholds(): Promise<LowStockThresholdsResult> {
+    const result = await this.store.getPreferences();
+    return result.ok
+      ? { ok: true, thresholds: new Map(Object.entries(result.value?.lowStockThresholdsMilli ?? {})) }
+      : { ok: false, code: "storage_error", message: "تعذر قراءة حدود التنبيه المحلية." };
+  }
+  async saveLowStockThreshold(
+    materialId: string,
+    thresholdMilli: number | null,
+  ): Promise<LowStockThresholdSaveResult> {
+    /* تحقق الحدود نفسها التي يفرضها الدومين على أي كمية معلنة — لا مسار ثانٍ. */
+    if (thresholdMilli !== null && (!Number.isSafeInteger(thresholdMilli) || thresholdMilli <= 0))
+      return {
+        ok: false,
+        code: "validation_error",
+        message: "أدخل حدًا موجبًا صحيحًا بوحدة المادة، أو أزل الحد.",
+      };
+    const current = await this.readLowStockThresholds();
+    if (!current.ok) return { ok: false, code: "storage_error", message: current.message };
+    const next = new Map(current.thresholds);
+    if (thresholdMilli === null) next.delete(materialId);
+    else next.set(materialId, thresholdMilli);
+    /* EXE-002: merge — لا يُسقط أي كاتب آخر حقولًا قائمة. */
+    const result = await updateLocalPreferences(
+      this.store,
+      { lowStockThresholdsMilli: Object.fromEntries(next) },
+      this.now,
+    );
+    return result.ok
+      ? { ok: true, thresholds: new Map(Object.entries(result.value.lowStockThresholdsMilli ?? {})) }
+      : { ok: false, code: "storage_error", message: "تعذر حفظ حد التنبيه." };
   }
 }
 

@@ -136,10 +136,12 @@ describe("PreferenceService", () => {
       "readDisabledCapabilities",
       "readInstallBannerDismissal",
       "readLastVerifiedExport",
+      "readLowStockThresholds",
       "save",
       "saveBackupReminderEnabled",
       "saveDisabledCapabilities",
       "saveInstallBannerDismissal",
+      "saveLowStockThreshold",
     ]);
     for (const name of publicMethods) {
       expect(typeof (PreferenceService.prototype as Record<string, unknown>)[name]).toBe("function");
