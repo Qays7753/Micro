@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCashWallet } from "@micro-domain/cash-continuity/index.js";
+import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { OwnerEntitlementService } from "./ownerEntitlementService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -30,7 +30,20 @@ const monthlyPolicy = {
 
 async function setup(withPolicy = true) {
   const store = new MemoryLocalStore();
-  await store.commitCashContinuity(wallet, []);
+  /* G-006: رصيد افتتاحي يغطي السحوبات — السحب فوق الرصيد يُرفض بالحرس
+   * الكنوني المشترك الآن، فلا يُختبر النجاح القديم على رصيد صفري. */
+  await store.commitCashContinuity(wallet, [
+    createCashContinuityEntry({
+      id: "wallet-1-opening",
+      walletId: "wallet-1",
+      type: "opening_balance",
+      occurredOn: "2026-08-01",
+      recordedAt: "2026-08-01T08:00:00.000Z",
+      cashDeltaMinor: 100_000,
+      note: "افتتاح لاختبارات مال المالك",
+      operationKey: "wallet-1-opening",
+    }),
+  ]);
   const service = new OwnerEntitlementService(
     store,
     async () => ({ ok: true as const, value: { resultMinor: 1000, status: "recorded_only" as const } }),
@@ -57,7 +70,9 @@ describe("OwnerEntitlementService", () => {
       idempotencyKey: "entitlement-op",
     });
     expect(entitlement.ok).toBe(true);
-    expect((await store.listCashContinuityEntries()).value).toHaveLength(0);
+    expect(
+      (await store.listCashContinuityEntries()).value.filter(entry => entry.id !== "wallet-1-opening"),
+    ).toHaveLength(0);
     const draw = await movement(service, {
       kind: "draw",
       amountMinor: 500,
@@ -73,9 +88,9 @@ describe("OwnerEntitlementService", () => {
     if (!overview.ok) throw new Error("overview should succeed");
     expect(overview.value.remainingEntitlementBalanceMinor).toBe(1000);
     expect(overview.value.drawnForEntitlementMinor).toBe(500);
-    expect((await store.listCashContinuityEntries()).value).toMatchObject([
-      { cashDeltaMinor: -500, walletId: "wallet-1" },
-    ]);
+    expect(
+      (await store.listCashContinuityEntries()).value.filter(entry => entry.id !== "wallet-1-opening"),
+    ).toMatchObject([{ cashDeltaMinor: -500, walletId: "wallet-1" }]);
   });
 
   it("blocks duplicate or overlapping entitlement periods even when the idempotency key changes, then allows re-recording after reversal", async () => {
@@ -682,7 +697,19 @@ describe("OwnerEntitlementService", () => {
 describe("OwnerEntitlementService — الدفتر الموحد لمال المالك (المجموعة ٦، البند ٢)", () => {
   it("يدمج أحداث المالك العامة مع حركات الدفتر برقم رأس مال مطابق لمعادلة المركز", async () => {
     const store = new MemoryLocalStore();
-    await store.commitCashContinuity(wallet, []);
+    /* G-006: رصيد افتتاحي يغطي السحوبات (الحرس الكنوني المشترك). */
+    await store.commitCashContinuity(wallet, [
+      createCashContinuityEntry({
+        id: "wallet-1-opening",
+        walletId: "wallet-1",
+        type: "opening_balance",
+        occurredOn: "2026-08-01",
+        recordedAt: "2026-08-01T08:00:00.000Z",
+        cashDeltaMinor: 100_000,
+        note: "افتتاح لاختبارات مال المالك",
+        operationKey: "wallet-1-opening",
+      }),
+    ]);
     const service = new OwnerEntitlementService(
       store,
       async () => ({ ok: true as const, value: { resultMinor: 0, status: "recorded_only" as const } }),
@@ -749,7 +776,19 @@ describe("OwnerEntitlementService — الدفتر الموحد لمال الم�
 
   it("يحسب سحوبات الدفتر خروجًا ويكشف التراجع الموثق على السطر", async () => {
     const store = new MemoryLocalStore();
-    await store.commitCashContinuity(wallet, []);
+    /* G-006: رصيد افتتاحي يغطي السحوبات (الحرس الكنوني المشترك). */
+    await store.commitCashContinuity(wallet, [
+      createCashContinuityEntry({
+        id: "wallet-1-opening",
+        walletId: "wallet-1",
+        type: "opening_balance",
+        occurredOn: "2026-08-01",
+        recordedAt: "2026-08-01T08:00:00.000Z",
+        cashDeltaMinor: 100_000,
+        note: "افتتاح لاختبارات مال المالك",
+        operationKey: "wallet-1-opening",
+      }),
+    ]);
     const service = new OwnerEntitlementService(
       store,
       async () => ({ ok: true as const, value: { resultMinor: 0, status: "recorded_only" as const } }),

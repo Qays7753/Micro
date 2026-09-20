@@ -105,6 +105,8 @@ describe("integrity check service (فحص سلامة مالي)", () => {
       "MIC-14",
       "MIC-15",
       "MIC-16",
+      /* G-002 (تدقيق ٢٠٢٦-٠٩-١٩): اكتمال تخصيص محافظ دفعات الموردين. */
+      "MIC-17",
     ]);
     for (const check of report.checks) expect(check.status).toBe("PASS");
   });

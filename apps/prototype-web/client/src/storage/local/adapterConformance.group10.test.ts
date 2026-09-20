@@ -406,12 +406,20 @@ async function orders(store: PrototypeLocalStore): Promise<void> {
   /* 6. commitOrderDelivery — تسليم ذرّي ثم إعادة تشغيل بالمفتاح نفسه؛ المخزون
    * الحي قبل التسليم (ready) والحمل الوارد يسليم (delivered) كما في الخدمة. */
   const delivered = deliveredStored("order-2");
-  await store.saveOrder(readyStored("order-2"));
+  const readyBase = readyStored("order-2");
+  await store.saveOrder(readyBase);
   const deliveryMovement = deliveryConsumption(delivered);
-  const delivery = await store.commitOrderDelivery(delivered, [deliveryMovement], [], null, null);
+  const delivery = await store.commitOrderDelivery(readyBase, delivered, [deliveryMovement], [], null, null);
   expect(delivery.ok).toBe(true);
   if (delivery.ok) expect(delivery.value.reused).toBe(false);
-  const deliveryReplay = await store.commitOrderDelivery(delivered, [deliveryMovement], [], null, null);
+  const deliveryReplay = await store.commitOrderDelivery(
+    readyBase,
+    delivered,
+    [deliveryMovement],
+    [],
+    null,
+    null,
+  );
   expect(deliveryReplay.ok).toBe(true);
   if (deliveryReplay.ok) expect(deliveryReplay.value.reused).toBe(true);
   expect((await store.listInventoryMovements()).value).toHaveLength(1);

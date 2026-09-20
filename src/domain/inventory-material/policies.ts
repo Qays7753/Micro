@@ -200,6 +200,41 @@ export function summarizeMaterialInventory(
     movementCount: selected.length,
   };
 }
+/* G-001 (تدقيق الإدارة المالية المتدرجة 2026-09-19): الاستهلاك الفعلي المرتبط
+ * بطلب ومادة — عقد ١٣ نفسه (الاستهلاك المرجعي للأمر): حركات الاستهلاك التي
+ * تحمل معرّف الطلب نفسه، مستبعدًا ما عُكِس منها (reversesMovementId)؛ خالصة
+ * قراءة فقط، لا تُعيد كتابة حركة ولا لقطة تاريخية ولا تعرّف COGS جديدًا.
+ * مرجع القاعدة نفسه في readOrderActualMaterialComparison (طبقة التطبيق). */
+export function orderLinkedConsumptionMilli(
+  orderId: string,
+  materialId: string,
+  movements: readonly InventoryMovement[],
+): number {
+  const reversedMovementIds = new Set(
+    movements
+      .filter(movement => movement.type === "reversal" && movement.reversesMovementId)
+      .map(movement => movement.reversesMovementId),
+  );
+  return movements.reduce((sum, movement) => {
+    if (
+      movement.type === "consumption" &&
+      movement.orderId === orderId &&
+      movement.materialId === materialId &&
+      !reversedMovementIds.has(movement.id)
+    ) {
+      return sum + Math.abs(movement.quantityDeltaMilli);
+    }
+    return sum;
+  }, 0);
+}
+/* G-001: المتبقي للتسليم بعد خصم المستهلك يدويًا لهذا الطلب — لا يهبط عن
+ * صفر (الاستهلاك الزائد حقيقة عرض تُعلن، لا كمية سالبة تُخصم من غيره). */
+export function remainingToConsumeMilli(
+  plannedQuantityMilli: number,
+  alreadyConsumedForOrderMilli: number,
+): number {
+  return Math.max(plannedQuantityMilli - alreadyConsumedForOrderMilli, 0);
+}
 export function consumptionValueMinor(
   quantityMilli: number,
   position: MaterialInventoryPosition,

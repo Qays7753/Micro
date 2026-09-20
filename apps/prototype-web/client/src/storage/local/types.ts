@@ -379,6 +379,18 @@ export interface PrototypeLocalStore {
   listOrders(): Promise<StorageResult<readonly StoredCraftOrder[]>>;
   getOrder(id: string): Promise<StorageResult<StoredCraftOrder | null>>;
   saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>>;
+  /* G-003 (تدقيق الإدارة المالية المتدرجة 2026-09-19): كتابة الطلب العائلية
+   * عبر saveOrder كانت كتابة عمياء (آخر كاتب يفوز) تسمح لمسارين متزامنين
+   * بإسقاط أثر أحدهما بصمت. هذا الالتزام المحروس يتحقق الحالة الحية داخل
+   * حد الكتابة نفسه: إعادة تشغيل العملية نفسها (بمفتاحها) إعادة استخدام
+   * صادقة بلا كتابة، والسجل الحي إن تغيّر منذ قراءة الخدمة (القاعدة)
+   * يُرفض بـstorage_stale ولا يُكتب شيء — فيبقى أثر الفائز محفوظًا ولا
+   * يُدمج حقول مالية/مخزنية بصمت. saveOrder يبقى للإنشاء والبذور فقط. */
+  commitOrderUpdate(
+    base: StoredCraftOrder,
+    next: StoredCraftOrder,
+    idempotencyKeys: readonly string[],
+  ): Promise<StorageResult<{ order: StoredCraftOrder; reused: boolean }>>;
   /** المجموعة ٦ (البند ١ — S2-04أ): تراجع القبضة مع تخصيصها المطابق في معاملة
    * واحدة ذرّية — الطلب وأثر الكاش يُكتبان معًا أو لا يُكتب شيء، مع فحص هوية داخل
    * المعاملة يمنع التكرار المزدوج ويكشف الحالة النصفية بصدق لا بإكمال صامت. */
@@ -457,6 +469,22 @@ export interface PrototypeLocalStore {
   commitSupplierPurchase(
     commit: SupplierPurchaseCommit,
   ): Promise<StorageResult<{ purchase: SupplierPurchase; reused: boolean }>>;
+  /* G-002 (تدقيق الإدارة المالية المتدرجة 2026-09-19): دفعة المورد وتخصيص
+   * محفظتها في معاملة واحدة ذرّية — الشراء والدفعة (فحص علاقة المورد نفسه)
+   * وقيد التخصيص السالب يُكتبان معًا أو لا يُكتب شيء. إعادة التشغيل بالمفتاح
+   * نفسه: الدفعة إعادة استخدام صادقة، والتخصيص الناقص يُشفي داخل المعاملة
+   * نفسها (مفتاح العملية الحتمي + تحقق المصدر والمبلغ من الدفعة المخزّنة)
+   * فلا يبقى أثر غير موزع بعد فشل أو انقطاع. */
+  commitSupplierPurchaseWithAttribution(
+    commit: SupplierPurchaseCommit,
+    attribution: CashContinuityEntry | null,
+  ): Promise<
+    StorageResult<{
+      purchase: SupplierPurchase;
+      attributionEntry: CashContinuityEntry | null;
+      reused: boolean;
+    }>
+  >;
   listCashWallets(): Promise<StorageResult<readonly CashWallet[]>>;
   listCashContinuityEntries(): Promise<StorageResult<readonly CashContinuityEntry[]>>;
   commitCashContinuity(
@@ -576,8 +604,12 @@ export interface PrototypeLocalStore {
   /* المجموعة ٣ (عقد D4): معاملة تسليم ذرّية واحدة — الطلب المسلّم وحركات
    * استهلاك المواد وسجلات النقص وتخصيص الكاش المقبوض عند التسليم تُكتب معًا
    * أو لا يُكتب شيء؛ فحص الهوية داخل المعاملة يمنع تكرار التسليم والحركات
-   * عند إعادة المحاولة أو الإعادة بعد انقطاع. */
+   * عند إعادة المحاولة أو الإعادة بعد انقطاع.
+   * G-003: القاعدة (base) هي السجل الذي قرأته الخدمة قبل بناء الحمولة —
+   * كتابة الطلب داخل المعاملة تتحقق مطابقته للسجل الحي قبل أي put، فلا
+   * يُطمر أثر مسار متزامن كُتب بين قراءة الخدمة والالتزام. */
   commitOrderDelivery(
+    base: StoredCraftOrder,
     order: StoredCraftOrder,
     movements: readonly InventoryMovement[],
     shortages: readonly InventoryShortage[],

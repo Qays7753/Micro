@@ -21,7 +21,12 @@ import { withReturnTo } from "@/app/navigationContract";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { DELIVERED_REVIEW_LOCK_NOTE } from "@/app/resultFeedback";
+import {
+  DELIVERED_REVIEW_LOCK_NOTE,
+  STALE_CONFLICT_NOTE,
+  STALE_RELOAD_ACTION_LABEL,
+  STALE_RELOADED_NOTE,
+} from "@/app/resultFeedback";
 import type { AgreementResult } from "@/application/agreements/agreementService";
 import type { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
 import type {
@@ -110,6 +115,9 @@ export default function OrderDetail() {
   const [sourceEstimate, setSourceEstimate] = useState<CostEstimate | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isActing, setIsActing] = useState(false);
+  /* G-003 (عقد §31): تعارض قدم التخزين يُعرض بطاقة صريحة لا نصًا عابرًا —
+   * إعادة قراءة السجل الحي فعل واعٍ، وقيم المستخدم غير المحفوظة تبقى. */
+  const [staleConflict, setStaleConflict] = useState(false);
   /* القرار ١٩: الإلغاء بثلاثة أسباب بنقرة مع تخطٍ متاح، والعربون ثلاثة خيارات. */
   const [cancelPanelOpen, setCancelPanelOpen] = useState(false);
   const [otherReason, setOtherReason] = useState("");
@@ -425,6 +433,7 @@ export default function OrderDetail() {
         termsOperationKeyRef.current,
       );
       if (!result.ok) {
+        if (result.code === "storage_stale") setStaleConflict(true);
         setMessage(result.message);
         return;
       }
@@ -443,6 +452,7 @@ export default function OrderDetail() {
     const next = await action();
     setIsActing(false);
     if (!next.ok) {
+      if (next.code === "storage_stale") setStaleConflict(true);
       setMessage(next.message);
       return;
     }
@@ -1442,6 +1452,26 @@ export default function OrderDetail() {
         <p className="micro-field-error" role="alert">
           {message}
         </p>
+      ) : null}
+      {staleConflict ? (
+        <section className="micro-cancel-panel" data-testid="stale-conflict-card">
+          <p className="micro-warning-copy" role="alert">
+            {STALE_CONFLICT_NOTE}
+          </p>
+          <div className="micro-form-actions micro-contextual-actions">
+            <Button
+              action="secondary"
+              disabled={isActing}
+              onClick={() => {
+                setStaleConflict(false);
+                setMessage(STALE_RELOADED_NOTE);
+                setReloadNonce(reloadNonce + 1);
+              }}
+            >
+              {STALE_RELOAD_ACTION_LABEL}
+            </Button>
+          </div>
+        </section>
       ) : null}
       {/* §٥-١٦ (رحلة ٢): الدين المسجل قابل للتحصيل — التحصيل يقلل الدين ولا يعيد
           فتح الطلب. المجموعة ٣ (عقد D5 — SA-5 R1): كل تحصيل من الطلب عبر ورقة

@@ -60,6 +60,11 @@ import {
   validateSupplierPurchaseCommit,
   type SupplierPurchaseCommit,
 } from "./supplierScheduleCommitGuard";
+import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
+import {
+  resolveSupplierPaymentAttribution,
+  type SupplierAttributionResolution,
+} from "./supplierAttributionCommitGuard";
 
 import { RECURRENCE_STALE_MESSAGE } from "./indexedDbStores";
 import {
@@ -189,6 +194,67 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   saveOrder(order: StoredCraftOrder) {
     return writeOne(orderStore, order);
+  }
+  /* G-003 (تدقيق الإدارة المالية المتدرجة 2026-09-19): كتابة الطلب المحروسة —
+   * الحارس النقي داخل معاملة الكتابة نفسها (نمط المورد/الموعد/عكس التسليم):
+   * مفتاح الحتمية أولًا (إعادة التشغيل إعادة استخدام بلا كتابة)، ثم مطابقة
+   * السجل الحي للقاعدة المقروءة (أي تغيّر بين القراءة والكتابة = storage_stale
+   * ولا يُكتب شيء)، ثم امتداد الأحداث فوق القاعدة حرفيًا. */
+  async commitOrderUpdate(
+    base: StoredCraftOrder,
+    next: StoredCraftOrder,
+    idempotencyKeys: readonly string[],
+  ): Promise<StorageResult<{ order: StoredCraftOrder; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([orderStore], "readwrite");
+        const orders = transaction.objectStore(orderStore);
+        let pending: StorageResult<{ order: StoredCraftOrder; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ order: StoredCraftOrder; reused: boolean }>) => {
+          resolve(result);
+        };
+        const storedRequest = orders.get(next.id);
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = () => {
+          const live = storedRequest.result as StoredCraftOrder | undefined;
+          const guard = validateOrderCommit(live, base, next, idempotencyKeys);
+          if (!guard.ok) {
+            pending = { ok: false, code: "storage_stale", message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            pending = { ok: true, value: { order: live ?? next, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          orders.put(next);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { order: next, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
   }
   /* المجموعة ٦ (S2-04أ): تراجع القبضة والتخصيص في معاملة IndexedDB واحدة —
    * الطلب وأثر الكاش معًا أو لا شيء. فحص الهوية داخل المعاملة (نمط حركة المالك):
@@ -492,6 +558,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
    * النقص وتخصيص الكاش معًا أو لا شيء. مسار إعادة الاستخدام يقرأ الحالة القائمة
    * ويكمل ما نقص فقط (مفاتيح عمليات حتمية) فلا تكرار عند إعادة المحاولة. */
   async commitOrderDelivery(
+    base: StoredCraftOrder,
     order: StoredCraftOrder,
     movements: readonly InventoryMovement[],
     shortages: readonly InventoryShortage[],
@@ -581,6 +648,23 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 event.idempotencyKey === lastDeliveryKey,
             );
           deliveryReused = alreadyDelivered;
+          /* G-003: كتابة الطلب الجديدة تتحقق القاعدة داخل المعاملة — أي تغيّر
+           * متزامن بين قراءة الخدمة والالتزام يُرفض بـstorage_stale ولا يُكتب
+           * شيء (لا طمر تحصيل ولا إعادة كتابة تاريخ). مسار إعادة الاستخدام
+           * (التسليم ملتزم سلفًا) يبقى كما هو: يكمل الناقص بمفاتيح حتمية فقط. */
+          if (!alreadyDelivered && !orderRecordIdentical(existing, base)) {
+            pending = {
+              ok: false,
+              code: "storage_stale",
+              message: "سجل الطلب تغيّر من مسار آخر بعد فتحك له — لم يُسجَّل شيء؛ أعد المحاولة.",
+            };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
           const movementRequest = movementStore.getAll();
           movementRequest.onerror = () => {
             pending = failure(movementRequest.error, database);
@@ -1524,6 +1608,138 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () =>
           finish({ ok: true, value: { purchase: commit.purchase, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* G-002 (تدقيق الإدارة المالية المتدرجة 2026-09-19): دفعة المورد وتخصيص
+   * محفظتها في معاملة IndexedDB واحدة — الشراء/الدفعة بفحص علاقة المورد
+   * نفسه، وقيد التخصيص يُحل داخل المعاملة من الحقيقة المقروءة فيها: القيد
+   * الموجود بمفتاحه اكتمال، والناقص يُشتق من الدفعة المخزّنة ويُكتب في
+   * المعاملة نفسها (شفاء حتمي)، أو لا يُكتب شيء مع رفض التعارض. */
+  async commitSupplierPurchaseWithAttribution(
+    commit: SupplierPurchaseCommit,
+    attribution: CashContinuityEntry | null,
+  ): Promise<
+    StorageResult<{
+      purchase: SupplierPurchase;
+      attributionEntry: CashContinuityEntry | null;
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [supplierPurchaseStore, cashContinuityEntryStore],
+          "readwrite",
+        );
+        const purchases = transaction.objectStore(supplierPurchaseStore);
+        const entriesStore = transaction.objectStore(cashContinuityEntryStore);
+        type WithAttributionResult = StorageResult<{
+          purchase: SupplierPurchase;
+          attributionEntry: CashContinuityEntry | null;
+          reused: boolean;
+        }>;
+        let pending: WithAttributionResult | null = null;
+        const finish = (result: WithAttributionResult) => resolve(result);
+        const abortWith = (result: WithAttributionResult) => {
+          pending = result;
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const settle = (stored: SupplierPurchase | undefined, replay: SupplierPurchase | undefined) => {
+          let reference: SupplierPurchase;
+          let reused: boolean;
+          if (replay) {
+            reference = replay;
+            reused = true;
+          } else {
+            const guard = validateSupplierPurchaseCommit(stored, commit);
+            if (!guard.ok) {
+              abortWith({ ok: false, code: "storage_stale", message: guard.message });
+              return;
+            }
+            reused = guard.reused;
+            reference = guard.reused ? (stored ?? commit.purchase) : commit.purchase;
+          }
+          let resolved: SupplierAttributionResolution | null = null;
+          const entriesRequest = entriesStore.getAll();
+          entriesRequest.onerror = () => {
+            pending = failure(entriesRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          entriesRequest.onsuccess = () => {
+            resolved = resolveSupplierPaymentAttribution({
+              kind: commit.kind,
+              idempotencyKey: commit.idempotencyKey,
+              attribution,
+              purchase: reference,
+              storedEntries: entriesRequest.result as CashContinuityEntry[],
+            });
+            if (resolved.action === "write") entriesStore.put(resolved.entry);
+            if (!reused) purchases.put(commit.purchase);
+          };
+          /* النتيجة تُحسم عند اكتمال المعاملة — القيد كما حُل داخلها (موجود
+           * سلفًا أو مشفي)، والمحفظة لا تُلمس (الرصيد مشتق من القيود). */
+          transaction.oncomplete = () => {
+            const resolution: SupplierAttributionResolution = resolved ?? { action: "skip" };
+            finish({
+              ok: true,
+              value: {
+                purchase: reused ? reference : commit.purchase,
+                attributionEntry: resolution.action === "skip" ? null : resolution.entry,
+                reused,
+              },
+            });
+          };
+        };
+        const storedRequest = purchases.get(commit.purchase.id);
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = () => {
+          const stored = storedRequest.result as SupplierPurchase | undefined;
+          if (commit.kind !== "create") {
+            settle(stored, undefined);
+            return;
+          }
+          /* الإنشاء: مسح المتجر داخل المعاملة — شراء قائم بمفتاح العملية
+           * نفسه إعادة تشغيل تُشفي تخصيصها فوق السجل الأصلي. */
+          const scanRequest = purchases.getAll();
+          scanRequest.onerror = () => {
+            pending = failure(scanRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          scanRequest.onsuccess = () => {
+            const replay = (scanRequest.result as SupplierPurchase[]).find(
+              candidate =>
+                candidate.idempotencyKey === commit.idempotencyKey && candidate.id !== commit.purchase.id,
+            );
+            settle(stored, replay);
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
       });
     } catch (error) {
       return failure(error);

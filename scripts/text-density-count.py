@@ -690,7 +690,11 @@ CAPS: dict[str, int] = {
     # shared financial-event label map (presentation/financialEventLabels.ts,
     # single source, moved out of EventsLayer), kind labels, open-record action,
     # and the honest fallback guidance. Raw ids remain only as unresolved backup.
-    "ToolsIntegrity": 85,
+    # ToolsIntegrity 85 -> 86 (2026-09-20, pre-pilot safety G-002, owner-approved
+    # remediation task): the MIC-17 title «تخصيص محافظ دفعات الموردين» joins the
+    # registry mandated by the task spec (integrity check for wallet-attributed
+    # supplier payments). One added registry title, no new prose surfaces.
+    "ToolsIntegrity": 86,
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
     # FinanceActivity 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض

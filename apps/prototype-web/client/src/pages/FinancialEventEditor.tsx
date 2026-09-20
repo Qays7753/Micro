@@ -633,6 +633,12 @@ export default function FinancialEventEditor() {
         expenseContext,
         sharedExpense,
         idempotencyKey: idempotencyKey.current,
+        /* G-006: محفظة مصدر سحب المالك تمر مع الحدث — فحص التغطية قبل أي
+         * كتابة بالحرس الكنوني المشترك نفسه لمسار الدفتر. */
+        sourceWalletId:
+          selectedType === "owner_withdrawal_cash" && walletId && walletId !== UNSET_EXPENSE_SOURCE
+            ? walletId
+            : null,
       });
     } finally {
       saveInFlightRef.current = false;

@@ -8,6 +8,8 @@ import {
 } from "./deliveryReversalCommitGuard";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
+import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
+import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
 import {
   validateScheduleUpdate,
   validateSupplierPurchaseCommit,
@@ -193,6 +195,21 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.orders.set(order.id, clone(order));
     return { ok: true, value: clone(order) };
   }
+  /* G-003 (تدقيق الإدارة المالية المتدرجة 2026-09-19): كتابة الطلب المحروسة في
+   * الذاكرة — نفس دلالات IndexedDB حرفيًا: الحارس يقرأ السجل الحي داخل حد
+   * الكتابة، مفتاح الحتمية أولًا، ثم مطابقة القاعدة، ثم امتداد الأحداث. */
+  async commitOrderUpdate(
+    base: StoredCraftOrder,
+    next: StoredCraftOrder,
+    idempotencyKeys: readonly string[],
+  ): Promise<StorageResult<{ order: StoredCraftOrder; reused: boolean }>> {
+    const live = this.orders.get(next.id);
+    const guard = validateOrderCommit(live, base, next, idempotencyKeys);
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (guard.reused) return { ok: true, value: { order: clone(live ?? next), reused: true } };
+    this.orders.set(next.id, clone(next));
+    return { ok: true, value: { order: clone(next), reused: false } };
+  }
   /* المجموعة ٦ (S2-04أ): تراجع القبضة والتخصيص معًا بذريّة واحدة — فحص الهوية
    * قبل أي كتابة: إن وُجد حدث التراجع نفسه فمسار إعادة الاستخدام (مع أثر الكاش
    * المطابق)، وإن وُجد أثر كاش متراجع سابقًا لنفس التخصيص فرفض صادق، وإلا
@@ -319,6 +336,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   /* المجموعة ٣ (عقد D4): ذرّية التسليم في الذاكرة — نفس دلالات IndexedDB:
    * إعادة استخدام عند وجود حدث التسليم، وإكمال ما نقص من مفاتيح حتمية فقط. */
   async commitOrderDelivery(
+    base: StoredCraftOrder,
     order: StoredCraftOrder,
     movements: readonly InventoryMovement[],
     shortages: readonly InventoryShortage[],
@@ -350,6 +368,16 @@ export class MemoryLocalStore implements PrototypeLocalStore {
           event.toStatus === "delivered" &&
           event.idempotencyKey === lastDeliveryKey,
       );
+    /* G-003: كتابة الطلب الجديدة تتحقق القاعدة داخل حد الكتابة — أي تغيّر
+     * متزامن بين قراءة الخدمة والالتزام يُرفض بـstorage_stale ولا يُكتب شيء.
+     * مسار إعادة الاستخدام (التسليم ملتزم سلفًا) يبقى: يكمل الناقص بمفاتيح
+     * حتمية فقط. */
+    if (!alreadyDelivered && !orderRecordIdentical(existing, base))
+      return {
+        ok: false,
+        code: "storage_stale",
+        message: "سجل الطلب تغيّر من مسار آخر بعد فتحك له — لم يُسجَّل شيء؛ أعد المحاولة.",
+      };
     if (!alreadyDelivered) this.orders.set(order.id, clone(order));
     const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
     movements
@@ -727,6 +755,65 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       return { ok: true, value: { purchase: clone(stored ?? commit.purchase), reused: true } };
     this.supplierPurchases.set(commit.purchase.id, clone(commit.purchase));
     return { ok: true, value: { purchase: clone(commit.purchase), reused: false } };
+  }
+  /* G-002 (تدقيق الإدارة المالية المتدرجة 2026-09-19): الشراء/الدفعة وتخصيص
+   * محفظتها في «معاملة» واحدة ذرّية (الكتابة المتزامنة هنا ذرّية ببنية
+   * الذاكرة) — إعادة الاستخدام تشفي التخصيص الناقص من الحقيقة المخزّنة،
+   * والقيد الجديد يُكتب مع الشراء معًا أو لا يُكتب شيء. */
+  async commitSupplierPurchaseWithAttribution(
+    commit: SupplierPurchaseCommit,
+    attribution: CashContinuityEntry | null,
+  ): Promise<
+    StorageResult<{
+      purchase: SupplierPurchase;
+      attributionEntry: CashContinuityEntry | null;
+      reused: boolean;
+    }>
+  > {
+    let reference: SupplierPurchase;
+    let reused: boolean;
+    if (commit.kind === "create") {
+      const replay = Array.from(this.supplierPurchases.values()).find(
+        existing => existing.id !== commit.purchase.id && existing.idempotencyKey === commit.idempotencyKey,
+      );
+      if (replay) {
+        reference = replay;
+        reused = true;
+      } else {
+        reference = commit.purchase;
+        reused = false;
+      }
+    } else {
+      reference = commit.purchase;
+      reused = false;
+    }
+    if (!reused) {
+      const stored = this.supplierPurchases.get(commit.purchase.id);
+      const guard = validateSupplierPurchaseCommit(stored, commit);
+      if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+      reused = guard.reused;
+      /* المرجع هو الوارد في المسار الجديد (يحمل الدفعة الجديدة للتخصيص)،
+       * والمخزّن في مسار إعادة الاستخدام (الحقيقة التي يُشفي منها). */
+      reference = guard.reused ? (stored ?? commit.purchase) : commit.purchase;
+    }
+    const resolution = resolveSupplierPaymentAttribution({
+      kind: commit.kind,
+      idempotencyKey: commit.idempotencyKey,
+      attribution,
+      purchase: reference,
+      storedEntries: Array.from(this.cashContinuityEntries.values()),
+    });
+    if (resolution.action === "write")
+      this.cashContinuityEntries.set(resolution.entry.id, clone(resolution.entry));
+    if (!reused) this.supplierPurchases.set(commit.purchase.id, clone(commit.purchase));
+    return {
+      ok: true,
+      value: {
+        purchase: clone(reused ? reference : commit.purchase),
+        attributionEntry: resolution.action === "skip" ? null : clone(resolution.entry),
+        reused,
+      },
+    };
   }
   async listCashWallets(): Promise<StorageResult<readonly CashWallet[]>> {
     return {

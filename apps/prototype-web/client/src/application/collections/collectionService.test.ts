@@ -309,9 +309,14 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     const store = new MemoryLocalStore();
     const { collections } = makeServices(store);
     await deliveredOrderWithRemaining(store, "order-6");
-    /* نفشل الكتابة عبر استبدال saveOrder مؤقتًا — نفس أسلوب فشل التخزين. */
-    const original = store.saveOrder.bind(store);
-    store.saveOrder = async () => ({ ok: false, code: "storage_error", message: "تعذر الحفظ المحلي." });
+    /* نفشل الكتابة عبر استبدال الالتزام المحروس مؤقتًا (G-003: مسار الخدمة
+     * صار commitOrderUpdate لا saveOrder) — نفس أسلوب فشل التخزين. */
+    const original = store.commitOrderUpdate.bind(store);
+    store.commitOrderUpdate = async () => ({
+      ok: false,
+      code: "storage_error",
+      message: "تعذر الحفظ المحلي.",
+    });
     const result = await collections.collect({
       sourceKind: "order",
       sourceId: "order-6",
@@ -319,7 +324,7 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       walletId: null,
       idempotencyKey: "collect-fail-1",
     });
-    store.saveOrder = original;
+    store.commitOrderUpdate = original;
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.message).toContain("تعذر");
     /* لم يتغير شيء على الطلب. */

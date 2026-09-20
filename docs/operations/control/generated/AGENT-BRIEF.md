@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 7 · DEFERRED: 25 · VERIFIED: 12
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 4 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 3 · DEFERRED: 25 · VERIFIED: 12
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-162 | IN_REVIEW | \`fix/pre-pilot-safety-a-b\` | 190 | G-001, G-002, G-003, G-006 | مراجعة المالك لـPR #190 ثم الدمج والتحقق على main؛ الحزمة ب (WS-163) تبدأ من رأس هذه الحزمة بعد البوابة. |

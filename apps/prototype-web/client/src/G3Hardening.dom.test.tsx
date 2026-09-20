@@ -87,6 +87,19 @@ class InterposingStore extends MemoryLocalStore {
     }
     return super.commitSupplierPurchase(commit);
   }
+  /* G-002: مسار الخدمة الذرّي — العدّ والإقحام نفسيهما للالتزام الموحد. */
+  override async commitSupplierPurchaseWithAttribution(
+    commit: Parameters<MemoryLocalStore["commitSupplierPurchaseWithAttribution"]>[0],
+    attribution: Parameters<MemoryLocalStore["commitSupplierPurchaseWithAttribution"]>[1],
+  ) {
+    this.supplierCommitCount += 1;
+    if (this.interposeSupplierCommit) {
+      const hook = this.interposeSupplierCommit;
+      this.interposeSupplierCommit = null;
+      await hook();
+    }
+    return super.commitSupplierPurchaseWithAttribution(commit, attribution);
+  }
   override async commitScheduleUpdate(schedule: ScheduleEntry) {
     if (this.interposeScheduleCommit) {
       const hook = this.interposeScheduleCommit;

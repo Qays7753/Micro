@@ -50,7 +50,11 @@ export type IntegrityCheckId =
    * وفصل مال المالك عن النتيجة والمصروف. */
   | "MIC-14"
   | "MIC-15"
-  | "MIC-16";
+  | "MIC-16"
+  /* G-002 (تدقيق الإدارة المالية المتدرجة 2026-09-19): اكتمال تخصيص محافظ
+   * دفعات الموردين — دفعة موصولة بمحفظة بلا قيد تغطية مطابق = خلل بنيوي
+   * يُعلن للمراجعة، والفحص قراءة فقط لا يصلح شيئًا تلقائيًا. */
+  | "MIC-17";
 export type IntegrityCheckResult = {
   id: IntegrityCheckId;
   titleAr: string;
@@ -172,6 +176,7 @@ export class IntegrityCheckService {
     const mic14 = await this.checkUnallocatedCashTruth();
     const mic15 = this.checkEventKeyUniqueness(events);
     const mic16 = this.checkOwnerMoneySeparation(events);
+    const mic17 = await this.checkSupplierWalletAttribution();
     const checks = [
       mic1.result,
       mic2,
@@ -186,6 +191,7 @@ export class IntegrityCheckService {
       mic14,
       mic15,
       mic16,
+      mic17,
     ];
     /* Wave 4.3 — P-4.3-3 (D9): إثراء قراءة فقط — يحوّل معرّفات السجلات
      * المتأثرة إلى ملخصات مقروءة (اسم/تاريخ/مبلغ/رابط) من المخزن نفسه؛
@@ -1296,6 +1302,60 @@ export class IntegrityCheckService {
     };
   }
 
+  /* ─── MIC-17: اكتمال تخصيص محافظ دفعات الموردين (G-002) ───
+   * كل دفعة موصولة بمحفظة (حقل walletId) يجب أن يقابلها قيد تغطية
+   * supplier_purchase بنفس المبلغ على المحفظة نفسها — الناقص (بقايا فشل
+   * قديم قبل المعاملة الذرّية) يُعلن خللًا بنيويًا للمراجعة، والفحص قراءة
+   * فقط: الشفاء يتم بإعادة إرسال الدفعة نفسها أو بقرار المالك، لا تلقائيًا.
+   * الدفعات المرتجعة تدخل في المتوقع مثلها مثل النشطة — عكس الدفعة لا يعكس
+   * تخصيص محفظتها اليوم (سلوك موثق ينتظر قرار مالك منفصل)، فاستبعادها كان
+   * سيزيف إنذارًا كاذبًا لا يكشف الناقص الحقيقي. */
+  private async checkSupplierWalletAttribution(): Promise<IntegrityCheckResult> {
+    const [purchasesResult, entriesResult] = await Promise.all([
+      this.store.listSupplierPurchases(),
+      this.store.listCashContinuityEntries(),
+    ]);
+    if (!purchasesResult.ok || !entriesResult.ok)
+      return this.unavailable("MIC-17", "تعذر قراءة مشتريات الموردين أو قيود المحافظ — أعد المحاولة.");
+    const entries = entriesResult.value;
+    const offenders: string[] = [];
+    for (const purchase of purchasesResult.value) {
+      const byWallet = new Map<string, number>();
+      for (const payment of purchase.payments) {
+        const walletId = payment.walletId?.trim() || null;
+        if (!walletId) continue;
+        byWallet.set(walletId, (byWallet.get(walletId) ?? 0) + payment.amountMinor);
+      }
+      if (byWallet.size === 0) continue;
+      for (const [walletId, expectedPaidMinor] of byWallet) {
+        const attributedMinor = entries
+          .filter(
+            entry =>
+              entry.type === "allocation" &&
+              entry.sourceRefKind === "supplier_purchase" &&
+              entry.sourceRefId === purchase.id &&
+              entry.walletId === walletId,
+          )
+          .reduce((sum, entry) => sum + entry.cashDeltaMinor, 0);
+        if (attributedMinor !== -expectedPaidMinor) offenders.push(purchase.id);
+      }
+    }
+    if (offenders.length === 0)
+      return {
+        id: "MIC-17",
+        titleAr: INTEGRITY_TITLES["MIC-17"],
+        status: "PASS",
+        detailAr: `كل دفعة مورد موصولة بمحفظة يقابلها قيد تغطية مطابق — لا أثر غير موزع (${purchasesResult.value.length}).`,
+      };
+    return this.fail(
+      "MIC-17",
+      `دفعات مورد بمحفظة بلا قيد تغطية مطابق في ${offenders.length} شراء — راجع الشراء وأعد إرسال الدفعة نفسها لتشفى، أو راجعه بقرار واعٍ.`,
+      offenders,
+      null,
+      "/suppliers",
+    );
+  }
+
   private fail(
     id: IntegrityCheckId,
     detailAr: string,
@@ -1342,4 +1402,5 @@ export const INTEGRITY_TITLES: Record<IntegrityCheckId, string> = {
   "MIC-14": "صحة الكاش غير الموزّع",
   "MIC-15": "تفرّد مفاتيح الأحداث",
   "MIC-16": "فصل مال المالك",
+  "MIC-17": "تخصيص محافظ دفعات الموردين",
 };

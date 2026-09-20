@@ -61,6 +61,12 @@
       "path": "https://github.com/Qays7753/Documents/tree/main/reports/2026/2026-09-19/layered-financial-management-audit-001",
       "scope": "layered financial management completeness and integration audit",
       "status": "EXTERNAL_READ_ONLY_FINDINGS"
+    },
+    {
+      "id": "PRE-PILOT-SAFETY-A",
+      "path": "reports/agent-report/2026-09-20_pre-pilot-safety-package-a/report.md",
+      "scope": "pre-pilot safety package A (G-001/G-002/G-003/G-006)",
+      "status": "OPEN_PR_190_IN_REVIEW"
     }
   ]
 }

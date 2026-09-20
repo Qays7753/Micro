@@ -112,7 +112,9 @@ export default function DeliveryReviewPage() {
             reviewResult.value.consumption.rows.map(row => [
               row.materialId,
               {
-                quantityMilli: row.plannedQuantityMilli,
+                /* G-001: التعبئة بالمتبقي بعد خصم المستهلك يدويًا لهذا الطلب —
+                 * المخطط الكامل فقط حين لا استهلاك سابق (سلوك اليوم نفسه). */
+                quantityMilli: row.remainingToConsumeMilli,
                 action: row.suggestedAction,
               } satisfies RowChoice,
             ]),
@@ -316,7 +318,7 @@ export default function DeliveryReviewPage() {
               <ul className="micro-consumption-rows">
                 {ready.consumption.rows.map(row => {
                   const choice = choices[row.materialId] ?? {
-                    quantityMilli: row.plannedQuantityMilli,
+                    quantityMilli: row.remainingToConsumeMilli,
                     action: row.suggestedAction,
                   };
                   const planned = choice.quantityMilli / 1000;
@@ -334,6 +336,13 @@ export default function DeliveryReviewPage() {
                                 : row.costKnowledge === "partial"
                                   ? "جزئية"
                                   : "معروفة"}
+                              {row.alreadyConsumedForOrderMilli > 0
+                                ? ` · مستهلك سابقًا لهذا الطلب: ${formatQuantityMilli(
+                                    row.alreadyConsumedForOrderMilli,
+                                  )} ${row.unitLabel} · المتبقي: ${formatQuantityMilli(
+                                    row.remainingToConsumeMilli,
+                                  )} ${row.unitLabel}`
+                                : null}
                             </>
                           ) : (
                             "غير متتبَّعة — مرجع تكلفة فقط، لا حركة كمية"
