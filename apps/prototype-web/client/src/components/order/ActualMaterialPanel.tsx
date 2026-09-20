@@ -49,6 +49,19 @@ export function ActualMaterialPanel({ state, onRecord }: { state: MaterialState;
       title={comparison.status === "needs_review" ? "فرق المادة يحتاج مراجعة" : "فرق مادة مسجل لهذا الطلب"}
       tone={comparison.status === "needs_review" ? "warning" : "default"}
     >
+      {/* Stage 2 — OPS-007 (عقد ١٣ سطر ٣٦): «فرق المادة مع سبب نقص المعرفة» — السبب
+          يُصرَّح نصًا لا يُترك نبرة؛ الفرق يبقى ظاهرًا (إخفاؤه ممنوع) لكنه مؤهَّل
+          بسببه فلا يُقرأ 0.00 واثقة ولا نتيجة نهائية. */}
+      {comparison.status === "needs_review" ? (
+        <p className="micro-local-truth" data-testid="actual-material-review-reasons">
+          {comparison.reviewReasons.includes("snapshot_knowledge")
+            ? "سبب المراجعة: لقطة التكلفة ليست معروفة — راجع حالة النتيجة في أعلى الصفحة."
+            : null}
+          {comparison.reviewReasons.includes("actual_cost_unknown")
+            ? "سبب المراجعة: التكلفة غير معروفة لبعض الاستهلاك المسجل — القيمة المنفذة المسجلة أدنى من الحقيقة."
+            : null}
+        </p>
+      ) : null}
       <div className="micro-record-summary">
         <div>
           <span>مادة مخططة</span>
@@ -59,13 +72,13 @@ export function ActualMaterialPanel({ state, onRecord }: { state: MaterialState;
         <div>
           <span>مادة منفذة مسجلة</span>
           <strong>
-            <MoneyValue minor={comparison.actualMaterialMinor ?? 0} />
+            <MoneyValue minor={comparison.actualMaterialMinor} />
           </strong>
         </div>
         <div>
           <span>الفرق</span>
           <strong>
-            <MoneyValue minor={comparison.varianceMinor ?? 0} showPlus />
+            <MoneyValue minor={comparison.varianceMinor} showPlus />
           </strong>
         </div>
         <div>

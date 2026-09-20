@@ -56,6 +56,11 @@ export type InventoryActivationState = {
   source: "declared" | "derived" | null;
 };
 export type InventoryActivationInput = { operationKey: string };
+export type OrderActualMaterialComparisonReviewReason =
+  /* لقطة التكلفة ليست «معروفة» — جانب المخطط غير نهائي (عقد ١٣ سطر ٣٦). */
+  | "snapshot_knowledge"
+  /* تكلفة استهلاك مسجل غير معروفة — جانب المنفذ أقل من الحقيقة (عقد ٢٨ §٥). */
+  | "actual_cost_unknown";
 export type OrderActualMaterialComparison = {
   orderId: string;
   status: "not_recorded" | "recorded" | "needs_review";
@@ -67,6 +72,10 @@ export type OrderActualMaterialComparison = {
   /* المجموعة ٢ (عقد ٢٨): معرفة تكلفة الاستهلاك الفعلي — استهلاك بتكلفة غير معروفة
    * لا يظهر 0.00 واثقًا في مقارنة الطلب. */
   actualCostKnowledge: "known" | "unknown" | null;
+  /* Stage 2 — OPS-007 (عقد ١٣ سطر ٣٦): «فرق المادة مع سبب نقص المعرفة» — أسباب
+   * needs_review تُصرَّح في نموذج القراءة نفسه لا تُترك نبرة بطاقة فقط؛ فارغة عند
+   * not_recorded/recorded. القراءة فقط — لا أثر تخزيني. */
+  reviewReasons: readonly OrderActualMaterialComparisonReviewReason[];
 };
 export type InventoryReferences = {
   materials: readonly Material[];
@@ -404,6 +413,7 @@ export class InventoryMaterialService {
           varianceMinor: null,
           consumptionCount: 0,
           actualCostKnowledge: null,
+          reviewReasons: [],
         },
       };
     const actualMaterialMinor = consumptions.reduce(
@@ -416,10 +426,12 @@ export class InventoryMaterialService {
     );
     /* المجموعة ٢ (عقد ٢٨): استهلاك بتكلفة غير معروفة → «يحتاج مراجعة» — لا 0.00
      * واثقة (المجهول يُصرَّح به لا يُعرض صفرًا). */
-    const status =
-      order.costSnapshot.knowledgeState === "known" && actualCostKnowledge === "known"
-        ? "recorded"
-        : "needs_review";
+    const snapshotKnowledgeKnown = order.costSnapshot.knowledgeState === "known";
+    const status = snapshotKnowledgeKnown && actualCostKnowledge === "known" ? "recorded" : "needs_review";
+    /* Stage 2 — OPS-007 (عقد ١٣): أسباب needs_review تُشتق من مصدرها الصريح */
+    const reviewReasons: OrderActualMaterialComparisonReviewReason[] = [];
+    if (!snapshotKnowledgeKnown) reviewReasons.push("snapshot_knowledge");
+    if (actualCostKnowledge === "unknown") reviewReasons.push("actual_cost_unknown");
     return {
       ok: true,
       value: {
@@ -431,6 +443,7 @@ export class InventoryMaterialService {
         varianceMinor: actualMaterialMinor - plannedMaterialMinor,
         consumptionCount: consumptions.length,
         actualCostKnowledge,
+        reviewReasons,
       },
     };
   }

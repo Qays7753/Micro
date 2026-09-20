@@ -421,7 +421,13 @@ CAPS: dict[str, int] = {
     # داخل bdi dir="ltr" في لافتة النجاح فصل البادئة العربية إلى تعبير
     # مستقل — النص نفسه للمستخدم (كان داخل قالب مُستوفى لا يُعدّ)؛ لا
     # نثرًا جديدًا أُضيف.
-    "OrderDetail": 181,
+    # OrderDetail 181 -> 183 (2026-09-21, Stage 2 OPS-007 owner brief — documented
+    # per the FinanceMore 35->37 precedent): contract 13 line 36 mandates
+    # «فرق المادة مع سبب نقص المعرفة» — two mandated reason declarations
+    # (snapshot knowledge not known / unknown consumption cost) qualify the
+    # visible variance inside ActualMaterialPanel so it is never read as a
+    # confident number or a final result; no other prose added.
+    "OrderDetail": 183,
     # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
     # the always-rendered priority block's honest empty line, the direct-sale secondary
     # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
