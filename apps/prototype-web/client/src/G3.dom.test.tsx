@@ -20,6 +20,8 @@ import { AgreementContextService } from "@/application/agreements/agreementConte
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
+/* Stage 2 — OPS-004: قارئ التكلفة المخططة للقوالب في هيكل G3 — نفس المخزن. */
+import { TemplatePlannedCostService } from "@/application/catalog/templatePlannedCostService";
 import { ActualTimeService } from "@/application/time/actualTimeService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
@@ -82,6 +84,10 @@ function G3Harness({ page }: { page: React.ReactNode }) {
     cashContinuity: new CashContinuityService(store, () => NOW),
     agreementContext: new AgreementContextService(store, () => NOW),
     inventory: new InventoryMaterialService(store, () => NOW),
+    templatePlannedCost: new TemplatePlannedCostService(
+      store,
+      new InventoryMaterialService(store, () => NOW),
+    ),
     actualTime: new ActualTimeService(store, () => NOW),
     schedules: new ScheduleService(store, () => NOW),
     supplierPurchases: new SupplierPurchaseService(store, () => NOW),

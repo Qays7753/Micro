@@ -5,6 +5,7 @@ import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
+import type { TemplatePlannedCost } from "@/application/catalog/templatePlannedCostService";
 import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
 import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application/input/englishNumeric";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
@@ -69,7 +70,8 @@ export default function Catalog() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { catalog, recurringWork, dataVersion, notifyDataChanged, inventory } = usePrototypeServices();
+  const { catalog, recurringWork, dataVersion, notifyDataChanged, inventory, templatePlannedCost } =
+    usePrototypeServices();
   /* G-004: الكتالوج متوقف عن الإدخال — كل أفعال الإنشاء (مرجع/وحدة/تحويل/قالب)
    * تُرفض برسالة صادقة عند الحد نفسه، وقراء السجلات القائمة كما هي. */
   const { disabled: disabledCapabilities } = useDisabledCapabilities();
@@ -150,6 +152,10 @@ export default function Catalog() {
   const [yieldUnitId, setYieldUnitId] = useState("");
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [templateBaseline, setTemplateBaseline] = useState<string | null>(null);
+  /* Stage 2 — OPS-004: قراءة التكلفة/الكمية المخططتين لكل قالب — تقدير بلا كتابة. */
+  const [templatePlannedCosts, setTemplatePlannedCosts] = useState<ReadonlyMap<string, TemplatePlannedCost>>(
+    new Map(),
+  );
 
   const activeUnits = useMemo(() => units.filter(unit => unit.active), [units]);
   const selectedItem = items.find(item => item.id === selectedItemId) ?? null;
@@ -162,16 +168,25 @@ export default function Catalog() {
    * التحميل ليس «لا بيانات»؛ إعادة التحميل بعد الأفعال لا تعيد البوابة. */
   const [ready, setReady] = useState(false);
   async function load() {
-    const [itemResult, readingResult, unitResult, conversionResult, templateResult, materialsResult] =
-      await Promise.all([
-        catalog.list({ includeInactive: true }),
-        recurringWork.readRecurringWork(periodFrom, periodTo),
-        catalog.listUnits({ includeInactive: true }),
-        catalog.listConversions({ includeInactive: true }),
-        catalog.listTemplates(undefined, { includeInactive: true }),
-        /* المجموعة ٣ (عقد D5): مواد المخزون لربط مكونات القالب — قراءة فقط. */
-        inventory.overview(),
-      ]);
+    const [
+      itemResult,
+      readingResult,
+      unitResult,
+      conversionResult,
+      templateResult,
+      materialsResult,
+      plannedCostsResult,
+    ] = await Promise.all([
+      catalog.list({ includeInactive: true }),
+      recurringWork.readRecurringWork(periodFrom, periodTo),
+      catalog.listUnits({ includeInactive: true }),
+      catalog.listConversions({ includeInactive: true }),
+      catalog.listTemplates(undefined, { includeInactive: true }),
+      /* المجموعة ٣ (عقد D5): مواد المخزون لربط مكونات القالب — قراءة فقط. */
+      inventory.overview(),
+      /* Stage 2 — OPS-004: تقدير التكلفة/الكمية المخططتين — قراءة فقط بلا كتابة. */
+      templatePlannedCost.readAll(),
+    ]);
     if (itemResult.ok) setItems(itemResult.items);
     else setFeedback({ kind: "error", word: itemResult.message });
     if (readingResult.ok) setReadings(readingResult.value);
@@ -199,6 +214,10 @@ export default function Catalog() {
                     : "وحدة أخرى",
           tracked: !material.tracking || material.tracking.status === "tracked",
         })),
+      );
+    if (plannedCostsResult.ok)
+      setTemplatePlannedCosts(
+        new Map(plannedCostsResult.value.map(cost => [cost.templateId, cost] as const)),
       );
     setReady(true);
   }
@@ -772,6 +791,7 @@ export default function Catalog() {
         selectedItem={selectedItem}
         selectedItemUnit={selectedItemUnit}
         selectedTemplates={selectedTemplates}
+        templatePlannedCosts={templatePlannedCosts}
         saving={saving}
         addComponent={addComponent}
         saveTemplate={saveTemplate}

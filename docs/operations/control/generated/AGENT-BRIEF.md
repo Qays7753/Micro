@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_REVIEW: 2 · READY: 12 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 19
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 11 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 21
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-165 | IN_REVIEW | \`stage-2/ops-005-006-upcoming-aging\` | 197 | OPS-005, OPS-006 | انتظار CI على PR #197 ثم الدمج (مصرّح به لهذه الموجة) والتحقق على main قبل إغلاق الموجة. |
+| WS-166 | IN_REVIEW | \`stage-2/ops-004-planned-cost\` | 198 | OPS-004 | انتظار CI على PR #198 ثم الدمج (مصرّح به لهذه الموجة) والتحقق على main قبل إغلاق الموجة. |
