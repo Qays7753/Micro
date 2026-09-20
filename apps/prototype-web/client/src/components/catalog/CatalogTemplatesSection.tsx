@@ -8,7 +8,6 @@ import { type Dispatch, type SetStateAction } from "react";
 import { ArchiveX, Check, Plus, RotateCcw, X } from "lucide-react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
-import { formatMoneyMinor } from "@/presentation/formatters";
 import {
   catalogYieldReadinessLabel,
   dimensionLabel,
@@ -19,7 +18,9 @@ import {
   type CatalogPerUnitPreview,
 } from "@/presentation/catalogPresentation";
 import { templateComponentCountLabel } from "@/presentation/plurals";
+import { formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
 import type { CatalogItem, CatalogTemplate, MeasurementUnit } from "@micro-domain/catalog/index.js";
+import type { TemplatePlannedCost } from "@/application/catalog/templatePlannedCostService";
 
 import { Button } from "@/components/primitives";
 export type CatalogTemplatesSectionProps = {
@@ -73,6 +74,8 @@ export type CatalogTemplatesSectionProps = {
   selectedItem: CatalogItem | null;
   selectedItemUnit: MeasurementUnit | null;
   selectedTemplates: readonly CatalogTemplate[];
+  /* Stage 2 — OPS-004: قراءة التكلفة/الكمية المخططتين لكل قالب (تقدير بلا كتابة). */
+  templatePlannedCosts: ReadonlyMap<string, TemplatePlannedCost>;
   saving: boolean;
   addComponent: () => void;
   saveTemplate: () => Promise<boolean>;
@@ -132,6 +135,7 @@ export function CatalogTemplatesSection({
   selectedItem,
   selectedItemUnit,
   selectedTemplates,
+  templatePlannedCosts,
   saving,
   addComponent,
   saveTemplate,
@@ -481,6 +485,81 @@ export function CatalogTemplatesSection({
                         ) : template.yieldReadiness === "ready" ? (
                           <p className="micro-success-copy">الناتج متوافق مع وحدة المرجع.</p>
                         ) : null}
+                        {templatePlannedCosts.get(template.id)
+                          ? /* Stage 2 — OPS-004: قراءة التكلفة/الكمية المخططتين —
+                             * تقدير صادق داخل جسم <details> (غير محسوب في كثافة
+                             * السكون): الكمية من المكوّنات، والسعر من الدليل
+                             * الكنوني لمقترحات المواد، وحالة المعرفة معلنة —
+                             * لا كتابة ولا استهلاك ولا شراء أبدًا. */
+                            (() => {
+                              const planned = templatePlannedCosts.get(template.id)!;
+                              return (
+                                <div
+                                  className="micro-planned-cost-read"
+                                  data-testid={`template-planned-cost-${template.id}`}
+                                >
+                                  <p className="micro-local-truth">
+                                    الكمية المخططة: {formatQuantityMilli(planned.plannedQuantityMilli)} عبر{" "}
+                                    {planned.componentCount} مكوّنًا
+                                    {planned.yieldQuantityMilli !== null
+                                      ? ` · الناتج المسجّل ${formatQuantityMilli(planned.yieldQuantityMilli)}`
+                                      : " · بلا ناتج مسجّل"}
+                                  </p>
+                                  <p className="micro-local-truth">
+                                    {planned.plannedCostMinor !== null ? (
+                                      <>
+                                        التكلفة المخططة (تقديري): {formatMoneyMinor(planned.plannedCostMinor)}{" "}
+                                        د.أ — من آخر أسعار استلام المواد وبنود القالب؛ عرض فقط لا يستهلك ولا
+                                        يشتري.
+                                      </>
+                                    ) : planned.knowledge === "incomplete" ? (
+                                      <>
+                                        التكلفة المخططة: ناقصة المعرفة
+                                        {planned.materialMinor !== null
+                                          ? ` — المواد المُسعّرة وحدها ${formatMoneyMinor(planned.materialMinor)} د.أ`
+                                          : ""}
+                                        {planned.timeMinor !== null
+                                          ? ` · الوقت ${formatMoneyMinor(planned.timeMinor)} د.أ`
+                                          : " · الوقت غير مكتمل"}
+                                        {planned.unpricedComponentCount > 0
+                                          ? ` · ${planned.unpricedComponentCount} مكوّنًا بلا سعر معروف`
+                                          : ""}
+                                      </>
+                                    ) : (
+                                      "التكلفة المخططة: غير متاحة — لا أسعار معروفة ولا بنود مسجّلة لهذا القالب."
+                                    )}
+                                  </p>
+                                  {planned.components.length ? (
+                                    <ul>
+                                      {planned.components.map(component => (
+                                        <li key={component.componentId}>
+                                          {component.name}: {formatQuantityMilli(component.quantityMilli)}
+                                          {component.unitNameAr ? ` ${component.unitNameAr}` : ""} ·{" "}
+                                          {component.state === "priced" &&
+                                          component.componentMinor !== null ? (
+                                            <>
+                                              {formatMoneyMinor(component.componentMinor)} د.أ (السعر من آخر
+                                              استلام
+                                              {component.linkedMaterialName
+                                                ? ` لـ«${component.linkedMaterialName}»`
+                                                : ""}
+                                              )
+                                            </>
+                                          ) : component.state === "free_component" ? (
+                                            "مكوّن حر — بلا سعر مخزني"
+                                          ) : component.state === "unit_mismatch" ? (
+                                            "وحدته غير وحدة مادته"
+                                          ) : (
+                                            "بلا سعر معروف لمادته"
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : null}
+                                </div>
+                              );
+                            })()
+                          : null}
                         <details className="micro-inline-disclosure">
                           <summary>حدود القالب</summary>
                           <p>

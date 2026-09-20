@@ -58,6 +58,8 @@ import { IntegrityCheckService } from "@/application/finance/integrityCheckServi
 import { DueDatesService } from "@/application/finance/dueDatesService";
 /* Stage 2 — OPS-005/006 (tracker): القارئ الموحد للقادم والمتأخر — قراءة فقط. */
 import { UpcomingService } from "@/application/finance/upcomingService";
+/* Stage 2 — OPS-004 (tracker): قراءة التكلفة/الكمية المخططتين للقوالب — قراءة فقط. */
+import { TemplatePlannedCostService } from "@/application/catalog/templatePlannedCostService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 /* المجموعة ٤ (عقد ٢٩): الأصول والقروض وتصنيف العربون المحتفظ به. */
 import { AssetService } from "@/application/assets/assetService";
@@ -112,6 +114,8 @@ type PrototypeServices = {
   dueDates: DueDatesService;
   /* Stage 2 — OPS-005/006: القارئ الموحد للقادم والمتأخر — لا كتابة إطلاقًا. */
   upcoming: UpcomingService;
+  /* Stage 2 — OPS-004: قراءة التكلفة/الكمية المخططتين للقوالب — لا كتابة إطلاقًا. */
+  templatePlannedCost: TemplatePlannedCostService;
   /* المجموعة ٦ (البند ١): تراجع القبضة مع تخصيصها المطابق بنقطة واحدة ذرّية. */
   collectionReversal: CollectionReversalService;
   saleCollectionReversal: SaleCollectionReversalService;
@@ -227,6 +231,7 @@ function createServices(): Omit<
   const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
   const dueDates = new DueDatesService(store, collections);
   const upcoming = new UpcomingService(dueDates, collections, schedules, projectFinance);
+  const templatePlannedCost = new TemplatePlannedCostService(store, inventory);
   const activity = new ActivityService(store);
   return {
     profiles: new ProfileService(store),
@@ -269,6 +274,7 @@ function createServices(): Omit<
     collections,
     dueDates,
     upcoming,
+    templatePlannedCost,
     collectionReversal: new CollectionReversalService(store, projectFinance),
     saleCollectionReversal: new SaleCollectionReversalService(store, projectFinance),
     walletLedger: new WalletLedgerService(store),
