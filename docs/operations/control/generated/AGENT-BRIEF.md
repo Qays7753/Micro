@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 18
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · READY: 14 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 18
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-164 | CLAIMED | \`stage-2/ops-001-due-dates\` | — | OPS-001 | تنفيذ طبقة قراءة/تصنيف التقادم الأساسي مع اختبارات مركزة ثم PR للموجة 1. |
