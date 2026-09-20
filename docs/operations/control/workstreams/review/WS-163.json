@@ -1,1 +1,43 @@
-{"id":"WS-163","title":"Pre-pilot safety Package B (G-004/G-005)","status":"CLAIMED","items":["G-004","G-005"],"branch":"fix/pre-pilot-safety-b","base_sha":"b44edcda67d97b51cbf6d4b1175fe39361d7c67a","areas":["capabilities","settings","finance","read-availability"],"contracts":[],"agent":"ZAI / Super Z session 2026-09-20","pr":null,"started_at":"2026-09-20T13:30:00+03:00","updated_at":"2026-09-20T13:30:00+03:00","next_action":"تنفيذ إصلاحات الحزمة ب مع الاختبارات المركزة ثم فتح PR للحزمة ب من رأس الحزمة أ نفسه (b44edcd).","notes":["فرع مكدّس من رأس الحزمة أ بالضبط (b44edcd) كما يطلب موجز التنفيذ — يُدمج بعد الحزمة أ فقط.","مناطق وعقود منفصلة تمامًا عن WS-162 النشط (لا تداخل areas/contracts) وفق قواعد Validator.","النطاق: G-004 (حرس تعطيل القدرات) وG-005 (عزل فشل قراءات المالية) فقط؛ لا إعادة تصميم UI/UX ولا مسارات جديدة."],"status_history":[{"status":"CLAIMED","changed_at":"2026-09-20","actor":"claim:ws-163","reason":"فتح Claim مستقل للحزمة ب من رأس الحزمة أ (PR #190 مفتوح وغير مدموج) بموجب موجز التنفيذ المضبوط."}],"migration_baseline":false}
+{
+  "id": "WS-163",
+  "title": "Pre-pilot safety Package B (G-004/G-005)",
+  "status": "IN_REVIEW",
+  "items": [
+    "G-004",
+    "G-005"
+  ],
+  "branch": "fix/pre-pilot-safety-b",
+  "base_sha": "b44edcda67d97b51cbf6d4b1175fe39361d7c67a",
+  "areas": [
+    "capabilities",
+    "settings",
+    "finance",
+    "read-availability"
+  ],
+  "contracts": [],
+  "agent": "ZAI / Super Z session 2026-09-20",
+  "pr": 191,
+  "started_at": "2026-09-20T13:30:00+03:00",
+  "updated_at": "2026-09-20T14:20:00+03:00",
+  "next_action": "مراجعة المالك لـPR #191 ثم الدمج والتحقق على main بعد دمج الحزمة أ (PR #190).",
+  "notes": [
+    "فرع مكدّس من رأس الحزمة أ بالضبط (b44edcd) كما يطلب موجز التنفيذ — يُدمج بعد الحزمة أ فقط.",
+    "مناطق وعقود منفصلة تمامًا عن WS-162 النشط (لا تداخل areas/contracts) وفق قواعد Validator.",
+    "النطاق: G-004 (حرس تعطيل القدرات) وG-005 (عزل فشل قراءات المالية) فقط؛ لا إعادة تصميم UI/UX ولا مسارات جديدة."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-20",
+      "actor": "claim:ws-163",
+      "reason": "فتح Claim مستقل للحزمة ب من رأس الحزمة أ (PR #190 مفتوح وغير مدموج) بموجب موجز التنفيذ المضبوط."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-20",
+      "actor": "pr:191",
+      "reason": "فتح PR #191 بالحزمة ب بعد اكتمال التنفيذ والاختبارات وpnpm check كاملًا."
+    }
+  ],
+  "migration_baseline": false
+}
