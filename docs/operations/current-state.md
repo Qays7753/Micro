@@ -801,3 +801,9 @@ PR #191 مكدّس على #190): (G-004) قارئ مركزي واحد للقدر
 ## §46. جرد Bridge قراءة-فقط — 2026-09-20
 
 استخدم الجرد `git ls-remote --heads origin` كمصدر حاكم، فوجد **41 remote branch** عند main `81fa524df48ee2d84161dd2248cbeff123dc08c1`. الفرق عن العدد السابق 37 هو **4 فروع جديدة** أنشأتها حزم السلامة وإغلاقات Tracker (`fix/pre-pilot-safety-a-b`, `fix/pre-pilot-safety-b`, `docs/pre-pilot-safety-closure-20260920`, `docs/pre-pilot-safety-verified-20260920`). التصنيف الحالي: 31 فرعًا مدموجًا وtip داخل main كمرشحة حذف، 3 فروع مدموجة بعد squash تحتاج توثيق provenance قبل الحذف، 3 فروع `keep/*` لا تُمس، `main` يُبقى دائمًا، و3 فروع PRs مغلقة غير مدموجة (`#141`, `#157`, `#161`) تحتاج مراجعة منفصلة. **لم يُحذف أي فرع**. المرجع التفصيلي: `docs/operations/control/evidence/bridge-inventory-2026-09-20.md` وملف JSON المحلي المولد للجرد.
+
+## §47. إغلاق تنظيف Bridge — 2026-09-20
+
+بعد اعتماد المالك للقائمة الدقيقة، حُذفت 32 remote branch من GitHub. انخفض العدد من 42 إلى 10 فروع. بقي `main`، وفروع `keep/*` الثلاثة، وفروع provenance الثلاثة (`agent/group1-traceability-finalize` و`docs/operations-control-closure` و`docs/operations-control-v2`)، والفروع المرتبطة بالـPRs المغلقة غير المدموجة #141 و#157 و#161. لا توجد فروع من القائمة المعتمدة ما زالت على `origin`، وحُفظ SHA السابق لكل فرع في `docs/operations/control/evidence/bridge-deletion-snapshot-2026-09-20.json`.
+
+**الفعل التالي:** الانتقال إلى Stage 2 وفتح Claim مستقل لـ`OPS-001..OPS-009` بعد تثبيت نطاق الموجة واختباراتها وحد الرجوع؛ لا يبدأ Pilot من هذا الإغلاق.
