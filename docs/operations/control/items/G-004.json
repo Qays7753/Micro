@@ -2,7 +2,7 @@
   "id": "G-004",
   "title": "مطابقة تعطيل القدرات للوعد المرئي",
   "type": "DEFECT",
-  "status": "IN_REVIEW",
+  "status": "MERGED_UNVERIFIED",
   "priority": "P2",
   "stage": "audit-2026-09-19",
   "summary": "وعد تعطيل الموردين أوسع من التنفيذ؛ مدخل شراء ما زال ظاهرًا.",
@@ -33,7 +33,7 @@
   "dependencies": [],
   "related_items": [],
   "owner_decision": "",
-  "merge_sha": "",
+  "merge_sha": "a054139b43400b9909a10ac6c9187f1eebccda6b",
   "verified_on_main_sha": "",
   "updated_at": "2026-09-20",
   "status_history": [
@@ -54,10 +54,16 @@
       "changed_at": "2026-09-20",
       "actor": "pr:191",
       "reason": "فتح PR #191 بالحزمة ب (مكدّس على رأس الحزمة أ): التنفيذ والاختبارات المركزة مكتملة على الفرع fix/pre-pilot-safety-b بانتظار مراجعة المالك والدمج."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-20",
+      "actor": "merge:pr-191",
+      "reason": "PR #191 مدموج على main عند a054139b43400b9909a10ac6c9187f1eebccda6b؛ لا VERIFIED قبل نجاح CI والتحقق على main."
     }
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة المالك لـPR #191 (الحزمة ب) ثم الدمج والتحقق على main بعد دمج الحزمة أ (PR #190).",
+  "next_action": "انتظار نجاح CI على main عند a054139b4340 ثم تحديث VERIFIED مع verified_on_main_sha.",
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",
   "tests_required": [

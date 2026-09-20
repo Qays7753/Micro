@@ -774,3 +774,12 @@ PR #191 مكدّس على #190): (G-004) قارئ مركزي واحد للقدر
 كثافة رُفع (رسائل فشل الكتل بنمط message: الكنوني للنصوص اللحظية). **الحالة: منفذة على
 الفرع — PR #191 مفتوح وغير مدموج و`main` لم يتغير؛ يُدمج بعد الحزمة أ فقط.** التفصيل:
 `reports/agent-report/2026-09-20_pre-pilot-safety-package-b/report.md`.
+
+
+## §43. Post-merge verification gate — Pre-Pilot Safety Packages A/B (2026-09-20)
+
+دُمجت الحزمة (أ) في `main` عبر PR #190 عند Merge SHA `f6879fbc8c152c4b630671b347b737112e065a19`، ثم دُمجت الحزمة (ب) عبر PR #191 عند Merge SHA `a054139b43400b9909a10ac6c9187f1eebccda6b`. أصبح `origin/main` عند `a054139b43400b9909a10ac6c9187f1eebccda6b`. ملفات التنفيذ والتقارير الخاصة بالحزمتين موجودة على `main`، لكن CI اللاحق للدمج ما زال حاجز تحقق مستقلًا، وQA الحي على متصفح/جهاز فعلي لم يُنفذ.
+
+حالة Tracker الحالية: `G-001..G-006 = MERGED_UNVERIFIED` مع Merge SHAs الصحيحة، و`WS-162/WS-163 = REVIEW_REQUIRED` إلى حين نجاح CI والتحقق النهائي على `origin/main`. لا يجوز تحويلها إلى `VERIFIED` قبل نجاح CI على رأس `main` وتثبيت `verified_on_main_sha`; عند الفشل يُعاد فتح البنود المتأثرة. لا يبدأ Pilot ولا المرحلة التالية من هذه الحالة، ولا يتغير `localSchemaVersion/localExportVersion` (35/27).
+
+**الفعل التالي:** انتظار نتيجة CI المرتبطة بـ`a054139b43400b9909a10ac6c9187f1eebccda6b`، ثم تنفيذ تحديث Tracker ختامي مستقل إلى `VERIFIED` أو `REOPENED` بحسب النتيجة، مع إبقاء حدود QA الحي موثقة.
