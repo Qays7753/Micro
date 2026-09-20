@@ -247,3 +247,139 @@ describe("ActualTimeService", () => {
     });
   });
 });
+
+describe("Stage 2 — OPS-008: صدق مقارنة الوقت — السبب من مصدر الوقت لا من حالة اللقطة الكلية", () => {
+  async function seedOrder(options: {
+    materialConfidence: "known" | "estimated";
+    time: { minutes: number | null; hourlyRateMinor: number; confidence: "known" | "estimated" } | null;
+  }) {
+    const store = new MemoryLocalStore();
+    const cost = calculateCostSnapshot("ops8-cost", {
+      currency: "JOD",
+      materialItems:
+        options.materialConfidence === "known"
+          ? []
+          : [
+              {
+                name: "خيط",
+                quantity: 1,
+                unit: "قطعة",
+                unitPriceMinor: 1000,
+                priceDate: "2026-08-01",
+                source: "estimate",
+                confidence: "estimated",
+              },
+            ],
+      time: options.time,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-23T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    const order = createCraftOrder({
+      id: "ops8-order",
+      customerName: "سارة",
+      itemName: "طرحة",
+      specifications: "اختبار صدق الوقت",
+      quantity: 1,
+      agreedPriceMinor: 3000,
+      costSnapshot: cost,
+      createdAt: "2026-08-23T09:00:00.000Z",
+    });
+    await store.saveOrder({
+      id: order.id,
+      order,
+      catalogItemId: null,
+      deliveryDate: "2026-09-01",
+      agreementSource: null,
+      createdAt: "2026-08-23T09:00:00.000Z",
+      updatedAt: "2026-08-23T09:00:00.000Z",
+    });
+    const service = new ActualTimeService(store, () => "2026-08-23T10:00:00.000Z");
+    return { store, service, orderId: order.id };
+  }
+
+  it("مواد تقديرية مع وقت معروف: المقارنة «مسجلة» — المعرفة من مصدر الوقت نفسه (عقد ١٦ §٤)", async () => {
+    const { service, orderId } = await seedOrder({
+      materialConfidence: "estimated",
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+    });
+    await service.record({
+      orderId,
+      minutes: 75,
+      recordedOn: "2026-08-23",
+      note: "تنفيذ",
+      operationKey: "ops8-record-a",
+    });
+    await expect(service.readOrderActualTimeComparison(orderId)).resolves.toMatchObject({
+      ok: true,
+      value: { status: "recorded", plannedMinutes: 60, actualMinutes: 75, varianceMinutes: 15 },
+    });
+  });
+
+  it("وقت فعلي أقل من المخطط: فرق سالب صادق", async () => {
+    const { service, orderId } = await seedOrder({
+      materialConfidence: "known",
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+    });
+    await service.record({
+      orderId,
+      minutes: 30,
+      recordedOn: "2026-08-23",
+      note: "تنفيذ أسرع",
+      operationKey: "ops8-record-b",
+    });
+    await expect(service.readOrderActualTimeComparison(orderId)).resolves.toMatchObject({
+      ok: true,
+      value: { status: "recorded", plannedMinutes: 60, actualMinutes: 30, varianceMinutes: -30 },
+    });
+  });
+
+  it("دقائق مخططة صفرية: المخطط غير متاح لا صفر واثق، والفرق غير متاح", async () => {
+    const { service, orderId } = await seedOrder({
+      materialConfidence: "known",
+      time: { minutes: 0, hourlyRateMinor: 500, confidence: "known" },
+    });
+    await service.record({
+      orderId,
+      minutes: 45,
+      recordedOn: "2026-08-23",
+      note: "تنفيذ بلا خطة وقت",
+      operationKey: "ops8-record-c",
+    });
+    await expect(service.readOrderActualTimeComparison(orderId)).resolves.toMatchObject({
+      ok: true,
+      value: {
+        status: "needs_review",
+        plannedMinutes: null,
+        actualMinutes: 45,
+        varianceMinutes: null,
+      },
+    });
+  });
+
+  it("القراءة المتكررة لا تكتب شيئًا — مطابقة لقطة المخزن الكاملة", async () => {
+    const { store, service, orderId } = await seedOrder({
+      materialConfidence: "known",
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+    });
+    await service.record({
+      orderId,
+      minutes: 75,
+      recordedOn: "2026-08-23",
+      note: "تنفيذ",
+      operationKey: "ops8-record-d",
+    });
+    const before = await store.readSnapshot();
+    const first = await service.readOrderActualTimeComparison(orderId);
+    const second = await service.readOrderActualTimeComparison(orderId);
+    const after = await store.readSnapshot();
+    expect(first.ok && second.ok).toBe(true);
+    if (!first.ok || !second.ok) return;
+    expect(second.value).toEqual(first.value);
+    expect(after.ok && before.ok ? after.value : after).toEqual(before.ok ? before.value : before);
+  });
+});
