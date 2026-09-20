@@ -545,7 +545,12 @@ CAPS: dict[str, int] = {
     # InventoryMaterials 59 -> 60 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
     # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
     # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
-    "InventoryMaterials": 60,
+    # InventoryMaterials 60 -> 61 (2026-09-21, Stage 2 OPS-002 owner brief —
+    # documented per the FinanceMore 35->37 precedent): one mandated action
+    # label «احفظ الحد» for the optional per-material low-stock threshold
+    # editor living inside the collapsed <details> body (everything else is
+    # data-driven); the alert chip itself is a data-driven template (uncounted).
+    "InventoryMaterials": 61,
     # Market first measurement (2026-09-16, product-journey package NAV-001): the
     # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
     # description; no suppliers, no purchase action, no records or effects.
