@@ -1,0 +1,717 @@
+{
+  "generated_at": "2026-09-20",
+  "repository": "Qays7753/Micro",
+  "source": "git ls-remote --heads origin",
+  "main_sha": "81fa524df48ee2d84161dd2248cbeff123dc08c1",
+  "remote_branch_count": 41,
+  "historical_prior_count": 37,
+  "delta_since_prior_count": 4,
+  "deletion_performed": false,
+  "counts_by_disposition": {
+    "DELETE_CANDIDATE_AFTER_PROVENANCE": 3,
+    "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN": 31,
+    "REVIEW_REQUIRED_CLOSED_UNMERGED": 3,
+    "KEEP_NO_TOUCH": 3,
+    "KEEP_PERMANENT": 1
+  },
+  "branches": [
+    {
+      "branch": "agent/group1-traceability-finalize",
+      "head_sha": "876ff64aeb150b4a931a7208d97cb0f7dbbd4b50",
+      "in_main": false,
+      "disposition": "DELETE_CANDIDATE_AFTER_PROVENANCE",
+      "reason": "merged/squash history exists but branch tip is not reachable from current main",
+      "prs": [
+        {
+          "number": 143,
+          "state": "MERGED",
+          "title": "docs: finalize group 1 traceability with merge SHA and CI result",
+          "base": "main",
+          "head_sha": "876ff64aeb150b4a931a7208d97cb0f7dbbd4b50",
+          "merge_sha": "b529eb459e7c83ce763d935fa9b1a7a6362071ea",
+          "url": "https://github.com/Qays7753/Micro/pull/143"
+        }
+      ]
+    },
+    {
+      "branch": "docs/operations-control-closure",
+      "head_sha": "877c92bbdae904c6553f24fbe971445b31fbf671",
+      "in_main": false,
+      "disposition": "DELETE_CANDIDATE_AFTER_PROVENANCE",
+      "reason": "merged/squash history exists but branch tip is not reachable from current main",
+      "prs": [
+        {
+          "number": 189,
+          "state": "MERGED",
+          "title": "docs(operations): close control v2 review",
+          "base": "main",
+          "head_sha": "877c92bbdae904c6553f24fbe971445b31fbf671",
+          "merge_sha": "3702c90131472c7ebb117dc0d7d67cd96a47cfc6",
+          "url": "https://github.com/Qays7753/Micro/pull/189"
+        }
+      ]
+    },
+    {
+      "branch": "docs/operations-control-v2",
+      "head_sha": "8e8d4ce3f28ca5d1d2c10331a610f83736715512",
+      "in_main": false,
+      "disposition": "DELETE_CANDIDATE_AFTER_PROVENANCE",
+      "reason": "merged/squash history exists but branch tip is not reachable from current main",
+      "prs": [
+        {
+          "number": 188,
+          "state": "MERGED",
+          "title": "docs(operations): evolve existing control system to v2",
+          "base": "main",
+          "head_sha": "8e8d4ce3f28ca5d1d2c10331a610f83736715512",
+          "merge_sha": "e75419504d61a60141c1776a5bfa69ed1faeb529",
+          "url": "https://github.com/Qays7753/Micro/pull/188"
+        }
+      ]
+    },
+    {
+      "branch": "docs/pre-pilot-safety-closure-20260920",
+      "head_sha": "7ff82767793f2537a3955fd1a5282f03304bca1d",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 192,
+          "state": "MERGED",
+          "title": "docs(operations): record merged safety packages pending CI",
+          "base": "main",
+          "head_sha": "7ff82767793f2537a3955fd1a5282f03304bca1d",
+          "merge_sha": "0187f475d6bb0cda54d33fee9cc3c0faeb2784f8",
+          "url": "https://github.com/Qays7753/Micro/pull/192"
+        }
+      ]
+    },
+    {
+      "branch": "docs/pre-pilot-safety-verified-20260920",
+      "head_sha": "bc85b343e7f22f29b92dfa3a9c0b90003b3cfa1d",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 193,
+          "state": "MERGED",
+          "title": "docs(operations): verify safety packages on main after CI",
+          "base": "main",
+          "head_sha": "bc85b343e7f22f29b92dfa3a9c0b90003b3cfa1d",
+          "merge_sha": "81fa524df48ee2d84161dd2248cbeff123dc08c1",
+          "url": "https://github.com/Qays7753/Micro/pull/193"
+        }
+      ]
+    },
+    {
+      "branch": "docs/wave-4-1-product-ux-blueprint",
+      "head_sha": "160fdb24e6f27c1120eef0d58bde4dda6de057e7",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 165,
+          "state": "MERGED",
+          "title": "docs: Wave 4.1 — Product UX, Screen Architecture, and Wireframe Blueprint (design-only)",
+          "base": "main",
+          "head_sha": "160fdb24e6f27c1120eef0d58bde4dda6de057e7",
+          "merge_sha": "281a2878b61870792f76d651d0d822c7f0a5c0e1",
+          "url": "https://github.com/Qays7753/Micro/pull/165"
+        }
+      ]
+    },
+    {
+      "branch": "docs/wave-4-2-final-report",
+      "head_sha": "ad46a8e711fc9c31e3ee309f764bf9104cea8746",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 171,
+          "state": "MERGED",
+          "title": "docs: تقرير Wave 4.2 النهائي — خمس حزم مدمجة + السجلات",
+          "base": "main",
+          "head_sha": "ad46a8e711fc9c31e3ee309f764bf9104cea8746",
+          "merge_sha": "9179ea785d7c35790c422a997fa210aaf7e875a6",
+          "url": "https://github.com/Qays7753/Micro/pull/171"
+        }
+      ]
+    },
+    {
+      "branch": "docs/wave-4-3-final-report",
+      "head_sha": "24ed0066ad33e2652b247e021610d9cc274cb5cc",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 179,
+          "state": "MERGED",
+          "title": "docs: Wave 4.3 — التقرير النهائي والأدلة والوثائق الحية",
+          "base": "main",
+          "head_sha": "24ed0066ad33e2652b247e021610d9cc274cb5cc",
+          "merge_sha": "884613b1db0446b63a8692bce61a1e270e5d0cb7",
+          "url": "https://github.com/Qays7753/Micro/pull/179"
+        }
+      ]
+    },
+    {
+      "branch": "docs/wave-4-3-report-final-sha",
+      "head_sha": "39da1a1887b333f421b2d5790076ad97b448bde2",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 180,
+          "state": "MERGED",
+          "title": "docs: Wave 4.3 — استكمال مراجع التقرير النهائي (SHA + روابط PRs)",
+          "base": "main",
+          "head_sha": "39da1a1887b333f421b2d5790076ad97b448bde2",
+          "merge_sha": "e8a7b5a5f6678a4a93e3ab4c21814764f5895335",
+          "url": "https://github.com/Qays7753/Micro/pull/180"
+        }
+      ]
+    },
+    {
+      "branch": "docs/wave-4-4-final-shas",
+      "head_sha": "094eb55581cf9d9657bae60ae8cb0552bb7a248c",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 187,
+          "state": "MERGED",
+          "title": "docs(wave-4-4): fill the report final SHAs and PR links",
+          "base": "main",
+          "head_sha": "094eb55581cf9d9657bae60ae8cb0552bb7a248c",
+          "merge_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
+          "url": "https://github.com/Qays7753/Micro/pull/187"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-2-1-shell-navigation-naming",
+      "head_sha": "b5bcb83ff473b7178752dedcbd6f653e4792de1c",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 166,
+          "state": "MERGED",
+          "title": "P-4.2-1 — App Shell والتنقل والتسمية (Wave 4.2)",
+          "base": "main",
+          "head_sha": "b5bcb83ff473b7178752dedcbd6f653e4792de1c",
+          "merge_sha": "c59287e8db08a02f0b9aa3ba7d65f4903a3da6e8",
+          "url": "https://github.com/Qays7753/Micro/pull/166"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-2-2-clean-tools",
+      "head_sha": "66b7ca39971b5fa00fb023d8e7c25c488ada2d58",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 167,
+          "state": "MERGED",
+          "title": "P-4.2-2 — تنظيف «أدواتي» (Wave 4.2)",
+          "base": "main",
+          "head_sha": "66b7ca39971b5fa00fb023d8e7c25c488ada2d58",
+          "merge_sha": "54413eadeaec4314d6e366eaececa2fff7b451a3",
+          "url": "https://github.com/Qays7753/Micro/pull/167"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-2-3-settings-data-backup",
+      "head_sha": "ee2371846434baa2c2904a3cdbcd9dc24446c05b",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 168,
+          "state": "MERGED",
+          "title": "P-4.2-3 — البيانات والنسخ الاحتياطي في الإعدادات (Wave 4.2)",
+          "base": "main",
+          "head_sha": "ee2371846434baa2c2904a3cdbcd9dc24446c05b",
+          "merge_sha": "62d7d223d05b342fd286ab9bfb9317d6c3c526e4",
+          "url": "https://github.com/Qays7753/Micro/pull/168"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-2-4-finance-more-integrity",
+      "head_sha": "604c2a3b24aa398afb62c571c3ff983d406e5c7b",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 169,
+          "state": "MERGED",
+          "title": "P-4.2-4 — المالية ← المزيد وسلامة الحسابات وREV-003 (Wave 4.2)",
+          "base": "main",
+          "head_sha": "604c2a3b24aa398afb62c571c3ff983d406e5c7b",
+          "merge_sha": "8f12fd63ef41913c32b4adb4e6b3ff24d9107b9f",
+          "url": "https://github.com/Qays7753/Micro/pull/169"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-2-5-policies-catalog-wallet-destination",
+      "head_sha": "59b987b49068d7742766ea18e62e6f194a0445d2",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 170,
+          "state": "MERGED",
+          "title": "P-4.2-5 — السياسات والمنتجات وdestinationWalletId (Wave 4.2)",
+          "base": "main",
+          "head_sha": "59b987b49068d7742766ea18e62e6f194a0445d2",
+          "merge_sha": "e77879965872e6b6738617603ee1240258475ecc",
+          "url": "https://github.com/Qays7753/Micro/pull/170"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-3-1-design-foundations-app-surface",
+      "head_sha": "65e1d9c90d47aa39b89181234dfd8094aa179f0c",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 172,
+          "state": "MERGED",
+          "title": "Wave 4.3 — P-4.3-1: Design foundations, app surface and account menu",
+          "base": "main",
+          "head_sha": "65e1d9c90d47aa39b89181234dfd8094aa179f0c",
+          "merge_sha": "60c5a5a5f3ec336c57148b39afdd1a3beead552a",
+          "url": "https://github.com/Qays7753/Micro/pull/172"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-3-2-home-quick-actions",
+      "head_sha": "48c3a6fdf8bd01bbb4adce2d0e1ed4e360d387d7",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 173,
+          "state": "MERGED",
+          "title": "Wave 4.3 — P-4.3-2: «مشروعي الآن» والتنقل السريع",
+          "base": "main",
+          "head_sha": "48c3a6fdf8bd01bbb4adce2d0e1ed4e360d387d7",
+          "merge_sha": "1b2015fec7f60dd61a28e42cfcc69582a8ef5dd6",
+          "url": "https://github.com/Qays7753/Micro/pull/173"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-3-3-finance-obligations",
+      "head_sha": "fa19fb391ea07c703a14eca14061258f7d5b4399",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 174,
+          "state": "MERGED",
+          "title": "Wave 4.3 — P-4.3-3: المالية والالتزامات وسلامة مقروءة",
+          "base": "main",
+          "head_sha": "fa19fb391ea07c703a14eca14061258f7d5b4399",
+          "merge_sha": "505cf60c6bb81dd23ccc2ba1b9e3f298aa48eb62",
+          "url": "https://github.com/Qays7753/Micro/pull/174"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-3-4-work-orders-sharing",
+      "head_sha": "0fd92533ac507666f839c33867b935d22341a7f2",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 175,
+          "state": "MERGED",
+          "title": "Wave 4.3 — P-4.3-4: العمل والطلبات والمشاركة",
+          "base": "main",
+          "head_sha": "0fd92533ac507666f839c33867b935d22341a7f2",
+          "merge_sha": "1620fff6748f8c13f0e0c7206c1d4e86e0668509",
+          "url": "https://github.com/Qays7753/Micro/pull/175"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-3-5-cash-wallets",
+      "head_sha": "5c0dc96299c072e3af4d2dc9d6ec05ebb692832c",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 176,
+          "state": "MERGED",
+          "title": "Wave 4.3 — P-4.3-5: الكاش والمحافظ — معجم التوزيع والتغطية",
+          "base": "main",
+          "head_sha": "5c0dc96299c072e3af4d2dc9d6ec05ebb692832c",
+          "merge_sha": "8779bf18979adfb4545315aa7227bb2b606453b7",
+          "url": "https://github.com/Qays7753/Micro/pull/176"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-3-6-deep-screens",
+      "head_sha": "7d9b763305aa87fdd3e8d2510b284ba812ef9653",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 177,
+          "state": "MERGED",
+          "title": "Wave 4.3 — P-4.3-6: الشاشات العميقة وتغطية المسارات الكاملة",
+          "base": "main",
+          "head_sha": "7d9b763305aa87fdd3e8d2510b284ba812ef9653",
+          "merge_sha": "0d5df129567e2f6b790f7df555da44c305ec650a",
+          "url": "https://github.com/Qays7753/Micro/pull/177"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-4-1-residuals",
+      "head_sha": "1c74310484da932bd2f6e176e31a399bff58d58a",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 181,
+          "state": "MERGED",
+          "title": "feat(wave-4-4): P-4.4-1 — بقايا Wave 4.3 واتساق طبقة القراءة",
+          "base": "main",
+          "head_sha": "1c74310484da932bd2f6e176e31a399bff58d58a",
+          "merge_sha": "5020145c7ab62503b121f6c377134f41bfc8c1ce",
+          "url": "https://github.com/Qays7753/Micro/pull/181"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-4-2-formatters",
+      "head_sha": "ae8180a2e22f3406aead54a1b297ac8e71749221",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 182,
+          "state": "MERGED",
+          "title": "feat(wave-4-4): P-4.4-2 — التاريخ والوقت والمنطقة الزمنية والمبالغ من مصدر موحد",
+          "base": "main",
+          "head_sha": "ae8180a2e22f3406aead54a1b297ac8e71749221",
+          "merge_sha": "6a7ab7b96d31f6309cf84321248a5e7ae3153139",
+          "url": "https://github.com/Qays7753/Micro/pull/182"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-4-3-arabic-rtl-content",
+      "head_sha": "6f8435e42845b21a1d4e33a2a10686aad5be80c1",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 183,
+          "state": "MERGED",
+          "title": "feat(wave-4-4): P-4.4-3 — العربية وRTL وسلامة المحتوى",
+          "base": "main",
+          "head_sha": "6f8435e42845b21a1d4e33a2a10686aad5be80c1",
+          "merge_sha": "341879c57e19f8dbc4b65cc5582999fae830f364",
+          "url": "https://github.com/Qays7753/Micro/pull/183"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-4-4-states-recovery",
+      "head_sha": "9fe3fb60d097bcb9a6874eb7f4f99be7d45b4855",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 184,
+          "state": "MERGED",
+          "title": "feat(wave-4-4): P-4.4-4 — حالات التحميل والفراغ والخطأ والنجاح والاسترداد",
+          "base": "main",
+          "head_sha": "9fe3fb60d097bcb9a6874eb7f4f99be7d45b4855",
+          "merge_sha": "2441ad494b5abdc01d697bb5fee1bc7138bcd2d8",
+          "url": "https://github.com/Qays7753/Micro/pull/184"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-4-5-accessibility",
+      "head_sha": "8edbbca4a01ec2a4063130f6b91d01569aa26359",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 185,
+          "state": "MERGED",
+          "title": "feat(wave-4-4): P-4.4-5 — الوصول ولوحة المفاتيح وZoom وReflow (WCAG 2.2 AA)",
+          "base": "main",
+          "head_sha": "8edbbca4a01ec2a4063130f6b91d01569aa26359",
+          "merge_sha": "5f2594abd4221723e69798dfd62346e5a5627a2a",
+          "url": "https://github.com/Qays7753/Micro/pull/185"
+        }
+      ]
+    },
+    {
+      "branch": "feat/wave-4-4-6-device-pwa-regression",
+      "head_sha": "4f758daf9f733cb5dac0e0e0ecd053172b16cc70",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 186,
+          "state": "MERGED",
+          "title": "feat(wave-4-4): P-4.4-6 — الجهاز وPWA والأداء والانحدار النهائي",
+          "base": "main",
+          "head_sha": "4f758daf9f733cb5dac0e0e0ecd053172b16cc70",
+          "merge_sha": "606740f5e1545dec36f2e30eebc8ce42736bb8c6",
+          "url": "https://github.com/Qays7753/Micro/pull/186"
+        }
+      ]
+    },
+    {
+      "branch": "fix/pre-pilot-safety-a-b",
+      "head_sha": "b44edcda67d97b51cbf6d4b1175fe39361d7c67a",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 190,
+          "state": "MERGED",
+          "title": "fix(pre-pilot-safety): Package A — G-001/G-002/G-003/G-006 (financial and data safety)",
+          "base": "main",
+          "head_sha": "b44edcda67d97b51cbf6d4b1175fe39361d7c67a",
+          "merge_sha": "f6879fbc8c152c4b630671b347b737112e065a19",
+          "url": "https://github.com/Qays7753/Micro/pull/190"
+        }
+      ]
+    },
+    {
+      "branch": "fix/pre-pilot-safety-b",
+      "head_sha": "8cfc30347655079f32316a542735098240dec4ba",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 191,
+          "state": "MERGED",
+          "title": "fix(pre-pilot-safety): Package B — G-004/G-005 (capability enforcement and Finance-page availability)",
+          "base": "main",
+          "head_sha": "8cfc30347655079f32316a542735098240dec4ba",
+          "merge_sha": "a054139b43400b9909a10ac6c9187f1eebccda6b",
+          "url": "https://github.com/Qays7753/Micro/pull/191"
+        }
+      ]
+    },
+    {
+      "branch": "fix/product-journey-verification-20260916",
+      "head_sha": "9a3479627ccf46c7a5ebe1867812a692fc7c2aa2",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 160,
+          "state": "MERGED",
+          "title": "fix: product-journey follow-up remediation — Settings doubles, capability-field preservation, shared delivery-terms editing",
+          "base": "main",
+          "head_sha": "9a3479627ccf46c7a5ebe1867812a692fc7c2aa2",
+          "merge_sha": "37319ca6439746e8ab1946e891c849decca04e5d",
+          "url": "https://github.com/Qays7753/Micro/pull/160"
+        }
+      ]
+    },
+    {
+      "branch": "fix/wave-1-correctness-truth",
+      "head_sha": "33693f43f3da37899af9f2ac2193d2f365f34837",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 162,
+          "state": "MERGED",
+          "title": "fix: Wave 1 — Correctness, Truth, and Safe-State Fixes (EXE-001..EXE-006)",
+          "base": "main",
+          "head_sha": "33693f43f3da37899af9f2ac2193d2f365f34837",
+          "merge_sha": "5c54d8ab17a56637773f1fdaf9ae75455fc69777",
+          "url": "https://github.com/Qays7753/Micro/pull/162"
+        }
+      ]
+    },
+    {
+      "branch": "fix/wave-2-financial-data-foundations",
+      "head_sha": "12ded7c0f114f0b1f2f568aec4d57ba354905f83",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 163,
+          "state": "MERGED",
+          "title": "Wave 2 — Financial and Data Foundations (EXE-007..EXE-014)",
+          "base": "main",
+          "head_sha": "12ded7c0f114f0b1f2f568aec4d57ba354905f83",
+          "merge_sha": "81d8d253984dee410c7fd6c3e461fcd0e76f327e",
+          "url": "https://github.com/Qays7753/Micro/pull/163"
+        }
+      ]
+    },
+    {
+      "branch": "fix/wave-4-3-review-p2",
+      "head_sha": "935b3cefd03144ce36ea3740aeb08f2e5b946bcc",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 178,
+          "state": "MERGED",
+          "title": "Wave 4.3 — إصلاحات المراجعة المستقلة P2 (قبل التقرير النهائي)",
+          "base": "main",
+          "head_sha": "935b3cefd03144ce36ea3740aeb08f2e5b946bcc",
+          "merge_sha": "a95fffa753f5d25de0438eb31eb9907e2d674974",
+          "url": "https://github.com/Qays7753/Micro/pull/178"
+        }
+      ]
+    },
+    {
+      "branch": "jules-15390500015238590867-77e56821",
+      "head_sha": "72db7abd2a8fb6f7f9884630f8d50448b20dcf7f",
+      "in_main": false,
+      "disposition": "REVIEW_REQUIRED_CLOSED_UNMERGED",
+      "reason": "closed PR without merge; preserve until provenance/supersession decision",
+      "prs": [
+        {
+          "number": 157,
+          "state": "CLOSED",
+          "title": "docs: generate repository analysis report",
+          "base": "main",
+          "head_sha": "72db7abd2a8fb6f7f9884630f8d50448b20dcf7f",
+          "merge_sha": "",
+          "url": "https://github.com/Qays7753/Micro/pull/157"
+        }
+      ]
+    },
+    {
+      "branch": "keep/DO-NOT-DELETE-founding-history",
+      "head_sha": "087b24f296f2cef9dc0c4218f4299182269bf52e",
+      "in_main": true,
+      "disposition": "KEEP_NO_TOUCH",
+      "reason": "protected historical branch by naming convention",
+      "prs": []
+    },
+    {
+      "branch": "keep/DO-NOT-DELETE-main-mirror",
+      "head_sha": "6c64723442ad80ad7bdda3c588088b9005506704",
+      "in_main": true,
+      "disposition": "KEEP_NO_TOUCH",
+      "reason": "protected historical branch by naming convention",
+      "prs": []
+    },
+    {
+      "branch": "keep/ORIGINAL-HISTORY-before-main-restart",
+      "head_sha": "087b24f296f2cef9dc0c4218f4299182269bf52e",
+      "in_main": true,
+      "disposition": "KEEP_NO_TOUCH",
+      "reason": "protected historical branch by naming convention",
+      "prs": []
+    },
+    {
+      "branch": "main",
+      "head_sha": "81fa524df48ee2d84161dd2248cbeff123dc08c1",
+      "in_main": true,
+      "disposition": "KEEP_PERMANENT",
+      "reason": "canonical default branch",
+      "prs": []
+    },
+    {
+      "branch": "refactor/wave-3-technical-contracts-ownership",
+      "head_sha": "5d2fd8115e929991c19c84e2087d5dc18d24ce21",
+      "in_main": true,
+      "disposition": "DELETE_CANDIDATE_MERGED_TIP_IN_MAIN",
+      "reason": "merged PR exists and branch tip is reachable from current main",
+      "prs": [
+        {
+          "number": 164,
+          "state": "MERGED",
+          "title": "Wave 3: Technical Contracts and Ownership (EXE-015/016/017)",
+          "base": "main",
+          "head_sha": "5d2fd8115e929991c19c84e2087d5dc18d24ce21",
+          "merge_sha": "f8b37062c14aecf85abf5f64e11a191b00eb3c0d",
+          "url": "https://github.com/Qays7753/Micro/pull/164"
+        }
+      ]
+    },
+    {
+      "branch": "report/deep-system-audit-20260916",
+      "head_sha": "37456704853c33bd61b429a9450eb8f8fb40aff1",
+      "in_main": false,
+      "disposition": "REVIEW_REQUIRED_CLOSED_UNMERGED",
+      "reason": "closed PR without merge; preserve until provenance/supersession decision",
+      "prs": [
+        {
+          "number": 161,
+          "state": "CLOSED",
+          "title": "docs: deep system audit report — 14 known issues verified, 15 new findings (report + evidence only)",
+          "base": "main",
+          "head_sha": "37456704853c33bd61b429a9450eb8f8fb40aff1",
+          "merge_sha": "",
+          "url": "https://github.com/Qays7753/Micro/pull/161"
+        }
+      ]
+    },
+    {
+      "branch": "task/direct-sale",
+      "head_sha": "c2bea878207aa4929f197f4a3b69a4018e4903d6",
+      "in_main": false,
+      "disposition": "REVIEW_REQUIRED_CLOSED_UNMERGED",
+      "reason": "closed PR without merge; preserve until provenance/supersession decision",
+      "prs": [
+        {
+          "number": 141,
+          "state": "CLOSED",
+          "title": "Add direct sale workflow",
+          "base": "main",
+          "head_sha": "c2bea878207aa4929f197f4a3b69a4018e4903d6",
+          "merge_sha": "",
+          "url": "https://github.com/Qays7753/Micro/pull/141"
+        }
+      ]
+    }
+  ]
+}
