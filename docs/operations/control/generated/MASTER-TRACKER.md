@@ -2,19 +2,13 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · MERGED_UNVERIFIED: 6 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 12
+BLOCKED: 3 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 18
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
 | DEVICE-001 | BLOCKED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-7 | QA على أجهزة فعلية وWebKit وPWA | Product owner / Manus coordination | device, accessibility, pwa | UX-001, REL-001 |
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | CTRL-001, CTRL-002, G-001, G-002, G-003, G-004, G-005, G-006, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, CLEAN-001, UX-001, REL-001, DEVICE-001, LEGAL-001, UAT-001, AUDIT-001, HARD-009, HARD-010, HARD-011 |
-| G-001 | MERGED_UNVERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | audit-2026-09-19 | فخ الاستهلاك المزدوج عند التسليم | Product owner / Manus coordination | cross-layer | — |
-| G-002 | MERGED_UNVERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | ذرية تخصيص دفعة المورد للمحفظة | Product owner / Manus coordination | cross-layer | — |
-| G-003 | MERGED_UNVERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | حرس القراءة القديمة عند حفظ الطلب | Product owner / Manus coordination | cross-layer | — |
-| G-004 | MERGED_UNVERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | مطابقة تعطيل القدرات للوعد المرئي | Product owner / Manus coordination | cross-layer | — |
-| G-005 | MERGED_UNVERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | عزل فشل قراءات صفحة المالية | Product owner / Manus coordination | cross-layer | — |
-| G-006 | MERGED_UNVERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P3 | audit-2026-09-19 | توحيد حرس السحب بين مساري مال المالك | Product owner / Manus coordination | cross-layer | — |
 | FIN-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | FIN-003 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | مقارنة الفترات وجسر الربح إلى الكاش | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-001 |
 | FIN-004 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | حد السحب الآمن للمالك | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-003, FIN-005 |
@@ -60,13 +54,19 @@ BLOCKED: 3 · MERGED_UNVERIFIED: 6 · READY: 15 · BACKLOG: 2 · REVIEW_REQUIRED
 | V-012 | DEFERRED | PILOT_VALIDATION | PILOT_EVIDENCE_REQUIRED | P2 | pilot-validation | V-12 — تسجيل الإهلاك بعد شهر استخدام | Product owner / Manus coordination | pilot-validation | — |
 | CTRL-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | stage-0 | اعتماد Operations Control v2 | Product owner / Manus coordination | governance, documentation | — |
 | CTRL-002 | VERIFIED | GOVERNANCE | EVIDENCE_RECONCILIATION_REQUIRED | P1 | stage-0 | مصالحة القدرات والتقارير ومصادر الحقيقة | Product owner / Manus coordination | governance, documentation | — |
+| G-001 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | audit-2026-09-19 | فخ الاستهلاك المزدوج عند التسليم | Product owner / Manus coordination | cross-layer | — |
 | HARD-009 | VERIFIED | HARDENING | MAIN_VERIFIED | P1 | hardening-verification | إثبات إغلاق مجموعة المعالجة 9 | Product owner / Manus coordination | governance, verification | — |
 | HARD-010 | VERIFIED | HARDENING | MAIN_VERIFIED | P1 | hardening-verification | إثبات إغلاق مجموعة المعالجة 10 | Product owner / Manus coordination | governance, verification | — |
 | HARD-011 | VERIFIED | HARDENING | MAIN_VERIFIED | P1 | hardening-verification | إثبات إغلاق مجموعة المعالجة 11 | Product owner / Manus coordination | governance, verification | — |
 | HIST-001 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P1 | completed | الموجة الأولى: إصلاحات حرجة محددة | Product owner / Manus coordination | historical-evidence | — |
 | HIST-002 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P1 | completed | الموجة الثانية: الأساسات المالية والبيانية | Product owner / Manus coordination | historical-evidence | — |
 | HIST-007 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P1 | completed | الموجة 4.4: الجودة النظامية والقبول المحلي | Product owner / Manus coordination | historical-evidence | — |
+| G-002 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | ذرية تخصيص دفعة المورد للمحفظة | Product owner / Manus coordination | cross-layer | — |
+| G-003 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | حرس القراءة القديمة عند حفظ الطلب | Product owner / Manus coordination | cross-layer | — |
+| G-004 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | مطابقة تعطيل القدرات للوعد المرئي | Product owner / Manus coordination | cross-layer | — |
+| G-005 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | عزل فشل قراءات صفحة المالية | Product owner / Manus coordination | cross-layer | — |
 | HIST-003 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P2 | completed | الموجة الثالثة: العقود والملكية التقنية | Product owner / Manus coordination | historical-evidence | — |
 | HIST-004 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P2 | completed | الموجة 4.1: مخطط تجربة المنتج | Product owner / Manus coordination | historical-evidence | — |
 | HIST-005 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P2 | completed | الموجة 4.2: الهيكل والتنقل والتسمية | Product owner / Manus coordination | historical-evidence | — |
 | HIST-006 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P2 | completed | الموجة 4.3: إعادة بناء أسطح المنتج | Product owner / Manus coordination | historical-evidence | — |
+| G-006 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P3 | audit-2026-09-19 | توحيد حرس السحب بين مساري مال المالك | Product owner / Manus coordination | cross-layer | — |

@@ -78,6 +78,19 @@ class OperationsControlTests(unittest.TestCase):
         VALIDATOR.validate_history(item, VALIDATOR.ITEM_STATUSES, VALIDATOR.ITEM_TRANSITIONS, 'TEST-001', errors)
         self.assertTrue(any('illegal status transition' in error for error in errors))
 
+    def test_workstream_review_required_can_close_as_verified(self):
+        errors: list[str] = []
+        workstream = {
+            'status_history': [
+                {'status': 'IN_REVIEW', 'changed_at': '2026-09-19', 'actor': 'test', 'reason': 'fixture'},
+                {'status': 'REVIEW_REQUIRED', 'changed_at': '2026-09-19', 'actor': 'test', 'reason': 'merged'},
+                {'status': 'VERIFIED', 'changed_at': '2026-09-19', 'actor': 'test', 'reason': 'ci passed'},
+            ],
+            'status': 'VERIFIED',
+        }
+        VALIDATOR.validate_history(workstream, VALIDATOR.WORK_STATUSES, VALIDATOR.WORK_TRANSITIONS, 'WS-TEST', errors)
+        self.assertEqual(errors, [])
+
     def test_parent_child_claim_overlap_is_detected(self):
         self.assertTrue(VALIDATOR.scopes_overlap('docs/operations', 'docs/operations/control/items'))
         self.assertTrue(VALIDATOR.scopes_overlap('docs\\operations\\control', 'docs/operations'))

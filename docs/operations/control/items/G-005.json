@@ -2,7 +2,7 @@
   "id": "G-005",
   "title": "عزل فشل قراءات صفحة المالية",
   "type": "DEFECT",
-  "status": "MERGED_UNVERIFIED",
+  "status": "VERIFIED",
   "priority": "P2",
   "stage": "audit-2026-09-19",
   "summary": "فشل قراءة واحدة من 12 مصدرًا قد يحجب صفحة المالية كاملة.",
@@ -34,7 +34,7 @@
   "related_items": [],
   "owner_decision": "",
   "merge_sha": "a054139b43400b9909a10ac6c9187f1eebccda6b",
-  "verified_on_main_sha": "",
+  "verified_on_main_sha": "0187f475d6bb0cda54d33fee9cc3c0faeb2784f8",
   "updated_at": "2026-09-20",
   "status_history": [
     {
@@ -60,10 +60,16 @@
       "changed_at": "2026-09-20",
       "actor": "merge:pr-191",
       "reason": "PR #191 مدموج على main عند a054139b43400b9909a10ac6c9187f1eebccda6b؛ لا VERIFIED قبل نجاح CI والتحقق على main."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-20",
+      "actor": "verify:main-ci",
+      "reason": "نجح CI على main عند 0187f475d6bb0cda54d33fee9cc3c0faeb2784f8 بعد دمج Merge SHA a054139b43400b9909a10ac6c9187f1eebccda6b؛ الدليل قابل للوصول."
     }
   ],
   "migration_baseline": true,
-  "next_action": "انتظار نجاح CI على main عند a054139b4340 ثم تحديث VERIFIED مع verified_on_main_sha.",
+  "next_action": "لا إجراء تنفيذي إضافي لهذا Finding؛ تبقى بوابة PRE-PILOT محجوبة حتى إغلاق بقية المتطلبات وقرار المالك.",
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",
   "tests_required": [
