@@ -1,7 +1,7 @@
 {
   "id": "WS-163",
   "title": "Pre-pilot safety Package B (G-004/G-005)",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "G-004",
     "G-005"
@@ -19,12 +19,13 @@
   "pr": 191,
   "started_at": "2026-09-20T13:30:00+03:00",
   "updated_at": "2026-09-20T12:00:00+03:00",
-  "next_action": "الحزمة ب مدموجة؛ انتظار CI النهائي على main ثم إغلاق التحقق.",
+  "next_action": "لا إجراء إضافي؛ الحزمة مدموجة ومتحقق منها على main. لا يبدأ Pilot أو المرحلة التالية من هذا السجل.",
   "notes": [
     "فرع مكدّس من رأس الحزمة أ بالضبط (b44edcd) كما يطلب موجز التنفيذ — يُدمج بعد الحزمة أ فقط.",
     "مناطق وعقود منفصلة تمامًا عن WS-162 النشط (لا تداخل areas/contracts) وفق قواعد Validator.",
     "النطاق: G-004 (حرس تعطيل القدرات) وG-005 (عزل فشل قراءات المالية) فقط؛ لا إعادة تصميم UI/UX ولا مسارات جديدة.",
-    "PR #191 مدموج على main عند a054139b43400b9909a10ac6c9187f1eebccda6b؛ الحالة REVIEW_REQUIRED إلى حين نجاح CI والتحقق النهائي."
+    "PR #191 مدموج على main عند a054139b43400b9909a10ac6c9187f1eebccda6b؛ الحالة REVIEW_REQUIRED إلى حين نجاح CI والتحقق النهائي.",
+    "PR #191 مدموج عند a054139b43400b9909a10ac6c9187f1eebccda6b، وCI النهائي نجح على main عند 0187f475d6bb0cda54d33fee9cc3c0faeb2784f8؛ Workstream متحقق."
   ],
   "status_history": [
     {
@@ -44,7 +45,20 @@
       "changed_at": "2026-09-20",
       "actor": "merge:pr-191",
       "reason": "PR #191 مدموج على main عند a054139b43400b9909a10ac6c9187f1eebccda6b؛ الحالة REVIEW_REQUIRED إلى حين نجاح CI والتحقق النهائي."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-20",
+      "actor": "verify:main-ci",
+      "reason": "PR #191 مدموج عند a054139b43400b9909a10ac6c9187f1eebccda6b، وCI النهائي نجح على main عند 0187f475d6bb0cda54d33fee9cc3c0faeb2784f8؛ Workstream متحقق."
     }
   ],
-  "migration_baseline": false
+  "migration_baseline": false,
+  "merge_sha": "a054139b43400b9909a10ac6c9187f1eebccda6b",
+  "verified_on_main_sha": "0187f475d6bb0cda54d33fee9cc3c0faeb2784f8",
+  "evidence": [
+    "https://github.com/Qays7753/Micro/pull/191",
+    "reports/agent-report/2026-09-20_pre-pilot-safety-package-b/report.md",
+    "https://github.com/Qays7753/Micro/commit/0187f475d6bb0cda54d33fee9cc3c0faeb2784f8"
+  ]
 }
