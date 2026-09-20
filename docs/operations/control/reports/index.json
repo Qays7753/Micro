@@ -97,6 +97,12 @@
       "path": "reports/agent-report/2026-09-21_stage-2-ops-007-009-comparison-honesty/report.md",
       "scope": "stage 2 wave 4 (OPS-007 comparison review-reason honesty + OPS-009 Cost Snapshot immutability evidence)",
       "status": "MERGED_VERIFIED_MAIN_8986385"
+    },
+    {
+      "id": "STAGE-2-OPS-008",
+      "path": "reports/agent-report/2026-09-21_stage-2-ops-008-time-honesty/report.md",
+      "scope": "stage 2 wave 5 (OPS-008 honest time-comparison cause from its time source)",
+      "status": "OPEN_PR_201_IN_REVIEW"
     }
   ]
 }
