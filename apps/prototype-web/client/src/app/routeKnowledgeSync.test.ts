@@ -130,6 +130,9 @@ const SURFACE_ROUTES: readonly string[] = [
   "/finance",
   /* Wave 4.2 — P-4.2-4 (F01): «المزيد من المالية» — سطح قراءة منظم يبقي الشريط. */
   "/finance/more",
+  /* Stage 2 — OPS-005/006 (2026-09-20): «القادم والاستحقاقات» — قارئ موحد
+   * للقادم والمتأخر؛ سطح قراءة يبقي الشريط السفلي (قاعدة U-005). */
+  "/finance/upcoming",
   "/finance/statement",
   "/finance/activity",
   "/settings",

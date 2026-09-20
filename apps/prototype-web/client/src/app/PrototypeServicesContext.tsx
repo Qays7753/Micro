@@ -56,6 +56,8 @@ import { StatementService } from "@/application/finance/statementService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 /* Stage 2 — OPS-001 (tracker): مواعيد الاستحقاق والتقادم الأساسي — قراءة فقط. */
 import { DueDatesService } from "@/application/finance/dueDatesService";
+/* Stage 2 — OPS-005/006 (tracker): القارئ الموحد للقادم والمتأخر — قراءة فقط. */
+import { UpcomingService } from "@/application/finance/upcomingService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 /* المجموعة ٤ (عقد ٢٩): الأصول والقروض وتصنيف العربون المحتفظ به. */
 import { AssetService } from "@/application/assets/assetService";
@@ -108,6 +110,8 @@ type PrototypeServices = {
   collections: CollectionService;
   /* Stage 2 — OPS-001: قراءة التقادم ومواعيد الاستحقاق — لا كتابة إطلاقًا. */
   dueDates: DueDatesService;
+  /* Stage 2 — OPS-005/006: القارئ الموحد للقادم والمتأخر — لا كتابة إطلاقًا. */
+  upcoming: UpcomingService;
   /* المجموعة ٦ (البند ١): تراجع القبضة مع تخصيصها المطابق بنقطة واحدة ذرّية. */
   collectionReversal: CollectionReversalService;
   saleCollectionReversal: SaleCollectionReversalService;
@@ -222,6 +226,7 @@ function createServices(): Omit<
   /* Stage 2 — OPS-001: قراءة التقادم فوق مصدر الذمم القابلة للتحصيل نفسه. */
   const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
   const dueDates = new DueDatesService(store, collections);
+  const upcoming = new UpcomingService(dueDates, collections, schedules, projectFinance);
   const activity = new ActivityService(store);
   return {
     profiles: new ProfileService(store),
@@ -263,6 +268,7 @@ function createServices(): Omit<
     partyLedger: new PartyLedgerService(store),
     collections,
     dueDates,
+    upcoming,
     collectionReversal: new CollectionReversalService(store, projectFinance),
     saleCollectionReversal: new SaleCollectionReversalService(store, projectFinance),
     walletLedger: new WalletLedgerService(store),

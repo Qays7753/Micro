@@ -14,6 +14,7 @@
 import {
   ArrowRight,
   ArrowLeft,
+  CalendarClock,
   ClipboardList,
   HandCoins,
   Landmark,
@@ -99,6 +100,22 @@ export default function FinanceMore() {
             className="micro-text-action"
             type="button"
             onClick={() => openFromMore("/finance/activity")}
+          >
+            افتح <ArrowLeft aria-hidden="true" />
+          </button>
+        </article>
+        <article className="micro-setting-row">
+          <span className="micro-setting-icon">
+            <CalendarClock aria-hidden="true" />
+          </span>
+          <div>
+            <strong>القادم والاستحقاقات</strong>
+            <small>ما يقترب موعده وما تأخر — طلبات ومدفوعات وتحصيلات والتزامات بمعنى ومصدر لكل موعد</small>
+          </div>
+          <button
+            className="micro-text-action"
+            type="button"
+            onClick={() => openFromMore("/finance/upcoming")}
           >
             افتح <ArrowLeft aria-hidden="true" />
           </button>

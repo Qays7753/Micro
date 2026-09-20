@@ -79,6 +79,12 @@
       "path": "reports/agent-report/2026-09-20_stage-2-ops-001-due-dates/report.md",
       "scope": "stage 2 wave 1 (OPS-001 due dates and basic aging)",
       "status": "OPEN_PR_196_IN_REVIEW"
+    },
+    {
+      "id": "STAGE-2-OPS-005-006",
+      "path": "reports/agent-report/2026-09-20_stage-2-ops-005-006-upcoming-aging/report.md",
+      "scope": "stage 2 wave 2 (OPS-005 unified upcoming/overdue surface + OPS-006 simple debt aging)",
+      "status": "OPEN_PR_197_IN_REVIEW"
     }
   ]
 }

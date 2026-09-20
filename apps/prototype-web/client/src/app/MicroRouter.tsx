@@ -33,6 +33,8 @@ const ScheduleEditor = lazy(() => import("@/pages/ScheduleEditor"));
 const Finance = lazy(() => import("@/pages/Finance"));
 /* Wave 4.2 — P-4.2-4 (F01): «المالية ← المزيد» — سطح قراءة يبقي الشريط السفلي. */
 const FinanceMore = lazy(() => import("@/pages/FinanceMore"));
+/* Stage 2 — OPS-005/006: «القادم والاستحقاقات» — قارئ موحد يبقي الشريط السفلي. */
+const FinanceUpcoming = lazy(() => import("@/pages/FinanceUpcoming"));
 const OwnerEntitlement = lazy(() => import("@/pages/OwnerEntitlement"));
 /* X-05 (و٣): المدخل الواحد لسحب المالك — يسأل «سحب من المشروع لنفسك؟» ويكتب إلى المسار الصحيح. */
 const OwnerWithdrawalEditor = lazy(() => import("@/pages/OwnerWithdrawalEditor"));
@@ -202,6 +204,7 @@ export function MicroRouter() {
               <Route path="/finance" component={Finance} />
               {/* F01: سطح «المزيد» — قارئ منظم لا يكتب شيئًا؛ بديله الكنوني المالية. */}
               <Route path="/finance/more" component={FinanceMore} />
+              <Route path="/finance/upcoming" component={FinanceUpcoming} />
               {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
               <Route path="/finance/statement" component={Statement} />
               <Route path="/finance/activity" component={FinanceActivity} />

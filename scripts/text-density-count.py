@@ -709,7 +709,22 @@ CAPS: dict[str, int] = {
     # owner & policies) with one honest footer; entries are static directory
     # labels (no data-driven templates). Locked at the honest measured number
     # (35) as a ratchet from day one.
-    "FinanceMore": 35,
+    # FinanceMore 35 -> 37 (2026-09-20, Stage 2 OPS-005 owner brief — documented
+    # per the ToolsIntegrity 85->86 precedent): one mandated directory entry
+    # «القادم والاستحقاقات» (title + one honest description) linking the new
+    # unified upcoming/overdue read surface — mandated labels only, no data
+    # templates behind them.
+    "FinanceMore": 37,
+    # FinanceUpcoming (2026-09-20, Stage 2 OPS-005/006, owner brief — first
+    # measurement day): the unified upcoming/overdue reader «القادم والاستحقاقات»
+    # — heading + promise, the simple-aging card (payables overdue/current/no-date
+    # from the OPS-001 source, receivables + obligations all explicitly no-stored-
+    # date, honest unavailable), four independent read blocks with per-block
+    # failure cards (message: convention — not at rest), row date-kind labels,
+    # honest empty states, and the read-only truth footer; obligation rows reuse
+    # the canonical financialEventLabels map (its shared labels count once here).
+    # Locked at the honest measured number (49) as a ratchet from day one.
+    "FinanceUpcoming": 49,
     "SharePreview": 24,
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,
@@ -915,6 +930,9 @@ PAGES = [
     "ToolsIntegrity",
     # Wave 4.2 — P-4.2-4 (F01): سطح «المزيد من المالية» — قارئ منظم.
     "FinanceMore",
+    # Stage 2 — OPS-005/006 (2026-09-20): سطح «القادم والاستحقاقات» — قارئ
+    # موحد للقادم والمتأخر؛ يُقاس من يومه الأول (سابقة Profile/FinanceMore).
+    "FinanceUpcoming",
     # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل ومعاينة المشاركة — تُقاسان من يومهما الأول.
     "FinanceActivity",
     "SharePreview",
