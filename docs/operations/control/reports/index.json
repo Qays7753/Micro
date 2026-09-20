@@ -85,6 +85,12 @@
       "path": "reports/agent-report/2026-09-20_stage-2-ops-005-006-upcoming-aging/report.md",
       "scope": "stage 2 wave 2 (OPS-005 unified upcoming/overdue surface + OPS-006 simple debt aging)",
       "status": "OPEN_PR_197_IN_REVIEW"
+    },
+    {
+      "id": "STAGE-2-OPS-004",
+      "path": "reports/agent-report/2026-09-20_stage-2-ops-004-planned-cost/report.md",
+      "scope": "stage 2 wave 3 (OPS-004 template planned cost/quantity read layer)",
+      "status": "OPEN_PR_198_IN_REVIEW"
     }
   ]
 }
