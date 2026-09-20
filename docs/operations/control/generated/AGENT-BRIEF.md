@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 25
+الحصيلة: BLOCKED: 3 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 26
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,6 +32,4 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
-|---|---|---|---|---|---|
-| WS-169 | IN_REVIEW | \`stage-2/completion-remaining\` | 202 | OPS-002 | انتظار CI على PR #202 ثم الدمج (مصرّح به لهذه الموجة) والتحقق على main قبل إغلاق الموجة. |
+لا يوجد Workstream نشط أو يحتاج مراجعة.

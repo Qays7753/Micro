@@ -2,14 +2,13 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_REVIEW: 1 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 25
+BLOCKED: 3 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 26
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
 | DEVICE-001 | BLOCKED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-7 | QA على أجهزة فعلية وWebKit وPWA | Product owner / Manus coordination | device, accessibility, pwa | UX-001, REL-001 |
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | CTRL-001, CTRL-002, G-001, G-002, G-003, G-004, G-005, G-006, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, CLEAN-001, UX-001, REL-001, DEVICE-001, LEGAL-001, UAT-001, AUDIT-001, HARD-009, HARD-010, HARD-011 |
-| OPS-002 | IN_REVIEW | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-2 | تنبيهات انخفاض المخزون | Product owner / Manus coordination | Layer 2, application, presentation | CTRL-001 |
 | FIN-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | FIN-003 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | مقارنة الفترات وجسر الربح إلى الكاش | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-001 |
 | FIN-004 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | حد السحب الآمن للمالك | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-003, FIN-005 |
@@ -65,6 +64,7 @@ BLOCKED: 3 · IN_REVIEW: 1 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DE
 | HIST-004 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P2 | completed | الموجة 4.1: مخطط تجربة المنتج | Product owner / Manus coordination | historical-evidence | — |
 | HIST-005 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P2 | completed | الموجة 4.2: الهيكل والتنقل والتسمية | Product owner / Manus coordination | historical-evidence | — |
 | HIST-006 | VERIFIED | HISTORICAL | NOT_APPLICABLE | P2 | completed | الموجة 4.3: إعادة بناء أسطح المنتج | Product owner / Manus coordination | historical-evidence | — |
+| OPS-002 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-2 | تنبيهات انخفاض المخزون | Product owner / Manus coordination | Layer 2, application, presentation | CTRL-001 |
 | OPS-004 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-2 | ربط القوالب بالتكلفة المخططة دون استهلاك فعلي | Product owner / Manus coordination | Layer 2, application, presentation | CTRL-001 |
 | OPS-006 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-2 | تقادم ديون مبسط قبل الشرائح المتقدمة | Product owner / Manus coordination | Layer 2, application, presentation | CTRL-001, OPS-001 |
 | OPS-007 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-2 | مقارنة التكلفة المخططة بالمستهلكة والفرق | Product owner / Manus coordination | Layer 2, application, presentation | CTRL-001, OPS-004 |
