@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { InventoryMaterialService } from "./inventoryMaterialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
+import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import { readMaterialSuggestions } from "@/application/inventory/materialSuggestions";
 
 describe("InventoryMaterialService", () => {
   it("keeps purchase cash semantics separate while receiving, consuming, wasting, and reversing stock", async () => {
@@ -1322,5 +1323,245 @@ describe("InventoryMaterialService waste profit impact (عقد الإغلاق ا
     const overview = await service.overview();
     if (!overview.ok) throw new Error(overview.message);
     expect(overview.value.materials[0]?.quantityMilli).toBe(3000);
+  });
+});
+
+describe("Stage 2 — OPS-007/OPS-009: إعلان سبب المراجعة وحتمية اللقطة في مقارنة المادة المنفذة", () => {
+  /* عقد ١٣ سطر ٣٦: needs_review يعرض «فرق المادة مع سبب نقص المعرفة» — السبب يُصرَّح
+   * في نموذج القراءة (reviewReasons) لا يُترك نبرة بطاقة؛ والفرق لا يُخفى أبدًا.
+   * OPS-009: تغيّر السعر الحالي (استلام جديد) لا يمس لقطة الطلب التاريخية. */
+  type Seed = {
+    snapshotConfidence: "known" | "estimated";
+    openingCostState: "known" | "unknown";
+  };
+  async function seedComparisonOrder(seed: Seed) {
+    const store = new MemoryLocalStore();
+    const service = new InventoryMaterialService(store, () => "2026-09-16T09:00:00.000Z");
+    const opened = await service.openMaterial({
+      name: "خيط التطريز",
+      unit: "piece",
+      tracking: "tracked",
+      opening: {
+        quantityState: "confirmed",
+        quantityMilli: 10000,
+        costState: seed.openingCostState,
+        valueMinor: seed.openingCostState === "known" ? 4000 : null,
+        confirmedOn: "2026-08-01",
+        sourceNote: null,
+      },
+      note: "افتتاح",
+      operationKey: "ops7-open",
+    });
+    if (!opened.ok) throw new Error("material should open");
+    const cost = calculateCostSnapshot("ops7-cost", {
+      currency: "JOD",
+      materialItems: [
+        {
+          name: "خيط التطريز",
+          quantity: 1,
+          unit: "قطعة",
+          unitPriceMinor: 2000,
+          priceDate: "2026-08-01",
+          source: "user_input",
+          confidence: seed.snapshotConfidence,
+        },
+      ],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-08-01T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    const order = createCraftOrder({
+      id: "ops7-order",
+      customerName: "ليان",
+      itemName: "طرحة مطرزة",
+      specifications: "اختبار سبب المراجعة",
+      quantity: 1,
+      agreedPriceMinor: 5000,
+      costSnapshot: cost,
+      createdAt: "2026-08-01T09:00:00.000Z",
+    });
+    await store.saveOrder({
+      id: order.id,
+      order,
+      deliveryDate: "2026-09-20",
+      agreementSource: null,
+      createdAt: "2026-08-01T09:00:00.000Z",
+      updatedAt: "2026-08-01T09:00:00.000Z",
+    });
+    const consumed = await service.consume({
+      materialId: opened.value.material.id,
+      orderId: order.id,
+      quantityMilli: 2000,
+      occurredOn: "2026-09-16",
+      note: "تنفيذ الطرحة",
+      operationKey: "ops7-consume",
+    });
+    if (!consumed.ok) throw new Error("consumption should save");
+    return { store, service, orderId: order.id };
+  }
+
+  it("لقطة تقديرية مع استهلاك معلوم التكلفة: needs_review بسبب لقطة التكلفة — والفرق يبقى ظاهرًا لا مخفيًا", async () => {
+    const { service, orderId } = await seedComparisonOrder({
+      snapshotConfidence: "estimated",
+      openingCostState: "known",
+    });
+    const result = await service.readOrderActualMaterialComparison(orderId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.status).toBe("needs_review");
+    expect(result.value.reviewReasons).toEqual(["snapshot_knowledge"]);
+    expect(result.value.actualCostKnowledge).toBe("known");
+    /* عقد ١٣: الفرق يظهر مع السبب — الاستهلاك معلوم (افتتاح معلوم 4000 لكل 10000
+     * ملي → استهلاك 2000 = 800) والفرق 800 − 2000 = −1200. */
+    expect(result.value.actualMaterialMinor).toBe(800);
+    expect(result.value.varianceMinor).toBe(-1200);
+  });
+
+  it("استهلاك بتكلفة غير معروفة: needs_review بسبب التكلفة غير المعروفة — القيمة المسجلة تصرَّح أدنى من الحقيقة", async () => {
+    const { service, orderId } = await seedComparisonOrder({
+      snapshotConfidence: "known",
+      openingCostState: "unknown",
+    });
+    const result = await service.readOrderActualMaterialComparison(orderId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.status).toBe("needs_review");
+    expect(result.value.reviewReasons).toEqual(["actual_cost_unknown"]);
+    expect(result.value.actualCostKnowledge).toBe("unknown");
+    /* عقد ٢٨ §٥: القيمة الصفرية ⇐ تكلفة غير معروفة — الرقم يظهر مؤهَّلًا بسببه
+     * المصرَّح لا 0.00 واثقة، والفرق يبقى مرئيًا مع السبب (إخفاؤه ممنوع). */
+    expect(result.value.actualMaterialMinor).toBe(0);
+    expect(result.value.varianceMinor).toBe(-2000);
+  });
+
+  it("السببان معًا (لقطة تقديرية واستهلاك مجهول التكلفة) يُصرَّحان معًا", async () => {
+    const { service, orderId } = await seedComparisonOrder({
+      snapshotConfidence: "estimated",
+      openingCostState: "unknown",
+    });
+    const result = await service.readOrderActualMaterialComparison(orderId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.status).toBe("needs_review");
+    expect(result.value.reviewReasons).toEqual(["snapshot_knowledge", "actual_cost_unknown"]);
+  });
+
+  it("recorded: لا أسباب مراجعة — التحقق الكامل يبقى كذلك", async () => {
+    const { service, orderId } = await seedComparisonOrder({
+      snapshotConfidence: "known",
+      openingCostState: "known",
+    });
+    const result = await service.readOrderActualMaterialComparison(orderId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.status).toBe("recorded");
+    expect(result.value.reviewReasons).toEqual([]);
+  });
+
+  it("القراءة قبل التسليم وبعده وإعادتها المتكررة: نفس القيم ولا كتابة أبدًا (مطابقة اللقطة الكاملة)", async () => {
+    const { store, service, orderId } = await seedComparisonOrder({
+      snapshotConfidence: "known",
+      openingCostState: "known",
+    });
+    const beforeDelivery = await service.readOrderActualMaterialComparison(orderId);
+    const storedBefore = await store.getOrder(orderId);
+    if (!storedBefore.ok || !storedBefore.value) throw new Error("order should exist");
+    /* التسليم عبر سلسلة الانتقالات الكنونية — اللقطة لا تتغير بتسليم الطلب. */
+    let delivered = storedBefore.value.order;
+    for (const [to, key] of [
+      ["provisional_agreement", "ops7-provisional"],
+      ["confirmed", "ops7-confirmed"],
+      ["in_progress", "ops7-progress"],
+      ["ready", "ops7-ready"],
+      ["delivered", "ops7-delivered"],
+    ] as const) {
+      delivered = transitionOrder(delivered, {
+        to,
+        idempotencyKey: key,
+        createdAt: "2026-09-16T10:00:00.000Z",
+      });
+    }
+    await store.saveOrder({
+      id: orderId,
+      order: delivered,
+      deliveryDate: "2026-09-20",
+      agreementSource: null,
+      createdAt: "2026-08-01T09:00:00.000Z",
+      updatedAt: "2026-09-16T10:00:00.000Z",
+    });
+    const snapshotBefore = await store.readSnapshot();
+    const afterDelivery = await service.readOrderActualMaterialComparison(orderId);
+    const repeatedRead = await service.readOrderActualMaterialComparison(orderId);
+    const snapshotAfter = await store.readSnapshot();
+    expect(beforeDelivery.ok && afterDelivery.ok && repeatedRead.ok).toBe(true);
+    if (!beforeDelivery.ok || !afterDelivery.ok || !repeatedRead.ok) return;
+    expect(afterDelivery.value).toEqual(beforeDelivery.value);
+    expect(repeatedRead.value).toEqual(beforeDelivery.value);
+    expect(snapshotAfter.ok && snapshotBefore.ok ? snapshotAfter.value : snapshotAfter).toEqual(
+      snapshotBefore.ok ? snapshotBefore.value : snapshotBefore,
+    );
+    /* اللقطة التاريخية نفسها بقيت كما حُفظت قبل التسليم وبعده وبعد كل القراءات. */
+    const storedAfter = await store.getOrder(orderId);
+    if (!storedAfter.ok || !storedAfter.value) throw new Error("order should exist after delivery");
+    expect(storedAfter.value.order.costSnapshot).toEqual(storedBefore.value.order.costSnapshot);
+  });
+
+  it("تغيّر السعر الحالي (استلام جديد بسعر مختلف) لا يمس لقطة الطلب التاريخية — والدليل السعري يتحرك (OPS-009)", async () => {
+    const { store, service, orderId } = await seedComparisonOrder({
+      snapshotConfidence: "known",
+      openingCostState: "known",
+    });
+    const storedBefore = await store.getOrder(orderId);
+    if (!storedBefore.ok || !storedBefore.value) throw new Error("order should exist");
+    const frozenSnapshotBefore = storedBefore.value.order.costSnapshot;
+    const comparisonBefore = await service.readOrderActualMaterialComparison(orderId);
+    /* استلام جديد بسعر أعلى بكثير من سعر اللقطة — السعر «الحالي» يتحرك، اللقطة لا. */
+    const purchase = createSupplierPurchase({
+      id: "ops7-purchase",
+      supplierName: "مورد الخيط",
+      note: "استلام بسعر جديد",
+      purchasedOn: "2026-09-16",
+      dueOn: null,
+      totalMinor: 15000,
+      initialPaidMinor: 15000,
+      recordedAt: "2026-09-16T09:00:00.000Z",
+      idempotencyKey: "ops7-purchase",
+    });
+    await store.saveSupplierPurchase(purchase);
+    const overviewBefore = await service.overview();
+    if (!overviewBefore.ok) throw new Error(overviewBefore.message);
+    const materialId = overviewBefore.value.materials[0]?.id;
+    if (!materialId) throw new Error("material should exist");
+    const receipt = await service.receivePurchase({
+      materialId,
+      purchaseId: purchase.id,
+      quantityMilli: 5000,
+      valueMinor: 15000,
+      occurredOn: "2026-09-16",
+      note: "استلام بسعر 3.00 للوحدة",
+      operationKey: "ops7-receipt",
+    });
+    if (!receipt.ok) throw new Error("receipt should save");
+    /* الدليل السعري الكنوني تحرك فعلًا إلى السعر الجديد (3000 minor للوحدة) —
+     * إثبات أن الاختبار ذو معنى: السعر الحالي تغيّر. */
+    const suggestions = await readMaterialSuggestions(service);
+    expect(suggestions?.find(suggestion => suggestion.materialId === materialId)?.unitPriceMinor).toBe(3000);
+    /* اللقطة التاريخية للطلب بقيت بالقيمة المتجمدة نفسها (سعر 2000 عند الاتفاق). */
+    const storedAfter = await store.getOrder(orderId);
+    if (!storedAfter.ok || !storedAfter.value) throw new Error("order should exist after receipt");
+    expect(storedAfter.value.order.costSnapshot).toEqual(frozenSnapshotBefore);
+    expect(storedAfter.value.order.costSnapshot.materialCostMinor).toBe(2000);
+    expect(storedAfter.value.order.costSnapshot.input.materialItems[0]?.unitPriceMinor).toBe(2000);
+    /* والمقارنة ما زالت تقرأ المخطط من اللقطة المجمدة لا من السعر الجديد. */
+    const comparisonAfter = await service.readOrderActualMaterialComparison(orderId);
+    expect(comparisonBefore.ok && comparisonAfter.ok).toBe(true);
+    if (!comparisonBefore.ok || !comparisonAfter.ok) return;
+    expect(comparisonAfter.value.plannedMaterialMinor).toBe(2000);
+    expect(comparisonAfter.value.plannedMaterialMinor).toBe(comparisonBefore.value.plannedMaterialMinor);
   });
 });
