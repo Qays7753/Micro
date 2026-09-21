@@ -23,7 +23,7 @@
     "docs/contracts/41-recurring-expense-reminders-contract.md"
   ],
   "agent": "ZAI / Super Z UX/UI Reports 1-2 controlled implementation session 2026-09-22",
-  "pr": null,
+  "pr": 207,
   "started_at": "2026-09-22T00:00:00+03:00",
   "updated_at": "2026-09-22T21:45:00+03:00",
   "next_action": "Z2 only after Agent 5 reviews the Z1 diff: Z2.0 contract tests → Z2.1–Z2.7 → Z2.8 gate (targeted + OPS-003 non-regression + full) → Z2 CHECKPOINT push.",
@@ -33,7 +33,7 @@
     "Baseline verified: origin/main = b0b4cea66a06c295c65eb895dc2b9067c8b732cf exactly; clean worktree; no open PRs; validator PASS; full pnpm check EXIT 0 at baseline.",
     "Hard boundaries: no Domain/Storage/migration/schema/export/writer changes; no new routes or destinations; five destinations frozen; no recurring-expense content on Home; no final visual identity; no Vite/toolchain repair.",
     "Documented §10.6 dependency (presentation-only, non-protected): Nav001.dom.test.tsx L111 and Set003Capabilities.dom.test.tsx L111 pin the pre-Z1 fixed-four quick-action composition that the owner-approved Z1 acceptance criteria (§9.1: fixed actions = sale/expense/order; collection contextual only) supersede. Minimal assertion updates recorded in the Z1 delivery report; not silent.",
-    "Z1 evidence: reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md; commits 7522129 → 6f4e799 → ffbbf6f → 9cf6589 → becaea0 → de9c513 on the branch; PR #207 draft open."
+    "Z1 evidence: reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md; commits 7522129 → 6f4e799 → ffbbf6f → 9cf6589 → becaea0 → de9c513 on the branch; PR #207 draft open. Agent 5 Z1 integration review: PASS_WITH_NOTES (19/19 §9.1 criteria met, 135/135 targeted green, OPS-003 smoke 37/37 green, density Home 71/78)."
   ],
   "status_history": [
     {
