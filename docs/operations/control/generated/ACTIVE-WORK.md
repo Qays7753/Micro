@@ -4,4 +4,4 @@
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-171 | IN_PROGRESS | \`ops-003/recurring-expense-system\` | — | OPS-003 | الموجة D (واجهة عربية RTL للقائمة/التفصيل/المراجعة/التأكيد) ثم الموجة E (pnpm check كاملًا، Tracker IN_REVIEW، تقرير، PR) والتوقف عند PR-ready لقرار دمج المالك. |
+| WS-171 | IN_REVIEW | \`ops-003/recurring-expense-system\` | 205 | OPS-003 | انتظار CI على رأس PR #205 ثم قرار دمج المالك؛ بعد الدمج: تحقق على SHA الدمج وإغلاق VERIFIED بأدلة ما بعد الدمج. |
