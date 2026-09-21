@@ -56,3 +56,9 @@ Checkpoints: baseline branch point (b0b4cea) → Z1 contract tests → Z1 comple
 ## Evidence class key for this run
 
 VERIFIED / INFERRED / UNVERIFIED / NOT_EXECUTED / DEFERRED / BLOCKER — per the task contract.
+
+---
+
+## Z1 checkpoint append (2026-09-22)
+
+Z1 complete at branch HEAD `de9c513`: targeted 104/104, prototype:check PASS, design-guards PASS, full `pnpm check` EXIT 0 (bundle 625,542/650,000 raw, 148,559/155,000 gzip), text-density Home 77→71, live visual QA VERIFIED at 320/360/390/430 (zero horizontal overflow, zero console errors) covering first-use/empty/incomplete/attention days, fixed-three actions, contextual collection end-to-end with partial settlement, and five-destination nav. Full detail: `01-z1-delivery-report.md`. Status: `Z1_COMPLETE — Z2_READY`.

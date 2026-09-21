@@ -4,4 +4,4 @@
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-172 | CLAIMED | \`feat/ux-ui-z1-z2-20260921\` | — | UX-001 | Z1.1 — lock the Home contract in the allowlisted Home test files (red assertions where the current composition differs from the approved target), then implement Z1.2–Z1.5 and pass the Z1.6 gate. |
+| WS-172 | IN_PROGRESS | \`feat/ux-ui-z1-z2-20260921\` | — | UX-001 | Z2 only after Agent 5 reviews the Z1 diff: Z2.0 contract tests → Z2.1–Z2.7 → Z2.8 gate (targeted + OPS-003 non-regression + full) → Z2 CHECKPOINT push. |

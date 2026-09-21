@@ -124,9 +124,9 @@
     },
     {
       "id": "UX-UI-Z1-Z2",
-      "path": "reports/agent-report/2026-09-22_ux-ui-z1-z2/00-understanding-card.md",
-      "scope": "UX/UI Reports 1-2 Z1/Z2 bounded implementation (WS-172) — understanding card, wave delivery reports, integration and post-merge verification",
-      "status": "OPEN_PR_PENDING"
+      "path": "reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md",
+      "scope": "UX/UI Reports 1-2 Z1 (Home daily-decision surface) delivery — Z2 pending",
+      "status": "OPEN_PR_207_Z1_COMPLETE"
     }
   ]
 }
