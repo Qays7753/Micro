@@ -670,4 +670,56 @@ describe("OrderDetail mid-journey deposit panel (عقد الإغلاق العم�
       expect(stored.ok && stored.value?.order.status).toBe("cancelled");
     });
   });
+
+  /* Z2.0 (§3.4 — Z2.6 عقد): أزرار إخفاء اللوحات (قبل أي التزام) لا تستخدم
+   * «تراجع» المجردة — الكلمة محجوزة للعكس/التراجع الموثق؛ الإخفاء يقع في
+   * عائلة الإغلاق، ويترك السجل كما هو بلا تنفيذ. */
+  it("Z2.6: hides the deposit and cancel panels with a close word — never the bare «تراجع»", async () => {
+    const created = await drafts.create("customer_order", {
+      itemName: "ميدالية نحاسية",
+      customerName: "ريم",
+      specifications: "نقش غائر",
+      quantity: 1,
+    });
+    if (!created.ok) throw new Error(created.message);
+    const costSaved = await costs.saveSnapshot(created.draft, {
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+    });
+    if (!costSaved.ok) throw new Error(costSaved.message);
+    const agreement = await agreements.createFromDraft(costSaved.draft, {
+      agreedPriceMinor: 10000,
+      deliveryDate: "2026-09-10",
+      depositMinor: 0,
+      agreementSource: null,
+    });
+    if (!agreement.ok) throw new Error(agreement.message);
+    const orderId = agreement.stored.id;
+    wouterMocks.location = `/orders/${orderId}`;
+    wouterMocks.params = { id: orderId };
+    mockedUsePrototypeServices.mockImplementation(
+      () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    render(<G3Harness page={<OrderDetail />} />);
+    /* لوحة العربون الإضافي: الإخفاء كلمة إغلاق — لا «تراجع» المجردة. */
+    fireEvent.click(await screen.findByRole("button", { name: /سجّل عربونًا إضافيًا/ }));
+    await screen.findByTestId("extra-deposit-panel");
+    expect(screen.queryByRole("button", { name: "تراجع" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
+    await waitFor(() => expect(screen.queryByTestId("extra-deposit-panel")).toBeNull());
+    /* لوحة الإلغاء: الإخفاء نفسه — ولا إلغاء منفّذ بضغطه. */
+    fireEvent.click(screen.getByRole("button", { name: /إلغاء الطلب/ }));
+    await screen.findByTestId("cancel-impact-preview");
+    expect(screen.queryByRole("button", { name: "تراجع" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
+    await waitFor(() => expect(screen.queryByTestId("cancel-impact-preview")).toBeNull());
+    const stored = await store.getOrder(orderId);
+    expect(stored.ok && stored.value?.order.status).not.toBe("cancelled");
+    expect(stored.ok && stored.value?.order.collectedMinor).toBe(0);
+  });
 });

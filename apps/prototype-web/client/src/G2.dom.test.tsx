@@ -270,6 +270,52 @@ describe("Collect — ورقة التحصيل (المجموعة ٢ §6)", () => 
     const receivable = ordersResult.ok ? ordersResult.value[0]?.order.receivableMinor : undefined;
     expect(receivable).toBe(5000);
   });
+
+  /* Z2.0 (§3.7 — Z2.5 عقد): شاشة نتيجة القبض تكرّر هوية المصدر — نوع الذمة
+   * والقطعة بجانب اسم الشخص، فلا يُقرأ القبض كأنه بلا مصدر بعد مغادرة النموذج. */
+  it("Z2.5: يكرّر هوية مصدر الطلب في النتيجة — نوع الذمة والقطعة لا الشخص وحده", async () => {
+    await seedDeliveredOrder(store);
+    await seedWalletsAndSales(store);
+    wouterMocks.search = "source=order:g2-order-1";
+    render(<G2Harness page={<Collect />} />);
+    await waitFor(() => expect(screen.getByText("خالد")).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("مبلغ التحصيل"), { target: { value: "30" } });
+    fireEvent.click(screen.getByText("سجّل القبض"));
+    await waitFor(() => expect(screen.getByText(/قبضت من خالد/)).toBeTruthy());
+    expect(screen.getByText(/متبقٍ بعد التسليم/)).toBeTruthy();
+    expect(screen.getByText(/طقم مطرز/)).toBeTruthy();
+  });
+
+  it("Z2.5: نتيجة تحصيل البيع الآجل تُسمّي نوع الدين والقطعة المبيعة", async () => {
+    /* بيع آجل صريح (قرار الدين معلن) — دين 30.00 د.أ على سعاد. */
+    const sale = await store.saveDirectSale(
+      createDirectSale({
+        id: "g2-sale-debt",
+        itemName: "مزهرية زجاج",
+        quantity: 1,
+        revenueMinor: 4000,
+        collectedMinor: 1000,
+        collectionStatus: "partial_debt",
+        catalogItemId: null,
+        customerName: "سعاد",
+        costMinor: 1500,
+        occurredOn: "2026-09-02",
+        recordedAt: NOW,
+        note: "بيع آجل",
+        idempotencyKey: "g2-sale-debt-key",
+      }),
+    );
+    if (!sale.ok) throw new Error("sale should save");
+    wouterMocks.search = "source=sale:g2-sale-debt";
+    render(<G2Harness page={<Collect />} />);
+    await waitFor(() => expect(screen.getByText("سعاد")).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("مبلغ التحصيل"), { target: { value: "10" } });
+    fireEvent.click(screen.getByText("سجّل القبض"));
+    await waitFor(() => expect(screen.getByText(/قبضت من سعاد/)).toBeTruthy());
+    expect(screen.getByText(/دين بيع آجل/)).toBeTruthy();
+    expect(screen.getByText(/مزهرية زجاج/)).toBeTruthy();
+    expect(screen.getByText(/الباقي على سعاد: 20\.00/)).toBeTruthy();
+  });
 });
 
 describe("WalletLedger — دفتر المحفظة (المجموعة ٢ §9.1)", () => {
