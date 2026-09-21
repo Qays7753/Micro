@@ -6,6 +6,7 @@ import { ArrowRight, BookOpen, Save, Trash2 } from "lucide-react";
 import { useLocation, useParams, useSearch } from "wouter";
 import { useReturnPath, useReferrerLinks } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { DISMISS_PANEL_CLOSE_LABEL } from "@/app/resultFeedback";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { formatMoneyMinor } from "@/presentation/formatters";
@@ -515,12 +516,8 @@ export default function DraftEditor() {
                   >
                     <Trash2 aria-hidden="true" /> {isDeleting ? "جارٍ الحذف…" : "احذف المسودة نهائيًا"}
                   </Button>
-                  <Button
-                    action="quiet"
-
-                    onClick={() => setConfirmDelete(false)}
-                  >
-                    تراجع
+                  <Button action="quiet" onClick={() => setConfirmDelete(false)}>
+                    {DISMISS_PANEL_CLOSE_LABEL}
                   </Button>
                 </div>
               </>

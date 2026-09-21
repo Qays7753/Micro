@@ -53,3 +53,10 @@ export function saleDonePartialAttributionNote(reason: string): string {
 export function recurringOccurrenceWarningNote(seriesTitle: string): string {
   return `لديك تذكير مصروف متكرر غير معالج لهذه الفترة: «${seriesTitle}» — سجّله من تفصيل التذكير إن شئت، أو تابع هنا بقرارك الصريح.`;
 }
+
+/* ─── Z2.6 (§3.4 — حدود المعجم) ───
+ * كلمة إغلاق لوحات المعاينة/التأكيد قبل أي التزام: إخفاء اللوحة ليس «رجوعًا»
+ * (تنقل) ولا «إلغاءً» (إيقاف قبل الالتزام حيث العقد يسمح) ولا «تراجعًا» —
+ * فـ«التراجع» محجوزة للعكس/التراجع الموثق الذي يبقي الأصل والتاريخ. تسمية
+ * واحدة مشتركة لكل أسطح Z2 كي لا يعود الالتباس بعد تغيير كل سطح على حدة. */
+export const DISMISS_PANEL_CLOSE_LABEL = "إغلاق";

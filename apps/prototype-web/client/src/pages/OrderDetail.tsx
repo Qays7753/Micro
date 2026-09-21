@@ -24,6 +24,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import {
   DELIVERED_REVIEW_LOCK_NOTE,
+  DISMISS_PANEL_CLOSE_LABEL,
   STALE_CONFLICT_NOTE,
   STALE_RELOAD_ACTION_LABEL,
   STALE_RELOADED_NOTE,
@@ -1166,12 +1167,10 @@ export default function OrderDetail() {
                     >
                       تخطّى السبب وألغِ
                     </Button>
-                    <Button
-                      action="quiet"
-
-                      onClick={() => setCancelPanelOpen(false)}
-                    >
-                      تراجع
+                    {/* Z2.6 (§3.4): إخفاء المعاينة قبل أي التزام — كلمة إغلاق؛
+                        «تراجع» محجوزة للعكس الموثق عن القبضات/التسليم. */}
+                    <Button action="quiet" onClick={() => setCancelPanelOpen(false)}>
+                      {DISMISS_PANEL_CLOSE_LABEL}
                     </Button>
                   </div>
                   {otherReasonOpen ? (
@@ -1270,13 +1269,9 @@ export default function OrderDetail() {
                     >
                       سجّل العربون
                     </Button>
-                    <Button
-                      action="quiet"
-
-                      disabled={isActing}
-                      onClick={closeDepositPanel}
-                    >
-                      تراجع
+                    {/* Z2.6 (§3.4): إخفاء لوحة العربون — إغلاق لا «تراجع». */}
+                    <Button action="quiet" disabled={isActing} onClick={closeDepositPanel}>
+                      {DISMISS_PANEL_CLOSE_LABEL}
                     </Button>
                   </div>
                 </section>
