@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 25 · VERIFIED: 26
+الحصيلة: BLOCKED: 3 · CLAIMED: 1 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VERIFIED: 26
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-171 | CLAIMED | \`ops-003/recurring-expense-system\` | — | OPS-003 | تنفيذ الموجات A–E (عقد+دومين → تخزين/ترحيل/تصدير → خدمة/حتمية/عكس → RTL UX → إغلاق وPR) على الفرع المخصص ثم التوقف عند PR-ready لقرار دمج المالك. |
