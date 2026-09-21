@@ -275,7 +275,20 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
   it("state, today, and fixed actions precede the numbers; finance and activity follow them", async () => {
     const profiles = new ProfileService(store, () => NOW);
     await profiles.save("مشروع-ترتيب");
-    await seedDebtOrder("w43-order-order");
+    /* دينان (أولوية + بند متبقٍ في «اليوم») وبيع مباشر (سجل نشاط) —
+     * كل الأقسام حاضرة لترتيب DOM الكامل. */
+    await seedDebtOrder("w43-order-a");
+    await seedDebtOrder("w43-order-b");
+    const sale = await new DirectSaleService(store, () => NOW).record({
+      itemName: "كوب",
+      quantity: 1,
+      revenueMinor: 1500,
+      costMinor: 600,
+      occurredOn: "2026-09-18",
+      note: "اختبار",
+      idempotencyKey: "w43-order-sale",
+    });
+    if (!sale.ok) throw new Error(sale.message);
     render(<Harness page={<Home />} />);
     const dailyStatus = await screen.findByTestId("home-daily-status");
     const numbers = await screen.findByTestId("home-numbers");

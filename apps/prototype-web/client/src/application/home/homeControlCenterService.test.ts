@@ -643,6 +643,7 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
       quantity: 1,
       revenueMinor: 2000,
       collectedMinor: 500,
+      collectionStatus: "partial_debt",
       catalogItemId: null,
       customerName: "عميل آجل",
       costMinor: 600,
@@ -658,10 +659,11 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
     const insightIds = result.value.insights.map(insight => insight.id);
     expect(insightIds).not.toContain("unallocated-cash");
     expect(insightIds).not.toContain("uncollected-receivables");
-    /* الحقائق نفسها باقية بقيمها الصادقة — الإزالة للملحوظات لا للحقائق. */
+    /* الحقائق نفسها باقية بقيمها الصادقة — الإزالة للملحوظات لا للحقائق:
+     * غير الموزع = الاستثمار 5000 + قبض البيع الآجل 500. */
     expect(result.value.facts.find(fact => fact.id === "unallocated")).toMatchObject({
       state: "known",
-      valueMinor: 5000,
+      valueMinor: 5500,
     });
     const dueDebt = result.value.todaySection.items.find(
       item => item.id === "today-due-amount:z1-partial-debt-sale",
