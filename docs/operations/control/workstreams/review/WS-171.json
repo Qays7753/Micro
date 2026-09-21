@@ -1,7 +1,7 @@
 {
   "id": "WS-171",
   "title": "OPS-003 المصروف المتكرر المحلي — تنفيذ كامل موجات (عقد ٤١)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "OPS-003"
   ],
@@ -26,13 +26,16 @@
   "agent": "ZAI / Super Z OPS-003 complete implementation session 2026-09-21",
   "pr": 205,
   "started_at": "2026-09-21T10:35:00+03:00",
-  "updated_at": "2026-09-21",
-  "next_action": "انتظار CI على رأس PR #205 ثم قرار دمج المالك؛ بعد الدمج: تحقق على SHA الدمج وإغلاق VERIFIED بأدلة ما بعد الدمج.",
+  "updated_at": "2026-09-21T15:40:00+03:00",
+  "next_action": "لا إجراء تنفيذي إضافي؛ OPS-003 مدموج ومتحقق على main. تبقى PRE-PILOT محجوبة ببقية المتطلبات، ولا يبدأ Pilot من هذا السجل.",
   "notes": [
     "حزمة تصميم المالك الموافقة (2026-09-21) تحسم د١–د٦ وتصرح بالتنفيذ الكامل موجات A–E على فرع واحد طويل من رأس main المتحقق 16b4c8af.",
     "حدود صريحة: لا دمج تلقائي (توقف عند PR-ready لقرار مالك)، لا دفع مباشر إلى main، لا حذف فروع، لا مستودع Documents، لا نشر.",
     "رفع مخطط/تصدير ٣٥→٣٦/٢٧→٢٨ مرخص ضمن حزمة التصمين (د١) مع الفرق الثلاثي الموثق في PR واحد.",
-    "تقييم الموجة 7 المحفوظ (WS-170 DEFERRED) يبقى سجلًا تاريخيًا؛ هذا Claim جديد مستقل وفق نظام Operations Control v2."
+    "تقييم الموجة 7 المحفوظ (WS-170 DEFERRED) يبقى سجلًا تاريخيًا؛ هذا Claim جديد مستقل وفق نظام Operations Control v2.",
+    "PR #205 مدموج Squash عند 4b374edb325f6331864a5f10111ec620f7a2aee0 إلى main.",
+    "CI وCloudflare Pages نجحا على Merge SHA 4b374edb325f6331864a5f10111ec620f7a2aee0: https://github.com/Qays7753/Micro/actions/runs/35600599024/job/106335505937",
+    "QA الحي على متصفح/جهاز فعلي ما زال NOT_EXECUTED؛ هذا لا يحول حالة التنفيذ المدموج إلى جاهزية Pilot."
   ],
   "status_history": [
     {
@@ -52,7 +55,30 @@
       "changed_at": "2026-09-21",
       "actor": "ws-171:wave-e",
       "reason": "تنفيذ الموجات A–E مكتمل على الفرع (رأس 4d72806ae3f606165b8e8959e53d59b905262b2c)، pnpm check EXIT 0، PR #205 مفتوح بانتظار CI وقرار دمج المالك."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-21",
+      "actor": "postmerge:pr-205",
+      "reason": "PR #205 مدموج عند 4b374edb325f6331864a5f10111ec620f7a2aee0; تم تثبيت main قبل الإغلاق النهائي."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-21",
+      "actor": "verify:main-ci",
+      "reason": "نجح CI وCloudflare Pages على main عند 4b374edb325f6331864a5f10111ec620f7a2aee0; Workstream OPS-003 متحقق على main."
     }
   ],
-  "migration_baseline": false
+  "migration_baseline": false,
+  "merge_sha": "4b374edb325f6331864a5f10111ec620f7a2aee0",
+  "verified_on_main_sha": "4b374edb325f6331864a5f10111ec620f7a2aee0",
+  "evidence": [
+    "https://github.com/Qays7753/Micro/pull/205",
+    "https://github.com/Qays7753/Micro/commit/4b374edb325f6331864a5f10111ec620f7a2aee0",
+    "https://github.com/Qays7753/Micro/actions/runs/35600599024/job/106335505937",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/16b28a47-f030-4ee1-9e01-4d59b7292f5f",
+    "reports/agent-report/2026-09-21_ops-003-recurring-expense-system/report.md",
+    "reports/agent-report/2026-09-21_ops-003-recurring-expense-system/test-results.md",
+    "docs/quality/ops-003-recurring-expense-qa-2026-09-21.md"
+  ]
 }

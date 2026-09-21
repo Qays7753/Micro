@@ -2,7 +2,7 @@
   "id": "OPS-003",
   "title": "المصروفات المتكررة المحلية",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P2",
   "stage": "stage-2",
   "summary": "إنشاء تذكير أو مسودة متكررة دون تسجيل مالي تلقائي صامت.",
@@ -26,14 +26,19 @@
     "docs/contracts/41-recurring-expense-reminders-contract.md",
     "reports/agent-report/2026-09-21_ops-003-recurring-expense-system/report.md",
     "reports/agent-report/2026-09-21_ops-003-recurring-expense-system/test-results.md",
-    "docs/quality/ops-003-recurring-expense-qa-2026-09-21.md"
+    "docs/quality/ops-003-recurring-expense-qa-2026-09-21.md",
+    "https://github.com/Qays7753/Micro/pull/205",
+    "https://github.com/Qays7753/Micro/commit/4b374edb325f6331864a5f10111ec620f7a2aee0",
+    "https://github.com/Qays7753/Micro/actions/runs/35600599024/job/106335505937",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/16b28a47-f030-4ee1-9e01-4d59b7292f5f",
+    "docs/operations/current-state.md"
   ],
   "dependencies": [
     "CTRL-001"
   ],
   "owner_decision": "صدرت قرارات المالك د١–د٦ (2026-09-21، حزمة التصمين الموافقة للجلسة — قرار D-037): (د١) مخازن محلية كنسية جديدة (سلاسل/مراجعات/فترات) لا التفضيلات، برفع موثق ٣٥→٣٦ و٢٧→٢٨؛ (د٢) نمط المبلغ ثلاثي: manual بلا اقتراح، suggested مقترح اختياري قابل للتعديل معلنًا، fixed_suggested مقترح متكرر إلزامي المبلغ — والاقتراح ليس حدثًا ماليًا؛ (د٣) مفتاح الفترة YYYY-MM من businessTime وحده، dueDay ١–٣١ مع monthEndPolicy ثلاثية (آخر يوم صالح/تخطي/سؤال)، timezone عمّان حصرًا، anchor وinterval ١–١٢؛ (د٤) مفتاح الحتمية {seriesId}:{periodKey}:{occurrenceSlot} بالخانة ٠ (تسمح مستقبلًا بخانات مشروعة) وسلوك reused صادق؛ (د٥) علامة «عولجت» سجل فترة محفوظ بالقرارات كاملة (لا تُشتق من وجود حدث) — المعكوس يبقى معولجًا وreversed مشتقة من سجل الأحداث؛ (د٦) نوع الحدث operating_expense_cash|payable باختيار المستخدم عند المراجعة، وoccurredOn يعلنه المستخدم (يحدد نتيجة الفترة بعقد ٠٥ §3.2.1)، والتسجيل عبر الكاتب الكنوني record() حصرًا. النص الملزم الكامل: عقد ٤١.",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
+  "merge_sha": "4b374edb325f6331864a5f10111ec620f7a2aee0",
+  "verified_on_main_sha": "4b374edb325f6331864a5f10111ec620f7a2aee0",
   "updated_at": "2026-09-21",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
@@ -79,10 +84,22 @@
       "changed_at": "2026-09-21",
       "actor": "ws-171:wave-e",
       "reason": "الموجات A–E منفذة على الفرع ops-003/recurring-expense-system من 16b4c8af وpnpm check EXIT 0 على الرأس 4d72806؛ PR #205 مفتوح — لا VERIFIED قبل الدمج والتحقق على main."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-21",
+      "actor": "postmerge:pr-205",
+      "reason": "دُمج PR #205 عند Merge SHA 4b374edb325f6331864a5f10111ec620f7a2aee0 إلى main؛ بانتظار تثبيت فحوص ما بعد الدمج."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-21",
+      "actor": "verify:main-ci",
+      "reason": "نجح CI وCloudflare Pages على main عند 4b374edb325f6331864a5f10111ec620f7a2aee0 بعد دمج PR #205; الدليل محفوظ في PR ومرجع CI."
     }
   ],
   "migration_baseline": true,
-  "next_action": "قرار دمج المالك لـPR #205 ثم تحقق ما بعد الدمج على main (CI أخضر على SHA الدمج) وإغلاق IN_REVIEW→MERGED_UNVERIFIED→VERIFIED بأدلة؛ بعد الإغلاق تكتمل Stage 2.",
+  "next_action": "لا إجراء تنفيذي إضافي لهذا البند؛ تبقى PRE-PILOT محجوبة حتى تحقق بقية المتطلبات وقرار المالك، ولا يبدأ Pilot من هذا السجل.",
   "deferred_reason": "تقييم Wave 7 (2026-09-21، فريق تحليل من 5 عمال قراءة-فقط): المعمارية كافية فعلًا (الكاتب الكنوني ProjectFinancialService.record بحتمية type+key داخل حد الكتابة، والعكس الذري، والاشتقاق وقت القراءة، ومغلف التصدير — كلها منفذة ومختبرة)، لكن العقود لا تغطي دلالات التذكير المتكرر إطلاقًا (لا عقدًا يعرّف حقول التذكير أو قاعدة بدء الفترة أو نتيجة التأكيد أو اشتقاق مفتاح الحتمية لتكرار الفترة نفسها أو علامة «عولجت هذه الفترة» — والمصروف نفسه لا يملك قانونيًا أي حقل ربط بتذكير). تنفيذها الآن اختراع دلالات مالية متجاورة، وهو ممنوع بلا قرار مالك (AGENTS §10 قاعدة 11؛ عقد 05 §10؛ وسجل BE-001 الأصلي نفسه اشترط «عقدًا واختبارات قبل التنفيذ»). القرار الموثق سابقًا اعتمد النموذج (تذكير يحتاج تأكيدًا ولا ينشئ حدثًا تلقائيًا) ولم يعتمد الدلالات. البند يبقى DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
