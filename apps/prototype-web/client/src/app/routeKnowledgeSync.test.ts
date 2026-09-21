@@ -88,6 +88,10 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
   "/suppliers/purchase/:id": "محرر شراء",
   "/suppliers/purchase/:id/payment": "ورقة دفعة المورد — محرر فعل",
   "/cash/wallet/new": "محرر محفظة",
+  /* OPS-003 (عقد ٤١): محرر تذكير المصروف المتكرر — إنشاء أو مراجعة خلف
+   * مستقبلية؛ عمق يحرس المدخلات كإخوته المحررات. */
+  "/finance/recurring/new": "محرر تذكير مصروف متكرر — مسودة/تفعيل",
+  "/finance/recurring/:id/edit": "محرر التعديل المستقبلي — مراجعة خلف جديدة",
   "/cash/wallet/:id/adjust": "محرر ضبط محفظة",
   "/cash/wallet/:id/opening-later": "إكمال رصيد الافتتاح (D-004) — محرر",
   "/cash/transfer": "تحويل بين المحافظ — محرر فعل مالي",
@@ -133,6 +137,10 @@ const SURFACE_ROUTES: readonly string[] = [
   /* Stage 2 — OPS-005/006 (2026-09-20): «القادم والاستحقاقات» — قارئ موحد
    * للقادم والمتأخر؛ سطح قراءة يبقي الشريط السفلي (قاعدة U-005). */
   "/finance/upcoming",
+  /* OPS-003 (عقد ٤١): قائمة وتفصيل المصروف المتكرر — قارئان يبقيان
+   * الشريط السفلي؛ التسجيل من لوحة التأكيد داخل التفصيل. */
+  "/finance/recurring",
+  "/finance/recurring/:id",
   "/finance/statement",
   "/finance/activity",
   "/settings",

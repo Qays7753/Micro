@@ -1,1 +1,102 @@
-{"id": "OPS-003", "title": "المصروفات المتكررة المحلية", "type": "FEATURE", "status": "DEFERRED", "priority": "P2", "stage": "stage-2", "summary": "إنشاء تذكير أو مسودة متكررة دون تسجيل مالي تلقائي صامت.", "acceptance": ["كل تسجيل يحتاج تأكيدًا", "منع التكرار وإظهار التعثر"], "areas": ["expenses", "recurrence"], "contracts": [], "evidence": ["reports/agent-report/2026-09-21_stage-2-ops-003-deferral-decision/report.md", "docs/contracts/05-financial-p0-policies.md", "docs/contracts/06-financial-event-prototype-contract.md", "src/domain/financial-event/policies.ts", "src/domain/shared/businessTime.ts"], "dependencies": ["CTRL-001"], "owner_decision": "النموذج معتمد سابقًا (تذكير + تأكيد صريح، بلا حدث مالي تلقائي). القرارات الست المطلوبة قبل التنفيذ: (د١) بيت التخزين لتعريف التذكير — تفضيلات (يتطلب حكمًا صريحًا أن تذكيرًا يحمل مبلغًا ومحفظة «سياسة تنبيه» لا «معنى ماليًا» رغم ميثاق التفضيلات) أم مخزن جديد (ترقية 35→36/27→28 بفرق ثلاثي موثق)؛ (د٢) محتوى التذكير — حمل مبلغ افتراضي أم تذكير بلا مبلغ؛ (د٣) قاعدة الفترة/الاستحقاق — مفتاح شهر تقويمي عمان YYYY-MM + يوم شهر + قاعدة تثبيت الأشهر القصيرة + عرض التعثر (businessTime يمنع اختراع خوارزمية شهر مستقلة)؛ (د٤) حتمية التأكيد — مفتاح حتمي {reminderId}:{periodKey} (سمة واحدة لكل تذكير/فترة؛ القسط الثاني الشرعي عبر المحرر اليدوي) وسلوك reused في الواجهة؛ (د٥) علامة «عولجت» — المفتاح الحتمي نفسه كعلامة مشتقة (بما فيها قرار أن المعكوس يبقى معولجًا) أم تعديل عقد 06 لإضافة حقل ربط؛ (د٦) نتيجة التأكيد — نوع الحدث وoccurredOn (تاريخ الفترة أم تاريخ التأكيد — يغير نتيجة الفترة بعقد 05 §3.2.1) والتوجيه عبر record() الحالي حصرًا.", "merge_sha": "", "verified_on_main_sha": "", "updated_at": "2026-09-21", "finding_classification": "NOT_APPLICABLE", "finding_state": "NOT_APPLICABLE", "root_cause": "control-record:OPS-003", "source": {"report": "docs/operations/control/README.md", "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e", "evidence": []}, "status_history": [{"status": "READY", "changed_at": "2026-09-19", "actor": "migration:operations-control-v2", "reason": "إضافة سجل الحالة عند ترحيل النظام إلى v2."}, {"status": "DEFERRED", "changed_at": "2026-09-19", "actor": "operations-control-v2-audit-import", "reason": "BUILD_AFTER_EVIDENCE في تدقيق الإدارة المالية؛ لا يبدأ قبل ظهور الحاجة في Pilot وقرار المالك."}], "migration_baseline": true, "next_action": "قرار مالك بالبنود د١–د٦ أعلاه (يفضّل مع اعتماد نص عقد أدنى النطاق)، ثم فتح Claim تنفيذي من رأس main المتحقق. التفصيل الكامل: reports/agent-report/2026-09-21_stage-2-ops-003-deferral-decision/report.md", "deferred_reason": "تقييم Wave 7 (2026-09-21، فريق تحليل من 5 عمال قراءة-فقط): المعمارية كافية فعلًا (الكاتب الكنوني ProjectFinancialService.record بحتمية type+key داخل حد الكتابة، والعكس الذري، والاشتقاق وقت القراءة، ومغلف التصدير — كلها منفذة ومختبرة)، لكن العقود لا تغطي دلالات التذكير المتكرر إطلاقًا (لا عقدًا يعرّف حقول التذكير أو قاعدة بدء الفترة أو نتيجة التأكيد أو اشتقاق مفتاح الحتمية لتكرار الفترة نفسها أو علامة «عولجت هذه الفترة» — والمصروف نفسه لا يملك قانونيًا أي حقل ربط بتذكير). تنفيذها الآن اختراع دلالات مالية متجاورة، وهو ممنوع بلا قرار مالك (AGENTS §10 قاعدة 11؛ عقد 05 §10؛ وسجل BE-001 الأصلي نفسه اشترط «عقدًا واختبارات قبل التنفيذ»). القرار الموثق سابقًا اعتمد النموذج (تذكير يحتاج تأكيدًا ولا ينشئ حدثًا تلقائيًا) ولم يعتمد الدلالات. البند يبقى DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT.", "related_items": [], "classification": "FIX_BEFORE_PILOT", "owner": "Product owner / Manus coordination", "tests_required": ["Domain/Service tests", "DOM/Integration tests where UI is involved", "Export/import or migration evidence where persistence changes", "Merge and verification evidence on main"], "layers": ["Layer 2", "application", "presentation"], "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"}
+{
+  "id": "OPS-003",
+  "title": "المصروفات المتكررة المحلية",
+  "type": "FEATURE",
+  "status": "IN_REVIEW",
+  "priority": "P2",
+  "stage": "stage-2",
+  "summary": "إنشاء تذكير أو مسودة متكررة دون تسجيل مالي تلقائي صامت.",
+  "acceptance": [
+    "كل تسجيل يحتاج تأكيدًا",
+    "منع التكرار وإظهار التعثر"
+  ],
+  "areas": [
+    "expenses",
+    "recurrence"
+  ],
+  "contracts": [
+    "docs/contracts/41-recurring-expense-reminders-contract.md"
+  ],
+  "evidence": [
+    "reports/agent-report/2026-09-21_stage-2-ops-003-deferral-decision/report.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/06-financial-event-prototype-contract.md",
+    "src/domain/financial-event/policies.ts",
+    "src/domain/shared/businessTime.ts",
+    "docs/contracts/41-recurring-expense-reminders-contract.md",
+    "reports/agent-report/2026-09-21_ops-003-recurring-expense-system/report.md",
+    "reports/agent-report/2026-09-21_ops-003-recurring-expense-system/test-results.md",
+    "docs/quality/ops-003-recurring-expense-qa-2026-09-21.md"
+  ],
+  "dependencies": [
+    "CTRL-001"
+  ],
+  "owner_decision": "صدرت قرارات المالك د١–د٦ (2026-09-21، حزمة التصمين الموافقة للجلسة — قرار D-037): (د١) مخازن محلية كنسية جديدة (سلاسل/مراجعات/فترات) لا التفضيلات، برفع موثق ٣٥→٣٦ و٢٧→٢٨؛ (د٢) نمط المبلغ ثلاثي: manual بلا اقتراح، suggested مقترح اختياري قابل للتعديل معلنًا، fixed_suggested مقترح متكرر إلزامي المبلغ — والاقتراح ليس حدثًا ماليًا؛ (د٣) مفتاح الفترة YYYY-MM من businessTime وحده، dueDay ١–٣١ مع monthEndPolicy ثلاثية (آخر يوم صالح/تخطي/سؤال)، timezone عمّان حصرًا، anchor وinterval ١–١٢؛ (د٤) مفتاح الحتمية {seriesId}:{periodKey}:{occurrenceSlot} بالخانة ٠ (تسمح مستقبلًا بخانات مشروعة) وسلوك reused صادق؛ (د٥) علامة «عولجت» سجل فترة محفوظ بالقرارات كاملة (لا تُشتق من وجود حدث) — المعكوس يبقى معولجًا وreversed مشتقة من سجل الأحداث؛ (د٦) نوع الحدث operating_expense_cash|payable باختيار المستخدم عند المراجعة، وoccurredOn يعلنه المستخدم (يحدد نتيجة الفترة بعقد ٠٥ §3.2.1)، والتسجيل عبر الكاتب الكنوني record() حصرًا. النص الملزم الكامل: عقد ٤١.",
+  "merge_sha": "",
+  "verified_on_main_sha": "",
+  "updated_at": "2026-09-21",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "root_cause": "control-record:OPS-003",
+  "source": {
+    "report": "docs/operations/control/README.md",
+    "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
+    "evidence": []
+  },
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-19",
+      "actor": "migration:operations-control-v2",
+      "reason": "إضافة سجل الحالة عند ترحيل النظام إلى v2."
+    },
+    {
+      "status": "DEFERRED",
+      "changed_at": "2026-09-19",
+      "actor": "operations-control-v2-audit-import",
+      "reason": "BUILD_AFTER_EVIDENCE في تدقيق الإدارة المالية؛ لا يبدأ قبل ظهور الحاجة في Pilot وقرار المالك."
+    },
+    {
+      "status": "READY",
+      "changed_at": "2026-09-21",
+      "actor": "owner:ops-003-design-package",
+      "reason": "قرارات د١–د٦ صدرت بحزمة التصمين الموافقة واعتماد نص عقد أدنى النطاق (عقد ٤١، قرار D-037) — البند جاهز للتنفيذ."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-21",
+      "actor": "claim:ws-171",
+      "reason": "فتح Claim تنفيذي WS-171 من رأس main المتحقق 16b4c8afafb4b091bdb6e1ce5f8208bff39f5145."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-21",
+      "actor": "ws-171:wave-c",
+      "reason": "تنفيذ الموجات A–C قائم على الفرع ops-003/recurring-expense-system من 16b4c8af: العقد والدومين (Wave A)، التخزين والترحيل ٣٦/٢٨ (Wave B)، وخدمة التطبيق والتأكيد الحتمي والتكامل مع التراجع (Wave C)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-21",
+      "actor": "ws-171:wave-e",
+      "reason": "الموجات A–E منفذة على الفرع ops-003/recurring-expense-system من 16b4c8af وpnpm check EXIT 0 على الرأس 4d72806؛ PR #205 مفتوح — لا VERIFIED قبل الدمج والتحقق على main."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "قرار دمج المالك لـPR #205 ثم تحقق ما بعد الدمج على main (CI أخضر على SHA الدمج) وإغلاق IN_REVIEW→MERGED_UNVERIFIED→VERIFIED بأدلة؛ بعد الإغلاق تكتمل Stage 2.",
+  "deferred_reason": "تقييم Wave 7 (2026-09-21، فريق تحليل من 5 عمال قراءة-فقط): المعمارية كافية فعلًا (الكاتب الكنوني ProjectFinancialService.record بحتمية type+key داخل حد الكتابة، والعكس الذري، والاشتقاق وقت القراءة، ومغلف التصدير — كلها منفذة ومختبرة)، لكن العقود لا تغطي دلالات التذكير المتكرر إطلاقًا (لا عقدًا يعرّف حقول التذكير أو قاعدة بدء الفترة أو نتيجة التأكيد أو اشتقاق مفتاح الحتمية لتكرار الفترة نفسها أو علامة «عولجت هذه الفترة» — والمصروف نفسه لا يملك قانونيًا أي حقل ربط بتذكير). تنفيذها الآن اختراع دلالات مالية متجاورة، وهو ممنوع بلا قرار مالك (AGENTS §10 قاعدة 11؛ عقد 05 §10؛ وسجل BE-001 الأصلي نفسه اشترط «عقدًا واختبارات قبل التنفيذ»). القرار الموثق سابقًا اعتمد النموذج (تذكير يحتاج تأكيدًا ولا ينشئ حدثًا تلقائيًا) ولم يعتمد الدلالات. البند يبقى DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT.",
+  "related_items": [],
+  "classification": "FIX_BEFORE_PILOT",
+  "owner": "Product owner / Manus coordination",
+  "tests_required": [
+    "Domain/Service tests",
+    "DOM/Integration tests where UI is involved",
+    "Export/import or migration evidence where persistence changes",
+    "Merge and verification evidence on main"
+  ],
+  "layers": [
+    "Layer 2",
+    "application",
+    "presentation"
+  ],
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"
+}

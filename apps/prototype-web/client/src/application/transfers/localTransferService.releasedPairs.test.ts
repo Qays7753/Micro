@@ -635,6 +635,10 @@ function minimalFileForPair(version: number, schemaVersion: number): string {
             inventoryShortages: 0,
             assets: 0,
             loans: 0,
+            /* OPS-003 (عقد ٤١): عدادات عائلات المصروف المتكرر في الزوج الحالي. */
+            recurringExpenseSeries: 0,
+            recurringExpenseRevisions: 0,
+            recurringExpenseOccurrences: 0,
             schedules: 0,
             drafts: 0,
           },
@@ -644,6 +648,7 @@ function minimalFileForPair(version: number, schemaVersion: number): string {
 }
 
 const ACCEPTED_PAIRS: [number, number][] = [
+  [28, 36],
   [27, 35],
   [26, 34],
   [25, 33],
@@ -672,6 +677,8 @@ const REJECTED_PAIRS: [number, number][] = [
   [8, 16],
   [27, 34],
   [28, 35],
+  [29, 36],
+  [29, 35],
   [5, 12],
   [4, 10],
   [3, 7],

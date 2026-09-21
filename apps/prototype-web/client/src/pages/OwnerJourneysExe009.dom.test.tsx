@@ -68,6 +68,9 @@ function renderInvestmentEditor(
     cashContinuity: {
       overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets } }),
     },
+    recurringExpenses: {
+      findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({ ok: true, value: null }),
+    },
     ownerEntitlement: {
       findCrossModelOwnerDuplicate:
         overrides.findDuplicate ?? vi.fn().mockResolvedValue({ ok: true, value: null }),

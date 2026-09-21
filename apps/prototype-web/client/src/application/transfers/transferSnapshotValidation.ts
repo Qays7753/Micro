@@ -41,6 +41,9 @@ import {
   validateOwnerProfile,
   rangesOverlap,
   validAssetRecord,
+  validRecurringExpenseOccurrence,
+  validRecurringExpenseRuleRevision,
+  validRecurringExpenseSeries,
   validCashEntry,
   validCashWallet,
   validCatalogItem,
@@ -86,7 +89,17 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     !Array.isArray(data.costEstimates) ||
     /* المجموعة ٤ (عقد ٢٩): الأصول والقروض اختيارية في الملفات القديمة — المصفوفة إن وُجدت. */
     (data.assets !== undefined && data.assets !== null && !Array.isArray(data.assets)) ||
-    (data.loans !== undefined && data.loans !== null && !Array.isArray(data.loans))
+    (data.loans !== undefined && data.loans !== null && !Array.isArray(data.loans)) ||
+    /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر اختيارية في الملفات القديمة — المصفوفة إن وُجدت. */
+    (data.recurringExpenseSeries !== undefined &&
+      data.recurringExpenseSeries !== null &&
+      !Array.isArray(data.recurringExpenseSeries)) ||
+    (data.recurringExpenseRevisions !== undefined &&
+      data.recurringExpenseRevisions !== null &&
+      !Array.isArray(data.recurringExpenseRevisions)) ||
+    (data.recurringExpenseOccurrences !== undefined &&
+      data.recurringExpenseOccurrences !== null &&
+      !Array.isArray(data.recurringExpenseOccurrences))
   )
     return false;
   if (
@@ -1046,6 +1059,29 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       if (!eventIds.has(repayment.eventId)) return false;
       if (repayment.reversal && !eventIds.has(repayment.reversal.reversalEventId)) return false;
     }
+  }
+  /* OPS-003 (عقد ٤١): عائلة المصروف المتكرر — هوية فريدة وترابط صادق:
+   * المراجعة والفترة تشيران لسلسلة موجودة، والفترة المقَرَّرة تربط حدثًا
+   * قائمًا فعلًا؛ الملف المكسور أو المدموج يدويًا يُرفض قبل أي معاينة. */
+  const recurringSeriesIds = new Set<string>();
+  for (const series of data.recurringExpenseSeries ?? []) {
+    if (!validRecurringExpenseSeries(series) || recurringSeriesIds.has(series.id)) return false;
+    recurringSeriesIds.add(series.id);
+  }
+  const recurringRevisionIds = new Set<string>();
+  for (const revision of data.recurringExpenseRevisions ?? []) {
+    if (!validRecurringExpenseRuleRevision(revision) || recurringRevisionIds.has(revision.id)) return false;
+    recurringRevisionIds.add(revision.id);
+    if (!recurringSeriesIds.has(revision.seriesId)) return false;
+  }
+  const recurringOccurrenceIds = new Set<string>();
+  for (const occurrence of data.recurringExpenseOccurrences ?? []) {
+    if (!validRecurringExpenseOccurrence(occurrence) || recurringOccurrenceIds.has(occurrence.id))
+      return false;
+    recurringOccurrenceIds.add(occurrence.id);
+    if (!recurringSeriesIds.has(occurrence.seriesId)) return false;
+    if (occurrence.recordedFinancialEventId !== null && !eventIds.has(occurrence.recordedFinancialEventId))
+      return false;
   }
   /* المجموعة ٦ (تدقيق A2 — AI-01): اكتمال عقد العائلة بالاتجاهين — حدث
    * بسياق أصل/قرض يشترط سجل مالكه في الملف نفسه، كما يشترط سياق عربون

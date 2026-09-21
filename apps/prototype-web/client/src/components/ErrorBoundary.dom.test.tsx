@@ -90,7 +90,7 @@ describe("ErrorBoundary fallback — safe, private, focused recovery", () => {
     expect(typeof entry.errorId).toBe("string");
     expect(entry.errorId as string).toMatch(/^MIC-[0-9a-f]{10}$/);
     expect(entry.appVersion).toBe("micro-local-dev");
-    expect(entry.schemaVersion).toBe(35);
+    expect(entry.schemaVersion).toBe(36);
     expect(entry.routeTemplate).toBe("/");
     expect(entry.operation).toBe("errorBoundary");
     expect(entry.errorCode).toBe("render_crash");

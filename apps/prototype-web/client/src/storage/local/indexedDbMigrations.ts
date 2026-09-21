@@ -34,6 +34,9 @@ import {
   preferencesStore,
   profileStore,
   recurrenceStore,
+  recurringExpenseOccurrenceStore,
+  recurringExpenseRevisionStore,
+  recurringExpenseSeriesStore,
   scheduleStore,
   securityStore,
   shortCashDeclarationStore,
@@ -253,6 +256,25 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
   }
   if (!database.objectStoreNames.contains(securityStore))
     database.createObjectStore(securityStore, { keyPath: "id" });
+  /* OPS-003 (عقد ٤١ / D-037 — الترقية ٣٥→٣٦): مخازن المصروف المتكرر الثلاثة
+   * بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل قائم؛ القاعدة القديمة تفتح
+   * وتجدها فارغة. فهرس seriesId للقراءة المجمعة وفهرس periodKey للتصفح
+   * الزمني؛ لا فهارس فريدة إضافية — المفتاح الأساسي المركّب يكفي الحتمية. */
+  if (!database.objectStoreNames.contains(recurringExpenseSeriesStore)) {
+    const series = database.createObjectStore(recurringExpenseSeriesStore, { keyPath: "id" });
+    series.createIndex("status", "status");
+    series.createIndex("updatedAt", "updatedAt");
+  }
+  if (!database.objectStoreNames.contains(recurringExpenseRevisionStore)) {
+    const revisions = database.createObjectStore(recurringExpenseRevisionStore, { keyPath: "id" });
+    revisions.createIndex("seriesId", "seriesId");
+  }
+  if (!database.objectStoreNames.contains(recurringExpenseOccurrenceStore)) {
+    const occurrences = database.createObjectStore(recurringExpenseOccurrenceStore, { keyPath: "id" });
+    occurrences.createIndex("seriesId", "seriesId");
+    occurrences.createIndex("periodKey", "periodKey");
+    occurrences.createIndex("status", "status");
+  }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))
     policyStore.createIndex("seriesId", "seriesId");

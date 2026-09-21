@@ -102,6 +102,10 @@ function renderEditor(
         value: { wallets: overrides.wallets ?? [] },
       }),
     },
+    /* OPS-003: فحص التزامن مع تذكير متكرر — بلا تذكير غير معالج في هذه الاختبارات. */
+    recurringExpenses: {
+      findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({ ok: true, value: null }),
+    },
     dataVersion: 0,
     notifyDataChanged: vi.fn(),
     formDrafts: new FormDraftService(store),
@@ -198,6 +202,9 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
       },
       cashContinuity: {
         overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets } }),
+      },
+      recurringExpenses: {
+        findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({ ok: true, value: null }),
       },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),

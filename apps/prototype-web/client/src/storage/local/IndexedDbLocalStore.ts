@@ -25,6 +25,11 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type {
+  RecurringExpenseOccurrence,
+  RecurringExpenseRuleRevision,
+  RecurringExpenseSeries,
+} from "@micro-domain/recurring-expense/index.js";
 import {
   localInventoryActivationId,
   localOwnerProfileId,
@@ -39,6 +44,7 @@ import {
   type OrderDraft,
   type OwnerProfile,
   type PrototypeLocalStore,
+  type RecurringExpenseOccurrenceChange,
   type ScheduleEntry,
   type ScheduleRecurrence,
   type StorageFailure,
@@ -47,6 +53,15 @@ import {
   type StoredCraftOrder,
 } from "./types";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
+import {
+  findRecurringExpenseEventByKey,
+  validateRecurringExpenseDraftCommit,
+  validateRecurringExpenseKeyEventCollision,
+  validateRecurringExpenseMaterialization,
+  validateRecurringExpenseOccurrenceDecision,
+  validateRecurringExpenseOccurrenceRecordCommit,
+  validateRecurringExpenseSeriesChange,
+} from "./recurringExpenseCommitGuard";
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import {
   committedReversalMovements,
@@ -96,6 +111,9 @@ import {
   preferencesStore,
   profileStore,
   recurrenceStore,
+  recurringExpenseOccurrenceStore,
+  recurringExpenseRevisionStore,
+  recurringExpenseSeriesStore,
   scheduleStore,
   securityStore,
   shortCashDeclarationStore,
@@ -3293,6 +3311,431 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () =>
           finish({ ok: true, value: { order, reversal, replacement, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* OPS-003 (عقد ٤١ — المصروف المتكرر): قراءة العائلات الثلاث. */
+  listRecurringExpenseSeries() {
+    return listAll<RecurringExpenseSeries>(
+      recurringExpenseSeriesStore,
+      (left, right) => left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id),
+    );
+  }
+  getRecurringExpenseSeries(id: string) {
+    return readOne<RecurringExpenseSeries>(recurringExpenseSeriesStore, id);
+  }
+  listRecurringExpenseRevisions() {
+    return listAll<RecurringExpenseRuleRevision>(
+      recurringExpenseRevisionStore,
+      (left, right) => left.revision - right.revision || left.id.localeCompare(right.id),
+    );
+  }
+  listRecurringExpenseOccurrences() {
+    return listAll<RecurringExpenseOccurrence>(
+      recurringExpenseOccurrenceStore,
+      (left, right) => left.periodKey.localeCompare(right.periodKey) || left.id.localeCompare(right.id),
+    );
+  }
+  getRecurringExpenseOccurrence(id: string) {
+    return readOne<RecurringExpenseOccurrence>(recurringExpenseOccurrenceStore, id);
+  }
+  /* إنشاء المسودة: سلسلة + مراجعتها الأولى في معاملة واحدة — الوجود المسبق
+   * المطابق = إعادة استخدام؛ أي انحراف = storage_stale بلا كتابة. */
+  async commitRecurringExpenseDraft(
+    series: RecurringExpenseSeries,
+    revision: RecurringExpenseRuleRevision,
+  ): Promise<
+    StorageResult<{ series: RecurringExpenseSeries; revision: RecurringExpenseRuleRevision; reused: boolean }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [recurringExpenseSeriesStore, recurringExpenseRevisionStore],
+          "readwrite",
+        );
+        const serieses = transaction.objectStore(recurringExpenseSeriesStore);
+        const revisions = transaction.objectStore(recurringExpenseRevisionStore);
+        let pending: StorageResult<{
+          series: RecurringExpenseSeries;
+          revision: RecurringExpenseRuleRevision;
+          reused: boolean;
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{
+            series: RecurringExpenseSeries;
+            revision: RecurringExpenseRuleRevision;
+            reused: boolean;
+          }>,
+        ) => resolve(result);
+        const seriesRequest = serieses.get(series.id);
+        seriesRequest.onerror = () => {
+          pending = failure(seriesRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        seriesRequest.onsuccess = () => {
+          const storedSeries = seriesRequest.result as RecurringExpenseSeries | undefined;
+          const revisionRequest = revisions.get(revision.id);
+          revisionRequest.onerror = () => {
+            pending = failure(revisionRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          revisionRequest.onsuccess = () => {
+            const storedRevision = revisionRequest.result as RecurringExpenseRuleRevision | undefined;
+            const guard = validateRecurringExpenseDraftCommit(storedSeries, storedRevision, series, revision);
+            if (!guard.ok) {
+              pending = { ok: false, code: "storage_stale", message: guard.message };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            if (guard.reused) {
+              /* إعادة تشغيل كاملة: لا كتابة — السلسلة والمراجعة القائمان كما هما. */
+              pending = {
+                ok: true,
+                value: {
+                  series: storedSeries ?? series,
+                  revision: storedRevision ?? revision,
+                  reused: true,
+                },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            serieses.put(series);
+            revisions.put(revision);
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { series, revision, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* تغيير محروس على السلسلة مع مراجعة خلف وتحديثات فترات اختيارية — كله أو لا شيء. */
+  async commitRecurringExpenseSeriesChange(
+    seriesBase: RecurringExpenseSeries,
+    seriesNext: RecurringExpenseSeries,
+    revision: RecurringExpenseRuleRevision | null,
+    occurrenceUpdates: readonly RecurringExpenseOccurrenceChange[],
+  ): Promise<
+    StorageResult<{
+      series: RecurringExpenseSeries;
+      revision: RecurringExpenseRuleRevision | null;
+      occurrences: readonly RecurringExpenseOccurrence[];
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [recurringExpenseSeriesStore, recurringExpenseRevisionStore, recurringExpenseOccurrenceStore],
+          "readwrite",
+        );
+        const serieses = transaction.objectStore(recurringExpenseSeriesStore);
+        const revisions = transaction.objectStore(recurringExpenseRevisionStore);
+        const occurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
+        type ChangeResult = StorageResult<{
+          series: RecurringExpenseSeries;
+          revision: RecurringExpenseRuleRevision | null;
+          occurrences: readonly RecurringExpenseOccurrence[];
+          reused: boolean;
+        }>;
+        let pending: ChangeResult | null = null;
+        const finish = (result: ChangeResult) => resolve(result);
+        const abortWith = (result: ChangeResult) => {
+          pending = result;
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const seriesRequest = serieses.get(seriesBase.id);
+        seriesRequest.onerror = () => abortWith(failure(seriesRequest.error, database));
+        seriesRequest.onsuccess = () => {
+          const storedSeries = seriesRequest.result as RecurringExpenseSeries | undefined;
+          const revisionsRequest = revisions.getAll();
+          revisionsRequest.onerror = () => abortWith(failure(revisionsRequest.error, database));
+          revisionsRequest.onsuccess = () => {
+            const storedRevisions = revisionsRequest.result as RecurringExpenseRuleRevision[];
+            const occurrencesRequest = occurrences.getAll();
+            occurrencesRequest.onerror = () => abortWith(failure(occurrencesRequest.error, database));
+            occurrencesRequest.onsuccess = () => {
+              const storedOccurrences = occurrencesRequest.result as RecurringExpenseOccurrence[];
+              const guard = validateRecurringExpenseSeriesChange(
+                storedSeries,
+                storedRevisions,
+                storedOccurrences,
+                seriesBase,
+                seriesNext,
+                revision,
+                occurrenceUpdates,
+              );
+              if (!guard.ok) {
+                abortWith({ ok: false, code: "storage_stale", message: guard.message });
+                return;
+              }
+              serieses.put(seriesNext);
+              if (revision !== null) revisions.put(revision);
+              for (const update of occurrenceUpdates) occurrences.put(update.next);
+            };
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({
+            ok: true,
+            value: {
+              series: seriesNext,
+              revision,
+              occurrences: occurrenceUpdates.map(update => update.next),
+              reused: false,
+            },
+          });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* توليد الفترات أماميًا (إضافة فقط) — الغائب يُنشأ والمطابق يُتخطى والمختلف
+   * تعارض بلا كتابة؛ دفعة واحدة ذرّية داخل معاملة واحدة. */
+  async commitRecurringExpenseOccurrences(
+    occurrences: readonly RecurringExpenseOccurrence[],
+  ): Promise<StorageResult<{ created: number; skipped: number }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([recurringExpenseOccurrenceStore], "readwrite");
+        const store = transaction.objectStore(recurringExpenseOccurrenceStore);
+        let createdCount = 0;
+        let skippedCount = 0;
+        let pending: StorageResult<{ created: number; skipped: number }> | null = null;
+        const finish = (result: StorageResult<{ created: number; skipped: number }>) => resolve(result);
+        const abortWith = (result: StorageResult<{ created: number; skipped: number }>) => {
+          pending = result;
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const allRequest = store.getAll();
+        allRequest.onerror = () => abortWith(failure(allRequest.error, database));
+        allRequest.onsuccess = () => {
+          const storedById = new Map(
+            (allRequest.result as RecurringExpenseOccurrence[]).map(occurrence => [
+              occurrence.id,
+              occurrence,
+            ]),
+          );
+          for (const occurrence of occurrences) {
+            const guard = validateRecurringExpenseMaterialization(storedById.get(occurrence.id), occurrence);
+            if (!guard.ok) {
+              abortWith({ ok: false, code: "storage_stale", message: guard.message });
+              return;
+            }
+            if (guard.reused) {
+              skippedCount += 1;
+            } else {
+              store.put(occurrence);
+              createdCount += 1;
+            }
+          }
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish(pending ?? { ok: true, value: { created: createdCount, skipped: skippedCount } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* قرار فترة مفرد (تأجيل/تخطٍ/علامة محاولة/فشل معروف) — محروس داخل الحد. */
+  async commitRecurringExpenseOccurrenceDecision(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([recurringExpenseOccurrenceStore], "readwrite");
+        const occurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
+        let pending: StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>) =>
+          resolve(result);
+        const occurrenceRequest = occurrences.get(next.id);
+        occurrenceRequest.onerror = () => {
+          pending = failure(occurrenceRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        occurrenceRequest.onsuccess = () => {
+          const stored = occurrenceRequest.result as RecurringExpenseOccurrence | undefined;
+          const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
+          if (!guard.ok) {
+            pending = { ok: false, code: "storage_stale", message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            /* القرار مطبق سلفًا — لا كتابة ثانية. */
+            pending = { ok: true, value: { occurrence: stored ?? next, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          occurrences.put(next);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { occurrence: next, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* التسجيل الذرّي (عقد ٤١ §٨): الفرة والحدث في معاملة واحدة — إعادة المفتاح
+   * إعادة استخدام، واصطدام المفتاح بحدث مختلف رفض صادر بلا كتابة. */
+  async commitRecurringExpenseOccurrenceRecord(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+    event: FinancialEvent,
+  ): Promise<
+    StorageResult<{ occurrence: RecurringExpenseOccurrence; event: FinancialEvent; reused: boolean }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [recurringExpenseOccurrenceStore, financialEventStore],
+          "readwrite",
+        );
+        const occurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
+        const events = transaction.objectStore(financialEventStore);
+        type RecordResult = StorageResult<{
+          occurrence: RecurringExpenseOccurrence;
+          event: FinancialEvent;
+          reused: boolean;
+        }>;
+        let pending: RecordResult | null = null;
+        const finish = (result: RecordResult) => resolve(result);
+        const abortWith = (result: RecordResult) => {
+          pending = result;
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const eventRequest = events.get(event.id);
+        eventRequest.onerror = () => abortWith(failure(eventRequest.error, database));
+        eventRequest.onsuccess = () => {
+          const existingEvent = eventRequest.result as FinancialEvent | undefined;
+          const keyScanRequest = events.getAll();
+          keyScanRequest.onerror = () => abortWith(failure(keyScanRequest.error, database));
+          keyScanRequest.onsuccess = () => {
+            const keyReplay = findRecurringExpenseEventByKey(
+              keyScanRequest.result as FinancialEvent[],
+              event.idempotencyKey,
+              event.id,
+            );
+            const replay = keyReplay ?? existingEvent;
+            if (replay) {
+              /* حارس الاصطدام عبر الأنواع والمبالغ قبل أي قرار إعادة استخدام
+               * (عقد ٤١ §٨): المفتاح المشترك لا يعني الحدث نفسه. */
+              const collision = validateRecurringExpenseKeyEventCollision(
+                replay,
+                event.type,
+                event.amountMinor,
+              );
+              if (!collision.ok) {
+                abortWith({ ok: false, code: "storage_stale", message: collision.message });
+                return;
+              }
+            }
+            const occurrenceRequest = occurrences.get(next.id);
+            occurrenceRequest.onerror = () => abortWith(failure(occurrenceRequest.error, database));
+            occurrenceRequest.onsuccess = () => {
+              const storedOccurrence = occurrenceRequest.result as RecurringExpenseOccurrence | undefined;
+              const guard = validateRecurringExpenseOccurrenceRecordCommit(
+                storedOccurrence,
+                base,
+                next,
+                replay,
+                event.id,
+              );
+              if (!guard.ok) {
+                abortWith({ ok: false, code: "storage_stale", message: guard.message });
+                return;
+              }
+              if (guard.reused) {
+                pending = {
+                  ok: true,
+                  value: {
+                    occurrence: storedOccurrence ?? next,
+                    event: replay ?? event,
+                    reused: true,
+                  },
+                };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+                return;
+              }
+              occurrences.put(next);
+              events.put(event);
+            };
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { occurrence: next, event, reused: false } });
       });
     } catch (error) {
       return failure(error);

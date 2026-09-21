@@ -457,6 +457,48 @@
       "transferTests": [],
       "notExportedReason": "سجل الأمن المحلي (G5 §35): لا يُصدَّر أبدًا ولا يدخل ملف النقل — غيابه من الملف سلوك مقصود ومحروس.",
       "docs": "current-state.md §35 (سجل الأمن المحلي خارج التصدير)"
+    },
+    {
+      "store": "recurring-expense-series",
+      "snapshotField": "recurringExpenseSeries",
+      "domainType": "RecurringExpenseSeries",
+      "adapters": ["memory", "indexeddb"],
+      "adapterTests": [
+        "apps/prototype-web/client/src/storage/local/adapterConformance.recurringExpense.test.ts"
+      ],
+      "transferTests": [
+        "apps/prototype-web/client/src/application/transfers/localTransferService.recurringExpense.test.ts"
+      ],
+      "notExportedReason": null,
+      "docs": "current-state.md §56 (OPS-003 — سلاسل المصروف المتكرر؛ الحقيقة المالية في أحداثها)"
+    },
+    {
+      "store": "recurring-expense-revisions",
+      "snapshotField": "recurringExpenseRevisions",
+      "domainType": "RecurringExpenseRuleRevision",
+      "adapters": ["memory", "indexeddb"],
+      "adapterTests": [
+        "apps/prototype-web/client/src/storage/local/adapterConformance.recurringExpense.test.ts"
+      ],
+      "transferTests": [
+        "apps/prototype-web/client/src/application/transfers/localTransferService.recurringExpense.test.ts"
+      ],
+      "notExportedReason": null,
+      "docs": "current-state.md §56 (OPS-003 — مراجعات قاعدة المصروف المتكرر المجمدة)"
+    },
+    {
+      "store": "recurring-expense-occurrences",
+      "snapshotField": "recurringExpenseOccurrences",
+      "domainType": "RecurringExpenseOccurrence",
+      "adapters": ["memory", "indexeddb"],
+      "adapterTests": [
+        "apps/prototype-web/client/src/storage/local/adapterConformance.recurringExpense.test.ts"
+      ],
+      "transferTests": [
+        "apps/prototype-web/client/src/application/transfers/localTransferService.recurringExpense.test.ts"
+      ],
+      "notExportedReason": null,
+      "docs": "current-state.md §56 (OPS-003 — فترات المصروف المتكرر وقراراتها؛ الربط باتجاه واحد نحو financial-events)"
     }
   ],
   "localOnlyRecords": [

@@ -32,7 +32,7 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
     const transfers = new LocalTransferService(store, now);
     const exported = await transfers.createExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.version).toBe(27);
+    expect(exported.value.version).toBe(28);
     expect(exported.value.integrity?.algorithm).toBe("sha256");
     expect(exported.value.integrity?.digest).toMatch(/^[0-9a-f]{64}$/);
     expect(exported.value.counts?.financialEvents).toBe(1);
@@ -44,7 +44,7 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
      * بعلاماته (بصمة/عدادات/إصدار تطبيق) — لا يخرج أصلًا مجردًا منها فيُفقد
      * تحقق التكامل لملفات هذا الإصدار نفسه. البصمة تظل صادقة على بياناته. */
     if (!verified.ok) throw new Error(verified.message);
-    expect(verified.value.file.version).toBe(27);
+    expect(verified.value.file.version).toBe(28);
     expect(verified.value.file.integrity?.algorithm).toBe("sha256");
     expect(verified.value.file.integrity?.digest).toMatch(/^[0-9a-f]{64}$/);
     expect(verified.value.file.counts?.financialEvents).toBe(1);

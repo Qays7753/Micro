@@ -725,7 +725,11 @@ CAPS: dict[str, int] = {
     # «القادم والاستحقاقات» (title + one honest description) linking the new
     # unified upcoming/overdue read surface — mandated labels only, no data
     # templates behind them.
-    "FinanceMore": 37,
+    # FinanceMore 37 → 39 (2026-09-21, OPS-003 عقد ٤١, owner-approved design
+    # package): +1 directory row «المصاريف المتكررة» (title + honest one-line
+    # description) linking the recurring-expense control surface — mandated
+    # labels only, no data templates behind them.
+    "FinanceMore": 39,
     # FinanceUpcoming (2026-09-20, Stage 2 OPS-005/006, owner brief — first
     # measurement day): the unified upcoming/overdue reader «القادم والاستحقاقات»
     # — heading + promise, the simple-aging card (payables overdue/current/no-date
@@ -736,6 +740,18 @@ CAPS: dict[str, int] = {
     # the canonical financialEventLabels map (its shared labels count once here).
     # Locked at the honest measured number (49) as a ratchet from day one.
     "FinanceUpcoming": 49,
+    # OPS-003 (2026-09-21, عقد ٤١ — first measurement day): أسطح المصروف
+    # المتكرر — القائمة (٢٦: ترويسة ووعد، حالة كل سلسلة، أقرب موعد، عدّ العولج،
+    # فراغ صادق، الحقيقة للقراءة فقط، والمطوي details مستثنى في السكون)،
+    # والتفصيل (٨١: الحالة الواحدة الصادقة لكل فترة بالتسميات الأربع الملزمة
+    # «تم تسجيل المصروف»/«المصروف مسجل مسبقًا لهذه الفترة»/«لم يُسجل المصروف»/
+    # «نتيجة التسجيل غير معروفة»، أزرار القرار، أسئلة الشهر القصير، إلغاء موثق
+    # بسبب، ولوحة المراجعة والتأكيد بمعاينتها وخياراتها)، والمحرر (٣٣: مسودة
+    # أو مراجعة خلف مستقبلية، نمط المبلغ الثلاثي، سياسة الشهر القصير، وحرس
+    # المدخلات). مقفلة على الرقم المقيس الأول كسقف سقّاط.
+    "FinanceRecurring": 26,
+    "RecurringExpenseDetail": 81,
+    "RecurringExpenseEditor": 33,
     "SharePreview": 24,
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,
@@ -944,6 +960,11 @@ PAGES = [
     # Stage 2 — OPS-005/006 (2026-09-20): سطح «القادم والاستحقاقات» — قارئ
     # موحد للقادم والمتأخر؛ يُقاس من يومه الأول (سابقة Profile/FinanceMore).
     "FinanceUpcoming",
+    # OPS-003 (عقد ٤١، 2026-09-21): أسطح المصروف المتكرر — القائمة والتفصيل
+    # والمحرر؛ تقاس من يومها الأول (سابقة Profile/FinanceUpcoming).
+    "FinanceRecurring",
+    "RecurringExpenseDetail",
+    "RecurringExpenseEditor",
     # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل ومعاينة المشاركة — تُقاسان من يومهما الأول.
     "FinanceActivity",
     "SharePreview",
