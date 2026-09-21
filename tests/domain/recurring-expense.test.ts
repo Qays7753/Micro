@@ -83,6 +83,7 @@ describe("OPS-003 — المصروف المتكرر: دورة حياة السل�
       cancelledAt: null,
       cancelReason: null,
       archivedAt: null,
+      resumedFromPeriod: null,
     };
     expect(() => activateRecurringExpenseSeries(bare, AT)).toThrow("بلا قاعدة");
   });
@@ -98,6 +99,26 @@ describe("OPS-003 — المصروف المتكرر: دورة حياة السل�
     expect(() => pauseRecurringExpenseSeries(paused, AT)).toThrow("غير قانوني");
     expect(() => activateRecurringExpenseSeries(series, AT)).toThrow("غير قانوني");
   });
+  it("الاستئناف نشاط مستقبلي فقط: يُثبت حد التوليد على الفترة الحالية لا بأثر رجعي", () => {
+    const { series } = activeSeries();
+    const paused = pauseRecurringExpenseSeries(series, AT);
+    /* بلا فترة معلومة: سلوك تاريخي بلا حد (توافق الاختبارات القائمة). */
+    expect(resumeRecurringExpenseSeries(paused, AT).resumedFromPeriod).toBeNull();
+    const resumed = resumeRecurringExpenseSeries(paused, AT, "2026-09");
+    expect(resumed.status).toBe("active");
+    expect(resumed.resumedFromPeriod).toBe("2026-09");
+    /* فترة غير صالحة رفض صادر — لا حد مكتوم بلا تحقق. */
+    expect(() => resumeRecurringExpenseSeries(paused, AT, "2026-13")).toThrow("غير صالحة");
+    const archived = archiveRecurringExpenseSeries(series, AT);
+    expect(restoreRecurringExpenseSeries(archived, "paused", AT).resumedFromPeriod).toBeNull();
+    const restored = restoreRecurringExpenseSeries(archived, "active", AT, "2026-10");
+    expect(restored.status).toBe("active");
+    expect(restored.archivedAt).toBeNull();
+    expect(restored.resumedFromPeriod).toBe("2026-10");
+  });
+});
+
+describe("OPS-003 — إلغاء السلسلة موثقًا (بلا أي كتابة مالية)", () => {
   it("الإلغاء يوثق سببًا إلزاميًا ولا يمس التاريخ المالي (حقلان فقط على السلسلة)", () => {
     const { series } = activeSeries();
     expect(() => cancelRecurringExpenseSeries(series, "   ", AT)).toThrow("سببًا");
@@ -348,6 +369,12 @@ describe("OPS-003 — الفترة: الانتقالات القانونية ور
       }),
     ).toThrow("غير قانوني");
     expect(() => snoozeRecurringExpenseOccurrence(recorded, "2026-10-06", TODAY, AT)).toThrow("غير قانوني");
+  });
+  it("من نتيجة غير معروفة: إنهاء القرار صراحةً (تخطٍ/إلغاء) قانوني بعد محاولة قائمة", () => {
+    const occurrence = plannedOccurrence();
+    const attempted = markRecurringExpenseConfirmAttempted(occurrence, AT);
+    expect(skipRecurringExpenseOccurrence(attempted, "قررت عدم تسجيله", AT).status).toBe("skipped");
+    expect(cancelRecurringExpenseOccurrence(attempted, AT).status).toBe("cancelled");
   });
   it("مسار الفشل: نتيجة معروفة تُحفظ مع رسالتها، وإعادة المحاولة أو التخطي قانونيان", () => {
     const occurrence = plannedOccurrence();

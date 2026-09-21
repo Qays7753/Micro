@@ -126,6 +126,7 @@ export function createRecurringExpenseSeries(
     cancelledAt: null,
     cancelReason: null,
     archivedAt: null,
+    resumedFromPeriod: null,
   };
 }
 
@@ -165,11 +166,17 @@ export function pauseRecurringExpenseSeries(
 ): RecurringExpenseSeries {
   return seriesTransition(series, "paused", at);
 }
+/** الاستئناف نشاط مستقبلي فقط: حد التوليد يُثبت على الفترة الحالية فلا
+ * تُستكمل فترات التوقيف بأثر رجعي (عقد ٤١ §٣). */
 export function resumeRecurringExpenseSeries(
   series: RecurringExpenseSeries,
   at: string,
+  currentPeriod?: string,
 ): RecurringExpenseSeries {
-  return seriesTransition(series, "active", at);
+  const next = seriesTransition(series, "active", at);
+  if (currentPeriod === undefined) return next;
+  if (!isValidRecurringPeriodKey(currentPeriod)) throw new Error("فترة الاستئناف غير صالحة.");
+  return { ...next, resumedFromPeriod: currentPeriod };
 }
 export function cancelRecurringExpenseSeries(
   series: RecurringExpenseSeries,
@@ -191,9 +198,13 @@ export function restoreRecurringExpenseSeries(
   series: RecurringExpenseSeries,
   to: "active" | "paused",
   at: string,
+  currentPeriod?: string,
 ): RecurringExpenseSeries {
   const next = seriesTransition(series, to, at);
-  return { ...next, archivedAt: null };
+  const cleared = { ...next, archivedAt: null };
+  if (to !== "active" || currentPeriod === undefined) return cleared;
+  if (!isValidRecurringPeriodKey(currentPeriod)) throw new Error("فترة الاستعادة غير صالحة.");
+  return { ...cleared, resumedFromPeriod: currentPeriod };
 }
 
 /* ─── المراجعة (قاعدة مجمدة) ─── */
@@ -432,7 +443,9 @@ const OCCURRENCE_TRANSITIONS: Readonly<
   snoozed: ["snoozed", "skipped", "cancelled", "recording"],
   skipped: [],
   cancelled: [],
-  recording: ["recorded", "record_failed"],
+  /* recording: الالتزام يكمل (recorded/record_failed)؛ وإنهاء القرار صراحةً
+   * (تخطٍ/إلغاء) قانوني من نتيجة غير معروفة — لا يُفتح مسار عودة أعمى (عقد ٤١ §٦). */
+  recording: ["recorded", "record_failed", "skipped", "cancelled"],
   recorded: [],
   record_failed: ["recording", "skipped", "cancelled"],
 };
@@ -489,9 +502,11 @@ export function skipRecurringExpenseOccurrence(
 export function cancelRecurringExpenseOccurrence(
   occurrence: RecurringExpenseOccurrence,
   at: string,
+  reason?: string | null,
 ): RecurringExpenseOccurrence {
   const next = occurrenceTransition(occurrence, "cancelled");
-  return appendAction(next, { kind: "cancelled", at }, at);
+  const trimmed = optionalReason(reason);
+  return appendAction(next, { kind: "cancelled", at, reason: trimmed }, at);
 }
 
 /** علامة المحاولة قبل الالتزام الذري — أساس اشتقاق «نتيجة غير معروفة» عند القراءة. */

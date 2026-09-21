@@ -30,11 +30,6 @@ import type {
   RecurringExpenseRuleRevision,
   RecurringExpenseSeries,
 } from "@micro-domain/recurring-expense/index.js";
-import type {
-  RecurringExpenseOccurrence,
-  RecurringExpenseRuleRevision,
-  RecurringExpenseSeries,
-} from "@micro-domain/recurring-expense/index.js";
 import {
   localInventoryActivationId,
   localOwnerProfileId,

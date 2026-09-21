@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · CLAIMED: 1 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VERIFIED: 26
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · READY: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VERIFIED: 26
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-171 | CLAIMED | \`ops-003/recurring-expense-system\` | — | OPS-003 | تنفيذ الموجات A–E (عقد+دومين → تخزين/ترحيل/تصدير → خدمة/حتمية/عكس → RTL UX → إغلاق وPR) على الفرع المخصص ثم التوقف عند PR-ready لقرار دمج المالك. |
+| WS-171 | IN_PROGRESS | \`ops-003/recurring-expense-system\` | — | OPS-003 | الموجة D (واجهة عربية RTL للقائمة/التفصيل/المراجعة/التأكيد) ثم الموجة E (pnpm check كاملًا، Tracker IN_REVIEW، تقرير، PR) والتوقف عند PR-ready لقرار دمج المالك. |

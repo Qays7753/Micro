@@ -8,6 +8,8 @@ import {
   markRecurringExpenseConfirmAttempted,
   markRecurringExpenseRecorded,
   skipRecurringExpenseOccurrence,
+  pauseRecurringExpenseSeries,
+  resumeRecurringExpenseSeries,
 } from "@micro-domain/recurring-expense/index.js";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 
@@ -105,7 +107,14 @@ async function seedRecurringFamily(store: MemoryLocalStore) {
   };
   const commit = await store.commitRecurringExpenseOccurrenceRecord(attempted, recorded, event);
   if (!commit.ok) throw new Error(commit.message);
-  return { series: active, revision, recorded };
+  /* إيقاف ثم استئناف بحد توليد موثق — الفترة المحفوظة تعبر المغلف ذهابًا وإيابًا. */
+  const paused = pauseRecurringExpenseSeries(active, NOW);
+  const pauseCommit = await store.commitRecurringExpenseSeriesChange(active, paused, null, []);
+  if (!pauseCommit.ok) throw new Error(pauseCommit.message);
+  const resumed = resumeRecurringExpenseSeries(paused, NOW, "2026-09");
+  const resumeCommit = await store.commitRecurringExpenseSeriesChange(paused, resumed, null, []);
+  if (!resumeCommit.ok) throw new Error(resumeCommit.message);
+  return { series: resumed, revision, recorded };
 }
 
 function minimalLegacy2735File(): Record<string, unknown> {
@@ -174,6 +183,7 @@ describe("export envelope v28 (OPS-003 — عقد ٤١ / عقد ٣٩)", () => {
     if (!applied.ok) throw new Error(applied.message);
     const seriesAfter = await target.listRecurringExpenseSeries();
     expect(seriesAfter.ok && seriesAfter.value[0]?.title).toBe("إيجار المحل الشهري");
+    expect(seriesAfter.ok && seriesAfter.value[0]?.resumedFromPeriod).toBe("2026-09");
     const occurrencesAfter = await target.listRecurringExpenseOccurrences();
     expect(occurrencesAfter.ok && occurrencesAfter.value).toHaveLength(2);
     const recordedAfter = occurrencesAfter.ok
@@ -239,7 +249,18 @@ describe("export envelope v28 (OPS-003 — عقد ٤١ / عقد ٣٩)", () => {
     const rejectedUnlinked = service.prepareImport(JSON.stringify(unlinked));
     expect(rejectedUnlinked.ok).toBe(false);
 
-    /* ٥) بيانات هذا الجهاز لم تتغير بعد أي رفض. */
+    /* ٥) حد التوليد بعد الاستئناف مكسور: ليست فترة YYYY-MM صالحة ولا غيابًا. */
+    const badBoundary = JSON.parse(JSON.stringify(file));
+    badBoundary.data.recurringExpenseSeries[0] = {
+      ...badBoundary.data.recurringExpenseSeries[0],
+      resumedFromPeriod: "banana",
+    };
+    badBoundary.integrity = undefined;
+    badBoundary.counts = undefined;
+    const rejectedBoundary = service.prepareImport(JSON.stringify(badBoundary));
+    expect(rejectedBoundary.ok).toBe(false);
+
+    /* ٦) بيانات هذا الجهاز لم تتغير بعد أي رفض. */
     const after = await store.readSnapshot();
     expect(after.ok).toBe(true);
   });

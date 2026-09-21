@@ -77,6 +77,9 @@ export type RecurringExpenseSeries = {
   cancelledAt: string | null;
   cancelReason: string | null;
   archivedAt: string | null;
+  /** حد التوليد بعد الاستئناف/الاستعادة (YYYY-MM): لا تُستكمل فترات التوقيف
+   * بأثر رجعي — «الاستئناف نشاط مستقبلي فقط» (عقد ٤١ §٣/§٦). null = من التقويم. */
+  resumedFromPeriod: string | null;
 };
 
 export type RecurringExpenseRuleRevision = {

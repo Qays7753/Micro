@@ -1421,7 +1421,12 @@ export function validRecurringExpenseSeries(value: unknown): boolean {
     isDate(value.updatedAt) &&
     (value.cancelledAt === null || value.cancelledAt === undefined || isDate(value.cancelledAt)) &&
     (value.cancelReason === null || value.cancelReason === undefined || isString(value.cancelReason)) &&
-    (value.archivedAt === null || value.archivedAt === undefined || isDate(value.archivedAt))
+    (value.archivedAt === null || value.archivedAt === undefined || isDate(value.archivedAt)) &&
+    /* OPS-003: حد التوليد بعد الاستئناف/الاستعادة — قيمة غائبة (null) أو فترة
+     * صالحة YYYY-MM حصرًا؛ أي شكل آخر رفض صادر عند الاستيراد. */
+    (value.resumedFromPeriod === null ||
+      value.resumedFromPeriod === undefined ||
+      isPeriodKey(value.resumedFromPeriod))
   );
 }
 
