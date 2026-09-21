@@ -3,6 +3,11 @@ import { ArrowRight } from "lucide-react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import {
+  REUSED_RECORD_PROTECTION_NOTE,
+  REUSED_RECORD_RECEIPT_TITLE,
+  recurringOccurrenceWarningNote,
+} from "@/app/resultFeedback";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import { cashNow } from "./quickFormHelpers";
 import {
@@ -47,7 +52,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
     { wallets, categorySuggestions, onSubmitted, onBackToMenu, onSavingChange, hidden = false },
     ref,
   ) {
-    const { projectFinance, notifyDataChanged } = usePrototypeServices();
+    const { projectFinance, notifyDataChanged, recurringExpenses, dataVersion } = usePrototypeServices();
     const [expenseAmountMinor, setExpenseAmountMinor] = useState(0);
     const [expenseAmountValid, setExpenseAmountValid] = useState(true);
     const [expenseNote, setExpenseNote] = useState("");
@@ -64,6 +69,29 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
     const [saving, setSaving] = useState(false);
     const saveInFlightRef = useRef(false);
     const expenseKeyRef = useRef(`sheet-expense-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+    /* OPS-003 (عقد ٤١ §٨ — Z2.4): مصروف يدوي سريع في فترة تذكير غير معالجة —
+     * تحذير ظاهر لا حظر صامت؛ التسجيل من هنا يبقى مشروعًا بقرار المستخدم
+     * الصريح، ولا يُستنتج أنه يعالج التكرار. قراءة فقط فوق خدمة التذكير
+     * (السياق قد لا يعرضها — حينها لا تحذير بلا انهيار). */
+    const [recurringWarning, setRecurringWarning] = useState<string | null>(null);
+    useEffect(() => {
+      if (!recurringExpenses) {
+        setRecurringWarning(null);
+        return;
+      }
+      let active = true;
+      recurringExpenses.findUnhandledOccurrenceForDate(expenseOccurredOn).then(result => {
+        if (!active) return;
+        if (!result.ok || result.value === null) {
+          setRecurringWarning(null);
+          return;
+        }
+        setRecurringWarning(recurringOccurrenceWarningNote(result.value.seriesTitle));
+      });
+      return () => {
+        active = false;
+      };
+    }, [recurringExpenses, expenseOccurredOn, dataVersion]);
 
     /* FIN-005: قاعدة مصدر الصرف الموحدة من المواصفة — بلا محافظ: الكاش غير
      * الموزع بتحذير معلن؛ محفظة واحدة: تُعيَّن مسبقًا بشكل مرئي؛ محافظ متعددة:
@@ -134,6 +162,23 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
         onSavingChange?.(false);
         setFieldError(false);
         setFormError(result.message);
+        return;
+      }
+      /* Z2.4 (§3.4 — Reused): الحدث موجود سابقًا بنفس المفتاح — وصل محايد
+       * ناجح الحماية (تكافؤ البيع): لا كتابة جديدة فلا تغطية محفظة تُعاد
+       * ولا إشعار تغيير بيانات. */
+      if (result.reused) {
+        const cashMinor = await cashNow(projectFinance);
+        setSaving(false);
+        onSavingChange?.(false);
+        onSubmitted({
+          title: REUSED_RECORD_RECEIPT_TITLE,
+          amountMinor: expenseAmountMinor,
+          cashMinor,
+          recordHref: `/finance?event=${encodeURIComponent(result.value.id)}`,
+          detail: REUSED_RECORD_PROTECTION_NOTE,
+          attributionNote: null,
+        });
         return;
       }
       /* ٥.٢: إن حُددت محفظة، يُغطى الصرف منها بتخصيص سالب — التوقيع الموحد
@@ -210,6 +255,14 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
           value={expenseOccurredOn}
           onChange={event => setExpenseOccurredOn(event.target.value)}
         />
+        {/* OPS-003 (عقد ٤١ §٨ — Z2.4): التحذير بجانب تاريخ المصروف كما في
+            المحرر الموجه — ظاهر (role=status) غير حاجب: لا بوابة تحقق ولا
+            منع حفظ ولا استدعاء كاتب. */}
+        {recurringWarning ? (
+          <p className="micro-offline-truth" role="status">
+            {recurringWarning}
+          </p>
+        ) : null}
         {wallets.length > 0 ? (
           <label className="micro-field">
             <span>
@@ -274,7 +327,9 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
           </p>
         ) : null}
         {formError ? (
-          <p className="micro-field-error" role="status" id="quick-expense-form-error">
+          /* Z2.4 (§3.4 — Save Error): إعلان role=alert — تكافؤ البيع السريع؛
+             المدخلات باقية في الحقول وإعادة المحاولة متاحة بالمفتاح نفسه. */
+          <p className="micro-field-error" role="alert" id="quick-expense-form-error">
             {formError}
           </p>
         ) : null}

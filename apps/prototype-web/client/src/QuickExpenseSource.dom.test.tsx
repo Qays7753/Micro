@@ -407,9 +407,13 @@ describe("Z2.4 — quick expense save-error grammar (§3.4)", () => {
   it("a failed save keeps the input, is announced as an alert like the sale form, and a safe retry records once", async () => {
     const record = vi
       .fn<
-        (input: {
-          idempotencyKey: string;
-        }) => Promise<{ ok: boolean; reused?: boolean; value?: { id: string }; message?: string; code?: string }>
+        (input: { idempotencyKey: string }) => Promise<{
+          ok: boolean;
+          reused?: boolean;
+          value?: { id: string };
+          message?: string;
+          code?: string;
+        }>
       >()
       .mockResolvedValueOnce({
         ok: false,

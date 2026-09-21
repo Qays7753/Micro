@@ -188,7 +188,9 @@ describe("Quick forms notify after committed state (FIN-004)", () => {
   /* Z2.3 (§3.4 — Reused + FIN-004): «مُعاد استعماله» يعني لا كتابة جديدة —
    * فلا إشعار تغيير بيانات ولا نسبة محفظة؛ الوصل محايد مميز لا نجاح فرِش. */
   it("a reused quick-sale record presents neutral protection and notifies no data change — no write happened", async () => {
-    const reusedRecord = vi.fn().mockResolvedValue({ ok: true, value: { id: "sale-reused-1" }, reused: true });
+    const reusedRecord = vi
+      .fn()
+      .mockResolvedValue({ ok: true, value: { id: "sale-reused-1" }, reused: true });
     mockedUsePrototypeServices.mockReturnValue({
       projectFinance,
       directSales: { record: reusedRecord },

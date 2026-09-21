@@ -32,8 +32,7 @@ function mockSheetServices(overrides?: {
 }) {
   return {
     directSales: {
-      record:
-        overrides?.saleRecord ?? vi.fn().mockResolvedValue({ ok: true, value: { id: "sale-w43" } }),
+      record: overrides?.saleRecord ?? vi.fn().mockResolvedValue({ ok: true, value: { id: "sale-w43" } }),
     },
     projectFinance: {
       readPosition: vi.fn().mockResolvedValue({ ok: true, value: { recordedCashMinor: 2500 } }),
@@ -196,7 +195,9 @@ describe("Wave 4.3 — P-4.3-2: quick sheet safe Enter, editable date, corrected
     expect(screen.getByText(/سجل موجود سابقًا/)).toBeTruthy();
     expect(screen.getByText(/لم يُنشأ سجل جديد/)).toBeTruthy();
     expect(
-      screen.queryByText((content, element) => element?.tagName === "STRONG" && content.includes("سُجّل مصروف")),
+      screen.queryByText(
+        (content, element) => element?.tagName === "STRONG" && content.includes("سُجّل مصروف"),
+      ),
     ).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
     /* لا نسبة ولا إشعار — نفس عقد البيع المحايد. */

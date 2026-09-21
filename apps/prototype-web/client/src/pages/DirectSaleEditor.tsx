@@ -5,6 +5,7 @@ import { ArrowRight, Ban, ReceiptText, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
+import { saleDonePartialAttributionNote } from "@/app/resultFeedback";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
@@ -43,6 +44,10 @@ type SaleDone = {
   sale: DirectSale;
   walletName: string | null;
   attributedMinor: number;
+  /* Z2.3 (§3.4 — Partial Success): سبب فشل الخطوة التابعة (نسبة المحفظة)
+   * بعد بيع سُجل — يُعرض على شاشة النتيجة مفصولًا عن المنجز؛ null عند
+   * نجاح النسبة أو عدم وجود وجهة أصلًا. */
+  attributionFailure: string | null;
 };
 
 export default function DirectSaleEditor() {
@@ -416,6 +421,7 @@ export default function DirectSaleEditor() {
      * إعادة المحاولة أو الضغط المكرر لا يكرر التخصيص. */
     let walletName: string | null = null;
     let attributedMinor = 0;
+    let attributionFailure: string | null = null;
     if (saleWalletId && resolvedCollected > 0) {
       const attribution = await projectFinance.distributeUnallocated({
         walletId: saleWalletId,
@@ -429,8 +435,11 @@ export default function DirectSaleEditor() {
         walletName = wallets.find(wallet => wallet.id === saleWalletId)?.name ?? null;
         attributedMinor = resolvedCollected;
       } else {
-        /* البيع سُجل والقبض محفوظ — الفشل في النسبة لا يفقد المال؛ يُعرض السبب. */
-        setMessage(attribution.message);
+        /* البيع سُجل والقبض محفوظ — الفشل في النسبة لا يفقد المال؛ السبب
+         * يُحمل إلى شاشة النتيجة فيُعرض نجاحًا جزئيًا صريحًا (Z2.3) لا يبقى
+         * محجوبًا في حالة رسالة لا يقرؤها أحد هناك. عقد الخدمة يضمن رسالة
+         * سبب غير فارغة عند الفشل. */
+        attributionFailure = attribution.message;
       }
     }
     /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال كل الكتابات
@@ -438,7 +447,7 @@ export default function DirectSaleEditor() {
     notifyDataChanged();
     /* نجاح محلي مكتمل: يُعاد ضبط لقطة الوسخ فلا يعترض الخروج من شاشة النتيجة. */
     setLoadedToken(token => token + 1);
-    setDone({ sale: result.value, walletName, attributedMinor });
+    setDone({ sale: result.value, walletName, attributedMinor, attributionFailure });
     return true;
   }
 
@@ -512,11 +521,21 @@ export default function DirectSaleEditor() {
                 : `فرق معلّق للمراجعة: ${formatMoneyMinor(outstandingMinor)} د.أ — لم يُقرّر بعد.`
               : "قُبض المبلغ كاملًا — لا دين من هذا البيع."}
           </p>
-          <p>
-            {done.attributedMinor > 0
-              ? `نُسب القبض إلى «${done.walletName ?? "المحفظة"}»: ${formatMoneyMinor(done.attributedMinor)} د.أ — حركة موثقة في دفتر المحفظة.`
-              : "بقي القبض في الكاش غير الموزع — وزّعه على محفظة عندما تعرف وجهته."}
-          </p>
+          {done.attributionFailure ? (
+            /* Z2.3 (§3.4 — Partial Success): المنجز والناقص مفصولان صريحين —
+               البيع سُجل وقُبضه محفوظ (السطور أعلاه)، والنسبة وحدها لم تتم
+               بسببها؛ الفعل التالي «افتح السجل» أسفل — لا مسار إعادة تسجيل
+               للبيع أبدًا. */
+            <p className="micro-local-truth" role="status">
+              {saleDonePartialAttributionNote(done.attributionFailure)}
+            </p>
+          ) : (
+            <p>
+              {done.attributedMinor > 0
+                ? `نُسب القبض إلى «${done.walletName ?? "المحفظة"}»: ${formatMoneyMinor(done.attributedMinor)} د.أ — حركة موثقة في دفتر المحفظة.`
+                : "بقي القبض في الكاش غير الموزع — وزّعه على محفظة عندما تعرف وجهته."}
+            </p>
+          )}
           {reference ? <p>مرجع مرتبط: {reference.name} — الربط للتوثيق فقط.</p> : null}
           <p className="micro-local-truth">سُجل محليًا على هذا الجهاز — الضغط مرتين لا يضاعف أثرًا.</p>
         </section>
