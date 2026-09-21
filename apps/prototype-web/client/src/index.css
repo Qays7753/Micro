@@ -5179,6 +5179,11 @@ button.micro-month-cell:active {
 .micro-home-secondary-actions .micro-quick-action {
   background: transparent;
 }
+/* Z1.5: الحقائق صفوف مفتوحة — الكلمة العربية داخل خانة القيمة تعود للخط
+ * العربي الأساسي (الرقم وحده رقمي معزول بخانة Row). */
+.micro-home-fact-rows .micro-prim-row__trailing .micro-text-action {
+  font-family: var(--font-arabic);
+}
 .micro-home-optional-item[data-state="needs_setup"] {
   border-inline-start-color: var(--color-warning-text);
 }

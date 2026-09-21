@@ -27,7 +27,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { useQuickRecording } from "@/app/quickRecording";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { Button } from "@/components/primitives";
+import { Button, Row, RowList } from "@/components/primitives";
 import { formatArabicPlural, formatLocalDateLong, formatMoneyMinor } from "@/presentation/formatters";
 import { withReturnTo } from "@/app/navigationContract";
 import type {
@@ -59,17 +59,19 @@ const factIcon: Record<HomeFinancialFact["id"], typeof WalletCards> = {
 const factStateLabel = (state: HomeFinancialFact["state"]) =>
   state === "incomplete" ? "غير محدد بعد" : state === "not_initialized" ? "غير مسجل" : null;
 
-/* Z1.5 (تقليل حمل البطاقات) سيحوّل الحقائق إلى صفوف Row — هذه خطوة مستقلة. */
-function FactCard({ fact, onNavigate }: { fact: HomeFinancialFact; onNavigate: (href: string) => void }) {
+/* Z1.5 (تقليل حمل البطاقات): الحقائق القائمة صفوف تشغيلية مفتوحة (Row) —
+ * قيمة خانة خلفية، ومؤهل الأمانة شرحًا تحت العنوان؛ نفس الأسماء المتاحة
+ * (افتح X) ونفس عروض الطريق/غير المسجل بلا أي تغيير في المعنى. */
+function FactRow({ fact, onNavigate }: { fact: HomeFinancialFact; onNavigate: (href: string) => void }) {
   const Icon = factIcon[fact.id];
   return (
-    <article className="micro-home-fact" data-state={fact.state}>
-      <div className="micro-home-fact-heading">
-        <Icon aria-hidden="true" />
-        <span>{fact.label}</span>
-      </div>
-      <strong>
-        {fact.state === "known" && fact.valueMinor !== null ? (
+    <Row
+      data-state={fact.state}
+      lead={<Icon aria-hidden="true" />}
+      title={fact.label}
+      caption={fact.qualifier}
+      trailing={
+        fact.state === "known" && fact.valueMinor !== null ? (
           /* المجموعة ٦ (البند ٢): الحقيقة المعروفة تفتح مصدرها الدقيق — قيمة مال
            * المالك نقرة إلى الدفتر الموحد، بلا بطاقة ميتة. */
           fact.source ? (
@@ -96,11 +98,9 @@ function FactCard({ fact, onNavigate }: { fact: HomeFinancialFact; onNavigate: (
         ) : (
           /* §6: المجهول علامة معلنة — لا رقم مختلق. */
           (factStateLabel(fact.state) ?? "—")
-        )}
-      </strong>
-      {/* المجموعة ١ (§7.1): مؤهل الأمانة — الكاش يشمل مالًا ليس مالك؛ يظهر لا يُدفيٰن. */}
-      {fact.qualifier ? <small className="micro-home-fact-qualifier">{fact.qualifier}</small> : null}
-    </article>
+        )
+      }
+    />
   );
 }
 
@@ -601,13 +601,12 @@ export default function Home() {
             <PeriodNumberRow number={model.periodNumbers.month.result} onNavigate={openFromHome} />
           </div>
         </div>
-        {/* Z1.2: الحقائق القائمة تحت الأرقام كما هي — التحويل إلى صفوف مفتوحة
-            خطوة Z1.5 مستقلة. */}
-        <div className="micro-home-facts">
+        {/* Z1.5: الحقائق القائمة صفوف مفتوحة — لا بطاقات متساوية الوزن. */}
+        <RowList className="micro-home-fact-rows">
           {model.facts.map(fact => (
-            <FactCard key={fact.id} fact={fact} onNavigate={openFromHome} />
+            <FactRow key={fact.id} fact={fact} onNavigate={openFromHome} />
           ))}
-        </div>
+        </RowList>
       </section>
       {/* P-4.3-2 (D6 رابعًا): Insights قصيرة من البيانات الحالية فقط — كل
           ملحوظة ماذا حدث ولماذا يهم وفعل منطقي واحد، بلا تكرار للسبب الجذري. */}
