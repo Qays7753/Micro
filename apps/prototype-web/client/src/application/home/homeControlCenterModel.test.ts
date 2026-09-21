@@ -39,6 +39,9 @@ const baseInput = (): HomeControlCenterInput => ({
   activityName: "مشغل اختبار",
   todayLocal: "2026-08-25",
   truthLine: "هذه قراءة محلية محدودة.",
+  /* Z1.4: القراءة تمرر هل توجد بيانات مسجلة — اليوم الفارغ يُميَّز عن
+   * اليوم الهادئ على البيانات القائمة. */
+  hasAnyRecordedData: true,
   financeUnit: {
     action: action("finance", "افتح مالي"),
     truth: "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق.",
@@ -256,5 +259,60 @@ describe("buildHomeControlCenterViewModel", () => {
     });
     expect(model.periodNumbers.month.result).toMatchObject({ state: "known", valueMinor: 9100 });
     expect(model.insights).toHaveLength(4);
+  });
+});
+
+/* Z1.1 (العرض المعتمد §3.1): حالة اليوم الواحدة المعلنة — انتباه/فراغ/
+ * بيانات ناقصة/هادئ — مشتقة في النموذج لا في الواجهة، والمصدر واحد. */
+describe("buildHomeControlCenterViewModel — Z1 daily status", () => {
+  it("attention: أي بند لليوم يجعله يوم انتباه مع كتلة الأولوية نفسها", () => {
+    const model = buildHomeControlCenterViewModel({
+      ...baseInput(),
+      todaySection: {
+        ...baseInput().todaySection,
+        items: [todayItem("today-draft:draft", 10, "draft")],
+      },
+    });
+    expect(model.dailyStatus).toEqual({ kind: "attention" });
+    expect(model.priorityBlock?.id).toBe("today-draft:draft");
+  });
+
+  it("empty: لا بنود ولا بيانات مسجلة — يوم مفتوح لا يُخترع له محتوى", () => {
+    const model = buildHomeControlCenterViewModel({
+      ...baseInput(),
+      hasAnyRecordedData: false,
+    });
+    expect(model.dailyStatus).toEqual({ kind: "empty" });
+    expect(model.priorityBlock).toBeNull();
+  });
+
+  it("incomplete: بيانات مسجلة مع حقائق غير مسجلة — ما لا يمكن استنتاجه يُعلن", () => {
+    const model = buildHomeControlCenterViewModel(baseInput());
+    expect(model.dailyStatus).toEqual({ kind: "incomplete" });
+  });
+
+  it("normal: بيانات مسجلة بلا بنود مستحقة ولا حقائق غير مسجلة — يوم هادئ", () => {
+    const model = buildHomeControlCenterViewModel({
+      ...baseInput(),
+      facts: [
+        fact("cash", "known", 1250),
+        fact("receivables", "known", 0),
+        fact("payables", "known", 0),
+        fact("owner_capital", "known", 1250),
+      ],
+    });
+    expect(model.dailyStatus).toEqual({ kind: "normal" });
+  });
+
+  it("attention beats incomplete and empty: البند المستحق أولًا حتى مع حقائق غير مسجلة", () => {
+    const model = buildHomeControlCenterViewModel({
+      ...baseInput(),
+      hasAnyRecordedData: false,
+      todaySection: {
+        ...baseInput().todaySection,
+        items: [todayItem("today-due-amount:debt", 15, "due_amount")],
+      },
+    });
+    expect(model.dailyStatus).toEqual({ kind: "attention" });
   });
 });

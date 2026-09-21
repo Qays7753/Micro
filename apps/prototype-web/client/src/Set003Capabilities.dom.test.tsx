@@ -108,7 +108,6 @@ describe("SET-003 — layered capability behavior", () => {
     /* الأساس دائمًا مفعّل. */
     expect(row.textContent).toContain("سجّل بيعًا");
     expect(row.textContent).toContain("سجّل مصروفًا");
-    expect(row.textContent).toContain("عربون أو تحصيل");
   });
 
   it("the preference survives reopen and survives an unrelated theme save (O-001 no-field-loss)", async () => {

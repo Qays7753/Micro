@@ -108,7 +108,7 @@ describe("NAV-001 — approved five-seat navigation", () => {
     if (!saved.ok) throw new Error(saved.message);
     render(<Harness page={<Home />} />);
     const row = await screen.findByTestId("home-quick-actions");
-    for (const label of ["سجّل بيعًا", "سجّل مصروفًا", "طلب من عميل", "عربون أو تحصيل"]) {
+    for (const label of ["سجّل بيعًا", "سجّل مصروفًا", "طلب من عميل"]) {
       expect(row.textContent).toContain(label);
     }
     /* البيع يفتح الورقة في نموذجها مباشرة فوق الرئيسية المركّبة. */
