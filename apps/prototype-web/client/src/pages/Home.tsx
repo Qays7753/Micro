@@ -66,7 +66,6 @@ function FactRow({ fact, onNavigate }: { fact: HomeFinancialFact; onNavigate: (h
   const Icon = factIcon[fact.id];
   return (
     <Row
-      data-state={fact.state}
       lead={<Icon aria-hidden="true" />}
       title={fact.label}
       caption={fact.qualifier}
