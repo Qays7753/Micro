@@ -41,6 +41,10 @@ type PageState =
       phase: "done";
       outcome: CollectionOutcome;
       personName: string;
+      /* Z2.5 (§3.7): هوية المصدر باقية بعد النجاح — نوع الذمة والقطعة بجانب
+       * الشخص، فلا يُقرأ القبض كأنه بلا مصدر بعد مغادرة النموذج. */
+      qualifier: string;
+      itemName: string;
       /* F06: مسودة إشعار القبض من الحدث المحفوظ — أو null فلا زر مشاركة. */
       shareDraft: ShareDraft | null;
     };
@@ -199,7 +203,14 @@ export default function Collect() {
     setAmountMinor(0);
     setNote("");
     notifyDataChanged();
-    setState({ phase: "done", outcome: result.value, personName: source.personName, shareDraft });
+    setState({
+      phase: "done",
+      outcome: result.value,
+      personName: source.personName,
+      qualifier: source.qualifier,
+      itemName: source.itemName,
+      shareDraft,
+    });
     return true;
   }
 
@@ -235,6 +246,11 @@ export default function Collect() {
         <div className="micro-page-heading">
           <span className="micro-overline">ورقة تحصيل · انسجّل القبض</span>
           <h1>قبضت من {state.personName}</h1>
+          {/* Z2.5: تكرار هوية المصدر — نوع الذمة والقطعة (قيم من الخدمة نفسها،
+              لا نصوص جديدة على السطح) فتبقى الوصلة بين القبض وسببه بعد النجاح. */}
+          <p>
+            {state.qualifier} — {state.itemName}
+          </p>
         </div>
         <section className="micro-decision-card" aria-label="نتيجة التحصيل">
           <span>المبلغ المقبوض</span>
