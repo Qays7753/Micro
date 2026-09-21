@@ -7,6 +7,15 @@ import {
   validateDeliveryReversalMovements,
 } from "./deliveryReversalCommitGuard";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
+import {
+  findRecurringExpenseEventByKey,
+  validateRecurringExpenseDraftCommit,
+  validateRecurringExpenseKeyEventCollision,
+  validateRecurringExpenseMaterialization,
+  validateRecurringExpenseOccurrenceDecision,
+  validateRecurringExpenseOccurrenceRecordCommit,
+  validateRecurringExpenseSeriesChange,
+} from "./recurringExpenseCommitGuard";
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
 import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
@@ -41,6 +50,11 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
 import type {
+  RecurringExpenseOccurrence,
+  RecurringExpenseRuleRevision,
+  RecurringExpenseSeries,
+} from "@micro-domain/recurring-expense/index.js";
+import type {
   ActivityProfile,
   CostEstimate,
   FormDraftEnvelope,
@@ -51,6 +65,7 @@ import type {
   OrderDraft,
   OwnerProfile,
   PrototypeLocalStore,
+  RecurringExpenseOccurrenceChange,
   ScheduleEntry,
   ScheduleRecurrence,
   StorageResult,
@@ -97,6 +112,11 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — تطابق المتصفح اختبارًا وسلوكًا. */
   private assets = new Map<string, AssetRecord>();
   private loans = new Map<string, LoanRecord>();
+  /* OPS-003 (عقد ٤١): عائلة المصروف المتكرر في الذاكرة — تطابق المتصفح
+   * اختبارًا وسلوكًا؛ نفس حراس الالتزام داخل حد الكتابة. */
+  private recurringExpenseSeriesList = new Map<string, RecurringExpenseSeries>();
+  private recurringExpenseRevisions = new Map<string, RecurringExpenseRuleRevision>();
+  private recurringExpenseOccurrences = new Map<string, RecurringExpenseOccurrence>();
   /* المجموعة ٥ (الاستمرارية): مسودات النماذج وسجل القفل — خارج اللقطة في
    * المتصفح؛ هنا أيضًا لا تدخل readSnapshot/replaceSnapshot فتطابق الاستعادة. */
   private formDrafts = new Map<string, FormDraftEnvelope>();
@@ -1396,6 +1416,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         costEstimates: Array.from(this.costEstimates.values()).map(clone),
         assets: Array.from(this.assets.values()).map(clone),
         loans: Array.from(this.loans.values()).map(clone),
+        recurringExpenseSeries: Array.from(this.recurringExpenseSeriesList.values()).map(clone),
+        recurringExpenseRevisions: Array.from(this.recurringExpenseRevisions.values()).map(clone),
+        recurringExpenseOccurrences: Array.from(this.recurringExpenseOccurrences.values()).map(clone),
       },
     };
   }
@@ -1428,6 +1451,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       costEstimates: snapshot.costEstimates ?? [],
       assets: snapshot.assets ?? [],
       loans: snapshot.loans ?? [],
+      recurringExpenseSeries: snapshot.recurringExpenseSeries ?? [],
+      recurringExpenseRevisions: snapshot.recurringExpenseRevisions ?? [],
+      recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences ?? [],
     });
     this.profile = safe.profile;
     this.ownerProfile = safe.ownerProfile ?? null;
@@ -1471,6 +1497,15 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.costEstimates = new Map((safe.costEstimates ?? []).map(estimate => [estimate.id, estimate]));
     this.assets = new Map((safe.assets ?? []).map(asset => [asset.id, asset]));
     this.loans = new Map((safe.loans ?? []).map(loan => [loan.id, loan]));
+    this.recurringExpenseSeriesList = new Map(
+      (safe.recurringExpenseSeries ?? []).map(series => [series.id, series]),
+    );
+    this.recurringExpenseRevisions = new Map(
+      (safe.recurringExpenseRevisions ?? []).map(revision => [revision.id, revision]),
+    );
+    this.recurringExpenseOccurrences = new Map(
+      (safe.recurringExpenseOccurrences ?? []).map(occurrence => [occurrence.id, occurrence]),
+    );
     return { ok: true, value: clone(safe) };
   }
   async listCostEstimates(): Promise<StorageResult<readonly CostEstimate[]>> {
@@ -1722,5 +1757,173 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         reused: false,
       },
     };
+  }
+
+  /* OPS-003 (عقد ٤١ — المصروف المتكرر): قراءة العائلات الثلاث. */
+  async listRecurringExpenseSeries(): Promise<StorageResult<readonly RecurringExpenseSeries[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.recurringExpenseSeriesList.values())
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
+        .map(clone),
+    };
+  }
+  async getRecurringExpenseSeries(id: string): Promise<StorageResult<RecurringExpenseSeries | null>> {
+    const record = this.recurringExpenseSeriesList.get(id);
+    return { ok: true, value: record ? clone(record) : null };
+  }
+  async listRecurringExpenseRevisions(): Promise<StorageResult<readonly RecurringExpenseRuleRevision[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.recurringExpenseRevisions.values())
+        .sort((a, b) => a.revision - b.revision || a.id.localeCompare(b.id))
+        .map(clone),
+    };
+  }
+  async listRecurringExpenseOccurrences(): Promise<StorageResult<readonly RecurringExpenseOccurrence[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.recurringExpenseOccurrences.values())
+        .sort((a, b) => a.periodKey.localeCompare(b.periodKey) || a.id.localeCompare(b.id))
+        .map(clone),
+    };
+  }
+  async getRecurringExpenseOccurrence(id: string): Promise<StorageResult<RecurringExpenseOccurrence | null>> {
+    const record = this.recurringExpenseOccurrences.get(id);
+    return { ok: true, value: record ? clone(record) : null };
+  }
+  /* إنشاء المسودة — نفس عقد محوّل IndexedDB حرفيًا. */
+  async commitRecurringExpenseDraft(
+    series: RecurringExpenseSeries,
+    revision: RecurringExpenseRuleRevision,
+  ): Promise<
+    StorageResult<{ series: RecurringExpenseSeries; revision: RecurringExpenseRuleRevision; reused: boolean }>
+  > {
+    const storedSeries = this.recurringExpenseSeriesList.get(series.id);
+    const storedRevision = this.recurringExpenseRevisions.get(revision.id);
+    const guard = validateRecurringExpenseDraftCommit(storedSeries, storedRevision, series, revision);
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (guard.reused)
+      return {
+        ok: true,
+        value: {
+          series: clone(storedSeries ?? series),
+          revision: clone(storedRevision ?? revision),
+          reused: true,
+        },
+      };
+    this.recurringExpenseSeriesList.set(series.id, clone(series));
+    this.recurringExpenseRevisions.set(revision.id, clone(revision));
+    return { ok: true, value: { series: clone(series), revision: clone(revision), reused: false } };
+  }
+  /* تغيير سلسلة محروس مع مراجعة خلف وتحديثات فترات — كله أو لا شيء. */
+  async commitRecurringExpenseSeriesChange(
+    seriesBase: RecurringExpenseSeries,
+    seriesNext: RecurringExpenseSeries,
+    revision: RecurringExpenseRuleRevision | null,
+    occurrenceUpdates: readonly RecurringExpenseOccurrenceChange[],
+  ): Promise<
+    StorageResult<{
+      series: RecurringExpenseSeries;
+      revision: RecurringExpenseRuleRevision | null;
+      occurrences: readonly RecurringExpenseOccurrence[];
+      reused: boolean;
+    }>
+  > {
+    const guard = validateRecurringExpenseSeriesChange(
+      this.recurringExpenseSeriesList.get(seriesBase.id),
+      Array.from(this.recurringExpenseRevisions.values()),
+      Array.from(this.recurringExpenseOccurrences.values()),
+      seriesBase,
+      seriesNext,
+      revision,
+      occurrenceUpdates,
+    );
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    this.recurringExpenseSeriesList.set(seriesNext.id, clone(seriesNext));
+    if (revision !== null) this.recurringExpenseRevisions.set(revision.id, clone(revision));
+    for (const update of occurrenceUpdates)
+      this.recurringExpenseOccurrences.set(update.next.id, clone(update.next));
+    return {
+      ok: true,
+      value: {
+        series: clone(seriesNext),
+        revision: revision ? clone(revision) : null,
+        occurrences: occurrenceUpdates.map(update => clone(update.next)),
+        reused: false,
+      },
+    };
+  }
+  /* توليد الفترات (إضافة فقط) — نفس عقد محوّل IndexedDB حرفيًا. */
+  async commitRecurringExpenseOccurrences(
+    occurrences: readonly RecurringExpenseOccurrence[],
+  ): Promise<StorageResult<{ created: number; skipped: number }>> {
+    let created = 0;
+    let skipped = 0;
+    for (const occurrence of occurrences) {
+      const stored = this.recurringExpenseOccurrences.get(occurrence.id);
+      const guard = validateRecurringExpenseMaterialization(stored, occurrence);
+      if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+      if (guard.reused) {
+        skipped += 1;
+      } else {
+        this.recurringExpenseOccurrences.set(occurrence.id, clone(occurrence));
+        created += 1;
+      }
+    }
+    return { ok: true, value: { created, skipped } };
+  }
+  /* قرار فترة مفرد — محروس. */
+  async commitRecurringExpenseOccurrenceDecision(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>> {
+    const stored = this.recurringExpenseOccurrences.get(next.id);
+    const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (guard.reused) return { ok: true, value: { occurrence: clone(stored ?? next), reused: true } };
+    this.recurringExpenseOccurrences.set(next.id, clone(next));
+    return { ok: true, value: { occurrence: clone(next), reused: false } };
+  }
+  /* التسجيل الذرّي — الفترة والحدث معًا أو لا شيء؛ حارس الاصطدام أولًا (عقد ٤١ §٨). */
+  async commitRecurringExpenseOccurrenceRecord(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+    event: FinancialEvent,
+  ): Promise<
+    StorageResult<{ occurrence: RecurringExpenseOccurrence; event: FinancialEvent; reused: boolean }>
+  > {
+    const existingEvent = this.financialEvents.get(event.id);
+    const keyReplay = findRecurringExpenseEventByKey(
+      Array.from(this.financialEvents.values()),
+      event.idempotencyKey,
+      event.id,
+    );
+    const replay = keyReplay ?? existingEvent;
+    if (replay) {
+      const collision = validateRecurringExpenseKeyEventCollision(replay, event.type, event.amountMinor);
+      if (!collision.ok) return { ok: false, code: "storage_stale", message: collision.message };
+    }
+    const storedOccurrence = this.recurringExpenseOccurrences.get(next.id);
+    const guard = validateRecurringExpenseOccurrenceRecordCommit(
+      storedOccurrence,
+      base,
+      next,
+      replay,
+      event.id,
+    );
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (guard.reused)
+      return {
+        ok: true,
+        value: {
+          occurrence: clone(storedOccurrence ?? next),
+          event: clone(replay ?? event),
+          reused: true,
+        },
+      };
+    this.recurringExpenseOccurrences.set(next.id, clone(next));
+    this.financialEvents.set(event.id, clone(event));
+    return { ok: true, value: { occurrence: clone(next), event: clone(event), reused: false } };
   }
 }

@@ -80,6 +80,20 @@ export const INFLUENTIAL_SNAPSHOT_FAMILIES = {
   costEstimates: { label: "التقديرات المحفوظة", count: snapshot => snapshot.costEstimates?.length ?? 0 },
   assets: { label: "الأصول", count: snapshot => snapshot.assets?.length ?? 0 },
   loans: { label: "القروض", count: snapshot => snapshot.loans?.length ?? 0 },
+  /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر الثلاث — بيت التذكير التشغيلي
+   * فوق أحداثه المالية؛ الغياب في ملف قديم = صفر بلا اختراع. */
+  recurringExpenseSeries: {
+    label: "سلاسل المصروف المتكرر",
+    count: snapshot => snapshot.recurringExpenseSeries?.length ?? 0,
+  },
+  recurringExpenseRevisions: {
+    label: "مراجعات المصروف المتكرر",
+    count: snapshot => snapshot.recurringExpenseRevisions?.length ?? 0,
+  },
+  recurringExpenseOccurrences: {
+    label: "فترات المصروف المتكرر",
+    count: snapshot => snapshot.recurringExpenseOccurrences?.length ?? 0,
+  },
 } satisfies Record<keyof LocalStoreSnapshot, SnapshotFamilySpec>;
 
 export type SnapshotFamilyKey = keyof typeof INFLUENTIAL_SNAPSHOT_FAMILIES;

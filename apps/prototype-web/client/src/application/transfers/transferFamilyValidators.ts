@@ -1375,3 +1375,162 @@ export function validateOwnerProfile(value: unknown): boolean {
     isDate(value.updatedAt)
   );
 }
+
+/* OPS-003 (عقد ٤١): مدققات عائلة المصروف المتكرر — هوية فريدة وشكل سليم
+ * وترابط صادق؛ الملف المكسور يُرفض قبل أي معاينة كما تُرفض البصمة المعطوبة. */
+
+const RECURRING_SERIES_STATUSES = new Set(["draft", "active", "paused", "cancelled", "archived"]);
+const RECURRING_OCCURRENCE_STATUSES = new Set([
+  "planned",
+  "snoozed",
+  "skipped",
+  "cancelled",
+  "recording",
+  "recorded",
+  "record_failed",
+]);
+const RECURRING_MONTH_END_POLICIES = new Set(["last_valid_day", "skip", "ask"]);
+const RECURRING_AMOUNT_MODES = new Set(["manual", "suggested", "fixed_suggested"]);
+const RECURRING_ACTION_KINDS = new Set([
+  "created",
+  "revised",
+  "snoozed",
+  "skipped",
+  "cancelled",
+  "confirm_attempted",
+  "recorded",
+  "record_reused",
+  "record_failed",
+]);
+const isPeriodKey = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+const isSafeNonNegativeInteger = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+
+export function validRecurringExpenseSeries(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isString(value.id) &&
+    value.id.trim().length > 0 &&
+    isString(value.title) &&
+    value.title.trim().length > 0 &&
+    value.title.trim().length <= 80 &&
+    isString(value.status) &&
+    RECURRING_SERIES_STATUSES.has(value.status) &&
+    isSafeNonNegativeInteger(value.currentRevision) &&
+    isDate(value.createdAt) &&
+    isDate(value.updatedAt) &&
+    (value.cancelledAt === null || value.cancelledAt === undefined || isDate(value.cancelledAt)) &&
+    (value.cancelReason === null || value.cancelReason === undefined || isString(value.cancelReason)) &&
+    (value.archivedAt === null || value.archivedAt === undefined || isDate(value.archivedAt))
+  );
+}
+
+export function validRecurringExpenseRuleRevision(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isString(value.id) &&
+    value.id.trim().length > 0 &&
+    isString(value.seriesId) &&
+    value.seriesId.trim().length > 0 &&
+    isSafeNonNegativeInteger(value.revision) &&
+    value.revision >= 1 &&
+    isString(value.effectiveFromPeriod) &&
+    isPeriodKey(value.effectiveFromPeriod) &&
+    value.frequency === "monthly" &&
+    isSafeNonNegativeInteger(value.interval) &&
+    value.interval >= 1 &&
+    value.interval <= 12 &&
+    isString(value.anchorDate) &&
+    isLocalDate(value.anchorDate) &&
+    isSafeNonNegativeInteger(value.dueDay) &&
+    value.dueDay >= 1 &&
+    value.dueDay <= 31 &&
+    isString(value.monthEndPolicy) &&
+    RECURRING_MONTH_END_POLICIES.has(value.monthEndPolicy) &&
+    value.timezone === "Asia/Amman" &&
+    isString(value.amountMode) &&
+    RECURRING_AMOUNT_MODES.has(value.amountMode) &&
+    (value.suggestedAmountMinor === null ||
+      value.suggestedAmountMinor === undefined ||
+      isMoney(value.suggestedAmountMinor)) &&
+    (value.suggestedWalletId === null ||
+      value.suggestedWalletId === undefined ||
+      isString(value.suggestedWalletId)) &&
+    (value.categoryLabel === null ||
+      value.categoryLabel === undefined ||
+      (isString(value.categoryLabel) && value.categoryLabel.length <= 80)) &&
+    (value.changeReason === null || value.changeReason === undefined || isString(value.changeReason)) &&
+    isDate(value.createdAt)
+  );
+}
+
+export function validRecurringExpenseOccurrence(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    value.id.trim().length === 0 ||
+    !isString(value.seriesId) ||
+    value.seriesId.trim().length === 0 ||
+    !isSafeNonNegativeInteger(value.revision) ||
+    value.revision < 1 ||
+    !isString(value.periodKey) ||
+    !isPeriodKey(value.periodKey) ||
+    !isString(value.dueOn) ||
+    !isLocalDate(value.dueOn) ||
+    !isSafeNonNegativeInteger(value.occurrenceSlot) ||
+    !isString(value.status) ||
+    !RECURRING_OCCURRENCE_STATUSES.has(value.status) ||
+    !(
+      value.snoozedUntil === null ||
+      value.snoozedUntil === undefined ||
+      (isString(value.snoozedUntil) && isLocalDate(value.snoozedUntil))
+    ) ||
+    !(value.skippedAt === null || value.skippedAt === undefined || isDate(value.skippedAt)) ||
+    !(value.skipReason === null || value.skipReason === undefined || isString(value.skipReason)) ||
+    !(
+      value.reviewedAmountMinor === null ||
+      value.reviewedAmountMinor === undefined ||
+      isMoney(value.reviewedAmountMinor)
+    ) ||
+    !(
+      value.reviewedWalletId === null ||
+      value.reviewedWalletId === undefined ||
+      isString(value.reviewedWalletId)
+    ) ||
+    !(
+      value.reviewedOccurredOn === null ||
+      value.reviewedOccurredOn === undefined ||
+      (isString(value.reviewedOccurredOn) && isLocalDate(value.reviewedOccurredOn))
+    ) ||
+    !(
+      value.recordedFinancialEventId === null ||
+      value.recordedFinancialEventId === undefined ||
+      isString(value.recordedFinancialEventId)
+    ) ||
+    !isString(value.recordingIdempotencyKey) ||
+    value.recordingIdempotencyKey.trim().length === 0 ||
+    !Array.isArray(value.actionHistory) ||
+    !isDate(value.createdAt) ||
+    !isDate(value.updatedAt)
+  )
+    return false;
+  /* عقد ٤١ §٥/§٨: المفتاح الحتمي مركّب — المعرّف والمفتاح نفس البنية
+   * `${seriesId}:${periodKey}:${slot}`؛ والاستحقاق داخل فترته. */
+  const expectedComposite = `${value.seriesId as string}:${value.periodKey as string}:${value.occurrenceSlot as number}`;
+  if (value.id !== expectedComposite || value.recordingIdempotencyKey !== expectedComposite) return false;
+  if ((value.dueOn as string).slice(0, 7) !== (value.periodKey as string)) return false;
+  /* الربط الصادق: مقَرَّرة = لها حدث؛ وحدث مرتبط = الحالة مقَرَّرة. */
+  const recorded = value.status === "recorded";
+  const linked =
+    typeof value.recordedFinancialEventId === "string" && value.recordedFinancialEventId !== null;
+  if (recorded !== linked) return false;
+  return value.actionHistory.every((action: unknown) => {
+    if (!isRecord(action)) return false;
+    if (!isString(action.kind) || !RECURRING_ACTION_KINDS.has(action.kind)) return false;
+    if (!isDate(action.at)) return false;
+    if (action.reason !== undefined && action.reason !== null && !isString(action.reason)) return false;
+    if (action.message !== undefined && action.message !== null && !isString(action.message)) return false;
+    if (action.key !== undefined && action.key !== null && !isString(action.key)) return false;
+    return true;
+  });
+}

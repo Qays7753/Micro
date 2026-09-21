@@ -18,6 +18,9 @@ export function exportCountsOf(snapshot: LocalStoreSnapshot): LocalExportCounts 
     inventoryShortages: snapshot.inventoryShortages?.length ?? 0,
     assets: snapshot.assets?.length ?? 0,
     loans: snapshot.loans?.length ?? 0,
+    recurringExpenseSeries: snapshot.recurringExpenseSeries?.length ?? 0,
+    recurringExpenseRevisions: snapshot.recurringExpenseRevisions?.length ?? 0,
+    recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences?.length ?? 0,
     schedules: snapshot.schedules?.length ?? 0,
     drafts: snapshot.drafts?.length ?? 0,
   };

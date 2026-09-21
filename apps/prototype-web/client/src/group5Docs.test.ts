@@ -58,9 +58,9 @@ describe("documentation consistency — Group 5 boundaries implemented on the re
     expect(section35).toContain("VITE_APP_VERSION");
   });
 
-  it("schema/export versions stay 35/27 from the constants source, and the old placeholder is gone from export code", () => {
-    expect(localSchemaVersion).toBe(35);
-    expect(localExportVersion).toBe(27);
+  it("schema/export versions stay 36/28 from the constants source, and the old placeholder is gone from export code", () => {
+    expect(localSchemaVersion).toBe(36);
+    expect(localExportVersion).toBe(28);
     const section35 = currentState.split("## §35.")[1] ?? "";
     expect(section35).toContain("٣٥/٢٧ بلا تغيير");
     const transferSource = readFileSync(

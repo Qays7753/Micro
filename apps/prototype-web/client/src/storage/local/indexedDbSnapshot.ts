@@ -31,6 +31,11 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type {
+  RecurringExpenseOccurrence,
+  RecurringExpenseRuleRevision,
+  RecurringExpenseSeries,
+} from "@micro-domain/recurring-expense/index.js";
 import {
   localInventoryActivationId,
   localOwnerProfileId,
@@ -64,6 +69,9 @@ import {
   inventoryMovementStore,
   inventoryShortageStore,
   loanStore,
+  recurringExpenseOccurrenceStore,
+  recurringExpenseRevisionStore,
+  recurringExpenseSeriesStore,
   materialStore,
   measurementUnitStore,
   orderStore,
@@ -116,6 +124,9 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
           costEstimateStore,
           assetStore,
           loanStore,
+          recurringExpenseSeriesStore,
+          recurringExpenseRevisionStore,
+          recurringExpenseOccurrenceStore,
         ],
         "readonly",
       );
@@ -154,6 +165,9 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
       const costEstimates = transaction.objectStore(costEstimateStore).getAll();
       const assets = transaction.objectStore(assetStore).getAll();
       const loans = transaction.objectStore(loanStore).getAll();
+      const recurringExpenseSeries = transaction.objectStore(recurringExpenseSeriesStore).getAll();
+      const recurringExpenseRevisions = transaction.objectStore(recurringExpenseRevisionStore).getAll();
+      const recurringExpenseOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore).getAll();
       transaction.onerror = () => resolve(failure(transaction.error, database));
       transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.oncomplete = () => {
@@ -191,6 +205,9 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
             costEstimates: costEstimates.result as CostEstimate[],
             assets: assets.result as AssetRecord[],
             loans: loans.result as LoanRecord[],
+            recurringExpenseSeries: recurringExpenseSeries.result as RecurringExpenseSeries[],
+            recurringExpenseRevisions: recurringExpenseRevisions.result as RecurringExpenseRuleRevision[],
+            recurringExpenseOccurrences: recurringExpenseOccurrences.result as RecurringExpenseOccurrence[],
           },
         });
       };
@@ -233,6 +250,9 @@ export async function replaceIndexedDbSnapshot(
       costEstimates: snapshot.costEstimates ?? [],
       assets: snapshot.assets ?? [],
       loans: snapshot.loans ?? [],
+      recurringExpenseSeries: snapshot.recurringExpenseSeries ?? [],
+      recurringExpenseRevisions: snapshot.recurringExpenseRevisions ?? [],
+      recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences ?? [],
     };
     return await new Promise(resolve => {
       const transaction = database.transaction(
@@ -267,6 +287,9 @@ export async function replaceIndexedDbSnapshot(
           costEstimateStore,
           assetStore,
           loanStore,
+          recurringExpenseSeriesStore,
+          recurringExpenseRevisionStore,
+          recurringExpenseOccurrenceStore,
         ],
         "readwrite",
       );
@@ -300,6 +323,9 @@ export async function replaceIndexedDbSnapshot(
       const costEstimates = transaction.objectStore(costEstimateStore);
       const assets = transaction.objectStore(assetStore);
       const loans = transaction.objectStore(loanStore);
+      const recurringSeries = transaction.objectStore(recurringExpenseSeriesStore);
+      const recurringRevisions = transaction.objectStore(recurringExpenseRevisionStore);
+      const recurringOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
       profiles.clear();
       ownerProfiles.clear();
       preferences.clear();
@@ -330,6 +356,9 @@ export async function replaceIndexedDbSnapshot(
       costEstimates.clear();
       assets.clear();
       loans.clear();
+      recurringSeries.clear();
+      recurringRevisions.clear();
+      recurringOccurrences.clear();
       if (normalized.profile) profiles.put(normalized.profile);
       if (normalized.ownerProfile) ownerProfiles.put(normalized.ownerProfile);
       if (normalized.preferences) preferences.put(normalized.preferences);
@@ -363,6 +392,9 @@ export async function replaceIndexedDbSnapshot(
       normalized.costEstimates?.forEach(estimate => costEstimates.put(estimate));
       normalized.assets?.forEach(asset => assets.put(asset));
       normalized.loans?.forEach(loan => loans.put(loan));
+      normalized.recurringExpenseSeries?.forEach(series => recurringSeries.put(series));
+      normalized.recurringExpenseRevisions?.forEach(revision => recurringRevisions.put(revision));
+      normalized.recurringExpenseOccurrences?.forEach(occurrence => recurringOccurrences.put(occurrence));
       transaction.onerror = () => resolve(failure(transaction.error, database));
       transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.oncomplete = () => {

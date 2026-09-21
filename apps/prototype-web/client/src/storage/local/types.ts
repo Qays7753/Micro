@@ -29,20 +29,31 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type {
+  RecurringExpenseOccurrence,
+  RecurringExpenseRuleRevision,
+  RecurringExpenseSeries,
+} from "@micro-domain/recurring-expense/index.js";
 import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
 
-/* المجموعة ٥ (الاستمرارية): المخطط ٣٥ يضيف مخزني `form-drafts` و`local-security`
+/* المجموعة ٥ (الاستمرارية): المخطط ٣٥ أضاف مخزني `form-drafts` و`local-security`
  * بمُنشئ محروس — لا حقول جديدة على أي سجل قائم ولا ترحيل بيانات؛ القديم يفتح
  * ويجد المخزنين الفارغين. كلا المخزنين مستثنى من لقطة التصدير عمدًا: المسودات
- * النصية دخول عابر لا حقيقة مالية، ورمز القفل سرٌّ محلي لا يغادر الجهاز أبدًا. */
-export const localSchemaVersion = 35;
+ * النصية دخول عابر لا حقيقة مالية، ورمز القفل سرٌّ محلي لا يغادر الجهاز أبدًا.
+ * OPS-003 (عقد ٤١ / قرار D-037): المخطط ٣٦ يضيف مخازن المصروف المتكرر الثلاثة
+ * (`recurring-expense-series/revisions/occurrences`) بالمُنشئ المحروس نفسه —
+ * لا حقول جديدة على سجلات قائمة ولا ترحيل بيانات؛ القديم يفتح ويجدها فارغة. */
+export const localSchemaVersion = 36;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
-/* المجموعة ٥ (عقد النسخ الاحتياطي): النسخة ٢٧ تضيف حقول تكامل اختيارية
+/* المجموعة ٥ (عقد النسخ الاحتياطي): النسخة ٢٧ أضافت حقول تكامل اختيارية
  * (بصمة sha256 + عدادات مضمّنة + إصدار التطبيق)؛ ملفات ٢٦ وأقدم تُقبل كما هي
- * بلا بصمة، والزوجان القديمان كلها تبقى في قائمة الاستيراد المسموحة. */
-export const localExportVersion = 27;
+ * بلا بصمة، والزوجان القديمان كلها تبقى في قائمة الاستيراد المسموحة.
+ * OPS-003 (عقد ٤١ / قرار D-037): النسخة ٢٨ تضيف عائلات المصروف المتكرر الثلاث
+ * إلى لقطة التصدير وعداداتها؛ ملف ٢٧/٣٥ يبقى زوجًا موروثًا مقبولًا في الاستيراد
+ * بلا اختراع سجلات — الغياب يعني قوائم فارغة. */
+export const localExportVersion = 28;
 export const localSecurityId = "local-security";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
@@ -100,6 +111,10 @@ export type LocalExportCounts = {
   loans: number;
   schedules: number;
   drafts: number;
+  /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر داخل العدادات الصارمة. */
+  recurringExpenseSeries: number;
+  recurringExpenseRevisions: number;
+  recurringExpenseOccurrences: number;
 };
 /* المجموعة ٢ (عقد ٢٨ — مخزون انتقائي): مخزن ٣٢/نسخة ٢٤ أضافتا قرار المتابعة
  * ومعرفة رصيد البداية لكل مادة، ووسم معرفة التكلفة على الحركات، وربط الشراء
@@ -341,6 +356,13 @@ export type LocalStoreSnapshot = {
    * التصدير القديم = قائمة فارغة بلا اختراع تاريخ. */
   assets?: readonly AssetRecord[];
   loans?: readonly LoanRecord[];
+  /* OPS-003 (عقد ٤١): سلاسل المصروف المتكرر ومراجعاتها وفتراتها — ثلاث مجموعات
+   * جديدة فوق أحداثها داخل financialEvents؛ الفترة تحمل رابط الحدث
+   * (recordedFinancialEventId) باتجاه واحد. الغياب في التصدير القديم = قائمة
+   * فارغة بلا اختراع تاريخ. */
+  recurringExpenseSeries?: readonly RecurringExpenseSeries[];
+  recurringExpenseRevisions?: readonly RecurringExpenseRuleRevision[];
+  recurringExpenseOccurrences?: readonly RecurringExpenseOccurrence[];
 };
 export type LocalExportFile = {
   format: typeof localExportFormat;
@@ -367,6 +389,14 @@ export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
  * الأكواد نفسها فلا تُكرر حرفية الكود في خدمات الشاشات. */
 export const storageFailureCode = (code: StorageFailureCode): "storage_error" | "storage_stale" =>
   code === "storage_stale" ? "storage_stale" : "storage_error";
+
+/* OPS-003 (عقد ٤١): زوج تحديث فترة محروس — الأساس الذي قرأته الخدمة
+ * والنتيجة المرادة؛ الانحراف بين الأساس والحالة الحية داخل حد الكتابة
+ * يُرفض بـstorage_stale بلا كتابة. */
+export type RecurringExpenseOccurrenceChange = {
+  base: RecurringExpenseOccurrence;
+  next: RecurringExpenseOccurrence;
+};
 
 export interface PrototypeLocalStore {
   getProfile(): Promise<StorageResult<ActivityProfile | null>>;
@@ -720,6 +750,60 @@ export interface PrototypeLocalStore {
       order: StoredCraftOrder;
       reversal: FinancialEvent;
       replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  >;
+  /* OPS-003 (عقد ٤١ — المصروف المتكرر): قراءة العائلات الثلاث. */
+  listRecurringExpenseSeries(): Promise<StorageResult<readonly RecurringExpenseSeries[]>>;
+  getRecurringExpenseSeries(id: string): Promise<StorageResult<RecurringExpenseSeries | null>>;
+  listRecurringExpenseRevisions(): Promise<StorageResult<readonly RecurringExpenseRuleRevision[]>>;
+  listRecurringExpenseOccurrences(): Promise<StorageResult<readonly RecurringExpenseOccurrence[]>>;
+  getRecurringExpenseOccurrence(id: string): Promise<StorageResult<RecurringExpenseOccurrence | null>>;
+  /* إنشاء المسودة: سلسلة + مراجعتها الأولى في معاملة واحدة (إنشاء فقط؛
+   * الوجود = إعادة استخدام صادقة). */
+  commitRecurringExpenseDraft(
+    series: RecurringExpenseSeries,
+    revision: RecurringExpenseRuleRevision,
+  ): Promise<
+    StorageResult<{ series: RecurringExpenseSeries; revision: RecurringExpenseRuleRevision; reused: boolean }>
+  >;
+  /* تغيير محروس على السلسلة (تفعيل/إيقاف/استئناف/أرشفة/استعادة/إلغاء/تعاقب):
+   * الحالة الحية تُقارن بالأساس داخل حد الكتابة — انحراف = storage_stale بلا
+   * كتابة؛ مع مراجعة خلف اختيارية وتحديثات فترات ذرّية في المعاملة نفسها. */
+  commitRecurringExpenseSeriesChange(
+    seriesBase: RecurringExpenseSeries,
+    seriesNext: RecurringExpenseSeries,
+    revision: RecurringExpenseRuleRevision | null,
+    occurrenceUpdates: readonly RecurringExpenseOccurrenceChange[],
+  ): Promise<
+    StorageResult<{
+      series: RecurringExpenseSeries;
+      revision: RecurringExpenseRuleRevision | null;
+      occurrences: readonly RecurringExpenseOccurrence[];
+      reused: boolean;
+    }>
+  >;
+  /* توليد الفترات أماميًا (إضافة فقط): الغائب يُنشأ، والمطابق يُتخطى بلا
+   * كتابة، والمختلف رفض صادر — لا تُمس قرارات الفترات القائمة أبدًا. */
+  commitRecurringExpenseOccurrences(
+    occurrences: readonly RecurringExpenseOccurrence[],
+  ): Promise<StorageResult<{ created: number; skipped: number }>>;
+  /* قرار فترة واحد (تأجيل/تخطٍ/علامة محاولة/فشل معروف): محروس بنفس القاعدة. */
+  commitRecurringExpenseOccurrenceDecision(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>>;
+  /* التسجيل الذرّي: تحديث الفترة (recording→recorded) وإنشاء الحدث المالي في
+   * معاملة واحدة — كل شيء أو لا شيء؛ إعادة مفتاح الحتمية = إعادة استخدام،
+   * واصطدام المفتاح بحدث مختلف النوع/المبلغ = رفض صادر بلا كتابة (عقد ٤١ §٨). */
+  commitRecurringExpenseOccurrenceRecord(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+    event: FinancialEvent,
+  ): Promise<
+    StorageResult<{
+      occurrence: RecurringExpenseOccurrence;
+      event: FinancialEvent;
       reused: boolean;
     }>
   >;

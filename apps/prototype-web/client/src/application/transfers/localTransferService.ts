@@ -67,6 +67,10 @@ export type TransferSummary = {
   /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض في ملخص النقل. */
   assets: number;
   loans: number;
+  /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر في ملخص النقل. */
+  recurringExpenseSeries: number;
+  recurringExpenseRevisions: number;
+  recurringExpenseOccurrences: number;
   snapshots: number;
   events: number;
   exportedAt: string;
@@ -114,6 +118,9 @@ function summary(file: LocalExportFile): TransferSummary {
     costEstimates: file.data.costEstimates?.length ?? 0,
     assets: file.data.assets?.length ?? 0,
     loans: file.data.loans?.length ?? 0,
+    recurringExpenseSeries: file.data.recurringExpenseSeries?.length ?? 0,
+    recurringExpenseRevisions: file.data.recurringExpenseRevisions?.length ?? 0,
+    recurringExpenseOccurrences: file.data.recurringExpenseOccurrences?.length ?? 0,
     snapshots,
     events,
     exportedAt: file.exportedAt,
@@ -273,6 +280,10 @@ export class LocalTransferService {
       /* المجموعة ٤ (عقد ٢٩): لا أصول ولا قروض في اللقطة الفارغة. */
       assets: [],
       loans: [],
+      /* OPS-003 (عقد ٤١): لا سلاسل ولا مراجعات ولا فترات في اللقطة الفارغة. */
+      recurringExpenseSeries: [],
+      recurringExpenseRevisions: [],
+      recurringExpenseOccurrences: [],
     };
   }
 

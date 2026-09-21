@@ -1,6 +1,7 @@
 /** IndexedDB store names and the database identity — one pure constants module so the
  * schema-upgrade path and the adapter share a single source (Group 10, Phase 10-B).
- * Values are frozen history: no rename, no store added or removed (schema 35).
+ * Values are frozen history: no rename, no store removed; additions only via a
+ * guarded schema upgrade (35 → 36 added the recurring-expense stores, D-037).
  */
 export const databaseName = "micro-prototype-local";
 export const profileStore = "activity-profile";
@@ -46,3 +47,9 @@ export const loanStore = "loans";
  * خارج اللقطة عمدًا (مسودة عابرة/سر محلي)؛ المُنشئ محروس فيُفتح القديم بلا فقدان. */
 export const formDraftStore = "form-drafts";
 export const securityStore = "local-security";
+/* OPS-003 (عقد ٤١ / قرار D-037): عائلة المصروف المتكرر — ثلاثة مخازن تشغيلية
+ * فوق أحداثها المالية (financial-events). المُنشئ محروس في الترقية ٣٥→٣٦:
+ * القديم يفتح ويجدها فارغة بلا ترحيل بيانات ولا تعديل سجل قائم. */
+export const recurringExpenseSeriesStore = "recurring-expense-series";
+export const recurringExpenseRevisionStore = "recurring-expense-revisions";
+export const recurringExpenseOccurrenceStore = "recurring-expense-occurrences";

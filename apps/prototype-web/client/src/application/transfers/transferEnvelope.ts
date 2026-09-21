@@ -13,6 +13,7 @@ import {
 import { isRecord } from "./transferFamilyValidators";
 
 export const RELEASED_LEGACY_EXPORT_PAIRS: ReadonlySet<string> = new Set([
+  "27/35", // OPS-003 ما قبل عقد ٤١ — كما صدرت فعلًا (بلا عائلات المصروف المتكرر)
   "26/34", // المجموعة ٤ كما صدرت فعلًا (بلا مظروف التكامل)
   "25/33", // المجموعة ٤ قبل الأصول والقروض
   "24/32", // ربط المنتج بالبيع

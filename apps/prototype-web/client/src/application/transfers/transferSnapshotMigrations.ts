@@ -271,6 +271,50 @@ export function migrateTransferSnapshot(
             : loan,
         )
       : [],
+    /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر — الغياب في ملف قديم = قائمة
+     * فارغة بلا اختراع تاريخ؛ والحقول الاخيارية تُسوّى بصمت صفرًا صادقًا. */
+    recurringExpenseSeries: Array.isArray(raw.recurringExpenseSeries)
+      ? raw.recurringExpenseSeries.map(series =>
+          isRecord(series)
+            ? {
+                ...series,
+                cancelledAt: series.cancelledAt ?? null,
+                cancelReason: series.cancelReason ?? null,
+                archivedAt: series.archivedAt ?? null,
+              }
+            : series,
+        )
+      : [],
+    recurringExpenseRevisions: Array.isArray(raw.recurringExpenseRevisions)
+      ? raw.recurringExpenseRevisions.map(revision =>
+          isRecord(revision)
+            ? {
+                ...revision,
+                suggestedAmountMinor: revision.suggestedAmountMinor ?? null,
+                suggestedWalletId: revision.suggestedWalletId ?? null,
+                categoryLabel: revision.categoryLabel ?? null,
+                changeReason: revision.changeReason ?? null,
+              }
+            : revision,
+        )
+      : [],
+    recurringExpenseOccurrences: Array.isArray(raw.recurringExpenseOccurrences)
+      ? raw.recurringExpenseOccurrences.map(occurrence =>
+          isRecord(occurrence)
+            ? {
+                ...occurrence,
+                snoozedUntil: occurrence.snoozedUntil ?? null,
+                skippedAt: occurrence.skippedAt ?? null,
+                skipReason: occurrence.skipReason ?? null,
+                reviewedAmountMinor: occurrence.reviewedAmountMinor ?? null,
+                reviewedWalletId: occurrence.reviewedWalletId ?? null,
+                reviewedOccurredOn: occurrence.reviewedOccurredOn ?? null,
+                recordedFinancialEventId: occurrence.recordedFinancialEventId ?? null,
+                actionHistory: Array.isArray(occurrence.actionHistory) ? occurrence.actionHistory : [],
+              }
+            : occurrence,
+        )
+      : [],
   } as unknown as LocalStoreSnapshot;
   return migrated;
 }
