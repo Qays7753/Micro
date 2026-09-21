@@ -99,6 +99,7 @@ async function seedDebtOrder(id: string) {
     safetyBufferMinor: 0,
     quantity: 1,
     createdAt: "2026-09-10T09:00:00.000Z",
+    source: "order_confirmation",
     freshnessDays: null,
   });
   const baseOrder = createCraftOrder({
