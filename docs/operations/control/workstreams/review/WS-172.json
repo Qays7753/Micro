@@ -1,7 +1,7 @@
 {
   "id": "WS-172",
   "title": "UX/UI Reports 1–2 — Z1 Home + Z2 work/order clarity (bounded owner-approved waves)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "UX-001"
   ],
@@ -25,8 +25,8 @@
   "agent": "ZAI / Super Z UX/UI Reports 1-2 controlled implementation session 2026-09-22",
   "pr": 207,
   "started_at": "2026-09-22T00:00:00+03:00",
-  "updated_at": "2026-09-22T23:59:00+03:00",
-  "next_action": "Owner merge decision on draft PR #207 (Z1 + Z2 complete, all gates green), then post-merge verification on the exact main SHA before any closure transition.",
+  "updated_at": "2026-09-22T03:10:00+03:00",
+  "next_action": "No further execution action for WS-172: Z1/Z2 merged (squash f5685b2138d994cb0ebed95f2b64bbc6f87cc49d) and verified on main (CI + Cloudflare green on the merge SHA). UX-001 remains DEFERRED with its remaining scope; no Pilot and no later stage starts automatically from this record.",
   "notes": [
     "Tracker mapping: Z1/Z2 is a bounded owner-approved subset of UX-001's ui/ux territory. UX-001 itself stays DEFERRED — its full acceptance (complete RTL design system, every screen, user testing) is NOT satisfied by these waves; only this workstream's own Z1/Z2 scope closes.",
     "Scope source of truth: MICRO-REPORT-1-2-ZED-IMPLEMENTATION-PACKAGE.md on branch docs/ux-ui-zed-handoff-20260921 @ f28b0fa6b933336fb1b847b906bf126de6f87e2d (read-only input; not merged into this branch).",
@@ -34,7 +34,8 @@
     "Hard boundaries: no Domain/Storage/migration/schema/export/writer changes; no new routes or destinations; five destinations frozen; no recurring-expense content on Home; no final visual identity; no Vite/toolchain repair.",
     "Documented §10.6 dependency (presentation-only, non-protected): Nav001.dom.test.tsx L111 and Set003Capabilities.dom.test.tsx L111 pin the pre-Z1 fixed-four quick-action composition that the owner-approved Z1 acceptance criteria (§9.1: fixed actions = sale/expense/order; collection contextual only) supersede. Minimal assertion updates recorded in the Z1 delivery report; not silent.",
     "Z1 evidence: reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md; commits 7522129 → 6f4e799 → ffbbf6f → 9cf6589 → becaea0 → de9c513 on the branch; PR #207 draft open. Agent 5 Z1 integration review: PASS_WITH_NOTES (19/19 §9.1 criteria met, 135/135 targeted green, OPS-003 smoke 37/37 green, density Home 71/78).",
-    "Z2 evidence: reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md; commits ae639dd → 663692e → da165d7 → af7cb16 → 70accca → 47e1668 → fd9a5f9 → 326324f → 46196e4. Deferred necessity-note drafts (owner approval required before any edit): OrderDepositPanels reversal-word unification, SaleCollectionReversalSection reversal-word unification, EventsLayer delete/cancel wording."
+    "Z2 evidence: reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md; commits ae639dd → 663692e → da165d7 → af7cb16 → 70accca → 47e1668 → fd9a5f9 → 326324f → 46196e4. Deferred necessity-note drafts (owner approval required before any edit): OrderDepositPanels reversal-word unification, SaleCollectionReversalSection reversal-word unification, EventsLayer delete/cancel wording.",
+    "Post-merge verification evidence on merge SHA f5685b21: CI https://github.com/Qays7753/Micro/actions/runs/35668700906 · Cloudflare Pages https://github.com/Qays7753/Micro/runs/106560221802 · PR-head CI https://github.com/Qays7753/Micro/actions/runs/35668266951. REAL_DEVICE_QA remains NOT_EXECUTED (no physical device in the environment)."
   ],
   "status_history": [
     {
@@ -54,7 +55,26 @@
       "changed_at": "2026-09-22",
       "actor": "ws-172:z2",
       "reason": "Z2 (work/order clarity + outcome grammar) implemented and gated: targeted 148/148, OPS-003 non-regression 57/57, Z1 regression 68/68, prototype:check + design-guards + guards PASS, full pnpm check EXIT 0; Agent 5 final integration review PASS_WITH_NOTES (§9.2 29/29). PR #207 awaiting owner merge decision."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-22",
+      "actor": "ws-172:merge",
+      "reason": "PR #207 squash-merged into main at f5685b2138d994cb0ebed95f2b64bbc6f87cc49d (base b0b4cea66a06c295c65eb895dc2b9067c8b732cf, 19 commits, 46 files, +2257/-243); tree verified identical to branch head 8d67a87."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-22",
+      "actor": "ws-172:post-merge-verification",
+      "reason": "Verification on the actual main SHA f5685b2138d994cb0ebed95f2b64bbc6f87cc49d: CI success (run 35668700906) and Cloudflare Pages success (run 106560221802) on the merge commit itself, distinct from PR-head evidence; local gates recorded in the delivery reports."
     }
   ],
-  "migration_baseline": false
+  "migration_baseline": false,
+  "merge_sha": "f5685b2138d994cb0ebed95f2b64bbc6f87cc49d",
+  "verified_on_main_sha": "f5685b2138d994cb0ebed95f2b64bbc6f87cc49d",
+  "evidence": [
+    "reports/agent-report/2026-09-22_ux-ui-z1-z2/00-understanding-card.md",
+    "reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md",
+    "reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md"
+  ]
 }
