@@ -124,8 +124,8 @@
     },
     {
       "id": "UX-UI-Z1-Z2",
-      "path": "reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md",
-      "scope": "UX/UI Reports 1-2 Z1+Z2 complete — delivery reports, gates, and integration review (WS-172)",
+      "path": "reports/agent-report/2026-09-22_ux-ui-z1-z2/03-final-integration-postmerge-report.md",
+      "scope": "UX/UI Reports 1-2 final integration and post-merge verification report (WS-172) — merge f5685b2138 verified on main; closure 19b1073",
       "status": "MERGED_VERIFIED_MAIN_F5685B2"
     }
   ]
