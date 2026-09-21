@@ -184,6 +184,43 @@ describe("Quick forms notify after committed state (FIN-004)", () => {
     expect(unallocatedFact).toBeUndefined();
     expect(home.facts.some(fact => fact.qualifier?.includes("فرق سالب"))).toBe(false);
   });
+
+  /* Z2.3 (§3.4 — Reused + FIN-004): «مُعاد استعماله» يعني لا كتابة جديدة —
+   * فلا إشعار تغيير بيانات ولا نسبة محفظة؛ الوصل محايد مميز لا نجاح فرِش. */
+  it("a reused quick-sale record presents neutral protection and notifies no data change — no write happened", async () => {
+    const reusedRecord = vi.fn().mockResolvedValue({ ok: true, value: { id: "sale-reused-1" }, reused: true });
+    mockedUsePrototypeServices.mockReturnValue({
+      projectFinance,
+      directSales: { record: reusedRecord },
+      notifyDataChanged: () => {
+        notifyCount += 1;
+        orderLog.push("notify");
+      },
+      dataVersion,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    const submitted: QuickActionReceipt[] = [];
+    render(
+      <QuickSaleForm
+        wallets={[]}
+        onSubmitted={receipt => submitted.push(receipt)}
+        onBackToMenu={() => undefined}
+      />,
+    );
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("مبلغ البيع"), "15");
+    orderLog = [];
+    await user.click(screen.getByRole("button", { name: "سجّل البيع" }));
+    await waitForReceipt(submitted);
+    /* لم تحدث كتابة: لا إشعار ولا أثر مخزن — الحماية محايدة صادقة. */
+    expect(orderLog).toEqual([]);
+    expect(notifyCount).toBe(0);
+    expect(reusedRecord).toHaveBeenCalledTimes(1);
+    /* الوصل: عنوان مميز بـ«سابقًا» (لا «سُجّل بيع») بلا نسبة فاشلة. */
+    expect(submitted[0]?.title).toContain("سابقًا");
+    expect(submitted[0]?.title).not.toBe("سُجّل بيع");
+    expect(submitted[0]?.attributionNote).toBeNull();
+    expect(submitted[0]?.recordHref).toContain("/direct-sales/");
+  });
 });
 
 async function readHome() {

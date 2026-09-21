@@ -331,3 +331,122 @@ describe("EXE-007 — quick sheet is the compact mode of the same expense journe
     expect(quickEvent!.expenseContext).toEqual(guidedEvent!.expenseContext);
   });
 });
+
+describe("Z2.4 — recurring-occurrence warning in the quick sheet (OPS-003 — عقد ٤١ §٨)", () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  function mockRecurringService(value: { seriesTitle: string; periodKey: string; dueOn: string } | null) {
+    return {
+      findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({ ok: true, value }),
+    };
+  }
+
+  it("warns visibly and non-blockingly when an untreated occurrence exists for the chosen date", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      projectFinance,
+      notifyDataChanged: vi.fn(),
+      dataVersion: 0,
+      recurringExpenses: mockRecurringService({
+        seriesTitle: "إيجار المحل الشهري",
+        periodKey: "2026-09",
+        dueOn: "2026-09-05",
+      }),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([], submitted);
+    /* تحذير ظاهر بجانب تاريخ المصروف (role=status) — كالمحرر الموجه حرفيًا. */
+    const warning = await screen.findByText(
+      /لديك تذكير مصروف متكرر غير معالج لهذه الفترة: «إيجار المحل الشهري»/,
+    );
+    expect(warning.getAttribute("role")).toBe("status");
+    expect(warning.getAttribute("class")).toContain("micro-offline-truth");
+    /* غير حاجب: الإدخال اليدوي يمر بقرار المستخدم الصريح — التسجيل يحدث. */
+    await submitExpense();
+    await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
+    const events = await store.listFinancialEvents();
+    expect(events.ok && events.value).toHaveLength(1);
+  });
+
+  it("shows no warning when no untreated occurrence exists for the chosen date", async () => {
+    const recurringExpenses = mockRecurringService(null);
+    mockedUsePrototypeServices.mockReturnValue({
+      projectFinance,
+      notifyDataChanged: vi.fn(),
+      dataVersion: 0,
+      recurringExpenses,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([], submitted);
+    /* ننتظر الفحص نفسه ثم نتحقق من غياب التحذير — لا نص بلا سبب. */
+    await waitFor(() => expect(recurringExpenses.findUnhandledOccurrenceForDate).toHaveBeenCalled());
+    expect(screen.queryByText(/تذكير مصروف متكرر غير معالج/)).toBeNull();
+    await submitExpense();
+    await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
+  });
+
+  it("shows no warning when the recurring service is absent — the quick form stands alone", async () => {
+    /* الخدمة غير معلنة في السياق (mock الـ beforeEach لا يضمها) — لا انهيار
+     * ولا تحذير؛ المسار السريع يبقى مباشرًا. */
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([], submitted);
+    await submitExpense();
+    await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
+    expect(screen.queryByText(/تذكير مصروف متكرر غير معالج/)).toBeNull();
+  });
+});
+
+describe("Z2.4 — quick expense save-error grammar (§3.4)", () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it("a failed save keeps the input, is announced as an alert like the sale form, and a safe retry records once", async () => {
+    const record = vi
+      .fn<
+        (input: {
+          idempotencyKey: string;
+        }) => Promise<{ ok: boolean; reused?: boolean; value?: { id: string }; message?: string; code?: string }>
+      >()
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "storage_error",
+        message: "تعذر حفظ الحدث المالي محليًا الآن.",
+      })
+      .mockResolvedValue({ ok: true, value: { id: "expense-retry-1" } });
+    const readPosition = vi.fn().mockResolvedValue({ ok: true, value: { recordedCashMinor: -300 } });
+    mockedUsePrototypeServices.mockReturnValue({
+      projectFinance: { record, readPosition },
+      notifyDataChanged: vi.fn(),
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    const submitted: QuickActionReceipt[] = [];
+    renderForm([], submitted);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
+    await user.type(screen.getByLabelText(/البند/), "أكياس تغليف");
+    await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
+
+    /* فشل الحفظ (Save Error): إعلان role=alert — تكافؤ البيع لا status. */
+    const failureNote = await screen.findByText("تعذر حفظ الحدث المالي محليًا الآن.");
+    expect(failureNote.getAttribute("role")).toBe("alert");
+    /* المدخلات باقية كما هي — لا فقدان ولا تصفير. */
+    expect((screen.getByLabelText("مبلغ المصروف") as HTMLInputElement).value).toBe("3.00");
+    expect(screen.getByDisplayValue("أكياس تغليف")).toBeTruthy();
+    expect(submitted).toHaveLength(0);
+    /* زر الحفظ عاد متاحًا: إعادة محاولة آمنة متاحة. */
+    expect(screen.getByRole("button", { name: "سجّل المصروف" }).getAttribute("disabled")).toBeNull();
+
+    /* إعادة المحاولة الآمنة: نفس مفتاح العملية (لا نسخة موازية) وتسجيل واحد. */
+    await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
+    await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
+    expect(record).toHaveBeenCalledTimes(2);
+    expect(record.mock.calls[1][0].idempotencyKey).toBe(record.mock.calls[0][0].idempotencyKey);
+    /* بعد النجاح لا يبقى إعلان الفشل. */
+    expect(screen.queryByText("تعذر حفظ الحدث المالي محليًا الآن.")).toBeNull();
+  });
+});

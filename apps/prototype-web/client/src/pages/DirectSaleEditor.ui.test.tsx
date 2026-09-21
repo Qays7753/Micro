@@ -255,4 +255,80 @@ describe("DirectSaleEditor", () => {
       expect(cancel).toHaveBeenCalledWith("sale-1", "سُجل البيع بالخطأ", expect.any(String), 0),
     );
   });
+
+  /* Z2.3 (§3.4 — Partial Success): البيع سُجل وقُبضه محفوظ، لكن نسبة المحفظة
+   * فشلت — شاشة النتيجة تفصل المنجز عن الناقص بصراحة (مع السبب)، ولا تعرض
+   * أي مسار إعادة تسجيل للبيع؛ الفعل التالي فتح السجل المسجل فقط. */
+  it("shows the attribution-failure partial success on the done screen and never re-records the sale", async () => {
+    wouterMocks.location = "/direct-sales/new";
+    const recorded: DirectSale = { ...sale, id: "sale-partial" };
+    const record = vi.fn().mockResolvedValue({ ok: true, value: recorded });
+    const distributeUnallocated = vi.fn().mockResolvedValue({
+      ok: false,
+      code: "storage_error",
+      message: "تعذر تخصيص القبض للمحفظة الآن.",
+    });
+    const notifyDataChanged = vi.fn();
+    mockedUsePrototypeServices.mockReturnValue({
+      /* كعب خدمة المسودة — قراءة فارغة وحفظ ناجح؛ الصفحة تُختبر لا المخزن. */
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      catalog: {
+        list: vi.fn().mockResolvedValue({ ok: true, items: [] }),
+      },
+      directSales: {
+        record,
+      },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { wallets: [{ id: "drawer-partial", name: "درج النقد", kind: "cash_drawer" }] },
+        }),
+      },
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
+      projectFinance: {
+        distributeUnallocated,
+      },
+      notifyDataChanged,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "تسجيل بيع مباشر" });
+    fireEvent.change(screen.getByLabelText("السعر المتفق عليه"), { target: { value: "12.00" } });
+    /* وجهة القبض تُقرأ عند الإنشاء — الدرج معيَّن مسبقًا فيُجرَّب التخصيص. */
+    await waitFor(() => expect(screen.getByLabelText("وجهة القبض")).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+
+    /* الجزء المنجز ظاهر: البيع سُجل بسعره وقبضه. */
+    await screen.findByRole("heading", { name: "سُجّل البيع" });
+    /* الجزء الناقص ظاهر بسببه: النسبة للمحفظة لم تتم — لا سطر محايد يطمسها. */
+    const partial = await screen.findByText(/نسبته للمحفظة لم تتم/);
+    expect(partial.textContent).toContain("تعذر تخصيص القبض للمحفظة الآن.");
+    expect(partial.getAttribute("role")).toBe("status");
+    /* لا إعادة تسجيل للبيع أبدًا: نداء سجل واحد، ونسبة واحدة بمفتاحها المشتق،
+     * ولا زر حفظ في شاشة النتيجة أصلًا. */
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(distributeUnallocated).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(distributeUnallocated).mock.calls[0][0]).toMatchObject({
+      operationKey: expect.stringMatching(/:attribute$/),
+      sourceRefId: "sale-partial",
+    });
+    expect(screen.queryByRole("button", { name: "حفظ البيع المباشر" })).toBeNull();
+    /* فعل تالٍ واحد متاح: فتح السجل المسجل (مسار المتابعة لا إعادة الكتابة). */
+    expect(screen.getByRole("button", { name: "افتح السجل" })).toBeTruthy();
+    /* FIN-004: إشعار واحد بعد اكتمال كل الكتابات (البيع ثم محاولة النسبة). */
+    expect(notifyDataChanged).toHaveBeenCalledOnce();
+  });
 });
