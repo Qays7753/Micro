@@ -1,0 +1,44 @@
+{
+  "id": "WS-172",
+  "title": "UX/UI Reports 1–2 — Z1 Home + Z2 work/order clarity (bounded owner-approved waves)",
+  "status": "CLAIMED",
+  "items": ["UX-001"],
+  "branch": "feat/ux-ui-z1-z2-20260921",
+  "base_sha": "b0b4cea66a06c295c65eb895dc2b9067c8b732cf",
+  "areas": [
+    "presentation/home",
+    "presentation/orders",
+    "presentation/quick-forms",
+    "presentation/collection",
+    "presentation/result-feedback"
+  ],
+  "contracts": [
+    "docs/operations/control/handoffs/ux-ui-report-1-2/MICRO-REPORT-1-2-ZED-IMPLEMENTATION-PACKAGE.md",
+    "docs/architecture/UI_AUX_ARCHITECTURE.md",
+    "docs/architecture/COMPONENT_CONTRACTS.md",
+    "docs/architecture/SOURCE_OF_TRUTH.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/41-recurring-expense-reminders-contract.md"
+  ],
+  "agent": "ZAI / Super Z UX/UI Reports 1-2 controlled implementation session 2026-09-22",
+  "pr": null,
+  "started_at": "2026-09-22T00:00:00+03:00",
+  "updated_at": "2026-09-22T00:00:00+03:00",
+  "next_action": "Z1.1 — lock the Home contract in the allowlisted Home test files (red assertions where the current composition differs from the approved target), then implement Z1.2–Z1.5 and pass the Z1.6 gate.",
+  "notes": [
+    "Tracker mapping: Z1/Z2 is a bounded owner-approved subset of UX-001's ui/ux territory. UX-001 itself stays DEFERRED — its full acceptance (complete RTL design system, every screen, user testing) is NOT satisfied by these waves; only this workstream's own Z1/Z2 scope closes.",
+    "Scope source of truth: MICRO-REPORT-1-2-ZED-IMPLEMENTATION-PACKAGE.md on branch docs/ux-ui-zed-handoff-20260921 @ f28b0fa6b933336fb1b847b906bf126de6f87e2d (read-only input; not merged into this branch).",
+    "Baseline verified: origin/main = b0b4cea66a06c295c65eb895dc2b9067c8b732cf exactly; clean worktree; no open PRs; validator PASS; full pnpm check EXIT 0 at baseline.",
+    "Hard boundaries: no Domain/Storage/migration/schema/export/writer changes; no new routes or destinations; five destinations frozen; no recurring-expense content on Home; no final visual identity; no Vite/toolchain repair.",
+    "Documented §10.6 dependency (presentation-only, non-protected): Nav001.dom.test.tsx L111 and Set003Capabilities.dom.test.tsx L111 pin the pre-Z1 fixed-four quick-action composition that the owner-approved Z1 acceptance criteria (§9.1: fixed actions = sale/expense/order; collection contextual only) supersede. Minimal assertion updates recorded in the Z1 delivery report; not silent."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-22",
+      "actor": "claim:ws-172",
+      "reason": "Owner-approved UX/UI Reports 1-2 implementation package (Z1/Z2) on branch docs/ux-ui-zed-handoff-20260921; claim opened from verified main b0b4cea66a06c295c65eb895dc2b9067c8b732cf under existing item UX-001 per Operations Control v2."
+    }
+  ],
+  "migration_baseline": false
+}
