@@ -35,6 +35,10 @@ const Finance = lazy(() => import("@/pages/Finance"));
 const FinanceMore = lazy(() => import("@/pages/FinanceMore"));
 /* Stage 2 — OPS-005/006: «القادم والاستحقاقات» — قارئ موحد يبقي الشريط السفلي. */
 const FinanceUpcoming = lazy(() => import("@/pages/FinanceUpcoming"));
+/* OPS-003 (عقد ٤١): المصاريف المتكررة — قائمة سطح، وتفصيل سطح، والمحرر عمق. */
+const FinanceRecurring = lazy(() => import("@/pages/FinanceRecurring"));
+const RecurringExpenseDetail = lazy(() => import("@/pages/RecurringExpenseDetail"));
+const RecurringExpenseEditor = lazy(() => import("@/pages/RecurringExpenseEditor"));
 const OwnerEntitlement = lazy(() => import("@/pages/OwnerEntitlement"));
 /* X-05 (و٣): المدخل الواحد لسحب المالك — يسأل «سحب من المشروع لنفسك؟» ويكتب إلى المسار الصحيح. */
 const OwnerWithdrawalEditor = lazy(() => import("@/pages/OwnerWithdrawalEditor"));
@@ -205,6 +209,13 @@ export function MicroRouter() {
               {/* F01: سطح «المزيد» — قارئ منظم لا يكتب شيئًا؛ بديله الكنوني المالية. */}
               <Route path="/finance/more" component={FinanceMore} />
               <Route path="/finance/upcoming" component={FinanceUpcoming} />
+              {/* OPS-003 (عقد ٤١): تذكيرات المصروف المتكرر — القائمة والتفصيل سطحان
+               * يبقيان التنقل السفلي؛ المحرر عمق كإخوته (يخفي الشريط ويحرس
+               * المدخلات غير المحفوظة). الأكثر تحديدًا قبل الأعم. */}
+              <Route path="/finance/recurring/new" component={RecurringExpenseEditor} />
+              <Route path="/finance/recurring/:id/edit" component={RecurringExpenseEditor} />
+              <Route path="/finance/recurring/:id" component={RecurringExpenseDetail} />
+              <Route path="/finance/recurring" component={FinanceRecurring} />
               {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
               <Route path="/finance/statement" component={Statement} />
               <Route path="/finance/activity" component={FinanceActivity} />

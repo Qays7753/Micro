@@ -16,6 +16,7 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { LoanService } from "@/application/loans/loanService";
 import { AssetService } from "@/application/assets/assetService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { RecurringExpenseService } from "@/application/finance/recurringExpenseService";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
 import { ProfileService } from "@/application/profile/profileService";
@@ -51,6 +52,8 @@ function buildServices() {
     loans: new LoanService(store, () => NOW),
     assets: new AssetService(store, () => NOW),
     cashContinuity: new CashContinuityService(store, () => NOW),
+    /* OPS-003: فحص التزامن مع تذكير متكرر — الخدمة الحقيقية فوق المخزن نفسه. */
+    recurringExpenses: new RecurringExpenseService(store, () => NOW),
     formDrafts: new FormDraftService(store),
     ownerEntitlement: new OwnerEntitlementService(store, (from, to) =>
       projectFinance.readRecordedPeriodResult(from, to),

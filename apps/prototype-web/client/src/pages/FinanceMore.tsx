@@ -19,6 +19,7 @@ import {
   HandCoins,
   Landmark,
   ReceiptText,
+  Repeat,
   RotateCcw,
   Scale,
   ShieldCheck,
@@ -116,6 +117,23 @@ export default function FinanceMore() {
             className="micro-text-action"
             type="button"
             onClick={() => openFromMore("/finance/upcoming")}
+          >
+            افتح <ArrowLeft aria-hidden="true" />
+          </button>
+        </article>
+        {/* OPS-003 (عقد ٤١): المصاريف المتكررة — تذكير تحت سيطرة المالك بلا كتابة مالية تلقائية. */}
+        <article className="micro-setting-row">
+          <span className="micro-setting-icon">
+            <Repeat aria-hidden="true" />
+          </span>
+          <div>
+            <strong>المصاريف المتكررة</strong>
+            <small>تذكيرات فتراتها وقراراتها — لا يُسجَّل مصروف بغير تأكيدك، والمتأخر انتباه لا دين</small>
+          </div>
+          <button
+            className="micro-text-action"
+            type="button"
+            onClick={() => openFromMore("/finance/recurring")}
           >
             افتح <ArrowLeft aria-hidden="true" />
           </button>

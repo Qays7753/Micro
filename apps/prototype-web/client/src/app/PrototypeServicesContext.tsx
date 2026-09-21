@@ -58,6 +58,9 @@ import { IntegrityCheckService } from "@/application/finance/integrityCheckServi
 import { DueDatesService } from "@/application/finance/dueDatesService";
 /* Stage 2 — OPS-005/006 (tracker): القارئ الموحد للقادم والمتأخر — قراءة فقط. */
 import { UpcomingService } from "@/application/finance/upcomingService";
+/* OPS-003 (عقد ٤١): النوع فقط هنا — الخدمة تُحمّل ديناميكيًا بعد الإقلاع
+ * (سابقة EXE-014/D-034) فلا تدخل كومة الإقلاع ولا تضغط ميزانية الحزمة. */
+import type { RecurringExpenseService } from "@/application/finance/recurringExpenseService";
 /* Stage 2 — OPS-004 (tracker): قراءة التكلفة/الكمية المخططتين للقوالب — قراءة فقط. */
 import { TemplatePlannedCostService } from "@/application/catalog/templatePlannedCostService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
@@ -114,6 +117,7 @@ type PrototypeServices = {
   dueDates: DueDatesService;
   /* Stage 2 — OPS-005/006: القارئ الموحد للقادم والمتأخر — لا كتابة إطلاقًا. */
   upcoming: UpcomingService;
+  recurringExpenses: RecurringExpenseService | null;
   /* Stage 2 — OPS-004: قراءة التكلفة/الكمية المخططتين للقوالب — لا كتابة إطلاقًا. */
   templatePlannedCost: TemplatePlannedCostService;
   /* المجموعة ٦ (البند ١): تراجع القبضة مع تخصيصها المطابق بنقطة واحدة ذرّية. */
@@ -165,17 +169,31 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     transfers: LocalTransferService;
     guidedOpeningImport: GuidedOpeningImportService;
   } | null>(null);
+  /* OPS-003 (عقد ٤١، سابقة EXE-014/D-034): خدمة المصروف المتكرر تُحمَّل
+   * ديناميكيًا بعد الإقلاع — لا يحتاجها مسار الإقلاع؛ تُبنى فوق المخزن نفسه
+   * والكاتب الكنوني فور جاهزيتها ولا تُعاد عند تحديث dataVersion. */
+  const [recurringExpenseService, setRecurringExpenseService] = useState<RecurringExpenseService | null>(
+    null,
+  );
   useEffect(() => {
     let active = true;
     void Promise.all([
       import("@/application/transfers/localTransferService"),
       import("@/application/transfers/guidedOpeningImportService"),
-    ]).then(([transferModule, guidedModule]) => {
+      import("@/application/finance/recurringExpenseService"),
+    ]).then(([transferModule, guidedModule, recurringModule]) => {
       if (!active) return;
       setTransferServices({
         transfers: new transferModule.LocalTransferService(singletonStore),
         guidedOpeningImport: new guidedModule.GuidedOpeningImportService(singletonStore),
       });
+      setRecurringExpenseService(
+        new recurringModule.RecurringExpenseService(
+          singletonStore,
+          undefined,
+          singletonServices.projectFinance,
+        ),
+      );
     });
     return () => {
       active = false;
@@ -191,10 +209,11 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     () => ({
       ...singletonServices,
       ...(transferServices ?? { transfers: null, guidedOpeningImport: null }),
+      recurringExpenses: recurringExpenseService,
       dataVersion,
       notifyDataChanged,
     }),
-    [transferServices, dataVersion, notifyDataChanged],
+    [transferServices, recurringExpenseService, dataVersion, notifyDataChanged],
   );
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
@@ -206,7 +225,12 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
 const singletonStore = createBrowserLocalStore();
 function createServices(): Omit<
   PrototypeServices,
-  "dataVersion" | "notifyDataChanged" | "transfers" | "guidedOpeningImport" | "transferServices"
+  | "dataVersion"
+  | "notifyDataChanged"
+  | "transfers"
+  | "guidedOpeningImport"
+  | "transferServices"
+  | "recurringExpenses"
 > {
   const store = singletonStore;
   const costs = new CostService(store);

@@ -1426,7 +1426,7 @@ export function validRecurringExpenseSeries(value: unknown): boolean {
      * صالحة YYYY-MM حصرًا؛ أي شكل آخر رفض صادر عند الاستيراد. */
     (value.resumedFromPeriod === null ||
       value.resumedFromPeriod === undefined ||
-      isPeriodKey(value.resumedFromPeriod))
+      (typeof value.resumedFromPeriod === "string" && isPeriodKey(value.resumedFromPeriod)))
   );
 }
 

@@ -210,8 +210,15 @@ export default function FinancialEventEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { dataVersion, projectFinance, cashContinuity, notifyDataChanged, formDrafts, ownerEntitlement } =
-    usePrototypeServices();
+  const {
+    dataVersion,
+    projectFinance,
+    cashContinuity,
+    notifyDataChanged,
+    formDrafts,
+    ownerEntitlement,
+    recurringExpenses,
+  } = usePrototypeServices();
   const type = types.has(rawType as GuidedFinancialEventType) ? (rawType as GuidedFinancialEventType) : null;
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
@@ -220,6 +227,9 @@ export default function FinancialEventEditor() {
   const [sharedPercentage, setSharedPercentage] = useState(0);
   const [validSharedPercentage, setValidSharedPercentage] = useState(true);
   const [date, setDate] = useState(() => ammanDate());
+  /* OPS-003 (عقد ٤١ §٨): مصروف يدوي في فترة تذكير غير معالجة — تحذير ظاهر
+   * لا حظر صامت؛ التسجيل من هنا يبقى مشروعًا بقرار المستخدم الصريح. */
+  const [recurringWarning, setRecurringWarning] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [counterparty, setCounterparty] = useState("");
   const [relationship, setRelationship] = useState<OperatingExpenseContext["relationship"]>("project");
@@ -334,6 +344,32 @@ export default function FinancialEventEditor() {
     }
     setWalletId(current => (current === UNSET_EXPENSE_SOURCE ? "" : current));
   }, [wallets, type]);
+  /* OPS-003 (عقد ٤١ §٨): فحص التزامن مع تذكير غير معالج عند تاريخ الحدث —
+   * تحذير ظاهر فقط؛ الإدخال اليدوي المشروع يبقى ممكنًا بقرار المستخدم. */
+  useEffect(() => {
+    if (
+      !recurringExpenses ||
+      !type ||
+      (type !== "operating_expense_cash" && type !== "operating_expense_payable")
+    ) {
+      setRecurringWarning(null);
+      return;
+    }
+    let active = true;
+    recurringExpenses.findUnhandledOccurrenceForDate(date).then(result => {
+      if (!active) return;
+      if (!result.ok || result.value === null) {
+        setRecurringWarning(null);
+        return;
+      }
+      setRecurringWarning(
+        `لديك تذكير مصروف متكرر غير معالج لهذه الفترة: «${result.value.seriesTitle}» — سجّله من تفصيل التذكير إن شئت، أو تابع هنا بقرارك الصريح.`,
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [recurringExpenses, type, date, dataVersion]);
   /* المجموعة ٥ (التحصين الكامل): مفتاح الصفحة القديم يُرحَّل مرة واحدة عبر
    * المهاجئ الضيق (اكتب ← تحقق ← احذف) ثم تصبح القراءة من الحد الموحّد فقط —
    * لا وصول مباشرًا لتخزين الصفحة في الكود الطبيعي بعد اليوم. */
@@ -920,6 +956,11 @@ export default function FinancialEventEditor() {
           ) : null
         ) : null}
         <LocalDateField label="تاريخ الحدث" value={date} onChange={event => setDate(event.target.value)} />
+        {recurringWarning ? (
+          <p className="micro-offline-truth" role="status">
+            {recurringWarning}
+          </p>
+        ) : null}
         <label className="micro-field">
           <span>{content.counterparty}</span>
           <input

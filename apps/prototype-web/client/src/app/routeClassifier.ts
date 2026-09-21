@@ -55,6 +55,11 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/loans\/[^/]+$/,
   /* المجموعة ٥ (عقد ٣٣): معاينة المشاركة محرر نص عميق — يحرس التعديل اليدوي. */
   /^\/share\/preview$/,
+  /* OPS-003 (عقد ٤١): محرر تذكير المصروف المتكرر (إنشاء/تعديل مستقبلي) عمق —
+   * يحرس المدخلات غير المحفوظة ويخفي شريط التنقل كإخوته المحررات؛ القائمة
+   * والتفصيل سطحان يبقيانه. */
+  /^\/finance\/recurring\/new$/,
+  /^\/finance\/recurring\/[^/]+\/edit$/,
 ];
 
 function pathnameOnly(location: string) {

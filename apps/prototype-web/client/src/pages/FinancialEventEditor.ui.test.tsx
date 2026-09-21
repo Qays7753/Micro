@@ -74,6 +74,10 @@ describe("FinancialEventEditor save honesty (U-02)", () => {
       cashContinuity: {
         overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
       },
+      /* OPS-003: فحص التزامن مع تذكير متكرر — بلا تذكير غير معالج في هذه الاختبارات. */
+      recurringExpenses: {
+        findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
       /* المجموعة ٥: المسودة عبر الحد الموحّد — مخزن حقيقي لا كبأخرة. */
@@ -137,6 +141,10 @@ describe("FinancialEventEditor note requirement (U-04)", () => {
       cashContinuity: {
         overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
       },
+      /* OPS-003: فحص التزامن مع تذكير متكرر — بلا تذكير غير معالج في هذه الاختبارات. */
+      recurringExpenses: {
+        findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
       /* المجموعة ٥: المسودة عبر الحد الموحّد — مخزن حقيقي لا كبأخرة. */
@@ -151,5 +159,63 @@ describe("FinancialEventEditor note requirement (U-04)", () => {
     await user.click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     expect(screen.getByText("اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.")).toBeTruthy();
     expect(record).not.toHaveBeenCalled();
+  });
+});
+
+describe("FinancialEventEditor recurring-expense warning (OPS-003 — عقد ٤١ §٨)", () => {
+  const record = vi.fn();
+
+  beforeEach(() => {
+    wouterMocks.navigate.mockClear();
+    record.mockReset();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  function renderEditorWithUnhandledReminder() {
+    record.mockResolvedValueOnce({ ok: true, value: storedEvent(2500) });
+    mockedUsePrototypeServices.mockReturnValue({
+      projectFinance: {
+        record,
+        listSettleablePayables: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        listEvents: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        readPosition: vi.fn().mockResolvedValue({ ok: true, value: { amanahHeldMinor: 0 } }),
+      },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
+      },
+      recurringExpenses: {
+        findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { seriesTitle: "إيجار المحل الشهري", periodKey: "2026-09", dueOn: "2026-09-05" },
+        }),
+      },
+      dataVersion: 0,
+      notifyDataChanged: vi.fn(),
+      formDrafts: new FormDraftService(createFormDraftHarness().store),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <FinancialEventEditor />
+      </UnsavedChangesProvider>,
+    );
+  }
+
+  it("warns visibly about an unhandled recurring reminder for the entered date — and never blocks the manual save", async () => {
+    const user = userEvent.setup();
+    renderEditorWithUnhandledReminder();
+    /* التحذير الظاهر بلا حظر: نص معلن بجانب تاريخ الحدث (role=status). */
+    const warning = await screen.findByText(
+      /لديك تذكير مصروف متكرر غير معالج لهذه الفترة: «إيجار المحل الشهري»/,
+    );
+    expect(warning.getAttribute("role")).toBe("status");
+    /* الإدخال اليدوي يبقى ممكنًا: الحفظ يمر ولا يُحجب بالتحذير. */
+    await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
+    await user.type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "توصيل الطلبات");
+    await user.click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    expect(record).toHaveBeenCalledOnce();
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/finance");
   });
 });
