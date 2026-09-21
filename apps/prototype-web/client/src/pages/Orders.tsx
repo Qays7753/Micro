@@ -17,7 +17,7 @@ import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { ScheduleOverview } from "@/application/scheduling/scheduleService";
-import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDateTime, formatMoneyWithUnit } from "@/presentation/formatters";
 
 type OrdersState =
   | { phase: "loading" }
@@ -255,7 +255,24 @@ export default function Orders() {
                   {draft.intent === "customer_order" ? "طلب من عميل" : "تصميم مخطط"} · الكمية:{" "}
                   <IntegerValue value={draft.quantity} className="micro-inline-number" />
                 </small>
-                <small className="micro-row-next-action">الخطوة التالية: أكمل ما تعرفه الآن.</small>
+                {/* Z2.1 (§3.3): مسودة تسمّي ناقصها الملموس — الوصف ثم التكلفة ثم
+                    الاتفاق — من حقول المسودة القائمة لا من فحص جديد. */}
+                <small className="micro-row-next-action">
+                  الخطوة التالية:{" "}
+                  {draft.itemName.trim() ? (
+                    draft.specifications.trim() ? (
+                      draft.activeCostSnapshotId ? (
+                        <span>سجّل الاتفاق — السعر وموعد التسليم.</span>
+                      ) : (
+                        <span>احفظ نسخة التكلفة أولًا — تكفي تقديرية.</span>
+                      )
+                    ) : (
+                      <span>أكمل ملاحظات التخصيص أولًا.</span>
+                    )
+                  ) : (
+                    <span>أكمل وصف القطعة أولًا.</span>
+                  )}
+                </small>
               </span>
               <ChevronLeft aria-hidden="true" />
             </button>
@@ -395,6 +412,16 @@ function OrderWorkRow({ stored, onOpen }: { stored: StoredCraftOrder; onOpen: (h
     deliveryDate: stored.deliveryDate,
     nextAction: stored.order.nextAction,
   });
+  /* Z2.1 (§3.3): الفعل التالي للصف هو فعل الدومين نفسه المتسق مع بطاقة القرار
+   * في صفحة التفاصيل — خريطة العرض احتياط حين يغيب نص الدومين. */
+  const rowNextAction = stored.order.nextAction?.trim() || agreement.nextAction;
+  /* Z2.1: المسلّم/المغلق يتأهل بلحظة التسليم الفعلية — الموعد المستحق مضى
+   * وصار تاريخًا لا قرارًا؛ ما قبل التسليم يبقى بموعده. */
+  const deliveredFamily = stored.order.status === "delivered" || stored.order.status === "settled";
+  const deliveredAtIso = deliveredFamily
+    ? ([...(stored.order.events ?? [])].reverse().find(event => event.toStatus === "delivered")?.createdAt ??
+      null)
+    : null;
   return (
     <button className="micro-draft-row" type="button" onClick={() => onOpen(`/orders/${stored.id}`)}>
       <span className="micro-draft-symbol">
@@ -403,10 +430,17 @@ function OrderWorkRow({ stored, onOpen }: { stored: StoredCraftOrder; onOpen: (h
       <span>
         <strong>{stored.order.itemName}</strong>
         <small>
-          {agreement.label} · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
+          {agreement.label}
+          {deliveredFamily && deliveredAtIso ? ` · سُلّم في ${formatLocalDateTime(deliveredAtIso)}` : null}
+          {!deliveredFamily ? (
+            <>
+              {" "}
+              · موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
+            </>
+          ) : null}
         </small>
         <small>{settlementDetail(stored)}</small>
-        <small className="micro-row-next-action">الخطوة التالية: {agreement.nextAction}</small>
+        <small className="micro-row-next-action">الخطوة التالية: {rowNextAction}</small>
       </span>
       <ChevronLeft aria-hidden="true" />
     </button>

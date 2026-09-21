@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21",
+  "generated_at": "2026-09-22",
   "rule": "الفهرس يشير إلى التقارير ولا يعيد كتابة نتائجها. التقرير التاريخي لا يثبت حالة main اللاحقة.",
   "reports": [
     {
@@ -121,6 +121,12 @@
       "path": "reports/agent-report/2026-09-21_stage-2-final-execution-report/report.md",
       "scope": "Stage 2 completion session — unified execution report (Phase 0 + Waves 4-7)",
       "status": "OPEN_PR_PENDING"
+    },
+    {
+      "id": "UX-UI-Z1-Z2",
+      "path": "reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md",
+      "scope": "UX/UI Reports 1-2 Z1+Z2 complete — delivery reports, gates, and integration review (WS-172)",
+      "status": "OPEN_PR_207_IN_REVIEW"
     }
   ]
 }

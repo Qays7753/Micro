@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import { ArrowRight } from "lucide-react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { REUSED_RECORD_PROTECTION_NOTE, REUSED_RECORD_RECEIPT_TITLE } from "@/app/resultFeedback";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import { attributeToWallet, cashNow } from "./quickFormHelpers";
 import type {
@@ -143,6 +144,23 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       onSavingChange?.(false);
       setFieldError(false);
       setFormError(result.message);
+      return;
+    }
+    /* Z2.3 (§3.4 — Reused): الحدث موجود سابقًا بنفس المفتاح — وصل محايد
+     * ناجح الحماية لا نجاحًا فرِشًا: لا كتابة جديدة فلا نسبة محفظة تُعاد
+     * ولا إشعار تغيير بيانات (المخزن لم يتغير بهذه النتيجة). */
+    if (result.reused) {
+      const cashMinor = await cashNow(projectFinance);
+      setSaving(false);
+      onSavingChange?.(false);
+      onSubmitted({
+        title: REUSED_RECORD_RECEIPT_TITLE,
+        amountMinor: saleAmountMinor,
+        cashMinor,
+        recordHref: `/direct-sales/${encodeURIComponent(result.value.id)}`,
+        detail: REUSED_RECORD_PROTECTION_NOTE,
+        attributionNote: null,
+      });
       return;
     }
     /* ٥.٢: نسبة المقبوض للمحفظة المختارة إن حُددت — تحصيلًا لا دينًا. */

@@ -8,7 +8,7 @@
  * ٧ أيام فلا تصلح عقد جهوزية، وحالة التحميل تُثبَّت ببوابة قراءة يحكمها الاختبار
  * (لا سباق ولا نوم)، وزر «إعادة المحاولة» في سطح الخطأ لا يُنقر أبدًا. */
 import React from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { withReturnTo } from "@/app/navigationContract";
@@ -102,8 +102,22 @@ describe("Home journeys (Group 11-E)", () => {
     renderHome();
     expect(await screen.findByRole("heading", readyHeading)).toBeTruthy();
     expect(screen.queryByText("تعذر تحميل مشروعك")).not.toBeTruthy();
+    /* Z1 §3.1: منطقة حالة اليوم معلنة دائمًا في الجهوزية — دور واحد واضح. */
+    const dailyStatus = screen.getByTestId("home-daily-status");
+    expect(dailyStatus.getAttribute("role")).toBe("status");
     /* بلا بيانات: يوم مفتوح بلا أرقام مختلقة (§7.1 — ما لا تسجله لا يُخترع له رقم). */
     expect(screen.getByText("يومك مفتوح")).toBeTruthy();
+    expect(dailyStatus.textContent).toContain("يومك مفتوح");
+  });
+
+  it("offers the fixed recording actions on the empty day — the day is open, not blocked", async () => {
+    await seedProfile();
+    renderHome();
+    expect(await screen.findByRole("heading", readyHeading)).toBeTruthy();
+    const fixedActions = screen.getByTestId("home-quick-actions");
+    expect(fixedActions.textContent).toContain("سجّل بيعًا");
+    expect(fixedActions.textContent).toContain("سجّل مصروفًا");
+    expect(fixedActions.textContent).toContain("طلب من عميل");
   });
 
   it("keeps the opening cash wallet balance exact through the home read model", async () => {
@@ -170,8 +184,60 @@ describe("Home journeys (Group 11-E)", () => {
     expect(await screen.findByRole("heading", { name: "تعذر تحميل مشروعك" })).toBeTruthy();
     expect(screen.getByText("تعذر قراءة بيانات مشروعك المحلية.")).toBeTruthy();
     /* زر «إعادة المحاولة» موجود كواجهة إعادة المحاولة — لا يُنقر في الاختبار
-     * (استدعاؤه window.location.reload — خارج نطاق jsdom وسبق أن أربك رحلة سابقة). */
+     * (إعادة المحاولة تعيد القراءة في مكانها، لا إعادة تحميل الصفحة). */
     expect(screen.getByRole("button", { name: "إعادة المحاولة" })).toBeTruthy();
     expect(screen.queryByRole("heading", readyHeading)).not.toBeTruthy();
+  });
+
+  it("keeps the ready surface when a background refresh fails, with an inline alert and a safe in-place retry", async () => {
+    await seedProfile();
+    /* Z1.4 (§3.1 حالة الخطأ): فشل التحديث الخلفي مع جهوزية قائمة — المحتوى
+     * الجاهز يبقى، وخطأ صادق معلن مع زر إعادة محاولة يعيد القراءة نفسها. */
+    let readCalls = 0;
+    const realControlCenter = buildHomeControlCenter();
+    const flakyControlCenter = {
+      read: async () => {
+        readCalls += 1;
+        if (readCalls === 2)
+          return { ok: false as const, code: "storage_error" as const, message: "تعذّر تحديث القراءة." };
+        return realControlCenter.read();
+      },
+    } as unknown as HomeControlCenterService;
+    function RefreshHarness() {
+      const [version, setVersion] = React.useState(0);
+      mockedUsePrototypeServices.mockReturnValue({
+        homeControlCenter: flakyControlCenter,
+        projectFinance: new ProjectFinancialService(store, () => NOW),
+        dataVersion: version,
+        notifyDataChanged: () => {
+          setVersion(current => current + 1);
+        },
+      } as unknown as ReturnType<typeof usePrototypeServices>);
+      return (
+        <QuickRecordingProvider>
+          <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+            <Home />
+            <button type="button" onClick={() => setVersion(current => current + 1)}>
+              bump-refresh
+            </button>
+          </UnsavedChangesProvider>
+        </QuickRecordingProvider>
+      );
+    }
+    render(<RefreshHarness />);
+    expect(await screen.findByRole("heading", readyHeading)).toBeTruthy();
+    /* تحديث خلفي يفشل: الجهوزية تبقى ولا يستبدلها سطح الخطأ الكامل. */
+    fireEvent.click(screen.getByText("bump-refresh"));
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("تعذّر تحديث القراءة.");
+    expect(screen.getByRole("heading", readyHeading)).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "تعذر تحميل مشروعك" })).not.toBeTruthy();
+    /* إعادة المحاولة الآمنة تعيد القراءة في مكانها — لا window.location.reload. */
+    const retry = screen.getByRole("button", { name: "إعادة المحاولة" });
+    expect(alert.contains(retry)).toBe(true);
+    fireEvent.click(retry);
+    expect(await screen.findByRole("heading", readyHeading)).toBeTruthy();
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    expect(readCalls).toBe(3);
   });
 });

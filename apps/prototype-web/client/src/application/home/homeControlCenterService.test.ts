@@ -99,6 +99,9 @@ describe("HomeControlCenterService", () => {
     const ownerFact = result.value.facts.find(fact => fact.id === "owner_capital");
     expect(ownerFact?.road).toMatchObject({ href: "/finance/new/owner_investment_cash" });
     expect(result.value.recentChanges).toHaveLength(0);
+    /* Z1.4: المشروع الفارغ يمرر «لا بيانات مسجلة» — حالة اليوم «فراغ» لا
+     * «هادئ»، فالفراغ والهادئ حالتان مختلفتان صادقتان. */
+    expect(result.value.dailyStatus).toEqual({ kind: "empty" });
   });
 
   it("reveals F-078 in the Today section: due follow-ups, today's appointment, and recorded debt from one screen (journey 2)", async () => {
@@ -172,6 +175,8 @@ describe("HomeControlCenterService", () => {
     /* دمج بند ١٠: المتابعة المستحقة والدين بندان لا أكثر — لا تكرار بين قسمين. */
     const ids = result.value.todaySection.items.map(item => item.id);
     expect(new Set(ids).size).toBe(ids.length);
+    /* Z1.4: بنود مستحقة = يوم انتباه. */
+    expect(result.value.dailyStatus).toEqual({ kind: "attention" });
   });
 
   it("keeps /finance reachable for a brand-new owner while period_result stays conditional on its own unit (decisions 11–14)", async () => {
@@ -222,6 +227,9 @@ describe("HomeControlCenterService", () => {
     /* §10 معدّلة بقرار P-01 طبقة ١: سطر الحقيقة الوحيد المسموح هو تذكير النسخ
      * الاحتياطية حين لا توجد نسخة مُتحقق منها مع وجود بيانات — لا جملة عامة أخرى. */
     expect(result.value.truthLine === null || result.value.truthLine.includes("نسخة احتياطية")).toBe(true);
+    /* Z1.4: بيانات مسجلة (الاستثمار) بلا بنود مستحقة مع حقائق غير مسجلة
+     * (اللي عند العملاء/عليّ للموردين) — حالة اليوم «بيانات ناقصة». */
+    expect(result.value.dailyStatus).toEqual({ kind: "incomplete" });
   });
 
   it("absorbs the attention content into Today for an active owner with no duplication and no removal", async () => {
@@ -544,9 +552,21 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
   /* Wave 4.3 — P-4.3-2 (D6/D7): أرقام اليوم/الشهر من قراءة الفترة الرسمية
    * وحدها، والنتيجة الناقصة توصف بصدق، والـInsights من البيانات الحالية
    * فقط مع فعل منطقي واحد — لا معادلات داخل الواجهة. */
-  it("builds today/month numbers from the official period read and data-driven insights", async () => {
+  it("builds today/month numbers from the official period read with only the sales-change insight", async () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
+    /* شهران متتاليان من البيع المباشر — مقارنة الشهر بالشهر هي الملحوظة
+     * الوحيدة المتبقية (Z1 §3.1: لا تكرار المبلغ نفسه في منطقتين متجاورتين). */
+    const previousMonthSale = await new DirectSaleService(store, now).record({
+      itemName: "كوب يوليو",
+      quantity: 1,
+      revenueMinor: 3000,
+      costMinor: 1000,
+      occurredOn: "2026-07-20",
+      note: "اختبار Z1",
+      idempotencyKey: "z1-previous-month-sale",
+    });
+    if (!previousMonthSale.ok) throw new Error(previousMonthSale.message);
     const sale = await new DirectSaleService(store, now).record({
       itemName: "كوب اختبار",
       quantity: 1,
@@ -566,10 +586,15 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
     });
     expect(result.value.periodNumbers.today.result).toMatchObject({ state: "known", valueMinor: 900 });
     expect(result.value.periodNumbers.month.sales).toMatchObject({ state: "known", valueMinor: 1500 });
-    /* القبض بلا محافظ → كاش غير موزع → ملحوظة توزيع واحدة بفعل منطقي. */
-    expect(result.value.insights.map(insight => insight.id)).toContain("unallocated-cash");
-    const distribute = result.value.insights.find(insight => insight.id === "unallocated-cash");
-    expect(distribute?.action).toMatchObject({ href: "/cash/distribute", label: "وزّعه" });
+    /* ملحوظة تغيّر المبيعات وحدها تبقى — مقارنة شهرية لا تكرر رقمًا معروضًا. */
+    expect(result.value.insights.map(insight => insight.id)).toEqual(["sales-change"]);
+    const salesChange = result.value.insights.find(insight => insight.id === "sales-change");
+    expect(salesChange?.action).toMatchObject({ href: "/finance?view=period" });
+    /* Z1 §3.1 (إزالة التكرار): الكاش غير الموزع والمبالغ غير المحصلة وبيانات
+     * التكلفة الناقصة حقائق/أرقام تُعرض في «أرقامك» نفسها — لا تُكرر ملحوظات. */
+    expect(result.value.insights.map(insight => insight.id)).not.toContain("unallocated-cash");
+    expect(result.value.insights.map(insight => insight.id)).not.toContain("uncollected-receivables");
+    expect(result.value.insights.map(insight => insight.id)).not.toContain("incomplete-result");
   });
 
   it("keeps the incomplete result honest instead of inventing a number (no cost data)", async () => {
@@ -592,6 +617,57 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
       valueMinor: null,
       honestNote: "تحتاج بيانات تكلفة",
     });
-    expect(result.value.insights.map(insight => insight.id)).toContain("incomplete-result");
+    /* Z1 §3.1: «تحتاج بيانات تكلفة» سطر صدق واحد في أرقام الشهر نفسه —
+     * الملحوظة المكررة أُزيلت مع مصدر رابطها. */
+    expect(result.value.insights.map(insight => insight.id)).not.toContain("incomplete-result");
+  });
+
+  it("drops the amount-duplicating insights entirely — facts carry their own numbers", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    /* قبض بلا محافظ (كاش غير موزع) ودين بيع آجل جزئي معًا — الحقائق تعرض
+     * رقميهما في «أرقامك»، ولا ملحوظة تكرر المبلغ نفسه بجوارهما (Z1 §3.1). */
+    const investment = await new ProjectFinancialService(store, now).record({
+      type: "owner_investment_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-08-25",
+      note: "استثمار",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "z1-unallocated-investment",
+    });
+    if (!investment.ok) throw new Error(investment.message);
+    await store.saveDirectSale({
+      id: "z1-partial-debt-sale",
+      itemName: "كوب آجل",
+      quantity: 1,
+      revenueMinor: 2000,
+      collectedMinor: 500,
+      collectionStatus: "partial_debt",
+      catalogItemId: null,
+      customerName: "عميل آجل",
+      costMinor: 600,
+      occurredOn: "2026-08-25",
+      recordedAt: "2026-08-25T10:00:00.000Z",
+      note: null,
+      idempotencyKey: "z1-partial-debt-sale-key",
+      status: "active",
+      revisions: [],
+    });
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    const insightIds = result.value.insights.map(insight => insight.id);
+    expect(insightIds).not.toContain("unallocated-cash");
+    expect(insightIds).not.toContain("uncollected-receivables");
+    /* الحقائق نفسها باقية بقيمها الصادقة — الإزالة للملحوظات لا للحقائق:
+     * غير الموزع = الاستثمار 5000 + قبض البيع الآجل 500. */
+    expect(result.value.facts.find(fact => fact.id === "unallocated")).toMatchObject({
+      state: "known",
+      valueMinor: 5500,
+    });
+    const dueDebt = result.value.todaySection.items.find(
+      item => item.id === "today-due-amount:z1-partial-debt-sale",
+    );
+    expect(dueDebt).toMatchObject({ kind: "due_amount", href: "/collect?source=sale:z1-partial-debt-sale" });
   });
 });

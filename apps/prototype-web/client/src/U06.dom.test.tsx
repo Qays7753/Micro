@@ -191,3 +191,61 @@ describe("the empty intent editor creates the draft only on first real input (U-
     expect(screen.queryByRole("button", { name: /احذف المسودة/ })).toBeNull();
   });
 });
+
+/* Z2.0 (§3.4 — Z2.6 عقد): قاموس حذف المسودة — الحذف للمسودات غير المرتبطة
+ * فقط، وزر التراجع عن تأكيد الحذف لا يستخدم «تراجع» المجردة (محجوزة للعكس
+ * الموثق) بل كلمة إغلاق عائلة التنقل/الإغلاق. */
+describe("delete-draft vocabulary (Z2.6 — §3.4)", () => {
+  const get = vi.fn();
+  const save = vi.fn();
+
+  function renderEditor() {
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DraftEditor />
+      </UnsavedChangesProvider>,
+    );
+  }
+
+  beforeEach(() => {
+    get.mockReset();
+    save.mockReset();
+    wouterMocks.navigate.mockReset();
+    mockedUsePrototypeServices.mockReturnValue({
+      drafts: { get, save },
+      catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+  });
+
+  afterEach(() => {
+    cleanup();
+    wouterMocks.location = "/orders/draft/new?intent=customer_order";
+  });
+
+  it("the delete-confirmation back-out uses a close word — the bare «تراجع» stays reserved for documented reversals", async () => {
+    wouterMocks.location = "/orders/draft/draft-99";
+    get.mockResolvedValue({ ok: true, value: draftWithId("draft-99").draft });
+    renderEditor();
+    await screen.findByRole("heading", { name: "طلب من عميل" });
+    const opener = await screen.findByRole("button", { name: /احذف المسودة/ });
+    await userEvent.click(opener);
+    /* نسخة الحذف صادقة: أثر نهائي بلا سبب ولا مال — والمسودة غير مرتبطة. */
+    expect(screen.getByText(/حذف المسودة يزيلها من هذا الجهاز نهائيًا/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "تراجع" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "إغلاق" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /احذف المسودة/ })).toBeTruthy());
+  });
+
+  it("delete stays limited to eligible drafts — a linked draft exposes no delete zone", async () => {
+    wouterMocks.location = "/orders/draft/draft-77";
+    get.mockResolvedValue({
+      ok: true,
+      value: draftWithId("draft-77", { linkedOrderId: "order-77" }).draft,
+    });
+    renderEditor();
+    await waitFor(() => expect(screen.getByText("هذه المسودة أصبحت طلبًا محليًا")).toBeTruthy());
+    expect(screen.queryByRole("button", { name: /احذف المسودة/ })).toBeNull();
+    expect(screen.queryByText(/حذف المسودة يزيلها/)).toBeNull();
+  });
+});

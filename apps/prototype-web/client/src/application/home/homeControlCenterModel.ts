@@ -122,10 +122,18 @@ export type HomeInsight = {
   why: string | null;
   action: HomeAction | null;
 };
+/* Z1 (العرض المعتمد §3.1): حالة اليوم الواحدة المعلنة — نموذج عرض فقط لا
+ * معنى ماليًا: انتباه (بند مستحق)، فراغ (لا بيانات مسجلة إطلاقًا)، بيانات
+ * ناقصة (حقائق غير مسجلة تمنع الاستنتاج)، هادئ (كل شيء معروف ولا شيء عاجل). */
+export type HomeDailyStatusKind = "attention" | "empty" | "incomplete" | "normal";
+export type HomeDailyStatus = { kind: HomeDailyStatusKind };
 export type HomeControlCenterInput = {
   activityName: string;
   todayLocal: string;
   truthLine: string | null;
+  /* Z1.4: القراءة تمرر هل توجد أي بيانات مسجلة — تُمّيز حالة الفراغ عن
+   * الهادئ؛ تعبير مشتق من القراءة نفسها لا قراءة جديدة. */
+  hasAnyRecordedData: boolean;
   financeUnit: HomeFinanceUnit;
   catalogUnit: HomeCatalogUnit;
   todaySection: HomeTodaySection;
@@ -139,6 +147,8 @@ export type HomeControlCenterInput = {
 export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
   truthLine: string | null;
+  /* Z1 (§3.1): حالة اليوم المعلنة — تُشتق هنا لا في الواجهة، والمصدر واحد. */
+  dailyStatus: HomeDailyStatus;
   /* المجموعة ١ (§7.1): كتلة أولوية واحدة — أهم بند قابل للفعل اليوم؛ أول عنصر
    * بعد الترتيب، والقائمة تحته تستوعب الباقي بلا تكرار. */
   priorityBlock: HomeTodayItem | null;
@@ -173,9 +183,20 @@ export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): 
   const recentChanges = input.recentChanges.slice(0, 5);
   /* المجموعة ١: الأولوية = أول بند مرتّب؛ القائمة الفارغة تبقي الكتلة null لا مختلقة. */
   const priorityBlock = todayItems.length > 0 ? todayItems[0] : null;
+  /* Z1 (§3.1): اشتقاق حالة اليوم — الترتيب ملزم: البند المستحق أولًا، ثم
+   * الفراغ التام، ثم الحقائق غير المسجلة مع بيانات قائمة، ثم الهادئ. */
+  const dailyStatus: HomeDailyStatus =
+    todayItems.length > 0
+      ? { kind: "attention" }
+      : !input.hasAnyRecordedData
+        ? { kind: "empty" }
+        : facts.some(fact => fact.state === "not_initialized")
+          ? { kind: "incomplete" }
+          : { kind: "normal" };
   return {
     heading: { activityName: input.activityName, todayLocal: input.todayLocal },
     truthLine: input.truthLine,
+    dailyStatus,
     priorityBlock,
     financeUnit: input.financeUnit,
     catalogUnit: input.catalogUnit,

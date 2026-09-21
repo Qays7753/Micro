@@ -574,35 +574,12 @@ export class HomeControlCenterService {
       },
     };
     /* P-4.3-2 (D6): Insights من البيانات الحالية فقط — لكل ملحوظة ماذا حدث
-     * ولماذا يهم وفعل منطقي واحد؛ بلا تكرار لسبب جذري واحد (كل سبب مرة). */
+     * ولماذا يهم وفعل منطقي واحد؛ بلا تكرار لسبب جذري واحد (كل سبب مرة).
+     * Z1 (§3.1 — لا تكرار المبلغ نفسه في منطقتين متجاورتين): أُزيلت ملحوظات
+     * الكاش غير الموزع والمبالغ غير المحصلة وبيانات التكلفة الناقصة — أرقامها
+     * نفسها معروضة في «أرقامك» المجاورة (الحقائق + سطر صدق النتيجة الناقصة)،
+     * فبقيت مقارنة الشهر بالشهر وحدها (رقم لا يظهر في مكان آخر). */
     const insights: HomeInsight[] = [];
-    if (cashEvidence && positionValue.unallocatedCashMinor > 0) {
-      insights.push({
-        id: "unallocated-cash",
-        what: "عندك كاش غير موزع في الدرج",
-        why: "قبض لم يُنسب لمحفظة — وزّعه ليُعرف مكانه",
-        action: action("distribute", "وزّعه", "/cash/distribute", "unallocated"),
-      });
-    }
-    if (orderEvidence && positionValue.customerReceivablesMinor > 0) {
-      insights.push({
-        id: "uncollected-receivables",
-        what: "مبالغ غير محصلة عند العملاء",
-        why: "دين مسجل بعد التسليم — ليس كاشًا بعد",
-        action: action("collect", "حصّل", "/collect", "receivables"),
-      });
-    }
-    if (
-      monthPeriod.value.resultMinor === null &&
-      (monthPeriod.value.cogsMissingOrderCount > 0 || monthPeriod.value.directSaleCostUnknownCount > 0)
-    ) {
-      insights.push({
-        id: "incomplete-result",
-        what: "بيانات تكلفة ناقصة تمنع نتيجة نهائية لهذا الشهر",
-        why: null,
-        action: action("review-result", "راجع التفاصيل", "/finance?view=period", "cogs"),
-      });
-    }
     const monthRevenue = totalSales(monthPeriod.value);
     const previousMonthRevenue = totalSales(previousMonthPeriod.value);
     if (monthRevenue > 0 && previousMonthRevenue > 0 && monthRevenue !== previousMonthRevenue) {
@@ -622,6 +599,9 @@ export class HomeControlCenterService {
       value: buildHomeControlCenterViewModel({
         activityName: profile.value.activityName,
         todayLocal: today,
+        /* Z1.4: تعبير القراءة القائم نفسه (hasAnyData) يُمرَّر للنموذج — لا
+         * قراءة جديدة ولا معنى ماليًا، فقط تمييز الفراغ عن الهادئ. */
+        hasAnyRecordedData: hasAnyData,
         truthLine: backupReminderDue
           ? "بياناتك على هذا الجهاز فقط — انسخ نسخة احتياطية من الإعدادات لتصبح جاهزة للطوارئ."
           : null,

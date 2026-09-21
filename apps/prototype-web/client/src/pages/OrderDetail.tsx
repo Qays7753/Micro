@@ -24,6 +24,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import {
   DELIVERED_REVIEW_LOCK_NOTE,
+  DISMISS_PANEL_CLOSE_LABEL,
   STALE_CONFLICT_NOTE,
   STALE_RELOAD_ACTION_LABEL,
   STALE_RELOADED_NOTE,
@@ -50,7 +51,7 @@ import {
   DELIVERY_RESPONSIBILITY_AR,
 } from "@micro-domain/craft-order/index.js";
 import type { DeliveryResponsibility } from "@micro-domain/craft-order/index.js";
-import { formatLocalDateTime, formatMoneyMinor } from "@/presentation/formatters";
+import { formatLocalDate, formatLocalDateTime, formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
 import { Button } from "@/components/primitives";
@@ -365,6 +366,12 @@ export default function OrderDetail() {
   /* ORD-002: لحظة التسليم الأصلية من حدث التسليم نفسه — لا وقت فتح الصفحة. */
   const deliveredAtIso =
     [...order.events].reverse().find(event => event.toStatus === "delivered")?.createdAt ?? null;
+  /* Z2.2 (§3.3): لحظة التسليم القائمة — تُذكر ما دام التسليم غير معكوس؛ بعد
+   * التراجع الموثق لم يعد للطلب تسليم قائم فيعود الموعد المستحق مؤهلًا. */
+  const standingDeliveryIso = deliveredAtIso && !hasDeliveryReversal(order) ? deliveredAtIso : null;
+  /* Z2.2: فعل الدومين هو الفعل التالي المعروض — متسقًا مع الفعل السياقي
+   * الظاهر على الشاشة نفسها؛ خريطة العرض احتياط حين يغيب نص الدومين. */
+  const decisionNextAction = order.nextAction?.trim() || agreement.nextAction;
   /* التحصين الكامل (D-031، المجموعة ٣): القفل الحقيقي — سجل مسلّم داخل «يحتاج
    * مراجعة» بلا تراجع موثق عن التسليم؛ مسندا النطاق نفسه (STR-008، المجموعة ٩). */
   const lockedInDeliveredReview =
@@ -828,11 +835,79 @@ export default function OrderDetail() {
       ) : null}
       <section className="micro-decision-card">
         <span>الخطوة التالية</span>
-        <strong>{agreement.nextAction}</strong>
+        <strong>{decisionNextAction}</strong>
         <p>
-          موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
+          {standingDeliveryIso ? (
+            `سُلّم في ${formatLocalDateTime(standingDeliveryIso)}`
+          ) : (
+            <>
+              موعد التسليم: <LocalDateValue value={stored.deliveryDate} />
+            </>
+          )}
         </p>
       </section>
+      {/* Z2.2 (§3.3): تكوين رحلة الطلب بجوار بطاقة القرار — ما أُنجز وما ينقص
+          والخطوة التالية وعلامة التقديري/النهائي واكتمال التحصيل، مركّبًا من
+          قيم النموذج القائمة خلف إفصاح مطوي؛ لا يفتح معالجة جديدة ولا يسدّ
+          الإغلاق، وأثر المراجعة يبقى متابعة لا شرطًا. */}
+      <details className="micro-additional-details" data-testid="order-journey-composition">
+        <summary className="micro-additional-details-summary">
+          <span>{`رحلة الطلب — ${label}`}</span>
+          <small>{`المقبوض ${formatMoneyMinor(order.collectedMinor)} من ${formatMoneyMinor(order.agreedPriceMinor)} د.أ${order.receivableMinor > 0 ? ` · المتبقي ${formatMoneyMinor(order.receivableMinor)} د.أ` : ""}`}</small>
+        </summary>
+        <div className="micro-additional-details-body">
+          <p>
+            <strong>ما أُنجز:</strong>{" "}
+            {agreement.kind === "none" || agreement.kind === "incomplete"
+              ? `الاتفاق غير مكتمل — ${agreement.nextAction}`
+              : `الاتفاق محفوظ — السعر ${formatMoneyMinor(order.agreedPriceMinor)} د.أ · موعد التسليم ${formatLocalDate(stored.deliveryDate) ?? "غير محدد بعد"}`}
+            {["in_progress", "ready", "delivered", "settled", "needs_review"].includes(order.status)
+              ? " · بدأ التنفيذ"
+              : ""}
+            {standingDeliveryIso ? ` · سُلّم في ${formatLocalDateTime(standingDeliveryIso)}` : ""}
+          </p>
+          <p>
+            <strong>التحصيل:</strong>{" "}
+            {order.collectedMinor === 0
+              ? "لم يُقبض شيء بعد."
+              : `مقبوض ${formatMoneyMinor(order.collectedMinor)} من ${formatMoneyMinor(order.agreedPriceMinor)} د.أ${order.receivableMinor > 0 ? " — تحصيل جزئي حتى الآن" : " — تحصيل كامل"}`}
+            {order.receivableMinor > 0
+              ? ` · المتبقي ${formatMoneyMinor(order.receivableMinor)} د.أ${order.settlementStatus === "debt" ? " (دين مسجل)" : ""}`
+              : ""}
+          </p>
+          <p>
+            <strong>ما ينقص:</strong>{" "}
+            {(() => {
+              const parts: string[] = [];
+              if (order.status !== "cancelled" && !order.customerName.trim())
+                parts.push("اسم الجهة غير مسجل — سمِّه ليصبح الدين قابلًا للتتبع");
+              if (order.costSnapshot.knowledgeState === "estimated")
+                parts.push("التكلفة تقديرية — النتيجة تبقى تقديرية");
+              if (["partial", "incomplete", "stale", "variable"].includes(order.costSnapshot.knowledgeState))
+                parts.push("التكلفة غير معروفة بالكامل — راجع مكوناتها");
+              if (order.receivableMinor > 0)
+                parts.push(`المتبقي ${formatMoneyMinor(order.receivableMinor)} د.أ`);
+              return parts.length === 0 ? "لا شيء — الرحلة مكتملة." : parts.join(" · ");
+            })()}
+          </p>
+          <p>
+            <strong>الخطوة التالية:</strong> {decisionNextAction}
+          </p>
+          <p className="micro-muted-copy">
+            {["delivered", "settled"].includes(order.status)
+              ? `النتيجة عند التسليم: ${
+                  order.resultStatus === "final"
+                    ? "نهائية"
+                    : order.resultStatus === "estimated"
+                      ? "تقديرية"
+                      : order.resultStatus === "incomplete"
+                        ? "غير مكتملة"
+                        : "تحتاج مراجعة"
+                } — ${result}`
+              : "النتيجة غير محسوبة قبل التسليم — الربح التقديري أدناه للاستئناس فقط."}
+          </p>
+        </div>
+      </details>
       <section className="micro-summary-grid">
         <div>
           <span>السعر المتفق عليه (د.أ)</span>
@@ -1092,12 +1167,10 @@ export default function OrderDetail() {
                     >
                       تخطّى السبب وألغِ
                     </Button>
-                    <Button
-                      action="quiet"
-
-                      onClick={() => setCancelPanelOpen(false)}
-                    >
-                      تراجع
+                    {/* Z2.6 (§3.4): إخفاء المعاينة قبل أي التزام — كلمة إغلاق؛
+                        «تراجع» محجوزة للعكس الموثق عن القبضات/التسليم. */}
+                    <Button action="quiet" onClick={() => setCancelPanelOpen(false)}>
+                      {DISMISS_PANEL_CLOSE_LABEL}
                     </Button>
                   </div>
                   {otherReasonOpen ? (
@@ -1196,13 +1269,9 @@ export default function OrderDetail() {
                     >
                       سجّل العربون
                     </Button>
-                    <Button
-                      action="quiet"
-
-                      disabled={isActing}
-                      onClick={closeDepositPanel}
-                    >
-                      تراجع
+                    {/* Z2.6 (§3.4): إخفاء لوحة العربون — إغلاق لا «تراجع». */}
+                    <Button action="quiet" disabled={isActing} onClick={closeDepositPanel}>
+                      {DISMISS_PANEL_CLOSE_LABEL}
                     </Button>
                   </div>
                 </section>

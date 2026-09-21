@@ -26,16 +26,20 @@ if (typeof Element !== "undefined" && !Element.prototype.hasPointerCapture) {
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
 
-function mockSheetServices() {
+function mockSheetServices(overrides?: {
+  saleRecord?: ReturnType<typeof vi.fn>;
+  expenseRecord?: ReturnType<typeof vi.fn>;
+}) {
   return {
     directSales: {
-      record: vi.fn().mockResolvedValue({ ok: true, value: { id: "sale-w43" } }),
+      record: overrides?.saleRecord ?? vi.fn().mockResolvedValue({ ok: true, value: { id: "sale-w43" } }),
     },
     projectFinance: {
       readPosition: vi.fn().mockResolvedValue({ ok: true, value: { recordedCashMinor: 2500 } }),
       distributeUnallocated: vi.fn().mockResolvedValue({ ok: true, value: {} }),
       listEvents: vi.fn().mockResolvedValue({ ok: true, value: [] }),
-      record: vi.fn().mockResolvedValue({ ok: true, value: { id: "expense-w43" } }),
+      record:
+        overrides?.expenseRecord ?? vi.fn().mockResolvedValue({ ok: true, value: { id: "expense-w43" } }),
     },
     cashContinuity: {
       overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
@@ -145,5 +149,84 @@ describe("Wave 4.3 — P-4.3-2: quick sheet safe Enter, editable date, corrected
     expect(form?.querySelector('button[type="submit"]')).toBeTruthy();
     fireEvent.submit(form as HTMLFormElement);
     await waitFor(() => expect(services.projectFinance.record).toHaveBeenCalled());
+  });
+
+  /* ─── Z2.0/Z2.3 (§3.4 — Reused): النتيجة «مُعاد استعماله» وصلٌ محايد ناجح
+   * الحماية — ليس «سُجّل بيع» (نجاح جديد) وليس خطأً ولا نجاحًا جزئيًا. ─── */
+  it("Z2.3: a reused quick-sale record renders a distinct neutral receipt — never fresh-success wording, never an error", async () => {
+    const saleRecord = vi.fn().mockResolvedValue({ ok: true, value: { id: "sale-w43" }, reused: true });
+    const services = mockSheetServices({ saleRecord });
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<QuickActionSheet open onOpenChange={vi.fn()} onAction={vi.fn()} />);
+    await openSaleForm();
+    fillAmount("12.50");
+    const form = screen.getByLabelText("مبلغ البيع").closest("form") as HTMLFormElement;
+    fireEvent.submit(form);
+    await waitFor(() => expect(saleRecord).toHaveBeenCalledTimes(1));
+    await screen.findByText(/وصل التسجيل/);
+    /* وصل مميز: عنوان «سجل موجود سابقًا» لا «سُجّل بيع» الفرِش. */
+    expect(screen.getByText(/سجل موجود سابقًا/)).toBeTruthy();
+    expect(screen.getByText(/لم يُنشأ سجل جديد/)).toBeTruthy();
+    expect(
+      screen.queryByText((content, element) => element?.tagName === "STRONG" && content.includes("سُجّل")),
+    ).toBeNull();
+    /* محايد ناجح الحماية: لا role=alert ولا خطأ مصفّف في الوصل. */
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByText(/فشل|خطأ/)).toBeNull();
+    /* لم تحدث كتابة جديدة: لا نسبة محفظة ولا إشعار تغيير بيانات. */
+    expect(services.projectFinance.distributeUnallocated).not.toHaveBeenCalled();
+    expect(services.notifyDataChanged).not.toHaveBeenCalled();
+    /* الفعل التالي يبقى متاحًا: فتح السجل الموجود. */
+    expect(screen.getByRole("button", { name: "افتح السجل" })).toBeTruthy();
+  });
+
+  it("Z2.4: a reused quick-expense record renders the same neutral protection receipt — parity with the sale form", async () => {
+    const expenseRecord = vi.fn().mockResolvedValue({ ok: true, value: { id: "expense-w43" }, reused: true });
+    const services = mockSheetServices({ expenseRecord });
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<QuickActionSheet open onOpenChange={vi.fn()} onAction={vi.fn()} initialMode="expense-form" />);
+    const amount = await screen.findByLabelText(/مبلغ المصروف/);
+    fireEvent.change(amount.querySelector("input") ?? amount, { target: { value: "5.25" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: أكياس تغليف"), { target: { value: "أكياس اختبار" } });
+    const form = amount.closest("form") as HTMLFormElement;
+    fireEvent.submit(form);
+    await waitFor(() => expect(expenseRecord).toHaveBeenCalledTimes(1));
+    await screen.findByText(/وصل التسجيل/);
+    expect(screen.getByText(/سجل موجود سابقًا/)).toBeTruthy();
+    expect(screen.getByText(/لم يُنشأ سجل جديد/)).toBeTruthy();
+    expect(
+      screen.queryByText(
+        (content, element) => element?.tagName === "STRONG" && content.includes("سُجّل مصروف"),
+      ),
+    ).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+    /* لا نسبة ولا إشعار — نفس عقد البيع المحايد. */
+    expect(services.projectFinance.distributeUnallocated).not.toHaveBeenCalled();
+    expect(services.notifyDataChanged).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "افتح السجل" })).toBeTruthy();
+  });
+
+  it("Z2.4: a second submit while the first expense save is still in flight does not record again — parity with the sale form", async () => {
+    let resolveRecord!: (value: { ok: boolean; value: { id: string } }) => void;
+    const expenseRecord = vi.fn().mockImplementation(
+      () =>
+        new Promise<{ ok: boolean; value: { id: string } }>(resolve => {
+          resolveRecord = resolve;
+        }),
+    );
+    const services = mockSheetServices({ expenseRecord });
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<QuickActionSheet open onOpenChange={vi.fn()} onAction={vi.fn()} initialMode="expense-form" />);
+    const amount = await screen.findByLabelText(/مبلغ المصروف/);
+    fireEvent.change(amount.querySelector("input") ?? amount, { target: { value: "5.25" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: أكياس تغليف"), { target: { value: "أكياس اختبار" } });
+    const form = amount.closest("form") as HTMLFormElement;
+    /* إرسالان متتابعان قبل اكتمال الأول — عهدة التزامن تمنع النداء الثاني. */
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    expect(expenseRecord).toHaveBeenCalledTimes(1);
+    resolveRecord({ ok: true, value: { id: "expense-w43" } });
+    await screen.findByText(/وصل التسجيل/);
+    await waitFor(() => expect(expenseRecord).toHaveBeenCalledTimes(1));
   });
 });

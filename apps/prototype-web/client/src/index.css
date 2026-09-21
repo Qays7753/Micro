@@ -5140,6 +5140,50 @@ button.micro-month-cell:active {
   padding: var(--space-4) var(--space-3);
   background: var(--color-bg-well);
 }
+/* Z1 (العرض المعتمد §3.1) — محددات الرئيسية وحدها، مضافة بلا مساس بمحدد
+ * مشترك: منطقة حالة اليوم، خطأ التحديث المضمّن، العنقود الثانوي الأخف،
+ * وصفوف الحقائق المفتوحة (Row). */
+.micro-home-daily-status {
+  display: grid;
+  gap: var(--space-2);
+}
+.micro-home-refresh-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-warning-text);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  font-size: 0.8125rem;
+}
+.micro-home-refresh-error svg {
+  flex: 0 0 auto;
+  color: var(--color-warning-text);
+}
+.micro-home-refresh-error p {
+  flex: 1 1 14rem;
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+.micro-home-refresh-error .micro-prim-button {
+  flex: 0 0 auto;
+}
+/* Z1.3: العنقود الثانوي — مراجع أقل تكرارًا؛ أخف بصريًا من الإجراءات
+ * اليومية الثابتة (سطح شفاف) ولا يحمل عنوان قسم ينافس «سجّل بسرعة». */
+.micro-home-secondary-actions {
+  display: grid;
+  gap: var(--space-2);
+}
+.micro-home-secondary-actions .micro-quick-action {
+  background: transparent;
+}
+/* Z1.5: الحقائق صفوف مفتوحة — الكلمة العربية داخل خانة القيمة تعود للخط
+ * العربي الأساسي (الرقم وحده رقمي معزول بخانة Row). */
+.micro-home-fact-rows .micro-prim-row__trailing .micro-text-action {
+  font-family: var(--font-arabic);
+}
 .micro-home-optional-item[data-state="needs_setup"] {
   border-inline-start-color: var(--color-warning-text);
 }
