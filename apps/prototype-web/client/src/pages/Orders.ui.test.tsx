@@ -394,7 +394,7 @@ describe("Work destination", () => {
       catalogItemId: null,
       specifications: overrides.specifications ?? "مقاس كبير",
       quantity: 1,
-      costSnapshots: overrides.hasCost ? ([{}] as OrderDraft["costSnapshots"]) : [],
+      costSnapshots: overrides.hasCost ? ([{}] as unknown as OrderDraft["costSnapshots"]) : [],
       activeCostSnapshotId: overrides.hasCost ? `${id}-cost` : null,
       linkedOrderId: null,
       createdAt: "2026-08-29T08:00:00.000Z",
