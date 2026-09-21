@@ -20,6 +20,8 @@ import * as g5 from "../../src/domain/g5/index.js";
 import * as inventoryMaterial from "../../src/domain/inventory-material/index.js";
 import * as ownerEntitlement from "../../src/domain/owner-entitlement/index.js";
 import * as recurringMargin from "../../src/domain/recurring-margin/index.js";
+/* OPS-003 (عقد ٤١): دومين المصروف المتكرر — إضافة واعية للسطح العام. */
+import * as recurringExpense from "../../src/domain/recurring-expense/index.js";
 import * as shared from "../../src/domain/shared/index.js";
 /* المجموعة ٤ (عقد ٢٩): دومينا الأصول والقروض — إضافة واعية للسطح العام. */
 import * as asset from "../../src/domain/asset/index.js";
@@ -95,6 +97,14 @@ import type {
   AllocationPolicyKind,
   AllocationPolicyTerms,
 } from "../../src/domain/recurring-margin/index.js";
+import type {
+  CreateRecurringExpenseSeriesInput,
+  RecurringExpenseOccurrence,
+  RecurringExpenseOccurrenceReading,
+  RecurringExpenseRuleRevision,
+  RecurringExpenseSeries,
+  RecurringExpenseSeriesStatus,
+} from "../../src/domain/recurring-expense/index.js";
 import type { Currency, MoneyMinor } from "../../src/domain/shared/index.js";
 import type { SupplierPurchase, SupplierPurchasePayment } from "../../src/domain/supplier-purchase/index.js";
 
@@ -151,6 +161,12 @@ export type __LockedTypeSurface = [
   AllocationPolicy,
   AllocationPolicyKind,
   AllocationPolicyTerms,
+  CreateRecurringExpenseSeriesInput,
+  RecurringExpenseOccurrence,
+  RecurringExpenseOccurrenceReading,
+  RecurringExpenseRuleRevision,
+  RecurringExpenseSeries,
+  RecurringExpenseSeriesStatus,
   Currency,
   MoneyMinor,
   SupplierPurchase,
@@ -351,10 +367,41 @@ const ALL_BARRELS: Record<string, unknown>[] = [
 
   recurringMargin,
 
+  recurringExpense,
+
   shared,
 
   supplierPurchase,
 ];
+
+describe("قفل سطح الدومين العام (٤) — OPS-003 (عقد ٤١)", () => {
+  it("recurringExpense: دوال العقد العام حاضرة وقت التشغيل", () => {
+    expect(typeof recurringExpense.createRecurringExpenseDraftSeries).toBe("function");
+    expect(typeof recurringExpense.activateRecurringExpenseSeries).toBe("function");
+    expect(typeof recurringExpense.pauseRecurringExpenseSeries).toBe("function");
+    expect(typeof recurringExpense.resumeRecurringExpenseSeries).toBe("function");
+    expect(typeof recurringExpense.cancelRecurringExpenseSeries).toBe("function");
+    expect(typeof recurringExpense.archiveRecurringExpenseSeries).toBe("function");
+    expect(typeof recurringExpense.restoreRecurringExpenseSeries).toBe("function");
+    expect(typeof recurringExpense.createRecurringExpenseRuleRevision).toBe("function");
+    expect(typeof recurringExpense.succeedRecurringExpenseRuleRevision).toBe("function");
+    expect(typeof recurringExpense.validateRecurringExpenseSuccession).toBe("function");
+    expect(typeof recurringExpense.isRevisionEffective).toBe("function");
+    expect(typeof recurringExpense.dueDateForPeriod).toBe("function");
+    expect(typeof recurringExpense.isPeriodOnSchedule).toBe("function");
+    expect(typeof recurringExpense.firstScheduledPeriod).toBe("function");
+    expect(typeof recurringExpense.createRecurringExpenseOccurrence).toBe("function");
+    expect(typeof recurringExpense.snoozeRecurringExpenseOccurrence).toBe("function");
+    expect(typeof recurringExpense.skipRecurringExpenseOccurrence).toBe("function");
+    expect(typeof recurringExpense.cancelRecurringExpenseOccurrence).toBe("function");
+    expect(typeof recurringExpense.markRecurringExpenseConfirmAttempted).toBe("function");
+    expect(typeof recurringExpense.markRecurringExpenseRecorded).toBe("function");
+    expect(typeof recurringExpense.markRecurringExpenseRecordFailed).toBe("function");
+    expect(typeof recurringExpense.replanRecurringExpenseOccurrence).toBe("function");
+    expect(typeof recurringExpense.readRecurringExpenseOccurrence).toBe("function");
+    expect(typeof recurringExpense.verifyRecordedEventMatchesIntent).toBe("function");
+  });
+});
 
 describe("قفل سطح الدومين العام (٣) — إغلاق العقد", () => {
   it("ownerEntitlement: دوال العقد العام حاضرة وقت التشغيل", () => {
