@@ -406,7 +406,9 @@ export default function Home() {
                 className="micro-text-action"
                 type="button"
                 onClick={() =>
-                  model.todaySection.nextUpcomingHref ? openFromHome(model.todaySection.nextUpcomingHref) : null
+                  model.todaySection.nextUpcomingHref
+                    ? openFromHome(model.todaySection.nextUpcomingHref)
+                    : null
                 }
               >
                 افتح أقربها
@@ -570,7 +572,10 @@ export default function Home() {
             ) : null}
           </div>
           {moreActionsOpen && moreActions.length > 0 ? (
-            <div className="micro-quick-actions micro-quick-actions-more" data-testid="home-quick-actions-more">
+            <div
+              className="micro-quick-actions micro-quick-actions-more"
+              data-testid="home-quick-actions-more"
+            >
               {moreActions.map(entry => (
                 <button key={entry.id} className="micro-quick-action" type="button" onClick={entry.open}>
                   <entry.icon aria-hidden="true" /> {entry.label}
