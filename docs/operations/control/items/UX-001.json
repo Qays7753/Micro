@@ -1,1 +1,67 @@
-{"id":"UX-001","title":"إعادة تصميم UI وUX جذرية","type":"FEATURE","status":"DEFERRED","priority":"P1","stage":"stage-5","summary":"إعادة بناء تجربة مرئية وهوية ومسارات حول قرارات المستخدم بعد ثبات الوظائف، دون تغيير الحقائق المالية.","acceptance":["نظام تصميم عربي RTL كامل","كل شاشة لها غرض وأولوية وحالات ووصول","اختبار مستخدمين قبل الاعتماد"],"areas":["ui","ux","design-system"],"contracts":[],"evidence":["reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md"],"dependencies":["CLEAN-001"],"owner_decision":"اعتماد الاتجاه البصري النهائي ونتائج Benchmark قبل التنفيذ.","merge_sha":"","verified_on_main_sha":"","updated_at":"2026-09-19","finding_classification":"NOT_APPLICABLE","finding_state":"NOT_APPLICABLE","root_cause":"control-record:UX-001","source":{"report":"reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md","discovered_at_sha":"87ebcf2ffa74752bf385eff3a10962454b45d33e","evidence":["reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md"]},"status_history":[{"status":"DEFERRED","changed_at":"2026-09-19","actor":"migration:operations-control-v2","reason":"إضافة سجل الحالة عند ترحيل النظام إلى v2."}],"migration_baseline":true,"next_action":"اعتمد الاتجاه وBenchmark بعد استقرار الوظائف، ثم افتح Claim UI/UX؛ يبقى مطلوبًا قبل Pilot.","deferred_reason":"تنفيذ مؤجل حتى استقرار الوظائف واعتماد الاتجاه وBenchmark، لكنه متطلب Gate قبل Pilot؛ لا يتجاوز بوابة الإصدار.","related_items":[],"classification":"FIX_BEFORE_PILOT","owner":"Product owner / Manus coordination","tests_required":["Domain/Service tests","DOM/Integration tests where UI is involved","Export/import or migration evidence where persistence changes","Merge and verification evidence on main"],"layers":["ui/ux","presentation"],"gate_classification":"DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"}
+{
+  "id": "UX-001",
+  "title": "إعادة تصميم UI وUX جذرية",
+  "type": "FEATURE",
+  "status": "DEFERRED",
+  "priority": "P1",
+  "stage": "stage-5",
+  "summary": "إعادة بناء تجربة مرئية وهوية ومسارات حول قرارات المستخدم بعد ثبات الوظائف، دون تغيير الحقائق المالية.",
+  "acceptance": [
+    "نظام تصميم عربي RTL كامل",
+    "كل شاشة لها غرض وأولوية وحالات ووصول",
+    "اختبار مستخدمين قبل الاعتماد"
+  ],
+  "areas": [
+    "ui",
+    "ux",
+    "design-system"
+  ],
+  "contracts": [],
+  "evidence": [
+    "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md",
+    "reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md",
+    "reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md"
+  ],
+  "dependencies": [
+    "CLEAN-001"
+  ],
+  "owner_decision": "اعتماد الاتجاه البصري النهائي ونتائج Benchmark قبل التنفيذ.",
+  "merge_sha": "",
+  "verified_on_main_sha": "",
+  "updated_at": "2026-09-22",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "root_cause": "control-record:UX-001",
+  "source": {
+    "report": "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md",
+    "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
+    "evidence": [
+      "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md"
+    ]
+  },
+  "status_history": [
+    {
+      "status": "DEFERRED",
+      "changed_at": "2026-09-19",
+      "actor": "migration:operations-control-v2",
+      "reason": "إضافة سجل الحالة عند ترحيل النظام إلى v2."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "Z1/Z2 bounded waves merged and verified on main (WS-172, merge SHA f5685b2138d994cb0ebed95f2b64bbc6f87cc49d). UX-001 itself stays DEFERRED: the full radical redesign acceptance (complete RTL design system, every screen purposeful, user testing) remains open — decide direction/benchmark for the remaining scope before the next UI/UX claim.",
+  "deferred_reason": "تنفيذ مؤجل حتى استقرار الوظائف واعتماد الاتجاه وBenchmark، لكنه متطلب Gate قبل Pilot؛ لا يتجاوز بوابة الإصدار.",
+  "related_items": [],
+  "classification": "FIX_BEFORE_PILOT",
+  "owner": "Product owner / Manus coordination",
+  "tests_required": [
+    "Domain/Service tests",
+    "DOM/Integration tests where UI is involved",
+    "Export/import or migration evidence where persistence changes",
+    "Merge and verification evidence on main"
+  ],
+  "layers": [
+    "ui/ux",
+    "presentation"
+  ],
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"
+}
