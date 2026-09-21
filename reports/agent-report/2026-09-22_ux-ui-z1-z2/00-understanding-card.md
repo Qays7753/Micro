@@ -62,3 +62,9 @@ VERIFIED / INFERRED / UNVERIFIED / NOT_EXECUTED / DEFERRED / BLOCKER — per the
 ## Z1 checkpoint append (2026-09-22)
 
 Z1 complete at branch HEAD `de9c513`: targeted 104/104, prototype:check PASS, design-guards PASS, full `pnpm check` EXIT 0 (bundle 625,542/650,000 raw, 148,559/155,000 gzip), text-density Home 77→71, live visual QA VERIFIED at 320/360/390/430 (zero horizontal overflow, zero console errors) covering first-use/empty/incomplete/attention days, fixed-three actions, contextual collection end-to-end with partial settlement, and five-destination nav. Full detail: `01-z1-delivery-report.md`. Status: `Z1_COMPLETE — Z2_READY`.
+
+---
+
+## Z2 checkpoint append (2026-09-22)
+
+Z2 complete at evidence head `46196e4`: targeted 148/148, OPS-003 non-regression 57/57, Z1 regression 68/68, prototype:check + design-guards + guards PASS, full `pnpm check` EXIT 0 (bundle 625,551/650,000 raw, 148,571/155,000 gzip), live visual QA for orders draft/executing rows + order-detail journey composition + no-overflow sweeps. Agent 5 final integration review: PASS_WITH_NOTES (§9.2 29/29 met; allowlist compliant; presentation-only verified; rollback ready). Full detail: `02-z2-delivery-report.md`. Status: `Z2_COMPLETE — PR_READY`.

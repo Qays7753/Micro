@@ -124,9 +124,9 @@
     },
     {
       "id": "UX-UI-Z1-Z2",
-      "path": "reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md",
-      "scope": "UX/UI Reports 1-2 Z1 (Home daily-decision surface) delivery — Z2 pending",
-      "status": "OPEN_PR_207_Z1_COMPLETE"
+      "path": "reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md",
+      "scope": "UX/UI Reports 1-2 Z1+Z2 complete — delivery reports, gates, and integration review (WS-172)",
+      "status": "OPEN_PR_207_IN_REVIEW"
     }
   ]
 }
