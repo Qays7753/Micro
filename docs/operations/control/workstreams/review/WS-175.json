@@ -1,7 +1,7 @@
 {
  "id": "WS-175",
  "title": "Financial Roadmap Wave 3 — FIN-005 short-cash horizon reading (7/30/90 days, default 30)",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "items": [
   "FIN-005"
  ],
@@ -21,7 +21,7 @@
  "pr": 216,
  "started_at": "2026-09-23T00:00:00+03:00",
  "updated_at": "2026-09-23",
- "next_action": "راجع PR الموجة 3 ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED.",
+ "next_action": "لا فعل إضافي: الموجة 3 مدمجة ومتحققة على main (119676f). البوابة التالية فقط: الموجة 4 (FIN-004).",
  "notes": [
   "Owner-approved roadmap: 'Micro Financial Roadmap Complete Controlled Execution' §4.4 (FIN-005 policy register) — horizons 7/30/90, default 30, read-only, incomplete preserved.",
   "Existing foundation (verified on main 557c44e): full ShortCashDeclaration engine (contract 17 §7–9) — idempotency, reversal, over-declaration, undated→incomplete, negative shown; declarations store registered in persistent-entity-touchpoints.",
@@ -48,7 +48,25 @@
    "changed_at": "2026-09-23",
    "actor": "ws-175:review",
    "reason": "16 focused tests + full pnpm check green (454 root + 1852 prototype + build/budget); ready for PR and merge gate."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-09-23",
+   "actor": "ws-175:merge",
+   "reason": "PR #216 مدمج Squash عند 119676f824ecf65fe0933afd42d4a46a85f8f77a (الأساس 557c44e)."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-09-23",
+   "actor": "ws-175:post-merge-verification",
+   "reason": "تحقق على SHA الدمج نفسه 119676f: CI + Cloudflare ناجحان على commit الدمج؛ 34/34 اختبار موجة خضر محليًا على main؛ التقرير والفهرس محدثان."
   }
  ],
- "migration_baseline": false
+ "migration_baseline": false,
+ "merge_sha": "119676f824ecf65fe0933afd42d4a46a85f8f77a",
+ "verified_on_main_sha": "119676f824ecf65fe0933afd42d4a46a85f8f77a",
+ "evidence": [
+  "reports/agent-report/2026-09-23_fin-roadmap-wave-3-fin-005/report.md",
+  "PR #216 MERGE MANIFEST comment 5784172386"
+ ]
 }

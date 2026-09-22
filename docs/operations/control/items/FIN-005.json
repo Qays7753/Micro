@@ -2,7 +2,7 @@
  "id": "FIN-005",
  "title": "توقع الكاش والتصريحات المتوقعة",
  "type": "FEATURE",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "priority": "P1",
  "stage": "stage-3",
  "summary": "نظرة قريبة المدى تفصل المؤكد عن المتوقع وتمنع جمعهما كحقيقة واحدة.",
@@ -15,13 +15,16 @@
   "forecast"
  ],
  "contracts": [],
- "evidence": [],
+ "evidence": [
+  "reports/agent-report/2026-09-23_fin-roadmap-wave-3-fin-005/report.md",
+  "docs/operations/current-state.md"
+ ],
  "dependencies": [
   "OPS-001"
  ],
  "owner_decision": "",
- "merge_sha": "",
- "verified_on_main_sha": "",
+ "merge_sha": "119676f824ecf65fe0933afd42d4a46a85f8f77a",
+ "verified_on_main_sha": "119676f824ecf65fe0933afd42d4a46a85f8f77a",
  "updated_at": "2026-09-23",
  "finding_classification": "NOT_APPLICABLE",
  "finding_state": "NOT_APPLICABLE",
@@ -55,10 +58,22 @@
    "changed_at": "2026-09-23",
    "actor": "ws-175:review",
    "reason": "16 اختبارًا مركزًا (8 نقية + 5 خدمة + 3 DOM) وpnpm check كامل خضراء: typecheck وlint 0/37 وformat وtext-density (322/322) وdesign-guards وguards وroot 454/454 وprototype 1852/1852 وbuild+budget 649292/650000."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-09-23",
+   "actor": "ws-175:merge",
+   "reason": "PR #216 مدمج Squash عند 119676f824ecf65fe0933afd42d4a46a85f8f77a (الأساس 557c44e)؛ CI وCloudflare ناجحان على رأس الـPR (3c761af)."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-09-23",
+   "actor": "ws-175:post-merge-verification",
+   "reason": "تحقق على SHA الدمج نفسه 119676f: CI checks success + Cloudflare Pages success على commit الدمج؛ اختبارات الموجة (34/34 بما فيها 16 جديدة) خضر محليًا على main؛ المعادلة والمحرك دون تغيير (فرق src/domain فارغ)."
   }
  ],
  "migration_baseline": true,
- "next_action": "مراجعة PR الموجة 3 (WS-175) ثم الدمج والتحقق على main قبل VERIFIED.",
+ "next_action": "لا فعل إضافي: منفذ ومتحقق على main (119676f).",
  "related_items": [],
  "classification": "FIX_BEFORE_PILOT",
  "owner": "Product owner / Manus coordination",

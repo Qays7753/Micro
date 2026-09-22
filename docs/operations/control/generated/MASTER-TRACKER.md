@@ -2,14 +2,13 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_REVIEW: 1 · READY: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 30
+BLOCKED: 3 · READY: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 31
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
 | DEVICE-001 | BLOCKED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-7 | QA على أجهزة فعلية وWebKit وPWA | Product owner / Manus coordination | device, accessibility, pwa | UX-001, REL-001 |
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | CTRL-001, CTRL-002, G-001, G-002, G-003, G-004, G-005, G-006, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, CLEAN-001, UX-001, REL-001, DEVICE-001, LEGAL-001, UAT-001, AUDIT-001, HARD-009, HARD-010, HARD-011 |
-| FIN-005 | IN_REVIEW | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | توقع الكاش والتصريحات المتوقعة | Product owner / Manus coordination | Layer 3, domain, application, presentation | OPS-001 |
 | FIN-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | FIN-004 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | حد السحب الآمن للمالك | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-003, FIN-005 |
 | REL-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-6 | اختبارات الصمود والفشل | Product owner / Manus coordination | storage, transfer, resilience | CLEAN-001 |
@@ -43,6 +42,7 @@ BLOCKED: 3 · IN_REVIEW: 1 · READY: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DE
 | CTRL-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | stage-0 | اعتماد Operations Control v2 | Product owner / Manus coordination | governance, documentation | — |
 | CTRL-002 | VERIFIED | GOVERNANCE | EVIDENCE_RECONCILIATION_REQUIRED | P1 | stage-0 | مصالحة القدرات والتقارير ومصادر الحقيقة | Product owner / Manus coordination | governance, documentation | — |
 | FIN-003 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | مقارنة الفترات وجسر الربح إلى الكاش | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-001 |
+| FIN-005 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | توقع الكاش والتصريحات المتوقعة | Product owner / Manus coordination | Layer 3, domain, application, presentation | OPS-001 |
 | G-001 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | audit-2026-09-19 | فخ الاستهلاك المزدوج عند التسليم | Product owner / Manus coordination | cross-layer | — |
 | HARD-009 | VERIFIED | HARDENING | MAIN_VERIFIED | P1 | hardening-verification | إثبات إغلاق مجموعة المعالجة 9 | Product owner / Manus coordination | governance, verification | — |
 | HARD-010 | VERIFIED | HARDENING | MAIN_VERIFIED | P1 | hardening-verification | إثبات إغلاق مجموعة المعالجة 10 | Product owner / Manus coordination | governance, verification | — |
