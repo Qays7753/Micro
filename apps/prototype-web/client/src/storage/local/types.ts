@@ -44,7 +44,7 @@ import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
  * OPS-003 (عقد ٤١ / قرار D-037): المخطط ٣٦ يضيف مخازن المصروف المتكرر الثلاثة
  * (`recurring-expense-series/revisions/occurrences`) بالمُنشئ المحروس نفسه —
  * لا حقول جديدة على سجلات قائمة ولا ترحيل بيانات؛ القديم يفتح ويجدها فارغة.
- * FIN-002 (عقد ٤٢ / نمط D-038): المخطط ٣٧ يضيف مخزن `expense-budgets` واحدًا
+ * FIN-002 (عقد ٤٢ / نمط D-037): المخطط ٣٧ يضيف مخزن `expense-budgets` واحدًا
  * لسجلات الميزانية المختارة (خطة لا حدثًا ماليًا) بالمُنشئ المحروس نفسه —
  * لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا. */
 export const localSchemaVersion = 37;
