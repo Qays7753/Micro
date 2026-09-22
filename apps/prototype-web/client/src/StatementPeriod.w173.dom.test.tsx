@@ -172,6 +172,36 @@ describe("Statement — مقارنة الفترة السابقة (FIN-007)", () 
     expect(screen.getByText("مسجلة فقط")).toBeTruthy();
   });
 
+  it("«نطاق آخر أختاره بنفسي» يقارن بالنطاق الذي يختاره المستخدم ويعلّمه «المقارنة»", async () => {
+    render(<Harness />);
+    await waitFor(() => expect(screen.getByText("كشف الفترة")).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "قارن مع الفترة السابقة" }));
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          /الحالية: من 30\/08\/2026 إلى 05\/09\/2026 — السابقة: من 23\/08\/2026 إلى 29\/08\/2026/,
+        ),
+      ).toBeTruthy(),
+    );
+    /* اختيار نطاق مخصص للطرف الثاني يظهر حقلين مزروعين بالسابقة المكافئة. */
+    fireEvent.change(screen.getByLabelText("الفترة المقارنة"), { target: { value: "custom" } });
+    /* حقلا التاريخ: نص الوسم يشمل التاريخ المقروء المجاور فالمطابقة بالبداية. */
+    const fromInput = screen.getByLabelText(/^من/, { selector: "input" });
+    const toInput = screen.getByLabelText(/^إلى/, { selector: "input" });
+    expect((fromInput as HTMLInputElement).value).toBe("2026-08-23");
+    expect((toInput as HTMLInputElement).value).toBe("2026-08-29");
+    /* المستخدم يختار أغسطس كاملًا فيصبح الطرف الثاني نطاقه بوسم «المقارنة». */
+    fireEvent.change(fromInput, { target: { value: "2026-08-01" } });
+    fireEvent.change(toInput, { target: { value: "2026-08-31" } });
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          /الحالية: من 30\/08\/2026 إلى 05\/09\/2026 — المقارنة: من 01\/08\/2026 إلى 31\/08\/2026/,
+        ),
+      ).toBeTruthy(),
+    );
+  });
+
   it("يعرض عدّاد الطلبات المسلّمة المستبعدة على الطرف الذي فيه طلب غير مكتمل، مع حالة ناقصة", async () => {
     await saveExcludedDeliveredOrder(store, { id: "wk-excluded", deliveredOn: "2026-08-31" });
     render(<Harness />);

@@ -184,6 +184,11 @@ export default function Statement() {
   /* FIN-007: مفتاح «قارن مع الفترة السابقة» — يفعّل المقارنة فوق النطاق المعروض. */
   const [compare, setCompare] = useState(false);
   const [comparison, setComparison] = useState<ComparisonState>({ phase: "idle" });
+  /* FIN-003: الطرف الثاني للمقارنة — «الفترة السابقة المكافئة» اختصارًا، أو
+   * نطاق يختاره المستخدم بنفسه؛ الحالة الافتراضية الاختصار لا الإجبار. */
+  const [compareMode, setCompareMode] = useState<"previous" | "custom">("previous");
+  const [compareFrom, setCompareFrom] = useState("");
+  const [compareTo, setCompareTo] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -198,8 +203,10 @@ export default function Statement() {
     };
   }, [statement, from, to, dataVersion, retryCount]);
 
-  /* FIN-007: المقارنة تُقرأ عند التفعيل فقط — الفترة السابقة المكافئة بنفس
-   * الطول من طبقة القوالب النقية؛ فشلها لا يهدم الكشف بل بطاقة إعادة محاولة. */
+  /* FIN-007/FIN-003: المقارنة تُقرأ عند التفعيل فقط — الطرف الثاني إما السابقة
+   * المكافئة بنفس الطول أو النطاق الذي اختاره المستخدم؛ يُحسب داخل التأثير من
+   * قيم بدائية كي لا يدخل هوية كائن في التبعيات (حلقة لا نهائية سابقًا)؛
+   * فشلها لا يهدم الكشف بل بطاقة إعادة محاولة. */
   useEffect(() => {
     if (!compare) {
       setComparison({ phase: "idle" });
@@ -207,7 +214,9 @@ export default function Statement() {
     }
     let active = true;
     setComparison({ phase: "loading" });
-    periodComparison.readPeriodComparison({ from, to }, previousEqualPeriod({ from, to })).then(result => {
+    const sideB =
+      compareMode === "previous" ? previousEqualPeriod({ from, to }) : { from: compareFrom, to: compareTo };
+    periodComparison.readPeriodComparison({ from, to }, sideB).then(result => {
       if (!active) return;
       setComparison(
         result.ok ? { phase: "ready", reading: result.value } : { phase: "error", message: result.message },
@@ -216,7 +225,7 @@ export default function Statement() {
     return () => {
       active = false;
     };
-  }, [periodComparison, compare, from, to, dataVersion, retryCount]);
+  }, [periodComparison, compare, compareMode, compareFrom, compareTo, from, to, dataVersion, retryCount]);
 
   const applyQuick = (quick: QuickRange) => {
     setRange(quick);
@@ -259,6 +268,8 @@ export default function Statement() {
   const { reading } = state;
   /* FIN-007: السابقة المكافئة بنفس الطول — حساب نقي من طبقة قوالب الفترات. */
   const previousRange = previousEqualPeriod({ from, to });
+  /* عرض فقط (خارج تبعيات أي تأثير): نطاق الطرف الثاني المعروض في الترويسة. */
+  const comparisonSideB = compareMode === "previous" ? previousRange : { from: compareFrom, to: compareTo };
   const openWithReferrer = (path: string) => navigate(withReturnTo(path, "/finance/statement"));
   /* روابط المصادر تعود للكشف عبر وجهة الرجوع (?returnTo — وfrom القديم توافقًا)
    * لا للمالي — السياق محفوظ (EXE-016). */
@@ -360,7 +371,7 @@ export default function Statement() {
             <span>
               <b>مقارنة الفترتين</b>
               <small>
-                من {formatLocalDateLong(previousRange.from)} إلى {formatLocalDateLong(previousRange.to)}
+                من {formatLocalDateLong(comparisonSideB.from)} إلى {formatLocalDateLong(comparisonSideB.to)}
               </small>
             </span>
             <strong>
@@ -369,6 +380,42 @@ export default function Statement() {
                 : "—"}
             </strong>
           </summary>
+          {/* FIN-003: الطرف الثاني — السابقة المكافئة اختصارًا أو نطاق يختاره
+           * المستخدم؛ داخل جسم التفاصيل فلا يُحسب في كثافة السكون. */}
+          <div className="micro-period-range-fields micro-compare-side-fields">
+            <label className="micro-compare-side-label">
+              الفترة المقارنة
+              <select
+                value={compareMode}
+                onChange={event => {
+                  if (event.target.value === "custom") {
+                    setCompareFrom(previousRange.from);
+                    setCompareTo(previousRange.to);
+                    setCompareMode("custom");
+                  } else {
+                    setCompareMode("previous");
+                  }
+                }}
+              >
+                <option value="previous">الفترة السابقة المكافئة</option>
+                <option value="custom">نطاق آخر أختاره بنفسي</option>
+              </select>
+            </label>
+            {compareMode === "custom" ? (
+              <>
+                <LocalDateField
+                  label="من"
+                  value={compareFrom}
+                  onChange={event => setCompareFrom(event.target.value)}
+                />
+                <LocalDateField
+                  label="إلى"
+                  value={compareTo}
+                  onChange={event => setCompareTo(event.target.value)}
+                />
+              </>
+            ) : null}
+          </div>
           {comparison.phase === "loading" ? (
             <p className="micro-period-status" role="status">
               جارٍ قراءة المقارنة…
@@ -386,7 +433,8 @@ export default function Statement() {
             <section className="micro-period-result micro-derived-surface" aria-label="مقارنة الفترتين">
               <p className="micro-period-range-label">
                 الحالية: من {formatLocalDateLong(comparison.reading.sides.a.from)} إلى{" "}
-                {formatLocalDateLong(comparison.reading.sides.a.to)} — السابقة: من{" "}
+                {formatLocalDateLong(comparison.reading.sides.a.to)} —{" "}
+                {compareMode === "previous" ? "السابقة" : "المقارنة"}: من{" "}
                 {formatLocalDateLong(comparison.reading.sides.b.from)} إلى{" "}
                 {formatLocalDateLong(comparison.reading.sides.b.to)}
               </p>
@@ -418,7 +466,7 @@ export default function Statement() {
                       ) : (
                         <IntegerValue value={line.a} />
                       )}{" "}
-                      · السابقة{" "}
+                      · {compareMode === "previous" ? "السابقة" : "المقارنة"}{" "}
                       {line.kind === "money" ? (
                         <MoneyValue minor={line.b} />
                       ) : (
