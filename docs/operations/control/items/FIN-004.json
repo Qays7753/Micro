@@ -1,1 +1,79 @@
-{"id":"FIN-004","title":"حد السحب الآمن للمالك","type":"FEATURE","status":"READY","priority":"P1","stage":"stage-3","summary":"تقدير محافظ يوضح ما يمكن سحبه دون الادعاء بضمان السيولة المستقبلية.","acceptance":["الافتراضات ظاهرة","لا توصية عند نقص البيانات الحرجة"],"areas":["owner-money","cash-forecast"],"contracts":[],"evidence":[],"dependencies":["FIN-003","FIN-005"],"owner_decision":"","merge_sha":"","verified_on_main_sha":"","updated_at":"2026-09-19","finding_classification":"NOT_APPLICABLE","finding_state":"NOT_APPLICABLE","root_cause":"control-record:FIN-004","source":{"report":"docs/operations/control/README.md","discovered_at_sha":"87ebcf2ffa74752bf385eff3a10962454b45d33e","evidence":[]},"status_history":[{"status":"READY","changed_at":"2026-09-19","actor":"migration:operations-control-v2","reason":"إضافة سجل الحالة عند ترحيل النظام إلى v2."}],"migration_baseline":true,"next_action":"تحقق من الاعتماديات (FIN-003, FIN-005) ثم أنشئ Workstream claim قبل التنفيذ.","related_items":[],"classification":"FIX_BEFORE_PILOT","owner":"Product owner / Manus coordination","tests_required":["Domain/Service tests","DOM/Integration tests where UI is involved","Export/import or migration evidence where persistence changes","Merge and verification evidence on main"],"layers":["Layer 3","domain","application","presentation"],"gate_classification":"NOT_APPLICABLE"}
+{
+ "id": "FIN-004",
+ "title": "حد السحب الآمن للمالك",
+ "type": "FEATURE",
+ "status": "IN_REVIEW",
+ "priority": "P1",
+ "stage": "stage-3",
+ "summary": "تقدير محافظ يوضح ما يمكن سحبه دون الادعاء بضمان السيولة المستقبلية.",
+ "acceptance": [
+  "الافتراضات ظاهرة",
+  "لا توصية عند نقص البيانات الحرجة"
+ ],
+ "areas": [
+  "owner-money",
+  "cash-forecast"
+ ],
+ "contracts": [],
+ "evidence": [],
+ "dependencies": [
+  "FIN-003",
+  "FIN-005"
+ ],
+ "owner_decision": "",
+ "merge_sha": "",
+ "verified_on_main_sha": "",
+ "updated_at": "2026-09-23",
+ "finding_classification": "NOT_APPLICABLE",
+ "finding_state": "NOT_APPLICABLE",
+ "root_cause": "control-record:FIN-004",
+ "source": {
+  "report": "docs/operations/control/README.md",
+  "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
+  "evidence": []
+ },
+ "status_history": [
+  {
+   "status": "READY",
+   "changed_at": "2026-09-19",
+   "actor": "migration:operations-control-v2",
+   "reason": "إضافة سجل الحالة عند ترحيل النظام إلى v2."
+  },
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-09-23",
+   "actor": "claim:ws-176",
+   "reason": "Owner-approved financial roadmap Wave 4 claimed via WS-176 from verified main dacade9."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-09-23",
+   "actor": "ws-176:implement",
+   "reason": "Pure domain policy + in-render composition over the FIN-005 horizon reading + advisory surface with session-scoped explicit reserve implemented on feat/fin-004-safe-withdrawal-20260923."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-09-23",
+   "actor": "ws-176:review",
+   "reason": "16 اختبارًا مركزًا (11 مجال + 5 DOM) وpnpm check مكافئ خضر: typecheck وlint 0/37 وformat وtext-density (330/330) وdesign-guards وguards وroot 465/465 وprototype 261 ملفًا 1857/1857 وbuild+budget 649292/650000 (الحزمة الأساسية مطابقة بايتًا بايت)."
+  }
+ ],
+ "migration_baseline": true,
+ "next_action": "مراجعة PR الموجة 4 (WS-176) ثم الدمج والتحقق على main قبل VERIFIED.",
+ "related_items": [],
+ "classification": "FIX_BEFORE_PILOT",
+ "owner": "Product owner / Manus coordination",
+ "tests_required": [
+  "Domain/Service tests",
+  "DOM/Integration tests where UI is involved",
+  "Export/import or migration evidence where persistence changes",
+  "Merge and verification evidence on main"
+ ],
+ "layers": [
+  "Layer 3",
+  "domain",
+  "application",
+  "presentation"
+ ],
+ "gate_classification": "NOT_APPLICABLE"
+}

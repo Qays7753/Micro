@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · READY: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 31
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 31
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-176 | CLAIMED | \`feat/fin-004-safe-withdrawal-20260923\` | — | FIN-004 | تنفيذ القراءة الاستشارية للسحب الآمن (احتياطي صريح + أفق FIN-005 نفسه) ثم رفع الحالة قانونيًا. |
+| WS-176 | IN_REVIEW | \`feat/fin-004-safe-withdrawal-20260923\` | — | FIN-004 | راجع PR الموجة 4 ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED. |

@@ -1,39 +1,51 @@
 {
-  "id": "WS-176",
-  "title": "Financial Roadmap Wave 4 — FIN-004 advisory owner safe-withdrawal reading (explicit reserve, FIN-005 horizon)",
-  "status": "CLAIMED",
-  "items": [
-    "FIN-004"
-  ],
-  "branch": "feat/fin-004-safe-withdrawal-20260923",
-  "base_sha": "dacade91dc5e9a4de3971a2d30d040c79bebacc6",
-  "areas": [
-    "domain/owner-safe-withdrawal",
-    "presentation/finance-cash-decision"
-  ],
-  "contracts": [
-    "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md",
-    "docs/contracts/05-financial-p0-policies.md"
-  ],
-  "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-23",
-  "pr": 0,
-  "started_at": "2026-09-23T02:00:00+03:00",
-  "updated_at": "2026-09-23",
-  "next_action": "تنفيذ القراءة الاستشارية للسحب الآمن (احتياطي صريح + أفق FIN-005 نفسه) ثم رفع الحالة قانونيًا.",
-  "notes": [
-    "Owner-approved roadmap §4.5 (FIN-005 policy register): advisory ONLY; explicit fixed reserve entered by the user + declared-obligations protection in the same 7/30/90 horizon (default 30); no invented percentage/months rule; recorded cash + declared flows only; expected profit never cash; insufficient data → null/needs_review; user may disable/change the reserve.",
-    "W4-AUDIT verdict: AUDIT_PASS — reserve is session-scoped caller input (NO persistence, NO schema change): LocalPreferences is forbidden for money-valued content (preferences charter, contracts 41 §8 / 42 §8); a durable store would need the guarded 38/30 bump + a specific owner decision because the owner-approved execution map says 'unchanged' — durability recorded as an explicit deferred owner decision instead of a silent bump.",
-    "Composition: pure domain function over the Wave-3 horizon reading (calculateShortCash result) + position cash evidence + loans context (disclosure only — outgoing loans are already outside recorded cash; never inflow, never double-subtracted).",
-    "No withdrawal command, no block, no guarantee language; withdrawalWalletGuard untouched (execution path only).",
-    "Baseline: verified main dacade9 (Wave 3 closed; FIN-005 VERIFIED at 119676f)."
-  ],
-  "status_history": [
-    {
-      "status": "CLAIMED",
-      "changed_at": "2026-09-23",
-      "actor": "claim:ws-176",
-      "reason": "Owner-approved financial roadmap Wave 4 (FIN-004) claimed per Operations Control v2 from verified main dacade91dc5e9a4de3971a2d30d040c79bebacc6; execution map Wave 4 row; read-only audit W4-AUDIT passed (reserve session-scoped, no schema change)."
-    }
-  ],
-  "migration_baseline": false
+ "id": "WS-176",
+ "title": "Financial Roadmap Wave 4 — FIN-004 advisory owner safe-withdrawal reading (explicit reserve, FIN-005 horizon)",
+ "status": "IN_REVIEW",
+ "items": [
+  "FIN-004"
+ ],
+ "branch": "feat/fin-004-safe-withdrawal-20260923",
+ "base_sha": "dacade91dc5e9a4de3971a2d30d040c79bebacc6",
+ "areas": [
+  "domain/owner-safe-withdrawal",
+  "presentation/finance-cash-decision"
+ ],
+ "contracts": [
+  "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md",
+  "docs/contracts/05-financial-p0-policies.md"
+ ],
+ "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-23",
+ "pr": 0,
+ "started_at": "2026-09-23T02:00:00+03:00",
+ "updated_at": "2026-09-23",
+ "next_action": "راجع PR الموجة 4 ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED.",
+ "notes": [
+  "Owner-approved roadmap §4.5 (FIN-005 policy register): advisory ONLY; explicit fixed reserve entered by the user + declared-obligations protection in the same 7/30/90 horizon (default 30); no invented percentage/months rule; recorded cash + declared flows only; expected profit never cash; insufficient data → null/needs_review; user may disable/change the reserve.",
+  "W4-AUDIT verdict: AUDIT_PASS — reserve is session-scoped caller input (NO persistence, NO schema change): LocalPreferences is forbidden for money-valued content (preferences charter, contracts 41 §8 / 42 §8); a durable store would need the guarded 38/30 bump + a specific owner decision because the owner-approved execution map says 'unchanged' — durability recorded as an explicit deferred owner decision instead of a silent bump.",
+  "Composition: pure domain function over the Wave-3 horizon reading (calculateShortCash result) + position cash evidence + loans context (disclosure only — outgoing loans are already outside recorded cash; never inflow, never double-subtracted).",
+  "No withdrawal command, no block, no guarantee language; withdrawalWalletGuard untouched (execution path only).",
+  "Baseline: verified main dacade9 (Wave 3 closed; FIN-005 VERIFIED at 119676f)."
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-09-23",
+   "actor": "claim:ws-176",
+   "reason": "Owner-approved financial roadmap Wave 4 (FIN-004) claimed per Operations Control v2 from verified main dacade91dc5e9a4de3971a2d30d040c79bebacc6; execution map Wave 4 row; read-only audit W4-AUDIT passed (reserve session-scoped, no schema change)."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-09-23",
+   "actor": "ws-176:implement",
+   "reason": "Implementation complete: domain owner-safe-withdrawal + Finance advisory surface (session reserve, no persistence)."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-09-23",
+   "actor": "ws-176:review",
+   "reason": "16 focused tests + full pipeline green (465 root + 1857 prototype + build/budget with byte-identical entry); ready for PR and merge gate."
+  }
+ ],
+ "migration_baseline": false
 }
