@@ -1101,7 +1101,7 @@ round-trip ورفض قبل الكتابة وtouchpoints). الخدمة تُحم�
 `NO_REOPEN`
 `NO_CLEANUP`
 
-## §62. خارطة الطريق المالي — الموجة 3 (FIN-005 أفق الكاش القصير 7/30/90) على الفرع، بانتظار الدمج — 2026-09-23
+## §62. خارطة الطريق المالي — الموجة 3 (FIN-005 أفق الكاش القصير 7/30/90) مدمجة ومتحقق عليها على main — 2026-09-23
 
 نُفذت الموجة الثالثة عبر Claim تنفيذي مستقل (**WS-175**) من رأس `main` المتحقق
 `557c44efc265241ce30db5f781931466921745cd` على الفرع
@@ -1125,6 +1125,19 @@ round-trip ورفض قبل الكتابة وtouchpoints). الخدمة تُحم�
 `557c44e` (revert واحد للدمج Squash). التفصيل الكامل:
 `reports/agent-report/2026-09-23_fin-roadmap-wave-3-fin-005/report.md`.
 
-`FIN-005_WAVE_3_IMPLEMENTED_ON_BRANCH_AWAITING_MERGE`
+أُدمجت الموجة عبر **PR #216** (Squash) عند Merge SHA
+`119676f824ecf65fe0933afd42d4a46a85f8f77a` (الأساس `557c44e`)، ونجح **CI وCloudflare
+Pages على commit الدمج نفسه**، واختبارات الموجة (34/34 بما فيها 16 جديدة) خضر
+محليًا على `main` عند `119676f`. انتقل `FIN-005` و`WS-175` قانونيًا من
+`IN_REVIEW` إلى `MERGED_UNVERIFIED` ثم `VERIFIED` مع
+`verified_on_main_sha=119676f824ecf65fe0933afd42d4a46a85f8f77a` وأغلق الـClaim في
+workstreams/review/. بند رفع كثافة Finance 318→322 (أربع مفردات إلزامية) يبقى
+بنود مراجعة مالك قابلة للنقض وفق نموذج D-038 ويُغلق مع حزمة قرارات الموجة.
+**البوابة التالية المسموحة فقط: Wave 4 — FIN-004 القراءة الاستشارية للسحب
+الآمن، من رأس `main` المتحقق `119676f824ecf65fe0933afd42d4a46a85f8f77a`.**
+
+`WAVE_3_MERGED_AND_VERIFIED_ON_MAIN (119676f)`
+`POST_MERGE_VERIFICATION: PASS`
 `NO_SCHEMA_CHANGE (37/29)`
 `NO_WRITE_FROM_READING (SNAPSHOT_PROVEN)`
+`NO_CLEANUP`
