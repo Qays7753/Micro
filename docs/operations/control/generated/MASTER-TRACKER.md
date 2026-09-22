@@ -2,13 +2,14 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VERIFIED: 29
+BLOCKED: 3 · CLAIMED: 1 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 29
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
 | DEVICE-001 | BLOCKED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-7 | QA على أجهزة فعلية وWebKit وPWA | Product owner / Manus coordination | device, accessibility, pwa | UX-001, REL-001 |
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | CTRL-001, CTRL-002, G-001, G-002, G-003, G-004, G-005, G-006, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, CLEAN-001, UX-001, REL-001, DEVICE-001, LEGAL-001, UAT-001, AUDIT-001, HARD-009, HARD-010, HARD-011 |
+| FIN-002 | CLAIMED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | ميزانيات وأهداف بسيطة | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | FIN-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | FIN-004 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | حد السحب الآمن للمالك | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-003, FIN-005 |
 | FIN-005 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | توقع الكاش والتصريحات المتوقعة | Product owner / Manus coordination | Layer 3, domain, application, presentation | OPS-001 |
@@ -24,7 +25,6 @@ BLOCKED: 3 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VE
 | BE-003 | DEFERRED | HISTORICAL | DUPLICATE_HISTORICAL | P2 | build-after-evidence | ربحية المنتج عبر الفترات بمعرف كتالوج ثابت | Product owner / Manus coordination | future-capability | — |
 | BE-004 | DEFERRED | PILOT_VALIDATION | PILOT_EVIDENCE_REQUIRED | P2 | build-after-evidence | إغلاق فترة رسمي | Product owner / Manus coordination | future-capability | — |
 | BE-005 | DEFERRED | PILOT_VALIDATION | PILOT_EVIDENCE_REQUIRED | P2 | build-after-evidence | تقادم الديون بشرائح 30/60/90 | Product owner / Manus coordination | future-capability | — |
-| FIN-002 | DEFERRED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | ميزانيات وأهداف بسيطة | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | FIN-006 | DEFERRED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | ربحية المنتج بمعرف كتالوج ثابت | Product owner / Manus coordination | Layer 3, domain, application, presentation | OPS-004 |
 | FIN-008 | DEFERRED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | تحقق الإهلاك بعد مرور الزمن | Product owner / Manus coordination | Layer 3, domain, application, presentation | — |
 | SCOPE-002 | DEFERRED | FUTURE_SCOPE | OUT_OF_SCOPE | P2 | future-scope | الموارد وقدرة المواد والتوسع التشغيلي | Product owner / Manus coordination | future-scope | — |
