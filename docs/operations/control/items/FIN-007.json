@@ -2,7 +2,7 @@
   "id": "FIN-007",
   "title": "مراجعة فترة مرنة",
   "type": "FEATURE",
-  "status": "CLAIMED",
+  "status": "IN_PROGRESS",
   "priority": "P2",
   "stage": "stage-3",
   "summary": "Checklist شهرية لا تقفل البيانات قفلًا محاسبيًا صلبًا.",
@@ -43,10 +43,16 @@
       "changed_at": "2026-09-22",
       "actor": "claim:ws-173",
       "reason": "موجة 1 من خارطة الطريق المالي المعتمدة من المالك (WS-173: FIN-003 + FIN-007) وفق Operations Control v2؛ Claim من main المتحقق f4933834e931a331cf6926e39142fe327d20e3f5. خارطة التنفيذ: reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-22",
+      "actor": "ws-173:wave1",
+      "reason": "بدء تنفيذ الموجة 1 (WS-173) من main المتحقق 63765e5 بعد إغلاق Phase 0 (PR #210)."
     }
   ],
   "migration_baseline": true,
-  "next_action": "تنفيذ الموجة 1 على فرع WS-173 من main المتحقق بعد إغلاق Phase 0: عائلة القوالب (أسبوع/شهر/ربع/مخصص دون إجبار)، مقارنة فترتين من القارئ الكنوني، اختصار الفترة السابقة المساوية، وسم الفترة الجارية الجزئي، وجسر الربح إلى الكاش بمصادر قابلة للتتبع — قراءة فقط دون تغيير المخطط/التصدير (36/28).",
+  "next_action": "تنفيذ جارٍ ضمن WS-173 على الفرع feat/fin-003-007-period-comparison-20260922 من 63765e5؛ الدمج والتحقق على main يسبقا أي انتقال لاحق.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",
