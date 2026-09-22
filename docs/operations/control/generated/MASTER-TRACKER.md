@@ -2,14 +2,13 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_REVIEW: 1 · READY: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 22 · VERIFIED: 32
+BLOCKED: 3 · READY: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 22 · VERIFIED: 33
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
 | DEVICE-001 | BLOCKED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-7 | QA على أجهزة فعلية وWebKit وPWA | Product owner / Manus coordination | device, accessibility, pwa | UX-001, REL-001 |
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | CTRL-001, CTRL-002, G-001, G-002, G-003, G-004, G-005, G-006, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, CLEAN-001, UX-001, REL-001, DEVICE-001, LEGAL-001, UAT-001, AUDIT-001, HARD-009, HARD-010, HARD-011 |
-| FIN-006 | IN_REVIEW | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | ربحية المنتج بمعرف كتالوج ثابت | Product owner / Manus coordination | Layer 3, domain, application, presentation | OPS-004 |
 | FIN-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | REL-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-6 | اختبارات الصمود والفشل | Product owner / Manus coordination | storage, transfer, resilience | CLEAN-001 |
 | CLEAN-001 | READY | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-4 | تنظيف الأسطح الجزئية والميتة | Product owner / Manus coordination | cross-layer, presentation | FIN-007, OPS-004 |
@@ -54,6 +53,7 @@ BLOCKED: 3 · IN_REVIEW: 1 · READY: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DE
 | OPS-005 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-2 | سطح قادم موحد للدفعات والتحصيلات والطلبات والالتزامات | Product owner / Manus coordination | Layer 2, application, presentation | CTRL-001, OPS-001 |
 | OPS-009 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-2 | حماية Cost Snapshot وإعلان النتيجة النهائية أو التقديرية | Product owner / Manus coordination | Layer 2, application, presentation | CTRL-001, OPS-007 |
 | FIN-002 | VERIFIED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | ميزانيات وأهداف بسيطة | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
+| FIN-006 | VERIFIED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | ربحية المنتج بمعرف كتالوج ثابت | Product owner / Manus coordination | Layer 3, domain, application, presentation | OPS-004 |
 | FIN-007 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-3 | مراجعة فترة مرنة | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-003 |
 | G-002 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | ذرية تخصيص دفعة المورد للمحفظة | Product owner / Manus coordination | cross-layer | — |
 | G-003 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | audit-2026-09-19 | حرس القراءة القديمة عند حفظ الطلب | Product owner / Manus coordination | cross-layer | — |
