@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 30
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 30
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-175 | CLAIMED | \`feat/fin-005-short-cash-horizon-20260923\` | — | FIN-005 | تنفيذ أفق الكاش القصير 7/30/90 يومًا (الافتراضي 30) المثبت على اليوم المحلي عمان، بلا أي كتابة أو تغيير صيغة، ثم رفع الحالة قانونيًا. |
+| WS-175 | IN_REVIEW | \`feat/fin-005-short-cash-horizon-20260923\` | — | FIN-005 | راجع PR الموجة 3 ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED. |
