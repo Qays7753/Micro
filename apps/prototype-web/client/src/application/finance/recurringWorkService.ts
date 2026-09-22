@@ -25,7 +25,7 @@ import type { AllocationEvidence } from "@micro-domain/recurring-margin/index.js
 import type { InventoryMovement, WasteContext } from "@micro-domain/inventory-material/index.js";
 import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
-import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 
 export type RecurringWorkFailure = {
@@ -91,6 +91,14 @@ export type RecurringWorkReading = {
   recognizedDirectCostMinor: number | null;
   directMarginMinor: number | null;
   directStatus: "recorded" | "not_recorded";
+  /* FIN-006 (WS-177 — Wave 5): الفصل الكنوني للنتائج المسجلة — النهائي
+   * وحده في الرقم الأساسي، والطلبات التقديرية مرئية منفصلة بقيمها
+   * المسجلة (لا تُدمج في الرقم أبدًا)، وغير المكتملة عَدّ مرئي فقط
+   * بلا قيم؛ الاسم المعروض للطلب Snapshot تاريخي والمعرف هو الهوية. */
+  estimatedOrderCount: number;
+  estimatedRevenueMinor: number | null;
+  estimatedMarginMinor: number | null;
+  incompleteOrderCount: number;
   material: RecurringWorkMaterialSummary;
   time: RecurringWorkTimeSummary;
   waste: RecurringWorkWasteSummary;
@@ -103,6 +111,16 @@ export type RecurringWorkReadings = {
   from: string;
   to: string;
   items: readonly RecurringWorkReading[];
+  /* FIN-006 (WS-177 — Wave 5): الطلبات المسلّمة داخل الفترة بلا هوية
+   * كتالوج قابلة للربط (مرجع غائب أو معلّق) — مستبعدة من كل الصفوف
+   * بأسباب ظاهرة: لا تُدمج باسم عرض ولا تختفي؛ تُدرج كما سُجلت. */
+  unlinkedDeliveredOrders: readonly UnlinkedDeliveredOrder[];
+};
+/* طلب مسلّم بلا مرجع — الاسم المعروض Snapshot التاريخي للطلب نفسه. */
+export type UnlinkedDeliveredOrder = {
+  id: string;
+  itemName: string;
+  resultStatus: "final" | "estimated" | "incomplete" | "review_required";
 };
 
 const id = (prefix: string) =>
@@ -303,36 +321,63 @@ export class RecurringWorkService {
     const activeTime = timeRecords.value.filter(
       record => record.minutesDelta > 0 && !reversedTime.has(record.id),
     );
+    /* FIN-006 (WS-177 — Wave 5): جرد واحد للطلبات المسلّمة داخل الفترة —
+     * الفصل (نهائي/تقديري/ناقص) والاستبعاد الظاهر (بلا مرجع قابل للربط)
+     * يُشتقان من الجرد نفسه؛ لا مسار ثانٍ ولا إعادة اشتقاق، والقيم المسجلة
+     * كما خُزنت في الطلب لا تُعاد حسابها. */
+    const catalogItemIds = new Set(catalog.value.map(item => item.id));
+    const deliveredInPeriod: StoredCraftOrder[] = [];
+    const unlinkedDeliveredOrders: UnlinkedDeliveredOrder[] = [];
+    for (const stored of orders.value) {
+      /* المجموعة ٦ (تدقيق A1 — FT-01): آخر تسليم ساري — انظر deliveryAttribution. */
+      const event = lastEffectiveDeliveryEvent(stored.order);
+      if (!event) continue;
+      const deliveredOn = ammanDate(event.createdAt);
+      if (deliveredOn < from || deliveredOn > to) continue;
+      deliveredInPeriod.push(stored);
+      const linked = stored.catalogItemId;
+      if (linked === null || !catalogItemIds.has(linked))
+        unlinkedDeliveredOrders.push({
+          id: stored.id,
+          itemName: stored.order.itemName,
+          resultStatus: stored.order.resultStatus,
+        });
+    }
     const items = catalog.value.map(item => {
-      const deliveredOrdersInPeriod = orders.value
-        .map(stored => ({
-          stored,
-          /* المجموعة ٦ (تدقيق A1 — FT-01): آخر تسليم ساري — انظر deliveryAttribution. */
-          deliveredOn: (() => {
-            const event = lastEffectiveDeliveryEvent(stored.order);
-            return event ? ammanDate(event.createdAt) : null;
-          })(),
-        }))
-        .filter(
-          candidate =>
-            candidate.stored.catalogItemId === item.id &&
-            candidate.deliveredOn !== null &&
-            candidate.deliveredOn >= from &&
-            candidate.deliveredOn <= to,
-        );
-      const finalOrders = deliveredOrdersInPeriod.filter(
-        candidate => candidate.stored.order.resultStatus === "final",
+      const deliveredOrdersInPeriod = deliveredInPeriod.filter(
+        candidate => candidate.catalogItemId === item.id,
       );
-      const finalOrderIds = new Set(finalOrders.map(candidate => candidate.stored.id));
-      const excludedOrderIds = deliveredOrdersInPeriod
-        .filter(candidate => candidate.stored.order.resultStatus !== "final")
-        .map(candidate => candidate.stored.id);
+      /* FIN-006: مسار واحد لفئات النتيجة الثلاث — النهائي للرقم الأساسي،
+       * والتقديرية بقيمها المسجلة منفصلة، والباقي (ناقص/مقفول للمراجعة)
+       * عَدّ حسابي بلا قيم؛ المستبعدات (غير النهائية) تُجمع في المسار
+       * نفسه — لا دمج ولا إعادة مسح. */
+      const finalOrders: StoredCraftOrder[] = [];
+      const excludedOrderIds: string[] = [];
+      let estimatedCount = 0;
+      let estimatedRevenue = 0;
+      let estimatedMargin = 0;
+      for (const candidate of deliveredOrdersInPeriod) {
+        const status = candidate.order.resultStatus;
+        if (status === "final") finalOrders.push(candidate);
+        else {
+          excludedOrderIds.push(candidate.id);
+          if (status === "estimated") {
+            estimatedCount += 1;
+            estimatedRevenue += candidate.order.recognizedRevenueMinor;
+            estimatedMargin += candidate.order.recognizedRevenueMinor - candidate.order.recognizedCostMinor;
+          }
+        }
+      }
+      const incompleteOrderCount = deliveredOrdersInPeriod.length - finalOrders.length - estimatedCount;
+      const estimatedRevenueMinor = estimatedCount ? estimatedRevenue : null;
+      const estimatedMarginMinor = estimatedCount ? estimatedMargin : null;
+      const finalOrderIds = new Set(finalOrders.map(candidate => candidate.id));
       const plannedMaterialMinor = finalOrders.reduce(
-        (sum, candidate) => sum + candidate.stored.order.costSnapshot.materialCostMinor,
+        (sum, candidate) => sum + candidate.order.costSnapshot.materialCostMinor,
         0,
       );
       const plannedMinutes = finalOrders.reduce(
-        (sum, candidate) => sum + (candidate.stored.order.costSnapshot.input.time?.minutes ?? 0),
+        (sum, candidate) => sum + (candidate.order.costSnapshot.input.time?.minutes ?? 0),
         0,
       );
       let actualMaterialMinor = 0;
@@ -346,8 +391,7 @@ export class RecurringWorkService {
         }
       const needsReviewMaterial = finalOrders.filter(
         candidate =>
-          recordedOrderIds.has(candidate.stored.id) &&
-          candidate.stored.order.costSnapshot.knowledgeState !== "known",
+          recordedOrderIds.has(candidate.id) && candidate.order.costSnapshot.knowledgeState !== "known",
       ).length;
       const material: RecurringWorkMaterialSummary = {
         recordedOrderCount: recordedOrderIds.size,
@@ -365,16 +409,16 @@ export class RecurringWorkService {
       let timeNeedsReviewOrderCount = 0;
       const missingTimeOrderIds: string[] = [];
       for (const candidate of finalOrders) {
-        const records = activeTime.filter(record => record.orderId === candidate.stored.id);
+        const records = activeTime.filter(record => record.orderId === candidate.id);
         if (records.length === 0) {
-          missingTimeOrderIds.push(candidate.stored.id);
+          missingTimeOrderIds.push(candidate.id);
           continue;
         }
         timeRecordedOrderCount += 1;
         actualMinutes += records.reduce((sum, record) => sum + record.minutesDelta, 0);
         if (
-          candidate.stored.order.costSnapshot.input.time?.minutes === null ||
-          candidate.stored.order.costSnapshot.knowledgeState !== "known"
+          candidate.order.costSnapshot.input.time?.minutes === null ||
+          candidate.order.costSnapshot.knowledgeState !== "known"
         )
           timeNeedsReviewOrderCount += 1;
       }
@@ -427,16 +471,14 @@ export class RecurringWorkService {
       const directMarginMinor = finalOrders.length
         ? finalOrders.reduce(
             (sum, candidate) =>
-              sum +
-              candidate.stored.order.recognizedRevenueMinor -
-              candidate.stored.order.recognizedCostMinor,
+              sum + candidate.order.recognizedRevenueMinor - candidate.order.recognizedCostMinor,
             0,
           )
         : null;
       const activePolicies = policies.value.filter(
         policy => policy.status === "active" && isAllocationPolicyEffective(policy, item.id, from, to),
       );
-      const quantityMillis = finalOrders.map(candidate => toQuantityMilli(candidate.stored.order.quantity));
+      const quantityMillis = finalOrders.map(candidate => toQuantityMilli(candidate.order.quantity));
       const outputQuantityMilli =
         finalOrders.length && quantityMillis.every((value): value is number => value !== null)
           ? sumSafeIntegers(quantityMillis as number[])
@@ -445,14 +487,14 @@ export class RecurringWorkService {
         catalogItemId: item.id,
         periodFrom: from,
         periodTo: to,
-        finalOrderIds: finalOrders.map(candidate => candidate.stored.id),
+        finalOrderIds: finalOrders.map(candidate => candidate.id),
         excludedOrderIds,
         outputQuantityMilli,
         outputUnitId: finalOrders.length ? (item.unitId ?? null) : null,
         actualTimeMinutes: timeRecordedOrderCount ? actualMinutes : null,
         missingTimeOrderIds,
         recognizedRevenueMinor: finalOrders.length
-          ? finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedRevenueMinor, 0)
+          ? finalOrders.reduce((sum, candidate) => sum + candidate.order.recognizedRevenueMinor, 0)
           : null,
         missingRevenueOrderIds: [],
         directMarginMinor: directMarginMinor ?? 0,
@@ -479,18 +521,24 @@ export class RecurringWorkService {
         periodFrom: from,
         periodTo: to,
         finalOrderCount: finalOrders.length,
-        deliveredQuantity: finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.quantity, 0),
+        deliveredQuantity: finalOrders.reduce((sum, candidate) => sum + candidate.order.quantity, 0),
         outputQuantityMilli,
         recognizedRevenueMinor:
           directMarginMinor === null
             ? null
-            : finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedRevenueMinor, 0),
+            : finalOrders.reduce((sum, candidate) => sum + candidate.order.recognizedRevenueMinor, 0),
         recognizedDirectCostMinor:
           directMarginMinor === null
             ? null
-            : finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedCostMinor, 0),
+            : finalOrders.reduce((sum, candidate) => sum + candidate.order.recognizedCostMinor, 0),
         directMarginMinor,
         directStatus: directMarginMinor === null ? "not_recorded" : "recorded",
+        /* FIN-006 (WS-177 — Wave 5): الفصل الكنوني — التقديرية بقيمها
+         * المسجلة منفصلة عن الرقم الأساسي، وغير المكتملة عَدّ بلا قيم. */
+        estimatedOrderCount: estimatedCount,
+        estimatedRevenueMinor,
+        estimatedMarginMinor,
+        incompleteOrderCount,
         material,
         time,
         waste,
@@ -506,6 +554,10 @@ export class RecurringWorkService {
         from,
         to,
         items,
+        /* FIN-006 (WS-177 — Wave 5): الاستبعاد الظاهر — الطلبات المسلّمة
+         * بلا مرجع قابل للربط تُدرج بأسمائها التاريخية كما سُجلت، بلا
+         * دمج ولا إخفاء ولا إعادة كتابة للسجل. */
+        unlinkedDeliveredOrders,
       },
     };
   }

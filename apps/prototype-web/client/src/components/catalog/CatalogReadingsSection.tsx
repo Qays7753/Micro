@@ -57,6 +57,23 @@ export function CatalogReadingsSection({
               : "جارٍ تحميل القراءة المحلية…"}
           </p>
         </div>
+        {readings && readings.unlinkedDeliveredOrders.length > 0 ? (
+          /* FIN-006 (WS-177 — Wave 5): الاستبعاد الظاهر — الطلبات المسلّمة
+              بلا مرجع قابل للربط تُعرض بأسمائها التاريخية كما سُجلت؛ لا
+              تُدمج في أي صف ولا تختفي، وليست صفرًا مؤكدًا. */
+          <p className="micro-warning-copy" role="status">
+            طلبات مسلّمة في الفترة بلا مرجع قابل للربط ({readings.unlinkedDeliveredOrders.length}):
+            {readings.unlinkedDeliveredOrders
+              .slice(0, 4)
+              .map(
+                order =>
+                  `${order.itemName} — ${order.resultStatus === "final" ? "نهائي" : order.resultStatus === "estimated" ? "تقديري" : "غير مكتمل"}`,
+              )
+              .join(" · ")}
+            {readings.unlinkedDeliveredOrders.length > 4 ? " وغيرها" : ""} — مستبعدة من كل الصفوف؛ لا يدمجها
+            النظام باسم عرض ولا يخفيها.
+          </p>
+        ) : null}
         {items.length ? (
           <div className="micro-list">
             {items.map(item => {
@@ -86,6 +103,23 @@ export function CatalogReadingsSection({
                         ناقص.
                       </p>
                     )}
+                    {reading && reading.estimatedOrderCount > 0 ? (
+                      /* FIN-006 (WS-177 — Wave 5): الفصل الكنوني — التقديرية
+                          مرئية بقيمها المسجلة منفصلة عن الرقم الأساسي. */
+                      <p>
+                        تقديرية منفصلة: {reading.estimatedOrderCount} طلبًا · إيراد مسجل{" "}
+                        {formatMoneyWithUnit(reading.estimatedRevenueMinor ?? 0)} · هامش تقديري{" "}
+                        {formatMoneyWithUnit(reading.estimatedMarginMinor ?? 0)} — لا تدخل الرقم النهائي.
+                      </p>
+                    ) : null}
+                    {reading && reading.incompleteOrderCount > 0 ? (
+                      /* FIN-006: غير المكتملة (ومنها المقفلة للمراجة) عَدّ مرئي
+                          بلا قيم — لا تُدمج ولا تُصفر. */
+                      <p className="micro-warning-copy">
+                        {reading.incompleteOrderCount} طلبًا غير مكتمل أو مقفلًا للمراجعة — مستبعد من الرقم
+                        حتى تكتمل نتيجته الموثقة.
+                      </p>
+                    ) : null}
                     {reading ? (
                       <>
                         <p>
