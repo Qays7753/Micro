@@ -21,13 +21,7 @@
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 
 export type PeriodPresetId =
-  | "this_week"
-  | "last_week"
-  | "this_month"
-  | "last_month"
-  | "this_quarter"
-  | "last_quarter"
-  | "custom";
+  "this_week" | "last_week" | "this_month" | "last_month" | "this_quarter" | "last_quarter" | "custom";
 
 /** فترة شاملة بحدود محلية `YYYY-MM-DD` (من ≤ إلى). */
 export type PeriodRange = {
@@ -37,8 +31,7 @@ export type PeriodRange = {
 
 /** رفض مُنمّط (typed) لا استثناء خام: رمز واحد ورسالة عربية صريحة. */
 export type PeriodPresetResolution =
-  | { ok: true; value: PeriodRange }
-  | { ok: false; code: "invalid_period"; message: string };
+  { ok: true; value: PeriodRange } | { ok: false; code: "invalid_period"; message: string };
 
 export const PERIOD_PRESET_IDS: readonly PeriodPresetId[] = [
   "this_week",
@@ -116,9 +109,7 @@ function quarterRange(year: number, month: number): PeriodRange {
 
 /** الربع السابق الكامل مع لف السنة (Q1 → Q4 للسنة الأدنى). */
 function previousQuarter(year: number, month: number): PeriodRange {
-  return month <= 3
-    ? quarterRange(year - 1, 12)
-    : quarterRange(year, month - 3);
+  return month <= 3 ? quarterRange(year - 1, 12) : quarterRange(year, month - 3);
 }
 
 function invalid(message: string): PeriodPresetResolution {
@@ -142,8 +133,7 @@ export function resolvePeriodPreset(
     const from = parseParts(custom?.from ?? "");
     const to = parseParts(custom?.to ?? "");
     if (!from || !to) return invalid("أدخل بداية الفترة ونهايتها بتاريخين محليين صحيحين.");
-    if (custom!.from > custom!.to)
-      return invalid("بداية النطاق المخصص يجب أن تسبق نهايته أو تطابقها.");
+    if (custom!.from > custom!.to) return invalid("بداية النطاق المخصص يجب أن تسبق نهايته أو تطابقها.");
     return { ok: true, value: { from: custom!.from, to: custom!.to } };
   }
   switch (preset) {

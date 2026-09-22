@@ -93,7 +93,10 @@ export class ProfitToCashBridgeService {
     this.finance = new ProjectFinancialService(store, now);
   }
 
-  async readProfitToCashBridge(period: { from: string; to: string }): Promise<FinanceResult<ProfitToCashBridgeReading>> {
+  async readProfitToCashBridge(period: {
+    from: string;
+    to: string;
+  }): Promise<FinanceResult<ProfitToCashBridgeReading>> {
     const [
       periodResult,
       ordersResult,
@@ -211,7 +214,9 @@ export class ProfitToCashBridgeService {
       lines.push({ id, label, source, amountMinor });
     };
     const familyEventCash = (types: readonly FinancialEvent["type"][]) =>
-      periodEvents.filter(event => types.includes(event.type)).reduce((sum, event) => sum + event.cashDeltaMinor, 0);
+      periodEvents
+        .filter(event => types.includes(event.type))
+        .reduce((sum, event) => sum + event.cashDeltaMinor, 0);
 
     if (periodReading.resultMinor === null) {
       /* النتيجة غير متاحة (تكلفة بيع مباشر مجهولة مثلًا) — المقيس يُعرض،
@@ -368,7 +373,9 @@ export class ProfitToCashBridgeService {
         "التسوية النهائية: المقيس − مجموع البنود أعلاه — يظهر كما هو ولا يُصفَّر بصمت",
         remainderMinor,
       );
-      reasons.push("فرق غير مطابق بين النتيجة المسجلة وتغير الكاش المسجل — راجع مصادره قبل الاعتماد على أي طرف");
+      reasons.push(
+        "فرق غير مطابق بين النتيجة المسجلة وتغير الكاش المسجل — راجع مصادره قبل الاعتماد على أي طرف",
+      );
     }
     const status: ProfitToCashBridgeStatus =
       remainderMinor !== 0 || periodReading.status === "incomplete" || reasons.length > 0

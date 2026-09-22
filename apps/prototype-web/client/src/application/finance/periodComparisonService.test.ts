@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { PeriodComparisonService } from "./periodComparisonService";
 import { ProjectFinancialService } from "./projectFinancialService";
-import { calculateCostSnapshot, createCraftOrder, transitionOrder, type CraftOrder } from "@micro-domain/craft-order/index.js";
+import {
+  calculateCostSnapshot,
+  createCraftOrder,
+  transitionOrder,
+  type CraftOrder,
+} from "@micro-domain/craft-order/index.js";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
 
@@ -44,7 +49,14 @@ function estimatedSnapshot(id: string) {
 
 async function saveDeliveredOrder(
   store: MemoryLocalStore,
-  input: { id: string; priceMinor: number; deliveredOn: string; stamp: string; estimated: boolean; timeRateMinor?: number },
+  input: {
+    id: string;
+    priceMinor: number;
+    deliveredOn: string;
+    stamp: string;
+    estimated: boolean;
+    timeRateMinor?: number;
+  },
 ): Promise<void> {
   let order: CraftOrder = createCraftOrder({
     id: input.id,
@@ -144,7 +156,12 @@ async function seedTwoMonths(store: MemoryLocalStore): Promise<void> {
     note: "توصيل",
     counterparty: null,
     relatedEventId: null,
-    expenseContext: { relationship: "project", behavior: "variable", purpose: "project_general", knowledge: "known" },
+    expenseContext: {
+      relationship: "project",
+      behavior: "variable",
+      purpose: "project_general",
+      knowledge: "known",
+    },
     idempotencyKey: "cmp-expense",
   });
   await finance.record({

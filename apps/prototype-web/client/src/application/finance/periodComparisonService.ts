@@ -399,9 +399,14 @@ export class PeriodComparisonService {
     const b = readingB.value;
     const todayLocal = localDateInAmman(this.now());
     const partial =
-      isPeriodActive({ from: a.from, to: a.to }, todayLocal) || isPeriodActive({ from: b.from, to: b.to }, todayLocal);
+      isPeriodActive({ from: a.from, to: a.to }, todayLocal) ||
+      isPeriodActive({ from: b.from, to: b.to }, todayLocal);
     const overlapping = a.from <= b.to && b.from <= a.to;
-    const resultLine = lineOf(LINE_SPECS.find(spec => spec.id === "resultMinor")!, a, b);
+    const resultLine = lineOf(
+      LINE_SPECS.find(spec => spec.id === "resultMinor")!,
+      a,
+      b,
+    );
     return {
       ok: true,
       value: {

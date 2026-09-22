@@ -26,6 +26,8 @@ import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+/* FIN-003 (WS-173 — Wave 1): جسر الربح والكاش — خدمة قراءة فقط يطلبها سطح الفترة. */
+import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
 import Finance from "@/pages/Finance";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
@@ -116,6 +118,7 @@ function buildServices() {
       ...new RetainedDepositService(store, () => NOW),
       listPending: () => failing("loans", () => new RetainedDepositService(store, () => NOW).listPending()),
     },
+    profitToCashBridge: new ProfitToCashBridgeService(store, () => NOW),
     cashContinuity,
     supplierPurchases,
     schedules,

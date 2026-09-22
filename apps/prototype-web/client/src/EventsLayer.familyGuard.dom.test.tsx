@@ -12,6 +12,8 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+/* FIN-003 (WS-173 — Wave 1): جسر الربح والكاش — خدمة قراءة فقط يطلبها سطح الفترة. */
+import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
 import { G5Service } from "@/application/g5/g5Service";
 import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -56,6 +58,8 @@ function FinanceHarness() {
     assets: new AssetService(store, () => NOW),
     loans: new LoanService(store, () => NOW),
     retainedDeposits: new RetainedDepositService(store, () => NOW),
+    /* FIN-003 (WS-173 — Wave 1): جسر الربح والكاش — قراءة فقط. */
+    profitToCashBridge: new ProfitToCashBridgeService(store, () => NOW),
     dataVersion: version,
     notifyDataChanged: () => setVersion(current => current + 1),
   };
