@@ -1,1 +1,90 @@
-{"id":"FIN-002","title":"ميزانيات وأهداف بسيطة","type":"FEATURE","status":"DEFERRED","priority":"P2","stage":"stage-3","summary":"حدود وأهداف اختيارية تساعد القرار دون محاسبة موازنات معقدة.","acceptance":["مقارنة فعلية مقابل هدف معلوم","المجهول لا يظهر التزامًا أو انحرافًا زائفًا"],"areas":["finance","planning"],"contracts":[],"evidence":[],"dependencies":["CTRL-001"],"owner_decision":"","merge_sha":"","verified_on_main_sha":"","updated_at":"2026-09-19","finding_classification":"NOT_APPLICABLE","finding_state":"NOT_APPLICABLE","root_cause":"control-record:FIN-002","source":{"report":"docs/operations/control/README.md","discovered_at_sha":"87ebcf2ffa74752bf385eff3a10962454b45d33e","evidence":[]},"status_history":[{"status":"READY","changed_at":"2026-09-19","actor":"migration:operations-control-v2","reason":"إضافة سجل الحالة عند ترحيل النظام إلى v2."},{"status":"DEFERRED","changed_at":"2026-09-19","actor":"operations-control-v2-audit-import","reason":"BUILD_AFTER_EVIDENCE في تدقيق الإدارة المالية؛ لا يبدأ قبل ظهور الحاجة في Pilot وقرار المالك."}],"migration_baseline":true,"next_action":"أكمل الاعتماديات، ثم افتح Claim لتنفيذ أبسط ميزانية/هدف مع اختبارات عدم خلط الخطة بالحدث المالي.","deferred_reason":"تنفيذ مؤجل حتى اعتماد/إكمال الاعتماديات، لكنه متطلب Gate قبل Pilot؛ الميزانيات والأهداف المبسطة مطلوبة ضمن المرحلة 3.","related_items":[],"classification":"FIX_BEFORE_PILOT","owner":"Product owner / Manus coordination","tests_required":["Domain/Service tests","DOM/Integration tests where UI is involved","Export/import or migration evidence where persistence changes","Merge and verification evidence on main"],"layers":["Layer 3","domain","application","presentation"],"gate_classification":"DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"}
+{
+  "id": "FIN-002",
+  "title": "ميزانيات وأهداف بسيطة",
+  "type": "FEATURE",
+  "status": "IN_REVIEW",
+  "priority": "P2",
+  "stage": "stage-3",
+  "summary": "حدود وأهداف اختيارية تساعد القرار دون محاسبة موازنات معقدة.",
+  "acceptance": [
+    "مقارنة فعلية مقابل هدف معلوم",
+    "المجهول لا يظهر التزامًا أو انحرافًا زائفًا"
+  ],
+  "areas": [
+    "finance",
+    "planning"
+  ],
+  "contracts": [],
+  "evidence": [],
+  "dependencies": [
+    "CTRL-001"
+  ],
+  "owner_decision": "",
+  "merge_sha": "",
+  "verified_on_main_sha": "",
+  "updated_at": "2026-09-22",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "root_cause": "control-record:FIN-002",
+  "source": {
+    "report": "docs/operations/control/README.md",
+    "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
+    "evidence": []
+  },
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-19",
+      "actor": "migration:operations-control-v2",
+      "reason": "إضافة سجل الحالة عند ترحيل النظام إلى v2."
+    },
+    {
+      "status": "DEFERRED",
+      "changed_at": "2026-09-19",
+      "actor": "operations-control-v2-audit-import",
+      "reason": "BUILD_AFTER_EVIDENCE في تدقيق الإدارة المالية؛ لا يبدأ قبل ظهور الحاجة في Pilot وقرار المالك."
+    },
+    {
+      "status": "READY",
+      "changed_at": "2026-09-22",
+      "actor": "reopen:owner-roadmap",
+      "reason": "بوابة إعادة الفتح: أمر تشغيل المالك المعتمد «خارطة الطريق المالي الكامل» (2026-09-22) يعتمد تنفيذ FIN-002 في الموجة 2 بسياساته المحددة (§4.3: ميزانيات مصاريف فقط، الخطة ليست حدثًا ماليًا، التجاوز تفسير لا حظر، اختيارية كاملة) — رفع التأجيل التنفيذي مع بقاء بوابة الـGate قبل الـPilot."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-22",
+      "actor": "claim:ws-174",
+      "reason": "Claim تنفيذي WS-174 من main المتحقق e7c7b1c20890e64f98ad420ac008ef6578601c0f وفق Operations Control v2 وخارطة تنفيذ خارطة الطريق المالي."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-22",
+      "actor": "ws-174:implementation",
+      "reason": "تنفيذ الموجة 2 قائم على الفرع feat/fin-002-budgets-goals-20260922 من e7c7b1c: عقد ٤٢ والدومين (0d8f7d7)، المخزن المحروس ٣٧/٢٩ (3cba1c7)، الخدمة والواجهة والاختبارات (03ed6f0)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-22",
+      "actor": "ws-174:review",
+      "reason": "الميزانيات الاختيارية جاهزة للمراجعة: عقد ٤٢ + دومين + مخزن ٣٧/٢٩ + خدمة + واجهة؛ الخطة لا حدث مالي مثبتة باختبار مطابقة عميقة."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "بانتظار CI وقرار الدمج على PR الموجة (WS-174)؛ لا VERIFIED قبل الدمج والتحقق على main.",
+  "related_items": [],
+  "classification": "FIX_BEFORE_PILOT",
+  "owner": "Product owner / Manus coordination",
+  "tests_required": [
+    "Domain/Service tests",
+    "DOM/Integration tests where UI is involved",
+    "Export/import or migration evidence where persistence changes",
+    "Merge and verification evidence on main"
+  ],
+  "layers": [
+    "Layer 3",
+    "domain",
+    "application",
+    "presentation"
+  ],
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"
+}

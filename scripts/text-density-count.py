@@ -370,7 +370,16 @@ CAPS: dict[str, int] = {
     # Finance 299 -> 300 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
     # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
     # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
-    "Finance": 300,
+    # Finance 300 -> 318 (2026-09-22, Wave 2 WS-174 FIN-002, owner-approved
+    # roadmap): the optional-budgets section («ميزانيات اختيارية» — عقد ٤٢)
+    # adds its mandated vocabulary to this surface. At runtime the whole
+    # section body (forms, statuses, action labels) renders INSIDE the
+    # collapsed <details> subtree of the wrapper component; the per-file
+    # lexical stripper cannot see across function boundaries, so the strings
+    # count here — the raise documents that approximation, not new at-rest
+    # surface pressure beyond the single summary row. Owner-vetoable at
+    # review, like the Statement 209->216 precedent.
+    "Finance": 318,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.

@@ -34,6 +34,7 @@ import type {
   RecurringExpenseRuleRevision,
   RecurringExpenseSeries,
 } from "@micro-domain/recurring-expense/index.js";
+import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
 
 /* المجموعة ٥ (الاستمرارية): المخطط ٣٥ أضاف مخزني `form-drafts` و`local-security`
@@ -42,8 +43,11 @@ import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
  * النصية دخول عابر لا حقيقة مالية، ورمز القفل سرٌّ محلي لا يغادر الجهاز أبدًا.
  * OPS-003 (عقد ٤١ / قرار D-037): المخطط ٣٦ يضيف مخازن المصروف المتكرر الثلاثة
  * (`recurring-expense-series/revisions/occurrences`) بالمُنشئ المحروس نفسه —
- * لا حقول جديدة على سجلات قائمة ولا ترحيل بيانات؛ القديم يفتح ويجدها فارغة. */
-export const localSchemaVersion = 36;
+ * لا حقول جديدة على سجلات قائمة ولا ترحيل بيانات؛ القديم يفتح ويجدها فارغة.
+ * FIN-002 (عقد ٤٢ / نمط D-037): المخطط ٣٧ يضيف مخزن `expense-budgets` واحدًا
+ * لسجلات الميزانية المختارة (خطة لا حدثًا ماليًا) بالمُنشئ المحروس نفسه —
+ * لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا. */
+export const localSchemaVersion = 37;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
@@ -52,8 +56,11 @@ export const localExportFormat = "micro-prototype-local-export";
  * بلا بصمة، والزوجان القديمان كلها تبقى في قائمة الاستيراد المسموحة.
  * OPS-003 (عقد ٤١ / قرار D-037): النسخة ٢٨ تضيف عائلات المصروف المتكرر الثلاث
  * إلى لقطة التصدير وعداداتها؛ ملف ٢٧/٣٥ يبقى زوجًا موروثًا مقبولًا في الاستيراد
- * بلا اختراع سجلات — الغياب يعني قوائم فارغة. */
-export const localExportVersion = 28;
+ * بلا اختراع سجلات — الغياب يعني قوائم فارغة.
+ * FIN-002 (عقد ٤٢): النسخة ٢٩ تضيف عائلة الميزانيات إلى لقطة التصدير وعداداتها؛
+ * ملف ٢٨/٣٦ يبقى زوجًا موروثًا مقبولًا في الاستيراد بلا اختراع ميزانيات —
+ * الغياب يعني قائمة فارغة. */
+export const localExportVersion = 29;
 export const localSecurityId = "local-security";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
@@ -115,6 +122,8 @@ export type LocalExportCounts = {
   recurringExpenseSeries: number;
   recurringExpenseRevisions: number;
   recurringExpenseOccurrences: number;
+  /* FIN-002 (عقد ٤٢): عائلة الميزانيات داخل العدادات الصارمة. */
+  expenseBudgets: number;
 };
 /* المجموعة ٢ (عقد ٢٨ — مخزون انتقائي): مخزن ٣٢/نسخة ٢٤ أضافتا قرار المتابعة
  * ومعرفة رصيد البداية لكل مادة، ووسم معرفة التكلفة على الحركات، وربط الشراء
@@ -363,6 +372,11 @@ export type LocalStoreSnapshot = {
   recurringExpenseSeries?: readonly RecurringExpenseSeries[];
   recurringExpenseRevisions?: readonly RecurringExpenseRuleRevision[];
   recurringExpenseOccurrences?: readonly RecurringExpenseOccurrence[];
+  /* FIN-002 (عقد ٤٢): سجلات الميزانية المختارة وأهداف المصروف — مخزن تشغيلي
+   * واحد بلا أي أثر مالي (الخطة ليست حدثًا ماليًا أبدًا)؛ النسخة الخلف
+   * والتوثيق بالإغلاق داخل السجل نفسه بروابط للأمام فقط. الغياب في التصدير
+   * القديم = قائمة فارغة بلا اختراع تاريخ. */
+  expenseBudgets?: readonly ExpenseBudgetRecord[];
 };
 export type LocalExportFile = {
   format: typeof localExportFormat;
@@ -804,6 +818,31 @@ export interface PrototypeLocalStore {
     StorageResult<{
       occurrence: RecurringExpenseOccurrence;
       event: FinancialEvent;
+      reused: boolean;
+    }>
+  >;
+  /* FIN-002 (عقد ٤٢ — الميزانيات): قراءة سجلات الميزانية المخزنة كما كُتبت
+   * (المخزن يحفظ سجلات الدومين حرفيًا — لا منطق دومين هنا أبدًا). */
+  listExpenseBudgets(): Promise<StorageResult<readonly ExpenseBudgetRecord[]>>;
+  /* حفظ محروس لسجل واحد: نفس المعرّف بنفس المضمون = إعادة استخدام صادقة بلا
+   * كتابة ثانية؛ والمضمون المختلف على المعرّف نفسه = رفض صادر (storage_stale)
+   * بلا كتابة — لا آخر-كاتب-يفوز على خطة مالية موثقة. */
+  saveExpenseBudget(
+    record: ExpenseBudgetRecord,
+    /* الانتقالات الموثقة في المكان (إغلاق/إخفاء/استعادة) تمرر الحالة المقروءة
+     * المتوقعة — CAS داخل حد الكتابة (قاعدة §10.7): لا كتابة عمياء. */
+    expected?: ExpenseBudgetRecord,
+  ): Promise<StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>>;
+  /* زوج المراجعة الذرّي (عقد ٤٢ §٥): الخلف النافذ والسابقة المستبدلة في معاملة
+   * تخزين واحدة — كلاهما أو لا شيء؛ إعادة تشغيل الزوج كاملًا = إعادة استخدام،
+   * وأي انحراف = رفض صادر بلا كتابة. */
+  saveExpenseBudgetRevisionPair(
+    successor: ExpenseBudgetRecord,
+    supersededPrevious: ExpenseBudgetRecord,
+  ): Promise<
+    StorageResult<{
+      successor: ExpenseBudgetRecord;
+      supersededPrevious: ExpenseBudgetRecord;
       reused: boolean;
     }>
   >;

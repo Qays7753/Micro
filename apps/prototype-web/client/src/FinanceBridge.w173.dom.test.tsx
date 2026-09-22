@@ -6,7 +6,7 @@
  * وMemoryLocalStore؛ الساعة مثبتة على 2026-08-20 فشهر الصفحة هو آب نفسه،
  * والقراءة لا تكتب سجلًا واحدًا (مطابقة لقطة كاملة قبل/بعد). */
 import React from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
@@ -484,8 +484,10 @@ describe("Finance — جسر الربح والكاش (FIN-003)", () => {
     expect(document.querySelector('[data-line-id="owner_flows"]')?.textContent).toContain("تدفقات المالك");
     /* لا سطر «فرق غير مطابق» على العالم المتوازن. */
     expect(document.querySelector('[data-line-id="remainder"]')).toBeNull();
-    /* الترويسة الفرعية بنطاق الأشهر نفسه المعروض على الصفحة. */
-    expect(screen.getByText(/^من 08\/2026 إلى 08\/2026$/)).toBeTruthy();
+    /* الترويسة الفرعية بنطاق الأشهر نفسه المعروض على الصفحة — محصورة بتفاصيل
+     * جسر الموجة 1 تحديدًا: قسم الميزانيات (الموجة 2) يعرض النطاق نفسه أيضًا. */
+    const bridgeDetails = bridge.closest("details")!;
+    expect(within(bridgeDetails).getByText(/^من 08\/2026 إلى 08\/2026$/)).toBeTruthy();
     expect(screen.getByText("لماذا يختلف الربح عن الكاش؟")).toBeTruthy();
   });
 

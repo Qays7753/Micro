@@ -315,6 +315,10 @@ export function migrateTransferSnapshot(
             : occurrence,
         )
       : [],
+    /* FIN-002 (عقد ٤٢): عائلة الميزانيات — الغياب في ملف قديم = قائمة فارغة
+     * بلا اختراع خطط مالية أبدًا؛ والسجلات الحاضرة تعبر كما كُتبت حرفيًا
+     * (التحقق الصارم للشكل والترابط يلي الترحيل قبل أي معاينة). */
+    expenseBudgets: Array.isArray(raw.expenseBudgets) ? raw.expenseBudgets : [],
   } as unknown as LocalStoreSnapshot;
   return migrated;
 }

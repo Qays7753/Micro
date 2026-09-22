@@ -72,6 +72,7 @@ import type { RecurringExpenseService } from "@/application/finance/recurringExp
 /* Stage 2 — OPS-004 (tracker): قراءة التكلفة/الكمية المخططتين للقوالب — قراءة فقط. */
 import { TemplatePlannedCostService } from "@/application/catalog/templatePlannedCostService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
+import type { PrototypeLocalStore } from "@/storage/local/types";
 /* المجموعة ٤ (عقد ٢٩): الأصول والقروض وتصنيف العربون المحتفظ به. */
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
@@ -328,6 +329,15 @@ function createServices(): Omit<
 }
 
 const singletonServices = createServices();
+
+/* FIN-002 (WS-174 — Wave 2، سابقة EXE-014/D-034): موّرد المخزن الوحيد للأسطح
+ * التي تبني خدمةً محمّلة ديناميكيًا بمعرّفها الخاص عند أول فتح — الخدمة نفسها
+ * لا تُسجَّل في هذا السياق أبدًا (لا تضاف إلى PrototypeServices ولا تُبنى هنا)
+ * فلا تدخل كومة الإقلاع؛ الصفحة تستورد النوع فقط وتستدعي الوحدة بـimport().
+ * الصفحات لا تلمس التخزين مباشرة (حدود الطبقات) — تطلبها من جذر التركيب. */
+export function getPrototypeLocalStore(): PrototypeLocalStore {
+  return singletonStore;
+}
 
 export function usePrototypeServices() {
   const context = useContext(PrototypeServicesContext);

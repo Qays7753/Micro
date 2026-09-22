@@ -230,8 +230,8 @@ describe("storage round trip keeps the same exact value from receipt to display"
 });
 
 describe("schema and export versions stay at the approved contracts", () => {
-  it("keeps localSchemaVersion 36 and localExportVersion 28 unchanged by the exact-value policy", () => {
-    expect(localSchemaVersion).toBe(36);
-    expect(localExportVersion).toBe(28);
+  it("keeps localSchemaVersion 37 and localExportVersion 29 unchanged by the exact-value policy (FIN-002 contract 42)", () => {
+    expect(localSchemaVersion).toBe(37);
+    expect(localExportVersion).toBe(29);
   });
 });

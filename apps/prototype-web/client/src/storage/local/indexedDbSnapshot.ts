@@ -36,6 +36,7 @@ import type {
   RecurringExpenseRuleRevision,
   RecurringExpenseSeries,
 } from "@micro-domain/recurring-expense/index.js";
+import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import {
   localInventoryActivationId,
   localOwnerProfileId,
@@ -64,6 +65,7 @@ import {
   directConversionStore,
   directSaleStore,
   draftStore,
+  expenseBudgetStore,
   financialEventStore,
   inventoryActivationStore,
   inventoryMovementStore,
@@ -127,6 +129,7 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
           recurringExpenseSeriesStore,
           recurringExpenseRevisionStore,
           recurringExpenseOccurrenceStore,
+          expenseBudgetStore,
         ],
         "readonly",
       );
@@ -168,6 +171,8 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
       const recurringExpenseSeries = transaction.objectStore(recurringExpenseSeriesStore).getAll();
       const recurringExpenseRevisions = transaction.objectStore(recurringExpenseRevisionStore).getAll();
       const recurringExpenseOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore).getAll();
+      /* FIN-002 (عقد ٤٢): عائلة الميزانيات جزء من اللقطة — إسقاطها يفقد الخطة عند التصدير. */
+      const expenseBudgets = transaction.objectStore(expenseBudgetStore).getAll();
       transaction.onerror = () => resolve(failure(transaction.error, database));
       transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.oncomplete = () => {
@@ -208,6 +213,7 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
             recurringExpenseSeries: recurringExpenseSeries.result as RecurringExpenseSeries[],
             recurringExpenseRevisions: recurringExpenseRevisions.result as RecurringExpenseRuleRevision[],
             recurringExpenseOccurrences: recurringExpenseOccurrences.result as RecurringExpenseOccurrence[],
+            expenseBudgets: expenseBudgets.result as ExpenseBudgetRecord[],
           },
         });
       };
@@ -253,6 +259,8 @@ export async function replaceIndexedDbSnapshot(
       recurringExpenseSeries: snapshot.recurringExpenseSeries ?? [],
       recurringExpenseRevisions: snapshot.recurringExpenseRevisions ?? [],
       recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences ?? [],
+      /* FIN-002 (عقد ٤٢): تطبيع عائلة الميزانيات — الغياب = قائمة فارغة آمنة. */
+      expenseBudgets: snapshot.expenseBudgets ?? [],
     };
     return await new Promise(resolve => {
       const transaction = database.transaction(
@@ -290,6 +298,7 @@ export async function replaceIndexedDbSnapshot(
           recurringExpenseSeriesStore,
           recurringExpenseRevisionStore,
           recurringExpenseOccurrenceStore,
+          expenseBudgetStore,
         ],
         "readwrite",
       );
@@ -326,6 +335,7 @@ export async function replaceIndexedDbSnapshot(
       const recurringSeries = transaction.objectStore(recurringExpenseSeriesStore);
       const recurringRevisions = transaction.objectStore(recurringExpenseRevisionStore);
       const recurringOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
+      const expenseBudgets = transaction.objectStore(expenseBudgetStore);
       profiles.clear();
       ownerProfiles.clear();
       preferences.clear();
@@ -359,6 +369,8 @@ export async function replaceIndexedDbSnapshot(
       recurringSeries.clear();
       recurringRevisions.clear();
       recurringOccurrences.clear();
+      /* FIN-002 (عقد ٤٢): تنظيف وكتابة الميزانيات — الاستبدال لا يترك خطة قديمة. */
+      expenseBudgets.clear();
       if (normalized.profile) profiles.put(normalized.profile);
       if (normalized.ownerProfile) ownerProfiles.put(normalized.ownerProfile);
       if (normalized.preferences) preferences.put(normalized.preferences);
@@ -395,6 +407,7 @@ export async function replaceIndexedDbSnapshot(
       normalized.recurringExpenseSeries?.forEach(series => recurringSeries.put(series));
       normalized.recurringExpenseRevisions?.forEach(revision => recurringRevisions.put(revision));
       normalized.recurringExpenseOccurrences?.forEach(occurrence => recurringOccurrences.put(occurrence));
+      normalized.expenseBudgets?.forEach(budget => expenseBudgets.put(budget));
       transaction.onerror = () => resolve(failure(transaction.error, database));
       transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.oncomplete = () => {
