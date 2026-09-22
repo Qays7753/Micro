@@ -1,7 +1,7 @@
 {
   "id": "WS-173",
   "title": "Financial Roadmap Wave 1 — FIN-003/FIN-007 period comparison + flexible period review + profit-to-cash bridge",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "FIN-003",
     "FIN-007"
@@ -25,10 +25,10 @@
     "docs/contracts/03-cost-snapshot-contract.md"
   ],
   "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-22",
-  "pr": null,
+  "pr": 211,
   "started_at": "2026-09-22T13:30:00+03:00",
   "updated_at": "2026-09-22",
-  "next_action": "بانتظار CI على رأس فرع الموجة ثم قرار دمج المالك للـPR؛ بعد الدمج: تحقق CI وCloudflare على SHA الدمج نفسه ثم الانتقال MERGED_UNVERIFIED → VERIFIED بأدلة، وتحديث current-state §60 وفهرس التقارير.",
+  "next_action": "لا فعل تنفيذي إضافي لـWS-173: الموجة 1 (FIN-003 + FIN-007) مدمجة Squash عند 89e3c864e6008f6d7ec558be4950425fff71d651 ومتحقق عليها على main نفسه (CI + Cloudflare ناجحان على SHA الدمج؛ 37/37 اختبار موجة محليًا على main). البوابة التالية فقط: الموجة 2 (FIN-002 الميزانيات) من main المتحقق — لا تبدأ تلقائيًا.",
   "notes": [
     "Owner-approved roadmap: 'Micro Financial Roadmap Complete Controlled Execution' (2026-09-22). Wave order and policy register are owner product decisions; this claim opens Wave 1 only.",
     "Documented deviation (owner-approved): tracker lists FIN-003 dependency on FIN-001, but the owner's wave order executes FIN-003/007 first. Safe because the recorded period result excludes loans by contract (05 §3.2.1, 14 §2); the bridge shows incoming-loan flows as honestly absent (zero recorded) until FIN-001 lands in Wave 6. Recorded in the execution map.",
@@ -54,11 +54,27 @@
       "changed_at": "2026-09-22",
       "actor": "ws-173:review",
       "reason": "تنفيذ الموجة 1 مكتمل على الفرع ومبوّب بالكامل: 37 اختبارًا جديدًا (قوالب 13 + مقارنة 7 + جسر 8 + DOM 9)، pnpm check خروج 0 كاملًا (434+1820، ميزانية 645,136/650,000 خام و153,332/155,000 gzip)، مراجعة مستقلة PASS_WITH_NOTES — بانتظار CI وقرار دمج المالك على الـPR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-22",
+      "actor": "ws-173:merge",
+      "reason": "PR #211 مدمج Squash في main عند 89e3c864e6008f6d7ec558be4950425fff71d651 (الأساس 63765e5)؛ CI وCloudflare ناجحان على رأس الـPR."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-22",
+      "actor": "ws-173:post-merge-verification",
+      "reason": "تحقق على SHA الدمج نفسه 89e3c864e6008f6d7ec558be4950425fff71d651: CI ناجح وCloudflare Pages ناجح على commit الدمج؛ و37/37 اختبار موجة خضر محليًا على main؛ الدليل: تقرير تسليم الموجة."
     }
   ],
   "migration_baseline": false,
   "evidence": [
     "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/report.md",
-    "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md"
-  ]
+    "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md",
+    "reports/agent-report/2026-09-22_fin-roadmap-wave-1-fin-003-007/report.md",
+    "PR #211 comments: WAVE 1 CHECKPOINT + Merge Manifest"
+  ],
+  "merge_sha": "89e3c864e6008f6d7ec558be4950425fff71d651",
+  "verified_on_main_sha": "89e3c864e6008f6d7ec558be4950425fff71d651"
 }

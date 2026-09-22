@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_REVIEW: 2 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VERIFIED: 27
+الحصيلة: BLOCKED: 3 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VERIFIED: 29
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,6 +32,4 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
-|---|---|---|---|---|---|
-| WS-173 | IN_REVIEW | \`feat/fin-003-007-period-comparison-20260922\` | — | FIN-003, FIN-007 | بانتظار CI على رأس فرع الموجة ثم قرار دمج المالك للـPR؛ بعد الدمج: تحقق CI وCloudflare على SHA الدمج نفسه ثم الانتقال MERGED_UNVERIFIED → VERIFIED بأدلة، وتحديث current-state §60 وفهرس التقارير. |
+لا يوجد Workstream نشط أو يحتاج مراجعة.
