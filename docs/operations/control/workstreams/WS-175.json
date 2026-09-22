@@ -1,0 +1,42 @@
+{
+  "id": "WS-175",
+  "title": "Financial Roadmap Wave 3 — FIN-005 short-cash horizon reading (7/30/90 days, default 30)",
+  "status": "CLAIMED",
+  "items": [
+    "FIN-005"
+  ],
+  "branch": "feat/fin-005-short-cash-horizon-20260923",
+  "base_sha": "557c44efc265241ce30db5f781931466921745cd",
+  "areas": [
+    "application/finance/short-cash-horizon",
+    "application/g5",
+    "presentation/finance-cash-decision"
+  ],
+  "contracts": [
+    "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/10-cash-continuity-prototype-contract.md"
+  ],
+  "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-23",
+  "pr": 0,
+  "started_at": "2026-09-23T00:00:00+03:00",
+  "updated_at": "2026-09-23",
+  "next_action": "تنفيذ أفق الكاش القصير 7/30/90 يومًا (الافتراضي 30) المثبت على اليوم المحلي عمان، بلا أي كتابة أو تغيير صيغة، ثم رفع الحالة قانونيًا.",
+  "notes": [
+    "Owner-approved roadmap: 'Micro Financial Roadmap Complete Controlled Execution' §4.4 (FIN-005 policy register) — horizons 7/30/90, default 30, read-only, incomplete preserved.",
+    "Existing foundation (verified on main 557c44e): full ShortCashDeclaration engine (contract 17 §7–9) — idempotency, reversal, over-declaration, undated→incomplete, negative shown; declarations store registered in persistent-entity-touchpoints.",
+    "This wave adds ONLY the horizon family: pure resolver [today, today+N−1] Asia/Amman inclusive, read-only service read reusing calculateShortCash unchanged, minimal surface wiring on the existing cash-decision card.",
+    "No schema/export bump (stays 37/29); no new persistent entity; no new store; no financial writes from reading (test-proven).",
+    "Baseline: verified main 557c44e (Wave 2 + D-038 closure).",
+    "Sub-agent audit W3-AUDIT: AUDIT_PASS — gap is exactly the horizon resolver + read + wiring; no conflicts, no overlapping claims."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-23",
+      "actor": "claim:ws-175",
+      "reason": "Owner-approved financial roadmap Wave 3 (FIN-005) claimed per Operations Control v2 from verified main 557c44efc265241ce30db5f781931466921745cd; execution map: reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md; read-only audit W3-AUDIT passed with no conflicts."
+    }
+  ],
+  "migration_baseline": false
+}
