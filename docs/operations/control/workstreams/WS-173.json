@@ -1,0 +1,52 @@
+{
+  "id": "WS-173",
+  "title": "Financial Roadmap Wave 1 — FIN-003/FIN-007 period comparison + flexible period review + profit-to-cash bridge",
+  "status": "CLAIMED",
+  "items": [
+    "FIN-003",
+    "FIN-007"
+  ],
+  "branch": "feat/fin-003-007-period-comparison-20260922",
+  "base_sha": "f4933834e931a331cf6926e39142fe327d20e3f5",
+  "areas": [
+    "application/finance",
+    "presentation/statement",
+    "presentation/finance",
+    "domain-finance-read-models"
+  ],
+  "contracts": [
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/01-financial-result-contract.md",
+    "docs/contracts/14-period-result-allocation-policy-prototype-contract.md",
+    "docs/contracts/31-period-statement-depth-contract.md",
+    "docs/contracts/32-local-period-statement-markdown-contract.md",
+    "docs/contracts/08-expense-classification-prototype-contract.md",
+    "docs/contracts/10-cash-continuity-prototype-contract.md",
+    "docs/contracts/03-cost-snapshot-contract.md"
+  ],
+  "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-22",
+  "pr": null,
+  "started_at": "2026-09-22T13:30:00+03:00",
+  "updated_at": "2026-09-22T13:30:00+03:00",
+  "next_action": "Create the Wave 1 implementation branch from the post-Phase-0 verified main, update base_sha to that SHA, and implement FIN-003/FIN-007 per the execution map: preset family (week/month/quarter/custom, never forced), two-period comparison composed from the canonical readRecordedPeriodResult, previous-equal-period shortcut, active/current-period partial marker, and the numeric source-traceable profit-to-cash bridge — read-only capability, schema/export unchanged (36/28), then focused tests, full pnpm check, PR, merge, post-merge verification.",
+  "notes": [
+    "Owner-approved roadmap: 'Micro Financial Roadmap Complete Controlled Execution' (2026-09-22). Wave order and policy register are owner product decisions; this claim opens Wave 1 only.",
+    "Documented deviation (owner-approved): tracker lists FIN-003 dependency on FIN-001, but the owner's wave order executes FIN-003/007 first. Safe because the recorded period result excludes loans by contract (05 §3.2.1, 14 §2); the bridge shows incoming-loan flows as honestly absent (zero recorded) until FIN-001 lands in Wave 6. Recorded in the execution map.",
+    "Gap audit (read-only, this session): canonical single-period reader/statement already strong on main; comparison, quarter preset, previous-equal-period shortcut, partial-period marker, and profit-to-cash bridge are the real Wave 1 gaps. No reimplementation of verified single-period behavior.",
+    "Read-only capability: no new Writer, no schema/export change (36/28), no new persistent entity, no touchpoint changes; layer boundaries enforced (no financial rules in React, no direct storage access from pages).",
+    "Baseline evidence: reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/report.md (live main f493383, 0 open PRs, 0 active claims, full pnpm check EXIT 0, 434+1783 tests green)."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-22",
+      "actor": "claim:ws-173",
+      "reason": "Owner-approved financial roadmap Wave 1 (FIN-003 + FIN-007) claimed per Operations Control v2 from verified main f4933834e931a331cf6926e39142fe327d20e3f5; execution map: reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md."
+    }
+  ],
+  "migration_baseline": false,
+  "evidence": [
+    "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/report.md",
+    "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md"
+  ]
+}
