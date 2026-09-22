@@ -2,7 +2,7 @@
   "id": "FIN-007",
   "title": "مراجعة فترة مرنة",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P2",
   "stage": "stage-3",
   "summary": "Checklist شهرية لا تقفل البيانات قفلًا محاسبيًا صلبًا.",
@@ -15,13 +15,15 @@
     "period-review"
   ],
   "contracts": [],
-  "evidence": [],
+  "evidence": [
+    "reports/agent-report/2026-09-22_fin-roadmap-wave-1-fin-003-007/report.md"
+  ],
   "dependencies": [
     "FIN-003"
   ],
   "owner_decision": "",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
+  "merge_sha": "89e3c864e6008f6d7ec558be4950425fff71d651",
+  "verified_on_main_sha": "89e3c864e6008f6d7ec558be4950425fff71d651",
   "updated_at": "2026-09-22",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
@@ -55,10 +57,22 @@
       "changed_at": "2026-09-22",
       "actor": "ws-173:review",
       "reason": "تنفيذ الموجة 1 جاهز للمراجعة: عائلة القوالب (أسبوع/شهر/ربع/مخصص) دون إجبار + وسم الفترة الجارية الجزئي."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-22",
+      "actor": "ws-173:merge",
+      "reason": "دمج PR #211 Squash في main عند 89e3c864e6008f6d7ec558be4950425fff71d651 — عائلة قوالب الفترات (أسبوع/شهر/ربع/مخصص) دون إجبار + وسم الفترة الجارية الجزئي."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-22",
+      "actor": "ws-173:post-merge-verification",
+      "reason": "تحقق ما بعد الدمج على SHA الدمج نفسه 89e3c864e6008f6d7ec558be4950425fff71d651: CI ناجح (على commit الدمج) وCloudflare Pages ناجح؛ 37/37 اختبار موجة خضر محليًا على main؛ الأدلة في تقرير تسليم الموجة وفهرس التقارير."
     }
   ],
   "migration_baseline": true,
-  "next_action": "بانتظار CI وقرار الدمج على PR الموجة (WS-173)؛ لا VERIFIED قبل الدمج والتحقق على main.",
+  "next_action": "مكتمل ومتحقق على main (WS-173 / PR #211 / 89e3c864e6008f6d7ec558be4950425fff71d651). لا فعل إضافي ضمن خارطة الطريق الحالية.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",
