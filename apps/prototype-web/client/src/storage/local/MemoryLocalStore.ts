@@ -1947,9 +1947,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   }
   async saveExpenseBudget(
     record: ExpenseBudgetRecord,
+    expected?: ExpenseBudgetRecord,
   ): Promise<StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>> {
     const stored = this.expenseBudgets.get(record.id);
-    const guard = validateExpenseBudgetSave(stored, record);
+    const guard = validateExpenseBudgetSave(stored, record, expected);
     if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
     if (guard.reused) return { ok: true, value: { record: clone(stored ?? record), reused: true } };
     this.expenseBudgets.set(record.id, clone(record));

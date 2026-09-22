@@ -829,6 +829,9 @@ export interface PrototypeLocalStore {
    * بلا كتابة — لا آخر-كاتب-يفوز على خطة مالية موثقة. */
   saveExpenseBudget(
     record: ExpenseBudgetRecord,
+    /* الانتقالات الموثقة في المكان (إغلاق/إخفاء/استعادة) تمرر الحالة المقروءة
+     * المتوقعة — CAS داخل حد الكتابة (قاعدة §10.7): لا كتابة عمياء. */
+    expected?: ExpenseBudgetRecord,
   ): Promise<StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>>;
   /* زوج المراجعة الذرّي (عقد ٤٢ §٥): الخلف النافذ والسابقة المستبدلة في معاملة
    * تخزين واحدة — كلاهما أو لا شيء؛ إعادة تشغيل الزوج كاملًا = إعادة استخدام،

@@ -25,13 +25,18 @@ export type ExpenseBudgetGuardResult = { ok: true; reused?: boolean } | { ok: fa
 const identical = (left: ExpenseBudgetRecord, right: ExpenseBudgetRecord): boolean =>
   JSON.stringify(left) === JSON.stringify(right);
 
-/** حفظ سجل واحد: لا سجل قائم بهذا المعرّف إلا إذا كان هو نفسه (إعادة تشغيل). */
+/** حفظ سجل واحد: لا سجل قائم بهذا المعرّف إلا إذا كان هو نفسه (إعادة تشغيل)،
+ * أو انتقالًا موثقًا في المكان (إغلاق/إخفاء هدف/استعادته) يمرّر المستدعي فيه
+ * الحالة التي قرأها `expected` — CAS: يُقبل فقط إذا طابق المخزون الحالة
+ * المقروءة؛ أي انحراف رفض صادر لا كتابة عمياء. */
 export function validateExpenseBudgetSave(
   stored: ExpenseBudgetRecord | undefined,
   record: ExpenseBudgetRecord,
+  expected?: ExpenseBudgetRecord,
 ): ExpenseBudgetGuardResult {
   if (stored === undefined) return { ok: true };
   if (identical(stored, record)) return { ok: true, reused: true };
+  if (expected !== undefined && identical(stored, expected)) return { ok: true };
   return { ok: false, message: EXPENSE_BUDGET_STALE_MESSAGE };
 }
 

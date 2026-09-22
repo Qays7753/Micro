@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { appendQueryParams, withReturnTo } from "@/app/navigationContract";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 /* FIN-003 (WS-173 — Wave 1): نموذج جسر النتيجة إلى الكاش — من جذر التطبيق
  * (الخدمة نفسها تُوفَّر عبر السياق؛ جسم الجسر كله داخل تفاصيل مطوية). */
 import type { ProfitToCashBridgeReading } from "@/app/PrototypeServicesContext";
@@ -34,6 +34,11 @@ import type { G5Decision } from "@/application/g5/g5Service";
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
+/* FIN-002 (WS-174 — Wave 2): أنواع الميزانيات الاختيارية — النوع فقط هنا
+ * (import(...) في موضع النوع — سابقة Schedule.tsx) فلا تُسحب وحدة الخدمة
+ * إلى كومة الصفحة ولا إلى طيف كثافة النص؛ الخدمة تُحمّل ديناميكيًا عند
+ * أول فتح للقسم (سابقة EXE-014/D-034 كما في OPS-003). */
+import type { BudgetScope, ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import {
   IntegerValue,
   LocalDateValue,
@@ -41,6 +46,7 @@ import {
   MoneyWithUnit,
 } from "@/components/presentation/DisplayValue";
 import G5DecisionPanel from "@/components/finance/G5DecisionPanel";
+import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EventsLayer } from "@/components/finance/EventsLayer";
 import { CorrectionsLayer } from "@/components/finance/CorrectionsLayer";
 import { RestatementNote } from "@/components/finance/RestatementNote";
@@ -50,6 +56,8 @@ import { FinancePeriodResultSection } from "@/components/finance/FinancePeriodRe
 import { FinancePoliciesSection } from "@/components/finance/FinancePoliciesSection";
 /* Wave 4.3 — P-4.3-3 (F09): سطح «شو عليّ؟» الموحد بمصدرَيه ومسارَي تسديدهما. */
 import { FinanceObligationsCard } from "@/components/finance/FinanceObligationsCard";
+/* FIN-002 (WS-174 — Wave 2): جسم الميزانيات الاختيارية — مكوّن مستقل (كثافة + سابقة RecurringConfirmPanel). */
+import { FinanceBudgetsSection } from "@/components/finance/ExpenseBudgetsSectionBody";
 import type { CorrectionDigest } from "@/application/finance/correctionHistoryService";
 import type { PeriodWasteReading } from "@/application/inventory/inventoryMaterialService";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
@@ -114,6 +122,21 @@ export type FinanceState =
  * مثل إخواتها (فشلها = بطاقة إعادة محاولة لا صفر كاذب)، فوق نطاق الأشهر نفسه. */
 type BridgeState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; reading: ProfitToCashBridgeReading };
+/* FIN-002 (WS-174 — Wave 2): حالة تحميل خدمة الميزانيات — null يعني «جارٍ
+ * التجهيز» (نمط transfers/recurringExpenses في جذر التركيب نفسه، لكن هنا
+ * محليًا داخل الصفحة: الخدمة لا تُسجّل في السياق أبدًا). */
+type BudgetsServiceLoad =
+  | { phase: "idle" }
+  | { phase: "loading" }
+  | { phase: "error" }
+  | { phase: "ready"; service: ExpenseBudgetServiceT };
+type ExpenseBudgetServiceT = import("@/application/finance/expenseBudgetService").ExpenseBudgetService;
+type ExpenseBudgetStatusesReadingT =
+  import("@/application/finance/expenseBudgetService").ExpenseBudgetStatusesReading;
+type ExpenseBudgetStatusLineT = import("@/application/finance/expenseBudgetService").ExpenseBudgetStatusLine;
+type ExpenseBudgetMonthListT = import("@/application/finance/expenseBudgetService").ExpenseBudgetMonthList;
+/* تسمية النطاق — مفردات عقد ٤٢ §٤: «مصروف عام» أو «فئة: نص صريح». */
+/* مفاتيح الأشهر داخل نطاق معروض صالح — سقف دفاعي لا حلقة بلا نهاية. */
 const currentMonth = () => localDateInAmman().slice(0, 7);
 /* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): تسمية واحدة لحالة «غير مسجل» في كل مالي —
  * القيمة العددية باقية كما هي، والعرض يتبع حالة الدليل لا العدد. */
@@ -193,6 +216,10 @@ export default function Finance() {
   /* FIN-003: جسر النتيجة إلى الكاش — قراءة مستقلة فوق نطاق الأشهر نفسه؛
    * فشلها بطاقة كتلة معزولة لا يحجب ملخص الفترة (نمط G-005 نفسه). */
   const [bridgeState, setBridgeState] = useState<BridgeState>({ phase: "loading" });
+  /* FIN-002 (WS-174 — Wave 2): الميزانيات الاختيارية — الخدمة تُحمَّل
+   * ديناميكيًا عند أول فتح للقسم المطوي فقط (سابقة EXE-014/D-034): الوحدة
+   * تُستورد بـimport() لحظتها فلا تدخل كومة الصفحة/الإقلاع، والمخزن من جذر
+   * التركيب (الصفحات لا تلمس التخزين مباشرة)؛ الخدمة لا تُسجَّل في السياق. */
   useEffect(() => {
     let active = true;
     const monthsUsable = validMonth(fromMonth) && validMonth(toMonth) && fromMonth <= toMonth;
@@ -854,6 +881,15 @@ export default function Finance() {
               </section>
             )}
           </details>
+          {/* FIN-002 (WS-174 — Wave 2): «ميزانيات اختيارية» — خطة لا حدثًا
+              ماليًا (عقد ٤٢). القسم كله (التفاصيل المطوية + التحميل الديناميكي
+              EXE-014 + الجسم) داخل مكوّن مستقل واحد فلا سلاسل سكون جديدة هنا. */}
+          <FinanceBudgetsSection
+            fromMonth={appliedRange.from}
+            toMonth={appliedRange.to}
+            rangeInvalid={rangeInvalid}
+            dataVersion={dataVersion}
+          />
           <details className="micro-finance-layer">
             <summary className="micro-finance-layer-summary">
               <span>

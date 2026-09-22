@@ -3755,6 +3755,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
    * والمختلف على المعرّف نفسه رفض صادر (storage_stale) داخل حد الكتابة. */
   async saveExpenseBudget(
     record: ExpenseBudgetRecord,
+    expected?: ExpenseBudgetRecord,
   ): Promise<StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>> {
     try {
       const database = await connection();
@@ -3775,7 +3776,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         storedRequest.onsuccess = () => {
           const stored = storedRequest.result as ExpenseBudgetRecord | undefined;
-          const guard = validateExpenseBudgetSave(stored, record);
+          const guard = validateExpenseBudgetSave(stored, record, expected);
           if (!guard.ok) {
             pending = { ok: false, code: "storage_stale", message: guard.message };
             try {
