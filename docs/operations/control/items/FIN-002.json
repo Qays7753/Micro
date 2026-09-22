@@ -57,6 +57,12 @@
       "reason": "Claim تنفيذي WS-174 من main المتحقق e7c7b1c20890e64f98ad420ac008ef6578601c0f وفق Operations Control v2 وخارطة تنفيذ خارطة الطريق المالي."
     },
     {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-22",
+      "actor": "ws-174:implementation",
+      "reason": "تنفيذ الموجة 2 قائم على الفرع feat/fin-002-budgets-goals-20260922 من e7c7b1c: عقد ٤٢ والدومين (0d8f7d7)، المخزن المحروس ٣٧/٢٩ (3cba1c7)، الخدمة والواجهة والاختبارات (03ed6f0)."
+    },
+    {
       "status": "IN_REVIEW",
       "changed_at": "2026-09-22",
       "actor": "ws-174:review",
