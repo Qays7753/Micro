@@ -798,7 +798,15 @@ CAPS: dict[str, int] = {
     # Statement 208 -> 209 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
     # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
     # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
-    "Statement": 209,
+    # Statement 209 -> 216 (2026-09-22, Wave 1 WS-173 FIN-007, owner-approved
+    # roadmap): quarter quick-range labels («هذا الربع»/«الربع الماضي») + the
+    # «قارن مع الفترة السابقة» comparison entry; the feeding periodPresets
+    # service joins the measured set with its label map («الشهر الماضي») and
+    # its three typed-rejection messages. The comparison panel body sits inside
+    # the collapsed details; the «فترة جارية» header badge and the «مقارنة
+    # الفترتين» summary label live on multi-line conditional/summary nodes the
+    # counter excludes (established behavior) — mandated labels only, no prose.
+    "Statement": 216,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved

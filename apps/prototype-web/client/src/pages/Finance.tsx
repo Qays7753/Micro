@@ -17,6 +17,9 @@ import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { appendQueryParams, withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+/* FIN-003 (WS-173 — Wave 1): نموذج جسر النتيجة إلى الكاش — من جذر التطبيق
+ * (الخدمة نفسها تُوفَّر عبر السياق؛ جسم الجسر كله داخل تفاصيل مطوية). */
+import type { ProfitToCashBridgeReading } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
 import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
 import type {
@@ -71,7 +74,7 @@ import { Button } from "@/components/primitives";
  * وfailedBlocks يحدد المعطوبة لبطاقة خطأ موجزة + إعادة محاولة لكل كتلة،
  * والأسطح السليمة تبقى من مصادرها الحية. */
 export type FinanceBlockId =
-  "events" | "period" | "owner" | "g5" | "deposits" | "assets" | "loans" | "correctionsAllTime";
+  "events" | "period" | "owner" | "g5" | "deposits" | "assets" | "loans" | "correctionsAllTime" | "bridge";
 export type FinanceState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -107,6 +110,10 @@ export type FinanceState =
       /* G-005: الكتل التي تعذرت قراءتها — بطاقة خطأ + إعادة محاولة لكل واحدة. */
       failedBlocks: Partial<Record<FinanceBlockId, true>>;
     };
+/* FIN-003 (WS-173 — Wave 1): حالة جسر النتيجة إلى الكاش — كتلة قراءة مستقلة
+ * مثل إخواتها (فشلها = بطاقة إعادة محاولة لا صفر كاذب)، فوق نطاق الأشهر نفسه. */
+type BridgeState =
+  { phase: "loading" } | { phase: "error" } | { phase: "ready"; reading: ProfitToCashBridgeReading };
 const currentMonth = () => localDateInAmman().slice(0, 7);
 /* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): تسمية واحدة لحالة «غير مسجل» في كل مالي —
  * القيمة العددية باقية كما هي، والعرض يتبع حالة الدليل لا العدد. */
@@ -172,6 +179,8 @@ export default function Finance() {
     assets,
     loans,
     retainedDeposits,
+    /* FIN-003 (WS-173 — Wave 1): جسر النتيجة المسجلة إلى تغير الكاش المسجل. */
+    profitToCashBridge,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
@@ -181,6 +190,9 @@ export default function Finance() {
   const [appliedRange, setAppliedRange] = useState({ from: currentMonth(), to: currentMonth() });
   const [rangeInvalid, setRangeInvalid] = useState(false);
   const [state, setState] = useState<FinanceState>({ phase: "loading" });
+  /* FIN-003: جسر النتيجة إلى الكاش — قراءة مستقلة فوق نطاق الأشهر نفسه؛
+   * فشلها بطاقة كتلة معزولة لا يحجب ملخص الفترة (نمط G-005 نفسه). */
+  const [bridgeState, setBridgeState] = useState<BridgeState>({ phase: "loading" });
   useEffect(() => {
     let active = true;
     const monthsUsable = validMonth(fromMonth) && validMonth(toMonth) && fromMonth <= toMonth;
@@ -308,6 +320,30 @@ export default function Finance() {
     loans,
     retainedDeposits,
   ]);
+  /* FIN-003 (WS-173 — Wave 1): جسر النتيجة المسجلة إلى تغير الكاش المقيس —
+   * يُقرأ فوق نطاق الأشهر المعروض نفسه (لا منتقي ثانٍ)، بلا كتابة إطلاقًا،
+   * وكتلة مستقلة: فشلها بطاقة إعادة محاولة والملخص يبقى من مصدره الحي. */
+  useEffect(() => {
+    let active = true;
+    const monthsUsable = validMonth(fromMonth) && validMonth(toMonth) && fromMonth <= toMonth;
+    if (!monthsUsable) {
+      // نطاق غير صالح خطأ حقل لا خطأ جسر — تبقى آخر قراءة صحيحة كما في الملخص.
+      return () => {
+        active = false;
+      };
+    }
+    const from = monthBounds(fromMonth);
+    const to = monthBounds(toMonth);
+    safeBlock(profitToCashBridge.readProfitToCashBridge({ from: from.from, to: to.to })).then(read => {
+      if (!active) return;
+      setBridgeState(
+        read.failed || read.value === null ? { phase: "error" } : { phase: "ready", reading: read.value },
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [profitToCashBridge, fromMonth, toMonth, dataVersion, retryCount]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -709,6 +745,115 @@ export default function Finance() {
               navigate={navigate}
             />
           )}
+          {/* FIN-003 (WS-173 — Wave 1): «لماذا يختلف الربح عن الكاش؟» — جسر
+              النتيجة المسجلة إلى تغير الكاش المقيس فوق نطاق الأشهر نفسه (لا
+              منتقي فترة ثانٍ)؛ جسمه كله داخل التفاصيل المطوية فلا نص سكون
+              جديد، وكل رقم من الخدمة — لا معادلة داخل الصفحة. */}
+          <details className="micro-finance-layer micro-profit-cash-bridge">
+            <summary className="micro-finance-layer-summary">
+              <span>
+                <b>لماذا يختلف الربح عن الكاش؟</b>
+                <small>
+                  من {formatMonthLabel(appliedRange.from)} إلى {formatMonthLabel(appliedRange.to)}
+                </small>
+              </span>
+              <strong>
+                {bridgeState.phase === "ready" && bridgeState.reading.recordedCashDeltaMinor !== null ? (
+                  <MoneyValue
+                    minor={bridgeState.reading.recordedCashDeltaMinor}
+                    showPlus
+                    className="micro-inline-number"
+                  />
+                ) : (
+                  "—"
+                )}
+              </strong>
+            </summary>
+            {bridgeState.phase === "loading" ? (
+              <p className="micro-period-status" role="status">
+                جارٍ قراءة الجسر…
+              </p>
+            ) : bridgeState.phase === "error" ? (
+              <FinanceBlockFallback block="bridge" onRetry={retryBlocks} />
+            ) : (
+              <section
+                className="micro-period-result micro-derived-surface"
+                aria-label="جسر النتيجة إلى الكاش"
+                data-bridge-status={bridgeState.reading.status}
+              >
+                <dl>
+                  <div>
+                    <dt>نتيجة الفترة المسجلة</dt>
+                    <dd>
+                      {bridgeState.reading.resultMinor === null ? (
+                        <span className="micro-unknown-value">غير متاح</span>
+                      ) : (
+                        <MoneyValue minor={bridgeState.reading.resultMinor} />
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>تغير الكاش المسجل المقيس</dt>
+                    <dd>
+                      {bridgeState.reading.recordedCashDeltaMinor === null ? (
+                        <span className="micro-unknown-value">غير متاح</span>
+                      ) : (
+                        <MoneyValue minor={bridgeState.reading.recordedCashDeltaMinor} showPlus />
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>مجموع بنود الجسر</dt>
+                    <dd>
+                      {bridgeState.reading.bridgedTotalMinor === null ? (
+                        <span className="micro-unknown-value">غير متاح</span>
+                      ) : (
+                        <MoneyValue minor={bridgeState.reading.bridgedTotalMinor} showPlus />
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="micro-period-status" data-status={bridgeState.reading.status}>
+                  {bridgeState.reading.status === "recorded_only"
+                    ? "متوازنة من السجلات"
+                    : bridgeState.reading.status === "incomplete"
+                      ? "ناقصة"
+                      : "غير صالحة"}
+                </p>
+                <ul className="micro-insights-work-list">
+                  {bridgeState.reading.lines.map(line => (
+                    <li
+                      key={line.id}
+                      data-line-id={line.id}
+                      data-state={line.id === "remainder" ? "unexplained" : "explained"}
+                    >
+                      <span
+                        className={
+                          line.id === "remainder" ? "micro-warning-copy" : "micro-insights-work-name"
+                        }
+                      >
+                        {line.label}
+                      </span>
+                      <small>{line.source}</small>
+                      <b>
+                        <MoneyValue minor={line.amountMinor} showPlus className="micro-inline-number" />
+                      </b>
+                    </li>
+                  ))}
+                </ul>
+                {bridgeState.reading.reasons.length > 0 ? (
+                  <div className="micro-period-review-note">
+                    <strong>أسباب الحالة قبل الاعتماد على الجسر</strong>
+                    <ul className="micro-insights-reasons">
+                      {bridgeState.reading.reasons.map(reason => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </section>
+            )}
+          </details>
           <details className="micro-finance-layer">
             <summary className="micro-finance-layer-summary">
               <span>
@@ -1240,6 +1385,11 @@ const FINANCE_BLOCK_FAILURE_MESSAGES: Record<FinanceBlockId, { message: string }
   events: {
     message:
       "تعذّرت قراءة سجل الأحداث المالية — لم يتغير أي حدث؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
+  },
+  /* FIN-003 (WS-173 — Wave 1): فشل قراءة جسر النتيجة إلى الكاش — كتلة مستقلة. */
+  bridge: {
+    message:
+      "تعذّرت قراءة جسر الربح والكاش — لم يتغير أي رصيد ولا أي سجل؛ باقي الصفحة من مصادرها الحية. أعد المحاولة أو أعد فتح الصفحة.",
   },
 };
 

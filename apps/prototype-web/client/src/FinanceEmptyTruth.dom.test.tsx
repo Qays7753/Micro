@@ -25,6 +25,8 @@ import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+/* FIN-003 (WS-173 — Wave 1): جسر الربح والكاش — خدمة قراءة فقط يطلبها سطح الفترة. */
+import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
 import { ProfileService } from "@/application/profile/profileService";
 import Finance from "@/pages/Finance";
 
@@ -70,6 +72,8 @@ function buildServices() {
     assets: new AssetService(store, () => NOW),
     loans: new LoanService(store, () => NOW),
     retainedDeposits: new RetainedDepositService(store, () => NOW),
+    /* FIN-003 (WS-173 — Wave 1): جسر الربح والكاش — قراءة فقط. */
+    profitToCashBridge: new ProfitToCashBridgeService(store, () => NOW),
     cashContinuity,
     dataVersion,
     notifyDataChanged: () => {

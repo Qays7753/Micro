@@ -9,10 +9,18 @@ import { useLocation, useSearch } from "wouter";
 import { referrerPath, withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import type { PeriodComparisonReading } from "@/app/PrototypeServicesContext";
 import { LocalDateField } from "@/components/forms/LocalDateField";
-import { MoneyValue } from "@/components/presentation/DisplayValue";
+import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import { StatementMarkdownService } from "@/application/finance/statementMarkdownService";
+/* FIN-007 (WS-173 — Wave 1): قوالب الفترات النقية — القوالب والسابق المكافئ
+ * ووسم الفترة الجارية من طبقة التطبيق، لا حساب تواريخ داخل الصفحة. */
+import {
+  isPeriodActive,
+  previousEqualPeriod,
+  resolvePeriodPreset,
+} from "@/application/finance/periodPresets";
 import { categoryCountLabel } from "@/presentation/g5Plurals";
 import { canShareText, downloadTextFile, shareTextManually } from "@/lib/textDelivery";
 import {
@@ -31,7 +39,15 @@ import { Button } from "@/components/primitives";
 type State =
   { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: StatementReading };
 
-type QuickRange = "this_week" | "last_week" | "this_month" | "custom";
+type QuickRange = "this_week" | "last_week" | "this_month" | "this_quarter" | "last_quarter" | "custom";
+
+/* FIN-007 (WS-173 — Wave 1): حالة مقارنة الفترتين — قراءة فقط فوق القارئ
+ * الكنوني نفسه؛ الوضع الافتراضي مطوي/مغلق فلا كلفة ولا نص في السكون. */
+type ComparisonState =
+  | { phase: "idle" }
+  | { phase: "loading" }
+  | { phase: "error"; message: string }
+  | { phase: "ready"; reading: PeriodComparisonReading };
 
 /* المجموعة ١ (تصنيفي للمصاريف): «مصاريفي حسب تصنيفي» — صفوف الأوسمة بنفس
  * نمط صفوف الكشف (زر تبديل يفتح المصادر)؛ «غير مصنّف» مجموعة صادقة أخيرة. */
@@ -155,7 +171,7 @@ export default function Statement() {
   const [, navigate] = useLocation();
   const search = useSearch();
   const returnPath = useReturnPath();
-  const { statement, dataVersion } = usePrototypeServices();
+  const { statement, periodComparison, dataVersion } = usePrototypeServices();
   const markdownRenderer = new StatementMarkdownService();
   const [reportNotice, setReportNotice] = useState<string | null>(null);
   const today = localDateInAmman();
@@ -165,6 +181,14 @@ export default function Statement() {
   const [to, setTo] = useState(thisWeek.to);
   const [state, setState] = useState<State>({ phase: "loading" });
   const [retryCount, setRetryCount] = useState(0);
+  /* FIN-007: مفتاح «قارن مع الفترة السابقة» — يفعّل المقارنة فوق النطاق المعروض. */
+  const [compare, setCompare] = useState(false);
+  const [comparison, setComparison] = useState<ComparisonState>({ phase: "idle" });
+  /* FIN-003: الطرف الثاني للمقارنة — «الفترة السابقة المكافئة» اختصارًا، أو
+   * نطاق يختاره المستخدم بنفسه؛ الحالة الافتراضية الاختصار لا الإجبار. */
+  const [compareMode, setCompareMode] = useState<"previous" | "custom">("previous");
+  const [compareFrom, setCompareFrom] = useState("");
+  const [compareTo, setCompareTo] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -179,21 +203,39 @@ export default function Statement() {
     };
   }, [statement, from, to, dataVersion, retryCount]);
 
+  /* FIN-007/FIN-003: المقارنة تُقرأ عند التفعيل فقط — الطرف الثاني إما السابقة
+   * المكافئة بنفس الطول أو النطاق الذي اختاره المستخدم؛ يُحسب داخل التأثير من
+   * قيم بدائية كي لا يدخل هوية كائن في التبعيات (حلقة لا نهائية سابقًا)؛
+   * فشلها لا يهدم الكشف بل بطاقة إعادة محاولة. */
+  useEffect(() => {
+    if (!compare) {
+      setComparison({ phase: "idle" });
+      return;
+    }
+    let active = true;
+    setComparison({ phase: "loading" });
+    const sideB =
+      compareMode === "previous" ? previousEqualPeriod({ from, to }) : { from: compareFrom, to: compareTo };
+    periodComparison.readPeriodComparison({ from, to }, sideB).then(result => {
+      if (!active) return;
+      setComparison(
+        result.ok ? { phase: "ready", reading: result.value } : { phase: "error", message: result.message },
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [periodComparison, compare, compareMode, compareFrom, compareTo, from, to, dataVersion, retryCount]);
+
   const applyQuick = (quick: QuickRange) => {
     setRange(quick);
-    if (quick === "this_week") {
-      setFrom(thisWeek.from);
-      setTo(thisWeek.to);
-    } else if (quick === "last_week") {
-      const lastFrom = shiftDate(thisWeek.from, -7);
-      setFrom(lastFrom);
-      setTo(shiftDate(lastFrom, 6));
-    } else if (quick === "this_month") {
-      const month = today.slice(0, 7);
-      const [year, monthNumber] = month.split("-").map(Number);
-      const lastDay = new Date(Date.UTC(year!, monthNumber!, 0)).getUTCDate();
-      setFrom(`${month}-01`);
-      setTo(`${month}-${String(lastDay).padStart(2, "0")}`);
+    if (quick === "custom") return;
+    /* FIN-007: كل قالب (أسبوع/شهر/ربع، الحالي والسابق) يُحلّ من طبقة التطبيق —
+     * لا رياضيات تواريخ داخل الصفحة. */
+    const resolved = resolvePeriodPreset(quick, today);
+    if (resolved.ok) {
+      setFrom(resolved.value.from);
+      setTo(resolved.value.to);
     }
   };
 
@@ -224,6 +266,10 @@ export default function Statement() {
     );
 
   const { reading } = state;
+  /* FIN-007: السابقة المكافئة بنفس الطول — حساب نقي من طبقة قوالب الفترات. */
+  const previousRange = previousEqualPeriod({ from, to });
+  /* عرض فقط (خارج تبعيات أي تأثير): نطاق الطرف الثاني المعروض في الترويسة. */
+  const comparisonSideB = compareMode === "previous" ? previousRange : { from: compareFrom, to: compareTo };
   const openWithReferrer = (path: string) => navigate(withReturnTo(path, "/finance/statement"));
   /* روابط المصادر تعود للكشف عبر وجهة الرجوع (?returnTo — وfrom القديم توافقًا)
    * لا للمالي — السياق محفوظ (EXE-016). */
@@ -266,6 +312,13 @@ export default function Statement() {
           من {formatLocalDateLong(reading.from)} إلى {formatLocalDateLong(reading.to)} — ما صار خلالها،
           مفصولًا: الكاش غير النتيجة، والأمانات غير الربح.
         </p>
+        {/* FIN-007: وسم صادق حين يحتوي النطاق المعروض اليوم — الفترة ما زالت
+         * مستمرة فأرقامها جزئية حتى تكتمل؛ مستقل عن المقارنة تمامًا. */}
+        {isPeriodActive({ from, to }, today) ? (
+          <p className="micro-period-status" data-status="incomplete">
+            فترة جارية
+          </p>
+        ) : null}
       </div>
       <section className="micro-form-card" aria-label="نطاق الكشف">
         <div className="micro-form-actions" role="group" aria-label="نطاقات سريعة">
@@ -274,6 +327,8 @@ export default function Statement() {
               ["this_week", "هذا الأسبوع"],
               ["last_week", "الأسبوع الماضي"],
               ["this_month", "هذا الشهر"],
+              ["this_quarter", "هذا الربع"],
+              ["last_quarter", "الربع الماضي"],
               ["custom", "نطاق مخصص"],
             ] as readonly [QuickRange, string][]
           ).map(([value, label]) => (
@@ -288,6 +343,18 @@ export default function Statement() {
             </button>
           ))}
         </div>
+        {/* FIN-007: مفتاح المقارنة — الفترة السابقة المكافئة بنفس الطول، بلا
+         * نطاق ثانٍ ولا كتابة؛ يظهر فوق النطاق المعروض نفسه. */}
+        <div className="micro-form-actions">
+          <button
+            className="micro-text-action"
+            type="button"
+            aria-pressed={compare}
+            onClick={() => setCompare(current => !current)}
+          >
+            قارن مع الفترة السابقة
+          </button>
+        </div>
         {range === "custom" ? (
           <div className="micro-period-range-fields">
             <LocalDateField label="من" value={from} onChange={event => setFrom(event.target.value)} />
@@ -295,6 +362,144 @@ export default function Statement() {
           </div>
         ) : null}
       </section>
+      {/* FIN-007 (WS-173 — Wave 1): مقارنة الفترتين — طبقة مطوية كإخواتها:
+       * جسمها كله داخل التفاصيل فلا يُحسب في كثافة السكون، وأرقامها من
+       * القارئ الكنوني نفسه مرتين (مسار حساب واحد، قراءة فقط بلا كتابة). */}
+      {compare ? (
+        <details className="micro-finance-layer micro-statement-comparison">
+          <summary className="micro-finance-layer-summary">
+            <span>
+              <b>مقارنة الفترتين</b>
+              <small>
+                من {formatLocalDateLong(comparisonSideB.from)} إلى {formatLocalDateLong(comparisonSideB.to)}
+              </small>
+            </span>
+            <strong>
+              {comparison.phase === "ready" && comparison.reading.deltaResultMinor !== null
+                ? formatMoneyWithUnit(comparison.reading.deltaResultMinor)
+                : "—"}
+            </strong>
+          </summary>
+          {/* FIN-003: الطرف الثاني — السابقة المكافئة اختصارًا أو نطاق يختاره
+           * المستخدم؛ داخل جسم التفاصيل فلا يُحسب في كثافة السكون. */}
+          <div className="micro-period-range-fields micro-compare-side-fields">
+            <label className="micro-compare-side-label">
+              الفترة المقارنة
+              <select
+                value={compareMode}
+                onChange={event => {
+                  if (event.target.value === "custom") {
+                    setCompareFrom(previousRange.from);
+                    setCompareTo(previousRange.to);
+                    setCompareMode("custom");
+                  } else {
+                    setCompareMode("previous");
+                  }
+                }}
+              >
+                <option value="previous">الفترة السابقة المكافئة</option>
+                <option value="custom">نطاق آخر أختاره بنفسي</option>
+              </select>
+            </label>
+            {compareMode === "custom" ? (
+              <>
+                <LocalDateField
+                  label="من"
+                  value={compareFrom}
+                  onChange={event => setCompareFrom(event.target.value)}
+                />
+                <LocalDateField
+                  label="إلى"
+                  value={compareTo}
+                  onChange={event => setCompareTo(event.target.value)}
+                />
+              </>
+            ) : null}
+          </div>
+          {comparison.phase === "loading" ? (
+            <p className="micro-period-status" role="status">
+              جارٍ قراءة المقارنة…
+            </p>
+          ) : comparison.phase === "error" ? (
+            <section className="micro-cancel-panel" role="alert">
+              <p className="micro-warning-copy">{comparison.message}</p>
+              <div className="micro-form-actions micro-contextual-actions">
+                <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+                  إعادة المحاولة
+                </Button>
+              </div>
+            </section>
+          ) : comparison.phase === "ready" ? (
+            <section className="micro-period-result micro-derived-surface" aria-label="مقارنة الفترتين">
+              <p className="micro-period-range-label">
+                الحالية: من {formatLocalDateLong(comparison.reading.sides.a.from)} إلى{" "}
+                {formatLocalDateLong(comparison.reading.sides.a.to)} —{" "}
+                {compareMode === "previous" ? "السابقة" : "المقارنة"}: من{" "}
+                {formatLocalDateLong(comparison.reading.sides.b.from)} إلى{" "}
+                {formatLocalDateLong(comparison.reading.sides.b.to)}
+              </p>
+              <p className="micro-period-status" data-status={comparison.reading.status}>
+                {comparison.reading.status === "recorded_only"
+                  ? "مسجلة فقط"
+                  : comparison.reading.status === "incomplete"
+                    ? "ناقصة"
+                    : "غير صالحة"}
+              </p>
+              {comparison.reading.partialNote ? (
+                <p className="micro-period-status" data-status="incomplete" role="status">
+                  {comparison.reading.partialNote}
+                </p>
+              ) : null}
+              {comparison.reading.overlappingNote ? (
+                <p className="micro-period-review-note" role="status">
+                  {comparison.reading.overlappingNote}
+                </p>
+              ) : null}
+              <ul className="micro-insights-work-list">
+                {comparison.reading.lines.map(line => (
+                  <li key={line.id} data-line-id={line.id}>
+                    <span className="micro-insights-work-name">{line.label}</span>
+                    <small>
+                      الحالية{" "}
+                      {line.kind === "money" ? (
+                        <MoneyValue minor={line.a} />
+                      ) : (
+                        <IntegerValue value={line.a} />
+                      )}{" "}
+                      · {compareMode === "previous" ? "السابقة" : "المقارنة"}{" "}
+                      {line.kind === "money" ? (
+                        <MoneyValue minor={line.b} />
+                      ) : (
+                        <IntegerValue value={line.b} />
+                      )}{" "}
+                      · الفرق{" "}
+                      {line.kind === "money" ? (
+                        <MoneyValue minor={line.delta} showPlus />
+                      ) : (
+                        <IntegerValue value={line.delta} />
+                      )}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+              {comparison.reading.sides.a.reasons.length > 0 ||
+              comparison.reading.sides.b.reasons.length > 0 ? (
+                <div className="micro-period-review-note">
+                  <strong>أسباب الحالة قبل الاعتماد على المقارنة</strong>
+                  <ul className="micro-insights-reasons">
+                    {comparison.reading.sides.a.reasons.map(reason => (
+                      <li key={`a:${reason}`}>{reason}</li>
+                    ))}
+                    {comparison.reading.sides.b.reasons.map(reason => (
+                      <li key={`b:${reason}`}>{reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+        </details>
+      ) : null}
       <section className="micro-decision-card" aria-label="صافي الكاش في الفترة">
         <WalletCards aria-hidden="true" />
         <div>

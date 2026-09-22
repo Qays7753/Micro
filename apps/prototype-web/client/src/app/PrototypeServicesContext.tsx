@@ -52,6 +52,14 @@ import { CollectionReversalService } from "@/application/collections/collectionR
 import { SaleCollectionReversalService } from "@/application/collections/saleCollectionReversalService";
 import { WalletLedgerService } from "@/application/cash/walletLedgerService";
 import { StatementService } from "@/application/finance/statementService";
+/* FIN-003/007 (WS-173 — Wave 1): مقارنة الفترتين وجسر النتيجة إلى الكاش — خدمات
+ * قراءة فقط فوق المخزن نفسه (بساعة قابلة للحقن). نماذج القراءة تُعاد تصديرها
+ * من جذر التطبيق هذا فتستوردها الأسطح من هنا لا من ملف الخدمة مباشرة:
+ * محتوى الطبقتين كله داخل تفاصيل مطوية فلا يدخل إغلاق كثافة النص لأي شاشة. */
+import { PeriodComparisonService } from "@/application/finance/periodComparisonService";
+import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
+export type { PeriodComparisonReading } from "@/application/finance/periodComparisonService";
+export type { ProfitToCashBridgeReading } from "@/application/finance/profitToCashBridgeService";
 /* المجموعة ١ (فحص سلامة مالي): خدمة قراءة فقط فوق القارئ الكنسي والكشف والمحافظ. */
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 /* Stage 2 — OPS-001 (tracker): مواعيد الاستحقاق والتقادم الأساسي — قراءة فقط. */
@@ -127,6 +135,10 @@ type PrototypeServices = {
   walletLedger: WalletLedgerService;
   /* المجموعة ٢ (§9.2): كشف الفترة — كاش/نتيجة/أمانات/ذمم/مال المالك. */
   statement: StatementService;
+  /* FIN-007 (WS-173 — Wave 1): مقارنة الفترة المعروضة مع سابقتها المكافئة — قراءة فقط. */
+  periodComparison: PeriodComparisonService;
+  /* FIN-003 (WS-173 — Wave 1): جسر النتيجة المسجلة إلى تغير الكاش المسجل — قراءة فقط. */
+  profitToCashBridge: ProfitToCashBridgeService;
   /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد — «آخر ما حدث» في الرئيس ومالي. */
   activity: ActivityService;
   /* المجموعة ١ (فحص سلامة مالي): قراءة فقط — «يقرأ أرقامك ولا يغيّر شيئًا». */
@@ -251,6 +263,8 @@ function createServices(): Omit<
   const deliveryReview = new DeliveryReviewService(store, undefined, projectFinance, schedules);
   const cashContinuity = new CashContinuityService(store);
   const statement = new StatementService(store, projectFinance);
+  const periodComparison = new PeriodComparisonService(store);
+  const profitToCashBridge = new ProfitToCashBridgeService(store);
   /* Stage 2 — OPS-001: قراءة التقادم فوق مصدر الذمم القابلة للتحصيل نفسه. */
   const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
   const dueDates = new DueDatesService(store, collections);
@@ -303,6 +317,8 @@ function createServices(): Omit<
     saleCollectionReversal: new SaleCollectionReversalService(store, projectFinance),
     walletLedger: new WalletLedgerService(store),
     statement,
+    periodComparison,
+    profitToCashBridge,
     activity,
     integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
     assets: new AssetService(store),
