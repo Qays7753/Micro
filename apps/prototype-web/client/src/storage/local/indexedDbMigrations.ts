@@ -17,6 +17,7 @@ import {
   directConversionStore,
   directSaleStore,
   draftStore,
+  expenseBudgetStore,
   financialEventStore,
   formDraftStore,
   inventoryActivationStore,
@@ -274,6 +275,16 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
     occurrences.createIndex("seriesId", "seriesId");
     occurrences.createIndex("periodKey", "periodKey");
     occurrences.createIndex("status", "status");
+  }
+  /* FIN-002 (عقد ٤٢ / نمط D-037 — الترقية ٣٦→٣٧): مخزن الميزانيات المختارة
+   * بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل قائم؛ القاعدة القديمة تفتح
+   * وتجده فارغًا (ترحيل v36 فارغ آمن). فهارس periodKey/status/operationKey
+   * للقراءة والتصفح؛ لا فهارس فريدة — حارس الالتزام داخل حد الكتابة يكفي. */
+  if (!database.objectStoreNames.contains(expenseBudgetStore)) {
+    const budgets = database.createObjectStore(expenseBudgetStore, { keyPath: "id" });
+    budgets.createIndex("periodKey", "periodKey");
+    budgets.createIndex("status", "status");
+    budgets.createIndex("operationKey", "operationKey");
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

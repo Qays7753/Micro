@@ -30,6 +30,7 @@ import type {
   RecurringExpenseRuleRevision,
   RecurringExpenseSeries,
 } from "@micro-domain/recurring-expense/index.js";
+import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import {
   localInventoryActivationId,
   localOwnerProfileId,
@@ -62,6 +63,7 @@ import {
   validateRecurringExpenseOccurrenceRecordCommit,
   validateRecurringExpenseSeriesChange,
 } from "./recurringExpenseCommitGuard";
+import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./expenseBudgetCommitGuard";
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import {
   committedReversalMovements,
@@ -94,6 +96,7 @@ import {
   directConversionStore,
   directSaleStore,
   draftStore,
+  expenseBudgetStore,
   financialEventStore,
   formDraftStore,
   inventoryActivationStore,
@@ -3736,6 +3739,152 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () =>
           finish({ ok: true, value: { occurrence: next, event, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* FIN-002 (عقد ٤٢ — الميزانيات): قراءة سجلات الميزانية كما كُتبت. */
+  listExpenseBudgets() {
+    return listAll<ExpenseBudgetRecord>(
+      expenseBudgetStore,
+      (left, right) => left.periodKey.localeCompare(right.periodKey) || left.id.localeCompare(right.id),
+    );
+  }
+  /* حفظ محروس لسجل واحد: المطابق الحرفي إعادة استخدام بلا كتابة ثانية،
+   * والمختلف على المعرّف نفسه رفض صادر (storage_stale) داخل حد الكتابة. */
+  async saveExpenseBudget(
+    record: ExpenseBudgetRecord,
+  ): Promise<StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([expenseBudgetStore], "readwrite");
+        const budgets = transaction.objectStore(expenseBudgetStore);
+        let pending: StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>) =>
+          resolve(result);
+        const storedRequest = budgets.get(record.id);
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = () => {
+          const stored = storedRequest.result as ExpenseBudgetRecord | undefined;
+          const guard = validateExpenseBudgetSave(stored, record);
+          if (!guard.ok) {
+            pending = { ok: false, code: "storage_stale", message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            /* إعادة تشغيل السجل نفسه — لا كتابة ثانية. */
+            pending = { ok: true, value: { record: stored ?? record, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          budgets.put(record);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { record, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* زوج المراجعة الذرّي (عقد ٤٢ §٥): الخلف والسابقة في معاملة تخزين واحدة —
+   * كلاهما أو لا شيء؛ إعادة تشغيل الزوج كاملًا إعادة استخدام، وأي انحراف أو
+   * رابط مكسور رفض صادر بلا كتابة. */
+  async saveExpenseBudgetRevisionPair(
+    successor: ExpenseBudgetRecord,
+    supersededPrevious: ExpenseBudgetRecord,
+  ): Promise<
+    StorageResult<{
+      successor: ExpenseBudgetRecord;
+      supersededPrevious: ExpenseBudgetRecord;
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([expenseBudgetStore], "readwrite");
+        const budgets = transaction.objectStore(expenseBudgetStore);
+        type PairResult = StorageResult<{
+          successor: ExpenseBudgetRecord;
+          supersededPrevious: ExpenseBudgetRecord;
+          reused: boolean;
+        }>;
+        let pending: PairResult | null = null;
+        const finish = (result: PairResult) => resolve(result);
+        const abortWith = (result: PairResult) => {
+          pending = result;
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const successorRequest = budgets.get(successor.id);
+        successorRequest.onerror = () => abortWith(failure(successorRequest.error, database));
+        successorRequest.onsuccess = () => {
+          const storedSuccessor = successorRequest.result as ExpenseBudgetRecord | undefined;
+          const previousRequest = budgets.get(supersededPrevious.id);
+          previousRequest.onerror = () => abortWith(failure(previousRequest.error, database));
+          previousRequest.onsuccess = () => {
+            const storedPrevious = previousRequest.result as ExpenseBudgetRecord | undefined;
+            const guard = validateExpenseBudgetRevisionPair(
+              storedSuccessor,
+              storedPrevious,
+              successor,
+              supersededPrevious,
+            );
+            if (!guard.ok) {
+              abortWith({ ok: false, code: "storage_stale", message: guard.message });
+              return;
+            }
+            if (guard.reused) {
+              /* إعادة تشغيل الزوج كاملًا — لا كتابة ثانية. */
+              pending = {
+                ok: true,
+                value: {
+                  successor: storedSuccessor ?? successor,
+                  supersededPrevious: storedPrevious ?? supersededPrevious,
+                  reused: true,
+                },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            budgets.put(successor);
+            budgets.put(supersededPrevious);
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { successor, supersededPrevious, reused: false } });
       });
     } catch (error) {
       return failure(error);

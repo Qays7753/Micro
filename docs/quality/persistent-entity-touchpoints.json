@@ -7,12 +7,8 @@
       "snapshotField": "profile",
       "domainType": "ActivityProfile",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §16–§22 (الملف الشخصي للنشاط)"
     },
@@ -21,12 +17,8 @@
       "snapshotField": "ownerProfile",
       "domainType": "OwnerProfile",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/owner/ownerProfileService.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/owner/ownerProfileService.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §16–§22 (ملف المالك — سجل واحد بمعرف ثابت)"
     },
@@ -35,12 +27,8 @@
       "snapshotField": "preferences",
       "domainType": "LocalPreferences",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §16–§22 (تفضيلات محلية)"
     },
@@ -53,9 +41,7 @@
         "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
         "apps/prototype-web/client/src/application/drafts/draftService.test.ts"
       ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §35 (حد المسودة الدائم: عقد/طلب فقط، ليس حدثًا ماليًا)"
     },
@@ -80,9 +66,7 @@
       "snapshotField": "directSales",
       "domainType": "DirectSale",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/catalog/catalogService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/catalog/catalogService.test.ts"],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/localTransferService.directSaleRoundTrip.test.ts"
       ],
@@ -98,9 +82,7 @@
         "apps/prototype-web/client/src/storage/local/adapterConformance.test.ts",
         "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.test.ts"
       ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §25 + §31 (كتابة أولى/تحديث محروس بحدث واحد)"
     },
@@ -113,9 +95,7 @@
         "apps/prototype-web/client/src/application/scheduling/scheduleService.test.ts",
         "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts"
       ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §25 + §31 (تكرار محروس)"
     },
@@ -124,9 +104,7 @@
       "snapshotField": "financialEvents",
       "domainType": "FinancialEvent",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts"],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts",
         "apps/prototype-web/client/src/application/transfers/localTransferService.releasedPairs.test.ts"
@@ -139,12 +117,8 @@
       "snapshotField": "supplierPurchases",
       "domainType": "SupplierPurchase",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/adapterConformance.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/adapterConformance.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §25 + §31 (شراء محروس التزامن)"
     },
@@ -153,12 +127,8 @@
       "snapshotField": "cashWallets",
       "domainType": "CashWallet",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/cash/walletLedgerService.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/cash/walletLedgerService.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §16–§22 (محافظ الكاش)"
     },
@@ -171,9 +141,7 @@
         "apps/prototype-web/client/src/application/collections/collectionService.test.ts",
         "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.delivery.test.ts"
       ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §16–§22 (دفتر استمرارية الكاش)"
     },
@@ -197,9 +165,7 @@
       "snapshotField": "inventoryMovements",
       "domainType": "InventoryMovement",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/finance/integrityCheckService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/finance/integrityCheckService.test.ts"],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts",
         "apps/prototype-web/client/src/application/transfers/localTransferService.familyOrphan.test.ts"
@@ -212,12 +178,8 @@
       "snapshotField": "inventoryActivation",
       "domainType": "InventoryActivation",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/finance/projectFinancialService.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/finance/projectFinancialService.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §24 (عقد ٢٨ — تأكيد رصيد البداية)"
     },
@@ -226,12 +188,8 @@
       "snapshotField": "inventoryShortages",
       "domainType": "InventoryShortage",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.delivery.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.delivery.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §24 (عقد ٢٨ — سجل النقص الموثق D-027)"
     },
@@ -240,9 +198,7 @@
       "snapshotField": "catalogItems",
       "domainType": "CatalogItem",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts"],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/catalogCoreTransfer.test.ts",
         "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
@@ -255,12 +211,8 @@
       "snapshotField": "measurementUnits",
       "domainType": "MeasurementUnit",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/catalogCoreTransfer.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/catalogCoreTransfer.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §24–§25 (وحدات القياس)"
     },
@@ -269,12 +221,8 @@
       "snapshotField": "directConversions",
       "domainType": "DirectConversion",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/catalog/catalogCore.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/catalogCoreTransfer.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/catalog/catalogCore.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/catalogCoreTransfer.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §24–§25 (تحويلات مباشرة بين الوحدات)"
     },
@@ -283,12 +231,8 @@
       "snapshotField": "catalogTemplates",
       "domainType": "CatalogTemplate",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/catalogCoreTransfer.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/catalogCoreTransfer.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §24–§25 (قوالب الكتالوج)"
     },
@@ -297,12 +241,8 @@
       "snapshotField": "actualTimeRecords",
       "domainType": "ActualTimeRecord",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/time/actualTimeService.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/time/actualTimeService.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §23 (الوقت الفعلي — عقد ٢٧)"
     },
@@ -311,12 +251,8 @@
       "snapshotField": "shortCashDeclarations",
       "domainType": "ShortCashDeclaration",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §27 (تصريحات نقص الكاش)"
     },
@@ -325,9 +261,7 @@
       "snapshotField": "ownerEntitlementPolicies",
       "domainType": "OwnerEntitlementPolicy",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/OwnerEntitlementStorage.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/OwnerEntitlementStorage.test.ts"],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/ownerEntitlementTransfer.test.ts"
       ],
@@ -339,9 +273,7 @@
       "snapshotField": "ownerEntitlementRecords",
       "domainType": "OwnerEntitlementRecord",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/OwnerEntitlementStorage.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/OwnerEntitlementStorage.test.ts"],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/ownerEntitlementTransfer.test.ts"
       ],
@@ -353,9 +285,7 @@
       "snapshotField": "ownerEntitlementOpeningBalances",
       "domainType": "OwnerEntitlementOpeningBalance",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/OwnerEntitlementStorage.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/OwnerEntitlementStorage.test.ts"],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/ownerEntitlementTransfer.test.ts"
       ],
@@ -386,9 +316,7 @@
         "apps/prototype-web/client/src/application/finance/recurringWorkService.test.ts",
         "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts"
       ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §26 (سياسات التوزيع)"
     },
@@ -397,12 +325,8 @@
       "snapshotField": "costEstimates",
       "domainType": "CostEstimate",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §23 (التقديرات — لا أثر مالي)"
     },
@@ -411,12 +335,8 @@
       "snapshotField": "assets",
       "domainType": "AssetRecord",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §26 (الأصول — الحقيقة المالية في أحداثها)"
     },
@@ -425,12 +345,8 @@
       "snapshotField": "loans",
       "domainType": "LoanRecord",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts"
-      ],
-      "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts"],
+      "transferTests": ["apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"],
       "notExportedReason": null,
       "docs": "current-state.md §26 (القروض — الحقيقة المالية في أحداثها)"
     },
@@ -439,9 +355,7 @@
       "snapshotField": null,
       "domainType": "FormDraftEnvelope",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/drafts/formDraftService.test.ts"],
       "transferTests": [],
       "notExportedReason": "حد المسودة العابرة (G5 §35): قيم نماذج غير محفوظة خارج التصدير المالي حصرًا؛ المسودة ليست حدثًا ماليًا ولا بيانات مالك قابلة للنقل.",
       "docs": "current-state.md §35 (حد المسودة العابرة)"
@@ -451,9 +365,7 @@
       "snapshotField": null,
       "domainType": "LocalSecurityRecord",
       "adapters": ["memory", "indexeddb"],
-      "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts"],
       "transferTests": [],
       "notExportedReason": "سجل الأمن المحلي (G5 §35): لا يُصدَّر أبدًا ولا يدخل ملف النقل — غيابه من الملف سلوك مقصود ومحروس.",
       "docs": "current-state.md §35 (سجل الأمن المحلي خارج التصدير)"
@@ -499,6 +411,21 @@
       ],
       "notExportedReason": null,
       "docs": "current-state.md §56 (OPS-003 — فترات المصروف المتكرر وقراراتها؛ الربط باتجاه واحد نحو financial-events)"
+    },
+    {
+      "store": "expense-budgets",
+      "snapshotField": "expenseBudgets",
+      "domainType": "ExpenseBudgetRecord",
+      "adapters": ["memory", "indexeddb"],
+      "adapterTests": [
+        "apps/prototype-web/client/src/storage/local/adapterConformance.expenseBudget.test.ts",
+        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.expenseBudget.test.ts"
+      ],
+      "transferTests": [
+        "apps/prototype-web/client/src/application/transfers/localTransferService.expenseBudget.test.ts"
+      ],
+      "notExportedReason": null,
+      "docs": "docs/contracts/42-optional-expense-budgets-goals-contract.md (FIN-002 — الميزانيات الاختيارية وأهداف المصروف؛ مخزن محروس واحد بنمط D-037)"
     }
   ],
   "localOnlyRecords": [
@@ -514,18 +441,14 @@
     {
       "record": "micro.finance-draft.<financial-event-type>.v1",
       "storage": "localStorage",
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.test.ts"],
       "notExportedReason": "مفتاح تراثي محذوف من المصدر (اكتب←تحقق←احذف — G5 §35): مصدر ترحيل واحد حتمي الإثبات لمسودة المحرر؛ ليس كيان تخزين دائمًا ولا يُصدَّر.",
       "docs": "current-state.md §35 (ترحيل مفاتيح المسودة التراثية)"
     },
     {
       "record": "micro.setup-draft.v1",
       "storage": "localStorage",
-      "adapterTests": [
-        "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.test.ts"
-      ],
+      "adapterTests": ["apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.test.ts"],
       "notExportedReason": "مفتاح تراثي محذوف من المصدر (اكتب←تحقق←احذف — G5 §35): مصدر ترحيل واحد لمسودة الإعداد؛ ليس كيان تخزين دائمًا ولا يُصدَّر.",
       "docs": "current-state.md §35 (ترحيل مسودة الإعداد)"
     }

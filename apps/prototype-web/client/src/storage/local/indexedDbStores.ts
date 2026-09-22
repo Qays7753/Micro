@@ -1,7 +1,8 @@
 /** IndexedDB store names and the database identity — one pure constants module so the
  * schema-upgrade path and the adapter share a single source (Group 10, Phase 10-B).
  * Values are frozen history: no rename, no store removed; additions only via a
- * guarded schema upgrade (35 → 36 added the recurring-expense stores, D-037).
+ * guarded schema upgrade (35 → 36 added the recurring-expense stores, D-037;
+ * 36 → 37 added the expense-budgets store, FIN-002 / contract 42).
  */
 export const databaseName = "micro-prototype-local";
 export const profileStore = "activity-profile";
@@ -53,3 +54,9 @@ export const securityStore = "local-security";
 export const recurringExpenseSeriesStore = "recurring-expense-series";
 export const recurringExpenseRevisionStore = "recurring-expense-revisions";
 export const recurringExpenseOccurrenceStore = "recurring-expense-occurrences";
+/* FIN-002 (عقد ٤٢ / نمط D-037): سجلات الميزانية المختارة — مخزن تشغيلي واحد
+ * بلا أي أثر مالي (الخطة ليست حدثًا ماليًا). المُنشئ محروس في الترقية ٣٦→٣٧:
+ * القديم يفتح ويجده فارغًا بلا ترحيل بيانات ولا تعديل سجل قائم. فهارس periodKey
+ * للتصفح الزمني وstatus لحالات السجل وoperationKey للعهدة؛ لا فهرس فريد —
+ * حارس الالتزام داخل حد الكتابة يكفي الحتمية. */
+export const expenseBudgetStore = "expense-budgets";

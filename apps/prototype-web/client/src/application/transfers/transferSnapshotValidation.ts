@@ -44,6 +44,7 @@ import {
   validRecurringExpenseOccurrence,
   validRecurringExpenseRuleRevision,
   validRecurringExpenseSeries,
+  validExpenseBudgetRecord,
   validCashEntry,
   validCashWallet,
   validCatalogItem,
@@ -99,7 +100,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !Array.isArray(data.recurringExpenseRevisions)) ||
     (data.recurringExpenseOccurrences !== undefined &&
       data.recurringExpenseOccurrences !== null &&
-      !Array.isArray(data.recurringExpenseOccurrences))
+      !Array.isArray(data.recurringExpenseOccurrences)) ||
+    /* FIN-002 (عقد ٤٢): عائلة الميزانيات اختيارية في الملفات القديمة — المصفوفة إن وُجدت. */
+    (data.expenseBudgets !== undefined && data.expenseBudgets !== null && !Array.isArray(data.expenseBudgets))
   )
     return false;
   if (
@@ -1082,6 +1085,32 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (!recurringSeriesIds.has(occurrence.seriesId)) return false;
     if (occurrence.recordedFinancialEventId !== null && !eventIds.has(occurrence.recordedFinancialEventId))
       return false;
+  }
+  /* FIN-002 (عقد ٤٢): عائلة الميزانيات — هوية فريدة ومفتاح عملية فريد
+   * (لكل سجل مفتاح عملته — الإنشاء أو المراجعة الخلف؛ إعادة الإرسال تعيد
+   * السجل نفسه فلا مفتاح مشترك بين سجلين)، وترابط صادق مع الحالة:
+   * المستبدلة تربط خلفًا موجودًا فعلًا في الملف، والمغلقة موثقة بعلة،
+   * والنافذة لا تحمل رابط خلف. الملف المكسور أو المدموج يدويًا يُرفض
+   * قبل أي معاينة كما تُرفض البصمة المكسورة. */
+  const budgetIds = new Set<string>();
+  const budgetOperationKeys = new Set<string>();
+  for (const budget of data.expenseBudgets ?? []) {
+    if (!validExpenseBudgetRecord(budget) || budgetIds.has(budget.id)) return false;
+    if (budgetOperationKeys.has(budget.operationKey)) return false;
+    budgetIds.add(budget.id);
+    budgetOperationKeys.add(budget.operationKey);
+  }
+  for (const budget of data.expenseBudgets ?? []) {
+    if (budget.status === "superseded") {
+      if (budget.supersededById === null || !budgetIds.has(budget.supersededById)) return false;
+    } else if (budget.supersededById !== null && budget.supersededById !== undefined) {
+      /* النافذة والمغلقة لا تحملان رابط خلف — الرابط صفة المستبدلة وحدها. */
+      return false;
+    }
+    if (budget.status === "closed") {
+      if (budget.closeReason === null || budget.closeReason === undefined) return false;
+      if (budget.closedAt === null || budget.closedAt === undefined) return false;
+    }
   }
   /* المجموعة ٦ (تدقيق A2 — AI-01): اكتمال عقد العائلة بالاتجاهين — حدث
    * بسياق أصل/قرض يشترط سجل مالكه في الملف نفسه، كما يشترط سياق عربون

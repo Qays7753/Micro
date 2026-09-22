@@ -8,6 +8,9 @@ import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 /* المجموعة ٩ (STR-030): محقق سياق الهدر من مالكه الكنسي (صاحب حركة
  * المخزون) — الواردات القديمة تمر كما هي بالسماح الموجود لا بمسار مواز. */
 import { isValidWasteContext } from "@micro-domain/inventory-material/index.js";
+/* FIN-002 (عقد ٤٢): محقق مفتاح فترة الميزانية من مالكه الكنوني — الشكل
+ * YYYY-MM بتوقيت عمّان كما يتحقق منه الدومين نفسه لا من نسخة موازية. */
+import { isValidBudgetPeriodKey } from "@micro-domain/budget/index.js";
 import { localOwnerProfileId, type OwnerProfile } from "@/storage/local/types";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -1538,4 +1541,60 @@ export function validRecurringExpenseOccurrence(value: unknown): boolean {
     if (action.key !== undefined && action.key !== null && !isString(action.key)) return false;
     return true;
   });
+}
+
+const EXPENSE_BUDGET_STATUSES = new Set(["active", "superseded", "closed"]);
+const EXPENSE_BUDGET_KNOWLEDGE = new Set(["known", "estimated"]);
+
+/* FIN-002 (عقد ٤٢): سجل ميزانية سليم الشكل — الخطة ليست حدثًا ماليًا فلا
+ * روابط أحداث هنا أصلًا؛ مفتاح الفترة يُتحقق من الدومين الكنوني نفسه
+ * (isValidBudgetPeriodKey) لا من نسخة نصية موازية. الترابط الحالة/الروابط
+ * (supersededById/closeReason) يفحصه مُوزّع العائلة في التحقق الكامل. */
+export function validExpenseBudgetRecord(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    value.id.trim().length === 0 ||
+    value.periodKind !== "month" ||
+    !isString(value.periodKey) ||
+    !isValidBudgetPeriodKey(value.periodKey) ||
+    !(
+      (isRecord(value.scope) && value.scope.kind === "general_expense") ||
+      (isRecord(value.scope) &&
+        value.scope.kind === "category" &&
+        isString(value.scope.categoryLabel) &&
+        value.scope.categoryLabel.trim().length > 0 &&
+        value.scope.categoryLabel.trim().length <= 80)
+    ) ||
+    /* مبلغ الخطة موجب صحيح حصرًا (عقد ٤٢ §٢) — لا فواصل عشرية ولا صفر وهمي. */
+    !isMoney(value.amountMinor) ||
+    typeof value.amountMinor !== "number" ||
+    value.amountMinor <= 0 ||
+    !isString(value.knowledge) ||
+    !EXPENSE_BUDGET_KNOWLEDGE.has(value.knowledge) ||
+    !(
+      value.note === null ||
+      value.note === undefined ||
+      (isString(value.note) && value.note.length <= 500)
+    ) ||
+    !isDate(value.createdAt) ||
+    !isString(value.operationKey) ||
+    value.operationKey.trim().length === 0 ||
+    !isString(value.status) ||
+    !EXPENSE_BUDGET_STATUSES.has(value.status) ||
+    !(
+      value.supersededById === null ||
+      value.supersededById === undefined ||
+      (isString(value.supersededById) && value.supersededById.trim().length > 0)
+    ) ||
+    !(value.closedAt === null || value.closedAt === undefined || isDate(value.closedAt)) ||
+    !(
+      value.closeReason === null ||
+      value.closeReason === undefined ||
+      (isString(value.closeReason) && value.closeReason.trim().length > 0)
+    ) ||
+    typeof value.goalDismissed !== "boolean"
+  )
+    return false;
+  return true;
 }

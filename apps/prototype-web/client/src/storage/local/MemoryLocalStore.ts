@@ -16,6 +16,7 @@ import {
   validateRecurringExpenseOccurrenceRecordCommit,
   validateRecurringExpenseSeriesChange,
 } from "./recurringExpenseCommitGuard";
+import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./expenseBudgetCommitGuard";
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
 import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
@@ -54,6 +55,7 @@ import type {
   RecurringExpenseRuleRevision,
   RecurringExpenseSeries,
 } from "@micro-domain/recurring-expense/index.js";
+import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import type {
   ActivityProfile,
   CostEstimate,
@@ -117,6 +119,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   private recurringExpenseSeriesList = new Map<string, RecurringExpenseSeries>();
   private recurringExpenseRevisions = new Map<string, RecurringExpenseRuleRevision>();
   private recurringExpenseOccurrences = new Map<string, RecurringExpenseOccurrence>();
+  /* FIN-002 (عقد ٤٢): سجلات الميزانية في الذاكرة — تطابق المتصفح اختبارًا
+   * وسلوكًا؛ نفس حراس الالتزام داخل حد الكتابة. */
+  private expenseBudgets = new Map<string, ExpenseBudgetRecord>();
   /* المجموعة ٥ (الاستمرارية): مسودات النماذج وسجل القفل — خارج اللقطة في
    * المتصفح؛ هنا أيضًا لا تدخل readSnapshot/replaceSnapshot فتطابق الاستعادة. */
   private formDrafts = new Map<string, FormDraftEnvelope>();
@@ -1419,6 +1424,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         recurringExpenseSeries: Array.from(this.recurringExpenseSeriesList.values()).map(clone),
         recurringExpenseRevisions: Array.from(this.recurringExpenseRevisions.values()).map(clone),
         recurringExpenseOccurrences: Array.from(this.recurringExpenseOccurrences.values()).map(clone),
+        expenseBudgets: Array.from(this.expenseBudgets.values()).map(clone),
       },
     };
   }
@@ -1454,6 +1460,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       recurringExpenseSeries: snapshot.recurringExpenseSeries ?? [],
       recurringExpenseRevisions: snapshot.recurringExpenseRevisions ?? [],
       recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences ?? [],
+      expenseBudgets: snapshot.expenseBudgets ?? [],
     });
     this.profile = safe.profile;
     this.ownerProfile = safe.ownerProfile ?? null;
@@ -1506,6 +1513,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.recurringExpenseOccurrences = new Map(
       (safe.recurringExpenseOccurrences ?? []).map(occurrence => [occurrence.id, occurrence]),
     );
+    this.expenseBudgets = new Map((safe.expenseBudgets ?? []).map(budget => [budget.id, budget]));
     return { ok: true, value: clone(safe) };
   }
   async listCostEstimates(): Promise<StorageResult<readonly CostEstimate[]>> {
@@ -1925,5 +1933,63 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.recurringExpenseOccurrences.set(next.id, clone(next));
     this.financialEvents.set(event.id, clone(event));
     return { ok: true, value: { occurrence: clone(next), event: clone(event), reused: false } };
+  }
+
+  /* FIN-002 (عقد ٤٢ — الميزانيات): قراءة وحفظ محروس وزوج مراجعة ذرّي — نفس
+   * عقد محوّل IndexedDB حرفيًا (إعادة استخدام/رفض صادر/كلاهما أو لا شيء). */
+  async listExpenseBudgets(): Promise<StorageResult<readonly ExpenseBudgetRecord[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.expenseBudgets.values())
+        .sort((a, b) => a.periodKey.localeCompare(b.periodKey) || a.id.localeCompare(b.id))
+        .map(clone),
+    };
+  }
+  async saveExpenseBudget(
+    record: ExpenseBudgetRecord,
+  ): Promise<StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>> {
+    const stored = this.expenseBudgets.get(record.id);
+    const guard = validateExpenseBudgetSave(stored, record);
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (guard.reused) return { ok: true, value: { record: clone(stored ?? record), reused: true } };
+    this.expenseBudgets.set(record.id, clone(record));
+    return { ok: true, value: { record: clone(record), reused: false } };
+  }
+  async saveExpenseBudgetRevisionPair(
+    successor: ExpenseBudgetRecord,
+    supersededPrevious: ExpenseBudgetRecord,
+  ): Promise<
+    StorageResult<{
+      successor: ExpenseBudgetRecord;
+      supersededPrevious: ExpenseBudgetRecord;
+      reused: boolean;
+    }>
+  > {
+    const guard = validateExpenseBudgetRevisionPair(
+      this.expenseBudgets.get(successor.id),
+      this.expenseBudgets.get(supersededPrevious.id),
+      successor,
+      supersededPrevious,
+    );
+    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (guard.reused)
+      return {
+        ok: true,
+        value: {
+          successor: clone(successor),
+          supersededPrevious: clone(supersededPrevious),
+          reused: true,
+        },
+      };
+    this.expenseBudgets.set(successor.id, clone(successor));
+    this.expenseBudgets.set(supersededPrevious.id, clone(supersededPrevious));
+    return {
+      ok: true,
+      value: {
+        successor: clone(successor),
+        supersededPrevious: clone(supersededPrevious),
+        reused: false,
+      },
+    };
   }
 }

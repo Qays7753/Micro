@@ -71,6 +71,8 @@ export type TransferSummary = {
   recurringExpenseSeries: number;
   recurringExpenseRevisions: number;
   recurringExpenseOccurrences: number;
+  /* FIN-002 (عقد ٤٢): عائلة الميزانيات في ملخص النقل. */
+  expenseBudgets: number;
   snapshots: number;
   events: number;
   exportedAt: string;
@@ -121,6 +123,7 @@ function summary(file: LocalExportFile): TransferSummary {
     recurringExpenseSeries: file.data.recurringExpenseSeries?.length ?? 0,
     recurringExpenseRevisions: file.data.recurringExpenseRevisions?.length ?? 0,
     recurringExpenseOccurrences: file.data.recurringExpenseOccurrences?.length ?? 0,
+    expenseBudgets: file.data.expenseBudgets?.length ?? 0,
     snapshots,
     events,
     exportedAt: file.exportedAt,
@@ -284,6 +287,8 @@ export class LocalTransferService {
       recurringExpenseSeries: [],
       recurringExpenseRevisions: [],
       recurringExpenseOccurrences: [],
+      /* FIN-002 (عقد ٤٢): لا ميزانيات في اللقطة الفارغة — «ابدأ من جديد» لا يخترع خطة. */
+      expenseBudgets: [],
     };
   }
 

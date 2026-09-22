@@ -94,6 +94,12 @@ export const INFLUENTIAL_SNAPSHOT_FAMILIES = {
     label: "فترات المصروف المتكرر",
     count: snapshot => snapshot.recurringExpenseOccurrences?.length ?? 0,
   },
+  /* FIN-002 (عقد ٤٢): عائلة الميزانيات — خطة اختيارية بلا أثر مالي؛ الغياب
+   * في ملف قديم = صفر بلا اختراع. */
+  expenseBudgets: {
+    label: "الميزانيات المختارة",
+    count: snapshot => snapshot.expenseBudgets?.length ?? 0,
+  },
 } satisfies Record<keyof LocalStoreSnapshot, SnapshotFamilySpec>;
 
 export type SnapshotFamilyKey = keyof typeof INFLUENTIAL_SNAPSHOT_FAMILIES;
