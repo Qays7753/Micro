@@ -1,7 +1,7 @@
 {
   "id": "WS-174",
   "title": "Financial Roadmap Wave 2 — FIN-002 optional expense budgets and goals (plan-not-event)",
-  "status": "CLAIMED",
+  "status": "IN_REVIEW",
   "items": [
     "FIN-002"
   ],
@@ -23,8 +23,8 @@
   "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-22",
   "pr": null,
   "started_at": "2026-09-22T17:00:00+03:00",
-  "updated_at": "2026-09-22T17:00:00+03:00",
-  "next_action": "عقد ٤٢ أولاً (توثيق سياسات المالك المعتمدة §4.3 بنمط عقد ٤١)، ثم الدومين النقي، ثم المخزن المحروس 37/29 بقرار مالك موثق للترحيل (نمط D-037)، ثم الخدمة والواجهة والاختبارات — الميزانية خطة لا حدث مالي أبدًا: الإنشاء/التعديل/التجاوز لا يغير كاشًا ولا نتيجة ولا دينًا ولا تاريخًا.",
+  "updated_at": "2026-09-22",
+  "next_action": "بانتظار CI على رأس الفرع ثم قرار دمج المالك؛ بعد الدمج: تحقق على SHA الدمج ثم VERIFIED وإغلاق current-state §61.",
   "notes": [
     "Owner-approved roadmap: 'Micro Financial Roadmap Complete Controlled Execution' (2026-09-22) §4.3 — the policy register for budgets/goals is owner-approved product decision.",
     "Reopen gate: FIN-002 DEFERRED→READY via the owner roadmap execution order (recorded in status_history); gate_classification stays DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT.",
@@ -38,6 +38,12 @@
       "changed_at": "2026-09-22",
       "actor": "claim:ws-174",
       "reason": "Owner-approved financial roadmap Wave 2 (FIN-002) claimed per Operations Control v2 from verified main e7c7b1c20890e64f98ad420ac008ef6578601c0f; execution map: reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-22",
+      "actor": "ws-174:review",
+      "reason": "تنفيذ الموجة 2 مكتمل ومبوّب: 36 اختبارًا جديدًا، pnpm check خروج 0 (454+1836)، مراجعة مستقلة PASS_WITH_NOTES (10/10)."
     }
   ],
   "migration_baseline": false,

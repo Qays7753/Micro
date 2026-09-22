@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · CLAIMED: 1 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 29
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 29
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-174 | CLAIMED | \`feat/fin-002-budgets-goals-20260922\` | — | FIN-002 | عقد ٤٢ أولاً (توثيق سياسات المالك المعتمدة §4.3 بنمط عقد ٤١)، ثم الدومين النقي، ثم المخزن المحروس 37/29 بقرار مالك موثق للترحيل (نمط D-037)، ثم الخدمة والواجهة والاختبارات — الميزانية خطة لا حدث مالي أبدًا: الإنشاء/التعديل/التجاوز لا يغير كاشًا ولا نتيجة ولا دينًا ولا تاريخًا. |
+| WS-174 | IN_REVIEW | \`feat/fin-002-budgets-goals-20260922\` | — | FIN-002 | بانتظار CI على رأس الفرع ثم قرار دمج المالك؛ بعد الدمج: تحقق على SHA الدمج ثم VERIFIED وإغلاق current-state §61. |
