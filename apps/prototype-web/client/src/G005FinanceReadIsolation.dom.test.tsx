@@ -99,6 +99,9 @@ function buildServices() {
       ...realG5,
       readDecision: (from: string, to: string) => failing("g5", () => realG5.readDecision(from, to)),
       listDeclarations: () => failing("g5", () => realG5.listDeclarations()),
+      /* FIN-005 (WS-175 — Wave 3): قرار الكاش صار فوق أفق مستقل — نفس عائلة
+       * فشل كتلة g5 (بطاقة إعادة محاولة معزولة لا تحجب بطاقات المركز). */
+      readShortCashHorizon: (days: 7 | 30 | 90) => failing("g5", () => realG5.readShortCashHorizon(days)),
     },
     financialPulse: new FinancialPulseService(store),
     fulfillment: {

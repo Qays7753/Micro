@@ -30,7 +30,15 @@ import type {
   RecordedPeriodResult,
 } from "@/application/finance/projectFinancialService";
 import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
-import type { G5Decision } from "@/application/g5/g5Service";
+import type { G5Decision, ShortCashHorizonReading } from "@/application/g5/g5Service";
+/* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — الأنواع والثوابت فقط
+ * (النموذج النقي لا يحمّل كومة الصفحة: بلا مخزن ولا React). */
+import {
+  DEFAULT_SHORT_CASH_HORIZON_DAYS,
+  SHORT_CASH_HORIZON_DAYS,
+  SHORT_CASH_HORIZON_LABELS_AR,
+  type ShortCashHorizonDays,
+} from "@/application/finance/shortCashHorizon";
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
@@ -122,6 +130,12 @@ export type FinanceState =
  * مثل إخواتها (فشلها = بطاقة إعادة محاولة لا صفر كاذب)، فوق نطاق الأشهر نفسه. */
 type BridgeState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; reading: ProfitToCashBridgeReading };
+/* FIN-005 (WS-175 — Wave 3): حالة قراءة أفق الكاش القصير — كتلة مستقلة
+ * عن نطاق أشهر الصفحة (الأفق مثبّت على اليوم المحلي للساعة القابلة للحقن)،
+ * وإعادة القراءة عند تبديل الأفق أو تغيّر البيانات فقط؛ فشلها بطاقة
+ * إعادة محاولة معزولة كإخواتها (نمط G-005). */
+type CashHorizonState =
+  { phase: "loading" } | { phase: "error" } | { phase: "ready"; reading: ShortCashHorizonReading };
 /* FIN-002 (WS-174 — Wave 2): حالة تحميل خدمة الميزانيات — null يعني «جارٍ
  * التجهيز» (نمط transfers/recurringExpenses في جذر التركيب نفسه، لكن هنا
  * محليًا داخل الصفحة: الخدمة لا تُسجّل في السياق أبدًا). */
@@ -216,6 +230,11 @@ export default function Finance() {
   /* FIN-003: جسر النتيجة إلى الكاش — قراءة مستقلة فوق نطاق الأشهر نفسه؛
    * فشلها بطاقة كتلة معزولة لا يحجب ملخص الفترة (نمط G-005 نفسه). */
   const [bridgeState, setBridgeState] = useState<BridgeState>({ phase: "loading" });
+  /* FIN-005 (WS-175 — Wave 3): أفق الكاش القصير — العائلة المعتمدة ٧/٣٠/٩٠
+   * يومًا والافتراضي ٣٠ (قرار المالك §4.4)؛ حالة القراءة كتلة مستقلة فوق
+   * الأفق المختار لا فوق أشهر الصفحة (الأفق مثبّت على اليوم المحلي). */
+  const [horizonDays, setHorizonDays] = useState<ShortCashHorizonDays>(DEFAULT_SHORT_CASH_HORIZON_DAYS);
+  const [cashHorizonState, setCashHorizonState] = useState<CashHorizonState>({ phase: "loading" });
   /* FIN-002 (WS-174 — Wave 2): الميزانيات الاختيارية — الخدمة تُحمَّل
    * ديناميكيًا عند أول فتح للقسم المطوي فقط (سابقة EXE-014/D-034): الوحدة
    * تُستورد بـimport() لحظتها فلا تدخل كومة الصفحة/الإقلاع، والمخزن من جذر
@@ -371,6 +390,23 @@ export default function Finance() {
       active = false;
     };
   }, [profitToCashBridge, fromMonth, toMonth, dataVersion, retryCount]);
+  /* FIN-005 (WS-175 — Wave 3): قراءة أفق الكاش القصير — كتلة مستقلة عن
+   * نطاق أشهر الصفحة: الأفق مثبّت على اليوم المحلي من ساعة الخدمة القابلة
+   * للحقن، وإعادة القراءة فقط عند تبديل الأفق أو تغيّر البيانات أو إعادة
+   * المحاولة. بلا كتابة إطلاقًا (عقد 17 §7): توقع معلن لا قبض ولا دفع
+   * ولا تغيير كاش أو دين أو أحداث أو مخزن. */
+  useEffect(() => {
+    let active = true;
+    safeBlock(g5.readShortCashHorizon(horizonDays)).then(read => {
+      if (!active) return;
+      setCashHorizonState(
+        read.failed || read.value === null ? { phase: "error" } : { phase: "ready", reading: read.value },
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [g5, horizonDays, dataVersion, retryCount]);
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -519,11 +555,17 @@ export default function Finance() {
               بمصدرَيه ومسارَي تسديدهما بالكاتب الرسمي القائم؛ يلي بطاقات
               المركز مباشرة في ترتيب القراءة المعتمد. */}
           <FinanceObligationsCard position={position} onNavigate={navigate} />
-          {decision === null ? (
+          {/* FIN-005 (WS-175 — Wave 3): قرار الكاش صار فوق أفق معتمد
+              ٧/٣٠/٩٠ يومًا مثبّت على اليوم المحلي (الافتراضي ٣٠) — كتلة
+              قراءة مستقلة عن نطاق أشهر الصفحة؛ فشلها بطاقة إعادة محاولة
+              معزولة (نمط G-005) لا يحجب بطاقات المركز. */}
+          {cashHorizonState.phase === "error" ? (
             <FinanceBlockFallback block="g5" onRetry={retryBlocks} />
-          ) : (
+          ) : cashHorizonState.phase === "ready" ? (
             <CashDecisionSurface
-              decision={decision}
+              reading={cashHorizonState.reading}
+              horizonDays={horizonDays}
+              onHorizonChange={setHorizonDays}
               unallocatedCashMinor={position.unallocatedCashMinor}
               cashRecorded={position.evidence.cash === "recorded"}
               declarationsRecorded={(state.declarations ?? []).some(
@@ -534,7 +576,7 @@ export default function Finance() {
                 navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
               }
             />
-          )}
+          ) : null}
           {owner === null ? (
             <FinanceBlockFallback block="owner" onRetry={retryBlocks} />
           ) : (
@@ -1242,21 +1284,28 @@ function OwnerDecisionCard({
 }
 
 function CashDecisionSurface({
-  decision,
+  reading,
+  horizonDays,
+  onHorizonChange,
   unallocatedCashMinor,
   cashRecorded,
   declarationsRecorded,
   onDeclare,
   onCoverPayment,
 }: {
-  decision: G5Decision;
+  /* FIN-005 (WS-175 — Wave 3): القراءة فوق أفق معتمد لا نطاق أشهر الصفحة —
+   * `ShortCashHorizonReading` يحمل الأفق (من/إلى شاملين بالتاريخ المحلي)
+   * ونتيجة المحرك نفسها بلا أي تغيير صيغة. */
+  reading: ShortCashHorizonReading;
+  horizonDays: ShortCashHorizonDays;
+  onHorizonChange: (days: ShortCashHorizonDays) => void;
   unallocatedCashMinor: number;
   cashRecorded: boolean;
   declarationsRecorded: boolean;
   onDeclare: () => void;
   onCoverPayment: () => void;
 }) {
-  const cash = decision.shortCash;
+  const cash = reading.shortCash;
   /* FIN-001: مقاييس قرار الكاش تتبع دليلها — كاش غير مسجل أو متوقعات غير
    * مسجلة تُعرض «غير مسجل» لا 0.00 مؤكدًا، باتساق مع «الكاش المتوقع». */
   const declaredValue = (minor: number, status: G5Decision["shortCash"]["status"]) =>
@@ -1267,6 +1316,22 @@ function CashDecisionSurface({
         <span className="micro-overline">
           قرار الكاش · <LocalDateValue value={cash.from} /> → <LocalDateValue value={cash.to} />
         </span>
+      </div>
+      {/* FIN-005 (WS-175 — Wave 3): عائلة الأفق المعتمدة ٧/٣٠/٩٠ (الافتراضي ٣٠)
+          — تبديل عرض فقط: يعيد القراءة فوق الأفق الجديد ولا يكتب شيئًا ولا
+          يفرض قيمة (نفس مفاتيح تبديل «الوضع الآن/ملخص الفترة» أعلاه). */}
+      <div className="micro-form-actions" role="group" aria-label="أفق قراءة الكاش">
+        {SHORT_CASH_HORIZON_DAYS.map(days => (
+          <button
+            key={days}
+            className="micro-text-action"
+            type="button"
+            aria-pressed={horizonDays === days}
+            onClick={() => onHorizonChange(days)}
+          >
+            {SHORT_CASH_HORIZON_LABELS_AR[days]}
+          </button>
+        ))}
       </div>
       <div className="micro-cash-decision-metrics">
         <Metric

@@ -379,7 +379,14 @@ CAPS: dict[str, int] = {
     # count here — the raise documents that approximation, not new at-rest
     # surface pressure beyond the single summary row. Owner-vetoable at
     # review, like the Statement 209->216 precedent.
-    "Finance": 318,
+    # Finance 318 -> 322 (2026-09-23, Wave 3 WS-175 FIN-005, owner-approved
+    # roadmap §4.4): the mandated short-cash horizon family — three toggle
+    # labels («٧ أيام» / «٣٠ يومًا» / «٩٠ يومًا») plus one group aria-label
+    # («أفق قراءة الكاش») on the existing cash-decision card. Four mandated
+    # strings, no prose; the two resolver validation messages are moment-of-
+    # action `message:` literals (g5Service pattern) and count nowhere.
+    # Owner-vetoable at review, same as the 318 precedent above.
+    "Finance": 322,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.

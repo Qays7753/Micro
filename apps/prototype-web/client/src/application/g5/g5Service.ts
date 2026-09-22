@@ -23,11 +23,26 @@ import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAt
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+/* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — نموذج نقي يُستخدم
+ * من هنا فقط (الخدمة تستمد «اليوم» من ساعتها القابلة للحقن ثم تحل النطاق). */
+import {
+  resolveShortCashHorizon,
+  type ShortCashHorizon,
+  type ShortCashHorizonDays,
+} from "@/application/finance/shortCashHorizon";
 
 export type G5Decision = {
   period: BreakEvenResult;
   shortCash: ShortCashResult;
   declarations: readonly ShortCashDeclaration[];
+};
+/* FIN-005 (WS-175 — Wave 3): قراءة أفق الكاش القصير وحده — نفس محرك
+ * `calculateShortCash` وصيغته بلا أي تغيير، لكن نطاق القراءة أفق معتمد
+ * (7/30/90 يومًا) مثبّت على اليوم المحلي عمان من ساعة الخدمة القابلة
+ * للحقن، لا نطاق أشهر الصفحة. قراءة فقط: لا كتابة ولا تغيير كاش أو دين. */
+export type ShortCashHorizonReading = {
+  horizon: ShortCashHorizon;
+  shortCash: ShortCashResult;
 };
 export type G5LinkOption = { id: string; label: string; amountMinor: number };
 export type G5LinkOptions = { orders: readonly G5LinkOption[]; payableEvents: readonly G5LinkOption[] };
@@ -350,6 +365,38 @@ export class G5Service {
         declarations: declarations.value,
       },
     };
+  }
+
+  /* FIN-005 (WS-175 — Wave 3): قراءة أفق الكاش القصير المعتمد (7/30/90 يومًا،
+   * الافتراضي 30 عند المستدعي) — «اليوم» من ساعة الخدمة القابلة للحقن
+   * (ISO-8601) ثم `localDateInAmman` (المرجع الكنوني للتاريخ المحلي)، ثم
+   * حلّ النطاق بالوحدة النقية [اليوم، اليوم+N−1] شاملًا. المحرك والصيغة
+   * كما هما بلا تعديل: `calculateShortCash` نفسه ونفس مصادر القراءة
+   * (المركز + الطلبات + الأحداث + المشتريات + المتوقعات) — الأرصدة المؤرخة
+   * وحدها تدخل الرقم، وغير المؤرخة نقص معلن يبقى ظاهرًا. لا كتابة إطلاقًا. */
+  async readShortCashHorizon(horizonDays: ShortCashHorizonDays): Promise<G5Result<ShortCashHorizonReading>> {
+    const horizonResolution = resolveShortCashHorizon(horizonDays, localDateInAmman(this.now()));
+    if (!horizonResolution.ok)
+      return { ok: false, code: "validation_error", message: horizonResolution.message };
+    const { from, to } = horizonResolution.value;
+    const [position, orders, events, purchases, declarations] = await Promise.all([
+      this.projectFinance.readPosition(),
+      this.store.listOrders(),
+      this.store.listFinancialEvents(),
+      this.store.listSupplierPurchases(),
+      this.store.listShortCashDeclarations(),
+    ]);
+    if (!position.ok || !orders.ok || !events.ok || !purchases.ok || !declarations.ok)
+      return { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
+    const shortCash = calculateShortCash({
+      from,
+      to,
+      recordedCashMinor: position.value.recordedCashMinor,
+      receivables: receivables(orders.value),
+      payables: payables(events.value, purchases.value),
+      declarations: declarations.value,
+    });
+    return { ok: true, value: { horizon: { horizonDays, from, to }, shortCash } };
   }
 
   async createDeclaration(input: G5DeclarationInput): Promise<G5Result<ShortCashDeclaration>> {
