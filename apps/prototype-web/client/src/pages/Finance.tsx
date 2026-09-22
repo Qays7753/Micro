@@ -41,6 +41,13 @@ import {
 } from "@/application/finance/shortCashHorizon";
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
+/* FIN-004 (WS-176 — Wave 4): قراءة السحب الآمن الاستشارية — دالة مجال نقية
+ * تُركّب فوق نتيجة أفق FIN-005 نفسه؛ الاحتياطي مُدخل جلسة (لا مخزن — ميثاق
+ * التفضيلات يحرم المحتوى المالي، والدوام قرار مالك مؤجل بنص الوثيقة). */
+import {
+  calculateSafeWithdrawal,
+  type SafeWithdrawalReserve,
+} from "@micro-domain/owner-safe-withdrawal/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
 /* FIN-002 (WS-174 — Wave 2): أنواع الميزانيات الاختيارية — النوع فقط هنا
  * (import(...) في موضع النوع — سابقة Schedule.tsx) فلا تُسحب وحدة الخدمة
@@ -235,6 +242,13 @@ export default function Finance() {
    * الأفق المختار لا فوق أشهر الصفحة (الأفق مثبّت على اليوم المحلي). */
   const [horizonDays, setHorizonDays] = useState<ShortCashHorizonDays>(DEFAULT_SHORT_CASH_HORIZON_DAYS);
   const [cashHorizonState, setCashHorizonState] = useState<CashHorizonState>({ phase: "loading" });
+  /* FIN-004 (WS-176 — Wave 4): الاحتياطي الصريح للسحب الآمن — حالة جلسة
+   * فقط (لا مخزن ولا تفضيلات: ميثاق التفضيلات يحرم المحتوى المالي): مبلغ
+   * موجب بالوحدة الصغرى أو «غير مُدخل»، مع تعطيل صريح بطلب المالك. لا
+   * نسبة افتراضية ولا قاعدة أشهر مصاريف؛ والدوام بين الجلسات قرار مالك
+   * مؤجل موثق (يتطلب مخزنًا محروسًا 38/30 عند اعتماده). */
+  const [reserveAmountMinor, setReserveAmountMinor] = useState<number | null>(null);
+  const [reserveDisabled, setReserveDisabled] = useState(false);
   /* FIN-002 (WS-174 — Wave 2): الميزانيات الاختيارية — الخدمة تُحمَّل
    * ديناميكيًا عند أول فتح للقسم المطوي فقط (سابقة EXE-014/D-034): الوحدة
    * تُستورد بـimport() لحظتها فلا تدخل كومة الصفحة/الإقلاع، والمخزن من جذر
@@ -571,6 +585,13 @@ export default function Finance() {
               declarationsRecorded={(state.declarations ?? []).some(
                 declaration => declaration.kind !== "reversal",
               )}
+              /* FIN-004 (WS-176 — Wave 4): مدخلات القراءة الاستشارية للسحب —
+               * الاحتياطي حالة جلسة والقروض سياق معلن من كتلة القروض نفسها. */
+              reserveAmountMinor={reserveAmountMinor}
+              reserveDisabled={reserveDisabled}
+              onReserveAmountChange={setReserveAmountMinor}
+              onReserveDisabledChange={setReserveDisabled}
+              loansOutstandingMinor={state.loansOverview ? state.loansOverview.totals.outstandingMinor : null}
               onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
               onCoverPayment={() =>
                 navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
@@ -1290,6 +1311,12 @@ function CashDecisionSurface({
   unallocatedCashMinor,
   cashRecorded,
   declarationsRecorded,
+  /* FIN-004 (WS-176 — Wave 4): مدخلات القراءة الاستشارية للسحب الآمن. */
+  reserveAmountMinor,
+  reserveDisabled,
+  onReserveAmountChange,
+  onReserveDisabledChange,
+  loansOutstandingMinor,
   onDeclare,
   onCoverPayment,
 }: {
@@ -1302,6 +1329,13 @@ function CashDecisionSurface({
   unallocatedCashMinor: number;
   cashRecorded: boolean;
   declarationsRecorded: boolean;
+  /* FIN-004: الاحتياطي حالة جلسة (number | null) — null يعني غير مُدخل؛
+   * التعطيل صريح بطلب المالك؛ القروض سياق معلن فقط (null عند تعذر الكتلة). */
+  reserveAmountMinor: number | null;
+  reserveDisabled: boolean;
+  onReserveAmountChange: (amountMinor: number | null) => void;
+  onReserveDisabledChange: (disabled: boolean) => void;
+  loansOutstandingMinor: number | null;
   onDeclare: () => void;
   onCoverPayment: () => void;
 }) {
@@ -1310,6 +1344,22 @@ function CashDecisionSurface({
    * مسجلة تُعرض «غير مسجل» لا 0.00 مؤكدًا، باتساق مع «الكاش المتوقع». */
   const declaredValue = (minor: number, status: G5Decision["shortCash"]["status"]) =>
     !declarationsRecorded ? NOT_RECORDED_LABEL : displayCashAmount(minor, status);
+  /* FIN-004 (WS-176 — Wave 4): قراءة السحب الآمن الاستشارية — تركيب صرف
+   * لدالة المجال النقية فوق نتيجة أفق FIN-005 نفسه (لا مسار ثانٍ ولا قراءة
+   * إضافية): الاحتياطي مُفعّل فقط حين يكون مبلغًا صحيحًا موجبًا؛ غير ذلك
+   * «غير مُدخل» بلا رقم مخترع. التعطيل والتمكين بيد المالك حصرًا. */
+  const reserve: SafeWithdrawalReserve = reserveDisabled
+    ? { mode: "disabled" }
+    : reserveAmountMinor !== null && Number.isInteger(reserveAmountMinor) && reserveAmountMinor > 0
+      ? { mode: "enabled", amountMinor: reserveAmountMinor }
+      : { mode: "unset" };
+  const withdrawal = calculateSafeWithdrawal({
+    horizon: reading.horizon,
+    shortCash: cash,
+    cashRecorded,
+    reserve,
+    loansOutstandingMinor,
+  });
   return (
     <section className="micro-cash-decision" aria-labelledby="cash-decision-title">
       <div className="micro-cash-decision-heading">
@@ -1369,6 +1419,69 @@ function CashDecisionSurface({
         <Button action="create" onClick={onDeclare}>
           أعلن تحصيلًا أو التزامًا قريبًا
         </Button>
+      </div>
+      {/* FIN-004 (WS-176 — Wave 4): السحب الآمن — قراءة استشارية فقط فوق الأفق
+          نفسه: احتياطي ثابت يُدخله المالك (جلسة) أو تعطيل صريح؛ الفائض =
+          التوقع − الاحتياطي بلا قصّ للسالب؛ القروض إفصاح لا حساب؛ لا زر سحب
+          ولا حجب ولا ضمان — القرار للمالك. */}
+      <div className="micro-cash-decision-footer">
+        <div>
+          <strong>سحب آمن — قراءة استشارية</strong>
+          <p className="micro-local-truth">
+            قراءة استشارية فقط: لا تنفّذ سحبًا ولا تضمن سيولة، والربح ليس كاشًا.
+          </p>
+        </div>
+        <div className="micro-form-actions">
+          <button
+            className="micro-text-action"
+            type="button"
+            aria-pressed={reserveDisabled}
+            onClick={() => onReserveDisabledChange(!reserveDisabled)}
+          >
+            {reserveDisabled ? "فعّل القراءة" : "عطّل القراءة"}
+          </button>
+        </div>
+        <label className="micro-field">
+          <span>
+            احتياطي ثابت <small>د.أ · جلسة فقط</small>
+          </span>
+          <EnglishNumberInput
+            value={reserveAmountMinor}
+            kind="money"
+            onNumericChange={onReserveAmountChange}
+            onEmptyChange={() => onReserveAmountChange(null)}
+            allowEmpty
+          />
+        </label>
+        <div className="micro-cash-decision-metrics">
+          <Metric
+            label="الفائض المتوقع فوق الاحتياطي"
+            value={
+              withdrawal.headroomMinor === null || !cashRecorded
+                ? "غير متاح"
+                : formatted(withdrawal.headroomMinor)
+            }
+            negative={withdrawal.headroomMinor !== null && withdrawal.headroomMinor < 0}
+          />
+          <Metric
+            label="قروض صادرة قائمة"
+            value={
+              loansOutstandingMinor === null
+                ? "غير متاح"
+                : loansOutstandingMinor === 0
+                  ? "—"
+                  : formatted(loansOutstandingMinor)
+            }
+          />
+        </div>
+        <div>
+          {withdrawal.reasons.length > 0 ? (
+            <p className="micro-warning-copy" role="status">
+              {withdrawal.reasons[0]}
+            </p>
+          ) : null}
+          <p className="micro-decision-next">{withdrawal.nextAction}</p>
+        </div>
       </div>
       {unallocatedCashMinor < 0 ? (
         <div className="micro-finance-unallocated-alert" role="status">

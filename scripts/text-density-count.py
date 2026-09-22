@@ -386,7 +386,15 @@ CAPS: dict[str, int] = {
     # strings, no prose; the two resolver validation messages are moment-of-
     # action `message:` literals (g5Service pattern) and count nowhere.
     # Owner-vetoable at review, same as the 318 precedent above.
-    "Finance": 322,
+    # Finance 322 -> 330 (2026-09-23, Wave 4 WS-176 FIN-004, owner-approved
+    # roadmap §4.5): the mandated advisory safe-withdrawal vocabulary on the
+    # same cash-decision card — section title, advisory-only disclaimer (no
+    # withdrawal command / no guarantee wording is itself an acceptance
+    # criterion), reserve label + session-only unit note, enable/disable
+    # toggle labels, headroom and outstanding-loans metric labels. Eight
+    # mandated strings, no prose; reading reasons/next-actions come from the
+    # domain module (not counted by charter). Owner-vetoable at review.
+    "Finance": 330,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
