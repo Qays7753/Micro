@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 29
+الحصيلة: BLOCKED: 3 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 30
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,6 +32,4 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
-|---|---|---|---|---|---|
-| WS-174 | IN_REVIEW | \`feat/fin-002-budgets-goals-20260922\` | — | FIN-002 | بانتظار CI على رأس الفرع ثم قرار دمج المالك؛ بعد الدمج: تحقق على SHA الدمج ثم VERIFIED وإغلاق current-state §61. |
+لا يوجد Workstream نشط أو يحتاج مراجعة.

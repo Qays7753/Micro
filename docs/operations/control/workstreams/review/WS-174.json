@@ -1,7 +1,7 @@
 {
   "id": "WS-174",
   "title": "Financial Roadmap Wave 2 — FIN-002 optional expense budgets and goals (plan-not-event)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "FIN-002"
   ],
@@ -21,10 +21,10 @@
     "docs/contracts/41-recurring-expense-reminders-contract.md"
   ],
   "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-22",
-  "pr": null,
+  "pr": 213,
   "started_at": "2026-09-22T17:00:00+03:00",
   "updated_at": "2026-09-22",
-  "next_action": "بانتظار CI على رأس الفرع ثم قرار دمج المالك؛ بعد الدمج: تحقق على SHA الدمج ثم VERIFIED وإغلاق current-state §61.",
+  "next_action": "لا فعل إضافي: الموجة 2 مدمجة ومتحققة على main (5caddeb). البوابة التالية فقط: الموجة 3 (FIN-005).",
   "notes": [
     "Owner-approved roadmap: 'Micro Financial Roadmap Complete Controlled Execution' (2026-09-22) §4.3 — the policy register for budgets/goals is owner-approved product decision.",
     "Reopen gate: FIN-002 DEFERRED→READY via the owner roadmap execution order (recorded in status_history); gate_classification stays DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT.",
@@ -44,10 +44,24 @@
       "changed_at": "2026-09-22",
       "actor": "ws-174:review",
       "reason": "تنفيذ الموجة 2 مكتمل ومبوّب: 36 اختبارًا جديدًا، pnpm check خروج 0 (454+1836)، مراجعة مستقلة PASS_WITH_NOTES (10/10)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-22",
+      "actor": "ws-174:merge",
+      "reason": "PR #213 مدمج Squash عند 5caddeb634a8aa69284dedf3601498eb572647be (الأساس e7c7b1c)؛ CI وCloudflare ناجحان على رأس الـPR."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-22",
+      "actor": "ws-174:post-merge-verification",
+      "reason": "تحقق على SHA الدمج نفسه 5caddeb634a8aa69284dedf3601498eb572647be: CI + Cloudflare ناجحان على commit الدمج؛ اختبارات الموجة خضر محليًا على main؛ الدليل: تقرير تسليم الموجة 2."
     }
   ],
   "migration_baseline": false,
   "evidence": [
     "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md"
-  ]
+  ],
+  "merge_sha": "5caddeb634a8aa69284dedf3601498eb572647be",
+  "verified_on_main_sha": "5caddeb634a8aa69284dedf3601498eb572647be"
 }
