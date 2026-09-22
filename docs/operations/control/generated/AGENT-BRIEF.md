@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · READY: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 23 · VERIFIED: 32
+الحصيلة: BLOCKED: 3 · CLAIMED: 1 · READY: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 22 · VERIFIED: 32
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-177 | CLAIMED | \`feat/fin-006-catalog-item-result-20260923\` | — | FIN-006 | تنفيذ القراءة الكنونية لنتيجة كل مرجع (هوية ثابتة + فصل نهائي/تقديري/ناقص + استبعادات ظاهرة) ثم رفع الحالة قانونيًا. |
