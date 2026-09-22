@@ -1142,7 +1142,7 @@ workstreams/review/. بند رفع كثافة Finance 318→322 (أربع مفر
 `NO_WRITE_FROM_READING (SNAPSHOT_PROVEN)`
 `NO_CLEANUP`
 
-## §63. خارطة الطريق المالي — الموجة 4 (FIN-004 قراءة السحب الآمن الاستشارية) على الفرع، بانتظار الدمج — 2026-09-23
+## §63. خارطة الطريق المالي — الموجة 4 (FIN-004 قراءة السحب الآمن الاستشارية) مدمجة ومتحقق عليها على main — 2026-09-23
 
 نُفذت الموجة الرابعة عبر Claim تنفيذي مستقل (**WS-176**) من رأس `main` المتحقق
 `dacade91dc5e9a4de3971a2d30d040c79bebacc6` على الفرع
@@ -1168,7 +1168,21 @@ D-038 قابل للنقض) وdesign-guards وguards وroot 465/465 وprototype 2
 (revert واحد للدمج Squash). التفصيل الكامل:
 `reports/agent-report/2026-09-23_fin-roadmap-wave-4-fin-004/report.md`.
 
-`FIN-004_WAVE_4_IMPLEMENTED_ON_BRANCH_AWAITING_MERGE`
+أُدمجت الموجة عبر **PR #218** (Squash) عند Merge SHA
+`92bc58a3b64666219b50bd97cb60c8fb442cc87a` (الأساس `dacade9`)، بعد إصلاح خطأ
+typecheck اكتشفته CI على رأس الـPR الأول (`noUncheckedIndexedAccess` على وصول
+مفهرس — أُصلح في `8bcaa7a` وأعيد التحقق خضراء). نجح **CI وCloudflare Pages على
+commit الدمج نفسه**، واختبارات الموجة (19/19: 11 مجال + 8 DOM) خضر محليًا على
+`main` عند `92bc58a`. انتقل `FIN-004` و`WS-176` قانونيًا من `IN_REVIEW` إلى
+`MERGED_UNVERIFIED` ثم `VERIFIED` مع
+`verified_on_main_sha=92bc58a3b64666219b50bd97cb60c8fb442cc87a` وأُغلق الـClaim
+في workstreams/review/. بنودا مراجعة المالك (رفع كثافة Finance 322→330، واحتياطي
+الجلسة مقابل دوام مخزن محروس 38/30) يُغلقان مع حزمة قرارات الموجة.
+**البوابة التالية المسموحة فقط: Wave 5 — FIN-006 ربحية المنتج/الخدمة بمعرف
+كتالوج ثابت، من رأس `main` المتحقق `92bc58a3b64666219b50bd97cb60c8fb442cc87a`.**
+
+`WAVE_4_MERGED_AND_VERIFIED_ON_MAIN (92bc58a)`
+`POST_MERGE_VERIFICATION: PASS`
 `NO_SCHEMA_CHANGE (37/29)`
 `NO_WITHDRAWAL_COMMAND`
 `NO_GUARANTEE_LANGUAGE (TESTED)`

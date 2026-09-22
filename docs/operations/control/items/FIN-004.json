@@ -2,7 +2,7 @@
  "id": "FIN-004",
  "title": "حد السحب الآمن للمالك",
  "type": "FEATURE",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "priority": "P1",
  "stage": "stage-3",
  "summary": "تقدير محافظ يوضح ما يمكن سحبه دون الادعاء بضمان السيولة المستقبلية.",
@@ -15,14 +15,17 @@
   "cash-forecast"
  ],
  "contracts": [],
- "evidence": [],
+ "evidence": [
+  "reports/agent-report/2026-09-23_fin-roadmap-wave-4-fin-004/report.md",
+  "docs/operations/current-state.md"
+ ],
  "dependencies": [
   "FIN-003",
   "FIN-005"
  ],
  "owner_decision": "",
- "merge_sha": "",
- "verified_on_main_sha": "",
+ "merge_sha": "92bc58a3b64666219b50bd97cb60c8fb442cc87a",
+ "verified_on_main_sha": "92bc58a3b64666219b50bd97cb60c8fb442cc87a",
  "updated_at": "2026-09-23",
  "finding_classification": "NOT_APPLICABLE",
  "finding_state": "NOT_APPLICABLE",
@@ -56,10 +59,22 @@
    "changed_at": "2026-09-23",
    "actor": "ws-176:review",
    "reason": "16 اختبارًا مركزًا (11 مجال + 5 DOM) وpnpm check مكافئ خضر: typecheck وlint 0/37 وformat وtext-density (330/330) وdesign-guards وguards وroot 465/465 وprototype 261 ملفًا 1857/1857 وbuild+budget 649292/650000 (الحزمة الأساسية مطابقة بايتًا بايت)."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-09-23",
+   "actor": "ws-176:merge",
+   "reason": "PR #218 مدمج Squash عند 92bc58a3b64666219b50bd97cb60c8fb442cc87a (الأساس dacade9)؛ CI وCloudflare ناجحان على رأس الـPR بعد إصلاح typecheck (8bcaa7a)."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-09-23",
+   "actor": "ws-176:post-merge-verification",
+   "reason": "تحقق على SHA الدمج نفسه 92bc58a: CI checks success + Cloudflare Pages success على commit الدمج؛ اختبارات الموجة (19/19: 11 مجال + 8 DOM) خضر محليًا على main."
   }
  ],
  "migration_baseline": true,
- "next_action": "مراجعة PR الموجة 4 (WS-176) ثم الدمج والتحقق على main قبل VERIFIED.",
+ "next_action": "لا فعل إضافي: منفذ ومتحقق على main (92bc58a).",
  "related_items": [],
  "classification": "FIX_BEFORE_PILOT",
  "owner": "Product owner / Manus coordination",

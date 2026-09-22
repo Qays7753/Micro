@@ -1,7 +1,7 @@
 {
  "id": "WS-176",
  "title": "Financial Roadmap Wave 4 — FIN-004 advisory owner safe-withdrawal reading (explicit reserve, FIN-005 horizon)",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "items": [
   "FIN-004"
  ],
@@ -19,7 +19,7 @@
  "pr": 218,
  "started_at": "2026-09-23T02:00:00+03:00",
  "updated_at": "2026-09-23",
- "next_action": "راجع PR الموجة 4 ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED.",
+ "next_action": "لا فعل إضافي: الموجة 4 مدمجة ومتحققة على main (92bc58a). البوابة التالية فقط: الموجة 5 (FIN-006).",
  "notes": [
   "Owner-approved roadmap §4.5 (FIN-005 policy register): advisory ONLY; explicit fixed reserve entered by the user + declared-obligations protection in the same 7/30/90 horizon (default 30); no invented percentage/months rule; recorded cash + declared flows only; expected profit never cash; insufficient data → null/needs_review; user may disable/change the reserve.",
   "W4-AUDIT verdict: AUDIT_PASS — reserve is session-scoped caller input (NO persistence, NO schema change): LocalPreferences is forbidden for money-valued content (preferences charter, contracts 41 §8 / 42 §8); a durable store would need the guarded 38/30 bump + a specific owner decision because the owner-approved execution map says 'unchanged' — durability recorded as an explicit deferred owner decision instead of a silent bump.",
@@ -45,7 +45,24 @@
    "changed_at": "2026-09-23",
    "actor": "ws-176:review",
    "reason": "16 focused tests + full pipeline green (465 root + 1857 prototype + build/budget with byte-identical entry); ready for PR and merge gate."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-09-23",
+   "actor": "ws-176:merge",
+   "reason": "PR #218 مدمج Squash عند 92bc58a3b64666219b50bd97cb60c8fb442cc87a (الأساس dacade9)."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-09-23",
+   "actor": "ws-176:post-merge-verification",
+   "reason": "تحقق على SHA الدمج نفسه 92bc58a: CI + Cloudflare ناجحان على commit الدمج؛ 19/19 اختبار موجة خضر محليًا على main."
   }
  ],
- "migration_baseline": false
+ "migration_baseline": false,
+ "merge_sha": "92bc58a3b64666219b50bd97cb60c8fb442cc87a",
+ "verified_on_main_sha": "92bc58a3b64666219b50bd97cb60c8fb442cc87a",
+ "evidence": [
+  "reports/agent-report/2026-09-23_fin-roadmap-wave-4-fin-004/report.md"
+ ]
 }
