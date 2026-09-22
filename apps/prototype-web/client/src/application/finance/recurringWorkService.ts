@@ -91,6 +91,14 @@ export type RecurringWorkReading = {
   recognizedDirectCostMinor: number | null;
   directMarginMinor: number | null;
   directStatus: "recorded" | "not_recorded";
+  /* FIN-006 (WS-177 — Wave 5): الفصل الكنوني للنتائج المسجلة — النهائي
+   * وحده في الرقم الأساسي، والطلبات التقديرية مرئية منفصلة بقيمها
+   * المسجلة (لا تُدمج في الرقم أبدًا)، وغير المكتملة عَدّ مرئي فقط
+   * بلا قيم؛ الاسم المعروض للطلب Snapshot تاريخي والمعرف هو الهوية. */
+  estimatedOrderCount: number;
+  estimatedRevenueMinor: number | null;
+  estimatedMarginMinor: number | null;
+  incompleteOrderCount: number;
   material: RecurringWorkMaterialSummary;
   time: RecurringWorkTimeSummary;
   waste: RecurringWorkWasteSummary;
@@ -103,6 +111,16 @@ export type RecurringWorkReadings = {
   from: string;
   to: string;
   items: readonly RecurringWorkReading[];
+  /* FIN-006 (WS-177 — Wave 5): الطلبات المسلّمة داخل الفترة بلا هوية
+   * كتالوج قابلة للربط (مرجع غائب أو معلّق) — مستبعدة من كل الصفوف
+   * بأسباب ظاهرة: لا تُدمج باسم عرض ولا تختفي؛ تُدرج كما سُجلت. */
+  unlinkedDeliveredOrders: readonly UnlinkedDeliveredOrder[];
+};
+/* طلب مسلّم بلا مرجع — الاسم المعروض Snapshot التاريخي للطلب نفسه. */
+export type UnlinkedDeliveredOrder = {
+  id: string;
+  itemName: string;
+  resultStatus: "final" | "estimated" | "incomplete" | "review_required";
 };
 
 const id = (prefix: string) =>
@@ -303,26 +321,56 @@ export class RecurringWorkService {
     const activeTime = timeRecords.value.filter(
       record => record.minutesDelta > 0 && !reversedTime.has(record.id),
     );
+    /* FIN-006 (WS-177 — Wave 5): جرد الطلبات المسلّمة داخل الفترة مرة واحدة
+     * فوق هوية المرجع — الفصل (نهائي/تقديري/ناقص) والاستبعاد الظاهر
+     * (بلا مرجع قابل للربط) يُشتقان من الجرد نفسه؛ لا مسار ثانٍ ولا
+     * إعادة اشتقاق، والقيم المسجلة كما خُزنت في الطلب لا تُعاد حسابها. */
+    const catalogItemIds = new Set(catalog.value.map(item => item.id));
+    const deliveredInPeriod = orders.value
+      .map(stored => ({
+        stored,
+        /* المجموعة ٦ (تدقيق A1 — FT-01): آخر تسليم ساري — انظر deliveryAttribution. */
+        deliveredOn: (() => {
+          const event = lastEffectiveDeliveryEvent(stored.order);
+          return event ? ammanDate(event.createdAt) : null;
+        })(),
+      }))
+      .filter(
+        candidate =>
+          candidate.deliveredOn !== null && candidate.deliveredOn >= from && candidate.deliveredOn <= to,
+      );
+    const unlinkedDeliveredOrders: UnlinkedDeliveredOrder[] = deliveredInPeriod
+      .filter(
+        candidate =>
+          candidate.stored.catalogItemId === null || !catalogItemIds.has(candidate.stored.catalogItemId),
+      )
+      .map(candidate => ({
+        id: candidate.stored.id,
+        itemName: candidate.stored.order.itemName,
+        resultStatus: candidate.stored.order.resultStatus,
+      }));
     const items = catalog.value.map(item => {
-      const deliveredOrdersInPeriod = orders.value
-        .map(stored => ({
-          stored,
-          /* المجموعة ٦ (تدقيق A1 — FT-01): آخر تسليم ساري — انظر deliveryAttribution. */
-          deliveredOn: (() => {
-            const event = lastEffectiveDeliveryEvent(stored.order);
-            return event ? ammanDate(event.createdAt) : null;
-          })(),
-        }))
-        .filter(
-          candidate =>
-            candidate.stored.catalogItemId === item.id &&
-            candidate.deliveredOn !== null &&
-            candidate.deliveredOn >= from &&
-            candidate.deliveredOn <= to,
-        );
+      const deliveredOrdersInPeriod = deliveredInPeriod.filter(
+        candidate => candidate.stored.catalogItemId === item.id,
+      );
       const finalOrders = deliveredOrdersInPeriod.filter(
         candidate => candidate.stored.order.resultStatus === "final",
       );
+      /* FIN-006: التقديرية مرئية بقيمها المسجلة منفصلة؛ غير المكتملة
+       * (ومنها المقفلة للمراجعة) عَدّ مرئي بلا قيم — لا دمج في النهائي. */
+      const estimatedOrders = deliveredOrdersInPeriod.filter(
+        candidate => candidate.stored.order.resultStatus === "estimated",
+      );
+      const incompleteOrderCount =
+        deliveredOrdersInPeriod.length - finalOrders.length - estimatedOrders.length;
+      let estimatedRevenue = 0;
+      let estimatedCost = 0;
+      for (const candidate of estimatedOrders) {
+        estimatedRevenue += candidate.stored.order.recognizedRevenueMinor;
+        estimatedCost += candidate.stored.order.recognizedCostMinor;
+      }
+      const estimatedRevenueMinor = estimatedOrders.length ? estimatedRevenue : null;
+      const estimatedMarginMinor = estimatedOrders.length ? estimatedRevenue - estimatedCost : null;
       const finalOrderIds = new Set(finalOrders.map(candidate => candidate.stored.id));
       const excludedOrderIds = deliveredOrdersInPeriod
         .filter(candidate => candidate.stored.order.resultStatus !== "final")
@@ -491,6 +539,12 @@ export class RecurringWorkService {
             : finalOrders.reduce((sum, candidate) => sum + candidate.stored.order.recognizedCostMinor, 0),
         directMarginMinor,
         directStatus: directMarginMinor === null ? "not_recorded" : "recorded",
+        /* FIN-006 (WS-177 — Wave 5): الفصل الكنوني — التقديرية بقيمها
+         * المسجلة منفصلة عن الرقم الأساسي، وغير المكتملة عَدّ بلا قيم. */
+        estimatedOrderCount: estimatedOrders.length,
+        estimatedRevenueMinor,
+        estimatedMarginMinor,
+        incompleteOrderCount,
         material,
         time,
         waste,
@@ -506,6 +560,10 @@ export class RecurringWorkService {
         from,
         to,
         items,
+        /* FIN-006 (WS-177 — Wave 5): الاستبعاد الظاهر — الطلبات المسلّمة
+         * بلا مرجع قابل للربط تُدرج بأسمائها التاريخية كما سُجلت، بلا
+         * دمج ولا إخفاء ولا إعادة كتابة للسجل. */
+        unlinkedDeliveredOrders,
       },
     };
   }
