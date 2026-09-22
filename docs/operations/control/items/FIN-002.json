@@ -14,14 +14,21 @@
     "finance",
     "planning"
   ],
-  "contracts": [],
+  "contracts": [
+    "docs/contracts/42-optional-expense-budgets-goals-contract.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/08-expense-classification-prototype-contract.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md"
+  ],
   "evidence": [
-    "reports/agent-report/2026-09-22_fin-roadmap-wave-2-fin-002/report.md"
+    "reports/agent-report/2026-09-22_fin-roadmap-wave-2-fin-002/report.md",
+    "docs/operations/control/evidence/fin-002-owner-decisions-closure-2026-09-22.md",
+    "docs/02-decision-log.md"
   ],
   "dependencies": [
     "CTRL-001"
   ],
-  "owner_decision": "",
+  "owner_decision": "D-038 معتمد في 2026-09-22: (1) اعتماد سقف Finance عند 318 كاستثناء موثق خاص بمفردات عقد 42 داخل التفاصيل المطوية، وليس إذنًا عامًا لزيادة النص؛ (2) اعتماد localSchemaVersion/localExportVersion عند 37/29 مع بقاء 36/28 والأزواج التاريخية المسموحة تحت حراس الترحيل والتصدير؛ (3) الميزانية العامة تستخدم القارئ الكنوني للمصروف التشغيلي والمعكوسات، وميزانية الفئة تطابق categoryLabel الصريح بعد التشذيب فقط، دون تطبيع أو مرادفات أو مطابقة ضبابية، ولا تنسب غير المصنف إلى فئة، وتبقي المجهول null/under_review بدل الصفر. هذا إغلاق توثيقي لا يغير التنفيذ ولا يعيد فتح FIN-002.",
   "merge_sha": "5caddeb634a8aa69284dedf3601498eb572647be",
   "verified_on_main_sha": "5caddeb634a8aa69284dedf3601498eb572647be",
   "updated_at": "2026-09-22",
@@ -84,7 +91,7 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "مكتمل ومتحقق على main (WS-174 / PR #213 / 5caddeb).",
+  "next_action": "مكتمل ومتحقق على main؛ قرارات المالك الثلاثة مغلقة في D-038. لا فعل إضافي لـFIN-002؛ البوابة التالية Wave 3 (FIN-005).",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",

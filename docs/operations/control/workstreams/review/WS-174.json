@@ -28,7 +28,7 @@
   "notes": [
     "Owner-approved roadmap: 'Micro Financial Roadmap Complete Controlled Execution' (2026-09-22) §4.3 — the policy register for budgets/goals is owner-approved product decision.",
     "Reopen gate: FIN-002 DEFERRED→READY via the owner roadmap execution order (recorded in status_history); gate_classification stays DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT.",
-    "Schema/export bump 36/28 → 37/29 required (new persistent entity; preferences charter forbids financial-adjacent content) — guarded triple-diff per D-037/OPS-003 precedent; owner decision to be recorded in the PR.",
+    "Schema/export bump 36/28 → 37/29 required (new persistent entity; preferences charter forbids financial-adjacent content) — guarded triple-diff per D-037/OPS-003 precedent; owner decision closed in D-038 and evidence file fin-002-owner-decisions-closure-2026-09-22.md.",
     "Bundle headroom ~4.9KB raw: the budget service must load dynamically post-startup per EXE-014/D-034 precedent (recurringExpenseService pattern).",
     "Baseline: verified main e7c7b1c (Wave 1 closed; FIN-003/007 VERIFIED)."
   ],
