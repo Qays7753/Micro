@@ -87,7 +87,7 @@ function complete(
     status,
     headroomMinor,
     reasons: headroomMinor < 0 ? ["الفائض سالب: الالتزامات المعلنة مع الاحتياطي تتجاوز الكاش المتوقع."] : [],
-    assumptions: [base.assumptions[0], ...shortCash.assumptions, ...(loans ? [loans] : [])],
+    assumptions: [PROFIT_NOT_CASH_NOTE, ...shortCash.assumptions, ...(loans ? [loans] : [])],
     nextAction:
       status === "needs_review"
         ? "راجع الافتراضات المعلنة أعلاه قبل الاعتماد على الرقم؛ القراءة استشارية ولا تنفّذ سحبًا."
