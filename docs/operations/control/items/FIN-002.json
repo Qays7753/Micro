@@ -59,7 +59,6 @@
   ],
   "migration_baseline": true,
   "next_action": "تنفيذ الموجة 2 ضمن WS-174 على الفرع feat/fin-002-budgets-goals-20260922 من main المتحقق e7c7b1c: عقد ٤٢ ثم دومين نقي ثم مخزن محروس ٣٧/٢٩ ثم خدمة وواجهة — الخطة لا حدث مالي.",
-  "deferred_reason": "",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",
