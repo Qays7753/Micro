@@ -2,7 +2,7 @@
   "id": "FIN-003",
   "title": "مقارنة الفترات وجسر الربح إلى الكاش",
   "type": "FEATURE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "stage-3",
   "summary": "تفسير لماذا يختلف الربح عن الكاش ومقارنة فترتين بنفس تعريف البيانات.",
@@ -49,10 +49,16 @@
       "changed_at": "2026-09-22",
       "actor": "ws-173:wave1",
       "reason": "بدء تنفيذ الموجة 1 (WS-173) من main المتحقق 63765e5 بعد إغلاق Phase 0 (PR #210)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-22",
+      "actor": "ws-173:review",
+      "reason": "تنفيذ الموجة 1 جاهز للمراجعة: مقارنة فترتين يختارهما المستخدم + اختصار السابقة المكافئة + جسر الربح إلى الكاش بمصادر قابلة للتتبع."
     }
   ],
   "migration_baseline": true,
-  "next_action": "تنفيذ جارٍ ضمن WS-173 على الفرع feat/fin-003-007-period-comparison-20260922 من 63765e5؛ الدمج والتحقق على main يسبقا أي انتقال لاحق.",
+  "next_action": "بانتظار CI وقرار الدمج على PR الموجة (WS-173)؛ لا VERIFIED قبل الدمج والتحقق على main.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",

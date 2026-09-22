@@ -1,7 +1,7 @@
 {
   "id": "WS-173",
   "title": "Financial Roadmap Wave 1 — FIN-003/FIN-007 period comparison + flexible period review + profit-to-cash bridge",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "FIN-003",
     "FIN-007"
@@ -27,8 +27,8 @@
   "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-22",
   "pr": null,
   "started_at": "2026-09-22T13:30:00+03:00",
-  "updated_at": "2026-09-22T14:30:00+03:00",
-  "next_action": "تنفيذ الموجة 1 جارٍ على الفرع feat/fin-003-007-period-comparison-20260922 من main المتحقق 63765e5: عائلة القوالب (أسبوع/شهر/ربع/مخصص)، مقارنة فترتين من القارئ الكنوني، اختصار الفترة السابقة المساوية، وسم الفترة الجارية الجزئي، وجسر الربح إلى الكاش بمصادر قابلة للتتبع — ثم الاختبارات المركزة وpnpm check والـPR والدمج والتحقق بعد الدمج.",
+  "updated_at": "2026-09-22",
+  "next_action": "بانتظار CI على رأس فرع الموجة ثم قرار دمج المالك للـPR؛ بعد الدمج: تحقق CI وCloudflare على SHA الدمج نفسه ثم الانتقال MERGED_UNVERIFIED → VERIFIED بأدلة، وتحديث current-state §60 وفهرس التقارير.",
   "notes": [
     "Owner-approved roadmap: 'Micro Financial Roadmap Complete Controlled Execution' (2026-09-22). Wave order and policy register are owner product decisions; this claim opens Wave 1 only.",
     "Documented deviation (owner-approved): tracker lists FIN-003 dependency on FIN-001, but the owner's wave order executes FIN-003/007 first. Safe because the recorded period result excludes loans by contract (05 §3.2.1, 14 §2); the bridge shows incoming-loan flows as honestly absent (zero recorded) until FIN-001 lands in Wave 6. Recorded in the execution map.",
@@ -48,6 +48,12 @@
       "changed_at": "2026-09-22",
       "actor": "ws-173:wave1",
       "reason": "بدء تنفيذ الموجة 1 على الفرع feat/fin-003-007-period-comparison-20260922 من main المتحقق 63765e539b42e9a28ff83a2af6577488d8f63a28 (بعد إغلاق Phase 0 عبر PR #210 بتحقق CI وCloudflare على SHA الدمج نفسه)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-22",
+      "actor": "ws-173:review",
+      "reason": "تنفيذ الموجة 1 مكتمل على الفرع ومبوّب بالكامل: 37 اختبارًا جديدًا (قوالب 13 + مقارنة 7 + جسر 8 + DOM 9)، pnpm check خروج 0 كاملًا (434+1820، ميزانية 645,136/650,000 خام و153,332/155,000 gzip)، مراجعة مستقلة PASS_WITH_NOTES — بانتظار CI وقرار دمج المالك على الـPR."
     }
   ],
   "migration_baseline": false,

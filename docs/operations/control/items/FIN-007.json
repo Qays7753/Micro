@@ -2,7 +2,7 @@
   "id": "FIN-007",
   "title": "مراجعة فترة مرنة",
   "type": "FEATURE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P2",
   "stage": "stage-3",
   "summary": "Checklist شهرية لا تقفل البيانات قفلًا محاسبيًا صلبًا.",
@@ -49,10 +49,16 @@
       "changed_at": "2026-09-22",
       "actor": "ws-173:wave1",
       "reason": "بدء تنفيذ الموجة 1 (WS-173) من main المتحقق 63765e5 بعد إغلاق Phase 0 (PR #210)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-22",
+      "actor": "ws-173:review",
+      "reason": "تنفيذ الموجة 1 جاهز للمراجعة: عائلة القوالب (أسبوع/شهر/ربع/مخصص) دون إجبار + وسم الفترة الجارية الجزئي."
     }
   ],
   "migration_baseline": true,
-  "next_action": "تنفيذ جارٍ ضمن WS-173 على الفرع feat/fin-003-007-period-comparison-20260922 من 63765e5؛ الدمج والتحقق على main يسبقا أي انتقال لاحق.",
+  "next_action": "بانتظار CI وقرار الدمج على PR الموجة (WS-173)؛ لا VERIFIED قبل الدمج والتحقق على main.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",

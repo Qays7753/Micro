@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VERIFIED: 27
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 2 · READY: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 24 · VERIFIED: 27
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-173 | IN_PROGRESS | \`feat/fin-003-007-period-comparison-20260922\` | — | FIN-003, FIN-007 | تنفيذ الموجة 1 جارٍ على الفرع feat/fin-003-007-period-comparison-20260922 من main المتحقق 63765e5: عائلة القوالب (أسبوع/شهر/ربع/مخصص)، مقارنة فترتين من القارئ الكنوني، اختصار الفترة السابقة المساوية، وسم الفترة الجارية الجزئي، وجسر الربح إلى الكاش بمصادر قابلة للتتبع — ثم الاختبارات المركزة وpnpm check والـPR والدمج والتحقق بعد الدمج. |
+| WS-173 | IN_REVIEW | \`feat/fin-003-007-period-comparison-20260922\` | — | FIN-003, FIN-007 | بانتظار CI على رأس فرع الموجة ثم قرار دمج المالك للـPR؛ بعد الدمج: تحقق CI وCloudflare على SHA الدمج نفسه ثم الانتقال MERGED_UNVERIFIED → VERIFIED بأدلة، وتحديث current-state §60 وفهرس التقارير. |
