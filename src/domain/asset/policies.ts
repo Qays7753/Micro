@@ -44,6 +44,26 @@ function assertLifeMonths(value: number | null | undefined) {
     throw new Error("أدخل العمر النافع عددًا صحيحًا بين 1 و600 شهرًا، أو اتركه فارغًا ليبقى مجهولًا.");
 }
 
+/* عقد ٤٣ (WS-179 — Wave 7): القيمة المتبقية — ٠ ≤ متبقية < قيمة الاقتناء؛
+ * رفض صادر قبل أي كتابة. */
+function assertResidualValue(residual: number | null | undefined, acquisitionAmountMinor: number) {
+  if (residual === null || residual === undefined) return;
+  if (!Number.isInteger(residual) || residual < 0 || residual >= acquisitionAmountMinor)
+    throw new Error(
+      "أدخل القيمة المتبقية عددًا صحيحًا ≥ 0 وأصغر من قيمة الأصل، أو اتركها فارغة لتكون صفرًا.",
+    );
+}
+
+function assertAssetNote(note: string | null | undefined) {
+  if (note !== null && note !== undefined && note.trim().length > 500)
+    throw new Error("ملاحظة الأصل تتجاوز 500 حرف؛ اختصرها.");
+}
+
+/* المتبقية الفعالة: الغياب/null = ٠ — الأصول القديمة تُقرأ صفرًا بلا ترحيل (عقد ٤٣ §٢). */
+export function residualOf(asset: AssetRecord): number {
+  return asset.residualValueMinor ?? 0;
+}
+
 /** الأحداث النشطة المرتبطة بأصل: لا تراجعات ولا معكوسات — الحقيقة الجارية. */
 export function activeAssetEvents(events: readonly FinancialEvent[]): readonly FinancialEvent[] {
   const reversed = reversedEventIds(events);
@@ -66,7 +86,9 @@ function eventsForAsset(events: readonly FinancialEvent[], assetId: string): rea
   );
 }
 
-export function createAssetRecord(input: CreateAssetRecordInput): AssetRecord {
+/* عقد ٤٣ (WS-179 — Wave 7): حارس شكل المدخلات — كل فحوص الإنشاء في مساعد
+ * واحد يُبقي تعقيد جسم الإنشاء داخل السقف. */
+function assertCreateAssetInput(input: CreateAssetRecordInput) {
   assertId(input.id, "id");
   assertName(input.name);
   assertPositiveMinor(input.acquisitionAmountMinor, "acquisitionAmountMinor");
@@ -77,8 +99,15 @@ export function createAssetRecord(input: CreateAssetRecordInput): AssetRecord {
   if (input.depreciationStartOn) assertLocalDate(input.depreciationStartOn, "depreciationStartOn");
   if (input.depreciationStartOn && input.depreciationStartOn < input.purchaseDate)
     throw new Error("بداية الاستخدام لا يمكن أن تسبق تاريخ الشراء.");
+  /* عقد ٤٣: المدخلان الجديدان — المتبقية داخل الحدود والملاحظة محدودة الطول. */
+  assertResidualValue(input.residualValueMinor ?? null, input.acquisitionAmountMinor);
+  assertAssetNote(input.note ?? null);
   if (!input.operationKey.trim()) throw new Error("مفتاح عملية الأصل مطلوب.");
   if (Number.isNaN(Date.parse(input.createdAt))) throw new Error("أدخل وقت إنشاء الأصل وقتًا صحيحًا.");
+}
+
+export function createAssetRecord(input: CreateAssetRecordInput): AssetRecord {
+  assertCreateAssetInput(input);
   return Object.freeze({
     id: input.id,
     name: input.name.trim(),
@@ -88,6 +117,8 @@ export function createAssetRecord(input: CreateAssetRecordInput): AssetRecord {
     purchaseDate: input.purchaseDate,
     lifeMonths: input.lifeMonths ?? null,
     depreciationStartOn: input.depreciationStartOn ?? null,
+    residualValueMinor: input.residualValueMinor ?? null,
+    note: input.note?.trim() || null,
     status: "active",
     acquisitionEventId: input.acquisitionEventId,
     disposal: null,
@@ -109,6 +140,12 @@ export function reviseAssetContract(
   if (input.depreciationStartOn) assertLocalDate(input.depreciationStartOn, "depreciationStartOn");
   if (input.depreciationStartOn && input.depreciationStartOn < asset.purchaseDate)
     throw new Error("بداية الاستخدام لا يمكن أن تسبق تاريخ الشراء.");
+  /* عقد ٤٣ (WS-179 — Wave 7): المتبقية والملاحظة ضمن المراجعة الموثقة —
+   * undefined = دون تغيير؛ القيم الجديدة تُحتَرَس ثم تُخزَّن في لقطة المراجعة. */
+  const nextResidual = input.residualValueMinor === undefined ? residualOf(asset) : input.residualValueMinor;
+  assertResidualValue(nextResidual, asset.acquisitionAmountMinor);
+  const nextNote = input.note === undefined ? (asset.note ?? null) : input.note?.trim() || null;
+  assertAssetNote(nextNote);
   if (!input.reason.trim()) throw new Error("أكمل سبب تعديل عقد الإهلاك قبل الحفظ.");
   if (asset.status !== "active")
     throw new Error("تعديل عقد الإهلاك يتطلب أصلًا نشطًا؛ الأصل المتخلص منه أو المشطوب أرشيف.");
@@ -116,6 +153,8 @@ export function reviseAssetContract(
     revision: asset.contractRevisions.length + 1,
     lifeMonths: input.lifeMonths,
     depreciationStartOn: input.depreciationStartOn,
+    residualValueMinor: nextResidual,
+    note: nextNote,
     reason: input.reason.trim(),
     changedAt,
   });
@@ -123,16 +162,21 @@ export function reviseAssetContract(
     ...asset,
     lifeMonths: input.lifeMonths,
     depreciationStartOn: input.depreciationStartOn,
+    residualValueMinor: nextResidual,
+    note: nextNote,
     contractRevisions: [...asset.contractRevisions, revision],
     updatedAt: changedAt,
   });
 }
 
-/** الإهلاك الشهري الأساسي: تقريب أرضي عبر floorRatio المشترَك حتى لا يتجاوز
- * التراكمي قيمة الشراء أبدًا (اتجاه الأرضية آمن ماليًا في الإهلاك). */
+/** الإهلاك الشهري الأساسي: تقريب أرضي عبر floorRatio المشترَك على **(القيمة −
+ * المتبقية)** (عقد ٤٣ §٣) حتى لا يتجاوز التراكمي القابل للإهلاك أبدًا ولا
+ * ينزل الدفتري تحت المتبقية — الغياب = متبقية صفر فيعمل كما كان حرفيًا. */
 export function monthlyDepreciationMinor(asset: AssetRecord): number | null {
   if (asset.lifeMonths === null || asset.lifeMonths < 1) return null;
-  return floorRatio(asset.acquisitionAmountMinor, asset.lifeMonths) ?? 0;
+  const depreciableMinor = asset.acquisitionAmountMinor - residualOf(asset);
+  if (depreciableMinor <= 0) return 0;
+  return floorRatio(depreciableMinor, asset.lifeMonths) ?? 0;
 }
 
 /** الأشهر الكاملة المنقضية بين تاريخين محليين — تُحسب باليوم لا بالشهر التقويمي فقط. */
@@ -159,13 +203,15 @@ export function firstChargeMonth(asset: AssetRecord): string | null {
   return `${chargeYear}-${String(chargeMonth).padStart(2, "0")}`;
 }
 
-/** تراكمي الجدول حتى تاريخه: الأشهر الكاملة × الشهري، والشهر الأخير يجمع الباقي ليصل التراكمي لقيمة الشراء بالضبط. */
+/** تراكمي الجدول حتى تاريخه: الأشهر الكاملة × الشهري، وعند اكتمال العمر يجمع
+ * الباقي ليصل التراكمي إلى **(القيمة − المتبقية)** بالضبط فيستقر الدفتري عند
+ * المتبقية لا الصفر (عقد ٤٣ §٣). */
 export function scheduledAccumulatedMinor(asset: AssetRecord, asOf: string): number | null {
   const monthly = monthlyDepreciationMinor(asset);
   if (monthly === null || !asset.depreciationStartOn) return null;
   const elapsed = fullMonthsElapsed(asset.depreciationStartOn, asOf);
   if (asset.lifeMonths === null) return null;
-  if (elapsed >= asset.lifeMonths) return asset.acquisitionAmountMinor;
+  if (elapsed >= asset.lifeMonths) return asset.acquisitionAmountMinor - residualOf(asset);
   return elapsed * monthly;
 }
 
@@ -244,7 +290,7 @@ export function planAssetDepreciation(
       readiness: "fully_depreciated",
       note:
         remaining === 0
-          ? "استُهلك الجدول كاملًا — الدفتري صفر بمقتضى العقد."
+          ? "استُهلك الجدول كاملًا — الدفتري عند القيمة المتبقية المعلنة (صفر إن لم تُحدَّد)."
           : "الإهلاك المسجل يغطي الجدول حتى تاريخه — لا مستحق جديد.",
     };
   return {

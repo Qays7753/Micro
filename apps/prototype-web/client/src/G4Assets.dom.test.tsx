@@ -248,3 +248,78 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
   });
 });
+
+/* عقد ٤٣ (WS-179 — Wave 7 — FIN-008): حقل القيمة المتبقية في رحلة الأصل —
+ * يظهر مع خيار الاستخدام الطويل، ويرفض المتبقية خارج الحدود قبل أي كتابة،
+ * ويخزَّن مع السجل والمرجع/الملاحظة. */
+describe("G4 assets residual field (contract 43, WS-179)", () => {
+  it("shows the residual field only on the long-use path and saves it with the record", async () => {
+    wouterMocks.location = "/assets/new";
+    render(<Harness page={<AssetEditor />} />);
+    /* قبل اختيار الاستخدام الطويل: لا حقل متبقية. */
+    expect(screen.queryByLabelText("القيمة المتبقية نهاية العمر")).toBeNull();
+    fireEvent.change(await screen.findByPlaceholderText("مثال: ثلاجة عرض للمحل"), {
+      target: { value: "مكيف صناعي" },
+    });
+    const amount = await screen.findByLabelText("قيمة الشراء");
+    fireEvent.change(amount, { target: { value: "480" } });
+    fireEvent.blur(amount);
+    fireEvent.click(await screen.findByRole("button", { name: "نعم، عمره طويل" }));
+    const residual = await screen.findByLabelText("القيمة المتبقية نهاية العمر");
+    fireEvent.change(residual, { target: { value: "60" } });
+    fireEvent.blur(residual);
+    fireEvent.change(await screen.findByPlaceholderText("مثال: 24"), { target: { value: "24" } });
+    fireEvent.change(await screen.findByPlaceholderText("مثال: اشتريته من محل الجملة"), {
+      target: { value: "فاتورة ٩٩٣" },
+    });
+    expect(await screen.findByText(/الإهلاك يجري على الفرق/)).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: /احفظ الأصل/ }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
+    const list = await store.listAssets();
+    if (!list.ok) throw new Error(list.message);
+    expect(list.value).toHaveLength(1);
+    expect(list.value[0]!.residualValueMinor).toBe(6000);
+    expect(list.value[0]!.note).toBe("فاتورة ٩٩٣");
+  });
+
+  it("blocks saving when the residual is not below the acquisition value (fail before write)", async () => {
+    wouterMocks.location = "/assets/new";
+    render(<Harness page={<AssetEditor />} />);
+    fireEvent.change(await screen.findByPlaceholderText("مثال: ثلاجة عرض للمحل"), {
+      target: { value: "مكيف" },
+    });
+    const amount = await screen.findByLabelText("قيمة الشراء");
+    fireEvent.change(amount, { target: { value: "480" } });
+    fireEvent.blur(amount);
+    fireEvent.click(await screen.findByRole("button", { name: "نعم، عمره طويل" }));
+    fireEvent.change(await screen.findByPlaceholderText("مثال: 24"), { target: { value: "24" } });
+    const residual = await screen.findByLabelText("القيمة المتبقية نهاية العمر");
+    fireEvent.change(residual, { target: { value: "480" } });
+    fireEvent.blur(residual);
+    fireEvent.click(await screen.findByRole("button", { name: /احفظ الأصل/ }));
+    expect((await screen.findByRole("alert")).textContent ?? "").toContain("القيمة المتبقية");
+    const list = await store.listAssets();
+    if (!list.ok) throw new Error(list.message);
+    expect(list.value).toHaveLength(0);
+  });
+
+  it("asset detail shows the declared residual and note on the reading", async () => {
+    const created = await assets.create({
+      name: "مكيف صناعي",
+      acquisitionAmountMinor: 48000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-05-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-05-10",
+      residualValueMinor: 6000,
+      note: "فاتورة ٩٩٣",
+    });
+    if (!created.ok) throw new Error(created.message);
+    wouterMocks.location = `/assets/${created.value.asset.id}`;
+    window.history.pushState({}, "", `/assets/${created.value.asset.id}`);
+    render(<Harness page={<AssetDetail />} />);
+    expect(await screen.findByText("مكيف صناعي")).toBeTruthy();
+    expect(screen.getByText(/متبقٍ معلن نهاية العمر/)).toBeTruthy();
+    expect(screen.getByText(/فاتورة ٩٩٣/)).toBeTruthy();
+  });
+});

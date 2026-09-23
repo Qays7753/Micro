@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · READY: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 22 · VERIFIED: 34
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 21 · VERIFIED: 34
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-179 | IN_REVIEW | \`feat/fin-008-depreciation-contract-20260923\` | — | FIN-008 | راجع PR الموجة ٧ ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED. |

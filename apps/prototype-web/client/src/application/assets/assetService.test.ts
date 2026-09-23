@@ -180,7 +180,8 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     /* لا إهلاك جديد بعد الصفر — الدفتري صفر بمقتضى العقد. */
     const more = await service.recordDepreciation(assetId, { asOf: "2028-07-01" });
     expect(more.ok).toBe(false);
-    if (!more.ok) expect(more.message).toContain("الدفتري صفر");
+    /* عقد ٤٣ (WS-179 — Wave 7): الصياغة صارت متبقية-واعية — المعنى نفسه: لا إهلاك بعد اكتمال الجدول. */
+    if (!more.ok) expect(more.message).toContain("الدفتري عند القيمة المتبقية");
     /* لا شطب — لا رصيد دفتري يُشطب. */
     const writeOff = await service.writeOff(assetId, { on: "2028-07-01", reason: "لا حاجة" });
     expect(writeOff.ok).toBe(false);
@@ -320,5 +321,112 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(correction.message).toContain("لا تغيير عن المسجّل");
     const events = await store.listFinancialEvents();
     expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
+  });
+});
+
+/* عقد ٤٣ (WS-179 — Wave 7 — FIN-008): شريحة القيمة المتبقية والمرجع/الملاحظة —
+ * السجل يحملهما، والاقتراح يجري على (القيمة − المتبقية)، ومراجعة المتبقية
+ * موثقة ولا تمس الإهلاك المسجّل. */
+describe("asset service residual value (contract 43, WS-179)", () => {
+  it("creates an asset carrying residual and note, and the acquisition event stays untouched by them", async () => {
+    const store = new MemoryLocalStore();
+    const service = new AssetService(store, now);
+    const created = await service.create({
+      name: "مكيف صناعي",
+      categoryLabel: "تكييف",
+      acquisitionAmountMinor: 48000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: 36,
+      depreciationStartOn: "2026-06-10",
+      residualValueMinor: 6000,
+      note: "فاتورة ٢٠٢٦-٩٩٣",
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(created.value.asset.residualValueMinor).toBe(6000);
+    expect(created.value.asset.note).toBe("فاتورة ٢٠٢٦-٩٩٣");
+    const events = await store.listFinancialEvents();
+    const acquisition = events.value.find(event => event.type === "asset_purchase_cash");
+    /* المتبقية والملاحظة وسمان على السجل — حدث الاقتناء كما كان: كاش سالب وأصل موجب. */
+    expect(acquisition?.cashDeltaMinor).toBe(-48000);
+    expect(acquisition?.assetDeltaMinor).toBe(48000);
+    expect(acquisition?.operatingExpenseDeltaMinor).toBe(0);
+  });
+
+  it("proposes depreciation over (cost − residual) and the book settles at residual after full life", async () => {
+    const store = new MemoryLocalStore();
+    const service = new AssetService(store, now);
+    const created = await service.create({
+      name: "مكيف صناعي",
+      acquisitionAmountMinor: 48000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-01-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-01-05",
+      residualValueMinor: 8000,
+      note: null,
+    });
+    expect(created.ok).toBe(true);
+    const assetId = created.ok ? created.value.asset.id : "asset-1";
+    /* (48000 − 8000) ÷ 24 = 1666 (تقريب أرضي). */
+    const read = await service.read(assetId);
+    expect(read.ok).toBe(true);
+    if (!read.ok) return;
+    expect(read.value.proposal.monthlyMinor).toBe(1666);
+    /* تسجيل الإهلاك حتى ما بعد اكتمال العمر: الحدث بالسقف (40000) ثم يتوقف —
+     * لا مقترح بعده، والدفتري يستقر عند المتبقية. */
+    const recorded = await service.recordDepreciation(assetId, { asOf: "2029-06-30" });
+    expect(recorded.ok).toBe(true);
+    if (!recorded.ok) return;
+    expect(recorded.value.event.amountMinor).toBe(40000);
+    const after = await service.read(assetId);
+    expect(after.ok).toBe(true);
+    if (!after.ok) return;
+    expect(after.value.proposal.readiness).toBe("fully_depreciated");
+    expect(after.value.summary.bookValueMinor).toBe(8000);
+    /* حدث الإهلاك غير نقدي: بند مستقل لا يمس الكاش ولا المصروف التشغيلي. */
+    expect(recorded.value.event.cashDeltaMinor).toBe(0);
+    expect(recorded.value.event.operatingExpenseDeltaMinor).toBe(0);
+    expect(recorded.value.event.assetDeltaMinor).toBe(-40000);
+  });
+
+  it("revises the residual as a documented contract revision without touching recorded depreciation", async () => {
+    const store = new MemoryLocalStore();
+    const service = new AssetService(store, now);
+    const created = await service.create({
+      name: "مكيف صناعي",
+      acquisitionAmountMinor: 48000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-01-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-01-05",
+      residualValueMinor: 8000,
+      note: "أصل أول",
+    });
+    expect(created.ok).toBe(true);
+    const assetId = created.ok ? created.value.asset.id : "asset-1";
+    const before = await service.recordDepreciation(assetId, { asOf: "2026-07-05" });
+    expect(before.ok).toBe(true);
+    if (!before.ok) return;
+    const recordedBefore = before.value.event.amountMinor;
+    const revised = await service.reviseContract(assetId, {
+      lifeMonths: 24,
+      depreciationStartOn: "2026-01-05",
+      residualValueMinor: 12000,
+      note: "أصل أول — متبقٍ أعلى",
+      reason: "تقدير أعلى بعد الصيانة",
+    });
+    expect(revised.ok).toBe(true);
+    if (!revised.ok) return;
+    expect(revised.value.asset.residualValueMinor).toBe(12000);
+    expect(revised.value.asset.contractRevisions).toHaveLength(1);
+    expect(revised.value.asset.contractRevisions[0]!.residualValueMinor).toBe(12000);
+    expect(revised.value.asset.contractRevisions[0]!.reason).toBe("تقدير أعلى بعد الصيانة");
+    /* الإهلاك المسجّل سابقًا لم يُمسّ. */
+    const events = await store.listFinancialEvents();
+    const depreciation = events.value.filter(event => event.type === "asset_depreciation");
+    expect(depreciation).toHaveLength(1);
+    expect(depreciation[0]!.amountMinor).toBe(recordedBefore);
   });
 });

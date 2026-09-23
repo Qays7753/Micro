@@ -32,6 +32,9 @@ export default function AssetEditor() {
   const [longUse, setLongUse] = useState<"yes" | "no" | "unknown">("unknown");
   const [lifeMonths, setLifeMonths] = useState("");
   const [startOn, setStartOn] = useState("");
+  /* عقد ٤٣ (WS-179 — Wave 7): القيمة المتبقية نهاية العمر — اختيارية (فارغ = ٠). */
+  const [residualMinor, setResidualMinor] = useState(0);
+  const [validResidual, setValidResidual] = useState(true);
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -51,6 +54,7 @@ export default function AssetEditor() {
     longUse,
     lifeMonths,
     startOn,
+    residualMinor,
     note,
   ]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
@@ -65,6 +69,7 @@ export default function AssetEditor() {
     longUse: "unknown" as "yes" | "no" | "unknown",
     lifeMonths: "",
     startOn: "",
+    residualMinor: 0,
     note: "",
   });
   const restoredFromOffer = useRef(false);
@@ -80,6 +85,7 @@ export default function AssetEditor() {
       longUse,
       lifeMonths,
       startOn,
+      residualMinor,
       note,
     });
   }, [
@@ -91,6 +97,7 @@ export default function AssetEditor() {
     longUse,
     lifeMonths,
     startOn,
+    residualMinor,
     note,
     isDirty,
     draft.state.phase,
@@ -108,6 +115,7 @@ export default function AssetEditor() {
       setLongUse(saved.longUse === "yes" || saved.longUse === "no" ? saved.longUse : "unknown");
       setLifeMonths(String(saved.lifeMonths ?? ""));
       setStartOn(String(saved.startOn ?? ""));
+      setResidualMinor(Number(saved.residualMinor ?? 0) || 0);
       setNote(String(saved.note ?? ""));
     }
     if (draft.state.phase === "restore-offer") restoredFromOffer.current = true;
@@ -124,6 +132,14 @@ export default function AssetEditor() {
          * المسار الحقيقي (ترك الحقل فارغًا) لا خيارًا غير موجود. */
         return "أدخل العمر النافع عددًا صحيحًا بين 1 و600 شهرًا، أو اتركه فارغًا ليبقى مجهولًا.";
       if (startOn && startOn < purchaseDate) return "بداية الاستخدام لا تسبق تاريخ الشراء.";
+      /* عقد ٤٣: المتبقية داخل الحدود — رفض صادر قبل أي كتابة. */
+      if (
+        !validResidual ||
+        !Number.isInteger(residualMinor) ||
+        residualMinor < 0 ||
+        residualMinor >= amountMinor
+      )
+        return "أدخل القيمة المتبقية عددًا صحيحًا ≥ 0 وأصغر من قيمة الأصل، أو اتركها فارغة لتكون صفرًا.";
     }
     return null;
   }
@@ -147,6 +163,7 @@ export default function AssetEditor() {
         purchaseDate,
         lifeMonths: longUse === "yes" && Number(lifeMonths) >= 1 ? Number(lifeMonths) : null,
         depreciationStartOn: longUse === "yes" && startOn ? startOn : null,
+        residualValueMinor: longUse === "yes" && residualMinor > 0 ? residualMinor : null,
         note: note.trim() || null,
       });
       if (!result.ok) {
@@ -271,6 +288,20 @@ export default function AssetEditor() {
             value={startOn}
             onChange={event => setStartOn(event.target.value)}
           />
+          <label className="micro-field">
+            <span>القيمة المتبقية نهاية العمر (د.أ — اختياري)</span>
+            <EnglishNumberInput
+              value={residualMinor}
+              kind="money"
+              onNumericChange={setResidualMinor}
+              onTextValidityChange={setValidResidual}
+              aria-label="القيمة المتبقية نهاية العمر"
+            />
+            <small>
+              ما تتوقع بقاءه من قيمته نهاية عمره — الإهلاك يجري على الفرق فلا ينزل الدفتري دونه؛ اتركها صفرًا
+              إن لم تتوقع متبقيًا.
+            </small>
+          </label>
         </>
       ) : null}
       <label className="micro-field">

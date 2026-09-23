@@ -1,0 +1,55 @@
+{
+  "id": "WS-179",
+  "title": "Financial Roadmap Wave 7 — FIN-008 asset/depreciation explicit contract + residual value and reference/note first slice (straight-line, first-full-month, recorded events)",
+  "status": "IN_REVIEW",
+  "items": [
+    "FIN-008"
+  ],
+  "branch": "feat/fin-008-depreciation-contract-20260923",
+  "base_sha": "dc8818bcef55ec64425257fd058343f6609df6b6",
+  "areas": [
+    "contracts/asset-depreciation",
+    "domain/asset",
+    "application/assets",
+    "presentation/assets-editor"
+  ],
+  "contracts": [
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/29-group4-deep-finance-contract.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/34-correction-history-trail-contract.md"
+  ],
+  "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-23",
+  "pr": null,
+  "started_at": "2026-09-23T08:00:00+03:00",
+  "updated_at": "2026-09-23",
+  "next_action": "راجع PR الموجة ٧ ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED.",
+  "notes": [
+    "Owner-approved roadmap §4.8: physical business assets only; straight-line; required inputs = asset value, in-service date, useful life, residual value, reference/note; first-full-month rule; non-cash separate statement line; documented reversal corrections; injectable clock; document the read-derived vs persisted tradeoff in the contract BEFORE choosing; no completion claim from the contract file alone.",
+    "W7 self-audit (coordinator, from main dc8818b): EXISTS on main — straight-line floor math (monthlyDepreciationMinor), first-full-month rule (firstChargeMonth/fullMonthsElapsed), scheduled accumulated, proposal->explicit record (planAssetDepreciation + assetService), injectable clock (this.now()), reversal via generic financial-event reversal, non-cash statement line (DELTA_TABLE asset_depreciation no-cash; bridge add-back), asset store + touchpoints + documented contract revisions. REAL GAPS: residualValueMinor (record + math to residual instead of zero) and note/reference field (record + editor) + THE CONTRACT ITSELF.",
+    "Schema/export: optional-field addition on existing records follows the categoryLabel/lifeMonths validator precedent (absent = default; no store/envelope structural change; no version bump) — old exports import lossless; round-trip tests mandated. Recorded as owner-review item.",
+    "Entry budget: CI-parity headroom 1,228 bytes; asset domain+service are eager — keep additions compact; measure with GITHUB_SHA set (W5 rule).",
+    "Pre-PR gates: full pnpm check green (root suite + prototype suite + lint 37/37 held by refactoring); CI-parity bundle raw=649,740/650,000 (headroom 260) + gzip 154,107/155,000; validator PASS; contract 43 written and reviewed against owner-approved §4.8 defaults — no OWNER_DECISION_REQUIRED."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-179:claim",
+      "reason": "Claim تنفيذي واحد غير متداخل فوق main المتحقق dc8818b قبل أي شيفرة أو عقد."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-23",
+      "actor": "ws-179:implement",
+      "reason": "بدء الموجة ٧: كتابة عقد الإهلاك الصريح أولًا ثم تنفيذ شريحة القيمة المتبقية والمرجع."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-23",
+      "actor": "ws-179:review",
+      "reason": "عقد ٤٣ مكتمل وموثق المقايضة + شريحة المتبقية والمرجع منفذة ومختبرة (19 اختبارًا جديدًا) — جاهز لبوابة PR."
+    }
+  ],
+  "migration_baseline": false
+}
