@@ -2,7 +2,8 @@
  * schema-upgrade path and the adapter share a single source (Group 10, Phase 10-B).
  * Values are frozen history: no rename, no store removed; additions only via a
  * guarded schema upgrade (35 → 36 added the recurring-expense stores, D-037;
- * 36 → 37 added the expense-budgets store, FIN-002 / contract 42).
+ * 36 → 37 added the expense-budgets store, FIN-002 / contract 42;
+ * 37 → 38 added the received-loans store, FIN-001 / WS-178 Wave 6).
  */
 export const databaseName = "micro-prototype-local";
 export const profileStore = "activity-profile";
@@ -60,3 +61,9 @@ export const recurringExpenseOccurrenceStore = "recurring-expense-occurrences";
  * للتصفح الزمني وstatus لحالات السجل وoperationKey للعهدة؛ لا فهرس فريد —
  * حارس الالتزام داخل حد الكتابة يكفي الحتمية. */
 export const expenseBudgetStore = "expense-budgets";
+/* FIN-001 (WS-178 — Wave 6): سجلات القروض المستلمة — مخزن تشغيلي واحد فوق
+ * أحداثها المالية داخل financial-events. المُنشئ محروس في الترقية ٣٧→٣٨:
+ * القديم يفتح ويجده فارغًا بلا ترحيل بيانات ولا تعديل سجل قائم؛ فهرس
+ * updatedAt للتصفح الزمني؛ لا فهارس فريدة — حارس الالتزام داخل حد الكتابة
+ * (AV-02 نفسه) يكفي الحتمية. */
+export const receivedLoanStore = "received-loans";

@@ -13,6 +13,7 @@ import {
 import { isRecord } from "./transferFamilyValidators";
 
 export const RELEASED_LEGACY_EXPORT_PAIRS: ReadonlySet<string> = new Set([
+  "29/37", // FIN-001 (WS-178 — Wave 6) كما صدر فعلًا — بلا عائلة القروض المستلمة
   "28/36", // OPS-003 (عقد ٤١) كما صدر فعلًا — بلا عائلة الميزانيات (قبل عقد ٤٢)
   "27/35", // OPS-003 ما قبل عقد ٤١ — كما صدرت فعلًا (بلا عائلات المصروف المتكرر)
   "26/34", // المجموعة ٤ كما صدرت فعلًا (بلا مظروف التكامل)

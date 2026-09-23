@@ -42,6 +42,7 @@ import {
   securityStore,
   shortCashDeclarationStore,
   supplierPurchaseStore,
+  receivedLoanStore,
 } from "./indexedDbStores";
 
 export class StorageOpenError extends Error {
@@ -285,6 +286,14 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
     budgets.createIndex("periodKey", "periodKey");
     budgets.createIndex("status", "status");
     budgets.createIndex("operationKey", "operationKey");
+  }
+  /* FIN-001 (WS-178 — Wave 6 / نمط D-037 — الترقية ٣٧→٣٨): مخزن القروض
+   * المستلمة بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل قائم؛ القاعدة
+   * القديمة تفتح وتجده فارغًا. فهرس updatedAt للتصفح الزمني كقرضه الصادر؛
+   * لا فهارس فريدة — حارس الالتزام داخل حد الكتابة يكفي الحتمية. */
+  if (!database.objectStoreNames.contains(receivedLoanStore)) {
+    const receivedLoans = database.createObjectStore(receivedLoanStore, { keyPath: "id" });
+    receivedLoans.createIndex("updatedAt", "updatedAt");
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

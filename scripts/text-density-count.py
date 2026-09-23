@@ -394,7 +394,10 @@ CAPS: dict[str, int] = {
     # toggle labels, headroom and outstanding-loans metric labels. Eight
     # mandated strings, no prose; reading reasons/next-actions come from the
     # domain module (not counted by charter). Owner-vetoable at review.
-    "Finance": 330,
+    # Finance 330 -> 332 (2026-09-23, FIN-001 Wave 6, owner roadmap §4.7):
+    # سطر طبقة الالتزام المستقل في موضع «الآن» (القروض المستلمة) — بندان
+    # معلنان لا أكثر.
+    "Finance": 332,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.
@@ -729,7 +732,9 @@ CAPS: dict[str, int] = {
     # remediation task): the MIC-17 title «تخصيص محافظ دفعات الموردين» joins the
     # registry mandated by the task spec (integrity check for wallet-attributed
     # supplier payments). One added registry title, no new prose surfaces.
-    "ToolsIntegrity": 86,
+    # ToolsIntegrity 86 -> 88 (2026-09-23, FIN-001 Wave 6): عنوان فحص
+    # اتساق القروض المستلمة ووسم النتيجة في تقرير السلامة.
+    "ToolsIntegrity": 88,
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
     # FinanceActivity 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
@@ -763,7 +768,9 @@ CAPS: dict[str, int] = {
     # honest empty states, and the read-only truth footer; obligation rows reuse
     # the canonical financialEventLabels map (its shared labels count once here).
     # Locked at the honest measured number (49) as a ratchet from day one.
-    "FinanceUpcoming": 49,
+    # FinanceUpcoming 49 -> 51 (2026-09-23, FIN-001 Wave 6): استحقاق القرض
+    # المستلم يظهر للمعرفة فقط بلا تنبيه إلزامي (سياسة §4.7).
+    "FinanceUpcoming": 51,
     # OPS-003 (2026-09-21, عقد ٤١ — first measurement day): أسطح المصروف
     # المتكرر — القائمة (٢٦: ترويسة ووعد، حالة كل سلسلة، أقرب موعد، عدّ العولج،
     # فراغ صادق، الحقيقة للقراءة فقط، والمطوي details مستثنى في السكون)،
@@ -830,7 +837,10 @@ CAPS: dict[str, int] = {
     # the collapsed details; the «فترة جارية» header badge and the «مقارنة
     # الفترتين» summary label live on multi-line conditional/summary nodes the
     # counter excludes (established behavior) — mandated labels only, no prose.
-    "Statement": 216,
+    # Statement 216 -> 224 (2026-09-23, FIN-001 Wave 6, owner roadmap §4.7):
+    # بند التزام القروض المستلمة في deepFinance وعائلتا تدفق الكاش
+    # (قبض قرض مستلم / سداد أصل قرض مستلم) — ثمانية بنود معلنة.
+    "Statement": 224,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
@@ -866,7 +876,10 @@ CAPS: dict[str, int] = {
     # Loans 71 -> 73 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "Loans": 73,
+    # Loans 73 -> 82 (2026-09-23, FIN-001 Wave 6, owner roadmap §4.7):
+    # طبقة الالتزام المستقلة (قروض أخذتها): عنوان القسم والمجموع القائم
+    # ووسوم الحالات والعرض والاستحقاق-للمعلومة والرابطتان — تسعة بنود معلنة.
+    "Loans": 82,
     # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
     # LoanEditor 31 → 37 (2026-09-05).
     # LoanEditor 37 -> 39 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
@@ -895,6 +908,10 @@ CAPS: dict[str, int] = {
     # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
     # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
     "LoanDetail": 76,
+    # FIN-001 (WS-178 — Wave 6, owner roadmap §4.7): سطحا القرض المستلم —
+    # تُقاس من يومها الأول كسابقة عائلة القروض (المجموعة ٤).
+    "ReceivedLoanEditor": 32,
+    "ReceivedLoanDetail": 78,
     # EstimateDetail (2026-09-02, Group 3 Scope B, owner-approved execution prompt):
     # new mandated screen — read-only estimate summary (result, materials, time,
     # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
@@ -1010,6 +1027,9 @@ PAGES = [
     "Loans",
     "LoanEditor",
     "LoanDetail",
+    # FIN-001 (WS-178 — Wave 6): سطحا القرض المستلم ضمن القياس (سابقة AR-04).
+    "ReceivedLoanEditor",
+    "ReceivedLoanDetail",
     # المجموعة ٦ (تدقيق A1 — AR-04): كل صفحات المسارات تدخل القياس — كان ١٢
     # سطحًا (عائلة الكاش/التحصيل/الأطراف/الدفتر) خارج §10.1 بلا قياس، فكانت
     # رسالة «كل الأسطح ضمن السقوف» أوسع من الحقيقة.

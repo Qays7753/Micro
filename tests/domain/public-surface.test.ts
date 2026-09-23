@@ -26,6 +26,8 @@ import * as shared from "../../src/domain/shared/index.js";
 /* المجموعة ٤ (عقد ٢٩): دومينا الأصول والقروض — إضافة واعية للسطح العام. */
 import * as asset from "../../src/domain/asset/index.js";
 import * as loan from "../../src/domain/loan/index.js";
+/* FIN-001 (WS-178 — Wave 6): دومين القروض المستلمة — إضافة واعية للسطح العام. */
+import * as receivedLoan from "../../src/domain/received-loan/index.js";
 import * as supplierPurchase from "../../src/domain/supplier-purchase/index.js";
 
 /* الأنواع المستوردة موضعًا — فشل الترجمة عند اختفاء أي منها. */
@@ -363,6 +365,8 @@ const ALL_BARRELS: Record<string, unknown>[] = [
 
   loan,
 
+  receivedLoan,
+
   ownerEntitlement,
 
   recurringMargin,
@@ -435,6 +439,12 @@ describe("قفل سطح الدومين العام (٣) — إغلاق العقد
     expect(typeof loan.addLoanRepayment).toBe("function");
     expect(typeof loan.reverseLoanRepayment).toBe("function");
     expect(typeof loan.correctLoanRecord).toBe("function");
+    /* FIN-001 (WS-178 — Wave 6): عقد القرض المستلم العام حاضر وقت التشغيل. */
+    expect(typeof receivedLoan.createReceivedLoanRecord).toBe("function");
+    expect(typeof receivedLoan.readReceivedLoan).toBe("function");
+    expect(typeof receivedLoan.addReceivedLoanRepayment).toBe("function");
+    expect(typeof receivedLoan.reverseReceivedLoanRepayment).toBe("function");
+    expect(typeof receivedLoan.correctReceivedLoanRecord).toBe("function");
   });
   it("لا يحمل أي برميل رموزًا سحبنا تصديرها — السطح صار عقدًا مغلقًا", () => {
     /* المجموعة ٦ (البند ٧): الرموز غير المستوردة خارجيًا لم تعد جزءًا من

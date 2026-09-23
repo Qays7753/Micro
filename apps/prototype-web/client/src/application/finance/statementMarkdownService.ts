@@ -123,6 +123,14 @@ export class StatementMarkdownService {
     rows.push(line("الأمانات بحوزتك", money(blocks.amanah.heldNowMinor), "كاش موجود ليس ملكك ولا ربحك"));
     rows.push(line("الدفتري للأصول النشطة", money(deep.assetBookValueNowMinor), "ليس مصروفًا ولا كاشًا"));
     rows.push(line("القروض القائمة", money(deep.loansOutstandingNowMinor), "ذمم لصالح مشروعك — ليست نتيجة"));
+    /* FIN-001 (WS-178 — Wave 6): التزام الاقتراض — طبقة مستقلة عن الذمم التشغيلية. */
+    rows.push(
+      line(
+        "قروض أخذتها القائمة",
+        money(deep.borrowedLoansOutstandingNowMinor),
+        "التزام اقتراض — ليس نتيجة ولا مصروفًا",
+      ),
+    );
     rows.push(
       line(
         "عربونات محتفظة بانتظار القرار",

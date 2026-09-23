@@ -7,6 +7,7 @@ import {
   validateDeliveryReversalMovements,
 } from "./deliveryReversalCommitGuard";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
+import { findReceivedLoanEventByKey, validateReceivedLoanCommitRelation } from "./receivedLoanCommitGuard";
 import {
   findRecurringExpenseEventByKey,
   validateRecurringExpenseDraftCommit,
@@ -50,6 +51,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
 import type {
   RecurringExpenseOccurrence,
   RecurringExpenseRuleRevision,
@@ -114,6 +116,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   /* المجموعة ٤ (عقد ٢٩): سجلات الأصول والقروض — تطابق المتصفح اختبارًا وسلوكًا. */
   private assets = new Map<string, AssetRecord>();
   private loans = new Map<string, LoanRecord>();
+  /* FIN-001 (WS-178 — Wave 6): سجلات القروض المستلمة في الذاكرة — تطابق
+   * المتصفح اختبارًا وسلوكًا؛ نفس حراس الالتزام داخل حد الكتابة. */
+  private receivedLoans = new Map<string, ReceivedLoanRecord>();
   /* OPS-003 (عقد ٤١): عائلة المصروف المتكرر في الذاكرة — تطابق المتصفح
    * اختبارًا وسلوكًا؛ نفس حراس الالتزام داخل حد الكتابة. */
   private recurringExpenseSeriesList = new Map<string, RecurringExpenseSeries>();
@@ -1421,6 +1426,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         costEstimates: Array.from(this.costEstimates.values()).map(clone),
         assets: Array.from(this.assets.values()).map(clone),
         loans: Array.from(this.loans.values()).map(clone),
+        receivedLoans: Array.from(this.receivedLoans.values()).map(clone),
         recurringExpenseSeries: Array.from(this.recurringExpenseSeriesList.values()).map(clone),
         recurringExpenseRevisions: Array.from(this.recurringExpenseRevisions.values()).map(clone),
         recurringExpenseOccurrences: Array.from(this.recurringExpenseOccurrences.values()).map(clone),
@@ -1457,6 +1463,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       costEstimates: snapshot.costEstimates ?? [],
       assets: snapshot.assets ?? [],
       loans: snapshot.loans ?? [],
+      receivedLoans: snapshot.receivedLoans ?? [],
       recurringExpenseSeries: snapshot.recurringExpenseSeries ?? [],
       recurringExpenseRevisions: snapshot.recurringExpenseRevisions ?? [],
       recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences ?? [],
@@ -1504,6 +1511,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.costEstimates = new Map((safe.costEstimates ?? []).map(estimate => [estimate.id, estimate]));
     this.assets = new Map((safe.assets ?? []).map(asset => [asset.id, asset]));
     this.loans = new Map((safe.loans ?? []).map(loan => [loan.id, loan]));
+    this.receivedLoans = new Map((safe.receivedLoans ?? []).map(loan => [loan.id, loan]));
     this.recurringExpenseSeriesList = new Map(
       (safe.recurringExpenseSeries ?? []).map(series => [series.id, series]),
     );
@@ -1698,6 +1706,97 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       };
     }
     this.loans.set(record.id, clone(record));
+    this.financialEvents.set(reversal.id, clone(reversal));
+    this.financialEvents.set(replacement.id, clone(replacement));
+    return {
+      ok: true,
+      value: {
+        record: clone(record),
+        reversal: clone(reversal),
+        replacement: clone(replacement),
+        reused: false,
+      },
+    };
+  }
+  /* FIN-001 (WS-178 — Wave 6 — القروض المستلمة): نفس عقد القرض الصادر —
+   * قراءة وترتيب زمني (تاريخ القبض ثم المعرف) وكتابة ذرّية محروسة. */
+  async listReceivedLoans(): Promise<StorageResult<readonly ReceivedLoanRecord[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.receivedLoans.values())
+        .sort((a, b) => a.receivedOn.localeCompare(b.receivedOn) || a.id.localeCompare(b.id))
+        .map(clone),
+    };
+  }
+  async getReceivedLoan(id: string): Promise<StorageResult<ReceivedLoanRecord | null>> {
+    const record = this.receivedLoans.get(id);
+    return { ok: true, value: record ? clone(record) : null };
+  }
+  async commitReceivedLoanRecord(
+    record: ReceivedLoanRecord,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ record: ReceivedLoanRecord; event: FinancialEvent; reused: boolean }>> {
+    if (this.financialEvents.has(event.id)) {
+      const existing = this.receivedLoans.get(record.id);
+      return {
+        ok: true,
+        value: {
+          record: existing ? clone(existing) : clone(record),
+          event: clone(this.financialEvents.get(event.id)!),
+          reused: true,
+        },
+      };
+    }
+    /* AV-02 + حتمية المفتاح: نفس حراس محوّل IndexedDB — إعادة تشغيل بنفس
+     * المفتاح تُعاد كما هي، والعلاقة مع السجل المخزّن تُفحص عند الكتابة. */
+    const keyReplay = findReceivedLoanEventByKey(
+      Array.from(this.financialEvents.values()),
+      event.idempotencyKey,
+      event.id,
+    );
+    if (keyReplay) {
+      const existing = this.receivedLoans.get(record.id);
+      return {
+        ok: true,
+        value: {
+          record: existing ? clone(existing) : clone(record),
+          event: clone(keyReplay),
+          reused: true,
+        },
+      };
+    }
+    const stored = this.receivedLoans.get(record.id);
+    const relation = validateReceivedLoanCommitRelation(stored, record, event);
+    if (!relation.ok) return { ok: false, code: "storage_stale", message: relation.message };
+    this.receivedLoans.set(record.id, clone(record));
+    this.financialEvents.set(event.id, clone(event));
+    return { ok: true, value: { record: clone(record), event: clone(event), reused: false } };
+  }
+  async commitReceivedLoanCorrection(
+    record: ReceivedLoanRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<
+    StorageResult<{
+      record: ReceivedLoanRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  > {
+    if (this.financialEvents.has(reversal.id)) {
+      const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
+      return {
+        ok: true,
+        value: {
+          record: clone(record),
+          reversal: clone(this.financialEvents.get(reversal.id)!),
+          replacement: clone(storedReplacement),
+          reused: true,
+        },
+      };
+    }
+    this.receivedLoans.set(record.id, clone(record));
     this.financialEvents.set(reversal.id, clone(reversal));
     this.financialEvents.set(replacement.id, clone(replacement));
     return {

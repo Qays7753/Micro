@@ -56,6 +56,7 @@ import {
   validInventoryMovement,
   validInventoryShortage,
   validLoanRecord,
+  validReceivedLoanRecord,
   validMaterial,
   validMeasurementUnit,
   validShortCashDeclaration,
@@ -102,7 +103,12 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       data.recurringExpenseOccurrences !== null &&
       !Array.isArray(data.recurringExpenseOccurrences)) ||
     /* FIN-002 (عقد ٤٢): عائلة الميزانيات اختيارية في الملفات القديمة — المصفوفة إن وُجدت. */
-    (data.expenseBudgets !== undefined && data.expenseBudgets !== null && !Array.isArray(data.expenseBudgets))
+    (data.expenseBudgets !== undefined &&
+      data.expenseBudgets !== null &&
+      !Array.isArray(data.expenseBudgets)) ||
+    /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة اختيارية في الملفات
+     * القديمة — المصفوفة إن وُجدت. */
+    (data.receivedLoans !== undefined && data.receivedLoans !== null && !Array.isArray(data.receivedLoans))
   )
     return false;
   if (
@@ -405,6 +411,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       (event.assetDeltaMinor ?? 0) !== -(source.assetDeltaMinor ?? 0) ||
       (event.loanDeltaMinor ?? 0) !== -(source.loanDeltaMinor ?? 0) ||
       (event.revenueDeltaMinor ?? 0) !== -(source.revenueDeltaMinor ?? 0) ||
+      /* FIN-001 (WS-178 — Wave 6): تراجع أنواع القرض المستلم ينفي عمود التزام
+       * الاقتراض كما ينفي المسار الحي عمود القرض الصادر. */
+      (event.loanPayableDeltaMinor ?? 0) !== -(source.loanPayableDeltaMinor ?? 0) ||
       (event.assetContext?.assetId ?? null) !== (source.assetContext?.assetId ?? null) ||
       (event.loanContext?.loanId ?? null) !== (source.loanContext?.loanId ?? null) ||
       (event.depositContext?.orderId ?? null) !== (source.depositContext?.orderId ?? null)
@@ -419,7 +428,10 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     data.financialEvents.reduce((sum, event) => sum + (event.amanahDeltaMinor ?? 0), 0) < 0 ||
     data.financialEvents.reduce((sum, event) => sum + (event.assetDeltaMinor ?? 0), 0) < 0 ||
     data.financialEvents.reduce((sum, event) => sum + (event.loanDeltaMinor ?? 0), 0) < 0 ||
-    data.financialEvents.reduce((sum, event) => sum + (event.revenueDeltaMinor ?? 0), 0) < 0
+    data.financialEvents.reduce((sum, event) => sum + (event.revenueDeltaMinor ?? 0), 0) < 0 ||
+    /* FIN-001 (WS-178 — Wave 6): التزام اقتراض سالب إجمالًا = سداد أصل فوق
+     * القائم — ملف يدّعي استلامًا أقل مما سُدِّد؛ يُرفض قبل أي معاينة. */
+    data.financialEvents.reduce((sum, event) => sum + (event.loanPayableDeltaMinor ?? 0), 0) < 0
   )
     return false;
   const purchaseIds = new Set<string>();
@@ -1063,6 +1075,19 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       if (repayment.reversal && !eventIds.has(repayment.reversal.reversalEventId)) return false;
     }
   }
+  /* FIN-001 (WS-178 — Wave 6): القروض المستلمة — نفس عقد القرض الصادر:
+   * هوية فريدة وشكل سليم وربط أحداث موجود فعلًا؛ سجل بلا حدثه المالي ملف
+   * مكسور يُرفض بصراحة لا يُستورد. */
+  const receivedLoanIds = new Set<string>();
+  for (const loan of data.receivedLoans ?? []) {
+    if (!validReceivedLoanRecord(loan) || receivedLoanIds.has(loan.id)) return false;
+    receivedLoanIds.add(loan.id);
+    if (!eventIds.has(loan.principalEventId)) return false;
+    for (const repayment of loan.repayments) {
+      if (!eventIds.has(repayment.eventId)) return false;
+      if (repayment.reversal && !eventIds.has(repayment.reversal.reversalEventId)) return false;
+    }
+  }
   /* OPS-003 (عقد ٤١): عائلة المصروف المتكرر — هوية فريدة وترابط صادق:
    * المراجعة والفترة تشيران لسلسلة موجودة، والفترة المقَرَّرة تربط حدثًا
    * قائمًا فعلًا؛ الملف المكسور أو المدموج يدويًا يُرفض قبل أي معاينة. */
@@ -1120,7 +1145,11 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
    * غير موجودة). الآن يُرفض قبل أي معاينة كما تُرفض البصمة المكسورة. */
   for (const event of data.financialEvents) {
     if (event.assetContext && !assetIds.has(event.assetContext.assetId)) return false;
-    if (event.loanContext && !loanIds.has(event.loanContext.loanId)) return false;
+    if (event.loanContext && !loanIds.has(event.loanContext.loanId)) {
+      /* FIN-001 (WS-178 — Wave 6): سياق القرض المستلم يشير لقرض مستلم لا
+       * صادر — الحارس يتجه لبيت التزام الاقتراض نفسه. */
+      if (!receivedLoanIds.has(event.loanContext.loanId)) return false;
+    }
   }
   return true;
 }

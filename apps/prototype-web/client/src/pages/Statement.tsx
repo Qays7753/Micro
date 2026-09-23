@@ -696,6 +696,19 @@ export default function Statement() {
               </b>
             </div>
           </article>
+          {/* FIN-001 (WS-178 — Wave 6): طبقة التزام الاقتراض — مستقلة عن الذمم
+              التشغيلية وعن القروض الصادرة؛ من قراءة المركز لا من كتلة القروض. */}
+          <article className="micro-finance-event">
+            <div className="micro-finance-event-main">
+              <div>
+                <strong>قروض أخذتها القائمة — الآن</strong>
+                <small>التزام اقتراض — ليس نتيجة ولا مصروفًا</small>
+              </div>
+              <b>
+                <MoneyValue minor={reading.blocks.deepFinance.borrowedLoansOutstandingNowMinor} /> د.أ
+              </b>
+            </div>
+          </article>
           <article className="micro-finance-event">
             <div className="micro-finance-event-main">
               <div>

@@ -63,6 +63,8 @@ const basePosition: ProjectFinancialPosition = {
   allocatedToWalletsMinor: 4000,
   assetBookValueMinor: 12500,
   loansOutstandingMinor: 6000,
+  /* FIN-001 (WS-178 — Wave 6): التزام الاقتراض القائم — طبقة مستقلة. */
+  borrowedLoansOutstandingMinor: 2000,
   pendingRetainedDepositsMinor: 3000,
 };
 
@@ -125,6 +127,7 @@ function reading(overrides: Partial<StatementReading> = {}): StatementReading {
         retainedDepositRevenueMinor: 3000,
         assetBookValueNowMinor: 12500,
         loansOutstandingNowMinor: 6000,
+        borrowedLoansOutstandingNowMinor: 2000,
         pendingRetainedDepositsNowMinor: 3000,
         unresolved: [
           { id: "pending-deposits", label: "عربونات محتفظة بانتظار قرارك", amountMinor: 3000, count: null },
@@ -163,6 +166,10 @@ describe("statement markdown service (المجموعة ٥ — عقد ٣٢)", () 
     expect(markdown).toContain("أمانات");
     expect(markdown).toContain("القروض القائمة");
     expect(markdown).toContain("60.00 د.أ");
+    /* FIN-001 (WS-178 — Wave 6): التزام الاقتراض في التقرير كطبقة مستقلة. */
+    expect(markdown).toContain("قروض أخذتها القائمة");
+    expect(markdown).toContain("20.00 د.أ");
+    expect(markdown).toContain("التزام اقتراض — ليس نتيجة ولا مصروفًا");
     expect(markdown).toContain("## قيم غير محلولة");
     expect(markdown).toContain("30.00 د.أ");
     expect(markdown).toContain("## الحقائق");

@@ -158,6 +158,9 @@ export const isFinancialType = (value: unknown) =>
   value === "asset_writeoff" ||
   value === "loan_outgoing_cash" ||
   value === "loan_repayment_cash" ||
+  /* FIN-001 (WS-178 — Wave 6): أنواع القرض المستلم — قبض الاقتراض وسداد أصله. */
+  value === "loan_received_cash" ||
+  value === "loan_received_repayment_cash" ||
   value === "deposit_retained_revenue" ||
   value === "deposit_retained_owner";
 export const isAssetEventType = (value: unknown) =>
@@ -167,7 +170,10 @@ export const isAssetEventType = (value: unknown) =>
   value === "asset_disposal_cash" ||
   value === "asset_writeoff";
 export const isLoanEventType = (value: unknown) =>
-  value === "loan_outgoing_cash" || value === "loan_repayment_cash";
+  value === "loan_outgoing_cash" ||
+  value === "loan_repayment_cash" ||
+  value === "loan_received_cash" ||
+  value === "loan_received_repayment_cash";
 export const isDepositEventType = (value: unknown) =>
   value === "deposit_retained_revenue" || value === "deposit_retained_owner";
 export const isSafeMoney = (value: unknown): value is number =>
@@ -531,15 +537,37 @@ export function validFinancialEvent(value: unknown): boolean {
       !loanContext.borrower.trim()
     )
       return false;
+    /* FIN-001 (WS-178 — Wave 6): المُقرض إلزامي لأنواع القرض المستلم وممنوع
+     * عن الصادرة — كما يفرضه سياق المجال نفسه؛ المستفيد في المستلم قد يحمل
+     * اسم المُقرض نفسه (الخدمة تكتبه كذلك). */
+    const isReceivedLoanType =
+      value.type === "loan_received_cash" || value.type === "loan_received_repayment_cash";
+    if (isReceivedLoanType) {
+      if (!isString(loanContext.lender) || !loanContext.lender.trim()) return false;
+    } else if (loanContext.lender !== undefined && loanContext.lender !== null) {
+      return false;
+    }
+    /* دلتات القرض: الصادر يحرك loanDeltaMinor؛ والمستلم يحرك loanPayableDeltaMinor
+     * حصرًا — الاتجاهات معلنة من جدول سياسات المجال نفسه. */
     return (
-      value.cashDeltaMinor === (value.type === "loan_outgoing_cash" ? -amount : amount) &&
+      value.cashDeltaMinor ===
+        (value.type === "loan_outgoing_cash" || value.type === "loan_received_repayment_cash"
+          ? -amount
+          : amount) &&
       value.payableDeltaMinor === 0 &&
       value.ownerCapitalDeltaMinor === 0 &&
       value.operatingExpenseDeltaMinor === 0 &&
       (value.amanahDeltaMinor ?? 0) === 0 &&
       (value.assetDeltaMinor ?? 0) === 0 &&
-      (value.loanDeltaMinor ?? 0) === (value.type === "loan_outgoing_cash" ? amount : -amount) &&
-      (value.revenueDeltaMinor ?? 0) === 0
+      (value.loanDeltaMinor ?? 0) ===
+        (value.type === "loan_outgoing_cash" ? amount : value.type === "loan_repayment_cash" ? -amount : 0) &&
+      (value.revenueDeltaMinor ?? 0) === 0 &&
+      (value.loanPayableDeltaMinor ?? 0) ===
+        (value.type === "loan_received_cash"
+          ? amount
+          : value.type === "loan_received_repayment_cash"
+            ? -amount
+            : 0)
     );
   }
   if (isDepositEventType(value.type)) {
@@ -708,6 +736,79 @@ export function validLoanRecord(value: unknown): boolean {
       value.sourceWalletId === undefined ||
       isString(value.sourceWalletId)
     ) ||
+    !isString(value.principalEventId) ||
+    value.principalEventId.trim().length === 0 ||
+    !Array.isArray(value.repayments) ||
+    !Array.isArray(value.corrections) ||
+    !isString(value.operationKey) ||
+    !value.operationKey.trim() ||
+    !isDate(value.createdAt) ||
+    !isDate(value.updatedAt)
+  )
+    return false;
+  const repaymentIds = new Set<string>();
+  if (
+    !value.repayments.every((repayment: unknown) => {
+      const valid =
+        isRecord(repayment) &&
+        isString(repayment.id) &&
+        repayment.id.trim().length > 0 &&
+        !repaymentIds.has(repayment.id) &&
+        isMoney(repayment.amountMinor) &&
+        repayment.amountMinor !== 0 &&
+        isString(repayment.date) &&
+        isLocalDate(repayment.date as string) &&
+        (repayment.note === null || repayment.note === undefined || isString(repayment.note)) &&
+        isString(repayment.eventId) &&
+        repayment.eventId.trim().length > 0;
+      if (valid && isRecord(repayment) && isString(repayment.id)) repaymentIds.add(repayment.id);
+      return valid;
+    })
+  )
+    return false;
+  return (
+    value.repayments.every(
+      (repayment: Record<string, unknown>) =>
+        repayment.reversal === null ||
+        repayment.reversal === undefined ||
+        (isRecord(repayment.reversal) &&
+          isString(repayment.reversal.reason) &&
+          repayment.reversal.reason.trim().length > 0 &&
+          isDate(repayment.reversal.at) &&
+          isString(repayment.reversal.reversalEventId) &&
+          repayment.reversal.reversalEventId.trim().length > 0),
+    ) &&
+    value.corrections.every(
+      (correction: unknown) =>
+        isRecord(correction) &&
+        isString(correction.reason) &&
+        correction.reason.trim().length > 0 &&
+        isDate(correction.at),
+    )
+  );
+}
+/* FIN-001 (WS-178 — Wave 6): شكل سجل القرض المستلم — العقد (المُقرض ونوعه
+ * الصريح الذي اختاره المستخدم) والأصل وتاريخ القبض وتاريخ الاستحقاق الاختياري
+ * (وسم عرض فقط لا مصروف ولا تنبيه) والمحفظة المعلوماتية والدفعات وتراجعها
+ * الموثق؛ المتبقي قراءة مشتقة في التطبيق لا حقل مخزن. */
+export function validReceivedLoanRecord(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    !value.id.trim() ||
+    !isString(value.lenderName) ||
+    !value.lenderName.trim() ||
+    value.lenderName.trim().length > 200 ||
+    !(value.lenderType === "owner" || value.lenderType === "person" || value.lenderType === "institution") ||
+    !isMoney(value.principalMinor) ||
+    value.principalMinor === 0 ||
+    !isString(value.receivedOn) ||
+    !isLocalDate(value.receivedOn) ||
+    !(value.dueOn === null || value.dueOn === undefined || isString(value.dueOn)) ||
+    (isString(value.dueOn) && !isLocalDate(value.dueOn)) ||
+    (isString(value.dueOn) && isString(value.receivedOn) && value.dueOn < value.receivedOn) ||
+    !(value.note === null || value.note === undefined || isString(value.note)) ||
+    !(value.walletId === null || value.walletId === undefined || isString(value.walletId)) ||
     !isString(value.principalEventId) ||
     value.principalEventId.trim().length === 0 ||
     !Array.isArray(value.repayments) ||

@@ -25,6 +25,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
 import type {
   RecurringExpenseOccurrence,
   RecurringExpenseRuleRevision,
@@ -54,6 +55,7 @@ import {
   type StoredCraftOrder,
 } from "./types";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
+import { findReceivedLoanEventByKey, validateReceivedLoanCommitRelation } from "./receivedLoanCommitGuard";
 import {
   findRecurringExpenseEventByKey,
   validateRecurringExpenseDraftCommit,
@@ -121,6 +123,7 @@ import {
   securityStore,
   shortCashDeclarationStore,
   supplierPurchaseStore,
+  receivedLoanStore,
 } from "./indexedDbStores";
 import { connection, failure } from "./indexedDbLifecycle";
 import { deleteOne, listAll, readOne, writeOne, writeOneIdempotent } from "./indexedDbPrimitives";
@@ -3148,6 +3151,243 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           loans.put(record);
+          events.put(reversal);
+          events.put(replacement);
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish({ ok: true, value: { record, reversal, replacement, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* FIN-001 (WS-178 — Wave 6 — القروض المستلمة): قراءة سجل القروض المستلمة. */
+  listReceivedLoans() {
+    return listAll<ReceivedLoanRecord>(
+      receivedLoanStore,
+      (left, right) => left.receivedOn.localeCompare(right.receivedOn) || left.id.localeCompare(right.id),
+    );
+  }
+  getReceivedLoan(id: string) {
+    return readOne<ReceivedLoanRecord>(receivedLoanStore, id);
+  }
+  /* كتابة ذرّية: سجل القرض المستلم مع حدثه (قبض أصل/سداد أصل/تراجع سداد) —
+   * الحدث موجود سلفًا أو مفتاحه مستعمل → إعادة استخدام؛ العلاقة بين السجل
+   * المخزّن والوارد يجب أن تطابق عملية مجال واحدة (AV-02: تزامن تسديد
+   * القروض المستلمة)، وإلا يُرفض الالتزام ويبقى السجل والأحداث متسقين. */
+  async commitReceivedLoanRecord(
+    record: ReceivedLoanRecord,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ record: ReceivedLoanRecord; event: FinancialEvent; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([receivedLoanStore, financialEventStore], "readwrite");
+        const receivedLoans = transaction.objectStore(receivedLoanStore);
+        const events = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{
+          record: ReceivedLoanRecord;
+          event: FinancialEvent;
+          reused: boolean;
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{ record: ReceivedLoanRecord; event: FinancialEvent; reused: boolean }>,
+        ) => {
+          resolve(result);
+        };
+        const eventRequest = events.get(event.id);
+        eventRequest.onerror = () => {
+          pending = failure(eventRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        eventRequest.onsuccess = () => {
+          const existingEvent = eventRequest.result as FinancialEvent | undefined;
+          if (existingEvent) {
+            const loanRequest = receivedLoans.get(record.id);
+            loanRequest.onsuccess = () => {
+              const existingLoan = loanRequest.result as ReceivedLoanRecord | undefined;
+              pending = {
+                ok: true,
+                value: { record: existingLoan ?? record, event: existingEvent, reused: true },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            loanRequest.onerror = () => {
+              pending = failure(loanRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          /* AV-02 + حتمية المفتاح: مسح الأحداث داخل المعاملة — حدث سابق بنفس
+           * مفتاح الحتمية (إعادة تشغيل تراجع/إنشاء بعد نجاح) يُعاد كما هو. */
+          const keyScanRequest = events.getAll();
+          keyScanRequest.onerror = () => {
+            pending = failure(keyScanRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          keyScanRequest.onsuccess = () => {
+            const keyReplay = findReceivedLoanEventByKey(
+              keyScanRequest.result as FinancialEvent[],
+              event.idempotencyKey,
+              event.id,
+            );
+            if (keyReplay) {
+              const loanRequest = receivedLoans.get(record.id);
+              loanRequest.onsuccess = () => {
+                const existingLoan = loanRequest.result as ReceivedLoanRecord | undefined;
+                pending = {
+                  ok: true,
+                  value: { record: existingLoan ?? record, event: keyReplay, reused: true },
+                };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+              };
+              loanRequest.onerror = () => {
+                pending = failure(loanRequest.error, database);
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+              };
+              return;
+            }
+            /* AV-02: العلاقة بين السجل المخزّن والوارد تُفحص داخل المعاملة —
+             * دفعة متزامنة سبقت هذه الكتابة تكسر علاقة «دفعة واحدة بالضبط»
+             * فيُرفض الالتزام ويبقى السجل متسقًا مع أحداثه. */
+            const loanRequest = receivedLoans.get(record.id);
+            loanRequest.onsuccess = () => {
+              const storedLoan = loanRequest.result as ReceivedLoanRecord | undefined;
+              const relation = validateReceivedLoanCommitRelation(storedLoan, record, event);
+              if (!relation.ok) {
+                pending = { ok: false, code: "storage_stale", message: relation.message };
+                try {
+                  transaction.abort();
+                } catch {
+                  if (pending) finish(pending);
+                }
+                return;
+              }
+              receivedLoans.put(record);
+              events.put(event);
+            };
+            loanRequest.onerror = () => {
+              pending = failure(loanRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+          };
+        };
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { record, event, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* تصحيح قرض مستلم: التراجع والبديل والسجل في معاملة واحدة. */
+  async commitReceivedLoanCorrection(
+    record: ReceivedLoanRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<
+    StorageResult<{
+      record: ReceivedLoanRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([receivedLoanStore, financialEventStore], "readwrite");
+        const receivedLoans = transaction.objectStore(receivedLoanStore);
+        const events = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{
+          record: ReceivedLoanRecord;
+          reversal: FinancialEvent;
+          replacement: FinancialEvent;
+          reused: boolean;
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{
+            record: ReceivedLoanRecord;
+            reversal: FinancialEvent;
+            replacement: FinancialEvent;
+            reused: boolean;
+          }>,
+        ) => {
+          resolve(result);
+        };
+        const reversalRequest = events.get(reversal.id);
+        reversalRequest.onerror = () => {
+          pending = failure(reversalRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        reversalRequest.onsuccess = () => {
+          if (reversalRequest.result) {
+            const replacementRequest = events.get(replacement.id);
+            replacementRequest.onsuccess = () => {
+              pending = {
+                ok: true,
+                value: {
+                  record,
+                  reversal: reversalRequest.result as FinancialEvent,
+                  replacement: (replacementRequest.result as FinancialEvent | undefined) ?? replacement,
+                  reused: true,
+                },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            replacementRequest.onerror = () => {
+              pending = failure(replacementRequest.error, database);
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+            };
+            return;
+          }
+          receivedLoans.put(record);
           events.put(reversal);
           events.put(replacement);
         };

@@ -19,6 +19,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+
 export default function LoanEditor() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
@@ -100,6 +101,10 @@ export default function LoanEditor() {
     }
     setMessage(null);
     setFieldError(false);
+    if (!loans) {
+      setMessage("جارٍ تجهيز خدمة القروض — أعد المحاولة بعد لحظة.");
+      return false;
+    }
     saveInFlightRef.current = true;
     setSaving(true);
     try {

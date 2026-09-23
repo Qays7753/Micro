@@ -29,6 +29,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
 import type {
   RecurringExpenseOccurrence,
   RecurringExpenseRuleRevision,
@@ -46,8 +47,12 @@ import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
  * لا حقول جديدة على سجلات قائمة ولا ترحيل بيانات؛ القديم يفتح ويجدها فارغة.
  * FIN-002 (عقد ٤٢ / نمط D-037): المخطط ٣٧ يضيف مخزن `expense-budgets` واحدًا
  * لسجلات الميزانية المختارة (خطة لا حدثًا ماليًا) بالمُنشئ المحروس نفسه —
- * لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا. */
-export const localSchemaVersion = 37;
+ * لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا.
+ * FIN-001 (WS-178 — Wave 6 / نمط D-037): المخطط ٣٨ يضيف مخزن `received-loans`
+ * واحدًا لسجلات القروض المستلمة (الحقيقة المالية في أحداثها داخل
+ * financial-events) بالمُنشئ المحروس نفسه — لا حقول جديدة على سجل قائم
+ * ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا. */
+export const localSchemaVersion = 38;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
@@ -59,8 +64,11 @@ export const localExportFormat = "micro-prototype-local-export";
  * بلا اختراع سجلات — الغياب يعني قوائم فارغة.
  * FIN-002 (عقد ٤٢): النسخة ٢٩ تضيف عائلة الميزانيات إلى لقطة التصدير وعداداتها؛
  * ملف ٢٨/٣٦ يبقى زوجًا موروثًا مقبولًا في الاستيراد بلا اختراع ميزانيات —
- * الغياب يعني قائمة فارغة. */
-export const localExportVersion = 29;
+ * الغياب يعني قائمة فارغة.
+ * FIN-001 (WS-178 — Wave 6): النسخة ٣٠ تضيف عائلة القروض المستلمة إلى لقطة
+ * التصدير وعداداتها؛ ملف ٢٩/٣٧ يبقى زوجًا موروثًا مقبولًا في الاستيراد بلا
+ * اختراع قروض مستلمة — الغياب يعني قائمة فارغة بلا اختراع تاريخ. */
+export const localExportVersion = 30;
 export const localSecurityId = "local-security";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
@@ -124,6 +132,8 @@ export type LocalExportCounts = {
   recurringExpenseOccurrences: number;
   /* FIN-002 (عقد ٤٢): عائلة الميزانيات داخل العدادات الصارمة. */
   expenseBudgets: number;
+  /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة داخل العدادات الصارمة. */
+  receivedLoans: number;
 };
 /* المجموعة ٢ (عقد ٢٨ — مخزون انتقائي): مخزن ٣٢/نسخة ٢٤ أضافتا قرار المتابعة
  * ومعرفة رصيد البداية لكل مادة، ووسم معرفة التكلفة على الحركات، وربط الشراء
@@ -365,6 +375,10 @@ export type LocalStoreSnapshot = {
    * التصدير القديم = قائمة فارغة بلا اختراع تاريخ. */
   assets?: readonly AssetRecord[];
   loans?: readonly LoanRecord[];
+  /* FIN-001 (WS-178 — Wave 6): سجلات القروض المستلمة — مجموعة جديدة فوق
+   * أحداثها داخل financialEvents؛ الاقتراض التزام مستقل لا إيراد ولا رأس
+   * مال. الغياب في التصدير القديم = قائمة فارغة بلا اختراع تاريخ. */
+  receivedLoans?: readonly ReceivedLoanRecord[];
   /* OPS-003 (عقد ٤١): سلاسل المصروف المتكرر ومراجعاتها وفتراتها — ثلاث مجموعات
    * جديدة فوق أحداثها داخل financialEvents؛ الفترة تحمل رابط الحدث
    * (recordedFinancialEventId) باتجاه واحد. الغياب في التصدير القديم = قائمة
@@ -744,6 +758,28 @@ export interface PrototypeLocalStore {
   ): Promise<
     StorageResult<{
       record: LoanRecord;
+      reversal: FinancialEvent;
+      replacement: FinancialEvent;
+      reused: boolean;
+    }>
+  >;
+  /* FIN-001 (WS-178 — Wave 6 — القروض المستلمة): قراءة سجل القروض المستلمة. */
+  listReceivedLoans(): Promise<StorageResult<readonly ReceivedLoanRecord[]>>;
+  getReceivedLoan(id: string): Promise<StorageResult<ReceivedLoanRecord | null>>;
+  /* كتابة ذرّية واحدة: سجل القرض المستلم مع حدثه (قبض أصل/سداد أصل/تراجع
+   * سداد) — لا حالة بينية أبدًا؛ نفس عهدة الحتمية وحارس علاقة AV-02. */
+  commitReceivedLoanRecord(
+    record: ReceivedLoanRecord,
+    event: FinancialEvent,
+  ): Promise<StorageResult<{ record: ReceivedLoanRecord; event: FinancialEvent; reused: boolean }>>;
+  /* تصحيح قرض مستلم: التراجع والبديل والسجل المحدّث في معاملة واحدة. */
+  commitReceivedLoanCorrection(
+    record: ReceivedLoanRecord,
+    reversal: FinancialEvent,
+    replacement: FinancialEvent,
+  ): Promise<
+    StorageResult<{
+      record: ReceivedLoanRecord;
       reversal: FinancialEvent;
       replacement: FinancialEvent;
       reused: boolean;

@@ -44,7 +44,7 @@ export default function LoanDetail() {
   }, []);
 
   const load = useCallback(() => {
-    if (!loanId) return;
+    if (!loanId || !loans) return;
     loans.read(loanId).then(result => {
       if (!result.ok) {
         setState({ phase: "error", message: result.message });
@@ -54,8 +54,16 @@ export default function LoanDetail() {
     });
   }, [loans, loanId]);
 
-  useEffect(load, [load, dataVersion]);
+  useEffect(() => {
+    if (loans) load();
+  }, [load, dataVersion]);
 
+  if (!loans)
+    return (
+      <p className="micro-route-loading" role="status">
+        جارٍ تجهيز القروض…
+      </p>
+    );
   if (state.phase === "loading")
     return (
       <p className="micro-route-loading" role="status">
@@ -84,7 +92,7 @@ export default function LoanDetail() {
    * نمط micro-inline-reversal في تفاصيل الأصل. */
   function confirmInlineReversal(repaymentId: string) {
     const trimmed = reversalReason.trim();
-    if (!trimmed) return;
+    if (!trimmed || !loans) return;
     setBusy(true);
     void loans.reverseRepayment(loan.id, repaymentId, trimmed).then(result => {
       setBusy(false);
@@ -112,6 +120,7 @@ export default function LoanDetail() {
       setMessage("أكمل سبب التصحيح — التوثيق إلزامي.");
       return;
     }
+    if (!loans) return;
     setBusy(true);
     const result = await loans.correctLoan(loan.id, {
       borrowerName: newBorrower.trim() || undefined,
@@ -310,6 +319,7 @@ export default function LoanDetail() {
 
       {repayOpen ? (
         <RepaymentSheet
+          service={loans}
           row={{ loan, reading }}
           onClose={() => setRepayOpen(false)}
           onDone={() => {

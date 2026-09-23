@@ -31,10 +31,10 @@ describe("documentation consistency — Group 2 implemented on the remediation b
     expect(currentState).toContain("عقد رحلة إعادة المحاولة");
   });
 
-  it("schema and export versions match the code constants (37/29 after FIN-002 contract 42; the 35/27 statement stays as Group 2 history)", () => {
+  it("schema and export versions match the code constants (38/30 after FIN-001 WS-178; the 35/27 statement stays as Group 2 history)", () => {
     expect(currentState).toContain("**٣٥ / ٢٧ بلا تغيير**");
-    expect(String(localSchemaVersion)).toBe("37");
-    expect(String(localExportVersion)).toBe("29");
+    expect(String(localSchemaVersion)).toBe("38");
+    expect(String(localExportVersion)).toBe("30");
   });
 
   it("todo marks Group 2 done on the branch and pending merge — not merged", () => {

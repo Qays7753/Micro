@@ -641,6 +641,8 @@ function minimalFileForPair(version: number, schemaVersion: number): string {
             recurringExpenseOccurrences: 0,
             /* FIN-002 (عقد ٤٢): عدادات عائلة الميزانيات في الزوج الحالي. */
             expenseBudgets: 0,
+            /* FIN-001 (WS-178 — Wave 6): عدادات عائلة القروض المستلمة في الزوج الحالي. */
+            receivedLoans: 0,
             schedules: 0,
             drafts: 0,
           },
@@ -650,6 +652,7 @@ function minimalFileForPair(version: number, schemaVersion: number): string {
 }
 
 const ACCEPTED_PAIRS: [number, number][] = [
+  [30, 38],
   [29, 37],
   [28, 36],
   [27, 35],

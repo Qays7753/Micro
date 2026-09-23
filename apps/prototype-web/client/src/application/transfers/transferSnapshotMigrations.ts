@@ -271,6 +271,29 @@ export function migrateTransferSnapshot(
             : loan,
         )
       : [],
+    /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة — الغياب في ملف قديم =
+     * قائمة فارغة بلا اختراع تاريخ؛ والحقول الاختيارية تُطبع بقيم فارغة آمنة
+     * (تاريخ استحقاق عرض فقط/ملاحظة/محفظة/دفعات/تصحيحات) كما القرض الصادر. */
+    receivedLoans: Array.isArray(raw.receivedLoans)
+      ? raw.receivedLoans.map(loan =>
+          isRecord(loan)
+            ? {
+                ...loan,
+                dueOn: loan.dueOn ?? null,
+                note: loan.note ?? null,
+                walletId: loan.walletId ?? null,
+                repayments: Array.isArray(loan.repayments)
+                  ? loan.repayments.map((repayment: Record<string, unknown>) =>
+                      isRecord(repayment)
+                        ? { ...repayment, reversal: repayment.reversal ?? null }
+                        : repayment,
+                    )
+                  : [],
+                corrections: Array.isArray(loan.corrections) ? loan.corrections : [],
+              }
+            : loan,
+        )
+      : [],
     /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر — الغياب في ملف قديم = قائمة
      * فارغة بلا اختراع تاريخ؛ والحقول الاخيارية تُسوّى بصمت صفرًا صادقًا. */
     recurringExpenseSeries: Array.isArray(raw.recurringExpenseSeries)

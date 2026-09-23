@@ -89,6 +89,10 @@ function familyForEventType(type: FinancialEvent["type"]): ActivityFamily {
       return "asset";
     case "loan_outgoing_cash":
     case "loan_repayment_cash":
+    /* FIN-001 (WS-178 — Wave 6): عائلة القروض تشمل الاتجاهين — الاقتراض
+     * التزام لا إيراد؛ تصنيف الأثر يتبع دلتا الكاش كما هي. */
+    case "loan_received_cash":
+    case "loan_received_repayment_cash":
       return "loan";
     case "deposit_retained_revenue":
     case "deposit_retained_owner":
@@ -114,7 +118,12 @@ function effectForEvent(event: FinancialEvent): ActivityEffectClass {
 
 function hrefForEvent(event: FinancialEvent): string {
   if (event.assetContext?.assetId) return `/assets/${event.assetContext.assetId}`;
-  if (event.loanContext?.loanId) return `/loans/${event.loanContext.loanId}`;
+  /* FIN-001 (WS-178 — Wave 6): سياق القرض المستلم (يحمل المُقرض) يتوجه
+   * لبيت التزام الاقتراض لا لبيت القرض الصادر — نفس اصطلاح سجل التصحيحات. */
+  if (event.loanContext?.loanId)
+    return (event.loanContext.lender ?? null) !== null
+      ? `/loans/received/${event.loanContext.loanId}`
+      : `/loans/${event.loanContext.loanId}`;
   if (event.depositContext?.orderId) return `/orders/${event.depositContext.orderId}`;
   return `/finance?event=${encodeURIComponent(event.id)}`;
 }

@@ -23,6 +23,8 @@ export function exportCountsOf(snapshot: LocalStoreSnapshot): LocalExportCounts 
     recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences?.length ?? 0,
     /* FIN-002 (عقد ٤٢): عائلة الميزانيات داخل العدادات الصارمة. */
     expenseBudgets: snapshot.expenseBudgets?.length ?? 0,
+    /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة داخل العدادات الصارمة. */
+    receivedLoans: snapshot.receivedLoans?.length ?? 0,
     schedules: snapshot.schedules?.length ?? 0,
     drafts: snapshot.drafts?.length ?? 0,
   };

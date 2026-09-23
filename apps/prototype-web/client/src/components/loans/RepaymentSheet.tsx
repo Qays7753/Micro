@@ -2,28 +2,30 @@
  * المجموعة ٤ (عقد ٢٩): ورقة سداد الدفعة — واجهة سفلية سريعة (vaul) لسداد
  * جزئي أو كامل. تُظهر الأصل والمسدَّد والمتبقي قبل التأكيد، وتحرس التجاوز.
  * السداد يرفع الكاش ويخفض القرض — لا إيراد جديد أبدًا.
+ * FIN-001 (WS-178 — Wave 6): الخدمة تمر خصائصًا من صفحتها (تُحمّل ديناميكيًا
+ * بسابقة EXE-014) — الورقة لا تلمس سياق الخدمات الجذري مباشرة.
  */
 import { HandCoins, Save } from "lucide-react";
 import { useRef, useState } from "react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
-import type { LoanSummaryRow } from "@/application/loans/loanService";
+import type { LoanSummaryRow, LoanService } from "@/application/loans/loanService";
 
 import { Button } from "@/components/primitives";
 export default function RepaymentSheet({
+  service,
   row,
   onClose,
   onDone,
 }: {
+  service: LoanService;
   row: LoanSummaryRow;
   onClose: () => void;
   onDone: () => void;
 }) {
-  const { loans } = usePrototypeServices();
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
   const [date, setDate] = useState(() => localDateInAmman());
@@ -51,7 +53,7 @@ export default function RepaymentSheet({
     saveInFlightRef.current = true;
     setSaving(true);
     try {
-      const result = await loans.recordRepayment(row.loan.id, {
+      const result = await service.recordRepayment(row.loan.id, {
         amountMinor,
         date,
         note: note.trim() || null,

@@ -71,6 +71,9 @@ export type StatementBlocks = {
     retainedDepositRevenueMinor: number;
     assetBookValueNowMinor: number;
     loansOutstandingNowMinor: number;
+    /* FIN-001 (WS-178 — Wave 6): التزام الاقتراض القائم — مستقل عن الذمم
+     * التشغيلية وعن القروض الصادرة؛ من قراءة المركز نفسها. */
+    borrowedLoansOutstandingNowMinor: number;
     pendingRetainedDepositsNowMinor: number;
     unresolved: readonly StatementUnresolvedLine[];
   };
@@ -241,6 +244,10 @@ export class StatementService {
     const assetDisposalReceived = cashEventLines(["asset_disposal_cash"]);
     const loanGiven = cashEventLines(["loan_outgoing_cash"]);
     const loanRepaid = cashEventLines(["loan_repayment_cash"]);
+    /* FIN-001 (WS-178 — Wave 6): الاقتراض وسداد أصلِه — عائلتان صريحتان كإخوتهما
+     * الصادرتين: إخفاء حركة كاش حقيقية كان هو العيب الذي أصلحه تصحيح 4-c. */
+    const loanReceived = cashEventLines(["loan_received_cash"]);
+    const loanReceivedRepaid = cashEventLines(["loan_received_repayment_cash"]);
 
     /* مشتريات الموردين داخل الفترة: الدفع الابتدائي بتاريخ الشراء والدفعات بتواريخها. */
     let supplierPurchasesInPeriodMinor = 0;
@@ -301,7 +308,11 @@ export class StatementService {
                       ? "قرض أعطيته"
                       : type === "loan_repayment_cash"
                         ? "استرداد قرض"
-                        : "مصروف مدفوع";
+                        : type === "loan_received_cash"
+                          ? "قبض قرض مستلم"
+                          : type === "loan_received_repayment_cash"
+                            ? "سداد أصل قرض مستلم"
+                            : "مصروف مدفوع";
     const cashMovingTypes: readonly FinancialEvent["type"][] = [
       "owner_investment_cash",
       "owner_withdrawal_cash",
@@ -313,6 +324,8 @@ export class StatementService {
       "asset_disposal_cash",
       "loan_outgoing_cash",
       "loan_repayment_cash",
+      "loan_received_cash",
+      "loan_received_repayment_cash",
     ];
     const cashCorrectionLines: StatementCorrectionLine[] = activeEvents
       .filter(event => event.correctionType === "reverse" && cashMovingTypes.includes(event.type))
@@ -414,6 +427,17 @@ export class StatementService {
           amountMinor: event.cashDeltaMinor,
         })),
       },
+      {
+        id: "loan-received-cash",
+        label: "قروض أخذتها (قبض)",
+        amountMinor: loanReceived.total,
+        qualifier: "اقتراض — ليس إيرادًا",
+        sources: loanReceived.matched.map(event => ({
+          label: event.loanContext ? `قبض قرض — ${event.loanContext.lender}` : event.note,
+          href: event.loanContext ? `/loans/received/${event.loanContext.loanId}` : `/finance`,
+          amountMinor: event.cashDeltaMinor,
+        })),
+      },
     ].filter(line => line.amountMinor !== 0);
 
     const cashOut: StatementLine[] = [
@@ -487,6 +511,17 @@ export class StatementService {
         sources: loanGiven.matched.map(event => ({
           label: event.loanContext ? `قرض — ${event.loanContext.borrower}` : event.note,
           href: event.loanContext ? `/loans/${event.loanContext.loanId}` : `/finance`,
+          amountMinor: event.cashDeltaMinor,
+        })),
+      },
+      {
+        id: "loan-received-repayment-cash",
+        label: "سداد أصل قروض أخذتها",
+        amountMinor: loanReceivedRepaid.total,
+        qualifier: "تسديد التزام اقتراض — ليس مصروفًا",
+        sources: loanReceivedRepaid.matched.map(event => ({
+          label: event.loanContext ? `سداد أصل — ${event.loanContext.lender}` : event.note,
+          href: event.loanContext ? `/loans/received/${event.loanContext.loanId}` : `/finance`,
           amountMinor: event.cashDeltaMinor,
         })),
       },
@@ -582,6 +617,7 @@ export class StatementService {
           retainedDepositRevenueMinor: periodResult.value.retainedDepositRevenueMinor,
           assetBookValueNowMinor: position.assetBookValueMinor,
           loansOutstandingNowMinor: position.loansOutstandingMinor,
+          borrowedLoansOutstandingNowMinor: position.borrowedLoansOutstandingMinor,
           pendingRetainedDepositsNowMinor: position.pendingRetainedDepositsMinor,
           unresolved: (
             [

@@ -58,6 +58,10 @@ export type ProjectFinancialPosition = {
    * والقروض القائمة (ذمم لصالح المشروع)، وعربونات محتفظة بانتظار القرار. */
   assetBookValueMinor: number;
   loansOutstandingMinor: number;
+  /* FIN-001 (WS-178 — Wave 6): القروض المستلمة القائمة — التزام اقتراض مستقل
+   * عن الذمم التشغيلية وعن القروض الصادرة؛ من مجموع أحداث المجال (loanPayable)
+   * لا من رصيد مخزن. */
+  borrowedLoansOutstandingMinor: number;
   pendingRetainedDepositsMinor: number;
   /* FIN-001 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): حالة الدليل لكل مقياس —
    * «غير مسجل» لا يُعرض رقمًا مؤكدًا؛ القيم العددية أعلاه تبقى كما هي
@@ -75,6 +79,9 @@ export type ProjectFinancialEvidence = {
   walletCash: FinancialMetricEvidence;
   unallocatedCash: FinancialMetricEvidence;
   operatingExpenses: FinancialMetricEvidence;
+  /* FIN-001 (WS-178 — Wave 6): دليل طبقة الاقتراض — أي حدث قرض مستلم يجعل
+   * القيمة صفرًا موثقًا لا «غير مسجل» (نفس منطق إخوته). */
+  borrowedLoans: FinancialMetricEvidence;
 };
 export type CogsStatus = "recorded" | "partial" | "not_available";
 export type RecordedPeriodResult = {
@@ -505,6 +512,11 @@ export class ProjectFinancialService {
       operatingExpenses: eventsResult.value.some(event => event.operatingExpenseDeltaMinor !== 0)
         ? "recorded"
         : "not_recorded",
+      borrowedLoans: eventsResult.value.some(
+        event => event.type === "loan_received_cash" || event.type === "loan_received_repayment_cash",
+      )
+        ? "recorded"
+        : "not_recorded",
     };
     return {
       ok: true,
@@ -526,6 +538,7 @@ export class ProjectFinancialService {
         allocatedToWalletsMinor,
         assetBookValueMinor: project.assetMinor,
         loansOutstandingMinor: project.loanMinor,
+        borrowedLoansOutstandingMinor: project.loanPayableMinor,
         pendingRetainedDepositsMinor,
         evidence,
       },
