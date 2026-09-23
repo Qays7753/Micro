@@ -1,6 +1,6 @@
 {
   "schema": "micro-operations-control-excel-provenance-v1",
-  "source_digest": "5f74de16185707d9ae1efbaba19ed892285780abdf24f56a1cd638994ee32f9d",
+  "source_digest": "334109e908705b71c9910e2fba2776722f06fd2cafcec07a3e9c666526318e0b",
   "source_files": [
     "docs/operations/control/items/AUDIT-001.json",
     "docs/operations/control/items/BE-001.json",
@@ -68,7 +68,6 @@
     "docs/operations/control/items/V-012.json",
     "docs/operations/control/releases/pre-pilot.json",
     "docs/operations/control/reports/index.json",
-    "docs/operations/control/workstreams/WS-177.json",
     "docs/operations/control/workstreams/review/WS-001.json",
     "docs/operations/control/workstreams/review/WS-141.json",
     "docs/operations/control/workstreams/review/WS-161.json",
@@ -86,7 +85,8 @@
     "docs/operations/control/workstreams/review/WS-173.json",
     "docs/operations/control/workstreams/review/WS-174.json",
     "docs/operations/control/workstreams/review/WS-175.json",
-    "docs/operations/control/workstreams/review/WS-176.json"
+    "docs/operations/control/workstreams/review/WS-176.json",
+    "docs/operations/control/workstreams/review/WS-177.json"
   ],
   "workbook_path": "docs/operations/control/generated/MASTER-TRACKER.xlsx",
   "workbook_sha256": "e7ed93736336c860432317caee1a30a71f749bb0c679b15abdbaa9d4b627162d",
