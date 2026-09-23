@@ -67,6 +67,9 @@ describe("financial event domain core", () => {
       assetMinor: 0,
       loanMinor: 0,
       retainedDepositRevenueMinor: 0,
+      /* FIN-001 (WS-178 — Wave 6): التزام القروض المستلمة طبقة مستقلة —
+       * الأحداث القديمة تُقرأ صفرًا كسابقة الطبقات السابقة. */
+      loanPayableMinor: 0,
       eventCount: 2,
     });
   });

@@ -23,6 +23,8 @@ export type FinancialEventType =
   | "asset_writeoff"
   | "loan_outgoing_cash"
   | "loan_repayment_cash"
+  | "loan_received_cash"
+  | "loan_received_repayment_cash"
   | "deposit_retained_revenue"
   | "deposit_retained_owner";
 type ExpenseRelationship = "project" | "shared";
@@ -61,6 +63,9 @@ export type AssetEventContext = {
 export type LoanEventContext = {
   loanId: string;
   borrower: string;
+  /* FIN-001 (WS-178 — Wave 6): اسم المُقرض لأنواع القرض المستلم فقط؛
+   * الصادرة تُبقي borrower كما هي — القديم يبقى صالحًا بلا ترحيل. */
+  lender?: string | null;
 };
 export type DepositEventContext = {
   orderId: string;
@@ -94,6 +99,10 @@ export type FinancialEvent = {
   assetDeltaMinor?: MoneyMinor;
   /** المجموعة ٤: أثر القروض الصادرة القائمة — إقراض موجب، سداد سالب. قراءة قديمة = صفر. */
   loanDeltaMinor?: MoneyMinor;
+  /** FIN-001 (WS-178 — Wave 6): أثر التزام القروض المستلمة (الاقتراض) — قبض موجب
+   * (التزام أعلى) وسداد أصل سالب؛ ليس مصروفًا ولا ذمم تشغيلية ولا رأس مال.
+   * قراءة قديمة = صفر (سابقة الأمانات/الأصول). */
+  loanPayableDeltaMinor?: MoneyMinor;
   /** المجموعة ٤: إيراد عربون محتفظ به مصنَّف صراحةً — لا يُنشأ إلا بقرار موثق. قراءة قديمة = صفر. */
   revenueDeltaMinor?: MoneyMinor;
   assetContext?: AssetEventContext | null;
@@ -136,5 +145,8 @@ export type FinancialEventTotals = {
   assetMinor: MoneyMinor;
   loanMinor: MoneyMinor;
   retainedDepositRevenueMinor: MoneyMinor;
+  /* FIN-001 (WS-178 — Wave 6): التزام القروض المستلمة القائم — طبقة مستقلة
+   * عن الذمم التشغيلية وعن القروض الصادرة؛ القديم يقرأ صفرًا. */
+  loanPayableMinor: MoneyMinor;
   eventCount: number;
 };

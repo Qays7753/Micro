@@ -220,12 +220,23 @@ function normalizeAssetContext(value: AssetEventContext | null | undefined): Ass
     ...(value.bookValueMinor !== undefined ? { bookValueMinor: value.bookValueMinor } : {}),
   });
 }
-function normalizeLoanContext(value: LoanEventContext | null | undefined): LoanEventContext | null {
+function normalizeLoanContext(
+  value: LoanEventContext | null | undefined,
+  type: CreateFinancialEventInput["type"],
+): LoanEventContext | null {
   if (!value) return null;
   const loanId = value.loanId?.trim();
   const borrower = value.borrower?.trim();
   if (!loanId || !borrower) throw new Error("سياق القرض يتطلب معرف القرض واسم المستدين.");
-  return Object.freeze({ loanId, borrower });
+  /* FIN-001 (WS-178 — Wave 6): القرض المستلم يعلن المُقرض صراحةً — لا تخمين
+   * للنوع الاقتصادي؛ الصادر يبقى بحقل المستدين كما خُزّن تاريخيًا. */
+  const isReceivedLoanType =
+    type === "loan_received_cash" || type === "loan_received_repayment_cash";
+  const lender = value.lender?.trim() || null;
+  if (isReceivedLoanType && !lender) throw new Error("أحداث القرض المستلم تتطلب اسم المُقرض.");
+  if (!isReceivedLoanType && lender)
+    throw new Error("اسم المُقرض يخص أحداث القرض المستلم فقط.");
+  return Object.freeze({ loanId, borrower, lender });
 }
 function normalizeDepositContext(value: DepositEventContext | null | undefined): DepositEventContext | null {
   if (!value) return null;
@@ -257,7 +268,7 @@ function normalizeLinkedContexts(input: CreateFinancialEventInput): {
   depositContext: DepositEventContext | null;
 } {
   const assetContext = normalizeAssetContext(input.assetContext);
-  const loanContext = normalizeLoanContext(input.loanContext);
+  const loanContext = normalizeLoanContext(input.loanContext, input.type);
   const depositContext = normalizeDepositContext(input.depositContext);
   assertAssetContextShape(input.type, assetContext);
   const isLoanType = input.type.startsWith("loan_");
@@ -268,41 +279,49 @@ function normalizeLinkedContexts(input: CreateFinancialEventInput): {
   if (!isDepositType && depositContext) throw new Error("سياق الطلب يخص تصنيف العربون المحتفظ به فقط.");
   return { assetContext, loanContext, depositContext };
 }
-/* خريطة الأثر [كاش، ذمم، رأس مالك، مصروف، أمانات، أصول، قروض، إيراد عربون] لكل نوع حدث.
- * المجموعة ٤: الأعمدة الثلاث الأخيرة اختيارية القراءة (القديم = 0) كسابقة الأمانات؛
- * نوع التخلص وحده يحمل مبلغين (المقابل نقدًا والدفتري سياقًا) فيُحسب فرعه في الدالة. */
-type DeltaRow = readonly [number, number, number, number, number, number, number, number];
+/* خريطة الأثر [كاش، ذمم، رأس مالك، مصروف، أمانات، أصول، قروض، إيراد عربون، التزام قرض مستلم]
+ * لكل نوع حدث. المجموعة ٤: الأعمدة الثلاث الأخيرة اختيارية القراءة (القديم = 0)
+ * كسابقة الأمانات؛ نوع التخلص وحده يحمل مبلغين (المقابل نقدًا والدفتري سياقًا)
+ * فيُحسب فرعه في الدالة. FIN-001 (WS-178 — Wave 6): العمود التاسع — التزام
+ * الاقتراض المستقل عن الذمم التشغيلية وعن القروض الصادرة. */
+type DeltaRow = readonly [number, number, number, number, number, number, number, number, number];
 const DELTA_TABLE: Readonly<Record<CreateFinancialEventInput["type"], DeltaRow>> = {
-  owner_investment_cash: [1, 0, 1, 0, 0, 0, 0, 0],
-  owner_withdrawal_cash: [-1, 0, -1, 0, 0, 0, 0, 0],
-  operating_expense_cash: [-1, 0, 0, 1, 0, 0, 0, 0],
-  operating_expense_payable: [0, 1, 0, 1, 0, 0, 0, 0],
-  payable_settlement_cash: [-1, -1, 0, 0, 0, 0, 0, 0],
+  owner_investment_cash: [1, 0, 1, 0, 0, 0, 0, 0, 0],
+  owner_withdrawal_cash: [-1, 0, -1, 0, 0, 0, 0, 0, 0],
+  operating_expense_cash: [-1, 0, 0, 1, 0, 0, 0, 0, 0],
+  operating_expense_payable: [0, 1, 0, 1, 0, 0, 0, 0, 0],
+  payable_settlement_cash: [-1, -1, 0, 0, 0, 0, 0, 0, 0],
   /* المبدأ ١٣: أمانة قُبضت — الكاش يرتفع والرصيد الأمين يرتفع؛ لا إيراد ولا مصروف. */
-  amanah_held_cash: [1, 0, 0, 0, 1, 0, 0, 0],
+  amanah_held_cash: [1, 0, 0, 0, 1, 0, 0, 0, 0],
   /* أمانة سُلّمت — الكاش ينخفض والرصيد الأمين ينخفض؛ لا أثر على الربح. */
-  amanah_released_cash: [-1, 0, 0, 0, -1, 0, 0, 0],
+  amanah_released_cash: [-1, 0, 0, 0, -1, 0, 0, 0, 0],
   /* هالك بلا خروج نقد: يخفض الربح ولا يمس الكاش ولا الذمم. */
-  loss_non_cash: [0, 0, 0, 1, 0, 0, 0, 0],
+  loss_non_cash: [0, 0, 0, 1, 0, 0, 0, 0, 0],
   /* المجموعة ٤ (عقد ٢٩): شراء رأسمالي نقدي — الكاش ينزل والدفتري الأصولي يرتفع؛
    * ليس مصروفًا تشغيليًا فلا يدخل ربح الفترة لحظة الشراء. */
-  asset_purchase_cash: [-1, 0, 0, 0, 0, 1, 0, 0],
+  asset_purchase_cash: [-1, 0, 0, 0, 0, 1, 0, 0, 0],
   /* شراء رأسمالي بالذمم — التزام يرتفع والأصل يرتفع؛ لا مصروف ولا كاش. */
-  asset_purchase_payable: [0, 1, 0, 0, 0, 1, 0, 0],
+  asset_purchase_payable: [0, 1, 0, 0, 0, 1, 0, 0, 0],
   /* إهلاك غير نقدي: الدفتري ينزل فقط — أثره في نتيجة الفترة بند مستقل لا مصروف تشغيلي. */
-  asset_depreciation: [0, 0, 0, 0, 0, -1, 0, 0],
+  asset_depreciation: [0, 0, 0, 0, 0, -1, 0, 0, 0],
   /* تخلص بمقابل نقدي — فرع خاص: الكاش بالمقابل، والدفتري بقيمته المجمدة في السياق. */
-  asset_disposal_cash: [1, 0, 0, 0, 0, 0, 0, 0],
+  asset_disposal_cash: [1, 0, 0, 0, 0, 0, 0, 0, 0],
   /* شطب أصل غير نقدي — الدفتري ينزل بمبلغه فقط. */
-  asset_writeoff: [0, 0, 0, 0, 0, -1, 0, 0],
+  asset_writeoff: [0, 0, 0, 0, 0, -1, 0, 0, 0],
   /* قرض صادر: الكاش ينزل والقرض القائم يرتفع — ليس مصروفًا ولا سحب مالك. */
-  loan_outgoing_cash: [-1, 0, 0, 0, 0, 0, 1, 0],
+  loan_outgoing_cash: [-1, 0, 0, 0, 0, 0, 1, 0, 0],
   /* سداد قرض: الكاش يرتفع والقرض ينزل — ليس إيرادًا جديدًا. */
-  loan_repayment_cash: [1, 0, 0, 0, 0, 0, -1, 0],
+  loan_repayment_cash: [1, 0, 0, 0, 0, 0, -1, 0, 0],
+  /* FIN-001 (WS-178 — Wave 6): قرض مستلم (اقتراض) — الكاش يرتفع والتزام
+   * الاقتراض يرتفع؛ ليس إيرادًا ولا رأس مال ولا مصروفًا. */
+  loan_received_cash: [1, 0, 0, 0, 0, 0, 0, 0, 1],
+  /* سداد أصل قرض مستلم — الكاش ينزل والتزام الاقتراض ينزل بالمبلغ نفسه؛
+   * لا يمس نتيجة الفترة ولا الذمم التشغيلية. */
+  loan_received_repayment_cash: [-1, 0, 0, 0, 0, 0, 0, 0, -1],
   /* عربون محتفظ به صُنّف إيرادًا — الكاش دخل سابقًا؛ هنا يُعترف بالإيراد مرة واحدة. */
-  deposit_retained_revenue: [0, 0, 0, 0, 0, 0, 0, 1],
+  deposit_retained_revenue: [0, 0, 0, 0, 0, 0, 0, 1, 0],
   /* عربون محتفظ به صُنّف مال مالك — الكاش دخل سابقًا؛ هنا يُعلن ملكه له دون سحب. */
-  deposit_retained_owner: [0, 0, 1, 0, 0, 0, 0, 0],
+  deposit_retained_owner: [0, 0, 1, 0, 0, 0, 0, 0, 0],
 };
 
 function deltas(
@@ -311,9 +330,8 @@ function deltas(
   expenseContext: OperatingExpenseContext | null,
   assetContext: AssetEventContext | null,
 ) {
-  const [cash, payable, ownerCapital, operatingExpense, amanah, asset, loan, revenue] = DELTA_TABLE[type] ?? [
-    0, 0, 0, 0, 0, 0, 0, 0,
-  ];
+  const [cash, payable, ownerCapital, operatingExpense, amanah, asset, loan, revenue, loanPayable] =
+    DELTA_TABLE[type] ?? [0, 0, 0, 0, 0, 0, 0, 0, 0];
   /* المصروف المشترك غير الموزّع لا يدخل نتيجة الفترة حتى تُحدَّد حصة معلنة. */
   const operatingExpenseMinor = isUnallocatedSharedExpense(expenseContext)
     ? 0
@@ -329,6 +347,7 @@ function deltas(
       type === "asset_disposal_cash" ? -(assetContext?.bookValueMinor ?? 0) : asset * amountMinor,
     loanDeltaMinor: loan * amountMinor,
     revenueDeltaMinor: revenue * amountMinor,
+    loanPayableDeltaMinor: loanPayable * amountMinor,
   };
 }
 
@@ -421,6 +440,7 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
     assetDeltaMinor: -(input.sourceEvent.assetDeltaMinor ?? 0),
     loanDeltaMinor: -(input.sourceEvent.loanDeltaMinor ?? 0),
     revenueDeltaMinor: -(input.sourceEvent.revenueDeltaMinor ?? 0),
+    loanPayableDeltaMinor: -(input.sourceEvent.loanPayableDeltaMinor ?? 0),
     assetContext: input.sourceEvent.assetContext ?? null,
     loanContext: input.sourceEvent.loanContext ?? null,
     depositContext: input.sourceEvent.depositContext ?? null,
@@ -461,6 +481,7 @@ export function summarizeFinancialEvents(events: readonly FinancialEvent[]): Fin
       assetMinor: totals.assetMinor + (event.assetDeltaMinor ?? 0),
       loanMinor: totals.loanMinor + (event.loanDeltaMinor ?? 0),
       retainedDepositRevenueMinor: totals.retainedDepositRevenueMinor + (event.revenueDeltaMinor ?? 0),
+      loanPayableMinor: totals.loanPayableMinor + (event.loanPayableDeltaMinor ?? 0),
       eventCount: totals.eventCount + 1,
     }),
     {
@@ -472,6 +493,7 @@ export function summarizeFinancialEvents(events: readonly FinancialEvent[]): Fin
       assetMinor: 0,
       loanMinor: 0,
       retainedDepositRevenueMinor: 0,
+      loanPayableMinor: 0,
       eventCount: 0,
     },
   );
