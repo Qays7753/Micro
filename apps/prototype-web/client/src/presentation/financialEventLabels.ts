@@ -23,6 +23,9 @@ export const financialEventLabel: Record<FinancialEventType, string> = {
   asset_writeoff: "شطب أصل",
   loan_outgoing_cash: "قرض لشخص",
   loan_repayment_cash: "سداد قرض",
+  /* FIN-001 (WS-178 — Wave 6): تسميات القرض المستلم — التزام اقتراض لا إيراد. */
+  loan_received_cash: "قرض مستلم (التزام)",
+  loan_received_repayment_cash: "سداد أصل قرض مستلم",
   deposit_retained_revenue: "عربون محتفظ به كإيراد",
   deposit_retained_owner: "عربون محتفظ به كمال مالك",
 };

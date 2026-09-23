@@ -86,6 +86,9 @@ const eventKindLabel: Record<FinancialEventType, string> = {
   asset_writeoff: "شطب أصل",
   loan_outgoing_cash: "قرض لشخص",
   loan_repayment_cash: "سداد قرض",
+  /* FIN-001 (WS-178 — Wave 6): تسميات القرض المستلم — التزام اقتراض لا إيراد. */
+  loan_received_cash: "قرض مستلم (التزام)",
+  loan_received_repayment_cash: "سداد أصل قرض مستلم",
   deposit_retained_revenue: "عربون محتفظ به كإيراد",
   deposit_retained_owner: "عربون محتفظ به كمال مالك",
 };
@@ -218,7 +221,11 @@ export class CorrectionHistoryService {
                   ? `/finance?event=${encodeURIComponent(replacement.id)}`
                   : `/finance?event=${encodeURIComponent(event.correctionOfEventId)}`
               : event.loanContext?.loanId
-                ? `/loans/${encodeURIComponent(event.loanContext.loanId)}`
+                ? /* FIN-001 (WS-178 — Wave 6): سياق القرض المستلم (معرّفه يحمل
+                   * المُقرض) يتجه لبيت التزام الاقتراض لا لبيت القرض الصادر. */
+                  (event.loanContext.lender ?? null) !== null
+                  ? `/loans/received/${encodeURIComponent(event.loanContext.loanId)}`
+                  : `/loans/${encodeURIComponent(event.loanContext.loanId)}`
                 : event.depositContext?.orderId
                   ? `/orders/${encodeURIComponent(event.depositContext.orderId)}`
                   : `/finance?event=${encodeURIComponent(event.correctionOfEventId)}`,
