@@ -2,7 +2,7 @@
   "id": "FIN-001",
   "title": "تسجيل اقتراض داخل المشروع",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "stage-3",
   "summary": "تمويل داخل المشروع يزيد الكاش والالتزام دون اعتباره دخلًا.",
@@ -15,13 +15,16 @@
     "cash"
   ],
   "contracts": [],
-  "evidence": [],
+  "evidence": [
+    "reports/agent-report/2026-09-23_fin-roadmap-wave-6-fin-001/report.md",
+    "docs/operations/current-state.md"
+  ],
   "dependencies": [
     "CTRL-001"
   ],
   "owner_decision": "اعتماد سياسة القرض المأخوذ: الكاش والالتزام والمحفظة والسداد وفصل الأصل عن الرسوم/الفوائد.",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
+  "merge_sha": "c4b412a0ca1691b0d192528f6508da07eef89741",
+  "verified_on_main_sha": "c4b412a0ca1691b0d192528f6508da07eef89741",
   "updated_at": "2026-09-23",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
@@ -55,10 +58,22 @@
       "changed_at": "2026-09-23",
       "actor": "ws-178:review",
       "reason": "الاقتراض المستلم منفذ من الطرف للطرف: أحداث loan_received مع عمود التزام مستقل، مخزن محروس، تصدير/استيراد بدورات كاملة ورفض قبل الكتابة، خدمة وعرض بطبقة التزام منفصلة واختيار نوع اقتصادي صريح — قيد مراجعة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-178:merge",
+      "reason": "PR #222 مدمج Squash عند c4b412a0ca1691b0d192528f6508da07eef89741 (الأساس c3b68c6)؛ CI وCloudflare ناجحان على رأس الـPR من الدورة الأولى (لا دورات إصلاح — قاعدة قياس CI-parity من W5 توقعت الحزمة بايتًا-بايتًا: 648,772 متوقعة = 648,772 مقيسة)."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-178:post-merge-verification",
+      "reason": "تحقق على SHA الدمج نفسه c4b412a: CI checks success + Cloudflare Pages success على commit الدمج، وحزمة CI على main نفسها raw=648,772/650,000 + gzip 153,868/155,000 — PASS؛ اختبارات الموجة (32 جديدة: 8 دومين + 24 تطبيق/مخزن/تصدير/DOM) خضر محليًا على main. مراجعة W6-REVIEW المستقلة: REVIEW_PASS."
     }
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة PR الموجة 6 (WS-178) ثم الدمج والتحقق على main قبل VERIFIED.",
+  "next_action": "لا فعل إضافي: منفذ ومتحقق على main (c4b412a).",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",
