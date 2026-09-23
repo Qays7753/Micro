@@ -1,0 +1,42 @@
+{
+  "id": "WS-181",
+  "title": "Financial Roadmap Wave 9 — REL-001 resilience gap-fill (retry-after-reject recovery, re-import atomic no-loss/no-duplication)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "REL-001"
+  ],
+  "branch": "feat/rel-001-resilience-gapfill-20260923",
+  "base_sha": "ec918a98398135aa7bdc230f2970b3b5fee311b6",
+  "areas": [
+    "application/transfers",
+    "quality/resilience"
+  ],
+  "contracts": [
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/35-integrity-continuity-checks-contract.md"
+  ],
+  "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-23",
+  "pr": null,
+  "started_at": "2026-09-23T13:00:00+03:00",
+  "updated_at": "2026-09-23",
+  "next_action": "بوابات كاملة ثم PR ثم دمج وتحقق.",
+  "notes": [
+    "Coordinator coverage audit: the existing resilience suite already covers migration cursor-error no-partial-write, envelope family validation, reject-before-write (every family), backup-before-replace (EXE-014), AV-02 concurrency guards, adapter conformance. Genuine gap: retry-after-reject recovery (rejected file leaves data untouched, then the good file applies with no residue) and re-import atomicity (same verified file applied twice = identical state, no duplication/no loss).",
+    "Fixtures/synthetic data only — no real user data. Separate from cleanup (cleanup was zero-deletion)."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-181:claim",
+      "reason": "Claim تنفيذي فوق main المتحقق ec918a9."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-23",
+      "actor": "ws-181:implement",
+      "reason": "تعبئة فجوتي الصمود ببيانات اصطناعية."
+    }
+  ],
+  "migration_baseline": false
+}
