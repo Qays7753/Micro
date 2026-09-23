@@ -1,35 +1,42 @@
 /**
- * المجموعة ٤ (عقد ٢٩): تفصيل القرض العميق — الأصل والدفعات والتاريخ.
- * سداد دفعة من ورقة سفلية، وتراجع دفعة خطأ بقرار موثق يبقي الأصل في
- * التاريخ. تصحيح القرض (اسم/مبلغ) عكس + بديل عبر الخدمة نفسها.
+ * FIN-001 (WS-178 — Wave 6): تفصيل القرض المستلم — الأصل والتزام الاقتراض
+ * ودفعات السداد والتاريخ. سداد أصل من ورقة سفلية، وتراجع دفعة خطأ بقرار
+ * موثق يبقي القيد في التاريخ. تاريخ الاستحقاق وسم عرض فقط — بلا مصروف
+ * ولا تنبيه. تصحيح القرض (مُقرض/مبلغ) عكس + بديل عبر الخدمة نفسها،
+ * والخدمة تُحمَّل ديناميكيًا (سابقة EXE-014) فلا تدخل كومة الإقلاع.
  */
 import { loanInstallmentCountLabel } from "@/presentation/g5Plurals";
 import { HandCoins, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { getPrototypeLocalStore, usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
-import RepaymentSheet from "@/components/loans/RepaymentSheet";
-import type { LoanRecord, LoanReading } from "@micro-domain/loan/index.js";
+import { formatLocalDate } from "@/presentation/formatters";
+import ReceivedLoanRepaymentSheet from "@/components/loans/ReceivedLoanRepaymentSheet";
+import type { ReceivedLoanRecord, ReceivedLoanReading } from "@micro-domain/received-loan/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+import type { ReceivedLoanService } from "@/application/loans/receivedLoanService";
 
 import { Button } from "@/components/primitives";
-type Reading = { loan: LoanRecord; reading: LoanReading; events: readonly FinancialEvent[] };
+type Reading = { loan: ReceivedLoanRecord; reading: ReceivedLoanReading; events: readonly FinancialEvent[] };
+type ServiceLoad =
+  { phase: "loading" }
+  | { phase: "error" }
+  | { phase: "ready"; service: ReceivedLoanService };
 
-export default function LoanDetail() {
+export default function ReceivedLoanDetail() {
   const [loanId, setLoanId] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { loans, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<
     { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: Reading }
   >({ phase: "loading" });
   const [repayOpen, setRepayOpen] = useState(false);
   const [correctionOpen, setCorrectionOpen] = useState(false);
-  const [newBorrower, setNewBorrower] = useState("");
+  const [newLender, setNewLender] = useState("");
   const [newPrincipalMinor, setNewPrincipalMinor] = useState(0);
   const [validPrincipal, setValidPrincipal] = useState(true);
   const [reason, setReason] = useState("");
@@ -39,35 +46,71 @@ export default function LoanDetail() {
   const [reversalReason, setReversalReason] = useState("");
 
   useEffect(() => {
-    const match = window.location.pathname.match(/^\/loans\/([^/]+)$/);
+    const match = window.location.pathname.match(/^\/loans\/received\/([^/]+)$/);
     setLoanId(match?.[1] ?? null);
   }, []);
 
+  /* FIN-001 (WS-178 — Wave 6، سابقة EXE-014/D-034): تحميل ديناميكي فوق المخزن الوحيد. */
+  const [serviceLoad, setServiceLoad] = useState<ServiceLoad>({ phase: "loading" });
+  const [serviceAttempt, setServiceAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setServiceLoad({ phase: "loading" });
+    import("@/application/loans/receivedLoanService")
+      .then(module => {
+        if (active)
+          setServiceLoad({ phase: "ready", service: new module.ReceivedLoanService(getPrototypeLocalStore()) });
+      })
+      .catch(() => {
+        if (active) setServiceLoad({ phase: "error" });
+      });
+    return () => {
+      active = false;
+    };
+  }, [serviceAttempt]);
+
   const load = useCallback(() => {
-    if (!loanId || !loans) return;
-    loans.read(loanId).then(result => {
+    if (!loanId || serviceLoad.phase !== "ready") return;
+    serviceLoad.service.read(loanId).then(result => {
       if (!result.ok) {
         setState({ phase: "error", message: result.message });
         return;
       }
       setState({ phase: "ready", reading: result.value });
     });
-  }, [loans, loanId]);
+  }, [serviceLoad, loanId]);
 
   useEffect(() => {
-    if (loans) load();
-  }, [load, dataVersion]);
+    if (serviceLoad.phase === "loading") setState({ phase: "loading" });
+    if (serviceLoad.phase === "ready") load();
+  }, [load, serviceLoad, dataVersion]);
 
-  if (!loans)
+  if (serviceLoad.phase === "loading")
     return (
       <p className="micro-route-loading" role="status">
-        جارٍ تجهيز القروض…
+        جارٍ قراءة القرض المستلم…
       </p>
+    );
+  if (serviceLoad.phase === "error")
+    return (
+      <section className="micro-page">
+        <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+          القروض
+        </button>
+        <p className="micro-field-error" role="alert">
+          تعذر تجهيز خدمة القروض المستلمة — لم يتغير أي سجل.
+        </p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setServiceAttempt(attempt => attempt + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
+      </section>
     );
   if (state.phase === "loading")
     return (
       <p className="micro-route-loading" role="status">
-        جارٍ قراءة القرض…
+        جارٍ قراءة القرض المستلم…
       </p>
     );
   if (state.phase === "error")
@@ -88,13 +131,12 @@ export default function LoanDetail() {
     );
   const { loan, reading, events } = state.reading;
 
-  /* تصحيح مراجعة 4-d: سبب التراجع داخل الصف بلا نافذة متصفح عائمة — نفس
-   * نمط micro-inline-reversal في تفاصيل الأصل. */
+  /* سبب التراجع داخل الصف بلا نافذة متصفح عائمة — نفس نمط تفاصيل القرض الصادر. */
   function confirmInlineReversal(repaymentId: string) {
     const trimmed = reversalReason.trim();
-    if (!trimmed || !loans) return;
+    if (!trimmed || serviceLoad.phase !== "ready") return;
     setBusy(true);
-    void loans.reverseRepayment(loan.id, repaymentId, trimmed).then(result => {
+    void serviceLoad.service.reverseRepayment(loan.id, repaymentId, trimmed).then(result => {
       setBusy(false);
       if (!result.ok) {
         setMessage(result.message);
@@ -110,20 +152,20 @@ export default function LoanDetail() {
 
   async function correctLoan() {
     if (
-      !newBorrower.trim() &&
+      !newLender.trim() &&
       (!validPrincipal || !Number.isInteger(newPrincipalMinor) || newPrincipalMinor <= 0)
     ) {
-      setMessage("عدّل الاسم أو المبلغ قبل الحفظ.");
+      setMessage("عدّل اسم المُقرض أو المبلغ قبل الحفظ.");
       return;
     }
     if (!reason.trim()) {
       setMessage("أكمل سبب التصحيح — التوثيق إلزامي.");
       return;
     }
-    if (!loans) return;
+    if (serviceLoad.phase !== "ready") return;
     setBusy(true);
-    const result = await loans.correctLoan(loan.id, {
-      borrowerName: newBorrower.trim() || undefined,
+    const result = await serviceLoad.service.correctLoan(loan.id, {
+      lenderName: newLender.trim() || undefined,
       principalMinor:
         validPrincipal && Number.isInteger(newPrincipalMinor) && newPrincipalMinor > 0
           ? newPrincipalMinor
@@ -143,31 +185,39 @@ export default function LoanDetail() {
   }
 
   return (
-    <section className="micro-page micro-loan-detail">
+    <section className="micro-page micro-loan-detail micro-received-loan-detail">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         القروض
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">{reading.status === "open" ? "قرض قائم" : "قرض مسدَّد"}</span>
-        <h1>{loan.borrowerName}</h1>
+        <span className="micro-overline">
+          {reading.status === "open" ? "قرض مستلم قائم" : "قرض مستلم مسدَّد"}
+        </span>
+        <h1>{loan.lenderName}</h1>
         <p>
-          أصل <MoneyValue minor={reading.principalMinor} /> د.أ · {formatLocalDate(loan.loanDate)}
-          {loan.sourceWalletId ? " · دُفع من محفظة معلنة" : ""}
+          أصل <MoneyValue minor={reading.principalMinor} /> د.أ · {formatLocalDate(loan.receivedOn)}
+          {loan.walletId ? " · دخل إلى محفظة معلنة" : ""}
         </p>
       </div>
 
-      <section className="micro-decision-card" aria-label="خلاصة القرض">
+      <section className="micro-decision-card" aria-label="خلاصة القرض المستلم">
         <div>
-          <span>المتبقي</span>
+          <span>الالتزام القائم</span>
           <strong>
             <MoneyValue minor={reading.outstandingMinor} /> د.أ
           </strong>
           <p>
-            رجع منه <MoneyValue minor={reading.repaidActiveMinor} /> د.أ{" "}
-            {loanInstallmentCountLabel(reading.repaymentCount)} — المتبقي مشتق لا مخزن.
+            سُدِّد من أصله <MoneyValue minor={reading.repaidActiveMinor} /> د.أ{" "}
+            {loanInstallmentCountLabel(reading.repaymentCount)} — المتبقي مشتق لا مخزن، ولا يمس الربح.
           </p>
         </div>
       </section>
+
+      {loan.dueOn ? (
+        <section className="micro-note-card" aria-label="تاريخ الاستحقاق (عرض فقط)">
+          <p>تاريخ استحقاق (عرض فقط): {formatLocalDate(loan.dueOn)} — للمعلومة فقط، لا يُنشئ مصروفًا ولا تنبيهًا.</p>
+        </section>
+      ) : null}
 
       {reading.status === "open" ? (
         <div className="micro-form-actions">
@@ -176,11 +226,11 @@ export default function LoanDetail() {
 
             onClick={() => setRepayOpen(true)}
           >
-            <HandCoins aria-hidden="true" /> سجّل دفعة سداد
+            <HandCoins aria-hidden="true" /> سجّل دفعة سداد أصل
           </Button>
         </div>
       ) : (
-        <section className="micro-note-card" aria-label="قرض مسدَّد">
+        <section className="micro-note-card" aria-label="قرض مستلم مسدَّد">
           <p>مسدَّد بالكامل — يبقى في التاريخ للمراجعة، ولا يُحذف أبدًا.</p>
         </section>
       )}
@@ -191,11 +241,11 @@ export default function LoanDetail() {
         aria-expanded={correctionOpen}
         onClick={() => {
           setCorrectionOpen(current => !current);
-          setNewBorrower(loan.borrowerName);
+          setNewLender(loan.lenderName);
           setNewPrincipalMinor(loan.principalMinor);
         }}
       >
-        صحِّح بيانات القرض (اسم أو مبلغ)
+        صحِّح بيانات القرض المستلم (مُقرض أو مبلغ)
       </button>
       {correctionOpen ? (
         <div className="micro-revision-form">
@@ -204,8 +254,8 @@ export default function LoanDetail() {
             المسدَّد القائم.
           </p>
           <label className="micro-field">
-            <span>اسم المستدين</span>
-            <input value={newBorrower} onChange={event => setNewBorrower(event.target.value)} />
+            <span>اسم المُقرض</span>
+            <input value={newLender} onChange={event => setNewLender(event.target.value)} />
           </label>
           <label className="micro-field">
             <span>مبلغ الأصل (د.أ)</span>
@@ -245,7 +295,7 @@ export default function LoanDetail() {
       ) : null}
 
       <details className="micro-finance-layer" open>
-        <summary className="micro-finance-layer-summary">دفعات السداد ({loan.repayments.length})</summary>
+        <summary className="micro-finance-layer-summary">دفعات سداد الأصل ({loan.repayments.length})</summary>
         {loan.repayments.length === 0 ? (
           <p className="micro-field-hint">لا دفعات بعد — أول دفعة تُسجَّل من ورقة السداد.</p>
         ) : (
@@ -255,7 +305,7 @@ export default function LoanDetail() {
                 <strong>
                   <MoneyValue minor={repayment.amountMinor} /> د.أ · {formatLocalDate(repayment.date)}
                 </strong>
-                <span>{repayment.note ?? "دفعة سداد"}</span>
+                <span>{repayment.note ?? "دفعة سداد أصل"}</span>
                 {repayment.reversal ? (
                   <small>معكوسة موثقة: {repayment.reversal.reason}</small>
                 ) : reversalTargetId === repayment.id ? (
@@ -302,11 +352,11 @@ export default function LoanDetail() {
       </details>
 
       <details className="micro-finance-layer">
-        <summary className="micro-finance-layer-summary">أحداث القرض المالية ({events.length})</summary>
+        <summary className="micro-finance-layer-summary">أحداث القرض المستلم المالية ({events.length})</summary>
         <ul className="micro-events-list">
           {events.map(event => (
             <li key={event.id} className="micro-event-row" data-type={event.type}>
-              <strong>{event.type === "loan_outgoing_cash" ? "إقراض" : "سداد"}</strong>
+              <strong>{event.type === "loan_received_cash" ? "قبض الاقتراض" : "سداد أصل"}</strong>
               <span>
                 <MoneyValue minor={event.amountMinor} /> د.أ · {formatLocalDate(event.occurredOn)}
               </span>
@@ -317,9 +367,9 @@ export default function LoanDetail() {
       </details>
       <p className="micro-offline-truth">يعمل بلا إنترنت — كل التاريخ محفوظ محليًا على جهازك.</p>
 
-      {repayOpen ? (
-        <RepaymentSheet
-          service={loans}
+      {repayOpen && serviceLoad.phase === "ready" ? (
+        <ReceivedLoanRepaymentSheet
+          service={serviceLoad.service}
           row={{ loan, reading }}
           onClose={() => setRepayOpen(false)}
           onDone={() => {

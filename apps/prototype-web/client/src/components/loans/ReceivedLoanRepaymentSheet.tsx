@@ -1,9 +1,9 @@
 /**
- * المجموعة ٤ (عقد ٢٩): ورقة سداد الدفعة — واجهة سفلية سريعة (vaul) لسداد
- * جزئي أو كامل. تُظهر الأصل والمسدَّد والمتبقي قبل التأكيد، وتحرس التجاوز.
- * السداد يرفع الكاش ويخفض القرض — لا إيراد جديد أبدًا.
- * FIN-001 (WS-178 — Wave 6): الخدمة تمر خصائصًا من صفحتها (تُحمّل ديناميكيًا
- * بسابقة EXE-014) — الورقة لا تلمس سياق الخدمات الجذري مباشرة.
+ * FIN-001 (WS-178 — Wave 6): ورقة سداد أصل قرض مستلم — واجهة سفلية سريعة
+ * (vaul) لسداد جزئي أو كامل من التزام الاقتراض. تُظهر الأصل والمسدَّد
+ * والالتزام القائم قبل التأكيد، وتحرس التجاوز. السداد ينزل الكاش وينزل
+ * الالتزام بالمبلغ نفسه — ليس مصروفًا ولا ربحًا ولا يمس نتيجة الفترة أبدًا.
+ * الخدمة تمر خصائصًا من صفحتها (تُحمّل ديناميكيًا بسابقة EXE-014).
  */
 import { HandCoins, Save } from "lucide-react";
 import { useRef, useState } from "react";
@@ -12,17 +12,17 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
-import type { LoanSummaryRow, LoanService } from "@/application/loans/loanService";
+import type { ReceivedLoanSummaryRow, ReceivedLoanService } from "@/application/loans/receivedLoanService";
 
 import { Button } from "@/components/primitives";
-export default function RepaymentSheet({
+export default function ReceivedLoanRepaymentSheet({
   service,
   row,
   onClose,
   onDone,
 }: {
-  service: LoanService;
-  row: LoanSummaryRow;
+  service: ReceivedLoanService;
+  row: ReceivedLoanSummaryRow;
   onClose: () => void;
   onDone: () => void;
 }) {
@@ -32,9 +32,9 @@ export default function RepaymentSheet({
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  /* المجموعة ٦ (تدقيق A2 — AI-02): عهدة تزامنية ضد الإرسال المزدوج —
+  /* عهدة تزامنية ضد الإرسال المزدوج (A2/AI-02 نفسها في ورقة القرض الصادر) —
    * سجل الدفعة يولد معرفات جديدة لكل نداء؛ الحالة وحدها لا ترد نداءً
-   * متزامنًا ثانيًا (نبضتان قبل الرسم أو نداء برمجي متزامن). */
+   * متزامنًا ثانيًا. */
   const saveInFlightRef = useRef(false);
 
   async function save() {
@@ -45,7 +45,7 @@ export default function RepaymentSheet({
     }
     if (amountMinor > row.reading.outstandingMinor) {
       setMessage(
-        `المتبقي من القرض ${formatMoneyMinor(row.reading.outstandingMinor)} د.أ — الدفعة لا تتخطاه.`,
+        `الالتزام القائم ${formatMoneyMinor(row.reading.outstandingMinor)} د.أ — الدفعة لا تتخطاه.`,
       );
       return;
     }
@@ -73,9 +73,9 @@ export default function RepaymentSheet({
     <Drawer open={true} onOpenChange={open => (open ? undefined : onClose())}>
       <DrawerContent dir="rtl">
         <DrawerHeader>
-          <DrawerTitle>سداد دفعة من قرض {row.loan.borrowerName}</DrawerTitle>
+          <DrawerTitle>سداد أصل من قرض {row.loan.lenderName}</DrawerTitle>
           <DrawerDescription>
-            السداد يرفع الكاش ويخفض المتبقي — ليس إيرادًا جديدًا ولا ربحًا.
+            السداد ينزل الكاش وينزل الالتزام — ليس مصروفًا ولا يمس نتيجة الفترة.
           </DrawerDescription>
         </DrawerHeader>
         <div className="micro-repayment-strip">
@@ -86,7 +86,7 @@ export default function RepaymentSheet({
             المسدَّد: <MoneyValue minor={row.reading.repaidActiveMinor} /> د.أ
           </span>
           <span>
-            المتبقي: <MoneyValue minor={row.reading.outstandingMinor} /> د.أ
+            الالتزام القائم: <MoneyValue minor={row.reading.outstandingMinor} /> د.أ
           </span>
         </div>
         {row.reading.outstandingMinor > 0 ? (
@@ -99,7 +99,7 @@ export default function RepaymentSheet({
           </button>
         ) : null}
         <label className="micro-field">
-          <span>المبلغ المستلم (د.أ)</span>
+          <span>المبلغ المسدَّد (د.أ)</span>
           <EnglishNumberInput
             value={amountMinor}
             kind="money"

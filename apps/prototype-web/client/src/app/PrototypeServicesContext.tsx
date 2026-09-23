@@ -73,9 +73,13 @@ import type { RecurringExpenseService } from "@/application/finance/recurringExp
 import { TemplatePlannedCostService } from "@/application/catalog/templatePlannedCostService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
 import type { PrototypeLocalStore } from "@/storage/local/types";
-/* المجموعة ٤ (عقد ٢٩): الأصول والقروض وتصنيف العربون المحتفظ به. */
+/* المجموعة ٤ (عقد ٢٩): الأصول وتصنيف العربون المحتفظ به — خدمتا الأصول
+ * والعربون هنا؛ خدمة القروض الصادرة تُحمّل ديناميكيًا بعد الإقلاع (سابقة
+ * EXE-014/D-034 — FIN-001 WS-178 Wave 6: تحرير كومة الإقلاع من الوحدة)
+ * فتُوفَّر عند اكتمال التحميل الخامل مثل transfers/recurringExpenses؛
+ * خدمة القروض المستلمة لا تُسجّل هنا أبدًا — تُحمّل من صفحاتها وحدها. */
 import { AssetService } from "@/application/assets/assetService";
-import { LoanService } from "@/application/loans/loanService";
+import type { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/finance/retainedDepositService";
 /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد للنشاط. */
 import { ActivityService } from "@/application/activity/activityService";
@@ -144,10 +148,11 @@ type PrototypeServices = {
   activity: ActivityService;
   /* المجموعة ١ (فحص سلامة مالي): قراءة فقط — «يقرأ أرقامك ولا يغيّر شيئًا». */
   integrityCheck: IntegrityCheckService;
-  /* المجموعة ٤ (عقد ٢٩): الأصول والإهلاك، والقروض الصادرة، وتصنيف العربون
-   * المحتفظ به — كتابة الأحداث المالية من هنا فقط لا من أي صفحة. */
+  /* المجموعة ٤ (عقد ٢٩): الأصول والإهلاك وتصنيف العربون المحتفظ به — كتابة
+   * الأحداث المالية من هنا فقط لا من أي صفحة. القروض الصادرة عبر التحميل
+   * الخامل: null يعني «جارٍ التجهيز» (نمط transfers) لا فشلًا صامتًا. */
   assets: AssetService;
-  loans: LoanService;
+  loans: LoanService | null;
   retainedDeposits: RetainedDepositService;
   dataVersion: number;
   notifyDataChanged: () => void;
@@ -188,6 +193,21 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
   const [recurringExpenseService, setRecurringExpenseService] = useState<RecurringExpenseService | null>(
     null,
   );
+  /* FIN-001 (WS-178 — Wave 6، السابقة نفسها): خدمة القروض الصادرة تُحمّل
+   * ديناميكيًا بعد الإقلاع — الوحدة تخرج من كومة الإقلاع (ميزانية الحزمة)
+   * وتُبنى فوق المخزن الوحيد فور جاهزيتها؛ مستهلكوها الكنونيون (مالي
+   * وصفحات القروض) يرون null = «جارٍ التجهيز» فيعيدون القراءة عند اكتماله. */
+  const [loanService, setLoanService] = useState<LoanService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/loans/loanService").then(module => {
+      if (!active) return;
+      setLoanService(new module.LoanService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     void Promise.all([
@@ -223,10 +243,11 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       ...singletonServices,
       ...(transferServices ?? { transfers: null, guidedOpeningImport: null }),
       recurringExpenses: recurringExpenseService,
+      loans: loanService,
       dataVersion,
       notifyDataChanged,
     }),
-    [transferServices, recurringExpenseService, dataVersion, notifyDataChanged],
+    [transferServices, recurringExpenseService, loanService, dataVersion, notifyDataChanged],
   );
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
@@ -244,6 +265,7 @@ function createServices(): Omit<
   | "guidedOpeningImport"
   | "transferServices"
   | "recurringExpenses"
+  | "loans"
 > {
   const store = singletonStore;
   const costs = new CostService(store);
@@ -323,7 +345,6 @@ function createServices(): Omit<
     activity,
     integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
     assets: new AssetService(store),
-    loans: new LoanService(store),
     retainedDeposits: new RetainedDepositService(store),
   };
 }

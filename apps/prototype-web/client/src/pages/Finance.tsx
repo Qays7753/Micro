@@ -219,7 +219,8 @@ export default function Finance() {
     financialPulse,
     fulfillment,
     inventory,
-    /* المجموعة ٤ (عقد ٢٩): أسطح الأصول والقروض والعربون المحتفظ به. */
+    /* المجموعة ٤ (عقد ٢٩): أسطح الأصول والعربون المحتفظ به؛ القروض عبر
+     * الخدمة المحمّلة خاملًا (FIN-001 WS-178 — null = جارٍ التجهيز). */
     assets,
     loans,
     retainedDeposits,
@@ -298,9 +299,13 @@ export default function Finance() {
         safeBlock(correctionHistory.affecting(from.from, to.to)),
         /* المجموعة ٢ (عقد ٢٨): هدر الفترة — قراءة مشتقة بأساس occurredOn نفسه. */
         safeBlock(inventory.readPeriodWaste(from.from, to.to)),
-        /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة. */
+        /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة؛
+         * القروض عبر الخدمة المحمّلة خاملًا (FIN-001 WS-178) — null لحظة
+         * التجهيز = كتلة معطوبة صادقة تُعاد قراءتها فور جاهزيتها (G-005). */
         safeBlock(assets.overview()),
-        safeBlock(loans.overview()),
+        loans
+          ? safeBlock(loans.overview())
+          : Promise.resolve({ value: null as LoanOverviewRead | null, failed: true }),
         safeBlock(retainedDeposits.listPending()),
       ]).then(
         ([

@@ -78,6 +78,10 @@ const AssetDetail = lazy(() => import("@/pages/AssetDetail"));
 const Loans = lazy(() => import("@/pages/Loans"));
 const LoanEditor = lazy(() => import("@/pages/LoanEditor"));
 const LoanDetail = lazy(() => import("@/pages/LoanDetail"));
+/* FIN-001 (WS-178 — Wave 6): القروض المستلمة — التزام اقتراض يسدَّد؛ المحرر
+ * والتفصيل مساران عميقان كسابقة القرض الصادر (الأكثر تحديدًا قبل الأعم). */
+const ReceivedLoanEditor = lazy(() => import("@/pages/ReceivedLoanEditor"));
+const ReceivedLoanDetail = lazy(() => import("@/pages/ReceivedLoanDetail"));
 /* المجموعة ٢ (Scope B): ورقة التحصيل — سطح تحصيل مخصص واعٍ بالسياق والمصدر. */
 const Collect = lazy(() => import("@/pages/Collect"));
 /* المجموعة ٢ (§9.1): دفتر المحفظة — قراءة سطحية فوق سياق المحافظ. */
@@ -201,6 +205,10 @@ export function MicroRouter() {
               <Route path="/assets/new" component={AssetEditor} />
               <Route path="/assets/:id" component={AssetDetail} />
               <Route path="/assets" component={Assets} />
+              {/* FIN-001 (WS-178 — Wave 6): مسارا القرض المستلم قبل /loans/:id
+               * (وإلا لابتلعه نمط :id بمعرف "received"). */}
+              <Route path="/loans/received/new" component={ReceivedLoanEditor} />
+              <Route path="/loans/received/:id" component={ReceivedLoanDetail} />
               <Route path="/loans/new" component={LoanEditor} />
               <Route path="/loans/:id" component={LoanDetail} />
               <Route path="/loans" component={Loans} />

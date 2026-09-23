@@ -182,7 +182,9 @@ describe("G4 loans surfaces (المجموعة ٤ — عقد ٢٩)", () => {
       loan: { id: "loan-1", borrowerName: "أحمد" },
       reading: { principalMinor: 15000, repaidActiveMinor: 0, outstandingMinor: 15000 },
     } as unknown as Parameters<typeof RepaymentSheet>[0]["row"];
-    render(<Harness page={<RepaymentSheet row={row} onClose={() => {}} onDone={onDone} />} />);
+    render(
+      <Harness page={<RepaymentSheet service={loans} row={row} onClose={() => {}} onDone={onDone} />} />,
+    );
     const amount = await screen.findByLabelText("مبلغ الدفعة");
     fireEvent.change(amount, { target: { value: "50" } });
     fireEvent.blur(amount);
