@@ -2,6 +2,8 @@
 
 Changing a definition is exponentially riskier than adding one. This protocol is mandatory for: tokens, primitives, AUX behavior, state words, navigation destinations, feature patterns, and screen compositions.
 
+**Bold Modular V2 / Phase 0 (2026-09-23):** the owner-approved V2 documents govern the **new visual direction**, while Micro Standard and `styles/vf-tokens.css` still describe the **current implementation**. This documentation reconciliation does not modify either runtime tokens or the Documents package. Before any V2 implementation, produce a read-only V2-to-Micro integration mapping and obtain its review; use the existing bridge and components in later authorized work, never copy studio fixtures/JSX/CSS or create a competing token source. V2 is Light-only visually in this wave; Micro's active Dark theme (ADR-009) remains intact and must be protected against regressions. `UX-001` remains `DEFERRED`.
+
 ## 1. Impact analysis (before any edit)
 
 Answer in writing (PR/commit description or run report):
@@ -9,7 +11,7 @@ Answer in writing (PR/commit description or run report):
 1. What exactly changes, and why now?
 2. Which layer(s) does the change touch on the authority ladder (Standard → mapping → primitives → AUX → patterns → screens → domain)?
 3. Does it change product meaning, financial meaning, or a state word? **If yes: hard stop — owner decision required** (a UI run may not rename Micro words or alter financial semantics).
-4. Does it introduce any new palette value, token source, or copied style? **If yes: hard stop.**
+4. Does it introduce a second token source or copied studio style? **If yes: hard stop.** Does it introduce a new palette role or value without an approved V2 mapping, applicable Standard reconciliation and an authorized implementation wave? **If yes: hard stop.** V2 approval alone does not change the current Documents Standard or license raw colors in components.
 
 ## 2. Consumer inventory
 
@@ -22,7 +24,7 @@ Answer in writing (PR/commit description or run report):
 
 - Which existing suites cover the consumers? (journey/dom, primitives, sheet, lock-gate, exact-values…)
 - Which new assertions prove the change? Every changed contract needs a test that would have failed before.
-- Full `pnpm check` green is the entry bar, not the exit bar.
+- Full `pnpm check` green is the entry bar, not the exit bar. Future V2 Light changes also need visual/component evidence on real affected surfaces and regression coverage for Micro's existing Dark Mode; this does not authorize a Dark redesign.
 
 ## 4. Migration notes
 
@@ -41,7 +43,7 @@ Answer in writing (PR/commit description or run report):
 
 | Changing a… | Extra mandatory steps |
 |---|---|
-| Token | change once in `vf-tokens.css`; visual captures of affected surfaces; guard stays green |
+| Token | after approved V2-to-Micro mapping and applicable Standard reconciliation, change once in `vf-tokens.css`; visual captures of affected Light surfaces plus existing Dark regression; guard stays green. No token-only recolor is proof of V2 composition |
 | Primitive | update `COMPONENT_CONTRACTS.md` + primitive tests; check every consumer compiles and renders; bump no version silently |
 | AUX behavior | safe-area/keyboard/back/focus/scroll/320px verification; sheet + navigation suites |
 | State word | **owner decision only** — then adapter + all consumers + frozen-word tests updated together |
