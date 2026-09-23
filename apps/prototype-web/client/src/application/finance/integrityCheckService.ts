@@ -531,6 +531,9 @@ export class IntegrityCheckService {
             (rebuilt.assetDeltaMinor ?? 0) !== (event.assetDeltaMinor ?? 0) ||
             (rebuilt.loanDeltaMinor ?? 0) !== (event.loanDeltaMinor ?? 0) ||
             (rebuilt.revenueDeltaMinor ?? 0) !== (event.revenueDeltaMinor ?? 0) ||
+            /* FIN-001 (WS-178 — Wave 6): عمود التزام الاقتراض يُفحص كإخوته —
+             * أي فرق بين المعاد والمسجل = تلف أو تلاعب. */
+            (rebuilt.loanPayableDeltaMinor ?? 0) !== (event.loanPayableDeltaMinor ?? 0) ||
             JSON.stringify(rebuilt.expenseContext ?? null) !== JSON.stringify(event.expenseContext ?? null) ||
             JSON.stringify(rebuilt.assetContext ?? null) !== JSON.stringify(event.assetContext ?? null) ||
             JSON.stringify(rebuilt.loanContext ?? null) !== JSON.stringify(event.loanContext ?? null) ||
@@ -568,6 +571,8 @@ export class IntegrityCheckService {
           (rebuilt.assetDeltaMinor ?? 0) !== (event.assetDeltaMinor ?? 0) ||
           (rebuilt.loanDeltaMinor ?? 0) !== (event.loanDeltaMinor ?? 0) ||
           (rebuilt.revenueDeltaMinor ?? 0) !== (event.revenueDeltaMinor ?? 0) ||
+          /* FIN-001 (WS-178 — Wave 6): عمود التزام الاقتراض يُفحص كإخوته. */
+          (rebuilt.loanPayableDeltaMinor ?? 0) !== (event.loanPayableDeltaMinor ?? 0) ||
           JSON.stringify(rebuilt.expenseContext ?? null) !== JSON.stringify(event.expenseContext ?? null) ||
           JSON.stringify(rebuilt.assetContext ?? null) !== JSON.stringify(event.assetContext ?? null) ||
           JSON.stringify(rebuilt.loanContext ?? null) !== JSON.stringify(event.loanContext ?? null) ||
@@ -946,19 +951,34 @@ export class IntegrityCheckService {
   }
 
   /* ─── MIC-11 (المجموعة ٤): القروض — الأصل مقابل الكاش والرصيد القائم،
-   * والسداد مقابل الكاش والدفعات، وتراجع الدفعات مقابل علاماتها. */
+   * والسداد مقابل الكاش والدفعات، وتراجع الدفعات مقابل علاماتها.
+   * FIN-001 (WS-178 — Wave 6): البيتان معًا — الصادر والتزام الاقتراض؛
+   * عقد الفحص نفسه (النوع/المبلغ/الحالة/التراجع)، وسياق القرض يوجَّه
+   * لبيته الصحيح فلا يمر حدث مستلم على سجل صادر ولا العكس. */
   private async checkLoanIntegrity(events: readonly FinancialEvent[]): Promise<IntegrityCheckResult> {
-    const loansResult = await this.store.listLoans();
-    if (!loansResult.ok) return this.unavailable("MIC-11", "تعذر قراءة سجل القروض — أعد المحاولة.");
+    const [loansResult, receivedLoansResult] = await Promise.all([
+      this.store.listLoans(),
+      this.store.listReceivedLoans(),
+    ]);
+    if (!loansResult.ok || !receivedLoansResult.ok)
+      return this.unavailable("MIC-11", "تعذر قراءة سجل القروض — أعد المحاولة.");
     const loans = loansResult.value;
+    const receivedLoans = receivedLoansResult.value;
     const reversed = reversedEventIds(events);
     const offenders: string[] = [];
     /* المجموعة ٦ (تدقيق A2 — AI-01): مكنسة الاتجاه المعاكس لسياق القروض —
      * نفس منطق MIC-10: حدث يتيم بلا سجل قرض فساد يُعلن لا يُسكَت عنه. */
-    const knownLoanIds = new Set(loans.map(loan => loan.id));
+    const outgoingLoanIds = new Set(loans.map(loan => loan.id));
+    const receivedLoanIds = new Set(receivedLoans.map(loan => loan.id));
     for (const event of events) {
-      if (event.loanContext && !knownLoanIds.has(event.loanContext.loanId))
-        offenders.push(`حدث-قرض-بلا-سجل:${event.id}`);
+      const context = event.loanContext;
+      if (!context) continue;
+      const receivedKind =
+        event.type === "loan_received_cash" || event.type === "loan_received_repayment_cash";
+      const homeKnown = receivedKind
+        ? receivedLoanIds.has(context.loanId)
+        : outgoingLoanIds.has(context.loanId);
+      if (!homeKnown) offenders.push(`حدث-قرض-بلا-سجل:${event.id}`);
     }
     for (const loan of loans) {
       const principal = events.find(event => event.id === loan.principalEventId);
@@ -1008,6 +1028,49 @@ export class IntegrityCheckService {
         .reduce((sum, repayment) => sum + repayment.amountMinor, 0);
       if (repaidActive > loan.principalMinor) offenders.push(`سداد-فوق-الأصل:${loan.id}`);
     }
+    /* FIN-001 (WS-178 — Wave 6): بيت الاقتراض — نفس عقد الفحص: الأصل بحادثه
+     * من نوعه الصحيح وبمبلغه، وكل دفعة بحادثها وحالة تراجعها، والسداد فوق
+     * الأصل فساد معلن. */
+    for (const loan of receivedLoans) {
+      const principal = events.find(event => event.id === loan.principalEventId);
+      if (
+        !principal ||
+        principal.loanContext?.loanId !== loan.id ||
+        principal.type !== "loan_received_cash"
+      ) {
+        offenders.push(`قرض-مستلم-بلا-أصل:${loan.id}`);
+        continue;
+      }
+      const principalActive = principal.correctionType !== "reverse" && !reversed.has(principal.id);
+      if (!principalActive) offenders.push(`أصل-مستلم-معكوس:${loan.id}`);
+      else if (principal.amountMinor !== loan.principalMinor) offenders.push(`أصل-مستلم-لا-يطابق:${loan.id}`);
+      for (const repayment of loan.repayments) {
+        const event = events.find(candidate => candidate.id === repayment.eventId);
+        if (
+          !event ||
+          event.loanContext?.loanId !== loan.id ||
+          event.type !== "loan_received_repayment_cash"
+        ) {
+          offenders.push(`دفعة-مستلمة-بلا-حدث:${repayment.id}`);
+          continue;
+        }
+        const active = event.correctionType !== "reverse" && !reversed.has(event.id);
+        const markedReversed = repayment.reversal !== null;
+        if (active !== !markedReversed) offenders.push(`دفعة-مستلمة-حالة-متناقضة:${repayment.id}`);
+        if (active && event.amountMinor !== repayment.amountMinor)
+          offenders.push(`دفعة-مستلمة-لا-تطابق:${repayment.id}`);
+        if (markedReversed) {
+          const reversalExists = events.some(
+            candidate => candidate.id === repayment.reversal!.reversalEventId,
+          );
+          if (!reversalExists) offenders.push(`تراجع-مستلم-بلا-حدث:${repayment.id}`);
+        }
+      }
+      const repaidActive = loan.repayments
+        .filter(repayment => repayment.reversal === null)
+        .reduce((sum, repayment) => sum + repayment.amountMinor, 0);
+      if (repaidActive > loan.principalMinor) offenders.push(`سداد-فوق-الأصل:${loan.id}`);
+    }
     if (offenders.length > 0)
       return this.fail(
         "MIC-11",
@@ -1021,8 +1084,8 @@ export class IntegrityCheckService {
       titleAr: INTEGRITY_TITLES["MIC-11"],
       status: "PASS",
       detailAr:
-        loans.length === 0
-          ? "لا قروض صادرة مسجلة بعد — سجلها من «مالي ← القروض»."
+        loans.length === 0 && receivedLoans.length === 0
+          ? "لا قروض صادرة أو مستلمة مسجلة بعد — سجلها من «مالي ← القروض»."
           : "القروض سليمة: كل أصل بحادثه، وكل دفعة بحادثها، والمتبقي مشتق بلا رصيد مخزن.",
     };
   }

@@ -32,7 +32,11 @@ describe("ProjectFinancialService evidence states (FIN-001)", () => {
       walletCash: "not_recorded",
       unallocatedCash: "not_recorded",
       operatingExpenses: "not_recorded",
+      /* FIN-001 (WS-178 — Wave 6): دليل طبقة الاقتراض — بلا أحداث قرض مستلم
+       * لا يُعرض التزام مؤكدًا؛ وأي حدث يجعل الصفر موثقًا. */
+      borrowedLoans: "not_recorded",
     });
+    expect(result.value.borrowedLoansOutstandingMinor).toBe(0);
     /* القيم العددية تبقى أعدادًا صحيحة الحساب — العرض وحده يتبع الدليل. */
     expect(result.value.recordedCashMinor).toBe(0);
     expect(result.value.customerReceivablesMinor).toBe(0);

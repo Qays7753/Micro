@@ -339,12 +339,19 @@ export class ProfitToCashBridgeService {
       "أحداث asset_purchase_cash/asset_disposal_cash بتاريخ occurredOn — ليس مصروفًا تشغيليًا",
       familyEventCash(["asset_purchase_cash", "asset_disposal_cash"]),
     );
-    /* ١٢) تدفقات القروض: صادرة فقط (إقراض وسداد) — الاقتراض الداخلي غير موجود بعد. */
+    /* ١٢) تدفقات القروض: صادرة ومستلمة — الإقراض/السداد والاقتراض/سداد أصل
+     * الاقتراض؛ كلا الاتجاهين صافٍ في هذا البند، والجانب المقيس يجمع كاش
+     * الأحداث كلها تلقائيًا فيبقى الجسر متوازنًا. */
     push(
       "loan_flows",
-      "تدفقات القروض الصادرة: إقراض وسداد (لا اقتراض داخلي مسجل بعد)",
-      "أحداث loan_outgoing_cash/loan_repayment_cash بتاريخ occurredOn — صفر صادق حين لا أحداث",
-      familyEventCash(["loan_outgoing_cash", "loan_repayment_cash"]),
+      "تدفقات القروض (صادرة ومستلمة)",
+      "أحداث القروض الأربعة بتاريخ occurredOn — صفر صادق حين لا أحداث",
+      familyEventCash([
+        "loan_outgoing_cash",
+        "loan_repayment_cash",
+        "loan_received_cash",
+        "loan_received_repayment_cash",
+      ]),
     );
     /* ١٣) تدفقات الأمانات: قبض وتسليم — ليست ربحًا ولا ملكًا. */
     push(

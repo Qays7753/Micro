@@ -805,11 +805,24 @@ export default function Finance() {
             {state.loansOverview === null || state.pendingRetainedDeposits === null ? (
               <FinanceBlockFallback block="loans" onRetry={retryBlocks} />
             ) : (
-              <p className="micro-period-status">
-                {state.loansOverview.rows.length === 0 && state.pendingRetainedDeposits.length === 0
-                  ? "لا قروض ولا عربونات محتفظة — سجّل قرضًا حين تعطي مالًا يُعاد."
-                  : "المتبقي مشتق من الدفعات القائمة؛ والعربون المحتفظ بلا قرار يبقى معلقًا ظاهرًا."}
-              </p>
+              <>
+                <p className="micro-period-status">
+                  {state.loansOverview.rows.length === 0 && state.pendingRetainedDeposits.length === 0
+                    ? "لا قروض ولا عربونات محتفظة — سجّل قرضًا حين تعطي مالًا يُعاد."
+                    : "المتبقي مشتق من الدفعات القائمة؛ والعربون المحتفظ بلا قرار يبقى معلقًا ظاهرًا."}
+                </p>
+                {/* FIN-001 (WS-178 — Wave 6): طبقة التزام الاقتراض المستقلة — من
+                    قراءة المركز (مجموع أحداث المجال) لا من كتلة القروض الصادرة،
+                    ولا تختلط بذمم «شو عليّ؟» التشغيلية أبدًا؛ تفصيلها خلف
+                    «افتح سجل القروض» نفسه أدناه. */}
+                {position.evidence.borrowedLoans === "recorded" &&
+                position.borrowedLoansOutstandingMinor > 0 ? (
+                  <p className="micro-period-status">
+                    قروض أخذتها قائمة الآن: {formatMoneyMinor(position.borrowedLoansOutstandingMinor)} د.أ —
+                    التزام يُسدّد من الكاش ولا يدخل النتيجة.
+                  </p>
+                ) : null}
+              </>
             )}
             <div className="micro-form-actions micro-contextual-actions">
               <button
