@@ -12,7 +12,9 @@
 5. **Honest readers**: bridge `loan_flows` line now nets all four loan kinds (balanced by construction — the measured side sums all cash deltas); `readPosition` gains `borrowedLoansOutstandingMinor` + evidence; statement deep-finance liability line + two cash-flow families; MIC-4/MIC-11 integrity coverage incl. `loanPayableDeltaMinor` rebuild checks; activity and correction-history mappings with `/loans/received/:id` deep links.
 6. **Entry-bundle discipline (the W5 lesson applied)**: `LoanService` demoted from eager instantiation to post-boot dynamic provision (transfers/recurring precedent — `loans: LoanService | null`, honest "preparing" states); the received service never touches the boot context. **CI-parity measurement (GITHUB_SHA set — mandatory rule from W5): raw=648,772/650,000 (headroom 1,228) + gzip=153,862/155,000 — PASS**, after a local null build of 648,660. CI/Cloudflare on the PR head is the closing authority.
 
-## Tests (new matrix: 8 domain + 12 service + 15 store + 12 transfer + 4 DOM)
+## Tests (new matrix: 32 it-blocks — 8 domain + 7 service + 7 store/adapter + 3 transfer family + 3 legacy-pair/reject + 4 DOM)
+
+> Honest correction recorded at closure (per W6-REVIEW): an earlier revision of this report said "51 new tests" — that figure confused file line-counts with test counts. The authoritative number is **32 new it-blocks**, matching the suite deltas (+8 root → 473/473; +24 prototype → 1889/1889).
 
 - **Domain** (`tests/domain/receivedLoan.test.ts`): create validation (blank lender, invalid lender type, dueOn before receivedOn), derived reading with partial→settle, over-repayment and post-settle rejection, reversal marking + double-reversal rejection, correction guards.
 - **Service** (`receivedLoanService.test.ts`): multiple independent loans; partial repayment to zero; **idempotency replay (create + repayment) with no duplicate effects**; repayment reversal restores liability; **separation proof — revenue/operatingExpense/ownerCapital deltas are 0 for received events and the recorded period result is unchanged by borrowing + repayment**; dueOn creates no expense.

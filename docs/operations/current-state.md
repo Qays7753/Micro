@@ -1238,7 +1238,7 @@ PASS.** مراجعة W5-REVIEW-FIX المستقلة: REVIEW_PASS (تكافؤ د�
 `NO_RECOMMENDATIONS (TESTED)`
 `CI_PARITY_MEASUREMENT_RULE: local builds must set GITHUB_SHA to predict CI entry bytes`
 
-## §65. خارطة الطريق المالي — الموجة 6 (FIN-001 القروض المستلمة والالتزامات) على الفرع، بانتظار الدمج — 2026-09-23
+## §65. خارطة الطريق المالي — الموجة 6 (FIN-001 القروض المستلمة والالتزامات) مدمجة ومتحققة على main — 2026-09-23
 
 نُفذت الموجة السادسة عبر Claim تنفيذي مستقل (**WS-178**) من رأس `main` المتحقق
 `c3b68c6aae351b640a0882a6af00381c3a4b60b5` على الفرع
@@ -1272,7 +1272,7 @@ transfers — `loans | null` ب حالة «قيد التجهيز» صادقة) �
 وعائلتا تدفق الكاش؛ MIC-4/MIC-11 بفحص إعادة بناء `loanPayableDeltaMinor`؛
 خريطة النشاط وسجل التصحيح بروابط `/loans/received/:id`.
 
-**الاختبارات:** 51 جديدًا (8 دومين + 12 خدمة تشمل **برهان الفصل** — دلتا
+**الاختبارات:** 32 اختبارًا جديدًا (8 دومين + 24 تطبيقًا/مخزنًا/تصديرًا/DOM تشمل **برهان الفصل** — دلتا
 الإيراد/المصروف/رأس المال صفر والنتيجة المسجلة للفترة لا تتغير بالاقتراض
 وسداده — + 15 مخزنًا + 12 تصدير/استيراد بدورة كاملة ورفض قبل الكتابة وزوج
 29/37 + 4 DOM). **البوابات:** pnpm check كامل أخضر — typecheck مزدوج وlint
@@ -1285,7 +1285,31 @@ transfers — `loans | null` ب حالة «قيد التجهيز» صادقة) �
 الاستعادة:** `c3b68c6` (revert واحد للدمج Squash). التفصيل الكامل:
 `reports/agent-report/2026-09-23_fin-roadmap-wave-6-fin-001/report.md`.
 
-`FIN-001_WAVE_6_IMPLEMENTED_ON_BRANCH_AWAITING_MERGE`
+**الدمج والتحقق:** PR #222 مدمج Squash عند
+`c4b412a0ca1691b0d192528f6508da07eef89741` (الأساس `c3b68c6`) بعد MANIFEST
+الدمج (تعليق 5787762128) — CI وCloudflare ناجحان على رأس الـPR **من الدورة
+الأولى بلا دورات إصلاح**: قاعدة قياس CI-parity من W5 (بناء محلي مع
+`GITHUB_SHA`) توقعت حزمة CI بايتًا-بايتًا (648,772 متوقعة = 648,772
+مقيسة). التحقق على SHA الدمج نفسه: CI checks success + Cloudflare Pages
+success على commit الدمج، وحزمة CI على main نفسها raw=648,772/650,000 +
+gzip 153,868/155,000 — PASS، واختبارات الموجة (32) خضر محليًا على main.
+انتقل `FIN-001` و`WS-178` قانونيًا إلى `MERGED_UNVERIFIED` ثم `VERIFIED`
+مع `verified_on_main_sha=c4b412a…` وأُغلق الـClaim في workstreams/review/.
+مراجعة W6-REVIEW المستقلة: REVIEW_PASS؛ تصحيح صادق مسجَّل: إحصاء اختبارات
+سابق قال 51 والرقم المعتمد 32 (دلتا الجناحين +8/+24).
+
+**البوابة التالية المسموحة فقط: Wave 7 — FIN-008 الإهلاك: عقد
+الأصول/الإهلاك صريحًا أولًا ثم مراجعته ثم تنفيذ الشريحة المعتمدة، من رأس
+`main` المتحقق `c4b412a`.**
+
+`FIN-001_WAVE_6_MERGED_AND_VERIFIED_ON_MAIN (c4b412a)`
+`POST_MERGE_VERIFICATION: PASS`
+`SCHEMA_EXPORT_38_30_GUARDED (RELEASED_PAIR_29_37)`
+`NO_INTEREST_NO_FEES (POLICY)`
+`NO_EXPENSE_NO_ALERT_FROM_DUE_ON (TESTED)`
+`EXPLICIT_LENDER_TYPE_REQUIRED (TESTED)`
+`SEPARATION_FROM_REVENUE_RESULT (TESTED)`
+`CI_PARITY_PREDICTION_EXACT (648772_648772)`
 `SCHEMA_EXPORT_38_30_GUARDED (RELEASED_PAIR_29_37)`
 `NO_INTEREST_NO_FEES (POLICY)`
 `NO_EXPENSE_NO_ALERT_FROM_DUE_ON (TESTED)`
