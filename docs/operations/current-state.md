@@ -1443,3 +1443,22 @@ CLEAN-001، REL-001) **مدمجة ومتحققة على main** ببينة CI+Clo
 `NO_UNAUTHORIZED_CLEANUP_PERFORMED`
 
 MICRO_FINANCIAL_ROADMAP_EXECUTION_COMPLETE — REMEDIATION_COMPLETE_MAIN_VERIFIED
+
+
+## §70. UI/UX V2 — Phase 0 baseline وتثبيت نطاق النقل — 2026-09-23
+
+ثُبّت baseline لمسار Bold Modular V2 على `origin/main` عند `f05b45e6cd46b6dfae116f51cdbcd4b2444b8dfc`، وبقيت شجرة Micro نظيفة قبل التحديث ولم توجد PRs مفتوحة أو Worktrees إضافية. مرّ `python3 scripts/operations-control/validate.py` قبل بدء Phase 0.
+
+اعتمد المالك الاتجاه البصري Bold Modular V2 مرجعًا بصريًا للاتجاه الجديد، مع إبقاء Micro Standard و`apps/prototype-web/client/src/styles/vf-tokens.css` جسر التنفيذ داخل Micro. لا يُنسخ مستودع الاستوديو أو Fixtures أو JSX/CSS مباشرة إلى الإنتاج، ولا يُنشأ مصدر Tokens منافس. لون V2 القائد وMicro Standard هو `#D97757`؛ المصالحة المطلوبة لاحقًا تخص الأدوار والمكونات والخط والتكوين، لا إعادة اختيار الهوية.
+
+نطاق هذه المرحلة توثيقي فقط: لا تعديل على Tokens أو Standard التفصيلية، ولا تعديل على Dark Mode أو المكونات أو الشاشات أو منطق المال والتخزين والتصدير. تنفذ موجة V2 بصريًا على Light-first/Light-only، مع الحفاظ على Dark Mode الحالي وعدم حذفه أو إعادة تصميمه أو نقل Tokens V2 إليه في هذه الموجة؛ أي تعديل لاحق للوضع الداكن يحتاج موجة وقرارًا مستقلين.
+
+بقي `UX-001` في حالة `DEFERRED`؛ اعتماد الاتجاه لا يعني اكتمال الترحيل أو تغطية الشاشات أو اختبار الجهاز أو اختبار المستخدمين. الدليل التفصيلي في `docs/operations/control/evidence/ui-v2-phase0-baseline-2026-09-23.md`.
+
+**البوابة التالية المسموحة:** Phase 1 قراءة-فقط لاستخراج `V2-to-Micro Integration Mapping` وجرد مستهلكي التوكنز والمكونات، ثم مراجعة واعتماد المالك قبل أول موجة كود. لا يبدأ تنفيذ `OVR-NOW` أو أي تعديل إنتاجي قبل إغلاق هذه البوابة.
+
+`UI_V2_DIRECTION_APPROVED`
+`UI_V2_PHASE_0_BASELINE_FIXED`
+`UI_V2_LIGHT_SCOPE_PRESERVE_EXISTING_DARK`
+`UX_001_REMAINS_DEFERRED`
+`NEXT_GATE_READ_ONLY_V2_TO_MICRO_MAPPING`

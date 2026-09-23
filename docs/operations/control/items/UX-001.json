@@ -16,19 +16,25 @@
     "ux",
     "design-system"
   ],
-  "contracts": [],
+  "contracts": [
+    "docs/architecture/SOURCE_OF_TRUTH.md",
+    "docs/architecture/CHANGE_PROTOCOL.md",
+    "docs/architecture/UI_AUX_ARCHITECTURE.md",
+    "docs/architecture/MIGRATION_STATUS.md"
+  ],
   "evidence": [
     "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md",
     "reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md",
-    "reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md"
+    "reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md",
+    "docs/operations/control/evidence/ui-v2-phase0-baseline-2026-09-23.md"
   ],
   "dependencies": [
     "CLEAN-001"
   ],
-  "owner_decision": "اعتماد الاتجاه البصري النهائي ونتائج Benchmark قبل التنفيذ.",
+  "owner_decision": "قرار المالك المعتمد في Phase 0 (2026-09-23): Bold Modular V2 هو المرجع البصري المعتمد للاتجاه الجديد، مع إبقاء Micro Standard وvf-tokens.css جسر التنفيذ داخل Micro؛ لا نسخ مباشر من الاستوديو ولا إنشاء مصدر Tokens منافس.",
   "merge_sha": "",
   "verified_on_main_sha": "",
-  "updated_at": "2026-09-22",
+  "updated_at": "2026-09-23",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
   "root_cause": "control-record:UX-001",
@@ -36,7 +42,8 @@
     "report": "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md",
     "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
     "evidence": [
-      "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md"
+      "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md",
+      "docs/operations/control/evidence/ui-v2-phase0-baseline-2026-09-23.md"
     ]
   },
   "status_history": [
@@ -48,7 +55,7 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "Z1/Z2 bounded waves merged and verified on main (WS-172, merge SHA f5685b2138d994cb0ebed95f2b64bbc6f87cc49d). UX-001 itself stays DEFERRED: the full radical redesign acceptance (complete RTL design system, every screen purposeful, user testing) remains open — decide direction/benchmark for the remaining scope before the next UI/UX claim.",
+  "next_action": "Phase 1 قراءة-فقط: استخراج خريطة V2-to-Micro Integration Mapping وجرد مستهلكي التوكنز والمكونات؛ لا يبدأ كود أو دمج قبل مراجعة الخريطة واعتماد المالك.",
   "deferred_reason": "تنفيذ مؤجل حتى استقرار الوظائف واعتماد الاتجاه وBenchmark، لكنه متطلب Gate قبل Pilot؛ لا يتجاوز بوابة الإصدار.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
