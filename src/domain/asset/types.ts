@@ -25,6 +25,13 @@ export type AssetRecord = {
   lifeMonths: number | null;
   /* بداية الاستخدام التي يبدأ بعدها الإهلاك — null تعني «غير محددة»: لا إهلاك حتى تُكمَّل. */
   depreciationStartOn: string | null;
+  /* عقد ٤٣ (WS-179 — Wave 7): القيمة المتبقية المتوقعة نهاية العمر — اختيارية،
+   * الغياب/null = ٠ (الأصول القديمة تُقرأ صفرًا بلا ترحيل). الإهلاك يجري على
+   * (القيمة − المتبقية) فلا ينزل الدفتري تحت المتبقية أبدًا. */
+  residualValueMinor?: MoneyMinor | null;
+  /* عقد ٤٣ (WS-179 — Wave 7): مرجع/ملاحظة حرة (فاتورة/وثيقة/سياق) — وسم
+   * عرض فقط لا يغيّر أي دلتا؛ الغياب/null = بلا ملاحظة. */
+  note?: string | null;
   status: AssetStatus;
   /* ربط الحدث المالي الذي خلق الأصل (شراء نقدي أو التزام). */
   acquisitionEventId: string;
@@ -58,6 +65,10 @@ export type AssetContractRevision = {
   revision: number;
   lifeMonths: number | null;
   depreciationStartOn: string | null;
+  /* عقد ٤٣: لقطة القيمة المتبقية بعد هذه المراجعة — الغياب = مراجعة قديمة
+   * قبل الحقل (تُقرأ ٠/كما كانت)؛ التوثيق لا يعيد كتابة التاريخ. */
+  residualValueMinor?: MoneyMinor | null;
+  note?: string | null;
   reason: string;
   changedAt: string;
 };
@@ -71,6 +82,9 @@ export type CreateAssetRecordInput = {
   purchaseDate: string;
   lifeMonths?: number | null;
   depreciationStartOn?: string | null;
+  /* عقد ٤٣ (WS-179 — Wave 7): المدخلان الجديدان — اختياريان (متبقية = ٠). */
+  residualValueMinor?: MoneyMinor | null;
+  note?: string | null;
   acquisitionEventId: string;
   operationKey: string;
   createdAt: string;
@@ -79,6 +93,9 @@ export type CreateAssetRecordInput = {
 export type ReviseAssetContractInput = {
   lifeMonths: number | null;
   depreciationStartOn: string | null;
+  /* عقد ٤٣ (WS-179 — Wave 7): undefined = دون تغيير؛ null = إرجاع إلى ٠/بلا ملاحظة. */
+  residualValueMinor?: MoneyMinor | null;
+  note?: string | null;
   reason: string;
 };
 

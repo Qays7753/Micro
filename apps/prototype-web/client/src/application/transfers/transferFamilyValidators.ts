@@ -657,6 +657,20 @@ export function validAssetRecord(value: unknown): boolean {
       value.depreciationStartOn === undefined ||
       (isString(value.depreciationStartOn) && isLocalDate(value.depreciationStartOn as string))
     ) ||
+    /* عقد ٤٣ (WS-179 — Wave 7): القيمة المتبقية والملاحظة حقنان اختياريان —
+     * الغياب/null = ٠/بلا ملاحظة (الأصول والتصديرات القديمة تُقبل كما هي). */
+    !(
+      value.residualValueMinor === null ||
+      value.residualValueMinor === undefined ||
+      (isMoney(value.residualValueMinor) &&
+        (value.residualValueMinor as number) >= 0 &&
+        (value.residualValueMinor as number) < value.acquisitionAmountMinor)
+    ) ||
+    !(
+      value.note === null ||
+      value.note === undefined ||
+      (isString(value.note) && (value.note as string).trim().length <= 500)
+    ) ||
     !(value.status === "active" || value.status === "disposed" || value.status === "written_off") ||
     !isString(value.acquisitionEventId) ||
     value.acquisitionEventId.trim().length === 0 ||

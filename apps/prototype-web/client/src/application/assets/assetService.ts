@@ -60,12 +60,18 @@ export type AssetCreateInput = {
   purchaseDate: string;
   lifeMonths?: number | null;
   depreciationStartOn?: string | null;
+  /* عقد ٤٣ (WS-179 — Wave 7): القيمة المتبقية والملاحظة — اختياريان (متبقية = ٠)؛
+   * الملاحظة تُخزَّن على السجل وتمر لحدث الاقتناء كما كانت. */
+  residualValueMinor?: number | null;
   note?: string | null;
 };
 
 export type AssetContractRevisionInput = {
   lifeMonths: number | null;
   depreciationStartOn: string | null;
+  /* عقد ٤٣ (WS-179 — Wave 7): undefined = دون تغيير؛ null = إرجاع إلى ٠/بلا ملاحظة. */
+  residualValueMinor?: number | null;
+  note?: string | null;
   reason: string;
 };
 
@@ -209,6 +215,8 @@ export class AssetService {
         purchaseDate: input.purchaseDate,
         lifeMonths: input.lifeMonths ?? null,
         depreciationStartOn: input.depreciationStartOn ?? null,
+        residualValueMinor: input.residualValueMinor ?? null,
+        note: input.note ?? null,
         acquisitionEventId: event.id,
         operationKey: `${assetId}:create`,
         createdAt,

@@ -15,6 +15,8 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
+/* عقد ٤٣ (WS-179 — Wave 7): قراءة المتبقية الفعالة (الغياب = ٠). */
+import { residualOf } from "@micro-domain/asset/index.js";
 import type { AssetDepreciationProposal, AssetEventSummary } from "@micro-domain/asset/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
@@ -55,6 +57,9 @@ export default function AssetDetail() {
   const [revisionOpen, setRevisionOpen] = useState(false);
   const [newLife, setNewLife] = useState("");
   const [newStart, setNewStart] = useState("");
+  /* عقد ٤٣ (WS-179 — Wave 7): مراجعة المتبقية ضمن تعديل العقد الموثق. */
+  const [newResidual, setNewResidual] = useState("");
+  const [validNewResidual, setValidNewResidual] = useState(true);
   /* المجموعة ٤ (تصحيح مراجعة 4-c): تاريخ الإهلاك اختيار المالك — العقد وعد بتاريخ
    * يختاره هو لا بتاريخ فتح الصفحة؛ الافتراضي اليوم. */
   const [depreciationAsOf, setDepreciationAsOf] = useState(localDateInAmman());
@@ -135,7 +140,14 @@ export default function AssetDetail() {
         <p>
           اقتناء <MoneyValue minor={asset.acquisitionAmountMinor} /> د.أ{" "}
           {asset.acquisitionKind === "cash" ? "نقدًا" : "بالذمم"} · {formatLocalDate(asset.purchaseDate)}
+          {residualOf(asset) > 0 ? (
+            <>
+              {" "}
+              · متبقٍ معلن نهاية العمر <MoneyValue minor={residualOf(asset)} /> د.أ
+            </>
+          ) : null}
         </p>
+        {asset.note ? <p className="micro-field-hint">ملاحظة الأصل: {asset.note}</p> : null}
       </div>
 
       <section className="micro-decision-card" aria-label="القيمة الدفترية">
@@ -286,6 +298,7 @@ export default function AssetDetail() {
               setRevisionOpen(current => !current);
               setNewLife(asset.lifeMonths === null ? "" : String(asset.lifeMonths));
               setNewStart(asset.depreciationStartOn ?? "");
+              setNewResidual(residualOf(asset) > 0 ? String(residualOf(asset)) : "");
             }}
           >
             عدّل العمر النافع أو بداية الاستخدام
@@ -310,6 +323,17 @@ export default function AssetDetail() {
                 onChange={event => setNewStart(event.target.value)}
               />
               <label className="micro-field">
+                <span>القيمة المتبقية (د.أ — فارغ = صفر)</span>
+                <EnglishNumberInput
+                  value={Number(newResidual) || 0}
+                  kind="money"
+                  onNumericChange={value => setNewResidual(String(value))}
+                  onTextValidityChange={setValidNewResidual}
+                  aria-label="القيمة المتبقية للمراجعة"
+                />
+                <small>تعديلها مراجعة موثقة — الإهلاك القادم يجري على (القيمة − المتبقية).</small>
+              </label>
+              <label className="micro-field">
                 <span>سبب التعديل (مطلوب)</span>
                 <input
                   value={contractReason}
@@ -321,12 +345,13 @@ export default function AssetDetail() {
                 <Button
                   action="save"
 
-                  disabled={busy || !contractReason.trim()}
+                  disabled={busy || !contractReason.trim() || !validNewResidual}
                   onClick={() =>
                     void run(() =>
                       assets.reviseContract(asset.id, {
                         lifeMonths: newLife.trim() === "" ? null : Number(newLife),
                         depreciationStartOn: newStart || null,
+                        residualValueMinor: newResidual.trim() === "" ? null : Number(newResidual),
                         reason: contractReason,
                       }),
                     )
