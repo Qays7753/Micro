@@ -133,8 +133,8 @@ describe("export envelope v29 (FIN-002 — عقد ٤٢ / عقد ٣٩)", () => {
     const service = new LocalTransferService(store, () => NOW);
     const exported = await service.createVerifiedExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.file.version).toBe(29);
-    expect(exported.value.file.schemaVersion).toBe(37);
+    expect(exported.value.file.version).toBe(30);
+    expect(exported.value.file.schemaVersion).toBe(38);
     expect(exported.value.file.version).toBe(localExportVersion);
     expect(exported.value.file.schemaVersion).toBe(localSchemaVersion);
     expect(exported.value.file.data.expenseBudgets).toHaveLength(4);
