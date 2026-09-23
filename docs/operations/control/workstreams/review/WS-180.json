@@ -1,7 +1,7 @@
 {
   "id": "WS-180",
   "title": "Financial Roadmap Wave 8 — CLEAN-001 dead/partial-surface surgical audit (zero-deletion outcome pinned with honesty guards)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "CLEAN-001"
   ],
@@ -16,10 +16,10 @@
     "docs/contracts/05-financial-p0-policies.md"
   ],
   "agent": "ZAI / Super Z Financial Roadmap controlled execution session 2026-09-23",
-  "pr": null,
+  "pr": 226,
   "started_at": "2026-09-23T11:00:00+03:00",
   "updated_at": "2026-09-23",
-  "next_action": "راجع PR الموجة ٨ ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED.",
+  "next_action": "لا فعل إضافي: الموجة ٨ مكتملة (صفر حذف). البوابة التالية فقط: الموجة ٩ (REL-001 فجوات الصمود).",
   "notes": [
     "Owner rules (roadmap §5 Wave 8): surgical cleanup ONLY after all executable financial waves verified (FIN-003/007, 002, 005, 004, 006, 001, 008 — ALL VERIFIED on main). No bulk moves, no new features/ layer, no structural refactor, no deletion of historical evidence, no semantic change. Every deletion listed with reason/reference-search result/risk/rollback. Structural temptation => OWNER_DECISION_REQUIRED under the post-Group-6 gate.",
     "Coordinator audit findings (read-only): the Phase-0 candidate inventory (/market honest placeholder, AppHeader soon panels, CashWallets conditional copy) all meet the acceptance bar TODAY — /market is an honest NAV-001-approved 'قريبًا' surface with NO service/store/localStorage imports (writes nothing); AppHeader panels are documented honest announcements (no reservation/tracking/pricing); CashWallets conditional copy is functional return-path copy. Zero unreferenced non-test components (reference scan). routeKnowledgeSync already pins every route classified with no orphans either direction.",
@@ -43,7 +43,24 @@
       "changed_at": "2026-09-23",
       "actor": "ws-180:review",
       "reason": "جرد موثق بصفر حذف + 4 حدس حارسة لأمانة الأسطح — جاهز لبوابة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-180:merge",
+      "reason": "PR #226 مدمج Squash عند ef54dcf (الأساس b68ea31)."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-180:post-merge-verification",
+      "reason": "تحقق على SHA الدمج نفسه ef54dcf: CI + Cloudflare ناجحان؛ الحدس 4/4 على main."
     }
   ],
-  "migration_baseline": false
+  "migration_baseline": false,
+  "merge_sha": "ef54dcfbb1e3191d95f6354b46115c0d627e42e0",
+  "verified_on_main_sha": "ef54dcfbb1e3191d95f6354b46115c0d627e42e0",
+  "evidence": [
+    "reports/agent-report/2026-09-23_fin-roadmap-wave-8-clean-001/report.md"
+  ]
 }
