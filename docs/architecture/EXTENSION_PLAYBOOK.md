@@ -2,6 +2,8 @@
 
 Read `UI_AUX_ARCHITECTURE.md` and `SOURCE_OF_TRUTH.md` first. This playbook is operational: follow the steps in order and do not skip the verification gates.
 
+**V2 Phase 0 boundary:** Bold Modular V2 is the approved **future visual direction**, not an already migrated Micro runtime. Existing Standard/`vf-tokens.css` remain the single implementation bridge. The next V2-to-Micro mapping is read-only and precedes token/component work; nothing in this playbook permits a second token source, studio-code copy, or a token-only recoloring of every existing screen.
+
 ## A. Add a new screen (route)
 
 1. **Identify the feature boundary** — which feature family owns it (`components/<family>/`)? If none fits, that is a design decision to raise, not a folder to invent casually.
@@ -24,10 +26,11 @@ Read `UI_AUX_ARCHITECTURE.md` and `SOURCE_OF_TRUTH.md` first. This playbook is o
 
 ## C. Change a token or visual rule
 
-1. **Change the authoritative definition once** — `styles/vf-tokens.css` (and if the Standard itself must change, that is an owner decision in the Documents repo first).
-2. **Inventory consumers** — grep the token name; list every consumer in the PR description.
-3. **Run visual + responsive checks** — 320/390 widths, capture evidence for affected surfaces; design-token guard must stay green (it checks hex AND rgb/hsl in CSS and TSX).
-4. **Record migration/rollback** — note the old value, the new value, the date, and the rollback SHA in the change note; update `SHA256SUMS` artifacts if a run folder is active.
+1. **Establish which decision applies.** For V2 work, the Bold Modular V2 decisions/color standard govern the intended Light visual result; the current Documents Standard governs the *existing* runtime until its authorized reconciliation. Record differences in the separate read-only integration mapping and obtain its owner review before a production change. This Phase 0 does not modify Documents or `vf-tokens.css`.
+2. **Change the existing implementation bridge once in a later authorized wave** — align governing Standard documentation when permitted, then `styles/vf-tokens.css` and the affected components/screen composition. Do not introduce raw colors outside the sanctioned token zone, a second namespace or a blanket token-only palette swap. A Documents change is never silently assumed from V2 approval.
+3. **Inventory consumers** — grep the token name; list every consumer in the PR description.
+4. **Run visual + responsive checks** — 320/390 widths, capture evidence for affected surfaces in Light and regression-check the existing Dark theme; design-token guard must stay green (it checks hex AND rgb/hsl in CSS and TSX).
+5. **Record migration/rollback** — note the old value, the new value, the date, and the rollback SHA in the change note; update `SHA256SUMS` artifacts if a run folder is active.
 
 ## D. Change a state or label
 
@@ -49,11 +52,11 @@ Read `UI_AUX_ARCHITECTURE.md` and `SOURCE_OF_TRUTH.md` first. This playbook is o
 3. NEVER add feature implementations to the Standard package (`micro-standard-v2/` is contracts only).
 4. Document in the feature-pattern catalog: contract, state matrix, consumers, tests.
 
-## G. Prepare Dark Mode (future wave)
+## G. Preserve current Dark Mode; redesign only in a separate future wave
 
-1. Extend semantic roles ONLY inside the isolated dark boundary (see `DARK_MODE_BOUNDARY.md`).
-2. Test all surfaces/states/charts/overlays for parity before proposing activation.
-3. Activation requires a separate owner gate — no default change, no Standard change (ADR-007).
+1. The user-selected Dark Mode is already active in Micro (`styles/theme-dark.css`, ADR-009); ADR-007 and `DARK_MODE_BOUNDARY.md` describe its historical preparation, not today's activation state.
+2. V2's present visual scope is Light only: preserve existing Dark behavior and test it for regressions when shared Light foundations change. No Dark deletion, redesign or V2 token migration is authorized in this phase.
+3. A later V2 Dark redesign needs an explicit owner decision and separate wave with surface/state/overlay parity checks; do not infer permission from the existing activation.
 
 ## Verification gates (every extension)
 
