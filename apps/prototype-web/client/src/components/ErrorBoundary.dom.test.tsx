@@ -90,7 +90,8 @@ describe("ErrorBoundary fallback — safe, private, focused recovery", () => {
     expect(typeof entry.errorId).toBe("string");
     expect(entry.errorId as string).toMatch(/^MIC-[0-9a-f]{10}$/);
     expect(entry.appVersion).toBe("micro-local-dev");
-    expect(entry.schemaVersion).toBe(37);
+    /* FIN-001 (WS-178 — Wave 6): المخطط 38 — بند ربط حرفي محدث. */
+    expect(entry.schemaVersion).toBe(38);
     expect(entry.routeTemplate).toBe("/");
     expect(entry.operation).toBe("errorBoundary");
     expect(entry.errorCode).toBe("render_crash");
