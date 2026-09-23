@@ -5,6 +5,14 @@
 
 ---
 
+## Phase 0 visual authority (2026-09-23)
+
+Bold Modular V2 (`Qays7753/Micro-Bold-Modular-Design-Handoff-V1`, `main` at `026541d9ac10c8d8df9999c4cd85653c4231ff43`) is the **approved visual direction** for Micro's next UI: shape, typography, identity/color roles, composition, components, states and visible interaction. This document describes the **existing runtime architecture**, not proof that V2 has reached the application. Existing Micro Standard contracts and `styles/vf-tokens.css` remain the implementation bridge; their older visual definitions must not silently outrank V2 when planning migration. The next gate is a read-only mapping of V2 into this architecture, reviewed before code; this Phase 0 changes no Standard package, tokens, primitives or product screen.
+
+V2 is Light-only in this wave. The existing explicit, persisted Dark Mode is already active (ADR-009 supersedes ADR-007); preserve it without redesign or V2 token migration now. A future Dark redesign needs its own owner decision and wave. The current financial/domain, persistence, export and product behavior contracts remain Micro-owned. No studio fixtures, JSX/CSS or review chrome enter production and no second visual token namespace is allowed.
+
+---
+
 ## 1. The fixed strategy (non-negotiable)
 
 ```
@@ -17,7 +25,7 @@ Every visual or behavioral rule has ONE authoritative definition. Other layers c
 
 | # | Layer | Location | Owns | Never owns |
 |---|---|---|---|---|
-| 1 | Standard contracts | `Documents/main micro-standard-v2/` (31 files, external) | visual roles, tokens, action classes, states, geometry, accessibility, RTL, motion, composition guidance | Micro implementation |
+| 1 | Current Standard contracts / approved new visual target | `Documents/main micro-standard-v2/` (31 external files) describes the **current** runtime contract; Bold Modular V2 decisions/color standard define the **target** visual direction | existing roles/tokens and the future visual target respectively; reconcile in read-only mapping before implementation | claiming current Standard already contains all V2 values, or treating current UI as target |
 | 2 | Runtime token mapping | `client/src/styles/vf-tokens.css` | the ONLY place Standard hex values live; `--vf-*` namespace; action-class bindings; Micro legacy names rebound as aliases | product meaning, words |
 | 3 | Shared primitives | `client/src/components/primitives/` + `styles/primitives.css` | Button (8 action classes), StatusChip, ChoiceRow/ChoiceButton, Notice/QuietCompletion/InlineError, Row/RowList, Field, EmptyState, markers | financial meaning, product policy |
 | 4 | AUX shell | `client/src/components/layout/` + `.micro-app-*` rules | Header, BottomNav, FAB, safe areas, keyboard chrome, route chrome, scroll ownership, overlay z-ladder, QuickActionSheet shell | sale/expense business workflows |
@@ -32,7 +40,7 @@ Import direction is downward for values (a lower number never imports from a hig
 ## 3. Correct and incorrect placement — examples
 
 **Correct**
-- A new semantic color is needed → it does NOT exist until the Standard defines it; then it enters `vf-tokens.css` as `--vf-*` and consumers use `var(--vf-*)`. (ADR-002)
+- A new semantic color for the current runtime → it does NOT enter production until the governing Standard and V2-to-Micro mapping are reconciled in an authorized later wave; then update the existing `vf-tokens.css` bridge and its consumers. This Phase 0 authorizes no new runtime colors. (ADR-002)
 - A save button on a new screen → `<Button action="save">` from `@/components/primitives`; the screen passes its own label. No legacy class and no local CSS.
 - A selected/unselected choice pair → `<ChoiceRow><ChoiceButton selected>…` — 2px clay-interactive edge + heavier weight, never a fill.
 - A financial quick-entry sheet → AUX owns open/close/discard guard; the feature layer (`components/finance/QuickSaleForm`) owns fields, validation, idempotency, submission.
@@ -74,7 +82,7 @@ Arabic-first RTL · phone-first 320–430px · light-first · English digits in 
 
 ## 7. Dark Mode boundary
 
-Dark Mode is a **separate semantic boundary, not activated** (see `DARK_MODE_BOUNDARY.md` in the run folder and ADR-007). The legacy `.dark` block is preserved Micro-local until its own owner-approved wave.
+Dark Mode is **already active**, explicit and persisted in Micro (ADR-009 and `styles/theme-dark.css`); ADR-009 superseded ADR-007, and `DARK_MODE_BOUNDARY.md` describes the older preparation stage. Bold Modular V2 currently covers Light Mode only. Preserve today's Dark implementation during this documentation phase and do not apply V2 visual tokens to it or claim it is the V2 design. A future visual redesign of Dark requires a separate owner decision and wave; later production changes must guard against regressions in the existing theme.
 
 ## 8. Related documents
 

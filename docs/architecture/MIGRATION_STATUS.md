@@ -1,6 +1,12 @@
 # Migration Status — Micro Standard v2 UI/AUX integration
 
-**Last updated:** 2026-09-15 (remediation-closure run: permanent Light+Dark, feedback truth, honest voids — same branch; R7 evidence/documentation reconciliation)
+## Bold Modular V2: Phase 0 documentation reconciliation (2026-09-23)
+
+The migration evidence and route counts below document the **older Micro Standard v2 runtime integration**, not a completed Bold Modular V2 rollout. The owner approved Bold Modular V2 as the new **visual direction** (`Qays7753/Micro-Bold-Modular-Design-Handoff-V1` at `026541d9ac10c8d8df9999c4cd85653c4231ff43`): lead brand `#D97757`, distinct brand/action and semantic roles, Light-only visual scope. Existing Micro Standard and `styles/vf-tokens.css` remain the **single current implementation bridge**, unchanged in Phase 0. No studio fixtures, JSX/CSS, review controls or second visual token namespace belong in production. Financial behavior, data, domain, storage and export remain governed by Micro. The next step is a read-only V2-to-Micro Integration Mapping and owner review; no V2 production token/component migration or `OVR-NOW` implementation is claimed here.
+
+`SCREEN-COVERAGE-V2.csv` contains **46 entries**, not 46 completed product screens; three principal product screens are visual references in the independent studio. `UX-001` remains `DEFERRED` until real integration and verification. `#CC785C` occurs only in retired-value/historical comparisons, not as the approved V2 or current runtime brand. Existing Micro Dark Mode is live under ADR-009 (see below), preserved without V2 redesign or V2 token transfer in this Light-scope wave; a later Dark redesign needs its own owner decision.
+
+**Older runtime migration record below last updated:** 2026-09-15 (remediation-closure run: permanent Light+Dark, feedback truth, honest voids — same branch; R7 evidence/documentation reconciliation)
 **Live evidence:** `planning/micro-standard-ui-aux-integration-2026-09/MIGRATION_MATRIX.csv` (52/52 pages in the migration/action inventory) + `client/src/legacyClassCensus.test.ts` (repo-wide guard, all source roots) + `planning/micro-standard-ui-aux-integration-2026-09/remediation-closure-2026-09/THEME_PARITY_MATRIX.csv` (35 route families × both themes).
 
 **Route-count terminology:** three counts appear in these documents and they measure different things — **52** is the historical migration/action inventory (`MIGRATION_MATRIX.csv` page rows, "52/52" below); **55** is the registered routes exercised by the render-smoke in each theme (the 55 path-bearing `<Route>` registrations in `MicroRouter.tsx`); **35** is the route families with real visual captures in the remediation-closure run (`THEME_PARITY_MATRIX.csv`; 70 route captures + 8 state captures). The counts are not interchangeable and none inflates another.
@@ -35,7 +41,7 @@ Per-route adoption and honest test evidence: see the matrix (12 routes carry `no
 | Schedule «حفظ سعة اليوم» / recurrence-stop confirm wearing secondary | deliberate de-emphasis of optional preferences inside open panels; consequence paths exist (documented) |
 | `quiet` openers for record-entry panels (DirectSaleEditor consumption link, OrderDetail extra deposit) | panel openers adjacent to correction/reversal entries; reclassifying to secondary is a weight-only tweak deferred to the next visual pass |
 
-## Deferred to owner decisions (registered, not silently skipped)
+## Follow-ups and resolved owner decisions (registered, not silently skipped)
 
 1. Dark Mode activation — **complete in this run** (ADR-009): the previously deferred activation wave is closed; what remains is physical-device review, an external `NOT_RUN` limitation (`remediation-closure-2026-09/FINAL_LIMITATIONS.md`), not pending activation work.
 2. Finance-event → Row convergence wave (visual).
