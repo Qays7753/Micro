@@ -2,7 +2,7 @@
   "id": "CLEAN-001",
   "title": "تنظيف الأسطح الجزئية والميتة",
   "type": "QUALITY",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P2",
   "stage": "stage-4",
   "summary": "إزالة أو إكمال كل Surface يعد بقدرة غير موجودة أو يكرر مدخلًا بلا ملكية.",
@@ -15,14 +15,17 @@
     "product-surfaces"
   ],
   "contracts": [],
-  "evidence": [],
+  "evidence": [
+    "reports/agent-report/2026-09-23_fin-roadmap-wave-8-clean-001/report.md",
+    "docs/operations/current-state.md"
+  ],
   "dependencies": [
     "FIN-007",
     "OPS-004"
   ],
   "owner_decision": "",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
+  "merge_sha": "ef54dcfbb1e3191d95f6354b46115c0d627e42e0",
+  "verified_on_main_sha": "ef54dcfbb1e3191d95f6354b46115c0d627e42e0",
   "updated_at": "2026-09-23",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
@@ -56,10 +59,22 @@
       "changed_at": "2026-09-23",
       "actor": "ws-180:review",
       "reason": "الجرد مكتمل (صفر أسطح ميتة) والحدس الحارسة تثبت الأمانة — قيد مراجعة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-180:merge",
+      "reason": "PR #226 مدمج Squash عند ef54dcf (الأساس b68ea31) — CI وCloudflare ناجحان من الدورة الأولى."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-180:post-merge-verification",
+      "reason": "تحقق على SHA الدمج نفسه ef54dcf: CI + Cloudflare ناجحان على commit الدمج؛ الحدس الحارسة 4/4 خضر محليًا على main. صفر حذف موثق (NO_UNAUTHORIZED_CLEANUP_PERFORMED)."
     }
   ],
   "migration_baseline": true,
-  "next_action": "تنفيذ ضمن WS-180 (الموجة ٨).",
+  "next_action": "لا فعل إضافي: الجرد مكتمل ومثبت بحدس حارسة على main (ef54dcf).",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",
