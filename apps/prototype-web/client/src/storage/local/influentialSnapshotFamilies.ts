@@ -80,6 +80,12 @@ export const INFLUENTIAL_SNAPSHOT_FAMILIES = {
   costEstimates: { label: "التقديرات المحفوظة", count: snapshot => snapshot.costEstimates?.length ?? 0 },
   assets: { label: "الأصول", count: snapshot => snapshot.assets?.length ?? 0 },
   loans: { label: "القروض", count: snapshot => snapshot.loans?.length ?? 0 },
+  /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة — التزام اقتراض فوق
+   * أحداثه المالية؛ الغياب في ملف قديم = صفر بلا اختراع. */
+  receivedLoans: {
+    label: "القروض المستلمة",
+    count: snapshot => snapshot.receivedLoans?.length ?? 0,
+  },
   /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر الثلاث — بيت التذكير التشغيلي
    * فوق أحداثه المالية؛ الغياب في ملف قديم = صفر بلا اختراع. */
   recurringExpenseSeries: {

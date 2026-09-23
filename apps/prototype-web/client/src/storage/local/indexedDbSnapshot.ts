@@ -31,6 +31,7 @@ import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
+import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
 import type {
   RecurringExpenseOccurrence,
   RecurringExpenseRuleRevision,
@@ -71,6 +72,7 @@ import {
   inventoryMovementStore,
   inventoryShortageStore,
   loanStore,
+  receivedLoanStore,
   recurringExpenseOccurrenceStore,
   recurringExpenseRevisionStore,
   recurringExpenseSeriesStore,
@@ -126,6 +128,7 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
           costEstimateStore,
           assetStore,
           loanStore,
+          receivedLoanStore,
           recurringExpenseSeriesStore,
           recurringExpenseRevisionStore,
           recurringExpenseOccurrenceStore,
@@ -168,6 +171,9 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
       const costEstimates = transaction.objectStore(costEstimateStore).getAll();
       const assets = transaction.objectStore(assetStore).getAll();
       const loans = transaction.objectStore(loanStore).getAll();
+      /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة جزء من اللقطة —
+       * إسقاطها يفقد الالتزام عند التصدير. */
+      const receivedLoans = transaction.objectStore(receivedLoanStore).getAll();
       const recurringExpenseSeries = transaction.objectStore(recurringExpenseSeriesStore).getAll();
       const recurringExpenseRevisions = transaction.objectStore(recurringExpenseRevisionStore).getAll();
       const recurringExpenseOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore).getAll();
@@ -210,6 +216,7 @@ export async function readIndexedDbSnapshot(): Promise<StorageResult<LocalStoreS
             costEstimates: costEstimates.result as CostEstimate[],
             assets: assets.result as AssetRecord[],
             loans: loans.result as LoanRecord[],
+            receivedLoans: receivedLoans.result as ReceivedLoanRecord[],
             recurringExpenseSeries: recurringExpenseSeries.result as RecurringExpenseSeries[],
             recurringExpenseRevisions: recurringExpenseRevisions.result as RecurringExpenseRuleRevision[],
             recurringExpenseOccurrences: recurringExpenseOccurrences.result as RecurringExpenseOccurrence[],
@@ -256,6 +263,7 @@ export async function replaceIndexedDbSnapshot(
       costEstimates: snapshot.costEstimates ?? [],
       assets: snapshot.assets ?? [],
       loans: snapshot.loans ?? [],
+      receivedLoans: snapshot.receivedLoans ?? [],
       recurringExpenseSeries: snapshot.recurringExpenseSeries ?? [],
       recurringExpenseRevisions: snapshot.recurringExpenseRevisions ?? [],
       recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences ?? [],
@@ -295,6 +303,7 @@ export async function replaceIndexedDbSnapshot(
           costEstimateStore,
           assetStore,
           loanStore,
+          receivedLoanStore,
           recurringExpenseSeriesStore,
           recurringExpenseRevisionStore,
           recurringExpenseOccurrenceStore,
@@ -332,6 +341,7 @@ export async function replaceIndexedDbSnapshot(
       const costEstimates = transaction.objectStore(costEstimateStore);
       const assets = transaction.objectStore(assetStore);
       const loans = transaction.objectStore(loanStore);
+      const receivedLoans = transaction.objectStore(receivedLoanStore);
       const recurringSeries = transaction.objectStore(recurringExpenseSeriesStore);
       const recurringRevisions = transaction.objectStore(recurringExpenseRevisionStore);
       const recurringOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
@@ -366,6 +376,7 @@ export async function replaceIndexedDbSnapshot(
       costEstimates.clear();
       assets.clear();
       loans.clear();
+      receivedLoans.clear();
       recurringSeries.clear();
       recurringRevisions.clear();
       recurringOccurrences.clear();
@@ -404,6 +415,7 @@ export async function replaceIndexedDbSnapshot(
       normalized.costEstimates?.forEach(estimate => costEstimates.put(estimate));
       normalized.assets?.forEach(asset => assets.put(asset));
       normalized.loans?.forEach(loan => loans.put(loan));
+      normalized.receivedLoans?.forEach(loan => receivedLoans.put(loan));
       normalized.recurringExpenseSeries?.forEach(series => recurringSeries.put(series));
       normalized.recurringExpenseRevisions?.forEach(revision => recurringRevisions.put(revision));
       normalized.recurringExpenseOccurrences?.forEach(occurrence => recurringOccurrences.put(occurrence));
