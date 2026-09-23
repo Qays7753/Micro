@@ -351,6 +351,21 @@
       "docs": "current-state.md §26 (القروض — الحقيقة المالية في أحداثها)"
     },
     {
+      "store": "received-loans",
+      "snapshotField": "receivedLoans",
+      "domainType": "ReceivedLoanRecord",
+      "adapters": ["memory", "indexeddb"],
+      "adapterTests": [
+        "apps/prototype-web/client/src/storage/local/adapterConformance.receivedLoan.test.ts",
+        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts"
+      ],
+      "transferTests": [
+        "apps/prototype-web/client/src/application/transfers/localTransferService.receivedLoan.test.ts"
+      ],
+      "notExportedReason": null,
+      "docs": "docs/contracts/05-financial-p0-policies.md §3.3 (FIN-001/WS-178 — القروض المستلمة: كاش والتزام لا إيراد؛ مخزن محروس بنمط D-037)"
+    },
+    {
       "store": "form-drafts",
       "snapshotField": null,
       "domainType": "FormDraftEnvelope",
