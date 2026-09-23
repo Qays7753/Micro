@@ -1,7 +1,7 @@
 {
   "id": "WS-180",
   "title": "Financial Roadmap Wave 8 — CLEAN-001 dead/partial-surface surgical audit (zero-deletion outcome pinned with honesty guards)",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "CLEAN-001"
   ],
@@ -19,7 +19,7 @@
   "pr": null,
   "started_at": "2026-09-23T11:00:00+03:00",
   "updated_at": "2026-09-23",
-  "next_action": "تنفيذ جرد الأسطح المرشحة (السوق/لوحات قريبًا/نسخ المحافظ الشرطي) وتثبيت الأمانة بحدس حارسة؛ لا حذف بلا جرد موثق.",
+  "next_action": "راجع PR الموجة ٨ ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED.",
   "notes": [
     "Owner rules (roadmap §5 Wave 8): surgical cleanup ONLY after all executable financial waves verified (FIN-003/007, 002, 005, 004, 006, 001, 008 — ALL VERIFIED on main). No bulk moves, no new features/ layer, no structural refactor, no deletion of historical evidence, no semantic change. Every deletion listed with reason/reference-search result/risk/rollback. Structural temptation => OWNER_DECISION_REQUIRED under the post-Group-6 gate.",
     "Coordinator audit findings (read-only): the Phase-0 candidate inventory (/market honest placeholder, AppHeader soon panels, CashWallets conditional copy) all meet the acceptance bar TODAY — /market is an honest NAV-001-approved 'قريبًا' surface with NO service/store/localStorage imports (writes nothing); AppHeader panels are documented honest announcements (no reservation/tracking/pricing); CashWallets conditional copy is functional return-path copy. Zero unreferenced non-test components (reference scan). routeKnowledgeSync already pins every route classified with no orphans either direction.",
@@ -37,6 +37,12 @@
       "changed_at": "2026-09-23",
       "actor": "ws-180:implement",
       "reason": "جرد الأسطح المرشحة وتثبيت أمانة إعلانات قريبًا بحدس حارسة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-23",
+      "actor": "ws-180:review",
+      "reason": "جرد موثق بصفر حذف + 4 حدس حارسة لأمانة الأسطح — جاهز لبوابة PR."
     }
   ],
   "migration_baseline": false

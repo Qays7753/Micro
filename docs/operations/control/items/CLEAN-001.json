@@ -2,7 +2,7 @@
   "id": "CLEAN-001",
   "title": "تنظيف الأسطح الجزئية والميتة",
   "type": "QUALITY",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P2",
   "stage": "stage-4",
   "summary": "إزالة أو إكمال كل Surface يعد بقدرة غير موجودة أو يكرر مدخلًا بلا ملكية.",
@@ -50,6 +50,12 @@
       "changed_at": "2026-09-23",
       "actor": "ws-180:implement",
       "reason": "جرد الأسطح وتثبيت الحدس الحارسة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-23",
+      "actor": "ws-180:review",
+      "reason": "الجرد مكتمل (صفر أسطح ميتة) والحدس الحارسة تثبت الأمانة — قيد مراجعة PR."
     }
   ],
   "migration_baseline": true,

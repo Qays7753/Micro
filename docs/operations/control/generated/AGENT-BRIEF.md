@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · READY: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 21 · VERIFIED: 35
+الحصيلة: BLOCKED: 3 · IN_REVIEW: 1 · READY: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 21 · VERIFIED: 35
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-180 | IN_PROGRESS | \`feat/clean-001-surface-audit-20260923\` | — | CLEAN-001 | تنفيذ جرد الأسطح المرشحة (السوق/لوحات قريبًا/نسخ المحافظ الشرطي) وتثبيت الأمانة بحدس حارسة؛ لا حذف بلا جرد موثق. |
+| WS-180 | IN_REVIEW | \`feat/clean-001-surface-audit-20260923\` | — | CLEAN-001 | راجع PR الموجة ٨ ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED. |
