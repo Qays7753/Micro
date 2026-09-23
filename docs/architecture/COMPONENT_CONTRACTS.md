@@ -2,6 +2,10 @@
 
 Authoritative contracts for `components/primitives/`. Styles live in `styles/primitives.css` (tokens from `styles/vf-tokens.css`). Tests live in `primitives.test.tsx`. The run-folder `COMPONENT_CATALOG.md` holds the historical adoption census.
 
+**Bold Modular V2 Phase 0 status (2026-09-23):** the contracts below describe **implemented Micro primitives**, not already migrated V2 components. V2's independent `interactive-design-studio/COMPONENT-CATALOG.md`, `STATE-MATRIX.md` and `RTL-ACCESSIBILITY.md` are approved **visual references** for a later read-only integration mapping; their JSX/CSS, fixtures and studio chrome must not be copied into production. Keep the current `--vf-*` bridge and existing component contracts until the relevant consumers are inventoried and a later wave is authorized. No second token namespace or blanket button/card recoloring. Do not change Micro action semantics, state words, financial value meanings or data flows to mimic a studio fixture.
+
+**V2 visual role separation to carry into that mapping:** Brand (`#D97757`) is identity, not profit/loss/cash/collection; Action is independently assigned, not automatically Brand; Canvas, Surface and Ink establish reading hierarchy; Information, Success, Attention, Danger and Partial/Unknown describe different meanings with words/marks as well as color; Focus must remain visible; Disabled must not look like an unknown financial value. V2 currently defines only Light visuals. Micro's existing Dark implementation is active under ADR-009 and remains intact in this phase; any later Dark redesign is separate. The V2 coverage ledger has 46 entries, many not started, and `UX-001` remains `DEFERRED`.
+
 ## Button (`Button.tsx`)
 
 - **Responsibility:** render the owner-approved action classes with the shared control baseline (48px, radius-control, 600, visible focus, duplicate-submit protection, loading without layout shift).
