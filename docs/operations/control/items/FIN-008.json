@@ -2,7 +2,7 @@
   "id": "FIN-008",
   "title": "تحقق الإهلاك بعد مرور الزمن",
   "type": "QUALITY",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P2",
   "stage": "stage-3",
   "summary": "اختبار حي لحساب الإهلاك عندما تتوفر فترة زمنية فعلية، دون تزوير الوقت.",
@@ -15,11 +15,15 @@
     "depreciation"
   ],
   "contracts": [],
-  "evidence": [],
+  "evidence": [
+    "reports/agent-report/2026-09-23_fin-roadmap-wave-7-fin-008/report.md",
+    "docs/contracts/43-asset-depreciation-prototype-contract.md",
+    "docs/operations/current-state.md"
+  ],
   "dependencies": [],
   "owner_decision": "تحديد نافذة اختبار الإهلاك أو آلية ساعة اختبار معتمدة قبل فتح Claim.",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
+  "merge_sha": "caa9e80f2474c53ee3b6c88d7dc0e4380d0163d5",
+  "verified_on_main_sha": "caa9e80f2474c53ee3b6c88d7dc0e4380d0163d5",
   "updated_at": "2026-09-23",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
@@ -59,10 +63,22 @@
       "changed_at": "2026-09-23",
       "actor": "ws-179:review",
       "reason": "العقد والشريحة جاهزان لبوابة PR بعد بوابات كاملة خضراء."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-179:merge",
+      "reason": "PR #224 مدمج Squash عند caa9e80f2474c53ee3b6c88d7dc0e4380d0163d5 (الأساس dc8818b) — CI وCloudflare ناجحان على رأس الـPR من الدورة الأولى (توقع CI-parity بايت-بايت: 649,740 = 649,740)."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-179:post-merge-verification",
+      "reason": "تحقق على SHA الدمج نفسه caa9e80: CI checks success + Cloudflare Pages success على commit الدمج، وحزمة CI على main نفسها raw=649,740/650,000 + gzip 154,134/155,000 — PASS؛ اختبارات الموجة (19 جديدة: 49/49 محليًا على main شاملة الانحدار) خضر. مراجعة W7-REVIEW المستقلة: REVIEW_PASS — عقد ٤٣ + شريحة المتبقية والمرجع مكملان لمصفوفة القبول."
     }
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة PR الموجة ٧ (WS-179) ثم الدمج والتحقق على main قبل VERIFIED.",
+  "next_action": "لا فعل إضافي: منفذ ومتحقق على main (caa9e80).",
   "deferred_reason": "تنفيذ مؤجل حتى اعتماد/إكمال الاعتماديات، لكنه متطلب Gate قبل Pilot؛ اختبار الإهلاك يستخدم Clock قابلًا للحقن ولا ينتظر شهرًا حقيقيًا.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
