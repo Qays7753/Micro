@@ -34,15 +34,17 @@
   ],
   "status_history": [
     {
-      "status": "IN_PROGRESS",
+      "status": "CLAIMED",
       "changed_at": "2026-09-23",
       "actor": "ws-178:claim",
       "reason": "Claim تنفيذي واحد غير متداخل فوق main المتحقق c3b68c6 قبل أي شيفرة (خارطة W6-AUDIT)."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-23",
+      "actor": "ws-178:implement",
+      "reason": "بدء تنفيذ القرض المستلم: دومين الأحداث والمخزن والتصدير والخدمة والعرض على الفرع feat/fin-001-received-loans-20260923."
     }
   ],
-  "migration_baseline": {
-    "schema_version": 37,
-    "export_version": 29
-  },
-  "owner": "Product owner / Manus coordination"
+  "migration_baseline": false
 }
