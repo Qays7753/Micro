@@ -2,7 +2,7 @@
   "id": "REL-001",
   "title": "اختبارات الصمود والفشل",
   "type": "QUALITY",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "stage-6",
   "summary": "اختبار التخزين الممتلئ والفشل الجزئي والاستيراد والتصدير والقفل والانقطاع بقيم صادقة ومسارات استعادة.",
@@ -17,13 +17,16 @@
     "performance"
   ],
   "contracts": [],
-  "evidence": [],
+  "evidence": [
+    "reports/agent-report/2026-09-23_fin-roadmap-wave-9-rel-001/report.md",
+    "docs/operations/current-state.md"
+  ],
   "dependencies": [
     "CLEAN-001"
   ],
   "owner_decision": "",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
+  "merge_sha": "027fc7b5e5424c8fa3f2649ec93fdfadb6f80991",
+  "verified_on_main_sha": "027fc7b5e5424c8fa3f2649ec93fdfadb6f80991",
   "updated_at": "2026-09-23",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
@@ -51,10 +54,28 @@
       "changed_at": "2026-09-23",
       "actor": "ws-181:implement",
       "reason": "فجوتا الصمود قيد التعبئة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-23",
+      "actor": "ws-181:review",
+      "reason": "فجوتا الصمود معبأتان وبوابات كاملة خضراء — جاهز لبوابة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-181:merge",
+      "reason": "PR #228 مدمج Squash عند 027fc7b (الأساس ec918a9) — CI وCloudflare ناجحان من الدورة الأولى."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-181:post-merge-verification",
+      "reason": "تحقق على SHA الدمج نفسه 027fc7b: CI + Cloudflare ناجحان على commit الدمج؛ فجوتا الصمود 2/2 خضر محليًا على main."
     }
   ],
   "migration_baseline": true,
-  "next_action": "تنفيذ ضمن WS-181 (الموجة ٩).",
+  "next_action": "لا فعل إضافي: فجوتا الصمود معبأتان ومتحققتان على main (027fc7b).",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",
