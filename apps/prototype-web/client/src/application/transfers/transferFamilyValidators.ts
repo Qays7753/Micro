@@ -563,7 +563,11 @@ export function validFinancialEvent(value: unknown): boolean {
         (value.type === "loan_outgoing_cash" ? amount : value.type === "loan_repayment_cash" ? -amount : 0) &&
       (value.revenueDeltaMinor ?? 0) === 0 &&
       (value.loanPayableDeltaMinor ?? 0) ===
-        (value.type === "loan_received_cash" ? amount : value.type === "loan_received_repayment_cash" ? -amount : 0)
+        (value.type === "loan_received_cash"
+          ? amount
+          : value.type === "loan_received_repayment_cash"
+            ? -amount
+            : 0)
     );
   }
   if (isDepositEventType(value.type)) {

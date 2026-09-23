@@ -22,9 +22,7 @@ import type { ReceivedLoanService } from "@/application/loans/receivedLoanServic
 
 import { Button } from "@/components/primitives";
 type ServiceLoad =
-  { phase: "loading" }
-  | { phase: "error" }
-  | { phase: "ready"; service: ReceivedLoanService };
+  { phase: "loading" } | { phase: "error" } | { phase: "ready"; service: ReceivedLoanService };
 
 /* خيارات النوع الاقتصادي — اختيار المستخدم الصريح لا تخمين التطبيق. */
 const LENDER_TYPE_OPTIONS: readonly { value: ReceivedLoanLenderType; label: string }[] = [
@@ -83,7 +81,10 @@ export default function ReceivedLoanEditor() {
     import("@/application/loans/receivedLoanService")
       .then(module => {
         if (active)
-          setServiceLoad({ phase: "ready", service: new module.ReceivedLoanService(getPrototypeLocalStore()) });
+          setServiceLoad({
+            phase: "ready",
+            service: new module.ReceivedLoanService(getPrototypeLocalStore()),
+          });
       })
       .catch(() => {
         if (active) setServiceLoad({ phase: "error" });
@@ -187,7 +188,9 @@ export default function ReceivedLoanEditor() {
           value={lenderType}
           onChange={event =>
             setLenderType(
-              event.target.value === "owner" || event.target.value === "person" || event.target.value === "institution"
+              event.target.value === "owner" ||
+                event.target.value === "person" ||
+                event.target.value === "institution"
                 ? event.target.value
                 : "",
             )

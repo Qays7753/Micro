@@ -92,10 +92,7 @@ export class ReceivedLoanService {
       value: {
         rows,
         totals: {
-          borrowedLoansOutstandingMinor: rows.reduce(
-            (sum, row) => sum + row.reading.outstandingMinor,
-            0,
-          ),
+          borrowedLoansOutstandingMinor: rows.reduce((sum, row) => sum + row.reading.outstandingMinor, 0),
           borrowedPrincipalMinor: rows.reduce((sum, row) => sum + row.reading.principalMinor, 0),
           openCount: rows.filter(row => row.reading.status === "open").length,
         },
@@ -161,7 +158,10 @@ export class ReceivedLoanService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { loan: commit.value.record, event: commit.value.event } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "بيانات القرض المستلم غير صالحة.");
+      return failure(
+        "validation_error",
+        error instanceof Error ? error.message : "بيانات القرض المستلم غير صالحة.",
+      );
     }
   }
 
@@ -254,7 +254,8 @@ export class ReceivedLoanService {
     if (!loan) return failure("invalid_state", "القرض المستلم غير متاح محليًا.");
     const source = eventsResult.value.find(event => event.id === loan.principalEventId);
     if (!source) return failure("invalid_state", "حدث أصل القرض المستلم غير موجود.");
-    if (source.correctionType === "reverse") return failure("invalid_state", "حدث أصل القرض المستلم معكوس سابقًا.");
+    if (source.correctionType === "reverse")
+      return failure("invalid_state", "حدث أصل القرض المستلم معكوس سابقًا.");
     /* لا تصحيح بلا تغيير — عكس وبديل بلا فرق فعلي يلوّثان التاريخ بضجيج؛
      * وبيانات العرض (النوع/الاستحقاق) لا تبرر عكسًا ماليًا أبدًا. */
     const nextPrincipal = input.principalMinor ?? loan.principalMinor;
@@ -300,7 +301,10 @@ export class ReceivedLoanService {
         },
       };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "تصحيح القرض المستلم غير صالح.");
+      return failure(
+        "validation_error",
+        error instanceof Error ? error.message : "تصحيح القرض المستلم غير صالح.",
+      );
     }
   }
 }

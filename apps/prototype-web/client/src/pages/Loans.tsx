@@ -33,7 +33,9 @@ type State =
   { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; overview: LoanOverviewRead };
 type ServiceLoad<T> = { phase: "loading" } | { phase: "error" } | { phase: "ready"; service: T };
 type ReceivedState =
-  { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; overview: ReceivedLoanOverviewRead };
+  | { phase: "loading" }
+  | { phase: "error"; message: string }
+  | { phase: "ready"; overview: ReceivedLoanOverviewRead };
 
 export default function Loans() {
   const [, navigate] = useLocation();
@@ -310,10 +312,7 @@ function ReceivedLoansSection({
         </>
       )}
       <div className="micro-form-actions">
-        <Button
-          action="create"
-          onClick={() => navigate(withReturnTo("/loans/received/new", "/loans"))}
-        >
+        <Button action="create" onClick={() => navigate(withReturnTo("/loans/received/new", "/loans"))}>
           <Plus aria-hidden="true" /> سجّل قرضًا أخذته
         </Button>
       </div>

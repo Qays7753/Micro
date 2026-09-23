@@ -7,10 +7,7 @@ import {
   validateDeliveryReversalMovements,
 } from "./deliveryReversalCommitGuard";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
-import {
-  findReceivedLoanEventByKey,
-  validateReceivedLoanCommitRelation,
-} from "./receivedLoanCommitGuard";
+import { findReceivedLoanEventByKey, validateReceivedLoanCommitRelation } from "./receivedLoanCommitGuard";
 import {
   findRecurringExpenseEventByKey,
   validateRecurringExpenseDraftCommit,

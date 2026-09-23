@@ -220,6 +220,14 @@ function normalizeAssetContext(value: AssetEventContext | null | undefined): Ass
     ...(value.bookValueMinor !== undefined ? { bookValueMinor: value.bookValueMinor } : {}),
   });
 }
+/* FIN-001 (WS-178 — Wave 6): حارس المُقرض — القرض المستلم يعلن المُقرض
+ * صراحةً (لا تخمين للنوع الاقتصادي)، والصادر يُحظر عليه حقل المُقرض. */
+function assertLoanLenderShape(type: CreateFinancialEventInput["type"], lender: string | null) {
+  const isReceivedLoanType = type === "loan_received_cash" || type === "loan_received_repayment_cash";
+  if (isReceivedLoanType && !lender) throw new Error("أحداث القرض المستلم تتطلب اسم المُقرض.");
+  if (!isReceivedLoanType && lender) throw new Error("اسم المُقرض يخص أحداث القرض المستلم فقط.");
+  return isReceivedLoanType;
+}
 function normalizeLoanContext(
   value: LoanEventContext | null | undefined,
   type: CreateFinancialEventInput["type"],
@@ -228,14 +236,8 @@ function normalizeLoanContext(
   const loanId = value.loanId?.trim();
   const borrower = value.borrower?.trim();
   if (!loanId || !borrower) throw new Error("سياق القرض يتطلب معرف القرض واسم المستدين.");
-  /* FIN-001 (WS-178 — Wave 6): القرض المستلم يعلن المُقرض صراحةً — لا تخمين
-   * للنوع الاقتصادي؛ الصادر يبقى بحقل المستدين كما خُزّن تاريخيًا. */
-  const isReceivedLoanType =
-    type === "loan_received_cash" || type === "loan_received_repayment_cash";
   const lender = value.lender?.trim() || null;
-  if (isReceivedLoanType && !lender) throw new Error("أحداث القرض المستلم تتطلب اسم المُقرض.");
-  if (!isReceivedLoanType && lender)
-    throw new Error("اسم المُقرض يخص أحداث القرض المستلم فقط.");
+  assertLoanLenderShape(type, lender);
   return Object.freeze({ loanId, borrower, lender });
 }
 function normalizeDepositContext(value: DepositEventContext | null | undefined): DepositEventContext | null {
@@ -409,6 +411,18 @@ export function createFinancialEvent(input: CreateFinancialEventInput): Financia
   });
 }
 
+/* عكس أعمدة الطبقات الاختيارية — القديم يقرأ صفرًا (سابقة الأمانات)؛
+ * مساعد واحد يحمل فروع nullish الخمسة خارج جسم التراجع الكبير. */
+function negateOptionalDeltas(source: FinancialEvent) {
+  return {
+    amanahDeltaMinor: -(source.amanahDeltaMinor ?? 0),
+    assetDeltaMinor: -(source.assetDeltaMinor ?? 0),
+    loanDeltaMinor: -(source.loanDeltaMinor ?? 0),
+    revenueDeltaMinor: -(source.revenueDeltaMinor ?? 0),
+    loanPayableDeltaMinor: -(source.loanPayableDeltaMinor ?? 0),
+  };
+}
+
 export function createFinancialReversal(input: CreateFinancialReversalInput): FinancialEvent {
   assertNonBlank(input.id, "id");
   assertNonBlank(input.idempotencyKey, "idempotencyKey");
@@ -436,11 +450,7 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
     payableDeltaMinor: -input.sourceEvent.payableDeltaMinor,
     ownerCapitalDeltaMinor: -input.sourceEvent.ownerCapitalDeltaMinor,
     operatingExpenseDeltaMinor: -input.sourceEvent.operatingExpenseDeltaMinor,
-    amanahDeltaMinor: -(input.sourceEvent.amanahDeltaMinor ?? 0),
-    assetDeltaMinor: -(input.sourceEvent.assetDeltaMinor ?? 0),
-    loanDeltaMinor: -(input.sourceEvent.loanDeltaMinor ?? 0),
-    revenueDeltaMinor: -(input.sourceEvent.revenueDeltaMinor ?? 0),
-    loanPayableDeltaMinor: -(input.sourceEvent.loanPayableDeltaMinor ?? 0),
+    ...negateOptionalDeltas(input.sourceEvent),
     assetContext: input.sourceEvent.assetContext ?? null,
     loanContext: input.sourceEvent.loanContext ?? null,
     depositContext: input.sourceEvent.depositContext ?? null,

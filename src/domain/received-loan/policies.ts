@@ -23,6 +23,19 @@ function assertLender(value: string) {
   if (normalized.length > 200) throw new Error("اسم المُقرض يتجاوز 200 حرف؛ اختصره.");
 }
 
+/* FIN-001: النوع الاقتصادي اختيار صريح — لا افتراضي ولا تخمين. */
+function assertLenderType(type: ReceivedLoanLenderType) {
+  if (!LENDER_TYPES.has(type)) throw new Error("اختر نوع المُقرض صراحةً: مالك / فرد / مؤسسة.");
+}
+
+/* تاريخ الاستحقاق إن وُجد: تاريخًا محليًا صحيحًا لا يسبق تاريخ القبض — ووسم
+ * عرض فقط: لا مصروف ولا تنبيه إلزامي يُنشأ منه. */
+function assertDueOn(dueOn: string | null | undefined, receivedOn: string) {
+  if (dueOn === null || dueOn === undefined || dueOn === "") return;
+  assertLocalDate(dueOn, "dueOn");
+  if (dueOn < receivedOn) throw new Error("تاريخ الاستحقاق لا يمكن أن يسبق تاريخ قبض القرض.");
+}
+
 function activeRepayments(loan: ReceivedLoanRecord): readonly ReceivedLoanRepaymentRecord[] {
   return loan.repayments.filter(repayment => repayment.reversal === null);
 }
@@ -30,20 +43,11 @@ function activeRepayments(loan: ReceivedLoanRecord): readonly ReceivedLoanRepaym
 export function createReceivedLoanRecord(input: CreateReceivedLoanRecordInput): ReceivedLoanRecord {
   assertId(input.id, "id");
   assertLender(input.lenderName);
-  /* FIN-001: النوع الاقتصادي اختيار صريح — لا افتراضي ولا تخمين. */
-  if (!LENDER_TYPES.has(input.lenderType))
-    throw new Error("اختر نوع المُقرض صراحةً: مالك / فرد / مؤسسة.");
+  assertLenderType(input.lenderType);
   assertPositiveMinor(input.principalMinor, "principalMinor");
   assertLocalDate(input.receivedOn, "receivedOn");
-  /* تاريخ الاستحقاق إن وُجد: تاريخًا محليًا صحيحًا لا يسبق تاريخ القبض —
-   * ووسم عرض فقط: لا مصروف ولا تنبيه إلزامي يُنشأ منه. */
-  if (input.dueOn !== null && input.dueOn !== undefined && input.dueOn !== "") {
-    assertLocalDate(input.dueOn, "dueOn");
-    if (input.dueOn < input.receivedOn)
-      throw new Error("تاريخ الاستحقاق لا يمكن أن يسبق تاريخ قبض القرض.");
-  }
-  if (input.note && input.note.trim().length > 500)
-    throw new Error("ملاحظة القرض تتجاوز 500 حرف؛ اختصرها.");
+  assertDueOn(input.dueOn, input.receivedOn);
+  if (input.note && input.note.trim().length > 500) throw new Error("ملاحظة القرض تتجاوز 500 حرف؛ اختصرها.");
   if (!input.operationKey.trim()) throw new Error("مفتاح عملية القرض المستلم مطلوب.");
   if (Number.isNaN(Date.parse(input.createdAt)))
     throw new Error("أدخل وقت إنشاء القرض المستلم وقتًا صحيحًا.");
@@ -137,6 +141,25 @@ export function reverseReceivedLoanRepayment(
   });
 }
 
+/* حارس تصنيف مدخلات التصحيح — شكل واحد قبل جسم التصحيح (يُبقي التعقيد داخل السقف). */
+function assertReceivedCorrectionInput(
+  loan: ReceivedLoanRecord,
+  input: {
+    lenderName?: string;
+    lenderType?: ReceivedLoanLenderType;
+    principalMinor?: number;
+    dueOn?: string | null;
+  },
+) {
+  if (input.lenderName !== undefined) assertLender(input.lenderName);
+  if (input.lenderType !== undefined) assertLenderType(input.lenderType);
+  if (input.principalMinor !== undefined) assertPositiveMinor(input.principalMinor, "principalMinor");
+  assertDueOn(input.dueOn, loan.receivedOn);
+  const repaymentsActive = activeRepayments(loan).reduce((sum, r) => sum + r.amountMinor, 0);
+  if (input.principalMinor !== undefined && input.principalMinor < repaymentsActive)
+    throw new Error("التصحيح لا يمكن أن ينزل الأصل دون المسدَّد القائم — راجع الدفعات أولًا.");
+}
+
 /** تصحيح بيانات القرض المستلم (مبلغ/مُقرض/نوع/استحقاق): سبب موثق؛ التصحيح
  * المالي (الأصل) يجري خارجها بعكس الحدث وبديله في الخدمة. */
 export function correctReceivedLoanRecord(
@@ -151,15 +174,7 @@ export function correctReceivedLoanRecord(
   at: string,
 ): ReceivedLoanRecord {
   if (!reason.trim()) throw new Error("أكمل سبب تصحيح القرض قبل الحفظ.");
-  if (input.lenderName !== undefined) assertLender(input.lenderName);
-  if (input.lenderType !== undefined && !LENDER_TYPES.has(input.lenderType))
-    throw new Error("اختر نوع المُقرض صراحةً: مالك / فرد / مؤسسة.");
-  if (input.principalMinor !== undefined) assertPositiveMinor(input.principalMinor, "principalMinor");
-  if (input.dueOn !== null && input.dueOn !== undefined && input.dueOn !== "")
-    assertLocalDate(input.dueOn, "dueOn");
-  const repaymentsActive = activeRepayments(loan).reduce((sum, r) => sum + r.amountMinor, 0);
-  if (input.principalMinor !== undefined && input.principalMinor < repaymentsActive)
-    throw new Error("التصحيح لا يمكن أن ينزل الأصل دون المسدَّد القائم — راجع الدفعات أولًا.");
+  assertReceivedCorrectionInput(loan, input);
   return Object.freeze({
     ...loan,
     lenderName: input.lenderName !== undefined ? input.lenderName.trim() : loan.lenderName,
@@ -179,8 +194,6 @@ export function activeReceivedLoanEvents(
   const reversed = reversedEventIds(events);
   return events.filter(
     event =>
-      event.correctionType !== "reverse" &&
-      !reversed.has(event.id) &&
-      event.loanContext?.loanId === loanId,
+      event.correctionType !== "reverse" && !reversed.has(event.id) && event.loanContext?.loanId === loanId,
   );
 }

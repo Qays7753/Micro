@@ -44,9 +44,7 @@ export default function ReceivedLoanRepaymentSheet({
       return;
     }
     if (amountMinor > row.reading.outstandingMinor) {
-      setMessage(
-        `الالتزام القائم ${formatMoneyMinor(row.reading.outstandingMinor)} د.أ — الدفعة لا تتخطاه.`,
-      );
+      setMessage(`الالتزام القائم ${formatMoneyMinor(row.reading.outstandingMinor)} د.أ — الدفعة لا تتخطاه.`);
       return;
     }
     setMessage(null);

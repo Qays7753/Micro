@@ -22,9 +22,7 @@ import type { ReceivedLoanService } from "@/application/loans/receivedLoanServic
 import { Button } from "@/components/primitives";
 type Reading = { loan: ReceivedLoanRecord; reading: ReceivedLoanReading; events: readonly FinancialEvent[] };
 type ServiceLoad =
-  { phase: "loading" }
-  | { phase: "error" }
-  | { phase: "ready"; service: ReceivedLoanService };
+  { phase: "loading" } | { phase: "error" } | { phase: "ready"; service: ReceivedLoanService };
 
 export default function ReceivedLoanDetail() {
   const [loanId, setLoanId] = useState<string | null>(null);
@@ -59,7 +57,10 @@ export default function ReceivedLoanDetail() {
     import("@/application/loans/receivedLoanService")
       .then(module => {
         if (active)
-          setServiceLoad({ phase: "ready", service: new module.ReceivedLoanService(getPrototypeLocalStore()) });
+          setServiceLoad({
+            phase: "ready",
+            service: new module.ReceivedLoanService(getPrototypeLocalStore()),
+          });
       })
       .catch(() => {
         if (active) setServiceLoad({ phase: "error" });
@@ -215,7 +216,10 @@ export default function ReceivedLoanDetail() {
 
       {loan.dueOn ? (
         <section className="micro-note-card" aria-label="تاريخ الاستحقاق (عرض فقط)">
-          <p>تاريخ استحقاق (عرض فقط): {formatLocalDate(loan.dueOn)} — للمعلومة فقط، لا يُنشئ مصروفًا ولا تنبيهًا.</p>
+          <p>
+            تاريخ استحقاق (عرض فقط): {formatLocalDate(loan.dueOn)} — للمعلومة فقط، لا يُنشئ مصروفًا ولا
+            تنبيهًا.
+          </p>
         </section>
       ) : null}
 
@@ -352,7 +356,9 @@ export default function ReceivedLoanDetail() {
       </details>
 
       <details className="micro-finance-layer">
-        <summary className="micro-finance-layer-summary">أحداث القرض المستلم المالية ({events.length})</summary>
+        <summary className="micro-finance-layer-summary">
+          أحداث القرض المستلم المالية ({events.length})
+        </summary>
         <ul className="micro-events-list">
           {events.map(event => (
             <li key={event.id} className="micro-event-row" data-type={event.type}>

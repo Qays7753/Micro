@@ -10,7 +10,8 @@ import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
  * أي علاقة أخرى تعني أن مسارًا آخر كتب بين قراءة المستخدم وكتابته —
  * يُرفض الالتزام ويبقى السجل متسقًا مع أحداثه. */
 
-const STALE_CONFLICT_MESSAGE = "سجل القرض المستلم تغيّر من مسار آخر بعد فتحك له — لم يُسجَّل شيء؛ أعد المحاولة.";
+const STALE_CONFLICT_MESSAGE =
+  "سجل القرض المستلم تغيّر من مسار آخر بعد فتحك له — لم يُسجَّل شيء؛ أعد المحاولة.";
 
 export type ReceivedLoanCommitGuardResult = { ok: true } | { ok: false; message: string };
 

@@ -103,7 +103,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       data.recurringExpenseOccurrences !== null &&
       !Array.isArray(data.recurringExpenseOccurrences)) ||
     /* FIN-002 (عقد ٤٢): عائلة الميزانيات اختيارية في الملفات القديمة — المصفوفة إن وُجدت. */
-    (data.expenseBudgets !== undefined && data.expenseBudgets !== null && !Array.isArray(data.expenseBudgets)) ||
+    (data.expenseBudgets !== undefined &&
+      data.expenseBudgets !== null &&
+      !Array.isArray(data.expenseBudgets)) ||
     /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة اختيارية في الملفات
      * القديمة — المصفوفة إن وُجدت. */
     (data.receivedLoans !== undefined && data.receivedLoans !== null && !Array.isArray(data.receivedLoans))
