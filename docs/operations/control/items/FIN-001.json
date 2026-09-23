@@ -2,7 +2,7 @@
   "id": "FIN-001",
   "title": "تسجيل اقتراض داخل المشروع",
   "type": "FEATURE",
-  "status": "CLAIMED",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "stage-3",
   "summary": "تمويل داخل المشروع يزيد الكاش والالتزام دون اعتباره دخلًا.",
@@ -43,10 +43,22 @@
       "changed_at": "2026-09-23",
       "actor": "ws-178:claim",
       "reason": "Claim تنفيذي (WS-178) على الفرع feat/fin-001-received-loans-20260923 من main المتحقق c3b68c6؛ الاعتمادية CTRL-001 VERIFIED."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-23",
+      "actor": "ws-178:implement",
+      "reason": "تنفيذ الاقتراض المستلم على feat/fin-001-received-loans-20260923: دومين الأحداث والمخزن والتصدير والخدمة والعرض و51 اختبارًا."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-23",
+      "actor": "ws-178:review",
+      "reason": "الاقتراض المستلم منفذ من الطرف للطرف: أحداث loan_received مع عمود التزام مستقل، مخزن محروس، تصدير/استيراد بدورات كاملة ورفض قبل الكتابة، خدمة وعرض بطبقة التزام منفصلة واختيار نوع اقتصادي صريح — قيد مراجعة PR."
     }
   ],
   "migration_baseline": true,
-  "next_action": "تنفيذ ضمن WS-178 (الموجة 6) من main المتحقق c3b68c6.",
+  "next_action": "مراجعة PR الموجة 6 (WS-178) ثم الدمج والتحقق على main قبل VERIFIED.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Manus coordination",

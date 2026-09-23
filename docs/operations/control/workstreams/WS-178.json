@@ -1,7 +1,7 @@
 {
   "id": "WS-178",
   "title": "Financial Roadmap Wave 6 — FIN-001 received loans and liabilities (incoming borrowing: cash + independent liability layer, partial principal repayment, no interest)",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "FIN-001"
   ],
@@ -25,12 +25,13 @@
   "pr": null,
   "started_at": "2026-09-23T06:30:00+03:00",
   "updated_at": "2026-09-23",
-  "next_action": "تنفيذ القرض المستلم (اقتراض داخلي): أنواع أحداث loan_received_cash/loan_received_repayment_cash + عمود التزام القرض المستلم، مخزن مستقل D-037 (مخطط 37→38 / تصدير 29→30)، خدمة محمّلة ديناميكيًا، طبقة التزام منفصلة في العرض، جسر الأرباح-الكاش، ثم البوابات الكاملة قبل الدمج.",
+  "next_action": "راجع PR الموجة 6 ثم ادمج وتحقق على SHA الدمج في main قبل VERIFIED.",
   "notes": [
     "Owner-approved roadmap §4.7 (FIN-001 policy register): received loan increases cash and creates a liability — never revenue/profit/operating expense; multiple independent loans; explicit user-chosen economic type (owner loan vs transfer vs capital injection — never guessed); store principal, lender/type, receivedOn, wallet, optional dueOn, note, idempotency key; partial principal repayment through zero; principal separate from fees/interest (NO interest this wave); repayment reduces cash+liability not result; dueOn creates no expense/alert; separate liability layer display; corrections are documented reversals.",
     "W6-AUDIT verdict: AUDIT_PASS — outgoing-loan machinery (domain/service/store/export/bridge/MIC-11/UI) is complete on main and will NOT be reimplemented; the real gap is incoming borrowing end-to-end (no loan_received event kind, no liability delta, no lender/type/dueOn; UI means 'I lent money' today).",
     "Entry-bundle constraint (binding): CI headroom 280 raw bytes only. Strategy per audit: (1) received-loan service dynamically imported (FIN-002/EXE-014 pattern) — never eager in PrototypeServicesContext; (2) demote existing eager LoanService provision to lazy (EXE-014/OPS-003 precedent) to free entry bytes; (3) all pre-push entry measurements with GITHUB_SHA set (CI-parity rule from W5-COMPLETE).",
-    "Schema/export plan (guarded triple-diff per FIN-002/WS-174 precedent): new received-loans store via D-037 guarded creation (schema 37→38), export family receivedLoans (29→30) with released legacy pair 29/37, snapshot counts+digest, import migration+family validation, touchpoints registration, docs-binding exact-value tests updated."
+    "Schema/export plan (guarded triple-diff per FIN-002/WS-174 precedent): new received-loans store via D-037 guarded creation (schema 37→38), export family receivedLoans (29→30) with released legacy pair 29/37, snapshot counts+digest, import migration+family validation, touchpoints registration, docs-binding exact-value tests updated.",
+    "Pre-PR gates: full pnpm check green (root 473/473 + prototype 268 files 1889/1889 + lint 37/37 held by refactoring); CI-parity bundle raw=648,772/650,000 (headroom 1,228) + gzip 153,862/155,000; validator PASS 1 active claim; schema/export 37/29 -> 38/30 guarded with released pair 29/37."
   ],
   "status_history": [
     {
@@ -44,6 +45,12 @@
       "changed_at": "2026-09-23",
       "actor": "ws-178:implement",
       "reason": "بدء تنفيذ القرض المستلم: دومين الأحداث والمخزن والتصدير والخدمة والعرض على الفرع feat/fin-001-received-loans-20260923."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-23",
+      "actor": "ws-178:review",
+      "reason": "التنفيذ مكتمل على الفرع: دومين + مخزن محروس (38/30) + تصدير/استيراد + خدمة محمّلة ديناميكيًا + طبقة التزام منفصلة + قرّاء صادقون + 51 اختبارًا جديدًا؛ pnpm check كامل أخضر وقياس CI-parity 648,772/650,000 — جاهز لبوابة PR."
     }
   ],
   "migration_baseline": false
