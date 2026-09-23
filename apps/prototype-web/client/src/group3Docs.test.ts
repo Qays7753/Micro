@@ -34,11 +34,11 @@ describe("documentation consistency — Group 3 implemented on the remediation b
     expect(section32).toContain("لم يُخترع نظام تشخيصات");
   });
 
-  it("schema and export versions match the code constants (37/29 after FIN-002 contract 42; the 35/27 statement stays as Group 3 history)", () => {
+  it("schema and export versions match the code constants (38/30 after FIN-001 WS-178; the 35/27 statement stays as Group 3 history)", () => {
     const section32 = currentState.split("## §32.")[1] ?? "";
     expect(section32).toContain("٣٥ / ٢٧ بلا تغيير");
-    expect(String(localSchemaVersion)).toBe("37");
-    expect(String(localExportVersion)).toBe("29");
+    expect(String(localSchemaVersion)).toBe("38");
+    expect(String(localExportVersion)).toBe("30");
   });
 
   it("todo marks Group 3 done on the branch and pending merge — not merged", () => {

@@ -96,9 +96,9 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(section36).toContain("AGENTS.md");
   });
 
-  it("schema/export versions stay 37/29 (owner-approved FIN-002 / contract 42) and the limits stay pinned between code and docs (no silent raise)", () => {
-    expect(localSchemaVersion).toBe(37);
-    expect(localExportVersion).toBe(29);
+  it("schema/export versions stay 38/30 (owner-approved FIN-001 WS-178) and the limits stay pinned between code and docs (no silent raise)", () => {
+    expect(localSchemaVersion).toBe(38);
+    expect(localExportVersion).toBe(30);
     expect(RAW_BYTE_LIMIT).toBe(650_000);
     expect(GZIP_BYTE_LIMIT).toBe(155_000);
     const lintScript = rootPackageJson.scripts?.lint ?? "";
@@ -119,8 +119,8 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(rootVitestConfig).toContain("scripts/**/*.test.mjs");
   });
 
-  it("the persistent-entity manifest exists, covers all 36 stores, and states its honest limits", () => {
-    expect(manifest.objectStores).toHaveLength(36);
+  it("the persistent-entity manifest exists, covers all 37 stores, and states its honest limits", () => {
+    expect(manifest.objectStores).toHaveLength(37);
     const notExported = manifest.objectStores.filter(entry => entry.snapshotField === null);
     expect(notExported.map(entry => entry.store).sort()).toEqual(["form-drafts", "local-security"]);
     for (const entry of notExported) {
