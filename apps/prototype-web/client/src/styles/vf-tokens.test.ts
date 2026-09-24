@@ -4,45 +4,59 @@ import { fileURLToPath } from "node:url";
 
 /*
  * W1 — اختبارات طبقة الربط (Runtime Token Mapping).
- * تعقد: كل قيم المعيار الـ18 موجودة حرفيًا، كل إشارة --vf-* تُحلّ،
+ * تعقد: كل قيم المعيار موجودة حرفيًا، كل إشارة --vf-* تُحلّ،
  * :root لا يحمل هكسات خارج مجموعة Micro المحفوظة الموثّقة، والداكن
  * المحلي لم يُمَسّ من هذا الربط.
+ *
+ * UX-001 Phase 2 (2026-09-24): أُعيد تحديد المجموعة المعتمدة من 18 قيمة
+ * دافئة إلى لوحة Bold Modular V2 الفاتحة (OD-01/OD-02/OD-03؛ مهمة المالك
+ * 2026-09-24). هذا الملف هو أثر التفويض: تغيير القيمة يمر عبر تحديث هذا
+ * الاختبار في نفس الـPR (CHANGE_PROTOCOL §1.4/§4). الهوية (#D97757/#C96442)
+ * والداكن لم يتغيرا.
  */
 
 const vfCss = readFileSync(fileURLToPath(new URL("./vf-tokens.css", import.meta.url)), "utf8");
 const indexCss = readFileSync(fileURLToPath(new URL("../index.css", import.meta.url)), "utf8");
 
-/** الـ18 قيمة معتمدة من Micro Standard v2 (design-tokens.css). */
+/** اللوحة الفاتحة المعتمدة — Bold Modular V2 (UX-001 Phase 2، 2026-09-24):
+ *  الأسطح الفاتحة + الحبر الأزرق الداكن + الهوية (دون تغيير) + الفعل الصلب
+ *  #A94630 + الأزواج الدلالية V2. المصدر: V2 tokens.css @ 1c990544. */
 const APPROVED_18 = [
-  "#FAF9F5",
-  "#F5F4ED",
-  "#F0EEE6",
-  "#FFFFFF",
-  "#E8E6DC",
-  "#D1CFC5",
-  "#87867F",
-  "#141413",
-  "#4D4C48",
-  "#6B6962",
-  "#D97757",
-  "#C96442",
-  "#2C84DB",
-  "#1490FF",
-  "#629987",
-  "#B53333",
-  "#55524A",
-  "#3D3D3A",
+  "#F0F3F4", // canvas (V2)
+  "#EDF1F2", // ground (documented blend)
+  "#E4EAEC", // recessed (V2 surface-2)
+  "#FFFFFF", // surface / on-action
+  "#DCE3E5", // tint (V2 border value as quiet tier)
+  "#CFD8DB", // soft (documented pressed step)
+  "#78868D", // boundary (V2)
+  "#1D2930", // ink (V2)
+  "#53616A", // ink-2 (V2)
+  "#5E6B74", // ink-3 (documented cool derivative)
+  "#D97757", // identity clay — UNCHANGED
+  "#C96442", // pressed/chosen — UNCHANGED
+  "#305968", // info + focus (V2 information)
+  "#16765A", // success (V2)
+  "#DFF3E9", // success surface (V2)
+  "#B0324F", // danger (V2)
+  "#FFE7EB", // danger surface (V2)
+  "#95590C", // attention (V2)
+  "#FFF0D7", // attention surface (V2)
+  "#FBE9E2", // brand-soft (V2)
+  "#5B6770", // partial/unknown (V2)
+  "#A94630", // solid action (OD-01)
+  "#8F3B27", // pressed action (V2 derived)
+  "#313D45", // pressed ink (documented derivative)
+  "#8A959C", // disabled ink (V2; dead token value)
 ];
 
-/** القيم التي يحتفظ بها Micro كأزواج مملوكة (موثقة في SOURCE_OF_TRUTH_MATRIX). */
+/** القيم التي احتفظ بها Micro تاريخيًا كأزواج مملوكة — أُعيد ربطها داخل
+ *  الجسر بموجة V2 (2026-09-24): :root لم يعد يحمل أي هكس حرفي، والقائمة
+ *  تبقى موثقة تاريخيًا (لا تزال مسموحة لو عادت مؤقتًا). */
 const MICRO_KEPT = [
   "#256b4a",
-  "#e4f2ea", // success pair (text-safe ink + tint) — W2+ migration
+  "#e4f2ea", // success pair — moved into --vf-success/-surface (V2 wave)
   "#7a5c20",
-  "#f6eccf", // warning/knowledge pair — W5 migration
-  "#3e5c76",
-  "#e8eef3", // withdrawal pair — dead, W6 inventory
-  "#b7b2a6", // text-tertiary — dead, W6 inventory
+  "#f6eccf", // attention pair — moved into --vf-attention/-surface (V2 wave)
 ];
 
 const RETIRED = [
@@ -99,7 +113,7 @@ function darkBlock(css: string): string {
 }
 
 describe("W1: Standard token presence (byte-for-byte)", () => {
-  it("contains all 18 approved Standard hex values verbatim in the mapping layer", () => {
+  it("contains all approved V2-wave hex values verbatim in the mapping layer", () => {
     // Hex casing is normalized to lowercase by the repo's prettier config
     // (format:check is a gate); hex case carries no CSS meaning. The check
     // still fails on any wrong VALUE — each approved 6-digit value must
@@ -175,9 +189,9 @@ describe("W1: alias resolution (no unresolved references, no competing values)",
   });
 });
 
-describe("W1: overlay scrim is the Standard token", () => {
-  it("defines --vf-scrim as warm ink #141413 at 45%", () => {
-    expect(vfCss).toContain("--vf-scrim: rgba(20, 20, 19, 0.45)");
+describe("W1: overlay scrim is the V2 overlay token", () => {
+  it("defines --vf-scrim as the V2 cool ink at 55%", () => {
+    expect(vfCss).toContain("--vf-scrim: rgba(29, 41, 48, 0.55)");
   });
 
   it("the dialog overlay consumes the token — no raw scrim literal remains", () => {

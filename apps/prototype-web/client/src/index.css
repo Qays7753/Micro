@@ -44,7 +44,8 @@
   /* R3/W5: native controls (inputs, scrollbars, form chrome) follow the
      light scheme; .dark declares color-scheme: dark in theme-dark.css. */
   color-scheme: light;
-  --font-arabic: "IBM Plex Sans Arabic", sans-serif;
+  --font-arabic:
+    "Alexandria", "IBM Plex Sans Arabic", sans-serif; /* UX-001 V2: Alexandria first (OD-03), Plex fallback until device verification */
   --font-numeric: "IBM Plex Mono", monospace;
   --space-1: 4px;
   --space-2: 8px;
@@ -66,26 +67,23 @@
   --color-bg-well: var(--vf-recessed);
   --color-surface: var(--vf-surface);
   --color-border: var(--vf-tint); /* quiet hairline tier (--vf-border-soft) */
-  --color-divider: var(--vf-soft);
+  --color-divider: var(--vf-border); /* V2 decorative divider */
   --color-text-primary: var(--vf-ink);
   --color-text-strong: var(--vf-ink);
   --color-text-secondary: var(--vf-ink-secondary);
   --color-brand-primary: var(--vf-clay);
   --color-brand-pressed: var(--vf-clay-interactive);
   --color-brand-text: var(--vf-ink); /* retired #964e33 — brand text is text-safe ink */
-  --color-brand-soft: var(--vf-tint); /* quiet grouping surface, no clay tint exists */
+  --color-brand-soft: var(--vf-brand-soft); /* V2 brand-soft — identity-adjacent support field */
   --color-accent-primary: var(--vf-clay-interactive); /* chosen/current edge role */
   --color-accent-text: var(--vf-ink); /* interactive ink + focus (U-02: teal retired) */
-  --color-accent-soft: var(--vf-tint); /* selected/hover quiet surface */
-  --color-success-text: #256b4a; /* Micro-owned text-safe success ink (5.5:1) —
-     Standard #629987 (--vf-success) is a non-text mark; W2 StatusChip adopts
-     the Standard grammar (word in ink + marker hue) */
-  --color-success-bg: #e4f2ea; /* Micro-owned tint pair — W2+ migration */
+  --color-accent-soft: var(--vf-brand-soft); /* V2: accent support fields are brand-soft */
+  --color-success-text: var(--vf-success); /* V2 text-safe — pair moved into the bridge */
+  --color-success-bg: var(--vf-success-surface); /* V2 pair — moved into the bridge */
   --color-danger-text: var(--vf-error);
-  --color-danger-bg: var(--vf-ground); /* Standard tint grammar: warm ground + semantic ink */
-  --color-warning-text: #7a5c20; /* Micro-owned knowledge/attention pair (68 consumers)
-     — per-surface migration per U-05/U-11/U-12, W5 */
-  --color-warning-bg: #f6eccf; /* Micro-owned — W5 migration */
+  --color-danger-bg: var(--vf-danger-surface); /* V2 danger container (5.24:1) */
+  --color-warning-text: var(--vf-attention); /* V2 pair — due-today unchanged (OD-07) */
+  --color-warning-bg: var(--vf-attention-surface); /* V2 pair — moved into the bridge */
   --color-ink-on-color: var(--vf-ink);
   --background: var(--color-bg-canvas);
   --foreground: var(--color-text-primary);
@@ -144,7 +142,9 @@
   }
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid var(--color-accent-text);
+    /* UX-001 V2: global focus = Information role (same as fields); dark
+       resolves through its own --vf-focus rebind. */
+    outline: 2px solid var(--vf-focus);
     outline-offset: 2px;
   }
   #root {
@@ -385,13 +385,13 @@
 }
 .micro-page h1 {
   color: var(--color-text-primary);
-  font-size: 1.75rem;
+  font-size: 1.5rem; /* UX-001 V2: screen-title 22-26px (was 28) */
   font-weight: 700;
   line-height: 1.32;
 }
 .micro-page h2 {
   color: var(--color-text-primary);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   font-weight: 600;
   line-height: 1.45;
 }
@@ -759,7 +759,7 @@ textarea:disabled,
   transform: translateY(-50%);
   flex-direction: column;
   gap: var(--space-4);
-  border-radius: var(--radius-card);
+  border-radius: 20px; /* UX-001 V2: dialog radius (--radius-dialog; guard-allowed value) */
   padding: var(--space-5);
   background: var(--color-surface);
   box-shadow: var(--elevation-3);
@@ -825,7 +825,7 @@ textarea:disabled,
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: end;
-  min-height: 64px;
+  min-height: var(--vf-nav-height-min); /* UX-001 V2: tabbar 68-74px (was 64) */
   padding: var(--space-2) var(--space-2) 0;
 }
 .micro-nav-item {
@@ -838,8 +838,9 @@ textarea:disabled,
   gap: var(--space-1);
   border: 0;
   border-radius: var(--radius-control);
-  /* §4 بند ١٥: غير النشط بلون النص القوي — كان الثانوي أضعف نص على الشاشة */
-  color: var(--color-text-strong);
+  /* UX-001 V2: unselected labels use the secondary ink (5.73:1 — passes the
+     text floor); the label-size floor (U-04) is unchanged. */
+  color: var(--color-text-secondary);
   background: transparent;
   /* W3 (U-04): تسميات التنقل لا تقل عن 13px — أرضية اللصائق في المعيار،
      مع حارس قصّ حتى لا يفيض أوسع تسمية على 320px. */
@@ -855,12 +856,15 @@ textarea:disabled,
     transform 160ms var(--motion-out);
 }
 .micro-nav-item svg {
-  width: 21px;
-  height: 21px;
+  width: 24px;
+  height: 24px;
 }
+/* UX-001 V2: selected = action ink + weight (color is never the only cue;
+   the quad-mark asset stays deferred — GAP-002/D-12). Dark keeps its current
+   ink through the --vf-nav-selected-ink rebind in theme-dark.css. */
 .micro-nav-item[data-active="true"] {
-  color: var(--color-accent-text);
-  background: var(--color-accent-soft);
+  color: var(--vf-nav-selected-ink);
+  background: transparent;
   font-weight: 600;
 }
 .micro-nav-item:active {
@@ -1149,8 +1153,10 @@ textarea:disabled,
 .micro-field input:focus,
 .micro-field textarea:focus,
 .micro-field select:focus {
-  border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-primary) 18%, transparent);
+  /* UX-001 V2: focus = Information role (OD-01 package); the border is the
+     carrier, the halo is decorative — same contract, new role color. */
+  border-color: var(--vf-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vf-focus) 18%, transparent);
 }
 .micro-field-error {
   margin: 0;
@@ -1433,7 +1439,7 @@ textarea:disabled,
 .micro-cost-section-heading h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 .micro-cost-section-heading p,
 .micro-empty-inline {
@@ -1659,7 +1665,7 @@ textarea:disabled,
 .micro-section-title {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 .micro-event-list {
   display: grid;
@@ -2295,7 +2301,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-finance-event-heading h2 {
   margin: 0;
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 .micro-finance-event-list > article {
   display: flex;
@@ -2399,7 +2405,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-period-result dd {
   margin: 0;
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 .micro-period-truth {
   margin: 0;
@@ -2457,7 +2463,7 @@ button.micro-finance-position-link:focus-visible {
 }
 .micro-week-heading h2 {
   margin: var(--space-1) 0 0;
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 .micro-week-heading > svg {
   width: 21px;
@@ -3000,7 +3006,7 @@ button.micro-finance-position-link:focus-visible {
   margin: 0;
 }
 .micro-expense-classification h2 {
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 .micro-expense-classification > div > p {
   color: var(--color-text-secondary);
@@ -3973,7 +3979,7 @@ button.micro-month-cell:active {
 .micro-month-detail-heading h3 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   line-height: 1.45;
 }
 .micro-month-detail-heading > .micro-number {
@@ -5743,7 +5749,7 @@ button.micro-month-cell:active {
   padding: 0;
   color: var(--color-text-primary);
   background: transparent;
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   font-weight: 700;
   text-align: right;
 }

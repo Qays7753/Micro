@@ -1,72 +1,93 @@
 /* ============================================================================
-   Micro Standard v2 — Runtime Token Mapping (layer 2 of the authority ladder)
+   Micro — Runtime Token Mapping (layer 2 of the authority ladder)
    ----------------------------------------------------------------------------
-   Source of truth: Documents/main micro-standard-v2/design-tokens.css @
-   Documents main f919982c692e5ba78cf3284a4240c45f66be91c6 (31-file package,
-   verified byte-identical to the promoted reconciliation-final package).
+   UX-001 Phase 2 (2026-09-24): the light palette below now carries the
+   owner-approved Bold Modular V2 visual direction (OD-01..OD-12, mission
+   "Full UI/UX Evolution" 2026-09-24). Source of visual direction:
+   Qays7753/Micro-Bold-Modular-Design-Handoff-V1 @ 1c990544 —
+   interactive-design-studio/src/foundations/tokens.css (COLOR-STANDARD-V2 §2/§3).
 
-   This file is the ONE place where Standard hex values live in Micro.
-   Rules (W1, owner-approved D-01/U-01):
+   This file remains the ONE place where light hex values live in Micro.
+   Rules (W1 D-01/U-01, evolved by the authorized V2 wave):
    - No hex value may appear anywhere else outside a token zone.
    - Micro runtime names (index.css :root) bind to these --vf-* contracts.
-   - Legacy Micro names are preserved as aliases; nothing is deleted in W1.
-   - No new palette values. The only derivatives are the two disclosed
-     functional alpha composites (scrim, translucent header) and the recorded
-     elevation shadow tone.
-   - Light-only: the .dark layer remains Micro-local legacy until its own
-     owner gate (register U-03; see DARK_MODE_BOUNDARY.md).
-   Naming note: the Standard's unprefixed tokens (type scale, motion, ease)
-   carry a --vf- prefix here so the --vf- namespace remains the single
-   Standard-contract namespace inside the Micro runtime.
+   - Identity is unchanged: #D97757 (clay) + #C96442 (pressed/chosen edge);
+     clay is never a financial value.
+   - Action is now distinct from identity (OD-01): solid primary actions use
+     #A94630 with white ink (5.82:1); pressed #8F3B27 (V2 derived).
+   - State meaning is separated from urgency (OD-02): partial/unknown render
+     neutral (#5B6770) instead of info blue; pending stays information.
+   - Documented light-only derivatives of V2 anchors (no other new values):
+     ground #EDF1F2 (canvas<->surface-2 blend), soft #CFD8DB (pressed
+     secondary step below the V2 border value), ink-pressed #313D45
+     (pressed shade of the V2 ink).
+   - Dark Mode is ACTIVE and PERMANENT (ADR-009): styles/theme-dark.css is
+     the single owner of dark values and is PRESERVED by this Light-first
+     wave — light changes cannot leak into dark (independent literals).
+     Only two preservation rebinds were added there for tokens that did not
+     exist before this wave (--vf-partial, --vf-nav-selected-ink).
    ============================================================================ */
 
 :root {
-  /* -- Approved surfaces ------------------------------------------------ */
-  --vf-canvas: #faf9f5;
-  --vf-ground: #f5f4ed;
-  --vf-recessed: #f0eee6;
+  /* -- Approved surfaces (V2 cool ladder; Micro keeps its 6-step grammar) --- */
+  --vf-canvas: #f0f3f4;
+  --vf-ground: #edf1f2; /* documented blend of canvas and V2 surface-2 */
+  --vf-recessed: #e4eaec; /* V2 surface-2 */
   --vf-surface: #ffffff;
-  --vf-tint: #e8e6dc;
-  --vf-soft: #d1cfc5;
-  --vf-border: #d1cfc5;
-  --vf-border-interactive: #87867f;
-  --vf-border-soft: var(--vf-tint); /* quiet hairline tier; alias of #E8E6DC */
+  --vf-tint: #dce3e5; /* V2 border value serving the quiet surface tier */
+  --vf-soft: #cfd8db; /* documented pressed-secondary step */
+  --vf-border: #dce3e5;
+  --vf-border-interactive: #78868d;
+  --vf-border-soft: var(--vf-tint); /* quiet hairline tier; alias of #DCE3E5 */
 
-  /* -- Approved ink ------------------------------------------------------ */
-  --vf-ink: #141413;
-  --vf-ink-secondary: #4d4c48;
-  --vf-ink-tertiary: #6b6962;
+  /* -- Approved ink (V2 blue-black family) --------------------------------- */
+  --vf-ink: #1d2930;
+  --vf-ink-secondary: #53616a;
+  --vf-ink-tertiary: #5e6b74; /* documented cool derivative (4.9:1 on canvas) */
   --vf-ink-on-dark: #ffffff;
-  --vf-ink-on-tint: #141413;
-  --vf-ink-pressed: #3d3d3a;
-  --vf-disabled-surface: #f0eee6;
-  --vf-disabled-ink: #55524a;
-  --vf-focus: #141413;
-  --vf-field-border-focus: #87867f;
+  --vf-ink-on-tint: #1d2930;
+  --vf-ink-pressed: #313d45; /* documented pressed shade of the V2 ink */
+  --vf-disabled-surface: #e4eaec; /* dead token — value aligned (cleanup D-06) */
+  --vf-disabled-ink: #8a959c; /* dead token — V2 ink-disabled (cleanup D-06) */
+  --vf-focus: #305968; /* V2 focus = Information role */
+  --vf-field-border-focus: #305968; /* dead token — aligned to the V2 focus */
 
-  /* -- Approved identity + semantic roles --------------------------------- */
-  --vf-clay: #d97757; /* identity/create/FAB — never a financial value */
+  /* -- Identity (unchanged) -------------------------------------------------- */
+  --vf-clay: #d97757; /* identity/create — never a financial value */
   --vf-clay-interactive: #c96442; /* pressed/chosen/current edge or underline */
-  --vf-info: #2c84db; /* attention/pending mark */
-  --vf-status: #1490ff; /* reviewed/current mark */
-  --vf-success: #629987; /* settled/success mark (non-text on Surface) */
-  --vf-error: #b53333; /* error/destructive mark (text-safe) */
+  --vf-brand-soft: #fbe9e2; /* V2 brand-soft — identity-adjacent support field */
 
-  /* -- Action contracts (owner-approved) ----------------------------------- */
-  --vf-action-create: var(--vf-clay);
-  --vf-action-create-pressed: var(--vf-clay-interactive);
-  --vf-action-create-ink: var(--vf-ink); /* text-bearing create/add */
-  --vf-action-create-icon-ink: var(--vf-ink-on-dark); /* icon-only FAB/icon button */
+  /* -- Semantic roles (V2 pairs; meaning stays in words + markers) ---------- */
+  --vf-info: #305968; /* attention/pending mark — V2 Information */
+  --vf-status: #305968; /* reviewed/current mark — merged into info (V2 has no
+     separate reviewed role; the eye marker + word carry the distinction) */
+  --vf-success: #16765a; /* V2 success — text-safe (4.81:1 on its surface) */
+  --vf-success-surface: #dff3e9;
+  --vf-error: #b0324f; /* V2 danger — text-safe */
+  --vf-danger-surface: #ffe7eb;
+  --vf-attention: #95590c; /* V2 attention — actionable attention, not urgency */
+  --vf-attention-surface: #fff0d7;
+  --vf-partial: #5b6770; /* V2 partial/unknown — neutral, never info blue */
+
+  /* -- Action contracts (OD-01: solid action distinct from identity) --------- */
+  --vf-action: #a94630; /* V2 solid primary action */
+  --vf-action-pressed: #8f3b27; /* V2 derived pressed action */
+  --vf-on-action: #ffffff; /* 5.82:1 on action */
+  --vf-action-create: var(--vf-action);
+  --vf-action-create-pressed: var(--vf-action-pressed);
+  --vf-action-create-ink: var(--vf-on-action); /* white on the solid action */
+  --vf-action-create-icon-ink: var(--vf-ink-on-dark); /* icon-only buttons */
   --vf-action-save-bg: var(--vf-ground);
   --vf-action-save-ink: var(--vf-ink);
   --vf-action-save-pressed-edge: var(--vf-clay-interactive);
   --vf-action-commit-bg: var(--vf-ink);
   --vf-action-commit-ink: var(--vf-ink-on-dark);
   --vf-action-commit-pressed: var(--vf-ink-pressed);
+  --vf-nav-selected-ink: var(--vf-action); /* V2 selection ink (dark rebinds) */
 
   /* -- Button bindings ------------------------------------------------------ */
   --vf-btn-primary-bg: var(--vf-ink); /* high-consequence commit only */
-  --vf-btn-primary-bg-pressed: #3d3d3a;
+  --vf-btn-primary-bg-pressed: var(--vf-ink-pressed);
   --vf-btn-primary-ink: var(--vf-ink-on-dark);
   --vf-btn-save-bg: var(--vf-action-save-bg);
   --vf-btn-save-ink: var(--vf-action-save-ink);
@@ -84,39 +105,40 @@
   --vf-btn-destructive-ink: var(--vf-error);
   --vf-btn-destructive-border: var(--vf-error);
 
-  /* -- Control geometry (Standard values; Micro §1 ladders already conform) -- */
+  /* -- Control geometry (V2 sizes where Micro's contracts allow) ------------- */
   --vf-control-height: 48px;
   --vf-touch-target: 44px;
   --vf-control-height-compact: 36px; /* period chip visual height */
   --vf-topbar-height: 56px;
-  --vf-nav-height-min: 64px;
-  --vf-fab-size: 56px;
-  --vf-fab-offset: 16px;
+  --vf-nav-height-min: 70px; /* V2 tabbar 68-74 (was 64) */
+  --vf-fab-size: 56px; /* dead token — kept (cleanup D-06) */
+  --vf-fab-offset: 16px; /* dead token — kept (cleanup D-06) */
   --vf-icon-sm: 20px;
   --vf-icon-md: 24px;
   --vf-progress-track-height: 8px;
-  --vf-radius-control: 12px;
+  --vf-radius-control: 16px; /* V2 button radius */
   --vf-radius-card: 16px;
-  --vf-radius-segment: 18px;
-  --vf-radius-sheet: 20px;
+  --vf-radius-segment: 12px; /* V2 segmented radius (token dead — aligned) */
+  --vf-radius-sheet: 24px; /* V2 sheet radius */
   --vf-radius-full: 999px;
 
-  /* -- Type scale (recorded basis; floors per typography.md) ---------------- */
-  --vf-text-title-size: 1.75rem;
+  /* -- Type scale (values inside the V2 approved ranges; rem ladder kept) ---- */
+  --vf-text-title-size: 1.5rem; /* V2 screen-title 22-26 (was 28) */
   --vf-text-title-line: 1.3;
   --vf-text-title-weight: 700;
   --vf-text-title-sm-size: 1.25rem;
   --vf-text-title-sm-line: 1.3;
   --vf-text-title-sm-weight: 700;
-  --vf-text-section-size: 1.0625rem;
+  --vf-text-section-size: 1.125rem; /* V2 section-title 18-20 (was 17) */
   --vf-text-section-line: 1.4;
   --vf-text-section-weight: 600;
-  --vf-text-card-title-size: 0.9375rem;
+  --vf-text-card-title-size: 1rem; /* V2 card-title 15-17 (was 15) */
   --vf-text-card-title-line: 1.4;
   --vf-text-card-title-weight: 600;
   --vf-text-body-size: 0.9375rem;
   --vf-text-body-line: 1.6;
   --vf-text-body-weight: 400;
+  --vf-text-button-size: 1rem; /* V2 button 15-16 (was body 15) */
   --vf-text-label-size: 0.8125rem;
   --vf-text-label-line: 1.4;
   --vf-text-label-weight: 500;
@@ -125,43 +147,43 @@
   --vf-text-caption-weight: 400; /* non-financial metadata only */
   --vf-text-kpi-size: 1.5rem;
   --vf-text-kpi-weight: 600;
-  --vf-text-kpi-hero-size: 1.75rem;
+  --vf-text-kpi-hero-size: 1.75rem; /* V2 money-hero 28-36 */
   --vf-text-kpi-hero-weight: 600;
   --vf-text-amount-size: 0.9375rem;
   --vf-text-amount-weight: 600;
   --vf-text-amount-input-size: 1.5rem;
   --vf-text-amount-input-weight: 600;
-  --vf-font-sans: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --vf-font-sans: "Alexandria", "IBM Plex Sans Arabic", system-ui, sans-serif;
   --vf-font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* -- Motion (recorded timing system) -------------------------------------- */
-  --vf-motion-press: 80ms;
-  --vf-motion-fast: 120ms;
+  /* -- Motion (V2 timing system) ---------------------------------------------- */
+  --vf-motion-press: 100ms;
+  --vf-motion-fast: 150ms;
   --vf-motion-normal: 200ms;
   --vf-motion-sheet-in: 240ms;
   --vf-motion-sheet-out: 180ms;
-  --vf-motion-dialog-in: 160ms;
-  --vf-motion-dialog-out: 120ms;
+  --vf-motion-dialog-in: 190ms;
+  --vf-motion-dialog-out: 150ms;
   --vf-motion-scrim: 200ms;
   --vf-motion-skeleton: 1.5s;
   --vf-motion-snackbar-hold: 5000ms;
-  --vf-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --vf-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --vf-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --vf-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --vf-ease-in: cubic-bezier(0.64, 0, 0.78, 0);
 
-  /* -- Elevation (recorded warm shadow tone — decoration, not palette) ------- */
-  --vf-shadow-sm: 0 1px 2px rgba(60, 50, 40, 0.06);
-  --vf-shadow-e1: 0 1px 2px rgba(60, 50, 40, 0.06), 0 4px 12px rgba(60, 50, 40, 0.06);
-  --vf-shadow-e2: 0 6px 20px rgba(60, 50, 40, 0.1);
-  --vf-shadow-e3: 0 16px 40px rgba(60, 50, 40, 0.16);
+  /* -- Elevation (V2 cool shadow tone — decoration, not palette) ------------- */
+  --vf-shadow-sm: 0 1px 2px rgba(29, 41, 48, 0.06);
+  --vf-shadow-e1: 0 1px 2px rgba(29, 41, 48, 0.06), 0 4px 12px rgba(29, 41, 48, 0.08);
+  --vf-shadow-e2: 0 10px 30px rgba(29, 41, 48, 0.12); /* V2 elevation-layer */
+  --vf-shadow-e3: 0 16px 40px rgba(29, 41, 48, 0.16);
 
   /* -- Functional derivatives of approved values (disclosed, not palette) ---- */
-  --vf-scrim: rgba(20, 20, 19, 0.45); /* warm ink #141413 at 45% */
-  --vf-header-translucent: rgba(250, 249, 245, 0.86); /* canvas #FAF9F5 at 86% */
+  --vf-scrim: rgba(29, 41, 48, 0.55); /* V2 overlay — cool ink at 55% */
+  --vf-header-translucent: rgba(240, 243, 244, 0.86); /* canvas #F0F3F4 at 86% */
 
-  /* -- Deliberate divergence (documented, not a Standard token) ---------------
+  /* -- Deliberate divergence (documented, not a V2 token) ---------------
      Micro keeps its documented §1.8 z-ladder (0/1/20/30/40/50/60/70 — denser,
-     guard-enforced) instead of the gallery-relative Standard z tokens
-     (250/300/400/500). The layering CONTRACT (scrim < overlay < fab < snackbar)
-     is satisfied by Micro's ladder; see SOURCE_OF_TRUTH_MATRIX.md. */
+     guard-enforced) instead of the studio-relative z tokens. The layering
+     CONTRACT (scrim < overlay < fab < snackbar) is satisfied by Micro's
+     ladder; see SOURCE_OF_TRUTH_MATRIX.md. */
 }

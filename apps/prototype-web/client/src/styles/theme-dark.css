@@ -57,6 +57,16 @@
   --vf-status: #55a4ff;
   --vf-success: #7cb8a1;
   --vf-error: #e0796f;
+  /* UX-001 V2 (2026-09-24) — preservation rebinds for tokens that did not
+     exist before the Light-first V2 wave. They keep the CURRENT dark look
+     (no V2 value is applied to Dark Mode); without them the light literals
+     would cascade into dark and break legibility.
+     - partial: the dark neutral mark family (matches ink-tertiary; 5.6:1+ on
+       dark surfaces) so the new OD-02 partial tone stays legible in dark.
+     - nav-selected-ink: dark's existing selected-tab ink (clay-interactive). */
+  --vf-partial: #a59e8f;
+  --vf-attention: #d9b978; /* dark's existing warning ink — keeps the token dark-safe */
+  --vf-nav-selected-ink: var(--vf-clay-interactive);
 
   /* -- Action contracts ---------------------------------------------------- */
   --vf-action-create: var(--vf-clay);

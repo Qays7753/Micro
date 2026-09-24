@@ -251,6 +251,25 @@ def parse_zone_body(source: str, selector: str) -> str:
     return ""
 
 
+def scan_brand_assets() -> list[str]:
+    """UX-001 Phase 2 / F-01 (2026-09-24): retired palette values must not
+    return to the brand SVG assets (favicon, mark, PWA icons, splash, motion).
+    The SVG layer is outside the runtime token bridge, so it needs its own
+    retired-value scan. PNG/ICO twins are binary and remain outside this scan
+    (documented limitation in the wave evidence)."""
+    problems: list[str] = []
+    brand_dir = ROOT / "apps/prototype-web/client/public/brand"
+    if not brand_dir.is_dir():
+        return problems
+    retired = sorted(RETIRED_VALUES | {"#b79c86", "#faf9f5", "#8c7a66", "#1f1e1d"})
+    for svg_file in sorted(brand_dir.rglob("*.svg")):
+        text = svg_file.read_text(encoding="utf-8").lower()
+        for value in retired:
+            if value in text:
+                problems.append(f"{svg_file.relative_to(ROOT)}: retired brand value {value}")
+    return problems
+
+
 def main() -> int:
     problems: list[str] = []
     for css_file in CLIENT_SRC.rglob("*.css"):
@@ -261,6 +280,7 @@ def main() -> int:
         if ".test." in tsx_file.name:
             continue
         problems += scan_tsx_colors(tsx_file)
+    problems += scan_brand_assets()
     if problems:
         print("DESIGN TOKEN GUARDS (§9) — violations:")
         for problem in problems:

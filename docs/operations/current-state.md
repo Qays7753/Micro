@@ -1482,3 +1482,15 @@ MICRO_FINANCIAL_ROADMAP_EXECUTION_COMPLETE — REMEDIATION_COMPLETE_MAIN_VERIFIE
 `NO_PHASE_2_IMPLEMENTATION`
 `UX_001_REMAINS_DEFERRED`
 `NEXT_GATE_UX_001_PHASE_2_CLAIM_FROM_CURRENT_ORIGIN_MAIN`
+
+
+## §72. UI/UX V2 — Phase 2 موجة الأساسات: الاتجاه البصري V2 داخل جسر Micro (2026-09-24)
+
+فُتح `WS-182` من `origin/main` المتحقق `bbac8525b567312ceae0642da8921c88035711bc` بعد جرد أثر المستهلكين (تقرير Phase 1 المدموج عند V2 `1c990544` + جرد حي)، ونُفذت موجة الأساسات على الفرع `feat/ux-001-v2-micro-uiux-evolution-20260924` وفق قرارات المالك OD-01..OD-12 حصرًا: لوحة V2 الفاتحة عبر `vf-tokens.css` (أسطح باردة، حبر `#1D2930`، فعل صلب `#A94630` بأبيض، أزواج دلالية داخل الجسر، جزئي محايد `#5B6770`، focus=معلومة)، الهوية كما هي `#D97757`/`#C96442`، وAlexandria مُحسَّنة subset واحدًا 59.8KB مع بقاء IBM Plex Mono للأرقام وسقوط Plex العربي احتياطًا. طبقة `:root` في `index.css` بلا أي هكس حرفي الآن، والعناوين 24/18px، والتنقل 70px بإيقاع V2، وأصول الهوية SVG التسعة عشر كلها على اللوحة المعتمدة مع توسيع الحارس ليمسحها. الداكن محفوظ حرفيًا إلا ثلاث إعادة ربط حفظ لرموز لم تكن موجودة. أُعيد تحديد مجموعة الاختبار المتجمد (`vf-tokens.test`) كأثر تفويض، ووسِع حارس التباين إلى 92 زوجًا بالوضعين.
+
+`pnpm check` كاملة EXIT 0 (2,387 اختبارًا، lint 37/37، الحزمة خامًا 649,628 بايت كما كانت قبل الموجة)، وأدلة بصرية حية 360×760 بالوضعين مع تحقق رؤية آلي في `planning/ux-001-v2-evolution-2026-09-24/visual-review/`. لم يتغير أي ملف شاشة TSX ولا كلمة حالة ولا منسق مالي ولا Schema/Export (38/30)، ولا سقف رقمي. المؤجل بقرار: هيكل V2 Shell ولوحة الحساب وSnapshotDeck و«عرض الكل» والSkeletons وتقارب Field/Row وPNG/ICO الثنائية للأصول. التفصيل: `docs/operations/control/evidence/ui-v2-phase2-implementation-2026-09-24.md`.
+
+`UI_V2_PHASE_2_FOUNDATION_IMPLEMENTED`
+`DARK_MODE_PRESERVED`
+`IDENTITY_UNCHANGED`
+`NEXT_GATE_PR_REVIEW_THEN_DEVICE_VALIDATION`

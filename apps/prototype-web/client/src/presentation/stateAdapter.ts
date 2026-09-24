@@ -32,7 +32,7 @@ export type StateMarkerRole =
   | "none";
 
 /** نغمة دلالية لونية للعلامة فقط — الكلمة دائمًا بحبر آمن للقراءة. */
-export type StateTone = "success" | "error" | "info" | "status" | "neutral";
+export type StateTone = "success" | "error" | "info" | "status" | "partial" | "neutral";
 
 /** عائلة الحالة — تحدّد قواعد العرض المسموحة. */
 export type StateFamily = "outcome" | "knowledge" | "void" | "activity";
@@ -77,7 +77,12 @@ const OUTCOME_PRESENTATIONS: Record<SemanticStateKey, StatePresentation> = {
   unknown: { markerRole: "question", tone: "neutral", family: "outcome", isKnowledge: false },
   due: { markerRole: "clock", tone: "neutral", family: "outcome", isKnowledge: false },
   overdue: { markerRole: "alert", tone: "error", family: "outcome", isKnowledge: false },
-  partial: { markerRole: "partial", tone: "info", family: "outcome", isKnowledge: false },
+  partial: {
+    markerRole: "partial",
+    tone: "partial",
+    family: "outcome",
+    isKnowledge: false,
+  } /* UX-001 V2 (OD-02): partial is neutral gray, not info blue */,
   draft: { markerRole: "dot", tone: "neutral", family: "outcome", isKnowledge: false },
   reviewed: { markerRole: "eye", tone: "status", family: "outcome", isKnowledge: false },
   unrecorded: { markerRole: "dot", tone: "neutral", family: "void", isKnowledge: false },
