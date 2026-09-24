@@ -7,7 +7,7 @@
 | البند | الحقيقة المثبتة | المصدر |
 |---|---|---|
 | تعريف المنتج | Micro نظام إدارة مالية وتشغيلية لمالك واحد، Local-first، لجهاز واحد، يخدم مشروعًا منزليًا أو متناهي الصغر أو شركة صغيرة جدًا | `product-scope.md` و`AGENTS.md` |
-| `main` الحالي | `ff0cfa1f7862b910031e7a46a686e3156938f8a7` | Git و`current-state.md` |
+| `main` الحالي | `origin/main` بعد `git fetch`؛ آخر SHA مُتحقق منه عند إغلاق Phase 1: `155b511dd0a136c3a215e85e46bca0bd1b51655b` | Git و`current-state.md` |
 | آخر موجة | إغلاق Phase 0 وتصحيح سلطة UI/UX V2، ثم إغلاق Phase 1 كتقرير mapping وقرارات مالك وتحديث Tracker؛ لا تنفيذ UI بدأ بعد، وPRE-PILOT محجوبة | PRs #231–#232 وV2 PR #1 و`current-state.md` |
 | PR التحكم | لا توجد Claims أو PRs تشغيلية نشطة؛ هذا التحديث التوثيقي يثبت UX-001 فقط | `generated/ACTIVE-WORK.md` و`UX-001.json` |
 | Schema / Export | `38/30` على `main`؛ لا تغيير في هذا التحديث | `docs/operations/current-state.md` |

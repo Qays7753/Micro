@@ -93,7 +93,7 @@
     "docs/operations/control/workstreams/review/WS-181.json"
   ],
   "workbook_path": "docs/operations/control/generated/MASTER-TRACKER.xlsx",
-  "workbook_sha256": "1e66b5437f79223d050eb2601aeb939e643774571d7362d5c79c4ab9ab1fcb96",
+  "workbook_sha256": "b02476e416820cd17b1c7eb3898628848905ea53275bf819337845a722fed555",
   "generated_by": "reviewed Excel view update + scripts/operations-control/generate_tracker.py --refresh-excel-meta",
   "generated_at": "2026-09-24",
   "read_only_view": true,

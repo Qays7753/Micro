@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-24
 
-**Micro baseline:** `origin/main` at `4e1bab9198023cf76bf1ebd5e9481d898a95700e` (after Micro PR #231). **Final Micro main after the Tracker closeout:** `ff0cfa1f7862b910031e7a46a686e3156938f8a7` (after Micro PR #232).
+**Micro baseline:** `origin/main` at `4e1bab9198023cf76bf1ebd5e9481d898a95700e` (after Micro PR #231). Tracker closeout passed through PRs #232 and #233; the last Micro `main` SHA verified at this closeout is `155b511dd0a136c3a215e85e46bca0bd1b51655b`. Future work must use the symbolic `origin/main` after `git fetch` and record its Claim-specific SHA.
 
 **V2 report source:** `Qays7753/Micro-Bold-Modular-Design-Handoff-V1` at `main` commit `1c990544c5f45744187072076f4dc87877c9f3c4`, after merged PR #1 (`docs: close out Micro Phase 1 owner mapping`).
 
@@ -24,7 +24,7 @@ The accepted authority ladder is: V2 for visual direction, Micro for functionali
 
 ## Verification
 
-The Operations Control validator passed on the final Micro main: 64 items, 23 workstreams, 0 active claims, and `origin/main=ff0cfa1…`. The documentation-only change is checked with `git diff --check`, Tracker generation/freshness, and the validator after the update. Runtime and UI test suites are **NOT_RUN** for this closeout because no runtime or UI implementation changed; they are required in Phase 2 for each affected slice.
+The Operations Control validator passed on the last verified Micro main: 64 items, 23 workstreams, 0 active claims, and `origin/main=155b511…`. The documentation-only change is checked with `git diff --check`, Tracker generation/freshness, and the validator after the update. Runtime and UI test suites are **NOT_RUN** for this closeout because no runtime or UI implementation changed; they are required in Phase 2 for each affected slice.
 
 `PHASE_1_V2_MAPPING_CLOSED`
 `OWNER_DIRECTIONS_OD_01_TO_OD_12_RECORDED`
