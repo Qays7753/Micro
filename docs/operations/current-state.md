@@ -1508,3 +1508,11 @@ MICRO_FINANCIAL_ROADMAP_EXECUTION_COMPLETE — REMEDIATION_COMPLETE_MAIN_VERIFIE
 `ALL_WORDS_AND_FORMATTERS_FROZEN`
 `DARK_MODE_PRESERVED`
 `NEXT_GATE_FINAL_PR_REVIEW_THEN_DEVICE_AND_UAT`
+
+
+## §74. UI/UX V2 — تحقق ما بعد دمج WS-183 (2026-09-24)
+دُمج PR #236 الخاص بـWS-183 بطريقة Squash في `main` عند `6fdfe32c340e6dd3bb65851ed64192b0476d81e9` فوق `f2d5aa60cd6805ff4f9acc104fd65f94bfb8d5a2`. نجحت فحوص CI وCloudflare على رأس الدمج، ونجحت فحوص الحوكمة و`pnpm check` على `main` الفعلي. أُغلق WS-183 كـ`VERIFIED` لنطاق موجته فقط بعد التحقق على main، ونُقل سجله إلى `workstreams/review/`. الموجة غطت تكيف CSS/الأساسات المشتركة وحدود الحقول وهالة التركيز وإصلاح أزرار الأيقونات وقاعدة القوائم والتوحيد وإزالة القواعد الميتة؛ لم يتغير TSX إنتاجي أو منطق مالي أو تخزين أو تصدير. تبقى UX-001 في `IN_PROGRESS`، ولا يعني إغلاق WS-183 اكتمال UX-001؛ بوابات الجهاز الحقيقي والوصولية الواقعية وUAT والنطاقات المؤجلة ما زالت قائمة.
+
+`WS_183_VERIFIED_ON_MERGED_MAIN`
+`UX_001_REMAINS_IN_PROGRESS`
+`NEXT_GATE_DEVICE_ACCESSIBILITY_UAT_AND_OWNER_REVIEW`
