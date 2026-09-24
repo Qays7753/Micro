@@ -2,7 +2,7 @@
   "id": "UX-001",
   "title": "إعادة تصميم UI وUX جذرية",
   "type": "FEATURE",
-  "status": "DEFERRED",
+  "status": "CLAIMED",
   "priority": "P1",
   "stage": "stage-5",
   "summary": "إعادة بناء تجربة مرئية وهوية ومسارات حول قرارات المستخدم بعد ثبات الوظائف، دون تغيير الحقائق المالية.",
@@ -56,6 +56,18 @@
       "changed_at": "2026-09-19",
       "actor": "migration:operations-control-v2",
       "reason": "إضافة سجل الحالة عند ترحيل النظام إلى v2."
+    },
+    {
+      "status": "READY",
+      "changed_at": "2026-09-24",
+      "actor": "owner:phase2-commission",
+      "reason": "تفويض المالك الصريح بتنفيذ Phase 2 (مهمة Full UI/UX Evolution 2026-09-24) بعد إغلاق Phase 1 وتسجيل OD-01..OD-12 — البند جاهز للتنفيذ من رأس main المتحقق."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-24",
+      "actor": "claim:ws-182",
+      "reason": "بدء Phase 2 عبر Workstream WS-182 من bbac8525 — تنفيذ الاتجاه البصري V2 عبر جسر التوكنز والأساسات المشتركة فقط، دون تغيير مالي/لغوي/تخزيني ودون لمس Dark Mode."
     }
   ],
   "migration_baseline": true,
