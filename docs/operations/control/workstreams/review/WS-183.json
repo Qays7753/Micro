@@ -1,7 +1,7 @@
 {
   "id": "WS-183",
   "title": "UX-001 استمرار Phase 2 — تنفيذ الاتجاه البصري V2 على كامل سطح Micro الحقيقي: المكونات المشتركة والقشرة والشاشات حالة بحالة",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "UX-001"
   ],
@@ -24,7 +24,7 @@
   "pr": 236,
   "started_at": "2026-09-24T18:43:08+03:00",
   "updated_at": "2026-09-24T19:13:29+03:00",
-  "next_action": "التنفيذ مكتمل على الفرع والفحص الكامل عند الحد EXIT 0 (483+1,925 اختبارًا، تباين 92/92، الحزمة خام 649,628 مطابقة حرفيًا للخط الأساس — موجة CSS بلا أي TSX): حدود النماذج boundary، هالة تركيز سطح المعلومات، إصلاح زر الأيقونة، قاعدة القوائم الموحدة، توحيد المحددات المزدوجة، وإزالة القواعد الميتة المثبتة. الأدلة: مصفوفة تغطية 60/60 + 18 لقطة حية في docs/operations/control/evidence/ui-v2-ws183-full-surface-2026-09-24.md وplanning/ux-001-v2-evolution-2026-09-24/visual-review-w183/. بوابة المالك: مراجعة ودمج PR الاستمرار ثم التحقق على main قبل رفع الحالة؛ بوابات الجهاز الحقيقي وUAT خارجية باقية.",
+  "next_action": "WS-183 مدموج ومتحقق على main عند 6fdfe32c340e6dd3bb65851ed64192b0476d81e9: PR #236، CI وCloudflare ناجحان، وpnpm check على main بعد الدمج ناجح. أُغلق نطاق هذه الموجة فقط: تكيف CSS/الأساسات المشتركة وحدود الحقول وهالة التركيز وإصلاح أزرار الأيقونات وقاعدة القوائم والتوحيد وإزالة القواعد الميتة. لا يُرفع UX-001 إلى VERIFIED؛ تبقى بوابات الجهاز الحقيقي وTalkBack/VoiceOver وUAT والنطاقات المؤجلة بوابات لاحقة.",
   "notes": [
     "التفويض: مهمة المالك 2026-09-24 (Continue UX-001: merge the verified foundation then complete Micro UI/UX) — دمج PR #235 تم عبر بوابة PR الكاملة، وهذا الـ Claim هو استمرار التنفيذ على main بعد الدمج.",
     "النطاق: تكيف بصري/تفاعلي حقيقي داخل مكونات Micro وشاشاتها القائمة — تعديل المكوّن المشترك مرة واحدة وترحيل مستهلكيه، بلا مكونات V2* موازية ولا مصدر توكنز ثانٍ ولا نسخ Studio؛ حالات العرض كاملة (فراغ/تحميل/جزئي/غير متاح/خطأ/أوفلاين) بما يخدم غرض كل شاشة الحقيقي؛ قشرة وتنقل ضمن عقود المسارات الحالية فقط.",
@@ -40,6 +40,24 @@
       "changed_at": "2026-09-24",
       "actor": "claim:ws-183",
       "reason": "فتح Claim استمرار UX-001 Phase 2 من main بعد الدمج f2d5aa6 (WS-182 VERIFIED لنطاق الأساسات) بتفويض المالك الصريح في مهمة الاستمرار 2026-09-24 — تنفيذ السطح الكامل."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-24T17:11:24Z",
+      "actor": "ws-183:review",
+      "reason": "PR #236 مفتوح بنطاق واضح وفحوص CI وCloudflare ناجحة، وبوابة مراجعة الدمج مستوفاة."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-24T17:11:24Z",
+      "actor": "ws-183:merge",
+      "reason": "PR #236 دُمج Squash إلى main عند 6fdfe32c340e6dd3bb65851ed64192b0476d81e9 بعد بوابة الدمج الدقيقة."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-24T17:11:24Z",
+      "actor": "ws-183:post-merge-verification",
+      "reason": "على main الفعلي 6fdfe32c340e6dd3bb65851ed64192b0476d81e9: CI وCloudflare ناجحان، وفحوص الحوكمة وpnpm check تثبت نطاق الموجة. VERIFIED لنطاق WS-183 فقط؛ UX-001 لا تزال غير مغلقة."
     }
   ],
   "migration_baseline": false,
@@ -48,5 +66,7 @@
     "docs/operations/control/evidence/ui-v2-phase0-baseline-2026-09-23.md",
     "docs/operations/control/evidence/ui-v2-phase1-closeout-2026-09-24.md",
     "docs/operations/control/evidence/ui-v2-ws183-full-surface-2026-09-24.md"
-  ]
+  ],
+  "merge_sha": "6fdfe32c340e6dd3bb65851ed64192b0476d81e9",
+  "verified_on_main_sha": "6fdfe32c340e6dd3bb65851ed64192b0476d81e9"
 }
