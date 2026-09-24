@@ -142,7 +142,9 @@
   }
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid var(--color-accent-text);
+    /* UX-001 V2: global focus = Information role (same as fields); dark
+       resolves through its own --vf-focus rebind. */
+    outline: 2px solid var(--vf-focus);
     outline-offset: 2px;
   }
   #root {

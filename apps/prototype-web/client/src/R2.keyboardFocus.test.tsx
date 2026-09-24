@@ -7,7 +7,10 @@
  * ٢) Escape مع نموذج وسخ يطرح سؤال التخلص الهادئ — لا إغلاق صامت ولا فقد بيانات.
  * ٣) كل العناصر التفاعلية في الصفحة أزرار/روابط أصلية — التشغيل بلوحة المفاتيح
  *    حق مبني لا محسّن؛ Tab يصل إلى زر الإنشاء (FAB) ضمن دورة التركيز.
- * ٤) حلقة التركيز المرئية مرتبطة بتوكن accent-text لا بقيمة محلية (اختبار CSS).
+ * ٤) حلقة التركيز المرئية مرتبطة بتوكن الجسر --vf-focus (دور المعلومات V2،
+ *    وللداكن إعادة ربطه الخاصة في theme-dark.css) لا بقيمة محلية (اختبار CSS).
+ *    UX-001 V2 (WS-182, 2026-09-24): إعادة تأسيس مجمدة مصرح بها — كان التوكن
+ *    --color-accent-text قبل توحيد دور التركيز على Information role.
  */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -78,9 +81,10 @@ describe("R2 keyboard/focus contract", () => {
   });
 
   describe("focus ring is token-bound, not page-local", () => {
-    it("the global focus-visible outline uses the accent-text semantic token", () => {
+    it("the global focus-visible outline uses the V2 focus token (Information role, dark-safe)", () => {
       const block = css.match(/button:focus-visible,\s*a:focus-visible\s*\{[^}]*\}/)?.[0] ?? "";
-      expect(block).toContain("outline: 2px solid var(--color-accent-text)");
+      /* UX-001 V2 (WS-182): global focus unified with field focus on --vf-focus. */
+      expect(block).toContain("outline: 2px solid var(--vf-focus)");
       expect(block).toContain("outline-offset: 2px");
     });
   });
