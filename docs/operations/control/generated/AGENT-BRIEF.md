@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · CLAIMED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 37
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 37
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-182 | CLAIMED | \`feat/ux-001-v2-micro-uiux-evolution-20260924\` | 235 | UX-001 | التنفيذ مكتمل على الفرع والـ PR #235 مفتوح للمراجعة: pnpm check كاملة EXIT 0 (483+1,904 اختبارًا، تباين 92/92 بالوضعين، الحزمة خام 649,628 مطابقة للخط الأساس)، وأدلة بصرية حية 360×760 للوضعين في planning/ux-001-v2-evolution-2026-09-24/visual-review/ وتقرير الأدلة docs/operations/control/evidence/ui-v2-phase2-implementation-2026-09-24.md. بوابة المالك: مراجعة ودمج PR #235 ثم التحقق على main قبل أي رفع للحالة إلى VERIFIED؛ الموجات المؤجلة (V2 Shell/لوحة الحساب، SnapshotDeck/عرض الكل، Skeletons، تقارب Field/Row، تقارير PNG/ICO) تحتاج قرارات موجات لاحقة منفصلة. |
+| WS-183 | CLAIMED | \`feat/ux-001-v2-micro-full-surface-20260924\` | 236 | UX-001 | التنفيذ مكتمل على الفرع والفحص الكامل عند الحد EXIT 0 (483+1,925 اختبارًا، تباين 92/92، الحزمة خام 649,628 مطابقة حرفيًا للخط الأساس — موجة CSS بلا أي TSX): حدود النماذج boundary، هالة تركيز سطح المعلومات، إصلاح زر الأيقونة، قاعدة القوائم الموحدة، توحيد المحددات المزدوجة، وإزالة القواعد الميتة المثبتة. الأدلة: مصفوفة تغطية 60/60 + 18 لقطة حية في docs/operations/control/evidence/ui-v2-ws183-full-surface-2026-09-24.md وplanning/ux-001-v2-evolution-2026-09-24/visual-review-w183/. بوابة المالك: مراجعة ودمج PR الاستمرار ثم التحقق على main قبل رفع الحالة؛ بوابات الجهاز الحقيقي وUAT خارجية باقية. |

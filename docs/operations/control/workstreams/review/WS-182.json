@@ -1,7 +1,7 @@
 {
   "id": "WS-182",
   "title": "UX-001 Phase 2 — تنفيذ الاتجاه البصري Bold Modular V2 عبر جسر التوكنز والأساسات المشتركة وتطبيقه على كامل السطح القائم",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "UX-001"
   ],
@@ -23,8 +23,8 @@
   "agent": "Z AI — UX-001 Phase 2 implementation session 2026-09-24",
   "pr": 235,
   "started_at": "2026-09-24T16:48:26+03:00",
-  "updated_at": "2026-09-24T17:43:11+03:00",
-  "next_action": "التنفيذ مكتمل على الفرع والـ PR #235 مفتوح للمراجعة: pnpm check كاملة EXIT 0 (483+1,904 اختبارًا، تباين 92/92 بالوضعين، الحزمة خام 649,628 مطابقة للخط الأساس)، وأدلة بصرية حية 360×760 للوضعين في planning/ux-001-v2-evolution-2026-09-24/visual-review/ وتقرير الأدلة docs/operations/control/evidence/ui-v2-phase2-implementation-2026-09-24.md. بوابة المالك: مراجعة ودمج PR #235 ثم التحقق على main قبل أي رفع للحالة إلى VERIFIED؛ الموجات المؤجلة (V2 Shell/لوحة الحساب، SnapshotDeck/عرض الكل، Skeletons، تقارب Field/Row، تقارير PNG/ICO) تحتاج قرارات موجات لاحقة منفصلة.",
+  "updated_at": "2026-09-24T18:43:08+03:00",
+  "next_action": "الأساسات مدمجة ومتحققة على main عند f2d5aa6 (Squash عبر PR #235، CI + Cloudflare ناجحان، pnpm check كاملة EXIT 0 على main المدموج نفسه: 483+1,904 اختبارًا، تباين 92/92، حزمة 649,628). نطاق WS-182 (موجة الأساسات عبر الجسر) مغلق كـ VERIFIED لنطاقه فقط؛ الاستمرار الكامل للسطح (الشاشات والمكونات المشتركة والقشرة) يسير في WS-183 على الفرع feat/ux-001-v2-micro-full-surface-20260924. لا يُرفع UX-001 نفسه إلى VERIFIED قبل اكتمال القبول الكامل بما فيه الجهاز الحقيقي وUAT.",
   "notes": [
     "التفويض: مهمة المالك 2026-09-24 (Full UI/UX Evolution) بعد إغلاق Phase 1 وقرارات OD-01..OD-12 المسجلة في UX-001.owner_decision وتقرير V2 المدموج عند 1c990544.",
     "النطاق: Light-first فقط عبر الجسر الحالي — vf-tokens.css + index.css :root + primitives.css + theme-dark.css (إعادة ربط حفظ واحدة فقط لـ--vf-nav-selected-ink تحفظ لون التحديد الحالي في الداكن) + stateAdapter.ts (نبرة partial الجديدة، نفس طول السلسلة) + أصول الهوية SVG + خط Alexandria subset + تحديثات الاختبارات المتجمدة كأثر تفويض موثق (vf-tokens.test، stateAdapter.test، theme-contrast-guard) + توثيق Tracker/current-state/evidence.",
@@ -32,7 +32,8 @@
     "حد الاستعادة: الالتزام الأساس bbac8525b567312ceae0642da8921c88035711bc على main؛ كل موجة التزام مستقل قابل للعكس؛ طبقة الداكن مستقلة قابلة للعكس (ADR-009).",
     "التحقق المخطط: pnpm check كاملًا (اختبارات 41+271 ملفًا)، حارس التباين 82+أزواج الجديدة بالوضعين، R2.renderSmoke بالوضعين، قياس الحزمة عند حدود PR (سقف 650,000/155,000 لا يُرفع).",
     "لا تُرفع الحالة إلى VERIFIED قبل الدمج والتحقق على main.",
-    "اكتمال التنفيذ (2026-09-24): ثلاث موجات ملتزمة على الفرع — 293fddb (الـ claim)، b9632b0 (الأساسات: الجسر + الخطوط + الأصول + الحرّاس)، a30eacc (التحقق: توحيد التركيز على --vf-focus مع إعادة تأسيس مجمدة مصرح بها لاختبار R2.keyboardFocus، أدلة بصرية حية، تقرير أدلة، تحديث current-state §72 وMIGRATION_STATUS). فحص الحد النهائي pnpm check EXIT 0 بالحزمة خام 649,628 كما هي. صفر تعديل TSX للشاشات، صفر كلمة/منسق/Schema/تصدير، الداكن محفوظ."
+    "اكتمال التنفيذ (2026-09-24): ثلاث موجات ملتزمة على الفرع — 293fddb (الـ claim)، b9632b0 (الأساسات: الجسر + الخطوط + الأصول + الحرّاس)، a30eacc (التحقق: توحيد التركيز على --vf-focus مع إعادة تأسيس مجمدة مصرح بها لاختبار R2.keyboardFocus، أدلة بصرية حية، تقرير أدلة، تحديث current-state §72 وMIGRATION_STATUS). فحص الحد النهائي pnpm check EXIT 0 بالحزمة خام 649,628 كما هي. صفر تعديل TSX للشاشات، صفر كلمة/منسق/Schema/تصدير، الداكن محفوظ.",
+    "إغلاق ما بعد الدمج (2026-09-24): PR #235 دُمج Squash إلى main عند f2d5aa60cd6805ff4f9acc104fd65f94bfb8d5a2 (بوابة ما قبل الدمج تحققت حية: الرأس 75ee9ef مطابق، الفحوصات checks+Cloudflare success للرأس نفسه، 64 ملفًا كلها داخل النطاق، صفر اعتراضات). التحقق بعد الدمج على main الفعلي f2d5aa6: شجرة مطابقة حرفيًا للفرع المختبر (diff فارغ)، generate_tracker --check PASS، validate.py PASS، pnpm check كاملة EXIT 0 (483+1,904 اختبارًا، lint 37/37، تباين 92/92 بالوضعين، الحزمة خام 649,628 = الخط الأساس). الفرع المصدر محفوظ عن قصد (لا حذف) للأثر."
   ],
   "status_history": [
     {
@@ -40,6 +41,24 @@
       "changed_at": "2026-09-24",
       "actor": "claim:ws-182",
       "reason": "فتح Claim تنفيذ UX-001 Phase 2 من origin/main المتحقق bbac8525 بعد جرد أثر المستهلكين (Phase 1 report @ V2 1c990544 + جرد حي 2026-09-24) وبقرار المالك الصريح في مهمة التنفيذ."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-24",
+      "actor": "ws-182:review",
+      "reason": "الموجة جاهزة لبوابة PR — فحص الحد النهائي EXIT 0 والـ PR #235 مفتوح بـ CI أخضر."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-24T18:36:53+03:00",
+      "actor": "ws-182:merge",
+      "reason": "PR #235 مدمج Squash إلى main عند f2d5aa6 بعد بوابة ما قبل الدمج الكاملة."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-24",
+      "actor": "ws-182:post-merge-verification",
+      "reason": "على main الفعلي f2d5aa6: الشجرة مطابقة للفرع المختبر، CI+Cloudflare ناجحان، validate.py وgenerate_tracker --check ناجحان، pnpm check كاملة EXIT 0 (483+1,904 اختبارًا، تباين 92/92، حزمة 649,628 = الخط الأساس). VERIFIED لنطاق موجة الأساسات فقط."
     }
   ],
   "migration_baseline": false,
@@ -48,5 +67,7 @@
     "docs/operations/control/evidence/ui-v2-phase1-closeout-2026-09-24.md",
     "https://github.com/Qays7753/Micro-Bold-Modular-Design-Handoff-V1/commit/1c990544c5f45744187072076f4dc87877c9f3c4",
     "docs/operations/control/evidence/ui-v2-phase2-implementation-2026-09-24.md"
-  ]
+  ],
+  "merge_sha": "f2d5aa60cd6805ff4f9acc104fd65f94bfb8d5a2",
+  "verified_on_main_sha": "f2d5aa60cd6805ff4f9acc104fd65f94bfb8d5a2"
 }

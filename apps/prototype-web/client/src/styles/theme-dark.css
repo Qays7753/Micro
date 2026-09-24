@@ -67,6 +67,13 @@
   --vf-partial: #a59e8f;
   --vf-attention: #d9b978; /* dark's existing warning ink — keeps the token dark-safe */
   --vf-nav-selected-ink: var(--vf-clay-interactive);
+  --vf-info-surface: color-mix(
+    in srgb,
+    var(--vf-focus) 18%,
+    transparent
+  ); /* WS-183:
+     dark keeps its current warm focus halo (preservation rebind — no V2 light
+     value is applied to Dark Mode) */
 
   /* -- Action contracts ---------------------------------------------------- */
   --vf-action-create: var(--vf-clay);
