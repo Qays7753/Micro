@@ -1466,13 +1466,13 @@ MICRO_FINANCIAL_ROADMAP_EXECUTION_COMPLETE — REMEDIATION_COMPLETE_MAIN_VERIFIE
 
 ## §71. UI/UX V2 — Phase 1 خريطة التكامل وقرارات المالك مغلقة — 2026-09-24
 
-أُغلقت Phase 1 كمرحلة **قراءة-فقط وتثبيت قرارات** لمسار Bold Modular V2. رأس Micro المرجعي هو `origin/main=4e1bab9198023cf76bf1ebd5e9481d898a95700e` بعد PR #231. تقرير خريطة `V2-to-Micro Integration Mapping` أُغلق في مستودع V2 بعد PR #1 عند `1c990544c5f45744187072076f4dc87877c9f3c4`، مع فحص `Documents/micro-standard-v2/` عند revision `2396ff09fa52bb7872ae40c10adfc86ee7a0808d` قراءةً فقط.
+أُغلقت Phase 1 كمرحلة **قراءة-فقط وتثبيت قرارات** لمسار Bold Modular V2. رأس Micro المرجعي قبل تحديث Tracker هو `4e1bab9198023cf76bf1ebd5e9481d898a95700e` بعد PR #231، ورأس Micro النهائي بعد دمج تحديث Tracker هو `ff0cfa1f7862b910031e7a46a686e3156938f8a7` بعد PR #232. تقرير خريطة `V2-to-Micro Integration Mapping` أُغلق في مستودع V2 بعد PR #1 عند `1c990544c5f45744187072076f4dc87877c9f3c4`، مع فحص `Documents/micro-standard-v2/` عند revision `2396ff09fa52bb7872ae40c10adfc86ee7a0808d` قراءةً فقط.
 
 مرجع السلطة الآن صريح: **V2 يملك الاتجاه البصري**؛ **Micro يملك الوظائف والبيانات والعقود المالية والسلوك التشغيلي**؛ و**Documents مرجع بصري يُراجع حسب الموضوع والإصدار**. يبقى `#D97757` لون الهوية، وسُجل `#A94630` كاتجاه مستقبلي للفعل الصلب، دون تعديل Tokens أو Runtime أو Documents في هذه المرحلة. تُحافَظ دلالة الحالات ومفردات Micro وعقد المال ذي المنزلتين؛ Alexandria للواجهة مع بقاء IBM Plex Mono للأرقام حتى التحقق؛ ولا يُرفع سقف الحزمة قبل القياس.
 
 لم تُنفذ Phase 2: لا تغيير في `vf-tokens.css` أو Standard أو primitives أو screens أو Dark Mode أو domain/storage/export/financial behavior، ولا نسخ مباشر من استوديو V2، ولا مصدر Tokens منافس، ولا نقل جماعي أو إعادة هيكلة واسعة. تبقى `UX-001` في `DEFERRED` و`FIX_BEFORE_PILOT`؛ إغلاق Phase 1 لا يعني اكتمال UI/UX أو device validation أو UAT.
 
-**البوابة التالية المسموحة فقط:** Claim مستقل لـ`UX-001` Phase 2 من `origin/main=4e1bab9`، يبدأ بجرد أثر المستهلكين ثم الأساسات والشريحة الأولى المعتمدة. كل تغيير يجب أن يظل قابلًا للرجوع، وألا يغير معنى ماليًا أو كلمة مجمدة، وألا يفتح موجة Dark Mode أو إعادة هيكلة إلا بقرار وبوابة مستقلين. الدليل: `docs/operations/control/evidence/ui-v2-phase1-closeout-2026-09-24.md`، والتفصيل: تقرير V2 المدموج عند الرابط المسجل في `UX-001.json`.
+**البوابة التالية المسموحة فقط:** Claim مستقل لـ`UX-001` Phase 2 من `origin/main=ff0cfa1`، يبدأ بجرد أثر المستهلكين ثم الأساسات والشريحة الأولى المعتمدة. كل تغيير يجب أن يظل قابلًا للرجوع، وألا يغير معنى ماليًا أو كلمة مجمدة، وألا يفتح موجة Dark Mode أو إعادة هيكلة إلا بقرار وبوابة مستقلين. الدليل: `docs/operations/control/evidence/ui-v2-phase1-closeout-2026-09-24.md`، والتفصيل: تقرير V2 المدموج عند الرابط المسجل في `UX-001.json`.
 
 `UI_V2_PHASE_1_MAPPING_CLOSED`
 `OWNER_DIRECTIONS_OD_01_TO_OD_12_RECORDED`
@@ -1481,4 +1481,4 @@ MICRO_FINANCIAL_ROADMAP_EXECUTION_COMPLETE — REMEDIATION_COMPLETE_MAIN_VERIFIE
 `NO_DOCUMENTS_WRITES`
 `NO_PHASE_2_IMPLEMENTATION`
 `UX_001_REMAINS_DEFERRED`
-`NEXT_GATE_UX_001_PHASE_2_CLAIM_FROM_4E1BAB9`
+`NEXT_GATE_UX_001_PHASE_2_CLAIM_FROM_FF0CFA1`
