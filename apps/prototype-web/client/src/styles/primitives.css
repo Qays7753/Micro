@@ -69,6 +69,10 @@
 .micro-prim-chip[data-tone="info"] > .micro-prim-marker {
   color: var(--vf-info);
 }
+/* UX-001 V2 (OD-02): partial is its own neutral tone — never info blue. */
+.micro-prim-chip[data-tone="partial"] > .micro-prim-marker {
+  color: var(--vf-partial);
+}
 .micro-prim-chip[data-tone="status"] > .micro-prim-marker {
   color: var(--vf-status);
 }
@@ -88,7 +92,7 @@
   border-radius: var(--vf-radius-control);
   padding: 0 var(--space-4);
   font-family: inherit;
-  font-size: var(--vf-text-body-size);
+  font-size: var(--vf-text-button-size); /* UX-001 V2: button type 16px (was body 15) */
   font-weight: 600;
   line-height: 1.4;
   transition:
@@ -320,6 +324,10 @@
 }
 .micro-prim-row--striped[data-stripe-tone="info"]::before {
   background: var(--vf-info);
+}
+/* UX-001 V2 (OD-02): partial rows stripe neutral gray, not info blue. */
+.micro-prim-row--striped[data-stripe-tone="partial"]::before {
+  background: var(--vf-partial);
 }
 .micro-prim-row__lead {
   display: inline-grid;

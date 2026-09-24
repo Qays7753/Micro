@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Micro app icon">
   <title>Micro app icon</title>
-  <rect width="512" height="512" rx="114" fill="#FAF9F5"></rect>
+  <rect width="512" height="512" rx="114" fill="#F0F3F4"></rect>
   <g transform="translate(20.80 20.80) scale(2.45)">
-    <path d="M80 16L112 16Q138 16 131.69 41.22L130.4 46.42Q127 60 114.59 66.48L109.32 69.22Q104 72 98 72L94 72Q88 72 82.68 69.22L77.41 66.48Q65 60 61.6 46.42L60.31 41.22Q54 16 80 16Z" fill="#1F1E1D" transform="rotate(0 96 96) translate(96 96) scale(1.025) translate(-96 -96)"></path>
-    <path d="M80 16L112 16Q138 16 131.69 41.22L130.4 46.42Q127 60 114.59 66.48L109.32 69.22Q104 72 98 72L94 72Q88 72 82.68 69.22L77.41 66.48Q65 60 61.6 46.42L60.31 41.22Q54 16 80 16Z" fill="#079FA0" transform="rotate(90 96 96) translate(96 96) scale(1) translate(-96 -96)"></path>
-    <path d="M80 16L112 16Q138 16 131.69 41.22L130.4 46.42Q127 60 114.59 66.48L109.32 69.22Q104 72 98 72L94 72Q88 72 82.68 69.22L77.41 66.48Q65 60 61.6 46.42L60.31 41.22Q54 16 80 16Z" fill="#B79C86" transform="rotate(180 96 96) translate(96 96) scale(0.975) translate(-96 -96)"></path>
-    <path d="M80 16L112 16Q138 16 131.69 41.22L130.4 46.42Q127 60 114.59 66.48L109.32 69.22Q104 72 98 72L94 72Q88 72 82.68 69.22L77.41 66.48Q65 60 61.6 46.42L60.31 41.22Q54 16 80 16Z" fill="#CC785C" transform="rotate(270 96 96) translate(96 96) scale(1) translate(-96 -96)"></path>
+    <path d="M80 16L112 16Q138 16 131.69 41.22L130.4 46.42Q127 60 114.59 66.48L109.32 69.22Q104 72 98 72L94 72Q88 72 82.68 69.22L77.41 66.48Q65 60 61.6 46.42L60.31 41.22Q54 16 80 16Z" fill="#1D2930" transform="rotate(0 96 96) translate(96 96) scale(1.025) translate(-96 -96)"></path>
+    <path d="M80 16L112 16Q138 16 131.69 41.22L130.4 46.42Q127 60 114.59 66.48L109.32 69.22Q104 72 98 72L94 72Q88 72 82.68 69.22L77.41 66.48Q65 60 61.6 46.42L60.31 41.22Q54 16 80 16Z" fill="#305968" transform="rotate(90 96 96) translate(96 96) scale(1) translate(-96 -96)"></path>
+    <path d="M80 16L112 16Q138 16 131.69 41.22L130.4 46.42Q127 60 114.59 66.48L109.32 69.22Q104 72 98 72L94 72Q88 72 82.68 69.22L77.41 66.48Q65 60 61.6 46.42L60.31 41.22Q54 16 80 16Z" fill="#5B6770" transform="rotate(180 96 96) translate(96 96) scale(0.975) translate(-96 -96)"></path>
+    <path d="M80 16L112 16Q138 16 131.69 41.22L130.4 46.42Q127 60 114.59 66.48L109.32 69.22Q104 72 98 72L94 72Q88 72 82.68 69.22L77.41 66.48Q65 60 61.6 46.42L60.31 41.22Q54 16 80 16Z" fill="#D97757" transform="rotate(270 96 96) translate(96 96) scale(1) translate(-96 -96)"></path>
   </g>
 </svg>

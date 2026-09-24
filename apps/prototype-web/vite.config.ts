@@ -270,8 +270,8 @@ const pwa = VitePWA({
     orientation: "portrait-primary",
     lang: "ar",
     dir: "rtl",
-    background_color: "#FAF9F5",
-    theme_color: "#FAF9F5", /* W1 (D-01/U-01): canvas chrome — matches index.html meta + ThemeContext runtime value; identity lives on the create surface, not app chrome */
+    background_color: "#F0F3F4",
+    theme_color: "#F0F3F4", /* UX-001 V2: canvas chrome — matches index.html meta + ThemeContext runtime value; identity lives on the create surface, not app chrome */
     /* W2 (brand): approved symbol-only icons. 512 any stays the install anchor; the
      * maskable 512 is declared separately with purpose "maskable" so platforms never
      * letterbox or crop the any-purpose mark. */

@@ -166,6 +166,13 @@ MARK_PAIRS: list[tuple[str, str, str]] = [
     ("interactive border on canvas", "--vf-border-interactive", "--vf-canvas"),
     ("interactive border on surface", "--vf-border-interactive", "--vf-surface"),
     ("pressed edge on save bg", "--vf-action-save-pressed-edge", "--vf-action-save-bg"),
+    # UX-001 Phase 2 (2026-09-24) — V2 semantic roles added by the wave:
+    # partial (OD-02 neutral tone) and the solid action boundary (OD-01).
+    ("partial mark on canvas", "--vf-partial", "--vf-canvas"),
+    ("partial mark on surface", "--vf-partial", "--vf-surface"),
+    ("attention mark on canvas", "--vf-attention", "--vf-canvas"),
+    ("attention mark on surface", "--vf-attention", "--vf-surface"),
+    ("nav selected ink on canvas", "--vf-nav-selected-ink", "--vf-canvas"),
 ]
 
 FLOOR_TEXT = 4.5

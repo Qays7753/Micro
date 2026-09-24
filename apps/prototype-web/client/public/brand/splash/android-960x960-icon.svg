@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" width="960" height="960" role="img" aria-label="Micro splash screen">
   <title>Micro splash — 960×960</title>
-  <rect width="960" height="960" fill="#FAF9F5"></rect>
+  <rect width="960" height="960" fill="#F0F3F4"></rect>
   <g transform="translate(288 288) scale(2.00000)">
-    <path d="M80 12L112 12Q142 12 136.47 41.49L135.76 45.26Q133 60 119.91 67.33L115.85 69.6Q108 74 99 74L93 74Q84 74 76.15 69.6L72.09 67.33Q59 60 56.24 45.26L55.53 41.49Q50 12 80 12Z" fill="#1F1E1D" transform="rotate(0 96 96) translate(96 96) scale(1.025) translate(-96 -96)"></path>
-    <path d="M80 12L112 12Q142 12 136.47 41.49L135.76 45.26Q133 60 119.91 67.33L115.85 69.6Q108 74 99 74L93 74Q84 74 76.15 69.6L72.09 67.33Q59 60 56.24 45.26L55.53 41.49Q50 12 80 12Z" fill="#079FA0" transform="rotate(90 96 96) translate(96 96) scale(1) translate(-96 -96)"></path>
-    <path d="M80 12L112 12Q142 12 136.47 41.49L135.76 45.26Q133 60 119.91 67.33L115.85 69.6Q108 74 99 74L93 74Q84 74 76.15 69.6L72.09 67.33Q59 60 56.24 45.26L55.53 41.49Q50 12 80 12Z" fill="#B79C86" transform="rotate(180 96 96) translate(96 96) scale(0.975) translate(-96 -96)"></path>
-    <path d="M80 12L112 12Q142 12 136.47 41.49L135.76 45.26Q133 60 119.91 67.33L115.85 69.6Q108 74 99 74L93 74Q84 74 76.15 69.6L72.09 67.33Q59 60 56.24 45.26L55.53 41.49Q50 12 80 12Z" fill="#CC785C" transform="rotate(270 96 96) translate(96 96) scale(1) translate(-96 -96)"></path>
+    <path d="M80 12L112 12Q142 12 136.47 41.49L135.76 45.26Q133 60 119.91 67.33L115.85 69.6Q108 74 99 74L93 74Q84 74 76.15 69.6L72.09 67.33Q59 60 56.24 45.26L55.53 41.49Q50 12 80 12Z" fill="#1D2930" transform="rotate(0 96 96) translate(96 96) scale(1.025) translate(-96 -96)"></path>
+    <path d="M80 12L112 12Q142 12 136.47 41.49L135.76 45.26Q133 60 119.91 67.33L115.85 69.6Q108 74 99 74L93 74Q84 74 76.15 69.6L72.09 67.33Q59 60 56.24 45.26L55.53 41.49Q50 12 80 12Z" fill="#305968" transform="rotate(90 96 96) translate(96 96) scale(1) translate(-96 -96)"></path>
+    <path d="M80 12L112 12Q142 12 136.47 41.49L135.76 45.26Q133 60 119.91 67.33L115.85 69.6Q108 74 99 74L93 74Q84 74 76.15 69.6L72.09 67.33Q59 60 56.24 45.26L55.53 41.49Q50 12 80 12Z" fill="#5B6770" transform="rotate(180 96 96) translate(96 96) scale(0.975) translate(-96 -96)"></path>
+    <path d="M80 12L112 12Q142 12 136.47 41.49L135.76 45.26Q133 60 119.91 67.33L115.85 69.6Q108 74 99 74L93 74Q84 74 76.15 69.6L72.09 67.33Q59 60 56.24 45.26L55.53 41.49Q50 12 80 12Z" fill="#D97757" transform="rotate(270 96 96) translate(96 96) scale(1) translate(-96 -96)"></path>
   </g>
 </svg>
