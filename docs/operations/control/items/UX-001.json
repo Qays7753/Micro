@@ -26,15 +26,17 @@
     "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md",
     "reports/agent-report/2026-09-22_ux-ui-z1-z2/01-z1-delivery-report.md",
     "reports/agent-report/2026-09-22_ux-ui-z1-z2/02-z2-delivery-report.md",
-    "docs/operations/control/evidence/ui-v2-phase0-baseline-2026-09-23.md"
+    "docs/operations/control/evidence/ui-v2-phase0-baseline-2026-09-23.md",
+    "docs/operations/control/evidence/ui-v2-phase1-closeout-2026-09-24.md",
+    "https://github.com/Qays7753/Micro-Bold-Modular-Design-Handoff-V1/commit/1c990544c5f45744187072076f4dc87877c9f3c4"
   ],
   "dependencies": [
     "CLEAN-001"
   ],
-  "owner_decision": "قرار المالك المعتمد في Phase 0 (2026-09-23): Bold Modular V2 هو المرجع البصري المعتمد للاتجاه الجديد، مع إبقاء Micro Standard وvf-tokens.css جسر التنفيذ داخل Micro؛ لا نسخ مباشر من الاستوديو ولا إنشاء مصدر Tokens منافس.",
+  "owner_decision": "قرارات المالك المعتمدة في Phase 0 وPhase 1 (2026-09-24): Bold Modular V2 هو مرجع الاتجاه البصري، وMicro هو المرجع للوظائف والبيانات والعقود المالية والسلوك التشغيلي، بينما يُراجع Documents حسب الموضوع والإصدار. يبقى #D97757 لون الهوية، ويُسجل #A94630 كاتجاه مستقبلي للفعل الصلب دون تعديل Tokens أو Documents في الإغلاق. تُفصل دلالة الحالة عن الاستعجال؛ تُعتمد Alexandria للواجهة مع إبقاء IBM Plex Mono للأرقام حتى التحقق؛ يُحافَظ على عقد المال/العرض ذي المنزلتين؛ لا تُحوّل السلبية تلقائيًا إلى Danger؛ تبقى نتيجة الفترة المسجلة ومفردات Micro وقواعد due-today؛ V2 Shell وOVR-SNAPSHOT-ALL وعرض الكل اتجاهات موجات لاحقة؛ لا رفع لسقف الحزمة مسبقًا؛ ولا إعادة هيكلة واسعة أو نقل جماعي دون بوابة بنيوية مستقلة. لا نسخ مباشر من الاستوديو ولا مصدر Tokens منافس.",
   "merge_sha": "",
   "verified_on_main_sha": "",
-  "updated_at": "2026-09-23",
+  "updated_at": "2026-09-24",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
   "root_cause": "control-record:UX-001",
@@ -43,7 +45,9 @@
     "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
     "evidence": [
       "reports/agent-report/2026-09-17_wave-4-1-product-ux-blueprint/report.md",
-      "docs/operations/control/evidence/ui-v2-phase0-baseline-2026-09-23.md"
+      "docs/operations/control/evidence/ui-v2-phase0-baseline-2026-09-23.md",
+      "docs/operations/control/evidence/ui-v2-phase1-closeout-2026-09-24.md",
+      "https://github.com/Qays7753/Micro-Bold-Modular-Design-Handoff-V1/commit/1c990544c5f45744187072076f4dc87877c9f3c4"
     ]
   },
   "status_history": [
@@ -55,7 +59,7 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "Phase 1 قراءة-فقط: استخراج خريطة V2-to-Micro Integration Mapping وجرد مستهلكي التوكنز والمكونات؛ لا يبدأ كود أو دمج قبل مراجعة الخريطة واعتماد المالك.",
+  "next_action": "Phase 2: إنشاء Claim مستقل من origin/main الحالي وتنفيذ أول شريحة معتمدة فقط بعد أثر المستهلكين؛ يبدأ بالأساسات/الشاشة الأولى دون نقل جماعي أو مصدر Tokens موازٍ أو تغيير معنى مالي/لغوي، ولا تُرفع الحالة إلى VERIFIED قبل الدمج وإثبات main والأدلة المطلوبة.",
   "deferred_reason": "تنفيذ مؤجل حتى استقرار الوظائف واعتماد الاتجاه وBenchmark، لكنه متطلب Gate قبل Pilot؛ لا يتجاوز بوابة الإصدار.",
   "related_items": [],
   "classification": "FIX_BEFORE_PILOT",
