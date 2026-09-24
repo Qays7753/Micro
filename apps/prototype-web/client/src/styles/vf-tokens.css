@@ -59,6 +59,7 @@
 
   /* -- Semantic roles (V2 pairs; meaning stays in words + markers) ---------- */
   --vf-info: #305968; /* attention/pending mark — V2 Information */
+  --vf-info-surface: #dfedf1; /* V2 Information surface — field focus halo */
   --vf-status: #305968; /* reviewed/current mark — merged into info (V2 has no
      separate reviewed role; the eye marker + word carry the distinction) */
   --vf-success: #16765a; /* V2 success — text-safe (4.81:1 on its surface) */

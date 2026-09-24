@@ -35,6 +35,7 @@ const APPROVED_18 = [
   "#D97757", // identity clay — UNCHANGED
   "#C96442", // pressed/chosen — UNCHANGED
   "#305968", // info + focus (V2 information)
+  "#DFEDF1", // info surface (V2) — field focus halo (WS-183)
   "#16765A", // success (V2)
   "#DFF3E9", // success surface (V2)
   "#B0324F", // danger (V2)

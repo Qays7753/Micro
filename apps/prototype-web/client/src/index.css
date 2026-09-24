@@ -180,7 +180,7 @@
 }
 .micro-header-inner {
   display: flex;
-  min-height: calc(56px + env(safe-area-inset-top));
+  min-height: calc(var(--vf-topbar-height) + env(safe-area-inset-top));
   align-items: center;
   justify-content: space-between;
   padding: calc(var(--space-2) + env(safe-area-inset-top)) var(--space-4) var(--space-2);
@@ -189,8 +189,7 @@
 .micro-header-actions,
 .micro-section-heading,
 .micro-sheet-title-row,
-.micro-setting-row,
-.micro-truth-banner {
+.micro-setting-row {
   display: flex;
   align-items: center;
 }
@@ -328,6 +327,7 @@
 }
 .micro-icon-button {
   display: inline-grid;
+  flex: 0 0 auto;
   width: 44px;
   height: 44px;
   place-items: center;
@@ -355,10 +355,10 @@
   --main-bottom-space: calc(var(--space-4) + env(safe-area-inset-bottom));
   --main-scroll-space: calc(var(--space-6) + env(safe-area-inset-bottom));
   /* §4 بند ٣: أول بطاقة لا تُقصّ خلف الترويسة اللاصقة عند التمرير أو الاسترجاع */
-  min-height: calc(100dvh - 56px - env(safe-area-inset-top));
+  min-height: calc(100dvh - var(--vf-topbar-height) - env(safe-area-inset-top));
   padding: var(--space-4) var(--space-4) var(--main-bottom-space);
   scroll-padding-block-end: var(--main-scroll-space);
-  scroll-padding-block-start: calc(56px + env(safe-area-inset-top) + var(--space-2));
+  scroll-padding-block-start: calc(var(--vf-topbar-height) + env(safe-area-inset-top) + var(--space-2));
 }
 .micro-main[data-route-kind="surface"] {
   --main-bottom-space: calc(116px + env(safe-area-inset-bottom));
@@ -407,19 +407,8 @@
   font-weight: 600;
   line-height: 1.4;
 }
-.micro-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  width: fit-content;
-  color: var(--color-surface);
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-.micro-eyebrow svg {
-  width: 16px;
-  height: 16px;
-}
+/* UX-001 V2 (WS-183): أزيلت .micro-eyebrow الميتة (صفر مستهلكين في TSX —
+   الجرد 2026-09-24)؛ التسمية الفوقية الحية هي .micro-overline/.micro-card-eyebrow. */
 .micro-route-loading {
   display: grid;
   min-height: 280px;
@@ -429,25 +418,8 @@
   background: var(--color-bg-well);
   font-size: 0.9375rem;
 }
-.micro-priority-panel {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: 312px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-bg-well);
-  box-shadow: var(--elevation-1);
-}
-.micro-priority-texture {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.16;
-  filter: saturate(0.65);
-}
+/* UX-001 V2 (WS-183): أزيلت كتل .micro-priority-* الميتة (صفر مستهلكين —
+   الجرد 2026-09-24). قواعد [data-tone] الحية أدناه بقيت كما هي. */
 /* §4 بند ١٧ (W5): في الداكن الأسطح الناعمة تأتي من طبقة theme-dark.css —
    الفصل بنيوي: حد رقيق بلون نص الحالة يميز السطح الملوّن بلا هيكس جديد */
 .dark [data-tone="accent"] {
@@ -456,48 +428,10 @@
 .dark [data-tone="warning"] {
   border: 1px solid color-mix(in srgb, var(--color-warning-text) 40%, transparent);
 }
-.dark .micro-truth-banner {
-  border: 1px solid color-mix(in srgb, var(--color-success-text) 40%, transparent);
-}
-.dark .micro-priority-texture {
-  opacity: 0.11;
-}
-.micro-priority-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  min-height: 312px;
-  flex-direction: column;
-  justify-content: end;
-  gap: var(--space-3);
-  padding: var(--space-5);
-}
-.micro-priority-content h1 {
-  color: var(--color-text-primary);
-  font-size: 1.75rem;
-  max-width: 14ch;
-}
-.micro-priority-content > p {
-  max-width: 30ch;
-}
-.micro-priority-truth {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  width: fit-content;
-  padding: var(--space-2) var(--space-3);
-  border-inline-start: 3px solid var(--color-accent-primary);
-  background: color-mix(in srgb, var(--color-surface) 84%, transparent);
-}
-.micro-priority-truth span,
 .micro-decision-panel span {
   color: var(--color-text-secondary);
   font-size: 0.75rem;
   font-weight: 500;
-}
-.micro-priority-truth strong {
-  color: var(--color-text-strong);
-  font-size: 0.9375rem;
 }
 .micro-section {
   display: flex;
@@ -541,10 +475,6 @@
 .micro-card-copy {
   display: grid;
   gap: var(--space-2);
-}
-.micro-guidance-grid {
-  display: grid;
-  gap: var(--space-3);
 }
 /* §3 حالات المكوّنات — معطّل: شفافية نصف، مؤشر ممنوع، لا تغيير لون */
 button:disabled,
@@ -649,53 +579,9 @@ textarea:disabled,
   width: 32px;
   height: 32px;
 }
-.micro-review-intro {
-  position: relative;
-  overflow: hidden;
-  min-height: 216px;
-  border-radius: var(--radius-card);
-  background: var(--color-bg-well);
-}
-.micro-review-pattern {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.68;
-  mix-blend-mode: multiply;
-}
-.dark .micro-review-pattern {
-  opacity: 0.28;
-  mix-blend-mode: screen;
-}
-.micro-review-intro-copy {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  height: 216px;
-  flex-direction: column;
-  justify-content: end;
-  gap: var(--space-2);
-  padding: var(--space-5);
-  background: linear-gradient(0deg, color-mix(in srgb, var(--color-bg-well) 96%, transparent), transparent);
-}
-.micro-truth-banner {
-  gap: var(--space-3);
-  border-radius: var(--radius-control);
-  padding: var(--space-3);
-  color: var(--color-success-text);
-  background: var(--color-success-bg);
-}
-.micro-truth-banner svg {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-}
-.micro-truth-banner p {
-  color: inherit;
-  font-size: 0.8125rem;
-}
+/* UX-001 V2 (WS-183): أزيلت كتل .micro-review-intro/-pattern/-copy و
+   .micro-truth-banner الميتة (صفر مستهلكين — الجرد 2026-09-24)؛ لافتات
+   الحقيقة الحية: .micro-local-truth/.micro-deposit-truth. */
 .micro-settings-list {
   display: flex;
   flex-direction: column;
@@ -965,7 +851,8 @@ textarea:disabled,
 .micro-sheet-form {
   display: grid;
   gap: var(--space-3);
-  padding: 0 var(--space-4) var(--space-4);
+  overflow: auto;
+  padding: 0 var(--space-4) var(--space-2);
 }
 .micro-sheet-form .micro-prim-button--save {
   width: 100%;
@@ -1086,11 +973,12 @@ textarea:disabled,
   font-size: 0.9375rem;
 }
 .micro-setup-page {
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 .micro-setup-heading {
-  border-bottom: 2px solid var(--color-brand-primary);
-  padding-bottom: var(--space-4);
+  gap: var(--space-3);
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 .micro-setup-heading h1 {
   max-width: 17ch;
@@ -1120,7 +1008,9 @@ textarea:disabled,
 .micro-field select {
   width: 100%;
   min-height: 48px;
-  border: 1px solid var(--color-border);
+  /* UX-001 V2 (WS-183): حدود عناصر النماذج = boundary البنيوي (#78868D في
+     الفاتح) وفق مواصفة V2 للحقول — الفاصل الزخرفي يبقى للحواجز غير التفاعلية. */
+  border: 1px solid var(--vf-border-interactive);
   border-radius: var(--radius-control);
   padding: var(--space-3);
   color: var(--color-text-primary);
@@ -1154,14 +1044,23 @@ textarea:disabled,
 .micro-field textarea:focus,
 .micro-field select:focus {
   /* UX-001 V2: focus = Information role (OD-01 package); the border is the
-     carrier, the halo is decorative — same contract, new role color. */
+     carrier, the halo is decorative. WS-183: الهالة الآن سطح المعلومات المعتمد
+     #DFEDF1 من V2 (حرفيًا كما في tokens.css @ 1c990544). */
   border-color: var(--vf-focus);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vf-focus) 18%, transparent);
+  box-shadow: 0 0 0 3px var(--vf-info-surface);
 }
 .micro-field-error {
   margin: 0;
   color: var(--color-danger-text) !important;
   font-size: 0.8125rem !important;
+}
+/* UX-001 V2 (WS-183): كانت .micro-field-hint مستهلكة (12 استخدامًا) بلا تعريف
+   CSS إطلاقًا — تُعرَّف الآن على أرضية اللصائق 13px وفق مواصفة V2 (hint). */
+.micro-field-hint {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--vf-text-label-size);
+  line-height: 1.5;
 }
 .micro-setup-context {
   display: flex;
@@ -1187,10 +1086,11 @@ textarea:disabled,
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  border-inline-start: 3px solid var(--color-success-text);
-  padding: var(--space-2) 0;
+  margin-top: calc(var(--space-2) * -1);
+  border-inline-start: 4px solid var(--color-success-text);
+  padding: var(--space-3);
   color: var(--color-text-secondary);
-  background: transparent;
+  background: var(--color-success-bg);
 }
 .micro-local-truth svg {
   width: 20px;
@@ -1441,13 +1341,14 @@ textarea:disabled,
   color: var(--color-text-primary);
   font-size: 1.125rem;
 }
-.micro-cost-section-heading p,
-.micro-empty-inline {
+.micro-cost-section-heading p {
   margin: var(--space-1) 0 0;
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
 }
-.micro-icon-button,
+/* UX-001 V2 (WS-183): كان هذا المحدد مجمّعًا مع زر الأيقونة فأعاد تلوين كل
+   أزرار الأيقونات في التطبيق (رقاقة accent-soft) خلاف تعريفها الأساسي الهادئ
+   ومواصفة V2 — اقتصر التجميع على زر الحذف صاحب الألوان. */
 .micro-delete-row {
   display: grid;
   flex: 0 0 auto;
@@ -1456,18 +1357,13 @@ textarea:disabled,
   place-items: center;
   border: 0;
   border-radius: var(--radius-control);
-  color: var(--color-accent-text);
-  background: var(--color-accent-soft);
-}
-.micro-icon-button svg,
-.micro-delete-row svg {
-  width: 20px;
-  height: 20px;
-}
-.micro-delete-row {
   align-self: end;
   color: var(--color-danger-text);
   background: var(--color-danger-bg);
+}
+.micro-delete-row svg {
+  width: 20px;
+  height: 20px;
 }
 .micro-material-row {
   display: grid;
@@ -1531,12 +1427,6 @@ textarea:disabled,
 }
 .micro-material-summary-row .micro-delete-row {
   align-self: center;
-}
-.micro-sheet-form {
-  display: grid;
-  gap: var(--space-3);
-  overflow: auto;
-  padding: 0 var(--space-4) var(--space-2);
 }
 .micro-sheet-footer {
   border-top: 1px solid var(--color-border);
@@ -1663,6 +1553,9 @@ textarea:disabled,
   font-size: 1rem;
 }
 .micro-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
   color: var(--color-text-primary);
   font-size: 1.125rem;
@@ -1956,52 +1849,9 @@ textarea:disabled,
   margin: 0;
   font-size: 0.8125rem;
 }
-.micro-scope-line .micro-text-action {
-  grid-column: 2;
-}
-.micro-review-result {
-  display: grid;
-  gap: var(--space-3);
-  border-top: 3px solid var(--color-success-text);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-4) 0;
-}
-.micro-review-result[data-result="estimated"],
-.micro-review-result[data-result="review_required"] {
-  border-top-color: var(--color-warning-text);
-}
-.micro-review-result[data-result="incomplete"] {
-  border-top-color: var(--color-accent-text);
-}
-.micro-review-result h2,
-.micro-review-result p {
-  margin: 0;
-}
-.micro-review-result span {
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-}
-.micro-review-result p {
-  color: var(--color-text-secondary);
-  font-size: 0.8125rem;
-}
-.micro-review-result p .micro-number {
-  display: inline;
-  font-size: 1rem;
-}
-.micro-review-empty {
-  display: grid;
-  gap: var(--space-3);
-  border-block: 1px solid var(--color-border);
-  padding: var(--space-5) 0;
-}
-.micro-review-empty h2,
-.micro-review-empty p {
-  margin: 0;
-}
-.micro-review-empty p {
-  color: var(--color-text-secondary);
-}
+/* UX-001 V2 (WS-183): أزيلت .micro-review-result/.micro-review-empty الميتتان
+   (صفر مستهلكين — الجرد 2026-09-24)؛ نتيجة المراجعة الحية في
+   .micro-period-result وعناصرها. */
 .micro-schedule-page {
   gap: var(--space-5);
 }
@@ -2051,11 +1901,6 @@ textarea:disabled,
   padding-top: var(--space-3);
   color: var(--color-text-secondary);
   font-size: 0.75rem;
-}
-.micro-section-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 .micro-section-title svg {
   width: 19px;
@@ -2289,6 +2134,7 @@ button.micro-finance-position-link:focus-visible {
   /* §2: قوائم الصفوف الموحدة داخل حاوية محدودة واحدة 16px بصفوف نصف قطرها 0
      وفواصل 1px — لا بطاقات منفصلة بفجوات متفاوتة (§4 بند ٧) */
   display: grid;
+  gap: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   overflow: hidden;
@@ -2588,14 +2434,6 @@ button.micro-finance-position-link:focus-visible {
   display: grid;
   /* §1.3: أضيق فجوة قانونية لزوج تسمية/قيمة */
   gap: 2px;
-}
-.micro-setup-page {
-  gap: var(--space-6);
-}
-.micro-setup-heading {
-  gap: var(--space-3);
-  border-bottom: 0;
-  padding-bottom: 0;
 }
 .micro-setup-heading h1 {
   max-width: 15ch;
@@ -2970,12 +2808,6 @@ button.micro-finance-position-link:focus-visible {
   color: var(--color-text-secondary);
   font-size: 0.75rem;
   line-height: 1.6;
-}
-.micro-local-truth {
-  margin-top: calc(var(--space-2) * -1);
-  border-inline-start-width: 4px;
-  padding: var(--space-3);
-  background: var(--color-success-bg);
 }
 .micro-setup-decision .micro-prim-button--save {
   min-height: 52px;
@@ -4400,10 +4232,6 @@ button.micro-month-cell:active {
   }
 }
 
-.micro-finance-event-list {
-  display: grid;
-  gap: var(--space-3);
-}
 .micro-finance-event-heading h2,
 .micro-finance-event-heading p {
   margin: 0;
@@ -5802,6 +5630,26 @@ button.micro-month-cell:active {
   max-width: 30ch;
   font-size: 0.75rem;
   line-height: 1.6;
+}
+/* UX-001 V2 (WS-183): قاعدة القوائم الموحدة — نمط مجموعة الصفوف بفواصل داخلية
+   (V2 row-group): الحاوية شبكة والصفوف متتالية بحد 1px بينها. كانت .micro-list
+   و.micro-list-item مستهلكتين (8 ملفات TSX) بلا أي قاعدة أساس قبل هذه الموجة.
+   المتغير compact يظل هادئًا داخل البطاقات (حد علوي فقط بلا صناديق متداخلة). */
+.micro-list {
+  display: grid;
+  gap: 0;
+}
+.micro-list-item {
+  min-height: 56px;
+  padding: var(--space-3) 0;
+}
+.micro-list-item + .micro-list-item {
+  border-top: 1px solid var(--color-border);
+}
+.micro-list-item p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--vf-text-label-size);
 }
 .micro-list-compact {
   gap: 0;
