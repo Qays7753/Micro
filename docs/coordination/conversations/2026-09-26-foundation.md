@@ -41,6 +41,7 @@ Please read these files and use the repository links inside them as the current 
 
 Also review the latest approved coordination inputs when available:
 
+- `docs/coordination/MICRO-APPROVED-FULL-EVOLUTION-STRATEGY.md` — the latest approved five-group strategy; do not use an older plan.
 - the five-group execution plan;
 - the source-of-truth consistency review;
 - the latest accepted audit/reconciliation evidence already present in Micro;
