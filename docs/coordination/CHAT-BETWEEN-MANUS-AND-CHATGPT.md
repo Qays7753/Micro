@@ -168,11 +168,19 @@ Baseline: <repository and full SHA, or NOT_VERIFIED>
 Sender: <Manus or ChatGPT>
 Recipient: <ChatGPT or Manus>
 Owner decision: <NOT_REQUESTED | REQUIRED | RECEIVED>
+Owner status: <WAITING_FOR_CHATGPT | WAITING_FOR_MANUS | WAITING_FOR_OWNER | READY_FOR_NEXT_STEP | BLOCKED | CLOSED_NO_EXECUTION>
 
 <message body>
 
 Evidence / files:
 - <path or URL>
+
+Owner brief (short and direct):
+- What happened: <one short paragraph>
+- Difference of views: <none, or the exact disagreement>
+- Current recommendation: <one recommendation>
+- Waiting for: <ChatGPT | Manus | Owner | nobody>
+- Owner action: <what the owner should do now, or NO ACTION>
 
 Next action:
 - <one explicit action or STOP>
@@ -196,6 +204,23 @@ Allowed message kinds:
 
 The marker is always `112`; the direction and status explain which side has replied.
 
+### Mandatory owner-facing explanation
+
+Every Manus or ChatGPT message must contain the short `Owner brief` block. It is not an internal log and must be understandable without reading the entire technical response. It must answer five things only: what happened, whether the two reviewers disagree, the current recommendation, who is expected to respond, and what the owner should do now. Keep it to a few short lines; do not repeat the full analysis.
+
+Use these statuses consistently:
+
+| Owner status | Meaning | Who acts next |
+|---|---|---|
+| `WAITING_FOR_CHATGPT` | Manus sent the review request and is waiting for ChatGPT's response. | ChatGPT |
+| `WAITING_FOR_MANUS` | ChatGPT replied; Manus must reconcile the response with Micro's live sources. | Manus |
+| `WAITING_FOR_OWNER` | Manus completed reconciliation and needs an owner decision. | Owner |
+| `READY_FOR_NEXT_STEP` | The owner decision is recorded and the next bounded step is clear. | Manus, then the named agent if authorized |
+| `BLOCKED` | A conflict, missing authority, permission issue, or unresolved decision prevents safe continuation. | The named resolver in the brief |
+| `CLOSED_NO_EXECUTION` | The review is complete and deliberately caused no code or runtime change. | Nobody; wait for the next approved message |
+
+The owner brief must never imply that a recommendation is an approval. If Manus and ChatGPT disagree, the brief must state the disagreement plainly and mark `WAITING_FOR_OWNER` or `BLOCKED`; the owner is the final decision-maker.
+
 ## 9. Required ChatGPT response contract
 
 ChatGPT must respond with:
@@ -209,6 +234,7 @@ ChatGPT must respond with:
 7. **Acceptance and rollback implications** — what must be proven before implementation.
 8. **Recommended next action** — one action only; no automatic code changes.
 9. **Open questions for the owner** — only questions that materially change product behavior, financial meaning, permissions, architecture, or execution scope.
+10. The `Owner status` and the short `Owner brief` block, stating what happened, whether ChatGPT and Manus disagree, the current recommendation, who must respond next, and the owner's immediate action.
 
 ChatGPT must end with:
 
@@ -226,6 +252,8 @@ After receiving ChatGPT's response, Manus records:
 - what is accepted, rejected, deferred, or needs owner decision;
 - whether the approved five-group plan changes;
 - the exact next step and its write boundary.
+
+Manus must then return a short owner-facing paragraph in the next message, using the same `Owner brief` fields. The paragraph must state the current status plainly, for example: `تم استلام رد ChatGPT؛ لا يوجد اختلاف جوهري؛ توصية Manus هي تنفيذ مصالحة Group 0؛ أنا بانتظار قرار المالك D-01 وD-07؛ لا يوجد تنفيذ الآن.`
 
 Manus must not turn ChatGPT's recommendation into code, a tracker closure, a merge, or a ZAI execution order without the owner's explicit decision when required.
 
