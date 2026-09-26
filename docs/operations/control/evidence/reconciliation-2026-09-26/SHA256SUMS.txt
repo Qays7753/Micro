@@ -1,0 +1,11 @@
+b79658ecbe8b152b70093f9dc3217d1db5dab1065c16afe6f2b1cdbe7e356c29  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/AUDIT-CORRIGENDUM.md
+2e5fe2437d41f27c4f3189e114473a74427205d1ff68f507d8b2b9112d84233f  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/COMPONENT-BUTTON-INVENTORY.tsv
+7de56ca08dc87cc5899e92ae8a6ce3c3efd30dc1e468e1f6896fd25e9e5321d9  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/COMPREHENSIVE-FINANCIAL-LOGIC-UIUX-AUDIT.md
+b88146dd362b72c0d7182977bea2ee19abf83e5646f5b35e80448d503def735c  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/EVIDENCE-MANIFEST.tsv
+dffde6c91a5d5c177c98b8a094dbf73b2d0d28c64d5e5669e81ff354e1085f71  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/FINANCIAL-TRACE-MATRIX.tsv
+2d9cc6a7727438e861da03e8989c207a89181dda2bf61f1ec27cab53ecebd0e4  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/FINDINGS.tsv
+b5766f575f770fa2ef6d349ea122e6255fa3d976a60e796c25b687b0b946b35a  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/INTERACTION-REPRODUCTION-MATRIX.tsv
+59ea2b9a15c8227478731fe636b9906363521f0f61d47503c91d2aef056cbbfb  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/ROUTE-FEATURE-COVERAGE.tsv
+feeed70ea130fca7181460b9abde6c19ad9c7e73aa9fbba69358ed76047f1e8c  docs/operations/control/evidence/reconciliation-2026-09-26/01-zai-comprehensive-investigation/STRUCTURE-RECONCILIATION.tsv
+ebef3a0e8427d87cfbc81fd9d812cb720d6a291f8fe707c5cf50ee10483f6206  docs/operations/control/evidence/reconciliation-2026-09-26/02-zai-financial-equations/micro-financial-equations-audit-2026-09-25.md
+8fe5572de78bef831eb5abeb88179faca9d4e7b1fe6980bab4ab45beafa2f199  docs/operations/control/evidence/reconciliation-2026-09-26/03-zai-flash-walkthrough/Micro-Flash-Holistic-Usability-Review-AR.md
