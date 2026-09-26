@@ -261,7 +261,7 @@ Manus must not turn ChatGPT's recommendation into code, a tracker closure, a mer
 
 - This protocol is documentation and coordination only.
 - It does not change runtime, financial logic, UI, tokens, storage, exports, or tracker semantics.
-- The next intended message is the foundation request in:
-  `docs/coordination/conversations/2026-09-26-foundation.md`
+- The foundation review is complete; the next intended message is the owner-decision review in:
+  `docs/coordination/conversations/2026-09-26-owner-decision-review.md`
 - The owner-mediated mode is active. The direct automated bridge is only a future option.
 - The current conversation marker is `112`.
