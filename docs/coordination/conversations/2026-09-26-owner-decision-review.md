@@ -46,8 +46,8 @@ Read the following files completely before answering:
 16. `docs/contracts/02-order-lifecycle-contract.md`
 17. `docs/contracts/04-limited-sync-contract.md`
 18. `docs/contracts/06-financial-event-prototype-contract.md`
-19. `docs/contracts/12-break-even-contract.md`
-20. `docs/contracts/17-break-even-current-contract.md`
+19. `docs/contracts/12-financial-insights-g5-prototype-contract.md`
+20. `docs/contracts/17-contribution-break-even-short-cash-g5-contract.md`
 21. `docs/implementation/02-domain-contract-coverage.md`
 22. The latest reconciliation evidence already present in Micro, including the files under `docs/operations/control/evidence/reconciliation-2026-09-26/`.
 
