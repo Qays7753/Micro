@@ -1558,3 +1558,27 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `MASTER_REMEDIATION_CHARTER_READY_FOR_ZAI`
 `D15_A_FIRST_NO_GROUP1_BEFORE_MAIN_VERIFICATION`
 `NO_RUNTIME_CODE_STARTED_BY_CHARTER_PREPARATION`
+
+## §77. برنامج الإصلاح الرئيسي — D15-A (FIN-009) مدمج ومتحقق على main — 2026-09-28
+
+أُغلقت الشريحة الأولى من الميثاق التنفيذي الرئيسي (`docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md`) **بلا أي تعديل UI** (حد البرنامج): أساس تسوية موحد — سقف تحصيل الدين المسجل ومتبقيه ومتبقي ما بعد عكس قبضة كلها من `orderValueMinor` (عقد ٢:٤٣)، وحارس `assertSettlementBasisConsistent` يمنع السجل التاريخي المتعارض قبل أي كتابة (بلا إعادة كتابة وبلا `needs_review` تلقائي؛ العكس يبقى المخرج الموثق ويعيد الحساب من الأساس الصحيح)، ومفردات المطابقة التفصيلية (`describeSettlementConflict` — الأساس/القبض/الفرق) في وحدة دومين مستقلة خارج حزمة الدخول (سقف D-034) ومختبرة غير مرئية، وتمثيل صندوقي التوصيل غير المرئي (`describeDeliveryContribution` الدومينية + `application/fulfillment/deliveryContribution.ts`)، وإزالة الحساب الموازي في «المتبقي» بمسودة مشاركة الطلب (F-002)، وتصحيح رسائل السقوف الثلاث وأوراكلاتها (F-006 غير المرئي).
+
+**التنفيذ:** Claim `WS-184` من `origin/main` `5d73fb5`؛ نُفذ على الفرع `fix/fin-009-d15a-settlement-basis-20260928` — أعيد استخدام أجزاء الدومين/التطبيق المتوافقة من PR #244 **بعد فحص فعلي وتصحيح ثلاث فجوات** (رسائل السقوف؛ اختبار غير مرئي للمطابقة التفصيلية؛ اختبار عدم تسجيل قبض عند حفظ الشروط)، واستُبعدت أجزاؤه المرئية (`AgreementEditor.tsx`/`OrderDetail.tsx`/DOM tests) كـ `DEFERRED_UI` وفق حد UI الصريح؛ الفرع القديم لم يُمس ووثق موقفه بتعليق على PR #244 نفسه. PR #245 (التدقيق التوثيقي، 62 مكتشفًا) استُخدم مصدرًا للسجلات ولم يُدمج ولم يُعدل (بوابة دمجه قرار مالك).
+
+**الاختبارات والبوابات:** ٢٥ اختبار دومين D-15 جديدًا (سيناريوهات القبول الـ١٢ كاملة + تكافؤ كل كتابة مالية مع الأساس الواحد) + ١٩ صندوقين + ٤ خدمة تعارض + F-002 مركز؛ جذري **507/507** وتطبيق **1948/1948** وtypecheck وlint 37/37 وformat وtext-density وdesign-guards (تباين 92/92) وguards (أسرار/تركيز/كيانات/دورات) كلها خضراء على رأس الفرع، والحزمة **649,948/650,000 في CI (Node 22) و649,836 محليًا — PASS بلا رفع سقف**. لا تغيير Schema/Export (38/30 كما هي) ولا ترحيل ولا إعادة تفسير تاريخ.
+
+**الدمج والتحقق:** PR #247 دُمج **Squash** عند `542095caf1fea0a9d52a784b878c34b30610af97` (الأساس `5d73fb5`) بعد Merge Manifest منشور وCI وCloudflare ناجحين على رأس الـPR؛ وتحقق على main الفعلي نفسه: CI checks = success وCloudflare Pages = success على SHA الدمج، والشجرة مطابقة للفرع المختبر (diff فارغ)، واختبارات الموجة 82 دومين + 385 تطبيق خضراء محليًا على main. انتقل `FIN-009` و`WS-184` قانونيًا إلى `VERIFIED` مع `verified_on_main_sha=542095caf1fea0a9d52a784b878c34b30610af97`.
+
+**المؤجل بقرار البرنامج:** عرض المفردات التفصيلية وملخص الحفظ وصندوقا الإدخال في الواجهة = `DEFERRED_UI` (النموذج والمفردات جاهزة ومختبرة)؛ F-003 (معاينات عرض متجاهلة للأجرة) = `DEFERRED_UI`؛ F-004 (فحص MIC لثابت التسوية) = Group 1 القادم. التفصيل الكامل: `docs/operations/control/evidence/micro-master-remediation-2026-09-27/D15A-SLICE-REPORT-2026-09-28.md`.
+
+**البوابة التالية المسموحة فقط:** Group 1 — المصالحة المالية عبر كل الطبقات (F-002..F-007 وF-026 وF-027 وF-049 وF-050 حيث السبب الجذري مالي/نظامي) بـClaim مستقل من أحدث `origin/main`، وبلا UI، ولا يبدأ ما بعده قبل دمج Group 1 والتحقق منه على main.
+
+`D15_A_MERGED_AND_VERIFIED_ON_MAIN (542095c)`
+`POST_MERGE_VERIFICATION: PASS`
+`NO_UNAUTHORIZED_CLEANUP`
+`NO_TOKEN_EXPOSURE`
+`SETTLEMENT_BASIS_UNIFIED (TESTED)`
+`HISTORICAL_CONFLICT_GUARDED_BEFORE_WRITE (TESTED)`
+`BUNDLE_D034_PASS_NO_RAISE (649948_650000_CI)`
+`DEFERRED_UI_BANNER_AND_TWO_BOX_INPUTS`
+`NEXT_GATE_GROUP_1_FINANCIAL_RECONCILIATION`
