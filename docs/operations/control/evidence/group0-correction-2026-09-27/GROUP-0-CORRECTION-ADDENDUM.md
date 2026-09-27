@@ -1,8 +1,8 @@
 # Micro — ملحق تصحيح تقرير Group 0
 
-**التاريخ:** 2026-09-27 — Asia/Amman  
-**الخط الأساس الذي تمت مراجعته:** `origin/main = 3d5503a20e173500856dbe9946b84a3e475123f6`  
-**الحالة:** `READ_ONLY_COMPLETE / REPORT_CORRECTION_REQUIRED / OWNER_REVIEW`  
+**التاريخ:** 2026-09-27 — Asia/Amman
+**الخط الأساس الذي تمت مراجعته:** `origin/main = 3d5503a20e173500856dbe9946b84a3e475123f6`
+**الحالة:** `READ_ONLY_COMPLETE / REPORT_CORRECTION_REQUIRED / OWNER_REVIEW`
 **النطاق:** تصحيح التقرير والخطة فقط؛ لا كود، لا Runtime، لا Refactor، لا Claim تنفيذ.
 
 > هذا الملحق لا يغلق Group 0 من تلقاء نفسه، ولا يدمج PR #239 أو PR #240، ولا يجيز بدء ZAI. بعد اعتماد المالك، يُضم إلى تقرير Group 0 في PR توثيقي مستقل.

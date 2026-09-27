@@ -1,9 +1,9 @@
 # Micro — Repair Card: D-15 Safety Slice
 
-**التاريخ:** 2026-09-27 — Asia/Amman  
-**المرجع الحي:** `origin/main = 3d5503a20e173500856dbe9946b84a3e475123f6`  
-**الحالة:** `DRAFT / OWNER_REVIEW / NO_EXECUTION`  
-**التصنيف:** `FIX_BEFORE_AFFECTED_PATH / OWNER_DECISION_REQUIRED`  
+**التاريخ:** 2026-09-27 — Asia/Amman
+**المرجع الحي:** `origin/main = 3d5503a20e173500856dbe9946b84a3e475123f6`
+**الحالة:** `DRAFT / OWNER_REVIEW / NO_EXECUTION`
+**التصنيف:** `FIX_BEFORE_AFFECTED_PATH / OWNER_DECISION_REQUIRED`
 **نوع التغيير المقترح:** Domain/Application safety fix، دون Schema migration ودون إعادة كتابة التاريخ.
 
 > هذه بطاقة مراجعة وليست تفويضًا للتنفيذ. لا يُفتح Claim ولا يُعدّل الكود قبل اعتماد المالك لنطاقها وحدودها.
