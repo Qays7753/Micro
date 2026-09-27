@@ -2,18 +2,18 @@
 
 ## 0. Mission
 
-You are the implementation agent for the Micro repository. Execute the approved operational, financial-integrity, terminology, consistency, guard, and maintainability remediation program described below.
+You are the implementation agent for the Micro repository. Execute the complete approved **financial and operational integrity remediation program** for Micro, across the entire repository. Do not stop after one group: continue through every in-scope financial wave until all financial findings are fixed, preserved, deferred with evidence, or explicitly out of scope.
 
-This is **not** a screen-migration task, not a UI redesign task, not a rewrite, and not a request to copy code from another design repository. Micro’s existing domain contracts, components, storage boundaries, financial invariants, and working baseline are protected. Improve Micro from the inside by removing conflicting sources of truth and fixing root causes across all affected consumers.
+This is **not** a screen-migration task, not a UI redesign task, not a rewrite, and not a request to copy code from another design repository. Micro’s existing domain contracts, components, storage boundaries, financial invariants, and working baseline are protected. Improve Micro from the inside by removing conflicting financial sources of truth and fixing root causes across domain, application services, storage, events, reports, export/import, contracts, tests, guards, and operational documentation. UI/UX work is explicitly excluded below.
 
 The owner has already approved the product and financial decisions in this prompt. Do not reopen them as routine questions. Stop only for a genuinely new financial meaning, an incompatible data-format change, an unproven historical-data compatibility issue, an unapproved structural refactor, or an unexpected scope/security problem.
 
-**Executor:** Z AI.  
-**Coordinator/reviewer:** Manus.  
-**Owner:** Product owner.  
-**Repository:** `https://github.com/Qays7753/Micro`  
-**Base branch:** `main`  
-**Known preparation baseline:** `2ebb435334dd69da0273d592ec8bffac5e70c1cf` — verify live before work.  
+**Executor:** Z AI.
+**Coordinator/reviewer:** Manus.
+**Owner:** Product owner.
+**Repository:** `https://github.com/Qays7753/Micro`
+**Base branch:** `main`
+**Known preparation baseline:** `2ebb435334dd69da0273d592ec8bffac5e70c1cf` — verify live before work.
 **Canonical execution charter in the repository:**
 
 ```text
@@ -21,6 +21,12 @@ docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTE
 ```
 
 The Arabic charter is the authoritative owner-facing scope companion to this prompt. Read it completely before implementation.
+
+### Mandatory UI exclusion
+
+This execution does **not** implement UI/UX work. Do not modify or redesign screens, JSX/TSX presentation, buttons, cards, badges, layout, spacing, colors, tokens, fonts, shell, navigation, responsive behavior, visual RTL, Dark Mode, accessibility presentation/interaction, visual copy, screenshots, or real-device UAT.
+
+Financial source code, services, reports, exports, domain contracts, storage, events, and tests remain in scope even if a UI consumes their output. Do not edit the UI consumer to make it look better. If a financial fix cannot be completed without a UI change, stop that slice as `UI_DEPENDENCY_BLOCKED`, record the exact dependency, and continue with other independent financial slices only if their contracts remain safe. UI-only findings must be classified `DEFERRED_UI` and do not block completion of this financial program.
 
 ---
 
@@ -124,7 +130,7 @@ The primary agent remains responsible for synthesis, branch ownership, implement
 
 ### Specialist 1 — Source-of-truth and contract mapper
 
-Map each affected rule to its authoritative contract/domain source, every writer and reader, projections, UI surfaces, reports, export/import, fixtures, snapshots, and tests. Identify duplicate or competing definitions and classify them as canonical, historical, duplicate, conflict requiring decision, or unaffected.
+Map each affected rule to its authoritative contract/domain source, every writer and reader, projections, reports, export/import, fixtures, snapshots, and tests. Do not inspect or modify visual UI surfaces. Identify duplicate or competing definitions and classify them as canonical, historical, duplicate, conflict requiring decision, or unaffected.
 
 ### Specialist 2 — Domain and financial-integrity reviewer
 
@@ -134,9 +140,9 @@ Review equations, settlement, debt, collection, reversal, delivery responsibilit
 
 Review Local Storage, snapshots, event identity, append-only history, export/import, fixtures, versions, calculationVersion, stale writes, idempotency, and read compatibility. Prove that a new rule does not silently reinterpret old data. Identify whether a safe forward fix, compatibility reader, explicit reinitialization, or owner decision is required.
 
-### Specialist 4 — Application, semantic-surface, and user-control reviewer
+### Specialist 4 — Application, reporting, and financial-consumer reviewer
 
-Trace application services, pages, messages, badges, forms, and actions that display or act on the affected meaning. Ensure the user can understand, cancel, correct through an approved path, and is not forced into a false financial state. Do not perform broad visual redesign; review UI only for semantic truth, affected interaction, RTL, and safe control behavior.
+Trace domain/application services, financial read models, reports, exports, imports, events, and non-visual consumers of each affected meaning. Ensure the data can be corrected through an approved use case and is not forced into a false financial state. Do not inspect or modify pages, messages, badges, forms, visual copy, or UI interactions. Trace only non-visual financial consumers and providers.
 
 ### Specialist 5 — Tests, guards, security, and operability reviewer
 
@@ -181,7 +187,7 @@ Separate accrued cost from cash movement. Do not invent cash when a courier has 
 - Micro’s current Jordanian dinar internal unit is the **qirsh/penny at two decimal places (`1/100`)**.
 - Reject a third decimal place rather than silently rounding it.
 - Do not mass-change stored values.
-- Use `Asia/Amman` for financial business-day and period semantics. Device time may be displayed as secondary information only.
+- Use `Asia/Amman` for financial business-day and period semantics. Do not change visual time presentation in this program.
 
 ### Product scope
 
@@ -191,7 +197,7 @@ Micro currently provides internal operational-management indicators. Do not clai
 
 ## 5. Execution waves
 
-Work sequentially. One active slice at a time. Each slice requires its own Claim/Workstream reservation, repair card, branch, PR boundary, focused tests, and evidence. A later wave may not begin until the prior wave is merged and verified on `main`.
+Work sequentially and continue automatically until the complete in-scope financial program is finished. Each slice requires its own Claim/Workstream reservation, repair card, branch, PR boundary, focused tests, and evidence. After a slice passes its gates, push/update its PR, merge it when the exact manifest and CI gates pass, verify the actual merge SHA on `main`, update Tracker, and immediately start the next slice. Do not pause at `PR_READY`, do not wait for an owner message between approved waves, and do not stop before the final in-scope financial wave. Stop only under the explicit stop conditions.
 
 ### Wave D15-A — Settlement-basis safety (`FIN-009`)
 
@@ -209,7 +215,7 @@ Required behavior:
   - after reversal, outstanding is recalculated from the collectible order basis;
   - idempotent retries do not double-apply.
 
-The two delivery contribution inputs and the save summary are part of the approved D15 behavior. The save summary must never claim money was collected just because terms were saved.
+The two delivery contribution inputs and the internal settlement projection are part of the approved D15 behavior. The projection must never record or imply that money was collected just because terms were saved.
 
 Historical-conflict behavior:
 
@@ -240,17 +246,17 @@ Acceptance scenarios must include:
 
 Do not change period-result policy, schema, export/import, or broad visual design in this wave.
 
-### Wave 1 — Cross-surface reconciliation
+### Wave 1 — Cross-surface financial reconciliation
 
-Cover F-002, F-003, F-004, F-005, F-006, F-007, F-026, F-027, F-049, and F-050.
+Cover F-002, F-003, F-004, F-005, F-006, F-007, F-026, F-027, F-049, and F-050 where the root cause is financial/system logic.
 
-- remove local equations from share messages, OrderDetail previews, deposit/price/delivery previews, reports, and related services;
-- use one domain-owned calculation/summary or a derived read model with one owner;
+- remove local equations from share/export/report/statement/party/finance services and other non-visual consumers;
+- use one domain-owned calculation or derived financial read model with one owner;
 - add a read-only consistency checker aware of order state, events, deposits, collection, reversals, cancellation, price corrections, and delivery knowledge;
 - make import validation layered: schema, range, cross-field relations, then round-trip export/import; reject before atomic write;
 - prove event history and derived state agree;
-- separate order lifecycle completion from payment completion;
-- keep React/UI from owning financial rules.
+- separate order lifecycle completion from payment completion in domain/application/contracts;
+- do not modify React or visual consumers.
 
 ### Wave 2 — Financial policy and calculation meaning
 
@@ -260,27 +266,21 @@ Cover F-008 through F-019 and F-061, plus their linked equation/conflict identif
 - implement one honest break-even model with explicit fixed costs, variable costs, selling price, product mix, period, and assumptions;
 - do not call a direct margin a contribution margin unless the required variable costs are actually included;
 - make direct-sale collection explicit for new operations; unknown is not fully collected;
-- do not show a final complete period result when material cost is unknown; use a clearly marked partial/unknown state;
-- generate result explanations from the actual calculation decomposition;
+- do not produce or export a final complete period result when material cost is unknown; use a clearly marked partial/unknown state;
+- generate report/export explanations from the actual calculation decomposition;
 - distinguish material consumption, inventory waste, order loss, and non-cash write-off;
 - keep implementation-consistency claims separate from accounting-policy claims.
 
-### Wave 3 — Semantic truth, statuses, and user-facing wording without redesign
+### Wave 3 — Financial contracts, terminology, and internal statuses
 
-Cover F-020 through F-032.
+Cover F-020 through F-032 only where the finding affects domain meaning, application contracts, event names, persisted data, reports, exports, or financial calculations.
 
-- distinguish recorded sales from collected cash;
-- separate order completion from payment state;
-- establish one checked terminology/catalog source for financial and operational copy;
-- use `next step`, not the conflicting legacy wording;
-- distinguish `reviewReasons`, `blockedOperations`, `decisionPending`, and missing knowledge; do not create six storage states without a verified need;
-- label non-cash depreciation proposals honestly;
-- separate overdue debt from operational attention/reminders;
-- make model requirements match validation and copy;
+- distinguish recorded sales from collected cash and order completion from payment state in domain/application;
+- establish one internal terminology source for financial data, events, reports, and API/contracts;
+- distinguish review reasons, blocked operations, pending decisions, and missing knowledge in data models without creating unnecessary schema states;
+- make model requirements match validation, exports, and contract tests;
 - distinguish local draft persistence from financial-event recording;
-- keep the user in control and provide a safe cancel/correction path where applicable.
-
-Do not introduce broad card, shell, color, token, or screen redesign here.
+- classify visual copy, badges, labels, and screen-only wording as `DEFERRED_UI` and do not modify them.
 
 ### Wave 4 — Documentation, authority, persistence, history, and guards
 
@@ -289,8 +289,8 @@ Cover F-033 through F-042, F-044, F-046, F-047, and F-051 through F-060.
 - make version and architecture counts verifiable and date/SHA scoped;
 - correct current-state duplication and stale historical assertions;
 - maintain an authoritative document index and changelog with evidence;
-- keep visual Standard references explicit without creating a competing token source;
-- extend the playbook across domain, application, storage, export/import, tests, UI, and docs;
+- keep financial and operational documentation references explicit without creating a competing source of truth;
+- extend the playbook across domain, application, storage, export/import, reports, tests, guards, and docs; no UI.
 - preserve two-decimal money scale and Amman financial time semantics;
 - add `calculationVersion` to new financial snapshots only, with known reading behavior for old snapshots;
 - prevent event identity collisions and unsafe raw persistence writes;
@@ -298,27 +298,27 @@ Cover F-033 through F-042, F-044, F-046, F-047, and F-051 through F-060.
 - add small independent contract tests without copying production equations as the test oracle;
 - protect historical data from silent reinterpretation.
 
-### Wave 5 — Maintainability and future evolution, under the structural gate
+### Wave 5 — Financial guards and maintainability under the structural gate
 
-Cover F-043, F-045, F-048, and structural ST items only where the approved scan classifies a narrow fix as safe now.
+Cover F-043, F-045, F-048, and structural ST items only when they protect financial correctness, history, export/import, or testability.
 
-Allowed now:
+Allowed:
 
-- directional boundary guards;
-- removal of dead or duplicate CSS only after consumer inventory and computed-style protection;
-- route registry synchronization or a strict synchronization guard;
-- documenting responsibility and discoverability of oversized files;
-- removing a duplicate financial calculation when it is part of an approved cross-surface root-cause fix.
+- guards preventing presentation/application from recalculating financial meaning outside domain;
+- guards preventing duplicate equations and competing financial sources;
+- export/import/version/history/idempotency guards;
+- documentation of responsibility and discoverability of financial files;
+- removal of duplicate financial calculation only when it is part of an approved root-cause fix.
 
-Forbidden without a new structural gate and owner decision:
+Forbidden without a new Structure/Architecture gate:
 
 - bulk file moves;
 - creating a `features/` tree;
 - splitting `policies.ts`, Finance, OrderDetail, Catalog, stores, or transfer services;
-- mass CSS reorganization;
+- CSS, route, visual, or component organization changes;
 - changing module ownership solely to make the tree look cleaner.
 
-The post-Group-6 Structure/Architecture/Code Organization Scan is a mandatory gate for any structural refactor. No structural code edit may be hidden inside a financial, UI, or guard PR.
+The post-Group-6 Structure/Architecture/Code Organization Scan remains mandatory for any structural refactor. UI-only and visual findings are `DEFERRED_UI` and do not block this wave.
 
 ### Mapping of all report identifiers
 
@@ -326,9 +326,9 @@ Every F-001 through F-062 must appear in the final coverage matrix with exactly 
 
 - F-001..F-007: D15-A and Wave 1 according to the actual root cause;
 - F-008..F-019: Wave 2;
-- F-020..F-032: Wave 3;
-- F-033..F-042: Wave 4;
-- F-043..F-050: Wave 1/4/5 according to the actual root cause;
+- F-020..F-032: Wave 3 only when domain/application/data/report semantics are affected; UI-only items are `DEFERRED_UI`;
+- F-033..F-042: Wave 4 only when financial documentation/storage/history/export is affected; design/UI items are `DEFERRED_UI`;
+- F-043..F-050: Wave 1/4/5 according to the actual financial root cause; UI-only items are `DEFERRED_UI`;
 - F-051..F-060: Wave 4;
 - F-061: Wave 2;
 - F-062: deferred product capability, not a current defect;
@@ -344,7 +344,7 @@ For every slice:
 
 - domain owns financial meaning; React does not calculate financial rules;
 - application orchestrates use cases; storage adapters do not own policy;
-- presentation formats values but does not decide what they mean;
+- reports and projections format values but do not decide what they mean;
 - one canonical function/source per shared calculation;
 - explicit typed names for unknown/zero/partial/complete states;
 - no hidden side effects in formatting or selectors;
@@ -371,7 +371,7 @@ Before each PR, create/update one repair card for the root cause. It must state:
 5. policy decision versus implementation consistency;
 6. in-scope files and explicit non-goals;
 7. null/zero/unknown/history/snapshot/export behavior;
-8. success, failure, edge, retry, cancellation, and correction scenarios;
+8. success, failure, edge, retry, cancellation, correction, history, and export scenarios; no visual/device scenarios;
 9. focused tests and why a full suite is not repeated at every action;
 10. exact rollback boundary and post-write compatibility boundary;
 11. exact files/commits changed and what intentionally did not change.
@@ -394,7 +394,7 @@ node scripts/check-secrets.mjs
 node scripts/check-test-focus.mjs
 ```
 
-For financial/domain changes, run the focused domain/application/contract tests and the affected consumer tests. For storage/export/import changes, run released-pair/round-trip/compatibility tests. For UI-semantic changes, run focused DOM/runtime checks and perform the required real-device/RTL check when the PR changes touch or visible semantics. Run the full `pnpm check` at the appropriate integration/PR boundary or when required by the repository gate, not as an unbounded loop.
+For financial/domain changes, run the focused domain/application/contract tests and the affected consumer tests. For storage/export/import changes, run released-pair/round-trip/compatibility tests. Do not run visual/UI/device work in this program. If a financial PR exposes a UI dependency, classify it `UI_DEPENDENCY_BLOCKED` and do not implement the UI portion. Run the full `pnpm check` at the appropriate integration/PR boundary or when required by the repository gate, not as an unbounded loop.
 
 Record exact command, exit code, and result. A green CI check does not prove that an unreviewed semantic change is correct.
 
@@ -435,7 +435,7 @@ After every slice, publish/update a report in the approved Micro evidence locati
 - schema/export/history/financial/semantic impact;
 - limitations and unresolved questions;
 - rollback/recovery boundary;
-- next gate only — never start the next wave automatically.
+- next gate and the immediately following approved wave; continue automatically after each verified merge until all in-scope financial waves are complete.
 
 Every material statement must be clearly one of: `VERIFIED`, `INFERRED`, `UNVERIFIED`, `NOT_EXECUTED`, `DEFERRED`, or `BLOCKER`.
 
@@ -471,4 +471,4 @@ NO_REPOSITORY_WRITES_OUTSIDE_APPROVED_PR_FLOW
 NO_TOKEN_EXPOSURE
 ```
 
-Do not call the full program complete if a finding is merely documented, a PR is merely open, CI ran only on a PR head, or the change was not verified on the actual target `main`.
+Do not call the financial program complete if an in-scope financial finding is merely documented, a PR is merely open, CI ran only on a PR head, or the change was not verified on the actual target `main`. UI-only findings must be explicitly marked `DEFERRED_UI`; they do not block financial completion.
