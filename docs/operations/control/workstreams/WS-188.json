@@ -1,7 +1,7 @@
 {
   "id": "WS-188",
   "title": "REM-002 — W2-A القبض الصريح للبيع المباشر (F-013)",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "REM-002"
   ],
@@ -18,9 +18,9 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-28 (Wave 2, slice A)",
-  "pr": null,
+  "pr": 253,
   "started_at": "2026-09-28T23:30:00+03:00",
-  "updated_at": "2026-09-28T23:40:00+03:00",
+  "updated_at": "2026-09-28T23:50:00+03:00",
   "next_action": "تنفيذ W2-A: collectedMinor مطلوب مجاليًا في الإنشاء والتعديل؛ حل الحد مرة واحدة في DirectSaleService.record موثقًا لعقد البيع النقدي السريع؛ قلب دبابيس الافتراض؛ فيكسجر ذهاب-وعودة لسجل ما قبل X-06.",
   "status_history": [
     {
@@ -34,6 +34,12 @@
       "changed_at": "2026-09-28",
       "actor": "claim:ws-188",
       "reason": "تنفيذ W2-A: مدخلات المجال صارت توجب المقبوض، وحل الحد موثق مرة واحدة في DirectSaleService.record، ودبابيس الافتراض قُلبت، وفيكسجر ما قبل X-06 أُضيف."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-28",
+      "actor": "pr:253",
+      "reason": "اكتمل تنفيذ W2-A وافتُتح PR #253 بعد البوابات الخضراء على رأس الفرع (جذري 510/510، تطبيق 1960/1960، حزمة 649,857/650,000 PASS)."
     }
   ],
   "migration_baseline": false,
