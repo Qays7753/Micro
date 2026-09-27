@@ -4,6 +4,15 @@
  * acceptance decisions.
  */
 import { isValidAllocationPolicy, type AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+/* Group 1 (F-007 — الميثاق الرئيسي): القيم القانونية ومدقق العلاقات لشروط
+ * التوصيل والعربون من الدومين — لا قوائم منسوخة تنحرف؛ ملف معدّل يزرع أجرة
+ * غير معقولة أو مسؤولية بلا معنى يُرفض قبل الكتابة الذرية. */
+import {
+  DEPOSIT_SETTLEMENT_DECISIONS,
+  RETAINED_DEPOSIT_MEANINGS,
+  isValidOrderDeliveryTerms,
+  isValidOrderEventMoney,
+} from "@micro-domain/craft-order/index.js";
 import {
   isValidOwnerEntitlementOpeningBalance,
   isValidOwnerEntitlementPolicy,
@@ -216,8 +225,20 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       isOrderStatus(order.status) &&
       isSettlement(order.settlementStatus) &&
       isResultStatus(order.resultStatus) &&
+      /* F-007: شروط التوصيل وتسوية العربون ومعنى الاحتفاظ — شكلًا وعلاقات
+       * من مصدر الدومين الواحد؛ الأحداث المحركة للمال بلا مبلغ موجب
+       * تُرفض (سجل مالي أعمى). */
+      isValidOrderDeliveryTerms(order.deliveryTerms) &&
+      (order.depositSettlement === null ||
+        (typeof order.depositSettlement === "string" &&
+          DEPOSIT_SETTLEMENT_DECISIONS.includes(order.depositSettlement))) &&
+      (order.retainedMeaning === undefined ||
+        order.retainedMeaning === null ||
+        (typeof order.retainedMeaning === "string" &&
+          RETAINED_DEPOSIT_MEANINGS.includes(order.retainedMeaning))) &&
       Array.isArray(order.events) &&
       order.events.every(validEvent) &&
+      order.events.every(isValidOrderEventMoney) &&
       Array.isArray(order.costSnapshots) &&
       order.costSnapshots.every(validDomainCostSnapshot) &&
       validDomainCostSnapshot(order.costSnapshot);
