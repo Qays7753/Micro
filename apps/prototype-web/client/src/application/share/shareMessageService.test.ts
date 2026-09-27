@@ -239,6 +239,27 @@ describe("EXE-015 — عقد المشاركة الموحد (إشعار القب�
     expect(customerShareDraft(stored).kind).toBe("order");
   });
 
+  it("D-15/F-002: متبقي رسالة الطلب من المصدر الكنسي — الأجرة والتحصيلات لا يتجاهلهما حساب موازٍ", () => {
+    /* سعر 150 + أجرة عميل عبر المشروع 5 = قيمة قابلة للتحصيل 155؛ عربون 30
+     * وقبضة إضافية 20 (مجموع مقبوض 50) → المتبقي الحقيقي 105، لا 120 من
+     * معادلة السعر−العربون المتجاهلة للأجرة والتحصيلات (بطاقة D-15 §1). */
+    const stored = buildStored();
+    stored.order.receivableMinor = 10500;
+    stored.order.deliveryTerms = {
+      responsibility: "customer_pays_project",
+      feeIncludedInPrice: false,
+      costIncludedInProductCost: false,
+      feeChargedMinor: 500,
+      costPaidMinor: null,
+      projectShareMinor: null,
+      customerShareMinor: null,
+    };
+    const draft = orderShareDraft(stored);
+    expect(draft.body).toContain("العربون المدفوع: 30.00 د.أ");
+    expect(draft.body).toContain("المتبقي: 105.00 د.أ");
+    expect(draft.body).not.toContain("المتبقي: 120.00 د.أ");
+  });
+
   it("إشعار التسليم المسدد يصرّح بحسم كامل المبلغ — والذممي بالمتبقي", () => {
     const settled = buildStored();
     settled.order.status = "delivered";

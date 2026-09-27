@@ -94,9 +94,10 @@ export function orderShareDraft(stored: StoredCraftOrder): ShareDraft {
   lines.push(`السعر المتفق عليه: ${formatMoneyWithUnit(order.agreedPriceMinor)}.`);
   if (order.depositCollectedMinor > 0) {
     lines.push(`العربون المدفوع: ${formatMoneyWithUnit(order.depositCollectedMinor)}.`);
-    lines.push(
-      `المتبقي: ${formatMoneyWithUnit(Math.max(0, order.agreedPriceMinor - order.depositCollectedMinor))}.`,
-    );
+    /* D-15 (FIN-009 / F-002): المتبقي من المصدر الكنسي نفسه (المسجل على الطلب
+     * بأساس قيمة الطلب القابلة للتحصيل) لا حساب موازٍ من السعر والعربون وحدهما
+     * يتجاهل الأجرة القابلة للفوترة والتحصيلات غير العربون. */
+    lines.push(`المتبقي: ${formatMoneyWithUnit(Math.max(0, order.receivableMinor))}.`);
   }
   if (stored.deliveryDate)
     lines.push(`موعد التسليم المتفق: ${formatLocalDate(stored.deliveryDate) ?? stored.deliveryDate}.`);

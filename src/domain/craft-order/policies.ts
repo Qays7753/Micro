@@ -352,6 +352,27 @@ function withSettlement(order: CraftOrder): CraftOrder {
   return { ...order, receivableMinor, settlementStatus };
 }
 
+/* D-15 (FIN-009): رسالة حارس التعارض المثبتة — تُصدَّر لتقارنها أسطح
+ * العرض ببصمة رسالة الحارس فتُظهر رسالة المطابقة التفصيلية من وحدة المفردات
+ * بدلها (describeSettlementConflict في deliveryContribution.ts — الأساس/القبض/الفرق
+ * كاملًا)؛ تُبقى قصيرة هنا لأن سياسات التسوية في حزمة الدخول الرئيسية تحت
+ * سقف D-034، والمفردات التفصيلية تُحزم مع مستهلكيها في chunk الترتيب. */
+export const SETTLEMENT_CONFLICT_MESSAGE = "تعارض تاريخي — التحصيل موقوف حتى تصحيح موثق.";
+
+/* D-15 (FIN-009): حارس اتساق أساس التحصيل قبل أي كتابة على مساري الدين
+ * وتحصيله. السجل الذي لا يتطابق متبقيه المسجل مع أساس قيمة الطلب القابلة
+ * للتحصيل (كُتب قديمًا بالسعر وحده — F-001) يُمنع من المسار العادي قبل
+ * الكتابة، بلا إعادة كتابة وبلا `needs_review` تلقائي، والأحداث الأصلية
+ * محفوظة؛ المخرج الموثق: عكس قبضة قائمة (يعيد الحساب من الأساس الصحيح)
+ * أو Use Case تصحيح مستقل بقرار المالك — ليس داخل هذه الشريحة. */
+function assertSettlementBasisConsistent(order: CraftOrder): void {
+  /* بلا Math.max عمدًا: السجل الفاسد الذي تجاوز قبضه قيمة الطلب يظهر
+   * متبقيًا سالبًا فلا يطابق المخزن أبدًا — الحارس أشد لا أخف. */
+  const derivedReceivableMinor = orderValueMinor(order) - order.collectedMinor;
+  if (order.receivableMinor === derivedReceivableMinor) return;
+  throw new Error(SETTLEMENT_CONFLICT_MESSAGE);
+}
+
 function resultStatusForKnowledge(knowledgeState: KnowledgeState): ResultStatus {
   if (knowledgeState === "known") return "final";
   if (knowledgeState === "incomplete" || knowledgeState === "partial") {
@@ -682,7 +703,7 @@ export function collectDeposit(
   }
   assertPositiveInteger(amountMinor, "العربون");
   if (amountMinor + order.collectedMinor > orderValueMinor(order)) {
-    throw new Error("العربون لا يمكن أن يتجاوز السعر المتفق عليه.");
+    throw new Error("العربون لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل.");
   }
 
   const next = withSettlement({
@@ -715,7 +736,7 @@ export function collectRemaining(
   }
   assertPositiveInteger(amountMinor, "مبلغ التحصيل");
   if (amountMinor + order.collectedMinor > orderValueMinor(order)) {
-    throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
+    throw new Error("التحصيل لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل.");
   }
 
   const next = withSettlement({
@@ -756,6 +777,10 @@ export function registerDebt(order: CraftOrder, idempotencyKey: string, createdA
   if (order.receivableMinor <= 0) {
     throw new Error("لا يمكن تسجيل دين بلا مبلغ متبقٍ.");
   }
+  /* D-15: الدين يُسجّل على المتبقي الحقيقي من أساس قيمة الطلب القابلة
+   * للتحصيل — سجل قديم متبقيه المسجل لا يطابق الأساس لا يُسجّل دينًا بمبلغ
+   * غير مطابق (الحارس بعد فحص الحتمية أعلاه فلا تُحجب إعادة المحاولة الصادقة). */
+  assertSettlementBasisConsistent(order);
 
   const next: CraftOrder = {
     ...order,
@@ -792,11 +817,16 @@ export function collectRegisteredDebt(
    * المحاولات مرة أخرى بعد عكس التسليم الموثق أو قرار المراجعة. */
   assertNotLockedDeliveredReview(order);
   assertPositiveInteger(amountMinor, "مبلغ التحصيل");
-  if (amountMinor + order.collectedMinor > order.agreedPriceMinor)
-    throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
+  /* D-15: يُحرس اتساق الأساس قبل سقف التحصيل — إعادة المحاولة الصادقة
+   * بمفتاحها مرّت قبل هذا الحارس (eventExists أعلاه) فلا تُحجب. */
+  assertSettlementBasisConsistent(order);
+  if (amountMinor + order.collectedMinor > orderValueMinor(order))
+    throw new Error("التحصيل لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل.");
 
   const collectedMinor = order.collectedMinor + amountMinor;
-  const receivableMinor = Math.max(order.agreedPriceMinor - collectedMinor, 0);
+  /* D-15: المتبقي يُعاد اشتقاقه من أساس قيمة الطلب القابلة للتحصيل نفسه
+   * (السعر + أجرة التوصيل المحصلة عبر المشروع) لا من السعر وحده. */
+  const receivableMinor = Math.max(orderValueMinor(order) - collectedMinor, 0);
   const next: CraftOrder = {
     ...order,
     collectedMinor,
@@ -939,7 +969,11 @@ export function reverseOrderCollection(order: CraftOrder, input: ReverseCollecti
     throw new Error("مبلغ التراجع يتجاوز الكاش المقبوض على الطلب.");
 
   const collectedMinor = order.collectedMinor - input.amountMinor;
-  const receivableMinor = Math.max(order.agreedPriceMinor - collectedMinor, 0);
+  /* D-15: المتبقي بعد العكس يُعاد حسابه من أساس قيمة الطلب القابلة للتحصيل
+   * نفسه لا من السعر وحده؛ سقف مبلغ العكس نفسه يبقى الجزء غير المعكوس من
+   * القبضة الأصلية (الحارس أعلاه) — لا يتغير. العكس هو المخرج الموثق
+   * للسجل المتعارض: يعيد الحساب من الأساس الصحيح فلا يُحرس هنا. */
+  const receivableMinor = Math.max(orderValueMinor(order) - collectedMinor, 0);
   const next: CraftOrder = {
     ...order,
     collectedMinor,

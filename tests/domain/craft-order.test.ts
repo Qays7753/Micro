@@ -349,7 +349,7 @@ describe("craft-order domain core", () => {
     );
   });
 
-  it("completes a registered debt to paid and never exceeds the agreed price", () => {
+  it("completes a registered debt to paid and never exceeds the collectible order value", () => {
     let order = confirmAndDeliver(makeOrder());
     order = registerDebt(order, "debt-3", "2026-08-21T09:46:00Z");
     order = collectRegisteredDebt(order, 4000, "debt-collect-full", "2026-08-21T11:05:00Z");
@@ -361,7 +361,7 @@ describe("craft-order domain core", () => {
     expect(order.nextAction).toBe("راجع النتيجة والخطوة التالية");
   });
 
-  it("rejects debt collection without a registered debt or beyond the agreed price, and retries idempotently", () => {
+  it("rejects debt collection without a registered debt or beyond the collectible order value, and retries idempotently", () => {
     const delivered = confirmAndDeliver(makeOrder());
     expect(() => collectRegisteredDebt(delivered, 100, "no-debt", "2026-08-21T11:10:00Z")).toThrow(
       "يتطلب دينًا مسجلًا",
@@ -369,7 +369,7 @@ describe("craft-order domain core", () => {
 
     let order = registerDebt(delivered, "debt-4", "2026-08-21T09:47:00Z");
     expect(() => collectRegisteredDebt(order, 4001, "over-collect", "2026-08-21T11:11:00Z")).toThrow(
-      "لا يمكن أن يتجاوز السعر المتفق عليه",
+      "لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل",
     );
     expect(() => collectRegisteredDebt(order, 0, "zero-collect", "2026-08-21T11:12:00Z")).toThrow();
 
