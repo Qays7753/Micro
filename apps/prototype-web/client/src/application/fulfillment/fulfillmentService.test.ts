@@ -385,7 +385,7 @@ describe("FulfillmentService mid-journey deposit (عقد الإغلاق العم
     });
     expect(beyond.ok).toBe(false);
     if (beyond.ok) return;
-    expect(beyond.message).toContain("العربون لا يمكن أن يتجاوز السعر المتفق عليه");
+    expect(beyond.message).toContain("العربون لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل");
   });
 
   it("deposit card carries applied/refunded/retained/wallet/profit fields (FC-05)", async () => {
@@ -761,5 +761,120 @@ describe("FulfillmentService.reverseDeposit — active deposit reversal (EXE-010
     expect(cancelledAttempt.ok).toBe(false);
     if (cancelledAttempt.ok) return;
     expect(cancelledAttempt.message).toContain("لوحة تسوية الملغى");
+  });
+});
+
+describe("FulfillmentService — D-15 settlement basis conflict (FIN-009)", () => {
+  async function feeOrder(
+    deliveryTerms?: Parameters<AgreementService["createFromDraft"]>[1]["deliveryTerms"],
+  ) {
+    const store = new MemoryLocalStore();
+    const drafts = new DraftService(store, () => "2026-09-27T00:00:00.000Z");
+    const created = await drafts.create("customer_order");
+    if (!created.ok) throw new Error(created.message);
+    const saved = await drafts.save({
+      ...created.draft,
+      customerName: "سارة",
+      itemName: "رف خشبي",
+      specifications: "مقاس كبير",
+      quantity: 1,
+    });
+    if (!saved.ok) throw new Error(saved.message);
+    const costs = new CostService(store, () => "2026-09-27T00:01:00.000Z");
+    const withCost = await costs.saveSnapshot(saved.draft, costInput);
+    if (!withCost.ok) throw new Error(withCost.message);
+    const agreements = new AgreementService(store, costs, () => "2026-09-27T01:00:00.000Z");
+    const agreed = await agreements.createFromDraft(withCost.draft, {
+      agreedPriceMinor: 5000,
+      deliveryDate: "2026-09-30",
+      depositMinor: 0,
+      agreementSource: null,
+      deliveryTerms:
+        deliveryTerms ??
+        ({
+          responsibility: "customer_pays_project",
+          feeIncludedInPrice: false,
+          costIncludedInProductCost: false,
+          feeChargedMinor: 500,
+          costPaidMinor: null,
+          projectShareMinor: null,
+          customerShareMinor: null,
+        } as NonNullable<Parameters<AgreementService["createFromDraft"]>[1]["deliveryTerms"]>),
+    });
+    if (!agreed.ok) throw new Error(agreed.message);
+    await agreements.startExecution(agreed.stored.id);
+    return { store, orderId: agreed.stored.id };
+  }
+
+  async function corruptStored(
+    store: MemoryLocalStore,
+    orderId: string,
+    patch: { collectedMinor: number; receivableMinor: number },
+  ) {
+    const stored = await store.getOrder(orderId);
+    if (!stored.ok || !stored.value) throw new Error("order should exist");
+    await store.saveOrder({
+      ...stored.value,
+      order: { ...stored.value.order, ...patch },
+    });
+  }
+
+  it("blocks debt collection on a stale record with the detailed reconciliation message and no write", async () => {
+    const { store, orderId } = await feeOrder();
+    const service = new FulfillmentService(store, () => "2026-09-27T02:00:00.000Z");
+    await service.markReady(orderId);
+    await service.deliver(orderId);
+    await service.registerRemainingDebt(orderId);
+    /* محاكاة كتابة قديمة بالأساس الخاطئ: قبض 30 من 55 أعطى متبقيًا 20 لا 25. */
+    await corruptStored(store, orderId, { collectedMinor: 3000, receivableMinor: 2000 });
+    const blocked = await service.collectDebt(orderId, 100, "d15-svc-conflict");
+    expect(blocked.ok).toBe(false);
+    if (blocked.ok) return;
+    /* الخدمة تنقل رسالة الحارس المثبتة؛ رسالة المطابقة التفصيلية
+     * (الأساس/القبض/الفرق) تنتجها describeSettlementConflict في الدومين
+     * وتُختبر في craft-order-d15-settlement.test.ts — استبدالها في أسطح
+     * العرض مؤجل كـ DEFERRED_UI (حد UI لبرنامج الإصلاح الرئيسي). */
+    expect(blocked.message).toBe("تعارض تاريخي — التحصيل موقوف حتى تصحيح موثق.");
+    /* لا كتابة ولا تحويل تلقائي إلى مراجعة. */
+    const after = await store.getOrder(orderId);
+    if (!after.ok || !after.value) throw new Error("order should exist");
+    expect(after.value.order.collectedMinor).toBe(3000);
+    expect(after.value.order.receivableMinor).toBe(2000);
+    expect(after.value.order.settlementStatus).toBe("debt");
+    expect(
+      after.value.order.events.some(
+        event => event.type === "status_changed" && event.toStatus === "needs_review",
+      ),
+    ).toBe(false);
+  });
+
+  it("blocks debt registration on a delivered stale record with the same detailed message", async () => {
+    const { store, orderId } = await feeOrder();
+    const service = new FulfillmentService(store, () => "2026-09-27T02:00:00.000Z");
+    await service.markReady(orderId);
+    await service.deliver(orderId);
+    await corruptStored(store, orderId, { collectedMinor: 3000, receivableMinor: 2000 });
+    const blocked = await service.registerRemainingDebt(orderId);
+    expect(blocked.ok).toBe(false);
+    if (blocked.ok) return;
+    expect(blocked.message).toBe("تعارض تاريخي — التحصيل موقوف حتى تصحيح موثق.");
+    const after = await store.getOrder(orderId);
+    if (!after.ok || !after.value) throw new Error("order should exist");
+    expect(after.value.order.status).toBe("delivered");
+    expect(after.value.order.events.some(event => event.type === "debt_registered")).toBe(false);
+  });
+
+  it("a consistent fee-order debt collects the full collectible value through the service", async () => {
+    const { store, orderId } = await feeOrder();
+    const service = new FulfillmentService(store, () => "2026-09-27T02:00:00.000Z");
+    await service.markReady(orderId);
+    await service.deliver(orderId);
+    await service.registerRemainingDebt(orderId);
+    /* الدين 55 (سعر 50 + مساهمة عميل 5) يُحصَّل كاملًا عبر الخدمة. */
+    const collected = await service.collectDebt(orderId, 5500, "d15-svc-full");
+    expect(collected).toMatchObject({
+      ok: true,
+      stored: { order: { collectedMinor: 5500, receivableMinor: 0, settlementStatus: "paid" } },
+    });
   });
 });

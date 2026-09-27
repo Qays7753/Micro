@@ -1,0 +1,54 @@
+{
+  "id": "WS-184",
+  "title": "FIN-009 — D-15-A شريحة سلامة أساس الدين والتحصيل مع مساهمتي التوصيل (صندوقا المشروع والعميل)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "FIN-009"
+  ],
+  "branch": "fix/fin-009-d15a-settlement-basis-20260928",
+  "base_sha": "5d73fb5de086ae12b45735b36b4aa4758ad96c7f",
+  "areas": [
+    "finance",
+    "craft-order",
+    "delivery",
+    "settlement",
+    "reports"
+  ],
+  "contracts": [
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/06-financial-event-prototype-contract.md",
+    "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-28 (D15-A first)",
+  "pr": null,
+  "started_at": "2026-09-28T00:00:00+03:00",
+  "updated_at": "2026-09-28T00:00:00+03:00",
+  "next_action": "تنفيذ إصلاح الأساس في الدومين والتطبيق بلا UI (برنامج الإصلاح الرئيسي 2026-09-28: واجهة المستخدم خارج البرنامج حصرًا)، ثم PR محدود ودمج بعد البوابة والتحقق على main.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-184",
+      "reason": "فتح Claim مستقل لـ FIN-009 (D-15-A) من origin/main الحالي 5d73fb5 بموجب الميثاق الرئيسي — يعلو على Claim WS-184 الفرعي الموجود على فرع PR #244 غير المدموج (نفس البند، جرد وفحص أعمقان: أجزاء الدومين/التطبيق من PR #244 أُعيد استخدامها بعد التحقق؛ أجزاء UI استُبعدت كـ DEFERRED_UI بموجب حد UI الصريح للبرنامج)."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-184",
+      "reason": "اكتمل الجرد المسبق للمستهلكين (أساس خاطئ مثبت في collectRegisteredDebt وreverseOrderCollection؛ الأساس الصحيح قائم في withSettlement/collectDeposit/collectRemaining/reviseAgreedPrice؛ سقف العكس صحيح ومربوط بالقبضة الأصلية؛ حساب موازٍ في shareMessageService.orderShareDraft يُزال) وبدأ تنفيذ شريحة السلامة بلا UI."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "التفويض: الميثاق الرئيسي للإصلاح 2026-09-27/28 — المالك اعتمد بطاقة D-15 ونموذج الصندوقين؛ Z AI منفذ الكود؛ UI خارج هذا البرنامج حصرًا (DEFERRED_UI) ولا يمنع إغلاق البند المالي.",
+    "النطاق: Domain/Application/tests فقط لأساس التحصيل والعكس وحارس التعارض التاريخي وتمثيل صندوقي التوصيل غير المرئي؛ بلا Schema/Export/Import وبلا إعادة كتابة تاريخ وبلا أي تعديل شاشة أو DOM test.",
+    "خارج النطاق عمدًا: Group 1 قبل دمج D-15-A والتحقق منه على main؛ سياسة كلفة التوصيل في نتيجة الفترة (F-008)؛ معاينات العرض المتجاهلة للأجرة (F-003 = DEFERRED_UI)؛ أي ترحيل Schema أو تفسير سجلات قديمة؛ البنية خلف بوابة المجموعة-٦.",
+    "حد الاستعادة: PR مستقل من 5d73fb5 قبل أول كتابة إنتاجية بالسلوك المصحح؛ بعد بدء كتابة بيانات مصححة لا يكفي git revert منفردًا (بطاقة D-15 §10)."
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ]
+}
