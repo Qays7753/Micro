@@ -49,12 +49,14 @@ import {
   hasDeliveryReversal,
   orderResultBreakdown,
   orderValueMinor,
+  SETTLEMENT_CONFLICT_MESSAGE,
 } from "@micro-domain/craft-order/index.js";
 import {
   deliveryContributionFromTerms,
   describeDeliveryContribution,
   deriveDeliveryContributionTerms,
 } from "@/application/fulfillment/deliveryContribution";
+import { describeSettlementConflict } from "@micro-domain/craft-order/index.js";
 import { formatLocalDate, formatLocalDateTime, formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
@@ -491,7 +493,12 @@ export default function OrderDetail() {
     setIsActing(false);
     if (!next.ok) {
       if (next.code === "storage_stale") setStaleConflict(true);
-      setMessage(next.message);
+      /* D-15 (FIN-009): رسالة حارس التعارض الموجزة تُستبدل هنا برسالة
+       * المطابقة التفصيلية (الأساس/القبض/الفرق) — هذا السطح يملك الطلب
+       * كاملًا، والورقة تُظهر الأساس من وحدة مفردات الدومين نفسها. */
+      setMessage(
+        next.message === SETTLEMENT_CONFLICT_MESSAGE ? describeSettlementConflict(order) : next.message,
+      );
       return;
     }
     setStored(next.stored);

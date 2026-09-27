@@ -352,21 +352,24 @@ function withSettlement(order: CraftOrder): CraftOrder {
   return { ...order, receivableMinor, settlementStatus };
 }
 
+/* D-15 (FIN-009): رسالة حارس التعارض المثبتة — تُصدَّر لتقارنها أسطح
+ * العرض (صفحة الطلب) فتُظهر رسالة المطابقة التفصيلية من وحدة المفردات
+ * بدلها؛ الأساس/القبض/الفرق تُعرض هناك حيث يملك السطح الطلب كاملًا. */
+export const SETTLEMENT_CONFLICT_MESSAGE = "تعارض تاريخي — التحصيل موقوف حتى تصحيح موثق.";
+
 /* D-15 (FIN-009): حارس اتساق أساس التحصيل قبل أي كتابة على مسار الدين.
  * السجل الذي لا يتطابق متبقيه المسجل مع أساس قيمة الطلب القابلة للتحصيل
  * (كتب قديمًا بسقف agreedPriceMinor وحده) يُمنع من مسار التحصيل/تسجيل
- * الدين العادي قبل الكتابة، مع رسالة تُظهر قيمة الأساس والمقبوض والفرق —
- * لا يُعاد كتابته ولا يُحوّل تلقائيًا إلى needs_review، والأحداث الأصلية
- * محفوظة كما هي؛ المخرج الوحيد تصحيح موثق مستقل بقرار المالك. */
+ * الدين العادي قبل الكتابة برسالة موجزة صادقة؛ رسالة المطابقة التفصيلية
+ * (الأساس/القبض/الفرق) تحملها describeSettlementConflict في وحدة المفردات
+ * وتعرضها خدمات التطبيق قبل الوصول هنا — لا إعادة كتابة ولا needs_review
+ * تلقائي، والأحداث الأصلية محفوظة؛ المخرج تصحيح موثق بقرار المالك. */
 function assertSettlementBasisConsistent(order: CraftOrder): void {
   /* بلا Math.max عمدًا: السجل الفاسد الذي تجاوز قبضه قيمة الطلب يظهر
    * متبقيًا سالبًا فلا يطابق المخزن أبدًا — الحارس أشد لا أخف. */
   const derivedReceivableMinor = orderValueMinor(order) - order.collectedMinor;
   if (order.receivableMinor === derivedReceivableMinor) return;
-  const differenceMinor = derivedReceivableMinor - order.receivableMinor;
-  throw new Error(
-    `تعارض تاريخي: المتبقي ${order.receivableMinor / 100} والأساس ${orderValueMinor(order) / 100} والقبض ${order.collectedMinor / 100} والفرق ${differenceMinor / 100} د.أ — التحصيل موقوف حتى تصحيح موثق`,
-  );
+  throw new Error(SETTLEMENT_CONFLICT_MESSAGE);
 }
 
 function resultStatusForKnowledge(knowledgeState: KnowledgeState): ResultStatus {

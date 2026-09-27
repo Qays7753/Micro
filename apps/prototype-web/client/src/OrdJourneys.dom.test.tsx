@@ -468,3 +468,54 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     expect(saved.value.order.recognizedCostMinor).toBe(400);
   });
 });
+
+describe("D-15 — the order surface enriches the settlement-conflict block with the full reconciliation", () => {
+  it("shows the detailed basis/collected/difference message when debt registration hits a stale record", async () => {
+    const stored = await agreedOrder({
+      deliveryTerms: {
+        responsibility: "customer_pays_project",
+        feeIncludedInPrice: false,
+        costIncludedInProductCost: false,
+        feeChargedMinor: 500,
+        costPaidMinor: null,
+        projectShareMinor: null,
+        customerShareMinor: null,
+      },
+    });
+    await agreements.startExecution(stored.id);
+    const delivery = await fulfillment.markReady(stored.id);
+    if (!delivery.ok) throw new Error(delivery.message);
+    await fulfillment.deliver(stored.id);
+    /* محاكاة سجل قديم كتب متبقيه بالأساس الخاطئ: قبض 30 من 55 أعطى 20 لا 25. */
+    const before = await store.getOrder(stored.id);
+    if (!before.ok || !before.value) throw new Error("order should exist");
+    await store.saveOrder({
+      ...before.value,
+      order: { ...before.value.order, collectedMinor: 3000, receivableMinor: 2000 },
+    });
+    wouterMocks.params = { id: stored.id };
+    wouterMocks.location = `/orders/${stored.id}`;
+    render(<Harness page={<OrderDetail />} />);
+    await waitFor(() => expect(screen.getByText("رف خشبي")).toBeTruthy());
+    fireEvent.click(screen.getByText("تسجيله دينًا"));
+    await waitFor(() => {
+      const error = document.querySelector(".micro-field-error");
+      expect(error?.textContent ?? "").toContain("تعارض تاريخي في سجل هذا الدين");
+      expect(error?.textContent ?? "").toContain("قيمة الطلب القابلة للتحصيل 55 د.أ");
+      expect(error?.textContent ?? "").toContain("المقبوض 30 د.أ");
+      expect(error?.textContent ?? "").toContain("الفرق 5 د.أ");
+      expect(error?.textContent ?? "").toContain("بقرار المالك");
+    });
+    /* لا كتابة ولا تحويل تلقائي إلى مراجعة. */
+    const after = await store.getOrder(stored.id);
+    if (!after.ok || !after.value) throw new Error("order should exist");
+    expect(after.value.order.collectedMinor).toBe(3000);
+    expect(after.value.order.receivableMinor).toBe(2000);
+    expect(after.value.order.events.some(event => event.type === "debt_registered")).toBe(false);
+    expect(
+      after.value.order.events.some(
+        event => event.type === "status_changed" && event.toStatus === "needs_review",
+      ),
+    ).toBe(false);
+  });
+});

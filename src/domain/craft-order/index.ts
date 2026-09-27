@@ -3,6 +3,7 @@ export {
   calculateCostSnapshot,
   cancelOrder,
   DELIVERY_RESPONSIBILITY_AR,
+  SETTLEMENT_CONFLICT_MESSAGE,
   hasDeliveredEvent,
   hasDeliveryReversal,
   isRegisteredCustomerDebt,
@@ -30,6 +31,7 @@ export {
   transitionOrder,
 } from "./policies.js";
 
-/* D-15 (FIN-009): مفردات من يدفع التوصيل في وحدة مستقلة — تصدر من البرميل
- * كغيرها لكن تُحزم مع مستهلكيها فلا تدخل حزمة الدخول الرئيسية. */
-export { describeDeliveryContribution } from "./deliveryContribution.js";
+/* D-15 (FIN-009): مفردات من يدفع التوصيل ورسالة مطابقة التعارض التاريخي في
+ * وحدة مستقلة — تصدر من البرميل كغيرها لكن تُحزم مع مستهلكيها فلا تدخل
+ * حزمة الدخول الرئيسية. */
+export { describeDeliveryContribution, describeSettlementConflict } from "./deliveryContribution.js";

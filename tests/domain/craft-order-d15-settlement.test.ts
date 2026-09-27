@@ -358,11 +358,11 @@ describe("D-15 — historically conflicting records are blocked, never rewritten
    * قبض 30 من 55 أعطى متبقيًا مسجلًا 20 (من السعر 50) لا 25 الصحيح. */
   it("blocks the normal debt-collection path before writing and shows the reconciliation conflict", () => {
     const stale = staleDebtRecord();
-    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow("تعارض تاريخي");
-    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow("الأساس 55");
-    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow("الفرق 5");
-    /* لا كتابة ولا تحويل تلقائي إلى needs_review ولا مسّ بالأحداث الأصلية. */
-    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow("تعارض تاريخي");
+    /* حارس الدومين موجز — رسالة المطابقة التفصيلية (الأساس/القبض/الفرق)
+     * تعرضها خدمات التطبيق قبل الوصول هنا؛ اختبارها في طبقة التطبيق. */
+    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow(
+      "تعارض تاريخي — التحصيل موقوف حتى تصحيح موثق.",
+    );
     expect(stale.status).toBe("settled");
     expect(stale.settlementStatus).toBe("debt");
     expect(
