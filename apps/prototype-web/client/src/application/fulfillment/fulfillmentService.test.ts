@@ -376,7 +376,7 @@ describe("FulfillmentService mid-journey deposit (عقد الإغلاق العم
     expect(second.stored.order.events.filter(event => event.type === "deposit_collected").length).toBe(2);
   });
 
-  it("refuses a deposit beyond the agreed price and on delivered orders — honest guards", async () => {
+  it("refuses a deposit beyond the collectible order value and on delivered orders — honest guards", async () => {
     const { store, orderId } = await activeOrder(500);
     const service = new FulfillmentService(store, () => "2026-08-23T10:00:00.000Z");
     const beyond = await service.collectDeposit(orderId, {
@@ -385,7 +385,8 @@ describe("FulfillmentService mid-journey deposit (عقد الإغلاق العم
     });
     expect(beyond.ok).toBe(false);
     if (beyond.ok) return;
-    expect(beyond.message).toContain("العربون لا يمكن أن يتجاوز السعر المتفق عليه");
+    /* D-15: الرسالة تسمّي الأساس الحاكم — قيمة الطلب القابلة للتحصيل. */
+    expect(beyond.message).toContain("العربون لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل");
   });
 
   it("deposit card carries applied/refunded/retained/wallet/profit fields (FC-05)", async () => {

@@ -48,9 +48,13 @@ import {
   hasDeliveredEvent,
   hasDeliveryReversal,
   orderResultBreakdown,
-  DELIVERY_RESPONSIBILITY_AR,
+  orderValueMinor,
 } from "@micro-domain/craft-order/index.js";
-import type { DeliveryResponsibility } from "@micro-domain/craft-order/index.js";
+import {
+  deliveryContributionFromTerms,
+  describeDeliveryContribution,
+  deriveDeliveryContributionTerms,
+} from "@/application/fulfillment/deliveryContribution";
 import { formatLocalDate, formatLocalDateTime, formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 
@@ -148,22 +152,22 @@ export default function OrderDetail() {
   const [newPriceMinor, setNewPriceMinor] = useState(0);
   const [validNewPrice, setValidNewPrice] = useState(true);
   const [priceReason, setPriceReason] = useState("");
-  /* ORD-003: تحرير شروط النقل والتوصيل قبل التسليم — نموذج داخل «تفاصيل
-   * إضافية» يمر بخدمة التنفيذ والدومين (حدث موثق). */
+  /* ORD-003/D-15: تحرير شروط النقل قبل التسليم بصندوقي المساهمة — نموذج
+   * داخل «تفاصيل إضافية» يمر بخدمة التنفيذ والدومين (حدث موثق). */
   const [termsPanelOpen, setTermsPanelOpen] = useState(false);
-  const [termsResponsibility, setTermsResponsibility] = useState<DeliveryResponsibility>("project_pays");
+  /* D-15: الزبون يدفع للناقل مباشرة — اختيار صريح مستقل بلا مبالغ عبر المشروع. */
+  const [termsCourierDirect, setTermsCourierDirect] = useState(false);
   const [termsFeeMinor, setTermsFeeMinor] = useState<number | null>(null);
   const [termsCostMinor, setTermsCostMinor] = useState<number | null>(null);
   const [termsFeeInPrice, setTermsFeeInPrice] = useState(false);
   const [termsCostInProduct, setTermsCostInProduct] = useState(false);
-  /* إصلاح المتابعة (ORD-003): حصتا التكلفة المشتركة قابلتان للتحرير هنا كما
-   * في محرر الاتفاق — كان مسار التحرير يصفّرهما بصمت عند أي تعديل للشروط. */
+  /* إصلاح المتابعة (ORD-003): حصتا التكلفة المشتركة القديمتان تُحفظان كما
+   * سُجّلتا — النموذج المعتمد يستنتج «مشترك» من الصندوقين ولا يطلب حصصًا،
+   * فتُمرر القيم المسجلة عند التحرير كي لا تُمسح بصمت. */
   const [termsProjectShareMinor, setTermsProjectShareMinor] = useState<number | null>(null);
   const [termsCustomerShareMinor, setTermsCustomerShareMinor] = useState<number | null>(null);
   const [validTermsFee, setValidTermsFee] = useState(true);
   const [validTermsCost, setValidTermsCost] = useState(true);
-  const [validTermsProjectShare, setValidTermsProjectShare] = useState(true);
-  const [validTermsCustomerShare, setValidTermsCustomerShare] = useState(true);
   const termsOperationKeyRef = useRef(`order-terms-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* المجموعة ٢ (§10.3): التراجع الموثق عن قبضة مسجلة على الطلب.
    * المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة مع تخصيصها
@@ -391,57 +395,79 @@ export default function OrderDetail() {
   /* إصلاح المتابعة (ORD-003): فتح لوحة الشروط يبدأ من القيم المسجلة نفسها
    * لا من فراغ — فالحفظ غير المقصود كان يمسح أجرة/كلفة/حصصًا مسجلة سابقًا.
    * ومفتاح عملية جديد لكل فتح لوحة: التعديل الثاني بعد نجاح الأول تعديل
-   * موثق جديد (نمط لوحة التراجع نفسه)، لا صمتًا بحتمية المفتاح القديم. */
+   * موثق جديد (نمط لوحة التراجع نفسه)، لا صمتًا بحتمية المفتاح القديم.
+   * D-15: الصندوقان يُملآن من الشروط المسجلة، والحصص القديمة تُحفظ للمُرور. */
   const openTermsPanel = () => {
     termsOperationKeyRef.current = `order-terms-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
     const terms = state.phase === "ready" ? (state.stored.order.deliveryTerms ?? null) : null;
-    setTermsResponsibility(terms?.responsibility ?? "project_pays");
-    setTermsFeeMinor(terms?.feeChargedMinor ?? null);
-    setTermsCostMinor(terms?.costPaidMinor ?? null);
+    const boxes = terms
+      ? deliveryContributionFromTerms({
+          responsibility: terms.responsibility,
+          feeChargedMinor: terms.feeChargedMinor,
+          costPaidMinor: terms.costPaidMinor,
+        })
+      : { projectMinor: null, customerMinor: null, customerPaysCourierDirect: false };
+    setTermsCourierDirect(boxes.customerPaysCourierDirect);
+    setTermsCostMinor(boxes.projectMinor);
+    setTermsFeeMinor(boxes.customerMinor);
     setTermsFeeInPrice(terms?.feeIncludedInPrice ?? false);
     setTermsCostInProduct(terms?.costIncludedInProductCost ?? false);
     setTermsProjectShareMinor(terms?.projectShareMinor ?? null);
     setTermsCustomerShareMinor(terms?.customerShareMinor ?? null);
     setValidTermsFee(true);
     setValidTermsCost(true);
-    setValidTermsProjectShare(true);
-    setValidTermsCustomerShare(true);
     setTermsPanelOpen(true);
   };
 
-  /* ORD-003: حفظ شروط النقل — مفتاح تحرير واحد لكل محاولة تحرير، فالنقر
-   * المزدوج لا يكرر الحدث، والدومين يعيد اشتقاق المتبقي ويوثّق التعديل. */
+  /* ORD-003/D-15: حفظ شروط النقل — مفتاح تحرير واحد لكل محاولة تحرير، فالنقر
+   * المزدوج لا يكرر الحدث، والدومين يوثّق التعديل ويعيد اشتقاق المتبقي من
+   * أساس قيمة الطلب القابلة للتحصيل. */
   async function saveDeliveryTerms(): Promise<void> {
     if (state.phase !== "ready") return;
-    if (!validTermsFee || !validTermsCost) {
-      setMessage("مبالغ النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
+    if (!termsCourierDirect && termsFeeMinor !== null && !validTermsFee) {
+      setMessage("مساهمة العميل في التوصيل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
       return;
     }
-    if (termsResponsibility === "shared" && termsProjectShareMinor !== null && !validTermsProjectShare) {
-      setMessage("حصة المشروع من النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة.");
-      return;
-    }
-    if (termsResponsibility === "shared" && termsCustomerShareMinor !== null && !validTermsCustomerShare) {
-      setMessage("حصة الزبون من النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة.");
+    if (!termsCourierDirect && termsCostMinor !== null && !validTermsCost) {
+      setMessage("مساهمة المشروع في التوصيل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
       return;
     }
     setIsActing(true);
     try {
-      const feeApplies = termsResponsibility === "customer_pays_project" || termsResponsibility === "shared";
-      const costApplies = termsResponsibility !== "customer_pays_courier";
-      const result = await fulfillment.applyDeliveryTerms(
-        state.stored.id,
+      /* D-15: المسؤولية تُشتق من الصندوقين، والحصص القديمة تُمرر كما سُجّلت
+       * عند اشتقاق «مشترك» كي لا تُمسح بصمت. */
+      const derived = deriveDeliveryContributionTerms(
         {
-          responsibility: termsResponsibility,
+          projectMinor: termsCostMinor,
+          customerMinor: termsFeeMinor,
+          customerPaysCourierDirect: termsCourierDirect,
           feeIncludedInPrice: termsFeeInPrice,
           costIncludedInProductCost: termsCostInProduct,
-          feeChargedMinor: feeApplies ? termsFeeMinor : null,
-          costPaidMinor: costApplies ? termsCostMinor : null,
-          /* إصلاح المتابعة (ORD-003): الحصص المشتركة تُحفظ كما في محرر
-           * الاتفاق — خارج المسؤولية المشتركة تُصفَّر عمدًا (عقد الدومين). */
-          projectShareMinor: termsResponsibility === "shared" ? termsProjectShareMinor : null,
-          customerShareMinor: termsResponsibility === "shared" ? termsCustomerShareMinor : null,
         },
+        { projectShareMinor: termsProjectShareMinor, customerShareMinor: termsCustomerShareMinor },
+      );
+      const result = await fulfillment.applyDeliveryTerms(
+        state.stored.id,
+        derived
+          ? {
+              responsibility: derived.responsibility,
+              feeIncludedInPrice: derived.feeIncludedInPrice,
+              costIncludedInProductCost: derived.costIncludedInProductCost,
+              feeChargedMinor: derived.feeChargedMinor,
+              costPaidMinor: derived.costPaidMinor,
+              projectShareMinor: derived.projectShareMinor,
+              customerShareMinor: derived.customerShareMinor,
+            }
+          : {
+              /* بلا قيم ولا اختيار مباشر: لا شروط نقل — السجل يُفرَّغ بقرار صريح. */
+              responsibility: "project_pays",
+              feeIncludedInPrice: false,
+              costIncludedInProductCost: false,
+              feeChargedMinor: null,
+              costPaidMinor: null,
+              projectShareMinor: null,
+              customerShareMinor: null,
+            },
         termsOperationKeyRef.current,
       );
       if (!result.ok) {
@@ -612,13 +638,16 @@ export default function OrderDetail() {
   async function recordExtraDeposit(): Promise<void> {
     if (state.phase !== "ready") return;
     const order = state.stored.order;
-    const remainingMinor = order.agreedPriceMinor - order.collectedMinor;
+    /* D-15: سقف العربون من المصدر نفسه الذي يحرسه الدومين — المتبقي من قيمة
+     * الطلب القابلة للتحصيل (السعر + أجرة التوصيل المحصلة عبر المشروع)، لا
+     * حساب موازٍ من السعر وحده. */
+    const remainingMinor = order.receivableMinor;
     if (!validExtraDeposit || !Number.isInteger(extraDepositMinor) || extraDepositMinor <= 0) {
       setMessage("أدخل مبلغ العربون رقمًا صحيحًا موجبًا بالأرقام 0–9.");
       return;
     }
     if (extraDepositMinor > remainingMinor) {
-      setMessage(`العربون لا يتجاوز المتبقي من السعر — المتبقي ${formatMoneyMinor(remainingMinor)} د.أ.`);
+      setMessage(`العربون لا يتجاوز المتبقي من قيمة الطلب — المتبقي ${formatMoneyMinor(remainingMinor)} د.أ.`);
       return;
     }
     setIsActing(true);
@@ -774,6 +803,28 @@ export default function OrderDetail() {
             {" · الفعل التالي: "}
             {order.nextAction}
           </p>
+          {/* D-15 (FIN-009): ملخص الحفظ الصادق — سعر المنتج ومساهمتا التوصيل ومن
+              يتحمل التوصيل والمبلغ المطلوب من العميل، من الأساس الحاكم نفسه؛ الحفظ
+              نفسه ليس قبضًا والعبارة أعلاه تقوله صريحًا. */}
+          {order.deliveryTerms ? (
+            <p>
+              {`سعر المنتج: ${formatMoneyMinor(order.agreedPriceMinor)} د.أ`}
+              {order.deliveryTerms.costPaidMinor !== null && !order.deliveryTerms.costIncludedInProductCost
+                ? ` · مساهمة المشروع في التوصيل: ${formatMoneyMinor(order.deliveryTerms.costPaidMinor)} د.أ`
+                : ""}
+              {order.deliveryTerms.feeChargedMinor !== null && !order.deliveryTerms.feeIncludedInPrice
+                ? ` · مساهمة العميل في التوصيل: ${formatMoneyMinor(order.deliveryTerms.feeChargedMinor)} د.أ`
+                : ""}
+              {` · ${describeDeliveryContribution({
+                ...deliveryContributionFromTerms({
+                  responsibility: order.deliveryTerms.responsibility,
+                  feeChargedMinor: order.deliveryTerms.feeChargedMinor,
+                  costPaidMinor: order.deliveryTerms.costPaidMinor,
+                }),
+              })}`}
+              {` · المبلغ المطلوب من العميل: ${formatMoneyMinor(orderValueMinor(order))} د.أ`}
+            </p>
+          ) : null}
         </section>
       ) : null}
       {/* FIN-002: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد (اختيار اسم
@@ -853,14 +904,14 @@ export default function OrderDetail() {
       <details className="micro-additional-details" data-testid="order-journey-composition">
         <summary className="micro-additional-details-summary">
           <span>{`رحلة الطلب — ${label}`}</span>
-          <small>{`المقبوض ${formatMoneyMinor(order.collectedMinor)} من ${formatMoneyMinor(order.agreedPriceMinor)} د.أ${order.receivableMinor > 0 ? ` · المتبقي ${formatMoneyMinor(order.receivableMinor)} د.أ` : ""}`}</small>
+          <small>{`المقبوض ${formatMoneyMinor(order.collectedMinor)} من ${formatMoneyMinor(orderValueMinor(order))} د.أ${order.receivableMinor > 0 ? ` · المتبقي ${formatMoneyMinor(order.receivableMinor)} د.أ` : ""}`}</small>
         </summary>
         <div className="micro-additional-details-body">
           <p>
             <strong>ما أُنجز:</strong>{" "}
             {agreement.kind === "none" || agreement.kind === "incomplete"
               ? `الاتفاق غير مكتمل — ${agreement.nextAction}`
-              : `الاتفاق محفوظ — السعر ${formatMoneyMinor(order.agreedPriceMinor)} د.أ · موعد التسليم ${formatLocalDate(stored.deliveryDate) ?? "غير محدد بعد"}`}
+              : `الاتفاق محفوظ — السعر ${formatMoneyMinor(order.agreedPriceMinor)} د.أ${order.deliveryTerms && !order.deliveryTerms.feeIncludedInPrice && order.deliveryTerms.feeChargedMinor !== null && order.deliveryTerms.feeChargedMinor > 0 ? ` + مساهمة توصيل العميل ${formatMoneyMinor(order.deliveryTerms.feeChargedMinor)} د.أ` : ""} · موعد التسليم ${formatLocalDate(stored.deliveryDate) ?? "غير محدد بعد"}`}
             {["in_progress", "ready", "delivered", "settled", "needs_review"].includes(order.status)
               ? " · بدأ التنفيذ"
               : ""}
@@ -870,7 +921,7 @@ export default function OrderDetail() {
             <strong>التحصيل:</strong>{" "}
             {order.collectedMinor === 0
               ? "لم يُقبض شيء بعد."
-              : `مقبوض ${formatMoneyMinor(order.collectedMinor)} من ${formatMoneyMinor(order.agreedPriceMinor)} د.أ${order.receivableMinor > 0 ? " — تحصيل جزئي حتى الآن" : " — تحصيل كامل"}`}
+              : `مقبوض ${formatMoneyMinor(order.collectedMinor)} من ${formatMoneyMinor(orderValueMinor(order))} د.أ${order.receivableMinor > 0 ? " — تحصيل جزئي حتى الآن" : " — تحصيل كامل"}`}
             {order.receivableMinor > 0
               ? ` · المتبقي ${formatMoneyMinor(order.receivableMinor)} د.أ${order.settlementStatus === "debt" ? " (دين مسجل)" : ""}`
               : ""}
@@ -1211,8 +1262,7 @@ export default function OrderDetail() {
                 التسليم — المسار الذي كانت ورقة التحصيل توجه إليه بلا سطح فعلي.
                 العربون يرفع الكاش المقبوض ويبقى دينًا مرتبطًا بالطلب لا إيرادًا؛
                 الإيراد يُعرف مرة واحدة عند التسليم، ووجهة الكاش خيار صريح. */}
-            {preDeliveryStatuses.includes(order.status) &&
-            order.agreedPriceMinor - order.collectedMinor > 0 ? (
+            {preDeliveryStatuses.includes(order.status) && order.receivableMinor > 0 ? (
               depositPanelOpen ? (
                 <section
                   className="micro-cancel-panel"
@@ -1252,9 +1302,7 @@ export default function OrderDetail() {
                   {validExtraDeposit && extraDepositMinor > 0 ? (
                     <p className="micro-muted-copy" data-testid="extra-deposit-preview">
                       المتبقي على الطلب بعد العربون يصبح{" "}
-                      {formatMoneyMinor(
-                        Math.max(order.agreedPriceMinor - order.collectedMinor - extraDepositMinor, 0),
-                      )}{" "}
+                      {formatMoneyMinor(Math.max(order.receivableMinor - extraDepositMinor, 0))}{" "}
                       د.أ · العربون ليس إيرادًا ولا ربحًا الآن.
                     </p>
                   ) : null}
@@ -1670,18 +1718,27 @@ export default function OrderDetail() {
               </p>
             </section>
           ) : null}
-          {/* ORD-003: شروط النقل والتوصيل — عرض دائم، وتحرير قبل التسليم فقط
-              (بعده الباب الموثق الوحيد هو عكس التسليم). */}
+          {/* ORD-003/D-15: شروط النقل والتوصيل — عرض دائم بوصف من يدفع مستنتجًا
+              من مساهمتي الطرفين، وتحرير قبل التسليم فقط (بعده الباب الموثق
+              الوحيد هو عكس التسليم). */}
           <section className="micro-form-card" aria-label="النقل والتوصيل" data-testid="delivery-terms-panel">
             <h2 className="micro-section-title">النقل والتوصيل</h2>
             {order.deliveryTerms ? (
               <p className="micro-muted-copy">
-                {`مسؤولية الكلفة: ${DELIVERY_RESPONSIBILITY_AR[order.deliveryTerms.responsibility]}`}
+                {/* D-15: الوصف البسيط من الصندوقين المسجلين — لا تسمية مسؤولية
+                    تقنية للمستخدم البسيط. */}
+                {describeDeliveryContribution({
+                  ...deliveryContributionFromTerms({
+                    responsibility: order.deliveryTerms.responsibility,
+                    feeChargedMinor: order.deliveryTerms.feeChargedMinor,
+                    costPaidMinor: order.deliveryTerms.costPaidMinor,
+                  }),
+                })}
                 {order.deliveryTerms.feeChargedMinor !== null && !order.deliveryTerms.feeIncludedInPrice
-                  ? ` · أجرة محصلة عبر المشروع: ${formatMoneyMinor(order.deliveryTerms.feeChargedMinor)} د.أ`
+                  ? ` · مساهمة العميل: ${formatMoneyMinor(order.deliveryTerms.feeChargedMinor)} د.أ`
                   : ""}
                 {order.deliveryTerms.costPaidMinor !== null && !order.deliveryTerms.costIncludedInProductCost
-                  ? ` · كلفة نقل دفعها المشروع: ${formatMoneyMinor(order.deliveryTerms.costPaidMinor)} د.أ`
+                  ? ` · مساهمة المشروع: ${formatMoneyMinor(order.deliveryTerms.costPaidMinor)} د.أ`
                   : ""}
                 {order.deliveryTerms.projectShareMinor !== null
                   ? ` · حصة المشروع من النقل: ${formatMoneyMinor(order.deliveryTerms.projectShareMinor)} د.أ`
@@ -1689,8 +1746,8 @@ export default function OrderDetail() {
                 {order.deliveryTerms.customerShareMinor !== null
                   ? ` · حصة الزبون من النقل: ${formatMoneyMinor(order.deliveryTerms.customerShareMinor)} د.أ`
                   : ""}
-                {order.deliveryTerms.feeIncludedInPrice ? " · الأجرة محتواة في السعر" : ""}
-                {order.deliveryTerms.costIncludedInProductCost ? " · الكلفة محتواة في تكلفة المنتج" : ""}
+                {order.deliveryTerms.feeIncludedInPrice ? " · مساهمة العميل محتواة في السعر" : ""}
+                {order.deliveryTerms.costIncludedInProductCost ? " · مساهمة المشروع محتواة في تكلفة المنتج" : ""}
               </p>
             ) : (
               <p className="micro-muted-copy">لا شروط نقل وتوصيل مسجلة لهذا الطلب.</p>
@@ -1698,108 +1755,83 @@ export default function OrderDetail() {
             {preDeliveryStatuses.includes(order.status) ? (
               termsPanelOpen ? (
                 <div className="micro-subsection">
-                  <label className="micro-field">
-                    <span>من يدفع كلفة النقل والتوصيل؟</span>
-                    <select
-                      value={termsResponsibility}
-                      aria-label="تعديل مسؤولية كلفة النقل والتوصيل"
-                      onChange={event => setTermsResponsibility(event.target.value as DeliveryResponsibility)}
-                    >
-                      <option value="project_pays">المشروع يدفع للناقل</option>
-                      <option value="customer_pays_project">الزبون يدفع للمشروع</option>
-                      <option value="customer_pays_courier">الزبون يدفع للناقل مباشرة</option>
-                      <option value="shared">تكلفة مشتركة</option>
-                    </select>
+                  {/* D-15: الزبون يدفع للناقل مباشرة — اختيار صريح مستقل. */}
+                  <label className="micro-confirm-warning">
+                    <input
+                      type="checkbox"
+                      checked={termsCourierDirect}
+                      onChange={event => setTermsCourierDirect(event.target.checked)}
+                      aria-label="تعديل الزبون يدفع لشركة التوصيل مباشرة"
+                    />
+                    <span>الزبون يدفع لشركة التوصيل مباشرة — لا يمر التوصيل عبر المشروع.</span>
                   </label>
-                  {termsResponsibility === "customer_pays_courier" ? (
+                  {termsCourierDirect ? (
                     <p className="micro-muted-copy">
                       معلومة سياقية فقط — ليست كاش مشروع ولا إيرادًا ولا مصروفًا.
                     </p>
-                  ) : null}
-                  {termsResponsibility === "customer_pays_project" || termsResponsibility === "shared" ? (
+                  ) : (
                     <>
                       <label className="micro-field">
-                        <span>أجرة التوصيل عبر المشروع (د.أ)</span>
-                        <EnglishNumberInput
-                          value={termsFeeMinor}
-                          kind="money"
-                          min="0"
-                          allowEmpty
-                          aria-label="تعديل أجرة التوصيل عبر المشروع"
-                          onNumericChange={setTermsFeeMinor}
-                          onEmptyChange={() => setTermsFeeMinor(null)}
-                          onTextValidityChange={setValidTermsFee}
-                        />
-                      </label>
-                      <label className="micro-confirm-warning">
-                        <input
-                          type="checkbox"
-                          checked={termsFeeInPrice}
-                          onChange={event => setTermsFeeInPrice(event.target.checked)}
-                        />
-                        <span>الأجرة محتواة أصلًا داخل السعر — لا تُضاف مرة ثانية.</span>
-                      </label>
-                    </>
-                  ) : null}
-                  {termsResponsibility !== "customer_pays_courier" ? (
-                    <>
-                      <label className="micro-field">
-                        <span>كلفة النقل التي دفعها المشروع (د.أ)</span>
+                        <span>
+                          مساهمة المشروع في التوصيل (د.أ){" "}
+                          <small>الكلفة التي يتحملها المشروع — اتركها فارغة إذا لم تُسجل بعد</small>
+                        </span>
                         <EnglishNumberInput
                           value={termsCostMinor}
                           kind="money"
                           min="0"
                           allowEmpty
-                          aria-label="تعديل كلفة النقل المدفوعة من المشروع"
+                          aria-label="تعديل مساهمة المشروع في التوصيل"
                           onNumericChange={setTermsCostMinor}
                           onEmptyChange={() => setTermsCostMinor(null)}
                           onTextValidityChange={setValidTermsCost}
                         />
                       </label>
-                      <label className="micro-confirm-warning">
-                        <input
-                          type="checkbox"
-                          checked={termsCostInProduct}
-                          onChange={event => setTermsCostInProduct(event.target.checked)}
+                      <label className="micro-field">
+                        <span>
+                          مساهمة العميل في التوصيل (د.أ){" "}
+                          <small>ما يدفعه العميل للمشروع مقابل التوصيل — اتركها فارغة إذا لم تُسجل بعد</small>
+                        </span>
+                        <EnglishNumberInput
+                          value={termsFeeMinor}
+                          kind="money"
+                          min="0"
+                          allowEmpty
+                          aria-label="تعديل مساهمة العميل في التوصيل"
+                          onNumericChange={setTermsFeeMinor}
+                          onEmptyChange={() => setTermsFeeMinor(null)}
+                          onTextValidityChange={setValidTermsFee}
                         />
-                        <span>الكلفة محتواة أصلًا داخل تكلفة المنتج — لا تُطرح مرة ثانية.</span>
                       </label>
+                      {(termsCostMinor ?? 0) > 0 ? (
+                        <label className="micro-confirm-warning">
+                          <input
+                            type="checkbox"
+                            checked={termsCostInProduct}
+                            onChange={event => setTermsCostInProduct(event.target.checked)}
+                          />
+                          <span>مساهمة المشروع محتواة أصلًا داخل تكلفة المنتج — لا تُطرح مرة ثانية.</span>
+                        </label>
+                      ) : null}
+                      {(termsFeeMinor ?? 0) > 0 ? (
+                        <label className="micro-confirm-warning">
+                          <input
+                            type="checkbox"
+                            checked={termsFeeInPrice}
+                            onChange={event => setTermsFeeInPrice(event.target.checked)}
+                          />
+                          <span>مساهمة العميل محتواة أصلًا داخل السعر — لا تُضاف مرة ثانية.</span>
+                        </label>
+                      ) : null}
+                      <p className="micro-field-hint" data-testid="terms-contribution-description">
+                        {describeDeliveryContribution({
+                          projectMinor: termsCostMinor,
+                          customerMinor: termsFeeMinor,
+                          customerPaysCourierDirect: termsCourierDirect,
+                        })}
+                      </p>
                     </>
-                  ) : null}
-                  {termsResponsibility === "shared" ? (
-                    <div className="micro-shared-costs">
-                      <label className="micro-field">
-                        <span>
-                          حصة المشروع (د.أ) <small>اختياري</small>
-                        </span>
-                        <EnglishNumberInput
-                          value={termsProjectShareMinor}
-                          kind="money"
-                          min="0"
-                          allowEmpty
-                          aria-label="تعديل حصة المشروع من النقل"
-                          onNumericChange={setTermsProjectShareMinor}
-                          onEmptyChange={() => setTermsProjectShareMinor(null)}
-                          onTextValidityChange={setValidTermsProjectShare}
-                        />
-                      </label>
-                      <label className="micro-field">
-                        <span>
-                          حصة الزبون (د.أ) <small>اختياري</small>
-                        </span>
-                        <EnglishNumberInput
-                          value={termsCustomerShareMinor}
-                          kind="money"
-                          min="0"
-                          allowEmpty
-                          aria-label="تعديل حصة الزبون من النقل"
-                          onNumericChange={setTermsCustomerShareMinor}
-                          onEmptyChange={() => setTermsCustomerShareMinor(null)}
-                          onTextValidityChange={setValidTermsCustomerShare}
-                        />
-                      </label>
-                    </div>
-                  ) : null}
+                  )}
                   <div className="micro-form-actions">
                     <Button
                       action="save"

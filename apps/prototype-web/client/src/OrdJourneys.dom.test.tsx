@@ -87,7 +87,18 @@ const costInput: CostEditorInput = {
   quantity: 1,
 };
 
-async function agreedOrder(options?: { depositMinor?: number }) {
+async function agreedOrder(options?: {
+  depositMinor?: number;
+  deliveryTerms?: {
+    responsibility: "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
+    feeIncludedInPrice: boolean;
+    costIncludedInProductCost: boolean;
+    feeChargedMinor: number | null;
+    costPaidMinor: number | null;
+    projectShareMinor: number | null;
+    customerShareMinor: number | null;
+  };
+}) {
   const drafts = new DraftService(store, () => NOW);
   const created = await drafts.create("customer_order");
   if (!created.ok) throw new Error(created.message);
@@ -106,6 +117,7 @@ async function agreedOrder(options?: { depositMinor?: number }) {
     deliveryDate: "2026-09-20",
     depositMinor: options?.depositMinor ?? 0,
     agreementSource: null,
+    deliveryTerms: options?.deliveryTerms ?? null,
   });
   if (!agreed.ok) throw new Error(agreed.message);
   return agreed.stored;
@@ -144,7 +156,63 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     expect(screen.queryByTestId("order-created-banner")).toBeNull();
   });
 
-  it("ORD-003: the delivery-terms panel records terms before delivery and updates the receivable once", async () => {
+  it("D-15: the created banner summarizes price, both contributions, who pays delivery, and the amount requested — without implying collection", async () => {
+    /* سعر 50 + مساهمة عميل 5 عبر المشروع + مساهمة مشروع 3 → المطلوب 55. */
+    const stored = await agreedOrder({
+      deliveryTerms: {
+        responsibility: "shared",
+        feeIncludedInPrice: false,
+        costIncludedInProductCost: false,
+        feeChargedMinor: 500,
+        costPaidMinor: 300,
+        projectShareMinor: null,
+        customerShareMinor: null,
+      },
+    });
+    wouterMocks.params = { id: stored.id };
+    wouterMocks.location = `/orders/${stored.id}?created=1`;
+    render(<Harness page={<OrderDetail />} />);
+    const banner = await screen.findByTestId("order-created-banner");
+    expect(banner.textContent).toContain("سعر المنتج: 50.00 د.أ");
+    expect(banner.textContent).toContain("مساهمة المشروع في التوصيل: 3.00 د.أ");
+    expect(banner.textContent).toContain("مساهمة العميل في التوصيل: 5.00 د.أ");
+    expect(banner.textContent).toContain("التوصيل مشترك بين المشروع والعميل");
+    expect(banner.textContent).toContain("المبلغ المطلوب من العميل: 55.00 د.أ");
+    /* الحفظ ليس قبضًا — لا إيحاء بحدوث تحصيل لمجرد تسجيل شروط التوصيل. */
+    expect(banner.textContent).toContain("لا أثر مالي بعد — لم يُقبض شيء");
+    cleanup();
+  });
+
+  it("D-15: a customer-only contribution banner says delivery is on the customer and adds it to the requested amount", async () => {
+    const stored = await agreedOrder({
+      deliveryTerms: {
+        responsibility: "customer_pays_project",
+        feeIncludedInPrice: false,
+        costIncludedInProductCost: false,
+        feeChargedMinor: 500,
+        costPaidMinor: null,
+        projectShareMinor: null,
+        customerShareMinor: null,
+      },
+    });
+    wouterMocks.params = { id: stored.id };
+    wouterMocks.location = `/orders/${stored.id}?created=1`;
+    render(<Harness page={<OrderDetail />} />);
+    const banner = await screen.findByTestId("order-created-banner");
+    expect(banner.textContent).toContain("التوصيل على العميل");
+    expect(banner.textContent).toContain("المبلغ المطلوب من العميل: 55.00 د.أ");
+    /* بلا شروط توصيل لا يظهر سطر الملخص أصلًا — سلوك رجدي مطابق. */
+    cleanup();
+    const plain = await agreedOrder();
+    wouterMocks.params = { id: plain.id };
+    wouterMocks.location = `/orders/${plain.id}?created=1`;
+    render(<Harness page={<OrderDetail />} />);
+    const plainBanner = await screen.findByTestId("order-created-banner");
+    expect(plainBanner.textContent).not.toContain("المبلغ المطلوب من العميل");
+    expect(plainBanner.textContent).toContain("لا أثر مالي بعد");
+  });
+
+  it("ORD-003/D-15: the two contribution boxes record terms before delivery and update the receivable once", async () => {
     const stored = await agreedOrder();
     wouterMocks.params = { id: stored.id };
     render(<Harness page={<OrderDetail />} />);
@@ -152,23 +220,25 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     const panel = screen.getByTestId("delivery-terms-panel");
     expect(panel.textContent).toContain("لا شروط نقل وتوصيل مسجلة");
     fireEvent.click(screen.getByText("تسجيل شروط النقل والتوصيل"));
-    fireEvent.change(screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل"), {
-      target: { value: "customer_pays_project" },
-    });
-    fireEvent.change(screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع"), { target: { value: "2" } });
-    fireEvent.change(screen.getByLabelText("تعديل كلفة النقل المدفوعة من المشروع"), {
-      target: { value: "1" },
-    });
+    fireEvent.change(screen.getByLabelText("تعديل مساهمة المشروع في التوصيل"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("تعديل مساهمة العميل في التوصيل"), { target: { value: "2" } });
+    /* D-15: المسؤولية تُستنتج من الصندوقين — المساهمتان موجبتان معًا = مشترك. */
+    expect(screen.getByTestId("terms-contribution-description").textContent).toContain("مشترك");
     fireEvent.click(screen.getByText("حفظ شروط النقل"));
     await waitFor(() =>
-      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("الزبون يدفع للمشروع"),
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain(
+        "التوصيل مشترك بين المشروع والعميل",
+      ),
     );
-    expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("أجرة محصلة عبر المشروع: 2.00");
-    /* قيمة الطلب 50 + 2 = 52 — تظهر في حقول الطلب بعد التحديث. */
+    expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("مساهمة العميل: 2.00");
+    expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("مساهمة المشروع: 1.00");
+    /* قيمة الطلب 50 + 2 = 52 — مساهمة العميل وحدها تدخل القيمة القابلة للتحصيل. */
     const saved = await store.getOrder(stored.id);
     if (!saved.ok || !saved.value) throw new Error("order should exist");
     expect(saved.value.order.receivableMinor).toBe(5200);
     expect(saved.value.order.deliveryTerms?.feeChargedMinor).toBe(200);
+    expect(saved.value.order.deliveryTerms?.costPaidMinor).toBe(100);
+    expect(saved.value.order.deliveryTerms?.responsibility).toBe("shared");
     expect(saved.value.order.events.some(event => event.type === "delivery_terms_recorded")).toBe(true);
   });
 
@@ -190,7 +260,7 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
    * بحفظ غير مقصود)، ويصفّر حصتي التكلفة المشتركة دائمًا، ويحتفظ بمفتاح
    * حتمية واحد طوال عمر الصفحة فيصير التعديل الثاني صمتًا. */
 
-  it("ORD-003 follow-up: editing existing shared terms prefills every field and keeps the shares", async () => {
+  it("ORD-003 follow-up/D-15: editing existing shared terms prefills both boxes and keeps the legacy shares", async () => {
     const stored = await agreedOrder();
     const applied = await fulfillment.applyDeliveryTerms(
       stored.id,
@@ -211,31 +281,30 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     await screen.findByText("رف خشبي");
     /* العرض يُظهر الحصتين المسجلتين — الحصص بيانات موثقة لا تختفي. */
     const panel = screen.getByTestId("delivery-terms-panel");
-    await waitFor(() => expect(panel.textContent).toContain("تكلفة مشتركة"));
+    await waitFor(() => expect(panel.textContent).toContain("مشترك"));
     expect(panel.textContent).toContain("حصة المشروع من النقل: 0.60");
     expect(panel.textContent).toContain("حصة الزبون من النقل: 0.40");
-    /* فتح التحرير يملأ كل الحقول بالقيم المسجلة نفسها — لا من فراغ. */
+    /* فتح التحرير يملأ الصندوقين بالقيم المسجلة نفسها — لا من فراغ. */
     fireEvent.click(screen.getByText("تعديل شروط النقل والتوصيل"));
-    const select = screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل") as HTMLSelectElement;
-    expect(select.value).toBe("shared");
-    expect((screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع") as HTMLInputElement).value).toBe("2.00");
-    expect((screen.getByLabelText("تعديل كلفة النقل المدفوعة من المشروع") as HTMLInputElement).value).toBe(
-      "1.00",
-    );
-    expect((screen.getByLabelText("تعديل حصة المشروع من النقل") as HTMLInputElement).value).toBe("0.60");
-    expect((screen.getByLabelText("تعديل حصة الزبون من النقل") as HTMLInputElement).value).toBe("0.40");
-    /* تعديل حصة واحدة يحفظ الحصتين معًا — لا تصفير صامت. */
-    fireEvent.change(screen.getByLabelText("تعديل حصة المشروع من النقل"), { target: { value: "0.75" } });
+    expect((screen.getByLabelText("تعديل مساهمة المشروع في التوصيل") as HTMLInputElement).value).toBe("1.00");
+    expect((screen.getByLabelText("تعديل مساهمة العميل في التوصيل") as HTMLInputElement).value).toBe("2.00");
+    /* نموذج الصندوقين لا يطلب حصصًا — الحصص القديمة تُحفظ بالمُرور لا بالتحرير. */
+    expect(screen.queryByLabelText("تعديل حصة المشروع من النقل")).toBeNull();
+    expect(screen.queryByLabelText("تعديل حصة الزبون من النقل")).toBeNull();
+    fireEvent.change(screen.getByLabelText("تعديل مساهمة العميل في التوصيل"), {
+      target: { value: "2.50" },
+    });
     fireEvent.click(screen.getByText("حفظ شروط النقل"));
     await waitFor(() =>
-      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("حصة المشروع من النقل: 0.75"),
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("مساهمة العميل: 2.50"),
     );
     const saved = await store.getOrder(stored.id);
     if (!saved.ok || !saved.value) throw new Error("order should exist");
     expect(saved.value.order.deliveryTerms?.responsibility).toBe("shared");
-    expect(saved.value.order.deliveryTerms?.projectShareMinor).toBe(75);
+    /* الحصص القديمة محفوظة كما سُجّلت — لا تصفير صمت. */
+    expect(saved.value.order.deliveryTerms?.projectShareMinor).toBe(60);
     expect(saved.value.order.deliveryTerms?.customerShareMinor).toBe(40);
-    expect(saved.value.order.deliveryTerms?.feeChargedMinor).toBe(200);
+    expect(saved.value.order.deliveryTerms?.feeChargedMinor).toBe(250);
     expect(saved.value.order.deliveryTerms?.costPaidMinor).toBe(100);
   });
 
@@ -244,26 +313,19 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     wouterMocks.params = { id: stored.id };
     render(<Harness page={<OrderDetail />} />);
     await screen.findByText("رف خشبي");
-    /* التعديل الأول عبر الواجهة. */
+    /* التعديل الأول عبر الواجهة — صندوق العميل وحده يستنتج «على العميل». */
     fireEvent.click(screen.getByText("تسجيل شروط النقل والتوصيل"));
-    fireEvent.change(screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل"), {
-      target: { value: "shared" },
-    });
-    fireEvent.change(screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع"), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("تعديل مساهمة العميل في التوصيل"), { target: { value: "2" } });
     fireEvent.click(screen.getByText("حفظ شروط النقل"));
     await waitFor(() =>
-      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain(
-        "أجرة محصلة عبر المشروع: 2.00",
-      ),
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("مساهمة العميل: 2.00"),
     );
     /* التعديل الثاني على الصفحة نفسها — مفتاح عملية جديد لكل فتح لوحة. */
     fireEvent.click(screen.getByText("تعديل شروط النقل والتوصيل"));
-    fireEvent.change(screen.getByLabelText("تعديل أجرة التوصيل عبر المشروع"), { target: { value: "3" } });
+    fireEvent.change(screen.getByLabelText("تعديل مساهمة العميل في التوصيل"), { target: { value: "3" } });
     fireEvent.click(screen.getByText("حفظ شروط النقل"));
     await waitFor(() =>
-      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain(
-        "أجرة محصلة عبر المشروع: 3.00",
-      ),
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("مساهمة العميل: 3.00"),
     );
     const saved = await store.getOrder(stored.id);
     if (!saved.ok || !saved.value) throw new Error("order should exist");
@@ -274,7 +336,7 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     expect(saved.value.order.receivableMinor).toBe(5300);
   });
 
-  it("ORD-003 follow-up: switching the responsibility away from shared clears the shares deliberately", async () => {
+  it("ORD-003 follow-up/D-15: zeroing the customer box moves delivery onto the project and clears the legacy shares deliberately", async () => {
     const stored = await agreedOrder();
     const applied = await fulfillment.applyDeliveryTerms(
       stored.id,
@@ -294,21 +356,24 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     render(<Harness page={<OrderDetail />} />);
     await screen.findByText("رف خشبي");
     fireEvent.click(screen.getByText("تعديل شروط النقل والتوصيل"));
-    fireEvent.change(screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل"), {
-      target: { value: "project_pays" },
-    });
-    /* حقلا الحصتين يختفيان خارج المسؤولية المشتركة — عقد الدومين. */
-    expect(screen.queryByLabelText("تعديل حصة المشروع من النقل")).toBeNull();
-    expect(screen.queryByLabelText("تعديل حصة الزبون من النقل")).toBeNull();
+    /* مساهمة العميل صفر صريحة ومساهمة المشروع موجبة → التوصيل على المشروع. */
+    fireEvent.change(screen.getByLabelText("تعديل مساهمة العميل في التوصيل"), { target: { value: "0" } });
+    expect(screen.getByTestId("terms-contribution-description").textContent).toContain("على المشروع");
     fireEvent.click(screen.getByText("حفظ شروط النقل"));
     await waitFor(() =>
-      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("المشروع يدفع للناقل"),
+      expect(screen.getByTestId("delivery-terms-panel").textContent).toContain("التوصيل على المشروع"),
     );
     const saved = await store.getOrder(stored.id);
     if (!saved.ok || !saved.value) throw new Error("order should exist");
     expect(saved.value.order.deliveryTerms?.responsibility).toBe("project_pays");
+    /* خارج «مشترك» تُصفَّر الحصص عمدًا (عقد الدومين) — حقلا الحصص غير قابلين
+     * للتحرير في نموذج الصندوقين. */
     expect(saved.value.order.deliveryTerms?.projectShareMinor).toBeNull();
     expect(saved.value.order.deliveryTerms?.customerShareMinor).toBeNull();
+    expect(saved.value.order.deliveryTerms?.feeChargedMinor).toBeNull();
+    expect(saved.value.order.deliveryTerms?.costPaidMinor).toBe(100);
+    /* قيمة الطلب تعود إلى السعر وحده — مساهمة المشروع لا تدخل دين العميل. */
+    expect(saved.value.order.receivableMinor).toBe(5000);
   });
 
   it("ORD-002: first delivery shows the dedicated receipt with verified fields only", async () => {
