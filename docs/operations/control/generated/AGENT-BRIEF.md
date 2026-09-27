@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 37
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 37
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-184 | IN_PROGRESS | \`fix/fin-009-d15-settlement-safety-20260927\` | — | FIN-009 | تنفيذ D-15 على الفرع: إصلاح أساس سقف التحصيل والمتبقي في collectRegisteredDebt وreverseOrderCollection إلى orderValueMinor، وحارس التعارض التاريخي قبل الكتابة دون needs_review تلقائي، ونموذج الصندوقين وملخص الحفظ الصادق، ثم PR مستقل بلا دمج. |
+| WS-184 | IN_REVIEW | \`fix/fin-009-d15-settlement-safety-20260927\` | 244 | FIN-009 | PR #244 مفتوح للمراجعة بلا دمج — بوابة pnpm check كاملة خروج 0 محليًا (بما فيها ميزانية D-034)؛ بانتظار مراجعة المالك وقرار الدمج الصريح، ثم التحقق على main قبل VERIFIED وقبل بدء Group 1. |

@@ -1,7 +1,7 @@
 {
   "id": "WS-184",
   "title": "FIN-009 — D-15 شريحة سلامة أساس الدين والتحصيل مع مساهمتي التوصيل (صندوقا المشروع والعميل)",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "FIN-009"
   ],
@@ -21,10 +21,10 @@
     "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md"
   ],
   "agent": "Z AI — D-15 safety slice session 2026-09-27",
-  "pr": null,
+  "pr": 244,
   "started_at": "2026-09-27T11:20:00+03:00",
-  "updated_at": "2026-09-27T11:20:00+03:00",
-  "next_action": "تنفيذ D-15 على الفرع: إصلاح أساس سقف التحصيل والمتبقي في collectRegisteredDebt وreverseOrderCollection إلى orderValueMinor، وحارس التعارض التاريخي قبل الكتابة دون needs_review تلقائي، ونموذج الصندوقين وملخص الحفظ الصادق، ثم PR مستقل بلا دمج.",
+  "updated_at": "2026-09-27T12:05:00+03:00",
+  "next_action": "PR #244 مفتوح للمراجعة بلا دمج — بوابة pnpm check كاملة خروج 0 محليًا (بما فيها ميزانية D-034)؛ بانتظار مراجعة المالك وقرار الدمج الصريح، ثم التحقق على main قبل VERIFIED وقبل بدء Group 1.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -37,6 +37,12 @@
       "changed_at": "2026-09-27",
       "actor": "claim:ws-184",
       "reason": "اكتمل الجرد المسبق (مستهلكو التحصيل والعكس والمتبقي والواجهات) وبدأ تنفيذ إصلاح الأساس في الدومين على الفرع المخصص."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-27",
+      "actor": "claim:ws-184",
+      "reason": "اكتمل تنفيذ D-15 على الفرع وافتُتح PR #244 للمراجعة — لا دمج إلا بقرار المالك الصريح."
     }
   ],
   "migration_baseline": false,
@@ -45,5 +51,9 @@
     "النطاق: Domain/Application/Presentation/tests لأساس التحصيل والعكس والتعارض التاريخي وصندوقي التوصيل وملخص الحفظ؛ بلا Schema/Export/Import وبلا إعادة كتابة تاريخ وبلا إعادة تصميم بصري.",
     "خارج النطاق عمدًا: Group 1 قبل دمج D-15 والتحقق منه على main؛ سياسة كلفة التوصيل في نتيجة الفترة؛ DELIVERY-COST/C7/EQ-136؛ أي ترحيل Schema أو تفسير سجلات قديمة؛ البنية الهيكلية خلف بوابة المجموعة ٦.",
     "حد الاستعادة: PR مستقل من 2ebb435334dd69da0273d592ec8bffac5e70c1cf قبل أول كتابة إنتاجية بالسلوك المصحح؛ بعد بدء كتابة بيانات مصححة لا يكفي git revert منفردًا (بطاقة D-15 §10)."
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md#12",
+    "https://github.com/Qays7753/Micro/pull/244"
   ]
 }

@@ -2,7 +2,7 @@
   "id": "FIN-009",
   "title": "D-15 — تصحيح أساس الدين والتحصيل مع مساهمتي التوصيل",
   "type": "DEFECT",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "stage-2-d15-safety-slice",
   "summary": "تصحيح اتساق قيمة الطلب القابلة للتحصيل والدين والتحصيل والعكس، مع واجهة توصيل بسيطة بصندوق مساهمة المشروع وصندوق مساهمة العميل.",
@@ -32,7 +32,8 @@
   "evidence": [
     "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
     "docs/operations/control/evidence/group0-correction-2026-09-27/GROUP-0-CLOSEOUT-2026-09-27.md",
-    "https://github.com/Qays7753/Micro/pull/242"
+    "https://github.com/Qays7753/Micro/pull/242",
+    "https://github.com/Qays7753/Micro/pull/244"
   ],
   "dependencies": [],
   "related_items": [],
@@ -69,10 +70,16 @@
       "changed_at": "2026-09-27",
       "actor": "claim:ws-184",
       "reason": "بدأ تنفيذ شريحة السلامة على الفرع: إصلاح أساس collectRegisteredDebt وreverseOrderCollection وحارس التعارض التاريخي وصندوقا التوصيل وملخص الحفظ."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-27",
+      "actor": "claim:ws-184",
+      "reason": "نُفذت شريحة D-15 كاملة (الأساس + الحارس + الصندوقان + ملخص الحفظ) وافتُتح PR #244؛ بانتظار قرار دمج المالك."
     }
   ],
   "migration_baseline": true,
-  "next_action": "تنفيذ D-15 داخل WS-184 على الفرع fix/fin-009-d15-settlement-safety-20260927 (الجرد اكتمل)، ثم PR مستقل بلا دمج وبوابة فحوص كاملة. بعد الدمج والتحقق على main فقط يُغلق FIN-009 ويبدأ Group 1.",
+  "next_action": "PR #244 مفتوح للمراجعة (بوابة كاملة خروج 0 محليًا). بعد قرار المالك بالدمج: التحقق على main الفعلي (merge SHA) ثم VERIFIED فقط، وبعده يبدأ Group 1 التشغيلي.",
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "tests_required": [
