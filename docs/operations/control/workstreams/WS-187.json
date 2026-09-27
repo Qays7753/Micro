@@ -1,0 +1,48 @@
+{
+  "id": "WS-187",
+  "title": "REM-001 — G1-C عزو التسليم للمجال ونوع الحدث الميت وتوثيق الانتقالات (F-049 الباقي + F-050)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "REM-001"
+  ],
+  "branch": "fix/g1c-mirrors-and-transitions-20260928",
+  "base_sha": "93afde3b883b7c4b9e20d6e6c1c008e81599caa2",
+  "areas": [
+    "craft-order",
+    "finance",
+    "delivery",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-28 (Group 1, slice C)",
+  "pr": null,
+  "started_at": "2026-09-28T23:05:00+03:00",
+  "updated_at": "2026-09-28T23:05:00+03:00",
+  "next_action": "نقل lastEffectiveDeliveryEvent للدومين (نقل حرفي باختبارات قائمة خضراء)، حذف نوع price_approved الميت بلا كاتب، توثيق التصميم المزدوج للانتقالات؛ ثم PR ودمج وإغلاق REM-001.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-187",
+      "reason": "فتح Claim لشريحة G1-C من origin/main 93afde3 بعد إغلاق G1-B والتحقق منه."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-187",
+      "reason": "بدأ النقل الحرفي لعزو التسليم ومعالجة نوع الحدث الميت وتوثيق الانتقالات."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "أجزاء العرض (معاينة تعديل الشراء، التحصيل السريع) = DEFERRED_UI بقرار حد UI للبرنامج.",
+    "لا تغيير سلوك ولا مخطط/تصدير (38/30)؛ الحزمة 649,696/650,000.",
+    "حد الاستعادة: 93afde3."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-001.json"
+  ]
+}

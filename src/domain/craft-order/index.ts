@@ -40,6 +40,10 @@ export { describeDeliveryContribution, describeSettlementConflict } from "./deli
  * يستهلكها مدققو الاستيراد قبل الكتابة الذرية؛ تُحزم مع مستهلكيها في
  * chunk النقل فلا تدخل حزمة الدخول. */
 export {
+  /* F-049 (Group 1): عزو التسليم — آخر تسليم ساري؛ ملك الدومين. */
+  lastEffectiveDeliveryEvent,
+} from "./deliveryAttribution.js";
+export {
   DELIVERY_RESPONSIBILITIES,
   DEPOSIT_SETTLEMENT_DECISIONS,
   RETAINED_DEPOSIT_MEANINGS,
