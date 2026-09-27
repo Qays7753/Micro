@@ -31,18 +31,22 @@ function assertLocalDate(value: string) {
     throw new Error("أدخل تاريخ البيع تاريخًا محليًا صحيحًا.");
 }
 
-/* X-06: القبض لا يتجاوز السعر المتفق عليه — والفرق يحمل قرارًا صريحًا لا افتراضًا. */
+/* X-06: القبض لا يتجاوز السعر المتفق عليه — والفرق يحمل قرارًا صريحًا لا افتراضًا.
+ * F-013 (W2-A): المجهول ليس مقبوضًا كاملًا — مدخلا الإنشاء والتعديل يوجبان قيمة
+ * صريحة، ولا افتراض للقبض الكامل داخل المجال؛ عقد البيع النقدي السريع وحده
+ * يُحل عند حد التطبيق مرة واحدة موثقًا (DirectSaleService.record). */
 function resolveCollection(
   revenueMinor: number,
-  collectedMinor: number | undefined,
+  collectedMinor: number,
   declared: DirectSaleCollectionStatus | undefined,
 ): { collectedMinor: number; collectionStatus: DirectSaleCollectionStatus } {
-  const collected = collectedMinor ?? revenueMinor;
-  if (collected > revenueMinor)
+  if (!Number.isSafeInteger(collectedMinor) || collectedMinor < 0)
+    throw new Error("سجّل المقبوض الآن صراحةً — المجهول لا يُحسب قبضًا كاملًا.");
+  if (collectedMinor > revenueMinor)
     throw new Error("المقبوض لا يتجاوز السعر المتفق عليه — سجّل الفرق قرارك في التسعير لا في القبض.");
   const derived: DirectSaleCollectionStatus =
-    collected === revenueMinor ? "collected_in_full" : "partial_needs_review";
-  return { collectedMinor: collected, collectionStatus: declared ?? derived };
+    collectedMinor === revenueMinor ? "collected_in_full" : "partial_needs_review";
+  return { collectedMinor, collectionStatus: declared ?? derived };
 }
 
 /* المجموعة ٥ (S4-09): المتبقي على بيع مباشر — معيّن واحد في المجال تشترك فيه
