@@ -39,7 +39,8 @@
     "AUDIT-001",
     "HARD-009",
     "HARD-010",
-    "HARD-011"
+    "HARD-011",
+    "REM-002"
   ],
   "final_gate": "PILOT-001",
   "updated_at": "2026-09-28"

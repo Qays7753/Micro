@@ -1,0 +1,103 @@
+{
+  "id": "REM-002",
+  "title": "Wave 2 — المعنى المالي والسياسات والحسابات (بلا UI)",
+  "type": "DEFECT",
+  "status": "IN_PROGRESS",
+  "priority": "P1",
+  "stage": "master-remediation-wave-2",
+  "summary": "تنفيذ قرارات المالك المعتمدة في موجات الميثاق لـF-008..F-019 وF-061: نموذج تعادل واحد صادق بافتراضات معلنة دائمًا وهامش مسمى بصدق (F-009/F-010/F-011)، قبض صريح للبيع المباشر الجديد (F-013)، حالة مجهول معلنة لنتيجة الفترة (F-015 محفوظة مع توثيق)، شرح التصدير من التحلل الفعلي وإشارة مقارنة صادقة (F-016/F-017)، فصل كلفة توصيل المشروع والخسارة غير النقدية معلنين (F-008/F-019)، توثيق تعاقدي لقارئ نتيجة الفترة الكامل وعقد البيع المباشر وقاعدة المصروف المشترك غير الموزع (F-014/F-018/F-061) — وكل ذلك بلا أي ملف UI.",
+  "acceptance": [
+    "نموذج تعادل واحد: readFinancialInsights يستهلك calculateBreakEven الكنونية بمدخلات موحدة مع g5Service، بلا اشتقاق خاص، مع تراكيب ظروف التطبيق (حركات مخزون، طلبات مستبعدة) تخفض الحالة فقط (F-009/F-010)",
+    "الافتراضات الهيكلية تُنبعث دائمًا مع كل رقم تعادل (عقد 17 §6 «دائمًا») (F-010)",
+    "إعادة تسمية calculateContributionMargin إلى calculateDirectMargin مع حقول directMarginMinor/marginBasis/linkedVariableExpenseMinor/unlinkedVariableExpenseCount وحقل contributionMarginMinor متوافقًا للعرض (F-011)",
+    "قبض البيع المباشر: حقل collectedMinor مطلوب في مدخلات الإنشاء والتعديل المجالية، والمسار السريع النقدي يُحل مرة واحدة عند حد التطبيق موثقًا، والسجلات القديمة تُقرأ كما هي بلا إعادة تفسير (F-013)",
+    "حالة مجهول معلنة: نتيجة null عند تكلفة بيع مباشر مجهولة محفوظة وموثقة تعاقديًا (F-015 — PRESERVED)",
+    "سطر «مكوناتها» في تصدير الكشف يُولَّد من التحلل الفعلي لكل البنود غير الصفرية بإشاراتها ويجمع إلى النتيجة (F-016 — التصدير؛ سطر الصفحة = UI_DEPENDENCY_BLOCKED)",
+    "دلتا المقارنة = الحالية − الأساس: التحسن بإشارة موجبة تحت ترتيب الاستدعاء الإنتاجي بلا تعديل UI (F-017)",
+    "كلفة توصيل المشروع تُعلن حقلًا وسببًا في قارئ الفترة دون طرحها (F-008 — الحد الأدنى الآمن بقرار D-03 معلق)",
+    "الخسارة غير النقدية بند مستقل nonCashLossMinor محايد المعادلة، خارج المصروف التشغيلي والمصنفات القديمة، بسطر مقارنة خاص (F-019)",
+    "عقد 05 §3.2.1 يوثق معادلة القارئ الكاملة (9 حدود بعد الفصل) وقواعد الاستبعاد والمجهول، وبند بيع مباشر (F-014/F-018)، وجدول مفردات الهدر الرباعي، وجملة ترميز المصروف المشترك في عقد 14 (F-061)",
+    "لا تعديل أي ملف React أو DOM test أو CSS — عناصر العرض = DEFERRED_UI لا تمنع الإغلاق (F-012 مثبت اختبار UI)"
+  ],
+  "areas": [
+    "finance",
+    "g5",
+    "direct-sales",
+    "reports",
+    "break-even",
+    "contracts",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/12-financial-insights-g5-prototype-contract.md",
+    "docs/contracts/14-period-result-allocation-policy-prototype-contract.md",
+    "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/GROUP1-WAVE-REPORT-2026-09-28.md"
+  ],
+  "dependencies": [
+    "REM-001"
+  ],
+  "related_items": [
+    "FIN-008",
+    "FIN-009"
+  ],
+  "owner_decision": "قرارات المالك معتمدة في الموجة 2 من الميثاق الرئيسي (موحّد التعادل، القبض الصريح، المجهول لا يُعرض نتيجة نهائية، الشرح من التحلل الفعلي، الفصل الثلاثي للتوصيل). قرار D-03 (طرح كلفة التوصيل في المعادلة) يبقى معلقًا: تُعلن الكلفة دون طرح لخطر الخصم المزدوج مع التسجيل اليدوي.",
+  "updated_at": "2026-09-28",
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit-findings:F-008..F-019,F-061 (root causes: duplicate break-even models with different margins under one name, silent full-collection default, explanations not derived from actual decomposition, inverted comparison sign, undeclared project delivery cost and non-cash loss, stale contract 05 §3.2.1, missing direct-sale contract clause)",
+  "source": {
+    "report": "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
+    "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
+    "evidence": [
+      "src/domain/g5/policies.ts",
+      "src/domain/direct-sale/policies.ts",
+      "apps/prototype-web/client/src/application/finance/projectFinancialService.ts"
+    ]
+  },
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-28",
+      "actor": "program:master-remediation",
+      "reason": "تسجيل الموجة 2 (F-008..F-019 + F-061) بعد إغلاق REM-001 والتحقق على main c641b4b — البوابة التالية المسموحة حصرًا بالميثاق."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-188",
+      "reason": "فتح Claim WS-188 لشريحة W2-A (F-013 القبض الصريح للبيع المباشر) من origin/main c641b4b."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-188",
+      "reason": "بدء شريحة W2-A (F-013) — أول شرائح الموجة 2."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "شريحة W2-A (F-013) عبر WS-188 ثم W2-B (التعادل الموحد) وW2-C (الشرح/الإشارة) وW2-D (الإعلانات والعقود) ثم إغلاق الموجة.",
+  "classification": "FIX_BEFORE_PILOT",
+  "owner": "Product owner / Z AI execution with Manus coordination",
+  "tests_required": [
+    "اختبارات رفض المجال لغياب collectedMinor في الإنشاء والتعديل مع حل الحد الموثق مرة واحدة",
+    "اختبار ذهاب-وعودة لسجل بيع مباشر ما قبل X-06 (collected=revenue بلا collectionStatus) بلا إعادة تفسير",
+    "اختبار تكافؤ النموذج الواحد: insights وg5 يقرآن الرقم نفسه على المتجر نفسه (حالات: أساس، ثابت تقديري، وحدات مختلطة، مشترك بلا حصة، حركات مخزون)",
+    "اختبار رقمي مستقل: مكونات سطر التصدير تجمع إلى resultMinor بإشاراتها",
+    "اختبار إشارة المقارنة: التحسن موجب تحت ترتيب الاستدعاء الإنتاجي",
+    "اختبار حيادية معادلة فصل الخسارة غير النقدية وإعلان كلفة التوصيل",
+    "بوابة pnpm check كاملة عند حد PR لكل شريحة"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "docs",
+    "tests"
+  ],
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"
+}

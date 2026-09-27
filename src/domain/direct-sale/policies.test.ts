@@ -46,7 +46,7 @@ const editOf = (
 
 describe("direct sale", () => {
   it("keeps profit unavailable when cost is unknown", () => {
-    expect(createDirectSale({ ...input, costMinor: null })).toMatchObject({
+    expect(createDirectSale({ ...input, costMinor: null, collectedMinor: 500 })).toMatchObject({
       collectedMinor: 500,
       costMinor: null,
       profitMinor: null,
@@ -54,7 +54,7 @@ describe("direct sale", () => {
   });
 
   it("derives profit only from an explicitly recorded cost", () => {
-    expect(createDirectSale({ ...input, costMinor: 200 })).toMatchObject({
+    expect(createDirectSale({ ...input, costMinor: 200, collectedMinor: 500 })).toMatchObject({
       revenueMinor: 500,
       costMinor: 200,
       profitMinor: 300,
@@ -62,13 +62,14 @@ describe("direct sale", () => {
   });
 
   it("recalculates collection and profit when an active sale is corrected", () => {
-    const original = createDirectSale({ ...input, costMinor: null });
+    const original = createDirectSale({ ...input, costMinor: null, collectedMinor: 500 });
     const corrected = updateDirectSale(
       original,
       {
         itemName: "قطعتان جاهزتان",
         quantity: 2,
         revenueMinor: 900,
+        collectedMinor: 900,
         costMinor: 350,
         occurredOn: "2026-08-30",
         note: "تصحيح البيع",
@@ -95,7 +96,7 @@ describe("direct sale", () => {
 
 describe("direct sale cancellation", () => {
   it("cancels explicitly without deleting or changing the recorded amounts", () => {
-    const original = createDirectSale({ ...input, costMinor: 200 });
+    const original = createDirectSale({ ...input, costMinor: 200, collectedMinor: 500 });
     const cancelled = cancelDirectSale(original, {
       kind: "cancel",
       idempotencyKey: "sale-cancel-1",
@@ -170,10 +171,50 @@ describe("direct sale agreed vs collected (X-06, decision from the owner's text)
   });
 });
 
-it("keeps legacy full-collection records valid without the new fields", () => {
-  expect(createDirectSale({ ...input, costMinor: null })).toMatchObject({
-    collectedMinor: 500,
-    collectionStatus: "collected_in_full",
+/* F-013 (W2-A): القبض الصريح — المجهول ليس مقبوضًا كاملًا عند حد المجال.
+ * عقد البيع النقدي السريع (غياب الحقل = قبض كامل الآن) يعيش مرة واحدة عند
+ * حد التطبيق الموثق؛ قراءة السجلات القديمة لا تمر هنا أصلًا. */
+describe("direct sale explicit collection (F-013)", () => {
+  it("refuses to record a sale without an explicit collected amount", () => {
+    expect(() =>
+      createDirectSale({ ...input, costMinor: null } as unknown as Parameters<typeof createDirectSale>[0]),
+    ).toThrow();
+  });
+
+  it("refuses an update that would silently reset collection to the full agreed price", () => {
+    const sale = partialSale();
+    expect(() =>
+      updateDirectSale(
+        sale,
+        {
+          itemName: sale.itemName,
+          quantity: 1,
+          revenueMinor: sale.revenueMinor,
+          collectionStatus: sale.collectionStatus,
+          costMinor: null,
+          occurredOn: sale.occurredOn,
+          note: sale.note,
+        } as unknown as Parameters<typeof updateDirectSale>[1],
+        {
+          kind: "edit",
+          idempotencyKey: "edit-no-collected",
+          createdAt: "2026-08-30T09:00:00.000Z",
+          reason: "تصحيح",
+        },
+      ),
+    ).toThrow();
+  });
+
+  it("keeps an explicitly fully-collected sale valid without a declared status", () => {
+    expect(createDirectSale({ ...input, costMinor: null, collectedMinor: 500 })).toMatchObject({
+      collectedMinor: 500,
+      collectionStatus: "collected_in_full",
+    });
+  });
+
+  it("refuses a negative or fractional collected amount", () => {
+    expect(() => createDirectSale({ ...input, costMinor: null, collectedMinor: -1 })).toThrow();
+    expect(() => createDirectSale({ ...input, costMinor: null, collectedMinor: 1.5 })).toThrow();
   });
 });
 
@@ -186,7 +227,7 @@ it("refuses collecting more than the agreed price and defaults an undecided diff
 
 describe("direct sale price cut and edit trail (X-06)", () => {
   it("refuses a price cut on a fully collected sale and keeps idempotency unique", () => {
-    const full = createDirectSale({ ...input, costMinor: null });
+    const full = createDirectSale({ ...input, costMinor: null, collectedMinor: 500 });
     expect(() =>
       applyPriceCut(full, {
         idempotencyKey: "cut-op-2",
@@ -237,7 +278,9 @@ describe("direct sale credit customer as structured data (D-001)", () => {
         customerName: "  خالد  ",
       }),
     ).toMatchObject({ customerName: "خالد", collectionStatus: "partial_debt" });
-    expect(createDirectSale({ ...input, costMinor: null })).toMatchObject({ customerName: null });
+    expect(createDirectSale({ ...input, costMinor: null, collectedMinor: 500 })).toMatchObject({
+      customerName: null,
+    });
   });
 
   it("keeps the original customer when an edit does not mention it, and clears it on explicit null", () => {

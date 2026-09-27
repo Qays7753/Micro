@@ -30,7 +30,9 @@ async function saveDirectSale(
     itemName: "قطعة",
     quantity: 1,
     revenueMinor: input.revenueMinor,
-    collectedMinor: input.collectedMinor,
+    /* F-013 (W2-A): المجال صار يوجب المقبوض الصريح — كاتب الاختبار يكتب السجل
+     * نقديًا مقبوضًا كاملًا كما فعلت الوحدة تاريخيًا عند غياب التحديد. */
+    collectedMinor: input.collectedMinor ?? input.revenueMinor,
     catalogItemId: null,
     customerName: null,
     costMinor: input.costMinor,

@@ -16,7 +16,8 @@ export type DirectSaleRecordInput = {
   itemName: string;
   quantity: number;
   revenueMinor: number;
-  /* X-06 (و٤): المقبوض الآن — غيابه يعني قبضًا كاملًا (سلوك السجلات القديمة). */
+  /* X-06 (و٤) + F-013 (W2-A): المقبوض الآن عند التسجيل — غيابه عقدُ البيع النقدي
+   * السريع: يُحل هنا مرة واحدة صراحةً، والمجال لا يفترض القبض الكامل أبدًا. */
   collectedMinor?: number;
   collectionStatus?: DirectSaleCollectionStatus;
   /** ربط مرجع اختياري (القيد التاسع — R-1). */
@@ -89,7 +90,9 @@ export class DirectSaleService {
         itemName: input.itemName.trim() || "بيع نقدي",
         quantity: input.quantity,
         revenueMinor: input.revenueMinor,
-        collectedMinor: input.collectedMinor,
+        /* F-013 (W2-A): الحل الوحيد المسموح — «بيع نقدي فوري = قُبض كاملًا الآن» عقدُ
+         * مسار البيع السريع، يُصرَّح هنا عند حد التطبيق لا داخل المجال. */
+        collectedMinor: input.collectedMinor ?? input.revenueMinor,
         collectionStatus: input.collectionStatus,
         catalogItemId: input.catalogItemId ?? null,
         customerName: input.customerName ?? null,
