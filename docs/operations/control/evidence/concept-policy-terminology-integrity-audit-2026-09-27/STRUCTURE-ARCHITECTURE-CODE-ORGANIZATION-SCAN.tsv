@@ -1,0 +1,25 @@
+id	finding	layer	classification	evidence	risk	target_module_map	proposed_wave
+ST-01	انجراف أرقام الإصدار في 5 مواضع توثيق مقابل الكود 38/30	governance	FIX_NOW	AGENTS.md:130,140; عقود 39/40; doc-index 12C-4; types.ts:55,71	حوكمة: مدخل القراءة يحمل أرقامًا خاطئة	دفتر أرقام محروس واحد	W-A
+ST-02	ترويسة current-state متقادمة + فصل §62 مكرر	governance	FIX_NOW	current-state.md:4,1089,1104	مرجع حي يبدو أقدم	تحديث توثيقي	W-A
+ST-03	عدادات ARCHITECTURE.md كلها متقادمة	governance	FIX_NOW	ARCHITECTURE.md:22,23,25,58	اكتشافية معمارية	إحالة للقياس/الحارس	W-A
+ST-04	دبابيس توثيق تثبت وقائع متقادمة (PR #159 مفتوح)	governance/tests	FIX_NOW	group2..6Docs.test.ts (5 ملفات/14 تأكيدًا)	CI يصدّق كذبًا	إعادة تأسيس الدبابيس	W-A
+ST-05	CHANGELOG يتوقف عند 4.4 (≥28 موجة مفقودة)	governance	FIX_NOW	CHANGELOG.md:5	تاريخ مفقود	سجل تعويضي	W-A
+ST-06	16 وثيقة معمارية غير مفهرسة وعدّ AGENTS خاطئ	governance	FIX_NOW	00-document-index.md; AGENTS.md:19	اكتشافية	قسم معماري في الفهرس	W-A
+ST-07	تشابك presentation⇄application بلا قاعدة ESLint	boundaries	FIX_NOW	catalogPresentation.ts:9; eslint.config.js:249-270	انحراف اتجاه صامت	طبقة ورقة + قاعدة	W-B
+ST-08	93 اختبارًا جذريًا خارج globs	boundaries/tests	FIX_NOW	client/src/*.test.*	ثغرة حراسة	globs شاملة	W-B
+ST-09	index.css 6837 سطرًا؛ تعريفان حيان للخطأ؛ قواعد ميتة	architecture	FIX_NOW-partial	index.css:1052,4219,759-788	صيانة/عرض	دمج+تنظيف ثم تقسيم owner-gated	W-B
+ST-10	حلقة alias كامنة	architecture	PRESERVE	index.css:38,69,108	كامن	جرد التokens	W-B
+ST-11	ROUTE_TEMPLATES متأخر 10 مسارات بلا حارس	operability	FIX_NOW	routeTemplate.ts vs MicroRouter.tsx	تشخيص مضلل	اختبار مزامنة	W-B
+ST-12	ملفات عملاقة (policies 1436؛ مهايئان 4134/2095؛ OrderDetail 1888...)	architecture	DEFER	قياسات S4	عزل التغيير	تقسيم خلف بوابة مالك	W-D
+ST-13	تركيز المالية: 14 خدمة، projectFinancialService 1401 سطرًا و11 مستهلكًا	architecture	DEFER	application/finance/	تغيير غير معزول	قارئات فرعية	W-D
+ST-14	عيب D-15 حي على main (الأساس)	domain	FIX_NOW	policies.ts:795,799,942	مالي مباشر	دمج #244	W-0
+ST-15	عائلات فراغ/صفوف 5+4 أنواع مقابل 2 موثقة	architecture	DEFER	MIGRATION_STATUS.md:36-50	تقارب مؤجل	قرار owner-gated	W-D
+ST-16	بناءات خدمة على مستوى الصفحات: 4 مواضع موثقة مستقرة	architecture	PRESERVE	Loans.tsx:58; ReceivedLoanDetail.tsx:62; ReceivedLoanEditor.tsx:86; Statement.tsx:175	—	بلا تغيير	—
+ST-17	سلطة التصميم الطبقة الأولى غير قابلة للتحقق	governance	DEFER	SOURCE_OF_TRUTH.md:17	قرارات tokens بلا مرجع محلول	تثبيت موقع بقرار مالك	W-A
+ST-18	إحالة run-folder بلا مسار كامل	governance	FIX_NOW	UI_AUX_ARCHITECTURE.md:36	هشاشة مرجع	مسار كامل	W-A
+ST-19	EXTENSION_PLAYBOOK يغطي UI فقط	maturity	DEFER	EXTENSION_PLAYBOOK.md	توسعة مجال/تخزين بلا دليل	قسم توسعة	W-D
+ST-20	تقسيم المخزن جزئي بالتصميم (المهايئان مونوليث)	architecture	PRESERVE	storage/local/ (69/564/432/118/111 سطرًا للمقسم)	منع قائم	موجات مالك لاحقة	W-D
+ST-21	نقاء المجال مطلق: 0 استيراد غير نسبي عبر 55 ملفًا	boundaries	PRESERVE	eslint+fixture+فحص S4 مستقل	—	بلا تغيير	—
+ST-22	خريطة الملكية مفروضة ميكانيكيًا (عقد 40)	boundaries	PRESERVE	ownershipBoundaries.exe017.test.ts	—	بلا تغيير	—
+ST-23	0 دورة قيمة عبر 313 ملفًا (تحقق Tarjan مستقل)	architecture	PRESERVE	فحص S4	—	بلا تغيير	—
+ST-24	الحدود الرقمية مثبتة ثلاثيًا (كود+وثيقة+اختبار)	governance	PRESERVE	group6Docs.test.ts:99-112 (مع ثغرة ادعاء AGENTS الحي ST-01)	—	توسيع الحارس	W-A

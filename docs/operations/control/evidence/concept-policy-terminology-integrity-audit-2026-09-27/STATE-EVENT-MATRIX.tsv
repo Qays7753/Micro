@@ -1,0 +1,19 @@
+id	state_or_event	trigger	cash_effect	receivable_effect	profit_effect	history_preserved	guard	evidence	status
+SE-01	إنشاء طلب	اتفاق بسعر موجب	—	—	—	حدث إنشاء	سعر>0 + مفتاح	policies.ts	CORRECT
+SE-02	تسجيل شروط التوصيل	قبل التسليم	—	يُعاد اشتقاق المتبقي	—	delivery_terms_recorded	قفل ما بعد التسليم	policies.ts:371-377	CORRECT
+SE-03	قبض عربون	قبل التسليم	+	−	—	deposit_collected	≤ orderValue + idempotency	policies.ts:684	CORRECT
+SE-04	تسليم	جاهز→مسلم	—	المتبقي يصبح مستحقًا	اعتراف إن كانت known	status_changed	قفل النتيجة الناقصة	policies.ts:560+	CORRECT
+SE-05	تسوية عند دفع كامل مسبق	تسليم بعد قبض كامل	—	صفر	مراجعة النتيجة فعل تالٍ	حدثان متتاليان	—	عقد 02:58	CORRECT
+SE-06	قبض متبقي	مسلم	+	− حتى الصفر→settled	لا يعيد الاعتراف	collection_recorded	≤ orderValue	policies.ts:717	CORRECT
+SE-07	تسجيل دين	مسلم بمتبقٍ	—	debt (بأساس orderValue)	—	debt_registered	receivable>0	policies.ts:773	مبلغ الحدث يخالف الحالة (F-005)
+SE-08	تحصيل الدين المسجل	settled+debt	+	إعادة اشتقاق من agreedPrice (خاطئ)	—	collection_recorded	≤ agreedPrice (خاطئ)	policies.ts:795-799	INCORRECT — D-15 (F-001)
+SE-09	عكس قبضة	أي قبضة مسجلة	−	إعادة اشتقاق من agreedPrice (خاطئ)	—	collection_reversed	≤ الأصل غير المعكوس	policies.ts:941-942	INCORRECT — D-15 (F-001)
+SE-10	عكس التسليم	مسلم في مراجعة	—	—	تصفير + review_required	delivery_reversed (reversesEventId)	المخرج الموثق الوحيد	policies.ts:993-1013	CORRECT
+SE-11	تعديل سعر	اتفاق+	—	من (سعر+أجرة−مقبوض)	تحديث إن كان نهائيًا	price_revised	سعر جديد ≥ مقبوض	policies.ts:855-876	المعاينة تخالف (F-003)
+SE-12	تعديل مواصفات	اتفاق+	—	—	needs_review + لقطة جديدة	specification_revised	مطابقة الكمية	policies.ts:641-647	CORRECT
+SE-13	إلغاء	قبل التسليم	—	تصفير	تصفير	cancelled + سبب	عربون→needs_review	policies.ts:1063+	CORRECT
+SE-14	رد/احتفاظ عربون	ملغى بعربون	−/—	—	—	deposit_refunded/retained	تسوية مستقلة	policies.ts:1101+	CORRECT
+SE-15	تصنيف محتفظ به	ملغى محتفظ	—	—	تصنيف مالكية	deposit_classified	أحداث مالكية	policies.ts:1280+	CORRECT
+SE-16	حدث مالي عام	إدخال يدوي	دلتا 9 أعمدة	—	—	ملحق لا يُحذف	idempotency (key,type)	financial-event/policies.ts:290-327	تصادم المعرف كامن (F-051)
+SE-17	عكس حدث مالي	تصحيح	نفي كل الدلتا	—	—	عكس بعلاقة	مفتاح+سبب	financial-event/policies.ts:426-458	CORRECT
+SE-18	بيع مباشر	إدخال	+ (بافتراض القبض)	—	كلفة معروفة تدخل الفترة	ملحق	قيود المحرر	direct-sale/policies.ts:40	الافتراض (F-013)

@@ -1,0 +1,17 @@
+id	concept	canonical_definition	policy_contract	domain_implementation	application_service	storage	export_import	report_view	ui_display	tests	docs	divergence_note
+S-01	قيمة الطلب	orderValueMinor = السعر + أجرة العميل	عقد 02:43	policies.ts:390-395	agreementService.ts:117-128 صحيح	محفوظ بحدوده	ضمن عائلة الطلبات	—	OrderDetail.tsx:615 يعرض السعر	أوراكلات تقيد بالسعر	التغطية موثقة	أساس مزدوج في الدين/العكس (F-001)
+S-02	المتبقي	receivableMinor	عقد 02	withSettlement صحيح؛ الدين/العكس خاطئ	collection sheets	محفوظ	معرض	ورقة التحصيل	نص المشاركة يخالف (F-002)	تغطية جزئية	موثق	4 أسس متعايشة (T-10)
+S-03	الإيراد المعترف	recognizedRevenue	عقد 05 §3.2	policies.ts:563-564	projectFinancialService	—	—	كشف+جسر	Statement.tsx:591 مصطلح ممنوع	—	القاموس يمنع	T-13
+S-04	نتيجة الفترة	recorded_only/incomplete	عقد 05 §3.2.1 (أضيق)	—	readRecordedPeriodResult:576+	قراءة أحداث	تصدير Markdown	الكشف	Statement.tsx:591 معاملات ناقصة	فحوص مباشرة	التغطية موثقة	F-016/F-018
+S-05	نقطة التعادل	وحدات التعادل	عقدا 12/17	g5/policies.ts:569-633	projectFinancialService.ts:920	—	—	لوحتان	عناوين بلا أساس	U07 يثبت القديم	عقدان واعيان	أساسان (F-009)
+S-06	هامش المساهمة	contribution vs direct	عقد 17	g5/policies.ts:425 (متغيرة معطلة)	g5Service.ts:222	—	—	G5	—	—	—	تسمية (F-011)
+S-07	الأرقام المحروسة (38/30)	types.ts	AGENTS.md §10	storage/local/types.ts:55,71	—	هنا	المظروف يحملها	—	—	group6Docs يثبت الكود	AGENTS/عقود متقادمة	5 مواضع متقادمة (F-033)
+S-08	كاش/ذمم/مال المالك	أحداث ملحقة	عقد 06 (5 أنواع قديمة)	financial-event (19 نوعًا)	projectFinancialService	مخازن مستقلة	مظروف كامل	الوضع المالي	—	فحوص MIC	عقد 06 متقادم	F-017/F-018 عقد 01/06
+S-09	حالات المعرفة	known/...	عقد 05 §8	types+policies	—	محفوظة	معرضة	أسطح متعددة	CostCalculator.tsx:529 مصطلح ممنوع	—	القاموس يفوض	T-17
+S-10	التسميات العربية	قاموس 08	glossary	DELIVERY_RESPONSIBILITY_AR في المجال	—	—	—	—	presentation/*	دبابيس اختبارات	فجوات 18 (F-032)	سلاسل UI في المجال
+S-11	تokens التصميم	vf-tokens.css جسر وحيد	SOURCE_OF_TRUTH.md	—	—	—	—	—	كل الأسطح	design guards	الطبقة الأولى خارج المستودع	F-040
+S-12	المسارات	راوتر 65 مسارًا	SOURCE_OF_TRUTH.md:38	—	routeTemplate (متأخر 10)	—	—	—	—	routeKnowledgeSync (4 مصادر)	الخامس بلا حارس	F-047
+S-13	أزرار الحالة	primitives/Button	COMPONENT_CONTRACTS	—	—	—	—	—	52/52	census guard	—	—
+S-14	المال المعروض	MoneyValue/bdi	money-format-contract	—	—	—	—	—	كل القيم	فحوص	عرض الوقت منقسم	F-059
+S-15	حالة الطلب	7+جانبية	عقد 02	ALLOWED_TRANSITIONS+حواري	fulfillment	محفوظ	معرض	قوائم	مغلق/تمت التسوية	اختباران يثبتان الاسمين	—	T-16/F-050
+S-16	جسر الربح-الكاش	بنود معلنة + فرق غير مفسر	عقد 29	—	profitToCashBridge	قراءة	—	جسر المالية	عنوان الربح	فحوص	—	T-36
