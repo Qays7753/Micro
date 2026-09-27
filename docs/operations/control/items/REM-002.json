@@ -78,12 +78,6 @@
       "changed_at": "2026-09-28",
       "actor": "claim:ws-188",
       "reason": "بدء شريحة W2-A (F-013) — أول شرائح الموجة 2."
-    },
-    {
-      "status": "IN_REVIEW",
-      "changed_at": "2026-09-28",
-      "actor": "pr:253",
-      "reason": "شريحة W2-A في مراجعة PR #253."
     }
   ],
   "migration_baseline": false,
