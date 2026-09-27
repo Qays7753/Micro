@@ -1,6 +1,6 @@
 {
   "schema": "micro-operations-control-excel-provenance-v1",
-  "source_digest": "bb59e234cd411a171b1dc7454bbab79059335b87006b183a4b132c25926de738",
+  "source_digest": "154957df6b022ff2b4e50acd6c1435781787776b7ee696d7c59eaf50740319d8",
   "source_files": [
     "docs/operations/control/items/AUDIT-001.json",
     "docs/operations/control/items/BE-001.json",
@@ -20,6 +20,7 @@
     "docs/operations/control/items/FIN-006.json",
     "docs/operations/control/items/FIN-007.json",
     "docs/operations/control/items/FIN-008.json",
+    "docs/operations/control/items/FIN-009.json",
     "docs/operations/control/items/G-001.json",
     "docs/operations/control/items/G-002.json",
     "docs/operations/control/items/G-003.json",
@@ -97,7 +98,7 @@
   "workbook_path": "docs/operations/control/generated/MASTER-TRACKER.xlsx",
   "workbook_sha256": "b02476e416820cd17b1c7eb3898628848905ea53275bf819337845a722fed555",
   "generated_by": "reviewed Excel view update + scripts/operations-control/generate_tracker.py --refresh-excel-meta",
-  "generated_at": "2026-09-24",
+  "generated_at": "2026-09-27",
   "read_only_view": true,
   "json_is_source_of_truth": true
 }
