@@ -34,6 +34,15 @@ import {
   roundHalfUp,
 } from "../shared/index.js";
 
+/* F-050 (Group 1 — الميثاق الرئيسي 2026-09-28) — توثيق التصميم المزدوج
+ * المتعمد لانتقالات الحالة، لا عيبًا يُصلح بصمت: هذا الجدول هو خريطة
+ * الانتقالات العامة التي يفرضها transitionOrder؛ وبجانبه يحمل كل Use Case
+ * حساس حرّاسه الخاصة الأشد (cancelOrder بسببه وتسوية عربه، وrecordDeliveryTerms
+ * بقصره التسجيل على ما قبل التسليم، وreverseDelivery كبابه الموثق الوحيد
+ * بعد التسليم، وcollectRegisteredDebt بدينه المسجل) — عقد ٢ يفرض المرور
+ * عبر هذه الأبواب المسماة ولا يجيز إلغاءً عامًا من transitionOrder يتجاوز
+ * سياطتها. أي انتقال مستقبلي جديد يُضاف إلى الجدول وحده لا يكفي: يلزم
+ * له Use Case مسمى بحرّاسه واختباراته، فالجدول شرط ضروري لا كافٍ. */
 const ALLOWED_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   draft: ["provisional_agreement", "postponed", "needs_review"],
   provisional_agreement: ["confirmed", "postponed", "needs_review"],

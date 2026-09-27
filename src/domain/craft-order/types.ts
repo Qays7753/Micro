@@ -119,7 +119,11 @@ export type SettlementStatus =
 
 export type OrderEventType =
   | "created"
-  | "price_approved"
+  /* F-050 (Group 1 — الميثاق الرئيسي 2026-09-28): «price_approved» حُذف —
+   * نوع بلا كاتب قط (لا مسار ينتجه منذ الشريحة الأولى؛ عقد ٢ لا يذكره في
+   * أحداثه). أي حدث قديم مفترض بهذا النوع لا يمكن أن يكون توليد نظام
+   * صادق؛ تسمية العرض للسجل التاريخي تبقى في طبقة الواجهة كسطر احتياطي
+   * لا يضيف معنى. */
   | "status_changed"
   | "deposit_collected"
   | "deposit_refunded"

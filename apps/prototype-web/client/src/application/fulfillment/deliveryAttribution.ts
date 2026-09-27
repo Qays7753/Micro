@@ -5,25 +5,14 @@
  * فتربح فترة قديمة من إيراد فترة أحدث وتخسر الأحدث أثرها. هذا المساعد يعكس
  * منطق النطاق نفسه (hasDeliveryReversal في policies) للقراءة فقط.
  */
-import type { CraftOrder, OrderEvent } from "@micro-domain/craft-order/index.js";
+import type { CraftOrder } from "@micro-domain/craft-order/index.js";
+import { lastEffectiveDeliveryEvent } from "@micro-domain/craft-order/index.js";
 
-function isDeliveredEvent(event: OrderEvent): boolean {
-  return event.type === "status_changed" && event.toStatus === "delivered";
-}
-
-/** آخر حدث تسليم غير معكوس — null إذا كان كل تسليم معكوسًا أو لا تسليم أصلًا.
- * التراجع يقترن بربط صريح (reversesEventId) بحدث التسليم نفسه. */
-export function lastEffectiveDeliveryEvent(order: CraftOrder): OrderEvent | null {
-  const delivered = order.events.filter(isDeliveredEvent);
-  for (let index = delivered.length - 1; index >= 0; index -= 1) {
-    const candidate = delivered[index];
-    const reversed = order.events.some(
-      event => event.type === "delivery_reversed" && event.reversesEventId === candidate.id,
-    );
-    if (!reversed) return candidate;
-  }
-  return null;
-}
+/* F-049 (Group 1 — الميثاق الرئيسي 2026-09-28): الاشتقاق انتقل إلى الدومين
+ * (craft-order/deliveryAttribution.ts) — أكثر قيمة ماليةً يُقرأ في النظام
+ * لا يعاد تنفيذه خارج مصدره؛ تعيد هذه الوحدة تصديره لمستهلكيها الحاليين
+ * فلا يتغير أي استيراد مستهلك، وتحتفظ بخريطة التاريخ المحلي (عرض فقط). */
+export { lastEffectiveDeliveryEvent };
 
 /** تاريخ آخر تسليم ساري بصيغة ISO المحلية (Amman) — أو null. */
 export function effectiveDeliveryDate(
