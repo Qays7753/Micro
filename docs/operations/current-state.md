@@ -1531,12 +1531,30 @@ Export/Import، ولم تُفتح Claim لـ`D-15`.
 `NO_D15_CLAIM_YET`
 `NO_GROUP1_START`
 
-**البوابة التالية فقط:** مراجعة بطاقة `D-15` وتصحيحها في PR توثيقي مستقل، ثم
-دمج PR #242، ثم يفتح Z AI Claim مستقلًا قبل تعديل الكود. يبدأ
-الجرد والتنفيذ المحدود لـ`D-15` من أحدث `origin/main`; ولا يبدأ Group 1 قبل
-إغلاق `D-15` والتحقق منه على `main`. بطاقة D-15 المعتمدة تستخدم صندوقي
+**ما تم بعد ذلك:** صُححت بطاقة `D-15` وأُغلق Group 0 توثيقيًا عبر PR #242 عند
+`0327c33483f0cbdf48d4e39e56c687168783d584`، ثم سُجل `FIN-009` كحاجز جاهز
+للتنفيذ عبر PR #243 عند `2ebb435334dd69da0273d592ec8bffac5e70c1cf`. لم يبدأ
+كود Runtime بعد. يفتح Z AI الآن Claim مستقلًا قبل تعديل الكود، ويبدأ الجرد
+والتنفيذ المحدود لـ`D-15` من أحدث `origin/main`; ولا يبدأ Group 1 قبل إغلاق
+`D-15` والتحقق منه على `main`. بطاقة D-15 المعتمدة تستخدم صندوقي
 «مساهمة المشروع في التوصيل» و«مساهمة العميل في التوصيل»، وتستنتج الوصف
 البسيط للمستخدم من الرقمين، وتمنع التحصيل العادي للسجل التاريخي المتعارض دون كتابة، وتثبت
 أن سقف العكس هو الجزء غير المعكوس من القبضة الأصلية، مع منع الرجوع البرمجي
 المنفرد بعد أول كتابة بالسلوك المصحح.
 تفصيل الإغلاق: `docs/operations/control/evidence/group0-correction-2026-09-27/GROUP-0-CLOSEOUT-2026-09-27.md`.
+
+## §76. Master operational remediation charter — جاهز لتسليم Z AI — 2026-09-27
+بعد تحقق `origin/main` عند `2ebb435334dd69da0273d592ec8bffac5e70c1cf`، جرى تثبيت ميثاق تنفيذي واحد يغطي إصلاحات الاتساق المالي والتشغيلي والمصطلحات والحراس وقابلية التطور، مع إبقاء إعادة تصميم UI/UX وإعادة التنظيم البنيوي الواسع خارج هذه الحزمة. Z AI هو منفذ الكود؛ لم يبدأ Runtime التنفيذ من هذا الميثاق.
+
+الوثائق الكنسية للحزمة:
+
+- `docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md`
+- `docs/operations/control/evidence/micro-master-remediation-2026-09-27/ZAI-MASTER-EXECUTION-PROMPT.md`
+- `docs/operations/control/items/FIN-009.json`
+- `docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md`
+
+PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما؛ يجب فحصهما وإعادة استخدام ما يطابق الميثاق فقط. يبدأ Z AI من Claim مستقل وأحدث `origin/main`، ويعمل D15-A أولًا، ثم لا يبدأ Group 1 أو أي موجة لاحقة قبل الدمج والتحقق على `main`. لا يوجد تفويض لحذف أو تنظيف أو تغيير Schema/Export/Import أو إعادة تفسير التاريخ بصمت.
+
+`MASTER_REMEDIATION_CHARTER_READY_FOR_ZAI`
+`D15_A_FIRST_NO_GROUP1_BEFORE_MAIN_VERIFICATION`
+`NO_RUNTIME_CODE_STARTED_BY_CHARTER_PREPARATION`

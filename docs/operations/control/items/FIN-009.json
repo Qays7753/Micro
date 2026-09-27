@@ -5,15 +5,15 @@
   "status": "READY",
   "priority": "P1",
   "stage": "stage-2-d15-safety-slice",
-  "summary": "تصحيح اتساق قيمة الطلب القابلة للتحصيل والدين والتحصيل والعكس، مع واجهة توصيل بسيطة بصندوق مساهمة المشروع وصندوق مساهمة العميل.",
+  "summary": "تصحيح اتساق قيمة الطلب القابلة للتحصيل والدين والتحصيل والعكس ومصادر بيانات التوصيل المالية دون تنفيذ UI.",
   "acceptance": [
     "تدخل مساهمة العميل المحصلة عبر المشروع في orderValueMinor مرة واحدة، ولا تدخل مساهمة المشروع في دين العميل",
-    "تظهر واجهة الطلب صندوقي مساهمة المشروع ومساهمة العميل وتستنتج وصف من يدفع من الرقمين دون خيار shared مستقل للمستخدم",
-    "يعرض الحفظ ملخص سعر المنتج ومساهمتي التوصيل والمبلغ المطلوب دون الإيحاء بحدوث قبض",
+    "يستخدم المجال/التطبيق تمثيل مساهمة المشروع ومساهمة العميل دون مصدر حساب موازٍ؛ تنفيذ UI مؤجل",
+    "ينتج Use Case/Projection مالي ملخص سعر المنتج ومساهمتي التوصيل والمبلغ المطلوب دون تسجيل قبض؛ العرض المرئي مؤجل",
     "يستخدم التحصيل وإعادة حساب المتبقي والعكس أساس orderValueMinor نفسه، مع إبقاء سقف العكس مرتبطًا بالقبضة الأصلية غير المعكوسة",
     "لا تصبح الحالة paid قبل تحصيل المتبقي الصحيح، ويُرفض التحصيل الزائد دون كتابة أو تغيير جزئي",
     "null تعني غير محدد و0 تعني عدم وجود مساهمة، ولا تُعاد كتابة السجلات التاريخية أو تُفسر بصمت",
-    "تُراجع كل مستهلكات المتبقي والقبض والحالة والعرض والتصدير دون إنشاء مصدر حساب موازٍ",
+    "تُراجع كل مستهلكات المتبقي والقبض والحالة والتقارير والتصدير دون إنشاء مصدر حساب موازٍ",
     "ينفذ Z AI في Claim وPR مستقلين من أحدث origin/main، مع اختبارات موجهة ودليل تحقق على main قبل فتح Group 1"
   ],
   "areas": [
@@ -21,13 +21,14 @@
     "craft-order",
     "delivery",
     "settlement",
-    "presentation"
+    "reports"
   ],
   "contracts": [
     "docs/contracts/02-order-lifecycle-contract.md",
     "docs/contracts/05-financial-p0-policies.md",
     "docs/contracts/06-financial-event-prototype-contract.md",
-    "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md"
+    "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "evidence": [
     "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
@@ -45,7 +46,7 @@
   "root_cause": "D-15/order-settlement-basis",
   "source": {
     "report": "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
-    "discovered_at_sha": "6f7757086d4c9c1b1c220c33daec1727b1f4f33f",
+    "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
     "evidence": [
       "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
       "docs/contracts/02-order-lifecycle-contract.md"
@@ -56,7 +57,7 @@
       "status": "READY",
       "changed_at": "2026-09-27",
       "actor": "owner:d15-two-box-approval",
-      "reason": "اعتماد بطاقة D-15 ونموذج الصندوقين؛ البند جاهز لفتح Claim مستقل بواسطة Z AI من أحدث origin/main، ولم يبدأ الكود بعد."
+      "reason": "اعتماد بطاقة D-15 ونموذج الصندوقين والميثاق التنفيذي؛ البند جاهز لفتح Claim مستقل بواسطة Z AI من أحدث origin/main، ولم يبدأ الكود بعد."
     }
   ],
   "migration_baseline": true,
@@ -65,7 +66,7 @@
   "owner": "Product owner / Z AI execution with Manus coordination",
   "tests_required": [
     "Domain tests للدين والتحصيل والعكس وحدود orderValueMinor",
-    "Application/DOM tests لصندوقي التوصيل وملخص الحفظ",
+    "Application/domain contract tests لتمثيل صندوقي التوصيل وملخص القيمة دون UI",
     "اختبار idempotency ورفض التحصيل الزائد دون كتابة",
     "اختبار السجل التاريخي المتعارض دون إعادة كتابة أو needs_review تلقائي",
     "مراجعة مستهلكي receivableMinor وcollectedMinor وsettlementStatus وnextAction",
@@ -74,7 +75,7 @@
   "layers": [
     "domain",
     "application",
-    "presentation",
+    "reports",
     "tests"
   ],
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"
