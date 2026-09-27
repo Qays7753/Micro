@@ -763,7 +763,11 @@ export function collectRemaining(
 }
 
 /** A customer debt exists only when the owner explicitly registered the remainder as debt; a receivable on a draft or un-agreed order is not one. */
-export function isRegisteredCustomerDebt(order: CraftOrder): boolean {
+/* Group 1 (F-049 ذيل): الشرط يقرأ الحقلين فقط — التقاطع البنيوي يقبل
+ * المفاتيح الجزئية (قراءات Pick) كالكائن الكامل، فلا تظل نسخ محلية تنحرف. */
+export function isRegisteredCustomerDebt(
+  order: Pick<CraftOrder, "settlementStatus" | "receivableMinor">,
+): boolean {
   return order.settlementStatus === "debt" && order.receivableMinor > 0;
 }
 
