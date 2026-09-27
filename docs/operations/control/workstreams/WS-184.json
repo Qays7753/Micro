@@ -1,7 +1,7 @@
 {
   "id": "WS-184",
   "title": "FIN-009 — D-15-A شريحة سلامة أساس الدين والتحصيل مع مساهمتي التوصيل (صندوقا المشروع والعميل)",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "items": [
     "FIN-009"
   ],
@@ -22,10 +22,10 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-28 (D15-A first)",
-  "pr": null,
+  "pr": 247,
   "started_at": "2026-09-28T00:00:00+03:00",
-  "updated_at": "2026-09-28T00:00:00+03:00",
-  "next_action": "تنفيذ إصلاح الأساس في الدومين والتطبيق بلا UI (برنامج الإصلاح الرئيسي 2026-09-28: واجهة المستخدم خارج البرنامج حصرًا)، ثم PR محدود ودمج بعد البوابة والتحقق على main.",
+  "updated_at": "2026-09-28T20:40:00+03:00",
+  "next_action": "لا إجراء إضافي؛ Workstream متحقق على main. البوابة التالية: Group 1 (المصالحة المالية عبر الطبقات) بClaim مستقل من أحدث origin/main.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -38,6 +38,24 @@
       "changed_at": "2026-09-28",
       "actor": "claim:ws-184",
       "reason": "اكتمل الجرد المسبق للمستهلكين (أساس خاطئ مثبت في collectRegisteredDebt وreverseOrderCollection؛ الأساس الصحيح قائم في withSettlement/collectDeposit/collectRemaining/reviseAgreedPrice؛ سقف العكس صحيح ومربوط بالقبضة الأصلية؛ حساب موازٍ في shareMessageService.orderShareDraft يُزال) وبدأ تنفيذ شريحة السلامة بلا UI."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-28",
+      "actor": "pr:247",
+      "reason": "اكتمل التنفيذ وافتُتح PR #247 ببوابات خضراء على رأس الفرع."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-28",
+      "actor": "merge:pr-247",
+      "reason": "دُمج PR #247 (Squash) عند 542095caf1fea0a9d52a784b878c34b30610af97 مع Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-28",
+      "actor": "verify:main-ci",
+      "reason": "CI وCloudflare ناجحان على SHA الدمج نفسه على main؛ الشجرة مطابقة؛ اختبارات الموجة خضراء محليًا على main."
     }
   ],
   "migration_baseline": false,
@@ -49,6 +67,9 @@
   ],
   "evidence": [
     "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
-  ]
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
+    "https://github.com/Qays7753/Micro/pull/247"
+  ],
+  "merge_sha": "542095caf1fea0a9d52a784b878c34b30610af97",
+  "verified_on_main_sha": "542095caf1fea0a9d52a784b878c34b30610af97"
 }

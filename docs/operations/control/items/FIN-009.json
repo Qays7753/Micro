@@ -2,7 +2,7 @@
   "id": "FIN-009",
   "title": "D-15 — تصحيح أساس الدين والتحصيل مع مساهمتي التوصيل",
   "type": "DEFECT",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "stage-2-d15-safety-slice",
   "summary": "تصحيح اتساق قيمة الطلب القابلة للتحصيل والدين والتحصيل والعكس ومصادر بيانات التوصيل المالية دون تنفيذ UI.",
@@ -33,13 +33,15 @@
   "evidence": [
     "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
     "docs/operations/control/evidence/group0-correction-2026-09-27/GROUP-0-CLOSEOUT-2026-09-27.md",
-    "https://github.com/Qays7753/Micro/pull/242"
+    "https://github.com/Qays7753/Micro/pull/242",
+    "https://github.com/Qays7753/Micro/pull/247",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/D15A-SLICE-REPORT-2026-09-28.md"
   ],
   "dependencies": [],
   "related_items": [],
   "owner_decision": "اعتمد المالك في 2026-09-27 نموذج الصندوقين: مساهمة المشروع في التوصيل ومساهمة العميل في التوصيل. مساهمة العميل المحصلة عبر المشروع تدخل قيمة الطلب مرة واحدة، ومساهمة المشروع لا تدخل دين العميل. Z AI هو منفذ الكود. لا يبدأ Group 1 قبل دمج FIN-009 والتحقق منه على main.",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
+  "merge_sha": "542095caf1fea0a9d52a784b878c34b30610af97",
+  "verified_on_main_sha": "542095caf1fea0a9d52a784b878c34b30610af97",
   "updated_at": "2026-09-28",
   "finding_classification": "DEEPENS_EXISTING",
   "finding_state": "CONFIRMED",
@@ -70,10 +72,28 @@
       "changed_at": "2026-09-28",
       "actor": "claim:ws-184",
       "reason": "بدأ تنفيذ شريحة السلامة غير المرئية: إصلاح أساس collectRegisteredDebt وreverseOrderCollection وحارس التعارض التاريخي وتمثيل صندوقي التوصيل في الدومين/التطبيق، وإزالة الحساب الموازي في مسودة المشاركة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-28",
+      "actor": "pr:247",
+      "reason": "افتُتح PR #247 بالشريحة الكاملة (بلا UI) بعد البوابات الخضراء على رأس الفرع؛ Merge Manifest نُشر قبل الدمج."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-28",
+      "actor": "merge:pr-247",
+      "reason": "دُمج PR #247 بطريقة Squash عند 542095caf1fea0a9d52a784b878c34b30610af97 بعد CI وCloudflare ناجحين على رأس الـPR."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-28",
+      "actor": "verify:main-ci",
+      "reason": "تحقق على main الفعلي عند 542095c: CI checks = success وCloudflare Pages = success على SHA الدمج نفسه، والشجرة مطابقة للفرع المختبر (diff فارغ)، واختبارات الموجة 82 دومين + 385 تطبيق خضراء محليًا على main."
     }
   ],
   "migration_baseline": true,
-  "next_action": "Claim WS-184 مفتوح على الفرع fix/fin-009-d15a-settlement-basis-20260928 من origin/main 5d73fb5 بموجب الميثاق الرئيسي 2026-09-28 (برنامج بلا UI): أُعيد استخدام أجزاء الدومين/التطبيق المتوافقة من PR #244 بعد فحصها واستُبعدت أجزاؤه المرئية كـ DEFERRED_UI. بعد الدمج والتحقق على main فقط يُغلق FIN-009 ويبدأ Group 1.",
+  "next_action": "أُغلق FIN-009 (D-15-A) بالتنفيذ بلا UI عبر PR #247 المدموج Squash عند 542095c والمتحقق منه على main نفسه (CI + Cloudflare + اختبارات الموجة 467/467 محليًا على SHA الدمج). البوابة التالية المسموحة فقط: Group 1 — المصالحة المالية عبر كل الطبقات، بلا UI وفق الميثاق الرئيسي.",
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "tests_required": [
