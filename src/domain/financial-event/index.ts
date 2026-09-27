@@ -1,5 +1,6 @@
 export * from "./types.js";
 export {
+  activeRetainedDepositSumsByOrder,
   activeSettlementsMinor,
   calculateSharedProjectShareMinor,
   createFinancialEvent,

@@ -17,6 +17,7 @@ import {
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
+import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type FulfillmentResult =
@@ -289,7 +290,7 @@ export class FulfillmentService {
     if (!current.ok) return current;
     const order = current.stored.order;
     if (order.status === "cancelled") return failure("invalid_state", "طلب ملغى لا يُحصّل منه.");
-    if (order.settlementStatus === "debt" && order.receivableMinor > 0)
+    if (isRegisteredCustomerDebt(order))
       /* S2-02: مفتاح العملية يُمرَّر كما يُمرَّر في فرع المتبقي — إعادة المحاولة
        * بعد انقطاع لا تدفع الدين مرتين. */
       return this.collectDebt(id, amountMinor, operationKey);

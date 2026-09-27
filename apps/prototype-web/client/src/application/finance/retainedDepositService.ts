@@ -5,6 +5,7 @@
  * — الكاش دخل سابقًا عند التحصيل. التصحيح عكس + بديل موثق قابل للتتبع.
  */
 import {
+  activeRetainedDepositSumsByOrder,
   createFinancialEvent,
   createFinancialReversal,
   type FinancialEvent,
@@ -95,25 +96,16 @@ export class RetainedDepositService {
     const eventsResult = await this.store.listFinancialEvents();
     if (!eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأحداث المالية.");
     /* Conflict E: المبلغ الافتراضي = كامل المحتفظ به غير المصنَّف، مشتقًا من
-     * الأحداث المالية النشطة — الأحداث هي الحقيقة، والعدّادات مرآتها. */
-    const reversed = new Set(
-      eventsResult.value.flatMap(event =>
-        event.correctionType === "reverse" && event.correctionOfEventId ? [event.correctionOfEventId] : [],
-      ),
-    );
-    const active = eventsResult.value.filter(
-      event =>
-        (event.type === "deposit_retained_owner" || event.type === "deposit_retained_revenue") &&
-        event.correctionType !== "reverse" &&
-        !reversed.has(event.id) &&
-        event.depositContext?.orderId === orderId,
-    );
-    const ownerSum = active
-      .filter(event => event.type === "deposit_retained_owner")
-      .reduce((sum, event) => sum + event.amountMinor, 0);
-    const revenueSum = active
-      .filter(event => event.type === "deposit_retained_revenue")
-      .reduce((sum, event) => sum + event.amountMinor, 0);
+     * الأحداث المالية النشطة — الأحداث هي الحقيقة، والعدّادات مرآتها.
+     * F-049 (Group 1): الاشتقاق من مصدر الدومين الواحد — نفس مساعد فحص
+     * MIC-12، لا مرآة موازية ثانية في الخدمة. */
+    const sums = activeRetainedDepositSumsByOrder(eventsResult.value).get(orderId) ?? {
+      totalMinor: 0,
+      ownerMinor: 0,
+      revenueMinor: 0,
+    };
+    const ownerSum = sums.ownerMinor;
+    const revenueSum = sums.revenueMinor;
     const retainedMinor = retainedDepositMinor(stored.order);
     const unclassifiedMinor = retainedMinor - ownerSum - revenueSum;
     const amount = amountMinor ?? unclassifiedMinor;

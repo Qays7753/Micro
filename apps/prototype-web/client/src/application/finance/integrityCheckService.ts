@@ -11,6 +11,7 @@
  * مُختبر (قاعدة الدلتا الخماسية، إعادة اشتقاق النسبة، قواعد المصدر والتوزيع).
  */
 import {
+  activeRetainedDepositSumsByOrder,
   createFinancialEvent,
   createFinancialReversal,
   reversedEventIds,
@@ -54,7 +55,11 @@ export type IntegrityCheckId =
   /* G-002 (تدقيق الإدارة المالية المتدرجة 2026-09-19): اكتمال تخصيص محافظ
    * دفعات الموردين — دفعة موصولة بمحفظة بلا قيد تغطية مطابق = خلل بنيوي
    * يُعلن للمراجعة، والفحص قراءة فقط لا يصلح شيئًا تلقائيًا. */
-  | "MIC-17";
+  | "MIC-17"
+  /* Group 1 — الميثاق الرئيسي للإصلاح 2026-09-28 (F-004/F-005): ثابت أساس
+   * التسوية — أحداث القبض والعكس تسوي الحالة المجمعة، والمتبقي المسجل يطابق
+   * أساس قيمة الطلب القابلة للتحصيل؛ قراءة فقط بلا إصلاح تلقائي. */
+  | "MIC-18";
 export type IntegrityCheckResult = {
   id: IntegrityCheckId;
   titleAr: string;
@@ -177,6 +182,7 @@ export class IntegrityCheckService {
     const mic15 = this.checkEventKeyUniqueness(events);
     const mic16 = this.checkOwnerMoneySeparation(events);
     const mic17 = await this.checkSupplierWalletAttribution();
+    const mic18 = await this.checkSettlementBasisInvariant();
     const checks = [
       mic1.result,
       mic2,
@@ -192,6 +198,7 @@ export class IntegrityCheckService {
       mic15,
       mic16,
       mic17,
+      mic18,
     ];
     /* Wave 4.3 — P-4.3-3 (D9): إثراء قراءة فقط — يحوّل معرّفات السجلات
      * المتأثرة إلى ملخصات مقروءة (اسم/تاريخ/مبلغ/رابط) من المخزن نفسه؛
@@ -1097,42 +1104,18 @@ export class IntegrityCheckService {
   ): Promise<IntegrityCheckResult> {
     const ordersResult = await this.store.listOrders();
     if (!ordersResult.ok) return this.unavailable("MIC-12", "تعذر قراءة الطلبات المحلية — أعد المحاولة.");
-    const reversed = reversedEventIds(events);
     const offenders: string[] = [];
     let pendingCount = 0;
     let pendingMinor = 0;
     let partialCount = 0;
     let partialMinor = 0;
     /* Conflict E: الأحداث المالية النشطة هي الحقيقة — مجموعها لكل معنى يقارن
-     * بالمحتفظ به، والعدّادات/المعنى مرآة يجب أن تطابقها. */
-    const activeClassificationEventIds = new Set(
-      events
-        .filter(
-          event =>
-            (event.type === "deposit_retained_revenue" || event.type === "deposit_retained_owner") &&
-            event.correctionType !== "reverse" &&
-            !reversed.has(event.id),
-        )
-        .map(event => event.depositContext?.orderId ?? `بلا-طلب:${event.id}`),
-    );
-    const activeClassificationSum = (orderId: string) => {
-      const active = events.filter(
-        event =>
-          (event.type === "deposit_retained_revenue" || event.type === "deposit_retained_owner") &&
-          event.correctionType !== "reverse" &&
-          !reversed.has(event.id) &&
-          event.depositContext?.orderId === orderId,
-      );
-      return {
-        totalMinor: active.reduce((sum, event) => sum + event.amountMinor, 0),
-        ownerMinor: active
-          .filter(event => event.type === "deposit_retained_owner")
-          .reduce((sum, event) => sum + event.amountMinor, 0),
-        revenueMinor: active
-          .filter(event => event.type === "deposit_retained_revenue")
-          .reduce((sum, event) => sum + event.amountMinor, 0),
-      };
-    };
+     * بالمحتفظ به، والعدّادات/المعنى مرآة يجب أن تطابقها. F-049 (Group 1):
+     * الاشتقاق من مصدر الدومين الواحد — نفس مساعد خدمة التصنيف، لا مرآة ثانية. */
+    const activeClassificationSums = activeRetainedDepositSumsByOrder(events);
+    const activeClassificationEventIds = new Set(activeClassificationSums.keys());
+    const activeClassificationSum = (orderId: string) =>
+      activeClassificationSums.get(orderId) ?? { totalMinor: 0, ownerMinor: 0, revenueMinor: 0 };
     for (const stored of ordersResult.value) {
       const order = stored.order;
       if (order.status !== "cancelled") continue;
@@ -1448,6 +1431,18 @@ export class IntegrityCheckService {
       detailAr,
     };
   }
+
+  /* ─── MIC-18 (Group 1 — الميثاق الرئيسي، F-004/F-005): ثابت أساس التسوية.
+   * الاشتقاق ومفردات التفصيل يملكهما الدومين (settlementInvariant.ts — عقد ٢
+   * وحارس D-15 مصدر القاعدة) ويُحمَّلان عند الفحص فقط فلا يدخلان حزمة الدخول
+   * (سقف D-034)؛ الفحص قراءة فقط بلا إصلاح تلقائي كإخوته، والعنوان من سجل
+   * فحوص التطبيق فيبقى مصدر المفردات واحدًا لكل طبقة. */
+  private async checkSettlementBasisInvariant(): Promise<IntegrityCheckResult> {
+    const ordersResult = await this.store.listOrders();
+    if (!ordersResult.ok) return this.unavailable("MIC-18", "تعذر قراءة الطلبات المحلية — أعد المحاولة.");
+    const { settlementInvariantResult } = await import("@micro-domain/craft-order/settlementInvariant.js");
+    return settlementInvariantResult(ordersResult.value, INTEGRITY_TITLES["MIC-18"]);
+  }
 }
 
 export const INTEGRITY_TITLES: Record<IntegrityCheckId, string> = {
@@ -1466,4 +1461,6 @@ export const INTEGRITY_TITLES: Record<IntegrityCheckId, string> = {
   "MIC-15": "تفرّد مفاتيح الأحداث",
   "MIC-16": "فصل مال المالك",
   "MIC-17": "تخصيص محافظ دفعات الموردين",
+  /* Group 1 — الميثاق الرئيسي (F-004/F-005): ثابت أساس التسوية. */
+  "MIC-18": "ثابت أساس التسوية",
 };

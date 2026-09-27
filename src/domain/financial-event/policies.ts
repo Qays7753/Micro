@@ -458,6 +458,37 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
 }
 
 /** Ids of events whose economic effect a live reversal cancels. A reversal is itself never reversible, so no recursion is needed. */
+
+/** F-049 (Group 1 — الميثاق الرئيسي 2026-09-28): التصنيفات النشطة للعربون
+ * المحتفظ به — مصدر واحد للاشتقاق الذي كان مضاعفًا بين خدمة التصنيف
+ * (retainedDepositService) وفحص MIC-12: حدث ملكية أو إيراد قائم لم يُعكس
+ * (ليس هو نفسه عكسًا ولم يُعكسه عكس قائم)، مجمّعًا بمعرّف الطلب المصدر؛
+ * الحدث بلا سياق طلب يُجمّع تحت مفتاح «بلا-طلب:<معرّف الحدث>» كما كان. */
+export type RetainedDepositSums = {
+  totalMinor: number;
+  ownerMinor: number;
+  revenueMinor: number;
+};
+
+export function activeRetainedDepositSumsByOrder(
+  events: readonly FinancialEvent[],
+): Map<string, RetainedDepositSums> {
+  const reversed = reversedEventIds(events);
+  const sums = new Map<string, RetainedDepositSums>();
+  for (const event of events) {
+    const isClassification =
+      event.type === "deposit_retained_owner" || event.type === "deposit_retained_revenue";
+    if (!isClassification || event.correctionType === "reverse" || reversed.has(event.id)) continue;
+    const key = event.depositContext?.orderId ?? `بلا-طلب:${event.id}`;
+    const current = sums.get(key) ?? { totalMinor: 0, ownerMinor: 0, revenueMinor: 0 };
+    current.totalMinor += event.amountMinor;
+    if (event.type === "deposit_retained_owner") current.ownerMinor += event.amountMinor;
+    else current.revenueMinor += event.amountMinor;
+    sums.set(key, current);
+  }
+  return sums;
+}
+
 export function reversedEventIds(events: readonly FinancialEvent[]): ReadonlySet<string> {
   return new Set(
     events.flatMap(event =>

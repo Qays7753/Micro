@@ -1,5 +1,6 @@
 import type { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
@@ -248,10 +249,7 @@ export class HomeControlCenterService {
     );
     orders
       .filter(
-        stored =>
-          stored.order.settlementStatus === "debt" &&
-          stored.order.receivableMinor > 0 &&
-          !["cancelled"].includes(stored.order.status),
+        stored => isRegisteredCustomerDebt(stored.order) && !["cancelled"].includes(stored.order.status),
       )
       .forEach(stored =>
         todayItems.push({
@@ -483,8 +481,7 @@ export class HomeControlCenterService {
             daysSinceLastActivity,
             overdueDebtCount: orders.filter(
               stored =>
-                stored.order.settlementStatus === "debt" &&
-                stored.order.receivableMinor > 0 &&
+                isRegisteredCustomerDebt(stored.order) &&
                 stored.followUpDate != null &&
                 stored.followUpDate < today,
             ).length,

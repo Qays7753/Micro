@@ -13,6 +13,7 @@ import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 
 const now = () => "2026-09-03T09:00:00.000Z";
 
@@ -107,6 +108,8 @@ describe("integrity check service (فحص سلامة مالي)", () => {
       "MIC-16",
       /* G-002 (تدقيق ٢٠٢٦-٠٩-١٩): اكتمال تخصيص محافظ دفعات الموردين. */
       "MIC-17",
+      /* Group 1 (الميثاق الرئيسي 2026-09-28): ثابت أساس التسوية. */
+      "MIC-18",
     ]);
     for (const check of report.checks) expect(check.status).toBe("PASS");
   });
@@ -1230,5 +1233,214 @@ describe("EXE-003 — MIC-2 consumes domain source kinds (no duplicated list dri
     const mic2 = report.checks.find(check => check.id === "MIC-2");
     expect(mic2?.status).toBe("FAIL");
     expect(mic2?.detailAr).toContain("اختلال بنيوي");
+  });
+});
+
+/* ─── MIC-18 (Group 1 — الميثاق الرئيسي 2026-09-28، F-004/F-005): ثابت أساس
+ * التسوية — أحداث القبض والعكس تسوّي الحالة المجمعة، والمتبقي المسجل يطابق
+ * أساس قيمة الطلب القابلة للتحصيل. الفحص قراءة فقط: الانحراف المزروع يُعلن
+ * بمعرّفه ولا تُلمس البيانات (لقطة قبل/بعد متطابقة). ─── */
+describe("MIC-18 — settlement-basis invariant (Group 1: F-004/F-005)", () => {
+  async function feeJourneyOrder(services: Awaited<ReturnType<typeof cleanStore>>["services"]) {
+    const {
+      calculateCostSnapshot,
+      collectDeposit,
+      collectRegisteredDebt,
+      collectRemaining,
+      createCraftOrder,
+      recordDeliveryTerms,
+      registerDebt,
+      reverseOrderCollection,
+      transitionOrder,
+    } = await import("@micro-domain/craft-order/index.js");
+    const cost = calculateCostSnapshot("cost-mic18", {
+      currency: "JOD",
+      materialItems: [
+        {
+          name: "خشب",
+          quantity: 1,
+          unit: "قطعة",
+          unitPriceMinor: 200,
+          priceDate: "2026-09-01",
+          source: "user_input",
+          confidence: "known",
+        },
+      ],
+      time: { minutes: 60, hourlyRateMinor: 200, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-09-01T08:00:00Z",
+      source: "price_approval",
+    });
+    /* سعر 50 + مساهمة عميل 5 عبر المشروع = قيمة قابلة للتحصيل 55. */
+    let order = createCraftOrder({
+      id: "order-mic18",
+      customerName: "سارة",
+      itemName: "رف خشبي",
+      specifications: "مقاس كبير",
+      quantity: 1,
+      agreedPriceMinor: 5000,
+      costSnapshot: cost,
+      createdAt: "2026-09-01T08:00:00Z",
+    });
+    order = recordDeliveryTerms(order, {
+      responsibility: "customer_pays_project",
+      feeIncludedInPrice: false,
+      costIncludedInProductCost: false,
+      feeChargedMinor: 500,
+      costPaidMinor: null,
+      projectShareMinor: null,
+      customerShareMinor: null,
+      idempotencyKey: "mic18-terms",
+      createdAt: "2026-09-01T08:05:00Z",
+    });
+    order = collectDeposit(order, 1000, "mic18-dep", "2026-09-01T09:00:00Z");
+    for (const [index, step] of (
+      ["provisional_agreement", "confirmed", "in_progress", "ready", "delivered"] as const
+    ).entries()) {
+      order = transitionOrder(order, {
+        to: step,
+        idempotencyKey: `mic18-step-${index}`,
+        createdAt: `2026-09-02T0${index}:00:00Z`,
+      });
+    }
+    /* دين على المتبقي 45 ثم قبضتا 40 ثم عكس 5 — الأحداث والحالة يجب أن تسوّي. */
+    order = registerDebt(order, "mic18-debt", "2026-09-03T10:00:00Z");
+    order = collectRegisteredDebt(order, 4000, "mic18-collect-1", "2026-09-04T10:00:00Z");
+    order = reverseOrderCollection(order, {
+      collectionEventId: "order-mic18:mic18-collect-1",
+      amountMinor: 500,
+      reason: "تسوية مع الزبون",
+      idempotencyKey: "mic18-reverse",
+      createdAt: "2026-09-05T10:00:00Z",
+    });
+    await services.projectFinance.record({
+      type: "owner_investment_cash",
+      amountMinor: 100000,
+      occurredOn: "2026-09-01",
+      note: "استثمار",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "mic18-inv",
+    });
+    return order;
+  }
+
+  async function saveFeeOrder(order: CraftOrder) {
+    const { store, services } = await cleanStore();
+    await store.saveOrder({
+      id: order.id,
+      order,
+      catalogItemId: null,
+      deliveryDate: null,
+      agreementSource: null,
+      createdAt: order.createdAt,
+      updatedAt: order.createdAt,
+    });
+    return { store, services };
+  }
+
+  it("passes on a full fee-order journey: deposit, delivery terms, debt, collection, and reversal all settle", async () => {
+    const base = await cleanStore();
+    const order = await feeJourneyOrder(base.services);
+    const { store, services } = await saveFeeOrder(order);
+    const before = await snapshotOf(store);
+    const report = await services.integrityCheck.run();
+    const after = await snapshotOf(store);
+    expect(after).toBe(before);
+    const mic18 = report.checks.find(check => check.id === "MIC-18");
+    expect(mic18?.status).toBe("PASS");
+  });
+
+  it("fails on a planted stale remainder that mismatches the collectible-value basis — with the offender id and zero writes", async () => {
+    const base = await cleanStore();
+    const order = await feeJourneyOrder(base.services);
+    const { store, services } = await saveFeeOrder(order);
+    /* محاكاة سجل تاريخي كتب متبقيه بالأساس القديم (السعر وحده): المقبوض 45
+     * من 55 يعطي متبقيًا مسجلًا 5 (من السعر 50) لا 10 الصحيح. */
+    const stored = await store.getOrder(order.id);
+    if (!stored.ok || !stored.value) throw new Error("order should exist");
+    await store.saveOrder({
+      ...stored.value,
+      order: { ...stored.value.order, receivableMinor: 500 },
+    });
+    const before = await snapshotOf(store);
+    const report = await services.integrityCheck.run();
+    const after = await snapshotOf(store);
+    expect(after).toBe(before);
+    const mic18 = report.checks.find(check => check.id === "MIC-18");
+    expect(mic18?.status).toBe("FAIL");
+    expect(mic18?.offenderSampleIds?.[0]).toContain(order.id);
+    expect(mic18?.driftMinor).toBe(500);
+  });
+
+  it("fails when the recorded collected amount disagrees with its own events — the timeline is the truth", async () => {
+    const base = await cleanStore();
+    const order = await feeJourneyOrder(base.services);
+    const { store, services } = await saveFeeOrder(order);
+    /* تحريف المقبوض المسجل دون حدث مقابل: الأحداث تسوي 45 لكن الحالة تقول 50. */
+    const stored = await store.getOrder(order.id);
+    if (!stored.ok || !stored.value) throw new Error("order should exist");
+    await store.saveOrder({
+      ...stored.value,
+      order: {
+        ...stored.value.order,
+        collectedMinor: 5000,
+        receivableMinor: 500,
+      },
+    });
+    const before = await snapshotOf(store);
+    const report = await services.integrityCheck.run();
+    const after = await snapshotOf(store);
+    expect(after).toBe(before);
+    const mic18 = report.checks.find(check => check.id === "MIC-18");
+    expect(mic18?.status).toBe("FAIL");
+    expect(mic18?.offenderSampleIds?.[0]).toContain(order.id);
+  });
+
+  it("skips the basis leg for cancelled orders while still holding their events to the truth", async () => {
+    const { calculateCostSnapshot, collectDeposit, createCraftOrder, cancelOrder, settleDepositRefund } =
+      await import("@micro-domain/craft-order/index.js");
+    const { store, services } = await cleanStore();
+    const cost = calculateCostSnapshot("cost-mic18c", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-09-01T08:00:00Z",
+      source: "price_approval",
+    });
+    let order = createCraftOrder({
+      id: "order-mic18c",
+      customerName: "ليلى",
+      itemName: "فستان",
+      specifications: "قياس",
+      quantity: 1,
+      agreedPriceMinor: 10000,
+      costSnapshot: cost,
+      createdAt: "2026-09-01T08:00:00Z",
+    });
+    order = collectDeposit(order, 3000, "mic18c-dep", "2026-09-01T09:00:00Z");
+    order = cancelOrder(order, "إلغاء", "mic18c-cancel", "2026-09-02T08:00:00Z");
+    order = settleDepositRefund(order, 3000, "رد كامل", "mic18c-refund", "2026-09-03T08:00:00Z");
+    await store.saveOrder({
+      id: "order-mic18c",
+      order,
+      catalogItemId: null,
+      deliveryDate: null,
+      agreementSource: null,
+      createdAt: order.createdAt,
+      updatedAt: order.createdAt,
+    });
+    const report = await services.integrityCheck.run();
+    const mic18 = report.checks.find(check => check.id === "MIC-18");
+    expect(mic18?.status).toBe("PASS");
   });
 });
