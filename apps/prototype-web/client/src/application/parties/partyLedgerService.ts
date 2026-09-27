@@ -4,6 +4,7 @@
  * groups them by trimmed party name, and reports both directions with movement detail.
  */
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
@@ -93,7 +94,7 @@ export class PartyLedgerService {
       const customerName = stored.order.customerName;
       if (!customerName?.trim()) continue;
       const entry = party(customerName);
-      if (stored.order.settlementStatus === "debt" && stored.order.receivableMinor > 0) {
+      if (isRegisteredCustomerDebt(stored.order)) {
         entry.receivableMinor += stored.order.receivableMinor;
         entry.movements.push({
           id: `order-debt:${stored.id}`,

@@ -4,6 +4,7 @@
  * It never derives project cash or profit; debt remains a recorded receivable after delivery.
  */
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
+import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { OrderDraft, PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { formatArabicPlural } from "@/presentation/formatters";
@@ -33,8 +34,8 @@ export type DailyFollowUpReadResult =
 
 const isActive = (stored: FollowUpOrder) =>
   stored.order.status !== "settled" && stored.order.status !== "cancelled";
-const hasRecordedDebt = (stored: FollowUpOrder) =>
-  stored.order.settlementStatus === "debt" && stored.order.receivableMinor > 0;
+/* Group 1 (F-049 ذيل): شرط الدين المسجل من الدومين نفسه — لا ظل محلي ينحرف. */
+const hasRecordedDebt = (stored: FollowUpOrder) => isRegisteredCustomerDebt(stored.order);
 
 export function deriveDailyFollowUp(
   orders: readonly FollowUpOrder[],

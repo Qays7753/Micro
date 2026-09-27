@@ -8,6 +8,7 @@
  */
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import type { DirectSaleService } from "@/application/direct-sales/directSaleService";
@@ -80,7 +81,7 @@ export class CollectionService {
     for (const stored of ordersResult.value as readonly StoredCraftOrder[]) {
       const order = stored.order;
       if (order.status === "cancelled") continue;
-      const isRegisteredDebt = order.settlementStatus === "debt" && order.receivableMinor > 0;
+      const isRegisteredDebt = isRegisteredCustomerDebt(order);
       const isDeliveredRemaining =
         order.status === "delivered" && order.receivableMinor > 0 && order.settlementStatus !== "debt";
       if (!isRegisteredDebt && !isDeliveredRemaining) continue;

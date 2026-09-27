@@ -1,0 +1,88 @@
+{
+  "id": "REM-001",
+  "title": "Group 1 — المصالحة المالية عبر كل الطبقات (بلا UI)",
+  "type": "DEFECT",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "master-remediation-group-1",
+  "summary": "إزالة الحسابات المحلية المنافسة من مستهلكي المال غير المرئيين، وفحص اتساق قراءة فقط لثابت أساس التسوية، وطبقية تحقق الاستيراد مع ذهاب-وعودة لطلب ذي أجرة، وضبط المرايا غير المرئية — وفق الميثاق الرئيسي للإصلاح 2026-09-27/28 وبحد UI الصريح للبرنامج.",
+  "acceptance": [
+    "فحص MIC جديد لثابت أساس التسوية: لكل طلب Σ(قبضات) − Σ(عكوسات) == collectedMinor، والمتبقي المسجل يطابق أساس قيمة الطلب القابلة للتحصيل للطلبات غير الملغاة — قراءة فقط بلا إصلاح تلقائي (F-004/F-005)",
+    "الفحص يكشف انحرافًا مزروعًا في فيكسجر اختبار (معيار قبول التدقيق)",
+    "مدققو استيراد العائلات يفحصون حقول شروط التوصيل وتسوية العربون ومعاني الاحتفاظ وحقول مبالغ الأحداث، ورفض قبل الكتابة الذرية (F-007)",
+    "اختبار ذهاب-وعودة تصدير/استيراد لطلب ذي أجرة وعربون وعكس قبضة",
+    "إزالة المرايا غير المرئية: نقل اشتقاق عزو التسليم الأكثر ماليةً إلى المجال، وتكافؤ العربون المحتفظ المزدوج الاشتقاق مثبتًا باختبار أو موحّد المصدر (F-049 — الجزء غير المرئي)",
+    "توثيق نظامي انتقالات الحالة المتوازيين ومعالجة نوع حدث price_approved الميت بلا كاتب (F-050) دون كسر توافق",
+    "لا تعديل أي ملف React أو DOM test أو CSS — كل بند عرض = DEFERRED_UI لا يمنع الإغلاق",
+    "أوراكلات F-006 المتبقية إن وجدت تُحدّث لأساس قيمة الطلب القابلة للتحصيل"
+  ],
+  "areas": [
+    "finance",
+    "craft-order",
+    "export-import",
+    "settlement",
+    "delivery",
+    "reports",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/D15A-SLICE-REPORT-2026-09-28.md"
+  ],
+  "dependencies": [
+    "FIN-009"
+  ],
+  "related_items": [],
+  "owner_decision": "الميثاق الرئيسي المعتمد 2026-09-27/28: Group 1 يبدأ فقط بعد دمج D-15-A والتحقق منه على main — تحقق عند 542095c ثم الإغلاق عند 80ec2c6. UI خارج البرنامج حصرًا.",
+  "merge_sha": "",
+  "verified_on_main_sha": "",
+  "updated_at": "2026-09-28",
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit-findings:F-004,F-005,F-006,F-007,F-049,F-050 (root causes: missing settlement-invariant MIC, unlayered import validation, non-visual mirror equations)",
+  "source": {
+    "report": "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
+    "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
+    "evidence": [
+      "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",
+      "docs/contracts/02-order-lifecycle-contract.md"
+    ]
+  },
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-28",
+      "actor": "program:master-remediation",
+      "reason": "تسجيل موجات البرنامج الرئيسي في Tracker بعد إغلاق D-15-A (FIN-009) والتحقق منه على main — Group 1 هو البوابة التالية المسموحة حصرًا بالميثاق."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-185",
+      "reason": "فتح Claim WS-185 لشريحة G1-A (فحص MIC لثابت التسوية) من origin/main 80ec2c6."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "تنفيذ شرائح Group 1 بالتتابع (G1-A فحص التسوية، G1-B طبقية الاستيراد، G1-C المرايا غير المرئية)؛ كل شريحة PR مستقل يُدمج ويُتحقق منه على main قبل التالية.",
+  "classification": "FIX_BEFORE_PILOT",
+  "owner": "Product owner / Z AI execution with Manus coordination",
+  "tests_required": [
+    "اختبار فحص التسوية على متجر نظيف (PASS) وعلى انحراف مزروع (FAIL) بلا كتابة",
+    "اختبار رفض استيراد ملف معدل الأجرة/العربون قبل الكتابة الذرية",
+    "اختبار ذهاب-وعودة لطلب ذي أجرة وعربون وعكس",
+    "اختبارات تكافؤ المرايا أو توحيدها",
+    "بوابة pnpm check كاملة عند حد PR لكل شريقة"
+  ],
+  "layers": [
+    "application",
+    "domain",
+    "storage",
+    "tests"
+  ],
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"
+}

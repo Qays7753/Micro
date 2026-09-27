@@ -734,7 +734,16 @@ CAPS: dict[str, int] = {
     # supplier payments). One added registry title, no new prose surfaces.
     # ToolsIntegrity 86 -> 88 (2026-09-23, FIN-001 Wave 6): عنوان فحص
     # اتساق القروض المستلمة ووسم النتيجة في تقرير السلامة.
-    "ToolsIntegrity": 88,
+    # ToolsIntegrity 88 -> 89 (2026-09-28, master remediation charter Group 1,
+    # owner-approved F-004/F-005): the MIC registry grew by one read-only check
+    # (MIC-18 «ثابت أساس التسوية» — settlement-basis invariant: events settle the
+    # recorded collected amount and the recorded remainder matches the collectible-
+    # value basis); its title renders on this reader surface like MIC-8/MIC-10..13
+    # before it, while the derivation and detail vocabulary stay in the domain
+    # module outside the entry bundle (D-034). Net distinct strings: +1 (the new
+    # check id shares the existing MIC-N family; the retained-deposit mirror
+    # removal in the same slice freed its twin).
+    "ToolsIntegrity": 89,
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
     # FinanceActivity 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض

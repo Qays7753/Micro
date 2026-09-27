@@ -1,0 +1,48 @@
+{
+  "id": "WS-185",
+  "title": "REM-001 — G1-A فحص MIC لثابت أساس التسوية (F-004/F-005) وتحقق ذيل F-006",
+  "status": "IN_PROGRESS",
+  "items": [
+    "REM-001"
+  ],
+  "branch": "fix/g1a-settlement-mic-20260928",
+  "base_sha": "80ec2c607973ff3ce6d6abf1c1206668e1440ecd",
+  "areas": [
+    "finance",
+    "craft-order",
+    "settlement",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-28 (Group 1, slice A)",
+  "pr": null,
+  "started_at": "2026-09-28T21:00:00+03:00",
+  "updated_at": "2026-09-28T21:00:00+03:00",
+  "next_action": "إضافة فحص MIC-18 لثابت أساس التسوية (قراءة فقط) مع اختبار انحراف مزروع، ثم PR ودمج والتحقق على main.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-185",
+      "reason": "فتح Claim لشريحة G1-A من origin/main 80ec2c6 بعد إغلاق D-15-A والتحقق منه — فحص اتساق قراءة فقط لثابت التسوية (F-004) يثبت اتفاق الأحداث مع الحالة (F-005)."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-185",
+      "reason": "بدأ تنفيذ فحص MIC-18 لثابت أساس التسوية في integrityCheckService بلا كتابة ولا UI."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: integrityCheckService فقط (فحص جديد MIC-18) + اختباراته — لا كتابة ولا إصلاح تلقائي ولا UI.",
+    "حد الاستعادة: 80ec2c6؛ فحص قراءة فقط قابل للعكس بالكامل."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-001.json"
+  ]
+}
