@@ -29,6 +29,7 @@
     "FIN-007",
     "FIN-008",
     "FIN-009",
+    "REM-001",
     "CLEAN-001",
     "UX-001",
     "REL-001",
@@ -41,5 +42,5 @@
     "HARD-011"
   ],
   "final_gate": "PILOT-001",
-  "updated_at": "2026-09-27"
+  "updated_at": "2026-09-28"
 }
