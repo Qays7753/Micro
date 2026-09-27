@@ -51,11 +51,17 @@ describe("Settings data actions are gated behind the local lock (Group 6 — SP-
     );
     /* jsdom لا تنفّذ تنزيل الملف — نكتفي بالتحقق من بدء الإجراء لا من آلية المتصفح.
      * نقر الرابط الوهمي يُحاكى بلا ملاحة حقيقية تدمّر المستند. */
-    vi.stubGlobal("URL", {
-      ...(globalThis.URL as object),
-      createObjectURL: vi.fn(() => "blob:mock"),
-      revokeObjectURL: vi.fn(),
-    });
+    /* كعب آمن للمنشئ: jsdom لا تنفّذ تنزيل الملف فنحاكي الثابتين فقط —
+     * بقاء `new URL` قابلًا للإنشاء ضروري لمُشغّل وحدات vite عند أي
+     * استيراد ديناميكي أثناء الاختبار (MIC-18 يحمّل وحدة الدومين عند
+     * الفحص)؛ البثّ القديم للكائن كان يهدم المنشئ فيعطب المُشغّل. */
+    vi.stubGlobal(
+      "URL",
+      class MockBlobURL extends URL {
+        static createObjectURL = vi.fn(() => "blob:mock");
+        static revokeObjectURL = vi.fn();
+      },
+    );
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     /* jsdom بلا scrollIntoView — إشعار التخزين يفتح الطبقة ويمرر إليها. */
     (globalThis.Element.prototype as { scrollIntoView?: () => void }).scrollIntoView ??= () => undefined;
@@ -294,11 +300,17 @@ describe("Group 5 — destructive replacement protection, reset policy, and loca
       "matchMedia",
       vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
     );
-    vi.stubGlobal("URL", {
-      ...(globalThis.URL as object),
-      createObjectURL: vi.fn(() => "blob:mock"),
-      revokeObjectURL: vi.fn(),
-    });
+    /* كعب آمن للمنشئ: jsdom لا تنفّذ تنزيل الملف فنحاكي الثابتين فقط —
+     * بقاء `new URL` قابلًا للإنشاء ضروري لمُشغّل وحدات vite عند أي
+     * استيراد ديناميكي أثناء الاختبار (MIC-18 يحمّل وحدة الدومين عند
+     * الفحص)؛ البثّ القديم للكائن كان يهدم المنشئ فيعطب المُشغّل. */
+    vi.stubGlobal(
+      "URL",
+      class MockBlobURL extends URL {
+        static createObjectURL = vi.fn(() => "blob:mock");
+        static revokeObjectURL = vi.fn();
+      },
+    );
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     (globalThis.Element.prototype as { scrollIntoView?: () => void }).scrollIntoView ??= () => undefined;
     window.localStorage.clear();
