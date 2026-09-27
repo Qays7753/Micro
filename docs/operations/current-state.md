@@ -1516,3 +1516,27 @@ MICRO_FINANCIAL_ROADMAP_EXECUTION_COMPLETE — REMEDIATION_COMPLETE_MAIN_VERIFIE
 `WS_183_VERIFIED_ON_MERGED_MAIN`
 `UX_001_REMAINS_IN_PROGRESS`
 `NEXT_GATE_DEVICE_ACCESSIBILITY_UAT_AND_OWNER_REVIEW`
+
+## §75. Group 0 — بوابة الاتساق القراءة فقط مغلقة توثيقيًا — 2026-09-27
+أُغلقت Group 0 كمرحلة قراءة فقط وتصحيح توثيقي بعد دمج PR #241 في `main` عند
+`6f7757086d4c9c1b1c220c33daec1727b1f4f33f`. نجح CI على رأس `main` نفسه
+(run `36306583493`). شملت البوابة مراجعة baseline ومصادر الحقيقة والطبقات والنضج
+وقابلية التطور، وفصل اتساق تنفيذ القاعدة عن صحة السياسة المحاسبية أو القرار
+التجاري. لم يبدأ أي تعديل Runtime أو Domain أو Application أو Storage أو
+Export/Import، ولم تُفتح Claim لـ`D-15`.
+
+`GROUP_0_READ_ONLY_CLOSED_ON_MAIN`
+`GROUP_0_PR241_MERGED_AND_CI_PASS`
+`D15_OWNER_APPROVED_FOR_ZAI`
+`NO_D15_CLAIM_YET`
+`NO_GROUP1_START`
+
+**البوابة التالية فقط:** مراجعة بطاقة `D-15` وتصحيحها في PR توثيقي مستقل، ثم
+دمج PR #242، ثم يفتح Z AI Claim مستقلًا قبل تعديل الكود. يبدأ
+الجرد والتنفيذ المحدود لـ`D-15` من أحدث `origin/main`; ولا يبدأ Group 1 قبل
+إغلاق `D-15` والتحقق منه على `main`. بطاقة D-15 المعتمدة تستخدم صندوقي
+«مساهمة المشروع في التوصيل» و«مساهمة العميل في التوصيل»، وتستنتج الوصف
+البسيط للمستخدم من الرقمين، وتمنع التحصيل العادي للسجل التاريخي المتعارض دون كتابة، وتثبت
+أن سقف العكس هو الجزء غير المعكوس من القبضة الأصلية، مع منع الرجوع البرمجي
+المنفرد بعد أول كتابة بالسلوك المصحح.
+تفصيل الإغلاق: `docs/operations/control/evidence/group0-correction-2026-09-27/GROUP-0-CLOSEOUT-2026-09-27.md`.
