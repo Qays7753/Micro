@@ -1,0 +1,48 @@
+{
+  "id": "WS-186",
+  "title": "REM-001 — G1-B طبقية تحقق الاستيراد وذهاب-وعودة طلب ذي أجرة (F-007)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "REM-001"
+  ],
+  "branch": "fix/g1b-import-validation-20260928",
+  "base_sha": "c5b148039277dbfbdde14875db49e0f3fdddfb0e",
+  "areas": [
+    "export-import",
+    "craft-order",
+    "delivery",
+    "settlement",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-28 (Group 1, slice B)",
+  "pr": null,
+  "started_at": "2026-09-28T22:05:00+03:00",
+  "updated_at": "2026-09-28T22:05:00+03:00",
+  "next_action": "دمج مدققي شروط التوصيل والعربون والأحداث المالية في طبقات الاستيراد ورفضها قبل الكتابة الذرية، مع دورة ذهاب-وعودة لطلب ذي أجرة، ثم PR ودمج والتحقق على main.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-186",
+      "reason": "فتح Claim لشريحة G1-B من origin/main c5b1480 بعد إغلاق G1-A والتحقق منه."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-186",
+      "reason": "بدأ تنفيذ مدققي شروط التوصيل والعربون ومعاني الاحتفاظ وحقول مبالغ الأحداث المحركة للمال."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: طبقات تحقق الاستيراد (بنية ثم نطاق ثم علاقات) بلا UI ولا تغيير مخطط/تصدير (38/30 كما هي)؛ القيم القانونية من مصدر الدومين.",
+    "حد الاستعادة: c5b1480."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-001.json"
+  ]
+}
