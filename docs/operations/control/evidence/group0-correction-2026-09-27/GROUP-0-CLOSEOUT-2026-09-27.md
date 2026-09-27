@@ -1,8 +1,8 @@
 # Micro — Group 0 Read-Only Closeout
 
-**التاريخ:** 2026-09-27 — Asia/Amman  
-**Main بعد الدمج:** `6f7757086d4c9c1b1c220c33daec1727b1f4f33f`  
-**PR التوثيقي:** [#241](https://github.com/Qays7753/Micro/pull/241)  
+**التاريخ:** 2026-09-27 — Asia/Amman
+**Main بعد الدمج:** `6f7757086d4c9c1b1c220c33daec1727b1f4f33f`
+**PR التوثيقي:** [#241](https://github.com/Qays7753/Micro/pull/241)
 **حالة الفحوص:** `PASS` على رأس `main` نفسه، CI run `36306583493`
 
 ## القرار
