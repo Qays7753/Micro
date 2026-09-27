@@ -1,0 +1,49 @@
+{
+  "id": "WS-184",
+  "title": "FIN-009 — D-15 شريحة سلامة أساس الدين والتحصيل مع مساهمتي التوصيل (صندوقا المشروع والعميل)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "FIN-009"
+  ],
+  "branch": "fix/fin-009-d15-settlement-safety-20260927",
+  "base_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
+  "areas": [
+    "finance",
+    "craft-order",
+    "delivery",
+    "settlement",
+    "presentation"
+  ],
+  "contracts": [
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/06-financial-event-prototype-contract.md",
+    "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md"
+  ],
+  "agent": "Z AI — D-15 safety slice session 2026-09-27",
+  "pr": null,
+  "started_at": "2026-09-27T11:20:00+03:00",
+  "updated_at": "2026-09-27T11:20:00+03:00",
+  "next_action": "تنفيذ D-15 على الفرع: إصلاح أساس سقف التحصيل والمتبقي في collectRegisteredDebt وreverseOrderCollection إلى orderValueMinor، وحارس التعارض التاريخي قبل الكتابة دون needs_review تلقائي، ونموذج الصندوقين وملخص الحفظ الصادق، ثم PR مستقل بلا دمج.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-27",
+      "actor": "claim:ws-184",
+      "reason": "فتح Claim مستقل لـ FIN-009 (D-15) من أحدث origin/main 2ebb435 بتفويض المالك الصريح في مهمة 2026-09-27 — بطاقة D-15 المعتمدة ونموذج الصندوقين؛ لا كود قبل الجرد."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-27",
+      "actor": "claim:ws-184",
+      "reason": "اكتمل الجرد المسبق (مستهلكو التحصيل والعكس والمتبقي والواجهات) وبدأ تنفيذ إصلاح الأساس في الدومين على الفرع المخصص."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "التفويض: مهمة المالك 2026-09-27 (D-15 safety slice + Group 1 operational remediation) — المالك اعتمد بطاقة D-15 ونموذج الصندوقين ومساهمة العميل تدخل orderValueMinor مرة واحدة ومساهمة المشروع لا تدخل دين العميل؛ Z AI منفذ الكود والدمج بوابة مراجعة المالك.",
+    "النطاق: Domain/Application/Presentation/tests لأساس التحصيل والعكس والتعارض التاريخي وصندوقي التوصيل وملخص الحفظ؛ بلا Schema/Export/Import وبلا إعادة كتابة تاريخ وبلا إعادة تصميم بصري.",
+    "خارج النطاق عمدًا: Group 1 قبل دمج D-15 والتحقق منه على main؛ سياسة كلفة التوصيل في نتيجة الفترة؛ DELIVERY-COST/C7/EQ-136؛ أي ترحيل Schema أو تفسير سجلات قديمة؛ البنية الهيكلية خلف بوابة المجموعة ٦.",
+    "حد الاستعادة: PR مستقل من 2ebb435334dd69da0273d592ec8bffac5e70c1cf قبل أول كتابة إنتاجية بالسلوك المصحح؛ بعد بدء كتابة بيانات مصححة لا يكفي git revert منفردًا (بطاقة D-15 §10)."
+  ]
+}

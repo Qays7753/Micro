@@ -2,7 +2,7 @@
   "id": "FIN-009",
   "title": "D-15 — تصحيح أساس الدين والتحصيل مع مساهمتي التوصيل",
   "type": "DEFECT",
-  "status": "READY",
+  "status": "IN_PROGRESS",
   "priority": "P1",
   "stage": "stage-2-d15-safety-slice",
   "summary": "تصحيح اتساق قيمة الطلب القابلة للتحصيل والدين والتحصيل والعكس، مع واجهة توصيل بسيطة بصندوق مساهمة المشروع وصندوق مساهمة العميل.",
@@ -57,10 +57,22 @@
       "changed_at": "2026-09-27",
       "actor": "owner:d15-two-box-approval",
       "reason": "اعتماد بطاقة D-15 ونموذج الصندوقين؛ البند جاهز لفتح Claim مستقل بواسطة Z AI من أحدث origin/main، ولم يبدأ الكود بعد."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-27",
+      "actor": "claim:ws-184",
+      "reason": "فتح Workstream Claim WS-184 على الفرع fix/fin-009-d15-settlement-safety-20260927 من 2ebb435 بعد الجرد المسبق للمستهلكين."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-27",
+      "actor": "claim:ws-184",
+      "reason": "بدأ تنفيذ شريحة السلامة على الفرع: إصلاح أساس collectRegisteredDebt وreverseOrderCollection وحارس التعارض التاريخي وصندوقا التوصيل وملخص الحفظ."
     }
   ],
   "migration_baseline": true,
-  "next_action": "Z AI يفتح Claim Workstream مستقلًا من أحدث origin/main، يقرأ بطاقة D-15، يجري جرد المستهلكين، وينفذ PR Runtime محدودًا. بعد الدمج والتحقق على main فقط يُغلق FIN-009 ويبدأ Group 1.",
+  "next_action": "تنفيذ D-15 داخل WS-184 على الفرع fix/fin-009-d15-settlement-safety-20260927 (الجرد اكتمل)، ثم PR مستقل بلا دمج وبوابة فحوص كاملة. بعد الدمج والتحقق على main فقط يُغلق FIN-009 ويبدأ Group 1.",
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "tests_required": [
