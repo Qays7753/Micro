@@ -24,12 +24,14 @@ describe("D-15 — deriving delivery terms from the two contribution boxes", () 
       ...noFlags,
     });
     expect(terms).toBeNull();
-    expect(deliveryContributionSpecified({
-      projectMinor: null,
-      customerMinor: null,
-      customerPaysCourierDirect: false,
-      ...noFlags,
-    })).toBe(false);
+    expect(
+      deliveryContributionSpecified({
+        projectMinor: null,
+        customerMinor: null,
+        customerPaysCourierDirect: false,
+        ...noFlags,
+      }),
+    ).toBe(false);
   });
 
   it("project contribution 10 with customer 0 keeps the customer debt at the product price only", () => {

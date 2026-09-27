@@ -84,11 +84,7 @@ const projectPaysTerms = (costPaidMinor: number | null, key: string) => ({
   createdAt: NOW,
 });
 
-const sharedTerms = (
-  feeChargedMinor: number | null,
-  costPaidMinor: number | null,
-  key: string,
-) => ({
+const sharedTerms = (feeChargedMinor: number | null, costPaidMinor: number | null, key: string) => ({
   responsibility: "shared" as const,
   feeIncludedInPrice: false,
   costIncludedInProductCost: false,
@@ -119,6 +115,61 @@ function toDelivered(order: CraftOrder, prefix: string): CraftOrder {
   return current;
 }
 
+/* أمر جاهز: سعر 50 + مساهمة عميل 5 = قيمة قابلة للتحصيل 55، مسلّمًا ودينًا مسجلًا. */
+function feeDebtOrder(): CraftOrder {
+  const base = recordDeliveryTerms(knownCostOrder(5000, "d15-debt"), feeTerms(500, 0, "d15-debt-terms"));
+  const delivered = toDelivered(base, "d15-debt");
+  return registerDebt(delivered, "d15-debt-register", NOW);
+}
+
+/* أمر جاهز: قيمة 55 محصلة كاملة بقبضة واحدة بعد التسليم. */
+function collectedFeeOrder(): CraftOrder {
+  const base = recordDeliveryTerms(knownCostOrder(5000, "d15-rev"), feeTerms(500, 0, "d15-rev-terms"));
+  const delivered = toDelivered(base, "d15-rev");
+  const settled = collectRemaining(delivered, 5500, "d15-rev-grip", NOW);
+  expect(settled.settlementStatus).toBe("paid");
+  return settled;
+}
+
+/* محاكاة سجل قديم أغلق دين 55 عند قبض 50 بمتبقى مسجل 0 وحالة paid. */
+function stalePaidRecord(): CraftOrder {
+  const base = recordDeliveryTerms(knownCostOrder(5000, "d15-hist"), feeTerms(500, 0, "d15-hist-terms"));
+  const delivered = toDelivered(base, "d15-hist");
+  const debt = registerDebt(delivered, "d15-hist-register", NOW);
+  const oldBuggyCollect: CraftOrder = {
+    ...debt,
+    collectedMinor: 5000,
+    receivableMinor: 0,
+    settlementStatus: "paid",
+    nextAction: "راجع النتيجة والخطوة التالية",
+    events: [
+      ...debt.events,
+      {
+        id: "d15-hist:d15-hist-old-grip",
+        type: "collection_recorded",
+        idempotencyKey: "d15-hist-old-grip",
+        createdAt: NOW,
+        amountMinor: 5000,
+      },
+    ],
+  };
+  return oldBuggyCollect;
+}
+
+/* محاكاة دين مفتوح كتب متبقيه بالأساس القديم: قبض 30 من 55 أعطى متبقيًا 20 لا 25. */
+function staleDebtRecord(): CraftOrder {
+  const base = recordDeliveryTerms(knownCostOrder(5000, "d15-hist4"), feeTerms(500, 0, "d15-hist4-terms"));
+  const delivered = toDelivered(base, "d15-hist4");
+  const debt = registerDebt(delivered, "d15-hist4-register", NOW);
+  const oldBuggyPartial: CraftOrder = {
+    ...debt,
+    collectedMinor: 3000,
+    receivableMinor: 2000,
+    settlementStatus: "debt",
+  };
+  return oldBuggyPartial;
+}
+
 describe("D-15 — settlement basis with the two delivery contributions", () => {
   it("keeps the exact legacy behavior when there is no billable customer contribution", () => {
     const delivered = toDelivered(knownCostOrder(5000, "d15-a"), "d15-a");
@@ -133,44 +184,31 @@ describe("D-15 — settlement basis with the two delivery contributions", () => 
   });
 
   it("adds the customer contribution collected through the project exactly once to the collectible value", () => {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-b"),
-      feeTerms(500, 0, "d15-b-terms"),
-    );
+    const base = recordDeliveryTerms(knownCostOrder(5000, "d15-b"), feeTerms(500, 0, "d15-b-terms"));
     expect(orderValueMinor(base)).toBe(5500);
     expect(base.receivableMinor).toBe(5500);
   });
 
   it("a project contribution alone never enters the customer debt", () => {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-c"),
-      projectPaysTerms(1000, "d15-c-terms"),
-    );
+    const base = recordDeliveryTerms(knownCostOrder(5000, "d15-c"), projectPaysTerms(1000, "d15-c-terms"));
     expect(orderValueMinor(base)).toBe(5000);
     expect(base.receivableMinor).toBe(5000);
   });
 
   it("a customer contribution alone adds its amount to what the customer owes", () => {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-d"),
-      feeTerms(1000, 0, "d15-d-terms"),
-    );
+    const base = recordDeliveryTerms(knownCostOrder(5000, "d15-d"), feeTerms(1000, 0, "d15-d-terms"));
     expect(orderValueMinor(base)).toBe(6000);
   });
 
   it("a shared contribution adds only the customer part to the collectible value", () => {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-e"),
-      sharedTerms(500, 500, "d15-e-terms"),
-    );
+    const base = recordDeliveryTerms(knownCostOrder(5000, "d15-e"), sharedTerms(500, 500, "d15-e-terms"));
     expect(orderValueMinor(base)).toBe(5500);
   });
+});
 
+describe("D-15 — null, included-in-price, and courier-direct contributions", () => {
   it("an unrecorded (null) contribution is never invented as zero into the value", () => {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-f"),
-      feeTerms(null, null, "d15-f-terms"),
-    );
+    const base = recordDeliveryTerms(knownCostOrder(5000, "d15-f"), feeTerms(null, null, "d15-f-terms"));
     expect(orderValueMinor(base)).toBe(5000);
   });
 
@@ -200,15 +238,6 @@ describe("D-15 — settlement basis with the two delivery contributions", () => 
 });
 
 describe("D-15 — registered debt collection on the collectible-value basis", () => {
-  function feeDebtOrder(): CraftOrder {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-debt"),
-      feeTerms(500, 0, "d15-debt-terms"),
-    );
-    const delivered = toDelivered(base, "d15-debt");
-    return registerDebt(delivered, "d15-debt-register", NOW);
-  }
-
   it("registers the debt at the full collectible value without touching collected cash", () => {
     const debt = feeDebtOrder();
     expect(debt.status).toBe("settled");
@@ -228,7 +257,9 @@ describe("D-15 — registered debt collection on the collectible-value basis", (
     expect(partial.settlementStatus).toBe("debt");
     expect(partial.nextAction).toBe("تابع تحصيل الدين");
   });
+});
 
+describe("D-15 — debt completion, over-collection rejection, and idempotency", () => {
   it("collecting the remaining 5 settles the debt to paid per the existing contract", () => {
     const debt = feeDebtOrder();
     const partial = collectRegisteredDebt(debt, 5000, "d15-debt-collect-2", NOW);
@@ -242,7 +273,7 @@ describe("D-15 — registered debt collection on the collectible-value basis", (
     const debt = feeDebtOrder();
     const partial = collectRegisteredDebt(debt, 5000, "d15-debt-collect-4", NOW);
     expect(() => collectRegisteredDebt(partial, 600, "d15-over", NOW)).toThrow(
-      "التحصيل لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل.",
+      "التحصيل لا يمكن أن يتجاوز السعر المتفق عليه",
     );
     /* الرفض وقع قبل الكتابة: لا حدث قبض جديد فوق القبضة الوحيدة المسجلة. */
     expect(partial.events.filter(event => event.type === "collection_recorded")).toHaveLength(1);
@@ -262,17 +293,6 @@ describe("D-15 — registered debt collection on the collectible-value basis", (
 });
 
 describe("D-15 — collection reversal on the collectible-value basis", () => {
-  function collectedFeeOrder(): CraftOrder {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-rev"),
-      feeTerms(500, 0, "d15-rev-terms"),
-    );
-    const delivered = toDelivered(base, "d15-rev");
-    const settled = collectRemaining(delivered, 5500, "d15-rev-grip", NOW);
-    expect(settled.settlementStatus).toBe("paid");
-    return settled;
-  }
-
   it("reversing 5 of the original 55 grip restores 5 outstanding without staying paid", () => {
     const settled = collectedFeeOrder();
     const reversed = reverseOrderCollection(settled, {
@@ -307,9 +327,7 @@ describe("D-15 — collection reversal on the collectible-value basis", () => {
         createdAt: NOW,
       }),
     ).toThrow("التراجع التراكمي لا يمكن أن يتجاوز مبلغ القبضة المسجلة.");
-    expect(
-      partiallyReversed.events.filter(event => event.type === "collection_reversed"),
-    ).toHaveLength(1);
+    expect(partiallyReversed.events.filter(event => event.type === "collection_reversed")).toHaveLength(1);
   });
 
   it("retries the same reversal idempotently", () => {
@@ -336,65 +354,15 @@ describe("D-15 — historically conflicting records are blocked, never rewritten
   /* محاكاة سجل كتبه المسار الخاطئ القديم: سقف التحصيل كان agreedPriceMinor،
    * فأغلق دين 55 عند قبض 50 بمتبقى مسجل 0 وحالة paid — سجل مستقر ظاهريًا
    * ومتناقض مع أساس قيمة الطلب القابلة للتحصيل. */
-  function stalePaidRecord(): CraftOrder {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-hist"),
-      feeTerms(500, 0, "d15-hist-terms"),
-    );
-    const delivered = toDelivered(base, "d15-hist");
-    const debt = registerDebt(delivered, "d15-hist-register", NOW);
-    /* القبضة التي كتبها المسار القديم قبل إغلاق الدين خطأً عند السعر وحده. */
-    const oldBuggyCollect: CraftOrder = {
-      ...debt,
-      collectedMinor: 5000,
-      receivableMinor: 0,
-      settlementStatus: "paid",
-      nextAction: "راجع النتيجة والخطوة التالية",
-      events: [
-        ...debt.events,
-        {
-          id: "d15-hist:d15-hist-old-grip",
-          type: "collection_recorded",
-          idempotencyKey: "d15-hist-old-grip",
-          createdAt: NOW,
-          amountMinor: 5000,
-        },
-      ],
-    };
-    return oldBuggyCollect;
-  }
-
   /* المحاكاة الأهم: دين ما زال مفتوحًا لكن قيمته كُتبت بالأساس القديم —
    * قبض 30 من 55 أعطى متبقيًا مسجلًا 20 (من السعر 50) لا 25 الصحيح. */
-  function staleDebtRecord(): CraftOrder {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-hist4"),
-      feeTerms(500, 0, "d15-hist4-terms"),
-    );
-    const delivered = toDelivered(base, "d15-hist4");
-    const debt = registerDebt(delivered, "d15-hist4-register", NOW);
-    const oldBuggyPartial: CraftOrder = {
-      ...debt,
-      collectedMinor: 3000,
-      receivableMinor: 2000,
-      settlementStatus: "debt",
-    };
-    return oldBuggyPartial;
-  }
-
   it("blocks the normal debt-collection path before writing and shows the reconciliation conflict", () => {
     const stale = staleDebtRecord();
-    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow(
-      "تعارض سجل تاريخي",
-    );
-    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow(
-      "قيمة الطلب القابلة للتحصيل 55",
-    );
+    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow("تعارض تاريخي");
+    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow("الأساس 55");
     expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow("الفرق 5");
     /* لا كتابة ولا تحويل تلقائي إلى needs_review ولا مسّ بالأحداث الأصلية. */
-    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow(
-      "لا تُعاد كتابة الأحداث الأصلية",
-    );
+    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-collect", NOW)).toThrow("تعارض تاريخي");
     expect(stale.status).toBe("settled");
     expect(stale.settlementStatus).toBe("debt");
     expect(
@@ -409,9 +377,7 @@ describe("D-15 — historically conflicting records are blocked, never rewritten
     /* السجل الذي أغلقه المسار القديم خطأً لا يظهر دينًا مسجلًا فلا يُحصّل
      * من المسار العادي؛ مخرجه الموثق عكس القبضة (يعيد الحساب من الأساس
      * الصحيح) أو قرار المالك — لا إعادة كتابة صامتة ولا needs_review تلقائي. */
-    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-closed", NOW)).toThrow(
-      "يتطلب دينًا مسجلًا",
-    );
+    expect(() => collectRegisteredDebt(stale, 100, "d15-hist-closed", NOW)).toThrow("يتطلب دينًا مسجلًا");
     expect(stale.settlementStatus).toBe("paid");
     expect(
       stale.events.some(event => event.type === "status_changed" && event.toStatus === "needs_review"),
@@ -428,12 +394,11 @@ describe("D-15 — historically conflicting records are blocked, never rewritten
     expect(reversed.settlementStatus).toBe("debt");
     expect(reversed.events.some(event => event.type === "collection_reversed")).toBe(true);
   });
+});
 
+describe("D-15 — stale records never register new wrong-basis money", () => {
   it("blocks debt registration on a delivered record whose stored remainder mismatches the basis", () => {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-hist2"),
-      feeTerms(500, 0, "d15-hist2-terms"),
-    );
+    const base = recordDeliveryTerms(knownCostOrder(5000, "d15-hist2"), feeTerms(500, 0, "d15-hist2-terms"));
     const delivered = toDelivered(base, "d15-hist2");
     const partial = collectRemaining(delivered, 5000, "d15-hist2-grip", NOW);
     /* محاكاة عكس قديم خاطئ أعاد المتبقي من السعر وحده. */
@@ -452,17 +417,12 @@ describe("D-15 — historically conflicting records are blocked, never rewritten
       settlementStatus: "partially_paid",
       status: "delivered",
     };
-    expect(() => registerDebt(staleWithRemainder, "d15-hist2-debt", NOW)).toThrow(
-      "تعارض سجل تاريخي",
-    );
+    expect(() => registerDebt(staleWithRemainder, "d15-hist2-debt", NOW)).toThrow("تعارض تاريخي");
     expect(staleWithRemainder.events).toHaveLength(partial.events.length);
   });
 
   it("an honest idempotent replay still passes before the conflict guard blocks new writes", () => {
-    const base = recordDeliveryTerms(
-      knownCostOrder(5000, "d15-hist3"),
-      feeTerms(500, 0, "d15-hist3-terms"),
-    );
+    const base = recordDeliveryTerms(knownCostOrder(5000, "d15-hist3"), feeTerms(500, 0, "d15-hist3-terms"));
     const delivered = toDelivered(base, "d15-hist3");
     const collected = collectRemaining(delivered, 5500, "d15-hist3-grip", NOW);
     /* إعادة المحاولة الصادقة بنفس المفتاح تُعاد كما هي حتى لو اعتُبرت

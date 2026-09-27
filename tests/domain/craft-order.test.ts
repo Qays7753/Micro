@@ -369,7 +369,7 @@ describe("craft-order domain core", () => {
 
     let order = registerDebt(delivered, "debt-4", "2026-08-21T09:47:00Z");
     expect(() => collectRegisteredDebt(order, 4001, "over-collect", "2026-08-21T11:11:00Z")).toThrow(
-      "لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل",
+      "لا يمكن أن يتجاوز السعر المتفق عليه",
     );
     expect(() => collectRegisteredDebt(order, 0, "zero-collect", "2026-08-21T11:12:00Z")).toThrow();
 

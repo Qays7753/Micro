@@ -13,6 +13,10 @@
  */
 import type { DeliveryResponsibility } from "@micro-domain/craft-order/index.js";
 
+/* الوصف البسيط لمفردات من يدفع التوصيل يملكه الدومين (كما DELIVERY_RESPONSIBILITY_AR)
+ * ويُعاد تصديره هنا ليظل نموذج الصندوقين بمصدر واحد لمستهلكيه. */
+export { describeDeliveryContribution } from "@micro-domain/craft-order/index.js";
+
 export type DeliveryContributionInput = {
   /** مساهمة المشروع في التوصيل — الكلفة التي يتحملها المشروع (minor). */
   projectMinor: number | null;
@@ -102,35 +106,6 @@ export function deriveDeliveryContributionTerms(
     costPaidMinor: input.projectMinor,
     ...shares,
   };
-}
-
-/**
- * الوصف البسيط لمن يدفع التوصيل — من القيم المحفوظة نفسها، بالمصطلحات
- * المعتمدة للمالك، بلا معادلات ولا مصطلحات محاسبية:
- * مشروع موجب وعميل صفر/غير مسجل → «على المشروع»؛ العكس → «على العميل»؛
- * الموجبان معًا → «مشترك»؛ الصريحان صفرًا → «لا توجد مساهمة توصيل».
- */
-export function describeDeliveryContribution(input: {
-  projectMinor: number | null;
-  customerMinor: number | null;
-  customerPaysCourierDirect: boolean;
-}): string {
-  if (input.customerPaysCourierDirect) {
-    return "الزبون يدفع لشركة التوصيل مباشرة — لا مستحق للمشروع من التوصيل.";
-  }
-  const project = input.projectMinor;
-  const customer = input.customerMinor;
-  if (project === null && customer === null) return "لم تُسجَّل مساهمة توصيل بعد.";
-  if (project !== null && project > 0 && (customer === null || customer === 0)) {
-    return "التوصيل على المشروع.";
-  }
-  if (customer !== null && customer > 0 && (project === null || project === 0)) {
-    return "التوصيل على العميل.";
-  }
-  if ((project ?? 0) > 0 && (customer ?? 0) > 0) return "التوصيل مشترك بين المشروع والعميل.";
-  if (project === 0 && customer === 0) return "لا توجد مساهمة توصيل — التوصيل مجاني.";
-  /* حالة مختلطة: قيمة صريحة صفر مع قيمة غير مسجلة — معرفة ناقصة معلنة. */
-  return "مساهمة التوصيل غير محددة بالكامل بعد.";
 }
 
 /** إعادة بناء صندوقي المساهمة من شروط مخزنة — لعرض الوصف والتحرير من السجل نفسه.

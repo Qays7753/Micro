@@ -359,13 +359,13 @@ function withSettlement(order: CraftOrder): CraftOrder {
  * لا يُعاد كتابته ولا يُحوّل تلقائيًا إلى needs_review، والأحداث الأصلية
  * محفوظة كما هي؛ المخرج الوحيد تصحيح موثق مستقل بقرار المالك. */
 function assertSettlementBasisConsistent(order: CraftOrder): void {
-  const derivedReceivableMinor = Math.max(orderValueMinor(order) - order.collectedMinor, 0);
+  /* بلا Math.max عمدًا: السجل الفاسد الذي تجاوز قبضه قيمة الطلب يظهر
+   * متبقيًا سالبًا فلا يطابق المخزن أبدًا — الحارس أشد لا أخف. */
+  const derivedReceivableMinor = orderValueMinor(order) - order.collectedMinor;
   if (order.receivableMinor === derivedReceivableMinor) return;
   const differenceMinor = derivedReceivableMinor - order.receivableMinor;
   throw new Error(
-    `تعارض سجل تاريخي: المتبقي المسجل ${order.receivableMinor / 100} د.أ لا يطابق أساس قيمة الطلب القابلة للتحصيل ` +
-      `${orderValueMinor(order) / 100} د.أ بعد المقبوض ${order.collectedMinor / 100} د.أ (الفرق ${differenceMinor / 100} د.أ) — ` +
-      "التحصيل العادي موقوف لهذا السجل حتى تصحيح موثق بقرار المالك؛ لا تُعاد كتابة الأحداث الأصلية ولا يُحوّل السجل تلقائيًا إلى مراجعة.",
+    `تعارض تاريخي: المتبقي ${order.receivableMinor / 100} والأساس ${orderValueMinor(order) / 100} والقبض ${order.collectedMinor / 100} والفرق ${differenceMinor / 100} د.أ — التحصيل موقوف حتى تصحيح موثق`,
   );
 }
 
@@ -699,9 +699,7 @@ export function collectDeposit(
   }
   assertPositiveInteger(amountMinor, "العربون");
   if (amountMinor + order.collectedMinor > orderValueMinor(order)) {
-    /* D-15: السقف هو قيمة الطلب القابلة للتحصيل (السعر + الأجرة القابلة
-     * للفوترة) — الرسالة تسمّي الأساس الحاكم نفسه لا السعر وحده. */
-    throw new Error("العربون لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل.");
+    throw new Error("العربون لا يمكن أن يتجاوز السعر المتفق عليه.");
   }
 
   const next = withSettlement({
@@ -734,8 +732,7 @@ export function collectRemaining(
   }
   assertPositiveInteger(amountMinor, "مبلغ التحصيل");
   if (amountMinor + order.collectedMinor > orderValueMinor(order)) {
-    /* D-15: السقف هو قيمة الطلب القابلة للتحصيل — الرسالة تسمّي الأساس الحاكم. */
-    throw new Error("التحصيل لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل.");
+    throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
   }
 
   const next = withSettlement({
@@ -819,7 +816,7 @@ export function collectRegisteredDebt(
    * بمفتاحها مرّت قبل هذا الحارس فلا تُحجب (eventExists أعلاه). */
   assertSettlementBasisConsistent(order);
   if (amountMinor + order.collectedMinor > orderValueMinor(order))
-    throw new Error("التحصيل لا يمكن أن يتجاوز قيمة الطلب القابلة للتحصيل.");
+    throw new Error("التحصيل لا يمكن أن يتجاوز السعر المتفق عليه.");
 
   const collectedMinor = order.collectedMinor + amountMinor;
   /* D-15: المتبقي يُعاد اشتقاقه من أساس قيمة الطلب القابلة للتحصيل نفسه

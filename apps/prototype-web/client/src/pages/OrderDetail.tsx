@@ -647,7 +647,9 @@ export default function OrderDetail() {
       return;
     }
     if (extraDepositMinor > remainingMinor) {
-      setMessage(`العربون لا يتجاوز المتبقي من قيمة الطلب — المتبقي ${formatMoneyMinor(remainingMinor)} د.أ.`);
+      setMessage(
+        `العربون لا يتجاوز المتبقي من قيمة الطلب — المتبقي ${formatMoneyMinor(remainingMinor)} د.أ.`,
+      );
       return;
     }
     setIsActing(true);
@@ -1302,8 +1304,8 @@ export default function OrderDetail() {
                   {validExtraDeposit && extraDepositMinor > 0 ? (
                     <p className="micro-muted-copy" data-testid="extra-deposit-preview">
                       المتبقي على الطلب بعد العربون يصبح{" "}
-                      {formatMoneyMinor(Math.max(order.receivableMinor - extraDepositMinor, 0))}{" "}
-                      د.أ · العربون ليس إيرادًا ولا ربحًا الآن.
+                      {formatMoneyMinor(Math.max(order.receivableMinor - extraDepositMinor, 0))} د.أ · العربون
+                      ليس إيرادًا ولا ربحًا الآن.
                     </p>
                   ) : null}
                   <div className="micro-form-actions micro-contextual-actions">
@@ -1747,7 +1749,9 @@ export default function OrderDetail() {
                   ? ` · حصة الزبون من النقل: ${formatMoneyMinor(order.deliveryTerms.customerShareMinor)} د.أ`
                   : ""}
                 {order.deliveryTerms.feeIncludedInPrice ? " · مساهمة العميل محتواة في السعر" : ""}
-                {order.deliveryTerms.costIncludedInProductCost ? " · مساهمة المشروع محتواة في تكلفة المنتج" : ""}
+                {order.deliveryTerms.costIncludedInProductCost
+                  ? " · مساهمة المشروع محتواة في تكلفة المنتج"
+                  : ""}
               </p>
             ) : (
               <p className="micro-muted-copy">لا شروط نقل وتوصيل مسجلة لهذا الطلب.</p>
