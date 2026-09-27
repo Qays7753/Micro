@@ -1,7 +1,7 @@
 {
   "id": "WS-187",
   "title": "REM-001 — G1-C عزو التسليم للمجال ونوع الحدث الميت وتوثيق الانتقالات (F-049 الباقي + F-050)",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "items": [
     "REM-001"
   ],
@@ -18,10 +18,10 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-28 (Group 1, slice C)",
-  "pr": null,
+  "pr": 251,
   "started_at": "2026-09-28T23:05:00+03:00",
-  "updated_at": "2026-09-28T23:05:00+03:00",
-  "next_action": "نقل lastEffectiveDeliveryEvent للدومين (نقل حرفي باختبارات قائمة خضراء)، حذف نوع price_approved الميت بلا كاتب، توثيق التصميم المزدوج للانتقالات؛ ثم PR ودمج وإغلاق REM-001.",
+  "updated_at": "2026-09-28T23:40:00+03:00",
+  "next_action": "لا إجراء إضافي؛ G1-C متحققة على main وGroup 1 مكتمل.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -34,6 +34,24 @@
       "changed_at": "2026-09-28",
       "actor": "claim:ws-187",
       "reason": "بدأ النقل الحرفي لعزو التسليم ومعالجة نوع الحدث الميت وتوثيق الانتقالات."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-28",
+      "actor": "pr:251",
+      "reason": "افتُتح PR #251 بالنقل الحرفي والحذف الموثق."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-28",
+      "actor": "merge:pr-251",
+      "reason": "دُمج PR #251 (Squash) عند b72e596a10d76123437ec5f5c2286a42247b2ce6."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-28",
+      "actor": "verify:main-ci",
+      "reason": "CI وCloudflare ناجحان على SHA الدمج نفسه؛ الشجرة مطابقة؛ اختبارات العزو خضراء على main."
     }
   ],
   "migration_baseline": false,
@@ -43,6 +61,9 @@
     "حد الاستعادة: 93afde3."
   ],
   "evidence": [
-    "docs/operations/control/items/REM-001.json"
-  ]
+    "docs/operations/control/items/REM-001.json",
+    "https://github.com/Qays7753/Micro/pull/251"
+  ],
+  "merge_sha": "b72e596a10d76123437ec5f5c2286a42247b2ce6",
+  "verified_on_main_sha": "b72e596a10d76123437ec5f5c2286a42247b2ce6"
 }

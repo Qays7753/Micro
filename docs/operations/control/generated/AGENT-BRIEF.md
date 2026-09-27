@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · CLAIMED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 38
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 39
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,6 +32,4 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
-|---|---|---|---|---|---|
-| WS-187 | IN_PROGRESS | \`fix/g1c-mirrors-and-transitions-20260928\` | — | REM-001 | نقل lastEffectiveDeliveryEvent للدومين (نقل حرفي باختبارات قائمة خضراء)، حذف نوع price_approved الميت بلا كاتب، توثيق التصميم المزدوج للانتقالات؛ ثم PR ودمج وإغلاق REM-001. |
+لا يوجد Workstream نشط أو يحتاج مراجعة.

@@ -2,7 +2,7 @@
   "id": "REM-001",
   "title": "Group 1 — المصالحة المالية عبر كل الطبقات (بلا UI)",
   "type": "DEFECT",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "master-remediation-group-1",
   "summary": "إزالة الحسابات المحلية المنافسة من مستهلكي المال غير المرئيين، وفحص اتساق قراءة فقط لثابت أساس التسوية، وطبقية تحقق الاستيراد مع ذهاب-وعودة لطلب ذي أجرة، وضبط المرايا غير المرئية — وفق الميثاق الرئيسي للإصلاح 2026-09-27/28 وبحد UI الصريح للبرنامج.",
@@ -32,15 +32,18 @@
   ],
   "evidence": [
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/D15A-SLICE-REPORT-2026-09-28.md"
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/D15A-SLICE-REPORT-2026-09-28.md",
+    "https://github.com/Qays7753/Micro/pull/250",
+    "https://github.com/Qays7753/Micro/pull/251",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/GROUP1-WAVE-REPORT-2026-09-28.md"
   ],
   "dependencies": [
     "FIN-009"
   ],
   "related_items": [],
   "owner_decision": "الميثاق الرئيسي المعتمد 2026-09-27/28: Group 1 يبدأ فقط بعد دمج D-15-A والتحقق منه على main — تحقق عند 542095c ثم الإغلاق عند 80ec2c6. UI خارج البرنامج حصرًا.",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
+  "merge_sha": "b72e596a10d76123437ec5f5c2286a42247b2ce6",
+  "verified_on_main_sha": "b72e596a10d76123437ec5f5c2286a42247b2ce6",
   "updated_at": "2026-09-28",
   "finding_classification": "DEEPENS_EXISTING",
   "finding_state": "CONFIRMED",
@@ -65,10 +68,34 @@
       "changed_at": "2026-09-28",
       "actor": "claim:ws-185",
       "reason": "فتح Claim WS-185 لشريحة G1-A (فحص MIC لثابت التسوية) من origin/main 80ec2c6."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-28",
+      "actor": "claim:ws-185..187",
+      "reason": "تنفيذ شرائح Group 1 الثلاث (G1-A/G1-B/G1-C) عبر Claims WS-185 وWS-186 وWS-187."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-28",
+      "actor": "pr:249,250,251",
+      "reason": "ثلاث شرائح G1-A/B/C عبر PRs #249 و#250 و#251."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-28",
+      "actor": "merge:pr-251",
+      "reason": "آخر شريحة دُمجت عند b72e596."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-28",
+      "actor": "verify:main-ci",
+      "reason": "كل شرائح Group 1 مدمجة ومتحققة على main: c5b1480 (G1-A) و93afde3 (G1-B) وb72e596 (G1-C) — CI وCloudflare ناجحان على كل SHA دمج، واختبارات الموجة خضراء محليًا على main."
     }
   ],
   "migration_baseline": false,
-  "next_action": "تنفيذ شرائح Group 1 بالتتابع (G1-A فحص التسوية، G1-B طبقية الاستيراد، G1-C المرايا غير المرئية)؛ كل شريحة PR مستقل يُدمج ويُتحقق منه على main قبل التالية.",
+  "next_action": "Group 1 مكتمل: F-004/F-005 (MIC-18 — PR #249)، F-007 (طبقية الاستيراد — PR #250)، F-049 غير المرئي وF-050 (PR #251)، وF-002/F-006/F-027 أُغلقت مع D-15-A. أجزاء العرض (F-003 ومعاينات F-049) = DEFERRED_UI. البوابة التالية: Group 2 (F-008..F-019, F-061).",
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "tests_required": [
