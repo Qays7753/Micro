@@ -27,7 +27,8 @@
     "docs/contracts/02-order-lifecycle-contract.md",
     "docs/contracts/05-financial-p0-policies.md",
     "docs/contracts/06-financial-event-prototype-contract.md",
-    "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md"
+    "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "evidence": [
     "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
@@ -45,7 +46,7 @@
   "root_cause": "D-15/order-settlement-basis",
   "source": {
     "report": "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
-    "discovered_at_sha": "6f7757086d4c9c1b1c220c33daec1727b1f4f33f",
+    "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
     "evidence": [
       "docs/operations/control/evidence/group0-correction-2026-09-27/D15-REPAIR-CARD.md",
       "docs/contracts/02-order-lifecycle-contract.md"
@@ -56,7 +57,7 @@
       "status": "READY",
       "changed_at": "2026-09-27",
       "actor": "owner:d15-two-box-approval",
-      "reason": "اعتماد بطاقة D-15 ونموذج الصندوقين؛ البند جاهز لفتح Claim مستقل بواسطة Z AI من أحدث origin/main، ولم يبدأ الكود بعد."
+      "reason": "اعتماد بطاقة D-15 ونموذج الصندوقين والميثاق التنفيذي؛ البند جاهز لفتح Claim مستقل بواسطة Z AI من أحدث origin/main، ولم يبدأ الكود بعد."
     }
   ],
   "migration_baseline": true,
