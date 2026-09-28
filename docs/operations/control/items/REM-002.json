@@ -2,7 +2,7 @@
   "id": "REM-002",
   "title": "Wave 2 — المعنى المالي والسياسات والحسابات (بلا UI)",
   "type": "DEFECT",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "master-remediation-wave-2",
   "summary": "تنفيذ قرارات المالك المعتمدة في موجات الميثاق لـF-008..F-019 وF-061: نموذج تعادل واحد صادق بافتراضات معلنة دائمًا وهامش مسمى بصدق (F-009/F-010/F-011)، قبض صريح للبيع المباشر الجديد (F-013)، حالة مجهول معلنة لنتيجة الفترة (F-015 محفوظة مع توثيق)، شرح التصدير من التحلل الفعلي وإشارة مقارنة صادقة (F-016/F-017)، فصل كلفة توصيل المشروع والخسارة غير النقدية معلنين (F-008/F-019)، توثيق تعاقدي لقارئ نتيجة الفترة الكامل وعقد البيع المباشر وقاعدة المصروف المشترك غير الموزع (F-014/F-018/F-061) — وكل ذلك بلا أي ملف UI.",
@@ -37,7 +37,15 @@
   ],
   "evidence": [
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/GROUP1-WAVE-REPORT-2026-09-28.md"
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2A-SLICE-REPORT-2026-09-28.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2B-SLICE-REPORT-2026-09-29.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2C-SLICE-REPORT-2026-09-29.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2D-SLICE-REPORT-2026-09-29.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE2-WAVE-REPORT-2026-09-29.md",
+    "https://github.com/Qays7753/Micro/pull/253",
+    "https://github.com/Qays7753/Micro/pull/254",
+    "https://github.com/Qays7753/Micro/pull/255",
+    "https://github.com/Qays7753/Micro/pull/256"
   ],
   "dependencies": [
     "REM-001"
@@ -78,6 +86,24 @@
       "changed_at": "2026-09-28",
       "actor": "claim:ws-188",
       "reason": "بدء شريحة W2-A (F-013) — أول شرائح الموجة 2."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:253,254,255,256",
+      "reason": "شرائح الموجة الأربع عبر PRs #253 و#254 و#255 و#256 (WS-188..WS-191)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-256",
+      "reason": "آخر شريحة (W2-D) دُمجت عند 42d9c82 بعد دفعة ميزانية CI موثقة داخل الشريحة."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "كل شرائح الموجة 2 مدمجة ومتحققة على main: 56888be (W2-A) وd84fe3e (W2-B) وa03abae (W2-C) و42d9c82 (W2-D) — CI وCloudflare ناجحان على كل SHA دمج ورؤوسها؛ مصفوفة البنود F-008..F-019 + F-061 مغلقة في تقرير الموجة (FIXED/PRESERVED/DEFERRED_UI حسب الجدول)."
     }
   ],
   "migration_baseline": false,
@@ -99,5 +125,7 @@
     "docs",
     "tests"
   ],
-  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT"
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "merge_sha": "42d9c82d11b56f65eec41d693f2c03b76ee3614d",
+  "verified_on_main_sha": "42d9c82d11b56f65eec41d693f2c03b76ee3614d"
 }
