@@ -1,0 +1,41 @@
+{
+  "id": "WS-200",
+  "title": "REM-004 — W4-E اكتمال قوالب مسارات التشخيص واختبار التزامن (F-047)",
+  "status": "CLAIMED",
+  "items": [
+    "REM-004"
+  ],
+  "branch": "fix/w4e-route-templates-sync-20260929",
+  "base_sha": "988883a1176a0d79aee4abb42c43fb99b689d09a",
+  "areas": [
+    "guards",
+    "tests",
+    "diagnostics"
+  ],
+  "contracts": [
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice E)",
+  "pr": null,
+  "started_at": "2026-09-29T20:20:00+03:00",
+  "updated_at": "2026-09-29T20:20:00+03:00",
+  "next_action": "تنفيذ W4-E من origin/main 988883a: إضافة المسارات العشرة الناقصة إلى ROUTE_TEMPLATES (تمثيل سلسلة مفصولة بفراغات لدفع الحزمة داخل الشريحة) + اختبار تزامن routeTemplateSync يشتق مسارات MicroRouter من مصدره ويثبت عدم انهيار أي منها إلى /unknown.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-200",
+      "reason": "فتح Claim لشريحة W4-E من origin/main 988883a بعد إغلاق WS-199 VERIFIED بالتحقق المباشر من الشجرة الحية."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts + ملف اختبار التزامن الجديد فقط — صفر UI، صفر مخطط/تصدير، لا سياسة مالية.",
+    "حد الاستعادة: 988883a.",
+    "قياس الحزمة داخل الشريحة (إلزامي): خط الأساس على main النظيف 649,802 خام / 154,487 gzip — المساحة المتاحة 198 بايت؛ التمثيل المختار (سلسلة واحدة + split) يجعل الصافي +109 خام (649,911) و+58 gzip (154,545) — PASS داخل السقفين."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-004.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4E-SLICE-REPORT-2026-09-29.md"
+  ]
+}
