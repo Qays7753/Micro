@@ -2,7 +2,7 @@
   "id": "REM-005",
   "title": "Wave 5 — الحراسة المالية وقابلية التطور (بلا UI وبلا بنية)",
   "type": "DEFECT",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "master-remediation-wave-5",
   "areas": [
@@ -16,7 +16,7 @@
     "docs"
   ],
   "owner": "Product owner / Z AI execution with Manus coordination",
-  "next_action": "تنفيذ الموجة 5 من أصل إغلاق Wave 4 (ab8f798): حراس اتجاه الطبقات المالية (لا إعادة حساب مال في الواجهة) + حارس المعادلة الواحدة (تعريف وحيد للقراءات الكنسية) + توثيق مسؤولية الملفات المالية الكبيرة (جزء F-048 التوثيقي) + فصل F-043/F-045/F-048 وخريطة ST الموثقة.",
+  "next_action": "الموجة 5 مغلقة VERIFIED على main 8be7d5d. البرنامج الرئيسي كامل: D15-A + Waves 1-5 كلها VERIFIED. المصفوفة الكاملة في WAVE5-FINAL-PROGRAM-REPORT-2026-09-29.md.",
   "updated_at": "2026-09-29",
   "status_history": [
     {
@@ -30,6 +30,30 @@
       "changed_at": "2026-09-29",
       "actor": "claim:ws-202",
       "reason": "فتح Claim WS-202 لشريحة W5-A من origin/main ab8f798."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-202",
+      "reason": "تنفيذ شريحة W5-A عبر WS-202."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:273",
+      "reason": "شريحة الموجة عبر PR #273."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-273",
+      "reason": "دُمجت عند 8be7d5d7aa0129e32cebe54ae73618c47d86ab67 — الشجرة الكاملة للموجة على main."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "CI وCloudflare ناجحان على SHA الدمج؛ التحقق الحي المباشر للحارس والعقد على الشجرة؛ الفصل الكامل في تقرير الإغلاق النهائي."
     }
   ],
   "tests_required": [
@@ -73,5 +97,7 @@
   "evidence": [
     "docs/operations/current-state.md",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W5A-SLICE-REPORT-2026-09-29.md"
-  ]
+  ],
+  "merge_sha": "8be7d5d7aa0129e32cebe54ae73618c47d86ab67",
+  "verified_on_main_sha": "8be7d5d7aa0129e32cebe54ae73618c47d86ab67"
 }
