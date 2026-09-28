@@ -1,0 +1,39 @@
+{
+  "id": "WS-198",
+  "title": "REM-004 — W4-C سجل التغيير التعويضي + امتداد فئة F-036 (F-037 + PRs #190–#205)",
+  "status": "CLAIMED",
+  "items": [
+    "REM-004"
+  ],
+  "branch": "fix/w4c-changelog-backfill-20260929",
+  "base_sha": "ed0c703af1172a2a8b08414f55856aaa2255e098",
+  "areas": [
+    "docs"
+  ],
+  "contracts": [
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice C)",
+  "pr": null,
+  "started_at": "2026-09-29T16:00:00+03:00",
+  "updated_at": "2026-09-29T16:00:00+03:00",
+  "next_action": "تنفيذ W4-C: F-037 — سجل تعويضي مؤرخ واحد في CHANGELOG يسد فجوة 2026-09-10 → 2026-09-29 (بند لكل عصر بتواريخه ومراجعه من current-state §30–§82)؛ وامتداد فئة F-036 — 8 تصحيحات مؤرخة لادعاءات دمج زائفة غير مثبتة باختبارات (PRs #190/#191/#196/#197/#200/#201/#202/#205 — كلها مدمجة فعلًا بتحقق API مباشر قبل التصحيح).",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-198",
+      "reason": "فتح Claim لشريحة W4-C من origin/main ed0c703 بعد إغلاق WS-197 VERIFIED (تطابق الشجرة)."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: CHANGELOG.md + تصحيحات current-state §41–§57 فقط — توثيق صرف، صفر كود تشغيل، صفر حزمة، صفر مخطط/تصدير، لا اختبارات جديدة.",
+    "حد الاستعادة: ed0c703.",
+    "اكتشاف داخل الشريحة: 8 ادعاءات دمج زائفة من فئة F-036 نفسها (غير مقيدة باختبارات) في current-state §41–§57 — نفس نمط التصحيح المؤرخ."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-004.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4C-SLICE-REPORT-2026-09-29.md"
+  ]
+}
