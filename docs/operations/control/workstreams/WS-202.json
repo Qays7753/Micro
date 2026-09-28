@@ -1,7 +1,7 @@
 {
   "id": "WS-202",
   "title": "REM-005 — W5-A حراس اتجاه المال وتوثيق مسؤولية الملفات الكبيرة (فصل F-043/F-045/F-048 + ST)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-005"
   ],
@@ -18,8 +18,8 @@
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 5, slice A)",
   "pr": 273,
   "started_at": "2026-09-30T00:10:00+03:00",
-  "updated_at": "2026-09-30T00:50:00+03:00",
-  "next_action": "PR #273 للمراجعة والدمج؛ بعده التحقق على main ثم إغلاق الموجة 5 والبرنامج.",
+  "updated_at": "2026-09-30T01:15:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W5-A متحققة على main 8be7d5d.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -32,6 +32,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:273",
       "reason": "اكتمل تنفيذ W5-A وافتُتح PR #273 ببوابات خضراء على الرأس f9fb72b (الحارس 3/3، جذر 514/514، نموذج 1996/1996، صفر حزمة)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-273",
+      "reason": "دُمج PR #273 (Squash) عند 8be7d5d بعد CI أخضر على الرأس."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "تطابق الشجرة (رأس origin/main = 8be7d5d)؛ التحقق المباشر على main: الحارس 3/3 على الشجرة الحية وFROZEN_SURFACE حاضر وعقد 40 §8 حاضر؛ CI + Cloudflare على الدمج أخضر."
     }
   ],
   "migration_baseline": false,
@@ -44,5 +56,7 @@
   "evidence": [
     "docs/operations/control/items/REM-005.json",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W5A-SLICE-REPORT-2026-09-29.md"
-  ]
+  ],
+  "merge_sha": "8be7d5d7aa0129e32cebe54ae73618c47d86ab67",
+  "verified_on_main_sha": "8be7d5d7aa0129e32cebe54ae73618c47d86ab67"
 }
