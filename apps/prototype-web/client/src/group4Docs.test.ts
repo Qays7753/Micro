@@ -1,6 +1,6 @@
-/** التحصين الكامل (المجموعة ٤): فحص اتساق التوثيق الحي مع الحقيقة على الفرع —
- * §34 يسجل القياس الفعلي والسقفين المفعّلين والبوابة الواحدة، بلا ادّعاء دمج،
- * والمخطط/التصدير من مصدر الثوابت نفسه، والمجموعتان ٥ و٦ لم تبدآ. */
+/** التحصين الكامل (المجموعة ٤): فحص اتساق التوثيق الحي مع الحقيقة المؤرخة (F-036/W4-B) —
+ * §34 يسجل القياس الفعلي والسقفين المفعّلين والبوابة الواحدة مع التصحيح
+ * المؤرخ للدمج (`c0469e2`)، والمخطط/التصدير من مصدر الثوابت نفسه. */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -32,10 +32,10 @@ describe("documentation consistency — Group 4 bundle budget implemented on the
     expect(section34).toContain("مستوى ٩");
   });
 
-  it("§34 states the PR and merge posture — open, unmerged, main unchanged, no silent raise", () => {
+  it("§34 carries the dated merge correction (F-036/W4-B) — no silent raise", () => {
     const section34 = currentState.split("## §34.")[1] ?? "";
-    expect(section34).toContain("PR #159 مفتوح وغير مدموج");
-    expect(section34).toContain("و`main` لم يتغير");
+    expect(section34).toContain("PR #159 كان مفتوحًا وغير مدموج");
+    expect(section34).toContain("دُمج PR #159 لاحقًا في `c0469e2`");
     expect(section34).toContain("سقف نمو لا إذن برفعه");
     expect(section34).toContain("المجموعتان ٥ و٦ لم تبدآ");
   });
@@ -55,7 +55,7 @@ describe("documentation consistency — Group 4 bundle budget implemented on the
       );
     expect(group4Line).toBeDefined();
     expect(group4Line?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group4Line).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group4Line).toContain("PR #159 كان مفتوحًا وغير مدموج");
     expect(group4Line).toContain("منفذة على الفرع");
     expect(group4Line).toContain("§34");
   });
