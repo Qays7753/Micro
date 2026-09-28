@@ -13,12 +13,63 @@
  * - يعمل دون اتصال: توليد نص محلي خالص؛ التنزيل/المشاركة فعل صريح في الصفحة.
  */
 import type { StatementReading } from "./statementService";
+import type { RecordedPeriodResult } from "./projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
 
 export type StatementMarkdownResult =
   | { ok: true; value: { markdown: string; filename: string } }
   | { ok: false; code: "validation_error"; message: string };
+
+/* F-016 (W2-C — REM-002): بند تحلل النتيجة — المعرف والإسهام بإشارته
+ * (موجب إيراد، سالب تكلفة/مصروف). التسميات تعيش في طبقة التقرير هنا لا في
+ * حزمة الدخول: المعنى ماليّ والتسمية عرضية، والقارئ الكنوني يملك الأرقام. */
+export type StatementResultTerm = {
+  id: string;
+  label: string;
+  signedMinor: number;
+};
+
+/* F-016 (W2-C): تحلل النتيجة الفعلي — كل بنود معادلة القارئ الكنوني غير الصفرية
+ * بإشاراتها، فمجاميعها = النتيجة المسجلة. الوسم الوحيد الجديد هو تكلفة البيع
+ * المباشر المعروفة — البند الذي كان غير مرئي وهو موضوع الـfinding نفسه. */
+export function statementResultDecomposition(result: RecordedPeriodResult): readonly StatementResultTerm[] {
+  const terms: readonly StatementResultTerm[] = [
+    {
+      id: "recognizedRevenueTotal",
+      label: "إيراد معترف به",
+      signedMinor: result.recognizedRevenueMinor + result.directSaleRevenueMinor,
+    },
+    { id: "effectiveDirectCost", label: "تكلفة مباشرة", signedMinor: -result.effectiveDirectCostMinor },
+    {
+      id: "directSaleCostKnown",
+      label: "تكلفة بيع مباشر معروفة",
+      signedMinor: -result.directSaleCostKnownMinor,
+    },
+    {
+      id: "recordedOperatingExpense",
+      label: "مصاريف تشغيلية",
+      signedMinor: -result.recordedOperatingExpenseMinor,
+    },
+    {
+      id: "assetDepreciation",
+      label: "إهلاك الأصول في الفترة",
+      signedMinor: -result.assetDepreciationMinor,
+    },
+    { id: "assetWriteOffLoss", label: "خسارة شطب أصول", signedMinor: -result.assetWriteOffLossMinor },
+    {
+      id: "assetDisposalResult",
+      label: "نتيجة التخلص من أصول",
+      signedMinor: result.assetDisposalResultMinor,
+    },
+    {
+      id: "retainedDepositRevenue",
+      label: "عربون محتفظ به مصنّف إيرادًا",
+      signedMinor: result.retainedDepositRevenueMinor,
+    },
+  ];
+  return terms.filter(term => term.signedMinor !== 0);
+}
 
 const money = (minor: number | null | undefined): string =>
   minor === null || minor === undefined ? "غير متاح" : formatMoneyWithUnit(minor);
@@ -96,10 +147,15 @@ export class StatementMarkdownService {
       rows.push("- النتيجة: غير متاحة حتى الآن — أسبابها معلنة أدناه، والمجهول لا يُعرض صفرًا.");
     } else {
       rows.push(line("النتيجة المسجّلة", money(result.resultMinor)));
+      /* F-016 (W2-C): «مكوناتها» من التحلل الفعلي لقراءة النتيجة — كل بند غير
+       * صفري بإشارته فتجمع إلى النتيجة، وتكلفة البيع المباشر المعروفة صارت
+       * مرئية بعد أن كانت البند الوحيد المخفي. */
       rows.push(
         line(
           "مكوناتها",
-          `إيراد معترف به ${money(reading.recognizedRevenueTotalMinor)} · تكلفة مباشرة ${money(result.effectiveDirectCostMinor)} · مصاريف تشغيلية ${money(result.recordedOperatingExpenseMinor)}`,
+          statementResultDecomposition(result)
+            .map(term => `${term.label} ${money(term.signedMinor)}`)
+            .join(" · "),
         ),
       );
     }

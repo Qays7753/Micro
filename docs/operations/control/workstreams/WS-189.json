@@ -1,7 +1,7 @@
 {
   "id": "WS-189",
   "title": "REM-002 — W2-B نموذج التعادل الموحد الصادق (F-009/F-010/F-011)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-002"
   ],
@@ -22,8 +22,8 @@
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 2, slice B)",
   "pr": 254,
   "started_at": "2026-09-29T00:20:00+03:00",
-  "updated_at": "2026-09-29T00:35:00+03:00",
-  "next_action": "تنفيذ W2-B: insights يستهلك calculateBreakEven الكنونية بمدخلات موحدة؛ الافتراضات الهيكلية دائمًا؛ تسمية الهامش المباشر؛ عقود 17 و12 محدثة.",
+  "updated_at": "2026-09-29T00:55:00+03:00",
+  "next_action": "لا إجراء إضافي؛ W2-B متحققة على main. التالية: W2-C عبر WS-190.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -42,6 +42,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:254",
       "reason": "اكتمل تنفيذ W2-B وافتُتح PR #254 بعد البوابات الخضراء (جذري 510/510، تطبيق 1964/1964، حزمة 649,585/650,000 PASS بصافي سالب)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-254",
+      "reason": "دُمج PR #254 (Squash) عند d84fe3eadb099cb50a4ab2522098c7a6478d5698 مع Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI (checks) وCloudflare Pages ناجحان على SHA الدمج نفسه على main؛ جذري 510/510 وتطبيق 1964/1964 وقت الدمج؛ الحزمة 649,585/650,000 خام PASS."
     }
   ],
   "migration_baseline": false,
@@ -52,5 +64,7 @@
   "evidence": [
     "docs/operations/control/items/REM-002.json",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2B-SLICE-REPORT-2026-09-29.md"
-  ]
+  ],
+  "merge_sha": "d84fe3eadb099cb50a4ab2522098c7a6478d5698",
+  "verified_on_main_sha": "d84fe3eadb099cb50a4ab2522098c7a6478d5698"
 }
