@@ -221,6 +221,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     const order = this.orders.get(id);
     return { ok: true, value: order ? clone(order) : null };
   }
+  /* F-053 (W4-F): كتابة خام آخر-كاتب-يفوز — للإنشاء والبذور فقط (تكافؤ
+   * IndexedDbLocalStore حرفيًا). أي تحديث لطلب قائم يجب أن يمر على
+   * commitOrderUpdate، والحارس الاستاتيكي saveOrderGuard.contract.test.ts
+   * يمنع أي مستدعٍ جديد خارج طبقة التخزين. */
   async saveOrder(order: StoredCraftOrder): Promise<StorageResult<StoredCraftOrder>> {
     this.orders.set(order.id, clone(order));
     return { ok: true, value: clone(order) };

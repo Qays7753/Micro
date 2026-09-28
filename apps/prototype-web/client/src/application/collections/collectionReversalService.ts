@@ -96,8 +96,12 @@ export class CollectionReversalService {
     const stored = orderResult.value;
     if (!stored) return { ok: false, code: "not_found", message: "الطلب غير متاح محليًا." };
     const order = stored.order;
-    const source = order.events.find(event => event.id === input.collectionEventId);
-    if (!source || source.type !== "collection_recorded")
+    /* F-051 (W4-F): البحث بالهوية والنوع معًا — حدثٌ آخر بنفس الهوية لا يحجب
+     * القبضة المقصودة؛ الاستيراد يرفض الهوية المكررة أصلًا وهذا تعميق دفاعي. */
+    const source = order.events.find(
+      event => event.id === input.collectionEventId && event.type === "collection_recorded",
+    );
+    if (!source)
       return { ok: false, code: "validation_error", message: "اختر قبضة مسجلة على هذا الطلب قبل التراجع." };
 
     const entries = entriesResult.value;

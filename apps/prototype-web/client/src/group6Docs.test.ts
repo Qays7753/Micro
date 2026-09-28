@@ -122,6 +122,10 @@ describe("governance consistency — Group 6 prevention implemented on the remed
       readRepoFile("../../../../docs/contracts/39-export-envelope-integrity-contract.md"),
     );
     expect(contract39).toContain(`يثبت ${livePair} بين الكود والتوثيق`);
+    /* F-033/W4-F: سطر «العقد التقني» كان يحمل الزوج المتقادم 35/27 كقيمة حية —
+     * الآن يحمل تصحيحًا مؤرخًا بالزوج الحي، والحارس يمنع عودته صامتة. */
+    expect(contract39).toContain(`اليوم هو ${livePair}`);
+    expect(contract39).not.toContain("مثبتان في `storage/local/types.ts` ومربوطان باختبار حوكم");
     const contract40 = normalize(
       readRepoFile("../../../../docs/contracts/40-technical-ownership-map-contract.md"),
     );

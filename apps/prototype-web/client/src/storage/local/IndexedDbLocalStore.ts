@@ -216,6 +216,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   getOrder(id: string) {
     return readOne<StoredCraftOrder>(orderStore, id);
   }
+  /* F-053 (W4-F): كتابة خام آخر-كاتب-يفوز — للإنشاء والبذور فقط. أي تحديث
+   * لطلب قائم (حقول مالية أو أحداث) يجب أن يمر على commitOrderUpdate
+   * (مفتاح الحتمية + مطابقة القاعدة داخل حد الكتابة) وإلا أسقط مسارٌ
+   * متزامن أثر الآخر بصمت. الحارس الاستاتيكي saveOrderGuard.contract.test.ts
+   * يمنع أي مستدعٍ جديد خارج طبقة التخزين. */
   saveOrder(order: StoredCraftOrder) {
     return writeOne(orderStore, order);
   }
