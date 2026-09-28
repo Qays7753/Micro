@@ -334,6 +334,11 @@ function activeInventoryMovements(movements: readonly InventoryMovement[]) {
   );
   return movements.filter(movement => movement.type !== "reversal" && !reversedIds.has(movement.id));
 }
+/* W2-D (D-034): جامع القيمة المطلقة لدلتا الحركة — ثلاث لامدا متطابقة
+ * كانت تكرر البايتات نفسها في حزبة الدخول بلا معنى جديد. */
+function sumAbsValueDelta(movements: readonly InventoryMovement[]): number {
+  return movements.reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
+}
 function derivePeriodCogs(
   finals: readonly {
     order: { id: string; recognizedCostMinor: number; costSnapshot: { materialCostMinor: number } };
@@ -364,7 +369,7 @@ function derivePeriodCogs(
         : item.order.recognizedCostMinor;
     if (observedCogsMinor === 0) cogsMissingOrderCount += 1;
   }
-  const recordedCogsMinor = qualified.reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
+  const recordedCogsMinor = sumAbsValueDelta(qualified);
   const cogsOrderCount = finals.length - cogsMissingOrderCount;
   const cogsStatus: CogsStatus =
     finals.length === 0
@@ -374,12 +379,10 @@ function derivePeriodCogs(
         : cogsOrderCount > 0
           ? "partial"
           : "not_available";
-  const unallocatedInventoryCostMinor = active
-    .filter(movement => movement.type === "consumption" && !movement.orderId)
-    .reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
-  const generalInventoryWasteMinor = active
-    .filter(movement => movement.type === "waste")
-    .reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
+  const unallocatedInventoryCostMinor = sumAbsValueDelta(
+    active.filter(movement => movement.type === "consumption" && !movement.orderId),
+  );
+  const generalInventoryWasteMinor = sumAbsValueDelta(active.filter(movement => movement.type === "waste"));
   const cogsReasons: string[] = [];
   if (finals.length > 0 && cogsStatus === "not_available") cogsReasons.push("نسخة تكلفة بديلة");
   if (cogsStatus === "partial") cogsReasons.push("تكلفة بيع جزئية");
@@ -711,10 +714,6 @@ export class ProjectFinancialService {
      * غير مصنف» وهي ليست مصروفًا نقديًا أصلًا. المعادلة محايدة: البند نفسه
      * يُخصم فالنتيجة لا تتغير. */
     const cashOperatingEvents = operatingEvents.filter(event => event.type !== "loss_non_cash");
-    const nonCashLossMinor = operatingEvents.reduce(
-      (total, event) => total + (event.type === "loss_non_cash" ? event.operatingExpenseDeltaMinor : 0),
-      0,
-    );
     const sharedUnallocatedEvents = periodEvents.filter(sharedExpenseIsUnallocated);
     const sharedUnallocatedSources = sharedUnallocatedEvents.filter(
       event => event.correctionType !== "reverse",
@@ -723,22 +722,19 @@ export class ProjectFinancialService {
       ...cashOperatingEvents.filter(event => event.operatingExpenseDeltaMinor > 0),
       ...sharedUnallocatedSources,
     ];
-    const projectEvents = cashOperatingEvents.filter(
-      event => event.expenseContext?.relationship === "project",
+    /* F-019 (W2-D — D-034): جامع دلتا المصروف الواحد للمجموعات الأربع — أربع
+     * لامدا متطابقة كانت تكرر بايتات حزبة الدخول بلا معنى جديد. */
+    const sumOperatingDelta = (events: readonly FinancialEvent[]) =>
+      events.reduce((total, event) => total + event.operatingExpenseDeltaMinor, 0);
+    const recordedOperatingExpenseMinor = sumOperatingDelta(cashOperatingEvents);
+    /* F-019 (W2-D): الخسارة = دلتا المصروف الكاملة − دلتا النقدي منها — نفس
+     * مجموع أحداث loss_non_cash تمامًا (الجامع الموحد نفسه، لا مسار ثانٍ). */
+    const nonCashLossMinor = sumOperatingDelta(operatingEvents) - recordedOperatingExpenseMinor;
+    const projectOperatingExpenseMinor = sumOperatingDelta(
+      cashOperatingEvents.filter(event => event.expenseContext?.relationship === "project"),
     );
-    const sharedEvents = cashOperatingEvents.filter(event => event.expenseContext?.relationship === "shared");
-    const legacyEvents = cashOperatingEvents.filter(event => !event.expenseContext);
-    const recordedOperatingExpenseMinor = cashOperatingEvents.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
-    );
-    const projectOperatingExpenseMinor = projectEvents.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
-    );
-    const sharedProjectExpenseMinor = sharedEvents.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
+    const sharedProjectExpenseMinor = sumOperatingDelta(
+      cashOperatingEvents.filter(event => event.expenseContext?.relationship === "shared"),
     );
     const sharedUnallocatedExpenseMinor = sharedUnallocatedEvents.reduce(
       (total, event) =>
@@ -747,9 +743,8 @@ export class ProjectFinancialService {
           (event.expenseContext?.sharedProjectShare?.totalAmountMinor ?? event.amountMinor),
       0,
     );
-    const legacyUnclassifiedExpenseMinor = legacyEvents.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
+    const legacyUnclassifiedExpenseMinor = sumOperatingDelta(
+      cashOperatingEvents.filter(event => !event.expenseContext),
     );
     const sharedEstimatedExpenseCount = reviewableOperatingEvents.filter(
       event =>
@@ -777,12 +772,13 @@ export class ProjectFinancialService {
           event.type === "asset_disposal_cash" ||
           event.type === "deposit_retained_revenue"),
     );
-    const assetDepreciationMinor = activePeriodGroup4Events
-      .filter(event => event.type === "asset_depreciation")
-      .reduce((sum, event) => sum + event.amountMinor, 0);
-    const assetWriteOffLossMinor = activePeriodGroup4Events
-      .filter(event => event.type === "asset_writeoff")
-      .reduce((sum, event) => sum + event.amountMinor, 0);
+    /* W2-D (D-034): سلسلتا «صنف المجموعة ٤ ثم مجموع المبلغ» صارتا معينًا واحدًا. */
+    const group4AmountMinor = (type: "asset_depreciation" | "asset_writeoff") =>
+      activePeriodGroup4Events
+        .filter(event => event.type === type)
+        .reduce((sum, event) => sum + event.amountMinor, 0);
+    const assetDepreciationMinor = group4AmountMinor("asset_depreciation");
+    const assetWriteOffLossMinor = group4AmountMinor("asset_writeoff");
     const assetDisposalResultMinor = activePeriodGroup4Events
       .filter(event => event.type === "asset_disposal_cash")
       .reduce((sum, event) => sum + (event.amountMinor - (event.assetContext?.bookValueMinor ?? 0)), 0);
