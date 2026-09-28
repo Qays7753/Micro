@@ -2,7 +2,7 @@
   "id": "REM-003",
   "title": "Wave 3 — العقود والمصطلحات والحالات الداخلية (بلا UI)",
   "type": "DEFECT",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "master-remediation-wave-3",
   "summary": "تنفيذ نطاق الموجة 3 من الميثاق (F-020..F-032 حيث يمس المجال/بيانات التطبيق/التقارير/التصدير فقط): توحيد المفردات المحسومة في المستهلكين غير المرئيين (تصدير الكشف وجسر الربح وأسر النسخ — F-021/F-031 بمفردات قاموس 08 وقرار N-06 القائمة)، إعلانات الصدق الخدمية (وسم «مسجلة» لمبيعات الرئيسية مع حقول غير المحصّل المشتقة — F-020، تسمية اقتراح الإهلاك غير النقدي بصدق — F-024، عناوين MIC-9 «حالة الرقم» — F-028)، وإغلاق قاموس 08 للفجوات التي توثق دلالات مُشحّنة فعلًا في العقود (F-032 الجزء التوثيقي) — مع تأجيل موثق: F-023 خلف قرار D-09، F-026 خلف D-08، F-022/F-029/F-030 وعناصر العرض = DEFERRED_UI، F-027 مغلقة على main في D-15-A، وF-025 محفوظة (القارئ يميز بالفعل؛ التجميع عرضي).",
@@ -30,7 +30,10 @@
   ],
   "evidence": [
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE2-WAVE-REPORT-2026-09-29.md"
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W3A-SLICE-REPORT-2026-09-29.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W3B-SLICE-REPORT-2026-09-29.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W3C-SLICE-REPORT-2026-09-29.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE3-WAVE-REPORT-2026-09-29.md"
   ],
   "dependencies": [
     "REM-002"
@@ -62,13 +65,37 @@
       "changed_at": "2026-09-29",
       "actor": "claim:ws-192",
       "reason": "فتح Claim WS-192 لشريحة W3-A (مفردات محسومة في المستهلكين غير المرئيين) من origin/main d2b81c7."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-192",
+      "reason": "بدء تنفيذ شرائح الموجة الثالثة (W3-A ثم W3-B ثم W3-C عبر WS-192/WS-193/WS-194)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:258,pr:261,pr:262",
+      "reason": "شرائح الموجة عبر PRs #258 (W3-A) و#261 (W3-B) و#262 (W3-C) مع إغلاقي دعم: #259 (إغلاق WS-192) و#260 (إصلاح قنبلة زمن U-10 التي أحمرّت CI على SHA إغلاق WS-192)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-262",
+      "reason": "آخر شريحة (W3-C) دُمجت عند d9171405b365a6a8b257986486e78bd40f7ac290 — الشجرة الكاملة للموجة على main."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI وCloudflare ناجحان على SHA الدمج نفسه لكل شريحة (47825ed و98a3517 وd917140)؛ الشجرة مطابقة لكل فرع مختبر؛ جذري 510/510 وتطبيق 1972/1972 وقت الإغلاق؛ الحزمة 649,914/650,000 خام على CI (+121 لكل W3-B مدفوعة داخل شريحتها)؛ المخطط/التصدير 38/30 كما هي؛ فحص القاموس 4/4."
     }
   ],
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "migration_baseline": false,
-  "next_action": "W3-A VERIFIED على 47825ed وW3-B VERIFIED على 98a3517 (WS-192/WS-193). الشريحة الأخيرة W3-C قيد التنفيذ عبر WS-194 (قاموس 08 للدلالات المشحّنة) ثم إغلاق الموجة بـPR إغلاق مستقل (تقرير الموجة + مصفوفة F-020..F-032 + REM-003 VERIFIED + current-state/todo).",
+  "next_action": "الموجة 3 مغلقة VERIFIED على main d917140 (شرائحها: W3-A 47825ed وW3-B 98a3517 وW3-C d917140). البوابة التالية المسموحة فقط: الموجة 4 (التوثيق/السلطة/الثبات/التاريخ/الحراس — F-033..F-042 وF-044 وF-046 وF-047 وF-051..F-060) بClaim مستقل من أحدث origin/main وبلا UI.",
   "tests_required": [
     "قلب موثق لدبوس المصطلح الممنوع مع حارس سلبي not.toContain",
     "اختبارات التحلل والجسر وذهاب-وعودة exe014 خضراء بعد التبديلات",
@@ -79,5 +106,7 @@
     "storage",
     "docs",
     "tests"
-  ]
+  ],
+  "merge_sha": "d9171405b365a6a8b257986486e78bd40f7ac290",
+  "verified_on_main_sha": "d9171405b365a6a8b257986486e78bd40f7ac290"
 }
