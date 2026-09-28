@@ -1,0 +1,40 @@
+{
+  "id": "WS-192",
+  "title": "REM-003 — W3-A المفردات المحسومة في المستهلكين غير المرئيين (F-021 تصدير/جسر + F-031 أسر النسخ)",
+  "status": "CLAIMED",
+  "items": [
+    "REM-003"
+  ],
+  "branch": "fix/w3a-decided-vocabulary-20260929",
+  "base_sha": "d2b81c7f2b5a9ff04ee1842e5022699ce7d12713",
+  "areas": [
+    "finance",
+    "reports",
+    "transfers"
+  ],
+  "contracts": [
+    "docs/08-glossary.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 3, slice A)",
+  "pr": null,
+  "started_at": "2026-09-29T11:45:00+03:00",
+  "updated_at": "2026-09-29T11:45:00+03:00",
+  "next_action": "تنفيذ W3-A: تبديل «إيراد معترف به» إلى «المحتسب عند التسليم» في تصدير الكشف وجسر الربح، و«الكتالوج» إلى «منتجاتي وخدماتي» في أسر النسخ المؤثرة، مع قلب الدبابيس الموثقة.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-192",
+      "reason": "فتح Claim لشريحة W3-A من origin/main d2b81c7 بعد إغلاق Wave 2 المتحقق."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: سلاسل الخدمات فقط (تصدير الكشف في الشريحة الكسولة، الجسر، أسر النسخ) — بلا أي ملف عرض.",
+    "حد الاستعادة: d2b81c7 — تبديلات سلاسل صرفة."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-003.json"
+  ]
+}

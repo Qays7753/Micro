@@ -1,0 +1,72 @@
+{
+  "id": "REM-003",
+  "title": "Wave 3 — العقود والمصطلحات والحالات الداخلية (بلا UI)",
+  "type": "DEFECT",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "master-remediation-wave-3",
+  "summary": "تنفيذ نطاق الموجة 3 من الميثاق (F-020..F-032 حيث يمس المجال/بيانات التطبيق/التقارير/التصدير فقط): توحيد المفردات المحسومة في المستهلكين غير المرئيين (تصدير الكشف وجسر الربح وأسر النسخ — F-021/F-031 بمفردات قاموس 08 وقرار N-06 القائمة)، إعلانات الصدق الخدمية (وسم «مسجلة» لمبيعات الرئيسية مع حقول غير المحصّل المشتقة — F-020، تسمية اقتراح الإهلاك غير النقدي بصدق — F-024، عناوين MIC-9 «حالة الرقم» — F-028)، وإغلاق قاموس 08 للفجوات التي توثق دلالات مُشحّنة فعلًا في العقود (F-032 الجزء التوثيقي) — مع تأجيل موثق: F-023 خلف قرار D-09، F-026 خلف D-08، F-022/F-029/F-030 وعناصر العرض = DEFERRED_UI، F-027 مغلقة على main في D-15-A، وF-025 محفوظة (القارئ يميز بالفعل؛ التجميع عرضي).",
+  "acceptance": [
+    "لا يستخدم أي مستهلك غير مرئي (تصدير/جسر/أسر نسخ/خدمات) مصطلحًا حظرته مفردات محسومة: «إيراد معترف به» يصير «المحتسب عند التسليم» في تصدير الكشف وجسر الربح (F-021 — قاموس 08:93)، و«الكتالوج» يصير «منتجاتي وخدماتي» في أسر النسخ المؤثرة (F-031 — قرار N-06)",
+    "تسميات خدمة الرئيسية تميز المسجل عن المقبوض: «مبيعات مسجلة اليوم/الشهر» مع حقول مشتقة إضافية للفرق غير المحصّل بلا تغيير أي معادلة (F-020 — سطر العرض نفسه ينتظر س4/D-05 في موجة UI)",
+    "اقتراح الإهلاك يُسمى اقتراحًا غير نقدي: «إهلاك مقترح للتسجيل (غير نقدي)» في سلاسل الخدمة والمجال الثلاث (F-024 — عقد 43)",
+    "MIC-9 يحمل عنوان «صدق حالة الرقم» في الخدمة (F-028 — قاموس 08:103)",
+    "قاموس 08 يستوعب الدلالات المُشحّنة فعلًا الموثقة في العقود: قيمة الطلب (بأساس D-15-A القابل للتحصيل)، الكاش المسجل، عربون محتفظ مصنف، البيع المباشر، التسوية بمعانيها، التغطية بمعنييها، المظروف، MIC — بلا اختراع دلالات جديدة (F-032 الجزء التوثيقي)",
+    "تأجيل موثق بأدلة: F-023 (D-09 مفردات المعاني الثمانية — الحالة المخزنة لا تتغير)، F-025 (القارئ يميز عبر kind وamountMinor — التسمية عرضية)، F-026 (D-08 الاسم الموحد للحالة)، F-022/F-029/F-030 وبنود العرض في F-020/F-021/F-024/F-028/F-031 = DEFERRED_UI",
+    "F-027 تُغلق كمنفذة على main: رسائل السقوف الثلاث تقول «قيمة الطلب القابلة للتحصيل» منذ D-15-A — لا إجراء",
+    "لا تعديل أي ملف React أو DOM test أو CSS؛ لا حالات مخطط جديدة؛ لا تغيير هوية أحداث أو سلاسل مخزنة"
+  ],
+  "areas": [
+    "finance",
+    "reports",
+    "glossary",
+    "contracts",
+    "tests"
+  ],
+  "contracts": [
+    "docs/08-glossary.md",
+    "docs/contracts/43-asset-lifecycle-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE2-WAVE-REPORT-2026-09-29.md"
+  ],
+  "dependencies": [
+    "REM-002"
+  ],
+  "related_items": [],
+  "owner_decision": "المفردات المستخدمة محسومة سلفًا: قاموس 08:93 («المحتسب عند التسليم») و08:103 («حالة الرقم») وقرار N-06 («منتجاتي وخدماتي») وعقد 43 (الإهلاك اقتراح غير نقدي) — لا مفردة جديدة تُخترع. البنود المحتاجة مفردات جديدة مؤجلة بقرار موثق (D-08/D-09 وس4/DF-05 وصوت العلامة لرأس الجسر).",
+  "merge_sha": null,
+  "verified_on_main_sha": null,
+  "updated_at": "2026-09-29",
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit-findings:F-020..F-032 (root causes: non-visual consumers using glossary-forbidden or owner-superseded terms; service-level labels not distinguishing recorded vs collected; non-cash proposal named as due obligation; glossary gaps for shipped domain semantics)",
+  "source": {
+    "report": "CONCEPT-POLICY-TERMINOLOGY-INTEGRITY-AUDIT-AR.md (branch docs/concept-policy-terminology-integrity-audit-2026-09-27)",
+    "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
+    "evidence": [
+      "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts",
+      "apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts",
+      "apps/prototype-web/client/src/storage/local/influentialSnapshotFamilies.ts"
+    ]
+  },
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-29",
+      "actor": "program:master-remediation",
+      "reason": "تسجيل الموجة 3 (F-020..F-032) بعد إغلاق REM-002 والتحقق على main d2b81c7 — البوابة التالية المسموحة حصرًا بالميثاق."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-192",
+      "reason": "فتح Claim WS-192 لشريحة W3-A (مفردات محسومة في المستهلكين غير المرئيين) من origin/main d2b81c7."
+    }
+  ],
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": null,
+  "owner": "Product owner / Z AI execution with Manus coordination"
+}

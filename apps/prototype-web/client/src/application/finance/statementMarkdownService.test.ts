@@ -221,7 +221,9 @@ describe("statement markdown service (المجموعة ٥ — عقد ٣٢)", () 
     if (!rendered.ok) throw new Error(rendered.message);
     const markdown = rendered.value.markdown;
     /* البنود الصفرية (تكلفة البيع المباشر/الشطب هنا) لا تظهر؛ غير الصفرية كلها تظهر. */
-    expect(markdown).toContain("إيراد معترف به 150.00 د.أ");
+    /* F-021 (W3-A): المصطلح الملزم «المحتسب عند التسليم» — والممنوع ممنوع. */
+    expect(markdown).toContain("إيراد محتسب عند التسليم 150.00 د.أ");
+    expect(markdown).not.toContain("معترف به");
     expect(markdown).toContain("تكلفة مباشرة -50.00 د.أ");
     expect(markdown).toContain("مصاريف تشغيلية -20.00 د.أ");
     expect(markdown).toContain("إهلاك الأصول في الفترة -25.00 د.أ");
