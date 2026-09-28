@@ -2,8 +2,8 @@
  * الفرع — §36 يسجل الحراس والسياسات والبوابة، وAGENTS.md يحمل قواعد التنفيذ
  * وبوابة المسح الهيكلي بعد تحديث المجموعة ٨ (المسح نُفّذ وقُبل وخطة المعالجة
  * الرباعية ٨–١١ موافَقة ببوابة مالك بين المجموعات — لا بدء تلقائي)، وقالب PR
- * يحمل الحقول الإلزامية، والأرقام الحدية (35/27، سقف lint، سقفا الحزمة)
- * متطابقة بين الكود والتوثيق بلا رفع صامت. */
+ * يحمل الحقول الإلزامية، والأرقام الحدية (الزوج الحي من مصدر الثوابت نفسه،
+ * سقف lint، سقفا الحزمة) متطابقة بين الكود والتوثيق بلا رفع صامت. */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -111,6 +111,25 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(section36).toContain("37/37");
   });
 
+  it("governance docs carry the LIVE version pair from the code constants — stale counts fail (F-033/W4-B doc-numbers guard)", () => {
+    const livePair = `${localSchemaVersion}/${localExportVersion}`;
+    const rules = normalize(agents);
+    expect(rules).toContain(`${livePair} اليوم`);
+    expect(rules).toContain(`(${livePair}، سقف lint`);
+    expect(rules).not.toContain("36/28 اليوم");
+    expect(rules).not.toContain("35/27، سقف");
+    const contract39 = normalize(
+      readRepoFile("../../../../docs/contracts/39-export-envelope-integrity-contract.md"),
+    );
+    expect(contract39).toContain(`يثبت ${livePair} بين الكود والتوثيق`);
+    const contract40 = normalize(
+      readRepoFile("../../../../docs/contracts/40-technical-ownership-map-contract.md"),
+    );
+    expect(contract40).toContain(`اليوم ${livePair}`);
+    const documentIndex = normalize(readRepoFile("../../../../docs/00-document-index.md"));
+    expect(documentIndex).toContain(`اليوم ${livePair}`);
+  });
+
   it("the guards are wired into the canonical check chain and the test path (local == CI)", () => {
     expect(rootPackageJson.scripts?.guards).toContain("check-secrets.mjs");
     expect(rootPackageJson.scripts?.guards).toContain("check-test-focus.mjs");
@@ -138,7 +157,7 @@ describe("governance consistency — Group 6 prevention implemented on the remed
       );
     expect(group6).toBeDefined();
     expect(group6?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group6).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group6).toContain("PR #159 كان مفتوحًا وغير مدموج");
     const scanGate = todo
       .split("\n")
       .find(line => line.includes("بوابة ما بعد البرنامج") && line.trimStart().startsWith("- ["));

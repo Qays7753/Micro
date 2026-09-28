@@ -1,6 +1,6 @@
-/** التحصين الكامل (المجموعة ٣): فحص اتساق التوثيق الحي مع الحقيقة على الفرع —
- * §32 يسجل ما نُفذ فعلًا (رحلة storage_stale، D-031، D-035) بلا ادّعاء دمج،
- * والمخروط/التصدير من مصدر الثوابت نفسه، والمجموعات ٤–٦ لم تبدأ. */
+/** التحصين الكامل (المجموعة ٣): فحص اتساق التوثيق الحي مع الحقيقة المؤرخة (F-036/W4-B) —
+ * §32 يسجل ما نُفذ فعلًا (رحلة storage_stale، D-031، D-035) مع التصحيح
+ * المؤرخ للدمج (`c0469e2`)، والمخطط/التصدير من مصدر الثوابت نفسه. */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,11 +20,11 @@ describe("documentation consistency — Group 3 implemented on the remediation b
     expect(currentState).toContain("D-035 — معجم التصحيح الموثق");
   });
 
-  it("current-state states the exact PR and merge status — open, unmerged, main unchanged", () => {
+  it("current-state §32 carries the dated merge correction — merged later at c0469e2 (F-036/W4-B)", () => {
     const section32 = currentState.split("## §32.")[1] ?? "";
-    expect(section32).toContain("PR #159 مفتوح وغير مدموج");
-    expect(section32).toContain("و`main` لم يتغير");
-    expect(section32).toContain("بوابة الدمج معلقة");
+    expect(section32).toContain("PR #159 كان مفتوحًا وغير مدموج");
+    expect(section32).toContain("و`main` لم يتغير حينها");
+    expect(section32).toContain("دُمج PR #159 لاحقًا في `c0469e2`");
     expect(section32).toContain("المجموعات ٤–٦ لم تبدأ");
   });
 
@@ -49,7 +49,7 @@ describe("documentation consistency — Group 3 implemented on the remediation b
       );
     expect(group3Line).toBeDefined();
     expect(group3Line?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group3Line).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group3Line).toContain("PR #159 كان مفتوحًا وغير مدموج");
     expect(group3Line).toContain("منفذة على الفرع");
   });
 
@@ -75,7 +75,7 @@ describe("documentation consistency — Group 3 implemented on the remediation b
         line => line.includes("المجموعة ٦ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
       );
     expect(group6?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group6).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group6).toContain("PR #159 كان مفتوحًا وغير مدموج");
     const scanGate = todo
       .split("\n")
       .find(line => line.includes("بوابة ما بعد البرنامج") && line.trimStart().startsWith("- ["));
@@ -100,11 +100,11 @@ describe("documentation consistency — Group 3 implemented on the remediation b
     expect(section33).toContain("٣٥/٢٧ بلا تغيير");
   });
 
-  it("closure section states the same PR and merge posture as §32 — open, unmerged, main unchanged", () => {
+  it("closure section carries the same dated merge correction as §32 — merged later at c0469e2 (F-036/W4-B)", () => {
     const section33 = currentState.split("## §33.")[1] ?? "";
-    expect(section33).toContain("PR #159 مفتوح وغير مدموج");
-    expect(section33).toContain("و`main` لم يتغير");
-    expect(section33).toContain("بوابة الدمج معلقة");
+    expect(section33).toContain("PR #159 كان مفتوحًا وغير مدموج");
+    expect(section33).toContain("و`main` لم يتغير حينها");
+    expect(section33).toContain("دُمج PR #159 لاحقًا في `c0469e2`");
   });
 
   it("todo records the Group 3 closure note with the shared guard reference", () => {

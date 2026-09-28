@@ -30,7 +30,7 @@
 
 ## ٥. الأدلة
 
-- `localTransferService.envelope27.test.ts` (بصمة التكامل ترفض التلاعب)؛ سلسلة `localTransferService.schema29..34.test.ts` و`releasedPairs` و`familyOrphan` و`directSaleRoundTrip` (توافق كل زوج منشور)؛ اختبارات عدادات المظروف وتفرّد المفاتيح (المجموعة ٢ من التحصين)؛ `group6Docs.test.ts` يثبت 35/27 بين الكود والتوثيق.
+- `localTransferService.envelope27.test.ts` (بصمة التكامل ترفض التلاعب)؛ سلسلة `localTransferService.schema29..34.test.ts` و`releasedPairs` و`familyOrphan` و`directSaleRoundTrip` (توافق كل زوج منشور)؛ اختبارات عدادات المظروف وتفرّد المفاتيح (المجموعة ٢ من التحصين)؛ `group6Docs.test.ts` يثبت 38/30 بين الكود والتوثيق (تصحيح مؤرخ 2026-09-29 F-033/W4-B: كان المثبت 35/27 حين كُتب العقد، وارتقى الزوج بقرارات D-037/D-038/WS-178 بلا تغيير قاعدة مالية).
 
 ## ٦. آخر تحقق
 

@@ -1,7 +1,6 @@
-/** التحصين الكامل (المجموعة ٥): فحص اتساق التوثيق الحي مع الحقيقة على الفرع —
- * §35 يسجل التصنيف والحد والترحيل وجدول الأمن والتشخيص وهوية البناء، بلا
- * ادّعاء دمج، والمخطط/التصدير من مصدر الثوابت نفسه، والمجموعة ٦ أُنجزت لاحقًا
- * على الفرع (انظر group6Docs.test.ts) وبوابة المسح بعدها لم تبدأ. */
+/** التحصين الكامل (المجموعة ٥): فحص اتساق التوثيق الحي مع الحقيقة المؤرخة (F-036/W4-B) —
+ * §35 يسجل التصنيف والحد والترحيل وجدول الأمن والتشخيص وهوية البناء مع
+ * التصحيح المؤرخ للدمج (`c0469e2`)، والمخطط/التصدير من مصدر الثوابت نفسه. */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -78,7 +77,7 @@ describe("documentation consistency — Group 5 boundaries implemented on the re
       );
     expect(group5).toBeDefined();
     expect(group5?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group5).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group5).toContain("PR #159 كان مفتوحًا وغير مدموج");
     const group6 = todo
       .split("\n")
       .find(
@@ -86,7 +85,7 @@ describe("documentation consistency — Group 5 boundaries implemented on the re
       );
     expect(group6).toBeDefined();
     expect(group6?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group6).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group6).toContain("PR #159 كان مفتوحًا وغير مدموج");
     const scanGate = todo
       .split("\n")
       .find(line => line.includes("بوابة ما بعد البرنامج") && line.trimStart().startsWith("- ["));

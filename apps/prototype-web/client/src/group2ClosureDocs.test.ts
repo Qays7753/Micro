@@ -1,8 +1,7 @@
-/** رقعة إغلاق المجموعة ٢: فحص اتساق التوثيق الحي مع الحقيقة على الفرع.
- * المرجع الحي يجب ألا يدّعي أن المجموعة ٢ «عمل مستقبلي» بينما كودها
- * موجود على فرع التحصين، ولا أن يوحي بدمجها — الحالة الدقيقة: منفذة على
- * الفرع، PR #159 مفتوح وغير مدموج، main لم يتغير، والمخطط/التصدير كما
- * هما (٣٥/٢٧ من مصدر الثوابت نفسه). */
+/** رقعة إغلاق المجموعة ٢: فحص اتساق التوثيق الحي مع الحقيقة المؤرخة (F-036/W4-B).
+ * المرجع يوثق لحظة الكتابة (منفذة على الفرع) ثم يحمل التصحيح المؤرخ:
+ * دُمج PR #159 لاحقًا في `c0469e2` وتقدّم `main` بعده، والمخطط/التصدير كما
+ * هما (٣٥/٢٧ تاريخًا؛ الزوج الحي 38/30 من مصدر الثوابت نفسه). */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,10 +19,12 @@ describe("documentation consistency — Group 2 implemented on the remediation b
     expect(currentState).toContain("نُفذت على الفرع الوحيد الطويل `remediation/micro-full-hardening-2026`");
   });
 
-  it("current-state states the exact PR and merge status — open, unmerged, main unchanged", () => {
-    expect(currentState).toContain("PR #159 مفتوح وغير مدموج");
-    expect(currentState).toContain("و`main` لم يتغير");
-    expect(currentState).toContain("بوابة الدمج معلقة");
+  it("current-state carries the dated merge correction — PR #159 merged later at c0469e2 (F-036/W4-B)", () => {
+    expect(currentState).toContain("PR #159 كان مفتوحًا وغير مدموج");
+    expect(currentState).toContain("و`main` لم يتغير حينها");
+    expect(currentState).toContain("دُمج PR #159 لاحقًا في `c0469e2`");
+    expect(currentState).toContain("تصحيح مؤرخ 2026-09-29 — F-036/W4-B");
+    expect(currentState).not.toContain("PR #159 مفتوح");
   });
 
   it("current-state exposes the typed storage_stale contract for Group 3", () => {
@@ -45,13 +46,14 @@ describe("documentation consistency — Group 2 implemented on the remediation b
       );
     expect(group2Line).toBeDefined();
     expect(group2Line?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group2Line).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group2Line).toContain("PR #159 كان مفتوحًا وغير مدموج");
+    expect(group2Line).toContain("دُمج PR #159 لاحقًا في `c0469e2`");
     expect(group2Line).toContain("منفذة على الفرع");
   });
 
   it("todo keeps Groups 4-6 of the hardening program not started (Group 3 is now implemented on the branch)", () => {
-    /* المجموعة ٣ (التحصين الكامل) نُفذت على الفرع وبوابة الدمج معلقة —
-     * الحارس يتقدم مع الحقيقة: ٣ منفذة بانتظار الدمج، و٤–٦ لم تبدأ. */
+    /* المجموعة ٣ (التحصين الكامل) نُفذت على الفرع — دُمج PR #159 لاحقًا في
+     * `c0469e2` (F-036/W4-B)؛ الحارس يتقدم مع الحقيقة المؤرخة. */
     const group3 = todo
       .split("\n")
       .find(
@@ -59,7 +61,7 @@ describe("documentation consistency — Group 2 implemented on the remediation b
       );
     expect(group3).toBeDefined();
     expect(group3?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group3).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group3).toContain("PR #159 كان مفتوحًا وغير مدموج");
     /* المجموعة ٤ أُنجزت لاحقًا على الفرع (D-034)؛ ٥ و٦ لم تبدآ بعد. */
     const group4 = todo
       .split("\n")
@@ -67,9 +69,9 @@ describe("documentation consistency — Group 2 implemented on the remediation b
         line => line.includes("المجموعة ٤ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
       );
     expect(group4?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group4).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group4).toContain("PR #159 كان مفتوحًا وغير مدموج");
     /* المجموعات ٥ و٦ أُنجزتا لاحقًا على الفرع (انظر group5Docs.test.ts
-     * وgroup6Docs.test.ts)؛ بوابة المسح الهيكلي بعد البرنامج لم تبدأ. */
+     * وgroup6Docs.test.ts)؛ بوابة المسح الهيكلي بعد البرنامج نُفّذت وأُغلقت. */
     const group5 = todo
       .split("\n")
       .find(
@@ -82,7 +84,7 @@ describe("documentation consistency — Group 2 implemented on the remediation b
         line => line.includes("المجموعة ٦ — برنامج التحصين الكامل") && line.trimStart().startsWith("- ["),
       );
     expect(group6?.trimStart().startsWith("- [x]")).toBe(true);
-    expect(group6).toContain("PR #159 مفتوح وغير مدموج");
+    expect(group6).toContain("PR #159 كان مفتوحًا وغير مدموج");
     const scanGate = todo
       .split("\n")
       .find(line => line.includes("بوابة ما بعد البرنامج") && line.trimStart().startsWith("- ["));

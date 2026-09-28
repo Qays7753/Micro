@@ -1,0 +1,49 @@
+{
+  "id": "WS-197",
+  "title": "REM-004 — W4-B أرقام الإصدار الحية ودبابيس الدمج المؤرخة (F-033 + F-036)",
+  "status": "IN_REVIEW",
+  "items": [
+    "REM-004"
+  ],
+  "branch": "fix/w4b-docs-numbers-159pins-20260929",
+  "base_sha": "b9e86e73d716ebf37f13ac863698b919b721043d",
+  "areas": [
+    "docs",
+    "tests",
+    "guards"
+  ],
+  "contracts": [
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice B)",
+  "pr": 267,
+  "started_at": "2026-09-29T15:05:00+03:00",
+  "updated_at": "2026-09-29T15:30:00+03:00",
+  "next_action": "PR #267 مفتوح للمراجعة والدمج؛ بعده التحقق على main ثم إغلاق WS-197 VERIFIED ثم W4-C (F-037).",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-197",
+      "reason": "فتح Claim لشريحة W4-B من origin/main b9e86e7 بعد إغلاق WS-196 VERIFIED بالتحقق المباشر من الشجرة الحية."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:267",
+      "reason": "اكتمل تنفيذ W4-B وافتُتح PR #267 ببوابات خضراء على الرأس 1b98158."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: توثيق + اختبارات توثيق فقط (D-10: عمل توثيق/حوكمة داخل الحدود المعتمدة — لا UI ولا إعادة هيكلة). صفر كود تشغيل، صفر حزمة، صفر مخطط/تصدير.",
+    "حد الاستعادة: b9e86e7.",
+    "الأرشيف والتقارير المؤرخة (planning/ وarchive/ وevidence/) لا تُمسّ — التصحيح على المرجع الحي فقط."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-004.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4B-SLICE-REPORT-2026-09-29.md"
+  ]
+}
