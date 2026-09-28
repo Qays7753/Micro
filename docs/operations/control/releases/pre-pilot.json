@@ -41,7 +41,8 @@
     "HARD-010",
     "HARD-011",
     "REM-002",
-    "REM-003"
+    "REM-003",
+    "REM-004"
   ],
   "final_gate": "PILOT-001",
   "updated_at": "2026-09-29"
