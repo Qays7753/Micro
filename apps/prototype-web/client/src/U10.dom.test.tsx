@@ -35,7 +35,11 @@ describe("PwaInstallControl dismissal persistence (U-10)", () => {
       preferences: {
         readInstallBannerDismissal: vi.fn(async () => ({ ok: true, dismissedAt })),
         saveInstallBannerDismissal: vi.fn(async () => {
-          dismissedAt = "2026-08-29T09:00:00.000Z";
+          /* مطابقة للإنتاج (preferenceService.saveInstallBannerDismissal يخزّن
+           * لحظة الإخفاء الحالية): طابع نسبي لا مطلق — الطابع المطلق الثابت
+           * «2026-08-29T09:00:00.000Z» انفجر زمنيًا عند حدود نافذة الثلاثين
+           * يومًا (2026-09-28T09:00Z) فأحمرّ CI على شجرة مطابقة تمامًا. */
+          dismissedAt = new Date().toISOString();
           return { ok: true, dismissedAt };
         }),
       },
