@@ -45,13 +45,18 @@ export const INFLUENTIAL_SNAPSHOT_FAMILIES = {
     label: "قرار تفعيل إدارة المخزون",
     count: snapshot => (snapshot.inventoryActivation == null ? 0 : 1),
   },
-  catalogItems: { label: "بنود الكتالوج", count: snapshot => snapshot.catalogItems?.length ?? 0 },
+  /* F-031 (W3-A — قرار N-06): الاسم الموحد «منتجاتي وخدماتي» في كل نص يصل
+   * المستخدم — «الكتالوج» مصطلح نظام لا اسم ملكية (رسائل الاسترجاع والرفض). */
+  catalogItems: { label: "بنود منتجاتي وخدماتي", count: snapshot => snapshot.catalogItems?.length ?? 0 },
   measurementUnits: { label: "وحدات القياس", count: snapshot => snapshot.measurementUnits?.length ?? 0 },
   directConversions: {
     label: "تحويلات الوحدات المباشرة",
     count: snapshot => snapshot.directConversions?.length ?? 0,
   },
-  catalogTemplates: { label: "قوالب الكتالوج", count: snapshot => snapshot.catalogTemplates?.length ?? 0 },
+  catalogTemplates: {
+    label: "قوالب منتجاتي وخدماتي",
+    count: snapshot => snapshot.catalogTemplates?.length ?? 0,
+  },
   actualTimeRecords: {
     label: "سجلات الوقت الفعلي",
     count: snapshot => snapshot.actualTimeRecords?.length ?? 0,

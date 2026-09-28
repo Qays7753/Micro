@@ -37,7 +37,9 @@ export function statementResultDecomposition(result: RecordedPeriodResult): read
   const terms: readonly StatementResultTerm[] = [
     {
       id: "recognizedRevenueTotal",
-      label: "إيراد معترف به",
+      /* F-021 (W3-A): المصطلح الملزم «المحتسب عند التسليم» (قاموس 08:93) —
+       * «إيراد معترف به» ممنوع في كل نص يصل المستخدم أو يُصدَّر. */
+      label: "إيراد محتسب عند التسليم",
       signedMinor: result.recognizedRevenueMinor + result.directSaleRevenueMinor,
     },
     { id: "effectiveDirectCost", label: "تكلفة مباشرة", signedMinor: -result.effectiveDirectCostMinor },

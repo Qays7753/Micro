@@ -281,17 +281,18 @@ export class ProfitToCashBridgeService {
         .filter(event => event.type === "loss_non_cash")
         .reduce((sum, event) => sum + event.operatingExpenseDeltaMinor, 0),
     );
-    /* ٦) توقيت الذمم: قبض الفترة (طلبات + بيع مباشر) مقابل الإيراد المعترف به. */
+    /* ٦) توقيت الذمم: قبض الفترة (طلبات + بيع مباشر) مقابل الإيراد المحتسب عند
+     * التسليم (F-021 — قاموس 08:93: «الإيراد المعترف به» ممنوع). */
     push(
       "receivables_timing",
-      "توقيت الذمم: قبض الفترة مقابل الإيراد المعترف به",
-      "أحداث قبض الطلبات بتاريخ عمّان + قبض البيع المباشر بتاريخ البيع − إيراد القارئ الكنوني المعترف به",
+      "توقيت الذمم: قبض الفترة مقابل الإيراد المحتسب عند التسليم",
+      "أحداث قبض الطلبات بتاريخ عمّان + قبض البيع المباشر بتاريخ البيع − إيراد القارئ الكنوني المحتسب عند التسليم",
       orderCollectionsMinor +
         directSalesCollectedMinor -
         periodReading.recognizedRevenueMinor -
         periodReading.directSaleRevenueMinor,
     );
-    /* ٧) توقيت المواد: تكلفة معترف بها في النتيجة مقابل مواد دخلت الفترة. */
+    /* ٧) توقيت المواد: تكلفة محتسبة عند التسليم في النتيجة مقابل مواد دخلت الفترة. */
     const purchasesTotalMinor = (purchasesResult.value as readonly SupplierPurchase[])
       .filter(purchase => inPeriod(purchase.purchasedOn))
       .reduce((sum, purchase) => sum + purchase.totalMinor, 0);

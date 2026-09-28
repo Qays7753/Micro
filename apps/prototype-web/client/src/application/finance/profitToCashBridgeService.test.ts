@@ -486,7 +486,7 @@ describe("ProfitToCashBridgeService — البنود غير النقدية دا�
 });
 
 describe("ProfitToCashBridgeService — توقيت الذمم (قصة الجسر)", () => {
-  it("إيراد معترف به الآن وقبض لاحق بعد نهاية الفترة: الفرق في توقيت الذمم لا فرقًا مخفيًا", async () => {
+  it("إيراد محتسب عند التسليم الآن وقبض لاحق بعد نهاية الفترة: الفرق في توقيت الذمم لا فرقًا مخفيًا", async () => {
     const store = new MemoryLocalStore();
     await saveCollectedOrder(store, {
       id: "timing-order",

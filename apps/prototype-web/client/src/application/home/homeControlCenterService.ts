@@ -529,7 +529,7 @@ export class HomeControlCenterService {
      * المالية)، والناقص يوصف بصدق بلا أصفار. */
     /* المبيعات بالتعريف الرسمي نفسه الذي يعرضه كشف الفترة
      * (recognizedRevenueTotalMinor في statementService): إيراد الطلبات
-     * المعترف به + البيع المباشر — لا معادلة جديدة هنا. */
+     * المحتسب عند التسليم + البيع المباشر — لا معادلة جديدة هنا. */
     const totalSales = (period: { recognizedRevenueMinor: number; directSaleRevenueMinor: number }) =>
       period.recognizedRevenueMinor + period.directSaleRevenueMinor;
     const periodNumbers: HomePeriodNumbersSection = {
