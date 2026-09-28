@@ -9,64 +9,20 @@
  *   في جدول المسارات المعروف من MicroRouter.
  * - المسار خارج الجدول يُخفى كليًا إلى /unknown — لا يُمرر نص المسار
  *   الخام أبدًا (قد يحمل معرفات أو قيم حساسة).
+ *
+ * W4-E (F-047): اكتمل الجدول بكل مسارات MicroRouter الحية — كانت المسارات
+ * العشرة التالية تؤول صامتة إلى /unknown (finance/more وupcoming وrecurring
+ * وموجاتها، وnew/owner_withdrawal_cash، وloans/received وموجتيها، وmarket).
+ * أُعيد التمثيل سلسلة واحدة مفصولة بفراغات يفكها المحرك عند الإقلاع —
+ * نفس المحتوى والترتيب الحرفيين بتكلفة إقلاع أصغر (المصفوفة الحرفية
+ * المتكررة كانت أغلى)، والمسار النوعي يسبق أخاه البديل (:id/:type)
+ * كي لا يبتلعه. اختبار التزامن (routeTemplateSync) يشتق المسارات من
+ * MicroRouter نفسه ويثبت عدم انهيار أي منها إلى /unknown.
  */
-const ROUTE_TEMPLATES: readonly string[] = [
-  "/",
-  "/assets",
-  "/assets/new",
-  "/assets/:id",
-  "/cash",
-  "/cash/count",
-  "/cash/distribute",
-  "/cash/transfer",
-  "/cash/entry/:id/reverse",
-  "/cash/wallet/new",
-  "/cash/wallet/:id",
-  "/cash/wallet/:id/adjust",
-  "/cash/wallet/:id/opening-later",
-  "/catalog",
-  "/collect",
-  "/direct-sales/new",
-  "/direct-sales/:id",
-  "/finance",
-  "/finance/activity",
-  "/finance/g5/declaration",
-  "/finance/new/:type",
-  "/finance/owner-entitlement",
-  "/finance/statement",
-  "/finance/withdraw",
-  "/foundation",
-  "/inventory",
-  "/inventory/material/new",
-  "/inventory/material/:id/confirm",
-  "/inventory/movement/:id/reverse",
-  "/inventory/movement/:type",
-  "/loans",
-  "/loans/new",
-  "/loans/:id",
-  "/orders",
-  "/orders/new",
-  "/orders/draft/:id",
-  "/orders/draft/:id/agreement",
-  "/orders/draft/:id/cost",
-  "/orders/:id",
-  "/orders/:id/deliver",
-  "/parties",
-  "/profile",
-  "/review",
-  "/schedule",
-  "/schedule/:id",
-  "/settings",
-  "/setup",
-  "/share/preview",
-  "/suppliers",
-  "/suppliers/purchase/:id",
-  "/suppliers/purchase/:id/payment",
-  "/tools",
-  "/tools/calculator",
-  "/tools/estimate/:id",
-  "/tools/integrity",
-];
+const ROUTE_TEMPLATES: readonly string[] =
+  "/ /assets /assets/new /assets/:id /cash /cash/count /cash/distribute /cash/transfer /cash/entry/:id/reverse /cash/wallet/new /cash/wallet/:id /cash/wallet/:id/adjust /cash/wallet/:id/opening-later /catalog /collect /direct-sales/new /direct-sales/:id /finance /finance/activity /finance/g5/declaration /finance/more /finance/new/owner_withdrawal_cash /finance/new/:type /finance/owner-entitlement /finance/recurring /finance/recurring/new /finance/recurring/:id /finance/recurring/:id/edit /finance/statement /finance/upcoming /finance/withdraw /foundation /inventory /inventory/material/new /inventory/material/:id/confirm /inventory/movement/:id/reverse /inventory/movement/:type /loans /loans/new /loans/:id /loans/received/new /loans/received/:id /market /orders /orders/new /orders/draft/:id /orders/draft/:id/agreement /orders/draft/:id/cost /orders/:id /orders/:id/deliver /parties /profile /review /schedule /schedule/:id /settings /setup /share/preview /suppliers /suppliers/purchase/:id /suppliers/purchase/:id/payment /tools /tools/calculator /tools/estimate/:id /tools/integrity".split(
+    " ",
+  );
 
 const UNKNOWN_ROUTE_TEMPLATE = "/unknown";
 
