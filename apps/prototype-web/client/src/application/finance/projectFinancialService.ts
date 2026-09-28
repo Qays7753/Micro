@@ -30,6 +30,7 @@ import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financi
 /* F-008 (W2-D): المعين الكنوني الخفيف لكلفة توصيل المشروع — لا سحب تحلل
  * الطلب الكامل إلى حزبة الدخول (الدخول يحتاج الكلفة فقط). */
 import { projectDeliveryCostMinor as orderDeliveryCostMinor } from "@micro-domain/craft-order/index.js";
+import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 /* F-009 (W2-B): نموذج تعادل واحد — قراءة التغطية تستهلك calculateBreakEven
  * الكنونية بمدخلات g5Service الموحدة نفسها، بلا اشتقاق خاص بعد اليوم. */
 import { calculateBreakEven } from "@micro-domain/g5/index.js";
@@ -140,6 +141,14 @@ export type RecordedPeriodResult = {
    * دفعها المشروع للطلبات النهائية خارج اللقطة — معلنة حقلًا وسببًا بلا طرح:
    * قرار الطرح ينتظر توحيد التسجيل اليدوي للمصروف لتفادي الخصم المزدوج. */
   projectDeliveryCostMinor: number;
+  /* F-020 (W3-B): الحقول المشتقة للفرق غير المحصّل — قراءة لحظية بلا أي
+   * تغيير معادلة ولا كتابة. المصدر الكنوني نفسه الذي يحفظه المجال:
+   * receivableMinor للطلب (أساس قيمة الطلب القابلة للتحصيل — D-15-A)
+   * وrevenueMinor−collectedMinor للبيع المباشر (W2-A). سطر عرض «منها X
+   * غير محصّل» ينتظر قرار المالك س4/D-05 — الحقل يُشتق الآن من مالك واحد
+   * كي لا تُخترع معادلة موازية عند القرار. */
+  orderReceivableMinor: number;
+  directSaleUncollectedMinor: number;
   resultMinor: number | null;
   finalOrderCount: number;
   excludedOrderCount: number;
@@ -667,6 +676,8 @@ export class ProjectFinancialService {
           retainedDepositRevenueMinor: 0,
           nonCashLossMinor: 0,
           projectDeliveryCostMinor: 0,
+          orderReceivableMinor: 0,
+          directSaleUncollectedMinor: 0,
           resultMinor: null,
           finalOrderCount: 0,
           excludedOrderCount: 0,
@@ -698,6 +709,15 @@ export class ProjectFinancialService {
       .filter(item => item.deliveredAt !== null && inPeriod(item.deliveredAt));
     const finals = delivered.filter(item => item.order.resultStatus === "final");
     const excludedOrderCount = delivered.length - finals.length;
+    /* F-020 (W3-B): الجمع المشتق للفرق غير المحصّل — من الحقول المحفوظة
+     * للكيانات نفسها (receivableMinor بأساس D-15-A للطلب؛ ومعيّن المجال
+     * الواحد للمتبقي على البيع المباشر S4-09) — لا مصدر حساب ثانٍ ولا إعادة
+     * تفسير تاريخ. */
+    const orderReceivableMinor = finals.reduce((total, item) => total + item.order.receivableMinor, 0);
+    const directSaleUncollectedMinor = activeDirectSales.reduce(
+      (total, sale) => total + directSaleOutstandingMinor(sale),
+      0,
+    );
     const recognizedRevenueMinor = finals.reduce(
       (total, item) => total + item.order.recognizedRevenueMinor,
       0,
@@ -847,6 +867,8 @@ export class ProjectFinancialService {
         retainedDepositRevenueMinor,
         nonCashLossMinor,
         projectDeliveryCostMinor,
+        orderReceivableMinor,
+        directSaleUncollectedMinor,
         /* F-005 + المجموعة ٤ + F-019: النتيجة تتضمن إيراد البيع المباشر وتكلفته
          * المعروفة، وتخصم الإهلاك المسجّل وخسارة الشطب والخسارة غير النقدية
          * باسمها، وتضيف نتيجة التخلص وإيراد عربون محتفظ مصنَّف — كلها بنود

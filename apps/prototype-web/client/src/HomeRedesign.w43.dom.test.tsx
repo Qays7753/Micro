@@ -159,13 +159,14 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
     render(<Harness page={<Home />} />);
     const numbers = await screen.findByTestId("home-numbers");
     /* التقسيم الزمني واضح والحقائق القائمة تحته في القسم نفسه. */
-    expect(numbers.querySelector('[data-period="today"]')?.textContent).toContain("مبيعات اليوم");
+    expect(numbers.querySelector('[data-period="today"]')?.textContent).toContain("مبيعات مسجلة اليوم");
     expect(numbers.querySelector('[data-period="today"]')?.textContent).toContain("نتيجة اليوم");
-    expect(numbers.querySelector('[data-period="month"]')?.textContent).toContain("مبيعات الشهر");
+    expect(numbers.querySelector('[data-period="month"]')?.textContent).toContain("مبيعات مسجلة الشهر");
     expect(numbers.querySelector('[data-period="month"]')?.textContent).toContain("نتيجة الشهر");
     const section = numbers.closest("section");
     expect(section?.textContent).toContain("الكاش المسجل");
-    /* مبيعات اليوم تعرف تعريف كشف الفترة الرسمي (طلبات + بيع مباشر). */
+    /* مبيعات اليوم المسجلة تعرف تعريف كشف الفترة الرسمي (طلبات + بيع مباشر) —
+     * F-020 (W3-B): الوسم «مسجلة» من الخدمة يصل الصفحة كما هو. */
     expect(numbers.querySelector('[data-period="today"]')?.textContent).toContain("15.00");
     expect(section?.textContent).not.toContain("ما هو مسجل حتى الآن؟");
   });

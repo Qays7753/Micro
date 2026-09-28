@@ -3,6 +3,7 @@ import { ProjectFinancialService } from "./projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import {
   calculateCostSnapshot,
+  collectDeposit,
   createCraftOrder,
   recordDeliveryTerms,
   transitionOrder,
@@ -476,6 +477,101 @@ describe("ProjectFinancialService", () => {
           directSaleCostKnownMinor: 600,
           resultMinor: 1000,
         },
+      });
+    });
+  });
+
+  /* F-020 (W3-B): الحقول المشتقة للفرق غير المحصّل — إضافية على قارئ الفترة،
+   * بلا أي تغيير معادلة: الطلبات من receivableMinor (أساس قيمة الطلب القابلة
+   * للتحصيل — D-15-A) والبيع المباشر من معيّن المجال الواحد. الأوراكل مستقل:
+   * السيناريو يُبنى بأرقام مالية معروفة سلفًا (3000 + 500 − 1000 = 2500). */
+  describe("F-020 (W3-B): additive uncollected fields on the period read", () => {
+    it("sums order receivable on the collectible basis and the direct-sale outstanding for the period", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      const cost = calculateCostSnapshot("f020-cost", {
+        currency: "JOD",
+        materialItems: [],
+        time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
+        packagingMinor: 0,
+        deliveryMinor: 0,
+        wasteMinor: 0,
+        safetyBufferMinor: 0,
+        quantity: 1,
+        createdAt: "2026-08-01T09:00:00.000Z",
+        freshnessDays: null,
+      });
+      let order = createCraftOrder({
+        id: "f020-order",
+        customerName: "عميلة",
+        itemName: "قطعة",
+        specifications: "اختبار F-020",
+        quantity: 1,
+        agreedPriceMinor: 3000,
+        costSnapshot: cost,
+        createdAt: "2026-08-01T09:00:00.000Z",
+      });
+      /* مساهمة توصيل عميل 500 تُقبض عبر المشروع خارج السعر والمشروع دفع
+       * للمندوب 500: القيمة القابلة للتحصيل 3500 — أساس D-15-A نفسه،
+       * والنموذج مكتمل (أجرة +500 / كلفة توصيل −500) فالنتيجة نهائية. */
+      order = recordDeliveryTerms(order, {
+        responsibility: "customer_pays_project",
+        feeIncludedInPrice: false,
+        costIncludedInProductCost: false,
+        feeChargedMinor: 500,
+        costPaidMinor: 500,
+        projectShareMinor: null,
+        customerShareMinor: null,
+        idempotencyKey: "f020-terms",
+        createdAt: "2026-08-01T12:00:00.000Z",
+      });
+      order = collectDeposit(order, 1000, "f020-deposit", "2026-08-02T09:00:00.000Z");
+      for (const [to, stamp] of [
+        ["provisional_agreement", "2026-08-01T10:00:00.000Z"],
+        ["confirmed", "2026-08-01T11:00:00.000Z"],
+        ["in_progress", "2026-08-02T09:00:00.000Z"],
+        ["ready", "2026-08-03T09:00:00.000Z"],
+        ["delivered", "2026-08-05T09:00:00.000Z"],
+      ] as const)
+        order = transitionOrder(order, { to, idempotencyKey: `f020-${to}`, createdAt: stamp });
+      await store.saveOrder({
+        id: order.id,
+        order,
+        deliveryDate: "2026-08-05",
+        agreementSource: "test",
+        createdAt: "2026-08-01T09:00:00.000Z",
+        updatedAt: "2026-08-05T09:00:00.000Z",
+      });
+      /* بيع مباشر في الفترة: إيراد 2000 قُبض منه 500 — المتبقي 1500. */
+      await saveDirectSale(store, {
+        id: "f020-sale",
+        revenueMinor: 2000,
+        costMinor: 600,
+        occurredOn: "2026-08-10",
+        collectedMinor: 500,
+      });
+      await expect(finance.readRecordedPeriodResult("2026-08-01", "2026-08-31")).resolves.toMatchObject({
+        ok: true,
+        value: {
+          recognizedRevenueMinor: 3500,
+          directSaleRevenueMinor: 2000,
+          orderReceivableMinor: 2500,
+          directSaleUncollectedMinor: 1500,
+        },
+      });
+      /* فترة لاحقة لا تعرف شيئًا من هذا: الحقول الإضافية صفر بلا استنتاج. */
+      await expect(finance.readRecordedPeriodResult("2026-09-01", "2026-09-30")).resolves.toMatchObject({
+        ok: true,
+        value: { orderReceivableMinor: 0, directSaleUncollectedMinor: 0 },
+      });
+    });
+
+    it("returns zero uncollected fields for an invalid period window instead of guessing", async () => {
+      const store = new MemoryLocalStore();
+      const finance = new ProjectFinancialService(store, now);
+      await expect(finance.readRecordedPeriodResult("2026-09-30", "2026-09-01")).resolves.toMatchObject({
+        ok: true,
+        value: { status: "invalid", orderReceivableMinor: 0, directSaleUncollectedMinor: 0 },
       });
     });
   });

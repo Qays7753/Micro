@@ -335,7 +335,9 @@ export class AssetService {
     if (proposal.proposedMinor <= 0)
       return failure(
         "validation_error",
-        proposal.readiness === "ready" ? "لا إهلاك مستحق جديد حتى هذا التاريخ." : proposal.note,
+        /* F-024 (W3-B): «مقترح» لا «مستحق» — نفس مفردة عقد ٤٣: لا التزام
+         * نقديًا قبل تسجيل صريح. */
+        proposal.readiness === "ready" ? "لا إهلاك مقترح جديد حتى هذا التاريخ." : proposal.note,
       );
     try {
       const now = this.now();

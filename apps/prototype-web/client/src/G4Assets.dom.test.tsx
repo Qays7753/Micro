@@ -162,7 +162,10 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     const depreciation = events.value.find(event => event.type === "asset_depreciation")!;
     expect(depreciation.cashDeltaMinor).toBe(0);
     expect(depreciation.assetDeltaMinor).toBe(-7500);
-    /* بعد التسجيل: لا مستحق جديد — العرض يعلنها بدل زر التسجيل. */
+    /* بعد التسجيل: لا مستحق جديد — العرض يعلنها بدل زر التسجيل.
+     * (F-024 W3-B: هذه الحرفية نسخة صفحة محلية في AssetDetail.tsx:35 —
+     * DEFERRED_UI؛ سلسلة المجال الكنسية صارت «لا اقتراح جديد» في
+     * src/domain/asset/policies.ts وتُوحَّد الصفحة معها في موجة UI.) */
     expect(await screen.findByText(/لا مستحق جديد/)).toBeTruthy();
     const events2 = await store.listFinancialEvents();
     if (!events2.ok) throw new Error(events2.message);

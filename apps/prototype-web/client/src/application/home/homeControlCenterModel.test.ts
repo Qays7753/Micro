@@ -70,7 +70,7 @@ const baseInput = (): HomeControlCenterInput => ({
     today: {
       sales: {
         id: "sales",
-        label: "مبيعات اليوم",
+        label: "مبيعات مسجلة اليوم",
         state: "known",
         valueMinor: 0,
         honestNote: null,
@@ -88,7 +88,7 @@ const baseInput = (): HomeControlCenterInput => ({
     month: {
       sales: {
         id: "sales",
-        label: "مبيعات الشهر",
+        label: "مبيعات مسجلة الشهر",
         state: "known",
         valueMinor: 0,
         honestNote: null,
@@ -211,7 +211,7 @@ describe("buildHomeControlCenterViewModel", () => {
         today: {
           sales: {
             id: "sales",
-            label: "مبيعات اليوم",
+            label: "مبيعات مسجلة اليوم",
             state: "known",
             valueMinor: 1500,
             honestNote: null,
@@ -229,7 +229,7 @@ describe("buildHomeControlCenterViewModel", () => {
         month: {
           sales: {
             id: "sales",
-            label: "مبيعات الشهر",
+            label: "مبيعات مسجلة الشهر",
             state: "known",
             valueMinor: 32000,
             honestNote: null,
