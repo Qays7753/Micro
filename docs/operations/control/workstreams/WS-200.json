@@ -1,7 +1,7 @@
 {
   "id": "WS-200",
   "title": "REM-004 — W4-E اكتمال قوالب مسارات التشخيص واختبار التزامن (F-047)",
-  "status": "CLAIMED",
+  "status": "IN_REVIEW",
   "items": [
     "REM-004"
   ],
@@ -16,16 +16,22 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice E)",
-  "pr": null,
+  "pr": 270,
   "started_at": "2026-09-29T20:20:00+03:00",
-  "updated_at": "2026-09-29T20:20:00+03:00",
-  "next_action": "تنفيذ W4-E من origin/main 988883a: إضافة المسارات العشرة الناقصة إلى ROUTE_TEMPLATES (تمثيل سلسلة مفصولة بفراغات لدفع الحزمة داخل الشريحة) + اختبار تزامن routeTemplateSync يشتق مسارات MicroRouter من مصدره ويثبت عدم انهيار أي منها إلى /unknown.",
+  "updated_at": "2026-09-29T20:45:00+03:00",
+  "next_action": "PR #270 للمراجعة والدمج؛ بعده التحقق على main ثم W4-F (F-051/F-053/F-058).",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-200",
       "reason": "فتح Claim لشريحة W4-E من origin/main 988883a بعد إغلاق WS-199 VERIFIED بالتحقق المباشر من الشجرة الحية."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:270",
+      "reason": "اكتمل تنفيذ W4-E وافتُتح PR #270 ببوابات خضراء على الرأس 7cda64a (تشخيص 14/14، جذر 514/514، نموذج 1981/1981، الحزمة 649,911/650,000 خام و154,545/155,000 gzip)."
     }
   ],
   "migration_baseline": false,
