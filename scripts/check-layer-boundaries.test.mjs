@@ -348,3 +348,26 @@ describe("layer boundary fixtures — Business Time purity (Group 9, STR-031)", 
     expect(serviceUse).toEqual([]);
   });
 });
+
+describe("root client test files are inside the lint engine (F-044/W4-D)", () => {
+  const ROOT_CLIENT_TEST = "apps/prototype-web/client/src/fixture.docs.test.ts";
+
+  it("parses a root-level client test file and applies no-explicit-any to it", async () => {
+    /* قبل W4-D: هذه المسارات كانت تُتجاهل بالكامل («File ignored because no
+     * matching configuration was supplied») — 94+ ملف اختبار جذر بلا أي قاعدة.
+     * الإثبات: كود نظيف يمّر صفرًا، وany صريح يقع عليه الحكم. */
+    const clean = await ruleIdsFor(
+      ROOT_CLIENT_TEST,
+      'import { describe, expect, it } from "vitest";\n\ndescribe("fixture", () => {\n  it("passes", () => {\n    expect(1).toBe(1);\n  });\n});\n',
+    );
+    expect(clean).toEqual([]);
+    const anyHit = await ruleIdsFor(ROOT_CLIENT_TEST, "export const v: any = 1;\n");
+    expect(anyHit).toContain("@typescript-eslint/no-explicit-any");
+  });
+
+  it("does not weaken the existing baseline: the glob lints clean end-to-end", async () => {
+    const results = await eslint.lintFiles(["apps/prototype-web/client/src/*.test.{ts,tsx}"]);
+    const errors = results.flatMap(r => r.messages.filter(m => m.severity === 2));
+    expect(errors).toEqual([]);
+  });
+});

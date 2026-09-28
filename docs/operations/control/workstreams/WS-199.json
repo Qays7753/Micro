@@ -1,0 +1,40 @@
+{
+  "id": "WS-199",
+  "title": "REM-004 — W4-D تغطية ESLint لملفات اختبار الجذر (F-044)",
+  "status": "CLAIMED",
+  "items": [
+    "REM-004"
+  ],
+  "branch": "fix/w4d-eslint-root-tests-20260929",
+  "base_sha": "46f51d0fc2f5defe33d87431db7987e0dbfb04ab",
+  "areas": [
+    "guards",
+    "tests"
+  ],
+  "contracts": [
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice D)",
+  "pr": null,
+  "started_at": "2026-09-29T17:00:00+03:00",
+  "updated_at": "2026-09-29T17:00:00+03:00",
+  "next_action": "تنفيذ W4-D: كتلة files جديدة في eslint.config.js لمسار apps/prototype-web/client/src/*.test.{ts,tsx} (94+ ملفًا كانت تُتجاهل بالكامل) بمحلل TypeScript وحظر any الصريح، وعينتان في check-layer-boundaries.test.mjs تثبتان وقوع الحكم ونظافة الـglob، مع بقاء خط الأساس 37/37 بلا أخطاء.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-199",
+      "reason": "فتح Claim لشريحة W4-D من origin/main 46f51d0 بعد إغلاق WS-198 VERIFIED."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: eslint.config.js + scripts/check-layer-boundaries.test.mjs فقط — صفر كود تشغيل، صفر حزمة.",
+    "حد الاستعادة: 46f51d0.",
+    "القواعد المختارة: parser + no-explicit-any (تكافؤ كتلة الجذر src/tests) — قياس مباشر: الـglob نظيف والأساس الكامل 37/37."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-004.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4D-SLICE-REPORT-2026-09-29.md"
+  ]
+}

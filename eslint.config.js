@@ -444,4 +444,24 @@ export default [
       "no-restricted-syntax": "off",
     },
   },
+  /* W4-D (F-044): ملفات اختبار جذر client/src (توثيق/عقود/عرض — 94+ ملفًا) لم
+   * تكن تطابق أي كتلة files فتُتجاهل بالكامل («File ignored because no matching
+   * configuration was supplied»). هذه الكتلة تدخلها تحت المحرك: محلل TypeScript
+   * + حظر any الصريح — التغطية تُثبت بعينة يقع عليها الحكم (check-layer-boundaries). */
+  {
+    files: ["apps/prototype-web/client/src/*.test.{ts,tsx}"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+    },
+  },
 ];
