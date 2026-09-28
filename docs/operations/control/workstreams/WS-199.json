@@ -1,7 +1,7 @@
 {
   "id": "WS-199",
   "title": "REM-004 — W4-D تغطية ESLint لملفات اختبار الجذر (F-044)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-004"
   ],
@@ -16,9 +16,11 @@
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice D)",
   "pr": 269,
+  "merge_sha": "988883a1176a0d79aee4abb42c43fb99b689d09a",
+  "verified_on_main_sha": "988883a1176a0d79aee4abb42c43fb99b689d09a",
   "started_at": "2026-09-29T17:00:00+03:00",
-  "updated_at": "2026-09-29T17:15:00+03:00",
-  "next_action": "PR #269 للمراجعة والدمج؛ بعده التحقق على main ثم W4-E (F-047).",
+  "updated_at": "2026-09-29T20:15:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W4-D متحققة على main 988883a (تطابق الشجرة مع رأس PR).",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -31,6 +33,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:269",
       "reason": "اكتمل تنفيذ W4-D وافتُتح PR #269 ببوابات خضراء على الرأس eaa6a05."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-269",
+      "reason": "دُمج PR #269 (Squash) عند 988883a1176a0d79aee4abb42c43fb99b689d09a بعد Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "تطابق الشجرة (رأس origin/main = 988883a = merge_commit_sha للـPR)؛ التحقق المباشر على main: كتلة files لـ apps/prototype-web/client/src/*.test.{ts,tsx} في eslint.config.js (السطر 452) + اختبار المحرك 19/19 (يشمل عينتي W4-D: حكم no-explicit-any على عينة الجذر ودمج الـglob الكامل بصفر أخطاء)."
     }
   ],
   "migration_baseline": false,

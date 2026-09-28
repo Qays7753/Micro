@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-199 | IN_REVIEW | \`fix/w4d-eslint-root-tests-20260929\` | 269 | REM-004 | PR #269 للمراجعة والدمج؛ بعده التحقق على main ثم W4-E (F-047). |
+| WS-200 | IN_REVIEW | \`fix/w4e-route-templates-sync-20260929\` | 270 | REM-004 | PR #270 للمراجعة والدمج؛ بعده التحقق على main ثم W4-F (F-051/F-053/F-058). |
