@@ -1,7 +1,7 @@
 {
   "id": "WS-190",
   "title": "REM-002 — W2-C شرح التصدير من التحلل الفعلي وإشارة المقارنة الصادقة (F-016/F-017)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-002"
   ],
@@ -21,8 +21,8 @@
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 2, slice C)",
   "pr": 255,
   "started_at": "2026-09-29T00:55:00+03:00",
-  "updated_at": "2026-09-29T01:05:00+03:00",
-  "next_action": "تنفيذ W2-C: سطر «مكوناتها» من التحلل الفعلي (statementResultDecomposition في طبقة التقرير)؛ دلتا المقارنة = الحالية − الأساس.",
+  "updated_at": "2026-09-29T01:25:00+03:00",
+  "next_action": "لا إجراء إضافي؛ W2-C متحققة على main. التالية: W2-D عبر WS-191.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -41,6 +41,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:255",
       "reason": "اكتمل تنفيذ W2-C وافتُتح PR #255 بعد البوابات الخضراء (جذري 510/510، تطبيق 1967/1967، حزمة 649,585/650,000 PASS بصفر نمو دخول)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-255",
+      "reason": "دُمج PR #255 (Squash) عند a03abae1c5c128fa2decd23432e5600002549edf مع Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI (checks) وCloudflare Pages ناجحان على SHA الدمج نفسه على main؛ جذري 510/510 وتطبيق 1967/1967 وقت الدمج؛ الحزمة 649,585/650,000 خام PASS."
     }
   ],
   "migration_baseline": false,
@@ -52,5 +64,7 @@
   "evidence": [
     "docs/operations/control/items/REM-002.json",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2C-SLICE-REPORT-2026-09-29.md"
-  ]
+  ],
+  "merge_sha": "a03abae1c5c128fa2decd23432e5600002549edf",
+  "verified_on_main_sha": "a03abae1c5c128fa2decd23432e5600002549edf"
 }

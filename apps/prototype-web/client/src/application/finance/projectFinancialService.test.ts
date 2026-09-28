@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { ProjectFinancialService } from "./projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
+import {
+  calculateCostSnapshot,
+  createCraftOrder,
+  recordDeliveryTerms,
+  transitionOrder,
+} from "@micro-domain/craft-order/index.js";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
 import {
@@ -2270,5 +2275,123 @@ describe("ProjectFinancialService direct-sale cash truth (journey 1, §5-13)", (
     const cancelled = await finance.readPosition();
     if (!cancelled.ok) throw new Error(cancelled.message);
     expect(cancelled.value.recordedCashMinor).toBe(50000);
+  });
+
+  /* F-019 (W2-D — REM-002): الخسارة غير النقدية بند مستقل محايد المعادلة —
+   * تخصم باسمها لا داخل المصروف التشغيلي، وتخرج من المصنفات القديمة.
+   * الأوراكل حساب يدوي مستقل على فكسجر completedMaterialOrder:
+   * ٣٠٠٠ − ١٦٠٠ (لقطة) − ٥٠٠ (مصروف نقدي) − ٤٠٠ (خسارة غير نقدية) = ٥٠٠. */
+  it("splits the non-cash loss out of the operating expense without changing the recorded result", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const order = completedMaterialOrder("w2d-loss-order");
+    await store.saveOrder({
+      id: order.id,
+      order,
+      deliveryDate: "2026-08-05",
+      agreementSource: "test",
+      createdAt: "2026-08-01T09:00:00.000Z",
+      updatedAt: "2026-08-05T09:00:00.000Z",
+    });
+    const expense = await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 500,
+      occurredOn: "2026-08-06",
+      note: "مصروف نقدي مصنف",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+      idempotencyKey: "w2d-cash-expense-key",
+    });
+    if (!expense.ok) throw new Error(expense.message);
+    const loss = await finance.record({
+      type: "loss_non_cash",
+      amountMinor: 400,
+      occurredOn: "2026-08-07",
+      note: "بلل أثناء التخزين",
+      counterparty: null,
+      relatedEventId: null,
+      idempotencyKey: "w2d-noncash-loss-key",
+    });
+    if (!loss.ok) throw new Error(loss.message);
+    const reading = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
+    if (!reading.ok) throw new Error(reading.message);
+    /* الحساب اليدوي المستقل: النتيجة نفسها كما كانت قبل الفصل — المحايدة مثبتة. */
+    expect(reading.value.resultMinor).toBe(500);
+    expect(reading.value.recordedOperatingExpenseMinor).toBe(500);
+    expect(reading.value.nonCashLossMinor).toBe(400);
+    /* الخسارة لا تعود «مصروفًا غير مصنف» — لها اسمها وسببها. */
+    expect(reading.value.legacyUnclassifiedExpenseCount).toBe(0);
+    expect(reading.value.reasons).toContain("خسارة غير نقدية");
+    expect(reading.value.status).toBe("incomplete");
+  });
+
+  /* F-008 (W2-D — REM-002): الحد الأدنى الآمن — كلفة توصيل المشروع معلنة حقلًا
+   * وسببًا بلا طرح؛ قرار الطرح (D-03) معلق لتفادي الخصم المزدوج مع التسجيل
+   * اليدوي. الأوراكل حساب يدوي مستقل: ٥٥٠٠ − ١٧٠٠ = ٣٨٠٠ (الأجرة داخل الإيراد
+   * والكلفة معلنة لا مخصومة). */
+  it("declares the project delivery cost without subtracting it from the recorded result", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    let order = createCraftOrder({
+      id: "w2d-delivery-order",
+      customerName: "عميلة",
+      itemName: "صندوق توصيل",
+      specifications: "اختبار إعلان الكلفة",
+      quantity: 1,
+      agreedPriceMinor: 5000,
+      costSnapshot: calculateCostSnapshot("w2d-delivery-cost", {
+        currency: "JOD",
+        materialItems: [],
+        time: { minutes: 60, hourlyRateMinor: 1700, confidence: "known" },
+        packagingMinor: 0,
+        deliveryMinor: 0,
+        wasteMinor: 0,
+        safetyBufferMinor: 0,
+        quantity: 1,
+        createdAt: "2026-08-01T09:00:00.000Z",
+        freshnessDays: null,
+      }),
+      createdAt: "2026-08-01T09:00:00.000Z",
+    });
+    order = recordDeliveryTerms(order, {
+      responsibility: "customer_pays_project",
+      feeIncludedInPrice: false,
+      costIncludedInProductCost: false,
+      feeChargedMinor: 500,
+      costPaidMinor: 500,
+      projectShareMinor: null,
+      customerShareMinor: null,
+      idempotencyKey: "w2d-delivery-terms",
+      createdAt: "2026-08-01T08:05:00Z",
+    });
+    for (const [to, stamp] of [
+      ["provisional_agreement", "2026-08-01T10:00:00.000Z"],
+      ["confirmed", "2026-08-01T11:00:00.000Z"],
+      ["in_progress", "2026-08-02T09:00:00.000Z"],
+      ["ready", "2026-08-03T09:00:00.000Z"],
+      ["delivered", "2026-08-05T09:00:00.000Z"],
+    ] as const)
+      order = transitionOrder(order, { to, idempotencyKey: `w2d-${to}`, createdAt: stamp });
+    await store.saveOrder({
+      id: order.id,
+      order,
+      deliveryDate: "2026-08-05",
+      agreementSource: "test",
+      createdAt: "2026-08-01T09:00:00.000Z",
+      updatedAt: "2026-08-05T09:00:00.000Z",
+    });
+    const reading = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
+    if (!reading.ok) throw new Error(reading.message);
+    /* الأجرة داخل الإيراد المعترف (55.00) والكلفة معلنة بلا خصم: النتيجة 38.00. */
+    expect(reading.value.recognizedRevenueMinor).toBe(5500);
+    expect(reading.value.projectDeliveryCostMinor).toBe(500);
+    expect(reading.value.resultMinor).toBe(3800);
+    expect(reading.value.reasons).toContain("كلفة توصيل معلنة");
+    expect(reading.value.status).toBe("incomplete");
+    /* اتساق الأسطح: مؤشرات التغطية ترى الكلفة نفسها معلنة. */
+    const insights = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
+    if (!insights.ok) throw new Error(insights.message);
+    expect(insights.value.costComposition.nonCashLossMinor).toBe(0);
   });
 });

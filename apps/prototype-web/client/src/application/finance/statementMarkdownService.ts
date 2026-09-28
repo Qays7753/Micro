@@ -51,6 +51,13 @@ export function statementResultDecomposition(result: RecordedPeriodResult): read
       label: "مصاريف تشغيلية",
       signedMinor: -result.recordedOperatingExpenseMinor,
     },
+    /* F-019 (W2-D): الخسارة غير النقدية بند التحلل المستقل — كانت تختفي داخل
+     * «مصاريف تشغيلية» بوسم دفعٍ لا ينطبق عليها. */
+    {
+      id: "nonCashLoss",
+      label: "خسارة غير نقدية (خارج المصروف التشغيلي)",
+      signedMinor: -result.nonCashLossMinor,
+    },
     {
       id: "assetDepreciation",
       label: "إهلاك الأصول في الفترة",
