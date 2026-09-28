@@ -1,0 +1,44 @@
+{
+  "id": "WS-201",
+  "title": "REM-004 — W4-F تحصين الثبات: اصطدام معرفات أحداث الاستيراد وحارس saveOrder وحوامل العقود (F-051/F-053/F-058)",
+  "status": "CLAIMED",
+  "items": [
+    "REM-004"
+  ],
+  "branch": "fix/w4f-persistence-guards-oracles-20260929",
+  "base_sha": "12729a68e02e1a8be6151e8a66c5a19c9b17e23a",
+  "areas": [
+    "persistence",
+    "guards",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice F)",
+  "pr": null,
+  "started_at": "2026-09-29T21:35:00+03:00",
+  "updated_at": "2026-09-29T21:35:00+03:00",
+  "next_action": "تنفيذ W4-F من origin/main 12729a6: F-051 رفض اصطدام هوية أحداث الطلب في مدقق الاستيراد + تقوية قارئات البحث بالهوية (نوع+هوية) + قلب دبوس releasedPairs:819 الموثق؛ F-053 تحذير JSDoc على محوّلي saveOrder + حارس استاتيكي يمنع مستدعين جدد خارج التخزين؛ F-058 حوامل عقد مستقلة محسوبة يدويًا للعقدين 02 و05.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-201",
+      "reason": "فتح Claim لشريحة W4-F من origin/main 12729a6 بعد إغلاق WS-200 VERIFIED بالتحقق المباشر من الشجرة الحية."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: transferSnapshotValidation + policies.ts (قارئان) + collectionReversalService (قارئ) + JSDoc محولين + اختبارات (قلب الدبوس، اصطدام مزروع، حارس saveOrder، حوامل العقود) + سطرا عقد 39 — صفر UI، صفر مخطط/تصدير، لا ترحيل.",
+    "حد الاستعادة: 12729a6.",
+    "F-051 أساس التوافق: كل عائلات كتابة المفاتيح الست عشرة تستخدم نطاقات مفاتيح نوعية مميزة (تحقق grep) — التطبيق لا ينتج مطلقًا حدثين بهوية واحدة؛ الرفض في الاستيراد يطفئ فجوة التلاعب المزروع فقط. policies.ts في حزمة الدخول: إعادة الهيكلة محايدة البايتات (النوع ينتقل إلى داخل مسند البحث).",
+    "سطر عقد 39 §3 يحمل زوجًا حيًّا متقادمًا (27/35) — بقايا F-033 خارج الخمس نقاط الأصلية؛ يُصحح مؤرخًا في هذه الشريحة مع تمديد حارس group6Docs ليغطيه."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-004.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4F-SLICE-REPORT-2026-09-29.md"
+  ]
+}
