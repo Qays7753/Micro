@@ -702,13 +702,7 @@ export class IntegrityCheckService {
         "/finance",
       );
     if (resultIsNull && reasons.length === 0)
-      return this.fail(
-        "MIC-9",
-        "النتيجة غير متاحة بلا أسباب معلنة — مجهول بلا تفسير.",
-        [],
-        null,
-        "/finance",
-      );
+      return this.fail("MIC-9", "النتيجة غير متاحة بلا أسباب معلنة — مجهول بلا تفسير.", [], null, "/finance");
     if (pendingCount > 0)
       return {
         id: "MIC-9",
