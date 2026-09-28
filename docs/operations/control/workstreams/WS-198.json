@@ -1,7 +1,7 @@
 {
   "id": "WS-198",
   "title": "REM-004 — W4-C سجل التغيير التعويضي + امتداد فئة F-036 (F-037 + PRs #190–#205)",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "REM-004"
   ],
@@ -14,16 +14,34 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice C)",
-  "pr": null,
+  "pr": 268,
   "started_at": "2026-09-29T16:00:00+03:00",
-  "updated_at": "2026-09-29T16:00:00+03:00",
-  "next_action": "تنفيذ W4-C: F-037 — سجل تعويضي مؤرخ واحد في CHANGELOG يسد فجوة 2026-09-10 → 2026-09-29 (بند لكل عصر بتواريخه ومراجعه من current-state §30–§82)؛ وامتداد فئة F-036 — 8 تصحيحات مؤرخة لادعاءات دمج زائفة غير مثبتة باختبارات (PRs #190/#191/#196/#197/#200/#201/#202/#205 — كلها مدمجة فعلًا بتحقق API مباشر قبل التصحيح).",
+  "updated_at": "2026-09-29T17:00:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W4-C متحققة على main 46f51d0 (تطابق الشجرة مع رأس PR).",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-198",
       "reason": "فتح Claim لشريحة W4-C من origin/main ed0c703 بعد إغلاق WS-197 VERIFIED (تطابق الشجرة)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:268",
+      "reason": "اكتمل تنفيذ W4-C وافتُتح PR #268 ببوابات خضراء على الرأس 43269d7."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-268",
+      "reason": "دُمج PR #268 (Squash) عند 46f51d0fc2f5defe33d87431db7987e0dbfb04ab بعد Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "تطابق الشجرة (فرق فارغ 43269d7..main — CI الرأس الأخضر يثبتها)؛ التحقق المباشر: السجل التعويضي حاضر في CHANGELOG، صفر «PR #N مفتوح» في current-state، validate EXIT 0."
     }
   ],
   "migration_baseline": false,
@@ -34,6 +52,9 @@
   ],
   "evidence": [
     "docs/operations/control/items/REM-004.json",
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4C-SLICE-REPORT-2026-09-29.md"
-  ]
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4C-SLICE-REPORT-2026-09-29.md",
+    "https://github.com/Qays7753/Micro/pull/268"
+  ],
+  "merge_sha": "46f51d0fc2f5defe33d87431db7987e0dbfb04ab",
+  "verified_on_main_sha": "46f51d0fc2f5defe33d87431db7987e0dbfb04ab"
 }
