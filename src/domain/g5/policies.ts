@@ -1,8 +1,8 @@
 import type {
   BreakEvenResult,
-  ContributionMarginResult,
   CreateShortCashDeclarationInput,
   CreateShortCashReversalInput,
+  DirectMarginResult,
   G5ExpenseInput,
   G5Knowledge,
   G5MixItem,
@@ -93,15 +93,19 @@ export function createShortCashReversal(input: CreateShortCashReversalInput): Sh
   });
 }
 
-function invalidContribution(from: string, to: string, reason: string): ContributionMarginResult {
+function invalidContribution(from: string, to: string, reason: string): DirectMarginResult {
   return {
     status: "invalid",
     from,
     to,
     totalRevenueMinor: 0,
     totalVariableCostMinor: 0,
+    directMarginMinor: 0,
     contributionMarginMinor: 0,
     contributionMarginPerUnitMinor: null,
+    marginBasis: "direct_costs_only",
+    linkedVariableExpenseMinor: 0,
+    unlinkedVariableExpenseCount: 0,
     totalQuantityMilli: null,
     quantityUnitKey: null,
     quantityUnitLabel: null,
@@ -187,6 +191,9 @@ type ContributionWindowState = {
   finalOrderCount: number;
   excludedOrderCount: number;
   fixedExpenseMinor: number;
+  /* F-011 (W2-B): أساس الهامش — المرتبط يدخل المتغيرة، وغير المرتبط فجوة معلنة. */
+  linkedVariableExpenseMinor: number;
+  unlinkedVariableExpenseCount: number;
   invalid: boolean;
   incomplete: boolean;
   needsReview: boolean;
@@ -385,7 +392,11 @@ function collectContributionVariableExpense(expense: G5ExpenseInput, state: Cont
     if (nextVariable === null) {
       state.invalid = true;
       state.reasons.push("مجموع التكلفة المتغيرة يتجاوز الدقة الآمنة.");
-    } else state.totalVariableCostMinor = nextVariable;
+    } else {
+      state.totalVariableCostMinor = nextVariable;
+      const nextLinked = addSafe(state.linkedVariableExpenseMinor, expense.amountMinor);
+      if (nextLinked !== null) state.linkedVariableExpenseMinor = nextLinked;
+    }
     if (expense.knowledge !== "known") {
       state.needsReview = true;
       state.assumptions.push(
@@ -395,6 +406,7 @@ function collectContributionVariableExpense(expense: G5ExpenseInput, state: Cont
     return;
   }
   if (expense.behavior === "variable") {
+    state.unlinkedVariableExpenseCount += 1;
     state.classificationGap = true;
     state.incomplete = true;
     state.reasons.push(`المصروف المتغير ${expense.source} غير مرتبط مباشرة بهامش الوحدات؛ لم يوزع تلقائيًا.`);
@@ -473,56 +485,61 @@ function contributionMarginPerUnit(
   return null;
 }
 
+/* F-010 (W2-B): الافتراضات الهيكلية لكل قراءة هامش — عقد ١٧ §٦ «يعرض الناتج
+ * دائمًا … والافتراضات»: لا رقم تعادل بلا سياق أساسه ولو كانت المدخلات كلها معروفة. */
+const STRUCTURAL_MARGIN_ASSUMPTIONS: readonly string[] = [
+  "أساس الاستحقاق: الاعتراف عند التسليم لا عند القبض.",
+  "هامش الوحدة متوسط الفترة: يفترض ثبات المزيج المسجل.",
+  "التكلفة المتغيرة أساسها المعترف به للطلبات النهائية لا كلفة المخزون.",
+  "الكمية على وحدة كتالوج أول طلب نهائي أو مزيج مسجل.",
+];
+
 /* و٩: مخرج قراءة الهامش — رفض موثق أو قراءة بحالتها ومزيجها. */
-function contributionOutcome(
-  from: string,
-  to: string,
-  state: ContributionWindowState,
-): ContributionMarginResult {
+function contributionOutcome(from: string, to: string, state: ContributionWindowState): DirectMarginResult {
   const contributionMarginMinor = addSafe(state.totalRevenueMinor, -state.totalVariableCostMinor);
-  const contributionMarginPerUnitMinor = contributionMarginPerUnit(state, contributionMarginMinor);
-  if (state.invalid)
-    return {
-      ...invalidContribution(from, to, state.reasons.join(" ") || "بيانات G5 غير صالحة."),
-      totalRevenueMinor: state.totalRevenueMinor,
-      totalVariableCostMinor: state.totalVariableCostMinor,
-      contributionMarginMinor: contributionMarginMinor ?? 0,
-      totalQuantityMilli: state.totalQuantityMilli,
-      quantityUnitKey: state.quantityUnitKey,
-      quantityUnitLabel: state.quantityUnitLabel,
-      fixedExpenseMinor: state.fixedExpenseMinor,
-      finalOrderCount: state.finalOrderCount,
-      excludedOrderCount: state.excludedOrderCount,
-      mix: [...state.mix.values()],
-      sources: state.sources,
-      excluded: state.excluded,
-      assumptions: state.assumptions,
-      reasons: state.reasons,
-    };
-  const status = state.incomplete ? "incomplete" : state.needsReview ? "needs_review" : "available";
-  return {
-    status,
+  /* F-011 (W2-B): الهامش المباشر هو الاسم الصادق؛ المساهمة تتطلب ربط
+   * المصاريف المتغيرة صراحةً ولم يُفعّل في الإنتاج بعد. */
+  const marginBasis: DirectMarginResult["marginBasis"] =
+    state.linkedVariableExpenseMinor > 0 ? "with_linked_variable" : "direct_costs_only";
+  /* F-010 (W2-B): الهيكلية دائمًا + أسطر التقدير/المراجعة المشروطة. */
+  const base = {
     from,
     to,
     totalRevenueMinor: state.totalRevenueMinor,
     totalVariableCostMinor: state.totalVariableCostMinor,
-    contributionMarginMinor: contributionMarginMinor!,
-    contributionMarginPerUnitMinor,
+    directMarginMinor: contributionMarginMinor ?? 0,
+    contributionMarginMinor: contributionMarginMinor ?? 0,
+    contributionMarginPerUnitMinor: contributionMarginPerUnit(state, contributionMarginMinor),
+    marginBasis,
+    linkedVariableExpenseMinor: state.linkedVariableExpenseMinor,
+    unlinkedVariableExpenseCount: state.unlinkedVariableExpenseCount,
     totalQuantityMilli: state.totalQuantityMilli,
     quantityUnitKey: state.quantityUnitKey,
     quantityUnitLabel: state.quantityUnitLabel,
     fixedExpenseMinor: state.fixedExpenseMinor,
     finalOrderCount: state.finalOrderCount,
     excludedOrderCount: state.excludedOrderCount,
+    mix: [...state.mix.values()],
+    sources: state.sources,
+    excluded: state.excluded,
+    assumptions: [...STRUCTURAL_MARGIN_ASSUMPTIONS, ...state.assumptions],
+    reasons: state.reasons,
+  };
+  if (state.invalid)
+    return {
+      ...base,
+      status: "invalid",
+      nextAction: "راجع الفترة أو البيانات المؤثرة قبل الاعتماد على الحساب.",
+    };
+  const status = state.incomplete ? "incomplete" : state.needsReview ? "needs_review" : "available";
+  return {
+    ...base,
+    status,
     mix: [...state.mix.values()].sort(
       (left, right) =>
         right.contributionMarginMinor - left.contributionMarginMinor ||
         left.itemName.localeCompare(right.itemName, "ar"),
     ),
-    sources: state.sources,
-    excluded: state.excluded,
-    assumptions: state.assumptions,
-    reasons: state.reasons,
     nextAction:
       status === "available" || status === "needs_review"
         ? "راجع السعر والتكلفة إذا تغير المزيج أو الافتراض المعلن."
@@ -530,12 +547,14 @@ function contributionOutcome(
   };
 }
 
-export function calculateContributionMargin(
+/* F-011 (W2-B): الاسم الصادق للدالة — الهامش مباشر ما لم تُربط المتغيرة صراحة.
+ * حساب التعادل فوقها يستهلكها كما هي؛ الاسم القديم أُغلق في السطح العام. */
+export function calculateDirectMargin(
   from: string,
   to: string,
   orders: readonly G5OrderInput[],
   expenses: readonly G5ExpenseInput[],
-): ContributionMarginResult {
+): DirectMarginResult {
   if (!isValidLocalDate(from) || !isValidLocalDate(to) || from > to)
     return invalidContribution(from, to, "الفترة المحلية غير صالحة.");
   const state: ContributionWindowState = {
@@ -549,6 +568,8 @@ export function calculateContributionMargin(
     finalOrderCount: 0,
     excludedOrderCount: 0,
     fixedExpenseMinor: 0,
+    linkedVariableExpenseMinor: 0,
+    unlinkedVariableExpenseCount: 0,
     invalid: false,
     incomplete: false,
     needsReview: false,
@@ -572,7 +593,7 @@ export function calculateBreakEven(
   orders: readonly G5OrderInput[],
   expenses: readonly G5ExpenseInput[],
 ): BreakEvenResult {
-  const contribution = calculateContributionMargin(from, to, orders, expenses);
+  const contribution = calculateDirectMargin(from, to, orders, expenses);
   const denominator =
     contribution.contributionMarginMinor > 0 &&
     contribution.contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 1000

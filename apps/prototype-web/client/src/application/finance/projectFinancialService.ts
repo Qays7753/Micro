@@ -27,7 +27,10 @@ import {
   summarizeCashContinuity,
 } from "@micro-domain/cash-continuity/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
-import { calculateBreakEvenUnits } from "@micro-domain/g5/index.js";
+/* F-009 (W2-B): نموذج تعادل واحد — قراءة التغطية تستهلك calculateBreakEven
+ * الكنونية بمدخلات g5Service الموحدة نفسها، بلا اشتقاق خاص بعد اليوم. */
+import { calculateBreakEven } from "@micro-domain/g5/index.js";
+import { expenseInputs, orderInputs } from "@/application/g5/g5Service";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
@@ -153,7 +156,9 @@ export type RecordedCostComposition = {
 export type CoverageIndicator = {
   status: FinancialInsightStatus;
   fixedExpenseMinor: number;
-  finalDeliveredQuantity: number;
+  /* F-009 (W2-B): الكمية الموحدة للنموذج الكنوني — null عند عدم قابلية التوحيد
+   * (وحدات مختلطة بلا تحويل) بدل جمع وحدات غير متوافقة رقمًا واحدًا. */
+  finalDeliveredQuantity: number | null;
   directMarginMinor: number;
   breakEvenUnits: number | null;
   reasons: readonly string[];
@@ -830,14 +835,35 @@ export class ProjectFinancialService {
   }
 
   async readFinancialInsights(from: string, to: string): Promise<FinanceResult<FinancialInsights>> {
-    const [periodResult, ordersResult, eventsResult, movementsResult, positionResult] = await Promise.all([
+    const [
+      periodResult,
+      ordersResult,
+      eventsResult,
+      movementsResult,
+      positionResult,
+      catalogResult,
+      unitsResult,
+      conversionsResult,
+    ] = await Promise.all([
       this.readRecordedPeriodResult(from, to),
       this.store.listOrders(),
       this.store.listFinancialEvents(),
       this.store.listInventoryMovements(),
       this.readPosition(),
+      this.store.listCatalogItems(),
+      this.store.listMeasurementUnits(),
+      this.store.listDirectConversions(),
     ]);
-    if (!periodResult.ok || !ordersResult.ok || !eventsResult.ok || !movementsResult.ok || !positionResult.ok)
+    if (
+      !periodResult.ok ||
+      !ordersResult.ok ||
+      !eventsResult.ok ||
+      !movementsResult.ok ||
+      !positionResult.ok ||
+      !catalogResult.ok ||
+      !unitsResult.ok ||
+      !conversionsResult.ok
+    )
       return { ok: false, code: "storage_error", message: "تعذر قراءة مؤشرات الفترة المحلية." };
     const inPeriod = (date: string) => date >= from && date <= to;
     /* FT-01 (المجموعة ٦): آخر تسليم ساري — انظر أعلاه. */
@@ -880,49 +906,48 @@ export class ProjectFinancialService {
     }
     const periodEvents = eventsResult.value.filter(event => inPeriod(event.occurredOn));
     const operating = periodEvents.filter(isRecordedOperatingExpense);
-    const reviewableOperating = operating.filter(event => event.operatingExpenseDeltaMinor > 0);
     const operatingExpenseMinor = operating.reduce(
       (total, event) => total + event.operatingExpenseDeltaMinor,
       0,
     );
-    const fixed = operating.filter(event => event.expenseContext?.behavior === "fixed");
-    const reviewableFixed = reviewableOperating.filter(event => event.expenseContext?.behavior === "fixed");
-    const fixedExpenseMinor = fixed.reduce((total, event) => total + event.operatingExpenseDeltaMinor, 0);
-    const finalDeliveredQuantity = finals.reduce((total, item) => total + item.order.quantity, 0);
-    const directMarginMinor = finals.reduce(
-      (total, item) => total + item.order.recognizedRevenueMinor - item.order.recognizedCostMinor,
-      0,
-    );
     const movementCount = movementsResult.value.filter(movement => inPeriod(movement.occurredOn)).length;
-    const coverageReasons: string[] = [];
-    if (finals.length === 0) coverageReasons.push("لا توجد طلبات مسلّمة بنتيجة نهائية في الفترة.");
-    if (periodResult.value.excludedOrderCount > 0) coverageReasons.push("طلبات مستبعدة");
-    if (reviewableFixed.some(event => event.expenseContext?.knowledge !== "known"))
-      coverageReasons.push("مصروفات تحتاج مراجعة");
-    if (
-      reviewableOperating.some(
-        event =>
-          event.expenseContext?.behavior === "variable" ||
-          event.expenseContext?.behavior === "mixed" ||
-          event.expenseContext?.behavior === "unknown",
-      )
-    )
-      coverageReasons.push("مصروفات غير موزعة");
-    if (movementCount > 0) coverageReasons.push("حركات مخزون فعلية");
-    if (directMarginMinor <= 0) coverageReasons.push("هامش غير موجب");
-    if (fixedExpenseMinor <= 0) coverageReasons.push("بلا مصروفات ثابتة");
+    /* F-009 (W2-B): نموذج التعادل الكنوني الواحد — نفس مدخلات g5Service ونفس
+     * calculateBreakEven، فلا يمكن لسطحين أن يعرضا رقمين مختلفين لسؤال واحد.
+     * التغطية تعكس حالته وأسبابه وافتراضاته، وتراكيب حركات المخزون يخفض الحالة
+     * فقط (لا يرفعها أبدًا): أساس الهامش معلن على التكلفة المعترف بها لا على
+     * COGS المؤهلة (عقد ١٤ §٤)، والحركات تعلن الفرق لا تخفيه. */
+    const breakEven = calculateBreakEven(
+      from,
+      to,
+      orderInputs(
+        ordersResult.value,
+        catalogResult.value,
+        unitsResult.value,
+        conversionsResult.value,
+        from,
+        to,
+      ),
+      expenseInputs(eventsResult.value, from, to),
+    );
     const coverageStatus: FinancialInsightStatus =
-      finals.length === 0 || fixedExpenseMinor <= 0
-        ? "not_available"
-        : coverageReasons.length > 0
-          ? "incomplete"
-          : "recorded_only";
-    const breakEvenUnits =
-      coverageStatus === "recorded_only"
-        ? calculateBreakEvenUnits(fixedExpenseMinor, finalDeliveredQuantity, directMarginMinor)
-        : null;
-    if (coverageStatus === "recorded_only" && breakEvenUnits === null)
-      coverageReasons.push("تعادل غير محسوب");
+      breakEven.status === "available"
+        ? "recorded_only"
+        : breakEven.status === "invalid"
+          ? "not_available"
+          : "incomplete";
+    const coverageReasons: string[] = [...breakEven.reasons];
+    if (movementCount > 0) {
+      coverageReasons.push("حركات مخزون فعلية");
+    }
+    const coverage: CoverageIndicator = {
+      status: movementCount > 0 && coverageStatus === "recorded_only" ? "incomplete" : coverageStatus,
+      fixedExpenseMinor: breakEven.fixedExpenseMinor,
+      finalDeliveredQuantity:
+        breakEven.totalQuantityMilli === null ? null : breakEven.totalQuantityMilli / 1000,
+      directMarginMinor: breakEven.directMarginMinor,
+      breakEvenUnits: breakEven.breakEvenUnits,
+      reasons: coverageReasons,
+    };
     /* S2-05: الأمانات ضمن الكاش المسجل لكنها محتجزة لغير المالك — التغطية
      * تعلن ذلك بدل عدّها مالًا قابلًا للصرف بصمت. */
     const amanahHeldMinor = positionResult.value.amanahHeldMinor;
@@ -961,14 +986,7 @@ export class ProjectFinancialService {
           operatingExpenseMinor,
         },
         inventoryMovementCount: movementCount,
-        coverage: {
-          status: coverageStatus,
-          fixedExpenseMinor,
-          finalDeliveredQuantity,
-          directMarginMinor,
-          breakEvenUnits,
-          reasons: coverageReasons,
-        },
+        coverage,
         liquidity,
       },
     };

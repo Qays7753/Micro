@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 /* و٩ — اختبارات توصيف للدوال الست الأعقد قبل أي إعادة هيكلة:
- * calculateContributionMargin (88) · calculateOwnerEntitlement (62) ·
+ * calculateDirectMargin (88) · calculateOwnerEntitlement (62) ·
  * createOwnerMovement (39) · calculateShortCash (39) ·
  * normalizeSharedProjectShare (38 — عبر createFinancialEvent) ·
  * calculateAllocationPolicy (38).
  * هذه الشبكة تثبّت السلوك الحالي كما هو: أي إعادة هيكلة تغيّر مخرجًا واحدًا
  * مما يلي فهي خاطئة وتُرجَع — ولا يُعدَّل الاختبار ليطابق الكود الجديد أبدًا. */
 import {
-  calculateContributionMargin,
+  calculateDirectMargin,
   calculateShortCash,
   createShortCashDeclaration,
 } from "../../src/domain/g5/index.js";
@@ -24,9 +24,9 @@ import {
   createAllocationPolicy,
 } from "../../src/domain/recurring-margin/index.js";
 
-/* ---------- G5: calculateContributionMargin ---------- */
+/* ---------- G5: calculateDirectMargin ---------- */
 
-const g5Order = (overrides: Partial<Parameters<typeof calculateContributionMargin>[2][number]> = {}) => ({
+const g5Order = (overrides: Partial<Parameters<typeof calculateDirectMargin>[2][number]> = {}) => ({
   id: "order-1",
   itemName: "صندوق",
   deliveredOn: "2026-08-10",
@@ -39,7 +39,7 @@ const g5Order = (overrides: Partial<Parameters<typeof calculateContributionMargi
   recognizedCostMinor: 1800,
   ...overrides,
 });
-const g5Expense = (overrides: Partial<Parameters<typeof calculateContributionMargin>[3][number]> = {}) => ({
+const g5Expense = (overrides: Partial<Parameters<typeof calculateDirectMargin>[3][number]> = {}) => ({
   id: "expense-1",
   amountMinor: 1000,
   behavior: "fixed" as const,
@@ -51,9 +51,9 @@ const g5Expense = (overrides: Partial<Parameters<typeof calculateContributionMar
   ...overrides,
 });
 
-describe("characterization: calculateContributionMargin (و٩)", () => {
+describe("characterization: calculateDirectMargin (و٩)", () => {
   it("pins the available reading: totals, per-unit rounding, and next action", () => {
-    const result = calculateContributionMargin("2026-08-01", "2026-08-31", [g5Order()], [g5Expense()]);
+    const result = calculateDirectMargin("2026-08-01", "2026-08-31", [g5Order()], [g5Expense()]);
     expect(result).toMatchObject({
       status: "available",
       from: "2026-08-01",
@@ -70,14 +70,21 @@ describe("characterization: calculateContributionMargin (و٩)", () => {
       excludedOrderCount: 0,
       sources: ["طلب مسلّم مسجل: صندوق", "مصروف الفترة: اشتراك معلن"],
       excluded: [],
-      assumptions: [],
+      /* F-010 (W2-B): الافتراضات الهيكلية تُنبعث دائمًا مع كل قراءة هامش —
+       * عقد ١٧ §٦ «يعرض الناتج دائمًا … والافتراضات» — لا رقم بلا سياق أساسه. */
+      assumptions: [
+        "أساس الاستحقاق: الاعتراف عند التسليم لا عند القبض.",
+        "هامش الوحدة متوسط الفترة: يفترض ثبات المزيج المسجل.",
+        "التكلفة المتغيرة أساسها المعترف به للطلبات النهائية لا كلفة المخزون.",
+        "الكمية على وحدة كتالوج أول طلب نهائي أو مزيج مسجل.",
+      ],
       reasons: [],
       nextAction: "راجع السعر والتكلفة إذا تغير المزيج أو الافتراض المعلن.",
     });
   });
 
   it("pins the mix item shape of the available reading", () => {
-    const result = calculateContributionMargin("2026-08-01", "2026-08-31", [g5Order()], [g5Expense()]);
+    const result = calculateDirectMargin("2026-08-01", "2026-08-31", [g5Order()], [g5Expense()]);
     expect(result.mix).toHaveLength(1);
     expect(result.mix[0]).toMatchObject({
       itemName: "صندوق",
@@ -92,7 +99,7 @@ describe("characterization: calculateContributionMargin (و٩)", () => {
   });
 
   it("pins mix aggregation across two same-name orders and the descending margin sort", () => {
-    const result = calculateContributionMargin(
+    const result = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [
@@ -109,9 +116,9 @@ describe("characterization: calculateContributionMargin (و٩)", () => {
   });
 });
 
-describe("characterization: calculateContributionMargin — exclusion (و٩)", () => {
+describe("characterization: calculateDirectMargin — exclusion (و٩)", () => {
   it("pins the incomplete path when only non-final orders exist", () => {
-    const result = calculateContributionMargin(
+    const result = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [g5Order({ resultStatus: "estimated", id: "est-1" })],
@@ -126,9 +133,9 @@ describe("characterization: calculateContributionMargin — exclusion (و٩)", (
   });
 });
 
-describe("characterization: calculateContributionMargin — guards (و٩)", () => {
+describe("characterization: calculateDirectMargin — guards (و٩)", () => {
   it("pins the out-of-window exclusion and the invalid local period guard", () => {
-    const outside = calculateContributionMargin(
+    const outside = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [g5Order({ deliveredOn: "2026-07-15" })],
@@ -137,13 +144,13 @@ describe("characterization: calculateContributionMargin — guards (و٩)", () =
     expect(outside.status).toBe("invalid");
     expect(outside.finalOrderCount).toBe(0);
 
-    const badPeriod = calculateContributionMargin("2026-13-01", "2026-08-31", [], []);
+    const badPeriod = calculateDirectMargin("2026-13-01", "2026-08-31", [], []);
     expect(badPeriod.status).toBe("invalid");
     expect(badPeriod.reasons).toEqual(["الفترة المحلية غير صالحة."]);
   });
 
   it("pins the shared-expense classification gap and the unlinked variable gap", () => {
-    const sharedGap = calculateContributionMargin(
+    const sharedGap = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [g5Order()],
@@ -162,7 +169,7 @@ describe("characterization: calculateContributionMargin — guards (و٩)", () =
     );
     expect(sharedGap.excluded).toContain("المصروف فاتورة إنترنت غير موزّع لغياب مصدر الحصة.");
 
-    const unlinkedVariable = calculateContributionMargin(
+    const unlinkedVariable = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [g5Order()],
@@ -175,20 +182,22 @@ describe("characterization: calculateContributionMargin — guards (و٩)", () =
   });
 });
 
-describe("characterization: calculateContributionMargin — expenses (و٩)", () => {
+describe("characterization: calculateDirectMargin — expenses (و٩)", () => {
   it("pins the estimated fixed expense assumption and the needs_review status", () => {
-    const result = calculateContributionMargin(
+    const result = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [g5Order()],
       [g5Expense({ knowledge: "estimated", source: "إيجار تقديري" })],
     );
     expect(result.status).toBe("needs_review");
-    expect(result.assumptions).toEqual(["مبلغ ثابت إيجار تقديري تقديري معلن."]);
+    /* F-010 (W2-B): الهيكلية دائمًا + السطر التقديري المشروط. */
+    expect(result.assumptions).toContain("مبلغ ثابت إيجار تقديري تقديري معلن.");
+    expect(result.assumptions.length).toBeGreaterThanOrEqual(5);
   });
 
   it("pins the unit mismatch and the invalid quantity branches", () => {
-    const mismatch = calculateContributionMargin(
+    const mismatch = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [
@@ -204,7 +213,7 @@ describe("characterization: calculateContributionMargin — expenses (و٩)", ()
     expect(mismatch.totalQuantityMilli).toBeNull();
     expect(mismatch.contributionMarginPerUnitMinor).toBeNull();
 
-    const invalidQuantity = calculateContributionMargin(
+    const invalidQuantity = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [g5Order({ quantityMilli: null, quantityIssue: "invalid" })],
@@ -215,9 +224,9 @@ describe("characterization: calculateContributionMargin — expenses (و٩)", ()
   });
 });
 
-describe("characterization: calculateContributionMargin — units (و٩)", () => {
+describe("characterization: calculateDirectMargin — units (و٩)", () => {
   it("pins the legacy recorded-mix fallback when units are absent", () => {
-    const result = calculateContributionMargin(
+    const result = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [g5Order({ unitKey: null, unitLabel: null })],

@@ -1,7 +1,7 @@
 {
   "id": "WS-188",
   "title": "REM-002 — W2-A القبض الصريح للبيع المباشر (F-013)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-002"
   ],
@@ -20,8 +20,8 @@
   "agent": "Z AI — master remediation program 2026-09-28 (Wave 2, slice A)",
   "pr": 253,
   "started_at": "2026-09-28T23:30:00+03:00",
-  "updated_at": "2026-09-28T23:50:00+03:00",
-  "next_action": "تنفيذ W2-A: collectedMinor مطلوب مجاليًا في الإنشاء والتعديل؛ حل الحد مرة واحدة في DirectSaleService.record موثقًا لعقد البيع النقدي السريع؛ قلب دبابيس الافتراض؛ فيكسجر ذهاب-وعودة لسجل ما قبل X-06.",
+  "updated_at": "2026-09-29T00:20:00+03:00",
+  "next_action": "لا إجراء إضافي؛ W2-A متحققة على main. التالية: W2-B عبر WS-189.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -40,6 +40,18 @@
       "changed_at": "2026-09-28",
       "actor": "pr:253",
       "reason": "اكتمل تنفيذ W2-A وافتُتح PR #253 بعد البوابات الخضراء على رأس الفرع (جذري 510/510، تطبيق 1960/1960، حزمة 649,857/650,000 PASS)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-253",
+      "reason": "دُمج PR #253 (Squash) عند 56888be83120375d48634c6d9f9992c15ff0ffc5 مع Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI (checks) وCloudflare Pages ناجحان على SHA الدمج نفسه على main؛ الشجرة مطابقة؛ الاختبارات خضراء محليًا (جذري 510/510 وتطبيق 1960/1960 وقت الدمج)."
     }
   ],
   "migration_baseline": false,
@@ -49,5 +61,7 @@
   ],
   "evidence": [
     "docs/operations/control/items/REM-002.json"
-  ]
+  ],
+  "merge_sha": "56888be83120375d48634c6d9f9992c15ff0ffc5",
+  "verified_on_main_sha": "56888be83120375d48634c6d9f9992c15ff0ffc5"
 }

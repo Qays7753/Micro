@@ -75,17 +75,31 @@ export type G5MixItem = {
   unitLabel: string | null;
   revenueMinor: number;
   variableCostMinor: number;
+  /* F-011 (W2-B): قيمة الصف هامش مباشر (إيراد − تكلفة متغيرة مباشرة)؛
+   * الاسم يبقى متوافقًا مع العرض الحالي حتى موجة UI. */
   contributionMarginMinor: number;
 };
 
-export type ContributionMarginResult = {
+/* F-011 (W2-B): «هامش المساهمة» السابق هو فعليًا هامش مباشر — المصاريف
+ * المتغيرة المربوطة وحدها ترقّيه لمساهمة حقيقية، وهي في الإنتاج غير مربوطة
+ * (directlyLinked=false دائمًا) فتعلن فجوة تصنيف ولا تُوزّع تلقائيًا.
+ * الحقلان directMarginMinor وcontributionMarginMinor قيمتان متطابقتان:
+ * الأول الاسم الصادق، والثاني متوافق مع أسطح العرض القائمة. */
+export type DirectMarginResult = {
   status: G5Status;
   from: string;
   to: string;
   totalRevenueMinor: number;
   totalVariableCostMinor: number;
+  directMarginMinor: number;
+  /** Compat display field (G5DecisionPanel) — identical to directMarginMinor. */
   contributionMarginMinor: number;
   contributionMarginPerUnitMinor: number | null;
+  /** Which basis the margin actually uses — the linked-variable path must be
+   * explicitly wired before "contribution" becomes an honest name (F-011). */
+  marginBasis: "direct_costs_only" | "with_linked_variable";
+  linkedVariableExpenseMinor: number;
+  unlinkedVariableExpenseCount: number;
   totalQuantityMilli: number | null;
   quantityUnitKey: string | null;
   quantityUnitLabel: string | null;
@@ -100,7 +114,7 @@ export type ContributionMarginResult = {
   nextAction: string;
 };
 
-export type BreakEvenResult = ContributionMarginResult & {
+export type BreakEvenResult = DirectMarginResult & {
   breakEvenUnits: number | null;
 };
 

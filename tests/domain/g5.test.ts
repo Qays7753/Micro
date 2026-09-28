@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   calculateBreakEven,
   calculateBreakEvenUnits,
-  calculateContributionMargin,
+  calculateDirectMargin,
   calculateShortCash,
   createShortCashDeclaration,
   createShortCashReversal,
 } from "../../src/domain/g5/index.js";
 
-const order = (overrides: Partial<Parameters<typeof calculateContributionMargin>[2][number]> = {}) => ({
+const order = (overrides: Partial<Parameters<typeof calculateDirectMargin>[2][number]> = {}) => ({
   id: "order-1",
   itemName: "صندوق",
   deliveredOn: "2026-08-10",
@@ -21,9 +21,7 @@ const order = (overrides: Partial<Parameters<typeof calculateContributionMargin>
   recognizedCostMinor: 1800,
   ...overrides,
 });
-const fixedExpense = (
-  overrides: Partial<Parameters<typeof calculateContributionMargin>[3][number]> = {},
-) => ({
+const fixedExpense = (overrides: Partial<Parameters<typeof calculateDirectMargin>[3][number]> = {}) => ({
   id: "expense-1",
   amountMinor: 1000,
   behavior: "fixed" as const,
@@ -89,7 +87,7 @@ describe("G5 pure domain", () => {
   });
 
   it("uses JOD minor units and excludes deposits, collections, debt, purchases, and owner movements", () => {
-    const result = calculateContributionMargin(
+    const result = calculateDirectMargin(
       "2026-08-01",
       "2026-08-31",
       [order({ recognizedRevenueMinor: 10000, recognizedCostMinor: 6000 })],
@@ -127,8 +125,10 @@ describe("G5 pure domain", () => {
     expect(result).toMatchObject({
       status: "needs_review",
       breakEvenUnits: 1,
-      assumptions: ["مبلغ ثابت اشتراك معلن تقديري معلن."],
+      /* F-010 (W2-B): الافتراضات الهيكلية دائمًا (عقد ١٧ §٦) + السطر التقديري المشروط. */
+      assumptions: expect.arrayContaining(["مبلغ ثابت اشتراك معلن تقديري معلن."]),
     });
+    expect(result.assumptions.length).toBeGreaterThanOrEqual(5);
   });
 
   it("returns incomplete for mixed, unknown, or unlinked general variable expenses", () => {

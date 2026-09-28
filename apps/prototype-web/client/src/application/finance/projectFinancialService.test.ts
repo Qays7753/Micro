@@ -882,7 +882,9 @@ describe("ProjectFinancialService", () => {
     });
     await expect(finance.readFinancialInsights("2026-08-16", "2026-08-31")).resolves.toMatchObject({
       ok: true,
-      value: { costComposition: { operatingExpenseMinor: -700 }, coverage: { fixedExpenseMinor: -700 } },
+      /* F-009 (W2-B): النموذج الكنوني — سجلات العكس لا تدخل مدخلات التعادل
+       * (عقد ١٤ §٦)، فنافذة العكس وحدها بلا مصروف ثابت موجبة: صفر لا سالب. */
+      value: { costComposition: { operatingExpenseMinor: -700 }, coverage: { fixedExpenseMinor: 0 } },
     });
     await expect(finance.readPosition()).resolves.toMatchObject({
       ok: true,
@@ -1314,9 +1316,11 @@ describe("ProjectFinancialService", () => {
       ok: true,
       value: {
         coverage: {
-          status: "recorded_only",
+          /* F-009 (W2-B): مفردات النموذج الكنوني — التعادل يُحجب عند تجاوز الدقة
+           * الآمنة بحالة not_available وسبب النموذج نفسه. */
+          status: "not_available",
           breakEvenUnits: null,
-          reasons: [expect.stringContaining("تعادل غير محسوب")],
+          reasons: [expect.stringContaining("تعذر حساب وحدات التعادل")],
         },
       },
     });

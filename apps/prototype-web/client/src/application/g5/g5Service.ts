@@ -108,7 +108,9 @@ function normalizeQuantity(
   }
 }
 
-function orderInputs(
+/* F-009 (W2-B): مدخلات التعادل الموحدة — المصدر الوحيد الذي يُغذّي نموذج
+ * calculateBreakEven الكنوني لكل المستهلكين (G5 وقراءة التغطية في المالية). */
+export function orderInputs(
   orders: readonly StoredCraftOrder[],
   catalogItems: readonly CatalogItem[],
   units: readonly MeasurementUnit[],
@@ -182,7 +184,9 @@ function orderInputs(
   });
 }
 
-function expenseInputs(events: readonly FinancialEvent[], from: string, to: string): G5ExpenseInput[] {
+/* F-009 (W2-B): انظر أعلاه — نفس العرف: الشبك داخل النافذة يخرج كليًا
+ * وسجلات العكس لا تدخل (عقد ١٤ §٦). */
+export function expenseInputs(events: readonly FinancialEvent[], from: string, to: string): G5ExpenseInput[] {
   // Period-local netting, mirroring the G3 period reader (contract 14 §6): an expense whose live
   // reversal also falls inside the reading window leaves the reading entirely; a reversal in a later
   // window does not rewrite the window where the expense was recorded. Reversal records themselves

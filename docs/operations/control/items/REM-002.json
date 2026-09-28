@@ -47,7 +47,7 @@
     "FIN-009"
   ],
   "owner_decision": "قرارات المالك معتمدة في الموجة 2 من الميثاق الرئيسي (موحّد التعادل، القبض الصريح، المجهول لا يُعرض نتيجة نهائية، الشرح من التحلل الفعلي، الفصل الثلاثي للتوصيل). قرار D-03 (طرح كلفة التوصيل في المعادلة) يبقى معلقًا: تُعلن الكلفة دون طرح لخطر الخصم المزدوج مع التسجيل اليدوي.",
-  "updated_at": "2026-09-28",
+  "updated_at": "2026-09-29",
   "finding_classification": "DEEPENS_EXISTING",
   "finding_state": "CONFIRMED",
   "root_cause": "audit-findings:F-008..F-019,F-061 (root causes: duplicate break-even models with different margins under one name, silent full-collection default, explanations not derived from actual decomposition, inverted comparison sign, undeclared project delivery cost and non-cash loss, stale contract 05 §3.2.1, missing direct-sale contract clause)",
@@ -81,7 +81,7 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "شريحة W2-A (F-013) عبر WS-188 ثم W2-B (التعادل الموحد) وW2-C (الشرح/الإشارة) وW2-D (الإعلانات والعقود) ثم إغلاق الموجة.",
+  "next_action": "W2-B (التعادل الموحد) عبر WS-189 ثم W2-C (الشرح/الإشارة) وW2-D (الإعلانات والعقود) ثم إغلاق الموجة.",
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "tests_required": [
