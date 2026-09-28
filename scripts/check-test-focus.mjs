@@ -33,8 +33,10 @@ export const TEST_ROOTS = [
 
 export const EXCLUDED_DIR_NAMES = ["node_modules", "dist", "coverage", "fixtures"];
 
-/** نمط التركيز/التعطيل: استدعاء `.only(` أو `.skip(` — أسماء vitest القياسية. */
-export const FOCUS_REGEX = /\.(only|skip)\s*\(/;
+/** F-057 (W4-P1 — REM-004): نمط التركيز/التعطيل يشمل أسماء vitest كاملة —
+ * .only/.skip/.skipIf/.runIf/.fixme/.todo — إغفال الأسماء الشرطية كان ثغرة
+ * حراسة كامنة (لا استخدام حاليًا، والنمط يسدّها قبل أول استخدام). */
+export const FOCUS_REGEX = /\.(only|skip|skipIf|runIf|fixme|todo)\s*\(/;
 
 /** هل اسم الملف اسم اختبار (اصطلاح vitest في هذا المستودع)؟ */
 export function isTestFileName(fileName) {

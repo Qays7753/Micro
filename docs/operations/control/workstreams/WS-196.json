@@ -1,0 +1,40 @@
+{
+  "id": "WS-196",
+  "title": "REM-004 — W4-P1 حراس التهيئة وسطرا العقدين (F-056/F-057 + F-052/F-054)",
+  "status": "CLAIMED",
+  "items": [
+    "REM-004"
+  ],
+  "branch": "fix/w4p1-guards-config-20260929",
+  "base_sha": "d7b208ac153dbb3a3c65991b6cbe4d0dae6bd34d",
+  "areas": [
+    "guards",
+    "contracts"
+  ],
+  "contracts": [
+    "docs/contracts/28-selective-inventory-tracking-contract.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice P1)",
+  "pr": null,
+  "started_at": "2026-09-29T14:00:00+03:00",
+  "updated_at": "2026-09-29T14:00:00+03:00",
+  "next_action": "تنفيذ W4-P1: تضييق استثناء fixtures في حارس الأسرار إلى المسار الموثق وحده (docs/fixtures تُفحص الآن)، توسيع نمط تركيز الاختبارات ليشمل skipIf/runIf/fixme/todo، وسطر عقدي 28 (ترحيل إرث الهدر) و05 (حدود الصفر بين العرض والمجال).",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-196",
+      "reason": "فتح Claim لشريحة W4-P1 من origin/main d7b208a بعد دمج W4-A والتحقق منه."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: حارسا scripts + سطرا عقد + اختباراتهما الذاتية — صفر كود تشغيل إنتاج.",
+    "حد الاستعادة: d7b208a."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-004.json"
+  ]
+}
