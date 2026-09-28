@@ -1,0 +1,123 @@
+/* W5-A (REM-005 — F-049 العائلة الجامدة + بند 1 من ميثاق الموجة ٥): حارس
+ * اتجاه المال بين الطبقات. الواجهة (pages/components/app) لا تملك حساب المال —
+ * المال يُشتق في المجال ويُقرأ من القارئات الكنسية، والواجهة تعرض وتستدعي.
+ * الواقع اليوم يحوي سطحًا معروفًا من المرايا الحسابية (عائلة F-049 الموثقة
+ * في التدقيق: معاينات ومجاميع عرض داخل TSX — إصلاحها عمل UI مؤجل خارج هذا
+ * البرنامج)؛ هذا الحارس **يجمّد** السطح عند حجمه الموثق: أي موقع حساب مالي
+ * جديد في الواجهة يفشل بالاسم، فلا تنمو العائلة بصمت بينما ينتظر إصلاحها
+ * موجة UI مستقلة. والجزء الثاني يثبت أن كل قارئ كنوني له تعريف إنتاجي واحد —
+ * لا نسخة منافسة للمعادلة (بند 2 من الميثاق). */
+import { readFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { join, relative, sep } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const CLIENT_SRC = fileURLToPath(new URL("./", import.meta.url));
+
+/* حساب المال في سطر واحد: معرف Minor مع عملية حسابية مباشرة (تخصيص أو
+ * ثنائية)، أو تقريب Math على مال، أو تجميع reduce على مال. */
+const BARE_ARITHMETIC = /[a-z]+Minor ?[+*/-]|[+*/-] ?[a-z]+Minor\b/;
+const MATH_ROUNDING = /Math\.(round|floor|ceil|trunc)\([^)]*Minor/;
+const MONEY_REDUCE = /\.reduce\(.*Minor/;
+
+function listUiProductionFiles(dir: string, acc: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const child = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "node_modules" || entry.name === "dist") continue;
+      listUiProductionFiles(child, acc);
+    } else if (/\.(tsx|ts)$/.test(entry.name) && !/\.test\.(ts|tsx)$/.test(entry.name)) {
+      acc.push(child);
+    }
+  }
+  return acc;
+}
+
+function moneyComputeLines(file: string): string[] {
+  const source = readFileSync(file, "utf8");
+  return source.split("\n").filter(line => {
+    if (line.trim().startsWith("import ") || line.trim().startsWith("*")) return false;
+    return BARE_ARITHMETIC.test(line) || MATH_ROUNDING.test(line) || MONEY_REDUCE.test(line);
+  });
+}
+
+/* السطح المجمد عند إغلاق الموجة 5 (2026-09-29): عدد أسطر الحساب المالي لكل
+ * ملف واجهة إنتاجي. عائلة F-049 — إصلاحها (إزالة المرايا لصالح اشتقاقات
+ * المجال) عمل TSX/UI خلف بوابة موجة عرض مستقلة؛ حتى ذلك الحين لا ينمو
+ * السطح ولا يتقلص بصمت (التقلص المتعمد يحدّث هذا الجدول بدليله). */
+const FROZEN_SURFACE: Readonly<Record<string, number>> = {
+  "pages/OrderDetail.tsx": 13,
+  "components/orders/OrderDepositPanels.tsx": 7,
+  "pages/SupplierPurchaseEditor.tsx": 5,
+  "components/catalog/CatalogReadingsSection.tsx": 3,
+  "pages/DirectSaleEditor.tsx": 2,
+  "components/finance/QuickSaleForm.tsx": 2,
+  "pages/OwnerEntitlement.tsx": 2,
+  "pages/Statement.tsx": 1,
+  "pages/OwnerWithdrawalEditor.tsx": 1,
+  "pages/DeliveryReview.tsx": 1,
+  "pages/Collect.tsx": 1,
+  "pages/CashDistribution.tsx": 1,
+  "pages/CashCount.tsx": 1,
+  "pages/CashAdjustmentEditor.tsx": 1,
+  "pages/AgreementEditor.tsx": 1,
+  "pages/WalletLedger.tsx": 1,
+  "components/finance/AllocationReviewCard.tsx": 1,
+  "components/finance/CorrectionsLayer.tsx": 1,
+};
+
+describe("W5-A — تجميد سطح حساب المال في الواجهة (عائلة F-049 لا تنمو بصمت)", () => {
+  it("every UI production money-computation site is accounted for — new sites fail by file", () => {
+    const uiFiles = [
+      ...listUiProductionFiles(join(CLIENT_SRC, "pages")),
+      ...listUiProductionFiles(join(CLIENT_SRC, "components")),
+      ...listUiProductionFiles(join(CLIENT_SRC, "app")),
+    ];
+    expect(uiFiles.length).toBeGreaterThan(120); /* حساسيّة المسح. */
+    const observed: Record<string, number> = {};
+    for (const file of uiFiles) {
+      const relPath = relative(CLIENT_SRC, file).split(sep).join("/");
+      const count = moneyComputeLines(file).length;
+      if (count > 0) observed[relPath] = count;
+    }
+    const frozenTotal = Object.values(FROZEN_SURFACE).reduce((a, b) => a + b, 0);
+    const observedTotal = Object.values(observed).reduce((a, b) => a + b, 0);
+    expect(observedTotal).toBe(frozenTotal);
+    expect(observed).toEqual(FROZEN_SURFACE);
+  });
+});
+
+describe("W5-A — المعادلة الواحدة: تعريف إنتاجي وحيد لكل قارئ كنوني (لا نسخة منافسة)", () => {
+  function definitionFiles(dir: string, pattern: RegExp, root: string): string[] {
+    const hits: string[] = [];
+    for (const file of listUiProductionFiles(dir)) {
+      const source = readFileSync(file, "utf8");
+      if (pattern.test(source)) hits.push(relative(root, file).split(sep).join("/"));
+    }
+    return hits;
+  }
+
+  it("readRecordedPeriodResult and readPosition are defined exactly once (projectFinancialService)", () => {
+    const app = join(CLIENT_SRC, "application");
+    expect(definitionFiles(app, /async readRecordedPeriodResult\(/, CLIENT_SRC)).toEqual([
+      "application/finance/projectFinancialService.ts",
+    ]);
+    expect(definitionFiles(app, /async readPosition\(/, CLIENT_SRC)).toEqual([
+      "application/finance/projectFinancialService.ts",
+    ]);
+  });
+
+  it("domain money bases (orderValueMinor, isRegisteredCustomerDebt) are defined exactly once", () => {
+    const domain = fileURLToPath(new URL("../../../../src/domain", import.meta.url));
+    expect(definitionFiles(domain, /export function orderValueMinor/, domain)).toEqual([
+      "craft-order/policies.ts",
+    ]);
+    expect(definitionFiles(domain, /export function isRegisteredCustomerDebt/, domain)).toEqual([
+      "craft-order/policies.ts",
+    ]);
+    /* والتطبيق لا يعرّف منافسًا لهما — الاستيراد فقط. */
+    const app = join(CLIENT_SRC, "application");
+    expect(definitionFiles(app, /function orderValueMinor/, CLIENT_SRC)).toEqual([]);
+    expect(definitionFiles(app, /function isRegisteredCustomerDebt/, CLIENT_SRC)).toEqual([]);
+  });
+});

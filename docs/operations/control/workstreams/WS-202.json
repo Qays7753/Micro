@@ -1,0 +1,48 @@
+{
+  "id": "WS-202",
+  "title": "REM-005 — W5-A حراس اتجاه المال وتوثيق مسؤولية الملفات الكبيرة (فصل F-043/F-045/F-048 + ST)",
+  "status": "IN_REVIEW",
+  "items": [
+    "REM-005"
+  ],
+  "branch": "fix/w5a-financial-guardrails-20260929",
+  "base_sha": "ab8f798ddc7bd1c0ceec72d99b5fa918eedea5be",
+  "areas": [
+    "guards",
+    "tests",
+    "docs"
+  ],
+  "contracts": [
+    "docs/contracts/40-technical-ownership-map-contract.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 5, slice A)",
+  "pr": 273,
+  "started_at": "2026-09-30T00:10:00+03:00",
+  "updated_at": "2026-09-30T00:50:00+03:00",
+  "next_action": "PR #273 للمراجعة والدمج؛ بعده التحقق على main ثم إغلاق الموجة 5 والبرنامج.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-202",
+      "reason": "فتح Claim لشريحة W5-A من origin/main ab8f798 بعد إغلاق Wave 4 VERIFIED."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:273",
+      "reason": "اكتمل تنفيذ W5-A وافتُتح PR #273 ببوابات خضراء على الرأس f9fb72b (الحارس 3/3، جذر 514/514، نموذج 1996/1996، صفر حزمة)."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: ملف حارس واحد + قسم توثيقي في عقد 40 + سجلات التتبع — صفر كود تشغيل، صفر UI، صفر بنية (لا نقل ملفات ولا تقسيم).",
+    "حد الاستعادة: ab8f798.",
+    "ميثاق الموجة 5 «المطلوب الآن فقط»: حراس + توثيق؛ F-043 بنيوي خلف بوابة المالك (إعلان الاتجاه قرار مالك ونقل englishNumeric نقل ملف)، F-045 حذف/دمج CSS خارج نطاق البرنامج صراحة، F-048 تقسيمه خلف بوابة لكل موجة وجزؤه التوثيقي هنا.",
+    "الحزمة: صفر (اختبار + توثيق فقط)."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-005.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W5A-SLICE-REPORT-2026-09-29.md"
+  ]
+}
