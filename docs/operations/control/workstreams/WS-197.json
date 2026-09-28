@@ -1,7 +1,7 @@
 {
   "id": "WS-197",
   "title": "REM-004 — W4-B أرقام الإصدار الحية ودبابيس الدمج المؤرخة (F-033 + F-036)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-004"
   ],
@@ -20,8 +20,8 @@
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice B)",
   "pr": 267,
   "started_at": "2026-09-29T15:05:00+03:00",
-  "updated_at": "2026-09-29T15:30:00+03:00",
-  "next_action": "PR #267 مفتوح للمراجعة والدمج؛ بعده التحقق على main ثم إغلاق WS-197 VERIFIED ثم W4-C (F-037).",
+  "updated_at": "2026-09-29T16:00:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W4-B متحققة على main ed0c703 (تطابق الشجرة مع رأس PR: فرق فارغ — CI الرأس يثبتها).",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -34,6 +34,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:267",
       "reason": "اكتمل تنفيذ W4-B وافتُتح PR #267 ببوابات خضراء على الرأس 1b98158."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-267",
+      "reason": "دُمج PR #267 (Squash) عند ed0c703af1172a2a8b08414f55856aaa2255e098 بعد Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "تطابق الشجرة: git diff 9c3d367..origin/main فارغ (CI أخضر على رأس PR يثبت نفس الشجرة)؛ التحقق المباشر على main: 21 تصحيحًا حاضرًا (12+9)، صفر «PR #159 مفتوح» في الملفين الحيين، «38/30 اليوم» في AGENTS، الحراس 1848/0 و318/0، اختبارات التوثيق 37/37 على main المدمج."
     }
   ],
   "migration_baseline": false,
@@ -44,6 +56,9 @@
   ],
   "evidence": [
     "docs/operations/control/items/REM-004.json",
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4B-SLICE-REPORT-2026-09-29.md"
-  ]
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4B-SLICE-REPORT-2026-09-29.md",
+    "https://github.com/Qays7753/Micro/pull/267"
+  ],
+  "merge_sha": "ed0c703af1172a2a8b08414f55856aaa2255e098",
+  "verified_on_main_sha": "ed0c703af1172a2a8b08414f55856aaa2255e098"
 }

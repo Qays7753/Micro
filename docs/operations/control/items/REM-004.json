@@ -72,7 +72,7 @@
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "migration_baseline": false,
-  "next_action": "W4-P1 VERIFIED على main (WS-196 — PR #265 عند 05ef339، تحقق مباشر من الشجرة الحية). W4-B قيد التنفيذ عبر WS-197 (F-033 أرقام حية + حارس أرقام، F-036 تصحيحات مؤرخة ودبابيس c0469e2). بعدها W4-C (F-037 سجل التغيير) ثم W4-D (F-044) ثم W4-E (F-047) ثم F-051/053/058 ثم الإغلاق. F-055/D-13 وF-060/QR-5 مؤجلان بقرار المالك ولا يمنعان الشرائح المستقلة.",
+  "next_action": "W4-B VERIFIED على main ed0c703 (WS-197 — PR #267 بتطابق شجرة). W4-C قيد التنفيذ عبر WS-198 (F-037 سجل تعويضي + امتداد فئة F-036 لـPRs #190–#205). بعدها W4-D (F-044) ثم W4-E (F-047) ثم F-051/053/058 ثم الإغلاق. F-055/D-13 وF-060/QR-5 مؤجلان بقرار المالك.",
   "tests_required": [
     "كل شريحة: بوابات validate/guards المباشرة + الاختبارات المركزة لما تلمسه",
     "F-056/F-057: اختبارات الحراس الذاتية (أصناف مؤقتة) تتوسع مع النمط",
