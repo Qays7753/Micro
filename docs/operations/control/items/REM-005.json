@@ -1,0 +1,77 @@
+{
+  "id": "REM-005",
+  "title": "Wave 5 — الحراسة المالية وقابلية التطور (بلا UI وبلا بنية)",
+  "type": "DEFECT",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "master-remediation-wave-5",
+  "areas": [
+    "guards",
+    "tests",
+    "docs"
+  ],
+  "layers": [
+    "guards",
+    "tests",
+    "docs"
+  ],
+  "owner": "Product owner / Z AI execution with Manus coordination",
+  "next_action": "تنفيذ الموجة 5 من أصل إغلاق Wave 4 (ab8f798): حراس اتجاه الطبقات المالية (لا إعادة حساب مال في الواجهة) + حارس المعادلة الواحدة (تعريف وحيد للقراءات الكنسية) + توثيق مسؤولية الملفات المالية الكبيرة (جزء F-048 التوثيقي) + فصل F-043/F-045/F-048 وخريطة ST الموثقة.",
+  "updated_at": "2026-09-29",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-29",
+      "actor": "program:master-remediation",
+      "reason": "تسجيل الموجة 5 (F-043/F-045/F-048 + ST المرتبط بسلامة الحساب/التصدير/التاريخ/الاختبارات) بعد إغلاق REM-004 VERIFIED على main ab8f798."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-202",
+      "reason": "فتح Claim WS-202 لشريحة W5-A من origin/main ab8f798."
+    }
+  ],
+  "tests_required": [
+    "focused guard tests",
+    "root suite",
+    "prototype suite",
+    "typecheck",
+    "lint",
+    "format",
+    "guards",
+    "validate"
+  ],
+  "dependencies": [
+    "REM-004"
+  ],
+  "source": {
+    "report": "CONCEPT-POLICY-TERMINOLOGY-INTEGRITY-AUDIT-AR.md (branch docs/concept-policy-terminology-integrity-audit-2026-09-27)",
+    "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
+    "evidence": [
+      "docs/operations/current-state.md",
+      "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+    ]
+  },
+  "migration_baseline": false,
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "summary": "تنفيذ نطاق الموجة 5 من الميثاق (حراس اتجاه الطبقات المالية ومنع المعادلة المكررة + الجزء التوثيقي من F-048) بلا UI وبلا أي عمل بنيوي: حارس يمنع إعادة حساب المال في الواجهة، حارس تعريف وحيد للقراءات الكنسية، توثيق مسؤولية الملفات المالية الكبيرة دون تقسيم، وفصل F-043/F-045/F-048 مع خريطة ST.",
+  "acceptance": [
+    "صفر حساب مالي على معرفات Minor في ملفات عرض الإنتاج (pages/components/app) — مثبتًا بحارس استاتيكي يفشل بالاسم",
+    "تعريف وحيد لكل قارئ كنوني (readRecordedPeriodResult وreadPosition في التطبيق، orderValueMinor وisRegisteredCustomerDebt في المجال) — مثبتًا بحارس",
+    "عقد 40 يوثق مسؤولية كل ملف مالي كبير وقابلية اكتشافه بلا أي تقسيم",
+    "فصل F-043 (بنيوي خلف بوابة المالك) وF-045 (CSS خارج البرنامج) وF-048 (تقسيمه خلف بوابة لكل موجة) موثقًا بخريطة ST"
+  ],
+  "contracts": [
+    "docs/contracts/40-technical-ownership-map-contract.md"
+  ],
+  "related_items": [],
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit-findings:F-043,F-045,F-048 + ST-07..ST-13/ST-17..ST-19 (guard gap: no static prevention of money recomputation in UI or competing equation copies; large financial files lack a documented responsibility map without owner-gated splitting)",
+  "evidence": [
+    "docs/operations/current-state.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W5A-SLICE-REPORT-2026-09-29.md"
+  ]
+}

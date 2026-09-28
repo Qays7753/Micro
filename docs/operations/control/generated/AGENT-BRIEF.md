@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 42
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · CLAIMED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 42
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-202 | CLAIMED | \`fix/w5a-financial-guardrails-20260929\` | — | REM-005 | تنفيذ W5-A من origin/main ab8f798: حارس moneyLayerGuard (صفر حساب مالي في الواجهة + تعريف وحيد للقراءات الكنسية) + قسم مسؤولية الملفات المالية الكبيرة في عقد 40 (جزء F-048 التوثيقي بلا تقسيم) + فصل F-043 (بنيوي خلف بوابة المالك) وF-045 (CSS خارج البرنامج). |
