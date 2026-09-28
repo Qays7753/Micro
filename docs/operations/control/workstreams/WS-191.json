@@ -1,7 +1,7 @@
 {
   "id": "WS-191",
   "title": "REM-002 — W2-D الإعلانات الكنسية والعقود (F-008/F-019/F-061/F-014/F-018/F-015)",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "items": [
     "REM-002"
   ],
@@ -19,10 +19,10 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 2, slice D)",
-  "pr": null,
+  "pr": 256,
   "started_at": "2026-09-29T01:25:00+03:00",
-  "updated_at": "2026-09-29T01:25:00+03:00",
-  "next_action": "تنفيذ W2-D: إعلان كلفة التوصيل (بلا طرح)، فصل الخسارة غير النقدية محايد المعادلة، عقود 05/14، توثيق F-015 المحفوظة.",
+  "updated_at": "2026-09-29T11:20:00+03:00",
+  "next_action": "لا إجراء إضافي؛ W2-D متحققة على main وWave 2 مكتملة (REM-002 VERIFIED).",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -35,6 +35,24 @@
       "changed_at": "2026-09-29",
       "actor": "claim:ws-191",
       "reason": "تنفيذ إعلانات القارئ والعقود الموثقة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:256",
+      "reason": "افتُتح PR #256 بالإعلانات الكنسية وإعادة كتابة العقود."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-256",
+      "reason": "دُمجت Squash عند 42d9c82 بعد أن دُفعت دلتا ميزانية CI (Node 22) داخل الشريحة."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI وCloudflare ناجحان على SHA الدمج 42d9c82 على main نفسه."
     }
   ],
   "migration_baseline": false,
@@ -44,6 +62,9 @@
   ],
   "evidence": [
     "docs/operations/control/items/REM-002.json",
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2D-SLICE-REPORT-2026-09-29.md"
-  ]
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2D-SLICE-REPORT-2026-09-29.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE2-WAVE-REPORT-2026-09-29.md"
+  ],
+  "verified_on_main_sha": "42d9c82d11b56f65eec41d693f2c03b76ee3614d",
+  "merge_sha": "42d9c82d11b56f65eec41d693f2c03b76ee3614d"
 }
