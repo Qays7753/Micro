@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-197 | CLAIMED | \`fix/w4b-docs-numbers-159pins-20260929\` | — | REM-004 | اكتمل تنفيذ W4-B (F-033 + F-036) على الفرع — التقرير: W4B-SLICE-REPORT-2026-09-29.md. البوابة التالية: PR ثم الدمج والتحقق على main، ثم W4-C (F-037 سجل التغيير). |
+| WS-197 | IN_REVIEW | \`fix/w4b-docs-numbers-159pins-20260929\` | 267 | REM-004 | PR #267 مفتوح للمراجعة والدمج؛ بعده التحقق على main ثم إغلاق WS-197 VERIFIED ثم W4-C (F-037). |
