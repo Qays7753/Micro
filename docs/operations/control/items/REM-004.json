@@ -2,7 +2,7 @@
   "id": "REM-004",
   "title": "Wave 4 — التوثيق والسلطة والثبات والتاريخ والحراس (بلا UI)",
   "type": "DEFECT",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "master-remediation-wave-4",
   "summary": "تنفيذ نطاق الموجة 4 من الميثاق (F-033..F-042 وF-044 وF-046 وF-047 وF-051..F-060 حيث يمس التوثيق/السلطة/الثبات/التاريخ/الحراس): أرقام الإصدار والمعمارية قابلة للتحقق ومؤرخة بـSHA، تصحيح ازدواج current-state وتأكيداته التاريخية الميتة، فهرس وثائق معماري موثوق بلا مصدر منافس، توسيع الـplaybook عبر الطبقات غير المرئية، تثبيت سلم القرش بمنزلتين وتوقيت عمّان، تصليد حراس الأسرار/التركيز/الكيانات/العقود، واختبارات عقد مستقلة بلا نسخ معادلات الإنتاج — مع تأجيل موثق: F-040 خلف D-12، F-055 خلف D-13، F-060 خلف QR-5، F-046 محفوظة (CSS خارج البرنامج)، وأجزاء العرض = DEFERRED_UI.",
@@ -66,13 +66,37 @@
       "changed_at": "2026-09-29",
       "actor": "claim:ws-195",
       "reason": "فتح Claim WS-195 لشريحة W4-A (حقيقة وثائق الحوكمة) من origin/main 15060f0 بعد تحليل الإخصائيين 11-a/11-b/11-c."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-195..ws-201",
+      "reason": "تنفيذ شرائح الموجة الرابعة عبر WS-195..WS-201: W4-A (PR #264) ثم W4-P1 (#265) ثم W4-B (#267) ثم W4-C (#268) ثم W4-D (#269) ثم W4-E (#270) ثم W4-F (#271)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:264,pr:265,pr:267,pr:268,pr:269,pr:270,pr:271",
+      "reason": "شرائح الموجة عبر PRsها السبعة مع إغلاق كل WS سابقة VERIFIED عند أول التزام الشريحة التالية (نمط WS-195..WS-200) وإغلاق WS-201 في شريحة الإغلاق هذه."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-271",
+      "reason": "آخر شريحة (W4-F) دُمجت عند e13a226732e3be6fce5ff514c49cc6409cd87655 — الشجرة الكاملة للموجة على main."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "CI وCloudflare ناجحان على SHA الدمج نفسه لكل شريحة (d7b208a و05ef339 وed0c703 و46f51d0 و988883a و12729a6 وe13a226)؛ التحقق المباشر الحي لكل شريحة عند الإغلاق المتسلسل؛ المصفوفة الكاملة F-033..F-060 في تقرير الموجة WAVE4-WAVE-REPORT-2026-09-29.md."
     }
   ],
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "migration_baseline": false,
-  "next_action": "W4-C VERIFIED على main 46f51d0 (WS-198 — PR #268). W4-D قيد التنفيذ عبر WS-199 (F-044 تغطية ESLint لملفات اختبار الجذر). بعدها W4-E (F-047) ثم F-051/053/058 ثم الإغلاق. F-055/D-13 وF-060/QR-5 مؤجلان بقرار المالك.",
+  "next_action": "الموجة 4 مغلقة VERIFIED على main e13a226 (شرائحها: W4-A d7b208a وW4-P1 05ef339 وW4-B ed0c703 وW4-C 46f51d0 وW4-D 988883a وW4-E 12729a6 وW4-F e13a226 — كلها CI+Cloudflare على SHAs الدمج نفسها). الفصل الكامل في WAVE4-WAVE-REPORT-2026-09-29.md. الموجة 5 (F-043/F-045/F-048 + ST تحت البوابة البنيوية) هي التالية.",
   "tests_required": [
     "كل شريحة: بوابات validate/guards المباشرة + الاختبارات المركزة لما تلمسه",
     "F-056/F-057: اختبارات الحراس الذاتية (أصناف مؤقتة) تتوسع مع النمط",
@@ -84,5 +108,7 @@
     "persistence",
     "history",
     "tests"
-  ]
+  ],
+  "merge_sha": "e13a226732e3be6fce5ff514c49cc6409cd87655",
+  "verified_on_main_sha": "e13a226732e3be6fce5ff514c49cc6409cd87655"
 }

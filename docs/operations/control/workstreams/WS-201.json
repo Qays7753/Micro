@@ -1,7 +1,7 @@
 {
   "id": "WS-201",
   "title": "REM-004 — W4-F تحصين الثبات: اصطدام معرفات أحداث الاستيراد وحارس saveOrder وحوامل العقود (F-051/F-053/F-058)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-004"
   ],
@@ -20,8 +20,8 @@
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice F)",
   "pr": 271,
   "started_at": "2026-09-29T21:35:00+03:00",
-  "updated_at": "2026-09-29T22:30:00+03:00",
-  "next_action": "PR #271 للمراجعة والدمج؛ بعده التحقق على main ثم إغلاق الموجة 4.",
+  "updated_at": "2026-09-29T23:30:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W4-F متحققة على main e13a226 (تطابق الشجرة مع رأس PR).",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -34,6 +34,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:271",
       "reason": "اكتمل تنفيذ W4-F وافتُتح PR #271 ببوابات خضراء على الرأس e8f54e4 (نقل 140/140، جذر 514/514، نموذج 1993/1993، الحزمة 649,687 خام / 154,591 gzip — محايدة البايتات)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-271",
+      "reason": "دُمج PR #271 (Squash) عند e13a226 بعد Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "تطابق الشجرة (رأس origin/main = e13a226)؛ التحقق المباشر على main: فحص هوية أحداث الطلب حاضر (orderEventIds)، دبوس :819 مقلوب موثقًا، القارئات الثلاث مقواة (الهوية+النوع)، حارسا saveOrder والعقود حاضران — 151 اختبار تركيز أخضر على الشجرة الحية؛ CI + Cloudflare على الدمج أخضر."
     }
   ],
   "migration_baseline": false,
@@ -46,5 +58,7 @@
   "evidence": [
     "docs/operations/control/items/REM-004.json",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4F-SLICE-REPORT-2026-09-29.md"
-  ]
+  ],
+  "merge_sha": "e13a226732e3be6fce5ff514c49cc6409cd87655",
+  "verified_on_main_sha": "e13a226732e3be6fce5ff514c49cc6409cd87655"
 }
