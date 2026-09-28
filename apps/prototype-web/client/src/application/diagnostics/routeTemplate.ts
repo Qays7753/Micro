@@ -13,16 +13,27 @@
  * W4-E (F-047): اكتمل الجدول بكل مسارات MicroRouter الحية — كانت المسارات
  * العشرة التالية تؤول صامتة إلى /unknown (finance/more وupcoming وrecurring
  * وموجاتها، وnew/owner_withdrawal_cash، وloans/received وموجتيها، وmarket).
- * أُعيد التمثيل سلسلة واحدة مفصولة بفراغات يفكها المحرك عند الإقلاع —
- * نفس المحتوى والترتيب الحرفيين بتكلفة إقلاع أصغر (المصفوفة الحرفية
- * المتكررة كانت أغلى)، والمسار النوعي يسبق أخاه البديل (:id/:type)
- * كي لا يبتلعه. اختبار التزامن (routeTemplateSync) يشتق المسارات من
- * MicroRouter نفسه ويثبت عدم انهيار أي منها إلى /unknown.
+ * ولأن ميزانية حزمة الدخول (D-034) لا تحتمل تمثيلًا حرفيًا متكررًا، يُخزَّن
+ * الجدول مجموعاتٍ «قسم:مسار,مسار,…» يفكها المحرك عند الإقلاع: اسم القسم
+ * المشترك (مثل finance) يُكتب مرة واحدة، والجذر «/» ثابت أول. اختبار
+ * التزامن (routeTemplateSync) يشتق مسارات MicroRouter من مصدره نفسه ويثبت
+ * أن كل مسار حي يعود بقالبه المتوقع حرفيًا — أي خطأ ترميز يفشل بالاسم.
+ * داخل كل مجموعة يسبق المسار النوعي أخاه البديل (owner_withdrawal_cash
+ * قبل :type، وrecurring/new قبل recurring/:id) كي لا يبتلعه.
  */
-const ROUTE_TEMPLATES: readonly string[] =
-  "/ /assets /assets/new /assets/:id /cash /cash/count /cash/distribute /cash/transfer /cash/entry/:id/reverse /cash/wallet/new /cash/wallet/:id /cash/wallet/:id/adjust /cash/wallet/:id/opening-later /catalog /collect /direct-sales/new /direct-sales/:id /finance /finance/activity /finance/g5/declaration /finance/more /finance/new/owner_withdrawal_cash /finance/new/:type /finance/owner-entitlement /finance/recurring /finance/recurring/new /finance/recurring/:id /finance/recurring/:id/edit /finance/statement /finance/upcoming /finance/withdraw /foundation /inventory /inventory/material/new /inventory/material/:id/confirm /inventory/movement/:id/reverse /inventory/movement/:type /loans /loans/new /loans/:id /loans/received/new /loans/received/:id /market /orders /orders/new /orders/draft/:id /orders/draft/:id/agreement /orders/draft/:id/cost /orders/:id /orders/:id/deliver /parties /profile /review /schedule /schedule/:id /settings /setup /share/preview /suppliers /suppliers/purchase/:id /suppliers/purchase/:id/payment /tools /tools/calculator /tools/estimate/:id /tools/integrity".split(
-    " ",
-  );
+const ROUTE_GROUPS =
+  "assets:new,:id cash:count,distribute,transfer,entry/:id/reverse,wallet/new,wallet/:id,wallet/:id/adjust,wallet/:id/opening-later catalog collect direct-sales:new,:id finance:activity,g5/declaration,more,new/owner_withdrawal_cash,new/:type,owner-entitlement,recurring,recurring/new,recurring/:id,recurring/:id/edit,statement,upcoming,withdraw foundation inventory:material/new,material/:id/confirm,movement/:id/reverse,movement/:type loans:new,:id,received/new,received/:id market orders:new,draft/:id,draft/:id/agreement,draft/:id/cost,:id,:id/deliver parties profile review schedule::id settings setup share:preview suppliers:purchase/:id,purchase/:id/payment tools:calculator,estimate/:id,integrity";
+
+const ROUTE_TEMPLATES: string[] = ["/"];
+for (const group of ROUTE_GROUPS.split(" ")) {
+  const colon = group.indexOf(":");
+  const section = colon < 0 ? group : group.slice(0, colon);
+  ROUTE_TEMPLATES.push(`/${section}`);
+  if (colon < 0) continue;
+  for (const tail of group.slice(colon + 1).split(",")) {
+    ROUTE_TEMPLATES.push(`/${section}/${tail}`);
+  }
+}
 
 const UNKNOWN_ROUTE_TEMPLATE = "/unknown";
 
