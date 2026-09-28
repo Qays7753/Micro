@@ -1,7 +1,7 @@
 {
   "id": "WS-196",
   "title": "REM-004 — W4-P1 حراس التهيئة وسطرا العقدين (F-056/F-057 + F-052/F-054)",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "REM-004"
   ],
@@ -17,24 +17,47 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice P1)",
-  "pr": null,
+  "pr": 265,
   "started_at": "2026-09-29T14:00:00+03:00",
-  "updated_at": "2026-09-29T14:00:00+03:00",
-  "next_action": "تنفيذ W4-P1: تضييق استثناء fixtures في حارس الأسرار إلى المسار الموثق وحده (docs/fixtures تُفحص الآن)، توسيع نمط تركيز الاختبارات ليشمل skipIf/runIf/fixme/todo، وسطر عقدي 28 (ترحيل إرث الهدر) و05 (حدود الصفر بين العرض والمجال).",
+  "updated_at": "2026-09-29T15:05:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W4-P1 متحققة على main (05ef339 ضمن b9e86e7). البوابة التالية: بقية شرائح الموجة 4 (W4-B فصاعدًا).",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-196",
       "reason": "فتح Claim لشريحة W4-P1 من origin/main d7b208a بعد دمج W4-A والتحقق منه."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:265",
+      "reason": "اكتمل تنفيذ W4-P1 وافتُتح PR #265 ببوابات خضراء على الرأس f57b121."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-265",
+      "reason": "دُمج PR #265 (Squash) عند 05ef339d107e1746da2cd28a4070b8685510c2dd بعد Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "تحقق مباشر على الشجرة الحية (b9e86e7 تتضمن 05ef339): الإصلاحات الأربعة موجودة بالنص (F-056 EXCLUDED_DIR_PATHS، F-057 النمط الموسع، F-052 عقد 28 §10، F-054 عقد 05 §4.5)؛ الحراس فعلًا: أسرار 1846/0 وتركيز 318/0 بأكواد خروج مباشرة؛ اختبارات الحراس الذاتية 21/21؛ CI وCloudflare نجاح على SHA الدمج نفسه 05ef339."
     }
   ],
   "migration_baseline": false,
+  "merge_sha": "05ef339d107e1746da2cd28a4070b8685510c2dd",
+  "verified_on_main_sha": "05ef339d107e1746da2cd28a4070b8685510c2dd",
   "notes": [
     "النطاق: حارسا scripts + سطرا عقد + اختباراتهما الذاتية — صفر كود تشغيل إنتاج.",
-    "حد الاستعادة: d7b208a."
+    "حد الاستعادة: d7b208a.",
+    "التحقق تم من الشجرة الحية لا من التقرير وحده: فحص نصي + تشغيل الحراس والاختبارات مباشرة + فحص CI على SHA الدمج."
   ],
   "evidence": [
-    "docs/operations/control/items/REM-004.json"
+    "docs/operations/control/items/REM-004.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4P1-SLICE-REPORT-2026-09-29.md",
+    "https://github.com/Qays7753/Micro/pull/265"
   ]
 }
