@@ -68,7 +68,7 @@
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "migration_baseline": false,
-  "next_action": "W3-A أُغلقت VERIFIED على main 47825ed (WS-192). شريحة W3-B قيد التنفيذ عبر WS-193 من main 9e14070 (F-020/F-024/F-028). بعدها W3-C (قاموس 08 للدلالات المشحّنة + تقرير إغلاق الموجة + REM-003 VERIFIED).",
+  "next_action": "W3-A VERIFIED على 47825ed وW3-B VERIFIED على 98a3517 (WS-192/WS-193). الشريحة الأخيرة W3-C قيد التنفيذ عبر WS-194 (قاموس 08 للدلالات المشحّنة) ثم إغلاق الموجة بـPR إغلاق مستقل (تقرير الموجة + مصفوفة F-020..F-032 + REM-003 VERIFIED + current-state/todo).",
   "tests_required": [
     "قلب موثق لدبوس المصطلح الممنوع مع حارس سلبي not.toContain",
     "اختبارات التحلل والجسر وذهاب-وعودة exe014 خضراء بعد التبديلات",
