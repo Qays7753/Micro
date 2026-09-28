@@ -1,7 +1,7 @@
 {
   "id": "WS-195",
   "title": "REM-004 — W4-A حقيقة وثائق الحوكمة (F-035/F-038/F-039/F-034/F-041 + تعليق F-040 + F-042)",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "REM-004"
   ],
@@ -16,16 +16,34 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice A)",
-  "pr": null,
+  "pr": 264,
   "started_at": "2026-09-29T13:00:00+03:00",
-  "updated_at": "2026-09-29T13:00:00+03:00",
-  "next_action": "تنفيذ W4-A: تصحيح أرقام ARCHITECTURE.md (53 خدمة/18 وحدة/37 مخزنًا/38-30 عند 15060f0)، فهرسة وثائق المعمارية الست عشرة، تصحيح حال FT-01/05/09 بإضافة مؤرخة، ترويسة current-state + إزالة ازدواج §62 بلا كسر مراجع، مسار IMPORT_BOUNDARIES الكامل + قسم playbook للطبقات غير المرئية، تعليق D-12 على design-tokens، وتثبيت «قرش» في الوثيقتين الحاكمتين.",
+  "updated_at": "2026-09-29T14:05:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W4-A متحققة على main d7b208a. البوابة التالية: بقية شرائح الموجة 4.",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-195",
       "reason": "فتح Claim لشريحة W4-A من origin/main 15060f0 — توثيق صرف بلا كود تشغيل ولا حزمة ولا دبابيس."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:264",
+      "reason": "اكتمل تنفيذ W4-A وافتُتح PR #264 ببوابات خضراء على الرأس."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-264",
+      "reason": "دُمج PR #264 (Squash) عند d7b208ac153dbb3a3c65991b6cbe4d0dae6bd34d بعد Merge Manifest."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI checks = success وCloudflare Pages = success على SHA الدمج نفسه؛ الشجرة مطابقة (eaa62b9)؛ توثيق صرف بلا كود تشغيل."
     }
   ],
   "migration_baseline": false,
@@ -34,6 +52,10 @@
     "حد الاستعادة: 15060f0 — توثيق بأثر راجع واحد."
   ],
   "evidence": [
-    "docs/operations/control/items/REM-004.json"
-  ]
+    "docs/operations/control/items/REM-004.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4A-SLICE-REPORT-2026-09-29.md",
+    "https://github.com/Qays7753/Micro/pull/264"
+  ],
+  "merge_sha": "d7b208ac153dbb3a3c65991b6cbe4d0dae6bd34d",
+  "verified_on_main_sha": "d7b208ac153dbb3a3c65991b6cbe4d0dae6bd34d"
 }

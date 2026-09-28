@@ -100,13 +100,20 @@ describe("check-secrets — tree scan on fixtures", () => {
     expect(rendered).not.toContain(FAKE_OPENAI);
   });
 
-  it("skips excluded directories (node_modules/dist/fixtures)", () => {
+  it("skips excluded directories (node_modules/dist) and the documented secrets-fixture path only", () => {
     const root = makeTempDir();
     fs.mkdirSync(path.join(root, "node_modules", "pkg"), { recursive: true });
     fs.writeFileSync(path.join(root, "node_modules", "pkg", "dep.js"), FAKE_GITHUB_FINE);
-    fs.mkdirSync(path.join(root, "fixtures"), { recursive: true });
-    fs.writeFileSync(path.join(root, "fixtures", "sample.txt"), FAKE_AWS_KEY);
+    fs.mkdirSync(path.join(root, "scripts", "fixtures", "secrets"), { recursive: true });
+    fs.writeFileSync(path.join(root, "scripts", "fixtures", "secrets", "sample.txt"), FAKE_AWS_KEY);
     expect(scanTree(root)).toHaveLength(0);
+  });
+
+  it("F-056: scans a plain fixtures dir — only the documented path is excluded", () => {
+    const root = makeTempDir();
+    fs.mkdirSync(path.join(root, "docs", "fixtures"), { recursive: true });
+    fs.writeFileSync(path.join(root, "docs", "fixtures", "sample.txt"), FAKE_AWS_KEY);
+    expect(scanTree(root)).toHaveLength(1);
   });
 
   it("scans binary-ish files by bytes without crashing", () => {

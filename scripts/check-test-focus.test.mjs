@@ -118,6 +118,23 @@ describe("check-test-focus — detection", () => {
     expect(findings[0]?.method).toBe("only");
     expect(findings[0]?.line).toBe(2);
   });
+
+  it("F-057: catches conditional focus names (skipIf/runIf/fixme/todo) in test files", () => {
+    const root = makeTempDir();
+    writeTestFile(
+      root,
+      "tests/conditional.test.ts",
+      [
+        `it${dotCall("skipIf")}("a", false, () => {});`,
+        `it${dotCall("runIf")}("b", true, () => {});`,
+        `it${dotCall("fixme")}("c", () => {});`,
+        `describe${dotCall("todo")}("d", () => {});`,
+        "",
+      ].join("\n"),
+    );
+    const findings = scanTestTree(root);
+    expect(findings.map(finding => finding.method).sort()).toEqual(["fixme", "runIf", "skipIf", "todo"]);
+  });
 });
 
 describe("check-test-focus — CLI behavior", () => {

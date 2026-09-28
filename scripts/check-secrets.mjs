@@ -43,10 +43,15 @@ export const SECRET_PATTERNS = [
 /* أسماء ملفات لا يجوز وجودها في المستودع أصلًا (مفاتيح/أسرار بلا استثناء). */
 export const SECRET_FILE_NAMES = [/^\.env(\..+)?$/, /\.pem$/, /\.key$/, /^id_rsa/, /\.p12$/, /\.pfx$/];
 
-export const EXCLUDED_DIR_NAMES = ["node_modules", ".git", "dist", "coverage", "fixtures"];
+export const EXCLUDED_DIR_NAMES = ["node_modules", ".git", "dist", "coverage"];
+/* F-056 (W4-P1 — REM-004): الاستثناء ضاق من اسم مجلد «fixtures» (أي مجلد
+ * بهذا الاسم في أي مسار — كان يُخرج docs/fixtures وغيرها من الفحص!) إلى
+ * المسار الموثق وحده: scripts/fixtures/secrets (عينات مزيفة للاختبار الذاتي).
+ * المجلدات الأخرى المسماة fixtures تُفحص الآن كأي مصدر. */
+export const EXCLUDED_DIR_PATHS = ["scripts/fixtures/secrets"];
 
 /** حصر ملفات المستودع (بلا رمزيات ولا مجلدات مستثناة) — حتمي بترتيب ثابت. */
-export function listFiles(root, excludedDirNames = EXCLUDED_DIR_NAMES) {
+export function listFiles(root, excludedDirNames = EXCLUDED_DIR_NAMES, excludedDirPaths = EXCLUDED_DIR_PATHS) {
   const files = [];
   const stack = [path.resolve(root)];
   while (stack.length > 0) {
@@ -61,7 +66,12 @@ export function listFiles(root, excludedDirNames = EXCLUDED_DIR_NAMES) {
     for (const entry of entries) {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (!excludedDirNames.includes(entry.name)) stack.push(full);
+        if (excludedDirNames.includes(entry.name)) continue;
+        /* F-056: استثناء المسار الموثق وحده لا اسم المجلد. */
+        const relative = path.relative(path.resolve(root), full).split(path.sep).join("/");
+        if (excludedDirPaths.some(excluded => relative === excluded || relative.startsWith(`${excluded}/`)))
+          continue;
+        stack.push(full);
         continue;
       }
       if (!entry.isFile()) continue;
